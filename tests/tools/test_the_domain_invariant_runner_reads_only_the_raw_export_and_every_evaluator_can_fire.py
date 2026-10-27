@@ -73,6 +73,10 @@ INVARIANTS = [
 NOT_REACHED_BY_THE_FIXTURE = {
     "INV_ANNUAL_USE_BOOK_MEDIAN": "a book median needs ten account-years per TDCV row",
     "INV_CROSS_FUEL_PRICE_SCALE": "it takes its rows from the two SVT invariants; tested on its own below",
+    "INV_RENEWAL_NOTICE_42_TO_49_DAYS": "reads the company's offers; every leg tested on its own below",
+    "INV_COLLECTIONS_EVENTS_ORDERED": "reads the collections journeys; every leg tested on its own below",
+    "INV_OVERDUE_WITHIN_BALANCE": "reads the collections journeys; every leg tested on its own below",
+    "INV_STATUTE_BARRED_WRITE_OFF_AGE": "needs a six-year-old debt; every leg tested on its own below",
 }
 
 
@@ -514,6 +518,11 @@ def test_every_leg_of_the_ebss_row_is_reachable():
     book["EB"]["payments"] = [dict(p, payment_method="prepayment") for p in book["EB"]["payments"]]
     pp = _results(book, inv)["INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23"]
     assert (pp["checked"], pp["unbounded"]) == (6, 6), pp                # the row's own GAP
+    book = _ebss_pair()                                                  # joined 12 Nov 2022:
+    book["EB"]["periods"] = [p for p in book["EB"]["periods"] if p["period_start"] >= "2022-11-01"]
+    book["EB"]["periods"][0]["period_start"] = "2022-11-12"              # November is not owed
+    joiner = runner.ev_ebss_credit(None, [runner.Account("EB", book["EB"])])
+    assert [b["side"] for b in joiner.breaches] == ["above"], joiner.breaches  # so its £66 is extra
 
 
 def test_every_leg_of_the_mpan_row_is_reachable():
@@ -524,7 +533,8 @@ def test_every_leg_of_the_mpan_row_is_reachable():
         return [b["side"] for b in runner.ev_mpan_core_format(None, [runner.Account("X", acct)]).breaches]
     assert grade(VALID_MPAN) == []
     assert grade("19494047720") == ["format"]                            # O31: eleven digits
-    assert grade("2400000000010") == ["format"]                          # distributor 24
+    assert grade("0900000000010") == ["format"]                          # no distributor 09
+    assert grade("2400000000013") == []                                  # an IDNO, 24 upward
     assert grade("1000000000116") == ["check digit"]
     assert runner.mpan_check_digit("100000000011") == 0
 
@@ -551,3 +561,83 @@ def test_an_electricity_account_takes_its_households_heating_band_through_the_bi
     assert flags(16000, holds_gas=True) and not flags(16000, holds_gas=False)
     assert not flags(13000, holds_gas=True, with_id=False) and flags(16000, holds_gas=False, with_id=False)
     assert flags(400, holds_gas=True) and flags(400, holds_gas=False)
+
+
+LIMITATION = "limitation_act_1980_s5_six_years_from_due_and_from_the_last_payment"
+
+
+def _bills(acct, *, unpaid=()):
+    """Each period due 14 days after it ends and collected that day, except the months in `unpaid`."""
+    out = []
+    for p in acct["periods"]:
+        due = (runner._d(p["period_end"]) + runner.timedelta(days=14)).isoformat()
+        out.append({"due_date": due, "settled_date": None if p["period_start"][:7] in unpaid else due})
+    return out
+
+
+def _journey(*steps, exit="cured"):
+    return {"journey_exit": exit, "events": [dict({"event": k, "event_date": d}, **(
+        {"event_rule": LIMITATION} if k == "write_off" else {})) for k, d in steps]}
+
+
+def _household(*, journeys=(), unpaid=(), offers=(), tariff="svt", year=2020, payments=True):
+    acct = _account("H", "electricity", rate=15.0, tariff=tariff, year=year)
+    acct["billing_account_id"] = "H"
+    acct["events"] = {"bills": _bills(acct, unpaid=unpaid), "collections_journeys": list(journeys),
+                      "renewal_offers": [{"offer_date": d, "commodity": "electricity"} for d in offers]}
+    if not payments:
+        acct["payments"] = []
+    return [runner.Account("H", acct)]
+
+
+def test_every_leg_of_the_renewal_notice_row_is_reachable():
+    """The fix ends on 1 Jan 2021 (exclusive). An offer 47 days before is inside 42-49; one on the
+    day (O6) is above; one 60 days before is below; none at all is missing, as no notice is kept."""
+    inv = {"lower": -49, "upper": -42}
+
+    def grade(*offers, tariff="fixed"):
+        t = runner.ev_renewal_notice(inv, _household(offers=offers, tariff=tariff))
+        return t.checked, [b["side"] for b in t.breaches]
+    assert grade("2020-11-15") == (1, [])
+    assert grade("2021-01-01") == (1, ["above"])
+    assert grade("2020-11-02") == (1, ["below"])
+    assert grade() == (1, ["missing"])
+    assert grade(tariff="svt") == (0, [])                               # a default tariff has no end
+
+
+def test_every_leg_of_the_collections_order_row_is_reachable():
+    def grade(*steps):
+        return [b["side"] for b in runner.ev_collections_ordered(None, _household(
+            journeys=[_journey(*steps)])).breaches]
+    ordered = (("missed_payment", "2020-03-17"), ("reminder", "2020-03-20"),
+               ("repayment_plan_offer", "2020-04-01"), ("cured", "2020-04-10"))
+    assert grade(*ordered) == []
+    assert grade(*ordered[1:]) == ["no opening"]
+    assert grade(("reminder", "2020-03-10"), *ordered) == ["before opening"]
+    assert grade(ordered[0], ("repayment_plan_offer", "2020-03-18"), ordered[1]) == ["plan before reminder"]
+
+
+def test_an_open_debt_stage_needs_a_bill_unpaid_past_its_due_date():
+    """O18's class: a journey opened when every bill due by then had been collected."""
+    journey = [_journey(("missed_payment", "2020-03-17"), ("cured", "2020-04-10"))]
+    feb_unpaid = runner.ev_overdue_within_balance(None, _household(journeys=journey, unpaid={"2020-02"}))
+    all_paid = runner.ev_overdue_within_balance(None, _household(journeys=journey))
+    assert (feb_unpaid.checked, len(feb_unpaid.breaches)) == (1, 0)
+    assert [b["side"] for b in all_paid.breaches] == ["nothing overdue"]
+
+
+def test_every_leg_of_the_statute_bar_row_is_reachable():
+    """2010's December bill (due 14 Jan 2011) is never collected. Written off on 1 Jun 2017 it is
+    barred; on 1 Dec 2016 it is not yet six years old; and a payment after the bar restarts it."""
+    def grade(when, *, payments=False):
+        h = _household(journeys=[_journey(("missed_payment", "2011-01-15"), ("write_off", when),
+                                          exit="write_off")],
+                       unpaid={"2010-12"}, year=2010, payments=payments)
+        if payments:
+            h[0].payments.append({"payment_date": "2012-01-10", "payment_amount_gbp": 5.0,
+                                  "payment_method": "standard_credit"})
+        t = runner.ev_statute_barred_write_off(None, h)
+        return t.checked, [b["side"] for b in t.breaches]
+    assert grade("2017-06-01") == (1, [])
+    assert grade("2016-12-01") == (1, ["no bill old enough"])
+    assert grade("2017-06-01", payments=True) == (1, ["payment after the bar"])

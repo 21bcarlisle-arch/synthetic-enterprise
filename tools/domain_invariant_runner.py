@@ -84,19 +84,26 @@ def load_invariants(path: Path = INVARIANTS_PATH) -> list[dict]:
     return yaml.safe_load(path.read_text())["invariants"]
 
 
-def load_book(raw_path: Path | None = None, ledger_path: Path | None = None) -> dict[str, dict]:
-    """customer_id -> raw export. From a bundle the export wrote, or produced from a ledger here."""
+def load_book(raw_path: Path | None = None, ledger_path: Path | None = None,
+              events_path: Path | None = None) -> dict[str, dict]:
+    """customer_id -> raw export, its `events` (the company's dated acts) beside it where known.
+    From a bundle the export wrote, or produced from a ledger here."""
     if raw_path is not None:
-        return json.loads(raw_path.read_text())
-    from company.billing.raw_account_export import derived_leaks, raw_account
+        book = json.loads(raw_path.read_text())
+        if events_path is not None:
+            for cid, ev in json.loads(events_path.read_text()).items():
+                if book.get(cid) is not None:
+                    book[cid]["events"] = ev
+        return book
+    from company.billing.raw_account_export import account_events, derived_leaks, raw_account
     ledger = json.loads(ledger_path.read_text())
     out = {}
     for cid, rec in (ledger.get("customers") or {}).items():
-        r = raw_account(cid, rec)
-        leaks = derived_leaks(r)
+        r, ev = raw_account(cid, rec), account_events(cid, rec)
+        leaks = derived_leaks(r) + derived_leaks(ev)
         if leaks:
             raise ValueError("the raw export for {} carries derived fields: {}".format(cid, leaks[:3]))
-        out[cid] = r
+        out[cid] = dict(r, events=ev)
     return out
 
 
@@ -111,6 +118,11 @@ class Account:
         self.payments = sorted((p for p in raw.get("payments", ()) if p.get("payment_date")),
                                key=lambda p: p["payment_date"])
         self.adjustments = raw.get("adjustments") or ()
+        # The company's dated acts (`raw_account_export.account_events`), where the book has them.
+        events = raw.get("events") or {}
+        self.bills = events.get("bills") or ()
+        self.journeys = events.get("collections_journeys") or ()
+        self.renewals = events.get("renewal_offers") or ()
         self.registers = {r.get("register_id") for p in self.periods for r in p.get("reads", ())}
         self.start = _d(self.periods[0]["period_start"]) if self.periods else None
         self.end = _d(self.periods[-1]["period_end"]) if self.periods else None
@@ -985,8 +997,10 @@ def ev_ebss_credit(inv, book):
     for a in book:
         if not a.domestic or a.start is None:
             continue
+        # Owed to whoever held the account at 00:00 on the 1st (guidance 5.4 and 5.8, as the row
+        # now reads): a joiner's first part-month is owed nothing.
         months = [(m, 0.0 if a.fuel == "gas" else amt) for m, amt in EBSS_CREDIT_GBP
-                  if a.start <= _month_end(m) and a.end >= m]
+                  if a.start <= m <= a.end]
         if not months:
             continue
         got = {m: 0.0 for m, _ in months}
@@ -1008,10 +1022,10 @@ def ev_ebss_credit(inv, book):
     return tally
 
 
-#: The MPAN core: 13 digits, a distributor ID of 10-23 first, and a check digit last over the
-#: twelve before it, weighted by these primes, sum mod 11 mod 10
-#: (docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md).
-MPAN_CORE = re.compile(r"(1[0-9]|2[0-3])[0-9]{11}")
+#: The MPAN core: 13 digits, a distributor ID first (10-23 a DNO, 24 upward an IDNO, with no
+#: published upper bound), and a check digit last over the twelve before it, weighted by these
+#: primes, sum mod 11 mod 10 (docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md).
+MPAN_CORE = re.compile(r"[1-9][0-9]{12}")
 MPAN_WEIGHTS = (3, 5, 7, 13, 17, 19, 23, 29, 31, 37, 41, 43)
 
 
@@ -1030,13 +1044,161 @@ def ev_mpan_core_format(inv, book):
             tally.checked += 1
             where = "{} {} from {}".format(a.cid, core or "-", first)
             if not MPAN_CORE.fullmatch(core):
-                tally.hit("breach", where, core, "13 digits, distributor 10-23", "format")
+                tally.hit("breach", where, core, "13 digits, distributor 10 upward", "format")
             elif int(core[-1]) != mpan_check_digit(core[:12]):
                 tally.hit("breach", where, core[-1], mpan_check_digit(core[:12]), "check digit")
     return tally
 
 
-#: invariant ID -> (evaluator, the export field it needs on some period, or None)
+def _households(book) -> dict:
+    """billing account -> its accounts, one per fuel. An export without the id is its own household."""
+    out = defaultdict(list)
+    for a in book:
+        out[a.billing_account or a.cid].append(a)
+    return out
+
+
+def _journeys(accts) -> list[dict]:
+    """The billing account's collections journeys, once: each fuel's record carries the same list."""
+    return list(next((a.journeys for a in accts if a.journeys), ()))
+
+
+def _bills(accts) -> list[tuple[date, date | None]]:
+    """(due date, the day its collection succeeded or None) for every bill the household was sent."""
+    return [(_d(b["due_date"]), _d(b["settled_date"]) if b.get("settled_date") else None)
+            for a in accts for b in a.bills if b.get("due_date")]
+
+
+def _events(journey) -> list[tuple[str, date]]:
+    return sorted(((e.get("event"), _d(e["event_date"])) for e in journey.get("events") or ()
+                   if e.get("event_date")), key=lambda x: x[1])
+
+
+#: How the company's collections journey names its steps (`raw_account_export._journey_events`).
+OPENING_EVENTS = {"missed_payment"}
+REMINDER_EVENTS = {"reminder", "reminder_2"}
+PLAN_EVENTS = {"repayment_plan_offer", "repayment_plan_reoffer", "arrangement_offered"}
+WRITE_OFF_EVENT = "write_off"
+
+
+def _opened(events):
+    return next((d for k, d in events if k in OPENING_EVENTS), None)
+
+
+def ev_renewal_notice(inv, book):
+    """Each fixed term that ended while the account was supplied, against the company's renewal
+    act nearest its end: its offer, since the export carries no notice. E is the term's
+    `tariff_effective_to`, the day it stops applying (read exclusive, as everywhere here). An act
+    more than 90 days before E or more than 31 after belongs to no term this row can see, so a
+    term with none in that span is graded missing: no notice was recorded for it."""
+    lo, hi = int(inv.get("lower", -49)), int(inv.get("upper", -42))
+    tally = Tally("fixed term ending in supply")
+    for a in book:
+        if a.end is None:
+            continue
+        decided = sorted(_d(r["offer_date"]) for r in a.renewals
+                         if r.get("offer_date") and r.get("commodity") in (None, a.fuel))
+        for t in a.terms():
+            if t.get("tariff_type") != "fixed" or not t.get("tariff_effective_to"):
+                continue
+            end = _d(t["tariff_effective_to"])
+            if not (a.start < end <= a.end + timedelta(days=1)):
+                continue
+            near = [d for d in decided if end - timedelta(days=90) <= d <= end + timedelta(days=31)]
+            offset = min(((d - end).days for d in near), key=abs) if near else None
+            tally.band("{} {} term to {}".format(a.cid, a.fuel, end), offset, lo, hi)
+    return tally
+
+
+def ev_collections_ordered(inv, book):
+    """Each journey once per household: it has an opening event, no step dated before it, and its
+    first reminder no later than its first plan offer (the row's order)."""
+    tally = Tally("collections journey")
+    for ba, accts in _households(book).items():
+        for i, j in enumerate(_journeys(accts)):
+            ev = _events(j)
+            if not ev:
+                continue
+            tally.checked += 1
+            opened = _opened(ev)
+            where = "{} journey {} from {}".format(ba, i, ev[0][1])
+            first = {kinds: min((d for k, d in ev if k in kinds), default=None)
+                     for kinds in (frozenset(REMINDER_EVENTS), frozenset(PLAN_EVENTS))}
+            reminder, plan = first[frozenset(REMINDER_EVENTS)], first[frozenset(PLAN_EVENTS)]
+            if opened is None:
+                tally.hit("breach", where, ev[0][0], "a missed payment opens it", "no opening")
+            elif ev[0][1] < opened:
+                tally.hit("breach", where, ev[0][1], opened, "before opening")
+            elif reminder and plan and plan < reminder:
+                tally.hit("breach", where, plan, reminder, "plan before reminder")
+    return tally
+
+
+def ev_overdue_within_balance(inv, book):
+    """The row's second leg only: an open debt stage has a bill unpaid past its due date. Read at
+    each journey's opening: some bill fell due before that day and no collection for it had
+    succeeded by then. A bill whose collection never succeeded stays unpaid to the end, so this
+    leg is lenient after a household's first failure. The first leg (overdue within the balance)
+    compares two sums the company worked out, which the export does not carry by design."""
+    tally = Tally("collections journey opening")
+    for ba, accts in _households(book).items():
+        bills = _bills(accts)
+        if not bills:
+            continue
+        for i, j in enumerate(_journeys(accts)):
+            opened = _opened(_events(j))
+            if opened is None:
+                continue
+            tally.checked += 1
+            unpaid = any(due < opened and (settled is None or settled >= opened)
+                         for due, settled in bills)
+            if not unpaid:
+                tally.hit("breach", "{} journey {} opened {}".format(ba, i, opened), opened,
+                          "a bill unpaid past its due date", "nothing overdue")
+    return tally
+
+
+def _years_before(d: date, n: int) -> date:
+    try:
+        return d.replace(year=d.year - n)
+    except ValueError:                                  # 29 Feb
+        return d.replace(year=d.year - n, day=28)
+
+
+#: Limitation Act 1980 s.5: six years from the cause of action (England and Wales; the export
+#: carries no jurisdiction, so Scotland's five is not applied).
+STATUTE_BAR_YEARS = 6
+
+
+def ev_statute_barred_write_off(inv, book):
+    """The row's necessary condition at each statute-barred write-off on W: some bill in it is
+    barred, i.e. fell due by W - 6 years, was not collected by W, and no payment received on the
+    household's account after its due date is later than W - 6 years (a part-payment restarts the
+    clock). The per-bill form, that EVERY bill written off is barred, needs the write-off to name its
+    bills; the company's record posts a sum, so that leg is the row's GAP."""
+    tally = Tally("statute-barred write-off")
+    for ba, accts in _households(book).items():
+        bills = _bills(accts)
+        paid = sorted(_d(p["payment_date"]) for a in accts for p in a.payments)
+        for j in _journeys(accts):
+            for e in j.get("events") or ():
+                if (e.get("event") != WRITE_OFF_EVENT or not e.get("event_date")
+                        or "limitation" not in str(e.get("event_rule") or "")):
+                    continue
+                when = _d(e["event_date"])
+                bar = _years_before(when, STATUTE_BAR_YEARS)
+                tally.checked += 1
+                restarted = any(bar < d <= when for d in paid)
+                barred = not restarted and any(due <= bar and (settled is None or settled > when)
+                                               for due, settled in bills)
+                if not barred:
+                    tally.hit("breach", "{} write-off {}".format(ba, when), when,
+                              "a bill due by {} and unpaid since".format(bar),
+                              "payment after the bar" if restarted else "no bill old enough")
+    return tally
+
+
+#: invariant ID -> (evaluator, the export field it needs on some period or account, or None)
 EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC": (ev_unit_rate_svt_elec, None),
     "INV_UNIT_RATE_SVT_ELEC_PRE_CAP": (ev_unit_rate_svt_elec_pre_cap, None),
@@ -1074,6 +1236,10 @@ EVALUATORS = {
     "INV_SERIAL_REGISTER_COUNT_STABLE": (ev_serial_register_count_stable, None),
     "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23": (ev_ebss_credit, None),
     "INV_MPAN_CORE_FORMAT": (ev_mpan_core_format, "mpan"),
+    "INV_RENEWAL_NOTICE_42_TO_49_DAYS": (ev_renewal_notice, "bills"),
+    "INV_COLLECTIONS_EVENTS_ORDERED": (ev_collections_ordered, "collections_journeys"),
+    "INV_OVERDUE_WITHIN_BALANCE": (ev_overdue_within_balance, "bills"),
+    "INV_STATUTE_BARRED_WRITE_OFF_AGE": (ev_statute_barred_write_off, "bills"),
 }
 
 
@@ -1082,6 +1248,7 @@ def run(invariants: list[dict], raw_book: dict[str, dict]) -> list[dict]:
     by_id = {i["id"]: i for i in invariants}
     fields = {k for a in raw_book.values() for p in a.get("periods", ()) for k, v in p.items()
               if v is not None}
+    fields |= {k for a in raw_book.values() for k, v in (a.get("events") or {}).items() if v}
     extra = {
         "INV_UNIT_RATE_FIXED": {"pre_cap_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_ELEC_PRE_CAP", {}))},
         "INV_CROSS_FUEL_PRICE_SCALE": {"gas_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_GAS", {})),
@@ -1187,12 +1354,13 @@ def main(argv=None) -> int:
     src = ap.add_mutually_exclusive_group(required=True)
     src.add_argument("--raw", type=Path, help="a JSON bundle: customer_id -> raw export")
     src.add_argument("--ledger", type=Path, help="a billing ledger; the raw export is produced from it")
+    ap.add_argument("--events", type=Path, help="with --raw: customer_id -> the account's events")
     ap.add_argument("--invariants", type=Path, default=INVARIANTS_PATH)
     ap.add_argument("--json", type=Path, help="also write the full result, examples included")
     ap.add_argument("--strict", action="store_true", help="return 1 on any BREACH")
     ap.add_argument("--exceptions", type=Path, default=EXCEPTIONS_PATH)
     args = ap.parse_args(argv)
-    raw = load_book(args.raw, args.ledger)
+    raw = load_book(args.raw, args.ledger, args.events)
     results = run(load_invariants(args.invariants), raw)
     verdict = gate(results, load_exceptions(args.exceptions))
     print(render(results, len(raw)))

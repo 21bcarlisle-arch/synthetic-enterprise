@@ -2409,11 +2409,11 @@ invariants:
   gap: 'Not gradeable on the raw export (2026-10-27, on the 2eeb3f0b3 book): neither region nor the tariff name is exported. The MPAN distributor ID cannot stand in: every core on that book starts 10, so it would call the whole book Eastern. The spread of SVTs between regions is not in the commons either (the composition file carries only the GB median), so a cross-region bound is a GAP and only the same-region form is stated.'
 - id: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
   family: government_scheme
-  statement: Every domestic electricity account on supply in a month from October 2022 to March 2023 receives that month's Energy Bills Support Scheme credit (£66 in Oct and Nov 2022, £67 from Dec 2022 to Mar 2023, £400 over six months). Gas accounts receive none.
-  predicate: domestic electricity account with supply on any day of month m in [2022-10, 2023-03] => sum of adjustments with an EBSS reason dated in [m start, m end + 31 days] lies in [credit(m) - 1, credit(m) + 1]; gas account => no EBSS adjustment
+  statement: Every domestic electricity account held at 00:00 on the 1st of a month from October 2022 to March 2023 receives that month's Energy Bills Support Scheme credit (£66 in Oct and Nov 2022, £67 from Dec 2022 to Mar 2023, £400 over six months). Gas accounts receive none.
+  predicate: domestic electricity account held at 00:00 on the 1st of month m in [2022-10, 2023-03] => sum of adjustments with an EBSS reason dated in [m start, m end + 31 days] lies in [credit(m) - 1, credit(m) + 1]; gas account => no EBSS adjustment
   lower: null
   upper: null
-  source: 'docs/market_research/energy_bills_support_scheme_delivery.md ("What the scheme required": per domestic electricity account, £400 in six instalments of £66/£67; secondary source ii.co.uk, BEIS guidance itself a GAP there). Cold-read objection O22: PROS-2019-0246''s December 2022 bill of £596.06 shows no credit. On the 4ae8da9b0f book the credit reaches no named household.'
+  source: 'docs/market_research/energy_bills_support_scheme_delivery.md ("An occupier''s deemed account": BEIS EBSS guidance for electricity suppliers 5.4, a customer with a domestic supply contract "or a deemed contract at 00:00 hours on the qualifying date" is eligible for that month, and 5.8 makes the qualifying date the 1st of each month Oct 2022 to Mar 2023; "What the scheme required": per domestic electricity account, £400 in six instalments of £66/£67; secondary source ii.co.uk, BEIS guidance itself a GAP there). Cold-read objection O22: PROS-2019-0246''s December 2022 bill of £596.06 shows no credit. On the 4ae8da9b0f book the credit reaches no named household.'
   severity:
     violation: breach
   export_fields:
@@ -2423,7 +2423,7 @@ invariants:
   - adjustments.amount_gbp
   - adjustments.date
   checkable: true
-  gap: 'Graded by tools/domain_invariant_runner.ev_ebss_credit from 2026-10-27, with each credit counted once (the windows overlap). The export''s reason is scheme_credit, which in this window can only be the EBSS. A month paid by prepayment is not graded: a traditional meter''s voucher route (about 20% expired unredeemed) makes received a different question, and the export cannot tell a smart meter from a traditional one (GAP).'
+  gap: 'Predicate restated 2026-10-27 from "supply on any day of month m" to "held at 00:00 on the 1st of month m", because guidance 5.4 (read in the market-research page, from the withdrawn BEIS guidance) ties eligibility to the account held at 00:00 on the qualifying date, so a joiner after the 1st is owed nothing for that month. Unestablished: Annex C vacant-property and occupier-account exceptions are only summarised on that page, and the grader has not been checked against the new wording. Graded by tools/domain_invariant_runner.ev_ebss_credit from 2026-10-27, with each credit counted once (the windows overlap). The export''s reason is scheme_credit, which in this window can only be the EBSS. A month paid by prepayment is not graded: a traditional meter''s voucher route (about 20% expired unredeemed) makes received a different question, and the export cannot tell a smart meter from a traditional one (GAP).'
 - id: INV_RENEWAL_NOTICE_42_TO_49_DAYS
   family: renewal_compliance
   statement: The end-of-fixed-term notice for a domestic fixed tariff is sent no earlier than 49 and no later than 42 days before the term ends. The supplier's renewal decision, its offer, is therefore made on or before that notice, never on the expiry date.
@@ -2436,10 +2436,8 @@ invariants:
   export_fields:
   - contracted_terms.tariff_effective_to
   - renewal_notices.date
-  checkable: false
-  missing_export_fields:
-  - renewal_notices.date
-  gap: 'Not gradeable on the raw export: no renewal-notice record is exported, and the decision date is in the company''s decision log. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP).'
+  checkable: true
+  gap: 'Graded by tools/domain_invariant_runner.ev_renewal_notice from 2026-10-27, on the export''s renewal_offers (the company''s end-of-term retention offers, dated). The company records no end-of-fixed-term notice at all, so d is its offer date, and a term with no offer is graded missing. E is tariff_effective_to; a term with no decision within 90 days before or 31 after E grades missing. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP).'
 - id: INV_OVERDUE_WITHIN_BALANCE
   family: account_arithmetic
   statement: The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date. An account with a debt stage open has at least one missed or returned collection, or an unpaid bill past its due date.
@@ -2452,11 +2450,10 @@ invariants:
   export_fields:
   - payments
   - periods.due_date
-  checkable: false
-  missing_export_fields:
-  - periods.due_date
-  - a dated overdue and balance series
-  gap: 'Not gradeable on the raw export: it carries no due date and no dated balance or overdue series, and it cannot re-derive one because bill amounts are money the company worked out, kept out of the export by design. The debt stage lives in the collections record.'
+  checkable: partial
+  checkable_part: 'The second leg, graded by tools/domain_invariant_runner.ev_overdue_within_balance from 2026-10-27: at each collections journey''s opening, some bill fell due before that day and no collection for it had succeeded (periods.due_date, periods.settled_date).'
+  uncheckable_part: 'The first leg (0 <= overdue <= balance) compares two sums the company worked out, which the raw export does not carry by design. It belongs on the generated page, which prints both.'
+  gap: first leg ungradeable on the raw export (computed sums); second leg graded
 - id: INV_ESTIMATE_RUN_WITHIN_TENURE
   family: read_history
   statement: A run of consecutive estimated bills on one fuel cannot be longer than the bills that fuel has had since it joined. A household described as never read has no actual read on that fuel.
@@ -2484,10 +2481,8 @@ invariants:
     violation: breach
   export_fields:
   - collections.events
-  checkable: false
-  missing_export_fields:
-  - collections.events
-  gap: 'Not gradeable on the raw export: collections events are not exported.'
+  checkable: true
+  gap: 'Graded by tools/domain_invariant_runner.ev_collections_ordered from 2026-10-27, on the export''s collections_journeys (the company''s own steps and their dates). A plan offer is repayment_plan_offer, repayment_plan_reoffer or arrangement_offered; a reminder is reminder or reminder_2.'
 - id: INV_STATUTE_BARRED_WRITE_OFF_AGE
   family: debt_limitation
   statement: A domestic debt written off as statute-barred is at least six years past its cause of action (England and Wales; five in Scotland). That is the due date of each bill in it, restarted by a part-payment or an acknowledgement. Bills that fell due after the last part-payment carry their own later dates.
@@ -2502,15 +2497,14 @@ invariants:
   - adjustments.date
   - periods.due_date
   - payments.payment_date
-  checkable: false
-  missing_export_fields:
-  - adjustments.reason (a write-off)
-  - periods.due_date
-  gap: 'Not gradeable on the raw export: its only adjustment reason is scheme_credit, so a write-off and its reason are not exported, and neither is a bill''s due date. The book-wide count of early write-offs is in docs/staging/SEAT_FINDING_A_STATUTE_BARRED_WRITE_OFF_LANDS_BEFORE_SIX_YEARS_AND_REPEATS_MONTHLY_2026-10-26.md (24 of 602); this row adds the per-bill form. The household''s jurisdiction is not exported, so the Scottish five years cannot be applied (GAP).'
+  checkable: partial
+  checkable_part: 'Graded by tools/domain_invariant_runner.ev_statute_barred_write_off from 2026-10-27, as a necessary condition: at a write-off under the limitation rule on W, some bill fell due by W - 6 years, was not collected by W, and no payment on the household''s account is dated after W - 6 years.'
+  uncheckable_part: 'That EVERY bill in the sum is barred needs the write-off to name its bills, and the company''s collections record posts a sum.'
+  gap: 'Per-bill form ungradeable: the write-off does not name its bills. The book-wide count of early write-offs is in docs/staging/SEAT_FINDING_A_STATUTE_BARRED_WRITE_OFF_LANDS_BEFORE_SIX_YEARS_AND_REPEATS_MONTHLY_2026-10-26.md (24 of 602); this row adds the per-bill form. The household''s jurisdiction is not exported, so the Scottish five years cannot be applied (GAP).'
 - id: INV_MPAN_CORE_FORMAT
   family: event_fuel_consistency
-  statement: An electricity supply point's MPAN core is 13 digits. The first two are the distributor ID (10-23), and the last is a check digit over the first twelve. Its region is the distributor's.
-  predicate: commodity == electricity => mpan core matches ^(1[0-9]|2[0-3])[0-9]{11}$ and the check digit is valid
+  statement: An electricity supply point's MPAN core is 13 digits. The first two are the distributor ID (10-23 for the fourteen DNO licence areas, 24 upward for independent distribution network operators, IDNOs), and the last is a check digit over the first twelve. Its region is the distributor's.
+  predicate: commodity == electricity => mpan core matches ^[1-9][0-9][0-9]{11}$ (distributor ID 10-23 DNO, 24 upward IDNO) and the check digit is valid
   lower: null
   upper: null
   source: 'Structure of the GB MPAN core under the MRA, now the REC (Elexon / Retail Energy Code). The reader cited it with high confidence, and it is NOT in the commons: a GAP until a commons page carries it. Cold-read objection O31: OCC-f6813bf9f05e prints "Supply point 19494047720" (11 digits), and the record''s mpan bottom_line is 19494047720.'
@@ -2519,4 +2513,4 @@ invariants:
   export_fields:
   - mpan
   checkable: true
-  gap: 'Graded by tools/domain_invariant_runner.ev_mpan_core_format from 2026-10-27. The commons page is now docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md, read in a secondary source; the primary text of the check digit is still a GAP. That page also finds IDNO distributor IDs from 24 upward, so a real IDNO-connected MPAN breaches the 10-23 range here. No book draws one yet.'
+  gap: 'Graded by tools/domain_invariant_runner.ev_mpan_core_format from 2026-10-27. The commons page is now docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md, read in a secondary source; the primary text of the check digit is still a GAP. Restated 2026-10-27: that page gives DNO IDs 10-23 and IDNO IDs from 24 upward with NO upper bound (its table runs 24 to 52 with gaps, tagged citation needed; the current list is a GAP). The regex therefore accepts any two-digit ID from 10 to 99, the width the 13-digit core allows; it does not check that an ID above 23 is allocated. No book draws an IDNO core yet.'

@@ -22,6 +22,7 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
+from company.billing.dd_review import billing_account_of
 from company.billing.pre_bill_validation import (
     BillValidationResult,
     ValidationOutcome,
@@ -919,6 +920,13 @@ def generate(run_json_path=None, out_path=None):
                         inv["payment_status"] = "written_off"
                         inv["outstanding_gbp"] = 0.0
 
+    journeys_by_account: dict[str, list] = {}
+    for j in data.get("collections_journeys") or []:
+        journeys_by_account.setdefault(str(j.get("account_id")).removeprefix("ACC-"), []).append(j)
+    offers_by_account: dict[str, list] = {}
+    for r in data.get("retention_log") or []:
+        offers_by_account.setdefault(r.get("customer_id"), []).append(r)
+
     customers = {}
     for cid in sorted(invoices_by_cid):
         invs = invoices_by_cid[cid]
@@ -939,6 +947,12 @@ def generate(run_json_path=None, out_path=None):
             "invoices": invs,
             "payments": pays,
             "arrears_history": arrs,
+            # The company's own collections journeys and end-of-term retention offers, for the billing
+            # account this supply point bills under: dated acts the raw export carries as events, so
+            # the domain-invariant suite can ask whether they happened when the rules allow.
+            # (`renewal_decisions_log` is the HOUSEHOLD's choice on its journey, not the company's.)
+            "collections_desk_journeys": journeys_by_account.get(billing_account_of(cid), []),
+            "renewal_offers": offers_by_account.get(billing_account_of(cid), []),
         }
 
     all_held = list(held_bills) + held_reads + held_money

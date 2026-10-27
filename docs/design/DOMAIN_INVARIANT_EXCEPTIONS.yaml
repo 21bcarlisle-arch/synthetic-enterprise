@@ -42,12 +42,55 @@ exceptions:
   # ledger, rebuilt, grades 0 and 12. The MPAN exception is retired. Causes per breach in
   # docs/staging/records/SEAT_PREREGISTRATION_THE_EIGHT_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
   - invariant: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
-    scope: five accounts in the unnamed-occupier window (OCC-a1e9ae835e65, OCC-bec72a04dec8, OCC-c0afcdf9fce8, OCC-e3e94f81161b, OCC-eb8498f3f8aa), 12 account-months
+    scope: >-
+      12 account-months on the 2eeb3f0b3 book. Seven are on four unnamed-occupier accounts
+      (OCC-a1e9ae835e65, OCC-bec72a04dec8, OCC-e3e94f81161b, OCC-eb8498f3f8aa). Five are one month
+      each on PROS-2022-0356, PROS-2022-0400, PROS-2023-0010, PROS-2023-0013 and PROS-2023-0039
     reason: >-
-      Their credit comes from the world's occupier path (run_phase2b, occupier_scheme_credit), which
-      sizes it by the occupier's debt and dates it by the settlement record, not the month's
-      instalment. Four of the twelve are a joiner's first part-month, where EBSS guidance 5.4 gives
-      no credit and the row's predicate is looser than the guidance.
+      The row now reads "held at 00:00 on the 1st" (guidance 5.4 and 5.8, restated 2026-10-27 by
+      its blind author), so the four first part-months it used to count are gone. The seven
+      occupier months are the world's occupier path (run_phase2b, occupier_scheme_credit), which
+      sizes the credit by the occupier's debt and dates it by the settlement record. The five
+      PROS months are the other side of the same rule: the named-household path credits a joiner's
+      first part-month (PROS-2022-0356 joined 12 Nov 2022 and was credited £66 for November), and
+      the guidance gives that month nothing, so one credit too many lands in a later window. Two
+      paths, two answers to one rule.
     filed: 2026-10-27
-    retired_by: the occupier path crediting the month's whole instalment to whoever held the account at 00:00 on the 1st, and a run carrying it
+    retired_by: one EBSS eligibility home crediting the month's whole instalment to whoever held the account at 00:00 on the 1st, and a run carrying it
     max_breached: 12
+  # 2026-10-27: four cold-read rows read the company's own dated acts (`raw_account_export.account_events`).
+  # Grade and causes beside the pre-registration,
+  # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
+  - invariant: INV_RENEWAL_NOTICE_42_TO_49_DAYS
+    scope: every fixed term ending in supply on the 2eeb3f0b3 book, 1,338 terms
+    reason: >-
+      The company records no end-of-fixed-term notice: company/crm/renewal_notice_register.py
+      implements the 42-49 day window and nothing in the run calls it. Its only dated renewal act is
+      the retention offer, made on the day the term ends (163 at 0 days, 2 at -9); 1,173 terms have
+      no offer at all. Not a reading error: SLC 22C.4(a) needs the notice for every fixed term.
+    filed: 2026-10-27
+    retired_by: the company sending and recording an SLC 22C notice 42-49 days before each fixed term ends, and a run carrying it
+    max_breached: 1338
+  - invariant: INV_OVERDUE_WITHIN_BALANCE
+    scope: 1,987 of 7,151 collections-journey openings on the 2eeb3f0b3 book (second leg only)
+    reason: >-
+      Partly diagnosed. The collections desk opens a journey on "a bill is unpaid past its due date"
+      read from its own account ledger, and the billing ledger disagrees. In 1,769 cases, the last
+      bill due before the opening was collected on or before its due date. In 136, no bill had yet
+      fallen due. Traced by hand: SYN-2016-356's journey opens on 29 Oct 2016, but both fuels' bills
+      due 16 Oct were collected that day. The two payment records disagree, and which one is wrong
+      is NOT established.
+    filed: 2026-10-27
+    retired_by: one payment record read by both the billing ledger and the collections desk, and a run carrying it
+    max_breached: 1987
+  - invariant: INV_STATUTE_BARRED_WRITE_OFF_AGE
+    scope: 25 of 41 statute-barred write-offs on the 2eeb3f0b3 book
+    reason: >-
+      24 are written off about six years after supply ended, but the household's final bill was
+      paid two to four weeks after that bar date, and a part-payment restarts the six years (the
+      row, and the company's own rule name "from the last payment"). The likely cause, NOT
+      established: the collections desk's ledger does not carry a final bill's payment received
+      after the account closed. One, "no bill old enough", is not yet traced.
+    filed: 2026-10-27
+    retired_by: the write-off rule reading the payment record that carries final-bill settlements, and a run carrying it
+    max_breached: 25

@@ -461,3 +461,19 @@ def test_a_period_carries_its_rates_and_what_was_sent():
         vat_rate=0.05, non_commodity_rate_gbp_per_mwh=61.2, document_type="bill")]})["periods"][0]
     assert (period["vat_rate"], period["non_commodity_rate_gbp_per_mwh"], period["document_type"]) == (
         0.05, 61.2, "bill")
+
+
+def test_the_companys_dated_acts_are_a_second_export_the_validator_never_reads():
+    """The invariant suite needs a bill's due date; the validator must not see the document. So the
+    dates live in `account_events`, under the same FIELDS check, and never in `raw_account`."""
+    record = {"invoices": [{"invoice_number": 7, "due_date": "2016-02-19", "period_start": "2016-01-01",
+                            "period_end": "2016-01-31"}],
+              "payments": [{"invoice_number": 7, "payment_date": "2016-02-19", "amount_gbp": 30.0,
+                            "method": "direct_debit", "outcome": "success"}],
+              "collections_desk_journeys": [{"exit": "cured", "stages": [
+                  {"stage": "missed_payment", "on": "2016-03-01", "overdue_gbp": 30.0}]}],
+              "renewal_offers": [{"event_date": "2016-12-01", "commodity": "electricity"}]}
+    events = rx.account_events("C1", record)
+    assert "due_date" not in json.dumps(rx.raw_account("C1", record))
+    assert events["bills"] == [{"due_date": "2016-02-19", "settled_date": "2016-02-19"}]
+    assert "overdue_gbp" not in json.dumps(events) and rx.derived_leaks(events) == []

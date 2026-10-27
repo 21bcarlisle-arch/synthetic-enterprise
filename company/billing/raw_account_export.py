@@ -146,6 +146,17 @@ FIELDS: dict[str, tuple[str, str]] = {
     "adjustment_date": (MEASURED, "when the adjustment was applied"),
     "adjustment_amount_gbp": (MOVED, "money actually credited or debited to the account"),
     "adjustment_reason": (EVENT, "why — a stated reason, not a computation"),
+    # dated acts the company holds (2026-10-27), in `account_events` and never in the raw export
+    # above: what it did and when, never what it was worth
+    "due_date": (MEASURED, "the date printed on the bill as the day it falls due"),
+    "settled_date": (MEASURED, "the day a collection for this bill succeeded; None where none "
+                               "did, so a failed or never-made collection reads as unpaid"),
+    "journey_exit": (EVENT, "how a collections journey ended: cured, write-off, still open"),
+    "event": (EVENT, "the collections step taken: missed payment, reminder, plan offered, "
+                     "write-off"),
+    "event_date": (MEASURED, "the day the step was taken"),
+    "event_rule": (EVENT, "the rule a write-off was made under, as the company recorded it"),
+    "offer_date": (MEASURED, "the day the company made its end-of-term retention offer"),
 }
 
 
@@ -353,6 +364,46 @@ def raw_account(customer_id: str, record: dict) -> dict:
         "payments": payments,
         "adjustments": adjustments,
     }
+
+
+def account_events(customer_id: str, record: dict) -> dict:
+    """What the company DID on this account and when: the domain-invariant suite's second input.
+
+    Kept out of `raw_account` on purpose. That export is the bill validator's, and a bill's due date
+    is a property of the document, which the validator must not see before it rebuilds
+    (`test_no_bill_document_is_exported`). The suite needs the dates to ask whether a debt stage
+    opened on a bill actually overdue, or a write-off was six years old. So the same facts are a
+    separate export under the same FIELDS check, and the validator never reads it.
+    """
+    # A bill's settlement is the day its collection succeeded, whatever the household paid (account
+    # credit can cover a bill in whole); a failed or disputed collection settles nothing.
+    settled = {}
+    for p in record.get("payments") or []:
+        if p.get("outcome", "success") == "success" and p.get("invoice_number") is not None:
+            settled.setdefault(p["invoice_number"], p.get("payment_date") or p.get("date"))
+    return {
+        "customer_id": customer_id,
+        "billing_account_id": billing_account_of(customer_id),
+        "bills": [{"due_date": inv.get("due_date"), "settled_date": settled.get(inv.get("invoice_number"))}
+                  for inv in record.get("invoices") or [] if inv.get("due_date")],
+        "collections_journeys": [_journey_events(j) for j in record.get("collections_desk_journeys") or []],
+        # The company's offer at a term's end, its only dated renewal act: no end-of-fixed-term
+        # notice is recorded (`company/crm/renewal_notice_register.py` is not called by the run).
+        "renewal_offers": [{"offer_date": r.get("event_date"), "commodity": r.get("commodity")}
+                           for r in record.get("renewal_offers") or []],
+    }
+
+
+def _journey_events(journey: dict) -> dict:
+    """A collections journey as its dated steps. Each step's overdue sum is money the company worked
+    out, so it stays behind; the step, its date and a write-off's rule are what was done."""
+    events = []
+    for st in journey.get("stages") or []:
+        e = {"event": st.get("stage"), "event_date": st.get("on")}
+        if st.get("rule"):
+            e["event_rule"] = st["rule"]
+        events.append(e)
+    return {"journey_exit": journey.get("exit"), "events": events}
 
 
 def _money_moved(ledger_payments: list[dict]) -> tuple[list[dict], list[dict]]:
