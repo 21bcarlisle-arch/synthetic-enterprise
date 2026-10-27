@@ -2381,3 +2381,126 @@ invariants:
     11-12), an exchange recorded in the industry data with no new physical meter, which may keep the serial; (3) an exchange that refits the same serial; (4) a tariff change whose register change lags
     the term date. Whether a traditional Economy 7 meter moved to a single-rate tariff keeps two registers, is reprogrammed, or is exchanged is not established in any source read (practitioner question).
     A Multi-Register Metering Arrangement can span two meters (E10 primary/secondary MPAN, SSC 0980/0981), so the count is per serial and never per account.'
+# The eight rows below are the first cold read's confirmed objections (2026-10-27, on the pages of run
+# 4ae8da9b0f; record: docs/staging/records/SEAT_RECORD_THE_FIRST_COLD_READ_ON_THE_4AE8DA9B0F_PAGES_2026-10-27.md).
+# The reader saw only the rendered page, never the code. Each row is checkable:false until an evaluator
+# exists, so the runner reports it UNCHECKABLE rather than clean.
+- id: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW
+  family: price_consistency
+  statement: A default (SVT) tariff is one published price per fuel, region and payment method. Two domestic accounts on the same SVT in the same region, window and payment method are billed the same unit rate and standing charge.
+  predicate: for accounts a, b with equal (commodity, tariff name, region, payment method) and periods overlapping one tariff window, |unit_rate_a - unit_rate_b| <= 0.5% of the mean and the standing charges are equal to the penny
+  lower: null
+  upper: null
+  source: 'SLC 27.2A (a price difference between payment methods must reflect cost: docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md A1), which presumes one price per method. Cold-read objections O1 and O2: OCC-f6813bf9f05e (13.30 p/kWh) and SYN-2016-395 (10.16 p/kWh), both "Standard Variable (Electricity)" in autumn 2016 with the same £0.1922/day standing charge.'
+  severity:
+    violation: breach
+  export_fields:
+  - commodity
+  - contracted_terms.tariff_name
+  - unit_rate_p_per_kwh
+  - standing_charge_gbp_per_day
+  - payment_method
+  - mpan
+  checkable: false
+  gap: 'No evaluator yet. Region is not in the export. It would come from the MPAN distributor ID, and the exported MPAN cores are malformed (see INV_MPAN_CORE_FORMAT). The spread of SVTs between regions is not in the commons: the composition file carries only the GB median of 15 rows. So a cross-region bound is a GAP, and only the same-region form is stated.'
+- id: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
+  family: government_scheme
+  statement: Every domestic electricity account on supply in a month from October 2022 to March 2023 receives that month's Energy Bills Support Scheme credit (£66 in Oct and Nov 2022, £67 from Dec 2022 to Mar 2023, £400 over six months). Gas accounts receive none.
+  predicate: domestic electricity account with supply on any day of month m in [2022-10, 2023-03] => sum of adjustments with an EBSS reason dated in [m start, m end + 31 days] lies in [credit(m) - 1, credit(m) + 1]; gas account => no EBSS adjustment
+  lower: null
+  upper: null
+  source: 'docs/market_research/energy_bills_support_scheme_delivery.md ("What the scheme required": per domestic electricity account, £400 in six instalments of £66/£67; secondary source ii.co.uk, BEIS guidance itself a GAP there). Cold-read objection O22: PROS-2019-0246''s December 2022 bill of £596.06 shows no credit. On the 4ae8da9b0f book the credit reaches no named household.'
+  severity:
+    violation: breach
+  export_fields:
+  - commodity
+  - segment
+  - adjustments.reason
+  - adjustments.amount_gbp
+  - adjustments.date
+  checkable: false
+  gap: 'No evaluator yet. The export carries an EBSS settlement as an adjustment with its reason (raw_account_export._money_moved). The 4ae8da9b0f book predates that, and also predates the occupier-only credit landed in d2be04371d. The traditional-prepayment voucher route (about 20% expired unredeemed) makes "received" a different question for a traditional PPM leg. That leg is a GAP.'
+- id: INV_RENEWAL_NOTICE_42_TO_49_DAYS
+  family: renewal_compliance
+  statement: The end-of-fixed-term notice for a domestic fixed tariff is sent no earlier than 49 and no later than 42 days before the term ends. The supplier's renewal decision, its offer, is therefore made on or before that notice, never on the expiry date.
+  predicate: for each fixed term ending on date E, the renewal decision or notice date d satisfies E - 49 days <= d <= E - 42 days
+  lower: -49
+  upper: -42
+  source: 'SLC 22C.4(a), Ofgem notice of modifications, default tariffs at the end of fixed-term tariffs (2017), https://www.ofgem.gov.uk/system/files/docs/2017/10/notice_of_modifications_and_reasons_-_default_tariffs_for_domestic_customers_at_the_end_of_fixed-term_tariffs_electricity.pdf, quoted in docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md. Cold-read objection O6: SYN-2016-031, "24 Jan 2024 · The renewal decision" and "24 Jan 2024 · Renewed", on the day a fix from 25 Jan 2019 ends.'
+  severity:
+    violation: breach
+  export_fields:
+  - contracted_terms.tariff_effective_to
+  - renewal_notices.date
+  checkable: false
+  gap: 'No evaluator, and the export carries no renewal-notice record. The decision date is in the company''s decision log, not the raw export. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP).'
+- id: INV_OVERDUE_WITHIN_BALANCE
+  family: account_arithmetic
+  statement: The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date. An account with a debt stage open has at least one missed or returned collection, or an unpaid bill past its due date.
+  predicate: at every dated state, 0 <= overdue_gbp <= balance_owed_gbp; debt_stage open => (missed + returned >= 1) or (an issued bill with due_date < date and unpaid)
+  lower: 0
+  upper: balance_owed_gbp
+  source: 'Logic of an account ledger (an overdue sum is a subset of the balance). Cold-read objections O10, O16 and O18: SYN-2016-356 shows "£23.88 owed" beside "GBP71.73 overdue", and "£59.77 owed" beside "GBP147.56 overdue". PROS-2017-0264 shows "Debt stage: Overdue balance cleared" with "0 returned, 0 missed".'
+  severity:
+    violation: breach
+  export_fields:
+  - payments
+  - periods.due_date
+  checkable: false
+  gap: 'No evaluator. The export carries no dated balance or overdue series, so it must be re-derived from bills and payments. The debt stage lives in the collections record, not the raw export.'
+- id: INV_ESTIMATE_RUN_WITHIN_TENURE
+  family: read_history
+  statement: A run of consecutive estimated bills on one fuel cannot be longer than the bills that fuel has had since it joined. A household described as never read has no actual read on that fuel.
+  predicate: for each fuel leg, the longest run of consecutive estimated bills <= number of bills issued on that leg; "not read since joining" => count(actual reads on the leg) == 0
+  lower: 0
+  upper: bills issued on the leg
+  source: 'Logic. Cold-read objection O14: PROS-2017-0264, joined 30 Aug 2017, "12 gas bills in a row were estimated" by 28 Feb 2018 (six months), beside "1 on an actual read, last on 30 Sep 2017".'
+  severity:
+    violation: breach
+  export_fields:
+  - periods.read_type
+  - periods.period_end
+  checkable: false
+  gap: 'No evaluator. The raw export holds the periods, so this can be checked. The defect may instead be in the page''s counter, which seems to count both fuels'' bills as one run (O28 shows a per-fuel count printed as the account''s). Which of the two it is, is not yet established.'
+- id: INV_COLLECTIONS_EVENTS_ORDERED
+  family: collections_sequence
+  statement: A collections journey runs in order. The missed payment or unpaid bill that opens it comes first, then reminders, then a payment plan (SLC 27 ability-to-pay), then repayment, write-off or referral. No step is dated before the event that opens the journey.
+  predicate: for each journey, date(opened) <= date(first reminder) <= date(plan offered), and every step date >= date(opened)
+  lower: null
+  upper: null
+  source: 'docs/market_research/debt_and_collections.md (the GB collections sequence); SLC 27 ability-to-pay duty. Cold-read objection O17: SYN-2016-356, "Decision log. 25 Nov 2016: Payment plan offered (SLC 27.8) -- £124.99 overdue" before "29 Nov 2016 · Missed a payment".'
+  severity:
+    violation: breach
+  export_fields:
+  - collections.events
+  checkable: false
+  gap: 'No evaluator, and collections events are not in the raw export.'
+- id: INV_STATUTE_BARRED_WRITE_OFF_AGE
+  family: debt_limitation
+  statement: A domestic debt written off as statute-barred is at least six years past its cause of action (England and Wales; five in Scotland). That is the due date of each bill in it, restarted by a part-payment or an acknowledgement. Bills that fell due after the last part-payment carry their own later dates.
+  predicate: for a write-off with reason statute-barred on date W, every bill b in the written-off sum has W >= max(due_date(b), last payment or acknowledgement on or after due_date(b)) + 6 years (5 in Scotland)
+  lower: 6 years
+  upper: null
+  source: 'Limitation Act 1980 ss. 5 and 29(5), as cited in docs/market_research/debt_and_collections.md (line "Limitation | 6 years, restarted by a part-payment or an acknowledgement"). Prescription and Limitation (Scotland) Act 1973 for five years (reader''s citation, not in the commons). Cold-read objection O19: SYN-2016-356 written off whole on 28 Jun 2024, six years after a 28 Jun 2018 payment, with bills due in Jul and Aug 2018 inside the sum.'
+  severity:
+    violation: breach
+  export_fields:
+  - adjustments.reason
+  - adjustments.date
+  - periods.due_date
+  - payments.payment_date
+  checkable: false
+  gap: 'No evaluator. The book-wide count of early write-offs is in docs/staging/SEAT_FINDING_A_STATUTE_BARRED_WRITE_OFF_LANDS_BEFORE_SIX_YEARS_AND_REPEATS_MONTHLY_2026-10-26.md (24 of 602). This row adds the per-bill form, which that finding does not test. The household''s jurisdiction is not in the export, so the Scottish five years cannot be applied (GAP).'
+- id: INV_MPAN_CORE_FORMAT
+  family: event_fuel_consistency
+  statement: An electricity supply point's MPAN core is 13 digits. The first two are the distributor ID (10-23), and the last is a check digit over the first twelve. Its region is the distributor's.
+  predicate: commodity == electricity => mpan core matches ^(1[0-9]|2[0-3])[0-9]{11}$ and the check digit is valid
+  lower: null
+  upper: null
+  source: 'Structure of the GB MPAN core under the MRA, now the REC (Elexon / Retail Energy Code). The reader cited it with high confidence, and it is NOT in the commons: a GAP until a commons page carries it. Cold-read objection O31: OCC-f6813bf9f05e prints "Supply point 19494047720" (11 digits), and the record''s mpan bottom_line is 19494047720.'
+  severity:
+    violation: breach
+  export_fields:
+  - mpan
+  checkable: false
+  gap: 'No evaluator, and the source is not yet in docs/domain_artefact_library. Write the commons page first (K8), then the evaluator. The check-digit algorithm is not established here.'
