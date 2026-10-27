@@ -1,0 +1,23 @@
+# The named, dated exceptions to DOMAIN_INVARIANTS.yaml (director ruling of 26 Oct, step 4:
+# "A breach blocks the publish, or is recorded as a named, dated exception").
+#
+# Read by tools/domain_invariant_runner.py::gate, which background/process_run_complete.py runs on
+# every completed run's book. An invariant with a BREACHED count that no exception below covers
+# refuses the publish while `enforce: true`.
+#
+# Each exception needs every one of these, or it lifts nothing and the report names what it lacks:
+#   invariant   the DOMAIN_INVARIANTS.yaml id
+#   scope       which accounts, periods or terms it covers, in words a reader can check
+#   reason      why the breach is explained rather than a defect still to find
+#   filed       the date it was written
+#   retired_by  the commit (or the named fix, until it lands) that will make it unnecessary
+#   max_breached  optional: a ceiling; a count above it refuses again
+#
+# Seeded only with what the fresh run's grade leaves unexplained
+# (docs/staging/records/SEAT_PREREGISTRATION_THE_FRESH_DEFAULT_BOOK_RUN_AT_871F674A2_IS_GRADED_BY_THE_BLIND_SUITE_2026-10-27.md).
+# That grade has not landed, so there are none yet and the gate is report-only.
+enforce: false
+report_only_because: >-
+  the fresh 871f674a2a run's grade has not landed (pre-registration of 2026-10-27); set enforce
+  true in the commit that seeds this file from it
+exceptions: []

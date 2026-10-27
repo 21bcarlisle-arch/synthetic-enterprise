@@ -4739,6 +4739,53 @@ def _cohort_coverage_gate_permits_publish():
     return True
 
 
+DOMAIN_INVARIANT_TABLE = PROJECT_DIR / "docs" / "reports" / "DOMAIN_INVARIANTS.md"
+DOMAIN_INVARIANT_JSON = PROJECT_DIR / "docs" / "reports" / "domain_invariants.json"
+
+
+def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, register_path=None):
+    """Grade this run's whole book against DOMAIN_INVARIANTS.yaml: (permits, refusal reason).
+
+    The ruling of 26 Oct, step 4: the suite "runs over every household on every run. A breach blocks
+    the publish, or is recorded as a named, dated exception." The table is written beside the run
+    report on every cycle, refused or not. The publish is refused only while the exceptions
+    register says `enforce: true`; report-only, the refusal the gate WOULD have made is still the
+    table's first line, so the count is on the surface either way.
+
+    An ungradable book while enforcing is a refusal (R15: an unavailable check is a failed check).
+    An unreadable register is treated as enforcing, since it is the register that says otherwise."""
+    from tools import domain_invariant_runner as runner
+    if ledger_path is None:
+        from tools.generate_billing_ledger import OUT_PATH as ledger_path
+    register_path = register_path or runner.EXCEPTIONS_PATH
+    try:
+        register = runner.load_exceptions(register_path)
+    except Exception as exc:  # noqa: BLE001 -- the register is what licenses report-only
+        register = {"enforce": True}
+        log("Domain invariants: the exceptions register could not be read ({}: {}), so the gate "
+            "enforces".format(type(exc).__name__, exc))
+    try:
+        raw = runner.load_book(ledger_path=Path(ledger_path))
+        results = runner.run(runner.load_invariants(), raw)
+    except Exception as exc:  # noqa: BLE001 -- an ungraded book is not a clean one
+        reason = "the domain-invariant suite could not grade the book at git={} ({}: {})".format(
+            git_hash, type(exc).__name__, exc)
+        DOMAIN_INVARIANT_TABLE.write_text("# Domain invariants\n\n**NOT GRADED.** {}\n".format(reason))
+        log("Domain invariants: " + reason)
+        return register.get("enforce") is not True, reason
+    verdict = runner.gate(results, register)
+    DOMAIN_INVARIANT_TABLE.write_text("# Domain invariants at git={}\n\n{}\n\n{}\n".format(
+        git_hash, runner.render_verdict(verdict), runner.render(results, len(raw))))
+    DOMAIN_INVARIANT_JSON.write_text(json.dumps(
+        {"git": git_hash, "accounts": len(raw), "verdict": verdict, "results": results},
+        indent=1, default=str) + "\n")
+    log("Domain invariants: " + runner.render_verdict(verdict).splitlines()[0])
+    if verdict["refuse"] and verdict["enforce"]:
+        return False, "domain-invariant breaches at git={} that no exception covers: {}".format(
+            git_hash, verdict["refusal"])
+    return True, None
+
+
 def _trigger_frozen_baseline_refresh_out_of_band(git_hash="unknown"):
     """Launch the weekly frozen-policy baseline refresh out of band when (and only
     when) it is stale -- never block the publish path.
@@ -7176,6 +7223,8 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     site_customers = PROJECT_DIR / "site" / "data" / "customers"
     site_sample = PROJECT_DIR / "site" / "data" / "customer_sample.json"
     files = [str(report), str(LATEST_MD)]
+    # The domain-invariant grade of the book this commit publishes, beside the report it grades.
+    files += [str(f) for f in (DOMAIN_INVARIANT_TABLE, DOMAIN_INVARIANT_JSON) if f.exists()]
     # H11_naive_organ: commit the organ's question log alongside the run whose
     # publish cycle produced it (LATEST.md's digest block is already tracked).
     if NAIVE_ORGAN_LOG.exists():
@@ -11264,6 +11313,12 @@ def _process(marker_path_str):
         log("Pre-gate inbox fold skipped (non-fatal): {}".format(_exc))
 
     _publish_tree_divergence()
+
+    _inv_ok, _inv_reason = _domain_invariant_gate_permits_publish(git_hash)
+    if not _inv_ok:
+        log("Domain-invariant gate REFUSED the publish - not committing content: " + _inv_reason)
+        _publish_provenance_banner(git_hash, reason=_inv_reason)
+        return 1
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)

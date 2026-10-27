@@ -34,11 +34,14 @@ Readings this runner makes where the file's text leaves a choice, each named whe
   * the read duty also counts the run from the last actual read to the end of supply: the duty
     runs for as long as the account is supplied.
 
-## NOT A GATE YET
+## THE GATE
 
-The ruling says a breach blocks the publish or is a named, dated exception. Wiring waits until one
-book's breaches are each fixed or named (the delivery-lane direction of 26 Oct), so this prints and
-returns 0; `--strict` returns 1 on any BREACH for whoever wires it.
+The ruling says a breach blocks the publish or is a named, dated exception. `gate` reads the
+exceptions register (`DOMAIN_INVARIANT_EXCEPTIONS.yaml`) and names every invariant whose BREACHED
+count no valid exception covers. `background/process_run_complete.py` grades every completed run's
+book with it and refuses the publish only while the register says `enforce: true`; until the fresh
+run's grade lands it is report-only, and the count goes into `docs/reports/DOMAIN_INVARIANTS.md`.
+`--strict` returns 1 on any unexcepted BREACH.
 """
 from __future__ import annotations
 
@@ -52,6 +55,9 @@ from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 INVARIANTS_PATH = PROJECT / "docs" / "design" / "DOMAIN_INVARIANTS.yaml"
+EXCEPTIONS_PATH = PROJECT / "docs" / "design" / "DOMAIN_INVARIANT_EXCEPTIONS.yaml"
+#: What an exception must say to lift anything. One missing and it lifts nothing, and says so.
+EXCEPTION_FIELDS = ("invariant", "scope", "reason", "filed", "retired_by")
 
 #: How the raw export spells a reading of the register (the read duty counts a customer's own read).
 ACTUAL_READ_TYPES = {"A", "actual", "C", "customer"}
@@ -908,6 +914,61 @@ def render(results: list[dict], accounts: int) -> str:
     return "\n".join(lines)
 
 
+def load_exceptions(path: Path = EXCEPTIONS_PATH) -> dict:
+    import yaml
+    return yaml.safe_load(path.read_text()) or {}
+
+
+def gate(results: list[dict], register: dict) -> dict:
+    """Which breaches no exception covers. `refuse` is the verdict whatever `enforce` says, so the
+    report-only surface prints the refusal the enforced gate would have made.
+
+    An exception lifts one invariant's breaches when it carries every `EXCEPTION_FIELDS` entry and,
+    if it names `max_breached`, the count is within it: a ceiling, so an excepted defect that grows
+    comes back as a refusal rather than hiding behind the exception filed for its smaller self."""
+    valid, invalid = {}, []
+    for e in register.get("exceptions") or ():
+        missing = [f for f in EXCEPTION_FIELDS if not e.get(f)]
+        if missing:
+            invalid.append({"invariant": e.get("invariant"), "missing": missing})
+        else:
+            valid[e["invariant"]] = e
+    unexcepted, excepted = [], []
+    for r in results:
+        n = r.get("breached") or 0
+        if not n:
+            continue
+        e = valid.get(r["id"])
+        cap = e.get("max_breached") if e else None
+        if e and (cap is None or n <= cap):
+            excepted.append({"id": r["id"], "breached": n, "retired_by": e["retired_by"]})
+        else:
+            why = ("no exception" if e is None else
+                   "{} breaches exceed the exception's max_breached {}".format(n, cap))
+            unexcepted.append({"id": r["id"], "breached": n, "why": why})
+    enforce = register.get("enforce") is True
+    refusal = "; ".join("{} {} ({})".format(u["id"], u["breached"], u["why"]) for u in unexcepted)
+    return {"enforce": enforce, "refuse": bool(unexcepted), "unexcepted": unexcepted,
+            "excepted": excepted, "invalid_exceptions": invalid,
+            "report_only_because": None if enforce else register.get("report_only_because"),
+            "refusal": refusal or None}
+
+
+def render_verdict(verdict: dict) -> str:
+    n = sum(u["breached"] for u in verdict["unexcepted"])
+    mode = ("ENFORCED: the publish is refused" if verdict["enforce"] else
+            "REPORT-ONLY: the publish is not refused ({})".format(
+                verdict.get("report_only_because") or "the register does not say enforce: true"))
+    lines = ["**{} unexcepted breach(es) across {} invariant(s); {} excepted. {}.**".format(
+        n, len(verdict["unexcepted"]), len(verdict["excepted"]), mode)]
+    lines += ["- {} {}: {}".format(u["id"], u["breached"], u["why"]) for u in verdict["unexcepted"]]
+    lines += ["- {} {}: excepted until {}".format(x["id"], x["breached"], x["retired_by"])
+              for x in verdict["excepted"]]
+    lines += ["- an exception for {} lifts nothing: it lacks {}".format(
+        i["invariant"], ", ".join(i["missing"])) for i in verdict["invalid_exceptions"]]
+    return "\n".join(lines)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     src = ap.add_mutually_exclusive_group(required=True)
@@ -916,13 +977,17 @@ def main(argv=None) -> int:
     ap.add_argument("--invariants", type=Path, default=INVARIANTS_PATH)
     ap.add_argument("--json", type=Path, help="also write the full result, examples included")
     ap.add_argument("--strict", action="store_true", help="return 1 on any BREACH")
+    ap.add_argument("--exceptions", type=Path, default=EXCEPTIONS_PATH)
     args = ap.parse_args(argv)
     raw = load_book(args.raw, args.ledger)
     results = run(load_invariants(args.invariants), raw)
+    verdict = gate(results, load_exceptions(args.exceptions))
     print(render(results, len(raw)))
+    print()
+    print(render_verdict(verdict))
     if args.json:
         args.json.write_text(json.dumps(results, indent=1, default=str) + "\n")
-    return 1 if args.strict and any(r.get("breached") for r in results) else 0
+    return 1 if args.strict and verdict["refuse"] else 0
 
 
 if __name__ == "__main__":
