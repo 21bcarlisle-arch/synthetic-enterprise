@@ -42,6 +42,10 @@ They have no engine row: the engine collects nothing from a named payer for them
 netted on the payment, which is still drawn in the ledger. Whether an occupier's deemed account
 should carry the credit is a question for the engine, not this ledger. Named; not built.
 
+*Correction (2026-10-27, the occupier item):* the £804 is 12 bills on **five** `OCC-` accounts,
+not three. The occupier class is 22 bills on seven accounts. The other ten are bills the credit
+would have settled whole, recorded as paid in full by the occupier.
+
 ## The company-balance question: no, the company itself was right
 
 The engine already netted the credit everywhere the company keeps money:
@@ -68,3 +72,27 @@ collected. The Explore page's ledger line prints the credit where it is non-zero
 - Knowledge (K8): `docs/market_research/energy_bills_support_scheme_delivery.md`, "A bill the credit
   covered in part". Two GAPs are marked: the carry-forward rule, and the DD refund route.
 - Three tests, each shown red on the old code and green on the new.
+
+## The occupier residual, decided and built (2026-10-27)
+
+**Decision.** Yes. BEIS's EBSS supplier guidance (5.1, 5.4, Annex C "Occupier Accounts") makes a
+deemed contract on an occupied home eligible if it was held at 00:00 on the 1st. A home void on the
+1st is the vacant exception. Details are on the knowledge page under "An occupier's deemed account".
+
+**Built.** The world nets the credit from `occupier_debt_gbp` row by row, opened on the row dated
+the 1st. The bill carries `occupier_scheme_credit_gbp`, and the arrears engine, the held month and
+the ledger give no second credit for that month. The DD desk's on-receipt draw (`dd_collection_book`), which
+mirrors `_resolve_bills`, carries the same guard; the landing tick found it missing and added it
+with a mutation-proven leg.
+
+**Prediction for the next fresh run, filed before it** (read off the 22 bills' void and occupier
+shares on 4ae8da9b0f). 11 of the 22 occupier months carry a credit: three accounts in Dec and Jan,
+two in Feb and Mar, and one in Mar. The other 11 were void on the 1st, or the occupant started after
+it, and carry none. `total_occupier_debt` falls by at most 11 × £67 = £737. It is less wherever an
+occupier month's revenue is under the credit. The ledger's uncredited occupier bills go 22 → 11,
+and those 11 are correct to stay uncredited.
+
+**Seen on the way, not chased:** on these bills `occupier_debt_gbp` runs at 1.3 to 1.8 times the
+bill total (OCC-eb8498f3f8aa, Mar 2023: £240.83 of debt on a £130.86 bill). The debt is booked from
+settlement `revenue_gbp`, which is not the bill's basis. Which of the two is the occupier's true
+debt is open.

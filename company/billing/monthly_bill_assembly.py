@@ -935,6 +935,11 @@ def build_monthly_bills(
                 bill["occupier_debt_gbp"] = occupier_gbp
                 bill["occupier_share"] = (
                     min(1.0, occupier_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
+            # The EBSS credit the occupier's deemed account took that month (one per account per
+            # month), so neither the arrears engine nor the ledger gives a named payer a second.
+            occupier_credit = sum(r.get("occupier_scheme_credit_gbp", 0.0) for r in months[month])
+            if occupier_credit:
+                bill["occupier_scheme_credit_gbp"] = round(occupier_credit, 2)
             # B7 slice 6: a void month's standing charges are the OWNER's deemed charge, booked by
             # the world as `void_owner_charge_gbp`. Its own share, so the arrears engine asks no
             # named payer for it and no reader confuses the owner with "the occupier".

@@ -207,3 +207,46 @@ supplier" (2022); the HMG fact sheet for the scheme as republished by CPCT.
   kept collecting the fixed amount and refunded the credit, as OVO did, moved the same pounds by a
   different route. The account balance comes out the same either way. The cash flow by day does
   not, and that difference is not modelled.
+
+## An occupier's deemed account (2026-10-27)
+
+**What the rules require.** BEIS, "Energy Bills Support Scheme: guidance for electricity
+suppliers" (22 Sep 2022, withdrawn after the scheme closed and still published at
+assets.publishing.service.gov.uk/media/661eb96a90095817cebd3dc7/withdrawn-ebss-guidance-for-electricity-suppliers.pdf):
+- **5.1:** payments "are applied to primary domestic supply contracts (or deemed contracts)".
+- **5.3:** eligibility is "only one contract (or deemed contract) per domestic premises".
+- **5.4:** a customer with a domestic supply contract "or a deemed contract at 00:00 hours on the
+  qualifying date" is eligible for that month. The qualifying date is the 1st of each month from
+  October 2022 to March 2023 (5.8).
+- **Annex C, "Occupier Accounts":** a household with no named account holder on the qualifying date
+  is still counted as eligible. As a last resort, the supplier credits the "Owner/Occupier" account
+  on the bill for direct debit, credit and smart prepayment customers.
+- **Annex C, "Vacant Properties":** a property found empty on the qualifying date, with no
+  eligible customer, is an exception. No payment is made.
+
+**What the code did.** The world books energy used in the change-of-tenancy window, before the
+incoming occupant is named, as `occupier_debt_gbp`. The amount was the window's whole revenue,
+including in the crisis winter. No credit was applied to it, and the ledger recorded the occupier
+as paying the bill in full. On 4ae8da9b0f that was 22 `OCC-` bills on seven accounts. Twelve of
+them, covered in part, overstated the occupier's payment by £804.
+
+**The choices the build makes, and why.**
+1. **An unnamed occupier's account takes the credit for a month only if it held the account on the
+   1st.** That is guidance 5.4 read against the world's own window. If the home was still void on
+   the 1st, the month falls under the vacant exception and gets no credit. So does an occupant who
+   arrived after the 1st, because nobody held the account at 00:00.
+   (`simulation/run_phase2b.occupier_scheme_credit`).
+2. **The credit is netted from the occupier's debt, not booked as revenue.** The government paid
+   it. So the supplier's loss on the window is the revenue less the credit, capped at the debt.
+   Any credit beyond the debt is a balance owed to the occupier, not a gain.
+3. **One credit per account per month.** The bill carries `occupier_scheme_credit_gbp`. The arrears
+   engine, the household's held month and the ledger then give no second credit to a payer named
+   later that month (5.3).
+
+**What is unknown.**
+- **GAP:** a named account opened after the 1st still has the month's credit netted by
+  `owed_after_scheme_credit`, which does not read the qualifying date. Under 5.4 that is a credit
+  the supplier could not have claimed. Not measured on any book yet.
+- **GAP:** whether a supplier's "reasonable steps" for an occupier account (Annex C) ended in a
+  credit or an exception in practice. This page assumes a credit, which is the last-resort route
+  the guidance names for credit and DD accounts.

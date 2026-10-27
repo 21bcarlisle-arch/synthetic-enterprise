@@ -460,7 +460,9 @@ def generate(run_json_path=None, out_path=None):
             _tone = None if outcome == "credit" else _tone_for_bill(method, cid, period_end)
         else:
             # No row: the bill is wholly the occupier's or the owner's, which the engine never
-            # collects from this payer. Drawn here as before; see the 2026-10-15 finding.
+            # collects from this payer. Drawn here as before; see the 2026-10-15 finding. The
+            # occupier's deemed account carries the EBSS credit the world netted from its debt.
+            scheme_credit = bill.get("occupier_scheme_credit_gbp", 0.0)
             method = _paying_method(segment, amount, cid, commodity, period_end, dd_spells)
             _tone = _tone_for_bill(method, cid, period_end)
             exit_ = _mover_final_bill_outcome(beh, cid, period_end, commodity, amount, method,

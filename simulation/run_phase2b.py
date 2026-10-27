@@ -34,7 +34,7 @@ from background.gap_metric import format_belief_summary as _format_belief_summar
 from background.gap_metric import format_detection_summary as _format_detection_summary
 from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from background.live_payment_triad import LivePaymentTriad
-from company.interfaces.bill_assembly import owed_after_scheme_credit
+from company.interfaces.bill_assembly import owed_after_scheme_credit, scheme_credit
 from company.interfaces.churn_estimation import (
     RenewalObservation,
     SvtSegmentObservation,
@@ -1733,6 +1733,24 @@ def _deliver_psr_registrations(all_records: list[dict], base_seed: int) -> list[
             for r in register.active_records]
 
 
+def occupier_scheme_credit(credit_left: dict, cid: str, settlement_date: str, owed_gbp: float,
+                           segment: str, commodity: str) -> float:
+    """The EBSS credit one unnamed-occupier row nets from its debt, drawn down in `credit_left`.
+
+    The month's credit opens only on a row dated the 1st, because eligibility is the account held
+    at 00:00 on the qualifying date (EBSS supplier guidance 5.4); a home void on the 1st is Annex
+    C's vacant exception and opens nothing. No row takes more than it owes: a credit larger than
+    the occupier's month leaves the account in credit, which the government's payment funds.
+    """
+    key = (cid, settlement_date[:7])
+    if settlement_date[8:10] == "01" and key not in credit_left:
+        credit_left[key] = scheme_credit(segment, commodity, settlement_date[:7])
+    credit = min(credit_left.get(key, 0.0), max(0.0, owed_gbp))
+    if credit > 0.0:
+        credit_left[key] -= credit
+    return credit
+
+
 def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
           gap_ledger_path=None):
     """Run the full Phase 2b + 4c settlement simulation.
@@ -2573,6 +2591,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # terms of one leg, so a month is held open per leg and posted when that leg's next month starts
     # or the run ends -- never twice, since the ledger keys a bill on (customer, month).
     _payment_month_open: dict[str, dict] = {}  # cid -> the month being accumulated
+    # (cid, month) -> the EBSS credit an unnamed occupier's deemed account still has to net.
+    _occupier_credit_left: dict[tuple[str, str], float] = {}
 
     def _book_complaint_for(cid, billing_account, term_start_str, _outcome, _about_bill_shock):
         # KNIFE step 21 (§3p): the world reports that the customer got in
@@ -2666,8 +2686,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # Net of the scheme credit, from the same door the arrears engine asks, so the pounds
             # the household's budget weighs are the pounds that can fail. A month left in credit
             # owes nothing.
-            amount_gbp=max(0.0, owed_after_scheme_credit(
-                held["amount_gbp"], held["segment"], held["fuel"], held["month"])),
+            # A month whose credit the unnamed occupier's account took gives no second one.
+            amount_gbp=max(0.0, held["amount_gbp"] if (cid, held["month"]) in _occupier_credit_left
+                           else owed_after_scheme_credit(
+                               held["amount_gbp"], held["segment"], held["fuel"], held["month"])),
             income_stress_value=held["income_stress_value"],
             segment=held["segment"],
             fuel=held["fuel"],
@@ -5540,7 +5562,16 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _bad_debt = 0.0
             elif (cid in _unnamed_until
                   and rec["settlement_date"][:10] < _unnamed_until[cid].isoformat()):
-                rec["occupier_debt_gbp"] = rec.get("revenue_gbp", 0.0)
+                # EBSS goes to whoever holds the account at 00:00 on the month's 1st (guidance
+                # 5.4), and an unnamed occupier's deemed account on an occupied home is one (Annex
+                # C, "Occupier Accounts"). The government pays the credit, so only the rest is
+                # the occupier's debt. A home still void on the 1st is Annex C's vacant exception.
+                _owed = rec.get("revenue_gbp", 0.0)
+                _credit = occupier_scheme_credit(_occupier_credit_left, cid, rec["settlement_date"],
+                                                 _owed, cust_segment, commodity)
+                if _credit > 0.0:
+                    rec["occupier_scheme_credit_gbp"] = _credit
+                rec["occupier_debt_gbp"] = _owed - _credit
                 rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - rec["occupier_debt_gbp"], 6)
                 _bad_debt = 0.0
             rec["bad_debt_gbp"] = _bad_debt
@@ -5559,7 +5590,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "segment": cust_segment, "fuel": commodity}
             _held["amount_gbp"] += (float(rec.get('revenue_gbp', 0.0) or 0.0)
                                     - rec.get("void_owner_charge_gbp", 0.0)
-                                    - rec.get("occupier_debt_gbp", 0.0))
+                                    - rec.get("occupier_debt_gbp", 0.0)
+                                    - rec.get("occupier_scheme_credit_gbp", 0.0))
             rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)
             treasury += rec["net_margin_gbp"]
             rec["treasury_cash_balance_gbp"] = treasury

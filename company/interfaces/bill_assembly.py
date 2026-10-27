@@ -81,8 +81,15 @@ def owed_after_scheme_credit(amount: float, segment: str, commodity: str, month:
     return round(amount - _scheme_credit(segment, commodity, month), 2)
 
 
+def scheme_credit(segment: str, commodity: str, month: str) -> float:
+    """The month's government bill credit for one account, for the world's occupier window, which
+    nets it from a debt rather than from a bill (`run_phase2b`, the 2026-10-27 occupier finding).
+    """
+    return _scheme_credit(segment, commodity, month)
+
+
 __all__ = [
     "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
     "billing_accuracy", "direct_debit_money_line", "held_bills", "issued_bills",
-    "move_out_final_bills", "owed_after_scheme_credit",
+    "move_out_final_bills", "owed_after_scheme_credit", "scheme_credit",
 ]

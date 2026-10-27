@@ -578,7 +578,8 @@ def _paid_on_receipt_by_due_date(bill: dict, behavioral: dict, seed: int) -> boo
     amount = bill["total_amount_gbp"]
     if occupier_share > 0.0:
         amount = round(amount * (1.0 - occupier_share), 2)
-    amount = owed_after_scheme_credit(amount, segment, commodity, period_end[:7])
+    if not bill.get("occupier_scheme_credit_gbp"):  # the occupier's account took the month's credit
+        amount = owed_after_scheme_credit(amount, segment, commodity, period_end[:7])
     if amount <= 0:
         return None
     stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
