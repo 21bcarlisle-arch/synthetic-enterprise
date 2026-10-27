@@ -558,23 +558,23 @@ def default_tariff_rate_against_cap(period: dict, *, segment: str) -> dict:
                                for g in graded)}
 
 
-def published_commodity_floors(commodity: str, first: str, last: str, *, multi_register: bool):
+def published_cost_floors(commodity: str, first: str, last: str, *, multi_register: bool):
     """Each cap window between two dates, as (from, to, floor p/kWh ex-VAT or None, how).
 
-    The floor is the commodity allowance (DF + CM) in Ofgem's own cap model for that window: what
-    the cap lets a supplier recover for buying the energy. It is the LOWEST such figure over the
-    three payment methods and the fifteen regions, so a rate under it is under the commodity
-    allowance of every region and method. It is a floor on wholesale cost ALONE: the artefact does
-    not separate the network and policy components, so the "plus network and policy" half of the
-    floor is a stated GAP, not a zero. The commons carries single-rate electricity only.
+    The floor is the cost the cap passes through per unit in Ofgem's own cap model for that window:
+    commodity (DF + CM), network (NC) and policy (PC), benchmark minus nil over the benchmark kWh.
+    It is the LOWEST over the three payment methods and the fifteen region rows, so a rate under it
+    is under that cost in every region and method. Operating cost, EBIT and headroom are not in it.
+    Single-rate electricity and gas. Multi-register is a GAP: a per-register rate against a blended
+    benchmark floor is not a quantity, since an off-peak rate is lawfully under it.
     """
     windows = _published("ofgem_default_tariff_cap_windows.json")["windows"]
-    if multi_register or commodity != "electricity":
+    if multi_register:
         return [(first, last, None,
-                 "the commons carries the cap model's commodity allowance for single-rate "
-                 "electricity only, not for {}".format(
-                     "multi-register electricity" if multi_register else commodity))]
-    by_method = _published("ofgem_cap_unit_rate_composition.json")["by_payment_method"]
+                 "the commons carries no per-register cost floor for multi-register electricity")]
+    artefact = _published("ofgem_cap_unit_rate_composition.json")
+    by_method = artefact["by_payment_method" if commodity == "electricity"
+                         else "gas_by_payment_method"]
     out = []
     for w in windows:
         if not (w["from"] <= last and first <= w["to"]):
@@ -582,12 +582,13 @@ def published_commodity_floors(commodity: str, first: str, last: str, *, multi_r
         figures = []
         for method in by_method.values():
             row = next((p for p in method["periods"] if p["starts"] == w["from"]), None)
-            if row is not None:
-                figures.append(row["commodity_share_min"] * row["unit_rate_p_per_kwh_ex_vat"])
+            if row is not None and row.get("pass_through_p_per_kwh_ex_vat_min") is not None:
+                figures.append(row["pass_through_p_per_kwh_ex_vat_min"])
         out.append((w["from"], w["to"], min(figures) if len(figures) == len(by_method) else None,
-                    "lowest DF+CM unit-rate allowance, ex-VAT, over payment methods and regions"
-                    if len(figures) == len(by_method) else
-                    "the cap model carries no commodity allowance for the window from " + w["from"]))
+                    "lowest DF+CM+NC+PC unit-rate allowance, ex-VAT, over payment methods and "
+                    "regions" if len(figures) == len(by_method) else
+                    "the cap model carries no {} cost floor for the window from {}".format(
+                        commodity, w["from"])))
     covered_to = max([r[1] for r in out], default=None)
     if covered_to is None or covered_to < last:
         out.append((covered_to or first, last, None,
@@ -599,10 +600,9 @@ def default_tariff_rate_against_wholesale_floor(period: dict, *, segment: str) -
     """Each default-tariff term's contracted rate, against the commodity cost its cap window allows.
 
     `default_tariff_rate_against_cap` bounds the rate from above; a rate set too low passed it. A
-    default tariff priced under the energy cost the cap itself allows is a loss before any network
-    or policy cost, so it is flagged. Fails closed (UNCHECKABLE, naming the gap) wherever the
-    commons carries no allowance. The floor excludes network and policy costs (see
-    `published_commodity_floors`), so passing is a weaker statement than the ceiling's.
+    default tariff priced under the energy, network and policy cost the cap itself passes through
+    is a loss before any operating cost, so it is flagged (see `published_cost_floors`). Fails
+    closed (UNCHECKABLE, naming the gap) wherever the commons carries no floor.
     """
     label = "Default-tariff rate against the wholesale floor"
     terms = [t for t in period.get("contracted_terms") or []
@@ -625,7 +625,7 @@ def default_tariff_rate_against_wholesale_floor(period: dict, *, segment: str) -
         if rate is None:
             blind.append("a {} term carries no single rate".format(term.get("tariff_type")))
             continue
-        for w_from, w_to, floor, how in published_commodity_floors(
+        for w_from, w_to, floor, how in published_cost_floors(
                 commodity, first, last, multi_register=multi):
             if floor is None:
                 blind.append(how)

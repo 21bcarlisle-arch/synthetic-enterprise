@@ -250,3 +250,25 @@ def test_the_runner_imports_nothing_from_the_repository_but_the_raw_export():
     repo = {m for m in mods if m.split(".")[0] in {"company", "saas", "simulation", "sim", "tools",
                                                    "background", "site"}}
     assert repo == {"company.billing.raw_account_export"}, repo
+
+
+def test_gas_grades_each_payment_method_against_its_own_column_and_flags_under_the_floor():
+    """The gas rows carry per-method columns and a commodity floor since 2026-10-27. Defects named:
+    a gas evaluator still reading the DD column for a prepayment account, and a floor nobody reads."""
+    inv = [{"id": "INV_UNIT_RATE_SVT_GAS", "tolerance": {"upper_relative": 0.005},
+            "rows": [_row(2.0, 4.0, upper_standard_credit=4.2, upper_prepayment=3.9)]}]
+
+    def verdict(**kw):
+        result = runner.run(inv, {"G": _account("G", "gas", kwh_per_month=900.0, **kw)})[0]
+        return result["breached"], result["flagged"]
+
+    outcomes = {
+        "dd_at_dd_cap": verdict(rate=4.0),
+        "pp_at_dd_cap": verdict(rate=4.0, method="prepayment"),
+        "sc_at_dd_cap": verdict(rate=4.0, method="standard_credit"),
+        "under_floor": verdict(rate=1.5),
+    }
+    assert outcomes["dd_at_dd_cap"] == (0, 0)
+    assert outcomes["pp_at_dd_cap"][0] > 0
+    assert outcomes["sc_at_dd_cap"] == (0, 0)
+    assert outcomes["under_floor"][0] == 0 and outcomes["under_floor"][1] > 0

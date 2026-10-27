@@ -92,6 +92,12 @@ account, or pair of reads.
   could not see. This is that blind spot, measured.
 - **A real defect.** SLC 28AD bounds a prepayment default tariff by the prepayment level. The
   world prices every SVT at the GB direct-debit level whatever the payment method.
+- **Gas too (added 2026-10-27).** The suite could not see gas prepayment until the commons carried
+  the gas cap per payment method. On the same book, `INV_UNIT_RATE_SVT_GAS` now breaches 462 of
+  4,713. All of them are prepayment (462 of 581 prepayment term-windows), at 1.2–5.0% over the
+  prepayment column. Pre-registration and result:
+  `records/SEAT_PREREGISTRATION_THE_BLIND_SUITES_GAS_UNIT_RATE_ROWS_TAKE_THE_COMMONS_GAS_FLOOR_AND_NON_DD_CEILINGS_2026-10-27.md`.
+  A fix to the pricing must therefore cover both fuels.
 
 **2. The SVT standing charge changes on 1 January, not when the cap does**
 - Covers `INV_STANDING_CHARGE_SVT_ELEC` (2,986 breaches) and `_GAS` (4,226).
