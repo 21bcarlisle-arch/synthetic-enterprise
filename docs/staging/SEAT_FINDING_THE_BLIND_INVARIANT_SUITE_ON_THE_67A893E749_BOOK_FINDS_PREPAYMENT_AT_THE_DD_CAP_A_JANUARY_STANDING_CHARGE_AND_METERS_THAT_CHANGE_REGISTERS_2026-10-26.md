@@ -98,6 +98,24 @@ account, or pair of reads.
   prepayment column. Pre-registration and result:
   `records/SEAT_PREREGISTRATION_THE_BLIND_SUITES_GAS_UNIT_RATE_ROWS_TAKE_THE_COMMONS_GAS_FLOOR_AND_NON_DD_CEILINGS_2026-10-27.md`.
   A fix to the pricing must therefore cover both fuels.
+- **Fixed 2026-10-27, both fuels.** The run loop now re-prices each domestic SVT segment at
+  min(its payment method's cap column, the published DD level), with the method read from the
+  company's own register on the segment's first day. K8 page:
+  `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`, choice 6. Test:
+  `tests/simulation/test_a_prepayment_default_tariff_is_priced_at_the_prepayment_cap.py`.
+  - The book was re-priced offline through the new reader. The old reader reproduces every
+    capped-window SVT rate; its only misses are 2016–18 pre-cap rows, which the fix does not touch.
+    The register's method matched the book's payments on 39,417 of 39,417 rows.
+  - Result: `INV_UNIT_RATE_SVT_ELEC` **496 → 0**, `INV_UNIT_RATE_SVT_GAS` **462 → 0**.
+    `_MULTI_REGISTER` 501 → 493, all of it class 3. The pre-cap rows and floor flags stay at 0.
+  - The rate is applied at run time, so the closing reading needs a fresh run.
+  - Named remainders:
+    - `_account_state_svt_rate` (the company's "own default tariff" a fix is compared against)
+      and the re-fix log's `withdrawn_default_rates` still read the DD level for a prepayment leg.
+      Both are comparison readers, not billed rates, and both overstate a prepayment household's
+      alternative by about 1–5%.
+    - A meter moved to prepayment for debt is not on the method register (a GAP on the page;
+      that route ships at 0).
 
 **2. The SVT standing charge changes on 1 January, not when the cap does**
 - Covers `INV_STANDING_CHARGE_SVT_ELEC` (2,986 breaches) and `_GAS` (4,226).

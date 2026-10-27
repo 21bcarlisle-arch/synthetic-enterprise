@@ -305,6 +305,7 @@ from simulation.svt_product import (
     SVT_TARIFF_TYPE,
     build_svt_schedule,
     inertia_hazard_for_term,
+    price_segment_for_payment_method,
     stamp_hmt_epg_receipt,
 )
 from simulation.tou_periods import is_peak_period as _is_peak_period
@@ -3377,6 +3378,18 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         # Choice 7: a follower is not an exit, so its bills are not final bills.
                         _moved_out_on_by_leg.pop(cid, None)
 
+        # A DEFAULT TARIFF IS PRICED AT ITS PAYMENT METHOD'S CAP COLUMN (SLC 28AD), read from the
+        # method the company's own register holds on the segment's first day. The schedule was
+        # built at the DD level before any register could be asked; 496 electricity and 462 gas
+        # prepayment term-windows sat over the prepayment cap on the 67a893e749 book until this.
+        _svt_priced_method = None
+        if term.get("tariff_type") == SVT_TARIFF_TYPE and _is_domestic_leg(cid):
+            from company.interfaces.sim_interface import LiveSimInterface
+            _svt_priced_method = LiveSimInterface().get_payment_method(
+                billing_account, commodity, as_of=term["acquisition_date"])
+            price_segment_for_payment_method(
+                term, fuel=commodity, method_held=_svt_priced_method)
+
         forward_price = term["forward_price_gbp_per_mwh"]        # sim's sophisticated estimate
         company_fwd = term.get("company_forward_price_gbp_per_mwh", forward_price)
         unit_rate = term["unit_rate_gbp_per_mwh"]
@@ -5457,7 +5470,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # The household on a default tariff paid the EPG rate; the Treasury paid the rest of
         # `revenue_gbp`. Its share rides on the record for the bill to carve out.
         if term_tariff_type == SVT_TARIFF_TYPE and _is_domestic_leg(cid):
-            stamp_hmt_epg_receipt(term_records, fuel=commodity)
+            stamp_hmt_epg_receipt(term_records, fuel=commodity, method_held=_svt_priced_method)
 
         # Phase MW: income stress bad-debt uplift (residential only).
         _income_stress = (

@@ -190,6 +190,77 @@ def _window_for(on_date: date) -> dict:
     )
 
 
+_COMPOSITION_ARTEFACT = _CAP_WINDOWS_ARTEFACT.with_name("ofgem_cap_unit_rate_composition.json")
+
+#: The cap model's per-method series, keyed by fuel, in the composition artefact.
+_METHOD_SERIES_KEY = {"electricity": "by_payment_method", "gas": "gas_by_payment_method"}
+
+PAYMENT_METHODS = ("direct_debit", "standard_credit", "prepayment")
+
+
+def _load_method_unit_rates() -> dict[tuple[str, str], list[tuple[date, float]]]:
+    """(fuel, method) -> [(period start, unit rate p/kWh ex-VAT)], from Ofgem's cap level model.
+
+    Raises rather than failing open: a missing column would price a prepayment household at the
+    direct-debit level, which is the defect this reader exists to end.
+    """
+    raw = json.loads(_COMPOSITION_ARTEFACT.read_text())
+    out: dict[tuple[str, str], list[tuple[date, float]]] = {}
+    for fuel, key in _METHOD_SERIES_KEY.items():
+        for method in PAYMENT_METHODS:
+            periods = raw[key][method]["periods"]
+            out[(fuel, method)] = sorted(
+                (date.fromisoformat(p["starts"]), float(p["unit_rate_p_per_kwh_ex_vat"]))
+                for p in periods if p.get("cap_in_force"))
+            if not out[(fuel, method)]:
+                raise ValueError(f"{_COMPOSITION_ARTEFACT}: no capped {fuel} {method} period")
+    return out
+
+
+_METHOD_UNIT_RATES = _load_method_unit_rates()
+
+
+def _method_rate_on(fuel: str, method: str, on_date: date) -> float:
+    # The period in force, or the last one past the schedule: the same carry-forward `_window_for`
+    # makes, for the same reason.
+    series = _METHOD_UNIT_RATES[(fuel, method)]
+    return next((rate for start, rate in reversed(series) if start <= on_date), series[0][1])
+
+
+def payment_method_cap_factor(fuel: str, on_date: date, payment_method: str | None) -> float:
+    """What a default tariff on `payment_method` is priced at, as a share of the published level.
+
+    The published level (`ofgem_default_tariff_cap_windows.json`) is the direct-debit column.
+    SLC 28AD caps each payment method at its own level, and Ofgem's cap model publishes all three
+    (`ofgem_cap_unit_rate_composition.json`, ex-VAT GB median). This world prices a default tariff
+    at min(the method's own column, the published DD level). The column is read directly, not as
+    a ratio to the model's DD row: a ratio carries the model's up-to-1.4% disagreement with the
+    published level and left the 2020-10 prepayment rate 1.36% over its own column.
+
+      * prepayment is LOWER than direct debit in most windows, and there the household is priced
+        at its own cap. Until 2026-10-27 it was priced at the DD level: 1.8-4.1% over its cap
+        (electricity, Apr 2020 - Apr 2025) and 1.2-5.0% over (gas), on the blind suite's book.
+      * where the method's column is HIGHER (standard credit always; prepayment gas in
+        Oct 2022 - Jun 2023), the DD level stands. Charging up to the higher column is lawful
+        but it is the supplier's pricing choice, and taking it would raise our own revenue on a
+        reading no one has made. Erring against our own thesis is the safe direction.
+
+    1.0 for direct debit, for no method (the caller does not hold one), before the cap existed,
+    and for a fuel with no cap. An unknown method is refused: a column we cannot name has no
+    level to price at.
+    """
+    if payment_method in (None, "direct_debit") or fuel not in _METHOD_SERIES_KEY:
+        return 1.0
+    if payment_method not in PAYMENT_METHODS:
+        raise ValueError(
+            f"payment method {payment_method!r} has no cap column: Ofgem's model publishes "
+            f"{PAYMENT_METHODS}")
+    if on_date < _FIRST_CAPPED_DAY:
+        return 1.0
+    column_inc_vat = _method_rate_on(fuel, payment_method, on_date) * 10.0 * (1.0 + DOMESTIC_VAT_RATE)
+    return min(1.0, column_inc_vat / _window_for(on_date)[_FUEL_KEY[fuel]])
+
+
 def ofgem_cap_unit_rate_gbp_per_mwh_inc_vat(fuel: str, on_date: date) -> float | None:
     """The OFGEM DEFAULT TARIFF CAP level alone, with no EPG selection applied,
     on the published basis: GBP/MWh, inc-VAT, excluding standing charge.
@@ -315,6 +386,26 @@ def hmt_epg_receipt_gbp_per_mwh(fuel: str, on_date: date) -> float | None:
     if ofgem is None or binding is None:  # unreachable given the guards above
         return None
     return ofgem - binding
+
+
+def default_tariff_unit_rates_for_method_inc_vat(
+    fuel: str, on_date: date, payment_method: str | None,
+) -> tuple[float, float, float] | None:
+    """(priced at, charged to the household, HM Treasury receipt) for a default tariff on
+    `payment_method`, GBP/MWh inc-VAT, excluding standing charge.
+
+    The three accessors above, at the method's own cap level: the EPG bounds the household's
+    rate whatever the method, so the household pays min(method cap, EPG) and the Treasury the
+    rest. `priced = charged + receipt` holds by the same arithmetic. None where no cap existed.
+    """
+    key = _FUEL_KEY.get(fuel)
+    ofgem = ofgem_cap_unit_rate_gbp_per_mwh_inc_vat(fuel, on_date)
+    if key is None or ofgem is None:
+        return None
+    priced = ofgem * payment_method_cap_factor(fuel, on_date, payment_method)
+    epg = _window_for(on_date).get(f"{key}_epg")
+    charged = min(priced, epg) if epg is not None else priced
+    return priced, charged, priced - charged
 
 
 def household_price_inc_vat(amount_ex_vat: float) -> float:
