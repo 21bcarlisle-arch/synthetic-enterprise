@@ -7,6 +7,7 @@ this registry; the company layer reads from it without touching simulation inter
 Synthetic contact details are generated deterministically from account ID.
 """
 
+import hashlib
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -21,10 +22,26 @@ from company.crm.supply_start import (
 DEFAULT_DB_PATH = Path("company/data/registry.db")
 
 
-def _mpan(account_id: str) -> str:
-    """Synthetic MPAN (Meter Point Administration Number) — 13 digits."""
-    seed = sum(ord(c) for c in account_id)
-    return f"1{seed:012d}"[:13]
+#: The fourteen DNO distributor IDs and the core's check-digit weights
+#: (docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md).
+MPAN_DISTRIBUTOR_IDS = tuple(str(i) for i in range(10, 24))
+MPAN_CHECK_WEIGHTS = (3, 5, 7, 13, 17, 19, 23, 29, 31, 37, 41, 43)
+
+
+def mpan_core(account_id: str) -> str:
+    """The account's MPAN core: distributor ID, ten digits of a hash of the account, check digit.
+
+    The one home for it: the ledger, the customer pages and this registry each used to mint their
+    own, and on the 2eeb3f0b3 book 707 electricity accounts shared 158 cores, none with a check
+    digit. A display identifier only. The world draws no region, so the distributor is the hash's,
+    not a place the household is in (GAP).
+    """
+    h = int(hashlib.sha256(account_id.encode()).hexdigest(), 16)
+    first12 = MPAN_DISTRIBUTOR_IDS[h % len(MPAN_DISTRIBUTOR_IDS)] + str(h // 14 % 10**10).zfill(10)
+    return first12 + str(sum(int(c) * w for c, w in zip(first12, MPAN_CHECK_WEIGHTS)) % 11 % 10)
+
+
+_mpan = mpan_core
 
 
 def _mprn(account_id: str) -> str:

@@ -1,17 +1,25 @@
 """Tests for tools/generate_customer_data.py pure helpers."""
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-import pytest
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import json
 
-from tools.generate_customer_data import (
-    _tariff, _meter, _base_id, _mpan, _mprn, _mpan_check_digit, _timeline, _life_events,
-    _forecast_cashflow, generate,
-)
+import pytest
+
 import tools.generate_customer_data as gcd_module
+from tools.generate_customer_data import (
+    _base_id,
+    _forecast_cashflow,
+    _life_events,
+    _meter,
+    _mpan,
+    _mprn,
+    _tariff,
+    _timeline,
+    generate,
+)
 
 
 def test_tariff_ic_segment():
@@ -88,9 +96,10 @@ def test_base_id_strips_trailing_g_only():
     assert _base_id("Cgg") == "Cg"
 
 
-def test_mpan_bottom_line_is_11_digits():
+def test_mpan_bottom_line_is_the_13_digit_core():
+    """The cold reader's O31: the page printed an 11-digit core."""
     m = _mpan("C1", "resi")
-    assert len(m["bottom_line"]) == 11
+    assert len(m["bottom_line"]) == 13
     assert m["bottom_line"].isdigit()
 
 
@@ -117,11 +126,17 @@ def test_mpan_resi_uses_profile_class_01():
     assert m["top_line"][:2] == "01"
 
 
-def test_mpan_check_digit_matches_published_algorithm():
-    core = "00012345"
-    weights = [3, 5, 7, 13, 17, 19, 23, 29]
-    expected = str((sum(int(d) * w for d, w in zip(core, weights)) % 11) % 10)
-    assert _mpan_check_digit(core) == expected
+def test_mpan_core_is_unique_and_carries_its_check_digit():
+    """The 2eeb3f0b3 book: 707 accounts shared 158 cores, none with a check digit. The weights here
+    are restated from the commons page, not imported, so a wrong weight in the one home fails."""
+    from company.crm.customer_registry import mpan_core
+    weights = (3, 5, 7, 13, 17, 19, 23, 29, 31, 37, 41, 43)
+    cores = [mpan_core("OCC-%06d" % i) for i in range(2000)]
+    assert len(set(cores)) == len(cores)
+    for core in cores:
+        assert 10 <= int(core[:2]) <= 23
+        assert int(core[-1]) == sum(int(c) * w for c, w in zip(core, weights)) % 11 % 10
+    assert len({c[:2] for c in cores}) == 14
 
 
 def test_mprn_is_8_digits():

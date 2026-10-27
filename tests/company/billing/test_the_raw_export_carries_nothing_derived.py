@@ -425,6 +425,28 @@ def test_a_bill_the_scheme_covered_in_part_exports_the_credit_and_the_households
     assert rx.derived_leaks(out) == []
 
 
+
+def test_the_scheme_credit_is_the_months_whole_instalment_on_the_day_the_bill_applied_it():
+    """On the 2eeb3f0b3 book the payment rows' share read as 283 short, late or missing EBSS months:
+    capped at a small bill, dated at a late household's payment, or absent on a credit invoice. An
+    invoice carrying `scheme_credit_month_gbp` exports the whole credit at its issue date, and the
+    payment rows' share is not exported beside it as a second credit. Both legs are taken here.
+    MUTATION: drop the invoice read and the £49.32 share comes back; keep both and it doubles.
+    """
+    pays = [{"payment_date": "2023-01-20", "amount_gbp": 0.0, "scheme_credit_gbp": 49.32,
+             "method": rx.SCHEME_CREDIT, "outcome": "credit"}]
+    invoices = [{"period_start": "2022-12-01", "period_end": "2022-12-31", "issue_date": "2023-01-04",
+                 "commodity": "electricity", "scheme_credit_month_gbp": 67.0},
+                {"period_start": "2023-01-01", "period_end": "2023-01-31", "issue_date": "2023-02-03",
+                 "commodity": "electricity", "total_amount_gbp": -6.73, "scheme_credit_month_gbp": 67.0}]
+    whole = rx.raw_account("C9", {"segment": "resi", "invoices": invoices, "payments": pays})
+    assert whole["adjustments"] == [
+        {"adjustment_date": "2023-01-04", "adjustment_amount_gbp": 67.0, "adjustment_reason": rx.SCHEME_CREDIT},
+        {"adjustment_date": "2023-02-03", "adjustment_amount_gbp": 67.0, "adjustment_reason": rx.SCHEME_CREDIT}]
+    older = rx.raw_account("C9", {"segment": "resi", "invoices": [], "payments": pays})
+    assert [a["adjustment_amount_gbp"] for a in older["adjustments"]] == [49.32]
+    assert rx.derived_leaks(whole) == []
+
 def test_both_fuels_of_one_household_carry_one_billing_account():
     """The suite reads a dual-fuel household as two unlinked accounts without this."""
     elec = rx.raw_account("C1", {"segment": "resi", "invoices": [], "payments": []})

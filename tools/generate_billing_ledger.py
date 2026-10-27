@@ -30,6 +30,7 @@ from company.billing.pre_bill_validation import (
     validate_rendered_bill_money,
     validate_rendered_bill_reads,
 )
+from company.crm.customer_registry import mpan_core
 from company.regulatory.energy_bill_support import ebss_credit_gbp
 from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS, applied_rates
 from saas.money import (
@@ -287,16 +288,9 @@ def _printed_daily_rate(days_in_period, printed_standing_charge_gbp):
 
 
 # BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): every bill must state
-# meter serial + MPAN/MPRN. Same deterministic-from-account-id scheme as
-# company/crm/customer_registry.py's _mpan()/_mprn() (duplicated rather than
-# imported -- that module pulls in sqlite3 for its registry DB, which this
-# JSON-only pipeline script has no other reason to depend on; kept
-# byte-for-byte identical so the two would agree if that registry is ever
-# wired into the real run pipeline).
-def _mpan(account_id: str) -> str:
-    """Synthetic MPAN (Meter Point Administration Number) -- 13 digits."""
-    seed = sum(ord(c) for c in account_id)
-    return f"1{seed:012d}"[:13]
+# meter serial + MPAN/MPRN. The MPAN core has one home, company/crm/customer_registry.mpan_core;
+# the MPRN keeps the registry's scheme, duplicated here.
+_mpan = mpan_core
 
 
 def _mprn(account_id: str) -> str:
@@ -777,6 +771,16 @@ def generate(run_json_path=None, out_path=None):
             ))
             continue
 
+        # The month's WHOLE credit, as the account received it when this bill applied it. The
+        # payment row below carries only what this bill used (capped at the bill, dated at the
+        # household's payment), and a credit invoice has no payment row at all: on the 2eeb3f0b3
+        # book that read as 283 short, late or missing EBSS months (INV_EBSS_CREDIT_EACH_MONTH).
+        # The engine netted the month's credit wherever it resolved the bill, unless the unnamed
+        # occupier's account held it (`arrears_engine`, `occupier_scheme_credit_gbp`).
+        whole_credit = bill.get("occupier_scheme_credit_gbp") or (
+            ebss_credit_gbp(segment, commodity, period_end[:7]) if row is not None else 0.0)
+        if whole_credit:
+            inv["scheme_credit_month_gbp"] = round(whole_credit, 2)
         invoices_by_cid.setdefault(cid, []).append(inv)
 
         # D3 step 2: a credit invoice (amount <= 0) has nothing to collect --

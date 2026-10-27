@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """Generate per-customer site data with dual-fuel combined views and enriched metrics."""
 import hashlib
-import json, math, sys
-from pathlib import Path
+import json
+import math
+import sys
 from collections import defaultdict
+from pathlib import Path
 
+from company.crm.customer_registry import mpan_core
 from saas.clv_model import DISCOUNT_RATE_ANNUAL
 
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_DIR = PROJECT / "site" / "data" / "customers"
 
-# GB electricity distributor (DNO) IDs actually in use (Elexon MPAS convention).
-_DNO_IDS = ["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"]
 
 
 def _retire_departed_artefacts(index):
@@ -55,25 +56,15 @@ def _digest_int(seed, n):
     return str(int(h, 16))[:n].zfill(n)
 
 
-def _mpan_check_digit(core8):
-    """Published Elexon modulus-11 check-digit algorithm for the MPAN core ID."""
-    weights = [3, 5, 7, 13, 17, 19, 23, 29]
-    total = sum(int(d) * w for d, w in zip(core8, weights))
-    return str((total % 11) % 10)
-
-
 def _mpan(account_id, segment):
-    """MPAN bottom line (11 digits): DNO(2) + unique ref(8) + check digit(1),
-    plus a top line of profile class(2) + meter timeswitch(2) + line loss factor(3)."""
+    """MPAN bottom line, the 13-digit core (`customer_registry.mpan_core`, the one home the ledger
+    reads too), plus a top line of profile class(2) + meter timeswitch(2) + line loss factor(3)."""
     profile_class = "05" if segment == "I&C" else "01"
     meter_timeswitch = "00"
     line_loss_factor = _digest_int(account_id + "-llf", 3)
-    dno = _DNO_IDS[int(hashlib.sha256(account_id.encode()).hexdigest(), 16) % len(_DNO_IDS)]
-    core8 = _digest_int(account_id + "-core", 8)
-    check = _mpan_check_digit(core8)
     return {
         "top_line": profile_class + meter_timeswitch + line_loss_factor,
-        "bottom_line": dno + core8 + check,
+        "bottom_line": mpan_core(account_id),
     }
 
 

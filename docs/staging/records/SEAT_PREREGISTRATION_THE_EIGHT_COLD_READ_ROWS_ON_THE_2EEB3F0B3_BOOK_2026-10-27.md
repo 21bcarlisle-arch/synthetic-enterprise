@@ -96,3 +96,34 @@ as the ledger's payment row records it:
 All of these come from how the export carries the credit, except the 5 (the predicate) and the 3
 (open). Filed as one exception with these counts until the ledger carries the whole credit, dated
 when it was applied.
+
+## The fixes, graded on the same run's ledger rebuilt (no new run)
+
+The rebuild used `/var/tmp/fresh-run-scripts/build_ledger.py` and `export_raw.py` on
+`/var/tmp/fresh-run-out-2eeb3f0b3`, one fix at a time:
+- `/var/tmp/eight-rows-mpan-regrade`: the MPAN fix alone.
+- `/var/tmp/eight-rows-ebss-regrade`: both fixes.
+
+| row | before | MPAN fix | + EBSS fix |
+|---|---|---|---|
+| INV_MPAN_CORE_FORMAT | 637 of 707 | **0 of 707** (707 distinct cores, from 158) | 0 |
+| INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 | 291 of 2,295 | 291 | **12 of 2,295** |
+
+- **MPAN:** `company/crm/customer_registry.mpan_core` is now the one home for the core. The ledger
+  and the customer pages read it, and the core is 13 digits with the check digit. The exception is
+  retired.
+- **EBSS:** the ledger puts the month's whole credit on the invoice (`scheme_credit_month_gbp`).
+  It does so wherever the engine resolved the bill, and as the occupier's credit where that account
+  held it. The export carries it dated at the invoice's issue date.
+
+The rebuild also takes INV_PERIODS_CONTIGUOUS from 4 to 0. That is not attributed here: the rebuild
+also carries code that landed on HEAD after 13:41 (fccc0a41c7 among it), and neither fix touches
+period dates.
+
+**A correction to the causes above.** All 12 residual breaches are on five `OCC-` accounts in the
+unnamed-occupier window. They are not "5 joiners and 3 unexplained": that split was too fine. The
+occupier path (`run_phase2b`, `occupier_scheme_credit`) sizes their credit by the occupier's debt
+and dates it by the settlement record. Four of the 12 are first part-months, where guidance 5.4
+gives no credit (OCC-a1e9ae835e65 Nov, OCC-bec72a04dec8 Oct, OCC-e3e94f81161b Feb,
+OCC-eb8498f3f8aa Jan). OCC-c0afcdf9fce8, which I had counted as a joiner, joined on 3 Jan, and its
+breach is February. The exception is now scoped to those five accounts with a ceiling of 12.

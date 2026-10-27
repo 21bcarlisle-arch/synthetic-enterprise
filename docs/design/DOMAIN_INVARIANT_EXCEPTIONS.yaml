@@ -37,26 +37,17 @@ exceptions:
     filed: 2026-10-27
     retired_by: a statement document type for the SME prepayment leg, or the invariant scoped to domestic accounts
     max_breached: 12
-  # 2026-10-27: the first grade of the two cold-read rows that gained evaluators. Causes per breach in
+  # 2026-10-27: the two cold-read rows that gained evaluators graded 637 (MPAN) and 291 (EBSS) on
+  # the 2eeb3f0b3 ledger. With one MPAN home and the whole credit on the invoice, the same run's
+  # ledger, rebuilt, grades 0 and 12. The MPAN exception is retired. Causes per breach in
   # docs/staging/records/SEAT_PREREGISTRATION_THE_EIGHT_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
-  - invariant: INV_MPAN_CORE_FORMAT
-    scope: every electricity account whose ledger MPAN fails the check digit; 637 of 707 on the 2eeb3f0b3 book
-    reason: >-
-      tools/generate_billing_ledger._mpan is "1" plus the sum of the account id's character codes:
-      no check digit, every core reads distributor 10, and 707 accounts share 158 cores. A fault in
-      how the identifier is minted, not in any household's supply. It has two other homes
-      (company/crm/customer_registry._mpan, tools/generate_customer_data._mpan).
-    filed: 2026-10-27
-    retired_by: one home for the MPAN core, unique per supply point with a valid check digit, and the ledger rebuilt
-    max_breached: 637
   - invariant: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
-    scope: domestic credit-paying electricity account-months, Oct 2022 to Mar 2023; 291 of 2,295 on the 2eeb3f0b3 book
+    scope: five accounts in the unnamed-occupier window (OCC-a1e9ae835e65, OCC-bec72a04dec8, OCC-c0afcdf9fce8, OCC-e3e94f81161b, OCC-eb8498f3f8aa), 12 account-months
     reason: >-
-      The world credits the whole instalment each month. The export carries it only from the ledger's
-      payment row: capped at the bill (177), dated at the household's payment rather than when
-      credited (101), and dropped on a credit invoice (5). 5 more are a joiner's first part-month,
-      where EBSS guidance 5.4 gives no credit and the row's predicate is looser than the guidance.
-      3 are not yet explained, which is why this exception carries a ceiling.
+      Their credit comes from the world's occupier path (run_phase2b, occupier_scheme_credit), which
+      sizes it by the occupier's debt and dates it by the settlement record, not the month's
+      instalment. Four of the twelve are a joiner's first part-month, where EBSS guidance 5.4 gives
+      no credit and the row's predicate is looser than the guidance.
     filed: 2026-10-27
-    retired_by: the ledger carrying the month's whole credit, dated when it was applied, on every invoice including a credit one
-    max_breached: 291
+    retired_by: the occupier path crediting the month's whole instalment to whoever held the account at 00:00 on the 1st, and a run carrying it
+    max_breached: 12

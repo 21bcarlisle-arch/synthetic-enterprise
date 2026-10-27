@@ -336,6 +336,15 @@ def raw_account(customer_id: str, record: dict) -> dict:
             period["volume_basis"] = VOLUME_UNAVAILABLE
         periods.append(period)
     payments, adjustments = _money_moved(record.get("payments") or [])
+    # The government's credit as the account received it: the month's whole instalment, on the day
+    # the bill applied it (`scheme_credit_month_gbp`). A ledger from before that carries only the
+    # payment rows' share, read by `_money_moved` above.
+    invoiced = [{"adjustment_date": inv.get("issue_date") or inv.get("period_end"),
+                 "adjustment_amount_gbp": inv["scheme_credit_month_gbp"],
+                 "adjustment_reason": SCHEME_CREDIT}
+                for inv in record.get("invoices") or [] if inv.get("scheme_credit_month_gbp")]
+    if invoiced:
+        adjustments = invoiced
     return {
         "customer_id": customer_id,
         "billing_account_id": billing_account_of(customer_id),
