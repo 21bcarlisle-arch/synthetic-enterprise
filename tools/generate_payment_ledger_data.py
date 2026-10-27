@@ -44,7 +44,7 @@ _NOTE_STAGES = {"DD_FAILED": "payment_failed", "INVOICE_DISPUTED": "invoice_disp
                 "CREDIT_APPLIED": "credit_applied"}
 _RESOLVED_STAGES = {"RESOLVED", "PAYMENT_PLAN_AGREED"}
 _TYPE_ORDER = {"invoice_raised": 0, "payment_failed": 1, "invoice_disputed": 1,
-               "payment_received": 1, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
+               "payment_received": 1, "refund_debit": 3, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
                "arrears_resolved": 3, "write_off": 3, "recovery_note": 4}
 
 
@@ -140,6 +140,15 @@ def build_account_ledger(cust, as_of):
                     "description": stage["note"],
                 })
 
+    # Reg 6D: the credit a leaver's final bill closed in, paid back on the day the company pays it.
+    for ref in cust.get("refunds", []):
+        if ref["paid_date"] <= as_of:
+            entries.append({
+                "date": ref["paid_date"], "type": "refund_debit", "invoice_number": 0,
+                "amount_gbp": round(ref["amount_gbp"], 2), "info_amount_gbp": None,
+                "method": None, "description": "Credit balance refunded on closing the account",
+            })
+
     entries.sort(key=lambda e: (e["date"], e["invoice_number"], _TYPE_ORDER.get(e["type"], 9)))
 
     running = 0.0
@@ -148,8 +157,12 @@ def build_account_ledger(cust, as_of):
         e["running_balance_gbp"] = running
 
     total_billed = round(sum(inv["total_amount_gbp"] for inv in invoices.values()), 2)
+    # Collected is what the supplier kept: a refunded credit was paid in and paid back, so it nets
+    # off and billed = collected + scheme credit + balance + written off still foots.
+    total_refunded = round(sum(e["amount_gbp"] for e in entries if e["type"] == "refund_debit"), 2)
     total_collected = round(sum(-e["amount_gbp"] for e in entries
-                                 if e["type"] in ("payment_received", "arrears_resolved")), 2)
+                                 if e["type"] in ("payment_received", "arrears_resolved",
+                                                  "refund_debit")), 2)
     total_written_off = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "write_off"), 2)
     total_scheme_credit = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "scheme_credit"),
                                 2)
@@ -166,6 +179,7 @@ def build_account_ledger(cust, as_of):
         "total_written_off_gross_gbp": total_written_off,
         # Billed = collected + scheme credit + balance + written off.
         "total_scheme_credit_gbp": total_scheme_credit,
+        "total_refunded_gbp": total_refunded,
         "total_recovered_gbp": total_recovered,
     }
 
