@@ -412,200 +412,274 @@ invariants:
   source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json; docs/market_research/svt_rates_active_passive_2016_2025.md
 - id: INV_UNIT_RATE_SVT_GAS
   family: unit_rate
-  statement: A domestic gas default (SVT/deemed) unit rate paid by direct debit is at or below the cap's gas unit rate for the window, from 1 Jan 2019.
+  statement: A domestic gas default (SVT/deemed) unit rate sits between the cap's gas commodity allowance for that window and the cap's gas unit rate for the payment method, from 1 Jan 2019 (payment-method columns and floor amended 2026-10-27).
   applies_to:
     commodity: gas
     segment: domestic
     tariff: svt (default/deemed)
-    payment: direct debit only
+    payment: every method, column per method (see evaluation)
   basis: p/kWh EX-VAT, GB typical-household (DD) gas unit rate; commons row is GBP/MWh INC 5% VAT, converted per row
   evaluation: 'Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window''s row. A term starting before
-    2019-01-01 is graded against the pre-cap rows for that part of its life. Apply the upper only where every payment in the window is ''direct debit''. Non-DD accounts: UNCHECKABLE (standard-credit and
-    prepayment gas cap rates are not in the commons).'
+    2019-01-01 is graded against the pre-cap rows for that part of its life. Payment method for the window follows INV_UNIT_RATE_SVT_ELEC''s column rule (any prepayment -> `upper_prepayment`; all direct debit -> `upper`;
+    else `upper_standard_credit`; no payments -> the largest). Amended 2026-10-27: the non-DD columns were UNCHECKABLE until the commons carried the gas composition per payment method.'
   rows:
   - from: '2019-01-01'
     to: '2019-03-31'
-    lower: 0.0
+    lower: 2.028
     upper: 3.552
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 3.732
+    upper_prepayment: 3.499
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2019-01-01].commodity_p_per_kwh_ex_vat_min = 2.028 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2019-01-01].unit_rate_p_per_kwh_ex_vat (standard credit 3.732, prepayment 3.499)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-01-01].gas = 37.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 3.552
   - from: '2019-04-01'
     to: '2019-09-30'
-    lower: 0.0
+    lower: 2.343
     upper: 3.943
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 4.137
+    upper_prepayment: 3.883
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2019-04-01].commodity_p_per_kwh_ex_vat_min = 2.3432 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2019-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 4.137, prepayment 3.883)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-04-01].gas = 41.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 3.943
   - from: '2019-10-01'
     to: '2020-03-31'
-    lower: 0.0
+    lower: 1.923
     upper: 3.505
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 3.68
+    upper_prepayment: 3.449
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2019-10-01].commodity_p_per_kwh_ex_vat_min = 1.9232 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2019-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 3.68, prepayment 3.449)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2019-10-01].gas = 36.8 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 3.505
   - from: '2020-04-01'
     to: '2020-09-30'
-    lower: 0.0
+    lower: 1.719
     upper: 3.333
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 3.516
+    upper_prepayment: 3.293
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2020-04-01].commodity_p_per_kwh_ex_vat_min = 1.7193 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2020-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 3.516, prepayment 3.293)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2020-04-01].gas = 35.0 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 3.333
   - from: '2020-10-01'
     to: '2021-03-31'
-    lower: 0.0
+    lower: 1.209
     upper: 2.857
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 3.009
+    upper_prepayment: 2.735
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2020-10-01].commodity_p_per_kwh_ex_vat_min = 1.2094 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2020-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 3.009, prepayment 2.735)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2020-10-01].gas = 30.0 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 2.857
   - from: '2021-04-01'
     to: '2021-09-30'
-    lower: 0.0
+    lower: 1.559
     upper: 3.181
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 3.336
+    upper_prepayment: 3.031
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2021-04-01].commodity_p_per_kwh_ex_vat_min = 1.5589 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2021-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 3.336, prepayment 3.031)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2021-04-01].gas = 33.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 3.181
   - from: '2021-10-01'
     to: '2022-03-31'
-    lower: 0.0
+    lower: 2.304
     upper: 3.876
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 4.066
+    upper_prepayment: 3.803
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2021-10-01].commodity_p_per_kwh_ex_vat_min = 2.3043 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2021-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 4.066, prepayment 3.803)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2021-10-01].gas = 40.7 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 3.876
   - from: '2022-04-01'
     to: '2022-09-30'
-    lower: 0.0
+    lower: 4.89
     upper: 7.019
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 7.367
+    upper_prepayment: 6.986
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2022-04-01].commodity_p_per_kwh_ex_vat_min = 4.8901 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2022-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 7.367, prepayment 6.986)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-04-01].gas = 73.7 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 7.019
   - from: '2022-10-01'
     to: '2022-12-31'
-    lower: 0.0
+    lower: 11.473
     upper: 14.057
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 14.8
+    upper_prepayment: 14.326
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2022-10-01].commodity_p_per_kwh_ex_vat_min = 11.4733 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2022-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 14.8, prepayment 14.326)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-10-01].gas = 147.6 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 14.057
     household_charged_ceiling_epg: 9.829
   - from: '2023-01-01'
     to: '2023-03-31'
-    lower: 0.0
+    lower: 13.599
     upper: 16.267
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 17.125
+    upper_prepayment: 16.71
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2023-01-01].commodity_p_per_kwh_ex_vat_min = 13.5993 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2023-01-01].unit_rate_p_per_kwh_ex_vat (standard credit 17.125, prepayment 16.71)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-01-01].gas = 170.8 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 16.267
     household_charged_ceiling_epg: 9.829
   - from: '2023-04-01'
     to: '2023-06-30'
-    lower: 0.0
+    lower: 9.445
     upper: 12.01
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 12.646
+    upper_prepayment: 12.217
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2023-04-01].commodity_p_per_kwh_ex_vat_min = 9.4452 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2023-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 12.646, prepayment 12.217)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-04-01].gas = 126.1 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 12.01
     household_charged_ceiling_epg: 9.829
   - from: '2023-07-01'
     to: '2023-09-30'
-    lower: 0.0
+    lower: 4.769
     upper: 7.152
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 7.531
+    upper_prepayment: 7.009
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2023-07-01].commodity_p_per_kwh_ex_vat_min = 4.7689 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2023-07-01].unit_rate_p_per_kwh_ex_vat (standard credit 7.531, prepayment 7.009)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-07-01].gas = 75.1 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 7.152
   - from: '2023-10-01'
     to: '2023-12-31'
-    lower: 0.0
+    lower: 4.369
     upper: 6.562
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 6.909
+    upper_prepayment: 6.34
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2023-10-01].commodity_p_per_kwh_ex_vat_min = 4.369 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2023-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 6.909, prepayment 6.34)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-10-01].gas = 68.9 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 6.562
   - from: '2024-01-01'
     to: '2024-03-31'
-    lower: 0.0
+    lower: 4.852
     upper: 7.067
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 7.436
+    upper_prepayment: 6.879
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2024-01-01].commodity_p_per_kwh_ex_vat_min = 4.8521 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2024-01-01].unit_rate_p_per_kwh_ex_vat (standard credit 7.436, prepayment 6.879)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-01-01].gas = 74.2 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 7.067
   - from: '2024-04-01'
     to: '2024-06-30'
-    lower: 0.0
+    lower: 3.413
     upper: 5.752
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 6.029
+    upper_prepayment: 5.5
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2024-04-01].commodity_p_per_kwh_ex_vat_min = 3.4132 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2024-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 6.029, prepayment 5.5)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-04-01].gas = 60.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 5.752
   - from: '2024-07-01'
     to: '2024-09-30'
-    lower: 0.0
+    lower: 2.896
     upper: 5.219
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 5.465
+    upper_prepayment: 4.97
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2024-07-01].commodity_p_per_kwh_ex_vat_min = 2.8959 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2024-07-01].unit_rate_p_per_kwh_ex_vat (standard credit 5.465, prepayment 4.97)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-07-01].gas = 54.8 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 5.219
   - from: '2024-10-01'
     to: '2024-12-31'
-    lower: 0.0
+    lower: 3.621
     upper: 5.943
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 6.226
+    upper_prepayment: 5.683
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2024-10-01].commodity_p_per_kwh_ex_vat_min = 3.6213 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2024-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 6.226, prepayment 5.683)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2024-10-01].gas = 62.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 5.943
   - from: '2025-01-01'
     to: '2025-03-31'
-    lower: 0.0
+    lower: 3.712
     upper: 6.038
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 6.325
+    upper_prepayment: 5.779
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2025-01-01].commodity_p_per_kwh_ex_vat_min = 3.7123 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2025-01-01].unit_rate_p_per_kwh_ex_vat (standard credit 6.325, prepayment 5.779)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-01-01].gas = 63.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 6.038
   - from: '2025-04-01'
     to: '2025-06-30'
-    lower: 0.0
+    lower: 4.163
     upper: 6.657
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 6.976
+    upper_prepayment: 6.421
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2025-04-01].commodity_p_per_kwh_ex_vat_min = 4.1634 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2025-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 6.976, prepayment 6.421)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-04-01].gas = 69.9 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 6.657
   - from: '2025-07-01'
     to: '2025-09-30'
-    lower: 0.0
+    lower: 3.548
     upper: 6.029
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 6.329
+    upper_prepayment: 5.786
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2025-07-01].commodity_p_per_kwh_ex_vat_min = 3.5481 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2025-07-01].unit_rate_p_per_kwh_ex_vat (standard credit 6.329, prepayment 5.786)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-07-01].gas = 63.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 6.029
   - from: '2025-10-01'
     to: '2025-12-31'
-    lower: 0.0
+    lower: 3.418
     upper: 5.99
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 6.273
+    upper_prepayment: 5.749
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2025-10-01].commodity_p_per_kwh_ex_vat_min = 3.4185 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2025-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 6.273, prepayment 5.749)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2025-10-01].gas = 62.9 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 5.99
   - from: '2026-01-01'
     to: '2026-03-31'
-    lower: 0.0
+    lower: 3.088
     upper: 5.648
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 5.918
+    upper_prepayment: 5.424
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2026-01-01].commodity_p_per_kwh_ex_vat_min = 3.0877 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2026-01-01].unit_rate_p_per_kwh_ex_vat (standard credit 5.918, prepayment 5.424)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-01-01].gas = 59.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 5.648
   - from: '2026-04-01'
     to: '2026-06-30'
-    lower: 0.0
+    lower: 2.705
     upper: 5.467
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 5.709
+    upper_prepayment: 5.252
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2026-04-01].commodity_p_per_kwh_ex_vat_min = 2.7052 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2026-04-01].unit_rate_p_per_kwh_ex_vat (standard credit 5.709, prepayment 5.252)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-04-01].gas = 57.4 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 5.467
   - from: '2026-07-01'
     to: '2026-09-30'
-    lower: 0.0
+    lower: 4.052
     upper: 6.981
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 7.299
+    upper_prepayment: 6.721
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2026-07-01].commodity_p_per_kwh_ex_vat_min = 4.052 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2026-07-01].unit_rate_p_per_kwh_ex_vat (standard credit 7.299, prepayment 6.721)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-07-01].gas = 73.3 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 6.981
   - from: '2026-10-01'
     to: '2026-12-31'
-    lower: 0.0
+    lower: 4.561
     upper: 7.59
-    lower_source: 'logic only: a unit rate is positive. Wholesale floor GAP (no gas commodity component in the commons)'
+    upper_standard_credit: 7.94
+    upper_prepayment: 7.298
+    lower_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2026-10-01].commodity_p_per_kwh_ex_vat_min = 4.5605 (DF+CM, lowest region; amended 2026-10-27)
+    upper_non_dd_source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.<method>.periods[starts=2026-10-01].unit_rate_p_per_kwh_ex_vat (standard credit 7.94, prepayment 7.298)
     upper_source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2026-10-01].gas = 79.7 GBP/MWh inc VAT; /10 -> p/kWh; /1.05 (gas is 5% throughout per basis.vat)
       = 7.59
   tolerance:
     upper_relative: 0.005
     reason: rows are published to 0.1 GBP/MWh; 0.5% absorbs that rounding and the ex-VAT conversion
-  lower_gap: 'GAP: the commons carries the commodity share of the ELECTRICITY unit rate only; no gas direct-fuel allowance is in the commons, so there is no sourced gas wholesale floor. Lower is the logical
-    floor 0 (rate must be positive: `> 0`).'
+  lower_floor: 'Amended 2026-10-27. The commons now carries the gas DF+CM allowance per region (gas_by_payment_method); the floor is its lowest region, DD column, as for electricity. Below it is a flag, not a breach.'
   regional_caveat: 'GAP: GB-average row; the gas cap varies by region and the export carries none.'
   epg_note: 'EPG rows: household-charged gas rate was 10.3p inc VAT (103.2 GBP/MWh = 9.829p ex VAT). Upper stays the cap so either convention passes; see INV_UNIT_RATE_EPG_HOUSEHOLD.'
   severity:
@@ -619,11 +693,11 @@ invariants:
   - payment_method
   - payment_date
   checkable: true
-  gap: wholesale floor for gas; non-DD gas ceilings; regional spread
-  source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[].gas, basis.vat
+  gap: regional spread
+  source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[].gas, basis.vat; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method
 - id: INV_UNIT_RATE_SVT_GAS_PRE_CAP
   family: unit_rate
-  statement: Before 2019 a domestic gas SVT unit rate has no sourced floor or ceiling beyond being positive.
+  statement: Before 2019 a domestic gas SVT unit rate has a wholesale floor (Ofgem's back-cast DF+CM, a belief, not law) but no statutory ceiling (floor amended 2026-10-27; it was positive-only).
   applies_to:
     commodity: gas
     segment: domestic
@@ -631,16 +705,66 @@ invariants:
   basis: p/kWh ex-VAT
   rows:
   - from: '2016-01-01'
-    to: '2018-12-31'
-    lower: 0.0
+    cap_period_label: October 2015- March 2016
+    lower: 1.78
     upper: null
-    lower_source: 'logic: positive (> 0)'
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2015-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_p_per_kwh_ex_vat_min = 1.7798 (amended 2026-10-27)'
     upper_source: GAP
+    to: '2016-03-31'
+  - from: '2016-04-01'
+    cap_period_label: April 2016-September 2016
+    lower: 1.456
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2016-04-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_p_per_kwh_ex_vat_min = 1.4563 (amended 2026-10-27)'
+    upper_source: GAP
+    to: '2016-09-30'
+  - from: '2016-10-01'
+    cap_period_label: October 2016-March 2017
+    lower: 1.336
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2016-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_p_per_kwh_ex_vat_min = 1.3356 (amended 2026-10-27)'
+    upper_source: GAP
+    to: '2017-03-31'
+  - from: '2017-04-01'
+    cap_period_label: April 2017 - September 2017
+    lower: 1.673
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2017-04-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_p_per_kwh_ex_vat_min = 1.6729 (amended 2026-10-27)'
+    upper_source: GAP
+    to: '2017-09-30'
+  - from: '2017-10-01'
+    cap_period_label: October 2017 - March 2018
+    lower: 1.659
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2017-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_p_per_kwh_ex_vat_min = 1.6588 (amended 2026-10-27)'
+    upper_source: GAP
+    to: '2018-03-31'
+  - from: '2018-04-01'
+    cap_period_label: April 2018 - September 2018
+    lower: 1.798
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2018-04-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_p_per_kwh_ex_vat_min = 1.7981 (amended 2026-10-27)'
+    upper_source: GAP
+    to: '2018-09-30'
+  - from: '2018-10-01'
+    cap_period_label: October 2018 - March 2019
+    lower: 2.028
+    upper: null
+    lower_source: 'docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method.direct_debit.periods[starts=2018-10-01] (cap_in_force=false, Ofgem''s illustrative back-cast):
+      commodity_p_per_kwh_ex_vat_min = 2.028 (amended 2026-10-27)'
+    upper_source: GAP
+    to: '2018-12-31'
   export_fields:
   - unit_rate_p_per_kwh
   - tariff_effective_from
   checkable: true
-  gap: No cap before 2019; no gas commodity component (pre-cap back-cast exists for electricity only in the commons); per-fuel default never published pre-cap (docs/market_research/svt_rates_active_passive_2016_2025.md
+  gap: No cap before 2019; per-fuel default never published pre-cap (docs/market_research/svt_rates_active_passive_2016_2025.md
     §1a)
   source: docs/market_research/svt_rates_active_passive_2016_2025.md
 - id: INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER
