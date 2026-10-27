@@ -22,30 +22,13 @@
 # 2026-10-27: the two INV_STANDING_CHARGE_SVT_* exceptions are retired. Every one of their 2,237 breaches
 # was the printed per-day rate of a period billed exactly at the cap and rounded to the penny. The
 # invariants now carry a penny-per-period tolerance, and the same book grades 0 on both.
+#
+# 2026-10-27: the two INV_UNIT_RATE_SVT_* exceptions are retired. The fresh run at 2eeb3f0b32, which
+# carries the company's clamp at the payment method's own column, grades 0 of 5,921 (elec) and
+# 0 of 4,721 (gas), from 298 and 249. Grade beside
+# docs/staging/records/SEAT_PREREGISTRATION_THE_FRESH_RUN_AT_2EEB3F0B3_CARRIES_THE_CLAMP_THE_OCCUPIER_CREDIT_UIG_AND_THE_SHARED_HUB_2026-10-27.md.
 enforce: true
 exceptions:
-  - invariant: INV_UNIT_RATE_SVT_ELEC
-    scope: 41 accounts, 298 SVT term x cap-window pairs; single-register electricity; 177 of them are 13-window runs on 2016 accounts; 1.8-4.1% over the cap-window upper bound (median 2.1%)
-    reason: >-
-      The pre-registration predicted 0 from 58af1fe57 (prepayment priced at the prepayment cap) and
-      that prediction is refuted. The excess is small and stays on a few accounts across many windows,
-      which fits a term struck once and not re-struck at later cap windows, but that is a hypothesis
-      this grade did not test.
-    filed: 2026-10-27
-    retired_by: >-
-      the company's cap clamp at the payment method's own column (2026-10-27), then a re-grade on the next
-      fresh run. Traced on SYN-2016-061: not a rate left un-re-struck, but every prepayment segment re-struck
-      at its own column and then raised by writer 1-2, with writer 4 clamping only at the DD level. All 298 are
-      that (default_tariff_cap_and_epg_on_the_bill.md, choice 7).
-    max_breached: 298
-  - invariant: INV_UNIT_RATE_SVT_GAS
-    scope: 38 accounts, 249 SVT term x cap-window pairs; gas; 160 of them in 2016; 1.0-4.9% over
-    reason: >-
-      Predicted 0 from 58af1fe57; refuted. Same shape as the electricity row and the same untested
-      hypothesis.
-    filed: 2026-10-27
-    retired_by: the same clamp as INV_UNIT_RATE_SVT_ELEC; all 249 are the same cause
-    max_breached: 249
   - invariant: INV_PPM_NOT_CREDIT_BILLED
     scope: account C6 only, 12 periods in 2016-2017; the SME leg, not a domestic account
     reason: >-

@@ -80,3 +80,62 @@ re-derived here:
   - an SVT term that reaches no `decide_renewal`;
   - the writers' response to lower prepayment revenue.
 - A standing-charge breach over a penny per period would be a real overcharge, not rounding.
+
+## Grade (2026-10-27, worker tick; the predictions above are unedited)
+
+The run finished in 3,352 s with no keys skipped. It was graded by a copy of `grade.sh` with `OUT`
+pointed at `/var/tmp/fresh-run-out-2eeb3f0b3`, from an origin/main worktree at e01bfdb066, into
+`/var/tmp/fresh-grade-2eeb3f0b3/`. Side measures came off `p2b__all_records`
+(`/var/tmp/grade-2eeb3f0b3-scripts/side.py`). The book holds 1,291 accounts and 52,777 bill periods,
+against 871f674a2's 1,291 and 52,782.
+
+| Invariant / measure | Predicted | Result | Held / refuted |
+|---|---|---|---|
+| INV_UNIT_RATE_SVT_ELEC | 0 | **0 of 5,921** (from 298) | **held** |
+| INV_UNIT_RATE_SVT_GAS | 0 | **0 of 4,721** (from 249) | **held** |
+| INV_STANDING_CHARGE_SVT_ELEC | 0 | 0 of 21,301 | held |
+| INV_STANDING_CHARGE_SVT_GAS | 0 | 0 of 16,500 | held |
+| INV_READ_MONOTONIC | 0 | 0 of 14,781 | held |
+| INV_PPM_NOT_CREDIT_BILLED | 12, all C6; 0 domestic | 12, all C6 (2016–17) | held |
+| INV_PERIODS_CONTIGUOUS | at least 1 persists | 4 on the same 3 accounts (SYN-2016-561 ×2, OCC-371b33ca4bdf, PROS-2017-0336) | held |
+| INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER | UNREACHED | UNREACHED | held |
+| Every other row CLEAN on 871f674a2 | CLEAN | CLEAN. The FLAGGED rows stay flagged at about the same counts (read duty 312, back-billing 165, DD step 1,626, fixed rate 8, elec annual use 11) | held |
+| INV_REGISTER_ID_ONE_LABEL (a)+(b) | 0 | 0 of 54,192 | held |
+| INV_REGISTER_ID_ONE_LABEL flags (c) | 0 | 0 | held |
+| INV_SERIAL_REGISTER_COUNT_STABLE breaches (b) | 0 | 0 | held |
+| INV_SERIAL_REGISTER_COUNT_STABLE flags (a) | 0 | **2** | **refuted** |
+| Serials whose count changes at a tariff change | 30–70 | **65 serials** (94 changes) | held on serials. The 871f674a2 reference of 39 counted serials, so this is the like-for-like reading |
+| Occupier months carrying an EBSS credit | 11 of 22 | **14 of 21** | **refuted** (count). The rule held exactly; see below |
+| `total_occupier_debt` | down by at most £737 | **down £891.53** (£41,829.07 → £40,937.53) | **refuted** |
+| UIG P1: share of gas wholesale, years other than 2022–23 | 1.8–2.1% | 1.83–1.97% (2016–2021, 2024, 2025) | held |
+| UIG P1: share in 2022 and 2023 | 2.0–3.0% | 2.26% and 2.30% | held |
+| Hub co-occurrence (both legs out of smart mode) | ~0.9% → ~7% | **not graded**: the book does not expose each leg's read class | — |
+
+**The occupier rows are comparable.** The occupier set in the EBSS window is the same 42 legs ×
+months as on 871f674a2: 21 electricity and 21 gas, on 7 accounts. The prediction's "22" was read off
+4ae8da9b0f's bills, a different book, and that is where the 11 came from. On this book the fallback
+rule the prediction named is met exactly:
+- Every electricity occupier month held at 00:00 on the 1st between Oct 2022 and Mar 2023 carries
+  one credit: a1e9, bec7 and eb72 in Dec–Feb; 25ff and c0af in Feb–Mar; eb84 in Mar.
+- e3e9 opened 16 Mar and carries none. No gas leg and no April month carries one.
+- The total is 14 credits and £867.27. Ten are the full £67. Four are partial and capped at the
+  month's debt (£51.67, £64.95, £47.27 and £33.38).
+
+**The occupier debt fell by £24.26 more than the credits.** I cannot yet say why. The clamp is
+the candidate, because an occupier's deemed charge is a default-tariff rate, but this run moves
+four things at once. The one-variable answer is the 871f674a2 book re-run with d2be04371 alone.
+
+**The two count flags are one shape: the opening one-day stub on a two-rate meter.**
+PROS-2024-0235 (M00062031) and SYN-2016-345 (M00058342) each open with a one-day period on the
+month's last day. That period prints only the Off-peak register (`3`), with a 4.3 or 6.1 kWh read
+at the off-peak rate. The first full month then prints Peak and Off-peak. This is the "one-band
+stub" that the register fix (finding §"Breach class 3") made read its own band, so the flag is
+the row correctly seeing it. Whether a whole opening day should bill on one band is a fidelity
+question this grade does not settle. A full day on Economy 7 has peak hours. The book holds 58
+one-day periods in all.
+
+**Disposition (same commit).** The two INV_UNIT_RATE_SVT_* exceptions are retired from
+`docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml`. With them gone, the runner still reports 0
+unexcepted, 2 excepted (C6 PPM and the held bills), and the publish stands. **The prepayment
+overcharge the director's step 2 named is closed on a fresh book.** The two remaining exceptions
+are unchanged at their ceilings.
