@@ -1961,3 +1961,12 @@ pounds go from GBP 7,129 to 2,468. Full table: `docs/staging/records/SEAT_PREREG
 **Status:** OPEN and BLOCKING. Next: split 2020's repeat failers' bills by whether a household
 repayment plan is active, which tests whether plans, not budgets, end the failing. Then the per-bill
 draw's stress input.
+
+## 2026-10-27 (21:52Z): the plan split is pre-registered and launched
+
+Record: `docs/staging/records/SEAT_PREREG_DO_PLANS_END_THE_2020_FAILING_2026-10-27.md`. One control
+re-run, to 2021-03-31, captures the world's plan book (`longjob-plans-split-capture-21f216076f`).
+Q1 tests whether agreements carry two thirds of the repeat failers' drop. Q2 tests whether the
+top stress tier's share falls by a third. Grader: `/var/tmp/price_held/grade_plans.py`.
+
+**Status:** OPEN and BLOCKING. Next: grade it. Do not re-launch: ask `.launch_records.json` first.
