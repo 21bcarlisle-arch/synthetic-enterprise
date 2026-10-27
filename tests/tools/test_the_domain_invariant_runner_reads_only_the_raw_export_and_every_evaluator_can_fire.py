@@ -55,6 +55,15 @@ INVARIANTS = [
     {"id": "INV_BACK_BILLING_12M"},
     {"id": "INV_PERIOD_CONSUMPTION_NON_NEGATIVE"},
     {"id": "INV_READ_MONOTONIC"},
+    {"id": "INV_PERIOD_MATCHES_READS", "lower": -1, "upper": 1},
+    {"id": "INV_VAT_RATE", "rows": [
+        {"commodity": c, "segment": "domestic", "from": "2016-01-01", "to": "2027-03-31",
+         "lower": 0.05, "upper": 0.05} for c in ("electricity", "gas")] + [
+        {"commodity": "electricity", "segment": "sme/non-domestic", "from": "2016-01-01",
+         "to": "2027-03-31", "lower": 0.05, "upper": 0.2,
+         "rule": "0.05 if consumption_kwh/days_in_period <= 33 else 0.20"}]},
+    {"id": "INV_NON_COMMODITY_WITHIN_ALL_IN"},
+    {"id": "INV_PPM_NOT_CREDIT_BILLED"},
 ]
 #: Evaluators this fixture does not reach, each with why. Neither may grow without a reason.
 NOT_REACHED_BY_THE_FIXTURE = {
@@ -89,6 +98,9 @@ def _account(cid, fuel, *, rate, tariff="svt", sc=0.25, kwh_per_month=250.0, met
             "days_in_period": (runner._d(end) - runner._d(start)).days + 1,
             "mpan": "1" if fuel == "electricity" else None, "mprn": "2" if fuel == "gas" else None,
             "meter_serial": "M" + cid, "standing_charge_gbp_per_day": sc, "reads": reads,
+            "volume_basis": "reads", "consumption_kwh": kwh_per_month * len(registers),
+            "unit_rate_p_per_kwh": rate, "vat_rate": 0.05, "document_type": "bill",
+            "non_commodity_rate_gbp_per_mwh": 50.0 if fuel == "electricity" else 10.0,
             "contracted_terms": [{"tariff_effective_from": "{}-01-01".format(year),
                                   "tariff_effective_to": "{}-01-01".format(year + 1),
                                   "tariff_type": tariff, "unit_rate_p_per_kwh": rate}],
@@ -99,7 +111,7 @@ def _account(cid, fuel, *, rate, tariff="svt", sc=0.25, kwh_per_month=250.0, met
 
 
 def _clean_book():
-    return {
+    book = {
         "E": _account("E", "electricity", rate=15.0),
         "G": _account("G", "gas", rate=3.0, kwh_per_month=900.0),
         "M": _account("M", "electricity", rate=15.0, registers=("1", "2")),
@@ -107,7 +119,11 @@ def _clean_book():
         "FG": _account("FG", "gas", rate=3.0, tariff="fixed", kwh_per_month=900.0),
         # old enough for its kWh to have settled (14 months before the book's end)
         "OLD": _account("OLD", "electricity", rate=15.0, year=2018),
+        "P": _account("P", "electricity", rate=15.0, method="prepayment"),
     }
+    for p in book["P"]["periods"]:
+        p["document_type"] = "prepayment_statement"
+    return book
 
 
 def _late_reader():
@@ -165,8 +181,12 @@ def _broken_book():
             if r["read_type"] == "A":
                 r["read_type"] = "E"                                # settled kWh not bounded by a read
     book["L"] = _late_reader()
-    book["LOW"] = _account("LOW", "electricity", rate=3.0)         # SVT under the floor (flag)
-    return book
+    book["LOW"] = _account("LOW", "electricity", rate=3.0)         # SVT under the floor (flag);
+    #                                                                 and under its own levies
+    g[1]["consumption_kwh"] += 50.0                                 # billed more than was read
+    e[0]["vat_rate"] = 0.20                                         # domestic at the standard rate
+    return book                                                     # E's prepayment months were
+    #                                                                 sent credit bills
 
 
 def _results(book, invariants=INVARIANTS):
@@ -211,12 +231,16 @@ def test_every_evaluator_is_exercised_here_or_named_with_why_not():
 
 
 def test_an_unrun_invariant_is_never_reported_clean():
+    book = _clean_book()
+    for acct in book.values():
+        for p in acct["periods"]:
+            del p["vat_rate"]
     results = runner.run([
         {"id": "INV_UNIT_RATE_SVT_ELEC", "checkable": False, "gap": "no source"},
         {"id": "INV_VAT_RATE"},
         {"id": "INV_SOMETHING_NEW"},
         {"id": "INV_UNIT_RATE_SVT_ELEC", "rows": [_row(None, None)]},
-    ], _clean_book())
+    ], book)
     assert [r["status"] for r in results] == ["UNCHECKABLE", "NOT_IN_EXPORT", "NO_EVALUATOR", "UNREACHED"]
     assert results[0]["reason"] == "no source" and results[3]["unbounded"] > 0
 
@@ -297,3 +321,18 @@ def test_the_meter_class_is_the_terms_own_not_the_accounts():
     assert res["INV_UNIT_RATE_SVT_ELEC"]["checked"] == 1 and res["INV_UNIT_RATE_SVT_ELEC"]["breached"] == 0
     assert res["INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER"]["checked"] == 1
     assert res["INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER"]["breached"] == 1
+
+
+def test_a_business_period_is_graded_by_its_de_minimis():
+    """The VAT rule for business supply: 5% at or under the fuel's daily average, 20% above."""
+    inv = [i for i in INVARIANTS if i["id"] == "INV_VAT_RATE"]
+
+    def breached(kwh_per_month, rate):
+        acct = _account("S", "electricity", rate=15.0, kwh_per_month=kwh_per_month)
+        acct["segment"] = "SME"
+        for p in acct["periods"]:
+            p["vat_rate"] = rate
+        return runner.run(inv, {"S": acct})[0]["breached"]
+
+    assert (breached(500.0, 0.05), breached(500.0, 0.20),
+            breached(3000.0, 0.20), breached(3000.0, 0.05)) == (0, 12, 0, 12)

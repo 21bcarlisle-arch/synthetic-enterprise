@@ -219,17 +219,20 @@ def test_the_opening_reading_does_not_claim_this_bills_read_type():
     assert reads[1]["read_type"] == "E"
 
 
-def test_our_volume_is_WITHHELD_when_the_readings_can_produce_it():
-    """Handing over `consumption_kwh` beside the two numbers it came from lets a reconstruction
-    take the shortcut and agree with us for no reason. Withholding it is what makes the volume
-    genuinely recomputed.
+def test_the_reconstruction_subtracts_the_readings_even_with_our_volume_beside_them():
+    """Our volume is exported beside the readings (2026-10-27) so INV_PERIOD_MATCHES_READS can ask
+    whether we billed the advance we read. What withholding it used to protect is that the
+    curtained validator never takes our figure where readings exist; this keys to that property.
 
-    MUTATION: export `consumption_kwh` unconditionally and this fails.
+    MUTATION: have `_volume_from_reads` return `period["consumption_kwh"]` and this fails.
     """
+    from tools.independent_bill_validator import _volume_from_reads
     period = rx.raw_account("C1", {"invoices": [_period_inv()]})["periods"][0]
     assert period["volume_basis"] == rx.VOLUME_FROM_READS
-    assert "consumption_kwh" not in period
-    assert round(period["reads"][1]["read_kwh"] - period["reads"][0]["read_kwh"], 1) == 1888.3
+    assert period["consumption_kwh"] == 1888.3
+    period["consumption_kwh"] = 9999.0
+    volume, _why = _volume_from_reads(period)
+    assert round(volume, 1) == 1888.3
 
 
 def test_our_volume_IS_exported_when_nothing_else_can_produce_it():
@@ -370,3 +373,48 @@ def test_a_two_register_period_exports_each_registers_rate_and_no_blended_one():
     assert [(r["register_id"], r["unit_rate_p_per_kwh"]) for r in period["registers"]] == [
         ("1", 12.72), ("2", 4.21)]
     assert rx.derived_leaks(period) == []
+
+
+def test_a_payment_is_money_the_household_paid_and_a_scheme_credit_is_an_adjustment():
+    """A ledger payment row is a bill's settlement, not a receipt. On the 4ae8da9b0f ledger the old
+    `amount_gbp or amount` exported 98 credit-covered £0.00 rows as amount None, 1,657 failed
+    collections as money received, and 218 EBSS-settled bills as payments with method None.
+
+    One partition, every branch taken: received, covered by credit (nothing received), failed
+    (nothing), a mover's part-paid final bill (the part), and the government's credit (adjustment).
+    MUTATIONS: restore `or`, drop the outcome check, or drop the scheme-credit branch, and this fails.
+    """
+    rows = [
+        {"payment_date": "2022-01-20", "amount_gbp": 40.0, "method": "direct_debit", "outcome": "success"},
+        {"payment_date": "2022-02-20", "amount_gbp": 0.0, "method": "direct_debit", "outcome": "success",
+         "credit_applied_gbp": 35.0},
+        {"payment_date": "2022-03-20", "amount_gbp": 50.0, "method": "direct_debit", "outcome": "failed"},
+        {"payment_date": "2022-04-20", "amount_gbp": 60.0, "method": "standard_credit", "outcome": "failed",
+         "part_paid_gbp": 25.0},
+        {"payment_date": "2022-11-20", "amount_gbp": 53.05, "method": rx.SCHEME_CREDIT, "outcome": "credit"},
+    ]
+    out = rx.raw_account("C7g", {"segment": "resi", "invoices": [], "payments": rows})
+    assert out["payments"] == [
+        {"payment_date": "2022-01-20", "payment_amount_gbp": 40.0, "payment_method": "direct_debit"},
+        {"payment_date": "2022-04-20", "payment_amount_gbp": 25.0, "payment_method": "standard_credit"},
+    ]
+    assert out["adjustments"] == [{"adjustment_date": "2022-11-20", "adjustment_amount_gbp": 53.05,
+                                   "adjustment_reason": rx.SCHEME_CREDIT}]
+    assert all(p["payment_amount_gbp"] and p["payment_method"] for p in out["payments"])
+    assert rx.derived_leaks(out) == []
+
+
+def test_both_fuels_of_one_household_carry_one_billing_account():
+    """The suite reads a dual-fuel household as two unlinked accounts without this."""
+    elec = rx.raw_account("C1", {"segment": "resi", "invoices": [], "payments": []})
+    gas = rx.raw_account("C1g", {"segment": "resi", "invoices": [], "payments": []})
+    alone = rx.raw_account("C5", {"segment": "resi", "invoices": [], "payments": []})
+    assert elec["billing_account_id"] == gas["billing_account_id"] == "C1"
+    assert alone["billing_account_id"] == "C5"
+
+
+def test_a_period_carries_its_rates_and_what_was_sent():
+    period = rx.raw_account("C1", {"invoices": [_period_inv(
+        vat_rate=0.05, non_commodity_rate_gbp_per_mwh=61.2, document_type="bill")]})["periods"][0]
+    assert (period["vat_rate"], period["non_commodity_rate_gbp_per_mwh"], period["document_type"]) == (
+        0.05, 61.2, "bill")

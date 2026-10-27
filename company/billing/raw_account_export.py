@@ -63,6 +63,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from company.billing.dd_review import billing_account_of
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 LEDGER_PATH = PROJECT_DIR / "docs" / "state" / "billing_ledger.json"
 
@@ -89,12 +91,17 @@ VOLUME_FROM_READS = "reads"                 # two readings exported; the validat
 VOLUME_CONSUMPTION_ONLY = "consumption_only"  # no usable readings; our volume is all there is
 VOLUME_UNAVAILABLE = "unavailable"          # neither; the period cannot be reconstructed at all
 
+#: The ledger's method on a bill the government's credit settled whole (`generate_billing_ledger`).
+SCHEME_CREDIT = "scheme_credit"
+
 #: EVERY field this export may contain, with its unit and why it is raw. A field absent from here
 #: is refused by `derived_leaks` whatever it is called.
 FIELDS: dict[str, tuple[str, str]] = {
     # account identity
     "customer_id": (IDENTIFIER, "the account this is about"),
     "segment": (EVENT, "which customer class the account is — a fact about the account"),
+    "billing_account_id": (IDENTIFIER, "the billing account this supply point bills under: a "
+                                       "dual-fuel household's two fuels share one"),
     "commodity": (EVENT, "electricity or gas"),
     "mpan": (IDENTIFIER, "the electricity supply point"),
     "mprn": (IDENTIFIER, "the gas supply point"),
@@ -113,7 +120,10 @@ FIELDS: dict[str, tuple[str, str]] = {
     "period_start": (MEASURED, "first day the account was supplied in this period"),
     "period_end": (MEASURED, "last day the account was supplied in this period"),
     "days_in_period": (MEASURED, "a count of calendar days, not a calculation over money"),
-    "consumption_kwh": (MEASURED, "volume between two reads"),
+    "consumption_kwh": (MEASURED, "the volume the period was billed for: between two reads "
+                                  "where it has them, which INV_PERIOD_MATCHES_READS checks"),
+    "document_type": (EVENT, "what was sent for the period: a credit bill, or a prepayment "
+                             "meter's statement"),
     # contracted terms
     "unit_rate_p_per_kwh": (CONTRACTED, "the rate the account was on for this period"),
     "standing_charge_gbp_per_day": (CONTRACTED, "the daily standing charge the account was on"),
@@ -269,6 +279,9 @@ def raw_account(customer_id: str, record: dict) -> dict:
             "meter_serial": inv.get("meter_serial"),
             "unit_rate_p_per_kwh": inv.get("unit_rate_p_per_kwh"),
             "standing_charge_gbp_per_day": inv.get("standing_charge_gbp_per_day"),
+            "vat_rate": inv.get("vat_rate"),
+            "non_commodity_rate_gbp_per_mwh": inv.get("non_commodity_rate_gbp_per_mwh"),
+            "document_type": inv.get("document_type"),
             "reads": reads,
         }
         # THE RATE THE ACCOUNT WAS SOLD AT, beside the rate the bill printed. The printed rate is
@@ -305,33 +318,59 @@ def raw_account(customer_id: str, record: dict) -> dict:
                      "read_type": line.get("closing_read_type", "U")},
                 ],
             } for line in inv["rate_lines"]]
-        # OUR VOLUME IS EXPORTED ONLY WHEN THE READINGS CANNOT PRODUCE IT. Where both readings are
-        # there, `consumption_kwh` is a subtraction WE did, and handing it over alongside the two
-        # numbers it came from lets a reconstruction take the shortcut and agree with us for no
-        # reason. Withholding it is what makes the volume genuinely recomputed.
-        #
-        # Where the readings are NOT there, our figure is the only thing anyone has, and refusing
-        # to export it would not make the period more validated -- it would make it invisible. So
-        # it goes, with `volume_basis` saying exactly which of the two situations this is.
+        # OUR VOLUME IS EXPORTED BESIDE THE READINGS (2026-10-27). It was withheld where readings
+        # exist, so a reconstruction could not take the shortcut; but the reconstruction reads
+        # `volume_basis` and subtracts the readings whenever it says "reads"
+        # (`independent_bill_validator._volume_from_reads`), so withholding protected nothing, and
+        # it left INV_PERIOD_MATCHES_READS -- did we bill the advance we read? -- unaskable.
+        period["consumption_kwh"] = inv.get("consumption_kwh")
         if reads:
             period["volume_basis"] = VOLUME_FROM_READS
         elif inv.get("consumption_kwh") is not None:
             period["volume_basis"] = VOLUME_CONSUMPTION_ONLY
-            period["consumption_kwh"] = inv.get("consumption_kwh")
         else:
             period["volume_basis"] = VOLUME_UNAVAILABLE
         periods.append(period)
-    payments = [{
-        "payment_date": p.get("date") or p.get("payment_date"),
-        "payment_amount_gbp": p.get("amount_gbp") or p.get("amount"),
-        "payment_method": p.get("method", "unknown"),
-    } for p in (record.get("payments") or [])]
+    payments, adjustments = _money_moved(record.get("payments") or [])
     return {
         "customer_id": customer_id,
+        "billing_account_id": billing_account_of(customer_id),
         "segment": record.get("segment"),
         "periods": periods,
         "payments": payments,
+        "adjustments": adjustments,
     }
+
+
+def _money_moved(ledger_payments: list[dict]) -> tuple[list[dict], list[dict]]:
+    """What the household paid, and what was credited to its account, from the ledger's payment rows.
+
+    A ledger payment row is a bill's SETTLEMENT, not a receipt, so three kinds are told apart here
+    (2026-10-27; on the 4ae8da9b0f ledger these were 98 payments with amount None and 218 with
+    method None):
+      * a row the household paid: its amount, which may be 0.00 where account credit covered the
+        bill. A zero amount is NOT exported -- nothing was received -- where the old
+        `amount_gbp or amount` exported it as None;
+      * a FAILED or disputed collection received nothing, so it is not a payment; a mover's final
+        bill paid in part exports the part it received;
+      * a bill the government's credit (EBSS) settled whole: the household paid nothing and the
+        account was credited, so it is an ADJUSTMENT with its reason, not a payment by nobody.
+    """
+    payments, adjustments = [], []
+    for p in ledger_payments:
+        when = p.get("payment_date") or p.get("date")
+        amount = p.get("amount_gbp", p.get("amount"))
+        if p.get("method") == SCHEME_CREDIT:
+            adjustments.append({"adjustment_date": when, "adjustment_amount_gbp": amount,
+                                "adjustment_reason": SCHEME_CREDIT})
+            continue
+        if p.get("outcome") in ("failed", "dispute"):
+            amount = p.get("part_paid_gbp") or 0.0
+        if not amount:
+            continue
+        payments.append({"payment_date": when, "payment_amount_gbp": amount,
+                         "payment_method": p.get("method")})
+    return payments, adjustments
 
 
 def export_account(customer_id: str, ledger_path: Path | None = None) -> dict:

@@ -276,6 +276,17 @@ def consumption_coefficient_of_variation(settlement_records: list[dict]) -> floa
     return statistics.pstdev(totals) / mean
 
 
+def applied_rates(segment: str, commodity: str, kwh: float, days: float,
+                  period_start: str) -> tuple[float, float]:
+    """The VAT rate and the non-commodity rate (GBP/MWh) one period is billed at.
+
+    One function so the ledger can record the rates a bill applied without re-deriving them: the
+    raw export carries both as CONTRACTED terms, and a second derivation would be free to differ.
+    """
+    return (vat_rate_for_supply(segment, commodity, kwh, days),
+            non_commodity_rate(commodity, segment, year=int(period_start[:4])))
+
+
 def generate_bill(
     customer_id: str,
     settlement_records: list[dict],
@@ -370,8 +381,9 @@ def generate_bill(
     # carved OUT of revenue, so the total is revenue plus VAT. The blended rate only splits the
     # line; it cannot move the total. Legacy fixtures without the standing-charge field still add
     # it, as the standing-charge fallback above does.
-    billing_year = int(dates[0][:4])
-    non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_rate(commodity, segment, year=billing_year)
+    vat_rate, non_commodity_gbp_per_mwh = applied_rates(
+        segment, commodity, total_consumption_kwh, days_in_period, dates[0])
+    non_commodity_amount_gbp = total_consumption_kwh / 1000 * non_commodity_gbp_per_mwh
     if records_carry_sc:
         commodity_amount_gbp -= non_commodity_amount_gbp
 
@@ -385,7 +397,7 @@ def generate_bill(
     # VAT on the full pre-tax bill. An SME period at or below its fuel's de minimis is reduced-rated
     # (VAT Notice 701/19); the segment label alone charged those periods the standard rate.
     subtotal_gbp = commodity_amount_gbp + non_commodity_amount_gbp + standing_charge_gbp
-    vat_gbp = subtotal_gbp * vat_rate_for_supply(segment, commodity, total_consumption_kwh, days_in_period)
+    vat_gbp = subtotal_gbp * vat_rate
     total_amount_gbp = subtotal_gbp + vat_gbp
 
     # The unit rate the household is charged, which on a settled bill is the all-in rate it was

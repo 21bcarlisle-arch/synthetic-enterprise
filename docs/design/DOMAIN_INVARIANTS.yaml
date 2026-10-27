@@ -2025,12 +2025,18 @@ invariants:
 - id: INV_PPM_NOT_CREDIT_BILLED
   family: payment_method_consistency
   statement: 'A prepayment customer is not sent credit bills or estimated credit bills: 21B.4 and 21B.5 do not apply to prepayment, and consumption is paid at the meter.'
+  predicate: a period whose account paid by prepayment between period_start and 60 days after period_end => document_type is not 'bill'
   lower: null
   upper: null
-  export_fields: []
-  checkable: false
-  gap: 'UNCHECKABLE: the export carries no bill/statement record, bill type or meter type. Periods exist for every account (they are consumption periods), so a period on a prepayment account is not evidence
-    of a credit bill. Needs a bill-issued record with its type.'
+  severity:
+    violation: breach
+  export_fields:
+  - document_type
+  - payment_method
+  - payment_date
+  checkable: true
+  gap: 'Was UNCHECKABLE (no bill record with its type). The export carries document_type per period from 2026-10-27 (the delivery seat, not the blind writer). Prepayment is read from the payments, so a prepayment
+    leg with no payment in a period''s window is not seen as prepayment there.'
   source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md (21B.4, 21B.5 carve-outs)
 - id: INV_FUEL_IDENTIFIER
   family: event_fuel_consistency

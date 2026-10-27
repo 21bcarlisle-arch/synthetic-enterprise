@@ -30,7 +30,7 @@ from company.billing.pre_bill_validation import (
     validate_rendered_bill_money,
     validate_rendered_bill_reads,
 )
-from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS
+from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS, applied_rates
 from saas.money import (
     MoneyBoundaryError,
     display_rate_gbp_per_day,
@@ -91,6 +91,10 @@ PROJECT = Path(__file__).parent.parent
 #: The read type of a period a prepayment meter charged as it was used: neither an actual read
 #: taken for the bill (A) nor an estimate (E), but the meter's own register.
 METER_CHARGED_READ_TYPE = "M"
+#: The method on a bill the government's bill credit (EBSS) settled whole, so the household paid
+#: nothing: the engine marks it `outcome: credit` with no method, which the ledger used to copy as
+#: a payment of the whole bill by nobody (218 rows on 4ae8da9b0f, all Oct 2022 to Mar 2023).
+SCHEME_CREDIT_METHOD = "scheme_credit"
 
 RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 # NOT under site/ (2026-10-14): at 57.7 MiB it passed Cloudflare Pages' 25 MiB per-file limit, and
@@ -442,9 +446,11 @@ def generate(run_json_path=None, out_path=None):
         elif row is not None:
             # The engine's outcome, which reads the world's payment truth where a draw cannot.
             method, outcome, days_late = row["method"], row["outcome"], row["days_late"]
+            if outcome == "credit":
+                method = SCHEME_CREDIT_METHOD
             part_paid = row.get("part_paid_gbp", 0.0)
             asked = round(row["amount_gbp"] + part_paid, 2)
-            _tone = _tone_for_bill(method, cid, period_end)
+            _tone = None if outcome == "credit" else _tone_for_bill(method, cid, period_end)
         else:
             # No row: the bill is wholly the occupier's or the owner's, which the engine never
             # collects from this payer. Drawn here as before; see the 2026-10-15 finding.
@@ -551,6 +557,12 @@ def generate(run_json_path=None, out_path=None):
         # The term this bill sits in, as the run recorded it, and the default-tariff verdict on the
         # bill's UNROUNDED amounts: the printed lines are rounded, which on a 1-22 day stub moves a
         # unit rate past the 0.5% tolerance. Both None where the run records no term / cannot grade.
+        # The rates this bill was charged at, from the biller's own function and the bill's own
+        # inputs: the raw export carries them as contracted terms (INV_VAT_RATE and
+        # INV_NON_COMMODITY_WITHIN_ALL_IN read them).
+        vat_rate, non_commodity_gbp_per_mwh = applied_rates(
+            bill.get("segment", "resi"), commodity, bill.get("total_consumption_kwh", 0.0),
+            bill.get("days_in_period") or 0, bill["period_start"])
         term = term_of_bill(account_terms, bill)
         term_type = term["tariff_type"] if term else None
         term_excess = bill_excess(bill, term_type) if term_type else None
@@ -592,6 +604,8 @@ def generate(run_json_path=None, out_path=None):
             ),
             "vat_gbp": printed_money["vat_gbp"],
             "total_amount_gbp": printed_total,
+            "vat_rate": vat_rate,
+            "non_commodity_rate_gbp_per_mwh": round(non_commodity_gbp_per_mwh, 4),
             "issue_date": issue_date.isoformat(),
             "generation_delay_days": generation_delay_days,
             "due_date": due_date.isoformat(),
@@ -602,7 +616,7 @@ def generate(run_json_path=None, out_path=None):
             "payment_status": (
                 "credited" if is_credit else
                 "disputed" if outcome == "dispute" else
-                ("paid" if outcome == "success" else "overdue")
+                ("paid" if outcome in ("success", "credit") else "overdue")
             ),
             "meter_serial": _meter_serial(cid, commodity),
             "mpan": _mpan(cid) if commodity == "electricity" else None,
@@ -809,6 +823,9 @@ def generate(run_json_path=None, out_path=None):
             # credit is netted here: a repayment's excess was never shown as money in, so taking
             # it off this payment would show less collected than the household paid.
             netted = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "credit"), 2)
+            # No more credit than the bill: a credit a penny over it was a -0.01 "payment" (25 on
+            # 4ae8da9b0f, INV_PAYMENT_AMOUNT_SIGN); the penny stays on the account as credit.
+            netted = min(netted, pay["amount_gbp"])
             if netted > 0:
                 pay["amount_gbp"] = round(pay["amount_gbp"] - netted, 2)
                 pay["credit_applied_gbp"] = netted

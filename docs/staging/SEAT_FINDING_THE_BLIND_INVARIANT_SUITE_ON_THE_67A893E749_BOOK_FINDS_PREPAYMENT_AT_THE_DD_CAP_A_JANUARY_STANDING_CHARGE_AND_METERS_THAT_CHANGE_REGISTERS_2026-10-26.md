@@ -384,3 +384,63 @@ Every other invariant row is byte-identical before and after.
 
 **Knowledge:** item 7 of `docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md`
 (written in this commit, K8).
+
+## The export half, closed 2026-10-27: the four unreadable invariants now report a count
+
+**What the export now carries.**
+- Every period carries:
+  - `vat_rate` and `non_commodity_rate_gbp_per_mwh`. These are the rates the bill was charged at,
+    taken from the biller's own `saas.bill_generator.applied_rates`. The biller and the ledger
+    both call that one function.
+  - `document_type`: a credit bill, or a prepayment statement.
+  - `consumption_kwh`, the billed volume, beside the readings.
+- Every account carries `billing_account_id`, so a dual-fuel household's two fuels share one id.
+- Our volume used to be withheld wherever readings existed. That protected nothing: the curtained
+  validator subtracts the readings whenever `volume_basis` is `reads`. The test now checks that
+  property directly: it plants a wrong volume and the validator ignores it.
+
+**The payment Nones: two source defects, each fixed.**
+- **The 98 amounts that read None** were real £0.00 rows: bills that account credit covered in
+  full. The export's `amount_gbp or amount` turned 0.0 into None. Nothing was received, so they
+  are no longer exported as payments.
+- **The 218 methods that read None** were bills the EBSS credit settled in full (Oct 2022 to
+  Mar 2023). The engine marks these `outcome: credit` with no method. The ledger copied each one
+  as a whole-bill payment by nobody, with status `overdue`. The ledger now records the method as
+  `scheme_credit` and the status as `paid`. The export treats each one as an **adjustment**
+  (money credited to the account), not as a payment.
+- **Also found:**
+  - The export counted all 1,657 failed collections as money received. A failed or disputed
+    collection now exports only what was actually part-paid.
+  - 25 payments of -£0.01 came from credit that exceeded its bill by a penny of rounding. The
+    credit applied is now capped at the bill, and the penny stays on the account.
+- On 4ae8da9b0f, amount None goes 98 → 0, method None 218 → 0, and negative payments 25 → 0.
+
+**The four invariants, on 4ae8da9b0f (ledger rebuilt by this commit's code):**
+| invariant | was | now | checked |
+|---|---|---|---|
+| INV_PERIOD_MATCHES_READS | NOT_IN_EXPORT | CLEAN, 0 breached | 52,782 periods |
+| INV_VAT_RATE | NOT_IN_EXPORT | CLEAN, 0 breached | 52,782 periods |
+| INV_NON_COMMODITY_WITHIN_ALL_IN | NOT_IN_EXPORT | CLEAN, 0 breached | 52,782 periods |
+| INV_PPM_NOT_CREDIT_BILLED | UNCHECKABLE | BREACHED, 6,336 of 6,336 | prepayment periods |
+| INV_PAYMENT_AMOUNT_SIGN | BREACHED (None and -£0.01 amounts) | CLEAN | 42,643 payments |
+
+- **INV_NON_COMMODITY_WITHIN_ALL_IN is graded against the contracted term's rate.**
+  - Against the printed `unit_rate_p_per_kwh`, 2,647 periods breached. The printed rate is the
+    energy line alone, because the bill prints network and policy costs as their own line.
+  - Against the all-in rate each account was sold at, 0 breach.
+  - This is my reading of the file's predicate, stated beside it in the evaluator.
+- **INV_PPM_NOT_CREDIT_BILLED: every prepayment period breaches on this book.** The run (02:26Z,
+  26 Oct) predates 3e19e56769, which sends a prepayment leg a statement. Every bill on this book
+  is therefore `bill`. The reading that counts is the next fresh run's, where 3e19e56769 expects
+  one SME leg to remain.
+  - The invariants file's row was `checkable: false`. It is now `true`, with a gap note saying
+    the delivery seat changed it, not the blind writer.
+
+**Still open, named:**
+- **(a)** The event stream (life events by fuel held), so INV_EV_ADOPTION_ELECTRICITY_ONLY can be
+  read. Not built here.
+- **(b)** A bill the EBSS covered only in part is recorded as the household paying the whole
+  bill. The ledger never nets the scheme credit, so the household's payment is overstated by the
+  credit.
+- **(c)** The suite's annual-use heating proxy can now read `billing_account_id` instead of
+  assuming no account has both fuels.

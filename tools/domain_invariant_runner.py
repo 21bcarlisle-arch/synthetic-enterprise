@@ -710,6 +710,118 @@ def ev_read_monotonic(inv, book):
     return tally
 
 
+def ev_period_matches_reads(inv, book):
+    """Billed volume against the advance of the period's own readings, summed over registers."""
+    tally = Tally("period billed on reads")
+    lo, hi = _num(inv.get("lower")), _num(inv.get("upper"))
+    for a in book:
+        for p in a.periods:
+            if p.get("volume_basis") != "reads":
+                continue
+            by_reg = defaultdict(list)
+            for r in p.get("reads", ()):
+                by_reg[r.get("register_id")].append(r)
+            pairs = [(o, c) for rs in by_reg.values()
+                     for o in [next((r for r in rs if r.get("read_type") == OPENING), None)]
+                     for c in [next((r for r in reversed(rs) if r.get("read_type") != OPENING), None)]
+                     if o and c]
+            billed = _num(p.get("consumption_kwh"))
+            if not pairs or billed is None:
+                tally.unbounded += 1
+                continue
+            advance = sum(float(c["read_kwh"]) - float(o["read_kwh"]) for o, c in pairs)
+            tally.band("{} {}".format(a.cid, p["period_start"]), round(billed - advance, 3),
+                       lo * len(pairs), hi * len(pairs))
+    return tally
+
+
+def _vat_segment(segment) -> str:
+    return "domestic" if segment in DOMESTIC_SEGMENTS else "sme/non-domestic"
+
+
+def _de_minimis_kwh_per_day(rule: str | None) -> float | None:
+    """The file writes the business rule as prose: '0.05 if consumption_kwh/days_in_period <= 33 ...'."""
+    import re
+    m = re.search(r"<=\s*([0-9.]+)", rule or "")
+    return float(m.group(1)) if m else None
+
+
+def ev_vat_rate(inv, book):
+    """The statutory rate for the period's segment, fuel and date; a business period by its de
+    minimis. A period crossing a row boundary is a flag: the file says it may be split by date."""
+    tally = Tally("period")
+    rows = _rows(inv)
+    for a in book:
+        seg = _vat_segment(a.segment)
+        for p in a.periods:
+            where = "{} {}".format(a.cid, p["period_start"])
+            mine = [r for r in rows if r["commodity"] == p.get("commodity") and r["segment"] == seg]
+            first, last = _row_on(mine, _d(p["period_start"])), _row_on(mine, _d(p["period_end"]))
+            if first is None:
+                tally.unbounded += 1
+                continue
+            rate = _num(p.get("vat_rate"))
+            if first is not last:
+                tally.checked += 1
+                tally.hit("flag", where, rate, None, "period crosses a VAT row boundary")
+                continue
+            lower, upper = _num(first.get("lower")), _num(first.get("upper"))
+            limit = _de_minimis_kwh_per_day(first.get("rule"))
+            if limit is not None:
+                kwh, days = _num(p.get("consumption_kwh")), _num(p.get("days_in_period"))
+                if kwh is None or not days:
+                    tally.unbounded += 1
+                    continue
+                lower = upper = lower if kwh / days <= limit else upper
+            tally.band(where, rate, lower, upper, tol_abs=_tol(inv, "absolute"))
+    return tally
+
+
+def ev_non_commodity_within_all_in(inv, book):
+    """0 <= non-commodity GBP/MWh <= the all-in unit rate x 10.
+
+    The ALL-IN rate is the contracted term's, not the period's printed `unit_rate_p_per_kwh`: the
+    bill prints network and policy as its own line, so the printed rate is the energy line's alone
+    (on 4ae8da9b0f, 2,647 periods breached against it and 0 against the terms). A two-rate term is
+    graded at the flat rate its pair was struck from; the pass-through is flat per kWh here, so an
+    off-peak rate below it is the flat-levy model's, not a pricing error.
+    """
+    tally = Tally("period")
+    for a in book:
+        for p in a.periods:
+            rates = [_num(t.get("unit_rate_p_per_kwh")) for t in p.get("contracted_terms") or ()]
+            rates = [r for r in rates or [_num(p.get("unit_rate_p_per_kwh"))] if r is not None]
+            if not rates:
+                tally.unbounded += 1
+                continue
+            tally.band("{} {}".format(a.cid, p["period_start"]),
+                       _num(p.get("non_commodity_rate_gbp_per_mwh")), 0.0, min(rates) * 10)
+    return tally
+
+
+#: The export's spelling of a credit bill (`document_type`); a prepayment meter's is a statement.
+CREDIT_BILL = "bill"
+#: How long after a period its payment can land and still say how that period was paid.
+PAYMENT_WINDOW = timedelta(days=60)
+
+
+def ev_ppm_not_credit_billed(inv, book):
+    tally = Tally("period on a prepayment account")
+    for a in book:
+        for p in a.periods:
+            start, end = _d(p["period_start"]), _d(p["period_end"])
+            if PREPAYMENT not in a.methods_between(start, end + PAYMENT_WINDOW):
+                continue
+            tally.checked += 1
+            if p.get("document_type") is None:
+                tally.hit("breach", "{} {}".format(a.cid, start), None, None, "missing")
+            elif p["document_type"] == CREDIT_BILL:
+                closing = [r.get("read_type") for r in p.get("reads", ()) if r.get("read_type") != OPENING]
+                tally.hit("breach", "{} {} read {}".format(a.cid, start, closing[-1] if closing else "-"),
+                          p["document_type"], None, "credit bill to a prepayment account")
+    return tally
+
+
 #: invariant ID -> (evaluator, the export field it needs on some period, or None)
 EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC": (ev_unit_rate_svt_elec, None),
@@ -739,9 +851,11 @@ EVALUATORS = {
     "INV_BACK_BILLING_12M": (ev_back_billing, None),
     "INV_PERIOD_CONSUMPTION_NON_NEGATIVE": (ev_consumption_non_negative, None),
     "INV_READ_MONOTONIC": (ev_read_monotonic, None),
-    "INV_PERIOD_MATCHES_READS": (None, "consumption_kwh"),
-    "INV_VAT_RATE": (None, "vat_rate"),
-    "INV_NON_COMMODITY_WITHIN_ALL_IN": (None, "non_commodity_rate_gbp_per_mwh"),
+    "INV_PERIOD_MATCHES_READS": (ev_period_matches_reads, "consumption_kwh"),
+    "INV_VAT_RATE": (ev_vat_rate, "vat_rate"),
+    "INV_NON_COMMODITY_WITHIN_ALL_IN": (ev_non_commodity_within_all_in,
+                                        "non_commodity_rate_gbp_per_mwh"),
+    "INV_PPM_NOT_CREDIT_BILLED": (ev_ppm_not_credit_billed, "document_type"),
 }
 
 

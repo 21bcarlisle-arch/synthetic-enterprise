@@ -159,3 +159,16 @@ too-steep 2023. That question stays with the finding's steps (ii) and (iii).
 **The base.** These arms predate the EPG carve (another lane, landing as this is written), which
 lowers default-tariff bills in the same winter. With smaller bills the credit is a larger share of
 each one, so the size of P1 will move on the next run. The direction should not.
+
+## How the billing record carries it (2026-10-27)
+
+The table above says the credit was applied to the account, not paid by the household. The billing
+ledger did not record it that way. A bill the credit settled in full was written as a payment of the
+whole bill with no method, and its status was `overdue`: 218 bills on 4ae8da9b0f.
+
+- The ledger now gives such a bill the method `scheme_credit` and the status `paid`.
+- The raw export treats it as an **adjustment**: money credited to the account, with that reason.
+  It is not a payment.
+- **GAP:** a bill the credit covered only in part is still recorded as the household paying the
+  whole bill. The ledger never nets the credit from the household's payment. This is next step (b)
+  of the blind-suite finding's export section.
