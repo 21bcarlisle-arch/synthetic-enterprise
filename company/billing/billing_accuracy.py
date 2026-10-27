@@ -77,6 +77,7 @@ from collections.abc import Iterable
 
 from company.billing.pre_bill_validation import issued_with_final_bill
 from company.billing.read_duty_register import read_duty_summary
+from company.compliance.domain_invariants import read_duty_firing
 from company.compliance.working_days import OutsideCalendarCoverage, working_days_between
 from saas.ledger import open_estimated_bills
 
@@ -708,6 +709,8 @@ def published_view(summary: dict | None, source: str | None = None,
     # published run carries it without a re-run.
     read_duty = (read_duty_summary(bills) if bills else {"available": False, "reason": (
         "the publish was handed no bills, and the register is read from them")})
+    # The ruling's "duties firing when due" check, over the same summary the page prints.
+    read_duty = {**read_duty, "firing": read_duty_firing(read_duty)}
     rows = summary.get("accounts") or []
     example = max(rows, key=lambda r: (r["barred_kwh"], abs(r["true_up_kwh"])), default=None)
     return {

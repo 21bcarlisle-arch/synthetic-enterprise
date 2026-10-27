@@ -234,3 +234,22 @@ def test_a_year_on_estimates_with_no_step_is_counted_and_one_with_a_failed_visit
         [(r["account_id"], r["step_taken"]) for r in read_duty_register(on) if r["duty_applies"]],
         without_step(on), without_step(off),
     ) == ([("C3", True), ("C5", True)], 0, 4)
+
+
+def test_the_read_duty_invariant_fires_on_a_year_with_no_step_and_never_calls_an_untested_fuel_met():
+    """Ruling 2026-10-26 step 4. The instructing run has years but every one has a step; the off
+    run has four without. A fuel with no duty years is `unreached`, an absent summary is not clean:
+    a check that passes on 0 of 0 cannot fail. The control spans the partition."""
+    from company.compliance.domain_invariants import (
+        check_read_duty_fires_when_due,
+        read_duty_firing,
+    )
+    on = read_duty_firing(read_duty_summary(_bills(_Feed(), instruct_reads=True)))
+    off = read_duty_firing(read_duty_summary(_bills(_Feed(), instruct_reads=False)))
+    empty = read_duty_firing({"by_fuel": {"gas": {"rows": 0, "rows_without_step": 0}}})
+    assert (on["fuels"]["electricity"]["status"], off["fuels"]["electricity"]["status"],
+            empty["fuels"]["gas"]["status"]) == ("met", "breached", "unreached")
+    assert check_read_duty_fires_when_due(read_duty_summary(_bills(_Feed(), instruct_reads=True)))
+    assert not check_read_duty_fires_when_due(
+        read_duty_summary(_bills(_Feed(), instruct_reads=False)))
+    assert not check_read_duty_fires_when_due({}) and read_duty_firing({})["available"] is False

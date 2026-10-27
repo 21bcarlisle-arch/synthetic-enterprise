@@ -2011,5 +2011,43 @@ def scan_payment_channel_dd_consistency(records: list) -> list[dict]:
     return findings
 
 
+#: Ruling 2026-10-26 step 4, "duties firing when due". SLC 21B.4 asks for all reasonable steps to
+#: get a read once a year; `read_duty_register` counts the years a run of 12 estimates passed
+#: (`rows`) and those where the supplier took no step (`rows_without_step`). A visit that found no
+#: read is a step taken and passes: the duty is of effort.
+READ_DUTY_FIRES_WHEN_DUE = StructuralInvariant(
+    id="read_duty_fires_when_due",
+    description=(
+        "Every year in which the SLC 21B.4 read duty applied to a credit account (12 estimated "
+        "bills in a row), the supplier took a step to get a read: rows_without_step is 0"
+    ),
+    source="Ofgem SLC 21B.4 (reasonable steps to obtain a meter reading at least once a year); "
+           "docs/market_research/read_access_and_theft_duties.md",
+    effective_from=date(2016, 4, 1),
+)
+ALL_INVARIANTS.append(READ_DUTY_FIRES_WHEN_DUE)
+
+
+def read_duty_firing(summary: dict) -> dict:
+    """Per fuel, `breached` / `met` / `unreached`, over `read_duty_summary`'s output. `unreached`
+    is a fuel where the duty never arose (0 rows): the check had nothing to test, so it is never
+    reported as met. An unavailable summary returns `{"available": False}`, never a pass."""
+    by_fuel = (summary or {}).get("by_fuel")
+    if not by_fuel:
+        return {"available": False, "fuels": {}, "clean": False}
+    fuels = {}
+    for fuel, row in by_fuel.items():
+        rows, missed = row.get("rows", 0), row.get("rows_without_step", 0)
+        fuels[fuel] = {"rows": rows, "rows_without_step": missed,
+                       "status": "unreached" if not rows else "breached" if missed else "met"}
+    return {"available": True, "fuels": fuels,
+            "clean": not any(f["status"] == "breached" for f in fuels.values())}
+
+
+def check_read_duty_fires_when_due(summary: dict) -> bool:
+    """True only when the summary is available and no fuel has a year without a step."""
+    return read_duty_firing(summary)["clean"]
+
+
 def invariant_count() -> int:
     return len(ALL_INVARIANTS)

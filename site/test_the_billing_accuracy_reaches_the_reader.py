@@ -181,6 +181,7 @@ def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
                "true_up_kwh": 820.0, "undercharge_kwh": 6784.0, "overcharge_kwh": 5964.0,
                "barred_kwh": 1401.0}
     from company.billing.read_duty_register import read_duty_summary
+    from company.compliance.domain_invariants import read_duty_firing
 
     view = published_view({"kinds": {"K2": "k2"}, "snapshot_month": "2025-06",
                            "by_fuel": {"electricity": fuel},
@@ -195,10 +196,11 @@ def _feed(dd_line: dict | None = _DD_LINE, read_duty: bool = True,
     view["K2_by_year_and_meter_type"] = _meter_split()
     if read_duty:
         # Set beside the view rather than handed in as `bills`, which would re-grade K1 above.
-        view["read_duty_register"] = read_duty_summary(
+        summary = read_duty_summary(
             _year_unread("A", "direct_debit", visit_sent=True)
             + _year_unread("B", "standard_credit", visit_sent=False)
             + _year_unread("P", "prepayment"))
+        view["read_duty_register"] = {**summary, "firing": read_duty_firing(summary)}
     return view
 
 
@@ -406,3 +408,20 @@ def test_a_feed_without_the_meter_split_renders_its_absence_and_never_a_zero():
     text = _render(feed)["billacc-k2split"]
     assert "absent rather than zero" in text and "next publish" in text
     assert "%" not in text
+
+
+def test_the_years_with_no_step_reach_the_reader_and_an_untested_fuel_is_never_a_zero(shown):
+    """The invariant suite's duties-firing-when-due count is printed beside the year rows (ruling
+    2026-10-26 step 4). Fires on: the line dropped, a 0-of-0 fuel printed as met, or a feed
+    without it rendered as zero."""
+    text = shown["billacc-readduty"]
+    assert "Years with no step taken: electricity 0 of 2. Prepayment" in text
+    feed = _feed()
+    feed["read_duty_register"]["firing"]["fuels"]["electricity"].update(
+        rows_without_step=1, status="breached")
+    assert "electricity 1 of 2 (the duty not met)" in _render(feed)["billacc-readduty"]
+    feed["read_duty_register"]["firing"] = {"available": True, "clean": True, "fuels": {
+        "gas": {"rows": 0, "rows_without_step": 0, "status": "unreached"}}}
+    assert "gas the duty never arose, so nothing was tested" in _render(feed)["billacc-readduty"]
+    feed["read_duty_register"].pop("firing")
+    assert "Years with no step taken: not in this feed" in _render(feed)["billacc-readduty"]

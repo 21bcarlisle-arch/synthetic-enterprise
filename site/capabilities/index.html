@@ -5117,6 +5117,21 @@ details.evidence > summary { cursor: pointer; }
           + "is shown as the bound and is not charged. Both prices are meter operators' figures from "
           + "before 2015, quoted by Ofgem in 2015, and are used unchanged for every year.";
       };
+      /* The invariant suite's "duties firing when due": years with no step taken, per fuel. A
+         fuel where the duty never arose has nothing to test and says so, never "0 of 0". */
+      var firing = function () {
+        var f = rd.firing;
+        if (!f || !f.available) {
+          return "Years with no step taken: not in this feed, so absent rather than zero. ";
+        }
+        return "Years with no step taken: " + Object.keys(f.fuels).sort().map(function (k) {
+          var x = f.fuels[k];
+          return esc(k) + " " + (x.status === "unreached"
+            ? "the duty never arose, so nothing was tested"
+            : esc(x.rows_without_step) + " of " + esc(x.rows)
+              + (x.status === "breached" ? " (the duty not met)" : ""));
+        }).join("; ") + ". ";
+      };
       $("billacc-readduty").innerHTML = "<strong>A year past the last read, over the whole run."
         + "</strong> "
         + (rd.available === false || !rd.by_fuel
@@ -5132,6 +5147,7 @@ details.evidence > summary { cursor: pointer; }
             ? "The step this supplier takes is the read instruction below. "
             : "This supplier keeps no record of any step, so each is a year it cannot show it "
               + "tried. ")
+          + firing()
           + "Prepayment is outside that duty and is left out ("
           + Object.keys(rd.by_fuel).sort().map(function (f) {
             return esc(rd.by_fuel[f].prepayment_rows) + " " + esc(f);
