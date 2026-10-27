@@ -70,7 +70,7 @@ exceptions:
       the retention offer, made on the day the term ends (163 at 0 days, 2 at -9); 1,173 terms have
       no offer at all. Not a reading error: SLC 22C.4(a) needs the notice for every fixed term.
     filed: 2026-10-27
-    retired_by: the company sending and recording an SLC 22C notice 42-49 days before each fixed term ends, and a run carrying it
+    retired_by: the company sending and recording an SLC 22C notice 42-49 days before each fixed term ends (wired 2026-10-27, item the-renewal-notice-is-sent-42-to-49-days-before-a-fixed-term-ends), and a run carrying it
     max_breached: 1338
   - invariant: INV_OVERDUE_WITHIN_BALANCE
     scope: 1,987 of 7,151 collections-journey openings on the 2eeb3f0b3 book (second leg only)

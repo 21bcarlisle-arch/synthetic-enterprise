@@ -2426,7 +2426,7 @@ invariants:
   gap: 'Predicate restated 2026-10-27 from "supply on any day of month m" to "held at 00:00 on the 1st of month m", because guidance 5.4 (read in the market-research page, from the withdrawn BEIS guidance) ties eligibility to the account held at 00:00 on the qualifying date, so a joiner after the 1st is owed nothing for that month. Unestablished: Annex C vacant-property and occupier-account exceptions are only summarised on that page, and the grader has not been checked against the new wording. Graded by tools/domain_invariant_runner.ev_ebss_credit from 2026-10-27, with each credit counted once (the windows overlap). The export''s reason is scheme_credit, which in this window can only be the EBSS. A month paid by prepayment is not graded: a traditional meter''s voucher route (about 20% expired unredeemed) makes received a different question, and the export cannot tell a smart meter from a traditional one (GAP).'
 - id: INV_RENEWAL_NOTICE_42_TO_49_DAYS
   family: renewal_compliance
-  statement: The end-of-fixed-term notice for a domestic fixed tariff is sent no earlier than 49 and no later than 42 days before the term ends. The supplier's renewal decision, its offer, is therefore made on or before that notice, never on the expiry date.
+  statement: 'The end-of-fixed-term notice for a domestic fixed tariff is sent no earlier than 49 and no later than 42 days before the term ends. The supplier''s renewal decision, its offer, is therefore made on or before that notice, never on the expiry date. [Seat correction 2026-10-27, beside the claim: the second sentence reads further than its source. SLC 22C.4(a) dates the statement; 22C.5(a) dates only an offer to EXTEND the same contract, which must come inside the statement; 22C.8(c) lets a new fixed contract be agreed with no date put on it. The text in docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md. The row grades the statement.]'
   predicate: for each fixed term ending on date E, the renewal decision or notice date d satisfies E - 49 days <= d <= E - 42 days
   lower: -49
   upper: -42
@@ -2435,9 +2435,10 @@ invariants:
     violation: breach
   export_fields:
   - contracted_terms.tariff_effective_to
+  - contracted_terms.fixed_term_end
   - renewal_notices.date
   checkable: true
-  gap: 'Graded by tools/domain_invariant_runner.ev_renewal_notice from 2026-10-27, on the export''s renewal_offers (the company''s end-of-term retention offers, dated). The company records no end-of-fixed-term notice at all, so d is its offer date, and a term with no offer is graded missing. E is tariff_effective_to; a term with no decision within 90 days before or 31 after E grades missing. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP).'
+  gap: 'Graded by tools/domain_invariant_runner.ev_renewal_notice. From 2026-10-27 (second change) the company sends the statement on day 42 (company/crm/renewal_notice_register.end_of_fixed_term_statement) and the export carries it as events.renewal_notices with the term''s contracted fixed_term_end; d is the statement''s date and E is fixed_term_end. A statement is owed for a domestic fixed term supplied on E - 42; a term cut short before then is owed none, and a non-domestic account is not graded. On a book whose run predates the statement (no renewal_notices key), d is the retention offer''s date as before, and a term with no act within 90 days before or 31 after E grades missing. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP). Whether "provide" is the day sent or received is not in the text (GAP).'
 - id: INV_OVERDUE_WITHIN_BALANCE
   family: account_arithmetic
   statement: The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date. An account with a debt stage open has at least one missed or returned collection, or an unpaid bill past its due date.

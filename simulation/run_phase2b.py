@@ -87,6 +87,7 @@ from company.interfaces.point_in_time_view import PointInTimeView, build_price_b
 from company.interfaces.renewal_offer import (
     request_company_forward_estimate,
     request_fixed_unit_rate,
+    send_end_of_term_statement,
 )
 from company.interfaces.renewal_rate_chain import (
     RenewalDecisionInputs,
@@ -3202,6 +3203,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Phase 12b: retention cost events and log
     retention_cost_events: list[dict] = []
     retention_log: list[dict] = []
+    # The company's SLC 22C statements, one per domestic fixed term owed one.
+    renewal_notice_log: list[dict] = []
     # World-side: what each offer changed (harness only), and the save rate's own holdout.
     retention_offer_channel_log: list[dict] = []
     retention_save_holdout_log: list[dict] = []
@@ -3273,6 +3276,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             continue
 
         term_end_str = term.get("term_end") or _clamp_term_end(term_start_str, end_date=effective_end)
+        # THE DAY THE CONTRACT SAYS THIS FIXED TERM ENDS, read before a move or a departure cuts the
+        # term below, and past the run's own end where the builder clamped it there: the SLC 22C
+        # statement is dated against it, and a clamped end is the window's edge, not an expiry.
+        _fixed_term_end = (
+            ((date.fromisoformat(term_start_str) + timedelta(days=CONTRACT_LENGTH_DAYS)).isoformat()
+             if term_end_str[:10] > effective_end else term_end_str[:10])
+            if term.get("tariff_type", "fixed") == "fixed" else None)
 
         # A RIDING LEG WAITS FOR THE ROLL IT RIDES ON. The household leaves once, on its decision
         # leg, so a gas term that a decision-leg start falls inside goes back in the heap keyed to
@@ -3914,6 +3924,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "term_end": term_end_str,
             "term_index": term_index,
             "tariff_type": term_tariff_type,
+            **({"fixed_term_end": _fixed_term_end} if _fixed_term_end else {}),
             "unit_rate_gbp_per_mwh": _state_unit_rate,
             "svt_rate_gbp_per_mwh": _state_svt_rate,
             "rate_vs_svt_pct": _state_rate_vs_svt_pct,
@@ -5193,6 +5204,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _payment_triad.close_account(billing_account, _bill_due_on(
                 (_move_end - timedelta(days=1)).isoformat()[:7]))
 
+        # SLC 22C.4(a): THE END-OF-FIXED-TERM STATEMENT, 42-49 days before the fixed term ends, to
+        # every domestic fixed term still supplied that day. Here, once the term's supplied end is
+        # final (a departure at its start skipped it above; a move cut or a follower restored it).
+        # The act only: no household reads it (GAP, tariffs_and_the_default_tariff page).
+        if _fixed_term_end and _is_domestic_leg(cid):
+            _statement = send_end_of_term_statement(
+                cid, commodity, term_start=term_start_str, fixed_term_end=_fixed_term_end,
+                supplied_until=term_end_str)
+            if _statement is not None:
+                renewal_notice_log.append(_statement)
+
         if cid in pending_committee_overrides:
             hf = pending_committee_overrides.pop(cid)
         else:
@@ -6368,6 +6390,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "company_event_log": _build_company_event_log(
             customer_events_log, fresh_acquisitions),
         "retention_log": retention_log,
+        "renewal_notice_log": renewal_notice_log,
         "retention_offer_channel_log": retention_offer_channel_log,
         "retention_save_holdout_log": retention_save_holdout_log,
         "retention_save_rate_lower_bound_log": retention_save_rate_lower_bound_log,

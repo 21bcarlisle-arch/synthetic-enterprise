@@ -55,6 +55,7 @@ from __future__ import annotations
 
 from datetime import date
 
+from company.crm.renewal_notice_register import end_of_fixed_term_statement
 from company.pricing.renewal_desk import FixedRateStrike, RenewalOffer
 
 __all__ = (
@@ -63,6 +64,7 @@ __all__ = (
     "request_company_forward_estimate",
     "request_fixed_unit_rate",
     "request_renewal_offer",
+    "send_end_of_term_statement",
     "term_cost_floor",
 )
 
@@ -203,3 +205,14 @@ def request_renewal_offer(
         published_svt_gbp_per_mwh=published_svt_gbp_per_mwh,
         published_market_switching_multiplier=published_market_switching_multiplier,
     )
+
+
+def send_end_of_term_statement(
+    account_id: str, commodity: str, *, term_start: str, fixed_term_end: str, supplied_until: str,
+) -> dict | None:
+    """The company's SLC 22C statement for one domestic fixed term: a dated record, or None where
+    none is owed. In: the account, the term's contracted dates and the day supply stopped, all the
+    company's own. Out: a plain dict. No household reads it (GAP, named on the tariffs page)."""
+    return end_of_fixed_term_statement(
+        account_id, commodity, date.fromisoformat(term_start[:10]),
+        date.fromisoformat(fixed_term_end[:10]), date.fromisoformat(supplied_until[:10]))

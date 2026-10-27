@@ -137,6 +137,8 @@ FIELDS: dict[str, tuple[str, str]] = {
                                      "term record and never from the bill; two where the period "
                                      "crosses a price change"),
     "tariff_type": (CONTRACTED, "the product the term was sold as (fixed, svt, ...)"),
+    "fixed_term_end": (CONTRACTED, "the day the contract says a fixed term ends, which a move or "
+                                   "a switch can pre-empt; exclusive, as tariff_effective_to"),
     "tou_unit_rates": (CONTRACTED, "a chosen term's peak and off-peak rates, the pair the one "
                                    "product rule strikes from its flat rate"),
     # money that actually moved
@@ -157,6 +159,7 @@ FIELDS: dict[str, tuple[str, str]] = {
     "event_date": (MEASURED, "the day the step was taken"),
     "event_rule": (EVENT, "the rule a write-off was made under, as the company recorded it"),
     "offer_date": (MEASURED, "the day the company made its end-of-term retention offer"),
+    "notice_date": (MEASURED, "the day the company sent a fixed term's SLC 22C statement"),
 }
 
 
@@ -387,10 +390,15 @@ def account_events(customer_id: str, record: dict) -> dict:
         "bills": [{"due_date": inv.get("due_date"), "settled_date": settled.get(inv.get("invoice_number"))}
                   for inv in record.get("invoices") or [] if inv.get("due_date")],
         "collections_journeys": [_journey_events(j) for j in record.get("collections_desk_journeys") or []],
-        # The company's offer at a term's end, its only dated renewal act: no end-of-fixed-term
-        # notice is recorded (`company/crm/renewal_notice_register.py` is not called by the run).
+        # The company's offer at a term's end, and its SLC 22C statement before it
+        # (`company/crm/renewal_notice_register.end_of_fixed_term_statement`). A book from a run
+        # that predates the statement carries no `renewal_notices` key at all, not an empty list.
         "renewal_offers": [{"offer_date": r.get("event_date"), "commodity": r.get("commodity")}
                            for r in record.get("renewal_offers") or []],
+        **({"renewal_notices": [{"notice_date": r.get("notice_date"),
+                                 "fixed_term_end": r.get("fixed_term_end")}
+                                for r in record["renewal_notices"]]}
+           if "renewal_notices" in record else {}),
     }
 
 

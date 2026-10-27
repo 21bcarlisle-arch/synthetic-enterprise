@@ -123,6 +123,8 @@ class Account:
         self.bills = events.get("bills") or ()
         self.journeys = events.get("collections_journeys") or ()
         self.renewals = events.get("renewal_offers") or ()
+        # None, not empty, on a book whose run predates the SLC 22C statement.
+        self.notices = events.get("renewal_notices")
         self.registers = {r.get("register_id") for p in self.periods for r in p.get("reads", ())}
         self.start = _d(self.periods[0]["period_start"]) if self.periods else None
         self.end = _d(self.periods[-1]["period_end"]) if self.periods else None
@@ -1086,25 +1088,39 @@ def _opened(events):
 
 
 def ev_renewal_notice(inv, book):
-    """Each fixed term that ended while the account was supplied, against the company's renewal
-    act nearest its end: its offer, since the export carries no notice. E is the term's
-    `tariff_effective_to`, the day it stops applying (read exclusive, as everywhere here). An act
-    more than 90 days before E or more than 31 after belongs to no term this row can see, so a
-    term with none in that span is graded missing: no notice was recorded for it."""
+    """Each domestic fixed term owed an SLC 22C statement, against the company's statement for it.
+
+    E is the term's `fixed_term_end` where the export has it (the contract's end, which a move or a
+    switch can pre-empt), else its `tariff_effective_to`; both exclusive. A statement is owed when
+    the account was supplied on E - 42, the window's last day: a term cut short before then is owed
+    none (22C.4(a) runs to "the fixed term period [...] is due to end"). 22C binds Domestic
+    Customers only, so a non-domestic account is not graded.
+
+    The act graded is the statement (`renewal_notices`). A book whose run predates it carries no
+    such key, and there the company's nearest renewal act is its retention offer, as before: an act
+    more than 90 days before E or 31 after belongs to no term this row can see, so a term with none
+    in that span grades missing. Where the book carries statements, the offer is not read: the text
+    dates the statement, and does not date an offer of a new contract (22C.8(c); the tariffs page,
+    2026-10-27)."""
     lo, hi = int(inv.get("lower", -49)), int(inv.get("upper", -42))
-    tally = Tally("fixed term ending in supply")
+    tally = Tally("domestic fixed term owed a statement")
     for a in book:
-        if a.end is None:
+        if a.end is None or not a.domestic:
             continue
-        decided = sorted(_d(r["offer_date"]) for r in a.renewals
-                         if r.get("offer_date") and r.get("commodity") in (None, a.fuel))
+        if a.notices is not None:
+            acts = sorted(_d(r["notice_date"]) for r in a.notices if r.get("notice_date"))
+        else:
+            acts = sorted(_d(r["offer_date"]) for r in a.renewals
+                          if r.get("offer_date") and r.get("commodity") in (None, a.fuel))
         for t in a.terms():
             if t.get("tariff_type") != "fixed" or not t.get("tariff_effective_to"):
                 continue
-            end = _d(t["tariff_effective_to"])
-            if not (a.start < end <= a.end + timedelta(days=1)):
+            end = _d(t.get("fixed_term_end") or t["tariff_effective_to"])
+            due = end + timedelta(days=hi)
+            supplied_to = min(_d(t["tariff_effective_to"]), a.end + timedelta(days=1))
+            if not (a.start <= due < supplied_to):
                 continue
-            near = [d for d in decided if end - timedelta(days=90) <= d <= end + timedelta(days=31)]
+            near = [d for d in acts if end - timedelta(days=90) <= d <= end + timedelta(days=31)]
             offset = min(((d - end).days for d in near), key=abs) if near else None
             tally.band("{} {} term to {}".format(a.cid, a.fuel, end), offset, lo, hi)
     return tally

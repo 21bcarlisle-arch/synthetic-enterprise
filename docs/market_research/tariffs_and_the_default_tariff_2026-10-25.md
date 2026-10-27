@@ -314,3 +314,51 @@ read was estimated, the bill's estimate flag already covers the split (31H.8).
 
 Sources: https://www.ofgem.gov.uk/sites/default/files/2023-03/Electricity%20Supply%20Standard%20Consolidated%20Licence%20Conditions%20-%20Current.pdf ;
 https://www.ofgem.gov.uk/sites/default/files/docs/2011/08/letter-to-suppliers-on-apportioning-price-increases.pdf
+
+## The end-of-fixed-term statement (2026-10-27, seat; primary text read this session)
+
+**Asked because** the company sent no end-of-fixed-term statement for any of 1,338 fixed terms on the
+2eeb3f0b3 book (`INV_RENEWAL_NOTICE_42_TO_49_DAYS`;
+`docs/staging/SEAT_FINDING_THE_COMPANYS_OWN_EVENTS_SHOW_NO_RENEWAL_NOTICE_..._2026-10-27.md`, point 1).
+The text is now in the commons, verbatim:
+`docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md` (S1, Ofgem's 2017
+modification notice, in force 6 Dec 2017).
+
+**What the rules require.**
+
+- **22C.4(a):** the "SLC 22C Statement of Renewal Terms" goes to every Domestic Customer on a fixed
+  term "no earlier than 49 days and no later than 42 days before the fixed term period [...] is due
+  to end". **22C.4(b):** it is a separate document, never inside a bill or marketing.
+- **22C.3(c):** what it says: the end date; "Remember – it might be worth thinking about switching
+  your tariff or supplier"; where to get impartial advice; that doing nothing puts them on the
+  cheapest evergreen tariff or a fixed-term default; the current and default Principal Terms; how to
+  leave without a termination fee; the Estimated Annual Cost on the default; and the cheapest and
+  alternative cheapest tariffs with their savings.
+- **22C.5(a):** an offer to EXTEND the same contract for a further fixed term must be incorporated in
+  the statement, in the same 42-49 day window. **22C.8(c)** separately allows "a new Fixed Term
+  Supply Contract [...] entered into with the express agreement of the Domestic Customer", and the
+  text puts no date on that. **So the licence dates the statement; it does not, on this reading,
+  date a retention offer of a new contract.** `INV_RENEWAL_NOTICE_42_TO_49_DAYS`'s second sentence
+  ("the offer is made on or before that notice, never on the expiry date") reads further than its
+  cited text. Whether an offer made after the statement is practice or a defect is a practitioner
+  question (K4), not settled here.
+
+**What the design does, and why** (wired 2026-10-27).
+
+- The company sends the statement on the day it prices the renewal: `simulation/renewals.py` strikes
+  the next term `NOTICE_DAYS` = 42 days before the old one ends, from data observable that day, and
+  22C.3(c)(v)/(vii) needs those prices in the statement. So the notice falls on day 42, the last day
+  the window allows. *Choice:* the window's last day, because that is when the company holds the
+  renewal terms; any day 42-49 complies. Real suppliers usually send earlier; the date a statement
+  takes to arrive is not modelled (S1 does not say whether "provide" is sent or received; GAP).
+- It is sent for each domestic fixed term whose account is still supplied on the notice day, dated
+  against the term's contracted end (start + the contract length), not the day supply happened to
+  stop. A term cut short by a move or a switch before day 42 is owed no statement.
+- It is recorded as an act only (`company/crm/renewal_notice_register.py`, exported as
+  `renewal_notices` in `raw_account_export.account_events`). **GAP: no household in the world reads
+  or reacts to it.** The households' renewal choice is rolled at the term's end with no input from
+  the statement. Whether a 22C statement moves switching, and by how much, is a world question for
+  `how_households_respond_to_supplier_contact.md`; not built here.
+- The retention offer is still decided on the day the term ends. Moving it to accompany the
+  statement means deciding with 42 days less information; that is a commercial design change for
+  its own page, not part of sending the statement.

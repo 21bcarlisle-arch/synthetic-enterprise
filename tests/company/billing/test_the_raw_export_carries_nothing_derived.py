@@ -477,3 +477,15 @@ def test_the_companys_dated_acts_are_a_second_export_the_validator_never_reads()
     assert "due_date" not in json.dumps(rx.raw_account("C1", record))
     assert events["bills"] == [{"due_date": "2016-02-19", "settled_date": "2016-02-19"}]
     assert "overdue_gbp" not in json.dumps(events) and rx.derived_leaks(events) == []
+
+
+def test_the_slc_22c_statement_is_exported_where_the_run_recorded_it_and_absent_where_it_did_not():
+    """DEFECT: a book whose run predates the statement exports an empty list, so the suite reads a
+    run that never recorded statements as one that sent none (and the other way round)."""
+    sent = {"renewal_notices": [{"customer_id": "C1", "commodity": "electricity",
+                                 "notice_date": "2016-11-20", "fixed_term_end": "2017-01-01"}]}
+    events = rx.account_events("C1", sent)
+    assert events["renewal_notices"] == [{"notice_date": "2016-11-20", "fixed_term_end": "2017-01-01"}]
+    assert rx.derived_leaks(events) == []
+    assert rx.account_events("C1", {"renewal_notices": []})["renewal_notices"] == []
+    assert "renewal_notices" not in rx.account_events("C1", {})

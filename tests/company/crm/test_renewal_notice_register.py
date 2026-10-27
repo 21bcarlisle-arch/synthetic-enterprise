@@ -141,3 +141,19 @@ class TestRenewalNoticeRegisterQueries:
         s = reg.notice_register_summary()
         assert "Renewal Notice Register" in s
         assert "SLC 22" in s
+
+
+def test_the_end_of_fixed_term_statement_is_sent_on_day_42_only_while_the_account_is_supplied():
+    """The partition first: owed and not owed both reachable. DEFECT: a statement for a term cut
+    short before its window (a fabricated act after the household left), or one dated off the
+    supplied end instead of the contract's."""
+    from company.crm.renewal_notice_register import end_of_fixed_term_statement
+    start, end = dt.date(2020, 1, 1), dt.date(2021, 1, 1)
+    owed = end_of_fixed_term_statement("C1", "gas", start, end, supplied_until=end)
+    assert owed == {"customer_id": "C1", "commodity": "gas", "notice_date": "2020-11-20",
+                    "fixed_term_end": "2021-01-01"}
+    assert (end - dt.date.fromisoformat(owed["notice_date"])).days == 42
+    cut_after = end_of_fixed_term_statement("C1", "gas", start, end, supplied_until=dt.date(2020, 12, 1))
+    assert cut_after["notice_date"] == "2020-11-20"
+    assert end_of_fixed_term_statement("C1", "gas", start, end, supplied_until=dt.date(2020, 11, 20)) is None
+    assert end_of_fixed_term_statement("C1", "gas", dt.date(2020, 12, 1), end, supplied_until=end) is None

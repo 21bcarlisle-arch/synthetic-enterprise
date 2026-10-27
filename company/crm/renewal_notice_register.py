@@ -76,6 +76,34 @@ class RenewalNoticeRecord:
         return earliest, latest
 
 
+def end_of_fixed_term_statement(
+    account_id: str,
+    commodity: str,
+    term_start: dt.date,
+    fixed_term_end: dt.date,
+    supplied_until: dt.date,
+) -> Optional[dict]:
+    """The SLC 22C Statement of Renewal Terms for one domestic fixed term, as the dated act it is,
+    or None where none is owed. Text: `docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md`.
+
+    Sent on the window's last day, `fixed_term_end - 42`: the day the company strikes the renewal
+    terms the statement has to print (22C.3(c)(v),(vii)), so it cannot be sent earlier with them.
+    `fixed_term_end` is the day the contract says the fixed period ends (exclusive, as a term's end is
+    everywhere in the run), not the day supply happened to stop. `supplied_until` is that day: a term
+    cut short by a move or a switch before the statement's day is owed none, and one supplied on it
+    is owed one whether or not the household then stays.
+    """
+    sent = fixed_term_end - dt.timedelta(days=_NOTICE_MIN_DAYS)
+    if not (term_start <= sent < supplied_until):
+        return None
+    return {
+        "customer_id": account_id,
+        "commodity": commodity,
+        "notice_date": sent.isoformat(),
+        "fixed_term_end": fixed_term_end.isoformat(),
+    }
+
+
 def _classify_outcome(
     notice_sent_date: Optional[dt.date],
     contract_expiry_date: dt.date,

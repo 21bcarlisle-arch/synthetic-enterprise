@@ -263,6 +263,7 @@ def _contracted_terms(account_terms, bill, tou_terms):
             "tariff_effective_from": t["term_start"],
             "tariff_effective_to": t["term_end"],
             "tariff_type": t["tariff_type"],
+            **({"fixed_term_end": t["fixed_term_end"]} if t.get("fixed_term_end") else {}),
             "unit_rate_p_per_kwh": None if no_rate else round(rate / 10.0, 4),
             "tou_unit_rates": None if pair is None else [
                 {"register_label": "Peak", "unit_rate_p_per_kwh": round(pair[0] / 10.0, 4)},
@@ -927,6 +928,12 @@ def generate(run_json_path=None, out_path=None):
     offers_by_account: dict[str, list] = {}
     for r in data.get("retention_log") or []:
         offers_by_account.setdefault(r.get("customer_id"), []).append(r)
+    # SLC 22C statements are per supply point (one per fuel's fixed term). None on a run that
+    # predates them, so the export can tell "sent none" from "the run did not record them".
+    notices_by_cid: dict[str, list] | None = (
+        None if "renewal_notice_log" not in data else {})
+    for r in data.get("renewal_notice_log") or []:
+        notices_by_cid.setdefault(r.get("customer_id"), []).append(r)
 
     customers = {}
     for cid in sorted(invoices_by_cid):
@@ -954,6 +961,8 @@ def generate(run_json_path=None, out_path=None):
             # (`renewal_decisions_log` is the HOUSEHOLD's choice on its journey, not the company's.)
             "collections_desk_journeys": journeys_by_account.get(billing_account_of(cid), []),
             "renewal_offers": offers_by_account.get(billing_account_of(cid), []),
+            **({"renewal_notices": notices_by_cid.get(cid, [])}
+               if notices_by_cid is not None else {}),
         }
 
     # Reg 6D: the credit a leaver's final bill closed in is paid back. The run logs the refund; the

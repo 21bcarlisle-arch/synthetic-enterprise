@@ -73,7 +73,7 @@ INVARIANTS = [
 NOT_REACHED_BY_THE_FIXTURE = {
     "INV_ANNUAL_USE_BOOK_MEDIAN": "a book median needs ten account-years per TDCV row",
     "INV_CROSS_FUEL_PRICE_SCALE": "it takes its rows from the two SVT invariants; tested on its own below",
-    "INV_RENEWAL_NOTICE_42_TO_49_DAYS": "reads the company's offers; every leg tested on its own below",
+    "INV_RENEWAL_NOTICE_42_TO_49_DAYS": "reads the company's statements; every leg tested on its own below",
     "INV_COLLECTIONS_EVENTS_ORDERED": "reads the collections journeys; every leg tested on its own below",
     "INV_OVERDUE_WITHIN_BALANCE": "reads the collections journeys; every leg tested on its own below",
     "INV_STATUTE_BARRED_WRITE_OFF_AGE": "needs a six-year-old debt; every leg tested on its own below",
@@ -603,6 +603,57 @@ def test_every_leg_of_the_renewal_notice_row_is_reachable():
     assert grade("2020-11-02") == (1, ["below"])
     assert grade() == (1, ["missing"])
     assert grade(tariff="svt") == (0, [])                               # a default tariff has no end
+
+
+def _with_statements(book, *dates, fixed_term_end=None, cut_to=None, segment="resi"):
+    """The same household on a book whose run sends the SLC 22C statement (`renewal_notices`)."""
+    acct = book[0]
+    acct.notices = [{"notice_date": d, "fixed_term_end": fixed_term_end or "2021-01-01"} for d in dates]
+    acct.segment = segment
+    for p in acct.periods:
+        for t in p["contracted_terms"]:
+            if fixed_term_end:
+                t["fixed_term_end"] = fixed_term_end
+            if cut_to:
+                t["tariff_effective_to"] = cut_to
+    if cut_to:
+        acct.periods[:] = [p for p in acct.periods if p["period_start"] < cut_to]
+        acct.end = runner._d(acct.periods[-1]["period_end"])
+    return book
+
+
+def test_the_statement_is_graded_where_the_book_carries_it_and_the_offer_is_not():
+    """DEFECT: the evaluator still grades the offer on a book that records statements, so an offer
+    on the day the fix ends (O6) breaches a term whose statement went out on day 42; or it grades
+    a statement outside 42-49 as clean. The fix ends 1 Jan 2021 (exclusive)."""
+    inv = {"lower": -49, "upper": -42}
+
+    def grade(*dates, offers=("2021-01-01",), **kw):
+        t = runner.ev_renewal_notice(inv, _with_statements(_household(offers=offers, tariff="fixed"),
+                                                           *dates, **kw))
+        return t.checked, [b["side"] for b in t.breaches]
+    assert grade("2020-11-20") == (1, [])                               # day 42, the run's choice
+    assert grade("2020-11-13") == (1, [])                               # day 49
+    assert grade("2020-11-21") == (1, ["above"])                        # day 41: late
+    assert grade("2020-11-12") == (1, ["below"])                        # day 50: early
+    assert grade() == (1, ["missing"])                                  # none sent, offer ignored
+
+
+def test_a_statement_is_owed_only_where_the_account_is_supplied_on_its_last_day():
+    """The partition first: owed and not owed must both be reachable. A fix to 1 Jan 2021 cut by a
+    move on 1 Oct 2020 was gone before 20 Nov and is owed none; one cut on 1 Dec was supplied on 20
+    Nov and is owed one, graded against the contract's end, not the move. A business account is
+    outside 22C."""
+    inv = {"lower": -49, "upper": -42}
+
+    def grade(*dates, **kw):
+        t = runner.ev_renewal_notice(inv, _with_statements(_household(tariff="fixed"), *dates,
+                                                           fixed_term_end="2021-01-01", **kw))
+        return t.checked, [b["side"] for b in t.breaches]
+    assert grade(cut_to="2020-10-01") == (0, [])
+    assert grade(cut_to="2020-12-01") == (1, ["missing"])
+    assert grade("2020-11-20", cut_to="2020-12-01") == (1, [])
+    assert grade(segment="sme") == (0, [])
 
 
 def test_every_leg_of_the_collections_order_row_is_reachable():

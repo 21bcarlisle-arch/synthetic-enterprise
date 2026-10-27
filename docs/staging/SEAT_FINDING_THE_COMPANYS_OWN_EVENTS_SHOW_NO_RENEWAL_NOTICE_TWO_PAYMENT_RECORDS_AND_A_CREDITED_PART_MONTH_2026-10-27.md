@@ -14,6 +14,15 @@ Each defect is excepted, capped at its count, in `docs/design/DOMAIN_INVARIANT_E
    1,338 fixed terms breach: 163 offers at 0 days, and 1,173 terms with no act at all. This is the
    class behind O6. The fix is to wire the register into the run, so every fixed term gets a dated
    notice 42-49 days before it ends, and to have the offer precede or accompany that notice.
+   **Wired 2026-10-27** (item `the-renewal-notice-is-sent-42-to-49-days-before-a-fixed-term-ends`):
+   the run sends the SLC 22C statement on day 42 to each domestic fixed term supplied that day, and
+   the export carries it. Text first: `docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md`.
+   On the 2016-17 window, 569 statements, every one at exactly 42 days, none on an unsupplied day.
+   Full-run grade: `docs/staging/records/SEAT_PREREGISTRATION_THE_SLC_22C_STATEMENT_ON_A_FRESH_RUN_2026-10-27.md`.
+   **Not done, on purpose:** the offer was NOT moved. On reading the text, 22C dates the statement
+   and an offer to extend the same contract (22C.5, inside the statement), and does not date a new
+   fixed contract's offer (22C.8(c)). Moving the offer means deciding 42 days earlier, a commercial
+   change for its own page. **GAP:** no household in the world reads or reacts to the statement.
 2. **The collections desk and the billing ledger keep two payment records.** On 1,987 of 7,151
    occasions (27.8%), a journey opens on "a bill is unpaid past its due date" where the billing
    ledger shows every bill due by then collected. SYN-2016-356 opens on the 29th each month, while
