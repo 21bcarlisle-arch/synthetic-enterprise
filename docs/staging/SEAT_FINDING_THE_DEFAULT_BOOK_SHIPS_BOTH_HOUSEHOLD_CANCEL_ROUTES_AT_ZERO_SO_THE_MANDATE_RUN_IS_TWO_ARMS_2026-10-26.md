@@ -184,3 +184,42 @@ The one quantity the fix alone governs is ADDACS 1 on the rails desk, which was 
 
 W2_41 moves to 2 only if P1 holds: ADDACS 1 stops reach the rails desk, with what is owed at each
 one priced.
+
+## Arm B re-run after the rails fix: the result (graded 27 Oct, on the 26 Oct 23:24Z output)
+
+The run finished in 3,287 s with no keys skipped. `grade_d.py` and `grade_net.py` were run unchanged.
+Output: `/var/tmp/mandate-run-out-8a56cb7ae8-own-cancel-low/` (`grade_d.json`, `grade_net.json`).
+
+| | 67a893e749 arm B | 8a56cb7ae8 arm B |
+|---|---|---|
+| DD legs / households / presentations / returned unpaid | 962 / 568 / 36,831 / 659 | 962 / 568 / 36,831 / 659 |
+| ADDACS 1 advices received on the rails desk | 0 | **20** |
+| ADDACS 1 stops (legs) / households | 0 / 0 | **18 / 13** |
+| owed at the ADDACS 1 stops, total / median | — | £1,161.58 / £49.89; 0 stops with nothing owed |
+| stops on returns (legs) / owed | 66 / £8,517.17 | 66 / £8,517.17 |
+| spells off DD | 66 | 84 (= 66 + 18) |
+| decade gross / net | −2,050.78 / −664.92 | −2,050.78 / −664.92 |
+
+- **P1 HELD.** 18 ADDACS 1 stops, inside 12–20 and not above the 20 failed cancel-month collections.
+  Of the 20 advices, 2 ended nothing. *Unmeasured explanation:* those 2 legs had already been
+  stopped on returns, since "a leg cannot be stopped twice" was the reason the band went below 20.
+  I have not checked this leg by leg.
+- **P2 HELD, and is no longer vacuous.** `reached_desk_before_any_collection_failed` is 0 of 18.
+  All 18 had a failed collection first, and the reason on every one was "Refer to Payer".
+- **P3 HELD exactly.** Gross and net match to the penny in every cell. The 42 commits between the
+  bases moved nothing in this arm's DD counts, returns or settlement. The only change is the 18
+  ADDACS 1 stops, so that one move can be attributed to 331c128058.
+
+**W2_41 stays at L1, and P1 is not the reason.** The pre-registration said L2 needed P1. But the
+atom's own `real_world_twin` is "an ADDACS 1 file arriving the morning after a customer cancels at
+their bank, *before any collection fails*". P2 shows the world produces the reverse: all 18
+ADDACS 1 stops follow a returned collection, because the advice is still built from `shock.cancel_return`
+and gated on `outcome == "failed"` (`simulation/dd_collection_book.py:557`). The rails desk now sees the household's own cancel, but only as the second
+signal after the first failure. The twin's case, a cancel noticed before the next collection, is
+never drawn. The open defect: the world draws the cancel date and the failed collection together.
+It does not draw the cancel as its own dated act, with the advice a working day later and the
+next presentation refused as "no instruction". Until it does, L2 would be measured on the
+flattering half of the twin. A second mismatch: the comment at :552 says the cancel-month
+collection comes back "instruction cancelled", but all 18 came back "Refer to Payer". So the
+return reason the world gives does not name the cause it modelled. The pre-registration's L2 condition was wrong, and is corrected here
+next to it.
