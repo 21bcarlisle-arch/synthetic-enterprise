@@ -232,6 +232,74 @@ is a paired, world-only capture with this commit and its parent, on one seed. Th
 crisis bad-debt finding is about the same arrears. Its cause, the under-water household's exit, is
 its own continuation, and this slice does not take it.
 
+## 8. The 2020-21 read: the income shock against the collection pause (2026-10-27, worker tick)
+
+This is step (iii) of the W2 BLOCKING crisis bad-debt finding
+(`SEAT_FINDING_THE_CRISIS_BAD_DEBT_CONTROL_HAS_SKIPPED_SINCE_THE_RUN_WENT_GZIP_..._2026-10-14.md`,
+2026-10-23 arrears-indicator section, point 2). The record's arrears per account rose 18% in 2020 and
+17% in 2021. The world's arrears per indebted household fell 7% and then rose 1%, and its failed share
+of billed pounds halved, from about 3.3% (2016-19) to about 1.65% (2020-21). The finding named two
+explanations it could not separate: (a) the COVID income shock is missing from the world, or too weak;
+(b) the 2020 pause in debt collection. This is a desk read. No code, constant or run changed.
+
+**What each one is.** (a) acts on the **flow**: more households fail to pay a bill. (b) acts on the
+**stock**: the same failures are collected more slowly, so arrears per account build up. Ofgem's
+indicator is a stock (more than 91 days, no plan, at 31 December), so it can rise under (b) with no
+change in the flow. The world's falling **flow** (its failed share) cannot be explained by (b).
+
+**What the record says.**
+- **The collection pause was real, and voluntary.** From 19 March 2020 every domestic supplier signed
+  the government and industry agreement. Suppliers would reassess, reduce or pause debt repayments and
+  bill payments for customers in hardship. Disconnection of credit meters was suspended. Prepayment
+  customers who could not top up could ask for help staying supplied. The sources read do not say when
+  the suspension ended (GAP).
+- **The income shock was large in work, and cushioned in income.** Furlough covered 8.9 million jobs at
+  its peak on 8 May 2020, at 80% of wages up to GBP 2,500 a month, and fell to 4.8 million by 31 July.
+  The redundancy rate hit a record 14.2 per thousand employees in the three months to November 2020.
+  Unemployment was 5.0%, 1.2 points higher than a year earlier. The East of England's redundancy rate
+  was 16.6 per thousand in August to October 2020, against 4.3 a year earlier.
+- **Two things cut the other way, or added to the bill.** Universal Credit's GBP 20 a week uplift ran
+  from April 2020 to October 2021 (household_budget_w2_4.md already lists it as a one-off that does not
+  reach the world). Homes used more energy in lockdown. BEIS has domestic electricity up 5.6% in 2020
+  while non-domestic use fell 11.1%. Total domestic energy use was up 6.5% in April to June 2020 on a
+  seasonally and temperature-adjusted basis.
+
+**What our code does.**
+- `simulation/life_events.py` draws job loss at `_JOB_LOSS_ANNUAL_PROB_PER_EMPLOYED_PERSON = 0.022`
+  in **every** year. 2020 has no step.
+- `simulation/household_budget.py` moves earned income on AWE annual averages: 0.714 in 2019, 0.725 in
+  2020, 0.769 in 2021. An annual mean hides the furlough quarter. The benefit path (deciles 1-2) leaves
+  out the GBP 20 uplift.
+- No term in the demand path raises use for lockdown. A grep for `lockdown` and `covid` in
+  `simulation/demand_model.py` and `sim/*.py` finds nothing in demand.
+- Whether the world's arrears stock depends on how fast the company collects is **not read here**
+  (GAP, discovery owed). If the world clears household debt on a fixed schedule whatever the company
+  does, then (b) cannot reach it by construction.
+
+**Ranked by evidence.**
+1. **None of (a), (b) or lockdown demand can halve the world's flow, and the halving is the world's
+   own.** (b) moves the stock, not the flow. (a) at the record's size is about 1.2 points of extra
+   unemployment, which is about one household on a book of 80 to 86. Lockdown demand is about 5% on the
+   bill. All three push the world's 2020-21 arrears **up**, so each is a real omission in the same
+   direction. But together they are too small to turn a halving into a rise. The likeliest cause is
+   the world's own budget arithmetic. The cap fell to its lowest level since it began (GBP 1,042 a year for a
+   typical dual-fuel direct-debit home, October 2020 to March 2021) while the AWE factor rose, so the shortfall rule's margin widened. A world that responds to a cheaper bill
+   more strongly than the record did would fail less. This is a hypothesis. It is ranked first only
+   because the alternatives fall short on size.
+2. **(b) is the best account of the record's stock rise**, together with the flow staying roughly
+   flat. It is a company behaviour (the agreement was suppliers'), so in this design it belongs to the
+   company's collections, not the world's households. Whether it can reach the world's stock is the
+   GAP above.
+3. **(a) is a certain omission of uncertain size.** A dated 2020 job-loss step from the ONS redundancy
+   series is a fidelity build (W7: world first). Furlough at 80% is the size of its income effect. Its
+   expected effect on this book's charge is small, and it needs no calibration to the charge.
+
+**Prediction, filed before any run.** A world-only paired capture on one seed, with 2020-21 bills held
+at their 2019 level and nothing else changed, closes **at least half** of the fall in the failed share
+from 2016-19 to 2020-21. If it closes less than a quarter, rank 1 is refuted, and the cause is the
+income path or the stock rule instead. That capture is the next step. It is one variable and needs no
+publish.
+
 ## Sources
 
 - ONS, X02: Labour Force Survey flows estimates, `x02aug2026.xls`, sheet "Labour market flows hazard rate" (https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/datasets/labourforcesurveyflowsestimatesx02), fetched 2026-10-18.
@@ -240,3 +308,8 @@ its own continuation, and this slice does not take it.
 - IFS, Unemployment benefits and household spending: new evidence from UK bank account data, https://ifs.org.uk/publications/unemployment-benefits-and-household-spending-new-evidence-uk-bank-account-data (read via search excerpt; fetch refused 403).
 - IFS press release, https://ifs.org.uk/news/newly-unemployed-see-living-standards-fall-and-financial-distress-increase-despite-benefits (read via search excerpt).
 - University of Oxford, 27 Oct 2025, https://www.ox.ac.uk/news/2025-10-27-uk-families-lose-nearly-fifth-income-after-job-loss-oxford-research-shows (Bedük, Socio-Economic Review; read via search excerpt).
+- Government and energy industry agreement of 19 March 2020, as reported at https://www.sfha.co.uk/our-work/policy-category/new-build-and-development/sub-category/fuel-poverty/policy-article/government-agrees-measures-with-energy-industry-to-support-vulnerable-people-through-covid-19 and https://www.choose.co.uk/news/2020/coronavirus-help-for-energy-customers (read via search excerpt, 2026-10-27).
+- Ofgem, self-disconnection and self-rationing statutory consultation, June 2020, https://www.ofgem.gov.uk/sites/default/files/docs/2020/06/self-disconnection_and_self-rationing_-_statutory_consultation_0.pdf (read via search excerpt).
+- ONS, Labour market overview, January 2021, https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/employmentandemployeetypes/bulletins/uklabourmarket/january2021 (redundancy rate 14.2 per thousand; unemployment 5.0%; read via search excerpt).
+- HMRC CJRS statistics as reported at https://www.cipp.org.uk/resources/news/latest-furlough-and-seiss-figures-hmrc.html, and Resolution Foundation (8.9m at the May 2020 peak, 4.8m by 31 July) (read via search excerpt).
+- BEIS Energy Trends 2020 domestic electricity +5.6%, and the C2E2 review https://c2e2.unepccc.org/wp-content/uploads/sites/3/2021/05/449-the-impact-of-covid-19-lockdown-restrictions-on-domestic-energy-consumption-in-great-britain.pdf (read via search excerpt).

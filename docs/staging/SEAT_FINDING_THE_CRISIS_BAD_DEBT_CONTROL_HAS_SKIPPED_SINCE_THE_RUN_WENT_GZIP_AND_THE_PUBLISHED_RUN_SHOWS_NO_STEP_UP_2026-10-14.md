@@ -1914,3 +1914,24 @@ page says (the off arms pool 0.99% and 0.69%, both under the 1% floor). Two thin
 first is the 2024-release GAP in choice 4, which this result moots for now, because the term is
 off. The second is a count floor for any later book-read signal. It would be a new pre-registration
 on its own question, not a fix to this one.
+
+## 2026-10-27: step (iii), the 2020-21 knowledge read. Neither (a) nor (b) can halve the world's flow
+
+Written in `docs/market_research/income_shock_depth_and_duration_b7.md` §8. This was a desk read, and
+no code, constant or run changed. The collection pause (b) was real (the 19 March 2020 industry
+agreement: repayments paused, credit-meter disconnection suspended). But it moves the **stock** of
+arrears, not the **flow** of failed bills, and the world's error is in its flow: its failed share
+halved. The income shock (a) is missing from the world. Job loss is 0.022 in every year, while the
+record has a 14.2 per thousand redundancy rate in late 2020. The lockdown rise in home energy use
+(about 5-6%) is missing too. Both push the world's 2020-21 arrears up. At their published sizes,
+though, both are too small to turn a halving into a rise on 80 to 86 households. The UC GBP 20
+uplift is missing as well, and it pushes the other way.
+
+**Ranked first, as a hypothesis:** the halving comes from the world's own budget arithmetic. The cap
+fell to GBP 1,042 (October 2020 to March 2021) while the AWE factor rose, which widened the shortfall
+rule's margin. **Prediction, filed before the run:** a world-only paired capture on one seed, with
+2020-21 bills held at their 2019 level, closes at least half of the fall in the failed share. If it
+closes less than a quarter, this ranking is refuted. Also owed: discovery on whether the world's
+arrears stock depends on how fast the company collects. That decides whether (b) can reach it.
+
+**Status:** OPEN and BLOCKING. Step (iii) is read. Next is the price-held capture above.
