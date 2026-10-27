@@ -96,3 +96,53 @@ shape (E through 2021-10, then 390 kWh on the November actual). So the out-of-ba
 read-duty defect (`SEAT_FINDING_A_THIRD_OF_HOUSEHOLDS_GO_MORE_THAN_A_YEAR_ON_ESTIMATES_WITHOUT_THE_READ_DUTY_FIRING_2026-10-26.md`)
 showing through, not an under-drawn car. The EV root cause is closed on the reader side; this finding's
 open items are the two above.
+
+## Open item 1 closed, 27 Oct 2026: a former customer's life events are not on the supplier's timeline
+
+**What the page says it is decided it.** The customer file is the supplier's account record (MPAN,
+tariff, invoices, ledger), and `tools/generate_explore_cast.py` reads its `timeline` as the supplier's
+column. So the out-of-window events are taken off the timeline rather than relabelled in place.
+`tools/generate_customer_data.py` `_life_events` keeps a life event only if it falls inside a supply
+window of either fuel. A window runs from the leg's acquisition date to its first churn or move-out,
+capped at the last month it was billed; a leg with no billed month has no window. The rest go to a
+new field, `world_life_events_outside_supply`, commented as the world's, so the simulation's record
+stays whole.
+
+**Counts on the published 4ae8da9b0f book (752 households, read from `site/data/customers/`, window
+= acquisition date to last billed month), printed before the test was written:**
+
+| Event | Kept on the timeline | Moved to the world's section |
+|---|---|---|
+| EV acquired | 6 | 15 (the 14 after the household left plus the 1 before it joined) |
+| New baby | 39 | 91 |
+| Job loss | 32 | 54 |
+| Reemployed | 34 | 50 |
+| Insulation upgraded | 38 | 47 |
+| Boiler replaced | 15 | 32 |
+| Illness | 17 | 29 |
+| Income recovery | 14 | 23 |
+| Retirement starts | 15 | 23 |
+| Income scar ended | 12 | 21 |
+| Divorce | 4 | 11 |
+| Solar install | 7 | 8 |
+| Battery installed | 1 | 5 |
+| Heat pump installed | 1 | 5 |
+| **Total** | **235** | **414** of 649 |
+
+The generator itself, on the 894503ba41 run file now at `docs/reports/run_output_latest.json`, keeps
+234 and moves 415. The one difference is a heat pump that falls after its leg's churn date but in the
+same calendar month, which the month-only count above keeps.
+
+**The other world fields on the file were checked for the same crossing.** `consumption`, `invoices`,
+`ledger` and `annual_pnl` are built from billed months, so by construction they sit inside the window.
+`reaction_chain` labels its simulation side. **Still open, not closed here:** a life event *inside*
+the window is still world truth on a supplier-labelled field. A supplier does not learn of a job loss
+or an illness unless the household says so. The cast already renders these in its truth column ("This
+is in the simulation only"), but the field's own label is wrong for them. The next step is to move all
+life events to the world's section and have the cast and the reaction chain read them from there.
+
+Test: `tests/tools/test_generate_customer_data.py::test_a_life_event_outside_every_supply_window_is_not_on_the_suppliers_timeline`
+(every partition asserted reachable) and `::test_the_customer_file_publishes_out_of_window_events_apart`.
+Two mutations were run and both turned the tests red: forcing every event inside the window, and
+dropping the churn and move-out bound. The published files change at the next run's publish; this
+commit does not regenerate `site/data/customers/`.

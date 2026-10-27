@@ -8,7 +8,7 @@ import pytest
 import json
 
 from tools.generate_customer_data import (
-    _tariff, _meter, _base_id, _mpan, _mprn, _mpan_check_digit, _timeline,
+    _tariff, _meter, _base_id, _mpan, _mprn, _mpan_check_digit, _timeline, _life_events,
     _forecast_cashflow, generate,
 )
 import tools.generate_customer_data as gcd_module
@@ -135,6 +135,8 @@ def test_mprn_deterministic():
 
 def test_timeline_merges_and_sorts_by_date():
     run = {
+        "per_customer_lifetime": {"C1": {"acquisition_date": "2016-01-01"}},
+        "years": {"2017": {"per_customer_monthly": {"C1": {"2017-01": {}, "2018-01": {}}}}},
         "customer_events": [
             {"customer_id": "C1", "event_date": "2018-01-01", "commodity": "electricity",
              "event_type": "renewed", "unit_rate_gbp_per_mwh": 100.0},
@@ -166,6 +168,58 @@ def test_timeline_includes_gas_twin_events():
 
 def test_timeline_empty_when_no_data():
     assert _timeline({}, "C1") == []
+
+
+def test_a_life_event_outside_every_supply_window_is_not_on_the_suppliers_timeline():
+    """26cc72f7b: 14 of 21 cars on the 4ae8da9b0f book arrived after the household left us and
+    were on the timeline a page labels the supplier's view. Each partition is asserted reachable:
+    kept on the electricity window, kept on the gas leg's window after electricity left, dropped
+    before acquisition, dropped after the last exit, dropped with no billed month at all."""
+    run = {
+        "per_customer_lifetime": {"C1": {"acquisition_date": "2017-03-10"},
+                                  "C1g": {"acquisition_date": "2017-03-10"},
+                                  "C2": {"acquisition_date": "2017-01-01"}},
+        "years": {"2017": {"per_customer_monthly": {"C1": {"2017-03": {}, "2017-12": {}},
+                                                    "C1g": {"2017-03": {}, "2019-06": {}}}}},
+        "customer_events": [{"customer_id": "C1", "event_date": "2018-01-15",
+                             "commodity": "electricity", "event_type": "churned"}],
+        "home_move_outs": [{"customer_id": "C1g", "move_date": "2019-06-20"}],
+        "per_customer_behavioral": {
+            "C1": {"life_event_history": [
+                {"date": "2017-03-01", "event_type": "new_baby"},       # before we supplied
+                {"date": "2017-06-01", "event_type": "job_loss"},       # electricity and gas held
+                {"date": "2018-09-01", "event_type": "illness"},        # gas still held
+                {"date": "2019-06-25", "event_type": "ev_acquired"},    # after the move-out
+            ]},
+            "C2": {"life_event_history": [{"date": "2018-01-01", "event_type": "divorce"}]},
+        },
+    }
+    kept = [e["detail"] for e in _timeline(run, "C1") if e["type"] == "life_event"]
+    assert kept == ["Job loss", "Illness"]
+    inside, outside = _life_events(run, "C1")
+    assert [e["detail"] for e in outside] == ["New baby", "Ev acquired"]
+    assert inside and outside
+    assert _timeline(run, "C2") == []
+    assert [e["detail"] for e in _life_events(run, "C2")[1]] == ["Divorce"]
+
+
+def test_the_customer_file_publishes_out_of_window_events_apart(tmp_path, monkeypatch):
+    run = {
+        "per_customer_lifetime": {"C1": {"acquisition_date": "2017-01-01", "segment": "resi"}},
+        "years": {"2017": {"per_customer_monthly": {"C1": {"2017-01": {}}}}},
+        "per_customer_behavioral": {"C1": {"life_event_history": [
+            {"date": "2017-01-05", "event_type": "new_baby"},
+            {"date": "2020-01-05", "event_type": "ev_acquired"}]}},
+    }
+    path = tmp_path / "run.json"
+    path.write_text(json.dumps(run))
+    monkeypatch.setattr(gcd_module, "OUT_DIR", tmp_path / "out")
+    monkeypatch.setattr(gcd_module, "_retire_departed_artefacts", lambda index: [])
+    monkeypatch.setattr(gcd_module, "_meter", lambda cid, segment: "Traditional")
+    generate(str(path))
+    obj = json.loads((tmp_path / "out" / "C1.json").read_text())
+    assert [e["detail"] for e in obj["timeline"] if e["type"] == "life_event"] == ["New baby"]
+    assert [e["detail"] for e in obj["world_life_events_outside_supply"]] == ["Ev acquired"]
 
 
 class TestForecastCashflow:

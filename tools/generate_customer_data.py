@@ -128,9 +128,10 @@ _EVENT_LABELS = {
 
 def _timeline(run, base):
     """Household-level timeline: real renewal/churn events (customer_events,
-    electricity-metered) + real life events (per_customer_behavioral), merged
-    and sorted. No fabrication -- both sources already exist in the run
-    artifact; this just assembles them per household for display."""
+    electricity-metered) + real life events (per_customer_behavioral) that fall
+    inside a supply window of either fuel, merged and sorted. No fabrication --
+    both sources already exist in the run artifact; this just assembles them
+    per household for display."""
     events = []
     ce = run.get("customer_events", [])
     for e in ce:
@@ -148,16 +149,55 @@ def _timeline(run, base):
             "commodity": e.get("commodity"),
             "detail": detail,
         })
+    events.extend(_life_events(run, base)[0])
+    events.sort(key=lambda e: e.get("date") or "")
+    return events
+
+
+def _supply_windows(run, base):
+    """The (first day, last day) we supplied each of the household's legs, from the supplier's own
+    record: the leg's acquisition date, its first churn or move-out, and the last month it was
+    billed. A leg never billed has no window."""
+    pcl = run.get("per_customer_lifetime", {})
+    exits = {}
+    for e in run.get("customer_events", []):
+        if e.get("event_type") == "churned" and e.get("event_date"):
+            exits.setdefault(e.get("customer_id"), []).append(e["event_date"])
+    for m in run.get("home_move_outs") or []:
+        if m.get("move_date"):
+            exits.setdefault(m.get("customer_id"), []).append(m["move_date"])
+    windows = []
+    for cid in (base, base + "g"):
+        if cid not in pcl:
+            continue
+        billed = [mo for ydata in run.get("years", {}).values()
+                  for mo in (ydata.get("per_customer_monthly", {}).get(cid) or {})]
+        if not billed:
+            continue
+        end = min([max(billed) + "-31"] + exits.get(cid, []))
+        windows.append((pcl[cid].get("acquisition_date") or min(billed) + "-01", end))
+    return windows
+
+
+def _life_events(run, base):
+    """The world's life events for this household, split into those that fall while we supplied
+    either fuel and those that do not. Only the first go on the supplier's timeline: a supplier
+    has no way to know of a former customer's car, or of a baby born before the home joined it.
+    The second are published apart, labelled as the world's."""
+    windows = _supply_windows(run, base)
+    inside, outside = [], []
     pcb = run.get("per_customer_behavioral", {})
     for life in pcb.get(base, {}).get("life_event_history", []):
-        events.append({
-            "date": life.get("date"),
+        date = life.get("date")
+        e = {
+            "date": date,
             "type": "life_event",
             "commodity": None,
             "detail": life.get("event_type", "").replace("_", " ").capitalize(),
-        })
-    events.sort(key=lambda e: e.get("date") or "")
-    return events
+        }
+        held = bool(date) and any(lo <= date <= hi for lo, hi in windows)
+        (inside if held else outside).append(e)
+    return inside, outside
 
 
 def _per_year_data(run, cid):
@@ -367,6 +407,9 @@ def generate(run_json_path=None):
             ),
             annual_pnl=_per_year_data(run, cid),
             timeline=_timeline(run, base),
+            # Not the supplier's: the world's events from before we supplied the home or after it
+            # left. Kept so the simulation's record stays whole, never read as something we knew.
+            world_life_events_outside_supply=_life_events(run, base)[1],
             invoices=[],
         )
         (OUT_DIR / (cid + ".json")).write_text(json.dumps(obj, indent=2))
