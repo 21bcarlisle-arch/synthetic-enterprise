@@ -38,3 +38,32 @@ form with the ratio and turn the two phase4c tests red on origin.
 The two legs of one home draw their smart-mode state from their own ids. A lost comms hub would
 take both fuels, and that is not modelled. Nobody publishes the joint rate, so this is a GAP and
 not a number to pick.
+
+## Done
+
+*2026-10-27, delivery seat, under `the-shared-checkout-runs-the-code-origin-holds`.* The shared
+tree's `simulation/meter_reads.py` and `tests/simulation/test_meter_reads.py` were preserved
+byte-for-byte at `refs/preserved/origin-reconcile-superseded-live/seat-judged-7db1e2c4af-2026-10-27`
+(commit `c1098dc3ab`, read back clean) and restored for the fast-forward onto origin/main, so
+the odds form is what the box runs. The same ref holds seven other copies, each judged by
+reading it against origin rather than by any tool's grade:
+
+- `docs/design/maturity_map.yaml`: its only difference is B13's row at L2. b7b17b8bf3 moved
+  that row to `maturity_map_closed.yaml`, so the copy would have put a closed atom back on the
+  live map.
+- `docs/market_research/unbilled_energy_and_revenue_assurance.md`: this copy held the one piece of
+  real unlanded work, the K8 section for c77a181fa's fuel split. It described the plain ratio,
+  so it landed corrected to the odds form, with the correction beside the claim (see that commit).
+- `SEAT_FINDING_EXPLORES_CAST_...`, `..._BLIND_INVARIANT_SUITE_...`, `..._DEFAULT_BOOK_SHIPS_...`,
+  `..._TERM_RATE_AGAINST_ITS_WHOLESALE_FLOOR_...` and `..._PRINTED_RATE_...`: each copy's mtime
+  is earlier than origin's last commit to that path. The lines only the copy holds are the text
+  origin's later edit replaced: a BLOCKING severity that origin regraded LATENT, an "owed" stub
+  since filled, and a GAP that origin struck through and answered.
+
+Recover any of them with `git show <ref>:<path>`.
+
+The shared checkout is level with origin/main at `f0d04dd72`, and `units_lacking_origin` is empty.
+`deploy_restart --apply` restarted six daemons whose loaded code was behind disk. Among them is
+`supervisor.service`, which rebooted at `f0d04dd72`, so cd59b84f9's refusal now runs in it:
+`correctness_stretch_refusals()` names EP16, SPINE_1, C4 and W1_10. Twenty-seven other blockers
+were cleared by `origin_reconcile.advance_shared_tree` under its own hash and three-way proofs.
