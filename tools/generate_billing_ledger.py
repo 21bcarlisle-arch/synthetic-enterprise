@@ -941,6 +941,14 @@ def generate(run_json_path=None, out_path=None):
             "arrears_history": arrs,
         }
 
+    # Reg 6D: the credit a leaver's final bill closed in is paid back. The run logs the refund; the
+    # ledger carries it so the page ledger can post the money leaving (cold read O27, 33 accounts
+    # that stood in credit for ever).
+    for refund in data.get("credit_refund_log", []):
+        if refund["customer_id"] in customers:
+            customers[refund["customer_id"]].setdefault("refunds", []).append({
+                "paid_date": refund["paid_date"], "amount_gbp": refund["credit_amount_gbp"]})
+
     all_held = list(held_bills) + held_reads + held_money
     result = {
         "meta": {

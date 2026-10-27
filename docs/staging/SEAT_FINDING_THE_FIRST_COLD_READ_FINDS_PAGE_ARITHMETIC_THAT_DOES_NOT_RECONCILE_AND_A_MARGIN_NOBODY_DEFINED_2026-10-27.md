@@ -117,3 +117,36 @@ site changes at the next publish.
 - `tests/tools/test_generate_payment_ledger_data.py::test_the_months_whole_scheme_credit_is_posted_so_the_bills_it_later_settles_are_not_owed`
 
 The rest of this finding stays open: O8, O30, O4 and the copy items.
+
+## O27 residue: the refund was modelled and the ledger dropped it (2026-10-27, delivery lane)
+
+**K8 page:** `docs/market_research/home_moves.md` §8.8 (GSoP 2015 reg 6D, SI 2019/218: refund any
+credit within 10 working days of the final bill). No new rule found; the page already holds it.
+
+**Cause of the 33 "GAP: no refund modelled" was wrong.** The company does refund:
+`simulation/credit_refund_events.py` logs one event per leaver closing in credit, paid on the
+deadline (`credit_refund.scheduled_refund_date`). The log never reached `billing_ledger.json`, so the
+page ledger (`tools/generate_payment_ledger_data.py`) never posted the money leaving. Fixed:
+`generate_billing_ledger` carries each event as `refunds` on its account, and the page ledger posts a
+`refund_debit`. `total_collected_gbp` is now net of it, so billed = collected + scheme credit +
+balance + written off still foots; `total_refunded_gbp` is published beside it.
+Tests red on the old code: `test_a_leavers_credit_is_refunded_so_the_closed_account_does_not_hold_it_for_ever`,
+`test_the_ledger_carries_each_reg_6d_refund_on_its_account`.
+
+**Measured** (reconciled-book ledger + the shared run's log): the log holds 27 refunds, which is every
+closing balance below zero in the run (27 of 857). Accounts in credit at the book date fall 136 to
+117. Of the 117, 99 are under 50p or are still-active accounts, where credit is legitimate;
+the 4 real-sized leavers remain below.
+
+**Prediction filed before measuring was "all 33 resolve"; it did not hold, the log covers 27.**
+The 6 other credits are not leavers' closings (they have no closing balance), so no refund is owed.
+
+**Causes of the 24 that owe more (traced on three accounts; not fixed, not a refund question):**
+- OCC-3c914ee8cef5g, OCC-561d240ea21a: one early failed direct debit (£48.94 in 2016, £42.58 in
+  2017) ends `BALANCE_OPEN` with no later stage. The page ledger carries it as owed for ever; the
+  engine's closing balance for 561d is £0. Two readings differ on whether a never-chased failed debit
+  is a debt: this is the O27 "frozen balance never chased" item, an arrears-engine question (no
+  debt stage after the second notice) and not a ledger posting defect. Open.
+- OCC-423594fbfa6bg (-£4.28 held from 2017): account credit applied (£20.57, £8.41) against bills
+  whose paid amount was already netted. A constant offset from one 2017 bill. Open.
+- Write-off short of the bill (OCC-87206d346f15g, £19.16): not reproduced in this pass. Open.

@@ -280,3 +280,26 @@ def test_the_months_whole_scheme_credit_is_posted_so_the_bills_it_later_settles_
     entries = ledger["entries"]
     # The excess shows as credit on the statement until the later bill uses it.
     assert entries[1]["type"] == "scheme_credit" and entries[1]["running_balance_gbp"] == -32.31
+
+
+def test_a_leavers_credit_is_refunded_so_the_closed_account_does_not_hold_it_for_ever():
+    # Cold read O27: 33 accounts stood in credit after exit. Reg 6D pays the credit back within ten
+    # working days of the final bill; the run logs it, and the ledger must post the money leaving.
+    inv = dict(_INV_PAID, scheme_credit_month_gbp=130.0)
+    cust = _cust([inv], [_PAY_SUCCESS])
+    assert build_account_ledger(cust, as_of="2025-01-01")["current_balance_gbp"] == -130.0
+    cust["refunds"] = [dict(paid_date="2020-02-20", amount_gbp=130.0)]
+    ledger = build_account_ledger(cust, as_of="2025-01-01")
+    assert ledger["current_balance_gbp"] == 0.0
+    assert ledger["total_refunded_gbp"] == 130.0
+    # billed = collected + scheme credit + balance + written off still foots, with collected net.
+    assert round(ledger["total_collected_gbp"] + ledger["total_scheme_credit_gbp"]
+                 + ledger["current_balance_gbp"] + ledger["total_written_off_gross_gbp"], 2) \
+        == ledger["total_billed_gbp"]
+
+
+def test_a_refund_paid_after_the_book_date_is_not_yet_posted():
+    inv = dict(_INV_PAID, scheme_credit_month_gbp=130.0)
+    cust = _cust([inv], [_PAY_SUCCESS])
+    cust["refunds"] = [dict(paid_date="2026-01-01", amount_gbp=130.0)]
+    assert build_account_ledger(cust, as_of="2025-01-01")["current_balance_gbp"] == -130.0

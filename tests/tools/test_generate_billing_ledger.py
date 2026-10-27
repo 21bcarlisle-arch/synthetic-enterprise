@@ -598,3 +598,15 @@ def test_a_bill_the_ebss_covered_in_part_is_paid_by_the_household_only_for_the_r
     assert (whole["amount_gbp"], whole["scheme_credit_gbp"], whole["method"]) == (0.0, 40.0,
                                                                                    "scheme_credit")
     assert gas["amount_gbp"] == 100.0 and "scheme_credit_gbp" not in gas
+
+
+def test_the_ledger_carries_each_reg_6d_refund_on_its_account(tmp_path):
+    # Cold read O27: the run logs the refund of a leaver's credit and the ledger dropped it.
+    run = _run([_bill("C_IC1", "2022-03-31", 8000.0), _bill("C_IC2", "2022-03-31", 8000.0)])
+    run["credit_refund_log"] = [{"customer_id": "C_IC1", "credit_amount_gbp": 12.5,
+                                 "paid_date": "2022-04-20"}]
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(run))
+    customers = generate(rj, tmp_path / "l.json")["customers"]
+    assert customers["C_IC1"]["refunds"] == [{"paid_date": "2022-04-20", "amount_gbp": 12.5}]
+    assert "refunds" not in customers["C_IC2"]
