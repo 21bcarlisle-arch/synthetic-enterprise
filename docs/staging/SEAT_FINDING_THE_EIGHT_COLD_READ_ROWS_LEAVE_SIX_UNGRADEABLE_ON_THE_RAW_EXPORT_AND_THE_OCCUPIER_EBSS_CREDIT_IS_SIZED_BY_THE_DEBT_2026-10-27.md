@@ -32,3 +32,18 @@ This file holds only what the item did not close.
 6. **The world has no region.** `customer_registry.mpan_core` now gives every account a distributor
    from a hash, the scheme the customer pages already used. That is an identifier and not a place,
    so no regional fact may be read from it.
+
+## Progress, 2026-10-27 (item `the-six-cold-read-rows-read-the-companys-own-events`)
+
+- **Point 1:** done in 5e3e9966a. Renewal notice and collections order are checkable on the
+  company's dated acts (`raw_account_export.account_events`, a second export the bill validator
+  never reads). Overdue and statute bar are partial, with the ungradeable leg of each named. The
+  SVT-per-region row stays checkable:false because the world has no region (point 6). The grade
+  and every cause are in
+  `docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md`.
+- **Point 2:** checked on the page (`tests/tools/test_generate_explore_cast.py`). The check was red on
+  the published page, and the moment is now dated at the run's last estimated bill.
+- **Points 3 and 5:** the row's blind author restated both from the sources: EBSS "held at 00:00 on
+  the 1st" (guidance 5.4/5.8), and IDNO distributor IDs 24 upward. The runner follows both.
+- **Point 4 stays open**, joined by two more defects of the same shape, in
+  `SEAT_FINDING_THE_COMPANYS_OWN_EVENTS_SHOW_NO_RENEWAL_NOTICE_TWO_PAYMENT_RECORDS_AND_A_CREDITED_PART_MONTH_2026-10-27.md`.

@@ -385,3 +385,61 @@ def test_the_cast_balance_is_billed_less_paid_on_every_moment(feed, real):
                 wrong.append((s["id"], m["iso"], row["v"], want))
     assert checked, "no balance rows at all -- this control would be vacuous"
     assert not wrong, wrong[:5]
+
+
+# ── INV_ESTIMATE_RUN_WITHIN_TENURE, checked where it lives: on the page (O14, O28) ──────────────
+# The raw export is one fuel per account, so a run of estimated bills there is a sub-run of that
+# leg's own bills and the invariant holds by construction. The page is where it broke: "12 gas bills
+# in a row were estimated" printed on 28 Feb 2018 for a household that joined on 30 Aug 2017.
+
+
+def _calendar_months(since: str, until: str) -> int:
+    a, b = since[:7].split("-"), until[:7].split("-")
+    return (int(b[0]) - int(a[0])) * 12 + int(b[1]) - int(a[1]) + 1
+
+
+def _estimate_runs_longer_than_their_bills(feed) -> list[str]:
+    """Each estimate-run moment's count against the bills its fuel can have had by that moment.
+    The company bills each fuel once per calendar month (first and last part-months included), so
+    a fuel has at most one bill per calendar month touched since the household joined."""
+    bad = []
+    for s in feed["slots"]:
+        for m in s.get("moments", []):
+            if m["kind"] != "estimate_run":
+                continue
+            n = int(m["story"].split()[0])
+            since = next(r["drawn_from"] for r in m["supplier"] if r["k"] == "Customer since")
+            if n > _calendar_months(since, m["iso"]):
+                bad.append("{} {}: {} on {}, {} calendar months after joining on {}".format(
+                    s["id"], s["household"], m["story"], m["iso"], _calendar_months(since, m["iso"]), since))
+    return bad
+
+
+def _has_estimate_run(feed) -> bool:
+    return any(m["kind"] == "estimate_run" for s in feed["slots"] for m in s.get("moments", []))
+
+
+def test_an_estimate_run_is_no_longer_than_the_bills_its_fuel_has_had(feed):
+    if not _has_estimate_run(feed):
+        pytest.skip("no estimate run on this book, so this control has nothing to read")
+    assert not _estimate_runs_longer_than_their_bills(feed), _estimate_runs_longer_than_their_bills(feed)
+
+
+def test_the_published_page_carries_no_estimate_run_longer_than_its_bills():
+    """The committed feed is what a reader sees, so it is graded too, not only a fresh build."""
+    if not FEED.is_file():
+        pytest.skip("feed not yet generated")
+    on_disk = json.loads(FEED.read_text(encoding="utf-8"))
+    assert not _estimate_runs_longer_than_their_bills(on_disk), _estimate_runs_longer_than_their_bills(on_disk)
+
+
+def test_MUTATION_an_estimate_run_shown_at_its_midpoint_is_caught(feed):
+    """The O14 shape: the whole run's count, dated one month after joining."""
+    if not _has_estimate_run(feed):
+        pytest.skip("no estimate run on this book")
+    f = copy.deepcopy(feed)
+    m = next(m for s in f["slots"] for m in s.get("moments", []) if m["kind"] == "estimate_run")
+    since = next(r["drawn_from"] for r in m["supplier"] if r["k"] == "Customer since")
+    m["story"] = "12" + m["story"][m["story"].index(" "):]
+    m["iso"] = since
+    assert _estimate_runs_longer_than_their_bills(f)

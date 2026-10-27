@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-10-26T18:53:19Z",
+  "generated_at": "2026-10-27T18:54:20Z",
   "run_generated_at": "2026-10-26T12:01:01Z",
   "run_git_commit": "4ae8da9b0f",
   "household_count": 752,
@@ -139,8 +139,8 @@
       },
       {
        "k": "Balance on the books",
-       "v": "Nothing owed",
-       "drawn_from": "2025-02-01"
+       "v": "£186.20 owed",
+       "drawn_from": "2025-02-28"
       }
      ],
      "decision": "No decision about this household is on record yet.",
@@ -166,7 +166,7 @@
       "message": "Your first electricity bill is ready: £85.79.",
       "tariff": "Standard Variable",
       "pays": "Set up at your first bill",
-      "balance": "Nothing owed",
+      "balance": "£186.20 to pay",
       "usage": [
        {
         "month": "2025-02",
@@ -233,8 +233,8 @@
       },
       {
        "k": "Balance on the books",
-       "v": "Nothing owed",
-       "drawn_from": "2025-03-18"
+       "v": "£193.80 owed",
+       "drawn_from": "2025-03-31"
       }
      ],
      "decision": "No decision about this household is on record yet.",
@@ -260,7 +260,7 @@
       "message": "Your electricity bill is ready: £93.10.",
       "tariff": "Standard Variable",
       "pays": "Direct debit",
-      "balance": "Nothing owed",
+      "balance": "£193.80 to pay",
       "usage": [
        {
         "month": "2025-02",
@@ -829,8 +829,8 @@
       },
       {
        "k": "Balance on the books",
-       "v": "£252.52 owed",
-       "drawn_from": "2025-01-17"
+       "v": "£460.21 owed",
+       "drawn_from": "2025-01-22"
       },
       {
        "k": "Debt stage",
@@ -873,7 +873,7 @@
       "message": "Sorry to see you go. Your final bill will follow.",
       "tariff": "Fixed from 24 Jan 2024",
       "pays": "Direct debit",
-      "balance": "£252.52 to pay",
+      "balance": "£460.21 to pay",
       "usage": [
        {
         "month": "2024-02",
@@ -1062,15 +1062,15 @@
      }
     },
     {
-     "iso": "2018-02-28",
-     "date": "28 Feb 2018",
+     "iso": "2018-07-31",
+     "date": "31 Jul 2018",
      "kind": "estimate_run",
      "title": "Estimated, again",
      "story": "12 gas bills in a row were estimated.",
      "why": "The meter was not read; the bills are the supplier's estimate of use, not the use.",
      "gap": {
       "believed": "8,868 kWh across the estimated bills",
-      "truth": "The meter had not been read since the household joined",
+      "truth": "The gas meter had not been read since the household joined",
       "meant": "The difference lands on the next actual read",
       "tone": "neutral"
      },
@@ -1088,7 +1088,7 @@
       {
        "k": "How they pay",
        "v": "Direct debit",
-       "drawn_from": "2018-02-22"
+       "drawn_from": "2018-07-21"
       },
       {
        "k": "Tariff",
@@ -1097,23 +1097,23 @@
       },
       {
        "k": "Payment record",
-       "v": "12 payments, 0 returned, 0 missed",
-       "drawn_from": "2018-02-22"
+       "v": "22 payments, 0 returned, 0 missed",
+       "drawn_from": "2018-07-21"
       },
       {
        "k": "Meter reads",
-       "v": "14 bills, 1 on an actual read, last on 30 Sep 2017",
-       "drawn_from": "2018-02-28"
+       "v": "24 bills, 3 on an actual read, last on 30 Jun 2018",
+       "drawn_from": "2018-07-31"
       },
       {
        "k": "Balance on the books",
-       "v": "Nothing owed",
-       "drawn_from": "2018-02-22"
+       "v": "£46.03 owed",
+       "drawn_from": "2018-07-31"
       },
       {
        "k": "Debt stage",
        "v": "Overdue balance cleared -- journey closed",
-       "drawn_from": "2017-10-06"
+       "drawn_from": "2018-05-31"
       }
      ],
      "decision": "No decision about this household is on record yet.",
@@ -1139,7 +1139,7 @@
       "message": "Your gas bill is estimated. Send us a reading to make it accurate.",
       "tariff": "Standard Variable",
       "pays": "Direct debit",
-      "balance": "Nothing owed",
+      "balance": "£46.03 to pay",
       "usage": [
        {
         "month": "2017-08",
@@ -1175,36 +1175,61 @@
         "month": "2018-02",
         "e": 268,
         "g": 1216
+       },
+       {
+        "month": "2018-03",
+        "e": 329,
+        "g": 1115
+       },
+       {
+        "month": "2018-04",
+        "e": 263,
+        "g": 713
+       },
+       {
+        "month": "2018-05",
+        "e": 235,
+        "g": 372
+       },
+       {
+        "month": "2018-06",
+        "e": 194,
+        "g": 237
+       },
+       {
+        "month": "2018-07",
+        "e": 215,
+        "g": 211
        }
       ],
       "bills": [
        {
         "fuel": "gas",
-        "when": "28 Feb 2018",
-        "kwh": 1216,
-        "amount": "£39.08",
+        "when": "31 Jul 2018",
+        "kwh": 211,
+        "amount": "£13.01",
         "badge": "Estimated"
        },
        {
         "fuel": "electricity",
-        "when": "28 Feb 2018",
-        "kwh": 268,
-        "amount": "£38.92",
+        "when": "31 Jul 2018",
+        "kwh": 215,
+        "amount": "£33.02",
         "badge": "Estimated"
        },
        {
         "fuel": "gas",
-        "when": "31 Jan 2018",
-        "kwh": 1545,
-        "amount": "£48.56",
+        "when": "30 Jun 2018",
+        "kwh": 237,
+        "amount": "£13.46",
         "badge": "Estimated"
        },
        {
         "fuel": "electricity",
-        "when": "31 Jan 2018",
-        "kwh": 326,
-        "amount": "£46.78",
-        "badge": "Estimated"
+        "when": "30 Jun 2018",
+        "kwh": 194,
+        "amount": "£30.31",
+        "badge": "Actual read"
        }
       ]
      }
@@ -1255,8 +1280,8 @@
       },
       {
        "k": "Balance on the books",
-       "v": "Nothing owed",
-       "drawn_from": "2018-08-21"
+       "v": "£2.02 in credit",
+       "drawn_from": "2018-08-29"
       },
       {
        "k": "Debt stage",
@@ -1287,7 +1312,7 @@
       "message": "We have a meter reading and your bill now reflects what you used.",
       "tariff": "Standard Variable",
       "pays": "Direct debit",
-      "balance": "Nothing owed",
+      "balance": "£2.02 in credit",
       "usage": [
        {
         "month": "2017-09",
@@ -2272,8 +2297,8 @@
       },
       {
        "k": "Balance on the books",
-       "v": "£0.01 owed",
-       "drawn_from": "2021-12-26"
+       "v": "£311.09 owed",
+       "drawn_from": "2021-12-31"
       },
       {
        "k": "Debt stage",
@@ -2304,7 +2329,7 @@
       "message": "Your electricity bill is ready: £311.08.",
       "tariff": "Standard Variable",
       "pays": "Direct debit",
-      "balance": "£0.01 to pay",
+      "balance": "£311.09 to pay",
       "usage": [
        {
         "month": "2021-01",
@@ -2440,8 +2465,8 @@
       },
       {
        "k": "Balance on the books",
-       "v": "£0.01 owed",
-       "drawn_from": "2022-12-17"
+       "v": "£596.07 owed",
+       "drawn_from": "2022-12-31"
       },
       {
        "k": "Debt stage",
@@ -2472,7 +2497,7 @@
       "message": "Your bill has changed because energy prices have changed.",
       "tariff": "Standard Variable",
       "pays": "Direct debit",
-      "balance": "£0.01 to pay",
+      "balance": "£596.07 to pay",
       "usage": [
        {
         "month": "2022-01",

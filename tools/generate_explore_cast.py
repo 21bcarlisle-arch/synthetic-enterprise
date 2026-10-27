@@ -467,7 +467,7 @@ def _template(hh, ev, iso, kind, rec):
                 "Your {} bill is estimated. Send us a reading to make it accurate.".format(rec["fuel"]),
                 "The meter was not read; the bills are the supplier's estimate of use, not the use.",
                 {"believed": "{:,.0f} kWh across the estimated bills".format(rec["kwh"]),
-                 "truth": "The meter had not been read since {}".format(rec["since"]),
+                 "truth": "The {} meter had not been read since {}".format(rec["fuel"], rec["since"]),
                  "meant": "The difference lands on the next actual read", "tone": "neutral"})
     if kind == "catch_up":
         adj = rec.get("catchup_adjustment_gbp")
@@ -612,7 +612,10 @@ def _score_estimate_trap(hh, ev, person):
     n, fuel, run, catch, prev_a = best
     since = _day(prev_a["date"]) if prev_a else "the household joined"
     keys = [(_acq(hh), "joined", {}),
-            (run[len(run) // 2]["date"], "estimate_run", {"fuel": fuel, "n": n, "since": since,
+            # Dated at the run's LAST estimated bill, the first day all n of them exist. At the
+            # midpoint the page printed the whole run's count half-way through it (O14: 12 gas bills
+            # seven months after joining).
+            (run[-1]["date"], "estimate_run", {"fuel": fuel, "n": n, "since": since,
                                                          "since_iso": prev_a["date"] if prev_a else _acq(hh),
                                                          "kwh": sum(i.get("consumption_kwh") or 0 for i in run)}),
             (catch["date"], "catch_up", catch)]

@@ -2469,7 +2469,7 @@ invariants:
   checkable: false
   missing_export_fields:
   - the page's per-fuel estimate-run count
-  gap: 'Not gradeable on the raw export, and no evaluator is written for it: the export is one fuel per account, so a run of estimated periods is a sub-run of that leg''s own periods and the predicate holds by construction. An evaluator could not fire. O28 points at the page''s counter adding both fuels'' bills into one run, so the check belongs on the page''s printed count, which the raw export does not carry.'
+  gap: 'Not gradeable on the raw export: the export is one fuel per account, so a run of estimated periods is a sub-run of that leg''s own periods and the predicate holds by construction. CHECKED ON THE PAGE from 2026-10-27, by tests/tools/test_generate_explore_cast.py::test_the_published_page_carries_no_estimate_run_longer_than_its_bills: each Explore estimate-run count is at most the calendar months its fuel has been supplied by the date shown (the company bills each fuel once a calendar month). It was red on the page as published (O14: 12 gas bills seven months after joining, the run''s whole count dated at its midpoint).'
 - id: INV_COLLECTIONS_EVENTS_ORDERED
   family: collections_sequence
   statement: A collections journey runs in order. The missed payment or unpaid bill that opens it comes first, then reminders, then a payment plan (SLC 27 ability-to-pay), then repayment, write-off or referral. No step is dated before the event that opens the journey.
