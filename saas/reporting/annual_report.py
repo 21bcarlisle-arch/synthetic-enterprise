@@ -492,9 +492,12 @@ def extract_report_data(run_output: dict) -> dict:
             entry["net_gbp"] += r["net_margin_gbp"]
             entry["consumption_kwh"] += r.get("consumption_kwh", 0.0)
             # Per MWh on settled volume, so the settlement view at a leaver's estimated closing
-            # read scales them with the energy (`tools.closing_estimate_run_money`).
-            entry["policy_cost_gbp"] += r.get("policy_cost_gbp", 0.0)
-            entry["network_cost_gbp"] += r.get("network_cost_gbp", 0.0)
+            # read scales them with the energy (`tools.closing_estimate_run_money`). A gas row
+            # carries its levies under `gas_*` keys (`simulation/gas_settlement.py`); reading only
+            # the electricity keys left every gas leg's net move equal to its gross move, and that
+            # alone flipped 2017's book-wide net on the 67a893e749 arm-A book.
+            entry["policy_cost_gbp"] += r.get("policy_cost_gbp", 0.0) + r.get("gas_policy_cost_gbp", 0.0)
+            entry["network_cost_gbp"] += r.get("network_cost_gbp", 0.0) + r.get("gas_network_cost_gbp", 0.0)
 
         # THE BALANCE THE YEAR CLOSED AT, in ACCUMULATION order (2026-08-24,
         # docs/staging/WORKER_FINDING_THE_TREASURY_DRAWDOWN_FIGURE_IS_AN_ARTEFACT_OF_SORTING_A_BALANCE_THAT_WAS_NEVER_A_SERIES_2026-08-24.md).

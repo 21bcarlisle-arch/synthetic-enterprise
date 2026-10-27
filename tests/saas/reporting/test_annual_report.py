@@ -397,6 +397,22 @@ def test_extract_report_data_per_customer_monthly_sums_multiple_records_same_mon
     assert monthly["consumption_kwh"] == 20.0
 
 
+def test_per_customer_monthly_carries_each_fuels_levies_under_the_key_its_settlement_writes():
+    """A gas row carries its levies as `gas_policy_cost_gbp`/`gas_network_cost_gbp`
+    (`simulation/gas_settlement.py`). Read only under the electricity keys, a gas leg's monthly
+    levies were 0, so its net settled at the read moved exactly as gross did; on the 67a893e749
+    arm-A book that alone flipped 2017's net (+39.46 against gross -251.98)."""
+    elec = _record("E1", "electricity", "2016-01-01", 1, 10.0, 0.0, 10.0, 50.0, 1000.0)
+    elec.update(policy_cost_gbp=3.0, network_cost_gbp=4.0)
+    gas = _record("E1g", "gas", "2016-01-01", 1, 10.0, 0.0, 10.0, 30.0, 1000.0)
+    gas.update(gas_policy_cost_gbp=1.0, gas_network_cost_gbp=2.0)
+    base = _run_output()
+    base["phase2b"]["all_records"] = [elec, gas]
+    monthly = extract_report_data(base)["years"]["2016"]["per_customer_monthly"]
+    assert (monthly["E1"]["2016-01"]["policy_cost_gbp"], monthly["E1"]["2016-01"]["network_cost_gbp"]) == (3.0, 4.0)
+    assert (monthly["E1g"]["2016-01"]["policy_cost_gbp"], monthly["E1g"]["2016-01"]["network_cost_gbp"]) == (1.0, 2.0)
+
+
 def test_by_billing_account_carries_avg_annual_net_margin_when_ev_present():
     """Director page comment (2026-07-11, /customers/: "expose forecast profit
     and cashflow"): saas/clv_model.py::build_clv() already computes

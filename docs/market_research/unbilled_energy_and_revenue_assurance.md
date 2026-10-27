@@ -681,6 +681,28 @@ So leg (b) is built. Two choices differ from the shape above, and why:
   table is in `docs/staging/SEAT_FINDING_THE_DEFAULT_BOOK_SHIPS_BOTH_HOUSEHOLD_CANCEL_ROUTES_AT_ZERO_SO_THE_MANDATE_RUN_IS_TWO_ARMS_2026-10-26.md`.
   Until it is closed, the annual report's net settled at the read is a per-run figure, with no
   rule linking it to gross.
+  **Decomposed by leg (2026-10-27, same arm-A book, rebuilt from its pickles; it reproduces 2017's
+  −£251.98 and +£39.46 and the decade's totals to the penny).** The filed prediction was that the
+  flip sits on a few legs whose policy and network costs move against their revenue. **Refuted.**
+  No leg's levies move against its own revenue, because both scale by the same settled factor. The
+  book flip has two causes:
+  - *Fuel mix.* In 2017 the 99 electricity legs move gross −£377.24 and net −£85.80, the same sign
+    at 0.23 of gross. On those legs the levies are 57% of revenue less the standing charge (policy
+    £109, network £182, on £509). The 69 gas legs move the other way, gross +£125.26. A book-wide
+    net over two fuels whose moves have opposite signs is a difference, not a levy share of gross.
+  - *A reader defect.* `per_customer_monthly` read only the electricity keys, but gas rows carry
+    their levies as `gas_policy_cost_gbp` and `gas_network_cost_gbp`. So every gas leg's net moved
+    exactly as its gross did. With gas's levies read, 2017 is −£43.95 (gas +£41.85, after £83.41
+    of GDN and NTS charges), the same sign as gross. The decade becomes −£705.21. 2016 stays the
+    same sign but moves further than gross (−£16.62 against −£1.68). 2022 still flips, at −£0.62
+    against +£37.43 on 21 legs. Fixed in `saas/reporting/annual_report.py`; the figures above
+    are the probe's, and no published run carries the fix yet.
+  - *Leg by leg,* 24 of 2017's 99 electricity legs do flip on their own. On those legs' months the
+    levies exceed the volume margin, which is the effect the prediction anticipated. It is real, but
+    it is not what flips the book.
+  **What is still a GAP:** no rule links net to gross book-wide while the fuel mix of a year's
+  leavers decides the sign. The year table needs each fuel's own row to read. Probe:
+  `/var/tmp/netleg-probe/decompose.py`, summary `decompose_2017.json`.
 
 #### What a change of supplier ends on each fuel (2026-10-22, K8 for the dual leaver)
 
