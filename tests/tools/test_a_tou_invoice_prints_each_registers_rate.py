@@ -69,7 +69,7 @@ def test_printed_registers_foot_exactly_to_the_printed_lines():
     bill = _bill((PEAK, OFFPEAK))
     kwh, gbp = round(bill["total_consumption_kwh"], 1), round(bill["commodity_amount_gbp"], 2)
     printed = _printed_registers(bill["registers"], kwh, gbp)
-    assert [r["register_id"] for r in printed] == ["1", "2"]
+    assert [r["register_id"] for r in printed] == ["2", "3"]
     assert round(sum(r["consumption_kwh"] for r in printed), 1) == kwh
     assert round(sum(r["amount_gbp"] for r in printed), 2) == gbp
     assert printed[0]["unit_rate_p_per_kwh"] > printed[1]["unit_rate_p_per_kwh"]

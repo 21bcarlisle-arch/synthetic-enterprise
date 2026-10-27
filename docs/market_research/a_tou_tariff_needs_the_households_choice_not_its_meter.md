@@ -124,3 +124,23 @@ not ToU, so it is left for a separate change and recorded here.
 **GAP: per-register reads.** A two-register meter has a read per register. This book records one
 cumulative read pair per invoice, so the bill cannot print register reads. The export says so
 (`volume_basis: "unattributable"`) and does not guess.
+*Superseded 2026-10-26: the ledger now records each register's own readings, and the export
+exports them.*
+
+**Item 7, 27 Oct 2026: a register keeps its identity when the tariff changes.**
+- **What the rules settle.** A Multi-Register Tariff is the contract, "regardless of the metering
+  equipment employed" (SLC 28AD, item 1 above). So on a smart or HH meter, moving between a
+  single-rate and a ToU tariff changes which registers are billed. It is not a meter exchange, and it
+  issues no new serial. A legacy (non-smart, non-HH) meter is never offered ToU here
+  (`company/pricing/tou_desk.offers_tou`), so its register count never changes.
+- **What physics settles.** A meter's registers are cumulative and never run backwards, and one
+  register is one register for the life of the serial. A meter's total import register advances
+  under every tariff.
+- **The design.** The total register is `1` under every tariff. Peak is `2` and Off-peak is `3`,
+  and each advances only over the periods that bill it.
+- **The defect this replaced.** Registers were numbered by their position on the bill, so on 66
+  serials of 67a893e749, "register 1" read 18,568.6 (total) and then 2,140.6 (Peak).
+- **GAP: which register a smart meter bills on a single-rate tariff.** It might be the total import
+  register, or the first tariff register that all use is routed to. No source in the commons
+  settles which, and the export reads the same either way, because the total index advances by the
+  same kWh.

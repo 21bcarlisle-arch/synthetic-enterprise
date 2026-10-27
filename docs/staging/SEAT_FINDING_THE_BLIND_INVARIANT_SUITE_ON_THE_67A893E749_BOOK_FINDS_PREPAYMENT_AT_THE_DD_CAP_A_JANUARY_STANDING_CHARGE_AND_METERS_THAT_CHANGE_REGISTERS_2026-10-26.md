@@ -296,3 +296,73 @@ reading: the defect moved crisis revenue between quarters, not into or out of th
 - A fixed term's standing charge still follows the cap per day instead of being held at its
   strike. `INV_STANDING_CHARGE_FIXED` is clean, but that is a separate reading for the D lane to
   take up.
+
+## Breach class 3, fixed 2026-10-27: a register keeps one id and one index for the life of its serial
+
+Pre-registration, filed before the rebuild:
+`records/SEAT_PREREGISTRATION_A_METER_REGISTER_KEEPS_ONE_ID_AND_ONE_INDEX_FOR_THE_LIFE_OF_ITS_SERIAL_2026-10-27.md`.
+
+**Correction to the direction that drew this.** The direction asked for register count to be a
+property of the meter, changing only through an exchange, with a test that no serial reports two
+counts. That premise is wrong for the meters it affects:
+- The count follows the TERM. `company/pricing/tou_desk.offers_tou` sells ToU on chosen terms to
+  smart and HH meters only, and never on a default tariff. No per-period or per-year draw is
+  involved.
+- SLC 28AD makes a Multi-Register Tariff a contract "regardless of the metering equipment
+  employed". A smart or HH meter is reconfigured for a ToU tariff, not exchanged.
+- Smart status is stamped once, at acquisition, so the book holds no mid-account install that
+  should have issued a new serial.
+
+So the control is keyed to the property physics fixes: one register id names one register, and an
+index never runs backwards. It is not keyed to a count.
+
+**Where the defect was.** `tools/generate_billing_ledger._printed_registers` numbered ToU registers
+by their position on the bill (`1` and `2`). The single-rate register was also `1`. A one-band ToU
+stub printed its band's label on the total index.
+
+**The fix.**
+- Fixed ids: total `1` under every tariff, Peak `2`, Off-peak `3` (`REGISTER_ID`).
+- A one-band stub reads its band's own index.
+- The raw export takes a stub register's own reads.
+
+**Test.** `tests/tools/test_a_meter_register_keeps_one_id_and_one_index_for_the_life_of_its_serial.py`.
+- It asserts that its book reaches one register, two registers and a one-band stub, then:
+  one label per (serial, register_id), no index running backwards, and every period's volume
+  rebuilt from its own registers.
+- On HEAD's unfixed code, 2 of its 4 tests are red. Reverting only the export change reds 1.
+
+**Re-run.** Same 67a893e749 arm-A run, ledger rebuilt by HEAD 00c082202f before and after, so only
+the generator differs (`/tmp/regid/`, not committed).
+
+| measure | before | after | predicted |
+|---|---|---|---|
+| accounts / bill periods | 1,291 / 52,782 | 1,291 / 52,782 | unchanged: held |
+| (serial, register_id) carrying two labels | 39 | **0** | >0 then 0: held |
+| successive reads on one register going backwards, any read type | 31 | **0** | |
+| `INV_READ_MONOTONIC` breaches (actual-to-actual) | 29 | **0** of 16,963 | 29 then 0: held |
+| serials printing both one-register and two-register periods | 39 | 39 | about 66 both: count wrong, invariance held |
+| `INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER` | 501 | 501 | about 501 both: held |
+
+Every other invariant row is byte-identical before and after.
+
+- **Register-switching serials: 0 that switch identity. 39 still switch count, and that is
+  lawful.** My count (39) is not the finding's 66. Mine counts printed register count per
+  electricity period on HEAD's generator. The finding's figure came from 884eedc669's ledger by a
+  method I have not reproduced. I cannot yet say which accounts for the difference.
+
+**The 501 are explained, not fixed: a dated exception, 2026-10-27.**
+- On the accounts the suite classes as multi-register (two or more register ids on the account),
+  all **1,753 of 1,753** SVT periods print one register. All **1,416** two-register periods are
+  fixed terms. The other 2 fixed periods are one-band stubs.
+- So every breach is a single-rate default spell graded against the multi-register cap. The
+  cause is the file's `applies_to.meter` proxy, which is per account.
+- The file's own statement ("a multi-register ... default electricity tariff") and SLC 28AD both
+  class by TARIFF.
+- The same proxy also drops those 1,753 periods from `INV_UNIT_RATE_SVT_ELEC`, so they are
+  currently graded against **neither** cap correctly.
+- The fix belongs to the runner: class each term by the registers its own periods print. That is
+  a marked correction to the blind file's proxy, made beside it, not a quiet rewrite. Handed on as
+  the next item.
+
+**Knowledge:** item 7 of `docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md`
+(written in this commit, K8).

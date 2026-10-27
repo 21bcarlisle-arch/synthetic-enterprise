@@ -30,7 +30,7 @@ from company.billing.pre_bill_validation import (
     validate_rendered_bill_money,
     validate_rendered_bill_reads,
 )
-from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL
+from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS
 from saas.money import (
     MoneyBoundaryError,
     display_rate_gbp_per_day,
@@ -113,6 +113,15 @@ def _printed_unit_rate(printed_consumption_kwh, printed_commodity_amount_gbp):
     return None if rate is None else rate[0]
 
 
+#: A register's id is fixed for the life of its meter serial. The total register is "1" whatever
+#: the tariff, and each time-of-use band has its own id after it. They were once numbered by position
+#: on the bill, so "1" was the total index on a single-rate bill and the Peak index on the next ToU
+#: bill: 66 serials on 67a893e749 read 18,568.6 then 2,140.6 on "register 1". A tariff change on a
+#: smart or HH meter reconfigures which registers are billed; it does not renumber them.
+ANYTIME = "Anytime"
+REGISTER_ID = {ANYTIME: "1", **{label: str(i + 2) for i, (_, label) in enumerate(TOU_BANDS)}}
+
+
 def _printed_registers(bill_registers, printed_consumption_kwh, printed_commodity_amount_gbp):
     """The bill's time-of-use registers at print precision, or None for a single-rate bill.
 
@@ -137,7 +146,7 @@ def _printed_registers(bill_registers, printed_consumption_kwh, printed_commodit
             kwh_left -= kwh
             gbp_left -= gbp
         printed.append({
-            "register_id": str(i + 1),
+            "register_id": REGISTER_ID[reg["label"]],
             "label": reg["label"],
             "consumption_kwh": kwh,
             "amount_gbp": gbp,
@@ -646,16 +655,16 @@ def generate(run_json_path=None, out_path=None):
         inv["registers"] = _printed_registers(
             bill.get("registers"), inv["consumption_kwh"], inv["commodity_amount_gbp"],
         ) or [{
-            "register_id": "1",
             # A ToU term's bill with use in one band only (a one-day stub) has one register, and
             # it is that band's, at that band's rate: printed "Anytime" it read as the flat rate
             # charged at 0.786 of itself (2 of 52,782 on 4ae8da9b0f, against the contracted pair).
             "label": (bill["registers"][0]["label"]
-                      if len(bill.get("registers") or []) == 1 else "Anytime"),
+                      if len(bill.get("registers") or []) == 1 else ANYTIME),
             "consumption_kwh": inv["consumption_kwh"],
             "amount_gbp": inv["commodity_amount_gbp"],
             "unit_rate_p_per_kwh": inv["unit_rate_p_per_kwh"],
         }]
+        inv["registers"][0].setdefault("register_id", REGISTER_ID[inv["registers"][0]["label"]])
         if bill.get("tou_registers_withheld"):
             inv["tou_registers_withheld"] = bill["tou_registers_withheld"]
         # 2026-10-26: a register's own readings. A two-rate meter is read register by register, so
@@ -663,8 +672,11 @@ def generate(run_json_path=None, out_path=None):
         # exported 1,416 ToU periods of the 4ae8da9b0f book as `consumption_only`. Each index
         # advances by its printed kWh, so closing - opening reproduces the register to 0.1 kWh.
         # LIMIT: a register's index advances only over periods that print it; a household back on
-        # a single rate records no band split, so the index does not move while it is.
-        if len(inv["registers"]) > 1:
+        # a single rate records no band split, so the index does not move while it is. The total
+        # register ("1") is the invoice's own opening/closing pair and advances under every tariff.
+        # A one-band stub reads its band's own index too: on the total index it went backwards
+        # against the band's next read.
+        if any(reg["label"] != ANYTIME for reg in inv["registers"]):
             for reg in inv["registers"]:
                 reg_key = (cid, commodity, reg["label"])
                 reg_opening = running_register_read.get(reg_key, 0.0)

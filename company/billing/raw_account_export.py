@@ -213,7 +213,8 @@ def _reads_from_invoice(inv: dict) -> list[dict]:
     with no readings of its own still makes the period unattributable.
     """
     registers = inv.get("registers") or [{}]
-    if len(registers) > 1:
+    # A one-band ToU stub is a band register with its own index, not the total register.
+    if len(registers) > 1 or "opening_read_kwh" in registers[0]:
         return _reads_per_register(inv, registers)
     opening, closing = inv.get("opening_read_kwh"), inv.get("closing_read_kwh")
     if opening is None or closing is None:
