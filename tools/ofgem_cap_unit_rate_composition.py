@@ -127,6 +127,28 @@ BENCHMARK_SCHEDULE_WITNESS = (
 BENCHMARK_WITNESS_SHEET = "1c Consumption adjusted levels"
 BENCHMARK_WITNESS_ROW_LABEL = "Electricity: Single-rate"
 
+#: GAS, read the same way from the same workbook. The `Gas_*_Benchmark` sheet's own note says every
+#: period before P15b is on 12,000 kWh, and `1c` states 11.5 MWh for Jan-Jun 2026 and 9.5 MWh from
+#: July 2026, so the schedule has the same three-basis shape as electricity and the same witness.
+GAS_BENCHMARK_KWH_SCHEDULE: tuple[tuple[str | None, int], ...] = (
+    (None, 12000),
+    ("2026-01-01", 11500),
+    ("2026-07-01", 9500),
+)
+GAS_BENCHMARK_SCHEDULE_WITNESS = (
+    ("Jan 2026 - Jun 2026", 11.5),
+    ("July 2026 onwards", 9.5),
+)
+
+#: Per fuel: (sheet prefix, benchmark schedule, `1c` witness cells, `1c` row label, the published
+#: windows' key). Single-rate electricity is the original series; gas was added on 2026-10-27 so
+#: the default-tariff floor could grade gas terms.
+FUELS = {
+    "electricity": ("ElecSingle", BENCHMARK_KWH_SCHEDULE, BENCHMARK_SCHEDULE_WITNESS,
+                    BENCHMARK_WITNESS_ROW_LABEL, "elec"),
+    "gas": ("Gas", GAS_BENCHMARK_KWH_SCHEDULE, GAS_BENCHMARK_SCHEDULE_WITNESS, "Gas", "gas"),
+}
+
 #: VAT on domestic ELECTRICITY, as a multiplier, per cap period — also not one number. The cap
 #: model's component build-up is ex-VAT and the published cap levels are inclusive, so this is the
 #: conversion between two published quantities and it is what the cross-check applies. The zero-rated
@@ -156,6 +178,12 @@ CAP_IN_FORCE_FROM = "2019-01-01"
 #: capacity market cost, which is a wholesale-category component in Ofgem's own row labelling.
 #: Everything else -- policy, network, operating, EBIT, headroom, adjustment allowance -- is not.
 COMMODITY_COMPONENTS = ("DF", "CM")
+
+#: What the cap passes through for the energy delivered, beyond the commodity: network (NC) and
+#: policy (PC). Together with the commodity they are the default tariff's COST FLOOR. Operating
+#: cost, smart-meter cost, the adjustment allowance, EBIT and headroom are left out on purpose: a
+#: rate inside those is the supplier's commercial choice, not a rate under the cost it passes on.
+PASS_THROUGH_COMPONENTS = COMMODITY_COMPONENTS + ("NC", "PC")
 
 PAYMENT_METHODS = {
     "direct_debit": "Other",
@@ -219,20 +247,21 @@ def _number(row: tuple, index: int) -> float | None:
     return float(value)
 
 
-def benchmark_kwh(period_start: str | None) -> int:
+def benchmark_kwh(period_start: str | None, fuel: str = "electricity") -> int:
     """The divisor Ofgem's model applies to a cap period starting `period_start`.
 
     A period whose start cannot be parsed gets the earliest basis, because every unlabelled column
     in this model is one of Ofgem's pre-2019 illustrative back-casts and those are all pre-2026.
     """
-    divisor = BENCHMARK_KWH_SCHEDULE[0][1]
-    for starts_from, kwh in BENCHMARK_KWH_SCHEDULE[1:]:
+    schedule = FUELS[fuel][1]
+    divisor = schedule[0][1]
+    for starts_from, kwh in schedule[1:]:
         if period_start and starts_from and period_start >= starts_from:
             divisor = kwh
     return divisor
 
 
-def _benchmark_sheet_name(workbook, suffix: str) -> str:
+def _benchmark_sheet_name(workbook, suffix: str, fuel: str = "electricity") -> str:
     """The benchmark sheet, resolved by PATTERN rather than by a name built from the divisor.
 
     v1.19 calls it `ElecSingle_Other_3100kWh` and v1.31 calls it `ElecSingle_Other_Benchmark`. The
@@ -241,7 +270,7 @@ def _benchmark_sheet_name(workbook, suffix: str) -> str:
     accepted; a sheet named for a consumption is NOT read as evidence of the divisor, because in
     v1.31 the two disagree for four periods.
     """
-    pattern = re.compile(rf"^ElecSingle_{re.escape(suffix)}_(Benchmark|\d+kWh)$")
+    pattern = re.compile(rf"^{FUELS[fuel][0]}_{re.escape(suffix)}_(Benchmark|\d+kWh)$")
     matches = [name for name in workbook.sheetnames if pattern.match(name)]
     if len(matches) != 1:
         raise CapModelUnavailable(
@@ -251,7 +280,8 @@ def _benchmark_sheet_name(workbook, suffix: str) -> str:
     return matches[0]
 
 
-def _verify_benchmark_schedule(workbook, periods_present: list[str | None]) -> list[dict]:
+def _verify_benchmark_schedule(workbook, periods_present: list[str | None],
+                               fuel: str = "electricity") -> list[dict]:
     """Refuse unless the workbook's own consumption table still says what the schedule says.
 
     THIS IS THE CONTROL THAT MAKES THE SCHEDULE SAFE TO HARDCODE. A dated divisor written into this
@@ -266,7 +296,8 @@ def _verify_benchmark_schedule(workbook, periods_present: list[str | None]) -> l
     unverifiable and nothing is published — rather than falling back on the pre-2026 basis, which
     would be wrong by 24% and silent.
     """
-    first_revision = BENCHMARK_KWH_SCHEDULE[1][0]
+    _, schedule, schedule_witness, row_label, _ = FUELS[fuel]
+    first_revision = schedule[1][0]
     revised_periods = [start for start in periods_present
                        if start and first_revision and start >= first_revision]
     if BENCHMARK_WITNESS_SHEET not in workbook.sheetnames:
@@ -282,18 +313,18 @@ def _verify_benchmark_schedule(workbook, periods_present: list[str | None]) -> l
     header = next((row for row in rows if any(
         isinstance(cell, str) and "benchmark consumption" in cell.lower() for cell in row)), None)
     body = next((row for row in rows if any(
-        isinstance(cell, str) and cell.strip().startswith(BENCHMARK_WITNESS_ROW_LABEL)
+        isinstance(cell, str) and cell.strip().startswith(row_label)
         for cell in row)), None)
     if header is None or body is None:
         if revised_periods:
             raise CapModelUnavailable(
                 f"{BENCHMARK_WITNESS_SHEET!r} carries no benchmark-consumption table for "
-                f"{BENCHMARK_WITNESS_ROW_LABEL!r}, so the {len(revised_periods)} cap period(s) from "
+                f"{row_label!r}, so the {len(revised_periods)} cap period(s) from "
                 f"{first_revision} cannot have their divisor confirmed"
             )
         return []
     witnessed = []
-    for phrase, expected_mwh in BENCHMARK_SCHEDULE_WITNESS:
+    for phrase, expected_mwh in schedule_witness:
         column = next((index for index, cell in enumerate(header)
                        if isinstance(cell, str) and phrase.lower() in cell.lower()), None)
         found = body[column] if column is not None and column < len(body) else None
@@ -315,15 +346,19 @@ def _verify_benchmark_schedule(workbook, periods_present: list[str | None]) -> l
     return witnessed
 
 
-def vat_multiplier(period_start: str | None) -> float:
-    """The VAT multiplier on domestic ELECTRICITY for a cap period, which is not always 1.05."""
+def vat_multiplier(period_start: str | None, fuel: str = "electricity") -> float:
+    """The VAT multiplier on domestic ELECTRICITY for a cap period, which is not always 1.05.
+
+    Gas is not zero-rated in any window the model carries (its inc-VAT row keeps 5% in Oct 2026)."""
+    if fuel != "electricity":
+        return VAT_MULTIPLIER_DEFAULT
     for begins, ends, multiplier in VAT_MULTIPLIER_WINDOWS:
         if period_start and begins <= period_start < ends:
             return multiplier
     return VAT_MULTIPLIER_DEFAULT
 
 
-def composition(model_path: Path, payment_method: str) -> dict:
+def composition(model_path: Path, payment_method: str, fuel: str = "electricity") -> dict:
     """Per cap period, the unit-rate composition for one payment method.
 
     Regions are reported as a median with the full min..max spread beside it, never as a bare
@@ -338,8 +373,8 @@ def composition(model_path: Path, payment_method: str) -> dict:
     suffix = PAYMENT_METHODS[payment_method]
     workbook = openpyxl.load_workbook(model_path, read_only=True, data_only=True)
     try:
-        benchmark_sheet = _benchmark_sheet_name(workbook, suffix)
-        nil_sheet = f"ElecSingle_{suffix}_Nil"
+        benchmark_sheet = _benchmark_sheet_name(workbook, suffix, fuel)
+        nil_sheet = f"{FUELS[fuel][0]}_{suffix}_Nil"
         if nil_sheet not in workbook.sheetnames:
             raise CapModelUnavailable(
                 f"{model_path.name} has no sheet {nil_sheet!r}; it is not a cap level model of the "
@@ -348,7 +383,7 @@ def composition(model_path: Path, payment_method: str) -> dict:
         head_full, body_full = _sheet_rows(workbook[benchmark_sheet])
         head_nil, body_nil = _sheet_rows(workbook[nil_sheet])
         witnessed = _verify_benchmark_schedule(
-            workbook, [_period_start(label) for label in set(head_full) & set(head_nil)])
+            workbook, [_period_start(label) for label in set(head_full) & set(head_nil)], fuel)
     finally:
         workbook.close()
 
@@ -357,10 +392,12 @@ def composition(model_path: Path, payment_method: str) -> dict:
     for label in sorted(set(head_full) & set(head_nil), key=lambda k: head_full[k]):
         column_full, column_nil = head_full[label], head_nil[label]
         starts = _period_start(label)
-        divisor = benchmark_kwh(starts)
+        divisor = benchmark_kwh(starts, fuel)
         shares: list[float] = []
         unit_rates: list[float] = []
         standing: list[float] = []
+        commodity_rates: list[float] = []
+        pass_through_rates: list[float] = []
         for region in regions:
             total_full = body_full.get((region, f"Total_{region}"))
             total_nil = body_nil.get((region, f"Total_{region}"))
@@ -372,15 +409,20 @@ def composition(model_path: Path, payment_method: str) -> dict:
             unit_rate = (full_year - nil_year) / divisor * 100.0
             if unit_rate <= 0:
                 continue
-            commodity = 0.0
-            for component in COMMODITY_COMPONENTS:
+            per_component = {}
+            for component in PASS_THROUGH_COMPONENTS:
                 at_full = body_full.get((region, component))
                 at_nil = body_nil.get((region, component))
                 if at_full is None or at_nil is None:
                     continue
-                commodity += ((_number(at_full, column_full) or 0.0)
-                              - (_number(at_nil, column_nil) or 0.0))
+                per_component[component] = ((_number(at_full, column_full) or 0.0)
+                                            - (_number(at_nil, column_nil) or 0.0))
+            commodity = sum(per_component.get(c, 0.0) for c in COMMODITY_COMPONENTS)
             shares.append(commodity / divisor * 100.0 / unit_rate)
+            commodity_rates.append(commodity / divisor * 100.0)
+            # A region missing a pass-through row has no floor, not a floor without that row.
+            if all(c in per_component for c in PASS_THROUGH_COMPONENTS):
+                pass_through_rates.append(sum(per_component.values()) / divisor * 100.0)
             unit_rates.append(unit_rate)
             standing.append(nil_year / 365.0 * 100.0)
         if not shares:
@@ -395,13 +437,17 @@ def composition(model_path: Path, payment_method: str) -> dict:
             "commodity_share_max": round(max(shares), 4),
             "unit_rate_p_per_kwh_ex_vat": round(statistics.median(unit_rates), 3),
             "standing_charge_p_per_day_ex_vat": round(statistics.median(standing), 3),
+            "commodity_p_per_kwh_ex_vat_min": round(min(commodity_rates), 4),
+            "pass_through_p_per_kwh_ex_vat_min": (round(min(pass_through_rates), 4)
+                                                  if len(pass_through_rates) == len(shares)
+                                                  else None),
             "regions": len(shares),
         })
     if not periods:
         raise CapModelUnavailable(
             f"{model_path.name} yielded no period with a positive unit rate in any region"
         )
-    return {"payment_method": payment_method, "periods": periods,
+    return {"payment_method": payment_method, "fuel": fuel, "periods": periods,
             "benchmark_consumption_witnessed_in_model": witnessed}
 
 
@@ -439,7 +485,7 @@ def _period_start(label: str) -> str | None:
     return f"{head[1]}-{_MONTHS[head[0]]:02d}-01"
 
 
-def cross_check(periods: list[dict]) -> dict:
+def cross_check(periods: list[dict], fuel: str = "electricity") -> dict:
     """Derived unit rate x VAT against Ofgem's published including-VAT cap level.
 
     THIS IS THE EVIDENCE THE DECOMPOSITION IS RIGHT, not a formality. The subtraction
@@ -451,11 +497,12 @@ def cross_check(periods: list[dict]) -> dict:
     for period in periods:
         start = _period_start(period["cap_period"])
         window = published.get(start) if start else None
-        if window is None or not isinstance(window.get("elec"), (int, float)):
+        key = FUELS[fuel][4]
+        if window is None or not isinstance(window.get(key), (int, float)):
             continue
         # The artefact carries GBP/MWh including VAT; p/kWh x 10 = GBP/MWh is its own conversion.
-        derived = period["unit_rate_p_per_kwh_ex_vat"] * vat_multiplier(start) * 10.0
-        error = abs(derived - window["elec"]) / window["elec"]
+        derived = period["unit_rate_p_per_kwh_ex_vat"] * vat_multiplier(start, fuel) * 10.0
+        error = abs(derived - window[key]) / window[key]
         checked += 1
         worst = max(worst, error)
         rows.append({"cap_period": period["cap_period"], "derived_gbp_per_mwh": round(derived, 2),
@@ -464,8 +511,8 @@ def cross_check(periods: list[dict]) -> dict:
                      # controls in tests/tools/test_tou_price_shape_episode.py do -- must keep
                      # working. The basis is reported when it is known, not demanded.
                      "benchmark_kwh": period.get("benchmark_kwh"),
-                     "vat_multiplier": vat_multiplier(start),
-                     "published_gbp_per_mwh": window["elec"], "relative_error": round(error, 5)})
+                     "vat_multiplier": vat_multiplier(start, fuel),
+                     "published_gbp_per_mwh": window[key], "relative_error": round(error, 5)})
     if not checked:
         raise CapModelUnavailable(
             "no cap period in the model could be matched to a published level, so the "
@@ -544,6 +591,7 @@ def latest_model() -> Path:
 def measure() -> dict:
     model = latest_model()
     by_method = {name: composition(model, name) for name in PAYMENT_METHODS}
+    gas_by_method = {name: composition(model, name, "gas") for name in PAYMENT_METHODS}
     direct_debit = by_method["direct_debit"]["periods"]
     in_force = [p["commodity_share_of_unit_rate"] for p in direct_debit if p["cap_in_force"]]
     if not in_force:
@@ -613,6 +661,20 @@ def measure() -> dict:
                 },
             },
             "commodity_components": list(COMMODITY_COMPONENTS),
+            "cost_floor": {
+                "components": list(PASS_THROUGH_COMPONENTS),
+                "fields": ("`commodity_p_per_kwh_ex_vat_min` is the lowest DF+CM unit-rate allowance "
+                           "over the region rows; `pass_through_p_per_kwh_ex_vat_min` is the lowest "
+                           "DF+CM+NC+PC. Both are ex-VAT p/kWh, per payment method and cap period."),
+                "what_is_left_out": (
+                    "Operating cost, smart-meter cost, the adjustment allowance, EBIT and headroom. "
+                    "A default rate between this floor and the cap is a commercial choice; a rate "
+                    "under it is under the energy, network and policy cost the cap passes through."),
+            },
+            "gas_benchmark_consumption_kwh_per_year": [
+                {"applies_from": starts_from or "the start of the series", "kwh": kwh}
+                for starts_from, kwh in GAS_BENCHMARK_KWH_SCHEDULE
+            ],
             "regional_treatment": "median across distribution regions, with the full spread beside it",
         },
         "headline": {
@@ -645,6 +707,9 @@ def measure() -> dict:
         "cross_check_against_published_cap_levels": cross_check(direct_debit),
         "which_periods_the_cross_check_reaches": _corroboration_by_basis(direct_debit),
         "by_payment_method": by_method,
+        "gas_cross_check_against_published_cap_levels": cross_check(
+            gas_by_method["direct_debit"]["periods"], "gas"),
+        "gas_by_payment_method": gas_by_method,
     }
 
 

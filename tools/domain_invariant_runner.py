@@ -236,25 +236,30 @@ def ev_unit_rate_svt_elec_pre_cap(inv, book):
 
 
 def ev_unit_rate_svt_gas(inv, book):
-    """Upper only where every payment in the window is DD; the file names the rest UNCHECKABLE."""
-    tally = Tally("SVT term x cap window it overlaps (gas, DD-only windows)")
+    """The electricity column rule, since the commons carries gas per payment method (2026-10-27).
+    Under the commodity floor is a flag; a rate that is not positive stays a breach."""
+    tally = Tally("SVT term x cap window it overlaps (gas)")
     tol = _tol(inv, "upper_relative")
     for a, t, row in _svt_term_windows(inv, book, "gas", None):
-        methods = a.methods_between(row["_from"], row["_to"]) - {None}
         rate = _num(t.get("unit_rate_p_per_kwh"))
         where = "{} {} from {}".format(a.cid, row["from"], t["tariff_effective_from"])
-        if methods != {DIRECT_DEBIT}:
-            tally.band(where, rate, 0.0, None, tol_abs=-1e-12)   # still positive; no ceiling
+        if rate is not None and rate <= 0:
+            tally.band(where, rate, 0.0, None, tol_abs=-1e-12)
             continue
-        tally.band(where, rate, 0.0, _num(row.get("upper")), tol_rel=tol, tol_abs=-1e-12)
+        upper = _upper_for_methods(row, a.methods_between(row["_from"], row["_to"]))
+        tally.band(where, rate, _num(row.get("lower")), upper, below="flag", tol_rel=tol)
     return tally
 
 
 def ev_unit_rate_svt_gas_pre_cap(inv, book):
-    tally = Tally("SVT term x pre-cap span it overlaps (gas)")
+    tally = Tally("SVT term x pre-cap half-year it overlaps (gas)")
     for a, t, row in _svt_term_windows(inv, book, "gas", None):
-        tally.band("{} from {}".format(a.cid, t["tariff_effective_from"]),
-                   _num(t.get("unit_rate_p_per_kwh")), 0.0, None, tol_abs=-1e-12)
+        rate = _num(t.get("unit_rate_p_per_kwh"))
+        where = "{} {} from {}".format(a.cid, row["from"], t["tariff_effective_from"])
+        if rate is not None and rate <= 0:
+            tally.band(where, rate, 0.0, None, tol_abs=-1e-12)
+        else:
+            tally.band(where, rate, _num(row.get("lower")), None, below="flag")
     return tally
 
 

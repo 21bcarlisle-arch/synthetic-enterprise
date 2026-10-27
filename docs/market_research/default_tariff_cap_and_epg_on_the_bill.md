@@ -62,6 +62,21 @@ bills the household the Treasury's half.
   `simulation/price_cap_enforcement.hmt_epg_receipt_gbp_per_mwh` names this gap world-side: the
   world applies it to default-tariff rates only.
 
+**The floor under a default rate.** The cap bounds a default rate from above only. What it lets a
+supplier pass through per unit is published in the same cap level model. It is commodity (DF, CM),
+network (NC) and policy (PC), each per region, payment method and window, for single-rate
+electricity and for gas. The unit-rate part is benchmark minus nil over the benchmark kWh, which is
+Ofgem's own construction. Gas uses 12,000 kWh before 2026, 11,500 for Jan–Jun 2026 and 9,500 from
+July 2026, as the model's `1c` table states. Over 2019–2026 the cap's direct-debit unit rate sits
+1.11–1.26x above the lowest region's DF+CM+NC+PC for electricity, and 1.08–1.23x for gas. The
+narrowest margin is the crisis winter. Read off
+`docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json`
+(`pass_through_p_per_kwh_ex_vat_min`). The derived gas unit rate reproduces Ofgem's published gas
+levels within 0.6% over 21 windows.
+
+- **GAP: a multi-register floor.** A per-register rate against the blended benchmark floor is not a
+  quantity: an off-peak rate is lawfully under it.
+
 ## Choices the build makes, and why
 
 1. **The invariant grades the household's invoice against min(cap, EPG)**, all-in inc its own VAT,
