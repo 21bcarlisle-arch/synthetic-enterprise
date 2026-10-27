@@ -1059,6 +1059,34 @@ def _priority_steps(path: Path | None = None) -> dict:
         return {}
 
 
+def correctness_stretch_refusals(path: Path | None = None) -> dict:
+    """{atom_id: reason} for every atom the correctness stretch holds back from the draw, or {}.
+
+    The director's ruling of 2026-10-26 (18:30, "Ok do it"): "No new feature work is drawn until the
+    steps below are done ... Work already landing may finish." `priority_order.yaml` carries it as
+    `correctness_stretch`; the atoms of its `ahead_of_steps` are refused until `exit_met` is
+    recorded there (the reading that reports the exit test held). A refusal, not a weight: a dial
+    buys a share, never a stop, which is why the tier above could not carry this.
+
+    FAIL-OPEN to {} on a missing or unreadable file, like `_priority_steps`. A present stretch whose
+    shape this cannot read is NOT silently open: `test_the_live_stretch_is_read_as_written` asserts
+    the live file yields refusals or a recorded exit."""
+    try:
+        import yaml
+        data = yaml.safe_load(Path(path or PRIORITY_ORDER_PATH).read_text(encoding="utf-8")) or {}
+        stretch = data.get("correctness_stretch")
+        if not isinstance(stretch, dict) or stretch.get("exit_met"):
+            return {}
+        steps = {int(k): v for k, v in (data.get("steps") or {}).items()}
+        ruling = stretch.get("ruling") or "the correctness stretch"
+        return {aid: (f"refused by the correctness stretch ({ruling}): step {k} is held until its "
+                      "exit test is recorded met")
+                for k in sorted({int(s) for s in (stretch.get("ahead_of_steps") or [])})
+                for aid in ((steps.get(k) or {}).get("atoms") or [])}
+    except Exception:
+        return {}
+
+
 def _in_flight_ids(stall_state: dict, now: float | None = None) -> set:
     """Atoms the draw handed out within the last BUILD_IN_PROGRESS_TTL_SECONDS and that are still
     moving (not flagged stalled). The canon: "In-flight work finishes first. The new order applies
@@ -1553,6 +1581,19 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
         return []
     # THE PRIORITY ORDER picks the primary's pool; the dials pick within it (see the helper).
     # `survivors` keeps every candidate, because the concurrent picks below come from all of them.
+    # THE CORRECTNESS STRETCH refuses its held steps before `survivors` is taken, so a held atom
+    # cannot come back as a concurrent pick either. An atom already in flight keeps its turn.
+    _refused = correctness_stretch_refusals()
+    if _refused:
+        _moving = _in_flight_ids(_load_atom_stall_state())
+        _out = [a.get("id") for a in candidates
+                if a.get("id") in _refused and a.get("id") not in _moving]
+        if _out:
+            log(f"CORRECTNESS STRETCH: {len(_out)} atom(s) refused from the BUILD draw -- "
+                f"{_refused[_out[0]]} ({', '.join(_out[:5])}{'...' if len(_out) > 5 else ''})")
+            candidates = [a for a in candidates if a.get("id") not in _out]
+        if not candidates:
+            return []
     _steps = _priority_steps()
     survivors = candidates
     candidates = _follow_the_priority_order(

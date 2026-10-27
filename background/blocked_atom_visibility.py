@@ -89,7 +89,7 @@ is the same defect wearing the opposite sign.
 
 NOT SAFE TO RUN INSIDE A LIVE SUPERVISOR PROCESS
 -------------------------------------------------
-The draw probe repoints `supervisor.MATURITY_MAP_PATH` and stubs five of that module's live-state
+The draw probe repoints `supervisor.MATURITY_MAP_PATH` and stubs six of that module's live-state
 readers for the duration of each measurement (restored in a `finally`, with two tests holding it).
 Using the real draw is the whole point -- a re-implementation would be the tautology -- but it
 means a concurrent draw in the SAME process would briefly see the synthetic map. This is a CLI and
@@ -237,7 +237,7 @@ def _draw_reading(atoms: list[dict]):
     from a live store makes the rendering a moving target, and a derived-artefact freshness check
     over a moving target has an unreachable PASS branch (R15's fourth shape).
 
-    Each of the five reads below confounds the measurement in BOTH directions and none of them
+    Each of the six reads below confounds the measurement in BOTH directions and none of them
     has anything to do with the park:
 
       `_build_in_progress_ids`             drops atoms a live fork happens to own.
@@ -258,6 +258,9 @@ def _draw_reading(atoms: list[dict]):
                                            to empty, which is the gate's own FAIL-CLOSED reading
                                            -- an unmeasured gap blocks -- so the rendered verdict
                                            is the conservative one and is stable.
+      `correctness_stretch_refusals`       the director's correctness stretch, read from
+                                           `priority_order.yaml`, not the map. Fixed to none
+                                           held: it refuses by canon step, never by the park.
 
     A parked atom that a fork happened to own, or that crossed the pass ceiling this morning,
     would otherwise read as "correctly excluded" for a reason that is not the park.
@@ -274,6 +277,7 @@ def _draw_reading(atoms: list[dict]):
     original_saturated = supervisor._exclude_saturated_from_core_draw
     original_direction = supervisor._direction
     original_gap_ledger = supervisor._coupled_load_gap_ledger
+    original_stretch = supervisor.correctness_stretch_refusals
     with tempfile.TemporaryDirectory() as tmp:
         probe_map = Path(tmp) / "probe_map.yaml"
         probe_map.write_text(yaml.safe_dump(atoms, sort_keys=False), encoding="utf-8")
@@ -283,6 +287,7 @@ def _draw_reading(atoms: list[dict]):
         supervisor._exclude_saturated_from_core_draw = lambda candidates: candidates
         supervisor._direction = _FixedDirection
         supervisor._coupled_load_gap_ledger = lambda: {}
+        supervisor.correctness_stretch_refusals = lambda path=None: {}
         try:
             yield supervisor
         finally:
@@ -292,6 +297,7 @@ def _draw_reading(atoms: list[dict]):
             supervisor._exclude_saturated_from_core_draw = original_saturated
             supervisor._direction = original_direction
             supervisor._coupled_load_gap_ledger = original_gap_ledger
+            supervisor.correctness_stretch_refusals = original_stretch
 
 
 def draw_offers(atoms: list[dict]) -> set[str]:

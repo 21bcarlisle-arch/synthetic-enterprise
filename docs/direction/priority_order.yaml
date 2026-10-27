@@ -13,7 +13,8 @@ canon: docs/staging/done/DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05.md
 since: "2026-10-05"
 # 2026-10-26: the director's ruling (18:30, "Ok do it") puts a correctness stretch ahead of every
 # remaining step from 6 on: no new feature work (forward years, the asset world, advice) is drawn until
-# its exit test holds; work already landing may finish. It is held here; the draw does not read it yet.
+# its exit test holds; work already landing may finish. The BUILD draw and Lane 0 refuse its held
+# steps (supervisor.correctness_stretch_refusals) until `exit_met:` names the reading that met it.
 correctness_stretch:
   ruling: docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md
   ahead_of_steps: [6, 7, 8, 9, 10, 11, 12, 13]

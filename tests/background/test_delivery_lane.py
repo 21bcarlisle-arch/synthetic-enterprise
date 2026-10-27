@@ -93,6 +93,9 @@ def tree(tmp_path, monkeypatch):
     # The held-work probe asks the REAL systemd and the real worktrees; a test item must not be
     # refused because this machine happens to be running a job. The held-work tests set their own.
     monkeypatch.setattr(dl, "_live_holders", lambda: [])
+    # The correctness stretch is read from the live priority order unless a test writes its own.
+    from background import supervisor
+    monkeypatch.setattr(supervisor, "PRIORITY_ORDER_PATH", tmp_path / "priority_order.yaml")
 
     def _write(focus):
         direction_path.write_text(yaml.safe_dump(_record(focus)), encoding="utf-8")
@@ -158,6 +161,29 @@ def test_a_focus_atom_the_draw_cannot_classify_is_LANE_0s_and_a_drawable_one_is_
     item = dl.next_item(now=NOW_EPOCH, path=tree["claims"])
     assert item is not None and item["id"] == "PB8_idle_atom"
     assert "what the seat wrote" in dl.doorbell(item)
+
+
+def test_a_focus_atom_in_a_held_step_is_refused_naming_the_ruling_and_lifts_at_the_exit(tree):
+    """The director's 26 Oct ruling reached by Lane 0's route: PB8 is unclassified, so Lane 0 is
+    the only route to it, and a step-6 PB8 is feature work the stretch holds back.
+
+    MUTATION (must fire): drop `_stretched` from `_focus` -> PB8 is drawn with the stretch present.
+    MUTATION (must fire): ignore `exit_met` -> PB8 is never drawn again."""
+    from background import supervisor
+    order = supervisor.PRIORITY_ORDER_PATH
+    stretch = ("correctness_stretch: {ruling: THE_RULING.md, ahead_of_steps: [6]%s}\n"
+               "steps:\n  6: {atoms: [PB8_idle_atom]}\n")
+    tree["write"]([_item("PB8_idle_atom"), _item("not-an-atom")])
+
+    order.write_text(stretch % "", encoding="utf-8")
+    item = dl.next_item(now=NOW_EPOCH, path=tree["claims"])
+    assert item["id"] == "not-an-atom"
+    assert "THE_RULING.md" in dl.stretch_note(list(dl.LAST_STRETCH_SKIPS))
+    assert "`PB8_idle_atom`" in dl.stretch_note(list(dl.LAST_STRETCH_SKIPS))
+
+    order.write_text(stretch % ", exit_met: READING.md", encoding="utf-8")
+    assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "PB8_idle_atom"
+    assert dl.LAST_STRETCH_SKIPS == []
 
 
 def test_THE_SEATS_ORDER_IS_THE_DRAW_ORDER(tree):

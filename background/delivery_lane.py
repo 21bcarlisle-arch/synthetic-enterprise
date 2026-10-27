@@ -5091,6 +5091,29 @@ def finished_note(skipped: list[tuple[dict, str]]) -> str:
 LAST_FINISHED_SKIPS: list[tuple[dict, str]] = []
 
 
+def _stretch_refusals() -> dict:
+    """The correctness stretch's held atoms, read where the BUILD draw reads them. {} on any error:
+    this runs inside `draw`, which never raises."""
+    try:
+        from background.supervisor import correctness_stretch_refusals
+        return correctness_stretch_refusals()
+    except Exception:
+        return {}
+
+
+def stretch_note(skipped: list[tuple[dict, str]]) -> str:
+    """The doorbell line naming every focus atom the draw refused for the correctness stretch."""
+    if not skipped:
+        return ""
+    named = "; ".join(f"`{item.get('id')}`" for item, _why in skipped)
+    return (f"CORRECTNESS STRETCH: the draw REFUSED {len(skipped)} focus atom(s) -- {named} -- "
+            f"{skipped[0][1]}. ")
+
+
+#: The (item, reason) pairs the last `next_item` walk refused for the correctness stretch.
+LAST_STRETCH_SKIPS: list[tuple[dict, str]] = []
+
+
 #: A code identifier in an item's prose: lower snake case with at least one underscore, eight
 #: characters or more. The underscore is what separates a symbol from an English word, and the
 #: floor drops `to_dict`-sized names that half the diffs on the machine touch.
@@ -5749,6 +5772,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     LAST_HELD_SKIPS.clear()
     LAST_HELD_CONTEXT.clear()
     LAST_FINISHED_SKIPS.clear()
+    LAST_STRETCH_SKIPS.clear()
     probed: list[list[dict]] = []
     vocabulary: list[tuple[dict[str, int], int]] = []
 
@@ -5775,6 +5799,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
         try:
             for item in seat_continuation.live(now=now):
                 if (item.get("id") and item["id"] not in taken and not _embargoed(item, now)
+                        and not _stretched(item)
                         and (admit is None or admit(item)) and not _result_landed(item)
                         and not _finished(item)
                         and not _held(item)):
@@ -5795,10 +5820,21 @@ def next_item(now: float | None = None, path: Path | None = None, *,
         except Exception:
             return set()
 
+    # THE CORRECTNESS STRETCH (director, 26 Oct): a focus row naming a held atom is the same feature
+    # work the BUILD draw refuses, reached by the other route. A claimed one is `taken`, not here,
+    # so work already under way is not revoked.
+    refused = _stretch_refusals()
+
+    def _stretched(item) -> bool:
+        why = refused.get(item.get("id"))
+        if why:
+            LAST_STRETCH_SKIPS.append((item, why))
+        return bool(why)
+
     def _focus():
         held_ids = _continuation_embargoes()
         for item in direction_mod.unreachable_focus(_atom_ids()):
-            if (item.get("id") and item["id"] not in taken
+            if (item.get("id") and item["id"] not in taken and not _stretched(item)
                     and item["id"] not in retired and not _embargoed(item, now)
                     and item["id"] not in held_ids
                     and (admit is None or admit(item)) and not _result_landed(item)
@@ -5851,7 +5887,8 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
         item = next_item(now=now, path=path)
         record_held_refusals(list(LAST_HELD_SKIPS), now=now, path=path)
         held = (held_note(list(LAST_HELD_SKIPS), list(LAST_HELD_CONTEXT))
-                + finished_note(list(LAST_FINISHED_SKIPS)))
+                + finished_note(list(LAST_FINISHED_SKIPS))
+                + stretch_note(list(LAST_STRETCH_SKIPS)))
         if item is None:
             return None
         if not claim:
