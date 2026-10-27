@@ -31,3 +31,38 @@ should not just widen the set.
 
 **Interconnection.** Every landing whose selection pulls in this file goes red on these four and
 names a file it did not touch.
+
+## Done
+
+Delivery seat, 27 Oct 2026, item `the-phase4c-tests-are-keyed-to-the-prepayment-basis`. All 55 tests
+in the file pass on the worktree (789 s, one module-scoped `main(report_end="2018-12-31")`).
+
+**Corrections to the record above.**
+- "The registry has none" holds only for C1-C9. The live book has standard-credit homes:
+  `SYN-2016-002` (both fuels) is one.
+- The "K2/K3 grade reads `0.0`" failure is **test 3's**, not test 4's. A meter-charged leg has no
+  estimated kWh, so every K2/K3 share on C4 is 0.0 by construction.
+- Test 4 had two causes. 37 churned prepayment legs close on `prepayment_meter`, which is not a
+  read status. Separately, one gas leg (`OCC-3c914ee8cef5g`) is the per-fuel smart-mode draw
+  (c77a181fa4, b67d8c3ee4): its household draw of 0.077 is in smart mode at electricity's 6.8%
+  share and out of it at gas's 14.2%. The test's oracle asked with no commodity, so it judged
+  a gas leg by the electricity share. The second cause is not prepayment's, and the run found it.
+
+**What changed (tests only; no product code moved).**
+1. Test 1 is keyed to the channel. A bill on a prepayment channel must be `prepayment_meter`, with
+   `settlement_read_status` equal to the log's status. Any other bill's basis must equal the log's
+   status. Both sides of the partition must be present. The set of bases was not widened.
+2. Tests 2 and 3 use a standard-credit subject (`_on_receipt_home`, which asserts the channel
+   rather than assuming it). SLC 21BA's cap on an estimate binds where the bill is the demand, and a
+   prepayment meter charges true use, so it has no estimate to cap. The DD arm of test 2 is kept.
+3. Test 4 reads a meter-charged leg's closing read from `settlement_read_status` and asks smart
+   mode and `simulate_read` with the bill's own fuel.
+
+**Mutations, each red.** Mutations 1-3 ran against a pickled run, the rest live.
+- A credit leg billed as `prepayment_meter` reds test 1.
+- A meter-charged period's read status flipped reds test 1.
+- Removing every prepayment period reds test 1 on the partition guard.
+- Subject back to C4 reds test 2 on the basis list and test 3 on the K2 zero.
+- A direct-debit subject reds the channel precondition.
+- The fuel dropped from test 4's oracle reds it on the OCC gas leg.
+- Reading `billing_basis` instead of `settlement_read_status` reds test 4 on SYN-2016-032.

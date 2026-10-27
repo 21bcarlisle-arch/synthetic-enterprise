@@ -215,20 +215,27 @@ def test_main_produces_meter_read_log_matching_bills(main_result):
     assert statuses <= {"actual", "estimated"}
     assert all(entry["delay_days"] >= 0 for entry in result["meter_read_log"])
 
-    basis_by_key = {
-        (b["customer_id"], b["period_end"]): b["billing_basis"] for b in result["bills"]
-    }
-    disagreements = [
-        (e["customer_id"], e["period_end"], e["status"],
-         basis_by_key.get((e["customer_id"], e["period_end"])))
-        for e in result["meter_read_log"]
-        if basis_by_key.get((e["customer_id"], e["period_end"])) != e["status"]
-    ]
+    # A prepayment leg is charged at the meter (3e19e5676): its basis is `prepayment_meter` and the
+    # read's status sits beside it as `settlement_read_status`. Keyed to the channel, not to the
+    # set of bases, so a credit leg billed as meter-charged is as red as a disagreeing read.
+    from saas.bill_generator import CHARGED_AT_THE_METER, PREPAYMENT_CHANNEL
+
+    bill_by_key = {(b["customer_id"], b["period_end"]): b for b in result["bills"]}
+    assert len(bill_by_key) == len(result["bills"]), "bill keys are not unique"
+    disagreements, channels = [], set()
+    for e in result["meter_read_log"]:
+        bill = bill_by_key.get((e["customer_id"], e["period_end"])) or {}
+        at_meter = bill.get("payment_channel") == PREPAYMENT_CHANNEL
+        channels.add(at_meter)
+        expected = (CHARGED_AT_THE_METER, e["status"]) if at_meter else (e["status"], None)
+        if (bill.get("billing_basis"), bill.get("settlement_read_status")) != expected:
+            disagreements.append((e["customer_id"], e["period_end"], e["status"],
+                                  bill.get("payment_channel"), bill.get("billing_basis")))
     assert disagreements == [], (
         "the published read log and the bills disagree about the same "
         f"customer-period: {disagreements[:5]}"
     )
-    assert len(basis_by_key) == len(result["bills"]), "bill keys are not unique"
+    assert channels == {True, False}, f"only one side of the channel partition: {channels}"
 
 
 def test_main_measures_billing_accuracy_from_its_own_bills(main_result):
@@ -274,6 +281,7 @@ def test_main_window_closes_a_churned_account_on_an_actual_read_only_where_the_w
     # roster is keyed by household and bills by supply point, so matching the bill's own id
     # skipped every gas leg (2026-09-30).
     import simulation.meter_reads as mr
+    from saas.bill_generator import CHARGED_AT_THE_METER
     from simulation.household import household_of
 
     assert mr.CLOSING_READ_CUSTOMER_GIVEN_SHARE is None, "the share is sourced: widen this leg"
@@ -290,13 +298,20 @@ def test_main_window_closes_a_churned_account_on_an_actual_read_only_where_the_w
     wrong, bases = [], set()
     for cid, bill in last_bill.items():
         meter = meter_type[(cid, bill["period_end"])]
+        # Each fuel against its own smart-mode share (c77a181fa4): read as electricity, a gas leg
+        # whose household draw falls between the two shares is wrongly expected in smart mode.
+        fuel = bill["commodity"]
         expected = "actual" if (
-            (meter == "smart" and not mr.is_not_in_smart_mode(cid))
-            or mr.simulate_read(cid, bill["period_end"], meter, 0.0, 0).status == "actual"
+            (meter == "smart" and not mr.is_not_in_smart_mode(cid, fuel))
+            or mr.simulate_read(cid, bill["period_end"], meter, 0.0, 0, commodity=fuel).status
+            == "actual"
         ) else "estimated"
-        bases.add(bill["billing_basis"])
-        if bill["billing_basis"] != expected:
-            wrong.append((cid, meter, bill["billing_basis"]))
+        # A prepayment leg's basis is the meter; its closing read sits beside it (3e19e5676).
+        read = (bill["settlement_read_status"] if bill["billing_basis"] == CHARGED_AT_THE_METER
+                else bill["billing_basis"])
+        bases.add(read)
+        if read != expected:
+            wrong.append((cid, meter, bill["billing_basis"], read))
     assert wrong == [], f"closing reads off the rule: {wrong[:5]}"
     assert bases == {"actual", "estimated"}, f"only {bases} closings in the window"
 
@@ -836,6 +851,17 @@ def test_churned_account_forces_final_read_resolution(force_estimated_reads):
         assert b["billing_basis"] == "estimated"
 
 
+def _on_receipt_home():
+    """A domestic account billed in arrears and paid on receipt: the subject of SLC 21BA's cap on
+    an estimate. None of C1-C9 is one (their non-DD homes are prepayment), so it is a live-book
+    household, and the channel is asserted rather than assumed: if the draw moves, this names it."""
+    from simulation.household_segments import PaymentChannel, payment_channel_for_customer
+
+    cid = "SYN-2016-002"
+    assert payment_channel_for_customer(cid) is PaymentChannel.STANDARD_CREDIT, cid
+    return cid
+
+
 def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_the_cap(
         force_estimated_reads, monkeypatch):
     """W2_36: the world no longer forces a read at 12 estimated months, so a run can outlast the
@@ -846,9 +872,9 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
     (with none, the opening estimate is the registry EAC); use then rises, so the closing read
     is an undercharge.
 
-    The cap on the estimate is the rule where the bill is the demand, so the account is C4 (a
-    domestic prepayment account; the registry's non-direct-debit homes are prepayment). C1 pays
-    by direct debit, whose catch-up is a statement and writes nothing off: its bar is taken at the
+    The cap on the estimate is the rule where the bill is the demand, so the account is a
+    standard-credit home (`_on_receipt_home`). Not C4: a prepayment leg is charged at the meter and
+    has no estimated run to cap (3e19e5676). C1 pays by direct debit, whose catch-up is a statement and writes nothing off: its bar is taken at the
     final bill on the DD balance book (tests/simulation/test_dd_back_billing_at_charge_recovery_actions.py)."""
     import simulation.meter_reads as mr
 
@@ -861,6 +887,7 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
                                      true_consumption_kwh=kwh, consecutive_estimated_count=0)
         return real_read(customer_id, period_end, meter_type, kwh, *rest, **meter)
 
+    on_receipt = _on_receipt_home()
     monkeypatch.setattr(mr, "simulate_read", opening_read_actual)
     def run(cid):
         records = []
@@ -869,10 +896,10 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
                                              unit_rate=200.0))
         return records
 
-    open_bills = build_monthly_bills(run("C4"))
+    open_bills = build_monthly_bills(run(on_receipt))
     assert [b["billing_basis"] for b in open_bills] == ["actual"] + ["estimated"] * 15
 
-    closing = build_monthly_bills(run("C4"), churned_ids={"C4"})[-1]
+    closing = build_monthly_bills(run(on_receipt), churned_ids={on_receipt})[-1]
     assert closing["billing_basis"] == "actual"
     assert closing["catchup_direction"] == "undercharge", closing.get("catchup_direction")
     assert closing["catchup_back_billing_cap_applied"] is True
@@ -887,7 +914,8 @@ def test_an_estimated_run_past_12_months_is_not_forced_and_its_final_read_meets_
 def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_none_when_every_read_is_actual(
         monkeypatch):
     """D48 against the world's own read process, not a scripted feed: the 16-month run above,
-    measured, on a prepayment account (a direct-debit statement bars no energy). Defect caught: a measure that cannot see the estimates the world produces. Both arms
+    measured, on a standard-credit account (a direct-debit statement bars no energy, and a
+    prepayment meter charges the true use). Defect caught: a measure that cannot see the estimates the world produces. Both arms
     in one statement, so a measure that is zero everywhere fails as surely as one that ignores
     the reads."""
     import simulation.meter_reads as mr
@@ -902,9 +930,10 @@ def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_non
                                      true_consumption_kwh=kwh, consecutive_estimated_count=0)
         return real_read(customer_id, period_end, meter_type, kwh, *rest, **meter)
 
+    on_receipt = _on_receipt_home()
     records = []
     for i in range(16):
-        records.extend(_sc_month_records("C4", 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
+        records.extend(_sc_month_records(on_receipt, 2022 + i // 12, i % 12 + 1, 200.0 + 40.0 * i,
                                          unit_rate=200.0))
 
     with monkeypatch.context() as m:
@@ -914,14 +943,14 @@ def test_billing_accuracy_finds_the_barred_energy_the_read_process_makes_and_non
         m.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 1.0)
         m.setattr(mr, "CLOSING_READ_CUSTOMER_GIVEN_SHARE", 1.0)
         m.setattr(mr, "simulate_read", opening_read_actual)
-        estimating = billing_accuracy(build_monthly_bills(records, churned_ids={"C4"}))
+        estimating = billing_accuracy(build_monthly_bills(records, churned_ids={on_receipt}))
     with monkeypatch.context() as m:
         # force_actual_reads' pins, inlined: a fixture cannot be called from a test body.
         m.setattr(mr, "TRADITIONAL_ACTUAL_READ_PROBABILITY", 1.0)
         m.setattr(mr, "HARD_TO_READ_ACTUAL_READ_PROBABILITY", 1.0)
         m.setattr(mr, "SMART_METER_NOT_COMMUNICATING_RATE", 0.0)
         m.setattr(mr, "READ_CUTOFF_DAYS_AFTER_PERIOD_END", 10**9)
-        every_read_actual = billing_accuracy(build_monthly_bills(records, churned_ids={"C4"}))
+        every_read_actual = billing_accuracy(build_monthly_bills(records, churned_ids={on_receipt}))
 
     est, act = estimating["by_fuel"]["electricity"], every_read_actual["by_fuel"]["electricity"]
     assert (est["barred_kwh"] > 0 and est["undercharge_kwh"] > est["barred_kwh"]
