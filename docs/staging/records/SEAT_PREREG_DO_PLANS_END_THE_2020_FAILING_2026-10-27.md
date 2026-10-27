@@ -34,3 +34,24 @@ dates, result and amount). If it does not, the run is not the control and nothin
   by at least a third from 2019 to 2020. A fall under a tenth refutes stress as the cause.
 - Both can hold, and neither can. If neither holds, the next candidates are the per-bill draw's
   own year terms and the order the legs post in. Neither is ranked yet.
+
+## Graded (2026-10-27, 22:20Z): Q1 refuted, Q2 inconclusive, C0 failed narrowly and is characterised
+
+- **C0 fails as written.** 29 of about 25,000 records differ, all from 2020-05 on, and every one is a
+  prepayment `success` bill 1p apart (for example ACC-PROS-2018-0176, GBP 12.55 against 12.54). These
+  are probably end-of-run amounts on a meter leg, since this run ends a year earlier. **All 962 failed
+  records match exactly.** Every number below reads failed records only. The C0 failure is reported
+  rather than waived, and nothing below depends on the differing bills.
+- **Q1 is refuted, and more strongly than the prediction framed it.** The world agrees **no plan at
+  all**: 2,923 offers, 0 accepted, 0 declined, all unanswered, and no debt-meter moves. That is by
+  design. Plan take-up is a named GAP (`simulation/plan_offer_response.py`,
+  `PUBLISHED_BASIS.take_up_rate=None`). Repeat accounts under an agreement number 0 in both years.
+- **Q2 is inconclusive.** The top stress tier's share of noted months goes from 2.31% (134 of 5,812)
+  in 2019 to 2.01% (105 of 5,222) in 2020, a fall of 13%. That is between the 10% refutation line and
+  the 33% support line. *Deviation:* this counts all noted months, including prepayment and SME, not
+  only residential credit bills as filed. A 13% move in a tier that sets one input of the per-bill
+  draw is too small to halve a failed share whose pounds come mostly from the budget path.
+
+**What the run does show.** Seven accounts carry 42-47% of each year's failed pounds, on both dice
+seeds. Several fail every bill in 2019. SYN-2016-549 fails GBP 1,126 of 1,126 billed in 2019 and
+none of 1,079 billed in 2020. Next: `SEAT_PREREG_IS_THE_2020_HALVING_A_FEW_HOUSEHOLDS_2026-10-27.md`.
