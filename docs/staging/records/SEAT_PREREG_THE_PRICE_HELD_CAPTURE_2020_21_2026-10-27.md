@@ -41,3 +41,31 @@ gas 39.2, 34.2, 34.4 (about 1.15 and 1.14). So holding the price at 2019 raises 
 15%, barely moves a 2020 electricity bill, and *lowers* a 2021 electricity bill. A halving from that
 needs a strongly non-linear margin. The prediction stands as filed. This note is the reason to expect
 it to be refuted, written before the answer.
+
+## Graded (2026-10-27, 22:10Z): refuted. Closed is 0.07
+
+Both arms finished (`settled 31987 scaled 8625` on the on arm). Grader: `/var/tmp/price_held/grade.py`.
+
+| issue year | off (control) failed share | on (price held) |
+|---|---|---|
+| 2016-19 | 4.21%, 3.37%, 3.62%, 3.80% | identical |
+| 2020 | 1.87% (GBP 3,974 / 212,253) | 1.89% |
+| 2021 | 2.10% (GBP 4,435 / 211,072) | 2.34% |
+
+- **P2 holds.** 2016-19 match to the penny.
+- **P1 is refuted.** The fall is 1.81 points (2019 3.80% to pooled 2020-21 1.99%). Holding the price closes **0.071** of it, under the 0.25 line. The price is not the cause. The note filed before the run expected this.
+
+The control's levels sit above column A's (2019 3.80% against 3.33%) because the code is ten days
+newer. The halving is unchanged.
+
+## What the control arm says about where the fall is (descriptive, one seed)
+
+- **It is not the joiners.** About 42 accounts join each year from 2017 to 2021. The tenured book's share falls from 3.92% to 1.94%.
+- **Fewer households fail, and those that do fail less.** Failing accounts go from 80 to 57 while billed accounts go from 334 to 301. Pounds per failing account go from GBP 119 to 70.
+- **The same households stop failing, and they have not left.** Of 2019's 80 failing accounts, 62 are still billed in 2020, about the share earlier years kept. 22 fail again, against 28 the year before. Their failed pounds fall from GBP 7,129 to 2,468.
+- **The margin side is also small at real inputs.** From 2019 to 2020 the AWE factor rises 1.5%, the basket 0.7% and housing (CPIH) 0.9%, and the full fall is already present in 2020. So the budget's own arithmetic is ranked down as a whole, not only its price leg.
+
+**Next, ranked by this evidence:** something that lets households already in debt stop failing from
+2020. The candidates are the household repayment plans (`_household_plans`: a plan's instalments
+would replace failed bills) and the per-bill draw's income-stress input. The bounded step is to
+split 2020's repeat failers' bills by whether a plan is active, on this control arm's code.

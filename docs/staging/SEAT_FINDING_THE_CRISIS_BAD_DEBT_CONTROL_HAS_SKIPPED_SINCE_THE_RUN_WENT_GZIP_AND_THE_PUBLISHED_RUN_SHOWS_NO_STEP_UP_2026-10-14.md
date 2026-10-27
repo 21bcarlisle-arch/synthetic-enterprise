@@ -1947,3 +1947,17 @@ the record expects the ranking to be refuted, and says so before the answer.
 
 **Status:** OPEN and BLOCKING. Next: `python3 /var/tmp/price_held/grade.py` once both artefacts
 exist. Do not re-launch: ask `.launch_records.json` first.
+
+## 2026-10-27 (22:10Z): the price-held capture, graded. Refuted: holding 2020-21 bills at their 2019 price closes 7% of the fall
+
+*Correction beside step (iii)'s ranking. The budget's price arithmetic was ranked first, and it is
+refuted.* 2016-19 match exactly between the arms. The control falls from 3.80% (2019) to 1.99%
+(pooled 2020-21). The price-held arm closes 0.071 of that, against a refutation line of 0.25. The
+margin side is small at real inputs too: AWE +1.5% and the basket +0.7% from 2019 to 2020. Neither
+moves a halving. In the control arm the fall is within tenured accounts, not among joiners. It comes
+from the same households failing less: 2019's failing accounts mostly stay billed, and their failed
+pounds go from GBP 7,129 to 2,468. Full table: `docs/staging/records/SEAT_PREREG_THE_PRICE_HELD_CAPTURE_2020_21_2026-10-27.md`.
+
+**Status:** OPEN and BLOCKING. Next: split 2020's repeat failers' bills by whether a household
+repayment plan is active, which tests whether plans, not budgets, end the failing. Then the per-bill
+draw's stress input.
