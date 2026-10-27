@@ -47,7 +47,7 @@ invariants:
     commodity: electricity
     segment: domestic
     tariff: svt (default/evergreen and deemed)
-    meter: single-register (exactly one distinct register_id on the account)
+    meter: single-register (exactly one distinct register_id among the periods that carry the term; corrected 2026-10-27 from the account proxy, SLC 28AD grades by tariff)
   basis: p/kWh, EX-VAT, GB median of Ofgem's 15 cap-model Total rows (14 regions + GB), single-rate, per payment method (DD column is `upper`). Compare against unit_rate_p_per_kwh (all-in, ex-VAT).
   evaluation: 'Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window''s row. A term starting before
     2019-01-01 is graded against the pre-cap rows for that part of its life. Payment method for the window = from the account''s payments dated inside the window: any ''prepayment top-up'' -> prepayment
@@ -775,7 +775,7 @@ invariants:
     commodity: electricity
     segment: domestic
     tariff: svt/deemed
-    meter: two or more distinct register_id on the account
+    meter: two or more distinct register_id among the periods that carry the term (corrected 2026-10-27 from the account proxy)
   basis: 'p/kWh EX-VAT, DD, GB median, multi-register benchmark 4,200 kWh. Graded at the tariff''s ASSUMED split (E7: 42% off-peak / 58% peak, SLC 28AD.36(a)), never the household''s realised split.'
   evaluation: Evaluate the term against EVERY cap window its [tariff_effective_from, tariff_effective_to or account end] overlaps; the term must satisfy each overlapped window's row. A term starting before
     2019-01-01 is graded against the pre-cap rows for that part of its life. The export carries ONE unit_rate_p_per_kwh per term; read it as the tariff's assumed-split weighted rate. If the runner can see

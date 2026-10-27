@@ -119,12 +119,15 @@ class Account:
         """Each distinct contracted term once, its end exclusive, open terms ending with supply."""
         seen = {}
         for p in self.periods:
+            regs = {r.get("register_id") for r in p.get("reads", ())}
             for t in p.get("contracted_terms") or ():
                 key = (t["tariff_effective_from"], t.get("tariff_effective_to"), t.get("tariff_type"))
                 if key not in seen:
                     end = (_d(t["tariff_effective_to"]) - timedelta(days=1)
                            if t.get("tariff_effective_to") else self.end)
-                    seen[key] = dict(t, _from=_d(t["tariff_effective_from"]), _last=end)
+                    seen[key] = dict(t, _from=_d(t["tariff_effective_from"]), _last=end,
+                                     _registers=set())
+                seen[key]["_registers"] |= regs
         return list(seen.values())
 
 
@@ -206,10 +209,14 @@ def _svt_term_windows(inv, book, fuel, meter):
     for a in book:
         if a.fuel != fuel or not a.domestic:
             continue
-        if meter == "single" and len(a.registers) != 1 or meter == "multi" and len(a.registers) < 2:
-            continue
         for t in a.terms():
             if t.get("tariff_type") != "svt" or t["_last"] is None:
+                continue
+            # The meter class is the term's own: the registers its periods print. A household that
+            # changes meter mid-account has an SVT spell of each class (SLC 28AD grades by tariff).
+            # A term whose periods print no read has no class of its own; it takes the account's.
+            n = len(t["_registers"] or a.registers)
+            if meter == "single" and n != 1 or meter == "multi" and n < 2:
                 continue
             for row in rows:
                 if t["_from"] <= row["_to"] and t["_last"] >= row["_from"]:

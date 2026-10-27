@@ -272,3 +272,28 @@ def test_gas_grades_each_payment_method_against_its_own_column_and_flags_under_t
     assert outcomes["pp_at_dd_cap"][0] > 0
     assert outcomes["sc_at_dd_cap"] == (0, 0)
     assert outcomes["under_floor"][0] == 0 and outcomes["under_floor"][1] > 0
+
+
+def test_the_meter_class_is_the_terms_own_not_the_accounts():
+    """SLC 28AD grades by tariff. Defect named: an account that changes from single-rate to two
+    registers mid-life had its single-rate SVT spell graded against the multi-register cap (and
+    dropped from the single-rate one), because the class was read off every register the account
+    ever printed. Each term is graded by the registers its own periods print."""
+    single, multi = _account("S", "electricity", rate=17.0), _account("S", "electricity", rate=17.0,
+                                                                       registers=("1", "2"))
+    acct = single
+    for i in range(6, 12):                      # second half of the year: a two-register spell
+        p = dict(multi["periods"][i])
+        p["contracted_terms"] = [dict(p["contracted_terms"][0], tariff_effective_from="2020-07-01",
+                                      tariff_effective_to="2021-01-01", unit_rate_p_per_kwh=17.0)]
+        acct["periods"][i] = p
+    for p in acct["periods"][:6]:
+        p["contracted_terms"][0]["tariff_effective_to"] = "2020-07-01"
+    inv = [{"id": "INV_UNIT_RATE_SVT_ELEC", "rows": [_row(5.0, 18.0)]},
+           {"id": "INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER", "rows": [_row(None, 16.0)]}]
+    res = {r["id"]: r for r in runner.run(inv, {"S": acct})}
+    # the single-register spell is checked against the single-rate cap, the two-register one against
+    # the multi-register cap: one term each, and only the multi-register one (17 > 16) breaches
+    assert res["INV_UNIT_RATE_SVT_ELEC"]["checked"] == 1 and res["INV_UNIT_RATE_SVT_ELEC"]["breached"] == 0
+    assert res["INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER"]["checked"] == 1
+    assert res["INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER"]["breached"] == 1
