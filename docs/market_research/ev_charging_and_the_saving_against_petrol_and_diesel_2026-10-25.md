@@ -126,6 +126,38 @@ early adopters; rebound in mileage; average vs marginal carbon; moving VAT, cap 
 8. Diesel real-world mpg; kWh/mile by segment.
 9. 2016 and 2022 PHEV shares from SMMT originals.
 
+## 10. Who can get a car, and where its effect shows (added 27 Oct 2026)
+
+**The rule.** A car is drawn for the home, never for the fuels the home buys from us. Every GB home
+on the gas grid also has an electricity supply (single-fuel gas is a supplier relationship, not a
+home without power), so a household that takes only its gas from us can still buy an EV and charge
+it on a driveway. What decides home charging is off-street parking and the car (s.2: 89% of BEV
+drivers charge at home; ~11% rely on public charging), not the supplier mix. Restricting the draw to
+homes with an electricity leg with us would make the world less real: it would tie a car purchase to
+a supplier choice no evidence links it to. The 26 Oct finding's first remedy is therefore **not
+taken**; the defect was in how we read the effect, not in the draw.
+
+**Where the effect shows.** Charging adds electricity at the home's meter (s.3: 1,750-3,300 kWh a
+year at home) and nothing at its gas meter. So the supplier reads an EV's effect only:
+- on **the electricity account it holds** for that home. A gas account never carries it; a dual
+  household's gas leg points at its electricity leg; a gas-only household's car is *not observable
+  by us* (the car is real, the meter it charges on is another supplier's);
+- across **the twelve whole months either side of the arrival month**, so each side holds every
+  season once. A three-month before/after on a gas leg reads winter into summer as the car (the
+  -65% on SYN-2016-476 was April 2022 gas, not a car);
+- only while **we supply the home** on both sides. A car that arrives after the household left, or
+  before it joined, is not ours to see, and a year that also holds a solar, heat-pump or battery
+  arrival is not separable.
+
+**Design choices.** Effect stated as kWh a year against the s.3 band and graded within/outside it;
+never inferred where the conditions above fail, which is said in words on the record ("not
+observable by us", with the reason). **GAP: weather normalisation.** The year-on-year difference is
+not degree-day adjusted; for a home that does not heat with electricity the weather term is small
+against 1,750 kWh, but a heat-pump or storage-heated home would need it, and no degree-day method is
+wired for this read. The difference is also what our *bills* recorded: where the meter went unread
+the estimate carries the old use forward and hides the car (s.7: detection needs 6-12 months of
+reads), which is a reading of our own record, not of the home.
+
 ## Verification pass, 25 Oct 2026
 
 ### Verification of the EVs, charging and savings pack (25 Oct 2026)

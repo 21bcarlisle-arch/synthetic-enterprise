@@ -73,6 +73,60 @@ def _usage_effect(monthly, event_date):
     )
 
 
+#: Other arrivals that move a home's electricity, so a year either side of the car that holds one
+#: cannot be read as the car's.
+_ELECTRICITY_CONFOUNDERS = {"solar_install", "heat_pump_installed", "battery_installed"}
+
+
+def _months_either_side(event_date, n=12):
+    y, m = int(event_date[:4]), int(event_date[5:7])
+    after = ["{}-{:02d}".format(y + (m + k - 1) // 12, (m + k - 1) % 12 + 1) for k in range(1, n + 1)]
+    before = ["{}-{:02d}".format(y + (m - k - 1) // 12, (m - k - 1) % 12 + 1) for k in range(1, n + 1)]
+    return before, after
+
+
+def _ev_effect(commodity, is_dual_fuel, monthly, event_date, timeline):
+    """A car charges on the home's electricity, so this account reads its effect only if it is
+    the electricity leg, over the twelve whole months either side of the arrival month (each side
+    holds every season once). The household still has an electricity supply when we hold only its
+    gas -- the car is real, the effect is just not ours to see
+    (`docs/market_research/ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md` s.10).
+    Not weather-normalised (GAP): a colder year on one side moves the difference."""
+    if not event_date:
+        return None
+    if commodity != "electricity":
+        if is_dual_fuel:
+            return "Read on this household's electricity account, not its gas"
+        return "Not observable by us: the car charges on an electricity supply we do not hold"
+    before, after = _months_either_side(event_date)
+    mon = {m["month"]: m.get("kwh") or 0.0 for m in monthly or []}
+    if not mon or event_date[:7] > max(mon):
+        return "Not observable by us: the car arrived after we stopped supplying this home"
+    if event_date[:7] < min(mon):
+        return "Not observable by us: the car arrived before we supplied this home"
+    if not all(x in mon for x in before + after):
+        return "Not observable by us: we hold no full year of its electricity either side of the car"
+    lo_month, hi_month = before[0], after[-1]
+    if any(e.get("type") == "life_event" and e.get("date")
+           and lo_month <= e["date"][:7] <= hi_month
+           and (e.get("detail") or "").lower().replace(" ", "_") in _ELECTRICITY_CONFOUNDERS
+           for e in timeline):
+        return ("Not separable by us: another electrical arrival falls in the year either side "
+                "of the car")
+    from tools.generate_explore_cast import EV_ADDED_KWH_BAND
+    yr_before = sum(mon[x] for x in before)
+    yr_after = sum(mon[x] for x in after)
+    if yr_before <= 0:
+        return None
+    added = yr_after - yr_before
+    lo, hi = EV_ADDED_KWH_BAND
+    band = ("within" if lo <= added <= hi else "outside") + \
+        " the {:,.0f}-{:,.0f} kWh a year an EV adds at home".format(lo, hi)
+    return ("Electricity moved {:+.0f}% over the 12 months after the car against the 12 before "
+            "(avg {:.0f} kWh/mo -> {:.0f} kWh/mo, {:+,.0f} kWh a year, {}; not weather-normalised)"
+            ).format(added / yr_before * 100, yr_before / 12, yr_after / 12, added, band)
+
+
 def _economic_effect(trajectory_stress, trajectory_miss, event_date):
     """Real income-stress-trajectory step and payment-miss drift around the
     event's year -- from company/crm's own tracked signals, not invented."""
@@ -114,7 +168,7 @@ def _renewal_effect(invoices, event_date, commodity):
     return "Unit rate stepped {:.2f}p/kWh -> {:.2f}p/kWh".format(rate_before, rate_after)
 
 
-def _add_effects(timeline, invoices, consumption_monthly, pcb_entry):
+def _add_effects(timeline, invoices, consumption_monthly, pcb_entry, commodity=None, is_dual_fuel=False):
     for ev in timeline:
         detail = ev.get("detail", "")
         etype = ev.get("type")
@@ -124,7 +178,9 @@ def _add_effects(timeline, invoices, consumption_monthly, pcb_entry):
             effect = _renewal_effect(invoices, date, ev.get("commodity"))
         elif etype == "life_event":
             slug = detail.lower().replace(" ", "_")
-            if slug in _PHYSICAL_EVENTS:
+            if slug == "ev_acquired":
+                effect = _ev_effect(commodity, is_dual_fuel, consumption_monthly, date, timeline)
+            elif slug in _PHYSICAL_EVENTS:
                 effect = _usage_effect(consumption_monthly, date)
             elif slug in _ECONOMIC_EVENTS:
                 effect = _economic_effect(
@@ -134,6 +190,8 @@ def _add_effects(timeline, invoices, consumption_monthly, pcb_entry):
                 )
         if effect:
             ev["effect"] = effect
+        elif etype == "life_event":
+            ev.pop("effect", None)
     return timeline
 
 
@@ -223,6 +281,9 @@ def generate(run_json_path=None):
             obj.get("invoices", []),
             obj.get("consumption", {}).get("monthly", []),
             pcb.get(base, {}),
+            commodity=obj.get("commodity"),
+            # A dual household's gas file is `<cid>g` and carries is_dual_fuel False on itself.
+            is_dual_fuel=bool(obj.get("is_dual_fuel")) or base != cid,
         )
 
         from company.analytics.decision_event_ledger import build_customer_ledger

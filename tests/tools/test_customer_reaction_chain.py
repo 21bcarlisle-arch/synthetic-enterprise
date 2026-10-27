@@ -9,7 +9,7 @@ sys.path.insert(0, str(_P(__file__).resolve().parents[2]))
 
 from tools.generate_customer_reaction_chain import (
     _base_id, _usage_effect, _economic_effect, _renewal_effect, _add_effects,
-    _move_out_events, _predecessor,
+    _move_out_events, _predecessor, _ev_effect,
 )
 
 
@@ -168,3 +168,38 @@ def test_an_occupier_names_its_predecessor_or_says_why_not():
     assert _predecessor("OCC-abc", None)[1] == "the run predates occupier_successions"
     assert _predecessor("OCC-zzz", successions)[0] is None
     assert _predecessor("C8", successions) == (None, None)
+
+
+def _months(first, n, kwh):
+    y, m = map(int, first.split("-"))
+    out = []
+    for k in range(n):
+        yy, mm = y + (m - 1 + k) // 12, (m - 1 + k) % 12 + 1
+        out.append({"month": "{}-{:02d}".format(yy, mm), "kwh": kwh(yy, mm)})
+    return out
+
+
+def test_an_ev_effect_is_read_on_electricity_over_a_year_either_side_and_graded_both_ways():
+    """The defect: a gas leg's winter-into-summer fall was written as the car's -65%. Every
+    partition is asserted reachable, so a reader that refuses everything cannot pass."""
+    seasonal_gas = _months("2020-01", 48, lambda y, m: 1300.0 if m in (12, 1, 2, 3) else 400.0)
+    assert "not observable by us" in _ev_effect("gas", False, seasonal_gas, "2022-04-16", []).lower()
+    assert "electricity account" in _ev_effect("gas", True, seasonal_gas, "2022-04-16", [])
+    car = _months("2019-01", 48, lambda y, m: 160.0 + (240.0 if (y, m) >= (2020, 5) else 0.0))
+    within = _ev_effect("electricity", True, car, "2020-04-02", [])
+    assert "within the 1,750-3,300" in within and "+2,880 kWh a year" in within
+    flat = _months("2019-01", 48, lambda y, m: 160.0)
+    assert "outside the 1,750-3,300" in _ev_effect("electricity", False, flat, "2020-04-02", [])
+    assert "after we stopped" in _ev_effect("electricity", False, flat, "2023-06-01", [])
+    assert "before we supplied" in _ev_effect("electricity", False, flat, "2018-06-01", [])
+    assert "no full year" in _ev_effect("electricity", False, flat, "2022-06-01", [])
+    solar = [{"type": "life_event", "date": "2020-09-01", "detail": "Solar install"}]
+    assert "not separable" in _ev_effect("electricity", False, car, "2020-04-02", solar).lower()
+
+
+def test_add_effects_routes_an_ev_by_the_accounts_fuel_and_clears_a_stale_effect():
+    seasonal_gas = _months("2020-01", 48, lambda y, m: 1300.0 if m in (12, 1, 2, 3) else 400.0)
+    timeline = [{"date": "2022-04-16", "type": "life_event", "detail": "Ev acquired",
+                 "effect": "Usage moved -65% (avg 1353 kWh/mo -> 473 kWh/mo)"}]
+    out = _add_effects(timeline, [], seasonal_gas, {}, commodity="gas", is_dual_fuel=False)
+    assert "Usage moved" not in out[0]["effect"] and "not observable" in out[0]["effect"].lower()
