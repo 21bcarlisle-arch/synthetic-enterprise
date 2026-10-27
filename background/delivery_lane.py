@@ -3487,6 +3487,13 @@ def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
         orientation = current_orientation()
         if seat_continuation.retire(focus_id, orientation=orientation, path=path):
             return True
+        # HELD, NOT FINISHED: the continuation names an artefact that does not exist yet or a job
+        # still running (`seat_continuation.retirement_hold`). It stays offered, and the focus-row
+        # tombstone below must not retire by the other door what the store just refused to.
+        hold = seat_continuation.held_reason(focus_id, path=path)
+        if hold:
+            print(f"did NOT retire the continuation {focus_id}: {hold}; it stays offered")
+            return False
         # THE OTHER HALF OF THE SAME DISCHARGE, and the limit `_retired_ids` names as its own.
         # `_focus` reads `DIRECTION.yaml` DIRECTLY, so a focus row can be drawn without ever
         # passing the promoter and therefore without an entry for `retire` to mark. Measured

@@ -65,6 +65,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -566,8 +568,107 @@ def _first_drawn(work_id) -> float | None:
         return None
 
 
+# WHAT A CONTINUATION NAMES AS ITS ARTEFACT. An absolute path is the shape a run's output takes in
+# prose (`/var/tmp/<run>/DONE.json`); a repo-relative path is almost always source the work edits,
+# and its existence says nothing about whether the work is done. A path followed by a glob or brace
+# is a pattern, not a file, and is left alone rather than read as a missing one.
+_ARTEFACT_PATH = re.compile(r"(?<![\w.~/:])(/(?:[\w.@+-]+/)+[\w.@+-]+)(?![\w.@+*?{\[/-])")
+# Only where runs write. `/model/world` in prose is a site route, `/docs/...` a repo path with its
+# root stripped; read as artefacts, each would hold its row until the six-hour expiry.
+_ARTEFACT_ROOTS = ("/var/tmp/", "/tmp/", "/home/")
+# `launch_long_job` names a job by `--job <name>` and prose says `job <name>`. Only a name carrying
+# a hyphen or a digit is taken: "the job is" must not become a question to systemd about `is`.
+_NAMED_JOB = re.compile(r"(?:--job|\bjob)[\s=:]+`?([A-Za-z0-9][\w.-]*[A-Za-z0-9])")
+
+
+def named_artefacts(item: Mapping) -> tuple[list[str], list[str]]:
+    """The absolute paths and `launch_long_job` job names a continuation's `what`/`done_means` name."""
+    text = " ".join(str(item.get(k) or "") for k in ("what", "done_means"))
+    paths = list(dict.fromkeys(m.rstrip(".") for m in _ARTEFACT_PATH.findall(text)
+                               if m.startswith(_ARTEFACT_ROOTS)))
+    jobs = list(dict.fromkeys(j for j in _NAMED_JOB.findall(text)
+                              if re.search(r"[-\d]", j)))
+    return paths, jobs
+
+
+def _job_running(job: str) -> bool:
+    """Whether systemd still holds `job`'s unit. UNKNOWN READS AS RUNNING -- `name_is_held`'s own
+    direction, and the right one here: a wrong "ended" retires the grade of a run still computing."""
+    from background import launch_long_job
+    return launch_long_job.name_is_held(launch_long_job.unit_name(job))
+
+
+def retirement_hold(item: Mapping, *, exists=os.path.exists, job_running=None) -> str | None:
+    """Why `item` cannot be retired yet, naming the path or job, or None if nothing holds it.
+
+    A HANDOFF IS NOT DISCHARGED BEFORE ITS ARTEFACT EXISTS (2026-10-27). `the-fresh-run-is-graded-
+    by-the-blind-suite` named `/var/tmp/fresh-run-out-871f674a2/DONE.json` and the job
+    `fresh-default-book-871f674a2` in its own text. The seat-executor tick that LAUNCHED the run
+    released its claim at 04:00Z, the discharge retired the grade, and DONE.json was written at
+    04:47Z with nothing left to read it -- the exit test lost about three hours. Releasing a claim
+    is the tick's judgement that ITS work is finished; a continuation that waits on a run's output
+    is not finished by the tick that started the run, and the store can see that without asking.
+    """
+    job_running = job_running or _job_running
+    paths, jobs = named_artefacts(item)
+    missing = [p for p in paths if not exists(p)]
+    live_jobs = []
+    for job in jobs:
+        try:
+            if job_running(job):
+                live_jobs.append(job)
+        except Exception:  # noqa: BLE001 -- a probe that cannot answer holds, it does not pass
+            live_jobs.append(job)
+    if not missing and not live_jobs:
+        return None
+    parts = []
+    if missing:
+        parts.append(f"the artefact it names does not exist yet: {', '.join(missing)}")
+    if live_jobs:
+        parts.append(f"the launch_long_job job it names has not ended: {', '.join(live_jobs)}")
+    return "; ".join(parts)
+
+
+def held_reason(work_id: str, path: Path | None = None, **probes) -> str | None:
+    """`retirement_hold` for the LIVE (unretired) continuation `work_id`, or None if there is none."""
+    for item in _load(path):
+        if item.get("id") == work_id and not item.get("retired_at"):
+            return retirement_hold(item, **probes)
+    return None
+
+
+def replay_retired(path: Path | None = None, *, mtime=os.path.getmtime,
+                   isfile=os.path.isfile) -> dict:
+    """The retired rows `retirement_hold` would have held when they were retired, by evidence grade.
+
+    Nothing recorded what existed at a past `retired_at`, so the replay reads mtimes and says how
+    good each reading is. `late`: a FILE the row names exists now and was last written after the
+    retirement, or the named job's `/var/tmp/longjob-<slug>.log` was -- a file rewritten later
+    reads as late too, so this is an upper bound. `gone`: a named path is absent now, so whether it
+    existed then cannot be told. A directory's mtime moves with its contents and is not read.
+    """
+    from background import launch_long_job
+    late, gone = [], []
+    for item in _load(path):
+        at = item.get("retired_at")
+        if not at or item.get("focus_row_tombstone"):
+            continue
+        paths, jobs = named_artefacts(item)
+        logs = [f"/var/tmp/{launch_long_job.unit_name(j)}.log" for j in jobs]
+        try:
+            written_after = [p for p in dict.fromkeys([*paths, *logs]) if isfile(p) and mtime(p) > float(at)]
+        except OSError:
+            written_after = []
+        absent = [p for p in paths if not os.path.exists(p)]
+        if written_after:
+            late.append({"id": item.get("id"), "retired_at": at, "written_after": written_after})
+        elif absent:
+            gone.append({"id": item.get("id"), "retired_at": at, "absent_now": absent})
+    return {"late": late, "gone": gone}
+
+
 def retire(work_id: str, *, orientation: str | None = None, now: float | None = None,
-           path: Path | None = None) -> bool:
+           path: Path | None = None, **probes) -> bool:
     """Mark a continuation FINISHED so it stops being offered, and remember WHICH ORIENTATION.
 
     A MARK RATHER THAN A DELETION, AND THE ORIENTATION IS THE WHOLE POINT (2026-09-06).
@@ -601,16 +702,27 @@ def retire(work_id: str, *, orientation: str | None = None, now: float | None = 
 
     RE-RETIRING IS A NO-OP returning False, so the FIRST retirement -- the one whose orientation
     describes when the work was actually finished -- is never overwritten by a later release.
+
+    A ROW WHOSE ARTEFACT IS ABSENT IS HELD, NOT RETIRED, and returns False -- see
+    `retirement_hold`. The hold is written onto the row (`retire_held`) so the refusal is on disk
+    with its reason, and `held_reason` lets a caller print it.
     """
     items = _load(path)
     hit = False
+    held = False
+    stamp = time.time() if now is None else now
     for item in items:
         if item.get("id") == work_id and not item.get("retired_at"):
-            item["retired_at"] = time.time() if now is None else now
+            hold = retirement_hold(item, **probes)
+            if hold:
+                item["retire_held"] = {"at": stamp, "reason": hold}
+                held = True
+                continue
+            item["retired_at"] = stamp
             if orientation:
                 item["retired_at_orientation"] = str(orientation)
             hit = True
-    if hit:
+    if hit or held:
         _save(items, path)
     return hit
 

@@ -569,6 +569,20 @@ def _hand_back(work_id: str, claimed_at: float) -> None:
             continue
 
 
+def seat_continuation_hold(work_id: str) -> str | None:
+    """Why the live continuation `work_id` cannot be discharged yet, or None. Never raises.
+
+    A tick that LAUNCHES a run and releases is finished with its own part; a continuation that
+    waits on the run's output is not (`seat_continuation.retirement_hold`, 2026-10-27).
+    """
+    try:
+        from background import seat_continuation
+
+        return seat_continuation.held_reason(work_id)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def seat_continuation_drop(work_id: str) -> bool:
     """Discharge a finished continuation. Never raises -- a handoff store must not cost a tick.
 
@@ -1087,6 +1101,9 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
         if not tick_released:
             log(f"HANDOFF STANDS {work_id}: the tick did not release its claim, so the "
                 "continuation is re-offered to the next tick rather than consumed")
+        elif hold := seat_continuation_hold(work_id):
+            log(f"HANDOFF HELD {work_id}: the tick released its claim, but {hold}, so the "
+                "continuation is re-offered rather than consumed")
         elif not seat_continuation_drop(work_id):
             log(f"NO HANDOFF TO DROP {work_id}: the tick released its claim, but no continuation "
                 "record held this id -- a DRAWN item never has one, so this turn says nothing "

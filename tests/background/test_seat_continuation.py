@@ -604,3 +604,73 @@ def test_an_UNFINISHED_continuation_is_still_offered_after_a_sweep(store, monkey
     assert offered is not None and offered["id"] == "the-abandoned-piece", (
         "an abandoned continuation stopped being offered -- a sweep is not a finish"
     )
+
+
+# A HANDOFF IS NOT DISCHARGED BEFORE ITS ARTEFACT EXISTS (2026-10-27). The live row's own words:
+# the tick that launched the run released at 04:00Z and DONE.json arrived at 04:47Z, ungraded.
+_GRADE_WHAT = ("Grade the fresh default-book run (job fresh-default-book-871f674a2, out {out}, "
+               "~60 min from 2026-10-27 04:00Z): run the grader.")
+
+
+def _grade_row(store, out):
+    seat_continuation._save([{"id": "grade", "what": _GRADE_WHAT.format(out=out), "why": "w",
+                              "done_means": "table appended", "written_at": 1.0}], store)
+
+
+def test_a_continuation_RETIRES_when_its_artefact_exists_and_is_HELD_naming_it_when_not(
+        store, tmp_path):
+    """The whole partition in one control: retirable when present, held on a missing path, held on
+    a running job -- and the hold names what holds it. A hold that refused everything fails leg 1."""
+    out = tmp_path / "run" / "DONE.json"
+    ended, running = (lambda job: False), (lambda job: True)
+
+    _grade_row(store, out)
+    assert seat_continuation.retire("grade", path=store, job_running=ended) is False
+    reason = seat_continuation.held_reason("grade", path=store, job_running=ended)
+    assert str(out) in reason and "does not exist" in reason
+    assert json.loads(store.read_text())[0]["retire_held"]["reason"] == reason
+    assert not seat_continuation.retired(store)
+
+    out.parent.mkdir()
+    out.write_text("{}")
+    held_on_job = seat_continuation.held_reason("grade", path=store, job_running=running)
+    assert "fresh-default-book-871f674a2" in held_on_job and str(out) not in held_on_job
+    assert seat_continuation.retire("grade", path=store, job_running=running) is False
+
+    assert seat_continuation.retire("grade", path=store, job_running=ended) is True
+    assert [i["id"] for i in seat_continuation.retired(store)] == ["grade"]
+
+
+def test_the_artefact_reader_takes_paths_and_jobs_and_not_patterns_or_prose():
+    paths, jobs = seat_continuation.named_artefacts({
+        "what": "read /var/tmp/a-b/DONE.json. Then the job is done; see https://x.org/y/z, "
+                "docs/staging/x.md and /var/tmp/fresh-*/x, --job w2-36-seed1",
+        "done_means": "",
+    })
+    assert paths == ["/var/tmp/a-b/DONE.json"]
+    assert jobs == ["w2-36-seed1"]
+
+
+def test_a_probe_that_cannot_answer_HOLDS_rather_than_retiring(store, tmp_path):
+    out = tmp_path / "DONE.json"
+    out.write_text("{}")
+    _grade_row(store, out)
+
+    def broken(job):
+        raise OSError("no systemctl")
+    assert "has not ended" in seat_continuation.held_reason("grade", path=store, job_running=broken)
+
+
+def test_the_replay_counts_a_row_retired_BEFORE_its_artefact_was_written_and_not_one_after(
+        store, tmp_path):
+    out = tmp_path / "DONE.json"
+    out.write_text("{}")
+    written = out.stat().st_mtime
+    rows = [{"id": i, "what": f"read {out}", "why": "w", "done_means": "d", "written_at": 1.0,
+             "retired_at": at} for i, at in (("early", written - 60), ("after", written + 60))]
+    rows.append({"id": "gone", "what": f"read {tmp_path}/never.json", "why": "w",
+                 "done_means": "d", "written_at": 1.0, "retired_at": written})
+    seat_continuation._save(rows, store)
+    replay = seat_continuation.replay_retired(store)
+    assert [r["id"] for r in replay["late"]] == ["early"]
+    assert [r["id"] for r in replay["gone"]] == ["gone"]
