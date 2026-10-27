@@ -138,7 +138,12 @@ from company.interfaces.renewal_offer import request_company_forward_estimate
 from sim.forward_curve import generate_forward_price
 from simulation.departure_risks import svt_inertia_hazard
 from simulation.market_switching_propensity import market_switching_multiplier
-from simulation.price_cap_enforcement import DOMESTIC_VAT_RATE, hmt_epg_receipt_gbp_per_mwh
+from simulation.price_cap_enforcement import (
+    DOMESTIC_VAT_RATE,
+    default_tariff_unit_rates_for_method_inc_vat,
+    hmt_epg_receipt_gbp_per_mwh,
+    payment_method_cap_factor,
+)
 from simulation.svt_rates import (
     CAP_PERIOD_START_MONTHS,
     get_svt_elec_rate_charged_to_household_gbp_per_mwh,
@@ -399,7 +404,40 @@ def build_svt_schedule(
     return segments
 
 
-def stamp_hmt_epg_receipt(records: list[dict], *, fuel: str) -> list[dict]:
+def price_segment_for_payment_method(
+    segment: dict, *, fuel: str, method_held: str | None,
+) -> dict:
+    """Re-price one SVT segment at the cap column for the method the company holds that day.
+
+    `build_svt_schedule` runs before the run loop, where no method register can be asked, so it
+    prices every segment at the published level, which is the direct-debit column. The run loop
+    asks the company's own register (`SimInterface.get_payment_method`, as of the segment's start)
+    and hands the answer here. SLC 28AD caps a prepayment default tariff at the prepayment level;
+    `price_cap_enforcement.payment_method_cap_factor` says which column binds and why the DD level
+    stands where the method's own column is higher.
+
+    `method_held` and not `payment_method`: this hands the world's re-pricer the method, not the
+    company, so it is not one of the run's company calls that
+    `test_run_phase2b_hands_the_company_its_payment_method` holds to `_company_payment_method`.
+
+    The three rate legs are re-read together so `unit = charged + receipt` still holds. A segment
+    the factor leaves at 1.0 (direct debit, standard credit, no method, pre-cap) is returned as is.
+    """
+    start = date.fromisoformat(segment["acquisition_date"])
+    if payment_method_cap_factor(fuel, start, method_held) == 1.0:
+        return segment
+    priced, charged, receipt = default_tariff_unit_rates_for_method_inc_vat(
+        fuel, start, method_held)
+    segment["unit_rate_gbp_per_mwh"] = _ex_vat(priced)
+    segment["household_charged_unit_rate_gbp_per_mwh"] = _ex_vat(charged)
+    segment["hmt_epg_receipt_gbp_per_mwh"] = _ex_vat(receipt)
+    segment["priced_for_payment_method"] = method_held
+    return segment
+
+
+def stamp_hmt_epg_receipt(
+    records: list[dict], *, fuel: str, method_held: str | None = None,
+) -> list[dict]:
     """Write HM Treasury's share of each settled default-tariff period onto its record.
 
     `revenue_gbp` is what the supplier receives, and on an SVT term during the Energy Price
@@ -418,9 +456,14 @@ def stamp_hmt_epg_receipt(records: list[dict], *, fuel: str) -> list[dict]:
     the company still bills an estimate on it at the row's tariff rate: without the rate that
     estimate charged the household the Treasury's share (8 invoices on the `88cdf35e48` run, the
     largest over by exactly cap minus EPG).
+
+    `method_held` is the one the term was priced for (`price_segment_for_payment_method`), so
+    the receipt is the method's cap less the EPG, not the DD cap's.
     """
     for rec in records:
-        receipt = hmt_epg_receipt_gbp_per_mwh(fuel, date.fromisoformat(rec["settlement_date"][:10]))
+        _day = date.fromisoformat(rec["settlement_date"][:10])
+        _rates = default_tariff_unit_rates_for_method_inc_vat(fuel, _day, method_held)
+        receipt = (hmt_epg_receipt_gbp_per_mwh(fuel, _day) if _rates is None else _rates[2])
         if receipt:
             rec["hmt_epg_receipt_gbp_per_mwh"] = _ex_vat(receipt)
             rec["hmt_epg_receipt_gbp"] = (

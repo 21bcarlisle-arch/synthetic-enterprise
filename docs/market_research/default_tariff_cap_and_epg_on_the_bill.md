@@ -48,6 +48,29 @@ bills the household the Treasury's half.
 
 **Regional level.** The cap is set per region (14 GB regions), not as one national number.
 
+**Payment method (added 27 Oct 2026).** The cap is set per payment method as well as per fuel and
+region. `docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md`: "Ofgem sets
+different cap levels for Direct Debit, standard credit and prepayment (S4)". A prepayment household
+on a default tariff is bounded by the **prepayment** level, not the direct-debit one. The published
+typical-household row in `ofgem_default_tariff_cap_windows.json` is the direct-debit column. All three
+columns, unit rate and standing charge, per fuel and window, are in
+`docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json` (`by_payment_method`,
+`gas_by_payment_method`; ex-VAT, GB median of the model's 15 rows). Read off that file:
+
+| 2019-01 to 2026-12 | electricity | gas |
+|---|---|---|
+| prepayment unit rate / DD unit rate | 0.965–0.992 in every window | 0.957–0.999, except Oct 2022 – Jun 2023, when it is 1.018–1.028 |
+| prepayment standing charge / DD standing charge | 1.095–1.200 | 1.156–1.388 |
+| standard credit / DD, both parts | at least 1.053 | at least 1.052 |
+
+**How prepayment came into the default cap, and levelisation.** Confirmed at primary in
+`docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md` (V4). The CMA's prepayment
+charge restriction expired at the end of 2020, and prepayment was then folded into the default tariff
+cap (£1,156 PPM against £1,138 DD from 1 Apr 2021). Levelisation started on 1 Apr 2024: about £49 a
+year off prepayment and £10 onto direct debit (Ofgem decision 23 Feb 2024; phase 2 paused Aug 2024).
+The published levels for Apr–Jun 2024 were £1,690 DD, £1,796 standard credit and £1,643 PPM
+(`docs/market_research/payments_and_direct_debit_2026-10-25.md`).
+
 ## GAPs
 
 - **GAP: regional cap levels.** The commons holds GB-average typical-household unit rates only.
@@ -74,6 +97,22 @@ narrowest margin is the crisis winter. Read off
 (`pass_through_p_per_kwh_ex_vat_min`). The derived gas unit rate reproduces Ofgem's published gas
 levels within 0.6% over 21 windows.
 
+- **GAP: the prepayment cap before 2021.** From April 2017 to December 2020 a prepayment household
+  was bounded by the CMA's prepayment charge restriction, not by SLC 28AD. The commons does not hold
+  its levels. The model's prepayment column for 2019–2020 is the only figure here, and the build
+  reads it from 2019. That can only lower a prepayment rate. Nothing is applied for 2017–2018.
+- **GAP: where levelisation sits in the model's columns.** The commons says levelisation equalised
+  the prepayment and DD standing charge (`pricing_differentiation_permissions.md`, D4). But the
+  model's ex-VAT prepayment standing-charge column is still 10–20% above DD for electricity, and
+  16–35% for gas, from April 2024. Either
+  the columns leave out the levelisation allowance, or the commons' one-line summary is loose. Not
+  resolved. The build does not depend on it, because it charges every method the DD standing charge
+  and DD is the lower column in every window.
+- **GAP: a move onto prepayment for debt.** The company's method register
+  (`SimInterface.get_payment_method`) answers with the method the account was set up on, or pay on
+  receipt after a stopped DD. It does not see a meter moved to prepayment for debt
+  (`simulation/payment_method_dynamics.move_to_prepayment_for_debt`), so after such a move the
+  default tariff would stay at the DD level. That route ships at 0 on the default book.
 - **GAP: a multi-register floor.** A per-register rate against the blended benchmark floor is not a
   quantity: an off-peak rate is lawfully under it.
 
@@ -102,3 +141,20 @@ levels within 0.6% over 21 windows.
    so a 0.0 receipt) takes the row's per-MWh receipt, `hmt_epg_receipt_gbp_per_mwh`, because the
    discount is per unit billed. Without it, 9 such estimates on the `88cdf35e48` run charged the
    household the Treasury's share.
+
+6. **A default tariff is priced at its payment method's column (built 27 Oct 2026).** The world's SVT
+   schedule is built before any method register can be asked, so it prices at the published DD level.
+   The run loop asks the company's own register for the method on each segment's first day. It then
+   re-prices the segment at min(the method's own column, the published DD level), reading the
+   column directly (`simulation.price_cap_enforcement.payment_method_cap_factor`,
+   `simulation.svt_product.price_segment_for_payment_method`). The EPG still bounds what the
+   household pays, so on prepayment the Treasury's receipt is the prepayment cap less the EPG.
+   **Why min() and not the method's column alone.** Where the method's column is higher (standard
+   credit, and prepayment gas in Oct 2022 – Jun 2023), charging up to it is lawful. But it is the
+   supplier's pricing choice, and taking it would raise our own revenue on a reading nobody has made,
+   so the DD level stands there. **Why read the column, not scale by a ratio.** A ratio to the
+   model's DD row carries the model's disagreement with the published level, up to 1.34%. That left
+   the Oct 2020 prepayment rate 1.36% over its own column. **Standing charge:** unchanged. Every
+   method pays the DD standing charge, which is below the prepayment and standard-credit columns in
+   every window. On the 67a893e749 book, re-priced through the new reader, `INV_UNIT_RATE_SVT_ELEC`
+   goes 496 → 0 and `INV_UNIT_RATE_SVT_GAS` goes 462 → 0.
