@@ -2384,7 +2384,8 @@ invariants:
 # The eight rows below are the first cold read's confirmed objections (2026-10-27, on the pages of run
 # 4ae8da9b0f; record: docs/staging/records/SEAT_RECORD_THE_FIRST_COLD_READ_ON_THE_4AE8DA9B0F_PAGES_2026-10-27.md).
 # The reader saw only the rendered page, never the code. Each row is checkable:false until an evaluator
-# exists, so the runner reports it UNCHECKABLE rather than clean.
+# exists, so the runner reports it UNCHECKABLE rather than clean. 2026-10-27: two have evaluators; the six
+# the raw export cannot grade name the field they lack in `missing_export_fields`.
 - id: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW
   family: price_consistency
   statement: A default (SVT) tariff is one published price per fuel, region and payment method. Two domestic accounts on the same SVT in the same region, window and payment method are billed the same unit rate and standing charge.
@@ -2402,7 +2403,10 @@ invariants:
   - payment_method
   - mpan
   checkable: false
-  gap: 'No evaluator yet. Region is not in the export. It would come from the MPAN distributor ID, and the exported MPAN cores are malformed (see INV_MPAN_CORE_FORMAT). The spread of SVTs between regions is not in the commons: the composition file carries only the GB median of 15 rows. So a cross-region bound is a GAP, and only the same-region form is stated.'
+  missing_export_fields:
+  - region
+  - contracted_terms.tariff_name
+  gap: 'Not gradeable on the raw export (2026-10-27, on the 2eeb3f0b3 book): neither region nor the tariff name is exported. The MPAN distributor ID cannot stand in: every core on that book starts 10, so it would call the whole book Eastern. The spread of SVTs between regions is not in the commons either (the composition file carries only the GB median), so a cross-region bound is a GAP and only the same-region form is stated.'
 - id: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
   family: government_scheme
   statement: Every domestic electricity account on supply in a month from October 2022 to March 2023 receives that month's Energy Bills Support Scheme credit (£66 in Oct and Nov 2022, £67 from Dec 2022 to Mar 2023, £400 over six months). Gas accounts receive none.
@@ -2418,8 +2422,8 @@ invariants:
   - adjustments.reason
   - adjustments.amount_gbp
   - adjustments.date
-  checkable: false
-  gap: 'No evaluator yet. The export carries an EBSS settlement as an adjustment with its reason (raw_account_export._money_moved). The 4ae8da9b0f book predates that, and also predates the occupier-only credit landed in d2be04371d. The traditional-prepayment voucher route (about 20% expired unredeemed) makes "received" a different question for a traditional PPM leg. That leg is a GAP.'
+  checkable: true
+  gap: 'Graded by tools/domain_invariant_runner.ev_ebss_credit from 2026-10-27, with each credit counted once (the windows overlap). The export''s reason is scheme_credit, which in this window can only be the EBSS. A month paid by prepayment is not graded: a traditional meter''s voucher route (about 20% expired unredeemed) makes received a different question, and the export cannot tell a smart meter from a traditional one (GAP).'
 - id: INV_RENEWAL_NOTICE_42_TO_49_DAYS
   family: renewal_compliance
   statement: The end-of-fixed-term notice for a domestic fixed tariff is sent no earlier than 49 and no later than 42 days before the term ends. The supplier's renewal decision, its offer, is therefore made on or before that notice, never on the expiry date.
@@ -2433,7 +2437,9 @@ invariants:
   - contracted_terms.tariff_effective_to
   - renewal_notices.date
   checkable: false
-  gap: 'No evaluator, and the export carries no renewal-notice record. The decision date is in the company''s decision log, not the raw export. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP).'
+  missing_export_fields:
+  - renewal_notices.date
+  gap: 'Not gradeable on the raw export: no renewal-notice record is exported, and the decision date is in the company''s decision log. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP).'
 - id: INV_OVERDUE_WITHIN_BALANCE
   family: account_arithmetic
   statement: The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date. An account with a debt stage open has at least one missed or returned collection, or an unpaid bill past its due date.
@@ -2447,7 +2453,10 @@ invariants:
   - payments
   - periods.due_date
   checkable: false
-  gap: 'No evaluator. The export carries no dated balance or overdue series, so it must be re-derived from bills and payments. The debt stage lives in the collections record, not the raw export.'
+  missing_export_fields:
+  - periods.due_date
+  - a dated overdue and balance series
+  gap: 'Not gradeable on the raw export: it carries no due date and no dated balance or overdue series, and it cannot re-derive one because bill amounts are money the company worked out, kept out of the export by design. The debt stage lives in the collections record.'
 - id: INV_ESTIMATE_RUN_WITHIN_TENURE
   family: read_history
   statement: A run of consecutive estimated bills on one fuel cannot be longer than the bills that fuel has had since it joined. A household described as never read has no actual read on that fuel.
@@ -2461,7 +2470,9 @@ invariants:
   - periods.read_type
   - periods.period_end
   checkable: false
-  gap: 'No evaluator. The raw export holds the periods, so this can be checked. The defect may instead be in the page''s counter, which seems to count both fuels'' bills as one run (O28 shows a per-fuel count printed as the account''s). Which of the two it is, is not yet established.'
+  missing_export_fields:
+  - the page's per-fuel estimate-run count
+  gap: 'Not gradeable on the raw export, and no evaluator is written for it: the export is one fuel per account, so a run of estimated periods is a sub-run of that leg''s own periods and the predicate holds by construction. An evaluator could not fire. O28 points at the page''s counter adding both fuels'' bills into one run, so the check belongs on the page''s printed count, which the raw export does not carry.'
 - id: INV_COLLECTIONS_EVENTS_ORDERED
   family: collections_sequence
   statement: A collections journey runs in order. The missed payment or unpaid bill that opens it comes first, then reminders, then a payment plan (SLC 27 ability-to-pay), then repayment, write-off or referral. No step is dated before the event that opens the journey.
@@ -2474,7 +2485,9 @@ invariants:
   export_fields:
   - collections.events
   checkable: false
-  gap: 'No evaluator, and collections events are not in the raw export.'
+  missing_export_fields:
+  - collections.events
+  gap: 'Not gradeable on the raw export: collections events are not exported.'
 - id: INV_STATUTE_BARRED_WRITE_OFF_AGE
   family: debt_limitation
   statement: A domestic debt written off as statute-barred is at least six years past its cause of action (England and Wales; five in Scotland). That is the due date of each bill in it, restarted by a part-payment or an acknowledgement. Bills that fell due after the last part-payment carry their own later dates.
@@ -2490,7 +2503,10 @@ invariants:
   - periods.due_date
   - payments.payment_date
   checkable: false
-  gap: 'No evaluator. The book-wide count of early write-offs is in docs/staging/SEAT_FINDING_A_STATUTE_BARRED_WRITE_OFF_LANDS_BEFORE_SIX_YEARS_AND_REPEATS_MONTHLY_2026-10-26.md (24 of 602). This row adds the per-bill form, which that finding does not test. The household''s jurisdiction is not in the export, so the Scottish five years cannot be applied (GAP).'
+  missing_export_fields:
+  - adjustments.reason (a write-off)
+  - periods.due_date
+  gap: 'Not gradeable on the raw export: its only adjustment reason is scheme_credit, so a write-off and its reason are not exported, and neither is a bill''s due date. The book-wide count of early write-offs is in docs/staging/SEAT_FINDING_A_STATUTE_BARRED_WRITE_OFF_LANDS_BEFORE_SIX_YEARS_AND_REPEATS_MONTHLY_2026-10-26.md (24 of 602); this row adds the per-bill form. The household''s jurisdiction is not exported, so the Scottish five years cannot be applied (GAP).'
 - id: INV_MPAN_CORE_FORMAT
   family: event_fuel_consistency
   statement: An electricity supply point's MPAN core is 13 digits. The first two are the distributor ID (10-23), and the last is a check digit over the first twelve. Its region is the distributor's.
@@ -2502,5 +2518,5 @@ invariants:
     violation: breach
   export_fields:
   - mpan
-  checkable: false
-  gap: 'No evaluator, and the source is not yet in docs/domain_artefact_library. Write the commons page first (K8), then the evaluator. The check-digit algorithm is not established here.'
+  checkable: true
+  gap: 'Graded by tools/domain_invariant_runner.ev_mpan_core_format from 2026-10-27. The commons page is now docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md, read in a secondary source; the primary text of the check digit is still a GAP. That page also finds IDNO distributor IDs from 24 upward, so a real IDNO-connected MPAN breaches the 10-23 range here. No book draws one yet.'

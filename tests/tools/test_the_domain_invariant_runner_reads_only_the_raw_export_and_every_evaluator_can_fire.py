@@ -66,12 +66,18 @@ INVARIANTS = [
     {"id": "INV_PPM_NOT_CREDIT_BILLED"},
     {"id": "INV_REGISTER_ID_ONE_LABEL"},
     {"id": "INV_SERIAL_REGISTER_COUNT_STABLE"},
+    {"id": "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23"},
+    {"id": "INV_MPAN_CORE_FORMAT"},
 ]
 #: Evaluators this fixture does not reach, each with why. Neither may grow without a reason.
 NOT_REACHED_BY_THE_FIXTURE = {
     "INV_ANNUAL_USE_BOOK_MEDIAN": "a book median needs ten account-years per TDCV row",
     "INV_CROSS_FUEL_PRICE_SCALE": "it takes its rows from the two SVT invariants; tested on its own below",
 }
+
+
+#: Thirteen digits, Eastern (10), and its check digit (0) by the published weights.
+VALID_MPAN = "1000000000110"
 
 
 def _months(year=2020):
@@ -98,7 +104,7 @@ def _account(cid, fuel, *, rate, tariff="svt", sc=0.25, kwh_per_month=250.0, met
         periods.append({
             "commodity": fuel, "period_start": start, "period_end": end,
             "days_in_period": (runner._d(end) - runner._d(start)).days + 1,
-            "mpan": "1" if fuel == "electricity" else None, "mprn": "2" if fuel == "gas" else None,
+            "mpan": VALID_MPAN if fuel == "electricity" else None, "mprn": "2" if fuel == "gas" else None,
             "meter_serial": "M" + cid, "standing_charge_gbp_per_day": sc, "reads": reads,
             "volume_basis": "reads", "consumption_kwh": kwh_per_month * len(registers),
             "unit_rate_p_per_kwh": rate, "vat_rate": 0.05, "document_type": "bill",
@@ -125,7 +131,28 @@ def _clean_book():
     }
     for p in book["P"]["periods"]:
         p["document_type"] = "prepayment_statement"
+    book.update(_ebss_pair())
     return book
+
+
+def _ebss_pair():
+    """A household on supply through 2022 into 2023: electricity credited each month, gas nothing.
+    Each credit is dated in the month after, so the row's overlapping windows hold two months."""
+    elec = _account("EB", "electricity", rate=15.0, year=2022)
+    gas = _account("GB", "gas", rate=3.0, kwh_per_month=900.0, year=2022)
+    for acct in (elec, gas):
+        more = _account(acct["customer_id"], acct["periods"][0]["commodity"],
+                        rate=acct["periods"][0]["unit_rate_p_per_kwh"], year=2023,
+                        start_read=acct["periods"][-1]["reads"][1]["read_kwh"],
+                        kwh_per_month=900.0 if acct is gas else 250.0)
+        acct["periods"] += more["periods"][:3]
+        acct["payments"] += more["payments"][:3]
+        acct["adjustments"] = []
+    elec["adjustments"] = [{"adjustment_date": d, "adjustment_amount_gbp": a,
+                            "adjustment_reason": "scheme_credit"}
+                           for d, a in (("2022-11-05", 66.0), ("2022-12-05", 66.0), ("2023-01-05", 67.0),
+                                        ("2023-02-05", 67.0), ("2023-03-05", 67.0), ("2023-04-05", 67.0))]
+    return {"EB": elec, "GB": gas}
 
 
 def _late_reader():
@@ -206,6 +233,10 @@ def _broken_book():
     #                                                                 and under its own levies
     g[1]["consumption_kwh"] += 50.0                                 # billed more than was read
     e[0]["vat_rate"] = 0.20                                         # domestic at the standard rate
+    book["EB"]["adjustments"].pop(2)                                # Dec 2022's credit never arrives
+    book["GB"]["adjustments"] = [dict(book["EB"]["adjustments"][0])]  # a gas account credited
+    for p in e:
+        p["mpan"] = "1000000000116"                                 # check digit 6, not 0
     book["R"] = _relabelled()                                       # one register, two identities;
     #                                                                 a register set moving mid-period
     return book                                                     # E's prepayment months were
@@ -465,3 +496,34 @@ def test_a_held_month_the_next_bill_takes_up_closes_the_gap_and_an_untaken_one_d
     }
     assert {k: r["status"] for k, r in legs.items()} == {
         "taken_up": "CLEAN", "unnamed": "BREACHED", "half_named": "BREACHED"}
+
+
+def test_every_leg_of_the_ebss_row_is_reachable():
+    """A credit short, a credit doubled, a gas credit and a prepayment month each grade apart."""
+    inv = [{"id": "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23"}]
+    book = _ebss_pair()
+    clean = _results(book, inv)["INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23"]
+    assert (clean["status"], clean["checked"]) == ("CLEAN", 12), clean
+    book["EB"]["adjustments"][0]["adjustment_amount_gbp"] = 40.0         # Oct short
+    book["EB"]["adjustments"].append(dict(book["EB"]["adjustments"][3]))  # Jan doubled
+    book["GB"]["adjustments"] = [dict(book["EB"]["adjustments"][1])]      # gas credited
+    sides = sorted((b["where"].split()[1], b["side"])
+                   for b in runner.ev_ebss_credit(None, [runner.Account(k, v) for k, v in book.items()]).breaches)
+    assert sides == [("electricity", "above"), ("electricity", "below"), ("gas", "above")], sides
+    book = _ebss_pair()
+    book["EB"]["payments"] = [dict(p, payment_method="prepayment") for p in book["EB"]["payments"]]
+    pp = _results(book, inv)["INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23"]
+    assert (pp["checked"], pp["unbounded"]) == (6, 6), pp                # the row's own GAP
+
+
+def test_every_leg_of_the_mpan_row_is_reachable():
+    def grade(core):
+        acct = _account("X", "electricity", rate=15.0)
+        for p in acct["periods"]:
+            p["mpan"] = core
+        return [b["side"] for b in runner.ev_mpan_core_format(None, [runner.Account("X", acct)]).breaches]
+    assert grade(VALID_MPAN) == []
+    assert grade("19494047720") == ["format"]                            # O31: eleven digits
+    assert grade("2400000000010") == ["format"]                          # distributor 24
+    assert grade("1000000000116") == ["check digit"]
+    assert runner.mpan_check_digit("100000000011") == 0
