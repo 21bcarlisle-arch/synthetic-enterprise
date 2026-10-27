@@ -169,6 +169,41 @@ whole bill with no method, and its status was `overdue`: 218 bills on 4ae8da9b0f
 - The ledger now gives such a bill the method `scheme_credit` and the status `paid`.
 - The raw export treats it as an **adjustment**: money credited to the account, with that reason.
   It is not a payment.
-- **GAP:** a bill the credit covered only in part is still recorded as the household paying the
-  whole bill. The ledger never nets the credit from the household's payment. This is next step (b)
-  of the blind-suite finding's export section.
+- A bill the credit covered only in part was still recorded as the household paying the whole
+  bill. That was next step (b) of the blind-suite finding's export section; the section below
+  closes it.
+
+## A bill the credit covered in part (2026-10-27)
+
+**What published practice says.** The credit went onto the account balance, not onto a payment.
+- *Pay on receipt (standard credit).* The credit was added to the account balance in the first week
+  of each month, October to March. The bill that followed showed it. The household paid the
+  balance, so it paid the bill less the credit.
+- *Direct debit.* Practice varied by supplier. OVO credited the account and then refunded the credit
+  to the customer's bank account 3 to 5 working days after the direct debit cleared. Other suppliers
+  left it on the account as credit, or lowered the direct debit.
+- *Every route.* The credit was the government's money, reclaimed by the supplier. It was never a
+  payment by the household.
+
+Sources: OVO Energy, "Energy Bills Support Scheme" (ovoenergy.com/energy-bills-support-scheme);
+The Star, "Energy bills: How £400 government discount will be paid to you, according to your
+supplier" (2022); the HMG fact sheet for the scheme as republished by CPCT.
+
+**The choices the build makes, and why.**
+1. **The household pays the bill less the credit.** That is how the pay-on-receipt route worked. It
+   is also what the arrears engine and the DD collection book already ask of every route
+   (`owed_after_scheme_credit`). The ledger now records the same figure as the payment.
+2. **The credit is recorded beside the payment as `scheme_credit_gbp`.** The raw export reads it as
+   an adjustment, and the household's account ledger shows it as a credit that lowers the balance
+   and is not counted as collected. Billed = collected + scheme credit + balance + written off.
+3. **No more credit than the bill on that bill.** What is left over stays on the account. The
+   engine nets it from the next bill on that fuel (`credits_applied`).
+
+**What is unknown.**
+- **GAP:** the rule for a bill smaller than the month's credit. No published source fetched for
+  this page says whether the rest had to carry forward or could be refunded. Ofgem's "Energy Bills
+  Support Scheme: Guidance for Electricity Suppliers" should say; it was not fetched.
+- **GAP:** for direct debit, the world nets the credit from the month's collection. A supplier that
+  kept collecting the fixed amount and refunded the credit, as OVO did, moved the same pounds by a
+  different route. The account balance comes out the same either way. The cash flow by day does
+  not, and that difference is not modelled.

@@ -354,15 +354,23 @@ def _money_moved(ledger_payments: list[dict]) -> tuple[list[dict], list[dict]]:
       * a FAILED or disputed collection received nothing, so it is not a payment; a mover's final
         bill paid in part exports the part it received;
       * a bill the government's credit (EBSS) settled whole: the household paid nothing and the
-        account was credited, so it is an ADJUSTMENT with its reason, not a payment by nobody.
+        account was credited, so it is an ADJUSTMENT with its reason, not a payment by nobody;
+      * a bill the credit covered in part (2026-10-27): the credit is an adjustment and the
+        household's payment is the rest. The ledger row's `scheme_credit_gbp` is the credit and
+        its amount is what the household paid. A ledger from before that carries neither split, so
+        its whole-settled rows still read their amount as the credit.
     """
     payments, adjustments = [], []
     for p in ledger_payments:
         when = p.get("payment_date") or p.get("date")
         amount = p.get("amount_gbp", p.get("amount"))
-        if p.get("method") == SCHEME_CREDIT:
-            adjustments.append({"adjustment_date": when, "adjustment_amount_gbp": amount,
+        credit = p.get("scheme_credit_gbp")
+        if credit is None and p.get("method") == SCHEME_CREDIT:
+            credit, amount = amount, 0.0
+        if credit:
+            adjustments.append({"adjustment_date": when, "adjustment_amount_gbp": credit,
                                 "adjustment_reason": SCHEME_CREDIT})
+        if p.get("method") == SCHEME_CREDIT:
             continue
         if p.get("outcome") in ("failed", "dispute"):
             amount = p.get("part_paid_gbp") or 0.0

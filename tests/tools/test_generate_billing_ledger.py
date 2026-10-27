@@ -576,3 +576,25 @@ def test_the_ledger_is_written_outside_the_cloudflare_site():
     import tools.generate_billing_ledger as gbl
     site = (gbl.PROJECT / "site").resolve()
     assert site not in gbl.OUT_PATH.resolve().parents, gbl.OUT_PATH
+
+
+def test_a_bill_the_ebss_covered_in_part_is_paid_by_the_household_only_for_the_rest(tmp_path):
+    """The engine asks the household for the bill less the government's credit
+    (`owed_after_scheme_credit`), but the ledger wrote the payment as the whole bill: on 4ae8da9b0f,
+    1,100 part-covered bills overstated what households paid by GBP 73,353.00 (the 2026-10-27
+    finding). One partition, every branch taken: covered in part (the rest is paid), covered whole
+    (nothing is paid), and gas, which the scheme never credited.
+    MUTATIONS: pay `printed_total` again, or drop the `min` against the bill, and this fails.
+    """
+    bills = [_bill("C_EB1", "2022-11-30", 100.0, "resi"), _bill("C_EB2", "2022-12-31", 40.0, "resi"),
+             dict(_bill("C_EB3g", "2022-11-30", 100.0, "resi"), commodity="gas")]
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run(bills)))
+    customers = generate(rj, tmp_path / "l.json")["customers"]
+    part, whole, gas = (customers[c]["payments"][0] for c in ("C_EB1", "C_EB2", "C_EB3g"))
+    assert (part["amount_gbp"], part["scheme_credit_gbp"]) == (34.0, 66.0)
+    assert part["method"] != "scheme_credit"
+    assert customers["C_EB1"]["invoices"][0]["total_amount_gbp"] == 100.0  # the charge is unchanged
+    assert (whole["amount_gbp"], whole["scheme_credit_gbp"], whole["method"]) == (0.0, 40.0,
+                                                                                   "scheme_credit")
+    assert gas["amount_gbp"] == 100.0 and "scheme_credit_gbp" not in gas

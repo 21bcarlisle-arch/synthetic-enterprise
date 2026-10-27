@@ -40,6 +40,8 @@ def _combined_ledger_totals(elec, gas):
         collected=get(e, "total_collected_gbp") + get(g, "total_collected_gbp"),
         written_off=get(e, "total_written_off_gross_gbp") + get(g, "total_written_off_gross_gbp"),
         recovered=get(e, "total_recovered_gbp") + get(g, "total_recovered_gbp"),
+        scheme_credit=(get(e, "total_scheme_credit_gbp") if e and "total_scheme_credit_gbp" in e else 0)
+        + (get(g, "total_scheme_credit_gbp") if g and "total_scheme_credit_gbp" in g else 0),
     )
 
 
@@ -66,7 +68,7 @@ def test_reconciliation_identity_holds_across_full_live_book():
     checked = 0
     for base, hh in households.items():
         t = _combined_ledger_totals(hh.get("elec"), hh.get("gas"))
-        lhs = round(t["collected"] + t["balance"] + t["written_off"], 2)
+        lhs = round(t["collected"] + t["scheme_credit"] + t["balance"] + t["written_off"], 2)
         assert abs(lhs - round(t["billed"], 2)) < 0.02, (
             base + " reconciliation mismatch: " + str(t) + " lhs=" + str(lhs)
         )

@@ -400,6 +400,27 @@ def test_a_payment_is_money_the_household_paid_and_a_scheme_credit_is_an_adjustm
     ]
     assert out["adjustments"] == [{"adjustment_date": "2022-11-20", "adjustment_amount_gbp": 53.05,
                                    "adjustment_reason": rx.SCHEME_CREDIT}]
+
+
+def test_a_bill_the_scheme_covered_in_part_exports_the_credit_and_the_households_rest():
+    """The ledger now splits a part-covered bill: `amount_gbp` is what the household paid and
+    `scheme_credit_gbp` the credit (1,100 bills on 4ae8da9b0f exported the whole bill as paid). A
+    failed one still received the credit, and nothing from the household.
+    MUTATION: drop the `scheme_credit_gbp` read and the adjustments go missing.
+    """
+    rows = [
+        {"payment_date": "2022-12-20", "amount_gbp": 34.0, "scheme_credit_gbp": 66.0,
+         "method": "direct_debit", "outcome": "success"},
+        {"payment_date": "2023-01-20", "amount_gbp": 0.0, "scheme_credit_gbp": 40.0,
+         "method": rx.SCHEME_CREDIT, "outcome": "credit"},
+        {"payment_date": "2023-02-20", "amount_gbp": 80.0, "scheme_credit_gbp": 67.0,
+         "method": "standard_credit", "outcome": "failed"},
+    ]
+    out = rx.raw_account("C8", {"segment": "resi", "invoices": [], "payments": rows})
+    assert out["payments"] == [
+        {"payment_date": "2022-12-20", "payment_amount_gbp": 34.0, "payment_method": "direct_debit"}]
+    assert [a["adjustment_amount_gbp"] for a in out["adjustments"]] == [66.0, 40.0, 67.0]
+    assert rx.derived_leaks(out) == []
     assert all(p["payment_amount_gbp"] and p["payment_method"] for p in out["payments"])
     assert rx.derived_leaks(out) == []
 

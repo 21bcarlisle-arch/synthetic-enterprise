@@ -44,8 +44,8 @@ _NOTE_STAGES = {"DD_FAILED": "payment_failed", "INVOICE_DISPUTED": "invoice_disp
                 "CREDIT_APPLIED": "credit_applied"}
 _RESOLVED_STAGES = {"RESOLVED", "PAYMENT_PLAN_AGREED"}
 _TYPE_ORDER = {"invoice_raised": 0, "payment_failed": 1, "invoice_disputed": 1,
-               "payment_received": 1, "notice": 2, "credit_applied": 2, "arrears_resolved": 3,
-               "write_off": 3, "recovery_note": 4}
+               "payment_received": 1, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
+               "arrears_resolved": 3, "write_off": 3, "recovery_note": 4}
 
 
 def _book_as_of_date(ledger_customers):
@@ -69,6 +69,18 @@ def build_account_ledger(cust, as_of):
         })
         arr = arrears.get(num)
         pay = payments.get(num)
+        # The government's bill credit (EBSS) the account received for this bill. Not money the
+        # household paid, so it lowers the balance without counting as collected. Without it a
+        # bill the credit settled whole stood owed for ever, and one it covered in part was paid
+        # in full (the 2026-10-27 finding). A ledger from before carried the credit as the amount.
+        scheme = pay and (pay.get("scheme_credit_gbp")
+                          or (pay["amount_gbp"] if pay.get("method") == "scheme_credit" else 0.0))
+        if scheme and inv["issue_date"] <= as_of:
+            entries.append({
+                "date": inv["issue_date"], "type": "scheme_credit", "invoice_number": num,
+                "amount_gbp": round(-scheme, 2), "info_amount_gbp": None,
+                "method": None, "description": "Energy Bills Support Scheme credit",
+            })
         if arr is None:
             # A bill the account's credit wholly covered asked for nothing, so nothing was received.
             if (pay and pay["outcome"] == "success" and pay["payment_date"] <= as_of
@@ -134,6 +146,8 @@ def build_account_ledger(cust, as_of):
     total_collected = round(sum(-e["amount_gbp"] for e in entries
                                  if e["type"] in ("payment_received", "arrears_resolved")), 2)
     total_written_off = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "write_off"), 2)
+    total_scheme_credit = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "scheme_credit"),
+                                2)
     total_recovered = round(sum(e["info_amount_gbp"] or 0.0 for e in entries
                                  if e["type"] == "recovery_note"), 2)
     current_balance = entries[-1]["running_balance_gbp"] if entries else 0.0
@@ -145,6 +159,8 @@ def build_account_ledger(cust, as_of):
         "total_billed_gbp": total_billed,
         "total_collected_gbp": total_collected,
         "total_written_off_gross_gbp": total_written_off,
+        # Billed = collected + scheme credit + balance + written off.
+        "total_scheme_credit_gbp": total_scheme_credit,
         "total_recovered_gbp": total_recovered,
     }
 
