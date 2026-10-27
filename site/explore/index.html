@@ -502,6 +502,47 @@ function drawSpine() {
 }
 
 /* ---------- the running wall strip ---------- */
+/* THE JUDGED FIGURES, one source per side (cold read O25, O26). The household's side is the payment
+   ledger, VAT included: "Paid in total" once summed `revenue_gbp`, the supplier's ex-VAT revenue, so it
+   equalled "Revenue billed" on every account whatever was collected. The supplier's side is each leg's
+   own P&L summed over every leg, where the page once put the household's combined gross beside the
+   electricity leg's cost to serve and net, and printed no net at all. Each "less" row is the
+   difference of the rows around it, so the column foots by construction. Two functions, not one, so
+   each panel reads only its own side; the company-only figures keep their record names so the
+   wall-side check (tools/explore_wall_sides.py) can see where they print. */
+function householdFigures(c, fuels) {
+  var hhFig = {kwh: 0, rates: [], billed: 0, paid: 0, scheme: 0, writtenOff: 0, balance: 0, asOf: null};
+  Object.keys(fuels || {}).forEach(function (fuel) {
+    var led = (fuels[fuel] || {}).ledger || {}, leg = (c.legs || {})[fuel] || {};
+    var kwh = leg.total_kwh || 0, billed = led.total_billed_gbp || 0;
+    hhFig.kwh += kwh;
+    hhFig.rates.push({fuel: fuel, p: kwh ? billed * 100 / kwh : null});
+    hhFig.billed += billed;
+    hhFig.paid += led.total_collected_gbp || 0;
+    hhFig.scheme += led.total_scheme_credit_gbp || 0;
+    hhFig.writtenOff += led.total_written_off_gross_gbp || 0;
+    hhFig.balance += led.current_balance_gbp || 0;
+    if (led.as_of_date && (!hhFig.asOf || led.as_of_date > hhFig.asOf)) hhFig.asOf = led.as_of_date;
+  });
+  return hhFig;
+}
+
+function supplierFigures(fuels) {
+  var supFig = {revenue: 0, gross: 0, net: 0, cost_to_serve_gbp: 0, lifetime_net_after_cts_gbp: 0, legs: 0};
+  Object.keys(fuels || {}).forEach(function (fuel) {
+    var d = fuels[fuel] || {};
+    supFig.legs += 1;
+    supFig.revenue += d.lifetime_revenue_gbp || 0;
+    supFig.gross += d.lifetime_gross_gbp || 0;
+    supFig.net += d.lifetime_net_gbp || 0;
+    supFig.cost_to_serve_gbp += d.cost_to_serve_gbp || 0;
+    supFig.lifetime_net_after_cts_gbp += d.lifetime_net_after_cts_gbp || 0;
+  });
+  supFig.wholesale = supFig.revenue - supFig.gross;
+  supFig.pass = supFig.gross - supFig.net;
+  return supFig;
+}
+
 function setWall(truth, belief) { $("wall-truth").innerHTML = truth; $("wall-belief").innerHTML = belief; }
 
 /* ---------- helpers over one account ---------- */
@@ -875,20 +916,7 @@ function stagePaid(d, c) {
 
 function stageJudged(d, c, fuels) {
   var outcomes = (d.reaction_chain || []).filter(function (e) { return e.company_belief !== null && e.company_belief !== undefined; });
-  var comb = c.combined || {};
-  // FOR THEM. The brief asks for two verdicts side by side; until now only the supplier's was
-  // here, which quietly made the page about the company. Both figures come from the household's
-  // own legs, so a dual-fuel home is judged on what it actually took across both meters.
-  var themKwh = 0, themPaid = 0;
-  Object.keys(fuels || {}).forEach(function (f) {
-    themKwh += (c.legs[f] || {}).total_kwh || 0;
-    themPaid += (c.legs[f] || {}).revenue_gbp || 0;
-  });
-  if (!themKwh) {
-    themKwh = ((c.legs.electricity || c.legs.gas) || {}).total_kwh || 0;
-    themPaid = comb.revenue_gbp || 0;
-  }
-  var themRate = themKwh ? (themPaid * 100 / themKwh) : null;
+  var them = householdFigures(c, fuels), us = supplierFigures(fuels);
   var lastO = outcomes.length ? outcomes[outcomes.length - 1] : null;
   setWall(
     lastO ? "This household's real chance of leaving at its last renewal was <b>" + pct(lastO.sim_truth) + "</b>." :
@@ -907,24 +935,37 @@ function stageJudged(d, c, fuels) {
     '<div class="cols">' +
     panel("customer", "For them",
       '<div class="table-scroll"><table><tbody>' +
-    "<tr><td>Energy taken</td><td class=\"n\">" + num(themKwh, 0) + " kWh</td></tr>" +
-    "<tr><td>Paid in total</td><td class=\"n\">" + gbp(themPaid) + "</td></tr>" +
-    "<tr><td>Average paid</td><td class=\"n\">" +
-      (themRate === null ? "\u2014" : themRate.toFixed(2) + " p/kWh") + "</td></tr>" +
+    "<tr><td>Energy taken</td><td class=\"n\">" + num(them.kwh, 0) + " kWh</td></tr>" +
+    them.rates.map(function (r) {
+      return "<tr><td>Average billed, " + esc(r.fuel) + "</td><td class=\"n\">" +
+        (r.p === null ? "\u2014" : r.p.toFixed(2) + " p/kWh") + "</td></tr>";
+    }).join("") +
+    "<tr><td>Billed, VAT included</td><td class=\"n\">" + gbp(them.billed) + "</td></tr>" +
+    "<tr><td>Paid in total</td><td class=\"n\">" + gbp(them.paid) + "</td></tr>" +
+    (them.scheme ? "<tr><td>Government bill credit</td><td class=\"n\">" + gbp(them.scheme) + "</td></tr>" : "") +
+    (them.writtenOff ? "<tr><td>Written off</td><td class=\"n\">" + gbp(them.writtenOff) + "</td></tr>" : "") +
+    "<tr><td>Owed on " + dt(them.asOf) + "</td><td class=\"n\">" + gbp(them.balance) + "</td></tr>" +
     '</tbody></table></div><p style="font-size:12px;color:var(--muted);margin-top:8px">' +
-    "What they would have paid elsewhere is <b>not shown, because it is not known</b>: this " +
-    "simulation contains one supplier, so there is no rival tariff to compare against. Saying so " +
-    "is worth more than a number invented for the comparison.</p>") +
+    "From the payment ledger: what was billed is what was paid, plus any government credit and " +
+    "write-off, plus what is still owed. What they would have paid elsewhere is <b>not shown, because " +
+    "it is not known</b>: this simulation contains one supplier, so there is no rival tariff to " +
+    "compare against.</p>") +
     panel("company", "For us",
       '<div class="table-scroll"><table><tbody>' +
-    "<tr><td>Revenue billed</td><td class=\"n\">" + gbp(comb.revenue_gbp) + "</td></tr>" +
-    "<tr><td>Gross margin</td><td class=\"n\">" + gbp(comb.gross_gbp) + "</td></tr>" +
-    "<tr><td>Cost to serve</td><td class=\"n\">" + gbp(d.cost_to_serve_gbp) + "</td></tr>" +
-    "<tr><td>Net after cost to serve</td><td class=\"n\">" + gbp(d.lifetime_net_after_cts_gbp) + "</td></tr>" +
+    "<tr><td>Revenue, before VAT</td><td class=\"n\">" + gbp(us.revenue) + "</td></tr>" +
+    "<tr><td>less wholesale energy</td><td class=\"n\">" + gbp(us.wholesale) + "</td></tr>" +
+    "<tr><td>Gross margin</td><td class=\"n\">" + gbp(us.gross) + "</td></tr>" +
+    "<tr><td>less network, policy and capital</td><td class=\"n\">" + gbp(us.pass) + "</td></tr>" +
+    "<tr><td>Net margin</td><td class=\"n\">" + gbp(us.net) + "</td></tr>" +
+    "<tr><td>less cost to serve</td><td class=\"n\">" + gbp(us.cost_to_serve_gbp) + "</td></tr>" +
+    "<tr><td>Net after cost to serve</td><td class=\"n\">" + gbp(us.lifetime_net_after_cts_gbp) + "</td></tr>" +
     "</tbody></table>" +
-    "<p style=\"font-size:12px;color:var(--muted);margin-top:8px\">Cost to serve is what it costs to have this " +
-    "account at all — billing it, answering it, collecting from it. A flat margin on the unit rate can be wiped " +
-    "out entirely by it on a low-use account.</p>") +
+    "<p style=\"font-size:12px;color:var(--muted);margin-top:8px\"><b>Gross margin</b> is revenue less the " +
+    "wholesale energy bought for this home only. Network charges, government levies and the cost of capital " +
+    "are still inside it, which is why it looks large. <b>Net margin</b> takes those out. <b>Cost to serve</b> " +
+    "is what it costs to have the account at all: billing it, answering it, collecting from it. Each fuel is " +
+    "its own account, so a dual-fuel home carries two. Summed over " +
+    (us.legs > 1 ? "both fuels" : "the one fuel") + ".</p>") +
     /* SIM, not company: this panel prints `sim_truth` beside the company's belief, and sim_truth
        is the household's real churn disposition -- a figure no supplier can read. Attributing
        this panel to the company would be exactly the leak SITE2 exit 3 names, which is why
@@ -1476,7 +1517,8 @@ function selectCustomer(group) {
       "<span><b>" + esc(c.segment) + "</b> household</span>" +
       "<span>with the supplier since <b>" + dt(c.acquisition_date) + "</b></span>" +
       "<span><b>" + (c.fuels || []).join(" + ") + "</b></span>" +
-      "<span><b>" + (d.invoices || []).length + "</b> bills issued</span>";
+      "<span><b>" + ds.reduce(function (n, x) { return n + (x.invoices || []).length; }, 0) +
+      "</b> bills issued</span>";
     render();
   }).catch(function (e) {
     $("stage").innerHTML = "<p>This household's records could not be loaded. Nothing is shown rather " +

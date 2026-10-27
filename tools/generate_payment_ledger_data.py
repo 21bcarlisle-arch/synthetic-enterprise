@@ -73,8 +73,13 @@ def build_account_ledger(cust, as_of):
         # household paid, so it lowers the balance without counting as collected. Without it a
         # bill the credit settled whole stood owed for ever, and one it covered in part was paid
         # in full (the 2026-10-27 finding). A ledger from before carried the credit as the amount.
-        scheme = pay and (pay.get("scheme_credit_gbp")
-                          or (pay["amount_gbp"] if pay.get("method") == "scheme_credit" else 0.0))
+        # The month's WHOLE credit, where the ledger carries it, as the raw export posts it: the
+        # payment's share is capped at the bill, and the rest is the account's credit that later
+        # bills draw on (`credit_applied_gbp`). Posting only the share left the bills that credit
+        # settled standing owed for ever (cold read O27, OCC-f6813bf9f05e: £92.19 of 2023 bills).
+        scheme = inv.get("scheme_credit_month_gbp") or (pay and (
+            pay.get("scheme_credit_gbp")
+            or (pay["amount_gbp"] if pay.get("method") == "scheme_credit" else 0.0)))
         if scheme and inv["issue_date"] <= as_of:
             entries.append({
                 "date": inv["issue_date"], "type": "scheme_credit", "invoice_number": num,

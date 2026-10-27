@@ -4,13 +4,12 @@ recovery) with a running balance, patched onto site/data/customers/<cid>.json,
 built from the same real billing_ledger.json invoices/payments/arrears_history
 already used by generate_invoice_data.py / generate_billing_ledger.py."""
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.generate_payment_ledger_data import build_account_ledger, _book_as_of_date
-
+from tools.generate_payment_ledger_data import _book_as_of_date, build_account_ledger
 
 _INV_PAID = dict(invoice_number=1, issue_date="2020-01-31", total_amount_gbp=100.0)
 _PAY_SUCCESS = dict(invoice_number=1, payment_date="2020-02-14", amount_gbp=100.0,
@@ -255,3 +254,29 @@ def test_the_scheme_credit_lowers_the_balance_and_is_not_collected():
     assert ledger["total_scheme_credit_gbp"] == 106.0
     assert [e["type"] for e in ledger["entries"]] == [
         "invoice_raised", "scheme_credit", "payment_received", "invoice_raised", "scheme_credit"]
+
+
+def test_the_months_whole_scheme_credit_is_posted_so_the_bills_it_later_settles_are_not_owed():
+    """Cold read O27 (OCC-f6813bf9f05e): a GBP 67 month on a GBP 34.69 bill. The payment's share is
+    capped at the bill and the engine carries the rest as the account's credit, which settles a later
+    bill (`credit_applied_gbp`). Posting only the share left that later bill owed for ever; the
+    account sat at GBP 92.19 for two years with nothing chasing it. Both partitions: a month whose
+    credit the bill used whole, and one whose excess a later bill drew down."""
+    invoices = [dict(invoice_number=1, issue_date="2023-02-02", total_amount_gbp=34.69,
+                     scheme_credit_month_gbp=67.0),
+                dict(invoice_number=2, issue_date="2023-03-03", total_amount_gbp=50.0,
+                     scheme_credit_month_gbp=50.0),
+                dict(invoice_number=3, issue_date="2023-05-01", total_amount_gbp=40.0)]
+    payments = [dict(invoice_number=1, payment_date="2023-02-16", amount_gbp=0.0,
+                     scheme_credit_gbp=34.69, method="scheme_credit", outcome="credit"),
+                dict(invoice_number=2, payment_date="2023-03-17", amount_gbp=0.0,
+                     scheme_credit_gbp=50.0, method="scheme_credit", outcome="credit"),
+                dict(invoice_number=3, payment_date="2023-05-15", amount_gbp=7.69,
+                     method="direct_debit", outcome="success", credit_applied_gbp=32.31)]
+    ledger = build_account_ledger(_cust(invoices, payments), as_of="2025-01-01")
+    assert ledger["current_balance_gbp"] == 0.0
+    assert ledger["total_scheme_credit_gbp"] == 117.0
+    assert ledger["total_collected_gbp"] == 7.69
+    entries = ledger["entries"]
+    # The excess shows as credit on the statement until the later bill uses it.
+    assert entries[1]["type"] == "scheme_credit" and entries[1]["running_balance_gbp"] == -32.31

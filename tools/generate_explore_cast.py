@@ -270,6 +270,20 @@ def _latest(records, pred=lambda r: True):
     return None
 
 
+def _owed(inv: list[dict], led: list[dict]) -> tuple[float, str | None]:
+    """What the household owes on a date: the bills it has had, less every other ledger movement.
+
+    The bill is dated at its period end and the ledger raises it a few days later, on issue, so the
+    ledger's running balance alone showed a first bill's amount above "Nothing owed" (cold read O13,
+    PROS-2025-0022). Billed is read from the bills the page shows; payments, credits and write-offs
+    from the ledger. The ledger's balance is the sum of its entries, so the two agree once it has
+    raised every bill. Returns the amount and the latest date it reads.
+    """
+    moves = [r for r in led if r.get("type") != "invoice_raised"]
+    owed = sum(i.get("amount_gbp") or 0.0 for i in inv) + sum(r.get("amount_gbp") or 0.0 for r in moves)
+    return owed, max([r["date"] for r in inv + moves if r.get("date")], default=None)
+
+
 def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     acq = min(a.get("acquisition_date") or "9999" for a in hh["legs"].values())
     inv = _known_by(ev["invoice"], iso)
@@ -299,13 +313,10 @@ def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     rows.append(_row("Meter reads", "{} bills, {} on an actual read{}".format(
         len(inv), len(actual), ", last on {}".format(_day(actual[-1]["date"])) if actual else ""),
         inv[-1]["date"] if inv else acq))
-    bal = {}
-    for r in led:
-        bal[r["fuel"]] = (r.get("running_balance_gbp") or 0.0, r["date"])
-    owed = sum(v for v, _ in bal.values())
+    owed, owed_on = _owed(inv, led)
     rows.append(_row("Balance on the books", ("{} owed".format(_fmt_gbp(owed)) if owed > 0.005 else
                                               "{} in credit".format(_fmt_gbp(-owed)) if owed < -0.005 else "Nothing owed"),
-                     max([d for _, d in bal.values()] or [acq])))
+                     owed_on or acq))
     debt = _latest(rc, lambda r: str(r.get("event_type", "")).startswith(_DEBT_PREFIXES))
     if debt:
         rows.append(_row("Debt stage", debt.get("description") or debt["event_type"], debt["date"]))
@@ -380,10 +391,7 @@ def _portal(hh: dict, ev: dict, iso: str, message: str) -> dict:
               "amount": (_fmt_gbp(i.get("amount_gbp")) if (i.get("amount_gbp") or 0) >= 0
                          else "{} credit".format(_fmt_gbp(-i["amount_gbp"]))),
               "badge": {"A": "Actual read", "M": "Prepayment meter"}.get(i.get("read_type"), "Estimated")} for i in inv[-4:]][::-1]
-    bal = {}
-    for r in led:
-        bal[r["fuel"]] = r.get("running_balance_gbp") or 0.0
-    owed = sum(bal.values())
+    owed, _ = _owed(inv, led)
     ren = _latest(_known_by(ev["timeline"], iso), lambda r: r.get("type") == "renewed")
     pay = _latest(led, lambda r: r.get("method") in ("direct_debit", "standard_credit", "prepayment"))
     return {

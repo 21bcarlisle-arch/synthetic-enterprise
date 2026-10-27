@@ -166,6 +166,8 @@ def test_timeline_merges_and_sorts_by_date():
     assert [e["date"] for e in tl] == ["2016-01-01", "2017-01-01", "2018-01-01"]
     assert tl[1]["type"] == "life_event"
     assert tl[1]["detail"] == "New baby"
+    # The supplier did not observe it; the account events beside it are its own record.
+    assert tl[1]["seen_by"] == "world" and "seen_by" not in tl[0]
 
 
 def test_timeline_includes_gas_twin_events():

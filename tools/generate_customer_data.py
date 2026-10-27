@@ -174,7 +174,11 @@ def _life_events(run, base):
     """The world's life events for this household, split into those that fall while we supplied
     either fuel and those that do not. Only the first go on the supplier's timeline: a supplier
     has no way to know of a former customer's car, or of a baby born before the home joined it.
-    The second are published apart, labelled as the world's."""
+    The second are published apart, labelled as the world's.
+
+    Those kept are the world's too: no route in the run tells the supplier of a birth, a job lost or
+    a car bought, and it can only see their effect on the meter, later. Each carries `seen_by`, so a
+    reader of the timeline can tell them from the account events the supplier recorded."""
     windows = _supply_windows(run, base)
     inside, outside = [], []
     pcb = run.get("per_customer_behavioral", {})
@@ -185,6 +189,7 @@ def _life_events(run, base):
             "type": "life_event",
             "commodity": None,
             "detail": life.get("event_type", "").replace("_", " ").capitalize(),
+            "seen_by": "world",
         }
         held = bool(date) and any(lo <= date <= hi for lo, hi in windows)
         (inside if held else outside).append(e)

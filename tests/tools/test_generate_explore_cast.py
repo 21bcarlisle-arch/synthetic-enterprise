@@ -340,3 +340,48 @@ def test_the_default_account_is_an_ordinary_full_record(real, feed):
     d = feed["meta"]["default_account"]
     assert d and gen._PUBLIC_ID.fullmatch(d)
     assert len(customers[d]["invoices"]) >= 12
+
+
+def test_a_bill_the_page_shows_is_owed_until_the_ledger_says_it_was_paid():
+    """Cold read O13 (PROS-2025-0022): the first bills, dated at their period end, totalled GBP 186.20
+    beside "Nothing owed", because the ledger raises a bill on issue a few days later and the balance
+    was read from the ledger alone. On the bill's date it is owed; once paid, nothing is."""
+    bill = {"id": "X-INV1", "date": "2025-02-28", "fuel": "electricity", "amount_gbp": 85.79}
+    raised = {"date": "2025-03-03", "type": "invoice_raised", "fuel": "electricity", "amount_gbp": 85.79,
+              "running_balance_gbp": 85.79}
+    paid = {"date": "2025-03-17", "type": "payment_received", "fuel": "electricity", "amount_gbp": -85.79,
+            "running_balance_gbp": 0.0}
+    ev = {"invoice": [bill], "ledger": [raised, paid]}
+    for iso, owed in (("2025-02-28", 85.79), ("2025-03-03", 85.79), ("2025-03-17", 0.0)):
+        got, _ = gen._owed(gen._known_by(ev["invoice"], iso), gen._known_by(ev["ledger"], iso))
+        assert round(got, 2) == owed, (iso, got)
+
+
+def test_the_cast_balance_is_billed_less_paid_on_every_moment(feed, real):
+    """Every "Balance on the books" a moment prints equals its bills less its other ledger movements
+    as known that day. A balance read from the ledger's running total alone reds on the first-bill
+    moment, where the ledger has not raised the bill yet."""
+    customers = real[0]
+    by_hh = {h["id"]: h for h in gen.households(customers)}
+    checked, wrong = 0, []
+    for s in feed["slots"]:
+        hh = by_hh.get(s.get("household"))
+        if not hh:
+            continue
+        ev = gen._events(hh)
+        for m in s.get("moments", []):
+            row = next((r for r in m["supplier"] if r["k"] == "Balance on the books"), None)
+            if row is None:
+                continue
+            known = gen._before_outcome(ev, m["iso"])
+            billed = sum(i.get("amount_gbp") or 0 for i in gen._known_by(known["invoice"], m["iso"]))
+            moved = sum(r.get("amount_gbp") or 0 for r in gen._known_by(known["ledger"], m["iso"])
+                        if r.get("type") != "invoice_raised")
+            owed = billed + moved
+            want = ("{} owed".format(gen._fmt_gbp(owed)) if owed > 0.005 else
+                    "{} in credit".format(gen._fmt_gbp(-owed)) if owed < -0.005 else "Nothing owed")
+            checked += 1
+            if row["v"] != want:
+                wrong.append((s["id"], m["iso"], row["v"], want))
+    assert checked, "no balance rows at all -- this control would be vacuous"
+    assert not wrong, wrong[:5]
