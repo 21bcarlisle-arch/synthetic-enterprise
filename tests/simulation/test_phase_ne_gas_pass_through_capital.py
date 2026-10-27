@@ -119,9 +119,14 @@ def test_pass_through_margin_far_below_unit_rate_margin():
     assert rec["margin_gbp"] < 50.0
 
 
-def test_pass_through_net_margin_positive_with_zero_capital():
+def test_pass_through_net_margin_is_the_fee_less_its_unidentified_gas_with_zero_capital():
+    # Pass-through bills spot + fee and pays its UIG share on top of spot (2026-10-27), so at
+    # zero capital it earns the fee net of UIG: negative at GBP 120/MWh, where 1.83% of spot is
+    # more than the GBP 2 fee. Whether a real pass-through passes UIG on is a GAP.
+    from simulation.gas_settlement import GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH
     rec = _run_single_day_pass_through("2023-06-15", 120.0)
-    assert rec["net_margin_gbp"] > 0.0
+    fee = GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH * rec["consumption_kwh"] / 1000.0
+    assert rec["net_margin_gbp"] == pytest.approx(fee - rec["gas_uig_cost_gbp"], abs=1e-4)
 
 
 def test_pass_through_capital_cost_is_zero():

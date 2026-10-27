@@ -64,8 +64,9 @@ class TestPassThroughSpotBilling:
         r = recs[0]
         # Use actual daily_mwh from record (accounts for I&C seasonal profile)
         daily_mwh = r["consumption_kwh"] / 1000
-        expected_net = GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH * daily_mwh
-        # net should equal service_fee × volume (policy+network cancel, no basis)
+        # net is service_fee × volume less the UIG share settled on top of spot
+        # (policy+network cancel, no basis)
+        expected_net = GAS_PASS_THROUGH_SERVICE_FEE_GBP_PER_MWH * daily_mwh - r["gas_uig_cost_gbp"]
         assert abs(r["net_margin_gbp"] - expected_net) < 0.5
 
     def test_pass_through_net_margin_lower_than_old_model(self):

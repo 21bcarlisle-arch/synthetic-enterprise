@@ -658,6 +658,67 @@ def get_gas_standing_charge_per_day(date_str: str, segment: str = "resi") -> flo
     return sc * _SME_SC_MULTIPLIER if segment == "SME" else sc
 
 
+# Unidentified Gas (UIG): gas that entered the network and was billed to nobody (theft, leakage,
+# unregistered sites). Xoserve allocates it to shippers by weighting factor, so a domestic supplier
+# pays for gas it never sold. The cap carries it as an uplift on the direct fuel cost, per cap
+# period (`docs/domain_artefact_library/regulatory/ofgem_cap_uig_allowance.json`, Annex 2 rows 31
+# and 38). The world charges the cap's own figure, so the revenue anchor and the cost are one
+# number. That is a simplification: outturn domestic UIG ran above the allowance in 2022-25 (2.90%
+# against 1.83-1.92%), so the error runs in the company's favour there. Why, and the pre-cap
+# belief: `docs/market_research/unbilled_energy_and_revenue_assurance.md`, "The cap's own UIG
+# allowance".
+_CAP_UIG_ARTEFACT = (
+    Path(__file__).resolve().parents[1]
+    / "docs" / "domain_artefact_library" / "regulatory" / "ofgem_cap_uig_allowance.json"
+)
+
+# Before 1 Jan 2019 no allowance existed, and charging nothing would assert zero for a physical
+# loss. A stated BELIEF: the first cap's 2.00%, which is the AUGE's GY2018-19 domestic forecast.
+# Range 2.00%-3.81%; the top is GY2017-18's actual UIG share of LDZ throughput
+# (`q6_uig_share_of_ldz_throughput`'s high, AUG Statement 2024-25 p.27).
+PRE_CAP_UIG_UPLIFT_BELIEF: float = 0.02
+PRE_CAP_UIG_UPLIFT_RANGE: tuple[float, float] = (0.02, 0.0381)
+
+
+def _load_cap_uig() -> tuple[tuple[str, ...], tuple[float, ...], tuple[float, ...]]:
+    """`(period starts ascending, non-PPM uplift, PPM uplift)` from the regulation commons.
+
+    Raises at import on a missing artefact or a gap between periods, as the standing charges do.
+    A period whose PPM row is empty (before the April 2022 split) takes the non-PPM figure,
+    because the model then carried one gas row for both.
+    """
+    periods = sorted(json.loads(_CAP_UIG_ARTEFACT.read_text())["periods"], key=lambda r: r["starts"])
+    for prev, nxt in zip(periods, periods[1:]):
+        if nxt["starts"] != prev["ends_before"]:
+            raise ValueError(
+                f"cap UIG allowance has a gap or overlap: {prev['cap_period']!r} ends before "
+                f"{prev['ends_before']}, {nxt['cap_period']!r} starts {nxt['starts']}"
+            )
+    return (
+        tuple(r["starts"] for r in periods),
+        tuple(float(r["non_ppm"]) for r in periods),
+        tuple(float(r["ppm"] if r["ppm"] is not None else r["non_ppm"]) for r in periods),
+    )
+
+
+_CAP_UIG_STARTS, _CAP_UIG_NON_PPM, _CAP_UIG_PPM = _load_cap_uig()
+
+
+@lru_cache(maxsize=8192)
+def get_gas_uig_uplift(date_str: str, prepayment: bool = False) -> float:
+    """The UIG uplift on wholesale gas cost on a gas day: the cap period's allowance, a fraction.
+
+    Prepayment takes the cap's PPM row, which in Apr 2022 - Sep 2023 was three to four and a half
+    times the credit row (5.34% and 8.19% against 1.82-1.83%). Before the cap: the stated belief
+    above. After the artefact's last period: that period's figure.
+    """
+    day = date_str[:10]
+    if day < _CAP_UIG_STARTS[0]:
+        return PRE_CAP_UIG_UPLIFT_BELIEF
+    i = bisect_right(_CAP_UIG_STARTS, day) - 1
+    return (_CAP_UIG_PPM if prepayment else _CAP_UIG_NON_PPM)[i]
+
+
 # ─── Year-key basis registry ─────────────────────────────────────────────────
 # Every year-keyed rate table in this module is keyed on ONE of two year conventions,
 # and its reader must derive the key the same way. Getting this wrong is silent and

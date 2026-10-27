@@ -1,0 +1,198 @@
+{
+ "artefact": "ofgem_cap_uig_allowance",
+ "version": 1,
+ "published_by": "Ofgem (Default Tariff Cap, Annex 2 wholesale cost allowance methodology)",
+ "what_this_is": "The default tariff cap's Unidentified Gas (UIG) uplift on the gas direct fuel cost, per cap period, non-prepayment and prepayment, read off Ofgem's Annex 2 model tab '3a Allowances' rows 31 (Gas non-PPM) and 38 (Gas PPM), the row 'Values to be used to update level of default tariff cap'. A fraction: the direct fuel cost is multiplied by (1 + uplift).",
+ "basis": {
+  "measures": "The ALLOWANCE, not the outturn. Until Sep 2025: the AUGE's forecast domestic UIG (EUC 1ND/1PD, Profile Classes 3 and 4) over forecast consumption. From Oct 2025: Xoserve's post-reconciliation UIG averaged over two gas years, reallocated to domestic classes (Ofgem, Call for input: Enduring Unidentified Gas Allowance, Aug 2025, para 1.4, 1.9, 3.1). Ofgem found the forecast basis under-recovered: post-reconciliation domestic UIG averaged 2.90% over gas years 2022-23 and 2023-24.",
+  "ppm": "Before April 2022 the model carries one gas row (its PPM row is empty); `ppm` is null there and a reader takes the non-PPM figure.",
+  "quarterly_columns": "From Oct 2022 the model carries one column per quarter; the two columns of each six-month period Oct 2022 - Sep 2023 carry identical values and are carried here once.",
+  "pre_cap": "No allowance existed before 2019-01-01. A reader needing a pre-cap value carries its own stated belief (simulation/policy_costs.get_gas_uig_uplift); nothing here supplies one.",
+  "history_check": "Two earlier editions were read for the same rows: v1.3 (Feb 2019) gives 0.02 for gas; v1.9 (Feb 2022) gives 0.0182 non-PPM and 0.0534 PPM for Apr-Sep 2022. Both agree with v1.30."
+ },
+ "source_model": "Annex-2-wholesale-cost-allowance-methodology-v1.30_data_removed-2.xlsx",
+ "source_check": {
+  "publication": "Ofgem, Annex 2 - wholesale cost allowance methodology, v1.30 (published with the October - December 2026 cap)",
+  "url": "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels",
+  "fetched": "2026-10-27",
+  "version_token": "v1.30",
+  "version_token_is": "in_filename_only",
+  "derived": "2026-10-27, by reading the workbook's '3a Allowances' tab rows 8, 31 and 38 by column (W2_36). The workbook itself is not committed.",
+  "how_to_recheck": "GET the URL above (a version history page, not the workbook) and take the highest v<major>.<minor> across every link matching Annex[-_ ]2 or wholesale[-_ ]cost[-_ ]allowance[-_ ]methodology. If it is above `version_token`, re-read rows 31 and 38 of '3a Allowances'.",
+  "checked_for_supersession": {
+   "on": "2026-10-27",
+   "found": "current",
+   "note": "v1.30 was the newest Annex 2 listed on the page on 2026-10-27, published with the Oct-Dec 2026 cap."
+  }
+ },
+ "periods": [
+  {
+   "cap_period": "January 2019 - March 2019",
+   "starts": "2019-01-01",
+   "ends_before": "2019-04-01",
+   "non_ppm": 0.02,
+   "ppm": null,
+   "ppm_basis": "one gas row: the PPM End User Categories were split out of the cap from April 2022"
+  },
+  {
+   "cap_period": "April 2019 - September 2019",
+   "starts": "2019-04-01",
+   "ends_before": "2019-10-01",
+   "non_ppm": 0.02,
+   "ppm": null,
+   "ppm_basis": "one gas row: the PPM End User Categories were split out of the cap from April 2022"
+  },
+  {
+   "cap_period": "October 2019 - March 2020",
+   "starts": "2019-10-01",
+   "ends_before": "2020-04-01",
+   "non_ppm": 0.02,
+   "ppm": null,
+   "ppm_basis": "one gas row: the PPM End User Categories were split out of the cap from April 2022"
+  },
+  {
+   "cap_period": "April 2020 - September 2020",
+   "starts": "2020-04-01",
+   "ends_before": "2020-10-01",
+   "non_ppm": 0.02,
+   "ppm": null,
+   "ppm_basis": "one gas row: the PPM End User Categories were split out of the cap from April 2022"
+  },
+  {
+   "cap_period": "October 2020 - March 2021",
+   "starts": "2020-10-01",
+   "ends_before": "2021-04-01",
+   "non_ppm": 0.02,
+   "ppm": null,
+   "ppm_basis": "one gas row: the PPM End User Categories were split out of the cap from April 2022"
+  },
+  {
+   "cap_period": "April 2021 - September 2021",
+   "starts": "2021-04-01",
+   "ends_before": "2021-10-01",
+   "non_ppm": 0.02,
+   "ppm": null,
+   "ppm_basis": "one gas row: the PPM End User Categories were split out of the cap from April 2022"
+  },
+  {
+   "cap_period": "October 2021 - March 2022",
+   "starts": "2021-10-01",
+   "ends_before": "2022-04-01",
+   "non_ppm": 0.02,
+   "ppm": null,
+   "ppm_basis": "one gas row: the PPM End User Categories were split out of the cap from April 2022"
+  },
+  {
+   "cap_period": "April 2022 - September 2022",
+   "starts": "2022-04-01",
+   "ends_before": "2022-10-01",
+   "non_ppm": 0.0182,
+   "ppm": 0.0534
+  },
+  {
+   "cap_period": "October 2022 - March 2023",
+   "starts": "2022-10-01",
+   "ends_before": "2023-04-01",
+   "non_ppm": 0.018261,
+   "ppm": 0.08185
+  },
+  {
+   "cap_period": "April 2023 - September 2023",
+   "starts": "2023-04-01",
+   "ends_before": "2023-10-01",
+   "non_ppm": 0.018261,
+   "ppm": 0.08185
+  },
+  {
+   "cap_period": "October 2023 - December 2023",
+   "starts": "2023-10-01",
+   "ends_before": "2024-01-01",
+   "non_ppm": 0.019192,
+   "ppm": 0.019192
+  },
+  {
+   "cap_period": "January 2024 - March 2024",
+   "starts": "2024-01-01",
+   "ends_before": "2024-04-01",
+   "non_ppm": 0.019192,
+   "ppm": 0.019192
+  },
+  {
+   "cap_period": "April 2024 - June 2024",
+   "starts": "2024-04-01",
+   "ends_before": "2024-07-01",
+   "non_ppm": 0.019192,
+   "ppm": 0.019192
+  },
+  {
+   "cap_period": "July 2024 - September 2024",
+   "starts": "2024-07-01",
+   "ends_before": "2024-10-01",
+   "non_ppm": 0.019192,
+   "ppm": 0.019192
+  },
+  {
+   "cap_period": "October 2024 - December 2024",
+   "starts": "2024-10-01",
+   "ends_before": "2025-01-01",
+   "non_ppm": 0.018601,
+   "ppm": 0.018601
+  },
+  {
+   "cap_period": "January 2025 - March 2025",
+   "starts": "2025-01-01",
+   "ends_before": "2025-04-01",
+   "non_ppm": 0.018601,
+   "ppm": 0.018601
+  },
+  {
+   "cap_period": "April 2025 - June 2025",
+   "starts": "2025-04-01",
+   "ends_before": "2025-07-01",
+   "non_ppm": 0.018601,
+   "ppm": 0.018601
+  },
+  {
+   "cap_period": "July 2025 - September 2025",
+   "starts": "2025-07-01",
+   "ends_before": "2025-10-01",
+   "non_ppm": 0.018601,
+   "ppm": 0.018601
+  },
+  {
+   "cap_period": "October 2025 - December 2025",
+   "starts": "2025-10-01",
+   "ends_before": "2026-01-01",
+   "non_ppm": 0.031732,
+   "ppm": 0.031732
+  },
+  {
+   "cap_period": "January 2026 - March 2026",
+   "starts": "2026-01-01",
+   "ends_before": "2026-04-01",
+   "non_ppm": 0.031732,
+   "ppm": 0.031732
+  },
+  {
+   "cap_period": "April 2026 - June 2026",
+   "starts": "2026-04-01",
+   "ends_before": "2026-07-01",
+   "non_ppm": 0.031732,
+   "ppm": 0.031732
+  },
+  {
+   "cap_period": "July 2026 - September 2026",
+   "starts": "2026-07-01",
+   "ends_before": "2026-10-01",
+   "non_ppm": 0.031732,
+   "ppm": 0.031732
+  },
+  {
+   "cap_period": "October 2026 - December 2026",
+   "starts": "2026-10-01",
+   "ends_before": "2027-01-01",
+   "non_ppm": 0.036224,
+   "ppm": 0.036224
+  }
+ ]
+}

@@ -56,13 +56,15 @@ class TestPassThroughZeroHedge:
         assert sum(r["margin_gbp"] for r in records) < 0
 
     def test_pass_through_hf_zero_cost_equals_spot(self):
-        """At hf=0, wholesale_cost = spot × volume (no forward exposure)."""
+        """At hf=0, wholesale_cost = spot × volume × (1 + UIG uplift) (no forward exposure)."""
+        from simulation.policy_costs import get_gas_uig_uplift
         records = run_gas_term(
             "TEST", "2021-01-01", "2021-01-07", 50000, 20.0,
             0.0, 30.0, 0.0, GAS_RECORDS_LOW, "I&C", pass_through=True,
         )
         for rec in records:
-            expected = rec["consumption_kwh"] / 1000.0 * 20.0
+            expected = rec["consumption_kwh"] / 1000.0 * 20.0 * (
+                1 + get_gas_uig_uplift(rec["settlement_date"]))
             assert abs(rec["wholesale_cost_gbp"] - expected) < 0.01
 
     def test_pass_through_all_records_have_net_margin(self):

@@ -35,6 +35,7 @@ from simulation.policy_costs import (
     get_gas_ccl_per_mwh,
     get_gas_network_cost_per_mwh,
     get_gas_standing_charge_per_day,
+    get_gas_uig_uplift,
     get_ggl_per_mwh,
 )
 
@@ -116,6 +117,7 @@ def run_gas_term(
     pass_through: bool = False,
     weather_factor: float = 1.0,
     heating_fraction: float | None = None,
+    prepayment: bool = False,
 ) -> list[dict]:
     """Settle one gas contract term, returning one record per gas day.
 
@@ -136,6 +138,9 @@ def run_gas_term(
         population constant. W2_30's gas deliverable: it changes the seasonal SHAPE and
         never the annual level, so the company's AQ belief is untouched. Ignored for I&C,
         which settles on a monthly profile rather than the two-term daily form.
+    prepayment : the leg is known to be on prepayment, so its Unidentified Gas uplift is the
+        cap's PPM row (`simulation.policy_costs.get_gas_uig_uplift`). False where the caller
+        does not know, which takes the credit row.
     """
     spot_index = {r["settlementDate"]: r["systemSellPrice"] for r in gas_price_records}
     base_daily_kwh = _daily_consumption_kwh(aq_kwh)
@@ -166,6 +171,11 @@ def run_gas_term(
 
             billed_gbp = daily_mwh * unit_rate_gbp_mwh
             cost_gbp = hedged_mwh * forward_price + unhedged_mwh * spot_price
+            # The shipper is allocated its share of Unidentified Gas on top of its metered
+            # volume, and buys it at the same prices. I&C sites carry lower AUGE weights than
+            # the domestic row charged here, so I&C is overcharged: against the company.
+            uig_cost = cost_gbp * get_gas_uig_uplift(d, prepayment)
+            cost_gbp += uig_cost
 
             # Phase 30b: gas-side policy costs per settlement day.
             gas_ccl = get_gas_ccl_per_mwh(d, segment) * daily_mwh
@@ -208,6 +218,7 @@ def run_gas_term(
                 "unhedged_mwh": round(unhedged_mwh, 6),
                 "revenue_gbp": round(revenue_gbp, 6),
                 "wholesale_cost_gbp": round(cost_gbp, 6),
+                "gas_uig_cost_gbp": round(uig_cost, 8),
                 "margin_gbp": round(margin_gbp, 6),
                 "consumption_kwh": round(daily_kwh, 4),
                 "gas_ccl_gbp": round(gas_ccl, 8),

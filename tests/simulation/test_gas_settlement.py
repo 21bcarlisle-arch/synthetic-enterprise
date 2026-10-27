@@ -142,9 +142,9 @@ def test_run_gas_term_hedge_fraction_zero_uses_spot():
         gas_price_records=records,
     )
     r = result[0]
-    # With hedge_fraction=0, all cost is at spot
-    # spot_price * daily_mwh
-    expected_cost = spot * (r["daily_kwh"] / 1000.0)
+    # With hedge_fraction=0, all cost is at spot, uplifted by the day's Unidentified Gas
+    from simulation.policy_costs import get_gas_uig_uplift
+    expected_cost = spot * (r["daily_kwh"] / 1000.0) * (1 + get_gas_uig_uplift("2022-01-01"))
     assert abs(r["wholesale_cost_gbp"] - expected_cost) < 1e-3
 
 

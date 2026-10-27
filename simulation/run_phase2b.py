@@ -5454,6 +5454,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 segment=cust_segment,
                 pass_through=(term_tariff_type == "pass_through"),
                 heating_fraction=_gas_split.heating_fraction_for(aq_kwh) if _gas_split else None,
+                # Known only where the default tariff was priced by method; elsewhere the
+                # credit row, which in 2022-23 undercharges a prepayment leg's UIG.
+                prepayment=(_svt_priced_method == "prepayment"),
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"
