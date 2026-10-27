@@ -71,21 +71,22 @@ def billing_accuracy(bills: list, direct_debit: dict | None = None) -> dict:
     return billing_accuracy_summary(bills, direct_debit, held_bills(bills))
 
 
-def owed_after_scheme_credit(amount: float, segment: str, commodity: str, month: str) -> float:
+def owed_after_scheme_credit(amount: float, segment: str, commodity: str, month: str,
+                             held_from: str | None = None) -> float:
     """What the household owes for a leg-month once the supplier has applied the government's bill
     credit (EBSS, Oct 2022 to Mar 2023). Both of the world's amount paths ask this: the held month
     the household's budget weighs (`run_phase2b`) and the issued bill whose pounds can fail
     (`arrears_engine`). Asking one door is what keeps the two agreeing. May go negative: a credit
     larger than the month's charge leaves the account in credit, which nobody fails.
     """
-    return round(amount - _scheme_credit(segment, commodity, month), 2)
+    return round(amount - _scheme_credit(segment, commodity, month, held_from), 2)
 
 
-def scheme_credit(segment: str, commodity: str, month: str) -> float:
+def scheme_credit(segment: str, commodity: str, month: str, held_from: str | None = None) -> float:
     """The month's government bill credit for one account, for the world's occupier window, which
     nets it from a debt rather than from a bill (`run_phase2b`, the 2026-10-27 occupier finding).
     """
-    return _scheme_credit(segment, commodity, month)
+    return _scheme_credit(segment, commodity, month, held_from)
 
 
 __all__ = [

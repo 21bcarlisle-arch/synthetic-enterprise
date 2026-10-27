@@ -691,6 +691,9 @@ def build_monthly_bills(
         register_reads: list[tuple[date, float]] = []
         consecutive_estimated = 0
         previous_period_end = None
+        # The date this account was first held: EBSS goes to whoever held it at 00:00 on the 1st
+        # (`held_at_midnight_on_the_first`), so every bill carries it for the amount paths.
+        account_held_from = min(r["settlement_date"] for r in months[min(months)])[:10]
         pending_estimated_run: list[dict] = []
         sorted_months = sorted(months)
         for month_idx, month in enumerate(sorted_months):
@@ -965,6 +968,7 @@ def build_monthly_bills(
             if listed is not None:
                 bill["premise_council_tax_listed"] = listed
             previous_period_end = bill["period_end"]
+            bill["account_held_from"] = account_held_from
             bills.append(bill)
             if theft_screen_out is not None:
                 screen_periods.setdefault(customer_id, []).append({
