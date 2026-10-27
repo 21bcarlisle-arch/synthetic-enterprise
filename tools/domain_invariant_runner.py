@@ -48,6 +48,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import re
 import sys
 from collections import defaultdict
 from datetime import date, timedelta
@@ -106,6 +107,7 @@ class Account:
         self.fuel = self.periods[0]["commodity"] if self.periods else None
         self.payments = sorted((p for p in raw.get("payments", ()) if p.get("payment_date")),
                                key=lambda p: p["payment_date"])
+        self.adjustments = raw.get("adjustments") or ()
         self.registers = {r.get("register_id") for p in self.periods for r in p.get("reads", ())}
         self.start = _d(self.periods[0]["period_start"]) if self.periods else None
         self.end = _d(self.periods[-1]["period_end"]) if self.periods else None
@@ -939,6 +941,83 @@ def ev_ppm_not_credit_billed(inv, book):
     return tally
 
 
+#: The export's reason for a government credit to the account (`raw_account_export.SCHEME_CREDIT`).
+#: From Oct 2022 to Mar 2023 the only such scheme is the EBSS.
+SCHEME_CREDIT = "scheme_credit"
+#: The row's own figures: £66 in Oct and Nov 2022, £67 from Dec 2022 to Mar 2023 (£400 in all).
+EBSS_CREDIT_GBP = ((date(2022, 10, 1), 66.0), (date(2022, 11, 1), 66.0), (date(2022, 12, 1), 67.0),
+                   (date(2023, 1, 1), 67.0), (date(2023, 2, 1), 67.0), (date(2023, 3, 1), 67.0))
+#: How late a month's credit can be dated and still be that month's: the row's "m end + 31 days".
+EBSS_LAG = timedelta(days=31)
+
+
+def _month_end(m: date) -> date:
+    return date(m.year + (m.month == 12), m.month % 12 + 1, 1) - timedelta(days=1)
+
+
+def ev_ebss_credit(inv, book):
+    """Each month's credit once. The row's windows ([m start, m end + 31 days]) overlap, so summing
+    every credit in each window would count a December-dated November credit twice. Each credit is
+    taken, in date order, by the earliest supplied month whose window holds it and which is still
+    owed; a credit no month is owed goes to the earliest window, where it reads as an overpayment.
+    A gas account is owed nothing, so any credit on it breaches. A month paid by prepayment is not
+    graded: the row's GAP (a traditional meter's voucher may expire unredeemed), and the export
+    cannot tell a smart meter from a traditional one."""
+    tally = Tally("account-month on supply, Oct 2022 to Mar 2023")
+    for a in book:
+        if not a.domestic or a.start is None:
+            continue
+        months = [(m, 0.0 if a.fuel == "gas" else amt) for m, amt in EBSS_CREDIT_GBP
+                  if a.start <= _month_end(m) and a.end >= m]
+        if not months:
+            continue
+        got = {m: 0.0 for m, _ in months}
+        credits = sorted((_d(x["adjustment_date"]), float(x["adjustment_amount_gbp"]))
+                         for x in a.adjustments if x.get("adjustment_reason") == SCHEME_CREDIT
+                         and x.get("adjustment_date") and x.get("adjustment_amount_gbp") is not None)
+        for when, amount in credits:
+            holds = [(m, owed) for m, owed in months if m <= when <= _month_end(m) + EBSS_LAG]
+            if not holds:
+                continue
+            m = next((m for m, owed in holds if got[m] < owed - 1), holds[0][0])
+            got[m] += amount
+        for m, owed in months:
+            where = "{} {} {}".format(a.cid, a.fuel, m.isoformat()[:7])
+            if a.fuel != "gas" and PREPAYMENT in a.methods_between(m, _month_end(m) + PAYMENT_WINDOW):
+                tally.unbounded += 1
+                continue
+            tally.band(where, round(got[m], 2), max(owed - 1, 0.0), owed + 1 if owed else 0.0)
+    return tally
+
+
+#: The MPAN core: 13 digits, a distributor ID of 10-23 first, and a check digit last over the
+#: twelve before it, weighted by these primes, sum mod 11 mod 10
+#: (docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md).
+MPAN_CORE = re.compile(r"(1[0-9]|2[0-3])[0-9]{11}")
+MPAN_WEIGHTS = (3, 5, 7, 13, 17, 19, 23, 29, 31, 37, 41, 43)
+
+
+def mpan_check_digit(first_twelve: str) -> int:
+    return sum(int(c) * w for c, w in zip(first_twelve, MPAN_WEIGHTS)) % 11 % 10
+
+
+def ev_mpan_core_format(inv, book):
+    tally = Tally("electricity supply point (account, MPAN core)")
+    for a in book:
+        cores = {}
+        for p in a.periods:
+            if p.get("commodity") == "electricity":
+                cores.setdefault(str(p.get("mpan") or "").strip(), p["period_start"])
+        for core, first in cores.items():
+            tally.checked += 1
+            where = "{} {} from {}".format(a.cid, core or "-", first)
+            if not MPAN_CORE.fullmatch(core):
+                tally.hit("breach", where, core, "13 digits, distributor 10-23", "format")
+            elif int(core[-1]) != mpan_check_digit(core[:12]):
+                tally.hit("breach", where, core[-1], mpan_check_digit(core[:12]), "check digit")
+    return tally
+
+
 #: invariant ID -> (evaluator, the export field it needs on some period, or None)
 EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC": (ev_unit_rate_svt_elec, None),
@@ -975,6 +1054,8 @@ EVALUATORS = {
     "INV_PPM_NOT_CREDIT_BILLED": (ev_ppm_not_credit_billed, "document_type"),
     "INV_REGISTER_ID_ONE_LABEL": (ev_register_id_one_label, None),
     "INV_SERIAL_REGISTER_COUNT_STABLE": (ev_serial_register_count_stable, None),
+    "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23": (ev_ebss_credit, None),
+    "INV_MPAN_CORE_FORMAT": (ev_mpan_core_format, "mpan"),
 }
 
 
