@@ -1,142 +1,110 @@
 version: 1
-oriented_at: '2026-10-27T03:22:23.669885+00:00'
-thesis_read: 'All five of last stretch''s focus items landed, in order and inside the stretch, so the steer bit. On the 67a893e749
-  book, the blind suite''s four breach classes are each fixed or explained. The standing charge now steps on the cap''s own
-  dates (00c082202: SVT standing charge breaches 2,986 and 4,226 down to 0; 2022 Q1 standing-charge revenue -28%). A prepayment
-  default tariff is priced at the prepayment cap (58af1fe57: SVT unit-rate breaches 496 and 462 down to 0). The backwards
-  reads were a register-id collision in our own ledger (8e9fb022d: 29 down to 0). The 501 multi-register breaches were the
-  runner''s proxy, not the bills (36ce8dc53). The export now reads four more invariants and fixed five money-record defects
-  (871f674a2, landed at 03:25Z, just after this brief). The draw''s refusal of held-step atoms is built (cd59b84f9). What
-  this means against the thesis: the supplier''s bills are now much closer to what a real supplier could lawfully send. That
-  matters most for prepayment households, who were charged above their cap for five years. But every one of these counts was
-  re-priced on an old book. None comes from a fresh run, so the exit test has not been taken. Inference did not move: the
-  renewal belief still ranks leavers backwards, and no baseline comparison changed. Two things went backwards or stayed hidden.
-  First, I misread item 3 as world work when it was the supplier''s own ledger. Second, the draw refusal the director''s ruling
-  needs runs only on origin, because every unit on the box runs from a checkout 62 behind. The brief''s split is supplier
-  1, world 2, other 8, but that understates the supplier. The ''world'' commits are the default tariff''s price, which is
-  the supplier''s bill. The ''other'' is the suite and the export, the ruling''s own work, so this is not drift. This focus
-  takes the exit test''s long pole first: a fresh run on the fixed code, with its grade queued in the same act. While it computes,
-  it fixes the last open money-record defect, makes the suite run on every run as the ruling asks, makes the refusal live
-  on the box, and fixes the EV root cause.'
+oriented_at: '2026-10-27T06:24:01.174636+00:00'
+thesis_read: 'Four of last stretch''s five focus items landed, and the fifth landed only its first half, which is the half
+  that mattered most. The money record is now right where it was wrong. A bill the EBSS covered in part no longer counts government
+  credit as the household''s payment (a8d80fda6: GBP 73,353 on 1,100 bills down to GBP 804 on 12 occupier bills), and the
+  company''s own balances were already right. The suite is wired into every completed run, report-only until its exceptions
+  register is seeded (9d6ea2ead). The shared checkout is level with origin, so the director''s correctness refusal now runs
+  on the box (65e1af5f8). An EV''s effect is read on our electricity leg over a full year, or said to be not ours to see (26cc72f7b).
+  But the exit test has still not been taken. The fresh run on the fixed code finished at 04:47Z, and nothing graded it, because
+  its grade continuation was released at 04:00Z by the tick that only launched it. That is the tenth shape of the lost-grader
+  row, and this time it held up the ruling''s long pole. Against the thesis, the supplier''s bills and money record are closer
+  to what a real supplier could lawfully send and could know, and 26cc72f7b found one more place where the supplier shows
+  what it could not know: 14 of 21 EV arrivals fall after the household left us, yet our customer timeline shows them. That
+  is truth crossing the wall on a page labelled as ours. Inference did not move: the renewal belief still ranks leavers backwards,
+  and no baseline comparison changed. The brief''s split reads supplier 2, world 1, other 8. The ''other'' is the ruling''s
+  own work (the suite gate, the checkout, the EV reader), so this is not drift. The one world commit, c688a5e61''s Unidentified
+  Gas charge, is legitimate W2_36 work, but it means the f0d04dd72 run now on the box is not the book the pre-registration
+  speaks to. So this focus grades the fresh book first and seeds the register from it. It then closes the timeline''s wall
+  crossing, builds the check that would have held the grade, and takes the first cold read on the next publish. Those are
+  the exit test''s three legs, plus the defect that delayed it.'
 stretch_reviewed:
-  since: '2026-10-27T00:20:42.489709+00:00'
+  since: '2026-10-27T03:22:23.669885+00:00'
   commits: 11
-  substantive: 7
+  substantive: 6
 focus:
-- id: the-fresh-run-is-graded-by-the-blind-suite
+- id: the-fresh-871f674a2-book-is-graded-against-its-preregistration
   lane: D_billing_metering
   side: supplier
-  what: 'Launch one fresh default-book run with tools/launch_long_job, from a worktree at origin/main.
-    It must include 00c082202, 58af1fe57, 3e19e5676, 8e9fb022d, 36ce8dc53 and 871f674a2, and use the same
-    configuration as Monday''s 4ae8da9b0f run. Check background.resource_headroom first, and launch nothing
-    if a run is already live. Before launch, commit a pre-registration in docs/staging/records/. For each
-    suite invariant, give the count each landed commit predicts on a fresh book: standing charge and SVT
-    unit rate 0; INV_READ_MONOTONIC 0; INV_PPM_NOT_CREDIT_BILLED about the one SME leg 3e19e5676 expects;
-    and the register-switching serial count, 39 or 66. In the same act, write the grade as a continuation
-    under this id into seat_continuation, so it is in live(). The grade rebuilds the ledger and raw export
-    with origin code, runs tools/domain_invariant_runner.py over every household, and appends the per-invariant
-    table to the blind-suite finding against the pre-registration. Each breach is either fixed or recorded
-    as a named, dated exception. This run is also the first to carry f89db6ff3''s monthly fields, so say
-    so in the finding.'
-  why: The ruling's exit test is 'the suite runs on the full book of a fresh run with zero unexplained
-    breaches'. Every count this stretch was re-priced on an old book, and the run takes hours, so it is
-    the long pole. Done means the run is launched, the pre-registration is committed, and the grade is
-    in seat_continuation.live() under this id. The grade's own landing then closes the reading.
-  written_at: 1793071788.704
-- id: a-bill-ebss-covered-in-part-is-not-paid-in-full-by-the-household
-  lane: D_billing_metering
+  what: 'The fresh run fresh-default-book-871f674a2 finished at 04:47Z (/var/tmp/fresh-run-out-871f674a2/DONE.json
+    and arm.json), and nothing has graded it: its grade continuation was released at 04:00Z by the tick
+    that launched the run. Work from a worktree at origin/main, which now carries a8d80fda6''s EBSS netting.
+    Read /var/tmp/fresh-run-scripts/grade.sh, then run it. Append the per-invariant table to docs/staging/SEAT_FINDING_THE_BLIND_INVARIANT_SUITE_ON_THE_67A893E749_BOOK_FINDS_PREPAYMENT_AT_THE_DD_CAP_A_JANUARY_STANDING_CHARGE_AND_METERS_THAT_CHANGE_REGISTERS_2026-10-26.md,
+    graded against docs/staging/records/SEAT_PREREGISTRATION_THE_FRESH_DEFAULT_BOOK_RUN_AT_871F674A2_IS_GRADED_BY_THE_BLIND_SUITE_2026-10-27.md.
+    Leave the predictions unedited and state any refuted one as refuted. Say this is the first run carrying
+    f89db6ff3''s monthly fields. Fix every breach left, or write it as a named, dated exception in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml
+    (invariant, scope, reason, filed, retired_by, max_breached where it can grow). If every invariant
+    is then zero or excepted, set enforce: true in the same commit. Do not read the f0d04dd72 run (pid
+    961337) as this grade: it carries c688a5e61''s Unidentified Gas world change, which the pre-registration
+    did not predict.'
+  why: It is the first leg of the ruling's exit test, it needs no new build, and the book has sat on disk
+    ungraded since 04:47Z. Done means the table is in the finding on origin, every breach is fixed or
+    excepted, and the register's enforce state is set from that table, with the reason in the commit.
+  written_at: 1793082620.928
+- id: a-former-customers-life-events-are-not-on-the-suppliers-timeline
+  lane: C_customer_ops
   side: supplier
-  what: 'Close open item (b) of the blind-suite finding. K8 first: amend docs/market_research/energy_bills_support_scheme_delivery.md
-    with how a supplier applied the EBSS credit to a bill it covered only in part, and mark what is unknown
-    as GAP. Then, in tools/generate_billing_ledger.py and company/billing/raw_account_export.py, net the
-    scheme credit on a part-covered bill. The household''s payment becomes the bill less the credit, and
-    the credit is an adjustment with method scheme_credit, as 871f674a2 did for bills covered in full.
-    Establish whether the company''s own balance, arrears or collections (simulation/dd_collection_book.py,
-    company/billing/) also count the overstated payment. If they do, fix that first, because then the
-    company itself is wrong, not just the export. Before writing the test, print the before and after
-    on the 4ae8da9b0f book: the number of part-covered bills and the total payment overstated, in pounds.
-    Add a test that goes red on the old code.'
-  why: It is the one money-record defect the export audit left open. It sits across Oct 2022 to Mar 2023,
-    which is the crisis window the ruling's step 2 asks about. It is ledger-side, so it can land while
-    the fresh run computes and be graded on that run's book. Done means the page is amended, the fix and
-    its test are on origin, and the finding records the before and after counts, with the company-balance
-    question answered either way.
-  written_at: 1793071788.704
-- id: the-suite-runs-on-every-run-and-a-breach-is-fixed-or-excepted
+  what: '26cc72f7b found that 14 of the 21 EV arrivals on the 4ae8da9b0f book fall after the household
+    left us, yet the published customer timeline shows them. tools/generate_customer_data.py (near line
+    152) copies the world''s life_event_history without clipping it to the supply window. Decide from
+    what the page claims to be: either clip every life event on the supplier-view timeline to the windows
+    where we held a supply of either fuel, or move the out-of-window events to a section labelled as the
+    world''s, not ours. Check every other world field that page prints for the same crossing. Before writing
+    the test, print the count of events dropped or relabelled, per event type, on the current published
+    book. Add a test that goes red on the old code.'
+  why: Truth is crossing onto a page labelled as the supplier's view, which is the epistemic wall's own
+    case. The timeline also feeds Explore, whose eight slots are a leg of the exit test. Done means the
+    fix and its test are on origin and the EV finding records the counts.
+  written_at: 1793082620.928
+- id: a-handoff-is-not-discharged-before-its-artefact-exists
   lane: H_harness
   side: other
-  what: 'Ruling step 4, last clause. Wire tools/domain_invariant_runner.py into background/process_run_complete.py,
-    so every completed run''s full book is graded and its per-invariant table is written beside the run
-    report. Look for an existing exceptions register before minting one. Hold named, dated exceptions
-    in one file under docs/design/: each names its invariant, its scope, the reason, and the commit that
-    will retire it. The publish refuses a book with a breach that is neither zero nor excepted, and the
-    refusal names the invariant and its count. Assert that the refusal CAN fire (a planted breach refuses)
-    and that an exception lifts it, and show that dropping the refusal is a mutation that fires. Seed
-    the exceptions only with what the fresh run''s grade (item 1) leaves unexplained. Until that grade
-    lands, run report-only, with the count on the surface.'
-  why: The ruling says the suite 'runs over every household on every run. A breach blocks the publish,
-    or is recorded as a named, dated exception.' Today it runs only when a worker runs it by hand, so
-    a breach can reach Monday's publish unseen. Done means process_run_complete runs it, the refusal is
-    shown able to fire and to lift, and it is on origin.
-  written_at: 1793071788.704
-- id: the-shared-checkout-runs-the-code-origin-holds
-  lane: H_harness
+  what: 'The fresh-run grade continuation named its artefact (/var/tmp/fresh-run-out-871f674a2/DONE.json)
+    in its own text, and was still retired 47 minutes before that file existed, because the seat-executor
+    tick that launched the run released its claim (seat-executor-log, 04:00Z: ''the tick released its
+    claim, so the handoff is done''). In background/seat_continuation.py, or wherever the executor discharges
+    a row, refuse to retire a continuation while an artefact path its what or done_means names does not
+    exist, or while a launch_long_job job it names has not ended. The refusal names the path or job. First
+    assert that a row CAN retire when its artefact is present, then that it is held when the artefact
+    is absent, and show that dropping the check is a mutation that fires. Replay the check over the store''s
+    retired rows and report how many it would have held.'
+  why: This is the tenth shape of the open 'finished long job lost its grader' row, and this time it held
+    up the exit test. It is the cheapest check that would have caught it, because the artefact was named
+    in the row itself. Done means the check is on origin and the replay count is in the commit.
+  written_at: 1793082620.928
+- id: the-first-cold-read-after-a-publish
+  lane: A_strategy_governance
   side: other
-  what: 'Advance the shared checkout /home/rich/synthetic-enterprise to origin/main with tools/refresh_to_head.
-    Do not use stash, checkout <path> or reset. Only these dirty files differ from origin and also changed
-    upstream: simulation/meter_reads.py, simulation/run_phase2b.py, saas/reporting/annual_report.py, tests/simulation/test_meter_reads.py,
-    tests/saas/reporting/test_annual_report.py, docs/design/maturity_map.yaml (+19 lines), docs/market_research/unbilled_energy_and_revenue_assurance.md,
-    site/harness/index.html and site/model/map/index.html. For each, decide whether it holds unlanded
-    work. Land that work by pathspec or isolate_hunks, or record the file as superseded with the evidence
-    (746dd3676 already judged meter_reads.py superseded). Then let refresh_to_head drop it. Confirm that
-    HEAD equals origin/main and that the brief''s units_lacking_origin is empty. Confirm that the supervisor
-    and worker-tick now run cd59b84f9''s refusal: correctness_stretch_refusals names the 4 held atoms.'
-  why: The director's ruling is enforced only by code the box does not run. Every draw unit runs from
-    a checkout 62 behind origin, so cd59b84f9's refusal of held-step atoms is not live. The same drift
-    keeps two open wrong rows (the brief reads the checkout, and the meter_reads draft) live. Done means
-    HEAD equals origin/main with no other lane's work lost, and the refusal runs on the box.
-  written_at: 1793071788.704
-- id: an-ev-effect-is-read-on-electricity-across-a-full-year
-  lane: W2_customer_generator
-  side: other
-  what: 'Close the EV root cause in docs/staging/SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_AND_ITS_EFFECT_IS_A_RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md,
-    but test the finding''s first remedy before taking it. A household that buys only gas from us still
-    has an electricity supply and can still get an EV. So ''draw the EV only for a household with an electricity
-    leg'' may make the world less real, not more. Write the reasoning into docs/market_research/ev_charging_and_the_saving_against_petrol_and_diesel_2026-10-25.md
-    first (K8). Then fix tools/generate_customer_reaction_chain.py: an EV effect is read on our electricity
-    leg only, over a full year either side of the arrival, or reported as ''not observable by us'' when
-    we hold no electricity leg or no full year. Weather-normalise it or name the GAP. Correct the suite''s
-    INV_EV_ADOPTION_ELECTRICITY_ONLY predicate beside it if it asserts the draw rule, as a marked correction.
-    Print the 21 arrivals before and after.'
-  why: It is a ruling step 3 root cause, and the one Explore slot it feeds is empty today. Whether the
-    defect is in the world's draw or only in how we read the effect decides which invariant the exit test
-    grades, so it has to be settled before the fresh run's grade is read. Done means the knowledge page
-    states the rule, the chain's fix and test are on origin, and the finding records the 21 arrivals classed
-    as in band, out of band, or not observable.
-  written_at: 1793071788.704
+  what: 'Ruling step 6. When the next run publishes (the f0d04dd72 run, pid 961337, or the one after),
+    check first that all eight Explore slots are filled validly or are honestly empty with the failing
+    check named. Then take one cold read by hand with .claude/skills/cold-eyes-walk/SKILL.md: a fresh
+    agent with no code access reads every Explore example and a random handful of household pages as a
+    GB retail-energy professional. Write each confirmed objection as a new invariant in docs/design/DOMAIN_INVARIANTS.yaml
+    with its source, or as a finding when it is not a range. Record the read in docs/staging/records/.
+    Do not build automation for the cold reader until this one hand read shows what it needs.'
+  why: It is the exit test's third leg, and it has never run. Done means one cold read of a published
+    book is recorded, saying either that it found no new class of error or which new invariants it added.
+  written_at: 1793082620.928
 not_now:
-- what: Ruling step 5 (each Explore slot ranks only among households the suite passes) and step 6 (a cold reader after every
-    publish).
-  why: Both read a per-household suite verdict and a fresh book. Item 3 produces the verdict and item 1 the book, so building
-    either now would gate on a book the suite has not graded. The cold read is part of the exit test and is cheapest after
-    the fresh run publishes.
-- what: Writing exit_met into the correctness stretch, or reporting the exit test as met.
-  why: There is no fresh-run reading yet. Every count this stretch was re-priced on an old book, and the cold read has not
-    run.
-- what: 'The other step 3 root causes: storage heating (WORKER_FINDING_THE_WORLDS_STORAGE_HEATER_IS_A_DIRECT_ACTING_HEATER_AND_CHARGES_NOTHING_OFF_PEAK_2026-10-15),
-    the household count, and the absent heavy-gas tail.'
-  why: They are world calibration. The fresh run's suite grade says which of them shows as a breach on a bill. Doing them
-    now would change the world under the run that is meant to measure the fixes.
-- what: Open items (a) the full life-event stream in the export and (c) the heating proxy reading billing_account_id.
-  why: Item 5 settles what an EV event should look like before a stream exports it. (c) is a one-line proxy change better
-    made by the grade that reads the fresh book.
+- what: Grading the f0d04dd72 run on the box as the exit test's fresh-run reading.
+  why: It carries c688a5e61's Unidentified Gas world change, so its counts move for a reason the pre-registration never predicted.
+    process_run_complete will grade it report-only anyway, and item 4 reads its publish.
+- what: 'The remaining step 3 root causes: storage heating and the household count.'
+  why: They are world calibration. The fresh book's grade says whether either shows as a breach on a bill. Changing the world
+    now would move the book that is meant to measure the fixes.
+- what: The occupier EBSS residual (an-occupier-account-carries-the-ebss-credit).
+  why: It is 12 bills and GBP 804. It is already queued and claimed by a live tick, so a focus item would only be a second
+    writer.
+- what: 'Further W2_36 world work (the shared smart-meter hub, now being written in the shared simulation/meter_reads.py),
+    and the second EV question: whether the world under-draws charging load.'
+  why: W2_36 is in the ruled order and not held, so the draw may take it. But it is world work that blocks no supplier result
+    this stretch, and it changes the book that items 1 and 4 read. The EV question waits on the estimate-run prediction already
+    filed in the EV finding.
 - what: A policy that carries the corrected renewal belief, W2_41's cancel-before-failure case, and other lever or feature
     work.
-  why: The ruling holds feature work until its exit test is met, and that test is now within one run and one cold read.
-- what: The three red post-publish readers on 4ae8da9b0 (f3951d9ab), and the six worktrees holding commits on no remote ref
-    (b12-*, se-budgetpay-land, se-om2).
-  why: The readers grade a book the suite already says is wrong, and the fresh run's publish will re-read them. None of the
-    worktrees blocks a supplier result or the exit test.
+  why: The ruling holds feature work until its exit test is met. Items 1 and 4 are two of that test's three legs.
+- what: The six worktrees holding commits on no remote ref (b12-*, se-budgetpay-land, se-om2).
+  why: None blocks a supplier result or the exit test. All are locked, so nothing reaps them.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk
     states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households leave, against
@@ -208,7 +176,8 @@ wrong:
     behind its exit test, so it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so the live renewal
     belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus. 03:22: Unchanged.
     No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s
-    exit test is not met, so it is not in focus.'
+    exit test is not met, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal
+    belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader. The E6 crisis-overlay finding hands grading to
     the-crisis-overlay-arm-on-the-default-book-is-graded three times (13:15, 21:21 BST), but that id was never written to
@@ -263,7 +232,11 @@ wrong:
     a fresh run'', and 871f674a2 says the reading that counts is ''the next fresh run''s''. The ruling''s exit test needs
     that run too. Yet seat_continuation.live() is empty and no long job launched this stretch. Focus item 1 launches the run
     and queues its grade in the same act. Nothing checks that a handoff named in a finding or a NEXT line is in the queue,
-    so the class is not fixed.'
+    so the class is not fixed. 06:24: Live again in a tenth shape, and it cost the exit test''s long pole. The fresh-run grade
+    continuation was released at 04:00Z by the seat-executor tick that only launched the run (seat-executor-log: ''the tick
+    released its claim, so the handoff is done''), 47 minutes before DONE.json existed at 04:47Z. arm.json has sat ungraded
+    since, and the brief lists the row as retired. Focus item 1 grades the book, and focus item 3 builds the check that would
+    have held the row. Not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Four advisor files were edited in place by a lane (b2bc3d8da, 2ada25833, d86d8749c),
     so the advisor channel now refuses them as unsigned, though the advisor''s own staging commits verify. A worker recording
@@ -287,7 +260,8 @@ wrong:
     not fixed. 00:24: No instance this stretch. The one live advisor file, the correctness ruling, is unedited on origin.
     Nothing stops an in-place edit to a live advisor file, so it is not fixed. 03:22: No instance this stretch. The one live
     advisor file, the correctness ruling, is unedited on origin. Nothing stops an in-place edit to a live advisor file, so
-    it is not fixed.'
+    it is not fixed. 06:24: No instance this stretch. The one live advisor file, the correctness ruling, is unedited on origin.
+    Nothing stops an in-place edit to a live advisor file, so it is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The brief reads the shared checkout, which is 57 commits behind origin. Its level grader
     says B13''s and W2_41''s pointers rotted (''a named path is absent here and git knows it''), and tools/the_basics.py run
@@ -312,7 +286,9 @@ wrong:
     the brief read origin/main, so it is not fixed. 03:22: Live, and now it costs the ruling. The checkout is 62 behind origin.
     The supervisor lacks cd59b84f9 to its own file, and worker-tick lacks it to delivery_lane.py, so the draw on the box does
     not run the correctness-stretch refusal that origin holds. Focus item 4 advances the checkout. Nothing makes the brief
-    read origin/main, so it is not fixed.'
+    read origin/main, so it is not fixed. 06:24: Level with origin again: 65e1af5f8 advanced the shared checkout to f0d04dd72,
+    and units_lacking_origin is empty. That is the tree catching up, not the grader changing. Nothing makes the brief read
+    origin/main, so it is not fixed.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Another lane''s W2_36 change, smart-mode share split by fuel at DESNZ''s 6.8% and 14.2%,
     has sat uncommitted in the shared simulation/meter_reads.py since 03:10Z with no claim naming it, and 77b6a16d9 records
@@ -332,8 +308,12 @@ wrong:
     it behind B13 is spent; it is in not_now only because a run launched from an origin worktree does not carry it. Not fixed.
     03:22: Unchanged. simulation/meter_reads.py still differs from origin by 22 lines, and it is now one of the dirty files
     that stop the shared checkout fast-forwarding (with simulation/run_phase2b.py, saas/reporting/annual_report.py, the maturity
-    map and two site pages). Focus item 4 drops it, using 746dd3676''s judgement that it holds no unlanded work. Not fixed.'
-  corrected: false
+    map and two site pages). Focus item 4 drops it, using 746dd3676''s judgement that it holds no unlanded work. Not fixed.
+    06:24: Corrected. 65e1af5f8 judged the ratio draft superseded, preserved it at refs/preserved/origin-reconcile-superseded-live/seat-judged-7db1e2c4af-2026-10-27,
+    and cleared it, and the checkout is level with origin. The 14-line diff now in simulation/meter_reads.py (mtime 05:58Z,
+    one smart-mode draw per household) is new work by a live tick, not this draft, and the run on the box (started 05:37Z)
+    predates it.'
+  corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. The director''s correctness ruling (18:30, ''Ok do it'') says no new feature work is
     drawn until its exit test holds, and docs/direction/priority_order.yaml records the correctness_stretch with the comment
     ''the draw does not read it yet''. So the dial-weighted lanes can still draw forward-years, asset-world or advice atoms
@@ -342,20 +322,19 @@ wrong:
     and is in flight. priority_order.yaml on origin still says ''the draw does not read it yet''. It stays focus item 5 under
     the same id. 03:22: Built, not live. cd59b84f9 is on origin: the BUILD draw and Lane 0 refuse held-step atoms and name
     the ruling, and three mutations fire. But the supervisor and worker-tick run from the shared checkout, which lacks cd59b84f9,
-    so the refusal does not run on the box. Focus item 4.'
-  corrected: false
-- what: 'THE SEAT''S, LAST STRETCH. I wrote focus item 3 (a-meter-keeps-its-register-count-or-is-exchanged) as world work:
-    ''register count drawn per period rather than per meter'', side world. It was the supplier''s own ledger. 8e9fb022d found
-    the 29 backwards reads came from the total and Peak registers sharing id ''1'' in tools/generate_billing_ledger.py, and
-    36ce8dc53 found all 501 multi-register breaches came from the runner''s per-account meter proxy grading single-rate default
-    spells. No world change was needed. The ''66 accounts'' the finding gave is not reproduced: 8e9fb022d counts 39 serials
-    and cannot yet say why the counts differ. The fresh run''s grade (focus item 1) re-counts it.'
+    so the refusal does not run on the box. Focus item 4. 06:24: Corrected. 65e1af5f8 restarted the supervisor at f0d04dd72
+    with the checkout level with origin, so cd59b84f9''s refusal runs on the box: correctness_stretch_refusals() names EP16,
+    SPINE_1, C4 and W1_10.'
   corrected: true
 - what: 'THE COMPANY''S, THIS STRETCH. The raw export misreported money. It counted 1,657 failed collections as money received,
     wrote 218 EBSS-settled bills as whole-bill payments by nobody marked overdue, turned 98 £0.00 credit-covered bills into
     None, and left 25 payments of -£0.01. All are fixed in 871f674a2. One is still open: a bill EBSS covered only in part
-    is recorded as the household paying the whole bill, so its payment is overstated by the credit. Focus item 2.'
-  corrected: false
+    is recorded as the household paying the whole bill, so its payment is overstated by the credit. Focus item 2. 06:24: Corrected.
+    a8d80fda6 nets the credit on a part-covered bill: on the 4ae8da9b0f book, 1,100 bills overstated household payments by
+    GBP 73,353.00, now GBP 804.00. The company''s own balance was already right, because the arrears engine and the DD book
+    net the credit through owed_after_scheme_credit. The residual is 12 bills on three occupier (OCC-) accounts, a different
+    scope, and it is queued and claimed as an-occupier-account-carries-the-ebss-credit.'
+  corrected: true
 for_the_director:
 - id: the-26-oct-advisor-steer-asks-that
   raised: '2026-10-26'
