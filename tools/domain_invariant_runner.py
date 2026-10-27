@@ -723,6 +723,105 @@ def ev_read_monotonic(inv, book):
     return tally
 
 
+#: The file's total/cumulative labels; every other label is a time band.
+TOTAL_LABELS = {"total", "anytime", "single rate", "unrestricted"}
+
+
+def _serial_runs(a):
+    """Consecutive periods on one meter serial. A serial that returns after another is a new life."""
+    run = []
+    for p in a.periods:
+        if run and p.get("meter_serial") != run[-1].get("meter_serial"):
+            yield run
+            run = []
+        run.append(p)
+    if run:
+        yield run
+
+
+def _term_changes_between(p1, p2) -> bool:
+    """A term begins at the boundary: the two periods print different (type, start) sets."""
+    def terms(p):
+        return {(t.get("tariff_type"), t.get("tariff_effective_from"))
+                for t in p.get("contracted_terms") or ()}
+    return terms(p1) != terms(p2)
+
+
+def _labels(p) -> dict:
+    out = defaultdict(set)
+    for r in list(p.get("registers") or ()) + list(p.get("reads") or ()):
+        out[r.get("register_id")].add(r.get("register_label"))
+    return out
+
+
+def _band_kind(label) -> str:
+    return "total" if str(label).strip().lower() in TOTAL_LABELS else "band"
+
+
+def ev_register_id_one_label(inv, book):
+    """(a) two labels on one id inside a period; (b) one id carrying a total label and a band label
+    on one serial with its index carried straight across the relabel (one series, two identities);
+    (c) a relabel between periods with no tariff change at the boundary, a flag."""
+    tally = Tally("register id on one period, and each relabel between periods on one serial")
+    for a in book:
+        for run in _serial_runs(a):
+            for p in run:
+                for reg, labels in _labels(p).items():
+                    tally.checked += 1
+                    if len(labels) > 1:
+                        tally.hit("breach", "{} {} reg {}".format(a.cid, p["period_start"], reg),
+                                  sorted(map(str, labels)), 1, "two labels in one period")
+            for p1, p2 in zip(run, run[1:]):
+                l1, l2 = _labels(p1), _labels(p2)
+                for reg in set(l1) & set(l2):
+                    if l1[reg] == l2[reg] or len(l1[reg]) != 1 or len(l2[reg]) != 1:
+                        continue
+                    tally.checked += 1
+                    (x,), (y,) = l1[reg], l2[reg]
+                    closing = [r["read_kwh"] for r in p1.get("reads") or ()
+                               if r.get("register_id") == reg and r.get("read_type") != OPENING]
+                    opening = [r["read_kwh"] for r in p2.get("reads") or ()
+                               if r.get("register_id") == reg and r.get("read_type") == OPENING]
+                    where = "{} {} reg {} {}->{}".format(a.cid, p2["period_start"], reg, x, y)
+                    if (_band_kind(x) != _band_kind(y) and closing and opening
+                            and abs(float(opening[0]) - float(closing[-1])) < 1e-6):
+                        tally.hit("breach", where, opening[0], closing[-1], "one series, two identities")
+                    elif not _term_changes_between(p1, p2):
+                        tally.hit("flag", where, y, x, "relabelled without visible reconfiguration")
+    return tally
+
+
+def ev_serial_register_count_stable(inv, book):
+    """(b) the register set changes between read dates inside one period, a breach; (a) the count
+    changes between periods on one serial with no tariff change at the boundary, a flag. A count
+    change at a tariff change, or across a serial change, passes; the first is counted in `book`."""
+    tally = Tally("period, and each successive pair of periods on one serial")
+    at_term, serials = 0, set()
+    for a in book:
+        for run in _serial_runs(a):
+            for p in run:
+                tally.checked += 1
+                by_date = defaultdict(set)
+                for r in p.get("reads") or ():
+                    by_date[r.get("read_date")].add(r.get("register_id"))
+                if len({frozenset(s) for s in by_date.values()}) > 1:
+                    tally.hit("breach", "{} {}".format(a.cid, p["period_start"]),
+                              sorted(len(s) for s in by_date.values()), 1, "count changes in a period")
+            for p1, p2 in zip(run, run[1:]):
+                n1, n2 = len(_labels(p1)), len(_labels(p2))
+                tally.checked += 1
+                if n1 == n2:
+                    continue
+                if _term_changes_between(p1, p2):
+                    at_term += 1
+                    serials.add((a.cid, p1.get("meter_serial")))
+                else:
+                    tally.hit("flag", "{} {} {}".format(a.cid, p1.get("meter_serial"), p2["period_start"]),
+                              n2, n1, "count changed without a tariff change")
+    tally.book = {"count_changes_at_a_tariff_change": at_term, "serials": len(serials)}
+    return tally
+
+
 def ev_period_matches_reads(inv, book):
     """Billed volume against the advance of the period's own readings, summed over registers."""
     tally = Tally("period billed on reads")
@@ -869,6 +968,8 @@ EVALUATORS = {
     "INV_NON_COMMODITY_WITHIN_ALL_IN": (ev_non_commodity_within_all_in,
                                         "non_commodity_rate_gbp_per_mwh"),
     "INV_PPM_NOT_CREDIT_BILLED": (ev_ppm_not_credit_billed, "document_type"),
+    "INV_REGISTER_ID_ONE_LABEL": (ev_register_id_one_label, None),
+    "INV_SERIAL_REGISTER_COUNT_STABLE": (ev_serial_register_count_stable, None),
 }
 
 

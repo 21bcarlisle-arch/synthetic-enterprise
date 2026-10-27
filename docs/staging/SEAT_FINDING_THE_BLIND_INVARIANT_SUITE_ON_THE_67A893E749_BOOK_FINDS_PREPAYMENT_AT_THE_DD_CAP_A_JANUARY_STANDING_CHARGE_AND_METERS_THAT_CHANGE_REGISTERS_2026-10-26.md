@@ -556,3 +556,69 @@ applied onto origin 894503ba41. The only overlap was `simulation/run_phase2b.py`
 EBSS commit's hunks and applied cleanly. `tests/company/pricing/` plus the three touched test files
 gave 1,091 passed. Removing the `min(ceiling, column)` in `cap_ceiling_ex_vat` reds 3 of the new
 test's 5 cases.
+
+## Every breach the 871f674a2 grade counted now has a row, and INV_PERIODS_CONTIGUOUS is traced (2026-10-27)
+
+**Two blind rows.** An agent read only `site/knowledge`, `docs/market_research`, the commons and
+published Elexon and Ofgem documents. It wrote `INV_REGISTER_ID_ONE_LABEL` and
+`INV_SERIAL_REGISTER_COUNT_STABLE`, which were appended to `DOMAIN_INVARIANTS.yaml` unedited.
+- **The strict form of each was not supported, so both were narrowed.**
+  - Elexon's register mapping lets register 1 be "single rate, or peak for multi-rate SSCs" (Issue 79
+    WG1 pack, 2019, slide 17).
+  - A smart meter is reconfigured at a change of supplier with no exchange (Ofgem P302 decision,
+    2015, pp.2–3).
+  - So a register-count change at a tariff change is lawful.
+- **What breaches.** The rows breach on two labels inside one period, on one register carried
+  straight across a total-to-band relabel (the 39 of the 67a893e749 book), and on a register set
+  that moves inside one period. A count change or relabel with no visible tariff change is a flag.
+- **Evaluators.** Added to `tools/domain_invariant_runner.py`. The tests reach every leg (breach,
+  flag, pass at a tariff change, pass at an exchange). Forcing the tariff-change pass, or removing
+  the one-series breach, reds a test.
+
+**On the 871f674a2 book, measured after the pre-registration below was filed:**
+- `INV_REGISTER_ID_ONE_LABEL`: CLEAN, 0 of 54,192.
+- `INV_SERIAL_REGISTER_COUNT_STABLE`: 0 breaches. 94 count changes at a tariff change, on 65
+  serials. That is the "about 66" of §3, and it is lawful.
+- **Count flags: 2, where the pre-registration says 0 for the new run.** Both (SYN-2016-345 Aug 2016,
+  PROS-2024-0235 Sep 2024) are a one-day ToU first period, with the term starting on the 31st, that
+  prints only its Off-peak register. They are the "one-band stubs" of §3. This is a minor export
+  defect, and the prediction stands unedited.
+
+**INV_PERIODS_CONTIGUOUS: traced, not fixed.**
+- **All 4 gaps are bills the company's pre-bill gate held and never issued.** They are in the
+  ledger's `exception_queue`, 14 bills. Each is a resi electricity month of 2,100–4,300 kWh,
+  held as "implausible for a resi account" and as a VAT "SME-as-Household mislabel".
+- **The world settled every one of those days, but nothing releases a held bill.** The next bill
+  opens at the last issued closing read, so for PROS-2017-0336 Dec 2017–Jan 2018 9,150 kWh was
+  never billed.
+- The exception now carries this cause.
+- **Two defects stay open.** The company has no release path for a held bill, and a real supplier
+  investigates one and then bills it. Separately, a resi home at 25–60 MWh a year is a world-range
+  question for `INV_ANNUAL_USE_ELEC_ACCOUNT`.
+
+**What the blind writer read** (its own list, verbatim):
+
+```
+REPO FILES (allowed set only)
+- docs/design/DOMAIN_INVARIANTS.yaml: meta block (lines 1-42), INV_FUEL_IDENTIFIER, INV_GAS_SINGLE_REGISTER, INV_READ_MONOTONIC (format only); grep of the row-id list
+- docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md: lines 1-60 and 120-175
+- docs/market_research/unbilled_energy_and_revenue_assurance.md: lines 1440-1460
+- docs/market_research/back_billing_and_liability.md: grep-matching line 71 only
+- docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md: lines 60-72 plus grep lines
+- filename-only grep over docs/market_research, docs/domain_artefact_library, site/knowledge for SSC/MTC/TPR/exchange/register terms; directory listing of docs/domain_artefact_library/regulatory
+
+BLINDFOLD DISCLOSURE: a_tou_tariff_needs_the_households_choice_not_its_meter.md "Item 7" (27 Oct 2026) quotes code
+(company/pricing/tou_desk.offers_tou, saas.bill_generator.tou_registers, tools/generate_billing_ledger) and the build's own
+register numbering ("total register is 1 under every tariff; Peak 2, Off-peak 3") and a defect count on book 67a893e749.
+I saw these incidentally. No bound, label mapping or predicate here is taken from them. Its claim that "one register is one
+register for the life of the serial" is a design assertion. The published DTC convention cited in the rows contradicts it
+for register ids.
+
+URLS
+- https://assets.elexon.co.uk/wp-content/uploads/sites/11/2019/05/28155716/Issue-79-WG1-Slidestack-v2.0.pdf (full text via pdftotext)
+- https://www.ofgem.gov.uk/sites/default/files/docs/2015/06/p302d.pdf (full text via pdftotext)
+- https://assets.elexon.co.uk/wp-content/uploads/sites/11/2017/01/28161831/BSCP40_04-Issue-Meter-Timeswitch-Code-for-Smart-Meters_v1.0.pdf (full text via pdftotext)
+- https://meteroperators.org.uk/changes-to-ssc-and-tpr-under-mhhs/
+- https://bscdocs.elexon.co.uk/guidance-notes/radio-teleswitch-standard-settlement-configuration-mapping/v-2-0/id-633d60472982320007e69608 (table of contents only; no body text returned)
+- WebSearch result snippets only, not opened: Elexon CP1456, MDD FAQs / MDD made easy, E.ON / OVO community forum threads on SMETS2 48 registers
+```

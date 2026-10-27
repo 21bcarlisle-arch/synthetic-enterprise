@@ -64,6 +64,8 @@ INVARIANTS = [
          "rule": "0.05 if consumption_kwh/days_in_period <= 33 else 0.20"}]},
     {"id": "INV_NON_COMMODITY_WITHIN_ALL_IN"},
     {"id": "INV_PPM_NOT_CREDIT_BILLED"},
+    {"id": "INV_REGISTER_ID_ONE_LABEL"},
+    {"id": "INV_SERIAL_REGISTER_COUNT_STABLE"},
 ]
 #: Evaluators this fixture does not reach, each with why. Neither may grow without a reason.
 NOT_REACHED_BY_THE_FIXTURE = {
@@ -139,6 +141,25 @@ def _late_reader():
     return acct
 
 
+def _labelled(acct, label="Anytime"):
+    for p in acct["periods"]:
+        for r in p["reads"]:
+            r["register_label"] = label
+    return acct
+
+
+def _relabelled():
+    """Register 1 is the total from January to June and Peak from July, its index carried straight
+    across: the 67a893e749 shape. In March a second register is read on the closing date only."""
+    acct = _labelled(_account("R", "electricity", rate=15.0))
+    for p in acct["periods"][6:]:
+        for r in p["reads"]:
+            r["register_label"] = "Peak"
+    march = acct["periods"][2]
+    march["reads"].append(dict(march["reads"][1], register_id="2", register_label="Off-peak"))
+    return acct
+
+
 def _broken_book():
     book = _clean_book()
     e, g, m, f = (book[k]["periods"] for k in ("E", "G", "M", "F"))
@@ -185,6 +206,8 @@ def _broken_book():
     #                                                                 and under its own levies
     g[1]["consumption_kwh"] += 50.0                                 # billed more than was read
     e[0]["vat_rate"] = 0.20                                         # domestic at the standard rate
+    book["R"] = _relabelled()                                       # one register, two identities;
+    #                                                                 a register set moving mid-period
     return book                                                     # E's prepayment months were
     #                                                                 sent credit bills
 
@@ -365,3 +388,59 @@ def test_an_enforced_verdict_says_refused_only_when_it_refuses():
     refused = runner.render_verdict(runner.gate(results, {"enforce": True, "exceptions": []}))
     assert "refused" not in clear.splitlines()[0] and "stands" in clear.splitlines()[0], clear
     assert "the publish is refused" in refused.splitlines()[0], refused
+
+
+def _two_periods(n1, n2, *, term_change, label2="Anytime", carried=True, serial2=None):
+    """Two months on one serial with n1 then n2 registers; the second month's term starts on its
+    first day when `term_change`."""
+    acct = _labelled(_account("T", "electricity", rate=15.0, registers=tuple(map(str, range(1, n1 + 1)))))
+    acct["periods"] = acct["periods"][:2]
+    second = _labelled(_account("T", "electricity", rate=15.0,
+                                registers=tuple(map(str, range(1, n2 + 1)))), label2)["periods"][1]
+    if not carried:
+        for r in second["reads"]:
+            r["read_kwh"] += 77.0
+    if term_change:
+        second["contracted_terms"] = [dict(second["contracted_terms"][0], tariff_type="fixed",
+                                           tariff_effective_from=second["period_start"])]
+    if serial2:
+        second["meter_serial"] = serial2
+    acct["periods"][1] = second
+    return {"T": acct}
+
+
+def _one(inv_id, book):
+    return _results(book, [{"id": inv_id}])[inv_id]
+
+
+def test_every_leg_of_the_register_count_row_is_reachable():
+    """MUTATION -- the blind INV_SERIAL_REGISTER_COUNT_STABLE row. Each leg is reached before any
+    is asserted, so an evaluator that flags everything, or nothing, cannot pass."""
+    legs = {
+        "flag": _one("INV_SERIAL_REGISTER_COUNT_STABLE", _two_periods(1, 2, term_change=False)),
+        "pass_at_term": _one("INV_SERIAL_REGISTER_COUNT_STABLE", _two_periods(1, 2, term_change=True)),
+        "pass_at_exchange": _one("INV_SERIAL_REGISTER_COUNT_STABLE",
+                                 _two_periods(1, 2, term_change=False, serial2="MNEW")),
+        "steady": _one("INV_SERIAL_REGISTER_COUNT_STABLE", _two_periods(2, 2, term_change=False)),
+    }
+    assert {k: r["status"] for k, r in legs.items()} == {
+        "flag": "FLAGGED", "pass_at_term": "CLEAN", "pass_at_exchange": "CLEAN", "steady": "CLEAN"}
+    assert legs["pass_at_term"]["book"]["count_changes_at_a_tariff_change"] == 1
+    assert legs["steady"]["book"]["count_changes_at_a_tariff_change"] == 0
+
+
+def test_every_leg_of_the_one_label_row_is_reachable():
+    """MUTATION -- the blind INV_REGISTER_ID_ONE_LABEL row: a total relabelled as a band with its
+    index carried is one register under two identities (the 39 of the 67a893e749 book); the same
+    relabel with a fresh index at a tariff change is a lawful reconfiguration; with neither, a flag."""
+    legs = {
+        "one_series": _one("INV_REGISTER_ID_ONE_LABEL",
+                           _two_periods(1, 1, term_change=True, label2="Peak")),
+        "reconfigured": _one("INV_REGISTER_ID_ONE_LABEL",
+                             _two_periods(1, 1, term_change=True, label2="Peak", carried=False)),
+        "unexplained": _one("INV_REGISTER_ID_ONE_LABEL",
+                            _two_periods(1, 1, term_change=False, label2="Peak", carried=False)),
+        "steady": _one("INV_REGISTER_ID_ONE_LABEL", _two_periods(1, 1, term_change=False)),
+    }
+    assert {k: r["status"] for k, r in legs.items()} == {
+        "one_series": "BREACHED", "reconfigured": "CLEAN", "unexplained": "FLAGGED", "steady": "CLEAN"}
