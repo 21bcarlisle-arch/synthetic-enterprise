@@ -444,3 +444,77 @@ Every other invariant row is byte-identical before and after.
   credit.
 - **(c)** The suite's annual-use heating proxy can now read `billing_account_id` instead of
   assuming no account has both fuels.
+
+
+## Grade of the fresh 871f674a2a run (2026-10-27)
+
+Run `fresh-default-book-871f674a2`, finished 04:47Z, graded by `/var/tmp/fresh-run-scripts/grade.sh` on origin/main b67d8c3ee4 (1,291 accounts). **This is the first run carrying f89db6ff3's monthly fields.** The pre-registration is `records/SEAT_PREREGISTRATION_THE_FRESH_DEFAULT_BOOK_RUN_AT_871F674A2_IS_GRADED_BY_THE_BLIND_SUITE_2026-10-27.md`, unedited. It does not carry c688a5e61's Unidentified Gas change or the f0d04dd72 run.
+
+### Predictions against the result
+
+| Invariant | Was | Predicted | Got | Verdict |
+|---|---|---|---|---|
+| INV_UNIT_RATE_SVT_ELEC | 496 | 0 | 298 | **REFUTED** (down 40%, not zero) |
+| INV_UNIT_RATE_SVT_GAS | 462 | 0 | 249 | **REFUTED** |
+| INV_STANDING_CHARGE_SVT_ELEC | 2,986 | 0 | 735 | **REFUTED** (down 75%) |
+| INV_STANDING_CHARGE_SVT_GAS | 4,226 | 0 | 1,502 | **REFUTED** (down 64%) |
+| INV_READ_MONOTONIC | 29 | 0 | 0 | held |
+| INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER | 501 | 0 | 0, UNREACHED (0 checked) | held only vacuously: no multi-register term was reached, so this says nothing about 36ce8dc53 |
+| INV_PPM_NOT_CREDIT_BILLED | UNCHECKABLE | runs; 1 SME account, 0 domestic | 12 periods, all account C6 | held |
+| Register ids carrying two labels; serials switching register count | 39; 66 | 0; about 66 | **not graded here**: the suite has no row for either | open |
+
+Not predicted, found: INV_PERIODS_CONTIGUOUS 4 (3 accounts, was 1 account); INV_PAYMENT_AMOUNT_SIGN, INV_VAT_RATE, INV_NON_COMMODITY_WITHIN_ALL_IN, INV_PERIOD_MATCHES_READS all CLEAN.
+
+Four of the five SVT predictions were wrong in the same direction: each fix removed most of the breach and none removed it. The pre-registration called the cause removed; it was reduced.
+
+### What the residue is
+
+- **Standing charge.** Over by 0.02-0.8% (median 0.04%, at most 0.0017 GBP/day). Of 735 electricity breaches, 267 equal the previous cap window's ceiling and 154 the next window's; of 1,502 gas, 534 and 102. So about 57% (elec) and 42% (gas) are a period billed at a neighbouring window's charge. The rest are unexplained.
+- **Unit rate.** 1-5% over. 177 of the 298 electricity breaches and 160 of the 249 gas are 2016 terms repeated at 13 windows per account. That fits a rate struck once and not re-struck. I did not test it.
+- **PPM.** The 12 are the one SME leg, as predicted.
+- **Contiguity.** Three accounts, gaps of 32-91 days between Nov 2016 and Feb 2018. Not traced.
+
+### Full table
+
+| invariant | status | breached | flagged | checked | unit |
+|---|---|---|---|---|---|
+| INV_UNIT_RATE_SVT_ELEC | BREACHED | 298 (5.0%) | 0 (0.0%) | 5921 | SVT term x cap window it overlaps (single-register electricity) |
+| INV_UNIT_RATE_SVT_ELEC_PRE_CAP | CLEAN | 0 (0.0%) | 0 (0.0%) | 2472 | SVT term x pre-cap half-year it overlaps (single-register electricity) |
+| INV_UNIT_RATE_SVT_GAS | BREACHED | 249 (5.3%) | 0 (0.0%) | 4713 | SVT term x cap window it overlaps (gas) |
+| INV_UNIT_RATE_SVT_GAS_PRE_CAP | CLEAN | 0 (0.0%) | 0 (0.0%) | 1768 | SVT term x pre-cap half-year it overlaps (gas) |
+| INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER | UNREACHED | 0 | 0 | 0 | SVT term x cap window it overlaps (multi-register electricity) |
+| INV_UNIT_RATE_FIXED | FLAGGED | 0 (0.0%) | 8 (0.6%) | 1339 | fixed term, graded once at the window it was struck in |
+| INV_UNIT_RATE_EPG_HOUSEHOLD | UNCHECKABLE | | | | UNCHECKABLE: the export's unit_rate_p_per_kwh does not say whether it is the supplier's tariff rate (cap-bounded, Treasury paid the differen |
+| INV_STANDING_CHARGE_SVT_ELEC | BREACHED | 735 (3.5%) | 0 (0.0%) | 21301 | SVT bill period (electricity) |
+| INV_STANDING_CHARGE_SVT_GAS | BREACHED | 1502 (9.1%) | 0 (0.0%) | 16468 | SVT bill period (gas; ceiling in DD-only windows) |
+| INV_STANDING_CHARGE_FIXED | CLEAN | 0 (0.0%) | 0 (0.0%) | 16109 | fixed bill period |
+| INV_ANNUAL_USE_ELEC_ACCOUNT | FLAGGED | 0 (0.0%) | 11 (0.6%) | 1749 | complete calendar account-year (electricity) |
+| INV_ANNUAL_USE_GAS_ACCOUNT | CLEAN | 0 (0.0%) | 0 (0.0%) | 1422 | complete calendar account-year (gas) |
+| INV_ANNUAL_USE_BOOK_MEDIAN | CLEAN | 0 (0.0%) | 0 (0.0%) | 12 | TDCV row x fuel class (book median) |
+| INV_READ_DUTY_ANNUAL | FLAGGED | 0 (0.0%) | 310 (27.5%) | 1126 | credit account (prepayment excluded): longest run without an actual read |
+| INV_SETTLEMENT_ACTUAL_SHARE_ELEC | FLAGGED | 0 (0.0%) | 1 (100.0%) | 1 | book (electricity kWh) |
+| INV_BILL_AT_LEAST_TWICE_YEARLY | CLEAN | 0 (0.0%) | 0 (0.0%) | 46403 | bill period of a domestic credit account |
+| INV_OPENING_READ | CLEAN | 0 (0.0%) | 0 (0.0%) | 1291 | account: days from first period_start to its first read |
+| INV_PAYMENT_PPM_AND_DD_NOT_CONCURRENT | CLEAN | 0 (0.0%) | 0 (0.0%) | 1291 | account |
+| INV_PAYMENT_AMOUNT_SIGN | CLEAN | 0 (0.0%) | 0 (0.0%) | 42701 | DD or prepayment payment |
+| INV_DD_CADENCE | FLAGGED | 0 (0.0%) | 61 (0.2%) | 34361 | account-month with a DD payment |
+| INV_DD_STEP_CHANGE | FLAGGED | 0 (0.0%) | 1628 (4.6%) | 35445 | successive pair of positive DD collections |
+| INV_PPM_NOT_CREDIT_BILLED | BREACHED | 12 (0.2%) | 0 (0.0%) | 6329 | period on a prepayment account |
+| INV_FUEL_IDENTIFIER | CLEAN | 0 (0.0%) | 0 (0.0%) | 52777 | bill period |
+| INV_GAS_SINGLE_REGISTER | CLEAN | 0 (0.0%) | 0 (0.0%) | 584 | gas meter (account x meter_serial) |
+| INV_CROSS_FUEL_PRICE_SCALE | CLEAN | 0 (0.0%) | 0 (0.0%) | 9856 | SVT term x cap window it overlaps (both fuels) |
+| INV_EV_ADOPTION_ELECTRICITY_ONLY | UNCHECKABLE | | | | UNCHECKABLE: the export carries no event stream (adoption events, asset changes). The 'electricity-only household has no gas records' half i |
+| INV_PERIODS_CONTIGUOUS | BREACHED | 4 (0.0%) | 0 (0.0%) | 104263 | bill period (day count) and successive pair (contiguity) |
+| INV_BACK_BILLING_12M | FLAGGED | 0 (0.0%) | 166 (0.4%) | 37538 | bill period of a domestic account from 2018-05-01 |
+| INV_PERIOD_CONSUMPTION_NON_NEGATIVE | CLEAN | 0 (0.0%) | 0 (0.0%) | 54192 | register-period |
+| INV_READ_MONOTONIC | CLEAN | 0 (0.0%) | 0 (0.0%) | 14750 | successive pair of actual reads on one register |
+| INV_PERIOD_MATCHES_READS | CLEAN | 0 (0.0%) | 0 (0.0%) | 52777 | period billed on reads |
+| INV_VAT_RATE | CLEAN | 0 (0.0%) | 0 (0.0%) | 52777 | period |
+| INV_NON_COMMODITY_WITHIN_ALL_IN | CLEAN | 0 (0.0%) | 0 (0.0%) | 52777 | period |
+
+### Disposition
+
+All six breached invariants are named, dated exceptions in `docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml`, each with a `max_breached` ceiling at today's count. Two of them are only partly explained and say so. With 0 unexcepted, `enforce` is set to true in the same commit. The exceptions do not claim the defects are understood; they stop them growing.
+
+### Next
+The window-boundary standing charge and the unchanged SVT rate are the two things to trace; each retires two exceptions.
