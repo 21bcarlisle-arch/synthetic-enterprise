@@ -359,6 +359,59 @@ modification notice, in force 6 Dec 2017).
   or reacts to it.** The households' renewal choice is rolled at the term's end with no input from
   the statement. Whether a 22C statement moves switching, and by how much, is a world question for
   `how_households_respond_to_supplier_contact.md`; not built here.
-- The retention offer is still decided on the day the term ends. Moving it to accompany the
-  statement means deciding with 42 days less information; that is a commercial design change for
-  its own page, not part of sending the statement.
+- The retention offer is still decided on the day the term ends. Whether to move it is ruled out
+  for now in the next section.
+
+## When the retention offer is made: with the statement, or on the day the fix ends (2026-10-27, seat)
+
+**Asked because** the statement now goes on day 42 (0 of 1,170 breaches on the fresh run graded in
+d3e83190b7), but every retention offer is still dated the day the fix ends: 165 offers on the
+2eeb3f0b3 book came after their statement.
+
+**What the rules require.** Nothing dates the offer of a NEW fixed contract. 22C.5(a) puts an offer
+to EXTEND the same contract inside the statement; 22C.8(c) lets a new fixed contract be agreed with
+the customer's express agreement and puts no date on it; 22C.7 says only that a customer who has
+agreed nothing by the end date goes onto the default. So an offer made and taken on the end day is
+lawful, and so is one made to a customer already on the default. The statement must name the
+customer's Relevant Cheapest Tariff (22C.3(c)(viii)). Whether a retention-only fix the company would
+offer that customer counts as one is not in the text we hold: the definition is not in the commons
+(**GAP**).
+
+**What published practice says.** Ofgem describes the 2022-2025 retention tariff as offered "to
+their existing customers nearing the end of fixed-term contracts" (BAT renewal decision, Nov 2025,
+§3(i); quoted in `a_save_offer_against_the_switching_rules_and_the_seam.md` §1d). "Nearing" means
+before the end, which fits the statement window, but it does not date the offer. No published
+source says what share of retention offers go with the statement, come later in the window, or
+come after the roll (**GAP**). It is a practitioner question (K4). It is not asked, because the
+decision below does not turn on it.
+
+**What the company knows 42 days earlier, and what the world does with it.**
+
+- The renewal price is already struck on day 42 (`simulation/renewals.py`, `NOTICE_DAYS`). The
+  discount is sized against "the best published deal on the day" (`run_phase2b.py`,
+  `_price_match_inputs(..., term_start_str, ...)`). That is the end day. The churn belief, the
+  save-rate interval and the holdout's losses are also read on the end day.
+- The household answers the offer in the same instant. Its stay-or-go roll happens at the term's
+  end, against that day's market. It has no decision inside the 42-49 day window, and it does not
+  read the statement (the GAP in the section above;
+  `a_save_offer_against_the_switching_rules_and_the_seam.md` §3: "the only stay-or-go answer the
+  world gives is the renewal-time roll").
+
+**The choice, and why.** **The offer stays on the end day for now.** An offer and its answer have
+to share a date, and the answer's date belongs to the world. Moving only the company's decision to
+day 42 would match the offer to a market 42 days older than the one the household compares it
+against. That is a mismatch in the other direction, and it shows most in 2021-22, when the best
+published deal moved within weeks. It would also cut the company's information by 42 days and
+change nothing any household sees. Redating the offer alone fixes no defect; it relabels one.
+
+**What is wrong, and where it lives.** The flattering part is in the world, not in the offer's
+date. A real household that leaves at the end of its fix commits to the switch before the end day:
+most switches took about three weeks in 2016, and after CSS a switch completes within five
+working days of the Relevant Date (`switching_mechanics_2026-10-25.md` §1).
+In the world, the roll re-asks every household on the end day, with the offer in hand. So an offer
+dated after a real leaver had committed is still answered here. That flatters retention: F11 says
+to name it, and it is named. **The trigger for moving the offer to the statement is the world
+giving households a decision inside the window** (`how_households_respond_to_supplier_contact.md`,
+W2_39). When that lands, the offer must move with the statement, sized against day 42's market. An
+offer left on the end day would then come after the household had decided, and that would be a
+defect, not a choice.
