@@ -444,3 +444,24 @@ def test_every_leg_of_the_one_label_row_is_reachable():
     }
     assert {k: r["status"] for k, r in legs.items()} == {
         "one_series": "BREACHED", "reconfigured": "CLEAN", "unexplained": "FLAGGED", "steady": "CLEAN"}
+
+
+def test_a_held_month_the_next_bill_takes_up_closes_the_gap_and_an_untaken_one_does_not():
+    """MUTATION -- INV_PERIODS_CONTIGUOUS against a pre-bill hold. A month the gate held is billed
+    by the catch-up at the next actual read, which names it (`held_periods_reconciled`); the same
+    gap with nothing naming it is still a breach, and a name that misses the gap does not close it."""
+    def held(named):
+        acct = _account("H", "electricity", rate=15.0)
+        acct["periods"] = [p for p in acct["periods"] if p["period_start"][5:7] not in ("03", "04")]
+        if named is not None:
+            acct["periods"][2]["held_periods_reconciled"] = named
+        return {"H": acct}
+    march_april = [{"period_start": "2020-03-01", "period_end": "2020-03-31"},
+                   {"period_start": "2020-04-01", "period_end": "2020-04-30"}]
+    legs = {
+        "taken_up": _one("INV_PERIODS_CONTIGUOUS", held(march_april)),
+        "unnamed": _one("INV_PERIODS_CONTIGUOUS", held(None)),
+        "half_named": _one("INV_PERIODS_CONTIGUOUS", held(march_april[:1])),
+    }
+    assert {k: r["status"] for k, r in legs.items()} == {
+        "taken_up": "CLEAN", "unnamed": "BREACHED", "half_named": "BREACHED"}

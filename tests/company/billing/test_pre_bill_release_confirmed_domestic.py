@@ -76,6 +76,23 @@ def test_an_estimate_over_the_ceiling_stays_held_because_a_listing_says_nothing_
     assert release_confirmed_domestic(bill, validate_bill(bill)) is None
 
 
+def test_a_prepayment_statement_on_a_listed_dwelling_issues_and_an_unlisted_one_stays_held():
+    """The meter charged what it recorded as used, which answers the volume half as an actual read
+    does: SYN-2016-561's winter statements on the 894503ba41 book were held, and left 91 days of
+    its record unaccounted for. Leg by leg, so a release of every statement cannot pass."""
+    legs = {
+        "listed": _winter_bill_on_an_electric_heated_house(billing_basis="prepayment_meter"),
+        "unlisted": _winter_bill_on_an_electric_heated_house(
+            billing_basis="prepayment_meter", premise_council_tax_listed=None),
+        "foots_wrong": _winter_bill_on_an_electric_heated_house(
+            billing_basis="prepayment_meter", vat_gbp=0.0),
+    }
+    released = {k: release_confirmed_domestic(b, validate_bill(b)) for k, b in legs.items()}
+    assert {k: r is not None for k, r in released.items()} == {
+        "listed": True, "unlisted": False, "foots_wrong": False}
+    assert "prepayment meter" in released["listed"]["pre_bill_release"]["confirmed_by"]
+
+
 def test_an_unanswered_or_negative_listing_stays_held():
     for listed in (None, False):
         bill = _winter_bill_on_an_electric_heated_house(premise_council_tax_listed=listed)

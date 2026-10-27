@@ -331,6 +331,17 @@ def _bill_generation_delay_days(customer_id: str, period_end: str) -> int:
     return max(0, round(delay_rng.expovariate(1.0 / BILL_GENERATION_DELAY_MEAN_DAYS)))
 
 
+def _held_spans(bills: list, held: list) -> dict[tuple, list[tuple[str, str]]]:
+    """(customer_id, commodity) -> (period_start, period_end) of each bill the pre-bill gate held."""
+    keys = {(r.customer_id, r.period_end) for r in held}
+    spans: dict[tuple, list[tuple[str, str]]] = {}
+    for b in bills:
+        if (b.get("customer_id"), b.get("period_end")) in keys:
+            spans.setdefault((b["customer_id"], b.get("commodity")), []).append(
+                (b["period_start"], b["period_end"]))
+    return spans
+
+
 def generate(run_json_path=None, out_path=None):
     if run_json_path is None:
         run_json_path = RUN_JSON
@@ -362,6 +373,7 @@ def generate(run_json_path=None, out_path=None):
     # entirely (never sent) and recorded on the exception queue below rather
     # than silently dropped.
     bills, held_bills = validate_bills(bills)
+    held_spans = _held_spans(data.get("bills", []), held_bills)
     account_terms = terms_by_customer(data)
     tou_terms = _tou_terms(account_terms, bills)
 
@@ -657,6 +669,15 @@ def generate(run_json_path=None, out_path=None):
             inv["catchup_adjustment_gbp"] = printed_money.get("catchup_adjustment_gbp")
             inv["catchup_written_off_gbp"] = bill.get("catchup_written_off_gbp")
             inv["catchup_back_billing_cap_applied"] = bill.get("catchup_back_billing_cap_applied")
+            # A HELD BILL IS RELEASED HERE, at the next actual read: the assembly reconciles a held
+            # month as billed nothing, so this catch-up is its first demand. The held periods are
+            # named so the record shows which days this bill took up, not a gap.
+            reconciled = [
+                {"period_start": start, "period_end": end}
+                for start, end in held_spans.get((bill["customer_id"], bill.get("commodity")), [])
+                if inv["catchup_period_start"] <= start and end <= inv["catchup_period_end"]]
+            if reconciled:
+                inv["held_periods_reconciled"] = reconciled
         else:
             inv["catchup_applied"] = False
         # BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): consumption

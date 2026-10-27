@@ -643,13 +643,18 @@ def ev_cross_fuel_price_scale(inv, book, gas_rows=(), elec_rows=()):
 
 
 def ev_periods_contiguous(inv, book):
-    """Inclusive ends, as the export's own days_in_period shows; a gap or overlap is a breach."""
+    """Inclusive ends, as the export's own days_in_period shows; a gap or overlap is a breach.
+
+    A period a later bill names as taken up by its catch-up (`held_periods_reconciled`) is billed,
+    on that later bill, so it is one of the account's periods here."""
     tally = Tally("bill period (day count) and successive pair (contiguity)")
     for a in book:
         for p in a.periods:
             span = (_d(p["period_end"]) - _d(p["period_start"])).days + 1
             tally.band("{} {} days".format(a.cid, p["period_start"]), p.get("days_in_period"), span, span)
-        for x, y in zip(a.periods, a.periods[1:]):
+        spans = sorted(a.periods + [h for p in a.periods for h in p.get("held_periods_reconciled", ())],
+                       key=lambda p: p["period_start"])
+        for x, y in zip(spans, spans[1:]):
             step = (_d(y["period_start"]) - _d(x["period_end"])).days
             tally.band("{} {}->{}".format(a.cid, x["period_end"], y["period_start"]), step, 1, 1)
     return tally
