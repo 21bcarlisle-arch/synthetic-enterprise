@@ -287,3 +287,60 @@ def get_multi_register_cap_unit_rate_for_date(on_date: date, *, net_of_epg: bool
             ratio = period_ratio
             break
     return single * ratio
+
+
+# --- The cap per payment method (SLC 28AD) ---
+#
+# Ofgem sets the cap per payment method, and its cap level model publishes all three columns. The
+# windows above are the published DD level. A clamp at that level lets a prepayment default tariff
+# sit over its own cap wherever the prepayment column is the lower one, which is most windows. On
+# the 871f674a2 book this supplier's own premium did that to 298 electricity and 249 gas prepayment
+# term-windows, and its clamp passed every one
+# (`docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`, choice 7).
+#
+# THE READING, and it is this company's: the column in force on the date, from capped periods only,
+# with the last carried forward. The world reads the same artefact on its own
+# (`simulation.price_cap_enforcement`), and the two are deliberately not pinned equal.
+_COMPOSITION_ARTEFACT = _CAP_WINDOWS_ARTEFACT.with_name("ofgem_cap_unit_rate_composition.json")
+_METHOD_SERIES_KEY = {"electricity": "by_payment_method", "gas": "gas_by_payment_method"}
+CAP_PAYMENT_METHODS = ("direct_debit", "standard_credit", "prepayment")
+
+
+def _load_payment_method_columns() -> dict[tuple[str, str], list[tuple[date, float]]]:
+    """(fuel, method) -> [(period start, GBP/MWh ex-VAT)]. Raises rather than failing open: a
+    missing column would clamp a prepayment household at the DD level, the defect this ends."""
+    if not _COMPOSITION_ARTEFACT.exists():
+        raise FileNotFoundError(f"cap composition commons artefact missing: {_COMPOSITION_ARTEFACT}")
+    raw = json.loads(_COMPOSITION_ARTEFACT.read_text())
+    out: dict[tuple[str, str], list[tuple[date, float]]] = {}
+    for fuel, key in _METHOD_SERIES_KEY.items():
+        for method in CAP_PAYMENT_METHODS:
+            out[(fuel, method)] = sorted(
+                (date.fromisoformat(p["starts"]), float(p["unit_rate_p_per_kwh_ex_vat"]) * 10.0)
+                for p in raw[key][method]["periods"] if p.get("cap_in_force"))
+            if not out[(fuel, method)]:
+                raise ValueError(f"{_COMPOSITION_ARTEFACT}: no capped {fuel} {method} period")
+    return out
+
+
+_PAYMENT_METHOD_COLUMNS = _load_payment_method_columns()
+
+
+def get_payment_method_cap_unit_rate_ex_vat(
+    fuel: str, on_date: date, payment_method: str,
+) -> float | None:
+    """The cap model's unit rate for `payment_method` on `on_date`, GBP/MWh EX-VAT. None before
+    the first capped period. An unknown method is refused: a column nobody can name has no level.
+
+    This is the method's column alone. The ceiling a caller clamps at is min(this, the published
+    level); see `company.pricing.renewal_rate_chain.cap_ceiling_ex_vat`.
+    """
+    fuel = _normalise_fuel(fuel)
+    if payment_method not in CAP_PAYMENT_METHODS:
+        raise ValueError(
+            f"payment method {payment_method!r} has no cap column: Ofgem's model publishes "
+            f"{CAP_PAYMENT_METHODS}")
+    series = _PAYMENT_METHOD_COLUMNS[(fuel, payment_method)]
+    if on_date < series[0][0]:
+        return None
+    return next(rate for begins, rate in reversed(series) if begins <= on_date)

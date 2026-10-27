@@ -94,6 +94,7 @@ from company.pricing.margin_feedback import compute_margin_surcharge
 from company.pricing.ofgem_price_cap import (
     get_cap_unit_rate_for_date,
     get_multi_register_cap_unit_rate_for_date,
+    get_payment_method_cap_unit_rate_ex_vat,
 )
 from company.pricing.renewal_desk import pre_margin_unit_rate
 from company.pricing.tariff_engine import (
@@ -113,6 +114,7 @@ __all__ = ["RenewalRateChain", "bill_the_shared_rise", "cap_ceiling_ex_vat", "de
 
 def cap_ceiling_ex_vat(
     commodity: str, on_date: date, *, multi_register: bool, net_of_epg: bool = True,
+    payment_method: str | None = None,
 ) -> float | None:
     """The domestic cap unit rate on the strike's own basis: EX-VAT, GBP/MWh.
 
@@ -130,6 +132,15 @@ def cap_ceiling_ex_vat(
 
     `net_of_epg` is passed through to the published lookup; see `get_cap_unit_rate_for_date`.
 
+    `payment_method`, where given, lowers a single-rate ceiling to the method's own cap column
+    when that is lower: min(published level, column), which is the published level for standard
+    credit in every window and the prepayment column in most. Direct debit is the published level. Without it the
+    ceiling is the published level, which is the DD column, and a prepayment default tariff raised
+    by writers 1-2 was clamped back to the DD level, over its own cap: all 547 SVT unit-rate
+    breaches on the 871f674a2 book (`docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`,
+    choice 7). The multi-register benchmark takes no method column, because the commons carries
+    none for it.
+
     The VAT divided out is the rate on `on_date` for this fuel: domestic electricity is zero-rated
     from 2026-10-01 to 2027-03-31, and dividing that window's cap by 1.05 understated the
     electricity ceiling by about 4.8%.
@@ -142,7 +153,12 @@ def cap_ceiling_ex_vat(
         inc_vat = get_cap_unit_rate_for_date(commodity, on_date, net_of_epg=net_of_epg)
     if inc_vat is None:
         return None
-    return inc_vat / (1.0 + vat_rate_for_segment("resi", fuel=commodity, on=on_date))
+    ceiling = inc_vat / (1.0 + vat_rate_for_segment("resi", fuel=commodity, on=on_date))
+    # Direct debit IS the published level; the model's own DD column sits up to 1.3% off it.
+    if payment_method in (None, "direct_debit") or multi_register:
+        return ceiling
+    column = get_payment_method_cap_unit_rate_ex_vat(commodity, on_date, payment_method)
+    return ceiling if column is None else min(ceiling, column)
 
 # The premium and the surcharge both learn from COMPLETED terms, so neither can
 # apply to a customer's first one. The world used to spell this as
@@ -551,7 +567,10 @@ def decide_renewal_rate(
             commodity, date.fromisoformat(term_start[:10]),
             multi_register=(commodity == "electricity"
                             and offers_tou(customer, tariff_type=tariff_type)),
-            net_of_epg=tariff_type not in EPG_MADE_WHOLE_TARIFF_TYPES)
+            net_of_epg=tariff_type not in EPG_MADE_WHOLE_TARIFF_TYPES,
+            # SLC 28AD caps a default tariff at its payment method's own level; a fixed term the
+            # acquisition rule holds is this supplier's choice, at the published level.
+            payment_method=payment_method if tariff_type in CAPPED_TARIFF_TYPES else None)
 
     arm_uplift = renewal_margin_uplift(
         account_id=billing_account,

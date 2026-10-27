@@ -1380,6 +1380,8 @@ invariants:
       (63.665 SC, 60.694 PPM)
   tolerance:
     upper_absolute_gbp_per_day: 0.0001
+    upper_absolute_gbp_per_period: 0.01
+    seat_correction: 'Delivery seat, 2026-10-27, not the blind writer: 0.0001/day is tighter than the penny rounding the reason names on any period under 50 days. The bill rounds days x rate to the penny and prints the shortest per-day rate that reproduces it, so the printed rate can sit up to 1p/days over the rate charged. All 735 elec and 1,502 gas breaches on the 871f674a2 book are exactly that (docs/market_research/default_tariff_cap_and_epg_on_the_bill.md, choice 7). A penny over the period is the bound; anything larger still breaches.'
     reason: export/penny rounding only
   regional_caveat: 'Belief, one year only: electricity standing charges spread ''about 36-59p'' across regions in 2023 against a median of 51.3p (docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#basis.statistic),
     i.e. the highest region was ~15% above the median. Report exceedances up to +15% as AMBIGUOUS_REGIONAL (export carries no region), above +15% as breach. The spread in other years is not established.'
@@ -1592,6 +1594,8 @@ invariants:
       and prepayment gas SC not in the commons)
   tolerance:
     upper_absolute_gbp_per_day: 0.0001
+    upper_absolute_gbp_per_period: 0.01
+    seat_correction: 'Delivery seat, 2026-10-27, not the blind writer: 0.0001/day is tighter than the penny rounding the reason names on any period under 50 days. The bill rounds days x rate to the penny and prints the shortest per-day rate that reproduces it, so the printed rate can sit up to 1p/days over the rate charged. All 735 elec and 1,502 gas breaches on the 871f674a2 book are exactly that (docs/market_research/default_tariff_cap_and_epg_on_the_bill.md, choice 7). A penny over the period is the bound; anything larger still breaches.'
     reason: rounding
   regional_caveat: 'GAP: gas regional SC spread not in the commons.'
   severity:

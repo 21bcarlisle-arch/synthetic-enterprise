@@ -518,3 +518,41 @@ All six breached invariants are named, dated exceptions in `docs/design/DOMAIN_I
 
 ### Next
 The window-boundary standing charge and the unchanged SVT rate are the two things to trace; each retires two exceptions.
+
+
+## The SVT residue, traced (2026-10-27)
+
+Both hypotheses in "What the residue is" above were wrong. They are kept above, uncorrected.
+
+- **Unit rate: not a rate struck once.** SYN-2016-061 re-strikes at every window. Each prepayment
+  segment enters the company's renewal chain at its own column, as 58af1fe57 intended. Writer 1
+  (portfolio premium) or writer 2 (margin surcharge) then raises it, and writer 4 clamped it only at
+  the published level, which is the DD column. Jan 2023: entered at 631.48, premium to 726.20, clamped
+  at 642.57. The run's own `rate_decomposition_log` gives every one of the 298 + 249 breaches this
+  shape: 270 elec and 162 gas clamped at the DD level, and 28 and 87 raised to a rate between the two
+  columns. All are on prepayment households. The "13 windows" are 13 re-struck segments, each raised.
+  58af1fe57's offline re-price predicted 0 because it re-priced the world's segment and did not model
+  the company's writers.
+  **Fix:** the company's clamp holds a default tariff at min(published level, method column)
+  (`company.pricing.ofgem_price_cap.get_payment_method_cap_unit_rate_ex_vat`,
+  `renewal_rate_chain.cap_ceiling_ex_vat(payment_method=)`). The run hands the chain the method the
+  segment was priced on. The exceptions stay until a fresh run grades it. Prediction:
+  `records/SEAT_PREREGISTRATION_THE_NEXT_FRESH_RUN_HOLDS_A_PREPAYMENT_DEFAULT_TARIFF_AT_ITS_OWN_CAP_THROUGH_THE_COMPANYS_CLAMP_2026-10-27.md`.
+- **Standing charge: not a neighbouring window, and not an over-charge.** No breaching period
+  straddles a cap change. All 2,237 printed per-day rates are exactly what the printer produces from
+  days × the cap, rounded to the penny. The 0.0001/day tolerance was tighter than its own stated
+  reason, "penny rounding". The tolerance now also allows a penny over the period. The same book grades
+  0 and 0, and both exceptions are retired.
+- **Found on the way:** an enforced verdict with 0 unexcepted breaches printed "the publish is refused"
+  into the run report. It now says the publish stands.
+
+Still open from this grade: INV_PPM_NOT_CREDIT_BILLED (C6, the SME leg) and INV_PERIODS_CONTIGUOUS (3 accounts).
+
+**How this landed (2026-10-27, seat-executor).** The tick that wrote the trace (surgical_land pid
+2678688) exited without landing. Its uncommitted work was preserved by `fork_salvage` as 1de5fa8e96 at
+11:36Z. The fresh-run item had said "do not land them yourself", but that instruction assumed a live
+holder, and the holder was gone. The salvage's own paths (no observability or handshake files) were
+applied onto origin 894503ba41. The only overlap was `simulation/run_phase2b.py`, which took the
+EBSS commit's hunks and applied cleanly. `tests/company/pricing/` plus the three touched test files
+gave 1,091 passed. Removing the `min(ceiling, column)` in `cap_ceiling_ex_vat` reds 3 of the new
+test's 5 cases.

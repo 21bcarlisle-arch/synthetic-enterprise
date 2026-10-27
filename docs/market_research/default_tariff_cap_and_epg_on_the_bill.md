@@ -158,3 +158,33 @@ levels within 0.6% over 21 windows.
    method pays the DD standing charge, which is below the prepayment and standard-credit columns in
    every window. On the 67a893e749 book, re-priced through the new reader, `INV_UNIT_RATE_SVT_ELEC`
    goes 496 → 0 and `INV_UNIT_RATE_SVT_GAS` goes 462 → 0.
+
+7. **The company's own cap clamp reads the payment method too (built 27 Oct 2026).** Choice 6 priced
+   the segment the world hands the company, but the company's renewal rate chain then moves an SVT
+   rate. Its portfolio premium and margin surcharge (writers 1 and 2,
+   `company.pricing.renewal_rate_chain`) are the supplier's own pricing, and they are lawful while the
+   rate stays under the cap. Writer 4 is the clamp that keeps it there. It read the published level,
+   which is the DD column, whatever the household's method. On the `871f674a2` book, every one of the
+   298 electricity and 249 gas SVT term-windows over their cap is a prepayment segment priced at its
+   own column and then raised by writer 1 or 2. 270 electricity and 162 gas were clamped back to the
+   DD level, and 28 and 87 were raised to a rate between the two columns. SYN-2016-061, Jan 2023:
+   it entered at 631.48 GBP/MWh (the prepayment column), the premium took it to 726.20, and the
+   clamp stopped at 642.57 (the published DD level). It was **not** a rate struck once and never
+   re-struck: every segment is re-struck at its window, and the grade's "13 windows" are 13
+   re-struck segments that were each raised. So the company's ceiling for a domestic default tariff
+   is now min(the published level, the method's own column). This is the company's own reading of
+   the composition artefact (`company.pricing.ofgem_price_cap.get_payment_method_cap_unit_rate_ex_vat`),
+   the same min() as choice 6 and for the same reason. With no method known, the clamp stays at the
+   published level. That fails open toward the DD level, and it is said here rather than hidden:
+   the run loop hands the chain the method the segment was priced on, so a spliced default segment,
+   which resolves no renewal method, still carries one. **Fixed terms are untouched.** The
+   acquisition rule's ceiling is the company's choice, not SLC 28AD's.
+   **The standing-charge "residue" was not a charge.** The same grade read 735 electricity and 1,502 gas
+   SVT standing-charge periods as over the cap, and about half of them as a neighbouring window's
+   charge. Every one is a period billed at exactly the cap per day: the bill rounds days × rate to the
+   penny, then prints the shortest per-day rate that reproduces that rounded charge
+   (`saas.money.display_rate_gbp_per_day`). Over a short period the printed rate can sit up to
+   1p ÷ days above the rate charged. The invariants' 0.0001 GBP/day tolerance was tighter than the
+   penny rounding its own reason names. The neighbouring-window match was a coincidence of rounded
+   figures: no breaching period straddles a cap change. The invariants now also allow a penny over the
+   period, and anything larger still breaches.

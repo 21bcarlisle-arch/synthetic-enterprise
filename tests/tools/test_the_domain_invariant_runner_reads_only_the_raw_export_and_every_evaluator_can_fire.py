@@ -336,3 +336,32 @@ def test_a_business_period_is_graded_by_its_de_minimis():
 
     assert (breached(500.0, 0.05), breached(500.0, 0.20),
             breached(3000.0, 0.20), breached(3000.0, 0.05)) == (0, 12, 0, 12)
+
+
+def test_a_standing_charge_is_graded_to_the_penny_over_the_period_not_the_printed_day():
+    """Catches the per-day tolerance read alone. The bill rounds days x rate to the penny and prints
+    the shortest per-day rate that reproduces it, so a household charged exactly the cap can print
+    up to 1p/days over it: all 2,237 SVT standing-charge breaches on the 871f674a2 book. Both legs:
+    a printed rate under a penny over the period is clean, and one 2p over it still breaches, so a
+    tolerance wide enough to pass everything fails here too."""
+    inv = {"id": "INV_STANDING_CHARGE_SVT_ELEC", "rows": [_row(0.0, 0.2153)],
+           "tolerance": {"upper_absolute_gbp_per_day": 0.0001, "upper_absolute_gbp_per_period": 0.01}}
+    # 31 days at the cap is 6.6743, billed 6.67; but a printed 0.2154 sits 0.31p over it.
+    rounded = runner.Account("R", _account("R", "electricity", rate=15.0, sc=0.2154))
+    over = runner.Account("O", _account("O", "electricity", rate=15.0, sc=0.2153 + 0.02 / 28))
+    per_day_only = dict(inv, tolerance={"upper_absolute_gbp_per_day": 0.0001})
+    assert len(runner.ev_standing_charge_svt_elec(per_day_only, [rounded]).breaches) == 12, (
+        "the per-day tolerance alone passes the rounded rate, so this control proves nothing")
+    assert runner.ev_standing_charge_svt_elec(inv, [rounded]).breaches == []
+    assert len(runner.ev_standing_charge_svt_elec(inv, [over]).breaches) == 12
+
+
+def test_an_enforced_verdict_says_refused_only_when_it_refuses():
+    """Catches the verdict line keyed to `enforce` alone: the 871f674a2 re-grade, 0 unexcepted and
+    4 excepted, printed "the publish is refused" into the run report while the gate let it stand."""
+    results = [{"id": "INV_X", "breached": 3}]
+    exc = {"invariant": "INV_X", "scope": "s", "reason": "r", "filed": "2026-10-27", "retired_by": "f"}
+    clear = runner.render_verdict(runner.gate(results, {"enforce": True, "exceptions": [exc]}))
+    refused = runner.render_verdict(runner.gate(results, {"enforce": True, "exceptions": []}))
+    assert "refused" not in clear.splitlines()[0] and "stands" in clear.splitlines()[0], clear
+    assert "the publish is refused" in refused.splitlines()[0], refused

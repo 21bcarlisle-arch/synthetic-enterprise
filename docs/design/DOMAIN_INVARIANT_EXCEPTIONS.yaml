@@ -18,6 +18,10 @@
 # section "Grade of the fresh 871f674a2a run"). Every ceiling is the count that run found: a defect
 # that grows comes back as a refusal. "Partly diagnosed" means the reason covers the share stated and
 # no more; the rest is an open defect, not an explanation.
+#
+# 2026-10-27: the two INV_STANDING_CHARGE_SVT_* exceptions are retired. Every one of their 2,237 breaches
+# was the printed per-day rate of a period billed exactly at the cap and rounded to the penny. The
+# invariants now carry a penny-per-period tolerance, and the same book grades 0 on both.
 enforce: true
 exceptions:
   - invariant: INV_UNIT_RATE_SVT_ELEC
@@ -28,7 +32,11 @@ exceptions:
       which fits a term struck once and not re-struck at later cap windows, but that is a hypothesis
       this grade did not test.
     filed: 2026-10-27
-    retired_by: an SVT rate reset at each cap window, diagnosed by tracing one of the 13-window accounts (SYN-2016-061)
+    retired_by: >-
+      the company's cap clamp at the payment method's own column (2026-10-27), then a re-grade on the next
+      fresh run. Traced on SYN-2016-061: not a rate left un-re-struck, but every prepayment segment re-struck
+      at its own column and then raised by writer 1-2, with writer 4 clamping only at the DD level. All 298 are
+      that (default_tariff_cap_and_epg_on_the_bill.md, choice 7).
     max_breached: 298
   - invariant: INV_UNIT_RATE_SVT_GAS
     scope: 38 accounts, 249 SVT term x cap-window pairs; gas; 160 of them in 2016; 1.0-4.9% over
@@ -36,26 +44,8 @@ exceptions:
       Predicted 0 from 58af1fe57; refuted. Same shape as the electricity row and the same untested
       hypothesis.
     filed: 2026-10-27
-    retired_by: the same SVT rate reset as INV_UNIT_RATE_SVT_ELEC
+    retired_by: the same clamp as INV_UNIT_RATE_SVT_ELEC; all 249 are the same cause
     max_breached: 249
-  - invariant: INV_STANDING_CHARGE_SVT_ELEC
-    scope: 290 accounts, 735 SVT bill periods; electricity; 0.02-0.8% over the ceiling (median 0.04%, at most 0.0017 GBP/day)
-    reason: >-
-      Predicted 0 from 00c082202; refuted, though the size fell from 2,986. Partly diagnosed: of 735,
-      267 equal the previous cap window's ceiling and 154 the next window's, which is a period
-      straddling a cap change billed at the neighbouring window's charge. The other 314 are not
-      explained.
-    filed: 2026-10-27
-    retired_by: a standing charge taken at the period's own cap window, then a re-grade on the next fresh run
-    max_breached: 735
-  - invariant: INV_STANDING_CHARGE_SVT_GAS
-    scope: 224 accounts, 1,502 SVT bill periods; gas, DD-only windows; 0.04-0.4% over (median 0.05%)
-    reason: >-
-      Predicted 0 from 00c082202; refuted, though the size fell from 4,226. Partly diagnosed: 534 equal
-      the previous window's ceiling and 102 the next window's. The other 866 are not explained.
-    filed: 2026-10-27
-    retired_by: the same window-boundary fix as INV_STANDING_CHARGE_SVT_ELEC
-    max_breached: 1502
   - invariant: INV_PPM_NOT_CREDIT_BILLED
     scope: account C6 only, 12 periods in 2016-2017; the SME leg, not a domestic account
     reason: >-

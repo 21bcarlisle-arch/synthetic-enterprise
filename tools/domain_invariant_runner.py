@@ -326,27 +326,34 @@ def _sc_periods(inv, book, fuel, tariff):
             yield a, p, _row_on(rows, _d(p["period_start"]))
 
 
+def _sc_tol(inv, p) -> float:
+    """The per-day tolerance, or a penny over the period where the file gives one: the bill rounds
+    the period's charge to the penny and prints the shortest per-day rate that reproduces it."""
+    per_period, days = _tol(inv, "upper_absolute_gbp_per_period"), _num(p.get("days_in_period"))
+    per_day = _tol(inv, "upper_absolute_gbp_per_day")
+    return max(per_day, per_period / days) if per_period and days else per_day
+
+
 def ev_standing_charge_svt_elec(inv, book):
     tally = Tally("SVT bill period (electricity)")
-    tol = _tol(inv, "upper_absolute_gbp_per_day")
     for a, p, row in _sc_periods(inv, book, "electricity", "svt"):
         if row is None:
             continue
         upper = _upper_for_methods(row, a.methods_between(row["_from"], row["_to"]))
         tally.band("{} {}".format(a.cid, p["period_start"]), _num(p.get("standing_charge_gbp_per_day")),
-                   _num(row.get("lower")), upper, tol_abs=tol)
+                   _num(row.get("lower")), upper, tol_abs=_sc_tol(inv, p))
     return tally
 
 
 def ev_standing_charge_svt_gas(inv, book):
     tally = Tally("SVT bill period (gas; ceiling in DD-only windows)")
-    tol = _tol(inv, "upper_absolute_gbp_per_day")
     for a, p, row in _sc_periods(inv, book, "gas", "svt"):
         if row is None:
             continue
         dd_only = a.methods_between(row["_from"], row["_to"]) - {None} == {DIRECT_DEBIT}
         tally.band("{} {}".format(a.cid, p["period_start"]), _num(p.get("standing_charge_gbp_per_day")),
-                   _num(row.get("lower")), _num(row.get("upper")) if dd_only else None, tol_abs=tol)
+                   _num(row.get("lower")), _num(row.get("upper")) if dd_only else None,
+                   tol_abs=_sc_tol(inv, p))
     return tally
 
 
@@ -956,7 +963,8 @@ def gate(results: list[dict], register: dict) -> dict:
 
 def render_verdict(verdict: dict) -> str:
     n = sum(u["breached"] for u in verdict["unexcepted"])
-    mode = ("ENFORCED: the publish is refused" if verdict["enforce"] else
+    mode = (("ENFORCED: the publish is refused" if verdict["refuse"] else
+             "ENFORCED: nothing unexcepted, so the publish stands") if verdict["enforce"] else
             "REPORT-ONLY: the publish is not refused ({})".format(
                 verdict.get("report_only_because") or "the register does not say enforce: true"))
     lines = ["**{} unexcepted breach(es) across {} invariant(s); {} excepted. {}.**".format(

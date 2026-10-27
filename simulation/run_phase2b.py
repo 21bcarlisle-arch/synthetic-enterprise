@@ -3475,6 +3475,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _chain_default_belief = _payment_triad.default_belief_rate(
                 _first_asof, _payment_triad.arrears_state(cid, _first_asof, segment="resi"),
                 payment_method_of=_book_method_of)
+        # A spliced or first default segment resolves no renewal method above, but the chain's cap
+        # clamp still needs one (SLC 28AD): the method this segment was priced on, the same seam read.
+        # Nothing reads the name again before the churn block resets it.
+        if _company_payment_method is None:
+            _company_payment_method = _svt_priced_method
         # THE TYPED SEAM RECORD (2026-10-12): every input is declared company-observable on the
         # record itself, and its field list is an allow-list a world-only value cannot join.
         _chain = decide_renewal(RenewalDecisionInputs(

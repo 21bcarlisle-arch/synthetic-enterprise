@@ -194,6 +194,20 @@ def _the_landing_lands(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _the_invariant_gate_permits(monkeypatch):
+    """The domain-invariant gate reads the REAL billing ledger and the REAL exceptions register,
+    whatever this sandbox re-roots. Once the register said `enforce: true` (e81b1b156), every test
+    here that drives `main()` was graded on whatever book the local tree held, and was refused on
+    that book's READ_MONOTONIC and PAYMENT_AMOUNT_SIGN breaches. None of them is about the gate.
+
+    STATED, NOT NEUTERED. The gate has its own controls against a fixture book and register,
+    `test_the_domain_invariant_gate_refuses_an_unexcepted_breach_and_an_exception_lifts_it.py`,
+    which does not use this fixture, so pinning it here cannot make that control green."""
+    monkeypatch.setattr(prc, "_domain_invariant_gate_permits_publish",
+                        lambda git_hash, **kw: (True, None))
+
+
+@pytest.fixture(autouse=True)
 def _isolate_project_dir(tmp_path_factory, monkeypatch):
     """Point PROJECT_DIR -- and EVERY module path derived from it -- at a throwaway tree,
     for every test in this file. Zero real-tree WRITES (real-tree reads of static input
