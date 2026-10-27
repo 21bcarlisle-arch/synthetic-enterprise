@@ -942,10 +942,35 @@ electricity `open_estimated_kwh` was 548,385 kWh, of which 401,165 were closing 
     and 1.419 times the level). That form sent gas past 1 and left electricity at 68% where the
     register said every meter, so the odds form landed in c77a181fa instead. That the gap between
     fuels is a constant odds ratio across levels is a modelling choice: DESNZ publishes one level.
-- **GAP, not modelled:** whether one failure takes both legs. The hub architecture says an
-  electricity failure usually takes gas with it, but the joint share (both legs out, of dual-fuel
-  smart homes) is not published. Independence is the current choice, and it understates how often
-  a home has both fuels unread. The time series and the exit hazard are still the GAPs above.
+- **GAP, now held as a range (next section, 2026-10-27):** whether one failure takes both legs.
+  The hub architecture says an electricity failure usually takes gas with it, but the joint share
+  (both legs out, of dual-fuel smart homes) is not published. Independence was the choice until
+  2026-10-27, and it understated how often a home has both fuels unread. The time series and the exit hazard are still the GAPs above.
+
+#### World build: a dual home's two legs share one hub (2026-10-27, K8 for W2_36 K7)
+
+- **What the record says.** Nothing published gives the joint share. What is established is the
+  architecture above: the gas meter's reads leave only through the hub on the electricity meter.
+  So a home whose electricity meter is out of smart mode because its hub is out (lost WAN, or a
+  hub not enrolled after a switch) has its gas out too. [M] (SMETS architecture.)
+- **The belief, as a range.** At DESNZ's two shares (6.8% electricity, 14.2% gas), the joint
+  share of dual-fuel smart homes with both legs out lies between **0.97%** (independent, the old
+  draw) and **6.8%** (every electricity failure is a hub failure, so it takes the gas). The share
+  with at least one leg out lies between 20.0% and 14.2%. Both edges keep each fuel at its own
+  DESNZ share. The architecture puts the truth near the nested edge. The one thing that would move
+  it off that edge is an electricity meter that is out of smart mode while its hub still carries
+  the gas reads, and no count of that was found: **GAP**.
+- **The design choice.** `simulation/meter_reads.is_not_in_smart_mode` draws one number per
+  household (`simulation.household.household_of`), and each leg is out when that number is below
+  its own fuel's share. So an electricity failure always takes the gas, and gas can still fail on
+  its own (a lost HAN pairing). Electricity draws are unchanged, because an electricity point's
+  household id is its own id; only dual homes' gas legs are re-drawn. On 40,000 drawn ids: both
+  out 0.93% → 7.07%, at least one out 20.4% → 14.3%, electricity out with gas in 6.1% → 0.
+- **What it moves.** Each fuel's estimated-bill count is unchanged in expectation. What changes is
+  which homes carry them: an unread dual home is now usually unread on both fuels, so its two
+  catch-ups and any back-bill come together. Whether a hard-to-read home (no access) is the same
+  property-level fact for both fuels is not modelled: each leg still draws its read class from its
+  own id, because a gas meter is often outside, in a box, where the electricity meter is not.
 
 ---
 

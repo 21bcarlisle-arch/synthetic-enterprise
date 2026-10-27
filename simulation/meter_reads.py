@@ -86,6 +86,8 @@ from typing import Optional
 
 import yaml
 
+from simulation.household import household_of
+
 ASSUMPTION_TOGGLES_PATH = (
     Path(__file__).resolve().parent.parent / "docs" / "market_research" / "assumption_toggles.yaml")
 
@@ -229,10 +231,16 @@ def is_not_in_smart_mode(customer_id: str, commodity: str = "electricity") -> bo
     and never went a year unread; reality is a meter that stays out of smart mode (lost WAN, not
     enrolled after a switch), whose household is then read like a traditional one. Until
     2026-10-26 both fuels drew the 10% blend, so gas meters were in smart mode 4 points too often
-    and electricity 3 too rarely. The two legs still draw from their own ids: whether one lost hub
-    takes both is not modelled.
+    and electricity 3 too rarely.
+
+    One draw per household, compared with each fuel's own share: the gas meter's reads leave
+    through the hub on the electricity meter, so an electricity failure takes the gas with it,
+    and gas can still fail alone. Until 2026-10-27 each leg drew from its own id, and 0.9% of
+    dual smart homes had both fuels unread where the hub puts it near 6.8%
+    (unbilled_energy_and_revenue_assurance.md, K7 "a dual home's two legs share one hub").
+    An electricity point is its own household, so only a dual home's gas leg was re-drawn.
     """
-    return (random.Random(f"smartmode_{customer_id}").random()
+    return (random.Random(f"smartmode_{household_of(customer_id)}").random()
             < not_in_smart_mode_share(commodity))
 
 

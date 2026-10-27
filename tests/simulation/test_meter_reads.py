@@ -234,6 +234,24 @@ def test_each_fuel_is_out_of_smart_mode_at_its_desnz_share_and_the_register_row_
         assert mr.not_in_smart_mode_share("electricity") == mr.not_in_smart_mode_share("gas") == level
 
 
+def test_a_dual_homes_electricity_failure_takes_its_gas_and_each_fuel_keeps_its_share():
+    """Defect caught: a dual home's gas leg (`C1g`) drawing smart mode from its own id, as if it
+    had its own WAN. Its reads leave through the hub on the electricity meter, so independence put
+    0.9% of dual smart homes unread on both fuels where the hub puts it near 6.8%. Partition
+    first: electricity-and-gas out, gas alone out, and both in must all be reachable."""
+    homes = [f"SYN-2019-{i:05d}" for i in range(6000)]
+    elec = {h: mr.is_not_in_smart_mode(h, "electricity") for h in homes}
+    gas = {h: mr.is_not_in_smart_mode(h + "g", "gas") for h in homes}
+    assert any(elec[h] and gas[h] for h in homes)
+    assert any(gas[h] and not elec[h] for h in homes)
+    assert any(not elec[h] and not gas[h] for h in homes)
+
+    assert not any(elec[h] and not gas[h] for h in homes), "a lost hub must take the gas"
+    for fuel, out in (("electricity", elec), ("gas", gas)):
+        assert abs(sum(out.values()) / len(homes) - mr.not_in_smart_mode_share(fuel)) < 0.012
+    assert sum(elec[h] and gas[h] for h in homes) / len(homes) > 0.05
+
+
 def test_delay_days_non_negative():
     for yr in range(16, 26):
         event = simulate_read("C7", f"20{yr}-01-31", "traditional", 300.0, 0)
