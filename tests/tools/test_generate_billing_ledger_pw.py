@@ -4,9 +4,12 @@ import random
 from datetime import date, timedelta
 from pathlib import Path
 
+from simulation.arrears_engine import payment_outcome as _payment_outcome
 from tools.generate_billing_ledger import (
-    generate, _payment_outcome, _ic_arrears_stages,
-    _CORP_BACS_DISPUTE_PROB, _CORP_BACS_ON_TIME_PROB,
+    _CORP_BACS_DISPUTE_PROB,
+    _CORP_BACS_ON_TIME_PROB,
+    _ic_arrears_stages,
+    generate,
 )
 
 

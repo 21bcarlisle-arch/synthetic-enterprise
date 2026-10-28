@@ -44,7 +44,7 @@ _NOTE_STAGES = {"DD_FAILED": "payment_failed", "INVOICE_DISPUTED": "invoice_disp
                 "CREDIT_APPLIED": "credit_applied"}
 _RESOLVED_STAGES = {"RESOLVED", "PAYMENT_PLAN_AGREED"}
 _TYPE_ORDER = {"invoice_raised": 0, "payment_failed": 1, "invoice_disputed": 1,
-               "payment_received": 1, "refund_debit": 3, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
+               "payment_received": 1, "deemed_account": 1, "refund_debit": 3, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
                "arrears_resolved": 3, "write_off": 3, "recovery_note": 4}
 
 
@@ -86,6 +86,16 @@ def build_account_ledger(cust, as_of):
                 "amount_gbp": round(-scheme, 2), "info_amount_gbp": None,
                 "method": None, "description": "Energy Bills Support Scheme credit",
             })
+        if inv.get("billed_to"):
+            # Billed to the unnamed occupier's or the owner's deemed account, never asked of this
+            # payer (B7): the run booked it as their debt, so the whole bill, and any EBSS credit
+            # the deemed account held, leave this balance on issue.
+            entries.append({
+                "date": inv["issue_date"], "type": "deemed_account", "invoice_number": num,
+                "amount_gbp": round(-inv["total_amount_gbp"], 2), "info_amount_gbp": None,
+                "method": None, "description": "Billed to the %s's deemed account" % inv["billed_to"],
+            })
+            continue
         if arr is None:
             # A bill the account's credit wholly covered asked for nothing, so nothing was received.
             if (pay and pay["outcome"] == "success" and pay["payment_date"] <= as_of
@@ -166,6 +176,7 @@ def build_account_ledger(cust, as_of):
     total_written_off = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "write_off"), 2)
     total_scheme_credit = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "scheme_credit"),
                                 2)
+    total_deemed = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "deemed_account"), 2)
     total_recovered = round(sum(e["info_amount_gbp"] or 0.0 for e in entries
                                  if e["type"] == "recovery_note"), 2)
     current_balance = entries[-1]["running_balance_gbp"] if entries else 0.0
@@ -177,8 +188,9 @@ def build_account_ledger(cust, as_of):
         "total_billed_gbp": total_billed,
         "total_collected_gbp": total_collected,
         "total_written_off_gross_gbp": total_written_off,
-        # Billed = collected + scheme credit + balance + written off.
+        # Billed = collected + scheme credit + balance + written off + deemed.
         "total_scheme_credit_gbp": total_scheme_credit,
+        "total_deemed_gbp": total_deemed,
         "total_refunded_gbp": total_refunded,
         "total_recovered_gbp": total_recovered,
     }

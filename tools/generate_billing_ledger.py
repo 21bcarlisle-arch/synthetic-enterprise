@@ -49,7 +49,6 @@ from simulation.arrears_engine import (
     _LATE_DAYS,
     _ON_TIME_PROB,
     PAYMENT_TERMS_DAYS,
-    _fuel_poor_for_bill,
     _tone_for_bill,
     bill_due_date,
 )
@@ -57,25 +56,10 @@ from simulation.arrears_engine import (
     arrears_stages as _arrears_stages,
 )
 from simulation.arrears_engine import (
-    bill_substream as _bill_substream,
-)
-from simulation.arrears_engine import (
     debt_archetype as _debt_archetype,
 )
 from simulation.arrears_engine import (
     ic_arrears_stages as _ic_arrears_stages,
-)
-from simulation.arrears_engine import (
-    mover_final_bill_outcome as _mover_final_bill_outcome,
-)
-from simulation.arrears_engine import (
-    paying_method as _paying_method,
-)
-from simulation.arrears_engine import (
-    payment_method as _payment_method,
-)
-from simulation.arrears_engine import (
-    payment_outcome as _payment_outcome,
 )
 from simulation.arrears_engine import (
     resolved_settlement as _resolved_settlement,
@@ -94,6 +78,9 @@ PROJECT = Path(__file__).parent.parent
 #: The read type of a period a prepayment meter charged as it was used: neither an actual read
 #: taken for the bill (A) nor an estimate (E), but the meter's own register.
 METER_CHARGED_READ_TYPE = "M"
+#: The outcome of a bill wholly inside the change-of-tenancy window or the void: the run booked it
+#: to the deemed account (the unnamed occupier's or the owner's) and collected nothing from anyone.
+DEEMED_OUTCOME = "deemed_account"
 #: The method on a bill the government's bill credit (EBSS) settled whole, so the household paid
 #: nothing: the engine marks it `outcome: credit` with no method, which the ledger used to copy as
 #: a payment of the whole bill by nobody (218 rows on 4ae8da9b0f, all Oct 2022 to Mar 2023).
@@ -338,11 +325,6 @@ def generate(run_json_path=None, out_path=None):
     # tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds that on the
     # real run.
     resolved, write_offs, credits_applied = _resolved_settlement(bills, behavioral, churned, seed=42)
-    # PB8: each household's spells off DD, over the bills the engine reads, so a bill inside one is
-    # payable on receipt here as it is in the P&L.
-    from company.interfaces.bill_assembly import issued_bills
-    from simulation.dd_collection_book import supplier_dd_spells
-    dd_spells = supplier_dd_spells(issued_bills(bills), behavioral, seed=42)
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -383,17 +365,6 @@ def generate(run_json_path=None, out_path=None):
         Path(out_path).write_text(json.dumps(result, indent=2))
         return result
 
-    # C-S2 (W2_16): each bill's payment outcome is drawn from its OWN named
-    # substream, keyed by (customer_id, period_end) -- see
-    # `arrears_engine.bill_substream`. This function does NOT visit the same
-    # bills as `compute_emergent_bad_debt`: it excludes held bills (the
-    # validation gate above) and skips the outcome draw entirely for credit
-    # invoices. Under the previous single shared `random.Random(42)` those two
-    # legitimate differences silently offset this stream from the P&L's,
-    # disagreeing on the failed/dispute decision for 42 of 1557 real bills.
-    # Per-bill substreams make the two agree without either having to iterate
-    # in lockstep with the other.
-    _outcome_seed = 42
     held_reads: list[BillValidationResult] = []
     held_money: list[BillValidationResult] = []
     invoices_by_cid = {}
@@ -433,8 +404,24 @@ def generate(run_json_path=None, out_path=None):
         # The government's credit applied to this bill, which the household did not pay. Only a bill
         # the engine collects carries it: the engine nets it there (`owed_after_scheme_credit`).
         scheme_credit = 0.0
+        deemed_payer = None
         row = resolved.get((cid, period_end, commodity))
-        if is_credit:
+        # The engine's own test for a bill nobody named is asked for (`_resolve_bills`), so a
+        # catch-up credit inside the window is the deemed account's too: on the named payer it stood
+        # as credit nothing ever drew (OCC-2e29bf263cb4, OCC-86e666eb2f01).
+        in_window = row is None and (bill.get("occupier_share", 0.0)
+                                     + bill.get("void_owner_share", 0.0)) >= 1.0 - 1e-9
+        if in_window:
+            # The run booked it as the unnamed occupier's debt or the owner's charge, billed and
+            # never collected (B7 slices 4 and 6; back_billing_and_liability.md s.13, "Billed, not
+            # collected"). That is its outcome. This branch used to draw a payer and an outcome of
+            # its own, so the named household showed DD collections and failed DDs for money nobody
+            # asked it for (OCC-3c914ee8cef5g, OCC-561d240ea21a: the O27 never-chased debits).
+            scheme_credit = bill.get("occupier_scheme_credit_gbp", 0.0)
+            method, _tone, outcome, days_late = None, None, DEEMED_OUTCOME, 0
+            deemed_payer = ("owner" if bill.get("void_owner_share", 0.0) > bill.get("occupier_share", 0.0)
+                            else "occupier")
+        elif is_credit:
             method = None
             _tone = None
             outcome, days_late = "success", 0
@@ -448,23 +435,8 @@ def generate(run_json_path=None, out_path=None):
             scheme_credit = ebss_credit_gbp(segment, commodity, period_end[:7], bill.get("account_held_from"))
             _tone = None if outcome == "credit" else _tone_for_bill(method, cid, period_end)
         else:
-            # No row: the bill is wholly the occupier's or the owner's, which the engine never
-            # collects from this payer. Drawn here as before; see the 2026-10-15 finding. The
-            # occupier's deemed account carries the EBSS credit the world netted from its debt.
-            scheme_credit = bill.get("occupier_scheme_credit_gbp", 0.0)
-            method = _paying_method(segment, amount, cid, commodity, period_end, dd_spells)
-            _tone = _tone_for_bill(method, cid, period_end)
-            exit_ = _mover_final_bill_outcome(beh, cid, period_end, commodity, amount, method,
-                                              stress, _outcome_seed)
-            if exit_ is not None:
-                outcome, days_late, part_paid = exit_
-            else:
-                outcome, days_late = _payment_outcome(
-                    method, stress, _bill_substream(_outcome_seed, cid, period_end, commodity),
-                    segment,
-                    _fuel_poor_for_bill(_payment_method(segment, amount, cid, commodity), cid),
-                    _tone, cid,
-                )
+            raise ValueError("no engine outcome for %s %s %s, which is not inside the window"
+                             % (cid, period_end, commodity))
 
         # Defect 2: meter-read status, opening/closing reads, meter serial,
         # MPAN/MPRN. read_event is None for a bill Phase 3's meter-read
@@ -612,6 +584,7 @@ def generate(run_json_path=None, out_path=None):
             # customer. `is_credit` takes priority over the outcome-derived
             # label (outcome is forced to "success" for a credit, see above).
             "payment_status": (
+                "billed_to_the_" + deemed_payer if outcome == DEEMED_OUTCOME else
                 "credited" if is_credit else
                 "disputed" if outcome == "dispute" else
                 ("paid" if outcome in ("success", "credit") else "overdue")
@@ -773,7 +746,12 @@ def generate(run_json_path=None, out_path=None):
         # reducing the running balance by the credit. Fabricating a "payment" here
         # too would double-count it (the ledger negates a payment's amount_gbp to
         # get its effect on the balance, which would cancel the credit back out).
-        if not is_credit:
+        if outcome == DEEMED_OUTCOME:
+            # Nobody at this account was asked, so nothing was received or missed. What the page
+            # takes off the named payer is the bill less the credit the deemed account held.
+            inv["billed_to"] = deemed_payer
+            inv["deemed_debt_gbp"] = round(printed_total - (whole_credit or 0.0), 2)
+        elif not is_credit:
             payment_date = due_date + timedelta(days=days_late)
             # No more of the credit than the bill: what it exceeds by stays on the account, and the
             # engine nets that from the next bill (`credits_applied`, kind "credit").
@@ -922,6 +900,8 @@ def generate(run_json_path=None, out_path=None):
         pays = payments_by_cid.get(cid, [])
         arrs = arrears_by_cid.get(cid, [])
         total_billed = sum(i["total_amount_gbp"] for i in invs)
+        # Billed to the unnamed occupier's or the owner's deemed account at this supply point.
+        total_deemed = sum(i.get("deemed_debt_gbp", 0.0) for i in invs)
         total_paid = sum(p["amount_gbp"] if p["outcome"] == "success" else p.get("part_paid_gbp", 0.0)
                          for p in pays)
         failed_count = sum(1 for p in pays if p["outcome"] in ("failed", "dispute"))
@@ -930,7 +910,8 @@ def generate(run_json_path=None, out_path=None):
             "invoice_count": len(invs),
             "total_billed_gbp": round(total_billed, 2),
             "total_paid_gbp": round(total_paid, 2),
-            "balance_gbp": round(total_paid - total_billed, 2),
+            "balance_gbp": round(total_paid - total_billed + total_deemed, 2),
+            "total_deemed_gbp": round(total_deemed, 2),
             "failed_payment_count": failed_count,
             "arrears_case_count": len(arrs),
             "invoices": invs,

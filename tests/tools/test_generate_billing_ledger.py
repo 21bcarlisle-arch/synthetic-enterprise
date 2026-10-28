@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 
 from simulation import arrears_engine
+from simulation.arrears_engine import payment_method as _payment_method
+from simulation.arrears_engine import payment_outcome as _payment_outcome
 from tools.generate_billing_ledger import (
     _arrears_stages,
-    _payment_method,
-    _payment_outcome,
     _stress_for_year,
     generate,
 )

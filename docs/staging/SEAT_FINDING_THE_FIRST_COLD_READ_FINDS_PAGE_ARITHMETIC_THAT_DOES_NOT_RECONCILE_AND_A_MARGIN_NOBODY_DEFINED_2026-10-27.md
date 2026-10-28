@@ -150,3 +150,55 @@ The 6 other credits are not leavers' closings (they have no closing balance), so
 - OCC-423594fbfa6bg (-£4.28 held from 2017): account credit applied (£20.57, £8.41) against bills
   whose paid amount was already netted. A constant offset from one 2017 bill. Open.
 - Write-off short of the bill (OCC-87206d346f15g, £19.16): not reproduced in this pass. Open.
+
+## The occupier window's payment outcome has one home (2026-10-28, delivery lane)
+
+**Cause of the two never-chased failed DDs.** OCC-3c914ee8cef5g (£48.94, Mar 2016) and
+OCC-561d240ea21a (£42.58, Oct 2017) are bills with `occupier_share` 1.0. The run books such a bill as
+the unnamed occupier's debt, billed and never collected (B7 slice 4; `back_billing_and_liability.md`
+s.13). The arrears engine skips it. `generate_billing_ledger`'s no-row branch drew its own method
+and outcome, so the named payer was shown DD collections on all 836 window/void bills, and a failed
+DD on 12 of them.
+
+**Fixed.** A bill wholly inside the window or the void (the engine's own test, share >= 1) is now
+`billed_to: occupier | owner`. It has no payment and no case. The page ledger raises it and takes it
+off the named payer's balance (`deemed_account`, `total_deemed_gbp`), and the Explore household
+figure "billed" leaves it out. A catch-up credit inside the window counts too: left on the payer,
+nothing ever drew it. A no-row bill outside the window now raises an error instead of being drawn,
+and the real book raises none. Test, red on the old code:
+`tests/tools/test_a_bill_inside_the_occupier_window_is_the_deemed_accounts.py`.
+
+**Measured** on run 5e3e9966a5 (1,291 accounts, as of 2025-07-04), old ledger code against new:
+failed DDs 1,658 → 1,646; accounts owing more than £1, 181 → 171; accounts in credit by more than £1,
+17 → 14; both named accounts £0.
+
+**This is a different book from the 13a6e5e71d reconciliation**, and its counts are not those 4 and
+21. The two named accounts are on both books. The residue below is this book's.
+
+**The 3 leavers still in credit**
+- OCC-423594fbfa6bg, −£4.28: the constant offset from one 2017 bill traced above. Still open.
+- OCC-bec72a04dec8, −£27.79: the month's whole EBSS credit (£51.67, £64.95, …) is larger than the
+  bills just after the window. The engine's carry draws £24.29 of the excess and the ledger keeps the
+  rest. The engine's closing balance is not in credit, so no reg 6D refund is logged. The engine and
+  the ledger size the carry differently on a part-window month. Open.
+- PROS-2016-0117, −£44.90: three bills draw down a £95.97 catch-up credit, then the draw stops.
+  **Not traced.** My hypothesis is that the carry ends at a contract change.
+
+**The 28 owing more that the simple classes do not explain**
+- **5 leavers: a refund paid from an account the ledger never had in credit**
+  (PROS-2017-0293 £9.68, PROS-2021-0362 £435.60, SYN-2016-070 £355.33, SYN-2016-144 £18.50,
+  SYN-2016-406 £101.92). The run's reg 6D refund reads a closing credit the ledger never holds. The
+  ledger collects each bill exactly, and the run's DD balance book does not. That makes the DD
+  balance a second two-homes defect. **Open, and the next item.**
+- **15: correctly owed on the book date.** Every residual sits on a BALANCE_OPEN case, or on a
+  collection or repayment dated after 2025-07-04. The first pass tested the two classes one at a
+  time and missed the accounts that have both.
+- PROS-2018-0267, £22.83: the residuals are negative on four paid bills, yet the account owes.
+  **Not traced.**
+- **6: account credit netted against different bills by the engine and the ledger.** These are
+  invoice residuals of +x and −x that do not fully cancel (PROS-2016-0187, PROS-2018-0002g,
+  SYN-2016-016, SYN-2016-487, OCC-7119d3c0d418g, OCC-a1e9ae835e65). This is the OCC-423594fbfa6bg
+  class. Open.
+- OCC-87206d346f15g, £19.16: the write-off is the payer's share of a part-window bill. The residue is
+  the part-window share, which the ledger still collects from the payer at the full printed total.
+  That is the next one-home cut (239 part-window bills). Open.

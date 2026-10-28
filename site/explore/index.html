@@ -517,7 +517,8 @@ function householdFigures(c, fuels) {
     var kwh = leg.total_kwh || 0, billed = led.total_billed_gbp || 0;
     hhFig.kwh += kwh;
     hhFig.rates.push({fuel: fuel, p: kwh ? billed * 100 / kwh : null});
-    hhFig.billed += billed;
+    // A bill to the occupier's or the owner's deemed account was never this household's (B7).
+    hhFig.billed += billed - (led.total_deemed_gbp || 0);
     hhFig.paid += led.total_collected_gbp || 0;
     hhFig.scheme += led.total_scheme_credit_gbp || 0;
     hhFig.writtenOff += led.total_written_off_gross_gbp || 0;
