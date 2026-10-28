@@ -1,112 +1,110 @@
 version: 1
-oriented_at: '2026-10-27T21:24:58.072624+00:00'
-thesis_read: 'All three items the second cold read was waiting on landed, and the run is still not worth launching,
-  because the stretch''s own findings say what it would fail on. The six blind rows now read the company''s own
-  dated acts (5e3e9966a), and what they see is worse than what the blind suite hid. The company never sends an end-of-fixed-term
-  notice: company/crm/renewal_notice_register.py implements SLC 22C and nothing in the run calls it, so all 1,338
-  of 1,338 fixed terms breach. The collections desk and the billing ledger keep two payment records: 1,987 of 7,151
-  journeys (27.8%) open on an overdue bill the ledger shows collected, and which record is wrong is not established.
-  A joiner''s part-month is credited the EBSS on the named path, while the occupier path credits nothing, so one
-  rule has two homes. Each is excepted to a ceiling, and the second cold read''s own pre-registration (a4d2c4563)
-  predicts leg one NOT met on exactly these rows. Spending the one allowed run to confirm a known failure is the
-  wrong trade, so the three fixes go first and the run follows them. The leaver''s credit was refunded all along
-  (13f8cc50c): the world logged 27 reg 6D refunds, and the page ledger dropped them. My GAP of ''no refund modelled''
-  was wrong in cause. The 24 owing more are traced on three accounts and are not fixed. The occupier EBSS fix landed
-  (ff937d809), and it predicts 12 to 5-7 residual. Its receipt ran 6 tests across four simulation and billing modules,
-  which is the machine''s open class exposed again. Nothing is known red, so the run item checks it first. Against
-  the thesis this is still correctness, not inference. No baseline comparison moved, and the live renewal belief
-  still ranks leavers backwards. But a supplier that never sends a renewal notice cannot be judged on its renewal
-  decisions, so this correctness work is the floor the renewal lever stands on, not a detour from it. The split
-  reads supplier 1, both 1, other 10. Read by subject, five commits carry supplier work (the six rows, the refund,
-  the estimate-run page check, the occupier credit, the EBSS ledger), and two are world-side diagnosis of E6''s
-  2020-21 arrears. All four previous focus items were drawn, and three are done. The fourth correctly wrote its
-  pre-registration and stopped. Of the not_done Lane 0 rows, the-mandate-run-arm-b-is-re-run-after-the-addacs-fix
-  is premise-spent by f9688b536a, as last record said. The unlocked worktree /var/tmp/wt-second-cold-read-prereg
-  holds one salvage commit (ef730b51) whose only content is an ntfy digest line, so it is disposable. The E6 price-held
-  capture (two arms, about 2 GB each) was launched at 21:19Z, against last record''s not_now. It is world-only and
-  cheap, so it is left to finish. The fresh run waits for it rather than sharing memory with it.'
+oriented_at: '2026-10-28T00:24:13.758235+00:00'
+thesis_read: 'Two of the three correctness defects the second cold read was waiting on are fixed on origin, and
+  the third is landing now. The company now sends the licence''s end-of-fixed-term statement: 50c14a9dc sends it
+  on day 42, and the row regrades from 1,338 of 1,338 in breach to 0 of 1,170 (d3e83190b). The EBSS eligibility
+  rule has one home (25a8be909). The two payment records were really two due dates. The run posted each bill as
+  due on the 28th of the month being billed, before that month had ended. 9ad5af9a7 gives one due-date home, and
+  its pre-registered fresh run is computing. It also explains all 25 early statute-bar write-offs as the same split.
+  That is real supplier billing work: every arrears, collection and write-off figure was dated from a bill that
+  was not yet due. But the commit split reads 0 supplier, 0 world, 2 both and 8 other. The "other" includes three
+  E6 grades and the decision to keep the retention offer on the day the fix ends (361ddb90a). That decision was
+  right: moving the offer alone would have relabelled a defect. All four previous focus items were drawn, so the
+  steer bit. Against the thesis nothing moved. No baseline comparison was run, the corrected renewal belief still
+  has no policy, and a household does not yet react to the notice it now receives. That is still a GAP. The stretch
+  is correctness, the precondition, and the exit test is now one landing and two runs away. One sequencing fact
+  matters. The one-due-date run was launched on a base without 25a8be909, so it cannot double as the exit-test run.
+  The cold read needs its own run at origin HEAD after this one grades. A cost: E6''s two book seeds finished at
+  23:34Z and nobody graded them, so the handoff class showed itself again.'
 stretch_reviewed:
-  since: '2026-10-27T18:22:00.330933+00:00'
-  commits: 12
-  substantive: 6
+  since: '2026-10-27T21:24:58.072624+00:00'
+  commits: 10
+  substantive: 4
 focus:
-- id: the-renewal-notice-is-sent-42-to-49-days-before-a-fixed-term-ends
-  lane: C_customer_ops
-  side: supplier
-  what: 'Point 1 of docs/staging/SEAT_FINDING_THE_COMPANYS_OWN_EVENTS_SHOW_NO_RENEWAL_NOTICE_TWO_PAYMENT_RECORDS_AND_A_CREDITED_PART_MONTH_2026-10-27.md.
-    K8 first: confirm SLC 22C''s end-of-fixed-term notice window and content from the regulation commons
-    (docs/domain_artefact_library/), and amend the knowledge page that holds renewal. Then wire company/crm/renewal_notice_register.py
-    into the run, so every fixed term gets a dated notice 42-49 days before it ends. Make the retention
-    offer precede or accompany that notice. Carry the notice date in company/billing/raw_account_export.py
-    as an event field. The test must be red on today''s code (INV_RENEWAL_NOTICE_42_TO_49_DAYS: 1,338
-    of 1,338). Record the act only. If no household in the world reacts to a notice today, name that as
-    a GAP in the finding and do not build the response here.'
-  why: A supplier that never sends the licence's renewal notice breaches every fixed term, and its renewal
-    decisions cannot be judged until it does. Done means the wired notice and its red-then-green test
-    are on origin, and the regrade shows the row at 0 or each breach named. It also means the exception's
-    1,338 ceiling is retired.
-  written_at: 1793136583.542
 - id: the-collections-desk-and-the-billing-ledger-keep-one-payment-record
   lane: D_billing_metering
   side: supplier
-  what: Point 2 of the same finding. On the 2eeb3f0b3 book, 1,987 of 7,151 collections journeys open on
-    an overdue bill where the billing ledger shows every bill due by then collected. SYN-2016-356 opens
-    on the 29th against bills due on the 14th to 19th. Trace SYN-2016-356 and two more through simulation/dd_collection_book.py,
-    simulation/arrears_engine.py and tools/generate_billing_ledger.py. Establish which record is wrong,
-    file the cause in the finding, and fix it where it is, with a test that is red on the old code. Then
-    read the 24-25 early statute-bar write-offs and the never-chased failed DDs (OCC-3c914ee8cef5g, OCC-561d240ea21a,
-    from 13f8cc50c's O27 residue) against the same cause, and say for each whether it is the same split.
-  why: Two records of the same payment make every arrears, collection and write-off figure ambiguous.
-    This is the one breach with no established cause, so leg one of the exit test cannot pass while it
-    stands. Done means the cause and fix are on origin, and INV_OVERDUE_WITHIN_BALANCE and INV_STATUTE_BARRED_WRITE_OFF_AGE
-    regrade to 0, or every remaining breach is named with its cause.
-  written_at: 1793136583.542
-- id: the-ebss-credit-has-one-eligibility-home
-  lane: D_billing_metering
-  side: supplier
-  what: Point 3 of the same finding. Five PROS joiners are credited the EBSS for the month they joined
-    mid-way on the named-household path. Guidance 5.4/5.8 gives that month only to whoever held the account
-    at 00:00 on the 1st, and the occupier path (ff937d809) already follows it. Put the eligibility predicate
-    in one function that both paths call, delete the other copy, and test that a mid-month joiner gets
-    no credit for that month on either path, red on today's code.
-  why: One legal rule with two implementations is the VAT shape the director named, and this is a live
-    instance of it. Done means one home on origin, the joiner test red-then-green, and the EBSS row's
-    exception ceiling lowered to the residual it names.
-  written_at: 1793136583.542
+  what: Finish what is in hand, and do not redo it. 9ad5af9a7 (branch collect-one-due-date, /tmp/wt_land)
+    is the fix, and its surgical_land --merge origin/main is in flight, so wait for it with tools/wait_for.py
+    and do not start a second landing. Once it is on origin, grade the pre-registered fresh run in /var/tmp/fresh-run-out-onedue
+    with tools/domain_invariant_runner.py, against docs/staging/records/SEAT_PREREGISTRATION_ONE_DUE_DATE_FOR_THE_DESK_AND_THE_LEDGER_ON_A_FRESH_RUN_2026-10-27.md,
+    and write the grade beside each prediction. Then lower or retire the INV_OVERDUE_WITHIN_BALANCE and
+    INV_STATUTE_BARRED_WRITE_OFF_AGE exceptions in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml to what
+    the grade shows, naming every remaining breach's cause. Close point 2 of the 27 Oct company-events
+    finding.
+  why: Two dates for one payment made every arrears, collection and write-off figure ambiguous, and it
+    was the one breach with no established cause. Done means the fix is on origin and the run is graded
+    against its pre-registration. It also means both exceptions are lowered or retired with each residual
+    named, which is the last precondition for item 2.
+  written_at: 1793147387.544
 - id: the-second-cold-read-on-one-fresh-full-run
   lane: A_strategy_governance
   side: supplier
-  what: Only once items 1 to 3 are on origin AND the price-held capture (longjob-price-held-capture-21f216076f-on/-off)
-    has ended; if either is not true, stop. First run tests/simulation/ and tests/company/billing/ at
-    origin HEAD, because ff937d809 touched four of their modules on a 6-test receipt, and land any fix.
-    Then append an amendment to docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READ_RUN_PER_ROW_BREACHES_AND_THE_EIGHT_EXPLORE_SLOTS_2026-10-27.md.
-    It re-predicts the rows items 1 to 3 change, before launch. Then launch ONE fresh full run at origin
-    HEAD through launch_long_job. Grade it with tools/domain_invariant_runner.py, and regenerate the customer
-    pages and Explore cast into /var/tmp. Run the cold read with a fresh agent with no code access, as
-    the 26 Oct ruling's step 6 says. Report the three exit-test legs in a reading in docs/staging/.
-  why: This is the exit test of the director's correctness ruling, and the only thing that reopens the
-    ruled order. Done means the reading is on origin, with each leg stated as met or not met and its evidence.
-    If the read finds a new class, the reading says so and the stretch continues.
-  written_at: 1793136583.542
+  what: 'Only once item 1''s landing is on origin AND its onedue run has finished and been graded; if
+    either is not true, stop and release. Do not reuse /var/tmp/fresh-run-out-onedue for this: it was
+    launched on a base without 25a8be909. First run tests/simulation/ and tests/company/billing/ at origin
+    HEAD, because 25a8be909 and 9ad5af9a7 landed on 10- and 7-test receipts, and land any fix. Then append
+    an amendment to docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READ_RUN_PER_ROW_BREACHES_AND_THE_EIGHT_EXPLORE_SLOTS_2026-10-27.md
+    that re-predicts every row the renewal-notice, EBSS and due-date fixes change, before launch. Launch
+    ONE fresh full run at origin HEAD through launch_long_job. Grade it with tools/domain_invariant_runner.py,
+    and regenerate the customer pages and the Explore cast into /var/tmp. Run the cold read with a fresh
+    agent that has no code access, as step 6 of the 26 Oct ruling says. Report the three exit-test legs
+    in a reading in docs/staging/.'
+  why: 'This is the exit test of the director''s correctness ruling: zero unexplained breaches, eight
+    slots valid or honestly empty, and no new class from the cold read. It is the only thing that reopens
+    the ruled order. Done means the reading is on origin with each leg stated met or not met, with its
+    evidence. If the read finds a new class, the reading says so and the stretch continues.'
+  written_at: 1793147387.544
+- id: grade-e6s-two-book-seeds
+  lane: W2_customer_generator
+  side: world
+  unblocks: The company's crisis bad-debt step-up (tests/company/compliance/test_crisis_bad_debt_validator.py::test_live_run_output_shows_crisis_step_up_ifrs9_charge,
+    red after publish), which waits on whether the world's 2020 halving of failed payments is real or
+    a few households.
+  what: Grade /var/tmp/price_held/book_61101.json and book_61102.json, both finished with exit 0 by 23:34Z.
+    Use /var/tmp/price_held/grade_books.py against docs/staging/records/SEAT_PREREG_IS_THE_2020_HALVING_A_FEW_HOUSEHOLDS_2026-10-27.md
+    on origin, and write the result, refuted or not, into that pre-registration and the 14 Oct BLOCKING
+    crisis bad-debt finding. Its status line must name the next step or the disposition. Launch nothing
+    new unless the grade names a single next split, and if it does, pre-register that split first. These
+    artefacts sit in /var/tmp, so grade them before anything reaps them.
+  why: The captures are spent compute with no reader, and the finding is the only BLOCKING one on the
+    map, holding lane W2 behind it. Done means both seeds are graded on origin and the finding's status
+    line names what comes next or how it is disposed of. It is minutes of work, and it does not wait on
+    items 1 or 2.
+  written_at: 1793147387.544
+- id: the-occupier-window-payment-outcome-has-one-home
+  lane: D_billing_metering
+  side: supplier
+  what: 9ad5af9a7 found the two never-chased failed DDs from 13f8cc50c's O27 residue (OCC-3c914ee8cef5g,
+    OCC-561d240ea21a) are occupier-window months that tools/generate_billing_ledger.py draws a payment
+    outcome for on its own, instead of reading the run's. Trace both through simulation/run_phase2b.py
+    and the ledger writer. Make the ledger read the run's outcome for occupier months, with a test that
+    is red on today's code. Then read the four real-sized leavers still in credit and the 21 untraced
+    owing-more accounts from 597720378's reconciliation, and name each cause or fix it. If this lands
+    before item 2's run launches, it rides that run; do not hold the run for it.
+  why: A payment outcome with two homes is the same shape as the due date just fixed, and it is the residue
+    that keeps the leaver-balance error open. Done means the one-home fix and its red-then-green test
+    are on origin, and every one of the 4 and the 21 has a named cause, or a fix, in the 27 Oct page-arithmetic
+    finding.
+  written_at: 1793147387.544
 not_now:
-- what: Launching the second cold read's run now, on items 1 to 3 as they landed.
-  why: Its own pre-registration predicts leg one NOT met on the renewal notice and the two payment records. One
-    run at a time is the pacing, so the run is spent once those are fixed, not to confirm a known failure.
-- what: A policy that carries the corrected renewal belief, the forward years, and other lever or feature work.
-  why: The correctness ruling holds feature work until its exit test is met. A renewal lever is also meaningless
-    while no renewal notice is sent.
-- what: E6's crisis bad-debt step-up (the 14 Oct BLOCKING finding) beyond the price-held capture already running.
-  why: The capture is launched and cheap, so it finishes. Any follow-on is a world arrears question that blocks
-    no supplier result in this stretch, and it waits for the capture's grade.
-- what: Tying a gate-switch or billing-basis change to the tests that drive it (the machine's open class).
-  why: No instance is known red this stretch. ff937d809's 6-test receipt is checked by item 4's pre-step, which
-    is cheaper than a selection mechanism on every landing at 0.55 points an hour.
-- what: The cold read's cosmetic copy items, the 2 Nov site deferrals, and reaping the locked worktrees.
-  why: The pages change only at the Monday publish. The locked worktrees block no supplier result. The one unlocked
-    salvage is disposable and is recorded as such.
-- what: Wiring a household response to the renewal notice in the world.
-  why: Item 1 records the company's act. A world response is a separate fidelity change, and it is named as a GAP
-    rather than built under a correctness item.
+- what: Using the in-flight onedue run as the second cold read's run, to save one run.
+  why: It was launched on a base without 25a8be909, so the EBSS joiner rows it grades are the old code's. An exit
+    test read on the wrong base proves nothing, so it costs one more run after this one grades.
+- what: A policy that carries the corrected renewal belief, a household response to the new SLC 22C statement, the
+    forward years, and other lever or feature work.
+  why: The correctness ruling holds feature work until its exit test is met, and the exit test is now close. The
+    household's reaction to the notice is a world fidelity change, and stays a named GAP until then.
+- what: E6 follow-on runs beyond grading the two finished book seeds.
+  why: The grade decides whether any split is worth running. Launching before it would spend a run against the one-run
+    pacing that items 1 and 2 need.
+- what: A mechanism that ties a gate-switch or billing-basis change to the tests that drive it.
+  why: No red is known. Item 2's pre-step runs both suites at origin HEAD over this stretch's landings, which is
+    cheaper than a selection mechanism on every landing. The row stays open.
+- what: Reaping /tmp/wt_old's salvage commit and the locked b12, budgetpay and om2 worktrees, and the cold read's
+    cosmetic copy items.
+  why: None of them blocks a supplier result. /tmp/wt_old's salvage (111546a37) is disposable. /tmp/wt_land is item
+    1's live landing and must not be touched. The pages change only at the 2 Nov publish.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On
     268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households
@@ -196,7 +194,9 @@ wrong:
     backwards. The correctness ruling''s exit test is not met (its second cold read has not run), so it is not in
     focus. 21:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers
     backwards. The correctness ruling''s exit test is not met, and the stretch found no renewal notice is ever sent,
-    which item 1 fixes first. So it is not in focus.'
+    which item 1 fixes first. So it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so
+    the live renewal belief still ranks leavers backwards. The renewal notice is now sent (50c14a9dc), but the correctness
+    ruling''s exit test is not met, so it is not in focus.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Two landings turned tests on origin red that their own test selection never
     ran. e81b1b156 set enforce: true, and four flow tests in tests/background/test_process_run_complete.py went
@@ -214,7 +214,10 @@ wrong:
     to the prepayment basis and moved the finding to done/. Nothing ties a change to a gate switch or a billing
     basis to the tests that drive it, so the class is not fixed. 21:24: Unchanged. No new red is known. ff937d809
     landed changes to four simulation and billing modules on a 6-test receipt, which is the exposure this class
-    describes. Item 4 runs those suites before the fresh run.'
+    describes. Item 4 runs those suites before the fresh run. 00:24: Unchanged. 25a8be909 landed changes to seven
+    billing and simulation modules on a 10-test receipt, and the one-due-date landing (9ad5af9a7) carries four on
+    a 7-test receipt: the same exposure twice more. Item 2 runs tests/simulation/ and tests/company/billing/ at
+    origin HEAD before its run.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The published customer pages print ''Paid in total'' equal to ''Revenue billed''
     on every account, while the stage-5 ledger collected less (OCC-52fbc3104c5f: GBP 4,747.99 against 5,062.23).
@@ -223,46 +226,50 @@ wrong:
     summed each leg''s ex-VAT revenue_gbp as ''Paid in total'', and the ledger was right (597720378, red on 752
     households under the old code). O13 and O27 are fixed and O25''s definitions are printed. It stays false because
     the live pages change only at the 2 Nov publish. 21:24: Unchanged. 13f8cc50c also posts reg 6D refunds on the
-    page ledger. The live pages change only at the 2 Nov publish.'
+    page ledger. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at
+    the 2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The supplier''s customer timeline showed world life events: 414 of 649 fell
     after supply ended. 4d7f6021a clips them in the generator, but the live pages change only at the 2 Nov publish,
     and life events inside the supply window are still world truth on that page. Focus item 2 takes the residue.
     18:22: The residue is labelled: each life event on the supplier''s timeline now carries seen_by: world (597720378).
     It stays false because the live pages change only at the 2 Nov publish. 21:24: Unchanged. The live pages change
-    only at the 2 Nov publish.'
+    only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish.'
   corrected: false
-- what: 'THE SUITE''S, THIS STRETCH. Six of the eight cold-read rows were written against fields the raw export
-    does not carry. So the suite reported zero unexcepted breaches while it could not see six of the eight new classes
-    (9d7bd4a5c''s finding). Focus item 1. 21:24: Corrected. 5e3e9966a gives four of the six rows evaluators on the
-    company''s dated acts, and 97d18d387 moves the estimate-run check to the page it broke on. Region stays checkable:false,
-    with the reason that the world has no region. Each of the six is now checkable or named ungradeable with its
-    reason.'
-  corrected: true
-- what: 'THE WORLD''S, THIS STRETCH. The occupier window''s EBSS credit is capped at the occupier''s debt and dated
-    by the settlement record (simulation/run_phase2b.py). Of the 12 residual EBSS breaches on the 2eeb3f0b3 ledger,
-    eight are this; they are excepted with a ceiling of 12. Focus item 3. 21:24: Corrected for the occupier path.
-    ff937d809 records the month''s whole credit on the occupier''s deemed account, with a test, and predicts 12
-    to 5-7 residual. The joiner part-month on the named path is a separate company defect (item 3).'
-  corrected: true
 - what: 'THE COMPANY''S, THIS STRETCH. A leaver''s credit balance is not refunded at exit: 33 accounts on the 13a6e5e71d
     book are in credit beyond the engine. Another 24 owe more for causes not traced, 4 of them while holding a write-off.
     Found by 597720378''s reconciliation. Focus item 2. 21:24: The premise was wrong in cause. The company refunds
     (simulation/credit_refund_events.py), and the page ledger dropped the event. 13f8cc50c posts all 27 refunds,
     and the 33 fall to 4 real-sized leavers. Three of the 24 owing more are traced (a never-chased failed DD, a
-    2017 offset, and a write-off short of the bill), and none is fixed. Item 2 takes the failed-DD leg.'
+    2017 offset, and a write-off short of the bill), and none is fixed. Item 2 takes the failed-DD leg. 00:24: The
+    failed-DD leg is traced and not fixed. 9ad5af9a7 finds the two never-chased failed DDs (OCC-3c914ee8cef5g, OCC-561d240ea21a)
+    are occupier-window months the billing ledger draws on its own, not the desk''s date split. Item 4 takes them
+    and the four real-sized leavers in credit.'
   corrected: false
-- what: THE COMPANY'S, THIS STRETCH. No end-of-fixed-term notice is ever sent. company/crm/renewal_notice_register.py
+- what: 'THE COMPANY''S, THIS STRETCH. No end-of-fixed-term notice is ever sent. company/crm/renewal_notice_register.py
     implements SLC 22C and nothing in the run calls it, so 1,338 of 1,338 fixed terms breach the 42-49 day window
-    (5e3e9966a). Focus item 1.
-  corrected: false
-- what: THE COMPANY'S, THIS STRETCH. The collections desk and the billing ledger keep two payment records. 1,987
+    (5e3e9966a). Focus item 1. 00:24: Corrected. 50c14a9dc sends the SLC 22C statement on day 42 to every domestic
+    fixed term still supplied, and d3e83190b regraded the row at 0 of 1,170 on a fresh run and retired the 1,338
+    exception.'
+  corrected: true
+- what: 'THE COMPANY''S, THIS STRETCH. The collections desk and the billing ledger keep two payment records. 1,987
     of 7,151 journeys (27.8%) open on an overdue bill the ledger shows collected, and which record is wrong is not
-    established (5e3e9966a). Focus item 2.
+    established (5e3e9966a). Focus item 2. 00:24: The cause is established and fixed in code, not on origin. 9ad5af9a7
+    finds the run posted each bill as due on the 28th of the month being billed, while the ledger dated it after
+    the period ended. It gives one due-date home, simulation/arrears_engine.bill_due_date (482 stray openings on
+    old code, none on new), and its merge with origin is landing now. Item 1.'
   corrected: false
-- what: THE COMPANY'S, THIS STRETCH. The EBSS eligibility rule has two homes. The named-household path credits five
-    joiners for a part-month that guidance 5.4/5.8 gives only to whoever held the account at 00:00 on the 1st (5e3e9966a).
-    Focus item 3.
+- what: 'THE COMPANY''S, THIS STRETCH. The EBSS eligibility rule has two homes. The named-household path credits
+    five joiners for a part-month that guidance 5.4/5.8 gives only to whoever held the account at 00:00 on the 1st
+    (5e3e9966a). Focus item 3. 00:24: Corrected in code. 25a8be909 puts held_at_midnight_on_the_first in company/regulatory/energy_bill_support.py
+    and both paths ask it, with a mid-month joiner test. The exception ceiling is 12 to 7. The five joiner months
+    are re-graded by item 2''s run.'
+  corrected: true
+- what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader, again. E6''s two pre-registered book
+    seeds (longjob-book-seed-capture-21f216076f-61101-r2 and -61102-r2) finished by 23:34Z with exit 0. Nothing
+    graded them, and no continuation names the grade, though the BLOCKING finding''s own status line says ''Next:
+    grade the two book seeds''. This is one more instance of the open fix row a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue.
+    Item 3 grades them.'
   corrected: false
 for_the_director:
 - id: the-26-oct-advisor-steer-asks-that
