@@ -21,6 +21,19 @@ customer pages and invoices print the number. The Explore cast does not.
 **What closes it:** key the meter-point identifier to the supply point, so that a successor carries
 its predecessor's identifier. `mpan_core` is also read by the billing ledger, so check what else keys on it.
 
+**Closed 2026-10-28.** `company/crm/customer_registry.supply_point_of` follows `occupier_successions`
+(and the registry's `successor_of`) to the account that first held the point. The page, the ledger
+and the registry mint from that account. On the 1691ec0ecd run, the ledger rebuilt in a worktree
+grades **253 of 253** billed successions as printing their predecessor's MPAN/MPRN and meter serial.
+Six successions have one side unbilled. No number is shared across two points.
+
+The MPRN also gets one home (`customer_registry.mprn`). On the same book, all 586 gas page headers
+differed from their own invoices: the page and the ledger each minted its own. The ledger's scheme
+summed character codes, which put 586 gas accounts on 164 numbers. After the fix, 1,293 of 1,293
+accounts' headers match their invoices. Control:
+`tests/tools/test_a_successor_prints_its_predecessors_meter_point.py`. The published pages change at
+the next publish. Section 2 stays open for the suite owner.
+
 ## 2. Estimated bills ran five to ten times the meter, and no check caught it
 
 SYN-2016-565 (electricity, resi):

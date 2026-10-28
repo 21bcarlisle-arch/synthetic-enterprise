@@ -30,7 +30,7 @@ from company.billing.pre_bill_validation import (
     validate_rendered_bill_money,
     validate_rendered_bill_reads,
 )
-from company.crm.customer_registry import mpan_core
+from company.crm.customer_registry import mpan_core, mprn, predecessors, supply_point_of
 from company.regulatory.energy_bill_support import ebss_credit_gbp
 from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS, applied_rates
 from saas.money import (
@@ -277,15 +277,10 @@ def _printed_daily_rate(days_in_period, printed_standing_charge_gbp):
 
 
 # BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): every bill must state
-# meter serial + MPAN/MPRN. The MPAN core has one home, company/crm/customer_registry.mpan_core;
-# the MPRN keeps the registry's scheme, duplicated here.
+# meter serial + MPAN/MPRN. Both have one home, company/crm/customer_registry, minted from the
+# supply point (`supply_point_of`), not the account.
 _mpan = mpan_core
-
-
-def _mprn(account_id: str) -> str:
-    """Synthetic MPRN (Meter Point Reference Number) -- 10 digits."""
-    seed = sum(ord(c) * 17 for c in account_id)
-    return f"{seed:010d}"[:10]
+_mprn = mprn
 
 
 def _meter_serial(account_id: str, commodity: str) -> str:
@@ -315,6 +310,7 @@ def generate(run_json_path=None, out_path=None):
 
     bills = data.get("bills", [])
     behavioral = data.get("per_customer_behavioral", {})
+    predecessor_of = predecessors(data.get("occupier_successions"))
     # By supply point, as the engine tests each bill's own id: see `supply_points_that_left`.
     churned = supply_points_that_left(
         households_whose_account_closed(data), {b["customer_id"] for b in bills})
@@ -595,9 +591,9 @@ def generate(run_json_path=None, out_path=None):
                 "disputed" if outcome == "dispute" else
                 ("paid" if outcome in ("success", "credit") else "overdue")
             ),
-            "meter_serial": _meter_serial(cid, commodity),
-            "mpan": _mpan(cid) if commodity == "electricity" else None,
-            "mprn": _mprn(cid) if commodity == "gas" else None,
+            "meter_serial": _meter_serial(supply_point_of(cid, predecessor_of), commodity),
+            "mpan": _mpan(supply_point_of(cid, predecessor_of)) if commodity == "electricity" else None,
+            "mprn": _mprn(supply_point_of(cid, predecessor_of)) if commodity == "gas" else None,
             "read_type": read_type,
             "opening_read_kwh": opening_read_rounded,
             "closing_read_kwh": closing_read_rounded,

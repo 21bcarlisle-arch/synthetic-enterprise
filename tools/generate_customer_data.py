@@ -7,7 +7,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from company.crm.customer_registry import mpan_core
+from company.crm.customer_registry import mpan_core, mprn, predecessors, supply_point_of
 from saas.clv_model import DISCOUNT_RATE_ANNUAL
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -56,21 +56,20 @@ def _digest_int(seed, n):
     return str(int(h, 16))[:n].zfill(n)
 
 
-def _mpan(account_id, segment):
+def _mpan(supply_point, segment):
     """MPAN bottom line, the 13-digit core (`customer_registry.mpan_core`, the one home the ledger
-    reads too), plus a top line of profile class(2) + meter timeswitch(2) + line loss factor(3)."""
+    reads too), plus a top line of profile class(2) + meter timeswitch(2) + line loss factor(3).
+    Pass the supply point (`supply_point_of`), not the account."""
     profile_class = "05" if segment == "I&C" else "01"
     meter_timeswitch = "00"
-    line_loss_factor = _digest_int(account_id + "-llf", 3)
+    line_loss_factor = _digest_int(supply_point + "-llf", 3)
     return {
         "top_line": profile_class + meter_timeswitch + line_loss_factor,
-        "bottom_line": mpan_core(account_id),
+        "bottom_line": mpan_core(supply_point),
     }
 
 
-def _mprn(account_id):
-    """MPRN: gas supply point identifier, 6-10 digits, no public checksum standard."""
-    return _digest_int(account_id + "-mprn", 8)
+_mprn = mprn
 
 
 def _tariff(segment, commodity):
@@ -312,6 +311,7 @@ def generate(run_json_path=None):
     pcl = run.get("per_customer_lifetime", {})
     bba = run.get("by_billing_account", {})
     comm_pnl = run.get("per_cid_comm_pnl", {})
+    predecessor_of = predecessors(run.get("occupier_successions"))
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -348,8 +348,9 @@ def generate(run_json_path=None):
             acquisition_date=cdata.get("acquisition_date", "2016-01-01"),
             tariff_name=_tariff(segment, commodity),
             meter_type=_meter(cid, segment),
-            mpan=(_mpan(cid, segment) if commodity == "electricity" else None),
-            mprn=(_mprn(cid) if commodity == "gas" else None),
+            mpan=(_mpan(supply_point_of(cid, predecessor_of), segment)
+                  if commodity == "electricity" else None),
+            mprn=(_mprn(supply_point_of(cid, predecessor_of)) if commodity == "gas" else None),
             lifetime_revenue_gbp=round(cdata.get("revenue_gbp", 0), 2),
             lifetime_gross_gbp=round(cdata.get("gross_gbp", 0), 2),
             lifetime_net_gbp=round(cdata.get("net_gbp", 0), 2),

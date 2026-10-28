@@ -29,7 +29,7 @@ MPAN_CHECK_WEIGHTS = (3, 5, 7, 13, 17, 19, 23, 29, 31, 37, 41, 43)
 
 
 def mpan_core(account_id: str) -> str:
-    """The account's MPAN core: distributor ID, ten digits of a hash of the account, check digit.
+    """The supply point's MPAN core (pass `supply_point_of(account)`, not the account): distributor ID, ten digits of a hash of the account, check digit.
 
     The one home for it: the ledger, the customer pages and this registry each used to mint their
     own, and on the 2eeb3f0b3 book 707 electricity accounts shared 158 cores, none with a check
@@ -44,10 +44,38 @@ def mpan_core(account_id: str) -> str:
 _mpan = mpan_core
 
 
-def _mprn(account_id: str) -> str:
-    """Synthetic MPRN (Meter Point Reference Number) — 10 digits."""
-    seed = sum(ord(c) * 17 for c in account_id)
-    return f"{seed:010d}"[:10]
+def mprn(supply_point: str) -> str:
+    """The gas supply point's MPRN: ten digits of a hash. No public check-digit standard is held here.
+
+    The one home for it. The ledger summed character codes (586 gas accounts on 164 numbers on the
+    1691ec0ecd book) and the customer page hashed its own eight digits, so no gas page's header
+    matched its own invoices.
+    """
+    return str(10**9 + int(hashlib.sha256((supply_point + "-mprn").encode()).hexdigest(), 16) % (9 * 10**9))
+
+
+_mprn = mprn
+
+
+def supply_point_of(account_id: str, predecessor_of: Mapping[str, str]) -> str:
+    """The account that first held this account's meter point: the key its MPAN or MPRN is minted from.
+
+    A supply belongs to a meter point, not to a household (docs/market_research/home_moves.md, "What a
+    gas supply is, at a move"), so an incoming occupier's account (`predecessor_of`, the run's
+    `occupier_successions`, one row per fuel leg) prints the number its predecessor printed. Keyed to
+    the account until 2026-10-28, when 253 of 253 successions on 1691ec0ecd printed a different one.
+    """
+    seen = {account_id}
+    while (prev := predecessor_of.get(account_id)) and prev not in seen:
+        seen.add(prev)
+        account_id = prev
+    return account_id
+
+
+def predecessors(successions) -> dict[str, str]:
+    """account -> the account it succeeded, from a run's `occupier_successions` (None: no moves)."""
+    return {s["account_id"]: s["predecessor_account_id"] for s in successions or ()
+            if s.get("predecessor_account_id")}
 
 
 def _contact_name(account_id: str) -> str:
@@ -208,9 +236,11 @@ def seed_from_customers(
     """
     create_schema(db_path)
     inserted = 0
+    successor_of = {c["customer_id"]: c["successor_of"] for c in customers if c.get("successor_of")}
     with _conn(db_path) as conn:
         for c in customers:
             cid = c["customer_id"]
+            point = supply_point_of(cid, successor_of)
             commodity = c.get("commodity", "electricity")
             fuel = _fuel_type(commodity, cid)
             ctype = _customer_type(c.get("segment", "resi"))
@@ -228,7 +258,7 @@ def seed_from_customers(
                 "active",
                 c.get("contract_type", "fixed_1yr").replace("_1yr", ""),
                 _contact_name(cid), addr, email,
-                _mpan(cid), _mprn(cid) if commodity in ("gas", "dual") else None,
+                _mpan(point), _mprn(point) if commodity in ("gas", "dual") else None,
                 is_smart, c.get("segment", "resi"),
                 c.get("successor_of"),
             ))

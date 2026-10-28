@@ -139,8 +139,8 @@ def test_mpan_core_is_unique_and_carries_its_check_digit():
     assert len({c[:2] for c in cores}) == 14
 
 
-def test_mprn_is_8_digits():
-    assert len(_mprn("C1g")) == 8
+def test_mprn_is_a_6_to_10_digit_number():
+    assert 6 <= len(_mprn("C1g")) <= 10
     assert _mprn("C1g").isdigit()
 
 
