@@ -172,13 +172,14 @@ exceptions:
   - invariant: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
     scope: 10 of 5,576 account-years on the 1a02c46116 book, on PROS-2017-0336, PROS-2024-0010, PROS-2025-0106 and SYN-2016-582
     reason: >-
-      These are the same four accounts and nine held months as INV_OVERDUE_WITHIN_BALANCE's
-      exception. The usage panel sums the run's settlement bills, held ones included. The carbon
-      panel sums the bills the ledger issued. One cause: a bill issued in one record and held in
-      the other. Leg 3 (a part year prints no figure) is not graded, because the in-memory page
-      does not carry the panel's printed CO2e.
+      These are the four accounts in the billing ledger's exception_queue, nine held months in all.
+      The usage panel (tools/generate_customer_consumption) sums the run's settlement bills, held
+      ones included. The carbon panel sums the bills the ledger issued. One cause: a bill issued in
+      one record and held in the other. dd42166183 stopped a held bill posting to the desk. It does
+      not reach the usage panel, which reads the run's bill list. Leg 3 (a part year prints no
+      figure) is not graded, because the in-memory page does not carry the panel's printed CO2e.
     filed: 2026-10-28
-    retired_by: a bill the billing ledger holds for review is not posted as due to the company's ledger (or the hold reaches the desk), and a run carrying it
+    retired_by: the usage panel reading only the bills the ledger issued
     max_breached: 10
   - invariant: INV_SMART_METER_BILLED_ON_ITS_OWN_READS
     scope: 4 of 7 fuel-years of Smart bills on the 1a02c46116 book (electricity 2016 and 2017, gas 2017 and 2018), all on one household, C2 and C2g
