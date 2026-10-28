@@ -6559,7 +6559,13 @@ def _build_behavioral_trajectories(customers, hdr, cx_desk, bill_shock_dates=Non
         return {}
     sim_years = list(range(2016, 2026))
     out = {}
-    all_cids = {c["customer_id"] for c in customers}
+    # Every leg the triad posted, not only the roster's: an incoming occupier's account (B7, `OCC-`)
+    # is on neither customer list, so until 2026-10-28 its bills had no truth and the arrears engine
+    # drew their outcomes again. The page then read that second draw while the collections desk read
+    # the triad's, and 2,005 of the overdue row's 5,280 unattributed steps on the b2fc50facf book
+    # were the two disagreeing (OCC-198d2b2c01a7g's April 2025 gas bill: paid on its due date on
+    # the page, dunned the next day on the desk).
+    all_cids = {c["customer_id"] for c in customers} | set(payment_truth or ())
     empty_record = {
         "payment_behaviour_score": None,
         "payment_behaviour_metrics": None,

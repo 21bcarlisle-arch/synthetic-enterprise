@@ -204,3 +204,31 @@ The fresh run at b2fc50facf carries the desk fix. It grades **9,455 of 32,726** 
 
 The exception is re-based to 9,455 with these classes in its reason. This finding stays open on the write-off
 dates and the 5,280.
+
+## 2026-10-28, evening: the 5,280 traced (the-page-and-the-desk-read-one-payment-record)
+
+The two records disagree on every occupier's bill. `per_customer_behavioral` was built for the
+roster's customers only, so none of the 253 `OCC-` legs carried `world_payment_truth`. For those
+legs, `_resolve_bills` drew each bill's outcome a second time. OCC-198d2b2c01a7g's gas bill 808 is
+paid on its due date on the page and unpaid on the desk.
+
+- **Fixed in the run.** Every leg the triad posted now gets the truth. The test is
+  `tests/simulation/test_an_occupiers_bills_read_the_triads_payment_truth.py`, red on origin.
+- **No run carries the fix yet.**
+- **What it covers.** 2,005 of the 5,280. It also covers 448 of the 466 that the class above
+  explained as a direct debit in flight, so that explanation is refuted for those 448.
+
+What remains on non-`OCC-` accounts is 3,275:
+- **Up to 2,067 come after a credit bill the desk is never posted.** The run posts `max(0, ask)`.
+- **487 are the row netting one fuel's credit against the other fuel's debt.**
+- **The rest are pennies that add up across open bills.**
+
+The split and the predictions are in
+`docs/staging/records/SEAT_PREREGISTRATION_AN_OCCUPIERS_BILLS_READ_THE_TRIADS_PAYMENT_TRUTH_2026-10-28.md`.
+That record also covers the write-off dates. The close-to-write-off clock is a GAP in
+`debt_and_collections.md` §2.7, so giving the book one date is a design choice across three records.
+
+Still open on this finding:
+- the credit-bill posting;
+- the write-off date;
+- the grade on a fresh run.

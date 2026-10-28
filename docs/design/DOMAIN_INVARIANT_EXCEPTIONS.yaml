@@ -112,9 +112,13 @@ exceptions:
       (b) 2,985 are at most 2p above the page, where the desk's ask and the printed bill round apart.
       (c) 466 fall on a direct debit the page posts on its due date, which the desk has not yet seen
       cross.
-      (d) 5,280 are NOT attributed. The lead (OCC-198d2b2c01a7, Apr 2025) is that the page and the
-      desk read different payment records: the world engine's resolved outcomes against the
-      payments the triad delivered.
+      (d) 5,280 are NOT attributed. Traced 2026-10-28: 2,005 are on occupier (OCC-) accounts,
+      whose bills carried no triad truth, so the page read a second draw (fixed in
+      _build_behavioral_trajectories, not yet on a run; 448 of (c)'s 466 are the same defect).
+      Of the other 3,275, up to 2,067 follow a credit bill the desk is never posted, 487 are the row
+      netting one fuel's credit against the other's debt, and the rest are pennies adding up across
+      open bills. Split and predictions in
+      docs/staging/records/SEAT_PREREGISTRATION_AN_OCCUPIERS_BILLS_READ_THE_TRIADS_PAYMENT_TRUTH_2026-10-28.md.
       Only (b) and (c) are explanations. (a) and (d) are open defects, excepted rather than refusing
       the next publish, because the page has printed these figures since the cold read of 23 Oct
       and the row puts the count on the surface every run.
