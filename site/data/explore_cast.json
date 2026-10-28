@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-10-27T18:54:20Z",
+  "generated_at": "2026-10-28T15:03:46Z",
   "run_generated_at": "2026-10-26T12:01:01Z",
   "run_git_commit": "4ae8da9b0f",
   "household_count": 752,
@@ -1414,12 +1414,835 @@
   {
    "id": "mover",
    "feature": "The mover",
-   "rule": "A household that moves out, takes a final bill, and is followed by a new occupant",
-   "filled": false,
-   "glossary": "A home move: the leaving occupant gets a final bill, and whoever moves in next becomes the supplier's new customer at that address.",
-   "matched": 0,
-   "failed_checks": {},
-   "reason": "No household in this run can be shown moving. The published record carries no move-out event and no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they replaced, so a rule cannot follow a move from one occupant to the next. What closes it: the record now carries each move-out and final bill and names the household a new occupant replaced, so the next published run is the first that can fill this slot."
+   "rule": "The longest-supplied household that moves out, is billed to the move on a closing read and settles, and whose meter point opens to a new occupant's account",
+   "filled": true,
+   "glossary": "A home move: the leaving occupant gets a final bill, and whoever moves in next opens a new account on the same meter.",
+   "household": "SYN-2016-417",
+   "fuels": [
+    "electricity",
+    "gas"
+   ],
+   "segment": "resi",
+   "span": "20 Sep 2016 to 4 Feb 2021",
+   "story": "Moves out, is billed to the move, settles, and the meter passes to the next occupant.",
+   "opening": 2,
+   "moments": [
+    {
+     "iso": "2016-09-20",
+     "date": "20 Sep 2016",
+     "kind": "joined",
+     "title": "Switched in",
+     "story": "The household joins Poesys for electricity and gas.",
+     "why": "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "20 Sep 2016",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "How they pay",
+       "v": "No payment yet",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Tariff",
+       "v": "Standard variable",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Payment record",
+       "v": "0 payments, 0 returned, 0 missed",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Meter reads",
+       "v": "0 bills, 0 on an actual read",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2016-09-20"
+      }
+     ],
+     "decision": "No decision about this household is on record yet.",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "five plus person, private renter"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress low"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Welcome to Poesys. Your electricity and gas supply started on 20 Sep 2016.",
+      "tariff": "Standard Variable",
+      "pays": "Set up at your first bill",
+      "balance": "Nothing owed",
+      "usage": [],
+      "bills": []
+     }
+    },
+    {
+     "iso": "2021-02-05",
+     "date": "5 Feb 2021",
+     "kind": "moved_out",
+     "title": "Moved out",
+     "story": "The household leaves the address on 5 Feb 2021, and its electricity and gas accounts close that day.",
+     "why": "The move is the household's; the supplier's record shows only the account closing.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "20 Sep 2016",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2021-01-19"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 120.0 £/MWh from 19 Sep 2020",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "7.3% at the 19 Sep 2020 renewal",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Payment record",
+       "v": "104 payments, 0 returned, 0 missed",
+       "drawn_from": "2021-01-19"
+      },
+      {
+       "k": "Meter reads",
+       "v": "108 bills, 103 on an actual read, last on 4 Feb 2021",
+       "drawn_from": "2021-02-04"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£104.51 owed",
+       "drawn_from": "2021-02-04"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Reminder sent -- GBP68.04 overdue",
+       "drawn_from": "2021-02-04"
+      }
+     ],
+     "decision": "19 Sep 2020: Renewal outcome: RENEWED -- company believed 7% churn risk at decision time",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "five plus person, private renter"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "HOME_MOVE_CHURNED (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2020"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "39.5% at the 19 Sep 2020 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your account closes on your moving date. Your final bill will follow.",
+      "tariff": "Fixed from 19 Sep 2020",
+      "pays": "Direct debit",
+      "balance": "£104.51 to pay",
+      "usage": [
+       {
+        "month": "2020-03",
+        "e": 472,
+        "g": 704
+       },
+       {
+        "month": "2020-04",
+        "e": 417,
+        "g": 434
+       },
+       {
+        "month": "2020-05",
+        "e": 468,
+        "g": 356
+       },
+       {
+        "month": "2020-06",
+        "e": 444,
+        "g": 264
+       },
+       {
+        "month": "2020-07",
+        "e": 447,
+        "g": 244
+       },
+       {
+        "month": "2020-08",
+        "e": 451,
+        "g": 254
+       },
+       {
+        "month": "2020-09",
+        "e": 460,
+        "g": 288
+       },
+       {
+        "month": "2020-10",
+        "e": 482,
+        "g": 461
+       },
+       {
+        "month": "2020-11",
+        "e": 539,
+        "g": 578
+       },
+       {
+        "month": "2020-12",
+        "e": 571,
+        "g": 816
+       },
+       {
+        "month": "2021-01",
+        "e": 516,
+        "g": 938
+       },
+       {
+        "month": "2021-02",
+        "e": 66,
+        "g": 97
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "4 Feb 2021",
+        "kwh": 97,
+        "amount": "£3.96",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "4 Feb 2021",
+        "kwh": 66,
+        "amount": "£9.82",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "31 Jan 2021",
+        "kwh": 938,
+        "amount": "£36.32",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jan 2021",
+        "kwh": 516,
+        "amount": "£54.41",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2021-02-05",
+     "date": "5 Feb 2021",
+     "kind": "final_bill",
+     "title": "The final bill",
+     "story": "The final bills: electricity £9.82 for 66 kWh to 4 Feb 2021 (closing read actual); gas £3.96 for 97 kWh to 4 Feb 2021 (closing read actual).",
+     "why": "The account closes on the move date; the bill covers use up to it.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "20 Sep 2016",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2021-01-19"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 120.0 £/MWh from 19 Sep 2020",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "7.3% at the 19 Sep 2020 renewal",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Payment record",
+       "v": "104 payments, 0 returned, 0 missed",
+       "drawn_from": "2021-01-19"
+      },
+      {
+       "k": "Meter reads",
+       "v": "108 bills, 103 on an actual read, last on 4 Feb 2021",
+       "drawn_from": "2021-02-04"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£104.51 owed",
+       "drawn_from": "2021-02-04"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Reminder sent -- GBP68.04 overdue",
+       "drawn_from": "2021-02-04"
+      }
+     ],
+     "decision": "19 Sep 2020: Renewal outcome: RENEWED -- company believed 7% churn risk at decision time",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "five plus person, private renter"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "HOME_MOVE_CHURNED (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2020"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "39.5% at the 19 Sep 2020 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your final bill is ready: electricity £9.82 and gas £3.96.",
+      "tariff": "Fixed from 19 Sep 2020",
+      "pays": "Direct debit",
+      "balance": "£104.51 to pay",
+      "usage": [
+       {
+        "month": "2020-03",
+        "e": 472,
+        "g": 704
+       },
+       {
+        "month": "2020-04",
+        "e": 417,
+        "g": 434
+       },
+       {
+        "month": "2020-05",
+        "e": 468,
+        "g": 356
+       },
+       {
+        "month": "2020-06",
+        "e": 444,
+        "g": 264
+       },
+       {
+        "month": "2020-07",
+        "e": 447,
+        "g": 244
+       },
+       {
+        "month": "2020-08",
+        "e": 451,
+        "g": 254
+       },
+       {
+        "month": "2020-09",
+        "e": 460,
+        "g": 288
+       },
+       {
+        "month": "2020-10",
+        "e": 482,
+        "g": 461
+       },
+       {
+        "month": "2020-11",
+        "e": 539,
+        "g": 578
+       },
+       {
+        "month": "2020-12",
+        "e": 571,
+        "g": 816
+       },
+       {
+        "month": "2021-01",
+        "e": 516,
+        "g": 938
+       },
+       {
+        "month": "2021-02",
+        "e": 66,
+        "g": 97
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "4 Feb 2021",
+        "kwh": 97,
+        "amount": "£3.96",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "4 Feb 2021",
+        "kwh": 66,
+        "amount": "£9.82",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "31 Jan 2021",
+        "kwh": 938,
+        "amount": "£36.32",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jan 2021",
+        "kwh": 516,
+        "amount": "£54.41",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2021-02-05",
+     "date": "5 Feb 2021",
+     "kind": "new_occupant",
+     "title": "A new occupant",
+     "story": "A new account, OCC-a03b34fb68c1, opens on the same electricity meter point.",
+     "why": "The supplier links the two accounts because the new one opens on a meter point it already supplies.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "20 Sep 2016",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2021-01-19"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 120.0 £/MWh from 19 Sep 2020",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "7.3% at the 19 Sep 2020 renewal",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Payment record",
+       "v": "104 payments, 0 returned, 0 missed",
+       "drawn_from": "2021-01-19"
+      },
+      {
+       "k": "Meter reads",
+       "v": "108 bills, 103 on an actual read, last on 4 Feb 2021",
+       "drawn_from": "2021-02-04"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "£104.51 owed",
+       "drawn_from": "2021-02-04"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Reminder sent -- GBP68.04 overdue",
+       "drawn_from": "2021-02-04"
+      }
+     ],
+     "decision": "19 Sep 2020: Renewal outcome: RENEWED -- company believed 7% churn risk at decision time",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "five plus person, private renter"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "HOME_MOVE_CHURNED (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2020"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "39.5% at the 19 Sep 2020 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "No message: this household has left.",
+      "tariff": "Fixed from 19 Sep 2020",
+      "pays": "Direct debit",
+      "balance": "£104.51 to pay",
+      "usage": [
+       {
+        "month": "2020-03",
+        "e": 472,
+        "g": 704
+       },
+       {
+        "month": "2020-04",
+        "e": 417,
+        "g": 434
+       },
+       {
+        "month": "2020-05",
+        "e": 468,
+        "g": 356
+       },
+       {
+        "month": "2020-06",
+        "e": 444,
+        "g": 264
+       },
+       {
+        "month": "2020-07",
+        "e": 447,
+        "g": 244
+       },
+       {
+        "month": "2020-08",
+        "e": 451,
+        "g": 254
+       },
+       {
+        "month": "2020-09",
+        "e": 460,
+        "g": 288
+       },
+       {
+        "month": "2020-10",
+        "e": 482,
+        "g": 461
+       },
+       {
+        "month": "2020-11",
+        "e": 539,
+        "g": 578
+       },
+       {
+        "month": "2020-12",
+        "e": 571,
+        "g": 816
+       },
+       {
+        "month": "2021-01",
+        "e": 516,
+        "g": 938
+       },
+       {
+        "month": "2021-02",
+        "e": 66,
+        "g": 97
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "4 Feb 2021",
+        "kwh": 97,
+        "amount": "£3.96",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "4 Feb 2021",
+        "kwh": 66,
+        "amount": "£9.82",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "31 Jan 2021",
+        "kwh": 938,
+        "amount": "£36.32",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jan 2021",
+        "kwh": 516,
+        "amount": "£54.41",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2021-02-26",
+     "date": "26 Feb 2021",
+     "kind": "settled",
+     "title": "Account settled",
+     "story": "The last payment clears the electricity and gas accounts: nothing owed and no credit left.",
+     "why": "The closing balance was collected, not written off.",
+     "gap": null,
+     "supplier": [
+      {
+       "k": "Customer since",
+       "v": "20 Sep 2016",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "Fuels",
+       "v": "Electricity and Gas",
+       "drawn_from": "2016-09-20"
+      },
+      {
+       "k": "How they pay",
+       "v": "Direct debit",
+       "drawn_from": "2021-02-26"
+      },
+      {
+       "k": "Tariff",
+       "v": "Fixed at 120.0 £/MWh from 19 Sep 2020",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Churn risk it held",
+       "v": "7.3% at the 19 Sep 2020 renewal",
+       "drawn_from": "2020-09-19"
+      },
+      {
+       "k": "Payment record",
+       "v": "108 payments, 0 returned, 0 missed",
+       "drawn_from": "2021-02-26"
+      },
+      {
+       "k": "Meter reads",
+       "v": "108 bills, 103 on an actual read, last on 4 Feb 2021",
+       "drawn_from": "2021-02-04"
+      },
+      {
+       "k": "Balance on the books",
+       "v": "Nothing owed",
+       "drawn_from": "2021-02-26"
+      },
+      {
+       "k": "Debt stage",
+       "v": "Overdue balance cleared -- journey closed",
+       "drawn_from": "2021-02-06"
+      }
+     ],
+     "decision": "19 Sep 2020: Renewal outcome: RENEWED -- company believed 7% churn risk at decision time",
+     "truth": [
+      {
+       "k": "Household",
+       "v": "five plus person, private renter"
+      },
+      {
+       "k": "Money",
+       "v": "Income stress moderate"
+      },
+      {
+       "k": "Life so far",
+       "v": "Nothing recorded"
+      },
+      {
+       "k": "Hidden mood",
+       "v": "HOME_MOVE_CHURNED (resentment score 0.0)"
+      },
+      {
+       "k": "True satisfaction",
+       "v": "70.0% in 2020"
+      },
+      {
+       "k": "True chance of leaving",
+       "v": "39.5% at the 19 Sep 2020 renewal"
+      },
+      {
+       "k": "Smart meter",
+       "v": "Yes"
+      }
+     ],
+     "portal": {
+      "message": "Your account is closed and fully paid. Thank you.",
+      "tariff": "Fixed from 19 Sep 2020",
+      "pays": "Direct debit",
+      "balance": "Nothing owed",
+      "usage": [
+       {
+        "month": "2020-03",
+        "e": 472,
+        "g": 704
+       },
+       {
+        "month": "2020-04",
+        "e": 417,
+        "g": 434
+       },
+       {
+        "month": "2020-05",
+        "e": 468,
+        "g": 356
+       },
+       {
+        "month": "2020-06",
+        "e": 444,
+        "g": 264
+       },
+       {
+        "month": "2020-07",
+        "e": 447,
+        "g": 244
+       },
+       {
+        "month": "2020-08",
+        "e": 451,
+        "g": 254
+       },
+       {
+        "month": "2020-09",
+        "e": 460,
+        "g": 288
+       },
+       {
+        "month": "2020-10",
+        "e": 482,
+        "g": 461
+       },
+       {
+        "month": "2020-11",
+        "e": 539,
+        "g": 578
+       },
+       {
+        "month": "2020-12",
+        "e": 571,
+        "g": 816
+       },
+       {
+        "month": "2021-01",
+        "e": 516,
+        "g": 938
+       },
+       {
+        "month": "2021-02",
+        "e": 66,
+        "g": 97
+       }
+      ],
+      "bills": [
+       {
+        "fuel": "gas",
+        "when": "4 Feb 2021",
+        "kwh": 97,
+        "amount": "£3.96",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "4 Feb 2021",
+        "kwh": 66,
+        "amount": "£9.82",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "gas",
+        "when": "31 Jan 2021",
+        "kwh": 938,
+        "amount": "£36.32",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Jan 2021",
+        "kwh": 516,
+        "amount": "£54.41",
+        "badge": "Actual read"
+       }
+      ]
+     }
+    }
+   ],
+   "breaches": [],
+   "breach_count": 0
   },
   {
    "id": "debt",
@@ -2155,10 +2978,10 @@
    "rule": "A two-rate (profile class 2) home billed on its meter's registers",
    "filled": false,
    "glossary": "Storage heating: heaters that charge overnight on a two-rate meter (such as Economy 7), whose night units are billed cheaper.",
-   "matched": 96,
+   "matched": 95,
    "failed_checks": {
     "its account id is not in the public format": 6,
-    "the record names no profile class 2 (Economy 7) meter for it": 96,
+    "the record names no profile class 2 (Economy 7) meter for it": 95,
     "it has no full calendar year of electricity on record": 34,
     "its gas use is outside the book's 1st-99th percentile": 3,
     "it pays by prepayment yet is sent estimated credit bills": 10,
@@ -2166,7 +2989,7 @@
     "it uses no more electricity in winter than in summer": 5,
     "its electricity use is outside the book's 1st-99th percentile": 1
    },
-   "reason": "No household in this run passes this example's checks yet. 96 households match the rule, and each fails at least one check an energy reader would apply: the record names no profile class 2 (Economy 7) meter for it (96 of 96); it has no full calendar year of electricity on record (34 of 96); it uses less electricity than a home that does not heat with it (27 of 96); it pays by prepayment yet is sent estimated credit bills (10 of 96)."
+   "reason": "No household in this run passes this example's checks yet. 95 households match the rule, and each fails at least one check an energy reader would apply: the record names no profile class 2 (Economy 7) meter for it (95 of 95); it has no full calendar year of electricity on record (34 of 95); it uses less electricity than a home that does not heat with it (27 of 95); it pays by prepayment yet is sent estimated credit bills (10 of 95)."
   },
   {
    "id": "shock_2022",
@@ -2598,10 +3421,9 @@
   }
  ],
  "coverage": {
-  "filled": 5,
+  "filled": 6,
   "of": 8,
   "empty": [
-   "mover",
    "ev",
    "storage_heating"
   ],

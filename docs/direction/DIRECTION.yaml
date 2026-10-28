@@ -1,120 +1,126 @@
 version: 1
-oriented_at: '2026-10-28T12:21:58.326471+00:00'
-thesis_read: 'The steer bit this stretch, and the two items that landed are both the kind the thesis needs. Item 1 (af61df576)
-  put the drawn-roster fix on origin from a salvage nothing protected, and it settles the question I left open: every section
-  14 arm ran in its own process, so the per-customer-against-flat grades were never contaminated by a shared roster. That
-  is the harness fact the baseline comparison stands on, now established rather than assumed. Item 2 (d9828b5b3) made the
-  page bill carry the EBSS credit the ledger holds (232 of 232 credited accounts showed none, now 0), and every invariant
-  row now names whether it grades the ledger, the invoice or the page. That second half matters more: it turns ''the suite
-  is green'' into a claim about the record the customer reads. Its first page-graded twin is the stretch''s real finding.
-  On 493 of 752 households the collections desk prints more overdue than the page says is owed, because the desk''s arrears
-  view and the page ledger price one bill differently (C3: GBP 30.10 against 28.85). That is the two-homes shape again, the
-  project''s most expensive recurring defect, and it is billing accuracy on a page, so it goes first. dd7175f33 graded the
-  gas-leg settlement fix on a fresh run: bad debt fell 45% and net rose the same GBP 8,954, with P1 to P5 met as predicted,
-  so the leaver-credit row closes. Against that: the whole simulation-suite read was oom-killed at 48%, and the opening-read
-  landing died silently, the second silent landing death today, so leg one of the exit test still includes a row that cannot
-  fail. The commit split reads 0 supplier, 1 world and 10 other, but the classifier calls the page, ledger and invariant work
-  ''other''; by content, two of five substantive commits were supplier billing. Nothing is drifting to the world. The exit
-  test is not met, so the corrected renewal belief, the baseline run and levers stay behind it. The shared checkout is 59
-  behind origin, and every daemon runs code the branch has moved past; nothing is graded from it.'
+oriented_at: '2026-10-28T15:24:57.581879+00:00'
+thesis_read: 'The correctness stretch moved on two of its three exit legs, and nothing moved on the thesis itself, which is
+  what the ruling asks for. Leg two is met as far as I can see: the mover slot was the last slot known to be empty by a constant,
+  and d70e32cd5 fills it validly with SYN-2016-417, using a successor link a supplier holds, never the world''s move-in record.
+  Leg one is further from met than last stretch read it, and more honest. 049377466 made the opening-read row able to fail,
+  and all 1,291 accounts now flag, because no typed opening read exists in the record. 4a4a5a092 traced the 493-household
+  overdue breach to one cause: the collections desk is posted true-kWh revenue before VAT, not the bill the supplier issued.
+  That is the two-homes shape again, and it means the desk has been chasing a number no customer was ever sent. Its fix is
+  landing now (pid 2037148), and only a fresh run graded against a pre-registration can show the breach count fall. Leg three
+  has not moved: the second cold read''s new classes are still not rows, and item 3 of the last focus was not drawn for a
+  second stretch. The executors took continuations ahead of it, so that steer is drifting. It moves up to item 2, with this
+  stretch''s new estimate-versus-meter class added. Against the thesis, the company is still being made to bill and chase
+  correctly. That is the precondition for any per-customer-against-flat comparison, and that comparison stays held. The commit
+  split reads 0 supplier, 0 world and 11 other, but by content four of the five substantive commits are supplier billing and
+  page correctness (4a4a5a092, 049377466, f899c7ccd, d70e32cd5), and one is the director''s Monday note (d3ff2c1f5). Two machine
+  facts. The seat executor is now running the continuation the-second-arm-starts-from-the-drawn-roster on d70e32cd5, though
+  af61df576 already landed that fix without naming the id. That is the one unbuildable leg of an already-retired class, so
+  the tick should find it spent, and I record it here rather than reopen the class. The shared checkout is 70 commits behind
+  origin, and every daemon runs code origin has moved past.'
 stretch_reviewed:
-  since: '2026-10-28T09:24:19.851463+00:00'
+  since: '2026-10-28T12:21:58.326471+00:00'
   commits: 11
   substantive: 5
 focus:
-- id: the-desk-and-the-page-price-one-bill-the-same
+- id: the-desk-fix-is-graded-on-a-fresh-run
   lane: D_billing_metering
   side: supplier
-  what: 'docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md.
-    Trace C3''s April 2017 bill (page GBP 28.85, raised 5 Apr, due 19 Apr, paid 3 May) through company/billing/arrears_engine''s
-    undisputed_overdue_gbp and tools/generate_payment_ledger_data.build_account_ledger, and name where
-    GBP 30.10 and 28.85 part. Decide which record is right from docs/market_research/debt_and_collections.md
-    and the bill-content licence conditions in the commons, not from the code. Fix the wrong record so
-    one bill has one price in both, with a test red on today''s code. Re-grade INV_OVERDUE_WITHIN_PAGE_BALANCE
-    on the 1691ec0ecd book with /var/tmp/credit-probe/scripts/probe.py, launch no run, and lower or retire
-    its exception (ceiling 10,180) to the measured count with each residual''s cause named. Check the
-    finding''s ''not established'' leg: whether the run''s ACC-<cid> journeys and the ledger''s billing-account
-    journeys are the same journey on an electricity leg.'
-  why: A customer told they owe GBP 28.85 and chased for GBP 30.10 is a billing-accuracy error on the
-    page, and two records of one account disagreeing is the class this project has paid for most. Leg
-    one of the exit test cannot be met while it stands. Done means the cause is named in the finding,
-    the fix and its red-then-green test are on origin, the exception is at its new measured count with
-    every residual explained, and the journey-key question is answered.
-  written_at: 1793190399.933
-- id: the-mover-slot-ranks-movers-from-the-record-the-pages-carry
-  lane: D_billing_metering
-  side: supplier
-  what: 'docs/staging/SEAT_FINDING_THE_MOVER_SLOT_IS_EMPTY_BY_A_CONSTANT_AND_ITS_REASON_DENIES_A_RECORD_THE_PAGES_CARRY_2026-10-28.md.
-    Replace _score_mover''s unconditional return None (tools/generate_explore_cast.py) with a scorer over
-    the moved_out and final_bill events the pages carry. Its validity predicate: the household passes
-    the suite, its final bill follows its move-out, and its closing balance is collected or refunded.
-    For ''followed by a new occupant'', use only what a supplier holds: a later account on the same meter
-    point; if the published record cannot link them, drop the clause from the slot''s description and
-    say why, and never take the link from world truth. Rewrite MOVER_EMPTY_REASON so each clause it states
-    is true. Write a test red on the constant that asserts the slot CAN fill on a book with a mover before
-    it asserts what it ranks. Rebuild the cast from the 1691ec0ecd book in /var/tmp.'
-  why: Home moves are on the director's supplier priority list, and leg two of the exit test fails on
-    this slot alone; a guard that refuses everything was shown as an honest empty slot. Done means the
-    slot is filled validly or empty with a reason that is true on the book, the fix and its test are on
-    origin, and the finding records the household chosen or the true failing check.
-  written_at: 1793190399.933
+  what: 'Once the continuation the-desk-is-posted-the-issued-bill-not-true-kwh-revenue is on origin (surgical_land
+    pid 2037148 is landing it now; if it lands nothing, read its log and land the fix first, with its
+    red-then-green test), file a pre-registration in docs/staging/records/ before any run. It predicts
+    INV_OVERDUE_WITHIN_PAGE_BALANCE''s count (ceiling 12,730 on 495 households in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml)
+    and every other row a change to the desk''s input can move, with collections, bad debt and the stage-5
+    ledger named. In the same turn, trace the residual cause SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md
+    already names: a bill the page wrote off (arrears_history WRITTEN_OFF, C6 July 2016) that the desk
+    still chases. Fix it with a test red on today''s code if the run-side cause is plain; otherwise record
+    its cause in the finding. Then launch one fresh run at origin HEAD through launch_long_job, after
+    tools.run_annual_report pid 1517115 has ended, with nothing heavy beside it. Grade it against the
+    pre-registration, and set the exception to the measured count with each residual''s cause named, or
+    retire it.'
+  why: The desk chasing a figure no customer was sent is billing accuracy, and it is the largest unexplained
+    breach standing between leg one and the exit test. Done means the pre-registration was on origin before
+    the launch, the grade is on origin, the exception sits at its measured count or is gone, and the finding
+    is moved to done/ or names what is left.
+  written_at: 1793201472.697
 - id: the-second-cold-reads-new-classes-become-rows
   lane: A_strategy_governance
   side: supplier
-  what: 'Ruling step 6 for N2, N3, N5, N6 and N7 of docs/staging/SEAT_FINDING_THE_SECOND_COLD_READ_FINDS_SEVEN_NEW_CLASSES_AND_THE_SUITE_GRADES_A_RECORD_THE_PAGE_DOES_NOT_PRINT_2026-10-28.md.
-    Brief a fresh agent with no code access and give it the knowledge pages, docs/market_research and
-    docs/domain_artefact_library. It writes one two-sided row per class into docs/design/DOMAIN_INVARIANTS.yaml,
-    each citing its source and carrying the grades field (ledger, invoice or page) that d9828b5b3 introduced.
-    Before any row it states what the quantity counts: for N2, settlement revenue against the amount billed;
-    for N3, a payment, a returned payment and a missed payment, each per bill. For N6, read the commons
-    copy of Ofgem''s data access and privacy framework first; if the commons does not hold it, file the
-    GAP. Grade the new rows on the 1691ec0ecd book with tools/domain_invariant_runner.py, and for each
-    breach either fix it with a red-then-green test or record a dated exception naming its cause. For
-    N4, build nothing: measure the book-wide 2021-to-2023 change in annual kWh per fuel against docs/market_research/domestic_shift_response_arc.json
-    and record it in the finding.'
+  what: 'Ruling step 6 for N2, N3, N5, N6 and N7 of docs/staging/SEAT_FINDING_THE_SECOND_COLD_READ_FINDS_SEVEN_NEW_CLASSES_AND_THE_SUITE_GRADES_A_RECORD_THE_PAGE_DOES_NOT_PRINT_2026-10-28.md,
+    plus the estimate-versus-meter class in section 2 of docs/staging/SEAT_FINDING_A_SUCCESSOR_PAGE_PRINTS_A_DIFFERENT_MPAN_AND_ESTIMATES_RUN_FIVE_TIMES_THE_METER_2026-10-28.md.
+    Brief a fresh agent with no code access, and give it the knowledge pages, docs/market_research and
+    docs/domain_artefact_library. It writes one two-sided row per class into docs/design/DOMAIN_INVARIANTS.yaml.
+    Each row cites its source and carries the grades field (ledger, invoice or page). Before any row,
+    it states what the quantity counts: for N2, settlement revenue against the amount billed; for N3,
+    a payment, a returned payment and a missed payment, each per bill; for the estimate class, an estimated
+    bill''s daily use against the same meter''s actual reads around it. Where no published tolerance exists,
+    it states a belief with a range and files the GAP. For N6, it reads the commons copy of Ofgem''s data
+    access and privacy framework first, and files the GAP if the commons does not hold it. Grade the new
+    rows with tools/domain_invariant_runner.py on the fresh 1a02c46116 book (/var/tmp/fresh-run-out-1a02c46116).
+    Do not wait for item 1''s run. For each breach, fix it with a red-then-green test or record a dated
+    exception naming its cause. For N4, build nothing: measure the book-wide 2021-to-2023 change in annual
+    kWh per fuel against docs/market_research/domestic_shift_response_arc.json, and record it in the finding.'
   why: Leg three of the exit test fails on these classes, and a class the suite cannot see will be found
-    again by the third read. Done means five rows are on origin with their grade on the 1691ec0ecd book,
-    every breach is fixed or excepted with its cause, and N4's measurement is recorded.
-  written_at: 1793190399.933
+    again by the third read. This was not drawn for two stretches, so it now goes ahead of the read that
+    depends on it. Done means six rows are on origin with their grade on the 1a02c46116 book, every breach
+    is fixed or excepted with its cause, and N4's measurement is recorded.
+  written_at: 1793201472.697
+- id: W2_36_unbilled_energy_arises_the_way_it_does_in_reality
+  side: world
+  unblocks: 'INV_OPENING_READ grading a real opening read: 1,291 of 1,291 accounts flag ''not in the record''
+    (049377466), so the supplier''s first bill on every account starts from a read it cannot evidence.'
+  what: 'Knowledge first (K8). Amend item 5 of docs/market_research/unbilled_energy_and_revenue_assurance.md
+    with the published evidence for the change-of-supply opening read: BSCP504 4.4.1 (an actual within
+    SSD +/-5, else deemed by SSD+8), the equivalent gas rule from the commons, and the share of switches
+    that settle on an actual read. Search Elexon and Ofgem publications and the commons before calling
+    it a GAP. Then build the opening read as a world-side read that crosses the seam through company/interfaces/sim_interface.py,
+    typed actual or deemed at the share the page establishes, or at a stated belief with its range if
+    none is published. The ledger must never stamp the read itself. Re-grade INV_OPENING_READ on a book
+    carrying the build, and record its count.'
+  why: The ruling holds feature work, and a correct opening read is a correctness fix, not a feature,
+    so holding it under the ruling misreads it. Without it, leg one carries a row that flags every account.
+    Done means the knowledge page is on origin and cited in the build commit, the build and its test are
+    on origin, and INV_OPENING_READ's count on a book carrying the build is recorded in W2_36's map row.
+  written_at: 1793201472.697
 - id: the-third-cold-read
   lane: A_strategy_governance
   side: supplier
-  what: Start only once items 1 to 3 are on origin, the continuation the-opening-read-control-reads-the-first-actual-read
-    is on origin, and the continuation the-share-fix-ebss-reading-on-a-fresh-run-carrying-3ab3ea925 is
-    graded on origin; otherwise stop and release. If that EBSS run's book carries every run-side change
-    of items 1 to 3, use it and launch no run; otherwise launch one fresh run at origin HEAD through launch_long_job
-    with nothing heavy beside it. Pre-register every row's prediction, the new rows included, before reading
-    the book. Grade the full book, rebuild the pages and the cast into /var/tmp from origin's tools, and
-    run the cold read by ruling step 6's method with a new household sample. Write a reading in docs/staging/
-    that grades each of the three exit-test legs as met or not met, with its evidence.
-  why: This is the exit test again, and nothing else reopens the ruled order toward the corrected renewal
-    belief, levers and the baseline comparison. Done means the pre-registration was on origin before the
-    grade and the reading is on origin; if the read finds a new class, the reading says so and the stretch
-    continues.
-  written_at: 1793190399.933
+  what: 'Start only once items 1 and 2 are on origin and the continuation the-successor-page-carries-its-predecessors-meter-point
+    is on origin; otherwise stop and release. Do not wait for item 3: report INV_OPENING_READ as flagged
+    with its GAP. Use item 1''s fresh-run book if it carries every run-side change on origin; otherwise
+    launch one fresh run at origin HEAD through launch_long_job with nothing heavy beside it. Pre-register
+    every row''s prediction, the new rows included, before reading the book. Grade the full book, rebuild
+    the pages and the cast into /var/tmp from origin''s tools, and run the cold read by ruling step 6''s
+    method on a new household sample. Write a reading in docs/staging/ that grades each of the three exit-test
+    legs as met or not met, with its evidence.'
+  why: This is the exit test again, and only it reopens the ruled order toward the corrected renewal belief,
+    levers and the baseline comparison. Done means the pre-registration was on origin before the grade
+    and the reading is on origin. If the read finds a new class, the reading says so and the stretch continues.
+  written_at: 1793201472.697
 not_now:
-- what: Re-launching the whole tests/simulation read that was oom-killed at 48%.
-  why: A pytest over named tests/simulation files (pid 252987) is live now beside a 3.5 GB annual report, and a second whole
-    read would compete for the same memory that killed the first. The dual-fuel reds it was launched to explain are fixed
-    on origin (af61df576). The unexplained F stay on the machine row in wrong; a re-read belongs in a quiet window, in halves,
-    not in focus beside a run.
-- what: Putting the opening-read continuation or the EBSS share-fix run in focus.
-  why: Both are queued continuations, and the opening-read one is drawable again now its dead landing pid is gone. A focus
-    row would hand the same work to a second tick. Item 4 waits for both.
+- what: Retaking the whole tests/simulation read that was oom-killed at 48%.
+  why: A 4 GB annual report (pid 1517115) is live, and item 1's run needs the same memory. The dual-fuel reds the read was
+    launched to explain are fixed (af61df576). It belongs in a quiet window, in halves, after item 1's run. The unexplained
+    F stay on the machine row in wrong.
+- what: Putting the successor-MPAN continuation or the desk-input continuation in focus.
+  why: Both are queued or landing as continuations. A focus row would hand the same work to a second tick. Items 1 and 4 wait
+    on them by name instead.
+- what: Retiring the premise-spent continuation the-second-arm-starts-from-the-drawn-roster from this seat.
+  why: This session writes only the direction record. The executor running it is on d70e32cd5, which carries af61df576, so
+    it should find the fix present and release it. That costs one tick, not a wrong landing.
 - what: A policy that carries the corrected renewal belief, the flat-rule baseline run, and other lever or feature work.
-  why: 'The correctness ruling holds feature work until its exit test is met, and it is not: leg one has a row that cannot
-    fail and a 493-household page breach, leg two has the mover slot. Af61df576 removed the one harness doubt over the baseline
-    comparison, so it can start cleanly once the test passes.'
+  why: The correctness ruling holds feature work until its exit test is met. Leg one has the overdue breach and an opening-read
+    row that flags every account, and leg three has six classes that are not rows yet.
 - what: A world build for household demand response to the 2022-23 prices (N4).
-  why: Item 3 measures it against the knowledge layer's response arc first. A build follows only if the book sits outside
+  why: Item 2 measures it against the knowledge layer's response arc first. A build follows only if the book sits outside
     the evidence.
-- what: Landing the older at-risk worktrees (b12, budgetpay, om2), or fast-forwarding the shared checkout, now 59 behind.
-  why: Those salvages are from 15-25 Oct, locked, and their work was redone or graded elsewhere; the simsuite salvage, the
-    only live fix, is now on origin. A fast-forward over other lanes' uncommitted work is the sweep the pathspec rule prevents,
+- what: Landing the older at-risk worktrees (b12, budgetpay, om2), or fast-forwarding the shared checkout, now 70 behind.
+  why: Those salvages date from 15 to 25 Oct, are locked, and their work was redone or graded elsewhere. The simsuite salvage's
+    live fix is on origin (af61df576). A fast-forward over other lanes' uncommitted work is the sweep the pathspec rule prevents,
     and no result is graded from the shared checkout.
 - what: Publishing the corrected customer pages before 2 Nov.
-  why: The weekly window holds content publishing, and items 1 and 2 change the pages again. Three open page rows lose a few
-    days, not a correction.
+  why: The weekly window holds content publishing, and items 1, 2 and the MPAN continuation change the pages again. The open
+    page rows lose a few days, not a correction.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk
     states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households leave, against
@@ -204,7 +210,9 @@ wrong:
     belief still ranks leavers backwards. The second cold read did not meet the exit test, so it is not in focus. 09:24: Unchanged.
     No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s
     exit test is not met, so it is not in focus. 12:21: Unchanged. No policy carries the corrected belief, so the live renewal
-    belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus.'
+    belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus. 15:24: Unchanged.
+    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s
+    exit test is not met, so it is not in focus.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Two landings turned tests on origin red that their own test selection never ran. e81b1b156
     set enforce: true, and four flow tests in tests/background/test_process_run_complete.py went red, because the main flow
@@ -237,7 +245,10 @@ wrong:
     is closed: af61df576 landed the dual-fuel mover fix from salvage 1a7bb1d34, red on origin''s run_phase2b.py and green
     with it, and it records that the section 14 arms each ran in their own process, so none was exposed. But the whole read
     it was meant to explain (simsuite-whole-2cf3201c5c) was oom-killed at 11:49Z at about 48%, with at least two F not yet
-    named. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed.'
+    named. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed.
+    15:24: Unchanged. No new red is known, and the whole tests/simulation read has not been retaken since its oom-kill. Nothing
+    ties a change to a gate switch or a billing basis to the tests that drive it, and the desk-input landing in flight (surgical_land
+    pid 2037148) changes a billing basis again, so the class is not fixed.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The published customer pages print ''Paid in total'' equal to ''Revenue billed'' on every
     account, while the stage-5 ledger collected less (OCC-52fbc3104c5f: GBP 4,747.99 against 5,062.23). They also show balances
@@ -249,7 +260,8 @@ wrong:
     pages change only at the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish. 06:24: Unchanged.
     The live pages change only at the 2 Nov publish. The second cold read on the rebuilt pages found the same shape again
     on the payment counters (its N3), which item 3 takes. 09:24: Unchanged. The live pages change only at the 2 Nov publish.
-    12:21: Unchanged. The live pages change only at the 2 Nov publish.'
+    12:21: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the
+    2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The supplier''s customer timeline showed world life events: 414 of 649 fell after supply
     ended. 4d7f6021a clips them in the generator, but the live pages change only at the 2 Nov publish, and life events inside
@@ -258,31 +270,9 @@ wrong:
     change only at the 2 Nov publish. 21:24: Unchanged. The live pages change only at the 2 Nov publish. 00:24: Unchanged.
     The live pages change only at the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish. 06:24:
     Unchanged. The live pages change only at the 2 Nov publish. 09:24: Unchanged. The live pages change only at the 2 Nov
-    publish. 12:21: Unchanged. The live pages change only at the 2 Nov publish.'
+    publish. 12:21: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only
+    at the 2 Nov publish.'
   corrected: false
-- what: 'THE COMPANY''S, THIS STRETCH. A leaver''s credit balance is not refunded at exit: 33 accounts on the 13a6e5e71d book
-    are in credit beyond the engine. Another 24 owe more for causes not traced, 4 of them while holding a write-off. Found
-    by 597720378''s reconciliation. Focus item 2. 21:24: The premise was wrong in cause. The company refunds (simulation/credit_refund_events.py),
-    and the page ledger dropped the event. 13f8cc50c posts all 27 refunds, and the 33 fall to 4 real-sized leavers. Three
-    of the 24 owing more are traced (a never-chased failed DD, a 2017 offset, and a write-off short of the bill), and none
-    is fixed. Item 2 takes the failed-DD leg. 00:24: The failed-DD leg is traced and not fixed. 9ad5af9a7 finds the two never-chased
-    failed DDs (OCC-3c914ee8cef5g, OCC-561d240ea21a) are occupier-window months the billing ledger draws on its own, not the
-    desk''s date split. Item 4 takes them and the four real-sized leavers in credit. 03:22: The failed-DD leg is fixed on
-    origin: 7cec44a4b makes a bill inside the occupier window the deemed account''s, and both named accounts read GBP 0. On
-    the 5e3e9966a5 book the residue is 3 leavers in credit and 28 owing more. 15 of the 28 are correctly owed. 5 are leavers
-    refunded from a DD balance the ledger never held in credit, which is a second two-homes defect. 6 net account credit against
-    different bills, 1 is the part-window share, and 1 is not traced. Item 3 takes the five and the part-window share. 06:24:
-    My cause for the five was wrong. They were not refunded from a DD balance the ledger never held. f805a9483 found that
-    a settled gas bill was repaid on its electricity twin, so the run refunded a credit nobody held. That fix is on origin,
-    and 2bef058eb cuts the part-window bill to the payer''s own share. Neither has been measured on a run: the re-measure
-    (fresh-run-20e7d66234, pre-registered P1 to P7 in 753c3d874) is queued behind head_green_census and has not started. It
-    stays false until that grade is on origin. 09:24: Unchanged. fresh-run-20e7d66234 started at 08:28Z, through launch_long_job,
-    and is writing its outputs. Its grade is claimed under the-gas-leg-settlement-fix-graded-on-the-20e7d66234-run. It stays
-    false until that grade is on origin. 12:21: Corrected for the defect this row names. dd7175f33 graded the gas-leg fix
-    on fresh-run-20e7d66234 against its pre-registration: none of the five leavers is refunded (P1, 4 were), refunds fell
-    26 to 21, and bad debt fell GBP 19,738 to 10,784 with net up the same GBP 8,954. The one untraced account owing more is
-    too small to hold the row open.'
-  corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. The one-due-date fresh run was killed from outside at 7 June 2025, with no exit line,
     no traceback and an empty output directory (08a9fbcc1). It ran under arm.py from a bare shell, not launch_long_job, so
     the register never saw it die. The cause is not established: memory pressure or a reaper are the candidates, and neither
@@ -291,7 +281,8 @@ wrong:
     is the second run since the death to go clean, with nothing heavy beside it except the whole suite read. 12:21: Unchanged
     in cause, but a third death now carries a cause: the register recorded simsuite-whole-2cf3201c5c as oom-kill (status 9)
     at 11:49Z. That makes memory pressure the leading candidate for the 7 June death too, and it is still not tested against
-    that run.'
+    that run. 15:24: Unchanged in cause. fresh-run-1a02c46116 ran clean through launch_long_job (13:20Z to 14:26Z), the third
+    clean run since the death, and memory pressure is still the leading candidate, not tested against the 7 June run.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The suite grades a different record from the one the page prints. PROS-2019-0246, the
     2022-shock slot, has all six EBSS scheme_credit adjustments (GBP 400) on its ledger, but its invoices carry credit_applied_gbp
@@ -302,7 +293,11 @@ wrong:
     2. 12:21: The EBSS leg is fixed in code: d9828b5b3 makes the page invoice carry the credit (232 of 232 credited accounts
     showed none, now 0), and every invariant row now names the record it grades, with an invoice-graded EBSS twin. The overdue
     leg is not fixed: its page-graded twin breaches on 493 of 752 households (10,180 of 32,741 steps), filed BLOCKING. Focus
-    item 1. The live pages change only at the 2 Nov publish.'
+    item 1. The live pages change only at the 2 Nov publish. 15:24: The EBSS leg holds on a fresh run (f899c7ccd: both EBSS
+    rows grade 6, the exceptions'' six). The overdue leg''s cause is traced (4a4a5a092): the desk is posted true-kWh revenue
+    before VAT, not the issued bill. Its fix is landing now (surgical_land pid 2037148), and the gas-leg fix raised the measured
+    count to 12,730 on 495 households, so the exception''s ceiling was re-based up, with its attribution. Not corrected until
+    a fresh run with the desk fix is graded. Focus item 1.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The Explore mover slot is empty by a constant: _score_mover is ''return None'' with
     no condition (tools/generate_explore_cast.py:625). Its printed reason says the record carries no move-out event and no
@@ -310,21 +305,28 @@ wrong:
     live pages carry them too. A guard that refuses everything was shown as an honest empty slot. Found by the second cold
     read (2cf3201c5). Focus item 2. 09:24: Not drawn. tools/generate_explore_cast.py is identical to origin. Focus item 3.
     12:21: Not drawn again; items 1 and 2 held the executors. tools/generate_explore_cast.py still returns None. Focus item
-    2.'
-  corrected: false
+    2. 15:24: Corrected: d70e32cd5 replaced the constant with a scorer over the moved_out and final_bill events and a supplier-held
+    successor link. On 1691ec0ecd, 155 households match, 5 pass, and SYN-2016-417 fills the slot. The reason now says only
+    what is true.'
+  corrected: true
 - what: 'THE SEAT''S, THIS STRETCH. I read leg one of the exit test as met (zero unexplained breaches on 1,293 accounts),
     but one of the rows counted in that zero cannot fail. e6de8acf7''s two blind readers found that INV_OPENING_READ grades
     the export''s synthesised carried-forward read: on the 1691ec0ecd book, 1,293 of 1,293 first reads are that read, on day
     0. So leg one''s zero includes a row that grades its own fixture. The fix is the queued continuation the-opening-read-control-reads-the-first-actual-read.
     Item 5 waits for it. 12:21: Unchanged. The continuation''s landing (surgical_land pid 3646570) is gone and nothing landed
     under its name, while the draw refused the item four times on that pid''s account. It is drawable again. Item 4 waits
-    for it.'
+    for it. 15:24: Corrected: 049377466 stops INV_OPENING_READ grading the synthesised day-0 read, red on the old runner.
+    The 1,291 accounts that read CLEAN by construction now FLAG ''not in the record'', so leg one no longer counts that row
+    as clean. The typed opening read is a world build (W2_36), which item 3 takes.'
+  corrected: true
+- what: 'THE PAGES'', THIS STRETCH. A successor''s page prints a different meter number from the account it succeeded: in
+    253 of 253 successions, the occupant''s MPAN or MPRN differs from its predecessor''s, because tools/generate_customer_data.py
+    (_mpan, _mprn) and company/crm/customer_registry.mpan_core hash the account id, not the supply point. Found by d70e32cd5.
+    The queued continuation the-successor-page-carries-its-predecessors-meter-point fixes it.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. A second landing died silently inside one day. surgical_land pid 3646570, landing the-opening-read-control-reads-the-first-actual-read,
-    is gone with nothing on origin under that id, after pid 748021 did the same to the mover fix this morning. While it lived,
-    the draw refused the item four times as held. A landing that dies leaves no line in any register the brief reads, so its
-    item reads as in flight until someone checks the pid. Not fixed: the continuation is drawable again, and the class has
-    no owner yet.'
+- what: THE COMPANY'S, THIS STRETCH. SYN-2016-565's estimated electricity bills ran 1,250 to 2,007 kWh a month from Jul 2023
+    to Jun 2024, five to ten times its meter, until an actual read credited GBP 1,471.52, and no check caught it, because
+    the book's use band is drawn over estimated bills too. Found by d70e32cd5. Focus item 2 writes the invariant blind.
   corrected: false
 for_the_director:
 - id: the-26-oct-advisor-steer-asks-that
