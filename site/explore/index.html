@@ -1171,9 +1171,10 @@ function hhDayPanels() {
     // estate we do not own.
     var body = HH_META.smartUnread && HH_META.smartUnread[group]
       ? "This household <b>has a smart meter</b> and there is still no day to draw. The meter " +
-        "can measure every half-hour &mdash; 17,520 readings a year &mdash; but how often it is " +
-        "actually read is the customer's consent to give, and without it the supplier holds " +
-        "monthly totals from a meter capable of far more. So the half-hourly figures it settles " +
+        "can measure every half-hour &mdash; 17,520 readings a year. Under the licence, monthly " +
+        "reads need no consent, daily reads are taken unless the customer opts out, and only " +
+        "half-hourly reads wait for the customer to opt in. This supplier collects the monthly " +
+        "read alone, so it holds monthly totals from a meter capable of far more. So the half-hourly figures it settles " +
         "on for this home are <b>inferred from a national profile</b>, not measured, exactly as " +
         "they are for a household with no smart meter at all. The difference is that this one " +
         "could be fixed by asking."

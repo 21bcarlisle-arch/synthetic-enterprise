@@ -79,6 +79,12 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_STATUTE_BARRED_WRITE_OFF_AGE": "needs a six-year-old debt; every leg tested on its own below",
     "INV_EBSS_CREDIT_ON_THE_BILL": "reads the printed page; every leg tested on its own below",
     "INV_OVERDUE_WITHIN_PAGE_BALANCE": "reads the printed page; every leg tested on its own below",
+    "INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE": "reads the printed page; every leg tested on its own below",
+    "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": "reads the printed page; every leg tested on its own below",
+    "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": "reads the printed page; every leg tested on its own below",
+    "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": "reads the printed page; every leg tested on its own below",
+    "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": "reads the printed page; every leg tested on its own below",
+    "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": "reads the printed page; every leg tested on its own below",
 }
 
 
@@ -813,3 +819,111 @@ def test_the_book_median_classes_an_account_year_by_its_own_registers():
     row = _results(book, [inv])["INV_ANNUAL_USE_BOOK_MEDIAN"]
     # Ten single-rate 2020s at 3,000 kWh, above the row's 2,000: graded, and breached.
     assert row["checked"] == 1 and row["status"] == "BREACHED", row
+
+
+# ── the second cold read's six rows (2026-10-28): each can pass, and each side can fire ──────────
+
+def _printed_account(cid, fuel, printed):
+    return {"customer_id": cid, "segment": "resi", "payments": [], "printed": printed,
+            "periods": [{"period_start": "2020-01-01", "period_end": "2020-01-31", "commodity": fuel}]}
+
+
+def _grade_one(inv_id, *accounts, inv=None):
+    book = {a["customer_id"]: a for a in accounts}
+    r = runner.run([dict(inv or {}, id=inv_id)], book)[0]
+    return r["status"], sorted(b["side"] for b in r.get("breach_examples") or ()), r.get("flagged")
+
+
+def _bill(start, end, kwh=0.0, read="A", close=None, amount=0.0, vat=0.0, **kw):
+    return dict(period_start=start, period_end=end, consumption_kwh=kwh, read_type=read,
+                closing_read_kwh=close, amount_gbp=amount, vat_gbp=vat, meter_serial="M1", **kw)
+
+
+def test_every_leg_of_the_revenue_row_is_reachable():
+    """Bills before VAT within 1% of the page's revenue pass. Short of it breaches, unless the
+    account carries a write-off, which flags (the back-billing write-off is the row's GAP)."""
+    def acct(billed, written_off=0.0):
+        return _printed_account("R", "electricity", {
+            "lifetime_revenue_gbp": 100.0, "page_totals": {"total_written_off_gross_gbp": written_off},
+            "invoices": [_bill("2020-01-01", "2020-01-31", amount=billed * 1.05, vat=billed * 0.05)]})
+    i = "INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE"
+    assert _grade_one(i, acct(100.0))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(80.0))[:2] == ("BREACHED", ["below"])
+    assert _grade_one(i, acct(120.0))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, acct(80.0, written_off=20.0))[0] == "FLAGGED"
+
+
+def test_every_leg_of_the_payment_record_row_is_reachable():
+    """Paid plus missed equal to the bills due passes. A counter of rows, or a missed direct debit
+    with no return, breaches."""
+    def acct(**rec):
+        bills = [_bill("2020-0%d-01" % m, "2020-0%d-28" % m, invoice_number=m, due_date="2020-0%d-15" % (m + 1))
+                 for m in (1, 2, 3)]
+        return _printed_account("P", "electricity", {
+            "invoices": bills, "payment_record": rec, "page_totals": {"as_of_date": "2020-12-31"},
+            "page_ledger": [{"invoice_number": m, "method": "direct_debit"} for m in (1, 2, 3)]})
+    i = "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE"
+    assert _grade_one(i, acct(payments=2, missed=1, returned=1, missed_dd=1))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(payments=3, missed=4, returned=0))[:2] == ("BREACHED", ["paid + missed != due"])
+    assert _grade_one(i, acct(payments=2, missed=1, returned=10))[:2] == (
+        "BREACHED", ["returns over three per DD collection"])
+    assert _grade_one(i, acct(payments=2, missed=1, returned=0, missed_dd=1))[:2] == (
+        "BREACHED", ["missed DD without a return"])
+
+
+def test_every_leg_of_the_carbon_and_usage_row_is_reachable():
+    def acct(kwh, months):
+        return _printed_account("C", "gas", {
+            "carbon_years": {2020: {"kwh": kwh, "months_billed": months}},
+            "usage_monthly": [{"month": "2020-01", "kwh": 600.0}, {"month": "2020-02", "kwh": 600.0}]})
+    i = "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL"
+    assert _grade_one(i, acct(1205.0, 2))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(1000.0, 2))[:2] == ("BREACHED", ["below"])
+    assert _grade_one(i, acct(1205.0, 3))[:2] == ("BREACHED", ["months"])
+
+
+def test_every_leg_of_the_smart_meter_row_is_reachable():
+    """A Smart account's estimated share within its band passes; above it breaches; none at all
+    flags; a traditional meter is not graded; the first bill is not counted."""
+    def acct(reads, meter="Smart"):
+        bills = [_bill("2020-%02d-01" % m, "2020-%02d-28" % m, read=r) for m, r in enumerate(reads, 1)]
+        return _printed_account("S", "electricity", {"meter_type": meter, "invoices": bills})
+    i, inv = "INV_SMART_METER_BILLED_ON_ITS_OWN_READS", {"lower": 0.01, "upper": {"electricity": 0.15}}
+    assert _grade_one(i, acct("E" + "A" * 9 + "E"), inv=inv)[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct("AEEEAAAAAA"), inv=inv)[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, acct("AAAAAAAAAA"), inv=inv)[0] == "FLAGGED"
+    assert _grade_one(i, acct("EEEEEEEEEE", meter="Traditional"), inv=inv)[0] == "UNREACHED"
+
+
+def test_every_leg_of_the_estimate_follows_the_reads_row_is_reachable():
+    """An estimate at the rate the last reads show passes; three times it breaches; one bill with a
+    single read before it is not graded."""
+    def acct(est_kwh_per_day):
+        bills = [_bill("2020-01-01", "2020-01-31", 310.0, "A", close=310.0),
+                 _bill("2020-02-01", "2020-02-29", 290.0, "A", close=600.0),
+                 _bill("2020-03-01", "2020-03-31", est_kwh_per_day * 31, "E", days_in_period=31)]
+        return _printed_account("E", "electricity", {"invoices": bills})
+    i = "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS"
+    assert _grade_one(i, acct(10.0))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(30.0))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, acct(1.0))[:2] == ("BREACHED", ["below"])
+    one = _printed_account("E", "electricity", {"invoices": [
+        _bill("2020-01-01", "2020-01-31", 310.0, "A", close=310.0),
+        _bill("2020-02-01", "2020-02-29", 999.0, "E", days_in_period=29)]})
+    assert _grade_one(i, one)[0] == "UNREACHED"
+
+
+def test_every_leg_of_the_estimated_run_against_the_meter_row_is_reachable():
+    """A run billed near the meter's own rate passes; a run at zero while the meter advanced (the
+    occupier's zero window) breaches; twice the meter only flags; a single estimate is not a run."""
+    def acct(per_day, n=2):
+        bills = [_bill("2020-01-01", "2020-01-31", 310.0, "A", close=310.0)]
+        bills += [_bill("2020-%02d-01" % m, "2020-%02d-28" % m, per_day * 28, "E") for m in range(2, 2 + n)]
+        bills += [_bill("2020-%02d-01" % (2 + n), "2020-%02d-28" % (2 + n), 0.0, "A",
+                        close=310.0 + 10.0 * (28 * (n + 1) + 3))]
+        return _printed_account("M", "electricity", {"invoices": bills})
+    i = "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER"
+    assert _grade_one(i, acct(10.0))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(0.0))[:2] == ("BREACHED", ["below"])
+    assert _grade_one(i, acct(22.0))[0] == "FLAGGED"
+    assert _grade_one(i, acct(0.0, n=1))[0] == "UNREACHED"

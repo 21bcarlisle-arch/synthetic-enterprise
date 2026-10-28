@@ -873,9 +873,10 @@ def build_monthly_bills(
                 shaped = (
                     estimate_unread_kwh(
                         commodity, trailing_actual_periods[-ESTIMATE_WINDOW_READS:], *period)
-                    if trailing_actual_periods
-                    else opening_estimate_kwh(commodity, customer_data, *period)
+                    if trailing_actual_periods else None
                 )
+                if shaped is None:  # no read yet, or reads that measured nothing
+                    shaped = opening_estimate_kwh(commodity, customer_data, *period)
                 advance = (
                     annualised_advance_kwh(commodity, register_reads, min_advance_days=(
                         GAS_AQ_MIN_ADVANCE_DAYS

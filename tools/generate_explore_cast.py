@@ -36,7 +36,7 @@ import html
 import json
 import re
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from company.compliance.domain_invariants import default_tariff_invoice_excess_p_per_kwh
@@ -291,6 +291,44 @@ def _owed(inv: list[dict], led: list[dict]) -> tuple[float, str | None]:
     return owed, max([r["date"] for r in inv + moves if r.get("date")], default=None)
 
 
+#: A bill counts as missed once its due date and the Bacs re-presentation window have passed with no
+#: payment on it (INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE; 30 days for standard credit is that
+#: row's stated belief).
+PAYMENT_WINDOW_DAYS = 30
+
+
+def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
+    """The household summary's "N of D bills paid, R returned, M missed", counted per BILL.
+
+    D is the bills (prepayment statements excluded) whose due date plus the window has passed by
+    `as_of`, not paid by prepayment. Each is paid (a payment on it inside the window) or missed,
+    so N + M = D. R is the returned collection attempts on those bills. A payment on no bill due
+    is no collection. This used to count ledger rows and arrears cases: "34 payments, 4 returned,
+    42 missed" on a 50-bill account (second cold read, N3)."""
+    by_bill: dict = {}
+    for r in led:
+        if r.get("invoice_number") is not None:
+            by_bill.setdefault(r["invoice_number"], []).append(r)
+    cutoff = date.fromisoformat(as_of[:10])
+    due = []
+    for i in inv:
+        if (i.get("document_type") or "bill") != "bill" or not i.get("due_date"):
+            continue
+        rows = by_bill.get(i.get("invoice_number"), [])
+        if any(r.get("method") == "prepayment" for r in rows):
+            continue
+        window = date.fromisoformat(i["due_date"][:10]) + timedelta(days=PAYMENT_WINDOW_DAYS)
+        if window <= cutoff:
+            due.append((i, rows, window.isoformat()))
+    paid = [i for i, rows, w in due if any(r.get("type") == "payment_received" and r.get("date", "") <= w
+                                            for r in rows)]
+    missed = [(i, rows) for i, rows, _ in due if i not in paid]
+    returned = sum(1 for _, rows, _ in due for r in rows if r.get("type") == "payment_failed")
+    return {"due": len(due), "payments": len(paid), "returned": returned, "missed": len(missed),
+            "missed_dd": sum(1 for _, rows in missed if any(r.get("method") == "direct_debit" for r in rows)),
+            "as_of": max([w for _, _, w in due], default=None)}
+
+
 def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     acq = min(a.get("acquisition_date") or "9999" for a in hh["legs"].values())
     inv = _known_by(ev["invoice"], iso)
@@ -310,12 +348,9 @@ def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     if belief:
         rows.append(_row("Churn risk it held", "{} at the {} renewal".format(_fmt_level(belief["company_belief"]), _day(belief["date"])),
                          belief["date"]))
-    paid = [r for r in led if r.get("type") == "payment_received"]
-    failed = [r for r in led if r.get("type") == "payment_failed"]
-    missed = [r for r in rc if r.get("event_type") == "arrears_payment_missed"]
-    last_pay = paid[-1]["date"] if paid else acq
-    rows.append(_row("Payment record", "{} payments, {} returned, {} missed".format(len(paid), len(failed), len(missed)),
-                     max([last_pay] + [r["date"] for r in failed + missed])))
+    rec = payment_record(led, inv, iso)
+    rows.append(_row("Payment record", "{} of {} bills paid, {} returned, {} missed".format(
+        rec["payments"], rec["due"], rec["returned"], rec["missed"]), rec["as_of"] or acq))
     actual = [i for i in inv if i.get("read_type") == "A"]
     rows.append(_row("Meter reads", "{} bills, {} on an actual read{}".format(
         len(inv), len(actual), ", last on {}".format(_day(actual[-1]["date"])) if actual else ""),

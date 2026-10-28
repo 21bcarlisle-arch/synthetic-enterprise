@@ -2593,3 +2593,255 @@ invariants:
   - printed reaction_chain.collections_*.amount_gbp
   checkable: true
   gap: 'Written 2026-10-28: the ledger row''s first leg, which the raw export cannot carry (two sums the company worked out), graded where the page prints both. Graded by tools/domain_invariant_runner.ev_overdue_within_page_balance on a book read with --printed. A cure and a write-off print no overdue figure and are not graded. The desk''s journey is the billing account''s, both fuels, so owed is the sum of the household''s fuel pages'' balances on that day and a step both pages print is graded once.'
+- id: INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE
+  family: account_arithmetic
+  grades: page
+  counts: >-
+    Per account (one household, one fuel), over its life to ledger.as_of_date. R = lifetime_revenue_gbp, "Revenue, before VAT": the energy the account was supplied, valued at its tariff (unit rate x kWh
+    delivered + standing charge x days supplied), before VAT. B = the account's own bills before VAT: sum over invoices of (amount_gbp - vat_gbp), excluding any bill to a deemed occupier/owner account
+    (ledger.total_deemed_gbp is not this household's), with any scheme credit netted off a bill added back (a scheme credit is the government paying part of the bill, not a lower price). Unit graded:
+    per account. On the household page, both sums are taken over the same fuels.
+  statement: >-
+    What a supplier bills before VAT and what it supplied at its tariff are the same energy priced the same way. Over an account's life they differ only by energy not yet billed (the tail since the last
+    bill), by an estimated run no actual read has yet corrected (either sign), and by energy the supplier may not bill under the 12-month back-billing limit (SLC 21BA). VAT, credits and write-offs are not
+    part of the gap: VAT sits above both figures, a write-off is billed money left uncollected, and a refund or credit transfer moves cash, not price.
+  applies_to:
+    segment: resi and sme
+    commodity: electricity and gas
+  evaluation: >-
+    Let T = R x max(0, end - last_period_end) / supply_days, where end = the account's supply end or ledger.as_of_date, last_period_end = the latest invoice period_end, and supply_days = days from the first
+    period_start to end (the unbilled tail at the average daily value). Let U = the before-VAT amount of every bill after the account's last bill on an actual read (A): the open or closing estimated run.
+    Let W = the part of ledger.total_written_off_gross_gbp written off under the back-billing limit, before VAT (zero when none is identified). Breach unless
+    R - T - U - W - 0.01 R <= B <= R + U + 0.01 R. Ex-VAT B is taken from vat_gbp, not by dividing by 1.05, so an sme bill at 20% grades on its own VAT. The VAT rate itself is INV_VAT_RATE's, not this row's.
+    Not graded when R is 0 or absent.
+  lower: R - T - U - W - 0.01 R
+  upper: R + U + 0.01 R
+  lower_source: >-
+    docs/market_research/unbilled_energy_and_revenue_assurance.md §1 table: K1 'billed < consumed, temporarily, by timing' (T), K2 'billed != consumed, until the next actual read' (U), K3 'legally capped
+    at 12 months (SLC 21BA), so beyond 12 months the gap is the supplier's loss' (W); 'An estimated final bill closes its run' (U on a closed account). The 1% is a BELIEF (rounding and day-apportionment
+    of standing charges across bill boundaries), set wide.
+  upper_source: same §1 table, K2 (an over-estimate not yet corrected is billed > consumed); logic otherwise (a supplier cannot bill energy it did not supply beyond an open estimate).
+  severity:
+    outside: breach
+  source:
+  - docs/market_research/unbilled_energy_and_revenue_assurance.md
+  - docs/domain_artefact_library/regulatory/uk_vat_rates.json ('reduced' 5%, 'home energy')
+  - docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md
+  - 'Cold read N2: a household supplied 2016-2019 (no scheme credit possible) shows Revenue, before VAT £2,277.10 against Billed, VAT included £1,998.82, i.e. about £1,903.64 before VAT, 16% below revenue on a closed account.'
+  gap: >-
+    Whether R nets a goodwill or compensation credit (credit_applied) is not established; the row excludes credit_applied and refund_debit from both sides and a goodwill credit could legitimately sit in the
+    gap (GAP). The page does not mark which write-off is a back-billing one, so W may be unidentifiable; the runner should then report W as unknown and grade with W = 0 only as a flag. The 1% is a belief.
+- id: INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE
+  family: payment_record
+  grades: page
+  counts: >-
+    Per account, per collection due: one scheduled collection is one bill's amount due on standard credit, or one month's direct-debit instalment on DD. A PAYMENT is a collection due that was paid in full
+    within its window. A RETURNED payment is one DD presentation the bank returned unpaid (ARUDD) or a collection refused because the mandate was cancelled (ADDACS): an attempt, so one collection can carry
+    up to three. A MISSED payment is a collection due that was not paid in full by the end of its window. The window is the Bacs re-presentation window, 30 days from the original presentation (DD), and the
+    bill's due date plus 30 days (standard credit, a belief). Prepayment has no collection due and is not counted. Extra one-off payments are not collections and count as neither. Unit graded: per account.
+  statement: >-
+    The household summary "N payments, R returned, M missed" counts collections, not ledger rows or reminder events. Every collection due whose window has closed by ledger.as_of_date is either paid or missed,
+    never both and never neither. A return is an attempt on a collection, so returns never exceed three per collection, and every missed DD collection carries at least one return or a cancelled mandate.
+  applies_to:
+    segment: resi and sme
+    payment_method: direct_debit and standard_credit
+  evaluation: >-
+    Let D = the collections due on the account whose window closed on or before ledger.as_of_date. Breach unless N + M = |D|, N <= |D|, M <= |D|, R <= 3 x |D_dd| (D_dd the DD collections in D), and
+    M_dd <= R (every missed DD collection has a returned presentation or a mandate cancellation). On a bill-paying account |D| is the count of invoices with status issued (not held, not to a deemed
+    account) whose window closed. On fixed monthly DD, |D| is the count of instalments scheduled. Second leg, flag: a DD mandate that is presented again after two consecutive collections each ended missed,
+    with no new instruction from the payer between them.
+  lower: N + M = |D|
+  upper: R <= 3 x |D_dd|
+  lower_source: >-
+    logic of a collection (each due collection resolves to exactly one outcome); docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md 'What each quantity IS' items 1 and 2: a DD
+    return is a collection EVENT and a standard-credit bill unpaid by its due date is a different EVENT, 'late' defined against the bill's own due date.
+  upper_source: >-
+    docs/market_research/how_a_gb_supplier_decides_to_write_off_a_failed_payment.md (a): 'A returned DD may be re-presented up to twice (three attempts in all), within 30 days of the original
+    presentation' (bureau statements of the Bacs rules; the rulebook itself members-only).
+  severity:
+    reconciliation: breach
+    dd_kept_after_repeated_failure: >-
+      flag, not breach: no licence condition sets when a supplier stops a DD. Published practice is British Gas, 'When a payment is not received, we will try again 14 calendar days later', and on a second
+      failure 'we'll have to cancel your Direct Debit and send you a bill instead', moving the customer 'over to another payment option' (payments_and_direct_debit_2026-10-25.md 'Off direct debit and back
+      on'; write-off note (a)). Power NI asks for the missed DD 'within 5 working days to remain on Direct Debit'. The licence's duty on the balance is SLC 27: identify payment difficulty, offer an
+      ability-to-pay arrangement, escalate only after (write-off note (a)). A returned DD is not a write-off.
+  source:
+  - docs/market_research/how_a_gb_supplier_decides_to_write_off_a_failed_payment.md
+  - docs/market_research/payments_and_direct_debit_2026-10-25.md (§3 ARUDD, ADDACS codes; 'Off direct debit and back on')
+  - docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md
+  - 'Cold read N3: "34 payments, 4 returned, 42 missed" on a 50-bill account (34 + 42 = 76 > 50); "6 payments, 4 returned, 0 missed"; a DD kept after 4 of 6 collections returned.'
+  gap: >-
+    The 30-day standard-credit window is a belief mirroring the Bacs window: no source sets when a pay-on-receipt bill counts as missed (Ofgem's arrears bar is 91 days, SLC 14's objection gate 28; neither
+    is a 'missed' definition). How a part-paid collection should count is not published; the row counts it missed. The page does not carry a DD instalment schedule, so on fixed DD |D| must come from
+    the ledger's invoice_raised and payment entries by month (one instalment per month, INV_DD_CADENCE). Which ARUDD reasons forbid re-presentation ('no instruction') is not on the page.
+- id: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
+  family: carbon_reporting
+  grades: page
+  counts: >-
+    Per account (one fuel), per calendar year Y: K_c = the carbon panel's kwh for that fuel and year; K_u = the sum of consumption.monthly[].kwh over the months of Y. Both are meant to count the energy the
+    account used in Y (CO1: the panel's job is 'to show customers what they've saved and could save in CO2', which is emissions of energy used, not of energy billed). Unit graded: per account-year.
+  statement: >-
+    One quantity on one page has one value. The carbon panel and the usage panel agree on the kWh an account used in a year within rounding, and the carbon panel counts the same months the usage panel
+    shows. If the carbon panel counts BILLED kWh (bills dated in Y, catch-ups included), it is a different quantity: it must say so, and it is then not the basis for a saving. A part year carries no
+    annual figure.
+  applies_to:
+    segment: resi
+    commodity: electricity and gas
+  evaluation: >-
+    Leg 1 (agreement): for each (account, fuel, Y) present on both panels, |K_c - K_u| <= max(12 kWh, 0.01 x K_u). Breach outside. Leg 2 (months): months_billed equals the number of months of Y with a
+    usage-panel entry for that fuel. Leg 3 (part year): full_year is true only if the fuel was supplied on at least 328 of the days in Y (365 less 37), and when full_year is false the panel prints no
+    annual co2e_kg figure (null, with a status naming the reason, e.g. part year, joined or left). A published co2e_kg beside full_year false, or beside months_billed < 11, is a breach.
+  lower: -max(12 kWh, 0.01 x K_u)
+  upper: +max(12 kWh, 0.01 x K_u)
+  lower_source: >-
+    BELIEF: the two figures should come from the same reads, so only rounding separates them: twelve monthly figures each rounded to the nearest kWh, plus 1% for day-apportionment of a bill that straddles
+    a month end. Set wide on purpose.
+  upper_source: same belief
+  part_year_source: >-
+    The house method (as quoted by the cold read): a part year 'has no figure'. The 328-day floor is CalTRACK's billing-method baseline, 'a 365-day baseline ... with no more than 37 missing days (10%)'
+    (docs/market_research/proving_and_showing_household_savings_2026-10-25.md, CalTRACK section). Leg 2's 11-month cut is the same 10% read in months.
+  severity:
+    outside: breach
+  source:
+  - docs/market_research/proving_and_showing_household_savings_2026-10-25.md (CalTRACK)
+  - docs/market_research/household_carbon_and_the_measures_that_save_it.md (DESNZ gas factor about 0.184 kgCO2e/kWh gross CV; 7,303 x 0.184 = 1,344 kg, so the panel's co2e follows its own kWh and the fault is the kWh)
+  - 'Cold read N5: SYN-2016-371, 2017, carbon panel "Gas 1,345 kg 7,303 kWh billed over 8 month(s)" against a usage panel summing to 6,180 kWh for 2017; a part-year figure published.'
+  gap: >-
+    Whether the usage panel is apportioned consumption or the bills' own kWh by period_end month is not stated on the page; if the two panels use different bases, the row's first finding is that one
+    quantity has two definitions, and the fix is to give both one (consumption). The 12 kWh / 1% tolerance is a belief, not sourced. Whether a part-year figure may be shown labelled as such (rather than
+    none) is a design choice the house method has already made; the row grades that choice.
+- id: INV_SMART_METER_BILLED_ON_ITS_OWN_READS
+  family: read_duty
+  grades: invoice
+  counts: >-
+    Per book, per fuel, per year: the share of bills on accounts whose meter_type is Smart that carry read_type E. Numerator: Smart bills with read_type E. Denominator: all Smart bills in the year (A, E and
+    M; M is in the denominator only, because its meaning is not published to this reader). Unit graded: per fuel-year of the book, with a per-account flag.
+  statement: >-
+    A smart meter in smart mode sends its supplier the reads the supplier needs to bill, without consent: monthly data was never consent-gated, and since 3 November 2022 SLC 47 makes daily (Old System) or
+    half-hourly (New System) the default, with monthly the floor a customer may opt out to. So a Smart account is billed on its own reads unless the meter has lost communications (traditional mode). Its
+    estimated bills are bounded by the published smart-mode failure rate. The page copy 'read frequency is the customer's consent to give' is wrong and must be corrected: only data finer than the billing
+    read is the customer's to give or refuse.
+  applies_to:
+    segment: resi
+    commodity: electricity and gas
+    meter_type: Smart
+  evaluation: >-
+    Book leg: for each fuel f and year Y, s = (Smart bills with read_type E) / (all Smart bills). Breach if s > upper(f); flag if s < lower. Account leg, flag: a Smart account with more than 6 consecutive
+    monthly bills on read_type E (the Citizens Advice standard expects a smart customer to have a bill on a read within 6 months). The first bill after an account's supply start is excluded (a gaining
+    supplier may not yet have enrolled the meter).
+  lower: 0.01
+  upper:
+    electricity: 0.15
+    gas: 0.25
+  lower_source: >-
+    BELIEF: BEIS data cited by Ofgem (2018), '6% of smart meter customers still receive estimated bills' (unbilled_energy_and_revenue_assurance.md K2). A book where no smart bill is ever estimated is
+    not modelling communications failure; 0.01 is set far below the 6% so a small book cannot breach by sampling.
+  upper_source: >-
+    BELIEF from DESNZ Q4 2024: smart meters not in smart mode are 6.8% (electricity) and 14.2% (gas) of smart meters (unbilled_energy_and_revenue_assurance.md K7, 'each fuel at its own share';
+    meter_read_latency_estimation_2026.md §1, 'When a smart meter loses smart functionality and needs to be read manually it is in traditional mode'). The bound is about twice each stock, to allow for
+    transient failures, a meter not yet enrolled after a switch (SMETS1 '70% ... lost smart mode functionality' on switching, smart_meters_and_half_hourly_settlement_2026-10-25.md §1), and the year's
+    flow over the year-end stock.
+  account_leg_source: >-
+    unbilled_energy_and_revenue_assurance.md K2: Citizens Advice star rating counts a bill on a read 'in the last 6 months (smart) or 12 months (traditional)' [M, search summary].
+  consent_source: >-
+    smart_meters_and_half_hourly_settlement_2026-10-25.md §4: DECC 2012 Data Access and Privacy Framework, 'Monthly data: no consent needed, for billing'; daily usable 'with clear opportunity for the
+    customer to opt out'; half-hourly 'explicit (opt-in) consent'. SLC 47 as modified (Ofgem decision 7 Sep 2022, effective 3 Nov 2022): New System HH by default with opt-out to daily; Old System daily
+    by default, opt-in to HH or opt-out to monthly. smart_meter_hh_data_consent_2026.md: billing reads 'flow to the supplier by default, not opt-in gated'.
+  correction_to_brief: >-
+    The cold reader's ladder (monthly no consent, daily opt-out, HH opt-in) is the 2012 framework and right for 2016 to 2 November 2022. From 3 November 2022 HH is the default for New System customers,
+    with opt-out. Neither regime lets a customer refuse the billing read short of the meter leaving smart mode.
+  severity:
+    above_upper: breach
+    below_lower: flag
+    account_run_over_6: 'flag: a single meter may lawfully sit in traditional mode for a year; the book share is what grades the supplier'
+  source:
+  - docs/market_research/smart_meters_and_half_hourly_settlement_2026-10-25.md
+  - docs/market_research/smart_meter_hh_data_consent_2026.md
+  - docs/market_research/unbilled_energy_and_revenue_assurance.md (K2, K7)
+  - docs/market_research/meter_read_latency_estimation_2026.md
+  - 'Cold read N6: the page says of smart homes without half-hourly data that "read frequency is the customer''s consent to give".'
+  gap: >-
+    THE COMMONS DOES NOT HOLD THE DATA ACCESS AND PRIVACY FRAMEWORK OR SLC 47 (electricity) / its gas counterpart (believed SLC 41): checked docs/domain_artefact_library/INDEX.md,
+    docs/domain_artefact_library/regulatory/ (23 files, none on smart data access) and scope_briefs/ (only ADVISOR_SCOPE_BRIEF_INDUSTRY_BOUNDARY mentions the DCC). Both are read here only through
+    market_research summaries; the licence text is owed to the commons. The gas condition number is the brief's belief, not verified. Bounds are beliefs: DESNZ publishes a year-end stock, not the flow
+    of estimated smart bills, and no split of estimated bills by meter type is published (smart_meters... named gap 7). Whether M means a smart-transmitted read is not on the page.
+- id: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
+  family: read_history
+  grades: invoice
+  counts: >-
+    Per estimated bill (read_type E) on one meter_serial: e = consumption_kwh / days_in_period, the estimate's daily use. It is compared with what the supplier knew at issue, from its own actual reads (A)
+    on the same meter_serial dated on or before the estimated bill's period_start. ref_short = the daily advance between the last two actual reads (closing_read_kwh difference over the days between them).
+    ref_long = the daily advance over the longest window of at least 182 days, and at most 365, that ends at the last actual read and starts at an actual read. Each reference is reshaped to the estimate's
+    days by the published monthly shape: ref x (mean daily share over the estimate's days) / (mean daily share over the reference's days). Unit graded: per estimated bill.
+  statement: >-
+    An estimate is built from the account's own actual reads, and a read the supplier holds moves it. After a read confirms a step change (an EV, a heat pump, a new occupant) the next estimate lies between
+    what the latest advance says and what a longer annualised advance says, never below both or above both by more than the shape error.
+  applies_to:
+    segment: resi and sme
+    commodity: electricity and gas
+  evaluation: >-
+    For each E bill with at least two actual reads on its meter_serial before its period_start (otherwise not graded: the estimate rests on a registry EAC/AQ the page does not show), with the shaped
+    references s_short and s_long (s_long absent if no 182-day window exists; then s_long = s_short): breach unless (1 - t) x min(s_short, s_long) <= e <= (1 + t) x max(s_short, s_long), with
+    t = 0.30 electricity and 0.40 gas. Flag when s_short > s_long (a read-confirmed rise) and e < 0.9 x s_long, or s_short < s_long (a confirmed fall) and e > 1.1 x s_long: the estimate went the wrong way.
+    Use reads, not consumption_kwh, for the references, so a catch-up bill does not count as use. Shape: DESNZ Energy Trends Table 5.5 domestic electricity and Table 4.2 domestic gas monthly shares
+    (2023-2025 averages), each month's share divided by its days.
+  lower: (1 - t) x min(s_short, s_long)
+  upper: (1 + t) x max(s_short, s_long)
+  lower_source: >-
+    Method: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md §1 (the AA 'based on consumption recorded between two meter readings at least 6 months apart'; DESNZ booklet §3.1.3)
+    and §3 (gas AQ from reads 9-36 months apart) give ref_long; site/data/knowledge_metering_and_reads.json ('EAC should converge ... moves toward the truth as reads arrive, then drifts as the household
+    changes -- a new occupant, an EV, a heat pump') and Citizens Advice 'estimate ... based on your past usage' (meter_read_latency_estimation_2026.md §2) give ref_short. Shapes: the same note §2 and §4.
+    t is a BELIEF: the national shape is a proxy for one home (gas per-day share runs from 0.55% in January to 0.074% in August, a factor of 7, so gas gets the wider t).
+  upper_source: same
+  severity:
+    outside: breach
+    wrong_direction: 'flag: which reference a bill estimate uses is not published, so moving toward the older level is lawful; moving past it is what the flag catches'
+  source:
+  - docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
+  - docs/market_research/meter_read_latency_estimation_2026.md
+  - "docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md (NEED year-on-year median |r-1| 0.143 gas-heated, p75 0.29: the scale t is set against)"
+  - site/data/knowledge_metering_and_reads.json
+  - 'Cold read N7: an EV home, a read-confirmed rise to 398 kWh/month from about 157, then an estimate of 136 kWh for the next month (below both levels; with a summer month and a year-long ref_long it may sit inside the breach band and then grades as the wrong-direction flag).'
+  gap: >-
+    What a supplier's bill estimate is built from (the EAC/AQ spread by profile, EAC/12, or recent reads) is not published (shaping note §5, GAP); the band accepts either. Exact PC1 and EUC01B profiles are
+    gated, so the DESNZ shapes are proxies, and the 2023-2025 averages carry those years' weather. t is a belief. How a customer read is coded (A or M) is not stated on the page.
+- id: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
+  family: read_history
+  grades: invoice
+  counts: >-
+    Per run: a run is two or more consecutive bills on one meter_serial with read_type E, with an actual read (A) closing the bill before it and an actual read closing the bill after it, and no change of
+    meter_serial between. r = e_run / m, where e_run = the run's estimated kWh over its days (sum consumption_kwh / sum days_in_period over the run's E bills) and m = the meter's own daily use from the
+    actual read before the run to the actual read after it (closing_read_kwh difference over the days between them), reshaped to the run's days by the published monthly shape as in
+    INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS. Unit graded: per run of estimated bills bounded by actual reads.
+  statement: >-
+    An estimated run is judged afterwards against what the meter later showed. A good estimate from the account's own history misses the truth by about as much as a household's use changes from one
+    year to the next. A run that bills several times what the meter recorded, or a small fraction of it, is an estimate the account's reads did not support.
+  applies_to:
+    segment: resi and sme
+    commodity: electricity and gas
+  evaluation: >-
+    For each run as defined, compute r. Flag if r < 0.5 or r > 2.0. Breach if r < 1/3 or r > 3.0. A single-bill E between two actual reads is not graded here (one month's shape error is too large; it is
+    graded by INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS). Use reads, not the closing bill's consumption_kwh, for m, because that bill carries the catch-up. Where the run's estimates resume high after the
+    closing read, the next run is graded on its own, and the first estimate after the read is INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS's case (a read the supplier then held).
+  lower:
+    flag: 0.5
+    breach: 0.333
+  upper:
+    flag: 2.0
+    breach: 3.0
+  lower_source: >-
+    BELIEF set on docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md §1 (NEED 2026, 330,884 consecutive-year pairs of the industry annual figure for one meter: p10 r 0.667, p90 r
+    1.419; p95 |r-1| 0.842; share |r-1| > 0.5 is 0.123). That spread bundles household change, change of occupier and EAC/AA transitions, so it is wider than an honest estimate's error. The flag band
+    [0.5, 2.0] sits outside the NEED p10-p90; the breach band [1/3, 3] outside its p95. Erring against finding a defect.
+  upper_source: same
+  severity:
+    outside_flag_band: 'flag: a real household change inside the run (a move-in, an EV, a long absence) can do this lawfully'
+    outside_breach_band: breach
+  source:
+  - docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md
+  - docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md (shapes)
+  - "docs/market_research/unbilled_energy_and_revenue_assurance.md (K2: 'a run of under-estimates resolves as one large charge; over-estimates resolve as a credit')"
+  - 'Cold read: monthly estimates of 1,250 to 2,007 kWh for a year, then an actual read showing far lower use (a £1,471.52 credit, then 144 kWh in a month), then estimates straight back to 933 kWh.'
+  gap: >-
+    No published distribution of a GB bill estimate's error against later reads exists (K2 GAP: 'the size distribution of a true-up'); the bands are beliefs from the NEED annual spread. Runs shorter than
+    a season carry more shape error than the annual figures the bands come from. A customer-provided read's code on the page is not stated, so a run bounded by one may be missed.

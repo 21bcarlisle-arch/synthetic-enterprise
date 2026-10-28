@@ -51,3 +51,16 @@ author must source one or state the belief and its range.
 
 **What closes it:** the suite owner writes the invariant and measures how many households breach it.
 The estimate-trap and default-account slots should be re-read under it.
+
+## Done (2026-10-28)
+
+Section 1 was closed earlier. Section 2 is now the row `INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER`,
+written blind and graded on the 1a02c46116 book: 11 of 4,311 runs breach. Ten are occupier accounts
+estimated at 0 kWh after a 0 kWh move-in month. That cause is fixed in
+`company/billing/unread_month_estimate.estimate_unread_kwh`, with its test
+`tests/company/billing/test_a_zero_advance_establishes_no_estimate.py`. It is run-side, so it is
+excepted at 11 until a run carries it.
+
+SYN-2016-565, the case this section named, does not breach the run row on this book. Its estimates
+breach `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` 13 times, and that row is excepted with the
+R3 trace still owed.

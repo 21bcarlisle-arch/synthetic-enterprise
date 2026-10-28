@@ -102,7 +102,21 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
             "page_ledger": (d.get("ledger") or {}).get("entries"),
             "page_steps": [e for e in d.get("reaction_chain") or ()
                            if isinstance(e, dict) and str(e.get("event_type", "")).startswith("collections_")],
+            "page_totals": {k: v for k, v in (d.get("ledger") or {}).items() if k != "entries"},
+            "lifetime_revenue_gbp": d.get("lifetime_revenue_gbp"),
+            "usage_monthly": (d.get("consumption") or {}).get("monthly"),
+            "meter_type": d.get("meter_type"),
+            "commodity": d.get("commodity"),
+            "household": d.get("base_account_id"),
         }
+    # The carbon panel is its own file, per household and year, one leg per fuel.
+    carbon = Path(customers_dir).parent / "explore_carbon.json"
+    if carbon.exists():
+        households = (json.loads(carbon.read_text()) or {}).get("households") or {}
+        for pr in out.values():
+            years = (households.get(pr.get("household")) or {}).get("years") or ()
+            legs = {y["year"]: y.get(pr.get("commodity")) for y in years if y.get(pr.get("commodity"))}
+            pr["carbon_years"] = {y: leg for y, leg in legs.items() if leg.get("status") == "billed"}
     return out
 
 
@@ -1345,6 +1359,267 @@ def ev_statute_barred_write_off(inv, book):
     return tally
 
 
+# ── the second cold read's classes (2026-10-28): N2, N3, N5, N6, N7 and estimate-against-meter ──
+
+def _printed_bills(a) -> list[dict]:
+    """The page's bills in period order, each with a period and its days."""
+    return sorted((i for i in (a.printed or {}).get("invoices") or ()
+                   if i.get("period_start") and i.get("period_end")), key=lambda i: i["period_start"])
+
+
+def ev_billed_ex_vat_reconciles(inv, book):
+    """Per account: B, the page's bills before VAT (amount less `vat_gbp`, so each bill grades on
+    its own VAT), against R, the page's "Revenue, before VAT". U is the before-VAT amount of every
+    bill after the last bill on an actual read. T, the unbilled tail, is zero here: the account's
+    end is its last billed day on this record, so no tail can be measured. W, the back-billing write-off,
+    is not identifiable on the page (the row's GAP), so a shortfall below the lower side on an
+    account with any write-off is a flag, never a breach."""
+    tally = Tally("account (page revenue against page bills before VAT)")
+    tol = float(inv.get("tolerance_share") or 0.01)
+    for a in book:
+        pr = a.printed
+        if pr is None or not pr.get("lifetime_revenue_gbp"):
+            continue
+        r = float(pr["lifetime_revenue_gbp"])
+        bills = _printed_bills(a)
+        if not bills:
+            continue
+        ex = [float(i.get("amount_gbp") or 0.0) - float(i.get("vat_gbp") or 0.0) for i in bills]
+        last_a = max((n for n, i in enumerate(bills) if i.get("read_type") in ACTUAL_READ_TYPES), default=-1)
+        u = sum(ex[last_a + 1:])
+        b = round(sum(ex), 2)
+        written_off = float((pr.get("page_totals") or {}).get("total_written_off_gross_gbp") or 0.0)
+        tally.band("{} {} R {:.2f}".format(a.cid, a.fuel, r), b, round(r - u - tol * r, 2),
+                   round(r + u + tol * r, 2), below="flag" if written_off > 0 else "breach")
+    return tally
+
+
+#: Bacs re-presentation window, and the row's belief for a standard-credit bill: 30 days.
+COLLECTION_WINDOW = timedelta(days=30)
+
+
+def ev_payment_record(inv, book):
+    """Per account, the page's printed counter ("N payments, R returned, M missed", `payment_record`)
+    against the collections due: every bill sent for collection, by direct debit or standard
+    credit, whose due date plus the window has passed by the page's as-of date. A prepayment
+    statement is no collection. Breach unless N + M equals the count due, and unless R is at most
+    three per DD collection due and M_dd at most R."""
+    tally = Tally("account (printed payment counter against collections due)")
+    for a in book:
+        pr = a.printed
+        rec = (pr or {}).get("payment_record")
+        if pr is None or rec is None:
+            continue
+        as_of = (pr.get("page_totals") or {}).get("as_of_date")
+        if not as_of:
+            continue
+        as_of = _d(as_of)
+        method = {}
+        for e in pr.get("page_ledger") or ():
+            if e.get("invoice_number") is not None and e.get("method"):
+                method.setdefault(e["invoice_number"], e["method"])
+        due = [i for i in _printed_bills(a) if i.get("document_type", "bill") == "bill" and i.get("due_date")
+               and _d(i["due_date"]) + COLLECTION_WINDOW <= as_of
+               and method.get(i.get("invoice_number")) != PREPAYMENT]
+        if not due:
+            continue
+        n, r, m = (int(rec.get(k) or 0) for k in ("payments", "returned", "missed"))
+        dd = sum(1 for i in due if method.get(i.get("invoice_number")) == DIRECT_DEBIT)
+        where = "{} {} {} payments, {} returned, {} missed; {} due".format(a.cid, a.fuel, n, r, m, len(due))
+        tally.checked += 1
+        if n + m != len(due):
+            tally.hit("breach", where, n + m, len(due), "paid + missed != due")
+        elif r > 3 * dd:
+            tally.hit("breach", where, r, 3 * dd, "returns over three per DD collection")
+        elif int(rec.get("missed_dd") or 0) > r:
+            tally.hit("breach", where, rec.get("missed_dd"), r, "missed DD without a return")
+    return tally
+
+
+def ev_carbon_matches_usage(inv, book):
+    """Per account-year, legs 1 and 2: the carbon panel's kWh against the usage panel's months of
+    the same year (within max(12 kWh, 1%)), and its months billed against the usage panel's months.
+    Leg 3 (a part year prints no figure) needs the panel's printed CO2e and `full_year`, which this
+    record does not carry; it is not graded here."""
+    tally = Tally("account-year on both panels")
+    for a in book:
+        pr = a.printed
+        if pr is None or not pr.get("carbon_years"):
+            continue
+        usage = defaultdict(list)
+        for m in pr.get("usage_monthly") or ():
+            usage[int(m["month"][:4])].append(float(m.get("kwh") or 0.0))
+        for y, leg in sorted(pr["carbon_years"].items()):
+            y = int(y)
+            if y not in usage:
+                continue
+            ku, kc = sum(usage[y]), float(leg.get("kwh") or 0.0)
+            where = "{} {} {}".format(a.cid, a.fuel, y)
+            tol = max(12.0, 0.01 * ku)
+            tally.band(where, round(kc, 1), round(ku - tol, 1), round(ku + tol, 1))
+            if leg.get("months_billed") is not None and int(leg["months_billed"]) != len(usage[y]):
+                tally.hit("breach", where + " months", leg["months_billed"], len(usage[y]), "months")
+    return tally
+
+
+def ev_smart_billed_on_reads(inv, book):
+    """Book leg: per fuel-year, the share of Smart accounts' bills on an estimate (each account's
+    first bill excluded), within [lower, upper(fuel)]. Account leg, flag: more than six estimated
+    bills in a row on a Smart account."""
+    tally = Tally("fuel-year of Smart bills")
+    upper = inv.get("upper") or {}
+    lower = float(inv.get("lower") or 0.0)
+    counts = defaultdict(lambda: [0, 0])
+    for a in book:
+        pr = a.printed
+        if pr is None or pr.get("meter_type") != "Smart":
+            continue
+        run = 0
+        for i in _printed_bills(a)[1:]:
+            c = counts[(a.fuel, int(i["period_start"][:4]))]
+            c[1] += 1
+            if i.get("read_type") == "E":
+                c[0] += 1
+                run += 1
+                if run == 7:
+                    tally.hit("flag", "{} {} from {}".format(a.cid, a.fuel, i["period_start"]), run, 6, "run")
+            else:
+                run = 0
+    for (fuel, y), (e, n) in sorted(counts.items()):
+        tally.band("{} {} ({} of {})".format(fuel, y, e, n), round(e / n, 4), lower,
+                   float(upper.get(fuel)) if upper.get(fuel) is not None else None, below="flag")
+    if not counts:
+        tally.unbounded += 1
+    return tally
+
+
+#: Monthly shares of domestic use, DESNZ Energy Trends Table 5.5 (electricity, "Domestic sales")
+#: and Table 4.2 (gas, "Domestic"), 2023-2025 averages, as the shaping note tabulates them
+#: (docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md §2 and §4).
+MONTHLY_SHARE = {
+    "electricity": (10.81, 8.87, 9.12, 8.14, 7.25, 6.73, 6.78, 6.96, 7.30, 8.18, 9.65, 10.22),
+    "gas": (17.05, 13.42, 12.30, 7.87, 4.10, 2.61, 2.33, 2.29, 3.43, 7.13, 12.24, 15.22),
+}
+
+
+def _days_in_month(d: date) -> int:
+    return (_month_end(date(d.year, d.month, 1)) - date(d.year, d.month, 1)).days + 1
+
+
+def _shape(fuel: str, a: date, b: date) -> float:
+    """Mean daily share of the year's use over [a, b] inclusive."""
+    share, d, n, total = MONTHLY_SHARE[fuel], a, 0, 0.0
+    while d <= b:
+        total += share[d.month - 1] / _days_in_month(d)
+        n += 1
+        d += timedelta(days=1)
+    return total / n if n else 0.0
+
+
+def _meter_reads(bills) -> list[tuple[int, date, float]]:
+    """(bill index, read day, closing read) for every bill on an actual read."""
+    return [(n, _d(i["period_end"]), float(i["closing_read_kwh"])) for n, i in enumerate(bills)
+            if i.get("read_type") in ACTUAL_READ_TYPES and i.get("closing_read_kwh") is not None]
+
+
+def _by_serial(a):
+    out = defaultdict(list)
+    for i in _printed_bills(a):
+        out[i.get("meter_serial")].append(i)
+    return out
+
+
+def _daily(i) -> float | None:
+    days = i.get("days_in_period") or ((_d(i["period_end"]) - _d(i["period_start"])).days + 1)
+    return float(i["consumption_kwh"]) / days if days and i.get("consumption_kwh") is not None else None
+
+
+def ev_estimate_follows_reads(inv, book):
+    """Per estimated bill with two actual reads before it on its meter: its daily use against the
+    shaped short reference (the last two reads) and long reference (the longest 182-365-day window
+    ending at the last read), within (1 - t) x min and (1 + t) x max. Flag an estimate that went
+    the wrong way after a read-confirmed change."""
+    t_of = {"electricity": 0.30, "gas": 0.40}
+    t_of.update(inv.get("t") or {})
+    tally = Tally("estimated bill with two actual reads before it")
+    for a in book:
+        if a.printed is None or a.fuel not in MONTHLY_SHARE:
+            continue
+        t = float(t_of[a.fuel])
+        for serial, bills in _by_serial(a).items():
+            reads = _meter_reads(bills)
+            for n, i in enumerate(bills):
+                if i.get("read_type") != "E":
+                    continue
+                start = _d(i["period_start"])
+                held = [r for r in reads if r[1] <= start and r[0] < n]
+                e = _daily(i)
+                if len(held) < 2 or e is None:
+                    continue
+                (_, d1, c1), (_, d2, c2) = held[-2], held[-1]
+                if d2 <= d1:
+                    continue
+                here = _shape(a.fuel, start, _d(i["period_end"]))
+
+                def shaped(da, ca):
+                    return (c2 - ca) / (d2 - da).days * here / _shape(a.fuel, da + timedelta(days=1), d2)
+                s_short = shaped(d1, c1)
+                longs = [(da, ca) for _, da, ca in held[:-1] if 182 <= (d2 - da).days <= 365]
+                s_long = shaped(*longs[0]) if longs else s_short
+                where = "{} {} {} bill {} to {}".format(a.cid, a.fuel, serial, i["period_start"], i["period_end"])
+                lo, hi = (1 - t) * min(s_short, s_long), (1 + t) * max(s_short, s_long)
+                before = len(tally.breaches)
+                tally.band(where, round(e, 3), round(lo, 3), round(hi, 3))
+                if len(tally.breaches) == before and (
+                        (s_short > s_long and e < 0.9 * s_long) or (s_short < s_long and e > 1.1 * s_long)):
+                    tally.hit("flag", where, round(e, 3), round(s_long, 3), "wrong direction")
+    return tally
+
+
+def ev_estimated_run_vs_meter(inv, book):
+    """Per run of two or more consecutive estimated bills on one meter with an actual read on the
+    bill before it and on the bill after it: the run's daily use over the meter's own daily use
+    between those reads, shaped to the run's days. Flag outside [0.5, 2], breach outside [1/3, 3]."""
+    lo_b, hi_b = (inv.get("lower") or {}).get("breach", 1 / 3), (inv.get("upper") or {}).get("breach", 3.0)
+    lo_f, hi_f = (inv.get("lower") or {}).get("flag", 0.5), (inv.get("upper") or {}).get("flag", 2.0)
+    tally = Tally("run of estimated bills bounded by actual reads")
+    for a in book:
+        if a.printed is None or a.fuel not in MONTHLY_SHARE:
+            continue
+        for serial, bills in _by_serial(a).items():
+            n = 0
+            while n < len(bills):
+                if bills[n].get("read_type") != "E":
+                    n += 1
+                    continue
+                m = n
+                while m < len(bills) and bills[m].get("read_type") == "E":
+                    m += 1
+                run, n = bills[n:m], m
+                before, after = (bills[m - len(run) - 1] if m - len(run) >= 1 else None), (bills[m] if m < len(bills) else None)
+                if len(run) < 2 or before is None or after is None or not all(
+                        b.get("read_type") in ACTUAL_READ_TYPES and b.get("closing_read_kwh") is not None
+                        for b in (before, after)):
+                    continue
+                d1, d2 = _d(before["period_end"]), _d(after["period_end"])
+                days = sum((_d(b["period_end"]) - _d(b["period_start"])).days + 1 for b in run)
+                if d2 <= d1 or not days:
+                    continue
+                meter = ((float(after["closing_read_kwh"]) - float(before["closing_read_kwh"])) / (d2 - d1).days
+                         * _shape(a.fuel, _d(run[0]["period_start"]), _d(run[-1]["period_end"]))
+                         / _shape(a.fuel, d1 + timedelta(days=1), d2))
+                e_run = sum(float(b.get("consumption_kwh") or 0.0) for b in run) / days
+                where = "{} {} {} run {} to {} ({} bills)".format(a.cid, a.fuel, serial, run[0]["period_start"],
+                                                                  run[-1]["period_end"], len(run))
+                ratio = e_run / meter if meter > 0 else math.inf
+                tally.checked += 1
+                if not (lo_b <= ratio <= hi_b):
+                    tally.hit("breach", where, round(ratio, 3), (lo_b, hi_b), "below" if ratio < lo_b else "above")
+                elif not (lo_f <= ratio <= hi_f):
+                    tally.hit("flag", where, round(ratio, 3), (lo_f, hi_f), "below" if ratio < lo_f else "above")
+    return tally
+
+
 #: invariant ID -> (evaluator, the export field it needs on some period or account, or None)
 EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC": (ev_unit_rate_svt_elec, None),
@@ -1389,6 +1664,12 @@ EVALUATORS = {
     "INV_OVERDUE_WITHIN_BALANCE": (ev_overdue_within_balance, "bills"),
     "INV_OVERDUE_WITHIN_PAGE_BALANCE": (ev_overdue_within_page_balance, "page_steps"),
     "INV_STATUTE_BARRED_WRITE_OFF_AGE": (ev_statute_barred_write_off, "bills"),
+    "INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE": (ev_billed_ex_vat_reconciles, "lifetime_revenue_gbp"),
+    "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": (ev_payment_record, "payment_record"),
+    "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": (ev_carbon_matches_usage, "carbon_years"),
+    "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": (ev_smart_billed_on_reads, "meter_type"),
+    "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": (ev_estimate_follows_reads, "printed_invoices"),
+    "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": (ev_estimated_run_vs_meter, "printed_invoices"),
 }
 
 

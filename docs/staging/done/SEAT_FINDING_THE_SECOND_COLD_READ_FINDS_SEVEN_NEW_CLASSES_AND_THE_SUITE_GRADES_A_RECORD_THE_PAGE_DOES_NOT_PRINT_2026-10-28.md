@@ -95,3 +95,54 @@ clean.
   the surface every run and a rise refuses.
 
 **Not done here.** N2 to N7 are untouched.
+
+## N4 measured on the 1a02c46116 book (2026-10-28)
+
+Nothing built, as the item says. Script: `/var/tmp/n2n7-scripts/n4.py`, over the ledger rebuilt at
+2ebb0ac18a. It covers accounts supplied for the whole of 2021 to 2023, with each bill's billed kWh
+apportioned to calendar years by its days. The prediction was filed first, in
+`docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md`.
+
+| fuel (resi) | accounts | mean kWh 2021 / 2022 / 2023 | 2021→2022 (sums) | 2021→2023 | median account 2021→2022 | IQR 2021→2022 | published 2021→2022, unadjusted (temperature-corrected) |
+|---|---|---|---|---|---|---|---|
+| electricity | 139 | 3,340 / 3,331 / 3,267 | **−0.3%** | −2.2% | −0.2% | −2.7% to +1.3% | −10.3% (−8.5%) |
+| gas | 109 | 10,702 / 10,465 / 10,394 | **−2.2%** | −2.9% | −0.9% | −5.0% to +1.8% | −19.2% (−11.6%) |
+
+**The world carries no price-level demand response.**
+- Electricity is flat through the crisis, against a published fall of about 9 to 10%.
+- Gas falls 2%, against 19% unadjusted. That is less than even the weather share of the published fall.
+- The spread is also too narrow. SERL's same-household IQR for winter 2022/23 is −0.5% to +17.6%
+  reduction for electricity and +1.2% to +22.4% for gas. The book's is about four points wide and
+  centred on zero.
+
+Sources: `docs/market_research/how_much_a_same_households_use_moves_year_on_year_and_in_2022.md` §2
+(DESNZ 2021→2022; SERL Oct 2022 to Mar 2023; cumulative 2021→2024 of −9% electricity and −13% gas).
+
+**The arc named in the item is the wrong instrument.** `domestic_shift_response_arc.json` is the
+time-of-use arc. It gives the share of peak use shifted as a function of a peak-to-off-peak price
+ratio, and it predicts nothing about the level of annual use when every unit costs more. Measured
+against it, the question has no answer. The level response belongs to the note above.
+
+**Caveat.** This measures billed kWh, not the meter. Over three whole years, the estimates and
+their true-ups mostly wash out, but a run of estimates that spans a year boundary can smooth one
+year's figure. The answer is the world's demand model either way. N4 is a world fidelity gap and a
+W-side item, and a correctness-stretch build would have to be ruled first. The direction note
+carries it as a world item for the seat to sequence.
+
+## Done (2026-10-28)
+
+All seven classes are actioned. N1 was done earlier, and N4 is measured above. N2, N3, N5, N6 and
+N7 are rows in `DOMAIN_INVARIANTS.yaml`, written blind by an agent with no code access:
+`INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE`, `INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE`,
+`INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL`, `INV_SMART_METER_BILLED_ON_ITS_OWN_READS` and
+`INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS`.
+
+Each row is graded on the 1a02c46116 book. The N3 counter and the N6 copy are fixed, with
+red-then-green tests. The commons does not hold the licence text for smart data access, and that
+GAP is on the N6 row. Every residual is excepted at its measured count with its cause. Grade:
+`docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md`.
+What is left: `SEAT_FINDING_THE_SECOND_COLD_READS_ROWS_FIND_A_LATE_DIRECT_DEBIT_AN_UNSHOWN_PRICE_GUARANTEE_AND_ESTIMATES_TOO_CLOSE_TO_THE_MONTH_2026-10-28.md`.
+
+**Blindfold disclosure from the row author.** Several market_research notes quote code paths: the
+smart meters note §0, the unbilled-energy note, the payments note's DD stop constant, and the
+shaping note's run_phase2b. The author reports that it took no bound from any of them.

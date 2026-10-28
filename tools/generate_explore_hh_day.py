@@ -266,8 +266,10 @@ def _coverage_statement(*, with_reads: int, smart_without: int, households: int)
         return head
     return head + (
         " {s} of them have a SMART METER and still no half-hourly reads: the meter can measure "
-        "every half-hour, but read frequency is the customer's consent to give, and without it "
-        "the supplier holds monthly figures from a meter capable of 17,520 a year."
+        "every half-hour, and monthly reads need no consent, daily reads are taken unless the "
+        "customer opts out, and only half-hourly reads wait for the customer to opt in. This "
+        "supplier collects the monthly read alone, so it holds monthly figures from a meter "
+        "capable of 17,520 a year."
     ).format(s=smart_without)
 
 

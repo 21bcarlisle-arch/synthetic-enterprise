@@ -150,6 +150,11 @@ def _real_invoice(inv):
         catchup_adjustment_gbp=inv.get("catchup_adjustment_gbp"),
         catchup_written_off_gbp=inv.get("catchup_written_off_gbp"),
         catchup_back_billing_cap_applied=inv.get("catchup_back_billing_cap_applied"),
+        # What the bill itself prints and the payment record counts against (second cold read, N3):
+        # its number, the day it falls due, and whether it is a bill or a prepayment statement.
+        invoice_number=inv.get("invoice_number"),
+        due_date=inv.get("due_date"),
+        document_type=inv.get("document_type"),
     )
     # The same zero-tolerance check the ledger runs, on the portal's own figures: the portal
     # names its total `amount_gbp`, the invariant reads `total_amount_gbp`.

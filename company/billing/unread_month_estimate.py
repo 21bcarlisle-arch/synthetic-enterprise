@@ -77,15 +77,20 @@ def estimate_unread_kwh(
 ) -> float | None:
     """kWh to bill for `start`..`end` from the actual-read `window` of (start, end, kWh) periods.
 
-    None when the window is empty or the fuel has no published shape: the caller then keeps the
-    estimate it already had, and the reason is the absence, not a number standing in for one.
+    None when the window is empty, the fuel has no published shape, or the window's reads advanced
+    by nothing: the caller then falls back to the registry figure, and the reason is the absence,
+    not a number standing in for one. A zero advance is a missing measurement, as a zero registry
+    EAC is (`estimate_annual_consumption`), never a household that uses nothing: an occupier's 0 kWh
+    move-in month estimated every month after it at 0 kWh (10 of the 11 runs breaching
+    INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER on the 1a02c46116 book).
     """
     if fuel not in MONTHLY_SHARE_OF_ANNUAL_USE:
         return None
     weight = sum(profile_weight(fuel, s, e) for s, e, _ in window)
-    if weight <= 0:  # no read yet
+    used = sum(kwh for _, _, kwh in window)
+    if weight <= 0 or used <= 0:  # no read yet, or reads that measured nothing
         return None
-    return sum(kwh for _, _, kwh in window) / weight * profile_weight(fuel, start, end)
+    return used / weight * profile_weight(fuel, start, end)
 
 
 #: The shortest advance annualised. Elexon's EAC calculation (BSCP504) and Xoserve's AQ review both
