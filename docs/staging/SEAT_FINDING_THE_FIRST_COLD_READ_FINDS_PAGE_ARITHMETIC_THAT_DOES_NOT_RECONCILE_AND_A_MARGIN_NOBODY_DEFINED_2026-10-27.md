@@ -202,3 +202,50 @@ failed DDs 1,658 → 1,646; accounts owing more than £1, 181 → 171; accounts 
 - OCC-87206d346f15g, £19.16: the write-off is the payer's share of a part-window bill. The residue is
   the part-window share, which the ledger still collects from the payer at the full printed total.
   That is the next one-home cut (239 part-window bills). Open.
+
+## The five refunds from a credit the ledger never held: one cause (2026-10-28, delivery lane)
+
+**Cause, traced on all five.** `world_payment_truth.build` keyed every crossed settlement by
+BILLING ACCOUNT and gave it to that account's first leg (`cid_of = {account: rs[0].customer_id}`),
+always the electricity leg. On a dual-fuel account the household's settlement of a failed GAS bill
+became an electricity repayment, priced at the electricity bill for that month. On run 5e3e9966a5
+no gas leg holds a single settlement. 523 of them sit on electricity instead: 235 for a month the
+electricity leg had paid (pure phantom credit), and 288 doubling a month both fuels failed. The gas
+bill the household settled stayed outstanding and was written off at close.
+- PROS-2017-0293 (2020-05), PROS-2021-0362 (2023-01), SYN-2016-070 (2016-05), SYN-2016-144
+  (2017-02): gas failed, electricity paid; the gas settlement is electricity credit, refunded.
+  SYN-2016-144: the £46.55 phantom credit pays the £28.05 final bill, and the £18.50 left is refunded.
+- SYN-2016-406: both fuels failed Jan to Jun 2019; each month's gas settlement doubles the
+  electricity one, and the surplus is refunded.
+
+So it is not the DD balance book against the ledger. The ledger is right that no credit was held.
+The engine's walk took a payment that belonged to the other fuel's contract (SLC 27.16 nets per
+contract).
+
+**Pre-registration, filed before the fix is measured.** With each settlement on its own leg:
+(1) none of the five is refunded; (2) the run's refund count falls from 27, by at least the five;
+(3) the closing-balance write-off falls on those accounts' gas legs by about the settled gas
+bills; (4) run-wide bad debt falls, because 523 settled gas bills stop being written off. I do not
+know the size of (4).
+
+**Fixed.** The triad's crossed settlement now carries the leg whose bill it settled
+(`background/live_payment_triad.py::_cross_settlement`), and `world_payment_truth.build` gives it
+to that leg. A repayment plan's instalments are split the same way, by leg, at the same share. The
+plan path had the same account-keyed shape but repays nothing on this run, where plans are off.
+Test, red on the old code ("no gas leg was ever repaid a settlement"):
+`tests/simulation/test_a_settled_gas_bill_is_repaid_on_the_gas_leg.py`.
+
+**Measured on 5e3e9966a5's persisted truth, with each settlement put back on its leg** (this is a
+rebuild, not a re-run). Where only one fuel failed, the leg is unambiguous. Where both failed, a
+second settlement for the month goes to gas. 291 single settlements in both-failed months stay on
+electricity and cannot be assigned from the persisted record; the next run assigns them from the
+event. The engine's walk and the refund log were re-run over the result:
+- **All five refunds are gone** (1 held). They are £9.68, £435.60, £355.33, £18.50 and £101.92.
+- Refunds: 25 → 21, £2,752.98 → £1,838.80. One new refund is right: SYN-2016-115g's settled Aug
+  2018 gas bill no longer soaks up its −£6.85 final credit bill, which is now owed back.
+  (The probe's "as run" walk gives 25 refunds against the run log's 27. It reproduces the walk to
+  within two accounts, and all five are in both.)
+- **Bad debt: £20,960.21 → £10,823.88.** This is (4), and its size was not predicted. The P&L wrote
+  off 523 gas bills the household had settled. **Every published bad-debt and net figure from a
+  run since one payment truth shipped (12 Oct) moves**. The next run carries the correction, and
+  the reading for that run must mark each figure that moved.

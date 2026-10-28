@@ -1062,8 +1062,10 @@ class LivePaymentTriad:
         if self._household_plans.repays_through_plan(account_id, bill_due, settled_on):
             self._n_settlements_withdrawn += 1
             return
+        # The leg is the event's: a billing account holds both fuels, and a settled gas bill is gas.
         self._crossed_settlements.append((account_id, bill_due, settled_on,
-                                          world_payment_truth.bill_month_of(int(invoice_ref.rsplit("::", 1)[1]))))
+                                          world_payment_truth.bill_month_of(int(invoice_ref.rsplit("::", 1)[1])),
+                                          event.customer_id))
         hand_over = self._consumer.observe_hand_over(
             emit_wire_responses(
                 event, SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)),
@@ -1122,7 +1124,7 @@ class LivePaymentTriad:
         """Lumps that DID cross dated after their closed account's final bill: every one, with the
         switch off; with it on, any a reader forced across before the closure was told."""
         return sum(self._after_final_bill(account_id, settled_on)
-                   for account_id, _due, settled_on, _month in self._crossed_settlements)
+                   for account_id, _due, settled_on, *_ in self._crossed_settlements)
 
     @property
     def settlements_delivered(self) -> int:

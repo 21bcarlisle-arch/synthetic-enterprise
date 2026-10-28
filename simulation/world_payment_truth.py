@@ -109,20 +109,25 @@ def build(triad, through: dt.date) -> dict[str, dict]:
         if part:
             rec["outcomes"][month]["part_share"] = part
         by_account.setdefault(r.account_id, []).append(r)
-    cid_of = {a: rs[0].customer_id for a, rs in by_account.items()}
-    for account_id, _bill_due, settled_on, month in triad._crossed_settlements:
-        cid = cid_of.get(account_id)
-        if cid is not None:
+    # A billing account holds both fuels' legs, and each leg is its own contract (SLC 27.16). Until
+    # 2026-10-28 every settlement went to the account's first leg, electricity: on 5e3e9966a5 no gas
+    # leg held one, 523 sat on electricity, and the reg 6D refund paid out that phantom credit.
+    for _account_id, _bill_due, settled_on, month, cid in triad._crossed_settlements:
+        if cid in out:
             out[cid]["repayments"].append({"date": settled_on.isoformat(), "kind": "settlement",
                                            "bill_month": month})
     book = triad._household_plans
     for (account_id, agreed_on), terms in book._terms.items():
-        cid = cid_of.get(account_id)
-        if cid is None or terms.kind != REPAYMENT_PLAN or not terms.debt or not terms.instalment:
+        if (account_id not in by_account or terms.kind != REPAYMENT_PLAN or not terms.debt
+                or not terms.instalment):
             continue
-        covered = [bill_month_of(r.period_index) for r in by_account[account_id]
-                   if r.result == "failed" and r.due_date < agreed_on
-                   and (r.settled_on is None or r.settled_on > agreed_on)]
+        # The plan covers the account's debt on both fuels; each instalment repays every covered
+        # bill by the same share, so each leg is repaid its own bills' share.
+        covered: dict[str, list[str]] = {}
+        for r in by_account[account_id]:
+            if (r.result == "failed" and r.due_date < agreed_on
+                    and (r.settled_on is None or r.settled_on > agreed_on)):
+                covered.setdefault(r.customer_id, []).append(bill_month_of(r.period_index))
         if not covered:
             continue
         remaining = terms.debt
@@ -132,9 +137,10 @@ def build(triad, through: dt.date) -> dict[str, dict]:
             paid_now = min(terms.instalment, remaining)
             remaining = round(remaining - paid_now, 2)
             if row["paid"]:
-                out[cid]["repayments"].append({
-                    "date": row["due"], "kind": "plan_instalment", "covered_months": covered,
-                    "share": paid_now / terms.debt})
+                for leg, months in covered.items():
+                    out[leg]["repayments"].append({
+                        "date": row["due"], "kind": "plan_instalment", "covered_months": months,
+                        "share": paid_now / terms.debt})
     return out
 
 
