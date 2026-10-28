@@ -1,4 +1,4 @@
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build`
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 4 · **Atom:** `E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build`
 **Knowledge:** none -- a control grading a published run against the bad-debt step-up already recorded in docs/market_research/ASSUMPTIONS.md (1.3% to 2.8% of revenue); no new domain claim
 
 # The crisis bad-debt control has skipped since the run went gzip, and the published run shows no crisis step-up (2026-10-14)
@@ -1983,3 +1983,37 @@ If either seed keeps 85% or more of its 2019 share, the 2020-21 leg is a sample-
 default book, not a defect.
 
 **Status:** OPEN and BLOCKING. Next: grade the two book seeds (`longjob-book-seed-capture-21f216076f-{61101,61102}`).
+
+## 2026-10-28: the two book seeds, graded. The 2020-21 halving belongs to the cast. The 10-26 publish passes the IFRS 9 leg, at the floor
+
+**The seeds** (record `SEAT_PREREG_IS_THE_2020_HALVING_A_FEW_HOUSEHOLDS_2026-10-27.md`, result
+section). The ratio of the pooled 2020-21 failed share to 2019's is **0.710** on 61101 and **1.031**
+on 61102, against the default cast's 0.52. S1 is refuted and S2 holds. The 2020-21 leg of this
+finding is therefore **disposed of as a sample-size bound, not a defect**. At about 300 to 640
+accounts, one cast cannot show a 2020-21 change in the failed share smaller than about half. Step
+(iii)'s causes (the budget arithmetic, plans, the collection pause) were each refuted or too small,
+and none needs a fix on this evidence.
+
+**The 10-26 prediction, graded late.** It was filed at 22 Oct and asked for the 2026-10-26 publish,
+and nobody graded it. The run is `4ae8da9b0`. At that commit `provision_arrears_overlay` and
+`provision_crisis_overlay` are both False, so this is the matrix alone. IFRS 9 charge, % of revenue:
+2016 0.32, 2017 0.72, 2018 0.76, 2019 0.80, 2020 0.36, 2021 0.22, **2022 0.33, 2023 1.55**, 2024 0.17.
+Crisis 2022-23 is 1.0009%, against 0.69% for 2016-19, a step-up of x1.44.
+
+1. **Level stays under 1.0%, at 0.50-0.80%: REFUTED**, by 0.0009 points. That is inside what a
+   cast swing moves.
+2. **Step-up falls to x1.1-1.5: HELD** (x1.44).
+3. **2024 is negative or near zero: HELD** (0.17%).
+
+**The strict xfail XPASSed**, and that is one of the three post-publish reds on 4ae8da9b0. It is
+retired by the module's own convention, and the leg is kept as a live guard. The pass is not
+fidelity, and the test says why. All of it is 2023. 2022 alone is 0.33%, under every 2017-19 year,
+while the real 2022 charge (2.1%) was already above 2019's (1.2%). That shape is now its own strict
+xfail, `test_live_run_output_ifrs9_charge_steps_up_in_2022_itself`. Before relying on it, I checked
+that the real record's shape passes it.
+
+**Status:** OPEN, no longer BLOCKING on W2. The 2020-21 leg is disposed of as a sample-size bound,
+and the published run passes the IFRS 9 floor and step-up. What is left is the step landing a year
+late (2023, not 2022). The matrix books loss in the year debt forms, so that leg belongs to E6's
+build, not to a blocking world defect. Next: E6 at level 1 takes the 2022 leg as its build
+question. No run is launched for it from here.

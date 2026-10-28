@@ -186,14 +186,25 @@ def test_live_run_output_shows_crisis_step_up_pnl_accrual():
     assert result.passed, result.summary()
 
 
-_TENTH_OF_REAL = ("the company's IFRS 9 charge has the real shape but about a tenth of the real "
-                  "level (2026-10-15): 0.13% of revenue in 2022-23, x1.12 on 2016-19")
-
-
-@pytest.mark.xfail(strict=True, reason=_TENTH_OF_REAL)
+# THE IFRS 9 LEG'S STRICT XFAIL IS RETIRED (2026-10-28): it XPASSed on the 4ae8da9b0 publish, the
+# matrix alone (both overlays off): 1.0009% of revenue in 2022-23 against 0.69% in 2016-19, x1.44.
+# That clears the floor by 0.0009 points, and 2023 (1.55%) carries all of it. Three casts of this
+# book put the 2020-21 failed share at 0.52, 0.71 and 1.03 of 2019's, so a swing of this size is
+# within what the cast alone moves. Kept as a live guard. The year the step lands is the leg below.
 def test_live_run_output_shows_crisis_step_up_ifrs9_charge():
     result = validate_run_output(_published_run_or_skip(), "ifrs9_charge")
     assert result.passed, result.summary()
+
+
+_STEP_A_YEAR_LATE = ("the IFRS 9 charge steps up in 2023 alone: 2022 is 0.33% of revenue, under every "
+                     "2017-19 year, where the real 2022 charge (2.1%) was already above 2019's (1.2%)")
+
+
+@pytest.mark.xfail(strict=True, reason=_STEP_A_YEAR_LATE)
+def test_live_run_output_ifrs9_charge_steps_up_in_2022_itself():
+    bad_debt, revenue = extract_series_from_run_output(_published_run_or_skip(), "ifrs9_charge")
+    pre = sum(bad_debt[y] for y in (2016, 2017, 2018, 2019)) / sum(revenue[y] for y in (2016, 2017, 2018, 2019))
+    assert bad_debt[2022] / revenue[2022] > pre, f"2022 {bad_debt[2022] / revenue[2022]:.3%} against {pre:.3%}"
 
 
 def test_the_live_legs_read_the_gzipped_run_defect_a_plain_path_read_skips_silently(tmp_path, monkeypatch):
