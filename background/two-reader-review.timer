@@ -6,7 +6,6 @@ Description=Synthetic Enterprise two-reader review timer -- look for an unread m
 # reading within the hour of its commit while an empty pass costs one `git log`.
 OnBootSec=15min
 OnUnitActiveSec=30min
-Persistent=true
 
 [Install]
 WantedBy=timers.target

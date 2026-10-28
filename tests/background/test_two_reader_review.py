@@ -133,3 +133,31 @@ def test_the_route_is_registered_with_the_dial():
     """Defect caught: a token-spending route the director's `off` cannot reach."""
     from background import tick_mode
     assert tr.ROUTE in tick_mode.ROUTES
+
+
+def test_a_matcher_that_answers_in_prose_is_a_failed_match_not_no_pairs(lane, tmp_path):
+    """Defect caught (both blind readers, on the lane's own first commit c89a199faf): rc 0 with no
+    json read as `pairs: []`, so both verdicts were recorded and the commit left the queue with
+    nothing filed, for good."""
+    rec, recorded, filed = lane([_reading("NEEDS_WORK", (1, "MAJOR", "x")),
+                                 _reading("NEEDS_WORK", (2, "MAJOR", "x"))],
+                                matcher="These two look like the same defect to me.")
+    assert rec["outcome"] == "matcher_failed"
+    assert recorded == [] and filed == []
+    assert len(tr._attempts(tmp_path / "readings.jsonl")[SHA]) == 1
+
+
+def test_an_exception_mid_reading_is_logged_as_an_attempt(monkeypatch, tmp_path):
+    """Defect caught (both blind readers, c89a199faf): an exception skipped the log, so MAX_ATTEMPTS
+    never counted it and the timer retried the same commit for ever."""
+    def broken_extract(sha, dest):
+        raise RuntimeError("git archive failed")
+    monkeypatch.setattr(tr, "_extract", broken_extract)
+    monkeypatch.setattr(tr, "SCRATCH_ROOT", tmp_path / "scratch")
+    commit = {"sha": SHA, "committed": "", "modules": ["tools/x.py"]}
+    rec = tr.read_commit(commit, claude=lambda *a: pytest.fail("no reader without a tree"),
+                         record=lambda *a, **k: pytest.fail("no verdict"),
+                         staging=tmp_path, readings=tmp_path / "readings.jsonl")
+    assert rec["outcome"] == "error" and "git archive failed" in rec["error"]
+    assert len(tr._attempts(tmp_path / "readings.jsonl")[SHA]) == 1
+    assert list((tmp_path / "scratch").iterdir()) == []      # the extract is removed either way

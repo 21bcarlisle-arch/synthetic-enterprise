@@ -308,5 +308,25 @@
     "subject": "reading-review-live-2026-10-28:a3f6926173:armB",
     "task_class": "billing",
     "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-28",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "TWO-READER REVIEW, automatic lane. 5 raised, 2 shared with arm B (*). #1* A matcher that exits 0 with no parseable json block gives last_json_block -> None -> valid_pairs -> []. Both verdicts are recorded and the outcome is 'read', so; #2* Exceptions from _extract (git archive/tar failure, disk full), from record(), or from filed.write_text skip _append, so no attempt is logged and MAX_ATTEMPTS ca; #3 product-only admits two-reader-review at cadence 0 with no product filter. Every other route filters through item_allowed/item_is_product under that mode ('unde; #4 reader_prompt puts the full phase-close-evaluator brief first. That brief requires git log/diff, a reply that starts with a bare PASS/NEEDS_WORK, and a REQUIRED; #5 Every lane test uses a matcher returning valid JSON with rc 0. Nothing reaches the matcher_failed branch, a matcher with broken output, or an exception from _ex",
+    "rework_required": false,
+    "subject": "reading-review-live-2026-10-28:c89a199faf:armA",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-28",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "TWO-READER REVIEW, automatic lane. 5 raised, 2 shared with arm A (*). #1* A matcher that exits 0 with no parseable JSON (prose, or {\"pair\": ...}) gives last_json_block -> None -> valid_pairs -> [], and the run is logged outcome='read'; #2* read_commit only calls _append on its three handled outcomes. An exception from _extract (tar check=True, or the git archive RuntimeError), from record() (TaskC; #3 An unrecognised severity string (e.g. 'CRITICAL', 'HIGH') is silently mapped to MINOR, which understates _filed_severity and the ledger notes without any flag.; #4 Persistent=true only affects OnCalendar= timers. With OnBootSec/OnUnitActiveSec it is a no-op, so the unit suggests a catch-up behaviour it does not have.; #5 The claim that a `claude -p --restricted --tools Read Grep Glob` reader is refused paths outside the scratch dir and has no write or shell tool ('measured befor",
+    "rework_required": false,
+    "subject": "reading-review-live-2026-10-28:c89a199faf:armB",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
   }
 ]

@@ -202,6 +202,9 @@ You are one of two blind readers of ONE commit. You will never see the other rea
   above names are under `./tree`.
 - `./packet/message.txt` is the commit message: its statement of intent.
 - `./packet/stat.txt` is its stat; `./packet/diff.patch` is its Python diff.
+- You have Read, Grep and Glob only. Where the brief above asks you to run git or any command, to
+  start your reply with a bare verdict, or to record your verdict yourself, skip it: the packet
+  replaces git, and the lane records your verdict from the json block below.
 
 Read the diff and the code it touches. Judge whether the commit does what its message claims, and
 whether what it added is correct: a control that cannot fail, a quantity that is not what it says,
@@ -408,45 +411,63 @@ def read_commit(commit: dict, *, claude=run_claude, record=jv.record_close_verdi
     SCRATCH_ROOT.mkdir(parents=True, exist_ok=True)
     scratch = Path(tempfile.mkdtemp(prefix=f"{sha10}_", dir=str(SCRATCH_ROOT)))
     try:
-        _extract(commit["sha"], scratch)
-        prompt = reader_prompt(_brief(scratch / "tree"))
-        raw, parsed = {}, {}
-        for arm in ("A", "B"):
-            rc, out = claude(prompt, scratch, ("Read", "Grep", "Glob"), READER_TIMEOUT_S)
-            raw[arm] = out
-            parsed[arm] = parse_reading(out) if rc == 0 else None
-            if parsed[arm] is None:
-                rec.update(outcome="unreadable", arm=arm, rc=rc, raw=raw)
-                _append(rec, readings)
-                return rec
-        a, b = parsed["A"], parsed["B"]
-        pairs = []
-        if a["findings"] and b["findings"]:
-            rc, out = claude(MATCHER_PROMPT.format(a=json.dumps(a["findings"], indent=1),
-                                                   b=json.dumps(b["findings"], indent=1)),
-                             scratch, (), MATCHER_TIMEOUT_S)
-            if rc != 0:
-                rec.update(outcome="matcher_failed", rc=rc, raw=raw, matcher=out)
-                _append(rec, readings)
-                return rec
-            pairs = valid_pairs(last_json_block(out), a["findings"], b["findings"])
-            rec["matcher"] = out
-        tc = task_class(commit["modules"])
-        for arm, other, reading, side in (("A", "B", a, 0), ("B", "A", b, 1)):
-            record(tc, "pass" if reading["verdict"] == "PASS" else "needs_work", EVALUATOR,
-                   f"{SUBJECT_PREFIX}-{today}:{sha10}:arm{arm}", evaluated_at=today,
-                   notes=_ledger_notes(reading, {p[side] for p in pairs}, other))
-        filed = None
-        if pairs:
-            filed = staging / _slug(sha10, len(pairs), today)
-            filed.write_text(finding_text(commit, pairs, a, b, today))
-        rec.update(outcome="read", verdicts=[a["verdict"], b["verdict"]], pairs=pairs,
-                   readings=parsed, raw=raw, filed=str(filed.relative_to(PROJECT_DIR)) if filed
-                   and filed.is_relative_to(PROJECT_DIR) else (str(filed) if filed else None))
+        return _read_in(commit, scratch, rec, today, claude=claude, record=record,
+                        staging=staging, readings=readings)
+    except Exception as exc:  # noqa: BLE001 -- an unlogged failure could never reach MAX_ATTEMPTS
+        rec.update(outcome="error", error=f"{type(exc).__name__}: {exc}"[:1000])
         _append(rec, readings)
         return rec
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
+
+
+def _read_in(commit, scratch, rec, today, *, claude, record, staging, readings) -> dict:
+    """The reading itself; `read_commit` logs any way out of it, an exception included."""
+    sha10 = commit["sha"][:10]
+    _extract(commit["sha"], scratch)
+    prompt = reader_prompt(_brief(scratch / "tree"))
+    raw, parsed = {}, {}
+    for arm in ("A", "B"):
+        rc, out = claude(prompt, scratch, ("Read", "Grep", "Glob"), READER_TIMEOUT_S)
+        raw[arm] = out
+        parsed[arm] = parse_reading(out) if rc == 0 else None
+        if parsed[arm] is None:
+            rec.update(outcome="unreadable", arm=arm, rc=rc, raw=raw)
+            _append(rec, readings)
+            return rec
+    a, b = parsed["A"], parsed["B"]
+    pairs = []
+    if a["findings"] and b["findings"]:
+        rc, out = claude(MATCHER_PROMPT.format(a=json.dumps(a["findings"], indent=1),
+                                               b=json.dumps(b["findings"], indent=1)),
+                         scratch, (), MATCHER_TIMEOUT_S)
+        if rc != 0:
+            rec.update(outcome="matcher_failed", rc=rc, raw=raw, matcher=out)
+            _append(rec, readings)
+            return rec
+        raw_pairs = last_json_block(out)
+        if not isinstance(raw_pairs, dict) or not isinstance(raw_pairs.get("pairs"), list):
+            # rc 0 with prose is a failed match, not "no pairs": read as [] it would record both
+            # verdicts and drop the commit from the queue with nothing filed, for good.
+            rec.update(outcome="matcher_failed", rc=rc, raw=raw, matcher=out)
+            _append(rec, readings)
+            return rec
+        pairs = valid_pairs(raw_pairs, a["findings"], b["findings"])
+        rec["matcher"] = out
+    tc = task_class(commit["modules"])
+    for arm, other, reading, side in (("A", "B", a, 0), ("B", "A", b, 1)):
+        record(tc, "pass" if reading["verdict"] == "PASS" else "needs_work", EVALUATOR,
+               f"{SUBJECT_PREFIX}-{today}:{sha10}:arm{arm}", evaluated_at=today,
+               notes=_ledger_notes(reading, {p[side] for p in pairs}, other))
+    filed = None
+    if pairs:
+        filed = staging / _slug(sha10, len(pairs), today)
+        filed.write_text(finding_text(commit, pairs, a, b, today))
+    rec.update(outcome="read", verdicts=[a["verdict"], b["verdict"]], pairs=pairs,
+               readings=parsed, raw=raw, filed=str(filed.relative_to(PROJECT_DIR)) if filed
+               and filed.is_relative_to(PROJECT_DIR) else (str(filed) if filed else None))
+    _append(rec, readings)
+    return rec
 
 
 # ── the tick ────────────────────────────────────────────────────────────────────────────────────
