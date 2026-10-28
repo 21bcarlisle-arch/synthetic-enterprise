@@ -87,3 +87,57 @@ an occupier-window bill. It is not a due date, and this change does not touch it
 ## Grade
 
 *(written after the run returned)*
+
+**The run.** The onedue run named here died in end-of-run reporting, so it was not graded. The
+grade is of a fresh full run at origin `1691ec0ecd`. That base carries this change and also
+`7cec44a4b` (the occupier-window bill is the deemed account's), `25a8be909` (one EBSS home) and the
+SLC 22C statement. Its other rows can therefore move for reasons other than this change. It ran
+under `launch_long_job` as unit `longjob-fresh-run-1691ec0ecd`, exit 0, in 3,268 s, peaking under
+5 GB. Output is in `/var/tmp/fresh-run-out-1691ec0ecd`, and the grade
+(`tools/domain_invariant_runner --ledger`, 1,293 accounts) is in `/var/tmp/onedue-grade-1691/`.
+The comparison book is the SLC 22C run (`/var/tmp/fresh-run-out-slc22c`), which graded the two rows
+at 1,987 and 25, the same as 2eeb3f0b3.
+
+- **P1: HELD on the count; the residual's cause was mispredicted.** `INV_OVERDUE_WITHIN_BALANCE`
+  breached 4 of 7,380, down from 1,987 of 7,151. The cause is neither a non-bill debit nor a
+  due-date crossing. The four are PROS-2017-0336 (opened 2018-01-20), PROS-2024-0010 (2024-03-17),
+  PROS-2025-0106 (2025-05-16) and SYN-2016-582 (2017-02-19). They are exactly the four accounts in
+  the billing ledger's `exception_queue`, and they hold all nine of its rows. Each is a household
+  label whose metered load looks like an SME's, so the ledger holds those months' bills for VAT
+  review and issues none. The run still posts those bills to the company's ledger, and the desk
+  dunns them. A customer cannot owe a bill the supplier has not issued, so this is a defect: one
+  bill, issued in one record and held in the other. It is not a due-date split.
+- **P2: REFUTED.** `INV_STATUTE_BARRED_WRITE_OFF_AGE` breached 3 of 64, not 0 (from 25 of 41). All
+  three have the same shape. A household carries two limitation write-offs, and the first is
+  dated six years after a payment that is not the household's last:
+  - OCC-6e59dd8b63e8: written off 2025-05-06. That is six years after the gas leg's final bill was
+    paid (2019-05-06). The electricity leg's final bill was paid a day later, 2019-05-07, which
+    gives the second write-off.
+  - SYN-2016-016: written off 2024-03-24, from the electricity bill paid 2018-03-24. The gas leg's
+    final bill was part-paid £2.40 on 2018-03-27, which gives the second write-off.
+  - SYN-2016-611: written off 2024-09-14, from the bill paid 2018-09-14. The final bill (supply
+    ended 16 Sep) was part-paid £2.86 on 2018-09-30, which gives the second write-off.
+
+  In each case a final-bill payment that arrived after a leg closed did not restart the bar for the
+  first write-off, although the desk's own rule (`collections_journey.statute_barred_gbp`: zero if
+  any payment lands after the bar) would have blocked it if that payment were on the same ledger. Two things
+  are NOT established. The first is whether the desk's ledger lacks the post-close payment, or
+  bars per fuel leg. The second is whether limitation runs per fuel contract (two contracts, so
+  OCC-6e59dd8b63e8 and SYN-2016-016 would be the grader's household reading being wrong) or per
+  household account. SYN-2016-611 is single-fuel, so it is a defect on either reading.
+- **P3: MOVED, bound MISSED.** Before, openings fell 93.5% on the 29th and 6.5% on the 1st. Now the
+  busiest days are the 16th (22.6%), the 17th (17.3%) and the 15th (13.9%), which is the ledger's
+  due date plus one. The 15% bound was wrong. Due dates are period end + 0-~10 days + 14, so they
+  bunch in mid-month by construction, and a 15% bound assumed a spread that the dates do not have.
+- **P4: direction REFUTED.** There are 7,380 journeys, against 7,151: MORE, not fewer. Write-off
+  exits rose from 36 to 53, and statute-barred write-offs graded from 41 to 64. Several things
+  changed between the two bases, so I cannot attribute the rise. The one-variable run (this change
+  alone, on 170f808884) was not made.
+- **P5: SUPERSEDED, not graded as predicted.** Neither OCC-3c914ee8cef5g nor OCC-561d240ea21a has a
+  failed payment on this book (`failed_payment_count` 0, no payment in the month). That is
+  `7cec44a4b`'s doing, not this change's.
+
+Exceptions after this grade (`docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml`):
+`INV_OVERDUE_WITHIN_BALANCE` is lowered from 1,987 to 4, and `INV_STATUTE_BARRED_WRITE_OFF_AGE` from
+25 to 3. Each is rewritten to name its residual. Neither is retired, because both residuals are
+open defects with named causes.
