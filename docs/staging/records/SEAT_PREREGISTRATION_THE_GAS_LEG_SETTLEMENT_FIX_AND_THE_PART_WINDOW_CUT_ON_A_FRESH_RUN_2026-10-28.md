@@ -60,6 +60,14 @@ predictions below are stated against 1691's own `total_bad_debt`, the figure the
 
 *(written after the run returned)*
 
+**State at hand-off, 05:30Z.** The run is still queued (`longjob-fresh-run-20e7d66234-queued`), waiting
+on memory behind the nightly `head_green_census`, which started at 03:33 and has taken about four
+hours on earlier nights. Expect the run to finish about an hour after the census ends. It does not
+carry 3ab3ea925 by design, so the gas-leg attribution holds. The grade is mechanical:
+`/var/tmp/gasleg-remeasure-scripts/grade.sh` writes the ledger, probe, suite report and the five
+leavers' page balances to `/var/tmp/gasleg-remeasure/`, which already holds the 1691 baselines
+(`probe_1691.json` under HEAD's ledger code, `probe_1691_oldcode.json` under 1691's own).
+
 ## Amendment before the run returned (2026-10-28): P6 is already known to fail, and why
 
 P6 was written while the baseline probe was still running. Its result came back afterwards. On the
