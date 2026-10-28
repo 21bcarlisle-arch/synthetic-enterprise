@@ -1,5 +1,5 @@
 """The director's one-word tick mode: each mode holds or admits what it says, a mode set with an
-expiry reverts on its own, and each of the three routes that spend tokens actually asks it."""
+expiry reverts on its own, and each route that spends tokens actually asks it."""
 import json
 import types
 
@@ -30,19 +30,20 @@ def test_every_route_can_be_both_admitted_and_held_across_the_modes(files):
     assert all(v == {True, False} for v in seen.values()), seen
 
 
-def test_off_holds_all_three_and_normal_admits_all_three(files):
+def test_off_holds_every_route_and_normal_admits_every_route(files):
     h = files["mode_path"].parent / "h"
     tm.set_mode("off", now=T0, path=files["mode_path"], history=h)
-    assert [(_gate(r, T0 + 1, files)[0]) for r in tm.ROUTES] == [False, False, False]
+    assert not any(_gate(r, T0 + 1, files)[0] for r in tm.ROUTES)
     assert "tick mode off" in _gate("worker-tick", T0 + 1, files)[2]
     tm.set_mode("normal", now=T0, path=files["mode_path"], history=h)
-    assert [(_gate(r, T0 + 1, files)[0]) for r in tm.ROUTES] == [True, True, True]
+    assert all(_gate(r, T0 + 1, files)[0] for r in tm.ROUTES)
 
 
 def test_fold_only_leaves_only_the_executor(files):
     tm.set_mode("fold-only", now=T0, path=files["mode_path"], history=files["mode_path"].parent / "h")
     assert {r: _gate(r, T0 + 1, files)[0] for r in tm.ROUTES} == {
-        "worker-tick": False, "seat-executor": True, "delivery-seat": False}
+        "worker-tick": False, "seat-executor": True, "delivery-seat": False,
+        "two-reader-review": False}
 
 
 def test_slow_spaces_spawns_and_normal_does_not(files):

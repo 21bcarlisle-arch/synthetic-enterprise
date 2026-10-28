@@ -65,6 +65,24 @@ systemd_units:
       timer fires the reconcile every 5 min so drift is loud within minutes, not at the next boot.
       active:true because an un-armed timer is a control that never runs.
 
+  - name: two-reader-review.service
+    unit_file: background/two-reader-review.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot -- reads at most one commit and EXITS
+    reason: >-
+      Director ruling 28 Oct ("Go"): two blind Opus readers on each origin/main commit that adds a
+      non-test module, a finding filed only when both raise it, both verdicts in the trust ledger
+      through judge_validation, to the 11 Nov review. The seat ran it by hand on 28 Oct; this is the
+      run that does not depend on a seat remembering. Spends model tokens, so it asks tick_mode.
+
+  - name: two-reader-review.timer
+    unit_file: background/two-reader-review.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # must be ARMED -- a trial that is not scheduled is the manual start the ruling refused
+    reason: >-
+      Every 30 min, look for an unread module-adding commit. An empty pass is one `git log`; a
+      reading is two Opus readers and a tool-less matcher.
+
   - name: deploy-restart.service
     unit_file: background/deploy-restart.service
     enabled: false           # timer-triggered, not boot-enabled itself (static)

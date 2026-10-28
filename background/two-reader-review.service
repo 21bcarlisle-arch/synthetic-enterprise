@@ -1,0 +1,15 @@
+[Unit]
+Description=Synthetic Enterprise two-reader review -- two blind readers on the oldest unread module-adding commit
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# Director ruling 28 Oct ("Go"): two blind, non-blocking Opus readers per commit that adds a non-test
+# module, a finding filed only when both raise it, scored through judge_validation to the 11 Nov
+# review. One commit per run at most; the director's tick mode (route `two-reader-review`) holds or
+# spaces it. Readers run `claude -p --restricted --tools Read Grep Glob` in a scratch extract, never
+# in this tree, so a reader can neither write nor run a command. Triggered by two-reader-review.timer.
+ExecStart=/usr/bin/python3 -m background.two_reader_review --tick
+# Two readers at up to 25 min each, the matcher, the extract and its removal.
+TimeoutStartSec=70min

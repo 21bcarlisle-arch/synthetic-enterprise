@@ -1,0 +1,11 @@
+[Unit]
+Description=Synthetic Enterprise two-reader review timer -- look for an unread module-adding commit every 30 min
+
+[Timer]
+# Qualifying commits arrive at about one a day (2 of 160 between 26 and 28 Oct), so 30 min keeps a
+# reading within the hour of its commit while an empty pass costs one `git log`.
+OnBootSec=15min
+OnUnitActiveSec=30min
+
+[Install]
+WantedBy=timers.target
