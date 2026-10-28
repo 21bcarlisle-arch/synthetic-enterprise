@@ -883,18 +883,29 @@ def build_monthly_bills(
                 # only that no read arrived.
                 period = (date.fromisoformat(true_bill["period_start"]),
                           date.fromisoformat(true_bill["period_end"]))
+                min_advance_days = (GAS_AQ_MIN_ADVANCE_DAYS
+                                    if gas_advance_floor_nine_months and commodity == "gas"
+                                    else MIN_ADVANCE_DAYS)
+                # The company's own reads replace the registry figure only once they span the
+                # industry's shortest advance: "an EAC is used where two such meter readings [at
+                # least 6 months apart] are not available" (DESNZ on the BSC; Xoserve's AQ, 9-36
+                # months). Before that a short first month scaled every later estimate: 138 kWh in
+                # an occupier's first month set eight estimates at 1,890 kWh against 8,065 on the
+                # meter (8 of 13 breached runs on the 37abacdf42 book).
+                reads_span_an_advance = (
+                    (register_reads[-1][0] - register_reads[0][0]).days >= min_advance_days)
                 shaped = (
                     estimate_unread_kwh(
                         commodity, trailing_actual_periods[-ESTIMATE_WINDOW_READS:], *period)
                     if trailing_actual_periods else None
                 )
-                if shaped is None:  # no read yet, or reads that measured nothing
-                    shaped = opening_estimate_kwh(commodity, customer_data, *period)
+                if shaped is None or not reads_span_an_advance:
+                    # No read yet, reads that measured nothing, or too short a span: the registry
+                    # figure, unless none is established and the company's own reads are all it has.
+                    shaped = opening_estimate_kwh(commodity, customer_data, *period) or shaped
                 advance = (
-                    annualised_advance_kwh(commodity, register_reads, min_advance_days=(
-                        GAS_AQ_MIN_ADVANCE_DAYS
-                        if gas_advance_floor_nine_months and commodity == "gas"
-                        else MIN_ADVANCE_DAYS))
+                    annualised_advance_kwh(commodity, register_reads,
+                                           min_advance_days=min_advance_days)
                     if annualised_advance_estimate and trailing_actual_periods else None
                 )
                 if advance is not None and advance[0] > 0:

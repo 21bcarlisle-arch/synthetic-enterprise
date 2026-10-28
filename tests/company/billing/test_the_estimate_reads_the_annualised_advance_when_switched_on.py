@@ -100,12 +100,17 @@ def test_switched_on_the_estimate_stops_matching_when_the_advance_is_not_read(mo
     assert on == pytest.approx(12_000.0 * U.profile_weight("electricity", *DEC), abs=0.01)
 
 
-def test_with_no_advance_of_half_a_year_the_switch_falls_back_to_the_three_reads():
+def test_with_no_advance_of_half_a_year_the_switch_falls_back_to_the_registry_figure():
     """Defect caught: an advance under 182 days annualised (or a zero billed) where the published
-    AA asks for reads at least six months apart. C2 has three months of reads."""
+    AA asks for reads at least six months apart; "an EAC is used where two such meter readings are
+    not available". C2 has three months of reads, so the registry figure stands, not the three reads
+    (2026-10-28, E1), and the two differ here or the leg proves nothing."""
+    from company.interfaces.supply_book import registered_point
     on = _december(M.build_monthly_bills(_records(), _Feed(), annualised_advance_estimate=True),
                    "C2")["total_consumption_kwh"]
-    assert on == pytest.approx(_three_read("C2"), abs=0.01)
+    registry = U.opening_estimate_kwh("electricity", registered_point("C2"), *DEC)
+    assert abs(registry - _three_read("C2")) > 1.0
+    assert on == pytest.approx(registry, abs=0.01)
 
 
 def test_the_run_takes_the_switch_from_the_policy_and_the_standing_policy_turns_it_on():

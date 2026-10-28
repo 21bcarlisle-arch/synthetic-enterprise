@@ -37,6 +37,9 @@ def _the_estimate_is_the_last_actual(monkeypatch):
     def last_actual(_commodity, trailing, *_period):
         return trailing[-1][2]
     monkeypatch.setattr("company.billing.monthly_bill_assembly.estimate_unread_kwh", last_actual)
+    # Grades the reconciliation, so the reads' span gate (registry figure under six months) is set
+    # aside: with it, a four-month account is never estimated from its reads at all.
+    monkeypatch.setattr("company.billing.monthly_bill_assembly.MIN_ADVANCE_DAYS", 0)
 
 
 def _records():

@@ -212,7 +212,8 @@ def period_kwh(p: dict) -> float | None:
             total += float(closing[-1]["read_kwh"]) - float(opening[0]["read_kwh"])
             pairs += 1
     if pairs:
-        return total
+        # The period's own use: after an estimated run the reads also span the catch-up (§13).
+        return total - (_num(p.get("catchup_kwh")) or 0.0)
     return _num(p.get("consumption_kwh"))
 
 
@@ -806,8 +807,11 @@ def ev_consumption_non_negative(inv, book):
                 opening = [r for r in reads if r.get("read_type") == OPENING]
                 closing = [r for r in reads if r.get("read_type") != OPENING]
                 if opening and closing:
+                    # Less the catch-up: an over-estimated run's actual read sits below the last
+                    # estimate, which is the estimate's error and not the meter running back.
                     tally.band("{} {} reg {}".format(a.cid, p["period_start"], reg),
-                               round(float(closing[-1]["read_kwh"]) - float(opening[0]["read_kwh"]), 3),
+                               round(float(closing[-1]["read_kwh"]) - float(opening[0]["read_kwh"])
+                                     - (_num(p.get("catchup_kwh")) or 0.0), 3),
                                0.0, None)
     return tally
 
@@ -949,8 +953,33 @@ def ev_period_matches_reads(inv, book):
                 tally.unbounded += 1
                 continue
             advance = sum(float(c["read_kwh"]) - float(o["read_kwh"]) for o, c in pairs)
+            # After an estimated run the reads also span the catch-up line's kWh (§13).
+            billed += _num(p.get("catchup_kwh")) or 0.0
             tally.band("{} {}".format(a.cid, p["period_start"]), round(billed - advance, 3),
                        lo * len(pairs), hi * len(pairs))
+    return tally
+
+
+def ev_opening_is_previous_closing(inv, book):
+    """Each period's opening reading is the previous period's closing reading on the same meter and
+    register: the reading the customer was last shown, actual or estimated, never a new one."""
+    tally = Tally("successive pair of periods on one meter register")
+    tol = _num(inv.get("upper")) or 0.0
+    for a in book:
+        for run in _serial_runs(a):
+            last = {}
+            for p in run:
+                by_reg = defaultdict(list)
+                for r in p.get("reads", ()):
+                    by_reg[r.get("register_id")].append(r)
+                for reg, rs in by_reg.items():
+                    o = next((r for r in rs if r.get("read_type") == OPENING), None)
+                    c = next((r for r in reversed(rs) if r.get("read_type") != OPENING), None)
+                    if o is not None and reg in last and _num(o.get("read_kwh")) is not None:
+                        tally.band("{} {} {}".format(a.cid, reg, p["period_start"]),
+                                   round(_num(o["read_kwh"]) - last[reg], 3), -tol, tol)
+                    if c is not None and _num(c.get("read_kwh")) is not None:
+                        last[reg] = _num(c["read_kwh"])
     return tally
 
 
@@ -1650,6 +1679,7 @@ EVALUATORS = {
     "INV_PERIOD_CONSUMPTION_NON_NEGATIVE": (ev_consumption_non_negative, None),
     "INV_READ_MONOTONIC": (ev_read_monotonic, None),
     "INV_PERIOD_MATCHES_READS": (ev_period_matches_reads, "consumption_kwh"),
+    "INV_OPENING_IS_THE_PREVIOUS_CLOSING": (ev_opening_is_previous_closing, None),
     "INV_VAT_RATE": (ev_vat_rate, "vat_rate"),
     "INV_NON_COMMODITY_WITHIN_ALL_IN": (ev_non_commodity_within_all_in,
                                         "non_commodity_rate_gbp_per_mwh"),

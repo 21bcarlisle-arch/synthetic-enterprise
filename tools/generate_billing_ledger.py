@@ -460,11 +460,17 @@ def generate(run_json_path=None, out_path=None):
         read_key = (cid, commodity)
         opening_read_kwh = running_closing_read.get(read_key, 0.0)
         closing_read_kwh = opening_read_kwh + register_consumption_kwh
+        # The register less the month charged: where the usage line starts. On every bill but an
+        # actual one after an estimated run it is the opening read itself.
+        month_opening_kwh = opening_read_kwh
         if read_type == "A" and bill.get("register_closing_kwh") is not None:
             # An actual read prints the company's own register (monthly_bill_assembly), not the
             # previous printed register plus the month: after an estimated run the two differ by
-            # the run's error. Estimates that follow advance from the meter's register.
-            opening_read_kwh = bill["register_opening_kwh"]
+            # the run's error. Estimates that follow advance from the meter's register. The opening
+            # stays the previous bill's closing, the estimated reading the customer was last shown
+            # (back_billing_and_liability.md §13): the register less the month is a read nobody
+            # took, and 6,436 actual bills on the 37abacdf42 book printed one.
+            month_opening_kwh = bill["register_opening_kwh"]
             closing_read_kwh = bill["register_closing_kwh"]
         running_closing_read[read_key] = closing_read_kwh
 
@@ -487,7 +493,10 @@ def generate(run_json_path=None, out_path=None):
         # above already reads the corrected figure.
         opening_read_rounded = round(opening_read_kwh, 1)
         closing_read_rounded = round(closing_read_kwh, 1)
-        displayed_consumption_kwh = round(closing_read_rounded - opening_read_rounded, 1)
+        displayed_consumption_kwh = round(closing_read_rounded - round(month_opening_kwh, 1), 1)
+        # The rest of the advance is the catch-up line's: the meter's use over the estimated run
+        # less the estimates already printed, so closing - opening = usage + catch-up as printed.
+        catchup_kwh = round(round(month_opening_kwh, 1) - opening_read_rounded, 1)
 
         # D_money_boundary_reconciliation (2026-08-03, the [ACT] returned by
         # docs/design/MONEY_REPRESENTATION_EVIDENCE.md): the money analogue of
@@ -604,6 +613,8 @@ def generate(run_json_path=None, out_path=None):
             "opening_read_kwh": opening_read_rounded,
             "closing_read_kwh": closing_read_rounded,
         }
+        if bill.get("read_true_up_kwh") is not None:
+            inv["catchup_kwh"] = catchup_kwh
         # D3 step 2 (docs/design/maturity_map.yaml "Estimated billing &
         # catch-up rebilling cycle"): when a real read resolves a run of
         # estimated bills, the correction (capped per Ofgem SLC 31A where
@@ -697,7 +708,10 @@ def generate(run_json_path=None, out_path=None):
             bill.get("rate_lines"), inv["consumption_kwh"],
             round(inv["commodity_amount_gbp"] + inv["non_commodity_amount_gbp"]
                   + inv.get("hmt_epg_receipt_gbp", 0.0), 2),
-            opening_read_rounded, read_type, inv["contracted_terms"])
+            # From where the usage starts, so the last line closes on the bill's closing read.
+            # After an estimated run the first line therefore opens on the register less the month,
+            # not on the opening printed above (§13 Limit).
+            round(month_opening_kwh, 1), read_type, inv["contracted_terms"])
         if printed_lines is not None:
             inv["rate_lines"] = printed_lines
 

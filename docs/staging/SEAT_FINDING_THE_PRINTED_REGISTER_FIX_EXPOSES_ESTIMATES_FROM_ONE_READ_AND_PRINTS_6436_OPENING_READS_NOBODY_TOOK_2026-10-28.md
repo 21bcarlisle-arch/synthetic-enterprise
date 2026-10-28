@@ -47,3 +47,30 @@ the household is on a single rate). The fix adds 194. No row grades it.
 
 The estimate-window fix (c4738b64c9) removed 37 and set 39 new breaches on 6 accounts. 114 carry over from R3's scratch
 ledger. The open cause is the gap between the estimator's reference window and the row's. It is excepted at 153.
+
+## Disposition: E1 and E3 built (2026-10-28, lane 0 `the-one-read-estimate-and-the-printed-opening`)
+
+**E1.** K8 first: `how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §7. The published
+minimum is the one the annualised advance already used: reads at least 6 months apart (DESNZ on the
+BSC's AA) and, for gas under the switch, 9 months (Xoserve's AQ). Until the company's reads span it,
+`build_monthly_bills` bills the registry figure spread by the shape (`opening_estimate_kwh`). No new
+number. Not yet measured on a book: the estimate is set in the run, so it needs a fresh run.
+**Prediction, filed before any such run:** `INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` falls from 13
+to between 3 and 7 (point 5, the summer heating runs, E2). The 8 one-read runs leave, unless an
+occupier's registry figure is itself far from its use. `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS`
+moves an unknown amount in an unknown direction: I cannot yet say, because that row reads the latest
+actuals, and the registry figure does not.
+
+**E3.** K8: `back_billing_and_liability.md` §13, corrected beside the old Limit. An actual bill after
+estimates opens on the previous closing and prints `catchup_kwh`, so closing − opening = usage +
+catch-up. The new blind-suite row `INV_OPENING_IS_THE_PREVIOUS_CLOSING` grades it. On the 37abacdf42
+book, with the ledger rebuilt at this change: openings off the previous closing go from 6,436 to 0
+(`chain.py`). The new row goes from 6,405 on the old ledger to 13 on the new one. Every other
+invariant's checked, breached and flagged counts are identical to origin/main's rebuild of the same
+book, and no bill is held. The 13 are accounts coming back from ToU (E4's class) and are excepted at
+13. **The row was written by the seat that changed the ledger, not by a reader blind to the code.**
+The row says so in its `gap`.
+
+**Still open here:** E2 (summer over-estimates), E4 (ToU band indices; `chain.py`'s band-sum count
+moves 417 → 433, because its base is taken from the first ToU bill's total opening, which this change
+moves on 16 accounts), E5, and the fresh run that grades E1.

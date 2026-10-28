@@ -72,13 +72,28 @@ def test_two_worlds_with_the_same_reads_are_estimated_alike(annualised):
     assert late == pytest.approx(early, abs=0.01), (late, early)
 
 
+class _ReadFromMarch(_Feed):
+    """As `_Feed`, with every month from March read, so the reads span the AA's six months."""
+
+    def read_for(self, customer_id, period_end, meter_type, true_kwh, consecutive):
+        if period_end[:7] < "2023-09":
+            return _Read("actual", None, 0)
+        return super().read_for(customer_id, period_end, meter_type, true_kwh, consecutive)
+
+
 def test_the_window_entry_spans_the_last_actual_read_to_this_one():
     """The value, not only the invariance: the entry after the run is 1 Oct to 30 Nov at the
     register's 1,120 kWh advance. The branch is asserted takeable first: the month-only window
-    the defect built must give a different December, or the test above proves nothing."""
+    the defect built must give a different December, or the test above proves nothing. Read from
+    March: on Sep-Nov alone the reads span under six months and the registry figure is billed."""
+    aug = (D(2023, 8, 1), D(2023, 8, 31), 50.0)
     sep = (D(2023, 9, 1), D(2023, 9, 30), 230.0)
-    read = [sep, (D(2023, 10, 1), D(2023, 11, 30), 1120.0)]
-    month_only = [sep, (D(2023, 11, 1), D(2023, 11, 30), 700.0)]
+    read = [aug, sep, (D(2023, 10, 1), D(2023, 11, 30), 1120.0)]
+    month_only = [aug, sep, (D(2023, 11, 1), D(2023, 11, 30), 700.0)]
     honest = U.estimate_unread_kwh("electricity", read, *DEC)
     assert abs(honest - U.estimate_unread_kwh("electricity", month_only, *DEC)) > 1.0
-    assert _december(420.0, 700.0) == pytest.approx(honest, abs=0.01)
+    rows = ([r for m in range(3, 9) for r in _month("C1", m, 50.0)] + _month("C1", 9, 230.0)
+            + _month("C1", 10, 420.0) + _month("C1", 11, 700.0) + _month("C1", 12, 1000.0))
+    bills = M.build_monthly_bills(rows, _ReadFromMarch())
+    december = next(b for b in bills if b["period_end"].startswith("2023-12"))
+    assert december["estimated_consumption_kwh"] == pytest.approx(honest, abs=0.01)

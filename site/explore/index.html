@@ -882,7 +882,12 @@ function stageBilled(d, c) {
       '<div class="table-scroll"><table><tbody>' +
       "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
       "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_kwh, 1) + "</td></tr>" +
-      "<tr><td>Difference charged</td><td class=\"n\">" + num(inv.consumption_kwh, 1) + " kWh</td></tr>" +
+      // After estimated readings the opening is the last estimate, so the difference is this
+      // period's usage plus the catch-up on the estimates (back_billing_and_liability.md §13).
+      "<tr><td>" + (Number(inv.catchup_kwh) ? "Usage this period" : "Difference charged") + "</td><td class=\"n\">" +
+        num(inv.consumption_kwh, 1) + " kWh</td></tr>" +
+      (Number(inv.catchup_kwh) ? "<tr><td>Catch-up on the estimated readings before it</td><td class=\"n\">" +
+        num(inv.catchup_kwh, 1) + " kWh</td></tr>" : "") +
       "<tr><td>Read quality</td><td class=\"n\">" + (estimated ? "Estimated" : "Actual") + "</td></tr>" +
       "</tbody></table>" +
       "<p style=\"margin-top:10px\">An estimated read is not a mistake — it is what a supplier does when no one has " +

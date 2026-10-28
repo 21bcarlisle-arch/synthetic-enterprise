@@ -2223,7 +2223,7 @@ invariants:
   family: meter_physics
   grades: ledger
   statement: A period billed on reads bills exactly the advance between its opening and closing reads, summed over registers.
-  predicate: volume_basis == 'reads' and reads exist at period_start and period_end on every register => |consumption_kwh - sum_registers(read_end - read_start)| <= 1 kWh x registers
+  predicate: volume_basis == 'reads' and reads exist at period_start and period_end on every register => |consumption_kwh + catchup_kwh - sum_registers(read_end - read_start)| <= 1 kWh x registers (catchup_kwh 0 where the period carries none)
   lower: -1
   upper: 1
   lower_source: rounding of read_kwh to 1 kWh (belief)
@@ -2239,6 +2239,26 @@ invariants:
   checkable: true
   gap: gas reads are volumetric at the meter and converted to kWh with a calorific value; the export carries read_kwh, so the conversion is assumed already applied
   source: logic
+  severity:
+    violation: breach
+- id: INV_OPENING_IS_THE_PREVIOUS_CLOSING
+  family: meter_physics
+  grades: ledger
+  statement: Each period's opening reading on a meter register is the previous period's closing reading on that register, actual or estimated; an actual bill after estimates opens on the last estimated reading and its advance covers the catch-up.
+  predicate: successive periods on one meter_serial and register_id => |opening read_kwh - previous closing read_kwh| <= 0.1 kWh
+  lower: -0.1
+  upper: 0.1
+  lower_source: 'docs/market_research/back_billing_and_liability.md §13: suppliers'' bills after estimates show the previous (estimated) reading as the opening [H, practitioner-shaped]; tolerance is print rounding to 0.1 kWh (belief)'
+  upper_source: same
+  export_fields:
+  - read_kwh
+  - read_type
+  - register_id
+  - meter_serial
+  - period_start
+  checkable: true
+  gap: 'written by the seat that changed the ledger, from §13, not by a reader blind to the code (ruling of 26 Oct step 4 asks for blind authorship): a later blind pass should re-derive or replace it'
+  source: docs/market_research/back_billing_and_liability.md
   severity:
     violation: breach
 - id: INV_VAT_RATE

@@ -262,6 +262,10 @@ def _volume_from_reads(period: dict) -> tuple[float | None, str]:
     # is the same reason `round_money` uses it. The float is returned because every caller wants a
     # float; what must not happen in float is the SUBTRACTION.
     volume = Decimal(str(closing)) - Decimal(str(opening))
+    # An actual bill after an estimated run opens on the last estimated reading: the reads also
+    # span its catch-up line, which is priced as the correction it prints, not at this period's rate.
+    if period.get("catchup_kwh") is not None:
+        volume -= Decimal(str(period["catchup_kwh"]))
     return float(volume), ""
 
 

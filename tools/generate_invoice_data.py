@@ -133,6 +133,8 @@ def _real_invoice(inv):
         read_type=inv.get("read_type"),
         opening_read_kwh=inv.get("opening_read_kwh"),
         closing_read_kwh=inv.get("closing_read_kwh"),
+        # The reads after an estimated run span this as well as the usage (§13).
+        catchup_kwh=inv.get("catchup_kwh"),
         registers=inv.get("registers"),
         # D3 step 2 (docs/design/maturity_map.yaml "Estimated billing &
         # catch-up rebilling cycle"): carried straight through from the

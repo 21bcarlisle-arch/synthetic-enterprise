@@ -124,6 +124,9 @@ FIELDS: dict[str, tuple[str, str]] = {
                                        "up by this bill's catch-up at its actual read"),
     "consumption_kwh": (MEASURED, "the volume the period was billed for: between two reads "
                                   "where it has them, which INV_PERIOD_MATCHES_READS checks"),
+    "catchup_kwh": (MEASURED, "the kWh on an actual bill's catch-up line: the meter's use over "
+                              "the estimated run before it less the estimates printed for it, so "
+                              "the reads span consumption_kwh plus this"),
     "document_type": (EVENT, "what was sent for the period: a credit bill, or a prepayment "
                              "meter's statement"),
     # contracted terms
@@ -342,6 +345,11 @@ def raw_account(customer_id: str, record: dict) -> dict:
         # (`independent_bill_validator._volume_from_reads`), so withholding protected nothing, and
         # it left INV_PERIOD_MATCHES_READS -- did we bill the advance we read? -- unaskable.
         period["consumption_kwh"] = inv.get("consumption_kwh")
+        # On the total register's readings only: a band index advances by its printed kWh alone.
+        registers = inv.get("registers") or [{}]
+        on_the_total = len(registers) == 1 and "opening_read_kwh" not in registers[0]
+        if inv.get("catchup_kwh") is not None and on_the_total:
+            period["catchup_kwh"] = inv["catchup_kwh"]
         if reads:
             period["volume_basis"] = VOLUME_FROM_READS
         elif inv.get("consumption_kwh") is not None:

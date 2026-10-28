@@ -253,6 +253,7 @@ def check_reads_reconcile(
     opening_read_kwh: float | None,
     closing_read_kwh: float | None,
     billed_consumption_kwh: float | None,
+    catchup_kwh: float | None = None,
 ) -> bool:
     """A rendered bill's usage line must equal the printed closing meter read
     minus the printed opening read, at the displayed (1dp) precision.
@@ -263,11 +264,15 @@ def check_reads_reconcile(
     figure. Compounding the independent rounding of three related numbers
     (opening, closing, raw usage) is exactly what produced the director's
     observed 331.1-vs-331.2 kWh mismatch. Returns True (not applicable) for a
-    bill that carries no meter reads."""
+    bill that carries no meter reads.
+
+    An actual bill after an estimated run opens on the last estimated reading, so its reads also
+    span the catch-up line's kWh (back_billing_and_liability.md §13): usage + catch-up = advance."""
     if opening_read_kwh is None or closing_read_kwh is None or billed_consumption_kwh is None:
         return True
     reads_delta = round(round(closing_read_kwh, 1) - round(opening_read_kwh, 1), 1)
-    return abs(reads_delta - round(billed_consumption_kwh, 1)) <= 0.05
+    billed = round(billed_consumption_kwh, 1) + round(catchup_kwh or 0.0, 1)
+    return abs(reads_delta - billed) <= 0.05
 
 
 def validate_rendered_bill_reads(inv: dict) -> list:
@@ -282,12 +287,13 @@ def validate_rendered_bill_reads(inv: dict) -> list:
     opening = inv.get("opening_read_kwh")
     closing = inv.get("closing_read_kwh")
     billed = inv.get("consumption_kwh")
-    if not check_reads_reconcile(opening, closing, billed):
+    catchup = inv.get("catchup_kwh")
+    if not check_reads_reconcile(opening, closing, billed, catchup):
         reads_delta = round(round(closing, 1) - round(opening, 1), 1)
         reasons.append(
-            "slc_6_7_billing_accuracy: billed usage %.1f kWh does not reconcile with the "
-            "printed meter reads %.1f -> %.1f (closing - opening = %.1f kWh)"
-            % (billed, opening, closing, reads_delta)
+            "slc_6_7_billing_accuracy: billed usage %.1f kWh (catch-up %.1f kWh) does not "
+            "reconcile with the printed meter reads %.1f -> %.1f (closing - opening = %.1f kWh)"
+            % (billed, catchup or 0.0, opening, closing, reads_delta)
         )
     return reasons
 

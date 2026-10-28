@@ -101,7 +101,10 @@ def test_the_billing_run_bills_only_its_own_estimate_from_its_reads_and_before_t
     feed's number, or the household's true use, which is what the world's feed used to send."""
     from company.interfaces.supply_book import registered_point
 
-    records = (_month("C1", 2023, 9, 230.0) + _month("C1", 2023, 10, 260.0)
+    # C1 is read from March, so its reads span the AA's six months and its own last three set the
+    # estimate; with a shorter history the registry figure would (2026-10-28, E1).
+    earlier = [r for m in range(3, 9) for r in _month("C1", 2023, m, 300.0)]
+    records = (earlier + _month("C1", 2023, 9, 230.0) + _month("C1", 2023, 10, 260.0)
                + _month("C1", 2023, 11, 290.0) + _month("C1", 2023, 12, 400.0)
                + _month("C2", 2023, 12, 400.0))
     events: list = []

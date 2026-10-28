@@ -824,5 +824,21 @@ only by actual reads) and `register_opening_kwh` = that less the month charged. 
 therefore equals the usage billed (INV_PERIOD_MATCHES_READS); the run's difference is the catch-up
 line's. The ledger prints these on actual bills and advances later estimates from them. It no longer
 prints the previous printed register plus the month (OCC-01e79fcf2d4fg Nov 2021: 1,618.9 printed,
-6,514.85 on the meter). **Limit:** the opening is the register less the month, a read the supplier
-never saw; single-register and ToU index handling is unchanged.
+6,514.85 on the meter). ~~**Limit:** the opening is the register less the month, a read the supplier
+never saw; single-register and ToU index handling is unchanged.~~
+
+**Corrected 2026-10-28 (E3).** The Limit above printed a read nobody took on 6,436 actual bills of the
+37abacdf42 book. The opening is now the previous bill's closing, the estimated reading the customer
+was last shown, as the practice above says. The bill prints `catchup_kwh` beside the usage, the
+meter's use over the estimated run less the estimates printed for it, so closing − opening = usage +
+catch-up as printed. Usage is still the month the bill charges at its rate, and the money is still
+one catch-up line. Every reader of the reads takes the catch-up off: the pre-issue reads check, the
+curtained validator, and the invariant runner's per-period use. An over-estimated run's actual read
+sits below the last estimate (a negative catch-up). That is the estimate's error, not the meter
+running back. `INV_OPENING_IS_THE_PREVIOUS_CLOSING` grades the chain: 6,405 breaches on the old ledger,
+13 on the rebuilt one. **Limits:** (1) the 13 are accounts coming back from a time-of-use tariff. A
+ToU bill exports its band indices but not the total register, so the total's last exported closing
+is stale (E4's class). (2) A bill across a price change prints its rate lines from the register less
+the month, so the first line still opens on that read. (3) Band registers carry no catch-up.
+**GAP (practitioner):** whether a supplier prints a negative advance or reverses and rebills an
+over-estimated run.

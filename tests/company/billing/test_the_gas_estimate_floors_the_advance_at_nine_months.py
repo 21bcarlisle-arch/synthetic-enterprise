@@ -1,6 +1,6 @@
 """D48 (2026-10-22): with the annualised advance on and `bill_estimate_floors_the_gas_advance_at_nine_months`
 on, a gas account annualises only an advance of nine months or more (Xoserve's AQ floor) and falls
-back to the three reads below it. Electricity keeps the AA's six months.
+back below it to the registry AQ (2026-10-28; the three reads before that). Electricity keeps the AA's six months.
 
 Knowledge: docs/market_research/unbilled_energy_and_revenue_assurance.md K2, design choice 1.
 Prereg: docs/staging/records/WORKER_PREREG_THE_GAS_ESTIMATE_FLOORS_THE_ADVANCE_AT_NINE_MONTHS_2026-10-22.md.
@@ -78,14 +78,22 @@ def _advance(fuel):
     return U.annualised_advance_kwh(fuel, reads)[0] * U.profile_weight(fuel, *DEC)
 
 
-def test_the_floor_moves_a_gas_estimate_off_a_seven_month_advance_and_onto_the_three_reads(monkeypatch):
+def _registry(fuel):
+    return U.opening_estimate_kwh(fuel, {"commodity": fuel}, *DEC)
+
+
+def test_the_floor_moves_a_gas_estimate_off_a_seven_month_advance_and_onto_the_registry_aq(monkeypatch):
     """Defect caught, both ways: a floor that reaches nothing (on still bills the 214-day advance),
-    and a floor that is always on (off already bills the three reads). The branch is asserted
-    takeable first: the advance and the three reads must differ on this account."""
+    and a floor that is always on (off already bills the registry figure). Below the AQ's nine
+    months the company's own reads establish no annual figure, so the registry's stands (2026-10-28,
+    E1: it used to be the three reads). The branch is asserted takeable first: the advance, the
+    three reads and the registry figure must all differ on this account."""
     assert abs(_advance("gas") - _three_read("gas")) > 10.0
+    assert abs(_registry("gas") - _three_read("gas")) > 10.0
+    assert abs(_registry("gas") - _advance("gas")) > 10.0
     assert _december(monkeypatch, "gas") == pytest.approx(_advance("gas"), abs=0.01)
     assert _december(monkeypatch, "gas", gas_advance_floor_nine_months=True) == pytest.approx(
-        _three_read("gas"), abs=0.01)
+        _registry("gas"), abs=0.01)
 
 
 def test_the_floor_leaves_electricity_on_the_six_month_advance(monkeypatch):

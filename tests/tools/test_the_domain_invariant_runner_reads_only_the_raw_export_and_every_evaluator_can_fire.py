@@ -56,6 +56,7 @@ INVARIANTS = [
     {"id": "INV_PERIOD_CONSUMPTION_NON_NEGATIVE"},
     {"id": "INV_READ_MONOTONIC"},
     {"id": "INV_PERIOD_MATCHES_READS", "lower": -1, "upper": 1},
+    {"id": "INV_OPENING_IS_THE_PREVIOUS_CLOSING", "lower": -0.1, "upper": 0.1},
     {"id": "INV_VAT_RATE", "rows": [
         {"commodity": c, "segment": "domestic", "from": "2016-01-01", "to": "2027-03-31",
          "lower": 0.05, "upper": 0.05} for c in ("electricity", "gas")] + [

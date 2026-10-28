@@ -131,6 +131,34 @@ C7's does in this world (42 estimates of 42), could not be HH-settled in practic
 carry an NHH EAC drawn from its history. Either reading puts the figure at about the home's own
 use, and never at the class average.
 
+## 7. What a supplier estimates from when it holds one read (2026-10-28, K8 for E1)
+
+*Nothing re-fetched; the quoted lines are §1 and §3's, read first-hand on 2026-10-06.*
+
+**Rule / practice.** Both industry methods refuse a short advance. Electricity: "The AA is an
+estimate of annualised consumption based on consumption recorded between two meter readings at
+least 6 months apart … an EAC is used where two such meter readings are not available" (DESNZ on the
+BSC, §1) [M: BSCP504 itself not read]. Gas: the AQ "is based on the consumption between two meter
+readings [9–36 months apart]" (Xoserve, §3) [H]. Until the reads span that, the annual figure in
+force is the one the supplier was handed on registration (EAC/AQ), or the TDCV where none was.
+
+**What the design did.** The bill estimate re-levelled on the latest three read periods whatever
+their span, so an occupier's first, often short, month set every estimate after it: OCC-f6813bf9f05eg
+gas, 138 kWh in Oct 2016, then eight estimates totalling about 1,890 kWh against about 8,065 on the
+meter (8 of 13 breached runs of `INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER`, 37abacdf42 book).
+
+**Design choice.** The company's own reads set the estimate only once they span the same minimum the
+annualised advance already uses (`MIN_ADVANCE_DAYS` 182; gas `GAS_AQ_MIN_ADVANCE_DAYS` 273 where the
+bill run's switch asks for it), counted from the change-of-supply opening read to the latest actual.
+Before that the estimate is the registry figure spread by the shape (`opening_estimate_kwh`), the
+same one billed before the first read; where no registry figure or TDCV is established, the reads
+are still used. With the annualised advance on, as the standing policy has it, the three-read window
+is then reached only where neither an advance nor a registry figure exists. No new number is set.
+
+**GAP.** Whether a supplier's *billing* estimate (as distinct from settlement) holds the registry
+figure for the first six months, or blends it with early reads, is not published (§5). BSCP504's
+EAC weighting of a new advance against the prior EAC was not read.
+
 ## Sources
 
 - DESNZ, *Energy Trends Table 4.2*: https://www.gov.uk/government/statistics/gas-section-4-energy-trends (retrieved 2026-10-06, "Domestic" column, 2023–2025)
