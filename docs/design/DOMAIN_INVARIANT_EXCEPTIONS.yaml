@@ -52,22 +52,20 @@ exceptions:
   # docs/staging/records/SEAT_PREREGISTRATION_THE_EIGHT_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
   - invariant: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
     scope: >-
-      7 account-months on the 2eeb3f0b3 book, all on four unnamed-occupier accounts
-      (OCC-a1e9ae835e65, OCC-bec72a04dec8, OCC-e3e94f81161b, OCC-eb8498f3f8aa). The five PROS
-      joiner months that made it 12 (PROS-2022-0356, PROS-2022-0400, PROS-2023-0010, PROS-2023-0013,
-      PROS-2023-0039) are fixed in code, not yet on a run
+      3 account-months on the 1691ec0ecd book, the first full month of three unnamed-occupier
+      accounts: OCC-bec72a04dec8 (2022-11), OCC-eb8498f3f8aa (2023-02), OCC-e3e94f81161b (2023-03)
     reason: >-
-      The row now reads "held at 00:00 on the 1st" (guidance 5.4 and 5.8, restated 2026-10-27 by
-      its blind author), so the four first part-months it used to count are gone. The seven
-      occupier months are the world's occupier path (run_phase2b, occupier_scheme_credit), which
-      sized the credit by the occupier's debt; since 2026-10-27 it records the month's whole credit
-      (`occupier_scheme_month_credit_gbp`), which no run has carried yet, so the ceiling stays at 7. The five
-      PROS months were the other side of the same rule: the named-household path credited a joiner's
-      first part-month (PROS-2022-0356 joined 12 Nov 2022 and was credited £66 for November), and
-      the guidance gives that month nothing. Both paths now ask `held_at_midnight_on_the_first`.
-    filed: 2026-10-27
-    retired_by: a run carrying the occupier month credit
-    max_breached: 7
+      Rewritten 2026-10-28 for the 1691ec0ecd book, which carries the month credit this exception
+      waited for (ff937d809e). The 2eeb3f0b3 reason ("no run has carried yet") is refuted, and the
+      breach is not a run defect. Each account opened on a move-out
+      (27 Oct, 17 Jan, 23 Feb) with a 21-day private-renter void, so the home was empty at 00:00 on
+      the breached month's 1st. Annex C's vacant exception gives that month no credit
+      (docs/market_research/energy_bills_support_scheme_delivery.md, "Vacant Properties"), and every
+      later month is credited. The evaluator counts the month as on supply because the raw export
+      carries no void window. The breach is the grader's.
+    filed: 2026-10-28
+    retired_by: the raw export carrying each account's void window and the row exempting a month void on its 1st
+    max_breached: 3
   # 2026-10-27: four cold-read rows read the company's own dated acts (`raw_account_export.account_events`).
   # Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
