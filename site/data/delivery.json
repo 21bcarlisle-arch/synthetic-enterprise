@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-28T15:31:13.840832+00:00",
+ "generated_at": "2026-10-28T18:30:36.557749+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
@@ -251,73 +251,77 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-10-28T15:24:57.581879+00:00",
+  "oriented_at": "2026-10-28T18:24:56.707340+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The correctness stretch moved on two of its three exit legs, and nothing moved on the thesis itself, which is what the ruling asks for. Leg two is met as far as I can see: the mover slot was the last slot known to be empty by a constant, and d70e32cd5 fills it validly with SYN-2016-417, using a successor link a supplier holds, never the world's move-in record. Leg one is further from met than last stretch read it, and more honest. 049377466 made the opening-read row able to fail, and all 1,291 accounts now flag, because no typed opening read exists in the record. 4a4a5a092 traced the 493-household overdue breach to one cause: the collections desk is posted true-kWh revenue before VAT, not the bill the supplier issued. That is the two-homes shape again, and it means the desk has been chasing a number no customer was ever sent. Its fix is landing now (pid 2037148), and only a fresh run graded against a pre-registration can show the breach count fall. Leg three has not moved: the second cold read's new classes are still not rows, and item 3 of the last focus was not drawn for a second stretch. The executors took continuations ahead of it, so that steer is drifting. It moves up to item 2, with this stretch's new estimate-versus-meter class added. Against the thesis, the company is still being made to bill and chase correctly. That is the precondition for any per-customer-against-flat comparison, and that comparison stays held. The commit split reads 0 supplier, 0 world and 11 other, but by content four of the five substantive commits are supplier billing and page correctness (4a4a5a092, 049377466, f899c7ccd, d70e32cd5), and one is the director's Monday note (d3ff2c1f5). Two machine facts. The seat executor is now running the continuation the-second-arm-starts-from-the-drawn-roster on d70e32cd5, though af61df576 already landed that fix without naming the id. That is the one unbuildable leg of an already-retired class, so the tick should find it spent, and I record it here rather than reopen the class. The shared checkout is 70 commits behind origin, and every daemon runs code origin has moved past.",
+  "thesis_read": "Last stretch's focus was worked, and the exit test is closer and still not met. Items 1 and 2 are done and leave focus. dd4216618 graded the desk fix on a fresh run (overdue breaches 12,730 -> 9,455, held-bill 4 -> 0), and 6bdf08992 made the second cold read's six classes into blind-written rows, with three fixes in the same commit. The third cold read is pre-registered (7643712f8) and its run (fresh-run-129e7de698) is waiting for the 5 GB annual report, pid 3070363. Item 3, W2_36's opening read, was drawn and landed nothing. I take it out of focus on purpose, below. Reading the exceptions file rather than the commit subjects, leg one is not met, and the pre-registration's 'MET at about even odds' reads the test too generously. It counts a breach under its ceiling as explained. But INV_OVERDUE_WITHIN_PAGE_BALANCE's own reason says that of its 9,455 steps, 723 (three write-off dates for one debt) and 5,280 (the page and the desk reading different payment records) are open defects. R2 has 50 open residuals, and R3 says it is not explained. An excepted defect is visible, not explained. So the third read can settle leg three, but leg one waits on the causes. One finding outranks the rest because it is the thesis itself. R3's lead checks out in code: after an estimated run, the estimator's window is handed the true month's settlement kWh, not the read advance the supplier holds (monthly_bill_assembly.py:859-862). If that holds, part of the company's estimating rests on access, not inference, and every beats-average claim built on its bills would be built on it. It goes first. It is a plain error, so it is fixed now and not escalated. The commit split reads 2 supplier, 1 world and 8 other, but by content the stretch was supplier billing correctness (ec079776d, dd4216618, 6bdf08992, 971a37583). The world commit was the desk fix's run side. Machine facts. The shared checkout is 81 behind origin, and every daemon runs code origin has moved past. No job died. One merge commit carried nothing. The renewal-belief row is unchanged, and it stays held behind the ruling.",
   "focus": [
    {
-    "id": "the-desk-fix-is-graded-on-a-fresh-run",
+    "id": "the-estimate-window-holds-only-what-the-meter-told-the-supplier",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "Once the continuation the-desk-is-posted-the-issued-bill-not-true-kwh-revenue is on origin (surgical_land pid 2037148 is landing it now; if it lands nothing, read its log and land the fix first, with its red-then-green test), file a pre-registration in docs/staging/records/ before any run. It predicts INV_OVERDUE_WITHIN_PAGE_BALANCE's count (ceiling 12,730 on 495 households in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml) and every other row a change to the desk's input can move, with collections, bad debt and the stage-5 ledger named. In the same turn, trace the residual cause SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md already names: a bill the page wrote off (arrears_history WRITTEN_OFF, C6 July 2016) that the desk still chases. Fix it with a test red on today's code if the run-side cause is plain; otherwise record its cause in the finding. Then launch one fresh run at origin HEAD through launch_long_job, after tools.run_annual_report pid 1517115 has ended, with nothing heavy beside it. Grade it against the pre-registration, and set the exception to the measured count with each residual's cause named, or retire it.",
-    "why": "The desk chasing a figure no customer was sent is billing accuracy, and it is the largest unexplained breach standing between leg one and the exit test. Done means the pre-registration was on origin before the launch, the grade is on origin, the exception sits at its measured count or is gone, and the finding is moved to done/ or names what is left.",
-    "written_at": 1793201472.697
+    "what": "Residual R3 of docs/staging/SEAT_FINDING_THE_SECOND_COLD_READS_ROWS_FIND_A_LATE_DIRECT_DEBIT_AN_UNSHOWN_PRICE_GUARANTEE_AND_ESTIMATES_TOO_CLOSE_TO_THE_MONTH_2026-10-28.md. In company/billing/monthly_bill_assembly.py, the actual-read branch appends (period_start, period_end, true_bill['total_consumption_kwh']) to trailing_actual_periods (origin lines 859-862). After an estimated run, that hands the estimator one month's settlement kWh, which no read gave the supplier. Confirm or refute it on OCC-01e79fcf2d4fg (Dec 2021) from the 1a02c46116 book. Also check the prepayment branch's append and every other trailing_actual_periods or register_reads write in the file. If confirmed, write a test red on origin (an estimated month followed by an actual read: the window entry spans the last actual read date to this read, and holds read_advance_kwh). Then make the window hold what the meter told the supplier, and run the epistemic-verifier agent on the diff. Re-grade INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS on a book carrying the fix, against a pre-registration filed before that run. Then set the R3 exception to its measured count with its cause named, or retire it. If refuted, write the cause the trace did find into the finding and the exception.",
+    "why": "A company that estimates from settlement truth beats average by access, which the thesis forbids, and this residual says leg one is unexplained. Done means the trace is on origin either way. If it is a crossing, the red-then-green test and the fix are on origin with a PASS from the verifier, and the R3 exception names its cause at a count graded on a book carrying the fix.",
+    "written_at": 1793212236.332
    },
    {
-    "id": "the-second-cold-reads-new-classes-become-rows",
-    "lane": "A_strategy_governance",
+    "id": "the-page-and-the-desk-read-one-payment-record",
+    "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "Ruling step 6 for N2, N3, N5, N6 and N7 of docs/staging/SEAT_FINDING_THE_SECOND_COLD_READ_FINDS_SEVEN_NEW_CLASSES_AND_THE_SUITE_GRADES_A_RECORD_THE_PAGE_DOES_NOT_PRINT_2026-10-28.md, plus the estimate-versus-meter class in section 2 of docs/staging/SEAT_FINDING_A_SUCCESSOR_PAGE_PRINTS_A_DIFFERENT_MPAN_AND_ESTIMATES_RUN_FIVE_TIMES_THE_METER_2026-10-28.md. Brief a fresh agent with no code access, and give it the knowledge pages, docs/market_research and docs/domain_artefact_library. It writes one two-sided row per class into docs/design/DOMAIN_INVARIANTS.yaml. Each row cites its source and carries the grades field (ledger, invoice or page). Before any row, it states what the quantity counts: for N2, settlement revenue against the amount billed; for N3, a payment, a returned payment and a missed payment, each per bill; for the estimate class, an estimated bill's daily use against the same meter's actual reads around it. Where no published tolerance exists, it states a belief with a range and files the GAP. For N6, it reads the commons copy of Ofgem's data access and privacy framework first, and files the GAP if the commons does not hold it. Grade the new rows with tools/domain_invariant_runner.py on the fresh 1a02c46116 book (/var/tmp/fresh-run-out-1a02c46116). Do not wait for item 1's run. For each breach, fix it with a red-then-green test or record a dated exception naming its cause. For N4, build nothing: measure the book-wide 2021-to-2023 change in annual kWh per fuel against docs/market_research/domestic_shift_response_arc.json, and record it in the finding.",
-    "why": "Leg three of the exit test fails on these classes, and a class the suite cannot see will be found again by the third read. This was not drawn for two stretches, so it now goes ahead of the read that depends on it. Done means six rows are on origin with their grade on the 1a02c46116 book, every breach is fixed or excepted with its cause, and N4's measurement is recorded.",
-    "written_at": 1793201472.697
-   },
-   {
-    "id": "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
-    "side": "world",
-    "unblocks": "INV_OPENING_READ grading a real opening read: 1,291 of 1,291 accounts flag 'not in the record' (049377466), so the supplier's first bill on every account starts from a read it cannot evidence.",
-    "what": "Knowledge first (K8). Amend item 5 of docs/market_research/unbilled_energy_and_revenue_assurance.md with the published evidence for the change-of-supply opening read: BSCP504 4.4.1 (an actual within SSD +/-5, else deemed by SSD+8), the equivalent gas rule from the commons, and the share of switches that settle on an actual read. Search Elexon and Ofgem publications and the commons before calling it a GAP. Then build the opening read as a world-side read that crosses the seam through company/interfaces/sim_interface.py, typed actual or deemed at the share the page establishes, or at a stated belief with its range if none is published. The ledger must never stamp the read itself. Re-grade INV_OPENING_READ on a book carrying the build, and record its count.",
-    "why": "The ruling holds feature work, and a correct opening read is a correctness fix, not a feature, so holding it under the ruling misreads it. Without it, leg one carries a row that flags every account. Done means the knowledge page is on origin and cited in the build commit, the build and its test are on origin, and INV_OPENING_READ's count on a book carrying the build is recorded in W2_36's map row.",
-    "written_at": 1793201472.697
+    "what": "Classes (d) and (a) of INV_OVERDUE_WITHIN_PAGE_BALANCE's exception in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml (9,455 on the b2fc50facf book). (d): 5,280 steps not attributed, with the lead OCC-198d2b2c01a7 (Apr 2025), where the page reads the world engine's resolved payment outcomes and the desk reads the payments the triad delivered. Before differencing, write down what each record counts. Then decide which one a supplier holds, and make the other read it, with a test red on origin. (a): 723 steps after a write-off, from three write-off dates for one leaver's debt (the page at the final bill's due date, the company's sweep a year later, the desk at the six-year bar). Read docs/market_research/debt_and_collections.md and the commons for when a supplier writes off a final-bill debt, and give the book one write-off date with that source. Grade on the next fresh run against a pre-registration, and set the exception to only its explained classes (rounding and DD-in-flight) or retire it.",
+    "why": "This is the largest count of open, excepted defects standing in leg one, and it is the two-homes shape again: two records of one fact. Done means (a) and (d) are each fixed with a test or carry a named cause, and the exception on origin lists only explained classes at a measured count.",
+    "written_at": 1793212236.332
    },
    {
     "id": "the-third-cold-read",
     "lane": "A_strategy_governance",
     "side": "supplier",
-    "what": "Start only once items 1 and 2 are on origin and the continuation the-successor-page-carries-its-predecessors-meter-point is on origin; otherwise stop and release. Do not wait for item 3: report INV_OPENING_READ as flagged with its GAP. Use item 1's fresh-run book if it carries every run-side change on origin; otherwise launch one fresh run at origin HEAD through launch_long_job with nothing heavy beside it. Pre-register every row's prediction, the new rows included, before reading the book. Grade the full book, rebuild the pages and the cast into /var/tmp from origin's tools, and run the cold read by ruling step 6's method on a new household sample. Write a reading in docs/staging/ that grades each of the three exit-test legs as met or not met, with its evidence.",
-    "why": "This is the exit test again, and only it reopens the ruled order toward the corrected renewal belief, levers and the baseline comparison. Done means the pre-registration was on origin before the grade and the reading is on origin. If the read finds a new class, the reading says so and the stretch continues.",
-    "written_at": 1793201472.697
+    "what": "Continue from the pre-registration on origin (docs/staging/records/SEAT_PREREGISTRATION_THE_THIRD_COLD_READ_ON_THE_129E7DE698_BOOK_2026-10-28.md). Do not relaunch fresh-run-129e7de698, which is waiting on pid 3070363. Grade the book against the pre-registration, rebuild the pages and the cast into /var/tmp from origin's tools, and run the cold read by ruling step 6's method on a new household sample. Write the reading in docs/staging/. It grades leg one by EXPLAINED, not by EXCEPTED: an exception whose own reason names an open defect or an unattributed count is unexplained. It lists those, and it grades legs two and three with their evidence. Each confirmed new class goes to a finding, with its row to follow.",
+    "why": "Leg three can only be settled by a cold read, and only this book is in flight for it. Done means the grade and the reading are on origin, with each leg graded met or not met on the stricter reading. Items 1 and 2 then re-grade leg one on a later book.",
+    "written_at": 1793212236.332
+   },
+   {
+    "id": "the-page-prints-the-energy-price-guarantee",
+    "lane": "D_billing_metering",
+    "side": "supplier",
+    "what": "Residual R2 of the same finding. Knowledge first (K8): read or amend the knowledge page on the Energy Price Guarantee (Oct 2022 to Jun 2023). Write down how a supplier billed it (the customer's discounted unit rate and standing charge, and the government's reimbursement of the difference), with its sources. Then print the EPG support as its own line on the customer page and in the ledger the page reads, and give INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE its EPG term. Each change gets a test red on origin. Trace the 50 open residuals: the 34 accounts never supplied in the EPG window (part-month standing charges against the row's 1% belief is the lead) and the 16 supplied in it, including OCC-423594fbfa6b. Grade on the next fresh run, and set the exception to its measured count with each cause named, or retire it.",
+    "why": "A page that books a government subsidy as the customer's revenue misstates what the household paid and what the supplier earned in the crisis, and 316 accounts sit outside the band. Done means the knowledge page is cited in the build commit, the line and the row's term are on origin, and the exception names a cause for every account it still covers.",
+    "written_at": 1793212236.332
    }
   ],
   "not_now": [
    {
-    "what": "Retaking the whole tests/simulation read that was oom-killed at 48%.",
-    "why": "A 4 GB annual report (pid 1517115) is live, and item 1's run needs the same memory. The dual-fuel reds the read was launched to explain are fixed (af61df576). It belongs in a quiet window, in halves, after item 1's run. The unexplained F stay on the machine row in wrong."
+    "what": "W2_36's typed change-of-supply opening read (last stretch's item 3, drawn and landed nothing).",
+    "why": "INV_OPENING_READ flags every account with a named GAP. That is an honest flag, not an unexplained breach, so it does not stand between leg one and met. The three unexplained supplier classes do, and the ruling is supplier-first. It comes back after items 1, 2 and 4."
    },
    {
-    "what": "Putting the successor-MPAN continuation or the desk-input continuation in focus.",
-    "why": "Both are queued or landing as continuations. A focus row would hand the same work to a second tick. Items 1 and 4 wait on them by name instead."
+    "what": "Flipping SMART_METER_EXCHANGE now, which 234ab94a2 says is the seat's to sequence.",
+    "why": "It moves the world digest under every book the stretch is grading, and item 1 may change the estimator it would be graded on. It goes as its own one-variable run after item 1's fix and the third cold read's reading, as 234ab94a2 recommends."
    },
    {
-    "what": "Retiring the premise-spent continuation the-second-arm-starts-from-the-drawn-roster from this seat.",
-    "why": "This session writes only the direction record. The executor running it is on d70e32cd5, which carries af61df576, so it should find the fix present and release it. That costs one tick, not a wrong landing."
+    "what": "A world build for households' demand response to 2022-23 prices (N4: -0.3% and -2.2% against a published -10.3% and -19.2%).",
+    "why": "It is a real fidelity defect, and it is on the wrong list. But it moves every crisis-year figure at once. Changing it while legs one and three are being graded would make the third read's counts unattributable. It goes after the exit test, knowledge page first."
+   },
+   {
+    "what": "Putting R1 (a DD collected late with no return) in focus.",
+    "why": "The continuation a-direct-debit-is-collected-on-its-date-or-returned holds it and is landing now (pid 3618263). A focus row would hand it to a second tick."
+   },
+   {
+    "what": "R5, the one Smart household (C2) billed on estimates.",
+    "why": "It covers 4 fuel-years on one household, against thousands of steps in items 1 and 2. Its cause sits in the exception's retired_by, and it waits for D48's flip."
    },
    {
     "what": "A policy that carries the corrected renewal belief, the flat-rule baseline run, and other lever or feature work.",
-    "why": "The correctness ruling holds feature work until its exit test is met. Leg one has the overdue breach and an opening-read row that flags every account, and leg three has six classes that are not rows yet."
+    "why": "The correctness ruling holds feature work until its exit test is met, and leg one is not."
    },
    {
-    "what": "A world build for household demand response to the 2022-23 prices (N4).",
-    "why": "Item 2 measures it against the knowledge layer's response arc first. A build follows only if the book sits outside the evidence."
-   },
-   {
-    "what": "Landing the older at-risk worktrees (b12, budgetpay, om2), or fast-forwarding the shared checkout, now 70 behind.",
-    "why": "Those salvages date from 15 to 25 Oct, are locked, and their work was redone or graded elsewhere. The simsuite salvage's live fix is on origin (af61df576). A fast-forward over other lanes' uncommitted work is the sweep the pathspec rule prevents, and no result is graded from the shared checkout."
+    "what": "Retaking the whole tests/simulation read, or fast-forwarding the shared checkout (81 behind).",
+    "why": "The annual report and the third read's run hold the memory now. A fast-forward over other lanes' uncommitted work is the sweep the pathspec rule prevents, and no grade reads the shared checkout."
    },
    {
     "what": "Publishing the corrected customer pages before 2 Nov.",
-    "why": "The weekly window holds content publishing, and items 1, 2 and the MPAN continuation change the pages again. The open page rows lose a few days, not a correction."
+    "why": "The weekly window holds content publishing, and items 2 and 4 change the pages again."
    }
   ],
   "for_the_director": [
@@ -340,8 +344,8 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term's tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus item 1 rebuilds it. 23:20: The fix is built, default off (7a7ad95dc): 0.819 [0.757, 0.877] out of sample from 2019, and 0.819 in the run (f16695c2a). It stays false, because no policy carries it yet, and its first-year multiplier defect is graded by section 12, which is running. 02:22: Section 12 graded (a7fc5c728): with the prior, the in-run AUC is 0.806 [0.745, 0.860]. It stays false because no policy carries it yet. The seeds are queued, behind item 2's money split. 05:22: Unchanged. Section 14's four dice seeds are running (seed 1's all_on_save_odds arm is live), and no policy carries the belief yet. 08:24: Unchanged. Section 14 seed 1 is void (P14a: flat departed 353, the same as the default), so seed 5 replaces it, and seed 2 is running. No seed is graded, and no policy carries the belief. 11:21: Seed 2 graded (6f1c336e2), and the grader corrected (9fc114520): ending_term minus flat parity is +GBP 2,866. Seed 3 is running, and seeds 4 and 5 are to come. No policy carries the belief. 14:20: Seed 3 finished at 13:54Z, and all three arm files are on disk. It is not graded; its continuation is now drawable. Seeds 4 and 5 are to come, and no policy carries the belief. 17:20: Seed 3 graded valid (2644ea3ab, P14a' symdiff 113): ending_term minus flat is +GBP 3,026 on departures and +GBP 594 on parity, and P14b and P14c held. Two valid seeds now agree in sign. Seed 4 is running (flat done, all_on_ending_term live), and seed 5 is to come. No policy carries the belief. 20:24: Seed 4 graded valid (706bbbc1e, P14a' symdiff 119): ending_term minus flat is +GBP 7,946 on departures but -GBP 140 on parity, so P14b is the wrong sign on this seed. Across three seeds the net is +2,140 +/- 1,887. Seed 5 is running (flat done, all_on_ending_term live), and its grade is queued on the .rc. Section 17 (1044c8fe0) found that the belief's only act is the offer. No policy carries it. 08:23: Seed 5's three arms finished by 22:50Z and are not graded: grade-section-14-seed-5-the-four-seed-grade was drawn and landed nothing. Focus item 2 grades it. No policy carries the belief. 11:23: Seed 5 graded and the four-seed grade written (427e5f021): mean net +GBP 1,556, but the departure interval is [-GBP 1,306, +GBP 8,542], so the pre-registered rule is not met and the switch stays off. The corrected belief is built and graded, and no policy carries it, so the company's live renewal belief still ranks leavers backwards. 14:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. 17:24: Unchanged. No policy carries the corrected belief. 20:21: Unchanged. No policy carries the corrected belief. 23:24: Unchanged. No policy carries the corrected belief. 49a577707 adds that the four-seed grade ran on books with over-cap bills in both arms, so its pound differences are not trusted until the fresh run is graded. 02:24: Unchanged, but its blocker has moved. d909b6933 graded the fresh run, and over-cap bills fell from 29.8% to 0.42% of graded default-tariff invoices. So the corrected belief's grade can be re-taken on a clean book. That is focus item 3. No policy carries it yet. 05:24: Unchanged. The clean-book re-take is pre-registered (6891c01e2) and launched (s14clean-driver, 05:05Z), but it has computed nothing: it waits on the C30 arms, which wait on memory (focus item 1). No policy carries the corrected belief. 08:24: Unchanged. The clean-book re-take is computing now: seed 2's flat arm finished at 07:38Z and all_on_ending_term is live, with seeds 3 to 5 to follow. No policy carries the corrected belief. 11:22: Unchanged. The clean-book re-take finished seeds 2 and 3, and seed 4's flat arm is live (11:17Z). The grade is about 4 arm-hours away. No policy carries the corrected belief. 14:20: Unchanged. The clean-book re-take finished seed 4 (flat by 12:24Z, all_on_ending_term by 13:19Z), and seed 5's flat arm has been live since 13:27Z, so the grade is about 2 arm-hours away and rearm.py hands it off. No policy carries the corrected belief. 17:20: Unchanged, but the clean-book re-take is on disk and not graded. /var/tmp/se-s14clean-out/grade.txt (grade.rc=0, 16:36 BST) gives ending_term minus flat across 4 seeds as net +GBP 2,781 +/- 2,277 and departures net +GBP 2,852 +/- 3,414, so the departure interval still spans zero. grade-section-14-on-the-clean-book is now drawable and grades it against the pre-registration. No policy carries the corrected belief. 20:20: Unchanged. 5cdb72eb3 graded section 14's clean-book re-take against its pre-registration, and the switch stays off: mean net clears zero, but the departure interval still straddles it. The corrected belief is built and graded twice, and no policy carries it, so the live renewal belief still ranks leavers backwards. 23:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 12:23: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 00:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 12:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, and today's site steer is ahead of both, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:23: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling puts this behind its exit test, so it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 03:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 09:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 12:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 15:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met (the first cold read found eight new classes), so it is not in focus. 18:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met (its second cold read has not run), so it is not in focus. 21:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, and the stretch found no renewal notice is ever sent, which item 1 fixes first. So it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The renewal notice is now sent (50c14a9dc), but the correctness ruling's exit test is not met, so it is not in focus. 03:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The second cold read did not meet the exit test, so it is not in focus. 09:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 12:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term's tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus item 1 rebuilds it. 23:20: The fix is built, default off (7a7ad95dc): 0.819 [0.757, 0.877] out of sample from 2019, and 0.819 in the run (f16695c2a). It stays false, because no policy carries it yet, and its first-year multiplier defect is graded by section 12, which is running. 02:22: Section 12 graded (a7fc5c728): with the prior, the in-run AUC is 0.806 [0.745, 0.860]. It stays false because no policy carries it yet. The seeds are queued, behind item 2's money split. 05:22: Unchanged. Section 14's four dice seeds are running (seed 1's all_on_save_odds arm is live), and no policy carries the belief yet. 08:24: Unchanged. Section 14 seed 1 is void (P14a: flat departed 353, the same as the default), so seed 5 replaces it, and seed 2 is running. No seed is graded, and no policy carries the belief. 11:21: Seed 2 graded (6f1c336e2), and the grader corrected (9fc114520): ending_term minus flat parity is +GBP 2,866. Seed 3 is running, and seeds 4 and 5 are to come. No policy carries the belief. 14:20: Seed 3 finished at 13:54Z, and all three arm files are on disk. It is not graded; its continuation is now drawable. Seeds 4 and 5 are to come, and no policy carries the belief. 17:20: Seed 3 graded valid (2644ea3ab, P14a' symdiff 113): ending_term minus flat is +GBP 3,026 on departures and +GBP 594 on parity, and P14b and P14c held. Two valid seeds now agree in sign. Seed 4 is running (flat done, all_on_ending_term live), and seed 5 is to come. No policy carries the belief. 20:24: Seed 4 graded valid (706bbbc1e, P14a' symdiff 119): ending_term minus flat is +GBP 7,946 on departures but -GBP 140 on parity, so P14b is the wrong sign on this seed. Across three seeds the net is +2,140 +/- 1,887. Seed 5 is running (flat done, all_on_ending_term live), and its grade is queued on the .rc. Section 17 (1044c8fe0) found that the belief's only act is the offer. No policy carries it. 08:23: Seed 5's three arms finished by 22:50Z and are not graded: grade-section-14-seed-5-the-four-seed-grade was drawn and landed nothing. Focus item 2 grades it. No policy carries the belief. 11:23: Seed 5 graded and the four-seed grade written (427e5f021): mean net +GBP 1,556, but the departure interval is [-GBP 1,306, +GBP 8,542], so the pre-registered rule is not met and the switch stays off. The corrected belief is built and graded, and no policy carries it, so the company's live renewal belief still ranks leavers backwards. 14:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. 17:24: Unchanged. No policy carries the corrected belief. 20:21: Unchanged. No policy carries the corrected belief. 23:24: Unchanged. No policy carries the corrected belief. 49a577707 adds that the four-seed grade ran on books with over-cap bills in both arms, so its pound differences are not trusted until the fresh run is graded. 02:24: Unchanged, but its blocker has moved. d909b6933 graded the fresh run, and over-cap bills fell from 29.8% to 0.42% of graded default-tariff invoices. So the corrected belief's grade can be re-taken on a clean book. That is focus item 3. No policy carries it yet. 05:24: Unchanged. The clean-book re-take is pre-registered (6891c01e2) and launched (s14clean-driver, 05:05Z), but it has computed nothing: it waits on the C30 arms, which wait on memory (focus item 1). No policy carries the corrected belief. 08:24: Unchanged. The clean-book re-take is computing now: seed 2's flat arm finished at 07:38Z and all_on_ending_term is live, with seeds 3 to 5 to follow. No policy carries the corrected belief. 11:22: Unchanged. The clean-book re-take finished seeds 2 and 3, and seed 4's flat arm is live (11:17Z). The grade is about 4 arm-hours away. No policy carries the corrected belief. 14:20: Unchanged. The clean-book re-take finished seed 4 (flat by 12:24Z, all_on_ending_term by 13:19Z), and seed 5's flat arm has been live since 13:27Z, so the grade is about 2 arm-hours away and rearm.py hands it off. No policy carries the corrected belief. 17:20: Unchanged, but the clean-book re-take is on disk and not graded. /var/tmp/se-s14clean-out/grade.txt (grade.rc=0, 16:36 BST) gives ending_term minus flat across 4 seeds as net +GBP 2,781 +/- 2,277 and departures net +GBP 2,852 +/- 3,414, so the departure interval still spans zero. grade-section-14-on-the-clean-book is now drawable and grades it against the pre-registration. No policy carries the corrected belief. 20:20: Unchanged. 5cdb72eb3 graded section 14's clean-book re-take against its pre-registration, and the switch stays off: mean net clears zero, but the departure interval still straddles it. The corrected belief is built and graded twice, and no policy carries it, so the live renewal belief still ranks leavers backwards. 23:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 12:23: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 00:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 12:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, and today's site steer is ahead of both, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:23: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling puts this behind its exit test, so it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 03:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 09:20: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 12:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 15:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met (the first cold read found eight new classes), so it is not in focus. 18:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met (its second cold read has not run), so it is not in focus. 21:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, and the stretch found no renewal notice is ever sent, which item 1 fixes first. So it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The renewal notice is now sent (50c14a9dc), but the correctness ruling's exit test is not met, so it is not in focus. 03:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The second cold read did not meet the exit test, so it is not in focus. 09:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 12:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus. 18:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling's exit test is not met, so it is not in focus.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
     "times_listed": 40,
     "corrected": false,
@@ -353,10 +357,10 @@
    },
    {
     "key": "text:two landings turned tests on origin red that their own test selection never ran",
-    "what": "THE MACHINE'S, THIS STRETCH. Two landings turned tests on origin red that their own test selection never ran. e81b1b156 set enforce: true, and four flow tests in tests/background/test_process_run_complete.py went red, because the main flow graded a ledger on disk from another run (INV_READ_MONOTONIC 29) and refused. Its receipt shows 14 tests passed, and that file was not among them. 3e19e5676 had already done the same to four phase4c tests (WORKER_FINDING_FOUR_PHASE4C_TESTS_HAVE_BEEN_RED_SINCE_PREPAYMENT_STOPPED_TAKING_ESTIMATES_2026-10-27.md). A change to a gate's switch or to a billing basis is not tied to the tests that drive it. The first four are isolated in the in-flight SVT landing (pid 2678688); focus item 3 takes the second four. Not fixed. 12:21: Half the instance is closed: 2eeb3f0b3 carries the process_run_complete flow-test fix, and the phase4c four are landing now (surgical_land pid 4110021). Nothing yet ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 15:21: Unchanged. surgical_land pid 4110021 is gone and nothing landed under the-phase4c-tests-are-keyed-to-the-prepayment-basis; the seat executor (pid 1457760) has drawn it and is running the four tests now. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 18:22: The instance is closed: 12f5b480f landed the four phase4c tests keyed to the prepayment basis and moved the finding to done/. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 21:24: Unchanged. No new red is known. ff937d809 landed changes to four simulation and billing modules on a 6-test receipt, which is the exposure this class describes. Item 4 runs those suites before the fresh run. 00:24: Unchanged. 25a8be909 landed changes to seven billing and simulation modules on a 10-test receipt, and the one-due-date landing (9ad5af9a7) carries four on a 7-test receipt: the same exposure twice more. Item 2 runs tests/simulation/ and tests/company/billing/ at origin HEAD before its run. 03:22: Half re-checked. 08a9fbcc1 ran tests/company/billing at origin HEAD green (2,498 passed), but tests/simulation did not finish beside the full run, and two tests in test_a_dual_fuel_movers_gas_follows_it.py showed F under load and pass alone. Load or order is not established. Item 4 runs the suite after the run ends. The class is not fixed. 06:24: The instance is landing. tests/simulation is being read whole at origin through launch_long_job (simsuite-whole-2cf3201c5c, 05:54Z), and surgical_land pid 748021 is landing the cause of the two dual-fuel mover reds: order, not load (a second in-process run did not start each mover at its drawn home). Nothing yet ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 09:24: The instance did not close. surgical_land pid 748021 landed nothing. The dual-fuel mover fix (start_from_the_drawn_book restores whole roster records) exists only in salvage commit 1a7bb1d34, in the unlocked worktree /var/tmp/simsuite-2cf3201c5c, on no remote ref. While that pid was dying, the draw refused the suite item twice. The whole read (simsuite-whole-2cf3201c5c) is still live at 42%, with four F so far. Focus item 1 lands the fix. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 12:21: The instance is closed: af61df576 landed the dual-fuel mover fix from salvage 1a7bb1d34, red on origin's run_phase2b.py and green with it, and it records that the section 14 arms each ran in their own process, so none was exposed. But the whole read it was meant to explain (simsuite-whole-2cf3201c5c) was oom-killed at 11:49Z at about 48%, with at least two F not yet named. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 15:24: Unchanged. No new red is known, and the whole tests/simulation read has not been retaken since its oom-kill. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, and the desk-input landing in flight (surgical_land pid 2037148) changes a billing basis again, so the class is not fixed.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. Two landings turned tests on origin red that their own test selection never ran. e81b1b156 set enforce: true, and four flow tests in tests/background/test_process_run_complete.py went red, because the main flow graded a ledger on disk from another run (INV_READ_MONOTONIC 29) and refused. Its receipt shows 14 tests passed, and that file was not among them. 3e19e5676 had already done the same to four phase4c tests (WORKER_FINDING_FOUR_PHASE4C_TESTS_HAVE_BEEN_RED_SINCE_PREPAYMENT_STOPPED_TAKING_ESTIMATES_2026-10-27.md). A change to a gate's switch or to a billing basis is not tied to the tests that drive it. The first four are isolated in the in-flight SVT landing (pid 2678688); focus item 3 takes the second four. Not fixed. 12:21: Half the instance is closed: 2eeb3f0b3 carries the process_run_complete flow-test fix, and the phase4c four are landing now (surgical_land pid 4110021). Nothing yet ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 15:21: Unchanged. surgical_land pid 4110021 is gone and nothing landed under the-phase4c-tests-are-keyed-to-the-prepayment-basis; the seat executor (pid 1457760) has drawn it and is running the four tests now. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 18:22: The instance is closed: 12f5b480f landed the four phase4c tests keyed to the prepayment basis and moved the finding to done/. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 21:24: Unchanged. No new red is known. ff937d809 landed changes to four simulation and billing modules on a 6-test receipt, which is the exposure this class describes. Item 4 runs those suites before the fresh run. 00:24: Unchanged. 25a8be909 landed changes to seven billing and simulation modules on a 10-test receipt, and the one-due-date landing (9ad5af9a7) carries four on a 7-test receipt: the same exposure twice more. Item 2 runs tests/simulation/ and tests/company/billing/ at origin HEAD before its run. 03:22: Half re-checked. 08a9fbcc1 ran tests/company/billing at origin HEAD green (2,498 passed), but tests/simulation did not finish beside the full run, and two tests in test_a_dual_fuel_movers_gas_follows_it.py showed F under load and pass alone. Load or order is not established. Item 4 runs the suite after the run ends. The class is not fixed. 06:24: The instance is landing. tests/simulation is being read whole at origin through launch_long_job (simsuite-whole-2cf3201c5c, 05:54Z), and surgical_land pid 748021 is landing the cause of the two dual-fuel mover reds: order, not load (a second in-process run did not start each mover at its drawn home). Nothing yet ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 09:24: The instance did not close. surgical_land pid 748021 landed nothing. The dual-fuel mover fix (start_from_the_drawn_book restores whole roster records) exists only in salvage commit 1a7bb1d34, in the unlocked worktree /var/tmp/simsuite-2cf3201c5c, on no remote ref. While that pid was dying, the draw refused the suite item twice. The whole read (simsuite-whole-2cf3201c5c) is still live at 42%, with four F so far. Focus item 1 lands the fix. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 12:21: The instance is closed: af61df576 landed the dual-fuel mover fix from salvage 1a7bb1d34, red on origin's run_phase2b.py and green with it, and it records that the section 14 arms each ran in their own process, so none was exposed. But the whole read it was meant to explain (simsuite-whole-2cf3201c5c) was oom-killed at 11:49Z at about 48%, with at least two F not yet named. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 15:24: Unchanged. No new red is known, and the whole tests/simulation read has not been retaken since its oom-kill. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, and the desk-input landing in flight (surgical_land pid 2037148) changes a billing basis again, so the class is not fixed. 18:24: Unchanged. 6bdf08992 changed company/billing/monthly_bill_assembly.py and unread_month_estimate.py, and 971a37583 changed company/crm/customer_registry.py, each on its own test selection: the same exposure twice more. No new red is known. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
     "first_at": "2026-10-27T09:20:46.420512+00:00",
-    "times_listed": 11,
+    "times_listed": 12,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -366,10 +370,10 @@
    },
    {
     "key": "text:the published customer pages print 'paid in total' equal to 'revenue billed' on every account, while the stage-5 ledger collected less (occ-52fbc3104c5f: gbp 4,747.99 against 5,062.23)",
-    "what": "THE PAGES', THIS STRETCH. The published customer pages print 'Paid in total' equal to 'Revenue billed' on every account, while the stage-5 ledger collected less (OCC-52fbc3104c5f: GBP 4,747.99 against 5,062.23). They also show balances that are not billed less paid, and a 'gross margin' of 41-66% that is not defined. Found by the first cold read (501ef4fcc). Focus item 2. 18:22: The cause is named and fixed in code: the page summed each leg's ex-VAT revenue_gbp as 'Paid in total', and the ledger was right (597720378, red on 752 households under the old code). O13 and O27 are fixed and O25's definitions are printed. It stays false because the live pages change only at the 2 Nov publish. 21:24: Unchanged. 13f8cc50c also posts reg 6D refunds on the page ledger. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish. 06:24: Unchanged. The live pages change only at the 2 Nov publish. The second cold read on the rebuilt pages found the same shape again on the payment counters (its N3), which item 3 takes. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:21: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the 2 Nov publish.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
+    "what": "THE PAGES', THIS STRETCH. The published customer pages print 'Paid in total' equal to 'Revenue billed' on every account, while the stage-5 ledger collected less (OCC-52fbc3104c5f: GBP 4,747.99 against 5,062.23). They also show balances that are not billed less paid, and a 'gross margin' of 41-66% that is not defined. Found by the first cold read (501ef4fcc). Focus item 2. 18:22: The cause is named and fixed in code: the page summed each leg's ex-VAT revenue_gbp as 'Paid in total', and the ledger was right (597720378, red on 752 households under the old code). O13 and O27 are fixed and O25's definitions are printed. It stays false because the live pages change only at the 2 Nov publish. 21:24: Unchanged. 13f8cc50c also posts reg 6D refunds on the page ledger. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish. 06:24: Unchanged. The live pages change only at the 2 Nov publish. The second cold read on the rebuilt pages found the same shape again on the payment counters (its N3), which item 3 takes. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:21: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the 2 Nov publish. 18:24: Unchanged. The live pages change only at the 2 Nov publish.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
     "first_at": "2026-10-27T15:21:41.184197+00:00",
-    "times_listed": 9,
+    "times_listed": 10,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -379,10 +383,10 @@
    },
    {
     "key": "text:the supplier's customer timeline showed world life events: 414 of 649 fell after supply ended",
-    "what": "THE PAGES', THIS STRETCH. The supplier's customer timeline showed world life events: 414 of 649 fell after supply ended. 4d7f6021a clips them in the generator, but the live pages change only at the 2 Nov publish, and life events inside the supply window are still world truth on that page. Focus item 2 takes the residue. 18:22: The residue is labelled: each life event on the supplier's timeline now carries seen_by: world (597720378). It stays false because the live pages change only at the 2 Nov publish. 21:24: Unchanged. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish. 06:24: Unchanged. The live pages change only at the 2 Nov publish. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:21: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the 2 Nov publish.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
+    "what": "THE PAGES', THIS STRETCH. The supplier's customer timeline showed world life events: 414 of 649 fell after supply ended. 4d7f6021a clips them in the generator, but the live pages change only at the 2 Nov publish, and life events inside the supply window are still world truth on that page. Focus item 2 takes the residue. 18:22: The residue is labelled: each life event on the supplier's timeline now carries seen_by: world (597720378). It stays false because the live pages change only at the 2 Nov publish. 21:24: Unchanged. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish. 06:24: Unchanged. The live pages change only at the 2 Nov publish. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:21: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the 2 Nov publish. 18:24: Unchanged. The live pages change only at the 2 Nov publish.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
     "first_at": "2026-10-27T15:21:41.184197+00:00",
-    "times_listed": 9,
+    "times_listed": 10,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -392,10 +396,10 @@
    },
    {
     "key": "text:the one-due-date fresh run was killed from outside at 7 june 2025, with no exit line, no traceback and an empty output directory (08a9fbcc1)",
-    "what": "THE MACHINE'S, THIS STRETCH. The one-due-date fresh run was killed from outside at 7 June 2025, with no exit line, no traceback and an empty output directory (08a9fbcc1). It ran under arm.py from a bare shell, not launch_long_job, so the register never saw it die. The cause is not established: memory pressure or a reaper are the candidates, and neither was tested. The replacement run goes through launch_long_job, which fixes the visibility, not the cause. 09:24: Unchanged in cause. fresh-run-20e7d66234 has simulated the full window through launch_long_job and is writing its outputs. That is the second run since the death to go clean, with nothing heavy beside it except the whole suite read. 12:21: Unchanged in cause, but a third death now carries a cause: the register recorded simsuite-whole-2cf3201c5c as oom-kill (status 9) at 11:49Z. That makes memory pressure the leading candidate for the 7 June death too, and it is still not tested against that run. 15:24: Unchanged in cause. fresh-run-1a02c46116 ran clean through launch_long_job (13:20Z to 14:26Z), the third clean run since the death, and memory pressure is still the leading candidate, not tested against the 7 June run.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. The one-due-date fresh run was killed from outside at 7 June 2025, with no exit line, no traceback and an empty output directory (08a9fbcc1). It ran under arm.py from a bare shell, not launch_long_job, so the register never saw it die. The cause is not established: memory pressure or a reaper are the candidates, and neither was tested. The replacement run goes through launch_long_job, which fixes the visibility, not the cause. 09:24: Unchanged in cause. fresh-run-20e7d66234 has simulated the full window through launch_long_job and is writing its outputs. That is the second run since the death to go clean, with nothing heavy beside it except the whole suite read. 12:21: Unchanged in cause, but a third death now carries a cause: the register recorded simsuite-whole-2cf3201c5c as oom-kill (status 9) at 11:49Z. That makes memory pressure the leading candidate for the 7 June death too, and it is still not tested against that run. 15:24: Unchanged in cause. fresh-run-1a02c46116 ran clean through launch_long_job (13:20Z to 14:26Z), the third clean run since the death, and memory pressure is still the leading candidate, not tested against the 7 June run. 18:24: Unchanged in cause. fresh-run-b2fc50facf ran clean through launch_long_job (16:01Z to 17:16Z), the fourth clean run since the death. Memory pressure is still the leading candidate, and it has not been tested against the 7 June run.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
     "first_at": "2026-10-28T03:22:42.831507+00:00",
-    "times_listed": 5,
+    "times_listed": 6,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -405,10 +409,88 @@
    },
    {
     "key": "text:the suite grades a different record from the one the page prints",
-    "what": "THE PAGES', THIS STRETCH. The suite grades a different record from the one the page prints. PROS-2019-0246, the 2022-shock slot, has all six EBSS scheme_credit adjustments (GBP 400) on its ledger, but its invoices carry credit_applied_gbp None, and the page prints 'The electricity bill for December 2022 was GBP 598.04' with no credit line. INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 reads the ledger, so it passes. The overdue figures on the page (O4, O14) are the same shape. Found by the second cold read (2cf3201c5, N1). Focus item 1. 09:24: Not drawn. Rung-zero advisor work held both executors for the whole stretch. 3ab3ea925 already posts the occupier-window EBSS share on the page ledger, but the invoice leg is untouched. Focus item 2. 12:21: The EBSS leg is fixed in code: d9828b5b3 makes the page invoice carry the credit (232 of 232 credited accounts showed none, now 0), and every invariant row now names the record it grades, with an invoice-graded EBSS twin. The overdue leg is not fixed: its page-graded twin breaches on 493 of 752 households (10,180 of 32,741 steps), filed BLOCKING. Focus item 1. The live pages change only at the 2 Nov publish. 15:24: The EBSS leg holds on a fresh run (f899c7ccd: both EBSS rows grade 6, the exceptions' six). The overdue leg's cause is traced (4a4a5a092): the desk is posted true-kWh revenue before VAT, not the issued bill. Its fix is landing now (surgical_land pid 2037148), and the gas-leg fix raised the measured count to 12,730 on 495 households, so the exception's ceiling was re-based up, with its attribution. Not corrected until a fresh run with the desk fix is graded. Focus item 1.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
+    "what": "THE PAGES', THIS STRETCH. The suite grades a different record from the one the page prints. PROS-2019-0246, the 2022-shock slot, has all six EBSS scheme_credit adjustments (GBP 400) on its ledger, but its invoices carry credit_applied_gbp None, and the page prints 'The electricity bill for December 2022 was GBP 598.04' with no credit line. INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 reads the ledger, so it passes. The overdue figures on the page (O4, O14) are the same shape. Found by the second cold read (2cf3201c5, N1). Focus item 1. 09:24: Not drawn. Rung-zero advisor work held both executors for the whole stretch. 3ab3ea925 already posts the occupier-window EBSS share on the page ledger, but the invoice leg is untouched. Focus item 2. 12:21: The EBSS leg is fixed in code: d9828b5b3 makes the page invoice carry the credit (232 of 232 credited accounts showed none, now 0), and every invariant row now names the record it grades, with an invoice-graded EBSS twin. The overdue leg is not fixed: its page-graded twin breaches on 493 of 752 households (10,180 of 32,741 steps), filed BLOCKING. Focus item 1. The live pages change only at the 2 Nov publish. 15:24: The EBSS leg holds on a fresh run (f899c7ccd: both EBSS rows grade 6, the exceptions' six). The overdue leg's cause is traced (4a4a5a092): the desk is posted true-kWh revenue before VAT, not the issued bill. Its fix is landing now (surgical_land pid 2037148), and the gas-leg fix raised the measured count to 12,730 on 495 households, so the exception's ceiling was re-based up, with its attribution. Not corrected until a fresh run with the desk fix is graded. Focus item 1. 18:24: The overdue leg improved and is not corrected. dd4216618 graded the desk fix on a fresh run: 12,730 -> 9,455, and the held-bill row 4 -> 0 (INV_OVERDUE_WITHIN_BALANCE retired). The exception explains only (b), 2,985 rounding steps, and (c), 466 DD-in-flight steps. (a), 723 steps after a write-off (three write-off dates for one debt), and (d), 5,280 unattributed steps (the page and the desk read different payment records), are open defects that are excepted, not explained. Focus item 2.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
     "first_at": "2026-10-28T06:23:52.574652+00:00",
-    "times_listed": 4,
+    "times_listed": 5,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:a successor's page prints a different meter number from the account it succeeded: in 253 of 253 successions, the occupant's mpan or mprn differs from its predecessor's, because tools/generate_customer_data.py (_mpan, _mprn) and company/crm/customer_registry.mpan_core hash the account id, not the supply point",
+    "what": "THE PAGES', THIS STRETCH. A successor's page prints a different meter number from the account it succeeded: in 253 of 253 successions, the occupant's MPAN or MPRN differs from its predecessor's, because tools/generate_customer_data.py (_mpan, _mprn) and company/crm/customer_registry.mpan_core hash the account id, not the supply point. Found by d70e32cd5. The queued continuation the-successor-page-carries-its-predecessors-meter-point fixes it. 18:24: Fixed in code: 971a37583 mints MPAN, MPRN and serial from the supply point, with a test. It stays false because the live pages change only at the 2 Nov publish.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
+    "first_at": "2026-10-28T15:24:57.581879+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:syn-2016-565's estimated electricity bills ran 1,250 to 2,007 kwh a month from jul 2023 to jun 2024, five to ten times its meter, until an actual read credited gbp 1,471.52, and no check caught it, because the book's use band is drawn over estimated bills too",
+    "what": "THE COMPANY'S, THIS STRETCH. SYN-2016-565's estimated electricity bills ran 1,250 to 2,007 kWh a month from Jul 2023 to Jun 2024, five to ten times its meter, until an actual read credited GBP 1,471.52, and no check caught it, because the book's use band is drawn over estimated bills too. Found by d70e32cd5. Focus item 2 writes the invariant blind. 18:24: A check now exists. 6bdf08992 wrote INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER blind (11 of 4,311 on the 1a02c46116 book), and 10 of the 11 are zero-kWh windows, fixed run-side in the same commit. It stays false until the 129e7de698 book grades the row at 2 or fewer, as pre-registered in 7643712f8.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
+    "first_at": "2026-10-28T15:24:57.581879+00:00",
+    "times_listed": 2,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the bill estimator appears to read the true month after an estimated run",
+    "what": "THE COMPANY'S, THIS STRETCH. The bill estimator appears to read the true month after an estimated run. In company/billing/monthly_bill_assembly.py (origin, lines 859-862), when an actual read ends an estimated run, trailing_actual_periods takes (period_start, period_end, true_bill['total_consumption_kwh']): the settlement kWh of that one month. A supplier holding a read after estimated months knows only the advance since the last actual read, which the same branch computes as read_advance_kwh three lines earlier and does not append. If that reading holds, estimates after an estimated run are shaped from ground truth. That would explain R3 (N7: 292 bills on 50 accounts sit within 1% to 6% of the month's settlement kWh, e.g. OCC-01e79fcf2d4fg Dec 2021, 2,138.6 billed against 2,151.1 settled). Found by 6bdf08992's residual R3, and read in code at this orientation. Focus item 1.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
+    "first_at": "2026-10-28T18:24:56.707340+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:a direct debit succeeds 31 to 45 days after its due date with no return on 181 accounts (pros-2016-0020: invoice 9291 due 2016-03-20, collected 2016-04-28)",
+    "what": "THE WORLD'S, THIS STRETCH. A direct debit succeeds 31 to 45 days after its due date with no return on 181 accounts (PROS-2016-0020: invoice 9291 due 2016-03-20, collected 2016-04-28). The world gives a DD payer a pay-on-receipt payer's late branch. Found by 6bdf08992 (R1). The continuation a-direct-debit-is-collected-on-its-date-or-returned is landing it now (surgical_land pid 3618263).",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
+    "first_at": "2026-10-28T18:24:56.707340+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the energy price guarantee is inside 'revenue, before vat' at the supplier's tariff and on no page line, so 266 of 316 accounts fall outside the billed-against-revenue band",
+    "what": "THE PAGES', THIS STRETCH. The Energy Price Guarantee is inside 'Revenue, before VAT' at the supplier's tariff and on no page line, so 266 of 316 accounts fall outside the billed-against-revenue band. 50 more are open: 34 accounts never supplied in the EPG window and 16 supplied in it, including the cold reader's pre-EPG example OCC-423594fbfa6b. Found by 6bdf08992 (R2). Focus item 4.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
+    "first_at": "2026-10-28T18:24:56.707340+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:households do not cut use when prices rise: on the same accounts, 2021 to 2022, electricity -0.3% and gas -2.2%, against a published -10.3% and -19.2% unadjusted (docs/market_research/domestic_shift_response_arc.json)",
+    "what": "THE WORLD'S, THIS STRETCH. Households do not cut use when prices rise: on the same accounts, 2021 to 2022, electricity -0.3% and gas -2.2%, against a published -10.3% and -19.2% unadjusted (docs/market_research/domestic_shift_response_arc.json). Every crisis-year bill, bad-debt and margin figure inherits the missing response. Measured by 6bdf08992 (N4). In not_now.",
+    "last_at": "2026-10-28T18:24:56.707340+00:00",
+    "first_at": "2026-10-28T18:24:56.707340+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -436,32 +518,6 @@
     "first_at": "2026-10-28T09:24:19.851463+00:00",
     "times_listed": 3,
     "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:a successor's page prints a different meter number from the account it succeeded: in 253 of 253 successions, the occupant's mpan or mprn differs from its predecessor's, because tools/generate_customer_data.py (_mpan, _mprn) and company/crm/customer_registry.mpan_core hash the account id, not the supply point",
-    "what": "THE PAGES', THIS STRETCH. A successor's page prints a different meter number from the account it succeeded: in 253 of 253 successions, the occupant's MPAN or MPRN differs from its predecessor's, because tools/generate_customer_data.py (_mpan, _mprn) and company/crm/customer_registry.mpan_core hash the account id, not the supply point. Found by d70e32cd5. The queued continuation the-successor-page-carries-its-predecessors-meter-point fixes it.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
-    "first_at": "2026-10-28T15:24:57.581879+00:00",
-    "times_listed": 1,
-    "corrected": false,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:syn-2016-565's estimated electricity bills ran 1,250 to 2,007 kwh a month from jul 2023 to jun 2024, five to ten times its meter, until an actual read credited gbp 1,471.52, and no check caught it, because the book's use band is drawn over estimated bills too",
-    "what": "THE COMPANY'S, THIS STRETCH. SYN-2016-565's estimated electricity bills ran 1,250 to 2,007 kWh a month from Jul 2023 to Jun 2024, five to ten times its meter, until an actual read credited GBP 1,471.52, and no check caught it, because the book's use band is drawn over estimated bills too. Found by d70e32cd5. Focus item 2 writes the invariant blind.",
-    "last_at": "2026-10-28T15:24:57.581879+00:00",
-    "first_at": "2026-10-28T15:24:57.581879+00:00",
-    "times_listed": 1,
-    "corrected": false,
     "fate": null,
     "status": null,
     "retired": false,
@@ -798,7 +854,7 @@
     "what": "THE COMPANY'S, THIS STRETCH. Explore's cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices on the 19 Oct run (199 of 550 households) more than 0.5% above min(cap, EPG), and a November 2022 bill at exactly the cap instead of the EPG. The finding was filed LATENT under W3 with no atom, and the earlier fix 592596b44 is an ancestor of that run. The cause is not yet named, and (c), a mislabelled population, has to be ruled out first. 17:24: Focus item 1. Not fixed. 20:21: Cause named, half fixed. 4bc21e920 refuted (c): 4,579 of the 4,764 are on recorded svt terms. On recorded types, 5,492 of 18,374 svt invoices (244 of 550 households) sit above the ceiling. 3,600 are cause A (an incoming occupant priced as non-domestic), fixed in 4bc21e920. 1,817 are cause B (the EPG never reached the household's invoice), which is landing now under epg-reaches-the-household-bill. 436 invoices plus 66 are unexplained, and no fresh run has been re-graded. Not fixed. 23:24: The residue is named, but the defect is not fixed. 49a577707: all 501 bills that miss their struck rate are electricity on a ToU pair. The company offers ToU on every term of a smart-metered home, the default tariff included. The 59 at the cap are not a breach: SLC 28AD.4 grades a multi-register tariff at its split, not per bill. 25 are labelled GAP. Cause B (the EPG) is still not on origin after 5 hours and two attempts, so no fresh run has been graded. 02:24: Mostly fixed, not closed. Cause B landed (4ef70aba9). The fresh run at 88cdf35e4 graded 104 of 24,597 default-tariff invoices above min(cap, EPG), down from 5,488 of 18,398 (d909b6933). 79 of the 104 are on two accounts with the ToU-pair misgrade, which 1e358809b fixes but which that run did not carry. About 17 inside the EPG windows are mid-month estimated stubs that carry no EPG receipt. Focus item 2 carves that route. 05:24: The last named route is fixed. ce35a25e2 makes the void-stub estimate carry the EPG inside the window, and 1ee7ec58d moves SVT_BILLS_ABOVE_THE_CAP to LATENT. It is not closed: no run carrying 1e358809b and ce35a25e2 has been graded, and the s14clean re-take's over_ceiling.txt is that grade. The Explore cast finding still reads BLOCKING because of its other sections. 08:24: Not closed. dcf5f10f3 graded the EPG receipt to the penny. A fresh run at c5a8090187, which carries 1e358809b and ce35a25e2, is computing now (pid 3152321) for the over-cap grade, under the continuation capabilities-steer-remaining-before-monday. c5a809018 keeps the Explore cast finding BLOCKING until that grade is in. 11:22: Not closed, and the fresh run found a new defect. The c5a8090187 run's grade (140b5ff7b) shows that the void-stub fix ce35a25e2 over-credits 5 electricity stubs, so they pass the ceiling by going negative. That defect is its own row below and focus item 1. The Explore cast finding stays BLOCKING. 14:20: Not closed. 3a31999db fixed the route the void-stub defect took, and the grader now refuses a run whose carved and booked differ. The site still publishes the 19 Oct run (8b6fea024), which carries none of the fixes, and the shared checkout the runner executes is 14 commits behind origin. Focus item 1 makes Monday's publish carry a run that has them. The Explore cast finding stays BLOCKING. 17:20: Not closed. 339495a44 took the fallback route: the publisher grades a run's bills before it publishes them, and the site says the 19 Oct figures predate the cap fixes. The s14clean arms at ff8437814e show 6 default-tariff invoices on 2 households above the ceiling per arm, but ff8437814e does not carry 3a31999db. The fresh run that does is the-epg-fold-fix-is-graded-on-a-fresh-full-run, launchable now that section 14's arms are done. The finding stays BLOCKING. 20:20: Not closed, but close. The closing run at 1c30d6c728 graded clean (/var/tmp/se-epgfold-out/grade.json): 6 of 24,597 default-tariff invoices are above the ceiling (0.02%), on 2 households, all outside the EPG windows (2019: 2, 2024: 4). The EPG carved GBP 200,091.73 and booked the same, there are no negative estimated bills, and defects is empty. The finding's own text lowers it on the first published run that passes, so it stays BLOCKING until Monday's publish. Focus item 2 records the grade and names the six bills. 23:24: Not closed. The six bills from the closing run at 1c30d6c728 are still not named, and the previous focus item that names them was not drawn. Monday's publish opens 2026-10-26T04:00Z. Focus item 2. The finding stays BLOCKING. 03:21: The six are named, and their cause is fixed but not graded. 0a0530576 named a third cause: a gas SVT term started mid-quarter was billed at the mean of every rate it had carried. 063dc4bbd fixed it (a departure cut a riding gas leg's term short of its end, 33 overlapping pairs, 6 over-cap and 22 mispriced bills). The fresh run that grades the fix is computing (/var/tmp/se-svtcut-out, pid 1572414). The run computing in the shared checkout (pid 1962520, at 904a091f7) does not carry the fix, because that checkout is 34 commits behind origin. Focus item 3. The finding stays BLOCKING. 06:22: Fixed in code and graded clean, not yet published. e526b740f graded the gas-term fix on 7559a676f7: 0 legs carry overlapping terms (was 11 legs, 33 pairs), and 0 of 24,663 default-tariff bills sit over the ceiling (was 6). The grade now refuses any run whose terms overlap. The newest full run (904a091f7b, 03:16Z) predates the fix, and the published site still shows 19 Oct figures. The finding stays BLOCKING until a published run passes. Focus item 4. 09:20: Not closed. No full run at a commit carrying 063dc4bbd, 33dd50527, 9bb30c4de and now a0ed2aa7b has started. The sim runner deferred every five-minute cycle from 06:15Z to 09:21Z. The published site still shows 19 Oct figures. Focus item 1. The finding stays BLOCKING. 12:23: Not closed. No full run at a commit carrying the fixes has computed. The seat executor (pid 2358144) holds the Monday run and staged /var/tmp/se-mondays-run-6475cdad14 at 11:47Z. Its queued launch logged one HELD line ('landings come before experiments'), and no longjob unit for it is loaded. Focus item 1. The finding stays BLOCKING. 15:22: Fixed on the production run, not yet published. 294c5286f graded Monday's run at b2bc3d8da5: 0 of 24,663 default-tariff invoices over min(cap, EPG), GBP 200,459.54 carved equals booked, 0 negative estimates, 0 overlapping term legs. It is run_output_latest, and a one-shot timer at 2026-10-26T04:05Z offers it to the weekly publish (continuation a-held-run-is-offered-again-when-the-weekly-window-opens). The finding stays BLOCKING until the published site carries it. 18:21: Unchanged. Monday's run b2bc3d8da5 is graded clean, and the timer mondays-window-marker-20261026 is loaded for 2026-10-26T04:05Z. The finding stays BLOCKING until the published site carries that run. 21:22: Unchanged. Monday's run b2bc3d8da5 is graded clean, and mondays-window-marker-20261026 fires at 2026-10-26T04:05Z (continuation mondays-window-published-the-b2bc3d8da5-run checks it). The finding stays BLOCKING until the published site carries that run. 00:20: Unchanged. Monday's run b2bc3d8da5 is graded clean and mondays-window-marker-20261026 fires at 04:05Z. That run predates c5a3e96fe, so the dunning stop below does not touch it, but no newer default-book run can replace it until that stop is fixed. The finding stays BLOCKING until the published site carries the run. 03:21: Unchanged, and a second clean grade is in. The basics run at 12246cbae5 graded 0 of 24,442 default-tariff bills over min(cap, EPG), with GBP 198,651.40 carved equal to booked (4ae8da9b0). The window opens at 04:00Z, and mondays-window-marker-20261026 (04:05Z) offers b2bc3d8da5. sim-runner's run at 4ae8da9b0f (pid 2630147, live since 02:26Z) may finish first; the publisher grades a run's bills from the run JSON itself before publishing it (process_run_complete.py:10820), so either run fails closed. mondays-window-published-the-b2bc3d8da5-run checks it after 04:30. The finding stays BLOCKING until the published site carries a graded run. 06:24: Not closed. The 04:05Z marker offered the newer run, run_output_4ae8da9b0f_20261026T022647Z, not b2bc3d8da5. It descends from b2bc3d8da5 and is graded clean (0 of 24,442 over the ceiling). Its publish failed twice. At 05:14 it refused as behind_origin, on the publisher's own repair commit b681cc4d7, which 410c1131d fixes. At 05:46 it refused as commit_refused, because the primary checkout's HEAD 53a0e63da was 1 commit behind origin (71cb7debc). The fingerprint was not recorded and no marker re-offers the run. Figures last reached origin 165h ago. Focus item 1. The finding stays BLOCKING. 09:24: Not closed, but the publish is now refused for the right reason. The 08:06Z re-offer of 4ae8da9b0f cleared every mechanical door (77b6a16d9) and the full gate refused it on two billing reds in the run's own book. 3dfe5cad4 bisected both: ToU registers now carry their own reads (1,416 to 0), and the invoice carries the EPG receipt beside its total (10 to 4 customer-years billed under gross). The last four (two held first bills, three leavers closed on estimates at 0.39-0.55 of true) are landing now (surgical_land pid 1987804, 4 to 0 claimed). Figures last reached origin 168h ago. Focus item 1. The finding stays BLOCKING. 12:24: Not closed. 166ce2b5b closed the last four billed<gross customer-years (4 to 0, none excused). The 11:49Z re-offer was then refused for a reason that was not the run's: another lane's uncommitted B13 level move in the shared maturity map rode into the publish commit, which 185355386 fixes. The publisher is re-offering now (pid 2855590, marker 114906Z). Figures last reached origin 171h ago. Focus item 1. The finding stays BLOCKING. 15:24: Corrected. 60e4d4dc5 published run 4ae8da9b0f at 12:28Z, graded 0 of 24,442 default-tariff bills over min(cap, EPG), and 27bcc82c2 lowered the Explore cast finding to LATENT on origin by its own rule. The cast's 36 households are its own proxy, and the-explore-cast-grades-above-cap-on-the-recorded-term is landing now (surgical_land pid 516432) so the cast grades the bill's recorded term.",
     "last_at": "2026-10-26T15:24:26.543703+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 24,
+    "times_listed": 23,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -902,7 +958,7 @@
     "what": "THE MACHINE'S, THIS STRETCH. The continuation the-budget-second-seed-grade-after-the-unit-driver is still queued for 18:20, but b8045dd4e graded the second seed at 17:17. A queued continuation is not re-asked when another lane spends its premise first, so a tick may be handed a finished grade. 23:24: It bit twice. A tick was handed the second-seed grade after it was spent and re-graded it (711359a8c), and the flat-arm repair was drawn after abe7ce533 had spent it (732b2e116). Both ticks dispositioned the item, but nothing re-asks a premise before the draw. Not fixed. 02:21: No instance this stretch. grade-the-standing-charge-opex-credit-against-its-prereg becomes drawable at 02:00, but both of its arms are still queued (193ae19be), so a tick drawn now has nothing to grade. That is the same shape: nothing re-asks a premise before the draw. Not fixed. 05:20: No instance seen this stretch. Nothing re-asks a premise before the draw, so it is not fixed. 08:22: Live again. grade-the-per-customer-switches-on-together-against-flat becomes drawable at 09:20, but the three arms run one after another from 07:22Z, so all_on and flat will not have finished by then. A tick drawn at 09:20 would find one arm. Not fixed. 11:22: It bit as predicted. The 09:20 grade was drawn, found only one arm finished, and was re-filed as grade-the-per-customer-switches-arms-after-they-finish for 15:40 local (14:40Z). The current arm took 2h26m, so flat should end near 14:40Z, which leaves the new embargo with no margin. Focus item 3 builds the re-ask: a continuation that waits for the file it grades. 14:20: Half fixed. a5f9cd768 lets a continuation wait for the file it grades, and the per-customer grade now waits for /var/tmp/se-pcs-arms-out/flat.rc instead of a guessed time. The other half is not fixed: nothing re-asks a premise that another lane spends first. 17:24: No instance this stretch. Every grade now waits on its driver's own exit or file. Nothing re-asks a premise that another lane spends first, so it is not fixed. 20:20: No instance this stretch, and the continuation queue is empty. Nothing re-asks a premise that another lane spends first, so it is not fixed. 23:20: No instance. The one queued continuation, ending-term-belief-first-year-prior, is claimed, and its rerun is live. e856ddc69 is its own work, not another lane's. Nothing re-asks a premise that another lane spends first, so it is not fixed. 02:22: It bit in a new shape. The executor drew W2_demand_negative_margin_part_payment, which was unclaimed while the worker tick was building it, and built the same rule a second time before withdrawing (4e8bc7633). The duplicate cross-checked the tick's build (0 of 1,048 accounts differ), so the compute bought a check, but nothing stopped it. Not fixed. 05:22: No machine instance this stretch. The one spent premise was the seat's own D48 item, listed below. Nothing re-asks a premise another lane spends first, so it is not fixed. 08:24: Live again. site-deploy-exclusion-canon-check-and-cold-reader and front-door-steer-items-5-6-9-and-the-cold-read are both queued for the steer's item 9 and its cold read. The second also carries items 5 and 6, which site-two-audiences-and-plain-vocabulary is landing now. Whichever is drawn second has a spent premise, and nothing re-asks it first. Not fixed. 11:21: Live again. 4d94422536 launched section 16 at 11:24Z, and launch-and-grade-prereg-s16-the-lower-bound-guard is still in the live queue. If its holder releases it without retiring it, a later tick will launch section 16 a second time. Nothing re-asks a premise another lane spends first, so it is not fixed. 14:20: Still live. launch-and-grade-prereg-s16-the-lower-bound-guard is still in the live queue, but section 16 launched at 11:24Z and two of its three arms have finished. A tick drawing it must grade and must not relaunch. Nothing re-asks a premise another lane spends first, so it is not fixed. 17:20: Live again, in two places. launch-and-grade-prereg-s16-the-lower-bound-guard retired at 16:07Z after grading, so that instance closed cleanly. But the ambition rewrite is now queued twice: the-front-door-leads-with-the-ambition-and-what-has-been-built and the-front-door-ambition-rewrite-after-the-build-strip carry the same steer, and a-profiled-home-settles-its-own-volume-on-its-registered-profile is still drawable while surgical_land pid 2849871 lands that exact build. Nothing re-asks a premise another lane spends first, so it is not fixed. 20:24: It bit as predicted, and was caught. The ambition rewrite was queued twice, and the second draw found the seat executor's live claim under the other id and dispositioned it (WORKER_RESULT_THE_FRONT_DOOR_AMBITION_DRAW_IS_THE_SEAT_EXECUTORS_LIVE_CLAIM_UNDER_ANOTHER_ID, in 49e22fadb), so nothing was built twice. Nothing re-asks a premise another lane spends first, so it is not fixed. 08:23: No spent-premise draw seen this stretch. Nothing re-asks a premise another lane spends first, so it is not fixed. 11:23: Live again. section-14-four-seed-grade-from-seed-5s-finished-arms is still in the continuation queue and still claimed, but 427e5f021 landed its grade at 11:23Z. If its holder releases it without retiring it, a later tick will re-grade a finished section. Nothing re-asks a premise another lane spends first, so it is not fixed. 14:20: section-14-four-seed-grade-from-seed-5s-finished-arms retired cleanly at 11:33Z. Live again on the switch-on ruling: it is a continuation and a focus row, the-directors-23-oct-switch-on-ruling-is-verified-and-acted-on retired without a landing, and the seat executor holds the build in 19070ec13. Item 1 names that holder so a second draw binds instead of rebuilding. Nothing re-asks a premise another lane spends first, so it is not fixed. 17:24: The switch-on ruling closed cleanly: 82f4b20bc landed and its continuation retired at 16:44, with no second build. No spent-premise draw was seen. Nothing re-asks a premise another lane spends first, so it is not fixed. 20:21: Live again. epg-reaches-the-household-bill is still offered by the continuation queue while surgical_land pid 1127827 lands that exact build (running 30m). If that landing succeeds and the row is not retired, a later tick is handed a spent build. Nothing re-asks a premise another lane spends first, so it is not fixed. 23:24: It bit. the-shared-checkout-advances-to-origin was drawn 8 minutes after 5cb0f1918 had already done its survey, and the tick recorded it premise_spent. My own focus item 2 also told the worker to bind to surgical_land pid 1127827, which had already exited with nothing landed. Nothing re-asks a premise another lane spends first, so it is not fixed. 02:24: No spent-premise draw this stretch. Two landings now in flight (the gas floor, the E6 overlay) are the previous focus's own work, and this record names neither again. Triaged in docs/direction/wrong_triage.yaml as fix, open, owner background/seat_continuation.py. Not fixed. 05:24: No spent-premise draw this stretch. The draw now prints a PREMISE CHECK naming cited commits already on origin, which warns a tick but does not withhold the row. Nothing re-asks a premise another lane spends first before offering it, so it is not fixed. 08:24: Live in a new shape. the-crisis-overlay-arm-is-graded-against-its-prereg is held until /var/tmp/crisis-overlay-out/arm.json exists, but the arm that would write it died at 06:21Z, so the hold can never release. Nothing re-asks whether a held row's producer is still alive, or whether another lane spent its premise. Focus item 5. Not fixed. 11:22: Live in a third shape. the-crisis-overlay-arm-is-graded-against-its-prereg has left seat_continuation.live() without being retired, while its producing arm is dead and never relaunched, so the grade has no route and nothing said so. Focus item 4 adds that branch. Not fixed. 14:20: Live again, unnoticed. a-tou-invoice-prints-each-registers-rate reads not_done in the draw ledger, but 50001b0b7 landed that exact build (a ToU invoice prints a Peak and an Off-peak register) under another id, and nothing bound it. The crisis-overlay grade's dead hold closed cleanly: it was retired premise_spent naming 6b6c1438b. Focus item 4 builds the re-ask. Not fixed. 17:20: It bit, quietly. The waiter crisis-overlay-waits-on-s14 saw section 14's grade.rc at 15:37Z and refused to launch, because its workdir /var/tmp/crisis-overlay-run2 had been deleted. The unit failed at 16:37 BST, and the launch register never saw a launch, so the brief reads 0 DIED. the-crisis-overlay-arm-on-the-default-book-is-graded is still offered as held on arm.json, which nothing will write. Focus items 2 and 4. Not fixed. 20:20: Live again. forward-years-after-the-basics-order-and-definition-of-done is still offered by seat_continuation.live(), but e3e5842fc landed its items 1, 2 and 4. The draw refused it twice only because surgical_land pid 1538016 held the stretch log, not because its premise was spent. Focus item 5 retires that row by hand. The re-ask build is not in focus this stretch (see not_now). Not fixed. 23:24: Live again, in two shapes. The crisis-overlay arm finished at 21:13Z and wrote arm.json, but the-crisis-overlay-arm-on-the-default-book-is-graded, the handoff its finding names three times, is in no queue, so a finished result has no route to its grade (focus item 1 gives it one by hand). And gone-household-lump-rule-applies-inside-the-run is still offered by seat_continuation.live() while two surgical_land processes (pids 3582804, 3743982) land that exact build. Nothing re-asks a premise another lane spends first, so it is not fixed. 03:21: Live again. the-gas-svt-term-rows-that-never-close-are-located-and-fixed is still offered by seat_continuation.live(), but 063dc4bbd landed that exact fix at 02:55Z. It is claimed, and the claim and the fix look like one lane, so no second build is likely. But if its holder releases it without retiring it, a later tick is handed a spent fix. Nothing re-asks a premise another lane spends first, so it is not fixed. 06:22: Live again, in two shapes. The 24 Oct map steer is queued twice: the-map-owed-pages-and-forward-plan and map-steer-knowledge-pages-and-forward-plan carry the same items. 997cfc67e landed the 102 note rulings and the payments page, and the switching page is landing now (surgical_land pid 3301267). And the-credit-refund-fires-from-the-ledgers-closing-balance is still offered, while its build sits finished and unlanded in /var/tmp/credit_refund_wt (428f31121). A second draw would rebuild it. Focus item 1 binds it. Nothing re-asks a premise another lane spends first, so it is not fixed. 09:20: Live again. The 24 Oct map steer was queued twice. the-map-owed-pages-and-forward-plan retired at 07:50Z, but the draw ledger still reads it not_done ('CANNOT ANSWER': its prose names no path). map-steer-knowledge-pages-and-forward-plan is still offered, though 3660142eb (switching) and 25d95f3ab (accounts and capital) have landed pages it names. This record gives C30's verdict the continuation's own id, so the two cannot be drawn as two items. Nothing re-asks a premise another lane spends first, so it is not fixed. 12:23: Live again, in two shapes. close-the-25-oct-steers-now-their-pages-exist is still offered, but b2bc3d8da moved six of those steers to done at 11:57Z, so most of its premise is spent. And the draw's PREMISE CHECK told the Monday-run holder that its four cited commits are already on origin, which reads as spent, when those commits are the run's precondition and not its result. The check cannot tell the two halves apart. Nothing re-asks a premise another lane spends first, so it is not fixed. 15:22: Live again. 4566ce348 (14:53Z) landed the per-pack counts of confirmed, corrected and open items that knowledge-pack-verification-census asks for, yet that continuation is still offered, and surgical_land pid 158784 is now landing a second per-pack census on the same Knowledge index. I have not read whether it adds to 4566ce348 or repeats it. Focus item 4 builds the re-ask. Not fixed. 18:21: No spent-premise draw this stretch. The three Lane 0 draws went to live items (the refunds, B13, W2_41), and the re-ask build itself was not drawn. Nothing re-asks a premise another lane spends first, so it is not fixed. 21:22: No duplicate build this stretch. The draw's held-work check refused e6-the-arrears-overlay-arm-is-graded 11 times while the seat executor graded it in /var/tmp/se-seat-executor, and that refusal was right. But that row and e6-arrears-overlay-second-seed are still offered while the grade sits uncommitted there, and the re-ask build was not drawn for the second stretch running. Focus item 3. Not fixed.",
     "last_at": "2026-10-25T21:22:13.273306+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 18,
+    "times_listed": 17,
     "corrected": false,
     "fate": "fix",
     "status": "already_fixed",
@@ -993,7 +1049,7 @@
     "what": "THE SEAT'S, THIS STRETCH. 4 of my 5 focus items were not drawn. Twelve queued continuations ran ahead of them, and both supplier items lost. Supplier commits were 0 of 18. This record drops every item a continuation already carries, so focus holds only work nothing else will reach. 14:20: Half better. 2 of my 4 items were drawn, the two at the top, and both landed (3a31999db, 6b6c1438b). The C34 price and the continuation re-ask were not drawn. The commit split reads supplier 0 of 14 again, because the EPG fix's files are world-side. Not corrected. 17:20: Better, not corrected. 2 of my 4 items were drawn and both landed (339495a44, 01a69f17d). The closed-account balance and the continuation re-ask were not drawn. The split reads supplier 0, both 2, other 9: the two supplier landings touched world files too. 20:20: Not corrected, and the split got worse. 2 of my 4 items were drawn: the forward-years order landed (e3e5842fc), and the crisis-overlay arm relaunched live at 20:20Z. The closed-account balance and the continuation re-ask were not drawn for the third orientation running. The split reads supplier 0 of 10, because the advisor steers, which run ahead of everything, took the stretch. This record puts the closed-account balance third, directly behind the one remaining advisor steer and a cheap supplier record. 23:24: Not corrected. 1 of my 5 items was drawn: the cost-of-work steer landed (0e69eec48). The EPG six bills, the closed-account balance and the C30 occupant fix were not drawn, the closed-account balance for the fourth orientation running. The split reads supplier 1 of 10 (D48's final-bill estimate, 565498b55). This record drops the item a continuation already carries (the basics grade) and puts the cheapest supplier items first. 03:21: Corrected. 3 of my 4 items were drawn, and all 3 landed: the six bills named (0a0530576), the closed-account balance published (33dd50527) at its fifth orientation, and the C30 occupant fixed with its three arms rerun (9bb30c4de). The fourth, the E6 grade, was not drawn because I keyed it by its atom id. A focus item keyed by an atom only biases the ordinary draw, and that draw had stopped taking E6. That is its own row below. The split reads supplier 1, both 1, world 3, other 11. The 'other' was mostly the advisor's map steer, which runs ahead of focus.",
     "last_at": "2026-10-25T03:21:34.378117+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 10,
+    "times_listed": 9,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1045,7 +1101,7 @@
     "what": "THE WORLD'S, CARRIED. A gas-heated fabric home's electricity has no season against SERL. 20:22: Unchanged. It waits for the post-publish world builds. 23:21: Focus item 4 measures the fabric homes' summer swing, which bears on this directly. 02:21: Measured (e6cdc9af9): fabric gas-heated homes read too flat (DJ/JJA 1.16 against 1.33-1.35), which confirms the row. The build is filed for after the publish. 05:22: Unchanged. The build stays filed for after the publish. 08:22: Unchanged. A sibling W2_30 defect (electric fabric homes priced at the gas rate) is filed for the same post-publish build. 23:20: Unchanged. It is still filed for after the publish. 11:21: Unchanged; still filed for after the publish. 23:21: Unchanged; filed for after the publish, behind item 4. 05:22: Unchanged; filed behind item 2, the payment draw, as the next world build. 08:23: Unchanged; filed behind the payment draw and the campaign split-homes change, both in flight. 11:22: Unchanged. It is filed behind the HH-EAC registration, which is landing now; the under-water exit and the split campaign homes are also in flight. 14:22: Unchanged. It now also waits for the shared checkout to reach origin (focus item 1), so the next world run is attributable. 17:22: Unchanged. It blocks no supplier result. The budget floor (focus item 3) goes first because it blocks the crisis bad-debt validator. 20:22: Unchanged. It blocks no supplier result. The budget floor (focus item 3) is still the next world build, and it was not drawn this stretch because the two supplier items ahead of it were. 23:20: Unchanged. It blocks no supplier result, and it is filed behind the budget ordering (focus item 3). 02:20: Unchanged. It blocks no supplier result, and it is filed behind the budget grade (focus item 3). 05:20: Unchanged. It blocks no supplier result, and it is filed behind the budget's second seed (focus item 3). 08:20: Unchanged. It blocks no supplier result, and it is filed behind the budget's second seed, which launched its off arm at 08:19Z. 11:20: Unchanged. It blocks no supplier result, and it is filed behind the budget second seed, which turns out never to have started (focus item 3). 14:21: Unchanged. It blocks no supplier result. The budget's second seed it was filed behind is now running (off arm finished, shared arm live), and the fabric build stays behind that grade so the book does not move under it. 17:23: Unchanged. It blocks no supplier result. It is filed behind the budget switches' default flip, which is under test now, so the book does not move under the flip. 23:24: Unchanged. It blocks no supplier result. It is filed behind the three-arm per-customer run (focus item 3), so the book does not move under it. 02:21: Unchanged. It blocks no supplier result. It stays behind the three-arm per-customer run (focus item 2), which has not started, so the book does not move under it. 05:20: Unchanged. It blocks no supplier result. It stays behind the three-arm per-customer run, which launched at 03:26Z and is still waiting for admission, so the book does not move under it. 08:22: Unchanged. It blocks no supplier result. It stays behind the per-customer, opex-credit, bad-debt and retention-netting arms, and behind the meter-exchange build (focus item 4), which does block one. 11:22: Unchanged. It blocks no supplier result. It stays behind the four queued arm sets, which now run one after another until about 01:00Z tomorrow, and behind the meter-exchange flip. 14:20: Unchanged. It blocks no supplier result. It stays behind the queued arm sets (flat, then scopex, baddebt and retention netting, to about 01:00Z tomorrow), so the book does not move under them. 17:24: Unchanged. It blocks no supplier result. It stays behind the two arm sets still running (scopex nocredit to about 18:30Z, then the retnet pair), so the book does not move under them. Item 2 may name a different world build (W2_38 arrears volume) that does block one. 20:20: Unchanged. It blocks no supplier result. The retnet pair is still running (off arm since 18:26Z), so the book does not move under it, and both world items in focus are read-only. 23:20: Unchanged. It blocks no supplier result. It stays behind the shortfall stock-versus-demand pair now running, so only one world variable moves at a time. 02:22: Unchanged. It blocks no supplier result. It stays behind item 1's dual-leaver fix and the held-money seed-2 pair, so only one world variable moves at a time. 05:22: Unchanged. It blocks no supplier result. 2b81e1466 just moved the book, and the meter-exchange flip (item 4) goes first because it blocks D48's level. 08:24: Unchanged. It blocks no supplier result. It stays behind the HEAD run (item 2) and the meter-exchange flip (item 4), one world variable at a time. 11:21: Unchanged. It blocks no supplier result. It stays behind the meter-exchange flip (item 3), one world variable at a time. 14:20: Unchanged. It blocks no supplier result. The site steers take this stretch, and the meter-exchange flip still holds the next world slot. 17:20: Unchanged. It blocks no supplier result. The profile-settlement build (surgical_land live since 16:23Z) moves the fabric homes' wholesale leg now, and the meter-exchange flip still holds the next world slot, one world variable at a time. 20:24: Unchanged. It blocks no supplier result. Profile settlement landed (ed0717246) and moved the fabric homes' wholesale leg; the meter-exchange flip still holds the next world slot, and section 14 seed 5 is mid-run on this book, so nothing moves under it. 08:23: Unchanged. It blocks no supplier result. The next world question is the crisis arrears read (focus item 4), which is read-only, so nothing moves under it. 11:23: Unchanged. It blocks no supplier result, and no world build is in focus this stretch, so nothing moves under it. 14:20: Unchanged. It blocks no supplier result, and no world build is in focus, so nothing moves under E6's arm pair. 17:24: Unchanged. It blocks no supplier result. Items 1 and 3 need the book held still, so nothing moves under them. 20:21: Unchanged. It blocks no supplier result. The EBSS arm pair is running on this book (launched 19:51Z) and the EPG bill fix is landing, so nothing moves under them. 23:24: Unchanged. It blocks no supplier result. The EPG bill fix is still landing and the fresh over-cap run waits on it, so nothing moves under them. 02:24: Unchanged. It blocks no supplier result. Focus item 3 re-takes the per-customer-against-flat grade on the clean book, so nothing moves under it. 05:24: Unchanged. It blocks no supplier result. The section 14 clean-book re-take and the C30 seeds are queued on this book, so nothing moves under them, and the meter-exchange flip still holds the next world slot. 08:24: Unchanged. It blocks no supplier result. The section 14 clean-book re-take is computing on this book (seed 2's second arm is live), so nothing moves under it. 11:22: Unchanged. It blocks no supplier result. Section 14's clean-book re-take has about 3 arms left on this book, so nothing moves under it, and the meter-exchange flip holds the next world slot. 14:20: Unchanged. It blocks no supplier result. Section 14's last seed is computing on this book (seed 5's flat arm, live since 13:27Z), so nothing moves under it. 17:20: Unchanged. It blocks no supplier result. The forward-years ruling (focus item 1) puts the basics first, and this is world fidelity under none of them, so it stays filed behind the fresh EPG run and the E6 relaunch, one world variable at a time. 20:20: Unchanged. It blocks no supplier result. The one world build in focus is the C30 occupant refusal (item 4), which does block one, so this stays behind it, one world variable at a time.",
     "last_at": "2026-10-24T20:20:04.643262+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 7,
+    "times_listed": 6,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -1058,7 +1114,7 @@
     "what": "THE SEAT'S, THIS STRETCH. My previous focus item 3 named the atom C34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv. The draw holds that atom at director_gate, and Lane 0 takes only items whose id is not an atom, so nothing could reach it. It sits at 587 unchanged draws. This record gives the same work a non-atom id (focus item 4). It is not corrected until that item is drawn. 11:22: Not corrected. The Lane 0 id c34-the-renewal-price-shares-the-value-advice-creates was not drawn either, because queued continuations ran ahead of focus. It is focus item 3 again. 14:20: Not corrected. Focus items 1 and 2 were drawn, and c34-the-renewal-price-shares-the-value-advice-creates was not, again behind continuations. It is focus item 2 now. 17:20: Corrected. c34-the-renewal-price-shares-the-value-advice-creates was drawn and landed as 01a69f17d (the switch is default off; the table bills 1 of 18 cases at the median headroom and 12 of 18 at GBP 4 or more), and the row was retired at 17:03Z.",
     "last_at": "2026-10-24T17:20:28.896268+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 5,
+    "times_listed": 4,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1071,7 +1127,7 @@
     "what": "THE MACHINE'S, THIS STRETCH. 833ef83e8, a machine commit, edited the director's signed advisor file DIRECTOR_STEER_SHOW_EVERYTHING_WE_HAVE_LEARNED_FROM_THE_RECORD_NOT_FROM_MEMORY_2026-10-23.md in place, so the advisor channel now refuses it as unsigned. Only the signed text (946d21916) carries his words. It should have been moved to done/ with a ## Done section, not edited. 14:20: It happened again. cfe4d94be, a second machine commit, edited the same signed file in place. The signed text is in 946d21916, and its work is the how-its-built-steer-rest continuation, which must move the file to done/ with a ## Done section and the reason, not edit it. Not corrected. 17:20: Corrected. a9fce0511 moved the unsigned copy to docs/staging/advisor/done/ pointing at its signed bytes (946d21916), and d2076bf0a closed the steer there, without a further in-place edit.",
     "last_at": "2026-10-24T17:20:28.896268+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 5,
+    "times_listed": 4,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1084,7 +1140,7 @@
     "what": "THE MACHINE'S, THIS STRETCH. The E6 crisis-overlay arm was launched with SE_POPULATION_SEED=70424, a book seed that docs/design/curriculum/varied_population_draw_activation.json does not list. live_population refused it at start, as it should, and it died in 4 seconds (06:21:51Z). Nothing compared the seed against the activation record before the launch, so its grade waited 4 hours on an artefact that could never appear. Focus item 3 re-takes it on a book it may read. 11:22: Not corrected. The arm was never relaunched, and its grading continuation has left the live queue. Focus item 2 relaunches it on the default book, behind section 14. 14:20: Corrected. 6b6c1438b relaunched the arm with the seed unset, on the default book, queued behind section 14's grade.rc (waiter crisis-overlay-waits-on-s14), and its grade is held on arm.json. The old continuation was retired premise_spent. No pre-launch seed check was built: there has been one instance, and it failed loudly in 4 seconds.",
     "last_at": "2026-10-24T14:20:43.244394+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1097,7 +1153,7 @@
     "what": "THE COMPANY'S, THIS STRETCH. The void-stub EPG fix (ce35a25e2) carves a receipt about 47.7 times the stamped rate on 5 electricity stubs (Dec 2022 to Jun 2023, 4 incoming-occupant households). Bills go to -GBP 2,950, GBP 205,866.61 is carved against GBP 199,968.51 booked, and the GBP 5,898.10 gap is a transfer the world never made (140b5ff7b). The over-cap grade could not see it. Focus item 1. 14:20: Corrected. 3a31999db named the route: fold_to_days summed hmt_epg_receipt_gbp_per_mwh over 48 settlement periods. Every *_per_mwh, *_per_kwh and *_per_day field is now carried as a rate. At real inputs the stub reads a GBP 61.61 receipt and a GBP 72.21 bill, the grader exits 1 on carved != booked or on a negative estimate, and the finding is LATENT on origin. The fresh-run grade is queued as the-epg-fold-fix-is-graded-on-a-fresh-full-run.",
     "last_at": "2026-10-24T14:20:43.244394+00:00",
     "first_at": "2026-10-24T11:21:39.756920+00:00",
-    "times_listed": 3,
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -1106,18 +1162,78 @@
     "reason": null
    }
   ],
-  "distinct": 59,
+  "distinct": 63,
   "triaged": 8,
   "triaged_by_fate": {
    "fix": 3,
    "fold": 4,
    "accept": 1
   },
-  "untriaged": 51,
-  "distinct_open": 9,
-  "rows": 319,
+  "untriaged": 55,
+  "distinct_open": 13,
+  "rows": 322,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:two landings turned tests on origin red that their own test selection never ran"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:the published customer pages print 'paid in total' equal to 'revenue billed' on every account, while the stage-5 ledger collected less (occ-52fbc3104c5f: gbp 4,747.99 against 5,062.23)"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:the supplier's customer timeline showed world life events: 414 of 649 fell after supply ended"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:the one-due-date fresh run was killed from outside at 7 june 2025, with no exit line, no traceback and an empty output directory (08a9fbcc1)"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:the suite grades a different record from the one the page prints"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:a successor's page prints a different meter number from the account it succeeded: in 253 of 253 successions, the occupant's mpan or mprn differs from its predecessor's, because tools/generate_customer_data.py (_mpan, _mprn) and company/crm/customer_registry.mpan_core hash the account id, not the supply point"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:syn-2016-565's estimated electricity bills ran 1,250 to 2,007 kwh a month from jul 2023 to jun 2024, five to ten times its meter, until an actual read credited gbp 1,471.52, and no check caught it, because the book's use band is drawn over estimated bills too"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:the bill estimator appears to read the true month after an estimated run"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:a direct debit succeeds 31 to 45 days after its due date with no return on 181 accounts (pros-2016-0020: invoice 9291 due 2016-03-20, collected 2016-04-28)"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:the energy price guarantee is inside 'revenue, before vat' at the supplier's tariff and on no page line, so 266 of 316 accounts fall outside the billed-against-revenue band"
+   },
+   {
+    "at": "2026-10-28T18:24:56.707340+00:00",
+    "corrected": false,
+    "problem": "text:households do not cut use when prices rise: on the same accounts, 2021 to 2022, electricity -0.3% and gas -2.2%, against a published -10.3% and -19.2% unadjusted (docs/market_research/domestic_shift_response_arc.json)"
+   },
    {
     "at": "2026-10-28T15:24:57.581879+00:00",
     "corrected": false,
@@ -2667,51 +2783,6 @@
     "at": "2026-10-24T11:21:39.756920+00:00",
     "corrected": false,
     "problem": "text:833ef83e8, a machine commit, edited the director's signed advisor file director_steer_show_everything_we_have_learned_from_the_record_not_from_memory_2026-10-23.md in place, so the advisor channel now refuses it as unsigned"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "triage:a-gas-heated-homes-electricity-has-no-season"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "triage:a-continuation-is-not-re-asked-when-another-lane-spends-its-premise"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "text:explore's cast rules (83c4fc9d6) found 4,764 of 14,012 pre-renewal invoices on the 19 oct run (199 of 550 households) more than 0.5% above min(cap, epg), and a november 2022 bill at exactly the cap instead of the epg"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "text:the e6 crisis-overlay arm was launched with se_population_seed=70424, a book seed that docs/design/curriculum/varied_population_draw_activation.json does not list"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "text:my previous focus item 3 named the atom c34_next_best_action_is_one_decision_across_debt_retention_upsell_and_carbon_judged_by_clv"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "text:the void-stub epg fix (ce35a25e2) carves a receipt about 47.7 times the stamped rate on 5 electricity stubs (dec 2022 to jun 2023, 4 incoming-occupant households)"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "text:4 of my 5 focus items were not drawn"
-   },
-   {
-    "at": "2026-10-24T11:21:39.756920+00:00",
-    "corrected": false,
-    "problem": "text:833ef83e8, a machine commit, edited the director's signed advisor file director_steer_show_everything_we_have_learned_from_the_record_not_from_memory_2026-10-23.md in place, so the advisor channel now refuses it as unsigned"
    }
   ],
   "refused_own_records": [
@@ -2740,19 +2811,60 @@
     "problems": []
    }
   ],
-  "outstanding": 267,
+  "outstanding": 270,
   "corrected": 52,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-desk-fix-is-graded-on-a-fresh-run",
-   "the-second-cold-reads-new-classes-become-rows",
-   "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
-   "the-third-cold-read"
+   "the-estimate-window-holds-only-what-the-meter-told-the-supplier",
+   "the-page-and-the-desk-read-one-payment-record",
+   "the-third-cold-read",
+   "the-page-prints-the-energy-price-guarantee"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "atom": {
+      "drawn": [
+       "W2_36_unbilled_energy_arises_the_way_it_does_in_reality"
+      ],
+      "focus": [
+       "W2_36_unbilled_energy_arises_the_way_it_does_in_reality"
+      ],
+      "steered": true
+     },
+     "lane_0": {
+      "drawn": [
+       "the-desk-fix-is-graded-on-a-fresh-run",
+       "the-second-cold-reads-new-classes-become-rows",
+       "the-third-cold-read"
+      ],
+      "focus": [
+       "the-desk-fix-is-graded-on-a-fresh-run",
+       "the-second-cold-reads-new-classes-become-rows",
+       "the-third-cold-read"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-desk-fix-is-graded-on-a-fresh-run",
+     "the-second-cold-reads-new-classes-become-rows",
+     "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
+     "the-third-cold-read"
+    ],
+    "focus": [
+     "the-desk-fix-is-graded-on-a-fresh-run",
+     "the-second-cold-reads-new-classes-become-rows",
+     "W2_36_unbilled_energy_arises_the_way_it_does_in_reality",
+     "the-third-cold-read"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-28T15:24:57.581879+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-10-28T15:24:57.581879+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -2870,40 +2982,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-28T03:22:42.831507+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-10-28T03:22:42.831507+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-collections-desk-and-the-billing-ledger-keep-one-payment-record",
-       "the-second-cold-read-on-one-fresh-full-run",
-       "grade-e6s-two-book-seeds",
-       "the-occupier-window-payment-outcome-has-one-home"
-      ],
-      "focus": [
-       "the-collections-desk-and-the-billing-ledger-keep-one-payment-record",
-       "the-second-cold-read-on-one-fresh-full-run",
-       "grade-e6s-two-book-seeds",
-       "the-occupier-window-payment-outcome-has-one-home"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-collections-desk-and-the-billing-ledger-keep-one-payment-record",
-     "the-second-cold-read-on-one-fresh-full-run",
-     "grade-e6s-two-book-seeds",
-     "the-occupier-window-payment-outcome-has-one-home"
-    ],
-    "focus": [
-     "the-collections-desk-and-the-billing-ledger-keep-one-payment-record",
-     "the-second-cold-read-on-one-fresh-full-run",
-     "grade-e6s-two-book-seeds",
-     "the-occupier-window-payment-outcome-has-one-home"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-10-28T00:24:13.758235+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-10-28T00:24:13.758235+00:00"
    }
   ],
   "steered_recently": true,
@@ -2911,13 +2989,13 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 47,
-  "chained": 47,
+  "population": 48,
+  "chained": 48,
   "minted": 4,
-  "unminted": 43,
+  "unminted": 44,
   "unminted_by_kind": {
    "alarm": 17,
-   "finding": 24,
+   "finding": 25,
    "reference": 1,
    "unknown": 1
   },
