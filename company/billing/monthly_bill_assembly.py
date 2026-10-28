@@ -771,6 +771,13 @@ def build_monthly_bills(
                     date.fromisoformat(true_bill["period_end"]),
                     register_reads[-1][1] + read_advance_kwh,
                 ))
+                # The meter's own register, which an actual bill prints. After an estimated run the
+                # ledger's running index holds the estimates, not this; the opening is the register
+                # less the month this bill charges, so the printed advance is the billed usage and
+                # the run's difference is the catch-up line's, not a read the meter never showed.
+                bill["register_closing_kwh"] = register_reads[-1][1]
+                bill["register_opening_kwh"] = (
+                    register_reads[-1][1] - true_bill["total_consumption_kwh"])
                 # D3 step 2: this real read resolves any pending run of
                 # estimated bills since the last one -- fold the reconciled
                 # correction (capped per SLC 21BA where it's an

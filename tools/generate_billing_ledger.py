@@ -460,6 +460,12 @@ def generate(run_json_path=None, out_path=None):
         read_key = (cid, commodity)
         opening_read_kwh = running_closing_read.get(read_key, 0.0)
         closing_read_kwh = opening_read_kwh + register_consumption_kwh
+        if read_type == "A" and bill.get("register_closing_kwh") is not None:
+            # An actual read prints the company's own register (monthly_bill_assembly), not the
+            # previous printed register plus the month: after an estimated run the two differ by
+            # the run's error. Estimates that follow advance from the meter's register.
+            opening_read_kwh = bill["register_opening_kwh"]
+            closing_read_kwh = bill["register_closing_kwh"]
         running_closing_read[read_key] = closing_read_kwh
 
         # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1 (2026-07-11), R10 class fix:
