@@ -855,11 +855,17 @@ def build_monthly_bills(
                         bill["clarity_score"] = max(
                             MIN_CLARITY_SCORE, min(MAX_CLARITY_SCORE, clarity)
                         )
+                # The window entry is what the read told the supplier: the register's advance since
+                # the last actual read, over the days it covers. After an estimated run that is the
+                # whole run plus this month, never this month's settlement kWh, which no read gave
+                # (R3, test_the_estimate_window_holds_only_what_the_meter_told_the_supplier.py).
+                read_from = (pending_estimated_run[0]["period_start"] if pending_estimated_run
+                             else true_bill["period_start"])
                 pending_estimated_run = []
                 trailing_actual_periods.append((
-                    date.fromisoformat(true_bill["period_start"]),
+                    date.fromisoformat(read_from),
                     date.fromisoformat(true_bill["period_end"]),
-                    true_bill["total_consumption_kwh"],
+                    read_advance_kwh,
                 ))
                 consecutive_estimated = 0
             else:

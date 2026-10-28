@@ -40,14 +40,48 @@ The cold reader's 2016-to-2019 example (OCC-423594fbfa6b, on the 1691ec0ecd book
 pre-EPG kind and is not explained yet.
 
 **R3. Estimates that track the month too closely (N7, 292 bills on 50 accounts).** The estimator's
-reference windows (three actual months, or an advance of 182 to 731 days) differ from the row's,
-which explains part of the count. But on OCC-01e79fcf2d4fg, the estimates after a read sit within
-1% to 6% of the month's settlement kWh (Dec 2021: 2,138.6 billed against 2,151.1 settled). Neither
-window rule reproduces that by hand. Before this exception can be called explained, trace what
-`trailing_actual_periods` holds after an estimated run in `company/billing/monthly_bill_assembly.py`.
-It appends the true month's `total_consumption_kwh` for a month read at its end. If the previous
-month was estimated, a supplier knows only the advance since the last actual read. **If so, this
-is an epistemic-wall question**, and the epistemic verifier should be run on the trace.
+reference windows (three actual reads, or an advance of 182 to 731 days) differ from the row's,
+which explains part of the count. On OCC-01e79fcf2d4fg, the estimates after a read sit within
+1% to 6% of the month's settlement kWh (Dec 2021: 2,138.6 billed against 2,151.1 settled).
+
+*Traced 2026-10-28. The example is refuted as a crossing; the cause is the printed read.* The Dec
+2021 estimate is `annualised_advance_kwh` exactly (2,138.62). The register advanced 6,514.85 kWh from
+the 20 Mar opening read to the 30 Nov actual read, and that advance is annualised at the 182-day
+floor. That is what the meter told the supplier, and the household's use was steady, so the estimate
+was simply good. The breach comes from the ledger. `tools/generate_billing_ledger.py` prints an
+actual bill's closing read as the previous printed register (seven 0 kWh estimates) plus the month's
+own kWh: 1,618.9 where the meter read 6,514.85. The row's references are printed actual reads, so it
+graded the estimate against a quarter of the real advance. **A bill prints an "actual" read the meter
+never showed** wherever an estimated run before it billed a different kWh from the meter's. That
+is a customer-facing defect on its own.
+
+Measured on a scratch copy of the ledger with each actual bill given the meter's register
+(`docs/staging/records/SEAT_PREREGISTRATION_R3_THE_PRINTED_ACTUAL_REGISTER_AND_THE_ESTIMATE_WINDOW_2026-10-28.md`):
+292 falls to **151 on 30 accounts**, so 141 are the printed register. On the same register,
+`INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` rises from 11 to 20 runs: the printed register was hiding
+runs billed 3 to 5.5 times what the meter advanced.
+
+*The crossing the item suspected is real, and it lives elsewhere.* After an estimated run,
+`trailing_actual_periods` took the month's settlement kWh over the month alone, which no read gives a
+supplier. It set the estimate wherever no actual read lay 182 or more days back: **2,754 of 31,588
+estimated bills (8.7%) on 493 accounts**, with 55 of the 292 among them and 38 of the 151. **Fixed**:
+the entry now spans the last actual read to this one and holds the register's advance
+(`company/billing/monthly_bill_assembly.py`). Test, red on origin:
+`tests/company/billing/test_the_estimate_window_holds_only_what_the_meter_told_the_supplier.py`. The
+prepayment branch's window append is never read, because a prepayment account is never estimated
+and its channel is fixed for the account's run. The epistemic verifier passed the diff.
+
+Two follow-ups from that review, both open:
+- The prepayment branch's `read_advance_kwh` is the month's kWh alone, even after unread months. So
+  its register runs low, and the theft screen's `registered_kwh` reads it on every prepayment actual
+  read.
+- `_resolve_catchup` prices the run's correction from each unread month's own true charge. No read
+  gives how an advance splits across months. A supplier shares it out by the profile.
+
+Open, and handed on: the ledger prints the meter's register on an actual bill. That needs a K8
+reading of how a bill after an estimated run shows its reads, because the printed usage then includes
+the run's correction. Then re-grade on a fresh book carrying both fixes. The prediction for that
+grade is filed in the pre-registration above.
 
 **R4. A held bill counts on the usage panel (N5, 10 account-years).** These are the same four
 accounts and nine held months as `INV_OVERDUE_WITHIN_BALANCE`'s exception, with the same cause and
@@ -66,7 +100,7 @@ work, and it is a fidelity fix, not a feature.
 
 ## Not done here
 
-- R1, R2's page line, R3's trace and R5. Each is named in its exception's `retired_by`.
+- R1, R2's page line, R3's printed actual read and R5. Each is named in its exception's `retired_by`.
 - The commons still lacks the licence text for smart data access (SLC 47 and its gas counterpart).
   That GAP is on `INV_SMART_METER_BILLED_ON_ITS_OWN_READS`.
 - No fresh run was launched for the zero-advance fix. Item 1's run (`the-desk-fix-is-graded-on-a-fresh-run`)
