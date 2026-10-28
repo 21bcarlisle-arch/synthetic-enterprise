@@ -39,3 +39,34 @@ clear the shared tree's 30 contested paths, which other lanes hold.
 
 **Discharges when** a note dated 2026-11-02 is on the shared tree with four sections, checked
 after 07:00 on 2 Nov (handed on as `the-2-nov-monday-note-is-on-the-shared-tree`).
+
+## Re-measured, 28 Oct 14:40 GMT (worker tick that drew `the-2-nov-monday-note-is-on-the-shared-tree`)
+
+**The drawn item was not yet due.** It reads the note after 07:00 on 2 Nov, and it was drawn on
+28 Oct. A continuation expires after six hours, so it cannot wait five days in that store either.
+I released the claim. This finding carries the check: DO NOT DRAW BEFORE 07:15 on 2026-11-02.
+
+**The premise is live, but narrower than "30 contested paths".** The shared tree is still at
+`5e3e9966a5`, 68 behind origin, and does not contain `8b764fbdf1`. I ran the reconciler's own
+read-only classifiers (`background/origin_reconcile.py`) over the 32 blockers it now names:
+
+- **30 are lossless already.** 14 tracked and 10 untracked paths hash equal to origin's blob,
+  and the rest match an earlier origin revision of their own path (`earlier_revision_twins`).
+- **`docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md`** is a producer's
+  output (`generated_output_verdicts`), its change carries cleanly, and it has been untouched
+  for 383h. That puts it in three clearable classes.
+- **`tests/tools/test_generate_billing_ledger.py` is the one path that holds the whole advance.**
+  It conflicts on carry and was last written 30.8h ago, under the 48h abandonment line. Its only
+  content origin lacks is `test_an_occupier_bill_the_engine_never_collects_carries_the_credit_its_account_took`.
+  Run against origin's code in a scratch worktree, that test FAILS: origin's ledger records *no*
+  payment on a deemed-account bill (`{'OCC-EB1': [], 'OCC-EB2': []}`), by design (line 82,
+  "collected nothing from anyone"). So the copy asserts a design origin has since replaced. It
+  is not work that origin is missing.
+
+**Prediction, filed before the outcome:** the copy crosses `ABANDONED_AFTER_HOURS = 48` at about
+07:46 GMT on 29 Oct. On the next cadence after that, the reconciler preserves it on a ref, clears
+it, and fast-forwards the shared tree past `8b764fbdf1`, three days before the 07:00 tick on
+2 Nov. Nobody needs to touch another lane's file early. Two things would refute this: a new
+conflicting edit lands in the shared tree before then, or the holder rewrites the test file
+(which restarts its clock). If the shared tree is still behind `8b764fbdf1` at 12:00 on 29 Oct,
+that is the next thing to look at, ahead of the 2 Nov read.
