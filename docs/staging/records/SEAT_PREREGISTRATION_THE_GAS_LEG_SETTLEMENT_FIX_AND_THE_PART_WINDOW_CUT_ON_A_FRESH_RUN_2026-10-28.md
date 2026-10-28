@@ -59,3 +59,16 @@ predictions below are stated against 1691's own `total_bad_debt`, the figure the
 ## Grade
 
 *(written after the run returned)*
+
+## Amendment before the run returned (2026-10-28): P6 is already known to fail, and why
+
+P6 was written while the baseline probe was still running. Its result came back afterwards. On the
+1691 book rebuilt under HEAD's ledger code, `INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23` breaches 12, not
+3 or fewer. Five of the 12 fall on part-window months. The run at 20e7d66234 has the same bill
+assembly, so I expect it to grade about 12 as well. **P6 stands as written and is predicted refuted.**
+
+The cause is a share defect in bill assembly, which is not this run's fix. It is fixed in a separate
+landing, and the cause is in
+`SEAT_FINDING_THE_FIRST_COLD_READ_FINDS_PAGE_ARITHMETIC_THAT_DOES_NOT_RECONCILE_AND_A_MARGIN_NOBODY_DEFINED_2026-10-27.md`.
+This run does not carry it, so attribution for P1 to P5 is unchanged. On the full book, P7's flags
+were 1,494 under 1691's ledger code and 1,572 under HEAD's.

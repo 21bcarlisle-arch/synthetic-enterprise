@@ -283,3 +283,39 @@ both in `tests/tools/test_a_bill_inside_the_occupier_window_is_the_deemed_accoun
 **Open, not this item:** OCC-bec72a04dec8's carry, which needs re-reading on the next run because
 this cut changes its part-window month; PROS-2016-0117; PROS-2018-0267; the six credit-netting
 accounts (OCC-423594fbfa6bg class).
+
+## A window month the EBSS credit paid read as the payer's (2026-10-28, gas-leg re-measure)
+
+**Found by** re-grading the 1691ec0ecd book with HEAD's ledger code (2bef058eb), before the fresh run
+returned. `INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23` went from 3 to 12, over the exception's ceiling of
+3. So the next publish of any book would have been refused.
+
+**Cause.** This was not the ledger cut. 2bef058eb made the ledger follow the engine, and that exposed
+an older defect in bill assembly. The world books each window row's energy as `occupier_debt_gbp`,
+**net of the deemed account's EBSS credit**. Bill assembly took `occupier_share` as debt over
+revenue. So a window month the credit wholly paid had share 0, and a month it partly paid had its
+share understated. The arrears engine then asked the named payer for days that were the occupier's,
+and that the government's credit had already paid. On the 1691ec0ecd book this was 14 bills,
+GBP 1,160, across six OCC accounts. OCC-bec72a04dec8's Dec 2022 to Feb 2023 is the example: the
+payer was asked for the whole bill. Before 2bef058eb, the ledger hid this by posting the occupier's
+credit on the payer's page.
+
+**Fixed.** `monthly_bill_assembly.occupier_window_share` takes the share as the window rows' revenue
+over the month's. A row is in the window when it carries `occupier_debt_gbp`, zero or not. The page
+ledger no longer posts a deemed bill's EBSS to the payer. Once the share was right, that posting had
+left each of the six payers GBP 67 to 134 in credit. Tests, red on the old code:
+- `tests/company/billing/test_a_window_month_the_ebss_credit_paid_is_still_the_occupiers.py`
+- `tests/tools/test_a_bill_inside_the_occupier_window_is_the_deemed_accounts.py::test_a_window_month_the_ebss_credit_paid_leaves_the_payers_page_at_nothing`
+
+**Measured on the 1691ec0ecd book, rebuilt with the fixed share** (this is a rebuild; the engine
+re-resolves from the bills):
+- 14 bills move. Ten become wholly the occupier's and four become part-window.
+- The EBSS row breaches 12 → 6. Three are the void months already excepted. Three are months the
+  deemed account held at 00:00 on the 1st, with the payer named later that month (guidance 5.4). In
+  each case the export carries no window, so these are the grader's. The exception is widened to 6
+  with both causes named.
+- The six payers' page balances go from GBP 0 to 134 in credit, then to 0 after the page fix.
+- Accounts in credit by more than GBP 1: 11, unchanged.
+
+**Not yet measured by a run.** Run `20e7d66234` was queued before this fix, so it grades the old
+share. The engine's own resolution changes on these 14 bills, and that needs the run after it.

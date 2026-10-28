@@ -531,6 +531,21 @@ def _back_billing_write_off(
     )
 
 
+def occupier_window_share(rows: list[dict]) -> float:
+    """The share of a month's energy used inside the unnamed occupier's window: its rows' revenue
+    over the month's. The world marks every window row with `occupier_debt_gbp`, zero where the
+    deemed account's EBSS credit paid it. This was the debt over revenue, so a window month the
+    credit paid read as share 0 and the named payer was asked for it whole (OCC-bec72a04dec8,
+    Dec 2022 to Feb 2023: 14 bills, GBP 1,160 on the 1691ec0ecd book)."""
+    window = [r for r in rows if "occupier_debt_gbp" in r]
+    if not window:
+        return 0.0
+    revenue_gbp = sum(r.get("revenue_gbp", 0.0) for r in rows)
+    if revenue_gbp <= 0:
+        return 1.0
+    return min(1.0, sum(r.get("revenue_gbp", 0.0) for r in window) / revenue_gbp)
+
+
 def build_monthly_bills(
     all_records: list[dict],
     read_feed: ReadArrivalFeed,
@@ -933,11 +948,10 @@ def build_monthly_bills(
             # carries that share and the arrears engine does not collect or write it off again.
             # A share, not a flag: the month the occupant is named holds rows on both sides.
             occupier_gbp = sum(r.get("occupier_debt_gbp", 0.0) for r in months[month])
-            if occupier_gbp:
-                revenue_gbp = sum(r.get("revenue_gbp", 0.0) for r in months[month])
+            share = occupier_window_share(months[month])
+            if share:
                 bill["occupier_debt_gbp"] = occupier_gbp
-                bill["occupier_share"] = (
-                    min(1.0, occupier_gbp / revenue_gbp) if revenue_gbp > 0 else 1.0)
+                bill["occupier_share"] = share
             # The EBSS credit the occupier's deemed account took that month (one per account per
             # month), so neither the arrears engine nor the ledger gives a named payer a second.
             occupier_credit = sum(r.get("occupier_scheme_credit_gbp", 0.0) for r in months[month])

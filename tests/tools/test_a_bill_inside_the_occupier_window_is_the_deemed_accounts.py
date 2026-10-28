@@ -104,3 +104,18 @@ def test_an_ebss_credit_the_occupier_held_is_not_the_payers(tmp_path):
     led = build_account_ledger(cust, "2024-12-31")
     assert not [e for e in led["entries"] if e["type"] == "scheme_credit"]
     assert led["current_balance_gbp"] == round(sum(i["outstanding_gbp"] for i in cust["invoices"]), 2)
+
+
+def test_a_window_month_the_ebss_credit_paid_leaves_the_payers_page_at_nothing(tmp_path):
+    """A month wholly inside the window whose EBSS credit the deemed account held: the bill and the
+    credit are both the deemed account's, so the payer's page nets to nothing. Once the window share
+    counted the credit-paid days, the page still posted the month's GBP 67 to the payer, leaving it
+    in credit by 67 a month (OCC-bec72a04dec8, Dec 2022 and Jan 2023)."""
+    bills = [dict(_resi_bill("OCC-6", pe, 40.0), occupier_share=1.0, occupier_scheme_credit_gbp=40.0,
+                  occupier_scheme_month_credit_gbp=67.0) for pe in ("2022-12-31", "2023-01-31")]
+    cust = _ledger(tmp_path, bills)["OCC-6"]
+    assert [i["billed_to"] for i in cust["invoices"]] == ["occupier", "occupier"]
+    assert all(i.get("scheme_credit_month_gbp") == 67.0 for i in cust["invoices"]), (
+        "the month credit is not on the deemed bill: the partition is not reached")
+    led = build_account_ledger(cust, "2024-12-31")
+    assert led["current_balance_gbp"] == 0.0, led["entries"]

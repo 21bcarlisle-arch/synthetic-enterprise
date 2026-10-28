@@ -80,7 +80,10 @@ def build_account_ledger(cust, as_of):
         scheme = inv.get("scheme_credit_month_gbp") or (pay and (
             pay.get("scheme_credit_gbp")
             or (pay["amount_gbp"] if pay.get("method") == "scheme_credit" else 0.0)))
-        if scheme and inv["issue_date"] <= as_of:
+        # A bill billed to the deemed account takes its EBSS with it: the credit was the deemed
+        # account's, and posting it here left the payer in credit by GBP 67 a month for a month it
+        # never held (OCC-bec72a04dec8, once the window share counts the credit-paid days).
+        if scheme and inv["issue_date"] <= as_of and not inv.get("billed_to"):
             entries.append({
                 "date": inv["issue_date"], "type": "scheme_credit", "invoice_number": num,
                 "amount_gbp": round(-scheme, 2), "info_amount_gbp": None,
