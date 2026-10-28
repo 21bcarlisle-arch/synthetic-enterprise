@@ -80,7 +80,7 @@ line, and the DESNZ gas and T&D factors.
 - SYN-2016-479 bills on read type M on every period of both fuels.
 - This is not the first read's O32 (day-clock text on a gas-only account) and no row grades it. It is the "one definition with several homes" shape.
 
-Finding: `docs/staging/SEAT_FINDING_THE_THIRD_COLD_READ_FINDS_THE_METER_TYPE_PRINTED_FROM_TWO_RECORDS_THAT_DISAGREE_2026-10-28.md`.
+Finding: `docs/staging/done/SEAT_FINDING_THE_THIRD_COLD_READ_FINDS_THE_METER_TYPE_PRINTED_FROM_TWO_RECORDS_THAT_DISAGREE_2026-10-28.md`.
 
 ### Existing classes, by objection
 

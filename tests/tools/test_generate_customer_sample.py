@@ -12,8 +12,9 @@ import json
 from tools.generate_customer_sample import generate
 
 
-def _minimal_run(tmp_path, customers):
+def _minimal_run(tmp_path, customers, meter_read_log=()):
     run = {
+        "meter_read_log": list(meter_read_log),
         "per_customer_lifetime": customers,
         "by_billing_account": {},
         "customer_events": [],
@@ -30,8 +31,8 @@ def _minimal_run(tmp_path, customers):
     return run_json
 
 
-def _generate(tmp_path, customers):
-    run_json = _minimal_run(tmp_path, customers)
+def _generate(tmp_path, customers, meter_read_log=()):
+    run_json = _minimal_run(tmp_path, customers, meter_read_log)
     out_path = tmp_path / "customer_sample.json"
     state_path = tmp_path / "state_customer_sample.json"
     generate(str(run_json), out_path=str(out_path), state_path=str(state_path))
@@ -137,15 +138,30 @@ def test_payment_channel_deterministic_across_regeneration(tmp_path):
 # on /sim/: "No info on smart meters. Duel fuel. House type. Business type
 # consumption") -- sourced from saas/customers.py, real per-customer_id data ---
 
-def test_home_type_and_smart_meter_sourced_from_raw_customer_record(tmp_path):
+def test_home_type_sourced_from_raw_customer_record(tmp_path):
     customers = {
         "C1": {"segment": "resi", "commodity": "electricity", "acquisition_date": "2016-01-01",
                "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0},
     }
     out = _generate(tmp_path, customers)
-    c1 = out["customers"]["C1"]
-    assert c1["home_type"] == "urban_flat"
-    assert c1["smart_meter"] is True
+    assert out["customers"]["C1"]["home_type"] == "urban_flat"
+
+
+def test_smart_meter_is_the_meter_the_run_billed_on_not_the_roster_flag(tmp_path):
+    """The roster carries no smart flag for a drawn household, so reading it printed "Smart meter:
+    No" on 56 households the run billed on smart reads (129e7de698 book). C3's roster says not
+    smart and C1's says smart; the reads say the opposite of each, so a roster read fails both."""
+    customers = {
+        cid: {"segment": "resi", "commodity": "electricity", "acquisition_date": "2016-01-01",
+              "revenue_gbp": 100.0, "gross_gbp": 50.0, "net_gbp": 20.0}
+        for cid in ("C1", "C3", "C4")
+    }
+    reads = [{"customer_id": "C1", "period_end": "2016-01-31", "meter_type": "traditional"},
+             {"customer_id": "C3", "period_end": "2016-01-31", "meter_type": "smart"}]
+    out = _generate(tmp_path, customers, reads)["customers"]
+    assert out["C1"]["smart_meter"] is False
+    assert out["C3"]["smart_meter"] is True
+    assert out["C4"]["smart_meter"] is None, "no read: we cannot tell, and must not say No"
 
 
 def test_business_customer_home_type_is_the_business_premises_type(tmp_path, monkeypatch):

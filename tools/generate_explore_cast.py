@@ -418,7 +418,8 @@ def _truth(hh: dict, ev: dict, person: dict, iso: str) -> list[dict]:
                        and str(r.get("event_type", "")).startswith("outcome_") and r["date"] <= iso])
     if truth_p:
         rows.append({"k": "True chance of leaving", "v": "{} at the {} renewal".format(_fmt_level(truth_p["sim_truth"]), _day(truth_p["date"]))})
-    rows.append({"k": "Smart meter", "v": "Yes" if person.get("smart_meter") else "No"})
+    smart = person.get("smart_meter")
+    rows.append({"k": "Smart meter", "v": "Not recorded" if smart is None else "Yes" if smart else "No"})
     return rows
 
 

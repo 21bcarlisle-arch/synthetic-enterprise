@@ -78,27 +78,35 @@ def _tariff(segment, commodity):
     return "Standard Variable (" + commodity.capitalize() + ")"
 
 
-def _meter(cid, segment):
-    """Customer-facing meter type label.
+def meter_types_billed(run):
+    """account -> the meter type its LATEST read was taken on, from the run's own `meter_read_log`.
 
-    Was a hardcoded "HH for I&C, else always Smart" placeholder -- every
-    non-I&C customer showed "Smart" regardless of their real status. That's
-    exactly what let C1 display a "Smart" label while its actual meter-read
-    data (site's Timeline/bills) behaved like a traditional meter: C1's
-    saas.customers record carried no smart_meter flag at all, so
-    simulation.meter_reads.meter_type_for_customer() silently defaulted it to
-    "traditional" (Rich-flagged 2026-07-09; root cause fixed in
-    saas/customers.py the same session -- this closes the matching label-side
-    half of the same class of bug, not just C1's instance).
+    This is the one home for the meter type a household page prints. The bills were cut on these
+    reads, so a label from anywhere else can contradict the bills printed under it. That happened:
+    the label used to come from `saas.customers` at page-build time. That book does not hold the
+    smart flag the run stamped on a drawn household at acquisition. So on the 129e7de698 book,
+    273 of 1,293 accounts were billed on smart reads and labelled "Traditional"
+    (SEAT_FINDING_THE_THIRD_COLD_READ_FINDS_THE_METER_TYPE_PRINTED_FROM_TWO_RECORDS_THAT_DISAGREE).
+    It is the latest read and not the commonest, because after a meter exchange the meter now on
+    the wall is the one the next read comes from.
+    """
+    latest = {}
+    for read in run.get("meter_read_log") or []:
+        cid, when = read.get("customer_id"), str(read.get("period_end") or "")
+        if cid and read.get("meter_type") and when >= latest.get(cid, ("",))[0]:
+            latest[cid] = (when, read["meter_type"])
+    return {cid: meter for cid, (_, meter) in latest.items()}
+
+
+def _meter(segment, billed_meter_type):
+    """Customer-facing meter type label, from `meter_types_billed` (its docstring says why there).
+
+    None where the run took no read for the account: we cannot tell, and the page prints "—"
+    rather than defaulting to "Traditional", which is the default that produced the finding.
     """
     if segment == "I&C":
         return "HH"
-    from saas.customers import get_customer
-    from simulation.meter_reads import meter_type_for_customer
-    record = get_customer(cid)
-    if record is None:
-        return "Traditional"
-    return "Smart" if meter_type_for_customer(record) == "smart" else "Traditional"
+    return {"smart": "Smart", "traditional": "Traditional"}.get(billed_meter_type)
 
 
 def _base_id(cid):
@@ -312,6 +320,7 @@ def generate(run_json_path=None):
     bba = run.get("by_billing_account", {})
     comm_pnl = run.get("per_cid_comm_pnl", {})
     predecessor_of = predecessors(run.get("occupier_successions"))
+    billed_meter = meter_types_billed(run)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -347,7 +356,7 @@ def generate(run_json_path=None):
             is_dual_fuel=has_dual_fuel,
             acquisition_date=cdata.get("acquisition_date", "2016-01-01"),
             tariff_name=_tariff(segment, commodity),
-            meter_type=_meter(cid, segment),
+            meter_type=_meter(segment, billed_meter.get(cid)),
             mpan=(_mpan(supply_point_of(cid, predecessor_of), segment)
                   if commodity == "electricity" else None),
             mprn=(_mprn(supply_point_of(cid, predecessor_of)) if commodity == "gas" else None),
