@@ -493,3 +493,10 @@ items:
     fate: fold
     owner: "docs/staging/done/SEAT_FINDING_THE_DIRECTION_RECORDS_WORKING_COPY_IS_READ_CARRIED_AND_RECORDED_AS_IF_IT_WERE_ORIGINS_2026-10-07.md"
     reason: "Triaged 2026-10-27 by the delivery seat. It is the same class as the working-copy reading in that finding. The brief now prints the divergence and units_lacking_origin at its head, so a reader is told when its readings may be stale, and the checkout has been level since 65e1af5f8. The residue is one more instance of that class, not a separate row."
+  - id: a-run-is-graded-before-its-amendment-is-filed
+    problem: "fresh-run-1691ec0ecd was launched and then graded (1470776471) with no amendment re-predicting the rows the due-date and occupier-window fixes moved, so those rows were graded void instead of predicted."
+    match: ["fresh-run-1691ec0ecd was launched at 02:39Z with no amendment"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "docs/direction/wrong_triage.yaml#a-commits-constraint-on-a-downstream-run-is-unenforced"
+    reason: "Triaged 2026-10-28 by the delivery seat. The instance cannot now be corrected: 1470776471 and 2cf3201c5 graded the run, and both say plainly that the moved rows are void by the pre-registration's own rule, so nothing was dressed as predicted. It is the same class as a commit's constraint on a downstream run being honoured only by hand. The 20e7d66234 run's pre-registration (753c3d874) was filed before launch, which is the remedy working."

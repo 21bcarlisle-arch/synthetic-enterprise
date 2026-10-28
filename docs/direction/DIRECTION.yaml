@@ -1,113 +1,127 @@
 version: 1
-oriented_at: '2026-10-28T03:22:42.831507+00:00'
-thesis_read: 'All three correctness fixes the exit test was waiting on are now on origin. These are the renewal
-  notice, one EBSS eligibility home and one due date for the desk and the ledger (9ad5af9a7). The occupier-window
-  fix landed beside them (7cec44a4b): a bill inside the window is the deemed account''s, so the two never-chased
-  failed DDs are gone. E6''s two book seeds are graded (1aeabeacb). S2 holds and the crisis bad-debt finding is
-  LATENT, which closes the lost-grader instance. The brief still counts that finding BLOCKING because it reads the
-  shared checkout, and the checkout is 29 commits behind origin. All four previous focus items were drawn and three
-  landed, so the steer bit. The stretch also lost its run. The one-due-date run was killed unfinished at June 2025,
-  with no exit line and no cause found. So no exception moved and the exit test is still not read. One run at origin
-  HEAD 1691ec0ec now carries every fix. It has simulated the full window to SURVIVED and is writing its outputs.
-  That run is both the due-date grade and the cold read''s run. One sequencing defect is mine to fix. The run was
-  launched before its pre-registrations were amended, but nobody has read its grade, so the amendment comes first.
-  The commit split is 0 supplier, 0 world and 10 other, with 2 substantive. The substantive two were supplier billing
-  (the occupier window) and the E6 grade, and four commits were base-advance merges. Against the thesis nothing
-  moved. No baseline comparison was run, and no policy carries the corrected renewal belief. That is deliberate
-  under the correctness ruling, and the next item that could move it is the exit-test read. The residue the occupier
-  fix exposed is a second two-homes defect. The run refunds five leavers under reg 6D from a DD credit the ledger
-  never held, one of them GBP 435.60. In a real supplier that is money paid out that was not owed, so it is the
-  next billing item.'
+oriented_at: '2026-10-28T06:23:52.574652+00:00'
+thesis_read: 'The correctness stretch made its first exit attempt and did not exit. Every fix the attempt waited
+  on was graded on one fresh run at origin 1691ec0ecd. One due date took the desk-ledger split from 1,987 to 4 and
+  the statute bar from 25 to 3 (1470776471), so that wrong row is corrected. The second cold read (2cf3201c5) then
+  met leg one (zero unexplained breaches on 1,293 accounts) and failed legs two and three. The mover slot is empty
+  by a hard-coded return None under a reason the pages contradict. The blind reader found seven new classes. The
+  worst is N1: the suite grades the ledger while the page prints the invoice, so a credited 2022 bill shows no EBSS
+  credit and every row stays green. That is the same failure CLAUDE.md names for undefined quantities: two records
+  of one bill, and the control reads the one the customer never sees. It means leg one''s ''met'' is weaker than
+  it reads, because a green suite over the wrong record says nothing about the page. The stretch also corrected
+  my own cause for the five refunded leavers: the run repaid a settled gas bill on its electricity twin (f805a9483),
+  not a DD balance. That fix and the part-window cut (2bef058eb) are pre-registered (753c3d874) and wait on a run
+  queued behind the census. Against the thesis nothing moved, and that is the ruled order working. No baseline comparison
+  was run and no policy carries the corrected renewal belief, because the director put correctness first and its
+  exit test is not met. The commit split is 1 supplier, 1 world and 9 other, with 5 substantive. Every substantive
+  commit was billing correctness on the supplier''s books, the gas-leg fix included, though the classifier counts
+  most as other. All four previous focus items were drawn. Three landed (one due date, the cold read and the leavers''
+  refund), and the fourth, reading tests/simulation whole, is landing now (surgical_land pid 748021, simsuite-whole-2cf3201c5c),
+  so the steer bit. The seat''s own error, grading 1691ec0ecd before its amendment was filed, cannot now be corrected.
+  Both grades say the moved rows are void, and it is folded into its class in wrong_triage.yaml. The next exit attempt
+  needs N1 and the mover slot fixed, the seven classes written as rows, and a third cold read. If those fixes stay
+  in tools/, the third read can rebuild the pages of the 20e7d66234 run, which is already queued, instead of needing
+  a run of its own. The shared checkout is now 40 commits behind origin, and all eight daemons run code 12 commits
+  old, billing code included. That does not change a graded result, because every run and grade here works from
+  origin worktrees.'
 stretch_reviewed:
-  since: '2026-10-28T00:24:13.758235+00:00'
-  commits: 10
-  substantive: 2
+  since: '2026-10-28T03:22:42.831507+00:00'
+  commits: 11
+  substantive: 5
 focus:
-- id: the-collections-desk-and-the-billing-ledger-keep-one-payment-record
+- id: the-page-prints-the-credit-the-ledger-holds
   lane: D_billing_metering
   side: supplier
-  what: 'The fix is on origin (9ad5af9a7), so land no code for it. Its onedue run is dead (08a9fbcc1),
-    so do not look for it. The run to grade is fresh-run-1691ec0ecd: launch_long_job, base origin 1691ec0ec,
-    which carries 9ad5af9a7, 25a8be909 and 7cec44a4b, with its artefact at /var/tmp/fresh-run-out-1691ec0ecd/DONE.json.
-    Wait for that artefact with tools/wait_for.py, and do not relaunch while the job is live. BEFORE reading
-    any grade, commit two amendments naming base 1691ec0ec. The first goes to SEAT_PREREGISTRATION_ONE_DUE_DATE_FOR_THE_DESK_AND_THE_LEDGER_ON_A_FRESH_RUN_2026-10-27.md
-    and re-predicts what 7cec44a4b moves: failed DDs, and accounts owing or in credit. The second goes
-    to SEAT_PREREGISTRATION_THE_SECOND_COLD_READ_RUN_PER_ROW_BREACHES_AND_THE_EIGHT_EXPLORE_SLOTS_2026-10-27.md
-    and re-predicts the rows its 28 Oct amendment voided (the collection-against-bill-date rows and the
-    Explore debt slot) and any row 7cec44a4b moves. Skip either one if it is already on origin. Then grade
-    with tools/domain_invariant_runner.py and write the grade beside each one-due-date prediction. Lower
-    or retire INV_OVERDUE_WITHIN_BALANCE and INV_STATUTE_BARRED_WRITE_OFF_AGE in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml
-    to what the grade shows, naming each residual breach''s cause. If the job dies, file its log tail
-    and exit state, relaunch once through launch_long_job, and run nothing heavy beside it.'
-  why: Two dates for one payment made every arrears, collection and write-off figure ambiguous, and the
-    fix has no graded run. Done means both amendments are on origin dated before the grade, the run is
-    graded against the one-due-date predictions, and both exceptions are lowered or retired with every
-    residual named. That is the last precondition for item 2.
-  written_at: 1793158074.753
-- id: the-second-cold-read-on-one-fresh-full-run
+  what: N1 of docs/staging/SEAT_FINDING_THE_SECOND_COLD_READ_FINDS_SEVEN_NEW_CLASSES_AND_THE_SUITE_GRADES_A_RECORD_THE_PAGE_DOES_NOT_PRINT_2026-10-28.md.
+    First read 3ab3ea925, which landed after the read and touches this credit, so you do not redo it.
+    Trace PROS-2019-0246 from its raw export (six scheme_credit adjustments, GBP 400) through tools/generate_billing_ledger.py
+    and tools/generate_invoice_data.py to the invoice it publishes (credit_applied_gbp None, Dec 2022
+    GBP 598.04). Make the invoice and the page print the credit the ledger holds, with a test that is
+    red on today's code. Then, in docs/design/DOMAIN_INVARIANTS.yaml, name for every row the record it
+    grades (ledger, invoice or page figure). Give the EBSS row and INV_OVERDUE_WITHIN_BALANCE an invoice-graded
+    twin, written from the knowledge page and not the code. Rebuild the 1691ec0ecd book's ledgers and
+    invoices with HEAD's tools, as /var/tmp/gasleg-remeasure-scripts/probe.py does, and launch no run
+    for this. Count the credited accounts whose invoices omit a credit, before the fix and after it, and
+    write both counts into the finding.
+  why: A green suite over a record the customer never sees makes leg one of the exit test meaningless,
+    and an EBSS credit missing from a bill is a billing-accuracy error on the page. Done means the fix
+    and its red-then-green test are on origin, every row names its record, the invoice-graded twins are
+    on origin with their grade, and the finding carries the before and after counts.
+  written_at: 1793168989.446
+- id: the-mover-slot-ranks-movers-from-the-record-the-pages-carry
+  lane: D_billing_metering
+  side: supplier
+  what: 'docs/staging/SEAT_FINDING_THE_MOVER_SLOT_IS_EMPTY_BY_A_CONSTANT_AND_ITS_REASON_DENIES_A_RECORD_THE_PAGES_CARRY_2026-10-28.md.
+    Replace _score_mover''s unconditional return None (tools/generate_explore_cast.py:625) with a scorer
+    over the moved_out and final_bill events the pages carry. Its validity predicate: the household passes
+    the suite, its final bill follows its move-out, and its closing balance is collected or refunded.
+    For the ''followed by a new occupant'' clause, use only what a supplier holds: a later account on
+    the same meter point. If the published record cannot link them, drop the clause from the slot''s description
+    and say why. Do not pull the link from world truth. Rewrite MOVER_EMPTY_REASON so that each clause
+    it states is true. Write a test that is red on the constant and that asserts the slot CAN fill on
+    a book with a mover before it asserts what it ranks. Then rebuild the cast from the 1691ec0ecd book
+    in /var/tmp.'
+  why: Home moves are on the director's supplier priority list, and leg two of the exit test fails on
+    this slot alone. Done means the slot is filled validly or empty with a reason that is true on the
+    book, the fix and its test are on origin, and the finding records the household chosen or the true
+    failing check.
+  written_at: 1793168989.446
+- id: the-second-cold-reads-new-classes-become-rows
   lane: A_strategy_governance
   side: supplier
-  what: Only once item 1's grade and both amendments are on origin; otherwise stop and release. Use fresh-run-1691ec0ecd's
-    book and launch no other run. Grade every DOMAIN_INVARIANTS.yaml row against the second cold-read
-    pre-registration as amended. Regenerate the customer pages and the Explore cast from that book into
-    /var/tmp. Then run the cold read with a fresh agent that has no code access, as step 6 of docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md
-    says. Write a reading in docs/staging/ stating each of the three exit-test legs as met or not met,
-    with its evidence.
-  why: 'This is the exit test of the director''s correctness ruling: zero unexplained breaches, eight
-    slots valid or honestly empty, and no new class from the cold read. Nothing else reopens the ruled
-    order toward levers and the baseline comparison. Done means the reading is on origin. If the read
-    finds a new class, the reading says so and the stretch continues.'
-  written_at: 1793158074.753
-- id: a-leavers-refund-and-the-ledger-read-one-dd-balance
-  lane: D_billing_metering
+  what: 'Ruling step 6 for N2, N3, N5, N6 and N7 of the seven-classes finding. Brief a fresh agent that
+    has no code access and give it the knowledge pages, docs/market_research and docs/domain_artefact_library.
+    It writes one two-sided row per class into docs/design/DOMAIN_INVARIANTS.yaml. Each row cites its
+    source and names the record it grades. Before any row, it states what the quantity counts: for N2,
+    settlement revenue against the amount billed; for N3, a payment, a returned payment and a missed payment,
+    each per bill. For N6, read the commons copy of Ofgem''s data access and privacy framework first.
+    If the commons does not hold it, file the GAP and leave the copy unchanged. Grade the new rows on
+    the 1691ec0ecd book with tools/domain_invariant_runner.py. For each breach, either fix it with a red-then-green
+    test or record a dated exception that names its cause. For N4, a world question, build nothing. Measure
+    the book-wide 2021-to-2023 change in annual kWh per fuel against docs/market_research/domestic_shift_response_arc.json,
+    and record the result in the finding.'
+  why: Leg three of the exit test fails on these classes, and a class the suite cannot see will be found
+    again by the third read. Done means five rows are on origin with their grade on the 1691ec0ecd book,
+    every breach is fixed or excepted with its cause, and N4's measurement is recorded.
+  written_at: 1793168989.446
+- id: the-third-cold-read
+  lane: A_strategy_governance
   side: supplier
-  what: 'The 28 Oct occupier-window section of docs/staging/SEAT_FINDING_THE_FIRST_COLD_READ_FINDS_PAGE_ARITHMETIC_THAT_DOES_NOT_RECONCILE_AND_A_MARGIN_NOBODY_DEFINED_2026-10-27.md
-    names 5 leavers the run refunds under reg 6D from a closing credit the ledger never holds: PROS-2017-0293
-    GBP 9.68, PROS-2021-0362 GBP 435.60, SYN-2016-070 GBP 355.33, SYN-2016-144 GBP 18.50 and SYN-2016-406
-    GBP 101.92. Trace each through simulation/dd_collection_book.py, simulation/credit_refund_events.py
-    and tools/generate_billing_ledger.py. Establish from what was billed and paid which record is right,
-    and give the collected balance one home, with a test that is red on today''s code. Then take the part-window
-    share (OCC-87206d346f15g; 239 part-window bills collected from the payer at the full printed total)
-    the same way. Record each account''s cause or fix in that finding. Do not hold item 2''s run or read
-    for this; it rides the next run.'
-  why: A refund of a credit that does not exist is money paid out that was not owed, and it is the same
-    two-homes shape as the due date and the occupier window. Done means the one-home fix and its red-then-green
-    test are on origin, all five accounts are re-measured in the finding, and the part-window share is
-    fixed or its cause named there.
-  written_at: 1793158074.753
-- id: the-simulation-suite-is-read-whole-at-origin-head
-  lane: H_harness
-  side: other
-  what: Only after /var/tmp/fresh-run-out-1691ec0ecd/DONE.json exists, never beside the run. Run tests/simulation/
-    at origin HEAD in a clean worktree. For the two tests in tests/simulation/test_a_dual_fuel_movers_gas_follows_it.py
-    that showed F under load (08a9fbcc1), establish whether they depend on load or on order. Re-run them
-    alone, then in full collection order. Fix any real red, or file the order dependency against H40_full_suite_pollution_bisect
-    with its pair named.
-  why: Nine simulation and billing commits landed on 6- to 10-test receipts this week, and tests/simulation
-    has not been read whole at HEAD since. Done means a full pass, or every red named with its cause,
-    recorded in the 08a9fbcc1 finding.
-  written_at: 1793158074.753
+  what: Start only once items 1 to 3 are on origin and the gas-leg grade (the continuation the-gas-leg-settlement-fix-graded-on-the-20e7d66234-run)
+    is on origin. Otherwise stop and release. If items 1 to 3 changed nothing under simulation/, company/,
+    saas/ or sim/, use the fresh-run-20e7d66234 book and launch no run. Otherwise launch one fresh run
+    at origin HEAD through launch_long_job, with nothing heavy beside it. Pre-register every row's prediction,
+    the new rows included, before reading the book. Then grade the full book, rebuild the pages and the
+    cast into /var/tmp from origin's tools, and run the cold read by ruling step 6's method, with a new
+    household sample. Write a reading in docs/staging/ that grades each of the three exit-test legs as
+    met or not met, with its evidence.
+  why: This is the exit test again, and nothing else reopens the ruled order toward levers and the baseline
+    comparison. Done means the pre-registration was on origin before the grade and the reading is on origin.
+    If the read finds a new class, the reading says so, and the stretch continues.
+  written_at: 1793168989.446
 not_now:
-- what: A separate full run for the cold read, apart from item 1's run.
-  why: fresh-run-1691ec0ecd is at origin HEAD and carries every fix, so it answers both items. A second run costs
-    about 70 minutes and a guest's worth of memory, and the onedue run that died beside another job is the warning
-    against that.
-- what: A policy that carries the corrected renewal belief, a household response to the SLC 22C statement, the baseline
-    comparison, and other lever or feature work.
-  why: The correctness ruling holds feature work until its exit test is met, and item 2 is that test. The household's
-    reaction to the notice stays a named GAP until then.
-- what: Establishing why the onedue run was killed (memory or a reaper) before item 1's run is graded.
-  why: The replacement run already went through launch_long_job and has simulated the full window, so the cause
-    no longer blocks a result. It stays an open wrong row, and a second unexplained death would make it the first
-    item.
-- what: The six accounts whose credit the engine and the ledger net against different bills, and E6's 2022 leg.
-  why: Both are smaller than the refund defect in item 3, which moves real money. The netting class is probably
-    the same one-home cut, so item 3's fix may change it. E6's finding is LATENT and blocks no supplier result.
-- what: Fast-forwarding the shared checkout, 29 commits behind origin, and reaping the locked b12, budgetpay and
-    om2 worktrees.
+- what: A policy that carries the corrected renewal belief, the baseline comparison, and other lever or feature
+    work.
+  why: The correctness ruling holds feature work until its exit test is met. The second cold read failed two of
+    its three legs, and item 4 is the next attempt.
+- what: A world build for household demand response to the 2022-23 prices (N4).
+  why: It is a world change, and no supplier result waits on it until it is measured. Item 3 measures it against
+    the knowledge layer's response arc first. A build follows only if the book is outside the evidence.
+- what: Putting the gas-leg and part-window re-measure in focus.
+  why: It is already in the continuation queue with its pre-registration and grade script (753c3d874, 10f537c7b),
+    and it waits only on memory behind head_green_census. A focus row would hand the same work to a second tick.
+- what: A run of its own for each fix, and establishing why the onedue run was killed.
+  why: Items 1 to 3 are tools-side and can be rebuilt on books already on disk. A run costs about 55 minutes and
+    most of the guest's memory, and the replacement run went clean through launch_long_job. A second unexplained
+    death would make the death the first item.
+- what: Fast-forwarding the shared checkout, now 40 commits behind origin, and reaping the locked b12, budgetpay
+    and om2 worktrees.
   why: The shared tree holds other lanes' uncommitted work, and a fast-forward is the sweep the pathspec rule exists
-    to prevent. The runs and landings that matter work from origin worktrees. None of the worktrees blocks a supplier
-    result.
+    to prevent. Every run and grade that matters works from origin worktrees. The daemons running old code are a
+    real exposure, but none of them grades a result.
+- what: Publishing the corrected customer pages before 2 Nov.
+  why: The weekly window holds content publishing, and the pages would change again once items 1 and 2 land. Two
+    open page rows wait on that publish, and they lose a few days, not a correction.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On
     268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households
@@ -201,7 +215,8 @@ wrong:
     the live renewal belief still ranks leavers backwards. The renewal notice is now sent (50c14a9dc), but the correctness
     ruling''s exit test is not met, so it is not in focus. 03:22: Unchanged. No policy carries the corrected belief,
     so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so
-    it is not in focus.'
+    it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still
+    ranks leavers backwards. The second cold read did not meet the exit test, so it is not in focus.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Two landings turned tests on origin red that their own test selection never
     ran. e81b1b156 set enforce: true, and four flow tests in tests/background/test_process_run_complete.py went
@@ -225,7 +240,11 @@ wrong:
     origin HEAD before its run. 03:22: Half re-checked. 08a9fbcc1 ran tests/company/billing at origin HEAD green
     (2,498 passed), but tests/simulation did not finish beside the full run, and two tests in test_a_dual_fuel_movers_gas_follows_it.py
     showed F under load and pass alone. Load or order is not established. Item 4 runs the suite after the run ends.
-    The class is not fixed.'
+    The class is not fixed. 06:24: The instance is landing. tests/simulation is being read whole at origin through
+    launch_long_job (simsuite-whole-2cf3201c5c, 05:54Z), and surgical_land pid 748021 is landing the cause of the
+    two dual-fuel mover reds: order, not load (a second in-process run did not start each mover at its drawn home).
+    Nothing yet ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not
+    fixed.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The published customer pages print ''Paid in total'' equal to ''Revenue billed''
     on every account, while the stage-5 ledger collected less (OCC-52fbc3104c5f: GBP 4,747.99 against 5,062.23).
@@ -235,7 +254,9 @@ wrong:
     households under the old code). O13 and O27 are fixed and O25''s definitions are printed. It stays false because
     the live pages change only at the 2 Nov publish. 21:24: Unchanged. 13f8cc50c also posts reg 6D refunds on the
     page ledger. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at
-    the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish.'
+    the 2 Nov publish. 03:22: Unchanged. The live pages change only at the 2 Nov publish. 06:24: Unchanged. The
+    live pages change only at the 2 Nov publish. The second cold read on the rebuilt pages found the same shape
+    again on the payment counters (its N3), which item 3 takes.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The supplier''s customer timeline showed world life events: 414 of 649 fell
     after supply ended. 4d7f6021a clips them in the generator, but the live pages change only at the 2 Nov publish,
@@ -243,7 +264,7 @@ wrong:
     18:22: The residue is labelled: each life event on the supplier''s timeline now carries seen_by: world (597720378).
     It stays false because the live pages change only at the 2 Nov publish. 21:24: Unchanged. The live pages change
     only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:22: Unchanged.
-    The live pages change only at the 2 Nov publish.'
+    The live pages change only at the 2 Nov publish. 06:24: Unchanged. The live pages change only at the 2 Nov publish.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. A leaver''s credit balance is not refunded at exit: 33 accounts on the 13a6e5e71d
     book are in credit beyond the engine. Another 24 owe more for causes not traced, 4 of them while holding a write-off.
@@ -258,7 +279,11 @@ wrong:
     the residue is 3 leavers in credit and 28 owing more. 15 of the 28 are correctly owed. 5 are leavers refunded
     from a DD balance the ledger never held in credit, which is a second two-homes defect. 6 net account credit
     against different bills, 1 is the part-window share, and 1 is not traced. Item 3 takes the five and the part-window
-    share.'
+    share. 06:24: My cause for the five was wrong. They were not refunded from a DD balance the ledger never held.
+    f805a9483 found that a settled gas bill was repaid on its electricity twin, so the run refunded a credit nobody
+    held. That fix is on origin, and 2bef058eb cuts the part-window bill to the payer''s own share. Neither has
+    been measured on a run: the re-measure (fresh-run-20e7d66234, pre-registered P1 to P7 in 753c3d874) is queued
+    behind head_green_census and has not started. It stays false until that grade is on origin.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The collections desk and the billing ledger keep two payment records. 1,987
     of 7,151 journeys (27.8%) open on an overdue bill the ledger shows collected, and which record is wrong is not
@@ -268,14 +293,10 @@ wrong:
     old code, none on new), and its merge with origin is landing now. Item 1. 03:22: The fix is on origin (9ad5af9a7).
     Its onedue run was killed at 7 June 2025 and never graded (08a9fbcc1). fresh-run-1691ec0ecd at origin HEAD has
     simulated the full window and is writing its outputs. Item 1 grades it. It stays false until the grade is on
-    origin.'
-  corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. A finished long job lost its grader, again. E6''s two pre-registered book
-    seeds (longjob-book-seed-capture-21f216076f-61101-r2 and -61102-r2) finished by 23:34Z with exit 0. Nothing
-    graded them, and no continuation names the grade, though the BLOCKING finding''s own status line says ''Next:
-    grade the two book seeds''. This is one more instance of the open fix row a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue.
-    Item 3 grades them. 03:22: The instance is corrected: 1aeabeacb graded both seeds, S2 holds, and the finding
-    is LATENT. The class stays on its triage fix row (a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue).'
+    origin. 06:24: Corrected. 1470776471 graded fresh-run-1691ec0ecd: INV_OVERDUE_WITHIN_BALANCE fell from 1,987
+    to 4 and INV_STATUTE_BARRED_WRITE_OFF_AGE from 25 to 3, and both exceptions are lowered with each residual''s
+    cause named (the four are bills held for VAT review that the desk duns; the three are a write-off dated before
+    a final bill''s later payment). The residuals are named defects, not a second payment record.'
   corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. The one-due-date fresh run was killed from outside at 7 June 2025, with no
     exit line, no traceback and an empty output directory (08a9fbcc1). It ran under arm.py from a bare shell, not
@@ -283,11 +304,17 @@ wrong:
     are the candidates, and neither was tested. The replacement run goes through launch_long_job, which fixes the
     visibility, not the cause.'
   corrected: false
-- what: 'THE SEAT''S, THIS STRETCH. fresh-run-1691ec0ecd was launched at 02:39Z with no amendment re-predicting
-    the rows the cold-read pre-registration voided until the due-date fix landed: the collection-date rows and the
-    Explore debt slot. It also lacks the rows 7cec44a4b''s occupier-window change moves. The last direction asked
-    for that amendment before launch. The run is finished but not graded, so the amendment can still be filed before
-    any grade is read. Item 1 files it first.'
+- what: THE PAGES', THIS STRETCH. The suite grades a different record from the one the page prints. PROS-2019-0246,
+    the 2022-shock slot, has all six EBSS scheme_credit adjustments (GBP 400) on its ledger, but its invoices carry
+    credit_applied_gbp None, and the page prints 'The electricity bill for December 2022 was GBP 598.04' with no
+    credit line. INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 reads the ledger, so it passes. The overdue figures on the
+    page (O4, O14) are the same shape. Found by the second cold read (2cf3201c5, N1). Focus item 1.
+  corrected: false
+- what: 'THE MACHINE''S, THIS STRETCH. The Explore mover slot is empty by a constant: _score_mover is ''return None''
+    with no condition (tools/generate_explore_cast.py:625). Its printed reason says the record carries no move-out
+    event and no final-bill marker, but on the 1691ec0ecd book''s pages final_bill stands on 866 accounts and moved_out
+    on 259, and the live pages carry them too. A guard that refuses everything was shown as an honest empty slot.
+    Found by the second cold read (2cf3201c5). Focus item 2.'
   corrected: false
 for_the_director:
 - id: the-26-oct-advisor-steer-asks-that
