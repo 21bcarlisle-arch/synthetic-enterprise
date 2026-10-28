@@ -129,5 +129,6 @@ docs/observability/.head_red_observed.json
 # `background/post_publish_readers.py`: the reader run after each publish, a separate observation
 # from the census store above (folding a partial run into it would read unreached reds as fixed).
 docs/observability/.post_publish_reader_reds.json
+docs/observability/.two_reader_readings.jsonl
 docs/observability/.lane_unit_crash.json
 docs/observability/.lane_unit_crash_woken.json

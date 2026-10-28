@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The director's one-word dial over the three routes that spend model tokens.
+"""The director's one-word dial over the routes that spend model tokens.
 
 REUSE: background/tick_mode.py
 CLASS: CUSTOM
@@ -15,14 +15,15 @@ INDEX: searched "tick mode", "cadence", "slow down", "timer", "restore". The kil
     python3 -m background.tick_mode normal
 
 WHAT SPENDS, MEASURED BEFORE THIS WAS DESIGNED (docs/staging/SEAT_FINDING_WHICH_ROUTES_SPEND_TOKENS_
-2026-09-27.md). Only three unattended routes start a `claude` session: worker-tick, seat-executor,
-delivery-seat. Reconciliations, heartbeats, the publisher and every other daemon spend no model
+2026-09-27.md). Only three unattended routes started a `claude` session: worker-tick, seat-executor,
+delivery-seat. A fourth joined on 2026-10-28: two-reader-review, the director's ruled trial of two
+blind readers per module-adding commit (`background/two_reader_review.py`). Reconciliations, heartbeats, the publisher and every other daemon spend no model
 tokens at all, so they are not gated here and slowing them would buy nothing. The worker tick's
 doorbell carries the reactive reasons (unprocessed staging, the HEAD-red register, publish) on
 almost every tick, which is why product-only cannot be a filter on the atom draw alone: it has to
 decide the SPAWN, or the reactive reasons keep every tick alive.
 
-THE MODE OWNS THE CADENCE, NOT THE TIMER FILES. The three systemd timers stay at their normal
+THE MODE OWNS THE CADENCE, NOT THE TIMER FILES. The systemd timers stay at their normal
 schedule and act as a base clock; each route asks `gate()` before it spawns, and a mode stretches
 the minimum spacing between SPAWNS (a stand-down is a cheap Python read). So a slowdown edits no
 unit file and its restore is a comparison at read time: a mode set with an expiry has reverted the
@@ -44,7 +45,7 @@ MODE_FILE = Path.home() / ".config" / "synthetic-enterprise" / "tick_mode.json"
 SPAWN_FILE = Path.home() / ".cache" / "synthetic-enterprise" / "tick_mode_spawns.json"
 HISTORY_FILE = Path.home() / ".cache" / "synthetic-enterprise" / "tick_mode_history.jsonl"
 
-ROUTES = ("worker-tick", "seat-executor", "delivery-seat")
+ROUTES = ("worker-tick", "seat-executor", "delivery-seat", "two-reader-review")
 MODES = ("normal", "slow", "product-only", "fold-only", "off")
 DEFAULT = "normal"
 
@@ -54,11 +55,16 @@ H = 3600
 #: set it (restore_tick.sh records the pair): worker tick every 4h, executor every 4h, delivery
 #: seat every 12h.
 CADENCE = {
-    "normal":       {"worker-tick": 0,    "seat-executor": 0,    "delivery-seat": 0},
-    "slow":         {"worker-tick": 4 * H, "seat-executor": 4 * H, "delivery-seat": 12 * H},
-    "product-only": {"worker-tick": 0,    "seat-executor": 0,    "delivery-seat": 0},
-    "fold-only":    {"worker-tick": None, "seat-executor": 0,    "delivery-seat": None},
-    "off":          {"worker-tick": None, "seat-executor": None, "delivery-seat": None},
+    "normal":       {"worker-tick": 0,    "seat-executor": 0,    "delivery-seat": 0,
+                     "two-reader-review": 0},
+    "slow":         {"worker-tick": 4 * H, "seat-executor": 4 * H, "delivery-seat": 12 * H,
+                     "two-reader-review": 4 * H},
+    "product-only": {"worker-tick": 0,    "seat-executor": 0,    "delivery-seat": 0,
+                     "two-reader-review": 0},
+    "fold-only":    {"worker-tick": None, "seat-executor": 0,    "delivery-seat": None,
+                     "two-reader-review": None},
+    "off":          {"worker-tick": None, "seat-executor": None, "delivery-seat": None,
+                     "two-reader-review": None},
 }
 
 
@@ -312,7 +318,7 @@ def describe(now: float | None = None) -> str:
     lines = [f"tick mode: {cur['mode']} -- {cur['why']}"]
     for r in ROUTES:
         ok, _m, why = gate(r, now)
-        lines.append(f"  {r:14s} {'may spawn' if ok else 'held'}: {why}")
+        lines.append(f"  {r:17s} {'may spawn' if ok else 'held'}: {why}")
     return "\n".join(lines)
 
 
