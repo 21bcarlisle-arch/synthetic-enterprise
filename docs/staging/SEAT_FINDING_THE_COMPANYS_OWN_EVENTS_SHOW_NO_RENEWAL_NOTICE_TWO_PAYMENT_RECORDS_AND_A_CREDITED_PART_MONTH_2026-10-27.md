@@ -32,6 +32,21 @@ Each defect is excepted, capped at its count, in `docs/design/DOMAIN_INVARIANT_E
    prediction is that the desk reads the DD collection book's schedule. The statute bar's 24
    early write-offs look like the same split: a final bill paid after the account closed restarts
    the six years in the billing ledger, but not, apparently, on the desk.
+   **Cause established 2026-10-27, and fixed** (item
+   `the-collections-desk-and-the-billing-ledger-keep-one-payment-record`). The payment outcome was
+   the same in both records. The due date was not. The run posted each month's bill to the
+   company's own ledger, which the desk walks, as due on the 28th of the month being billed,
+   before that month had ended. The billing ledger dates it period end + generation delay + 14,
+   and the engine dated it period end + 14. The desk's record was the wrong one. All 7,151
+   journeys opened on a 29th or a 1st. All 25 early statute-bar write-offs fall six years after the
+   desk's earlier date for the same payment, so they are the same split. The two never-chased
+   failed DDs from O27 (OCC-3c914ee8cef5g, OCC-561d240ea21a) are NOT. They fall in occupier-window
+   months, where the ledger draws its own outcome for a bill nobody else bills. Now
+   `arrears_engine.bill_due_date` is the one home, and all three read it. The test
+   `tests/simulation/test_a_collections_journey_opens_on_the_bill_the_ledger_made_due.py` finds
+   482 stray openings on the old code and none on the new. Traces, predictions and the fresh-run
+   grade:
+   `docs/staging/records/SEAT_PREREGISTRATION_ONE_DUE_DATE_FOR_THE_DESK_AND_THE_LEDGER_ON_A_FRESH_RUN_2026-10-27.md`.
 3. **A joiner's first part-month is credited the EBSS on the named-household path.** Five PROS
    joiners, each traced, were credited for the month they joined mid-way. Guidance 5.4/5.8 gives
    that month's credit only to whoever held the account at 00:00 on the 1st, and the occupier path

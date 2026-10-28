@@ -286,19 +286,19 @@ def _one_billing_period_before(as_of: date) -> date:
 
     `LivePaymentTriad.record_period` is called once per customer-MONTH (`run_phase2b` keys it on
     `(cid, settlement_date[:7])`), so one month is the interval between two consecutive
-    observations this company has of any account's receivable. Clamped to the 28th at most, which
-    is the day `run_phase2b` bills on, so no month is skipped by a 29th-31st that the previous
-    month does not have.
+    observations this company has of any account's receivable. Clamped to the 28th at most, so no
+    month is skipped by a 29th-31st that the previous month does not have.
     """
     year, month = (as_of.year, as_of.month - 1) if as_of.month > 1 else (as_of.year - 1, 12)
     return date(year, month, min(as_of.day, 28))
 
 
-def _period_index_for(due_date: date) -> int:
-    """Deterministic, iteration-order-independent period index for a billing
-    month (C-S2). Unique per calendar month, stable run-to-run -- the only
-    property `generate_payment_event`'s per-period substream needs."""
-    return due_date.year * 12 + (due_date.month - 1)
+def _period_index_for(bill_month: str) -> int:
+    """Deterministic, iteration-order-independent period index for the month a
+    bill charges for (C-S2), "YYYY-MM". Unique per calendar month, stable
+    run-to-run -- the only property `generate_payment_event`'s per-period
+    substream needs."""
+    return int(bill_month[:4]) * 12 + (int(bill_month[5:7]) - 1)
 
 
 def _counterfactual_correlation_id(invoice_ref: str, actual_correlation_id: str) -> str:
@@ -1062,7 +1062,8 @@ class LivePaymentTriad:
         if self._household_plans.repays_through_plan(account_id, bill_due, settled_on):
             self._n_settlements_withdrawn += 1
             return
-        self._crossed_settlements.append((account_id, bill_due, settled_on))
+        self._crossed_settlements.append((account_id, bill_due, settled_on,
+                                          world_payment_truth.bill_month_of(int(invoice_ref.rsplit("::", 1)[1]))))
         hand_over = self._consumer.observe_hand_over(
             emit_wire_responses(
                 event, SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)),
@@ -1121,7 +1122,7 @@ class LivePaymentTriad:
         """Lumps that DID cross dated after their closed account's final bill: every one, with the
         switch off; with it on, any a reader forced across before the closure was told."""
         return sum(self._after_final_bill(account_id, settled_on)
-                   for account_id, _due, settled_on in self._crossed_settlements)
+                   for account_id, _due, settled_on, _month in self._crossed_settlements)
 
     @property
     def settlements_delivered(self) -> int:
@@ -1138,7 +1139,7 @@ class LivePaymentTriad:
         """Lumps that crossed for a bill a plan agreed BEFORE the lump's day now covers -- the
         arrears the company is paid twice. The pre-walk exists to keep this at zero; it is counted
         here, against the world's book as it stands, so a walk that falls short is seen."""
-        return sum(self._household_plans.repays_through_plan(*crossed)
+        return sum(self._household_plans.repays_through_plan(*crossed[:3])
                    for crossed in self._crossed_settlements)
 
     def payment_truth_so_far(self, customer_id: str) -> dict:
@@ -1194,6 +1195,7 @@ class LivePaymentTriad:
         dd_shock_effect=None,
         moved_out_on: Optional[str] = None,
         household_legs: int = 1,
+        bill_month: Optional[str] = None,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1207,9 +1209,13 @@ class LivePaymentTriad:
         `dd_stopped_by(customer_id, due_date)` is the run's answer to "had the supplier stopped this
         DD by the due date?" -- the stop-notice board the seam reads. A stopped household is billed
         and pays on receipt from then on, so its bills stop being collection requests here too;
-        the drawn arrangement stays in the cache because the household's trait does not change."""
+        the drawn arrangement stays in the cache because the household's trait does not change.
+
+        `bill_month` is the month the bill charges for, which keys this bill's draws and outcome;
+        `due_date` is when it falls due, after the month has ended. Omitted, the due date's month."""
         self._deliver_settlements_through(due_date)
-        period_index = _period_index_for(due_date)
+        bill_month = bill_month or due_date.isoformat()[:7]
+        period_index = _period_index_for(bill_month)
         method = self._method_for(customer_id, fuel)
         if method == DIRECT_DEBIT and dd_stopped_by is not None and dd_stopped_by(
                 customer_id, due_date):
@@ -1272,7 +1278,7 @@ class LivePaymentTriad:
                                             dd_failure_reason=event.dd_failure_reason
                                             or INSUFFICIENT_FUNDS)
                 if amount_gbp > 0 and part_paid > 0:
-                    self._final_bill_part_share[(customer_id, due_date.isoformat()[:7])] = (
+                    self._final_bill_part_share[(customer_id, bill_month)] = (
                         part_paid / amount_gbp)
 
         # THE BUDGET DECIDES WHETHER THE BILL CAN BE PAID (`simulation/household_budget.py`, behind
@@ -1287,7 +1293,7 @@ class LivePaymentTriad:
                 and method != PREPAYMENT and normalise_segment(segment) == RESIDENTIAL):
             paid_now, budget_cleared = self._budget_book.settle_month(
                 supply_point=customer_id, household=household_of(customer_id),
-                year=due_date.year, amount_gbp=amount_gbp, legs=household_legs,
+                year=int(bill_month[:4]), amount_gbp=amount_gbp, legs=household_legs,
                 ref=len(self._records))
             if not paid_now:
                 budget_unpaid = True
@@ -1516,7 +1522,7 @@ class LivePaymentTriad:
                 account_id, invoice_ref, f"{customer_id}::p{period_index}::settlement"))
 
         if world_payment_truth.UNIFIED:
-            self._outcomes_by_customer.setdefault(customer_id, {})[due_date.isoformat()[:7]] = {
+            self._outcomes_by_customer.setdefault(customer_id, {})[bill_month] = {
                 "result": event.result, "days_late": int(event.days_late or 0),
                 "method": world_payment_truth.engine_method(method)}
         self._records.append(PeriodRecord(

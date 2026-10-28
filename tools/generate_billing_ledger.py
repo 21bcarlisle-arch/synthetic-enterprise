@@ -18,7 +18,6 @@ Output: docs/state/billing_ledger.json
 from __future__ import annotations
 
 import json
-import random
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -52,6 +51,7 @@ from simulation.arrears_engine import (
     PAYMENT_TERMS_DAYS,
     _fuel_poor_for_bill,
     _tone_for_bill,
+    bill_due_date,
 )
 from simulation.arrears_engine import (
     arrears_stages as _arrears_stages,
@@ -308,25 +308,6 @@ def _meter_serial(account_id: str, commodity: str) -> str:
     seed = sum(ord(c) * 31 for c in account_id + commodity)
     return f"M{seed % 100000000:08d}"
 
-# Phase 3 (CORE_FIDELITY_PHASES.md item 3, unhappy-path audit finding #2):
-# "issue_date = period_end -- the bill is issued the same calendar day the
-# billing period ends, with no generation or postal delay and zero chance
-# of a late bill." Real supplier billing runs process a batch some days
-# after period-end before a bill is issued (paperless/portal delivery is
-# then near-instant, so the delay is dominated by the internal generation
-# run, not post). Provisional distribution pending a dedicated discovery-
-# agent anchor (no DESNZ/Ofgem billing-cycle-latency benchmark registered
-# yet in docs/market_research/ASSUMPTIONS.md) -- a small mean with an
-# occasional longer tail (batch-run slippage / a postal fallback for the
-# minority of customers not on paperless billing).
-BILL_GENERATION_DELAY_MEAN_DAYS = 3.0
-
-
-def _bill_generation_delay_days(customer_id: str, period_end: str) -> int:
-    delay_rng = random.Random(f"billgen_{customer_id}_{period_end}")
-    return max(0, round(delay_rng.expovariate(1.0 / BILL_GENERATION_DELAY_MEAN_DAYS)))
-
-
 def _held_spans(bills: list, held: list) -> dict[tuple, list[tuple[str, str]]]:
     """(customer_id, commodity) -> (period_start, period_end) of each bill the pre-bill gate held."""
     keys = {(r.customer_id, r.period_end) for r in held}
@@ -430,9 +411,9 @@ def generate(run_json_path=None, out_path=None):
         commodity = bill.get("commodity", "electricity")
         year = int(period_end[:4])
 
-        generation_delay_days = _bill_generation_delay_days(cid, period_end)
-        issue_date = date.fromisoformat(period_end) + timedelta(days=generation_delay_days)
-        due_date = issue_date + timedelta(days=PAYMENT_TERMS_DAYS)
+        due_date = bill_due_date(cid, period_end)
+        issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)
+        generation_delay_days = (issue_date - date.fromisoformat(period_end)).days
 
         beh = behavioral.get(cid) or {}
         stress = _stress_for_year(beh, year)

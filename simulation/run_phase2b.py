@@ -164,6 +164,7 @@ from sim.system_prices_history import SHORT_RECORD_REASON as SSP_SHORT_RECORD_RE
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd, relocate_premise_sky
 from simulation.acquisition_funnel import run_acquisition_funnel
+from simulation.arrears_engine import bill_due_date
 from simulation.bad_debt_incidence import world_bad_debt_incidence
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.churn_journey import ChurnJourneyRegister
@@ -2641,9 +2642,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "days_to_resolve": _outcome.days_to_resolve,
         })
 
-    def _bill_due_on(month: str) -> date:
-        # A month's bill falls due on its 28th; the gone-household close reads the same day.
-        return date.fromisoformat(month + '-28')
+    def _final_bill_due(account: str, last_supplied: date) -> date:
+        # The latest of the account's legs' final bills, each due as the billing ledger dates it.
+        return max(bill_due_date(_sp, last_supplied.isoformat())
+                   for _sp in _supply_points_of_account.get(account, (account,)))
 
     def _post_month_bill(cid: str, held: dict) -> None:
         # PB8 (`simulation/payment_method_dynamics.py`): a household paying by DD may cancel its
@@ -2688,7 +2690,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                             True)
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
-            due_date=_bill_due_on(held["month"]),
+            # The day the bill for the month falls due, as the billing ledger dates it: issued after
+            # the month's last supplied day. It was the 28th of the month itself, so the
+            # collections desk opened its journeys before the month had been billed.
+            due_date=bill_due_date(cid, held["period_end"]),
+            bill_month=held["month"],
             # Net of the scheme credit, from the same door the arrears engine asks, so the pounds
             # the household's budget weighs are the pounds that can fail. A month left in credit
             # owes nothing.
@@ -2700,7 +2706,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             segment=held["segment"],
             fuel=held["fuel"],
             dd_stopped_by=lambda _cid, _due: _dd_stop_board.notice_as_of(
-                _cid, _due.isoformat()) is not None,
+                _cid, _due.isoformat(), bills_before=held["month"]) is not None,
             dd_shock_effect=(None if not _mandate_book_live
                              else _dd_shock_book.effect(household_of(cid), held["month"])),
             moved_out_on=_moved_out_on_by_leg.get(cid),
@@ -3134,8 +3140,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             })
         # The account closes today, so its final bill is the month of the last day supplied: told
         # now, before the next reader forces a crossing (`close_account`).
-        _payment_triad.close_account(household, _bill_due_on(
-            (date.fromisoformat(effective_from[:10]) - timedelta(days=1)).isoformat()[:7]))
+        _payment_triad.close_account(household, _final_bill_due(
+            household, date.fromisoformat(effective_from[:10]) - timedelta(days=1)))
         _pending = [] if pending_already_sent else (
             _registration_loss_feed.wire_pending_notices_for_departure(_points, effective_from))
         for _wire in (
@@ -5201,8 +5207,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # ours and is not told.
         if (_home_moves_on and _moved_in_term
                 and (billing_account, _move_end) not in _followed_moves):
-            _payment_triad.close_account(billing_account, _bill_due_on(
-                (_move_end - timedelta(days=1)).isoformat()[:7]))
+            _payment_triad.close_account(billing_account, _final_bill_due(
+                billing_account, _move_end - timedelta(days=1)))
 
         # SLC 22C.4(a): THE END-OF-FIXED-TERM STATEMENT, 42-49 days before the fixed term ends, to
         # every domestic fixed term still supplied that day. Here, once the term's supplied end is
@@ -5623,6 +5629,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "income_stress_value": (
                         _income_stress.value if _income_stress is not None else None),
                     "segment": cust_segment, "fuel": commodity}
+            # The bill's period ends on the month's last supplied day (`saas.bill_generator`).
+            _held["period_end"] = max(_held.get("period_end", ""), rec["settlement_date"][:10])
             _held["amount_gbp"] += (float(rec.get('revenue_gbp', 0.0) or 0.0)
                                     - rec.get("void_owner_charge_gbp", 0.0)
                                     - rec.get("occupier_debt_gbp", 0.0)

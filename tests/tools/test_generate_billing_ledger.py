@@ -9,7 +9,6 @@ import pytest
 from simulation import arrears_engine
 from tools.generate_billing_ledger import (
     _arrears_stages,
-    _bill_generation_delay_days,
     _payment_method,
     _payment_outcome,
     _stress_for_year,
@@ -383,15 +382,15 @@ def test_due_date_14_days(tmp_path):
 
 
 def test_bill_generation_delay_non_negative_and_deterministic():
-    d1 = _bill_generation_delay_days("C1", "2022-03-31")
-    d2 = _bill_generation_delay_days("C1", "2022-03-31")
+    d1 = arrears_engine.bill_generation_delay_days("C1", "2022-03-31")
+    d2 = arrears_engine.bill_generation_delay_days("C1", "2022-03-31")
     assert d1 == d2
     assert d1 >= 0
 
 
 def test_bill_generation_delay_varies_by_period():
     delays = {
-        _bill_generation_delay_days("C1", f"20{yr}-03-31") for yr in range(16, 26)
+        arrears_engine.bill_generation_delay_days("C1", f"20{yr}-03-31") for yr in range(16, 26)
     }
     assert len(delays) > 1
 
@@ -402,7 +401,7 @@ def test_issue_date_carries_generation_delay(tmp_path):
     rj.write_text(json.dumps(_run([_bill("C_IC1", "2022-03-31", 8000.0)])))
     result = generate(rj, tmp_path / "l.json")
     inv = result["customers"]["C_IC1"]["invoices"][0]
-    expected_delay = _bill_generation_delay_days("C_IC1", "2022-03-31")
+    expected_delay = arrears_engine.bill_generation_delay_days("C_IC1", "2022-03-31")
     expected_issue = (date.fromisoformat("2022-03-31") + timedelta(days=expected_delay)).isoformat()
     assert inv["issue_date"] == expected_issue
     assert inv["generation_delay_days"] == expected_delay

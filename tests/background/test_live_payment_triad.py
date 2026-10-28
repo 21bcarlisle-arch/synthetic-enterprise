@@ -1863,7 +1863,7 @@ def test_q3_A_COLLECTION_THE_WORLD_NEVER_ANSWERS_IS_NOW_VISIBLE_AS_AN_OPEN_EXCHA
     ]
     assert dd_customers, "the fixture population drew no Direct Debit customer"
     target = dd_customers[0]
-    cid = f"{target}::{lpt._period_index_for(due)}"
+    cid = f"{target}::{lpt._period_index_for(due.isoformat()[:7])}"
 
     real_emit = lpt.emit_wire_responses
     silenced = {}

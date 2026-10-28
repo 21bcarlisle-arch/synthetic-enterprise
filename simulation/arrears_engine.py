@@ -108,6 +108,37 @@ from simulation.sme_payment_behaviour import sme_payment_outcome
 
 PAYMENT_TERMS_DAYS = 14
 
+# Phase 3 (CORE_FIDELITY_PHASES.md item 3, unhappy-path audit finding #2):
+# "issue_date = period_end -- the bill is issued the same calendar day the
+# billing period ends, with no generation or postal delay and zero chance
+# of a late bill." Real supplier billing runs process a batch some days
+# after period-end before a bill is issued (paperless/portal delivery is
+# then near-instant, so the delay is dominated by the internal generation
+# run, not post). Provisional distribution pending a dedicated discovery-
+# agent anchor (no DESNZ/Ofgem billing-cycle-latency benchmark registered
+# yet in docs/market_research/ASSUMPTIONS.md) -- a small mean with an
+# occasional longer tail (batch-run slippage / a postal fallback for the
+# minority of customers not on paperless billing).
+BILL_GENERATION_DELAY_MEAN_DAYS = 3.0
+
+
+def bill_generation_delay_days(customer_id: str, period_end: str) -> int:
+    delay_rng = random.Random(f"billgen_{customer_id}_{period_end}")
+    return max(0, round(delay_rng.expovariate(1.0 / BILL_GENERATION_DELAY_MEAN_DAYS)))
+
+
+def bill_due_date(customer_id: str, period_end: str) -> date:
+    """The day this leg's bill for the period ending `period_end` falls due: issued after the
+    period's generation run, payable PAYMENT_TERMS_DAYS later. The one home for it. The billing
+    ledger, this engine and the run's posting to the company's own ledger (which the collections
+    desk walks) each kept their own: the run's said the 28th of the month being billed, before the
+    period had even ended, so on the 2eeb3f0b3 book 1,987 of 7,151 journeys opened on a bill the
+    billing ledger had not yet made due."""
+    return (date.fromisoformat(period_end[:10])
+            + timedelta(days=bill_generation_delay_days(customer_id, period_end[:10])
+                        + PAYMENT_TERMS_DAYS))
+
+
 #: This subsystem's own RNG namespace (C-S2). Baked into every derived seed so
 #: a substream here can never collide with an identically-named substream in
 #: another subsystem, even at the same base seed.
@@ -913,7 +944,7 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         # the unnamed occupier's account held the month's credit (`occupier_scheme_credit_gbp`).
         if not (bill.get("occupier_scheme_credit_gbp") or bill.get("occupier_scheme_month_credit_gbp")):
             amount = owed_after_scheme_credit(amount, segment, commodity, period_end[:7])
-        due_date = date.fromisoformat(period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
+        due_date = bill_due_date(cid, period_end)
         if amount <= 0:
             # A credit bill has nothing to collect, so it can neither fail nor acknowledge a debt.
             rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,

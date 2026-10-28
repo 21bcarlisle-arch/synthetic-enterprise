@@ -86,6 +86,12 @@ def engine_method(triad_method: str) -> str:
     return PAY_ON_RECEIPT_METHOD
 
 
+def bill_month_of(period_index: int) -> str:
+    """The month a triad record's bill charges for, "YYYY-MM", from its period index: not its due
+    date's month, which is usually the next one."""
+    return "{:04d}-{:02d}".format(period_index // 12, period_index % 12 + 1)
+
+
 def build(triad, through: dt.date) -> dict[str, dict]:
     """Per leg (`customer_id`): `{"outcomes": {"YYYY-MM": {...}}, "repayments": [...]}` from the
     triad's records, its crossed settlements and the world's plan book. Call after the triad's
@@ -95,25 +101,26 @@ def build(triad, through: dt.date) -> dict[str, dict]:
     by_account: dict[str, list] = {}
     for r in triad.records:
         rec = out.setdefault(r.customer_id, {"outcomes": {}, "repayments": []})
-        rec["outcomes"][r.due_date.isoformat()[:7]] = {
+        month = bill_month_of(r.period_index)
+        rec["outcomes"][month] = {
             "result": r.result, "days_late": int(r.days_late or 0),
             "method": engine_method(r.payment_method)}
-        part = triad._final_bill_part_share.get((r.customer_id, r.due_date.isoformat()[:7]))
+        part = triad._final_bill_part_share.get((r.customer_id, month))
         if part:
-            rec["outcomes"][r.due_date.isoformat()[:7]]["part_share"] = part
+            rec["outcomes"][month]["part_share"] = part
         by_account.setdefault(r.account_id, []).append(r)
     cid_of = {a: rs[0].customer_id for a, rs in by_account.items()}
-    for account_id, bill_due, settled_on in triad._crossed_settlements:
+    for account_id, _bill_due, settled_on, month in triad._crossed_settlements:
         cid = cid_of.get(account_id)
         if cid is not None:
             out[cid]["repayments"].append({"date": settled_on.isoformat(), "kind": "settlement",
-                                           "bill_month": bill_due.isoformat()[:7]})
+                                           "bill_month": month})
     book = triad._household_plans
     for (account_id, agreed_on), terms in book._terms.items():
         cid = cid_of.get(account_id)
         if cid is None or terms.kind != REPAYMENT_PLAN or not terms.debt or not terms.instalment:
             continue
-        covered = [r.due_date.isoformat()[:7] for r in by_account[account_id]
+        covered = [bill_month_of(r.period_index) for r in by_account[account_id]
                    if r.result == "failed" and r.due_date < agreed_on
                    and (r.settled_on is None or r.settled_on > agreed_on)]
         if not covered:

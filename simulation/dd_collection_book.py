@@ -286,13 +286,18 @@ class StopNoticeBoard:
         """
         return self._billed.get((household, fuel))
 
-    def notice_as_of(self, supply_point: str, as_of: str) -> str | None:
+    def notice_as_of(self, supply_point: str, as_of: str,
+                     bills_before: str | None = None) -> str | None:
         """The notice date of the stop, if the household had been told by `as_of` and had not signed
-        a new mandate that AUDDIS confirmed by then; else None."""
+        a new mandate that AUDDIS confirmed by then; else None.
+
+        The stops are decided on the bills of months before `bills_before` ("YYYY-MM"), default
+        `as_of`'s month. A bill asks at its due date, in the month after the one it charges for,
+        and passes its own month here: its own collection cannot have stopped it."""
         final = self._final.get(supply_point)
         if final is not None:
             return _off_dd_notice(final, as_of)
-        cutoff = date.fromisoformat(as_of).replace(day=1)
+        cutoff = date.fromisoformat((bills_before + "-01") if bills_before else as_of).replace(day=1)
         known = self._spells_through.get(supply_point)
         if known is not None and known[0] >= cutoff:
             return _off_dd_notice(known[1], as_of)

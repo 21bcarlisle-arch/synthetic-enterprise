@@ -74,7 +74,8 @@ def test_the_board_holds_every_earlier_month_whenever_the_ledger_asks_it():
         assert stopped_by is not None, "the run posts a month bill without asking about the stop"
 
         def counted(cid, due):
-            cutoff = due.replace(day=1).isoformat()
+            # The board decides on the bills before the one asking, which falls due a month on.
+            cutoff = kw.get("bill_month", due.isoformat()[:7]) + "-01"
             board = boards[-1]
             asked.append((cid, cutoff, sum(1 for r in board._records.get(cid, [])
                                            if r["settlement_date"] < cutoff)))
