@@ -99,11 +99,15 @@ exceptions:
       printing an overdue figure above what the household's pages say is owed that day; 1,770 where
       the pages say nothing is owed
     reason: >-
-      NOT explained: an open defect, filed the day the row was first graded. The desk's overdue sum
-      (the company's arrears view) and the page ledger (the billing ledger) are two records of one
-      account that disagree. On C3 the desk prints GBP 30.10 overdue on a GBP 28.85 bill. Cause not
-      yet traced. Excepted rather than refusing the next publish because the page has printed these
-      figures since the cold read of 23 Oct; the row puts the count on the surface every run.
+      NOT yet explained in full, but the main cause is named. The desk's ledger is posted the month's
+      settled revenue at TRUE kWh and before VAT (run_phase2b._post_month_bill into
+      live_payment_triad.record_period); the page prints the issued bill (an estimate, or an actual
+      read with catch-up, plus VAT). On C3, 31.61 / 1.05 = GBP 30.10 against the GBP 28.85 bill.
+      Repricing the steps the desk's prices reproduce (12,637 of 32,741) takes the row to 7,294 on
+      this book. The other 6,808 are on steps the reconstruction does not reproduce, cause not
+      attributed. Ceiling unchanged until a run carrying the fix is graded. Excepted rather than
+      refusing the next publish because the page has printed these figures since the cold read of
+      23 Oct; the row puts the count on the surface every run.
     filed: 2026-10-28
     retired_by: docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md
     max_breached: 10180

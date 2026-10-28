@@ -653,6 +653,22 @@ def test_monday_carries_the_cost_of_the_work_to_come_and_the_section_says_when_i
     assert "NOT ESTIMATED" in "\n".join(wr._cost_of_work_section())
 
 
+def test_a_monday_reached_by_a_lapse_still_writes_the_note(rhythm):
+    """The first live note arrives by THIS route, not by bootstrap: the 26 Oct step was opened,
+    its finding filed, and never closed, so 2 Nov's tick lapses it and opens the new Monday in the
+    same call. The bootstrap test above never walks the lapse branch.
+
+    MUTATION (must fire): write the note only when `lapsed is None`."""
+    note = rhythm / "MONDAY_NOTE.md"
+    wr.tick(now=_at(2026, 9, 4))
+    assert wr.tick(now=_at(2026, 9, 7))["action"] == "OPENED"
+    assert wr.tick(now=_at(2026, 9, 8))["action"] == "FINDING"
+    note.unlink()
+    out = wr.tick(now=_at(2026, 9, 14))
+    assert out["action"] == "OPENED" and out["lapsed"]["due_on"] == "2026-09-07"
+    assert out["monday_note"] == str(note) and note.read_text() == "THE-NOTE\n"
+
+
 def test_the_monday_step_writes_the_directors_note_and_friday_does_not(rhythm, monkeypatch):
     """Director steer, 28 Oct: "Every Monday ... write one note in plain words." Written when
     Monday's step opens; Friday's open leaves it alone; a note that cannot be built says so in
