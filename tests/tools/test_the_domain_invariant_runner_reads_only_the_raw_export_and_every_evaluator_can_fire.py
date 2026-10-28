@@ -97,10 +97,16 @@ def _months(year=2020):
 
 
 def _account(cid, fuel, *, rate, tariff="svt", sc=0.25, kwh_per_month=250.0, method="direct_debit",
-             registers=("1",), read_type="A", start_read=1000.0, year=2020):
+             registers=("1",), read_type="A", start_read=1000.0, year=2020, opening_type="D"):
+    """`opening_type` is the supply start's own read, typed, on the first period: the record a
+    correct export would carry (None gives today's export, whose first period opens only on the
+    carried-forward read)."""
     periods, reading = [], start_read
     for start, end in _months(year):
         reads = []
+        if not periods and opening_type:
+            reads += [{"register_id": reg, "read_date": start, "read_kwh": reading,
+                       "read_type": opening_type} for reg in registers]
         for reg in registers:
             reads += [{"register_id": reg, "read_date": start, "read_kwh": reading,
                        "read_type": "carried_forward"},
@@ -164,7 +170,7 @@ def _ebss_pair():
 def _late_reader():
     """Read once in January, estimated after, then caught up 400 days on, far above its average."""
     acct = _account("L", "electricity", rate=15.0, read_type="E")
-    acct["periods"][0]["reads"][1]["read_type"] = "A"
+    acct["periods"][0]["reads"][-1]["read_type"] = "A"
     last = acct["periods"][-1]["reads"][1]
     acct["periods"].append(dict(
         acct["periods"][-1], period_start="2021-01-01", period_end="2021-02-10", days_in_period=41,
@@ -229,7 +235,7 @@ def _broken_book():
         {"payment_date": "2020-05-20", "payment_amount_gbp": 9.0, "payment_method": "prepayment"},
         {"payment_date": "2020-06-20", "payment_amount_gbp": 9.0, "payment_method": "prepayment"},
     ]
-    g[0]["reads"][0]["read_date"] = "2020-01-13"                    # opening read 12 days late
+    g[0]["reads"][0]["read_date"] = "2020-01-13"                    # typed opening read 12 days late
     for p in book["OLD"]["periods"][1:]:
         for r in p["reads"]:
             if r["read_type"] == "A":
@@ -758,3 +764,52 @@ def test_every_leg_of_the_page_overdue_row_is_reachable():
     assert grade(_step("2020-03-25", 0, "cured"), _step("2020-03-26", 99.0, "write_off"))[1] == 0
     no_page = runner.run([{"id": "INV_OVERDUE_WITHIN_PAGE_BALANCE"}], _ebss_pair())
     assert no_page[0]["status"] == "NOT_IN_EXPORT", no_page
+
+
+def test_the_exports_carried_forward_read_is_never_graded_as_the_opening_read():
+    """Today's export opens every first period on a `carried_forward` read dated period_start, with
+    nothing to carry it from. The row graded that read and was CLEAN on 1,293 of 1,293 accounts
+    (e6de8acf7). It is a record of no read, so the row says the read is not in the record."""
+    book = {"E": _account("E", "electricity", rate=15.0, opening_type=None),
+            "G": _account("G", "gas", rate=3.0, kwh_per_month=900.0, opening_type=None)}
+    opening = [next(i for i in INVARIANTS if i["id"] == "INV_OPENING_READ")]
+    row = _results(book, opening)["INV_OPENING_READ"]
+    assert row["status"] == "FLAGGED" and row["flagged"] == row["checked"] == 2, row
+    assert all(f["side"].startswith("not in the record") for f in row["flag_examples"])
+    # The first CLOSING read is not an opening read either, however early it falls.
+    assert row["flag_examples"][0]["value"] is None
+    # And the row can be CLEAN: a typed read at supply start is graded.
+    typed = {"E": _account("E", "electricity", rate=15.0)}
+    assert _results(typed, opening)["INV_OPENING_READ"]["status"] == "CLEAN"
+
+
+def test_a_catch_up_is_expected_at_its_inclusive_day_count():
+    """The prior daily average divides by inclusive days, so the catch-up's days are inclusive too:
+    41 days at Jan's 250/31 is 330.6 kWh. 326 kWh is within it; an exclusive count (322.6) flagged it."""
+    acct = _late_reader()
+    close = acct["periods"][-1]["reads"][-1]
+    close["read_kwh"] = acct["periods"][-1]["reads"][0]["read_kwh"] + 326.0
+    acct["periods"][-1]["consumption_kwh"] = 326.0
+    row = _results({"L": acct}, [{"id": "INV_BACK_BILLING_12M"}])["INV_BACK_BILLING_12M"]
+    assert row["status"] == "CLEAN", row["flag_examples"]
+    close["read_kwh"] += 6.0                                        # 332 kWh: above 330.6
+    row = _results({"L": acct}, [{"id": "INV_BACK_BILLING_12M"}])["INV_BACK_BILLING_12M"]
+    assert row["status"] == "FLAGGED", row
+
+
+def test_the_book_median_classes_an_account_year_by_its_own_registers():
+    """A household single-rate in 2020 and two-rate from 2021 is single-rate in 2020. The pooled
+    life-time set classed its 2020 as multi-register, so the single-rate row saw none of them."""
+    book = {}
+    for i in range(10):
+        acct = _account("H{}".format(i), "electricity", rate=15.0)
+        later = _account("H{}".format(i), "electricity", rate=15.0, year=2021, registers=("1", "2"),
+                         start_read=4000.0, opening_type=None)
+        acct["periods"] += later["periods"]
+        book[acct["customer_id"]] = acct
+    inv = {"id": "INV_ANNUAL_USE_BOOK_MEDIAN", "rows": [
+        {"from": "2020-01-01", "to": "2020-12-31", "class": "electricity single-rate",
+         "lower": 1000, "upper": 2000}]}
+    row = _results(book, [inv])["INV_ANNUAL_USE_BOOK_MEDIAN"]
+    # Ten single-rate 2020s at 3,000 kWh, above the row's 2,000: graded, and breached.
+    assert row["checked"] == 1 and row["status"] == "BREACHED", row

@@ -1109,6 +1109,17 @@ supplier holds an actual read on the day an incoming occupier's account opens.
    zero advance from it is not measured. Without a closing read on the boundary, nothing is judged.
    Graded on the run book in
    `docs/staging/records/WORKER_PREREG_W2_36_THE_OPENING_READ_AT_A_CHANGE_OF_TENANCY_2026-10-17.md`.
+5. **The record holds no opening read at supply start, and the export does not invent one**
+   (2026-10-28). The ledger's first bill carries `opening_read_kwh` (0.0 on every account) with no
+   type and no date; the export writes it as a `carried_forward` read on period_start, with nothing
+   to carry it from. `INV_OPENING_READ` graded that read and was CLEAN on 1,291 of 1,291 accounts
+   by construction (two blind readers, e6de8acf7). It now flags the read as not in the record.
+   **Choice: do not type it in the ledger.** A ledger that labels every opening read "deemed" on
+   SSD would make the row pass by construction again. The read the rules require (actual within
+   SSD ±5, else deemed by SSD+8; gas estimated within 10 days) comes from the industry flow, so the
+   build is a world-side opening read with its own type and date that crosses the seam as an
+   observable. **GAP:** the share of change-of-supplier opening reads that are actual. Until both
+   exist, the row stays FLAGGED and says why.
 
 
 **What trues up a closing read after supply ends** (added 2026-10-17, before the dispute seed was

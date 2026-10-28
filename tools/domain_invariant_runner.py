@@ -491,6 +491,14 @@ def ev_annual_use_gas(inv, book):
                        hard_flag_upper=_num((inv.get("hard_flag") or {}).get("upper")))
 
 
+def _year_registers(a: Account, year: int) -> set:
+    """The registers this account-year's own periods print: a household that moved to a two-rate
+    meter in a later year is single-rate in the years before it (the pooled set classed it as
+    multi-rate for its whole life)."""
+    return {r.get("register_id") for p in a.periods if _d(p["period_start"]).year == year
+            for r in p.get("reads", ())}
+
+
 def ev_annual_use_book_median(inv, book):
     """Per TDCV row: the median of complete account-years whose midpoint (1 July) falls in the
     row, with its order-statistic 95% CI; a breach only if the whole CI lies outside [low, high]."""
@@ -502,7 +510,7 @@ def ev_annual_use_book_median(inv, book):
         multi = "multi" in cls
         xs = sorted(kwh for a, y, kwh in years[fuel]
                     if row["_from"] <= date(y, 7, 1) <= row["_to"]
-                    and (fuel == "gas" or (len(a.registers) >= 2) == multi))
+                    and (fuel == "gas" or (len(_year_registers(a, y)) >= 2) == multi))
         where = "{} {}..{} n={}".format(cls, row["from"], row["to"], len(xs))
         if len(xs) < 10:
             tally.unbounded += 1
@@ -576,14 +584,30 @@ def ev_bill_twice_yearly(inv, book):
 
 
 def ev_opening_read(inv, book):
-    tally = Tally("account: days from first period_start to its first read")
+    """The opening read is a TYPED read in the first period, before its closing read.
+
+    The export dates a `carried_forward` read on every period_start, the first included, where there
+    is no previous period to carry from: grading it made this row 0 days on every account (1,293 of
+    1,293 on the 1691ec0ecd book, two blind readers, e6de8acf7). Measuring to the first typed read
+    instead measures the first CLOSING read, a month in. So an account whose first period opens
+    only on the carried-forward read has no opening read in the record, and is flagged as that."""
+    tally = Tally("account: days from first period_start to its typed opening read")
     rows = {r.get("commodity"): r for r in inv.get("rows") or ()}
     for a in book:
         row = rows.get(a.fuel)
-        reads = [_d(r["read_date"]) for p in a.periods for r in p.get("reads", ())]
-        if row is None or not reads:
+        if row is None or not a.periods:
             continue
-        tally.band("{} {}".format(a.cid, a.start), (min(reads) - a.start).days,
+        first = a.periods[0]
+        typed = [_d(r["read_date"]) for r in first.get("reads", ())
+                 if r.get("read_type") != OPENING and r.get("read_date")
+                 and _d(r["read_date"]) < _d(first["period_end"])]
+        where = "{} {}".format(a.cid, a.start)
+        if not typed:
+            tally.checked += 1
+            tally.hit("flag", where, None, None, "not in the record: the first period opens on the "
+                      "export's carried-forward read, and no typed opening read precedes its close")
+            continue
+        tally.band(where, (min(typed) - a.start).days,
                    _num(row.get("lower")), _num(row.get("upper")), below="flag", above="flag")
     return tally
 
@@ -742,7 +766,8 @@ def ev_back_billing(inv, book):
                 if int(p.get("days_in_period") or 0) > 365:
                     tally.hit("flag", where, p["days_in_period"], 365, "period over a year")
                 elif actual and (pe - last_actual).days > 365 and prior_days:
-                    expected = (pe - ps).days * prior_kwh / prior_days
+                    # Inclusive, like prior_days: an exclusive count fell a day short every time.
+                    expected = ((pe - ps).days + 1) * prior_kwh / prior_days
                     if kwh > expected:
                         tally.hit("flag", where, round(kwh, 1), round(expected, 1),
                                   "catch-up after {} days unread".format((pe - last_actual).days))
