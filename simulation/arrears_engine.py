@@ -903,12 +903,37 @@ def _add_years(d: date, years: int) -> date:
         return d.replace(year=d.year + years, day=28)
 
 
+def payer_ask_gbp(bill: dict) -> float | None:
+    """What the named payer is asked for on an issued bill, or None for a bill nobody named is asked
+    for. The engine's ask and the desk's in the loop (`run_phase2b._post_month_bill`) are this one
+    rule, so the collections desk chases a sum a bill states (debt_and_collections.md s.7.2).
+
+    B7 slice 5: the change-of-tenancy window is already booked as occupier debt in the run
+    (`occupier_debt_gbp`), so a named payer is asked only for the rest of the bill, and a bill wholly
+    inside the window is nobody's to collect or write off. B7 slice 6: the owner's void charge is
+    not a named payer's either. Two shares of one revenue can sum to a hair under 1.0, which would
+    leave a penny-dust bill to collect. The bill's charge is unchanged by EBSS; what the named payer
+    owes is net of it, unless the unnamed occupier's account held the month's credit.
+    """
+    from company.interfaces.bill_assembly import owed_after_scheme_credit
+    occupier_share = bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0)
+    if occupier_share >= 1.0 - 1e-9:
+        return None
+    amount = bill["total_amount_gbp"]
+    if occupier_share > 0.0:
+        amount = round(amount * (1.0 - occupier_share), 2)
+    if not (bill.get("occupier_scheme_credit_gbp") or bill.get("occupier_scheme_month_credit_gbp")):
+        amount = owed_after_scheme_credit(amount, bill.get("segment", "resi"),
+                                          bill.get("commodity", "electricity"),
+                                          bill["period_end"][:7], bill.get("account_held_from"))
+    return amount
+
+
 def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]:
     """Each bill's payment outcome, from its own `bill_substream`, in (customer, period_end)
     order. The one place the engine draws an outcome, so every consumer below reads the same one.
     """
     import simulation.world_payment_truth as wpt
-    from company.interfaces.bill_assembly import owed_after_scheme_credit
     from simulation.dd_collection_book import supplier_dd_spells
     from simulation.dd_shock_response import RECORD_KEY as SHOCK_RECORD_KEY
     from simulation.dd_shock_response import bill_effect, failure_table
@@ -927,24 +952,11 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         if truth is not None and cid not in truth_rows_from:
             truth_rows_from[cid] = len(rows)
         segment = bill.get("segment", "resi")
-        # B7 slice 5: the change-of-tenancy window is already booked as occupier debt in the run
-        # (`occupier_debt_gbp`), so a named payer is asked only for the rest of the bill, and a
-        # bill wholly inside the window is nobody's to collect or write off here.
-        # B7 slice 6: the owner's void charge is not a named payer's either. Two shares of one
-        # revenue can sum to a hair under 1.0, which would leave a penny-dust bill to collect.
-        occupier_share = bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0)
-        if occupier_share >= 1.0 - 1e-9:
+        amount = payer_ask_gbp(bill)
+        if amount is None:
             continue
-        amount = bill["total_amount_gbp"]
-        if occupier_share > 0.0:
-            amount = round(amount * (1.0 - occupier_share), 2)
         period_end = bill["period_end"]
         commodity = bill.get("commodity", "electricity")
-        # The bill's charge is unchanged by EBSS; what the named payer owes is net of it, unless
-        # the unnamed occupier's account held the month's credit (`occupier_scheme_credit_gbp`).
-        if not (bill.get("occupier_scheme_credit_gbp") or bill.get("occupier_scheme_month_credit_gbp")):
-            amount = owed_after_scheme_credit(amount, segment, commodity, period_end[:7],
-                                            bill.get("account_held_from"))
         due_date = bill_due_date(cid, period_end)
         if amount <= 0:
             # A credit bill has nothing to collect, so it can neither fail nor acknowledge a debt.

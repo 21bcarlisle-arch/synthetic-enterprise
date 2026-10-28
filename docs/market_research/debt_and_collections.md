@@ -606,6 +606,43 @@ MET, HIGH (5.3-6.9%). The interval runs 0.9-1.5x Ofgem, so whether the world ove
 not established either way. No prepayment account is behind on any seed. Detail:
 `docs/staging/SEAT_FINDING_THE_DD_FAILURE_CORRECTION_MOVED_MEASURED_FACTS_2026-10-09.md`.
 
+### 7.2 The desk chases the bill the supplier issued, not true consumption (2026-10-28)
+
+**What the desk's figure is.** The collections desk's "overdue" is the sum of bills the account has
+not paid by their due dates. §1 defines the debt as "a sum the supplier has billed". §5 says the
+supplier cannot see "the true consumption behind an estimated bill". So every pound the desk
+chases is a pound on an issued bill, including its VAT, less what the bill asks of someone else:
+- the unnamed occupier's or the owner's share of a change-of-tenancy month (B7);
+- the EBSS credit the account received that month, unless the occupier's deemed account held it.
+
+A bill the pre-bill gate held was never sent, so it is owed by no one yet.
+
+**What the code did.** `run_phase2b._post_month_bill` posted the triad (the household's payment and
+the desk's ledger) the month's settled revenue: true kWh, before VAT. That is a sum no bill states,
+and it is also a wall breach, because ground truth reached the company's ledger. C3, March 2017:
+GBP 30.10 chased against a GBP 28.85 bill. On the 1691ec0ecd book this is at least 2,886 of the
+10,180 page breaches of `INV_OVERDUE_WITHIN_PAGE_BALANCE`
+(`docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md`).
+
+**The choice, and why.** The same as the in-loop DD review on 13 Oct
+(`a_suppliers_annual_dd_review_is_sized_from_its_own_issued_bills_not_true_consumption_2026-10-13.md`):
+the loop asks the supplier's own assembly door for the month's bill
+(`run_phase4c_on_phase2b.build_monthly_bills` over the leg's settled rows through the month, then
+`issued_bills`). The named payer's ask is then the arrears engine's own rule
+(`arrears_engine.payer_ask_gbp`), so the desk, the household's payment and the page ledger price
+one bill one way. A leg that left is billed with its closing read, as the published run bills it.
+The household pays the bill it received. The world's payment draw therefore weighs the same pounds.
+
+**Cost, and its bound.** A monthly rebuild over every leg's rows is quadratic in the run's months.
+The stop-notice board already rebuilt each DD leg's bills monthly. The desk's ask for month m is
+the board's ask at m+1, so one memo keyed (leg, cutoff) serves both
+(`dd_collection_book.StopNoticeBoard.issued_bills_before`).
+
+**Not established.** Whether a leg's in-loop bill equals the published bill on every month. The
+in-loop build sees one leg's rows. The published build sees the whole book, the experiment
+policy's switches and the theft screen's tenancy links. The fresh run's re-grade of the overdue
+rows measures the residual, and this does not assume it is zero.
+
 ---
 
 ## 8. Gaps

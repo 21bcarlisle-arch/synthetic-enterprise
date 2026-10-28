@@ -59,15 +59,21 @@ def test_the_arrears_engine_asks_the_household_for_the_bill_net_of_the_credit():
 
 
 def test_the_held_month_the_budget_weighs_asks_the_same_door():
-    """The triad's held amount and the bill's amount net the same pounds because both call
-    `owed_after_scheme_credit`. A second, hand-rolled netting in `run_phase2b` would drift."""
-    src = inspect.getsource(rp)
-    tree = ast.parse(src)
+    """The triad's posted amount and the engine's ask net the same pounds because both call
+    `arrears_engine.payer_ask_gbp` on the issued bill. A second, hand-rolled netting in
+    `run_phase2b` would drift: it did, posting true-kWh revenue before VAT (2026-10-28)."""
+    tree = ast.parse(inspect.getsource(rp))
     calls = [n for n in ast.walk(tree) if isinstance(n, ast.Call)
              and getattr(n.func, "attr", None) == "record_period"]
     assert calls, "run_phase2b no longer records the held month through record_period"
+    helpers = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)}
     for call in calls:
         amount = next(k.value for k in call.keywords if k.arg == "amount_gbp")
         named = {getattr(n, "id", None) for n in ast.walk(amount)}
-        assert "owed_after_scheme_credit" in named, ast.unparse(amount)
+        reached = set(named)
+        for name in named & set(helpers):
+            reached |= {getattr(n, "id", None) for n in ast.walk(helpers[name])}
+        assert "payer_ask_gbp" in reached, ast.unparse(amount)
+    assert "payer_ask_gbp" in inspect.getsource(ae._resolve_bills)
+    assert ae.payer_ask_gbp(_bill("C1", "2022-11-30", 150.0)) == 84.0
     assert owed_after_scheme_credit(150.0, "resi", "electricity", "2022-11") == 84.0

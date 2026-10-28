@@ -42,11 +42,13 @@ def _observable(moves):
 def void_run(tmp_path_factory):
     patch = pytest.MonkeyPatch()
     patch.setattr(run, "moves_active", lambda: True)
-    posted = {}
+    posted, by_month = {}, {}
     record_period = lpt.LivePaymentTriad.record_period
 
     def _logged(self, **kw):
         posted[(kw["customer_id"], kw["due_date"].isoformat()[:7])] = kw["amount_gbp"]
+        # Keyed by the month billed: two bills of one leg can fall due in one month.
+        by_month[(kw["customer_id"], kw["bill_month"])] = kw["amount_gbp"]
         return record_period(self, **kw)
 
     patch.setattr(lpt.LivePaymentTriad, "record_period", _logged)
@@ -56,6 +58,10 @@ def void_run(tmp_path_factory):
         result = run.main(report_end=_RUN_END,
                           gap_ledger_path=tmp_path_factory.mktemp("gap") / "coupled_gap_ledger.json")
         result["_triad_posted"] = posted
+        result["_triad_posted_by_month"] = by_month
+        # Built here, on the run's own book: conftest resets the customer book between tests, and a
+        # bill rebuilt after that is priced off the reset roster, not the run's.
+        result["_published_asks"] = _asked_on_the_published_bills(result)
         yield result
     finally:
         patch.undo()
@@ -169,20 +175,50 @@ def test_the_payment_triad_asks_the_named_household_only_for_its_own_months_shar
     debt (or the owner's void charge), so the named household's payment events, and the company's
     belief fed from them, include energy used before anyone was named. The first assertion is the
     partition control: with no posted month holding occupier debt, the loop passes vacuously."""
-    posted = void_run["_triad_posted"]
+    posted = void_run["_triad_posted_by_month"]
     legs = {m["customer_id"] for m in void_run["home_move_ins"]}
-    month = {}
+    asked, part_window = void_run["_published_asks"]
+    assert {k for k in part_window if k[0] in legs} & set(posted)
+    for key in posted:
+        if key[0] in legs:
+            assert posted[key] == pytest.approx(asked.get(key, 0.0), abs=0.005), key
+
+
+def _asked_on_the_published_bills(result):
+    """(leg, month billed) -> what the engine asks the named payer for on the bill the published run
+    issues, built over the whole book as `run_phase4c_on_phase2b.main` builds it, and the keys of
+    the bills partly inside a change-of-tenancy window or a void."""
+    from company.interfaces.bill_assembly import issued_bills
+    from simulation.household import households_whose_account_closed, supply_points_that_left
+    from simulation.run_phase4c_on_phase2b import build_monthly_bills
+    legs = {r["customer_id"] for r in result["all_records"]}
+    bills = issued_bills(build_monthly_bills(
+        result["all_records"], supply_points_that_left(households_whose_account_closed(result), legs)))
+    def key(b):
+        return b["customer_id"], b["period_end"][:7]
+
+    window = {key(b) for b in bills
+              if 0.0 < b.get("occupier_share", 0.0) + b.get("void_owner_share", 0.0) < 1.0}
+    # A credit bill asks nothing: the account is in credit, not owed (D3 step 2).
+    return {key(b): max(0.0, ae.payer_ask_gbp(b) or 0.0) for b in bills}, window
+
+
+def test_the_desk_is_posted_the_issued_bill_not_the_months_true_revenue(void_run):
+    """Defect: the triad (the household's payment and the collections desk's ledger) was posted the
+    month's settled revenue, true kWh before VAT, so the desk chased a sum no bill states (C3, March
+    2017: GBP 30.10 against a GBP 28.85 bill). Every posted leg-month must be the engine's ask over
+    the bill the published run issues. The control: the run posts months whose issued ask is not
+    their true revenue, so a posting of true revenue cannot pass."""
+    posted = void_run["_triad_posted_by_month"]
+    asked, _window = void_run["_published_asks"]
+    revenue = {}
     for r in void_run["all_records"]:
-        if r["customer_id"] in legs:
-            acc = month.setdefault((r["customer_id"], r["settlement_date"][:7]), [0.0, 0.0, 0.0])
-            acc[0] += r.get("revenue_gbp", 0.0) or 0.0
-            acc[1] += r.get("occupier_debt_gbp", 0.0)
-            acc[2] += r.get("void_owner_charge_gbp", 0.0)
-    assert [k for k, (_rev, occ, _void) in month.items() if occ > 1.0 and k in posted]
-    # TO THE PENNY: the triad's amount comes through `owed_after_scheme_credit`, which rounds what
-    # is owed to 2dp as a bill does (d8129f3f6), so half a penny is the tolerance, not 1e-6.
-    for key, (rev, occ, void) in month.items():
-        assert posted[key] == pytest.approx(rev - occ - void, abs=0.005), (key, rev, occ, void)
+        key = (r["customer_id"], r["settlement_date"][:7])
+        revenue[key] = revenue.get(key, 0.0) + (r.get("revenue_gbp", 0.0) or 0.0)
+    assert [k for k in posted if abs(asked.get(k, 0.0) - revenue.get(k, 0.0)) > 0.05]
+    wrong = {k: (posted[k], asked.get(k, 0.0)) for k in posted
+             if abs(posted[k] - asked.get(k, 0.0)) > 0.005}
+    assert not wrong, (len(wrong), len(posted), sorted(wrong.items())[:5])
 
 
 def _book():

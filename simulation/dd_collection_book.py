@@ -268,6 +268,37 @@ class StopNoticeBoard:
         # Otherwise the spells as billed through a month, re-asked once a later month is billed.
         self._spells_through: dict[str, tuple[date, list[tuple[str, str | None]]]] = {}
         self._billed: dict[tuple[str, str], str] = {}
+        # supply point -> {(cutoff, churned): the issued bills of the records before cutoff}. The
+        # desk asks month m's bill at cutoff m+1, which is this board's own ask at m+1, so one
+        # rebuild serves both, and only the latest two cutoffs are ever asked again.
+        self._bills_memo: dict[str, dict[tuple[str, bool], list[dict]]] = {}
+
+    def issued_bills_before(self, supply_point: str, cutoff: str, churned: bool = False
+                            ) -> list[dict]:
+        """The supplier's issued bills over this supply point's records settled before `cutoff`
+        (an ISO date), by the money side's own door. `churned` bills the leg as one that left, so
+        its last bill takes the closing read, as the published run bills a leaver."""
+        memo = self._bills_memo.setdefault(supply_point, {})
+        bills = memo.get((cutoff, churned))
+        if bills is None:
+            records = [r for r in self._records.get(supply_point, [])
+                       if r.get("settlement_date", "9999") < cutoff]
+            from company.interfaces.bill_assembly import issued_bills
+            from simulation.run_phase4c_on_phase2b import build_monthly_bills
+            bills = (issued_bills(build_monthly_bills(records, {supply_point} if churned else set()))
+                     if records else [])
+            memo[(cutoff, churned)] = bills
+            while len(memo) > 2:
+                del memo[min(memo)]
+        return bills
+
+    def issued_bill_for(self, supply_point: str, month: str, churned: bool = False) -> dict | None:
+        """The bill the supplier issued for this supply point's `month` ("YYYY-MM"), over every
+        record of that month and before; None if the pre-bill gate held it or nothing was billed."""
+        y, m = int(month[:4]), int(month[5:7])
+        cutoff = f"{y + m // 12:04d}-{m % 12 + 1:02d}-01"
+        return next((b for b in self.issued_bills_before(supply_point, cutoff, churned)
+                     if b["period_end"][:7] == month), None)
 
     def observe(self, records: list[dict]) -> None:
         """Take a term's settled records as the run settles them."""
@@ -301,13 +332,9 @@ class StopNoticeBoard:
         known = self._spells_through.get(supply_point)
         if known is not None and known[0] >= cutoff:
             return _off_dd_notice(known[1], as_of)
-        records = [r for r in self._records.get(supply_point, [])
-                   if r.get("settlement_date", "9999") < cutoff.isoformat()]
-        if not records:
+        bills = self.issued_bills_before(supply_point, cutoff.isoformat())
+        if not bills:
             return None
-        from company.interfaces.bill_assembly import issued_bills
-        from simulation.run_phase4c_on_phase2b import build_monthly_bills
-        bills = issued_bills(build_monthly_bills(records, set()))
         behavioral = {supply_point: {
             "income_stress_trajectory": self._stress_trajectory_of(supply_point)}}
         if self._dd_shock_responses_of is not None:
@@ -322,6 +349,8 @@ class StopNoticeBoard:
         if spells and bacs_rails.REMANDATE_ACCEPTANCE_PROBABILITY is None:
             self._final[supply_point] = spells
         self._spells_through[supply_point] = (cutoff, spells)
+        # The desk asked these bills a month ago and the spells now stand for them: none asks again.
+        self._bills_memo.get(supply_point, {}).pop((cutoff.isoformat(), False), None)
         return _off_dd_notice(spells, as_of)
 
 

@@ -129,3 +129,19 @@ and only the page's owed bound fell, because a gas page no longer carries an uns
 fix exposed more of this finding's cause rather than adding a new one. The exception's ceiling is
 re-based to 12,730. Attribution beside
 `records/SEAT_PREREGISTRATION_THE_EBSS_SHARE_FIX_READ_ON_A_FRESH_RUN_AT_1A02C46116_2026-10-28.md`.
+
+## Built (2026-10-28, item `the-desk-is-posted-the-issued-bill-not-true-kwh-revenue`)
+
+The desk is posted the issued bill. `_post_month_bill` asks `StopNoticeBoard.issued_bill_for` for
+the month's bill, which runs the assembly door over the leg's rows through that month. It posts
+`arrears_engine.payer_ask_gbp` of that bill. That is the engine's own ask, factored out of
+`_resolve_bills`: the payer's share of the window, net of EBSS. A held bill posts nothing. The
+board's memo serves its own stop-notice ask and the desk's from one rebuild. Knowledge:
+`debt_and_collections.md` §7.2.
+
+- On a 2016 run, 4,769 of 4,769 posted leg-months equal the ask over the whole-book published bill.
+- On the 1a02c46116 book, 1,331 of 1,331 leg-months on 40 sampled legs agree.
+- The extra cost is at most about 13.5 min a run, not the 90 estimated above.
+
+The exception's ceiling is unchanged until the fresh run is graded:
+`records/SEAT_PREREGISTRATION_THE_DESK_POSTED_THE_ISSUED_BILL_READ_ON_A_FRESH_RUN_2026-10-28.md`.

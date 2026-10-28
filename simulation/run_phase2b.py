@@ -34,7 +34,7 @@ from background.gap_metric import format_belief_summary as _format_belief_summar
 from background.gap_metric import format_detection_summary as _format_detection_summary
 from background.live_fidelity_evidence import emit_live_fidelity_evidence
 from background.live_payment_triad import LivePaymentTriad
-from company.interfaces.bill_assembly import owed_after_scheme_credit, scheme_credit
+from company.interfaces.bill_assembly import scheme_credit
 from company.interfaces.churn_estimation import (
     RenewalObservation,
     SvtSegmentObservation,
@@ -164,7 +164,7 @@ from sim.system_prices_history import SHORT_RECORD_REASON as SSP_SHORT_RECORD_RE
 from sim.system_prices_history import get_system_prices_range
 from sim.weather_hdd import REFERENCE_MONTHLY_HDD, get_hdd, relocate_premise_sky
 from simulation.acquisition_funnel import run_acquisition_funnel
-from simulation.arrears_engine import bill_due_date
+from simulation.arrears_engine import bill_due_date, payer_ask_gbp
 from simulation.bad_debt_incidence import world_bad_debt_incidence
 from simulation.bill_shock_tracker import count_rate_shocks as _count_rate_shocks
 from simulation.churn_journey import ChurnJourneyRegister
@@ -245,6 +245,7 @@ from simulation.household import (
     HeatingSystem,
     household_of,
     households_whose_account_closed,
+    supply_points_that_left,
 )
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import (
@@ -2597,13 +2598,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # Phase NH: payment behaviour analytics -- three-signal churn model wiring
     # (now one arm of the customer-experience desk above, §3p)
     _payment_rng = random.Random(42 + 7919)
-    # ONE BILL PER LEG PER MONTH, POSTED WHEN THE MONTH CLOSES (2026-10-03). The bill is the month's
-    # settled revenue summed, not the first settlement record's (a half-hour, median GBP 0.023 over
-    # a decade). Terms run in date order across customers and a renewal splits a month between two
-    # terms of one leg, so a month is held open per leg and posted when that leg's next month starts
-    # or the run ends -- never twice, since the ledger keys a bill on (customer, month).
+    # ONE BILL PER LEG PER MONTH, POSTED WHEN THE MONTH CLOSES (2026-10-03). The bill is the one the
+    # supplier issued for the month (2026-10-28; it was the month's settled revenue, true kWh before
+    # VAT, which no bill states). Terms run in date order across customers and a renewal splits a
+    # month between two terms of one leg, so a month is held open per leg and posted when that leg's
+    # next month starts or the run ends -- never twice, since the ledger keys a bill on (customer,
+    # month).
     _payment_month_open: dict[str, dict] = {}  # cid -> the month being accumulated
-    _account_first_row: dict[str, str] = {}  # cid -> ISO date of the leg's first settled row
     # (cid, month) -> the EBSS credit an unnamed occupier's deemed account still has to net.
     _occupier_credit_left: dict[tuple[str, str], float] = {}
 
@@ -2648,12 +2649,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "days_to_resolve": _outcome.days_to_resolve,
         })
 
+    def _issued_ask_gbp(cid: str, month: str, left: bool) -> float:
+        _bill = _dd_stop_board.issued_bill_for(cid, month, churned=left)
+        _ask = payer_ask_gbp(_bill) if _bill is not None else None
+        return _ask or 0.0
+
     def _final_bill_due(account: str, last_supplied: date) -> date:
         # The latest of the account's legs' final bills, each due as the billing ledger dates it.
         return max(bill_due_date(_sp, last_supplied.isoformat())
                    for _sp in _supply_points_of_account.get(account, (account,)))
 
-    def _post_month_bill(cid: str, held: dict) -> None:
+    def _post_month_bill(cid: str, held: dict, left: bool = False) -> None:
         # PB8 (`simulation/payment_method_dynamics.py`): a household paying by DD may cancel its
         # mandate this month for its own reasons, before the month's collection is presented.
         # Nothing is drawn while the share is zero.
@@ -2701,14 +2707,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # collections desk opened its journeys before the month had been billed.
             due_date=bill_due_date(cid, held["period_end"]),
             bill_month=held["month"],
-            # Net of the scheme credit, from the same door the arrears engine asks, so the pounds
-            # the household's budget weighs are the pounds that can fail. A month left in credit
-            # owes nothing.
-            # A month whose credit the unnamed occupier's account took gives no second one.
-            amount_gbp=max(0.0, held["amount_gbp"] if (cid, held["month"]) in _occupier_credit_left
-                           else owed_after_scheme_credit(
-                               held["amount_gbp"], held["segment"], held["fuel"], held["month"],
-                               held["held_from"])),
+            # The bill the supplier ISSUED for the month, as the engine asks the named payer for it
+            # (`payer_ask_gbp`: its share of the window, net of the scheme credit), not the month's
+            # settled revenue, which is priced at true kWh before VAT and is a sum no bill states
+            # (debt_and_collections.md s.7.2). Nothing is owed on a bill the gate held, a bill
+            # nobody named is asked for, or a month left in credit.
+            amount_gbp=max(0.0, _issued_ask_gbp(cid, held["month"], left)),
             income_stress_value=held["income_stress_value"],
             segment=held["segment"],
             fuel=held["fuel"],
@@ -5623,27 +5627,20 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - rec["occupier_debt_gbp"], 6)
                 _bad_debt = 0.0
             rec["bad_debt_gbp"] = _bad_debt
-            # Accumulated AFTER the two branches above, because they decide whose a row is: the
-            # owner's void charge (slice 6) and the unnamed occupier's debt (slice 4) are not this
-            # household's to pay, as the arrears engine already holds (`occupier_share`).
+            # The month's pounds are not summed here: the desk is posted the month's issued bill,
+            # whose window shares the bill assembly takes from the two branches above.
             _held = _payment_month_open.get(cid)
             if _held is not None and _held["month"] != rec_month:
                 _months_closed_this_term.append((cid, _payment_month_open.pop(cid)))
                 _held = None
             if _held is None:
                 _held = _payment_month_open[cid] = {
-                    "month": rec_month, "amount_gbp": 0.0,
+                    "month": rec_month,
                     "income_stress_value": (
                         _income_stress.value if _income_stress is not None else None),
-                    "segment": cust_segment, "fuel": commodity,
-                    "held_from": max(_account_first_row.setdefault(cid, rec["settlement_date"][:10]),
-                                     _unnamed_until[cid].isoformat() if cid in _unnamed_until else "")}
+                    "segment": cust_segment, "fuel": commodity}
             # The bill's period ends on the month's last supplied day (`saas.bill_generator`).
             _held["period_end"] = max(_held.get("period_end", ""), rec["settlement_date"][:10])
-            _held["amount_gbp"] += (float(rec.get('revenue_gbp', 0.0) or 0.0)
-                                    - rec.get("void_owner_charge_gbp", 0.0)
-                                    - rec.get("occupier_debt_gbp", 0.0)
-                                    - rec.get("occupier_scheme_credit_gbp", 0.0))
             rec["net_margin_gbp"] = round(rec["net_margin_gbp"] - _bad_debt, 6)
             treasury += rec["net_margin_gbp"]
             rec["treasury_cash_balance_gbp"] = treasury
@@ -5829,9 +5826,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             f"actual_net=£{actual_net:8.2f}  naked_net=£{naked_net:8.2f}"
         )
 
-    # The months still open when the run ended are billed: the last month of every leg.
+    # The months still open when the run ended are billed: the last month of every leg. A leg that
+    # left takes its closing read on that bill, as the published run bills it.
+    _legs_that_left = supply_points_that_left(households_whose_account_closed(
+        {"churned_billing_accounts": churned_billing_accounts, "home_move_outs": home_move_outs}),
+        set(_payment_month_open))
     for _open_cid in list(_payment_month_open):
-        _post_month_bill(_open_cid, _payment_month_open.pop(_open_cid))
+        _post_month_bill(_open_cid, _payment_month_open.pop(_open_cid),
+                         left=_open_cid in _legs_that_left)
     # Every bill has posted, so each closed account's final bill is known: a lump dated after it is
     # a gone household's, and is lost (`world_payment_truth.GONE_HOUSEHOLD_PAYS_NO_LUMP`). Told
     # before the first reader below forces a crossing. The same set the P&L writes off at close.
