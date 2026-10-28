@@ -198,27 +198,27 @@ exceptions:
     retired_by: C2's smart meter delivering the reads its supplier bills on, or its smart mode recorded as lost, and a run carrying it
     max_breached: 4
   - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
-    scope: 292 of 24,886 graded estimated bills on the 1a02c46116 book, on 50 accounts (SYN-2016-307g 22, OCC-33214d16f95c 17, OCC-bad56e8f97f9 16), 249 of them above the band
+    scope: 153 of 24,888 graded estimated bills on the 37abacdf42 book, on 32 accounts (PROS-2019-0173g 13, SYN-2016-159g 13, PROS-2023-0010g 10), 115 above the band and 38 below
     reason: >-
-      Two causes measured, one open. 141 of the 292 are the ledger's printed actual read: after an
-      estimated run, tools/generate_billing_ledger.py prints the estimated register plus the
-      month's kWh as the actual read, not the meter's register. On OCC-01e79fcf2d4fg it prints
-      1,618.9 against 6,514.85, so the row grades an honest annualised-advance estimate against a
-      quarter of the real advance. With the meter's register on a scratch ledger, 151 remain on 30
-      accounts. 55 of the 292 (38 of the 151) were set by the estimate window holding a month's
-      settlement kWh after an estimated run, fixed in company/billing/monthly_bill_assembly.py.
-      The rest is the gap between the estimator's reference windows and the row's.
+      Partly diagnosed. The ledger now prints the meter's register on an actual bill (37abacdf42),
+      which retired the 292 -> 151 printed-read cause. The estimate-window fix (c4738b64c9) removed
+      37 breaches and set 39 new ones on 6 accounts, so it moved none net. 114 of the 153 are the
+      same bills R3's scratch ledger left on the 129e7de698 book. The open cause, not yet traced, is
+      the gap between the estimator's reference windows and the row's. Graded in
+      docs/staging/records/SEAT_PREREGISTRATION_THE_PRINTED_REGISTER_FIX_GRADED_ON_A_FRESH_RUN_AT_37ABACDF42_2026-10-28.md.
     filed: 2026-10-28
-    retired_by: the ledger printing the meter's register on an actual bill, then a fresh book graded against docs/staging/records/SEAT_PREREGISTRATION_R3_THE_PRINTED_ACTUAL_REGISTER_AND_THE_ESTIMATE_WINDOW_2026-10-28.md
-    max_breached: 292
+    retired_by: the estimator's reference window traced against the row's on the 114 carried bills and the 39 the window fix set, then a fresh book
+    max_breached: 153
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
-    scope: 11 of 4,311 runs of estimated bills on the 1a02c46116 book, 10 of them occupier accounts estimated at 0 kWh, and OCC-6e59dd8b63e8 at 0.323 against the 1/3 line
+    scope: 13 of 4,311 runs of estimated bills on the 37abacdf42 book, on 12 accounts, 7 below the 1/3 line and 6 above 3
     reason: >-
-      The ten zero runs share one cause, fixed here. The only actual read in the trailing window
-      was the occupier's 0 kWh first month, and a zero-kWh window still has profile weight, so it
-      estimated every later month at zero. It now establishes nothing, and the bill falls back to
-      the registry figure (company/billing/unread_month_estimate.estimate_unread_kwh). The fix is
-      run-side, so this book still carries the ten. OCC-6e59dd8b63e8's run is open.
+      Partly diagnosed. The zero-advance fix holds: none of the 13 is a zero run. Printing the
+      meter's register exposed runs the printed register hid. 8 runs follow a single actual read,
+      usually an occupier's short first month (OCC-f6813bf9f05eg gas: 138 kWh in Oct 2016, then
+      eight estimates totalling about 1,890 kWh against about 8,065 on the meter), so one month's
+      advance set a year's shape. 5 are summer runs on heating households (9.6 to 34.5 MWh a year),
+      estimated 3.0 to 5.5 times the meter: PROS-2017-0336 electricity uses about 300 kWh a month in
+      summer and was estimated at about 1,600. Both causes are hypotheses until a fix moves them.
     filed: 2026-10-28
-    retired_by: a run carrying the zero-advance fix (test_a_zero_advance_establishes_no_estimate.py)
-    max_breached: 11
+    retired_by: the estimator falling back to the registry figure when one read is all it has, a trace of the summer heating overshoot, and a run carrying both
+    max_breached: 13
