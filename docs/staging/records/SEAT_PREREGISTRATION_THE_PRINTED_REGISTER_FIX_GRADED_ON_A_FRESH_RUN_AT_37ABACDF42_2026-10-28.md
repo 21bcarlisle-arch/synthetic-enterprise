@@ -46,3 +46,31 @@ own LIMIT note).
   above 223: 300 to 900.
 
 A wrong prediction stays here beside its result.
+
+## Results (graded 2026-10-28, after the run finished; the predictions above are unchanged)
+
+The run took 86 minutes. Outputs are in `/var/tmp/regrerun/` (`r3_asbuilt.txt`, `r3_patched.txt`, `chain.txt`,
+`grade.txt`).
+
+| | predicted | measured | verdict |
+|---|---|---|---|
+| Q1 `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` | 80 to 140, point 113 | **153 on 32 accounts** (115 above, 38 below) | **Refuted.** It is under 200, so the field reaches the ledger. The point assumed the window fix only removes breaches. It removed 37, close to the 38 counted, and set 39 new ones on 6 accounts (PROS-2019-0173g 13, SYN-2016-159g 13, SYN-2016-050 6, OCC-17ff099218d5g 5). 114 of the 153 are the bills R3's scratch ledger left on the old book |
+| Q2 as built against R3's patch | within 10 | 153 against 162 | Held, at the edge |
+| Q3 `INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` | 5 to 20, with unexcepted breaches | **13 runs on 12 accounts**, over the old ceiling of 11, so the publish was refused | Held. None of the 13 is a zero run, so the zero-advance fix holds |
+| Q4 `INV_PERIOD_MATCHES_READS` | 0 | 0 of 52,901 | Held |
+| Q5 actual bills whose opening is not the previous closing | 4,500 to 6,600, all after an estimate | **6,436**, of which 6,435 follow an estimate (6,444 E→A transitions) | Held |
+| Q6 ToU invoices whose bands do not sum to the total index | 300 to 900 | **417 of 1,189, on 39 of 79 accounts** (223 on 16 before) | Held |
+
+R3's "141 of 292 reconciled" is now measured on a book the run built, not predicted: the row falls from 292 to 153
+(-139). That is the printed-register cause less the window fix's net zero.
+
+**The 13 runs, by cause (hypotheses until a fix moves them):**
+- **8 follow a single actual read**, usually an occupier's short first month. On OCC-f6813bf9f05eg gas, 138 kWh in
+  Oct 2016 is followed by eight estimates totalling about 1,890 kWh, against about 8,065 kWh on the meter (0.233).
+  All 7 below-the-line runs are this cause, plus PROS-2024-0010 above it.
+- **5 are summer runs on heating households** (9.6 to 34.5 MWh a year), estimated 3.0 to 5.5 times the meter.
+  PROS-2017-0336 electricity uses about 300 kWh a month in summer and was estimated at about 1,600.
+
+**Exceptions re-based** in `DOMAIN_INVARIANT_EXCEPTIONS.yaml` to 153 and 13, each marked partly diagnosed. The full
+runner on this book now reports 0 unexcepted breaches with 11 excepted, so the publish stands. Finding:
+`docs/staging/SEAT_FINDING_THE_PRINTED_REGISTER_FIX_EXPOSES_ESTIMATES_FROM_ONE_READ_AND_PRINTS_6436_OPENING_READS_NOBODY_TOOK_2026-10-28.md`.
