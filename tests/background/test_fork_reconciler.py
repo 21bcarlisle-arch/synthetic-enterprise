@@ -1341,6 +1341,33 @@ def test_the_cwd_probe_sees_a_real_process_and_a_descendant_counts(tmp_path):
         "every directory it ever saw")
 
 
+def test_a_queued_launch_naming_the_worktree_keeps_the_reaper_off_it(tmp_path):
+    """A queued long job waits OUTSIDE its worktree and names it only as `--workdir <path>`. The
+    reaper removed `/var/tmp/fresh-run-wt-20e7d66234` that way on 2026-10-28, 1h31m into the
+    queue, and the launch then refused on a missing workdir.
+
+    MUTATION: drop the argv leg from `_live_cwd_default` and the first assert fires ("the reaper
+    would take a worktree a queued launch is waiting to run in").
+    """
+    import subprocess
+    import sys
+
+    wt = tmp_path / "queued-wt"
+    wt.mkdir()
+    proc = subprocess.Popen([sys.executable, "-c", "import sys; sys.stdin.read()",
+                             f"--workdir={wt}"], cwd=str(tmp_path.parent), stdin=subprocess.PIPE)
+    try:
+        assert F._live_cwd_default(str(wt)) is True, (
+            "the reaper would take a worktree a queued launch is waiting to run in")
+        assert F._live_cwd_default(str(tmp_path / "unnamed-sibling")) is False, (
+            "the argv leg claimed a directory no process names")
+    finally:
+        proc.stdin.close()
+        proc.wait(timeout=10)
+    assert F._live_cwd_default(str(wt)) is False, (
+        "the argv leg still holds the worktree after the naming process exited")
+
+
 def test_the_default_liveness_answer_comes_from_the_module_that_owns_it():
     """One question, one home. `seat_executor` owns WORKTREE and PID_FILE, so it owns the answer;
     `fork_salvage` asks the same function. Two modules that do not import each other each carrying

@@ -789,6 +789,32 @@ def _live_cwd_default(path: str) -> bool:
             continue           # exited mid-scan, or another user's -- absence of evidence, skipped
         if cwd == here or here in cwd.parents:
             return True
+        if _names_the_worktree(entry, here):
+            return True
+    return False
+
+
+def _names_the_worktree(entry: Path, here: Path) -> bool:
+    """Does this process carry the worktree as an argument? A QUEUED long job is not in its
+    worktree yet -- it waits for memory, then chdirs -- so the cwd leg cannot see it. On 2026-10-28
+    the reaper removed `/var/tmp/fresh-run-wt-20e7d66234` at 06:24 while
+    `launch_long_job --in-queue-unit --workdir <it>` had been waiting 1h31m behind the census; the
+    launch refused three minutes later on a missing workdir. Same property shape as the cwd: it
+    releases the moment the process exits."""
+    try:
+        argv = (entry / "cmdline").read_bytes().split(b"\0")
+    except (OSError, PermissionError):
+        return False
+    for raw in argv:
+        arg = raw.decode(errors="replace").split("=", 1)[-1]
+        if not arg.startswith("/"):
+            continue
+        try:
+            named = Path(arg).resolve()
+        except (OSError, ValueError):
+            continue
+        if named == here or here in named.parents:
+            return True
     return False
 
 
