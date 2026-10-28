@@ -28,6 +28,10 @@
 # 0 of 4,721 (gas), from 298 and 249. Grade beside
 # docs/staging/records/SEAT_PREREGISTRATION_THE_FRESH_RUN_AT_2EEB3F0B3_CARRIES_THE_CLAMP_THE_OCCUPIER_CREDIT_UIG_AND_THE_SHARED_HUB_2026-10-27.md.
 #
+# 2026-10-28: INV_OVERDUE_WITHIN_BALANCE lowered from 1,987 to 4 and INV_STATUTE_BARRED_WRITE_OFF_AGE from 25
+# to 3, on the fresh run at 1691ec0ecd carrying one due date for the desk and the ledger. Grade beside
+# docs/staging/records/SEAT_PREREGISTRATION_ONE_DUE_DATE_FOR_THE_DESK_AND_THE_LEDGER_ON_A_FRESH_RUN_2026-10-27.md.
+#
 # 2026-10-27: the INV_RENEWAL_NOTICE_42_TO_49_DAYS exception (1,338) is retired. The run now sends the
 # SLC 22C statement on day 42, and a fresh full run carrying it grades 0 of 1,170 domestic fixed
 # terms owed one. The 2eeb3f0b3 book, graded by the same evaluator, still breaches 1,323 of 1,323.
@@ -68,25 +72,27 @@ exceptions:
   # Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
   - invariant: INV_OVERDUE_WITHIN_BALANCE
-    scope: 1,987 of 7,151 collections-journey openings on the 2eeb3f0b3 book (second leg only)
+    scope: 4 of 7,380 collections-journey openings on the 1691ec0ecd book (second leg only), on PROS-2017-0336, PROS-2024-0010, PROS-2025-0106 and SYN-2016-582
     reason: >-
-      Partly diagnosed. The collections desk opens a journey on "a bill is unpaid past its due date"
-      read from its own account ledger, and the billing ledger disagrees. In 1,769 cases, the last
-      bill due before the opening was collected on or before its due date. In 136, no bill had yet
-      fallen due. Traced by hand: SYN-2016-356's journey opens on 29 Oct 2016, but both fuels' bills
-      due 16 Oct were collected that day. The two payment records disagree, and which one is wrong
-      is NOT established.
-    filed: 2026-10-27
-    retired_by: one payment record read by both the billing ledger and the collections desk, and a run carrying it
-    max_breached: 1987
+      The due-date split behind the 1,987 is fixed (one due date home, 9ad5af9a7). The four residuals
+      are exactly the four accounts in the billing ledger's exception_queue, all nine of its rows. Each
+      is a household label with an SME-sized load. The ledger holds those months' bills for VAT
+      review and issues none, but the run posts them to the company's ledger and the desk dunns them.
+      This is an open defect with a named cause: one bill, issued in one record and held in the other.
+    filed: 2026-10-28
+    retired_by: a bill the billing ledger holds for review is not posted as due to the company's ledger (or the hold reaches the desk), and a run carrying it
+    max_breached: 4
   - invariant: INV_STATUTE_BARRED_WRITE_OFF_AGE
-    scope: 25 of 41 statute-barred write-offs on the 2eeb3f0b3 book
+    scope: 3 of 64 statute-barred write-offs on the 1691ec0ecd book, on OCC-6e59dd8b63e8 (2025-05-06), SYN-2016-016 (2024-03-24) and SYN-2016-611 (2024-09-14)
     reason: >-
-      24 are written off about six years after supply ended, but the household's final bill was
-      paid two to four weeks after that bar date, and a part-payment restarts the six years (the
-      row, and the company's own rule name "from the last payment"). The likely cause, NOT
-      established: the collections desk's ledger does not carry a final bill's payment received
-      after the account closed. One, "no bill old enough", is not yet traced.
-    filed: 2026-10-27
-    retired_by: the write-off rule reading the payment record that carries final-bill settlements, and a run carrying it
-    max_breached: 25
+      The 25 early write-offs from the due-date split are gone (9ad5af9a7). Each of the three residual
+      households carries two limitation write-offs. The first is dated six years after a payment that
+      is not the household's last: a final bill paid or part-paid 1 to 16 days later (the other fuel
+      leg's, for OCC-6e59dd8b63e8 and SYN-2016-016; the same leg's final bill, for SYN-2016-611) did
+      not restart the bar for it. Not established: whether the desk's ledger lacks the post-close
+      payment or bars per fuel leg, and whether limitation runs per fuel contract (if it does, two of
+      the three are the grader's household reading being wrong). SYN-2016-611 is single-fuel, so it
+      is a defect on either reading.
+    filed: 2026-10-28
+    retired_by: the desk's bar reading every payment on the account, final-bill settlements after close included, and a run carrying it
+    max_breached: 3

@@ -47,6 +47,15 @@ Each defect is excepted, capped at its count, in `docs/design/DOMAIN_INVARIANT_E
    482 stray openings on the old code and none on the new. Traces, predictions and the fresh-run
    grade:
    `docs/staging/records/SEAT_PREREGISTRATION_ONE_DUE_DATE_FOR_THE_DESK_AND_THE_LEDGER_ON_A_FRESH_RUN_2026-10-27.md`.
+   **Graded 2026-10-28 on a fresh full run at 1691ec0ecd, and closed.** Overdue-within-balance is
+   now 4 of 7,380, down from 1,987, and statute-barred write-off age 3 of 64, down from 25. Both
+   exceptions are lowered to those counts, each naming its residual. The 4 are bills the billing
+   ledger holds for VAT review (its whole `exception_queue`) and the desk still dunns. The 3 are a
+   household's first write-off, dated before a final bill's payment that arrived after the leg
+   closed. I predicted 0 for the statute bar, and that was wrong. Journeys rose (7,380 against
+   7,151), against my prediction of fewer. Openings now bunch on the 15th to the 17th, the ledger's
+   due date plus one, against my bound of 15% for any one day. The two residuals are new, smaller
+   defects and are not this split.
 3. **A joiner's first part-month is credited the EBSS on the named-household path.** Five PROS
    joiners, each traced, were credited for the month they joined mid-way. Guidance 5.4/5.8 gives
    that month's credit only to whoever held the account at 00:00 on the 1st, and the occupier path
