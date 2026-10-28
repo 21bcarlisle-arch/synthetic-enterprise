@@ -96,6 +96,15 @@ def build_account_ledger(cust, as_of):
                 "method": None, "description": "Billed to the %s's deemed account" % inv["billed_to"],
             })
             continue
+        if inv.get("deemed_share_gbp"):
+            # The part of a bill inside the window or the void: the deemed account's, never asked
+            # of this payer, so it leaves this balance on issue as the whole bill does above.
+            entries.append({
+                "date": inv["issue_date"], "type": "deemed_account", "invoice_number": num,
+                "amount_gbp": round(-inv["deemed_share_gbp"], 2), "info_amount_gbp": None,
+                "method": None,
+                "description": "Days billed to the %s's deemed account" % inv["deemed_share_to"],
+            })
         if arr is None:
             # A bill the account's credit wholly covered asked for nothing, so nothing was received.
             if (pay and pay["outcome"] == "success" and pay["payment_date"] <= as_of

@@ -406,6 +406,8 @@ def generate(run_json_path=None, out_path=None):
         scheme_credit = 0.0
         deemed_payer = None
         row = resolved.get((cid, period_end, commodity))
+        occupier_held_credit = bool(bill.get("occupier_scheme_credit_gbp")
+                                    or bill.get("occupier_scheme_month_credit_gbp"))
         # The engine's own test for a bill nobody named is asked for (`_resolve_bills`), so a
         # catch-up credit inside the window is the deemed account's too: on the named payer it stood
         # as credit nothing ever drew (OCC-2e29bf263cb4, OCC-86e666eb2f01).
@@ -432,7 +434,11 @@ def generate(run_json_path=None, out_path=None):
                 method = SCHEME_CREDIT_METHOD
             part_paid = row.get("part_paid_gbp", 0.0)
             asked = round(row["amount_gbp"] + part_paid, 2)
-            scheme_credit = ebss_credit_gbp(segment, commodity, period_end[:7], bill.get("account_held_from"))
+            # The engine nets the month's EBSS from the payer only where the unnamed occupier's
+            # account did not hold it (`_resolve_bills`); a part-window month whose credit the
+            # occupier held left the payer owing its share whole (OCC-25ff8966357a).
+            scheme_credit = (0.0 if occupier_held_credit else ebss_credit_gbp(
+                segment, commodity, period_end[:7], bill.get("account_held_from")))
             _tone = None if outcome == "credit" else _tone_for_bill(method, cid, period_end)
         else:
             raise ValueError("no engine outcome for %s %s %s, which is not inside the window"
@@ -733,9 +739,15 @@ def generate(run_json_path=None, out_path=None):
         # book that read as 283 short, late or missing EBSS months (INV_EBSS_CREDIT_EACH_MONTH).
         # The engine netted the month's credit wherever it resolved the bill, unless the unnamed
         # occupier's account held it (`arrears_engine`, `occupier_scheme_credit_gbp`).
-        whole_credit = bill.get("occupier_scheme_month_credit_gbp") or bill.get(
-            "occupier_scheme_credit_gbp") or (
-            ebss_credit_gbp(segment, commodity, period_end[:7], bill.get("account_held_from")) if row is not None else 0.0)
+        # A bill the engine resolved posts only a credit the payer's own account received.
+        if row is None:
+            whole_credit = (bill.get("occupier_scheme_month_credit_gbp")
+                            or bill.get("occupier_scheme_credit_gbp"))
+        elif occupier_held_credit:
+            whole_credit = 0.0
+        else:
+            whole_credit = ebss_credit_gbp(segment, commodity, period_end[:7],
+                                           bill.get("account_held_from"))
         if whole_credit:
             inv["scheme_credit_month_gbp"] = round(whole_credit, 2)
         invoices_by_cid.setdefault(cid, []).append(inv)
@@ -753,9 +765,22 @@ def generate(run_json_path=None, out_path=None):
             inv["deemed_debt_gbp"] = round(printed_total - (whole_credit or 0.0), 2)
         elif not is_credit:
             payment_date = due_date + timedelta(days=days_late)
+            # A bill only partly inside the window or the void: the engine asks the named payer for
+            # its own share alone (`_resolve_bills`), and the rest is the deemed account's. This
+            # used to collect the full printed total, so the payer paid the occupier's days, or a
+            # failed bill was written off at the payer's share and owed in full (OCC-87206d346f15g,
+            # GBP 19.16; 239 bills on 5e3e9966a5).
+            deemed_share = ((bill.get("occupier_share", 0.0) or 0.0)
+                            + (bill.get("void_owner_share", 0.0) or 0.0))
+            payer_face = printed_total
+            if 0.0 < deemed_share < 1.0:
+                payer_face = round(printed_total * (1.0 - deemed_share), 2)
+                inv["deemed_share_gbp"] = round(printed_total - payer_face, 2)
+                inv["deemed_share_to"] = ("owner" if bill.get("void_owner_share", 0.0)
+                                          > bill.get("occupier_share", 0.0) else "occupier")
             # No more of the credit than the bill: what it exceeds by stays on the account, and the
             # engine nets that from the next bill (`credits_applied`, kind "credit").
-            scheme_applied = round(min(scheme_credit, printed_total), 2)
+            scheme_applied = round(min(scheme_credit, payer_face), 2)
             pay = {
                 "invoice_number": invoice_number,
                 "payment_date": payment_date.isoformat(),
@@ -766,7 +791,7 @@ def generate(run_json_path=None, out_path=None):
                 # credit, which the account received and the household did not
                 # pay: part-covered bills were recorded as paid in full (the
                 # 2026-10-27 finding).
-                "amount_gbp": round(printed_total - scheme_applied, 2),
+                "amount_gbp": round(payer_face - scheme_applied, 2),
                 "method": method,
                 "outcome": outcome,
                 "income_stress_at_time": stress,
@@ -901,7 +926,8 @@ def generate(run_json_path=None, out_path=None):
         arrs = arrears_by_cid.get(cid, [])
         total_billed = sum(i["total_amount_gbp"] for i in invs)
         # Billed to the unnamed occupier's or the owner's deemed account at this supply point.
-        total_deemed = sum(i.get("deemed_debt_gbp", 0.0) for i in invs)
+        total_deemed = sum(i.get("deemed_debt_gbp", 0.0) + i.get("deemed_share_gbp", 0.0)
+                           for i in invs)
         total_paid = sum(p["amount_gbp"] if p["outcome"] == "success" else p.get("part_paid_gbp", 0.0)
                          for p in pays)
         failed_count = sum(1 for p in pays if p["outcome"] in ("failed", "dispute"))

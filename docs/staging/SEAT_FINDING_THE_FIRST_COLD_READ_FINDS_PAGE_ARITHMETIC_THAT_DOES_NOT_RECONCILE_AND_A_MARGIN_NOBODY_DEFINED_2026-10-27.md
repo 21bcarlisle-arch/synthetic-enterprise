@@ -249,3 +249,37 @@ event. The engine's walk and the refund log were re-run over the result:
   off 523 gas bills the household had settled. **Every published bad-debt and net figure from a
   run since one payment truth shipped (12 Oct) moves**. The next run carries the correction, and
   the reading for that run must mark each figure that moved.
+
+## The part-window share has one home (2026-10-28, delivery lane)
+
+**Cause.** For a bill partly inside the window or the void (0 < share < 1), the engine asks the
+named payer for `total × (1 − share)` (`arrears_engine._resolve_bills`). `generate_billing_ledger`'s
+payment row collected the full printed total. A paid bill therefore showed the payer paying the
+occupier's days. A failed one was written off at the payer's share while the page balance held the
+whole bill: OCC-87206d346f15g's £19.16 is that difference.
+
+**Second home, found on the same bills.** Where the unnamed occupier's account held the month's
+EBSS credit (`occupier_scheme_credit_gbp`), the engine asks the payer for its share whole. The ledger
+still netted the month's £67 from the payer's payment and posted it on the payer's page. Taking the
+full total hid this; once the share was right it left five payers in credit by £27 to £59
+(OCC-25ff8966357a, OCC-a1e9ae835e65, OCC-c0afcdf9fce8, OCC-eb72725807da, OCC-eb8498f3f8aa).
+
+**Fixed.** A part-window invoice carries `deemed_share_gbp` and `deemed_share_to`. The payment asks
+the payer's share only. The page ledger posts the deemed share off the payer's balance on issue,
+and it counts in `total_deemed_gbp`. An occupier-held EBSS credit is neither netted from the payer
+nor posted to it. Tests, red on the old code: `test_a_part_window_bill_asks_the_payer_for_its_own_share_alone`
+("the payer paid 150.0 of a 90.00 share") and `test_an_ebss_credit_the_occupier_held_is_not_the_payers`,
+both in `tests/tools/test_a_bill_inside_the_occupier_window_is_the_deemed_accounts.py`.
+
+**Measured** on 5e3e9966a5, old ledger code against new, as of 2025-07-04:
+- 238 part-window invoices (the earlier count was 239; one is a credit bill, which has no payment).
+  £7,034.38 is the deemed share, and £7,007.26 of it, on 235 paid bills, is no longer taken from
+  payers.
+- Accounts owing more than £1: 171 → 169. Accounts in credit by more than £1: 14 → 13.
+  OCC-87206d346f15g: £19.16 → £0.
+- The five refunds still show on this ledger as owed, at their refund amounts. Their refund log
+  is the old run's. The leg fix above removes them at the next run (rebuilt: all five gone).
+
+**Open, not this item:** OCC-bec72a04dec8's carry, which needs re-reading on the next run because
+this cut changes its part-window month; PROS-2016-0117; PROS-2018-0267; the six credit-netting
+accounts (OCC-423594fbfa6bg class).

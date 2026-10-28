@@ -62,3 +62,45 @@ def test_a_catch_up_credit_inside_the_window_is_the_deemed_accounts_too(tmp_path
     assert [i["billed_to"] for i in cust["invoices"]] == ["occupier", "occupier"]
     led = build_account_ledger(cust, cust["invoices"][-1]["issue_date"])
     assert led["current_balance_gbp"] == 0.0
+
+
+def test_a_part_window_bill_asks_the_payer_for_its_own_share_alone(tmp_path):
+    """A bill partly inside the window: the engine asks the named payer for (1 - share) of it, so
+    the payer pays that, and the page ledger takes the rest off as the deemed account's. The ledger
+    collected the full printed total, so the payer paid the occupier's days, or a failed bill was
+    written off at the payer's share and owed in full (OCC-87206d346f15g, GBP 19.16).
+    Both outcomes are asserted reachable first, so a ledger that never collects cannot pass."""
+    bills = [dict(_resi_bill("OCC-4", "2016-%02d-28" % m), occupier_share=0.4) for m in range(1, 13)]
+    bills += [dict(_resi_bill("OCC-4", "2017-%02d-28" % m), occupier_share=0.4) for m in range(1, 13)]
+    cust = _ledger(tmp_path, bills)["OCC-4"]
+    pays = {p["invoice_number"]: p for p in cust["payments"]}
+    outcomes = {p["outcome"] for p in pays.values()}
+    assert "success" in outcomes, "no part-window bill was paid: the partition is not reached"
+    for inv in cust["invoices"]:
+        pay = pays[inv["invoice_number"]]
+        if pay["outcome"] == "success":
+            assert pay["amount_gbp"] == 90.0, f"the payer paid {pay['amount_gbp']} of a 90.00 share"
+        assert inv.get("deemed_share_gbp") == 60.0 and inv["deemed_share_to"] == "occupier"
+    # A date after every payment and case has landed, so the balance is what is still owed.
+    led = build_account_ledger(cust, "2019-12-31")
+    open_arrears = round(sum(i["outstanding_gbp"] for i in cust["invoices"]), 2)
+    assert led["total_deemed_gbp"] == round(60.0 * len(bills), 2)
+    assert led["current_balance_gbp"] == open_arrears
+
+
+def test_an_ebss_credit_the_occupier_held_is_not_the_payers(tmp_path):
+    """A part-window EBSS month whose credit the unnamed occupier's account held: the engine asks
+    the payer for its share whole, so the payer pays it and the page posts no credit to the payer.
+    The ledger netted GBP 67 from the payer and posted the month's credit on its page, leaving five
+    payers in credit by 27 to 59 pounds on 5e3e9966a5 (OCC-25ff8966357a)."""
+    months = ["2022-10-31", "2022-11-30", "2022-12-31", "2023-01-31", "2023-02-28", "2023-03-31"]
+    bills = [dict(_resi_bill("OCC-5", pe), occupier_share=0.5, occupier_scheme_credit_gbp=67.0)
+             for pe in months]
+    cust = _ledger(tmp_path, bills)["OCC-5"]
+    paid = [p for p in cust["payments"] if p["outcome"] == "success"]
+    assert paid, "no part-window EBSS month was paid: the partition is not reached"
+    assert all(p["amount_gbp"] == 75.0 and not p.get("scheme_credit_gbp") for p in paid), (
+        [(p["amount_gbp"], p.get("scheme_credit_gbp")) for p in paid])
+    led = build_account_ledger(cust, "2024-12-31")
+    assert not [e for e in led["entries"] if e["type"] == "scheme_credit"]
+    assert led["current_balance_gbp"] == round(sum(i["outstanding_gbp"] for i in cust["invoices"]), 2)
