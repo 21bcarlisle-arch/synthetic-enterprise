@@ -104,6 +104,11 @@ def households(customers: dict[str, dict]) -> list[dict]:
         (c.get("dual_fuel_combined") or {}).get("gas_account_id")
         for c in customers.values()
     } - {None}
+    # The account that opened next on each meter point: an incoming occupant's page names the account
+    # it succeeded (`predecessor_account_id`), which a supplier knows because the new account opens on
+    # a point it already supplies (home_moves.md §8.8, choice 6). Never the world's move-in record.
+    succeeded_by = {c["predecessor_account_id"]: {"id": aid, "opened": c.get("acquisition_date")}
+                    for aid, c in customers.items() if c.get("predecessor_account_id")}
     out = []
     for aid, c in customers.items():
         if aid in gas_ids:
@@ -112,7 +117,9 @@ def households(customers: dict[str, dict]) -> list[dict]:
         gid = (c.get("dual_fuel_combined") or {}).get("gas_account_id")
         if gid and gid in customers:
             legs["gas"] = customers[gid]
-        out.append({"id": aid, "legs": legs})
+        out.append({"id": aid, "legs": legs,
+                    "successors": {f: succeeded_by[a["account_id"]] for f, a in legs.items()
+                                   if a.get("account_id") in succeeded_by}})
     return out
 
 
@@ -496,6 +503,38 @@ def _template(hh, ev, iso, kind, rec):
                  "arrears_placed_with_dca": "Your closed account has been passed to a collection agency."}.get(
                     et, "Your payment did not reach us."),
                 _debt_why(hh, ev, iso), None)
+    if kind == "moved_out":
+        many = len(rec["legs"]) > 1
+        return ("Moved out", "The household leaves the address on {}, and its {} account{} close{} that day.".format(
+                    _day(iso), rec["fuels"], "s" if many else "", "" if many else "s"),
+                "Your account closes on your moving date. Your final bill will follow.",
+                "The move is the household's; the supplier's record shows only the account closing.", None)
+    if kind == "final_bill":
+        bills = ["{} {} for {:,.0f} kWh to {} ({})".format(
+                     m["fuel"], _fmt_gbp(m["final"].get("amount_gbp")), m["final"].get("consumption_kwh") or 0,
+                     _day(m["final"].get("period_end") or m["final"].get("date") or iso),
+                     (m.get("basis") or "closing read not recorded").split(";")[0].lower())
+                 for m in rec["legs"]]
+        return ("The final bill", "The final bill{}: {}.".format("s" if len(bills) > 1 else "", "; ".join(bills)),
+                "Your final bill is ready: {}.".format(" and ".join(
+                    "{} {}".format(m["fuel"], _fmt_gbp(m["final"].get("amount_gbp"))) for m in rec["legs"])),
+                "The account closes on the move date; the bill covers use up to it.", None)
+    if kind == "settled":
+        if any(m.get("refunded") for m in rec["legs"]):
+            return ("Credit refunded", "The closing credit is refunded, and nothing is left on the {} account{}.".format(
+                        rec["fuels"], "s" if len(rec["legs"]) > 1 else ""),
+                    "We have refunded the credit on your closed account.",
+                    "A closing credit is refunded within 10 working days of the final bill (GSoP reg 6D).", None)
+        return ("Account settled", "The last payment clears the {} account{}: nothing owed and no credit left.".format(
+                    rec["fuels"], "s" if len(rec["legs"]) > 1 else ""),
+                "Your account is closed and fully paid. Thank you.",
+                "The closing balance was collected, not written off.", None)
+    if kind == "new_occupant":
+        return ("A new occupant", "A new account, {}, opens on the same {} meter point.".format(
+                    rec["successor"]["id"], rec["fuel"]),
+                "No message: this household has left.",
+                "The supplier links the two accounts because the new one opens on a meter point it already supplies.",
+                None)
     if kind == "life_event":
         return (rec["detail"], "{}{}".format(rec["detail"], ": " + rec["effect"] if rec.get("effect") else "."),
                 "No message: nothing the supplier can see happened today.",
@@ -531,7 +570,7 @@ GLOSSARY = {
     "switch_in": "Switching in: a household moves its supply to this supplier, and its first bill is the first test of the new account.",
     "renewal": "Renewal: a fixed-price tariff is ending, and the supplier decides what to offer before the household decides whether to stay.",
     "estimate_trap": "An estimate trap: bills are worked out from guessed meter readings until a real reading arrives and corrects the account in one step.",
-    "mover": "A home move: the leaving occupant gets a final bill, and whoever moves in next becomes the supplier's new customer at that address.",
+    "mover": "A home move: the leaving occupant gets a final bill, and whoever moves in next opens a new account on the same meter.",
     "debt": "The debt journey: a bill goes unpaid, then reminders and a payment plan follow, and it ends repaid, written off or with a collection agency.",
     "ev": "An EV home: an electric car arrives, and the supplier sees it only as more electricity on the meter.",
     "storage_heating": "Storage heating: heaters that charge overnight on a two-rate meter (such as Economy 7), whose night units are billed cheaper.",
@@ -545,7 +584,7 @@ def _cast_rules():
         ("switch_in", "The switch-in", "The household that switched in most recently and holds a full first quarter on record", _score_switch_in),
         ("renewal", "The renewal", "The largest gap between the supplier's stored churn belief and the true probability at a renewal decision", _score_renewal),
         ("estimate_trap", "The estimate trap", "The longest run of estimated bills on one fuel that ends in a catch-up", _score_estimate_trap),
-        ("mover", "The mover", "A household that moves out, takes a final bill, and is followed by a new occupant", _score_mover),
+        ("mover", "The mover", "The longest-supplied household that moves out, is billed to the move on a closing read and settles, and whose meter point opens to a new occupant's account", _score_mover),
         ("debt", "The debt journey", "The arrears journey that goes deepest: missed payment, notices, then repaid, written off or passed to an agency", _score_debt),
         ("ev", "The EV home", "The household whose electric car moved its use the most, with the supplier's inference set against it", _score_ev),
         ("storage_heating", "Storage heating", "A two-rate (profile class 2) home billed on its meter's registers", _score_storage),
@@ -627,16 +666,49 @@ def _score_estimate_trap(hh, ev, person):
     return (n, keys, 2)
 
 
+def _move(hh, ev, fuel) -> dict | None:
+    """One fuel leg's move-out as the record holds it: the move date, the final bill and the day the
+    ledger raised it, what was raised or written off after it, how the leg's balance closed, and the
+    account that opened next on its meter point. None when the leg carries no move-out."""
+    out = _latest([e for e in ev["timeline"] if e["fuel"] == fuel and e.get("type") == "moved_out"])
+    fb = _latest([e for e in ev["timeline"] if e["fuel"] == fuel and e.get("type") == "final_bill"])
+    if not out or not fb:
+        return None
+    # The timeline dates a final bill at the end of the period it covers; the ledger raises it on issue.
+    inv = next((i for i in ev["invoice"] if i["fuel"] == fuel and i["date"] == fb["date"]), None)
+    led = [r for r in ev["ledger"] if r["fuel"] == fuel]
+    num = int(str(inv["id"]).rsplit("INV", 1)[1]) if inv and "INV" in str(inv.get("id")) else None
+    raised = next((r["date"] for r in led if r.get("type") == "invoice_raised" and r.get("invoice_number") == num), None)
+    issued = raised or fb["date"]
+    return {"fuel": fuel, "moved": out["date"], "final": inv or {}, "issued": issued, "basis": fb.get("effect"),
+            "raised_after": [r["date"] for r in led if r.get("type") == "invoice_raised" and r["date"] > issued],
+            "written_off": [r for r in led if r.get("type") == "write_off" and r["date"] >= issued],
+            "closing": led[-1].get("running_balance_gbp") if led else None,
+            "settled_on": led[-1]["date"] if led else None,
+            "refunded": any(r.get("type") == "refund_debit" and r["date"] >= issued for r in led),
+            "successor": (hh.get("successors") or {}).get(fuel)}
+
+
 def _score_mover(hh, ev, person):
-    return None  # see MOVER_EMPTY_REASON; the record carries no move-out
+    moves = [m for m in (_move(hh, ev, f) for f in ("electricity", "gas") if f in hh["legs"]) if m]
+    if not moves:
+        return None
+    mv = {**moves[0], "legs": moves, "fuels": " and ".join(m["fuel"] for m in moves)}
+    keys = [(_acq(hh), "joined", {}), (mv["moved"], "moved_out", mv), (mv["issued"], "final_bill", mv)]
+    # Settled once every leg that moved has closed at zero; the supplier column reads the household.
+    if all(m["closing"] is not None and abs(m["closing"]) < 0.005 and m["settled_on"] >= m["issued"] for m in moves):
+        keys.append((max(m["settled_on"] for m in moves), "settled", mv))
+    if mv["successor"] and mv["successor"].get("opened"):
+        keys.append((mv["successor"]["opened"], "new_occupant", mv))
+    tenure = date.fromisoformat(mv["moved"]).toordinal() - date.fromisoformat(_acq(hh)).toordinal()
+    return (tenure, keys, 2)
 
 
+#: Shown only when no household carries both a move-out and a final bill. A household that does,
+#: and fails, is named by the checks it fails (`_invalid_reason`), not by this sentence.
 MOVER_EMPTY_REASON = (
-    "No household in this run can be shown moving. The published record carries no move-out event and "
-    "no final-bill marker, and the new-occupant accounts (OCC-…) are not linked to the household they "
-    "replaced, so a rule cannot follow a move from one occupant to the next. What closes it: the "
-    "record now carries each move-out and final bill and names the household a new occupant replaced, "
-    "so the next published run is the first that can fill this slot."
+    "No household in this run carries both a move-out and a final bill on its record, so none can be "
+    "shown moving."
 )
 
 
@@ -953,6 +1025,35 @@ def _slot_failures(slot_id, hh, ev, keys) -> list[str]:
         if run.get("since_iso") and (date.fromisoformat(catch["date"][:10]).toordinal()
                                      - date.fromisoformat(run["since_iso"][:10]).toordinal()) > READ_DUTY_DAYS:
             out.append("the meter went more than a year unread without the read duty (SLC 21B.4) firing")
+    elif slot_id == "mover":
+        for fuel in hh["legs"]:
+            mv = _move(hh, ev, fuel)
+            if mv is None:
+                if any(e["fuel"] != fuel and e.get("type") == "moved_out" for e in ev["timeline"]):
+                    out.append("its other fuel carries no move-out and final bill")
+                continue
+            if mv["issued"] < mv["moved"]:
+                out.append("its final bill is issued before it moves out")
+            if mv["raised_after"]:
+                out.append("a bill is raised after its final bill")
+            # An estimated closing read is allowed (home_moves.md §8.8) but is where a mover is most
+            # often billed wrongly (§2.5), and the book's use band cannot catch it: the band is drawn
+            # over estimated bills too. On 1691ec0ecd the longest-supplied passer's final bill was
+            # estimated at 34 kWh a day after actual reads of 5. The shock slot's rule, for the same reason.
+            if mv["final"].get("read_type") != "A":
+                out.append("its closing read is estimated, so the final bill's use is not observed")
+            if mv["written_off"]:
+                out.append("its closing balance is written off, not collected")
+            elif mv["closing"] is None or mv["closing"] > 0.005:
+                out.append("its closing balance is still owed")
+            elif mv["closing"] < -0.005:
+                # The page's ledger carries no refund entry, so a closing credit cannot be shown repaid.
+                out.append("its closing credit is not shown refunded")
+            if not mv["successor"]:
+                out.append("no later account on its meter point names it")
+            elif (mv["successor"].get("opened") or "") < mv["moved"]:
+                out.append("the next account on its meter point opens before it moves out")
+        out = list(dict.fromkeys(out))  # a dual-fuel home fails a check once, not once per leg
     elif slot_id == "debt":
         wo = [r for _, k, r in keys if k == "debt" and r.get("event_type") == "collections_write_off"
               and "statute-barred" in (r.get("description") or "")]
@@ -1010,6 +1111,7 @@ def _story_line(slot_id, hh, keys) -> str:
         "switch_in": "Joined on {} and was billed from its first month.".format(_day(k[0][0])),
         "renewal": "At renewal the supplier's churn belief and the truth were furthest apart.",
         "estimate_trap": "A long run of estimated bills, ended by a meter read.",
+        "mover": "Moves out, is billed to the move, settles, and the meter passes to the next occupant.",
         "debt": "From a missed payment to the end of the debt.",
         "ev": "An electric car arrives; the supplier sees only the meter.",
         "shock_2022": "The 2022 crisis reaches one household's bill.",
@@ -1122,7 +1224,7 @@ _CAST_FINDING = ("SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE
 #: or whose finding has left the open rooms while the gap remains, is RED: a feature has stopped
 #: working and nothing is working on it. An entry whose gap has closed is reported, never red, so
 #: the run getting more honest cannot red the build.
-ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "mover": _CAST_FINDING, "storage_heating": _CAST_FINDING,
+ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "storage_heating": _CAST_FINDING,
                 "ev": "SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_AND_ITS_EFFECT_IS_A_"
                       "RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md"}
 

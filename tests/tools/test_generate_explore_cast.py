@@ -202,10 +202,80 @@ def test_each_scorer_can_fill_its_slot_and_can_refuse(real):
     hhs = gen.households(customers)
     for slot_id, _feature, _rule, scorer in gen._cast_rules():
         got = [scorer(hh, gen._events(hh), people.get(hh["id"]) or {}) for hh in hhs]
-        if slot_id in gen.EMPTY_REASONS:
-            continue
+        if slot_id == "storage_heating":
+            continue  # no two-register bill on the record; the synthetic test below shows it can fire
         assert any(g is not None for g in got), "{} fills for nobody in the real book".format(slot_id)
         assert any(g is None for g in got), "{} fills for everybody -- it is not a rule".format(slot_id)
+
+
+def _mover_book(closing_gbp=0.0, successor=True, read_type="A"):
+    """A two-account book: SYN-2016-001 moves out on 5 Feb 2021 and OCC-0001-1 opens on its meter point."""
+    def acc(aid, acq, bills, entries, timeline=(), **kw):
+        return {"account_id": aid, "commodity": "electricity", "segment": "resi", "acquisition_date": acq,
+                "invoices": bills, "ledger": {"entries": entries}, "timeline": list(timeline),
+                "reaction_chain": [], **kw}
+
+    def bill(aid, n, start, end, days, rt="A"):
+        return {"id": "{}-INV{}".format(aid, n), "date": end, "period_start": start, "period_end": end,
+                "days_in_period": days, "consumption_kwh": 8.0 * days, "amount_gbp": 2.0 * days, "read_type": rt}
+
+    old = [bill("SYN-2016-001", 1, "2020-12-01", "2020-12-31", 31), bill("SYN-2016-001", 2, "2021-01-01", "2021-01-31", 31),
+           bill("SYN-2016-001", 3, "2021-02-01", "2021-02-04", 4, read_type)]
+    owed = 8.0 - closing_gbp
+    entries = [{"date": "2021-01-03", "type": "invoice_raised", "invoice_number": 1, "amount_gbp": 62.0, "running_balance_gbp": 62.0},
+               {"date": "2021-01-10", "type": "payment_received", "invoice_number": 1, "amount_gbp": -62.0,
+                "method": "direct_debit", "running_balance_gbp": 0.0},
+               {"date": "2021-02-02", "type": "invoice_raised", "invoice_number": 2, "amount_gbp": 62.0, "running_balance_gbp": 62.0},
+               {"date": "2021-02-05", "type": "invoice_raised", "invoice_number": 3, "amount_gbp": 8.0, "running_balance_gbp": 70.0},
+               {"date": "2021-02-20", "type": "payment_received", "invoice_number": 3, "amount_gbp": -(62.0 + owed),
+                "method": "direct_debit", "running_balance_gbp": round(8.0 - owed, 2)}]
+    moved = [{"type": "final_bill", "date": "2021-02-04", "detail": "Final bill",
+              "effect": "Closing read {}; billed £8.00".format("actual" if read_type == "A" else "estimated")},
+             {"type": "moved_out", "date": "2021-02-05", "detail": "Moved out"}]
+    new = [bill("OCC-0001-1", 1, "2021-02-05", "2021-02-28", 24), bill("OCC-0001-1", 2, "2021-03-01", "2021-03-31", 31)]
+    # Joined before the switch-in rule's window, so that slot (drawn first) does not claim it.
+    customers = {"SYN-2016-001": acc("SYN-2016-001", "2016-01-15", old, entries, moved)}
+    if successor:
+        customers["OCC-0001-1"] = acc("OCC-0001-1", "2021-02-05", new, [], predecessor_account_id="SYN-2016-001")
+    return customers, {"customers": {}, "meta": {}}, WINDOWS
+
+
+def _mover_slot(book):
+    return next(s for s in gen.build(*book)["slots"] if s["id"] == "mover")
+
+
+def test_the_mover_slot_can_fill_on_a_book_with_a_mover():
+    """DEFECT: `_score_mover` was `return None`, so 'no household qualifies' was a constant, not a
+    count, and a reason saying the record carried no move-out stood over pages that carried 259.
+    Can-fill first: a book whose one mover settles on an actual closing read and whose meter point
+    opens to a new account fills the slot. Only then, what it shows."""
+    slot = _mover_slot(_mover_book())
+    assert slot["filled"], slot.get("reason")
+    assert slot["household"] == "SYN-2016-001"
+    kinds = [m["kind"] for m in slot["moments"]]
+    assert {"moved_out", "final_bill", "settled", "new_occupant"} <= set(kinds), kinds
+    assert slot["moments"][slot["opening"]]["kind"] == "final_bill"
+    occ = next(m for m in slot["moments"] if m["kind"] == "new_occupant")
+    assert "OCC-0001-1" in occ["story"] and occ["iso"] == "2021-02-05"
+
+
+@pytest.mark.parametrize("book, check", [
+    (dict(closing_gbp=-5.0), "its closing credit is not shown refunded"),
+    (dict(closing_gbp=5.0), "its closing balance is still owed"),
+    (dict(successor=False), "no later account on its meter point names it"),
+    (dict(read_type="E"), "its closing read is estimated, so the final bill's use is not observed"),
+])
+def test_the_mover_slot_refuses_a_move_that_does_not_close_and_names_why(book, check):
+    slot = _mover_slot(_mover_book(**book))
+    assert not slot["filled"] and slot["matched"] == 1 and check in slot["failed_checks"], slot
+
+
+def test_the_mover_empty_reason_is_shown_only_when_no_household_moves():
+    book = _mover_book()
+    for c in book[0].values():
+        c["timeline"] = [e for e in c["timeline"] if e["type"] != "moved_out"]
+    slot = _mover_slot(book)
+    assert not slot["filled"] and slot["matched"] == 0 and slot["reason"] == gen.MOVER_EMPTY_REASON
 
 
 def test_the_storage_rule_fires_on_a_two_register_bill():
