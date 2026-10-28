@@ -500,3 +500,10 @@ items:
     fate: fold
     owner: "docs/direction/wrong_triage.yaml#a-commits-constraint-on-a-downstream-run-is-unenforced"
     reason: "Triaged 2026-10-28 by the delivery seat. The instance cannot now be corrected: 1470776471 and 2cf3201c5 graded the run, and both say plainly that the moved rows are void by the pre-registration's own rule, so nothing was dressed as predicted. It is the same class as a commit's constraint on a downstream run being honoured only by hand. The 20e7d66234 run's pre-registration (753c3d874) was filed before launch, which is the remedy working."
+  - id: a-landing-that-dies-leaves-its-item-reading-as-in-flight
+    problem: "A surgical_land that dies leaves no line in any register the brief reads, so its item reads as held until someone checks the pid (pids 748021 and 3646570, 28 Oct)."
+    match: ["A second landing died silently inside one day"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Triaged 2026-10-28 by the delivery seat. Both instances' work reached origin within hours under their own items (af61df576 from salvage 1a7bb1d34, 049377466), and the draw's held_grade released each item once its pid was gone, so the cost was hours, not work. A dead holder whose work reads as held is that register's shape (a dead owner's state outliving it). Reopen as fix if a dead landing's work is lost, or if its item is still held after its pid is gone."
