@@ -445,7 +445,7 @@ def generate(run_json_path=None, out_path=None):
                 method = SCHEME_CREDIT_METHOD
             part_paid = row.get("part_paid_gbp", 0.0)
             asked = round(row["amount_gbp"] + part_paid, 2)
-            scheme_credit = ebss_credit_gbp(segment, commodity, period_end[:7])
+            scheme_credit = ebss_credit_gbp(segment, commodity, period_end[:7], bill.get("account_held_from"))
             _tone = None if outcome == "credit" else _tone_for_bill(method, cid, period_end)
         else:
             # No row: the bill is wholly the occupier's or the owner's, which the engine never
@@ -762,7 +762,7 @@ def generate(run_json_path=None, out_path=None):
         # occupier's account held it (`arrears_engine`, `occupier_scheme_credit_gbp`).
         whole_credit = bill.get("occupier_scheme_month_credit_gbp") or bill.get(
             "occupier_scheme_credit_gbp") or (
-            ebss_credit_gbp(segment, commodity, period_end[:7]) if row is not None else 0.0)
+            ebss_credit_gbp(segment, commodity, period_end[:7], bill.get("account_held_from")) if row is not None else 0.0)
         if whole_credit:
             inv["scheme_credit_month_gbp"] = round(whole_credit, 2)
         invoices_by_cid.setdefault(cid, []).append(inv)

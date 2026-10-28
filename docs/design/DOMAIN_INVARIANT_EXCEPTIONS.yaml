@@ -48,22 +48,22 @@ exceptions:
   # docs/staging/records/SEAT_PREREGISTRATION_THE_EIGHT_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
   - invariant: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
     scope: >-
-      12 account-months on the 2eeb3f0b3 book. Seven are on four unnamed-occupier accounts
-      (OCC-a1e9ae835e65, OCC-bec72a04dec8, OCC-e3e94f81161b, OCC-eb8498f3f8aa). Five are one month
-      each on PROS-2022-0356, PROS-2022-0400, PROS-2023-0010, PROS-2023-0013 and PROS-2023-0039
+      7 account-months on the 2eeb3f0b3 book, all on four unnamed-occupier accounts
+      (OCC-a1e9ae835e65, OCC-bec72a04dec8, OCC-e3e94f81161b, OCC-eb8498f3f8aa). The five PROS
+      joiner months that made it 12 (PROS-2022-0356, PROS-2022-0400, PROS-2023-0010, PROS-2023-0013,
+      PROS-2023-0039) are fixed in code, not yet on a run
     reason: >-
       The row now reads "held at 00:00 on the 1st" (guidance 5.4 and 5.8, restated 2026-10-27 by
       its blind author), so the four first part-months it used to count are gone. The seven
       occupier months are the world's occupier path (run_phase2b, occupier_scheme_credit), which
       sized the credit by the occupier's debt; since 2026-10-27 it records the month's whole credit
-      (`occupier_scheme_month_credit_gbp`), which no run has carried yet, so the ceiling stays. The five
-      PROS months are the other side of the same rule: the named-household path credits a joiner's
+      (`occupier_scheme_month_credit_gbp`), which no run has carried yet, so the ceiling stays at 7. The five
+      PROS months were the other side of the same rule: the named-household path credited a joiner's
       first part-month (PROS-2022-0356 joined 12 Nov 2022 and was credited £66 for November), and
-      the guidance gives that month nothing, so one credit too many lands in a later window. Two
-      paths, two answers to one rule.
+      the guidance gives that month nothing. Both paths now ask `held_at_midnight_on_the_first`.
     filed: 2026-10-27
-    retired_by: one EBSS eligibility home crediting the month's whole instalment to whoever held the account at 00:00 on the 1st, and a run carrying it
-    max_breached: 12
+    retired_by: a run carrying the occupier month credit
+    max_breached: 7
   # 2026-10-27: four cold-read rows read the company's own dated acts (`raw_account_export.account_events`).
   # Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.

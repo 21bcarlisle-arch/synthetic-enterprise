@@ -18,7 +18,16 @@ EBSS_INSTALMENT_GBP = {
 }
 
 
-def ebss_credit_gbp(segment: str, commodity: str, month: str) -> float:
+def held_at_midnight_on_the_first(held_from: str | None, month: str) -> bool:
+    """Whether the account was held at 00:00 on the 1st of `month` ("YYYY-MM"): the only test of
+    who gets that month's EBSS credit (supplier guidance 5.4 and 5.8). `held_from` is the ISO date
+    the account was first held; a joiner on the 12th gets nothing for that month. None means the
+    caller cannot say, which is read as held (the credit this function used to give everyone).
+    """
+    return held_from is None or held_from[:10] <= f"{month}-01"
+
+
+def ebss_credit_gbp(segment: str, commodity: str, month: str, held_from: str | None = None) -> float:
     """The scheme credit a domestic electricity account carried in `month` ("YYYY-MM"), else 0.
 
     Paid per domestic electricity account, never on gas and never on non-domestic supply. The
@@ -33,6 +42,8 @@ def ebss_credit_gbp(segment: str, commodity: str, month: str) -> float:
     pound. GAP: the unredeemed vouchers, about a fifth of traditional PPM's, are not modelled.
     """
     if segment != "resi" or commodity != "electricity":
+        return 0.0
+    if not held_at_midnight_on_the_first(held_from, month):
         return 0.0
     return EBSS_INSTALMENT_GBP.get(month, 0.0)
 

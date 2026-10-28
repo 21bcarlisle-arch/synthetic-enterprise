@@ -1748,8 +1748,11 @@ def occupier_scheme_credit(credit_left: dict, cid: str, settlement_date: str, ow
     unrecorded though the account held it (the named payer is guarded from a second).
     """
     key = (cid, settlement_date[:7])
-    if settlement_date[8:10] == "01" and key not in credit_left:
-        credit_left[key] = scheme_credit(segment, commodity, settlement_date[:7])
+    # The row's own date is when this account is first seen that month: eligible only on the 1st.
+    first = key not in credit_left and scheme_credit(
+        segment, commodity, settlement_date[:7], held_from=settlement_date[:10])
+    if first:
+        credit_left[key] = first
         if opened is not None:
             opened[key] = credit_left[key]
     credit = min(credit_left.get(key, 0.0), max(0.0, owed_gbp))
@@ -2598,6 +2601,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # terms of one leg, so a month is held open per leg and posted when that leg's next month starts
     # or the run ends -- never twice, since the ledger keys a bill on (customer, month).
     _payment_month_open: dict[str, dict] = {}  # cid -> the month being accumulated
+    _account_first_row: dict[str, str] = {}  # cid -> ISO date of the leg's first settled row
     # (cid, month) -> the EBSS credit an unnamed occupier's deemed account still has to net.
     _occupier_credit_left: dict[tuple[str, str], float] = {}
 
@@ -2701,7 +2705,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # A month whose credit the unnamed occupier's account took gives no second one.
             amount_gbp=max(0.0, held["amount_gbp"] if (cid, held["month"]) in _occupier_credit_left
                            else owed_after_scheme_credit(
-                               held["amount_gbp"], held["segment"], held["fuel"], held["month"])),
+                               held["amount_gbp"], held["segment"], held["fuel"], held["month"],
+                               held["held_from"])),
             income_stress_value=held["income_stress_value"],
             segment=held["segment"],
             fuel=held["fuel"],
@@ -5628,7 +5633,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     "month": rec_month, "amount_gbp": 0.0,
                     "income_stress_value": (
                         _income_stress.value if _income_stress is not None else None),
-                    "segment": cust_segment, "fuel": commodity}
+                    "segment": cust_segment, "fuel": commodity,
+                    "held_from": max(_account_first_row.setdefault(cid, rec["settlement_date"][:10]),
+                                     _unnamed_until[cid].isoformat() if cid in _unnamed_until else "")}
             # The bill's period ends on the month's last supplied day (`saas.bill_generator`).
             _held["period_end"] = max(_held.get("period_end", ""), rec["settlement_date"][:10])
             _held["amount_gbp"] += (float(rec.get('revenue_gbp', 0.0) or 0.0)
