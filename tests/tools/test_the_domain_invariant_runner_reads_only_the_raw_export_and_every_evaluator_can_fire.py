@@ -853,6 +853,12 @@ def test_every_leg_of_the_revenue_row_is_reachable():
     assert _grade_one(i, acct(80.0))[:2] == ("BREACHED", ["below"])
     assert _grade_one(i, acct(120.0))[:2] == ("BREACHED", ["above"])
     assert _grade_one(i, acct(80.0, written_off=20.0))[0] == "FLAGGED"
+    # E: the Energy Price Guarantee support the government paid is revenue the household was not
+    # billed, so bills of 60 with 40 of support reconcile to revenue of 100 (residual R2, 2026-10-28).
+    crisis = _printed_account("R", "electricity", {
+        "lifetime_revenue_gbp": 100.0, "page_totals": {"total_written_off_gross_gbp": 0.0},
+        "invoices": [_bill("2023-01-01", "2023-01-31", amount=63.0, vat=3.0, epg_support_gbp=40.0)]})
+    assert _grade_one(i, crisis)[:2] == ("CLEAN", [])
 
 
 def test_every_leg_of_the_payment_record_row_is_reachable():

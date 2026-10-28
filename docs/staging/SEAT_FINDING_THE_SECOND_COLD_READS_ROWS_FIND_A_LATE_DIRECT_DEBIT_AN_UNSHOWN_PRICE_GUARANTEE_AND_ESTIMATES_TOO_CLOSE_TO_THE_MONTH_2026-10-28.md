@@ -54,6 +54,33 @@ supplier-side page fix: print the EPG support as its own line, then give the row
 The cold reader's 2016-to-2019 example (OCC-423594fbfa6b, on the 1691ec0ecd book) is among the
 pre-EPG kind and is not explained yet.
 
+**R2 progress (2026-10-28, `the-page-prints-the-energy-price-guarantee`).** Knowledge first:
+`docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`, "How the supplier was paid, and
+on which volume". The scheme paid on settlement data and reconciled it afterwards (GOV.UK, Elexon).
+Built: every bill carries `epg_support_gbp`, the month's share on settled kWh
+(`company/billing/monthly_bill_assembly.py`), and the ledger's revenue books that figure
+(`saas/ledger.make_epg_receipt_event`). The page invoice carries it with the bill's discount
+(`tools/generate_invoice_data.py`), and the page ledger totals it (`total_epg_support_gbp`).
+The bill prints the discount, the Judged panel prints the support under "Revenue, before VAT",
+and the row grades B + E.
+
+Re-graded on the 1a02c46116 book by joining its ledger onto its pages: 355 accounts outside the
+band became 57 with E on billed kWh. **The 57 corrects this finding's own frame.** 17 of them are
+EPG-window accounts whose estimated bills booked the share on kWh nobody used, and no catch-up
+revisited it. With E on settled kWh, all 17 land within 1%:
+OCC-17ff099218d5, OCC-25ff8966357ag, OCC-68958cc09c5a, OCC-7119d3c0d418, OCC-8c0b8fc85427, OCC-b3b4e19ff255, OCC-cc0c78690877, PROS-2016-0264g, PROS-2017-0336, PROS-2018-0137, PROS-2020-0191g, PROS-2021-0067g, PROS-2021-0297g, SYN-2016-001g, SYN-2016-047, SYN-2016-503, SYN-2016-522.
+The other 40 were never supplied in the EPG window. Each is assigned the cause of the month where
+bills and settlement revenue part most:
+
+- (a) the catch-up does not net the run, 20: OCC-2e29bf263cb4, OCC-582a3eb56200, OCC-6b934fa268b1, OCC-7c2500b09b7bg, OCC-b65580a50904g, PROS-2017-0117, PROS-2017-0233, PROS-2018-0002g, PROS-2018-0161g, PROS-2019-0255, PROS-2025-0106, SYN-2016-136g, SYN-2016-274g, SYN-2016-279g, SYN-2016-299, SYN-2016-304g, SYN-2016-314g, SYN-2016-371g, SYN-2016-468, SYN-2016-542g.
+- (b) estimates never corrected, 15: OCC-17113b3d3c1d, OCC-86ff01fa0246, OCC-f9acff98642eg, PROS-2018-0169g, SYN-2016-129, SYN-2016-177g, SYN-2016-190g, SYN-2016-236, SYN-2016-360g, SYN-2016-401g, SYN-2016-469, SYN-2016-477g, SYN-2016-495, SYN-2016-585, SYN-2016-595.
+- (c) part-month first bill, 5: PROS-2020-0248, SYN-2016-153g, SYN-2016-218g, SYN-2016-422, SYN-2016-507g.
+
+The finding's guess for the 34 (part-month standing charges) holds for 5 of these 40. The
+largest class is the catch-up. The cold reader's OCC-423594fbfa6b is inside the band on this
+book. Open: grade on a fresh run (prediction: 35 or fewer breached, 5 flagged), then the three
+causes. The exception names all of this.
+
 **R3. Estimates that track the month too closely (N7, 292 bills on 50 accounts).** The estimator's
 reference windows (three actual reads, or an advance of 182 to 731 days) differ from the row's,
 which explains part of the count. On OCC-01e79fcf2d4fg, the estimates after a read sit within

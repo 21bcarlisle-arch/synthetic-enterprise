@@ -485,14 +485,16 @@ def make_epg_receipt_event(bill: dict[str, Any]) -> dict[str, Any]:
 
     The household's `total_amount_gbp` excludes it (`saas.bill_generator`), so without this event
     the supplier's revenue in Oct 2022-Jun 2023 would lose what the Treasury paid. Only generated
-    when the bill carries `hmt_epg_receipt_gbp`.
+    when the bill carries `hmt_epg_receipt_gbp`. The amount is `epg_support_gbp`, the share on the
+    settled volume the scheme paid on, where the bill carries it: on an estimated bill the billed
+    share is the household's discount on kWh nobody used.
     """
     return {
         "transaction_id": _tid("epg_receipt", bill["customer_id"], bill["period_start"]),
         "event_type": "epg_receipt_event",
         "timestamp": bill["period_start"],
         "customer_id": bill["customer_id"],
-        "amount_gbp": bill["hmt_epg_receipt_gbp"],
+        "amount_gbp": bill.get("epg_support_gbp", bill.get("hmt_epg_receipt_gbp", 0.0)),
     }
 
 
@@ -548,7 +550,7 @@ def build_ledger(
             events.append(make_non_commodity_cost_event(b))
         if b.get("vat_gbp"):
             events.append(make_vat_remittance_event(b))
-        if b.get("hmt_epg_receipt_gbp"):
+        if b.get("hmt_epg_receipt_gbp") or b.get("epg_support_gbp"):
             events.append(make_epg_receipt_event(b))
         if b.get("catchup_written_off_gbp", 0.0) > 0:
             events.append(make_back_billing_write_off_event(b))

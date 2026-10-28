@@ -147,19 +147,28 @@ exceptions:
   # blind and graded on the 1a02c46116 book. Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md.
   - invariant: INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE
-    scope: 288 of 1,293 accounts on the 1a02c46116 book (page revenue against page bills before VAT)
+    scope: 288 of 1,293 accounts on the 1a02c46116 book (page revenue against page bills before VAT); a ceiling until a fresh run grades the EPG term
     reason: >-
-      Partly diagnosed. On 266 of the 316 accounts outside the band (breached or flagged), the gap
-      is the Energy Price Guarantee. The settlement revenue behind "Revenue, before VAT" values
-      Oct 2022 to Jun 2023 at the supplier's own tariff, while the customer is billed at the
-      guarantee's rate, and the government pays the difference. Once each account's EPG-window
-      revenue less its EPG-window bills is taken off R, those 266 fall inside the row's band. The
-      page prints that support nowhere, so an energy reader sees revenue above what was billed with
-      no line to explain it. The other 50 are open: 34 accounts never supplied in the EPG window
-      (mostly short occupier accounts, 1% to 5% apart) and 16 supplied in it whose gap the EPG
-      term does not close.
+      Diagnosed 2026-10-28 (residual R2), by joining the 1a02c46116 ledger's EPG fields onto its
+      pages and re-grading (355 accounts outside the band by that count, against the finding's
+      316). The Energy Price Guarantee: "Revenue, before VAT" holds what the government paid
+      the supplier in Oct 2022 to Jun 2023, and the page printed it nowhere. Fixed here. The page
+      prints it ("of which Energy Price Guarantee, paid by the government"), and the row grades
+      B + E. E is taken on SETTLED kWh, because that is how the scheme paid. Taken on billed kWh,
+      17 accounts stay above the band, because an estimated bill's share is never trued up at the
+      catch-up. On settled kWh all 17 fall inside 1%. That leaves 40 accounts, none supplied in
+      the EPG window, and each is assigned one of three causes by the month where its bills and
+      its settlement revenue part most (/tmp probe; account lists in the R2 note of the finding):
+      (a) 20, a catch-up at the actual read that does not net the estimated run back to
+      settlement (e.g. PROS-2017-0117: the 2017-11 catch-up credits 569.67 and the later
+      estimates stay low); (b) 15, estimates no actual read ever corrected, so the gap is the
+      estimate error, which on an under-estimate can exceed U, the row's bound (OCC-f9acff98642eg:
+      11 gas bills of 70.55 against 338.54 settled); (c) 5, a part-month first bill that bills less
+      than its month settled. Five of the 40 carry a write-off and grade as flags, so the
+      prediction for the next fresh run is 35 or fewer breached, each in (a) to (c). The cold
+      reader's OCC-423594fbfa6b is inside the band on this book.
     filed: 2026-10-28
-    retired_by: the page printing the Energy Price Guarantee support inside its revenue (and the row's band carrying that term), and the 50 open residuals traced
+    retired_by: a fresh run graded with the EPG term (prediction 35 or fewer, set this count to it), then the catch-up netting the run to settlement, estimates corrected or bounded on the under side, and the part-month first bill
     max_breached: 288
   - invariant: INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE
     scope: 181 of 1,125 accounts with collections due on the 1a02c46116 book, every one on the "missed DD without a return" leg

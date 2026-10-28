@@ -968,6 +968,14 @@ def build_monthly_bills(
                     "used_kwh": true_kwh,
                     "held": held,
                 })
+            # What the Treasury paid for this month's Energy Price Guarantee: its share on the
+            # SETTLED volume, which is how the scheme paid ("based on electricity and gas settlement
+            # data", reconciled after the scheme; default_tariff_cap_and_epg_on_the_bill.md). An
+            # estimated bill's `hmt_epg_receipt_gbp` is the household's discount on the billed kWh,
+            # and no catch-up revisits it, so it is not what the supplier received.
+            epg_support = sum(r.get("hmt_epg_receipt_gbp", 0.0) for r in months[month])
+            if epg_support or bill.get("hmt_epg_receipt_gbp"):
+                bill["epg_support_gbp"] = epg_support
             # B7 slice 5: energy at a vacated premise before anyone is named is billed to "the
             # occupier". The world books it as occupier debt on the settled rows, so the bill
             # carries that share and the arrears engine does not collect or write it off again.

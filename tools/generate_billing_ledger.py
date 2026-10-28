@@ -701,6 +701,10 @@ def generate(run_json_path=None, out_path=None):
         # margin counts it and a reader comparing the two needs both (the 2026-10-26 finding).
         if bill.get("hmt_epg_receipt_gbp"):
             inv["hmt_epg_receipt_gbp"] = round(bill["hmt_epg_receipt_gbp"], 2)
+        # What the Treasury paid for the month, on the settled volume: the revenue the page
+        # prints as the EPG support. It differs from the line above on an estimated bill.
+        if "epg_support_gbp" in bill:
+            inv["epg_support_gbp"] = round(bill["epg_support_gbp"], 2)
         # 2026-10-26: a period across a price change prints a line per contracted rate (SLC 22A.3;
         # tariffs_and_the_default_tariff_2026-10-25.md, "A bill across a price change"). The lines'
         # all-in charge is the printed energy, network-and-policy and EPG figures together.

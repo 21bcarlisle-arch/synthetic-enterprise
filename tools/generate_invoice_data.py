@@ -127,6 +127,11 @@ def _real_invoice(inv):
         # the page printed a crisis bill with no credit while the ledger held all six (N1).
         scheme_credit_gbp=inv.get("scheme_credit_month_gbp") or inv.get("scheme_credit_gbp"),
         scheme_credit_applied_gbp=inv.get("scheme_credit_gbp"),
+        # The Energy Price Guarantee, Oct 2022 to Jun 2023: the discount this bill's unit rate took,
+        # which the government paid the supplier, and what the government paid for the month on
+        # the settled volume (default_tariff_cap_and_epg_on_the_bill.md). Neither is in the total.
+        epg_discount_gbp=inv.get("hmt_epg_receipt_gbp"),
+        epg_support_gbp=inv.get("epg_support_gbp"),
         meter_serial=inv.get("meter_serial"),
         mpan=inv.get("mpan"),
         mprn=inv.get("mprn"),

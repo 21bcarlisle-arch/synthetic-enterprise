@@ -1419,7 +1419,9 @@ def ev_billed_ex_vat_reconciles(inv, book):
     bill after the last bill on an actual read. T, the unbilled tail, is zero here: the account's
     end is its last billed day on this record, so no tail can be measured. W, the back-billing write-off,
     is not identifiable on the page (the row's GAP), so a shortfall below the lower side on an
-    account with any write-off is a flag, never a breach."""
+    account with any write-off is a flag, never a breach. E, the Energy Price Guarantee support the
+    government paid on the settled volume (each bill's `epg_support_gbp`), is revenue the household
+    was never billed, so B + E is graded; a book whose page predates the field reads E as 0."""
     tally = Tally("account (page revenue against page bills before VAT)")
     tol = float(inv.get("tolerance_share") or 0.01)
     for a in book:
@@ -1433,7 +1435,8 @@ def ev_billed_ex_vat_reconciles(inv, book):
         ex = [float(i.get("amount_gbp") or 0.0) - float(i.get("vat_gbp") or 0.0) for i in bills]
         last_a = max((n for n, i in enumerate(bills) if i.get("read_type") in ACTUAL_READ_TYPES), default=-1)
         u = sum(ex[last_a + 1:])
-        b = round(sum(ex), 2)
+        e = sum(float(i.get("epg_support_gbp") or 0.0) for i in bills)
+        b = round(sum(ex) + e, 2)
         written_off = float((pr.get("page_totals") or {}).get("total_written_off_gross_gbp") or 0.0)
         tally.band("{} {} R {:.2f}".format(a.cid, a.fuel, r), b, round(r - u - tol * r, 2),
                    round(r + u + tol * r, 2), below="flag" if written_off > 0 else "breach")

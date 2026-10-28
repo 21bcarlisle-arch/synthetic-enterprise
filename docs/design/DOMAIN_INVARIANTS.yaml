@@ -2619,7 +2619,9 @@ invariants:
   counts: >-
     Per account (one household, one fuel), over its life to ledger.as_of_date. R = lifetime_revenue_gbp, "Revenue, before VAT": the energy the account was supplied, valued at its tariff (unit rate x kWh
     delivered + standing charge x days supplied), before VAT. B = the account's own bills before VAT: sum over invoices of (amount_gbp - vat_gbp), excluding any bill to a deemed occupier/owner account
-    (ledger.total_deemed_gbp is not this household's), with any scheme credit netted off a bill added back (a scheme credit is the government paying part of the bill, not a lower price). Unit graded:
+    (ledger.total_deemed_gbp is not this household's), with any scheme credit netted off a bill added back (a scheme credit is the government paying part of the bill, not a lower price). E = the Energy Price Guarantee
+    support the government paid the supplier for the account's energy, 1 Oct 2022 to 30 Jun 2023, before VAT, on the settled
+    volume (each bill's epg_support_gbp): the household was billed the guaranteed rate, so E is in R and in no bill. Unit graded:
     per account. On the household page, both sums are taken over the same fuels.
   statement: >-
     What a supplier bills before VAT and what it supplied at its tariff are the same energy priced the same way. Over an account's life they differ only by energy not yet billed (the tail since the last
@@ -2632,7 +2634,7 @@ invariants:
     Let T = R x max(0, end - last_period_end) / supply_days, where end = the account's supply end or ledger.as_of_date, last_period_end = the latest invoice period_end, and supply_days = days from the first
     period_start to end (the unbilled tail at the average daily value). Let U = the before-VAT amount of every bill after the account's last bill on an actual read (A): the open or closing estimated run.
     Let W = the part of ledger.total_written_off_gross_gbp written off under the back-billing limit, before VAT (zero when none is identified). Breach unless
-    R - T - U - W - 0.01 R <= B <= R + U + 0.01 R. Ex-VAT B is taken from vat_gbp, not by dividing by 1.05, so an sme bill at 20% grades on its own VAT. The VAT rate itself is INV_VAT_RATE's, not this row's.
+    R - T - U - W - 0.01 R <= B + E <= R + U + 0.01 R. Ex-VAT B is taken from vat_gbp, not by dividing by 1.05, so an sme bill at 20% grades on its own VAT. The VAT rate itself is INV_VAT_RATE's, not this row's.
     Not graded when R is 0 or absent.
   lower: R - T - U - W - 0.01 R
   upper: R + U + 0.01 R
@@ -2647,6 +2649,7 @@ invariants:
   - docs/market_research/unbilled_energy_and_revenue_assurance.md
   - docs/domain_artefact_library/regulatory/uk_vat_rates.json ('reduced' 5%, 'home energy')
   - docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md
+  - 'docs/market_research/default_tariff_cap_and_epg_on_the_bill.md, "How the supplier was paid, and on which volume": the EPG was reimbursed "based on electricity and gas settlement data" (GOV.UK) and reconciled to RF (Elexon), so E is on settled kWh, not billed kWh. Term added 2026-10-28 (residual R2), from that page, by a writer who had read the code.'
   - 'Cold read N2: a household supplied 2016-2019 (no scheme credit possible) shows Revenue, before VAT £2,277.10 against Billed, VAT included £1,998.82, i.e. about £1,903.64 before VAT, 16% below revenue on a closed account.'
   gap: >-
     Whether R nets a goodwill or compensation credit (credit_applied) is not established; the row excludes credit_applied and refund_debit from both sides and a goodwill credit could legitimately sit in the

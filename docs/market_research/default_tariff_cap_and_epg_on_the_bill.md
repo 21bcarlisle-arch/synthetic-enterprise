@@ -46,6 +46,50 @@ The first row is `SOLD_UNIT_RATE_WITHIN_CAP_EX_VAT`. The second is the new
 A bill that charges the household the cap during the EPG passes the first and fails the second: it
 bills the household the Treasury's half.
 
+**How the supplier was paid, and on which volume (added 28 Oct 2026).** Fetched 28 Oct 2026:
+
+- GOV.UK, "Energy Price Guarantee (EPG): payments made under the scheme"
+  (https://www.gov.uk/government/publications/energy-price-guarantee-epg-payments-made-under-the-scheme):
+  "Suppliers were reimbursed two weeks in arrears every two weeks during the operation of the
+  scheme ... based on electricity and gas settlement data and estimates of eligible customers in
+  each supplier's portfolio. Subsequent reconciliation payments made final corrections for
+  settlement data and eligible customer numbers at a defined point after the scheme."
+- Elexon, "Energy Price Guarantee scheme administration"
+  (https://www.elexon.co.uk/settlement/energy-price-guarantee-scheme-administration/), the
+  electricity administrator: "A combination of estimation and actual data is used for the
+  calculation". Non-half-hourly volumes come from Profile Class 1 and 2 data (EAC and Annualised
+  Advance turned into daily values), and invoices run "up to the Final Reconciliation Run (RF)",
+  about 14 months after the scheme end date. "As of 1 July 2023 ... the Energy Price Guarantee no
+  longer provides a unit rate discount."
+- The April–June 2023 level stayed at £2,500. The Autumn Statement had planned £3,000 from April,
+  and the Spring Budget of 15 Mar 2023 kept £2,500 to the end of June (reported from GOV.UK by,
+  for example, https://www.mortgagesolutions.co.uk/mortgage-news/2023/03/15/spring-budget-2023-april-energy-bill-rise-to-3000-shelved/).
+  The `company/regulatory/epg_reconciliation_register.py` label "£3,000/yr EPG" for Apr–Jun 2023
+  was wrong, and is corrected beside this page. Its unit rates (34p, 10.3p) were already the £2,500 ones.
+
+So the supplier's EPG receipt is a function of **settled volume**, reconciled to actual meter data
+by RF. It is not a function of the kWh the supplier billed. On an estimated bill the two differ.
+The household is charged the guaranteed rate on the billed kWh, and its catch-up at the next
+actual read trues up that charge. The Treasury's payment never followed the bill at all. Two
+quantities follow, and the build keeps both:
+
+| field | what it is | where it prints |
+|---|---|---|
+| `hmt_epg_receipt_gbp` (bill) / `epg_discount_gbp` (page) | the EPG discount inside this bill's unit rate, on the billed kWh | a muted note under the bill's total, "in the rate above, paid to us by the government" |
+| `epg_support_gbp` (bill, page) / `total_epg_support_gbp` (page ledger) | what the government paid for the month, on the settled kWh | the Judged panel, "of which Energy Price Guarantee, paid by the government", under "Revenue, before VAT" |
+
+`INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE` grades B + E against R, where E is the second
+quantity. Measured on the 1a02c46116 book (28 Oct 2026): taking E on billed kWh instead leaves 17
+EPG-window accounts above their band, by roughly their estimates' over-billed kWh times the
+Treasury's per-kWh share. Taking it on settled kWh puts all 17 inside ±1%.
+
+- **GAP: how a real bill printed the EPG.** No source in the commons says whether a 2022–23 bill
+  showed the discount as a line, a note, or only as the lower rate. The page's note is a design
+  choice. It does not change the total, which is the guaranteed rate times the billed kWh.
+- **GAP: the EPG on fixed terms.** As above: this world bills a fixed term at its full rate in the
+  EPG window, with no receipt, so its page prints no EPG line. That is wrong against the record,
+  but its revenue and its bills still reconcile, so the row does not see it.
+
 **Regional level.** The cap is set per region (14 GB regions), not as one national number.
 
 **Payment method (added 27 Oct 2026).** The cap is set per payment method as well as per fuel and

@@ -529,11 +529,12 @@ function householdFigures(c, fuels) {
 }
 
 function supplierFigures(fuels) {
-  var supFig = {revenue: 0, gross: 0, net: 0, cost_to_serve_gbp: 0, lifetime_net_after_cts_gbp: 0, legs: 0};
+  var supFig = {revenue: 0, epg: 0, gross: 0, net: 0, cost_to_serve_gbp: 0, lifetime_net_after_cts_gbp: 0, legs: 0};
   Object.keys(fuels || {}).forEach(function (fuel) {
     var d = fuels[fuel] || {};
     supFig.legs += 1;
     supFig.revenue += d.lifetime_revenue_gbp || 0;
+    supFig.epg += (d.ledger || {}).total_epg_support_gbp || 0;
     supFig.gross += d.lifetime_gross_gbp || 0;
     supFig.net += d.lifetime_net_gbp || 0;
     supFig.cost_to_serve_gbp += d.cost_to_serve_gbp || 0;
@@ -696,6 +697,12 @@ function billEquationHtml(i){
     if(used<scheme-0.005){
       parts.push("<div style=\"font-size:11px;color:var(--muted);margin-top:4px\">"+billGbp(Math.round((scheme-used)*100)/100)+" of the credit is more than this bill and stays on the account.</div>");
     }
+  }
+  /* The Energy Price Guarantee is in the unit rate above, not a credit: the household was charged
+     the guarantee's rate and the government paid the supplier the difference. */
+  var epg=Number(i.epg_discount_gbp);
+  if(i.epg_discount_gbp!=null&&isFinite(epg)&&epg>0){
+    parts.push("<div class=\"row epg-discount\" style=\"font-size:11px;color:var(--muted)\"><span class=\"rl\">Energy Price Guarantee discount in the rate above, paid to us by the government</span><span>"+billGbp(epg)+"</span></div>");
   }
   if(Number(i.amount_gbp)<0){
     parts.push("<div style=\"font-size:11px;color:var(--muted);margin-top:4px\">This bill is a CREDIT &mdash; the balance is owed to you, not by you"+
@@ -971,6 +978,11 @@ function stageJudged(d, c, fuels) {
     panel("company", "For us",
       '<div class="table-scroll"><table><tbody>' +
     "<tr><td>Revenue, before VAT</td><td class=\"n\">" + gbp(us.revenue) + "</td></tr>" +
+    /* Oct 2022 to Jun 2023 the household was billed the Energy Price Guarantee's rate and the
+       government paid the supplier the rest, on the settled volume: revenue the household was never
+       billed, so it gets its own line (second cold read, N2). */
+    (us.epg ? "<tr class=\"epg-support\"><td>of which Energy Price Guarantee, paid by the government</td><td class=\"n\">" +
+      gbp(us.epg) + "</td></tr>" : "") +
     "<tr><td>less wholesale energy</td><td class=\"n\">" + gbp(us.wholesale) + "</td></tr>" +
     "<tr><td>Gross margin</td><td class=\"n\">" + gbp(us.gross) + "</td></tr>" +
     "<tr><td>less network, policy and capital</td><td class=\"n\">" + gbp(us.pass) + "</td></tr>" +

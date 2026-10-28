@@ -192,6 +192,10 @@ def build_account_ledger(cust, as_of):
     total_recovered = round(sum(e["info_amount_gbp"] or 0.0 for e in entries
                                  if e["type"] == "recovery_note"), 2)
     current_balance = entries[-1]["running_balance_gbp"] if entries else 0.0
+    # The Energy Price Guarantee the government paid the supplier for this account's energy, before
+    # VAT. Not the household's money and no ledger movement, so it is outside the footing above;
+    # it is printed so that revenue above what was billed has its line.
+    total_epg_support = round(sum(inv.get("epg_support_gbp") or 0.0 for inv in invoices.values()), 2)
 
     return {
         "as_of_date": as_of,
@@ -205,6 +209,7 @@ def build_account_ledger(cust, as_of):
         "total_deemed_gbp": total_deemed,
         "total_refunded_gbp": total_refunded,
         "total_recovered_gbp": total_recovered,
+        "total_epg_support_gbp": total_epg_support,
     }
 
 

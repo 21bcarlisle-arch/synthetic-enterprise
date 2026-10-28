@@ -8,13 +8,16 @@ Under the EPG:
     regardless of their tariff: electricity 34p/kWh, gas 10.3p/kWh,
     electricity standing charge 46p/day, gas standing charge 28p/day
   - Suppliers applied the EPG rates to all bills
-  - HM Treasury paid suppliers the difference between EPG rates and their
-    actual wholesale procurement costs (via the Energy Markets Financing Scheme)
+  - HM Treasury paid suppliers a p/kWh discount on their settled domestic volume, fortnightly in
+    arrears, reconciled to settlement data after the scheme (corrected 2026-10-28: it was not a
+    top-up to the supplier's own costs, nor paid through the Energy Markets Financing Scheme;
+    docs/market_research/default_tariff_cap_and_epg_on_the_bill.md cites the GOV.UK and Elexon pages)
 
 EPG Schedule (announced Nov 2022, extended):
   Oct–Dec 2022: typical household cost £2,500/year (annualised)
   Jan–Mar 2023: £2,500/year (unchanged)
-  Apr–Jun 2023: £3,000/year (raised to begin market normalisation)
+  Apr–Jun 2023: £2,500/year (the planned rise to £3,000 was dropped at the Spring Budget,
+                15 Mar 2023; corrected 2026-10-28)
 
 Suppliers must:
   1. Track EPG-equivalent billing for each domestic account
@@ -44,7 +47,7 @@ _EPG_END = dt.date(2023, 6, 30)
 # EPG periods: (start, end) → (elec_unit_pence, gas_unit_pence, description)
 _EPG_PERIODS: List[Tuple[dt.date, dt.date, float, float, str]] = [
     (dt.date(2022, 10, 1), dt.date(2023, 3, 31), 34.0, 10.3, "£2,500/yr EPG"),
-    (dt.date(2023, 4, 1),  dt.date(2023, 6, 30), 34.0, 10.3, "£3,000/yr EPG"),
+    (dt.date(2023, 4, 1),  dt.date(2023, 6, 30), 34.0, 10.3, "£2,500/yr EPG"),
 ]
 
 _EPG_ELEC_UNIT_PENCE = 34.0    # p/kWh
