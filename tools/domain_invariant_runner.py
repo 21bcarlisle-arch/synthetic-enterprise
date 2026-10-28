@@ -117,6 +117,23 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
             years = (households.get(pr.get("household")) or {}).get("years") or ()
             legs = {y["year"]: y.get(pr.get("commodity")) for y in years if y.get(pr.get("commodity"))}
             pr["carbon_years"] = {y: leg for y, leg in legs.items() if leg.get("status") == "billed"}
+    # The meter type is printed in three more places than the page header: the sample record's
+    # `smart_meter` and the cast's "Smart meter" truth row (one per moment of a cast household).
+    # `panel_meters` is every claim the household's pages make, as the page spells it.
+    sample, cast = (Path(customers_dir).parent / n for n in ("customer_sample.json", "explore_cast.json"))
+    sample_rows = (json.loads(sample.read_text()).get("customers") or {}) if sample.exists() else {}
+    cast_rows = defaultdict(list)
+    for slot in ((json.loads(cast.read_text()).get("slots") or ()) if cast.exists() else ()):
+        for m in slot.get("moments") or ():
+            for row in m.get("truth") or ():
+                if row.get("k") == "Smart meter":
+                    cast_rows[slot.get("household")].append(row.get("v"))
+    for cid, pr in out.items():
+        pr["panel_meters"] = {"header": pr.get("meter_type")}
+        if cid in sample_rows:
+            pr["panel_meters"]["sample"] = sample_rows[cid].get("smart_meter")
+        if cid == pr.get("household") and cid in cast_rows:
+            pr["panel_meters"]["cast"] = cast_rows[cid]
     return out
 
 
@@ -1522,6 +1539,45 @@ def ev_smart_billed_on_reads(inv, book):
     return tally
 
 
+def _meter_word(panel: str, v):
+    """One printed meter-type rendering as a word: smart / traditional / hh / none (not recorded)."""
+    if panel == "header":
+        return {"Smart": "smart", "Traditional": "traditional", "HH": "hh"}.get(v, "none")
+    if panel == "cast":
+        return {"Yes": "smart", "No": "traditional"}.get(v, "none")
+    return {True: "smart", False: "traditional"}.get(v, "none")
+
+
+def ev_meter_type_one_value(inv, book):
+    """Per account (one supply point), every meter-type rendering the household's pages print is one
+    value (leg 1, breach), and equals the meter its reads were taken on where the book carries that
+    (`meter_of_reads`, leg 2, breach). An HH header is a settlement class and sits beside 'none'.
+    Leg 3 (the day-clock sentence) is drawn by the browser from the header, so it has no data here."""
+    tally = Tally("supply points printing a meter type")
+    for a in book:
+        pm = (a.printed or {}).get("panel_meters")
+        if not pm:
+            continue
+        words = {}
+        for panel, v in pm.items():
+            for n, one in enumerate(v if isinstance(v, list) else [v]):
+                words["{}[{}]".format(panel, n) if isinstance(v, list) else panel] = _meter_word(panel, one)
+        tally.checked += 1
+        header = words.get("header")
+        others = {k: w for k, w in words.items() if k != "header"}
+        if header == "hh":
+            bad = {k: w for k, w in others.items() if w != "none"}
+        else:
+            bad = {k: w for k, w in others.items() if w != header}
+        if bad:
+            tally.hit("breach", "{} {} header={} but {}".format(a.cid, a.fuel, header, bad), 1, 0, "above")
+        reads = (a.printed or {}).get("meter_of_reads")
+        if reads is not None and header not in ("hh", reads):
+            tally.hit("breach", "{} {} header={} but its bills were read on {}".format(a.cid, a.fuel, header, reads),
+                      1, 0, "above")
+    return tally
+
+
 #: Monthly shares of domestic use, DESNZ Energy Trends Table 5.5 (electricity, "Domestic sales")
 #: and Table 4.2 (gas, "Domestic"), 2023-2025 averages, as the shaping note tabulates them
 #: (docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md §2 and §4).
@@ -1698,6 +1754,7 @@ EVALUATORS = {
     "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": (ev_payment_record, "payment_record"),
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": (ev_carbon_matches_usage, "carbon_years"),
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": (ev_smart_billed_on_reads, "meter_type"),
+    "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": (ev_meter_type_one_value, "panel_meters"),
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": (ev_estimate_follows_reads, "printed_invoices"),
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": (ev_estimated_run_vs_meter, "printed_invoices"),
 }

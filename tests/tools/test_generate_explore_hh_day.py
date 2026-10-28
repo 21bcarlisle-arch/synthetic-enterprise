@@ -300,22 +300,24 @@ def test_the_two_absences_are_distinguished_by_the_reason_they_happened(tmp_path
     assert why == {"C7": "no_usable_day", "C1": "no_hh_record"}
 
 
-def test_the_PAGE_reads_the_smart_split_and_not_only_the_generator(tmp_path):
-    """The orphan class this project keeps finding, in its data-side form.
+def test_the_PAGE_tells_the_two_absences_apart_from_the_households_own_meter(tmp_path):
+    """The day clock's sentence must be chosen from the SAME field the page's "Meter" row prints.
 
-    Splitting the count in the generator changes nothing a reader sees if the page still prints
-    one sentence for both groups -- and the wrong sentence would now be provably wrong, with the
-    correct figure sitting unread in the same file. A browser check belongs on the live surface
-    (R11); what belongs HERE is that the field has a consumer at all.
+    It used to be chosen from this feed's `smart_meter_but_no_hh_reads`. When the feed and the
+    customer records were built from different books, one page printed "Meter Traditional" and
+    "This household has a smart meter" (the third cold read's N8, 2026-10-28). The page still has
+    to tell the two absences apart, so both sentences must stay reachable.
     """
     from pathlib import Path
 
     page = (Path(hh.__file__).resolve().parent.parent
             / "site" / "explore" / "index.html").read_text(encoding="utf-8")
-    assert "smart_meter_but_no_hh_reads" in page, (
-        "the generator publishes the split and the page never reads it"
+    panel = page[page.index("function hhDayPanels()"):page.index("function carbonPanels()")]
+    assert "CUR.fuels.electricity" in panel and "meter_type" in panel, (
+        "the day clock no longer reads the household's own meter record"
     )
-    assert "smartUnread" in page
+    assert "smartUnread" not in page, "the page holds a second record of the meter again"
+    assert "has a smart meter" in panel and "has no meter that can report half-hourly" in panel
     assert "has no half-hourly meter" not in page, (
         "the page still tells a smart-metered household it has no smart meter"
     )

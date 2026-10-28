@@ -114,3 +114,66 @@ first. The seat checks the agent's quotes against the packet.
 The run graded unedited against each prediction above, the pages and cast rebuilt, the read taken,
 and a reading in `docs/staging/` that grades each of the three legs MET or NOT MET with its evidence.
 A new class keeps the stretch open, and the reading says so.
+
+## Results, graded unedited against the predictions above (2026-10-28, item `the-third-cold-read`)
+
+The book is `fresh-run-129e7de698`, which exited cleanly at 19:42Z after 4,255 s
+(`/var/tmp/fresh-run-out-129e7de698/DONE.json`). It was graded with `/var/tmp/third-read-scripts/grade.py`
+from the run's own worktree, so the code is 129e7de698's. The output is
+`/var/tmp/third-read/grade.{txt,json}`. Nothing above this section has been edited.
+
+**Accounts: 1,293.** Held.
+
+**The 27 rows that were CLEAN or UNREACHED on the baseline: all still at 0 breaches.** Held. Two of
+them have a checked count that moved by 2 (INV_OVERDUE_WITHIN_BALANCE and
+INV_COLLECTIONS_EVENTS_ORDERED, 7,374 → 7,376 journeys). **The four UNCHECKABLE rows are still UNCHECKABLE.** Held.
+
+| row | predicted | measured | verdict |
+|---|---|---|---|
+| INV_UNIT_RATE_FIXED | 0–20 flagged, 0 breached | 8 flagged, 0 breached | held |
+| INV_ANNUAL_USE_ELEC_ACCOUNT | 0–15 flagged | 6 | held |
+| INV_READ_DUTY_ANNUAL | 20–35% | 27.7% (313 of 1,130) | held |
+| INV_SETTLEMENT_ACTUAL_SHARE_ELEC | 1 of 1 | 1 of 1 | held |
+| INV_OPENING_READ | every account flagged | 1,293 of 1,293 | held |
+| INV_DD_CADENCE | 30–120 | 59 | held |
+| INV_DD_STEP_CHANGE | 3–7% | 4.5% (1,570; it was 1,575) | held |
+| INV_BACK_BILLING_12M | 80–250 | 147 | held |
+| INV_SERIAL_REGISTER_COUNT_STABLE | 0–5 | 2 | held |
+| INV_MPAN_CORE_FORMAT | CLEAN | CLEAN, 707 checked (unchanged) | held |
+| INV_PPM_NOT_CREDIT_BILLED | 12, all C6 | 12 | held |
+| INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 | 3–6 | 6 | held |
+| INV_EBSS_CREDIT_ON_THE_BILL | 3–6 | 6 | held |
+| INV_OVERDUE_WITHIN_BALANCE | 0 | 0 | held |
+| INV_STATUTE_BARRED_WRITE_OFF_AGE | 0–5 | 3 | held |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 8,980–9,930 | **9,510, over its 9,455 ceiling** | held (the range). The ceiling breach is the risk named above |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 260–316 | 285 | held |
+| INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE | 155–210 | 181 | held |
+| INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL | 0–12 | 10 | held |
+| INV_SMART_METER_BILLED_ON_ITS_OWN_READS | 4 | 4 | held |
+| INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS | 250–335 | **249** | **refuted, by one.** The fix removed more than I allowed for |
+| INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER | **at most 2** | **1** | **held.** 6bdf089925 moved the row it was run to move |
+
+**"At least one of the eight bill-graded excepted rows rises above its ceiling, at about even odds":
+held.** One row did: INV_OVERDUE_WITHIN_PAGE_BALANCE, 9,455 → 9,510. The gate printed **9,510
+unexcepted, ENFORCED: the publish is refused.**
+
+**The rise, by account.** `/var/tmp/third-read/all_{b2fc,new}_INV_OVERDUE_WITHIN_PAGE_BALANCE.json` hold every
+breach on both books. The net +55 is +127 steps that breach only on the new book and −72 that
+breach only on the old one, across 21 households. Three of those households carry most of it:
+SYN-2016-434 (+43), SYN-2016-253 (+39) and SYN-2016-023 (−25).
+- On 20 of the 21 households, at least one leg's printed bills changed between the books. 164 legs
+  changed in all, which is what `6bdf089925`'s zero-window estimate fix does. Since the desk is posted the issued bill,
+  a changed estimate re-prices the desk's ask.
+- **What does not close.** The desk's journeys changed on 530 legs, more than three times the 164
+  whose bills changed. One of the 21, SYN-2016-388 (+2), has no changed bill
+  on any leg. So **I cannot yet say** whether the whole +55 is the
+  estimate fix. Some of it may be `971a37583c`'s meter-point change, or desk drift the bills do not
+  show.
+
+**Leg one: predicted MET at about even odds. Measured NOT MET**, on either reading:
+- the gate refuses at 9,510;
+- under the item's stricter reading, an exception whose reason names an open defect is
+  unexplained, and every one of the ten excepted rows names one.
+
+Leg two (slots) and leg three (the read) are graded in the reading:
+`docs/staging/records/SEAT_READING_THE_THIRD_COLD_READ_ON_THE_129E7DE698_BOOK_2026-10-28.md`.

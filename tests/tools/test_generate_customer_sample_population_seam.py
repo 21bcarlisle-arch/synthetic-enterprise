@@ -145,8 +145,11 @@ def _minimal_run(tmp_path, customers):
 
 def test_flag_off_static_customer_report_path_unperturbed(tmp_path):
     """End-to-end byte-identical guarantee: flag-off, a static customer (C1)
-    still resolves its home_type/smart_meter from the raw record via the seam —
-    the report path is unchanged by the wiring."""
+    still resolves its home_type from the raw record via the seam —
+    the report path is unchanged by the wiring. `smart_meter` no longer comes from the
+    raw record: it is the meter the run billed on (test_generate_customer_sample's
+    `test_smart_meter_is_the_meter_the_run_billed_on_not_the_roster_flag`), and this run
+    carries no read, so it is None."""
     customers = {
         "C1": {"segment": "resi", "commodity": "electricity",
                "acquisition_date": "2016-01-01",
@@ -158,4 +161,4 @@ def test_flag_off_static_customer_report_path_unperturbed(tmp_path):
     generate(str(run_json), out_path=str(out_path), state_path=str(state_path))
     c1 = json.loads(out_path.read_text())["customers"]["C1"]
     assert c1["home_type"] == "urban_flat"
-    assert c1["smart_meter"] is True
+    assert c1["smart_meter"] is None

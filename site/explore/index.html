@@ -1174,7 +1174,15 @@ function hhDayPanels() {
     // every unread household the first story, which is wrong for the second group and wrong in
     // the direction that flatters us -- it makes a consent-and-read-frequency gap look like an
     // estate we do not own.
-    var body = HH_META.smartUnread && HH_META.smartUnread[group]
+    // ONE HOME FOR THE METER: the household's own electricity record, the same field the
+    // "Meter" row prints. This used to ask the day-clock feed instead, and a feed built from a
+    // different book printed "smart meter" under a header saying "Traditional" (N8, 2026-10-28).
+    var elec = (CUR && CUR.fuels && CUR.fuels.electricity) || {};
+    var meter = String(elec.meter_type || "").toLowerCase();
+    var body = !meter
+      ? "This household's meter type is not on the supplier's record, so the page cannot say " +
+        "whether its meter could report half-hourly. There is no half-hourly day to draw."
+      : meter === "smart" || meter === "hh"
       ? "This household <b>has a smart meter</b> and there is still no day to draw. The meter " +
         "can measure every half-hour &mdash; 17,520 readings a year. Under the licence, monthly " +
         "reads need no consent, daily reads are taken unless the customer opts out, and only " +
@@ -1573,13 +1581,10 @@ fetch("../data/weather.json").then(function (r) { return r.json(); }).then(funct
    clocks one clock and lost the thing the stage exists to teach. */
 fetch("../data/explore_hh_days.json").then(function (r) { return r.json(); }).then(function (w) {
   HH_DAYS = w.accounts || {};
-  /* The smart-but-unread households are indexed BY GROUP here rather than searched per render,
-     because the panel below has to tell one absence from the other for the household actually
-     on screen -- "no half-hourly meter" is false for these, and false in our favour. */
-  HH_META = {coverage: w.coverage_statement || "", smartUnread: {}};
-  (w.smart_meter_but_no_hh_reads || []).forEach(function (r) {
-    HH_META.smartUnread[r.customer_group] = r;
-  });
+  /* The feed's `smart_meter_but_no_hh_reads` is NOT read here on purpose. Which sentence the
+     panel prints is decided by the household's own meter_type, so the page holds one record
+     of the meter per supply point. The feed's split stays published for its counts. */
+  HH_META = {coverage: w.coverage_statement || ""};
   render();
 }).catch(function () { HH_DAYS = null; });
 

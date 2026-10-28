@@ -2865,3 +2865,55 @@ invariants:
   gap: >-
     No published distribution of a GB bill estimate's error against later reads exists (K2 GAP: 'the size distribution of a true-up'); the bands are beliefs from the NEED annual spread. Runs shorter than
     a season carry more shape error than the annual figures the bands come from. A customer-provided read's code on the page is not stated, so a run bounded by one may be missed.
+
+- id: INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT
+  family: read_duty
+  grades: page
+  counts: >-
+    Per household page, per supply point (one MPAN for electricity, one MPRN for gas; a household with both fuels has two supply points and may lawfully hold two different types), as at the page's
+    as-at date (the date of the latest bill the page shows). Numerator: supply points where two or more of the printed meter-type renderings disagree (header 'Meter' row, cast truth row 'Smart meter',
+    sample-record smart_meter, day-clock sentence), or where the printed type disagrees with the meter type carried on the supply point's own bills. Denominator: supply points on pages that print
+    at least one meter-type rendering. A supply point with no recorded type is in the denominator and passes only if every rendering says so. Unit graded: per supply point per page, with the failing
+    panel pair named.
+  statement: >-
+    Meter type is a fact about a supply point at a date, not about a household. Whatever panel prints it, a supply point has one value as at the page's date, and that value is the one on the bills
+    the supplier issued. Smart is a meter generation and capability, not a communications state: a smart meter that has lost communications (traditional mode) is still a smart meter, and its bills
+    show estimated reads, not a changed type. So traditional mode never turns a Smart into a Traditional on any panel; it shows only in read types. A type changes only by an exchange or an
+    enrolment, with a date, and the page uses the type as at its own date. 'Not recorded' is a state the supplier may truly be in (the dash, 'Not recorded', and a null smart_meter are one state)
+    and is never rendered as Traditional or as No: omission is not neutrality. Header 'HH' for an I&C supply point is a settlement class and does not by itself say smart or not.
+  applies_to:
+    segment: resi and I&C
+    commodity: electricity and gas, each supply point separately
+  evaluation: >-
+    Leg 1 (cross-panel agreement, breach): map each rendering to {Smart, Traditional, NotRecorded, HH}. Header Smart = cast Yes = smart_meter true; header Traditional = cast No = smart_meter false;
+    header dash = cast 'Not recorded' = smart_meter null. HH is compared only on its own axis: an HH header must not sit beside cast 'Yes' or 'No' unless the record says which, and is otherwise
+    expected beside 'Not recorded'. Any other pairing for one supply point and date is a breach, naming the panels. A page that prints one unlabelled type for a household with two fuels whose types
+    differ is a breach; a page that prints the type per fuel, labelled, passes. Leg 2 (agreement with the bills, breach for a contradiction, flag for an implausibility): the printed type equals the
+    meter_type on the supply point's latest bill. Across the supply point's bills the type may change only on an exchange or enrolment: Traditional -> Smart is permitted with a date; Smart ->
+    Traditional is a flag (a lawful exchange to a non-smart meter is not shown to occur in the record read, so it is not treated as impossible); any change in the type with no exchange or enrolment
+    date on the record is a breach. A Smart supply point with a run of estimated reads is NOT a type disagreement and must not be printed Traditional (the read-pattern grade belongs to
+    INV_SMART_METER_BILLED_ON_ITS_OWN_READS). What the bill record cannot see: it carries read types (actual, estimated, customer) and dates, not the operating mode, not SMETS1 versus SMETS2, not
+    daily or half-hourly data flows. So a read pattern can contradict a type only weakly: a Traditional supply point with actual reads at a monthly cadence for a long stretch is a flag, not a breach,
+    since customer reads are a lawful route between the annual supplier read. Leg 3 (day clock, breach): the half-hourly 'day clock' panel's sentence follows the printed type. A supply point printed
+    Traditional or NotRecorded must not print a sentence saying half-hourly data was received or used. A Smart one may print a half-hourly sentence only if it makes the supplier's access conditional
+    on the customer's consent or the regime in force at the date: before 3 Nov 2022 half-hourly data needed explicit opt-in, and from 3 Nov 2022 it is the default for New System customers with opt-out.
+    The panel may never say or imply that a smart meter's billing read needs the customer's consent. Severities: legs 1 and 3 breach; leg 2 breach for an undated change or a printed type that differs
+    from the latest bill, flag for Smart -> Traditional with a date and for the read-pattern implausibility.
+  lower: none
+  upper: none
+  threshold_source: >-
+    None on purpose. This is an equality grade over a named fact, and a rate bound would accept the defect up to the bound. The only candidate number, a cadence for 'a long stretch' of customer reads
+    on a Traditional meter, is not established: SLC 21B asks the supplier for 'all reasonable steps' to read at least annually, and no page gives a customer-read frequency. The flag therefore carries
+    no cadence number and is graded by presence of the pattern, not by a threshold.
+  source:
+  - docs/market_research/smart_meters_and_half_hourly_settlement_2026-10-25.md (section 1, non-communicating meters: SMETS1 lost smart mode on switching before DCC enrolment; section 4, consent ladder and SLC 47; section 5, SLC 21B annual read duty, 'No split by meter type is published')
+  - docs/market_research/meter_read_latency_estimation_2026.md (section 1, 'When a smart meter loses smart functionality and needs to be read manually it is in traditional mode'; fuel-separate stocks, electricity 29.9m domestic meters and gas 24.3m with different smart and traditional-mode shares, so the two fuels' types are separate facts; section 2, read cadence)
+  - docs/market_research/smart_meter_hh_data_consent_2026.md (billing reads flow by default, settlement half-hourly data is a separate regime)
+  - docs/market_research/unbilled_energy_and_revenue_assurance.md (K2 and the K8 design-choice paragraph: the meter type is 'the meter type the supplier holds for the supply point (a national metering record fact, not use)', 'A bill with no meter type on record is unknown, never guessed'; K5 on MPAN/MPRN as the unit of a meter point)
+  gap: >-
+    GAP: no page establishes how often a lawful smart-to-traditional exchange occurs, so Smart -> Traditional is a dated flag, not a ruling. GAP: whether a supplier's record distinguishes a SMETS1
+    meter awaiting enrolment after a switch from a settled smart meter is not established, and the bills cannot show it. GAP: no split of estimated bills by meter type is published (the
+    advisor pack, gap 7), so leg 2 cannot be given a published read-pattern bound by type and uses presence only. GAP: the cast row for an I&C HH supply point (whether HH implies smart, as many HH
+    meters are, or only a settlement class) is not established on any page read, so HH is graded on its own axis. GAP: the as-at date convention (latest bill versus page generation date) is a design
+    choice here, not a published rule. GAP: no page was found stating how a supplier learns the type at a gain (registration data versus the first read), so the first bill after a supply start may
+    carry NotRecorded lawfully.

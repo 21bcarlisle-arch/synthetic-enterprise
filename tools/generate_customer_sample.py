@@ -19,7 +19,7 @@ from pathlib import Path
 # than re-declared: this shape must not be patched twice.
 # See docs/staging/done/WORKER_FINDING_THE_PUBLISH_PATH_SWALLOWED_199_GENERATOR_CRASHES_2026-08-17.md
 from tools.closing_estimate_run_money import cos_read_settlement
-from tools.generate_customer_data import _round_or_none
+from tools.generate_customer_data import _round_or_none, meter_types_billed
 
 PROJECT = Path(__file__).resolve().parent.parent
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
@@ -175,6 +175,7 @@ def generate(run_json_path=None, out_path=None, state_path=None):
     # `cohort` by construction (epistemic wall).
     _RAW_CUSTOMERS = _resolve_book()
     _customer_by_id = {c["customer_id"]: c for c in _RAW_CUSTOMERS}
+    _billed_meter = meter_types_billed(run)
     _bases_with_leg = defaultdict(set)
     for _cid in pcl.keys():
         _bases_with_leg[_base_id(_cid)].add(
@@ -196,7 +197,11 @@ def generate(run_json_path=None, out_path=None, state_path=None):
         _occupancy = None
         _raw = _customer_by_id.get(cid, {})
         _home_type = _raw.get("home_type")
-        _smart_meter = _raw.get("smart_meter")
+        # From the reads the run billed, the one home the customer page's meter label uses too.
+        # The book above carries no smart flag for a drawn household, so this printed "Smart
+        # meter: No" on 56 households billed on smart reads (129e7de698 book). None: no read.
+        _smart_meter = ({"smart": True, "traditional": False}.get(_billed_meter[cid])
+                        if cid in _billed_meter else None)
         _dual_fuel = len(_bases_with_leg.get(base, set())) >= 2
         # Engagement archetype (Phase 33/CORE_FIDELITY_PHASES.md Layer 1) drives
         # active/passive renewal in run_phase2b.py for EVERY segment (billing_account

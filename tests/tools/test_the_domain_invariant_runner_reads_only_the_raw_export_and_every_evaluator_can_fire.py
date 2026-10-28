@@ -84,6 +84,7 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": "reads the printed page; every leg tested on its own below",
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": "reads the printed page; every leg tested on its own below",
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": "reads the printed page; every leg tested on its own below",
+    "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": "reads the printed page; every leg tested on its own below",
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": "reads the printed page; every leg tested on its own below",
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": "reads the printed page; every leg tested on its own below",
 }
@@ -894,6 +895,31 @@ def test_every_leg_of_the_smart_meter_row_is_reachable():
     assert _grade_one(i, acct("AEEEAAAAAA"), inv=inv)[:2] == ("BREACHED", ["above"])
     assert _grade_one(i, acct("AAAAAAAAAA"), inv=inv)[0] == "FLAGGED"
     assert _grade_one(i, acct("EEEEEEEEEE", meter="Traditional"), inv=inv)[0] == "UNREACHED"
+
+
+def test_every_leg_of_the_meter_type_row_is_reachable():
+    """The panels agreeing passes (a dash, 'Not recorded' and a null are one state, and HH sits beside
+    it); a panel contradicting the header breaches, and so does a missing type rendered as a value
+    (omission is not neutrality); a header unlike the meter its reads were taken on breaches; a
+    page printing no meter type is not graded. The control: the partition has both a pass and a breach."""
+    def acct(header, sample, cast=None, reads=None):
+        pm = {"header": header, "sample": sample}
+        if cast is not None:
+            pm["cast"] = cast
+        pr = {"meter_type": header, "panel_meters": pm}
+        if reads is not None:
+            pr["meter_of_reads"] = reads
+        return _printed_account("M", "electricity", pr)
+    i = "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT"
+    assert _grade_one(i, acct("Smart", True, ["Yes", "Yes"], "smart"))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(None, None, ["Not recorded"]))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct("HH", None, ["Not recorded"]))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct("Traditional", True))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, acct("Smart", True, ["Yes", "No"]))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, acct(None, False))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, acct("HH", True))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, acct("Traditional", False, None, "smart"))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, _printed_account("M", "electricity", {"invoices": []}))[0] == "NOT_IN_EXPORT"
 
 
 def test_every_leg_of_the_estimate_follows_the_reads_row_is_reachable():

@@ -15,7 +15,7 @@ PAGE = Path(__file__).resolve().parents[2] / "site" / "explore" / "index.html"
 
 def _smart_panel_copy() -> str:
     text = PAGE.read_text()
-    start = text.index("HH_META.smartUnread && HH_META.smartUnread[group]")
+    start = text.index('meter === "smart" || meter === "hh"')
     # The page writes the sentence as concatenated string literals; read it as one string.
     return re.sub(r'"\s*\+\s*"', "", text[start:text.index("could be fixed by asking", start)])
 

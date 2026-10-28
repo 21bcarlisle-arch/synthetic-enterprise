@@ -19,6 +19,7 @@ from tools.generate_customer_data import (
     _tariff,
     _timeline,
     generate,
+    meter_types_billed,
 )
 
 
@@ -39,30 +40,38 @@ def test_tariff_sme():
 
 
 def test_meter_ic_is_hh():
-    assert _meter("C_IC1", "I&C") == "HH"
+    assert _meter("I&C", "smart") == "HH"
 
 
-def test_meter_reflects_real_smart_meter_status():
-    """Was a hardcoded "always Smart" placeholder for every non-I&C
-    customer (Rich-flagged 2026-07-09: let C1 show "Smart" on the site while
-    its actual meter-read data behaved like a traditional meter). Now
-    resolves the real per-customer status via saas.customers +
-    simulation.meter_reads.meter_type_for_customer -- C1 is genuinely smart,
-    C3 genuinely is not (saas/property_model.py's ASSET_PROFILE_BY_CUSTOMER)."""
-    assert _meter("C1", "resi") == "Smart"
-    assert _meter("C3", "resi") == "Traditional"
+def test_the_meter_label_is_the_meter_the_bills_were_read_on():
+    """The label is taken from the run's reads, never from a book read at page-build time.
+
+    The defect it names: `saas.customers` read in a fresh process carries no smart flag for a
+    drawn household, so the old `_meter` printed "Traditional" over 273 accounts the run had
+    billed on smart reads. Both meter types are exercised, so a label pinned to either one fails.
+    """
+    run = {"meter_read_log": [
+        {"customer_id": "SYN-2016-479", "period_end": "2016-11-30", "meter_type": "smart"},
+        {"customer_id": "SYN-2016-479g", "period_end": "2016-11-30", "meter_type": "smart"},
+        {"customer_id": "SYN-2016-414", "period_end": "2016-11-30", "meter_type": "traditional"},
+    ]}
+    billed = meter_types_billed(run)
+    assert _meter("resi", billed.get("SYN-2016-479")) == "Smart"
+    assert _meter("resi", billed.get("SYN-2016-479g")) == "Smart"
+    assert _meter("resi", billed.get("SYN-2016-414")) == "Traditional"
 
 
-def test_meter_gas_twin_inherits_electricity_siblings_status():
-    assert _meter("C1g", "resi") == "Smart"
-    assert _meter("C3g", "resi") == "Traditional"
+def test_after_a_meter_exchange_the_label_is_the_meter_read_last():
+    run = {"meter_read_log": [
+        {"customer_id": "A", "period_end": "2019-03-31", "meter_type": "smart"},
+        {"customer_id": "A", "period_end": "2018-01-31", "meter_type": "traditional"},
+        {"customer_id": "A", "period_end": "2017-01-31", "meter_type": "traditional"},
+    ]}
+    assert _meter("resi", meter_types_billed(run)["A"]) == "Smart"
 
 
-def test_meter_sme_without_known_profile_defaults_traditional():
-    # C5/C6 (SME) have no ASSET_PROFILE_BY_CUSTOMER entry and no explicit
-    # smart_meter/metering flag -- meter_type_for_customer's own documented
-    # default applies.
-    assert _meter("C5", "SME") == "Traditional"
+def test_an_account_with_no_read_prints_no_meter_type_rather_than_traditional():
+    assert _meter("resi", meter_types_billed({}).get("A")) is None
 
 
 def test_base_id_strips_gas_suffix():
@@ -85,11 +94,6 @@ def test_tariff_unknown_segment_defaults_to_resi():
     result = _tariff("unknown", "electricity")
     assert isinstance(result, str)
     assert len(result) > 0
-
-
-def test_meter_unknown_customer_defaults_to_traditional():
-    result = _meter("unknown_customer_id", "resi")
-    assert result == "Traditional"
 
 
 def test_base_id_strips_trailing_g_only():
