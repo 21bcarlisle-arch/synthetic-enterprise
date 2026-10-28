@@ -145,3 +145,43 @@ board's memo serves its own stop-notice ask and the desk's from one rebuild. Kno
 
 The exception's ceiling is unchanged until the fresh run is graded:
 `records/SEAT_PREREGISTRATION_THE_DESK_POSTED_THE_ISSUED_BILL_READ_ON_A_FRESH_RUN_2026-10-28.md`.
+
+## The second cause traced: three write-off dates for one leaver's debt (2026-10-28, item `the-desk-fix-is-graded-on-a-fresh-run`)
+
+**How much.** On the 1a02c46116 ledger, 720 of the 12,730 breaches, on 112 households, fall on or
+after the page's first write-off on that household. `/var/tmp/desk-wo-probe/probe.py` rebuilds the
+row and reproduces the 12,730 to the step. The other 12,010 come before any write-off, which is
+the price cause the desk fix addresses.
+
+**Where.** C6 is an SME leaver. Its final bill was issued on 5 Apr 2017 and fell due on 19 Apr 2017.
+- **The page** writes the unpaid July 2016 bill off on 19 Apr 2017, the final bill's due date. That
+  is the world's `simulation/arrears_engine.balance_settlement_from_outcomes` under the labelled C4
+  convention (`WRITE_OFF_DATE_CONVENTION = "final_bill_due_date"`). From that day the page owes
+  nothing.
+- **The company's sweep** (`company/billing/arrears_engine.closed_balance_write_offs`) writes a
+  closed account off a year after its final bill (`CLOSED_ACCOUNT_WRITE_OFF_AFTER_FINAL_BILL_DAYS`).
+  `LivePaymentTriad.write_off_closed_balances` runs it only after the loop. Its docstring gives the
+  reason: bills post in term order, not date order. By then every in-loop journey has already been
+  walked, so no journey sees a write-off at close.
+- **The desk's journey** therefore chases on: a statement on 26 Apr, an interest notice on 19 May,
+  a final demand on 3 Jun and debt recovery on 18 Jun 2017. It writes the debt off at the six-year
+  bar, on 19 Apr 2023, by `limitation_act_1980_s5`.
+
+That is three dates for one write-off.
+
+**Why it is not fixed this turn.** The run-side cause is plain, but the remedy is not.
+`debt_and_collections.md` lists the close-to-write-off clock as a supplier policy Ofgem says
+differs (GAP, l. 287). It also records Centrica's "enforcement continues after the accounting
+write-off". Chasing a closed balance for a while is therefore real practice. The defect is that the
+page and the desk take their write-off from different engines on different clocks. What it needs:
+- one write-off home: the company's own decision, which the page prints;
+- the sweep run where the journey can see it.
+
+The second is the run's ordering problem the docstring names. Both are a design change to which
+engine the page's arrears history reads, so this cause stays recorded and open. It is P7 of
+`records/SEAT_PREREGISTRATION_THE_DESK_POSTED_THE_ISSUED_BILL_READ_ON_A_FRESH_RUN_2026-10-28.md`.
+
+**Also seen, not traced.** C6's desk journeys close "cured" (overdue nothing) and reopen the next
+day on the same GBP 130.50 overdue: on 15 Oct and 16 Oct 2016, and on 19 Apr and 20 Apr 2017. A
+journey that cures without a payment covering the overdue item is a separate question for
+`company/billing/collections_journey`.

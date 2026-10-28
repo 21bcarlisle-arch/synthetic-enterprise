@@ -48,3 +48,33 @@ comparison book is `/var/tmp/fresh-run-out-1a02c46116` (12,730 overdue breaches)
 
 Each prediction graded unedited beside its result. If P1 holds, the exception ceiling is re-based to
 the measured count, with the remaining cause named. Then the claim is released.
+
+## Addendum, filed after the launch and before any output (2026-10-28 16:50 GMT)
+
+The run was launched at 16:01 GMT at b2fc50facf, the merge that carried the fix, after the
+predictions above were on origin (15:59). At 16:47 it was at March 2023, with no book written. These
+add the rows a change to the desk's input can move that P1 to P6 do not name. Baselines are the
+1a02c46116 ledger as rebuilt for its grade (`/var/tmp/ebss1a02-grade/ledger.json`).
+
+- **P7 (P1's second cause, traced this turn).** Of the 12,730 breaches on the 1a02c46116 book, **720
+  steps on 112 households** are dated on or after the page's first write-off on that household
+  (`/var/tmp/desk-wo-probe/probe.py`, reproducing the 12,730 exactly). The cause is three write-off
+  dates for one leaver's debt:
+  - the page writes it off at the final bill's due date (world `arrears_engine`, C4 convention);
+  - the company's sweep writes it off a year after the final bill (`closed_balance_write_offs`),
+    but only after the run, so the in-loop journey never sees it;
+  - the desk's journey chases on to the six-year statute bar (C6: the page writes off on 19 Apr
+    2017, and the desk is still chasing it in June 2017 and writes it off on 19 Apr 2023).
+  The fix does not touch any of these. I predict **at least 500** breaches in this class on the fresh
+  book.
+- **P8 (collections).** There are 7,380 desk journeys and 40,005 steps on the baseline, and 64 desk
+  write-offs (GBP 4,466.12). I predict journeys and steps within ±15%. Desk write-offs: count within
+  ±15%, and GBP below 4,466.12. The baseline figure is built on ex-VAT true-kWh sums that run high on
+  estimated months (C6: GBP 130.50 against a GBP 33.80 bill).
+- **P9 (the stage-5 ledger).** Total billed on the pages is GBP 2,849,903.75, and P3 holds settlement
+  fixed. I predict billed equal to within GBP 1. Total collected is GBP 2,624,823.89. I predict it
+  within ±2%: the household now pays the issued ask rather than the true-kWh sum, so it moves, but I
+  cannot yet say which way.
+- **P10 (bad debt, read with P4).** The P&L's `total_bad_debt` comes from the world's
+  `balance_write_offs` over the issued bills. The desk does not feed it, but the household's payments
+  do (P9), so P4's band stands.
