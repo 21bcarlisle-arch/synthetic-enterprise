@@ -42,6 +42,9 @@ def test_a_done_section_must_name_a_commit_or_a_path():
     assert not L.has_done_evidence("# Ask\n\nShipped in 3373f3523c.\n")  # no Done section at all
     assert L.has_done_evidence("# Ask\n\n## Done\n\nLanded in 3373f3523c.\n## Later\n")
     assert L.has_done_evidence("# Ask\n\n## Done\n\nSee tools/director_asks_ledger.py.\n")
+    # A ruling's own criteria heading is not the Done section, before it or instead of it.
+    assert L.has_done_evidence("# Ask\n\n## Done means\n\nIt runs.\n\n## Risk\n\n## Done\n\nLanded in 3373f3523c.\n")
+    assert not L.has_done_evidence("# Ask\n\n## Done means\n\nSee tools/director_asks_ledger.py.\n")
 
 
 def test_no_director_document_has_reached_done_without_evidence_since_the_gate():

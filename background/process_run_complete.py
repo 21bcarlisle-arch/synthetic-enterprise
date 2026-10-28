@@ -4743,7 +4743,8 @@ DOMAIN_INVARIANT_TABLE = PROJECT_DIR / "docs" / "reports" / "DOMAIN_INVARIANTS.m
 DOMAIN_INVARIANT_JSON = PROJECT_DIR / "docs" / "reports" / "domain_invariants.json"
 
 
-def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, register_path=None):
+def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, register_path=None,
+                                           printed_path=None):
     """Grade this run's whole book against DOMAIN_INVARIANTS.yaml: (permits, refusal reason).
 
     The ruling of 26 Oct, step 4: the suite "runs over every household on every run. A breach blocks
@@ -4765,7 +4766,10 @@ def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, regist
         log("Domain invariants: the exceptions register could not be read ({}: {}), so the gate "
             "enforces".format(type(exc).__name__, exc))
     try:
-        raw = runner.load_book(ledger_path=Path(ledger_path))
+        # The published customer files too, written earlier in this cycle: the rows graded on the
+        # invoice or the page read what the customer is shown, not the ledger behind it.
+        raw = runner.load_book(ledger_path=Path(ledger_path),
+                               printed_path=printed_path or PROJECT_DIR / "site" / "data" / "customers")
         results = runner.run(runner.load_invariants(), raw)
     except Exception as exc:  # noqa: BLE001 -- an ungraded book is not a clean one
         reason = "the domain-invariant suite could not grade the book at git={} ({}: {})".format(

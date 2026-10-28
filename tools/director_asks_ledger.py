@@ -61,9 +61,12 @@ _DATE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 
 
 def done_section(text):
-    """The text under a `## Done` heading, or None when the document has none."""
-    m = re.search(r"^## Done\b[^\n]*\n(.*?)(?=^## |\Z)", text, re.M | re.S)
-    return m.group(1) if m else None
+    """The text under every `## Done` heading, or None when the document has none. A ruling's own
+    criteria ("## Done means", "## Done when", "## Done-condition") say what done will be, not that
+    it happened, so they are not read: the first match used to be "## Done means", which hid the
+    real section below it (DIRECTOR_RULING_GO_ON_THE_TWO_READER_REVIEW, 28 Oct)."""
+    found = re.findall(r"^## Done(?![-\w]| means| when)[^\n]*\n(.*?)(?=^## |\Z)", text, re.M | re.S)
+    return "\n".join(found) if found else None
 
 
 def has_done_evidence(text):

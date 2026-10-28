@@ -43,3 +43,55 @@ from the knowledge pages.
 
 Every other objection (O1–O40) maps to the first read's classes, an open finding, or a suite row.
 The mapping is in the reading.
+
+## N1 actioned (2026-10-28)
+
+**The cause.** The ledger invoice carried the credit (`scheme_credit_month_gbp`, the month's credit,
+and `scheme_credit_gbp`, the part the bill used). `tools/generate_invoice_data._real_invoice`, which
+writes the page's bills, mapped neither. 3ab3ea925 (the occupier-window share) touches the ledger
+and bill assembly, not this mapping, so nothing here redoes it.
+
+**The fix.** The page invoice carries `scheme_credit_gbp` (the month's credit, which the bill shows)
+and `scheme_credit_applied_gbp` (the part this bill used). The Explore bill prints the credit below
+the total, then "= To pay", and says when part of the credit stays on the account. The 2022-shock
+sentence names it: "...was £598.04 before its £67.00 Energy Bills Support Scheme credit, against
+£311.08 a year earlier." Tests, red on origin's code (3 of 3) and green after:
+`tests/tools/test_the_bill_prints_the_scheme_credit_the_ledger_holds.py`.
+
+**Before and after, on the 1691ec0ecd book.** I rebuilt the book's ledger with origin's tools from
+3ab3ea925's re-shared outputs (`/var/tmp/share-fix-1691/run`), the way
+`/var/tmp/gasleg-remeasure-scripts/probe.py` does. I built the page invoices in memory with each
+version of `_real_invoice`. No run was launched. Script: `/var/tmp/credit-probe/scripts/probe.py`.
+
+| | credited accounts whose page invoices omit a credit | credited bills omitting it |
+|---|---|---|
+| ledger holds a credit | 232 | 1,314 |
+| **before** (origin's `_real_invoice`) | **232 of 232** | 1,314 of 1,314 |
+| **after** | **0** | 0 |
+
+Before the fix, no page bill anywhere in the book showed the credit.
+
+**Every row names its record.** `DOMAIN_INVARIANTS.yaml` now gives each row a `grades:` field, and
+`meta.conventions.grades` defines the three values. 42 rows grade `ledger` (the raw export).
+`INV_ESTIMATE_RUN_WITHIN_TENURE` grades `page`, because the Explore test checks it there. The two
+new twins grade `invoice` and `page`.
+
+**The twins.** I wrote both from `energy_bills_support_scheme_delivery.md` and the ledger row's
+logic, not from the code. They read the published customer files, passed with `--printed` and by
+the publish gate (`site/data/customers`). A book read without those files reads NOT_IN_EXPORT, never
+clean.
+
+| row | grades | before the fix | after |
+|---|---|---|---|
+| `INV_EBSS_CREDIT_ON_THE_BILL` (twin of the EBSS row) | invoice | 1,193 of 2,277 | **6**, the ledger row's five accounts and causes; excepted, ceiling 6 |
+| `INV_OVERDUE_WITHIN_PAGE_BALANCE` (twin of `INV_OVERDUE_WITHIN_BALANCE`, its first leg) | page | 10,180 of 32,741 | 10,180: not this fix's subject, see below |
+
+- **Why the overdue twin grades the page, not the invoice.** The quantity is the overdue sum a
+  collections step prints, against the page ledger's balance. Neither figure is on a bill.
+- **It found a new defect at book scale.** The page prints more overdue than it says is owed on
+  493 of 752 households. Filed as
+  `SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md`.
+- **It is excepted at its measured count**, with that finding as `retired_by`, so the count is on
+  the surface every run and a rise refuses.
+
+**Not done here.** N2 to N7 are untouched.

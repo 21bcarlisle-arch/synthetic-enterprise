@@ -5,6 +5,7 @@ meta:
     standing_charge: GBP/day EX-VAT (export standing_charge_gbp_per_day)
     row_dates: from/to inclusive
     null_bound: null = GAP, never 0
+    grades: 'The record a row reads, named because a green row over a record the customer never sees proves nothing about what the customer was shown (second cold read, N1, 2026-10-28). ledger = the billing ledger, read through the raw export (company/billing/raw_account_export: raw_account and account_events). invoice = the bill as the customer page renders it (site/data/customers/<id>.json `invoices`). page = a figure the page itself prints beside the bill (that file''s `ledger` balances and its `reaction_chain` collections steps). A row about what the customer is shown needs a twin graded on the invoice or the page.'
   blindfold_disclosure: Several market_research notes quote code paths and constants from company/ and simulation/ (e.g. a ±5% DD review threshold, a 15,000 kWh electricity envelope, 'the world bills at
     GB average', 'the world has no Economy 7 homes'). They were seen incidentally while reading the notes; no bound here is taken from them.
   files_read:
@@ -42,6 +43,7 @@ meta:
 invariants:
 - id: INV_UNIT_RATE_SVT_ELEC
   family: unit_rate
+  grades: ledger
   statement: A domestic single-rate electricity default (SVT/deemed) unit rate sits between the cap's commodity allowance for that window and the cap's unit rate for the payment method, from 1 Jan 2019.
   applies_to:
     commodity: electricity
@@ -338,6 +340,7 @@ invariants:
     EPG); docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
 - id: INV_UNIT_RATE_SVT_ELEC_PRE_CAP
   family: unit_rate
+  grades: ledger
   statement: Before the cap (2016-2018) a domestic electricity SVT unit rate has a wholesale floor but no statutory ceiling.
   applies_to:
     commodity: electricity
@@ -412,6 +415,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json; docs/market_research/svt_rates_active_passive_2016_2025.md
 - id: INV_UNIT_RATE_SVT_GAS
   family: unit_rate
+  grades: ledger
   statement: A domestic gas default (SVT/deemed) unit rate sits between the cap's gas commodity allowance for that window and the cap's gas unit rate for the payment method, from 1 Jan 2019 (payment-method columns and floor amended 2026-10-27).
   applies_to:
     commodity: gas
@@ -697,6 +701,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[].gas, basis.vat; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method
 - id: INV_UNIT_RATE_SVT_GAS_PRE_CAP
   family: unit_rate
+  grades: ledger
   statement: Before 2019 a domestic gas SVT unit rate has a wholesale floor (Ofgem's back-cast DF+CM, a belief, not law) but no statutory ceiling (floor amended 2026-10-27; it was positive-only).
   applies_to:
     commodity: gas
@@ -769,6 +774,7 @@ invariants:
   source: docs/market_research/svt_rates_active_passive_2016_2025.md
 - id: INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER
   family: unit_rate
+  grades: ledger
   statement: A multi-register (Economy 7 or other ToU) default electricity tariff, weighted at its assumed split, is at or below the MULTI-REGISTER cap unit rate, which sits 0.4-8% below the single-rate
     cap.
   applies_to:
@@ -905,6 +911,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json; docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
 - id: INV_UNIT_RATE_FIXED
   family: unit_rate
+  grades: ledger
   statement: 'A domestic fixed tariff the customer chose is outside the cap: its floor is the wholesale cost when it was PRICED, not when it is delivered, and it has no regulatory ceiling.'
   applies_to:
     commodity: electricity (floor); gas (no floor sourced)
@@ -1104,6 +1111,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json
 - id: INV_UNIT_RATE_EPG_HOUSEHOLD
   family: unit_rate
+  grades: ledger
   statement: From 1 Oct 2022 to 30 Jun 2023 the unit rate a domestic household was CHARGED did not exceed the Energy Price Guarantee rate.
   applies_to:
     commodity: electricity and gas
@@ -1135,6 +1143,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#epg_note, windows[].elec_epg/gas_epg; docs/market_research/ofgem_cap_windows.md §4
 - id: INV_STANDING_CHARGE_SVT_ELEC
   family: standing_charge
+  grades: ledger
   statement: A domestic electricity default-tariff standing charge is non-negative and at or below the cap's nil-consumption allowance for the window and payment method.
   applies_to:
     commodity: electricity
@@ -1400,6 +1409,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (standard credit, prepayment SC)
 - id: INV_STANDING_CHARGE_SVT_GAS
   family: standing_charge
+  grades: ledger
   statement: A domestic gas default-tariff standing charge paid by direct debit is non-negative and at or below the cap's gas nil-consumption allowance for the window.
   applies_to:
     commodity: gas
@@ -1611,6 +1621,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas
 - id: INV_STANDING_CHARGE_FIXED
   family: standing_charge
+  grades: ledger
   statement: A chosen fixed tariff's standing charge is non-negative; no regulatory ceiling applies.
   applies_to:
     commodity: electricity and gas
@@ -1628,6 +1639,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md
 - id: INV_ANNUAL_USE_ELEC_ACCOUNT
   family: annual_use
+  grades: ledger
   statement: A domestic electricity account's annual consumption is non-negative and physically deliverable; above the published p99 of its class it is a premise to confirm, not an impossibility.
   applies_to:
     commodity: electricity
@@ -1678,6 +1690,7 @@ invariants:
   source: docs/market_research/need_domestic_electricity_high_tail.md
 - id: INV_ANNUAL_USE_GAS_ACCOUNT
   family: annual_use
+  grades: ledger
   statement: A domestic gas account's annual consumption is non-negative; above 50,000 kWh (DESNZ's own 'too large' cut) or the class p99 it is a premise to confirm.
   applies_to:
     commodity: gas
@@ -1716,6 +1729,7 @@ invariants:
   source: docs/market_research/need_domestic_gas_high_tail.md
 - id: INV_ANNUAL_USE_BOOK_MEDIAN
   family: annual_use
+  grades: ledger
   statement: The book's median domestic annual consumption per fuel and meter class lies between Ofgem's TDCV low and high values in force (by definition the population median lies between the lower and
     upper quartiles).
   applies_to:
@@ -1862,6 +1876,7 @@ invariants:
   source: docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md §3
 - id: INV_READ_DUTY_ANNUAL
   family: read_duty
+  grades: ledger
   statement: For every credit-meter customer the supplier takes all reasonable steps to obtain a meter reading at least once every year (SLC 21B.4); a customer's own read or a smart meter's transmitted
     read counts.
   applies_to:
@@ -1893,6 +1908,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md
 - id: INV_SETTLEMENT_ACTUAL_SHARE_ELEC
   family: read_duty
+  grades: ledger
   statement: At least 97% of a supplier's non-half-hourly electricity is settled on actual metered data by the final reconciliation run (about 14 months after the settlement date).
   applies_to:
     commodity: electricity
@@ -1917,6 +1933,7 @@ invariants:
   source: docs/market_research/read_access_and_theft_duties.md
 - id: INV_BILL_AT_LEAST_TWICE_YEARLY
   family: read_duty
+  grades: ledger
   statement: A credit-meter customer is sent a bill or statement at least twice a year (SLC 21B.5), so no billing period on a non-prepayment, non-smart account exceeds about six months.
   applies_to:
     segment: domestic
@@ -1936,6 +1953,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md
 - id: INV_OPENING_READ
   family: read_duty
+  grades: ledger
   statement: 'Every supply span opens on a read that is actual or deemed, dated at the supply start date (electricity CoS: within SSD ±5 days, deemed by SSD+8; gas: estimated opening read within 10 days).'
   applies_to:
     commodity: electricity and gas
@@ -1963,6 +1981,7 @@ invariants:
   source: docs/market_research/unbilled_energy_and_revenue_assurance.md
 - id: INV_PAYMENT_PPM_AND_DD_NOT_CONCURRENT
   family: payment_method_consistency
+  grades: ledger
   statement: 'An account does not pay by prepayment top-up and by direct debit at the same time: a prepayment meter is paid in advance at the meter.'
   applies_to:
     segment: all
@@ -1981,6 +2000,7 @@ invariants:
   gap: the 'two months' tolerance is a reading, not a sourced number
 - id: INV_PAYMENT_AMOUNT_SIGN
   family: payment_method_consistency
+  grades: ledger
   statement: A direct-debit collection and a prepayment top-up are positive amounts; refunds travel as adjustments or credit transfers, not as negative DDs or negative top-ups.
   predicate: payment_method in {direct debit, prepayment top-up} => payment_amount_gbp > 0
   lower: 0.0
@@ -1995,6 +2015,7 @@ invariants:
   source: docs/market_research/payments_and_direct_debit_2026-10-25.md
 - id: INV_DD_CADENCE
   family: payment_method_consistency
+  grades: ledger
   statement: A fixed direct debit is a regular fixed amount, collected at most once per scheduled interval (monthly), with at most one re-presentation of a failed collection.
   predicate: count(payment_method == 'direct debit') per account per calendar month <= 2
   lower: 0
@@ -2011,6 +2032,7 @@ invariants:
   source: docs/market_research/payments_and_direct_debit_2026-10-25.md
 - id: INV_DD_STEP_CHANGE
   family: payment_method_consistency
+  grades: ledger
   statement: A regular direct debit that more than doubles from one collection to the next is the case Ofgem required suppliers to re-review in 2022.
   predicate: 'for consecutive regular DD collections a, b: b.payment_amount_gbp / a.payment_amount_gbp <= 2.0'
   lower: null
@@ -2028,6 +2050,7 @@ invariants:
   source: docs/market_research/payments_and_direct_debit_2026-10-25.md
 - id: INV_PPM_NOT_CREDIT_BILLED
   family: payment_method_consistency
+  grades: ledger
   statement: 'A prepayment customer is not sent credit bills or estimated credit bills: 21B.4 and 21B.5 do not apply to prepayment, and consumption is paid at the meter.'
   predicate: a period whose account paid by prepayment between period_start and 60 days after period_end => document_type is not 'bill'
   lower: null
@@ -2044,6 +2067,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md (21B.4, 21B.5 carve-outs)
 - id: INV_FUEL_IDENTIFIER
   family: event_fuel_consistency
+  grades: ledger
   statement: An electricity account is identified by an MPAN and has no MPRN; a gas account by an MPRN and has no MPAN. Every read, period and term on an account is of the account's fuel.
   predicate: (commodity == electricity => mpan non-empty and mprn empty) and (commodity == gas => mprn non-empty and mpan empty)
   lower: null
@@ -2059,6 +2083,7 @@ invariants:
   gap: null
 - id: INV_GAS_SINGLE_REGISTER
   family: event_fuel_consistency
+  grades: ledger
   statement: A domestic gas meter records one register; multi-register (Economy 7 / ToU) metering is an electricity arrangement.
   predicate: commodity == gas => count(distinct register_id) == 1 per meter_serial
   lower: 1
@@ -2075,6 +2100,7 @@ invariants:
   gap: stated belief, not a quoted rule
 - id: INV_CROSS_FUEL_PRICE_SCALE
   family: event_fuel_consistency
+  grades: ledger
   statement: A gas account priced on an electricity-scale unit rate (or the reverse) is a crossed fuel; caught by the per-fuel unit-rate bands.
   predicate: 'for svt terms: commodity == gas => unit_rate within INV_UNIT_RATE_SVT_GAS row; commodity == electricity => above INV_UNIT_RATE_SVT_ELEC lower (outside EPG windows, every electricity floor
     from 2019 exceeds the same window''s gas cap)'
@@ -2089,6 +2115,7 @@ invariants:
   gap: null
 - id: INV_EV_ADOPTION_ELECTRICITY_ONLY
   family: event_fuel_consistency
+  grades: ledger
   statement: An EV adoption (or heat pump, PV) touches the electricity account only; an electricity-only household has no gas reads, terms or bills.
   lower: null
   upper: null
@@ -2099,6 +2126,7 @@ invariants:
   source: logic
 - id: INV_PERIODS_CONTIGUOUS
   family: billing_interval
+  grades: ledger
   statement: An account's billing periods run consecutively from supply start to supply end with no gap and no overlap, and each period's day count matches its dates.
   predicate: 'sort periods by period_start; for consecutive p, q: q.period_start == p.period_end + 1 day (inclusive-end convention) OR q.period_start == p.period_end (exclusive-end) -- one convention, used
     consistently across the whole export; days_in_period == (period_end - period_start) [+1 if inclusive]; days_in_period >= 1'
@@ -2118,6 +2146,7 @@ invariants:
   source: logic of a meter-point account ledger
 - id: INV_BACK_BILLING_12M
   family: back_billing
+  grades: ledger
   statement: From 1 May 2018 (domestic; microbusiness from 1 Nov 2018) a supplier may recover only energy reasonably considered consumed in the 12 months before the charge recovery action, absent customer
     obstruction.
   applies_to:
@@ -2152,6 +2181,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md; docs/market_research/back_billing_and_liability.md
 - id: INV_PERIOD_CONSUMPTION_NON_NEGATIVE
   family: meter_physics
+  grades: ledger
   statement: Import consumption in a period is never negative.
   lower: 0.0
   upper: null
@@ -2168,6 +2198,7 @@ invariants:
     violation: breach
 - id: INV_READ_MONOTONIC
   family: meter_physics
+  grades: ledger
   statement: On one meter and register, an actual read is never lower than an earlier actual read (a read does not go backwards), except at a meter exchange or a register roll-over.
   predicate: 'for consecutive reads r1 < r2 by read_date on the same (meter_serial, register_id) with read_type in {actual}: r2.read_kwh >= r1.read_kwh, unless r2.read_kwh + 10^d - r1.read_kwh (d = digits
     of r1) is an advance within the period''s physics bound (roll-over). Customer reads: same test, severity flag (customer reads can be mis-keyed and are rejected in practice). Estimated/deemed reads:
@@ -2190,6 +2221,7 @@ invariants:
   source: physics
 - id: INV_PERIOD_MATCHES_READS
   family: meter_physics
+  grades: ledger
   statement: A period billed on reads bills exactly the advance between its opening and closing reads, summed over registers.
   predicate: volume_basis == 'reads' and reads exist at period_start and period_end on every register => |consumption_kwh - sum_registers(read_end - read_start)| <= 1 kWh x registers
   lower: -1
@@ -2211,6 +2243,7 @@ invariants:
     violation: breach
 - id: INV_VAT_RATE
   family: vat
+  grades: ledger
   statement: Domestic electricity and gas carry the reduced 5% VAT rate, except domestic electricity in GB from 1 Oct 2026 to 31 Mar 2027 at 0%; business supply is 5% at or under the de minimis daily average
     and 20% above it.
   basis: vat_rate as a fraction
@@ -2278,6 +2311,7 @@ invariants:
   source: docs/domain_artefact_library/regulatory/uk_vat_rates.json; docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json
 - id: INV_NON_COMMODITY_WITHIN_ALL_IN
   family: tariff_structure
+  grades: ledger
   statement: The non-commodity part of an all-in unit rate is non-negative and no larger than the all-in rate itself.
   predicate: 0 <= non_commodity_rate_gbp_per_mwh <= unit_rate_p_per_kwh x 10
   lower: 0.0
@@ -2298,6 +2332,7 @@ invariants:
 # 67a893e749 blind-suite finding, "Every breach ... now has a row"). Rows appended unedited.
 - id: INV_REGISTER_ID_ONE_LABEL
   family: meter_physics
+  grades: ledger
   statement: On one meter serial, a register id keeps one label for as long as the meter keeps one settlement configuration. The strict form, one label for the serial's whole life, does NOT hold in GB. Under
     the industry register-mapping convention, register 1 is "single rate" on a single-rate SSC and "peak" on a multi-rate SSC. A smart meter can lawfully be moved from one SSC to another without an exchange,
     at a change of supplier or at a tariff change. So a register id can lawfully be relabelled at a configuration change, but never within one configuration. One separation is physical and holds under
@@ -2339,6 +2374,7 @@ invariants:
     register or TOU register 1) is not established in any source read. A relabel at a change of supplier is invisible, because this book only sees its own tenure.'
 - id: INV_SERIAL_REGISTER_COUNT_STABLE
   family: meter_physics
+  grades: ledger
   statement: 'The strict form is NOT established, and for smart meters it is false. A smart meter''s set of billed and settled registers can lawfully change with no exchange and no new serial. The new
     supplier reconfigures the meter at a change of supplier, and the SSC can change to one with fewer or more Time Pattern Regimes (Elexon Issue 79, Ofgem P302). A SMETS meter "can be operated in credit or
     prepayment mode and change configuration ... on any Time Pattern Regime / Tariff" (Elexon Issue 67). A Multi-Register Tariff is a contract "regardless of the metering equipment employed" (SLC 28AD /
@@ -2388,6 +2424,7 @@ invariants:
 # the raw export cannot grade name the field they lack in `missing_export_fields`.
 - id: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW
   family: price_consistency
+  grades: ledger
   statement: A default (SVT) tariff is one published price per fuel, region and payment method. Two domestic accounts on the same SVT in the same region, window and payment method are billed the same unit rate and standing charge.
   predicate: for accounts a, b with equal (commodity, tariff name, region, payment method) and periods overlapping one tariff window, |unit_rate_a - unit_rate_b| <= 0.5% of the mean and the standing charges are equal to the penny
   lower: null
@@ -2409,6 +2446,7 @@ invariants:
   gap: 'Not gradeable on the raw export (2026-10-27, on the 2eeb3f0b3 book): neither region nor the tariff name is exported. The MPAN distributor ID cannot stand in: every core on that book starts 10, so it would call the whole book Eastern. The spread of SVTs between regions is not in the commons either (the composition file carries only the GB median), so a cross-region bound is a GAP and only the same-region form is stated.'
 - id: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
   family: government_scheme
+  grades: ledger
   statement: Every domestic electricity account held at 00:00 on the 1st of a month from October 2022 to March 2023 receives that month's Energy Bills Support Scheme credit (£66 in Oct and Nov 2022, £67 from Dec 2022 to Mar 2023, £400 over six months). Gas accounts receive none.
   predicate: domestic electricity account held at 00:00 on the 1st of month m in [2022-10, 2023-03] => sum of adjustments with an EBSS reason dated in [m start, m end + 31 days] lies in [credit(m) - 1, credit(m) + 1]; gas account => no EBSS adjustment
   lower: null
@@ -2426,6 +2464,7 @@ invariants:
   gap: 'Predicate restated 2026-10-27 from "supply on any day of month m" to "held at 00:00 on the 1st of month m", because guidance 5.4 (read in the market-research page, from the withdrawn BEIS guidance) ties eligibility to the account held at 00:00 on the qualifying date, so a joiner after the 1st is owed nothing for that month. Unestablished: Annex C vacant-property and occupier-account exceptions are only summarised on that page, and the grader has not been checked against the new wording. Graded by tools/domain_invariant_runner.ev_ebss_credit from 2026-10-27, with each credit counted once (the windows overlap). The export''s reason is scheme_credit, which in this window can only be the EBSS. A month paid by prepayment is not graded: a traditional meter''s voucher route (about 20% expired unredeemed) makes received a different question, and the export cannot tell a smart meter from a traditional one (GAP).'
 - id: INV_RENEWAL_NOTICE_42_TO_49_DAYS
   family: renewal_compliance
+  grades: ledger
   statement: 'The end-of-fixed-term notice for a domestic fixed tariff is sent no earlier than 49 and no later than 42 days before the term ends. The supplier''s renewal decision, its offer, is therefore made on or before that notice, never on the expiry date. [Seat correction 2026-10-27, beside the claim: the second sentence reads further than its source. SLC 22C.4(a) dates the statement; 22C.5(a) dates only an offer to EXTEND the same contract, which must come inside the statement; 22C.8(c) lets a new fixed contract be agreed with no date put on it. The text in docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md. The row grades the statement.]'
   predicate: for each fixed term ending on date E, the renewal decision or notice date d satisfies E - 49 days <= d <= E - 42 days
   lower: -49
@@ -2441,6 +2480,7 @@ invariants:
   gap: 'Graded by tools/domain_invariant_runner.ev_renewal_notice. From 2026-10-27 (second change) the company sends the statement on day 42 (company/crm/renewal_notice_register.end_of_fixed_term_statement) and the export carries it as events.renewal_notices with the term''s contracted fixed_term_end; d is the statement''s date and E is fixed_term_end. A statement is owed for a domestic fixed term supplied on E - 42; a term cut short before then is owed none, and a non-domestic account is not graded. On a book whose run predates the statement (no renewal_notices key), d is the retention offer''s date as before, and a term with no act within 90 days before or 31 after E grades missing. Before 6 Dec 2017 the notice rule was the earlier SLC 22C form, not read here (GAP). Whether "provide" is the day sent or received is not in the text (GAP).'
 - id: INV_OVERDUE_WITHIN_BALANCE
   family: account_arithmetic
+  grades: ledger
   statement: The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date. An account with a debt stage open has at least one missed or returned collection, or an unpaid bill past its due date.
   predicate: at every dated state, 0 <= overdue_gbp <= balance_owed_gbp; debt_stage open => (missed + returned >= 1) or (an issued bill with due_date < date and unpaid)
   lower: 0
@@ -2457,6 +2497,7 @@ invariants:
   gap: first leg ungradeable on the raw export (computed sums); second leg graded
 - id: INV_ESTIMATE_RUN_WITHIN_TENURE
   family: read_history
+  grades: page
   statement: A run of consecutive estimated bills on one fuel cannot be longer than the bills that fuel has had since it joined. A household described as never read has no actual read on that fuel.
   predicate: for each fuel leg, the longest run of consecutive estimated bills <= number of bills issued on that leg; "not read since joining" => count(actual reads on the leg) == 0
   lower: 0
@@ -2473,6 +2514,7 @@ invariants:
   gap: 'Not gradeable on the raw export: the export is one fuel per account, so a run of estimated periods is a sub-run of that leg''s own periods and the predicate holds by construction. CHECKED ON THE PAGE from 2026-10-27, by tests/tools/test_generate_explore_cast.py::test_the_published_page_carries_no_estimate_run_longer_than_its_bills: each Explore estimate-run count is at most the calendar months its fuel has been supplied by the date shown (the company bills each fuel once a calendar month). It was red on the page as published (O14: 12 gas bills seven months after joining, the run''s whole count dated at its midpoint).'
 - id: INV_COLLECTIONS_EVENTS_ORDERED
   family: collections_sequence
+  grades: ledger
   statement: A collections journey runs in order. The missed payment or unpaid bill that opens it comes first, then reminders, then a payment plan (SLC 27 ability-to-pay), then repayment, write-off or referral. No step is dated before the event that opens the journey.
   predicate: for each journey, date(opened) <= date(first reminder) <= date(plan offered), and every step date >= date(opened)
   lower: null
@@ -2486,6 +2528,7 @@ invariants:
   gap: 'Graded by tools/domain_invariant_runner.ev_collections_ordered from 2026-10-27, on the export''s collections_journeys (the company''s own steps and their dates). A plan offer is repayment_plan_offer, repayment_plan_reoffer or arrangement_offered; a reminder is reminder or reminder_2.'
 - id: INV_STATUTE_BARRED_WRITE_OFF_AGE
   family: debt_limitation
+  grades: ledger
   statement: A domestic debt written off as statute-barred is at least six years past its cause of action (England and Wales; five in Scotland). That is the due date of each bill in it, restarted by a part-payment or an acknowledgement. Bills that fell due after the last part-payment carry their own later dates.
   predicate: for a write-off with reason statute-barred on date W, every bill b in the written-off sum has W >= max(due_date(b), last payment or acknowledgement on or after due_date(b)) + 6 years (5 in Scotland)
   lower: 6 years
@@ -2504,6 +2547,7 @@ invariants:
   gap: 'Per-bill form ungradeable: the write-off does not name its bills. The book-wide count of early write-offs is in docs/staging/SEAT_FINDING_A_STATUTE_BARRED_WRITE_OFF_LANDS_BEFORE_SIX_YEARS_AND_REPEATS_MONTHLY_2026-10-26.md (24 of 602); this row adds the per-bill form. The household''s jurisdiction is not exported, so the Scottish five years cannot be applied (GAP).'
 - id: INV_MPAN_CORE_FORMAT
   family: event_fuel_consistency
+  grades: ledger
   statement: An electricity supply point's MPAN core is 13 digits. The first two are the distributor ID (10-23 for the fourteen DNO licence areas, 24 upward for independent distribution network operators, IDNOs), and the last is a check digit over the first twelve. Its region is the distributor's.
   predicate: commodity == electricity => mpan core matches ^[1-9][0-9][0-9]{11}$ (distributor ID 10-23 DNO, 24 upward IDNO) and the check digit is valid
   lower: null
@@ -2515,3 +2559,37 @@ invariants:
   - mpan
   checkable: true
   gap: 'Graded by tools/domain_invariant_runner.ev_mpan_core_format from 2026-10-27. The commons page is now docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md, read in a secondary source; the primary text of the check digit is still a GAP. Restated 2026-10-27: that page gives DNO IDs 10-23 and IDNO IDs from 24 upward with NO upper bound (its table runs 24 to 52 with gaps, tagged citation needed; the current list is a GAP). The regex therefore accepts any two-digit ID from 10 to 99, the width the 13-digit core allows; it does not check that an ID above 23 is allocated. No book draws an IDNO core yet.'
+- id: INV_EBSS_CREDIT_ON_THE_BILL
+  family: government_scheme
+  grades: invoice
+  twin_of: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
+  statement: The bill a domestic electricity household reads for each month from October 2022 to March 2023 that it held the account at 00:00 on the 1st shows that month's Energy Bills Support Scheme credit (£66 in Oct and Nov 2022, £67 from Dec 2022 to Mar 2023). A gas bill shows none.
+  predicate: for each bill on the page whose period covers the 1st of one or more months m in [2022-10, 2023-03] that a domestic electricity account held at 00:00 on that 1st, the scheme credit it prints lies in [sum credit(m) - 1, sum credit(m) + 1]; a qualifying month no page bill covers is a breach (nothing was shown); a gas bill prints no scheme credit
+  lower: null
+  upper: null
+  source: 'docs/market_research/energy_bills_support_scheme_delivery.md: "How it reached the account, by payment route", pay on receipt "credited to the account, shown on the bill" (ii.co.uk summary of the consumer guidance, a secondary source); "A bill the credit covered in part", pay on receipt, "The bill that followed showed it. The household paid the balance, so it paid the bill less the credit"; "An occupier''s deemed account", BEIS guidance 5.4 and 5.8 for who is owed which month, and Annex C, the supplier credits the Owner/Occupier account "on the bill". Second cold read N1 (2026-10-28): PROS-2019-0246''s ledger holds all six credits, GBP 400, and the page printed "The electricity bill for December 2022 was £598.04" with no credit line.'
+  severity:
+    violation: breach
+  export_fields:
+  - printed invoices.scheme_credit_gbp
+  - printed invoices.period_end
+  - commodity
+  - segment
+  checkable: true
+  gap: 'Written 2026-10-28 from the knowledge page, not the code: the twin of the ledger row on the record the customer reads. Graded per bill, not per credit date, because the bill for a month is where that month''s credit is shown, by tools/domain_invariant_runner.ev_ebss_credit_on_the_bill on a book read with --printed (the published site/data/customers files); without them it reads NOT_IN_EXPORT, never clean. The page shows only what the bill printed, so the same prepayment GAP as the ledger row applies: a traditional meter''s voucher is not on the bill, and the export cannot tell smart from traditional. For direct debit the page says practice varied (some suppliers refunded the credit to the bank); this row asks only that the bill shows it, which every route the page names did except prepayment (GAP: no source fetched shows a DD bill that omitted it).'
+- id: INV_OVERDUE_WITHIN_PAGE_BALANCE
+  family: account_arithmetic
+  grades: page
+  twin_of: INV_OVERDUE_WITHIN_BALANCE
+  statement: Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed.
+  predicate: for each collections step the page prints with an overdue amount on date d, 0 <= overdue_gbp <= the page ledger's balance owed at the end of day d (its last running balance dated on or before d; nothing before its first entry), to the penny
+  lower: 0
+  upper: balance_owed_gbp
+  source: 'Logic of an account ledger: an overdue sum is a subset of the balance (INV_OVERDUE_WITHIN_BALANCE''s source). Cold-read objections O10, O16 and O18: SYN-2016-356 shows "£23.88 owed" beside "GBP71.73 overdue", and "£59.77 owed" beside "GBP147.56 overdue". The second cold read, N1: the same shape behind O4 and O14.'
+  severity:
+    violation: breach
+  export_fields:
+  - printed ledger.entries.running_balance_gbp
+  - printed reaction_chain.collections_*.amount_gbp
+  checkable: true
+  gap: 'Written 2026-10-28: the ledger row''s first leg, which the raw export cannot carry (two sums the company worked out), graded where the page prints both. Graded by tools/domain_invariant_runner.ev_overdue_within_page_balance on a book read with --printed. A cure and a write-off print no overdue figure and are not graded. The desk''s journey is the billing account''s, both fuels, so owed is the sum of the household''s fuel pages'' balances on that day and a step both pages print is graded once.'

@@ -75,6 +75,38 @@ exceptions:
     filed: 2026-10-28
     retired_by: the raw export carrying each account's void and occupier window, and the row exempting a month the payer did not hold on its 1st
     max_breached: 6
+  # 2026-10-28: the two twins graded on what the page prints (second cold read, N1), measured on the
+  # 1691ec0ecd book rebuilt with origin's tools and its pages built from that ledger in memory.
+  # Counts beside docs/staging/SEAT_FINDING_THE_SECOND_COLD_READ_FINDS_SEVEN_NEW_CLASSES_AND_THE_SUITE_GRADES_A_RECORD_THE_PAGE_DOES_NOT_PRINT_2026-10-28.md.
+  - invariant: INV_EBSS_CREDIT_ON_THE_BILL
+    scope: >-
+      6 page bills on the 1691ec0ecd book, on the same five OCC- accounts as the ledger row's
+      exception: OCC-25ff8966357a (Jan 2023 bill), OCC-a1e9ae835e65 (Feb 2023), OCC-bec72a04dec8 (Nov
+      2022, Feb 2023), OCC-e3e94f81161b (Mar 2023), OCC-eb8498f3f8aa (Feb 2023). OCC-25ff8966357a's
+      is January, not the ledger row's February: it opened on 24 Dec on a move-out, so the home was
+      void on 1 Jan, and the ledger row's date-window allocation moves that gap a month later
+    reason: >-
+      The ledger row's two causes, seen on the bill: a home void at 00:00 on the 1st (Annex C, no
+      credit owed) and a month the unnamed occupier's deemed account held on the 1st with the payer
+      named later (guidance 5.4). The export carries neither window, so the row counts the month as
+      the payer's. Before the page carried the credit (this commit) the row breached 1,193 of 2,277.
+    filed: 2026-10-28
+    retired_by: the raw export carrying each account's void and occupier window, as for INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
+    max_breached: 6
+  - invariant: INV_OVERDUE_WITHIN_PAGE_BALANCE
+    scope: >-
+      10,180 of 32,741 collections steps on 493 of 752 households of the 1691ec0ecd book, each
+      printing an overdue figure above what the household's pages say is owed that day; 1,770 where
+      the pages say nothing is owed
+    reason: >-
+      NOT explained: an open defect, filed the day the row was first graded. The desk's overdue sum
+      (the company's arrears view) and the page ledger (the billing ledger) are two records of one
+      account that disagree. On C3 the desk prints GBP 30.10 overdue on a GBP 28.85 bill. Cause not
+      yet traced. Excepted rather than refusing the next publish because the page has printed these
+      figures since the cold read of 23 Oct; the row puts the count on the surface every run.
+    filed: 2026-10-28
+    retired_by: docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md
+    max_breached: 10180
   # 2026-10-27: four cold-read rows read the company's own dated acts (`raw_account_export.account_events`).
   # Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.

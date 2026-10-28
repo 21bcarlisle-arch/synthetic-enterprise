@@ -77,6 +77,8 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_COLLECTIONS_EVENTS_ORDERED": "reads the collections journeys; every leg tested on its own below",
     "INV_OVERDUE_WITHIN_BALANCE": "reads the collections journeys; every leg tested on its own below",
     "INV_STATUTE_BARRED_WRITE_OFF_AGE": "needs a six-year-old debt; every leg tested on its own below",
+    "INV_EBSS_CREDIT_ON_THE_BILL": "reads the printed page; every leg tested on its own below",
+    "INV_OVERDUE_WITHIN_PAGE_BALANCE": "reads the printed page; every leg tested on its own below",
 }
 
 
@@ -692,3 +694,67 @@ def test_every_leg_of_the_statute_bar_row_is_reachable():
     assert grade("2017-06-01") == (1, [])
     assert grade("2016-12-01") == (1, ["no bill old enough"])
     assert grade("2017-06-01", payments=True) == (1, ["payment after the bar"])
+
+
+# ── the twins graded on what the page prints (second cold read, N1) ─────────────────────────────
+
+def _printed_bills(acct, credit=True):
+    """One page bill per period, each showing its month's EBSS credit where one is owed."""
+    owed = {m.isoformat()[:7]: amt for m, amt in runner.EBSS_CREDIT_GBP}
+    return [{"period_start": p["period_start"], "period_end": p["period_end"],
+             "scheme_credit_gbp": owed.get(p["period_start"][:7]) if credit else None}
+            for p in acct["periods"]]
+
+
+def test_every_leg_of_the_ebss_bill_row_is_reachable():
+    """A bill short of its credit, a month no bill covers and a credited gas bill each grade apart,
+    and a book read without its pages is never clean."""
+    inv = [{"id": "INV_EBSS_CREDIT_ON_THE_BILL"}]
+    book = _ebss_pair()
+    assert _results(book, inv)["INV_EBSS_CREDIT_ON_THE_BILL"]["status"] == "NOT_IN_EXPORT"
+    book["EB"]["printed"] = {"invoices": _printed_bills(book["EB"])}
+    book["GB"]["printed"] = {"invoices": _printed_bills(book["GB"], credit=False)}
+    clean = _results(book, inv)["INV_EBSS_CREDIT_ON_THE_BILL"]
+    assert (clean["status"], clean["checked"]) == ("CLEAN", 12), clean
+    bills = book["EB"]["printed"]["invoices"]
+    next(b for b in bills if b["period_start"] == "2022-12-01")["scheme_credit_gbp"] = None  # Dec not shown
+    bills.remove(next(b for b in bills if b["period_start"] == "2023-02-01"))                # Feb: no bill
+    next(b for b in book["GB"]["printed"]["invoices"]
+         if b["period_start"] == "2022-10-01")["scheme_credit_gbp"] = 66.0                   # gas credited
+    sides = sorted((b["where"].split()[1], b["side"]) for b in runner.ev_ebss_credit_on_the_bill(
+        None, [runner.Account(k, v) for k, v in book.items()]).breaches)
+    assert sides == [("electricity", "below"), ("electricity", "missing"), ("gas", "above")], sides
+    book = _ebss_pair()                                                  # one account has no page
+    book["EB"]["printed"] = {"invoices": _printed_bills(book["EB"])}
+    one = runner.ev_ebss_credit_on_the_bill(None, [runner.Account(k, v) for k, v in book.items()])
+    assert (one.checked, one.unbounded, one.breaches) == (6, 6, []), one.__dict__
+
+
+def _page(cid, entries, steps=()):
+    return {"customer_id": cid, "billing_account_id": "BA", "segment": "resi", "periods": [],
+            "payments": [], "printed": {"page_ledger": [{"date": d, "running_balance_gbp": b}
+                                                        for d, b in entries],
+                                        "page_steps": list(steps)}}
+
+
+def _step(on, amount, kind="missed_payment"):
+    return {"date": on, "event_type": "collections_" + kind, "amount_gbp": amount}
+
+
+def test_every_leg_of_the_page_overdue_row_is_reachable():
+    """Overdue within the household's balance across both fuel pages, graded once per step; above
+    it and below nothing each breach; a cure and a write-off print no overdue figure."""
+    def grade(*steps, gas_steps=()):
+        book = {"E": _page("E", [("2020-03-01", 40.0), ("2020-03-20", 0.0)], steps),
+                "Eg": _page("Eg", [("2020-03-02", 30.0)], gas_steps)}
+        r = _results(book, [{"id": "INV_OVERDUE_WITHIN_PAGE_BALANCE"}])["INV_OVERDUE_WITHIN_PAGE_BALANCE"]
+        return r["status"], r["checked"], sorted(b["side"] for b in r["breach_examples"])
+    within = _step("2020-03-17", 70.0)                                   # 40 + 30, both fuels
+    assert grade(within, gas_steps=[within]) == ("CLEAN", 1, [])         # one step, two pages
+    assert grade(_step("2020-03-17", 70.02)) == ("BREACHED", 1, ["above"])
+    assert grade(_step("2020-03-25", 30.0), _step("2020-03-26", -1.0, "reminder")) == (
+        "BREACHED", 2, ["below"])                                        # E paid off by the 20th
+    assert grade(_step("2020-02-20", 5.0)) == ("BREACHED", 1, ["above"])  # nothing owed yet
+    assert grade(_step("2020-03-25", 0, "cured"), _step("2020-03-26", 99.0, "write_off"))[1] == 0
+    no_page = runner.run([{"id": "INV_OVERDUE_WITHIN_PAGE_BALANCE"}], _ebss_pair())
+    assert no_page[0]["status"] == "NOT_IN_EXPORT", no_page

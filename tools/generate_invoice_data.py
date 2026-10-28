@@ -121,6 +121,12 @@ def _real_invoice(inv):
         # is the face. None on a record that predates the field, never a guessed face.
         outstanding_gbp=inv.get("outstanding_gbp"),
         credit_applied_gbp=inv.get("credit_applied_gbp"),
+        # The month's Energy Bills Support Scheme credit, which the bill shows (pay on receipt:
+        # "credited to the account, shown on the bill", energy_bills_support_scheme_delivery.md),
+        # and the part of it this bill used; the rest stays on the account. Not carried before, so
+        # the page printed a crisis bill with no credit while the ledger held all six (N1).
+        scheme_credit_gbp=inv.get("scheme_credit_month_gbp") or inv.get("scheme_credit_gbp"),
+        scheme_credit_applied_gbp=inv.get("scheme_credit_gbp"),
         meter_serial=inv.get("meter_serial"),
         mpan=inv.get("mpan"),
         mprn=inv.get("mprn"),

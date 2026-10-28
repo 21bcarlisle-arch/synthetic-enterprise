@@ -84,16 +84,43 @@ def load_invariants(path: Path = INVARIANTS_PATH) -> list[dict]:
     return yaml.safe_load(path.read_text())["invariants"]
 
 
+def load_printed(customers_dir: Path) -> dict[str, dict]:
+    """customer_id -> what the customer page prints for it, read from the published per-customer
+    files (`site/data/customers/<id>.json`), not rebuilt: the bills as the page renders them, the
+    page ledger's dated balances, and each figure its collections steps print. A row whose
+    `grades` is `invoice` or `page` reads only this; one graded on the ledger never does."""
+    out = {}
+    for f in sorted(Path(customers_dir).glob("*.json")):
+        try:
+            d = json.loads(f.read_text())
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            continue
+        if not isinstance(d, dict):
+            continue
+        out[f.stem] = {
+            "invoices": d.get("invoices"),
+            "page_ledger": (d.get("ledger") or {}).get("entries"),
+            "page_steps": [e for e in d.get("reaction_chain") or ()
+                           if isinstance(e, dict) and str(e.get("event_type", "")).startswith("collections_")],
+        }
+    return out
+
+
 def load_book(raw_path: Path | None = None, ledger_path: Path | None = None,
-              events_path: Path | None = None) -> dict[str, dict]:
+              events_path: Path | None = None, printed_path: Path | None = None) -> dict[str, dict]:
     """customer_id -> raw export, its `events` (the company's dated acts) beside it where known.
-    From a bundle the export wrote, or produced from a ledger here."""
+    From a bundle the export wrote, or produced from a ledger here. With `printed_path`, each
+    account also carries `printed`, what its page shows (`load_printed`)."""
+    printed = load_printed(printed_path) if printed_path is not None else {}
     if raw_path is not None:
         book = json.loads(raw_path.read_text())
         if events_path is not None:
             for cid, ev in json.loads(events_path.read_text()).items():
                 if book.get(cid) is not None:
                     book[cid]["events"] = ev
+        for cid, pr in printed.items():
+            if book.get(cid) is not None:
+                book[cid]["printed"] = pr
         return book
     from company.billing.raw_account_export import account_events, derived_leaks, raw_account
     ledger = json.loads(ledger_path.read_text())
@@ -103,7 +130,7 @@ def load_book(raw_path: Path | None = None, ledger_path: Path | None = None,
         leaks = derived_leaks(r) + derived_leaks(ev)
         if leaks:
             raise ValueError("the raw export for {} carries derived fields: {}".format(cid, leaks[:3]))
-        out[cid] = dict(r, events=ev)
+        out[cid] = dict(r, events=ev, **({"printed": printed[cid]} if cid in printed else {}))
     return out
 
 
@@ -125,6 +152,8 @@ class Account:
         self.renewals = events.get("renewal_offers") or ()
         # None, not empty, on a book whose run predates the SLC 22C statement.
         self.notices = events.get("renewal_notices")
+        # What the page prints (`load_printed`); None where the book was read without it.
+        self.printed = raw.get("printed")
         self.registers = {r.get("register_id") for p in self.periods for r in p.get("reads", ())}
         self.start = _d(self.periods[0]["period_start"]) if self.periods else None
         self.end = _d(self.periods[-1]["period_end"]) if self.periods else None
@@ -995,6 +1024,54 @@ def ev_ebss_credit(inv, book):
     A gas account is owed nothing, so any credit on it breaches. A month paid by prepayment is not
     graded: the row's GAP (a traditional meter's voucher may expire unredeemed), and the export
     cannot tell a smart meter from a traditional one."""
+    return _ebss_tally(book, lambda a: sorted(
+        (_d(x["adjustment_date"]), float(x["adjustment_amount_gbp"]))
+        for x in a.adjustments if x.get("adjustment_reason") == SCHEME_CREDIT
+        and x.get("adjustment_date") and x.get("adjustment_amount_gbp") is not None))
+
+
+def ev_ebss_credit_on_the_bill(inv, book):
+    """The ledger row's twin on the record the customer reads, graded per bill: each bill on the
+    page shows the credit for every qualifying 1st its period covers (`scheme_credit_gbp`, within
+    GBP 1 of the months' sum), and a qualifying month no page bill covers has shown nothing. Who
+    is owed which month, and the prepayment GAP, are the ledger row's (`ev_ebss_credit`). A gas
+    bill is owed none. An account with no page is not graded (UNBOUNDED, never clean)."""
+    tally = Tally("bill covering a qualifying 1st, Oct 2022 to Mar 2023")
+    for a in book:
+        if not a.domestic or a.start is None:
+            continue
+        owed = {m: (0.0 if a.fuel == "gas" else amt) for m, amt in EBSS_CREDIT_GBP
+                if a.start <= m <= a.end}
+        if not owed:
+            continue
+        if a.printed is None:
+            tally.unbounded += len(owed)
+            continue
+        if a.fuel != "gas":
+            for m in [m for m in owed if PREPAYMENT in a.methods_between(m, _month_end(m) + PAYMENT_WINDOW)]:
+                tally.unbounded += 1
+                del owed[m]
+        covered = set()
+        for i in a.printed.get("invoices") or ():
+            if not (i.get("period_start") and i.get("period_end")):
+                continue
+            ms = [m for m in owed if _d(i["period_start"]) <= m <= _d(i["period_end"])]
+            if not ms:
+                continue
+            covered |= set(ms)
+            due = sum(owed[m] for m in ms)
+            shown = float(i.get("scheme_credit_gbp") or 0.0)
+            tally.band("{} {} bill {} to {}".format(a.cid, a.fuel, i["period_start"], i["period_end"]),
+                       round(shown, 2), max(due - 1, 0.0), due + 1 if due else 0.0)
+        for m in sorted(set(owed) - covered):
+            if owed[m]:
+                tally.checked += 1
+                tally.hit("breach", "{} {} {} no bill".format(a.cid, a.fuel, m.isoformat()[:7]),
+                          None, owed[m], "missing")
+    return tally
+
+
+def _ebss_tally(book, credits_of):
     tally = Tally("account-month on supply, Oct 2022 to Mar 2023")
     for a in book:
         if not a.domestic or a.start is None:
@@ -1006,9 +1083,7 @@ def ev_ebss_credit(inv, book):
         if not months:
             continue
         got = {m: 0.0 for m, _ in months}
-        credits = sorted((_d(x["adjustment_date"]), float(x["adjustment_amount_gbp"]))
-                         for x in a.adjustments if x.get("adjustment_reason") == SCHEME_CREDIT
-                         and x.get("adjustment_date") and x.get("adjustment_amount_gbp") is not None)
+        credits = credits_of(a)
         for when, amount in credits:
             holds = [(m, owed) for m, owed in months if m <= when <= _month_end(m) + EBSS_LAG]
             if not holds:
@@ -1174,6 +1249,37 @@ def ev_overdue_within_balance(inv, book):
     return tally
 
 
+def ev_overdue_within_page_balance(inv, book):
+    """The row's first leg, which the export cannot carry, graded on the page: every overdue
+    figure a collections step prints ("-- GBP71.73 overdue", the step's `amount_gbp`) is at least
+    nothing and at most what the household's pages say is owed at the end of that day. The desk's
+    journey is the billing account's, both fuels, so owed is the sum over the household's fuel
+    pages of each one's last `running_balance_gbp` dated on or before the step (nothing before its
+    first entry), and a step both pages print is graded once. A write-off and a cure print no
+    overdue figure, so they are not graded."""
+    tally = Tally("household collections step printing an overdue figure")
+    for ba, accts in _households(book).items():
+        pages = [a.printed for a in accts if a.printed is not None]
+        if not pages:
+            continue
+        ledgers = [[e for e in p.get("page_ledger") or () if e.get("date")] for p in pages]
+        steps = {(st.get("date"), st.get("event_type", ""), st.get("amount_gbp"))
+                 for p in pages for st in p.get("page_steps") or ()}
+        for on, et, overdue in sorted(steps, key=lambda t: (str(t[0]), t[1])):
+            if et in ("collections_cured", "collections_write_off") or overdue is None or not on:
+                continue
+            owed = 0.0
+            for entries in ledgers:
+                last = 0.0
+                for e in entries:
+                    if e["date"] <= on and e.get("running_balance_gbp") is not None:
+                        last = float(e["running_balance_gbp"])
+                owed += last
+            tally.band("{} {} {}".format(ba, on, et[len("collections_"):]),
+                       round(float(overdue), 2), 0.0, round(max(owed, 0.0), 2), tol_abs=0.01)
+    return tally
+
+
 def _years_before(d: date, n: int) -> date:
     try:
         return d.replace(year=d.year - n)
@@ -1251,10 +1357,12 @@ EVALUATORS = {
     "INV_REGISTER_ID_ONE_LABEL": (ev_register_id_one_label, None),
     "INV_SERIAL_REGISTER_COUNT_STABLE": (ev_serial_register_count_stable, None),
     "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23": (ev_ebss_credit, None),
+    "INV_EBSS_CREDIT_ON_THE_BILL": (ev_ebss_credit_on_the_bill, "printed_invoices"),
     "INV_MPAN_CORE_FORMAT": (ev_mpan_core_format, "mpan"),
     "INV_RENEWAL_NOTICE_42_TO_49_DAYS": (ev_renewal_notice, "bills"),
     "INV_COLLECTIONS_EVENTS_ORDERED": (ev_collections_ordered, "collections_journeys"),
     "INV_OVERDUE_WITHIN_BALANCE": (ev_overdue_within_balance, "bills"),
+    "INV_OVERDUE_WITHIN_PAGE_BALANCE": (ev_overdue_within_page_balance, "page_steps"),
     "INV_STATUTE_BARRED_WRITE_OFF_AGE": (ev_statute_barred_write_off, "bills"),
 }
 
@@ -1265,6 +1373,10 @@ def run(invariants: list[dict], raw_book: dict[str, dict]) -> list[dict]:
     fields = {k for a in raw_book.values() for p in a.get("periods", ()) for k, v in p.items()
               if v is not None}
     fields |= {k for a in raw_book.values() for k, v in (a.get("events") or {}).items() if v}
+    # The page's records, named apart from the export's: a row graded on the page reads NOT_IN_EXPORT
+    # on a book read without `--printed`, never clean.
+    fields |= {"printed_" + k if k == "invoices" else k for a in raw_book.values()
+               for k, v in (a.get("printed") or {}).items() if v}
     extra = {
         "INV_UNIT_RATE_FIXED": {"pre_cap_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_ELEC_PRE_CAP", {}))},
         "INV_CROSS_FUEL_PRICE_SCALE": {"gas_rows": _rows(by_id.get("INV_UNIT_RATE_SVT_GAS", {})),
@@ -1371,12 +1483,14 @@ def main(argv=None) -> int:
     src.add_argument("--raw", type=Path, help="a JSON bundle: customer_id -> raw export")
     src.add_argument("--ledger", type=Path, help="a billing ledger; the raw export is produced from it")
     ap.add_argument("--events", type=Path, help="with --raw: customer_id -> the account's events")
+    ap.add_argument("--printed", type=Path,
+                    help="the published per-customer files (site/data/customers), for the rows graded on the invoice or the page")
     ap.add_argument("--invariants", type=Path, default=INVARIANTS_PATH)
     ap.add_argument("--json", type=Path, help="also write the full result, examples included")
     ap.add_argument("--strict", action="store_true", help="return 1 on any BREACH")
     ap.add_argument("--exceptions", type=Path, default=EXCEPTIONS_PATH)
     args = ap.parse_args(argv)
-    raw = load_book(args.raw, args.ledger, args.events)
+    raw = load_book(args.raw, args.ledger, args.events, args.printed)
     results = run(load_invariants(args.invariants), raw)
     verdict = gate(results, load_exceptions(args.exceptions))
     print(render(results, len(raw)))

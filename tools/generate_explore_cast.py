@@ -503,8 +503,13 @@ def _template(hh, ev, iso, kind, rec):
                 {"believed": "Nothing changed", "truth": rec["detail"] + (" — " + rec["effect"] if rec.get("effect") else ""),
                  "meant": "The supplier can only learn this from the meter, later", "tone": "neutral"})
     if kind == "shock_2022":
-        return ("The 2022 shock", "The {} bill for {} was {}, against {} a year earlier.".format(
-                    rec["fuel"], rec["month"], _fmt_gbp(rec["now"]), _fmt_gbp(rec["before"])),
+        # The two totals are the charges, so they compare like with like; the month's government
+        # credit is named beside them because the bill showed it and the household paid less (N1).
+        credit = rec.get("scheme_credit") or 0.0
+        return ("The 2022 shock", "The {} bill for {} was {}{}, against {} a year earlier.".format(
+                    rec["fuel"], rec["month"], _fmt_gbp(rec["now"]),
+                    " before its {} Energy Bills Support Scheme credit".format(_fmt_gbp(credit))
+                    if credit > 0 else "", _fmt_gbp(rec["before"])),
                 "Your bill has changed because energy prices have changed.",
                 "Wholesale prices rose; the household's use did not explain the change.",
                 None)
@@ -786,6 +791,7 @@ def _score_shock(hh, ev, person):
     rise, i, prev = best
     rec = {"fuel": i["fuel"], "month": datetime.strptime(i["date"][:7], "%Y-%m").strftime("%B %Y"),
            "now": i["amount_gbp"], "before": prev["amount_gbp"],
+           "scheme_credit": i.get("scheme_credit_gbp") or 0.0,
            "kwh_now": i.get("consumption_kwh") or 0, "kwh_before": prev.get("consumption_kwh") or 0}
     keys = [(_acq(hh), "joined", {}), (prev["date"], "bill", {**prev, "label": "A year earlier"}), (i["date"], "shock_2022", rec)]
     return (rise, keys, 2)

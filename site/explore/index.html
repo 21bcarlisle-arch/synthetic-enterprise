@@ -685,6 +685,18 @@ function billEquationHtml(i){
     return c.key==="commodity_amount_gbp"?billUsageLinesHtml(i):billComponentRowHtml(c,i);
   });
   parts.push("<div class=\"row\" style=\"font-weight:700\"><span class=\"rl\">= Total</span><span>"+billGbp(i.amount_gbp)+"</span></div>");
+  /* Below the total, not in the charges: the Energy Bills Support Scheme credit is the
+     government's money on the account, which lowers what the household pays and not what the
+     energy cost. The bill showed it (energy_bills_support_scheme_delivery.md), so this one does. */
+  var scheme=Number(i.scheme_credit_gbp);
+  if(i.scheme_credit_gbp!=null&&isFinite(scheme)&&scheme>0){
+    var used=i.scheme_credit_applied_gbp!=null?Number(i.scheme_credit_applied_gbp):Math.min(scheme,Math.max(Number(i.amount_gbp),0));
+    parts.push("<div class=\"row scheme-credit\"><span class=\"rl\">&minus; Energy Bills Support Scheme credit</span><span>"+billGbp(scheme)+"</span></div>");
+    parts.push("<div class=\"row scheme-credit\" style=\"font-weight:700\"><span class=\"rl\">= To pay</span><span>"+billGbp(Math.round((Number(i.amount_gbp)-used)*100)/100)+"</span></div>");
+    if(used<scheme-0.005){
+      parts.push("<div style=\"font-size:11px;color:var(--muted);margin-top:4px\">"+billGbp(Math.round((scheme-used)*100)/100)+" of the credit is more than this bill and stays on the account.</div>");
+    }
+  }
   if(Number(i.amount_gbp)<0){
     parts.push("<div style=\"font-size:11px;color:var(--muted);margin-top:4px\">This bill is a CREDIT &mdash; the balance is owed to you, not by you"+
       (Number(i.catchup_adjustment_gbp)<0?": the catch-up adjustment above is larger than this period's charges":"")+".</div>");
