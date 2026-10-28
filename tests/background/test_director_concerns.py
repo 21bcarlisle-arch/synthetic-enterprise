@@ -498,6 +498,30 @@ def test_the_monday_note_has_four_sections_and_says_none_when_one_is_empty():
     assert "**his**" in overdue and "**seat**" not in overdue
 
 
+def test_one_answer_to_several_questions_is_printed_once_with_each_question_beneath_it():
+    """The 26 Oct ruling closed four rows with one resolution; the first live note printed its
+    opening 220 characters four times and named none of the four questions.
+
+    MUTATION (must fire): render each answered row on its own line again."""
+    now = datetime(2026, 11, 2, 7, tzinfo=timezone.utc)
+    ruling = "Director: " + "hide the link and keep the tracker " * 12
+    closes = {rid: {"id": rid, "status": "answered", "closed_on": "2026-10-26",
+                    "resolution": ruling, "what": f"Question {rid} about the front door"}
+              for rid in ("q1", "q2", "q3")}
+    closes["solo"] = {"id": "solo", "status": "answered", "closed_on": "2026-10-28",
+                      "resolution": "Yes", "what": "a question of its own"}
+    note = dc.monday_note(now, closes=closes, open_rows_now=[], landing=_no_landing)
+    decided = note.split("## What you decided this week")[1].split("## ")[0]
+    assert decided.count("Director: hide") == 1, decided
+    assert "One answer to 3 questions" in decided
+    for rid in ("q1", "q2", "q3"):
+        assert f"**{rid}**: Question {rid} about the front door" in decided
+    assert "**solo**: Yes" in decided
+    shown = decided.split("questions**: ")[1].split("...")[0]
+    assert (ruling.split() + [""])[len(shown.split()) - 1] == shown.split()[-1], \
+        "a truncation cut a word in half"
+
+
 def test_an_orientation_RECORDS_the_closes_it_was_handed(monkeypatch, record_file):
     """The decisions-history half: a row closed between orientations and dropped by the session is
     still on the append-only record, with its commitment.

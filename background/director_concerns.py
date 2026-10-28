@@ -580,15 +580,28 @@ def monday_note(now: datetime | None = None, *, closes: dict | None = None,
 
     def short(text, n=220) -> str:
         text = " ".join(str(text or "").split())
-        return text if len(text) <= n else text[: n - 3].rstrip() + "..."
+        return text if len(text) <= n else text[: n - 3].rsplit(" ", 1)[0].rstrip() + "..."
 
     lines = [f"# Monday note for the director -- {today}", "",
              "Written by the Monday step (`background/weekly_rhythm.py`); the live overdue list is "
              "`python3 -m background.director_concerns --overdue`.", ""]
     lines += ["## What you decided this week", ""]
     decided = [r for r in this_week if r.get("status") == "answered"]
-    lines += [f"- **{r['id']}**: {short(r.get('resolution'))} -- {landed(r['id'])}."
-              for r in decided] or ["None."]
+    # ONE ANSWER CAN CLOSE SEVERAL QUESTIONS (26 Oct: four rows, one ruling). Printed per row, the
+    # first 220 characters of that ruling repeat four times and name none of the questions, so a
+    # shared answer is printed once with each question it closed beneath it.
+    by_answer: dict[str, list[dict]] = {}
+    for r in decided:
+        by_answer.setdefault(" ".join(str(r.get("resolution") or "").split()), []).append(r)
+    for answer, rows in by_answer.items():
+        if len(rows) == 1:
+            lines.append(f"- **{rows[0]['id']}**: {short(answer)} -- {landed(rows[0]['id'])}.")
+            continue
+        lines.append(f"- **One answer to {len(rows)} questions**: {short(answer)}")
+        lines += [f"  - **{r['id']}**: {short(r.get('what'), 160)} -- {landed(r['id'])}."
+                  for r in rows]
+    if not decided:
+        lines.append("None.")
     lines += ["", "## Waiting on you", ""]
     lines += [f"- **{r.get('id')}**: {short(r.get('what'))} -- {short(r.get('recommendation'))}"
               for r in open_rows_now] or ["None."]
