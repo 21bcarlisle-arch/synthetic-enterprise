@@ -68,6 +68,13 @@ carry 3ab3ea925 by design, so the gas-leg attribution holds. The grade is mechan
 leavers' page balances to `/var/tmp/gasleg-remeasure/`, which already holds the 1691 baselines
 (`probe_1691.json` under HEAD's ledger code, `probe_1691_oldcode.json` under 1691's own).
 
+**State at 06:35Z.** The first queue was lost. At 06:24 the worktree reaper removed the run's
+worktree while the run was still queued. The launch refused at 06:27 on a missing workdir. The
+worktree was recreated at the same commit, locked, and the run re-queued with identical arguments.
+Its output directory was empty. Cause and fix:
+`SEAT_FINDING_THE_REAPER_TOOK_A_QUEUED_RUNS_WORKTREE_BECAUSE_A_QUEUED_LAUNCH_IS_NOT_YET_ITS_CWD_2026-10-28.md`.
+The predictions are untouched.
+
 ## Amendment before the run returned (2026-10-28): P6 is already known to fail, and why
 
 P6 was written while the baseline probe was still running. Its result came back afterwards. On the
