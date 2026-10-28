@@ -445,13 +445,14 @@ EFFECTIVE_EAC_KWH.update({
 })
 
 #: THE REGISTRY AS IMPORT DREW IT, kept so every run starts from it (H50, 2026-10-07). `main()`
-#: rewrites a fabric premise's `eac_kwh` to its own reads IN the shared roster dicts, and admits
-#: incoming-occupant legs into `EFFECTIVE_EAC_KWH`. Phase 4c reads those records AFTER the run,
-#: so the reset is at a run's START, never its end: a second run in one process -- the A/B's
-#: second arm -- must not start on the first run's rewrite.
-_DRAWN_REGISTRY_EAC_KWH: dict[str, float | None] = {
-    c["customer_id"]: c["eac_kwh"] for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
-}
+#: rewrites a fabric premise's `eac_kwh` to its own reads IN the shared roster dicts, moves a
+#: follower's `location` to its new home on both legs, and admits incoming-occupant legs into
+#: `EFFECTIVE_EAC_KWH`. Phase 4c reads those records AFTER the run, so the reset is at a run's
+#: START, never its end: a second run in one process -- the A/B's second arm -- must not start on
+#: the first run's rewrite. Whole records, not named fields: the EAC-only reset left a mover sited
+#: at its destination, so a second run drew its move from there and SYN-2016-155's gas no longer
+#: followed (2026-10-28). Shallow is enough: `main` replaces a field's value, it never edits one.
+_DRAWN_ROSTER: dict[str, dict] = {c["customer_id"]: dict(c) for c in _ALL_KNOWN_CUSTOMERS}
 _DRAWN_EFFECTIVE_EAC_KWH: dict[str, float] = dict(EFFECTIVE_EAC_KWH)
 
 
@@ -474,10 +475,11 @@ def register_hh_accounts_eac(
 
 
 def start_from_the_drawn_book() -> None:
-    """Put back what a previous run in this process wrote into module-level book state: the
-    registry EACs, `EFFECTIVE_EAC_KWH`, and the run's own acquisitions."""
-    for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS:
-        c["eac_kwh"] = _DRAWN_REGISTRY_EAC_KWH[c["customer_id"]]
+    """Put back what a previous run in this process wrote into module-level book state: every
+    roster record as drawn, `EFFECTIVE_EAC_KWH`, and the run's own acquisitions."""
+    for cid, c in zip(_DRAWN_ROSTER, _ALL_KNOWN_CUSTOMERS, strict=True):
+        c.clear()
+        c.update(_DRAWN_ROSTER[cid])
     EFFECTIVE_EAC_KWH.clear()
     EFFECTIVE_EAC_KWH.update(_DRAWN_EFFECTIVE_EAC_KWH)
     ACQUIRED_CUSTOMERS.clear()

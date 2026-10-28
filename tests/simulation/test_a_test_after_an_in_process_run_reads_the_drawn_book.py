@@ -12,6 +12,11 @@ Defects this catches (2026-10-07):
   2026-10-07; wins come only from a home-move churn the company goes to market for). The seed
   below is the record a win appends, built by the same function. Delete the `.clear()` and the
   last test reds.
+* `main` moves a follower's `location` to its new home on BOTH legs, in the shared roster dicts,
+  and the EAC-only reset left it there (2026-10-28): a second run in one process started the
+  household at its destination, drew its move from there, and SYN-2016-155's gas no longer
+  followed, so `test_a_dual_fuel_movers_gas_follows_it.py` red 2 of 3 in collection order, after
+  the dual-fuel-household file's run. Put back only `eac_kwh` and the move test below reds.
 """
 from __future__ import annotations
 
@@ -68,3 +73,17 @@ def test_a_run_starts_with_none_of_the_last_runs_wins():
     assert p2b.ACQUIRED_CUSTOMERS, "the seed did not reach the run's book: the clear is unexercised"
     p2b.start_from_the_drawn_book()
     assert p2b.ACQUIRED_CUSTOMERS == []
+
+
+def test_a_run_starts_on_every_record_as_drawn():
+    """A run's writes to the roster, the move's and one no run makes yet, all put back."""
+    p2b.start_from_the_drawn_book()
+    drawn = {c["customer_id"]: dict(c) for c in p2b._ALL_KNOWN_CUSTOMERS}
+    away = {"lat": 53.48, "lon": -2.24, "region": "North West", "output_area": "E00026000"}
+    for leg in ("SYN-2016-155", "SYN-2016-155g"):
+        p2b.get_customer(leg)["location"] = dict(away)
+    p2b.get_customer("C1")["a_field_no_run_writes_yet"] = 1
+    _record("C1")["eac_kwh"] = 1604.4
+    assert p2b.get_customer("SYN-2016-155g")["location"] == away, "the move never reached the book"
+    p2b.start_from_the_drawn_book()
+    assert {c["customer_id"]: c for c in p2b._ALL_KNOWN_CUSTOMERS} == drawn
