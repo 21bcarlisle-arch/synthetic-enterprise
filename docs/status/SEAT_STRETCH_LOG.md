@@ -8,6 +8,22 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-28 — executor: a close that says yes is checked against done, and the director's Monday note
+
+<!-- head: dd7175f3313a -->
+
+**A close that says yes is now checked against done (director steer, 28 Oct 06:44, "Do it").** From today, a `for_the_director` close carries either `commitment: {work_id, done_means, due}` or `no_action: <reason>`. The concerns CLI refuses a close with neither. A close the orientation writes with neither is listed as the machine's debt instead of being refused. Done is a landing bound to the work id after the close, read from `delivery_lane.last_landing`. Each close is graded met, pending, overdue, unstated or no_action, and the live list is `python3 -m background.director_concerns --overdue`.
+
+**Closes are now found in three places.** Closed rows leave `DIRECTION.yaml` at the next orientation, and the 26 Oct reader close never reached `decisions.jsonl` as closed: its last recorded state there is `open`. So the reader also walks the committed revisions of `DIRECTION.yaml`, and orientations now record every close they were handed under `closes`.
+
+**Measured.** decisions.jsonl alone gives 28 closed ids, and all three sources give 42. Only today's close falls after the rule start, so the earlier closes do not return as noise. Graded against the live ledger with the commitment it should have named (work `the-two-reader-review-runs-on-every-qualifying-commit`, due 27 Oct), the reader close comes back **overdue**.
+
+**The director's Monday note** is at `docs/operations/MONDAY_NOTE_FOR_THE_DIRECTOR.md`. It is written when Monday's step opens and has four sections: decided, waiting, closed on the seat's recommendation, and overdue. An empty section says none. Today's copy was written at landing so the advisor has one now.
+
+The canon-intent row `the-26-oct-advisor-steer-asks-that` is closed as answered with his 06:46 "Yes", as `no_action`. It is the first close under the rule.
+
+---
+
 ## 2026-10-28 — executor: the two-reader review started; both readers find the opening-read control cannot fail
 
 <!-- head: 385abf70189a -->

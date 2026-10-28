@@ -2,8 +2,9 @@
 
 > **Canon:** `docs/design/DIRECTOR_CANON.md` (v4, 2026-10-12) is the one home of the director's canon. Where this overview restates canon and disagrees with it, the canon governs.
 
-*Last updated: 2026-10-12. 13,094 commits. 39,465 tests collected (full suite). Codebase: 1,132,176
-lines across 3,360 tracked Python modules (all `*.py` in the index, tests included).*
+*Last updated: 2026-10-28. 14,382 commits. 39,465 tests collected (full suite, re-collected
+2026-10-04). Codebase: 1,184,059 lines across 3,561 tracked Python modules (all `*.py` in the index,
+tests included).*
 
 > **Do not judge any of these documents' freshness by this sentence, or by the HTTP
 > `last-modified` header of the URLs below.** This sentence is hand-typed and rots; the header is
@@ -27,6 +28,7 @@ lapses)*
 - The director's canon in one home, every ruling quoted with its id and date: `docs/design/DIRECTOR_CANON.md`
 - The model on a page — the mission, the three currencies and the two timeframes, in the director's frame: `docs/design/THE_MODEL_ON_A_PAGE.md`
 - How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns: `docs/operations/OPERATING_MODEL.md`
+- The director's Monday note — what he decided this week and whether it landed, what waits on him, what the seat closed on its own recommendation, and what the machine owes overdue; rewritten when Monday's step opens (`background/weekly_rhythm.py`): `docs/operations/MONDAY_NOTE_FOR_THE_DIRECTOR.md`
 - The director's priority order, expressed as the atoms that carry each step, and graded by `tools/draw_follows_the_order.py`: `docs/direction/priority_order.yaml`
 - The book's own annual report, regenerated each publish: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 - Every sourced assumption the world is built on, with its anchor and its gaps: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md

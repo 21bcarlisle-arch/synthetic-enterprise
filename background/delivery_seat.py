@@ -148,6 +148,9 @@ WHAT TO PRODUCE: overwrite `docs/direction/DIRECTION.yaml` with exactly this sha
         recommendation: <"I recommend X": evidence, trade-off, holding position until he rules, what would change it>
         status: open|answered|withdrawn
         resolution: <empty while open; his words, dated, or why it was withdrawn>
+        resolved: "<ISO date it was closed>"
+        commitment: {work_id: <claim id>, done_means: <what will have landed>, due: "<ISO date>"}
+        no_action: <instead of commitment: why this close commits the machine to nothing>
 
 RULES ON THE CONTENT, and the record is refused if it breaks them:
 
@@ -179,7 +182,10 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
   * OPEN ROWS ARE CARRIED FORWARD VERBATIM. The brief hands you `previous_for_the_director`, the
     open rows of the current record. Every one must appear in yours under the same `id`: still
     `status: open` with `what` and `proposal` unchanged, or `answered`/`withdrawn` with a
-    `resolution` (his words, dated, or why). A record that drops or rewrites an open row is
+    `resolution` (his words, dated, or why). A CLOSE carries `resolved`, and `commitment` (the
+    work id whose landing will meet it, what done means, a due date) or `no_action` with the
+    reason: a close with neither is listed as the machine's own debt in the director's Monday
+    note (director, 28 Oct). A record that drops or rewrites an open row is
     REFUSED and the previous record is restored. A concern NEVER blocks the focus: keep working
     everything else, and never put "waiting on the director" in focus. Raising a new one outside
     an orientation: `python3 -m background.director_concerns --raise --kind <k> --what ...
@@ -1733,6 +1739,19 @@ def _continuation_queue(now: datetime, since: datetime) -> dict:
     }
 
 
+_CONCERN_SNAPSHOT_KEYS = ("id", "kind", "what", "proposal", "recommendation", "status",
+                          "resolution", "resolved", "commitment", "no_action")
+
+
+def _closes_handed(rows: list[dict]) -> list[dict]:
+    """The closed rows the orientation was handed, one per id (the working copy's wins), with the
+    fields `director_concerns.close_debts` grades. Read by `director_concerns.closes_on_record`."""
+    out: dict[str, dict] = {}
+    for r in rows:
+        out.setdefault(str(r.get("id")), {k: r.get(k) for k in _CONCERN_SNAPSHOT_KEYS})
+    return list(out.values())
+
+
 def _previous_concern_ids() -> list[str]:
     """The concern ids the most recent ORIENTED decision row recorded -- the set a concern is
     "new" against for paging. A legacy row stored bare strings and yields no ids, so a row open at
@@ -3006,8 +3025,13 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     except OSError:
         before_bytes = None
     # THE UNION, not the working copy: a row only origin holds must be carried too.
-    before_raw = {director_concerns.KEY: director_concerns.open_rows_on_either(
-        director_concerns.read_raw(), director_concerns.read_origin_raw(PROJECT_DIR))}
+    here_raw, origin_raw = (director_concerns.read_raw(),
+                            director_concerns.read_origin_raw(PROJECT_DIR))
+    before_raw = {director_concerns.KEY: director_concerns.open_rows_on_either(here_raw, origin_raw)}
+    # THE CLOSES IT WAS HANDED, recorded below: a row closed between orientations leaves the record
+    # at this rewrite and would otherwise never reach decisions.jsonl (the 26 Oct reader close).
+    closed_before = director_concerns.closed_rows(here_raw) + director_concerns.closed_rows(
+        origin_raw)
     try:
         from background import tick_mode
         tick_mode.note_spawn("delivery-seat")
@@ -3073,9 +3097,9 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
         # THE WHOLE ROW, NOT ITS `what` (2026-10-04): the id is what the next orientation pages
         # against, and the status and resolution are the half of a concern the director reads.
         "for_the_director": [
-            {k: r.get(k) for k in ("id", "kind", "what", "proposal", "recommendation", "status",
-                                   "resolution")}
+            {k: r.get(k) for k in _CONCERN_SNAPSHOT_KEYS}
             for r in (parsed.for_the_director if parsed else ())],
+        "closes": _closes_handed(closed_before),
         "thesis_read": parsed.thesis_read if parsed else "",
         "out_of_scope_writes": out_of_scope_writes(),
         # THE RECORD IT JUST WROTE, GRADED BEFORE IT IS COMMITTED, and this is the leg the brief

@@ -30,6 +30,11 @@ def rhythm(tmp_path, monkeypatch):
     """A baton and a staging room of this test's own. Never the live ones."""
     monkeypatch.setattr(wr, "BATON", tmp_path / "baton.json")
     monkeypatch.setattr(wr, "STAGING", tmp_path / "staging")
+    monkeypatch.setattr(wr, "MONDAY_NOTE", tmp_path / "MONDAY_NOTE.md")
+    # The note reads the whole decision history and git; its own tests are in
+    # tests/background/test_director_concerns.py. Here only when it is written is under test.
+    from background import director_concerns
+    monkeypatch.setattr(director_concerns, "monday_note", lambda now=None: "THE-NOTE\n")
     # The estimate reads every transcript on the machine (~25 s); its own tests are
     # tests/tools/test_work_cost_estimate.py. Here only its place in the documents is under test.
     from tools import work_cost_estimate
@@ -646,3 +651,28 @@ def test_monday_carries_the_cost_of_the_work_to_come_and_the_section_says_when_i
     from tools import work_cost_estimate
     monkeypatch.setattr(work_cost_estimate, "render", lambda: 1 / 0)
     assert "NOT ESTIMATED" in "\n".join(wr._cost_of_work_section())
+
+
+def test_the_monday_step_writes_the_directors_note_and_friday_does_not(rhythm, monkeypatch):
+    """Director steer, 28 Oct: "Every Monday ... write one note in plain words." Written when
+    Monday's step opens; Friday's open leaves it alone; a note that cannot be built says so in
+    the file rather than leaving last week's standing.
+
+    MUTATION (must fire): drop the `write_monday_note` call from `tick`, or its MONDAY guard."""
+    note = rhythm / "MONDAY_NOTE.md"
+    wr.tick(now=_at(2026, 9, 4))                               # bootstrap, a Friday
+    assert not note.exists()
+    opened = wr.tick(now=_at(2026, 9, 7))
+    assert opened["action"] == "OPENED" and opened["monday_note"] == str(note)
+    assert note.read_text() == "THE-NOTE\n"
+
+    note.unlink()
+    _do_the_check(rhythm)
+    wr.close(wr.MONDAY_STEP, now=_at(2026, 9, 7))
+    friday = wr.tick(now=_at(2026, 9, 11))
+    assert friday["action"] == "OPENED" and "monday_note" not in friday and not note.exists()
+
+    from background import director_concerns
+    monkeypatch.setattr(director_concerns, "monday_note", lambda now=None: 1 / 0)
+    wr.write_monday_note(now=_at(2026, 9, 14), path=note)
+    assert "NOT WRITTEN" in note.read_text() and "ZeroDivisionError" in note.read_text()

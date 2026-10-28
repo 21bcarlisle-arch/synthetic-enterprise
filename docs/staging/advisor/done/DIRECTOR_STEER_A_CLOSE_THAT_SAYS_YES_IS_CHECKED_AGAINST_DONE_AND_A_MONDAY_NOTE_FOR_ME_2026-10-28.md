@@ -44,3 +44,64 @@ Probable failure mode: the overdue check keyed to today's rows, so it goes quiet
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 28 Oct 2026, his words above; the diagnosis and drafting are the advisor's.
+
+## Done
+
+2026-10-28, delivery seat. Claim `a-close-that-commits-carries-done-means-and-a-due-date`.
+
+**1. A close that commits carries done-means and a due date, and is checked.** The shape is on
+the existing row in `for_the_director`, so there is no new store. From 2026-10-28, a close
+(`answered` or `withdrawn`) carries one of two things:
+- `commitment: {work_id, done_means, due}`, or
+- `no_action: <reason>`.
+
+`python3 -m background.director_concerns --answer|--withdraw ID` refuses a close with neither, and
+takes `--work-id --done-means --due` or `--no-action`. The orienting seat's charter states the same
+shape. A close that the orienting session writes with neither field is not refused, because that
+would cost the whole stretch's direction for one row. It is listed instead as the machine's debt
+(`unstated`).
+
+**Done means** a landing bound to the `work_id` (`delivery_lane.last_landing`) on or after the close
+day. Each close is graded as one of:
+- met
+- pending
+- overdue
+- unstated
+- no_action
+
+This is keyed to the property, not to phrasing. Live list:
+`python3 -m background.director_concerns --overdue`.
+
+**Where closes are found.** Closed rows leave `DIRECTION.yaml` at the next orientation, and **the
+reader close itself never reached `decisions.jsonl`**: its last recorded state there is `open`,
+because it was closed between orientations. So the reader reads three sources:
+- the whole `decisions.jsonl` history;
+- the committed revisions of `DIRECTION.yaml` since the earlier of the rule start and a week ago;
+- both live copies of the record (the working copy and origin).
+
+`delivery_seat.orient` now also records every closed row it was handed under `closes`, and keeps
+`resolved`, `commitment` and `no_action` in its snapshot. Measured on 28 Oct:
+- decisions.jsonl alone finds 28 closed ids, and all three sources together find 42.
+- Only one close falls after the rule start, today's (graded `no_action`). None of the earlier
+  closes comes back as noise.
+
+**Proof on the real case.** Take the 26 Oct reader close with the commitment it should have named:
+work `the-two-reader-review-runs-on-every-qualifying-commit`, due 27 Oct. Graded against the
+**live** landing ledger, it comes back **overdue** on 28 Oct, because that id has no landing bound.
+It is pinned in
+`tests/background/test_director_concerns.py::test_the_26_oct_reader_close_COMES_BACK_OVERDUE_had_the_rule_been_live`,
+together with a single control that reaches all five grades.
+
+**2. The Monday note.** When Monday's step opens, `background/weekly_rhythm.py` writes
+`docs/operations/MONDAY_NOTE_FOR_THE_DIRECTOR.md` with four sections:
+- what he decided this week, and whether each decision has landed;
+- what is waiting on him, with the recommendation;
+- what was closed on the seat's own recommendation, one line each;
+- what is overdue.
+
+An empty section says "None." A note that cannot be built says so in the file. There are no phone
+alerts and no new gate on his path. Today's note was written at landing so the advisor has one now.
+The stretch log says where the note lives.
+
+**Not done, stated:** the panel in How it's built still shows only waiting rows. The overdue debts
+reach him through the note and through `--overdue`, which the advisor reads at chat start.

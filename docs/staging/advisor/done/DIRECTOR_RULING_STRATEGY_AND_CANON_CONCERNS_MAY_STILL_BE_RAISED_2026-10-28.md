@@ -15,3 +15,12 @@
 - **The 26 Oct finding still stands.** Do not route delegated, reversible model calls to the director.
 
 Close the row as *ruled*.
+
+## Done
+
+2026-10-28, delivery seat. `the-26-oct-advisor-steer-asks-that` is closed as **answered** in
+`docs/direction/DIRECTION.yaml`, with his 06:46 "Yes" as the resolution. Under the close rule his
+other steer of the same morning set up, it carries `no_action`: the ruling keeps the canon and the
+live rule exactly as they are, so nothing is built. The live behaviour already matches the ruling.
+`raise_concern` still requires a G5 class on `reserved` rows only, and strategy, vision and
+canon-intent rows can still be raised with a recommendation.

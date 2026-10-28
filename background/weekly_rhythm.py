@@ -64,6 +64,9 @@ from background.episode_prior import (
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 BATON = PROJECT_DIR / "docs" / "observability" / ".weekly_rhythm.json"
 STAGING = PROJECT_DIR / "docs" / "staging"
+#: The director's Monday note (steer, 28 Oct: "a short Monday note, written for him"), where the
+#: advisor reads at the start of a chat. Overwritten each Monday; git keeps the weeks.
+MONDAY_NOTE = PROJECT_DIR / "docs" / "operations" / "MONDAY_NOTE_FOR_THE_DIRECTOR.md"
 
 #: The director's own clock. His days are the anchor, not the machine's.
 LONDON = ZoneInfo("Europe/London")
@@ -765,6 +768,21 @@ def _finding_body(step: str, due_on: date, today: date, overdue: list[dict]) -> 
     ])
 
 
+def write_monday_note(now: datetime | None = None, path: Path | None = None) -> str:
+    """Write the director's four-section note (`director_concerns.monday_note`). Never raises: a
+    note that could not be built says so in the file, because a missing note reads as a quiet week."""
+    path = path or MONDAY_NOTE
+    try:
+        from background.director_concerns import monday_note
+        text = monday_note(now)
+    except Exception as exc:  # noqa: BLE001 -- "we cannot tell" is the note's content then
+        text = (f"# Monday note for the director -- {london_today(now).isoformat()}\n\n"
+                f"NOT WRITTEN: `director_concerns.monday_note` raised {type(exc).__name__}: {exc}\n")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return str(path)
+
+
 def tick(now: datetime | None = None, path: Path | None = None, staging: Path | None = None) -> dict:
     """The daily due check. Returns what it did, and does at most one thing.
 
@@ -833,6 +851,8 @@ def tick(now: datetime | None = None, path: Path | None = None, staging: Path | 
         write_baton(record, path)
         out = {"action": "OPENED", "step": step, "due_on": record["due_on"],
                "doc": str(doc), "overdue": [r["id"] for r in overdue]}
+        if step == MONDAY_STEP:
+            out["monday_note"] = write_monday_note(now)
         if lapsed is not None:
             out["lapsed"] = lapsed
         return out

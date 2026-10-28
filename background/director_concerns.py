@@ -36,7 +36,7 @@ import argparse
 import re
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -344,21 +344,264 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
 
 
 def resolve(concern_id: str, status: str, resolution: str, *, path: Path | None = None,
-            now: datetime | None = None) -> dict:
-    """Mark a concern answered or withdrawn. The resolution is required and is dated."""
+            now: datetime | None = None, commitment: dict | None = None,
+            no_action: str | None = None) -> dict:
+    """Mark a concern answered or withdrawn. The resolution is required and is dated, and from
+    `CLOSE_COMMITMENT_FROM` the close names what it commits the machine to, or why nothing."""
     path = path or direction_mod.DIRECTION_PATH
     if status not in ("answered", "withdrawn"):
         raise ConcernRefused("a concern is resolved as answered or withdrawn")
     if not (resolution or "").strip():
         raise ConcernRefused(f"{status} needs a resolution -- his words, or why it was withdrawn")
+    closing = {"status": status, "resolution": resolution.strip(), "resolved": _today(now)}
+    if commitment:
+        closing["commitment"] = {k: str(commitment.get(k) or "").strip() for k in COMMITMENT_KEYS}
+    if (no_action or "").strip():
+        closing["no_action"] = no_action.strip()
+    lacks = close_lacks_commitment(closing)
+    if lacks:
+        raise ConcernRefused(lacks)
     text = path.read_text(encoding="utf-8")
     rows = [dict(r) for r in rows_of(read_raw(path))]
     hit = [r for r in rows if str(r.get("id")) == concern_id]
     if not hit:
         raise ConcernRefused(f"no concern with id {concern_id!r} in {path.name}")
-    hit[0].update({"status": status, "resolution": resolution.strip(), "resolved": _today(now)})
+    hit[0].update(closing)
     _write(path, text, rows)
     return hit[0]
+
+
+# ── A CLOSE THAT COMMITS IS CHECKED AGAINST DONE ─────────────────────────────────────────────
+#
+# Director, 28 Oct 06:39: *"why are actions for me not getting flagged better and reminded?"* --
+# and 06:44, on the advisor's recommendation that closes are checked against done: *"Do it."* The
+# case: `reading-reviewer-trial-your-08-56-yes` was closed on 26 Oct as "the trial as proposed" and
+# two days later nothing had run it. The no-caller class, applied to decisions instead of code.
+#
+# NOT A PHRASE CLASSIFIER. Measured on decisions.jsonl the same morning: 28 of 42 concern ids were
+# closed and nearly every resolution commits the machine to act ("Agree all", "approved", "Do
+# these"), so no reading of the words can pick out the commitments. The rule is the PROPERTY: a
+# close from `CLOSE_COMMITMENT_FROM` carries `commitment: {work_id, done_means, due}` or
+# `no_action: <reason>`, and a close carrying neither is itself the debt -- listed as unstated,
+# never refused, because a refused orientation loses the whole stretch's direction for one row.
+# DATED FROM THE RULE'S START so the historical closes do not come back as noise.
+#
+# DONE IS A LANDING BOUND TO THE WORK ID after the close (`delivery_lane.last_landing`), the same
+# binding every promoted landing already writes. Nothing reads the words of `done_means`; it is
+# there for the reader of the note.
+#
+# WHERE THE CLOSE IS FOUND. A closed row leaves `DIRECTION.yaml` at the next orientation, and a row
+# closed BETWEEN orientations never reached `decisions.jsonl` at all (the 26 Oct reader close is
+# such a row: its last recorded state is `open`). So `delivery_seat.orient` records every closed
+# row it was handed under the decision row's `closes`, and this reads that history plus both live
+# copies of the record.
+
+CLOSE_COMMITMENT_FROM = "2026-10-28"
+COMMITMENT_KEYS = ("work_id", "done_means", "due")
+
+
+def _iso_day(value) -> str | None:
+    try:
+        return datetime.fromisoformat(str(value)[:10]).date().isoformat()
+    except (TypeError, ValueError):
+        return None
+
+
+def close_lacks_commitment(row: dict) -> str | None:
+    """Why a closed row's commitment is not usable, or None. Applies only from the rule's start."""
+    resolved = _iso_day(row.get("resolved"))
+    if row.get("status") == "open" or (resolved and resolved < CLOSE_COMMITMENT_FROM):
+        return None
+    if str(row.get("no_action") or "").strip():
+        return None
+    c = row.get("commitment")
+    if not isinstance(c, dict):
+        return ("a close names what it commits the machine to -- commitment {work_id, "
+                "done_means, due} -- or says no_action: <reason>")
+    missing = [k for k in COMMITMENT_KEYS if not str(c.get(k) or "").strip()]
+    if missing:
+        return f"the commitment has no {', '.join(missing)}"
+    due = _iso_day(c.get("due"))
+    if due is None:
+        return f"the commitment's due {c.get('due')!r} is not a date"
+    if resolved and due < resolved:
+        return f"the commitment is due {due}, before the close itself ({resolved})"
+    return None
+
+
+def closed_rows(record) -> list[dict]:
+    return [dict(r) for r in rows_of(record) if r.get("id") and r.get("status") != "open"]
+
+
+def committed_revisions(since: str, root: Path | None = None) -> list[tuple[str, dict]]:
+    """`(commit day, record)` for every committed revision of DIRECTION.yaml since `since`, oldest
+    first. Bounded by date, so the walk stays a few dozen revisions. Never raises: git silent or a
+    revision that will not parse gives fewer rows."""
+    root = root or PROJECT_DIR
+    rel = direction_mod.DIRECTION_PATH.relative_to(PROJECT_DIR).as_posix()
+    try:
+        import yaml
+        log = subprocess.run(["git", "log", f"--since={since}", "--format=%H %cI", "--", rel],
+                             cwd=str(root), capture_output=True, text=True, timeout=60)
+        out = []
+        for line in reversed(log.stdout.split("\n") if log.returncode == 0 else []):
+            if not line.strip():
+                continue
+            sha, when = line.split(" ", 1)
+            shown = subprocess.run(["git", "show", f"{sha}:{rel}"], cwd=str(root),
+                                   capture_output=True, text=True, timeout=60)
+            try:
+                rec = yaml.safe_load(shown.stdout) if shown.returncode == 0 else None
+            except Exception:  # noqa: BLE001 -- one unparseable revision is one fewer source
+                rec = None
+            if isinstance(rec, dict):
+                out.append((when[:10], rec))
+        return out
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def closes_on_record(history: list[dict] | None = None, records=None,
+                     today: str | None = None, revisions=None) -> dict[str, dict]:
+    """Every closed concern, latest state per id, each with `closed_on`.
+
+    `history` is decisions.jsonl oldest first; `revisions` the committed DIRECTION.yaml revisions
+    since the rule's start or a week ago, whichever is earlier, as `(day, record)` (the 26 Oct
+    reader close is only there); `records` the live copies (working, origin). A row with no
+    `resolved` takes the first day it was seen closed, so an undated close is dated by the record
+    rather than escaping the rule."""
+    today = today or _today(None)
+    if history is None:
+        history = list(reversed(direction_mod.read_decisions(limit=10**6)))
+    if revisions is None:
+        week_ago = (datetime.fromisoformat(today).date() - timedelta(days=7)).isoformat()
+        revisions = committed_revisions(min(CLOSE_COMMITMENT_FROM, week_ago))
+    if records is None:
+        records = (read_raw(), read_origin_raw())
+    out: dict[str, dict] = {}
+    first_seen: dict[str, str] = {}
+
+    def take(row, seen_on):
+        if not isinstance(row, dict) or not row.get("id") or row.get("status") in (None, "open"):
+            return
+        rid = str(row["id"])
+        first_seen.setdefault(rid, seen_on)
+        merged = dict(out.get(rid) or {})
+        merged.update({k: v for k, v in row.items() if v not in (None, "")})
+        merged["closed_on"] = _iso_day(merged.get("resolved")) or first_seen[rid]
+        out[rid] = merged
+
+    for d in history:
+        seen_on = _iso_day(d.get("at")) or today
+        for row in list(d.get("for_the_director") or []) + list(d.get("closes") or []):
+            take(row, seen_on)
+    for day, rec in revisions:
+        for row in closed_rows(rec):
+            take(row, day)
+    for rec in records:
+        for row in closed_rows(rec):
+            take(row, today)
+    return out
+
+
+def close_debts(closes: dict[str, dict], *, today: str | None = None, landing=None) -> list[dict]:
+    """Each close from the rule's start, graded: met, pending, overdue, unstated or no_action.
+
+    `landing(work_id) -> (epoch seconds, paths)` is `delivery_lane.last_landing` unless a test
+    passes its own. Met means a landing bound to the work id on or after the close day."""
+    if landing is None:
+        from background.delivery_lane import last_landing as landing
+    today = today or _today(None)
+    out = []
+    for rid, row in sorted(closes.items(), key=lambda kv: (kv[1].get("closed_on") or "", kv[0])):
+        closed_on = row.get("closed_on") or today
+        if closed_on < CLOSE_COMMITMENT_FROM:
+            continue
+        graded = {"id": rid, "status": row.get("status"), "closed_on": closed_on,
+                  "resolution": row.get("resolution") or ""}
+        if str(row.get("no_action") or "").strip():
+            out.append({**graded, "state": "no_action", "why": str(row["no_action"]).strip()})
+            continue
+        lacks = close_lacks_commitment({**row, "resolved": closed_on})
+        if lacks:
+            out.append({**graded, "state": "unstated", "why": lacks})
+            continue
+        c = row["commitment"]
+        at, _paths = landing(str(c["work_id"]))
+        landed_on = (datetime.fromtimestamp(at, timezone.utc).date().isoformat()
+                     if at else None)
+        graded.update({"work_id": c["work_id"], "done_means": c["done_means"],
+                       "due": _iso_day(c["due"]), "landed_on": landed_on})
+        if landed_on and landed_on >= closed_on:
+            graded["state"] = "met"
+        elif graded["due"] < today:
+            graded["state"] = "overdue"
+        else:
+            graded["state"] = "pending"
+        out.append(graded)
+    return out
+
+
+def machine_debts(today: str | None = None) -> list[dict]:
+    """The closes the machine owes: overdue, or closed without saying what done is."""
+    return [d for d in close_debts(closes_on_record(today=today), today=today)
+            if d["state"] in ("overdue", "unstated")]
+
+
+def _debt_line(d: dict) -> str:
+    if d["state"] == "unstated":
+        return (f"- **{d['id']}** (closed {d['closed_on']}): the close says neither what done is "
+                f"nor why nothing is owed -- {d['why']}.")
+    return (f"- **{d['id']}** (closed {d['closed_on']}, due {d['due']}): {d['done_means']} "
+            f"-- nothing has landed under `{d['work_id']}` since the close.")
+
+
+def monday_note(now: datetime | None = None, *, closes: dict | None = None,
+                open_rows_now: list[dict] | None = None, landing=None) -> str:
+    """The director's Monday note: four sections, plain words, two minutes. Empty says none."""
+    now = now or datetime.now(timezone.utc)
+    today = _today(now)
+    week_ago = (now.date() - timedelta(days=7)).isoformat()
+    closes = closes_on_record(today=today) if closes is None else closes
+    graded = {d["id"]: d for d in close_debts(closes, today=today, landing=landing)}
+    if open_rows_now is None:
+        open_rows_now = open_rows_on_either(read_raw(), read_origin_raw())
+    this_week = [r for r in closes.values() if (r.get("closed_on") or "") >= week_ago]
+
+    def landed(rid: str) -> str:
+        d = graded.get(rid)
+        if d is None:
+            return "closed before closes carried a due date"
+        return {"met": f"landed {d.get('landed_on')}",
+                "pending": f"not landed yet, due {d.get('due')}",
+                "overdue": f"OVERDUE since {d.get('due')}",
+                "unstated": "no done-means or due date was recorded",
+                "no_action": f"nothing to land: {d.get('why')}"}[d["state"]]
+
+    def short(text, n=220) -> str:
+        text = " ".join(str(text or "").split())
+        return text if len(text) <= n else text[: n - 3].rstrip() + "..."
+
+    lines = [f"# Monday note for the director -- {today}", "",
+             "Written by the Monday step (`background/weekly_rhythm.py`); the live overdue list is "
+             "`python3 -m background.director_concerns --overdue`.", ""]
+    lines += ["## What you decided this week", ""]
+    decided = [r for r in this_week if r.get("status") == "answered"]
+    lines += [f"- **{r['id']}**: {short(r.get('resolution'))} -- {landed(r['id'])}."
+              for r in decided] or ["None."]
+    lines += ["", "## Waiting on you", ""]
+    lines += [f"- **{r.get('id')}**: {short(r.get('what'))} -- {short(r.get('recommendation'))}"
+              for r in open_rows_now] or ["None."]
+    lines += ["", "## Closed on the seat's own recommendation", ""]
+    own = [r for r in this_week if r.get("status") == "withdrawn"]
+    # THE RECOMMENDATION, not the resolution: a seat close is closed ON its recommendation, and
+    # the resolutions of one sweep share their opening words, so they read as nine identical lines.
+    lines += [f"- **{r['id']}**: {short(r.get('recommendation') or r.get('proposal'), 200)} -- "
+              f"{landed(r['id'])}." for r in own] or ["None."]
+    lines += ["", "## Overdue (the machine's own debt, not yours)", ""]
+    lines += [_debt_line(d) for d in graded.values() if d["state"] in ("overdue", "unstated")] \
+        or ["None."]
+    return "\n".join(lines) + "\n"
 
 
 def _pathspec_note() -> str:
@@ -375,6 +618,9 @@ def main(argv=None) -> int:
     act.add_argument("--answer", metavar="ID", help="record the director's answer")
     act.add_argument("--withdraw", metavar="ID", help="withdraw a concern, with the reason")
     act.add_argument("--list", action="store_true", help="print every concern")
+    act.add_argument("--overdue", action="store_true",
+                     help="print the closes the machine owes: overdue, or with no done-means")
+    act.add_argument("--monday-note", action="store_true", help="print the director's Monday note")
     ap.add_argument("--kind", choices=direction_mod.CONCERN_KINDS)
     ap.add_argument("--what")
     ap.add_argument("--proposal")
@@ -384,7 +630,18 @@ def main(argv=None) -> int:
                          "until he rules and what would change it")
     ap.add_argument("--resolution")
     ap.add_argument("--g5-class", help="for --kind reserved: which G5 class it is")
+    ap.add_argument("--work-id", help="closing: the claim id whose landing meets the commitment")
+    ap.add_argument("--done-means", help="closing: what will have landed when it is done")
+    ap.add_argument("--due", help="closing: the date it is due by (YYYY-MM-DD)")
+    ap.add_argument("--no-action", help="closing: why this close commits the machine to nothing")
     args = ap.parse_args(argv)
+    if args.overdue:
+        debts = machine_debts()
+        print("\n".join(_debt_line(d) for d in debts) if debts else "None overdue.")
+        return 0
+    if args.monday_note:
+        print(monday_note(), end="")
+        return 0
     try:
         if args.list:
             for r in rows_of(read_raw()):
@@ -401,7 +658,11 @@ def main(argv=None) -> int:
                                 g5_class=args.g5_class)
         else:
             rid = args.answer or args.withdraw
-            row = resolve(rid, "answered" if args.answer else "withdrawn", args.resolution or "")
+            commitment = ({"work_id": args.work_id, "done_means": args.done_means,
+                           "due": args.due}
+                          if args.work_id or args.done_means or args.due else None)
+            row = resolve(rid, "answered" if args.answer else "withdrawn", args.resolution or "",
+                          commitment=commitment, no_action=args.no_action)
     except ConcernRefused as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2

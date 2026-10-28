@@ -156,8 +156,9 @@ def test_answering_and_withdrawing_need_a_resolution(record_file):
     with pytest.raises(dc.ConcernRefused, match="needs a resolution"):
         dc.resolve(row["id"], "answered", " ")
     with pytest.raises(dc.ConcernRefused, match="no concern with id"):
-        dc.resolve("not-a-row", "answered", "his words")
-    done = dc.resolve(row["id"], "answered", "Rich 2026-10-04: the split is learned, go on")
+        dc.resolve("not-a-row", "answered", "his words", no_action="none owed")
+    done = dc.resolve(row["id"], "answered", "Rich 2026-10-04: the split is learned, go on",
+                      no_action="the code already learns it")
     assert done["status"] == "answered" and done["resolved"]
     assert dc.open_rows(dc.read_raw()) == [] and d.validate(dc.read_raw()) == []
 
@@ -367,3 +368,147 @@ def test_a_session_that_did_not_run_is_REFUSED_PAGED_and_lands_NOTHING(monkeypat
     assert last["outcome"] == "refused" and last["ran"] is False
     assert "Argument list too long" in last["problems"][0]
     assert [p[1] for p in pages] == ["blocked_work"]
+
+
+# ── A close that commits is checked against done (director steer, 28 Oct) ─────────────────────
+
+READER_ID = "reading-reviewer-trial-your-08-56-yes"
+#: The reader close as it stood in DIRECTION.yaml at ba60f147d2^, trimmed to the graded fields.
+READER_CLOSE = {
+    "id": READER_ID, "kind": "strategy", "status": "withdrawn", "resolved": "2026-10-26",
+    "resolution": "Withdrawn 2026-10-26: not a G5-reserved action ... Closed on the seat's own "
+                  "recommendation: the two-reader blind non-blocking review trial as proposed",
+    "recommendation": "I recommend the trial as proposed: two blind non-blocking Opus readers"}
+READER_COMMITMENT = {"work_id": "the-two-reader-review-runs-on-every-qualifying-commit",
+                     "done_means": "two blind readers have run on a qualifying commit",
+                     "due": "2026-10-27"}
+
+
+def _no_landing(work_id):
+    return 0.0, []
+
+
+def test_the_26_oct_reader_close_COMES_BACK_OVERDUE_had_the_rule_been_live(monkeypatch):
+    """The steer's own proof case. Closed 26 Oct as "the trial as proposed"; by 28 Oct nothing
+    bound to its work had landed (the live ledger holds no landing for that id). Under the rule,
+    with the commitment the close should have named, it is OVERDUE on 28 Oct; with neither field it
+    is UNSTATED -- still the machine's debt. With the rule dated as shipped, the same historical
+    row is not graded at all, which is what keeps the 28 pre-rule closes from returning as noise.
+
+    MUTATION (must fire): grade `met` on any landing (drop `>= closed_on`), or drop the
+    `due < today` leg -- the first leg below goes green or pending."""
+    monkeypatch.setattr(dc, "CLOSE_COMMITMENT_FROM", "2026-10-26")
+    committed = {READER_ID: {**READER_CLOSE, "commitment": READER_COMMITMENT,
+                             "closed_on": "2026-10-26"}}
+    [graded] = dc.close_debts(committed, today="2026-10-28", landing=_no_landing)
+    assert graded["state"] == "overdue" and graded["due"] == "2026-10-27"
+    landed_before = lambda w: (datetime(2026, 10, 20, tzinfo=timezone.utc).timestamp(), ["x"])  # noqa: E731
+    assert dc.close_debts(committed, today="2026-10-28", landing=landed_before)[0]["state"] \
+        == "overdue", "a landing from before the close met a commitment made after it"
+    bare = {READER_ID: {**READER_CLOSE, "closed_on": "2026-10-26"}}
+    assert dc.close_debts(bare, today="2026-10-28", landing=_no_landing)[0]["state"] == "unstated"
+
+    monkeypatch.setattr(dc, "CLOSE_COMMITMENT_FROM", "2026-10-28")
+    assert dc.close_debts(bare, today="2026-11-02", landing=_no_landing) == []
+
+
+def test_every_grade_of_a_close_is_REACHABLE_in_one_partition():
+    """One control over the whole partition: a grader that can only say one thing passes any
+    single-leg test of it."""
+    def landing(work_id):
+        return ((datetime(2026, 10, 29, tzinfo=timezone.utc).timestamp(), ["p"])
+                if work_id == "w-met" else (0.0, []))
+
+    def close(rid, **kw):
+        return {"id": rid, "status": "answered", "closed_on": "2026-10-28", **kw}
+
+    commit = lambda w, due: {"work_id": w, "done_means": "it landed", "due": due}  # noqa: E731
+    closes = {"a": close("a", commitment=commit("w-met", "2026-10-30")),
+              "b": close("b", commitment=commit("w-none", "2026-11-30")),
+              "c": close("c", commitment=commit("w-none", "2026-10-29")),
+              "d": close("d"),
+              "e": close("e", no_action="nothing to build")}
+    states = {g["id"]: g["state"] for g in
+              dc.close_debts(closes, today="2026-11-01", landing=landing)}
+    assert states == {"a": "met", "b": "pending", "c": "overdue", "d": "unstated",
+                      "e": "no_action"}
+
+
+def test_a_close_made_BETWEEN_orientations_is_found_in_the_committed_revisions():
+    """The reader-case shape: the decisions history last saw the row open, the live record no
+    longer holds it, and only a committed revision of DIRECTION.yaml carries the close. An undated
+    close takes the first day it was seen closed rather than escaping the rule."""
+    history = [{"at": "2026-10-28T09:00:00+00:00",
+                "for_the_director": [{"id": "r1", "status": "open"}, "a legacy bare string"]},
+               {"at": "2026-10-29T09:00:00+00:00", "closes": [
+                   {"id": "r2", "status": "answered", "resolution": "his yes"}]}]
+    revisions = [("2026-10-28", {"for_the_director": [
+        {"id": "r1", "status": "withdrawn", "resolution": "seat call", "resolved": "2026-10-28",
+         "commitment": {"work_id": "w", "done_means": "d", "due": "2026-10-29"}}]})]
+    closes = dc.closes_on_record(history=history, revisions=revisions, records=(None, None),
+                                 today="2026-10-31")
+    assert set(closes) == {"r1", "r2"}
+    assert closes["r2"]["closed_on"] == "2026-10-29"
+    states = {g["id"]: g["state"] for g in
+              dc.close_debts(closes, today="2026-10-31", landing=_no_landing)}
+    assert states == {"r1": "overdue", "r2": "unstated"}
+
+
+@pytest.mark.parametrize("kw, refused_for", [
+    ({}, "commits the machine to"),
+    ({"commitment": {"work_id": "w", "done_means": "", "due": "2026-11-01"}}, "no done_means"),
+    ({"commitment": {"work_id": "w", "done_means": "d", "due": "soon"}}, "not a date"),
+    ({"commitment": {"work_id": "w", "done_means": "d", "due": "2026-10-01"}}, "before the close"),
+    ({"commitment": {"work_id": "w", "done_means": "d", "due": "2026-11-01"}}, None),
+    ({"no_action": "the ruling changes nothing"}, None),
+])
+def test_closing_from_the_rules_start_names_its_commitment_or_why_none(record_file, kw,
+                                                                         refused_for):
+    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    now = datetime(2026, 10, 28, 9, tzinfo=timezone.utc)
+    if refused_for:
+        with pytest.raises(dc.ConcernRefused, match=refused_for):
+            dc.resolve(row["id"], "answered", "his yes", now=now, **kw)
+        assert dc.open_rows(dc.read_raw()), "a refused close still closed the row"
+    else:
+        done = dc.resolve(row["id"], "answered", "his yes", now=now, **kw)
+        assert done["status"] == "answered" and d.validate(dc.read_raw()) == []
+
+
+def test_the_monday_note_has_four_sections_and_says_none_when_one_is_empty():
+    now = datetime(2026, 11, 2, 7, tzinfo=timezone.utc)
+    closes = {
+        "his": {"id": "his", "status": "answered", "closed_on": "2026-10-30",
+                "resolution": "Director: yes, do it",
+                "commitment": {"work_id": "w", "done_means": "the thing landed",
+                               "due": "2026-10-31"}},
+        "seat": {"id": "seat", "status": "withdrawn", "closed_on": "2026-10-29",
+                 "resolution": "Withdrawn: a seat call", "recommendation": "I recommend X",
+                 "no_action": "nothing to build"},
+        "old": {"id": "old", "status": "answered", "closed_on": "2026-10-01", "resolution": "x"}}
+    note = dc.monday_note(now, closes=closes, open_rows_now=[], landing=_no_landing)
+    heads = [ln for ln in note.splitlines() if ln.startswith("## ")]
+    assert len(heads) == 4
+    waiting = note.split("## Waiting on you")[1].split("## ")[0]
+    assert waiting.strip() == "None."
+    assert "**his**" in note and "OVERDUE since 2026-10-31" in note
+    assert "**seat**: I recommend X" in note
+    assert "**old**" not in note, "a close from before this week was reported as this week's"
+    overdue = note.split("## Overdue")[1]
+    assert "**his**" in overdue and "**seat**" not in overdue
+
+
+def test_an_orientation_RECORDS_the_closes_it_was_handed(monkeypatch, record_file):
+    """The decisions-history half: a row closed between orientations and dropped by the session is
+    still on the append-only record, with its commitment.
+
+    MUTATION (must fire): drop the `closes` key from the decision row in `orient`."""
+    monkeypatch.setattr(dc, "read_origin_raw", lambda root=None: None)
+    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    dc.resolve(row["id"], "answered", "his yes", commitment={**READER_COMMITMENT,
+                                                            "due": "2099-12-31"})
+    out = _drive_orient(monkeypatch, record_file, _record(), [])
+    assert out["outcome"] == "oriented"
+    [handed] = out["closes"]
+    assert handed["id"] == row["id"] and handed["commitment"]["work_id"] == READER_COMMITMENT[
+        "work_id"]
