@@ -1817,7 +1817,7 @@
   couples_with: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality, W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape, W1_14_weather_cells_for_household_heat_load]
   file_scope: ['company/billing/billing_accuracy.py',
     'tests/company/billing/test_billing_accuracy.py']
-  simplifications_count: 4
+  simplifications_count: 5
   expert_hour: {status: attempted_finding_open, last: '2026-10-14 blind pass, 18 entries. FAIL, held at 2: title claims the accrual, twin claims settled kWh; neither built. SEAT_FINDING_D48_THE_EXPERT_HOUR_*', findings: []}
   real_world_twin: "a revenue-assurance team reconciling billed kWh against its own later actual reads; billed-against-settled (K6) is a GAP until settled volume crosses the seam."
 - id: E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build
