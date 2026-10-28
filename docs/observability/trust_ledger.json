@@ -268,5 +268,45 @@
     "subject": "reading-reviewer-trial-2026-10-17:471ab8960:armB",
     "task_class": "billing",
     "verdict": "pass"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-28",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "TWO-READER REVIEW, live start (director ruling 28 Oct). Blind Opus at the commit's own tree. Both arms: INV_OPENING_READ cannot fail (confirmed at HEAD on the 1691 book: 1293/1293 first reads are carried_forward on day 0); back-billing day-count mismatch (confirmed live).",
+    "rework_required": false,
+    "subject": "reading-review-live-2026-10-28:529a6b05a8:armA",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-28",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "TWO-READER REVIEW, live start (director ruling 28 Oct). Blind Opus at the commit's own tree. Both arms: silent-unhappy draw subtracts an annual badly-handled share but excludes only this quarter's complainants (confirmed at HEAD, test line 80; module unwired, latent). task_class billing is the nearest enum for a simulation/ complaint module.",
+    "rework_required": false,
+    "subject": "reading-review-live-2026-10-28:a3f6926173:armA",
+    "task_class": "billing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-28",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "TWO-READER REVIEW, live start (director ruling 28 Oct). Blind Opus at the commit's own tree. Both arms: INV_OPENING_READ cannot fail (confirmed at HEAD on the 1691 book: 1293/1293 first reads are carried_forward on day 0); back-billing day-count mismatch (confirmed live).",
+    "rework_required": false,
+    "subject": "reading-review-live-2026-10-28:529a6b05a8:armB",
+    "task_class": "harness_supervisor",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-10-28",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "TWO-READER REVIEW, live start (director ruling 28 Oct). Blind Opus at the commit's own tree. Both arms: silent-unhappy draw subtracts an annual badly-handled share but excludes only this quarter's complainants (confirmed at HEAD, test line 80; module unwired, latent). task_class billing is the nearest enum for a simulation/ complaint module.",
+    "rework_required": false,
+    "subject": "reading-review-live-2026-10-28:a3f6926173:armB",
+    "task_class": "billing",
+    "verdict": "needs_work"
   }
 ]

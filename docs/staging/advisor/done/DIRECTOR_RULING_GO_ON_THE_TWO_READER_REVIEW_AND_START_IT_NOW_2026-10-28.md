@@ -32,3 +32,11 @@ Probable failure mode: the qualifying test is too broad, so the readers run on m
 Proportionality: reversible and narrow — just do it.
 
 — Director ruling, 28 Oct 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+*Delivery seat, 2026-10-28.* It was not running. The advisor was right.
+
+- **Started 2026-10-28.** Two blind Opus readers ran on each qualifying commit since 26 Oct. That is 2 of 157 non-merge commits (**1.3%**): `529a6b05a8` and `a3f6926173`. All four verdicts are NEEDS_WORK, recorded in the trust ledger. Five findings were raised by both readers. On my check at HEAD, 4 are confirmed and 1 was partly fixed by a later commit. The worst is that `INV_OPENING_READ` cannot fail: all 1,293 of 1,293 first reads on the 1691 book are a `carried_forward` read on day 0. That is BLOCKING for the correctness stretch's exit leg. Write-up: `docs/staging/done/SEAT_FINDING_THE_TWO_READER_REVIEW_STARTED_AND_BOTH_READERS_FOUND_THE_OPENING_READ_CONTROL_CANNOT_FAIL_2026-10-28.md`.
+- **Review date: 2026-11-11.** Stop rule: if fewer than half the filed findings are confirmed, it stops.
+- **Residual, dated:** the readers were run by hand from this turn. Making them run automatically on every qualifying commit is the continuation `the-two-reader-review-runs-on-every-qualifying-commit`, **due 2026-10-30**. The mechanical selector covers new modules only. The "re-implements a rule" class has no selector yet, and that gap is stated in the finding.

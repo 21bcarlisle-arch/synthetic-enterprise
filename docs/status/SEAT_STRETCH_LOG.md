@@ -8,6 +8,14 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-10-28 — executor: the two-reader review started; both readers find the opening-read control cannot fail
+
+<!-- head: 385abf70189a -->
+
+**The two-reader review started today (director, 28 Oct 06:39, "Go").** The 26 Oct close had said yes, and nothing ran it. Two blind Opus readers each read the two commits since 26 Oct that add a module. That is 2 of 157, so the qualifying test is narrow, not broad. All four reads came back NEEDS_WORK. Of the five findings both readers raised, four were confirmed at HEAD. The one that matters is that `INV_OPENING_READ` cannot fail. On the 1691 book, every account's first read is the export's own carried-forward read on day 0, so the row has been reporting CLEAN 1,293 over nothing. It sits in the correctness stretch's leg one, the same class as the cold read's N1. The review date is 11 Nov, with the stop rule. The automatic lane is a dated continuation (due 30 Oct). It is not done, and this entry says so rather than letting the close say yes.
+
+---
+
 ## 2026-10-28 — orientation: The correctness stretch made its first exit attempt and did not exit
 
 <!-- head: 10f537c7b4c5 -->
