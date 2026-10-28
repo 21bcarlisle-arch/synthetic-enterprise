@@ -98,14 +98,18 @@ def test_the_money_side_pays_by_dd_again_from_the_bill_after_the_re_mandate(half
 
 
 def test_a_re_mandate_moves_no_outcome(half, monkeypatch):
-    """A resi outcome is drawn the same way on either channel, so coming back onto DD relabels bills
-    and changes no money. If this goes red, published bad debt moved: pre-register it."""
+    """A resi outcome is drawn the same way on either channel, so coming back onto DD changes no
+    bill's outcome. If that goes red, published bad debt moved: pre-register it. Since 2026-10-28 a
+    DD is never late, so the re-mandate may move WHEN a paid bill is paid, and only to its date."""
     bills, behavioral = _book()
     back = [(r["outcome"], r["days_late"], r["method"]) for r in ae._resolve_bills(bills, behavioral, 42)]
     monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", None)
     never = [(r["outcome"], r["days_late"], r["method"]) for r in ae._resolve_bills(bills, behavioral, 42)]
     assert any(b[2] != n[2] for b, n in zip(back, never))
-    assert [b[:2] for b in back] == [n[:2] for n in never]
+    assert [b[0] for b in back] == [n[0] for n in never]
+    moved = [(b, n) for b, n in zip(back, never) if b[1] != n[1]]
+    assert all(b[2] == "direct_debit" and b[1] == 0 and n[2] == "standard_credit"
+               for b, n in moved), moved[:3]
 
 
 def test_the_ledger_pays_by_dd_again_after_the_re_mandate(half, tmp_path):

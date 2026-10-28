@@ -213,6 +213,11 @@ _DD_FAILURE_PROB = {tier: DD_RETURN_RATE_FIRST_PRESENTATION * ratio
 _ON_TIME_PROB = {"LOW": 0.92, "MODERATE": 0.50, "HIGH": 0.10}
 _LATE_DAYS = {"LOW": (3, 14), "MODERATE": (14, 45), "HIGH": (30, 90)}
 
+#: A DD IS COLLECTED ON ITS DATE OR RETURNED (2026-10-28). ON, a world correction made before any
+#: supplier result was seen: a DD that is not returned is never late (`payment_outcome`). Off brings
+#: back the book where a DD took the pay-on-receipt payer's 3-90 day delay.
+A_DD_IS_NEVER_LATE = True
+
 _CORP_BACS_ON_TIME_PROB = 0.92
 _CORP_BACS_LATE_PROB = 0.073
 _CORP_BACS_DISPUTE_PROB = 0.007
@@ -513,8 +518,12 @@ FUEL_POVERTY_ON_TIME_MULTIPLIER = 0.9
 def payment_outcome(method: str, stress: str, rng: random.Random, segment: str = "resi",
                      fuel_poor: bool = False, tone: str | None = None,
                      customer_id: str | None = None, *,
-                     dd_failure_prob: dict[str, float] | None = None):
+                     dd_failure_prob: dict[str, float] | None = None,
+                     dd_never_late: bool | None = None):
     """Returns (outcome, days_late). outcome is one of success/failed/dispute.
+
+    `dd_never_late` replaces `A_DD_IS_NEVER_LATE` for a caller that declares its own population, as
+    `dd_failure_prob` does. None, which every world path passes, reads the switch.
 
     `dd_failure_prob` replaces the world's tier table for ONE caller that declares its own
     population (the W2_11 harness's failure-dense calibration book). None -- every world path --
@@ -584,7 +593,16 @@ def payment_outcome(method: str, stress: str, rng: random.Random, segment: str =
     if rng.random() < on_time_prob:
         return ("success", 0)
     lo, hi = _LATE_DAYS.get(stress, (3, 14))
-    return ("success", rng.randint(lo, hi))
+    days_late = rng.randint(lo, hi)
+    # A direct debit is collected on its date or returned through Bacs (ARUDD); it cannot succeed
+    # weeks late. The sourced first-presentation return rate above is every DD not collected on
+    # its date, so the late draw is a pay-on-receipt payer's delay and a DD's is on time. Drawn
+    # anyway so no later draw on this stream moves. Until 2026-10-28 a DD took it: 181 accounts on
+    # the 1a02c46116 book were collected 31 to 45 days late with no return. Knowledge:
+    # `docs/market_research/payments_and_direct_debit_2026-10-25.md`, "A DD is never late".
+    if method == DD_METHOD and (A_DD_IS_NEVER_LATE if dd_never_late is None else dd_never_late):
+        return ("success", 0)
+    return ("success", days_late)
 
 
 def mover_final_bill_outcome(behavioral: dict, customer_id: str, period_end: str, commodity: str,

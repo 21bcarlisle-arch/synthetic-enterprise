@@ -57,15 +57,18 @@ def test_every_bill_after_the_stop_is_paid_on_receipt_and_none_before_it():
 
 def test_the_stop_moves_no_outcome(monkeypatch):
     """A resi outcome is drawn the same way for DD and standard credit, and fuel poverty stays on the
-    household's drawn channel. So following the stop relabels the bill and changes no money. If this
-    goes red, published bad debt moved, and that needs its own pre-registration."""
+    household's drawn channel. So following the stop changes no bill's outcome. If that goes
+    red, published bad debt moved, and that needs its own pre-registration. Since 2026-10-28 a DD is
+    never late, so the stop may move WHEN a paid bill is paid, and only by making a DD bill late."""
     bills, behavioral = _book()
     followed = ae._resolve_bills(bills, behavioral, 42)
     monkeypatch.setattr(dcb, "supplier_dd_spells", lambda *a, **k: {})
     ignored = ae._resolve_bills(bills, behavioral, 42)
     assert any(f["method"] != i["method"] for f, i in zip(followed, ignored))
-    assert [(r["outcome"], r["days_late"]) for r in followed] == \
-           [(r["outcome"], r["days_late"]) for r in ignored]
+    assert [r["outcome"] for r in followed] == [r["outcome"] for r in ignored]
+    moved = [(f, i) for f, i in zip(followed, ignored) if f["days_late"] != i["days_late"]]
+    assert all(i["method"] == "direct_debit" and i["days_late"] == 0
+               and f["method"] == "standard_credit" for f, i in moved), moved[:3]
 
 
 def test_fuel_poverty_is_read_on_the_households_own_channel(monkeypatch):

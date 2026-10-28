@@ -170,8 +170,10 @@ exceptions:
       attempt (PROS-2016-0020: 12 bills, e.g. invoice 9291 due 2016-03-20, collected 2016-04-28).
       A DD is collected on its date or returned through Bacs, so a late success without a return
       cannot happen. The run's payment timing gives a DD payer a pay-on-receipt payer's delay.
+      The world fix landed 2026-10-28 (arrears_engine.payment_outcome: a DD is collected on its
+      date or returned). The count stays until a run carries it; the prediction is 10 or fewer.
     filed: 2026-10-28
-    retired_by: a direct debit collected on its due date or returned (simulation payment timing), and a run carrying it
+    retired_by: a run launched after the 2026-10-28 DD-timing fix, graded
     max_breached: 181
   - invariant: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
     scope: 10 of 5,576 account-years on the 1a02c46116 book, on PROS-2017-0336, PROS-2024-0010, PROS-2025-0106 and SYN-2016-582

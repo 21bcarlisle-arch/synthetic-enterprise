@@ -356,3 +356,33 @@ above). **GAP.** Two figures from elsewhere bound a belief (26 Oct, `gb_payment_
   test relabels bills and moves no payment outcome, because a resi outcome is drawn the same way on
   either channel. That stops holding once DD and on-receipt payment behaviour differ, so a rate and any
   such difference each need their own pre-registration.
+
+## A DD is never late (seat, 28 Oct 2026)
+
+**What the rules require.** A Bacs collection is taken on its processing day or returned through
+ARUDD, within a day or so of it (§3; `dd_failure_basis_and_live_arrears_provision_rates.md` §2). A
+returned item may be re-presented within one month of the original processing day (ARUDD 0). So a DD
+has two outcomes on its date: collected, or returned. Money that arrives weeks later after a return is
+a re-presentation or a payment by another route. It is not the DD succeeding late.
+
+**What the world did.** `arrears_engine.payment_outcome` gave every domestic credit bill one draw:
+returned at the sourced first-presentation rate, otherwise on time at `_ON_TIME_PROB`, otherwise
+paid 3 to 90 days late by stress tier. A DD took the late leg too. At real inputs (400 bills a tier,
+due 2016-03-20) it was 25 late at LOW, 190 at MODERATE (14 to 45 days) and 337 at HIGH (30 to 90).
+The 1a02c46116 book shows it as 181 accounts with DDs collected 31 to 45 days late and no return
+(`INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE`).
+
+**The choice, and why.** A DD that does not fail is collected on its due date. The late draw is still
+made, so no later draw moves, and it is kept for pay-on-receipt methods. The DD is not turned into a
+return. The sourced first-presentation return rate already counts every DD not collected on its
+date. Adding the late leg as returns would put HIGH-stress DD failure near 90%, which no source
+supports. **Direction of error:** this favours the company, because stressed DD payers now pay on
+time. Their only shortfall is the tier's return rate, whose MODERATE and HIGH relativities are a
+named simplification (`arrears_engine._DD_TIER_RATIO_TO_LOW`). If those tiers understate stressed
+returns, this change carries that understatement into timing as well. Whether a paid bill is paid
+does not change on either channel. Only when it is paid does, so the re-mandate note above, "a resi
+outcome is drawn the same way on either channel", now holds for paid-or-not and not for the date.
+
+**Not changed.** A mover's final bill keeps the exit model's own lateness
+(`final_bill_outcome.PAID_LATE`), even on a DD leg. If the next graded run leaves breaches on this row,
+that is where to look first.

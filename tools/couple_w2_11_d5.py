@@ -465,6 +465,15 @@ _STRESS_MIX = (("low", 0.55), ("moderate", 0.30), ("high", 0.15))
 #: never about how often the world's households fail.
 HARNESS_BOOK_DD_FAILURE_PROB = {"LOW": 0.03, "MODERATE": 0.12, "HIGH": 0.35}
 
+#: The book's DDs can be late, as the world's could before 2026-10-28
+#: (`arrears_engine.A_DD_IS_NEVER_LATE`). This is scaffolding with the same status as the tiers above. The
+#: detection dimension, its drift register and its door render sites were all measured on a book
+#: where a stressed DD pays 14-90 days late. On the corrected world, 14 of this harness's tests go
+#: red. Its figures describe the instrument on this book, not the world. Re-measuring
+#: H27 on a book whose DDs are collected or returned is filed:
+#: `docs/staging/SEAT_FINDING_THE_PAYMENT_BELIEF_HARNESS_DETECTS_LATE_DDS_THE_WORLD_NO_LONGER_HAS_2026-10-28.md`.
+HARNESS_BOOK_DD_NEVER_LATE = False
+
 _SEVERITY_ORDER = ("normal", "watch", "elevated", "high")
 
 
@@ -711,6 +720,7 @@ def build_scenario(
             event = generate_payment_event(
                 cid, p, due, BILL_AMOUNT_GBP, stress, method,
                 segment="resi", dd_failure_prob=HARNESS_BOOK_DD_FAILURE_PROB,
+                dd_never_late=HARNESS_BOOK_DD_NEVER_LATE,
             )
 
             ledger_book.post(LedgerEvent(
@@ -8160,6 +8170,17 @@ SCENARIO_CONSTANT_CENSUS: Dict[str, Dict[str, object]] = {
             "world's level (see the constant)."
         ),
     },
+    "HARNESS_BOOK_DD_NEVER_LATE": {
+        "bounds_resolution": False,
+        "sets_edges": (),
+        "owning_atom": None,
+        "why": (
+            "Sets whether a DD that is not returned can pay late, never a "
+            "calendar edge: the late-day bands are the world's stress-tier "
+            "constants. Held at the pre-2026-10-28 book, on which the "
+            "detection dimension was measured (see the constant)."
+        ),
+    },
 }
 
 
@@ -9487,6 +9508,21 @@ _PUBLISHED_BOOKS: Dict[tuple, List[Dict[str, object]]] = {}
 
 
 def _publish_one_book(spec: Dict[str, int]) -> Dict[str, object]:
+    """`_publish_one_book_on_the_shipped_triad` on this harness's book, whose DDs can be late
+    (`HARNESS_BOOK_DD_NEVER_LATE`). The shipped triad draws through the world's switch, and on the
+    corrected world these two all-HIGH books give one detection figure to 4dp (0.004944 against
+    0.004938), so no render site can be told from a constant."""
+    import simulation.arrears_engine as ae
+
+    world = ae.A_DD_IS_NEVER_LATE
+    ae.A_DD_IS_NEVER_LATE = HARNESS_BOOK_DD_NEVER_LATE
+    try:
+        return _publish_one_book_on_the_shipped_triad(spec)
+    finally:
+        ae.A_DD_IS_NEVER_LATE = world
+
+
+def _publish_one_book_on_the_shipped_triad(spec: Dict[str, int]) -> Dict[str, object]:
     """Drive the SHIPPED composer once and return what it published.
 
     `LivePaymentTriad.measure_and_write` is the only thing in this repo that

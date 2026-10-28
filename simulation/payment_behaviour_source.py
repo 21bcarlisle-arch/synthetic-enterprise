@@ -325,11 +325,13 @@ def generate_payment_event(
     segment: str = "resi",
     seed: Optional[int] = None,
     dd_failure_prob: Optional[dict] = None,
+    dd_never_late: Optional[bool] = None,
 ) -> PaymentEvent:
     """Generate one period's payment truth.
 
     `dd_failure_prob` is passed to the core model unchanged: None (every world path) is the
-    world's tier table; a harness that declares its own population passes its own.
+    world's tier table; a harness that declares its own population passes its own. `dd_never_late`
+    is the same for whether a DD can be late (None reads `arrears_engine.A_DD_IS_NEVER_LATE`).
 
     Draws from this module's OWN period-isolated substream
     (`_period_substream(base_seed, "payment_event", period_index)`), then
@@ -346,7 +348,7 @@ def generate_payment_event(
     specifically, and inventing one would be exactly the un-anchored
     duplication R13 warns against (see module docstring). So every
     non-corporate method maps to the same core "direct_debit"-style outcome
-    tier; only the METHOD LABEL varies. Prepayment is the exception: a meter is paid before use,
+    tier, except that a DD is collected on its date or returned and is never late. Prepayment is the exception: a meter is paid before use,
     so it takes the core model's own prepayment branch, which never fails or lates a period.
     """
     base_seed = _base_seed_for(customer_id, seed)
@@ -367,8 +369,11 @@ def generate_payment_event(
         core_method = "bacs"
     elif payment_method == PREPAYMENT:
         core_method = PREPAYMENT_METHOD
+    elif payment_method == DIRECT_DEBIT:
+        core_method = DIRECT_DEBIT
     else:
-        core_method = "direct_debit"
+        # Same outcome tier as a DD; only a DD is never late, being collected or returned.
+        core_method = PAY_ON_RECEIPT_METHOD
     # arrears_engine's stress-keyed dicts are upper-cased ("LOW"/"MODERATE"/
     # "HIGH"); household_demand.income_stress_trajectory() emits lower-case
     # IncomeStress.value strings ("low"/"moderate"/"high") -- normalise here
@@ -377,7 +382,8 @@ def generate_payment_event(
     core_stress = (stress or "LOW").upper()
 
     result, days_late = _core_payment_outcome(core_method, core_stress, rng, segment=segment,
-                                              dd_failure_prob=dd_failure_prob)
+                                              dd_failure_prob=dd_failure_prob,
+                                              dd_never_late=dd_never_late)
 
     dd_failure_reason = None
     payment_date: Optional[str] = None

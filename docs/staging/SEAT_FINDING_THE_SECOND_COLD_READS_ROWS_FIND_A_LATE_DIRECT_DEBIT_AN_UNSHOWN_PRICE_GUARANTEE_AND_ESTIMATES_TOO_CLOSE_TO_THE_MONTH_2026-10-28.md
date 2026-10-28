@@ -29,6 +29,21 @@ payer a pay-on-receipt payer's delay. Every collections figure that reads DD tim
 Next step: read `simulation/world_payment_truth.py`'s timing for the DD channel, and write a test
 that a DD succeeds on its date or fails.
 
+*World fix landed 2026-10-28; the grade is owed on the next fresh run.* The delay was not in
+`world_payment_truth`, which copies the triad's `days_late`. It was in `arrears_engine.payment_outcome`,
+whose late leg (3 to 90 days by stress tier) every domestic credit method took, DD included. At real
+inputs (400 bills a tier) a DD was late on 25 bills at LOW, 190 at MODERATE (14 to 45 days) and 337
+at HIGH. Now a DD that is not returned is collected on its due date. The late draw is still made,
+so no stream moves, and it is kept for pay-on-receipt. `generate_payment_event` now sends a non-DD
+method as pay-on-receipt, not as "direct_debit". Whether a bill is paid does not change on either
+channel. Test: `tests/simulation/test_a_direct_debit_is_collected_on_its_date_or_returned.py`.
+Knowledge: `payments_and_direct_debit_2026-10-25.md`, "A DD is never late".
+**Prediction, written before any run carries it:** on the first fresh run launched after this commit,
+the row reads at most 10 breached, from 181. Anything left is a mover's final bill paid late on a DD
+leg (`final_bill_outcome.PAID_LATE`, deliberately unchanged). Collections journeys and dunning opened
+on DD accounts fall. Bad debt moves little, because a late DD was paid anyway. Not run here:
+fresh-run-129e7de698 was already waiting, and it predates this fix.
+
 **R2. The Energy Price Guarantee is in revenue and on no page (266 of 316 accounts outside the N2
 band).** "Revenue, before VAT" values Oct 2022 to Jun 2023 at the supplier's tariff. The customer
 was billed at the guarantee's rate, and the government paid the difference. Taking each account's

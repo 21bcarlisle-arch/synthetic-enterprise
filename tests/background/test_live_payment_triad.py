@@ -1754,15 +1754,26 @@ def test_q3_EVERY_PUBLISHED_FIGURE_IS_UNCHANGED_BY_THE_NEW_LEGS(monkeypatch):
     RE-PINNED 2026-10-22 FOR AN EIGHTH WORLD CHANGE: money held toward an unpaid bill is a part
     payment, not money shared with the basket again (HELD_MONEY_IS_A_PART_PAYMENT on after a two-seed
     grade). Only ageing moves (0.239619883 -> 0.3395124717). With the switch off it reproduces the
-    seventh change's values exactly; the block after the first holds that."""
+    seventh change's values exactly; the block after the first holds that.
+
+    RE-PINNED 2026-10-28 FOR A NINTH WORLD CHANGE: a DD is collected on its date or returned, never
+    late (arrears_engine.A_DD_IS_NEVER_LATE). Detection moves 0.0194444444 -> 0.0049435028, because
+    fewer late DDs are flagged wrongly, and ageing moves 0.3395124717 -> 0.3374409086. With the switch
+    off it reproduces the eighth change's values exactly, so it is off for every block after the first."""
     triad = _build_triad()
     result = triad.measure()
     assert result is not None
-    assert round(result["detection"].gap, 10) == 0.0194444444  # was 0.0192307692: the budget decides
-    assert round(result["detection_latency"].gap, 6) == 1.716981  # was 1.717391: same cause
+    assert round(result["detection"].gap, 10) == 0.0049435028  # was 0.0194444444: a DD is never late
+    assert round(result["detection_latency"].gap, 6) == 1.716981  # was 1.717391: the budget decides
     assert round(result["belief"].gap, 10) == 0.0597014925  # was 0.0615384615: same cause
     assert round(result["belief_population_mix"].gap, 10) == 0.0533333333
-    assert round(result["ageing"].gap, 10) == 0.3395124717  # was 0.239619883: held is paid
+    assert round(result["ageing"].gap, 10) == 0.3374409086  # was 0.3395124717: a DD is never late
+
+    import simulation.arrears_engine as ae
+    monkeypatch.setattr(ae, "A_DD_IS_NEVER_LATE", False)
+    dd_late = _build_triad().measure()
+    assert round(dd_late["detection"].gap, 10) == 0.0194444444
+    assert round(dd_late["ageing"].gap, 10) == 0.3395124717
 
     import simulation.household_budget as hb
     with pytest.MonkeyPatch.context() as mp:
