@@ -809,3 +809,20 @@ stub's own year goes up, so both OCC inversions should clear without touching th
   <https://www.gov.uk/government/statistics/english-private-landlord-survey-2024-main-report> [H]
 - MHCLG, *Council Taxbase 2025 in England*:
   <https://www.gov.uk/government/statistics/council-taxbase-2025-in-england/local-authority-council-taxbase-in-england-2025> [H]
+
+## 13. What an actual bill after an estimated run prints (2026-10-28)
+
+**Rule / practice [H, practitioner-shaped].** GB suppliers' bills after estimates show the previous
+(estimated) reading as the opening, the new actual reading as the closing, and the usage between them;
+the estimated charges already billed appear as a credit and the whole usage is re-priced. Either way
+the customer sees the *meter's* actual read, never a read the meter did not show. Which form a given
+supplier uses (reverse-and-rebill versus one catch-up line) is not published: **GAP (practitioner).**
+
+**Design.** The company bills the month's kWh plus one catch-up line (true minus estimated, 21BA-capped),
+so the bill carries `register_closing_kwh` = the company's own register (`register_reads`, advanced
+only by actual reads) and `register_opening_kwh` = that less the month charged. closing - opening
+therefore equals the usage billed (INV_PERIOD_MATCHES_READS); the run's difference is the catch-up
+line's. The ledger prints these on actual bills and advances later estimates from them. It no longer
+prints the previous printed register plus the month (OCC-01e79fcf2d4fg Nov 2021: 1,618.9 printed,
+6,514.85 on the meter). **Limit:** the opening is the register less the month, a read the supplier
+never saw; single-register and ToU index handling is unchanged.
