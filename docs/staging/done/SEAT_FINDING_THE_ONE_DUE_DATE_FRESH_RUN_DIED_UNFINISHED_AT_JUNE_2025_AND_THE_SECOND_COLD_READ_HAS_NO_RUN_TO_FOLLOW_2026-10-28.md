@@ -11,6 +11,11 @@ origin AND its onedue run has finished and been graded; if either is not true, s
    writes one even on failure), no traceback, `/var/tmp/fresh-run-out-onedue/` is empty, and the process
    (pid 1689182) is gone. A wrapper that dies without writing its exit line was killed from outside; cause not
    established (memory pressure on the guest, or a reaper, are the candidates; not tested). I cannot say which.
+   *Correction (2026-10-28): "died unfinished at June 2025" is not right. 7 June 2025 is the last day
+   of the SSP record the run reads ("168,026 SSP records (2015-11-07 to 2025-06-07)"), so the loop had
+   finished. The log stops about 10,000 lines before the completed slc22c run's log does. The run
+   therefore died in end-of-run reporting, before `arm.py` pickled anything. The cause of the kill is
+   still not established.*
    Item 1 therefore has no run to grade and its two exceptions (INV_OVERDUE_WITHIN_BALANCE,
    INV_STATUTE_BARRED_WRITE_OFF_AGE) stay as they are.
 3. **Pre-step, billing: green.** `tests/company/billing` at origin HEAD, 2,498 passed in 141 s.
@@ -27,3 +32,14 @@ single fresh full run at origin HEAD that serves BOTH item 1's grade and the sec
 the renewal notice, the EBSS home and the one due date. That saves the run the direction's `not_now` was trying
 to save, and removes the base objection that made onedue unusable. Launch it through `launch_long_job` with the
 exit line checked, not `arm.py` under a bare shell, and do not run `tests/simulation` beside it.
+
+## Done
+
+Resolved 2026-10-28.
+
+The one run at origin HEAD exists. `1691ec0ecd` ran under `launch_long_job` (unit
+`longjob-fresh-run-1691ec0ecd`), exited 0 in 3,268 s, peaked under 5 GB, and pickled every key
+(`/var/tmp/fresh-run-out-1691ec0ecd`, base in `/var/tmp/fresh-run-1691ec0ecd.base`). Item 1 is
+graded against its pre-registration, and both exceptions are lowered (4 and 3, each residual named).
+The second cold read can follow this run. Its worktree, `/var/tmp/fresh-run-wt-1691ec0ecd`, is
+locked so the base stays put.
