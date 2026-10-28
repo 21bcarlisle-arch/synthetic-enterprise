@@ -24,3 +24,11 @@ and both are excepted at their counts in `docs/design/DOMAIN_INVARIANT_EXCEPTION
    household account is not on `docs/market_research/debt_and_collections.md` (GAP). If it is per
    contract, the two dual-fuel cases are the grader's reading being wrong, not the desk's. The
    single-fuel case is a defect on either reading.
+
+## Item 1 closed on a fresh run (2026-10-28, item `the-desk-fix-is-graded-on-a-fresh-run`)
+
+On the fresh run at b2fc50facf, `INV_OVERDUE_WITHIN_BALANCE` grades **0 of 7,374** openings, from
+4. That run carries ec079776de, which posts the desk the issued bill, so a bill the ledger holds
+posts nothing. Its exception is retired. Item 2 is unchanged: `INV_STATUTE_BARRED_WRITE_OFF_AGE`
+still grades 3, now of 63, and stays excepted at 3. Grade beside
+`records/SEAT_PREREGISTRATION_THE_DESK_POSTED_THE_ISSUED_BILL_READ_ON_A_FRESH_RUN_2026-10-28.md`.

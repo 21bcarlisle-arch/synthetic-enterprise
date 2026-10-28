@@ -78,3 +78,63 @@ add the rows a change to the desk's input can move that P1 to P6 do not name. Ba
 - **P10 (bad debt, read with P4).** The P&L's `total_bad_debt` comes from the world's
   `balance_write_offs` over the issued bills. The desk does not feed it, but the household's payments
   do (P9), so P4's band stands.
+
+## Grade
+
+*(written after the run returned, 2026-10-28 17:40 GMT. The predictions above are unedited.)*
+
+The run at b2fc50facf finished its full window (`OUTCOME: SURVIVED`, DONE.json at 17:16 GMT).
+- The ledger was rebuilt with `/var/tmp/fresh-run-scripts/build_ledger.py`.
+- It was graded in a worktree at origin 2ebb0ac18 by `/var/tmp/desk-wo-probe/grade.py`. That script
+  runs the whole suite over all 1,293 accounts, with page records built in memory, as the 1a02c46116
+  grade did.
+- Output: `/var/tmp/deskfix-grade/grade.{txt,json}`. The baseline is the 1a02c46116 ledger.
+
+| | prediction | result | grade |
+|---|---|---|---|
+| P1 | overdue row at most 10,230 (from 12,730) | **9,455 of 32,726** | HOLDS |
+| P2 | over 90% of non-zero step amounts differ | 32,776 of 32,789 (100.0%) | HOLDS |
+| P3 | gross GBP 1,656,590.92 to the penny | GBP 1,656,637.74 (+46.82) | REFUTED |
+| P4 | bad debt GBP 10,783.88 ± 25% | GBP 10,820.13 (net GBP 658,560.84) | HOLDS |
+| P5 | at most 85 min, at most 12.5 GB | 73.9 min; VmHWM of the run process 5.7 GB, sampled every 5 s | HOLDS |
+| P6 | no row beyond its ceiling | 0 unexcepted, 5 excepted | HOLDS |
+| P7 | at least 500 breaches after the page's write-off | 723 on 112 households (720 on 112 before) | HOLDS |
+| P8 | journeys, steps and desk write-offs ± 15%; write-off GBP below 4,466.12 | 7,374 / 39,985 / 63, GBP 4,423.08 | HOLDS |
+| P9 | billed within GBP 1, collected ± 2% | billed +GBP 159.07; collected GBP 2,627,423.74 (+0.10%) | REFUTED (billed) |
+
+**P3 and P9 are refuted, and the premise behind them was wrong.** "Nothing in settlement changed"
+did not account for the desk's ledger also being the company's own bad-debt belief. Renewals price
+from it (`LivePaymentTriad.default_belief_rate`, read at `run_phase2b` l. 3496 and l. 4269).
+Posting the issued bill moved what the company learns, and so moved renewal prices by fractions of
+a penny per kWh:
+- 3,814 bills changed on 461 accounts, 3,406 of them fixed terms.
+- Example: OCC-451a78ee1a06's July 2018 SVT rate went from 9.555p to 9.550p.
+- One account, SYN-2016-045, has a different set of periods: a renewal decision went the other way.
+
+This is the company learning from a truer book, as designed. It is not a leak.
+
+**A row the pre-registration did not name moved: `INV_OVERDUE_WITHIN_BALANCE` went from 4 to 0.**
+Its four residuals were bills the billing ledger holds for VAT review, which the desk dunned. A held
+bill now posts nothing to the desk. That exception is retired.
+
+**What remains on the overdue row: 9,455, causes by the probe's count**
+(`/var/tmp/desk-wo-probe/lag.py`, 9,454; the runner's rounding counts one more):
+
+| class | steps | households | cause |
+|---|---|---|---|
+| after the page's first write-off | 723 | 112 | three write-off dates for one leaver's debt (finding, "The second cause traced") |
+| penny: the desk's figure is at most 2p above the page | 2,985 | — | the desk's ask and the printed bill round apart; not traced to the line |
+| a payment the page posted that the desk has not yet seen | 466 | 107 | the page posts a direct debit on its due date, and the desk gets it when it crosses (1 day on 315, 7 days on 144) |
+| above 2p, before any write-off | 5,280 | — | **not attributed** |
+
+The lead for the 5,280 is one case, OCC-198d2b2c01a7 in April 2025. The page marks every bill
+paid on its due date, while the desk prints GBP 102.17 and then GBP 225.97 overdue before curing on
+18 May. The page reads the world engine's resolved payment outcomes, and the desk reads the payments
+the triad delivered. So the two records disagree on whether the money came in, not on what was
+billed.
+
+**Verdict.** The desk-input fix holds on a run. It removes 3,275 of the 12,730 breaches, and the
+second row's four. The exception ceiling is set to the measured 9,455, with the classes above
+written into its reason. The correctness stretch's exit test is still not met: 5,280 breaches are
+unexplained, and two named causes (the write-off dates and the payment record) are open design
+changes.

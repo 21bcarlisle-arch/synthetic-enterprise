@@ -185,3 +185,22 @@ engine the page's arrears history reads, so this cause stays recorded and open. 
 day on the same GBP 130.50 overdue: on 15 Oct and 16 Oct 2016, and on 19 Apr and 20 Apr 2017. A
 journey that cures without a payment covering the overdue item is a separate question for
 `company/billing/collections_journey`.
+
+## Graded on a fresh run (2026-10-28): 12,730 -> 9,455, with what is left named
+
+The fresh run at b2fc50facf carries the desk fix. It grades **9,455 of 32,726** steps (P1 held at
+≤ 10,230). The four classes left are below; the probe is `/var/tmp/desk-wo-probe/lag.py`.
+
+- **723, after the page's write-off.** The three write-off dates above. Open.
+- **2,985, at most 2p.** The desk's ask and the printed bill round apart. Explained, not traced to
+  the line.
+- **466, a payment the page shows that the desk has not yet seen.** The page posts a direct debit on
+  its due date, and the desk gets it when it crosses: 1 day on 315 steps, 7 days on 144. Explained.
+- **5,280, not attributed.** The lead is OCC-198d2b2c01a7, April 2025. Every bill is paid on the
+  page, while the desk prints GBP 102.17 and then GBP 225.97 overdue. The page's payments come from
+  the world engine's resolved outcomes (`arrears_engine.resolved_settlement`). The desk's come from
+  what the triad delivered. Trace whether those two payment records agree on a bill, starting from
+  that case. That is the next step on this finding.
+
+The exception is re-based to 9,455 with these classes in its reason. This finding stays open on the write-off
+dates and the 5,280.
