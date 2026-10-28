@@ -94,3 +94,21 @@ anything landed after this file (void the rows it touches), and launch through `
 origin HEAD. It must be a full run with `per_customer_lifetime`, not a pickled arm, and nothing may run
 in parallel. Grade it with `tools/domain_invariant_runner.py`. Regenerate the customer pages and the
 Explore cast into `/var/tmp`, run the blind cold read, and grade every row above, unedited.
+
+## Amendment 2026-10-28: items 1 to 3 are on origin, the run still waits for the one-due-date fix
+
+Read at origin `25a8be909b`.
+
+| gate | state |
+|---|---|
+| item 3, one EBSS eligibility home | on origin (`25a8be909b`). The EBSS row prediction therefore takes its **0-2** branch, not 5 (+-2) |
+| price-held capture | graded (`f57c223e7c`), nothing of it running |
+| a company-side change not yet on origin | the collections desk's one-due-date fix (branch `collect-one-due-date`, landing in flight, not on origin). It changes bill-date and collection-date rows |
+| a rival full run in flight | `/var/tmp/fresh-run-out-onedue` (another lane, testing that fix) |
+
+Launching now would grade a book the due-date fix then changes, and would run in parallel with another
+full run. Both break this file's launch rule, so the run is not launched this turn. Rows the due-date fix
+may touch, void until it lands: any row reading collection dates against bill dates, and the debt
+household slot of the Explore cast. All other per-row predictions above stand. The next-turn launch
+condition is: the one-due-date fix on origin, `fresh-run-out-onedue` ended, then re-check `simulation/`
+and `company/` for anything newer and launch once through `launch_long_job`.
