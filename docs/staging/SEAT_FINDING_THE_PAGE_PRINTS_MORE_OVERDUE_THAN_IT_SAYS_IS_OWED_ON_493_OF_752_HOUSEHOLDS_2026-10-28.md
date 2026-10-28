@@ -122,3 +122,10 @@ desk input must equal the bill the page prints.
   legs only.
 - Then a fresh run, graded against a pre-registration. The exception's ceiling moves only on that
   run's measured count.
+
+**Re-graded on the fresh 1a02c46116 run (2026-10-28): 12,730 steps on 495 households.** The +2,550 is
+the gas-leg settlement fix f805a94834. The desk's 40,005 step amounts are identical between the books,
+and only the page's owed bound fell, because a gas page no longer carries an unsettled credit. So the
+fix exposed more of this finding's cause rather than adding a new one. The exception's ceiling is
+re-based to 12,730. Attribution beside
+`records/SEAT_PREREGISTRATION_THE_EBSS_SHARE_FIX_READ_ON_A_FRESH_RUN_AT_1A02C46116_2026-10-28.md`.

@@ -95,7 +95,8 @@ exceptions:
     max_breached: 6
   - invariant: INV_OVERDUE_WITHIN_PAGE_BALANCE
     scope: >-
-      10,180 of 32,741 collections steps on 493 of 752 households of the 1691ec0ecd book, each
+      10,180 of 32,741 collections steps on 493 of 752 households of the 1691ec0ecd book (12,730 on 495 of
+      the 1a02c46116 book, see the reason), each
       printing an overdue figure above what the household's pages say is owed that day; 1,770 where
       the pages say nothing is owed
     reason: >-
@@ -108,9 +109,17 @@ exceptions:
       attributed. Ceiling unchanged until a run carrying the fix is graded. Excepted rather than
       refusing the next publish because the page has printed these figures since the cold read of
       23 Oct; the row puts the count on the surface every run.
+      Re-based 2026-10-28 to 12,730 on the fresh 1a02c46116 run (and 20e7d66234, the same count). The
+      +2,550 is the gas-leg settlement fix f805a94834, the only run-side change between 1691ec0ecd and
+      20e7d66234. The 1691ec0ecd ledger rebuilt with origin's code still grades 10,180. All 40,005 desk
+      step amounts are identical between the books, so only the page's owed bound fell: a gas page no
+      longer carries the unsettled credit that used to pad it (PROS-2016-0020, 16 Jul 2017: GBP 44.19
+      overdue against GBP 49.64 owed before the fix, GBP 35.61 after). It is the same over-statement by
+      the desk, more of it exposed. Grade beside
+      docs/staging/records/SEAT_PREREGISTRATION_THE_EBSS_SHARE_FIX_READ_ON_A_FRESH_RUN_AT_1A02C46116_2026-10-28.md.
     filed: 2026-10-28
     retired_by: docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md
-    max_breached: 10180
+    max_breached: 12730
   # 2026-10-27: four cold-read rows read the company's own dated acts (`raw_account_export.account_events`).
   # Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
