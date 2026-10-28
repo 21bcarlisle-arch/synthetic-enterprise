@@ -250,6 +250,17 @@ event. The engine's walk and the refund log were re-run over the result:
   run since one payment truth shipped (12 Oct) moves**. The next run carries the correction, and
   the reading for that run must mark each figure that moved.
 
+**Measured on a fresh run (2026-10-28, run at `20e7d66234` against `1691ec0ecd`).** The fix is the
+only run-side change between the two books. Every pre-registered prediction about it was met. None of
+the five leavers is refunded. Refunds fell from 26 to 21. 522 settlements now sit on gas legs (0
+before). Bad debt fell from GBP 19,738.24 to GBP 10,783.88 (-45%), and net rose by the same
+GBP 8,954.36. Gross and the provisioned figures did not move. The published 4ae8da9b0f figures (bad
+debt GBP 18,495, net GBP 664,130, and every year from 2017) predate the fix, so all of them move.
+The year-by-year table and the grade are in
+`docs/staging/records/SEAT_PREREGISTRATION_THE_GAS_LEG_SETTLEMENT_FIX_AND_THE_PART_WINDOW_CUT_ON_A_FRESH_RUN_2026-10-28.md`.
+The EBSS part-window breaches (12, 5 of them on part-window months) are unchanged, as predicted;
+they wait for the next run carrying `3ab3ea925`.
+
 ## The part-window share has one home (2026-10-28, delivery lane)
 
 **Cause.** For a bill partly inside the window or the void (0 < share < 1), the engine asks the
