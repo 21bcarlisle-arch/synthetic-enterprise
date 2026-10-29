@@ -2700,6 +2700,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                             dispatch_dd_shock_complaint(_dd_household,
                                                                         _told["review_date"]),
                                             True)
+        _issued_ask = _issued_ask_gbp(cid, held["month"], left)
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
             # The day the bill for the month falls due, as the billing ledger dates it: issued after
@@ -2712,7 +2713,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # settled revenue, which is priced at true kWh before VAT and is a sum no bill states
             # (debt_and_collections.md s.7.2). Nothing is owed on a bill the gate held, a bill
             # nobody named is asked for, or a month left in credit.
-            amount_gbp=max(0.0, _issued_ask_gbp(cid, held["month"], left)),
+            amount_gbp=max(0.0, _issued_ask),
+            credit_gbp=max(0.0, -_issued_ask),
             income_stress_value=held["income_stress_value"],
             segment=held["segment"],
             fuel=held["fuel"],

@@ -44,6 +44,8 @@ def _estimate(**kw) -> float:
     return estimate_renewal_churn(RenewalObservation(**{**_RENEWAL, **kw}))
 
 
+# The ids are draws, not labels: "B" is a customer whose seeded high-stress months include a failed
+# payment (the ids this test first used no longer fail one, so they never reached the arrears states).
 def _seeded_triad(customer_id: str, *, months: int = 6, amount_gbp: float = 120.0,
                   stress: str = "high") -> LivePaymentTriad:
     """A triad whose company ledger holds `months` of real bills and whatever cash arrived.
@@ -84,9 +86,9 @@ def test_the_door_returns_every_one_of_the_four_states_over_the_ledger_it_actual
     # be sold as "no debt" -- that would hand an unobserved household Table 56's 0.79x.
     reached.add(LivePaymentTriad().arrears_state("NEVER-BILLED", dt.date(2023, 6, 1)))
 
-    stressed = _seeded_triad("STRESSED", stress="high")
+    stressed = _seeded_triad("B", stress="high")
     for month in range(2, 8):
-        reached.add(stressed.arrears_state("STRESSED", dt.date(2023, month, 1)))
+        reached.add(stressed.arrears_state("B", dt.date(2023, month, 1)))
 
     # A book that pays: the same door, the same wire, no arrears.
     paying = _seeded_triad("PAYING", stress="low", amount_gbp=15.0)
@@ -122,8 +124,8 @@ def test_the_previous_reading_is_the_same_ledger_one_billing_period_back():
 
     MUTATION (must fire): pass `as_of` as the previous reading too, or drop the second argument.
     """
-    triad = _seeded_triad("DIRECTION")
-    states = [triad.arrears_state("DIRECTION", dt.date(2023, m, 1)) for m in range(2, 8)]
+    triad = _seeded_triad("B")
+    states = [triad.arrears_state("B", dt.date(2023, m, 1)) for m in range(2, 8)]
     assert ARREARS_STATE_WORSENING in states, (
         f"no month of a stressed account's ledger reads as deteriorating: {states}"
     )

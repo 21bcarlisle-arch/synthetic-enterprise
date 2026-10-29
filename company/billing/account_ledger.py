@@ -611,6 +611,12 @@ class AccountLedger:
 
         allocations: List[Tuple[str, str, float]] = []
         unallocated_credit = 0.0
+        # A credit bill (the supplier issued a negative bill) names no invoice: it is NOT cash, so
+        # it never enters `allocations` or `unallocated_credit`, but it reduces the oldest open
+        # items the way the household's page nets it against the next bill.
+        credit_notes: Dict[str, float] = {
+            e.event_id: round(e.amount_gbp, 2) for e in events
+            if e.event_type is LedgerEventType.ADJUSTMENT_CREDIT and not e.invoice_ref}
 
         # Oldest-first order is fixed once the items are built (nothing below adds one), so it is
         # sorted ONCE, not once per payment. Within this replay an item never becomes eligible
@@ -622,6 +628,18 @@ class AccountLedger:
 
         # 2. Apply payment credits (and refund debits reduce available credit).
         for e in events:
+            if e.event_id in credit_notes:
+                left = credit_notes[e.event_id]
+                for oi in oldest_first:
+                    if left <= 0.005:
+                        break
+                    if oi.disputed or oi.is_settled:
+                        continue
+                    apply = min(left, oi.outstanding_gbp)
+                    if apply > 0:
+                        oi.allocated_gbp = round(oi.allocated_gbp + apply, 2)
+                        left = round(left - apply, 2)
+                continue
             if e.event_type == LedgerEventType.PAYMENT_CREDIT:
                 remaining = round(e.amount_gbp, 2)
                 # 2a. remittance-directed first (may include disputed refs — customer's call)
