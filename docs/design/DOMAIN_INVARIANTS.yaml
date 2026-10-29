@@ -2949,3 +2949,82 @@ invariants:
     meters are, or only a settlement class) is not established on any page read, so HH is graded on its own axis. GAP: the as-at date convention (latest bill versus page generation date) is a design
     choice here, not a published rule. GAP: no page was found stating how a supplier learns the type at a gain (registration data versus the first read), so the first bill after a supply start may
     carry NotRecorded lawfully.
+
+- id: INV_COMMITTED_PRICE_IS_THE_TARIFFS_PRICE_PER_FUEL_AT_A_DATE
+  family: price_disclosure
+  grades: page, with its invoice twin (the committed panel is graded against the usage lines of the bills issued under the same tariff term)
+  counts: >-
+    Per household page, per fuel (one committed price per supply point and tariff term; a dual-fuel household has two, and they are separate facts), as at the panel's as-at date (the date the
+    panel says the commitment applies to; failing that, the latest bill date the page shows). Numerator: fuel-panels where any leg below fails: the printed 'Unit rate, all-in before VAT' differs
+    from the unit rate the tariff term's bills charged on kWh consumed at that date; or the panel prints 0.00 or a blank where the term's bills charge a non-zero rate; or the printed stack's
+    unit-rate components do not add up to the printed all-in rate; or the printed standing charge differs from the standing charge per day on the same bills; or the tariff name's fuel differs
+    from the fuel of the rates printed beside it. Denominator: fuel-panels on pages that print a committed unit rate or a committed standing charge. A fuel-panel whose term has no bill with
+    kWh > 0 yet is in the denominator and is graded on legs 1, 3, 4 and 5 only; it is never graded as passing leg 2 by default. Unit graded: one panel, one fuel, one as-at date, with the failing
+    leg and the bill id compared named. 'Bills' here counts invoices, not periods: a bill whose period crosses a price change contributes one rate per side of the change.
+  statement: >-
+    The price a supplier commits to is a property of the tariff at a date, per fuel: a Unit Rate (or one rate per register or time-of-use band) and a Standing Charge per day, fixed by the
+    contract or, for a variable tariff, by the last price notified under it. It does not depend on what any one bill contained. A bill applies that price to the kWh in its period; it does not
+    define it. So the committed unit rate printed for a fuel equals the rate the bills under that term charged per kWh consumed while it was in force, and it is the same number whether the
+    first bill held 0 kWh, a part-period, or a year. A 0 kWh bill carries no evidence about the unit rate: the rate on it is undefined, never 0.00, and a committed rate derived as charge / kWh
+    from such a bill is a derivation error, not a price. All charges for supply are inside the Standing Charge(s) and the Unit Rate(s), and each is identified separately wherever charges are
+    displayed (SLC 22A.2, 22A.3). So the all-in rate is the sum of its unit-rate components (energy plus network, policy and levies), and a standing charge spread over use is a different
+    quantity: it is (standing charge x days) / kWh, it depends on consumption, it is undefined at 0 kWh, and if printed it must be labelled as an effective figure at a stated kWh basis and kept
+    out of the all-in unit rate. For a default tariff (SVT, deemed contract, default fixed term) the committed unit rate and standing charge sit at or below the cap for that fuel, window and
+    payment method (SLC 28AD), and during 1 Oct 2022 - 30 Jun 2023 the unit rate the household is charged sits at or below the EPG rate. 'Before VAT' means ex-VAT: domestic gas is 5% VAT
+    throughout; domestic electricity is 5% except 0% from 2026-10-01 to 2027-03-31, so an inc-VAT bill rate converts at the bill's own VAT rate, never by a fixed 1.05.
+  applies_to:
+    segment: domestic (the cap legs apply to default tariffs only; the equality legs apply to every tariff)
+    commodity: electricity and gas, each fuel's supply point and tariff term separately
+  evaluation: >-
+    Leg 1 (non-zero where charged, breach): if any bill under the term charges a non-zero unit rate on kWh > 0, the panel must not print 0.00 or blank for that fuel's unit rate, nor 0.00 for
+    every stack component. Control over the partition: the grader must be shown able to reach each of the three outcomes (pass, breach, not-yet-graded for a term with no kWh > 0 bill) before
+    its pass count is read. Leg 2 (equality with the bills, breach): for the bill(s) whose period contains the as-at date, take the per-register usage line(s) with kWh > 0 under this term;
+    convert each line's rate to ex-VAT at that bill's VAT rate; the panel's all-in unit rate must equal it within print tolerance (half a unit of the last digit printed on each side, plus, where
+    the bill's rate is fitted from a penny-rounded charge, 0.5p / the line's kWh). A bill that crosses a price change is compared on the line for the side containing the as-at date; a blended
+    single rate on such a bill is itself non-conformant to 22A.3 and is not used as evidence. Bills with 0 kWh are skipped, never compared as 0.00. The panel's standing charge must equal the
+    bill's standing charge per day ex-VAT under the same tolerance. Leg 3 (the stack adds up, breach): energy + network/policy/levies printed as unit-rate components sum to the printed all-in
+    unit rate within tolerance. A 'standing charge spread over use' component is either absent, or printed apart from that sum with its kWh basis stated; at 0 kWh it is printed as undefined
+    ('n/a', '-'), never 0.00p. Leg 4 (per fuel, breach): the tariff name, unit rate and standing charge printed together belong to one fuel; a gas tariff name beside electricity rates, or one
+    unlabelled rate for a dual-fuel household whose two fuels' rates differ, is a breach. Leg 5 (cap and EPG, default tariffs only): ex-VAT committed unit rate <= the cap unit rate for the
+    fuel, window containing the as-at date and payment method, within 0.5% (the published rows' rounding to 0.1 GBP/MWh and the penny); in the EPG windows the rate the bills charge the
+    household <= EPG ex-VAT (gas 103.2 / 1.05 = 98.3 GBP/MWh, electricity 340.0 / 1.05 = 323.8 GBP/MWh); committed standing charge <= the cap standing charge ex-VAT for the window, within a
+    penny over the bill period. Breach above the cap. Below the cap model's lowest-region pass-through (DF+CM+NC+PC) for that window and method is a flag, not a breach: it is under the cost
+    the cap passes through, and no rule forbids it. Severities: legs 1-4 breach; leg 5 breach above, flag below.
+  lower: >-
+    Equality legs: none (an equality grade; a band would accept the defect inside it). Default tariffs, leg 5 flag floor: ofgem_cap_unit_rate_composition.json
+    `pass_through_p_per_kwh_ex_vat_min` for the fuel, window and payment method (gas, direct debit, e.g. 4.4857p/kWh Jul-Sep 2024, 5.0029p Apr-Jun 2024, 12.9624p Oct-Dec 2022). Any tariff
+    charging a non-zero rate on its bills: strictly > 0 on the panel (leg 1).
+  upper: >-
+    Default tariffs only: the cap per fuel, window and payment method, ex-VAT. Unit rate: ofgem_cap_unit_rate_composition.json `unit_rate_p_per_kwh_ex_vat` (gas DD e.g. 5.193p Jul-Sep 2024,
+    5.728p Apr-Jun 2024, 6.564p Oct-Dec 2023), and for the household's charge in 2022-10-01..2023-06-30 min(cap, EPG ex-VAT). Standing charge: ofgem_cap_standing_charges.json
+    `p_per_day_ex_vat` (gas DD e.g. 28.408p Jul-Sep 2024, 28.376p Apr-Jun 2024, 28.209p Oct-Dec 2023). Fixed terms the household chose: none (outside SLC 28AD; GAP).
+  threshold_source: >-
+    The equality legs carry no number on purpose: the committed price is a named fact and must equal the charged price. Their only tolerance is print and penny rounding, derived from the
+    printed precision, not chosen. Leg 5's ceiling is the published law: SLC 28AD's maximum charge, per fuel (Ofgem sets caps 'for each fuel separately'), per region and payment method, read
+    through the commons' cap-model artefacts at their own ex-VAT basis; its 0.5% tolerance is the commons rows' own stated rounding. The EPG levels are the commons' published inc-VAT unit
+    rates, converted at 5% because both EPG windows predate the 2026 electricity zero rate. The floor is Ofgem's own pass-through construction in the same model, and is graded as a flag because
+    nothing published makes it a legal floor.
+  source:
+  - docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md ('A bill across a price change': SLC 22A.3 charges separately identified; SLC 31H.1 and 31H.12(b) understand and manage the costs, how charges are calculated; 31H.12(d) price change and date on the bill; 31H.8 estimates flagged; Ofgem 2011 'Apportioning price increases' letter, old rate before the change and new rate after; GAP on the gas licence; section 4, the cap is per fuel and per payment method, nil-consumption part plus a per-kWh part; section 2, SLC 22C.7 rollover to the default tariff)
+  - docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md (rules block: SLC 1 definition of Time of Use Tariff; SLC 22A.2(b) all Charges for Supply Activities incorporated within Standing Charge(s) and Unit/ToU Rates; 22A.3; 31H.4 the 'About Your Tariff' label; GAP 'the printed rate is not the contracted Unit Rate', a breakdown by EU 2016/1952 components may not replace the all-in rate)
+  - docs/market_research/default_tariff_cap_and_epg_on_the_bill.md (SLC 28AD.2 aggregate charges at any consumption level; who is covered; two parts both capped; VAT basis and the 2026-10 electricity zero rate; the EPG table, household pays min(cap, EPG); payment-method columns; the floor under a default rate; standing-charge penny rounding; 0.5% tolerance)
+  - docs/market_research/company_customer_comms.md (section 1: 30-day notice of a variable tariff change under SLC 23 carries the new unit rate and standing charge; principal terms in the welcome pack; annual statement)
+  - docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json (windows, inc-VAT unit rates, elec_epg 340.0 and gas_epg 103.2 GBP/MWh, basis.vat, standing charge excluded)
+  - docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (gas_by_payment_method and by_payment_method: unit_rate_p_per_kwh_ex_vat, standing_charge_p_per_day_ex_vat, pass_through_p_per_kwh_ex_vat_min; basis.vat)
+  - docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json (gas and electricity p_per_day_ex_vat per cap period; nil-consumption allowance is the standing charge)
+  - docs/domain_artefact_library/regulatory/uk_vat_rates.json (reduced rate 5% for home energy; dated exception, domestic electricity zero-rated 2026-10-01..2027-03-31, gas stays 5%; NOT_ESTABLISHED dates for pre-2026 rates)
+  - site/data/knowledge_topics.json, page the-price-a-household-is-shown (a fixed rate is a commitment for the term; a variable rate is today's rate and is not committed beyond the next change)
+  checkable: false
+  gap: >-
+    UNCHECKABLE until the page's committed panel is exported: the runner reads only the raw export, and this row grades what the page prints
+    (fourth cold read, N9, 2026-10-29; written blind by an agent that read only docs/market_research, docs/domain_artefact_library and site/data/knowledge_topics.json).
+    GAP: no published rule found says what a supplier's 'committed price' panel must show, or names that quantity; the row reads it as the tariff's contracted Unit Rate and Standing Charge
+    (22A.2) as notified (SLC 23), which is a design reading, not a published definition. GAP: the gas supply licence's equivalents of 22A and 31H were not read; the row assumes they mirror
+    electricity. GAP: SLC 31A/31B (annual statement, Tariff Information Label) text was not read at primary in the files read here, so no TIL field is cited as the source of the 'all-in' figure.
+    GAP: no rule found prescribes how a 'standing charge spread over use' figure may be shown, or forbids it; leg 3's labelling requirement rests on 22A.3's separate identification. GAP: the
+    commons holds GB-median cap levels, not the 14 regional ones; a region's own cap can sit above the median, so leg 5 can false-fire for an expensive region until the regional tables are
+    held. GAP: no cap or published bound exists for a fixed term the household chose, so leg 5 does not apply to it. GAP: the CMA prepayment charge restriction (2017-2020) levels are not in
+    the commons, so a prepayment default tariff before 2019 has no ceiling here. GAP: the EPG standing charges (about 46p and 28p a day, inc-VAT, secondary) are not a commons row, so the
+    EPG leg grades the unit rate only. GAP: the VAT rates before 2026 rest on an unchecked assumption of stability noted in uk_vat_rates.json. GAP: the as-at date convention for the panel
+    (panel date versus latest bill date) is a design choice, not a published rule. GAP: whether a lawful default tariff can carry a 0p unit rate is not stated anywhere read; leg 1 is graded
+    against the term's own bills, not against a legal floor, for that reason.
