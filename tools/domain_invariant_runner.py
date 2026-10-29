@@ -818,6 +818,9 @@ def ev_consumption_non_negative(inv, book):
             by_reg = defaultdict(list)
             for r in p.get("reads", ()):
                 by_reg[(r.get("register_id"), r.get("register_label"))].append(r)
+            # A multi-register period exports each register's share of the catch-up.
+            shares = {r.get("register_id"): _num(r.get("catchup_kwh")) or 0.0
+                      for r in p.get("registers") or ()}
             for (reg, label), reads in by_reg.items():
                 if "export" in str(label).lower():
                     continue
@@ -828,7 +831,8 @@ def ev_consumption_non_negative(inv, book):
                     # estimate, which is the estimate's error and not the meter running back.
                     tally.band("{} {} reg {}".format(a.cid, p["period_start"], reg),
                                round(float(closing[-1]["read_kwh"]) - float(opening[0]["read_kwh"])
-                                     - (_num(p.get("catchup_kwh")) or 0.0), 3),
+                                     - (shares[reg] if reg in shares
+                                        else _num(p.get("catchup_kwh")) or 0.0), 3),
                                0.0, None)
     return tally
 
@@ -989,6 +993,11 @@ def ev_opening_is_previous_closing(inv, book):
                 by_reg = defaultdict(list)
                 for r in p.get("reads", ()):
                     by_reg[r.get("register_id")].append(r)
+                # A register the previous period did not print may have moved unread: a single rate
+                # advances the first band register, and a ToU stretch the total
+                # (a_multi_register_meters_bands_add_up_to_its_total.md §2).
+                # INV_TOU_BANDS_SUM_TO_THE_TOTAL grades the meter across that seam.
+                last = {reg: v for reg, v in last.items() if reg in by_reg}
                 for reg, rs in by_reg.items():
                     o = next((r for r in rs if r.get("read_type") == OPENING), None)
                     c = next((r for r in reversed(rs) if r.get("read_type") != OPENING), None)
@@ -997,6 +1006,46 @@ def ev_opening_is_previous_closing(inv, book):
                                    round(_num(o["read_kwh"]) - last[reg], 3), -tol, tol)
                     if c is not None and _num(c.get("read_kwh")) is not None:
                         last[reg] = _num(c["read_kwh"])
+    return tally
+
+
+def _register_sum(p, read_type_is_opening: bool):
+    """The sum of a period's opening (or closing) readings over its registers, and how many."""
+    vals = [_num(r.get("read_kwh")) for r in p.get("reads") or ()
+            if (r.get("read_type") == OPENING) == read_type_is_opening]
+    return (None, 0) if not vals or any(v is None for v in vals) else (sum(vals), len(vals))
+
+
+def ev_tou_bands_sum_to_total(inv, book):
+    """Where the printed register set changes on one serial (the total "1" on one side, the bands
+    on the other), the readings either side of the seam are one meter's import: the bands' sum
+    meets the total's reading. The row's predicate names the shared date as the first period's
+    end; the export opens the next period on the day after, so contiguous periods are read."""
+    tally = Tally("change of printed register set between contiguous periods on one serial")
+    lo, hi = _num(inv.get("lower")), _num(inv.get("upper"))
+    for a in book:
+        for run in _serial_runs(a):
+            # A one-band stub prints one band of the meter's set, so its sum is not the meter's.
+            bands = {r.get("register_id") for p in run for r in p.get("reads") or ()} - {"1"}
+            for p1, p2 in zip(run, run[1:]):
+                if p1.get("commodity") != "electricity" or p2.get("commodity") != "electricity":
+                    continue
+                if _d(p2["period_start"]) != _d(p1["period_end"]) + timedelta(days=1):
+                    continue
+                total1 = {r.get("register_id") for r in p1.get("reads") or ()} == {"1"}
+                total2 = {r.get("register_id") for r in p2.get("reads") or ()} == {"1"}
+                if total1 == total2:
+                    continue
+                if {r.get("register_id") for r in (p2 if total1 else p1).get("reads") or ()} != bands:
+                    tally.unbounded += 1
+                    continue
+                closing, _ = _register_sum(p1, False)
+                opening, _ = _register_sum(p2, True)
+                if closing is None or opening is None:
+                    tally.unbounded += 1
+                    continue
+                tally.band("{} {} {}".format(a.cid, p1.get("meter_serial"), p2["period_start"]),
+                           round(opening - closing, 3), lo, hi)
     return tally
 
 
@@ -1760,6 +1809,7 @@ EVALUATORS = {
     "INV_READ_MONOTONIC": (ev_read_monotonic, None),
     "INV_PERIOD_MATCHES_READS": (ev_period_matches_reads, "consumption_kwh"),
     "INV_OPENING_IS_THE_PREVIOUS_CLOSING": (ev_opening_is_previous_closing, None),
+    "INV_TOU_BANDS_SUM_TO_THE_TOTAL": (ev_tou_bands_sum_to_total, None),
     "INV_VAT_RATE": (ev_vat_rate, "vat_rate"),
     "INV_NON_COMMODITY_WITHIN_ALL_IN": (ev_non_commodity_within_all_in,
                                         "non_commodity_rate_gbp_per_mwh"),

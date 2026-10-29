@@ -325,7 +325,10 @@ def raw_account(customer_id: str, record: dict) -> dict:
             period["unit_rate_p_per_kwh"] = None
             period["registers"] = [{"register_id": r.get("register_id"),
                                     "register_label": r.get("label"),
-                                    "unit_rate_p_per_kwh": r.get("unit_rate_p_per_kwh")}
+                                    "unit_rate_p_per_kwh": r.get("unit_rate_p_per_kwh"),
+                                    # Its share of the catch-up line, which its readings also span.
+                                    **({"catchup_kwh": r["catchup_kwh"]}
+                                       if r.get("catchup_kwh") is not None else {})}
                                    for r in registers]
         # A PERIOD ACROSS A PRICE CHANGE prints a line per contracted rate, each bounded by its own
         # two readings (the one on the change date deemed). Exported as the readings and the term
@@ -349,10 +352,9 @@ def raw_account(customer_id: str, record: dict) -> dict:
         # (`independent_bill_validator._volume_from_reads`), so withholding protected nothing, and
         # it left INV_PERIOD_MATCHES_READS -- did we bill the advance we read? -- unaskable.
         period["consumption_kwh"] = inv.get("consumption_kwh")
-        # On the total register's readings only: a band index advances by its printed kWh alone.
-        registers = inv.get("registers") or [{}]
-        on_the_total = len(registers) == 1 and "opening_read_kwh" not in registers[0]
-        if inv.get("catchup_kwh") is not None and on_the_total:
+        # The band registers take their share of the catch-up too (2026-10-29,
+        # a_multi_register_meters_bands_add_up_to_its_total.md §3), so every register set spans it.
+        if inv.get("catchup_kwh") is not None:
             period["catchup_kwh"] = inv["catchup_kwh"]
         if reads:
             period["volume_basis"] = VOLUME_FROM_READS

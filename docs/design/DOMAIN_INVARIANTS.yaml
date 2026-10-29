@@ -2245,7 +2245,7 @@ invariants:
   family: meter_physics
   grades: ledger
   statement: Each period's opening reading on a meter register is the previous period's closing reading on that register, actual or estimated; an actual bill after estimates opens on the last estimated reading and its advance covers the catch-up.
-  predicate: successive periods on one meter_serial and register_id => |opening read_kwh - previous closing read_kwh| <= 0.1 kWh
+  predicate: 'successive periods on one meter_serial where both print the register_id => |opening read_kwh - previous closing read_kwh| <= 0.1 kWh. A register the previous period did not print is not compared: it may have moved unread (a_multi_register_meters_bands_add_up_to_its_total.md §2; corrected by the seat 2026-10-29, E4), and INV_TOU_BANDS_SUM_TO_THE_TOTAL grades the meter across that seam'
   lower: -0.1
   upper: 0.1
   lower_source: 'docs/market_research/back_billing_and_liability.md §13: suppliers'' bills after estimates show the previous (estimated) reading as the opening [H, practitioner-shaped]; tolerance is print rounding to 0.1 kWh (belief)'
@@ -2259,6 +2259,30 @@ invariants:
   checkable: true
   gap: 'written by the seat that changed the ledger, from §13, not by a reader blind to the code (ruling of 26 Oct step 4 asks for blind authorship): a later blind pass should re-derive or replace it'
   source: docs/market_research/back_billing_and_liability.md
+  severity:
+    violation: breach
+- id: INV_TOU_BANDS_SUM_TO_THE_TOTAL
+  family: meter_physics
+  grades: ledger
+  statement: A time-of-use meter records each half-hour's import in the total register and in exactly one band register, so over any window the band registers' advances sum to the total register's advance. On every ToU bill the band advances therefore sum to the meter's total advance.
+  predicate: 'For each pair of consecutive electricity periods on one meter_serial, where the second period starts the day after the first ends and the printed register set changes between them, compare the two readings at the seam. (a) Single-rate to ToU: the sum of the band registers'' opening read_kwh (the carried_forward reads, registers other than "1") on the ToU period must equal register "1"''s closing read_kwh on the single-rate period before it. (b) ToU to single-rate: register "1"''s opening read_kwh on the single-rate period must equal the sum of the band registers'' closing read_kwh on the ToU period before it. Pairs with the same register set on both sides, a gap in dates, a serial change, a missing read, or a band side that prints fewer than the serial''s band registers (a one-band stub) are not graded. |sum_of_band_reads - total_read| <= 0.15 kWh: each read is printed to 0.1 kWh, so each carries up to 0.05 kWh, and a two-band sum set against one total can differ by 0.05 x 3.'
+  lower: -0.15
+  upper: 0.15
+  lower_source: 'docs/market_research/a_multi_register_meters_bands_add_up_to_its_total.md §4 last bullet (the checkable form is continuity across a change of printed register set on one serial); tolerance is 0.05 kWh print rounding on each of three reads (two bands, one total) (belief)'
+  upper_source: same, with the physics from §1 (the Tariff Registers' advances sum to the Active Import Register's advance)
+  export_fields:
+  - meter_serial
+  - commodity
+  - period_start
+  - period_end
+  - register_id
+  - register_label
+  - read_kwh
+  - read_date
+  - read_type
+  checkable: true
+  gap: 'Written 2026-10-29 by a reader given only the page and two rows of this file, not the code. Two seat corrections, marked: the reader wrote that the second period starts "on the day the first ends"; the export opens it the day after. The one-band-stub exclusion is the seat''s. The export never carries the total and the bands on the same period, so this row cannot see a band split that is wrong inside a single ToU stretch (bands that sum correctly to billed kWh but are split wrongly between Peak and Off-peak), nor a single-rate period''s unprinted band advance. It sees the sum only at the two seams where the printed register set changes, and a book with no such change is not graded at all. It also assumes both counts started from zero at commissioning (the page calls this a belief, §4), and the catch-up share across bands is not visible here (§4 GAP: the per-band actual reading at the catch-up). The page was written by the seat that changed the code, and the row inherits its reading of the SMETS2 2014 draft and one supplier guide (§5); a later pass should check it against SEC Schedule 9.'
+  source: docs/market_research/a_multi_register_meters_bands_add_up_to_its_total.md
   severity:
     violation: breach
 - id: INV_VAT_RATE

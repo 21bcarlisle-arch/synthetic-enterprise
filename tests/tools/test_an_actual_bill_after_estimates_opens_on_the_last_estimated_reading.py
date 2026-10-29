@@ -78,12 +78,18 @@ def test_an_over_estimate_reads_lower_than_the_last_estimate_and_is_not_negative
     assert _grade(invoices, "INV_PERIOD_CONSUMPTION_NON_NEGATIVE").breaches
 
 
-def test_a_band_register_carries_no_catch_up_into_the_export():
-    """A band index advances by its printed kWh alone, so its readings never span the catch-up."""
+def test_a_band_register_carries_its_share_of_the_catch_up_into_the_export():
+    """Superseded 2026-10-29 (E4): a band index once advanced by its printed kWh alone, so its
+    readings never spanned the catch-up. The bands now sum to the total, so each takes a share
+    (a_multi_register_meters_bands_add_up_to_its_total.md §3), and the export carries each share."""
     inv = dict(_invoices(EST_CLOSING)[1], registers=[
-        {"register_id": "2", "label": "Peak", "opening_read_kwh": 0.0, "closing_read_kwh": 200.0},
-        {"register_id": "3", "label": "Off-peak", "opening_read_kwh": 0.0, "closing_read_kwh": 250.0}])
-    assert "catchup_kwh" not in raw_account("C1", {"invoices": [inv]})["periods"][0]
+        {"register_id": "2", "label": "Peak", "opening_read_kwh": 0.0, "closing_read_kwh": 280.0,
+         "catchup_kwh": 80.0},
+        {"register_id": "3", "label": "Off-peak", "opening_read_kwh": 0.0, "closing_read_kwh": 370.0,
+         "catchup_kwh": 120.0}])
+    period = raw_account("C1", {"invoices": [inv]})["periods"][0]
+    assert period["catchup_kwh"] == CATCHUP
+    assert [r["catchup_kwh"] for r in period["registers"]] == [80.0, 120.0]
 
 
 def test_the_row_is_in_the_invariants_file_with_its_source():
