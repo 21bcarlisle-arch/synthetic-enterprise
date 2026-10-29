@@ -144,3 +144,7 @@ exports them.*
   register, or the first tariff register that all use is routed to. No source in the commons
   settles which, and the export reads the same either way, because the total index advances by the
   same kWh.
+  *Settled 29 Oct 2026 in `a_multi_register_meters_bands_add_up_to_its_total.md`: SMETS2 records each
+  half-hour in the total and in one Tariff Register, and a single rate bills "TOU Rate 1" (Shell
+  Energy, Aclara). So the first band keeps advancing on a single rate, and the band indices sum to the
+  total under every tariff. Item 7's "each advances only over the periods that bill it" was wrong.*

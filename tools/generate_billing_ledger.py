@@ -685,18 +685,38 @@ def generate(run_json_path=None, out_path=None):
         # the one opening/closing pair above cannot say how its volume splits, and the raw export
         # exported 1,416 ToU periods of the 4ae8da9b0f book as `consumption_only`. Each index
         # advances by its printed kWh, so closing - opening reproduces the register to 0.1 kWh.
-        # LIMIT: a register's index advances only over periods that print it; a household back on
-        # a single rate records no band split, so the index does not move while it is. The total
-        # register ("1") is the invoice's own opening/closing pair and advances under every tariff.
+        # 2026-10-29: the band indices sum to the total index under every tariff
+        # (a_multi_register_meters_bands_add_up_to_its_total.md). The meter records each half-hour in
+        # its total and in one band register, so a printed band takes its kWh plus its share of the
+        # catch-up, and a single-rate period advances the first band (the meter's "Rate 1") unprinted.
+        # Before, the bands moved by their printed kWh alone: on the 209c3350ab book 542 of 1,429 ToU
+        # bills' band indices missed the total, from single-rate stretches and catch-ups.
         # A one-band stub reads its band's own index too: on the total index it went backwards
         # against the band's next read.
-        if any(reg["label"] != ANYTIME for reg in inv["registers"]):
-            for reg in inv["registers"]:
+        band_keys = [(cid, commodity, label) for _, label in TOU_BANDS]
+        band_advance = round(
+            closing_read_rounded - sum(running_register_read.get(k, 0.0) for k in band_keys), 1)
+        printed_bands = [reg for reg in inv["registers"] if reg["label"] != ANYTIME]
+        if printed_bands:
+            printed_kwh = sum(reg["consumption_kwh"] for reg in printed_bands)
+            catchup_left = round(band_advance - printed_kwh, 1)
+            for n, reg in enumerate(printed_bands):
                 reg_key = (cid, commodity, reg["label"])
+                share = (catchup_left if n == len(printed_bands) - 1
+                         else round(band_advance - printed_kwh, 1) * reg["consumption_kwh"] / printed_kwh
+                         if printed_kwh else 0.0)
+                share = round(share, 1)
+                catchup_left = round(catchup_left - share, 1)
                 reg_opening = running_register_read.get(reg_key, 0.0)
                 reg["opening_read_kwh"] = reg_opening
-                reg["closing_read_kwh"] = round(reg_opening + reg["consumption_kwh"], 1)
+                reg["closing_read_kwh"] = round(reg_opening + reg["consumption_kwh"] + share, 1)
+                if share:
+                    reg["catchup_kwh"] = share
                 running_register_read[reg_key] = reg["closing_read_kwh"]
+        else:
+            rate_one = band_keys[0]
+            running_register_read[rate_one] = round(
+                running_register_read.get(rate_one, 0.0) + band_advance, 1)
         # The Treasury's EPG share on this bill's volume (4ef70aba92). It is supplier revenue the
         # household never pays, so it is NOT in the total; it is printed beside it because gross
         # margin counts it and a reader comparing the two needs both (the 2026-10-26 finding).

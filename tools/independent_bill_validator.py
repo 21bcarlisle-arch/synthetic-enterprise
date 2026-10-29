@@ -279,6 +279,9 @@ def _energy_per_register(period: dict) -> tuple[dict, float | None]:
     """
     rates = {r.get("register_id"): r.get("unit_rate_p_per_kwh")
              for r in period.get("registers") or []}
+    # A register's readings also span its share of an actual bill's catch-up line (§13).
+    catchups = {r.get("register_id"): r.get("catchup_kwh") or 0.0
+                for r in period.get("registers") or []}
     if period.get("volume_basis") != "reads":
         return ({"label": "Energy", "status": UNCHECKABLE,
                  "why": "the raw export could not supply readings for this period ({})".format(
@@ -297,7 +300,7 @@ def _energy_per_register(period: dict) -> tuple[dict, float | None]:
             return ({"label": "Energy", "status": UNCHECKABLE,
                      "why": "register {} has {} reading(s) and rate {}".format(
                          reg_id, len(reads), rate_p)}, None)
-        kwh = Decimal(str(reads[1])) - Decimal(str(reads[0]))
+        kwh = Decimal(str(reads[1])) - Decimal(str(reads[0])) - Decimal(str(catchups[reg_id]))
         total_kwh += kwh
         total_gbp += round_money(float(kwh * _dec(rate_p) / 100))
         hows.append("({} - {}) kWh x {} p/kWh / 100".format(reads[1], reads[0], rate_p))

@@ -87,6 +87,7 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": "reads the printed page; every leg tested on its own below",
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": "reads the printed page; every leg tested on its own below",
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": "reads the printed page; every leg tested on its own below",
+    "INV_TOU_BANDS_SUM_TO_THE_TOTAL": "needs a ToU stretch; every leg tested in test_the_tou_bands_sum_to_the_total.py",
 }
 
 

@@ -81,3 +81,20 @@ page gives 6 to 36 months, and the estimator annualises the advance nearest a ye
 any read it holds, the change-of-supply read included. Of the 269 on that book, 90 sat outside E1's
 branch, and all 90 were this. The row now takes its window's ends from the page, and all 90 pass. 179
 remain, all of them E1's class, and the E1 finding carries them. E5 is closed.
+
+**E4 built (2026-10-29, lane 0 `the-tou-bands-sum-to-the-total`).** K8 first:
+`a_multi_register_meters_bands_add_up_to_its_total.md`. SMETS2 (DECC v1.58, 5.5.8.1 and 5.5.9.1)
+records each half-hour in the total and in one Tariff Register. A single rate bills "TOU Rate 1"
+(Shell Energy, Aclara meter). So the band indices sum to the total under every tariff. The ledger's
+bands now take their printed kWh plus a share of any catch-up, and a single-rate bill advances the
+first band unprinted. Two causes, not the one the finding named. On the 209c3350ab ledger, rebuilt
+on origin, 542 of 1,429 ToU invoices' band indices missed the total. 51 of them moved over a
+single-rate stretch, and 35 bills' bands left out the catch-up that their total took.
+After the fix, 0 of 1,429. The new row `INV_TOU_BANDS_SUM_TO_THE_TOTAL` was written blind from the
+page. It grades the 96 seams where the printed register set changes: 58 breach on the origin
+ledger and 0 on the new one. `INV_OPENING_IS_THE_PREVIOUS_CLOSING` no longer compares a register
+the previous period did not print, and its 13-breach exception is retired at 0. Every other row's
+count is identical to origin's on the same book. The curtained validator rebuilds all 1,427 ToU
+periods' energy to ours, because each band exports its catch-up share. **E4 is closed, with no
+residual.** The per-band split of a catch-up is proportional to the bill's own split, which is a
+belief, and the page carries it as a GAP.

@@ -47,6 +47,11 @@
 # on the book (UNREACHED). INV_SMART_METER_BILLED_ON_ITS_OWN_READS is retired at 0 breached (21 flags
 # remain), after 93095acd57 carried the supplier's own meter type on each bill. Grade beside
 # docs/staging/records/SEAT_PREREGISTRATION_ONE_FRESH_RUN_AT_0B2879EF7D_GRADES_THE_SIX_FIXES_IN_CODE_2026-10-29.md.
+#
+# 2026-10-29: INV_OPENING_IS_THE_PREVIOUS_CLOSING's exception (13) is retired by E4, not by exporting
+# the total beside the bands as it expected: a register the previous period did not print is not
+# compared, and INV_TOU_BANDS_SUM_TO_THE_TOTAL grades the meter across that seam instead. 0 of each
+# on the 209c3350ab book's ledger rebuilt with the bands summing to the total.
 enforce: true
 exceptions:
   - invariant: INV_PPM_NOT_CREDIT_BILLED
@@ -187,16 +192,6 @@ exceptions:
     filed: 2026-10-29
     retired_by: the finding deciding which of E1 and the row describes a supplier's first six months
     max_breached: 179
-  - invariant: INV_OPENING_IS_THE_PREVIOUS_CLOSING
-    scope: 13 periods on 13 accounts of the fresh 209c3350ab book (C7, PROS-2016-0067, PROS-2018-0223, SYN-2016-325, ...), the same count as the 37abacdf42 rebuild; on that rebuild every one was the first single-rate bill after a time-of-use stretch, and that class is not re-traced on 209c3350ab
-    reason: >-
-      Diagnosed. A ToU bill exports its band registers' readings and not the total register's, so the
-      total's last exported closing is from before the ToU stretch and the next single-rate opening
-      differs from it by the stretch's use (C7: 8,253 kWh). The ledger's total index itself chains.
-      E4's class (band and total indices), back_billing_and_liability.md §13 Limit 1.
-    filed: 2026-10-28
-    retired_by: E4, the ToU bill exporting the total register beside its bands
-    max_breached: 13
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
     scope: 6 of 4,317 runs of estimated bills on the fresh 209c3350ab book, all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g, PROS-2017-0336 (two), PROS-2024-0010, SYN-2016-396g and SYN-2016-565
     reason: >-
