@@ -37,3 +37,25 @@ committed. That is N1's shape: the record is right and the page prints something
 3. A test that reds on origin, using a book whose first bill is a zero-kWh stub.
 
 Not done here: the item is the reading.
+
+## Done (2026-10-29)
+
+- `site/explore/index.html` `stagePriced` reads the committed price from `pricedInvoice(d)`, the first
+  bill that charged energy (kWh > 0 with a unit rate), never from a 0 kWh bill. The provenance line
+  names that bill and its period, and says when the first bill charged no energy and why it was skipped.
+  A page with no such bill prints no unit rate and says why.
+- The standing charge spread over use is no longer a slice of the rate stack. It is a sentence
+  beside the stack that names its kWh and days. The all-in rate is energy plus network, policy and
+  levies, as the row's leg 3 requires.
+- `site/explore/test_the_committed_price_is_the_tariffs_not_one_bills.py` drives the page's own
+  `stagePriced()` in node. It covers OCC-2f64fad94fe7's stub-then-bill case and every page of a
+  book, graded on the row's legs 1 to 4, with a control showing pass, breach and ungraded are all
+  reachable. All three tests are red on origin 58abe075eb's page and green after the fix.
+- The row was graded on the rebuilt 209c3350ab pages (`/var/tmp/fourth-read/tree/site/data`):
+  **44 of 1,293 breach at origin, which is this finding's count, and 0 of 1,293 after the fix.**
+  On the published feed (26 Oct) it was 39 of 1,291, now 0. The row stays `checkable: false` for
+  the runner, which reads the raw export, and its gap now names the test that grades it.
+- Not done: leg 5 (the cap) is not graded on the panel; it is left to the price rows over the
+  bills. The bill used is the first that charged energy, not "the bill whose period contains the
+  as-at date". The panel is a first-term view, and a later price change under a variable tariff is
+  the bills' story, not this panel's.

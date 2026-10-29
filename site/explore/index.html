@@ -551,6 +551,17 @@ function setWall(truth, belief) { $("wall-truth").innerHTML = truth; $("wall-bel
 function elec(c) { return c.legs && c.legs.electricity ? c.legs.electricity : null; }
 function gas(c) { return c.legs && c.legs.gas ? c.legs.gas : null; }
 function firstInvoice(d) { return d && d.invoices && d.invoices.length ? d.invoices[0] : null; }
+/* The price a tariff committed to is the tariff's, not one bill's. A mover's first bill is often a
+   part-month stub with 0 kWh and no unit rate on it, so the rate is read from the first bill that
+   charged energy under the tariff; a 0 kWh bill says nothing about the rate (fourth cold read, N9:
+   OCC-2f64fad94fe7 printed "0.00 p/kWh" from its 22-29 Feb 2024 stub). */
+function pricedInvoice(d) {
+  var invs = (d && d.invoices) || [];
+  for (var i = 0; i < invs.length; i++) {
+    if (Number(invs[i].consumption_kwh) > 0 && invs[i].unit_rate_p_per_kwh != null) return invs[i];
+  }
+  return null;
+}
 
 /* THE ONE WAY A PANEL IS EMITTED (SITE2 exit 1). `side` is required and must be one of
    customer / company / sim: the epistemic wall has exactly those three vantages, and a figure
@@ -713,38 +724,53 @@ function billEquationHtml(i){
 
 /* ---------- stages ---------- */
 function stagePriced(d, c) {
-  var inv = firstInvoice(d);
-  if (!inv) return "<p>No priced tariff is recorded for this account.</p>";
-  var days = inv.days_in_period || 30, kwh = inv.consumption_kwh || 0;
-  var scP = kwh ? (inv.standing_charge_gbp * 100 / kwh) : 0;
-  var ncP = kwh ? (inv.non_commodity_amount_gbp * 100 / kwh) : 0;
+  var inv = pricedInvoice(d);
+  if (!inv) {
+    var stub = firstInvoice(d);
+    if (!stub) return "<p>No priced tariff is recorded for this account.</p>";
+    setWall("No bill on this account has charged any energy yet.",
+      "The supplier has billed only the standing charge, so its pages hold no unit rate to show.");
+    return '<h2>Priced — why does this tariff cost what it costs?</h2>' +
+      '<p>No bill on this account has charged energy yet, so the unit rate the tariff committed to cannot be read ' +
+      'from its bills. The standing charge on its first bill, ' + dt(stub.date) + ', is ' +
+      gbp(stub.standing_charge_gbp_per_day, 4) + '/day.</p>';
+  }
+  var kwh = inv.consumption_kwh;
+  var energyP = inv.unit_rate_p_per_kwh;
+  var scP = inv.standing_charge_gbp * 100 / kwh;
+  var ncP = inv.non_commodity_amount_gbp * 100 / kwh;
+  /* The all-in unit rate is energy plus network, policy and levies (steer 26 Oct). The standing
+     charge spread over use is a different quantity -- it depends on this bill's kWh -- so it is
+     shown beside the stack with its basis named, never as part of the rate. */
   var parts = [
-    {k: "Energy", v: inv.unit_rate_p_per_kwh, label: (inv.unit_rate_p_per_kwh || 0).toFixed(2) + "p"},
-    {k: "Network, policy and levies", v: ncP, label: ncP.toFixed(2) + "p"},
-    {k: "Standing charge, spread over use", v: scP, label: scP.toFixed(2) + "p"}
+    {k: "Energy", v: energyP, label: energyP.toFixed(2) + "p"},
+    {k: "Network, policy and levies", v: ncP, label: ncP.toFixed(2) + "p"}
   ];
-  /* The tariff record stores the ENERGY component only; the unit rate a customer is quoted also
-     carries network, policy and levy costs. Shown as their sum so the panel never presents a
-     component as the whole rate (steer 26 Oct; the reader test holds it >= its components). */
-  var allInP = (inv.unit_rate_p_per_kwh || 0) + ncP;
+  var allInP = energyP + ncP;
   var pnl = (d.annual_pnl || [])[0] || {};
+  var first = firstInvoice(d);
+  var stubNote = first && first !== inv ?
+    ' The first bill, ' + dt(first.date) + ', charged no energy (' + num(first.consumption_kwh || 0, 1) +
+    ' kWh over ' + (first.days_in_period || "?") + ' days), so it carries no unit rate.' : '';
   setWall(
-    "The account consumed <b>" + num(kwh, 1) + " kWh</b> in its first billing month.",
+    "The account consumed <b>" + num(kwh, 1) + " kWh</b> in its first billed period with energy in it, " +
+    (inv.days_in_period || "?") + " days.",
     "When the tariff was priced, months earlier, the supplier had <b>no consumption history at all</b> " +
     "for this household — the rate was set from the segment, not from them."
   );
   return '<h2>Priced — why does this tariff cost what it costs?</h2>' +
     '<div class="clock">Clock: <b>a single moment</b>, before any energy flows. Everything here is a forecast.</div>' +
     '<div class="cols">' +
-    panel("customer", "The stack, in pence per kWh", stackRow(parts) +
+    panel("customer", "The unit rate, in pence per kWh", stackRow(parts) +
       '<p style="font-size:12px;color:var(--muted);margin-top:8px">Standing charge is ' +
-      gbp(inv.standing_charge_gbp_per_day, 4) + '/day — shown here spread across the energy actually used that month, ' +
-      'which is why a low-use month makes it look expensive. It does not change with use; that is the whole point of it.</p>') +
+      gbp(inv.standing_charge_gbp_per_day, 4) + '/day, billed separately. Spread over the ' + num(kwh, 1) +
+      ' kWh used in that bill\'s ' + (inv.days_in_period || "?") + ' days it would add ' + scP.toFixed(2) +
+      'p/kWh — which is why a low-use month makes it look expensive. It does not change with use; that is the whole point of it.</p>') +
     panel("company", "What the supplier committed to",
       '<div class="table-scroll"><table><tbody>' +
       "<tr><td>Tariff</td><td class=\"n\">" + esc(d.tariff_name || "—") + "</td></tr>" +
       "<tr><td>Unit rate, all-in before VAT</td><td class=\"n\">" + allInP.toFixed(2) + " p/kWh</td></tr>" +
-      "<tr><td>Energy component of the unit rate</td><td class=\"n\">" + (inv.unit_rate_p_per_kwh || 0).toFixed(2) + " p/kWh</td></tr>" +
+      "<tr><td>Energy component of the unit rate</td><td class=\"n\">" + energyP.toFixed(2) + " p/kWh</td></tr>" +
       "<tr><td>Standing charge</td><td class=\"n\">" + gbp(inv.standing_charge_gbp_per_day, 4) + "/day</td></tr>" +
       "<tr><td>Range offered that year</td><td class=\"n\">" + gbp(pnl.tariff_min) + " – " + gbp(pnl.tariff_max) + "/MWh</td></tr>" +
       "<tr><td>Bought forward</td><td class=\"n\">" + pct(d.avg_hedge_fraction) + " of expected volume</td></tr>" +
@@ -753,7 +779,8 @@ function stagePriced(d, c) {
       'supplier fixes its own cost before it knows the customer\'s use. The unhedged remainder is bought later at ' +
       'whatever the market does — which is where a fixed price to the customer becomes a risk to the supplier.</p>') +
     '</div>' +
-    '<p class="prov">From this account\'s first issued bill, ' + dt(inv.date) + '. Hedge fraction is the ' +
+    '<p class="prov">From the first bill that charged energy under this tariff, ' + dt(inv.date) + ' (' +
+    dt(inv.period_start) + ' to ' + dt(inv.period_end) + ').' + stubNote + ' Hedge fraction is the ' +
     'account\'s lifetime average. Source: <a href="../data/customers/' + esc(d.account_id) + '.json">the account record</a>.</p>';
 }
 

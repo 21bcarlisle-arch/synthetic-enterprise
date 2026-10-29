@@ -3016,8 +3016,10 @@ invariants:
   - site/data/knowledge_topics.json, page the-price-a-household-is-shown (a fixed rate is a commitment for the term; a variable rate is today's rate and is not committed beyond the next change)
   checkable: false
   gap: >-
-    UNCHECKABLE until the page's committed panel is exported: the runner reads only the raw export, and this row grades what the page prints
+    UNCHECKABLE BY THE RUNNER until the page's committed panel is exported: the runner reads only the raw export, and this row grades what the page prints
     (fourth cold read, N9, 2026-10-29; written blind by an agent that read only docs/market_research, docs/domain_artefact_library and site/data/knowledge_topics.json).
+    Legs 1-4 are graded over the page's own stagePriced() render by site/explore/test_the_committed_price_is_the_tariffs_not_one_bills.py (EXPLORE_PAGES_DIR names
+    the book): the rebuilt 209c3350ab pages breach on 44 of 1,293 at origin 58abe075eb and 0 of 1,293 after the fix; leg 5 stays with the price rows over the bills.
     GAP: no published rule found says what a supplier's 'committed price' panel must show, or names that quantity; the row reads it as the tariff's contracted Unit Rate and Standing Charge
     (22A.2) as notified (SLC 23), which is a design reading, not a published definition. GAP: the gas supply licence's equivalents of 22A and 31H were not read; the row assumes they mirror
     electricity. GAP: SLC 31A/31B (annual statement, Tariff Information Label) text was not read at primary in the files read here, so no TIL field is cited as the source of the 'all-in' figure.
