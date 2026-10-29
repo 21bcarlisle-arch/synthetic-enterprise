@@ -522,6 +522,26 @@ def test_one_answer_to_several_questions_is_printed_once_with_each_question_bene
         "a truncation cut a word in half"
 
 
+def test_one_quoted_ruling_with_a_different_outcome_per_question_prints_each_outcome():
+    """The live 26 Oct shape: one quoted ruling, then each row's own outcome past character 220.
+    Keyed on the whole text, the four never grouped, so the 2 Nov dry run printed the same cut-off
+    quote four times and none of "Declined", "Ruled: ...", "Deferred".
+
+    MUTATION (must fire): group on the whole resolution instead of the line the reader sees."""
+    now = datetime(2026, 11, 2, 7, tzinfo=timezone.utc)
+    quote = 'Answered 26 Oct: "' + "hide the link and keep the tracker " * 8 + '"'
+    outcomes = {"q1": "Declined: no link from any page.", "q2": "Ruled: analytics stay.",
+                "q3": "Deferred, not open: the token waits."}
+    closes = {rid: {"id": rid, "status": "answered", "closed_on": "2026-10-26",
+                    "resolution": f"{quote} {own}", "what": f"Question {rid}"}
+              for rid, own in outcomes.items()}
+    note = dc.monday_note(now, closes=closes, open_rows_now=[], landing=_no_landing)
+    decided = note.split("## What you decided this week")[1].split("## ")[0]
+    assert decided.count("Answered 26 Oct") == 1 and "One answer to 3 questions" in decided, decided
+    for rid, own in outcomes.items():
+        assert f"**{rid}**: Question {rid} -- {own}" in decided, decided
+
+
 def test_an_orientation_RECORDS_the_closes_it_was_handed(monkeypatch, record_file):
     """The decisions-history half: a row closed between orientations and dropped by the session is
     still on the append-only record, with its commitment.

@@ -70,3 +70,64 @@ it, and fast-forwards the shared tree past `8b764fbdf1`, three days before the 0
 conflicting edit lands in the shared tree before then, or the holder rewrites the test file
 (which restarts its clock). If the shared tree is still behind `8b764fbdf1` at 12:00 on 29 Oct,
 that is the next thing to look at, ahead of the 2 Nov read.
+
+## Done, 29 Oct 07:20-07:40 GMT (worker tick, claim `the-shared-tree-advances-before-the-2-nov-note`)
+
+**The shared tree advanced.** `5e3e9966a5` -> `faa06d46df`, 113 commits, by `git merge --ff-only`
+inside `origin_reconcile.advance_shared_tree()`. `git merge-base --is-ancestor 8b764fbdf1 HEAD`
+holds. Nothing was stashed, checked out, reset or added with `-A`.
+
+**The prediction above was pre-empted, not tested.** I cleared the one holder by hand at about
+07:25, roughly 20 minutes before the 48h abandonment line would have let the reconciler do it. So
+this tick says nothing either way about whether the reconciler's abandonment class would have fired.
+
+**The 33 paths that were dirty on the shared tree and also changed by origin, each with one fate.**
+(a) = same bytes as origin, or an earlier origin revision of its own path, so a commit already
+holds it. (b) = a daemon's or producer's state file it rewrites. (c) = real work no commit holds.
+
+| Path | Fate |
+|---|---|
+| `.gitignore` | (a) tip twin |
+| `background/schedule_manifest.yaml` | (a) tip twin |
+| `background/tick_mode.py` | (a) tip twin |
+| `background/two-reader-review.service`, `.timer`, `two_reader_review.py` | (a) untracked tip twins |
+| `tests/background/test_tick_mode.py`, `tests/background/test_two_reader_review.py` | (a) tip twins |
+| `docs/direction/DIRECTION.yaml`, `decisions.jsonl`, `wrong_triage.yaml` | (a) tip twins |
+| `docs/market_research/income_shock_depth_and_duration_b7.md` | (a) tip twin |
+| `docs/status/SEAT_STRETCH_LOG.md` | (a) tip twin |
+| `docs/observability/trust_ledger.json`, `site/data/delivery.json` | (b) producer output; tip twins at the time |
+| `docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md` | (b) `finding_classes` register |
+| `docs/design/DOMAIN_INVARIANTS.yaml` | (a) earlier origin revision (`97d18d3878`) |
+| `tools/generate_explore_cast.py`, `tests/tools/test_generate_explore_cast.py`, `site/data/explore_cast.json` | (a) earlier origin revision (`97d18d3878`) |
+| staging notes: CRISIS_BAD_DEBT (`24c81d1394`), 2_NOV (this file, `d3ff2c1f5f`), DESK_DUNS (`1470776471`), PAGE_PRINTS (`d9828b5b3d`), PRINTED_REGISTER (`686fb73ef0`), SECOND_COLD_READS_ROWS (`6bdf089925`), PREREGISTRATION second cold read (`a4d2c45634`) | (a) earlier origin revisions |
+| staging notes: EIGHT_COLD_READ_ROWS, PAYMENT_BELIEF_HARNESS, REAPER, SHARDED_SIMULATION_READ, SEAT_READING second cold read | (a) tip twins |
+| `tests/tools/test_generate_billing_ledger.py` | **superseded draft, not (c).** Its one addition fails on origin with `IndexError` because origin draws no payer for a deemed-account bill (`7cec44a4b`). Origin's `test_a_bill_inside_the_occupier_window_is_the_deemed_accounts.py::test_a_window_month_the_ebss_credit_paid_leaves_the_payers_page_at_nothing` covers the property. |
+
+**No path was (c), so nothing was landed under another lane's subject.** The one by-hand step was
+the ledger test. `refresh_to_head --base-wins` refused it, because its name-based reading sees a
+landable hunk and cannot see that the hunk fails. I preserved the bytes first at
+`refs/preserved/refresh-to-head/occupier-ebss-ledger-test-superseded-by-7cec44a4b` (`23d586edc3`),
+then removed the appended test so the file equals HEAD. The reconciler then cleared the other 32 and
+preserved the 11 earlier-revision copies at
+`refs/preserved/origin-reconcile-earlier-revision/origin-reconcile-5e3e9966a5` (`74d1c95a4`).
+
+**Dry run on the advanced tree.** I copied the live baton and ran `weekly_rhythm.tick()` at
+29 Oct, 1 Nov and 2 Nov 07:00 against temporary paths, with `MONDAY_NOTE` pointed at a temp file.
+The results were WAITING, WAITING, then OPENED with `lapsed 2026-10-26`. The note was written with
+the four sections: decided / waiting on you / closed on the seat's recommendation / overdue.
+
+**A reading defect the first dry run showed, fixed in this commit.** The "printed once" fix from
+`8b764fbdf1` never fired on the live rows. The four 26 Oct rows share the quoted ruling, and each
+ends in its own outcome past character 220, so keying the group on the whole text grouped nothing.
+The note printed the same cut-off quote four times and none of "Declined", "Ruled: ...", "Deferred".
+Its test used four identical resolutions, so it was keyed to its fixture, not to the live shape.
+`monday_note` now groups on the line the reader sees and prints each row's own remainder beneath
+the quote. The new test leg is
+`test_one_quoted_ruling_with_a_different_outcome_per_question_prints_each_outcome`, and its
+mutation (grouping on the whole text again) fires. On re-run, the 2 Nov dry run names all four outcomes.
+
+**Still owed, and not this item's:** the 07:15 2 Nov read that the note is actually on the shared
+tree (`the-2-nov-monday-note-is-on-the-shared-tree`). Separately, `reconcile-watch` logged
+boot-sha drift at 07:26: background-worker, deadmans-switch, naive-organ and sim-runner are
+35 modules behind until they restart. `daily-self-note` is a oneshot that imports fresh, so the
+note does not depend on those restarts.

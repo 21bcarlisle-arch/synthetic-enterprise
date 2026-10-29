@@ -33,6 +33,7 @@ against the record it read before the session started. Raise between orientation
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -590,16 +591,26 @@ def monday_note(now: datetime | None = None, *, closes: dict | None = None,
     # ONE ANSWER CAN CLOSE SEVERAL QUESTIONS (26 Oct: four rows, one ruling). Printed per row, the
     # first 220 characters of that ruling repeat four times and name none of the questions, so a
     # shared answer is printed once with each question it closed beneath it.
+    # Grouped by the line the reader SEES, not the whole text: the live four share the quoted
+    # ruling and each ends in its own outcome ("Declined: ...", "Ruled: ...") past character 220,
+    # so keying on the whole text never grouped them and the note printed the same cut-off quote
+    # four times with none of the four outcomes. Each row's own remainder goes beneath the quote.
     by_answer: dict[str, list[dict]] = {}
     for r in decided:
-        by_answer.setdefault(" ".join(str(r.get("resolution") or "").split()), []).append(r)
-    for answer, rows in by_answer.items():
+        by_answer.setdefault(short(r.get("resolution")), []).append(r)
+    for seen, rows in by_answer.items():
         if len(rows) == 1:
-            lines.append(f"- **{rows[0]['id']}**: {short(answer)} -- {landed(rows[0]['id'])}.")
+            lines.append(f"- **{rows[0]['id']}**: {seen} -- {landed(rows[0]['id'])}.")
             continue
-        lines.append(f"- **One answer to {len(rows)} questions**: {short(answer)}")
-        lines += [f"  - **{r['id']}**: {short(r.get('what'), 160)} -- {landed(r['id'])}."
-                  for r in rows]
+        texts = [" ".join(str(r.get("resolution") or "").split()) for r in rows]
+        shared = os.path.commonprefix(texts)
+        if len(set(texts)) > 1:
+            shared = shared.rsplit(" ", 1)[0]
+        lines.append(f"- **One answer to {len(rows)} questions**: {short(shared)}")
+        for r, text in zip(rows, texts):
+            own = text[len(shared):].strip()
+            lines.append(f"  - **{r['id']}**: {short(r.get('what'), 160)}"
+                         + (f" -- {short(own, 200)}" if own else "") + f" -- {landed(r['id'])}.")
     if not decided:
         lines.append("None.")
     lines += ["", "## Waiting on you", ""]
