@@ -22,10 +22,10 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-10-26 | 3 | UNDATED |
 | `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-11 | 18 | OLD |
 | `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-10-26 | 3 | FRESH |
-| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-28 | 1 | FRESH |
-| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-28 | 1 | UNDATED |
-| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-28 | 1 | UNDATED |
-| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-28 | 1 | UNDATED |
+| `docs/status/STARTUP_ANCHORS.md` | The computed age of every anchor on this page, and what each is for | 2026-10-29 | 0 | FRESH |
+| `docs/status/SEAT_STRETCH_LOG.md` | Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call | 2026-10-29 | 0 | UNDATED |
+| `docs/direction/DIRECTION.yaml` | What the delivery seat is currently steering by, and what it has recorded as wrong | 2026-10-29 | 0 | UNDATED |
+| `docs/direction/decisions.jsonl` | The append-only record of decisions taken, oldest to newest | 2026-10-29 | 0 | UNDATED |
 | `docs/status/PROJECT_STATE.txt` | Build state — current phase and test count, generated each publish | 2026-10-26 | 3 | FRESH |
 | `docs/institutional/knowledge_map.md` | What we know and what we have NOT established, with the gaps named | 2026-10-25 | 4 | UNDATED |
 | `docs/operations/MAINTENANCE.md` | The monthly maintenance runbook this machine operates under | 2026-07-06 | 115 | UNDATED |
@@ -42,8 +42,8 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 14,382 | 14,059 – 14,430 (`git rev-list --count`) | AGREES |
-| lines | 1,184,059 | 1,170,103 – 1,187,141 (newlines across every `*.py` in the git index) | AGREES |
+| commits | 14,382 | 14,059 – 14,433 (`git rev-list --count`) | AGREES |
+| lines | 1,184,059 | 1,170,103 – 1,187,164 (newlines across every `*.py` in the git index) | AGREES |
 | modules | 3,561 | 3,511 – 3,576 (the count of `*.py` in the git index) | AGREES |
 | tests | 39,465 | 39,465 – 39,465 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES on the floor only on this run -- too large was ruled out at the commit that wrote this sentence |
 
