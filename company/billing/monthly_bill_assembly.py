@@ -1016,6 +1016,9 @@ def build_monthly_bills(
                 bill["premise_council_tax_listed"] = listed
             previous_period_end = bill["period_end"]
             bill["account_held_from"] = account_held_from
+            # The meter type the supplier holds for the supply point, which the bill prints and the
+            # raw export carries, so a page's printed type can be graded against the bills.
+            bill["meter_type"] = meter_type
             bills.append(bill)
             if theft_screen_out is not None:
                 screen_periods.setdefault(customer_id, []).append({

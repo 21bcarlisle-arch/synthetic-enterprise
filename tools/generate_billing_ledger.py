@@ -610,6 +610,7 @@ def generate(run_json_path=None, out_path=None):
             "mpan": _mpan(supply_point_of(cid, predecessor_of)) if commodity == "electricity" else None,
             "mprn": _mprn(supply_point_of(cid, predecessor_of)) if commodity == "gas" else None,
             "read_type": read_type,
+            "meter_type": bill.get("meter_type"),
             "opening_read_kwh": opening_read_rounded,
             "closing_read_kwh": closing_read_rounded,
         }

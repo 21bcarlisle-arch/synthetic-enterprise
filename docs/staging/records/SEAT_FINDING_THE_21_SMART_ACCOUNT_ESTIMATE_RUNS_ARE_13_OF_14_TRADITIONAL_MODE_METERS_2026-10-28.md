@@ -27,6 +27,17 @@ meter type, yet 14 estimated bills from 2022-11 to 2023-11 with one actual on 20
 Not traced here. Prediction filed before tracing: a call site that passes a different `commodity` or
 `half_hourly` into `is_communicating` than the draw used.
 
+> **Correction, 2026-10-29 (traced): 14 of 14 are traditional mode; none is unexplained.**
+> `PROS-2021-0383` is a **gas** account (every invoice `commodity: gas`, an MPRN, no MPAN), a
+> gas-only household whose id carries no `g`. The probe above took the fuel from the id's suffix,
+> so it asked `is_not_in_smart_mode(..., "electricity")` (False) where the run asked `"gas"` (True).
+> Its reads carry 1-26 day delays, which only a non-communicating meter draws. The prediction above
+> (a call site passing the wrong commodity) is refuted: the world asked the right fuel, and the
+> probe did not. Recounted by the ledger's own `commodity` (`/var/tmp/mt_probe_by_commodity.py`):
+> electricity 151 smart, 10 in traditional mode, 4 flagged, all 4 in it; gas 131 smart, 17 in it,
+> 10 flagged, all 10 in it. The by-fuel counts in "Cause" above were suffix-classified and are
+> wrong by the 45 unsuffixed gas accounts on this book; these replace them.
+
 ## What it means for the row
 
 1. The account leg's flag is correct and should stay a flag. It would be wrong to turn it into a breach.
@@ -52,5 +63,9 @@ from the smart-metering knowledge pages only. The row is verbatim from `/var/tmp
   type per bill, and the world's `meter_read_log` is not something the runner may read in the gate. The
   evaluator grades `printed["meter_of_reads"]` where a harness supplies it and is silent otherwise.
   Closing it needs the supplier-visible meter type on the bill record, which a real MPxN record has.
+  **Closed, 2026-10-29:** each bill carries `meter_type` (the type the supplier holds for the supply
+  point, from `read_feed.meter_type_for`), the ledger invoice and the raw export period carry it,
+  and leg 2 grades the header against the latest bill and refuses an undated change between bills.
+  A book built before this has no field on its periods, and leg 2 skips it.
 - **Leg 3 (day-clock sentence), not graded here.** The sentence is drawn by the browser from the header
   field; it belongs to the site door test.

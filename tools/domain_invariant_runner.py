@@ -1553,8 +1553,10 @@ def _meter_word(panel: str, v):
 
 def ev_meter_type_one_value(inv, book):
     """Per account (one supply point), every meter-type rendering the household's pages print is one
-    value (leg 1, breach), and equals the meter its reads were taken on where the book carries that
-    (`meter_of_reads`, leg 2, breach). An HH header is a settlement class and sits beside 'none'.
+    value (leg 1, breach). Leg 2 reads the bills' own `meter_type` from the export: the header equals
+    the latest bill's, and the type never changes between bills, since the record carries no
+    exchange or enrolment date that could permit it (breach). A book whose periods predate the
+    field skips leg 2. An HH header is a settlement class and sits beside 'none'.
     Leg 3 (the day-clock sentence) is drawn by the browser from the header, so it has no data here."""
     tally = Tally("supply points printing a meter type")
     for a in book:
@@ -1574,10 +1576,17 @@ def ev_meter_type_one_value(inv, book):
             bad = {k: w for k, w in others.items() if w != header}
         if bad:
             tally.hit("breach", "{} {} header={} but {}".format(a.cid, a.fuel, header, bad), 1, 0, "above")
-        reads = (a.printed or {}).get("meter_of_reads")
-        if reads is not None and header not in ("hh", reads):
-            tally.hit("breach", "{} {} header={} but its bills were read on {}".format(a.cid, a.fuel, header, reads),
-                      1, 0, "above")
+        billed = [(p["period_start"], _meter_word("bill", {"smart": True, "traditional": False}.get(p["meter_type"])))
+                  for p in a.periods if "meter_type" in p]
+        if not billed:
+            continue
+        if header != "hh" and header != billed[-1][1]:
+            tally.hit("breach", "{} {} header={} but its latest bill holds {}".format(
+                a.cid, a.fuel, header, billed[-1][1]), 1, 0, "above")
+        for (_, was), (when, now) in zip(billed, billed[1:]):
+            if now != was:
+                tally.hit("breach", "{} {} the bill from {} holds {} after {}, with no exchange date".format(
+                    a.cid, a.fuel, when, now, was), 1, 0, "above")
     return tally
 
 
