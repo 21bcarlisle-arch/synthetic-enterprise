@@ -332,7 +332,9 @@ def make_revenue_restatement_event(bill: dict[str, Any]) -> dict[str, Any]:
         "customer_id": bill["customer_id"],
         "amount_gbp": 0.0,
         "restated_gbp": bill.get("catchup_raw_delta_gbp", 0.0),
-        "chargeable_gbp": bill.get("catchup_adjustment_gbp", 0.0),
+        # Gross, like `restated_gbp`: the catch-up line is before VAT and its VAT is on the VAT line.
+        "chargeable_gbp": round(bill.get("catchup_adjustment_gbp", 0.0)
+                                + (bill.get("catchup_vat_gbp") or 0.0), 2),
         "direction": bill.get("catchup_direction", ""),
         "periods_covered": bill.get("catchup_periods_covered", 0),
     }

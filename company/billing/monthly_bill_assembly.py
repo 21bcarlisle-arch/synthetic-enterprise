@@ -278,6 +278,7 @@ def _annotate_billing_basis(bill: dict, event, true_bill: dict) -> dict:
         annotated["true_consumption_kwh"] = true_bill["total_consumption_kwh"]
         annotated["true_commodity_amount_gbp"] = true_bill["commodity_amount_gbp"]
         annotated["true_total_amount_gbp"] = true_bill["total_amount_gbp"]
+        annotated["true_vat_gbp"] = true_bill["vat_gbp"]
         annotated["estimated_consumption_kwh"] = event.estimated_consumption_kwh
         annotated["consecutive_estimated_count"] = event.consecutive_estimated_count
     return annotated
@@ -473,6 +474,21 @@ def _resolve_catchup(
         cap_applied = False
         direction = "overcharge"
 
+    # THE CORRECTION'S VAT. Both totals above are gross, so `chargeable_gbp` carries the VAT on the
+    # corrected supply; it goes on the bill's VAT line, not inside the catch-up line, or the bill
+    # prints too little VAT and counts the rest as the supplier's own charge (SEAT_FINDING_A_CATCH_
+    # UP_IS_ADDED_TO_THE_BILL_GROSS_..._2026-10-29.md; back_billing_and_liability.md section 15).
+    # Each month's VAT is at that month's own rate, so the delta is summed, not re-derived from a
+    # rate; a bar that wrote part of the delta off takes the same share of its VAT. A run handed
+    # over without VAT keys gets None, and the bill keeps the whole correction on one line.
+    has_vat = all("true_vat_gbp" in p and "vat_gbp" in p for p in pending_run)
+    vat_delta_gbp = sum(p["true_vat_gbp"] - p["vat_gbp"] for p in pending_run) if has_vat else None
+    chargeable_vat_gbp = (
+        None if vat_delta_gbp is None
+        else 0.0 if raw_delta_gbp == 0
+        else round(vat_delta_gbp * chargeable_gbp / raw_delta_gbp, 2) + 0.0
+    )
+
     result = {
         "period_start": period_start,
         "period_end": period_end,
@@ -480,6 +496,7 @@ def _resolve_catchup(
         "direction": direction,
         "raw_delta_gbp": raw_delta_gbp,
         "chargeable_gbp": round(chargeable_gbp, 2) + 0.0,
+        "chargeable_vat_gbp": chargeable_vat_gbp,
         "written_off_gbp": round(written_off_gbp, 2) + 0.0,
         "back_billing_cap_applied": cap_applied,
         "is_material": abs(chargeable_gbp) >= CATCHUP_MATERIALITY_THRESHOLD_GBP,
@@ -809,7 +826,12 @@ def build_monthly_bills(
                     bill["catchup_periods_covered"] = catchup["periods_covered"]
                     bill["catchup_direction"] = catchup["direction"]
                     bill["catchup_raw_delta_gbp"] = catchup["raw_delta_gbp"]
-                    bill["catchup_adjustment_gbp"] = catchup["chargeable_gbp"]
+                    # The catch-up line is the correction before VAT; its VAT joins the bill's own.
+                    catchup_vat = catchup["chargeable_vat_gbp"] or 0.0
+                    bill["catchup_adjustment_gbp"] = round(
+                        catchup["chargeable_gbp"] - catchup_vat, 2) + 0.0
+                    bill["catchup_vat_gbp"] = catchup_vat
+                    bill["vat_gbp"] = bill["vat_gbp"] + catchup_vat
                     bill["catchup_written_off_gbp"] = catchup["written_off_gbp"]
                     bill["catchup_back_billing_cap_applied"] = catchup["back_billing_cap_applied"]
                     bill["catchup_back_billing_basis"] = catchup["back_billing_basis"]
@@ -970,6 +992,8 @@ def build_monthly_bills(
                     "total_amount_gbp": 0.0 if held else bill["total_amount_gbp"],
                     "billed_kwh": 0.0 if held else bill["total_consumption_kwh"],
                     "used_kwh": true_kwh,
+                    "true_vat_gbp": bill["true_vat_gbp"],
+                    "vat_gbp": 0.0 if held else bill["vat_gbp"],
                     "held": held,
                 })
             # What the Treasury paid for this month's Energy Price Guarantee: its share on the

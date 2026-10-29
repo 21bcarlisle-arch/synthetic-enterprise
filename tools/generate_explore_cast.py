@@ -556,6 +556,8 @@ def _template(hh, ev, iso, kind, rec):
                  "meant": "The difference lands on the next actual read", "tone": "neutral"})
     if kind == "catch_up":
         adj = rec.get("catchup_adjustment_gbp")
+        if adj is not None:  # what the bill moved by: the line before VAT, and its VAT
+            adj += rec.get("catchup_vat_gbp") or 0.0
         return ("The catch-up", "An actual read on {} corrects the estimates: {} {}.".format(
                     _day(rec["date"]), _fmt_gbp(abs(adj or 0)), "added" if (adj or 0) > 0 else "credited"),
                 "We have a meter reading and your bill now reflects what you used.",

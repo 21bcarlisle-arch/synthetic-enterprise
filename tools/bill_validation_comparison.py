@@ -251,8 +251,12 @@ def compare_bill(reconstructed: dict, issued: dict, *, statutory_vat: dict,
         # five-line ones the catch-up correction sits BELOW the VAT line and is VAT-INCLUSIVE --
         # which is what makes the identity hold there too. If a future bill shape breaks that, the
         # `bill_total_gbp` claim below goes red rather than this one going quietly wrong.
+        # Corrected 2026-10-29: a catch-up printed BEFORE VAT (`vat_basis` "before_vat") is in the
+        # base although it is printed below the VAT line; its VAT is in the VAT line.
         index = b_lines.index(vat_line)
-        base = round(sum(ln.get("amount_gbp") or 0.0 for ln in b_lines[:index]), 2)
+        base = round(sum(ln.get("amount_gbp") or 0.0 for ln in b_lines[:index])
+                     + sum(ln.get("amount_gbp") or 0.0 for ln in b_lines[index + 1:]
+                           if (ln.get("inputs") or {}).get("vat_basis") == "before_vat"), 2)
         expected = round(base * rate, 2)
         claims.append(_claim(
             "vat_gbp", AGREED if abs(charged - expected) < PENNY else DISAGREED,

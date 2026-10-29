@@ -842,3 +842,39 @@ is stale (E4's class). (2) A bill across a price change prints its rate lines fr
 the month, so the first line still opens on that read. (3) Band registers carry no catch-up.
 **GAP (practitioner):** whether a supplier prints a negative advance or reverses and rebills an
 over-estimated run.
+
+## 15. The VAT on a catch-up (2026-10-29)
+
+**What the rules require.** Fuel and power for domestic use is charged at the reduced rate, and a
+business supply is too when it is at or under its fuel's de minimis. Otherwise it is charged at the
+standard rate. **[H]** `docs/domain_artefact_library/regulatory/uk_vat_rates.json` and
+`vat_fuel_and_power_de_minimis.json`, from GOV.UK and VAT Notice 701/19. A catch-up charges or
+credits more for energy supplied in the estimated months. It is a change in the price of those
+supplies, so it bears VAT at the rate that applied to them. A credit reduces the VAT already
+charged. **[M]** This is the general rule for continuous supplies and for price adjustments (VAT
+Notice 700, the sections on continuous supplies and on changes in consideration). It was not read in
+the primary this session. **GAP:** read Notice 700's continuous-supply and credit-note sections, and
+check whether a utility catch-up has its own tax point.
+
+**What our code did (discovery).** `_resolve_catchup` took the correction as the difference of two
+VAT-inclusive totals, so it already carried its VAT. It was added to the bill's total as one line.
+The VAT line (`vat_gbp`) never got that VAT. So 3,705 bills on the 9553d403b7 book printed too little
+VAT, and their before-VAT amount (total minus VAT) counted the correction's VAT as the supplier's own
+charge. That VAT was about £5,568 domestic and £132 SME. The 2026-09-02 reading in
+`company/billing/statement_export.py` ("it is not one") stopped a double-count of VAT. Its
+conclusion was wrong, and it has been corrected beside the claim.
+
+**The design choice.**
+- The catch-up line is the correction **before VAT**: `catchup_adjustment_gbp`.
+- Its VAT is `catchup_vat_gbp`. It is the sum over the run of each month's VAT difference (true
+  minus billed), so each month keeps its own rate. Where a back-billing bar wrote part of the
+  correction off, the VAT is scaled by the same share.
+- `catchup_vat_gbp` is added to `vat_gbp`. The bill's total does not change.
+- A reader that needs what the correction moved the total by adds the two fields together. These
+  are the direct-debit balance book, the payment-review spend, the ledger's restatement memo, the
+  unit-rate netting and the Explore cast.
+- The pre-bill VAT check measures the rate over a base that includes the catch-up line.
+
+**Not changed.** The raw delta and the back-billing write-off stay VAT-inclusive. They are amounts
+restated or barred, not lines on the bill. **GAP (practitioner):** whether suppliers print a
+catch-up as one line before VAT or as a reverse-and-rebill of each month (§13 above).

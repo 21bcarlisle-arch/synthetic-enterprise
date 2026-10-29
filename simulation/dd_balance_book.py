@@ -302,7 +302,9 @@ def _true_charges(bills: list[dict]) -> dict[int, float]:
         for c in supply:
             if not c.get("catchup_applied"):
                 continue
-            out[id(c)] -= float(c.get("catchup_adjustment_gbp") or 0.0)
+            # The catch-up line is before VAT and its VAT is on the VAT line: the total moved by both.
+            out[id(c)] -= (float(c.get("catchup_adjustment_gbp") or 0.0)
+                           + float(c.get("catchup_vat_gbp") or 0.0))
             run = [b for b in supply if b is not c
                    and c["catchup_period_start"][:10] <= b["period_start"][:10]
                    and b["period_end"][:10] <= c["catchup_period_end"][:10]]

@@ -97,6 +97,15 @@ UNAVAILABLE = "UNAVAILABLE"
 #: quantity IS before differencing it — and this constant exists so the next reader does not have to
 #: repeat the trace to find out.
 VAT_INCLUSIVE = "vat_inclusive"
+#:
+#: **Corrected 2026-10-29, beside the claim.** "Charging VAT on it again would double-count" was right,
+#: and "it is not one" was wrong: the correction carried its VAT, but that VAT never reached the VAT
+#: line, so the bill printed too little VAT and its before-VAT amount counted the rest as the
+#: supplier's charge (SEAT_FINDING_A_CATCH_UP_IS_ADDED_TO_THE_BILL_GROSS_..._2026-10-29.md). A bill
+#: built since then prints the correction BEFORE VAT and carries its VAT on the VAT line
+#: (`catchup_vat_gbp`). A ledger from before the split still has the old shape, so the line says which
+#: it is rather than assuming.
+VAT_EXCLUSIVE = "before_vat"
 
 #: Pennies. Two figures agreeing to less than this are the same figure rendered twice; the ledger
 #: stores 2dp, so anything at or above one penny is a real disagreement and not float noise.
@@ -133,13 +142,15 @@ def bill_lines(inv: dict) -> list[dict]:
               {"consumption_kwh": kwh, "non_commodity_rate_gbp_per_mwh": UNAVAILABLE,
                "why": "the issued bill does not record the levy rate it used"},
               inv.get("non_commodity_amount_gbp"), NEEDS_EXTERNAL_RATE),
-        _line("VAT", "vat_rate x (energy + network and policy + standing charge)",
+        _line("VAT", "vat_rate x (energy + network and policy + standing charge"
+              + (" + catch-up correction)" if inv.get("catchup_vat_gbp") is not None else ")"),
               {"vat_rate": UNAVAILABLE,
                "why": "the issued bill does not record the rate; the statutory rate is a "
                       "published fact the validator must fetch rather than be handed"},
               inv.get("vat_gbp"), NEEDS_EXTERNAL_RATE),
     ]
     if inv.get("catchup_applied"):
+        before_vat = inv.get("catchup_vat_gbp") is not None
         # THE FIFTH PRINTED COMPONENT, AND THE FIRST DRAFT OF THIS MODULE DROPPED IT.
         #
         # `tools/generate_billing_ledger` says so in its own comment -- *"a genuine FIFTH printed
@@ -157,9 +168,11 @@ def bill_lines(inv: dict) -> list[dict]:
         lines.append(_line(
             "Catch-up correction (bills already issued, restated)",
             "a real read resolved a run of estimates; the correction for "
-            "{}..{} is folded into THIS bill's total, VAT-INCLUSIVE".format(
-                inv.get("catchup_period_start"), inv.get("catchup_period_end")),
-            {"vat_basis": VAT_INCLUSIVE,
+            "{}..{} is folded into THIS bill's total, {}".format(
+                inv.get("catchup_period_start"), inv.get("catchup_period_end"),
+                "BEFORE VAT; its VAT is in the VAT line" if before_vat else "VAT-INCLUSIVE"),
+            {"vat_basis": VAT_EXCLUSIVE if before_vat else VAT_INCLUSIVE,
+             "catchup_vat_gbp": inv.get("catchup_vat_gbp"),
              "catchup_direction": inv.get("catchup_direction"),
              "catchup_periods_covered": inv.get("catchup_periods_covered"),
              "catchup_raw_delta_gbp": inv.get("catchup_raw_delta_gbp"),

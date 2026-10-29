@@ -323,7 +323,9 @@ def priced_annual_for_review(
         return spend, False
     annual_kwh = sum(float(b["total_consumption_kwh"]) for b in completed)
     days = sum(bill_days(b) for b in completed)
+    # With VAT: the catch-up line is before VAT, and this sum is set against VAT-inclusive spend.
     billed_adjustments = sum(float(b.get("catchup_adjustment_gbp") or 0.0)
+                             + float(b.get("catchup_vat_gbp") or 0.0)
                               for b in completed if b.get("catchup_applied"))
     if rule == "consumption_at_rates_in_force":
         return priced_annual_inc_vat_at_rates(
