@@ -136,6 +136,36 @@ first, and an occupier's leg is the one that keeps paying after its final bill. 
 £11,866.17.** If it lands near £11,866, the occupier fix caused the move and the date did not. In
 that case P3's "only dates move" stands, and this paragraph is the wrong prediction.
 
+**10:47 GMT: the attribution prediction is refuted. The occupier fix and its five companions cause
+the whole fall; the date causes none of it.** `fresh-run-0b2879ef7d` wrote `DONE.json` (4,371 s,
+nothing skipped; its worktree runs `WRITE_OFF_DATE_CONVENTION = "final_bill_due_date"`, so it is
+the one-variable comparison). Probe `/var/tmp/wo-attr-0b28-scripts/attr.py`, over
+`p2b__arrears_lines_by_customer.pkl.gz` on all three books (1,293 accounts each):
+
+| book | carries | `write_off_at_close_gbp` | `dca_recovery_gbp` |
+|---|---|---|---|
+| b2fc50facf | neither | £12,323.59 | £1,503.46 |
+| 0b2879ef7d | six fixes | **£11,866.17** | £1,447.60 |
+| 209c3350ab | six fixes + one date | £11,866.17 | £1,447.60 |
+
+- b2fc → 0b28: −£457.42 on 68 accounts (65 above 1p, the count given above). 36 `OCC-` legs carry
+  −£418.14 and 32 others carry −£39.28.
+- 0b28 → 209c: **£0.00 on 0 accounts.** The arrears lines are identical on every key for every
+  customer, not only this one.
+- So P3's "amounts unchanged, only dates move" **stands for the date change.** The −3.7% belongs to
+  the six fixes, most of it to the `OCC-` legs that 558ee46245 touches. This split cannot separate
+  the six fixes from each other.
+
+**A second result I did not predict.** `bad_debt_gbp` is identical between 0b28 and 209c in every
+year 2016–2025, and in every (customer, year) of `p2b__all_records` (0 differ). All the per-year
+movement P3 reads above (at most 0.28%) is therefore the six fixes, not the date. Moving a leaver's
+close write-off a year later moves nothing in the P&L. The likely mechanism, which I have not
+established: `arrears_engine._row_for` books a figure dated after an account's last settlement
+year on that account's last record. A leaver has no records after it leaves, so either date lands
+in the same row. If so, 2b70102f9's claim that the P&L reads the one write-off date holds only in
+name: the P&L books a leaver's write-off in its exit year. Filed:
+`docs/staging/SEAT_FINDING_A_LEAVERS_WRITE_OFF_BOOKS_IN_ITS_EXIT_YEAR_WHATEVER_ITS_DATE_2026-10-29.md`.
+
 **Second readings, not grades of this record.** On this book `INV_OVERDUE_WITHIN_PAGE_BALANCE`
 breaches 2,500 of 19,491 steps (9,455 of 32,726 on b2fc50facf; the step count also changed). `lag_occ4.py`
 attributes 27 to a page payment the desk has not yet seen and the rest to "other": 1,679 at most 2p,
