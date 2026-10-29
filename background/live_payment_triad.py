@@ -122,6 +122,7 @@ from simulation.household import household_of
 from simulation.payment_behaviour_source import (
     ARREARS_REPAYMENT,
     CANCELLED_OTHER,
+    CARD,
     DIRECT_DEBIT,
     INSUFFICIENT_FUNDS,
     PREPAYMENT,
@@ -1265,6 +1266,7 @@ class LivePaymentTriad:
         # mover_final_bill_outcome`), so the P&L and the rails read this outcome rather than drawing
         # their own. What the final-bill model recovers is all that is recovered: no later lump.
         final_exit = None
+        final_part_gbp = 0.0
         if moved_out_on and world_payment_truth.UNIFIED:
             final_exit = mover_final_bill_outcome(
                 {"moved_out_on": moved_out_on}, customer_id, due_date.isoformat(), fuel,
@@ -1281,6 +1283,7 @@ class LivePaymentTriad:
                                             dd_failure_reason=event.dd_failure_reason
                                             or INSUFFICIENT_FUNDS)
                 if amount_gbp > 0 and part_paid > 0:
+                    final_part_gbp = round(part_paid, 2)
                     self._final_bill_part_share[(customer_id, bill_month)] = (
                         part_paid / amount_gbp)
 
@@ -1512,6 +1515,25 @@ class LivePaymentTriad:
             SeamAdapterInput(account_id=account_id, correlation_id=cf_correlation_id),
         ):
             self._cf_consumer.observe_wire(cf_wire)
+
+        # A MOVER'S FINAL BILL, PART PAID: the household paid `final_part_gbp` of it by card on the
+        # due date and the rest failed. The world's truth carries the part and the page prints it as
+        # a payment received, so it crosses to both desks as its own payment. Crossing only the
+        # failure left the desk chasing, and writing off, the whole bill.
+        if final_part_gbp > 0:
+            part = dataclasses.replace(
+                event, result="success", amount_gbp=final_part_gbp, payment_method=CARD,
+                days_late=0, payment_date=due_date.isoformat(), dd_failure_reason=None)
+            part_ref = f"{invoice_ref}::part"
+            self._hand_overs.append(self._consumer.observe_hand_over(
+                emit_wire_responses(part, SeamAdapterInput(account_id=account_id,
+                                                           correlation_id=part_ref)),
+                received_at=datetime.combine(due_date, time(12, 0))))
+            for cf_wire in emit_wire_responses(
+                part, SeamAdapterInput(account_id=account_id, correlation_id=part_ref,
+                                       bank_reference=_counterfactual_correlation_id(
+                                           invoice_ref, part_ref))):
+                self._cf_consumer.observe_wire(cf_wire)
 
         # WHAT HAPPENS AFTER THE DUE DATE (2026-10-04). The world decides now whether, and when,
         # the household pays this bill off after all -- its own substream, so no draw above moves

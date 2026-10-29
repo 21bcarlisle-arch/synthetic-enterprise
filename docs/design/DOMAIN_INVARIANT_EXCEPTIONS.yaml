@@ -115,13 +115,17 @@ exceptions:
       payment truth, a DD collected on its date, the credit bill posted to the desk and one write-off
       date. Each prints an overdue figure above what the household's pages say is owed that day.
     reason: >-
-      Partly diagnosed. 9,455 on b2fc50facf falls to 2,500 here. Class (a), steps after the page's
-      write-off, is 0 (723). By the class probe (/var/tmp/onepay-scripts/lag_occ4.py, which counts
-      2,526 steps against the row's 2,500, so the split is approximate): 27 fall on a page payment the
-      desk has not yet seen cross (466), 1,679 are at most 2p above the page, 675 are up to £1, and 145
-      are above £1. Only the 27 and the pennies are explanations: the desk's ask and the printed bill
-      round apart. The 675 under £1 and the 145 above are the open defect, which the finding still owns.
-      Grade beside docs/staging/records/SEAT_PREREGISTRATION_ONE_FRESH_RUN_AT_0B2879EF7D_GRADES_THE_SIX_FIXES_IN_CODE_2026-10-29.md.
+      Every step assigned, by the row's own evaluator (/var/tmp/overdue820/probe.py, 2,500 exactly)
+      and classify.py. (A) 2,328 steps on 139 households, 1p to 7p: the desk asked the biller's
+      unrounded total and the page prints the total its rounded lines foot to; on 2,012 the excess is
+      the sum of the two over the open bills to the penny. (B) 140 steps on 18 households: a mover's
+      final bill part-paid, the part printed on the page and never crossed to the desk. Both fixed in
+      code with this row, which predicts at most 100 and 10 on the next fresh run. (C) 32 steps on 4
+      households: a part-paid final bill where the desk had already taken some cash, less than the
+      part; where that cash came from is not traced (the in-loop bill was ruled out), and B's fix
+      puts the desk below the page there. The pennies fell from about 2,985 to 1,679 at a steady rate
+      per step (9.1% to 8.6%): the book printed 13,235 fewer steps. Grade beside
+      docs/staging/records/SEAT_PREREGISTRATION_THE_OVERDUE_ROWS_2500_STEPS_BY_CAUSE_ON_THE_209C_BOOK_2026-10-29.md.
     filed: 2026-10-29
     retired_by: docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md
     max_breached: 2500

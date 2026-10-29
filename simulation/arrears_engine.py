@@ -945,11 +945,25 @@ def payer_ask_gbp(bill: dict) -> float | None:
     leave a penny-dust bill to collect. The bill's charge is unchanged by EBSS; what the named payer
     owes is net of it, unless the unnamed occupier's account held the month's credit.
     """
-    from company.interfaces.bill_assembly import owed_after_scheme_credit
+    from company.interfaces.bill_assembly import (
+        PRINTED_MONEY_LINES,
+        MoneyBoundaryError,
+        owed_after_scheme_credit,
+        printed_total,
+    )
     occupier_share = bill.get("occupier_share", 0.0) + bill.get("void_owner_share", 0.0)
     if occupier_share >= 1.0 - 1e-9:
         return None
-    amount = bill["total_amount_gbp"]
+    # The total the bill prints, its lines each rounded to the penny. The unrounded total, rounded
+    # once, sat a penny away on a bill in three, and the desk chased one penny per open bill above
+    # what the page said was owed (2,328 steps on the 209c3350ab book).
+    if not any(k in bill for k in PRINTED_MONEY_LINES):
+        amount = round(bill["total_amount_gbp"], 2)   # a bill carrying no lines prints its total
+    else:
+        try:
+            amount = printed_total(bill)
+        except MoneyBoundaryError:
+            return None   # lines that do not foot: the ledger holds the bill, nobody is asked for it
     if occupier_share > 0.0:
         amount = round(amount * (1.0 - occupier_share), 2)
     if not (bill.get("occupier_scheme_credit_gbp") or bill.get("occupier_scheme_month_credit_gbp")):

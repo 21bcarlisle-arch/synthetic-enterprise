@@ -250,3 +250,14 @@ Results, and an unattributed −3.7% in close write-offs that the 0b28 run will 
 `records/SEAT_PREREGISTRATION_ONE_WRITE_OFF_DATE_FOR_A_LEAVERS_DEBT_ON_A_FRESH_RUN_2026-10-29.md`.
 
 Still open on this finding: the rest of the row (the "other" class), graded by the 0b28 run.
+
+## 2026-10-29: the 209c3350ab book's 2,500, every step by cause (item `the-overdue-rows-820-unexplained-steps-on-the-209c-book`)
+
+Counted by the row's own evaluator, so 2,500 exactly. (A) 2,328 steps are 1p to 7p: the desk asked
+the biller's unrounded total, but the page prints the total its rounded lines foot to. Fixed: one
+`saas.money.printed_bill_money` for both. (B) 140 are a mover's part-paid final bill whose part never
+crossed to the desk. Fixed: it crosses as a card payment. (C) 32 on 4 households: the desk took
+some cash on a part-paid final bill, and its source is not traced. The "675 up to £1" did not
+survive the row's own count: nothing breaches by between 10p and £1. Causes, the refuted
+hypothesis for C, and the prediction for the next fresh run:
+`docs/staging/records/SEAT_PREREGISTRATION_THE_OVERDUE_ROWS_2500_STEPS_BY_CAUSE_ON_THE_209C_BOOK_2026-10-29.md`.

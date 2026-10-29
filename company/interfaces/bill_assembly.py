@@ -47,6 +47,8 @@ from company.billing.monthly_bill_assembly import (
 )
 from company.billing.pre_bill_validation import validate_bills
 from company.regulatory.energy_bill_support import ebss_credit_gbp as _scheme_credit
+from saas.money import PRINTED_MONEY_LINES, MoneyBoundaryError, printed_bill_money
+from saas.money import printed_bill_total as printed_total
 
 
 def issued_bills(bills: list) -> list:
@@ -90,7 +92,8 @@ def scheme_credit(segment: str, commodity: str, month: str, held_from: str | Non
 
 
 __all__ = [
-    "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
+    "MoneyBoundaryError", "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
     "billing_accuracy", "direct_debit_money_line", "held_bills", "issued_bills",
-    "move_out_final_bills", "owed_after_scheme_credit", "scheme_credit",
+    "move_out_final_bills", "owed_after_scheme_credit", "PRINTED_MONEY_LINES", "printed_bill_money",
+    "printed_total", "scheme_credit",
 ]

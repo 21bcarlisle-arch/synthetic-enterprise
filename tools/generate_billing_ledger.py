@@ -37,7 +37,7 @@ from saas.money import (
     MoneyBoundaryError,
     display_rate_gbp_per_day,
     display_rate_p_per_kwh,
-    foot_components_to_total,
+    printed_bill_money,
 )
 from saas.tariff_pricing import split_flat_rate_to_tou
 from simulation.arrears_engine import (
@@ -514,19 +514,10 @@ def generate(run_json_path=None, out_path=None):
         # The catch-up adjustment is a genuine FIFTH printed component on a
         # back-billing bill (it is added to the total outside the four category
         # fields), so it must be in this set or the derived total would drop
-        # it -- that omission is what sank the first F6 build.
-        money_components = {
-            "commodity_amount_gbp": bill.get("commodity_amount_gbp", 0.0) or 0.0,
-            "non_commodity_amount_gbp": bill.get("non_commodity_amount_gbp", 0.0) or 0.0,
-            "standing_charge_gbp": bill.get("standing_charge_gbp", 0.0) or 0.0,
-            "vat_gbp": bill.get("vat_gbp", 0.0) or 0.0,
-        }
-        if bill.get("catchup_applied") and bill.get("catchup_adjustment_gbp") is not None:
-            money_components["catchup_adjustment_gbp"] = bill["catchup_adjustment_gbp"]
+        # it -- that omission is what sank the first F6 build. The set and the footing live in
+        # `saas.money.printed_bill_money`, which the payer's ask reads too.
         try:
-            printed_money, printed_total = foot_components_to_total(
-                money_components, amount, label=f"{cid}/{period_end}"
-            )
+            printed_money, printed_total = printed_bill_money(bill, label=f"{cid}/{period_end}")
         except MoneyBoundaryError as exc:
             # A residual too large to be rounding means the declared total
             # contains money that is not in the printed component set. HOLD the

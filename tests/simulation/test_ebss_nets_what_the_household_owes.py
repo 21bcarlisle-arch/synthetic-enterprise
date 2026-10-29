@@ -18,12 +18,14 @@ from company.regulatory.energy_bill_support import EBSS_INSTALMENT_GBP, ebss_cre
 
 
 def _bill(cid, period_end, amount, commodity="electricity", segment="resi"):
+    # Lines rounded to the penny and VAT the rest, so the printed bill foots to `amount`.
     subtotal = amount / 1.05
+    lines = [round(subtotal * w, 2) for w in (0.8, 0.15, 0.05)]
     return {
         "customer_id": cid, "period_start": period_end[:8] + "01", "period_end": period_end,
-        "total_consumption_kwh": 300.0, "commodity_amount_gbp": subtotal * 0.8,
-        "non_commodity_amount_gbp": subtotal * 0.15, "standing_charge_gbp": subtotal * 0.05,
-        "vat_gbp": amount - subtotal, "total_amount_gbp": amount,
+        "total_consumption_kwh": 300.0, "commodity_amount_gbp": lines[0],
+        "non_commodity_amount_gbp": lines[1], "standing_charge_gbp": lines[2],
+        "vat_gbp": round(amount - sum(lines), 2), "total_amount_gbp": amount,
         "average_unit_rate_gbp_per_mwh": 300.0, "clarity_score": 0.75,
         "bill_shock_pct": None, "segment": segment, "commodity": commodity,
     }
@@ -70,6 +72,11 @@ def test_the_held_month_the_budget_weighs_asks_the_same_door():
     for call in calls:
         amount = next(k.value for k in call.keywords if k.arg == "amount_gbp")
         named = {getattr(n, "id", None) for n in ast.walk(amount)}
+        # A local the call reads (`_issued_ask = _issued_ask_gbp(...)`) is followed to its value.
+        for n in ast.walk(tree):
+            if (isinstance(n, ast.Assign) and len(n.targets) == 1
+                    and getattr(n.targets[0], "id", None) in named):
+                named |= {getattr(m, "id", None) for m in ast.walk(n.value)}
         reached = set(named)
         for name in named & set(helpers):
             reached |= {getattr(n, "id", None) for n in ast.walk(helpers[name])}
