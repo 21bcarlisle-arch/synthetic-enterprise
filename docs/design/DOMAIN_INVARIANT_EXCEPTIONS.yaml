@@ -106,9 +106,8 @@ exceptions:
       Partly diagnosed. The main cause, the desk posted true-kWh revenue before VAT, is fixed and
       graded: 12,730 -> 9,455 on a fresh run.
       What is left, by class (/var/tmp/desk-wo-probe/lag.py):
-      (a) 723 steps on 112 households fall after the page wrote the bill off. That is three write-off
-      dates for one leaver's debt: the page at the final bill's due date, the company's sweep a year
-      later and only after the loop, and the desk's journey at the six-year bar.
+      (a) 723 steps on 112 households fell after the page wrote the bill off: three write-off dates
+      for one leaver's debt. Fixed by one date, and graded at 0 steps on the 209c3350ab book (2026-10-29).
       (b) 2,985 are at most 2p above the page, where the desk's ask and the printed bill round apart.
       (c) 466 fall on a direct debit the page posts on its due date, which the desk has not yet seen
       cross.
@@ -119,7 +118,7 @@ exceptions:
       netting one fuel's credit against the other's debt, and the rest are pennies adding up across
       open bills. Split and predictions in
       docs/staging/records/SEAT_PREREGISTRATION_AN_OCCUPIERS_BILLS_READ_THE_TRIADS_PAYMENT_TRUTH_2026-10-28.md.
-      Only (b) and (c) are explanations. (a) and (d) are open defects, excepted rather than refusing
+      Only (b) and (c) are explanations. (d) is the open defect, excepted rather than refusing
       the next publish, because the page has printed these figures since the cold read of 23 Oct
       and the row puts the count on the surface every run.
       Grade beside docs/staging/records/SEAT_PREREGISTRATION_THE_DESK_POSTED_THE_ISSUED_BILL_READ_ON_A_FRESH_RUN_2026-10-28.md.

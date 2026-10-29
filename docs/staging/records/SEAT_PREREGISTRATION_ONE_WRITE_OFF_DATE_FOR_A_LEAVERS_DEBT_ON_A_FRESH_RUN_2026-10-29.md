@@ -92,3 +92,53 @@ first `NoRoom`, so a memory refusal after it leaves no trace: the log names the 
 hides the memory hold. Fixed in the commit that records this: a retry now prints whenever the cause changes (control `test_a_queue_names_each_new_cause_of_its_wait_not_only_the_first`, mutation-proven). The grade chain was waiting on job unit `longjob-fresh-run-209c3350ab` by
 07:59:56. `fresh-run-0b2879ef7d` is still queued: it cannot fit beside this run (12.5 + 12.5 GB
 against a 23 GB budget). No output read. P1 to P5 stand as written.
+
+**09:18 GMT: graded.** `fresh-run-209c3350ab` wrote `DONE.json` at 09:14 (4,459 s, nothing skipped), and
+the chain wrote `ALLDONE` at 09:16 (`/var/tmp/wo-grade-209c/`: `grade.txt`, `lag.txt`,
+`wo.txt`). Same 1,293 accounts as the baseline. Below, each prediction as written, then the reading.
+
+- **P1 holds, and more strongly than predicted.** Class (a) is **0 steps** (723 on b2fc50facf):
+  `lag_occ4.py` prints no `after_page_write_off` key at all. The residue I predicted (a dual-fuel
+  account where one fuel leaves and the other stays, and world/company final bills on different dates)
+  does not appear as class (a). The leg-level split in P2 explains why: on such an account the desk
+  writes the leaving leg off on its own date, and from then on no step prints more than the pages say.
+- **P2 holds.** All 21 of 21 single-fuel accounts with a page write-off have the desk's
+  `CLOSED_ACCOUNT_RULE` write-off on the page's `WRITTEN_OFF` date (share 1.000; prediction ≥0.95).
+  This was not predicted: on multi-leg accounts the share is 34 of 86. 48 have the desk's close
+  write-off on a different day from the household's *first* page write-off, and 4 have none. This
+  probe compares each leg's write-off with the first one on the household, so a second leg written off
+  on its own later date counts as "other day". That is why class (a) can be 0 while the share is
+  0.395. This is a limit of the probe, not a breach.
+- **P3 holds on the measure stated.** The arrears lines summed over every key come to £682,254.91,
+  against £683,208.02 on the baseline: −0.14% (prediction: under 1%). `bad_debt_gbp` by year moves at
+  most 0.28% in any year (2020: £4,761.42 → £4,748.17). The ten-year total moves +£10.75 (+0.02%). No
+  year moves more than 5%. **But one part of "amounts unchanged, only dates move" is refuted.**
+  `write_off_at_close_gbp` falls £457.42 (£12,323.59 → £11,866.17, −3.7%) across 65 accounts: 36 of
+  them are `OCC-` legs carrying £418.14 of the fall, and on 43 of the 65 `pre_4c_net_gbp` does not move. `dca_recovery_gbp` falls about
+  12% of each account's drop (£1,503.46 → £1,447.60), as it would if the recovery share applied to a
+  smaller write-off. **I cannot yet say what causes it.** This run also carries the six fixes the 0b28
+  run grades, including 558ee46245 (occupiers' bills read the triad's payment truth), and that fix
+  touches exactly the `OCC-` legs.
+- **P4 holds.** Desk statute-bar write-offs on leavers: **0** (106). Every desk write-off on the book
+  (185) is under `CLOSED_ACCOUNT_RULE` on an account the page wrote off. So `INV_STATUTE_BARRED_WRITE_OFF_AGE`
+  is now **UNREACHED**: no statute-barred write-off is left anywhere on the book, and its exception
+  (3 of 64) has nothing to describe. That is expected when a leaver is written off at a year. It also
+  means the row can no longer fail on a default book: a six-year bar now needs a stayer in debt for
+  six years, and this book has none.
+- **P5 holds.** `company_provision.write_offs_posted` is **0** (106; prediction under 10%).
+
+**Prediction for the attribution, written 09:18 GMT before `fresh-run-0b2879ef7d` has started.**
+That run carries the six fixes without the one write-off date, so it is the one-variable comparison
+for the −£457 close write-off. My prediction is that the *date* causes it, not the occupier fix. Moving
+the page's write-off from the final bill's due date to a year later lets a year of payments land
+first, and an occupier's leg is the one that keeps paying after its final bill. **0b28's
+`write_off_at_close_gbp` will be within £100 of £12,323.59 (the b2fc50facf figure), not near
+£11,866.17.** If it lands near £11,866, the occupier fix caused the move and the date did not. In
+that case P3's "only dates move" stands, and this paragraph is the wrong prediction.
+
+**Second readings, not grades of this record.** On this book `INV_OVERDUE_WITHIN_PAGE_BALANCE`
+breaches 2,500 of 19,491 steps (9,455 of 32,726 on b2fc50facf; the step count also changed). `lag_occ4.py`
+attributes 27 to a page payment the desk has not yet seen and the rest to "other": 1,679 at most 2p,
+675 up to £1, 145 above £1. `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` breaches 269 against its
+exception's 153, so the full suite **refuses the publish** on this book. That is the 0b28
+pre-registration's P3 ("I cannot yet say"), and its grade owns the ceilings. Neither is changed here.

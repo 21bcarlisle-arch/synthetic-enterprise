@@ -241,6 +241,12 @@ journey ends. The world's close write-off, which the page and the P&L read, is d
 `collections_communication.closed_account_write_off_date`. Knowledge: `debt_and_collections.md`
 s.7.3. Control: `tests/company/billing/test_a_leavers_debt_has_one_write_off_date.py`. Predictions:
 `records/SEAT_PREREGISTRATION_ONE_WRITE_OFF_DATE_FOR_A_LEAVERS_DEBT_ON_A_FRESH_RUN_2026-10-29.md`.
-Known residue: a dual-fuel account where one fuel leaves and the other stays.
+The known residue was a dual-fuel account where one fuel leaves and the other stays.
 
-Still open on this finding: the grade on a fresh run.
+**Graded 2026-10-29 on `fresh-run-209c3350ab`: class (a) is 0 steps (723).** The residue did not
+appear. Desk statute-bar write-offs on leavers went from 106 to 0, and the post-loop sweep posted 0
+(106). The row as a whole breaches 2,500 of 19,491 steps on that book, and none of them is class (a).
+Results, and an unattributed −3.7% in close write-offs that the 0b28 run will split:
+`records/SEAT_PREREGISTRATION_ONE_WRITE_OFF_DATE_FOR_A_LEAVERS_DEBT_ON_A_FRESH_RUN_2026-10-29.md`.
+
+Still open on this finding: the rest of the row (the "other" class), graded by the 0b28 run.
