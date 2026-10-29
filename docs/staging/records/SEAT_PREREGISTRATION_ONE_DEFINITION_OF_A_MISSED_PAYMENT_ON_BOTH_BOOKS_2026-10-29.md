@@ -83,3 +83,12 @@ The record could count no miss under either definition. The check now names that
 - This is the "paid read two ways" difference I foresaw, but from a different cause: the due date,
   not FIFO.
 - Of 602 matches, 157 pass every check. The cast fills 7 of 8 slots; only `storage_heating` is empty.
+
+## Re-read on the fresh 9553d403b7 book (2026-10-29)
+
+Record: `SEAT_RECORD_THE_FRESH_RUN_AT_9553D403B7_GRADES_THE_OVERDUE_AND_MISSED_PAYMENT_FIXES_2026-10-29.md`.
+- The definition is graded by the suite: `INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE` is 0 of 1,130 accounts, with the page's
+  counter built by `missed_on` in memory (`/var/tmp/smallexc/build_book.py`).
+- **The debt slot's rows (matches, refusals by this check, the household) were not re-read.** This book's
+  site pages were not built: `debt_slot.py` reads a customers directory, and the 209c pages' build is not scripted
+  anywhere this session could find. That is the one row of this record left open on this book.

@@ -20,3 +20,10 @@ Baseline: 35 on the 209c3350ab book graded with origin 1ba034b9c8's code, every 
 
 Several commits may land before the next run. Where a row is touched by more than one of them, its move is graded
 and not attributed.
+
+## Graded on the fresh 9553d403b7 book (2026-10-29, after the run)
+
+Record: `SEAT_RECORD_THE_FRESH_RUN_AT_9553D403B7_GRADES_THE_OVERDUE_AND_MISSED_PAYMENT_FIXES_2026-10-29.md`.
+- **P1 held.** `INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE`: 0 of 1,130 accounts (range 0 to 2). The exception is retired.
+- **P2 not measured.** It was not graded against a number, and the exit model's draws per mover were not counted on this book.
+- **P3 held.** No other row's breach count moves except the revenue row's +1, which is traced to a different cause (a dropped sub-£5 correction).

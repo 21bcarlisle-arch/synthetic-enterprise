@@ -88,3 +88,17 @@ finding, section "the desk's untraced cash on four part-paid final bills".
 - **P-C.** On the next fresh run carrying both this and the part-payment fix, class C is 0 steps,
   and no household breaches the row because of a credit bill held on its desk.
 - Replays of the four households, with both fixes, all meet the page or sit within its bound.
+
+## Graded on the fresh 9553d403b7 book (2026-10-29, after the run)
+
+Grade chain output: `/var/tmp/fresh-grade-9553/` (`overdue_probe.txt`, `overdue_classes.txt`, `grade.txt`). Record: `SEAT_RECORD_THE_FRESH_RUN_AT_9553D403B7_GRADES_THE_OVERDUE_AND_MISSED_PAYMENT_FIXES_2026-10-29.md`.
+
+| prediction | predicted | measured | verdict |
+|---|---|---|---|
+| P1 class A + A′ | 100 or fewer | 0 | **held** |
+| P2 class B | 10 or fewer | 0 | **held** |
+| P3 class C | 0 | 0 | **held** |
+| P4 the row | under 200 (point 60), rate graded too | 0 of 19,819 steps (0.0%, from 12.8%) | **held**, better than the point |
+| P5 desk close write-off on leavers | falls by at most £509.52, about that | falls £1,856.34 (17,339.01 to 15,482.67, 185 to 163 stages); the engine's `write_off_at_close_gbp` falls £1,448.36 | **refuted as stated.** The run also carries the mover-exit reseed, which flips 69 final-bill outcomes. So the fall cannot be split between the part payment and the reseed. I cannot yet say how much is P5's |
+| P6 no other row moves beyond its pennies | | no other row's breach count moves except the revenue row (+1, SYN-2016-422, a sub-£5 dropped correction, unrelated to fix 1) | **held** |
+| P-C class C 0, no credit-bill breach | 0 | 0 | **held** |

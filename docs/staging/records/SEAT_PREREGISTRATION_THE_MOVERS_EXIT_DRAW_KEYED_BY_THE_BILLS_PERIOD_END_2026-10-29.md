@@ -34,3 +34,10 @@ its `world_payment_truth` outcome recorded, base seed 42; compare to the book's 
 
 Several commits may land before the next run. Where a row is touched by more than one of them, its move is graded
 and not attributed.
+
+## Graded on the fresh 9553d403b7 book (2026-10-29, after the run)
+
+`/var/tmp/fresh-grade-9553/mover.txt` (`mover_cmp.py` against 209c3350ab): 252 mover legs with a final-month outcome on both books, all
+with the same move date. Record: `SEAT_RECORD_THE_FRESH_RUN_AT_9553D403B7_GRADES_THE_OVERDUE_AND_MISSED_PAYMENT_FIXES_2026-10-29.md`.
+- **P1 held.** 69 legs on **59 households** differ (range 45 to 75; the replay said 71 on 60).
+- **P2 held.** Failed or part-paid final bills: 41 to 44 of 252. The binomial sd at this rate is about 6, so this is no move beyond the spread.

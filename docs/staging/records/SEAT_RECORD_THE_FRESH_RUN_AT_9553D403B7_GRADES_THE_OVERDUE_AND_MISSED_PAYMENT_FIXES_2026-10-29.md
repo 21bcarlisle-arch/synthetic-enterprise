@@ -42,8 +42,45 @@ It writes `ALLDONE` on success and `NO_DONE` if the run left no `DONE.json`.
 Several of these commits touch the same rows. A row that more than one of them moves is graded and not
 attributed.
 
-## Results
+## Results (graded 2026-10-29, after the run)
 
-To be graded when the run ends. Each prediction's result goes beside it in its own record, and that record
-is cross-referenced here. `DOMAIN_INVARIANT_EXCEPTIONS.yaml`'s ceilings are set to what this book measures,
-and every row that reads 0 is retired.
+The run ended at 19:24Z (DONE.json, 4,284 s, no key skipped). The chain graded it and wrote `ALLDONE`.
+Output is in `/var/tmp/fresh-grade-9553/`; the seat's own probes are in `/var/tmp/clse/`.
+
+**Leg one of the exit test, on this book: met in the letter, not in substance.**
+- Under the exceptions file as it stood, the suite **refused the publish**. The revenue row was 25 against a
+  ceiling of 24.
+- Every one of the 25 is now traced, and the file is set to this book. Re-gated, the result is **0 unexcepted
+  breaches across 1,293 accounts; 247 breaches on 7 rows, each named and dated**. So there are zero unexplained
+  breaches.
+- But "explained" is not "correct". Two of the causes are billing defects filed today and not yet fixed (below).
+  The carbon, EBSS and estimate rows also carry open work under their retire conditions.
+- 5 rows are UNCHECKABLE on the raw export, so leg one says nothing about them.
+
+| row | 209c3350ab | 9553d403b7 | |
+|---|---|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 2,500 of 19,491 | **0** of 19,819 | exception retired |
+| INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE | 35 (one definition) | **0** of 1,130 | exception retired |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 24 | 25 | traced, ceiling 25 |
+| PPM not credit billed / EBSS ×2 / carbon / estimate follows reads / estimated run | 12 / 6 / 6 / 6 / 179 / 6 | the same, on the same accounts | ceilings unchanged |
+
+**Predictions** (each graded beside itself in its own record):
+- Overdue rows: P1 to P4, P6 and P-C held, the row going to 0. **P5 refuted as stated**: the desk's close write-off
+  fell £1,856.34, not at most £509.52. Two of the run's changes move it, so it is not attributed.
+- One definition of a missed payment: the row is 0. The debt slot's rows were not re-read, because this book's
+  pages were not built.
+- A mover's DD is never late: P1 held (0). P2 not measured. P3 held.
+- Mover exit keyed by period end: P1 held (59 households, range 45 to 75). P2 held (41 to 44 of 252).
+
+**The revenue row, every breach traced** (replacing classes (a) to (e); (c) and "(a)'s price side" refuted):
+- **F, 17 accounts.** A read-to-read correction under £5 is dropped, and the book drops 2,747 such corrections
+  overall. Filed in `SEAT_FINDING_AN_ACTUAL_READ_UNDER_FIVE_POUNDS_OFF_THE_ESTIMATES_NEVER_CORRECTS_THEM_THE_REVENUE_ROWS_CLASS_E_2026-10-29.md`.
+- **V, 7 accounts, to the penny.** The catch-up is added to the bill gross, and its VAT never reaches `vat_gbp`.
+  3,705 bills print too little VAT, about £5,700. Filed in `SEAT_FINDING_A_CATCH_UP_IS_ADDED_TO_THE_BILL_GROSS_AND_ITS_VAT_NEVER_REACHES_THE_VAT_LINE_2026-10-29.md`.
+- **B, 1 account.** PROS-2017-0117's open run of under-estimates exceeds the row's bound U.
+
+**Also corrected beside the claims** (earlier today, 795765c2a): "held bills are never issued" in the carbon and
+revenue exceptions.
+
+**Next.** Fix V, then F, knowledge page first (K8), and grade both in replay on this book. The prediction is
+that the revenue row goes to 1 (PROS-2017-0117).

@@ -52,6 +52,13 @@
 # the total beside the bands as it expected: a register the previous period did not print is not
 # compared, and INV_TOU_BANDS_SUM_TO_THE_TOTAL grades the meter across that seam instead. 0 of each
 # on the 209c3350ab book's ledger rebuilt with the bands summing to the total.
+#
+# 2026-10-29: graded on the fresh run at 9553d403b7, which carries the desk asking the printed total, the final
+# bill's part payment, the credit bill netted, a mover's DD never late and the exit draw keyed by period end.
+# INV_OVERDUE_WITHIN_PAGE_BALANCE (2,500 -> 0 of 19,819) and INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE
+# (35 -> 0 of 1,130) are retired. Every other ceiling is this book's count, unchanged on the same accounts except
+# the revenue row (24 -> 25), whose 25 are traced to three causes, two of them filed defects. Grade beside
+# docs/staging/records/SEAT_RECORD_THE_FRESH_RUN_AT_9553D403B7_GRADES_THE_OVERDUE_AND_MISSED_PAYMENT_FIXES_2026-10-29.md.
 enforce: true
 exceptions:
   - invariant: INV_PPM_NOT_CREDIT_BILLED
@@ -109,78 +116,28 @@ exceptions:
     filed: 2026-10-28
     retired_by: the raw export carrying each account's void and occupier window, as for INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
     max_breached: 6
-  - invariant: INV_OVERDUE_WITHIN_PAGE_BALANCE
-    scope: >-
-      2,500 of 19,491 collections steps on the fresh 209c3350ab book, which carries the occupier's
-      payment truth, a DD collected on its date, the credit bill posted to the desk and one write-off
-      date. Each prints an overdue figure above what the household's pages say is owed that day.
-    reason: >-
-      Every step assigned, by the row's own evaluator (/var/tmp/overdue820/probe.py, 2,500 exactly)
-      and classify.py. (A) 2,328 steps on 139 households, 1p to 7p: the desk asked the biller's
-      unrounded total and the page prints the total its rounded lines foot to; on 2,012 the excess is
-      the sum of the two over the open bills to the penny. (B) 140 steps on 18 households: a mover's
-      final bill part-paid, the part printed on the page and never crossed to the desk. Both fixed in
-      code with this row, which predicts at most 100 and 10 on the next fresh run. (C) 32 steps on 4
-      households: a part-paid final bill where the desk had already taken some cash, less than the
-      part; where that cash came from is not traced (the in-loop bill was ruled out), and B's fix
-      puts the desk below the page there. The pennies fell from about 2,985 to 1,679 at a steady rate
-      per step (9.1% to 8.6%): the book printed 13,235 fewer steps. Grade beside
-      docs/staging/records/SEAT_PREREGISTRATION_THE_OVERDUE_ROWS_2500_STEPS_BY_CAUSE_ON_THE_209C_BOOK_2026-10-29.md.
-    filed: 2026-10-29
-    retired_by: docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md
-    max_breached: 2500
   # 2026-10-28: the second cold read's six rows (N2, N3, N5, N6, N7, estimate against the meter), written
   # blind and graded on the 1a02c46116 book. Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md.
   - invariant: INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE
-    scope: 24 of 1,293 accounts on the fresh 209c3350ab book (page revenue against page bills before VAT), 13 above the band and 11 below, the EPG term graded
+    scope: 25 of 1,293 accounts on the fresh 9553d403b7 book (page revenue against page bills before VAT, the EPG term graded), the 209c3350ab book's 24 and SYN-2016-422
     reason: >-
-      Diagnosed 2026-10-28 (residual R2), by joining the 1a02c46116 ledger's EPG fields onto its
-      pages and re-grading (355 accounts outside the band by that count, against the finding's
-      316). The Energy Price Guarantee: "Revenue, before VAT" holds what the government paid
-      the supplier in Oct 2022 to Jun 2023, and the page printed it nowhere. Fixed here. The page
-      prints it ("of which Energy Price Guarantee, paid by the government"), and the row grades
-      B + E. E is taken on SETTLED kWh, because that is how the scheme paid. Taken on billed kWh,
-      17 accounts stay above the band, because an estimated bill's share is never trued up at the
-      catch-up. On settled kWh all 17 fall inside 1%. That leaves 40 accounts, none supplied in
-      the EPG window, and each is assigned one of three causes by the month where its bills and
-      its settlement revenue part most (/tmp probe; account lists in the R2 note of the finding):
-      (a) 20, a catch-up at the actual read that does not net the estimated run back to
-      settlement (e.g. PROS-2017-0117: the 2017-11 catch-up credits 569.67 and the later
-      estimates stay low); (b) 15, estimates no actual read ever corrected, so the gap is the
-      estimate error, which on an under-estimate can exceed U, the row's bound (OCC-f9acff98642eg:
-      11 gas bills of 70.55 against 338.54 settled); (c) 5, a part-month first bill that bills less
-      than its month settled. Five of the 40 carry a write-off and grade as flags, so the
-      prediction for the next fresh run is 35 or fewer breached, each in (a) to (c). The cold
-      reader's OCC-423594fbfa6b is inside the band on this book.
-      Graded 2026-10-29 on the fresh 209c3350ab book: 24 (prediction 35 or fewer, held). Assigned by the
-      same rule, 29 Oct: (a) 14, (b) 1 (PROS-2017-0117, 5 estimates after its last actual), (c) 2, and two
-      new classes. (d) 1, PROS-2025-0106: its Apr and May bills are held in the ledger's exception queue (corrected
-      29 Oct: the closing bill does charge the held energy at the meter's figure, 2,131 kWh, so (d) is not
-      unbilled energy and its cause on this row is not yet assigned). (e) 6: no catch-up on the
-      account and the last bill on an actual read, with billed kWh 1.5 to 4.7% off settled. Traced 29 Oct:
-      every estimate run on the six misses by under 5 GBP, and _resolve_catchup drops a correction under
-      CATCHUP_MATERIALITY_THRESHOLD_GBP, which no source establishes. A defect, filed in
-      docs/staging/SEAT_FINDING_AN_ACTUAL_READ_UNDER_FIVE_POUNDS_OFF_THE_ESTIMATES_NEVER_CORRECTS_THEM_THE_REVENUE_ROWS_CLASS_E_2026-10-29.md. Within (a), on 3 accounts the catch-up trues the kWh to settlement exactly, and the gap is
-      the catch-up's kWh billed at that bill's rate, not the rates of the months used. Accounts and figures in
-      docs/staging/SEAT_FINDING_THREE_SMALL_EXCEPTIONS_TRACED_ON_THE_209C_BOOK_MOVERS_DDS_HELD_BILLS_AND_THE_REVENUE_ROWS_CLASSES_2026-10-29.md.
+      The EPG term (R2, 2026-10-28) is graded, so what is left is not the government's support. On
+      2026-10-29 every one of the 25 was traced on the 9553d403b7 book, to within 5p, to one of three causes
+      (/var/tmp/clse/e2.py and the VAT table). These replace the earlier classes (a) to (e): "(c) a part-month
+      first bill" and "(a)'s price side" are refuted beside their claims.
+      (F) 17 accounts: a read-to-read correction under 5 GBP is dropped by CATCHUP_MATERIALITY_THRESHOLD_GBP, so
+      the estimate error is never trued up (2,747 corrections book-wide). A defect, filed in
+      docs/staging/SEAT_FINDING_AN_ACTUAL_READ_UNDER_FIVE_POUNDS_OFF_THE_ESTIMATES_NEVER_CORRECTS_THEM_THE_REVENUE_ROWS_CLASS_E_2026-10-29.md.
+      (V) 7 accounts, whole gap: the catch-up is added to the bill gross and its VAT never reaches vat_gbp, so
+      before-VAT billing counts it (3,705 bills book-wide). A defect, filed in
+      docs/staging/SEAT_FINDING_A_CATCH_UP_IS_ADDED_TO_THE_BILL_GROSS_AND_ITS_VAT_NEVER_REACHES_THE_VAT_LINE_2026-10-29.md.
+      (B) 1, PROS-2017-0117: five estimates after its last actual read under-bill by 967.82, more than U, the
+      row's own bound for an open tail. It is the estimator's own error on an account the book ends on
+      estimates, and no billing step drops it. The row's GAP: U cannot bound an under-estimate.
     filed: 2026-10-28
-    retired_by: the catch-up netting the run to settlement at the rates of the months used, estimates corrected or bounded on the under side, the part-month first bill, (d) assigned, and (e) the read-to-read correction applied whatever its size
-    max_breached: 24
-  - invariant: INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE
-    scope: the "missed DD without a return" leg on a home mover's last two bills, which was 6 accounts on the fresh 209c3350ab book as graded then, and 35 accounts (38 bills) on the same book under origin's one definition of a missed payment (dae9f598d9)
-    reason: >-
-      Traced 2026-10-29, bill by bill. Every one of the 38 is a mover's, and none is a stayer's. (1) 17 are
-      the final bill. The exit model's PAID_LATE kept its 3 to 77 days late on a DD leg, the one path
-      arrears_engine.A_DD_IS_NEVER_LATE did not cover. (2) 21 are the bill before the final. The triad asked
-      mover_final_bill_outcome with the bill's due date, where the rule reads the period end, so a bill due in
-      the move month was drawn as an exit. Both are fixed in the commit that wrote this, with
-      tests/simulation/test_a_movers_dd_is_never_late.py. The six accounts first named here are all among
-      them. The ceiling covers a run made before the fix and graded after it. The next fresh run is predicted
-      0 to 2, in docs/staging/records/SEAT_PREREGISTRATION_A_MOVERS_DD_IS_NEVER_LATE_ON_THE_NEXT_FRESH_RUN_2026-10-29.md.
-    filed: 2026-10-29
-    retired_by: a fresh run carrying the movers' DD fix, graded at 0
-    max_breached: 35
+    retired_by: the read-to-read correction applied whatever its size (F) and the catch-up's VAT on the VAT line (V); (B) stays as the row's lawful tail
+    max_breached: 25
   - invariant: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
     scope: 6 checks on 3 account-years of the fresh 209c3350ab book (kWh and months on each of PROS-2024-0010 electricity 2024, PROS-2025-0106 electricity 2025, SYN-2016-582 electricity 2017)
     reason: >-

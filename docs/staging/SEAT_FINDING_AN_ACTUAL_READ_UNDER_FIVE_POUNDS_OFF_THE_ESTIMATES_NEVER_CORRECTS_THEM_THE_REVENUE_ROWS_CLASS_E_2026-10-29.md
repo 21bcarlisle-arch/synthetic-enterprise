@@ -68,3 +68,19 @@ month's start, after an estimated month) is the class already open in
 `SEAT_FINDING_THE_PRINTED_REGISTER_FIX_EXPOSES_ESTIMATES_FROM_ONE_READ_AND_PRINTS_6436_OPENING_READS_NOBODY_TOOK_2026-10-28.md`.
 The fix in step 2 and that finding's fix would make the same change from two sides: the bill opens on the last
 billed read.
+
+## Graded on the fresh 9553d403b7 book (same day, after the run)
+
+The floor reaches further on the revenue row than class (e) alone. On the 9553d403b7 book (25 breaches,
+`/var/tmp/clse/e2.py`), dropped sub-£5 runs account, to within 5p, for:
+- the gap on all six (e) accounts, and on SYN-2016-422 (new on this book: one estimated part-month first bill,
+  −£1.00);
+- both former class (c) accounts, PROS-2020-0248 (−0.68) and SYN-2016-507g (−10.40). **Class (c), "a part-month
+  first bill", is refuted**: the cause is the floor;
+- the residual on eight former (a) accounts once their catch-up's VAT is taken off. That VAT is the companion
+  defect, `SEAT_FINDING_A_CATCH_UP_IS_ADDED_TO_THE_BILL_GROSS_AND_ITS_VAT_NEVER_REACHES_THE_VAT_LINE_2026-10-29.md`.
+  The accounts are OCC-1a3fe25a0372g (−4.22), PROS-2016-0349g (−5.92), PROS-2017-0187g (+3.38), PROS-2017-0249g
+  (−11.21), SYN-2016-077 (+3.80), SYN-2016-304g (−10.45), SYN-2016-468 (+8.76) and SYN-2016-542g (−9.96).
+
+So 17 of the 25 breaches are this floor, 7 are the catch-up's VAT, and 1 (PROS-2017-0117) is an open run of
+under-estimates bigger than the row's bound. The book still drops 2,747 corrections, the same count as 209c.
