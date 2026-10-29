@@ -211,6 +211,40 @@ blend weighted by FYC·SPAR, and it can be built only once SPAR, or the billing 
 established. Until then E1 stands as the cause of the 179 excepted breaches, now with its citation
 corrected.
 
+## 9. What a bill on an actual read charges after estimates (2026-10-29, K8 for class F)
+
+**What the rules require.** SLC 21B.1: when a customer gives a read or the supplier reads the meter,
+"the licensee must take all reasonable steps to reflect the meter reading in the next Bill or
+statement of account sent to the Customer" (commons, `slc_21b_21ba_reads_and_back_billing.md`, S1).
+The read is reflected in full. The licence names no amount below which the read need not move the
+bill. SLC 21BA limits how far back an *undercharge* may reach (12 months). It sets no lower bound.
+
+**What published practice says.** Citizens Advice, *If you think you've been charged too much for
+your energy* (read 2026-10-29): "If your estimated bill is too high you should take a meter reading
+and send it to your supplier. Your supplier will send you an updated, accurate bill instead." And:
+"If you've recently sent your supplier a meter reading for the first time in a while, your bill might
+be higher than your old, estimated bills … They use these meter readings to give you accurate bills
+based on the energy you've used." The page names no minimum correction.
+
+**How a read-to-read bill works.** The bill on an actual read charges the closing read less the last
+*billed* read. When that last billed read was an estimate, the error in the estimates is inside the
+bill's own advance. Some bills print it as a separate "estimate adjustment" line, but no decision is
+taken about whether to bill it: the meter's advance is the charge. A correction of a few pence is
+billed or credited the same way as one of a hundred pounds. Over a run of reads, energy billed equals
+the register's advance.
+
+**GAP.** No published source we have found speaks to a materiality floor on this correction. The
+£5 that `monthly_bill_assembly` once applied had no source. Its own comment borrowed the figure from
+`smart_meter_reconciliation`, which models a different mechanism. Whether any supplier suppresses
+the *display* of a small adjustment line as a separate line is not established. That would be a
+presentation choice, not a change to what is charged.
+
+**Design choice.** Every actual read that ends an estimate run applies the run's correction, whatever
+its size, so billed kWh meets the meter. A correction that rounds to £0.00 adds no line. The £5
+figure survives only as `catchup_is_material`, a display flag. Before this, 2,747 of 6,452
+corrections on the 209c book were dropped, on 754 of 1,293 accounts, leaving 92,490 kWh never billed
+or refunded (`SEAT_FINDING_AN_ACTUAL_READ_UNDER_FIVE_POUNDS_OFF_THE_ESTIMATES_NEVER_CORRECTS_THEM_..._2026-10-29.md`).
+
 ## Sources
 
 - DESNZ, *Energy Trends Table 4.2*: https://www.gov.uk/government/statistics/gas-section-4-energy-trends (retrieved 2026-10-06, "Domestic" column, 2023–2025)
@@ -223,4 +257,5 @@ corrected.
 - Elexon, *BSCP504 Non-Half Hourly Data Collection* v53.0, effective 01 Oct 2024, §4.9 (read 2026-10-29 via the MHHS document library: https://mhhs-prod-webapp.azurewebsites.net/api/documentlibrary/Background%20Programme%20Context/P478_BSCP504_v53.1.pdf)
 - Elexon, *P40 Modification Report* v0.3 (Jan 2002), §4.1 and §6 (BSC Annex S-2 §4.3.7 text): https://assets.elexon.co.uk/wp-content/uploads/sites/11/2012/02/28170318/p40_mr_v0.3.pdf, read 2026-10-29
 - Elexon, *Settlement calculation hierarchy: Calculate BM Unit Allocated Demand Volume* (BSC guidance note): https://www.elexon.co.uk/bsc/documents/training-guidance/bsc-guidance-notes/settlement-calculation-hierarchy-calculate-bm-unit-allocated-demand-volume/, read 2026-10-29
+- Citizens Advice, *If you think you've been charged too much for your energy*: https://www.citizensadvice.org.uk/consumer/energy/energy-supply/problems-with-your-energy-bill/energy-bill-too-high/, read 2026-10-29 (§9)
 - Not read, named for the next reader: the Smoothing Parameter's MDD value; Elexon's live BMRS/SVAA profile coefficient data; the EUC01B Annual Load Profile table (UK Link secure area, UNC-party access only).

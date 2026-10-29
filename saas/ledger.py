@@ -433,8 +433,9 @@ def estimated_billing_outstanding(bills: list[dict[str, Any]]) -> dict[str, Any]
     has a `catchup_applied` covering its period (`catchup_period_start` <= this bill's `period_end`
     <= `catchup_period_end`, the range D3's own `_resolve_catchup()` stamps), and no later bill for
     the customer is on an actual read. The last leg was added 2026-10-05 (D48 slice 2):
-    `catchup_applied` is set only for a MATERIAL correction, so a run an actual read closed with a
-    correction under the threshold stayed "outstanding" for ever. On the decade run that was 83% of
+    `catchup_applied` was then set only for a correction of £5 or more, so a run an actual read closed
+    with a smaller one stayed "outstanding" for ever. Since 2026-10-29 it is unset only for a
+    correction that rounds to 0.00. On the decade run that was 83% of
     the £93,059 the annual report printed. A read ends the run whether or not the correction is
     billed. A final bill on an estimate ends it too (2026-10-24, `estimates_closed_by_final_bill`):
     no read will come, and the grade counts those bills beside the position, not in it.

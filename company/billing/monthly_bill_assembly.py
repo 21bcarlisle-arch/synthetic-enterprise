@@ -298,12 +298,11 @@ def _charged_at_the_meter(true_bill: dict, event) -> dict:
     return charged
 
 
-# Below this delta, real suppliers typically do not bother billing a
-# correction (matches the same £5 real-world convention already used by
-# company/billing/smart_meter_reconciliation.py's `is_material`, kept as its
-# own named constant here rather than imported since that module models a
-# different real mechanism -- annual smart-meter AQ reconciliation -- not the
-# per-actual-read catch-up this pipeline builds; see _resolve_catchup below).
+# A DISPLAY flag only (`catchup_is_material`), never a gate on what is charged. A bill on an actual
+# read charges closing read less the last billed read, so the estimates' error is inside its own
+# advance and no source lets a supplier leave part of it off (SLC 21B.1; how_a_supplier_shapes_an_
+# estimate_for_an_unread_month.md section 9, which labels any floor a GAP). Gating on this once
+# dropped 2,747 of 6,452 corrections and left 92,490 kWh never billed or refunded.
 CATCHUP_MATERIALITY_THRESHOLD_GBP = 5.0
 
 
@@ -805,19 +804,15 @@ def build_monthly_bills(
                     customer_id, segment, pending_estimated_run, bill["period_end"],
                     payment_channel,
                 )
-                # Materiality gate (Expert-Hour finding, 2026-07-12): a real
-                # supplier doesn't bother billing/crediting a correction below
-                # CATCHUP_MATERIALITY_THRESHOLD_GBP -- previously computed and
-                # exposed but never actually consulted, so a genuinely £0.00
-                # correction was still stamped onto the bill as a real event.
-                # The energy true-up is stamped whether or not the money correction is material:
-                # an immaterial correction is not billed, but the register still moved.
+                # Every correction is billed, however small: the read nets the run to the meter
+                # (section 9 of the estimate knowledge page). Only one that rounds to 0.00 adds no
+                # line, so a genuinely zero correction is not stamped as an event.
                 if catchup is not None:
                     bill["read_true_up_periods"] = catchup["periods_covered"]
                     bill["read_true_up_billed_kwh"] = catchup.get("billed_kwh")
                     bill["read_true_up_kwh"] = catchup.get("true_up_kwh")
                     bill["read_true_up_barred_kwh"] = catchup.get("barred_kwh")
-                if catchup is not None and catchup["is_material"]:
+                if catchup is not None and catchup["chargeable_gbp"] != 0:
                     bill["catchup_applied"] = True
                     bill["catchup_unbilled_periods"] = sum(
                         1 for p in pending_estimated_run if p["held"])

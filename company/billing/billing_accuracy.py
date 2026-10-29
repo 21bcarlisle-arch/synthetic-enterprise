@@ -35,9 +35,10 @@ K1 (slice 2) is graded, not measured afresh. What the ledger carries for it is
 `saas.ledger.estimated_billing_outstanding`: the whole value of every estimated bill no read has
 yet ended. `estimated_billing_outstanding_grade` reads that position at a month end and grades
 each open run by what its next actual read showed. Beside it, `closed_immaterial` counts the
-estimates a read closed with a correction too small to bill. Until 2026-10-05 the ledger kept
-those as outstanding, because it keyed only on `catchup_applied`, which only a material
-correction sets: 83% of the decade run's figure.
+estimates a read closed with no correction to bill. Until 2026-10-05 the ledger kept those as
+outstanding, because it keyed only on `catchup_applied`, which a £5 floor then withheld from small
+corrections: 83% of the decade run's figure. Since 2026-10-29 only a correction that rounds to 0.00
+goes unbilled.
 UNBILLED ENERGY (K1 proper, 2026-10-20) is `unbilled_accrual`: per account at a month end, the
 company's own figure for each period (the actual read, or the estimate already on the bill: its last
 reads shaped by the profile, else the registry EAC/AQ or TDCV, `unread_month_estimate.py`) less what
@@ -757,8 +758,8 @@ def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None
     applies to a whole bill set. Beside it, not in it:
 
     - `closed_immaterial`: estimates whose run an actual read billed by `as_of` ended with no
-      material catch-up. The register advance is known and the correction was under the
-      materiality threshold, so nothing rests on the estimate any more.
+      catch-up line. The register advance is known and the correction rounded to 0.00 (every
+      non-zero correction is billed since 2026-10-29), so nothing rests on the estimate any more.
 
     An `open` bill has no read yet. Its run is graded by the next actual-read bill after `as_of`, which
       stamps the run's register true-up (`read_true_up_*`). The run there may include estimates
@@ -809,7 +810,7 @@ def estimated_billing_outstanding_grade(bills: Iterable[dict], as_of: str | None
         open_run: list[dict] = []
         for bill in account_bills:
             if bill["billing_basis"] != "estimated":
-                # A read ends the run. What it left uncovered was an immaterial correction.
+                # A read ends the run. What it left uncovered was a correction that rounded to 0.00.
                 for est in open_run:
                     grade["closed_immaterial_gbp"] += est.get("total_amount_gbp", 0.0)
                     grade["closed_immaterial_bills"] += 1

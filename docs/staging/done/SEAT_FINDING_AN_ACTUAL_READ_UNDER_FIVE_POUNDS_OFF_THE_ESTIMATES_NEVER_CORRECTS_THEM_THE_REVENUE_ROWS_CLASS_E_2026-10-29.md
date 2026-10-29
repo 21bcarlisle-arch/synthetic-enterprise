@@ -84,3 +84,22 @@ The floor reaches further on the revenue row than class (e) alone. On the 9553d4
 
 So 17 of the 25 breaches are this floor, 7 are the catch-up's VAT, and 1 (PROS-2017-0117) is an open run of
 under-estimates bigger than the row's bound. The book still drops 2,747 corrections, the same count as 209c.
+
+## Done (2026-10-29, Lane 0 `a-read-to-read-bill-drops-no-energy`)
+
+- **Knowledge first (K8).** `docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §9 now
+  covers this. SLC 21B.1 requires a read to be reflected in the next bill. Citizens Advice says the supplier sends
+  "an updated, accurate bill" and names no minimum. No published source speaks to a floor, so the page labels it GAP.
+- **Fix.** `monthly_bill_assembly.build_monthly_bills` applies every correction that does not round to £0.00.
+  `CATCHUP_MATERIALITY_THRESHOLD_GBP` now sets only the display flag `catchup_is_material`.
+  Test: `tests/company/billing/test_a_read_to_read_bill_drops_no_energy.py`, red on origin for the +£3.07
+  (PROS-2016-0370) and −£1.57 (SYN-2016-236) runs, with a £25 control. The old test asserting the gate,
+  `test_build_monthly_bills_suppresses_immaterial_catchup`, asserted the defect. It now asserts only that a £0.00
+  correction adds no line.
+- **Replay on the 9553d403b7 book**, with 789d0a6d2. Counts and predictions are in
+  `docs/staging/records/SEAT_PREREGISTRATION_EVERY_READ_NETS_ITS_RUN_AND_THE_CATCH_UP_VAT_ON_THE_VAT_LINE_2026-10-29.md`.
+  2,744 non-zero dropped corrections go to 0 (2,747 above counts 3 that round to £0.00). The revenue row goes
+  from 25 breaches to 1.
+- **Residue, named.** PROS-2017-0117's open tail of under-estimates (class B, the row's lawful tail). (a)'s volume
+  side, where `catchup_kwh` does not reconcile billed to settled on some accounts, is still untraced. The printed
+  opening register after an estimated month is still open in its own finding (`..._PRINTS_6436_OPENING_READS_NOBODY_TOOK_2026-10-28.md`).

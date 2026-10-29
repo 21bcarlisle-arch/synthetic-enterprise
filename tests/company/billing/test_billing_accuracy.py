@@ -174,15 +174,16 @@ def test_world_truth_on_an_estimated_bill_does_not_move_the_measure():
     assert billing_accuracy_summary(moved) != baseline
 
 
-def test_an_immaterial_true_up_is_still_measured():
-    """The money correction is not billed below the materiality threshold, but the register moved.
-    Defect caught: the energy stamp gated on materiality like the money fields."""
+def test_a_small_true_up_is_billed_and_measured():
+    """Half a kWh a month out: the read bills the correction, however small (estimate knowledge
+    page section 9), and the register's true-up is stamped. Defect caught: the old £5 floor, which
+    left the energy measured but never billed."""
     feed = _ScriptedFeed(actual_after_opening=False)
     records = []
     for i in range(3):
         records.extend(_month_records("C1", 2022, i + 1, FLAT_ESTIMATE_KWH + 0.5))
     closing = build_monthly_bills(records, feed, churned_ids={"C1"})[-1]
-    assert "catchup_applied" not in closing
+    assert closing["catchup_applied"]
     assert closing["read_true_up_kwh"] == pytest.approx(0.5)
 
 
@@ -204,13 +205,13 @@ def test_the_summary_totals_by_fuel_and_names_its_shares():
 # --- K1: the ledger's billed-on-estimate position, graded (slice 2) -----------------------------
 
 #: Per account: its monthly use, and the months (index from Jan 2022) its read is actual.
-#: MATERIAL closes a climbing run in July (a material undercharge); IMMATERIAL closes a run half a
-#: kWh a month out in April (under the threshold); OPEN is unread over the 2022 year end and read
+#: MATERIAL closes a climbing run in July (a material undercharge); IMMATERIAL closes in April a run
+#: the estimate got exactly right, so the read bills no correction; OPEN is unread over the 2022 year end and read
 #: in March 2023; NEVER is never read after January. The ids are the company registry's own.
 MATERIAL, IMMATERIAL, OPEN, NEVER = "C1", "C2", "C3", "C4"
 _K1_ACCOUNTS = {
     MATERIAL: (_use, {0} | set(range(6, MONTHS))),
-    IMMATERIAL: (lambda i: FLAT_ESTIMATE_KWH + 0.5, {0} | set(range(3, MONTHS))),
+    IMMATERIAL: (lambda i: FLAT_ESTIMATE_KWH, {0} | set(range(3, MONTHS))),
     OPEN: (_use, {0, 14, 15}),
     NEVER: (_use, {0}),
 }

@@ -135,6 +135,10 @@ exceptions:
       (B) 1, PROS-2017-0117: five estimates after its last actual read under-bill by 967.82, more than U, the
       row's own bound for an open tail. It is the estimator's own error on an account the book ends on
       estimates, and no billing step drops it. The row's GAP: U cannot bound an under-estimate.
+      Both defects were fixed on 2026-10-29: V in 789d0a6d2 and F in the commit that wrote this line. Replayed on
+      the 9553d403b7 book, the row goes from 25 breaches to 1, PROS-2017-0117
+      (docs/staging/records/SEAT_PREREGISTRATION_EVERY_READ_NETS_ITS_RUN_AND_THE_CATCH_UP_VAT_ON_THE_VAT_LINE_2026-10-29.md).
+      max_breached drops to 1 once a fresh run confirms it.
     filed: 2026-10-28
     retired_by: the read-to-read correction applied whatever its size (F) and the catch-up's VAT on the VAT line (V); (B) stays as the row's lawful tail
     max_breached: 25

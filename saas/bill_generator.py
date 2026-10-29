@@ -147,11 +147,12 @@ CONSUMPTION_CV_PENALTY_FACTOR = 0.5
 # further reduce clarity — the bill is already as confusing as it gets).
 BILL_SHOCK_PENALTY_FACTOR = 0.5
 
-#: The smallest |previous bill| worth expressing a percentage change against. Reused from the £5
-#: materiality convention this codebase already applies twice (`monthly_bill_assembly.
-#: CATCHUP_MATERIALITY_THRESHOLD_GBP`, `smart_meter_reconciliation.is_material`) for "below this a
-#: real supplier does not act" — NOT a new number. Below it, `bill_shock_pct` is None: no
-#: meaningful comparison exists, and None is already what a first bill carries.
+#: The smallest |previous bill| worth expressing a percentage change against. The £5 was borrowed
+#: from `monthly_bill_assembly.CATCHUP_MATERIALITY_THRESHOLD_GBP`, which is now a display flag only:
+#: its "a supplier does not act below £5" had no source and was removed as a billing gate on
+#: 2026-10-29 (estimate knowledge page section 9). Here it is a display floor with no source either.
+#: Below it, `bill_shock_pct` is None: no meaningful comparison exists, and None is already what a
+#: first bill carries.
 BILL_SHOCK_BASELINE_FLOOR_GBP = 5.0
 
 #: WHICH DEFINITION OF BILL SHOCK APPLIES IS DECIDED ENTIRELY BY HOW THE HOUSEHOLD PAYS
@@ -446,10 +447,8 @@ def generate_bill(
     # cheaper than capping AND more honest: a cap would publish a bounded wrong number where the
     # truth is that no meaningful comparison exists.
     #
-    # THE £5 IS NOT A NEW CONSTANT. It is the materiality convention this codebase already applies
-    # twice — `monthly_bill_assembly.CATCHUP_MATERIALITY_THRESHOLD_GBP` and
-    # `smart_meter_reconciliation.is_material` — for "below this, a real supplier does not act".
-    # A bill a supplier would not bother correcting is a bill it should not be dividing by either.
+    # THE £5 is the display floor above (BILL_SHOCK_BASELINE_FLOOR_GBP). It is not sourced. The billing
+    # gate it was borrowed from was removed: a supplier does correct a sub-£5 estimate error.
     # THE DIRECTION IS CARRIED, and it decides whether a shock happened at all -- see
     # `bill_movement`, which is now the one place this arithmetic lives. The numerator used to be
     # wrapped in `abs()`, so a bill that FELL was reported as a shock of the same size as one that

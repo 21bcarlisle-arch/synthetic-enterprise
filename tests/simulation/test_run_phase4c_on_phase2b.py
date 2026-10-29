@@ -602,9 +602,13 @@ def test_actual_read_bills_are_byte_identical_to_pre_d3(force_actual_reads):
     # what makes this test the check that the channel changed no arithmetic.
     # `premise_council_tax_listed` likewise (2026-10-21): C1 is a founder authored as a home, so the
     # world's listing now answers for it. It is read only by the exception queue, never by a charge.
+    # `account_held_from` (the EBSS holder's date), `meter_type` and the printed register
+    # (`register_opening_kwh`/`register_closing_kwh`) are prints and attributions too, added by later
+    # lanes without widening this set, so it was red on origin at 969ba56b6b. None is a charge.
     added_keys = {
         "billing_basis", "bill_shock_yoy_pct", "bill_shock_likely_seasonal",
         "payment_channel", "bill_shock_population", "premise_council_tax_listed",
+        "account_held_from", "meter_type", "register_opening_kwh", "register_closing_kwh",
     }
     assert len(new_bills) == len(old_bills)
     for nb, ob in zip(new_bills, old_bills):
@@ -775,22 +779,20 @@ def test_resolve_catchup_negative_zero_normalized():
     assert str(result["chargeable_gbp"]) != "-0.0"
 
 
-def test_build_monthly_bills_suppresses_immaterial_catchup(force_actual_reads, monkeypatch):
-    """An immaterial correction (< CATCHUP_MATERIALITY_THRESHOLD_GBP) must
-    not be stamped onto the bill at all -- a real supplier wouldn't bother
-    (Expert-Hour finding: this threshold was computed but never consulted).
-    Controls the scenario directly (rather than hunting for a real run that
-    happens to produce a sub-threshold divergence) by monkeypatching
-    _resolve_catchup itself to return a fixed immaterial result."""
+def test_build_monthly_bills_stamps_no_catchup_for_a_zero_correction(force_actual_reads, monkeypatch):
+    """A correction that rounds to 0.00 must not be stamped onto the bill as an event (Expert-Hour
+    finding, 2026-07-12). A small non-zero one IS billed: the read nets the run to the meter
+    (tests/company/billing/test_a_read_to_read_bill_drops_no_energy.py). Controls the scenario by
+    monkeypatching _resolve_catchup itself to return a fixed zero result."""
     import company.billing.monthly_bill_assembly as mod
 
-    immaterial = {
+    zero = {
         "period_start": "2022-01-01", "period_end": "2022-01-31",
-        "periods_covered": 1, "direction": "undercharge",
-        "raw_delta_gbp": 1.0, "chargeable_gbp": 1.0, "written_off_gbp": 0.0,
+        "periods_covered": 1, "direction": "overcharge",
+        "raw_delta_gbp": 0.0, "chargeable_gbp": 0.0, "written_off_gbp": 0.0,
         "back_billing_cap_applied": False, "is_material": False,
     }
-    monkeypatch.setattr(mod, "_resolve_catchup", lambda *a, **k: immaterial)
+    monkeypatch.setattr(mod, "_resolve_catchup", lambda *a, **k: zero)
 
     records = _sc_month_records("C1", 2022, 1, kwh=500.0, unit_rate=200.0)
     records += _sc_month_records("C1", 2022, 2, kwh=500.0, unit_rate=200.0)

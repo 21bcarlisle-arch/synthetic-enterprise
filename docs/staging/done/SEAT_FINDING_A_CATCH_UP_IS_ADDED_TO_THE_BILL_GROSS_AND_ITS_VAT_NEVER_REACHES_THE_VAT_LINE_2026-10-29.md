@@ -65,3 +65,13 @@ The knowledge came first: `docs/market_research/back_billing_and_liability.md` Â
 
 **Not checked yet:** whether the company's VAT return reads the bill or settlement. The prediction
 above still stands to be graded on a fresh run: the 7 accounts leave the revenue row.
+
+## Done (2026-10-29)
+
+Built in 789d0a6d2 (above). It was graded on the 9553d403b7 book by replay, together with the class F fix:
+`docs/staging/records/SEAT_PREREGISTRATION_EVERY_READ_NETS_ITS_RUN_AND_THE_CATCH_UP_VAT_ON_THE_VAT_LINE_2026-10-29.md`.
+All 7 accounts leave the revenue row, as predicted. 3,705 bills carried a catch-up without its VAT on the VAT line,
+and after the fix none do. The queued continuation `the-catch-up-vat-reaches-the-vat-line` is retired as premise
+spent, naming 789d0a6d2.
+**Residue, named:** the company's VAT return was not checked, so it is still unknown whether it reads the bill or
+settlement. No P&L or VAT-liability effect is claimed.
