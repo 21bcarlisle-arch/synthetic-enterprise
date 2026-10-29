@@ -1114,6 +1114,9 @@ def _slot_failures(slot_id, hh, ev, keys) -> list[str]:
 
 #: The debt moments that say a payment did not arrive, and the steps that put the debt with an agency.
 _DEBT_MISSES = ("arrears_payment_missed", "arrears_dd_failed", "collections_missed_payment")
+#: What closes a journey. A decision from before one of these belongs to an earlier debt, not to the one a story opens on.
+_JOURNEY_CLOSES = ("collections_cured", "collections_arrangement", "collections_prepayment", "collections_write_off",
+                   "arrears_arrears_repaid", "arrears_written_off", "arrears_recovered")
 _AGENCY_STEPS = ("arrears_placed_with_dca", "arrears_recovered", "collections_debt_recovery",
                  "collections_commercial_recovery")
 
@@ -1129,7 +1132,12 @@ def _debt_page_failures(hh, ev, keys) -> list[str]:
     if miss:
         rc = [r for r in _known_by(ev["reaction"], miss["date"]) if r.get("event_type") != "journey_state"]
         shown = _last_decision(rc)
-        if shown and shown["date"] < miss["date"] and str(shown.get("event_type", "")).startswith(_DEBT_PREFIXES):
+        # A desk decision from a journey that closed before this miss is the household's earlier debt, honestly
+        # on the record (162 of the 217 refusals on 209c3350ab). The old engine's `arrears_` notice is not
+        # exempt: it narrates the desk's own debt on its own clock and amount (the other 55).
+        closed = shown and str(shown.get("event_type", "")).startswith("collections_") and any(r.get("event_type") in _JOURNEY_CLOSES and shown["date"] <= r["date"] < miss["date"]
+                               for r in rc)
+        if shown and not closed and shown["date"] < miss["date"] and str(shown.get("event_type", "")).startswith(_DEBT_PREFIXES):
             out.append("the page shows an overdue notice dated before the missed payment its story opens on")
     dated = any(i.get("due_date") for i in ev["invoice"])
     if steps and not dated:
