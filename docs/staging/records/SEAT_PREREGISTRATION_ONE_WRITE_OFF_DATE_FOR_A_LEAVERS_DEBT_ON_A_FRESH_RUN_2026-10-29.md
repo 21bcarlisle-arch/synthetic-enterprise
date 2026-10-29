@@ -62,3 +62,12 @@ Baseline for P2 to P5, measured by `wo_probe.py` on the b2fc50facf ledger before
 
 The fresh run at 209c3350ab also carries every fix the 0b2879ef7d run grades. Its other rows are a
 second reading of that pre-registration, not a grade of it.
+
+## Results
+
+**Not yet: the run has not started (06:15 GMT).** `fresh-run-209c3350ab` has been queued since 04:42, behind
+`fresh-run-0b2879ef7d` (queued 03:35). Both wait for memory: the box was holding a 2.5-hour full
+pytest (about 4 GB) and an annual-report run, and each fresh run declares a 12,500 MB peak against a
+23,008 MB budget. No output exists, so P1 to P5 are unread and stand as written. The grade fixture is
+in place and unchanged: run worktree at 209c3350ab, `after_run.sh`, `wo_probe.py`, `lag_occ4.py`. A
+`tools.wait_for` waiter on `arm.py /var/tmp/fresh-run-out-209c3350ab` runs the grade once `DONE.json` exists.
