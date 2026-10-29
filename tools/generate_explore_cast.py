@@ -278,7 +278,12 @@ def _latest(records, pred=lambda r: True):
     return None
 
 
-def _owed(inv: list[dict], led: list[dict]) -> tuple[float, str | None]:
+def _on_the_bill(r: dict, bills: set) -> bool:
+    """A ledger scheme credit posted against one of `bills`, keyed (fuel, invoice number)."""
+    return r.get("type") == "scheme_credit" and (r.get("fuel"), r.get("invoice_number")) in bills
+
+
+def _owed(inv: list[dict], led: list[dict], ledger: list[dict] | None = None) -> tuple[float, str | None]:
     """What the household owes on a date: the bills it has had, less every other ledger movement.
 
     The bill is dated at its period end and the ledger raises it a few days later, on issue, so the
@@ -286,10 +291,39 @@ def _owed(inv: list[dict], led: list[dict]) -> tuple[float, str | None]:
     PROS-2025-0022). Billed is read from the bills the page shows; payments, credits and write-offs
     from the ledger. The ledger's balance is the sum of its entries, so the two agree once it has
     raised every bill. Returns the amount and the latest date it reads.
+
+    A bill's own Energy Bills Support Scheme credit is on that bill, so it comes off with the bill
+    from `ledger` (the whole record), not on the day the ledger posts it: PROS-2019-0246 printed
+    "GBP 598.04 to pay" on 31 Dec 2022 beside a bill whose GBP 67.00 credit posted on 3 Jan (N1).
     """
-    moves = [r for r in led if r.get("type") != "invoice_raised"]
-    owed = sum(i.get("amount_gbp") or 0.0 for i in inv) + sum(r.get("amount_gbp") or 0.0 for r in moves)
+    bills = {(i.get("fuel"), i.get("invoice_number")) for i in inv if i.get("invoice_number") is not None}
+    moves = [r for r in led if r.get("type") != "invoice_raised" and not _on_the_bill(r, bills)]
+    credits = [r for r in (led if ledger is None else ledger) if _on_the_bill(r, bills)]
+    owed = (sum(i.get("amount_gbp") or 0.0 for i in inv) + sum(r.get("amount_gbp") or 0.0 for r in moves)
+            + sum(r.get("amount_gbp") or 0.0 for r in credits))
     return owed, max([r["date"] for r in inv + moves if r.get("date")], default=None)
+
+
+def _fmt_bill(v) -> str:
+    """A bill's amount as the bill says it: a negative total is a credit, never "GBP -24.73"."""
+    return "{} credit".format(_fmt_gbp(-v)) if v is not None and v < 0 else _fmt_gbp(v)
+
+
+def _bill_extras(i: dict) -> str:
+    """What the bill carries besides this period's use, from the bill's own fields: the catch-up it
+    adds and the scheme credit it takes off. The page's printed bill shows both as lines; a moment
+    that quoted only the total showed a 146 kWh final bill at "GBP -24.73" with no reason (N1)."""
+    out = []
+    adj = i.get("catchup_adjustment_gbp")
+    if i.get("catchup_applied") and adj:
+        span = (" from {} to {}".format(_day(i["catchup_period_start"]), _day(i["catchup_period_end"]))
+                if i.get("catchup_period_start") and i.get("catchup_period_end") else "")
+        out.append("including a {} {} correcting the estimated bills{}".format(
+            _fmt_gbp(abs(adj)), "charge" if adj > 0 else "credit", span))
+    used = i.get("scheme_credit_applied_gbp")
+    if used:
+        out.append("less its {} Energy Bills Support Scheme credit".format(_fmt_gbp(used)))
+    return "".join(", " + x for x in out)
 
 
 def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
@@ -358,7 +392,7 @@ def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     rows.append(_row("Meter reads", "{} bills, {} on an actual read{}".format(
         len(inv), len(actual), ", last on {}".format(_day(actual[-1]["date"])) if actual else ""),
         inv[-1]["date"] if inv else acq))
-    owed, owed_on = _owed(inv, led)
+    owed, owed_on = _owed(inv, led, ev["ledger"])
     rows.append(_row("Balance on the books", ("{} owed".format(_fmt_gbp(owed)) if owed > 0.005 else
                                               "{} in credit".format(_fmt_gbp(-owed)) if owed < -0.005 else "Nothing owed"),
                      owed_on or acq))
@@ -440,10 +474,9 @@ def _portal(hh: dict, ev: dict, iso: str, message: str) -> dict:
         months[i["date"][:7]][i["fuel"]] += i.get("consumption_kwh") or 0.0
     last12 = sorted(months)[-12:]
     bills = [{"fuel": i["fuel"], "when": _day(i["date"]), "kwh": round(i.get("consumption_kwh") or 0),
-              "amount": (_fmt_gbp(i.get("amount_gbp")) if (i.get("amount_gbp") or 0) >= 0
-                         else "{} credit".format(_fmt_gbp(-i["amount_gbp"]))),
+              "amount": _fmt_bill(i.get("amount_gbp")) + _bill_extras(i),
               "badge": {"A": "Actual read", "M": "Prepayment meter"}.get(i.get("read_type"), "Estimated")} for i in inv[-4:]][::-1]
-    owed, _ = _owed(inv, led)
+    owed, _ = _owed(inv, led, ev["ledger"])
     ren = _latest(_known_by(ev["timeline"], iso), lambda r: r.get("type") == "renewed")
     pay = _latest(led, lambda r: r.get("method") in ("direct_debit", "standard_credit", "prepayment"))
     return {
@@ -479,16 +512,16 @@ def _template(hh, ev, iso, kind, rec):
                 "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
                 None)
     if kind == "first_bill":
-        return ("First bill", "The first {} bill: {} for {:,.0f} kWh, {}.".format(
-                    rec["fuel"], _fmt_gbp(rec.get("amount_gbp")), rec.get("consumption_kwh") or 0,
-                    _read_phrase(rec)),
-                "Your first {} bill is ready: {}.".format(rec["fuel"], _fmt_gbp(rec.get("amount_gbp"))),
+        return ("First bill", "The first {} bill: {} for {:,.0f} kWh, {}{}.".format(
+                    rec["fuel"], _fmt_bill(rec.get("amount_gbp")), rec.get("consumption_kwh") or 0,
+                    _read_phrase(rec), _bill_extras(rec)),
+                "Your first {} bill is ready: {}.".format(rec["fuel"], _fmt_bill(rec.get("amount_gbp"))),
                 "The amount follows from the reading and the tariff; nothing else is behind it.", None)
     if kind == "bill":
-        return (rec.get("label") or "A bill", "The {} bill of {}: {} for {:,.0f} kWh, {}.".format(
-                    rec["fuel"], _day(rec["date"]), _fmt_gbp(rec.get("amount_gbp")), rec.get("consumption_kwh") or 0,
-                    _read_phrase(rec)),
-                "Your {} bill is ready: {}.".format(rec["fuel"], _fmt_gbp(rec.get("amount_gbp"))),
+        return (rec.get("label") or "A bill", "The {} bill of {}: {} for {:,.0f} kWh, {}{}.".format(
+                    rec["fuel"], _day(rec["date"]), _fmt_bill(rec.get("amount_gbp")), rec.get("consumption_kwh") or 0,
+                    _read_phrase(rec), _bill_extras(rec)),
+                "Your {} bill is ready: {}.".format(rec["fuel"], _fmt_bill(rec.get("amount_gbp"))),
                 "The amount follows from the reading and the tariff then in force.", None)
     if kind == "renewal_decision":
         b, t = rec.get("company_belief"), rec.get("sim_truth")
@@ -555,14 +588,14 @@ def _template(hh, ev, iso, kind, rec):
                 "Your account closes on your moving date. Your final bill will follow.",
                 "The move is the household's; the supplier's record shows only the account closing.", None)
     if kind == "final_bill":
-        bills = ["{} {} for {:,.0f} kWh to {} ({})".format(
-                     m["fuel"], _fmt_gbp(m["final"].get("amount_gbp")), m["final"].get("consumption_kwh") or 0,
+        bills = ["{} {} for {:,.0f} kWh to {} ({}){}".format(
+                     m["fuel"], _fmt_bill(m["final"].get("amount_gbp")), m["final"].get("consumption_kwh") or 0,
                      _day(m["final"].get("period_end") or m["final"].get("date") or iso),
-                     (m.get("basis") or "closing read not recorded").split(";")[0].lower())
+                     (m.get("basis") or "closing read not recorded").split(";")[0].lower(), _bill_extras(m["final"]))
                  for m in rec["legs"]]
         return ("The final bill", "The final bill{}: {}.".format("s" if len(bills) > 1 else "", "; ".join(bills)),
                 "Your final bill is ready: {}.".format(" and ".join(
-                    "{} {}".format(m["fuel"], _fmt_gbp(m["final"].get("amount_gbp"))) for m in rec["legs"])),
+                    "{} {}".format(m["fuel"], _fmt_bill(m["final"].get("amount_gbp"))) for m in rec["legs"])),
                 "The account closes on the move date; the bill covers use up to it.", None)
     if kind == "settled":
         if any(m.get("refunded") for m in rec["legs"]):

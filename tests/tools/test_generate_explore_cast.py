@@ -446,10 +446,15 @@ def test_the_cast_balance_is_billed_less_paid_on_every_moment(feed, real):
             if row is None:
                 continue
             known = gen._before_outcome(ev, m["iso"])
-            billed = sum(i.get("amount_gbp") or 0 for i in gen._known_by(known["invoice"], m["iso"]))
+            bills = gen._known_by(known["invoice"], m["iso"])
+            billed = sum(i.get("amount_gbp") or 0 for i in bills)
+            # A bill's own scheme credit comes off with the bill, whenever the ledger posts it (N1).
+            keys = {(i["fuel"], i.get("invoice_number")) for i in bills if i.get("invoice_number") is not None}
+            own = [r for r in known["ledger"]
+                   if r.get("type") == "scheme_credit" and (r["fuel"], r.get("invoice_number")) in keys]
             moved = sum(r.get("amount_gbp") or 0 for r in gen._known_by(known["ledger"], m["iso"])
-                        if r.get("type") != "invoice_raised")
-            owed = billed + moved
+                        if r.get("type") != "invoice_raised" and r not in own)
+            owed = billed + moved + sum(r.get("amount_gbp") or 0 for r in own)
             want = ("{} owed".format(gen._fmt_gbp(owed)) if owed > 0.005 else
                     "{} in credit".format(gen._fmt_gbp(-owed)) if owed < -0.005 else "Nothing owed")
             checked += 1

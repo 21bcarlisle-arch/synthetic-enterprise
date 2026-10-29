@@ -64,3 +64,17 @@ before for C1 (2026-07-09), but on the label side only.
   that says the opposite on both meter types.
 - **Not done here: step 3's blind row.** The ruling wants it written by an agent that has not read
   this code, and I have read it. It is handed on as `the-meter-type-row-written-blind`.
+
+## Reopened and closed again (2026-10-29)
+
+**Correction beside the claim above.** "`hhDayPanels` picks its sentence from the household's own
+electricity `meter_type`, the field the 'Meter' row prints" held only where the household takes
+electricity. The "Meter" row prints `CUR.detail`, which is the gas leg on a gas-only household, so
+on those pages the day clock read an electricity record that does not exist and printed "meter type
+is not on the supplier's record" under "Meter Smart". The fourth cold read met it on
+OCC-2f64fad94fe7 (O26). On the rebuilt 209c3350ab book, 45 of 752 households are gas-only and all 45
+printed it. They also printed "Supply point —" with an MPRN on record. The day clock now says a
+gas-only household takes no electricity, and the supply-point row falls back to the MPRN.
+`site/explore/test_the_meter_has_one_home_on_a_gas_only_page.py` drives the page's own
+`stageChosen` and `hhDayPanels` over every household in a book: 90 breaches on origin `90b330d09d`,
+0 after. Item `the-page-reads-the-record-it-prints-n1-and-n8`.

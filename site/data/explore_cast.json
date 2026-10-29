@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-10-29T13:59:36Z",
+  "generated_at": "2026-10-29T20:31:43Z",
   "run_generated_at": "2026-10-26T12:01:01Z",
   "run_git_commit": "4ae8da9b0f",
   "household_count": 752,
@@ -561,7 +561,7 @@
         "fuel": "gas",
         "when": "31 Dec 2023",
         "kwh": 1769,
-        "amount": "£121.43",
+        "amount": "£121.43, including a £9.45 credit correcting the estimated bills from 1 Sep 2023 to 30 Nov 2023",
         "badge": "Actual read"
        },
        {
@@ -751,7 +751,7 @@
         "fuel": "gas",
         "when": "31 Dec 2023",
         "kwh": 1769,
-        "amount": "£121.43",
+        "amount": "£121.43, including a £9.45 credit correcting the estimated bills from 1 Sep 2023 to 30 Nov 2023",
         "badge": "Actual read"
        },
        {
@@ -1380,7 +1380,7 @@
         "fuel": "gas",
         "when": "29 Aug 2018",
         "kwh": 186,
-        "amount": "£33.57 credit",
+        "amount": "£33.57 credit, including a £45.43 credit correcting the estimated bills from 30 Aug 2017 to 31 Jul 2018",
         "badge": "Actual read"
        },
        {
@@ -1679,7 +1679,7 @@
         "fuel": "electricity",
         "when": "31 Jan 2021",
         "kwh": 516,
-        "amount": "£54.41",
+        "amount": "£54.41, including a £17.03 credit correcting the estimated bills from 1 Nov 2020 to 31 Dec 2020",
         "badge": "Actual read"
        }
       ]
@@ -1864,7 +1864,7 @@
         "fuel": "electricity",
         "when": "31 Jan 2021",
         "kwh": 516,
-        "amount": "£54.41",
+        "amount": "£54.41, including a £17.03 credit correcting the estimated bills from 1 Nov 2020 to 31 Dec 2020",
         "badge": "Actual read"
        }
       ]
@@ -2049,7 +2049,7 @@
         "fuel": "electricity",
         "when": "31 Jan 2021",
         "kwh": 516,
-        "amount": "£54.41",
+        "amount": "£54.41, including a £17.03 credit correcting the estimated bills from 1 Nov 2020 to 31 Dec 2020",
         "badge": "Actual read"
        }
       ]
@@ -2234,7 +2234,7 @@
         "fuel": "electricity",
         "when": "31 Jan 2021",
         "kwh": 516,
-        "amount": "£54.41",
+        "amount": "£54.41, including a £17.03 credit correcting the estimated bills from 1 Nov 2020 to 31 Dec 2020",
         "badge": "Actual read"
        }
       ]
@@ -2254,14 +2254,15 @@
    "failed_checks": {
     "its account id is not in the public format": 125,
     "its bills carry no due date, so its payment record cannot count a payment missed": 599,
+    "its story says the debt is cleared while its own balance at that moment is still owed past due": 522,
     "its electricity use is outside the book's 1st-99th percentile": 11,
     "it pays by prepayment yet is sent estimated credit bills": 10,
     "it is written off as statute-barred less than six years after its last payment": 24,
-    "the page shows an overdue notice dated before the missed payment its story opens on": 304,
+    "the page shows an overdue notice dated before the missed payment its story opens on": 74,
     "its record places the debt with an agency, and no moment of the story shows it": 153,
     "its gas use is outside the book's 1st-99th percentile": 8
    },
-   "reason": "No household in this run passes this example's checks yet. 599 households match the rule, and each fails at least one check an energy reader would apply: its bills carry no due date, so its payment record cannot count a payment missed (599 of 599); the page shows an overdue notice dated before the missed payment its story opens on (304 of 599); its record places the debt with an agency, and no moment of the story shows it (153 of 599); its account id is not in the public format (125 of 599)."
+   "reason": "No household in this run passes this example's checks yet. 599 households match the rule, and each fails at least one check an energy reader would apply: its bills carry no due date, so its payment record cannot count a payment missed (599 of 599); its story says the debt is cleared while its own balance at that moment is still owed past due (522 of 599); its record places the debt with an agency, and no moment of the story shows it (153 of 599); its account id is not in the public format (125 of 599)."
   },
   {
    "id": "ev",
