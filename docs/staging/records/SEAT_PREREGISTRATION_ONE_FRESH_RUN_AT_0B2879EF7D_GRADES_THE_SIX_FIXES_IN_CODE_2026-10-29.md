@@ -139,6 +139,20 @@ now only the one-variable run for the close write-off's −£457, which is conti
 | P8 | `INV_STATUTE_BARRED_WRITE_OFF_AGE` | 3 | I cannot yet say | UNREACHED | **confounded**: a leaver is now written off at a year, so the book has no statute-barred write-off |
 | P9 | unexcepted rows other than these | — | 0 | **0** | holds |
 
+**P6 by class (added 11:00 GMT 29 Oct). Correction:** the row above says the probe does not split OCC from
+non-OCC on this book. It does: its `(class, is_OCC)` keys carry the split, and I misread them. Re-run on
+`/var/tmp/wo-grade-209c/ledger.json` (output `/var/tmp/wo-grade-209c/lag.txt`). The probe counts 2,526
+steps where the row counts 2,500. Its `other` class alone is 2,499, so the 27 payment-lag steps may be
+the gap. I cannot yet say whether the row leaves them out.
+
+| class | b2fc50facf | predicted | 209c3350ab | verdict |
+|---|---|---|---|---|
+| OCC- steps | 2,489 | under 400 | **223** (218 other, 5 payment lag) | holds |
+| non-OCC steps | 6,965 | under 4,500; above 5,500 refutes the credit bill as main cause | **2,303** (2,281 other, 22 payment lag) | holds. The fall cannot be split between 1b82c3c0e3's DD date and the credit bill, as P6 said |
+| (a) after the page's write-off | 723 | about 723 | **0** | confounded by the write-off date (above) |
+| cross-fuel netting | 487 | 150 or fewer | **101** (51 non-OCC, 50 OCC) | holds |
+| class (b) pennies, at most 2p | about 2,985 | untouched by any commit | **1,679** | **refuted.** It fell by about 1,300. The book carries seven changes, so I cannot say which one moved them |
+
 **T1 and T2 (P3's trace).** T2 holds: 130 of 37abacdf42's 153 breach again on the same bill. T1 holds as
 worded: 191 of the 269 are in E1's registry branch (≥116). The trace is stronger than T1 asked. All 139
 new breaches are in the branch, each the same bill under the same band with only its estimate moved,
