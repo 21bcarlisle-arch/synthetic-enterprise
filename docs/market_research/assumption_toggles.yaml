@@ -634,8 +634,9 @@ toggles:
       GBP recovered after write-off (DCA net of commission, or sale proceeds) / GBP written off,
       where the write-off is LATE: taken "only once a period of time has elapsed since the final
       bill" (Centrica Note 17, 2018-2025), after default at six to twelve months from the final
-      bill. A write-off taken at the final bill's due date (the world's WRITE_OFF_DATE_CONVENTION)
-      is a different event and is compared with 1 - prov_coverage_final_bill_over_90d instead.
+      bill. The world's write-off (WRITE_OFF_DATE_CONVENTION, the company's date a year after the
+      final bill since 2026-10-29) is late, but the world collects nothing in that year, so it is
+      compared with 1 - prov_coverage_final_bill_over_90d, the whole recovery, until it does.
     default: 0.05
     low: 0.02
     high: 0.086

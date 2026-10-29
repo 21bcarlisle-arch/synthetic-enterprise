@@ -662,9 +662,30 @@ takes: the company's own write-off act is the one date, because the write-off is
 accounting decision. The page's arrears history and the P&L read it, and the desk's journey stops
 chasing a balance the company has written off (pursuit by a collection agent after the write-off is
 a separate, labelled stage, not the in-house desk). This is a choice, not a finding: a different
-clock changes bad-debt timing, and nothing here establishes the value of the clock itself. Not yet
-built: today the page writes off at the final bill's due date, the company's sweep a year later and
-only after the loop, the desk at the six-year bar.
+clock changes bad-debt timing, and nothing here establishes the value of the clock itself.
+
+**Built (2026-10-29).** The date is the company's sweep date, a year after the final bill
+(`company/billing/arrears_engine.closed_account_write_off_date`, labelled convention
+`CLOSED_ACCOUNT_WRITE_OFF_AFTER_FINAL_BILL_DAYS`).
+- **The desk** writes the closed balance off on that day inside its own walk
+  (`CollectionsJourneyDesk._write_off_if_closed`, rule `CLOSED_ACCOUNT_RULE`), and the journey
+  ends there. The sweep could not run in the loop because bills post in term order, but the desk
+  only walks an account as far as its ledger is complete, so inside the walk the check is sound.
+  The month-end sweep after the loop stays as the backstop and now finds nothing the desk took.
+- **The page and the P&L** read the same date through
+  `company/interfaces/collections_communication.closed_account_write_off_date`
+  (`WRITE_OFF_DATE_CONVENTION = "company_closed_account_write_off"`). The P&L already booked a
+  write-off dated after the account's last year on its last record (`_row_for`), so a leaver's
+  charge mostly stays on the record it was on; it moves only where the account has a record in
+  the new date's year.
+- **Recovery.** The world's walk applies no payment to a closed balance in the chase year, so the
+  post-write-off recovery stays at the whole expected recovery (1 - the final-bill >90-day coverage),
+  booked after the write-off. Reading q3 (~5p, what is left after a year's chase) would assert the
+  chase recovers nothing. GAP: the world has no household response to a leaver's dunning.
+- **Not covered.** A dual-fuel account where one fuel leaves and the other stays: the page writes
+  the leaving fuel's debt off, while the company's account is still billed and so is not closed. A
+  balance whose write-off date falls after the run's end is open on the page and the desk, and
+  charged on the P&L (on its last record): the P&L errs against us there, by design.
 
 ---
 

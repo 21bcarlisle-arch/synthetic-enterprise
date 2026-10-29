@@ -72,12 +72,14 @@ def test_the_bar_falls_six_years_after_the_debt_accrued_when_nothing_is_paid():
     assert not any(v["leg"] == LEG_CLOSE for v in wo.values())
 
 
-def test_a_leavers_write_off_is_its_balance_at_close_dated_at_the_final_bills_due_date():
+def test_a_leavers_write_off_is_its_balance_at_close_dated_on_the_companys_own_write_off():
+    """The date is the company's write-off a year after the final bill (issued 2017-12-28), the one
+    the desk also writes off on (debt_and_collections.md s.7.3), no longer the final bill's due date."""
     rows = _monthly("L", 2016, 24, "failed", "success")
     rows[5]["outcome"] = "failed"
     wo = balance_write_offs_from_outcomes(rows, {"L"})
     assert sum(v["amount_gbp"] for v in wo.values()) == 200.0
-    assert {v["date"] for v in wo.values()} == {date(2017, 12, 28) + timedelta(days=14)}
+    assert {v["date"] for v in wo.values()} == {date(2018, 12, 28)}
 
 
 def test_the_stayer_provision_is_a_declared_gap_and_the_bad_debt_line_says_write_offs_only(monkeypatch):
@@ -98,7 +100,9 @@ def test_a_stayers_failed_bills_are_never_booked_on_the_real_engine(monkeypatch)
     beh = {"C1": {"income_stress_trajectory": [{"year": 2022, "stress": "HIGH"}]}}
     assert compute_emergent_bad_debt(bills, beh, set()) == {}
     booked = compute_emergent_bad_debt(bills, beh, {"C1"})
-    assert set(booked) == {("C1", 2023)}  # the final bill (2022-12-28) is due 2023-01-11
+    # The final bill (period to 2022-12-28) is due 2023-01-11; the company writes it off a year
+    # after it was issued, in 2024.
+    assert set(booked) == {("C1", 2024)}
 
 
 def test_a_write_off_dated_after_the_accounts_last_record_books_on_it_rather_than_vanishing():

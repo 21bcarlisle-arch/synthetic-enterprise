@@ -952,6 +952,33 @@ def build_write_off_event(
 #: (`docs/market_research/bad_debt_provisioning.md`, section "When the company writes off its own
 #: closed-account debt", 2026-10-15). Live arrears are never written off on a clock.
 CLOSED_ACCOUNT_WRITE_OFF_AFTER_FINAL_BILL_DAYS = 365
+#: The rule a closed account's write-off is recorded under, on the desk's journey as on the ledger.
+CLOSED_ACCOUNT_RULE = "closed_account_unpaid_a_year_after_its_final_bill"
+
+
+def closed_account_write_off_date(final_bill_issued: dt.date,
+                                  after_final_bill_days: int = CLOSED_ACCOUNT_WRITE_OFF_AFTER_FINAL_BILL_DAYS
+                                  ) -> dt.date:
+    """The day the company writes off what a closed account still owes: the ONE write-off date for
+    a leaver's debt, which the page's arrears history, the P&L and the collections desk all read
+    (`docs/market_research/debt_and_collections.md` s.7.3)."""
+    return final_bill_issued + dt.timedelta(days=after_final_bill_days)
+
+
+def closed_balance_due_for_write_off(
+    ledger: AccountLedger,
+    on: dt.date,
+    after_final_bill_days: int = CLOSED_ACCOUNT_WRITE_OFF_AFTER_FINAL_BILL_DAYS,
+) -> Optional[tuple]:
+    """`(GBP owed, final bill date)` when this account is closed by `on` and still owes, else None.
+    Read off the ledger as it stood on `on`: an event dated by then but recorded later (a
+    late-crossing settlement) is not seen."""
+    events = [e for e in ledger.events_through(on) if e.transaction_time.date() <= on]
+    bills = [e.valid_time for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
+    if not bills or on < closed_account_write_off_date(max(bills), after_final_bill_days):
+        return None
+    owed = round(sum(g for _d, g in _fifo_unpaid(events)), 2)
+    return (owed, max(bills)) if owed > 0.005 else None
 
 
 def closed_balance_write_offs(
@@ -968,18 +995,14 @@ def closed_balance_write_offs(
     written-off account owes nothing, so a second sweep posts nothing."""
     posted: List[LedgerEvent] = []
     for account in book.accounts():
-        ledger = book.ledger(account)
-        events = [e for e in ledger.events_through(on) if e.transaction_time.date() <= on]
-        bills = [e.valid_time for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
-        if not bills or (on - max(bills)).days < after_final_bill_days:
+        due = closed_balance_due_for_write_off(book.ledger(account), on, after_final_bill_days)
+        if due is None:
             continue
-        owed = round(sum(g for _d, g in _fifo_unpaid(events)), 2)
-        if owed <= 0.005:
-            continue
+        owed, final_bill = due
         event = build_write_off_event(
             account, owed, WriteOffReason.UNECONOMIC_TO_PURSUE, on, transaction_time,
-            note=f"closed-account balance unpaid {(on - max(bills)).days} days after the final "
-                 f"bill of {max(bills).isoformat()}")
+            note=f"closed-account balance unpaid {(on - final_bill).days} days after the final "
+                 f"bill of {final_bill.isoformat()}")
         if book.post(event):
             posted.append(event)
     return posted

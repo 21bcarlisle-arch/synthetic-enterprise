@@ -232,3 +232,15 @@ Still open on this finding:
 - the credit-bill posting;
 - the write-off date;
 - the grade on a fresh run.
+
+## 2026-10-29: the write-off date is one (item `the-write-off-date-is-one-for-the-page-the-sweep-and-the-desk`)
+
+Class (a) is built, not yet graded. The company's write-off of a closed account, a year after its
+final bill, is the one date. The desk writes the balance off on that day inside its walk, and the
+journey ends. The world's close write-off, which the page and the P&L read, is dated by it through
+`collections_communication.closed_account_write_off_date`. Knowledge: `debt_and_collections.md`
+s.7.3. Control: `tests/company/billing/test_a_leavers_debt_has_one_write_off_date.py`. Predictions:
+`records/SEAT_PREREGISTRATION_ONE_WRITE_OFF_DATE_FOR_A_LEAVERS_DEBT_ON_A_FRESH_RUN_2026-10-29.md`.
+Known residue: a dual-fuel account where one fuel leaves and the other stays.
+
+Still open on this finding: the grade on a fresh run.

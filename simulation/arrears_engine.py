@@ -61,8 +61,8 @@ WHAT IS WRITTEN OFF, AND WHEN (2026-09-27, the balance-at-close rule,
 `docs/staging/SEAT_DESIGN_THE_WRITE_OFF_RULE_RE_KEYED_TO_THE_BALANCE_AT_CLOSE_2026-09-27.md`).
 A failed or disputed bill is not a terminal case. It adds to the account's
 running unpaid balance (`balance_write_offs`). At close -- a churned account's
-final bill -- whatever is still unpaid is written off, dated by the labelled C4
-convention (`WRITE_OFF_DATE_CONVENTION`). A live balance with no payment for
+final bill -- whatever is still unpaid is written off on the company's own write-off date, a
+year after that bill (`WRITE_OFF_DATE_CONVENTION`). A live balance with no payment for
 six years is statute-barred (leg 4a). A stayer's aged arrears cost money
 through PROVISION (leg 4b), off by default because its bucket turns on C1, so
 `bad_debt_gbp` counts write-offs only (`BAD_DEBT_BASIS`). The rule this replaced wrote off
@@ -93,6 +93,7 @@ from pathlib import Path
 import yaml
 
 from company.interfaces.collections_communication import (
+    closed_account_write_off_date,
     ledger_notice_wording,
     ledger_notices,
     ledger_write_off_fallback,
@@ -263,14 +264,18 @@ def post_write_off_recovery_share(convention: str | None = None) -> tuple[float,
 
     The share depends on the write-off date. A late write-off (six to twelve months after the final
     bill) has already had its collection, and q3_post_write_off_recovery_share (~5p) is what is left
-    after it. The world writes off at the final bill's due date, before any collection has run.
-    The register's comparator for that event is the complement of the final-bill >90-day coverage.
-    That figure is "expected recovery", so no commission is deducted from it. The world has no
-    late convention yet, so that row is not wired: when one is added it goes here, not as a
-    second number in a stage.
+    after it. The world now writes off on the company's date, a year after the final bill, but its
+    walk applies no payment in that year, so no collection has run in the world either. The
+    comparator stays the complement of the final-bill >90-day coverage, the whole expected recovery
+    of a closed balance, booked after the write-off. That figure is "expected recovery", so no
+    commission is deducted from it. q3 is wired only once the world's chase year collects.
     """
     convention = convention or WRITE_OFF_DATE_CONVENTION
-    if convention == "final_bill_due_date":
+    # The company's write-off comes a year after the final bill, but the world's walk applies no
+    # payment to a closed balance in that year (no household responds to a leaver's dunning yet). So
+    # the whole of a closed balance's expected recovery is booked after the write-off: reading
+    # q3 (~5p, what is left AFTER a year's chase) would assert the chase recovers nothing (K2).
+    if convention in ("final_bill_due_date", "company_closed_account_write_off"):
         row = _toggle_row("prov_coverage_final_bill_over_90d")
         return (round(1.0 - float(row["default"]), 6),
                 "1 - prov_coverage_final_bill_over_90d: " + row["basis_default"])
@@ -812,10 +817,12 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
 
 
 #: C4 (design table). Days from close to write-off is supplier policy and no published source
-#: gives an industry clock (Ofgem Appendix 2 Dec 2024 §2.22; CfI Apr 2023 §4.4). The year still
-#: needs a date, so this is a CONVENTION, labelled as one: the final bill's due date, the latest
-#: point the world's own cash truth fixes.
-WRITE_OFF_DATE_CONVENTION = "final_bill_due_date"
+#: gives an industry clock (Ofgem Appendix 2 Dec 2024 §2.22; CfI Apr 2023 §4.4). The write-off is
+#: the supplier's own accounting act, so the world reads the company's date for it
+#: (`collections_communication.closed_account_write_off_date`, a year after the final bill) and the
+#: page, the P&L and the collections desk carry one date (debt_and_collections.md s.7.3, 2026-10-29).
+#: It was the final bill's due date, which left the desk chasing a balance the page had written off.
+WRITE_OFF_DATE_CONVENTION = "company_closed_account_write_off"
 
 #: C7, leg 4a. Limitation Act 1980 s.5 (six years from the cause of action) and s.29(5) (a
 #: part-payment restarts the clock). A payment into the running account is read as that
@@ -1187,8 +1194,11 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             closing_out[cid] = round(sum(i["remaining"] for i in outstanding)
                                      - sum(unapplied.values()), 2)
         if leaver:
+            # The company's own write-off date, a year after the final bill was issued: the date
+            # the desk writes the same balance off on (debt_and_collections.md s.7.3).
+            closed_on = closed_account_write_off_date(horizon - timedelta(days=PAYMENT_TERMS_DAYS))
             for item in outstanding:
-                _write_off(item, horizon, LEG_CLOSE)
+                _write_off(item, closed_on, LEG_CLOSE)
     return out, credited
 
 

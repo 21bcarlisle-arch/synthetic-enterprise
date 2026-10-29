@@ -137,3 +137,11 @@ def ledger_write_off_fallback(due_date, *, commercial: bool = False):
     from company.billing.arrears_engine import ledger_write_off_fallback as _fallback
 
     return _fallback(due_date, commercial=commercial)
+
+
+def closed_account_write_off_date(final_bill_issued):
+    """The day the supplier writes off what a closed account still owes: its own act, and the one
+    write-off date the run's page and P&L read for a leaver's debt."""
+    from company.billing.arrears_engine import closed_account_write_off_date as _date
+
+    return _date(final_bill_issued)

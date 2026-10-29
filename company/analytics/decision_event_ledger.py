@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from company.billing.arrears_engine import CLOSED_ACCOUNT_RULE
+
 
 @dataclass
 class LedgerEvent:
@@ -158,6 +160,8 @@ _COLLECTIONS_STAGE_WORDS = {
     "prepayment": "Meter changed to prepayment -- journey closed",
 }
 
+_CLOSED_ACCOUNT_WRITE_OFF_WORDS = "Written off: the closed account's balance, a year after its final bill"
+
 
 def _collections_journey_events(cid, journeys):
     """`journeys` are the company desk's collections journeys on this record's own account (the
@@ -170,6 +174,8 @@ def _collections_journey_events(cid, journeys):
         for stage in journey.get("stages", []):
             name = stage.get("stage", "")
             words = _COLLECTIONS_STAGE_WORDS.get(name, stage.get("decision") or name)
+            if name == "write_off" and stage.get("rule") == CLOSED_ACCOUNT_RULE:
+                words = _CLOSED_ACCOUNT_WRITE_OFF_WORDS
             if stage.get("overdue_gbp") is not None and name not in ("cured", "write_off"):
                 words += " -- GBP%.2f overdue" % stage["overdue_gbp"]
             if name == "write_off" and stage.get("written_off_gbp") is not None:

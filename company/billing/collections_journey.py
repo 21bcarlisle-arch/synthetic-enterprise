@@ -66,12 +66,19 @@ NAMED SIMPLIFICATIONS.
 """
 from __future__ import annotations
 
+import bisect
 import datetime as dt
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 from company.billing.account_ledger import AccountLedger, LedgerEventType
-from company.billing.arrears_engine import MORATORIUM_HOLD, dunning_path
+from company.billing.arrears_engine import (
+    CLOSED_ACCOUNT_RULE,
+    MORATORIUM_HOLD,
+    closed_account_write_off_date,
+    closed_balance_due_for_write_off,
+    dunning_path,
+)
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.crm.account_hierarchy import AccountingModel, Segment, default_accounting_model
 
@@ -342,8 +349,9 @@ class CollectionsJourneyDesk:
         #: `post_cash(account_id, amount_gbp, value_date, reference)`: the consumer's received-cash
         #: seam, idempotent on `reference`. Every paid plan instalment goes through it.
         self._post_cash = post_cash
-        #: `post_write_off(account_id, amount_gbp, on, note)`: posts a STATUTE_BARRED write-off to the
-        #: company ledger. None: a barred debt is still recorded as a `write_off` stage, unposted.
+        #: `post_write_off(account_id, amount_gbp, on, rule)`: posts a write-off to the company ledger
+        #: under `rule` (`STATUTE_BAR_RULE` or `CLOSED_ACCOUNT_RULE`). None: a barred debt is still
+        #: recorded as a `write_off` stage, unposted, and a closed account is left to the sweep.
         self._post_write_off = post_write_off
         #: Every arrangement this desk has offered, and what became of each.
         self.arrangements = PaymentPlanBook()
@@ -376,6 +384,16 @@ class CollectionsJourneyDesk:
         bars = {_years_after(e.valid_time, STATUTE_BAR_YEARS) for e in events
                 if e.event_type == LedgerEventType.PAYMENT_CREDIT} | {
             _years_after(d, STATUTE_BAR_YEARS) for d in bill_dues}
+        # The company writes a closed account off a year after its final bill: the one write-off
+        # date the page and the P&L also read (debt_and_collections.md s.7.3).
+        bills = sorted(e.valid_time for e in events if e.event_type == LedgerEventType.BILL_DEBIT)
+        if bills:
+            bars.add(closed_account_write_off_date(bills[-1]))
+
+        def _closed_by(on: dt.date) -> bool:
+            # Cheap: only a day a year past the latest bill up to it can be a closed account's.
+            last = bills[bisect.bisect_right(bills, on) - 1] if bills and bills[0] <= on else None
+            return last is not None and on >= closed_account_write_off_date(last)
         movers = openers | bars | {e.valid_time for e in events} | {
             d + dt.timedelta(days=t) for d in bill_dues for t in triggers}
 
@@ -383,6 +401,8 @@ class CollectionsJourneyDesk:
             return (after is None or d > after) and d <= through
 
         for on in sorted(d for d in movers if _in_window(d)):
+            if _closed_by(on) and self._write_off_if_closed(account_id, segment, ledger, on):
+                continue
             if account_id not in self._open and on not in openers:
                 continue
             self._step(account_id, segment, on, ledger=ledger, bill_missed=on in missed,
@@ -437,6 +457,27 @@ class CollectionsJourneyDesk:
         self._refuse(journey.as_record(), account_id)
         if journey.exit in (ARRANGEMENT, PREPAYMENT):
             self._closed.append(self._open.pop(account_id))
+
+    def _write_off_if_closed(self, account_id: str, segment: Segment, ledger: AccountLedger,
+                             on: dt.date) -> bool:
+        """Write off what a closed account still owes on the company's own write-off date, whether
+        or not a journey is open on it, and end any open journey on the `write_off` exit. Returns
+        whether it wrote anything off. A desk with no ledger seam writes nothing off."""
+        if self._post_write_off is None:
+            return False
+        due = closed_balance_due_for_write_off(ledger, on)
+        if due is None:
+            return False
+        owed, _final_bill = due
+        view = self._view_at(account_id, segment, on)
+        self._post_write_off(account_id, owed, on, CLOSED_ACCOUNT_RULE)
+        journey = self._open.pop(account_id, None)
+        if journey is not None:
+            journey.enter(WRITE_OFF, on, f"written off by rule {CLOSED_ACCOUNT_RULE}", view,
+                          written_off_gbp=owed, rule=CLOSED_ACCOUNT_RULE)
+            journey.exit = WRITE_OFF
+            self._closed.append(journey)
+        return True
 
     def _write_off_if_barred(self, journey: _Journey, ledger: AccountLedger, on: dt.date,
                              view: dict, payment_terms_days: int) -> bool:

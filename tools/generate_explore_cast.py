@@ -805,7 +805,7 @@ _DESK_TITLES = {"collections_missed_payment": "Missed a payment", "collections_r
                 "collections_moratorium_hold": "Breathing Space", "collections_cured": "Debt cleared",
                 "collections_arrangement": "Arrangement agreed",
                 "collections_prepayment": "Moved to prepayment",
-                "collections_write_off": "Written off (statute-barred)"}
+                "collections_write_off": "Written off"}
 _DESK_MESSAGES = {
     "collections_reminder": "Your account is overdue. Please pay or call us.",
     "collections_reminder_2": "Your account is still overdue. Please pay or call us.",
