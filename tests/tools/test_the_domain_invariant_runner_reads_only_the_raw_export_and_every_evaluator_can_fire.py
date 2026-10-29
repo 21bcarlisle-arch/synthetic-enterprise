@@ -932,6 +932,12 @@ def test_every_leg_of_the_meter_type_row_is_reachable():
     assert _grade_one(i, acct("Smart", True, None, ["traditional", "smart"]))[:2] == ("BREACHED", ["above"])
     assert _grade_one(i, acct("HH", None, None, ["traditional", "traditional"]))[:2] == ("CLEAN", [])
     assert _grade_one(i, _printed_account("M", "electricity", {"invoices": []}))[0] == "NOT_IN_EXPORT"
+    # A book whose bills predate the field (every period None) skips leg 2. One typed bill anywhere
+    # in the book and an untyped bill under a Smart header is a breach again.
+    old_book = acct("Smart", True, None, [None, None])
+    assert _grade_one(i, old_book)[:2] == ("CLEAN", [])
+    typed = dict(acct("Smart", True, None, ["smart"]), customer_id="T")
+    assert _grade_one(i, old_book, typed)[:2] == ("BREACHED", ["above"])
 
 
 def test_every_leg_of_the_estimate_follows_the_reads_row_is_reachable():

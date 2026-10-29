@@ -1559,6 +1559,10 @@ def ev_meter_type_one_value(inv, book):
     field skips leg 2. An HH header is a settlement class and sits beside 'none'.
     Leg 3 (the day-clock sentence) is drawn by the browser from the header, so it has no data here."""
     tally = Tally("supply points printing a meter type")
+    # The export writes `meter_type` on every period, None where the ledger has none. So "predates the
+    # field" is a fact about the book, not the period: re-grading a 37abacdf42 book breached 1,293 of
+    # 1,293 on bills that could not carry a type. One typed bill anywhere and None means unknown.
+    book_carries_the_field = any(p.get("meter_type") is not None for a in book for p in a.periods)
     for a in book:
         pm = (a.printed or {}).get("panel_meters")
         if not pm:
@@ -1577,7 +1581,7 @@ def ev_meter_type_one_value(inv, book):
         if bad:
             tally.hit("breach", "{} {} header={} but {}".format(a.cid, a.fuel, header, bad), 1, 0, "above")
         billed = [(p["period_start"], _meter_word("bill", {"smart": True, "traditional": False}.get(p["meter_type"])))
-                  for p in a.periods if "meter_type" in p]
+                  for p in a.periods if book_carries_the_field and "meter_type" in p]
         if not billed:
             continue
         if header != "hh" and header != billed[-1][1]:
