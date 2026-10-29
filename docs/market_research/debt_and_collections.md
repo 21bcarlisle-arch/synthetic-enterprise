@@ -655,6 +655,15 @@ control. The desk and the page now net one account's credit against its next bil
 share one billing account on the desk, as they do on the row's "owed", so a credit bill on one fuel
 nets against the other's debt on both sides.
 
+**The household is asked the net bill (2026-10-29).** The note alone was half of it: the household
+still paid the whole next bill, so the credit stayed unused on the desk until it took money off a
+later unpaid bill that the page still showed owed (SYN-2016-083: -28.53 in Jul 2017, then 28.53 off
+a Jan 2019 failed bill). The page's rule (`arrears_engine.resolved_settlement`, SLC 31H.12) is the
+one the triad now follows. A credit bill nets that fuel's oldest unpaid bill if there is one.
+Otherwise it waits for that fuel's next bill, and the household is asked, and pays, the rest.
+Not established: a credit that meets an open bill smaller than itself. The page holds the rest
+for the next bill. The triad leaves all of it to the desk's oldest-first allocation.
+
 **The write-off clock. GAP, and a choice.** Section 2.7 lists the close-to-write-off clock as not
 established (supplier policy, said by Ofgem to differ), and Centrica's Note 17 records enforcement
 continuing after the accounting write-off. No published date exists. The design choice the seat

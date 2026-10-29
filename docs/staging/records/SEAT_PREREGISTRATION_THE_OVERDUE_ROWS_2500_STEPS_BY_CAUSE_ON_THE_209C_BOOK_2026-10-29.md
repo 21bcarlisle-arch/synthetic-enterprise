@@ -77,3 +77,14 @@ was right about the mechanism and wrong about the count, because it held the den
   asked can now differ only by an occupier share's rounding.
 
 A grade that refutes P1 or P2 means a cause above is wrong, not merely incomplete.
+
+## Addendum, 2026-10-29 (before any run carries it): class C traced and fixed
+
+Class C (32 steps on 4 households) is a credit bill the household never used, not cash. The page
+nets a credit bill off the leg's next bill, but the triad collected the whole bill, so the credit
+waited on the desk until it came off a later unpaid bill. Fixed in `record_period`. Traced on the
+finding, section "the desk's untraced cash on four part-paid final bills".
+
+- **P-C.** On the next fresh run carrying both this and the part-payment fix, class C is 0 steps,
+  and no household breaches the row because of a credit bill held on its desk.
+- Replays of the four households, with both fixes, all meet the page or sit within its bound.
