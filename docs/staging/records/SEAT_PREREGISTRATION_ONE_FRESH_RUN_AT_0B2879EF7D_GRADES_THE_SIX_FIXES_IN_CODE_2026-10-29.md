@@ -86,3 +86,11 @@ waiter on the job runs `/var/tmp/fresh-run-0b28-scripts/after_run.sh` into `/var
 ends. The untracked draft `SEAT_PREREGISTRATION_ONE_FRESH_RUN_GRADES_THE_FIXES_IN_CODE_2026-10-29.md` in the shared
 tree (02:27, `BASE_PLACEHOLDER` run line) is this record's superseded first draft. It is not a second
 pre-registration.
+
+**Status, 07:12 UTC 29 Oct: still queued, and the grade waiter is re-armed.** The four landings that held it
+have cleared. It now waits only for memory, behind `head-green-census` at about 12 GB resident. The waiter
+named above died with the session that armed it, so nothing was set to grade the book when the run ended. A
+transient unit `grade-chain-fresh-run-0b2879ef7d` now carries the waiter, so it no longer dies with a session.
+It waits on queue pid 529128, follows `longjob-fresh-run-0b2879ef7d` to its end, and then runs `after_run.sh`
+into `/var/tmp/fresh-grade-0b28/` (`ALLDONE` on success, `NO_DONE` if the run left no `DONE.json`). No
+output has been read. Every prediction above still stands.
