@@ -2623,6 +2623,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _outcome.reputation_event_type
                 == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME
             ),
+            resolved_on=(date.fromisoformat(term_start_str)
+                         + timedelta(days=_outcome.days_to_resolve)),
+            referred_to_ombudsman=_outcome.referred_to_ombudsman,
         ))
         if _outcome.reputation_event_type == ReputationEventType.COMPLAINT_RESOLVED_ON_TIME:
             _churn_journey_register.record_friction(
@@ -6524,7 +6527,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "feedback_survey_log": feedback_survey_log,
         "reputation_events_log": reputation_events_log,
         "nps_annual_summaries": {yr: _cx_desk.nps_annual_summary(yr) for yr in range(2016, 2026)},
-        "complaint_annual_summaries": {yr: _cx_desk.complaint_annual_summary(yr) for yr in range(2016, 2026)},
+        "complaint_annual_summaries": {
+            yr: _cx_desk.complaint_annual_summary(yr, date.fromisoformat(effective_end))
+            for yr in range(2016, 2026)},
         "gri_trajectory": [
             {
                 "year": yr,

@@ -472,6 +472,36 @@ Satisfaction did fall 78% → 69% (§3.1). Closing §7.4 (the portal CSV) closes
 - Carry the two departure edges with opposite signs (§3.4): complainants by how their complaint was handled, and the
   silent unhappy switching *less*.
 
+**What the world produces today: the trigger census (2026-10-29, the `2eeb3f0b3` fresh book, 38 quarters,
+mean 478 billed accounts a quarter).** A trigger is counted per account per quarter, on the account's bills.
+
+| Cause | How it was counted on the book | Quarters > 0 | Mean share of accounts | 2022Q1 |
+|---|---|---|---|---|
+| catch-up bill | an actual read after one or more estimates (`meter_read_log`); no size threshold, so an upper bound | 38 | 37.5% | 40.6% |
+| disputed balance | a DD review with a large increase (`annual_dd_review`) | 32 | 6.6% | 7.5% |
+| price rise | a renewal the household experienced as a shock (`sim_experienced_bill_shock`) | 12 | 0.17% | 0 |
+| debt contact | any collections stage after the missed payment | 38 | 28.8% | 31.8% |
+| customer service | a contact-centre SLA breach | 38 | 1.8% | 2.5% |
+| disputed usage, other billing, meter, transfer | nothing in the world produces them | 0 | 0 | 0 |
+
+What follows for L2:
+
+- **The derivation refuses on this world, as designed.** Four causes have no producer, and together they carry
+  58% of the published complaint mix. Price rise needs about 0.23% of accounts a quarter (1.01% × 22.9%), but the
+  world produces 0.17% on average and none in 26 of 38 quarters.
+- **The price-rise trigger is counted in the wrong place.** The shock is measured only at a fixed-term renewal. A cap
+  move on the SVT book (+54% in April 2022) is not counted, so the crisis quarter shows no price trigger at all. L2 has to count a
+  price notice to every SVT account, not only renewals.
+- **The run is household-sequential**, so a quarter's prevalence is not known when a household's complaint is drawn.
+  L2 has two options: freeze the prevalence from a completed book and read it as a calibration input ("freeze, then
+  solve"), or draw complaints in a pass after the loop. The second cannot feed the departure edges in the same run.
+- **The live roll is low in level and has the wrong shape.** It drew 105 complaints in 9.5 years: about 2.3% of accounts a year,
+  against the portal's ~4%. It drew none in 2022, and filed every one as billing.
+
+**A defect found by the census, fixed the same day.** The company's complaint book never closed a complaint. The
+desk raised each contact and dropped the resolution the world had drawn, so the published year summary read 105
+outstanding, 0 resolved and 0 referred. On that book the fix reads 97 resolved and 8 referred to the Ombudsman.
+
 ---
 
 ## Sources

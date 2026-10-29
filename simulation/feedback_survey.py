@@ -27,8 +27,8 @@ import random
 from dataclasses import dataclass
 from typing import Optional
 
-from simulation.reputation_index import ReputationEventType
 from simulation.household import IncomeStress
+from simulation.reputation_index import ReputationEventType
 
 # --- Survey response propensity -------------------------------------------
 
@@ -148,6 +148,7 @@ class ComplaintResolutionOutcome:
     occurred: bool
     reputation_event_type: Optional[ReputationEventType] = None
     days_to_resolve: Optional[int] = None
+    referred_to_ombudsman: bool = False
 
 
 def dispatch_complaint_and_resolution(
@@ -198,7 +199,7 @@ def _resolved_complaint(customer_id: str, event_date: str,
             if upheld
             else ReputationEventType.COMPLAINT_RESOLVED_LATE
         )
-        return ComplaintResolutionOutcome(customer_id, event_date, True, event_type, days)
+        return ComplaintResolutionOutcome(customer_id, event_date, True, event_type, days, True)
     if outcome_roll < OMBUDSMAN_ESCALATION_PROBABILITY + LATE_BUT_WITHIN_SLC_PROBABILITY:
         days = rng.randint(ON_TIME_DAYS_MAX + 1, 56)
         return ComplaintResolutionOutcome(

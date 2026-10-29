@@ -1,8 +1,14 @@
-import pytest
 from datetime import date
+
+import pytest
+
 from company.crm.complaints import (
-    ComplaintCategory, ComplaintStatus, Complaint, ComplaintBook,
-    OMBUDSMAN_ESCALATION_DAYS, OMBUDSMAN_ESCALATION_SOURCE,
+    OMBUDSMAN_ESCALATION_DAYS,
+    OMBUDSMAN_ESCALATION_SOURCE,
+    Complaint,
+    ComplaintBook,
+    ComplaintCategory,
+    ComplaintStatus,
 )
 
 
@@ -158,3 +164,26 @@ def test_the_56_day_rule_cites_the_complaints_handling_regulations_not_slc_2_7()
     assert OMBUDSMAN_ESCALATION_DAYS == 56
     assert "Complaints Handling Standards) Regulations 2008" in OMBUDSMAN_ESCALATION_SOURCE
     assert "SLC" not in OMBUDSMAN_ESCALATION_SOURCE
+
+
+def test_a_complaint_the_world_closed_is_not_outstanding_in_the_year_summary():
+    """Until 2026-10-29 the desk raised every complaint and never closed one: a run's year summary
+    read 105 outstanding, 0 resolved, 0 escalated while the world had resolved all 105. Each leg of
+    the partition must be reachable, and the legs must sum to the total."""
+    from company.crm.customer_experience_desk import CustomerContact, CustomerExperienceDesk
+
+    desk = CustomerExperienceDesk()
+    for on, resolved_on, referred in [
+        (date(2019, 3, 1), date(2019, 3, 8), False),     # resolved
+        (date(2019, 4, 1), date(2019, 7, 1), True),      # referred to the Ombudsman
+        (date(2019, 12, 20), date(2020, 2, 1), False),   # resolved after the book is read
+    ]:
+        desk.observe_contact(CustomerContact(
+            customer_id="C1", account_id="ACC-C1", contacted_on=on, about_bill_shock=False,
+            resolved_on_time=not referred, resolved_on=resolved_on,
+            referred_to_ombudsman=referred,
+        ))
+    s = desk.complaint_annual_summary(2019, as_of=date(2019, 12, 31))
+    assert s["resolved"] and s["escalated"] and s["outstanding"]
+    assert (s["resolved"], s["escalated"], s["outstanding"]) == (1, 1, 1)
+    assert desk.complaint_annual_summary(2019, as_of=date(2020, 6, 30))["outstanding"] == 0

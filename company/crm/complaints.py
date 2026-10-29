@@ -125,8 +125,10 @@ class ComplaintBook:
     def complaints_for_customer(self, customer_id: str) -> List[Complaint]:
         return [c for c in self._complaints if c.customer_id == customer_id]
 
-    def annual_summary(self, year: int) -> dict:
-        year_complaints = [c for c in self._complaints if c.opened_date.year == year]
+    def annual_summary(self, year: int, as_of: Optional[date] = None) -> dict:
+        """`as_of` is the date the book is read: a resolution or referral dated after it has not
+        happened yet, so that complaint counts as outstanding."""
+        year_complaints = [_as_at(c, as_of) for c in self._complaints if c.opened_date.year == year]
         if not year_complaints:
             result = dict(year=year, total=0, resolved=0, escalated=0,
                           outstanding=0, total_redress_gbp=0.0,
@@ -152,3 +154,10 @@ class ComplaintBook:
             by_category=by_cat,
         )
         return result
+
+
+def _as_at(c: Complaint, as_of: Optional[date]) -> Complaint:
+    closed_on = c.escalated_date or c.resolved_date
+    if as_of is None or closed_on is None or closed_on <= as_of:
+        return c
+    return Complaint(c.complaint_id, c.customer_id, c.category, c.opened_date, c.description)

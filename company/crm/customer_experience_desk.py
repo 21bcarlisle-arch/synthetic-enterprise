@@ -113,8 +113,9 @@ class CustomerContact:
     """A customer got in touch, and the contact was or was not closed on time.
 
     `about_bill_shock` is again the company's own billing observation, and
-    `resolved_on_time` is its own service record. What the customer felt about
-    the outcome is not here.
+    `resolved_on_time`, `resolved_on` and `referred_to_ombudsman` are its own
+    service record (the Ombudsman notifies the supplier of a referral). What the
+    customer felt about the outcome is not here.
     """
 
     customer_id: str
@@ -122,6 +123,8 @@ class CustomerContact:
     contacted_on: date
     about_bill_shock: bool
     resolved_on_time: bool
+    resolved_on: Optional[date] = None
+    referred_to_ombudsman: bool = False
 
 
 @dataclass(frozen=True)
@@ -194,7 +197,9 @@ class CustomerExperienceDesk:
         The category, the description and both trust deltas are the company's
         own complaint-handling policy.
         """
-        self._complaints.raise_complaint(
+        # UNTIL 2026-10-29 THE BOOK NEVER CLOSED A COMPLAINT: every one the world resolved stayed
+        # open, and the published year summary read 0 resolved, 0 escalated, all outstanding.
+        complaint = self._complaints.raise_complaint(
             event.account_id,
             ComplaintCategory.BILLING,
             event.contacted_on,
@@ -204,6 +209,10 @@ class CustomerExperienceDesk:
                 else "routine contact"
             ),
         )
+        if event.referred_to_ombudsman and event.resolved_on is not None:
+            self._complaints.escalate_to_ombudsman(complaint.complaint_id, event.resolved_on)
+        elif event.resolved_on is not None:
+            self._complaints.resolve(complaint.complaint_id, event.resolved_on)
         self._satisfaction.record_complaint_raised(event.customer_id)
         if event.resolved_on_time:
             self._satisfaction.record_complaint_resolved(event.customer_id)
@@ -239,8 +248,8 @@ class CustomerExperienceDesk:
     def nps_annual_summary(self, year: int) -> dict:
         return self._nps.annual_summary(year)
 
-    def complaint_annual_summary(self, year: int) -> dict:
-        return self._complaints.annual_summary(year)
+    def complaint_annual_summary(self, year: int, as_of: Optional[date] = None) -> dict:
+        return self._complaints.annual_summary(year, as_of)
 
     def behavioural_record(self, customer_id: str) -> dict:
         """The per-customer experience record the Sim tab charts.
