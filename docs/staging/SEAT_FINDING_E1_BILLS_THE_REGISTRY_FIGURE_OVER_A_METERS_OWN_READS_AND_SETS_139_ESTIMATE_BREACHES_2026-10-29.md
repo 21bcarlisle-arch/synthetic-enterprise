@@ -67,3 +67,33 @@ span four months, not only the one-read case.
    one-read runs and stops a 122-day span being ignored. It needs a knowledge-page amendment (K8) before
    any build, and a fresh run to grade.
 3. Until then the exception carries the 179 as this class, at a ceiling of 179 (was 191 at 269; see the correction above).
+
+## Step 1 read (2026-10-29, later the same day)
+
+The rule was read first-hand, not BSCP504 itself but the BSC text it implements. Annex S-2 §4.3.7
+(P40; restated in Elexon's current calculation-hierarchy guidance): `EAC = AAAF·AA + (1−AAAF)·PEAC`,
+`AAAF = max(0, min(FYC·SPAR, 1))`. BSCP504 v53.0 §4.9 holds only the process around it. The
+knowledge page is amended: `how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §8, with the
+§1 and §7 claims corrected beside them.
+
+- **E1's citation was wrong.** The six-month line describes the AA. The settlement EAC moves on every
+  advance and is never held. So the established evidence now leans against E1 on two counts: SLC 27.15's
+  ordering, and the BSC's own smoothing.
+- **The recommended blend is the BSC's shape, but it cannot be graded without SPAR.** SPAR is Market
+  Domain Data and its value is not published within reach (a new GAP on the page). At C6's own inputs
+  (a 122-day span, FYC 0.30, registry 2.23 times the reads) the blend leaves the estimate at 2.05, 1.86,
+  1.49 and 1.12 times the reads for SPAR 0.5, 1, 2 and 3. **Prediction, filed before any build:** at
+  SPAR 1, most of the 179 stay breached, because the row's band is drawn from the reads alone.
+  Only SPAR of about 3 or more clears C6.
+- **So the open question has moved.** It is no longer "does a supplier blend?" (the settlement EAC
+  does). It is now two questions: what SPAR is, and whether a billing estimate follows the settlement
+  EAC or the supplier's own reads. Both are practitioner questions (K4), owed to the seat's
+  next `for_the_director` with this recommendation: the billing estimate follows the settlement EAC,
+  which the supplier receives from its data collector, so build the BSC blend with SPAR as a named
+  input, and re-draw the row's band from the same EAC. Would change it: a practitioner saying that
+  billing uses the supplier's own reads from the first one.
+- If the billing estimate follows the settlement EAC, then `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS`'s
+  band, drawn from the reads alone, would be the thing that is wrong on short spans, not E1. That
+  explanation is ranked beside the others, not chosen.
+
+Nothing is built yet. The 179 exception stands on E1 as the cause, and E1's citation is now corrected in the code.

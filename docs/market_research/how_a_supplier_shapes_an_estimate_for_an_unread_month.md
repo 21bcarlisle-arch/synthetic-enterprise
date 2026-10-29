@@ -14,8 +14,9 @@ is the within-year shape; those two are the annual level and its error.*
 
 An EAC/AA converts a meter advance into an annual figure by dividing by the **sum of the Profile
 Class 1 (domestic unrestricted) coefficients over the read period**, then re-weights it across the
-year by the same coefficients — the Elexon/BSC method (BSCP504, "EAC/AA calculation"). **BSCP504
-was not read in this session**; named, not cited. The mechanism is confirmed instead by DESNZ:
+year by the same coefficients — the Elexon/BSC method (BSCP504, "EAC/AA calculation"). *(Corrected
+2026-10-29: BSCP504 v53.0 §4.9 has now been read; it holds the process rules, and the formula is in
+BSC Annex S-2 §4.3.7, quoted in §8 below.)* The mechanism is also stated by DESNZ:
 
 > "The AA is an estimate of annualised consumption based on consumption recorded between two meter
 > readings at least 6 months apart … an EAC is used where two such meter readings are not available
@@ -157,7 +158,58 @@ is then reached only where neither an advance nor a registry figure exists. No n
 
 **GAP.** Whether a supplier's *billing* estimate (as distinct from settlement) holds the registry
 figure for the first six months, or blends it with early reads, is not published (§5). BSCP504's
-EAC weighting of a new advance against the prior EAC was not read.
+EAC weighting of a new advance against the prior EAC was not read. *(Read 2026-10-29: §8.
+The settlement EAC is NOT held for six months. It moves on every advance, so the six-month line
+above describes the AA, not the EAC, and E1's citation of it for the hold is wrong.)*
+
+## 8. How the settlement EAC takes a new advance (2026-10-29, read for the E1 finding)
+
+**Rule (established, read first-hand).** BSC Annex S-2 §4.3.7, as conformed by Modification P40
+(Elexon, *P40 Modification Report* v0.3, Jan 2002, §6) and restated in Elexon's current
+*Settlement calculation hierarchy: Calculate BM Unit Allocated Demand Volume* guidance:
+
+> "(a) AAAF_KR = max (0, min ((FYC_KR * SPAR), 1.0)); and
+> (b) if (AAAF_KR * AA_KR + (1 - AAAF_KR) * PEAC_KR) >= 0, then
+> EAC_KR = AAAF_KR * AA_KR + (1 – AAAF_KR) * PEAC_KR
+> else EAC_KR = GGPCAEAC_HPC * AFYC_HPR"
+> "SPAR is the value of the Smoothing Parameter set from time to time by the Panel applicable on the
+> last Settlement Day of the Meter Advance Period"
+
+with AA = MADV / FYC (the guidance's own box), FYC being the profile-coefficient fraction of a year
+the advance covers, and PEAC being the EAC in force before it. P40 §4.1 says why: the EAC carries "an
+additional element of 'smoothing' to limit the extent to which a single AA value (which may not be
+representative of the customer's typical demand level) can affect the forward-looking EAC value."
+BSCP504 v53.0 (effective 01 Oct 2024) §4.9 sets the process around it: AAs checked against
+GSP-Group Profile Class tolerances from MDD, advances of up to fifteen months processed.
+
+**What this settles.** Every advance, however short, moves the settlement EAC, by a weight equal to
+the fraction of the year it covers times SPAR, capped at 1. There is no six-month hold. A 30-day
+first month carries a weight of about 0.08·SPAR, and a 122-day span about 0.3·SPAR. So the
+industry's own answer to "a short first month should not set a year of estimates" is a weight, not
+a threshold. The opening EAC a gaining supplier receives is the previous one carried over the change
+of supply (§6, BSCP504 s3.2.6.51).
+
+**GAP: SPAR's value.** It is Market Domain Data, set by the Panel and "a standard positive value
+common across all GSP Groups" (EAC/AA URS). No published source within reach states the number,
+and MDD is behind a login. Printed at the E1 finding's own inputs (C6, a 122-day span, FYC 0.30),
+the blended estimate as a multiple of the reads-only one is:
+
+| registry ÷ reads | SPAR 0.5 | SPAR 1 | SPAR 2 | SPAR 3 |
+|---|---|---|---|---|
+| 1.47 (SYN-2016-538g) | 1.40 | 1.33 | 1.19 | 1.05 |
+| 2.23 (C6, Nov 2016) | 2.05 | 1.86 | 1.49 | 1.12 |
+
+So whether a BSC-shaped blend clears the 179 breaches turns entirely on SPAR. At SPAR 1, C6 still
+sits 1.86 times above its own reads. No value is set here.
+
+**Still a GAP, unchanged:** whether a supplier's *billing* estimate follows the settlement EAC, its
+own reads, or something else in the first months (§5, §7). §8 is settlement. Gas AQ is a separate
+rule: it is not smoothed this way, and it moves only on a 9–36-month read pair (§3).
+
+**Design consequence (not yet built).** E1's six-month threshold has no source. The BSC shape is a
+blend weighted by FYC·SPAR, and it can be built only once SPAR, or the billing practice, is
+established. Until then E1 stands as the cause of the 179 excepted breaches, now with its citation
+corrected.
 
 ## Sources
 
@@ -168,4 +220,7 @@ EAC weighting of a new advance against the prior EAC was not read.
 - Xoserve/Joint Office of Gas Transporters, *An Introduction to Demand Estimation and DESC* (Oct 2023): https://www.gasgovernance.co.uk/sites/default/files/related-files/2025-07/DESC%20An%20Introduction.pdf
 - DESNZ, *Subnational methodology and guidance booklet* (2026), §3.1.3 — already cited in `how_far_a_settled_eac_sits_from_next_years_use.md`
 - Ofgem, *Decision on revised Typical Domestic Consumption Values*, 25 May 2023, §1.1 — already cited in `what_a_supplier_holds_to_size_a_direct_debit.md`
-- Not read, named for the next reader: BSCP504 (EAC/AA calculation); Elexon's live BMRS/SVAA profile coefficient data; the EUC01B Annual Load Profile table (UK Link secure area, UNC-party access only).
+- Elexon, *BSCP504 Non-Half Hourly Data Collection* v53.0, effective 01 Oct 2024, §4.9 (read 2026-10-29 via the MHHS document library: https://mhhs-prod-webapp.azurewebsites.net/api/documentlibrary/Background%20Programme%20Context/P478_BSCP504_v53.1.pdf)
+- Elexon, *P40 Modification Report* v0.3 (Jan 2002), §4.1 and §6 (BSC Annex S-2 §4.3.7 text): https://assets.elexon.co.uk/wp-content/uploads/sites/11/2012/02/28170318/p40_mr_v0.3.pdf, read 2026-10-29
+- Elexon, *Settlement calculation hierarchy: Calculate BM Unit Allocated Demand Volume* (BSC guidance note): https://www.elexon.co.uk/bsc/documents/training-guidance/bsc-guidance-notes/settlement-calculation-hierarchy-calculate-bm-unit-allocated-demand-volume/, read 2026-10-29
+- Not read, named for the next reader: the Smoothing Parameter's MDD value; Elexon's live BMRS/SVAA profile coefficient data; the EUC01B Annual Load Profile table (UK Link secure area, UNC-party access only).
