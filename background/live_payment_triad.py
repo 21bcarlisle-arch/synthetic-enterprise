@@ -1282,7 +1282,12 @@ class LivePaymentTriad:
         # their own. What the final-bill model recovers is all that is recovered: no later lump.
         final_exit = None
         final_part_gbp = 0.0
-        if moved_out_on and world_payment_truth.UNIFIED:
+        # The exit is the bill whose MONTH reaches the last supplied day's. The rule reads the period
+        # end it is given, and this bill's due date is the next month's, so it is asked only here:
+        # asked for every bill, the one before the final (due in the move month) was drawn as an exit
+        # too, on 21 of the 209c3350ab book's mover DDs. The due date stays its seed key.
+        if (moved_out_on and world_payment_truth.UNIFIED
+                and bill_month >= (date.fromisoformat(moved_out_on) - timedelta(days=1)).isoformat()[:7]):
             final_exit = mover_final_bill_outcome(
                 {"moved_out_on": moved_out_on}, customer_id, due_date.isoformat(), fuel,
                 amount_gbp, world_payment_truth.engine_method(method), stress.upper(), 42)

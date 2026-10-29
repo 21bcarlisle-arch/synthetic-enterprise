@@ -650,6 +650,11 @@ def mover_final_bill_outcome(behavioral: dict, customer_id: str, period_end: str
     seed = bill_substream(base_seed, customer_id, period_end, commodity).getrandbits(64)
     res = resolve_final_bill(exposure, exposure.resolution_date, stress=stress, seed=seed)
     if res.outcome in (FinalBillOutcome.PAID_ON_TIME, FinalBillOutcome.PAID_LATE):
+        # A paid final bill on a DD leg is collected by the existing mandate on its date (home_moves.md,
+        # "Debt prevention at move-out"), as any DD that is not returned is. Its PAID_LATE lateness put
+        # 17 final DDs on the 209c3350ab book up to 77 days late with no return.
+        if method == DD_METHOD and A_DD_IS_NEVER_LATE:
+            return ("success", 0, 0.0)
         return ("success", res.days_late, 0.0)
     part = 0.0 if res.gone_away else res.recovered_gbp
     return ("failed", 0, round(min(part, amount_gbp), 2))

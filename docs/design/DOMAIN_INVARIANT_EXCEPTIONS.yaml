@@ -153,31 +153,46 @@ exceptions:
       than its month settled. Five of the 40 carry a write-off and grade as flags, so the
       prediction for the next fresh run is 35 or fewer breached, each in (a) to (c). The cold
       reader's OCC-423594fbfa6b is inside the band on this book.
-      Graded 2026-10-29 on the fresh 209c3350ab book: 24 (prediction 35 or fewer, held). The 24 are
-      not re-assigned to (a) to (c) on that book. PROS-2017-0117, the (a) example, is still among them.
+      Graded 2026-10-29 on the fresh 209c3350ab book: 24 (prediction 35 or fewer, held). Assigned by the
+      same rule, 29 Oct: (a) 14, (b) 1 (PROS-2017-0117, 5 estimates after its last actual), (c) 2, and two
+      new classes. (d) 1, PROS-2025-0106: its Apr and May bills are held in the ledger's exception queue and
+      never issued, the cause of INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL below. (e) 6: no catch-up on the
+      account and the last bill on an actual read, with billed kWh 1.5 to 4.7% off settled; the mechanism is
+      not traced. Within (a), on 3 accounts the catch-up trues the kWh to settlement exactly, and the gap is
+      the catch-up's kWh billed at that bill's rate, not the rates of the months used. Accounts and figures in
+      docs/staging/SEAT_FINDING_THREE_SMALL_EXCEPTIONS_TRACED_ON_THE_209C_BOOK_MOVERS_DDS_HELD_BILLS_AND_THE_REVENUE_ROWS_CLASSES_2026-10-29.md.
     filed: 2026-10-28
-    retired_by: the catch-up netting the run to settlement, estimates corrected or bounded on the under side, and the part-month first bill
+    retired_by: the catch-up netting the run to settlement at the rates of the months used, estimates corrected or bounded on the under side, the part-month first bill, the exception queue worked (d), and (e) traced
     max_breached: 24
   - invariant: INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE
-    scope: 6 of 1,126 accounts with collections due on the fresh 209c3350ab book (PROS-2016-0042g, PROS-2018-0222g, PROS-2019-0356g, SYN-2016-013, SYN-2016-390g, SYN-2016-603g), each one to two bills on the "missed DD without a return" leg
+    scope: the "missed DD without a return" leg on a home mover's last two bills, which was 6 accounts on the fresh 209c3350ab book as graded then, and 35 accounts (38 bills) on the same book under origin's one definition of a missed payment (dae9f598d9)
     reason: >-
-      The DD-timing fix (1b82c3c0e3, a DD is collected on its date or returned) takes the row from 181
-      to 6 on a fresh run (prediction 10 or fewer, held). Not established: what the 6 are. The
-      prediction said a mover's final bill paid late on a DD leg. That has not been checked bill by bill,
-      so these 6 are an open defect, not an explanation.
+      Traced 2026-10-29, bill by bill. Every one of the 38 is a mover's, and none is a stayer's. (1) 17 are
+      the final bill. The exit model's PAID_LATE kept its 3 to 77 days late on a DD leg, the one path
+      arrears_engine.A_DD_IS_NEVER_LATE did not cover. (2) 21 are the bill before the final. The triad asked
+      mover_final_bill_outcome with the bill's due date, where the rule reads the period end, so a bill due in
+      the move month was drawn as an exit. Both are fixed in the commit that wrote this, with
+      tests/simulation/test_a_movers_dd_is_never_late.py. The six accounts first named here are all among
+      them. The ceiling covers a run made before the fix and graded after it. The next fresh run is predicted
+      0 to 2, in docs/staging/records/SEAT_PREREGISTRATION_A_MOVERS_DD_IS_NEVER_LATE_ON_THE_NEXT_FRESH_RUN_2026-10-29.md.
     filed: 2026-10-29
-    retired_by: the six traced to a cause, and the cause fixed or shown to be lawful, on a fresh run
-    max_breached: 6
+    retired_by: a fresh run carrying the movers' DD fix, graded at 0
+    max_breached: 35
   - invariant: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
     scope: 6 checks on 3 account-years of the fresh 209c3350ab book (kWh and months on each of PROS-2024-0010 electricity 2024, PROS-2025-0106 electricity 2025, SYN-2016-582 electricity 2017)
     reason: >-
-      Three of the four accounts in the billing ledger's exception_queue on the 1a02c46116 book. The
-      usage panel (tools/generate_customer_consumption) sums the run's settlement bills, held ones
-      included. The carbon panel sums the bills the ledger issued. One cause: a bill issued in one
-      record and held in the other. PROS-2017-0336, the fourth, no longer breaches on 209c3350ab.
-      Why is not traced. Leg 3 (a part year prints no figure) is not graded.
+      Traced 2026-10-29. Every check is a bill that the billing ledger holds in exception_queue: 7 entries,
+      on these 3 accounts and no others (PROS-2024-0010 Jan and Feb 2024, PROS-2025-0106 Apr and May 2025,
+      SYN-2016-582 Dec 2016 to Feb 2017). Each is held by pre_bill_validation's vat_by_segment and
+      slc_6_7_billing_accuracy checks. The households use about 79 kWh a day of electricity, which is
+      electric heating, and that is outside the resi envelope and reads as a business VAT rate. Nothing
+      ever works the queue, so the bill is never issued. The usage panel (settlement) counts it and the
+      carbon panel (issued bills) does not. The row says both count energy used (CO1), so the usage panel
+      is right. Leg 3 is graded outside the runner: 1,621 part-year fuel-legs print a co2e_kg, an open
+      breach this row does not count. Both are in
+      docs/staging/SEAT_FINDING_THREE_SMALL_EXCEPTIONS_TRACED_ON_THE_209C_BOOK_MOVERS_DDS_HELD_BILLS_AND_THE_REVENUE_ROWS_CLASSES_2026-10-29.md.
     filed: 2026-10-28
-    retired_by: the usage panel reading only the bills the ledger issued
+    retired_by: held bills reviewed and issued (the queue worked), or the carbon panel counting energy used as the row says
     max_breached: 6
   - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
     scope: 179 of 24,904 graded estimated bills on the fresh 209c3350ab book, on 37 accounts (103 gas, 76 electricity), 113 above the band and 66 below

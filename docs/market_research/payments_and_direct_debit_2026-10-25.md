@@ -383,6 +383,18 @@ returns, this change carries that understatement into timing as well. Whether a 
 does not change on either channel. Only when it is paid does, so the re-mandate note above, "a resi
 outcome is drawn the same way on either channel", now holds for paid-or-not and not for the date.
 
-**Not changed.** A mover's final bill keeps the exit model's own lateness
-(`final_bill_outcome.PAID_LATE`), even on a DD leg. If the next graded run leaves breaches on this row,
-that is where to look first.
+**Not changed, then changed (29 Oct 2026).** This page first left a mover's final bill with the exit
+model's own lateness (`final_bill_outcome.PAID_LATE`), even on a DD leg, and named it as the first place
+to look. The fresh 209c3350ab book confirmed it. Every one of the row's 38 "missed DD without a return"
+bills (35 accounts, graded on origin's one definition of a missed payment) is a mover's:
+- 17 are the final bill, a DD "collected" 3 to 77 days late with no return;
+- 21 are the bill before it. The triad asked the exit model with that bill's due date, which falls in the
+  move month, where the model reads the period end. So a mid-tenure bill was drawn as an exit.
+
+**The choice.** A paid final bill on a DD leg is collected by the existing mandate on its due date. That
+is the stayer's rule above, and "collecting the final bill by the existing direct debit" is published
+move-out practice (`home_moves.md`, "Debt prevention at move-out"). Whether the bill is paid, part paid or
+unpaid still comes from the exit model, so no pound moves, only the date. The bill before the final is
+drawn like any other. **Direction of error:** this favours the company, because a gone household's paid
+DD now arrives on time. **GAP:** no published share of movers who cancel the mandate before the final
+collection, which would turn some of these into returns followed by payment by another route.
