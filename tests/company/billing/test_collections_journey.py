@@ -172,6 +172,38 @@ def test_a_bill_paid_on_its_due_date_opens_no_journey():
     assert on_time.collections_journeys.journeys() == []
 
 
+def _one_bill_behind(account, catch_up_on=None):
+    """SYN-2016-550's shape on 209c3350ab: the first bill is missed, then every later bill is paid
+    in full on its own due date and the missed one never is. `catch_up_on` pays it on that date."""
+    events = []
+    for n in range(1, 5):
+        issued = dt.date(2024, n, 1)
+        events.append(_event(LedgerEventType.BILL_DEBIT, account, 100.0, issued, n))
+        if n > 1:
+            events.append(_event(LedgerEventType.PAYMENT_CREDIT, account, 100.0,
+                                 issued + dt.timedelta(days=14), n))
+    if catch_up_on is not None:
+        events.append(_event(LedgerEventType.PAYMENT_CREDIT, account, 100.0, catch_up_on, 99))
+    consumer = _consumer_with(account, *events)
+    consumer.advance_collections_journey(account, dt.date(2024, 5, 10))
+    return consumer.collections_journeys.journeys()
+
+
+def test_a_journey_does_not_cure_on_a_due_date_while_the_balance_it_opened_on_is_still_owed():
+    """DEFECT (SYN-2016-550 on 209c3350ab, 2,510 of 3,413 cures on the book): a household one bill
+    behind pays each new bill on its due date. FIFO puts the old 100 on the bill due that day, which
+    reads 0 days overdue, and the desk closed the journey "cleared" and opened a new one the next day,
+    every month, with the balance never lower. Can-cure beside it: the same household paying the
+    arrears too on a due date does cure that day, so a desk that never cures cannot pass."""
+    behind = _one_bill_behind("ACC-BEHIND")
+    assert [j["exit"] for j in behind] == [None], [
+        (j["exit"], [(s["stage"], s["on"]) for s in j["stages"]]) for j in behind]
+    assert CURED not in [s["stage"] for s in behind[0]["stages"]]
+    caught_up = _one_bill_behind("ACC-CAUGHT-UP", catch_up_on=dt.date(2024, 3, 15))
+    assert [j["exit"] for j in caught_up] == [CURED]
+    assert caught_up[0]["stages"][-1]["on"] == "2024-03-15"
+
+
 def test_the_desk_refuses_a_step_issued_against_a_cleared_ledger():
     """A view that keeps escalating after the cash landed on 01-20 (it never re-reads the
     ledger): its next step, on the 01-29 trigger, must raise, not be recorded."""

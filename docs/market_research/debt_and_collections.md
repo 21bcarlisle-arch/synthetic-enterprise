@@ -801,6 +801,63 @@ keeps its own reading of the row's text, and does not import the function it gra
 - A practitioner check (K4) on whether any GB supplier allows a grace period before it treats a
   pay-on-receipt bill as missed.
 
+### 7.6 A journey closes when nothing due is still owed, not when a payment lands on the due date (2026-10-29)
+
+**Knowledge:** debt_and_collections
+
+**The case.** SYN-2016-550 on the 209c3350ab book. The household pays each new bill in full on its
+due date and never pays down about £258.83 it already owes. The desk ages the account as a rolling
+balance, oldest bill first (§2.5a). On each due date the day's payment clears every older bill, so
+the £258.83 that is left sits on the bill due that day. That bill is "0 days overdue", so the desk
+closed the journey "Debt cleared" (15 Dec 2024 is one of these). The next day the same £258.83 opened
+a new journey as a fresh missed payment. The balance never went down.
+
+**What the rules and published record say.**
+- **No licence condition or Ofgem decision says when a supplier's collections case closes. GAP**,
+  searched this pass. SLC 27 requires the supplier to act on a customer's difficulty paying, and to
+  act before arrears build up where it can see them coming. A rule that resets the case every month
+  while the balance stays the same means the case never moves up the ladder. That works against the
+  duty.
+- **A debt stays owed until it is paid, written off or statute-barred.**
+  - The bar is 6 years, and a part-payment or an acknowledgement restarts it (Limitation Act 1980
+    ss. 5, 29(5); §3).
+  - A credit customer whose debt is more than 28 days old can be objected to on a switch (SLC 14;
+    §1 P8). Paying the current bill does not settle that debt.
+- **Oldest-first appropriation is the domestic default** (`account_hierarchy_payment_allocation.md`
+  s1). Read that way, this household is one bill behind (§2.5a), not clear.
+- **What a supplier must do with an old balance it still holds.** It must carry the balance, chase
+  it under SLC 27 (contact, an affordable plan, and a prepayment meter only by Consent), and end the
+  case only on one of these:
+  - payment;
+  - an agreed arrangement;
+  - a write-off under a named rule (§7.3; the statute bar).
+
+  How long a supplier keeps a case open on a balance that rolls forward and does not age:
+  **GAP.** No supplier publishes this.
+
+**The choice the design makes.** The desk reads the ledger with the day's cash already landed, so a
+bill due today and still unpaid under FIFO will be missed at midnight. The journey therefore cures
+only when no bill due on or before that day is still owed under FIFO
+(`company/billing/collections_journey._owes_a_bill_due_by`). A bill whose due date is later does not
+hold the journey open. A household that pays everything it owes on the due date cures that day.
+
+**What it moves (MEASURED on the 209c3350ab book's journey record, 2026-10-29).**
+- Before: 3,413 journeys exited "cured". 2,510 of them did so on the due date of a bill still owed
+  (`days_overdue == 0` with a positive balance). That covers 239 of the 394 accounts with any
+  journey, and 2,295 of those journeys reopened the next day.
+- The other 903 cures are kept: 512 had nothing owed, and 391 owed only on a bill not yet due.
+- Prediction for the next fresh run, filed before it runs:
+  `docs/staging/records/SEAT_PREDICTION_THE_DESK_CURES_NOTHING_ON_A_DUE_DATE_IT_STILL_HOLDS_2026-10-29.md`.
+
+**The page and the desk allocate cash differently.**
+- The household page matches each payment to an invoice number. So SYN-2016-550's page shows £71.31
+  (electricity, Nov 2018) and £187.53 (gas, Dec 2023) unpaid for years.
+- The desk works FIFO on one balance, so it sees the same pounds as about a month old.
+
+Either way the household owes the money. The Explore debt slot's fourth check refuses a "cleared"
+or "repaid" ending while the page's own balance at that moment is still owed. Which allocation the
+page should print is a separate question, not settled here (GAP).
+
 ---
 
 ## 8. Gaps

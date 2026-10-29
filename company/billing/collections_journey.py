@@ -20,7 +20,7 @@ Between two such dates the selector's inputs do not move, so nothing is lost. An
 open journey is evaluated only where it could open one (each bill's due + 1, and any non-bill debit).
 
 WHAT ENDS A JOURNEY. `cured` is reached from the company's own records: the overdue balance is
-cleared on the ledger. `arrangement` is reached when the household AGREES an offered plan, a fact
+cleared on the ledger, and no bill due on or before that day is still owed (`_owes_a_bill_due_by`). `arrangement` is reached when the household AGREES an offered plan, a fact
 the world answers through the seam. `prepayment` is reached when the world changes the meter on the
 Consent offer the 90-day rung makes (W2_42). The other exits the atom names are listed in `UNREACHED_EXITS`
 with the reason each cannot happen yet. A journey still open at the run's end carries `exit: None`
@@ -78,6 +78,7 @@ from company.billing.arrears_engine import (
     closed_account_write_off_date,
     closed_balance_due_for_write_off,
     dunning_path,
+    fifo_unpaid_bills,
 )
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.crm.account_hierarchy import AccountingModel, Segment, default_accounting_model
@@ -192,6 +193,17 @@ UNREACHED_EXITS = {
                    "live: the take-up share ships at 0, so the household cannot answer "
                    "(simulation/payment_method_dynamics.py)"),
 }
+
+
+def _owes_a_bill_due_by(ledger: AccountLedger, on: dt.date, payment_terms_days: int) -> bool:
+    """Whether, with `on`'s cash landed, a bill due on or before `on` is still owed oldest-first.
+
+    The journey may cure only when this is False. A balance read on a due date reads 0 days overdue
+    when FIFO has moved the old debt onto the bill due that day, yet that bill is missed at midnight
+    and nothing more can land on it: a household one bill behind that pays each new bill on its due
+    date "cured" monthly with its balance never lower (debt_and_collections.md s.7.6)."""
+    return any(bill + dt.timedelta(days=payment_terms_days) <= on
+               for bill, _gbp in fifo_unpaid_bills(ledger, on))
 
 
 def ladder_actions(segment: Segment) -> tuple:
@@ -444,7 +456,8 @@ class CollectionsJourneyDesk:
             journey = self._open[account_id] = _Journey(account_id, segment)
             journey.enter(MISSED_PAYMENT, on, "journey opened: a bill is unpaid past its due date",
                           view)
-        elif not overdue:
+        elif not overdue and not (ledger is not None
+                                  and _owes_a_bill_due_by(ledger, on, payment_terms_days)):
             journey.enter(CURED, on, "overdue balance cleared on the ledger", view)
             journey.exit = CURED
             self._refuse(journey.as_record(), account_id)
