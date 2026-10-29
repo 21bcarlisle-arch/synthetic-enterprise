@@ -586,3 +586,45 @@ def test_a_decision_from_an_earlier_closed_desk_journey_is_history_not_a_split_c
     notice in the same place still refuses, so the exemption is not a blanket."""
     assert _debt_hh(earlier_journey=True) == []
     assert _debt_hh(notice_before=True) == [NOTICE]
+
+
+def _cleared_hh(caught_up):
+    """SYN-2016-550's page on 209c3350ab: the first bill is never paid, each later bill is paid on its
+    due date, and the desk's story ends "Debt cleared" on a due date. `caught_up` pays the first bill
+    before that ending, so the page's balance agrees with it."""
+    bills, led, bal = [], [], 0.0
+    for n, m in enumerate(range(1, 6), start=1):
+        due = "2024-{:02d}-15".format(m)
+        bills.append({"invoice_number": n, "date": "2024-{:02d}-01".format(m), "period_start": "2023-12-01",
+                      "due_date": due, "days_in_period": 30, "consumption_kwh": 240.0, "amount_gbp": 100.0,
+                      "read_type": "A"})
+        bal += 100.0
+        led.append({"date": "2024-{:02d}-01".format(m), "type": "invoice_raised", "invoice_number": n,
+                    "amount_gbp": 100.0, "running_balance_gbp": bal})
+        if n == 1:
+            led.append({"date": due, "type": "payment_failed", "invoice_number": n, "amount_gbp": 0.0,
+                        "method": "standard_credit", "running_balance_gbp": bal})
+            continue
+        for amount in ((100.0, 100.0) if caught_up and n == 5 else (100.0,)):
+            bal -= amount
+            led.append({"date": due, "type": "payment_received", "invoice_number": n, "amount_gbp": -amount,
+                        "method": "standard_credit", "running_balance_gbp": bal})
+    rc = [{"date": "2024-01-16", "event_type": "collections_missed_payment", "description": "A bill is unpaid"},
+          {"date": "2024-01-22", "event_type": "collections_reminder", "description": "Reminder sent"},
+          {"date": "2024-02-12", "event_type": "collections_repayment_plan_offer", "description": "Payment plan offered"},
+          {"date": "2024-05-15", "event_type": "collections_cured", "description": "Overdue balance cleared"}]
+    acc = {"account_id": "SYN-2016-550", "commodity": "electricity", "segment": "resi", "acquisition_date": "2016-07-01",
+           "invoices": bills, "ledger": {"entries": led}, "timeline": [], "reaction_chain": rc}
+    hh = {"id": "SYN-2016-550", "legs": {"electricity": acc}, "successors": {}}
+    ev = gen._events(hh)
+    got = gen._score_debt(hh, ev, {})
+    assert got, "the debt scorer must take this book, or the check below grades nothing"
+    return gen.validity_failures("debt", hh, ev, got[1], {})
+
+
+def test_the_debt_slot_refuses_a_cleared_ending_over_a_balance_its_page_still_holds():
+    """DEFECT: SYN-2016-550 on 209c3350ab ended its story "Debt cleared" on 15 Dec 2024 while its page
+    held GBP 71.31 (electricity) and GBP 187.53 (gas) unpaid. Can-pass first: the same story with the
+    old bill paid before the ending passes, so a check that refuses every cleared ending cannot."""
+    assert gen.CLEARED_WHILE_OWED not in _cleared_hh(caught_up=True)
+    assert gen.CLEARED_WHILE_OWED in _cleared_hh(caught_up=False)

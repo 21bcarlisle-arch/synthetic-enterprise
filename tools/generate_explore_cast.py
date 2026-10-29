@@ -1155,7 +1155,29 @@ def _debt_page_failures(hh, ev, keys) -> list[str]:
     placed = next((r for r in ev["reaction"] if r.get("event_type") == "arrears_placed_with_dca"), None)
     if placed and not any(r.get("event_type") in _AGENCY_STEPS for r in steps):
         out.append("its record places the debt with an agency, and no moment of the story shows it")
+    if any(r.get("event_type") in _DEBT_CLEARED and _owed_past_due(ev, r["date"]) > 0.005 for r in steps):
+        out.append(CLEARED_WHILE_OWED)
     return out
+
+
+#: The endings that tell the reader the debt is gone.
+_DEBT_CLEARED = ("collections_cured", "arrears_arrears_repaid")
+CLEARED_WHILE_OWED = "its story says the debt is cleared while its own balance at that moment is still owed past due"
+
+
+def _owed_past_due(ev, iso) -> float:
+    """What the page's own ledger says is owed at the end of `iso`, less bills not yet due then.
+
+    The page's balance per fuel is the last running balance on or before `iso`; a bill whose due date
+    is after `iso` is owed but not late, so it does not contradict a "cleared" ending (fourth debt-slot
+    check, SYN-2016-550 on 209c3350ab: "Debt cleared" on 15 Dec 2024 over GBP 71.31 and GBP 187.53)."""
+    owed = 0.0
+    for fuel in {r["fuel"] for r in ev["ledger"]}:
+        rows = [r for r in _known_by(ev["ledger"], iso) if r["fuel"] == fuel and r.get("running_balance_gbp") is not None]
+        if rows:
+            owed += rows[-1]["running_balance_gbp"]
+    owed -= sum(i.get("amount_gbp") or 0.0 for i in _known_by(ev["invoice"], iso) if (i.get("due_date") or "") > iso)
+    return round(owed, 2)
 
 
 DEFAULT_ACCOUNT_RULE = ("An ordinary record: a dual-fuel home on supply from 2016 to the end of the run that passes "
