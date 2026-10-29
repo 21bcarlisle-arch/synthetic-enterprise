@@ -628,6 +628,8 @@ def generate(run_json_path=None, out_path=None):
             # round() of the raw value (which is how the four category lines
             # drifted from their own total in the first place).
             inv["catchup_adjustment_gbp"] = printed_money.get("catchup_adjustment_gbp")
+            # Inside the printed VAT line, not a line of its own (`catchup_adjustment_gbp` is before VAT).
+            inv["catchup_vat_gbp"] = bill.get("catchup_vat_gbp")
             inv["catchup_written_off_gbp"] = bill.get("catchup_written_off_gbp")
             inv["catchup_back_billing_cap_applied"] = bill.get("catchup_back_billing_cap_applied")
             # A HELD BILL IS RELEASED HERE, at the next actual read: the assembly reconciles a held

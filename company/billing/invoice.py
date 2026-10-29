@@ -119,7 +119,8 @@ def _unit_rate_from_bill(bill: dict) -> float:
     would lose a real figure to avoid a wrong one.
     """
     kwh = bill.get("total_consumption_kwh", 0.0)
-    gbp = bill.get("total_amount_gbp", 0.0) - (bill.get("catchup_adjustment_gbp") or 0.0)
+    gbp = (bill.get("total_amount_gbp", 0.0) - (bill.get("catchup_adjustment_gbp") or 0.0)
+           - (bill.get("catchup_vat_gbp") or 0.0))
     if kwh > 0:
         return (gbp / kwh) * 100.0  # convert £/kWh → p/kWh
     return 0.0

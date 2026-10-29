@@ -82,10 +82,16 @@ def _days_in_period(bill: dict) -> float:
 
 
 def _bill_subtotal(bill: dict) -> float:
+    """What the bill's VAT line is charged on. A catch-up's VAT is on that line
+    (`catchup_vat_gbp`), so its charge before VAT is in the base; a bill from before the split
+    carries the catch-up gross and its VAT nowhere, so the base stays the month's own."""
+    catchup_net = (bill.get("catchup_adjustment_gbp") or 0.0
+                   if bill.get("catchup_applied") and "catchup_vat_gbp" in bill else 0.0)
     return (
         bill.get("commodity_amount_gbp", 0.0)
         + bill.get("non_commodity_amount_gbp", 0.0)
         + bill.get("standing_charge_gbp", 0.0)
+        + catchup_net
     )
 
 

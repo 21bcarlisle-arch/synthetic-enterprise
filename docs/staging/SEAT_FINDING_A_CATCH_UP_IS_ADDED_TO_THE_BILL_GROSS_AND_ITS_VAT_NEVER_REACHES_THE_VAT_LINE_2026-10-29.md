@@ -46,3 +46,22 @@ claiming any P&L or VAT liability effect.
 
 Predicted after the fix, on a replay of this book: the 7 accounts above leave the revenue row. The 17 accounts of
 `SEAT_FINDING_AN_ACTUAL_READ_UNDER_FIVE_POUNDS_OFF_THE_ESTIMATES_NEVER_CORRECTS_THEM_..._2026-10-29.md` do not.
+
+## Built (2026-10-29), not yet graded on a run
+
+The knowledge came first: `docs/market_research/back_billing_and_liability.md` §15.
+- `_resolve_catchup` returns `chargeable_vat_gbp`: Σ(true `vat_gbp` − billed `vat_gbp`) over the run,
+  scaled by chargeable/raw. The estimated bills now carry `true_vat_gbp` for it.
+- The bill's `catchup_adjustment_gbp` is now the correction **before VAT**, and `catchup_vat_gbp` is
+  its VAT. `catchup_vat_gbp` is added to `vat_gbp`. The total does not move, and footing holds with
+  the same five lines.
+- The readers that need the gross movement add the two fields together. These are
+  `dd_balance_book`, `dd_review`, the ledger's restatement memo, `invoice` unit-rate netting and the
+  Explore cast.
+- The pre-bill VAT rate check takes the catch-up line into its base.
+- The statement export and `bill_validation_comparison` read the line's `vat_basis`. A ledger from
+  before the split still prints the old VAT-inclusive shape and is read as such.
+- Test: `tests/company/billing/test_a_catch_ups_vat_is_on_the_vat_line.py`.
+
+**Not checked yet:** whether the company's VAT return reads the bill or settlement. The prediction
+above still stands to be graded on a fresh run: the 7 accounts leave the revenue row.
