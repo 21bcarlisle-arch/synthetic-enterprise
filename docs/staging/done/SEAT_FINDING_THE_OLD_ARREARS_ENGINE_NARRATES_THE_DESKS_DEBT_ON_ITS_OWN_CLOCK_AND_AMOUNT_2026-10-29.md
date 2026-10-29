@@ -25,3 +25,22 @@ GBP273.85. Two engines write notices for one debt, with different balances. A re
 change with an Ofgem-notice question (which document the customer is actually sent). K8 says the knowledge page comes
 first. Next step: `debt_and_collections.md` section on who sends the overdue notice, then suppress or reconcile.
 The next-largest debt refusal is separate: "places the debt with an agency, no moment shows it", 117 of 402.
+
+## Done (2026-10-29)
+
+Knowledge first: `docs/market_research/company_debt_management.md`, "Who sends the overdue notice while
+the desk's journey is open: the desk, alone". One supplier sends one letter per act (SAP FI-CA dunning is
+per account; the 2014 Ofgem debt-letter review on truthful letters). GAP N1: no published source names
+the document, because it is too obvious to write down.
+
+Built: `company/analytics/decision_event_ledger.yield_to_the_desk`. A ledger FIRST/SECOND_NOTICE dated
+inside a desk journey on the same account (first stage to exit, open-ended if none) is not put on the
+household record. The ledger's other stages stay. A dual-fuel gas leg yields to the home's account
+(`desk_journeys`), because the desk holds a dual-fuel home on one account.
+
+Measured on the 209c3350ab pages at origin/main: refusals 55 -> 3, valid debt households 195 -> 223,
+ledger letters on the record 3,443 -> 66. The prediction of 0 was refuted. The first cut left 31 because
+of the gas-leg keying, and this change fixes that. **Residual, not fixed:** 3 gas misses where the ledger
+records a miss and the desk opened no journey (SYN-2016-606, gas DD failed 15 Oct 2020). There the ledger's
+letter is the only narrator, so the refusal is honest. Why the desk saw nothing overdue is open. The
+next-largest debt refusal is unchanged and separate: agency placement with no moment shown, 117 of 402.

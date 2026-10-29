@@ -167,8 +167,8 @@ def _collections_journey_events(cid, journeys):
     """`journeys` are the company desk's collections journeys on this record's own account (the
     run's `collections_journeys` rows for `ACC-<file id>`; the caller picks them, because a gas leg's
     file id is not `cid`), one event per dated stage. Beside `_arrears_events`, not instead of it: that
-    is the billing ledger's per-bill notice record, and the two are different ladders until they
-    are reconciled (`company/billing/arrears_engine.LEDGER_NOTICES`)."""
+    is the billing ledger's per-bill record. Its letters yield to these while a journey is open
+    (`yield_to_the_desk`); its other stages stay."""
     events = []
     for journey in journeys or []:
         for stage in journey.get("stages", []):
@@ -194,13 +194,47 @@ def _collections_journey_events(cid, journeys):
     return events
 
 
+#: The ledger's per-bill stages that are letters to the household. The desk sends the same letters
+#: on the same days (`arrears_engine.LEDGER_NOTICES` reads its days off the desk's rungs).
+_LEDGER_LETTERS = ("arrears_first_notice", "arrears_second_notice")
+
+
+def desk_holds(journeys) -> list:
+    """The (first day, last day or None while open) of each desk journey on one account."""
+    out = []
+    for journey in journeys or []:
+        days = [s["on"] for s in journey.get("stages", []) if s.get("on")]
+        if days:
+            out.append((min(days), max(days) if journey.get("exit") else None))
+    return out
+
+
+def yield_to_the_desk(arrears_events, journeys) -> list:
+    """The ledger's events less any letter dated while the desk holds the debt: one supplier sends one
+    letter per act, so the desk's, with its account balance, is the one on the record (`docs/
+    market_research/company_debt_management.md`, "Who sends the overdue notice while the desk's journey
+    is open"). Works on `LedgerEvent`s or their dicts."""
+    held = desk_holds(journeys)
+
+    def _held(on):
+        return any(start <= on and (end is None or on <= end) for start, end in held)
+
+    return [e for e in arrears_events
+            if not ((e.event_type if isinstance(e, LedgerEvent) else e.get("event_type")) in _LEDGER_LETTERS
+                    and _held(e.date if isinstance(e, LedgerEvent) else e.get("date") or ""))]
+
+
 def build_customer_ledger(cid, events, retention, journey_log, ledger_customer=None,
-                          collections_journeys=None):
+                          collections_journeys=None, desk_journeys=None):
+    """`desk_journeys` are the journeys whose hold silences this record's ledger letters, when they
+    are not its own: the desk holds a dual-fuel home on one account, so its gas leg's letters yield
+    to the electricity account's journey, which is shown once, on that leg."""
+    held = collections_journeys if desk_journeys is None else desk_journeys
     all_events = (
         _journey_events(cid, journey_log)
         + _retention_decision_events(cid, retention)
         + _renewal_outcome_events(cid, events)
-        + _arrears_events(cid, ledger_customer)
+        + yield_to_the_desk(_arrears_events(cid, ledger_customer), held)
         + _collections_journey_events(cid, collections_journeys)
     )
     all_events.sort(key=lambda e: e.date)

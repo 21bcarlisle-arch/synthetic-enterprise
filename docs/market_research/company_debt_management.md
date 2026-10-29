@@ -856,6 +856,77 @@ repayments settle in full on days 21–27 loses its notice too, because `with_cr
 only the notices dated on or before the last credit. One case does this. So on that book 341 notices
 remain, each dated 7 days later, and no money figure moves.
 
+## Who sends the overdue notice while the desk's journey is open: the desk, alone (2026-10-29)
+
+*K8 page for `arrears-engine-silent-while-desk-holds-debt`. Raised by
+`docs/staging/SEAT_FINDING_THE_OLD_ARREARS_ENGINE_NARRATES_THE_DESKS_DEBT_ON_ITS_OWN_CLOCK_AND_AMOUNT_2026-10-29.md`.
+"One ladder for one act" above aligned the two ladders' DAYS and kept both views on the record. Their
+AMOUNTS were left apart. On the 209c3350ab book, 55 of 402 debt stories show the ledger's per-bill
+notice and the desk's rung for the same debt. OCC-9edd7eed4aab, 22 Jul 2019: the desk reads "GBP60.78
+overdue" and the ledger's first notice, the same day, "GBP18.71 outstanding".*
+
+### What the rules and published practice say
+- **One supplier sends the customer one debt communication per act.** There is no rule that says this,
+  because nothing else is possible. A supplier has one dunning run per account. **SAP FI-CA**, the
+  contract-accounting layer under IS-U utility billing, keeps the dunning level on the account's
+  dunning group, not on the item ("the items themselves do not have dunning levels"; section above).
+  Its notice is one letter covering the account's overdue items. A per-bill letter beside a per-account
+  letter is not a configuration the product has. ESTABLISHED as product documentation; GB practice that
+  follows from it is DERIVED.
+- **The letter must state the case truthfully.** Ofgem's 2014 review of debt letters (Law Gazette,
+  Utility Week, 2014; section above) was about letters that misstated the case. Two letters for one
+  debt naming two different balances misstate it. DERIVED, not a published rule.
+- **SLC 27.5–27.8 attach to the supplier's handling of the account in arrears**, not to each bill. The
+  duty to contact, offer an arrangement and assess ability to pay is owed once per reason to believe
+  (the "After the last rung" reading above), and the desk is what discharges it.
+- **GAP N1:** no published source says which document a GB supplier sends when a bill falls overdue on
+  an account already in collections. This is "too obvious to be written down". It is a practitioner
+  question only if the reading below is wrong in a run.
+
+### Design choice (`company/analytics/decision_event_ledger.py`)
+- **While the desk holds an account's debt, the desk is the only narrator of its notices.** A ledger
+  FIRST_NOTICE or SECOND_NOTICE dated within a desk journey on the same account (from the journey's
+  first stage to its exit, or open-ended if it has none) is not put on the household record. The
+  desk's reminder and plan offer are the letters for that act. Their days are already the same
+  (section above), and the desk's amount is the account's overdue balance, the figure a single letter
+  carries.
+- **Outside a desk journey the ledger's notice stays.** It is then the only record of the act. A run
+  published before the report carried desk journeys keeps all its ledger notices.
+- **Only the notices yield.** The ledger's miss, repayment, write-off, agency and recovery stages are
+  not letters. They stay on the record as the ledger's facts. The commercial DISPUTE_NOTICE is not a
+  desk rung (GAP B1) and stays.
+- **No money moves.** The notices are dated statements, and the change is made where the record is
+  assembled, not in the ledger.
+
+### Prediction, written before the change is run on a book
+On the 209c3350ab pages, the 55 debt stories whose shown decision is an `arrears_first_notice` or
+`arrears_second_notice` dated before the miss fall to 0. Valid debt households rise from 195 by at most
+55, because a story can still fail another check. No money figure moves. The number of ledger notices
+removed is at least 55 and at most the count of ledger notices dated inside a desk journey.
+
+### Measured on the 209c3350ab pages (2026-10-29, after the prediction above)
+The rule was applied to the book's published reaction chains (`yield_to_the_desk`), and the cast's debt
+check was re-run at origin/main.
+
+| | before | own account only | dual-fuel gas leg yields to the home's account |
+|---|---|---|---|
+| ledger letters on the record (of 3,443) | 3,443 | 1,453 | 66 |
+| "notice dated before the miss" refusals | 55 | 31 | 3 |
+| valid debt households (of 402) | 195 | 208 | 223 |
+
+- **"55 fall to 0": refuted, in two steps.** The first cut cleared only 24. The desk holds a dual-fuel
+  home on ONE account (`ACC-<home>`, with no journey on any `…g` id among 3,563). The gas leg's letters were
+  matched against a gas account that has no journeys. 28 of the 31 were gas letters on such homes.
+  The gas leg now yields to the home's account, and the desk's events are still shown once, on the
+  electricity leg. I did not predict that the desk and the ledger key a dual-fuel home differently.
+- **The last 3 are a different shape.** Each is a gas miss on the ledger with no desk journey around
+  it. For example, SYN-2016-606's gas DD failed on 15 Oct 2020 and the desk opened nothing. There the ledger's letter is the
+  only narrator, as the design says, and the refusal is honest. Why the desk saw no overdue gas
+  balance (a credit on the shared account netting it, or a missed open) is not established here.
+- **"Valid rises by at most 55": held** (+28). No money figure reads a notice date.
+- **"At least 55 removed": held** (3,377). Almost every ledger letter on this book fell inside a desk
+  hold, so the ledger's letters had been a second copy of the desk's almost everywhere.
+
 ## One case, one climb: the ladder does not walk back down while an arrears case is open (2026-10-24)
 
 *K8 page for `is-a-collections-ladder-monotone-within-an-open-case`. Raised by

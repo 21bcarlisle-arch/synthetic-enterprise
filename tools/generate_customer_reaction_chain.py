@@ -290,6 +290,7 @@ def generate(run_json_path=None):
         obj["reaction_chain"] = build_customer_ledger(
             base, events, retention, journey_log, ledger_customers.get(cid),
             collections_journeys=journeys_by_account.get("ACC-" + cid, []),
+            desk_journeys=journeys_by_account.get("ACC-" + base, []) if base != cid else None,
         )
 
         cust_file.write_text(json.dumps(obj, indent=2))
