@@ -77,3 +77,12 @@ Baselines are the current ceilings in `docs/design/DOMAIN_INVARIANT_EXCEPTIONS.y
 
 To be graded after the run. The exceptions file is then set to each measured count with its cause, or the
 exception is retired.
+
+**Status, 05:11 UTC 29 Oct: not started.** `fresh-run-0b2879ef7d` has been in `launch_long_job`'s queue since 03:35.
+It was first held behind four pending landings, and now waits for memory: 12,500 MB declared peak against
+`sim-runner` and `head-green-census` resident. `fresh-run-209c3350ab` (the one-write-off-date grade, which also
+carries all six fixes) is queued behind it. No output exists, so every prediction above still stands unread. A
+waiter on the job runs `/var/tmp/fresh-run-0b28-scripts/after_run.sh` into `/var/tmp/fresh-grade-0b28/` when it
+ends. The untracked draft `SEAT_PREREGISTRATION_ONE_FRESH_RUN_GRADES_THE_FIXES_IN_CODE_2026-10-29.md` in the shared
+tree (02:27, `BASE_PLACEHOLDER` run line) is this record's superseded first draft. It is not a second
+pre-registration.
