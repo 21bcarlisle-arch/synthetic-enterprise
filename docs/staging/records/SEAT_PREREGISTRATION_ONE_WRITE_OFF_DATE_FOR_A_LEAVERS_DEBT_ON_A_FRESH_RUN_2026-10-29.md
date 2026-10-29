@@ -71,3 +71,12 @@ pytest (about 4 GB) and an annual-report run, and each fresh run declares a 12,5
 23,008 MB budget. No output exists, so P1 to P5 are unread and stand as written. The grade fixture is
 in place and unchanged: run worktree at 209c3350ab, `after_run.sh`, `wo_probe.py`, `lag_occ4.py`. A
 `tools.wait_for` waiter on `arm.py /var/tmp/fresh-run-out-209c3350ab` runs the grade once `DONE.json` exists.
+
+**07:45 GMT: still queued, and the waiter had died.** The `tools.wait_for` waiter on `arm.py` named
+above was gone, so the book would have finished ungraded, the same failure the 0b2879ef7d grade hit. A
+transient unit `grade-chain-fresh-run-209c3350ab` (systemd --user, script
+`/var/tmp/wo-grade-209c-scripts/chain.sh`) now waits on queue pid 1172912, follows
+`longjob-fresh-run-209c3350ab` to its end, and runs `after_run.sh` into `/var/tmp/wo-grade-209c/`
+(`ALLDONE`, or `NO_DONE` if no `DONE.json`). `wait_for` caps a single wait at 6 h, so the chain re-arms
+while the queue pid lives: a queue longer than 6 h would otherwise grade an empty output dir. No output
+read. P1 to P5 stand as written.

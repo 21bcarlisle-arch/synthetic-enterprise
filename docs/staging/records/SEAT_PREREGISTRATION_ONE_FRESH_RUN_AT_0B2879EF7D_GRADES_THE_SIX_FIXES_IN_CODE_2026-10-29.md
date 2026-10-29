@@ -94,3 +94,9 @@ transient unit `grade-chain-fresh-run-0b2879ef7d` now carries the waiter, so it 
 It waits on queue pid 529128, follows `longjob-fresh-run-0b2879ef7d` to its end, and then runs `after_run.sh`
 into `/var/tmp/fresh-grade-0b28/` (`ALLDONE` on success, `NO_DONE` if the run left no `DONE.json`). No
 output has been read. Every prediction above still stands.
+
+**07:45 GMT: the chain is re-armed.** `chain.sh` waited only once, and `wait_for` caps a wait at 6 h,
+so a queue that ran past about 13:12 would have written `NO_DONE` over a run that had not yet started.
+The unit now runs `/var/tmp/fresh-run-0b28-scripts/chain2.sh`, which re-arms the wait while queue pid
+529128 lives; otherwise it is unchanged. The old unit was stopped before it read anything. Done by the
+209c3350ab grade (item `the-one-write-off-date-is-graded-on-a-fresh-run`), which hit the same defect.
