@@ -1198,6 +1198,7 @@ class LivePaymentTriad:
         moved_out_on: Optional[str] = None,
         household_legs: int = 1,
         bill_month: Optional[str] = None,
+        credit_gbp: float = 0.0,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1316,6 +1317,20 @@ class LivePaymentTriad:
             invoice_ref=invoice_ref,
         )
         self._ledger_book.post(bill)
+        # A credit bill (the supplier issued a negative bill) is a credit on the account, which the
+        # household's page nets against its next bill. Posting max(0, ask) lost it, and the desk
+        # then chased the next bill the page showed as paid down.
+        credit_note = None
+        if credit_gbp > 0:
+            credit_note = LedgerEvent(
+                event_id=f"credit:{customer_id}:{period_index}",
+                account_id=account_id,
+                event_type=LedgerEventType.ADJUSTMENT_CREDIT,
+                amount_gbp=round(credit_gbp, 2),
+                valid_time=issue_date,
+                transaction_time=datetime.combine(issue_date, time(0, 0)),
+            )
+            self._ledger_book.post(credit_note)
         # BILLING IT IS HOW THIS COMPANY LEARNS IT SUPPLIES IT (atom EP6, pass
         # 42 -- the blind review's Q6). The roster is stated HERE, at the one
         # place the company acts on its own knowledge of the account, and never
@@ -1330,6 +1345,8 @@ class LivePaymentTriad:
         # invoiced. Posting a different bill set here would make the two books
         # incomparable in exactly the way the attribution guards look for.
         self._cf_ledger_book.post(bill)
+        if credit_note is not None:
+            self._cf_ledger_book.post(credit_note)
         self._cf_consumer.note_supplied_account(account_id)
 
         # DD payments carry a period-specific remittance (correlation_id ==

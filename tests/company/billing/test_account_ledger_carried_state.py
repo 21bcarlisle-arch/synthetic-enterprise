@@ -48,6 +48,18 @@ def _replay_without_carry(events, disputed, as_of):
         return round(it[1] - it[3], 2)
     allocations, unallocated = [], 0.0
     for e in events:
+        if e.event_type is T.ADJUSTMENT_CREDIT and not e.invoice_ref:
+            # A credit bill: reduces the oldest open items, is not cash, so it is not recorded.
+            left = round(e.amount_gbp, 2)
+            for it in sorted(items.values(), key=lambda i: (i[2], i[0])):
+                if left <= 0.005:
+                    break
+                if owed(it) <= 0.005 or it[4]:
+                    continue
+                take = min(left, owed(it))
+                it[3] = round(it[3] + take, 2)
+                left = round(left - take, 2)
+            continue
         if e.event_type != T.PAYMENT_CREDIT:
             continue
         left = round(e.amount_gbp, 2)

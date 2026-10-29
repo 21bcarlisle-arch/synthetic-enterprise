@@ -643,6 +643,29 @@ in-loop build sees one leg's rows. The published build sees the whole book, the 
 policy's switches and the theft screen's tenancy links. The fresh run's re-grade of the overdue
 rows measures the residual, and this does not assume it is zero.
 
+### 7.3 A credit bill is a credit on the desk's ledger; one write-off date is a chosen convention (2026-10-29)
+
+**Knowledge:** debt_and_collections
+
+**A credit bill.** A supplier that issues a negative bill owes the customer that sum, and the next
+bill is net of it (the page nets it). The run posted `max(0, ask)` to the desk's ledger, so a credit
+bill left no trace. It now posts an invoice-less `ADJUSTMENT_CREDIT`, which the allocation applies to
+the oldest open items. It is not cash: it never enters the allocations or the cash-conservation
+control. The desk and the page now net one account's credit against its next bill. Both fuel legs
+share one billing account on the desk, as they do on the row's "owed", so a credit bill on one fuel
+nets against the other's debt on both sides.
+
+**The write-off clock. GAP, and a choice.** Section 2.7 lists the close-to-write-off clock as not
+established (supplier policy, said by Ofgem to differ), and Centrica's Note 17 records enforcement
+continuing after the accounting write-off. No published date exists. The design choice the seat
+takes: the company's own write-off act is the one date, because the write-off is the supplier's
+accounting decision. The page's arrears history and the P&L read it, and the desk's journey stops
+chasing a balance the company has written off (pursuit by a collection agent after the write-off is
+a separate, labelled stage, not the in-house desk). This is a choice, not a finding: a different
+clock changes bad-debt timing, and nothing here establishes the value of the clock itself. Not yet
+built: today the page writes off at the final bill's due date, the company's sweep a year later and
+only after the loop, the desk at the six-year bar.
+
 ---
 
 ## 8. Gaps
