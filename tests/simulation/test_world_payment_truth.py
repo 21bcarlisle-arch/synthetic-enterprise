@@ -170,8 +170,9 @@ def test_a_movers_final_bill_is_decided_once_in_the_triad(monkeypatch):
                             income_stress_value="moderate", segment="resi",
                             moved_out_on="2020-03-15")
         method = wpt.engine_method(triad._method_for(cid))
+        # The bill's own period end, the last supplied day, as the DD book draws the same bill.
         expect = ae.mover_final_bill_outcome({"moved_out_on": "2020-03-15"}, cid,
-                                             "2020-03-28", "electricity", 90.0, method,
+                                             "2020-03-14", "electricity", 90.0, method,
                                              "MODERATE", 42)
         if expect is None:
             continue

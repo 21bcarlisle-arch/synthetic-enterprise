@@ -312,3 +312,19 @@ month-before-the-move bill, which falls due in the move month, is drawn as an ex
   b3b4's Dec 2024.
 - The seed string also differs from the DD book's draw of the same bill.
 - This is the next increment on this item.
+
+## 2026-10-29: the triad's exit draw is keyed by the bill's period end (item `the-mover-exit-draw-reads-the-bills-period-not-its-due-date`)
+
+"What this exposes" item 2 is closed in two landings. 8d9dd19b5 stopped the bill before the final being drawn
+as an exit, by gating on the bill month, but kept the due date as the draw's key. This landing passes the
+bill's `period_end` into `LivePaymentTriad.record_period` (the run's `held["period_end"]`, the month's last
+supplied day) and asks `mover_final_bill_outcome` with it, as the DD book and the engine do. The rule's own
+period gate replaces the month gate.
+- On the 209c3350ab book the due-date key reproduces 210 of the 211 final-bill outcomes, and the period-end
+  key moves 71 of them on 60 households (35 to failed or part paid, 36 to paid). 083's Jan 2019 bill is no
+  longer an exit; its final bill's outcome does not move.
+- Control: `tests/simulation/test_the_triads_exit_draw_is_the_dd_books_draw_of_the_same_bill.py`, red on
+  origin and red under the mutation "accept `period_end`, key by the due date" (it then reproduces the book's
+  Jan 2019 part of 71.28 exactly). Two tests that compared the triad against a due-date-keyed draw now key
+  the expected draw by the period end, the property they assert.
+- Prediction filed before the run: `records/SEAT_PREREGISTRATION_THE_MOVERS_EXIT_DRAW_KEYED_BY_THE_BILLS_PERIOD_END_2026-10-29.md`.

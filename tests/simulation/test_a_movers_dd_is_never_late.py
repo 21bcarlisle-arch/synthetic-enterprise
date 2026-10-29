@@ -66,7 +66,9 @@ def test_the_bill_before_the_final_is_not_the_exit(monkeypatch):
         triad.record_period(customer_id=cid, due_date=date(2022, 7, 8), amount_gbp=40.0,
                             income_stress_value="moderate", segment="resi", bill_month="2022-06",
                             moved_out_on="2022-06-20")
-    # The final bill still reaches the exit model (a meter-paying household's comes back None), and
-    # the May bill is never asked.
-    assert {d for d, _ in seen} == {"2022-07-08"}, seen
-    assert len(seen) == 20 and any(hit for _, hit in seen)
+    # Each bill is asked by its period end (none given here, so the month's last day or the last
+    # supplied day): the May bill comes back None, and the final bill reaches the exit model (a
+    # meter-paying household's comes back None too).
+    assert {d for d, _ in seen} == {"2022-05-31", "2022-06-19"}, seen
+    assert not any(hit for d, hit in seen if d == "2022-05-31"), seen
+    assert any(hit for d, hit in seen if d == "2022-06-19"), seen

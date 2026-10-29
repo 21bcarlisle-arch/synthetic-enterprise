@@ -1203,6 +1203,7 @@ class LivePaymentTriad:
         household_legs: int = 1,
         bill_month: Optional[str] = None,
         credit_gbp: float = 0.0,
+        period_end: Optional[str] = None,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1219,7 +1220,9 @@ class LivePaymentTriad:
         the drawn arrangement stays in the cache because the household's trait does not change.
 
         `bill_month` is the month the bill charges for, which keys this bill's draws and outcome;
-        `due_date` is when it falls due, after the month has ended. Omitted, the due date's month."""
+        `due_date` is when it falls due, after the month has ended. Omitted, the due date's month.
+        `period_end` is the bill's last day, which keys a mover's exit draw as every other caller of
+        `mover_final_bill_outcome` keys it. Omitted, the month's last day or the last supplied day."""
         self._deliver_settlements_through(due_date)
         bill_month = bill_month or due_date.isoformat()[:7]
         period_index = _period_index_for(bill_month)
@@ -1282,14 +1285,18 @@ class LivePaymentTriad:
         # their own. What the final-bill model recovers is all that is recovered: no later lump.
         final_exit = None
         final_part_gbp = 0.0
-        # The exit is the bill whose MONTH reaches the last supplied day's. The rule reads the period
-        # end it is given, and this bill's due date is the next month's, so it is asked only here:
-        # asked for every bill, the one before the final (due in the move month) was drawn as an exit
-        # too, on 21 of the 209c3350ab book's mover DDs. The due date stays its seed key.
-        if (moved_out_on and world_payment_truth.UNIFIED
-                and bill_month >= (date.fromisoformat(moved_out_on) - timedelta(days=1)).isoformat()[:7]):
+        # The rule is asked with the bill's PERIOD END, as the DD book, the engine and the
+        # pay-on-receipt path ask it. Asked with the due date (the next month's), the bill before the
+        # final was drawn as an exit too, on 21 of the 209c3350ab book's mover DDs, and the final
+        # bill's draw was seeded apart from the DD book's draw of it: 71 of its 211 disagreed.
+        if moved_out_on and world_payment_truth.UNIFIED:
+            if period_end is None:
+                last_supplied = date.fromisoformat(moved_out_on) - timedelta(days=1)
+                y, m = int(bill_month[:4]), int(bill_month[5:7])
+                month_end = date(y + m // 12, m % 12 + 1, 1) - timedelta(days=1)
+                period_end = min(month_end, last_supplied).isoformat()
             final_exit = mover_final_bill_outcome(
-                {"moved_out_on": moved_out_on}, customer_id, due_date.isoformat(), fuel,
+                {"moved_out_on": moved_out_on}, customer_id, period_end[:10], fuel,
                 amount_gbp, world_payment_truth.engine_method(method), stress.upper(), 42)
         if final_exit is not None:
             outcome, exit_days_late, part_paid = final_exit

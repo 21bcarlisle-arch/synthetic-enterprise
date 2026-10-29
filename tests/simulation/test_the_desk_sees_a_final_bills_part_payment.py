@@ -26,7 +26,8 @@ def test_the_desk_owes_the_bill_less_the_part_paid(monkeypatch):
                             income_stress_value="moderate", segment="resi",
                             moved_out_on="2020-03-15")
         method = wpt.engine_method(triad._method_for(cid))
-        exit_ = ae.mover_final_bill_outcome({"moved_out_on": "2020-03-15"}, cid, "2020-03-28",
+        # Keyed by the bill's period end, the last supplied day, as the triad keys it.
+        exit_ = ae.mover_final_bill_outcome({"moved_out_on": "2020-03-15"}, cid, "2020-03-14",
                                             "electricity", 90.0, method, "MODERATE", 42)
         if exit_ is None:
             continue

@@ -2711,6 +2711,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # collections desk opened its journeys before the month had been billed.
             due_date=bill_due_date(cid, held["period_end"]),
             bill_month=held["month"],
+            period_end=held["period_end"],
             # The bill the supplier ISSUED for the month, as the engine asks the named payer for it
             # (`payer_ask_gbp`: its share of the window, net of the scheme credit), not the month's
             # settled revenue, which is priced at true kWh before VAT and is a sum no bill states
