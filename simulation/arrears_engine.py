@@ -63,9 +63,11 @@ A failed or disputed bill is not a terminal case. It adds to the account's
 running unpaid balance (`balance_write_offs`). At close -- a churned account's
 final bill -- whatever is still unpaid is written off on the company's own write-off date, a
 year after that bill (`WRITE_OFF_DATE_CONVENTION`). A live balance with no payment for
-six years is statute-barred (leg 4a). A stayer's aged arrears cost money
-through PROVISION (leg 4b), off by default because its bucket turns on C1, so
-`bad_debt_gbp` counts write-offs only (`BAD_DEBT_BASIS`). The rule this replaced wrote off
+six years is statute-barred (leg 4a). The P&L charges the close leg in the
+account's exit year whatever that date (`_row_for`): an expected loss at close,
+not the write-off (debt_and_collections.md s.7.4). A stayer's aged arrears cost money
+through PROVISION (leg 4b), off by default because its bucket turns on C1
+(`BAD_DEBT_BASIS`). The rule this replaced wrote off
 every failed bill of an eventual leaver at due+90 while it was still on supply.
 
 Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4] -- debt as a
@@ -910,8 +912,11 @@ def stayer_provision_charges(resolved: list[dict], churned_ids: set[str],
 #: What `bad_debt_gbp` counts. Ofgem's bad-debt charge is provisions PLUS write-offs (Appendix 2,
 #: Dec 2024, §2.4). With leg 4b off this line is the narrower quantity, and says so.
 BAD_DEBT_BASIS = (
-    "write-offs only: the unpaid balance at close (after post-close DCA/sale recovery, applied "
-    "separately) plus statute-barred live balances. Provision on a stayer's aged arrears is NOT "
+    "expected loss at close plus write-offs: a leaver's unpaid balance at close is charged in its "
+    "exit year, net of its expected DCA/sale recovery booked on the same record, whatever its "
+    "write-off date (`_row_for`; debt_and_collections.md s.7.4) -- a provision at close, the "
+    "write-off date only derecognising it; plus statute-barred live balances, written off when "
+    "barred. Provision on a stayer's aged arrears is NOT "
     "included -- its rates are sourced (LIVE_ARREARS_PROVISION_RATES) but which row a failed-DD "
     "stayer sits in turns on C1, which is not (STAYER_FAILED_DD_BUCKET_ENV unset) -- so a stayer's "
     "arrears read as zero cost here, a declared gap, not an established zero.")
@@ -1287,8 +1292,9 @@ def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: se
 
 def compute_emergent_bad_debt(bills: list[dict], behavioral: dict, churned_ids: set[str],
                                seed: int = 42) -> dict[tuple[str, int], float]:
-    """GBP written off, keyed by (customer_id, write_off_year). Its basis is `BAD_DEBT_BASIS`:
-    write-offs only, no provision -- unless `stayer_failed_dd_bucket()` names a C1 bucket, when
+    """GBP written off, keyed by (customer_id, write_off_year); the apply step books a key dated
+    after the account's last year in that year (`_row_for`). Its basis is `BAD_DEBT_BASIS`:
+    no stayer provision -- unless `stayer_failed_dd_bucket()` names a C1 bucket, when
     leg 4b's stayer provision charge is added on the same keys.
     """
     return emergent_bad_debt_lines(bills, behavioral, churned_ids, seed)["total"]

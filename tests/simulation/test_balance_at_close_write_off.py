@@ -82,11 +82,11 @@ def test_a_leavers_write_off_is_its_balance_at_close_dated_on_the_companys_own_w
     assert {v["date"] for v in wo.values()} == {date(2018, 12, 28)}
 
 
-def test_the_stayer_provision_is_a_declared_gap_and_the_bad_debt_line_says_write_offs_only(monkeypatch):
+def test_the_stayer_provision_is_a_declared_gap_and_the_bad_debt_line_names_the_loss_at_close(monkeypatch):
     monkeypatch.delenv(STAYER_FAILED_DD_BUCKET_ENV, raising=False)
     assert stayer_failed_dd_bucket() is None
-    assert BAD_DEBT_BASIS.startswith("write-offs only")
     assert "declared gap" in BAD_DEBT_BASIS
+    assert "write-offs only" not in BAD_DEBT_BASIS, "a leaver's loss books at close, not at its write-off"
 
 
 def test_a_stayers_failed_bills_are_never_booked_on_the_real_engine(monkeypatch):

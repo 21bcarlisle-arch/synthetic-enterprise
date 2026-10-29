@@ -32,3 +32,18 @@ recognises the expected loss at exit and says so (a provision basis, `debt_and_c
 The next step is to read `_row_for`'s callers and the provisioning section of the knowledge page,
 then state which one the P&L means. Probe: `/var/tmp/wo-attr-0b28-scripts/attr.py`. Record:
 `docs/staging/records/SEAT_PREREGISTRATION_ONE_WRITE_OFF_DATE_FOR_A_LEAVERS_DEBT_ON_A_FRESH_RUN_2026-10-29.md`.
+
+## Done (2026-10-29)
+
+Established, one probe (`/var/tmp/wo-year-probe/probe.py`, both books): `_row_for` is why
+`bad_debt_gbp` is identical. All 143 leavers with a close write-off (£11,866.17) are dated after
+their exit year under the company's date, and all 143 book in it. Under the final-bill due date,
+12 (£455.42) were already after it and booked there too. The recovery (£1,447.60, 12.2%) is also
+dated later, so it books in the exit year. The net charge is 87.8% of the closing balance, which is
+Centrica's final-bill coverage.
+
+Decided: the P&L books an **expected loss at close** (a provision, which is IFRS 9 practice and
+Ofgem's charge basis). The write-off date derecognises the balance, and only the page and the
+desk read it. Stated in `docs/market_research/debt_and_collections.md` s.7.4. Section 7.3's
+sentence saying the P&L reads the date is corrected beside the claim. `BAD_DEBT_BASIS` no longer
+says "write-offs only". No P&L figure moves: the behaviour was right and its name was wrong.

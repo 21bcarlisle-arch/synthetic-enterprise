@@ -674,10 +674,11 @@ clock changes bad-debt timing, and nothing here establishes the value of the clo
   The month-end sweep after the loop stays as the backstop and now finds nothing the desk took.
 - **The page and the P&L** read the same date through
   `company/interfaces/collections_communication.closed_account_write_off_date`
-  (`WRITE_OFF_DATE_CONVENTION = "company_closed_account_write_off"`). The P&L already booked a
-  write-off dated after the account's last year on its last record (`_row_for`), so a leaver's
-  charge mostly stays on the record it was on; it moves only where the account has a record in
-  the new date's year.
+  (`WRITE_OFF_DATE_CONVENTION = "company_closed_account_write_off"`). *Corrected 2026-10-29:*
+  this bullet said the P&L reads the date too, and that a leaver's charge would move where the
+  account has a record in the new date's year. Measured, no account does, and the P&L does not
+  read the date: it books the loss in the exit year whatever the date (s.7.4). The page and the
+  desk read it.
 - **Recovery.** The world's walk applies no payment to a closed balance in the chase year, so the
   post-write-off recovery stays at the whole expected recovery (1 - the final-bill >90-day coverage),
   booked after the write-off. Reading q3 (~5p, what is left after a year's chase) would assert the
@@ -685,7 +686,51 @@ clock changes bad-debt timing, and nothing here establishes the value of the clo
 - **Not covered.** A dual-fuel account where one fuel leaves and the other stays: the page writes
   the leaving fuel's debt off, while the company's account is still billed and so is not closed. A
   balance whose write-off date falls after the run's end is open on the page and the desk, and
-  charged on the P&L (on its last record): the P&L errs against us there, by design.
+  charged on the P&L (on its last record), as every leaver's is: s.7.4.
+
+### 7.4 The P&L books a leaver's loss in its exit year: an expected loss at close, not the write-off date (2026-10-29)
+
+**Knowledge:** debt_and_collections
+
+**What practice says (ESTABLISHED).** Ofgem's bad-debt charge is provisions plus write-offs
+(Appendix 2, Dec 2024, s.2.4). Under IFRS 9 the loss on a receivable goes to the P&L when it is
+expected: a credit-impaired balance is provided against, and a later write-off only uses up the
+provision. It does not hit the P&L a second time. Centrica provides 84% of final-bill receivables,
+87.8% past 90 days (s.1, P5; Note 17). Its residential charge was £285m in 2025 against £74m
+written off (s.2.6). For a closed account, the P&L moment is the close, not the write-off date.
+
+**What our P&L does (MEASURED, 2026-10-29).** `simulation/arrears_engine._row_for` books any
+(customer, year) figure dated after the account's last settlement year on that account's last
+record. A leaver has no record after it leaves, so its close write-off books in its exit year.
+- Both books were measured: `fresh-run-0b2879ef7d` (final-bill due date) and
+  `fresh-run-209c3350ab` (the company's date, a year after the final bill). On each, 143 leavers
+  carry a close write-off of £11,866.17.
+- Under the company's date, all 143 are dated after the exit year, and all 143 book in it.
+- Under the final-bill due date, 131 (£11,410.75) fall in the exit year and 12 (£455.42) after it.
+  Those 12 book in the exit year too.
+- So `bad_debt_gbp` per customer-year is identical between the two books by construction. Probe:
+  `/var/tmp/wo-year-probe/probe.py`.
+- The recovery is booked the same way. On the 209c book it is £1,447.60, 12.2% of the write-off,
+  which is `1 - prov_coverage_final_bill_over_90d`. It is dated after the write-off, so it books
+  in the exit year as well (none unbooked).
+- The exit-year net charge is therefore 87.8% of the closing balance. That is a provision at close
+  at Centrica's final-bill coverage.
+
+**The basis, stated.** The P&L books a leaver's debt as an **expected loss at close**: the unpaid
+balance, net of its expected recovery, in the account's exit year. That is a provision, and it
+matches published practice. The write-off date is when the balance is **derecognised**. The page's
+arrears history and the desk carry that date (s.7.3), and it moves nothing in the P&L. So the
+choice of clock in s.7.3 changes the page and the desk, never the bad-debt charge. A 2025 leaver
+whose write-off falls after the run's end is charged in 2025, as practice would charge it.
+`BAD_DEBT_BASIS` used to say "write-offs only". It now names the close leg as a loss at close, and
+the stayer leg (statute-barred, dated in-life) as a write-off. Stayer provision stays a declared
+gap (leg 4b, C1).
+
+**Not established (GAP).** Real suppliers provide in steps: on ageing, at the final bill, then
+true-up at sale or write-off. Ours books the whole expected loss at once, at close. Its timing
+within the exit year is the last record, not the final bill's date. Whether the recovery share
+should be booked when the recovery comes in (cash basis) rather than inside the expected loss is
+the accounting choice above. No supplier publishes the split.
 
 ---
 
