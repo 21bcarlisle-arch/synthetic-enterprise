@@ -100,3 +100,61 @@ so a queue that ran past about 13:12 would have written `NO_DONE` over a run tha
 The unit now runs `/var/tmp/fresh-run-0b28-scripts/chain2.sh`, which re-arms the wait while queue pid
 529128 lives; otherwise it is unchanged. The old unit was stopped before it read anything. Done by the
 209c3350ab grade (item `the-one-write-off-date-is-graded-on-a-fresh-run`), which hit the same defect.
+
+**09:40 GMT: a prediction for P3's rise, written before any breach list is read.** The 209c3350ab book
+(below) carries all six fixes and breaches P3's row 269 times, against 153 on 37abacdf42. Only its
+total and five examples have been read. E1 bills the registry EAC/AQ until the company's own reads
+span 182 days (273 for gas). The registry figure is a national-profile annual, not this meter's
+recent reads, so an estimate taken from it can sit outside a band the row draws from the last two
+reads. **T1:** at least 116 of the 269 (the rise) fall on bills where the meter's first actual read
+before the bill is under 182 days (gas: 273) before the bill starts. That is E1's registry branch.
+**T2:** at least 100 of 37abacdf42's 153 breach again on the same bill on 209c3350ab, because nothing
+touched the reference-window cause. If T1 fails, E1 is not the cause of the rise and I cannot yet say
+what is.
+
+## Results: graded on the fresh 209c3350ab book (10:15 GMT 29 Oct)
+
+**Why that book and not 0b28's.** `fresh-run-209c3350ab` started at origin 209c3350ab, which has all six
+commits above as ancestors and also carries the one write-off date (2b70102f9e, the 186072 re-land). It
+finished at 09:14. Its book is the fresh full run this item asked for, so P1 to P9 are graded on it.
+Only two predictions are confounded by the write-off date, and they are marked. `fresh-run-0b2879ef7d`
+is still queued for memory (unit `longjob-fresh-run-0b2879ef7d-queued`, grade chain armed). It is
+now only the one-variable run for the close write-off's −£457, which is continuation
+`split-the-close-write-off-fall-on-the-0b28-book`'s work, not this record's. Grade:
+`/var/tmp/wo-grade-209c/grade.json`. Full breach lists: `/var/tmp/est-probe/rows209c.json`,
+`/var/tmp/est-probe/209c.json` (and `37ab.json` for the comparison).
+
+| | row | before | predicted | measured | verdict |
+|---|---|---|---|---|---|
+| P1 | `INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` | 13 | 3 to 7, point 5 | **6** | holds. Every run is in summer and above 3; the 8 single-read runs are gone. Two are gas legs, which the "5 summer runs" did not foresee |
+| P2 | `INV_OPENING_IS_THE_PREVIOUS_CLOSING` | 13 | 13 (10 to 16), all ToU | **13** | the count holds. The four accounts the exception names are among them; the ToU class itself is not re-traced on this book |
+| P3 | `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` | 153 | I cannot yet say | **269** | traced: see T1/T2 below |
+| P4 | `INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE` | 288 | 35 or fewer | **24** (13 above, 11 below) | holds. The split into (a) to (c) is not re-measured |
+| P5 | `INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE` | 181 | 10 or fewer | **6** | holds. Five are gas legs with one to two missed DDs without a return. The "mover's final bill" cause is **not checked** |
+| P6 | `INV_OVERDUE_WITHIN_PAGE_BALANCE` | 9,455 | under 4,900 | **2,500** of 19,491 steps | the total holds. Class (a) is 0, not "about 723": **confounded**, because the write-off date removed it, which is what 2b70102f9e's own grade predicted. The OCC/non-OCC split is not produced by the probe's output on this book, so those two class predictions are **ungraded** |
+| P7 | `INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT` | — | 0 | **0** of 1,293 | holds |
+| P8 | PPM 12, EBSS 6 and 6 | — | unchanged within one | 12, 6, 6 | holds |
+| P8 | `INV_SMART_METER_BILLED_ON_ITS_OWN_READS` | 4 | 4 within one | **0** breached, 21 flagged | **refuted**. Not traced; 93095acd57 (each bill carries the supplier's own meter type) is the likely mover |
+| P8 | `INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL` | 10 | 10 within one | **6** (3 account-years) | **refuted**. PROS-2017-0336 no longer breaches; why is not traced |
+| P8 | `INV_STATUTE_BARRED_WRITE_OFF_AGE` | 3 | I cannot yet say | UNREACHED | **confounded**: a leaver is now written off at a year, so the book has no statute-barred write-off |
+| P9 | unexcepted rows other than these | — | 0 | **0** | holds |
+
+**T1 and T2 (P3's trace).** T2 holds: 130 of 37abacdf42's 153 breach again on the same bill. T1 holds as
+worded: 191 of the 269 are in E1's registry branch (≥116). The trace is stronger than T1 asked. All 139
+new breaches are in the branch, each the same bill under the same band with only its estimate moved,
+and so are all 23 that disappeared and all 1,451 estimates that moved. The 78 outside the branch are the
+carried reference-window cause. **Correction:** my first classifier put 47 of the 139 outside the
+branch. It measured from the first actual read to the bill's start, where E1 measures from the
+change-of-supply read to the latest actual read. Re-classed under E1's definition, all 139 are inside.
+The conflict between E1 and the row is a finding:
+`docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md`.
+
+**What the exceptions file now says.** Every row above is set to its 209c3350ab count with its cause. Each
+open class is marked open: P5's six, the overdue row's 820 steps over 2p, the 78, and the summer
+overshoot. `INV_STATUTE_BARRED_WRITE_OFF_AGE` and `INV_SMART_METER_BILLED_ON_ITS_OWN_READS` are retired.
+The suite now gates the 209c3350ab book at **0 unexcepted, 10 excepted: the publish stands.** This is
+not the correctness stretch's exit. That needs zero *unexplained* breaches, and the open classes above
+are not explained.
+
+**For the next cold read:** take the book of `fresh-run-209c3350ab` (`/var/tmp/fresh-run-out-209c3350ab`,
+ledger `/var/tmp/wo-grade-209c/ledger.json`).

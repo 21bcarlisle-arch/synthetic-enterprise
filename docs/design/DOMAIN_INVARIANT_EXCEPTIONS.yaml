@@ -40,6 +40,13 @@
 # is re-based from 12,730 to 9,455, on the fresh run at b2fc50facf carrying the desk posted the issued
 # bill. A bill the ledger holds for review now posts nothing to the desk, and the row grades 0 of 7,374.
 # Grade beside docs/staging/records/SEAT_PREREGISTRATION_THE_DESK_POSTED_THE_ISSUED_BILL_READ_ON_A_FRESH_RUN_2026-10-28.md.
+#
+# 2026-10-29: every exception the six fixes in code touch is set to its count on the fresh run at
+# 209c3350ab, which carries all six and the one write-off date. INV_STATUTE_BARRED_WRITE_OFF_AGE is
+# retired: with a leaver written off a year after the final bill, no statute-barred write-off is left
+# on the book (UNREACHED). INV_SMART_METER_BILLED_ON_ITS_OWN_READS is retired at 0 breached (21 flags
+# remain), after 93095acd57 carried the supplier's own meter type on each bill. Grade beside
+# docs/staging/records/SEAT_PREREGISTRATION_ONE_FRESH_RUN_AT_0B2879EF7D_GRADES_THE_SIX_FIXES_IN_CODE_2026-10-29.md.
 enforce: true
 exceptions:
   - invariant: INV_PPM_NOT_CREDIT_BILLED
@@ -99,54 +106,25 @@ exceptions:
     max_breached: 6
   - invariant: INV_OVERDUE_WITHIN_PAGE_BALANCE
     scope: >-
-      9,455 of 32,726 collections steps on the fresh b2fc50facf book, which carries the desk posted the
-      issued bill (ec079776de). Each prints an overdue figure above what the household's pages say
-      is owed that day.
+      2,500 of 19,491 collections steps on the fresh 209c3350ab book, which carries the occupier's
+      payment truth, a DD collected on its date, the credit bill posted to the desk and one write-off
+      date. Each prints an overdue figure above what the household's pages say is owed that day.
     reason: >-
-      Partly diagnosed. The main cause, the desk posted true-kWh revenue before VAT, is fixed and
-      graded: 12,730 -> 9,455 on a fresh run.
-      What is left, by class (/var/tmp/desk-wo-probe/lag.py):
-      (a) 723 steps on 112 households fell after the page wrote the bill off: three write-off dates
-      for one leaver's debt. Fixed by one date, and graded at 0 steps on the 209c3350ab book (2026-10-29).
-      (b) 2,985 are at most 2p above the page, where the desk's ask and the printed bill round apart.
-      (c) 466 fall on a direct debit the page posts on its due date, which the desk has not yet seen
-      cross.
-      (d) 5,280 are NOT attributed. Traced 2026-10-28: 2,005 are on occupier (OCC-) accounts,
-      whose bills carried no triad truth, so the page read a second draw (fixed in
-      _build_behavioral_trajectories, not yet on a run; 448 of (c)'s 466 are the same defect).
-      Of the other 3,275, up to 2,067 follow a credit bill the desk is never posted, 487 are the row
-      netting one fuel's credit against the other's debt, and the rest are pennies adding up across
-      open bills. Split and predictions in
-      docs/staging/records/SEAT_PREREGISTRATION_AN_OCCUPIERS_BILLS_READ_THE_TRIADS_PAYMENT_TRUTH_2026-10-28.md.
-      Only (b) and (c) are explanations. (d) is the open defect, excepted rather than refusing
-      the next publish, because the page has printed these figures since the cold read of 23 Oct
-      and the row puts the count on the surface every run.
-      Grade beside docs/staging/records/SEAT_PREREGISTRATION_THE_DESK_POSTED_THE_ISSUED_BILL_READ_ON_A_FRESH_RUN_2026-10-28.md.
-    filed: 2026-10-28
+      Partly diagnosed. 9,455 on b2fc50facf falls to 2,500 here. Class (a), steps after the page's
+      write-off, is 0 (723). By the class probe (/var/tmp/onepay-scripts/lag_occ4.py, which counts
+      2,526 steps against the row's 2,500, so the split is approximate): 27 fall on a page payment the
+      desk has not yet seen cross (466), 1,679 are at most 2p above the page, 675 are up to £1, and 145
+      are above £1. Only the 27 and the pennies are explanations: the desk's ask and the printed bill
+      round apart. The 675 under £1 and the 145 above are the open defect, which the finding still owns.
+      Grade beside docs/staging/records/SEAT_PREREGISTRATION_ONE_FRESH_RUN_AT_0B2879EF7D_GRADES_THE_SIX_FIXES_IN_CODE_2026-10-29.md.
+    filed: 2026-10-29
     retired_by: docs/staging/SEAT_FINDING_THE_PAGE_PRINTS_MORE_OVERDUE_THAN_IT_SAYS_IS_OWED_ON_493_OF_752_HOUSEHOLDS_2026-10-28.md
-    max_breached: 9455
-  # 2026-10-27: four cold-read rows read the company's own dated acts (`raw_account_export.account_events`).
-  # Grade and causes beside the pre-registration,
-  # docs/staging/records/SEAT_PREREGISTRATION_THE_SIX_COLD_READ_ROWS_ON_THE_2EEB3F0B3_BOOK_2026-10-27.md.
-  - invariant: INV_STATUTE_BARRED_WRITE_OFF_AGE
-    scope: 3 of 64 statute-barred write-offs on the 1691ec0ecd book, on OCC-6e59dd8b63e8 (2025-05-06), SYN-2016-016 (2024-03-24) and SYN-2016-611 (2024-09-14)
-    reason: >-
-      The 25 early write-offs from the due-date split are gone (9ad5af9a7). Each of the three residual
-      households carries two limitation write-offs. The first is dated six years after a payment that
-      is not the household's last: a final bill paid or part-paid 1 to 16 days later (the other fuel
-      leg's, for OCC-6e59dd8b63e8 and SYN-2016-016; the same leg's final bill, for SYN-2016-611) did
-      not restart the bar for it. Not established: whether the desk's ledger lacks the post-close
-      payment or bars per fuel leg, and whether limitation runs per fuel contract (if it does, two of
-      the three are the grader's household reading being wrong). SYN-2016-611 is single-fuel, so it
-      is a defect on either reading.
-    filed: 2026-10-28
-    retired_by: the desk's bar reading every payment on the account, final-bill settlements after close included, and a run carrying it
-    max_breached: 3
+    max_breached: 2500
   # 2026-10-28: the second cold read's six rows (N2, N3, N5, N6, N7, estimate against the meter), written
   # blind and graded on the 1a02c46116 book. Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md.
   - invariant: INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE
-    scope: 288 of 1,293 accounts on the 1a02c46116 book (page revenue against page bills before VAT); a ceiling until a fresh run grades the EPG term
+    scope: 24 of 1,293 accounts on the fresh 209c3350ab book (page revenue against page bills before VAT), 13 above the band and 11 below, the EPG term graded
     reason: >-
       Diagnosed 2026-10-28 (residual R2), by joining the 1a02c46116 ledger's EPG fields onto its
       pages and re-grading (355 accounts outside the band by that count, against the finding's
@@ -166,59 +144,50 @@ exceptions:
       than its month settled. Five of the 40 carry a write-off and grade as flags, so the
       prediction for the next fresh run is 35 or fewer breached, each in (a) to (c). The cold
       reader's OCC-423594fbfa6b is inside the band on this book.
+      Graded 2026-10-29 on the fresh 209c3350ab book: 24 (prediction 35 or fewer, held). The 24 are
+      not re-assigned to (a) to (c) on that book. PROS-2017-0117, the (a) example, is still among them.
     filed: 2026-10-28
-    retired_by: a fresh run graded with the EPG term (prediction 35 or fewer, set this count to it), then the catch-up netting the run to settlement, estimates corrected or bounded on the under side, and the part-month first bill
-    max_breached: 288
+    retired_by: the catch-up netting the run to settlement, estimates corrected or bounded on the under side, and the part-month first bill
+    max_breached: 24
   - invariant: INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE
-    scope: 181 of 1,125 accounts with collections due on the 1a02c46116 book, every one on the "missed DD without a return" leg
+    scope: 6 of 1,126 accounts with collections due on the fresh 209c3350ab book (PROS-2016-0042g, PROS-2018-0222g, PROS-2019-0356g, SYN-2016-013, SYN-2016-390g, SYN-2016-603g), each one to two bills on the "missed DD without a return" leg
     reason: >-
-      The counter is fixed here: it counted ledger rows and arrears cases (631 breached), and now
-      counts bills (tools/generate_explore_cast.payment_record). What is left is a world defect the
-      row exposes. Direct debits succeed 31 to 45 days after their due date with no returned
-      attempt (PROS-2016-0020: 12 bills, e.g. invoice 9291 due 2016-03-20, collected 2016-04-28).
-      A DD is collected on its date or returned through Bacs, so a late success without a return
-      cannot happen. The run's payment timing gives a DD payer a pay-on-receipt payer's delay.
-      The world fix landed 2026-10-28 (arrears_engine.payment_outcome: a DD is collected on its
-      date or returned). The count stays until a run carries it; the prediction is 10 or fewer.
-    filed: 2026-10-28
-    retired_by: a run launched after the 2026-10-28 DD-timing fix, graded
-    max_breached: 181
+      The DD-timing fix (1b82c3c0e3, a DD is collected on its date or returned) takes the row from 181
+      to 6 on a fresh run (prediction 10 or fewer, held). Not established: what the 6 are. The
+      prediction said a mover's final bill paid late on a DD leg. That has not been checked bill by bill,
+      so these 6 are an open defect, not an explanation.
+    filed: 2026-10-29
+    retired_by: the six traced to a cause, and the cause fixed or shown to be lawful, on a fresh run
+    max_breached: 6
   - invariant: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
-    scope: 10 of 5,576 account-years on the 1a02c46116 book, on PROS-2017-0336, PROS-2024-0010, PROS-2025-0106 and SYN-2016-582
+    scope: 6 checks on 3 account-years of the fresh 209c3350ab book (kWh and months on each of PROS-2024-0010 electricity 2024, PROS-2025-0106 electricity 2025, SYN-2016-582 electricity 2017)
     reason: >-
-      These are the four accounts in the billing ledger's exception_queue, nine held months in all.
-      The usage panel (tools/generate_customer_consumption) sums the run's settlement bills, held
-      ones included. The carbon panel sums the bills the ledger issued. One cause: a bill issued in
-      one record and held in the other. dd42166183 stopped a held bill posting to the desk. It does
-      not reach the usage panel, which reads the run's bill list. Leg 3 (a part year prints no
-      figure) is not graded, because the in-memory page does not carry the panel's printed CO2e.
+      Three of the four accounts in the billing ledger's exception_queue on the 1a02c46116 book. The
+      usage panel (tools/generate_customer_consumption) sums the run's settlement bills, held ones
+      included. The carbon panel sums the bills the ledger issued. One cause: a bill issued in one
+      record and held in the other. PROS-2017-0336, the fourth, no longer breaches on 209c3350ab.
+      Why is not traced. Leg 3 (a part year prints no figure) is not graded.
     filed: 2026-10-28
     retired_by: the usage panel reading only the bills the ledger issued
-    max_breached: 10
-  - invariant: INV_SMART_METER_BILLED_ON_ITS_OWN_READS
-    scope: 4 of 7 fuel-years of Smart bills on the 1a02c46116 book (electricity 2016 and 2017, gas 2017 and 2018), all on one household, C2 and C2g
-    reason: >-
-      Only nine accounts carry a Smart label, and C2 is the only one whose bills run on estimates
-      (21 of 24 electricity and 13 of 24 gas bills, Apr 2016 to Mar 2018). Not established: why
-      no reads arrive from a meter in smart mode on that account. The page copy the class was
-      found on is corrected here.
-    filed: 2026-10-28
-    retired_by: C2's smart meter delivering the reads its supplier bills on, or its smart mode recorded as lost, and a run carrying it
-    max_breached: 4
+    max_breached: 6
   - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
-    scope: 153 of 24,888 graded estimated bills on the 37abacdf42 book, on 32 accounts (PROS-2019-0173g 13, SYN-2016-159g 13, PROS-2023-0010g 10), 115 above the band and 38 below
+    scope: 269 of 24,904 graded estimated bills on the fresh 209c3350ab book, on 55 accounts, 181 above the band and 88 below
     reason: >-
-      Partly diagnosed. The ledger now prints the meter's register on an actual bill (37abacdf42),
-      which retired the 292 -> 151 printed-read cause. The estimate-window fix (c4738b64c9) removed
-      37 breaches and set 39 new ones on 6 accounts, so it moved none net. 114 of the 153 are the
-      same bills R3's scratch ledger left on the 129e7de698 book. The open cause, not yet traced, is
-      the gap between the estimator's reference windows and the row's. Graded in
-      docs/staging/records/SEAT_PREREGISTRATION_THE_PRINTED_REGISTER_FIX_GRADED_ON_A_FRESH_RUN_AT_37ABACDF42_2026-10-28.md.
-    filed: 2026-10-28
-    retired_by: the estimator's reference window traced against the row's on the 114 carried bills and the 39 the window fix set, then a fresh book
-    max_breached: 153
+      Two classes, traced bill by bill against the 37abacdf42 book (/var/tmp/est-probe-scripts/est2.py).
+      (1) 191 are bills in E1's registry branch (1bdd86b849): the company's reads span under 182 days
+      (gas 273) from the change-of-supply read, so the bill is the registry EAC/AQ spread by the shape,
+      and the row's band comes from those same short reads. 139 of them are new on 209c3350ab, each the
+      same bill under the same band with only its estimate moved. 23 of 37abacdf42's 153 are gone, all
+      in that branch, and every one of the 1,451 estimates that moved is in it. E1 and the row
+      disagree by construction about a supplier's first six months: see
+      docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md.
+      (2) 78 carry over from 37abacdf42 outside that branch. Their open cause is the one filed there and
+      still not traced: the gap between the estimator's reference windows and the row's.
+    filed: 2026-10-29
+    retired_by: the finding deciding which of E1 and the row describes a supplier's first six months, and the estimator's reference window traced against the row's on the 78
+    max_breached: 269
   - invariant: INV_OPENING_IS_THE_PREVIOUS_CLOSING
-    scope: 13 periods on 13 accounts of the 37abacdf42 book with their ledger rebuilt, every one the first single-rate bill after a time-of-use stretch (C7, PROS-2016-0067, PROS-2018-0223, SYN-2016-325, ...)
+    scope: 13 periods on 13 accounts of the fresh 209c3350ab book (C7, PROS-2016-0067, PROS-2018-0223, SYN-2016-325, ...), the same count as the 37abacdf42 rebuild; on that rebuild every one was the first single-rate bill after a time-of-use stretch, and that class is not re-traced on 209c3350ab
     reason: >-
       Diagnosed. A ToU bill exports its band registers' readings and not the total register's, so the
       total's last exported closing is from before the ToU stretch and the next single-rate opening
@@ -228,15 +197,14 @@ exceptions:
     retired_by: E4, the ToU bill exporting the total register beside its bands
     max_breached: 13
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
-    scope: 13 of 4,311 runs of estimated bills on the 37abacdf42 book, on 12 accounts, 7 below the 1/3 line and 6 above 3
+    scope: 6 of 4,317 runs of estimated bills on the fresh 209c3350ab book, all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g, PROS-2017-0336 (two), PROS-2024-0010, SYN-2016-396g and SYN-2016-565
     reason: >-
-      Partly diagnosed. The zero-advance fix holds: none of the 13 is a zero run. Printing the
-      meter's register exposed runs the printed register hid. 8 runs follow a single actual read,
-      usually an occupier's short first month (OCC-f6813bf9f05eg gas: 138 kWh in Oct 2016, then
-      eight estimates totalling about 1,890 kWh against about 8,065 on the meter), so one month's
-      advance set a year's shape. 5 are summer runs on heating households (9.6 to 34.5 MWh a year),
-      estimated 3.0 to 5.5 times the meter: PROS-2017-0336 electricity uses about 300 kWh a month in
-      summer and was estimated at about 1,600. Both causes are hypotheses until a fix moves them.
-    filed: 2026-10-28
-    retired_by: the estimator falling back to the registry figure when one read is all it has, a trace of the summer heating overshoot, and a run carrying both
-    max_breached: 13
+      Partly diagnosed. E1 (the registry figure until the reads span an advance) took the 8 runs that
+      followed a single actual read to 0, and the row from 13 to 6 (prediction 3 to 7, held). What is left
+      is the summer overshoot class: a run estimated 3.0 to 5.5 times what the meter advanced, on
+      households whose use falls in summer (PROS-2017-0336 electricity uses about 300 kWh a month in
+      summer and was estimated at about 1,600). Two are now gas legs. The overshoot is a hypothesis
+      until a trace or a fix moves it.
+    filed: 2026-10-29
+    retired_by: a trace of the summer overshoot, a fix, and a run carrying it
+    max_breached: 6
