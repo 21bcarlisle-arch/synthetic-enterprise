@@ -42,3 +42,23 @@ b2fc50facf book, class (a): 723 steps on 112 households (33 on `OCC-`, 690 other
   posted on the baseline: the desk has taken the rest on the same date.
 
 A refuted prediction is kept here beside the result, not revised.
+
+## Run
+
+Named 2026-10-29 04:50 GMT, before the run has started (it is queued for memory). The queued
+`fresh-run-0b2879ef7d` predates 2b70102f9, so it cannot grade this. A second run carries it:
+`launch_long_job` job `fresh-run-209c3350ab`, worktree `/var/tmp/fresh-run-wt-209c3350ab` (origin
+209c3350ab, locked), script `/var/tmp/fresh-run-scripts/arm.py`, output `/var/tmp/fresh-run-out-209c3350ab`.
+Graded by `/var/tmp/wo-grade-209c-scripts/after_run.sh`: the ledger, the full suite, the overdue
+row's classes (`/var/tmp/onepay-scripts/lag_occ4.py`), and P2 to P5 (`wo_probe.py`).
+
+Baseline for P2 to P5, measured by `wo_probe.py` on the b2fc50facf ledger before this run exists:
+- P2: 25 single-fuel accounts and 103 multi-leg accounts carry a page write-off; on none of the 25 does
+  the desk write off under `CLOSED_ACCOUNT_RULE` (the rule did not exist).
+- P4: 106 desk statute-bar write-offs on accounts the page wrote off (3 on accounts it did not).
+- P5: `write_offs_posted` 106.
+- P3: `write_off_at_close_gbp` summed £12,323.59; `bad_debt_gbp` by year 2016 to 2025: 1,929.90,
+  6,006.53, 5,908.97, 5,517.42, 4,761.42, 4,359.10, 6,238.40, 9,483.00, 7,814.76, 5,301.13.
+
+The fresh run at 209c3350ab also carries every fix the 0b2879ef7d run grades. Its other rows are a
+second reading of that pre-registration, not a grade of it.
