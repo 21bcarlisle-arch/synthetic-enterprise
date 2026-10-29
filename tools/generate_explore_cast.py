@@ -315,6 +315,8 @@ def _bill_extras(i: dict) -> str:
     that quoted only the total showed a 146 kWh final bill at "GBP -24.73" with no reason (N1)."""
     out = []
     adj = i.get("catchup_adjustment_gbp")
+    if adj is not None:  # what the bill moved by: the line before VAT, and its VAT (789d0a6d20)
+        adj += i.get("catchup_vat_gbp") or 0.0
     if i.get("catchup_applied") and adj:
         span = (" from {} to {}".format(_day(i["catchup_period_start"]), _day(i["catchup_period_end"]))
                 if i.get("catchup_period_start") and i.get("catchup_period_end") else "")
@@ -556,8 +558,6 @@ def _template(hh, ev, iso, kind, rec):
                  "meant": "The difference lands on the next actual read", "tone": "neutral"})
     if kind == "catch_up":
         adj = rec.get("catchup_adjustment_gbp")
-        if adj is not None:  # what the bill moved by: the line before VAT, and its VAT
-            adj += rec.get("catchup_vat_gbp") or 0.0
         return ("The catch-up", "An actual read on {} corrects the estimates: {} {}.".format(
                     _day(rec["date"]), _fmt_gbp(abs(adj or 0)), "added" if (adj or 0) > 0 else "credited"),
                 "We have a meter reading and your bill now reflects what you used.",

@@ -78,6 +78,10 @@ def test_the_final_bill_names_its_catch_up_and_prints_a_credit_as_a_credit():
     assert story == ("The final bill: electricity £24.73 credit for 146 kWh to 22 Nov 2024 (closing read actual), "
                      "including a £74.17 credit correcting the estimated bills from 1 May 2023 to 31 Oct 2024."), story
     assert msg == "Your final bill is ready: electricity £24.73 credit.", msg
+    # Since 789d0a6d20 the catch-up line is before VAT and its VAT is on the VAT line; the bill moved
+    # by both, so the sentence names both together, as the catch-up moment does.
+    split = {**final, "catchup_adjustment_gbp": -70.64, "catchup_vat_gbp": -3.53}
+    assert "including a £74.17 credit correcting" in gen._bill_extras(split), gen._bill_extras(split)
     # Control: a bill with no catch-up and no credit says nothing more than it did.
     plain = {**final, "amount_gbp": 49.74, "catchup_applied": False, "catchup_adjustment_gbp": None}
     assert gen._bill_extras(plain) == ""
