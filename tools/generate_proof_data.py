@@ -650,6 +650,8 @@ PLAIN_PAIR_NAMES = {
     "W2_11_payment_behaviour_source": "who pays on time, who pays late and whose direct debit fails",
     "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape":
         "each home's daily electricity pattern and seasonal gas use",
+    "W2_36_unbilled_energy_arises_the_way_it_does_in_reality":
+        "energy a home has used that the supplier has not yet billed",
     "W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series":
         "how much customers owe, against Ofgem's published debt figures",
     "W2_39_households_respond_to_contact_including_badly":

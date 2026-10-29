@@ -195,12 +195,21 @@ exceptions:
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
     scope: 6 of 4,317 runs of estimated bills on the fresh 209c3350ab book, all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g, PROS-2017-0336 (two), PROS-2024-0010, SYN-2016-396g and SYN-2016-565
     reason: >-
-      Partly diagnosed. E1 (the registry figure until the reads span an advance) took the 8 runs that
-      followed a single actual read to 0, and the row from 13 to 6 (prediction 3 to 7, held). What is left
-      is the summer overshoot class: a run estimated 3.0 to 5.5 times what the meter advanced, on
-      households whose use falls in summer (PROS-2017-0336 electricity uses about 300 kWh a month in
-      summer and was estimated at about 1,600). Two are now gas legs. The overshoot is a hypothesis
-      until a trace or a fix moves it.
+      Traced 2026-10-29 (E2 in the printed-register finding). The estimator bills the annualised advance
+      spread by the class-average shape, and the world's aggregate shape matches it (Jun to Aug: gas 7.8%
+      against DESNZ 7.2%, electricity 17.6% against 20.5%). Three causes, each measured. (a) Four
+      electricity runs (PROS-2017-0336 twice, PROS-2024-0010, SYN-2016-565) are on electrically heated homes
+      on a single-rate Anytime meter, using 14,500 to 25,100 kWh a year with 3 to 5% of it in Jun to Aug.
+      These are 3 of the 17 such homes the world gives a single rate. A storage-heated home needs an
+      off-peak meter (when_an_electrically_heated_homes_water_heater_runs.md E1), and a direct-electric
+      home may lawfully have a single rate (G3 there). Which of the two these 17 are has not been read. The
+      world settles a storage home on profile class 2 (simulation/run_phase2b.registered_profile_class),
+      so a storage home among them would be a single-rate bill on a two-rate settlement, the bill side of
+      ruling step 3's storage-heating cause. A direct-electric home is (b)'s lawful tail. (b) SYN-2016-396g gas has 1.4% of its use
+      in Jun to Aug, at the book's p5. Billing on EUC01B misestimates it, as it would for a real supplier
+      (shaping note 6: the household's own shape is not known). (c) PROS-2016-0263g's gas use fell from
+      11,426 to 1,102 kWh a year in 2020. That is a household change inside the run, the case the row's
+      own severity names.
     filed: 2026-10-29
-    retired_by: a trace of the summer overshoot, a fix, and a run carrying it
+    retired_by: reading the 17 single-rate electrically heated homes' heating type, and for any storage home its bill printing the two-rate settlement it holds (a). (b) and (c) are the row's lawful tail and stay excepted
     max_breached: 6

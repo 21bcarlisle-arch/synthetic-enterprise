@@ -98,3 +98,34 @@ count is identical to origin's on the same book. The curtained validator rebuild
 periods' energy to ours, because each band exports its catch-up share. **E4 is closed, with no
 residual.** The per-band split of a catch-up is proportional to the bill's own split, which is a
 belief, and the page carries it as a GAP.
+
+**E2 traced (2026-10-29, on the 209c3350ab book, ToU-fixed ledger).** These are the 6 runs left after E1.
+Probes: `/var/tmp/e2-probe/e2.py` (the runs' bills), `/var/tmp/e2-probe/shape.py` (shapes from the run's
+`top__meter_read_log`, truth read as an instrument). The estimator is not where the error is. It
+bills the annualised advance spread by the class-average shape. The world's aggregate shape matches
+that shape: Jun to Aug is 7.8% of the year for gas (DESNZ 7.2%) and 17.6% for electricity (DESNZ 20.5%).
+The households that breach are in the tail:
+
+- **Four electricity runs on three homes** (PROS-2017-0336 twice, PROS-2024-0010, SYN-2016-565). Each home
+  uses 14,500 to 25,100 kWh a year, with 3 to 5% of it in Jun to Aug, on a single-rate `Anytime` meter.
+  For scale, the book's median electricity household puts 21% of its year in Jun to Aug. Across the
+  book, 19 of 645 electricity accounts with a full year have under 8% in Jun to Aug, and 17 of those 19
+  are single-rate. A storage-heated home needs an off-peak meter
+  (`when_an_electrically_heated_homes_water_heater_runs.md` E1). A direct-electric home may lawfully have
+  a single rate (G3 there). The run output does not carry `heating_system`, so which of the two these
+  homes are **has not been read**. `simulation/run_phase2b.registered_profile_class` puts a storage home
+  on profile class 2 in settlement. So a storage home among them would be a single-rate bill on a
+  two-rate settlement: the bill side of ruling step 3's storage-heating cause, not a missing meter in
+  the world. (I first wrote "the world draws no two-rate meter", taken from the Explore slot's copy.
+  The code says otherwise for settlement.) `demand_provider_by_customer` does not settle it either: 6
+  of the 12 most seasonal homes are `fabric_physics` and 6 have no entry.
+- **SYN-2016-396g gas.** 1.4% of its use falls in Jun to Aug, at the book's p5. EUC01B misestimates such a
+  home for a real supplier too, because the household's own shape is not something it can know (shaping
+  note §6).
+- **PROS-2016-0263g gas.** Its use fell from 11,426 to 1,102 kWh a year in 2020. That is the household
+  change inside a run that the row's own severity names.
+
+The exception's reason now carries these three causes, at the same ceiling of 6. **Still open here:**
+reading the 17 homes' heating type, which is one rebuild of the population at the run's seed. For any
+storage home, the fix is the bill printing the two-rate settlement, under ruling step 3. Until that read is done, (a) is explained
+only conditionally.
