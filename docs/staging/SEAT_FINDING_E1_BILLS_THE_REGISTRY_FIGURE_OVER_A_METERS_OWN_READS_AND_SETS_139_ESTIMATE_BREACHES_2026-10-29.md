@@ -22,6 +22,13 @@ Every estimated bill graded on both books (24,887 in common) was compared with
 - That leaves 269 breaches: 191 in the branch (52 carried over, 139 new) and 78 outside it, carried
   over unchanged. The 78 are the older open cause, the estimator's reference window against the
   row's.
+  **Correction (2026-10-29, the same day):** the classifier put gas in a 273-day branch, but the run's
+  gas nine-month floor is off (`DecisionPolicy.bill_estimate_floors_the_gas_advance_at_nine_months`),
+  so E1's gas branch is 182 days. Twelve gas bills with 183- to 261-day advances were outside it.
+  So the split is 179 in the branch and 90 outside. All 90 are the row's windows, not the estimator's.
+  The row stopped at 365 days and at actual reads; its cited page gives 6 to 36 months. The row now
+  takes those ends and admits the change-of-supply read, and the 90 pass on the same book
+  (`/var/tmp/est-probe-scripts/est3.py`). 179 remain, all in this finding's class.
 
 Example: C6 electricity. Its actual reads are Apr 2016 (2,077 kWh) and Jul 2016 (1,129 kWh), a span of
 122 days from the change-of-supply read. Each estimate from Aug to Nov 2016 is now the registry figure
@@ -59,4 +66,4 @@ span four months, not only the one-read case.
    months move it a lot. That is BSCP504's own shape for the settlement EAC. It keeps E1's gain on the
    one-read runs and stops a 122-day span being ignored. It needs a knowledge-page amendment (K8) before
    any build, and a fresh run to grade.
-3. Until then the exception carries the 191 as this class, at a ceiling of 269.
+3. Until then the exception carries the 179 as this class, at a ceiling of 179 (was 191 at 269; see the correction above).

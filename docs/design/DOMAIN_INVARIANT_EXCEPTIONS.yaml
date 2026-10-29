@@ -171,21 +171,22 @@ exceptions:
     retired_by: the usage panel reading only the bills the ledger issued
     max_breached: 6
   - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
-    scope: 269 of 24,904 graded estimated bills on the fresh 209c3350ab book, on 55 accounts, 181 above the band and 88 below
+    scope: 179 of 24,904 graded estimated bills on the fresh 209c3350ab book, on 37 accounts (103 gas, 76 electricity), 113 above the band and 66 below
     reason: >-
-      Two classes, traced bill by bill against the 37abacdf42 book (/var/tmp/est-probe-scripts/est2.py).
-      (1) 191 are bills in E1's registry branch (1bdd86b849): the company's reads span under 182 days
-      (gas 273) from the change-of-supply read, so the bill is the registry EAC/AQ spread by the shape,
-      and the row's band comes from those same short reads. 139 of them are new on 209c3350ab, each the
-      same bill under the same band with only its estimate moved. 23 of 37abacdf42's 153 are gone, all
-      in that branch, and every one of the 1,451 estimates that moved is in it. E1 and the row
-      disagree by construction about a supplier's first six months: see
+      One class, every bill traced (/var/tmp/est-probe-scripts/est3.py). Each is in E1's registry branch
+      (1bdd86b849): no advance of 182 days or more ends at the latest read from any read the company holds,
+      so the bill is the registry EAC/AQ spread by the shape, and the row's band comes from the short reads.
+      E1 and the row disagree by construction about a supplier's first six months: see
       docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md.
-      (2) 78 carry over from 37abacdf42 outside that branch. Their open cause is the one filed there and
-      still not traced: the gap between the estimator's reference windows and the row's.
+      The other 90 of the 269 this row carried were the row's own windows, not the estimator: 51 followed
+      an advance of over a year, 16 an advance opening on the change-of-supply read, 7 a fallback window
+      past the estimator's 731 days, 4 an advance from the opening read on PROS-2024-0010, and 12 gas bills
+      a 183- to 261-day advance (the run's gas floor is 182, not 273; 724c494d90's classifier put them in
+      the branch). The row now takes its window's ends from the cited page (6 to 36 months, from any held
+      read), and all 90 pass on the same book.
     filed: 2026-10-29
-    retired_by: the finding deciding which of E1 and the row describes a supplier's first six months, and the estimator's reference window traced against the row's on the 78
-    max_breached: 269
+    retired_by: the finding deciding which of E1 and the row describes a supplier's first six months
+    max_breached: 179
   - invariant: INV_OPENING_IS_THE_PREVIOUS_CLOSING
     scope: 13 periods on 13 accounts of the fresh 209c3350ab book (C7, PROS-2016-0067, PROS-2018-0223, SYN-2016-325, ...), the same count as the 37abacdf42 rebuild; on that rebuild every one was the first single-rate bill after a time-of-use stretch, and that class is not re-traced on 209c3350ab
     reason: >-

@@ -1637,9 +1637,10 @@ def _daily(i) -> float | None:
 
 def ev_estimate_follows_reads(inv, book):
     """Per estimated bill with two actual reads before it on its meter: its daily use against the
-    shaped short reference (the last two reads) and long reference (the longest 182-365-day window
-    ending at the last read), within (1 - t) x min and (1 + t) x max. Flag an estimate that went
-    the wrong way after a read-confirmed change."""
+    shaped short reference (the last two reads) and every long reference (a window of 182 days to
+    36 months ending at the last read, from an actual read or the change-of-supply opening read),
+    within (1 - t) x the least and (1 + t) x the greatest. Flag an estimate that went the wrong way
+    after a read-confirmed change, against the longest 182-365-day window from actual reads."""
     t_of = {"electricity": 0.30, "gas": 0.40}
     t_of.update(inv.get("t") or {})
     tally = Tally("estimated bill with two actual reads before it")
@@ -1649,6 +1650,9 @@ def ev_estimate_follows_reads(inv, book):
         t = float(t_of[a.fuel])
         for serial, bills in _by_serial(a).items():
             reads = _meter_reads(bills)
+            opening = bills[0].get("opening_read_kwh")
+            switch = ([(_d(bills[0]["period_start"]) - timedelta(days=1), float(opening))]
+                      if opening is not None else [])
             for n, i in enumerate(bills):
                 if i.get("read_type") != "E":
                     continue
@@ -1667,8 +1671,12 @@ def ev_estimate_follows_reads(inv, book):
                 s_short = shaped(d1, c1)
                 longs = [(da, ca) for _, da, ca in held[:-1] if 182 <= (d2 - da).days <= 365]
                 s_long = shaped(*longs[0]) if longs else s_short
+                # Which advance a bill estimate follows is the row's GAP; the published methods bound
+                # it: six months (the AA) to 36 months (Xoserve's AQ), from any read the supplier holds.
+                lawful = [shaped(da, ca) for da, ca in switch + [(da, ca) for _, da, ca in held[:-1]]
+                          if 182 <= (d2 - da).days <= 1095]
                 where = "{} {} {} bill {} to {}".format(a.cid, a.fuel, serial, i["period_start"], i["period_end"])
-                lo, hi = (1 - t) * min(s_short, s_long), (1 + t) * max(s_short, s_long)
+                lo, hi = (1 - t) * min([s_short, *lawful]), (1 + t) * max([s_short, *lawful])
                 before = len(tally.breaches)
                 tally.band(where, round(e, 3), round(lo, 3), round(hi, 3))
                 if len(tally.breaches) == before and (

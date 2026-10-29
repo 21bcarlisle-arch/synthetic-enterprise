@@ -74,3 +74,10 @@ The row says so in its `gap`.
 **Still open here:** E2 (summer over-estimates), E4 (ToU band indices; `chain.py`'s band-sum count
 moves 417 → 433, because its base is taken from the first ToU bill's total opening, which this change
 moves on 16 accounts), E5, and the fresh run that grades E1.
+
+**E5 traced (2026-10-29, on the 209c3350ab book).** The "gap between the estimator's reference window
+and the row's" was the row's. It stopped its long window at 365 days and at actual reads. Its own cited
+page gives 6 to 36 months, and the estimator annualises the advance nearest a year in 182 to 731 days from
+any read it holds, the change-of-supply read included. Of the 269 on that book, 90 sat outside E1's
+branch, and all 90 were this. The row now takes its window's ends from the page, and all 90 pass. 179
+remain, all of them E1's class, and the E1 finding carries them. E5 is closed.

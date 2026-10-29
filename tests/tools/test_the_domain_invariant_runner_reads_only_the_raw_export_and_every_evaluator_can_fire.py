@@ -958,6 +958,34 @@ def test_every_leg_of_the_estimate_follows_the_reads_row_is_reachable():
     assert _grade_one(i, one)[0] == "UNREACHED"
 
 
+def test_the_estimate_row_holds_every_advance_the_published_methods_allow_and_none_past_them():
+    """The row's long reference is an advance of six months (the AA) to 36 months (Xoserve's AQ),
+    from an actual read or the change-of-supply opening read: an estimate following a 425-day
+    advance, or one opening on the change-of-supply read, is lawful. The row used to stop at 365
+    days and at actual reads, and breached 67 such bills on the 209c3350ab book. Past 36 months the
+    old level is no reference, and the same estimate still breaches."""
+    i = "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS"
+
+    def over_a_year(first_read_day):
+        # 10 kWh a day from the first read, then a month at 2: the estimate follows the long advance.
+        days = (runner._d("2020-02-29") - runner._d(first_read_day)).days
+        return _printed_account("Y", "electricity", {"invoices": [
+            _bill(first_read_day[:8] + "01", first_read_day, 310.0, "A", close=20000.0 - 10.0 * days),
+            _bill("2020-02-01", "2020-02-29", 290.0, "A", close=20000.0),
+            _bill("2020-03-01", "2020-03-31", 62.0, "A", close=20062.0),
+            _bill("2020-04-01", "2020-04-30", 8.0 * 30, "E", days_in_period=30)]})
+    assert _grade_one(i, over_a_year("2019-01-31"))[:2] == ("CLEAN", [])
+    assert _grade_one(i, over_a_year("2016-12-31"))[:2] == ("BREACHED", ["above"])
+    from_the_switch = _printed_account("C", "electricity", {"invoices": [
+        _bill("2019-09-01", "2019-09-30", 300.0, "E", opening_read_kwh=0.0, days_in_period=30),
+        _bill("2019-10-01", "2020-02-29", 1500.0, "A", close=1800.0),
+        _bill("2020-03-01", "2020-03-31", 62.0, "A", close=1862.0),
+        _bill("2020-04-01", "2020-04-30", 8.0 * 30, "E", days_in_period=30)]})
+    assert _grade_one(i, from_the_switch)[:2] == ("CLEAN", [])
+    from_the_switch["printed"]["invoices"][0]["opening_read_kwh"] = None
+    assert _grade_one(i, from_the_switch)[:2] == ("BREACHED", ["above"])
+
+
 def test_every_leg_of_the_estimated_run_against_the_meter_row_is_reachable():
     """A run billed near the meter's own rate passes; a run at zero while the meter advanced (the
     occupier's zero window) breaches; twice the meter only flags; a single estimate is not a run."""

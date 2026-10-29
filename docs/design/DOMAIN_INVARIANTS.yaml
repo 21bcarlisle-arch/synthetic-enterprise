@@ -2794,8 +2794,8 @@ invariants:
   counts: >-
     Per estimated bill (read_type E) on one meter_serial: e = consumption_kwh / days_in_period, the estimate's daily use. It is compared with what the supplier knew at issue, from its own actual reads (A)
     on the same meter_serial dated on or before the estimated bill's period_start. ref_short = the daily advance between the last two actual reads (closing_read_kwh difference over the days between them).
-    ref_long = the daily advance over the longest window of at least 182 days, and at most 365, that ends at the last actual read and starts at an actual read. Each reference is reshaped to the estimate's
-    days by the published monthly shape: ref x (mean daily share over the estimate's days) / (mean daily share over the reference's days). Unit graded: per estimated bill.
+    ref_long = the daily advance over each window of at least 182 days, and at most 1,095 (36 months), that ends at the last actual read and starts at an actual read or at the change-of-supply opening
+    read (the first bill's opening_read_kwh, dated the day before its period_start). Each reference is reshaped to the estimate's days by the published monthly shape: ref x (mean daily share over the estimate's days) / (mean daily share over the reference's days). Unit graded: per estimated bill.
   statement: >-
     An estimate is built from the account's own actual reads, and a read the supplier holds moves it. After a read confirms a step change (an EV, a heat pump, a new occupant) the next estimate lies between
     what the latest advance says and what a longer annualised advance says, never below both or above both by more than the shape error.
@@ -2804,16 +2804,20 @@ invariants:
     commodity: electricity and gas
   evaluation: >-
     For each E bill with at least two actual reads on its meter_serial before its period_start (otherwise not graded: the estimate rests on a registry EAC/AQ the page does not show), with the shaped
-    references s_short and s_long (s_long absent if no 182-day window exists; then s_long = s_short): breach unless (1 - t) x min(s_short, s_long) <= e <= (1 + t) x max(s_short, s_long), with
-    t = 0.30 electricity and 0.40 gas. Flag when s_short > s_long (a read-confirmed rise) and e < 0.9 x s_long, or s_short < s_long (a confirmed fall) and e > 1.1 x s_long: the estimate went the wrong way.
+    references s_short and every s_long (none if no 182-day window exists): breach unless (1 - t) x min(s_short, every s_long) <= e <= (1 + t) x max(s_short, every s_long), with
+    t = 0.30 electricity and 0.40 gas. For the flag only, s_long is the longest window of 182 to 365 days from an actual read (s_short if none). Flag when s_short > s_long (a read-confirmed rise) and e < 0.9 x s_long, or s_short < s_long (a confirmed fall) and e > 1.1 x s_long: the estimate went the wrong way.
     Use reads, not consumption_kwh, for the references, so a catch-up bill does not count as use. Shape: DESNZ Energy Trends Table 5.5 domestic electricity and Table 4.2 domestic gas monthly shares
     (2023-2025 averages), each month's share divided by its days.
-  lower: (1 - t) x min(s_short, s_long)
-  upper: (1 + t) x max(s_short, s_long)
+  lower: (1 - t) x min(s_short, every s_long)
+  upper: (1 + t) x max(s_short, every s_long)
   lower_source: >-
     Method: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md §1 (the AA 'based on consumption recorded between two meter readings at least 6 months apart'; DESNZ booklet §3.1.3)
     and §3 (gas AQ from reads 9-36 months apart) give ref_long; site/data/knowledge_metering_and_reads.json ('EAC should converge ... moves toward the truth as reads arrive, then drifts as the household
     changes -- a new occupant, an EV, a heat pump') and Citizens Advice 'estimate ... based on your past usage' (meter_read_latency_estimation_2026.md §2) give ref_short. Shapes: the same note §2 and §4.
+    The window's ends are the methods' own: at least 6 months (the AA), at most 36 months (the AQ's 9-36). The row first stopped at 365 days and at actual reads; neither end is in either source, and
+    the two together breached 90 bills on the 209c3350ab book whose estimate followed a 183- to 547-day advance or one opening on the change-of-supply read (corrected 2026-10-29, the seat, having read
+    the estimator: the correction takes its ends from the cited page only, and the next blind pass should re-derive them). The change-of-supply read is the agreed read both suppliers settle and bill
+    from (read_access_and_theft_duties.md; the shaping note §7 counts the span from it); whether it was actual or deemed is not on the page.
     t is a BELIEF: the national shape is a proxy for one home (gas per-day share runs from 0.55% in January to 0.074% in August, a factor of 7, so gas gets the wider t).
   upper_source: same
   severity:
