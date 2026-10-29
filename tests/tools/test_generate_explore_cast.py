@@ -324,9 +324,11 @@ def test_the_verdict_can_be_green_and_can_be_red(feed, tmp_path):
 
 def test_MUTATION_a_filled_slot_that_empties_reds(feed, tmp_path):
     f = _gapless(feed)
-    f["coverage"]["empty"] = ["debt"]
+    # A slot no finding names: "debt" was this slot until an empty debt slot got its own finding.
+    assert "renewal" not in gen.ACCOUNTED_BY
+    f["coverage"]["empty"] = ["renewal"]
     red = gen.coverage_verdict(f, tmp_path)["red"]
-    assert len(red) == 1 and "slot debt" in red[0] and "no open finding" in red[0], red
+    assert len(red) == 1 and "slot renewal" in red[0] and "no open finding" in red[0], red
 
 
 def test_MUTATION_a_rule_that_starts_breaching_reds(feed, tmp_path):
@@ -513,3 +515,60 @@ def test_MUTATION_an_estimate_run_shown_at_its_midpoint_is_caught(feed):
     m["story"] = "12" + m["story"][m["story"].index(" "):]
     m["iso"] = since
     assert _estimate_runs_longer_than_their_bills(f)
+
+
+# ── The debt slot reads the page's own record (third cold read, SYN-2016-356 on 129e7de698) ──────
+
+
+def _debt_hh(notice_before=False, nothing_missed=False, agency_unshown=False):
+    """SYN-2016-356's shape: four bills paid by direct debit, then the desk's journey opens on the
+    15 Dec 2016 bill and ends written off as statute-barred in 2024. Each flag puts back one thing
+    the third cold read found its page contradicting; with none set the story agrees with its record."""
+    bills = [{"invoice_number": n, "date": "2016-{:02d}-30".format(m), "period_start": "2016-{:02d}-01".format(m),
+              "due_date": "2016-{:02d}-15".format(m + 1), "days_in_period": 30, "consumption_kwh": 240.0,
+              "amount_gbp": 40.0, "read_type": "A"} for n, m in enumerate(range(7, 12), start=1)]
+    led = [{"date": "2016-{:02d}-15".format(m + 1), "type": "payment_received", "invoice_number": n,
+            "amount_gbp": -40.0, "method": "direct_debit"} for n, m in enumerate(range(7, 11), start=1)]
+    if not nothing_missed:
+        led.append({"date": "2016-11-15", "type": "payment_failed", "invoice_number": 4, "amount_gbp": 0.0,
+                    "method": "direct_debit"})
+    rc = [{"date": "2016-12-14", "event_type": "collections_cured", "description": "Overdue balance cleared"},
+          {"date": "2016-12-15", "event_type": "collections_missed_payment", "description": "A bill is unpaid"},
+          {"date": "2016-12-21", "event_type": "collections_reminder", "description": "Reminder sent"},
+          {"date": "2017-01-11", "event_type": "collections_repayment_plan_offer", "description": "Payment plan offered"},
+          {"date": "2024-07-17", "event_type": "collections_write_off",
+           "description": "Written off: the debt is statute-barred (Limitation Act 1980 s.5) -- GBP912.82"}]
+    if notice_before:
+        rc.append({"date": "2016-11-25", "event_type": "arrears_first_notice", "description": "First overdue notice"})
+    if agency_unshown:
+        rc.append({"date": "2018-09-30", "event_type": "arrears_placed_with_dca",
+                   "description": "Debt placed with third-party debt collection agency"})
+    acc = {"account_id": "SYN-2016-356", "commodity": "electricity", "segment": "resi", "acquisition_date": "2016-07-01",
+           "invoices": bills, "ledger": {"entries": sorted(led, key=lambda r: r["date"])}, "timeline": [],
+           "reaction_chain": sorted(rc, key=lambda r: r["date"])}
+    hh = {"id": "SYN-2016-356", "legs": {"electricity": acc}, "successors": {}}
+    ev = gen._events(hh)
+    got = gen._score_debt(hh, ev, {})
+    assert got, "the debt scorer must take this book, or the checks below grade nothing"
+    return gen.validity_failures("debt", hh, ev, got[1], {})
+
+
+NOTICE = "the page shows an overdue notice dated before the missed payment its story opens on"
+COUNTERS = "its payment record shows nothing missed or returned beside a moment that says a payment was not made"
+AGENCY = "its record places the debt with an agency, and no moment of the story shows it"
+
+
+def test_the_debt_slot_refuses_the_story_syn_2016_356s_record_contradicts():
+    """DEFECT: the debt slot's predicate passed SYN-2016-356 on 129e7de698 while its page dated
+    "First overdue notice" (25 Nov) before the story's "Missed a payment" (15 Dec), printed "4 of 4
+    bills paid, 0 returned, 0 missed" at that moment, and held an agency placement (30 Sep 2018) no
+    moment showed. Can-pass first: the same journey with its record agreeing passes, so a predicate
+    that refuses every debt story cannot pass this test."""
+    assert _debt_hh() == []
+    assert set(_debt_hh(notice_before=True, nothing_missed=True, agency_unshown=True)) == {NOTICE, COUNTERS, AGENCY}
+
+
+@pytest.mark.parametrize("flag, check", [("notice_before", NOTICE), ("nothing_missed", COUNTERS),
+                                         ("agency_unshown", AGENCY)])
+def test_each_debt_page_check_refuses_alone(flag, check):
+    assert _debt_hh(**{flag: True}) == [check]

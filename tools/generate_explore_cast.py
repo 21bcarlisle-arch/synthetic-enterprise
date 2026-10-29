@@ -362,13 +362,19 @@ def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     debt = _latest(rc, lambda r: str(r.get("event_type", "")).startswith(_DEBT_PREFIXES))
     if debt:
         rows.append(_row("Debt stage", debt.get("description") or debt["event_type"], debt["date"]))
-    decision = _latest(rc, lambda r: r.get("event_type") in ("retention_decision", "arrears_second_notice",
-                                                            "arrears_first_notice", "arrears_written_off",
-                                                            "arrears_placed_with_dca", "outcome_renewed",
-                                                            "outcome_churned", *_DESK_DECISIONS))
+    decision = _last_decision(rc)
     line = ("{}: {}".format(_day(decision["date"]), _company_words(decision)) if decision
             else "No decision about this household is on record yet.")
     return rows, line
+
+
+#: The record types the page's "last decision" line names.
+_DECISIONS = ("retention_decision", "arrears_second_notice", "arrears_first_notice", "arrears_written_off",
+              "arrears_placed_with_dca", "outcome_renewed", "outcome_churned")
+
+
+def _last_decision(rc: list[dict]) -> dict | None:
+    return _latest(rc, lambda r: r.get("event_type") in (*_DECISIONS, *_DESK_DECISIONS))
 
 
 def _company_words(r: dict) -> str:
@@ -1099,6 +1105,39 @@ def _slot_failures(slot_id, hh, ev, keys) -> list[str]:
                 p <= wo[0]["date"] for p in pays) else None
             if last and date.fromisoformat(wo[0]["date"][:10]) < last.replace(year=last.year + LIMITATION_YEARS):
                 out.append("it is written off as statute-barred less than six years after its last payment")
+        out += _debt_page_failures(hh, ev, keys)
+    return out
+
+
+#: The debt moments that say a payment did not arrive, and the steps that put the debt with an agency.
+_DEBT_MISSES = ("arrears_payment_missed", "arrears_dd_failed", "collections_missed_payment")
+_AGENCY_STEPS = ("arrears_placed_with_dca", "arrears_recovered", "collections_debt_recovery",
+                 "collections_commercial_recovery")
+
+
+def _debt_page_failures(hh, ev, keys) -> list[str]:
+    """Where the page's own rows contradict the debt story the slot tells (third cold read, SYN-2016-356
+    on 129e7de698): an overdue notice dated before the miss the story opens on, a payment record of
+    nothing missed or returned beside a moment that says otherwise, and an agency placement the record
+    holds that no moment shows. Read from `_supplier`'s own inputs, so the check sees what the page prints."""
+    out = []
+    steps = [r for _, k, r in keys if k == "debt"]
+    miss = next((r for r in steps if r.get("event_type") in _DEBT_MISSES), None)
+    if miss:
+        rc = [r for r in _known_by(ev["reaction"], miss["date"]) if r.get("event_type") != "journey_state"]
+        shown = _last_decision(rc)
+        if shown and shown["date"] < miss["date"] and str(shown.get("event_type", "")).startswith(_DEBT_PREFIXES):
+            out.append("the page shows an overdue notice dated before the missed payment its story opens on")
+    for r in steps:
+        if r.get("event_type") in ("collections_cured", "arrears_arrears_repaid"):
+            continue
+        rec = payment_record(_known_by(ev["ledger"], r["date"]), _known_by(ev["invoice"], r["date"]), r["date"])
+        if not rec["missed"] and not rec["returned"]:
+            out.append("its payment record shows nothing missed or returned beside a moment that says a payment was not made")
+            break
+    placed = next((r for r in ev["reaction"] if r.get("event_type") == "arrears_placed_with_dca"), None)
+    if placed and not any(r.get("event_type") in _AGENCY_STEPS for r in steps):
+        out.append("its record places the debt with an agency, and no moment of the story shows it")
     return out
 
 
@@ -1262,7 +1301,9 @@ _CAST_FINDING = ("SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE
 #: the run getting more honest cannot red the build.
 ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "storage_heating": _CAST_FINDING,
                 "ev": "SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_AND_ITS_EFFECT_IS_A_"
-                      "RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md"}
+                      "RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md",
+                "debt": "SEAT_FINDING_THE_PAGE_COUNTS_A_PAYMENT_MISSED_THIRTY_DAYS_AFTER_THE_DESK_SAYS_IT_WAS_"
+                        "2026-10-29.md"}
 
 
 def _open_finding(name: str, staging: Path) -> bool:
