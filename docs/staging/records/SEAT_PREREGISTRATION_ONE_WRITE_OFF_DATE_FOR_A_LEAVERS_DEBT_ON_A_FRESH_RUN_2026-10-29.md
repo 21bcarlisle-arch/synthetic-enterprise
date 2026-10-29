@@ -80,3 +80,15 @@ transient unit `grade-chain-fresh-run-209c3350ab` (systemd --user, script
 (`ALLDONE`, or `NO_DONE` if no `DONE.json`). `wait_for` caps a single wait at 6 h, so the chain re-arms
 while the queue pid lives: a queue longer than 6 h would otherwise grade an empty output dir. No output
 read. P1 to P5 stand as written.
+
+**07:59:51 GMT: the run has started.** For three hours the queue log showed only `HELD: landings come
+before experiments` lines, which read as landings starving the queue. They were not what held it. At
+07:47 a pending landing was present in 33 of 40 samples taken 15 s apart (82%; the prediction written
+first was at least 70%). But the one 90 s gap with no landing (07:51:23 to 07:52:53) launched nothing.
+The full-suite census (`head-green-census`, pid 562397, about 5 GB measured) was still on the box
+then. It exited at 07:54:46 (`ActiveState=failed`). Resident memory fell to 1.8 GB, and 209c started
+at the next gap, five minutes later. The queue retries in `launch_long_job.main` print only their
+first `NoRoom`, so a memory refusal after it leaves no trace: the log names the landing hold and
+hides the memory hold. Fixed in the commit that records this: a retry now prints whenever the cause changes (control `test_a_queue_names_each_new_cause_of_its_wait_not_only_the_first`, mutation-proven). The grade chain was waiting on job unit `longjob-fresh-run-209c3350ab` by
+07:59:56. `fresh-run-0b2879ef7d` is still queued: it cannot fit beside this run (12.5 + 12.5 GB
+against a 23 GB budget). No output read. P1 to P5 stand as written.

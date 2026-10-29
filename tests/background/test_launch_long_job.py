@@ -539,6 +539,26 @@ def test_a_launch_with_NO_ROOM_queues_and_then_follows_rather_than_returning(mon
     assert len(tries) == 3 and len(slept) == 2 and followed == ["longjob-x"]
 
 
+def test_a_queue_names_each_new_cause_of_its_wait_not_only_the_first(monkeypatch, capsys):
+    """Fires on: a queue that prints its first refusal and then retries in silence. On
+    2026-10-29 the census's memory hold sat behind three hours of landing-hold lines."""
+    causes = iter(["co-resident: 39911 MB", "co-resident: 39000 MB",
+                   "held for 5400s and the landing has not finished: x", "co-resident: 24000 MB"])
+
+    def launch(*a, **k):
+        cause = next(causes, None)
+        if cause:
+            raise llj.NoRoom(cause)
+        return {"unit": "longjob-x"}
+    monkeypatch.setattr(llj, "launch", launch)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    assert llj.main([llj.IN_QUEUE_UNIT_FLAG, "--detach", "--job", "x", "--artefact", "/tmp/a",
+                     "--peak-mb", "10", "--", "true"]) == 0
+    out = capsys.readouterr().out
+    assert "held for 5400s" in out and "co-resident: 24000 MB" in out, out
+    assert "39000 MB" not in out, "a repeat of the same cause is not news"
+
+
 def test_a_queued_launch_hands_its_wait_to_a_unit_of_its_own(monkeypatch):
     """Fires on: the wait for room run in the CALLER's cgroup again -- the death of two supplier
     arms on 2026-10-21, queued from a tick and killed with it before they had a unit or a record

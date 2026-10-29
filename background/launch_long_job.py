@@ -871,6 +871,7 @@ def main(argv: list | None = None) -> int:
     # hands any wait to `hand_off_queue`: a wait here dies with whatever cgroup started us.
     hands_off = not (args.no_queue or args.in_queue_unit)
     queued_since = None
+    last_cause = None
     while True:
         try:
             launch(args.job, command, artefact=args.artefact, workdir=args.workdir, log=args.log,
@@ -897,11 +898,17 @@ def main(argv: list | None = None) -> int:
                     return 2
                 break
             now = _time.monotonic()
+            cause = str(exc).split(":", 1)[0]
             if queued_since is None:
                 queued_since = now
                 print(f"QUEUED (no room yet; retrying every {QUEUE_RETRY_SECONDS}s): {exc}",
                       flush=True)
-            elif now - queued_since >= args.follow_deadline_hours * 3600:
+            elif cause != last_cause:
+                # A cause printed once and never again hid a memory hold for three hours on
+                # 2026-10-29: the log showed only the landing hold's lines, read as starvation.
+                print(f"STILL QUEUED, now because: {exc}", flush=True)
+            last_cause = cause
+            if now - queued_since >= args.follow_deadline_hours * 3600:
                 print(f"QUEUE DEADLINE: still no room after {int(now - queued_since)}s -- NOT "
                       f"launched: {exc}")
                 return 2
