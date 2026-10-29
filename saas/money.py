@@ -61,7 +61,7 @@ that rounding drifted.
 """
 from __future__ import annotations
 
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from math import isfinite
 from typing import Mapping
 
@@ -321,3 +321,26 @@ def display_rate_gbp_per_day(days_in_period, standing_charge_gbp, *, field="stan
     return minimal_display_rate(
         days_in_period, standing_charge_gbp, scale=1.0, field=field
     )
+
+
+#: The money lines a bill prints. A catch-up adjustment is a fifth, printed only where it applied.
+PRINTED_MONEY_LINES = ("commodity_amount_gbp", "non_commodity_amount_gbp", "standing_charge_gbp",
+                       "vat_gbp")
+
+
+def printed_bill_money(bill: dict, label: str = "bill") -> tuple[dict, float]:
+    """`(lines, total)` as the issued bill prints them: each line rounded to the penny and the total
+    their sum (`foot_components_to_total`), not the biller's unrounded total rounded once, which can
+    sit a penny away. The printed ledger and the payer's ask both read this, so the collections desk
+    chases the sum the bill states. Raises `MoneyBoundaryError` on a bill whose lines do not foot to
+    its total: the ledger holds that bill rather than issue it."""
+    lines = {k: bill.get(k, 0.0) or 0.0 for k in PRINTED_MONEY_LINES}
+    if bill.get("catchup_applied") and bill.get("catchup_adjustment_gbp") is not None:
+        lines["catchup_adjustment_gbp"] = bill["catchup_adjustment_gbp"]
+    return foot_components_to_total(lines, bill["total_amount_gbp"], label=label)
+
+
+def printed_bill_total(bill: dict) -> float:
+    """The total the issued bill prints (`printed_bill_money`)."""
+    return printed_bill_money(
+        bill, "{}/{}".format(bill.get("customer_id"), bill.get("period_end")))[1]

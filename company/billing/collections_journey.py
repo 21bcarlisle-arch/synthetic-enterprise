@@ -13,8 +13,8 @@ the ladder CAN change -- which, for a ledger-driven selector, are fully enumerab
 
   * every ledger event's value date (a payment landing can cure; a reversal can reopen);
   * every bill's due date plus each trigger of the segment's dunning path (a trigger crossing is
-    the only way a step advances), with the day-0 trigger read as due + 1, because the due date is
-    the last day to pay and the journey opens on a MISSED payment, not on one still in time.
+    the only way a step advances), with the day-0 trigger read as `missed_on(due)`, because the due
+    date is the last day to pay and the journey opens on a MISSED payment, not on one still in time.
 
 Between two such dates the selector's inputs do not move, so nothing is lost. An account with no
 open journey is evaluated only where it could open one (each bill's due + 1, and any non-bill debit).
@@ -83,6 +83,26 @@ from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.crm.account_hierarchy import AccountingModel, Segment, default_accounting_model
 
 MISSED_PAYMENT = "missed_payment"
+
+
+def missed_on(due: dt.date) -> dt.date:
+    """The day a bill not paid by its due date counts as missed: the day after it. The due date is
+    the last day to pay. This is the one definition: the desk opens its journey on it, and the
+    household summary's payment record counts the bill missed from it
+    (`tools/generate_explore_cast.payment_record`). The 30-day Bacs window is when a returned DD may
+    be presented again, not when it counts as missed (`debt_and_collections.md` s.7.5)."""
+    return due + dt.timedelta(days=1)
+
+
+def bill_missed(due: dt.date, first_paid: Optional[dt.date], as_of: dt.date) -> Optional[bool]:
+    """Whether a bill due on `due` is missed as read on `as_of`: None while it is not yet missable,
+    else True unless a payment landed on it on or before its due date. A payment after that day does
+    not un-miss it, though it can cure the journey."""
+    if missed_on(due) > as_of:
+        return None
+    return first_paid is None or first_paid > due
+
+
 CURED = "cured"
 #: The ladder step on which SLC 27.8 has the company offer an affordable arrangement.
 PLAN_OFFER_STEP = "repayment_plan_offer"
@@ -376,7 +396,7 @@ class CollectionsJourneyDesk:
         events = ledger.events()
         bill_dues = [e.valid_time + dt.timedelta(days=payment_terms_days)
                      for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
-        missed = {d + dt.timedelta(days=1) for d in bill_dues}
+        missed = {missed_on(d) for d in bill_dues}
         openers = missed | {
             e.valid_time for e in events
             if e.event_type.is_debit and e.event_type != LedgerEventType.BILL_DEBIT}

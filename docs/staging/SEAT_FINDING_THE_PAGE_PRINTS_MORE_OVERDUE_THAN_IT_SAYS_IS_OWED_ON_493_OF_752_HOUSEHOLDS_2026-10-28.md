@@ -250,3 +250,65 @@ Results, and an unattributed −3.7% in close write-offs that the 0b28 run will 
 `records/SEAT_PREREGISTRATION_ONE_WRITE_OFF_DATE_FOR_A_LEAVERS_DEBT_ON_A_FRESH_RUN_2026-10-29.md`.
 
 Still open on this finding: the rest of the row (the "other" class), graded by the 0b28 run.
+
+## 2026-10-29: the 209c3350ab book's 2,500, every step by cause (item `the-overdue-rows-820-unexplained-steps-on-the-209c-book`)
+
+Counted by the row's own evaluator, so 2,500 exactly. (A) 2,328 steps are 1p to 7p: the desk asked
+the biller's unrounded total, but the page prints the total its rounded lines foot to. Fixed: one
+`saas.money.printed_bill_money` for both. (B) 140 are a mover's part-paid final bill whose part never
+crossed to the desk. Fixed: it crosses as a card payment. (C) 32 on 4 households: the desk took
+some cash on a part-paid final bill, and its source is not traced. The "675 up to £1" did not
+survive the row's own count: nothing breaches by between 10p and £1. Causes, the refuted
+hypothesis for C, and the prediction for the next fresh run:
+`docs/staging/records/SEAT_PREREGISTRATION_THE_OVERDUE_ROWS_2500_STEPS_BY_CAUSE_ON_THE_209C_BOOK_2026-10-29.md`.
+
+## 2026-10-29: the desk's untraced cash on four part-paid final bills (item `the-desks-untraced-cash-on-four-part-paid-final-bills`)
+
+**The class.** On 209c3350ab, 32 steps on OCC-6e59dd8b63e8, OCC-b3b4e19ff255, SYN-2016-016 and
+SYN-2016-083 look as though the desk took some cash on a part-paid bill, but less than the part. For
+083, the bill is 118.33, the page's part payment 71.28 and the desk's overdue 89.80, so the desk
+looks to have taken 28.53. The method: `/var/tmp/deskcash/replay.py` replays the live triad's
+`record_period` over the household's own book invoices and reads the desk ledger.
+
+**What it is, on three of the four: a credit bill, not cash.** The replay posts the page's own
+118.33 and reproduces 89.80, so the in-loop bill is not the cause. The ledger shows a -28.53 credit
+bill (Jul 2017) posted as `ADJUSTMENT_CREDIT` on 14 Aug 2017. The page nets that credit off the
+leg's next bill: the household pays 37.41 of 65.94 on 14 Sep 2017. In the triad the household paid
+the whole 65.94, so the 28.53 sat unused on the desk for 18 months and then came off the Jan 2019
+failed bill. The desk's "cash" equals the page's `credit_applied_gbp` on each household:
+- 083: 28.53;
+- b3b4: 83.74;
+- 016: 4.33 + 3.40 against 7.75, within 2p.
+
+**The fourth, OCC-6e59dd8b63e8, took no cash.** The desk holds both bills whole (22.81 + 29.01, as
+51.81). The excess is the gas leg's part payment, 11.03 against 11.02. That is the plain part-paid
+class, which the classifier's 1p tolerance missed by a penny of rounding.
+
+**Fixed: the household is asked the net bill.** `record_period` holds a credit bill per leg. It
+asks the leg's next bill net of the credit for the collection, the DD request and the budget. The
+bill debit stays whole. A credit that meets an open unpaid bill on the leg is not held, because the
+page nets it there and the desk's oldest-first allocation already does. The draws are keyed by
+period, so no outcome moves. After the fix the replay of 083 pays 37.41 on 14 Sep 2017. The account
+is at zero until Jan 2019, and the desk then holds the whole 118.33.
+- Control: `tests/background/test_a_credit_bill_comes_off_the_legs_next_collection.py`. Both legs
+  red under each of the two mutations: no netting, and no open-bill guard.
+- Knowledge: `debt_and_collections.md` §7.3.
+
+**With 714b0ce3c's part-payment fix, all four households meet the page.** The replay on the trunk
+carries both fixes:
+- 083 prints 47.05 against 47.05;
+- b3b4 prints 260.36 against 260.36;
+- 6e59 prints 40.78 against 40.79;
+- 016 prints 79.01 against 79.02 on 18 Mar 2018. From April it is 3.41 below: the electricity leg's
+  closing credit, which the desk nets across fuels on one account.
+
+Prediction for the next fresh run: class C is 0 steps.
+
+**Exposed, not fixed here: the triad draws a non-final bill as a mover's exit.** It passes
+`due_date` where `mover_final_bill_outcome` takes the bill's `period_end`, and the other three
+callers pass `period_end`. The test is "period month ≥ last supplied month", so the
+month-before-the-move bill, which falls due in the move month, is drawn as an exit as well.
+- Three of these four part-paid bills are not final bills: 083's Jan 2019, 016g's Feb 2018 and
+  b3b4's Dec 2024.
+- The seed string also differs from the DD book's draw of the same bill.
+- This is the next increment on this item.

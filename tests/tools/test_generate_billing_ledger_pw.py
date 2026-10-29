@@ -37,12 +37,14 @@ def _resi_bill(cid, period_end, amount=150.0):
     # effective rate is exactly 5%, within the Phase 3 gate's tolerance --
     # other components reweighted proportionally so they still sum to `amount`.
     vat_rate = 0.05
+    # Lines rounded to the penny and VAT the rest, so the printed bill foots to `amount`.
     subtotal = amount / (1 + vat_rate)
-    vat_gbp = amount - subtotal
+    lines = [round(subtotal * w / 0.95, 2) for w in (0.7, 0.15, 0.1)]
+    vat_gbp = round(amount - sum(lines), 2)
     return {
         "customer_id": cid, "period_start": ps, "period_end": period_end,
-        "total_consumption_kwh": 300.0, "commodity_amount_gbp": subtotal * (0.7 / 0.95),
-        "non_commodity_amount_gbp": subtotal * (0.15 / 0.95), "standing_charge_gbp": subtotal * (0.1 / 0.95),
+        "total_consumption_kwh": 300.0, "commodity_amount_gbp": lines[0],
+        "non_commodity_amount_gbp": lines[1], "standing_charge_gbp": lines[2],
         "vat_gbp": vat_gbp, "total_amount_gbp": amount,
         "average_unit_rate_gbp_per_mwh": 200.0, "clarity_score": 0.80,
         "bill_shock_pct": None, "segment": "resi", "commodity": "electricity",

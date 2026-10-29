@@ -36,9 +36,10 @@ import html
 import json
 import re
 from collections import defaultdict
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
+from company.billing.collections_journey import bill_missed, missed_on
 from company.compliance.domain_invariants import default_tariff_invoice_excess_p_per_kwh
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -291,42 +292,44 @@ def _owed(inv: list[dict], led: list[dict]) -> tuple[float, str | None]:
     return owed, max([r["date"] for r in inv + moves if r.get("date")], default=None)
 
 
-#: A bill counts as missed once its due date and the Bacs re-presentation window have passed with no
-#: payment on it (INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE; 30 days for standard credit is that
-#: row's stated belief).
-PAYMENT_WINDOW_DAYS = 30
-
-
 def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
     """The household summary's "N of D bills paid, R returned, M missed", counted per BILL.
 
-    D is the bills (prepayment statements excluded) whose due date plus the window has passed by
-    `as_of`, not paid by prepayment. Each is paid (a payment on it inside the window) or missed,
-    so N + M = D. R is the returned collection attempts on those bills. A payment on no bill due
-    is no collection. This used to count ledger rows and arrears cases: "34 payments, 4 returned,
-    42 missed" on a 50-bill account (second cold read, N3)."""
+    D is the bills (prepayment statements excluded) the desk could have opened a journey on by
+    `as_of`: those past their due date, not paid by prepayment. Each is paid (a payment on it by its
+    due date) or missed, so N + M = D. Missed is `collections_journey.bill_missed`, the one
+    definition the desk's "Missed a payment" moment also reads, so the record counts a bill missed
+    from the day the desk does (it used to wait 30 more days: SYN-2016-356, "0 missed" at its
+    "Missed a payment" moment). R is every returned collection attempt on a bill the ledger holds by
+    `as_of`: a return counts when it happens, so a DD returned on its due date shows beside the
+    "Direct debit returned" moment that day, before its bill is missable. A payment on no bill due
+    is no collection. This used to count ledger rows and arrears cases: "34 payments, 4
+    returned, 42 missed" on a 50-bill account (second cold read, N3)."""
     by_bill: dict = {}
     for r in led:
         if r.get("invoice_number") is not None:
             by_bill.setdefault(r["invoice_number"], []).append(r)
     cutoff = date.fromisoformat(as_of[:10])
-    due = []
+    due, missed, returned = [], [], 0
     for i in inv:
         if (i.get("document_type") or "bill") != "bill" or not i.get("due_date"):
             continue
         rows = by_bill.get(i.get("invoice_number"), [])
         if any(r.get("method") == "prepayment" for r in rows):
             continue
-        window = date.fromisoformat(i["due_date"][:10]) + timedelta(days=PAYMENT_WINDOW_DAYS)
-        if window <= cutoff:
-            due.append((i, rows, window.isoformat()))
-    paid = [i for i, rows, w in due if any(r.get("type") == "payment_received" and r.get("date", "") <= w
-                                            for r in rows)]
-    missed = [(i, rows) for i, rows, _ in due if i not in paid]
-    returned = sum(1 for _, rows, _ in due for r in rows if r.get("type") == "payment_failed")
-    return {"due": len(due), "payments": len(paid), "returned": returned, "missed": len(missed),
-            "missed_dd": sum(1 for _, rows in missed if any(r.get("method") == "direct_debit" for r in rows)),
-            "as_of": max([w for _, _, w in due], default=None)}
+        returned += sum(1 for r in rows if r.get("type") == "payment_failed")
+        on = date.fromisoformat(i["due_date"][:10])
+        paid = min((date.fromisoformat(r["date"][:10]) for r in rows
+                    if r.get("type") == "payment_received" and r.get("date")), default=None)
+        verdict = bill_missed(on, paid, cutoff)
+        if verdict is None:
+            continue
+        due.append((rows, missed_on(on).isoformat()))
+        if verdict:
+            missed.append(rows)
+    return {"due": len(due), "payments": len(due) - len(missed), "returned": returned, "missed": len(missed),
+            "missed_dd": sum(1 for rows in missed if any(r.get("method") == "direct_debit" for r in rows)),
+            "as_of": max([w for _, w in due], default=None)}
 
 
 def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
@@ -1111,6 +1114,9 @@ def _slot_failures(slot_id, hh, ev, keys) -> list[str]:
 
 #: The debt moments that say a payment did not arrive, and the steps that put the debt with an agency.
 _DEBT_MISSES = ("arrears_payment_missed", "arrears_dd_failed", "collections_missed_payment")
+#: What closes a journey. A decision from before one of these belongs to an earlier debt, not to the one a story opens on.
+_JOURNEY_CLOSES = ("collections_cured", "collections_arrangement", "collections_prepayment", "collections_write_off",
+                   "arrears_arrears_repaid", "arrears_written_off", "arrears_recovered")
 _AGENCY_STEPS = ("arrears_placed_with_dca", "arrears_recovered", "collections_debt_recovery",
                  "collections_commercial_recovery")
 
@@ -1126,9 +1132,18 @@ def _debt_page_failures(hh, ev, keys) -> list[str]:
     if miss:
         rc = [r for r in _known_by(ev["reaction"], miss["date"]) if r.get("event_type") != "journey_state"]
         shown = _last_decision(rc)
-        if shown and shown["date"] < miss["date"] and str(shown.get("event_type", "")).startswith(_DEBT_PREFIXES):
+        # A desk decision from a journey that closed before this miss is the household's earlier debt, honestly
+        # on the record (162 of the 217 refusals on 209c3350ab). The old engine's `arrears_` notice is not
+        # exempt: it narrates the desk's own debt on its own clock and amount (the other 55).
+        closed = shown and str(shown.get("event_type", "")).startswith("collections_") and any(r.get("event_type") in _JOURNEY_CLOSES and shown["date"] <= r["date"] < miss["date"]
+                               for r in rc)
+        if shown and not closed and shown["date"] < miss["date"] and str(shown.get("event_type", "")).startswith(_DEBT_PREFIXES):
             out.append("the page shows an overdue notice dated before the missed payment its story opens on")
-    for r in steps:
+    dated = any(i.get("due_date") for i in ev["invoice"])
+    if steps and not dated:
+        # Pages exported before the bill carried its due date: the record cannot count a miss at all.
+        out.append("its bills carry no due date, so its payment record cannot count a payment missed")
+    for r in steps if dated else ():
         if r.get("event_type") in ("collections_cured", "arrears_arrears_repaid"):
             continue
         rec = payment_record(_known_by(ev["ledger"], r["date"]), _known_by(ev["invoice"], r["date"]), r["date"])
@@ -1302,8 +1317,8 @@ _CAST_FINDING = ("SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE
 ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "storage_heating": _CAST_FINDING,
                 "ev": "SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_AND_ITS_EFFECT_IS_A_"
                       "RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md",
-                "debt": "SEAT_FINDING_THE_PAGE_COUNTS_A_PAYMENT_MISSED_THIRTY_DAYS_AFTER_THE_DESK_SAYS_IT_WAS_"
-                        "2026-10-29.md"}
+                "debt": "SEAT_FINDING_THE_PUBLISHED_BOOKS_PAGES_CARRY_NO_DUE_DATE_SO_ITS_DEBT_SLOT_STAYS_EMPTY_UNTIL_"
+                        "THE_NEXT_PUBLISH_2026-10-29.md"}
 
 
 def _open_finding(name: str, staging: Path) -> bool:

@@ -38,3 +38,21 @@ slot is empty for this reason.
 story collects the final balance with no moment showing the move. The tariff row prints one
 "132.0 £/MWh" fix across both fuels, which is the first read's O1/O2 class. The fourth cold read
 should grade both.
+
+## Done
+
+2026-10-29: a missed payment now has one definition, and both records read it.
+- **The definition.** A bill not paid by its due date is missed from the day after:
+  `company/billing/collections_journey.missed_on` / `bill_missed`.
+- **The desk** opens its journey on that day.
+- **The household summary's `payment_record`** counts the bill missed from the same day, and counts a
+  returned DD on the day it is returned.
+- **The knowledge** is in `debt_and_collections.md` s.7.5. The 30 days was the Bacs retry window, not
+  a miss.
+- **The invariant row** now reads the due date, and so does the runner's own evaluator, which still
+  imports nothing it grades.
+- **Measured** in `records/SEAT_PREREGISTRATION_ONE_DEFINITION_OF_A_MISSED_PAYMENT_ON_BOTH_BOOKS_2026-10-29.md`:
+  - 209c3350ab: this check's refusals fell from 112 to 0, and the slot fills with PROS-2016-0054.
+  - The published book's inputs: the slot fills with SYN-2016-592.
+  - The published pages as they stand carry no due dates. The slot is honestly empty with that
+    reason. `ACCOUNTED_BY["debt"]` now names the finding for that cause, not this one.
