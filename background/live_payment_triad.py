@@ -760,6 +760,9 @@ class LivePaymentTriad:
         # the window's end, that asks whether the supplier's contact reached the household.
         self._contacts_received = None
         self._final_bill_part_share: dict = {}
+        # Credit bill money waiting on a leg (supply point) for that leg's next bill: see
+        # `record_period`, where the bill's collection is asked net of it.
+        self._leg_credit: dict = {}
         self._outcomes_by_customer: dict = {}
         self._early_checks: dict = {}
         self._early_cured: set = set()
@@ -1250,8 +1253,20 @@ class LivePaymentTriad:
                                  else self._household_plans.collection_effect(account_id, due_date))
         shock_mult = (dd_shock_effect.failure_multiplier
                       if method == DIRECT_DEBIT and dd_shock_effect is not None else 1.0)
+        # A CREDIT BILL COMES OFF THE LEG'S NEXT BILL. The page nets it there (`arrears_engine.
+        # resolved_settlement`: the bill asks for its charges less the credit, SLC 31H.12), so the
+        # household is asked, and pays, the rest. Collecting the whole bill left the credit unused
+        # on the desk's ledger until it absorbed a later unpaid bill: SYN-2016-083's -28.53 of Jul
+        # 2017 took 28.53 off a Jan 2019 bill the page still showed owed. The bill debit stays
+        # whole; the credit note is already on the ledger. The draws are keyed by period, not
+        # amount, so no outcome moves.
+        waiting = self._leg_credit.pop(customer_id, 0.0)
+        credit_taken = round(min(amount_gbp, waiting), 2)
+        if waiting - credit_taken > 0.005:
+            self._leg_credit[customer_id] = round(waiting - credit_taken, 2)
+        ask_gbp = round(amount_gbp - credit_taken, 2)
         event = generate_payment_event(
-            customer_id, period_index, due_date, amount_gbp, stress, method,
+            customer_id, period_index, due_date, ask_gbp, stress, method,
             segment=segment,
             dd_failure_prob=dd_failure_table(shock_mult * plan_mult),
         )
@@ -1299,7 +1314,7 @@ class LivePaymentTriad:
                 and method != PREPAYMENT and normalise_segment(segment) == RESIDENTIAL):
             paid_now, budget_cleared = self._budget_book.settle_month(
                 supply_point=customer_id, household=household_of(customer_id),
-                year=int(bill_month[:4]), amount_gbp=amount_gbp, legs=household_legs,
+                year=int(bill_month[:4]), amount_gbp=ask_gbp, legs=household_legs,
                 ref=len(self._records))
             if not paid_now:
                 budget_unpaid = True
@@ -1325,6 +1340,13 @@ class LivePaymentTriad:
         # then chased the next bill the page showed as paid down.
         credit_note = None
         if credit_gbp > 0:
+            # It waits for the leg's next bill only when nothing on the leg is unpaid: the page
+            # nets an open unpaid bill first, and the desk's ledger already does that oldest-first.
+            if not any(r.customer_id == customer_id and r.result == "failed"
+                       and (r.settled_on is None or r.settled_on > issue_date)
+                       for r in self._records):
+                self._leg_credit[customer_id] = round(
+                    self._leg_credit.get(customer_id, 0.0) + credit_gbp, 2)
             credit_note = LedgerEvent(
                 event_id=f"credit:{customer_id}:{period_index}",
                 account_id=account_id,
@@ -1391,7 +1413,7 @@ class LivePaymentTriad:
                 payload=CollectionRequest(
                     account_id=account_id,
                     mandate_ref=mandate_ref_for(account_id),
-                    amount_gbp=amount_gbp,
+                    amount_gbp=ask_gbp,
                     rail=PaymentRail.BACS_DIRECT_DEBIT,
                     requested_collection_date=due_date,
                 ),
