@@ -1783,9 +1783,11 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 4
-  level_current: 1
+  level_current: 2
   level_target: 3
   loop_stage: build
+  # L2 recorded 2026-10-29 (gate_authorizations.jsonl): K2-K4, K6 UIG and K7 reach a run, UIG
+  # graded on 2eeb3f0b3. L3: crossed meters, the hub grade, an Expert Hour (theft: a study, 8 Oct).
   # MINTED 2026-10-05, DIRECTOR_CANON_THE_PRIORITY_ORDER_2026-10-05 step 2: "The world must
   # generate unbilled energy the way it arises in reality, and the company must measure it."
   # Each kind arises and is detected differently, so each is generated and measured apart;

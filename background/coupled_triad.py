@@ -128,8 +128,8 @@ _AUTHORITATIVE_COUPLING = {
     # actual reads, and those reads carry W2_30's per-household seasonal gas split
     # (`run_phase2b` -> `seasonal_gas_splits_for_book`) and the fabric path's electricity.
     # Its slice 4 grade is what surfaced the gas-heated homes' flat electricity season, so
-    # it is already the belief-vs-truth reading of this mechanism. D48 sits at L1, so the
-    # gate still holds W2_30 below L3 -- now for the twin's level, not for a missing twin.
+    # it is already the belief-vs-truth reading of this mechanism. (D48 reached L2 on 13 Oct; the
+    # pair's gap is not in the ledger, so W2_30 is still held below L3, now for that.)
     "W2_30": "D48",
     # W1_14 per-cell household weather <-> D48 billing accuracy, on the same standing as W2_30.
     # Each premise's register advance is settled on its own cell's sky (`run_phase2b` hands the
@@ -137,6 +137,10 @@ _AUTHORITATIVE_COUPLING = {
     # weather-normal AQ/EAC. The cell's departure from normal is therefore what a true-up
     # corrects, and D48 is the grade that measures it. Held below L3 for D48's level.
     "W1_14": "D48",
+    # W2_36 unbilled energy <-> D48 billing accuracy: the director's step 2 named them as one
+    # requirement's two halves, the world generating unbilled energy and the company measuring
+    # it from what it can see. D48's grades are that belief-vs-truth reading. No gap row yet.
+    "W2_36": "D48",
     # W2_38 the world's arrears graded against Ofgem <-> C11 segment debt policy, on the same
     # standing as W2_9. W2_38 is the payment truth (who fails, who settles, how late); C11 is the
     # supplier's own debt model built from bills and contact. The row's couples_with names
