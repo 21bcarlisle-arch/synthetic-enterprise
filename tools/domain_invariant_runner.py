@@ -1492,14 +1492,15 @@ def ev_billed_ex_vat_reconciles(inv, book):
     return tally
 
 
-#: Bacs re-presentation window, and the row's belief for a standard-credit bill: 30 days.
-COLLECTION_WINDOW = timedelta(days=30)
+#: The row's MISSED: a collection not paid by its due date counts from the day after it. (It read the
+#: 30-day Bacs re-presentation window until 2026-10-29; that window is a retry, not a miss.)
+COLLECTION_WINDOW = timedelta(days=1)
 
 
 def ev_payment_record(inv, book):
     """Per account, the page's printed counter ("N payments, R returned, M missed", `payment_record`)
     against the collections due: every bill sent for collection, by direct debit or standard
-    credit, whose due date plus the window has passed by the page's as-of date. A prepayment
+    credit, whose due date has passed by the page's as-of date. A prepayment
     statement is no collection. Breach unless N + M equals the count due, and unless R is at most
     three per DD collection due and M_dd at most R."""
     tally = Tally("account (printed payment counter against collections due)")

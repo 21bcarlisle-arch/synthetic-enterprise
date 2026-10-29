@@ -2684,8 +2684,9 @@ invariants:
   counts: >-
     Per account, per collection due: one scheduled collection is one bill's amount due on standard credit, or one month's direct-debit instalment on DD. A PAYMENT is a collection due that was paid in full
     within its window. A RETURNED payment is one DD presentation the bank returned unpaid (ARUDD) or a collection refused because the mandate was cancelled (ADDACS): an attempt, so one collection can carry
-    up to three. A MISSED payment is a collection due that was not paid in full by the end of its window. The window is the Bacs re-presentation window, 30 days from the original presentation (DD), and the
-    bill's due date plus 30 days (standard credit, a belief). Prepayment has no collection due and is not counted. Extra one-off payments are not collections and count as neither. Unit graded: per account.
+    up to three. A MISSED payment is a collection due that was not paid in full by its due date (DD: the presentation date), counted from the day after it. Amended 2026-10-29 from 'by the end of its window
+    (Bacs 30 days; standard credit 30 days, a belief)': the 30 days is when a returned DD may be presented again, not when it counts as missed, and the desk opens its journey the day after the due date
+    (debt_and_collections.md s.7.5). Prepayment has no collection due and is not counted. Extra one-off payments are not collections and count as neither. Unit graded: per account.
   statement: >-
     The household summary "N payments, R returned, M missed" counts collections, not ledger rows or reminder events. Every collection due whose window has closed by ledger.as_of_date is either paid or missed,
     never both and never neither. A return is an attempt on a collection, so returns never exceed three per collection, and every missed DD collection carries at least one return or a cancelled mandate.
@@ -2693,9 +2694,9 @@ invariants:
     segment: resi and sme
     payment_method: direct_debit and standard_credit
   evaluation: >-
-    Let D = the collections due on the account whose window closed on or before ledger.as_of_date. Breach unless N + M = |D|, N <= |D|, M <= |D|, R <= 3 x |D_dd| (D_dd the DD collections in D), and
+    Let D = the collections due on the account whose due date fell before ledger.as_of_date. Breach unless N + M = |D|, N <= |D|, M <= |D|, R <= 3 x |D_dd| (D_dd the DD collections in D), and
     M_dd <= R (every missed DD collection has a returned presentation or a mandate cancellation). On a bill-paying account |D| is the count of invoices with status issued (not held, not to a deemed
-    account) whose window closed. On fixed monthly DD, |D| is the count of instalments scheduled. Second leg, flag: a DD mandate that is presented again after two consecutive collections each ended missed,
+    account) whose due date has passed. On fixed monthly DD, |D| is the count of instalments scheduled. Second leg, flag: a DD mandate that is presented again after two consecutive collections each ended missed,
     with no new instruction from the payer between them.
   lower: N + M = |D|
   upper: R <= 3 x |D_dd|
@@ -2718,8 +2719,8 @@ invariants:
   - docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md
   - 'Cold read N3: "34 payments, 4 returned, 42 missed" on a 50-bill account (34 + 42 = 76 > 50); "6 payments, 4 returned, 0 missed"; a DD kept after 4 of 6 collections returned.'
   gap: >-
-    The 30-day standard-credit window is a belief mirroring the Bacs window: no source sets when a pay-on-receipt bill counts as missed (Ofgem's arrears bar is 91 days, SLC 14's objection gate 28; neither
-    is a 'missed' definition). How a part-paid collection should count is not published; the row counts it missed. The page does not carry a DD instalment schedule, so on fixed DD |D| must come from
+    No licence condition defines a missed payment (Ofgem's arrears bar is 91 days, SLC 14's objection gate 28; neither is a 'missed' definition). The due date is read from the payment event's own date
+    (a DD return, a pay-on-receipt bill past due) and published practice (British Gas acts on a return when it happens and re-collects 14-30 days later); debt_and_collections.md s.7.5. How a part-paid collection should count is not published; the row counts it missed. The page does not carry a DD instalment schedule, so on fixed DD |D| must come from
     the ledger's invoice_raised and payment entries by month (one instalment per month, INV_DD_CADENCE). Which ARUDD reasons forbid re-presentation ('no instruction') is not on the page.
 - id: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
   family: carbon_reporting

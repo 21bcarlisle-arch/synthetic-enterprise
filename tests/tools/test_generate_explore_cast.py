@@ -520,7 +520,7 @@ def test_MUTATION_an_estimate_run_shown_at_its_midpoint_is_caught(feed):
 # ── The debt slot reads the page's own record (third cold read, SYN-2016-356 on 129e7de698) ──────
 
 
-def _debt_hh(notice_before=False, nothing_missed=False, agency_unshown=False):
+def _debt_hh(notice_before=False, nothing_missed=False, agency_unshown=False, no_due_date=False):
     """SYN-2016-356's shape: four bills paid by direct debit, then the desk's journey opens on the
     15 Dec 2016 bill and ends written off as statute-barred in 2024. Each flag puts back one thing
     the third cold read found its page contradicting; with none set the story agrees with its record."""
@@ -529,6 +529,9 @@ def _debt_hh(notice_before=False, nothing_missed=False, agency_unshown=False):
               "amount_gbp": 40.0, "read_type": "A"} for n, m in enumerate(range(7, 12), start=1)]
     led = [{"date": "2016-{:02d}-15".format(m + 1), "type": "payment_received", "invoice_number": n,
             "amount_gbp": -40.0, "method": "direct_debit"} for n, m in enumerate(range(7, 11), start=1)]
+    if no_due_date:  # a page exported before the bill carried its due date (the 4ae8da9b0f book)
+        for b in bills:
+            del b["due_date"]
     if not nothing_missed:
         led.append({"date": "2016-11-15", "type": "payment_failed", "invoice_number": 4, "amount_gbp": 0.0,
                     "method": "direct_debit"})
@@ -556,6 +559,7 @@ def _debt_hh(notice_before=False, nothing_missed=False, agency_unshown=False):
 NOTICE = "the page shows an overdue notice dated before the missed payment its story opens on"
 COUNTERS = "its payment record shows nothing missed or returned beside a moment that says a payment was not made"
 AGENCY = "its record places the debt with an agency, and no moment of the story shows it"
+NO_DUE = "its bills carry no due date, so its payment record cannot count a payment missed"
 
 
 def test_the_debt_slot_refuses_the_story_syn_2016_356s_record_contradicts():
@@ -569,6 +573,6 @@ def test_the_debt_slot_refuses_the_story_syn_2016_356s_record_contradicts():
 
 
 @pytest.mark.parametrize("flag, check", [("notice_before", NOTICE), ("nothing_missed", COUNTERS),
-                                         ("agency_unshown", AGENCY)])
+                                         ("agency_unshown", AGENCY), ("no_due_date", NO_DUE)])
 def test_each_debt_page_check_refuses_alone(flag, check):
     assert _debt_hh(**{flag: True}) == [check]

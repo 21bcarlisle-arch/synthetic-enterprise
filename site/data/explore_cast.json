@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-10-28T15:03:46Z",
+  "generated_at": "2026-10-29T13:59:36Z",
   "run_generated_at": "2026-10-26T12:01:01Z",
   "run_git_commit": "4ae8da9b0f",
   "household_count": 752,
@@ -56,7 +56,7 @@
       },
       {
        "k": "Payment record",
-       "v": "0 payments, 0 returned, 0 missed",
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
        "drawn_from": "2025-02-01"
       },
       {
@@ -129,7 +129,7 @@
       },
       {
        "k": "Payment record",
-       "v": "0 payments, 0 returned, 0 missed",
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
        "drawn_from": "2025-02-01"
       },
       {
@@ -223,8 +223,8 @@
       },
       {
        "k": "Payment record",
-       "v": "2 payments, 0 returned, 0 missed",
-       "drawn_from": "2025-03-18"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2025-02-01"
       },
       {
        "k": "Meter reads",
@@ -356,7 +356,7 @@
       },
       {
        "k": "Payment record",
-       "v": "0 payments, 0 returned, 0 missed",
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
        "drawn_from": "2016-01-26"
       },
       {
@@ -439,8 +439,8 @@
       },
       {
        "k": "Payment record",
-       "v": "191 payments, 3 returned, 0 missed",
-       "drawn_from": "2024-01-18"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2016-01-26"
       },
       {
        "k": "Meter reads",
@@ -629,8 +629,8 @@
       },
       {
        "k": "Payment record",
-       "v": "191 payments, 3 returned, 0 missed",
-       "drawn_from": "2024-01-18"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2016-01-26"
       },
       {
        "k": "Meter reads",
@@ -819,8 +819,8 @@
       },
       {
        "k": "Payment record",
-       "v": "214 payments, 4 returned, 0 missed",
-       "drawn_from": "2025-01-17"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2016-01-26"
       },
       {
        "k": "Meter reads",
@@ -1019,7 +1019,7 @@
       },
       {
        "k": "Payment record",
-       "v": "0 payments, 0 returned, 0 missed",
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
        "drawn_from": "2017-08-30"
       },
       {
@@ -1097,8 +1097,8 @@
       },
       {
        "k": "Payment record",
-       "v": "22 payments, 0 returned, 0 missed",
-       "drawn_from": "2018-07-21"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2017-08-30"
       },
       {
        "k": "Meter reads",
@@ -1270,8 +1270,8 @@
       },
       {
        "k": "Payment record",
-       "v": "24 payments, 0 returned, 0 missed",
-       "drawn_from": "2018-08-21"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2017-08-30"
       },
       {
        "k": "Meter reads",
@@ -1458,7 +1458,7 @@
       },
       {
        "k": "Payment record",
-       "v": "0 payments, 0 returned, 0 missed",
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
        "drawn_from": "2016-09-20"
       },
       {
@@ -1536,8 +1536,8 @@
       },
       {
        "k": "Payment record",
-       "v": "104 payments, 0 returned, 0 missed",
-       "drawn_from": "2021-01-19"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2016-09-20"
       },
       {
        "k": "Meter reads",
@@ -1721,8 +1721,8 @@
       },
       {
        "k": "Payment record",
-       "v": "104 payments, 0 returned, 0 missed",
-       "drawn_from": "2021-01-19"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2016-09-20"
       },
       {
        "k": "Meter reads",
@@ -1906,8 +1906,8 @@
       },
       {
        "k": "Payment record",
-       "v": "104 payments, 0 returned, 0 missed",
-       "drawn_from": "2021-01-19"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2016-09-20"
       },
       {
        "k": "Meter reads",
@@ -2091,8 +2091,8 @@
       },
       {
        "k": "Payment record",
-       "v": "108 payments, 0 returned, 0 missed",
-       "drawn_from": "2021-02-26"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2016-09-20"
       },
       {
        "k": "Meter reads",
@@ -2248,713 +2248,20 @@
    "id": "debt",
    "feature": "The debt journey",
    "rule": "The arrears journey that goes deepest: missed payment, notices, then repaid, written off or passed to an agency",
-   "filled": true,
+   "filled": false,
    "glossary": "The debt journey: a bill goes unpaid, then reminders and a payment plan follow, and it ends repaid, written off or with a collection agency.",
-   "household": "SYN-2016-356",
-   "fuels": [
-    "electricity",
-    "gas"
-   ],
-   "segment": "resi",
-   "span": "6 Aug 2016 to 5 Aug 2018",
-   "story": "From a missed payment to the end of the debt.",
-   "opening": 4,
-   "moments": [
-    {
-     "iso": "2016-11-29",
-     "date": "29 Nov 2016",
-     "kind": "debt",
-     "title": "Missed a payment",
-     "story": "A bill is unpaid past its due date -- collections journey opened -- £71.73 overdue",
-     "why": "No life event is on record before this; the record gives no reason.",
-     "gap": null,
-     "supplier": [
-      {
-       "k": "Customer since",
-       "v": "6 Aug 2016",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Fuels",
-       "v": "Electricity and Gas",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "How they pay",
-       "v": "Direct debit",
-       "drawn_from": "2016-11-25"
-      },
-      {
-       "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Payment record",
-       "v": "5 payments, 2 returned, 0 missed",
-       "drawn_from": "2016-11-28"
-      },
-      {
-       "k": "Meter reads",
-       "v": "6 bills, 2 on an actual read, last on 30 Sep 2016",
-       "drawn_from": "2016-10-31"
-      },
-      {
-       "k": "Balance on the books",
-       "v": "£23.88 owed",
-       "drawn_from": "2016-11-28"
-      },
-      {
-       "k": "Debt stage",
-       "v": "A bill is unpaid past its due date -- collections journey opened -- GBP71.73 overdue",
-       "drawn_from": "2016-11-29"
-      }
-     ],
-     "decision": "25 Nov 2016: Payment plan offered (SLC 27.8) -- £124.99 overdue",
-     "truth": [
-      {
-       "k": "Household",
-       "v": "two person, social renter"
-      },
-      {
-       "k": "Money",
-       "v": "Income stress low"
-      },
-      {
-       "k": "Life so far",
-       "v": "Nothing recorded"
-      },
-      {
-       "k": "Smart meter",
-       "v": "No"
-      }
-     ],
-     "portal": {
-      "message": "Your account is overdue. Please pay or call us.",
-      "tariff": "Standard Variable",
-      "pays": "Direct debit",
-      "balance": "£23.88 to pay",
-      "usage": [
-       {
-        "month": "2016-08",
-        "e": 146,
-        "g": 182
-       },
-       {
-        "month": "2016-09",
-        "e": 200,
-        "g": 344
-       },
-       {
-        "month": "2016-10",
-        "e": 224,
-        "g": 714
-       }
-      ],
-      "bills": [
-       {
-        "fuel": "gas",
-        "when": "31 Oct 2016",
-        "kwh": 714,
-        "amount": "£23.88",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "31 Oct 2016",
-        "kwh": 224,
-        "amount": "£31.99",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "gas",
-        "when": "30 Sep 2016",
-        "kwh": 344,
-        "amount": "£14.79",
-        "badge": "Actual read"
-       },
-       {
-        "fuel": "electricity",
-        "when": "30 Sep 2016",
-        "kwh": 200,
-        "amount": "£29.02",
-        "badge": "Actual read"
-       }
-      ]
-     }
-    },
-    {
-     "iso": "2016-12-05",
-     "date": "5 Dec 2016",
-     "kind": "debt",
-     "title": "Reminder",
-     "story": "Reminder sent -- £71.73 overdue",
-     "why": "No life event is on record before this; the record gives no reason.",
-     "gap": null,
-     "supplier": [
-      {
-       "k": "Customer since",
-       "v": "6 Aug 2016",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Fuels",
-       "v": "Electricity and Gas",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "How they pay",
-       "v": "Direct debit",
-       "drawn_from": "2016-11-25"
-      },
-      {
-       "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Payment record",
-       "v": "5 payments, 2 returned, 0 missed",
-       "drawn_from": "2016-11-28"
-      },
-      {
-       "k": "Meter reads",
-       "v": "8 bills, 3 on an actual read, last on 30 Nov 2016",
-       "drawn_from": "2016-11-30"
-      },
-      {
-       "k": "Balance on the books",
-       "v": "£91.38 owed",
-       "drawn_from": "2016-11-30"
-      },
-      {
-       "k": "Debt stage",
-       "v": "Reminder sent -- GBP71.73 overdue",
-       "drawn_from": "2016-12-05"
-      }
-     ],
-     "decision": "25 Nov 2016: Payment plan offered (SLC 27.8) -- £124.99 overdue",
-     "truth": [
-      {
-       "k": "Household",
-       "v": "two person, social renter"
-      },
-      {
-       "k": "Money",
-       "v": "Income stress low"
-      },
-      {
-       "k": "Life so far",
-       "v": "Nothing recorded"
-      },
-      {
-       "k": "Smart meter",
-       "v": "No"
-      }
-     ],
-     "portal": {
-      "message": "Your account is overdue. Please pay or call us.",
-      "tariff": "Standard Variable",
-      "pays": "Direct debit",
-      "balance": "£91.38 to pay",
-      "usage": [
-       {
-        "month": "2016-08",
-        "e": 146,
-        "g": 182
-       },
-       {
-        "month": "2016-09",
-        "e": 200,
-        "g": 344
-       },
-       {
-        "month": "2016-10",
-        "e": 224,
-        "g": 714
-       },
-       {
-        "month": "2016-11",
-        "e": 223,
-        "g": 1226
-       }
-      ],
-      "bills": [
-       {
-        "fuel": "gas",
-        "when": "30 Nov 2016",
-        "kwh": 1226,
-        "amount": "£35.89",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "30 Nov 2016",
-        "kwh": 223,
-        "amount": "£31.61",
-        "badge": "Actual read"
-       },
-       {
-        "fuel": "gas",
-        "when": "31 Oct 2016",
-        "kwh": 714,
-        "amount": "£23.88",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "31 Oct 2016",
-        "kwh": 224,
-        "amount": "£31.99",
-        "badge": "Estimated"
-       }
-      ]
-     }
-    },
-    {
-     "iso": "2016-12-12",
-     "date": "12 Dec 2016",
-     "kind": "debt",
-     "title": "Second reminder",
-     "story": "Second reminder sent -- £71.73 overdue",
-     "why": "No life event is on record before this; the record gives no reason.",
-     "gap": null,
-     "supplier": [
-      {
-       "k": "Customer since",
-       "v": "6 Aug 2016",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Fuels",
-       "v": "Electricity and Gas",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "How they pay",
-       "v": "Direct debit",
-       "drawn_from": "2016-11-25"
-      },
-      {
-       "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Payment record",
-       "v": "5 payments, 2 returned, 0 missed",
-       "drawn_from": "2016-11-28"
-      },
-      {
-       "k": "Meter reads",
-       "v": "8 bills, 3 on an actual read, last on 30 Nov 2016",
-       "drawn_from": "2016-11-30"
-      },
-      {
-       "k": "Balance on the books",
-       "v": "£91.38 owed",
-       "drawn_from": "2016-11-30"
-      },
-      {
-       "k": "Debt stage",
-       "v": "Second reminder sent -- GBP71.73 overdue",
-       "drawn_from": "2016-12-12"
-      }
-     ],
-     "decision": "25 Nov 2016: Payment plan offered (SLC 27.8) -- £124.99 overdue",
-     "truth": [
-      {
-       "k": "Household",
-       "v": "two person, social renter"
-      },
-      {
-       "k": "Money",
-       "v": "Income stress low"
-      },
-      {
-       "k": "Life so far",
-       "v": "Nothing recorded"
-      },
-      {
-       "k": "Smart meter",
-       "v": "No"
-      }
-     ],
-     "portal": {
-      "message": "Your account is still overdue. Please pay or call us.",
-      "tariff": "Standard Variable",
-      "pays": "Direct debit",
-      "balance": "£91.38 to pay",
-      "usage": [
-       {
-        "month": "2016-08",
-        "e": 146,
-        "g": 182
-       },
-       {
-        "month": "2016-09",
-        "e": 200,
-        "g": 344
-       },
-       {
-        "month": "2016-10",
-        "e": 224,
-        "g": 714
-       },
-       {
-        "month": "2016-11",
-        "e": 223,
-        "g": 1226
-       }
-      ],
-      "bills": [
-       {
-        "fuel": "gas",
-        "when": "30 Nov 2016",
-        "kwh": 1226,
-        "amount": "£35.89",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "30 Nov 2016",
-        "kwh": 223,
-        "amount": "£31.61",
-        "badge": "Actual read"
-       },
-       {
-        "fuel": "gas",
-        "when": "31 Oct 2016",
-        "kwh": 714,
-        "amount": "£23.88",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "31 Oct 2016",
-        "kwh": 224,
-        "amount": "£31.99",
-        "badge": "Estimated"
-       }
-      ]
-     }
-    },
-    {
-     "iso": "2016-12-26",
-     "date": "26 Dec 2016",
-     "kind": "debt",
-     "title": "Payment plan offered",
-     "story": "Payment plan offered (SLC 27.8) -- £147.56 overdue",
-     "why": "No life event is on record before this; the record gives no reason.",
-     "gap": null,
-     "supplier": [
-      {
-       "k": "Customer since",
-       "v": "6 Aug 2016",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Fuels",
-       "v": "Electricity and Gas",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "How they pay",
-       "v": "Direct debit",
-       "drawn_from": "2016-12-21"
-      },
-      {
-       "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Payment record",
-       "v": "6 payments, 4 returned, 0 missed",
-       "drawn_from": "2016-12-14"
-      },
-      {
-       "k": "Meter reads",
-       "v": "8 bills, 3 on an actual read, last on 30 Nov 2016",
-       "drawn_from": "2016-11-30"
-      },
-      {
-       "k": "Balance on the books",
-       "v": "£59.77 owed",
-       "drawn_from": "2016-12-21"
-      },
-      {
-       "k": "Debt stage",
-       "v": "Affordable arrangement put to the household -- GBP147.56 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
-       "drawn_from": "2016-12-26"
-      }
-     ],
-     "decision": "26 Dec 2016: Payment plan offered (SLC 27.8) -- £147.56 overdue",
-     "truth": [
-      {
-       "k": "Household",
-       "v": "two person, social renter"
-      },
-      {
-       "k": "Money",
-       "v": "Income stress low"
-      },
-      {
-       "k": "Life so far",
-       "v": "Nothing recorded"
-      },
-      {
-       "k": "Smart meter",
-       "v": "No"
-      }
-     ],
-     "portal": {
-      "message": "We can set up a payment plan you can afford.",
-      "tariff": "Standard Variable",
-      "pays": "Direct debit",
-      "balance": "£59.77 to pay",
-      "usage": [
-       {
-        "month": "2016-08",
-        "e": 146,
-        "g": 182
-       },
-       {
-        "month": "2016-09",
-        "e": 200,
-        "g": 344
-       },
-       {
-        "month": "2016-10",
-        "e": 224,
-        "g": 714
-       },
-       {
-        "month": "2016-11",
-        "e": 223,
-        "g": 1226
-       }
-      ],
-      "bills": [
-       {
-        "fuel": "gas",
-        "when": "30 Nov 2016",
-        "kwh": 1226,
-        "amount": "£35.89",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "30 Nov 2016",
-        "kwh": 223,
-        "amount": "£31.61",
-        "badge": "Actual read"
-       },
-       {
-        "fuel": "gas",
-        "when": "31 Oct 2016",
-        "kwh": 714,
-        "amount": "£23.88",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "31 Oct 2016",
-        "kwh": 224,
-        "amount": "£31.99",
-        "badge": "Estimated"
-       }
-      ]
-     }
-    },
-    {
-     "iso": "2024-06-28",
-     "date": "28 Jun 2024",
-     "kind": "debt",
-     "title": "Written off (statute-barred)",
-     "story": "Written off: the debt is statute-barred (Limitation Act 1980 s.5) -- £866.50",
-     "why": "The last life event on record before this was Income recovery (2020-10). The record does not say it caused this.",
-     "gap": null,
-     "supplier": [
-      {
-       "k": "Customer since",
-       "v": "6 Aug 2016",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "Fuels",
-       "v": "Electricity and Gas",
-       "drawn_from": "2016-08-06"
-      },
-      {
-       "k": "How they pay",
-       "v": "Pays each bill on receipt",
-       "drawn_from": "2018-08-14"
-      },
-      {
-       "k": "Tariff",
-       "v": "Fixed at 111.0 £/MWh from 6 Aug 2017",
-       "drawn_from": "2017-08-06"
-      },
-      {
-       "k": "Churn risk it held",
-       "v": "52.0% at the 6 Aug 2017 renewal",
-       "drawn_from": "2017-08-06"
-      },
-      {
-       "k": "Payment record",
-       "v": "34 payments, 6 returned, 40 missed",
-       "drawn_from": "2018-08-31"
-      },
-      {
-       "k": "Meter reads",
-       "v": "50 bills, 14 on an actual read, last on 31 Jul 2018",
-       "drawn_from": "2018-08-05"
-      },
-      {
-       "k": "Balance on the books",
-       "v": "£0.04 in credit",
-       "drawn_from": "2019-03-29"
-      },
-      {
-       "k": "Debt stage",
-       "v": "Written off: the debt is statute-barred (Limitation Act 1980 s.5) -- GBP866.50",
-       "drawn_from": "2024-06-28"
-      }
-     ],
-     "decision": "28 Jun 2024: Written off: the debt is statute-barred (Limitation Act 1980 s.5) -- £866.50",
-     "truth": [
-      {
-       "k": "Household",
-       "v": "two person, social renter"
-      },
-      {
-       "k": "Money",
-       "v": "Income stress low"
-      },
-      {
-       "k": "Life so far",
-       "v": "Illness (2019-09); Income recovery (2020-10)"
-      },
-      {
-       "k": "Hidden mood",
-       "v": "CONTENT (resentment score 0.0)"
-      },
-      {
-       "k": "True satisfaction",
-       "v": "70.0% in 2017"
-      },
-      {
-       "k": "True chance of leaving",
-       "v": "29.3% at the 6 Aug 2017 renewal"
-      },
-      {
-       "k": "Smart meter",
-       "v": "No"
-      }
-     ],
-     "portal": {
-      "message": "We have written off the old debt on your account.",
-      "tariff": "Fixed from 6 Aug 2017",
-      "pays": "Pay on receipt of bill",
-      "balance": "£0.04 in credit",
-      "usage": [
-       {
-        "month": "2017-09",
-        "e": 173,
-        "g": 397
-       },
-       {
-        "month": "2017-10",
-        "e": 212,
-        "g": 825
-       },
-       {
-        "month": "2017-11",
-        "e": 245,
-        "g": 1479
-       },
-       {
-        "month": "2017-12",
-        "e": 213,
-        "g": 1866
-       },
-       {
-        "month": "2018-01",
-        "e": 268,
-        "g": 1993
-       },
-       {
-        "month": "2018-02",
-        "e": 220,
-        "g": 1569
-       },
-       {
-        "month": "2018-03",
-        "e": 226,
-        "g": 1438
-       },
-       {
-        "month": "2018-04",
-        "e": 202,
-        "g": 933
-       },
-       {
-        "month": "2018-05",
-        "e": 180,
-        "g": 505
-       },
-       {
-        "month": "2018-06",
-        "e": 167,
-        "g": 322
-       },
-       {
-        "month": "2018-07",
-        "e": 168,
-        "g": 342
-       },
-       {
-        "month": "2018-08",
-        "e": 28,
-        "g": 46
-       }
-      ],
-      "bills": [
-       {
-        "fuel": "gas",
-        "when": "5 Aug 2018",
-        "kwh": 46,
-        "amount": "£2.97",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "5 Aug 2018",
-        "kwh": 28,
-        "amount": "£4.28",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "gas",
-        "when": "31 Jul 2018",
-        "kwh": 342,
-        "amount": "£20.82",
-        "badge": "Actual read"
-       },
-       {
-        "fuel": "electricity",
-        "when": "31 Jul 2018",
-        "kwh": 168,
-        "amount": "£26.06",
-        "badge": "Estimated"
-       }
-      ]
-     }
-    }
-   ],
-   "breaches": [],
-   "breach_count": 0
+   "matched": 599,
+   "failed_checks": {
+    "its account id is not in the public format": 125,
+    "its bills carry no due date, so its payment record cannot count a payment missed": 599,
+    "its electricity use is outside the book's 1st-99th percentile": 11,
+    "it pays by prepayment yet is sent estimated credit bills": 10,
+    "it is written off as statute-barred less than six years after its last payment": 24,
+    "the page shows an overdue notice dated before the missed payment its story opens on": 304,
+    "its record places the debt with an agency, and no moment of the story shows it": 153,
+    "its gas use is outside the book's 1st-99th percentile": 8
+   },
+   "reason": "No household in this run passes this example's checks yet. 599 households match the rule, and each fails at least one check an energy reader would apply: its bills carry no due date, so its payment record cannot count a payment missed (599 of 599); the page shows an overdue notice dated before the missed payment its story opens on (304 of 599); its record places the debt with an agency, and no moment of the story shows it (153 of 599); its account id is not in the public format (125 of 599)."
   },
   {
    "id": "ev",
@@ -3037,7 +2344,7 @@
       },
       {
        "k": "Payment record",
-       "v": "0 payments, 0 returned, 0 missed",
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
        "drawn_from": "2019-08-18"
       },
       {
@@ -3110,8 +2417,8 @@
       },
       {
        "k": "Payment record",
-       "v": "28 payments, 1 returned, 0 missed",
-       "drawn_from": "2021-12-26"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2019-08-18"
       },
       {
        "k": "Meter reads",
@@ -3278,8 +2585,8 @@
       },
       {
        "k": "Payment record",
-       "v": "40 payments, 1 returned, 0 missed",
-       "drawn_from": "2022-12-17"
+       "v": "0 of 0 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2019-08-18"
       },
       {
        "k": "Meter reads",
@@ -3421,9 +2728,10 @@
   }
  ],
  "coverage": {
-  "filled": 6,
+  "filled": 5,
   "of": 8,
   "empty": [
+   "debt",
    "ev",
    "storage_heating"
   ],

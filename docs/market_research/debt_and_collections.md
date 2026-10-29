@@ -734,6 +734,66 @@ the accounting choice above. No supplier publishes the split.
 
 ---
 
+### 7.5 When a bill counts as missed: the day after its due date, on the page and at the desk (2026-10-29)
+
+**Knowledge:** debt_and_collections
+
+**What the rules and published practice say.**
+- **No licence condition defines a "missed payment".** SLC 27 sets what a supplier must do once it
+  has reason to believe a customer has difficulty paying (identify it, offer an arrangement that
+  takes account of ability to pay). It sets no day on which a bill counts as missed. **GAP**,
+  confirmed this pass.
+- **Ofgem's own clocks are stocks, not a "missed" event.** "In arrears" is a bill unpaid for more
+  than 91 days with no arrangement. "In debt" is an arrangement lasting more than 91 days (s.1;
+  *Debt and arrears indicators*). Energy UK's 30-day measure is the one the cap's bad-debt allowance
+  uses. Neither is a day on which a bill is first missed.
+- **The payment EVENT is dated at the due date** (s.1; `gb_domestic_bill_payment_failure_and_arrears_prevalence.md`,
+  items 1 and 2). A DD presentation the bank returns is a failed collection on the day it fails. A
+  pay-on-receipt bill is late against its own due date.
+- **Published practice reads it the same way.** British Gas, *What happens if I don't pay?*: "If your
+  Direct Debit is returned by the bank, we'll try to collect it again – usually around 14 – 30 days
+  later", "we'll always write to let you know", and "If your payment fails for a second time, we'll
+  have to cancel your Direct Debit and send you a bill instead"
+  (britishgas.co.uk/help-and-support/struggling-to-pay/what-happens-if-i-dont-pay, read 2026-10-29).
+  The return is acted on when it happens. The 14–30 days is when the money is asked for again, not
+  when the payment starts to count as missed.
+- The reminder at T+7–14 days in the dunning sequence (s.4) runs from the due date.
+
+**The 30 days.** The Bacs window is the period inside which a returned DD may be re-presented (up to
+twice, within 30 days of the first presentation; `how_a_gb_supplier_decides_to_write_off_a_failed_payment.md` (a)).
+It is a retry window. INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE used it as the end of a
+"collection window", and extended it to standard credit as a labelled belief.
+
+**The choice the design makes.** A bill is missed **from the day after its due date** if no payment
+landed on it by that date. A later payment does not un-miss it, though it cures the journey.
+- One function holds this: `company/billing/collections_journey.missed_on` / `bill_missed`.
+- The collections desk opens its journey on that day.
+- The household summary's "N of D bills paid, R returned, M missed" (`tools/generate_explore_cast.payment_record`)
+  counts the bill as missed from the same day.
+- A returned DD counts in R on the day it is returned.
+
+Before this, the page waited 30 days past the due date. On the third cold read, SYN-2016-356 printed
+"0 missed" at its own "Missed a payment" moment. The invariant row now reads the due date. Its runner
+keeps its own reading of the row's text, and does not import the function it grades.
+
+**What it moves (MEASURED, 2026-10-29).** Pre-registration and the result:
+`docs/staging/records/SEAT_PREREGISTRATION_ONE_DEFINITION_OF_A_MISSED_PAYMENT_ON_BOTH_BOOKS_2026-10-29.md`.
+- On the 209c3350ab pages, 98.1% of DD bills are paid on or before the due date, so DD settlement
+  lag does not inflate the count.
+- About 1,200 bills, mostly standard credit paid 1 to 30 days late, now print as missed where they
+  used to print as paid. An energy reader would call them missed.
+
+**Not established (GAP).**
+- How a **part-paid** bill should count: the counter calls it paid if any payment landed on it by
+  the due date, while the row counts it missed. Not published.
+- Whether a supplier's own customer-facing "missed payments" count includes a DD that was returned
+  and then collected on re-presentation within the window. The design counts it missed, because the
+  first collection failed. No supplier publishes its counter.
+- A practitioner check (K4) on whether any GB supplier allows a grace period before it treats a
+  pay-on-receipt bill as missed.
+
+---
+
 ## 8. Gaps
 
 **Knowledge gaps**, each filed as a gap and not estimated:
