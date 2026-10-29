@@ -892,6 +892,10 @@ def build_monthly_bills(
                 # months). Before that a short first month scaled every later estimate: 138 kWh in
                 # an occupier's first month set eight estimates at 1,890 kWh against 8,065 on the
                 # meter (8 of 13 breached runs on the 37abacdf42 book).
+                # Corrected 2026-10-29: that six-month line describes the AA, not the EAC. The
+                # settlement EAC moves on every advance, weighted by FYC * SPAR (BSC Annex S-2
+                # 4.3.7), so this threshold has no source. It stands until SPAR's value is known
+                # (how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8).
                 reads_span_an_advance = (
                     (register_reads[-1][0] - register_reads[0][0]).days >= min_advance_days)
                 shaped = (
