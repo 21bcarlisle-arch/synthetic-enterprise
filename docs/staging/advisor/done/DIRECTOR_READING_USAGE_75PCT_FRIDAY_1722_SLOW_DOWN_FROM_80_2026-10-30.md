@@ -33,3 +33,23 @@
 The machine cannot read the usage meter itself, so this is a time-based rule from the director's 17:22 reading. Under his 15 Oct delegation, pacing is yours to decide. The ceiling, though, is his ask.
 
 **The advisor will also stop new research passes until the reset.**
+
+## Done
+
+Actioned on Fri 30 Oct at 17:46Z by the seat executor, through the dial rather than a promise:
+
+    python3 -m background.tick_mode fold-only --until 2026-11-02T03:00Z --then normal
+
+- **What it does.** worker-tick, delivery-seat and two-reader-review do not spawn. The seat executor
+  still spawns, but it takes only items that grade a long job already in the launch register. So no
+  BUILD or drafting draws, no new runs, and no cold reads. Daemons that spend no model tokens keep
+  running. At Monday 03:00Z the dial reverts to normal by itself, ahead of the Monday run and publish.
+- **One deviation, toward his headroom.** The dial cannot chain two modes (lean until Sat 02:00,
+  then minimal), so minimal starts now, about 8 hours early. This forgoes the "work normally but
+  lean" window. Work already landing is not stopped: the surgical_land for the PC2 fixes and the
+  in-hand gas build both finish in their own processes. To reverse it:
+  `python3 -m background.tick_mode normal` (or `slow --until 2026-11-02T03:00Z`).
+- **The three customer-needs steers of 30 Oct** are large drafting items, so they are not started
+  this weekend. They stay in the advisor root, and one continuation,
+  `customer-needs-corpus-after-the-reset`, carries them with the embargo
+  `DO NOT DRAW BEFORE 03:00 on 2026-11-02`. `delivery_lane --embargoed` reads it as HELD.
