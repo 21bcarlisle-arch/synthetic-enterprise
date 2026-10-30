@@ -135,3 +135,12 @@ A detached follow-up (`/var/tmp/five-rows-scripts/follow_ecb7.sh`) waits for tha
 ledger, pages and cast, and writes `/var/tmp/five-rows-grade-ecb7e21fb/` (`grade.txt`, `ev.txt`,
 `committed_price_site_test.txt`). The exceptions' ceilings are this book's counts, re-based on
 that grade.
+
+**Graded (30 Oct, from the c8e57d43d tree on item 2's ledger, `/var/tmp/fresh-grade-ecb7e21fb/ledger.json`).**
+The follower died with its worktree at 01:49. It was re-armed as the systemd unit
+`follow-five-rows-ecb7e21fb` against a static export of c8e57d43d. The two ledger rows were graded
+by hand as soon as the ledger existed: `INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW` **1,068 of 33,626**,
+`INV_UNIT_RATE_EPG_HOUSEHOLD` **373 of 3,294**. These are the 9553d403b7 book's counts, so the ceilings
+stand and only the scopes are re-based. The SVT run predates the writers-1-2 gate (ed8684442), so
+1,068 is the expected reading. The two rows that need the book's pages (estimate run, committed price)
+arrive in `/var/tmp/five-rows-grade-ecb7e21fb/` when the chain's `ALLDONE` is written.
