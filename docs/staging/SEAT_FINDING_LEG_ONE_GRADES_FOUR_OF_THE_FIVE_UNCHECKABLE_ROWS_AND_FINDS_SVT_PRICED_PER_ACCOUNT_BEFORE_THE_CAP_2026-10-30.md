@@ -70,6 +70,50 @@ spread is terms struck at a rate the SVT list moved away from, never re-priced w
 **Next:** trace the term rate's source on one breaching account (OCC-6387bf64272a, 16.0 against
 13.33 in Aug-Sep 2016), then fix and run fresh.
 
+### Traced (30 Oct): the renewal chain's per-account writers, and the prediction was wrong
+
+**The prediction is refuted.** No SVT term was struck at a list price that later moved. Every
+segment is re-struck at the list price each window. Read off the 9553d403b7 book's
+`rate_decomposition_log`, matched to the state row by its contracted rate: all 2,489 off-list
+pre-cap SVT terms (of 4,366) **entered the chain at the list price**. The company's renewal-rate
+chain (`company/pricing/renewal_rate_chain.py`) then moved them:
+
+| writer | terms | 2016 | 2017 | 2018 |
+|---|---|---|---|---|
+| 1, portfolio premium | 2,348 | 30 | 1,177 | 1,141 |
+| 2, margin surcharge | 75 | 14 | 30 | 31 |
+| both | 66 | 4 | 36 | 26 |
+| unexplained | **0** | | | |
+
+Writer 1 reads the portfolio margin at the account's own term start, so accounts on the same day
+carry premia struck on different days. Writer 2 reads the account's own last margin:
+OCC-6387bf64272a's first stint lost £19.84 on £39.94, so its next SVT segment took +20%, 133.33 to
+160.0. That is the 16.0p. Writers 3 and 3b already refused a default tariff
+(`UPLIFTABLE_TARIFF_TYPES`). From 2019, writer 4's clamp to the cap pulled every raised rate back to
+one price, which is why the cap years grade 0. **Two side readings, both checked:** 133.33 = 140/1.05
+is the list price taken back to ex-VAT, the same basis on every account, not a VAT mix. And my first
+join read 74 terms as "off-list before the chain". That was my join, not the book: on an
+anniversary the declined fixed offer and the SVT segment share (account, fuel, date), and those
+state rows are at the list price.
+
+**Fixed:** writers 1 and 2 do not move a default tariff (`CAPPED_TARIFF_TYPES`). K8 page:
+`docs/market_research/default_tariff_cap_and_epg_on_the_bill.md`, choice 8, with choice 7 corrected
+beside its claim. Controls: `tests/company/pricing/test_a_default_tariff_is_one_list_price_before_the_cap.py`
+and the seam suite's `test_no_renewal_is_both_learned_on_and_capped`. Both go red with the gate
+reverted. The seam suite's old reorder mutant (surcharge lifted past the clamp) is now
+**equivalent by construction**: no term both learns and is capped. The new control holds the
+property that makes it equivalent. Revenue the writers added on this book: about £8.2k ex-VAT over
+2016-18 (EAC-weighted). The fix removes it, which errs against our own thesis.
+
+**Not traced:** the 1 standing-charge breach. Writers 1 and 2 move only the unit rate, so this fix
+does not reach it.
+
+**Pre-registration for the fresh run at the fix commit (written before it runs).**
+`INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW` goes from 1,067 unit-rate breaches to **0**. The
+standing-charge breach stays at **1**, cause unknown. Pre-cap SVT revenue falls by £5k-£12k ex-VAT
+against the 9553d403b7 book. Second-order movement (margin history, churn) means no other
+figure's move is attributable to this change from that run alone.
+
 ## The EPG row's 373: scatter, not a price over the EPG
 
 Median excess 0.005p/kWh, largest 0.069p/kWh (0.21%), £5.16 ex-VAT over the whole book. The

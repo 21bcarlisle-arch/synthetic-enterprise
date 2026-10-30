@@ -207,7 +207,9 @@ levels within 0.6% over 21 windows.
    the segment the world hands the company, but the company's renewal rate chain then moves an SVT
    rate. Its portfolio premium and margin surcharge (writers 1 and 2,
    `company.pricing.renewal_rate_chain`) are the supplier's own pricing, and they are lawful while the
-   rate stays under the cap. Writer 4 is the clamp that keeps it there. It read the published level,
+   rate stays under the cap. *Seat, corrected 30 Oct 2026: lawful under the cap, but not a default
+   tariff's price. Writers 1 and 2 read each account's own term start and last margin, so they price
+   a default tariff per account. They no longer move it; see choice 8.* Writer 4 is the clamp that keeps it there. It read the published level,
    which is the DD column, whatever the household's method. On the `871f674a2` book, every one of the
    298 electricity and 249 gas SVT term-windows over their cap is a prepayment segment priced at its
    own column and then raised by writer 1 or 2. 270 electricity and 162 gas were clamped back to the
@@ -232,3 +234,27 @@ levels within 0.6% over 21 windows.
    penny rounding its own reason names. The neighbouring-window match was a coincidence of rounded
    figures: no breaching period straddles a cap change. The invariants now also allow a penny over the
    period, and anything larger still breaches.
+
+8. **A default tariff is one list price, not a rate struck per account (built 30 Oct 2026).** A tariff
+   is a published price list: every account on it in one region, on one payment method and in one
+   window pays the same unit rate and standing charge. The RMR rules (SLC 22A/22B, 2013) wrote that
+   shape down: at most four core tariffs per fuel per metering arrangement per region, a single
+   standing charge per tariff, and no tariff exclusive to new or existing customers
+   (`docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md` §6). Ofgem stopped enforcing
+   them on 14 April 2016, so the law alone does not rule out per-account prices after that. The
+   tariff's definition does: a "standard variable tariff" priced per account is many tariffs under
+   one name, and the cold read objected to exactly that (O1 and O2 on `INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW`).
+   **What was wrong.** On the `9553d403b7` book, 2,489 of 4,366 pre-cap SVT terms carried a rate the
+   company's chain had moved off its list price: the portfolio premium on 2,348 (read at each
+   account's own term start, so accounts on the same day carried different premia), the margin
+   surcharge on 75 (read off the account's own last term, +20% on OCC-6387bf64272a: 16.0p against
+   13.33p in Aug–Sep 2016), and both on 66. Every one entered the chain at the list price. From 2019
+   the clamp to the cap hid it; before the cap nothing did. About £8.2k ex-VAT of revenue over
+   2016–18 (EAC-weighted).
+   **The choice.** Writers 1 and 2 do not move a default tariff (`CAPPED_TARIFF_TYPES`), the same
+   refusal writers 3 and 3b already make. A supplier moves its SVT by changing the list price for
+   every account on it. This company has no lever of its own for that: its SVT is the published
+   series (`simulation.svt_rates`), re-struck every window. **GAP: the company's own pre-cap SVT
+   list price.** A real supplier set its own SVT, and it sat above or below the published series
+   from one supplier to the next. A book-wide list-price lever is a capability to build, knowledge
+   first. It is not a per-account writer.

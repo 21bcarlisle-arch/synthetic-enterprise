@@ -68,9 +68,11 @@ REFERENCE = dict(
     billing_account="C1",
     commodity="electricity",
     term_start="2021-06-01",
-    # `svt` since 2026-10-02: a fixed RENEWAL the customer chose is outside the cap, so the only
-    # renewal on which all four writers fire is a default tariff.
-    tariff_type="svt",
+    # `fixed` again since 2026-10-30. A default tariff is one list price, so writers 1-2 no longer
+    # move it, and a chosen fixed renewal is outside the cap (2026-10-02): no renewal now meets both
+    # the learned writers and the cap. The reference is the one that learns; the cap's leg is
+    # driven with `tariff_type="svt"` where a control needs it.
+    tariff_type="fixed",
     term_index=2,
     struck_unit_rate_gbp_per_mwh=200.0,
     portfolio_margin_rates=[-0.04, -0.03, 0.0, 0.01, 0.02],
@@ -143,7 +145,9 @@ def _drive_pre_cut(**over):
     rate_components: list[dict] = []
     rate_chain_entries: list[dict] = []
 
-    if unit_rate is not None and term_index >= 1 and len(_portfolio_rates) >= 1:
+    # Re-transcribed 2026-10-30: writers 1-2 do not move a default tariff (`svt`).
+    if (unit_rate is not None and term_tariff_type != "svt" and term_index >= 1
+            and len(_portfolio_rates) >= 1):
         lookback = _portfolio_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
         portfolio_prem = compute_portfolio_premium(lookback)
         if abs(portfolio_prem) > 1e-6:
@@ -170,7 +174,8 @@ def _drive_pre_cut(**over):
                 "rate_after": round(unit_rate, 4),
             })
 
-    if unit_rate is not None and term_index >= 1 and prev_margin is not None:
+    if (unit_rate is not None and term_tariff_type != "svt" and term_index >= 1
+            and prev_margin is not None):
         surcharge = compute_margin_surcharge(prev_margin, prev_revenue)
         if surcharge > 0:
             rate_before = unit_rate
@@ -320,13 +325,14 @@ def _impl_source() -> str:
 
 
 def test_the_fixture_is_not_degenerate():
-    """Both legs of the cap partition on one reference renewal (2026-10-02): the default tariff
-    is capped, the chosen fixed renewal takes the uplift and is not. A guard that capped
-    everything, or nothing, fails one of them."""
+    """Both legs of the partition on one reference renewal: the chosen fixed renewal learns and
+    takes the uplift and is not capped (2026-10-02); the default tariff is capped and learns
+    nothing, because it is one list price (2026-10-30). A guard that capped, or learned on,
+    everything or nothing fails one of them."""
     result = _drive_door()
-    causes = [c["cause"] for c in result["components"]]
-    fixed = [c["cause"] for c in _drive_door(tariff_type="fixed")["components"]]
-    assert causes == ["portfolio_premium", "margin_surcharge", "price_cap"] and fixed == [
+    fixed = [c["cause"] for c in result["components"]]
+    causes = [c["cause"] for c in _drive_door(tariff_type="svt")["components"]]
+    assert causes == ["price_cap"] and fixed == [
         "portfolio_premium", "margin_surcharge", "profitability_uplift",
     ], (
         f"the reference renewal fired {causes} / {fixed} — a control below would be "
@@ -471,47 +477,28 @@ def test_mutation_a_lazy_world_import_is_caught_by_the_same_detector():
 # ---------------------------------------------------------------------------
 
 
-def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
-    """Clamp before the surcharge instead of after and the customer contracts
-    at a different rate. Before this cut the four writers were four separate
-    blocks in a 2,800-line function and nothing anywhere asserted their order.
-    """
-    src = _impl_source()
-    # A pure REORDER, not a change of arithmetic: lift writer 2 (the surcharge) out
-    # from before the cap, and run it after the clamp. Every expression is identical;
-    # only the order moves. A supplier that adds a surcharge to a default tariff
-    # AFTER clamping it is charging above the cap.
-    #
-    # WRITER 2, NOT WRITER 3, since 2026-10-02. Writer 3 uplifts only a fixed renewal,
-    # and a chosen fixed renewal is no longer capped, so the two never meet on one
-    # term: lifting writer 3 past the clamp is an equivalent mutant by construction.
-    start = src.index("    # WRITER 2 —")
-    # Ends at writer 3, so the lifted block is writer 2 alone: a mutant that moves more than one
-    # writer, or takes `cap_ceiling`'s definition past its use, proves nothing about ORDER.
-    end = src.index("    # WRITER 3 —")
-    uplift_block = src[start:end]
-    assert "surcharge" in uplift_block, "block bounds moved — this is no longer the defect"
-    close = "    # Close the chain."
-    assert close in src, "anchor moved — this mutation is no longer the defect"
-    mutated = (src[:start] + src[end:]).replace(
-        close, uplift_block + "    # <-- the defect: the surcharge now escapes the cap\n" + close, 1
-    )
-    assert "the defect" in mutated, "the mutation did not take"
-    mutant = _load_mutated_desk(mutated)
+def test_no_renewal_is_both_learned_on_and_capped():
+    """The writers' order against the cap is not load-bearing any more, and this says why.
 
-    capped = _drive_door()["unit_rate"]
-    escaped = _drive_door(module=mutant)["unit_rate"]
-    assert escaped != capped, (
-        "running the surcharge after the clamp changed nothing — the chain's "
-        "order is not the thing this control thinks it is"
-    )
-    cap = cap_ceiling_ex_vat(
-        "electricity", date.fromisoformat(REFERENCE["term_start"]), multi_register=False
-    )
-    assert capped <= cap < escaped, (
-        "the reordered chain did not breach the cap, so this control is not "
-        "measuring what it claims"
-    )
+    Until 2026-10-30 a default tariff took writers 1-2 and then the clamp, so lifting the
+    surcharge past the clamp charged above the cap, and a reorder mutant caught it. A default
+    tariff is now one list price (writers 1-2 skip it), and a chosen fixed renewal is outside the
+    cap (2026-10-02), so that mutant is EQUIVALENT by construction: no term carries both. This
+    control holds the property that makes it equivalent. Reachability first: across the grid a
+    learned writer fires and the cap fires, so a chain that does neither cannot pass.
+    """
+    learned = {"portfolio_premium", "margin_surcharge", "profitability_uplift"}
+    seen = set()
+    for tariff_type in ("svt", "fixed"):
+        for term_index in (0, 2):
+            causes = {c["cause"] for c in _drive_door(
+                tariff_type=tariff_type, term_index=term_index,
+                struck_unit_rate_gbp_per_mwh=400.0)["components"]}
+            seen |= causes
+            assert not (causes & learned and "price_cap" in causes), (
+                f"{tariff_type} term {term_index} was learned on and capped: {sorted(causes)} -- "
+                "the writers' order against the clamp is load-bearing again")
+    assert seen & learned and "price_cap" in seen, f"the grid fired only {sorted(seen)}"
 
 
 # ---------------------------------------------------------------------------
@@ -520,8 +507,8 @@ def test_the_cap_is_the_last_writer_and_the_order_is_load_bearing():
 
 
 def test_the_cap_binds_a_domestic_default_tariff_and_not_a_chosen_fixed_renewal():
-    assert "price_cap" in [c["cause"] for c in _drive_door()["components"]]
-    for over in ({"is_domestic": False}, {"tariff_type": "pass_through"},
+    assert "price_cap" in [c["cause"] for c in _drive_door(tariff_type="svt")["components"]]
+    for over in ({"tariff_type": "svt", "is_domestic": False}, {"tariff_type": "pass_through"},
                  {"tariff_type": "fixed"}):
         causes = [c["cause"] for c in _drive_door(**over)["components"]]
         assert "price_cap" not in causes, (

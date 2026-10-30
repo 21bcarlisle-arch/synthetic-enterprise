@@ -205,13 +205,15 @@ exceptions:
   - invariant: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW
     scope: 1,068 of 33,627 domestic SVT account-months on the 9553d403b7 book (1,067 on the unit rate, 1 on the standing charge), every one in 2016-2018, before the cap; 0 from 2019
     reason: >-
-      Not explained: a defect, filed. Before the cap the company's SVT term is priced per account. On 2017-06-01 the
+      Explained, and fixed in code; the count stands until a fresh run carries the fix. The company's renewal-rate chain
+      moved a default tariff per account: writer 1 (portfolio premium) on 2,348 pre-cap SVT terms, writer 2 (margin
+      surcharge) on 75, both on 66, each entering at the list price. Before the cap the company's SVT term is priced per account. On 2017-06-01 the
       electricity SVT terms in force carry 16 different rates from 133.33 to 160.43 GBP/MWh against the one list price
       (svt_rate_gbp_per_mwh 140.0) the same term record holds. A default tariff is one price per fuel, region and
       payment method, and the company records no region, so a per-account SVT price is not a regional price. From the
       cap (2019) the clamp to the payment method's column makes them one price, which is why 2019-2025 grade 0.
     filed: 2026-10-30
-    retired_by: the pre-cap SVT term priced at the company's one list price per fuel, date and payment method (the cause traced from simulation/run_phase2b.py's term unit_rate), graded 0 on a fresh run
+    retired_by: a fresh run carrying the writers-1-2 gate on CAPPED_TARIFF_TYPES (company/pricing/renewal_rate_chain.py), graded 0 on the unit rate; the 1 standing-charge breach is untraced
     max_breached: 1068
   - invariant: INV_UNIT_RATE_EPG_HOUSEHOLD
     scope: 373 of 3,294 domestic SVT bill periods in Oct 2022-Jun 2023 on the 9553d403b7 book, 372 electricity and 1 gas; median excess 0.005p/kWh, largest 0.069p/kWh (0.21%), 5.16 GBP ex-VAT over the whole book

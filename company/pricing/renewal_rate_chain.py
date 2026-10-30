@@ -400,12 +400,20 @@ def decide_renewal_rate(
 
     result = RenewalRateChain(unit_rate_gbp_per_mwh=unit_rate,
                               bad_debt_allowance_gbp_per_mwh=bad_debt_allowance)
+    # A DEFAULT TARIFF IS ONE LIST PRICE, NOT A TERM STRUCK PER ACCOUNT (2026-10-30). Writers 1 and
+    # 2 read an account's own term start and its own last margin, so on an SVT segment they priced
+    # each account apart: 2,489 of 4,366 pre-cap SVT terms on the 9553d403b7 book, 16 rates on one
+    # day against one list price. From 2019 writer 4's clamp hid it; before the cap nothing did.
+    # Writers 3 and 3b already refuse it (`UPLIFTABLE_TARIFF_TYPES`). Knowledge: the price-cap
+    # page, choice 7.
+    per_account_writers = tariff_type not in CAPPED_TARIFF_TYPES
 
     # WRITER 1 — the portfolio learning premium. The supplier looks at what it
     # actually earned on its last few completed terms of this commodity and
     # closes part of the gap to its target margin on the next rate it quotes.
     if (
         unit_rate is not None
+        and per_account_writers
         and term_index >= MIN_TERM_INDEX_FOR_LEARNED_ADJUSTMENT
         and len(portfolio_margin_rates) >= 1
     ):
@@ -460,6 +468,7 @@ def decide_renewal_rate(
     # money on is recovered from the same customer's next one.
     if (
         unit_rate is not None
+        and per_account_writers
         and term_index >= MIN_TERM_INDEX_FOR_LEARNED_ADJUSTMENT
         and prior_term_margin_gbp is not None
     ):
