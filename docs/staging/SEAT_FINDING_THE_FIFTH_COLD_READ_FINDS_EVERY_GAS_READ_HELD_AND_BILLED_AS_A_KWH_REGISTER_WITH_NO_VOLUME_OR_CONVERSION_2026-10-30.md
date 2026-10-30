@@ -44,3 +44,19 @@ The LDZ daily CV range is a named GAP at `simulation/live_population.py`.
    and it prints the volume and both factors.
 
 Not done here: the item is the reading.
+
+## Item 1 written: the K8 page (2026-10-30, worker)
+
+`docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md`. Read first-hand: SI 1996/439
+regs 3-4, SI 1997/937 (reg 3(3) reference conditions, reg 4A's +1 MJ/m³ cap), and Ofgem's 5 Aug 2014
+letter. That letter ties gas SLC 22.7 to the Regulations: the billing CV is the period's mean of the daily
+charging-area CVs, truncated to 0.1, and "the use of a fixed CV … is not consistent with the
+Regulations". So the roster's fixed 39.5 cannot stand in for that CV unless the record says it is a
+stand-in (GAP G1, the daily series, not transcribed). The page closes the blind row's GAPs (1) and (4),
+answers (3) at 1.02264 from GOV.UK, narrows (2) and (6), and leaves (5), what the bill must print, open.
+It writes its prediction before any build. On a shared CV the conversion moves billed gas energy down by
+truncation only: about 0.13% on average, and at most 0.26% on any bill.
+
+Still open: item 3, the seam decision (the interface steward's). The page's C1 proposes that the
+world's meter registers volume and that volume is what crosses. This finding stays in the root until
+item 3 is built.
