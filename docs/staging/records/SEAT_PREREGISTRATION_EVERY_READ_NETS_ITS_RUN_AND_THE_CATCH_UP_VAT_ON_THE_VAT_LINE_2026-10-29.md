@@ -120,3 +120,14 @@ The chain does not cover everything. On that book, after `ALLDONE`, three things
 3. set each `max_breached` to what the book measures, and retire any row that reads 0.
 
 Those three are the input `the-fifth-cold-read` waits on.
+
+## The fifth cold read, drawn before its input exists (2026-10-30 03:35Z, worker)
+
+`the-fifth-cold-read` was drawn while `fresh-run-3dc5a92948` was still computing: at 03:35Z the
+log reached 2024-06, `DONE.json` did not exist, and `grade-chain-3dc5a92948` was still polling for it.
+The direction row says "once item 2's grade and rebuilt pages are on origin, and not before", and
+none of the three owed items above exists yet. So nothing was read, and the claim is released
+without a reading. The three items stay under the live focus row `grade-the-e83e2de665-book-every-read-nets-its-run`
+(the seat's `fresh-run-at-the-svt-one-list-price-fix` claim covers only the SVT and EPG rows). The
+cold read can be drawn once `/var/tmp/fresh-grade-3dc5a92948/ALLDONE` exists AND the Explore pages
+built from that book are on origin. Do not draw it on `ALLDONE` alone.
