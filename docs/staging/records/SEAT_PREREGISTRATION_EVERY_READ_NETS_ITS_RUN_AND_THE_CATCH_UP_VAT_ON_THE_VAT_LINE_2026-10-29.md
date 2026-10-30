@@ -72,3 +72,25 @@ rate. 789d0a6d2's own formula reads the run's held entries, so it was already ri
 on an estimate, so no read reaches a catch-up. Its value rose from 2,148.44 to 2,175.55 (an earlier
 dropped run was netted), but it is still below its band. This is not class F or the VAT defect. It
 stays on the exceptions file as the open-tail class.
+
+## Item 2: no run at e83e2de665 exists to grade (2026-10-30, seat executor)
+
+Lane 0 `grade-the-e83e2de665-book-every-read-nets-its-run` was drawn to grade the three rows above
+on `fresh-run-e83e2de665`. That run was never launched, so no book exists to grade. The pre-launch
+tests at e83e2de665 (`/var/tmp/pretest-e83e2de665.log`) found 1 red in 5,047:
+`test_the_accounts_closing_balance_is_the_sum_of_its_two_fuels`. It was bisected to 789d0a6d20,
+whose pre-bill VAT-rate check graded a base that included the catch-up line, so a catch-up bill
+was held (a held final credit bill means the credit is never given). The run's owner landed the
+fix in its own worktree as dc5762e0b, which is not yet on origin at 12210b3b6e. The run launches
+at that commit instead.
+
+The three rows are already in that run's grade chain (`/var/tmp/fresh-grade-e83e-scripts/after_run.sh`):
+- `f_vat_rows.py` counts the first two rows. It reads 2,744 / 3,705 on the 9553d403b7 book, so it can fire.
+- `/var/tmp/fresh-run-0b28-scripts/grade.py` grades the revenue row against
+  `DOMAIN_INVARIANT_EXCEPTIONS.yaml`.
+
+Grading the rows separately would only duplicate that chain, so this item is released without a
+grade. The predictions above stand unchanged and are graded on the dc5762e0b book. One caution for
+that grade: dc5762e0b changes `pre_bill_validation` only, which decides which bills are held, not
+what a catch-up carries. It should not move the first two rows. A hold that changes could move the
+revenue row by the value of a held bill.
