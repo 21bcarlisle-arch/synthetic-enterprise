@@ -389,3 +389,20 @@ The supplier's P&L should feel the *difference* through imbalance cost, unbilled
 - Any published GB churn elasticity for a DD increase or for bill shock. The Opower figure of about 61% is stated intent from a secondary source.
 
 These should be calibration parameters in the simulation, not evidence.
+## Done
+
+2026-10-30, the worker. The knowledge this pack was for is written and published:
+`docs/market_research/a_new_accounts_first_months_2026-10-30.md` (topic `payments-and-direct-debit`,
+whose site entry now points at it). It covers the opening-estimate rungs, the opening read, what named
+suppliers do about the first DD with pros and cons, ten pain points each defined before it is measured,
+and the levers set against what the world does today (the 30 Oct pain-point audit).
+
+- **Verified first-hand:** Ofgem's 27 May 2026 TDCV decision, Table 1, text extracted from the PDF. Its
+  PC2 row (1,900 / 3,400 / 6,100 kWh) closes a GAP that `what_a_supplier_holds_to_size_a_direct_debit.md`
+  §3 and `company/billing/annual_consumption_estimate.TDCV_BY_DATE` both carried as "not established".
+  Both now hold it. No 2016-2025 book reads that row.
+- **Everything else** is graded [P] (the pack's URL, not re-read) and its [unverified] items stay GAPs.
+- **The read-duty correction** was checked: the invariant library already holds an annual duty
+  (`INV_READ_DUTY_ANNUAL`, with the repealed inspection duty named). Nothing to correct.
+- **SIM reaction and the experiment** are not built here. They are `new-account-first-months-experiment`
+  in `docs/direction/priority_order.yaml`, drawn after the correctness exit test.

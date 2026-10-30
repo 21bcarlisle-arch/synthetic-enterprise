@@ -233,9 +233,8 @@ TDCV_BY_DATE: tuple[tuple[date, Mapping[str, Mapping[str, float]]], ...] = (
         {
             "gas": {"LOW": 6000.0, "MEDIUM": 9500.0, "HIGH": 14000.0},
             "electricity": {"LOW": 1600.0, "MEDIUM": 2500.0, "HIGH": 3800.0},
-            # PC2 for 2026 is NOT established from the decision letter read.
-            # Absent rather than carried forward: a stale PC2 silently reused
-            # under a new date would read as published and cannot be checked.
+            # Table 1 of the 27 May 2026 decision, read 30 Oct 2026 (a_new_accounts_first_months_2026-10-30.md §1).
+            "electricity_pc2": {"LOW": 1900.0, "MEDIUM": 3400.0, "HIGH": 6100.0},
         },
     ),
 )

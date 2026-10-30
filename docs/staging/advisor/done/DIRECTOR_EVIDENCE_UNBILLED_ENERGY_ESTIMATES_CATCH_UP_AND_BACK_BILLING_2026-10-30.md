@@ -395,3 +395,22 @@ I found no named Ofgem penalty under SLC 21BA alone. Ofgem's 2020 letter warned 
 
 - **[analysis]** The brief's "SLC 21B read every 2 years" should be modelled as an annual reasonable-steps read duty (SLC 21B). The 2-year inspection duty was repealed in 2016.
 - **[analysis]** Not found or **[unverified]**: accrued-income figures for Octopus, OVO, E.ON UK and SSE retail; how often crossed meters and lost exchange reads occur; rates of Direct Debit cancellation after a catch-up bill; churn caused specifically by back bills; any penalty under SLC 21BA alone; the implementation status of UNC Modification 0398.
+## Done
+
+2026-10-30, the worker. The knowledge this pack was for is written and published:
+`docs/market_research/unbilled_energy_what_suppliers_do_and_what_customers_meet_2026-10-30.md` (topic
+`unbilled-energy-and-revenue-assurance`, whose site entry now carries its headline figures). It adds
+what the existing unbilled and back-billing pages lacked: named suppliers' handling of held bills and
+exception queues with pros and cons, what customers meet, and eight pain points, each defined for one
+population before it is measured (the pack's rows mixed a DD change and a bill as "bill shock").
+
+- **Verified first-hand:** Ofgem's *Domestic billing performance assessment* (July 2026), text extracted
+  from the PDF: 81% / 89% read-based, 11m (3%) late bills, over £172m written off for almost 1m
+  customers, 2 to almost 10 months to resolve. One figure moved: back-billing is "around 5%" of
+  Ombudsman referrals in the primary, against the pack's 3-5%.
+- **The read-duty correction** was checked: `INV_READ_DUTY_ANNUAL` already holds an annual duty.
+  Nothing to correct.
+- **The SIM reaction** is not built here. It is `unbilled-energy-pain-points-react` in
+  `docs/direction/priority_order.yaml`, drawn after the correctness exit test. The page names one lever
+  the supplier can be graded on without any world reaction: the order it works its exception queue,
+  graded on SLC 21BA write-offs.
