@@ -493,3 +493,28 @@ for_the_director:
       and one pre-registered supplier variant is graded against the quote baseline on the ruling's five
       outcomes
     due: '2026-12-15'
+- id: the-improvement-loop-world-then-supplier-then
+  raised: '2026-10-30'
+  kind: strategy
+  what: 'The improvement loop (world, then supplier, then round again) is ruled in W7 but not embedded:
+    no area records how far round it has got, the world reacts in full to one pain point in seven, and
+    its one full reaction is the supplier''s own churn curve.'
+  proposal: 'Adopt docs/design/THE_IMPROVEMENT_LOOP.md. One loop per area, with its stage DERIVED from
+    artefacts rather than kept by hand: knowledge with a range for every pain point, a world that reacts
+    at that range (never 0) with no supplier belief imported, frozen, graded on fresh seeds at the range''s
+    low, central and high, then settled or ''we cannot tell'', then a blind practitioner''s exploit check.
+    The world gets more nuanced only on three triggers: an exploit is found, a range is too wide to settle,
+    or a cold read finds a new class. Blind roles by construction: a sparse worktree per role with the
+    other side''s code absent. Built now only where it helps the correctness exit test (the blind worktree
+    for the cold reader). The rest comes after, starting with a new account''s first months.'
+  recommendation: 'I recommend you say yes to the design and rule one question that is yours: does the
+    scorecard stay a vector (customer money, time and carbon; company outcomes; fairness), with a variant
+    winning only if it is no worse on every axis, and every weighted trade brought to you? The A5 frame
+    reserves the fitness function to you. The trade-off: Pareto-only will call some real wins undecided.
+    That is the safe direction under F11. Until you rule, I hold to Pareto-only and build the blind worktree,
+    which helps close the correctness exit test. What would change my view: a settled result you judge
+    worth a trade the vector refuses.'
+  status: open
+  resolution: ''
+  evidence: docs/design/THE_IMPROVEMENT_LOOP.md; docs/staging/SEAT_FINDING_THE_WORLD_REACTS_TO_ONE_PAIN_POINT_IN_SEVEN_AND_ITS_RENEWAL_SHOCK_IS_THE_SUPPLIERS_OWN_CHURN_CURVE_2026-10-30.md;
+    DOMAIN_INVARIANTS.yaml:9 blindfold_disclosure (knowledge notes quote code constants)
