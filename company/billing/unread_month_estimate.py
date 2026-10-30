@@ -31,11 +31,17 @@ from datetime import date, timedelta
 from company.billing.annual_consumption_estimate import estimate_annual_consumption
 
 __all__ = [
+    "ECONOMY_7_REGISTERS",
     "MONTHLY_SHARE_OF_ANNUAL_USE",
+    "PC2_MONTHLY_REGISTER_SHARE",
     "annualised_advance_kwh",
     "estimate_unread_kwh",
+    "estimate_unread_register_kwh",
     "opening_estimate_kwh",
+    "opening_register_estimate_kwh",
     "profile_weight",
+    "register_profile_weight",
+    "split_on_register_shape",
 ]
 
 
@@ -58,18 +64,48 @@ MONTHLY_SHARE_OF_ANNUAL_USE: dict[str, tuple[float, ...]] = {
 }
 
 
-def _day_weight(fuel: str, day: date) -> float:
-    share = MONTHLY_SHARE_OF_ANNUAL_USE[fuel][day.month - 1]
-    return share / calendar.monthrange(day.year, day.month)[1]
+ECONOMY_7_REGISTERS = ("day", "night")
+
+# A Profile Class 2 ("Domestic Economy 7") meter's year, per calendar month and per register, January
+# first; the 24 shares sum to 1. UKERC's verbatim `ProfileClass2.csv` (Electricity Association via
+# Elexon, the 1997 Group Average Demand table; SHA-256 08457653...e60b, docs/data-sources/profile-class-2.md),
+# run through the BSC season calendar for every day of 2016-2025, split at the Night register's
+# 00:30-07:30 and averaged over the ten calendars (each month within 0.33 points of the mean). The
+# same published table the industry settles a PC2 meter on, copied as knowledge, not read from the
+# world. Night is the seasonal register: January 4.1 times August, against PC1's 1.4. Table and GAPs:
+# docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md.
+PC2_MONTHLY_REGISTER_SHARE: dict[str, tuple[float, ...]] = dict(zip(ECONOMY_7_REGISTERS, (
+    _normalised(
+        (5.564, 5.077, 5.395, 4.172, 3.943, 3.603, 3.693, 3.627, 4.143, 4.508, 5.381, 5.566)
+        + (5.930, 5.413, 5.637, 3.557, 2.631, 1.910, 1.798, 1.438, 2.373, 2.974, 5.738, 5.929)
+    )[i * 12:(i + 1) * 12] for i in range(2))))
+
+
+def _weight(shares: tuple[float, ...], start: date, end: date) -> float:
+    total, day = 0.0, start
+    while day <= end:
+        total += shares[day.month - 1] / calendar.monthrange(day.year, day.month)[1]
+        day += timedelta(days=1)
+    return total
 
 
 def profile_weight(fuel: str, start: date, end: date) -> float:
     """The share of a year's use the days `start`..`end` (both included) carry."""
-    total, day = 0.0, start
-    while day <= end:
-        total += _day_weight(fuel, day)
-        day += timedelta(days=1)
-    return total
+    return _weight(MONTHLY_SHARE_OF_ANNUAL_USE[fuel], start, end)
+
+
+def register_profile_weight(register: str, start: date, end: date) -> float:
+    """The share of a PC2 meter's year that `register` records over `start`..`end` (both included)."""
+    return _weight(PC2_MONTHLY_REGISTER_SHARE[register], start, end)
+
+
+def split_on_register_shape(annual_kwh: float, start: date, end: date) -> dict[str, float]:
+    """An annual figure for a PC2 meter's total, spread over `start`..`end` per register on PC2's shape.
+
+    For the figures the company holds only as a total: the registration EAC (page GAP G7) and an
+    annualised advance off the total register log (G8).
+    """
+    return {r: annual_kwh * register_profile_weight(r, start, end) for r in ECONOMY_7_REGISTERS}
 
 
 def estimate_unread_kwh(
@@ -91,6 +127,29 @@ def estimate_unread_kwh(
     if weight <= 0 or used <= 0:  # no read yet, or reads that measured nothing
         return None
     return used / weight * profile_weight(fuel, start, end)
+
+
+def estimate_unread_register_kwh(
+    window: list[tuple[date, date, dict[str, float]]], start: date, end: date
+) -> dict[str, float] | None:
+    """kWh per register to bill a PC2 meter for `start`..`end` from its actual-read `window`.
+
+    `estimate_unread_kwh` applied to each register on its own PC2 share: each register's advance over
+    its own weight, times this period's weight. A storage home's Night register carries its winter
+    heat, and PC2 gives a summer night a quarter of a winter one, so winter night use is no longer
+    spread into a summer month at the total's shape (the E2 (a) over-estimates).
+
+    None when the meter's total advanced by nothing, the same missing measurement as there. A
+    register that advanced by nothing while the other moved was read, so it estimates 0.
+    """
+    if sum(kwh for _, _, by_register in window for kwh in by_register.values()) <= 0:
+        return None
+    estimate = {}
+    for register in ECONOMY_7_REGISTERS:
+        weight = sum(register_profile_weight(register, s, e) for s, e, _ in window)
+        used = sum(by_register.get(register, 0.0) for _, _, by_register in window)
+        estimate[register] = used / weight * register_profile_weight(register, start, end)
+    return estimate
 
 
 #: The shortest advance annualised. Elexon's EAC calculation (BSCP504) and Xoserve's AQ review both
@@ -150,13 +209,24 @@ def opening_estimate_kwh(
     """
     if fuel not in MONTHLY_SHARE_OF_ANNUAL_USE:
         return None
+    annual = _registration_annual_kwh(fuel, registration, start)
+    return None if annual is None else annual * profile_weight(fuel, start, end)
+
+
+def opening_register_estimate_kwh(
+    registration: dict | None, start: date, end: date
+) -> dict[str, float] | None:
+    """`opening_estimate_kwh` for a PC2 meter: the same annual figure, spread per register on PC2's
+    shape. Registration hands over one EAC, not one per register (page GAP G7)."""
+    annual = _registration_annual_kwh("electricity", registration, start)
+    return None if annual is None else split_on_register_shape(annual, start, end)
+
+
+def _registration_annual_kwh(fuel: str, registration: dict | None, as_of: date) -> float | None:
     registration = registration or {}
     registry = registration.get("eac_kwh" if fuel == "electricity" else "aq_kwh")
-    annual = estimate_annual_consumption(
-        as_of=start, commodity=fuel,
+    return estimate_annual_consumption(
+        as_of=as_of, commodity=fuel,
         registry_eac_kwh=float(registry) if registry else None,
         band=None if registry else "MEDIUM",
-    )
-    if annual.kwh is None:
-        return None
-    return annual.kwh * profile_weight(fuel, start, end)
+    ).kwh

@@ -69,14 +69,19 @@ from company.billing.pre_bill_validation import release_on_measured_rate, valida
 from company.billing.read_duty_register import read_instruction_due
 from company.billing.theft_indicator import screen_billing_run
 from company.billing.unread_month_estimate import (
+    ECONOMY_7_REGISTERS,
     GAS_AQ_MIN_ADVANCE_DAYS,
     MIN_ADVANCE_DAYS,
     annualised_advance_kwh,
     estimate_unread_kwh,
+    estimate_unread_register_kwh,
     opening_estimate_kwh,
+    opening_register_estimate_kwh,
     profile_weight,
+    split_on_register_shape,
 )
 from company.interfaces.supply_book import registered_point as get_customer
+from company.pricing.tou_desk import meter_is_economy_7
 from saas.bill_generator import (
     BILL_SHOCK_PENALTY_FACTOR,
     CHARGED_AT_THE_METER,
@@ -184,8 +189,15 @@ def _prior_calendar_month(month: str) -> str:
     return f"{yr}-{mo - 1:02d}"
 
 
+def _economy_7_register_kwh(settlement_records: list[dict]) -> dict[str, float]:
+    """kWh on each Economy 7 register across `settlement_records`: what reading both registers gives."""
+    return {r: sum(record.get("tou_%s_kwh" % r, 0.0) for record in settlement_records)
+            for r in ECONOMY_7_REGISTERS}
+
+
 def _estimated_settlement_records(
-    settlement_records: list[dict], ratio: float, commodity: str
+    settlement_records: list[dict], ratio: float, commodity: str,
+    register_ratios: dict[str, float] | None = None,
 ) -> list[dict]:
     """Rescale real settlement records to reflect an ESTIMATED consumption
     quantity while preserving (a) the real per-MWh commodity unit rate and
@@ -199,10 +211,16 @@ def _estimated_settlement_records(
     bill -- the estimate is priced at the real rate, only the quantity differs.
     This is the point of D3 step 1: the estimate-labelled bill no longer mixes
     true consumption into an estimate, collapsing the unit-rate divergence.
+
+    `register_ratios` scales an Economy 7 meter's Day and Night rows each by its own register's
+    estimate over its settled kWh, so the bill's split is the estimate's, not the unread month's.
     """
     sc_field = "gas_standing_charge_gbp" if commodity == "gas" else "standing_charge_gbp"
     scaled = []
     for record in settlement_records:
+        if register_ratios is not None:
+            ratio = next((register_ratios[r] for r in ECONOMY_7_REGISTERS
+                          if "tou_%s_kwh" % r in record), ratio)
         sc = record.get(sc_field, 0.0)
         commodity_portion = record["revenue_gbp"] - sc
         new_record = dict(record)
@@ -717,6 +735,9 @@ def build_monthly_bills(
         # every run (mixed or not), not just an all-actual one.
         previous_bill_total_gbp = None
         trailing_actual_periods: list[tuple[date, date, float]] = []
+        # A PC2 meter's reads give each register's advance, so its estimate is made per register.
+        economy_7 = meter_is_economy_7(customer_data)
+        trailing_register_periods: list[tuple[date, date, dict[str, float]]] = []
         # (read date, register kWh) for each read that arrived, from the change-of-supply opening
         # read at 0: what the meter has told the company, and all `annualised_advance_kwh` reads.
         register_reads: list[tuple[date, float]] = []
@@ -776,6 +797,10 @@ def build_monthly_bills(
                     trailing_actual_periods.append((
                         date.fromisoformat(true_bill["period_start"]),
                         date.fromisoformat(true_bill["period_end"]), read_advance_kwh))
+                    if economy_7:
+                        trailing_register_periods.append((
+                            *trailing_actual_periods[-1][:2],
+                            _economy_7_register_kwh(months[month])))
                 consecutive_estimated = event.consecutive_estimated_count
             elif event.status == "actual":
                 bill = _annotate_billing_basis(true_bill, event, true_bill)
@@ -885,6 +910,16 @@ def build_monthly_bills(
                 # (R3, test_the_estimate_window_holds_only_what_the_meter_told_the_supplier.py).
                 read_from = (pending_estimated_run[0]["period_start"] if pending_estimated_run
                              else true_bill["period_start"])
+                if economy_7:
+                    advance_by_register = _economy_7_register_kwh(months[month])
+                    for p in pending_estimated_run:
+                        for r in ECONOMY_7_REGISTERS:
+                            advance_by_register[r] += p["used_register_kwh"][r]
+                    trailing_register_periods.append((
+                        date.fromisoformat(read_from),
+                        date.fromisoformat(true_bill["period_end"]),
+                        advance_by_register,
+                    ))
                 pending_estimated_run = []
                 trailing_actual_periods.append((
                     date.fromisoformat(read_from),
@@ -931,12 +966,37 @@ def build_monthly_bills(
                 )
                 if advance is not None and advance[0] > 0:
                     shaped = advance[0] * profile_weight(commodity, *period)
+                # A PC2 meter is estimated per register on PC2's published shape, by the same three
+                # routes: its own reads per register, else the registry EAC, else (switched on) the
+                # annualised total, each split on PC2. The PC1 total above would carry a storage home's
+                # winter night heat into a summer month (a_storage_heated_homes_default_tariff_is_two_rate.md).
+                by_register = None
+                if economy_7:
+                    by_register = (
+                        estimate_unread_register_kwh(
+                            trailing_register_periods[-ESTIMATE_WINDOW_READS:], *period)
+                        if trailing_register_periods else None
+                    )
+                    if by_register is None or not reads_span_an_advance:
+                        by_register = (opening_register_estimate_kwh(customer_data, *period)
+                                       or by_register)
+                    if advance is not None and advance[0] > 0:
+                        by_register = split_on_register_shape(advance[0], *period)
+                    if by_register is not None:
+                        shaped = sum(by_register.values())
                 est_kwh = round(shaped, 2) if shaped is not None else None
                 if dataclasses.is_dataclass(event):
                     event = dataclasses.replace(event, estimated_consumption_kwh=est_kwh)
+                settled_by_register = (_economy_7_register_kwh(months[month])
+                                       if by_register is not None else None)
                 if true_kwh > 0 and est_kwh is not None:
+                    # A register with no settled rows this month has nothing to scale, so the
+                    # month falls back to one ratio on the total.
+                    register_ratios = (
+                        {r: by_register[r] / settled_by_register[r] for r in ECONOMY_7_REGISTERS}
+                        if settled_by_register and all(settled_by_register.values()) else None)
                     scaled = _estimated_settlement_records(
-                        months[month], est_kwh / true_kwh, commodity
+                        months[month], est_kwh / true_kwh, commodity, register_ratios
                     )
                     estimated_bill = generate_bill(
                         customer_id, scaled, contract_type,
@@ -987,6 +1047,8 @@ def build_monthly_bills(
                     "total_amount_gbp": 0.0 if held else bill["total_amount_gbp"],
                     "billed_kwh": 0.0 if held else bill["total_consumption_kwh"],
                     "used_kwh": true_kwh,
+                    "used_register_kwh": (settled_by_register
+                                          or _economy_7_register_kwh(months[month])),
                     "true_vat_gbp": bill["true_vat_gbp"],
                     "vat_gbp": 0.0 if held else bill["vat_gbp"],
                     "held": held,
