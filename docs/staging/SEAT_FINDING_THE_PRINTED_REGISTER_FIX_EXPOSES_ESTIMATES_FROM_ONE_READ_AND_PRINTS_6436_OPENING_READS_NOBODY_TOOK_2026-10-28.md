@@ -129,3 +129,24 @@ The exception's reason now carries these three causes, at the same ceiling of 6.
 reading the 17 homes' heating type, which is one rebuild of the population at the run's seed. For any
 storage home, the fix is the bill printing the two-rate settlement, under ruling step 3. Until that read is done, (a) is explained
 only conditionally.
+
+**E2's heating types read (2026-10-30, worker tick, item `read-the-e2-homes-heating-type`).** The
+population was rebuilt at the run's seed (20260724) from the run's own worktree (209c3350ab), and each
+home's drawn household read (`live_drawn_households`). Probes: `/var/tmp/e2-heating/read2.py`, `agg.py`.
+
+- **All three (a) homes are `electric_storage`**: PROS-2017-0336, PROS-2024-0010 and SYN-2016-565. So (a)
+  is no longer conditional. Each is a single-rate bill on a profile-class-2 settlement, the bill side of
+  ruling step 3's storage-heating cause. It is a defect, not a lawful tail. The exception's reason and
+  `retired_by` now say so.
+- **Correction, beside the claim above.** "19 of 645 electricity accounts ... under 8% in Jun to Aug, 17
+  of those 19 single-rate" split fuel by the id's `g` suffix. 34 gas accounts carry no suffix
+  (SYN-2016-385, PROS-2020-0399 and others are gas-only accounts). By the account's commodity it is **11
+  of 613**: 5 storage homes (the three above, PROS-2017-0117 and PROS-2022-0400), 1 direct-electric
+  (SYN-2016-561), and 5 occupier accounts (`OCC-*`) with no drawn household, so no heating type to read.
+  Four of those five sit at 7.6 to 7.9%, at the threshold. On the same correction the world's aggregate
+  electricity Jun to Aug share is **19.0%**, not 17.6% (DESNZ 20.5%). Gas is unchanged at 7.9%.
+- `p2b__tou_by_customer` gives a peak/off-peak split for these homes. It is not evidence of their tariff:
+  `settlement_daily` builds it for every electricity account from settlement periods.
+
+Any probe that splits fuel by the id suffix carries the same error. Of the trace's probes, only
+`/var/tmp/e2-probe/shape.py` does. `/var/tmp/est-probe-scripts/` does not, so E1's 179 is untouched.
