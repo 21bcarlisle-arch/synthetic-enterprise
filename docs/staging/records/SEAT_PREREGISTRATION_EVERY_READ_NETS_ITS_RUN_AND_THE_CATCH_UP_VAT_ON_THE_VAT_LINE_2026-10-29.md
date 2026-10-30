@@ -94,3 +94,9 @@ grade. The predictions above stand unchanged and are graded on the dc5762e0b boo
 that grade: dc5762e0b changes `pre_bill_validation` only, which decides which bills are held, not
 what a catch-up carries. It should not move the first two rows. A hold that changes could move the
 revenue row by the value of a held bill.
+
+**Correction, beside the commit ids above (2026-10-30).** dc5762e0b was a worktree-local landing
+and never reached origin. The fix reached origin as a83d60c27, merged as ecb7e21fb. The run is
+`fresh-run-ecb7e21fb`, with output in `/var/tmp/fresh-run-out-ecb7e21fb` and grades in
+`/var/tmp/fresh-grade-ecb7e21fb/`, both launched by synthetic-enterprise-49. Read
+"the dc5762e0b book" above as the ecb7e21fb book.
