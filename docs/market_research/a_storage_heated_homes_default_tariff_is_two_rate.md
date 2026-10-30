@@ -85,10 +85,54 @@ bands sum to the total.
 - **G5. E7 meters in homes that are not storage-heated.** As in `profile-class-2.md` G2/G3: absent
   from the world, not measured as zero.
 
+## What PC2's published shape says about an unread month (added 30 Oct 2026, before the estimate build)
+
+The table is the one the world settles on: UKERC's verbatim `ProfileClass2.csv`, the 1997 Group Average
+Demand by season and day type (`docs/data-sources/profile-class-2.md`). It is split at the world's Night
+window, 00:30-07:30 (G3), using the BSC season calendar for each day of 2016-2025. The probe is
+`/var/tmp/pc2-shape-probe/shares.py`. Share of a year's use, averaged over the ten calendars, in %:
+
+| Month | Day | Night | Night's share of the month | PC1 (same archive), for contrast |
+|---|---:|---:|---:|---:|
+| Jan | 5.56 | 5.93 | 0.52 | 9.89 |
+| Apr | 4.17 | 3.56 | 0.46 | 7.62 |
+| Jul | 3.69 | 1.80 | 0.33 | 7.13 |
+| Aug | 3.63 | 1.44 | 0.28 | 7.09 |
+| Oct | 4.51 | 2.97 | 0.40 | 8.20 |
+| Dec | 5.57 | 5.93 | 0.52 | 9.90 |
+
+- **The Night register is the seasonal one.** Its January share is 4.1 times August's. The Day register's
+  is 1.5 times. PC1, the shape the estimate uses today, is 1.4 times.
+- So a storage home estimated on its total, shaped by PC1, carries winter night load into a summer
+  month at about three times the rate PC2 says. That is the mechanism the E2 prediction below names.
+- The night share of the year is 45.3% (45.2-45.6% across the ten calendars). This is above the cap's 42%
+  (R3) and below Nottingham's 53-66% for storage homes (G4).
+- **The calendar barely moves it.** Every monthly share stays within 0.33 points of its ten-year mean,
+  and October has the widest spread. One table averaged over the window is therefore a fair stand-in
+  for the per-day coefficients.
+
+**What a supplier held.** Elexon publishes each profile class's coefficients to settlement parties. A
+two-rate meter's registers carry their own coefficients under the meter's standard settlement
+configuration. So a per-register shape is the supplier's to hold. The 1997 table, split at the
+world's window, is that shape's proxy, in the same way the DESNZ monthly series is PC1's.
+
+**GAPs this leaves.**
+
+- **G6. The real coefficients.** The table is not the period's regression coefficients (profile-class-2.md G4). It has
+  no temperature or sunset term, so the shape is seasonal normal, as PC1's proxy is.
+- **G7. Register EACs.** In settlement, each register of a two-rate meter has its own EAC. The company is
+  handed one `eac_kwh` at registration. Before its own reads span an advance, it splits that one
+  figure by PC2's register shares. The real per-register EACs that a registration would carry are not
+  established here.
+- **G8. A per-register annualised advance.** The company's annualised-advance switch annualises the
+  meter's total, because its register log holds totals. On a PC2 meter, that total is spread by PC2's
+  register weights, not per register. A per-register read log would close this gap.
+
 ## The choice a build should make
 
-*Built 2026-10-30 except the estimate half of 3:
-`docs/staging/SEAT_FINDING_AN_ECONOMY_7_METER_IS_BILLED_ON_ITS_TWO_REGISTERS_2026-10-30.md`.*
+*Built 2026-10-30, in two steps. The tariff and bills are in
+`docs/staging/SEAT_FINDING_AN_ECONOMY_7_METER_IS_BILLED_ON_ITS_TWO_REGISTERS_2026-10-30.md`, and the
+estimate half of 3 is in `docs/staging/SEAT_FINDING_A_PC2_METERS_UNREAD_MONTH_IS_ESTIMATED_PER_REGISTER_2026-10-30.md`.*
 
 1. **The supplier reads the meter, not the heating.** Each electricity account carries its registered
    profile class across the seam (`company/interfaces/sim_interface.py`), as the MPAN's top line would.
