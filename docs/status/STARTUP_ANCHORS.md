@@ -42,9 +42,9 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 14,382 | 14,059 – 14,544 (`git rev-list --count`) | AGREES |
-| lines | 1,184,059 | 1,170,103 – 1,190,549 (newlines across every `*.py` in the git index) | AGREES |
-| modules | 3,561 | 3,511 – 3,595 (the count of `*.py` in the git index) | AGREES |
+| commits | 14,382 | 14,059 – 14,555 (`git rev-list --count`) | AGREES |
+| lines | 1,184,059 | 1,170,103 – 1,190,819 (newlines across every `*.py` in the git index) | AGREES |
+| modules | 3,561 | 3,511 – 3,597 (the count of `*.py` in the git index) | AGREES |
 | tests | 39,465 | 39,465 – 39,465 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES on the floor only on this run -- too large was ruled out at the commit that wrote this sentence |
 
 `AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source never carried in that window · `UNGRADED` the source did not exist that far back, so this figure is unchecked and the reader is told so rather than reassured · `SOURCE_GONE` the source existed and stopped being readable inside this window, which is a refusal rather than an unchecked figure -- nobody chooses for a source not to have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is smaller than the number of test functions the repository actually contains, which no collection can be.
