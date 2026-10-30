@@ -116,3 +116,29 @@ The director's words, 16:50 GMT: "Will it really get into the needs we described
    Look at financial services and telecoms analogues where energy has none.
 4. **Report what you found.** In the customer-needs framing note and the knowledge pages, mark each claim as confirmed, corrected or extended. In the reading, list what you overturned or added to the advisor's view, as you did for the 25 Oct packs.
 
+## Addendum, 16:51 GMT: back every parameter with data, not with summaries
+
+The director's words, 16:51 GMT: "Will it ensure it's backed where possible by data not just word searches of summaries and articles?"
+
+**The standard: any figure that becomes a world parameter, or that a supplier decision will read, is derived from the underlying data wherever that data is published.**
+
+1. **Primary data first.** Download the published tables or datasets (xlsx, ods, csv) and compute the figure yourself. For example:
+   - the FCA Financial Lives data tables, not the key-findings PDF;
+   - the DESNZ PAT, QEP and fuel-poverty tables;
+   - the Ofgem CIM cross-tabs;
+   - ONS and Census datasets;
+   - DfT vehicle tables;
+   - MCS and BUS statistics.
+
+   Store each one raw in `data/lake/` with its provenance: URL, retrieval date, vintage, table and licence. Do this as the existing lake does.
+2. **Grade every figure on the Knowledge pages and in the design notes:**
+   - **D**: derived by us from primary data, with the dataset, table and method named.
+   - **P**: reported in a primary publication by the body that holds the data.
+   - **S**: a secondary summary, such as a press article, trade site or aggregator.
+   - **A**: an assumption, given with its range.
+
+   A world parameter may rest on D or P. **S alone is never enough for a parameter.** Where only S exists, the figure is an A with a range until the primary source is found. Many figures in the advisor's packs are P or S taken from summaries. Re-grade them as you go.
+3. **Fit relationships from data, not from quoted percentages.** Where cross-tabs or open microdata allow it, estimate the correlations the parsimony ruling keeps. Those are the latent precarity, affluence and life-stage factors and their links to the observable attributes. Report the effect sizes and the sample sizes, and keep only the strong ones. This also tests the advisor's synthesis.
+4. **Microdata behind a licence.** Examples are Understanding Society, the Wealth and Assets Survey and EHS microdata through the UK Data Service, and SERL. Registering for these is **a real-world commitment and an account**, so it is reserved to the director (G5). Do not register. List the datasets that would materially improve a parameter, say what each would change and what its access terms are, and raise them as one `for_the_director` row with your recommendation.
+5. **Exclude content written to rank or sell.** Calculators, marketing pages, and articles written for search ranking are excluded unless nothing else exists. If one is used, it is graded S.
+
