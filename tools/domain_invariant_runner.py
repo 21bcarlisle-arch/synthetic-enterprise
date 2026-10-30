@@ -1545,11 +1545,16 @@ def ev_payment_record(inv, book):
     return tally
 
 
+#: Leg 3's month cut: CalTRACK's 365-day baseline less its 37 missing days (10%), read in months.
+CARBON_FULL_YEAR_MIN_MONTHS = 11
+
+
 def ev_carbon_matches_usage(inv, book):
     """Per account-year, legs 1 and 2: the carbon panel's kWh against the usage panel's months of
     the same year (within max(12 kWh, 1%)), and its months billed against the usage panel's months.
-    Leg 3 (a part year prints no figure) needs the panel's printed CO2e and `full_year`, which this
-    record does not carry; it is not graded here."""
+    Leg 3, per fuel-year: a printed `co2e_kg` beside the leg's own `full_year` false, or beside fewer
+    than 11 months billed, breaches. A panel that predates the per-leg `full_year` is graded on the
+    months alone."""
     tally = Tally("account-year on both panels")
     for a in book:
         pr = a.printed
@@ -1560,6 +1565,13 @@ def ev_carbon_matches_usage(inv, book):
             usage[int(m["month"][:4])].append(float(m.get("kwh") or 0.0))
         for y, leg in sorted(pr["carbon_years"].items()):
             y = int(y)
+            if leg.get("co2e_kg") is not None:
+                tally.checked += 1
+                months = leg.get("months_billed")
+                if leg.get("full_year") is False or (
+                        months is not None and int(months) < CARBON_FULL_YEAR_MIN_MONTHS):
+                    tally.hit("breach", "{} {} {} part year".format(a.cid, a.fuel, y),
+                              leg["co2e_kg"], None, "part year prints a figure")
             if y not in usage:
                 continue
             ku, kc = sum(usage[y]), float(leg.get("kwh") or 0.0)

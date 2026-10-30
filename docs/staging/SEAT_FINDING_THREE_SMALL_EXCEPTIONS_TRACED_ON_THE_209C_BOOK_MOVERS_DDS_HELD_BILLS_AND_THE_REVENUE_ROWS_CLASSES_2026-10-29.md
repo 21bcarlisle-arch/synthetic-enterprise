@@ -101,3 +101,18 @@ is an open defect of the panel. Fixing it is a change to what a public page show
    names it, and no atom is minted.
 2. Leg 3 of the carbon row: 1,621 part-year figures. The panel needs its knowledge page first.
 3. (e) and the volume side of (a) on the revenue row.
+
+## 2026-10-30: leg 3 of the carbon row built (worker, `worker/carbon-leg3`)
+
+Item 2 above is built. The knowledge page came first: `household_carbon_and_the_measures_that_save_it.md`
+§6a. A fuel leg billed for fewer than 12 months now prints its kWh and months, `co2e_kg` null, its own
+`full_year` and a reason naming the months; its grid-loss line is null too, and a year with any
+part-year leg prints no total. The `Leg` keeps its kg, so nothing that sums a book's emissions moves.
+The page renders "no figure for a part year", not "not known". `ev_carbon_matches_usage` grades leg 3: a kg beside
+`full_year` false, or beside fewer than 11 months, breaches (a panel from before the field is graded on
+its months). Controls: `test_a_part_year_leg_prints_no_figure_and_its_year_no_total` and
+`test_leg_three_of_the_carbon_row_breaches_a_part_year_that_prints_a_figure`, each red under its
+mutation. **Prediction, filed before the run:** on the next fresh run, leg 3 breaches 0, and the row
+stays at the 6 held-bill checks of legs 1 and 2. Item 1 (the queue never worked) is not touched.
+The exception's reason in `DOMAIN_INVARIANT_EXCEPTIONS.yaml` still says leg 3 is graded outside the runner.
+It was not edited here because the seat's live claim holds that file. Its next edit should take the leg-3 sentence from this section.

@@ -1469,7 +1469,10 @@ function beliefVsTruth(row) {
    a household that only changed gas supplier read as a bigger cut than a heat pump. */
 function carbonLeg(name, leg) {
   if (!leg) return "";
-  var kg = leg.co2e_kg === null || leg.co2e_kg === undefined ? "not known" : num(leg.co2e_kg, 0) + " kg";
+  /* A PART YEAR HAS NO FIGURE, and that is not the same as not knowing it (knowledge page
+     household_carbon §6a): the months billed are printed beside it instead. */
+  var kg = leg.full_year === false ? "no figure for a part year"
+    : leg.co2e_kg === null || leg.co2e_kg === undefined ? "not known" : num(leg.co2e_kg, 0) + " kg";
   return "<tr><td>" + name + "</td><td><b>" + kg + "</b></td><td>" +
     (leg.status === "billed" ? num(leg.kwh, 0) + " kWh billed over " + leg.months_billed + " month(s)"
       : esc(leg.reason || "")) +
@@ -1481,7 +1484,8 @@ function carbonLeg(name, leg) {
    published BEIS/DESNZ factor, and is not added into it or into the total. */
 function tdLossLine(leg) {
   if (!leg || leg.status !== "billed" || !("td_losses_co2e_kg" in leg)) return "";
-  var kg = leg.td_losses_co2e_kg === null ? "not known" : num(leg.td_losses_co2e_kg, 0) + " kg";
+  var kg = leg.full_year === false ? "no figure for a part year"
+    : leg.td_losses_co2e_kg === null ? "not known" : num(leg.td_losses_co2e_kg, 0) + " kg";
   return "<tr><td>Electricity lost in the grid</td><td><b>" + kg + "</b></td><td>" +
     "transmission and distribution losses, its own line: not in the electricity figure or the total</td></tr>";
 }
@@ -1514,7 +1518,7 @@ function householdCarbon(group) {
     (y.full_year ? "" : " (part year)"),
     '<div class="table-scroll"><table class="split">' +
     carbonLeg("Electricity", y.electricity) + carbonLeg("Gas", y.gas) +
-    "<tr><td>Total</td><td><b>" + (y.total_co2e_kg === null ? "not known" : num(y.total_co2e_kg, 0) + " kg (electricity CO&#8322;, gas CO&#8322;e)") +
+    "<tr><td>Total</td><td><b>" + (y.total_co2e_kg === null ? (y.full_year === false ? "no figure for a part year" : "not known") : num(y.total_co2e_kg, 0) + " kg (electricity CO&#8322;, gas CO&#8322;e)") +
     "</b></td><td>" + esc(y.total_unavailable || "") + "</td></tr>" + tdLossLine(y.electricity) +
     "</table></div>" + closure + change +
     '<p style="font-size:12px;color:var(--muted);margin-top:8px"><b>Electricity:</b> ' +

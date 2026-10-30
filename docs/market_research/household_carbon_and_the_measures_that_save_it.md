@@ -446,6 +446,31 @@ Two hazards follow, both worth a control when this is built:
    (135 vs 196 g/kWh). A statement must name its basis. Gas has no such ambiguity (the factor moved 0.6% in
    ten years), which makes **gas savings the most defensible carbon statement a supplier can make.**
 
+### 6a. A part year prints no annual figure (2026-10-30)
+
+*K8 page for the household carbon panel's leg 3 (`INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL`).*
+
+- **What the evidence says.** A saving is shown against a whole-year baseline. CalTRACK's billing and
+  daily methods take "a 365-day baseline … with no more than 37 missing days (10%)"
+  (`proving_and_showing_household_savings_2026-10-25.md`, CalTRACK section) **[sourced]**. A year
+  that is short by more than that is not comparable with another year, because the missing months
+  are a season: a household that joined in October has a winter-only gas year.
+- **What we found.** On the 209c3350ab book, 1,621 of 5,564 billed fuel-legs printed a `co2e_kg` in a
+  part year (fewer than 11 months billed), and the year's total was printed on part years too (C2
+  2018: 1,681.97 kg beside `full_year` false) **[measured]**. The panel's heading says "(part year)",
+  but the figure in the table reads as the household's carbon for the year.
+- **The design choice.** A fuel leg billed for fewer than 12 months in a calendar year prints
+  `co2e_kg` null, with the reason naming the months billed. Its grid-loss line is null for the same
+  reason. A year with any part-year leg prints no total. Each leg carries its own `full_year`, so a
+  reader (and the row) can tell which leg made the year partial. The kWh and the months billed are
+  still printed, because they are what the supplier billed and they are true for the span. The
+  change between two years already refuses a part year (`household_change`).
+- **Why 12 months and not 11.** The panel's existing cut (`FULL_YEAR_MONTHS`) is stricter than
+  CalTRACK's 10%. A stricter cut prints fewer figures, which errs against our own thesis (F11).
+- **What is not established [gap].** A whole-year figure for a household that joined or left during
+  the year could be estimated by weather-normalising the months held. That needs the company's own
+  degree-day observable (§7), so it is not built.
+
 ---
 
 ## 7. Gaps

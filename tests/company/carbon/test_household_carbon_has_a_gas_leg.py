@@ -191,6 +191,23 @@ def test_a_part_year_is_never_compared_with_a_whole_one():
         household_change(whole, part)
 
 
+def test_a_part_year_leg_prints_no_figure_and_its_year_no_total():
+    """THE DEFECT (209c3350ab book, 2026-10-29): 1,621 part-year fuel-legs printed a kg, and the
+    year's total printed beside `full_year` false. A part-year leg now prints its kWh and months
+    with no kg, a reason naming the months, and no grid-loss figure; the whole leg beside it keeps
+    its kg; the year prints no total. Knowledge: household_carbon_and_the_measures_that_save_it.md §6a.
+    The control: the same household's whole year still prints every figure."""
+    whole = _home(2023, 2_700, 11_500).as_dict()
+    assert whole["total_co2e_kg"] and whole["gas"]["co2e_kg"] and whole["electricity"]["td_losses_co2e_kg"]
+    row = HouseholdFootprint("H", 2024, electricity_leg(2024, 2_700, 12), gas_leg(2024, 4_000, 4)).as_dict()
+    assert row["gas"]["full_year"] is False and row["gas"]["co2e_kg"] is None
+    assert row["gas"]["kwh"] == 4_000 and "4 of 12 months" in row["gas"]["reason"]
+    assert row["electricity"]["full_year"] is True and row["electricity"]["co2e_kg"] is not None
+    assert row["total_co2e_kg"] is None and "gas leg is a part year" in row["total_unavailable"]
+    part_e = HouseholdFootprint("H", 2024, electricity_leg(2024, 900, 4), gas_leg(2024, None, 0)).as_dict()
+    assert part_e["electricity"]["co2e_kg"] is None and part_e["electricity"]["td_losses_co2e_kg"] is None
+
+
 def _numeric_literals(path: Path) -> list[float]:
     tree = ast.parse(path.read_text(encoding="utf-8"))
     return [node.value for node in ast.walk(tree)

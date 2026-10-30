@@ -894,6 +894,22 @@ def test_every_leg_of_the_carbon_and_usage_row_is_reachable():
     assert _grade_one(i, acct(1205.0, 3))[:2] == ("BREACHED", ["months"])
 
 
+def test_leg_three_of_the_carbon_row_breaches_a_part_year_that_prints_a_figure():
+    """A whole year printing its kg passes, and so does a part year printing none. A part year
+    printing a kg breaches, whether the leg says `full_year` false or (a panel from before the
+    field) only its months say so. The partition has a pass on each side and a breach on each."""
+    def acct(year_leg):
+        return _printed_account("C", "electricity", {"carbon_years": {2020: year_leg}})
+    i = "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL"
+    whole = {"kwh": 2700.0, "months_billed": 12, "full_year": True, "co2e_kg": 450.0}
+    assert _grade_one(i, acct(whole))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(dict(whole, months_billed=4, full_year=False, co2e_kg=None)))[0] == "UNREACHED"
+    assert _grade_one(i, acct(dict(whole, months_billed=4, full_year=False)))[:2] == (
+        "BREACHED", ["part year prints a figure"])
+    old_panel = {"kwh": 900.0, "months_billed": 4, "co2e_kg": 150.0}
+    assert _grade_one(i, acct(old_panel))[:2] == ("BREACHED", ["part year prints a figure"])
+
+
 def test_every_leg_of_the_smart_meter_row_is_reachable():
     """A Smart account's estimated share within its band passes; above it breaches; none at all
     flags; a traditional meter is not graded; the first bill is not counted."""

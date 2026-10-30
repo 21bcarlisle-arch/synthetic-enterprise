@@ -474,6 +474,18 @@ class Leg:
         """Comparable with another year: billed all year, or not supplied by us all year."""
         return self.status != BILLED or self.months_billed >= FULL_YEAR_MONTHS
 
+    @property
+    def part_year_reason(self) -> str | None:
+        """Why the published row carries no figure for this leg's year, or None for a whole year.
+
+        The `Leg` keeps its kg: it is true for the months billed. The PAGE prints none, because a
+        part-year figure beside a year's heading reads as the year's carbon, and the missing months
+        are a season (knowledge page §6a)."""
+        if self.full_year:
+            return None
+        return (f"part year: {self.months_billed} of {FULL_YEAR_MONTHS} months billed by this "
+                "supplier, so no figure for the year is printed")
+
 
 def _no_supply(fuel: str) -> Leg:
     return Leg(fuel=fuel, status=NO_SUPPLY, kwh=0.0, co2e_kg=0.0, months_billed=0,
@@ -601,6 +613,11 @@ class HouseholdFootprint:
             total, why = self.total_co2e_kg, None
         except FootprintUnavailable as exc:
             total, why = None, str(exc)
+        partial = [leg for leg in (self.electricity, self.gas) if leg.part_year_reason]
+        if partial:
+            total, why = None, (f"{self.household_id} {self.year}: no total, because the "
+                                + " and ".join(f"{leg.fuel} leg is a {leg.part_year_reason}"
+                                               for leg in partial))
         # The bases are NOT repeated per row: they are three sentences that do not vary by
         # household or year, and a publisher carries them once (`ELECTRICITY_LEG_BASIS`,
         # `GAS_LEG_BASIS`, `TOTAL_BASIS`). Per row they made the feed eighteen times larger.
@@ -608,12 +625,14 @@ class HouseholdFootprint:
         if why:
             out["total_unavailable"] = why
         for leg in (self.electricity, self.gas):
-            row = {"status": leg.status, "kwh": leg.kwh, "co2e_kg": leg.co2e_kg,
-                   "months_billed": leg.months_billed}
-            if leg.reason:
-                row["reason"] = leg.reason
+            part = leg.part_year_reason
+            row = {"status": leg.status, "kwh": leg.kwh,
+                   "co2e_kg": None if part else leg.co2e_kg,
+                   "months_billed": leg.months_billed, "full_year": leg.full_year}
+            if leg.reason or part:
+                row["reason"] = "; ".join(r for r in (part, leg.reason) if r)
             if leg.fuel == "electricity" and leg.status == BILLED:
-                row["td_losses_co2e_kg"] = leg.td_losses_co2e_kg
+                row["td_losses_co2e_kg"] = None if part else leg.td_losses_co2e_kg
             if leg.closed_on:
                 row["closed_on"] = leg.closed_on
                 row["closure_cause"] = leg.closure_cause
