@@ -18,7 +18,7 @@ not maintained -- so it tells you what the project IS, not what it is currently 
 | `docs/design/THE_MODEL_ON_A_PAGE.md` | The model on a page — the mission, the three currencies and the two timeframes, in the director's frame | 2026-10-25 | 5 | UNDATED |
 | `docs/operations/OPERATING_MODEL.md` | How the seat operates — what it gets on with, what it escalates to the director with a proposal, what is reserved, and the end-to-end check it owns | 2026-10-19 | 11 | UNDATED |
 | `docs/operations/MONDAY_NOTE_FOR_THE_DIRECTOR.md` | The director's Monday note — what he decided this week and whether it landed, what waits on him, what the seat closed on its own recommendation, and what the machine owes overdue; rewritten when Monday's step opens (`background/weekly_rhythm.py`) | 2026-10-28 | 2 | UNDATED |
-| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-27 | 3 | UNDATED |
+| `docs/direction/priority_order.yaml` | The director's priority order as the map expresses it, and whether the draw follows it (`tools/draw_follows_the_order.py`) | 2026-10-30 | 0 | UNDATED |
 | `docs/reports/ANNUAL_REPORT.md` | The book's own annual report, regenerated each publish | 2026-10-26 | 4 | UNDATED |
 | `docs/market_research/ASSUMPTIONS.md` | Every sourced assumption the world is built on, with its anchor and its gaps | 2026-10-11 | 19 | OLD |
 | `docs/status/LATEST.md` | What just happened and what the machine is working on now | 2026-10-26 | 4 | FRESH |
@@ -42,9 +42,9 @@ one typed from memory does not.
 
 | Figure | Stated | Its source could have said | Verdict |
 |---|---|---|---|
-| commits | 14,382 | 14,059 – 14,521 (`git rev-list --count`) | AGREES |
-| lines | 1,184,059 | 1,170,103 – 1,189,797 (newlines across every `*.py` in the git index) | AGREES |
-| modules | 3,561 | 3,511 – 3,592 (the count of `*.py` in the git index) | AGREES |
+| commits | 14,382 | 14,059 – 14,537 (`git rev-list --count`) | AGREES |
+| lines | 1,184,059 | 1,170,103 – 1,190,409 (newlines across every `*.py` in the git index) | AGREES |
+| modules | 3,561 | 3,511 – 3,594 (the count of `*.py` in the git index) | AGREES |
 | tests | 39,465 | 39,465 – 39,465 (CLAUDE.md's Build line, floored by the test functions in the git index) | AGREES on the floor only on this run -- too large was ruled out at the commit that wrote this sentence |
 
 `AGREES` inside the band · `OVERSTATES` / `UNDERSTATES` a number its own source never carried in that window · `UNGRADED` the source did not exist that far back, so this figure is unchecked and the reader is told so rather than reassured · `SOURCE_GONE` the source existed and stopped being readable inside this window, which is a refusal rather than an unchecked figure -- nobody chooses for a source not to have existed yet, and somebody chose this · `BELOW_THE_INDEX_FLOOR` the figure is smaller than the number of test functions the repository actually contains, which no collection can be.

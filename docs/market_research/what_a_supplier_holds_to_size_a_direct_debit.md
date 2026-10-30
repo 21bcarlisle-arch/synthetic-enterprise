@@ -90,7 +90,7 @@ exist yet.
 | **1 Oct 2017** | 8,000 / 12,000 / 17,000 | 1,900 / 3,100 / 4,600 | 2,500 / 4,200 / 7,100 | Ofgem TDCV decision letter, 3 Aug 2017 |
 | **1 Apr 2020** | 8,000 / 12,000 / 17,000 | 1,800 / 2,900 / 4,300 | 2,400 / 4,200 / 7,100 | Ofgem TDCV decision letter, 6 Jan 2020 |
 | **1 Oct 2023** | 7,500 / 11,500 / 17,000 | 1,800 / 2,700 / 4,100 | 2,200 / 3,900 / 6,700 | Ofgem decision, 25 May 2023, §2.4, §2.41 |
-| **1 Jul 2026** | 6,000 / 9,500 / 14,000 | 1,600 / 2,500 / 3,800 | *not established* | Ofgem decision, 27 May 2026 |
+| **1 Jul 2026** | 6,000 / 9,500 / 14,000 | 1,600 / 2,500 / 3,800 | 1,900 / 3,400 / 6,100 | Ofgem decision, 27 May 2026, Table 1 (PC2 read 30 Oct 2026; was "not established") |
 
 Notes carried from the primary sources:
 

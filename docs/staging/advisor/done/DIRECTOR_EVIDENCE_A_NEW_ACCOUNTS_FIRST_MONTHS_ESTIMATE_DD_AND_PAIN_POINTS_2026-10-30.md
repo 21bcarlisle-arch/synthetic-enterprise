@@ -391,15 +391,36 @@ The supplier's P&L should feel the *difference* through imbalance cost, unbilled
 These should be calibration parameters in the simulation, not evidence.
 ## Done
 
-Actioned by the seat on 30 Oct, in the commit that moves this file here. The pack's pain-point table is now the knowledge stage (stage 0 of `docs/design/THE_IMPROVEMENT_LOOP.md`) for the area "a new account's first months". It is published as the `pain_points` record on `site/knowledge/the-first-year-blind-spot/`, in `site/data/knowledge_topics.json`, and the page renders it.
+2026-10-30, the worker. The knowledge this pack was for is written and published:
+`docs/market_research/a_new_accounts_first_months_2026-10-30.md` (topic `payments-and-direct-debit`,
+whose site entry now points at it). It covers the opening-estimate rungs, the opening read, what named
+suppliers do about the first DD with pros and cons, ten pain points each defined before it is measured,
+and the levers set against what the world does today (the 30 Oct pain-point audit).
 
-- **Rows here: seven.** FM1 opening estimate, FM2 first-review step-up, FM3 arrears from a low DD, FM4 credit and refund friction, FM7 opening-read dispute, FM8 deemed tenant and FM9 default-band quote. Each row carries its sourced reaction evidence and a GAP with low, central and high, and the basis of each range is graded as *published bound*, *derived* or *assumption*.
-- **Rows homed elsewhere, so each pain point has one home:**
-  - estimated bills and complaint handling are on `unbilled-energy-and-revenue-assurance`;
-  - the catch-up bill is on `back-billing-and-liability`.
-- **The pack's own [unverified] items are GAPs, never evidence.**
-- **Verified by the seat against the primary PDF:** the 2026 TDCV values and their start date of 1 July 2026.
-- **Not found:** the TDCV decision does not say which percentiles the Low and High bands are. FM1 therefore takes its range from the repository's own published EAC spread, not from the bands.
-- **The SLC 21B correction:** the invariant library already holds the read duty as annual (`DOMAIN_INVARIANTS.yaml`, the 21B.4 invariant's `correction_to_brief`). Nothing needed changing.
-- **"Is the SIM making customers react?"** The audit at f1e9424606 answered that. The next stage is stage 1 for this area: each row's world reaction ships at its range, not at 0. It is handed on.
-- **The control that no row is blank:** `site/knowledge/test_a_pain_point_row_has_evidence_or_a_ranged_gap.py`. Its door leg was mutation-checked: when a page's rendering was disabled, it went red.
+- **Verified first-hand:** Ofgem's 27 May 2026 TDCV decision, Table 1, text extracted from the PDF. Its
+  PC2 row (1,900 / 3,400 / 6,100 kWh) closes a GAP that `what_a_supplier_holds_to_size_a_direct_debit.md`
+  §3 and `company/billing/annual_consumption_estimate.TDCV_BY_DATE` both carried as "not established".
+  Both now hold it. No 2016-2025 book reads that row.
+- **Everything else** is graded [P] (the pack's URL, not re-read) and its [unverified] items stay GAPs.
+- **The read-duty correction** was checked: the invariant library already holds an annual duty
+  (`INV_READ_DUTY_ANNUAL`, with the repealed inspection duty named). Nothing to correct.
+- **SIM reaction and the experiment** are not built here. They are `new-account-first-months-experiment`
+  in `docs/direction/priority_order.yaml`, drawn after the correctness exit test.
+
+## Done, second pass: every pain point gets its range (delivery seat, 30 Oct)
+
+A second lane worked this pack at the same time as the pass above, and landed after it. Its addition is the part that pass named and left open: "the world must carry each as a stated belief with a range."
+
+- **What is published.** The pain points are now a structured `pain_points` record on the `payments-and-direct-debit` page, in `site/data/knowledge_topics.json`, and the page renders it. The record has seven rows: FM1–FM4 and FM7–FM9.
+- **What each row carries:**
+  - its sourced reaction evidence;
+  - a GAP with low, central and high values;
+  - its basis, graded as *published bound*, *derived* or *assumption*;
+  - the M3 scorecard vector.
+- **Three rows have their home on the unbilled pages:** estimated bills, the catch-up bill and complaint handling.
+- **Where the ranges come from:**
+  - FM1, opening-estimate error: 0.147 to 0.58, from the repository's published EAC spread.
+  - FM2, challenge after a doubled direct debit: 0.31 to 0.54, from the Ofgem Q1 2022 and MSE figures.
+  - FM3, fall-behind uplift: 0.04 to 0.13 per quarter, from Ofgem Q1 2022.
+  - The rest are labelled assumptions.
+- **This is stage 0 of `docs/design/THE_IMPROVEMENT_LOOP.md` for this area.** It is held by `site/knowledge/test_a_pain_point_row_has_evidence_or_a_ranged_gap.py`. The check fails if a row is blank or a range is unordered or has no stated basis. Its door leg, which checks the row reaches the reader, was mutation-checked.
