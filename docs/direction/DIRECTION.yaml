@@ -1,56 +1,50 @@
 version: 1
-oriented_at: '2026-10-29T21:22:40.879851+00:00'
-thesis_read: 'The steer bit fully: all four previous focus items were drawn and all four landed. The fresh run at 9553d403b7 is graded (4b378c355): the overdue row went 2,500 -> 0 and the payment record
-  35 -> 0, both exceptions retired, and the mover''s DD and exit-draw predictions held, so two world errors are now corrected on a book. Leg one of the exit test is met in the letter: 0 unexplained breaches
-  across 1,293 accounts, 247 excepted on 7 rows, each with a named cause. It is not met in substance. Two of those causes are billing defects the grade itself found: a catch-up''s VAT never reached the
-  VAT line (3,705 bills, about GBP 5,700, now fixed in code by 789d0a6d2), and a GBP 5 floor with no source drops 2,747 of 6,452 read-to-read corrections, so 754 accounts carry estimate error for good.
-  Five rows are UNCHECKABLE on the raw export, so leg one says nothing about them, and one of those is the SVT price row the ruling''s step 2 turns on. The desk now cures a journey only when no bill due
-  that day is still owed (70e66b721), and N1, N8 and N9 are fixed in code (e8149d6d0, 90b330d09). None of these is on a fresh book, and the 9553d403b7 book''s pages were not built, so legs two and three
-  cannot be re-read yet. What it means: the remaining errors are company billing errors that the invariant suite is now good enough to find, which is the suite doing its job. The exit is one run and one
-  cold read away, if item 1 lands first. I will not call it met before the fifth cold read grades it. The queued continuation the-catch-up-vat-reaches-the-vat-line is spent by 789d0a6d2. The Lane 0 row
-  the-shared-tree-advances-before-the-2-nov-note was spent by 3f20fe33c, and its finding is in done/. the-fourth-cold-read-on-the-209c-book landed as fb40dbb3a. Commit split: 1 supplier, 1 both, 0 world,
-  11 other. The ''other'' commits are billing and page fixes that the classifier does not credit as supplier, and no world work was done. The shared checkout is 9 commits behind origin, so every daemon
-  runs collections and billing code 6 commits old. That is the accepted fast-forward class, not new. Against the thesis this is still the precondition: no flat-rule baseline run, no lever, and the live
-  renewal belief still ranks leavers backwards. The pages change only at the 2 Nov publish.'
+oriented_at: '2026-10-30T00:24:14.377963+00:00'
+thesis_read: 'The steer bit on its first item and stalled on its second. Item 1 landed: 053377eac, knowledge first, stops the unsourced GBP 5 floor dropping read-to-read corrections (2,744 on the replay),
+  with a red-then-green test, a pre-registration filed in docs/staging/records/, and both findings in done/. So both billing defects that leg one''s excepted revenue breaches turned on are now fixed in
+  code. None of it is on a fresh book. Item 2 did what it was told and ran the billing and simulation suites at origin HEAD first: the pretest at e83e2de665 read 5,046 passed and 1 failed, the dual-fuel
+  account test whose fixture no longer finds a leg closing in credit. That is the same exposure the machine''s open row describes, now on origin, and whether class F removed a real credit refund or only
+  the fixture''s example is not established. A before/after probe is running in /var/tmp/dualprobe. The fresh-run worktree exists, but no job launched, and the draw refused the fresh-run item 22 times on
+  a DOMAIN_INVARIANT_EXCEPTIONS.yaml hold in /var/tmp/se-seat-executor, which was class F''s own landing, now on origin. Items 3 and 4 were not drawn. What it means: the correctness stretch''s exit is one
+  explained red, one run and one cold read away, the same distance as last stretch, because the run did not start. I will not call leg one met in substance until the e83e2de665-or-later book grades it.
+  Two Lane 0 rows listed not_done are explained: the-catch-up-vat-reaches-the-vat-line is spent by 789d0a6d2, and the-fourth-cold-read-on-the-209c-book landed as fb40dbb3a. the-shared-tree-advances-before-the-2-nov-note
+  was spent by 3f20fe33c. Commit split: 1 supplier, 0 world, 2 other, so the balance is supplier work. The shared checkout is 12 commits behind origin, and every daemon runs billing code 7 commits old:
+  the accepted fast-forward class, not new. Against the thesis this is still the precondition: no flat-rule baseline run, no lever, and the live renewal belief still ranks leavers backwards. The pages change
+  only at the 2 Nov publish.'
 stretch_reviewed:
-  since: '2026-10-29T18:20:37.365614+00:00'
-  commits: 13
-  substantive: 7
+  since: '2026-10-29T21:22:40.879851+00:00'
+  commits: 3
+  substantive: 1
 focus:
-- id: a-read-to-read-bill-drops-no-energy
+- id: the-dual-fuel-closing-balance-red-at-origin-head
   lane: D_billing_metering
   side: supplier
-  what: 'Fix class F (docs/staging/SEAT_FINDING_AN_ACTUAL_READ_UNDER_FIVE_POUNDS_OFF_THE_ESTIMATES_NEVER_CORRECTS_THEM_THE_REVENUE_ROWS_CLASS_E_2026-10-29.md).
-    Knowledge first (K8): amend docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
-    to say what a bill on an actual read charges after estimates, citing SLC 21B and Ofgem / Citizens
-    Advice estimated-bill guidance, and label it GAP if no source speaks to a floor. Then stop CATCHUP_MATERIALITY_THRESHOLD_GBP
-    from dropping the correction in company/billing/monthly_bill_assembly._resolve_catchup, keeping it
-    at most as a display choice. Add a test that is red on origin with PROS-2016-0370''s +GBP 3.07 run.
-    Replay both F and 789d0a6d2''s catch-up VAT on the 9553d403b7 book (/var/tmp/fresh-run-out-9553d403b7):
-    count dropped corrections, bills with short VAT, and the revenue row. File the counts as a pre-registration
-    in docs/staging/records/ for the next fresh run. Move both findings to done/, with any residue named.'
-  why: These are the two billing defects behind leg one's excepted revenue breaches, and they are real
-    billing errors on 754 accounts, not page errors. The grade predicts the revenue row goes 25 -> 1 (PROS-2017-0117).
-    Done means the fix and its test are on origin, the knowledge page is cited in the commit, the replay
-    counts are filed before item 2 launches, and the queued continuation the-catch-up-vat-reaches-the-vat-line
-    is retired premise-spent, naming 789d0a6d2.
-  written_at: 1793309299.264
-- id: the-fresh-run-that-grades-the-desk-cure-and-the-catch-up-fixes
+  what: 'Explain and fix the one red at origin HEAD (pretest /var/tmp/pretest-e83e2de665.log): tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py::test_the_accounts_closing_balance_is_the_sum_of_its_two_fuels
+    fails ''no dual leg closed in credit; the per-fuel refund is not reached''. Read the running before/after
+    probe (/var/tmp/dualprobe/before.pkl vs after.pkl, pre- and post-053377eac) before writing anything.
+    Decide which it is: class F''s netting removed a credit leg that was itself the floor''s artefact
+    (then re-key the fixture to the property, a dual household whose leg closes in credit, found or constructed,
+    and assert it CAN be reached), or a real per-fuel refund regression (then fix company/billing or the
+    triad, red-then-green). Land by pathspec with the cause in the commit.'
+  why: Item 2's own rule is that a red is fixed with an owner before launch, and this red is why the fresh
+    run did not start. Done means that test is green at origin HEAD, the commit names which of the two
+    causes it was with the probe's counts, and nothing else in tests/simulation or tests/company/billing
+    is red.
+  written_at: 1793320152.749
+- id: grade-the-e83e2de665-book-every-read-nets-its-run
   lane: D_billing_metering
   side: supplier
-  what: 'After item 1 lands, run tests/company/billing and the tests of every module changed since 9553d403b7
-    at origin HEAD. Do not run them beside a long job. A red is fixed with an owner before launch. Then
-    launch one fresh run at origin HEAD through launch_long_job, and grade it with the full domain-invariant
-    suite against the pre-registrations in docs/staging/records/: the desk cures nothing on a due date
-    it still holds (P1 to P4), item 1''s counts, and the catch-up VAT. Build the Explore cast and the
-    customer pages from that book. Grade the debt slot''s four checks, and the N1, N8 and N9 households,
-    on those pages. Set each max_breached in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml to what this
-    book measures, and retire rows that read 0.'
-  why: Every fix since 9553d403b7 (desk cure, catch-up VAT, read-to-read, N1/N8/N9) is graded only in
-    replay, and legs two and three need built pages from a book that carries them. Done means the grade
-    is on origin, it states whether leg one is met in substance, and it says for each of the eight Explore
-    slots whether it is filled validly or honestly empty.
-  written_at: 1793309299.264
+  what: After item 1 lands, launch one fresh run at origin HEAD through launch_long_job (reuse /var/tmp/fresh-run-wt-e83e2de665
+    only if its HEAD is origin's) and grade it with the full domain-invariant suite against docs/staging/records/SEAT_PREREGISTRATION_EVERY_READ_NETS_ITS_RUN_AND_THE_CATCH_UP_VAT_ON_THE_VAT_LINE_2026-10-29.md
+    and the desk-cure pre-registration (70e66b721, P1). Build the Explore cast and customer pages from
+    that book, and grade the debt slot's four checks and the N1, N8 and N9 households on them. Set each
+    max_breached in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml to what this book measures, and retire
+    rows that read 0.
+  why: Class F, the catch-up VAT, the desk cure and N1/N8/N9 are graded only in replay, and legs two and
+    three need built pages from a book that carries them. Done means the grade is on origin, it states
+    whether leg one is met in substance, each pre-registered prediction is graded held or refuted beside
+    itself, and each of the eight Explore slots is filled validly or honestly empty.
+  written_at: 1793320152.749
 - id: leg-one-reads-the-five-uncheckable-rows
   lane: D_billing_metering
   side: supplier
@@ -58,45 +52,52 @@ focus:
     gradeable, or record per row why they cannot be: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW (export
     region and tariff name), INV_COMMITTED_PRICE_IS_THE_TARIFFS_PRICE_PER_FUEL_AT_A_DATE (export the page''s
     committed panel), INV_UNIT_RATE_EPG_HOUSEHOLD, INV_ESTIMATE_RUN_WITHIN_TENURE and INV_EV_ADOPTION_ELECTRICITY_ONLY.
-    Change tools/generate_billing_ledger.py or company/billing/raw_account_export.py as needed, and grade
-    each on item 2''s book.'
+    Change tools/generate_billing_ledger.py or company/billing/raw_account_export.py as needed. This can
+    be built while item 2''s run computes, and grades on item 2''s book.'
   why: Leg one's 'zero unexplained breaches' says nothing about rows the runner cannot read, and the SVT
-    row is the ruling's own step 2, the crisis gas price. Done means each of the five grades a number
-    on item 2's book, or carries a named reason it cannot that the next cold reader can check.
-  written_at: 1793309299.264
+    row is the ruling's own step 2, the crisis gas price. It was not drawn last stretch. Done means each
+    of the five grades a number on item 2's book, or carries a named reason it cannot that the next cold
+    reader can check.
+  written_at: 1793320152.749
 - id: the-fifth-cold-read
   lane: D_billing_metering
   side: other
   what: Once item 2's grade and rebuilt pages are on origin, and not before, run the fifth cold read (.claude/skills/cold-eyes-walk/SKILL.md)
     on Explore plus a random handful of households from that book. Grade all three legs of the exit test
-    in docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md. Check specifically
-    that SYN-2016-550, PROS-2019-0246, OCC-2f64fad94fe7 and the debt slot's household print one figure
-    per fact. File each new class as a finding with a blind row.
+    in docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md, and write
+    the reading to docs/staging/records/. Check specifically that SYN-2016-550, PROS-2019-0246, OCC-2f64fad94fe7
+    and the debt slot's household print one figure per fact. File each new class as a finding with a blind
+    row.
   why: Only a cold read can meet leg three, and the ruling asks for a reading before the ruled order resumes.
     Done means the reading is on origin and grades each leg. If all three are met, it is the report to
-    the director that ends the correctness stretch. If not, the new classes are filed.
-  written_at: 1793309299.264
+    the director that ends the correctness stretch and the advisor file moves to done/. If not, the new
+    classes are filed.
+  written_at: 1793320152.749
 not_now:
-- what: Retiring the queued continuation the-catch-up-vat-reaches-the-vat-line as separate work.
-  why: 789d0a6d2 already carries the VAT delta onto vat_gbp. Item 1 grades it in replay and retires the continuation premise-spent, so a tick drawing it alone would redo landed work.
+- what: Launching the fresh run now, beside the red, and explaining the dual-fuel test afterwards.
+  why: If class F removed a real per-fuel credit refund, the run would grade a billing defect as a fix and be thrown away; the probe that decides it is already running, so the wait is short and the run
+    is about 75 minutes either way.
+- what: Relaxing or skipping the dual-fuel test's credit-leg assertion to unblock the run.
+  why: That assertion is the guard that the per-fuel refund can be reached; deleting it is the 'refuses everything passes' shape. It is re-keyed to the property or the code is fixed, never dropped.
 - what: The fifth cold read on the 9553d403b7 book now.
-  why: That book's pages were not built, and it predates the desk cure, the catch-up VAT and the N1/N8/N9 fixes. A read on it would re-find what is already fixed in code.
-- what: Launching the fresh run before class F is fixed.
-  why: It would grade leg one with a known billing defect on 754 accounts still in it, and a second run would follow within hours. One run carrying F is cheaper than two, and item 1 is small.
+  why: That book carries none of the desk-cure, catch-up VAT, class F or N1/N8/N9 fixes and its pages were not built, so a reading would re-find fixed classes and could not meet the exit.
 - what: Tracing PROS-2017-0117 (class B, the revenue row's last breach).
-  why: One account, excepted with a named cause. Items 1 and 2 will show whether it is the only one left.
+  why: One account, already named with a cause; the e83e2de665-or-later book re-measures it, so it is traced only if it survives that grade.
 - what: Building the BSC EAC blend for the billing estimate (the open practitioner question's proposal).
-  why: Its weight turns on SPAR, which is not published within reach, so building it now means picking a number. The 179 stay excepted on E1 as their cause until the director answers or a sourced SPAR appears.
+  why: It needs SPAR, a value nobody has established; the 179 breaches stay excepted on E1 with their cause until the director's practitioner answer, and the concern does not block the rest.
 - what: Publishing the corrected customer pages before 2 Nov.
-  why: The weekly window holds content publishing until 2026-11-02T04:00Z, and the next book is not run. The 2 Nov publish carries everything at once.
+  why: The weekly window holds content publishing; the fixes reach the live pages at the 2 Nov publish, and an out-of-window publish of a book not yet cold-read would risk publishing a class the fifth read
+    finds.
 - what: A policy that carries the corrected renewal belief, the flat-rule baseline run, and other lever or feature work.
-  why: The director's 26 Oct ruling puts correctness first until its exit test is met, and legs two and three are not re-read.
+  why: The director's correctness ruling puts these behind its exit test, which is not met; the renewal belief's fate is fixed in wrong_triage with its owner.
 - what: A world build for households' demand response to 2022-23 prices (N4).
-  why: It moves every crisis-year figure at once and would make the exit test's counts unattributable. It comes after the exit test, knowledge page first.
+  why: World work only where it blocks a supplier result; it does not block the correctness exit, and supplier-first holds.
 - what: A mechanism tying billing-basis changes to the tests that drive them.
-  why: No new red is known. Item 2 runs the billing suite and the changed modules' tests at origin before its run, which is the cheaper check for now. A red on origin makes it a fix with an owner.
-- what: Reaping or landing the seven worktrees with commits on no remote ref.
-  why: All are locked, older salvage, and nothing in focus depends on them. Checking each against origin costs ticks the exit test needs more.
+  why: The cheap leg, running tests/company/billing and tests/simulation at origin HEAD before a run, just caught this stretch's red; building a selection mechanism now would delay the exit for a control
+    the pretest already supplies.
+- what: Reaping or landing the nine worktrees with commits on no remote ref.
+  why: Two (pretest-e83e2de665, pretest-preF) are pretest scratch whose SALVAGE commits hold test output, and item 1 may still read them; the b12, budgetpay, om2 and simsuite ones are named in earlier records.
+    None blocks the exit, so they wait for a quiet stretch.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls,
     where 40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term''s tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus
@@ -162,7 +163,9 @@ wrong:
     The correctness ruling''s exit test is not met, so it is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
     ruling''s exit test is not met, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit
     test is not met (the fourth cold read graded legs two and three not met), so it is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers
-    backwards. The correctness ruling''s exit test is not met (leg one is met in the letter on the 9553d403b7 book, legs two and three are not re-read), so it is not in focus.'
+    backwards. The correctness ruling''s exit test is not met (leg one is met in the letter on the 9553d403b7 book, legs two and three are not re-read), so it is not in focus. 00:24: Unchanged. No policy
+    carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met (the fresh run that grades the last billing fixes has not launched),
+    so it is not in focus.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Two landings turned tests on origin red that their own test selection never ran. e81b1b156 set enforce: true, and four flow tests in tests/background/test_process_run_complete.py
     went red, because the main flow graded a ledger on disk from another run (INV_READ_MONOTONIC 29) and refused. Its receipt shows 14 tests passed, and that file was not among them. 3e19e5676 had already
@@ -204,7 +207,10 @@ wrong:
     each on its own test selection: the same exposure three more times. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 21:22: Unchanged.
     No new red is known. 789d0a6d2 changed company/billing/dd_review.py, invoice.py, monthly_bill_assembly.py, pre_bill_validation.py, statement_export.py, saas/ledger.py and simulation/dd_balance_book.py,
     and 70e66b721 changed company/billing/collections_journey.py, each on its own test selection: the same exposure twice more. Focus item 2 runs tests/company/billing and the tests of every module changed
-    since 9553d403b7 at origin HEAD before its run. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed.'
+    since 9553d403b7 at origin HEAD before its run. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 00:24: Unchanged, and a new instance.
+    053377eac (class F) landed on its own selection, and the pretest at e83e2de665 (origin HEAD) read 5,046 passed and 1 failed: tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py::test_the_accounts_closing_balance_is_the_sum_of_its_two_fuels
+    (''no dual leg closed in credit; the per-fuel refund is not reached''). Its cause is not established; a before/after probe (/var/tmp/dualprobe) is running. Focus item 1. Nothing ties a change to a gate
+    switch or a billing basis to the tests that drive it, so the class is not fixed.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The published customer pages print ''Paid in total'' equal to ''Revenue billed'' on every account, while the stage-5 ledger collected less (OCC-52fbc3104c5f: GBP 4,747.99
     against 5,062.23). They also show balances that are not billed less paid, and a ''gross margin'' of 41-66% that is not defined. Found by the first cold read (501ef4fcc). Focus item 2. 18:22: The cause
@@ -216,7 +222,7 @@ wrong:
     at the 2 Nov publish. 21:24: Unchanged. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:20: Unchanged. The live pages change only
     at the 2 Nov publish. 06:23: Unchanged. The live pages change only at the 2 Nov publish. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:22: Unchanged. The live pages change only
     at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the 2 Nov publish. 18:21: Unchanged. The live pages change only at the 2 Nov publish. 21:22: Unchanged. The live pages change only
-    at the 2 Nov publish.'
+    at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The supplier''s customer timeline showed world life events: 414 of 649 fell after supply ended. 4d7f6021a clips them in the generator, but the live pages change only
     at the 2 Nov publish, and life events inside the supply window are still world truth on that page. Focus item 2 takes the residue. 18:22: The residue is labelled: each life event on the supplier''s
@@ -226,7 +232,7 @@ wrong:
     The live pages change only at the 2 Nov publish. 21:24: Unchanged. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:20: Unchanged.
     The live pages change only at the 2 Nov publish. 06:23: Unchanged. The live pages change only at the 2 Nov publish. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:22: Unchanged.
     The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the 2 Nov publish. 18:21: Unchanged. The live pages change only at the 2 Nov publish. 21:22: Unchanged.
-    The live pages change only at the 2 Nov publish.'
+    The live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The one-due-date fresh run was killed from outside at 7 June 2025, with no exit line, no traceback and an empty output directory (08a9fbcc1). It ran under arm.py from
     a bare shell, not launch_long_job, so the register never saw it die. The cause is not established: memory pressure or a reaper are the candidates, and neither was tested. The replacement run goes through
@@ -245,7 +251,8 @@ wrong:
     against the 7 June run. 15:24: Unchanged in cause. No launch_long_job job launched or ended this stretch, so there is no new evidence either way. 18:21: Unchanged in cause. fresh-run-9553d403b7 launched
     through launch_long_job at 18:12Z and is computing (mid-2018 at 18:21Z, arm.py at 2.7 GB). Memory pressure is still the leading candidate, and it has not been tested against the 7 June run. 21:22: Unchanged
     in cause. fresh-run-9553d403b7 ran clean through launch_long_job (18:12Z to 19:24Z, 4,284 s), the ninth clean run since the death. Memory pressure is still the leading candidate, and it has not been
-    tested against the 7 June run.'
+    tested against the 7 June run. 00:24: Unchanged in cause. No launch_long_job job launched or ended this stretch, so there is no new evidence either way. Memory pressure is still the leading candidate,
+    and it has not been tested against the 7 June run.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The suite grades a different record from the one the page prints. PROS-2019-0246, the 2022-shock slot, has all six EBSS scheme_credit adjustments (GBP 400) on its ledger,
     but its invoices carry credit_applied_gbp None, and the page prints ''The electricity bill for December 2022 was GBP 598.04'' with no credit line. INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 reads the ledger,
@@ -275,27 +282,17 @@ wrong:
     focus item 1 grades it. The fourth cold read (fb40dbb3a) still finds PROS-2019-0246''s EBSS credit not netted from ''£598.04 to pay'' (N1): the invoice carries the credit, and the page''s amount to
     pay does not use it. Focus item 4. 21:22: Both legs are fixed in code, and one is graded. The overdue leg is graded: on the 9553d403b7 book INV_OVERDUE_WITHIN_PAGE_BALANCE went 2,500 -> 0 of 19,819
     and its exception is retired (4b378c355). The EBSS leg (N1, the amount to pay nets the bill''s own credit) is fixed in code by e8149d6d0 and not yet seen on rebuilt pages by a cold read. It stays false
-    until the fifth cold read (focus item 4) and the 2 Nov publish.'
+    until the fifth cold read (focus item 4) and the 2 Nov publish. 00:24: Unchanged. The overdue leg is graded at 0; the EBSS leg (N1) is fixed in code by e8149d6d0 and not seen on rebuilt pages. It stays
+    false until the fifth cold read (focus item 4) and the 2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. A successor''s page prints a different meter number from the account it succeeded: in 253 of 253 successions, the occupant''s MPAN or MPRN differs from its predecessor''s,
     because tools/generate_customer_data.py (_mpan, _mprn) and company/crm/customer_registry.mpan_core hash the account id, not the supply point. Found by d70e32cd5. The queued continuation the-successor-page-carries-its-predecessors-meter-point
     fixes it. 18:24: Fixed in code: 971a37583 mints MPAN, MPRN and serial from the supply point, with a test. It stays false because the live pages change only at the 2 Nov publish. 21:24: Unchanged. The
     live pages change only at the 2 Nov publish. 00:24: Unchanged. The live pages change only at the 2 Nov publish. 03:20: Unchanged. The live pages change only at the 2 Nov publish. 06:23: Unchanged. The
     live pages change only at the 2 Nov publish. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:22: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The
-    live pages change only at the 2 Nov publish. 18:21: Unchanged. The live pages change only at the 2 Nov publish. 21:22: Unchanged. The live pages change only at the 2 Nov publish.'
+    live pages change only at the 2 Nov publish. 18:21: Unchanged. The live pages change only at the 2 Nov publish. 21:22: Unchanged. The live pages change only at the 2 Nov publish. 00:24: Unchanged. The
+    live pages change only at the 2 Nov publish.'
   corrected: false
-- what: 'THE WORLD''S, THIS STRETCH. A direct debit succeeds 31 to 45 days after its due date with no return on 181 accounts (PROS-2016-0020: invoice 9291 due 2016-03-20, collected 2016-04-28). The world
-    gives a DD payer a pay-on-receipt payer''s late branch. Found by 6bdf08992 (R1). The continuation a-direct-debit-is-collected-on-its-date-or-returned is landing it now (surgical_land pid 3618263). 21:24:
-    Unchanged, and I said it was landing when it was not. The 18:24 record put it in not_now as ''landing now (pid 3618263)''. That draw landed nothing, the pid is gone, and the continuation a-direct-debit-is-collected-on-its-date-or-returned
-    is still offered by the queue. 00:24: Fixed in code, not graded. 1b82c3c0e makes a DD that is not returned be collected on its due date (arrears_engine.A_DD_IS_NEVER_LATE, a world change made before
-    any supplier result was seen). It stays false until focus item 1''s fresh run grades it. 03:20: Unchanged. Fixed in code, not graded: no fresh run has been launched since 1b82c3c0e. Focus item 1. 06:23:
-    Unchanged. Fixed in code, not graded: fresh-run-0b2879ef7d carries it and is queued for memory. Focus item 1. 09:24: Unchanged. Fixed in code and not graded. fresh-run-209c3350ab carries it, so focus
-    item 1 grades it as P5. 12:22: Graded, not corrected. 724c494d9: the payment-record row fell 181 -> 6 on the 209c3350ab book (P5 held). The 6 are on the same ''missed DD without a return'' leg and are
-    not traced, so the defect may not be wholly gone. Focus item 3. 15:24: Unchanged. The 6 are not traced: the small-exceptions item was not worked this stretch. Focus item 1. 18:21: Traced and fixed in
-    code, not graded. 8d9dd19b5 found the 6 were part of a larger class the 30-day window hid: 38 bills on 35 accounts, every one a mover''s last two DDs. A mover''s DD is now collected on its date or returned,
-    with a red-then-green test and a prediction filed. fresh-run-9553d403b7 carries it; focus item 1 grades it. 21:22: CORRECTED. 4b378c355 graded fresh-run-9553d403b7: the payment-record row went 35 ->
-    0 of 1,130 and its exception is retired, and P1 (no mover''s DD late without a return, 0) and P3 held.'
-  corrected: true
 - what: 'THE PAGES'', THIS STRETCH. The Energy Price Guarantee is inside ''Revenue, before VAT'' at the supplier''s tariff and on no page line, so 266 of 316 accounts fall outside the billed-against-revenue
     band. 50 more are open: 34 accounts never supplied in the EPG window and 16 supplied in it, including the cold reader''s pre-EPG example OCC-423594fbfa6b. Found by 6bdf08992 (R2). Focus item 4. 21:24:
     Unchanged. Not drawn last stretch. Focus item 3. 00:24: Fixed in code, not graded. 82d26fbd4 prints the EPG support on settled kWh as its own line under revenue, grades the row on bills plus support,
@@ -307,11 +304,14 @@ wrong:
     1 (PROS-2025-0106) in held bills, which 8f50cbc5e then showed are billed at the closing read. Six are a new class (e): no catch-up, last bill on an actual read, billed kWh 1.5 to 4.7% off settled. That
     class has no cause. Focus item 1 traces it on the new book. The pages change only at the 2 Nov publish. 21:22: Traced, not corrected. On the 9553d403b7 book the revenue row is 25, and 4b378c355 traced
     every one: 17 are a read-to-read correction under GBP 5 that is dropped (class F, focus item 1), 7 are a catch-up''s VAT missing from the VAT line (fixed in code by 789d0a6d2, not graded), and 1 (PROS-2017-0117)
-    is an under-estimate run beyond the row''s bound. The EPG line itself held. The pages change only at the 2 Nov publish.'
+    is an under-estimate run beyond the row''s bound. The EPG line itself held. The pages change only at the 2 Nov publish. 00:24: Improved in code, not graded. 053377eac fixes class F (an actual read now
+    nets its estimate run whatever its error), the 17 F breaches'' cause, and 789d0a6d2 the 7 catch-up VAT breaches. The predicted revenue row is filed in docs/staging/records/SEAT_PREREGISTRATION_EVERY_READ_NETS_ITS_RUN_AND_THE_CATCH_UP_VAT_ON_THE_VAT_LINE_2026-10-29.md.
+    No fresh run carries them yet (focus item 2). The pages change only at the 2 Nov publish.'
   corrected: false
 - what: 'THE WORLD''S, THIS STRETCH. Households do not cut use when prices rise: on the same accounts, 2021 to 2022, electricity -0.3% and gas -2.2%, against a published -10.3% and -19.2% unadjusted (docs/market_research/domestic_shift_response_arc.json).
     Every crisis-year bill, bad-debt and margin figure inherits the missing response. Measured by 6bdf08992 (N4). In not_now. 21:24: Unchanged. In not_now. 00:24: Unchanged. In not_now. 03:20: Unchanged.
-    In not_now. 06:23: Unchanged. In not_now. 09:24: Unchanged. In not_now. 12:22: Unchanged. In not_now. 15:24: Unchanged. In not_now. 18:21: Unchanged. In not_now. 21:22: Unchanged. In not_now.'
+    In not_now. 06:23: Unchanged. In not_now. 09:24: Unchanged. In not_now. 12:22: Unchanged. In not_now. 15:24: Unchanged. In not_now. 18:21: Unchanged. In not_now. 21:22: Unchanged. In not_now. 00:24:
+    Unchanged. In not_now.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. After an estimated run, the billing ledger printed an actual bill''s register as the previous printed register plus the month, not the meter''s: OCC-01e79fcf2d4fg Nov
     2021 printed 1,618.9 against the meter''s 6,514.85. That made estimates look ''too close to the month'' (R3) when they were honest annualised advances. Found by c4738b64c. Fixed in code by 37abacdf4
@@ -320,7 +320,7 @@ wrong:
     140) and INV_PERIOD_MATCHES_READS held at 0. The fix does what it claimed. It stays false until the 2 Nov publish. 03:20: Unchanged. Graded; the live pages change only at the 2 Nov publish. 06:23: Unchanged.
     Graded; the live pages change only at the 2 Nov publish. 09:24: Unchanged. Graded. The live pages change only at the 2 Nov publish. 12:22: Unchanged. Graded. The live pages change only at the 2 Nov
     publish. 15:24: Unchanged. Graded. The live pages change only at the 2 Nov publish. 18:21: Unchanged. Graded. The live pages change only at the 2 Nov publish. 21:22: Unchanged. Graded. The live pages
-    change only at the 2 Nov publish.'
+    change only at the 2 Nov publish. 00:24: Unchanged. Graded. The live pages change only at the 2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. 6,436 actual bills after an estimated run printed an opening read nobody took: the register less the month, not the previous closing (C3g gas, Dec 2016: previous closing
     3,839.2, printed opening 5,942.3). Found by 686fb73ef (E3). Fixed in code by 1bdd86b84 with the row INV_OPENING_IS_THE_PREVIOUS_CLOSING: 6,405 to 13 on the rebuilt ledger, the 13 on ToU returns (E4).
@@ -328,13 +328,13 @@ wrong:
     Focus item 1, then the 2 Nov publish. 06:23: Unchanged. Not graded: the queued fresh run grades it. Focus item 1, then the 2 Nov publish. 09:24: Unchanged. Not graded. Focus item 1 grades it as P2,
     and then it waits for the 2 Nov publish. 12:22: Graded: P2 held on the 209c3350ab book (724c494d9), and 2a2c5c577 retired the 13 ToU residuals at 0. It stays false until the pages change at the 2 Nov
     publish. 15:24: Unchanged. Graded. The live pages change only at the 2 Nov publish. 18:21: Unchanged. Graded. The live pages change only at the 2 Nov publish. 21:22: Unchanged. Graded. The live pages
-    change only at the 2 Nov publish.'
+    change only at the 2 Nov publish. 00:24: Unchanged. Graded. The live pages change only at the 2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. ToU band indices do not sum to the total index on 417 of 1,189 ToU invoices (39 of 79 accounts) on the 37abacdf42 book, up from 223 before the printed-register fix, and
     433 after 1bdd86b84. No row grades it. Found by 686fb73ef (E4). Focus item 4. 03:20: Unchanged. Not drawn last stretch. Focus item 4. 06:23: Unchanged. Not drawn last stretch. Focus item 4. 09:24: Unchanged.
     Not drawn last stretch. Focus item 4. 12:22: Fixed in code and graded on the rebuilt 209c3350ab ledger: 2a2c5c577, knowledge first, blind row INV_TOU_BANDS_SUM_TO_THE_TOTAL, 542 of 1,429 -> 0. It stays
     false until the pages change at the 2 Nov publish. 15:24: Unchanged. Graded. The live pages change only at the 2 Nov publish. 18:21: Unchanged. Graded. The live pages change only at the 2 Nov publish.
-    21:22: Unchanged. Graded. The live pages change only at the 2 Nov publish.'
+    21:22: Unchanged. Graded. The live pages change only at the 2 Nov publish. 00:24: Unchanged. Graded. The live pages change only at the 2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The household page printed its meter type from two records that disagree: the header said ''Traditional'' (saas.customers, defaulting to traditional) while the day clock
     said the home has a smart meter (SYN-2016-479, PROS-2025-0153). Found by the third cold read (691ee014f, N8), the leg-three new class. Fixed in code by d575b53d2 (one home: the meter the bills were
@@ -345,7 +345,8 @@ wrong:
     Nov publish. 09:24: Unchanged. The live pages change only at the 2 Nov publish. 12:22: Unchanged. The live pages change only at the 2 Nov publish. 15:24: Unchanged. The live pages change only at the
     2 Nov publish. 18:21: Not fixed on the page. The fourth cold read (fb40dbb3a) found OCC-2f64fad94fe7''s page printing ''Meter Smart'' beside ''meter type is not on the supplier''s record'' (its N8 again),
     so the page still reads two records for one fact. Focus item 4. 21:22: Fixed in code again, not seen. e8149d6d0 makes a gas-only page state its meter once (N8, OCC-2f64fad94fe7), with a page test. It
-    was marked fixed once before and the fourth read found it again, so it stays false until the fifth cold read sees the rebuilt page (focus item 4) and the 2 Nov publish.'
+    was marked fixed once before and the fourth read found it again, so it stays false until the fifth cold read sees the rebuilt page (focus item 4) and the 2 Nov publish. 00:24: Unchanged. Fixed in code
+    by e8149d6d0 and not seen on a rebuilt page. It stays false until the fifth cold read (focus item 4) and the 2 Nov publish.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The debt-journey slot''s household (SYN-2016-356) tells a story its own record contradicts: the page dates ''First overdue notice'' (25 Nov 2016) before the slot''s ''Missed
     a payment'' moment (15 Dec), prints ''4 of 4 bills paid, 0 missed'' at that moment, and shows no DCA placement though the ledger holds one (30 Sep 2018). The slot''s validity predicate passed it. Found
@@ -357,57 +358,50 @@ wrong:
     its own row below). The live slot stays empty until 2 Nov, because the published pages carry no due date. Focus item 3. 18:21: Improved, not corrected. 5d7775b40 makes the ledger''s letters yield while
     the desk holds a debt: ''notice before the miss'' refusals 55 -> 3, and valid debt households 195 -> 223. But the fourth cold read graded the slot''s new household, SYN-2016-550, not valid: it closes
     ''Debt cleared'' over £258.84 its own ledger still holds (its own row below). Focus item 2. 21:22: Fixed in code, not graded. 70e66b721 adds the slot''s fourth check (a ''cleared'' ending must agree
-    with the page''s owed figure), and the desk no longer cures on a due date it still holds. The 9553d403b7 book''s pages were not built, so no slot has been re-read. Focus items 2 and 4.'
+    with the page''s owed figure), and the desk no longer cures on a due date it still holds. The 9553d403b7 book''s pages were not built, so no slot has been re-read. Focus items 2 and 4. 00:24: Unchanged.
+    Fixed in code (70e66b721), not graded: no book carrying it has had its pages built. Focus items 2 and 4.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. E1, the one-read fix (1bdd86b84), bills the registry EAC/AQ until a meter''s reads span six months, and that hold has no source: the DESNZ line it cited describes
     the AA, not the EAC (98ed667fb). The settlement EAC moves on every advance, weighted by FYC x SPAR (BSC Annex S-2 4.3.7), and SLC 27.15 ranks the supplier''s own metered history above the registry figure.
     179 estimated bills on 37 accounts follow the registry figure over their own reads on the 209c3350ab book. SPAR is not published within reach, so the blend cannot be built without a value nobody has
     established. Held for the open practitioner question in for_the_director. 15:24: Unchanged. Held for the open practitioner question in for_the_director. 18:21: Unchanged. Held for the open practitioner
-    question in for_the_director. 21:22: Unchanged. Held for the open practitioner question in for_the_director.'
+    question in for_the_director. 21:22: Unchanged. Held for the open practitioner question in for_the_director. 00:24: Unchanged. Held for the open practitioner question in for_the_director.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. A missed payment has two definitions. The household summary''s payment record counts a bill missed 30 days after it is due (PAYMENT_WINDOW_DAYS); the desk dates collections_missed_payment
     on the due date. So a debt story opens on ''0 missed'', and on the published book the debt slot''s own check refuses 599 of 599 households. Found by 4595e5415 (SEAT_FINDING_THE_PAGE_COUNTS_A_PAYMENT_MISSED_THIRTY_DAYS_AFTER_THE_DESK_SAYS_IT_WAS_2026-10-29.md).
     Focus item 2. 15:24: Fixed in code, not corrected. dae9f598d gives it one definition (a bill unpaid at its due date is missed the next day, the day the desk opens its journey), with the knowledge page
     (debt_and_collections.md s.7.5) and INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE keyed to it. It stays false until the pages change at the 2 Nov publish. 18:21: Unchanged. Fixed in code; fresh-run-9553d403b7
     carries it and focus item 1 grades it against its pre-registration. The pages change only at the 2 Nov publish. 21:22: Graded: the row is 0 on the 9553d403b7 book (4b378c355), exception retired. It
-    stays false until the pages change at the 2 Nov publish.'
+    stays false until the pages change at the 2 Nov publish. 00:24: Unchanged. Graded at 0. The live pages change only at the 2 Nov publish.'
   corrected: false
-- what: 'THE WORLD''S, THIS STRETCH. The payment triad draws a bill that is not a final bill as a mover''s exit. It passes due_date where mover_final_bill_outcome takes period_end (the other three callers
-    pass period_end), so the bill for the month before a move, which falls due in the move month, is drawn as an exit. Its seed string also differs from the DD book''s draw of the same bill. Three of the
-    four part-paid bills in class C were not final bills (SYN-2016-083 Jan 2019, SYN-2016-016g Feb 2018, OCC-b3b4e19ff255 Dec 2024). Found by 156f8dfd6. Focus item 2. 18:21: Fixed in code, not graded. ea73ccebe
-    keys the triad''s exit draw by the bill''s period end, with the DD book''s seed string, red-then-green. On the 209c3350ab book 71 of 211 final-bill outcomes on 60 households move, filed as a prediction
-    before the run. fresh-run-9553d403b7 carries it; focus item 1 grades it. 21:22: CORRECTED. 4b378c355 graded fresh-run-9553d403b7: P1 held (59 households move, inside 45 to 75) and P2 held (41 to 44
-    of 252).'
-  corrected: true
 - what: 'THE PAGES'', THIS STRETCH. Two engines write notices for one debt, with different balances. On 55 of 402 debt matches on the 209c3350ab book, the old arrears engine''s first or second notice narrates
     the debt the desk holds, at a different amount: on 22 Jul 2019, OCC-9edd7eed4aab''s desk reads GBP 60.78 overdue and its first notice says GBP 18.71 outstanding; OCC-69932b473610 prints GBP 79.11 beside
     the desk''s GBP 273.85. A reader sees two amounts owed. Found by 1ba034b9c (SEAT_FINDING_THE_OLD_ARREARS_ENGINE_NARRATES_THE_DESKS_DEBT_ON_ITS_OWN_CLOCK_AND_AMOUNT_2026-10-29.md). Focus item 3. 18:21:
     Fixed in code, not graded. 5d7775b40, knowledge first (company_debt_management.md), makes the old engine''s letters yield while the desk holds a debt: 55 -> 3 on the 209c3350ab book, and the finding
     moved to done/. It stays false until the fresh run''s cast is rebuilt and the pages change at the 2 Nov publish. 21:22: Unchanged. Fixed in code (5d7775b40) and carried by the 9553d403b7 run, but that
-    book''s cast was not built, so it is not graded. Focus item 2 builds it.'
+    book''s cast was not built, so it is not graded. Focus item 2 builds it. 00:24: Unchanged. Fixed in code (5d7775b40), not graded: no book carrying it has had its cast built. Focus item 2.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The committed tariff price is read from one bill: site/explore/index.html stagePriced takes d.invoices[0], so a zero-use or no-rate first bill prints ''0.00 p/kWh'' as
     the committed rate (OCC-2f64fad94fe7: a 22-29 Feb 2024 stub). It hits 44 of 1,293 pages and 25 of the picker''s 752. No row graded the printed price, because the price rows grade bills. Found by the
     fourth cold read (fb40dbb3a, N9), with the blind row INV_COMMITTED_PRICE_IS_THE_TARIFFS_PRICE_PER_FUEL_AT_A_DATE. Focus item 3. 21:22: Fixed in code: 90b330d09 reads the first bill that charged energy,
     44 of 1,293 rebuilt 209c pages -> 0, with a red-then-green page test, and the finding is in done/. The row is UNCHECKABLE in the runner because the page''s committed panel is not exported (focus item
-    3). It stays false until the 2 Nov publish.'
+    3). It stays false until the 2 Nov publish. 00:24: Unchanged. Fixed in code (90b330d09); the row is still UNCHECKABLE in the runner (focus item 3). It stays false until the 2 Nov publish.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds. SYN-2016-550''s story ends ''15 Dec 2024, Debt cleared'' while its page prints
     GBP 258.84 owed: GBP 71.31 is an electricity bill from 2 Nov 2018, unpaid and held flat for six years, and GBP 187.53 is the gas bill of 7 Jan 2024, unpaid while every later bill is paid on its date.
     The debt slot''s validity predicate passed it, because nothing checks that a ''cleared'' ending agrees with the owed figure. Found by the fourth cold read (fb40dbb3a, leg two). Focus item 2. 21:22:
     Fixed in code, not graded. 70e66b721, knowledge first (debt_and_collections.md s.7.6): 2,510 of 3,413 cures on the 209c book were due-date artefacts of FIFO, and the prediction (P1: zero such cures)
-    is filed for the next fresh run. Focus item 2 grades it.'
+    is filed for the next fresh run. Focus item 2 grades it. 00:24: Unchanged. Fixed in code (70e66b721), not graded: the next fresh run (focus item 2) grades its P1.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. A catch-up was added to the bill gross and its VAT never reached the VAT line: 3,705 bills on the 9553d403b7 book printed too little VAT, about GBP 5,700, and 7 accounts
     breach the revenue row to the penny. Found by 4b378c355. Fixed in code by 789d0a6d2 (catchup_vat_gbp is added to vat_gbp and the total does not move), not graded on a book. Focus item 1 grades it in
-    replay.'
+    replay. 00:24: Fixed in code (789d0a6d2) and replayed, not graded on a fresh book. 053377eac filed the replay counts as a pre-registration. Focus item 2 grades it.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. An actual read that finds the estimates under GBP 5 out never corrects them: CATCHUP_MATERIALITY_THRESHOLD_GBP drops 2,747 of 6,452 read-to-read corrections on the
-    209c book (754 of 1,293 accounts, 92,490 kWh never billed or refunded), and the floor has no source. A read-to-read bill cannot drop energy. Found by 795765c2a. Focus item 1.'
+    209c book (754 of 1,293 accounts, 92,490 kWh never billed or refunded), and the floor has no source. A read-to-read bill cannot drop energy. Found by 795765c2a. Focus item 1. 00:24: Fixed in code: 053377eac,
+    knowledge first (how_a_supplier_shapes_an_estimate_for_an_unread_month.md), stops the GBP 5 floor dropping corrections (2,744 on the replay), with a red-then-green test and a pre-registration. Not graded
+    on a fresh book, and origin HEAD carries one red its selection did not run (focus item 1). Focus item 2 grades it.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. A pre-registered prediction was refuted: P5 said the desk''s close write-off would fall by at most GBP 509.52, and on the 9553d403b7 book it fell GBP 1,856.34. Two
-    of the run''s changes move it, so it is not attributed. Graded beside the prediction in its own record (4b378c355).'
-  corrected: true
 for_the_director:
 - id: a-practitioner-question-k4-published-sources-exhausted
   raised: '2026-10-29'
