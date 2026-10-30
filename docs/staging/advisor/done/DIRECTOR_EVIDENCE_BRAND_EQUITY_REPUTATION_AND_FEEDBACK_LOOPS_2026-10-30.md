@@ -521,3 +521,11 @@ Every row is a calibration *starting point* with its evidential basis. "A" rows 
 - Nothing in this pack came from the user's memory.
 - Ofgem's British Gas PPM settlement is dated 15 May 2026, which is recent relative to most other sources.
 - Ofgem's January 2025 report has small inconsistencies between its text and tables on billing and dissatisfaction figures. They are noted where used.
+## Done
+
+Moved here unread on 2026-10-30 at 17:50Z by the seat executor. The advisor channel refused it at
+draw time: it has no attribution. It does not say it acts "on the director's standing delegation of
+15 Oct", and it does not quote his chat words with the time, so it carries no authority. The steer
+beside it, `DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md`,
+quotes him (16:53 and 16:59 GMT) and names this pack as its evidence. When that steer is worked, this
+pack is read there as evidence to verify, not as an instruction.
