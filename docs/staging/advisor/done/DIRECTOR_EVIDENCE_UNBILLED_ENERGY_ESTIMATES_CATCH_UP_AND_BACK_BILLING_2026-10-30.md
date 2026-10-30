@@ -443,3 +443,9 @@ The rows keep the population split above: a direct debit step-up is the first-mo
 **The sharpest result.** BB1's range for switching within six months of a catch-up bill is 0.57× to 1.28× the base rate. It is read from Ofgem/BMG in `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`. The page shows the pack's 61% as stated intent and does not use it as a rate.
 
 **Status.** This is stage 0 of `docs/design/THE_IMPROVEMENT_LOOP.md` for this area. It is held by `site/knowledge/test_a_pain_point_row_has_evidence_or_a_ranged_gap.py`.
+
+**Verdict pass, 30 Oct 2026 (the-evidence-packs-become-knowledge).** Each [unverified] item now carries a
+verdict (verified, refuted, partly or GAP) against its primary, in §9 of the page named above. The
+pain-point ranges are the site rows the pass above landed; this pass adds none. The three pages the
+direction named now point at the new page, and their read-duty wording was checked: all say an annual
+duty, with the two-yearly duty named as the repealed inspection duty. Nothing there needed correcting.

@@ -424,3 +424,9 @@ A second lane worked this pack at the same time as the pass above, and landed af
   - FM3, fall-behind uplift: 0.04 to 0.13 per quarter, from Ofgem Q1 2022.
   - The rest are labelled assumptions.
 - **This is stage 0 of `docs/design/THE_IMPROVEMENT_LOOP.md` for this area.** It is held by `site/knowledge/test_a_pain_point_row_has_evidence_or_a_ranged_gap.py`. The check fails if a row is blank or a range is unordered or has no stated basis. Its door leg, which checks the row reaches the reader, was mutation-checked.
+
+**Verdict pass, 30 Oct 2026 (the-evidence-packs-become-knowledge).** Each [unverified] item now carries a
+verdict (verified, refuted, partly or GAP) against its primary, in §8 of the page named above. The
+pain-point ranges are the site rows the pass above landed; this pass adds none. The three pages the
+direction named now point at the new page, and their read-duty wording was checked: all say an annual
+duty, with the two-yearly duty named as the repealed inspection duty. Nothing there needed correcting.

@@ -17,6 +17,10 @@ the 26 million domestic consumers had received a backbill" and "average backbill
 PDF was then read as text: **neither figure appears in it.** Only figures checked against the
 primary text are marked [H] below.
 
+*What named suppliers do about held bills and exception queues, what customers meet, and the pain
+points with their ranges: `unbilled_energy_what_suppliers_do_and_what_customers_meet_2026-10-30.md`,
+from the director's 30 Oct evidence pack.*
+
 ---
 
 ## 1. What unbilled energy is, and its kinds

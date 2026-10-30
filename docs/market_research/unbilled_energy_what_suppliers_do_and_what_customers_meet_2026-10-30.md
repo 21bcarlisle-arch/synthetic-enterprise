@@ -132,3 +132,27 @@ the curriculum, not the baseline, because the company's 2016-2025 record is what
 The read duty is annual (SLC 21B, reasonable steps); the two-yearly duty was an *inspection* duty,
 repealed 1 April 2016. The invariant library already holds this (`INV_READ_DUTY_ANNUAL`). Nothing to
 correct.
+
+## 9. The pack's [unverified] items, checked against their primaries (30 Oct 2026)
+
+**VERIFIED**, **REFUTED**, **PARTLY** (with the part that holds named), or **GAP** (searched, not
+established). "Not fetched" means a primary exists but could not be read this pass, which is not a GAP.
+
+| Pack line | Claim | Verdict | Primary, and what it says |
+|---|---|---|---|
+| 53 | How many back bills come from reads lost at a meter exchange | **GAP** | Elexon's metering trading-operations data gives MPAN counts only. Its "Erroneous Large EACs and AAs" page was not fetched |
+| 60 | How often crossed meters occur | **GAP** | No Ofgem or Elexon count found. Supplier guidance pages carry none |
+| 66 | Whether a silent occupier is "manifestly unreasonable" (SLC 21BA) | **PARTLY**: not reporting estimated bills is **not** manifestly unreasonable; an occupier who never registered stays **GAP** | Ofgem statutory consultation (Nov 2017) ¶2.16. Written up beside rows B2 and B5 of `back_billing_and_liability.md` |
+| 77 | Settlement run timetable | **VERIFIED**: initial run (SSF) 1 month, R1 2, R2 5, R3 7, RF 14, DF 28 months | Elexon glossary, *2nd Reconciliation* |
+| 77 | EAC/AA mechanics | **PARTLY**: definitions verified ("An estimated rate of consumption, nominally expressed in kWh/Year"; AA is "the rate of consumption … between two meter readings"); spreading by profile and "AA updates EAC" not stated on the pages read (BSCP504 not fetched) | Elexon glossary, *Estimated Annual Consumption* and *Annualised Advance* |
+| 211 | Which billing platform suppliers run | **PARTLY**: E.ON Next runs on Kraken, VERIFIED ("exclusively built on Kraken Technologies' industry-leading platform"; Octopus press release on the npower migration). **OVO runs on Kaluza, not Kraken** (trade report of OVO's SSE migration "onto the Kaluza platform") | octopus.energy/press; news.energyjobline.com |
+| 219 | IFRS 15: revenue as the obligation is satisfied; variable consideration constrained | **VERIFIED** ("recognise revenue when a performance obligation is satisfied"; "highly probable that a significant reversal … will not occur", quoted in an IFRS Foundation staff paper, not ¶56 itself). That unbilled energy is booked as accrued income is supplier practice, not IFRS text | ifrs.org |
+| 230 | Accrued (unbilled) income at four suppliers | **PARTLY**: Octopus Energy Group's *contract assets* were **£996.5m** at 30 Apr 2024 and **£955.8m** at 30 Apr 2025. These "include accrued income and the provision for expected credit losses" and "arise from unbilled revenue", so they are an upper reading, not accrued income alone. OVO and E.ON UK: not fetched. SSE retail: **GAP** (sold to OVO in 2020) | Octopus Energy Group FY25 annual report, trade and other receivables note |
+| 257 | Whether UNC 0398 was implemented | **VERIFIED**: directed 1 Mar 2013, effective 1 Apr 2014. Superseded in direction by **UNC 0896** (approved 22 Aug 2025: 2-3 years). The pack's "proposed" is the wrong tense | Ofgem 395-398 decision; Ofgem 0896 decision page |
+| 338 | Churn caused specifically by back bills | **GAP** | Two searches, none found |
+| 340 | DD cancellations after a catch-up bill | **GAP** | Two searches, none found |
+
+**Corrections from the checks:** the pack's platform line implies OVO is on Kraken. It is on Kaluza.
+Nothing in §1-§8 moves.
+
+The pain points' ranges have one home each, on the site pages (FM, UB and BB rows, b587ead30e).

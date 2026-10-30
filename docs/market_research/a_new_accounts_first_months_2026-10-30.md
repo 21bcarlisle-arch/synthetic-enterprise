@@ -162,3 +162,34 @@ was a meter *inspection* duty (SLC 12.14-12.16) repealed from 1 April 2016. Chec
 library already holds it that way (`INV_READ_DUTY_ANNUAL`, upper 365 days, with a
 `correction_to_brief` naming the repealed inspection duty), as do `read_access_and_theft_duties.md`
 and the smart-meters page. Nothing to correct.
+
+## 8. The pack's [unverified] items, checked against their primaries (30 Oct 2026)
+
+Each item the pack marked [unverified] was checked through the harness's network on 30 Oct.
+**VERIFIED** means the primary says it, **REFUTED** means the primary says otherwise, **PARTLY** names
+the part that holds, and **GAP** means searched and not established. "Not fetched" is not a GAP: it
+says the primary exists but could not be read this pass.
+
+| Pack line | Claim | Verdict | Primary, and what it says |
+|---|---|---|---|
+| 43 | Rolling AQ recalculated monthly from reads (Nexus); the gaining shipper sees AQ at switch | **PARTLY**: monthly rolling AQ holds; what the gaining shipper sees at switch is **GAP** | Xoserve, *Q&A: AQ* (xoserve.com/media/7749/qa-aq.pdf): "A replacement read does not trigger a new Monthly Rolling AQ". The AQ BRD returned 404 (not fetched) |
+| 60, 204 | Comparison sites default usage to TDCVs, and the quote passes to the first DD | **PARTLY**: Uswitch's footnotes assume medium usage at figures that vary by page (2,500 or 2,700 kWh electricity, 9,500 or 11,500 kWh gas); the estimator method and any pass-through to the DD are **GAP** | Ofgem's TDCV letters say TDCVs are used by comparison sites "when the actual annual consumption may not be known" (search snippet only) |
+| 75 | The live REC holds the switch-meter-reading process | **VERIFIED** (name and place) | REC Portal, MHHS consequential change: "REC Schedule 30 - Resolution of Consumer Facing Switching and Billing Issues includes a number of exception processes". The Switch Meter Reading exception process is "mandatory for Non-Half Hourly (NHH) Metering Points". Schedule 30's own text was not fetched |
+| 84 | A deemed CoS read rolls forward from the last valid read on EAC and profile | **PARTLY**: deemed read at CoS confirmed; the formula sits in BSC Annex S-2 (not fetched) | Elexon BSCP504 §4.5.2: "A Deemed Meter Reading shall be calculated … if a valid actual Meter register reading cannot be obtained … Change of Supplier", "using the formulae set out in Annex S-2 of the Code" |
+| 117 | Ofgem's 2021 automatic annual credit refund was adopted as drafted | **GAP** on the outcome, and the August 2022 decision does **not** contain it | Ofgem 2021 consultation: "refund any balance above £0 each year on the anniversary". Ofgem decision on credit balances (Aug 2022) covers only SLC 27.15, making "best and most current information" absolute. It contains no auto-refund |
+| 118 | Content of Ofgem's letter to the ESNZ Committee | **VERIFIED**, dated 29 Nov 2023 | "net domestic customer credit balance was around £4.1 billion, equating to around £140 per customer"; 900,000 customers' DDs reviewed; compliance action covered 12 suppliers and enforcement covered one; "Customers can ask their suppliers for a refund of their net balance at any time". The letter announces no new DD licence change |
+| 130 | OVO sells "smart payments" | **REFUTED** on the pages read | OVO, *How to pay* (ovoenergy.com/help/article/how-to-pay) lists Direct Debit, card, one-off online, cheque and bank transfer. No product of that name was found |
+| 144 | A named supplier states a first DD review point for new customers | **GAP** for a *first* review. The *recurring* cadence is published | Uswitch (2023, reporting supplier policy): "Ovo Energy: Every three months", "Shell Energy: Every three months", "EDF Energy: Twice a year", "E.ON Next: Automatic review with every bill" |
+| 197 | Deemed contracts (SLC 7) and exit fees | **PARTLY**: terms must not be "unduly onerous" (SLC 7.3), and domestic deemed rates sit under the cap. Whether an exit fee can apply is **GAP** | Ofgem, *Guidance on Deemed Contracts* (Nov 2023) |
+| 224 | Which Citizens Advice star-rating weights are live | **VERIFIED**: revised weights, first used on Oct-Dec 2025 data and published March 2026 | Citizens Advice decision document (Aug 2025), Table 2: ease of contact 30% (calls 18, email 6, other 6), billing and metering 25% (billing 15, smart 10), complaints 35%, customer commitments 10% |
+| 250 | Opening-estimate error to churn | **GAP** | None found |
+| 257 | DD cancellation rate after an increase | **GAP** | None found. Ofgem's 2022 review reports only the size of the rise (62% average, 8% over 100%) |
+| 266, 338 | "61% would switch after a high bill" (Opower) | **PARTLY, primary not found**: the only source is secondary. A conflicting figure, "two-thirds … planned to switch in the next 12 months", is attributed to Opower in Utility Week (May 2015), which returned 403 (not fetched) | Treat as stated intent of about 61-67%, about 2015. It is not a rate |
+| 275 | Frequency of CoS read disputes | **GAP** (not searched specifically) | None |
+| 279, 340 | Deemed-customer complaint or churn rates | **GAP** | None |
+| 310 | A supplier's contracted-vs-metered difference is cashed out at the imbalance price | **VERIFIED** | Elexon, *Imbalance pricing*: "BSC Systems compare a Party's contracted (traded) volume with the metered volume", and "there is a single price calculation, so SBP will equal SSP". Single price since P305, 5 Nov 2015 (search snippet) |
+
+**Corrections to this page from the checks:** none of §1-§7's figures moves. The pack's OVO "smart
+payments" row is refuted and is not used anywhere above.
+
+The pain points' ranges have one home each, on the site pages (FM, UB and BB rows, b587ead30e).

@@ -8,6 +8,9 @@ for one unread month, and the published monthly shape each fuel uses. Builds on
 `how_far_a_settled_eac_sits_from_next_years_use.md` (how far that annual figure drifts). This page
 is the within-year shape; those two are the annual level and its error.*
 
+*A new account's first months (opening estimate, first DD, opening read, and the pain points with
+their ranges): `a_new_accounts_first_months_2026-10-30.md`, from the director's 30 Oct evidence pack.*
+
 ---
 
 ## 1. Electricity NHH: EAC from a meter advance, by profile class

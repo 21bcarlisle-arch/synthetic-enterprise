@@ -24,6 +24,10 @@ reached:** the consolidated SLC 21BA text as finally made (the draft is used; th
 Part B's start date changed), any Citizens Advice report after 2017, the Ombudsman's back-billing
 counts for 2017–2023, any supplier's disclosed back-billing write-off, and UNC/BSC text.
 
+*What named suppliers do about held bills and exception queues, what customers meet, and the pain
+points with their ranges: `unbilled_energy_what_suppliers_do_and_what_customers_meet_2026-10-30.md`,
+from the director's 30 Oct evidence pack.*
+
 ---
 
 ## 1. What back-billing is
@@ -126,6 +130,21 @@ try to find this."
 | B7 erroneous transfer | 12 months | The rest. "A consumer's lack of action to rectify an erroneous transfer does not constitute obstructive or unreasonable behaviour" | — | [H] Ombudsman |
 | B8 PPM debt not loaded | 12 months | The rest | — | [H] consultation ¶2.13, case study 3 |
 | Theft / own meter not kept in order | All of it: the exception applies | Detection and back-assessment cost | Undetected theft: UIG / GSP correction | [H] consultation ¶2.18 |
+
+*Checked 30 Oct 2026 against the primaries, for the director's unbilled-energy evidence pack:*
+- *B2, the gas line in the sand.* UNC Modification 0398 was directed by Ofgem on 1 March 2013 ("The
+  Authority directs that modification proposal UNC398 be made",
+  ofgem.gov.uk/sites/default/files/docs/2013/03/395-398d.pdf). Its implementation is dated 1 April 2014,
+  from a search summary of the Joint Office notice, which returned 404 when fetched. That is the rule
+  across the 2016-2025 record. **Ofgem approved UNC 0896 on 22 August 2025, shortening the line in the
+  sand from 3-4 years to 2-3 years** (ofgem.gov.uk/publications/0896-uniform-network-code-unc-changes).
+  The "four years" above holds for the record we run. 0896's own go-live date was not established.
+- *B5, a silent occupier.* The GAP narrows but does not close. The 2017 statutory consultation (¶2.16)
+  rules out one reading: "we would not consider a consumer to have behaved obstructively or manifestly
+  unreasonably if they fail to notice or report that they are being billed on estimates". It puts
+  ignored or refused "reasonable requests to access the meter" within the exception, and says suppliers
+  assess "on a case-by-case basis". Neither that consultation nor the March 2018 notice addresses an
+  occupier who never registered. **That case stays GAP.**
 
 **The direct-debit case, and Energy UK's reading.** Energy UK says back-billing "stops energy
 suppliers legitimately billing energy customers for energy costs where after 12 months … The
