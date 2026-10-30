@@ -1135,11 +1135,15 @@ invariants:
     changed by the EPG (docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md §4).
   export_fields:
   - unit_rate_p_per_kwh
-  - tariff_effective_from
-  - tariff_effective_to
-  checkable: false
-  gap: 'UNCHECKABLE: the export''s unit_rate_p_per_kwh does not say whether it is the supplier''s tariff rate (cap-bounded, Treasury paid the difference) or the household-charged rate (EPG-bounded). Checkable
-    if the export adds the EPG discount per period or states the rate''s basis.'
+  - non_commodity_rate_gbp_per_mwh
+  - contracted_terms.tariff_type
+  reading: >-
+    Graded from 2026-10-30 (ev_unit_rate_epg_household). The export now states the rate's basis (raw_account_export FIELDS): a period's
+    unit_rate_p_per_kwh is the energy line the household was charged over its kWh, after the Treasury's EPG share and before network and policy
+    costs, so the household's all-in ex-VAT rate is unit_rate_p_per_kwh + non_commodity_rate_gbp_per_mwh / 10. Measured before relying on it,
+    on the 9553d403b7 book: on EPG-window SVT bills the contracted term rate less the Treasury's share per kWh lands on 32.38 (electricity)
+    and 9.829 (gas). Unit: a domestic period on one SVT term wholly inside a row's window, with kWh and a single rate. Tolerance is the print's
+    own, not chosen: half a penny over the period's kWh, half the printed rate's last digit, half this file's last digit.
   source: docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#epg_note, windows[].elec_epg/gas_epg; docs/market_research/ofgem_cap_windows.md §4
 - id: INV_STANDING_CHARGE_SVT_ELEC
   family: standing_charge
@@ -2121,8 +2125,15 @@ invariants:
   upper: null
   export_fields: []
   checkable: false
-  gap: 'UNCHECKABLE: the export carries no event stream (adoption events, asset changes). The ''electricity-only household has no gas records'' half is checkable only as INV_FUEL_IDENTIFIER, because every
-    record in the export already hangs off one commodity''s account.'
+  gap: >-
+    UNCHECKABLE ON THE RAW EXPORT, and it must stay so (2026-10-30): the company holds no asset-change record. An EV, heat pump or PV install is a
+    world event (the run's per_customer_behavioral life_event_history); a real supplier learns of one only if told, and nothing in the company
+    records being told, so putting the stream in the company's export would carry ground truth across the wall. The 'electricity-only household
+    has no gas records' half is graded as INV_FUEL_IDENTIFIER. The world-side check, run on the 9553d403b7 run's own life_event_history (each
+    gas leg's asset events against its household's electricity leg): 25 ev_acquired, 14 heat_pump_installed and 10 solar_install sit on gas
+    legs, every one on a date its electricity leg does not share, so each fuel leg draws its own asset events. That is the open defect in
+    docs/staging/SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_AND_ITS_EFFECT_IS_A_RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md,
+    and the count to watch fall when it is fixed.
   source: logic
 - id: INV_PERIODS_CONTIGUOUS
   family: billing_interval
@@ -2483,11 +2494,15 @@ invariants:
   - standing_charge_gbp_per_day
   - payment_method
   - mpan
-  checkable: false
-  missing_export_fields:
-  - region
-  - contracted_terms.tariff_name
-  gap: 'Not gradeable on the raw export (2026-10-27, on the 2eeb3f0b3 book): neither region nor the tariff name is exported. The MPAN distributor ID cannot stand in: every core on that book starts 10, so it would call the whole book Eastern. The spread of SVTs between regions is not in the commons either (the composition file carries only the GB median), so a cross-region bound is a GAP and only the same-region form is stated.'
+  reading: >-
+    Graded from 2026-10-30 (tools/domain_invariant_runner.py::ev_svt_one_price), on what the company holds rather than on fields it does not.
+    Region: the company records none. Its term record (account_state_log) carries one SVT list price per fuel and date (svt_rate_gbp_per_mwh) and
+    no region key, so by its own record the book is one pricing region, and a regional price would show here as a breach rather than hide. The MPAN
+    distributor ID cannot stand in: every core on the 2eeb3f0b3 book starts 10. Tariff name: the company sells one default product per fuel, so
+    contracted_terms.tariff_type 'svt' and the commodity name it. Unit: a domestic account on an SVT term on the 1st of a month, grouped by fuel,
+    month and the one payment method its payments that month name; its term rate against the group median (0.5%), and the standing charge of the
+    period holding that 1st against the group's (half a penny a day). A unit alone in its group, or in a month naming no one method, is unbounded.
+  gap: 'GAP: the spread of SVTs between regions is not in the commons (the composition file carries only the GB median), so a cross-region bound is not stated; the same-region form is graded with the book read as one region.'
 - id: INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
   family: government_scheme
   grades: ledger
@@ -2552,10 +2567,14 @@ invariants:
   export_fields:
   - periods.read_type
   - periods.period_end
-  checkable: false
-  missing_export_fields:
-  - the page's per-fuel estimate-run count
-  gap: 'Not gradeable on the raw export: the export is one fuel per account, so a run of estimated periods is a sub-run of that leg''s own periods and the predicate holds by construction. CHECKED ON THE PAGE from 2026-10-27, by tests/tools/test_generate_explore_cast.py::test_the_published_page_carries_no_estimate_run_longer_than_its_bills: each Explore estimate-run count is at most the calendar months its fuel has been supplied by the date shown (the company bills each fuel once a calendar month). It was red on the page as published (O14: 12 gas bills seven months after joining, the run''s whole count dated at its midpoint).'
+  reading: >-
+    Graded from 2026-10-30 (ev_estimate_run_within_tenure) on the page against the export: each estimate run the Explore cast prints
+    (explore_cast.json beside --printed, read onto the leg its story names) against that leg's exported bills up to the moment's date. Three
+    legs: the count is at most the bills the leg had by then; at most the longest run of consecutive estimated bills it had by then (a bill is
+    estimated where its closing read is not an actual or customer read); and a run printed as unread "since the household joined" has no
+    actual read on the leg by then. On the raw export alone the predicate holds by construction (one fuel per account), so a book graded
+    without its pages reads NOT_IN_EXPORT, never clean. The page's own calendar-month bound stays in
+    tests/tools/test_generate_explore_cast.py::test_the_published_page_carries_no_estimate_run_longer_than_its_bills (O14).
 - id: INV_COLLECTIONS_EVENTS_ORDERED
   family: collections_sequence
   grades: ledger
@@ -3016,7 +3035,10 @@ invariants:
   - site/data/knowledge_topics.json, page the-price-a-household-is-shown (a fixed rate is a commitment for the term; a variable rate is today's rate and is not committed beyond the next change)
   checkable: false
   gap: >-
-    UNCHECKABLE BY THE RUNNER until the page's committed panel is exported: the runner reads only the raw export, and this row grades what the page prints
+    UNCHECKABLE BY THE RUNNER, by design rather than for want of a field: the committed panel is computed in the page's own JavaScript
+    (stagePriced), so the row is graded where that code runs, over a named book's rebuilt pages: EXPLORE_PAGES_DIR=<the book's pages> pytest
+    site/explore/test_the_committed_price_is_the_tariffs_not_one_bills.py. A Python copy of the panel in the runner would grade a second
+    derivation, not what the reader sees (2026-10-30). The runner reads only the raw export, and this row grades what the page prints
     (fourth cold read, N9, 2026-10-29; written blind by an agent that read only docs/market_research, docs/domain_artefact_library and site/data/knowledge_topics.json).
     Legs 1-4 are graded over the page's own stagePriced() render by site/explore/test_the_committed_price_is_the_tariffs_not_one_bills.py (EXPLORE_PAGES_DIR names
     the book): the rebuilt 209c3350ab pages breach on 44 of 1,293 at origin 58abe075eb and 0 of 1,293 after the fix; leg 5 stays with the price rows over the bills.

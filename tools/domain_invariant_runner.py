@@ -128,7 +128,17 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
             for row in m.get("truth") or ():
                 if row.get("k") == "Smart meter":
                     cast_rows[slot.get("household")].append(row.get("v"))
+    # The cast's estimate runs, each onto the leg its story names ("12 gas bills in a row ...").
+    runs = defaultdict(list)
+    for slot in ((json.loads(cast.read_text()).get("slots") or ()) if cast.exists() else ()):
+        for m in slot.get("moments") or ():
+            words = str(m.get("story") or "").split()
+            if m.get("kind") == "estimate_run" and len(words) > 1 and words[0].isdigit():
+                runs[(slot.get("household"), words[1])].append(
+                    {"n": int(words[0]), "iso": m.get("iso"),
+                     "never_read": "since the household joined" in str((m.get("gap") or {}).get("truth"))})
     for cid, pr in out.items():
+        pr["estimate_runs"] = runs.get((pr.get("household"), pr.get("commodity")), [])
         pr["panel_meters"] = {"header": pr.get("meter_type")}
         if cid in sample_rows:
             pr["panel_meters"]["sample"] = sample_rows[cid].get("smart_meter")
@@ -1779,6 +1789,144 @@ def ev_estimated_run_vs_meter(inv, book):
     return tally
 
 
+
+def _median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+def _next_month(d: date) -> date:
+    return date(d.year + (d.month == 12), d.month % 12 + 1, 1)
+
+
+def ev_svt_one_price(inv, book):
+    """One SVT price per fuel, payment method and date. Each domestic account on an SVT term on the
+    1st of a month is one unit, grouped with every other account on the SVT for that fuel, month and
+    payment method; its term's unit rate is graded against the group's median (0.5%), and the
+    standing charge of the period holding that 1st against the group's (half a penny a day, the
+    file's "equal to the penny"). A unit alone in its group, or whose month's payments name no one
+    method, has nothing to be compared with and is counted unbounded, not passed.
+
+    Region and tariff name are read from what the company holds, which is no region and one SVT
+    product per fuel (`tariff_type: svt`); so the book is one region by the company's own record,
+    and a region that priced differently would show here as a breach, not hide."""
+    tally = Tally("domestic account on an SVT term on the 1st of a month (unit rate; standing charge)")
+    groups = defaultdict(list)
+    for a in book:
+        if not a.domestic:
+            continue
+        for t in a.terms():
+            if t.get("tariff_type") != "svt" or t["_last"] is None:
+                continue
+            d = date(t["_from"].year, t["_from"].month, 1)
+            if d < t["_from"]:
+                d = _next_month(d)
+            while d <= t["_last"]:
+                methods = a.methods_between(d, _month_end(d)) - {None}
+                if len(methods) != 1:
+                    tally.unbounded += 1
+                else:
+                    p = next((p for p in a.periods if _d(p["period_start"]) <= d <= _d(p["period_end"])
+                              and [x.get("tariff_type") for x in p.get("contracted_terms") or ()] == ["svt"]),
+                             None)
+                    groups[(a.fuel, methods.pop(), d)].append(
+                        (a.cid, _num(t.get("unit_rate_p_per_kwh")),
+                         _num(p.get("standing_charge_gbp_per_day")) if p else None))
+                d = _next_month(d)
+    for (fuel, method, d), units in sorted(groups.items()):
+        if len(units) < 2:
+            tally.unbounded += len(units)
+            continue
+        rates = [r for _, r, _ in units if r is not None]
+        scs = [s for _, _, s in units if s is not None]
+        rate_mid = _median(rates) if rates else None
+        sc_mid = _median(scs) if len(scs) > 1 else None
+        for cid, rate, sc in units:
+            where = "{} {} {} {}".format(cid, fuel, method, d.isoformat())
+            tally.checked += 1
+            if rate is None:
+                tally.hit("breach", where, None, rate_mid, "missing")
+            elif rate_mid and abs(rate - rate_mid) > 0.005 * rate_mid:
+                tally.hit("breach", where + " unit rate", rate, rate_mid,
+                          "above" if rate > rate_mid else "below")
+            elif sc is not None and sc_mid is not None and abs(sc - sc_mid) > 0.005:
+                tally.hit("breach", where + " standing charge", sc, sc_mid,
+                          "above" if sc > sc_mid else "below")
+    return tally
+
+
+def ev_unit_rate_epg_household(inv, book):
+    """The rate the household was charged, against the EPG, on every domestic SVT period inside a
+    row's window. The export's period `unit_rate_p_per_kwh` is the energy line the household was
+    charged over its kWh, after the Treasury's EPG share and before network and policy costs (the
+    export's FIELDS say so), so the all-in household rate is it plus `non_commodity_rate / 10`.
+    Tolerance is the print's own: half a penny over the period's kWh (the energy line is printed to
+    the penny), half the last digit the printed rate carries (two to four decimals, whichever
+    reproduces its line), and half the bound's own last digit (the file's three decimals). A period with no single rate (two
+    registers), no kWh, or partly outside the window is counted unbounded, not passed."""
+    rows = _rows(inv)
+    tally = Tally("domestic SVT bill period inside an EPG window (household all-in rate, ex-VAT)")
+    for a in book:
+        if not a.domestic:
+            continue
+        for p in a.periods:
+            start, end = _d(p["period_start"]), _d(p["period_end"])
+            row = next((r for r in rows if r.get("commodity") == p.get("commodity")
+                        and r["_from"] <= end and start <= r["_to"]), None)
+            if row is None or [x.get("tariff_type") for x in p.get("contracted_terms") or ()] != ["svt"]:
+                continue
+            rate, nc, kwh = (_num(p.get("unit_rate_p_per_kwh")), _num(p.get("non_commodity_rate_gbp_per_mwh")),
+                             _num(p.get("consumption_kwh")))
+            if not (row["_from"] <= start and end <= row["_to"]) or rate is None or nc is None or not kwh:
+                tally.unbounded += 1
+                continue
+            tally.band("{} {} {}".format(a.cid, p["commodity"], p["period_start"]), rate + nc / 10.0,
+                       _num(row.get("lower")), _num(row.get("upper")),
+                       tol_abs=0.5 / kwh + _half_last_digit(p.get("unit_rate_p_per_kwh")) + 0.0005)
+    return tally
+
+
+def _half_last_digit(v) -> float:
+    """Half a unit of the last decimal a printed figure carries (25.08 -> 0.005)."""
+    text = repr(float(v))
+    return 0.5 * 10 ** -len(text.split(".")[1].rstrip("0") or "") if "." in text else 0.5
+
+
+def _closing_type(p) -> str | None:
+    closing = [r for r in p.get("reads", ()) if r.get("read_type") != OPENING
+               and str(r.get("read_date"))[:10] == str(p["period_end"])[:10]]
+    return closing[-1].get("read_type") if closing else None
+
+
+def ev_estimate_run_within_tenure(inv, book):
+    """Each estimate run the page prints (the Explore cast's `estimate_run` moments, read onto the
+    leg they name) against that leg's exported bills up to the moment's date: the count is at most
+    the bills the leg had by then, and at most the longest run of consecutive estimated bills it
+    had by then; a run printed as unread "since the household joined" has no actual read on the leg
+    by then. A bill is estimated where its closing read is not an actual or customer read."""
+    tally = Tally("estimate run printed on the page, against its leg's bills by the moment's date")
+    for a in book:
+        for m in (a.printed or {}).get("estimate_runs") or ():
+            on = _d(m["iso"])
+            bills = [p for p in a.periods if _d(p["period_end"]) <= on]
+            longest = run = actual = 0
+            for p in bills:
+                kind = _closing_type(p)
+                actual += kind in ACTUAL_READ_TYPES
+                run = 0 if kind in ACTUAL_READ_TYPES or kind is None else run + 1
+                longest = max(longest, run)
+            where = "{} {} run of {} on {}".format(a.cid, a.fuel, m["n"], m["iso"])
+            tally.checked += 1
+            if m["n"] > len(bills):
+                tally.hit("breach", where, m["n"], len(bills), "above bills issued")
+            elif m["n"] > longest:
+                tally.hit("breach", where, m["n"], longest, "above the longest estimated run")
+            elif m.get("never_read") and actual:
+                tally.hit("breach", where, actual, 0, "actual reads on a leg printed as never read")
+    return tally
+
+
 #: invariant ID -> (evaluator, the export field it needs on some period or account, or None)
 EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC": (ev_unit_rate_svt_elec, None),
@@ -1832,6 +1980,9 @@ EVALUATORS = {
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": (ev_meter_type_one_value, "panel_meters"),
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": (ev_estimate_follows_reads, "printed_invoices"),
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": (ev_estimated_run_vs_meter, "printed_invoices"),
+    "INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW": (ev_svt_one_price, None),
+    "INV_UNIT_RATE_EPG_HOUSEHOLD": (ev_unit_rate_epg_household, "non_commodity_rate_gbp_per_mwh"),
+    "INV_ESTIMATE_RUN_WITHIN_TENURE": (ev_estimate_run_within_tenure, "estimate_runs"),
 }
 
 

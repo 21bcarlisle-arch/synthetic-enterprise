@@ -198,3 +198,29 @@ exceptions:
     filed: 2026-10-29
     retired_by: reading the 17 single-rate electrically heated homes' heating type, and for any storage home its bill printing the two-rate settlement it holds (a). (b) and (c) are the row's lawful tail and stay excepted
     max_breached: 6
+  # 2026-10-30: two rows that read UNCHECKABLE on the raw export are graded (leg one reads the five uncheckable
+  # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
+  # grade. Grade, causes and the three rows that stay ungraded on the runner, with why, in
+  # docs/staging/SEAT_FINDING_LEG_ONE_GRADES_FOUR_OF_THE_FIVE_UNCHECKABLE_ROWS_AND_FINDS_SVT_PRICED_PER_ACCOUNT_BEFORE_THE_CAP_2026-10-30.md.
+  - invariant: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW
+    scope: 1,068 of 33,627 domestic SVT account-months on the 9553d403b7 book (1,067 on the unit rate, 1 on the standing charge), every one in 2016-2018, before the cap; 0 from 2019
+    reason: >-
+      Not explained: a defect, filed. Before the cap the company's SVT term is priced per account. On 2017-06-01 the
+      electricity SVT terms in force carry 16 different rates from 133.33 to 160.43 GBP/MWh against the one list price
+      (svt_rate_gbp_per_mwh 140.0) the same term record holds. A default tariff is one price per fuel, region and
+      payment method, and the company records no region, so a per-account SVT price is not a regional price. From the
+      cap (2019) the clamp to the payment method's column makes them one price, which is why 2019-2025 grade 0.
+    filed: 2026-10-30
+    retired_by: the pre-cap SVT term priced at the company's one list price per fuel, date and payment method (the cause traced from simulation/run_phase2b.py's term unit_rate), graded 0 on a fresh run
+    max_breached: 1068
+  - invariant: INV_UNIT_RATE_EPG_HOUSEHOLD
+    scope: 373 of 3,294 domestic SVT bill periods in Oct 2022-Jun 2023 on the 9553d403b7 book, 372 electricity and 1 gas; median excess 0.005p/kWh, largest 0.069p/kWh (0.21%), 5.16 GBP ex-VAT over the whole book
+    reason: >-
+      Explained as print and volume scatter, not a price over the EPG. The household's rate is the EPG: the contracted
+      term rate less the Treasury's share per kWh lands on 32.38p (electricity) and 9.829p (gas). The breaching bills are
+      the upper half of a symmetric scatter of the printed energy line against the printed kWh (about 1,050 bills above
+      term-less-receipt and 1,090 below, past the penny tolerance), so the line is not priced on exactly the kWh printed
+      beside it. The row grades the bill as printed, so it is kept, at this count.
+    filed: 2026-10-30
+    retired_by: the printed energy line priced on the printed kWh (the same volume the Treasury's share is computed on), graded 0 on a fresh run
+    max_breached: 373

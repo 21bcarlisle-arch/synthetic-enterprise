@@ -88,6 +88,9 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": "reads the printed page; every leg tested on its own below",
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": "reads the printed page; every leg tested on its own below",
     "INV_TOU_BANDS_SUM_TO_THE_TOTAL": "needs a ToU stretch; every leg tested in test_the_tou_bands_sum_to_the_total.py",
+    "INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW": "compares accounts with each other; every leg tested on its own below",
+    "INV_UNIT_RATE_EPG_HOUSEHOLD": "needs the EPG windows of 2022-23; every leg tested on its own below",
+    "INV_ESTIMATE_RUN_WITHIN_TENURE": "reads the printed page; every leg tested on its own below",
 }
 
 
@@ -1001,3 +1004,56 @@ def test_every_leg_of_the_estimated_run_against_the_meter_row_is_reachable():
     assert _grade_one(i, acct(0.0))[:2] == ("BREACHED", ["below"])
     assert _grade_one(i, acct(22.0))[0] == "FLAGGED"
     assert _grade_one(i, acct(0.0, n=1))[0] == "UNREACHED"
+
+
+# ── the five rows the raw export could not grade (2026-10-30): each can pass, and each leg can fire ──
+
+def _count(inv_id, *accounts, inv=None):
+    """(status, breaches, the sides breached): the count, since the examples stop at five."""
+    r = runner.run([dict(inv or {}, id=inv_id)], {a["customer_id"]: a for a in accounts})[0]
+    return r["status"], r.get("breached"), {b["side"] for b in r.get("breach_examples") or ()}
+
+
+def test_every_leg_of_the_svt_one_price_row_is_reachable():
+    row = "INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW"
+    same = [_account(c, "electricity", rate=15.0) for c in ("A", "B", "C")]
+    assert _grade_one(row, *same)[0] == "CLEAN"
+    assert _count(row, *same, _account("D", "electricity", rate=16.0)) == ("BREACHED", 12, {"above"})
+    assert _count(row, *same, _account("D", "electricity", rate=15.0, sc=0.30)) == ("BREACHED", 12, {"above"})
+    # Another payment method is another price, and an account alone in its group is not compared.
+    assert _grade_one(row, *same, _account("P", "electricity", rate=16.0, method="prepayment"))[0] == "CLEAN"
+    assert _grade_one(row, *same, _account("F", "electricity", rate=16.0, tariff="fixed"))[0] == "CLEAN"
+
+
+def test_every_leg_of_the_epg_row_is_reachable():
+    inv = {"rows": [{"from": "2022-10-01", "to": "2023-06-30", "commodity": "electricity", "upper": 32.381}]}
+    row = "INV_UNIT_RATE_EPG_HOUSEHOLD"
+    # The fixture's network and policy rate is 50 GBP/MWh, 5p: the household's all-in rate is rate + 5.
+    assert _grade_one(row, _account("E", "electricity", rate=27.38, year=2022), inv=inv)[0] == "CLEAN"
+    assert _count(row, _account("E", "electricity", rate=27.5, year=2022), inv=inv) == ("BREACHED", 3, {"above"})
+    assert _grade_one(row, _account("E", "electricity", rate=27.5, year=2022, tariff="fixed"), inv=inv)[0] == "UNREACHED"
+    assert _grade_one(row, _account("E", "electricity", rate=27.5, year=2021), inv=inv)[0] == "UNREACHED"
+
+
+def _estimated(runs, actual_month=None):
+    acct = _account("G", "gas", rate=3.0, read_type="E", kwh_per_month=900.0)
+    if actual_month is not None:
+        p = acct["periods"][actual_month]
+        next(r for r in p["reads"] if r["read_date"] == p["period_end"])["read_type"] = "A"
+    acct["printed"] = {"estimate_runs": [dict(n=n, iso=iso, never_read=never) for n, iso, never in runs]}
+    return acct
+
+
+def test_every_leg_of_the_estimate_run_row_is_reachable():
+    row = "INV_ESTIMATE_RUN_WITHIN_TENURE"
+    assert _grade_one(row, _estimated([(12, "2020-12-31", True)]))[0] == "CLEAN"
+    assert _grade_one(row, _estimated([(12, "2020-06-30", False)]))[1] == ["above bills issued"]
+    assert _grade_one(row, _estimated([(9, "2020-12-31", False)], actual_month=2))[0] == "CLEAN"
+    assert _grade_one(row, _estimated([(10, "2020-12-31", False)], actual_month=2))[1] == [
+        "above the longest estimated run"]
+    assert _grade_one(row, _estimated([(9, "2020-12-31", True)], actual_month=2))[1] == [
+        "actual reads on a leg printed as never read"]
+    # Without the page the row is unrun, never clean.
+    bare = _estimated([])
+    bare["printed"] = {}
+    assert _grade_one(row, bare)[0] == "NOT_IN_EXPORT"

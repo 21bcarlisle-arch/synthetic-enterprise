@@ -133,7 +133,11 @@ FIELDS: dict[str, tuple[str, str]] = {
     "document_type": (EVENT, "what was sent for the period: a credit bill, or a prepayment "
                              "meter's statement"),
     # contracted terms
-    "unit_rate_p_per_kwh": (CONTRACTED, "the rate the account was on for this period"),
+    "unit_rate_p_per_kwh": (CONTRACTED, "on a period, the energy rate the household was charged: "
+                                        "the bill's energy line over its kWh, before network and "
+                                        "policy costs (non_commodity_rate) and, in the EPG "
+                                        "windows, after the Treasury's share. On a contracted "
+                                        "term, the all-in rate the term was struck at"),
     "standing_charge_gbp_per_day": (CONTRACTED, "the daily standing charge the account was on"),
     "vat_rate": (CONTRACTED, "the statutory rate for this segment"),
     "non_commodity_rate_gbp_per_mwh": (CONTRACTED, "network and levy pass-through rate for the year"),
