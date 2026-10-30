@@ -150,3 +150,15 @@ home's drawn household read (`live_drawn_households`). Probes: `/var/tmp/e2-heat
 
 Any probe that splits fuel by the id suffix carries the same error. Of the trace's probes, only
 `/var/tmp/e2-probe/shape.py` does. `/var/tmp/est-probe-scripts/` does not, so E1's 179 is untouched.
+
+**E2 (a), K8 first (2026-10-30, worker tick).** The knowledge page is written before any build:
+`docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md`. On the 209c3350ab book **36
+of 560** electricity accounts are storage-heated, and all 537 of their term rows are single-rate (479
+`svt`, 58 `fixed`), while the world settles every one on PC2. SLC 1's 2017 default-tariff test follows
+the meter type, so an E7 meter's default is an E7 tariff. The ToU page's "single-rate whatever the
+meter" was written for a smart single-rate meter, and the page records where it stops. The cap binds only
+`0.58 x day + 0.42 x night` (28AD.36), so the night/day ratio is GAP G1 and has to be carried as a range.
+Before 2019 the E7 SVT level is GAP G2, with DESNZ QEP Table 2.2.4 as the next read. The build (the
+seam carries the profile class, an E7 SVT pair, two registers on the bill, per-register estimates) is
+**not started**. It moves the book, so the seat sequences it after the 3dc5a92948 grade. The page files
+its prediction: E2 (a)'s three leave the row and the other residuals do not move.
