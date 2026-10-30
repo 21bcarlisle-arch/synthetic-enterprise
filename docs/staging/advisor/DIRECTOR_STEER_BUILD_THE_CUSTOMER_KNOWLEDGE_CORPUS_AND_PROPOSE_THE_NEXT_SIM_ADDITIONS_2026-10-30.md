@@ -81,3 +81,38 @@ You own this. Propose the next world additions ranked by value, meaning how much
 **Fit the roadmap into the ruled order and the improvement-loop design.** The world additions follow the correctness exit test. Bring the roadmap back as one `for_the_director` row with your recommendation, readable in two minutes.
 
 **Sequencing.** The knowledge-base structure and the new pages are drafting work. They can run now, beside the correctness stretch, as the earlier knowledge packs did. The world build follows the exit test.
+
+## Addendum, 16:50 GMT: start from the advisor's research, then challenge it and go further
+
+The director's words, 16:50 GMT: "Will it really get into the needs we described or did you do that already. Will it start with your research and assess itself and maybe expand?"
+
+**Treat the advisor's packs as a starting point, not as the answer.** Work through these four steps:
+
+1. **Verify.** Check every [unverified] item, and every figure a page will rely on, against its primary source. Your network can reach sources the advisor's sandbox could not:
+   - the DESNZ QEP regional payment-method tables;
+   - the FCA Financial Lives data tables, including the 2024 segment values;
+   - the Ofgem CIM data tables;
+   - Understanding Society documentation, for the risk-attitude waves;
+   - the English Housing Survey and fuel-poverty detailed tables;
+   - DfT TAG values of time.
+2. **Challenge the synthesis.** These are the advisor's own conclusions, and some of them are the advisor's own reading:
+   - the precarity and affluence axes;
+   - trust and capability as moderators;
+   - control split into spend and devices;
+   - time split into clock time and bandwidth;
+   - the shape of price sensitivity across income, where the middle-income group responds most;
+   - life stage outweighing income.
+
+   Test each one. Say where the evidence supports it, where it does not, and what you would change.
+3. **Expand.** Search beyond the packs for the gaps they name:
+   - a GB price for certainty;
+   - the value of time for energy admin;
+   - the split between chosen and imposed prepayment;
+   - income timing and payment choice;
+   - GB price elasticity of consumption by income band, including smart-meter studies from the 2022–23 crisis;
+   - life-event effects on energy behaviour;
+   - predictive validation of any segmentation.
+
+   Look at financial services and telecoms analogues where energy has none.
+4. **Report what you found.** In the customer-needs framing note and the knowledge pages, mark each claim as confirmed, corrected or extended. In the reading, list what you overturned or added to the advisor's view, as you did for the 25 Oct packs.
+
