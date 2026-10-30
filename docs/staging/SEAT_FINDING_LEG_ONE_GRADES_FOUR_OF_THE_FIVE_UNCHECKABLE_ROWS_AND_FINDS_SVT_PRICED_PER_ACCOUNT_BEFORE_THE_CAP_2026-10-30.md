@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
 
+**Discharged:** `tests/company/pricing/test_a_default_tariff_is_one_list_price_before_the_cap.py::test_a_pre_cap_svt_segment_contracts_at_its_list_price_whatever_the_accounts_history` and `tests/tools/test_the_domain_invariant_runner_reads_only_the_raw_export_and_every_evaluator_can_fire.py::test_the_svt_one_price_standing_charge_is_graded_to_the_penny_over_a_one_day_bill`. The fresh run at 3dc5a92948 grades the SVT row 0 of 33,627 (section at the foot). The EPG row is excepted at its ceiling, and the EV count is the open life-event finding.
+
 # Leg one grades the five uncheckable rows: three now grade on the runner, two get a named grade elsewhere, and the SVT is priced per account before the cap (2026-10-30)
 
 **Source:** the delivery item `leg-one-reads-the-five-uncheckable-rows`. On the raw export
@@ -181,3 +183,40 @@ contracted rate.
    only through second-order churn, so it stays within ±2% of 8,950.
 3. EPG row: **373 ±15**. The gate does not reach the 2022-23 cap era, because the clamp already made those
    rates one price. Any move is second-order: a different book means different households in the window.
+
+## The fresh run at the fix, read (30 Oct, `/var/tmp/fresh-grade-3dc5a92948/`)
+
+`fresh-run-3dc5a92948` wrote `DONE.json` at 03:56 (4,452 s). Its grade chain wrote the ledger, `grade_five.txt`,
+`svt_revenue.txt` and `grade.txt` by 03:58. Each prediction is set against what came back:
+
+| prediction | read | verdict |
+|---|---|---|
+| SVT row: 0 unit-rate breaches | **0** | held |
+| SVT row: the 1 standing-charge breach stays | **1** (SYN-2016-101g gas standard_credit 2018-03-01, 0.22 against 0.215) | held |
+| off-list pre-cap SVT terms 2,490 -> 0 | **0 of 4,366** | held |
+| pre-cap SVT revenue ex-VAT falls £5k-£12k, to £334.8k-£341.8k | £346,790.28 -> **£340,391.67**, down **£6,398.61** (commodity £190,740 -> £184,341) | held |
+| bill count within ±2% of 8,950 | **8,950** exactly | held |
+| EPG row 373 ±15 | **373 of 3,294** | held |
+
+The fall is £1.8k under the trace's £8.2k EAC-weighted estimate. The estimate weighted by EAC, and the measure
+counts billed kWh. It is still inside the band I wrote down before the run. The bill count did not move at all,
+so in 2016-18 the gate changed what the company charged and not who stayed on supply.
+
+**The standing-charge breach, traced: a measurement artefact, not a price.** Invoice 26831 is SYN-2016-101g's
+one-day final gas bill (2018-03-01 to 2018-03-01, estimated read). 0.215 GBP/day x 1 day is billed £0.22 to the
+penny, and the per-day rate prints as 0.22. The evaluator compared that print with the group's 0.215 at half a
+penny a day, so a float tie at exactly 0.005 counted as a breach. That is the same class the standing-charge rows
+retired on 27 Oct. `ev_svt_one_price` now takes the wider of half a penny a day and a penny over the period, as
+`_sc_tol` does. Control: `test_the_svt_one_price_standing_charge_is_graded_to_the_penny_over_a_one_day_bill`.
+It passes the 0.22 print, still breaches a one-day bill 2p over, and goes red with the half-penny tolerance
+restored.
+
+**Re-graded with that evaluator on the same ledger:** `INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW` **CLEAN, 0 of
+33,627**. No other ledger-graded row moved. The exception (1,068) is retired in
+`docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml`. The EPG row keeps its 373 ceiling and its own `retired_by`.
+
+**What this does and does not settle for ruling step 2.** The default tariff is now one list price per fuel,
+method and date in every year, before the cap and under it. Step 2's crisis question (SVT units under the cap in
+2021-22) was answered by the clamp, and `INV_UNIT_RATE_SVT_*` grade 0 on this book too. The crisis P&L did not
+move, because nothing here touches 2019-2025. The open rows on this book are unchanged: the EV life-event defect
+(49 asset events on gas legs, world side) and the EPG print scatter.

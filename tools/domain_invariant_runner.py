@@ -1817,8 +1817,10 @@ def ev_svt_one_price(inv, book):
     1st of a month is one unit, grouped with every other account on the SVT for that fuel, month and
     payment method; its term's unit rate is graded against the group's median (0.5%), and the
     standing charge of the period holding that 1st against the group's (half a penny a day, the
-    file's "equal to the penny"). A unit alone in its group, or whose month's payments name no one
-    method, has nothing to be compared with and is counted unbounded, not passed.
+    file's "equal to the penny", or a penny over the period where that is wider: the bill rounds
+    days x rate to the penny, so a one-day final bill at 0.215/day prints 0.22). A unit alone in its
+    group, or whose month's payments name no one method, has nothing to be compared with and is
+    counted unbounded, not passed.
 
     Region and tariff name are read from what the company holds, which is no region and one SVT
     product per fuel (`tariff_type: svt`); so the book is one region by the company's own record,
@@ -1842,19 +1844,21 @@ def ev_svt_one_price(inv, book):
                     p = next((p for p in a.periods if _d(p["period_start"]) <= d <= _d(p["period_end"])
                               and [x.get("tariff_type") for x in p.get("contracted_terms") or ()] == ["svt"]),
                              None)
+                    days = _num(p.get("days_in_period")) if p else None
                     groups[(a.fuel, methods.pop(), d)].append(
                         (a.cid, _num(t.get("unit_rate_p_per_kwh")),
-                         _num(p.get("standing_charge_gbp_per_day")) if p else None))
+                         _num(p.get("standing_charge_gbp_per_day")) if p else None,
+                         max(0.005, 0.01 / days) if days else 0.005))
                 d = _next_month(d)
     for (fuel, method, d), units in sorted(groups.items()):
         if len(units) < 2:
             tally.unbounded += len(units)
             continue
-        rates = [r for _, r, _ in units if r is not None]
-        scs = [s for _, _, s in units if s is not None]
+        rates = [r for _, r, _, _ in units if r is not None]
+        scs = [s for _, _, s, _ in units if s is not None]
         rate_mid = _median(rates) if rates else None
         sc_mid = _median(scs) if len(scs) > 1 else None
-        for cid, rate, sc in units:
+        for cid, rate, sc, sc_tol in units:
             where = "{} {} {} {}".format(cid, fuel, method, d.isoformat())
             tally.checked += 1
             if rate is None:
@@ -1862,7 +1866,7 @@ def ev_svt_one_price(inv, book):
             elif rate_mid and abs(rate - rate_mid) > 0.005 * rate_mid:
                 tally.hit("breach", where + " unit rate", rate, rate_mid,
                           "above" if rate > rate_mid else "below")
-            elif sc is not None and sc_mid is not None and abs(sc - sc_mid) > 0.005:
+            elif sc is not None and sc_mid is not None and abs(sc - sc_mid) > sc_tol:
                 tally.hit("breach", where + " standing charge", sc, sc_mid,
                           "above" if sc > sc_mid else "below")
     return tally

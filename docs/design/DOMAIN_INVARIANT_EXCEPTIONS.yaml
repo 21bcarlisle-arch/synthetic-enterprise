@@ -204,19 +204,11 @@ exceptions:
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
   # grade. Grade, causes and the three rows that stay ungraded on the runner, with why, in
   # docs/staging/SEAT_FINDING_LEG_ONE_GRADES_FOUR_OF_THE_FIVE_UNCHECKABLE_ROWS_AND_FINDS_SVT_PRICED_PER_ACCOUNT_BEFORE_THE_CAP_2026-10-30.md.
-  - invariant: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW
-    scope: 1,068 of 33,626 domestic SVT account-months on the ecb7e21fb book, graded 30 Oct (1,068 of 33,627 on the 9553d403b7 book, 1,067 on the unit rate and 1 on the standing charge), every one in 2016-2018, before the cap; 0 from 2019
-    reason: >-
-      Explained, and fixed in code; the count stands until a fresh run carries the fix. The company's renewal-rate chain
-      moved a default tariff per account: writer 1 (portfolio premium) on 2,348 pre-cap SVT terms, writer 2 (margin
-      surcharge) on 75, both on 66, each entering at the list price. Before the cap the company's SVT term is priced per account. On 2017-06-01 the
-      electricity SVT terms in force carry 16 different rates from 133.33 to 160.43 GBP/MWh against the one list price
-      (svt_rate_gbp_per_mwh 140.0) the same term record holds. A default tariff is one price per fuel, region and
-      payment method, and the company records no region, so a per-account SVT price is not a regional price. From the
-      cap (2019) the clamp to the payment method's column makes them one price, which is why 2019-2025 grade 0.
-    filed: 2026-10-30
-    retired_by: a fresh run carrying the writers-1-2 gate on CAPPED_TARIFF_TYPES (company/pricing/renewal_rate_chain.py), graded 0 on the unit rate; the 1 standing-charge breach is untraced
-    max_breached: 1068
+  # 2026-10-30: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW's exception (1,068) is retired. The fresh run at
+  # 3dc5a92948, carrying the writers-1-2 gate (ed8684442), grades 0 unit-rate breaches and 0 off-list pre-cap
+  # SVT terms (from 2,490). Its 1 standing-charge breach was SYN-2016-101g's one-day final gas bill, 0.215 x 1 day
+  # printed 0.22: the evaluator now takes a penny over the period, as the standing-charge rows do. 0 of 33,627.
+  # INV_UNIT_RATE_EPG_HOUSEHOLD reads 373 of 3,294 on the same book, its ceiling.
   - invariant: INV_UNIT_RATE_EPG_HOUSEHOLD
     scope: 373 of 3,294 domestic SVT bill periods in Oct 2022-Jun 2023 on the ecb7e21fb book, graded 30 Oct, the 9553d403b7 book's count (372 electricity and 1 gas there); median excess 0.005p/kWh, largest 0.069p/kWh (0.21%), 5.16 GBP ex-VAT over the whole book
     reason: >-

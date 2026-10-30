@@ -1041,6 +1041,22 @@ def test_every_leg_of_the_svt_one_price_row_is_reachable():
     assert _grade_one(row, *same, _account("F", "electricity", rate=16.0, tariff="fixed"))[0] == "CLEAN"
 
 
+def test_the_svt_one_price_standing_charge_is_graded_to_the_penny_over_a_one_day_bill():
+    """Catches the half-penny-a-day tolerance read alone. The 3dc5a92948 book's one SVT breach after
+    the writers-1-2 gate was SYN-2016-101g's one-day final gas bill: 0.215 x 1 day billed 0.22, printed
+    0.22/day. Both legs: that print is clean, and the same one-day bill 2p over the period breaches."""
+    row = "INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW"
+    same = [_account(c, "gas", rate=2.5714, sc=0.215) for c in ("A", "B", "C")]
+
+    def one_day(sc):
+        acct = _account("D", "gas", rate=2.5714, sc=0.215)
+        p = acct["periods"][2]
+        p.update(period_end=p["period_start"], days_in_period=1, standing_charge_gbp_per_day=sc)
+        return acct
+    assert _grade_one(row, *same, one_day(0.22))[0] == "CLEAN"
+    assert _count(row, *same, one_day(0.235)) == ("BREACHED", 1, {"above"})
+
+
 def test_every_leg_of_the_epg_row_is_reachable():
     inv = {"rows": [{"from": "2022-10-01", "to": "2023-06-30", "commodity": "electricity", "upper": 32.381}]}
     row = "INV_UNIT_RATE_EPG_HOUSEHOLD"
