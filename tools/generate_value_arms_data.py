@@ -5660,9 +5660,11 @@ _WHAT_THE_SELECTION_LEG_IS = (
     "created instead of value moved.")
 _WHAT_THE_LEVEL_LEG_IS = (
     "What ONE FLAT margin at the same price level earned over flat rules, with no "
-    "per-customer choosing in it at all. This is value MOVED and not made -- a price "
-    "charged transfers value from the household to the company rather than creating "
-    "any. It is published bounded because it looks like the safe half and is not: "
+    "per-customer choosing in it at all. In money terms this is value MOVED and not "
+    "made -- a price charged transfers money from the household to the company rather "
+    "than creating any. A supplier can also create value in household time, which this "
+    "world does not measure yet (C31, time as a currency, is open work). It is "
+    "published bounded because it looks like the safe half and is not: "
     "its own re-draws in this world change its sign.")
 _WHAT_THE_WHOLE_ADVANTAGE_IS = (
     "What the per-customer decision engine earned over flat rules, level and choosing "

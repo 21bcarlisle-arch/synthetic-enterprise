@@ -229,9 +229,11 @@ def render_lead(arms):
         when = ""
     withheld = sel.get("verdict_withheld_because") or lvl.get("verdict_withheld_because")
     return ('<p class="lead-p">{} On the same book, run three ways{}, per-customer choosing over '
-            'flat rules {}. The price level alone is value moved, not made: one flat margin at the '
-            'level the per-customer arm charged {}. {}Both are shown, with the spread across draws, '
-            '<a href="#value-arms">in the value test below</a>.</p>').format(
+            'flat rules {}. In money terms, the price level alone is value moved, not made: one flat '
+            'margin at the level the per-customer arm charged {}. {}Both are shown, with the spread '
+            'across draws, <a href="#value-arms">in the value test below</a>. Money is not the whole '
+            'of value: a supplier can also save a household time, and this world does not measure '
+            'time yet. Measuring it is open work.</p>').format(
                 q, when, _leg_sentence(sel, "").strip(), _leg_sentence(lvl, "").strip(),
                 "This page states no settled direction for either yet; the test says why. "
                 if withheld else "")
