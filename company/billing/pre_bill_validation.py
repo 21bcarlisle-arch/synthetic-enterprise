@@ -82,24 +82,31 @@ def _days_in_period(bill: dict) -> float:
 
 
 def _bill_subtotal(bill: dict) -> float:
-    """What the bill's VAT line is charged on. A catch-up's VAT is on that line
-    (`catchup_vat_gbp`), so its charge before VAT is in the base; a bill from before the split
-    carries the catch-up gross and its VAT nowhere, so the base stays the month's own."""
-    catchup_net = (bill.get("catchup_adjustment_gbp") or 0.0
-                   if bill.get("catchup_applied") and "catchup_vat_gbp" in bill else 0.0)
+    """The month's own charges before VAT: what the rate check grades its VAT against."""
     return (
         bill.get("commodity_amount_gbp", 0.0)
         + bill.get("non_commodity_amount_gbp", 0.0)
         + bill.get("standing_charge_gbp", 0.0)
-        + catchup_net
     )
+
+
+def _own_vat(bill: dict) -> float:
+    """The month's own VAT: the VAT line less a catch-up's VAT (`catchup_vat_gbp`).
+
+    The catch-up's VAT is each corrected month's VAT at that month's own rate, summed and rounded
+    (back_billing_and_liability.md section 15), so over the catch-up line it is not one rate: a
+    run across a rate change or a de minimis line, or pennies on a small run, read 0.0494 or -0.2773.
+    Graded on the whole line, the check held 38 legitimate catch-up bills on a two-year run, and a
+    held final credit bill is a credit never given or refunded. The month's own VAT is what one
+    rate must explain; the catch-up's is held by its own construction and test."""
+    return bill.get("vat_gbp", 0.0) - (bill.get("catchup_vat_gbp") or 0.0)
 
 
 def _actual_vat_rate(bill: dict) -> float | None:
     subtotal = _bill_subtotal(bill)
     if subtotal <= 0:
         return None
-    return bill.get("vat_gbp", 0.0) / subtotal
+    return _own_vat(bill) / subtotal
 
 
 def _vat_volume(bill: dict, commodity: str) -> dict:
@@ -161,7 +168,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
     # a negative subtotal is absurd, and any VAT charged on a non-positive subtotal
     # is VAT on nothing -- both now fail CLOSED (HELD) instead of skipping the gate.
     subtotal = _bill_subtotal(bill)
-    vat_gbp = bill.get("vat_gbp", 0.0)
+    vat_gbp = _own_vat(bill)
     # A catch-up OVERCHARGE correction produces a legitimate CREDIT bill whose
     # subtotal (and VAT) are genuinely negative -- a refund, not an absurdity
     # (D3_catchup_rebilling; test_d3_credit_invoice_has_no_fabricated_payment).

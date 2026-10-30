@@ -873,7 +873,15 @@ conclusion was wrong, and it has been corrected beside the claim.
 - A reader that needs what the correction moved the total by adds the two fields together. These
   are the direct-debit balance book, the payment-review spend, the ledger's restatement memo, the
   unit-rate netting and the Explore cast.
-- The pre-bill VAT check measures the rate over a base that includes the catch-up line.
+- The pre-bill VAT check grades **the month's own VAT on the month's own lines**: the VAT line
+  less `catchup_vat_gbp`, over commodity, non-commodity and standing charge. *Corrected
+  2026-10-30, beside the claim:* this line first said the check measures the rate over a base that
+  includes the catch-up line. That is wrong, because the catch-up's VAT is not one rate. Each month keeps its own rate,
+  and an SME run whose estimates crossed the de minimis line returns 20% VAT on supplies that were
+  really 5%. Pennies of rounding on a small run also move it. Graded that way, the gate held 38
+  legitimate catch-up bills on a two-year test run (3 before). A held final credit bill is a
+  credit never given or refunded (SYN-2016-145g's £3.44 and SYN-2016-557g's £6.01). The catch-up's
+  own VAT is held by its construction and by `test_a_catch_ups_vat_is_on_the_vat_line.py`.
 
 **Not changed.** The raw delta and the back-billing write-off stay VAT-inclusive. They are amounts
 restated or barred, not lines on the bill. **GAP (practitioner):** whether suppliers print a
