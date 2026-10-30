@@ -58,3 +58,31 @@ The architecture is right: hidden truth sits on the world's side, and the suppli
 6. **Test the director's hypothesis directly.** Pre-register a supplier strategy of repeated small overcharges against a fair-pricing strategy. Measure the short-run margin gain against the delayed, durable losses through churn, acquisition, cost per acquisition and price tolerance, across the world's uncertainty ranges.
 
 **Sequencing.** The calibration and knowledge pages are drafting work and can run now. The world build follows the correctness exit test and sits inside the improvement-loop design and the next-SIM-additions roadmap, where this candidate should be ranked against the others.
+
+## Addendum, 17:20 GMT: what is competitive waits for the competition topic
+
+The director's words, 17:20 GMT: "This starts to get into competitive simulation which is a next not now topic. So some of this should wait for that perhaps?"
+
+**Split the asks along that line.**
+
+- **Now** (behind the correctness exit test, as above). These involve only our supplier and its own customers:
+  - calibrating the per-customer resentment ledger;
+  - separating our own reputation stock from its decay;
+  - salience triggers on churn from our own book;
+  - the solicited-feedback engine;
+  - organic and invited reviews *about us*;
+  - the regulator's random panel and star rating for us;
+  - the supplier's own feedback loop: ask, listen, reply, fix root causes, and the coupled-triad gap;
+  - trust moderating uptake of our advice.
+- **Next, with the competitive simulation, and not before:**
+  - reputation moving prospects' choice *between* suppliers;
+  - cost of acquisition relative to rivals;
+  - referrals as a share-gaining channel;
+  - price tolerance measured *relative to the market*;
+  - sector or category trust shocks across suppliers;
+  - the overcharge-vs-fair-pricing test of the director's hypothesis, because its losses run through switching to rivals and acquisition against them.
+
+  Record these as named items under the competition topic, with this evidence pack as their knowledge base. Do not build them now.
+
+Where today's world already produces switching-away without modelled rivals, keep it as it is. Do not extend it into a competitor field under this steer.
+
