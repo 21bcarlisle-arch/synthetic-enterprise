@@ -363,173 +363,6 @@
           "heading": "Scope and honesty",
           "body": "WHAT IS GENERAL. Any measure defined as change from a prior period does not exist for a customer's first period. 'Does not exist' and 'zero' are different answers. Store the first as the second and any analysis by tenure inherits a gradient made by the instrument. The direction of the false gradient depends on which side of the gap the measure undercounts. Here it made new customers look safe. A measure that defaulted the other way would make them look fragile. The remedy is also general: define what the experience is in year one, against the reference the customer actually had (the quote, the first payment), and record 'cannot tell' as unknown, never as a value. Before reading any churn-by-tenure table, ask of each driver whether it is defined in year one.\n\nWHAT IS OURS. The gradient (−0.346), its collapse (−0.009), the retention figures (0.775 against 0.651), the counts of shocked first renewals and every repair are this project's simulation measurements and code decisions. They show that the trap is real and how large it can be. They say nothing about how large the effect is in any real supplier's book.\n\nWHAT IS PUBLISHED. The definitions of bill shock for each population, the direction of the real tenure effect, and the bound on spend against switching are published record, cited to the files that hold them. The real-world size of first-year switching is not established here, and this page does not supply one.\n\nHOW IT WAS CAUGHT. It was not caught by looking at the gradient, which looked like a plausible behaviour. It was caught by asking which term of the model read years on supply, and then holding each term in turn. The predictions were filed before the answer was known, so the result could have refuted them."
         }
-      },
-      "pain_points": {
-        "heading": "The pain points a new account meets in its first months, and how customers react",
-        "written": "2026-10-30",
-        "source_pack": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_A_NEW_ACCOUNTS_FIRST_MONTHS_ESTIMATE_DD_AND_PAIN_POINTS_2026-10-30.md",
-        "intro": "This is the knowledge stage (stage 0 of docs/design/THE_IMPROVEMENT_LOOP.md) for the area 'a new account's first months'. It folds in the director's evidence pack of 30 October 2026. Each row is a pain point a real customer meets, how they meet it, the signal a supplier could measure, what the published record says about how customers REACT, and, where the record does not size the reaction, a GAP carrying a labelled low, central and high. The basis of every range is named and graded: 'published bound' means both ends come from published figures; 'derived' means arithmetic on published figures, shown; 'assumption' means no published anchor was found and the range is a deliberately wide labelled belief, to be narrowed by research and never tuned. Nothing on this table comes from this project's simulation or code. Three of the pack's rows have their home on neighbouring pages and are not repeated here: estimated bills (unbilled-energy-and-revenue-assurance), the catch-up bill (back-billing-and-liability) and poor complaint handling (unbilled-energy-and-revenue-assurance). The pack's slow-switch point (£30 automatic compensation after five working days, since April 2024) is in its text but not its table, and is not a row. Verified by the seat on 2026-10-30 against the primary PDF: the 2026 TDCV values and their 1 July 2026 start. Every other row carries the pack's own source, and the pack's [unverified] items are GAPs here, not evidence.",
-        "scorecard": [
-          {
-            "axis": "customer money (M3)",
-            "measures": "first-year direct-debit error (£, both directions); size of the first step-up; credit held per account; catch-up £"
-          },
-          {
-            "axis": "customer time (M3, household minutes, never converted to pounds)",
-            "measures": "contacts per account in year one; minutes to dispute an opening read; minutes to obtain a refund"
-          },
-          {
-            "axis": "customer carbon (M3)",
-            "measures": "no direct path from DD setting; carried so a variant that moves it is seen, not assumed flat"
-          },
-          {
-            "axis": "company outcomes",
-            "measures": "first-year bad debt; working capital held as credit; complaints per 100k; first-year loss rate; imbalance cost on new joiners"
-          },
-          {
-            "axis": "fairness (X1-X2)",
-            "measures": "the same outcomes for financially vulnerable and PSR households against the rest"
-          }
-        ],
-        "rows": [
-          {
-            "id": "FM1",
-            "pain_point": "Opening estimate wrong (a typical-consumption default, a declared figure, or an inherited EAC/AQ)",
-            "how_met": "The first direct debit feels too low or too high; the first bill on a real read diverges from it.",
-            "signal": "Forecast error at months 3 and 6: estimated against read-based annualised use.",
-            "evidence": [
-              "Ofgem names 'estimated billing that differs from later meter readings, often leaving a debit balance' as a driver of direct-debit increases (Ofgem, Direct Debit market compliance review progress update, Feb 2023, https://www.ofgem.gov.uk/decision/direct-debit-market-compliance-review-progress-update).",
-              "Ofgem cut the medium TDCV from 2,700 to 2,500 kWh (electricity, single rate) and from 11,500 to 9,500 kWh (gas) from 1 July 2026, so a household at the old medium is quoted about 7% low on electricity and 17% low on gas (Ofgem, Review of typical domestic consumption values: decision, May 2026, https://www.ofgem.gov.uk/sites/default/files/2026-05/Review%20of%20typical%20domestic%20consumption%20values%20decision.pdf; verified by the seat).",
-              "Elexon lists incorrect change-of-supplier readings among the common root causes of bad EACs, so the EAC a gaining supplier inherits can already be wrong (https://www.elexon.co.uk/guidance-note/erroneous-large-eacaas-management-resolution/)."
-            ],
-            "gap": {
-              "quantity": "median absolute opening-estimate error for an estimate not built from the meter's own history, as a fraction of annual use",
-              "low": 0.147,
-              "central": 0.3,
-              "high": 0.58,
-              "unit": "fraction of annual use",
-              "basis_kind": "published bound + assumption",
-              "basis": "Low and high are the median (0.147) and 90th percentile (0.58) absolute year-on-year change of a settled EAC against the next year's use, from 330,884 NEED year pairs (docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md). An estimate with no meter history is assumed no better than the median of that spread and no worse than its 90th percentile; the central 0.30 is a midpoint with no published anchor. No published figure splits opening error by data source."
-            }
-          },
-          {
-            "id": "FM2",
-            "pain_point": "Direct-debit step-up at the first review",
-            "how_met": "A notice of a large increase, often a few months after joining, sometimes after a catch-up read.",
-            "signal": "Direct-debit change %; contact within 14 days; challenges; cancellations.",
-            "evidence": [
-              "Standard variable direct debits rose 62% on average in February-April 2022 against a 54% cap rise, and about 8% of customers saw rises above 100% (Ofgem, Ofgem seeks improvements from 12 suppliers in relation to customer direct debit setting, July 2022, https://www.ofgem.gov.uk/decision/ofgem-seeks-improvements-12-suppliers-relation-customer-direct-debit-setting).",
-              "13% of payment, bill or price complainants saw their direct debit rise without warning (Which?, Common energy company complaints, Oct 2021 (n=8,803), https://www.which.co.uk/news/article/common-energy-company-complaints-a1fN84z7760T).",
-              "46% of in-credit customers whose direct debit doubled did not challenge it, mainly because they did not know they could (MSE, direct debit survey Apr-May 2022 (self-selected, 4,177 analysed), https://blog.moneysavingexpert.com/news/2022/05/energy-direct-debit-hikes-mse-survey). The sample is self-selected and money-engaged.",
-              "Of consumers who fell behind on a bill in Q1 2022, 43% contacted their supplier; among credit-meter customers who fell behind, 31% reached out first (Ofgem, Consumer perceptions of energy markets Q1 2022, https://www.ofgem.gov.uk/sites/default/files/2022-07/Consumer%20Perceptions%20of%20energy%20markets%20%20Q1%202022.pdf)."
-            ],
-            "gap": {
-              "quantity": "share of customers who contact or challenge the supplier after their direct debit roughly doubles",
-              "low": 0.31,
-              "central": 0.43,
-              "high": 0.54,
-              "unit": "probability",
-              "basis_kind": "published bound",
-              "basis": "High 0.54 is MSE's challenged share (1 - 0.46) in a self-selected, engaged sample, so an upper bound for the whole book. Low 0.31 is the share of credit-meter customers who fell behind and reached out first (Ofgem Q1 2022), the least proactive measured group. Central 0.43 is Ofgem's all-customers contact share among those who fell behind. No published figure gives the direct-debit CANCELLATION rate after an increase; that leg is carried by FM3's payment-failure range."
-            }
-          },
-          {
-            "id": "FM3",
-            "pain_point": "Debit balance or arrears from a direct debit set too low",
-            "how_met": "The balance grows, then recovery is added on top of a re-forecast run rate, so the step-up is roughly additive.",
-            "signal": "Debit balance £; days past due; payment failures; repayment plans.",
-            "evidence": [
-              "13% of credit-meter consumers had fallen behind on a bill in Q1 2022, up from 9% in Q4 2021, across a 54% cap rise (Ofgem, Consumer perceptions of energy markets Q1 2022, https://www.ofgem.gov.uk/sites/default/files/2022-07/Consumer%20Perceptions%20of%20energy%20markets%20%20Q1%202022.pdf).",
-              "System debt and arrears stood at £5.02bn in Q2 2026, with about 4% of accounts in each fuel in arrears with no repayment arrangement (https://www.ofgem.gov.uk/data/debt-and-arrears-indicators; the pack's figure, not re-checked by the seat).",
-              "Ofgem publishes no split of arrears by payment method."
-            ],
-            "gap": {
-              "quantity": "rise in the quarterly share of credit-meter customers falling behind, following a large payment rise",
-              "low": 0.04,
-              "central": 0.085,
-              "high": 0.13,
-              "unit": "probability per quarter",
-              "basis_kind": "published bound",
-              "basis": "Low 0.04 is the Q4 2021 to Q1 2022 rise (9% to 13%) across the whole book under a 54% cap rise; high 0.13 is the whole Q1 2022 level, treating every customer who fell behind as caused by the rise. Central is the midpoint. It is a population rate, not a per-household function of the step size, which nothing published gives."
-            }
-          },
-          {
-            "id": "FM4",
-            "pain_point": "Excess credit and refund friction",
-            "how_met": "Credit visible in the app; a refund refused, conditional or slow.",
-            "signal": "Credit balance per account; refund requests; refund cycle time.",
-            "evidence": [
-              "9% of payment complainants struggled to get a credit refund (Which?, Common energy company complaints, Oct 2021 (n=8,803), https://www.which.co.uk/news/article/common-energy-company-complaints-a1fN84z7760T).",
-              "OVO's published refund conditions: 90 days open, two direct-debit payments, a read within 28 days, at least £5 (https://ovoenergy.com/help/direct-debit-review).",
-              "Ofgem's 2021 consultation put surplus credit at up to £1.4bn, about £65 per household (https://ofgem.gov.uk/publications/ofgem-reforms-could-see-credit-balances-around-ps14-bn-automatically-returned). Whether its auto-refund proposal was adopted is unverified."
-            ],
-            "gap": {
-              "quantity": "probability a customer holding more than one month's direct debit in credit asks for a refund within a year",
-              "low": 0.05,
-              "central": 0.2,
-              "high": 0.5,
-              "unit": "probability per year",
-              "basis_kind": "assumption",
-              "basis": "No published GB figure gives refund-request rates. The range is a wide labelled belief: the low end says few ask, consistent with 46% not challenging even a doubled payment (FM2); the high end says half ask. To be narrowed by research, never tuned."
-            }
-          },
-          {
-            "id": "FM7",
-            "pain_point": "Opening-read dispute (a deemed change-of-supplier read)",
-            "how_met": "The losing supplier's closing bill and the gaining supplier's opening bill do not match the customer's own read.",
-            "signal": "Disputes raised; accommodations paid; days to resolve.",
-            "evidence": [
-              "Disputes may be raised within 12 months; below 250 kWh (electricity) or 1,200 kWh (gas) the supplier should normally offer an accommodation and keep the original read (Ofgem, REC v2.0 switch meter reading exceptions (2018 consultation draft), https://www.ofgem.gov.uk/sites/default/files/docs/2018/10/rec_v2.0_-_switch_meter_reading_exceptions.pdf; a 2018 consultation draft, the live REC schedule may differ).",
-              "Elexon warns of 'a significant risk that poor data will be used resulting in disputed reads' where a data collector falls back on stale history after SSD+8 (https://www.elexon.co.uk/change-proposal/cp0768/)."
-            ],
-            "gap": {
-              "quantity": "share of switches whose opening read the customer disputes",
-              "low": 0.005,
-              "central": 0.02,
-              "high": 0.05,
-              "unit": "probability per switch",
-              "basis_kind": "assumption",
-              "basis": "No published figure gives the frequency of change-of-supplier read disputes. Wide labelled belief."
-            }
-          },
-          {
-            "id": "FM8",
-            "pain_point": "Deemed-contract new tenant",
-            "how_met": "Placed automatically on the default tariff on moving in, often not knowing the supplier, with the previous occupier's consumption profile.",
-            "signal": "Time to first contact; time on deemed terms; early loss rate.",
-            "evidence": [
-              "A person moving in is placed on a deemed contract at the default or standard variable rate once they tell the supplier, and can switch once responsible for the property (Citizens Advice, Moving home: dealing with your energy supply, https://www.citizensadvice.org.uk/consumer/energy/energy-supply/moving-home-your-energy-supply/moving-home-dealing-with-your-energy-supply/).",
-              "The EAC or AQ belongs to the meter point, not the person, so the newcomer inherits the last household's profile (Citizens Advice, Moving home: dealing with your energy supply, https://www.citizensadvice.org.uk/consumer/energy/energy-supply/moving-home-your-energy-supply/moving-home-dealing-with-your-energy-supply/, which tells movers to read the meter on the day)."
-            ],
-            "gap": {
-              "quantity": "probability a deemed new tenant leaves the supplier within their first year",
-              "low": 0.1,
-              "central": 0.25,
-              "high": 0.5,
-              "unit": "probability per year",
-              "basis_kind": "assumption",
-              "basis": "No GB figure for deemed-customer churn was found, and this repository holds no published first-year switching rate (docs/market_research/first_renewal_departure_rate_small_gb_supplier.md). Wide labelled belief; the analysis that deemed customers leave more because they never chose is the pack's, not evidence."
-            }
-          },
-          {
-            "id": "FM9",
-            "pain_point": "Quote and first direct debit built on a default usage band",
-            "how_met": "The quote and first payment come from low, medium or high; a household above the band starts under-paying.",
-            "signal": "Quote-to-actual gap; complaints citing the quote.",
-            "evidence": [
-              "TDCVs are 'a common reference point ... where actual consumption is unknown', and the 2026 values are lower in every band (Ofgem, Review of typical domestic consumption values: decision, May 2026, https://www.ofgem.gov.uk/sites/default/files/2026-05/Review%20of%20typical%20domestic%20consumption%20values%20decision.pdf; verified by the seat)."
-            ],
-            "gap": {
-              "quantity": "share of new accounts whose first direct debit is set from a default band rather than a declared or inherited figure",
-              "low": 0.1,
-              "central": 0.3,
-              "high": 0.6,
-              "unit": "fraction of new accounts",
-              "basis_kind": "assumption",
-              "basis": "How comparison sites default usage, and how much of a quote passes into the first direct debit, is not published. Wide labelled belief."
-            }
-          }
-        ]
       }
     },
     "what-a-supplier-can-see-of-a-house": {
@@ -765,7 +598,7 @@
         "heading": "The pain points unbilled energy creates for customers, and how they react",
         "written": "2026-10-30",
         "source_pack": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_UNBILLED_ENERGY_ESTIMATES_CATCH_UP_AND_BACK_BILLING_2026-10-30.md",
-        "intro": "This is the knowledge stage (stage 0 of docs/design/THE_IMPROVEMENT_LOOP.md) for the area 'unbilled energy', shared with the back-billing page, which holds the catch-up and back-bill rows. It folds in the director's evidence pack of 30 October 2026, and the first-months pack's estimated-bills and complaint-handling rows. The pack's 'direct debit sharply increased' row has its home on the-first-year-blind-spot (FM2). Each row is a pain point a real customer meets, how they meet it, the signal a supplier could measure, what the published record says about how customers REACT, and, where the record does not size the reaction, a GAP carrying a labelled low, central and high. The basis of every range is named and graded: 'published bound' means both ends come from published figures; 'derived' means arithmetic on published figures, shown; 'assumption' means no published anchor was found and the range is a deliberately wide labelled belief, to be narrowed by research and never tuned. Nothing on this table comes from this project's simulation or code. Verified by the seat on 2026-10-30 against the primary PDF: the July 2026 billing performance assessment's 81% / 89% read-based bills, 11 million late bills (3.5 million three to twelve months late), and 30% of complaints and 55% of Ombudsman cases being about billing and meter reading.",
+        "intro": "This is the knowledge stage (stage 0 of docs/design/THE_IMPROVEMENT_LOOP.md) for the area 'unbilled energy', shared with the back-billing page, which holds the catch-up and back-bill rows. It folds in the director's evidence pack of 30 October 2026, whose research note is docs/market_research/unbilled_energy_what_suppliers_do_and_what_customers_meet_2026-10-30.md (this table gives that note's reaction GAPs their ranges), and the first-months pack's estimated-bills and complaint-handling rows. The pack's 'direct debit sharply increased' row has its home on payments-and-direct-debit (FM2). Each row is a pain point a real customer meets, how they meet it, the signal a supplier could measure, what the published record says about how customers REACT, and, where the record does not size the reaction, a GAP carrying a labelled low, central and high. The basis of every range is named and graded: 'published bound' means both ends come from published figures; 'derived' means arithmetic on published figures, shown; 'assumption' means no published anchor was found and the range is a deliberately wide labelled belief, to be narrowed by research and never tuned. Nothing on this table comes from this project's simulation or code. Verified by the seat on 2026-10-30 against the primary PDF: the July 2026 billing performance assessment's 81% / 89% read-based bills, 11 million late bills (3.5 million three to twelve months late), and 30% of complaints and 55% of Ombudsman cases being about billing and meter reading.",
         "scorecard": [
           {
             "axis": "customer money (M3)",
@@ -1218,7 +1051,7 @@
         "heading": "The pain points of catch-up and back bills, and how customers react",
         "written": "2026-10-30",
         "source_pack": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_UNBILLED_ENERGY_ESTIMATES_CATCH_UP_AND_BACK_BILLING_2026-10-30.md",
-        "intro": "This is the knowledge stage (stage 0 of docs/design/THE_IMPROVEMENT_LOOP.md) for the catch-up and back-bill half of the area 'unbilled energy'; the estimate, held-bill and complaint rows are on unbilled-energy-and-revenue-assurance. It folds in the director's evidence pack of 30 October 2026 and the first-months pack's catch-up row. Each row is a pain point a real customer meets, how they meet it, the signal a supplier could measure, what the published record says about how customers REACT, and, where the record does not size the reaction, a GAP carrying a labelled low, central and high. The basis of every range is named and graded: 'published bound' means both ends come from published figures; 'derived' means arithmetic on published figures, shown; 'assumption' means no published anchor was found and the range is a deliberately wide labelled belief, to be narrowed by research and never tuned. Nothing on this table comes from this project's simulation or code. Verified by the seat on 2026-10-30 against the primary PDF: over £172m written off under the twelve-month rule in 2024 for almost 1 million customers, average resolution of about 2 to almost 10 months by supplier, and back-billing at around 5% of Ombudsman referrals. The read duty behind the rule is ANNUAL (SLC 21B.4); the two-yearly duty was an inspection duty repealed from 1 April 2016, as this repository's invariant library already holds.",
+        "intro": "This is the knowledge stage (stage 0 of docs/design/THE_IMPROVEMENT_LOOP.md) for the catch-up and back-bill half of the area 'unbilled energy'; the estimate, held-bill and complaint rows are on unbilled-energy-and-revenue-assurance. It folds in the director's evidence pack of 30 October 2026, whose research note is docs/market_research/unbilled_energy_what_suppliers_do_and_what_customers_meet_2026-10-30.md (this table gives that note's reaction GAPs their ranges) and the first-months pack's catch-up row. Each row is a pain point a real customer meets, how they meet it, the signal a supplier could measure, what the published record says about how customers REACT, and, where the record does not size the reaction, a GAP carrying a labelled low, central and high. The basis of every range is named and graded: 'published bound' means both ends come from published figures; 'derived' means arithmetic on published figures, shown; 'assumption' means no published anchor was found and the range is a deliberately wide labelled belief, to be narrowed by research and never tuned. Nothing on this table comes from this project's simulation or code. Verified by the seat on 2026-10-30 against the primary PDF: over £172m written off under the twelve-month rule in 2024 for almost 1 million customers, average resolution of about 2 to almost 10 months by supplier, and back-billing at around 5% of Ombudsman referrals. The read duty behind the rule is ANNUAL (SLC 21B.4); the two-yearly duty was an inspection duty repealed from 1 April 2016, as this repository's invariant library already holds.",
         "scorecard": [
           {
             "axis": "customer money (M3)",
@@ -1500,6 +1333,173 @@
           "heading": "What this page does not yet establish",
           "body": "It does not give a failure probability for a debit, for any group of households, and supplies none. It does not say how much a large DD change raises failed payments, complaints or churn. It does not say how the payment mix would respond to a change in the standard-credit premium, because the only evidence is a 20% stated willingness to change. It does not grade the simulated world against the headline bands, which is owed. (Correction, 26 Oct 2026: this said the world has no separate standard-credit or prepayment class to grade. It has both: the live-evidence section above says the world splits the non-direct-debit share half prepayment, half standard credit.) It builds no vend record, annual statement or meter-loaded debt, because the world records no vends. It does not cover the supplier's own treatment of a failed debit, which is on debt-and-collections, nor the setting of the amount from the supplier's side, which is in the research note what_a_supplier_holds_to_size_a_direct_debit.md."
         }
+      },
+      "pain_points": {
+        "heading": "The pain points a new account meets in its first months, and how customers react",
+        "written": "2026-10-30",
+        "source_pack": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_A_NEW_ACCOUNTS_FIRST_MONTHS_ESTIMATE_DD_AND_PAIN_POINTS_2026-10-30.md",
+        "intro": "This is the knowledge stage (stage 0 of docs/design/THE_IMPROVEMENT_LOOP.md) for the area 'a new account's first months'. It folds in the director's evidence pack of 30 October 2026, whose research note is docs/market_research/a_new_accounts_first_months_2026-10-30.md; this table gives that note's reaction GAPs their ranges. Each row is a pain point a real customer meets, how they meet it, the signal a supplier could measure, what the published record says about how customers REACT, and, where the record does not size the reaction, a GAP carrying a labelled low, central and high. The basis of every range is named and graded: 'published bound' means both ends come from published figures; 'derived' means arithmetic on published figures, shown; 'assumption' means no published anchor was found and the range is a deliberately wide labelled belief, to be narrowed by research and never tuned. Nothing on this table comes from this project's simulation or code. Three of the pack's rows have their home on neighbouring pages and are not repeated here: estimated bills (unbilled-energy-and-revenue-assurance), the catch-up bill (back-billing-and-liability) and poor complaint handling (unbilled-energy-and-revenue-assurance). The pack's slow-switch point (£30 automatic compensation after five working days, since April 2024) is in its text but not its table, and is not a row. Verified by the seat on 2026-10-30 against the primary PDF: the 2026 TDCV values and their 1 July 2026 start. Every other row carries the pack's own source, and the pack's [unverified] items are GAPs here, not evidence.",
+        "scorecard": [
+          {
+            "axis": "customer money (M3)",
+            "measures": "first-year direct-debit error (£, both directions); size of the first step-up; credit held per account; catch-up £"
+          },
+          {
+            "axis": "customer time (M3, household minutes, never converted to pounds)",
+            "measures": "contacts per account in year one; minutes to dispute an opening read; minutes to obtain a refund"
+          },
+          {
+            "axis": "customer carbon (M3)",
+            "measures": "no direct path from DD setting; carried so a variant that moves it is seen, not assumed flat"
+          },
+          {
+            "axis": "company outcomes",
+            "measures": "first-year bad debt; working capital held as credit; complaints per 100k; first-year loss rate; imbalance cost on new joiners"
+          },
+          {
+            "axis": "fairness (X1-X2)",
+            "measures": "the same outcomes for financially vulnerable and PSR households against the rest"
+          }
+        ],
+        "rows": [
+          {
+            "id": "FM1",
+            "pain_point": "Opening estimate wrong (a typical-consumption default, a declared figure, or an inherited EAC/AQ)",
+            "how_met": "The first direct debit feels too low or too high; the first bill on a real read diverges from it.",
+            "signal": "Forecast error at months 3 and 6: estimated against read-based annualised use.",
+            "evidence": [
+              "Ofgem names 'estimated billing that differs from later meter readings, often leaving a debit balance' as a driver of direct-debit increases (Ofgem, Direct Debit market compliance review progress update, Feb 2023, https://www.ofgem.gov.uk/decision/direct-debit-market-compliance-review-progress-update).",
+              "Ofgem cut the medium TDCV from 2,700 to 2,500 kWh (electricity, single rate) and from 11,500 to 9,500 kWh (gas) from 1 July 2026, so a household at the old medium is quoted about 7% low on electricity and 17% low on gas (Ofgem, Review of typical domestic consumption values: decision, May 2026, https://www.ofgem.gov.uk/sites/default/files/2026-05/Review%20of%20typical%20domestic%20consumption%20values%20decision.pdf; verified by the seat).",
+              "Elexon lists incorrect change-of-supplier readings among the common root causes of bad EACs, so the EAC a gaining supplier inherits can already be wrong (https://www.elexon.co.uk/guidance-note/erroneous-large-eacaas-management-resolution/)."
+            ],
+            "gap": {
+              "quantity": "median absolute opening-estimate error for an estimate not built from the meter's own history, as a fraction of annual use",
+              "low": 0.147,
+              "central": 0.3,
+              "high": 0.58,
+              "unit": "fraction of annual use",
+              "basis_kind": "published bound + assumption",
+              "basis": "Low and high are the median (0.147) and 90th percentile (0.58) absolute year-on-year change of a settled EAC against the next year's use, from 330,884 NEED year pairs (docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md). An estimate with no meter history is assumed no better than the median of that spread and no worse than its 90th percentile; the central 0.30 is a midpoint with no published anchor. No published figure splits opening error by data source."
+            }
+          },
+          {
+            "id": "FM2",
+            "pain_point": "Direct-debit step-up at the first review",
+            "how_met": "A notice of a large increase, often a few months after joining, sometimes after a catch-up read.",
+            "signal": "Direct-debit change %; contact within 14 days; challenges; cancellations.",
+            "evidence": [
+              "Standard variable direct debits rose 62% on average in February-April 2022 against a 54% cap rise, and about 8% of customers saw rises above 100% (Ofgem, Ofgem seeks improvements from 12 suppliers in relation to customer direct debit setting, July 2022, https://www.ofgem.gov.uk/decision/ofgem-seeks-improvements-12-suppliers-relation-customer-direct-debit-setting).",
+              "13% of payment, bill or price complainants saw their direct debit rise without warning (Which?, Common energy company complaints, Oct 2021 (n=8,803), https://www.which.co.uk/news/article/common-energy-company-complaints-a1fN84z7760T).",
+              "46% of in-credit customers whose direct debit doubled did not challenge it, mainly because they did not know they could (MSE, direct debit survey Apr-May 2022 (self-selected, 4,177 analysed), https://blog.moneysavingexpert.com/news/2022/05/energy-direct-debit-hikes-mse-survey). The sample is self-selected and money-engaged.",
+              "Of consumers who fell behind on a bill in Q1 2022, 43% contacted their supplier; among credit-meter customers who fell behind, 31% reached out first (Ofgem, Consumer perceptions of energy markets Q1 2022, https://www.ofgem.gov.uk/sites/default/files/2022-07/Consumer%20Perceptions%20of%20energy%20markets%20%20Q1%202022.pdf)."
+            ],
+            "gap": {
+              "quantity": "share of customers who contact or challenge the supplier after their direct debit roughly doubles",
+              "low": 0.31,
+              "central": 0.43,
+              "high": 0.54,
+              "unit": "probability",
+              "basis_kind": "published bound",
+              "basis": "High 0.54 is MSE's challenged share (1 - 0.46) in a self-selected, engaged sample, so an upper bound for the whole book. Low 0.31 is the share of credit-meter customers who fell behind and reached out first (Ofgem Q1 2022), the least proactive measured group. Central 0.43 is Ofgem's all-customers contact share among those who fell behind. No published figure gives the direct-debit CANCELLATION rate after an increase; that leg is carried by FM3's payment-failure range."
+            }
+          },
+          {
+            "id": "FM3",
+            "pain_point": "Debit balance or arrears from a direct debit set too low",
+            "how_met": "The balance grows, then recovery is added on top of a re-forecast run rate, so the step-up is roughly additive.",
+            "signal": "Debit balance £; days past due; payment failures; repayment plans.",
+            "evidence": [
+              "13% of credit-meter consumers had fallen behind on a bill in Q1 2022, up from 9% in Q4 2021, across a 54% cap rise (Ofgem, Consumer perceptions of energy markets Q1 2022, https://www.ofgem.gov.uk/sites/default/files/2022-07/Consumer%20Perceptions%20of%20energy%20markets%20%20Q1%202022.pdf).",
+              "System debt and arrears stood at £5.02bn in Q2 2026, with about 4% of accounts in each fuel in arrears with no repayment arrangement (https://www.ofgem.gov.uk/data/debt-and-arrears-indicators; the pack's figure, not re-checked by the seat).",
+              "Ofgem publishes no split of arrears by payment method."
+            ],
+            "gap": {
+              "quantity": "rise in the quarterly share of credit-meter customers falling behind, following a large payment rise",
+              "low": 0.04,
+              "central": 0.085,
+              "high": 0.13,
+              "unit": "probability per quarter",
+              "basis_kind": "published bound",
+              "basis": "Low 0.04 is the Q4 2021 to Q1 2022 rise (9% to 13%) across the whole book under a 54% cap rise; high 0.13 is the whole Q1 2022 level, treating every customer who fell behind as caused by the rise. Central is the midpoint. It is a population rate, not a per-household function of the step size, which nothing published gives."
+            }
+          },
+          {
+            "id": "FM4",
+            "pain_point": "Excess credit and refund friction",
+            "how_met": "Credit visible in the app; a refund refused, conditional or slow.",
+            "signal": "Credit balance per account; refund requests; refund cycle time.",
+            "evidence": [
+              "9% of payment complainants struggled to get a credit refund (Which?, Common energy company complaints, Oct 2021 (n=8,803), https://www.which.co.uk/news/article/common-energy-company-complaints-a1fN84z7760T).",
+              "OVO's published refund conditions: 90 days open, two direct-debit payments, a read within 28 days, at least £5 (https://ovoenergy.com/help/direct-debit-review).",
+              "Ofgem's 2021 consultation put surplus credit at up to £1.4bn, about £65 per household (https://ofgem.gov.uk/publications/ofgem-reforms-could-see-credit-balances-around-ps14-bn-automatically-returned). Whether its auto-refund proposal was adopted is unverified."
+            ],
+            "gap": {
+              "quantity": "probability a customer holding more than one month's direct debit in credit asks for a refund within a year",
+              "low": 0.05,
+              "central": 0.2,
+              "high": 0.5,
+              "unit": "probability per year",
+              "basis_kind": "assumption",
+              "basis": "No published GB figure gives refund-request rates. The range is a wide labelled belief: the low end says few ask, consistent with 46% not challenging even a doubled payment (FM2); the high end says half ask. To be narrowed by research, never tuned."
+            }
+          },
+          {
+            "id": "FM7",
+            "pain_point": "Opening-read dispute (a deemed change-of-supplier read)",
+            "how_met": "The losing supplier's closing bill and the gaining supplier's opening bill do not match the customer's own read.",
+            "signal": "Disputes raised; accommodations paid; days to resolve.",
+            "evidence": [
+              "Disputes may be raised within 12 months; below 250 kWh (electricity) or 1,200 kWh (gas) the supplier should normally offer an accommodation and keep the original read (Ofgem, REC v2.0 switch meter reading exceptions (2018 consultation draft), https://www.ofgem.gov.uk/sites/default/files/docs/2018/10/rec_v2.0_-_switch_meter_reading_exceptions.pdf; a 2018 consultation draft, the live REC schedule may differ).",
+              "Elexon warns of 'a significant risk that poor data will be used resulting in disputed reads' where a data collector falls back on stale history after SSD+8 (https://www.elexon.co.uk/change-proposal/cp0768/)."
+            ],
+            "gap": {
+              "quantity": "share of switches whose opening read the customer disputes",
+              "low": 0.005,
+              "central": 0.02,
+              "high": 0.05,
+              "unit": "probability per switch",
+              "basis_kind": "assumption",
+              "basis": "No published figure gives the frequency of change-of-supplier read disputes. Wide labelled belief."
+            }
+          },
+          {
+            "id": "FM8",
+            "pain_point": "Deemed-contract new tenant",
+            "how_met": "Placed automatically on the default tariff on moving in, often not knowing the supplier, with the previous occupier's consumption profile.",
+            "signal": "Time to first contact; time on deemed terms; early loss rate.",
+            "evidence": [
+              "A person moving in is placed on a deemed contract at the default or standard variable rate once they tell the supplier, and can switch once responsible for the property (Citizens Advice, Moving home: dealing with your energy supply, https://www.citizensadvice.org.uk/consumer/energy/energy-supply/moving-home-your-energy-supply/moving-home-dealing-with-your-energy-supply/).",
+              "The EAC or AQ belongs to the meter point, not the person, so the newcomer inherits the last household's profile (Citizens Advice, Moving home: dealing with your energy supply, https://www.citizensadvice.org.uk/consumer/energy/energy-supply/moving-home-your-energy-supply/moving-home-dealing-with-your-energy-supply/, which tells movers to read the meter on the day)."
+            ],
+            "gap": {
+              "quantity": "probability a deemed new tenant leaves the supplier within their first year",
+              "low": 0.1,
+              "central": 0.25,
+              "high": 0.5,
+              "unit": "probability per year",
+              "basis_kind": "assumption",
+              "basis": "No GB figure for deemed-customer churn was found, and this repository holds no published first-year switching rate (docs/market_research/first_renewal_departure_rate_small_gb_supplier.md). Wide labelled belief; the analysis that deemed customers leave more because they never chose is the pack's, not evidence."
+            }
+          },
+          {
+            "id": "FM9",
+            "pain_point": "Quote and first direct debit built on a default usage band",
+            "how_met": "The quote and first payment come from low, medium or high; a household above the band starts under-paying.",
+            "signal": "Quote-to-actual gap; complaints citing the quote.",
+            "evidence": [
+              "TDCVs are 'a common reference point ... where actual consumption is unknown', and the 2026 values are lower in every band (Ofgem, Review of typical domestic consumption values: decision, May 2026, https://www.ofgem.gov.uk/sites/default/files/2026-05/Review%20of%20typical%20domestic%20consumption%20values%20decision.pdf; verified by the seat)."
+            ],
+            "gap": {
+              "quantity": "share of new accounts whose first direct debit is set from a default band rather than a declared or inherited figure",
+              "low": 0.1,
+              "central": 0.3,
+              "high": 0.6,
+              "unit": "fraction of new accounts",
+              "basis_kind": "assumption",
+              "basis": "How comparison sites default usage, and how much of a quote passes into the first direct debit, is not published. Wide labelled belief."
+            }
+          }
+        ]
       }
     },
     "switching-mechanics": {
