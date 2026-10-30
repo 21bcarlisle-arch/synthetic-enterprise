@@ -549,6 +549,11 @@ def as_void_row(rec: dict, commodity: str, segment: str = "resi") -> None:
     for field in _VOLUME_FIELDS:
         if field in rec:
             rec[field] = 0.0
+    # A two-rate meter's band fields are volume too. Left at the occupied day's values, a void day
+    # settled 0 kWh with its Day and Night still full, the bands stopped reconciling with the bill,
+    # and two occupier accounts' first bills printed one Anytime register (cd4fc5b8d8 book).
+    for field in [f for f in rec if f.startswith("tou_") and f.endswith(("_kwh", "_unit_charge_gbp"))]:
+        rec[field] = 0.0
     day = rec["settlement_date"][:10]
     if commodity == "gas":
         charge = get_gas_standing_charge_per_day(day, segment)

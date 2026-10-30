@@ -998,3 +998,25 @@ for_the_director:
   resolution: ''
   evidence: docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md section 9.3 Q4; docs/design/THE_IMPROVEMENT_LOOP.md
     section 8
+- id: m3-names-three-currencies-money-time-carbon
+  raised: '2026-10-30'
+  kind: canon_intent
+  what: 'M3 names three currencies (money, time, carbon). Your 30 Oct steer asks if that is the whole
+    set of needs energy products serve. Payment-method and fix choices say it is not: in Ofgem''s 2022
+    survey, control is the top reason standard-credit payers give and budgeting the top reason prepayment
+    payers give, and only 10-24% cite price.'
+  proposal: 'Amend M3 (not a new rule): ''M3. Money, time and carbon, above a floor. Money, time and carbon,
+    and the ways money is shaped. Money is two things, measured apart: cost (what is paid) and cash flow
+    (when, and how much at once). Peace of mind is two things, measured apart: certainty (not being surprised)
+    and control (deciding when money leaves). Time means household effort, in household minutes per kind
+    of activity. Carbon is what customers have saved and could save in CO2. Each is measured in its own
+    unit and never converted to pounds. Comfort and health are a floor, not a currency: no gain in any
+    need justifies a breach.'' The fix premium stays booked as value moved until the note''s three-leg
+    test (section 6.1) is run.'
+  recommendation: I recommend amending M3 with the wording above rather than adding a new M-rule, because
+    a separate rule would leave the three-currency wording standing beside it; the build waits for the
+    correctness exit test, as your steer says.
+  status: open
+  resolution: ''
+  evidence: docs/design/CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md (DISCOVER/FRAME, 10 GAPs named, none
+    filled with a guess)

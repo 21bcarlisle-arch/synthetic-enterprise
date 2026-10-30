@@ -74,3 +74,29 @@ These traits drive:
    - fairness, since the households with the highest cash-flow and control needs are often the vulnerable ones.
 2. **Bring back canon wording** for M3, or a new M-rule, as one `for_the_director` row with your recommendation. Read in two minutes.
 3. **Sequencing.** The framing is reading-only and can be drawn now, beside C31. The build follows the correctness exit test and sits within the improvement-loop design. Wording on the site that says pricing only moves value already says "in money terms", per today's time steer.
+
+## Done
+
+2026-10-30, the delivery seat.
+
+1. **Framed.** `docs/design/CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md` is a DISCOVER/FRAME note,
+   reading-only, in C31's style. It covers seven needs, each with its own unit and none summed:
+   cost, cash flow, certainty, control, time, carbon, and a comfort and health floor.
+   - **GB evidence.** In Ofgem's 2022 survey, 89% of DD, 85% of standard credit (SC) and 72% of
+     prepayment (PPM) users give an active reason for their method. Control is SC payers' top reason
+     and budgeting PPM payers'. Only 55% know costs vary by method. FCA Financial Lives 2024 puts 24%
+     of adults at low resilience.
+   - **Imposed PPM** is a separate population: 1,925 wrongful installs in Ofgem's review, against
+     Citizens Advice's 600,000, on different definitions and not reconciled.
+   - **The fix premium.** A three-leg test separates value made from value moved (section 6.1). The
+     premium stays booked as moved until the test is run.
+   - The note also covers the scorecard and fairness.
+   - **Ten GAPs** are named with no number guessed. The largest are GB willingness to pay for price
+     certainty and the share of households on irregular income.
+   - Drafted by a research agent that read published sources and the repo's knowledge pages, not the
+     code.
+2. **Canon wording.** One `for_the_director` row,
+   `m3-names-three-currencies-money-time-carbon`, recommends amending M3 rather than adding a rule,
+   with the wording verbatim. Canon is not edited.
+3. **Sequencing as steered.** No build is drawn. It follows the correctness exit test, inside the
+   improvement-loop design.

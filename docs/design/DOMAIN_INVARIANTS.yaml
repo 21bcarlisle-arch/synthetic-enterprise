@@ -2885,7 +2885,9 @@ invariants:
     references s_short and every s_long (none if no 182-day window exists): breach unless (1 - t) x min(s_short, every s_long) <= e <= (1 + t) x max(s_short, every s_long), with
     t = 0.30 electricity and 0.40 gas. For the flag only, s_long is the longest window of 182 to 365 days from an actual read (s_short if none). Flag when s_short > s_long (a read-confirmed rise) and e < 0.9 x s_long, or s_short < s_long (a confirmed fall) and e > 1.1 x s_long: the estimate went the wrong way.
     Use reads, not consumption_kwh, for the references, so a catch-up bill does not count as use. Shape: DESNZ Energy Trends Table 5.5 domestic electricity and Table 4.2 domestic gas monthly shares
-    (2023-2025 averages), each month's share divided by its days.
+    (2023-2025 averages), each month's share divided by its days. A bill printing Day and Night registers is a Profile Class 2 meter: each reference is taken per register from the
+    printed register reads and reshaped on that register's PC2 share, then summed; where a read lacks register reads, the total is reshaped on PC2's Day+Night share; the quote rung
+    divides by PC2's Day+Night share (docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md, the twelve-month table; added 2026-10-30, 170 -> 10 on the cd4fc5b8d8 ledger).
   lower: 'reads rung: (1 - t) x min(s_short, every s_long); quote rung: (1 - quote_q) x median(a)'
   upper: 'reads rung: (1 + t) x max(s_short, every s_long); quote rung: (1 + quote_q) x median(a)'
   lower_source: >-

@@ -90,16 +90,25 @@ bands sum to the total.
 The table is the one the world settles on: UKERC's verbatim `ProfileClass2.csv`, the 1997 Group Average
 Demand by season and day type (`docs/data-sources/profile-class-2.md`). It is split at the world's Night
 window, 00:30-07:30 (G3), using the BSC season calendar for each day of 2016-2025. The probe is
-`/var/tmp/pc2-shape-probe/shares.py`. Share of a year's use, averaged over the ten calendars, in %:
+`/var/tmp/pc2-shape-probe/shares.py`. Share of a year's use, averaged over the ten calendars, in %. All twelve months
+are tabulated (30 Oct 2026, for INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS, which reshapes a PC2 meter's
+reads on this table; the same figures as `company/billing/unread_month_estimate.PC2_MONTHLY_REGISTER_SHARE`).
+The PC1 column was tabulated for six months only:
 
 | Month | Day | Night | Night's share of the month | PC1 (same archive), for contrast |
 |---|---:|---:|---:|---:|
-| Jan | 5.56 | 5.93 | 0.52 | 9.89 |
-| Apr | 4.17 | 3.56 | 0.46 | 7.62 |
-| Jul | 3.69 | 1.80 | 0.33 | 7.13 |
-| Aug | 3.63 | 1.44 | 0.28 | 7.09 |
-| Oct | 4.51 | 2.97 | 0.40 | 8.20 |
-| Dec | 5.57 | 5.93 | 0.52 | 9.90 |
+| Jan | 5.564 | 5.930 | 0.52 | 9.89 |
+| Feb | 5.077 | 5.413 | 0.52 |  |
+| Mar | 5.395 | 5.637 | 0.51 |  |
+| Apr | 4.172 | 3.557 | 0.46 | 7.62 |
+| May | 3.943 | 2.631 | 0.40 |  |
+| Jun | 3.603 | 1.910 | 0.35 |  |
+| Jul | 3.693 | 1.798 | 0.33 | 7.13 |
+| Aug | 3.627 | 1.438 | 0.28 | 7.09 |
+| Sep | 4.143 | 2.373 | 0.36 |  |
+| Oct | 4.508 | 2.974 | 0.40 | 8.20 |
+| Nov | 5.381 | 5.738 | 0.52 |  |
+| Dec | 5.566 | 5.929 | 0.52 | 9.90 |
 
 - **The Night register is the seasonal one.** Its January share is 4.1 times August's. The Day register's
   is 1.5 times. PC1, the shape the estimate uses today, is 1.4 times.

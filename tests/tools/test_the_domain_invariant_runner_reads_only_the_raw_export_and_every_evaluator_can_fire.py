@@ -1046,6 +1046,43 @@ def test_the_estimate_row_holds_every_advance_the_published_methods_allow_and_no
     assert _grade_one(i, from_the_switch)[:2] == ("BREACHED", ["above"])
 
 
+def test_the_estimate_row_reshapes_a_bill_printing_day_and_night_on_pc2s_registers():
+    """A storage home's supplier estimates each register on PC2's shape, so the row reshapes on it.
+    The home follows PC2's register shares exactly, 70% of its year at night: read in summer, its
+    January estimate is PC2's January and passes. On the domestic total's shape the August read
+    puts January at 21 kWh a day against PC2's 39, and it breached: the cd4fc5b8d8 book's 170
+    (winter high, summer low). The same reads printed as one
+    Anytime register still grade on the total's shape and breach: the PC2 branch can be taken and
+    so can the other. Mutation: `pc2 = False` in ev_estimate_follows_reads reds the first assert."""
+    import calendar
+    share = runner.PC2_REGISTER_SHARE
+    night_of_year = {"Day": 0.3, "Night": 0.7}
+
+    def used(k, m):  # a month's kWh on register k, on PC2's shape, 10,000 kWh a year
+        return 10000.0 * night_of_year[k] * share[k][m - 1] / sum(share[k])
+
+    def bill(start_month, end_month, read, opening, two_registers, year=2019):
+        closing = {k: opening[k] + sum(used(k, m) for m in range(start_month, end_month + 1)) for k in opening}
+        regs = ([{"label": k, "opening_read_kwh": opening[k], "closing_read_kwh": closing[k]} for k in opening]
+                if two_registers else [{"label": "Anytime"}])
+        end = "%d-%02d-%02d" % (year, end_month, calendar.monthrange(year, end_month)[1])
+        kwh = sum(closing.values()) - sum(opening.values())
+        if read == "E":
+            return _bill("%d-%02d-01" % (year, start_month), end, kwh, "E", days_in_period=31, registers=regs), opening
+        return _bill("%d-%02d-01" % (year, start_month), end, kwh, "A", close=sum(closing.values()),
+                     opening_read_kwh=sum(opening.values()), registers=regs), closing
+
+    def acct(two_registers):
+        b1, c1 = bill(2, 7, "A", {"Day": 0.0, "Night": 0.0}, two_registers)
+        b2, c2 = bill(8, 8, "A", c1, two_registers)
+        b3, _ = bill(1, 1, "E", c2, two_registers, year=2020)
+        b1["opening_read_kwh"] = None  # no change-of-supply reference: the summer reads alone bound it
+        return _printed_account("P", "electricity", {"invoices": [b1, b2, b3]})
+    i = "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS"
+    assert _grade_one(i, acct(True))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct(False))[:2] == ("BREACHED", ["above"])
+
+
 def test_every_leg_of_the_estimated_run_against_the_meter_row_is_reachable():
     """A run billed near the meter's own rate passes; a run at zero while the meter advanced (the
     occupier's zero window) breaches; twice the meter only flags; a single estimate is not a run."""

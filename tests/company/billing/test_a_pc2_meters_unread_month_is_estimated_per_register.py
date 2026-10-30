@@ -16,6 +16,13 @@ R15, each mutation applied in place and reverted:
   * `register_ratios=None` at the scale: the PC2 test fails at the Night register.
   * `estimate_unread_register_kwh` uses each register's weight as `profile_weight("electricity", ...)`:
     the PC2 test fails at the total.
+  * one ratio per record, the first register found (cd4fc5b8d8's scale): the one-record test fails
+    at the Night register, which takes Day's ratio.
+
+The world settles a PC2 meter on one record a day carrying both registers. The first three tests'
+records carry one register each, which is why they passed while the cd4fc5b8d8 book printed a
+storage home's December Night at six times its settled kWh
+(docs/staging/SEAT_FINDING_THE_E7_AND_PC2_BUILDS_LEAVE_EIGHT_ROWS_BREACHED_ON_PROFILE_CLASS_2_HOMES_2026-10-30.md).
 """
 
 from __future__ import annotations
@@ -65,6 +72,24 @@ def _records():
     return out
 
 
+def _one_record_a_day():
+    """`_records` as the world settles it: one record a day, both registers on it."""
+    merged: dict[str, dict] = {}
+    for r in _records():
+        day = merged.setdefault(r["settlement_date"], {
+            **{k: r[k] for k in ("customer_id", "settlement_date", "wholesale_cost_gbp", "margin_gbp")},
+            "settlement_period": 1, "consumption_kwh": 0.0, "revenue_gbp": 0.0, "standing_charge_gbp": 0.0})
+        for k, v in r.items():
+            if k.startswith("tou_"):
+                day[k] = v
+        day["consumption_kwh"] += r["consumption_kwh"]
+        day["revenue_gbp"] += r["revenue_gbp"]
+        day["standing_charge_gbp"] += r["standing_charge_gbp"]
+    for day in merged.values():
+        day["unit_rate_gbp_per_mwh"] = (day["revenue_gbp"] - day["standing_charge_gbp"]) / day["consumption_kwh"] * 1000
+    return list(merged.values())
+
+
 @dataclass
 class _Read:
     status: str
@@ -85,10 +110,10 @@ class _AugustUnread:
         return _Read("actual", None, 0)
 
 
-def _august(monkeypatch, profile_class: int) -> dict:
+def _august(monkeypatch, profile_class: int, records=_records) -> dict:
     monkeypatch.setattr(M, "get_customer", lambda _cid: {
         "commodity": "electricity", "registered_profile_class": profile_class, "eac_kwh": 7000})
-    bills = M.build_monthly_bills(_records(), _AugustUnread())
+    bills = M.build_monthly_bills(records(), _AugustUnread())
     return next(b for b in bills if b["period_end"].startswith("2023-08"))
 
 
@@ -117,3 +142,13 @@ def test_a_register_read_at_nothing_estimates_nothing_and_a_meter_read_at_nothin
     assert estimate["night"] == 0.0 and estimate["day"] > 0
     nothing = [(date(2023, 5, 1), date(2023, 5, 31), {"day": 0.0, "night": 0.0})]
     assert estimate_unread_register_kwh(nothing, date(2023, 6, 1), date(2023, 6, 30)) is None
+
+
+def test_one_settled_record_carrying_both_registers_is_scaled_per_register(monkeypatch):
+    """The cd4fc5b8d8 shape: one daily record, both registers. Night must take Night's ratio."""
+    split, merged = _august(monkeypatch, 2), _august(monkeypatch, 2, _one_record_a_day)
+    assert merged["billing_basis"] == "estimated"
+    for band in ("day", "night"):
+        assert _register(merged, band) == pytest.approx(_register(split, band), rel=1e-6)
+    assert merged["total_consumption_kwh"] == pytest.approx(split["total_consumption_kwh"], rel=1e-6)
+    assert merged["commodity_amount_gbp"] == pytest.approx(split["commodity_amount_gbp"], rel=1e-6)

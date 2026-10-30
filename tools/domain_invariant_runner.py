@@ -1764,13 +1764,25 @@ MONTHLY_SHARE = {
 }
 
 
+#: A Profile Class 2 (Economy 7) meter's monthly share of a year's use per register, % (UKERC's
+#: ProfileClass2.csv split at the 00:30-07:30 Night window, as
+#: docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md tabulates it). A bill printing
+#: Day and Night is reshaped on these, not on the domestic total's shape: Night's January is 4.1 times its
+#: August, the total's 1.4.
+PC2_REGISTER_SHARE = {
+    "Day": (5.564, 5.077, 5.395, 4.172, 3.943, 3.603, 3.693, 3.627, 4.143, 4.508, 5.381, 5.566),
+    "Night": (5.930, 5.413, 5.637, 3.557, 2.631, 1.910, 1.798, 1.438, 2.373, 2.974, 5.738, 5.929),
+}
+PC2_TOTAL_SHARE = tuple(d + n for d, n in zip(*PC2_REGISTER_SHARE.values()))
+
+
 def _days_in_month(d: date) -> int:
     return (_month_end(date(d.year, d.month, 1)) - date(d.year, d.month, 1)).days + 1
 
 
-def _shape(fuel: str, a: date, b: date) -> float:
-    """Mean daily share of the year's use over [a, b] inclusive."""
-    share, d, n, total = MONTHLY_SHARE[fuel], a, 0, 0.0
+def _shape(fuel: str, a: date, b: date, share: tuple[float, ...] | None = None) -> float:
+    """Mean daily share of the year's use over [a, b] inclusive, on `share` (default: the fuel's)."""
+    share, d, n, total = share or MONTHLY_SHARE[fuel], a, 0, 0.0
     while d <= b:
         total += share[d.month - 1] / _days_in_month(d)
         n += 1
@@ -1782,6 +1794,14 @@ def _meter_reads(bills) -> list[tuple[int, date, float]]:
     """(bill index, read day, closing read) for every bill on an actual read."""
     return [(n, _d(i["period_end"]), float(i["closing_read_kwh"])) for n, i in enumerate(bills)
             if i.get("read_type") in ACTUAL_READ_TYPES and i.get("closing_read_kwh") is not None]
+
+
+def _register_reads(i, which: str = "closing_read_kwh") -> dict[str, float] | None:
+    """{Day, Night: read} when the bill prints both Economy 7 registers with their reads, else None."""
+    regs = {r.get("label"): r.get(which) for r in i.get("registers") or ()}
+    if set(regs) != set(PC2_REGISTER_SHARE) or any(v is None for v in regs.values()):
+        return None
+    return {k: float(v) for k, v in regs.items()}
 
 
 def _by_serial(a):
@@ -1821,6 +1841,10 @@ def ev_estimate_follows_reads(inv, book):
             supply_start = _d(bills[0]["period_start"]) - timedelta(days=1)
             opening = bills[0].get("opening_read_kwh")
             switch = ([(supply_start, float(opening))] if opening is not None else [])
+            # Each actual read's register reads, by read day, so a reference can be taken per register.
+            by_register = {_d(i["period_end"]): _register_reads(i) for i in bills
+                           if i.get("read_type") in ACTUAL_READ_TYPES}
+            by_register[supply_start] = _register_reads(bills[0], "opening_read_kwh")
             quote = []
             for n, i in enumerate(bills):
                 if i.get("read_type") != "E":
@@ -1830,8 +1854,13 @@ def ev_estimate_follows_reads(inv, book):
                 e = _daily(i)
                 if e is None:
                     continue
+                # A bill printing Day and Night is a PC2 meter: its supplier estimates each register on
+                # PC2's shape, so the row reshapes on it too (graded on PC1's, a storage home's winter
+                # estimate read high and its summer low: 170 breaches on the cd4fc5b8d8 book).
+                pc2 = _register_reads(i) is not None
+                total_share = PC2_TOTAL_SHARE if pc2 else None
                 if not held or (held[-1][1] - supply_start).days < switch_days:
-                    here = _shape(a.fuel, start, _d(i["period_end"]))
+                    here = _shape(a.fuel, start, _d(i["period_end"]), total_share)
                     if here > 0:
                         quote.append(("{} {} {} bill {} to {}".format(
                             a.cid, a.fuel, serial, i["period_start"], i["period_end"]), e / here))
@@ -1841,10 +1870,17 @@ def ev_estimate_follows_reads(inv, book):
                 (_, d1, c1), (_, d2, c2) = held[-2], held[-1]
                 if d2 <= d1:
                     continue
-                here = _shape(a.fuel, start, _d(i["period_end"]))
+                here = _shape(a.fuel, start, _d(i["period_end"]), total_share)
 
                 def shaped(da, ca):
-                    return (c2 - ca) / (d2 - da).days * here / _shape(a.fuel, da + timedelta(days=1), d2)
+                    ra, r2 = by_register.get(da), by_register.get(d2)
+                    if pc2 and ra and r2:
+                        return sum((r2[k] - ra[k]) / (d2 - da).days
+                                   * _shape(a.fuel, start, _d(i["period_end"]), PC2_REGISTER_SHARE[k])
+                                   / _shape(a.fuel, da + timedelta(days=1), d2, PC2_REGISTER_SHARE[k])
+                                   for k in PC2_REGISTER_SHARE)
+                    return (c2 - ca) / (d2 - da).days * here / _shape(
+                        a.fuel, da + timedelta(days=1), d2, total_share)
                 s_short = shaped(d1, c1)
                 longs = [(da, ca) for _, da, ca in held[:-1] if 182 <= (d2 - da).days <= 365]
                 s_long = shaped(*longs[0]) if longs else s_short

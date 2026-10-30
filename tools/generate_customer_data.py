@@ -56,11 +56,12 @@ def _digest_int(seed, n):
     return str(int(h, 16))[:n].zfill(n)
 
 
-def _mpan(supply_point, segment):
+def _mpan(supply_point, segment, billed_profile_class=None):
     """MPAN bottom line, the 13-digit core (`customer_registry.mpan_core`, the one home the ledger
     reads too), plus a top line of profile class(2) + meter timeswitch(2) + line loss factor(3).
-    Pass the supply point (`supply_point_of`), not the account."""
-    profile_class = "05" if segment == "I&C" else "01"
+    Pass the supply point (`supply_point_of`), not the account. A domestic meter's class is the one
+    its bills carry (`profile_classes_billed`); "01" only where no bill names one."""
+    profile_class = "05" if segment == "I&C" else "%02d" % (billed_profile_class or 1)
     meter_timeswitch = "00"
     line_loss_factor = _digest_int(supply_point + "-llf", 3)
     return {
@@ -96,6 +97,21 @@ def meter_types_billed(run):
         if cid and read.get("meter_type") and when >= latest.get(cid, ("",))[0]:
             latest[cid] = (when, read["meter_type"])
     return {cid: meter for cid, (_, meter) in latest.items()}
+
+
+def profile_classes_billed(run):
+    """account -> the profile class its LATEST bill carries, from the run's own `bills`.
+
+    The cast's storage-heating slot reads `profile_class` from the page, and the page never wrote
+    it, so the slot stood empty on "the record names no profile class 2 meter" while 31+ accounts on
+    the cd4fc5b8d8 book were billed as PC2. The latest bill, for the reason `meter_types_billed` gives.
+    """
+    latest = {}
+    for bill in run.get("bills") or []:
+        cid, when = bill.get("customer_id"), str(bill.get("period_end") or "")
+        if cid and bill.get("profile_class") is not None and when >= latest.get(cid, ("",))[0]:
+            latest[cid] = (when, bill["profile_class"])
+    return {cid: pc for cid, (_, pc) in latest.items()}
 
 
 def _meter(segment, billed_meter_type):
@@ -321,6 +337,7 @@ def generate(run_json_path=None):
     comm_pnl = run.get("per_cid_comm_pnl", {})
     predecessor_of = predecessors(run.get("occupier_successions"))
     billed_meter = meter_types_billed(run)
+    billed_profile_class = profile_classes_billed(run)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -357,7 +374,8 @@ def generate(run_json_path=None):
             acquisition_date=cdata.get("acquisition_date", "2016-01-01"),
             tariff_name=_tariff(segment, commodity),
             meter_type=_meter(segment, billed_meter.get(cid)),
-            mpan=(_mpan(supply_point_of(cid, predecessor_of), segment)
+            profile_class=billed_profile_class.get(cid) if commodity == "electricity" else None,
+            mpan=(_mpan(supply_point_of(cid, predecessor_of), segment, billed_profile_class.get(cid))
                   if commodity == "electricity" else None),
             mprn=(_mprn(supply_point_of(cid, predecessor_of)) if commodity == "gas" else None),
             lifetime_revenue_gbp=round(cdata.get("revenue_gbp", 0), 2),

@@ -130,6 +130,18 @@ def test_mpan_resi_uses_profile_class_01():
     assert m["top_line"][:2] == "01"
 
 
+def test_a_pc2_meters_page_carries_its_billed_profile_class_and_its_mpan_says_02():
+    """The cd4fc5b8d8 book: the storage-heating slot read `profile_class` off a page that never wrote
+    it, and the MPAN top line said 01 on every domestic meter. The latest bill's class is the page's."""
+    from tools.generate_customer_data import profile_classes_billed
+    run = {"bills": [{"customer_id": "S", "period_end": "2022-01-31", "profile_class": 1},
+                     {"customer_id": "S", "period_end": "2022-02-28", "profile_class": 2},
+                     {"customer_id": "N", "period_end": "2022-02-28"}]}
+    assert profile_classes_billed(run) == {"S": 2}
+    assert _mpan("C1", "resi", 2)["top_line"][:2] == "02"
+    assert _mpan("C1", "resi", None)["top_line"][:2] == "01"
+
+
 def test_mpan_core_is_unique_and_carries_its_check_digit():
     """The 2eeb3f0b3 book: 707 accounts shared 158 cores, none with a check digit. The weights here
     are restated from the commons page, not imported, so a wrong weight in the one home fails."""
