@@ -19,7 +19,8 @@ In: the customer record (read for metering facts the supplier genuinely observes
 the term's tariff type (a default tariff is single-rate: nobody chose a ToU pair on it)
 and the flat rate this term is contracted at.
 
-Out: a `TouOffer` -- two numbers -- or `None` when no ToU offer is made. No
+Out: a `TouOffer` -- two numbers, and which registers they bill (`ECONOMY_7` on a Profile
+Class 2 meter: Day and Night) -- or `None` when no ToU offer is made. No
 eligibility predicate, no multipliers, no rollout model. The world cannot ask "would
 this customer be eligible" separately from "what are you offering them", because
 that separation is what let it own the composition in the first place.
@@ -30,9 +31,9 @@ mutation-proven.
 
 from __future__ import annotations
 
-from company.pricing.tou_desk import TouOffer
+from company.pricing.tou_desk import ECONOMY_7, TouOffer
 
-__all__ = ("TouOffer", "request_tou_offer")
+__all__ = ("ECONOMY_7", "TouOffer", "request_tou_offer")
 
 
 def request_tou_offer(

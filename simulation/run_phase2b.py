@@ -118,7 +118,7 @@ from company.interfaces.supply_book import (
 from company.interfaces.supply_book import (
     registered_point as get_customer,
 )
-from company.interfaces.tou_offer import request_tou_offer
+from company.interfaces.tou_offer import ECONOMY_7, request_tou_offer
 from company.interfaces.tpi_commission import build_tpi_commission
 from company.interfaces.transfer_objection import (
     open_transfer_objection_register,
@@ -574,6 +574,18 @@ def registered_profile_class(customer: dict, household_register, as_of: str) -> 
     if household is not None and household.heating_system == HeatingSystem.ELECTRIC_STORAGE:
         return 2
     return roster
+
+def stamp_registered_profile_class(customer: dict, household_register, as_of: str) -> None:
+    """Put the supply point's registered profile class on the customer record, where the company reads
+    its other metering facts (`metering`, `smart_meter`). A supplier holds the class: it is the first two
+    digits of the MPAN's top line, and it allocates it (BSCP516). The heating behind it stays here.
+
+    A half-hourly settled meter has no profile class and is left unstamped. Stamped once per record,
+    from the first term's start, as `registered_profile_class` already reads it."""
+    if customer is None or is_hh_customer(customer) or "registered_profile_class" in customer:
+        return
+    customer["registered_profile_class"] = registered_profile_class(customer, household_register, as_of)
+
 
 #: Profile classes whose published base shape is a DOMESTIC average, and for which
 #: an account's own annual consumption is therefore the right level. PC1 is
@@ -3520,6 +3532,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _company_payment_method = _svt_priced_method
         # THE TYPED SEAM RECORD (2026-10-12): every input is declared company-observable on the
         # record itself, and its field list is an allow-list a world-only value cannot join.
+        # An Economy 7 meter is billed and capped as one (a_storage_heated_homes_default_tariff_is_two_rate.md):
+        # the chain grades its term on the multi-register cap, so the class is on the record first.
+        _meter_record = get_customer(cid) if commodity == "electricity" else None
+        if _meter_record is not None:
+            stamp_registered_profile_class(
+                _meter_record, household_demand_register,
+                max(_meter_record.get("acquisition_date") or REPORT_START, REPORT_START))
         _chain = decide_renewal(RenewalDecisionInputs(
             customer_id=cid,
             billing_account=billing_account,
@@ -5377,7 +5396,14 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     flat_unit_rate_gbp_per_mwh=unit_rate,
                 )
                 tou_rates = None
-                if _tou is not None:
+                _economy_7 = _tou is not None and _tou.registers == ECONOMY_7
+                if _economy_7:
+                    # An Economy 7 meter: Day/Night on its time switch, still settled on its profile
+                    # (PC2 is non-half-hourly). No demand response: the storage heater and cylinder
+                    # already charge in the night window, and nobody chose a smart tariff.
+                    tou_rates = (_tou.peak_rate_gbp_per_mwh, _tou.offpeak_rate_gbp_per_mwh)
+                    effective_shape_fn = shape_fn
+                elif _tou is not None:
                     tou_rates = (_tou.peak_rate_gbp_per_mwh, _tou.offpeak_rate_gbp_per_mwh)
                     # Phase 52: demand response — ToU-eligible customers shift a fraction
                     # of peak consumption to off-peak (base 15%, +12% EV, +8% heat pump).
@@ -5402,7 +5428,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     pass_through=(term_tariff_type == "pass_through"),
                     # A time-of-use term needed HH data to settle (P300, Measurement Class F), so
                     # it keeps its own shifted shape.
-                    settled_shape=(settled_shape_fn if tou_rates is None else None),
+                    settled_shape=(settled_shape_fn if tou_rates is None or _economy_7 else None),
+                    economy_7=_economy_7,
                 )
                 # Phase 43a: open a forward contract in the company trading book.
                 # agreed_price = forward_price, the market's own PIT forward quote

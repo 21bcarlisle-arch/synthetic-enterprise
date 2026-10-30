@@ -51,7 +51,7 @@ def _invoice(bill: dict, account_terms: dict, opening: float = 1000.0) -> dict:
     kwh = round(bill["total_consumption_kwh"], 1)
     energy = round(bill["commodity_amount_gbp"], 2)
     net = round(bill["non_commodity_amount_gbp"], 2)
-    terms = _contracted_terms(account_terms, bill, set())
+    terms = _contracted_terms(account_terms, bill, {})
     inv = {"period_start": bill["period_start"], "period_end": bill["period_end"],
            "days_in_period": bill["days_in_period"], "commodity": "electricity",
            "consumption_kwh": kwh, "opening_read_kwh": opening,

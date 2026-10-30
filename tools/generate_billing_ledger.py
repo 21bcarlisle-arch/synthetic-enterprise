@@ -38,14 +38,20 @@ from company.crm.customer_registry import (
     supply_point_of,
 )
 from company.regulatory.energy_bill_support import ebss_credit_gbp
-from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS, applied_rates
+from saas.bill_generator import (
+    CHARGED_AT_THE_METER,
+    CREDIT_BILL,
+    ECONOMY_7_LABELS,
+    TOU_BANDS,
+    applied_rates,
+)
 from saas.money import (
     MoneyBoundaryError,
     display_rate_gbp_per_day,
     display_rate_p_per_kwh,
     printed_bill_money,
 )
-from saas.tariff_pricing import split_flat_rate_to_tou
+from saas.tariff_pricing import split_flat_rate_to_economy_7, split_flat_rate_to_tou
 from simulation.arrears_engine import (
     _CORP_BACS_DISPUTE_PROB,
     _CORP_BACS_LATE_PROB,
@@ -216,19 +222,24 @@ _NO_SINGLE_CONTRACTED_RATE = ("pass_through", "flex")
 
 
 def _tou_terms(account_terms, bills):
-    """(customer, term_start) of every term the biller settled on a peak/off-peak pair.
+    """{(customer, term_start): pair split} of every term the biller settled on a two-rate pair:
+    `split_flat_rate_to_economy_7` where its bills print Day/Night registers, else the ToU split.
 
     LIMIT: the run records which terms were SOLD as ToU nowhere (`demand_response_log` is not in
     the run output, and the term row carries only the flat rate), so a term counts as ToU when any
     bill inside it carries band registers. Only that a pair existed is read from the bills; the
     pair's RATES are the product rule's, so a bill charging the wrong band rate still disagrees.
     """
-    out = set()
+    out = {}
     for b in bills:
         if b.get("registers"):
             term = term_of_bill(account_terms, b)
             if term is not None:
-                out.add((b["customer_id"], term["term_start"]))
+                key = (b["customer_id"], term["term_start"])
+                if any(r.get("label") in ECONOMY_7_LABELS for r in b["registers"]):
+                    out[key] = split_flat_rate_to_economy_7
+                else:
+                    out.setdefault(key, split_flat_rate_to_tou)
     return out
 
 
@@ -250,8 +261,9 @@ def _contracted_terms(account_terms, bill, tou_terms):
             continue
         rate = t.get("unit_rate_gbp_per_mwh")
         no_rate = rate is None or t["tariff_type"] in _NO_SINGLE_CONTRACTED_RATE
-        pair = (split_flat_rate_to_tou(rate)
-                if not no_rate and (bill["customer_id"], t["term_start"]) in tou_terms else None)
+        split = tou_terms.get((bill["customer_id"], t["term_start"]))
+        labels = (ECONOMY_7_LABELS if split is split_flat_rate_to_economy_7 else ("Peak", "Off-peak"))
+        pair = split(rate) if not no_rate and split is not None else None
         out.append({
             "tariff_effective_from": t["term_start"],
             "tariff_effective_to": t["term_end"],
@@ -259,8 +271,8 @@ def _contracted_terms(account_terms, bill, tou_terms):
             **({"fixed_term_end": t["fixed_term_end"]} if t.get("fixed_term_end") else {}),
             "unit_rate_p_per_kwh": None if no_rate else round(rate / 10.0, 4),
             "tou_unit_rates": None if pair is None else [
-                {"register_label": "Peak", "unit_rate_p_per_kwh": round(pair[0] / 10.0, 4)},
-                {"register_label": "Off-peak", "unit_rate_p_per_kwh": round(pair[1] / 10.0, 4)}],
+                {"register_label": labels[0], "unit_rate_p_per_kwh": round(pair[0] / 10.0, 4)},
+                {"register_label": labels[1], "unit_rate_p_per_kwh": round(pair[1] / 10.0, 4)}],
         })
     return out
 
@@ -601,6 +613,7 @@ def generate(run_json_path=None, out_path=None):
             "mprn": _mprn(supply_point_of(cid, predecessor_of)) if commodity == "gas" else None,
             "read_type": read_type,
             "meter_type": bill.get("meter_type"),
+            "profile_class": bill.get("profile_class"),
             "opening_read_kwh": opening_read_rounded,
             "closing_read_kwh": closing_read_rounded,
         }

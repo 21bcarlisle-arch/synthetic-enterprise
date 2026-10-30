@@ -41,18 +41,22 @@ from datetime import date, timedelta
 
 from sim.hedging import settle_hedged_period
 from sim.risk_engine import compute_net_margin
-from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh_ex_vat
+from simulation.fabric_physics import OFF_PEAK_WINDOW_PERIODS
 from simulation.policy_costs import (
     get_ccl_per_mwh,
     get_cfd_levy_per_mwh,
     get_cm_levy_per_mwh,
-    get_fit_levy_per_mwh,
-    get_mutualization_levy_per_mwh,
     get_electricity_network_cost_per_mwh,
     get_electricity_standing_charge_per_day,
+    get_fit_levy_per_mwh,
+    get_mutualization_levy_per_mwh,
     get_ro_cost_per_mwh,
 )
+from simulation.price_cap_enforcement import binding_cap_unit_rate_gbp_per_mwh_ex_vat
 from simulation.tou_periods import is_peak_period
+
+#: The Economy 7 Night register's half hours, [first, last) zero-indexed: 00:30-07:30.
+_NIGHT_FIRST, _NIGHT_END = OFF_PEAK_WINDOW_PERIODS
 
 
 def _settled_volumes(start, end, consumption_shape, settled_shape, price_lookup):
@@ -98,6 +102,7 @@ def run_hedged_term(
     segment: str = "resi",
     pass_through: bool = False,
     settled_shape=None,
+    economy_7: bool = False,
 ) -> list[dict]:
     """Settle one customer's one contract term, hedge-aware, for every
     calendar date in [term_start_date, term_end_date) and every settlement
@@ -157,6 +162,12 @@ def run_hedged_term(
     consumption_shape is what it used. The hedged and unhedged volumes and the wholesale cost are
     priced on it, trued up to the home's own volume over the term (`_settled_volumes`); revenue,
     levies, network and `consumption_kwh` stay on the meter. Each row then carries `settled_kwh`.
+
+    economy_7, with `tou_rates` as the (day, night) pair, bills on an Economy 7 meter's registers: its
+    time switch puts every half hour of the world's off-peak window (`OFF_PEAK_WINDOW_PERIODS`, 00:30-07:30,
+    the same window the storage heater charges in) on the Night register and the rest on Day, every
+    day of the week. Which window each region's switch used is not established (GAP G3 of
+    a_storage_heated_homes_default_tariff_is_two_rate.md); the world bills its own.
     """
     start = date.fromisoformat(term_start_date)
     end = date.fromisoformat(term_end_date)
@@ -181,8 +192,12 @@ def run_hedged_term(
             consumption_kwh = shape[period - 1]
             if tou_rates is not None:
                 peak_rate, offpeak_rate = tou_rates
-                tou_band = "peak" if is_peak_period(date_str, period) else "offpeak"
-                period_rate = peak_rate if tou_band == "peak" else offpeak_rate
+                if economy_7:
+                    tou_band = "night" if _NIGHT_FIRST <= period - 1 < _NIGHT_END else "day"
+                    period_rate = offpeak_rate if tou_band == "night" else peak_rate
+                else:
+                    tou_band = "peak" if is_peak_period(date_str, period) else "offpeak"
+                    period_rate = peak_rate if tou_band == "peak" else offpeak_rate
             else:
                 period_rate = fixed_tariff_rate_gbp_per_mwh
             settled_kwh = (consumption_kwh if settled_kwh_at is None

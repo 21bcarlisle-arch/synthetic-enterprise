@@ -85,7 +85,10 @@ bands sum to the total.
 - **G5. E7 meters in homes that are not storage-heated.** As in `profile-class-2.md` G2/G3: absent
   from the world, not measured as zero.
 
-## The choice a build should make (not yet built)
+## The choice a build should make
+
+*Built 2026-10-30 except the estimate half of 3:
+`docs/staging/SEAT_FINDING_AN_ECONOMY_7_METER_IS_BILLED_ON_ITS_TWO_REGISTERS_2026-10-30.md`.*
 
 1. **The supplier reads the meter, not the heating.** Each electricity account carries its registered
    profile class across the seam (`company/interfaces/sim_interface.py`), as the MPAN's top line would.
@@ -93,7 +96,9 @@ bands sum to the total.
 2. **A PC2 meter's default tariff is an E7 SVT**: a Night register (the world's 00:30-07:30, G3) and a
    Day register for the rest. From 2019 the pair is struck so that `0.58 x day + 0.42 x night` equals the
    period's multi-register cap rate, at a night/day ratio carried as a belief with its range (G1). Before
-   2019 it waits on G2, and the code says so rather than inventing an E7 list price.
+   2019 it waits on G2, and the code says so rather than inventing an E7 list price. *Corrected 2026-10-30, at the build: before 2019 the pair is struck off the company's
+   own single-rate list price at the same 58/42 rule. That invents no E7 list price, and the alternative
+   was billing a two-rate meter on one rate for three years. G2, the real pre-cap E7 level, stays open.*
 3. **The bill prints both registers**, with their sums adding to the total (R5), and an estimate is
    shaped per register on the published PC2 profile (Elexon's, the same file the world settles on), which a supplier holds.
 4. **A fixed term on a PC2 meter** follows the same pair. Whether a household could choose single-rate

@@ -37,6 +37,14 @@ rollover must be "similar in nature" to the household's current tariff in tariff
 term of a smart-metered home was, the default included: 127 actual-read accounts on run `8b6fea024`.
 Knowledge: `docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md`.
 
+AN ECONOMY 7 METER IS BILLED ON ITS TWO REGISTERS (2026-10-30). The rule above was made for a smart
+single-rate meter that COULD record time bands. A supply point registered on Profile Class 2 ("Domestic
+Economy 7") already is a two-rate meter, and the supplier holds its class (the MPAN top line, BSCP516).
+So every term on it, the default included, is a Day/Night pair: SLC 1's "similar in nature ... taking
+into account meter type" points to the E7 default for an E7 meter. The company reads the meter's class,
+never the heating behind it. Knowledge:
+`docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md`.
+
 ORDER IS THE SIGNATURE: the pair is struck off the FINAL flat rate. Ask for the ToU
 offer before the rate chain has finished moving it and the peak rate is a multiple of
 a number the customer was never contracted at.
@@ -48,9 +56,16 @@ from dataclasses import dataclass
 
 from company.compliance.domain_invariants import DEFAULT_TARIFF_TYPES
 from saas.smart_meter_rollout import is_tou_eligible
-from saas.tariff_pricing import split_flat_rate_to_tou
+from saas.tariff_pricing import split_flat_rate_to_economy_7, split_flat_rate_to_tou
 
-__all__ = ("TouOffer", "decide_tou_offer", "offers_tou")
+__all__ = ("ECONOMY_7", "TIME_OF_USE", "TouOffer", "decide_tou_offer", "offers_tou")
+
+#: The two pair shapes, named for the meter's registers they bill: peak/off-peak on a smart meter's
+#: time bands, Day/Night on an Economy 7 meter's time switch.
+TIME_OF_USE = "time_of_use"
+ECONOMY_7 = "economy_7"
+#: Elexon Profile Class 2, "Domestic Economy 7 Customers" (docs/data-sources/profile-class-2.md).
+ECONOMY_7_PROFILE_CLASS = 2
 
 
 @dataclass(frozen=True)
@@ -65,6 +80,14 @@ class TouOffer:
 
     peak_rate_gbp_per_mwh: float
     offpeak_rate_gbp_per_mwh: float
+    #: Which registers the pair bills. On ECONOMY_7, "peak" is the Day rate and "off-peak" the Night.
+    registers: str = TIME_OF_USE
+
+
+def meter_is_economy_7(customer: dict) -> bool:
+    """Whether the supply point is registered on Profile Class 2, as the world stamps the MPAN's class
+    on the customer record (`registered_profile_class`). A record without the stamp is not E7."""
+    return customer.get("registered_profile_class") == ECONOMY_7_PROFILE_CLASS
 
 
 def offers_tou(customer: dict, *, tariff_type: str) -> bool:
@@ -74,7 +97,10 @@ def offers_tou(customer: dict, *, tariff_type: str) -> bool:
 
     `tariff_type` is required: a caller that omits it is how a default tariff became ToU. A chosen
     term (a fix the household accepted with the pair quoted) is ToU where the meter allows; a
-    default-tariff term is single-rate, because nobody chose it."""
+    default-tariff term is single-rate, because nobody chose it. An Economy 7 meter is the exception:
+    every term on it, the default included, is its Day/Night pair."""
+    if meter_is_economy_7(customer):
+        return True
     if tariff_type in DEFAULT_TARIFF_TYPES:
         return False
     return is_tou_eligible(customer)
@@ -89,9 +115,10 @@ def decide_tou_offer(
     """Decide whether this customer is offered ToU this term, and at what pair.
 
     customer: the customer record as the world holds it. Read for METERING FACTS
-        only (`metering`, `smart_meter`) -- what the supplier can see about the
-        physical meter.
-    tariff_type: the term's product (`svt`, `fixed`, ...). A default tariff gets no offer.
+        only (`metering`, `smart_meter`, `registered_profile_class`) -- what the
+        supplier can see about the physical meter.
+    tariff_type: the term's product (`svt`, `fixed`, ...). A default tariff gets no offer,
+        except on an Economy 7 meter.
     flat_unit_rate_gbp_per_mwh: the rate this term is actually contracted at,
         AFTER every writer that moves it (see `company/pricing/renewal_rate_chain.py`).
 
@@ -99,6 +126,9 @@ def decide_tou_offer(
     """
     if not offers_tou(customer, tariff_type=tariff_type):
         return None
+    if meter_is_economy_7(customer):
+        day, night = split_flat_rate_to_economy_7(flat_unit_rate_gbp_per_mwh)
+        return TouOffer(day, night, registers=ECONOMY_7)
 
     peak, offpeak = split_flat_rate_to_tou(flat_unit_rate_gbp_per_mwh)
     return TouOffer(peak, offpeak)
