@@ -1209,7 +1209,8 @@ def _owed_past_due(ev, iso) -> float:
         rows = [r for r in _known_by(ev["ledger"], iso) if r["fuel"] == fuel and r.get("running_balance_gbp") is not None]
         if rows:
             owed += rows[-1]["running_balance_gbp"]
-    owed -= sum(i.get("amount_gbp") or 0.0 for i in _known_by(ev["invoice"], iso) if (i.get("due_date") or "") > iso)
+    # A credit note is available when raised, whatever due date it prints: only a debit waits (SYN-2016-016, 3dc5a92948).
+    owed -= sum(max(i.get("amount_gbp") or 0.0, 0.0) for i in _known_by(ev["invoice"], iso) if (i.get("due_date") or "") > iso)
     return round(owed, 2)
 
 

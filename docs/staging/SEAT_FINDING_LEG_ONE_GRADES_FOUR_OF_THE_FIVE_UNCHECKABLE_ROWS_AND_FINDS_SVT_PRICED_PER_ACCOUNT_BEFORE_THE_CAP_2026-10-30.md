@@ -181,3 +181,13 @@ contracted rate.
    only through second-order churn, so it stays within ±2% of 8,950.
 3. EPG row: **373 ±15**. The gate does not reach the 2022-23 cap era, because the clamp already made those
    rates one price. Any move is second-order: a different book means different households in the window.
+
+## The predictions, graded on the fresh 3dc5a92948 book (2026-10-30)
+
+All three **held**:
+1. SVT row 0 on the unit rate and 1 on the standing charge (SYN-2016-101g gas, Mar 2018, still untraced). Off-list
+   pre-cap SVT terms 2,490 -> 0.
+2. Pre-cap SVT revenue ex-VAT 346,790.28 -> 340,391.67 (-6,398.61) on 8,950 bills.
+3. EPG row 373.
+
+The exception's ceiling is now 1. The full grade is in `docs/staging/records/SEAT_RECORD_THE_3DC5A92948_BOOK_GRADED_AND_ITS_PAGES_BUILT_2026-10-30.md`.

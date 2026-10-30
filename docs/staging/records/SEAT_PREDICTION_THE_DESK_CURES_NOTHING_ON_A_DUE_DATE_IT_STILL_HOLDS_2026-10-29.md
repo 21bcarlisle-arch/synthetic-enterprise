@@ -42,3 +42,14 @@ if they move I cannot yet attribute the movement.
 `days_overdue == 0`, the exits, and the journeys holding each stage. For P4, run
 `tools.generate_explore_cast._debt_page_failures` over the rebuilt pages. Write the result beside each prediction here, including the
 predictions it refutes.
+
+## Graded on the fresh 3dc5a92948 book (2026-10-30)
+
+- **P1 held:** 0 journeys cured with `days_overdue == 0`.
+- **P2 held:** 1,072 journeys.
+- **P3 refuted on the ladder:** final_notice 205 (predicted above 287) and prepayment_offered 138 (predicted above
+  158). Open journeys at the run's end are 64, which holds (predicted above 47).
+- **P4 held:** 3 refused, and 2 after a check defect was fixed (SYN-2016-016's credit note).
+
+The survivors are traced by name in `docs/staging/records/SEAT_RECORD_THE_3DC5A92948_BOOK_GRADED_AND_ITS_PAGES_BUILT_2026-10-30.md`. I cannot yet say why P3 moved the other way; several fixes landed between
+the books.

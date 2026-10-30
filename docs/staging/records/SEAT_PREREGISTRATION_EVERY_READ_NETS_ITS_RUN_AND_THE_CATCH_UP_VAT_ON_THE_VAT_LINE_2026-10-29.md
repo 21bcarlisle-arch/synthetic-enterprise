@@ -131,3 +131,13 @@ without a reading. The three items stay under the live focus row `grade-the-e83e
 (the seat's `fresh-run-at-the-svt-one-list-price-fix` claim covers only the SVT and EPG rows). The
 cold read can be drawn once `/var/tmp/fresh-grade-3dc5a92948/ALLDONE` exists AND the Explore pages
 built from that book are on origin. Do not draw it on `ALLDONE` alone.
+
+## Graded on the fresh 3dc5a92948 book (2026-10-30)
+
+Every prediction for item 2 **held**:
+- 0 of 6,452 reconciliations left uncorrected.
+- 0 catch-ups with their VAT off the VAT line.
+- Revenue row 1, PROS-2017-0117, the open tail named above (2,175.58 against 2,202.12).
+- Applied catch-ups 6,447, within 10% of 3,705 + 2,747.
+
+The full grade is in `docs/staging/records/SEAT_RECORD_THE_3DC5A92948_BOOK_GRADED_AND_ITS_PAGES_BUILT_2026-10-30.md`.
