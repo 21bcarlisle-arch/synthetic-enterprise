@@ -56,3 +56,17 @@ In the next reading, report:
 - the wording changed;
 - the world-hassle design sketched inside `docs/design/THE_IMPROVEMENT_LOOP.md` or alongside it;
 - the catalogue page drafted.
+
+## Addendum, 12:26 GMT: the catalogue is prioritised
+
+The director's words, 12:26 GMT: "This needs to be prioritised based on costs, ease and remaining market size (IE existing pentration, and restrictions)"
+
+The catalogue page must carry a **priority ranking**, not only a list. For each measure:
+- **remaining addressable households**: eligible homes × (1 − current penetration), after the restrictions (tenure and landlord consent, house type, roof, off-street parking, gas connection, listed or conservation status, network limits, and what is already installed);
+- **cost** to the household, upfront and ongoing;
+- **ease** on a 1–5 scale (hassle hours, disruption, the number of parties, installer availability);
+- **value per household** in £, carbon and time.
+
+Rank measures by value × remaining addressable households, adjusted for cost and ease. Publish the scoring formula so it can be re-weighted. The advisor's research pass is computing this.
+
+In the world, the same applicability and penetration are **per home**, drawn and hidden: who can adopt is a property of the house and household, not a share. The supplier's version of the ranking is an *estimate* built from what it can observe or ask, graded against that truth.
