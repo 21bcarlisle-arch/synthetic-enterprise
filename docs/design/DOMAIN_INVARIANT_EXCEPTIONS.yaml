@@ -61,9 +61,9 @@
 # docs/staging/records/SEAT_RECORD_THE_FRESH_RUN_AT_9553D403B7_GRADES_THE_OVERDUE_AND_MISSED_PAYMENT_FIXES_2026-10-29.md.
 #
 # 2026-10-30: every ceiling is the fresh 3dc5a92948 book's count, the first book carrying every billing fix
-# including the SVT one-list-price gate. INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW falls 1,068 -> 1 and
-# INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE 25 -> 1; the other seven read exactly their ceilings, with the same
-# sampled breaches as the ecb7e21fb book. No row reads 0, so none is retired. Grade beside
+# including the SVT one-list-price gate. INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE falls 25 -> 1; the other seven
+# read exactly their ceilings, with the same sampled breaches as the ecb7e21fb book; the SVT row is retired
+# below (128149f343). Grade beside
 # docs/staging/records/SEAT_RECORD_THE_3DC5A92948_BOOK_GRADED_AND_ITS_PAGES_BUILT_2026-10-30.md.
 enforce: true
 exceptions:
@@ -211,22 +211,11 @@ exceptions:
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
   # grade. Grade, causes and the three rows that stay ungraded on the runner, with why, in
   # docs/staging/SEAT_FINDING_LEG_ONE_GRADES_FOUR_OF_THE_FIVE_UNCHECKABLE_ROWS_AND_FINDS_SVT_PRICED_PER_ACCOUNT_BEFORE_THE_CAP_2026-10-30.md.
-  - invariant: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW
-    scope: 1 of 33,627 domestic SVT account-months on the fresh 3dc5a92948 book, the standing charge of SYN-2016-101g (gas, standard credit, Mar 2018) at 0.22 against its group's median 0.215; 0 on the unit rate, from 1,067 on the ecb7e21fb and 9553d403b7 books
-    reason: >-
-      Explained, and fixed in code; the count stands until a fresh run carries the fix. The company's renewal-rate chain
-      moved a default tariff per account: writer 1 (portfolio premium) on 2,348 pre-cap SVT terms, writer 2 (margin
-      surcharge) on 75, both on 66, each entering at the list price. Before the cap the company's SVT term is priced per account. On 2017-06-01 the
-      electricity SVT terms in force carry 16 different rates from 133.33 to 160.43 GBP/MWh against the one list price
-      (svt_rate_gbp_per_mwh 140.0) the same term record holds. A default tariff is one price per fuel, region and
-      payment method, and the company records no region, so a per-account SVT price is not a regional price. From the
-      cap (2019) the clamp to the payment method's column makes them one price, which is why 2019-2025 grade 0.
-      The writers-1-2 gate on CAPPED_TARIFF_TYPES (company/pricing/renewal_rate_chain.py) grades 0 on the unit rate on
-      the fresh 3dc5a92948 book (2026-10-30), with off-list pre-cap SVT terms 2,490 -> 0. The one breach left is the
-      standing charge on the same account-month as on both earlier books, and is still untraced.
-    filed: 2026-10-30
-    retired_by: the 1 standing-charge breach (SYN-2016-101g gas, Mar 2018) traced and fixed or shown lawful
-    max_breached: 1
+  # 2026-10-30: INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW's exception (1,068) is retired. The fresh run at
+  # 3dc5a92948, carrying the writers-1-2 gate (ed8684442), grades 0 unit-rate breaches and 0 off-list pre-cap
+  # SVT terms (from 2,490). Its 1 standing-charge breach was SYN-2016-101g's one-day final gas bill, 0.215 x 1 day
+  # printed 0.22: the evaluator now takes a penny over the period, as the standing-charge rows do. 0 of 33,627.
+  # INV_UNIT_RATE_EPG_HOUSEHOLD reads 373 of 3,294 on the same book, its ceiling.
   - invariant: INV_UNIT_RATE_EPG_HOUSEHOLD
     scope: 373 of 3,294 domestic SVT bill periods in Oct 2022-Jun 2023 on the fresh 3dc5a92948 book, graded 30 Oct, the ecb7e21fb and 9553d403b7 books' count (372 electricity and 1 gas there); median excess 0.005p/kWh, largest 0.069p/kWh (0.21%), 5.16 GBP ex-VAT over the whole book
     reason: >-

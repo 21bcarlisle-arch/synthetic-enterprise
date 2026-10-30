@@ -20,7 +20,17 @@ After the chain's `ALLDONE`, `/var/tmp/grade-3dc5-scripts/follow.sh` (the ecb7e2
 - `debt_p4.txt`, the debt slot's checks
 - `n189.txt`, the N1/N8/N9 page tests
 
-## Is leg one met in substance? Not yet: one breach is unexplained
+## Is leg one met in substance? Yes, once 128149f343 traced the last breach
+
+**Correction, beside the claim below (2026-10-30, before this record landed).** Below, I graded leg one as one
+breach short. While this record was in its gates, 128149f343 (another lane, on the same ledger) traced that breach.
+SYN-2016-101g's one-day final gas bill is 0.215 x 1 day, billed and printed at 0.22: a float tie at the
+half-penny-a-day tolerance. The evaluator now takes a penny over the period, the SVT row grades 0 of 33,627, and its
+exception is retired. **On this book, then, the suite's breaches are all explained: 8 excepted rows, 0
+unexplained.** Leg one is met in substance, with the caveat in "Explained is not fixed" below. The text under this
+heading is kept as written.
+
+### As first written
 
 The suite ran over all 1,293 accounts: **0 unexcepted breaches, 9 excepted rows.** Eight of the nine are
 explained, and their causes are on the exceptions file. **One breach is unexplained:** the standing charge of
@@ -144,13 +154,14 @@ The committed `site/` is not touched: DIRECTION says the pages change only at th
 ## (c) The exceptions file
 
 Each `max_breached` is now this book's count:
-- **INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW 1,068 -> 1.** Its `retired_by` now names the standing-charge trace.
+- **INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW** is retired, not set to 1. It was set to 1 here, then taken at
+  0 from 128149f343 at the merge.
 - **INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE 25 -> 1.**
 - **The other seven are unchanged:** EPG 373, PPM 12, the two EBSS rows 6 and 6, carbon 6, E1 179, estimated run
   6. Each reads exactly its ceiling. The six that ecb7e21fb's full suite graded carry the same five sampled
   breaches as there. EPG was graded there only by the leg-one rows, at 373.
 
-No row reads 0, so none is retired. Checks:
+Apart from the SVT row, no row reads 0. Checks:
 - The runner over this book's grade passes with the new file.
 - One more SVT breach than the ceiling refuses the publish.
 - The gate's own tests pass: 64 passed.
