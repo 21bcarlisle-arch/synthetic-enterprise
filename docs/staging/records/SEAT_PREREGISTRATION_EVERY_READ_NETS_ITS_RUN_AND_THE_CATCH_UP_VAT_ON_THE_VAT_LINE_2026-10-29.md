@@ -100,3 +100,23 @@ and never reached origin. The fix reached origin as a83d60c27, merged as ecb7e21
 `fresh-run-ecb7e21fb`, with output in `/var/tmp/fresh-run-out-ecb7e21fb` and grades in
 `/var/tmp/fresh-grade-ecb7e21fb/`, both launched by synthetic-enterprise-49. Read
 "the dc5762e0b book" above as the ecb7e21fb book.
+
+## Item 2, drawn again: the work is the 3dc5a92948 run's, not a new one (2026-10-30, worker)
+
+The same Lane 0 id was drawn a second time, asking for a fresh run at origin HEAD, graded on the
+full suite, with the Explore pages built and the exception ceilings reset. That run already exists.
+`fresh-run-3dc5a92948` was launched at 02:41Z under the seat's claim
+`fresh-run-at-the-svt-one-list-price-fix` (ad7b0393a). Its commit contains class F (053377eac),
+the catch-up VAT (789d0a6d2), the pre-bill VAT fix (a83d60c27), the desk cure (70e66b721) and
+N1/N8/N9 (e8149d6d0, 90b330d09). At 02:45Z the run had reached 2016-05. Its chain,
+`grade-chain-3dc5a92948.service` (`/var/tmp/svt-fix-run-scripts/chain.sh`), builds the ledger and
+runs the five rows, the pre-cap SVT revenue and the full suite (`grade.py`) once `DONE.json` exists.
+A second run would cost about the same hours to produce the same book, so this id is released.
+
+The chain does not cover everything. On that book, after `ALLDONE`, three things are still owed:
+1. build the Explore cast and customer pages, then grade the debt slot's four checks and the N1, N8
+   and N9 households on them;
+2. grade each prediction above, and P1 of the desk-cure record, as held or refuted beside it;
+3. set each `max_breached` to what the book measures, and retire any row that reads 0.
+
+Those three are the input `the-fifth-cold-read` waits on.
