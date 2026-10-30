@@ -43,3 +43,12 @@ Answer the director's question, **"Is the SIM making customers react and behave 
 Where a household does not react, the supplier has nothing to optimise against in that area. Name those gaps.
 
 **Order of work.** The audit is cheap and is drawn now, inside the correctness stretch, because it explains what the graded outcomes mean. The SIM enhancement and the supplier experiments are drawn after the correctness exit test, unless one of them is needed to close it. File both on the customer-outcomes roadmap.
+
+## Done (2026-10-30, the worker)
+
+**The audit is answered** in `docs/staging/records/SEAT_READING_DOES_THE_WORLD_REACT_TO_PAIN_POINTS_THE_AUDIT_THE_DIRECTOR_ASKED_FOR_2026-10-30.md`, in short "mostly no":
+- Price and renewal is the only pain point that gets a full, sourced reaction.
+- A DD step-up, a catch-up bill, a billing error and a debt letter get partial reactions. The DD-shock responses, plan take-up and early contact ship at 0, and the resentment ledger never reaches churn.
+- A run of estimates and a large credit balance get no reaction at all.
+
+The SIM enhancement and the supplier experiments are filed as `unbilled-energy-pain-points-react` and `new-account-first-months-experiment` in `docs/direction/priority_order.yaml` `customer_outcomes_candidates`. Both are drawn after the correctness exit test. The advisor's evidence packs are the input the reactions are to be drawn from.

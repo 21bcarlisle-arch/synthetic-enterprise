@@ -462,15 +462,34 @@ for_the_director:
 - id: a-practitioner-question-k4-published-sources-exhausted
   raised: '2026-10-29'
   kind: strategy
-  what: 'A practitioner question (K4), published sources exhausted: in a new account''s first months, does a supplier''s BILLING estimate follow the settlement EAC its data collector sends (BSC Annex S-2
-    4.3.7: EAC = AAAF*AA + (1-AAAF)*PEAC, AAAF = min(FYC*SPAR, 1)), or its own reads from the first one? And what SPAR does the trade actually see? 179 estimate breaches on the 209c3350ab book turn on this,
-    and they hold the correctness stretch''s exit open.'
-  proposal: Build the BSC blend for the billing estimate with SPAR as a named input carried as an honest GAP, and re-draw INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS's band from the same EAC, so the row
+  what: 'A practitioner question (K4), published sources exhausted: in a new account''s first months,
+    does a supplier''s BILLING estimate follow the settlement EAC its data collector sends (BSC Annex
+    S-2 4.3.7: EAC = AAAF*AA + (1-AAAF)*PEAC, AAAF = min(FYC*SPAR, 1)), or its own reads from the first
+    one? And what SPAR does the trade actually see? 179 estimate breaches on the 209c3350ab book turn
+    on this, and they hold the correctness stretch''s exit open.'
+  proposal: Build the BSC blend for the billing estimate with SPAR as a named input carried as an honest
+    GAP, and re-draw INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS's band from the same EAC, so the row
     and the estimator read one figure.
-  recommendation: 'I recommend the blend: the settlement EAC is what a supplier receives, it moves on every advance, and SLC 27.15 already ranks the supplier''s own metered history above the registry figure,
-    so both established halves lean against holding the registry figure for six months. Trade-off: with SPAR unknown, the blend''s weight is a stated belief, not a value. Holding position: the 179 stay
-    excepted on E1 as their cause. Would change it: a practitioner saying billing uses the supplier''s own reads from the first read, in which case E1 is narrowed to the one-read case only.'
-  status: open
-  resolution: ''
-  evidence: 'docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md; docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
-    section 8 (GAP: SPAR is Market Domain Data, not published within reach)'
+  recommendation: 'I recommend the blend: the settlement EAC is what a supplier receives, it moves on
+    every advance, and SLC 27.15 already ranks the supplier''s own metered history above the registry
+    figure, so both established halves lean against holding the registry figure for six months. Trade-off:
+    with SPAR unknown, the blend''s weight is a stated belief, not a value. Holding position: the 179
+    stay excepted on E1 as their cause. Would change it: a practitioner saying billing uses the supplier''s
+    own reads from the first read, in which case E1 is narrowed to the one-read case only.'
+  status: answered
+  resolution: 'Returned to the seat (director, 30 Oct 07:26): the method is a supplier choice, not his.
+    Baseline is today''s standard practice: the billing estimate and first DD from the quote''s consumption
+    (declared, else registry EAC or AQ); settlement separately on the DC''s EAC. Improving it is the supplier''s
+    experiment. Done: knowledge §10 of how_a_supplier_shapes_an_estimate_for_an_unread_month.md; INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
+    redrawn to grade the declared policy, 179 -> 0 on the 209c3350ab and 3dc5a92948 books, exception retired.
+    Not to be raised again.'
+  evidence: 'docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md;
+    docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (GAP: SPAR
+    is Market Domain Data, not published within reach)'
+  resolved: '2026-10-30'
+  commitment:
+    work_id: new-account-first-months-experiment
+    done_means: the world draws a declared annual use with an error against true use by channel and tenancy,
+      and one pre-registered supplier variant is graded against the quote baseline on the ruling's five
+      outcomes
+    due: '2026-12-15'

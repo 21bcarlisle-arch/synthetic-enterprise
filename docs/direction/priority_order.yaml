@@ -29,6 +29,28 @@ correctness_stretch:
     The suite runs on the full book of a fresh run with zero unexplained breaches; all eight Explore
     slots are filled validly or are honestly empty; one cold read finds no new class of error. Reported
     in a reading, and only then is the ruled order resumed.
+# 2026-10-30: the director's ruling (07:26) and steer (07:30) name the customer-outcomes loop: knowledge,
+# then the world reacts to a pain point, then the supplier experiments against it. Drawn after the exit
+# test above unless one is needed to close it. The new-account estimate baseline (knowledge §10 of
+# how_a_supplier_shapes_an_estimate_for_an_unread_month.md) and the redrawn estimate row are inside the
+# stretch, not here.
+customer_outcomes_candidates:
+  - id: new-account-first-months-experiment
+    source: docs/staging/advisor/done/DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30.md
+    world_first: a declared or quoted annual use drawn with an error against the home's true use, by
+      channel and new tenant against established occupier (the CUSTOMER_DECLARED world gap in
+      company/billing/annual_consumption_estimate.py)
+    levers: [validate the quote at the first read or from smart data, channel-specific quote handling,
+             new tenant against history at the address, an early review the customer can see]
+    graded_on: [clean-quote acquisition and cooling-off cancellations, first-months complaints and
+                satisfaction, year-one bill shock (catch-ups and DD step-changes), year-one payment
+                changes and arrears, the billing-to-settlement gap]
+  - id: unbilled-energy-pain-points-react
+    source: docs/staging/advisor/done/DIRECTOR_STEER_PAIN_POINTS_DRIVE_THE_LOOP_KNOWLEDGE_THEN_SIM_REACTION_THEN_SUPPLIER_TESTS_2026-10-30.md
+    world_first: one sourced, hidden reaction per pain point that today has none or ships at 0 (a run of
+      estimates, a large credit balance, a catch-up bill, a billing error reaching churn), from the
+      advisor's evidence packs
+    audit: docs/staging/records/SEAT_READING_DOES_THE_WORLD_REACT_TO_PAIN_POINTS_THE_AUDIT_THE_DIRECTOR_ASKED_FOR_2026-10-30.md
 steps:
   1:
     name: knowledge, now and wide

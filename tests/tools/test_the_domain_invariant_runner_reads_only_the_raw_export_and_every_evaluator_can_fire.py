@@ -962,11 +962,12 @@ def test_every_leg_of_the_meter_type_row_is_reachable():
 
 
 def test_every_leg_of_the_estimate_follows_the_reads_row_is_reachable():
-    """An estimate at the rate the last reads show passes; three times it breaches; one bill with a
-    single read before it is not graded."""
+    """On the reads rung (the supplier's reads span the declared switch from the supply start), an
+    estimate at the rate the last reads show passes and three times it breaches; a single quote-rung
+    bill is not graded."""
     def acct(est_kwh_per_day):
-        bills = [_bill("2020-01-01", "2020-01-31", 310.0, "A", close=310.0),
-                 _bill("2020-02-01", "2020-02-29", 290.0, "A", close=600.0),
+        bills = [_bill("2019-07-01", "2020-01-31", 2150.0, "A", close=2150.0),
+                 _bill("2020-02-01", "2020-02-29", 290.0, "A", close=2440.0),
                  _bill("2020-03-01", "2020-03-31", est_kwh_per_day * 31, "E", days_in_period=31)]
         return _printed_account("E", "electricity", {"invoices": bills})
     i = "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS"
@@ -977,6 +978,43 @@ def test_every_leg_of_the_estimate_follows_the_reads_row_is_reachable():
         _bill("2020-01-01", "2020-01-31", 310.0, "A", close=310.0),
         _bill("2020-02-01", "2020-02-29", 999.0, "E", days_in_period=29)]})
     assert _grade_one(i, one)[0] == "UNREACHED"
+
+
+def test_the_estimate_row_grades_both_rungs_of_the_declared_policy():
+    """The director's ruling of 2026-10-30: the row grades an estimate against the policy the
+    supplier declares, not one method. Before its reads span the switch, a new account bills the
+    quote's one figure spread by the shape, so a quote-rung bill off its meter's own figure breaches
+    while one far from its short reads does not (the 179 E1 bills on the 209c3350ab book). Both
+    rungs must be reachable on one book: a policy grade that sends every bill to one rung passes
+    every test of that rung."""
+    from company.billing.unread_month_estimate import MIN_ADVANCE_DAYS
+    i = "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS"
+    inv = next(r for r in runner.load_invariants() if r["id"] == i)
+    assert inv["declared_policy"]["switch_days"] == MIN_ADVANCE_DAYS
+
+    def quote(annual, march_annual=None):
+        def e(start, end, a):
+            d = runner._d
+            return runner._shape("electricity", d(start), d(end)) * a * ((d(end) - d(start)).days + 1)
+        # A first read in January says 2 kWh a day; the quote's 3,650 kWh a year is billed on.
+        return _printed_account("Q", "electricity", {"invoices": [
+            _bill("2020-01-01", "2020-01-31", 62.0, "A", close=62.0, opening_read_kwh=0.0),
+            _bill("2020-02-01", "2020-02-29", e("2020-02-01", "2020-02-29", annual), "E", days_in_period=29),
+            _bill("2020-03-01", "2020-03-31", e("2020-03-01", "2020-03-31", march_annual or annual), "E",
+                  days_in_period=31),
+            _bill("2020-04-01", "2020-04-30", e("2020-04-01", "2020-04-30", annual), "E", days_in_period=30)]})
+    assert _grade_one(i, quote(3650.0))[:2] == ("CLEAN", [])
+    assert _grade_one(i, quote(3650.0, march_annual=4500.0))[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, quote(3650.0, march_annual=3000.0))[:2] == ("BREACHED", ["below"])
+    # One book, both rungs taken: the quote account above, and a reads-rung account off its reads.
+    reads = _printed_account("R", "electricity", {"invoices": [
+        _bill("2019-07-01", "2020-01-31", 2150.0, "A", close=2150.0),
+        _bill("2020-02-01", "2020-02-29", 290.0, "A", close=2440.0),
+        _bill("2020-03-01", "2020-03-31", 30.0 * 31, "E", days_in_period=31)]})
+    tally = runner.EVALUATORS[i][0](inv, [runner.Account(c["customer_id"], c) for c in (
+        dict(quote(3650.0, march_annual=4500.0), customer_id="Q"), dict(reads, customer_id="R"))])
+    hit = {b["where"].split()[0] for b in tally.breaches}
+    assert hit == {"Q", "R"}, hit
 
 
 def test_the_estimate_row_holds_every_advance_the_published_methods_allow_and_none_past_them():

@@ -245,6 +245,45 @@ figure survives only as `catchup_is_material`, a display flag. Before this, 2,74
 corrections on the 209c book were dropped, on 754 of 1,293 accounts, leaving 92,490 kWh never billed
 or refunded (`SEAT_FINDING_AN_ACTUAL_READ_UNDER_FIVE_POUNDS_OFF_THE_ESTIMATES_NEVER_CORRECTS_THEM_..._2026-10-29.md`).
 
+## 10. A new account's baseline estimate: the quote's consumption (2026-10-30, the director's ruling)
+
+**Standing.** This is the director's stated understanding of standard practice, not a published
+rule (`docs/staging/advisor/done/DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30.md`,
+07:26 GMT: "The billing estimate should be based on the consumption used in the quote shouldn't it?
+… Let's start with what happens today. But the idea should be that the supplier figures out ways to
+improve this."). It answers the §7 and §8 GAP for the baseline only. No primary source has yet been
+found that refines it; one that does goes here, beside this paragraph.
+
+**The baseline.**
+- The billing estimate and the first direct debit both come from the consumption used in the quote:
+  the customer's declared annual use where the channel takes one, otherwise the industry figure
+  available at quote (the registry or DC EAC for electricity, the AQ for gas, the TDCV where none
+  is held).
+- Settlement runs separately on the DC's EAC, which takes every advance by the BSC blend (§8). SPAR
+  stays a named assumption with no value set.
+- The gap between what is billed and what is settled is a measured quantity, reported, not hidden.
+  **GAP: not yet measured.** No figure exists on any book.
+
+**What the design already does, and what it lacks.** E1's registry branch (`opening_estimate_kwh`,
+§7) is this baseline for the registry half: the quote's figure spread by the shape until the
+supplier's own reads span an advance. The declared rung is a world gap, already named in
+`company/billing/annual_consumption_estimate.py` (`CUSTOMER_DECLARED`): no supply point the world
+draws carries a declaration, so a quote can never be wrong about a home's use, and the supplier has
+nothing to learn. Closing it means the world holding a declared figure as a draw with an error
+against the home's true use, by channel and by new tenant against established occupier. That is a
+world build, filed on the customer-outcomes list, not here.
+
+**The 182-day switch is a policy, not a rule.** When the company's own reads replace the quote's
+figure is the supplier's choice. §8 shows the industry blends from the first advance, and §7's six
+months has no source. So the switch point is a lever for the supplier's experiments (an early check
+at the first read, an early review the customer can see), graded against this baseline. It is not a
+fact for a control to enforce.
+
+**Consequence for the controls.** `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` grades an estimate
+against the estimation policy the supplier declares for that account, plus the duty rules, which
+have their own rows (`INV_READ_DUTY_ANNUAL`, `INV_BACK_BILLING_12M`). It does not grade against one
+method chosen in advance.
+
 ## Sources
 
 - DESNZ, *Energy Trends Table 4.2*: https://www.gov.uk/government/statistics/gas-section-4-energy-trends (retrieved 2026-10-06, "Domestic" column, 2023–2025)

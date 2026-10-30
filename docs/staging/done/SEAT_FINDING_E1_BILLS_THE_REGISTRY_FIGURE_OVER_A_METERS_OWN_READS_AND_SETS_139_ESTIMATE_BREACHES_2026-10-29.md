@@ -97,3 +97,8 @@ knowledge page is amended: `how_a_supplier_shapes_an_estimate_for_an_unread_mont
   explanation is ranked beside the others, not chosen.
 
 Nothing is built yet. The 179 exception stands on E1 as the cause, and E1's citation is now corrected in the code.
+
+
+## Done (2026-10-30)
+
+The director settled the conflict on 30 Oct (07:26, `docs/staging/advisor/done/DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30.md`): a new account's baseline estimate is the quote's consumption, and the method is the supplier's to improve, not his. E1's registry branch is that baseline, so E1 is not the defect. The row was the one that encoded a method. `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` now grades each estimate against the declared policy (a quote rung until the reads span 182 days from the supply start, then a reads rung). It grades 0 of 30,793 on both the 209c3350ab and 3dc5a92948 books, where it graded 179 of 24,904. The 179 exception is retired. The BSC blend this finding proposed is not built: it is one candidate lever for the supplier's experiment (`docs/direction/priority_order.yaml` `customer_outcomes_candidates`), not a correction.

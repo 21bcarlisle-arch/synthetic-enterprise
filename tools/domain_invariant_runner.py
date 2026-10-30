@@ -51,6 +51,7 @@ import argparse
 import json
 import math
 import re
+import statistics
 import sys
 from collections import defaultdict
 from datetime import date, timedelta
@@ -1757,30 +1758,46 @@ def _daily(i) -> float | None:
 
 
 def ev_estimate_follows_reads(inv, book):
-    """Per estimated bill with two actual reads before it on its meter: its daily use against the
-    shaped short reference (the last two reads) and every long reference (a window of 182 days to
-    36 months ending at the last read, from an actual read or the change-of-supply opening read),
-    within (1 - t) x the least and (1 + t) x the greatest. Flag an estimate that went the wrong way
-    after a read-confirmed change, against the longest 182-365-day window from actual reads."""
+    """Per estimated bill, against the estimation policy the supplier declares (the row's
+    `declared_policy`). On the quote rung, before the supplier's own reads span `switch_days` from
+    the change-of-supply day, the estimate is one annual figure spread by the shape: each bill's
+    implied annual (daily use over the mean daily share) within `quote_q` of its meter's median, on
+    meters with two or more such bills. On the reads rung, with two actual reads before it: its daily
+    use against the shaped short reference (the last two reads) and every long reference (a window of
+    182 days to 36 months ending at the last read, from an actual read or the change-of-supply opening
+    read), within (1 - t) x the least and (1 + t) x the greatest. Flag an estimate that went the wrong
+    way after a read-confirmed change, against the longest 182-365-day window from actual reads."""
     t_of = {"electricity": 0.30, "gas": 0.40}
     t_of.update(inv.get("t") or {})
-    tally = Tally("estimated bill with two actual reads before it")
+    policy = inv.get("declared_policy") or {}
+    switch_days = int(policy.get("switch_days", 182))
+    quote_q = float(policy.get("quote_q", 0.05))
+    tally = Tally("estimated bill on a rung its declared policy grades")
     for a in book:
         if a.printed is None or a.fuel not in MONTHLY_SHARE:
             continue
         t = float(t_of[a.fuel])
         for serial, bills in _by_serial(a).items():
             reads = _meter_reads(bills)
+            supply_start = _d(bills[0]["period_start"]) - timedelta(days=1)
             opening = bills[0].get("opening_read_kwh")
-            switch = ([(_d(bills[0]["period_start"]) - timedelta(days=1), float(opening))]
-                      if opening is not None else [])
+            switch = ([(supply_start, float(opening))] if opening is not None else [])
+            quote = []
             for n, i in enumerate(bills):
                 if i.get("read_type") != "E":
                     continue
                 start = _d(i["period_start"])
                 held = [r for r in reads if r[1] <= start and r[0] < n]
                 e = _daily(i)
-                if len(held) < 2 or e is None:
+                if e is None:
+                    continue
+                if not held or (held[-1][1] - supply_start).days < switch_days:
+                    here = _shape(a.fuel, start, _d(i["period_end"]))
+                    if here > 0:
+                        quote.append(("{} {} {} bill {} to {}".format(
+                            a.cid, a.fuel, serial, i["period_start"], i["period_end"]), e / here))
+                    continue
+                if len(held) < 2:
                     continue
                 (_, d1, c1), (_, d2, c2) = held[-2], held[-1]
                 if d2 <= d1:
@@ -1803,6 +1820,10 @@ def ev_estimate_follows_reads(inv, book):
                 if len(tally.breaches) == before and (
                         (s_short > s_long and e < 0.9 * s_long) or (s_short < s_long and e > 1.1 * s_long)):
                     tally.hit("flag", where, round(e, 3), round(s_long, 3), "wrong direction")
+            if len(quote) >= 2:
+                med = statistics.median(v for _, v in quote)
+                for where, v in quote:
+                    tally.band(where, round(v, 1), round((1 - quote_q) * med, 1), round((1 + quote_q) * med, 1))
     return tally
 
 

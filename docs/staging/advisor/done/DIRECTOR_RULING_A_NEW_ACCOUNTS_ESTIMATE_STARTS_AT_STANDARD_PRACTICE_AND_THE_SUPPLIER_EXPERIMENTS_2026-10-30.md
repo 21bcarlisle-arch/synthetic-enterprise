@@ -40,3 +40,10 @@
 
 - The baseline and the redrawn invariant belong to the correctness stretch.
 - The experiment belongs to the advice and customer-outcomes roadmap. File it there as a named candidate. It is drawn after the correctness exit test is met, unless it is needed to close it.
+
+## Done (2026-10-30, the worker)
+
+1. **Row closed as returned to the seat.** `a-practitioner-question-k4-published-sources-exhausted` is answered in `docs/direction/DIRECTION.yaml`. Its commitment is `new-account-first-months-experiment`, due 2026-12-15.
+2. **Baseline written** as the director's stated understanding of standard practice, in §10 of `docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md`. No primary source refining it was found. E1's registry branch already is this baseline for the registry half. The declared-use rung is the world gap already named in `annual_consumption_estimate.CUSTOMER_DECLARED`. **Owed, not done:** the billing-to-settlement gap is not yet measured on any book, and §10 carries this as a GAP.
+3. **The world's quote error** (item 3) and **the experiment** (items 4–5, with its five outcomes) are filed as `new-account-first-months-experiment` in `docs/direction/priority_order.yaml` `customer_outcomes_candidates`. It is drawn after the correctness exit test.
+4. **The row is redrawn** (item 6). `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` grades against the row's `declared_policy`: a quote rung (one annual figure, within 5% of the meter's median) until the reads span 182 days from the supply start, then the reads band. Duty rules stay on `INV_READ_DUTY_ANNUAL` and `INV_BACK_BILLING_12M`. **Re-grade:** 179 of 24,904 became 0 of 30,793 on both the 209c3350ab and 3dc5a92948 books. All 179 are policy-consistent, none remains a defect, and the exception is retired. Both rungs are mutation-proven in the runner's test.

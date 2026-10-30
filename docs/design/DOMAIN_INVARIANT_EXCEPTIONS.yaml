@@ -23,6 +23,12 @@
 # was the printed per-day rate of a period billed exactly at the cap and rounded to the penny. The
 # invariants now carry a penny-per-period tolerance, and the same book grades 0 on both.
 #
+# 2026-10-30: the INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS exception (179 bills, E1's registry
+# branch) is retired. The director's ruling of 30 Oct makes the row grade an estimate against the
+# supplier's declared policy, and a new account's baseline is the quote's figure until its reads span
+# an advance. The redrawn row grades 0 of 30,793 on both the 209c3350ab and 3dc5a92948 books, where it
+# graded 179 of 24,904: all 179 are policy-consistent and none is left as a defect.
+#
 # 2026-10-27: the two INV_UNIT_RATE_SVT_* exceptions are retired. The fresh run at 2eeb3f0b32, which
 # carries the company's clamp at the payment method's own column, grades 0 of 5,921 (elec) and
 # 0 of 4,721 (gas), from 298 and 249. Grade beside
@@ -167,23 +173,6 @@ exceptions:
     filed: 2026-10-28
     retired_by: the carbon panel counting energy used as the row says (true-up kWh in the months they reconcile; knowledge page first)
     max_breached: 6
-  - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
-    scope: 179 of 24,904 graded estimated bills on the fresh 209c3350ab book, on 37 accounts (103 gas, 76 electricity), 113 above the band and 66 below
-    reason: >-
-      One class, every bill traced (/var/tmp/est-probe-scripts/est3.py). Each is in E1's registry branch
-      (1bdd86b849): no advance of 182 days or more ends at the latest read from any read the company holds,
-      so the bill is the registry EAC/AQ spread by the shape, and the row's band comes from the short reads.
-      E1 and the row disagree by construction about a supplier's first six months: see
-      docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md.
-      The other 90 of the 269 this row carried were the row's own windows, not the estimator: 51 followed
-      an advance of over a year, 16 an advance opening on the change-of-supply read, 7 a fallback window
-      past the estimator's 731 days, 4 an advance from the opening read on PROS-2024-0010, and 12 gas bills
-      a 183- to 261-day advance (the run's gas floor is 182, not 273; 724c494d90's classifier put them in
-      the branch). The row now takes its window's ends from the cited page (6 to 36 months, from any held
-      read), and all 90 pass on the same book.
-    filed: 2026-10-29
-    retired_by: the finding deciding which of E1 and the row describes a supplier's first six months
-    max_breached: 179
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
     scope: 6 of 4,317 runs of estimated bills on the fresh 209c3350ab book, all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g, PROS-2017-0336 (two), PROS-2024-0010, SYN-2016-396g and SYN-2016-565
     reason: >-
