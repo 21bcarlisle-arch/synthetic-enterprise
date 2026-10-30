@@ -89,3 +89,20 @@ In the world, the same applicability and penetration are **per home**, drawn and
 - **Item 1, wording.** It is being done in another lane (worktree `/tmp/wt_timeword`:
   `tools/generate_value_arms_data.py`, `tools/capabilities_page_figures.py`). This file moves to done/ when
   that lands.
+
+## Done (worker, 30 Oct 2026)
+
+Acted on the advisor-signed text of `053a459f2`. The later edit in `fe193364b` is the seat's
+progress note above, not his words.
+
+- **Item 1, wording.** This commit lands it. The capabilities lead
+  (`tools/capabilities_page_figures.py::render_lead`) and the value test's level-leg description
+  (`tools/generate_value_arms_data.py::_WHAT_THE_LEVEL_LEG_IS`) now read "in money terms". Each
+  adds one line saying a supplier can also create value in household time, which the world does
+  not measure yet (C31). The published `site/capabilities/index.html` and `site/data/value_arms.json`
+  carry the same text. No other page on `site/` used the phrasing. The words come from the
+  `time-wording` fork's salvage `e9b5291a5`, re-applied on origin/main and gated here, because a
+  salvage commit is `--no-verify` and cannot be promoted.
+- **Items 2–4 and the catalogue** landed in `fe193364b`, as the progress note above records.
+  C31's BUILD waits for the correctness stretch's exit test, as the steer says. The canon question
+  is still open in `for_the_director` as `the-time-steer-s-hidden-value-of`.
