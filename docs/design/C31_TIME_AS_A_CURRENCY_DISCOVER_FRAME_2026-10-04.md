@@ -247,3 +247,70 @@ pass would find nothing new.
 Pass 3 sources: [UKTUS 2014-15 CTUR report and activity codes](https://doc.ukdataservice.ac.uk/doc/8128/mrdoc/pdf/8128_ctur_report.pdf) ·
 [Scottish Government, CTUR 2014-15 results, §3](https://www.gov.scot/publications/centre-time-use-research-time-use-survey-2014-15-results-scotland/pages/4/) ·
 [ONS, Time use in the UK, March 2023](https://www.ons.gov.uk/peoplepopulationandcommunity/personalandhouseholdfinances/incomeandwealth/bulletins/timeuseintheuk/march2023)
+
+---
+
+## 9. DISCOVER/FRAME pass 4 (2026-10-30): the director's time steer reopens what §8 called exhausted
+
+The source is `docs/staging/advisor/DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30.md`
+(12:22-12:26 GMT, "Do it."). The level stays at 0 and there is no BUILD code. Pass 3 said the DISCOVER question
+set was exhausted. That held for the question it asked, *how many minutes does each energy event take?*. The
+steer asks two new questions, and §8 had not searched either.
+
+### 9.1 What the steer adds, said before anything is measured
+
+- **A fifth class, T5 adoption.** These are the minutes and disruption of acting on a measure: researching,
+  getting quotes, arranging an installer, survey visits, disruption days and grant paperwork. It has a
+  different population, trigger and controller from T1-T4. It falls on a household deciding about its home,
+  not on one dealing with its supplier, and it is usually controlled by an installer, a landlord or a scheme.
+  So it is its own class, and it is never summed with T1-T4 (§5 Q1).
+- **The household's own exchange rate between minutes and money.** This is a trait the household holds and
+  acts on. It is hidden, world-side, and it is never the score. **M3 is not touched.** The score still counts
+  minutes per class, never converted. The trait is what makes a household refuse a £60 saving that costs it
+  four hours. Without it, the world cannot press back on a hassle-reducing offer, and "pricing only moves
+  value" is true by construction (the steer's point). Calling this "the value of time" invites the
+  conversion M3 forbids, so the frame names it the **hassle price**: £ per hour of the household's own
+  effort, used only inside that household's decisions.
+- **Hassle sensitivity per class.** Two households with the same hassle price can still mind a call queue and
+  a scaffold very differently. This is a second, per-class multiplier (T1-T5), hidden as well.
+
+### 9.2 What the published record gives these (read this pass, or carried from the 30 Oct evidence pack)
+
+| Quantity | What is established | Status |
+|---|---|---|
+| A general UK £/hour of non-work time | DfT national VTT study (Arup/ITS/Accent, non-technical summary, 14 Aug 2015): commuting, all modes, **£11.21/hr** (2014 perceived prices), against the then WebTAG £7.62. "Other non-work" (leisure) is "significantly lower than the average commuting value". VTT rises with income "in all mode/purpose segments except for bus and 'other PT' commuting" (§3.1.1). Read first-hand from the PDF this pass. | **Travel** time. Moving it to energy admin is a modelling choice and not a fact (§2.4 still holds). The "other non-work" figure was not legible in the extracted table, so it is a GAP. |
+| Revealed hassle price of the marginal non-switcher | The CMA's ~£160/yr detriment persisted among ~70% of customers, which implies at least £100-160/yr is foregone rather than spent on a switch | **[derived]** by the advisor's pack (§9). It is a floor on the hassle a switch is believed to cost, and not minutes |
+| Stated hassle | 47% agree "switching is a hassle I've not got time for" (Ofgem CES 2018). 28% say it takes too long | Stated, published (pack §9) |
+| Removing hassle moves behaviour | Ofgem collective-switch RCTs: 24-29.5% switched against control, 7-10x baseline, when the only effort was one contact. 72% used the phone. WHD automatic matching reaches 96% | **Trial-measured** (pack §9). This is the strongest evidence that the hassle price is large and binds |
+| Advice without removing hassle | Nesta flow-temperature RCT: ~0.4% effect per household advised, against a modelled 8-9% | Trial-measured (pack §9; `household_carbon_and_the_measures_that_save_it.md` §5) |
+| T5 disruption | 47% of EoH heat-pump decliners name disruption as the main barrier. 63% of heat-pump users report installation problems (24% for boilers). Lead time is 1-2 months. 48% of boiler purchases are distress purchases (13% for heat pumps) | Published survey (pack §E) |
+| T5 hours per measure | 0.25 h (DD switch) to 10-40 h (ASHP) | **[unverified]**: the advisor's assumptions in pack §10. Not evidence |
+
+**Still not published anywhere searched:** minutes per T1/T3/T4 event (§8 stands), hours per T5 measure, and
+any GB stated-preference willingness to pay to avoid energy hassle (pack §13 gap 7).
+
+### 9.3 What this changes in the FRAME
+
+| Level | What is true | Falsifier |
+|---|---|---|
+| **L0.5** (new, world-side, before L1) | Every drawn household carries a hidden **hassle price** (£/h of its own effort) and a **sensitivity per class T1-T5**. Both are conditioned on traits the world already draws (work status, age, children, income, health), and both are drawn from ranges, not points. The income gradient is the one sourced shape (VTT rises with income). The level is a belief with a range, anchored on the commuting VTT as an upper reference and the CMA-revealed floor as a lower one. The transfer from travel to admin is carried as a named GAP. The supplier never reads either. | A household's switching, complaining or adoption decision does not change when its hassle price changes, holding money fixed. Or the supplier side imports the trait. |
+| L1 | As §4, extended to T5. The world records minutes per event per class as truth. Each per-event minute cost is a range with its origin, or `None` with a reason | As §4 |
+| L2 | As §4 (T2 queue calibrated to §7.1) | As §4 |
+| L3 | As §4, plus each supplier time hypothesis (the steer's list: auto-placing on the right tariff, certainty through a fix, smart reads that end estimates, first-contact resolution, proactive notices, done-for-you grants and installs) is graded on the minutes scorecard against a counterfactual. Its price share is graded for fairness (X1-X2), including high-hassle-price, low-engagement households | An arm that removes a contact moves no minute figure, or the fairness grade omits the high-hassle-price cell |
+
+**Q4 (new). Is a hidden £/h hassle price inside a household's decision compatible with M3?** *Recommendation:
+yes, because M3 governs what we SCORE.* A household's private trade-off is behaviour, just as its price
+elasticity is. The trait is never summed into, or reported as, value created. It is raised in
+`for_the_director` so that he can overrule it. It does not block the sketch.
+
+### 9.4 Sequencing (the steer, item 2)
+
+This atom is not to be deprioritised again by default. This DISCOVER/FRAME pass is drawn inside the
+correctness stretch, as the steer allows. **BUILD follows the stretch's exit test**, beside the improvement
+loop (`docs/design/THE_IMPROVEMENT_LOOP.md` §8 sketches the world side), with L0.5 first. Without L0.5,
+nothing a supplier does with time can register in the world. `blocked_on: PB4` stays for BUILD only.
+PB4 (engagement separated from elasticity) is where the hassle price and engagement must be told apart, so
+that one is not an alias for the other.
+
+Pass 4 source: [DfT VTTS phase 2, non-technical summary, Aug 2015](https://assets.publishing.service.gov.uk/media/5a80bdeced915d74e62302f2/vtts-phase-2-report-non-technical-summary-issue-august-2015.pdf).
+All the other rows are cited through the advisor's pack, `docs/staging/advisor/DIRECTOR_EVIDENCE_EVERY_CHANGE_A_HOUSEHOLD_CAN_MAKE_PRIORITISED_2026-10-30.md` §9-§11.

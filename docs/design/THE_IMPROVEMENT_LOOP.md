@@ -186,3 +186,72 @@ Written before any of it is built, so these are predictions.
     mutation-checked on each forbidden set.
   - It blinds the tree, not the process: a reader that reads by absolute path can still reach the
     repository. On the 3dc5a92948 build it holds 1,305 files (138 MB).
+
+## 8. The world must feel hassle: a sketch (2026-10-30)
+
+The source is `docs/staging/advisor/DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30.md`.
+His prompts were "prompts, not a specification", and this design is mine. The evidence and the frame
+are in `docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md` §9. Time is one axis of the
+scorecard vector in §3 D. This section says what the world needs so that the axis can move at all.
+
+**The problem in one line.** Today a household has an activation energy and an engagement archetype, and
+nothing else that prices its effort. A supplier offer that saves a household four hours therefore
+registers as nothing, and an arm that removes hassle can never beat one that cuts price. The thesis loses
+by construction.
+
+**What the world carries (hidden, drawn once per household, never read by `company/` or `saas/`):**
+
+1. **Hassle price** h, in £ per hour of the household's own effort. It is conditioned on traits the
+   population already draws: in work, age, children, income and long-term illness. Income is the one
+   sourced gradient (DfT VTT rises with income). The level is a range, not a point:
+   - the upper reference is the DfT commuting VTT (£11.21/h, 2014 prices), whose transfer to admin is a GAP;
+   - the lower bound is revealed: a CMA non-switcher forgoes £100-160 a year rather than spend a switch's effort.
+
+   Grading runs at the range endpoints (§5 stage 3), not at a midpoint.
+2. **Sensitivity per class**, s_T for T1 shopping, T2 servicing, T3 recovery, T4 routine admin and T5
+   adoption. These are multipliers around 1, correlated with h but not determined by it. A carer
+   with a low h can still find a scaffold intolerable.
+3. **Per-measure friction for T5**, from the catalogue
+   (`docs/market_research/every_change_a_household_can_make.md`): hours to arrange, parties involved,
+   disruption days and paperwork. Each is a range with its origin. Most rows are `[unverified]` today
+   and enter only as ranges.
+
+**Where it enters.** Every decision the household already makes gains one term: the hassle cost
+h · s_T · minutes(event). It is weighed against the money in the same choice:
+- switching (T1), against the saving on offer;
+- complaining or giving up (T3); a high h·s_T3 makes more households give up, which is the "silent unhappy" W2_37 models;
+- acting on advice and adopting a measure (T5), against its value net of cost;
+- staying (the sum of T2-T4 experienced on this supplier, beside resentment, without replacing it).
+
+`simulation/resentment_ledger.py` stays a separate quantity in points (C31 §3). The hassle term does
+not feed it.
+
+**What the world records as truth.** It records minutes per event per class per household (C31 L1), so
+that time saved is graded against a counterfactual in the same way as money (M3). The scorecard reads
+these minutes, never h. **h is never multiplied into the score.**
+
+**What the supplier can do.** It can infer h and s from behaviour: who answers a call, who acts on a
+nudge, who has stayed on SVT for years. Or it can ask. Its estimate is graded against the hidden truth, in
+the same way as its use estimate. The six named hypotheses from the steer become arms:
+- auto-placing on the right tariff;
+- certainty through a fix;
+- smart reads that end estimates;
+- first-contact resolution;
+- proactive notices that prevent a recovery episode;
+- done-for-you grants and installs.
+
+Each is graded on minutes per class, on money and on carbon. Any price share it takes is graded for
+fairness (X1-X2), with the high-h, low-engagement cell reported separately, because it is often the
+vulnerable one.
+
+**The checks that can fail, one each.**
+- *The world presses back:* holding money fixed, raising one household's h lowers its switching and
+  adoption probability. A reachability test in the shape of `test_carbon_not_a_target.py`. Assert first
+  that the branch can be taken: a household at h = 0 must be able to switch.
+- *The wall:* no import of the trait from `company/` or `saas/` (the existing seam census).
+- *Collective-switch replay:* a one-contact, done-for-you offer reaches within the Ofgem RCT band
+  (24-29.5% against a baseline 7-10x lower) at the range endpoints. A world that cannot reproduce the one
+  trial-measured hassle result is not calibrated.
+
+**Order.** This is a sketch. It builds after the correctness exit test, as C31 L0.5. That is stage 1 ("world
+reacts") for the time axis of every area. It comes first because no area's time axis can be graded without it.
