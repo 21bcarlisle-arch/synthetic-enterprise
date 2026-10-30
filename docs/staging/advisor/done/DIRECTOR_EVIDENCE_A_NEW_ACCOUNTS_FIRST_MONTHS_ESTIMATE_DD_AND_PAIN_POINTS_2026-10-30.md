@@ -389,3 +389,17 @@ The supplier's P&L should feel the *difference* through imbalance cost, unbilled
 - Any published GB churn elasticity for a DD increase or for bill shock. The Opower figure of about 61% is stated intent from a secondary source.
 
 These should be calibration parameters in the simulation, not evidence.
+## Done
+
+Actioned by the seat on 30 Oct, in the commit that moves this file here. The pack's pain-point table is now the knowledge stage (stage 0 of `docs/design/THE_IMPROVEMENT_LOOP.md`) for the area "a new account's first months". It is published as the `pain_points` record on `site/knowledge/the-first-year-blind-spot/`, in `site/data/knowledge_topics.json`, and the page renders it.
+
+- **Rows here: seven.** FM1 opening estimate, FM2 first-review step-up, FM3 arrears from a low DD, FM4 credit and refund friction, FM7 opening-read dispute, FM8 deemed tenant and FM9 default-band quote. Each row carries its sourced reaction evidence and a GAP with low, central and high, and the basis of each range is graded as *published bound*, *derived* or *assumption*.
+- **Rows homed elsewhere, so each pain point has one home:**
+  - estimated bills and complaint handling are on `unbilled-energy-and-revenue-assurance`;
+  - the catch-up bill is on `back-billing-and-liability`.
+- **The pack's own [unverified] items are GAPs, never evidence.**
+- **Verified by the seat against the primary PDF:** the 2026 TDCV values and their start date of 1 July 2026.
+- **Not found:** the TDCV decision does not say which percentiles the Low and High bands are. FM1 therefore takes its range from the repository's own published EAC spread, not from the bands.
+- **The SLC 21B correction:** the invariant library already holds the read duty as annual (`DOMAIN_INVARIANTS.yaml`, the 21B.4 invariant's `correction_to_brief`). Nothing needed changing.
+- **"Is the SIM making customers react?"** The audit at f1e9424606 answered that. The next stage is stage 1 for this area: each row's world reaction ships at its range, not at 0. It is handed on.
+- **The control that no row is blank:** `site/knowledge/test_a_pain_point_row_has_evidence_or_a_ranged_gap.py`. Its door leg was mutation-checked: when a page's rendering was disabled, it went red.

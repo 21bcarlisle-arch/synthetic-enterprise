@@ -395,3 +395,38 @@ I found no named Ofgem penalty under SLC 21BA alone. Ofgem's 2020 letter warned 
 
 - **[analysis]** The brief's "SLC 21B read every 2 years" should be modelled as an annual reasonable-steps read duty (SLC 21B). The 2-year inspection duty was repealed in 2016.
 - **[analysis]** Not found or **[unverified]**: accrued-income figures for Octopus, OVO, E.ON UK and SSE retail; how often crossed meters and lost exchange reads occur; rates of Direct Debit cancellation after a catch-up bill; churn caused specifically by back bills; any penalty under SLC 21BA alone; the implementation status of UNC Modification 0398.
+## Done
+
+Actioned by the seat on 30 Oct, in the commit that moves this file here. The pack's pain-point table is now the knowledge stage (stage 0 of `docs/design/THE_IMPROVEMENT_LOOP.md`) for the area "unbilled energy". It is published as `pain_points` records, rendered by each page:
+
+- **`site/knowledge/unbilled-energy-and-revenue-assurance/`** has six rows:
+  - UB1 repeated estimates;
+  - UB2 a non-communicating smart meter;
+  - UB3 a late or held bill;
+  - UB4 a bill the customer cannot understand;
+  - UB5 a complaint that is unresolved or not signposted;
+  - UB6 a missed read visit.
+- **`site/knowledge/back-billing-and-liability/`** has four rows:
+  - BB1 a catch-up bill;
+  - BB2 a bill reaching back more than 12 months, or a wrongly applied exception;
+  - BB3 a missing final bill;
+  - BB4 catch-up debt with an unaffordable plan.
+- **The pack's "direct debit sharply increased" row** has its home on the first-months page, as FM2.
+
+**Verified by the seat against the primary PDF** (Ofgem's domestic billing performance assessment, July 2026):
+- 81% of bills read-based at first issue, and 89% after reconciliation;
+- about 11m late bills, 3.5m of them three to twelve months late;
+- over £172m written off for almost 1m customers;
+- resolution taking 2 to almost 10 months;
+- billing at about 30% of supplier complaints and 55% of Ombudsman cases.
+
+The Ombudsman figure has one correction. The PDF puts back-billing at about **5%** of Ombudsman referrals. The pack's section C2 cites this same PDF for "about 3–5%".
+
+**What the published record shows when it is put next to stated intent.** BB1's range comes from Ofgem/BMG's survey, read in `docs/market_research/is_there_a_bill_level_at_which_switching_rises.md`:
+- realised switching after bill stress runs at 0.57× to 1.28× the base rate;
+- the pack's 61% is "would switch", from a secondary source;
+- the page shows the 61% as stated intent and does not use it as a rate.
+
+**The SLC 21B correction.** The invariant library already holds the read duty as annual, so nothing needed changing. The back-billing page's pain-point section now states this as well.
+
+**What is handed on.** Stage 1 for this area: each row's world reaction ships at its range, not at 0. The control is `site/knowledge/test_a_pain_point_row_has_evidence_or_a_ranged_gap.py`.

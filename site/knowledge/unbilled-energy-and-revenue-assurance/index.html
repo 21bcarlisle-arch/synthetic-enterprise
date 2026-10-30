@@ -38,6 +38,9 @@ h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-sp
 .card p:last-child { margin-bottom: 0; }
 .card p.bullet { padding-left: 14px; }
 .muted { color: var(--muted); font-size: 12px; }
+.pp-row { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
+.pp-row h4 { font-size: 14px; margin-bottom: 6px; }
+.pp-gap { border-left: 3px solid var(--amber); padding-left: 10px; }
 .side .card { padding: 14px 16px; }
 .side h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 10px; }
 .topiclink { display: block; padding: 8px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: var(--text); }
@@ -97,6 +100,9 @@ h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-sp
 
     <h2 class="sec" id="h-scope"></h2>
     <div id="r-scope" class="card weak"></div>
+
+    <h2 class="sec" id="h-pain"></h2>
+    <div id="r-pain" class="card"></div>
 
     <div id="wall-note" class="fic"></div>
   </main>
@@ -183,6 +189,29 @@ function render(page, graph){
     set(p[1], esc(r[p[0]].heading));
     set(p[2], paras(r[p[0]].body));
   });
+
+  // THE PAIN-POINT TABLE: the area's knowledge stage (docs/design/THE_IMPROVEMENT_LOOP.md,
+  // stage 0). Every row shows its reaction evidence and, where the record does not size the
+  // reaction, the GAP's low/central/high and the graded basis of that range.
+  var pp = page.pain_points;
+  if (pp) {
+    set("h-pain", esc(pp.heading));
+    set("r-pain", paras(pp.intro) +
+      '<p class="muted">Written ' + esc(pp.written) + ". Source pack: " + esc(pp.source_pack) + ".</p>" +
+      "<p><b>Scorecard, graded as a vector, never a weighted sum:</b></p>" +
+      pp.scorecard.map(function(a){ return '<p class="bullet">\u2022 <b>' + esc(a.axis) + ":</b> " + esc(a.measures) + "</p>"; }).join("") +
+      pp.rows.map(function(x){
+        var g = x.gap;
+        return '<div class="pp-row" data-pain-point="' + esc(x.id) + '"><h4>' + esc(x.id) + ". " + esc(x.pain_point) + "</h4>" +
+          "<p><b>How the customer meets it:</b> " + esc(x.how_met) + "</p>" +
+          "<p><b>What a supplier can measure:</b> " + esc(x.signal) + "</p>" +
+          "<p><b>How customers react, from the published record:</b></p>" +
+          x.evidence.map(function(e){ return '<p class="bullet">\u2022 ' + esc(e) + "</p>"; }).join("") +
+          (g ? '<p class="pp-gap"><b>GAP: ' + esc(g.quantity) + ".</b> Low " + esc(g.low) + ", central " + esc(g.central) +
+               ", high " + esc(g.high) + " (" + esc(g.unit) + "). Basis, " + esc(g.basis_kind) + ": " + esc(g.basis) + "</p>" : "") +
+          "</div>";
+      }).join(""));
+  }
 
   set("wall-note", esc(m.wall_placement));
   set("page-note", "A written page, not a stub. It explains the mechanism from published sources "
