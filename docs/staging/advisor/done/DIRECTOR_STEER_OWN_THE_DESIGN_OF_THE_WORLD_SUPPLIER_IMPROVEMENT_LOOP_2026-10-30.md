@@ -61,3 +61,25 @@ The cycle has to produce supplier learning that would hold in the real market. I
    - how it will show that it works: what would prove the loop is embedded, and what would show it has failed.
 2. **Bring it back as a proposal.** Raise one row in `for_the_director` with your recommendation. It is a strategy and method question, which the 28 Oct ruling says may come to him. Keep it to a page he can read in two minutes.
 3. **Sequencing.** The thinking and the design note can be drawn now, inside the correctness stretch, because they are cheap and reading-only. The build follows the correctness exit test. The one exception is any part that would help close that test; the blind-role separation for the cold reader and the invariants may be such a part.
+
+## Done
+
+2026-10-30, the delivery seat.
+
+- **Design note:** `docs/design/THE_IMPROVEMENT_LOOP.md`. It judges each of the seven concerns
+  against the tree. 1–6 are confirmed. 7 is partly refuted: the six owed crossings now have an owner
+  and due dates of 21 and 28 Nov. It is also partly worse: three of the six are the world importing
+  the supplier's churn functions, against the seam README's own claim.
+- **Missed concerns:**
+  - the knowledge layer quotes code constants, so "blind" authorship from it is leaky;
+  - a new reaction ships at 0 by default (K2);
+  - every supplier experiment hand-builds its own grading;
+  - weighting the scorecard is his (the A5 frame);
+  - the correctness exit test *is* the loop's "world reacts correctly" stage.
+- **Recommended design:** stages derived from artefacts, not kept by hand. Grading across range
+  endpoints, as W7.3 already rules. Three named triggers for adding nuance. Blind roles by sparse
+  worktree.
+- **The proposal:** raised as `for_the_director` row `the-improvement-loop-world-then-supplier-then`,
+  with one question for him: whether the scorecard stays a vector, Pareto only.
+- **What is left:** the build. The blind worktree comes now, because it helps the correctness exit
+  test. The rest follows the exit test, in the note's §5 order.
