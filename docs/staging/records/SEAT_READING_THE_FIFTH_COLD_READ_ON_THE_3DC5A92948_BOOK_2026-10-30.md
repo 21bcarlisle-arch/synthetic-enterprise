@@ -175,3 +175,21 @@ meter's identity or its unit, and the seat's rows took `meter_serial` as given.
 - The next exit attempt needs both closed, a fresh run graded on leg one, and a sixth read.
 - A sixth read's brief should name the meter's identity and the gas unit among the things a
   professional checks, now that four reads went past them.
+
+## The sixth cold read, drawn before its inputs exist (2026-10-30, seat-executor)
+
+`the-sixth-cold-read` was drawn with origin at 192900fc3a. Its direction row says "once item 3's
+grade and pages and item 4's tool are on origin, and not before". Neither is:
+
+- **Item 3's book doesn't exist.** It waits on item 2 (`a-gas-read-is-a-volume-and-the-bill-converts-it`),
+  and only item 2's K8 page is on origin (e0f8c1fbed). The C1–C3 build hasn't landed: no commit
+  since that page touches `company/interfaces/sim_interface.py` or `company/billing` for gas volume.
+  No run is in flight, so no grade or rebuilt pages exist.
+- **Item 4's tool isn't on origin.** `tools/blind_review.py` is AO9's packet assembler, not the sparse
+  worktree. `tools/blind_worktree.py` and its test are staged, uncommitted, in another lane's
+  `/var/tmp/wt-blind-worktree`.
+
+So nothing was read, no pre-registration was written (it would name a book that doesn't exist),
+and the claim is released. Leg three stays open on the fifth read's two classes (N10 graded 0 by
+6ef8f1b678; N11 not built). Draw the sixth read only once item 2's build, item 3's grade record in
+`docs/staging/records/` with its rebuilt Explore pages, and `tools/blind_worktree.py` are all on origin.
