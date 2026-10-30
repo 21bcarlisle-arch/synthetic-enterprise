@@ -185,18 +185,20 @@ exceptions:
       against DESNZ 7.2%, electricity 17.6% against 20.5%). Three causes, each measured. (a) Four
       electricity runs (PROS-2017-0336 twice, PROS-2024-0010, SYN-2016-565) are on electrically heated homes
       on a single-rate Anytime meter, using 14,500 to 25,100 kWh a year with 3 to 5% of it in Jun to Aug.
-      These are 3 of the 17 such homes the world gives a single rate. A storage-heated home needs an
-      off-peak meter (when_an_electrically_heated_homes_water_heater_runs.md E1), and a direct-electric
-      home may lawfully have a single rate (G3 there). Which of the two these 17 are has not been read. The
-      world settles a storage home on profile class 2 (simulation/run_phase2b.registered_profile_class),
-      so a storage home among them would be a single-rate bill on a two-rate settlement, the bill side of
-      ruling step 3's storage-heating cause. A direct-electric home is (b)'s lawful tail. (b) SYN-2016-396g gas has 1.4% of its use
+      Read 2026-10-30 from the drawn population at the run's seed: all three homes are ELECTRIC_STORAGE.
+      A storage-heated home needs an off-peak meter (when_an_electrically_heated_homes_water_heater_runs.md
+      E1), and the world settles it on profile class 2 (simulation/run_phase2b.registered_profile_class),
+      so these are single-rate bills on a two-rate settlement: the bill side of ruling step 3's
+      storage-heating cause, a defect and not a lawful tail. (The earlier "17 such homes" split fuel by
+      the id's g suffix, which 34 gas accounts lack; by the account's commodity it is 11 of 613
+      full-year electricity accounts: 5 storage, 1 direct-electric, 5 occupier accounts with no drawn
+      household.) Electricity's aggregate Jun to Aug share is 19.0%, not 17.6%, on the same correction. (b) SYN-2016-396g gas has 1.4% of its use
       in Jun to Aug, at the book's p5. Billing on EUC01B misestimates it, as it would for a real supplier
       (shaping note 6: the household's own shape is not known). (c) PROS-2016-0263g's gas use fell from
       11,426 to 1,102 kWh a year in 2020. That is a household change inside the run, the case the row's
       own severity names.
     filed: 2026-10-29
-    retired_by: reading the 17 single-rate electrically heated homes' heating type, and for any storage home its bill printing the two-rate settlement it holds (a). (b) and (c) are the row's lawful tail and stay excepted
+    retired_by: the three storage homes' bills printing the two-rate settlement they hold, under ruling step 3 (a; their heating type was read 2026-10-30). (b) and (c) are the row's lawful tail and stay excepted
     max_breached: 6
   # 2026-10-30: two rows that read UNCHECKABLE on the raw export are graded (leg one reads the five uncheckable
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
