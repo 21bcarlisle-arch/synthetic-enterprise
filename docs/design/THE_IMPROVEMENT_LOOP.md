@@ -169,3 +169,20 @@ Written before any of it is built, so these are predictions.
 - **Mine, to do:** the blind worktree now; the rest after the exit test, in the order of §5.
 - **GAP:** how much one cleaning pass of the knowledge notes will take. I have not counted the notes
   that quote code, so I cannot yet size it. The first build step counts them.
+  - **Counted 2026-10-30, at `562d7e1e1d`**, over the 216 `.md` notes in `docs/market_research/`:
+    - 133 name a code file (`<dir>/<name>.py`) under `company/`, `saas/`, `sim/`, `simulation/` or `tools/`;
+    - 123 name one under `company/`, `saas/`, `sim/` or `simulation/`, the code a blind reader is kept from;
+    - of those, 114 also carry a backticked UPPER_SNAKE identifier. That is an upper bound: some are
+      field or column names, not constants of ours;
+    - 20 quote a constant module-qualified (e.g. `simulation.live_population.GAS_CV_FACTOR`). That is
+      a lower bound on certain quotation.
+  - So the cleaning pass is between 20 and 114 notes, and more than half the layer is in scope.
+    The notes are not cleaned in this step.
+  - **Built, the cold reader's tree:** `tools/blind_worktree.py`. It is a plain directory, not a sparse
+    `git worktree`, because a `.git` pointer lets `git show HEAD:company/…` read any file. It holds
+    Explore, its cast, the household pages it opens, the ruling and the brief. Its control,
+    `tests/tools/test_blind_worktree.py`, fails when `company/`, `saas/`, `sim/`, `simulation/`,
+    `tools/`, `tests/`, `.git`, Python or a run result is present. The control is
+    mutation-checked on each forbidden set.
+  - It blinds the tree, not the process: a reader that reads by absolute path can still reach the
+    repository. On the 3dc5a92948 build it holds 1,305 files (138 MB).
