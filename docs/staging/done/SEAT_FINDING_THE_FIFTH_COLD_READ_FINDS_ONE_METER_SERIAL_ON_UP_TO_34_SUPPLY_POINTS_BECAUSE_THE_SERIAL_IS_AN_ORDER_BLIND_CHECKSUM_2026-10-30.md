@@ -46,3 +46,24 @@ serial is not checked here.
    serials.
 
 Not done here: the item is the reading.
+
+## Done (2026-10-30)
+
+All three closing steps are built in this commit.
+1. `INV_METER_SERIAL_ONE_SUPPLY_POINT` is now checkable. `tools/domain_invariant_runner.py` grades it by
+   (commodity, serial), never by account, with its three severities and the row's exchange proxy (GAP 5).
+2. The serial has one home beside the MPAN and MPRN: `company/crm/customer_registry.py` mints it as
+   `meter_serial(supply point, fuel)`, from a hash of the supply point and fuel, as ten digits.
+   `tools/generate_billing_ledger.py` no longer mints its own.
+3. Test: `tests/tools/test_one_meter_serial_sits_on_one_supply_point.py`. It is red on origin, because
+   SYN-2016-476 and SYN-2016-467 got one serial. Each of three mutations reds it: the ledger's
+   order-blind sum, a serial keyed without the fuel, and the evaluator keyed by account.
+
+**Measured on the 3dc5a92948 ledger.** The row breaches 45,049 of 52,927 bill periods and flags 1,906.
+That ledger has 322 serials over 1,293 supply points. With the serials re-minted per supply point, the
+row reads 0 of 52,927, with 1,293 serials. The re-mint used the printed MPAN or MPRN as the supply-point
+key, not a ledger rebuild. The two keys pick out the same points, but no ledger was regenerated, so the
+next fresh book's grade is the check on the full path.
+
+**Residue, named:** the world models no meter exchange, so a supply point keeps one serial for life. The
+reader's "registers start at zero at switch-in" is the open opening-read finding, not this class.

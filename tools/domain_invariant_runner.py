@@ -1271,6 +1271,55 @@ def ev_mpan_core_format(inv, book):
     return tally
 
 
+def _merged(spans):
+    """Inclusive (start, end) spans, each run of back-to-back ones joined."""
+    out = []
+    for s, e in sorted(spans):
+        if out and s <= out[-1][1] + timedelta(days=1):
+            out[-1] = (out[-1][0], max(out[-1][1], e))
+        else:
+            out.append((s, e))
+    return out
+
+
+def ev_meter_serial_one_supply_point(inv, book):
+    """One (commodity, serial) on one supply point at a time. The account is not in the key: occupiers
+    in turn at one supply point share its meter. A move to another electricity region is excused only by
+    the row's exchange proxy: a new serial on the earlier point and an old one leaving the later point,
+    both between the two periods (GAP 5)."""
+    tally = Tally("bill period (commodity, meter_serial, supply point)")
+    recs, on_k, on_sp = [], defaultdict(lambda: defaultdict(list)), defaultdict(list)
+    for a in book:
+        for p in a.periods:
+            fuel, serial = p.get("commodity"), p.get("meter_serial")
+            sp = p.get("mpan") if fuel == "electricity" else p.get("mprn")
+            s, e = _d(p["period_start"]), _d(p["period_end"])
+            on_sp[(fuel, sp)].append((s, e, serial))
+            if serial:
+                recs.append((fuel, serial, sp, s, e, "{} {} {}".format(a.cid, serial, p["period_start"])))
+                on_k[(fuel, serial)][sp].append((s, e))
+    spans = {k: {sp: _merged(v) for sp, v in by_sp.items()} for k, by_sp in on_k.items()}
+
+    def exchanged(fuel, serial, early_sp, early_end, late_sp, late_start):
+        swaps = on_sp[(fuel, early_sp)], on_sp[(fuel, late_sp)]
+        return (any(x != serial and early_end <= s <= late_start for s, _e, x in swaps[0])
+                and any(x != serial and early_end <= e <= late_start for _s, e, x in swaps[1]))
+
+    for fuel, serial, sp, s, e, where in recs:
+        tally.checked += 1
+        others = [(o, os, oe) for o, sps in spans[(fuel, serial)].items() if o != sp for os, oe in sps]
+        if any(os <= e and s <= oe for _o, os, oe in others):
+            tally.hit("breach", where, serial, sp, "simultaneous_two_supply_points")
+            continue
+        unexcused = [o for o, os, oe in others if not (
+            exchanged(fuel, serial, o, oe, sp, s) if oe < s else exchanged(fuel, serial, sp, e, o, os))]
+        if fuel == "electricity" and any(str(o)[:2] != str(sp)[:2] for o in unexcused):
+            tally.hit("breach", where, serial, sp, "two_regions_no_exchange")
+        elif unexcused:
+            tally.hit("flag", where, serial, sp, "sequential_same_region_no_exchange")
+    return tally
+
+
 def _households(book) -> dict:
     """billing account -> its accounts, one per fuel. An export without the id is its own household."""
     out = defaultdict(list)
@@ -1984,6 +2033,7 @@ EVALUATORS = {
     "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23": (ev_ebss_credit, None),
     "INV_EBSS_CREDIT_ON_THE_BILL": (ev_ebss_credit_on_the_bill, "printed_invoices"),
     "INV_MPAN_CORE_FORMAT": (ev_mpan_core_format, "mpan"),
+    "INV_METER_SERIAL_ONE_SUPPLY_POINT": (ev_meter_serial_one_supply_point, "meter_serial"),
     "INV_RENEWAL_NOTICE_42_TO_49_DAYS": (ev_renewal_notice, "bills"),
     "INV_COLLECTIONS_EVENTS_ORDERED": (ev_collections_ordered, "collections_journeys"),
     "INV_OVERDUE_WITHIN_BALANCE": (ev_overdue_within_balance, "bills"),

@@ -57,6 +57,19 @@ def mprn(supply_point: str) -> str:
 _mprn = mprn
 
 
+def meter_serial(supply_point: str, commodity: str) -> str:
+    """The supply point's meter serial (pass `supply_point_of(account)`): M and ten digits of a hash of the point and fuel.
+
+    The one home for it. The ledger summed the id's character codes, which ignores their order, so the
+    3dc5a92948 book's 1,293 pages carried 127 serials, 96 of them on 2 to 34 supply points (fifth cold
+    read, N10). Ten digits keep a chance collision rare, and INV_METER_SERIAL_ONE_SUPPLY_POINT grades the
+    book for any that survive. One meter for the life of the supply point: no exchange is minted here.
+    No published serial format is held (that row's GAP 1), so the shape is a display choice.
+    """
+    h = int(hashlib.sha256("{}-{}-serial".format(supply_point, commodity).encode()).hexdigest(), 16)
+    return "M" + str(h % 10**10).zfill(10)
+
+
 def supply_point_of(account_id: str, predecessor_of: Mapping[str, str]) -> str:
     """The account that first held this account's meter point: the key its MPAN or MPRN is minted from.
 

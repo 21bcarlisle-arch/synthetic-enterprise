@@ -30,7 +30,13 @@ from company.billing.pre_bill_validation import (
     validate_rendered_bill_money,
     validate_rendered_bill_reads,
 )
-from company.crm.customer_registry import mpan_core, mprn, predecessors, supply_point_of
+from company.crm.customer_registry import (
+    meter_serial,
+    mpan_core,
+    mprn,
+    predecessors,
+    supply_point_of,
+)
 from company.regulatory.energy_bill_support import ebss_credit_gbp
 from saas.bill_generator import CHARGED_AT_THE_METER, CREDIT_BILL, TOU_BANDS, applied_rates
 from saas.money import (
@@ -277,18 +283,11 @@ def _printed_daily_rate(days_in_period, printed_standing_charge_gbp):
 
 
 # BILL_CORRECTNESS_ADDENDUM.md Defect 2 (2026-07-09): every bill must state
-# meter serial + MPAN/MPRN. Both have one home, company/crm/customer_registry, minted from the
+# meter serial + MPAN/MPRN. All three have one home, company/crm/customer_registry, minted from the
 # supply point (`supply_point_of`), not the account.
 _mpan = mpan_core
 _mprn = mprn
 
-
-def _meter_serial(account_id: str, commodity: str) -> str:
-    """Synthetic meter serial number, deterministic per account+commodity
-    (an account with both fuels gets two distinct serials, matching two
-    physical meters)."""
-    seed = sum(ord(c) * 31 for c in account_id + commodity)
-    return f"M{seed % 100000000:08d}"
 
 def _held_spans(bills: list, held: list) -> dict[tuple, list[tuple[str, str]]]:
     """(customer_id, commodity) -> (period_start, period_end) of each bill the pre-bill gate held."""
@@ -597,7 +596,7 @@ def generate(run_json_path=None, out_path=None):
                 "disputed" if outcome == "dispute" else
                 ("paid" if outcome in ("success", "credit") else "overdue")
             ),
-            "meter_serial": _meter_serial(supply_point_of(cid, predecessor_of), commodity),
+            "meter_serial": meter_serial(supply_point_of(cid, predecessor_of), commodity),
             "mpan": _mpan(supply_point_of(cid, predecessor_of)) if commodity == "electricity" else None,
             "mprn": _mprn(supply_point_of(cid, predecessor_of)) if commodity == "gas" else None,
             "read_type": read_type,
