@@ -109,6 +109,9 @@ FIELDS: dict[str, tuple[str, str]] = {
     "meter_type": (EVENT, "smart or traditional: the meter type the supplier holds for the supply "
                           "point when the period was billed, a metering-record fact; None where "
                           "it holds none"),
+    "profile_class": (IDENTIFIER, "the Elexon profile class the supply point is registered on, the "
+                                  "first two digits of the MPAN top line; 2 is Domestic Economy 7. "
+                                  "None for gas, a half-hourly meter, or a book from before it was kept"),
     # meter reads
     "read_date": (MEASURED, "when the register was read"),
     "register_id": (IDENTIFIER, "which register on the meter"),
@@ -304,6 +307,7 @@ def raw_account(customer_id: str, record: dict) -> dict:
             "mprn": inv.get("mprn"),
             "meter_serial": inv.get("meter_serial"),
             "meter_type": inv.get("meter_type"),
+            "profile_class": inv.get("profile_class"),
             "unit_rate_p_per_kwh": inv.get("unit_rate_p_per_kwh"),
             "standing_charge_gbp_per_day": inv.get("standing_charge_gbp_per_day"),
             "vat_rate": inv.get("vat_rate"),

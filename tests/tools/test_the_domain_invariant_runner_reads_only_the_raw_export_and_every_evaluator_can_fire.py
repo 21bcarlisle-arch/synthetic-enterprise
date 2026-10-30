@@ -92,6 +92,7 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_UNIT_RATE_EPG_HOUSEHOLD": "needs the EPG windows of 2022-23; every leg tested on its own below",
     "INV_ESTIMATE_RUN_WITHIN_TENURE": "reads the printed page; every leg tested on its own below",
     "INV_METER_SERIAL_ONE_SUPPLY_POINT": "compares accounts with each other; every leg tested in test_one_meter_serial_sits_on_one_supply_point.py",
+    "INV_E7_METER_BILLED_ON_TWO_REGISTERS": "needs a registered profile class; every leg tested in test_an_economy_7_meter_is_billed_on_two_registers.py",
 }
 
 

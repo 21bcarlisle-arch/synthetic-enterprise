@@ -1042,6 +1042,10 @@ def build_monthly_bills(
             # The meter type the supplier holds for the supply point, which the bill prints and the
             # raw export carries, so a page's printed type can be graded against the bills.
             bill["meter_type"] = meter_type
+            # The profile class the supply point is registered on (the MPAN top line), which the
+            # supplier allocates; a PC2 meter is billed on its Day and Night registers.
+            if customer_data.get("registered_profile_class") is not None:
+                bill["profile_class"] = customer_data["registered_profile_class"]
             bills.append(bill)
             if theft_screen_out is not None:
                 screen_periods.setdefault(customer_id, []).append({

@@ -369,7 +369,8 @@ def ev_unit_rate_svt_gas_pre_cap(inv, book):
 
 def ev_unit_rate_svt_elec_multi(inv, book):
     """The term's single rate is read as the tariff's assumed-split blend; where the term carries the
-    peak/off-peak pair, that pair is weighted 0.58/0.42 as the file says (SLC 28AD.36(a))."""
+    peak/off-peak or Economy 7 Day/Night pair, that pair is weighted 0.58/0.42 as the file says
+    (SLC 28AD.36(a))."""
     tally = Tally("SVT term x cap window it overlaps (multi-register electricity)")
     tol = _tol(inv, "upper_relative")
     for a, t, row in _svt_term_windows(inv, book, "electricity", "multi"):
@@ -377,6 +378,8 @@ def ev_unit_rate_svt_elec_multi(inv, book):
         pair = {x["register_label"]: x["unit_rate_p_per_kwh"] for x in t.get("tou_unit_rates") or ()}
         if "Peak" in pair and "Off-peak" in pair:
             rate = 0.58 * pair["Peak"] + 0.42 * pair["Off-peak"]
+        elif "Day" in pair and "Night" in pair:
+            rate = 0.58 * pair["Day"] + 0.42 * pair["Night"]
         tally.band("{} {} from {}".format(a.cid, row["from"], t["tariff_effective_from"]),
                    rate, None, _num(row.get("upper")), tol_rel=tol)
     return tally
@@ -746,6 +749,42 @@ def ev_gas_single_register(inv, book):
             regs[p.get("meter_serial")] |= {r.get("register_id") for r in p.get("reads", ())}
         for serial, rs in regs.items():
             tally.band("{} {}".format(a.cid, serial), len(rs), 1, 1)
+    return tally
+
+
+#: An Economy 7 meter's register labels, and the profile class that registers one.
+E7_LABELS = frozenset({"Day", "Night"})
+E7_PROFILE_CLASS = 2
+
+
+def _printed_labels(p: dict) -> set:
+    """The register labels a period prints: its registers where it has more than one, else its reads'."""
+    labels = {r.get("register_label") for r in p.get("registers") or ()}
+    labels |= {r.get("register_label") for r in p.get("reads", ())}
+    return labels - {None}
+
+
+def ev_e7_meter_two_registers(inv, book):
+    """The row's partition: PC2 printing no Day/Night breaches, one of the two flags; PC1 printing
+    either breaches. Gas, other or no class, a Peak/Off-peak period and a period printing no
+    register label are not graded."""
+    tally = Tally("electricity period on profile class 1 or 2")
+    for a in book:
+        if a.fuel != "electricity":
+            continue
+        for p in a.periods:
+            pc, labels = p.get("profile_class"), _printed_labels(p)
+            if pc not in (1, E7_PROFILE_CLASS) or not labels or labels & {"Peak", "Off-peak"}:
+                continue
+            tally.checked += 1
+            where = "{} {} PC{} {}".format(a.cid, p["period_start"], pc, sorted(labels))
+            e7 = labels & E7_LABELS
+            if pc == E7_PROFILE_CLASS and not e7:
+                tally.hit("breach", where, sorted(labels), sorted(E7_LABELS), "single-rate on an E7 meter")
+            elif pc == E7_PROFILE_CLASS and len(e7) == 1:
+                tally.hit("flag", where, sorted(labels), sorted(E7_LABELS), "one of the two E7 registers")
+            elif pc == 1 and e7:
+                tally.hit("breach", where, sorted(labels), "no Day/Night", "E7 registers on PC1")
     return tally
 
 
@@ -2037,6 +2076,7 @@ EVALUATORS = {
     "INV_DD_STEP_CHANGE": (ev_dd_step_change, None),
     "INV_FUEL_IDENTIFIER": (ev_fuel_identifier, None),
     "INV_GAS_SINGLE_REGISTER": (ev_gas_single_register, None),
+    "INV_E7_METER_BILLED_ON_TWO_REGISTERS": (ev_e7_meter_two_registers, "profile_class"),
     "INV_CROSS_FUEL_PRICE_SCALE": (ev_cross_fuel_price_scale, None),
     "INV_PERIODS_CONTIGUOUS": (ev_periods_contiguous, None),
     "INV_BACK_BILLING_12M": (ev_back_billing, None),

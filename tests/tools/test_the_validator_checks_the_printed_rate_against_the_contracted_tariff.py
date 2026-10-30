@@ -150,7 +150,7 @@ def test_the_ledger_takes_the_rate_from_the_term_record_and_the_pair_only_where_
     assert [b["unit_rate_p_per_kwh"] for b in out[0]["tou_unit_rates"]] == \
         pytest.approx([30.0, 15.714], abs=0.001)
     across = dict(flat_bill, period_start="2023-03-15", period_end="2023-04-14")
-    assert [t["tariff_type"] for t in _contracted_terms(terms, across, set())] == ["fixed", "svt"]
+    assert [t["tariff_type"] for t in _contracted_terms(terms, across, {})] == ["fixed", "svt"]
 
 
 def test_the_raw_export_carries_the_contracted_terms_and_nothing_derived():

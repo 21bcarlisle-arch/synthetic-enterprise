@@ -131,6 +131,32 @@ def split_flat_rate_to_tou(flat_rate_gbp_per_mwh: float) -> tuple[float, float]:
     )
 
 
+#: SLC 28AD.36(a): "for each Economy 7 Tariff, off-peak and peak consumption levels of 42% and 58%",
+#: the cap's Assumed Consumption Split for a multi-register tariff
+#: (docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md).
+E7_ASSUMED_NIGHT_SHARE = 0.42
+#: COMPANY BELIEF: the night rate as a share of the day rate on the company's Economy 7 pair. Under the
+#: cap a supplier sets the split itself and only the weighted aggregate is capped (GOV.UK on the EPG:
+#: "Each supplier will approach this differently"). The one published point is a British Gas guide
+#: citing Ofgem, April 2026: about 29.73p day and 13.89p night, 0.47 (secondary, after the window). What
+#: real suppliers chose 2016-2025 is G1 of
+#: docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md, NOT ESTABLISHED. Graded by
+#: INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER, which caps the aggregate the ratio cannot move. A lower ratio
+#: moves revenue from a high night-share home to a low one; the book's total at 42% does not change.
+E7_NIGHT_TO_DAY_RATIO = 0.47
+
+
+def split_flat_rate_to_economy_7(flat_rate_gbp_per_mwh: float) -> tuple[float, float]:
+    """Split an already-struck flat rate into an Economy 7 (day, night) pair, £/MWh.
+
+    Struck so that `0.58 x day + 0.42 x night` is the flat rate, which is what SLC 28AD grades a
+    multi-register tariff on: a flat rate under the multi-register cap gives a lawful pair.
+    """
+    day = flat_rate_gbp_per_mwh / (
+        (1.0 - E7_ASSUMED_NIGHT_SHARE) + E7_ASSUMED_NIGHT_SHARE * E7_NIGHT_TO_DAY_RATIO)
+    return day, day * E7_NIGHT_TO_DAY_RATIO
+
+
 def price_tou_tariff(
     forward_price: float, eac_kwh: int, term_start: str,
     naked_fraction: float = DEFAULT_NAKED_FRACTION,

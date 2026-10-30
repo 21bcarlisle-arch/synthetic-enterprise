@@ -45,9 +45,12 @@ import statistics
 from company.billing.dual_fuel_bill import vat_rate_for_supply
 from saas.non_commodity import non_commodity_rate, standing_charge_rate
 
-#: A time-of-use term's bands, in the order a bill prints them: (record key stem, register label).
+#: A two-rate term's bands, in the order a bill prints them: (record key stem, register label).
 #: The settlement writer stamps `tou_<stem>_kwh` and `tou_<stem>_unit_charge_gbp` on each half-hour.
-TOU_BANDS = (("peak", "Peak"), ("offpeak", "Off-peak"))
+#: A smart ToU term uses Peak/Off-peak; an Economy 7 meter its Day and Night registers.
+TOU_BANDS = (("peak", "Peak"), ("offpeak", "Off-peak"), ("day", "Day"), ("night", "Night"))
+#: The labels of an Economy 7 meter's two registers, Day first.
+ECONOMY_7_LABELS = ("Day", "Night")
 
 
 def tou_registers(settlement_records, total_consumption_kwh, unit_charge_gbp,

@@ -253,7 +253,7 @@ def test_mutation_swapping_the_pair_reds_the_neutrality_control():
 
 
 def test_the_door_exposes_only_the_offer_and_the_request():
-    assert seam.__all__ == ("TouOffer", "request_tou_offer")
+    assert seam.__all__ == ("ECONOMY_7", "TouOffer", "request_tou_offer")
     reachable = [n for n in FORBIDDEN_AT_THE_DOOR if hasattr(seam, n)]
     assert reachable == [], (
         "the ToU door hands the world back the supplier's own eligibility rule or "
@@ -266,14 +266,14 @@ def test_the_door_exposes_only_the_offer_and_the_request():
     "old,new,leaked",
     [
         (
-            "from company.pricing.tou_desk import TouOffer",
-            "from company.pricing.tou_desk import TouOffer\n"
+            "from company.pricing.tou_desk import ECONOMY_7, TouOffer",
+            "from company.pricing.tou_desk import ECONOMY_7, TouOffer\n"
             "from saas.smart_meter_rollout import is_tou_eligible  # MUTATION",
             "is_tou_eligible",
         ),
         (
-            "from company.pricing.tou_desk import TouOffer",
-            "from company.pricing.tou_desk import TouOffer, decide_tou_offer",
+            "from company.pricing.tou_desk import ECONOMY_7, TouOffer",
+            "from company.pricing.tou_desk import ECONOMY_7, TouOffer, decide_tou_offer",
             "decide_tou_offer",
         ),
     ],

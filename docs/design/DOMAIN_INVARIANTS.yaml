@@ -2102,6 +2102,27 @@ invariants:
   - meter_serial
   checkable: true
   gap: stated belief, not a quoted rule
+- id: INV_E7_METER_BILLED_ON_TWO_REGISTERS
+  family: event_fuel_consistency
+  grades: ledger
+  statement: A domestic electricity supply point registered on Profile Class 2 ("Domestic Economy 7") has a two-rate, switched meter, and its bill identifies a Day rate and a Night rate separately. One registered on Profile Class 1 (domestic unrestricted) has one rate and prints no Economy 7 Day/Night registers.
+  predicate: 'Per electricity billing period, take L = the set of printed register_label values. Graded only where profile_class is 1 or 2. (a) BREACH, profile_class == 2: L contains neither "Day" nor "Night", and L does not contain "Peak" or "Off-peak". That is, a PC2 period printing only "Anytime" registers. (b) BREACH, profile_class == 1: L contains "Day" or "Night". (c) FLAG only, profile_class == 2: L contains exactly one of "Day" and "Night" (a stub or a half-printed pair). (d) Not graded: commodity == gas; profile_class null (half-hourly, old books); any other class; any period whose L contains "Peak" or "Off-peak" (a smart time-of-use tariff the household chose, a separate product, graded by the ToU rows); periods with no printed registers. Printed registers are graded, not consumption, so a short period with use in only one band must still print both.'
+  lower: null
+  upper: null
+  source: 'docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md R1 (class follows the meter; the supplier allocates it), R2 (SLC 1: the default follows meter type), R5 (SLC 22A.3: each rate is identified on the bill), "The choice a build should make" 2 and 4; docs/data-sources/profile-class-2.md "Who was registered on it" (PC1 is unrestricted, PC2 is Economy 7, the class follows the switched load); slc_28ad_multi_register_cap_test.md definition of Economy 7 Tariff (two separate Unit Rates, 17 day hours and 7 night hours)'
+  export_fields:
+  - commodity
+  - period_start
+  - period_end
+  - meter_serial
+  - profile_class
+  - register_id
+  - register_label
+  severity:
+    violation: breach
+    flag: PC2 period printing exactly one of Day/Night
+  checkable: true
+  gap: 'Written 2026-10-30 by a reader given only the pages and two rows of this file, not the code. The row sees register labels, not rates, so it cannot tell whether Day and Night are priced correctly (page G1: the ratio is unestablished; the cap fixes only the 58/42 weighted aggregate) or whether the printed bands sum to the total (INV_TOU_BANDS_SUM_TO_THE_TOTAL). It treats the PC2 pair as required on every period, including 2016-2018. The page says E7 list prices before 2019 are not established (G2), so a build may honestly decline to price them, and this row would then breach. That is the intended pressure, but the date split is a decision for the seat. Whether a household may choose a single-rate tariff on an E7 meter is a GAP the page leaves out of scope. If it can, the register-labelling of a single-rate tariff on such a meter (billing the sum of both registers) is legitimate and (a) would be a false breach. PC1 homes that kept an Economy 7 meter, and Economy 10 or heating-only circuits on PC2 (profile-class-2 G1), are not established, so (a) assumes every PC2 meter is the 7-hour Day/Night pair. The night window varies by region and meter (G3) and is not visible here. The row cannot see whether profile_class is itself correct, only that the bill follows it. A PC2 meter on a smart ToU tariff is skipped. Page R2 says the similar default for an E7 meter is E7, but offering ToU on a legacy meter is not ruled out by any pages read here. SEAT NOTE, 2026-10-30: the seat decided the date split: the build prices the pair in every year, before 2019 off the company''s own single-rate list price weighted 58/42, so the row grades 2016-2018 too. The ledger prints a one-band stub as that band alone, so (c) flags it rather than breaching.'
 - id: INV_CROSS_FUEL_PRICE_SCALE
   family: event_fuel_consistency
   grades: ledger
