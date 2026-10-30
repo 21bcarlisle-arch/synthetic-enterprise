@@ -541,3 +541,19 @@ To re-weight:
 - **Embedded instruction ignored:** the CIC Warm Homes Plan page had an instruction hidden in its metadata, asking the reader to add an email address to an analytics account. I ignored it and used only the page's factual content.
 - **Memory:** nothing from memory was used. No new memory items.
 - **Scoring script:** `/tmp/claude-0/-home-claude/90c98f50-d921-54a8-854d-66c80c7b13b3/scratchpad/rank.py` holds the inputs and formula. Change the inputs there to re-run the ranking.
+## Done
+
+*Delivery seat, 30 Oct 2026.* The pack is now the Knowledge page the steer asked for,
+`docs/market_research/every_change_a_household_can_make.md`, published on the
+household-carbon-and-the-measures-that-save-it topic. What the page does:
+- It indexes every measure in the pack, groups A-H, against the topic page that holds its evidence.
+- It carries the 12:26 ranking with §12's formula published so it can be re-weighted, and shows the §10
+  value-per-hour ranking beside it.
+- It takes £ and carbon from `household_carbon_and_the_measures_that_save_it.md` §5 where that page is stronger.
+- It keeps every [unverified] tag.
+- It records one reading the pack's table hides. The heat pump's positive NAV comes from the £250/t carbon
+  term. On flat cap rates §5 measures it at −£112 to −£169 a year in money, so with λ = 0 it leaves the
+  ranking.
+
+This pass verified none of the pack's [unverified] items. They stay calibration assumptions. §9's time
+evidence feeds C31 DISCOVER pass 4 (`docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md` §9).

@@ -70,3 +70,22 @@ The catalogue page must carry a **priority ranking**, not only a list. For each 
 Rank measures by value × remaining addressable households, adjusted for cost and ease. Publish the scoring formula so it can be re-weighted. The advisor's research pass is computing this.
 
 In the world, the same applicability and penetration are **per home**, drawn and hidden: who can adopt is a property of the house and household, not a share. The supplier's version of the ranking is an *estimate* built from what it can observe or ask, graded against that truth.
+
+## Progress (delivery seat, 30 Oct 2026). Not done until item 1 lands
+
+- **Item 2, C31.** DISCOVER/FRAME pass 4 is written
+  (`docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md` §9). It adds:
+  - T5 adoption as its own class;
+  - the hidden **hassle price** and per-class sensitivity as level L0.5;
+  - the one sourced gradient: DfT VTT rises with income, and commuting is £11.21/h at 2014 prices, read first-hand.
+
+  The map row's block_reason now says BUILD follows the exit test and the atom is not deprioritised by default.
+- **Item 3, the world feels hassle.** The sketch is `docs/design/THE_IMPROVEMENT_LOOP.md` §8. It gives three
+  checks that can fail, one of which is a collective-switch replay against the Ofgem RCT band. Its one
+  canon question, whether a hidden £/h trait is compatible with M3, is raised in `for_the_director` as
+  `the-time-steer-s-hidden-value-of`, with a recommendation. The work proceeds on that reading.
+- **Measures catalogue.** It is drafted and published
+  (`docs/market_research/every_change_a_household_can_make.md`), and the evidence pack has moved to done/.
+- **Item 1, wording.** It is being done in another lane (worktree `/tmp/wt_timeword`:
+  `tools/generate_value_arms_data.py`, `tools/capabilities_page_figures.py`). This file moves to done/ when
+  that lands.
