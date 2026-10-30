@@ -44,11 +44,27 @@ Where a household does not react, the supplier has nothing to optimise against i
 
 **Order of work.** The audit is cheap and is drawn now, inside the correctness stretch, because it explains what the graded outcomes mean. The SIM enhancement and the supplier experiments are drawn after the correctness exit test, unless one of them is needed to close it. File both on the customer-outcomes roadmap.
 
-## Done (2026-10-30, the worker)
+## Done
 
-**The audit is answered** in `docs/staging/records/SEAT_READING_DOES_THE_WORLD_REACT_TO_PAIN_POINTS_THE_AUDIT_THE_DIRECTOR_ASKED_FOR_2026-10-30.md`, in short "mostly no":
-- Price and renewal is the only pain point that gets a full, sourced reaction.
-- A DD step-up, a catch-up bill, a billing error and a debt letter get partial reactions. The DD-shock responses, plan take-up and early contact ship at 0, and the resentment ledger never reaches churn.
-- A run of estimates and a large credit balance get no reaction at all.
+2026-10-30, the delivery seat. The audit this file asked for "now" is
+`docs/staging/SEAT_FINDING_THE_WORLD_REACTS_TO_ONE_PAIN_POINT_IN_SEVEN_AND_ITS_RENEWAL_SHOCK_IS_THE_SUPPLIERS_OWN_CHURN_CURVE_2026-10-30.md`.
 
-The SIM enhancement and the supplier experiments are filed as `unbilled-energy-pain-points-react` and `new-account-first-months-experiment` in `docs/direction/priority_order.yaml` `customer_outcomes_candidates`. Both are drawn after the correctness exit test. The advisor's evidence packs are the input the reactions are to be drawn from.
+**Coverage.** Of the seven pain points:
+- a price rise or renewal: the world reacts in full;
+- a DD step-up: only the departure leg is on; its cancellation, failure and complaint legs ship at 0;
+- a catch-up bill: calls only;
+- a complaint: a roll per renewal term;
+- a debt letter: a small on-time payment effect;
+- a run of estimates and a refused refund or credit balance: no reaction;
+- a billing error: no trigger exists.
+
+**Wall-shaped item.** The world's renewal-shock hazard calls the supplier's `saas.churn_model.churn_probability` (`simulation/customer_events.py:770`). Fixing it is a SIM enhancement.
+
+**Filing.** There was no "customer-outcomes roadmap" file, so the finding holds the three candidates in order:
+1. the DD4b legs, switched on and sourced;
+2. the world's own shock uplift;
+3. a reaction to estimate runs and to held credit.
+
+**What is left.** The SIM enhancement and the supplier experiments wait for the correctness exit test, as this file sequenced them. The loop's design is carried by the later steer, `DIRECTOR_STEER_OWN_THE_DESIGN_OF_THE_WORLD_SUPPLIER_IMPROVEMENT_LOOP_2026-10-30.md`.
+
+**A second, independent pass agrees (the worker, same day).** `docs/staging/records/SEAT_READING_DOES_THE_WORLD_REACT_TO_PAIN_POINTS_THE_AUDIT_THE_DIRECTOR_ASKED_FOR_2026-10-30.md` was read at 38960f39cc. It reaches the same verdict on every one of the seven pain points, and it adds that the resentment ledger is never fed into the churn roll. It did not find the renewal-shock leg reading `saas.churn_model`; the finding above did. A customer-outcomes list now exists: `docs/direction/priority_order.yaml` `customer_outcomes_candidates` (`unbilled-energy-pain-points-react`, `new-account-first-months-experiment`). The finding's three SIM-enhancement candidates belong there.
