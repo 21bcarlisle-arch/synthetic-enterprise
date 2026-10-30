@@ -174,7 +174,7 @@ exceptions:
     retired_by: the carbon panel counting energy used as the row says (true-up kWh in the months they reconcile; knowledge page first)
     max_breached: 6
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
-    scope: 6 of 4,317 runs of estimated bills on the fresh 209c3350ab book, all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g, PROS-2017-0336 (two), PROS-2024-0010, SYN-2016-396g and SYN-2016-565
+    scope: 4 of 4,294 runs of estimated bills on the fresh cd4fc5b8d8 book (graded 30 Oct; 6 of 4,317 on 209c3350ab), all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g (c), PROS-2017-0336 (a, one run), SYN-2016-396g (b) and SYN-2016-565 (a); PROS-2024-0010 and 0336's second run left with the E7 and PC2 builds
     reason: >-
       Traced 2026-10-29 (E2 in the printed-register finding). The estimator bills the annualised advance
       spread by the class-average shape, and the world's aggregate shape matches it (Jun to Aug: gas 7.8%
@@ -195,7 +195,7 @@ exceptions:
       own severity names.
     filed: 2026-10-29
     retired_by: the three storage homes' bills printing the two-rate settlement they hold, under ruling step 3 (a; their heating type was read 2026-10-30). (b) and (c) are the row's lawful tail and stay excepted
-    max_breached: 6
+    max_breached: 4
   # 2026-10-30: two rows that read UNCHECKABLE on the raw export are graded (leg one reads the five uncheckable
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
   # grade. Grade, causes and the three rows that stay ungraded on the runner, with why, in
@@ -205,8 +205,11 @@ exceptions:
   # SVT terms (from 2,490). Its 1 standing-charge breach was SYN-2016-101g's one-day final gas bill, 0.215 x 1 day
   # printed 0.22: the evaluator now takes a penny over the period, as the standing-charge rows do. 0 of 33,627.
   # INV_UNIT_RATE_EPG_HOUSEHOLD reads 373 of 3,294 on the same book, its ceiling.
+  # 2026-10-30: re-based on the fresh cd4fc5b8d8 book: EPG 373 -> 350, the estimated run 6 -> 4. The rows that
+  # ROSE there (EBSS 21, revenue 4, carbon 120) are NOT raised: every new breach is on a PC2 home and none is
+  # traced (docs/staging/SEAT_FINDING_THE_E7_AND_PC2_BUILDS_LEAVE_EIGHT_ROWS_BREACHED_ON_PROFILE_CLASS_2_HOMES_2026-10-30.md).
   - invariant: INV_UNIT_RATE_EPG_HOUSEHOLD
-    scope: 373 of 3,294 domestic SVT bill periods in Oct 2022-Jun 2023 on the fresh 3dc5a92948 book, graded 30 Oct, the ecb7e21fb and 9553d403b7 books' count (372 electricity and 1 gas there); median excess 0.005p/kWh, largest 0.069p/kWh (0.21%), 5.16 GBP ex-VAT over the whole book
+    scope: 350 of 3,163 domestic SVT bill periods in Oct 2022-Jun 2023 on the fresh cd4fc5b8d8 book (373 of 3,294 on 3dc5a92948), graded 30 Oct, the ecb7e21fb and 9553d403b7 books' count (372 electricity and 1 gas there); median excess 0.005p/kWh, largest 0.069p/kWh (0.21%), 5.16 GBP ex-VAT over the whole book
     reason: >-
       Explained as print and volume scatter, not a price over the EPG. The household's rate is the EPG: the contracted
       term rate less the Treasury's share per kWh lands on 32.38p (electricity) and 9.829p (gas). The breaching bills are
@@ -215,4 +218,4 @@ exceptions:
       beside it. The row grades the bill as printed, so it is kept, at this count.
     filed: 2026-10-30
     retired_by: the printed energy line priced on the printed kWh (the same volume the Treasury's share is computed on), graded 0 on a fresh run
-    max_breached: 373
+    max_breached: 350

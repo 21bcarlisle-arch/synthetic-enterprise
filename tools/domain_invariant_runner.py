@@ -1933,7 +1933,12 @@ def ev_svt_one_price(inv, book):
 
     Region and tariff name are read from what the company holds, which is no region and one SVT
     product per fuel (`tariff_type: svt`); so the book is one region by the company's own record,
-    and a region that priced differently would show here as a breach, not hide."""
+    and a region that priced differently would show here as a breach, not hide. The one split the
+    record does carry is the metering arrangement: the cap sets single-rate and multi-register
+    electricity each its own level (SLC 28AD), so an Economy 7 SVT is its own tariff and is grouped
+    by the registers its term prints, as `_svt_term_windows` classes it. Without that split the
+    cd4fc5b8d8 book read 690 breaches, every one an E7 SVT's Day/Night blend against the
+    single-rate median, and 0 within either class."""
     tally = Tally("domestic account on an SVT term on the 1st of a month (unit rate; standing charge)")
     groups = defaultdict(list)
     for a in book:
@@ -1954,12 +1959,13 @@ def ev_svt_one_price(inv, book):
                               and [x.get("tariff_type") for x in p.get("contracted_terms") or ()] == ["svt"]),
                              None)
                     days = _num(p.get("days_in_period")) if p else None
-                    groups[(a.fuel, methods.pop(), d)].append(
+                    meter = "single" if len(t["_registers"] or a.registers) == 1 else "multi"
+                    groups[(a.fuel, methods.pop(), meter, d)].append(
                         (a.cid, _num(t.get("unit_rate_p_per_kwh")),
                          _num(p.get("standing_charge_gbp_per_day")) if p else None,
                          max(0.005, 0.01 / days) if days else 0.005))
                 d = _next_month(d)
-    for (fuel, method, d), units in sorted(groups.items()):
+    for (fuel, method, meter, d), units in sorted(groups.items()):
         if len(units) < 2:
             tally.unbounded += len(units)
             continue

@@ -1081,6 +1081,19 @@ def test_every_leg_of_the_svt_one_price_row_is_reachable():
     assert _grade_one(row, *same, _account("F", "electricity", rate=16.0, tariff="fixed"))[0] == "CLEAN"
 
 
+def test_an_economy_7_svt_is_priced_against_its_own_metering_arrangement_not_single_rate():
+    """Catches the single-rate and multi-register SVTs pooled into one group: on the cd4fc5b8d8 book,
+    690 breaches, every one an E7 SVT's Day/Night blend below the single-rate median. Two E7 homes at
+    their own price are clean beside three single-rate ones; an E7 home off its own class's price
+    still breaches."""
+    row = "INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW"
+    single = [_account(c, "electricity", rate=15.0) for c in ("A", "B", "C")]
+    e7 = [_account(c, "electricity", rate=14.0, registers=("Day", "Night")) for c in ("D", "N")]
+    assert _grade_one(row, *single, *e7)[0] == "CLEAN"
+    off = _account("X", "electricity", rate=16.0, registers=("Day", "Night"))
+    assert _count(row, *single, *e7, off) == ("BREACHED", 12, {"above"})
+
+
 def test_the_svt_one_price_standing_charge_is_graded_to_the_penny_over_a_one_day_bill():
     """Catches the half-penny-a-day tolerance read alone. The 3dc5a92948 book's one SVT breach after
     the writers-1-2 gate was SYN-2016-101g's one-day final gas bill: 0.215 x 1 day billed 0.22, printed
