@@ -144,3 +144,40 @@ by hand as soon as the ledger existed: `INV_SVT_ONE_PRICE_PER_REGION_METHOD_WIND
 stand and only the scopes are re-based. The SVT run predates the writers-1-2 gate (ed8684442), so
 1,068 is the expected reading. The two rows that need the book's pages (estimate run, committed price)
 arrive in `/var/tmp/five-rows-grade-ecb7e21fb/` when the chain's `ALLDONE` is written.
+
+**The page rows, read (30 Oct, from `/var/tmp/five-rows-grade-ecb7e21fb/`, written at the chain's `ALLDONE`).**
+- `INV_ESTIMATE_RUN_WITHIN_TENURE`: **CLEAN, 0 of 1** on the ecb7e21fb pages. One estimate run is printed on
+  the book's pages, so this row says little until a book prints more.
+- `INV_COMMITTED_PRICE_IS_THE_TARIFFS_PRICE_PER_FUEL_AT_A_DATE`: the site test over the rebuilt ecb7e21fb pages,
+  **10 passed**. That is the run-side grade. The runner row stays UNCHECKABLE, as designed.
+- `INV_EV_ADOPTION_ELECTRICITY_ONLY`, world side: **49 asset events on gas legs** (25 `ev_acquired`,
+  14 `heat_pump_installed`, 10 `solar_install`). Each is on a date the electricity leg does not share. The
+  count is the same as on the 9553d403b7 book, so the life-event defect is still open.
+- The two ledger rows are the counts above: 1,068 and 373.
+
+## The fresh run at the fix (launched 30 Oct, written before any output exists)
+
+`launch_long_job` job `fresh-run-3dc5a92948`, at origin 3dc5a92948. That commit carries ed8684442, the
+writers-1-2 gate. Worktree: `/var/tmp/fresh-run-wt-3dc5a92948` (locked). Script:
+`/var/tmp/fresh-run-scripts/arm.py`. Output: `/var/tmp/fresh-run-out-3dc5a92948`. The launch queued behind
+another lane's landing. The grade chain is the systemd unit `grade-chain-3dc5a92948`
+(`/var/tmp/svt-fix-run-scripts/chain.sh`). When `DONE.json` exists it writes the following to
+`/var/tmp/fresh-grade-3dc5a92948/`: the ledger, the five rows with examples (`grade_five.txt`), pre-cap SVT
+revenue (`svt_revenue.txt`), and then the full suite (`grade.txt`).
+
+**The revenue measure, fixed before the run.** `svt_revenue.py` takes domestic bills dated 2016-2018 whose
+period-start term is `svt` in `account_state_log`, and sums commodity + non-commodity + standing charge,
+ex-VAT. On the two pre-fix books it reads **£346,790.33** (9553d403b7) and **£346,790.28** (ecb7e21fb), from
+8,950 bills and commodity £190,740. So the ecb7e21fb fixes did not move this measure, and any move on the
+fresh book comes from the SVT gate plus whatever second-order effects follow from it. Its term count:
+**2,490 of 4,366** pre-cap SVT terms are off the ex-VAT list price (`svt_rate/1.05`, 1e-3 tolerance). The
+trace above found 2,489. The difference is one term at the tolerance edge, and the trace's join was by
+contracted rate.
+
+**Predictions, added to the pre-registration above, not replacing it:**
+1. SVT row: **0** unit-rate breaches and **1** standing-charge breach. Off-list pre-cap SVT terms go from 2,490
+   to **0**.
+2. Pre-cap SVT revenue ex-VAT falls by **£5k-£12k**, to between £334.8k and £341.8k. The bill count moves
+   only through second-order churn, so it stays within ±2% of 8,950.
+3. EPG row: **373 ±15**. The gate does not reach the 2022-23 cap era, because the clamp already made those
+   rates one price. Any move is second-order: a different book means different households in the window.
