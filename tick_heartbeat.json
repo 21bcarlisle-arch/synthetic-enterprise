@@ -1,0 +1,60 @@
+{
+  "ts": 1793468534.8480241,
+  "ts_iso": "2026-10-31T17:42:14Z",
+  "verdict": "mode_held",
+  "outcome": "MODE_HELD",
+  "detail": "tick mode fold-only: worker-tick does not spawn (set at 2026-10-30T17:46Z, reverts at 2026-11-02T03:00Z)",
+  "enumeration": "(not evaluated -- tick MODE_HELD)",
+  "line": "[2026-10-31T17:42:14Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+  "content_publish": {
+    "state": "publishing",
+    "published_age_seconds": 450811.0,
+    "committed_age_seconds": 450853.9,
+    "stale_after_seconds": 691200,
+    "as_at_utc": "2026-10-26T12:28Z",
+    "cadence_seconds": 604800,
+    "publishes_on": "Monday",
+    "committed_but_unpublished": false,
+    "queue_depth": 0,
+    "queue_oldest_age_seconds": null,
+    "publisher": {
+      "state": "held",
+      "hold_next_opens": "2026-11-02T04:00:00+00:00",
+      "episode_closed_by": null,
+      "superseded_by_landed_publish": false,
+      "consecutive_failures": 0,
+      "failing_for_seconds": null,
+      "clean_publishes_this_episode": 0,
+      "cited_red_at_head": "not_established",
+      "held_refusal": null,
+      "held_refusal_reason": "the publisher held liveness_surface_refusal is empty"
+    }
+  },
+  "toolchain": {
+    "package": "@anthropic-ai/claude-code",
+    "cannot_tell": null,
+    "installed": "2.1.308",
+    "latest": "2.1.316",
+    "behind": true,
+    "releases_behind": 8,
+    "fix": "PATH=\"/home/rich/.nvm/versions/node/v24.16.0/bin:$PATH\" /home/rich/.nvm/versions/node/v24.16.0/bin/npm install -g @anthropic-ai/claude-code",
+    "stale": true
+  },
+  "recent": [
+    "[2026-10-31T17:42:14Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T17:31:45Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T17:21:34Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T17:11:28Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T17:01:19Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T16:51:03Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T16:40:38Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T16:30:38Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T16:20:36Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T16:10:28Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T16:00:14Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T15:50:00Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T15:39:28Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T15:28:28Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)",
+    "[2026-10-31T15:17:20Z] mode_held (MODE_HELD) -- (not evaluated -- tick MODE_HELD)"
+  ]
+}
