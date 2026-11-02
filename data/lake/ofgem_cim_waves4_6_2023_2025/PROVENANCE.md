@@ -25,3 +25,13 @@ Licence: Ofgem publications, Open Government Licence v3.0.
   "because I've always paid this way") and a neutral net; Wave 6 added one more. Levels do not compare across Waves 3-4;
   contrasts within a wave do. The page says so.
 - Read by: `docs/market_research/the_customer_needs_framework_cost_worry_switching_cim_waves_3_6_2026-11-02.md`.
+
+- `cost_worry_wtp_and_revealed_switching_by_column.csv` (added 2026-11-02): weighted column % with unweighted and
+  effective base, long format (wave, table, row, crossbreak group, column). Wave 3 C4 (Table 87, from the stored
+  Wave 3 workbook); Wave 4 Tables 94 (C4), 155-156 (D8_5/6), 164 (E3, direct debit), 175-177 (E4_3/4/6); Wave 5
+  Tables 70 (C4), 139-140 (D8_5/6), 148 (E3, direct debit); Wave 6 Tables 56 (C4), 102 (E3, direct debit). Columns
+  kept: total, age bands, income <16k and 80k+, bill difficulty (every "keeping up with" group), trust to treat fairly,
+  payment method, affordability experience. The three raw workbooks were re-fetched on 2026-11-02 and their SHA-256
+  matched the table above. Wave 5 has two bill-difficulty groups (household and energy bills), Wave 6 two (other
+  household bills, not energy; and energy bills). Read by:
+  `docs/market_research/revealed_switching_by_age_and_arrears_and_the_needs_tables_in_cim_waves_4_6_2026-11-02.md`.

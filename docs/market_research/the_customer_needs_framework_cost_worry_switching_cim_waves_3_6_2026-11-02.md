@@ -253,8 +253,7 @@ waves:
   weaker wording. Trust and switching intent flips sign by wave (-0.3, +10.7, +8.7, +2.4), so it is not a stable
   moderator of intent; the sister page's trust result on passive reasons (+8.7 in Wave 3) falls to +2.0 by Wave 6.
 - **Not testable.** Cost, worry and willingness to pay are asked in different forms across waves, and several were
-  Wave 3's crisis-winter questions. They are Wave 3 only here (**GAP**: a Waves 4-6 read of the worry and
-  affordability tables is the next step).
+  Wave 3's crisis-winter questions. They were Wave 3 only here. *Corrected 2026-11-02 (later same day):* `revealed_switching_by_age_and_arrears_and_the_needs_tables_in_cim_waves_4_6_2026-11-02.md` reads them: worry is asked again in Wave 4 only and every contrast keeps its sign (income gradient rises to +24.8 ± 9.5); affordability by arrears and age is stable; willingness to pay by age and trust is stable and arrears never separates it; the older-cut-more floor result does not survive past Wave 4.
 
 ## 6. The framing note's figures, re-graded (D / P / S / A)
 
@@ -317,7 +316,7 @@ None of this changes a world value. It informs the ordering of the roadmap and w
 - **Behaviour.** Every row is a stated answer from 21 Nov - 11 Dec 2022, in the crisis winter, seven weeks after the
   Energy Price Guarantee began. Stated intent to switch is not switching; stated willingness to pay is not paying.
 - **Time and carbon.** The survey has no time item and one stated carbon-adjacent item. Both stay GAPs.
-- **Waves 4-6 for cost, worry and willingness to pay.** Only A15 and D3_3 were read for stability.
+- **Waves 4-6 for cost, worry and willingness to pay.** Only A15 and D3_3 were read for stability here; the rest is in `revealed_switching_by_age_and_arrears_and_the_needs_tables_in_cim_waves_4_6_2026-11-02.md`, which also adds the revealed switching by age and arrears (behind-on-bills households switched supplier more, +3 to +5 points, not fewer).
 - **Wave 7.** Not published on Ofgem's research pages when searched on 2 Nov 2026.
 - **The small bands.** Income £80k+ (effective base 86-126) and 16-24 in several tables (unweighted 132-269 across the tables used) carry wide
   intervals; a bold-free cell is "cannot tell", not "no effect".
