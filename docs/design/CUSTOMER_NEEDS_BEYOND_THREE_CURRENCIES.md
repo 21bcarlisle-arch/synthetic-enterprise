@@ -50,7 +50,7 @@ Comfort and health stay a **floor** (steer, 25 Oct; `docs/market_research/heatin
 
 ### 2.1 Payment method: how many choices are deliberate, and why
 
-**Ofgem Consumer Impacts of Market Conditions (CIM), Wave 3, fieldwork Nov-Dec 2022** (H; I read the report PDF and checked the quoted rows). Bases: DD 2,498; SC 414; PPM 553.
+**Ofgem Consumer Impacts of Market Conditions (CIM), Wave 3, fieldwork Nov-Dec 2022** (H; I read the report PDF and checked the quoted rows). Bases: DD 2,498; SC 414; PPM 553. *Corrected 2026-11-02: the data table's unweighted PPM base is 530 (weighted 521.3); every cell below re-derives from the table to within a point, `docs/market_research/why_households_pay_the_way_they_do_cim_wave3_2026-11-02.md`.*
 
 | Reason given for the method (multiple answers allowed) | DD | SC | PPM |
 |---|---|---|---|
@@ -78,6 +78,8 @@ What this says:
 - **The CMA and Ofgem 2023 differ on PPM.** CMA 2016: not generally a choice. CIM 2022: 72% give an active reason. Both can hold. People adapt, the PPM stock mixes choosers and those fitted, and "easier to budget" can be an adaptation. The survey cannot separate them. See 2.5.
 
 **Not established (GAP-1):** the joint table "SC payer, knows SC costs more, and still chooses it for control". Ofgem publishes data tables (`CIM Wave 3 Data Tables.xlsx`). I downloaded the file but did not parse it. That crosstab is the cleanest measure of *knowingly paid* control.
+
+*GAP-1 answered 2026-11-02 (D, from the data tables' own crossbreak columns): 33.5% of SC payers know SC is not the cheapest method and 43.4% ± 8.8 of them cite control, about 14.5% of SC payers; 13.0% know it is the most expensive and 30.2% ± 13.8 of them cite control, about 3.9%. Knowing does not lower the control share (+2.2pp ± 10.2). Section 2 of `docs/market_research/why_households_pay_the_way_they_do_cim_wave3_2026-11-02.md`.*
 **Not established (GAP-2):** the SC versus PPM split of the non-DD remainder, and any income or tenure crosstab by method. The repo already names both as open (`gb_payment_method_migration_rates.md` s.2).
 
 ### 2.2 Cash flow (N2): the buffer is thin for a large minority, and timing is unquantified
