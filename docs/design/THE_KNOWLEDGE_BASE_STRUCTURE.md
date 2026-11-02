@@ -1,7 +1,7 @@
 # The knowledge base: six domains, two sides, and what is hidden from whom
 
 *Worker tick, 2026-11-02, for the director's steer of 30 Oct
-(`docs/staging/advisor/DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md`),
+(`docs/staging/advisor/done/DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md`),
 Ask 1, first bullet: "Propose a structure for the whole knowledge base." This is a proposal and a
 census, not a build. The page list was read off `site/knowledge/` at `e8f3b28a24`: 62 pages. Each
 is placed below exactly once, checked against the served index when this was written.*
@@ -133,7 +133,8 @@ second one.
   D/P/S/A, are the steer's Ask 1 addendum steps 1–3. They are done page by page as each page is
   written, from the primary tables, stored raw in `data/lake/` with provenance.
 - It does not touch the world. The world additions (Ask 2) follow the correctness exit test, as the
-  steer says. Their roadmap is a separate `for_the_director` row.
+  steer says. Their roadmap is a separate `for_the_director` row, `the-next-world-additions-ranked-30-oct`,
+  detailed in `docs/design/THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md`.
 - It registers for no licensed dataset. That is reserved (G5); section 6 lists them for one row.
 
 ## 6. Licensed microdata that would improve a parameter (G5: listed, not registered)

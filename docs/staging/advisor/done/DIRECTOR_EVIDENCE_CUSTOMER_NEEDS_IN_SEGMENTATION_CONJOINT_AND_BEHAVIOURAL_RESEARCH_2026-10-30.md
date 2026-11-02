@@ -392,3 +392,11 @@ Ratings are my judgement from the sources above: ●●● strong, ●● modera
 - The Mani et al. effect size and the mental-accounting attribution are not confirmed from fetched sources.
 - Ofgem's 2025 Consumer Vulnerability Strategy and any Ofgem/Frontier fixed-tariff study were not located in this pass.
 - Lim et al. (2025) uses a Prolific sample (n=536 UK); treat its importance shares as indicative.
+## Done (2026-11-02, delivery seat)
+
+This pack is evidence for the 30 Oct corpus steer (`done/DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md`).
+It was used as a starting point, not as the answer. Its load-bearing figures were re-read at source, or graded S or A, on
+the seven customer-needs pages in `docs/market_research/*_2026-11-02.md`. The corrections are listed in that steer's own
+`## Done` section. The world candidates it suggests are ranked in
+`docs/design/THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md`, which goes to the director as row
+`the-next-world-additions-ranked-30-oct`.

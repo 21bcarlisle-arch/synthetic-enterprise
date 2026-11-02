@@ -142,3 +142,37 @@ The director's words, 16:51 GMT: "Will it ensure it's backed where possible by d
 4. **Microdata behind a licence.** Examples are Understanding Society, the Wealth and Assets Survey and EHS microdata through the UK Data Service, and SERL. Registering for these is **a real-world commitment and an account**, so it is reserved to the director (G5). Do not register. List the datasets that would materially improve a parameter, say what each would change and what its access terms are, and raise them as one `for_the_director` row with your recommendation.
 5. **Exclude content written to rank or sell.** Calculators, marketing pages, and articles written for search ranking are excluded unless nothing else exists. If one is used, it is graded S.
 
+
+## Done (2026-11-02, delivery seat)
+
+The steer's text is the advisor's, in commits 1a64b5a6c9, 1dfb105395 and d7527b09f7. No word of it is changed here.
+
+- **Ask 1 (structure and expand the knowledge base) is done.**
+  - The structure is `docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md`: six domains, two labels per page.
+  - All seven customer-needs pages it ranks (§4) are written, D-graded from Ofgem's own tables, under
+    `docs/market_research/*_2026-11-02.md`:
+    1. price sensitivity is two traits;
+    2. the GB natural experiments;
+    3. the needs framework;
+    4. age, life stage and life events;
+    5. stated against revealed preference;
+    6. trust and capability;
+    7. segmentation.
+- **The advisor's synthesis was tested, not taken (addendum 16:50).** Two of its claims held:
+  - life stage outweighs income: age has the larger spread on all seven CIM Wave 3 affordability measures;
+  - capability separates engaged from disengaged, by +31 to +34 points.
+
+  Five were corrected:
+  - "the 3-5× stated-revealed gap" is two populations divided, and is restated as an offset of 28-36 points;
+  - the fix share's 44 → 13 → 38 is unsourced;
+  - worry does not peak at 35-54; it plateaus to 54;
+  - trust separates engaged from disengaged by only +2 to +6, so it stays out of the draw;
+  - segments do not beat one confidence question.
+- **Microdata (addendum 16:51, step 4)** went to the director as a reserved row. He answered on 2 Nov. The W11 conflict
+  that answer opens is row `your-2-nov-ruling-to-register-with`, still open. No file is downloaded until he answers it.
+- **Ask 2 (the roadmap) is raised as one row:** `the-next-world-additions-ranked-30-oct`. The detail is in
+  `docs/design/THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md`, with evidence, what each candidate unlocks, its cost and
+  what comes first. It ranks the seven candidates this steer named, adds a drawn age the world lacks today, and folds
+  in the reputation steer's Asks 2, 4 and 5. **No world build starts before the correctness exit test holds.**
+
+The two evidence packs that landed with this file move to `done/` with it. Every page above cites them.

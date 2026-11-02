@@ -396,3 +396,11 @@ Each entry gives the conditioning attributes the simulation already holds, the t
 - **Fixed-tariff holders by demographic** are not published in the sources fetched. Self-reports are unreliable: 50% said fixed against 11% actual ([Ofgem CIM5](https://www.ofgem.gov.uk/research/consumer-impacts-market-conditions-survey-wave-5-january-february-2024)).
 - **PSR headcount**, the **pay-frequency share**, the **CMA 2016 engagement demographics** and the **TAG cross-sectional elasticity** are all [unverified].
 - **Self-disconnection figures** come mainly from crisis-era (2022) Citizens Advice surveys and are probably above steady state.
+## Done (2026-11-02, delivery seat)
+
+This pack is evidence for the 30 Oct corpus steer (`done/DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md`).
+It was used as a starting point, not as the answer. Its load-bearing figures were re-read at source, or graded S or A, on
+the seven customer-needs pages in `docs/market_research/*_2026-11-02.md`. The corrections are listed in that steer's own
+`## Done` section. The world candidates it suggests are ranked in
+`docs/design/THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md`, which goes to the director as row
+`the-next-world-additions-ranked-30-oct`.
