@@ -2011,6 +2011,22 @@
       "atoms": "none -- knowledge only, not on the roadmap (director, 25 Oct 2026 07:17: \"this is not to turn into SIM or supplier action at this stage\")",
       "theme": "other-markets",
       "why": "It says which parts of the GB build a second market could reuse and which it would have to build new. Knowledge only, not on the roadmap."
+    },
+    {
+      "id": "the-customer-needs-framework",
+      "title": "What households need from a supplier and who feels each need: cost, cash flow, certainty, control, time and carbon",
+      "kind": "page",
+      "blurb": "In Ofgem's November 2022 survey, difficulty paying bills separates how households feel the cost, the cash-flow squeeze and the worry far more than income band does; age separates who will switch and who will pay more; and trust separates who thinks a price rise is fair. The households most in need said they were more willing to switch, not less.",
+      "rate_of_change": "slow",
+      "reviewed": {
+        "last_verified": "2026-11-02",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_25_people_phase2_shape_and_attitudes"
+      ],
+      "theme": "households",
+      "why": "The world is to draw a few hidden household traits, and the company is to read signals of need. This page says which attributes carry which need, where the advisor's picture failed on the tables, and which of the survey's measures are only stated."
     }
   ],
   "edges": [
@@ -2598,6 +2614,16 @@
       "from": "other-market-japan",
       "type": "part-of",
       "to": "other-markets-compared-with-gb"
+    },
+    {
+      "from": "the-customer-needs-framework",
+      "type": "drives",
+      "to": "how-households-behave-toward-a-supplier"
+    },
+    {
+      "from": "the-customer-needs-framework",
+      "type": "prerequisite-for",
+      "to": "vulnerability-and-the-psr"
     }
   ],
   "review_policy": {

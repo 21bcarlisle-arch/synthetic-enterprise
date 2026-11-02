@@ -2689,6 +2689,50 @@
           "body": "It builds nothing and changes no world or supplier priority. It does not say any market is worth entering. It does not check the GB build's own code against the list beyond naming where each assumption sits. Language is out of scope (director, 07:17)."
         }
       }
+    },
+    "the-customer-needs-framework": {
+      "meta": {
+        "topic_id": "the-customer-needs-framework",
+        "title": "What households need from a supplier and who feels each need: cost, cash flow, certainty, control, time and carbon",
+        "subtitle": "Cost, cash flow, certainty, control, time and carbon are different needs, and the households who feel each are not the same households. This page tests the framework against Ofgem's own survey tables, by age, difficulty paying bills, income and trust, and says which of the advisor's expectations the tables overturned.",
+        "wall_placement": "Public-reality commons only. Every figure is derived from, or reported in, a published source: Ofgem's Consumer Impacts of Market Conditions data tables (Waves 3 to 6), the FCA Financial Lives survey, Citizens Advice and Ofgem's own indicators. The statement about the world's financial-vulnerability state is read from the concept map and not run.",
+        "claim_freshness": {
+          "last_verified": "2026-11-02",
+          "written": "2026-11-02",
+          "source": "Ofgem CIM Wave 3 data tables (May 2023) and Waves 4, 5 and 6 data tables (Nov 2023, Sep 2024, Jul 2025); FCA Financial Lives 2024; Citizens Advice, Kept in the dark (Jan 2023); Ofgem market compliance review (2026)",
+          "note": "The 30 Oct corpus steer, Ask 1 step 3, and the 16:51 data addendum: the needs framework with its evidence, every figure graded D, P, S or A. The sister page on payment method is a separate document."
+        }
+      },
+      "rungs": {
+        "headline": {
+          "heading": "The claim, in one sentence",
+          "body": "In Ofgem's Wave 3 survey (Nov-Dec 2022), a household's difficulty paying its bills separates how hard it was hit by the cost, the cash-flow squeeze and the worry (81.7% of those behind on bills were worried about falling behind, against 29.9% of those with no difficulties), while its income band separates far less (60.9% under £16k against 50.8% at £80k and over, a gap its own interval does not exclude from zero); age separates who says they will switch (41.6% at 16-24, 9.0% at 75+) and who will pay more for green or service; and trust separates who thinks a price rise is fair."
+        },
+        "plain": {
+          "heading": "In plain terms",
+          "body": "Energy suppliers talk about \"vulnerable\" or \"low income\" customers as if one thing explained how a household feels about its bills. Ofgem's own survey says three different things are going on. How hard it is to keep up with bills is the strongest signal of worry, cutting back on essentials, and taking on debt, and it does not follow income: a 20-year-old and a 75-year-old in the same income band are far apart. Age is the strongest signal of who is willing to shop around and who says they would pay a little extra. Trust in the supplier decides whether a price rise feels fair. The households most squeezed said they were more willing to switch supplier, not less, which is the opposite of what had been assumed. Everything here is what people said in one winter. It is not what they then did."
+        },
+        "theory": {
+          "heading": "How it works",
+          "body": "THE NEEDS. The supplier-side framing note splits what a household wants into cost, cash flow, certainty, control, time and carbon, above a comfort and health floor. Money is cost and cash flow; peace of mind is certainty and control; time is household minutes; carbon is what is saved. Each is measured in its own unit and never converted to pounds. THE TEST. For each need the survey has a stated measure, cut by four attributes: age, difficulty paying bills, income and trust in the supplier. A contrast counts only when it is larger than its own 95% interval on the survey's effective sample size. WHAT SEPARATES WHAT. Bill difficulty is larger than income on all 13 cost, cash-flow, floor and worry measures, and larger than age on 11. Age leads on switching intent and on willingness to pay. Trust dominates the judgement of fairness (-30.3 points) and the willingness to pay, and does not move stated switching intent. THE FLOOR. Older households say they cut energy because they cannot afford it more than the young do (a 14.3-point gap) while worrying much less, so worry is a poor proxy for harm."
+        },
+        "expected_shape": {
+          "heading": "What the data should look like",
+          "body": "A credible world should show these shapes against the survey, each a stated share: (1) about 10% of bill payers behind on their bills and 56% struggling in the winter of 2022, falling steeply with age (14.5% behind at 16-24, 0.6% at 75+); (2) worry about falling behind at 55% overall, about 30% with no difficulty and 82% behind, 69% at 16-24 and 34% at 75+, and 75-76% of prepayment customers worried about topping up; (3) stated intent to switch supplier in three months at 25%, 42% at 16-24 and 9% at 75+, and higher, not lower, for those behind on bills; (4) 34% of those paying more agreeing the rise is fair, about 30 points fewer among those who distrust their supplier; (5) 25% willing to pay slightly more for service and 29% for green, nearly flat across bill difficulty. These are stated Wave 3 figures; the world should not be tuned to reproduce them as behaviour."
+        },
+        "live_evidence": {
+          "heading": "Live evidence",
+          "body": "WHAT IS SOURCED. Ofgem, Consumer Impacts of Market Conditions, Wave 3 data tables (Tables 108-110, 123-125, 129-136, 138, 140-141, 149, 158-162, 176 and 179), stored raw at data/lake/ofgem_cim_wave3_2022/ with the cross-tab extract; the A15 and switching-intent rows of Waves 4-6 are in data/lake/ofgem_cim_waves4_6_2023_2025/ with the hashes of the raw files. Every figure is graded D (derived here) on the market-research page docs/market_research/the_customer_needs_framework_cost_worry_switching_cim_waves_3_6_2026-11-02.md, which also re-grades the framing note's figures: 54-62% worried corrected to 55.2% of direct-debit and standard-credit payers and 75.5-76.3% of prepayment customers; the prepayment 19/12/24/19% and the 18% fixed-tariff motive confirmed. STABILITY. Younger and behind-on-bills households give passive payment reasons and say they will switch more in all four waves; the sister page's \"control is lower when behind on bills\" was Wave 3 only and is restated as \"not higher\". THE PREDICTIONS. Five were written before any value was read and four were refuted: worry does not peak at 35-54, income is a much weaker gradient than predicted, and need is not anti-correlated with stated switching."
+        },
+        "residuals": {
+          "heading": "Where our picture is still weak",
+          "body": "Seven things. (1) Every row is a stated answer from one crisis winter, seven weeks after the Energy Price Guarantee began. (2) The tables are one-way: age, income and difficulty cannot be separated, and no age-by-income-by-difficulty table is published. (3) The bill-difficulty column is itself a close cousin of the worry it is used to explain. (4) The £80k-and-over band has an effective base of 86 to 126, so income contrasts carry wide intervals. (5) The survey has no time item and one stated carbon-adjacent item. (6) Cost, worry and willingness to pay were read in Wave 3 only; Waves 4-6 were read for payment reasons and switching intent. (7) There is no revealed-behaviour source for switching by group in this layer yet."
+        },
+        "scope_delta": {
+          "heading": "What this page does not yet establish",
+          "body": "It does not change any value in the simulation, and it does not grade the world against these shares. It does not establish cause, behaviour, a price for certainty, a value of time or a carbon quantity. It does not read Wave 7, which had not been published when searched. The next pages in the customer-needs domain (trust and capability, price sensitivity split in two, age and life events, stated against revealed preference) are not written."
+        }
+      }
     }
   }
 }
