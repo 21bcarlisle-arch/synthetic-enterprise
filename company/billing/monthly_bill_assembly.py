@@ -837,16 +837,39 @@ def build_monthly_bills(
                     # disagrees with the settled kWh the settled records are rescaled to it.
                     converted_kwh = kwh_from_volume(
                         event.register_volume - gas_volume_index, event.read_unit)
-                    month_kwh = converted_kwh - sum(p["used_kwh"] for p in pending_estimated_run)
-                    if (true_bill["total_consumption_kwh"] > 0
-                            and abs(month_kwh - true_bill["total_consumption_kwh"]) > 0.005):
-                        true_bill = generate_bill(
-                            customer_id, _estimated_settlement_records(
+                    run_used_kwh = sum(p["used_kwh"] for p in pending_estimated_run)
+                    month_kwh = converted_kwh - run_used_kwh
+                    if month_kwh < 0 and run_used_kwh > 0:
+                        # The meter read less than settlement put on the run. A register turns
+                        # forwards, so the month used nothing and the run used what the meter
+                        # says: its true charges are re-priced down, and the catch-up credits
+                        # the difference (C5 of the page). Never a negative month.
+                        for period in pending_estimated_run:
+                            repriced = generate_bill(
+                                customer_id, _estimated_settlement_records(
+                                    period["settlement_records"],
+                                    max(converted_kwh, 0.0) / run_used_kwh,
+                                    commodity),
+                                contract_type, None, segment, commodity, payment_channel)
+                            period.update(used_kwh=repriced["total_consumption_kwh"],
+                                     true_total_amount_gbp=repriced["total_amount_gbp"],
+                                     true_vat_gbp=repriced["vat_gbp"])
+                    month_kwh = max(month_kwh, 0.0)
+                    if abs(month_kwh - true_bill["total_consumption_kwh"]) > 0.005:
+                        # A month that settled nothing has no energy rows to scale, so the meter's
+                        # advance is priced at the rows' tariff, as a void stub's estimate is.
+                        records = (
+                            _estimated_settlement_records(
                                 months[month], month_kwh / true_bill["total_consumption_kwh"],
-                                commodity),
-                            contract_type, previous_bill_total_gbp, segment, commodity,
-                            payment_channel,
-                        )
+                                commodity)
+                            if true_bill["total_consumption_kwh"] > 0
+                            else _estimate_records_at_tariff_rate(months[month], month_kwh,
+                                                                  commodity))
+                        if records is not None:
+                            true_bill = generate_bill(
+                                customer_id, records, contract_type, previous_bill_total_gbp,
+                                segment, commodity, payment_channel,
+                            )
                 bill = _annotate_billing_basis(true_bill, event, true_bill)
                 # The register's advance since the last actual read: the one consumption figure a
                 # read gives a supplier. Taken before the catch-up empties the pending run.
@@ -1096,6 +1119,7 @@ def build_monthly_bills(
                     "total_amount_gbp": 0.0 if held else bill["total_amount_gbp"],
                     "billed_kwh": 0.0 if held else bill["total_consumption_kwh"],
                     "used_kwh": true_kwh,
+                    "settlement_records": months[month],
                     "used_register_kwh": (settled_by_register
                                           or _economy_7_register_kwh(months[month])),
                     "true_vat_gbp": bill["true_vat_gbp"],
@@ -1159,7 +1183,10 @@ def build_monthly_bills(
                 bill["profile_class"] = customer_data["registered_profile_class"]
             if commodity == "gas":
                 # What every gas bill was converted at, and the unit its meter reads (C3).
-                bill.update(conversion_terms(), gas_read_unit=gas_read_unit)
+                # The imperial flag is the metering record's, not the read's unit, so a register
+                # that reads in a unit the record does not hold shows as a mismatch (leg (c)).
+                bill.update(conversion_terms(), gas_read_unit=gas_read_unit,
+                            gas_meter_imperial=customer_data.get("gas_meter_imperial") is True)
             bills.append(bill)
             if theft_screen_out is not None:
                 screen_periods.setdefault(customer_id, []).append({

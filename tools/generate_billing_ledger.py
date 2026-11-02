@@ -503,7 +503,8 @@ def generate(run_json_path=None, out_path=None):
                 # The meter's register as it reads, and the conversion the kWh beside it came from
                 # (docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md C3).
                 "read_unit": unit,
-                "imperial_meter": unit == "hcf",
+                # The account's metering record, which leg (c) of the gas row holds the unit to.
+                "imperial_meter": bill.get("gas_meter_imperial"),
                 "opening_read_volume": round(opening_volume, 3),
                 "closing_read_volume": round(closing_volume, 3),
                 "volume_advance": round(round(closing_volume, 3) - round(opening_volume, 3), 3),

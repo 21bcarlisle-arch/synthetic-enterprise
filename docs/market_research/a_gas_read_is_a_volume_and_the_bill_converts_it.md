@@ -151,6 +151,39 @@ world's daily CV and the supplier's period average differ day by day, but over a
 within the truncation and the weighting of use by day. A larger move is then a finding about that
 weighting, not the conversion.
 
+## When the meter reads less than the estimates already billed (amended 2 Nov 2026)
+
+Raised by both blind readers of the gas build (`docs/staging/done/WORKER_FINDING_BOTH_BLIND_READERS_RAISE_6_ON_34B764A0FD_2026-11-02.md`,
+pair 1): the build billed the month as the converted advance less the run's settled use, so a meter
+reading below that use gave the month a negative consumption.
+
+**What is established.** An overcharge is refunded in full and never capped; the 12-month cap protects
+the customer from late demands, not the supplier from refunds [H] (`back_billing_and_liability.md`
+§1). The bill after an estimated run prints the meter's actual read and re-prices the whole usage
+since the last actual read, the estimated charges coming back as a credit, either as a reverse and
+re-bill or as one catch-up line (§13 there, practitioner-shaped; which form is a GAP).
+
+**The rule a build follows [B].** A register turns forwards, so the use in any period is never below
+zero. A meter reading backwards is a meter fault (the K5 class of `unbilled_energy_and_revenue_assurance.md`), not something to bill. When the converted
+advance since the last actual read is less than the estimates already billed, the excess is a
+**credit on the actual read's bill, against the run**. The month's own consumption is zero, not
+negative. The same holds when the meter reads less than settlement put on the run: the meter's
+advance is the run's true use.
+
+**C5.** The converted advance sets the true use of the run and the month together. Where it falls
+below the run's settled use, the run's true charges are re-priced down to the meter, the month bills
+0 kWh (its standing charge stands), and the catch-up credits the difference, uncapped. Where the
+month settled 0 kWh but the meter advanced, the month is priced at its rows' tariff rate, as an
+estimate over a void stub is, rather than ignoring the meter.
+
+**Is a prepayment meter's charge converted? Yes, at the meter.** R6 [H]: prepayment "by necessity
+[has] a short term fixed CV built into the energy calculation", reconciled regularly to the CV
+calculated under the guidance. The meter debits credit for kWh it has converted from the volume it
+registers at a fixed CV. The book today does neither half of C4: its prepayment branch charges the
+settled kWh, and the ledger prints a volume worked backwards from that kWh. That is reader B's #2,
+confirmed. It is owed as a build. **G6:** how often that reconciliation happens and how it is settled
+with a prepayment customer (a credit to the meter or to the account) was not found in what was read.
+
 ## Sources
 
 - Ofgem, open letter, *Calculation of average calorific value in accordance with the Gas (Calculation

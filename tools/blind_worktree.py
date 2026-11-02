@@ -22,7 +22,7 @@ published page does: names, never contents. A reader that renders the page does 
 
     python3 -m tools.blind_worktree --book /var/tmp/fresh-run-out-<sha> \
         --site /var/tmp/<pages>/tree/site --brief <brief.md> [--dest <dir>]
-    python3 -m tools.blind_worktree --check <dir>
+    python3 -m tools.blind_worktree --check <dir> --book /var/tmp/fresh-run-out-<sha>
 """
 from __future__ import annotations
 
@@ -43,6 +43,10 @@ FORBIDDEN_DIRS = frozenset({"company", "saas", "sim", "simulation", "tools", "te
 FORBIDDEN_SUFFIXES = (".py", ".pyc", ".pkl", ".pkl.gz", ".mjs")
 FORBIDDEN_NAMES = frozenset({"DONE.json", "__pycache__"})
 FORBIDDEN_PREFIXES = ("run_output",)
+# What the pages read, and the ruling and brief beside them. Copying by allow-list means a
+# build script or a result format nobody listed (`build.sh`, `.parquet`, `.ipynb`) stays out
+# without having to be named; `check` refuses any other type, so the two cannot disagree.
+READABLE_SUFFIXES = frozenset({".html", ".json", ".css", ".svg", ".md"})
 
 # What a cold reader may see of a built site: the Explore page, its cast, the per-household
 # pages it opens, and exactly what the page fetches and links to render (read off its own
@@ -64,28 +68,51 @@ COLD_READER_SITE = (
 def check(tree: Path, book: Path | None = None) -> list[str]:
     """Every path in `tree` a blind reader must not have, each with its reason. Empty is clean.
 
-    With `book`, any file named like one of the book's own files is refused too, so a run
-    result renamed past the suffix list is still caught by name."""
+    With `book`, any file named like one of the book's own files, at any depth of the book, is
+    refused too, so a run result renamed past the suffix list is still caught by name. Names are
+    compared case-folded: `Company/` and `a.PY` are what a case-insensitive disk serves as
+    `company/` and `a.py`."""
     tree = Path(tree)
     if not tree.is_dir():
         return [f"{tree}: no such tree"]
-    book_names = {p.name for p in Path(book).iterdir()} if book else set()
+    book_names = {p.name.lower() for p in Path(book).rglob("*") if p.is_file()} if book else set()
     found = []
     for p in sorted(tree.rglob("*")):
         rel = p.relative_to(tree)
+        parts = {part.lower() for part in rel.parts}
+        name = p.name.lower()
         if p.is_symlink():
             found.append(f"{rel}: a symlink can reach outside the tree")
-        elif set(rel.parts) & FORBIDDEN_DIRS:
-            found.append(f"{rel}: under {sorted(set(rel.parts) & FORBIDDEN_DIRS)[0]}/, which is code")
-        elif p.name in FORBIDDEN_NAMES:
-            found.append(f"{rel}: {p.name} is source or a run result")
-        elif p.name.endswith(FORBIDDEN_SUFFIXES):
+        elif parts & FORBIDDEN_DIRS:
+            found.append(f"{rel}: under {sorted(parts & FORBIDDEN_DIRS)[0]}/, which is code")
+        elif parts & {n.lower() for n in FORBIDDEN_NAMES}:
+            found.append(f"{rel}: {sorted(parts & {n.lower() for n in FORBIDDEN_NAMES})[0]}"
+                         " is source or a run result")
+        elif name.endswith(FORBIDDEN_SUFFIXES):
             found.append(f"{rel}: a {p.suffix} file is source or a run result")
-        elif p.name.startswith(FORBIDDEN_PREFIXES):
+        elif name.startswith(FORBIDDEN_PREFIXES):
             found.append(f"{rel}: a run_output is a run result")
-        elif p.is_file() and p.name in book_names:
+        elif p.is_file() and name in book_names:
             found.append(f"{rel}: named like a file of the book")
+        elif p.is_file() and p.suffix.lower() not in READABLE_SUFFIXES:
+            found.append(f"{rel}: a {p.suffix or 'suffixless'} file is not a type the pages read")
     return found
+
+
+def _copy_readable(src: Path, out: Path) -> None:
+    """Copy `src` to `out`, keeping only the file types the pages read. A symlink in the source
+    is refused, not followed: following it copies whatever it points at as an ordinary file."""
+    files = sorted(q for q in src.rglob("*")) if src.is_dir() else [src]
+    for q in files:
+        if q.is_symlink():
+            raise SystemExit(f"refused: {q} is a symlink, and copying it copies what it points at")
+        inside = {part.lower() for part in q.relative_to(src).parts} if src.is_dir() else set()
+        if inside & (FORBIDDEN_DIRS | {n.lower() for n in FORBIDDEN_NAMES}):
+            continue
+        if q.is_file() and q.suffix.lower() in READABLE_SUFFIXES:
+            dst = out / q.relative_to(src) if src.is_dir() else out
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(q, dst)
 
 
 def make_cold_reader(book: Path, site: Path, brief: Path, dest: Path,
@@ -104,18 +131,17 @@ def make_cold_reader(book: Path, site: Path, brief: Path, dest: Path,
     if missing:
         raise SystemExit(f"refused: the built site at {site} lacks {missing}")
     dest.mkdir(parents=True)
-    for s in COLD_READER_SITE:
-        src, out = site / s, dest / "site" / s
-        out.parent.mkdir(parents=True, exist_ok=True)
-        if src.is_dir():
-            shutil.copytree(src, out, symlinks=False,
-                            ignore=shutil.ignore_patterns("*.py", "*.pyc", "*.mjs", "__pycache__"))
-        else:
-            shutil.copy2(src, out)
+    try:
+        for s in COLD_READER_SITE:
+            _copy_readable(site / s, dest / "site" / s)
+    except SystemExit:
+        shutil.rmtree(dest)
+        raise
     shutil.copy2(ruling, dest / "RULING.md")
     shutil.copy2(brief, dest / "BRIEF.md")
-    manifest = {"role": "cold_reader", "book": str(book), "site": str(site),
-                "ruling": str(ruling), "brief": str(brief), "independence": False}
+    # Names only: an absolute path here hands the reader the repository root and the book.
+    manifest = {"role": "cold_reader", "book": book.name, "ruling": ruling.name,
+                "independence": False}
     (dest / "MANIFEST.json").write_text(json.dumps(manifest, indent=1) + "\n")
     leaks = check(dest, book)
     if leaks:

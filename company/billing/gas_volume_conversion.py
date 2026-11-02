@@ -71,7 +71,7 @@ def volume_from_kwh(kwh: float, read_unit: str,
                     correction_factor: float = GAS_VOLUME_CORRECTION_FACTOR) -> float:
     """The register advance an ESTIMATED kWh implies: what an estimated gas bill prints as its reading."""
     m3 = kwh * MJ_PER_KWH / (correction_factor * calorific_value)
-    return m3 if read_unit == "m3" else m3 / M3_PER_HUNDRED_CUBIC_FEET
+    return m3 / metric_volume(1.0, read_unit)
 
 
 def conversion_terms() -> dict:

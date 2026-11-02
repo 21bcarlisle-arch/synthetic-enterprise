@@ -776,10 +776,16 @@ def ev_gas_read_is_a_volume(inv, book):
             closing = next((r for r in reads if r.get("read_type") != OPENING), None)
             unit = closing.get("read_unit") if closing else None
             cv, cf = _num(p.get("calorific_value_mj_per_m3")), _num(p.get("correction_factor"))
-            if (opening is None or unit not in ("m3", "hcf") or cv is None or cf is None
+            # The row's severities: a register with no volume, or a flag that disagrees with its
+            # unit, is a breach; a volume present without the CV or factor it converted at, a flag.
+            if (opening is None or unit not in ("m3", "hcf")
                     or opening.get("read_volume") is None or closing.get("read_volume") is None
                     or p.get("imperial_meter", unit == "hcf") != (unit == "hcf")):
                 tally.band(where, None, 0.0, 0.0)
+                continue
+            if cv is None or cf is None:
+                tally.checked += 1
+                tally.hit("flag", where, None, (0.0, 0.0), "conversion fields missing")
                 continue
             volume = float(closing["read_volume"]) - float(opening["read_volume"])
             computed = volume * (M3_PER_HCF if unit == "hcf" else 1.0) * cf * cv / MJ_PER_KWH
