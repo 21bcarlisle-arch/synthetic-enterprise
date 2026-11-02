@@ -131,6 +131,33 @@ ANYTIME = "Anytime"
 REGISTER_ID = {ANYTIME: "1", **{label: str(i + 2) for i, (_, label) in enumerate(TOU_BANDS)}}
 
 
+def catchup_shares(printed_bands, band_advance, openings, read_indices=None):
+    """Each printed band's share of the catch-up, summing to `band_advance` less the printed kWh.
+
+    Where the actual read gave every band its own index (`read_indices`), each band closes on it.
+    Otherwise the catch-up is split by the bands' printed kWh, which cannot reproduce a read: on the
+    bb58608b91 book a -8,331.7 kWh catch-up put 93% on Night from November's share, and Night closed
+    795 kWh below its May actual read (PROS-2017-0336). The last band takes the remainder either way,
+    so the bands still sum to the total index.
+    """
+    printed_kwh = sum(reg["consumption_kwh"] for reg in printed_bands)
+    catchup_left = round(band_advance - printed_kwh, 1)
+    own_read = read_indices is not None and None not in read_indices
+    shares = []
+    for n, reg in enumerate(printed_bands):
+        if n == len(printed_bands) - 1:
+            share = catchup_left
+        elif own_read:
+            share = read_indices[n] - openings[n] - reg["consumption_kwh"]
+        else:
+            share = (round(band_advance - printed_kwh, 1) * reg["consumption_kwh"] / printed_kwh
+                     if printed_kwh else 0.0)
+        share = round(share, 1)
+        catchup_left = round(catchup_left - share, 1)
+        shares.append(share)
+    return shares
+
+
 def _printed_registers(bill_registers, printed_consumption_kwh, printed_commodity_amount_gbp):
     """The bill's time-of-use registers at print precision, or None for a single-rate bill.
 
@@ -361,6 +388,8 @@ def generate(run_json_path=None, out_path=None):
     running_closing_read: dict[tuple[str, str], float] = {}
     # A time-of-use meter has one cumulative index per register, keyed by its band label.
     running_register_read: dict[tuple[str, str, str], float] = {}
+    # Each register's index as the last actual read gave it, where the read gave registers.
+    band_at_read: dict[tuple[str, str], dict[tuple[str, str, str], float]] = {}
     # A gas meter's printed volume index, in the unit it reads: the meter's own at an actual read,
     # advanced by the estimate's volume between them.
     running_volume_read: dict[tuple[str, str], float] = {}
@@ -732,16 +761,21 @@ def generate(run_json_path=None, out_path=None):
         band_advance = round(
             closing_read_rounded - sum(running_register_read.get(k, 0.0) for k in band_keys), 1)
         printed_bands = [reg for reg in inv["registers"] if reg["label"] != ANYTIME]
+        if read_type == "A" and bill.get("register_advance_kwh"):
+            band_at_read[(cid, commodity)] = {
+                (cid, commodity, label): band_at_read.get((cid, commodity), {}).get(
+                    (cid, commodity, label), 0.0) + bill["register_advance_kwh"].get(band, 0.0)
+                for band, label in TOU_BANDS if band in bill["register_advance_kwh"]}
         if printed_bands:
-            printed_kwh = sum(reg["consumption_kwh"] for reg in printed_bands)
-            catchup_left = round(band_advance - printed_kwh, 1)
-            for n, reg in enumerate(printed_bands):
+            shares = catchup_shares(
+                printed_bands, band_advance,
+                [running_register_read.get((cid, commodity, reg["label"]), 0.0)
+                 for reg in printed_bands],
+                [band_at_read.get((cid, commodity), {}).get((cid, commodity, reg["label"]))
+                 for reg in printed_bands] if read_type == "A" and bill.get("register_advance_kwh")
+                else None)
+            for reg, share in zip(printed_bands, shares):
                 reg_key = (cid, commodity, reg["label"])
-                share = (catchup_left if n == len(printed_bands) - 1
-                         else round(band_advance - printed_kwh, 1) * reg["consumption_kwh"] / printed_kwh
-                         if printed_kwh else 0.0)
-                share = round(share, 1)
-                catchup_left = round(catchup_left - share, 1)
                 reg_opening = running_register_read.get(reg_key, 0.0)
                 reg["opening_read_kwh"] = reg_opening
                 reg["closing_read_kwh"] = round(reg_opening + reg["consumption_kwh"] + share, 1)

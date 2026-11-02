@@ -118,3 +118,30 @@ The publish of bb58608b91 was refused on renewal 1,171 (fixed in 3cb000dc38, nee
   - I cannot yet say whether the company holds per-register actual indices at the read. If it does, the
     fix is to close each register on its own read. If it does not, the split should follow each
     register's estimated-since-actual sum, not this month's printed share.
+
+## The last 3 fixed (2026-11-02): the company does hold each register's index at the read
+
+It does. `monthly_bill_assembly` already sums `advance_by_register` at every credit actual read on a PC2
+meter (this month's two registers plus each estimated month's `used_register_kwh`), for the estimate
+window. That is what reading both registers tells the company, so it is the first of the two fixes above.
+- The assembly writes it onto the bill as `register_advance_kwh`.
+- `generate_billing_ledger.catchup_shares` closes each printed band on its own read index: the last read's
+  index plus this advance. The last band still takes the remainder, so the bands sum to the total index.
+- Where the read gives no register advance, or gives an advance for some printed bands but not all, the
+  split stays the printed-share one.
+
+Test: `tests/tools/test_an_economy_7_catch_up_closes_each_register_on_its_own_read.py`, built on this
+breach's shape (Day over-estimated through the summer, November's printed use 93% Night). Without the
+own-read branch Night closes at 16,546.0 against May's 18,563.9, and the test reds.
+- **Prediction for the next fresh run at or after this commit:** READ_MONOTONIC 2 -> 0. Estimate-after-actual
+  3 -> at most 1. I have not shown that this fix moves the PROS-2017-0336 2018-08 hit, and it may have a
+  cause of its own.
+- Together with 1b709ac0e9, the 9 rows at 7c34f48a64 should grade 0 to 1. **No run was launched from this tick.**
+
+Five tests that read the committed book are red at HEAD with or without this change. All of them predate
+it, and none tests these rows:
+- `test_the_raw_export_carries_nothing_derived::test_every_real_period_exports_readings_that_reproduce_our_own_volume`
+  (6,428 of 52,828, mostly `C2g` gas)
+- `test_the_statement_shows_how_each_bill_reached_its_number`: two tests
+- the curtained validator's VAT test
+- the contracted-tariff validator test

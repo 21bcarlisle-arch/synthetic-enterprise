@@ -1030,6 +1030,8 @@ def build_monthly_bills(
                         date.fromisoformat(true_bill["period_end"]),
                         advance_by_register,
                     ))
+                    # The read gives each register its own index, so the ledger closes each on it.
+                    bill["register_advance_kwh"] = dict(advance_by_register)
                 pending_estimated_run = []
                 trailing_actual_periods.append((
                     date.fromisoformat(read_from),
