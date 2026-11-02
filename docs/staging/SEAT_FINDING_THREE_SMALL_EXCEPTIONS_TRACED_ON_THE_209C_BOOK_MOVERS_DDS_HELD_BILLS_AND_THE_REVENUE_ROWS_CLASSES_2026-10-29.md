@@ -97,7 +97,8 @@ is an open defect of the panel. Fixing it is a change to what a public page show
 
 ## What is open after this
 
-1. The exception queue is never worked. That covers 3 accounts here (item 3, and (d) in item 2). This finding
+1. *(Worked 2026-11-02: the held bills were opening estimates on the registry EAC, now released when they
+   do not exceed the registry share of their own days, §4f; awaiting a fresh run to grade.)* The exception queue is never worked. That covers 3 accounts here (item 3, and (d) in item 2). This finding
    names it, and no atom is minted.
 2. Leg 3 of the carbon row: 1,621 part-year figures. The panel needs its knowledge page first.
 3. (e) and the volume side of (a) on the revenue row.

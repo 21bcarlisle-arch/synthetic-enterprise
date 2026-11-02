@@ -28,6 +28,12 @@ kWh, and in which year), not a billing-ledger release. The CO1 reading in the ea
 should count energy used.
 
 ## Decision
+*(Corrected 2026-11-02, beside the claim: superseded. All nine held bills on the 08f267b666 book are
+opening estimates, made before the first read from the registry EAC. That EAC is the industry's
+measurement of the meter, so it answers the volume half without a read. An estimate no higher than the
+registry share of its own days is now released (`release_on_measured_rate`, §4f of
+`unbilled_energy_and_revenue_assurance.md`). A month's estimate on a seven-day stub still exceeds the share
+and stays held. Prediction: `records/SEAT_PREREGISTRATION_THE_HELD_OPENING_ESTIMATES_ISSUE_ON_THE_REGISTRY_FIGURE_ON_THE_NEXT_FRESH_RUN_2026-11-02.md`.)*
 No code change. Making the exception queue release these estimates would issue a month's estimate at 79 kWh/day
 with no read behind it, the very defect the volume half exists to stop (five 2025-06 stub estimates).
 

@@ -1141,6 +1141,12 @@ def build_monthly_bills(
                     )
                 bill = _annotate_billing_basis(estimated_bill, event, true_bill)
                 bill["estimated_consumption_kwh"] = est_kwh
+                # The figure the account was handed on registration, which the exception queue
+                # weighs an opening estimate against (`release_on_measured_rate`, §4f).
+                registry = (customer_data or {}).get(
+                    "eac_kwh" if commodity == "electricity" else "aq_kwh")
+                if registry:
+                    bill["registry_annual_kwh"] = float(registry)
                 consecutive_estimated = event.consecutive_estimated_count
                 # A HELD ESTIMATE WAS NEVER SENT, so the catch-up reconciles it as billed nothing.
                 # `validate_bills` holds bills after this function returns; reconciling the run as
