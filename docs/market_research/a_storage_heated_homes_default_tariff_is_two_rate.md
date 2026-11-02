@@ -136,6 +136,12 @@ world's window, is that shape's proxy, in the same way the DESNZ monthly series 
 - **G8. A per-register annualised advance.** The company's annualised-advance switch annualises the
   meter's total, because its register log holds totals. On a PC2 meter, that total is spread by PC2's
   register weights, not per register. A per-register read log would close this gap.
+  *Closed 2026-11-02.* Since 8cf2ecb744 the company holds each register's advance at every actual read,
+  so the switch annualises each register on its own advance over the span the total chose, on that
+  register's PC2 weight (`annualised_register_advance_kwh`). The total split on PC2's 45% Night stays
+  only where the register log does not tile the span. Spreading the total had billed PROS-2017-0336's
+  June 2018 Day at 1,375 kWh against about 200 read, a home whose reads put 95% of its use at Night.
+  That produced the 18 estimate breaches on the 65bbdc6787 book.
 
 ## The choice a build should make
 

@@ -35,6 +35,7 @@ __all__ = [
     "MONTHLY_SHARE_OF_ANNUAL_USE",
     "PC2_MONTHLY_REGISTER_SHARE",
     "annualised_advance_kwh",
+    "annualised_register_advance_kwh",
     "estimate_unread_kwh",
     "estimate_unread_register_kwh",
     "opening_estimate_kwh",
@@ -150,6 +151,33 @@ def estimate_unread_register_kwh(
         used = sum(by_register.get(register, 0.0) for _, _, by_register in window)
         estimate[register] = used / weight * register_profile_weight(register, start, end)
     return estimate
+
+
+def annualised_register_advance_kwh(
+    window: list[tuple[date, date, dict[str, float]]], opening_day: date, closing_day: date,
+    start: date, end: date,
+) -> dict[str, float] | None:
+    """An annualised advance on a PC2 meter, per register: each register's own advance from
+    `opening_day` to `closing_day` (the span `annualised_advance_kwh` chose) over its own PC2 weight,
+    times this period's weight. Settlement gives each register of a two-rate meter its own EAC
+    (a_storage_heated_homes_default_tariff_is_two_rate.md, G7/G8).
+
+    Spreading the annualised TOTAL on PC2's register shares instead billed a storage home's summer
+    at PC2's 45% Night when its reads said 95%: PROS-2017-0336's June 2018 Day at 1,375 kWh against
+    about 210 read, 18 INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS breaches on the 65bbdc6787 book.
+
+    None unless the read periods in `window` tile the span exactly: then the company holds the total
+    only, and the caller keeps `split_on_register_shape`.
+    """
+    span = sorted((s, e, by) for s, e, by in window if s > opening_day and e <= closing_day)
+    day = opening_day + timedelta(days=1)
+    for s, e, _ in span:
+        if s != day:
+            return None
+        day = e + timedelta(days=1)
+    if not span or day != closing_day + timedelta(days=1):
+        return None
+    return estimate_unread_register_kwh(span, start, end)
 
 
 #: The shortest advance annualised. Elexon's EAC calculation (BSCP504) and Xoserve's AQ review both

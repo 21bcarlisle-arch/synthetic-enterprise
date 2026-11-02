@@ -75,6 +75,7 @@ from company.billing.unread_month_estimate import (
     GAS_AQ_MIN_ADVANCE_DAYS,
     MIN_ADVANCE_DAYS,
     annualised_advance_kwh,
+    annualised_register_advance_kwh,
     estimate_unread_kwh,
     estimate_unread_register_kwh,
     opening_estimate_kwh,
@@ -1079,8 +1080,8 @@ def build_monthly_bills(
                 if advance is not None and advance[0] > 0:
                     shaped = advance[0] * profile_weight(commodity, *period)
                 # A PC2 meter is estimated per register on PC2's published shape, by the same three
-                # routes: its own reads per register, else the registry EAC, else (switched on) the
-                # annualised total, each split on PC2. The PC1 total above would carry a storage home's
+                # routes: its own reads per register, else the registry EAC (one figure, split on PC2),
+                # else (switched on) each register's own annualised advance. The PC1 total above would carry a storage home's
                 # winter night heat into a summer month (a_storage_heated_homes_default_tariff_is_two_rate.md).
                 by_register = None
                 if economy_7:
@@ -1093,7 +1094,9 @@ def build_monthly_bills(
                         by_register = (opening_register_estimate_kwh(customer_data, *period)
                                        or by_register)
                     if advance is not None and advance[0] > 0:
-                        by_register = split_on_register_shape(advance[0], *period)
+                        by_register = (annualised_register_advance_kwh(
+                            trailing_register_periods, advance[1], advance[2], *period)
+                            or split_on_register_shape(advance[0], *period))
                     if by_register is not None:
                         shaped = sum(by_register.values())
                 est_kwh = round(shaped, 2) if shaped is not None else None

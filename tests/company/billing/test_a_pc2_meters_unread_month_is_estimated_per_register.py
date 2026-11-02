@@ -36,7 +36,10 @@ import pytest
 import company.billing.monthly_bill_assembly as M
 from company.billing.unread_month_estimate import (
     PC2_MONTHLY_REGISTER_SHARE,
+    annualised_advance_kwh,
+    annualised_register_advance_kwh,
     estimate_unread_register_kwh,
+    split_on_register_shape,
 )
 
 NIGHT_OF_YEAR = sum(PC2_MONTHLY_REGISTER_SHARE["night"])
@@ -152,3 +155,33 @@ def test_one_settled_record_carrying_both_registers_is_scaled_per_register(monke
         assert _register(merged, band) == pytest.approx(_register(split, band), rel=1e-6)
     assert merged["total_consumption_kwh"] == pytest.approx(split["total_consumption_kwh"], rel=1e-6)
     assert merged["commodity_amount_gbp"] == pytest.approx(split["commodity_amount_gbp"], rel=1e-6)
+
+
+def test_switched_on_the_annualised_advance_is_each_registers_own(monkeypatch):
+    """The standing policy annualises the advance (ruling of 23 Oct). On a PC2 meter that annual
+    figure was the TOTAL spread on PC2's 45% Night, so this 60%-Night home's August was billed at
+    PC2's split, not its reads': 18 estimate breaches on the 65bbdc6787 book, all PC2 summers.
+    Mutation: `annualised_register_advance_kwh` returning None (the old split) reds both registers."""
+    monkeypatch.setattr(M, "get_customer", lambda _cid: {
+        "commodity": "electricity", "registered_profile_class": 2, "eac_kwh": 7000})
+    bills = M.build_monthly_bills(_records(), _AugustUnread(), annualised_advance_estimate=True)
+    august = next(b for b in bills if b["period_end"].startswith("2023-08"))
+    assert august["billing_basis"] == "estimated"
+    # The switch's branch is taken: Jan-Jul reads span 212 days, past the 182-day advance.
+    advance = annualised_advance_kwh("electricity", [
+        (date(2022, 12, 31), 0.0),
+        (date(2023, 7, 31), sum(_use(m, r) for m in range(1, 8) for r in ("day", "night")))])
+    assert advance is not None
+    old_split = split_on_register_shape(advance[0], date(2023, 8, 1), date(2023, 8, 31))
+    assert abs(old_split["night"] - _use(8, "night") / 2) > 0.1 * _use(8, "night") / 2
+    assert _register(august, "night") == pytest.approx(_use(8, "night") / 2, rel=1e-6)
+    assert _register(august, "day") == pytest.approx(_use(8, "day"), rel=1e-6)
+
+
+def test_a_register_log_that_does_not_tile_the_advance_gives_no_per_register_figure():
+    window = [(date(2023, 1, 1), date(2023, 3, 31), {"day": 300.0, "night": 500.0}),
+              (date(2023, 5, 1), date(2023, 7, 31), {"day": 300.0, "night": 400.0})]
+    august = (date(2023, 8, 1), date(2023, 8, 31))
+    assert annualised_register_advance_kwh(window, date(2022, 12, 31), date(2023, 7, 31), *august) is None
+    whole = window[:1] + [(date(2023, 4, 1), date(2023, 7, 31), {"day": 400.0, "night": 500.0})]
+    assert annualised_register_advance_kwh(whole, date(2022, 12, 31), date(2023, 7, 31), *august)

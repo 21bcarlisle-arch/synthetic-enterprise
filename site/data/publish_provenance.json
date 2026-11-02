@@ -24,7 +24,7 @@
     "run_retained": true,
     "verified_at": "2026-10-26T12:09:33Z"
   },
-  "paused_reason": "domain-invariant breaches at git=65bbdc6787 that no exception covers: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS 18 (no exception)",
+  "paused_reason": "scoped publish-path suite red at git=65bbdc6787; blocking tests: ERROR tests/background/test_derived_artefact_register.py::TestSeatGuard::test_the_entrypoint_is_seat_guarded",
   "paused_since": "2026-11-02T04:00:49Z",
   "schema": 1,
   "showing_run": {
@@ -40,5 +40,5 @@
     "verified_at": "2026-10-26T12:09:33Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-02T16:01:32Z"
+  "written_at": "2026-11-02T17:23:12Z"
 }
