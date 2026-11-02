@@ -23,6 +23,9 @@ MUTATIONS, RUN 2026-10-22, each red here:
   * freshness-banner.js: the refusal made unconditional (`return ""`) -> the banner's fresh leg reds.
   * harness: `renderDeployment`'s freshness test forced true -> the deployment stale leg reds.
   * harness: `renderDirectorDelta`'s freshness forced false -> the delta fresh leg reds.
+  * census, 2026-11-02: the quote requirement dropped (bare `data/x.json`) -> the cited leg of
+    test_the_census_counts_a_fetched_feed_and_not_a_cited_one reds (and so does the census, on the
+    regenerated harness timeline); only the `"../data/` form accepted -> its fetched leg reds.
 """
 from __future__ import annotations
 
@@ -65,14 +68,26 @@ def _served_files():
         yield p
 
 
+def _feeds_read(text: str) -> set:
+    # A reader names the feed as a quoted URL ("../data/x.json", "/data/x.json"). Prose that cites the
+    # file (a timeline's "Evidence: site/data/tick_heartbeat.json;") fetches nothing; counting it
+    # refused the 2 Nov publish when the harness timeline was regenerated with that sentence in it.
+    return {feed for feed in RUNTIME_FEEDS
+            if re.search(r"[\"'`][^\"'`\s]*data/" + feed + r"\.json[\"'`]", text)}
+
+
 def census() -> set:
     found = set()
     for p in _served_files():
-        text = p.read_text(errors="replace")
-        for feed in RUNTIME_FEEDS:
-            if re.search(r"data/" + feed + r"\.json", text):
-                found.add((str(p.relative_to(SITE)), feed))
+        for feed in _feeds_read(p.read_text(errors="replace")):
+            found.add((str(p.relative_to(SITE)), feed))
     return found
+
+
+def test_the_census_counts_a_fetched_feed_and_not_a_cited_one():
+    fetched = _feeds_read('fetch("../data/delivery.json").then(f); u = new URL("/data/tick_heartbeat.json", o);')
+    cited = _feeds_read("<li>Evidence: site/data/tick_heartbeat.json; site/data/delivery.json.</li>")
+    assert fetched == {"delivery", "tick_heartbeat"} and cited == set(), (fetched, cited)
 
 
 def _iso(days_ago: float) -> str:
