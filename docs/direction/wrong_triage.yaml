@@ -507,3 +507,112 @@ items:
     fate: fold
     owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
     reason: "Triaged 2026-10-28 by the delivery seat. Both instances' work reached origin within hours under their own items (af61df576 from salvage 1a7bb1d34, 049377466), and the draw's held_grade released each item once its pid was gone, so the cost was hours, not work. A dead holder whose work reads as held is that register's shape (a dead owner's state outliving it). Reopen as fix if a dead landing's work is lost, or if its item is still held after its pid is gone."
+  # 2026-11-02 06:21Z orientation. Twelve page rows were each fixed in code and graded or seen by a
+  # cold read, and wait only on a publish (or on the PC2 grade, which its own row carries). Copying
+  # twelve "Unchanged. The live pages change only at a publish." tails forward records nothing. They
+  # fold into ONE open wrong row, "the live pages carry twelve graded fixes and change only at a
+  # publish", which stays listed until a publish puts them live.
+  - id: page-fix-paid-in-total-equals-revenue
+    problem: "The pages printed 'Paid in total' equal to revenue billed."
+    match: ["print 'Paid in total' equal to 'Revenue billed'"]
+    first_seen: "2026-10-27"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Fixed in code by 597720378 (red on 752 households under the old code); only the publish remains, and the consolidated row carries it."
+  - id: page-fix-world-life-events-on-the-supplier-timeline
+    problem: "The supplier's timeline showed world life events."
+    match: ["The supplier's customer timeline showed world life events"]
+    first_seen: "2026-10-27"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Clipped by 4d7f6021a and labelled seen_by: world by 597720378; only the publish remains."
+  - id: page-fix-the-suite-grades-a-different-record
+    problem: "The suite graded the ledger while the page printed the invoice (EBSS, overdue)."
+    match: ["The suite grades a different record from the one the page prints"]
+    first_seen: "2026-10-27"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml); the PC2 residue is the PC2 row's"
+    reason: "Overdue graded 2,500 -> 0 (4b378c355); EBSS seen by the fifth cold read (32d7dff8d). The 15 PC2 months are the PC2 row's to grade."
+  - id: page-fix-successor-meter-number
+    problem: "A successor's page printed a different MPAN/MPRN from its predecessor's."
+    match: ["A successor's page prints a different meter number"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Fixed in code by 971a37583 with a test; only the publish remains."
+  - id: page-fix-epg-inside-revenue
+    problem: "The EPG sat inside revenue at the supplier's tariff on no page line."
+    match: ["The Energy Price Guarantee is inside 'Revenue, before VAT'"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml); the PC2 residue is the PC2 row's"
+    reason: "Graded 288 -> 24 -> 1 (724c494d9, 74d6c0759), EPG rates confirmed to the penny by the fifth reader. The 4 PC2 revenue breaches are the PC2 row's to grade."
+  - id: page-fix-printed-register-after-an-estimated-run
+    problem: "An actual bill after an estimated run printed the previous printed register plus the month."
+    match: ["printed an actual bill's register as the previous printed register plus the month"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Fixed by 37abacdf4 and graded by 686fb73ef; only the publish remains."
+  - id: page-fix-opening-read-nobody-took
+    problem: "Actual bills after an estimated run printed an opening read nobody took."
+    match: ["printed an opening read nobody took"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Fixed by 1bdd86b84, P2 held (724c494d9), ToU residuals retired at 0 (2a2c5c577); only the publish remains."
+  - id: page-fix-tou-bands-do-not-sum
+    problem: "ToU band indices did not sum to the total index."
+    match: ["ToU band indices do not sum to the total index"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml); the two PC2 void-day breaches are the PC2 row's"
+    reason: "Graded 542 -> 0 on PC1 (2a2c5c577); the two cd4fc5b8d8 breaches are traced to void days by 89220b9dd and graded with the PC2 fixes."
+  - id: page-fix-meter-type-from-two-records
+    problem: "The household page printed its meter type from two records that disagree."
+    match: ["The household page printed its meter type from two records that disagree"]
+    first_seen: "2026-10-29"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Fixed by d575b53d2 and e8149d6d0 and seen by the fifth cold read (P5 held); only the publish remains."
+  - id: page-fix-missed-payment-has-two-definitions
+    problem: "A missed payment had two definitions, page and desk."
+    match: ["A missed payment has two definitions. The household summary's payment record"]
+    first_seen: "2026-10-29"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "One definition since dae9f598d, graded 0 on the 9553d403b7 book (4b378c355); only the publish remains."
+  - id: page-fix-committed-price-from-one-bill
+    problem: "The committed tariff price was read from the first bill."
+    match: ["The committed tariff price is read from one bill"]
+    first_seen: "2026-10-29"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Fixed by 90b330d09 (44 -> 0) and seen by the fifth cold read; only the publish remains."
+  - id: page-fix-one-serial-on-many-supply-points
+    problem: "One meter serial sat on up to 34 supply points."
+    match: ["One meter serial sits on up to 34 supply points"]
+    first_seen: "2026-10-30"
+    fate: fold
+    owner: "the open wrong row 'the live pages carry twelve graded fixes' (DIRECTION.yaml)"
+    reason: "Fixed by 6ef8f1b67 and graded held, 0 of 52,657 re-minted on cd4fc5b8d8 (8b046d413); only the publish remains."
+  - id: the-seven-june-run-death-has-no-tested-cause
+    problem: "The one-due-date fresh run died at 7 June 2025 with no exit line, under a bare shell."
+    match: ["The one-due-date fresh run was killed from outside at 7 June 2025"]
+    first_seen: "2026-10-27"
+    fate: accept
+    reason: "The run left no artefact to test a cause against, so the cause cannot now be established. The part that mattered, visibility, is fixed: every run since goes through launch_long_job, which records an oom-kill as status 9, and twelve have run clean. A future silent death is a new finding with evidence, not this row."
+  - id: households-do-not-cut-use-when-prices-rise
+    problem: "World households barely cut use in 2022 (-0.3% electricity, -2.2% gas) against a published -10.3% and -19.2%."
+    match: ["Households do not cut use when prices rise"]
+    first_seen: "2026-10-28"
+    fate: fold
+    owner: "the next-SIM-additions roadmap owed by DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md, under consumption elasticity (docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md)"
+    reason: "A world fidelity defect that blocks no supplier result inside the correctness stretch; the director's corpus steer asks for exactly this as a ranked, evidenced roadmap candidate, which is where it is weighed. Seventeen 'Unchanged. In not_now.' tails recorded nothing."
+  - id: a-billing-or-gate-change-lands-on-its-own-test-selection
+    problem: "A change to a billing basis or a gate's switch lands on a test selection that does not run the suites it can turn red."
+    match: ["Two landings turned tests on origin red that their own test selection never ran"]
+    first_seen: "2026-10-27"
+    fate: fix
+    status: open
+    owner: "H_harness: tools/surgical_land.py's test selection runs tests/company/billing and tests/simulation whole when a landing touches company/billing/ or simulation/; until then, the whole-suite pretest before every fresh run is the only leg that catches it"
