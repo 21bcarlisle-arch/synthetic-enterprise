@@ -87,3 +87,34 @@ No run was launched.
   customer page, and `tools/generate_customer_data.py` never wrote it. The page now carries the latest
   bill's class, and the MPAN top line prints it (02, not a hard-coded 01). Whether a PC2 home then
   passes the slot's use predicates is for the run to say.
+
+## Re-graded on the bb58608b91 book (2026-11-02): 9 left, two causes
+
+The publish of bb58608b91 was refused on renewal 1,171 (fixed in 3cb000dc38, needs a fresh run) and on
+9 rows here.
+
+- **6 of the 9 have one cause: point 5's fix moved the stub rather than removing it.** These are E7 two
+  registers 2, ToU bands 2, and estimate after actual on the two OCC stubs 2. Once `as_void_row` zeroed the
+  band kWh, the owner's 7-day stub had 0 true kWh. It was then priced by `_estimate_records_at_tariff_rate`,
+  which spread the estimate flat and wrote no band, so it still printed Anytime. The ledger advanced the
+  unprinted 95.5 / 53.4 kWh onto Peak (`TOU_BANDS[0]`, "Rate 1"), and Day/Night opened at 0. **Fixed:**
+  a void row keeps its band keys (at 0) and its rates. A daily row folded from a two-rate term carries
+  both bands, its opening rate and `unit_rate_min/max`. The meter's per-register estimate is spread over
+  each band's rows, priced at that band's rate. Without a register estimate, only a one-band row is
+  split, and a two-band row prints one register as before rather than an invented split. The test is
+  `tests/company/billing/test_a_void_stub_on_an_economy_7_meter_prints_its_two_registers.py`, and it reds
+  with the band write removed. This takes effect on runs at or after the fix commit. The run launched at
+  10:20 predates it.
+- **3 are open: a downward catch-up split by printed share moves a register's index below its last actual
+  read.** These are READ_MONOTONIC on PROS-2017-0336 (Night, 2018-05-31 to 2018-11-30, −795) and
+  PROS-2024-0010 (Night, 2024-05-31 to 2024-09-30, −170), plus estimate-after-actual on PROS-2017-0336
+  2018-08.
+  - At the Nov 2018 actual read the total catch-up is −8,331.7 kWh. `generate_billing_ledger` shares it
+    over the printed bands by their kWh share, which puts 93% on Night (−7,781.7). The Night index lands
+    at 17,768.5, against 18,563.9 at the May actual.
+  - An actual read gives each register its own index. Apportioning a total's catch-up cannot reproduce
+    that, and the summer Night estimates (≈4,000 kWh over five months) are the over-estimate being
+    reversed.
+  - I cannot yet say whether the company holds per-register actual indices at the read. If it does, the
+    fix is to close each register on its own read. If it does not, the split should follow each
+    register's estimated-since-actual sum, not this month's printed share.
