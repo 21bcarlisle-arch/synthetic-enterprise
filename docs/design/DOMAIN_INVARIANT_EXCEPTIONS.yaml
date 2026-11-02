@@ -195,7 +195,7 @@ exceptions:
       own severity names.
     filed: 2026-10-29
     retired_by: the three storage homes' bills printing the two-rate settlement they hold, under ruling step 3 (a; their heating type was read 2026-10-30). (b) and (c) are the row's lawful tail and stay excepted
-    max_breached: 4
+    max_breached: 3
   # 2026-10-30: two rows that read UNCHECKABLE on the raw export are graded (leg one reads the five uncheckable
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
   # grade. Grade, causes and the three rows that stay ungraded on the runner, with why, in
@@ -223,19 +223,16 @@ exceptions:
   # one row new to the refusal list, below. It was hidden before: those accounts' bills printed single-rate
   # or one-band, which the row did not grade on the PC2 per-register shape.
   - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
-    scope: 18 of 30,710 graded estimated bills on the 65bbdc6787 book (graded 2 Nov), all electricity, all above the bound and all in Jun to Oct, on four profile class 2 (Economy 7) accounts - PROS-2017-0336 (12 bills, 2018 Jun-Oct and one August a year 2019 to 2024; 2018 August 33% over), SYN-2016-565 (4, August, 4 to 8%), SYN-2016-042 (1, 2%) and SYN-2016-225 (1, 1%)
+    scope: 2 of 30,710 graded estimated bills on the 08f267b666 book (graded 2 Nov; 18 on 65bbdc6787), both SYN-2016-582 electricity, Aug and Sep 2017, 3% BELOW the bound (210.9 and 213.5 against 217.6 kWh a day)
     reason: >-
-      Traced 2 Nov to one cause. On a PC2 meter the estimate takes the annualised advance (switch on) and spreads
-      it on PC2's TOTAL shape (split_on_register_shape), where the row, and the window route beside it
-      (estimate_unread_register_kwh), annualise each register on its own PC2 share. A storage home's Night
-      register carries its winter heat, which PC2 gives a summer month about a quarter of; on the total shape
-      PROS-2017-0336's August 2018 estimate reads 64 kWh a day, and the same reads through the per-register window
-      give 36, the row's bound. Reproduced from the book's register reads, not inferred. The four homes are the
-      storage homes already excepted under INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER (a), now billed on two
-      registers. It moves no published figure materially: an estimate is trued up at the next actual read (the
-      catch-up on PROS-2017-0336 was -1,943 kWh in May 2018 and -6,495 in Nov 2018), so lifetime kWh and revenue
-      are unchanged and only timing moves; the largest single-bill excess is about 15 kWh a day over 31 days,
-      near 475 kWh, about 60 GBP. 18 of 30,710 is 0.06% of the graded bills.
+      Graded 2 Nov on the first book carrying 308a3f168e (each PC2 register annualised on its own share). The
+      prediction was 18 to 0 and it did not hold: the 18 above-bound bills on PROS-2017-0336, SYN-2016-565,
+      SYN-2016-042 and SYN-2016-225 are gone (none of the four is in the row's breach list), and two new ones
+      appear on a fifth profile class 2 home, SYN-2016-582, on the OPPOSITE side (under the bound, where the
+      18 were over it). That is consistent with the fix over-correcting a little on that home, but it is not
+      traced: the cause is a hypothesis from the profile class and the side, not a reproduction from the book's
+      reads. Not retired for that reason. 2 of 30,710 is 0.007% of graded bills; an estimate is trued up at the
+      next actual read, so only timing moves.
     filed: 2026-11-02
-    retired_by: the PC2 annualised-advance estimate annualising each register on its own share, graded 0 on a fresh run (the same fix as the storage-home cause of INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER (a))
-    max_breached: 18
+    retired_by: SYN-2016-582's Aug and Sep 2017 estimates traced (the per-register share on a home with a Day-heavy register is the first thing to read) and the cause fixed or ruled lawful, graded 0 on a fresh run
+    max_breached: 2
