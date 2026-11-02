@@ -402,7 +402,7 @@ def generate(run_json_path=None, out_path=None):
             "exception_queue": exception_queue_as_dicts(held_bills),
         }
         Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(out_path).write_text(json.dumps(result, indent=2))
+        Path(out_path).write_text(json.dumps(result, separators=(",", ":")))
         return result
 
     held_reads: list[BillValidationResult] = []
@@ -1086,7 +1086,9 @@ def generate(run_json_path=None, out_path=None):
     }
 
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    Path(out_path).write_text(json.dumps(result, indent=2))
+    # Compact: the publish commits this file and GitHub refuses any file over 100 MiB. indent=2
+    # wrote 143.8 MB on the 08f267b666 book; compact is 91.2 MB. Every reader is json.load.
+    Path(out_path).write_text(json.dumps(result, separators=(",", ":")))
     return result
 
 
