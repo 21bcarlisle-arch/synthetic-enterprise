@@ -24,7 +24,7 @@
     "run_retained": true,
     "verified_at": "2026-10-26T12:09:33Z"
   },
-  "paused_reason": "newest run refused: its bills fail the over-ceiling grade: carved GBP 197,965.24 != booked GBP 193,406.52",
+  "paused_reason": "domain-invariant breaches at git=bb58608b91 that no exception covers: INV_E7_METER_BILLED_ON_TWO_REGISTERS 2 (no exception); INV_READ_MONOTONIC 2 (no exception); INV_TOU_BANDS_SUM_TO_THE_TOTAL 2 (no exception); INV_RENEWAL_NOTICE_42_TO_49_DAYS 1171 (no exception); INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS 3 (no exception)",
   "paused_since": "2026-11-02T04:00:49Z",
   "schema": 1,
   "showing_run": {
@@ -40,5 +40,5 @@
     "verified_at": "2026-10-26T12:09:33Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-02T05:35:19Z"
+  "written_at": "2026-11-02T10:33:11Z"
 }
