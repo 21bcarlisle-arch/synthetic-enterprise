@@ -100,3 +100,73 @@ def test_the_cli_check_exits_nonzero_on_a_leak(tmp_path, capsys):
     (dest / "tools" / "x.json").write_text("{}")
     assert bw.main(["--check", str(dest)]) == 1
     assert "tools/x.json" in capsys.readouterr().out
+
+
+def test_the_manifest_names_the_book_and_the_ruling_and_holds_no_path(tmp_path):
+    """Defect: MANIFEST.json carrying absolute paths hands the reader the repository root."""
+    book, site = _book(tmp_path), _site(tmp_path)
+    brief = tmp_path / "brief.md"
+    brief.write_text("read the pages")
+    dest = tmp_path / "blind"
+    manifest = bw.make_cold_reader(book, site, brief, dest)  # the ruling defaults to ROOT's
+    text = (dest / "MANIFEST.json").read_text()
+    assert manifest["book"] == book.name and manifest["ruling"].startswith("DIRECTOR_RULING_")
+    assert str(bw.ROOT) not in text and str(tmp_path) not in text and "/" not in text
+
+
+def test_only_the_types_the_pages_read_are_copied(tmp_path):
+    """Defect: a deny-list copy lets a build script or an unlisted result format in."""
+    site = _site(tmp_path)
+    customers = site / "data" / "customers"
+    strays = ["build.sh", "_render.js", "x.ipynb", "x.pyi", "x.parquet", "x.npz", "a.py",
+              "b.pyc", "README"]
+    for name in strays:
+        (customers / name).write_text("")
+    (customers / "__pycache__").mkdir()
+    (customers / "__pycache__" / "c.json").write_text("{}")
+    book, brief = _book(tmp_path), tmp_path / "brief.md"
+    brief.write_text("read the pages")
+    dest = tmp_path / "blind"
+    bw.make_cold_reader(book, site, brief, dest, brief)
+    names = {p.name for p in dest.rglob("*")}
+    assert "SYN-2016-001.json" in names and not names & (set(strays) | {"__pycache__"})
+    for name in ("build.sh", "x.parquet", "README"):
+        (dest / "site" / name).write_text("")
+        assert any(name in leak for leak in bw.check(dest, book)), f"{name} was not refused"
+        (dest / "site" / name).unlink()
+    assert bw.check(dest, book) == []
+
+
+def test_a_symlink_in_the_source_site_is_refused_not_followed(tmp_path):
+    """Defect: copying through a symlink brings in what it points at as an ordinary file."""
+    site = _site(tmp_path)
+    (site / "data" / "customers" / "x.json").symlink_to(site.parent / "company" / "billing.py")
+    book, brief = _book(tmp_path), tmp_path / "brief.md"
+    brief.write_text("read the pages")
+    with pytest.raises(SystemExit, match="symlink"):
+        bw.make_cold_reader(book, site, brief, tmp_path / "blind", brief)
+    assert not (tmp_path / "blind").exists()
+
+
+def test_the_check_is_case_insensitive(tmp_path):
+    """Defect: `Company/`, `Tests/` and `DONE.JSON` pass a case-sensitive check."""
+    book, dest = _made(tmp_path)
+    for rel in ("Company/x.json", "site/Tests/x.json", "Done.JSON", "site/__PyCache__/x.json",
+                "site/RUN_OUTPUT.json", "site/ARM.JSON"):
+        p = dest / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("{}")
+        assert bw.check(dest, book), f"planting {rel} was not refused"
+        p.unlink()
+        if p.parent != dest and p.parent.name != "site":
+            p.parent.rmdir()
+    assert bw.check(dest, book) == []
+
+
+def test_the_book_is_read_to_any_depth_for_its_names(tmp_path):
+    """Defect: reading only the book's top level lets a nested run result in by name."""
+    book, dest = _made(tmp_path)
+    (book / "digests").mkdir()
+    (book / "digests" / "period_ledger.json").write_text("{}")
+    (dest / "site" / "period_ledger.json").write_text("{}")
+    assert any("named like a file of the book" in leak for leak in bw.check(dest, book))
