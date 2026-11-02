@@ -3553,6 +3553,19 @@ F541 26) was measured WITH the margin lane included and is wrong for this tree; 
 
 ---
 
+## 3ah. A published CV feed, the ReadArrivalFeed shape again — added 2026-11-02
+
+**`company/billing/gas_volume_conversion.py -> CalorificValueFeed` is a new channel-E crossing, ruled
+intended.** R5 of `docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md` needs
+National Gas's published daily CV per charging area. The bytes are in `data/lake/national_gas_ldz_cv/`,
+and W6 forbids the company opening them. So, as §3f did for reads, the company imports nothing and
+receives a `runtime_checkable` Protocol; the world's implementation is
+`sim/ldz_calorific_value.py::PublishedCalorificValues`, and at go-live it is the supplier's own copy of
+the daily publication. What crosses is published by construction: the feed answers only "as last
+published by `as_of`", so a revision published after a bill cannot reach it. The control for §3f's
+second rot (a positional call to a reordered signature) is
+`tests/sim/test_the_published_ldz_cv_is_read_as_it_stood.py::test_the_worlds_cv_feed_matches_the_protocol_by_name_and_order`.
+
 ## 3a. Cuts EXECUTED — the designs that are no longer plans
 
 These were designs in §3 until they were carried out. They are recorded

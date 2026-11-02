@@ -88,9 +88,12 @@ not limited to non-smart meters.
 
 ## What is not established (GAP)
 
-- **G1. The 2016-2025 daily CV series per charging area.** Published by National Gas (data portal),
-  not transcribed into the commons. Until it is, any CV a build uses is not the R5 figure. This is
-  the GAP already named at `simulation/live_population.py` beside `GAS_CV_FACTOR`.
+- **G1. The 2016-2025 daily CV series per charging area.** *Narrowed 2 Nov 2026.* Gas days 1 Nov
+  2021 to 31 Dec 2025 are now in the lake, all 13 areas, every published version
+  (`data/lake/national_gas_ldz_cv/`, read by `sim/ldz_calorific_value.py`). The portal returns
+  nothing before 1 Nov 2021, so **2016 to Oct 2021 stays open**: whether the earlier series is held
+  elsewhere (National Gas on request, Xoserve) was not found. A bill before Nov 2021 cannot apply R5
+  from the commons, and must keep saying so.
 - **G2. The share of GB domestic gas meters that are imperial.** Not found. It decides how many reads
   carry hundreds of cubic feet. A build should carry the imperial path and leave its share as a GAP,
   not assume zero (K2).
@@ -103,6 +106,14 @@ not limited to non-smart meters.
   from those conditions applied to a meter assumed at a standard temperature, pressure and altitude.
   Which instrument fixes that assumption for domestic meters was not found.
 - **G5. The SMETS2 gas register unit**, from the specification rather than R9's secondary sources.
+- **G7. Which published version a bill uses, and what the 38.0 runs are.** A gas day's CV is
+  published on the day (about 10:30), the day after (about 10:30), often again at 16:00, and some are
+  republished months later. In SC, Nov 2023 to Jan 2024, the 10:30 value is 38.0, the 16:00 value is
+  40.1-40.4, and a republication in Apr 2024 sets 38.0 again. SC has 131 final values of exactly 38.0
+  and WS 108, against almost none at 38.1-38.8, so 38.0 behaves like a floor or a default rather than
+  a measurement. R5 says "the daily calorific values"; which version that is, and what a 38.0 means,
+  is not established. What is certain is the epistemic half: a supplier can only use a version
+  published by its billing date, so the build reads the series as it stood then.
 
 ## What the book's blind row can now take
 
@@ -151,6 +162,28 @@ world's daily CV and the supplier's period average differ day by day, but over a
 within the truncation and the weighting of use by day. A larger move is then a finding about that
 weighting, not the conversion.
 
+## What the published series shows about the stand-in (measured 2 Nov 2026)
+
+Pre-registered in `docs/staging/records/SEAT_PREREGISTRATION_HOW_FAR_THE_FIXED_GAS_CV_SITS_FROM_THE_PUBLISHED_PERIOD_AVERAGE_2026-11-02.md`,
+over the final versions, 650 LDZ-months (Nov 2021 to Dec 2025), a calendar month standing in for a
+billing period:
+- **Truncation** lowers the month's CV by 0.118% on average and 0.249% at most. The filed prediction
+  (about 0.13%, never above 0.26%) holds.
+- **The 39.5 stand-in is right on average and wrong by region.** The mean R5 month CV is 39.48, so
+  across GB the stand-in over-bills by 0.07%. By area it does not: NO averages 40.30 (the stand-in
+  under-bills about 2%), WS 38.93 (over-bills about 1.5%). The largest single LDZ-month gap is
+  1.50 MJ/m3, 3.95% of the bill's gas energy.
+- **Areas differ by more than the page assumed.** In a typical month the highest and lowest areas
+  differ by 1.56 MJ/m3, and by up to 2.70. The reg 4A cap ties an area to its own lowest input, not
+  to the other areas.
+- **Read as it stood, the CV moves after the bill.** Read 5 days after month end, 89 of the 650
+  LDZ-months (14%) give a different R5 from the final record, by up to 2.2 MJ/m3 (SC, Nov-Dec 2023,
+  the G7 runs). A build that bills on the final record would use values no supplier had.
+
+So a bill on the stand-in is off by a few per cent in the areas at either end, in opposite directions,
+and roughly cancels across GB. The page's 0.26% ceiling still applies to the round trip once the world
+and the supplier share the series. It does not apply to the move from the stand-in to the series.
+
 ## When the meter reads less than the estimates already billed (amended 2 Nov 2026)
 
 Raised by both blind readers of the gas build (`docs/staging/done/WORKER_FINDING_BOTH_BLIND_READERS_RAISE_6_ON_34B764A0FD_2026-11-02.md`,
@@ -195,5 +228,7 @@ with a prepayment customer (a credit to the meter or to the account) was not fou
   and 4A, https://www.legislation.gov.uk/uksi/1997/937/made [H]
 - GOV.UK, *Gas meter readings and bill calculation*,
   https://www.gov.uk/gas-meter-readings-and-bill-calculation [S]
+- National Gas Transmission, data portal, "Calorific Value, LDZ(XX)", PUBOB4507-PUBOB4519,
+  https://data.nationalgas.com/find-gas-data, retrieved 2 Nov 2026 [H for the published values]
 - Supplier help pages on the smart meter's m³ register (fuseenergy.com, britishgas.co.uk business
   help), and the OVO community [S]

@@ -37,6 +37,38 @@ def test_the_conversion_is_govuks_worked_arithmetic():
         G.kwh_from_volume(1.0, "kWh")
 
 
+class _Feed:
+    """A CV feed holding one area's published values: day -> [(published_at, cv), ...]."""
+
+    def __init__(self, ldz, days):
+        self.ldz, self.days = ldz, days
+
+    def published_cv(self, ldz, gas_day, as_of):
+        seen = [cv for at, cv in self.days.get(gas_day, []) if ldz == self.ldz and at <= as_of]
+        return seen[-1] if seen else None
+
+
+def test_the_published_period_cv_is_r5_over_what_was_published_by_the_bill():
+    feed = _Feed("EA", {"2024-01-01": [("2024-01-02", 39.2)], "2024-01-02": [("2024-01-03", 39.25)],
+                        "2024-01-03": [("2024-01-04", 39.0), ("2024-06-01", 38.0)]})
+    assert isinstance(feed, G.CalorificValueFeed)
+    # (39.2 + 39.25 + 39.0) / 3 = 39.15, truncated: 39.1. The June revision is not yet published.
+    assert G.published_period_calorific_value(feed, "EA", "2024-01-01", "2024-01-03", "2024-01-05") == (
+        39.1, G.PERIOD_AVERAGE)
+    assert G.published_period_calorific_value(feed, "EA", "2024-01-01", "2024-01-03", "2024-07-01")[0] == 38.8
+
+
+def test_the_published_period_cv_can_refuse_and_names_why():
+    """It can be taken (above), and each refusal says which input is missing rather than averaging less."""
+    feed = _Feed("EA", {"2024-01-01": [("2024-01-02", 39.2)], "2024-01-02": [("2024-01-03", 39.2)]})
+    cv, why = G.published_period_calorific_value(feed, "EA", "2024-01-01", "2024-01-02", "2024-01-02")
+    assert cv is None and "2024-01-02" in why and "published by 2024-01-02" in why
+    cv, why = G.published_period_calorific_value(feed, None, "2024-01-01", "2024-01-02", "2024-02-01")
+    assert cv is None and "charging area" in why
+    cv, why = G.published_period_calorific_value(feed, "SC", "2024-01-01", "2024-01-02", "2024-02-01")
+    assert cv is None and "SC" in why
+
+
 def test_the_period_cv_is_truncated_not_rounded():
     """R5: 'any amount of less than 0.1 megajoules per cubic metre shall be ignored'."""
     assert G.period_calorific_value([39.59, 39.59]) == 39.5

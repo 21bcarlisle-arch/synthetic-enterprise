@@ -4,7 +4,7 @@
     "atom": "EP6_wall_protocol_typing",
     "tool": "tools/wall_channel_census.py",
     "census": "docs/design/EP6_WALL_CONFORMANCE_CENSUS_DISCOVER.md",
-    "frozen_at_rev": "f3951d9ab6",
+    "frozen_at_rev": "worktree",
     "rule": "A member present here and absent from the tree is PAID DOWN -- re-freeze to record it. A member in the tree and absent here is NEW and fails the check. Channels A and B are reported by the tool and enforced by docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md, not frozen here."
   },
   "reported_not_frozen": {
@@ -68,6 +68,7 @@
       "tools.meter_read_port -> simulation.run_phase4c_on_phase2b"
     ],
     "E_structural_protocol": [
+      "company/billing/gas_volume_conversion.py -> CalorificValueFeed",
       "company/billing/monthly_bill_assembly.py -> ReadArrival",
       "company/billing/monthly_bill_assembly.py -> ReadArrivalFeed"
     ],
@@ -236,6 +237,9 @@
     ]
   },
   "E_structural_satisfaction": {
+    "company/billing/gas_volume_conversion.py -> CalorificValueFeed": [
+      "sim/ldz_calorific_value.py::PublishedCalorificValues"
+    ],
     "company/billing/monthly_bill_assembly.py -> ReadArrival": [
       "simulation/meter_reads.py::MeterReadEvent"
     ],

@@ -12,13 +12,19 @@ under 0.1 MJ/m3 ignored (R5, SI 1996/439 reg 3(2)).
 THE CV HERE IS NOT THE REGULATIONS' CV. The daily series per charging area (G1) is not yet in the
 commons, so the supplier converts at one fixed figure, and Ofgem's letter says a fixed CV "is not
 consistent with the Regulations" (R6). Every converted record says so in `calorific_value_basis`,
-so no bill looks as if it applied R5 when it did not. `period_calorific_value` is the R5 rule, ready
-for the series when it lands.
+so no bill looks as if it applied R5 when it did not. `period_calorific_value` is the R5 rule.
+
+The published series (National Gas, per charging area) is now in the lake from gas day 1 Nov 2021, and
+`published_period_calorific_value` builds R5 from what a `CalorificValueFeed` says had been published
+by the bill's date. It is not yet what a bill converts at: the supply point's charging area does not
+yet cross the seam, and before Nov 2021 there is no series to average. Each refusal names which.
 """
 
 from __future__ import annotations
 
 import math
+from datetime import date, timedelta
+from typing import Protocol, runtime_checkable
 
 #: 1 kWh = 3.6 MJ, by definition of the units.
 MJ_PER_KWH = 3.6
@@ -48,6 +54,39 @@ def period_calorific_value(daily_cvs) -> float:
         raise ValueError("a period CV needs at least one gas day's published CV")
     # The small epsilon keeps 39.5 from reading as 39.4999... after the division.
     return math.floor(sum(cvs) / len(cvs) * 10 + 1e-9) / 10
+
+
+@runtime_checkable
+class CalorificValueFeed(Protocol):
+    """National Gas's published daily CV per charging area, as it stood at a moment.
+
+    In the simulation that is `sim.ldz_calorific_value.PublishedCalorificValues`; going live it is the
+    supplier's own copy of the daily publication."""
+
+    def published_cv(self, ldz: str, gas_day: str, as_of: str) -> float | None:
+        """The CV for `gas_day` in charging area `ldz` as last published by `as_of`; None if none was."""
+
+
+def published_period_calorific_value(feed: CalorificValueFeed, ldz: str | None, first_gas_day: str,
+                                     last_gas_day: str, as_of: str) -> tuple[float | None, str]:
+    """R5 over the period from what had been published by `as_of`, or None and the reason it cannot be.
+
+    A period average needs every gas day's value: a single missing day refuses rather than averaging
+    the rest, since R5 divides by the number of gas days in the period."""
+    if not ldz:
+        return None, "the supply point's charging area is not known"
+    start, end = date.fromisoformat(first_gas_day), date.fromisoformat(last_gas_day)
+    if end < start:
+        raise ValueError(f"a billing period ends on or after it starts: {first_gas_day}..{last_gas_day}")
+    cvs = []
+    day = start
+    while day <= end:
+        cv = feed.published_cv(ldz, day.isoformat(), as_of)
+        if cv is None:
+            return None, f"no CV for {ldz} on gas day {day.isoformat()} had been published by {as_of}"
+        cvs.append(cv)
+        day += timedelta(days=1)
+    return period_calorific_value(cvs), PERIOD_AVERAGE
 
 
 def metric_volume(volume: float, read_unit: str) -> float:
