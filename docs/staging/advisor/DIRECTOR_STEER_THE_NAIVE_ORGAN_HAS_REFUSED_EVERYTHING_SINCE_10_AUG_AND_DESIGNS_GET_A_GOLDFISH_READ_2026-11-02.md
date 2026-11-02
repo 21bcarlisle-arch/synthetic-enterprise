@@ -50,3 +50,55 @@ Probable failure mode: a repair that only removes the three looping claims (keye
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 2 Nov 2026, his words above; the measurement and drafting are the advisor's.
+
+## Done (part 1, 2 Nov; the file stays here until the design read has run once)
+
+**Cause, measured on the live log and a no-model dry run of the detectors.** The advisor's hypothesis
+holds, and it was half the cause.
+- *Self-feed.* `process_run_complete` publishes `render_digest_section()` into `LATEST.md`, and T3 and
+  T4 read `LATEST.md` as claims. On 2 Nov, 74 of the 85 live T3 triggers were the organ's own questions.
+- *Cap starvation (not in the hypothesis).* `run_system_organ` counted a purpose decline toward
+  `max_new=3`. Three self-fed lines quote GOAL_CONST's "north star" and are declined, so they filled
+  all three slots ahead of every real trigger on every cycle. The 40 un-asked triggers never got a slot.
+- *No debounce on declines.* Only `open` was debounced, so the same three declines were re-logged
+  about 144 times a day. The total is 27,663 declines. Since 2026-08-10T07:49Z there have been 17,390
+  entries, and every one is `T3_inherence`/`declined_purpose`.
+
+**Repaired, not retired.** Each fix is keyed to its property, not to the three claims.
+- `without_own_output` drops any line carrying a question the organ logged. It matches on the
+  question's text, not on the digest's layout.
+- Only a model call spends the cap.
+- A decline already on record is not written again.
+- The purpose line is unchanged: `is_purpose_claim` and its tokens are untouched.
+
+Control: `tests/background/test_the_naive_organ_asks_again_and_never_reads_its_own_questions.py`.
+- Input: the three real looping questions, verbatim, plus one ordinary claim and one purpose claim,
+  with `max_new=1`.
+- One test covers the partition: it asserts one ask and one decline, and that a second cycle writes
+  nothing.
+- Five mutants each turn it red: self-feed restored, declines spend the cap, declines re-logged,
+  everything declined, nothing declined.
+
+**A refuted prediction, kept.** I predicted that after the repair at least one never-asked trigger
+would be askable on live state. None is.
+- The 10 triggers left are all questions asked before 10 Aug that are still `open`.
+- The last three days' 66 commit subjects carry none of T3's tokens.
+
+So the organ is unblocked but has nothing new to ask today. The 104 open questions from July and
+August are what it is waiting on. Answering or closing them is the next lever, and it is not done here.
+
+**Single-verdict scan** of every `docs/observability/**/*.jsonl` with 50 or more rows, over the last 2,000:
+- `naive_organ_log.jsonl`: `verdict=declined_purpose` 2000/2000. This is the organ above, now fixed.
+- `model_tier_log.jsonl`: `outcome=SPAWNED` 1999/1999 (3,635/3,635 lifetime). This is constant by
+  construction: `log_decision` defaults it and its only caller (`worker_tick.py:549`) passes nothing
+  else. It is a launch record, not a verdict.
+- `heavy_job_deferrals.jsonl`: `admitted=False` 2000/2000 (4,521/4,521 lifetime). This is a deferral-only
+  log by construction. The content is worth reading: 1,994 of the last 2,000 defer `sim_run`, the
+  latest on "landings come before experiments".
+- Six other logs carry no verdict-like field and are not graded by this scan: `decision_log`,
+  `instructions_loaded_log`, `size_ratchet_warnings`, `staging_root_resurrection`,
+  `test_execution_log` and `token-usage-log`.
+
+**Still owed (part 2).** The fresh-context design read. Its first qualifying proposal is
+`THE_VALUE_TEST_REDESIGN.md`, which does not exist on 2 Nov. It runs through the phase-close
+evaluator or the two-reader machinery (no new gate) and is measured through `judge_validation`.
