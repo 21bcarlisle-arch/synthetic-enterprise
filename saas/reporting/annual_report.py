@@ -1232,6 +1232,13 @@ def extract_report_data(run_output: dict) -> dict:
         "basis_risk_terms": phase2b.get("basis_risk_terms", []),
         "churn_basis_risk": phase2b.get("churn_basis_risk", []),
         "retention_log": phase2b.get("retention_log", []),
+        # The SLC 22C statements. Absent, never empty, on a run that predates them: the billing
+        # ledger reads absence as "not recorded" and an empty list as "sent none". Dropped here
+        # until 2026-11-02, so every production book breached INV_RENEWAL_NOTICE 1,171 times.
+        **({"renewal_notice_log": phase2b["renewal_notice_log"]}
+           if "renewal_notice_log" in phase2b else {}),
+        # The Trading page's VaR per year (`generate_dashboard_data`); dropped here until 2026-11-02.
+        "hedge_var_log": phase2b.get("hedge_var_log", []),
         "no_offer_churn_log": phase2b.get("no_offer_churn_log", []),
         # No default, so a run that predates the log reads `None` and never zero. Dropped here
         # until 2026-10-11: the run at 3f1ebfac3 computed it and its saved payload did not carry it.
