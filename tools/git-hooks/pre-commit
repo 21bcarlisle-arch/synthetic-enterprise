@@ -56,6 +56,12 @@ fi
 # there would delete the `--drops` escape hatch rather than add a check.
 python3 -m tools.stale_copy_refusal --staged || exit 1
 
+# UKDS MICRODATA (director ruling, 2 Nov 2026: "a pre-commit guard that refuses any file from that
+# path or with a UKDS dataset signature"). Licensed survey files live in ~/ukds/, outside this public
+# repo; only aggregates written fresh into the tree leave it. Mutation-proven in
+# tests/tools/test_a_ukds_microdata_file_cannot_be_committed.py.
+python3 -m tools.ukds_microdata_refusal --staged || exit 1
+
 # TEST GATE (director P0, 2026-07-17): a commit with red tests is STRUCTURALLY IMPOSSIBLE, not
 # merely discouraged -- structural impossibility over remembered discipline (two red commits
 # landed tonight because "run tests then commit" is a remembered process, and remembered processes

@@ -43,8 +43,9 @@ Nothing else. The SERL per-home Observatory needs a university partnership and i
   site or a commit. The repository is public.
 - Only aggregate, non-disclosive outputs leave that directory: fitted factor loadings, and cross-tabs that meet each
   depositor's minimum cell size. Each is cited as the licence requires.
-- A pre-commit guard will refuse any file from that path or carrying a UKDS dataset signature. **It is owed and not
-  yet built**; it lands before the files do.
+- A pre-commit guard refuses any file from that path or carrying a UKDS dataset signature: a download-bundle
+  directory (`UKDA-6614-tab`), a study information page, or a `.dta`/`.sav`/`.por`/`.sas7bdat` file
+  (`tools/ukds_microdata_refusal.py`, wired into `tools/git-hooks/pre-commit`).
 - You download the files, put them in `~/ukds/`, and say "done" in chat, as with the HF token.
 
 Until then, every factor is fitted one attribute at a time from published cross-tabs, as now.
