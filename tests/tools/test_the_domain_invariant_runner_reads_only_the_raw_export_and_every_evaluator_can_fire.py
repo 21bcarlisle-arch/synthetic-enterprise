@@ -12,6 +12,7 @@ The defects these tests name:
 from __future__ import annotations
 
 import ast
+import json
 from pathlib import Path
 
 import yaml
@@ -1017,6 +1018,33 @@ def test_the_estimate_row_grades_both_rungs_of_the_declared_policy():
         dict(quote(3650.0, march_annual=4500.0), customer_id="Q"), dict(reads, customer_id="R"))])
     hit = {b["where"].split()[0] for b in tally.breaches}
     assert hit == {"Q", "R"}, hit
+
+
+def test_the_estimate_row_dates_the_switch_from_the_supply_start_when_the_first_bills_were_held(tmp_path):
+    """SYN-2016-582 on the 08f267b666 book: supplied from 10 Dec 2016, its Dec-Mar bills held before
+    issue, so the page's bills start in April. Its 31 Jul read is 234 days into the supply, so its
+    supplier estimates Aug on the reads rung; dated from the first printed bill it is 122 days in, and
+    the row graded Aug on the quote rung, 8% under April to June's figure (2 breaches). With the
+    page's acquisition date the switch is taken from the supply start and Aug is not a quote bill.
+    Mutation: dropping the `min` reds the first assert, and dropping `acquisition_date` from
+    `load_printed` reds the last; the second shows the quote rung still breaches when the supply did
+    start in April."""
+    def acct(acquired):
+        def e(start, end, a):
+            d = runner._d
+            return runner._shape("electricity", d(start), d(end)) * a * ((d(end) - d(start)).days + 1)
+        bills = [_bill("2017-%02d-01" % m, "2017-%02d-%02d" % (m, n), e("2017-%02d-01" % m, "2017-%02d-%02d" % (m, n),
+                       8000.0), "E", days_in_period=n, **({"opening_read_kwh": 0.0} if m == 4 else {}))
+                 for m, n in ((4, 30), (5, 31), (6, 30))]
+        bills.append(_bill("2017-07-01", "2017-07-31", 600.0, "A", close=8000.0))
+        bills.append(_bill("2017-08-01", "2017-08-31", e("2017-08-01", "2017-08-31", 7300.0), "E", days_in_period=31))
+        return _printed_account("H", "electricity", {"invoices": bills, "acquisition_date": acquired})
+    i = "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS"
+    assert _grade_one(i, acct("2016-12-10"))[:2] == ("CLEAN", [])
+    assert _grade_one(i, acct("2017-04-01"))[:2] == ("BREACHED", ["below"])
+    assert _grade_one(i, acct(None))[:2] == ("BREACHED", ["below"])
+    (tmp_path / "H.json").write_text(json.dumps({"acquisition_date": "2016-12-10", "invoices": []}))
+    assert runner.load_printed(tmp_path)["H"]["acquisition_date"] == "2016-12-10"
 
 
 def test_the_estimate_row_holds_every_advance_the_published_methods_allow_and_none_past_them():

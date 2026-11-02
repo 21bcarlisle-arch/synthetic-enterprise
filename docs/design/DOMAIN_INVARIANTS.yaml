@@ -2860,7 +2860,7 @@ invariants:
     Per estimated bill (read_type E) on one meter_serial: e = consumption_kwh / days_in_period, the estimate's daily use. It is compared with what the supplier knew at issue, from its own actual reads (A)
     on the same meter_serial dated on or before the estimated bill's period_start. ref_short = the daily advance between the last two actual reads (closing_read_kwh difference over the days between them).
     The rung is the supplier's declared estimation policy for the account (declared_policy below), read from the page: QUOTE until the latest actual read on the meter_serial before period_start is
-    switch_days or more after the change-of-supply day (the first bill's period_start less one day), READS after. On the quote rung: a = e / (mean daily share over the estimate's days), the annual figure the
+    switch_days or more after the change-of-supply day (the first bill's period_start less one day, or the page's acquisition_date less one day where that is earlier: a bill held before issue is not printed, but the supply it billed is; added 2026-11-02, SYN-2016-582), READS after. On the quote rung: a = e / (mean daily share over the estimate's days), the annual figure the
     estimate implies. On the reads rung: ref_long = the daily advance over each window of at least 182 days, and at most 1,095 (36 months), that ends at the last actual read and starts at an actual read or at the change-of-supply opening
     read (the first bill's opening_read_kwh, dated the day before its period_start). Each reference is reshaped to the estimate's days by the published monthly shape: ref x (mean daily share over the estimate's days) / (mean daily share over the reference's days). Unit graded: per estimated bill.
   statement: >-
@@ -2878,7 +2878,7 @@ invariants:
       The company's own declaration (how_a_supplier_shapes_an_estimate_for_an_unread_month.md §7 and §10; company/billing/unread_month_estimate.MIN_ADVANCE_DAYS, held equal by
       tests/tools/test_the_domain_invariant_runner_reads_only_the_raw_export_and_every_evaluator_can_fire.py). A policy the supplier changes in an experiment is re-declared here, and the row grades the new one.
       quote_q is a BELIEF: the quote rung prints one figure, so only rounding and the figure in force moving should spread a; on the 209c3350ab book p99.9 |a/median - 1| is 0.46% and the largest 3.2%
-      (SYN-2016-582 electricity, Aug and Sep 2017, after a first read; not traced).
+      (SYN-2016-582 electricity, Aug and Sep 2017, after a first read; traced 2026-11-02: reads-rung bills dated from a late first bill, its Dec-Mar bills held before issue).
   evaluation: >-
     Quote rung: on each meter_serial with two or more quote-rung E bills, breach unless (1 - quote_q) x median(a) <= a <= (1 + quote_q) x median(a); one quote-rung bill alone is not graded.
     Reads rung: for each E bill with at least two actual reads on its meter_serial before its period_start (otherwise not graded: the estimate rests on a registry EAC/AQ the page does not show), with the shaped

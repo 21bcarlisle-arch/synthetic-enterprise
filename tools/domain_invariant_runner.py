@@ -109,6 +109,7 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
             "meter_type": d.get("meter_type"),
             "commodity": d.get("commodity"),
             "household": d.get("base_account_id"),
+            "acquisition_date": d.get("acquisition_date"),
         }
     # The carbon panel is its own file, per household and year, one leg per fuel.
     carbon = Path(customers_dir).parent / "explore_carbon.json"
@@ -1880,9 +1881,18 @@ def ev_estimate_follows_reads(inv, book):
         if a.printed is None or a.fuel not in MONTHLY_SHARE:
             continue
         t = float(t_of[a.fuel])
+        first_bill = _printed_bills(a)[0]["period_start"] if _printed_bills(a) else None
+        acquired = a.printed.get("acquisition_date")
         for serial, bills in _by_serial(a).items():
             reads = _meter_reads(bills)
-            supply_start = _d(bills[0]["period_start"]) - timedelta(days=1)
+            # The supply starts on the page's acquisition date where that is earlier than the first
+            # bill printed: a bill held before issue is not on the page, but the supply it billed is,
+            # and the supplier's register log opens on it. SYN-2016-582's Dec-Mar bills were held,
+            # and dated from April its Aug and Sep reads-rung estimates graded on the quote rung.
+            start_day = _d(bills[0]["period_start"])
+            if acquired and bills[0]["period_start"] == first_bill:
+                start_day = min(start_day, _d(acquired))
+            supply_start = start_day - timedelta(days=1)
             opening = bills[0].get("opening_read_kwh")
             switch = ([(supply_start, float(opening))] if opening is not None else [])
             # Each actual read's register reads, by read day, so a reference can be taken per register.

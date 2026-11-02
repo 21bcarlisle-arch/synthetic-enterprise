@@ -23,6 +23,15 @@
 # was the printed per-day rate of a period billed exactly at the cap and rounded to the penny. The
 # invariants now carry a penny-per-period tolerance, and the same book grades 0 on both.
 #
+# 2026-11-02: the INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS exception (2 bills, SYN-2016-582 Aug and
+# Sep 2017) is retired. Traced from the 08f267b666 book: the account was supplied from 10 Dec 2016 and its
+# Dec-Mar bills were held before issue, so the row dated the change of supply from April and graded two
+# reads-rung estimates on the quote rung. The company billed each register off its own Dec-Jul advance
+# exactly (Day 732.4, Night 335.9), and the guessed cause (308a3f168e over-correcting) is refuted. The row
+# now dates the supply from the page's acquisition date; the same book grades 0 of 30,708. Graded on the
+# same book, not a fresh run, because the fix is in the grader and the company's bills do not move. Grade beside
+# docs/staging/records/SEAT_PREREGISTRATION_SYN_2016_582S_SUMMER_ESTIMATES_ARE_ON_THE_READS_RUNG_ITS_CHANGE_OF_SUPPLY_IS_THE_HELD_DECEMBER_2026-11-02.md.
+#
 # 2026-10-30: the INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS exception (179 bills, E1's registry
 # branch) is retired. The director's ruling of 30 Oct makes the row grade an estimate against the
 # supplier's declared policy, and a new account's baseline is the quote's figure until its reads span
@@ -219,20 +228,3 @@ exceptions:
     filed: 2026-10-30
     retired_by: the printed energy line priced on the printed kWh (the same volume the Treasury's share is computed on), graded 0 on a fresh run
     max_breached: 350
-  # 2026-11-02: the 65bbdc6787 book graded the nine 7c34f48a64 breaches at 0 (1b709ac0e9, 8cf2ecb744) and
-  # one row new to the refusal list, below. It was hidden before: those accounts' bills printed single-rate
-  # or one-band, which the row did not grade on the PC2 per-register shape.
-  - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
-    scope: 2 of 30,710 graded estimated bills on the 08f267b666 book (graded 2 Nov; 18 on 65bbdc6787), both SYN-2016-582 electricity, Aug and Sep 2017, 3% BELOW the bound (210.9 and 213.5 against 217.6 kWh a day)
-    reason: >-
-      Graded 2 Nov on the first book carrying 308a3f168e (each PC2 register annualised on its own share). The
-      prediction was 18 to 0 and it did not hold: the 18 above-bound bills on PROS-2017-0336, SYN-2016-565,
-      SYN-2016-042 and SYN-2016-225 are gone (none of the four is in the row's breach list), and two new ones
-      appear on a fifth profile class 2 home, SYN-2016-582, on the OPPOSITE side (under the bound, where the
-      18 were over it). That is consistent with the fix over-correcting a little on that home, but it is not
-      traced: the cause is a hypothesis from the profile class and the side, not a reproduction from the book's
-      reads. Not retired for that reason. 2 of 30,710 is 0.007% of graded bills; an estimate is trued up at the
-      next actual read, so only timing moves.
-    filed: 2026-11-02
-    retired_by: SYN-2016-582's Aug and Sep 2017 estimates traced (the per-register share on a home with a Day-heavy register is the first thing to read) and the cause fixed or ruled lawful, graded 0 on a fresh run
-    max_breached: 2
