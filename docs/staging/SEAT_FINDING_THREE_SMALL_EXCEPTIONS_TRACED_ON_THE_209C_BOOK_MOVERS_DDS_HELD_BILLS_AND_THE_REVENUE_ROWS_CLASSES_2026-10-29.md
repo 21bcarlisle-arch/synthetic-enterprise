@@ -73,7 +73,7 @@ The households use 1,290 to 2,480 kWh a month, about 79 kWh a day, which is elec
 panel sums the run's settlement bills (`generate_customer_consumption._monthly_from_bills`, "real settlement
 consumption"). The carbon panel sums the bills the ledger issued (`generate_explore_carbon._billed_by_year`). So
 a held bill is on one panel and not the other. **The defect is that nothing ever works the queue.** A real supplier
-reviews a held bill and issues it. Here it stays unbilled for good. A domestic supply is 5% VAT at any volume (the
+reviews a held bill and issues it. Here it stays unbilled for good. *(Corrected 2026-11-02, beside the claim: not always for good. On the 08f267b666 book SYN-2016-582's four held bills, Dec 2016 to Mar 2017, are billed by the 31 Jul 2017 read's catch-up as one lump: 8,661 kWh undercharged, a £1,220.95 bill 5.7 times the one before. The energy is recovered; the customer gets four months' bills at once, which a worked queue would have issued on time. The held months also moved the page's first bill to April, which misdated the change of supply for INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS (docs/staging/records/SEAT_PREREGISTRATION_SYN_2016_582S_SUMMER_ESTIMATES_ARE_ON_THE_READS_RUNG_ITS_CHANGE_OF_SUPPLY_IS_THE_HELD_DECEMBER_2026-11-02.md).)* A domestic supply is 5% VAT at any volume (the
 de minimis applies to business use), so the VAT hold on a resi account is a mislabel screen that needs a person to
 clear it.
 
