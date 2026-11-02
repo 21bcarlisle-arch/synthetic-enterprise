@@ -86,3 +86,16 @@ The director's words, 17:20 GMT: "This starts to get into competitive simulation
 
 Where today's world already produces switching-away without modelled rivals, keep it as it is. Do not extend it into a competitor field under this steer.
 
+
+## Progress (2026-11-02, worker tick; the steer stays open until its world build is done or ruled out)
+
+- **Ask 1, calibrate from data: drafted.**
+  - The page is `docs/market_research/reputation_resentment_and_feedback_calibrated_against_the_gb_record_2026-11-02.md`. It is published under the `communications-sentiment-and-nps` topic.
+  - Every constant in `simulation/resentment_ledger.py`, `reputation_index.py` and `feedback_survey.py` is graded with a range, or marked GAP. None rests on a GB source.
+  - The pack's load-bearing figures were checked at source (Centrica AR 2018; Ofgem Consumer Survey 2021; both Trustpilot pages). Raw files and extracts are in `data/lake/`.
+  - One D result, from Ofgem CIM Waves 3-6: trust decides **where** a move goes (out, or in-house), more than whether one happens. This corrects the pack's "inertia, not trust".
+  - Two world defects are recorded: a repair credit that never decays, and a reputation index with no decay. Both are log-only today.
+- **Competitive asks: filed, not built.** They are held as R-C1 to R-C6 in `docs/design/COMPETITOR_FIELD_FRAME.md` §10.
+- **Still owed:**
+  - the GAP-R2 event study (reputation half-life from Ofgem's satisfaction waves);
+  - Asks 2, 4 and 5 as world build, after the correctness exit test, ranked in the corpus steer's roadmap row.
