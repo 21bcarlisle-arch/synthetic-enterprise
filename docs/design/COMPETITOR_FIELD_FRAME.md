@@ -271,3 +271,24 @@ None of steps 1-5 are opened by this document — BUILD-open for this atom remai
 per `EPOCH_GATING_AND_ATOM_AUTHORSHIP.md` §3a, and `W2_3` itself would need to reach the richer
 per-rival L2+ state (§1) before B4-a's stub could be upgraded to a real multi-rival read without
 re-violating the epistemic wall this FRAME just closed.
+
+## 10. Held for this atom: the competitive half of the reputation steer (filed 2026-11-02)
+
+The director's addendum of 30 Oct, 17:20 GMT, to
+`docs/staging/advisor/DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md`:
+"This starts to get into competitive simulation which is a next not now topic." These six items are named here and
+**not built**. They open with this atom. Their knowledge base is the advisor's pack
+(`docs/staging/advisor/done/DIRECTOR_EVIDENCE_BRAND_EQUITY_REPUTATION_AND_FEEDBACK_LOOPS_2026-10-30.md`, Parts B-C)
+and `docs/market_research/reputation_resentment_and_feedback_calibrated_against_the_gb_record_2026-11-02.md`.
+
+| # | Held item | What it needs from this atom | Evidence on file |
+|---|---|---|---|
+| R-C1 | Reputation moving prospects' choice *between* suppliers | Rivals with their own reputation, observable to prospects | Which? 2025: 33% chose on reputation, 45% on price (P, not re-read) |
+| R-C2 | Cost of acquisition relative to rivals | A rival field that prices acquisition | Octopus CPA −36% after a bidding change (S, confounded). GB absolute CPA is a GAP. |
+| R-C3 | Referrals as a share-gaining channel | Prospects who are a rival's customers | Octopus: about £100m of referral rewards over about 8 years (P). The referral share of gross adds is a GAP. |
+| R-C4 | Price tolerance *relative to the market* | A market price to be relative to | Deller et al. 2021 (P qualitative). The brand-equity premium magnitude is A. |
+| R-C5 | Sector trust shocks across suppliers | More than one supplier to share a sector | Ofgem 2021 sector trust 34% (P); CIM W6 41% (P); the 2021 failures (NAO, P) |
+| R-C6 | The overcharge-against-fair-pricing test of the director's hypothesis | R-C1 to R-C4, because its losses run through switching to rivals and acquisition against them | Centrica 2017-18 net losses with brand NPS flat (P, read 2026-11-02) |
+
+Where today's world already produces switching away without modelled rivals, it stays as it is (the addendum's last
+paragraph).
