@@ -3635,6 +3635,9 @@ _REFUSING_GATE_BANNERS = (
     # creates. When that lane lands, the leg above turns red and names the gate for them.
     ("stale-copy guard",
      ("[stale-copy] ❌ COMMIT REFUSED -- ",), "tools/stale_copy_refusal.py"),
+    # Second in the chain, before the test gate. The pass path prints nothing at all.
+    ("ukds-microdata guard",
+     ("[ukds-microdata] COMMIT REFUSED: ",), "tools/ukds_microdata_refusal.py"),
     ("finding-class consolidation",
      ("❌ FINDING-CLASS CONSOLIDATION BROKEN",), "tools/pre_commit_test_gate.py"),
     ("finding-severity gate",
