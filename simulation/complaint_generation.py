@@ -140,31 +140,58 @@ class CalibrationRefused(ValueError):
     """The world cannot carry the published record at its own trigger rates; the reason says which part."""
 
 
+@dataclass(frozen=True)
+class Derivation:
+    """Per-cause probabilities for the causes the world can carry, and a named reason for each it cannot."""
+    probability: dict[ComplaintCause, float]
+    refused: dict[ComplaintCause, str]
+
+    @property
+    def carried_share(self) -> float:
+        """The share of the published complaint mix this world can produce: the complaint rate it
+        draws is this fraction of the published rate, and the rest is a named gap, not a zero."""
+        return sum(CAUSE_SHARE[c] for c in self.probability)
+
+
+def derive_where_the_world_can_carry(
+    period: str, trigger_prevalence: dict[ComplaintCause, float],
+) -> Derivation:
+    """`complaint_probability_given_trigger`, keeping the causes that derive and naming the ones that do not.
+
+    `trigger_prevalence[cause]` is the share of accounts the WORLD put through that trigger in the
+    quarter, measured by the caller. A cause the world never produces, or produces too rarely to
+    carry its published share, is refused by name rather than zeroed (K2).
+    """
+    rate = complaints_per_account_quarter(period).value
+    probability, refused = {}, {}
+    for cause, share in CAUSE_SHARE.items():
+        prevalence = trigger_prevalence.get(cause, 0.0)
+        need = rate * share
+        if prevalence <= 0.0:
+            refused[cause] = (
+                f"{cause.value}: the world produced no {cause.value} trigger in {period}, so its "
+                f"{share:.1%} of complaints has nowhere to come from")
+        elif need > prevalence:
+            refused[cause] = (
+                f"{cause.value}: {need:.4%} of accounts must complain about it in {period}, but the "
+                f"world put only {prevalence:.4%} through it")
+        else:
+            probability[cause] = need / prevalence
+    return Derivation(probability, refused)
+
+
 def complaint_probability_given_trigger(
     period: str, trigger_prevalence: dict[ComplaintCause, float],
 ) -> dict[ComplaintCause, float]:
     """P(complaint about cause | the household met that trigger this quarter), per cause.
 
-    `trigger_prevalence[cause]` is the share of accounts the WORLD put through that trigger in the
-    quarter, measured by the caller. A cause the world never produces is refused, not zeroed: its
-    published share of complaints would silently vanish (K2).
+    Refuses unless the world carries every cause: a missing one's published share would silently
+    vanish (K2).
     """
-    rate = complaints_per_account_quarter(period).value
-    out = {}
-    for cause, share in CAUSE_SHARE.items():
-        prevalence = trigger_prevalence.get(cause, 0.0)
-        need = rate * share
-        if prevalence <= 0.0:
-            raise CalibrationRefused(
-                f"{cause.value}: the world produced no {cause.value} trigger in {period}, so its "
-                f"{share:.1%} of complaints has nowhere to come from")
-        p = need / prevalence
-        if p > 1.0:
-            raise CalibrationRefused(
-                f"{cause.value}: {need:.4%} of accounts must complain about it in {period}, but the "
-                f"world put only {prevalence:.4%} through it")
-        out[cause] = p
-    return out
+    d = derive_where_the_world_can_carry(period, trigger_prevalence)
+    if d.refused:
+        raise CalibrationRefused("; ".join(d.refused.values()))
+    return d.probability
 
 
 def draw_complaints(household_id: str, period: str, triggers_met: set[ComplaintCause],

@@ -498,6 +498,25 @@ What follows for L2:
 - **The live roll is low in level and has the wrong shape.** It drew 105 complaints in 9.5 years: about 2.3% of accounts a year,
   against the portal's ~4%. It drew none in 2022, and filed every one as billing.
 
+**How much of the record this world can carry (2026-11-02, the census shares above put through the derivation).**
+`derive_where_the_world_can_carry` keeps the causes that derive and names the ones that do not. Its `carried_share`
+is the fraction of the published complaint mix the world can produce, so the rate it draws is the published rate
+times that fraction. The rest is a named gap, not a zero. The strict `complaint_probability_given_trigger` still
+refuses unless every cause is carried. At the census mean and at 2022Q1 the world carries **18.9%**: catch-up bill
+1.9%, disputed balance 2.6%, customer service 9.3% and debt contact 5.1%. Wired today, it would draw about one
+complaint in five that the record says happened. The producers that would close the gap, by the share each carries:
+
+| Cause | Share of the mix | What the world lacks |
+|---|---|---|
+| price rise | 22.9% | A price notice to every SVT account at a cap move. Today only a renewal shock counts: 0.17% of accounts against the 0.23% needed, and none in 2022Q1 |
+| other billing | 20.6% | Any billing-error event. `FrictionEventType.BILLING_ERROR` is never recorded |
+| meter | 17.8% | A meter fault or exchange the household meets |
+| transfer | 12.7% | A switch that goes wrong: erroneous transfer, delay, final-bill dispute |
+| disputed usage | 7.1% | GAP: whether a catch-up after estimates counts as disputed usage. The Ombudsman's category is not defined finely enough in what we hold to say so |
+
+Price rise comes first, because the mechanism exists and only the place it is counted is wrong. Until these exist,
+wiring is honest only if `carried_share` is published beside every complaint figure.
+
 **A defect found by the census, fixed the same day.** The company's complaint book never closed a complaint. The
 desk raised each contact and dropped the resolution the world had drawn, so the published year summary read 105
 outstanding, 0 resolved and 0 referred. On that book the fix reads 97 resolved and 8 referred to the Ombudsman.

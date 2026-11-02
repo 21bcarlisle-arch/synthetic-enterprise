@@ -9,6 +9,7 @@ from simulation.complaint_generation import (
     CalibrationRefused,
     complaint_probability_given_trigger,
     complaints_per_account_quarter,
+    derive_where_the_world_can_carry,
     draw_complaints,
     draw_silent_unhappy,
     silent_unhappy_probability,
@@ -101,3 +102,23 @@ def test_an_unpublished_quarter_carries_its_gap_and_a_published_one_does_not():
     gap = complaints_per_account_quarter("2022-10-01")
     assert gap.basis == NEAREST_ANCHOR_GAP and gap.period == "2025Q4"
     assert sum(CAUSE_SHARE.values()) == pytest.approx(1.0)
+
+
+def test_a_world_missing_causes_draws_the_published_rate_times_what_it_carries_and_names_the_rest():
+    """Defect: wiring the derivation into a world that lacks producers either refuses outright, so
+    nothing is ever drawn, or zeroes the missing causes and reads the shortfall as the record (K2).
+    The world as built produces five of nine triggers (communications_sentiment_and_nps.md §9)."""
+    book, full = _book()
+    whole = derive_where_the_world_can_carry(PERIOD, full)
+    produced = {C.CATCH_UP_BILL, C.DISPUTED_BALANCE, C.DEBT_CONTACT, C.CUSTOMER_SERVICE}
+    partial = {c: v for c, v in full.items() if c in produced}
+    partial[C.PRICE_RISE] = 1e-6                          # produced, but too rarely to carry its share
+    d = derive_where_the_world_can_carry(PERIOD, partial)
+    assert not whole.refused and whole.carried_share == pytest.approx(1.0)
+    assert set(d.probability) == produced and set(d.refused) == set(C) - produced
+    assert all(c.value in reason for c, reason in d.refused.items())
+    drawn = sum(len(draw_complaints(hid, PERIOD, met & produced, d.probability))
+                for hid, met in book.items()) / len(book)
+    expected = complaints_per_account_quarter(PERIOD).value * d.carried_share
+    assert drawn == pytest.approx(expected, rel=0.15)
+    assert 0 < d.carried_share < 1
