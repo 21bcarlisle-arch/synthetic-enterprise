@@ -76,7 +76,7 @@ five of the seven, each by a stated answer and none by what the household then d
 | Carbon | "prepared to pay slightly more for green energy investment" (T134) | stated willingness | carbon saved or saveable. It is the only carbon-adjacent item |
 | Floor | "cut energy because we cannot afford it" (T136) | a stated cut | a measured temperature or a breach; a cut can be sensible |
 
-A stated answer overstates what is later paid (the 3-5x stated-against-revealed gap, corpus page 5). Every figure below
+A stated answer overstates what is later paid (corpus page 5, `stated_against_revealed_preference_and_defaults_2026-11-02.md`: the "3-5x" first cited here divides two populations and is corrected there to an offset of 28-36 points, and a contrast between households shrinks by a factor that differs by contrast). Every figure below
 is therefore an upper bound on behaviour and a direct measure of belief.
 
 ## 2. How big each group is (D)
