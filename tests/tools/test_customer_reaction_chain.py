@@ -2,14 +2,20 @@
 CUSTOMER_360_REDESIGN.md v4 items 3 (events perturb the chain, real numeric
 effects) and 4 (reaction closes the loop, reusing decision_event_ledger)."""
 import json
-from pathlib import Path as _P
 import sys
+from pathlib import Path as _P
 
 sys.path.insert(0, str(_P(__file__).resolve().parents[2]))
 
 from tools.generate_customer_reaction_chain import (
-    _base_id, _usage_effect, _economic_effect, _renewal_effect, _add_effects,
-    _move_out_events, _predecessor, _ev_effect,
+    _add_effects,
+    _base_id,
+    _economic_effect,
+    _ev_effect,
+    _move_out_events,
+    _predecessor,
+    _renewal_effect,
+    _usage_effect,
 )
 
 
@@ -203,3 +209,44 @@ def test_add_effects_routes_an_ev_by_the_accounts_fuel_and_clears_a_stale_effect
                  "effect": "Usage moved -65% (avg 1353 kWh/mo -> 473 kWh/mo)"}]
     out = _add_effects(timeline, [], seasonal_gas, {}, commodity="gas", is_dual_fuel=False)
     assert "Usage moved" not in out[0]["effect"] and "not observable" in out[0]["effect"].lower()
+
+
+def test_a_case_repaid_after_the_ledgers_as_of_prints_no_cleared_moment(tmp_path, monkeypatch):
+    """PROS-2025-0013 on 85b044be54: the arrears case ends ARREARS_REPAID on 2025-07-07, the page
+    ledger is as of 2025-07-04 and still shows the bill owed, so a "repaid" moment in the chain says
+    cleared over a balance the same page shows unpaid. The chain cuts at the ledger's clock; a case
+    repaid on or before it still shows its repayment (the cut can be not-taken)."""
+    import tools.generate_customer_reaction_chain as gcr
+
+    cust_dir = tmp_path / "customers"
+    cust_dir.mkdir()
+    for cid in ("LATE", "ONTIME"):
+        (cust_dir / (cid + ".json")).write_text(json.dumps(dict(account_id=cid, timeline=[], invoices=[],
+                                                               consumption={"monthly": []})))
+
+    def case(repaid_on):
+        return dict(arrears_gbp=9.74, stages=[
+            dict(stage="DD_FAILED", date="2025-06-23"), dict(stage="FIRST_NOTICE", date="2025-06-30"),
+            dict(stage="ARREARS_REPAID", date=repaid_on)])
+
+    ledger_path = tmp_path / "billing_ledger.json"
+    ledger_path.write_text(json.dumps(dict(customers=dict(
+        LATE=dict(invoices=[dict(invoice_number="INV1", issue_date="2025-07-04")],
+                  arrears_history=[case("2025-07-07")]),
+        ONTIME=dict(invoices=[dict(invoice_number="INV2", issue_date="2025-06-01")],
+                    arrears_history=[case("2025-07-02")]),
+    ))))
+    run_json = tmp_path / "run.json"
+    run_json.write_text(json.dumps(dict(
+        per_customer_behavioral={}, customer_events=[], retention_log=[], churn_journey_log=[],
+        company_event_log=[], acquisition_funnel_log=[],
+    )))
+    monkeypatch.setattr(gcr, "CUSTOMERS_DIR", cust_dir)
+    monkeypatch.setattr(gcr, "LEDGER_PATH", ledger_path)
+
+    assert gcr.generate(str(run_json)) == 2
+    late = [e["event_type"] for e in json.loads((cust_dir / "LATE.json").read_text())["reaction_chain"]]
+    ontime = [e["event_type"] for e in json.loads((cust_dir / "ONTIME.json").read_text())["reaction_chain"]]
+    assert "arrears_first_notice" in late
+    assert "arrears_arrears_repaid" not in late
+    assert "arrears_arrears_repaid" in ontime

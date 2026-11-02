@@ -225,10 +225,13 @@ def yield_to_the_desk(arrears_events, journeys) -> list:
 
 
 def build_customer_ledger(cid, events, retention, journey_log, ledger_customer=None,
-                          collections_journeys=None, desk_journeys=None):
+                          collections_journeys=None, desk_journeys=None, as_of=None):
     """`desk_journeys` are the journeys whose hold silences this record's ledger letters, when they
     are not its own: the desk holds a dual-fuel home on one account, so its gas leg's letters yield
-    to the electricity account's journey, which is shown once, on that leg."""
+    to the electricity account's journey, which is shown once, on that leg.
+
+    `as_of` is the page ledger's clock (`generate_payment_ledger_data._book_as_of_date`): nothing
+    dated after it is shown, or the chain says "repaid" over a balance the same page shows owed."""
     held = collections_journeys if desk_journeys is None else desk_journeys
     all_events = (
         _journey_events(cid, journey_log)
@@ -237,6 +240,8 @@ def build_customer_ledger(cid, events, retention, journey_log, ledger_customer=N
         + yield_to_the_desk(_arrears_events(cid, ledger_customer), held)
         + _collections_journey_events(cid, collections_journeys)
     )
+    if as_of is not None:
+        all_events = [e for e in all_events if e.date <= as_of]
     all_events.sort(key=lambda e: e.date)
     return [e.__dict__ for e in all_events]
 

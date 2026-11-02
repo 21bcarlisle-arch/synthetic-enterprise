@@ -238,10 +238,13 @@ def generate(run_json_path=None):
         return 0
 
     from tools.generate_dashboard_data import extract_customers
+    from tools.generate_payment_ledger_data import _book_as_of_date
 
     run = json.loads(path.read_text())
     ledger = json.loads(LEDGER_PATH.read_text())
     ledger_customers = ledger.get("customers", {})
+    # The page ledger's clock: the chain cuts where the ledger does.
+    as_of = _book_as_of_date(ledger_customers)
     pcb = run.get("per_customer_behavioral", {})
     dash_customers = extract_customers(run)
     events, retention, journey_log = (
@@ -291,6 +294,7 @@ def generate(run_json_path=None):
             base, events, retention, journey_log, ledger_customers.get(cid),
             collections_journeys=journeys_by_account.get("ACC-" + cid, []),
             desk_journeys=journeys_by_account.get("ACC-" + base, []) if base != cid else None,
+            as_of=as_of,
         )
 
         cust_file.write_text(json.dumps(obj, indent=2))
