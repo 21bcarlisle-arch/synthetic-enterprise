@@ -314,9 +314,14 @@ def test_every_real_period_exports_readings_that_reproduce_our_own_volume():
             # of its registers' advances (2026-10-26).
             reads = period["reads"]
             got = sum(c["read_kwh"] - o["read_kwh"] for o, c in zip(reads[::2], reads[1::2]))
-            if abs(got - (inv.get("consumption_kwh") or 0.0)) >= 0.005:
+            # Since 1bdd86b849 (E1/E3) an actual bill after estimates opens on the last ESTIMATED
+            # reading, so its advance is this period's use plus the true-up of the estimates, which
+            # the bill carries as `catchup_kwh`. Without it, all 6,428 catch-up bills on the
+            # 08f267b666 book read as wrong; with it every period reproduces to within 1e-10 kWh.
+            billed = (inv.get("consumption_kwh") or 0.0) + (inv.get("catchup_kwh") or 0.0)
+            if abs(got - billed) >= 0.005:
                 wrong.append("{}/{}: reads give {} but the bill used {}".format(
-                    cid, inv.get("invoice_number"), round(got, 2), inv.get("consumption_kwh")))
+                    cid, inv.get("invoice_number"), round(got, 2), round(billed, 2)))
     declared = (ledger.get("meta") or {}).get("invoice_count")
     assert declared, (
         "the ledger's meta declares no invoice_count, so this walk has nothing to be checked "
