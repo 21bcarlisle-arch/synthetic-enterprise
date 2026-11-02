@@ -123,7 +123,8 @@ def test_every_outcome_that_exits_77_maps_to_exactly_one_cause():
     producible = (set(prc.PUBLISH_CAUSE_FOR_REASON.values())
                   | set(prc.PUBLISH_CAUSE_OVERRIDES)
                   | set(prc.SCOPED_GATE_CAUSES)
-                  | set(prc.DOMAIN_INVARIANT_CAUSES))
+                  | set(prc.DOMAIN_INVARIANT_CAUSES)
+                  | set(prc.LIVENESS_SURFACE_ONLY_CAUSES))
     assert producible == set(pc.CAUSES), (
         "the three production routes and the cause vocabulary must be the same closed set in "
         "both directions -- a cause nothing can produce is a branch no reader will ever see")

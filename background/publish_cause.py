@@ -164,6 +164,10 @@ BEHIND_ORIGIN = "behind_origin"
 #: one of these was filed as the other, which sent every reader at a push that was being issued
 #: correctly every time.
 LOST_PUSH_RACE = "lost_push_race"
+#: The COMMIT, not the push: the hook chain passed, git's final ref update found HEAD had moved
+#: (`cannot lock ref`), and the re-landing on the new HEAD lost the race on every attempt too.
+#: No test was judged on any tree that still exists.
+LOST_COMMIT_RACE = "lost_commit_race"
 #: THE PUBLISHER'S OWN SCOPED GATE ran and at least one test came back RED. A test WAS judged, at
 #: a sha the record names, so the blocking list is evidence about THIS cycle. Distinct from
 #: `GATE_REFUSAL` on the axis of WHICH GATE: that one is the pre-commit hook chain refusing a
@@ -202,7 +206,7 @@ PUBLISH_FIELD_SUFFIX = "_last_publish"
 #: Every cause this module will accept a write for. A write naming anything else is refused
 #: rather than stored, because a reader that trusts the field must be able to trust the set.
 CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
-                    PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE,
+                    PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE, LOST_COMMIT_RACE,
                     SCOPED_SUITE_RED, SCOPED_GATE_UNJUDGED, DOMAIN_INVARIANT_REFUSED})
 
 #: Causes on which NO test returned a verdict, so no blocking list or suspect may be attached.
@@ -213,7 +217,7 @@ CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEV
 #: carry it.
 NO_TEST_JUDGED_CAUSES = frozenset({NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
                                    PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE,
-                                   SCOPED_GATE_UNJUDGED, DOMAIN_INVARIANT_REFUSED})
+                                   LOST_COMMIT_RACE, SCOPED_GATE_UNJUDGED, DOMAIN_INVARIANT_REFUSED})
 
 #: Mirrors the publisher's blocking-record bound for the same reason that one has a default:
 #: a reader outside the publish path must not import the publisher to learn a policy. Held
