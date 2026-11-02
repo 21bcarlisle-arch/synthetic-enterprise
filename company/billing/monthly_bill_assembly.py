@@ -48,6 +48,7 @@ IS.
 
 from __future__ import annotations
 
+import collections
 import dataclasses
 from collections.abc import Callable
 from datetime import date, datetime, timedelta
@@ -259,7 +260,8 @@ def _estimated_settlement_records(
 
 
 def _estimate_records_at_tariff_rate(
-    settlement_records: list[dict], est_kwh: float, commodity: str
+    settlement_records: list[dict], est_kwh: float, commodity: str,
+    by_register: dict[str, float] | None = None,
 ) -> list[dict] | None:
     """Price an estimate over a period whose settled rows hold no energy, at the rows' own tariff.
 
@@ -277,23 +279,59 @@ def _estimate_records_at_tariff_rate(
     Inside the EPG the row rate is the Ofgem level the supplier receives, and the row's own receipt
     is 0.0 because its kWh is. The estimate's receipt is its kWh at the row's per-MWh receipt, so
     the household is charged the EPG, as on a scaled estimate.
+
+    A two-rate meter's void row keeps its band key at 0 and its band's rate, so each row's share is
+    written back to its band and the bill prints the meter's registers. `by_register` (an Economy 7
+    meter's estimate per register) spreads each register over its own band's rows; without it the
+    estimate is spread evenly. Left out, the stub printed one Anytime register while the meter's
+    Day and Night opened at 0 on the next bill (OCC-23ee23cb44e4, OCC-7e06d09fc108, bb58608b91 book).
     """
     if any(record.get("unit_rate_gbp_per_mwh") is None for record in settlement_records):
         return None
     sc_field = "gas_standing_charge_gbp" if commodity == "gas" else "standing_charge_gbp"
-    share_kwh = est_kwh / len(settlement_records)
+    bands = [[stem for stem, _ in TOU_BANDS if "tou_%s_kwh" % stem in record]
+             for record in settlement_records]
+    rows_in_band = collections.Counter(stem for held in bands for stem in held)
+    if by_register is None or set(by_register) != set(rows_in_band) or sum(by_register.values()) <= 0:
+        # Without a per-register estimate only a one-band row has an unambiguous split.
+        by_register = None if all(len(held) <= 1 for held in bands) else False
     priced = []
-    for record in settlement_records:
+    for record, held in zip(settlement_records, bands):
+        if by_register:
+            band_kwh = {stem: est_kwh * by_register[stem] / sum(by_register.values())
+                        / rows_in_band[stem] for stem in held}
+        elif by_register is None and held:
+            band_kwh = {held[0]: est_kwh / len(settlement_records)}
+        else:
+            band_kwh = {}
+        share_kwh = sum(band_kwh.values()) if band_kwh else est_kwh / len(settlement_records)
         new_record = dict(record)
+        commodity_gbp = record["unit_rate_gbp_per_mwh"] * share_kwh / 1000.0
+        if band_kwh:
+            commodity_gbp = 0.0
+            for stem, kwh in band_kwh.items():
+                rate = _band_rate_gbp_per_mwh(record, stem, len(held))
+                new_record["tou_%s_kwh" % stem] = kwh
+                new_record["tou_%s_unit_charge_gbp" % stem] = rate * kwh / 1000.0
+                commodity_gbp += rate * kwh / 1000.0
         new_record["consumption_kwh"] = share_kwh
-        new_record["revenue_gbp"] = (
-            record["unit_rate_gbp_per_mwh"] * share_kwh / 1000.0 + record.get(sc_field, 0.0)
-        )
+        new_record["revenue_gbp"] = commodity_gbp + record.get(sc_field, 0.0)
         if "hmt_epg_receipt_gbp_per_mwh" in record:
             new_record["hmt_epg_receipt_gbp"] = (
                 record["hmt_epg_receipt_gbp_per_mwh"] * share_kwh / 1000.0)
         priced.append(new_record)
     return priced
+
+
+def _band_rate_gbp_per_mwh(record: dict, stem: str, bands_on_row: int) -> float:
+    """One band's rate on a row. A half-hour's row is charged at its own band's rate. A day folded
+    from a two-rate term carries its opening rate and its extremes (`fold_to_days`), and the cheap
+    band is the off-peak one by the term's construction (`tou_rates` is (peak, off-peak))."""
+    if bands_on_row <= 1:
+        return record["unit_rate_gbp_per_mwh"]
+    field = ("unit_rate_min_gbp_per_mwh" if stem in ("night", "offpeak")
+             else "unit_rate_max_gbp_per_mwh")
+    return record.get(field, record["unit_rate_gbp_per_mwh"])
 
 
 # How many of the account's latest actual-read periods an estimate is derived from. The same three
@@ -1085,7 +1123,8 @@ def build_monthly_bills(
                     # be made (no published shape, no EAC/AQ, no TDCV: no 2016-2025 account, D48
                     # slice 4) or a row carries no rate.
                     priced = (
-                        _estimate_records_at_tariff_rate(months[month], est_kwh, commodity)
+                        _estimate_records_at_tariff_rate(months[month], est_kwh, commodity,
+                                                         by_register)
                         if est_kwh is not None and true_kwh == 0 else None
                     )
                     estimated_bill = (
