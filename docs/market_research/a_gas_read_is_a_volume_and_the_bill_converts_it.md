@@ -217,6 +217,57 @@ settled kWh, and the ledger prints a volume worked backwards from that kWh. That
 confirmed. It is owed as a build. **G6:** how often that reconciliation happens and how it is settled
 with a prepayment customer (a credit to the meter or to the account) was not found in what was read.
 
+## Which charging area a household is in (amended 2 Nov 2026)
+
+R5 averages the daily CVs of the supply point's own charging area, so a bill needs that area before it
+can convert. This section is the knowledge step before the world gives each household one.
+
+**What a real supplier holds.** Every supply meter point is registered on the central supply point
+register with its LDZ and exit zone; a supplier reads them with the MPRN, not from an address [B, the
+practitioner reading: the register is Xoserve's under the UNC, and a supplier's CV feed is per LDZ, so
+it must hold the LDZ per supply point; the register's own field list was not read this session].
+
+**What is published.** Xoserve publishes a "Postcode Exit Zone List", "a mapping of GB postcodes to
+gas Local Distribution Zones (LDZs)", "created by the Network Operators" [H]: the May 2017 edition,
+1,382,476 postcodes, one sheet per distribution network. Ofgem's cap does not map a location to one
+LDZ: for gas network costs it takes "a weighted average of the charges for the LDZs overlapping each
+electricity distribution region" (default tariff cap decision, Appendix 5, Nov 2018) [H].
+
+**An ONS region is not a charging area (measured 2 Nov 2026).** Joining Xoserve's list to the census
+output areas through the ONS Postcode Directory, and weighting by the siting frame's households:
+
+| ONS region | Charging areas (share of households) |
+|---|---|
+| London | NT 55.0%, SE 34.8%, EA 7.0% |
+| South East | SE 43.8%, SO 39.7%, NT 9.1% |
+| Yorkshire and The Humber | NE 65.4%, EM 29.0%, NO 1.5% |
+| Wales | WS 67.8%, WN 21.8% |
+| South West | SW 71.7%, SO 15.0% |
+| East | EA 74.3%, NT 13.3% |
+| North West | NW 92.4%, NO 4.0% |
+| Scotland, North East, East Midlands, West Midlands | one area each above 88% |
+
+The rest of each row is output areas with no postcode on the list. **An output area is close to one
+area**: 92.4% of households are in an output area whose matched postcodes are all one LDZ, 0.18% in
+a split one. So the world can site the charging area from the household's output area (W2_19),
+which it already draws, and the region is never used for it.
+
+**What is not established (GAP).**
+- **G8. Output areas with no gas postcode.** 7.4% of households, mostly off the gas grid (Scotland
+  17.9%, South West 13.2%, East 11.3%). A gas customer drawn into one is itself a question about the
+  draw, and its area stays None rather than a neighbour's.
+- **G9. The list's vintage.** May 2017 is the newest edition found; 73.0% of today's live residential
+  postcodes match it. LDZ boundaries follow the pipes and rarely move, but whether any did after 2017
+  is not established.
+- **G10. The five independent networks** (LC, LO, LS, LT, LW: Campbeltown, Oban, Stornoway, Thurso,
+  Wick) are on the list but have no series in National Gas's LDZ CV items, so their R5 is open.
+
+**C6. The choices a build makes.** The world gives each gas supply point the LDZ of its output area
+(`sim.ldz_calorific_value.ldz_for_output_area`, lake `data/lake/xoserve_postcode_ldz/`). The supply
+point's LDZ crosses the seam as an observable, as the MPRN would carry it; the region never stands in
+for it. Where the area is None or has no series, the bill converts at the stand-in and says why, as a
+bill before Nov 2021 does (G1).
+
 ## Sources
 
 - Ofgem, open letter, *Calculation of average calorific value in accordance with the Gas (Calculation
@@ -230,5 +281,9 @@ with a prepayment customer (a credit to the meter or to the account) was not fou
   https://www.gov.uk/gas-meter-readings-and-bill-calculation [S]
 - National Gas Transmission, data portal, "Calorific Value, LDZ(XX)", PUBOB4507-PUBOB4519,
   https://data.nationalgas.com/find-gas-data, retrieved 2 Nov 2026 [H for the published values]
+- Xoserve, *Postcode Exit Zone List*, May 2017,
+  https://www.xoserve.com/media/2008/postcode-exit-zone-list-may-2017.zip, retrieved 2 Nov 2026 [H]
+- Ofgem, *Default tariff cap: decision, Appendix 5, policy and network costs*, Nov 2018,
+  https://www.ofgem.gov.uk/sites/default/files/docs/2018/11/appendix_5_-_policy_and_network_costs.pdf [H]
 - Supplier help pages on the smart meter's m³ register (fuseenergy.com, britishgas.co.uk business
   help), and the OVO community [S]

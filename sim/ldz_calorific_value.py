@@ -13,6 +13,10 @@ Two readings of one gas day, and they differ on purpose:
 
 The portal serves the series from gas day 1 Nov 2021 (`FIRST_GAS_DAY`). Before that both return
 None: 2016 to Oct 2021 is a GAP, not a value to fill.
+
+`ldz_for_output_area(oa)` says which charging area a sited household is in, from Xoserve's
+postcode list joined to the census output areas (`data/lake/xoserve_postcode_ldz/`). The ONS region
+is not the answer: London is NT, SE and EA, Yorkshire NE and EM, Wales WS and WN.
 """
 
 from __future__ import annotations
@@ -27,6 +31,7 @@ LAKE_FILE = Path(__file__).resolve().parent.parent / "data/lake/national_gas_ldz
 #: The first gas day the portal's LDZ CV items serve; an earlier window returns an empty body.
 FIRST_GAS_DAY = "2021-11-01"
 CHARGING_AREAS = ("EA", "EM", "NE", "NO", "NT", "NW", "SC", "SE", "SO", "SW", "WM", "WN", "WS")
+OUTPUT_AREA_LDZ_FILE = LAKE_FILE.parent.parent / "xoserve_postcode_ldz/output_area_ldz.csv.gz"
 
 
 @lru_cache(maxsize=1)
@@ -57,6 +62,21 @@ def final_cv(ldz: str, gas_day: str) -> float | None:
     """The last version of the gas day's CV on the record."""
     entry = _versions().get((ldz, gas_day))
     return entry[1][-1] if entry else None
+
+
+@lru_cache(maxsize=1)
+def _output_area_ldz() -> dict[str, str]:
+    with gzip.open(OUTPUT_AREA_LDZ_FILE, "rt", newline="") as fh:
+        return {row["output_area"]: row["ldz"] for row in csv.DictReader(fh)}
+
+
+def ldz_for_output_area(output_area: str | None) -> str | None:
+    """The LDZ most of the output area's gas postcodes are in, or None where the list names none.
+
+    None is an output area with no postcode on Xoserve's list (mostly off the gas grid). The five
+    independent networks (LC, LO, LS, LT, LW) come back as their own codes, which are not in
+    `CHARGING_AREAS` and have no published CV."""
+    return _output_area_ldz().get(output_area) if output_area else None
 
 
 class PublishedCalorificValues:
