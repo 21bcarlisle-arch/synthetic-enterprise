@@ -77,6 +77,10 @@ LEDGER_REPO_PATH = "docs/observability/trust_ledger.json"
 
 SEVERITIES = ("MINOR", "MAJOR", "BLOCKING")
 FILED_CEILING = "MAJOR"
+# The staging header speaks `finding_severity`'s vocabulary, not the readers': `MAJOR` there is
+# UNCLASSIFIED and reds the pre-commit gate for every lane (2 Nov). An unchecked vote capped below
+# BLOCKING is LATENT; the readers' own vote stays in the body.
+FILED_STAGING_SEVERITY = "LATENT"
 
 
 def _git(*args: str) -> str:
@@ -361,14 +365,15 @@ def finding_text(commit: dict, pairs, a: dict, b: dict, today: str) -> str:
               if f["id"] not in paired_a]
     single += [f"- B#{f['id']} ({f['severity']}): {f['claim']}" for f in b["findings"]
                if f["id"] not in paired_b]
-    return f"""**Severity:** {_filed_severity(pairs, a['findings'], b['findings'])} · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+    return f"""**Severity:** {FILED_STAGING_SEVERITY} · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # Both blind readers raise {len(pairs)} finding(s) on {sha10} ({today})
 
 *Written by `background/two_reader_review.py`, the automatic lane of the two-reader trial
 (director ruling 28 Oct, review {REVIEW_DATE}). Nothing here has been checked. Check each pair at
-HEAD like any other finding, and record the outcome for the review. Severity is capped at
-{FILED_CEILING} until a check confirms more.*
+HEAD like any other finding, and record the outcome for the review. The readers' agreed vote is
+{_filed_severity(pairs, a['findings'], b['findings'])}, capped at {FILED_CEILING}; the staging
+severity stays {FILED_STAGING_SEVERITY} until a check confirms more.*
 
 - **Commit:** `{commit['sha']}`, committed {commit['committed']}.
 - **Modules it added:** {', '.join(f'`{m}`' for m in commit['modules'])}.

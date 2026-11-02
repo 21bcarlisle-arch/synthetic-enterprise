@@ -102,7 +102,10 @@ def test_both_verdicts_are_recorded_and_only_a_shared_finding_is_filed(lane):
     assert all(a[1] == "needs_work" and a[2] == "phase-close-evaluator" for a, _k in recorded)
     assert len(filed) == 1
     text = filed[0].read_text()
-    assert text.startswith("**Severity:** MAJOR")          # an unchecked vote is capped below BLOCKING
+    assert text.startswith("**Severity:** LATENT")         # an unchecked vote is capped below BLOCKING
+    assert "agreed vote is\nMAJOR, capped at MAJOR" in text  # in the readers' own words, in the body
+    from background.finding_severity import parse_severity_text
+    assert parse_severity_text(text).severity == "LATENT", "the header must parse in the staging gate's vocabulary"
     assert "B#1 (MINOR): style" in text                     # what the vote discarded stays visible
 
 

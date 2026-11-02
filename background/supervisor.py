@@ -373,6 +373,9 @@ WEDGE_KINDS_NO_TEST_JUDGED = frozenset({
     # `process_run_complete.SCOPED_GATE_UNJUDGED_KIND` declares it. Its sibling
     # `scoped_suite_red` is deliberately absent: there a test really was judged red.
     "scoped_gate_unjudged",
+    # rc=82 (2026-11-02): the domain-invariant gate refused the BOOK before any test ran.
+    # `process_run_complete.DOMAIN_INVARIANT_REFUSED_KIND` declares it.
+    "domain_invariant_refused",
 })
 
 # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (director console P0, 2026-07-25): a daemon-lifecycle
@@ -4101,6 +4104,11 @@ def _wedge_no_test_judged_clause(failures, payload_citable: bool) -> str:
         "it. Then run THAT gate alone against the working tree to confirm it still refuses at "
         "HEAD before repairing anything; the hook chain stops at the first refusal, so a second "
         "gate may be behind it."
+    ) + (
+        " `domain_invariant_refused` IS NOT A HOOK: the run's BOOK breached domain invariants "
+        "(`docs/reports/DOMAIN_INVARIANTS.md`, and the `Domain-invariant gate REFUSED` log line). "
+        "That book can never publish; fix the breaches' cause and offer a run made after the fix."
+        if "domain_invariant_refused" in kinds else ""
     )
 
 

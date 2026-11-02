@@ -280,6 +280,12 @@ EXIT_PUBLISH_DELIVERY_DEFERRED = 80
 # which of the three it saw at the moment it sees it (`_record_scoped_gate_cause`), keyed to the
 # same git hash the router reads back -- the identical carrier rc=77 has used since 2026-08-30.
 EXIT_SCOPED_GATE_REFUSED = 81
+# THE SEVENTH, same shape (2026-11-02). The domain-invariant gate (9d6ea2eada) refuses the BOOK
+# before any test runs, and left by a bare `return 1`: the 2 Nov episode recorded five
+# `test_regression`/`unattributed` failures for bb58608b91 while the log line above each said
+# "Domain-invariant gate REFUSED ... INV_RENEWAL_NOTICE_42_TO_49_DAYS 1171", and the RUNG-1 draw
+# waited out a full gate run to find no red. The breaches are the cause; a test is not.
+EXIT_DOMAIN_INVARIANT_REFUSED = 82
 # The register callers switch on. rc=0 asserts ONE thing -- this process retired the marker and
 # the published surfaces are current. Anything that publishes nothing states so with its own
 # code; `tests/background/test_a_duplicate_marker_is_not_a_publish.py` fails by name on a new
@@ -4790,6 +4796,26 @@ def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, regist
     return True, None
 
 
+def _domain_invariant_cause(git_hash):
+    """(cause, evidence) for an rc=82 refusal, read from the table the refusing process wrote.
+
+    Keyed to the git hash like every other cause carrier: a table graded at another commit is
+    about another book, so it is named as absent rather than read."""
+    try:
+        record = json.loads(DOMAIN_INVARIANT_JSON.read_text())
+    except (OSError, ValueError) as exc:
+        return publish_cause.UNATTRIBUTED, "the invariant table could not be read ({}: {})".format(
+            type(exc).__name__, exc)
+    graded = str(record.get("git") or "")
+    if not git_hash or not graded or not (graded.startswith(git_hash) or git_hash.startswith(graded)):
+        return publish_cause.UNATTRIBUTED, (
+            "the invariant table on disk was graded at git={}, not {}, so it names another "
+            "book".format(graded or "?", git_hash or "?"))
+    refusal = (record.get("verdict") or {}).get("refusal")
+    return DOMAIN_INVARIANT_REFUSED_KIND, "breaches no exception covers at git={}: {}".format(
+        graded, refusal or "(the verdict names none)")
+
+
 def _trigger_frozen_baseline_refresh_out_of_band(git_hash="unknown"):
     """Launch the weekly frozen-policy baseline refresh out of band when (and only
     when) it is stale -- never block the publish path.
@@ -5847,6 +5873,10 @@ SCOPED_GATE_CAUSES = frozenset({publish_cause.SCOPED_SUITE_RED,
 #: `UNJUDGED_GATE_KINDS` and in the supervisor's `WEDGE_KINDS_NO_TEST_JUDGED`, because a label
 #: with no reader is this repo's other recurring shape and both readers switch on this field.
 SCOPED_GATE_UNJUDGED_KIND = publish_cause.SCOPED_GATE_UNJUDGED
+#: THE FOURTH PRODUCTION ROUTE (2026-11-02, EXIT_DOMAIN_INVARIANT_REFUSED): the book breached
+#: domain invariants no exception covers, so no test was run. Kind and cause are one name.
+DOMAIN_INVARIANT_REFUSED_KIND = publish_cause.DOMAIN_INVARIANT_REFUSED
+DOMAIN_INVARIANT_CAUSES = frozenset({publish_cause.DOMAIN_INVARIANT_REFUSED})
 
 
 def publish_exit_code(reason):
@@ -9069,7 +9099,7 @@ def _classify_gate_failure(rc):
 #: refusal that had been sharing an exit code with a judged red, so the carve-out had to be made
 #: at the record as well as in the alarm prose.
 UNJUDGED_GATE_KINDS = frozenset({"gate_timeout", "tree_lock_unavailable",
-                                 SCOPED_GATE_UNJUDGED_KIND})
+                                 SCOPED_GATE_UNJUDGED_KIND, DOMAIN_INVARIANT_REFUSED_KIND})
 
 #: THE KIND FOR A COMMIT THAT LANDED AND WAS NEVER DELIVERED (2026-09-17). Deliberately NOT
 #: `commit_did_not_land`, whose label says in so many words that the commit did not land -- here
@@ -9097,6 +9127,11 @@ def _gate_failure_label(kind):
                                   "and NOT a hook refusal: nothing was judged. Contention, not "
                                   "regression; the next cycle retries"),
         "test_regression": "test failure or processing error (rc>0 -- a real regression is possible)",
+        DOMAIN_INVARIANT_REFUSED_KIND: (
+            "the domain-invariant gate refused the BOOK: it breaches invariants that no named, dated "
+            "exception covers, so NO test was run. NOT a test failure. The breaches are in the "
+            "cause evidence and in docs/reports/DOMAIN_INVARIANTS.md; fix their cause in the code, "
+            "and the next run that grades clean publishes"),
         SCOPED_GATE_UNJUDGED_KIND: (
             "the publisher's OWN scoped gate refused and NO test returned a verdict -- the suite "
             "child was killed by a signal, or pytest exited non-zero with no FAILED/ERROR line "
@@ -10039,6 +10074,12 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
                "docs/observability/sim-runner-log.md. The alarm clears automatically on the "
                "next clean publish."
                ).format(GATE_SUITE_TIMEOUT_SECONDS)
+    elif kind == DOMAIN_INVARIANT_REFUSED_KIND:
+        how = ("NO TEST WAS JUDGED -- the domain-invariant gate refused the book before the suite "
+               "ran. Do NOT hunt a red and do NOT run the gate's pytest argv. Read the breaches in "
+               "docs/reports/DOMAIN_INVARIANTS.md (the ATTRIBUTED CAUSE line names them), fix their "
+               "cause, and offer a run made at or after the fix: this book will never grade clean. "
+               "The alarm clears on the next clean publish.")
     elif kind == SCOPED_GATE_UNJUDGED_KIND:
         # THE FOURTH MEMBER OF THE SAME CLASS (2026-09-24, see EXIT_SCOPED_GATE_REFUSED). The
         # standing clause below is written for a suite that RETURNED A VERDICT, and this kind is
@@ -10819,6 +10860,15 @@ def record_publish_gate_outcome(marker, rc, *, kind=None):
                 cause=cause, cause_evidence=cause_evidence,
             )
             return "failure"
+        if rc == EXIT_DOMAIN_INVARIANT_REFUSED:
+            cause, cause_evidence = _domain_invariant_cause(git_hash)
+            record_publish_gate_failure(
+                "the domain-invariant gate refused the book of {} before any test ran -- NO test "
+                "is implicated. Cause: {} ({})".format(Path(marker).name, cause, cause_evidence),
+                rc=rc, git_hash=git_hash, kind=DOMAIN_INVARIANT_REFUSED_KIND,
+                cause=cause, cause_evidence=cause_evidence,
+            )
+            return "failure"
         if rc == EXIT_TREE_LOCK_UNAVAILABLE:
             # NAMED for the third time and the same reason (see EXIT_TREE_LOCK_UNAVAILABLE):
             # `_classify_gate_failure` would read this as "test_regression" and send the RUNG-1
@@ -11322,7 +11372,7 @@ def _process(marker_path_str):
     if not _inv_ok:
         log("Domain-invariant gate REFUSED the publish - not committing content: " + _inv_reason)
         _publish_provenance_banner(git_hash, reason=_inv_reason)
-        return 1
+        return EXIT_DOMAIN_INVARIANT_REFUSED
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
     tests_ok, timed_out = run_fast_tests(git_hash)

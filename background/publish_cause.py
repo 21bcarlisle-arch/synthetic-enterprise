@@ -178,6 +178,10 @@ SCOPED_SUITE_RED = "scoped_suite_red"
 #: OBSERVATION that separates it from `SCOPED_SUITE_RED` is the pair (the suite's return code,
 #: whether any node id was named) — both held by `_run_gate_in` at the moment it happens.
 SCOPED_GATE_UNJUDGED = "scoped_gate_unjudged"
+#: THE BOOK, not a gate over code: the domain-invariant suite graded the run's whole book and
+#: found breaches no named, dated exception covers (ruling of 26 Oct, step 4). No test was run.
+#: The repair is in the code that made the book, and the book itself can never publish.
+DOMAIN_INVARIANT_REFUSED = "domain_invariant_refused"
 #: Not a cause: the honest answer when no usable record exists for the failure being described.
 UNATTRIBUTED = "unattributed"
 
@@ -199,7 +203,7 @@ PUBLISH_FIELD_SUFFIX = "_last_publish"
 #: rather than stored, because a reader that trusts the field must be able to trust the set.
 CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
                     PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE,
-                    SCOPED_SUITE_RED, SCOPED_GATE_UNJUDGED})
+                    SCOPED_SUITE_RED, SCOPED_GATE_UNJUDGED, DOMAIN_INVARIANT_REFUSED})
 
 #: Causes on which NO test returned a verdict, so no blocking list or suspect may be attached.
 #: See the module docstring. `GATE_REFUSAL`'s absence is the content of this set, not an
@@ -209,7 +213,7 @@ CAUSES = frozenset({GATE_REFUSAL, NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEV
 #: carry it.
 NO_TEST_JUDGED_CAUSES = frozenset({NON_TEST_GATE_REFUSAL, DEADLINE_KILL, PUSH_NEVER_LANDED,
                                    PROVENANCE_REFUSED, BEHIND_ORIGIN, LOST_PUSH_RACE,
-                                   SCOPED_GATE_UNJUDGED})
+                                   SCOPED_GATE_UNJUDGED, DOMAIN_INVARIANT_REFUSED})
 
 #: Mirrors the publisher's blocking-record bound for the same reason that one has a default:
 #: a reader outside the publish path must not import the publisher to learn a policy. Held
