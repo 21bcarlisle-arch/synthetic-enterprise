@@ -14,9 +14,11 @@ a ToU pair (`company/pricing/tou_desk.offers_tou`), and SLC 28AD.4 grades that a
 not per bill. A bill can sit a few per cent over a pair struck at the cap. `actual_read_accounts`
 counts what lands on accounts billed mostly on actual reads, which is that population's footprint.
 
-`epg_receipt` grades the EPG pre-registration's predictions 3 and 4 on one run. Every pound carved
-off a household's bill as the Treasury's share must be booked as a receipt (`carved_gbp` against the
-ledger's `booked_gbp`), and none may be carved outside an EPG window. `unit_charge_fall` is the
+`epg_receipt` grades the EPG pre-registration's predictions 3 and 4 on one run. The Treasury paid on
+SETTLED volume (82d26fbd4e; default_tariff_cap_and_epg_on_the_bill.md), so every bill's
+`epg_support_gbp` must be booked as a receipt (`paid_gbp` against the ledger's `booked_gbp`), and none
+may be carved outside an EPG window. `carved_gbp` is the discount the bills gave on BILLED kWh; it
+differs from `paid_gbp` by what estimates over- or under-shot, and is reported, not graded. `unit_charge_fall` is the
 median share of each bill's unit charge the receipt removed, by quarter and fuel: it should sit at
 that quarter's (cap - EPG) / cap, not at one band for the whole crisis.
 
@@ -161,10 +163,10 @@ def defects(g: dict) -> list[str]:
     out = []
     receipt = g["epg_receipt"]
     if receipt["booked_gbp"] is None:
-        if receipt["carved_gbp"]:
-            out.append(f"GBP {receipt['carved_gbp']:,.2f} carved and the run carries no ledger_pnl")
-    elif abs(receipt["carved_gbp"] - receipt["booked_gbp"]) > 0.01:
-        out.append(f"carved GBP {receipt['carved_gbp']:,.2f} != booked GBP "
+        if receipt["paid_gbp"]:
+            out.append(f"GBP {receipt['paid_gbp']:,.2f} paid and the run carries no ledger_pnl")
+    elif abs(receipt["paid_gbp"] - receipt["booked_gbp"]) > 0.01:
+        out.append(f"paid on settled kWh GBP {receipt['paid_gbp']:,.2f} != booked GBP "
                    f"{receipt['booked_gbp']:,.2f}")
     if receipt["carved_outside_epg_windows"]:
         out.append(f"{receipt['carved_outside_epg_windows']} receipt(s) carved outside the EPG windows")
@@ -188,24 +190,29 @@ def _quarter(iso: str) -> str:
 
 
 def epg_receipt(run: dict) -> dict:
-    carved, outside, falls = 0.0, 0, defaultdict(list)
+    carved, paid, outside, falls = 0.0, 0.0, 0, defaultdict(list)
     carrying = 0
     for b in run.get("bills") or []:
         receipt = b.get("hmt_epg_receipt_gbp") or 0.0
-        if not receipt:
+        if not receipt and not b.get("epg_support_gbp"):
             continue
         carrying += 1
         carved += receipt
+        # A book from before 82d26fbd4e carries no settled share; its ledger booked the billed one.
+        paid += b.get("epg_support_gbp", receipt)
         iso = str(b["period_start"])[:10]
         commodity = b.get("commodity") or "electricity"
         if not _in_epg_window(commodity, date.fromisoformat(iso)):
             outside += 1
+        if not receipt:
+            continue
         unit = (b.get("commodity_amount_gbp") or 0.0) + (b.get("non_commodity_amount_gbp") or 0.0)
         falls[f"{_quarter(iso)} {commodity}"].append(receipt / (unit + receipt))
     booked = (run.get("ledger_pnl") or {}).get("epg_receipt_gbp")
     return {
         "bills_carrying_receipt": carrying,
         "carved_gbp": round(carved, 2),
+        "paid_gbp": round(paid, 2),
         "booked_gbp": None if booked is None else round(booked, 2),
         "carved_outside_epg_windows": outside,
         "unit_charge_fall": {k: round(median(v), 3) for k, v in sorted(falls.items())},
