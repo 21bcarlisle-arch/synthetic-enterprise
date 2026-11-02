@@ -649,6 +649,43 @@ concepts:
     page: vulnerability-and-the-psr
     gap: {world: "no fuel-poverty status is drawn or checked", wall: "nothing crosses; WHD eligibility comes from government data matching", supplier: "company.regulatory.fuel_poverty, company.crm.fuel_poverty and company.billing.whd_register have no caller"}
 
+  - id: need.bill_difficulty
+    prefLabel: Difficulty keeping up with bills
+    altLabel: [keeping up with bills, behind on bills, bill struggle]
+    definition: A household's own report of keeping up with all its bills and credit commitments - no difficulty, a struggle from time to time or constantly, or behind on some or many.
+    match: ["Ofgem Consumer Impacts of Market Conditions survey, question F5 (Wave 3, Table 179)"]
+    placed: [world/Households, company/Vulnerability]
+    page: the-customer-needs-framework
+    gap: {world: "not drawn as its own state; the nearest is financial vulnerability (V2), which drives nothing yet", wall: "never crosses; the company sees arrears and contact, not the report", supplier: "not asked of a customer; inferred from payment behaviour"}
+    relations: {feeds: [need.worry_falling_behind]}
+
+  - id: need.worry_falling_behind
+    prefLabel: Worry about falling behind on energy bills
+    altLabel: [bill worry, worried about falling behind]
+    definition: The share of bill payers very or fairly worried about falling behind on energy bills because energy or general costs rise; stated, not measured.
+    match: ["Ofgem Consumer Impacts of Market Conditions survey, question E4 (Wave 3, Tables 158-162)"]
+    placed: [world/Households]
+    page: the-customer-needs-framework
+    gap: {world: "no stated-worry trait is drawn", wall: "nothing crosses", supplier: "a survey item only; the company holds no worry measure"}
+
+  - id: need.switching_intent
+    prefLabel: Stated intent to switch
+    altLabel: [intends to switch, will switch in three months]
+    definition: A household's stated likelihood of switching supplier or tariff in the next three months; a stated intent, not a switch.
+    match: ["Ofgem Consumer Impacts of Market Conditions survey, question D3 (Waves 3-6)"]
+    placed: [world/Choices, supplier/Switch]
+    page: the-customer-needs-framework
+    gap: {world: "switching propensity is not a drawn trait distinct from engagement", wall: "nothing crosses", supplier: "revealed switching by group is not sourced in the corpus"}
+
+  - id: need.stated_willingness_to_pay
+    prefLabel: Stated willingness to pay slightly more
+    altLabel: [pay more for green, pay more for service]
+    definition: Agreement that the household would pay slightly more for better service or for green energy investment; an attitude, not a price, and an upper bound on what is paid.
+    match: ["Ofgem Consumer Impacts of Market Conditions survey, question D8 (Wave 3, Tables 133-134)"]
+    placed: [world/Choices]
+    page: the-customer-needs-framework
+    gap: {world: "no willingness to pay for service or carbon is drawn", wall: "nothing crosses", supplier: "no price for certainty, service or carbon is published (GAP-6)"}
+
   - id: build.mutation
     prefLabel: Checks that can fail
     altLabel: [mutation, neuter test]

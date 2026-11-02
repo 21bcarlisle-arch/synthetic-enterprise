@@ -17,3 +17,12 @@
   Statistic Base" rows of the same table. Cells printed `-` (an empty column) are omitted. Nothing is reweighted
   or recomputed.
 - **Read by:** `docs/market_research/why_households_pay_the_way_they_do_cim_wave3_2026-11-02.md`.
+
+## Added 2026-11-02: the cost, worry, switching and willingness-to-pay cross-tabs
+
+- `needs_crosstabs_by_column.csv`: 24 measures from Tables 108-110, 123-125, 129-136, 138, 140-141, 149 and 160-162, each at
+  five crossbreaks (Age_2, Keeping up with bills, Income v2, Trust to treat fairly, Trust to charge a fair price) plus
+  the Total. One row per measure per column: weighted column %, unweighted base, effective base, as the workbook
+  prints them. The measure is the table's own "Summary:" or "Net:" row, or the named impact row of Table 136. Nothing
+  is reweighted. Read with the same standard-library reader as `a15_why_this_payment_method_by_column.csv`.
+- Read by: `docs/market_research/the_customer_needs_framework_cost_worry_switching_cim_waves_3_6_2026-11-02.md`.
