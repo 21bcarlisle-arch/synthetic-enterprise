@@ -9928,16 +9928,22 @@ def _method_skill(three_arm: dict) -> dict:
 #: WHAT THE HOUSEHOLD-SIDE FIGURE DOES NOT COVER, stated on the page beside the number rather
 #: than owed to a design document. The mission names three currencies -- money, time and carbon --
 #: and this figure reaches exactly one of them. Written out per currency because "money only" is
-#: the kind of caveat a reader skims; "carbon is designed and never measured, time does not exist
+#: the kind of caveat a reader skims; "carbon saved is never computed, time does not exist
 #: anywhere in this project" is not.
+#:
+#: CARBON SAYS WHICH HALF IS MEASURED. It read "designed, never measured" until 2 Nov, while the
+#: front door listed "Household carbon, per half hour" as built -- and both were partly right:
+#: each home's EMISSIONS are computed (`company/carbon/`, `tests/company/carbon/`), and the carbon
+#: a household SAVED, which is what this figure would have to count, is not.
 HOUSEHOLD_EXCLUSIONS = [
     {"currency": "money", "state": "measured",
      "what": "What each household paid us over the settled periods that had a published default "
              "tariff to compare against, at its own metered volumes."},
-    {"currency": "carbon", "state": "designed, never measured",
-     "what": "A three-ledger carbon design exists (customer, portfolio, grid) and nothing "
-             "instruments what a household's carbon actually did. No tonne below is counted "
-             "because none is computed."},
+    {"currency": "carbon", "state": "emissions measured, saving not",
+     "what": "Each home's emissions are computed, half hour by half hour where it has the reads, "
+             "against what the grid was actually burning. What a household did NOT emit because "
+             "of us needs a world that did not happen, and nothing computes that yet, so no "
+             "tonne saved is counted below."},
     {"currency": "time", "state": "absent",
      "what": "No measure of a household's time, effort or hassle exists anywhere in this "
              "project -- not thinly built, absent. It is on the record as the one thing the "

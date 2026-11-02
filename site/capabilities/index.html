@@ -118,7 +118,7 @@ details.evidence { margin-top: 6px; font-size: 12px; color: var(--muted); }
 details.evidence > summary { cursor: pointer; }
 .ev { cursor: pointer; }
 .ev input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.ev::before { content: attr(data-k); color: var(--muted); text-decoration: underline dotted; }
+.ev-k { color: var(--muted); text-decoration: underline dotted; }
 .ev-v { display: none; overflow-wrap: anywhere; }
 .ev-v::before { content: " ("; }
 .ev-v::after { content: ")"; }
@@ -723,6 +723,50 @@ details.evidence > summary { cursor: pointer; }
   arm actually charged. The third run is what separates <em>choosing better</em> from
   <em>charging more</em>. Every figure below is what the world did, not what the company
   believed.</p>
+  <!-- IN PLAIN WORDS FIRST, THE APPARATUS ONE TAP DOWN (director's steer of 2 Nov, item 6: "keep
+       the honesty but move it"). Hand-authored, and no run figure is typed in it: the figures live
+       in the appendix, rendered from the feed, so this block cannot drift from them. Each reason
+       below was checked against site/data/value_arms.json before it was written here, and the
+       design it points to is docs/design/THE_VALUE_TEST_REDESIGN.md. -->
+  <div id="value-test-plain" class="sec-lede">
+  <p><strong>The answer is not in yet.</strong> The question is whether a supplier that decides
+    household by household creates value, for the household and for itself, that a supplier
+    applying one flat rule could not.</p>
+  <p><strong>What this test can say.</strong> What the same households, in the same simulated
+    world, paid and kept under three ways of pricing their renewals, and how far each figure moves
+    when nothing changes but the world's random draws.</p>
+  <p><strong>What it cannot say yet, and why.</strong></p>
+  <ul>
+    <li><strong>The published figure is not a typical draw.</strong> It falls outside the range
+      its own re-draws give, on the same code and the same households, and the part that comes
+      from the price level has the opposite sign to every re-draw. Why is not yet known.</li>
+    <li><strong>It reaches few households.</strong> It prices only households already on a fixed
+      deal when that deal ends. Most of the book is on the standard variable tariff, and no arm
+      offers those households anything.</li>
+    <li><strong>One household can move it.</strong> A single household's departure, and the bad
+      debt the world writes off when it leaves, was found to move the result by about as much as
+      the result itself. That was worked out under an older write-off rule and never measured
+      directly, so whether it still holds is not yet known.</li>
+    <li><strong>It mixes runs.</strong> The headline and its own range come from one run, but that
+      run is on older code than this page, so its verdict is withheld. Other figures beside it come
+      from earlier runs, on other books and dates.</li>
+    <li><strong>The baseline is easy to beat.</strong> The flat-rules supplier charges a margin
+      between a quarter and four-fifths of what the regulator allows an efficient supplier, so
+      beating it proves less than it seems.</li>
+  </ul>
+  <p><strong>What the redesign will do.</strong> Run every arm and every bound in one world, on one
+    code tree, one book and one date. Use a book large enough to price. Add an arm that moves
+    standard-variable households onto a tariff. Set the flat baseline at the margin the regulator
+    allows an efficient supplier, and judge the new tariff arm against leaving those households at
+    the price cap. Settle the write-off rule against how GB suppliers actually
+    provision for and recover bad debt. Score households on money, time and carbon, the company
+    on its outcomes, and fairness, each on its own. Write the predictions down before the run.
+    It is being designed now and is built after the correctness work in hand.</p>
+  <p>The full statistical apparatus (re-draws, floors, withdrawn verdicts, and the notes on what
+    each figure is not) is unchanged, in the
+    <a href="#value-test-appendix" onclick="document.getElementById('value-test-appendix').open = true;">technical appendix</a> below.</p>
+  </div>
+  <details class="fold" id="value-test-appendix"><summary><h2 class="sec">Technical appendix: the value test in full</h2><span class="fold-line">Every figure, its re-draws and floors, and every verdict withdrawn, with the reason.</span></summary>
   <!-- THE TWO LEGS BEFORE THE SUM, AND THIS IS THE HEADLINE NOW.
        Until 2026-09-08 a reader met the composite advantage first — one number, stated as though
        it were the thesis's own quantity — and reached the split three panels down. £17,468 of
@@ -923,6 +967,7 @@ details.evidence > summary { cursor: pointer; }
        method-skill figure, and it is at its sharpest on a run that carries none. -->
   <div id="arms-svt-belief"></div>
   <p id="arms-note" class="stamp" style="margin-top:12px;"></p>
+  </details>
 </section>
 <script>
 /* Its own fetch and its own IIFE, same discipline as the growth block above: a failure here must
@@ -955,10 +1000,12 @@ details.evidence > summary { cursor: pointer; }
       var kind = hashes === items.length ? ["a commit", "commits"]
         : (hashes === 0 ? ["a file", "files"] : ["a reference", "references"]);
       var label = items.length === 1 ? kind[0] : items.length + " " + kind[1];
-      /* The label is CSS content, not text: the page's text stays byte-for-byte the feed's
-         sentence, which the reader-side controls compare against. */
-      return '<label class="ev" data-k="' + label + '"><input type="checkbox"><span class="ev-v">'
-        + run + '</span></label>';
+      /* The label is TEXT, not CSS content. It was `content: attr(data-k)` until 2 Nov, and every
+         reading that is not a painted screen -- copy and paste, reader mode, a fetch, a screen
+         reader that skips generated content -- met "produced at ," and "Source:  Open question:".
+         The director read it that way. `site/test_no_published_page_renders_an_empty_field.py`. */
+      return '<label class="ev"><input type="checkbox"><span class="ev-k">' + label
+        + '</span><span class="ev-v">' + run + '</span></label>';
     });
   };
   var prose = function (s) { return evidence(esc(s).replace(/ -- /g, " &mdash; ")); };

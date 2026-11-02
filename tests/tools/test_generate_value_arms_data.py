@@ -1794,8 +1794,9 @@ def test_a_household_side_present_but_empty_is_withheld_rather_than_part_publish
 
 
 def test_the_household_figure_states_the_two_currencies_it_does_not_reach():
-    """The mission names three currencies and this figure reaches one. Carbon is designed and
-    never instrumented; time does not exist anywhere in the project. A number published without
+    """The mission names three currencies and this figure reaches one. Carbon EMISSIONS are
+    computed per home but the carbon a household SAVED is not; time does not exist anywhere in the
+    project. A number published without
     that is a number a reader will take for the whole of "value shared".
 
     Asserted on the ABSENT branch too: the exclusions are true whether or not the run scored.
@@ -1805,7 +1806,9 @@ def test_the_household_figure_states_the_two_currencies_it_does_not_reach():
             _load(NOISE_FLOOR))):
         states = {e["currency"]: e["state"] for e in out["household"]["excludes"]}
         assert states["money"] == "measured"
-        assert states["carbon"] == "designed, never measured"
+        # Both halves, because each half alone was once published as the whole: "designed, never
+        # measured" here against "Household carbon, per half hour" on the front door (2 Nov).
+        assert "saving not" in states["carbon"] and "emissions measured" in states["carbon"]
         assert states["time"] == "absent"
         assert "not value CREATED" in out["household"]["what_this_is_not"]
         assert "not a target" in out["household"]["not_a_target"].lower(), (
