@@ -35,3 +35,21 @@ The registration is a real-world account and a licence agreement, so **the direc
 - **How the data reaches the machine.** The director downloads the files and places them in that directory, then says "done" in chat, as with the HF token.
 
 The licensed-microdata row is answered. Until the files land, fit one attribute at a time from published cross-tabs, as now.
+
+## Done
+
+*Delivery seat, 2 Nov 2026.*
+
+- **Both rows closed as ruled** in `docs/direction/DIRECTION.yaml`: `the-value-test-redesign-two-choices-in` and
+  `licensed-microdata-for-the-customer-needs-corpus`. Each close carries its commitment, due 9 Nov:
+  `the-value-test-two-one-run-measurements` (the 12-draw family and PROS-2016-0098 alone, drawn once the publish path
+  is clear; the 65bbdc6787 book was in its publish gate at 18:17 with 0 unexcepted breaches) and
+  `the-ukds-microdata-pre-commit-guard`.
+- **The registration pack** is `docs/director/UKDS_REGISTRATION_PACK.md`: SN 6614, 7215, 9315 and 8963, each checked on
+  the UKDS catalogue today; the 2022 housing stock data is Special Licence (SN 9316) and is left off. The paste-in
+  description is the ruling's, extended only to say what the aggregates are. The note says plainly that a later
+  commercial use of the fitted method would need UKDS permission.
+- **Raised, not acted on:** the files meet canon W11 ("no household data has entered the system"). Row
+  `your-2-nov-ruling-to-register-with` recommends amending W11 and the pitch claim before any file is downloaded.
+  Registering is safe meanwhile; the pack asks him not to place files in `~/ukds/` until he answers.
+- **Not yet built:** the pre-commit guard. It is the commitment above and lands before the files do.

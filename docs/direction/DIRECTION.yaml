@@ -578,11 +578,19 @@ for_the_director:
     time from published cross-tabs and any joint is carried as an assumption with a range. A no changes
     nothing already built. What would change my view: a published joint (for example FCA Financial Lives
     tables cut two ways) that makes the registration unnecessary.'
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'Ruled 2 Nov 18:38: ''Register (non commercial)''. He registers himself; the pack (study
+    numbers 6614, 7215, 9315, 8963, the paste-in description and the handling rules) is docs/director/UKDS_REGISTRATION_PACK.md.
+    The W11 conflict it exposes is raised as your-2-nov-ruling-to-register-with.'
   g5_class: real_world_commitment
   evidence: docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md section 6 (datasets, access terms graded P, what
     each would change)
+  resolved: '2026-11-02'
+  commitment:
+    work_id: the-ukds-microdata-pre-commit-guard
+    done_means: A pre-commit guard refuses any staged file under ~/ukds/ or carrying a UKDS dataset signature,
+      with a test that reds without it, landed before any file is placed in ~/ukds/
+    due: '2026-11-09'
 - id: the-value-test-redesign-two-choices-in
   raised: '2026-11-02'
   kind: strategy
@@ -606,8 +614,38 @@ for_the_director:
     until you rule: nothing is built; the page says plainly the answer is not in. What would change it:
     if you want ''beating a flat supplier'' to mean beating one that charges the cap, the cap becomes
     the renewal baseline too, and the test becomes about extraction rather than choosing.'
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'Ruled 2 Nov 18:38: ''Yes to the value test''. THE_VALUE_TEST_REDESIGN.md adopted as written;
+    the build waits for the correctness exit test.'
   evidence: docs/design/THE_VALUE_TEST_REDESIGN.md §2 (each advisor reading re-measured against site/data/value_arms.json);
     two fresh-context reads (both NEEDS_WORK, all findings corrected in place); the world already recovers
     about 5p in the pound of written-off debt, with debt-sale price a named GAP (§4).
+  resolved: '2026-11-02'
+  commitment:
+    work_id: the-value-test-two-one-run-measurements
+    done_means: The 12-draw family and PROS-2016-0098 alone under today's write-off rule are run once
+      the publish path is clear, and a reading says whether the page's figure can be stated
+    due: '2026-11-09'
+- id: your-2-nov-ruling-to-register-with
+  raised: '2026-11-02'
+  kind: canon_intent
+  what: 'Your 2 Nov ruling to register with the UK Data Service meets W11. W11: ''Published aggregates
+    and cross-tabs only. The ratified pitch stakes a public claim that no household data has entered the
+    system; that must stay true.'' EUL files are de-identified, but they are household-level records,
+    so once on this machine that public claim is false as worded, even with the files kept outside the
+    repo and only aggregates leaving.'
+  proposal: 'Amend W11 to: ''No personal microdata in the repository, the site, the world or the company.
+    Licensed, de-identified survey microdata may be read on this machine outside the repository, under
+    its licence, and only non-disclosive aggregates (fitted loadings, cross-tabs meeting the depositor''s
+    cell rules) leave it.'' Reword the pitch claim to match before any file is downloaded. The amendment
+    goes to docs/staging/ as a proposal for your words; nothing in canon changes until you say so.'
+  recommendation: 'I recommend the amendment, because the factor fit the parsimony ruling asks for needs
+    one household-level joint and the handling rules in your ruling already keep every record out of the
+    repo, the site and the simulation. The trade-off is a weaker public claim: from ''no household data
+    entered the system'' to ''no household record leaves a licensed local store''. Until you answer, registering
+    is safe but no file is placed in ~/ukds/; every factor stays fitted from published cross-tabs. What
+    would change my view: if the pitch claim is load-bearing with an external reader, keep W11 and drop
+    the download.'
+  status: open
+  resolution: ''
+  evidence: docs/design/DIRECTOR_CANON.md W11 and H14; docs/director/UKDS_REGISTRATION_PACK.md; docs/staging/advisor/DIRECTOR_RULING_YES_TO_THE_VALUE_TEST_REDESIGN_AND_REGISTER_WITH_UKDS_NON_COMMERCIAL_2026-11-02.md
