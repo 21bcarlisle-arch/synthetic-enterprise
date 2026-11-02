@@ -35,3 +35,13 @@ Licence: Ofgem publications, Open Government Licence v3.0.
   matched the table above. Wave 5 has two bill-difficulty groups (household and energy bills), Wave 6 two (other
   household bills, not energy; and energy bills). Read by:
   `docs/market_research/revealed_switching_by_age_and_arrears_and_the_needs_tables_in_cim_waves_4_6_2026-11-02.md`.
+
+- `e20a_actions_to_reduce_cost_waves_3_to_6.csv` (added 2026-11-02): question E20a, "Which of the following actions, if
+  any, have you taken in order to reduce the costs of your energy bills" (Wave 3 Table 163, from the stored Wave 3
+  workbook; Wave 4 Table 178; Wave 5 Table 156; Wave 6 Table 108). Waves 4-6 add "in the past 3 months". Every answer
+  row and Ofgem's "Net: Taken any action", at the Total and every column of the crossbreak groups Age_2, Income v2,
+  Keeping up with (every variant), Home ownership, Individual Payment Method and Trust to treat fairly. Long format:
+  weighted column % (proportion x 100), unweighted base and effective base, as printed. Nothing is reweighted. The Wave
+  4-6 workbooks were re-fetched on 2026-11-02 and their SHA-256 matched the table above. Read with openpyxl: each
+  answer row's weighted count is followed by its column-proportion row. Read by:
+  `docs/market_research/price_sensitivity_is_two_traits_cutting_use_and_shopping_cim_waves_3_6_2026-11-02.md`.
