@@ -134,4 +134,33 @@ second one.
   written, from the primary tables, stored raw in `data/lake/` with provenance.
 - It does not touch the world. The world additions (Ask 2) follow the correctness exit test, as the
   steer says. Their roadmap is a separate `for_the_director` row.
-- It registers for no licensed dataset. That is reserved (G5) and goes to him as one row.
+- It registers for no licensed dataset. That is reserved (G5); section 6 lists them for one row.
+
+## 6. Licensed microdata that would improve a parameter (G5: listed, not registered)
+
+The 16:51 addendum, step 4. The parsimony ruling keeps three latent factors (precarity, affluence,
+life stage) and asks that their links to observable attributes be *fitted*, with effect and sample
+sizes. Published cross-tabs give one attribute at a time against one need (the CIM Wave 3 tables
+behind the framework page). They cannot give a joint: whether tenure, income, household type and
+payment method load on one precarity factor or on two needs household-level rows. That is what each
+dataset below would change. Access terms are graded P, read 2026-11-02 from the UK Data Service
+access policy (`ukdataservice.ac.uk/help/access-policy/types-of-data-access/`) and SERL's
+researcher page (`serl.ac.uk/researchers/`).
+
+| Dataset | Access | What it would change |
+|---|---|---|
+| Understanding Society, main survey (UKDS EUL) | Safeguarded: register with UKDS and accept the End User Licence | **The largest gain.** Household-level joint of income, tenure, household type, age, arrears, energy payment method and the risk-attitude waves. It is the only route to fit the precarity, affluence and life-stage factors the ruling keeps, and to test "life stage outweighs income" on the same households |
+| Wealth and Assets Survey (UKDS EUL) | Safeguarded, as above | Liquid savings by age and income: the size of the cash-flow need and the buffer that sets consumption elasticity's headroom. Today that is an A with a range |
+| English Housing Survey (UKDS EUL) | Safeguarded, as above | Tenure × dwelling × fuel poverty × payment method on one record. Tightens which observable a supplier can use as a precarity proxy |
+| SERL statistical dataset (UKDS EUL, SN 8963) | Safeguarded, as above. Aggregated, not per-home | Smart-meter consumption by household attribute through 2022–23: the crisis consumption response by group, which the price-sensitivity page could only state from survey answers |
+| SERL Observatory, per-home data | Controlled: accredited researcher on an approved project, and a non-HEI body must partner a UK HEI project lead | Per-home response to price, and the base-load/active-use coupling now built as a stated belief. **Not recommended:** it needs a university partnership, which is a larger commitment than a registration |
+
+**Terms that matter to the decision (P).** EUL users must "not use the data for commercial purposes
+without obtaining permission", and some safeguarded collections are limited to non-commercial or
+academic users. Poesys's mission is enterprise value, so whether this use is commercial is a
+question the registration must answer honestly, not one to assume away. The registration is an
+account and an agreement with a third party: a real-world commitment, reserved to the director (G5).
+
+**What happens meanwhile.** Every factor loading stays fitted from the published cross-tabs, one
+attribute at a time, and is graded as such. Where a joint is needed, the world carries it as an A
+with a range and the page says which licensed dataset would close it.
