@@ -618,3 +618,10 @@ items:
     fate: fix
     status: open
     owner: "H_harness: tools/surgical_land.py's test selection runs tests/company/billing and tests/simulation whole when a landing touches company/billing/ or simulation/; until then, the whole-suite pretest before every fresh run is the only leg that catches it"
+  - id: a-run-marker-refused-on-rows-a-later-commit-fixes-holds-the-publishers-slot
+    problem: "A run marker refused on rows a later commit fixes is re-graded every cycle instead of retired as superseded, and holds the publisher's slot."
+    match: ["The bb58608b9 run marker (run_complete_20261102T070308Z.md) is still in the staging root"]
+    first_seen: "2026-11-02"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    reason: "Both instances are closed by hand (bb58608b9 and 7c34f48a64 markers sit in docs/staging/done/, the second with a .superseded.txt naming its rows), and the marker queue is the publish gate's own state, so the remedy is that register's. Eight 'Unchanged'-shaped tails would record nothing."
