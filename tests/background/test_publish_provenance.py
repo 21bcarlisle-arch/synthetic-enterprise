@@ -187,6 +187,7 @@ def test_the_banner_sentence_names_the_pause_and_the_run(tmp_path):
     paused_line = prov.banner_line(prov.read(p))
     # The three facts the ruling requires a visitor to be able to read off the page.
     assert "Verification paused since" in paused_line
+    assert paused_line.startswith(prov.PAUSED_PLAIN) and prov.PAUSED_PLAIN not in verified_line
     assert "12:05" in paused_line          # since WHEN
     assert RUN_A in paused_line      # showing WHAT
 
@@ -198,6 +199,7 @@ def test_the_python_sentence_and_the_rendered_one_carry_the_same_facts():
     js = (prov.PROJECT_DIR / "site" / "assets" / "freshness-banner.js").read_text()
     for phrase in ["Verification paused since", "showing run", "last verified", "Verified "]:
         assert phrase in js, phrase
+    assert prov.PAUSED_PLAIN in js.replace('" +\n             "', ""), "the reader's sentence drifted"
 
 
 def test_the_banner_layer_fails_loud_not_silent():

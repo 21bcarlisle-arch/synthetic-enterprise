@@ -112,7 +112,9 @@
              " · showing run " + esc(run);
     } else {
       var lastVerified = (d && d.last_verified) || {};
-      line = "Verification paused since " + esc((d && d.paused_since) || "unknown") +
+      line = "The latest run did not pass its correctness checks, so this site shows the last " +
+             "verified figures while it is fixed · " +
+             "Verification paused since " + esc((d && d.paused_since) || "unknown") +
              " · showing run " + esc(run) +
              " (last verified " + esc(lastVerified.verified_at || "never") + ")";
     }

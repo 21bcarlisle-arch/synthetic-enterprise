@@ -51,3 +51,14 @@ Write `docs/design/THE_VALUE_TEST_REDESIGN.md` now, as cheap thinking work. Brin
    - **Blank insertions are visible.** For example: "produced at ,", "the run executed  and this page", "Source:  Open question: ", "measured on ." Find the empty fields and fix the renderer. Add a test that no published page contains a field rendered empty.
    - **The carbon contradiction.** This page says carbon is "designed, never measured". The home page lists "Household carbon, per half hour" as a capability. Make them agree with the record.
    - **Readability.** Keep the honesty but move it. The public page should give the question, what the current test can and cannot say and why, and what the redesign will do, in plain words. Put the full statistical apparatus (floors, seeds, withdrawals, R12 notes) in a linked technical appendix, unchanged. An outside reader should finish the section knowing that the answer is not in yet, and why.
+
+## Done (part 1, so far; the file stays here until part 2 is met)
+
+*Worker tick, 2 Nov 10:30Z.*
+
+- **Item 1, the refusal.** The £4,558.72 gap was the grader, not the book. It compared the ledger's EPG share on settled kWh with the discount on billed kWh, and it is fixed with a test (6062596dc). The bb58608b9 book was then offered again and refused twice more for other reasons:
+  - **A site census counted prose as a page reading a feed.** The regenerated "How it's built" timeline cites `site/data/tick_heartbeat.json`, which the page never fetches. This is fixed in this tick's census commit: a feed now counts only as a quoted URL, with a two-leg control and mutations run.
+  - **The domain-invariant gate.** That book's saved JSON has no SLC 22C renewal-notice log, so every renewal reads as breached (1,171; 3cb000dc3 fixed the cause for later runs). It also has 9 breaches on profile-class-2 homes. **bb58608b9 cannot publish.**
+- **Earliest verified publish.** This is the fresh run at 85b044be54, which carries the PC2 and gas fixes. It finished at 10:12Z today and its grade chain is running. Its raw result is kept whole, so the renewal-notice row can be graded on it. If the grade is clean, it goes to the publisher today. If a row still breaches, the grade names it, and the next sim_runner run at or after 3cb000dc3 is the earliest.
+- **Item 3, the paused banner.** It now leads with a sentence a reader can follow: "The latest run did not pass its correctness checks, so this site shows the last verified figures while it is fixed." The pause facts the ruling requires follow that sentence, and no internal refusal string is printed. The wording says "correctness checks" rather than "billing reconciliation" because the reconciliation is no longer the cause. It reaches the live site with the next publish.
+- **Item 2, decoupling the pages from the run.** Not attempted this tick. It belongs to the delivery seat's `the-site-is-current` focus.

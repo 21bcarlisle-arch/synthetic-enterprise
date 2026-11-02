@@ -507,6 +507,10 @@ def record_annotation(*, open_findings=None, nonblocking_reds=None, measured_on=
     return _write(state, path, now)
 
 
+PAUSED_PLAIN = ("The latest run did not pass its correctness checks, so this site shows the last "
+                "verified figures while it is fixed")
+
+
 def banner_line(state=None, now=None) -> str:
     """The sentence a visitor reads. Rendered client-side too (site/assets/freshness-banner.js);
     this is the same sentence in Python so the publisher can log exactly what the site says and
@@ -529,7 +533,9 @@ def banner_line(state=None, now=None) -> str:
         line = "Verified {} · showing run {}{}".format(
             showing.get("verified_at") or "unknown", run, detail)
     else:
-        line = "Verification paused since {} · showing run {} (last verified {})".format(
+        # The reader's sentence first (director, 2 Nov: the reason in words a reader understands,
+        # never the internal string); the facts the ruling requires follow it unchanged.
+        line = (PAUSED_PLAIN + " · Verification paused since {} · showing run {} (last verified {})").format(
             state.get("paused_since") or "unknown", run,
             (state.get("last_verified") or {}).get("verified_at") or "never")
     caveat = figures_caveat(state)
