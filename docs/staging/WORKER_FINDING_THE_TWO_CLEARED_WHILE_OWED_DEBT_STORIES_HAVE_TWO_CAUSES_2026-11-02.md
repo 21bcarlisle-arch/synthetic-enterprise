@@ -44,3 +44,40 @@ question (SLC 27), so check the commons first (K8).
 PROS-2025-0013's story stops at the ledger's clock, with a test that reds on today's shape. PROS-2020-0191's two
 records agree, or the page shows the case the desk leaves out. The debt slot's fourth check then refuses no
 household on the next fresh book.
+
+## Progress (2026-11-02, the-two-cleared-while-owed-debt-stories-fixed)
+
+**(a) PROS-2025-0013: fixed.** `decision_event_ledger.build_customer_ledger` takes `as_of` and
+`generate_customer_reaction_chain` passes the page ledger's own (`_book_as_of_date`). The debt
+check is unchanged. Test `test_a_case_repaid_after_the_ledgers_as_of_prints_no_cleared_moment`
+fails on the old code. It also asserts that a repayment before as_of still prints, so the cut can
+be not-taken.
+
+**(b) PROS-2020-0191: the cause is established, and neither record is the wrong one.** The input
+is wrong. On 2025-01-16 the world's later settlement paid the gas bill's issued face:
+
+- INV17624 was £170.74, but an £85.38 credit bill had already brought it down to £85.36 owed.
+- The gas leg received about £191.57 that day. Its `balance_gbp` is −£106.19, which is £85.38 plus
+  about £20.8, INV17641's face. INV17641 was already repaid on 2024-08-06, so a double settlement
+  fits. That part is not established.
+- The desk holds both fuels on one account (`ACC-PROS-2020-0191`). It nets the surplus against the
+  £40.73 electricity debt and cures, which is right by its own oldest-first balance rule.
+- The page drops a repayment's excess (`generate_billing_ledger.py`: "a repayment's excess was
+  never shown as money in"), so it still shows £40.73 owed.
+
+Written up as knowledge in `docs/market_research/debt_and_collections.md` §7, "Across fuels, and a
+repayment larger than the debt", with cross-fuel appropriation filed as a GAP.
+
+**Next step: a world-side fidelity fix, not a page or desk change.**
+
+- A settlement repays what is left on its bill, never its face. Two places price it at the face:
+  - `simulation/world_payment_truth.repayment_rows` (`kind == "settlement"`, from `amount_by_month`);
+  - `background/live_payment_triad._cross_settlement`, which crosses the bill event's amount to the
+    company.
+- Before writing the fix, check whether INV17641 was settled twice.
+- It moves the bad-debt line, so it needs a fresh book to measure, with the change predicted
+  before the run.
+- Bending the page or the desk to agree would hide phantom cash, so neither is done here.
+
+This finding stays open until that fix lands and the next fresh book's debt slot refuses no
+household.

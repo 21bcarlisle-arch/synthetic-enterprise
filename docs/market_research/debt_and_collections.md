@@ -858,6 +858,33 @@ Either way the household owes the money. The Explore debt slot's fourth check re
 or "repaid" ending while the page's own balance at that moment is still owed. Which allocation the
 page should print is a separate question, not settled here (GAP).
 
+**Across fuels, and a repayment larger than the debt (PROS-2020-0191, 85b044be54 book, traced
+2026-11-02).**
+- **The desk holds a dual-fuel home on one account.** Its overdue view was £126.09: £40.73
+  electricity (INV17575, DD returned Oct 2023) plus £85.36 gas.
+- **On 16 Jan 2025 the world's later settlement paid the gas bill's issued face.** INV17624 was
+  £170.74, already reduced to £85.36 by an £85.38 credit bill. The gas leg received about £191.57
+  that day. Its record's `balance_gbp` is −£106.19, which is £85.38 plus about £20.8, the face of
+  INV17641. That bill had already been repaid on 6 Aug 2024. A second settlement of it is
+  consistent with this but not established.
+- **What each record did with the cash.**
+  - The desk nets the surplus across fuels on its one balance, so it cured that day. That is
+    right by its own rule.
+  - The page books only the surplus that met a case. "A repayment's excess was never shown as
+    money in" (`generate_billing_ledger.py`), so the page shows the £40.73 still owed.
+  - Neither record is wrong by its own rule. **The input is wrong:** a household settling a bill
+    pays what is left on it, not its face once a credit or an earlier payment has reduced it.
+    That is a world-side defect (`world_payment_truth.repayment_rows` prices a `settlement` at the
+    bill's issued amount, and the triad's crossing carries the bill event's amount). It is filed,
+    not fixed here.
+- **Whether a credit or payment on one fuel may discharge the other fuel's debt: GAP.**
+  - SLC 27.16 defines Credit per Domestic Supply Contract. The world nets per fuel on that reading.
+  - Many suppliers run a dual-fuel home as one account, which is the desk's reading
+    (`account_hierarchy_payment_allocation.md` s1, balance-based).
+  - No licence condition or Ofgem decision found here settles cross-fuel appropriation. It is a
+    practitioner question once the overpayment is gone, because only then does it change an
+    outcome.
+
 ---
 
 ## 8. Gaps
