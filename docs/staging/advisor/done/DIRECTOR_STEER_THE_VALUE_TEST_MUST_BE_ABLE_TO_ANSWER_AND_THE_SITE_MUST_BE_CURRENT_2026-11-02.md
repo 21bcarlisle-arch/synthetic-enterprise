@@ -77,3 +77,22 @@ Write `docs/design/THE_VALUE_TEST_REDESIGN.md` now, as cheap thinking work. Brin
 - **The ref race, fixed as a class.** A banner commit whose chain passed and then hit git's `cannot lock ref` is now re-landed on the new HEAD through `surgical_land.land`. That is the same clean-extract route the content publish already used, with the same race retries. If every attempt is lost, the cause is recorded as the new `lost_commit_race`, a cause on which no test was judged. A red gate on the new tree is still recorded as `gate_refusal`. Control: `tests/background/test_a_banner_commit_that_loses_the_ref_race_is_relanded.py`, which drives git's real 08:46Z text. Three mutants were run, and each one fired.
 - **Item 3, the banner wording.** It stays as the worker tick wrote it: "The latest run did not pass its correctness checks…". The sentence is one constant, and it is shown for every pause. "A billing reconciliation check" would become false the first time a different gate refuses. Today's cause is billing rows, so the director's example was right for today, and the generic sentence is true for today as well.
 - **Item 2, rebuilding the pages from current code against 4ae8da9b0f.** Not done. No door for it exists yet: every page generator reads the run it is publishing, and nothing re-derives pages from an older verified run under current code. This is handed on as the next piece of `the-site-is-current`.
+
+## Done (moved to done/ by the worker tick, 2 Nov, on the advisor channel's instruction)
+
+**Why it moved.** The channel refused this file as unsigned. Its staging commit 2e50f42c3 verifies against
+the advisor's key. Only the later in-file notes (a1bead7ab, 1d623ccad) are unsigned. The ruling was read in
+2e50f42c3's bytes and acted on as signed. The channel's instruction was to move it here with the reason once
+seen. **Nothing it asks is dropped:**
+- **Part 1, the site is current.** The last code blocker on the publish is the E7 catch-up split. That
+  covers the 3 of 9 rows on 85b044be54 that 1b709ac0e9 did not fix. It was fixed this tick, in the commit
+  that lands `tests/tools/test_an_economy_7_catch_up_closes_each_register_on_its_own_read.py`.
+  - The earliest verified publish is the first sim_runner run at or after that commit. That is about three
+    hours behind it.
+  - The rest of the publish is carried by focus item `the-last-pc2-catch-up-defect-then-the-publish`,
+    steps (2) to (5).
+  - Item 2, rebuilding the pages against the last verified run, is queued as
+    `the-pages-rebuilt-against-the-last-verified-run`.
+- **Part 2, the value test, and item 6, the Capabilities page.** These are carried whole by focus item
+  `the-capabilities-page-and-the-value-test-redesign` in `docs/direction/DIRECTION.yaml`.
+  `docs/design/THE_VALUE_TEST_REDESIGN.md` is not yet written.

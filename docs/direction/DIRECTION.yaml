@@ -1,147 +1,113 @@
 version: 1
-oriented_at: '2026-11-02T09:22:07.005650+00:00'
-thesis_read: 'The stretch ended with the site one ref race from current, and the record has to say I misread why for five days. The publish refusal since 28 Oct was never the books. It was the over-ceiling
-  grader, which compared the ledger''s EPG share on settled kWh with the discount on billed kWh (6062596dc, fixed with a test). I had blamed the PC2 breaches without reading the refusal string, and the
-  director found it by reading the live site. The bb58608b9 book then passed every publish gate at 08:46Z and failed only because another lane moved the shared HEAD mid-commit. So the site still says 26
-  Oct while a passing book sits in the staging root. That is item 1, with the race fixed as a class. On the supplier side, the gas build is now sound at origin: a9e9128aa confirmed and fixed all six pairs
-  the blind readers raised (that row is corrected), and 491243e09 made the blind tree blind. But nothing is proved against the thesis yet. The 85b044be54 fresh run that grades the PC2 and gas fixes is mid-way
-  (2021 at 09:22Z), and the correctness ruling''s exit test is not met. The director''s 2 Nov steer also says the value test cannot return an answer as built: its published advantage sits below all three
-  of its own re-draws, it reaches 3.7% of renewals, and its baseline is a GBP 2/MWh margin. That goes to the thesis itself. A supplier that beats average only means something against a baseline that could
-  be beaten, so I put the redesign in focus as thinking work now, with the Capabilities page''s empty fields fixed beside it. The second steer says the naive organ has asked nothing since 10 Aug. That is
-  a twelve-week silent failure of the one organ that questions our own claims, and it is in focus. The brief counts 16 commits, 5 substantive, split 1 supplier and 15 other, with three no-work merges in
-  a row. That balance is thin for supplier-first, and the two supplier items here are the ones that can move it. Of last stretch''s four focus items, two were drawn: the gas pairs (done, so it disappears)
-  and the fresh run (live). The sixth cold read was held by design, and the corpus moved and now rides the continuation queue. No concern is open for the director.'
+oriented_at: '2026-11-02T12:23:55.767217+00:00'
+thesis_read: 'The fresh book is graded, and it nearly passes. On 85b044be54, the first book carrying the PC2 and gas fixes, the gas row reads 0 of 23,745, the renewal-notice row 0 of 1,171, desk-cure P1
+  0 of 1,078, and 7 of 8 Explore slots fill, storage heating among them (PROS-2017-0233). That closes the gas row and moves the PC2 row from 344 breaches to 9 on four rows. 1b709ac0e has already fixed six
+  of the nine in code. The other three are one defect: a downward catch-up split over Day and Night by printed share, which runs the Night register backwards on two homes. So the site is one small billing
+  fix and one ordinary run from current, and that fix is item 1. I have to correct the record again. My last two directions said bb58608b9 passed every gate and lost only a ref race. It did not. It was
+  refused on bills, then four times on domain invariants, and the race was the banner commit. I named a refusal I had not read, the same habit as the five-day PC2 misreading. The seat corrected it beside
+  the claim at 11:50Z, and a1bead7ab fixed the ref race as a class. I also told a worker to write into a live advisor file, and the channel refused the director''s steer as unsigned. I have reopened that
+  triage row against my own prose. Against the thesis nothing moved. The supplier still makes no per-customer decision a baseline could fail to make, the renewal belief still ranks leavers backwards, and
+  the value test still cannot return an answer. Its redesign and the Capabilities fixes were not drawn for a second stretch. That item is now the steer that is drifting, and it moves to second, behind only
+  the publish. The split was 2 supplier, 1 world, 1 both and 16 other out of 20, with 7 no-work merges. Most of the ''other'' was publish machinery and the director''s customer-needs knowledge pages, so
+  it was real work, but thin on the supplier. Of the last focus''s five items one was drawn (the-site-is-current, which retired with a1bead7ab and handed its page-rebuild part to the queue). The fresh run
+  graded itself by its chain, and nobody committed the grade. The naive organ''s cause is found, and its repair is landing now (pid 1927192), so it leaves focus. The sixth cold read can now read the 85b044be54
+  book rather than wait for another run, and it carries the 9 Nov commitment.'
 stretch_reviewed:
-  since: '2026-11-02T06:21:19.524857+00:00'
-  commits: 16
-  substantive: 5
+  since: '2026-11-02T09:22:07.005650+00:00'
+  commits: 20
+  substantive: 10
 focus:
-- id: the-site-is-current
-  lane: H_harness
-  side: other
-  what: 'Director''s steer of 2 Nov 07:29 (''please make sure the website is up to date''), part 1. The
-    refusal''s cause is fixed (6062596dc, the over-ceiling grader). The bb58608b9 book (docs/staging/run_complete_20261102T070308Z.md,
-    still in the staging root) passed every publish gate at 08:46Z and failed only on ''cannot lock ref
-    HEAD'' (sim-runner-log.md, 08:46 UTC). First check the marker has not been consumed and no publish
-    is in flight. Then re-offer it to background/process_run_complete.py once, now, rather than waiting
-    for the next sim run. If it lands, check the live site''s generated stamp has moved off 185355386,
-    and name the commit. Then fix the class in process_run_complete.py: a publish commit that fails on
-    a ref-lock race (git''s ''cannot lock ref'') is retried against the new HEAD through the same clean-extract
-    path, never classed as an unnameable refusal; a test drives a moved HEAD and asserts the retry. If
-    bb58608b9 refuses on anything else, name the gate. If it cannot publish today, say why in the advisor
-    file''s Done, give the earliest time a verified run will, and rebuild the pages from current code
-    against the last verified run 4ae8da9b0f if the decoupling allows it. Make the paused banner say in
-    plain words: ''This week''s run failed a billing reconciliation check, so the site shows last week''s
-    verified figures while it is fixed'', with no internal string. Part 1 of docs/staging/advisor/DIRECTOR_STEER_THE_VALUE_TEST_MUST_BE_ABLE_TO_ANSWER_AND_THE_SITE_MUST_BE_CURRENT_2026-11-02.md
-    is then done; write that in a ## Done section, but do not move the file until item 3 meets part 2.'
-  why: The director asked for this first, in his own words, and the live site still says 'Generated 2026-10-26'.
-    Twelve graded page fixes and the privacy notice wait only on one publish. The book that would carry
-    them already passed every gate and lost a race, so this is hours of work, not a new run. Done means
-    the live site carries a commit from 2 Nov or later, and a ref race is retried by test, or the Done
-    section names the gate that still refuses and when a verified run will publish.
-  written_at: 1793611674.9
-- id: the-fresh-run-after-the-pc2-and-gas-fixes
+- id: the-last-pc2-catch-up-defect-then-the-publish
   lane: D_billing_metering
   side: supplier
-  what: 'fresh-run-85b044be54 is live (arm.py pid 982898, in 2021 at 09:22Z) and grade-chain-85b044be54
-    follows it. Do not relaunch either, and do not reap /var/tmp/fresh-run-wt-85b044be54: its two salvage
-    commits are this run''s worktree. When /var/tmp/fresh-grade-85b044be54/ALLDONE exists, read the grade.
-    Mark held or refuted beside every prediction in docs/staging/records/SEAT_PREREGISTRATION_THE_FRESH_RUN_AT_85B044BE54_CARRIES_THE_PC2_AND_GAS_FIXES_2026-11-02.md
-    and in SEAT_PREREGISTRATION_THE_PC2_FIXES_PREDICTED_PER_ROW_FOR_THE_NEXT_FRESH_RUN_2026-10-30.md,
-    including gas prediction 4, the E7 row, N10, F/VAT and desk-cure P1. Say whether the storage-heating
-    Explore slot fills. Trace PROS-2025-0013 and PROS-2020-0191 if either is still ''cleared while still
-    owed''. Reset each max_breached in docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml to this book''s count
-    and retire every row at 0. Commit the grade to docs/staging/records/, and move SEAT_FINDING_THE_E7_AND_PC2_BUILDS_LEAVE_EIGHT_ROWS_BREACHED_ON_PROFILE_CLASS_2_HOMES_2026-10-30.md
-    to done/ if every point holds. If this book is clean and newer than the live one, offer it to the
-    publisher.'
-  why: Only a graded fresh book shows that the PC2 and gas fixes did what they claimed. Five rows of wrong
-    wait on it, and the sixth cold read reads its pages. Done means the grade is on origin with every
-    prediction marked held or refuted, and each remaining breach names its cause.
-  written_at: 1793611674.9
+  what: 'The 85b044be54 fresh book is graded (/var/tmp/fresh-grade-85b044be54/grade.txt): 9 unexcepted
+    breaches on 4 rows, so the publish is refused. 1b709ac0e fixes six (the E7 void stub on OCC-23ee23cb44e4
+    and OCC-7e06d09fc108). (1) Fix the other three in company/billing: an actual read''s downward catch-up
+    is shared over Day and Night by printed share, so the Night register reads backwards (INV_READ_MONOTONIC
+    on PROS-2017-0336 and PROS-2024-0010) and one INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS row breaches.
+    The trace is on docs/staging/SEAT_FINDING_THE_E7_AND_PC2_BUILDS_LEAVE_EIGHT_ROWS_BREACHED_ON_PROFILE_CLASS_2_HOMES_2026-10-30.md.
+    If the rule for splitting a catch-up across registers is not on docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md,
+    write it there first (K8). Add a test that reds on the old code, and run tests/company/billing whole
+    before landing. (2) Commit the 85b044be54 grade to docs/staging/records/, with held or refuted beside
+    every prediction in SEAT_PREREGISTRATION_THE_FRESH_RUN_AT_85B044BE54_CARRIES_THE_PC2_AND_GAS_FIXES_2026-11-02.md
+    and SEAT_PREREGISTRATION_THE_PC2_FIXES_PREDICTED_PER_ROW_FOR_THE_NEXT_FRESH_RUN_2026-10-30.md. (3)
+    Trace PROS-2025-0013 and PROS-2020-0191, both still refused ''cleared while still owed'' in debt_p4.txt,
+    to a cause, and fix or file it. (4) Retire the bb58608b9 marker docs/staging/run_complete_20261102T070308Z.md
+    as superseded, naming its refusal rows. Do not chase the 7c34f48a64 run being processed now: it predates
+    1b709ac0e. (5) The first sim_runner run at or after both fixes is the publish. When process_run_complete
+    grades it, read its refusal string or its publish commit. If it publishes, name the commit and check
+    that the live site''s generated stamp is from 2 Nov or later. If it is refused, name the rows.'
+  why: The director asked on 2 Nov for a current site, and three households on one defect now stand between
+    a graded book and the publish that puts twelve page fixes live. It is also billing accuracy, the first
+    step of the supplier priority order. Done means the catch-up fix and the 85b044be54 grade are on origin,
+    and then either the live site carries a book from 2 Nov or later or the publisher's own refusal names
+    the rows still breaching.
+  written_at: 1793622587.322
 - id: the-capabilities-page-and-the-value-test-redesign
   lane: B_commercial
   side: supplier
-  what: 'Part 2 of the director''s 2 Nov steer (same file as item 1). Do item 6 now. On site/capabilities/,
-    find every field rendered empty (''produced at ,'', ''the run executed  and'', ''Source:  Open question:'',
-    ''measured on .''), fix the renderer, and add a test that no published page contains a field rendered
-    empty. Make the carbon claim agree with the record across site/capabilities/ and site/index.html (''designed,
-    never measured'' against ''Household carbon, per half hour''). Move the statistical apparatus (floors,
-    seeds, withdrawals, R12 notes) unchanged into a linked technical appendix, and say on the page in
-    plain words the question, what the test can and cannot say yet and why, and what the redesign will
-    do. Then write docs/design/THE_VALUE_TEST_REDESIGN.md as thinking only. Test the advisor''s five readings
-    against site/data/value_arms.json and the run before adopting any of them. Cover: one world, code
-    tree, book and date for every arm and bound; a book large enough to price; an arm that places SVT
-    households onto a tariff; a baseline at an efficient supplier''s margin or the cap headroom, sourced;
-    settling the world''s write-off-everything-on-exit rule against GB bad-debt and recovery evidence
-    (knowledge page first, K8); the vector scorecard of 31 Oct; and pre-registered predictions. Before
-    it is called ready, give it a fresh-context read under item 4''s design-read (the proposal and its
-    cited sources only). Then raise a for_the_director row with a two-minute proposal and a recommendation.
-    Build nothing.'
-  why: 'The thesis says ''performed well'' means nothing without a baseline to beat. The director has
-    read that today''s test cannot return an answer: the published figure sits below all three of its
-    own re-draws, and the test reaches 3.7% of renewals. The page fix is cheap and public. The redesign
-    is thinking work the steer orders now, and the build waits for the correctness exit test. Done means
-    the Capabilities page carries no empty field and agrees with the home page on carbon, its test is
-    on origin, and the redesign is on origin with its cold read and a for_the_director row.'
-  written_at: 1793611674.9
-- id: the-naive-organ-is-repaired-or-retired
-  lane: H_harness
-  side: other
-  what: 'Act on docs/staging/advisor/DIRECTOR_STEER_THE_NAIVE_ORGAN_HAS_REFUSED_EVERYTHING_SINCE_10_AUG_AND_DESIGNS_GET_A_GOLDFISH_READ_2026-11-02.md.
-    Establish from background/naive_organ.py and docs/observability/naive_organ_log.jsonl why it has asked
-    nothing since 2026-08-10T07:48Z; test the advisor''s hypothesis that its own unanswered questions
-    are re-fed as claims and declined by is_purpose_claim''s substring match. Then repair it or retire
-    it, with evidence for the choice. A repair keys to the property: it never re-feeds its own questions,
-    the purpose line still holds, and one control on real log input proves both an ask and a decline are
-    reachable. Either way, the log stops growing with repeats. Scan every organ and watcher under background/
-    for output that is 100% one verdict over its last 2,000 entries, and list them with counts in the
-    advisor file''s Done. Then give the next design proposal of real scope (item 3''s THE_VALUE_TEST_REDESIGN.md)
-    a blind fresh-context read before build, using the phase-close evaluator or the two-reader machinery,
-    never a new organ or commit gate. Measure it through judge_validation, and put its first findings
-    in the stretch log.'
-  why: 'This is the director''s rung-zero steer, and it is the shape CLAUDE.md names: for twelve weeks
-    nothing has questioned the system''s own claims, and no control noticed. The design read lands where
-    it is cheapest, before a build. Done means the organ''s cause is on origin, it is repaired or retired
-    with a control over both branches, the single-verdict scan is listed, the design read has run once
-    with findings, and the advisor file is in done/.'
-  written_at: 1793611674.9
+  what: 'Act on the director''s 2 Nov steer in its SIGNED text: `git show 2e50f42c3:docs/staging/advisor/DIRECTOR_STEER_THE_VALUE_TEST_MUST_BE_ABLE_TO_ANSWER_AND_THE_SITE_MUST_BE_CURRENT_2026-11-02.md`.
+    The later unsigned Done edits in the live file are lanes'' notes. Do not write into the live file.
+    First, item 6. On site/capabilities/, find every field rendered empty (''produced at ,'', ''the run
+    executed  and'', ''Source:  Open question:'', ''measured on .'') and fix the renderer. Add a site
+    test that no published page contains a field rendered empty. Make the carbon claim agree with the
+    record across site/capabilities/ and site/index.html (''designed, never measured'' against ''Household
+    carbon, per half hour''). Move the statistical apparatus (floors, seeds, withdrawals, R12 notes) unchanged
+    into a linked technical appendix. The page should then say, in plain words, the question, what the
+    test can and cannot say yet and why, and what the redesign will do. Then write docs/design/THE_VALUE_TEST_REDESIGN.md
+    as thinking only. Test the advisor''s readings against site/data/value_arms.json and the run before
+    adopting any. It must cover: one world, code tree, book and date for every arm and bound; a book large
+    enough to price; an arm that places SVT households onto a tariff; a sourced baseline at an efficient
+    supplier''s margin or the cap headroom; the world''s write-off-everything-on-exit rule against GB
+    bad-debt and recovery evidence (knowledge page first); the vector scorecard ruled 31 Oct; and pre-registered
+    predictions. Its existence releases the queued the-design-read-runs-on-the-value-test-redesign. After
+    that read, raise a for_the_director row through background.director_concerns with a two-minute proposal
+    and a recommendation. Build nothing. When part 2 is met, move the steer to docs/staging/advisor/done/
+    with its ## Done in that commit.'
+  why: 'The thesis says ''it performed well'' means nothing without a baseline that could be beaten, and
+    the director has read that today''s test cannot answer: its published advantage sits below all three
+    of its own re-draws, and it reaches 3.7% of renewals. This has been in focus for a stretch and was
+    not drawn, so the steer is drifting. Done means the Capabilities page shows no empty field and agrees
+    with the home page on carbon, with its test on origin, and the redesign is on origin with its fresh-context
+    read and a for_the_director row.'
+  written_at: 1793622587.322
 - id: the-sixth-cold-read
   lane: H_harness
   side: other
-  what: DO NOT DRAW BEFORE /var/tmp/fresh-grade-85b044be54/ALLDONE EXISTS and item 2's grade and pages
-    are on origin. The blind worktree fixes are on origin (491243e09). Build the reader's tree with tools/blind_worktree.py
-    from that book, and run the sixth cold read (.claude/skills/cold-eyes-walk/SKILL.md). Read that book's
-    Explore and a fresh random handful of households not read before. Write the pre-registration first,
-    then grade all three legs of docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md.
+  what: DO NOT DRAW BEFORE item 1's 85b044be54 grade is on origin in docs/staging/records/. Read that
+    book; do not wait for another run. Its pages are built under /var/tmp/fresh-grade-85b044be54/tree,
+    and 7 of 8 Explore slots fill. Build the reader's tree from it with tools/blind_worktree.py and run
+    the sixth cold read (.claude/skills/cold-eyes-walk/SKILL.md). Read the filled Explore slots and a
+    fresh random handful of households not read before. Write the pre-registration first, then grade all
+    three legs of docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md.
     The reader's trade is a GB metering and settlement professional, and the brief names no expected finding.
     Afterwards, check by name that gas pages print a volume and a conversion, that storage-heated pages
     bill Day and Night, and that no serial sits on two supply points. File each new class as a finding
-    with a blind row.
-  why: The correctness ruling is the oldest live advisor file, and only a cold read can meet its leg three.
-    Its commitment to the director is due 9 Nov. Done means the reading is on origin with each leg graded.
+    with a blind row. Name the 9 known breach households to the grader, not to the reader.
+  why: The correctness ruling is the oldest live advisor file. Only a cold read can meet its leg three,
+    and the commitment to the director on the-improvement-loop row is due 9 Nov. The 85b044be54 book is
+    the first to carry every billing fix but one. Done means the reading is on origin with each leg graded.
     If all three legs are met, the ruling moves to done/ and the correctness stretch ends. If not, the
     new classes are the next focus.
-  written_at: 1793611674.9
+  written_at: 1793622587.322
 not_now:
-- what: Waiting for the 85b044be54 fresh run's book to be the first publish.
-  why: The director asked for a current site first. bb58608b9 passed every gate and carries 89220b9dd and 34b764a0f. Publishing it now puts the twelve page fixes live today, and the fresh book can publish
-    over it once it is graded. Holding a passing book for a better one is what kept the site at 26 Oct.
-- what: Keeping the customer-knowledge corpus in focus (last stretch's item 4).
-  why: It moved this stretch (d1b04bbd0, the needs framework page), and its next slice, the-customer-needs-waves-4-6-affordability-and-worry, is already in the continuation queue where the draw will offer
-    it. Two new rung-zero steers outrank it for a focus slot. It leaves focus because the queue carries it, not because it is done; its advisor files stay in advisor/.
-- what: Building the value-test redesign now.
-  why: The steer says to build after the correctness exit test. Writing the design now is cheap and gets it its cold read early; building would add arms while billing is not yet graded clean on a fresh
-    book.
-- what: Retiring the naive organ outright, since the two-reader review and cold reads now cover its ground.
-  why: That may be the right answer, but it has to be established from the log and the code, not assumed. Item 4 lets the worker choose either way with evidence.
-- what: Landing the gas CV continuation (the-gas-cv-is-the-period-average-of-the-daily-series) ahead of the publish.
-  why: It moves gas kWh by a small, known amount and needs a commons transcription first. It stays in the continuation queue and changes no figure the publish waits on.
+- what: Keeping the naive organ repair in focus.
+  why: Its cause is found and its repair is landing now (surgical_land pid 1927192). Drawing it again would put a second writer on a landing in flight. Its design-read half is queued (the-design-read-runs-on-the-value-test-redesign)
+    and waits on item 2. If the landing dies, it comes back at the next orientation.
+- what: Building the page-rebuild door (the-pages-rebuilt-against-the-last-verified-run) ahead of the catch-up fix.
+  why: 'It is in the continuation queue and the draw will offer it. But a clean book after item 1 makes the site current by the ordinary path about three hours after the fix lands, and the door is a new
+    mechanism. Correctness first: the fix also corrects real bills.'
+- what: Grading or publishing the 7c34f48a64 run being processed now.
+  why: It was built before 1b709ac0e, so by that commit's own account it carries six of the nine breaches. Spending a worker on it buys nothing the next run will not.
 - what: Carrying the corrected renewal belief into a policy.
-  why: Its departure interval still spans zero on the clean book, and the value test that would grade it is being redesigned (item 3). Carrying it now would be graded by an instrument the director has just
-    read as unable to answer.
-- what: Reaping the eight at-risk worktrees.
-  why: fresh-run-wt-85b044be54 holds the live run. The five named disposable earlier (simsuite-2cf3201c5c, se-budgetpay-land, three b12-strike trees) still are, and se-om2 is not established. Reaping frees
-    nothing the focus needs and risks the live run.
+  why: Its departure interval still spans zero on the clean book, and the value test that would grade it is being redesigned (item 2). The correctness ruling puts levers after its exit test.
+- what: Putting the director's 30 Oct corpus and reputation steers in focus.
+  why: Both are moving through the continuation queue (the-customer-knowledge-corpus-structure, the-reputation-evidence-calibration), and three needs pages landed this stretch. They are knowledge work the
+    draw already reaches. A focus slot is worth more on the publish, the redesign that was not drawn, and the dated cold read.
+- what: The gas LDZ continuation (the-gas-supply-points-ldz-crosses-the-seam-and-the-bill-converts-at-r5) in focus.
+  why: Moving the stand-in from 39.5 to an area's CV shifts gas kWh by up to 4%. The book already passes the gas row without it, and it stays queued.
+- what: Reaping the seven at-risk worktrees.
+  why: It frees nothing the focus needs. simsuite-2cf3201c5c, se-budgetpay-land and the four b12 trees hold work already landed or abandoned, and are disposable. se-om2 is not established and stays.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On 268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls,
     where 40 of 92 households leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term''s tariff type before the roll and does not use it (7dc923787, 7eb9f2695). Focus
@@ -217,7 +183,8 @@ wrong:
     The correctness ruling''s exit test is not met (the sixth cold read has not run), so it is not in focus. 03:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks
     leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus. 06:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
     The correctness ruling''s exit test is not met, so it is not in focus. 09:25: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
-    ruling''s exit test is not met, and today''s site steer comes first, so it is not in focus.'
+    ruling''s exit test is not met, and today''s site steer comes first, so it is not in focus. 12:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
+    The correctness ruling''s exit test is not met, so it is not in focus.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Two landings turned tests on origin red that their own test selection never ran. e81b1b156 set enforce: true, and four flow tests in tests/background/test_process_run_complete.py
     went red, because the main flow graded a ledger on disk from another run (INV_READ_MONOTONIC 29) and refused. Its receipt shows 14 tests passed, and that file was not among them. 3e19e5676 had already
@@ -281,7 +248,10 @@ wrong:
     which is the leg that catches this. tests/simulation is being read at 85b044be54 now. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed.
     09:25: Unchanged. a9e9128aa changed monthly_bill_assembly.py, gas_volume_conversion.py, generate_billing_ledger.py and domain_invariant_runner.py on its own selection, and 6062596dc changed the over-ceiling
     grader on a 902-test receipt: the same exposure twice more. bb58608b9 records that the 41 order-dependent billing reds do not reproduce at origin HEAD, and ce8694cbb files two dual-fuel mover tests
-    that red after twelve earlier simulation files and pass alone. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed.'
+    that red after twelve earlier simulation files and pass alone. Nothing ties a change to a gate switch or a billing basis to the tests that drive it, so the class is not fixed. 12:24: Unchanged, and
+    a new shape of it. 1b709ac0e records three billing tests red at HEAD without its change because they read the shared tree''s live ledger, regenerated at 10:54 from the refused bb58608b9 book; two are
+    not on the publish standing-red register. 1b709ac0e and 3cb000dc3 changed company/billing and saas/reporting on their own selections again. Nothing ties a change to a gate switch or a billing basis
+    to the tests that drive it, so the class is not fixed.'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. The debt-journey slot''s household (SYN-2016-356) tells a story its own record contradicts: the page dates ''First overdue notice'' (25 Nov 2016) before the slot''s ''Missed
     a payment'' moment (15 Dec), prints ''4 of 4 bills paid, 0 missed'' at that moment, and shows no DCA placement though the ledger holds one (30 Sep 2018). The slot''s validity predicate passed it. Found
@@ -302,7 +272,8 @@ wrong:
     publish until focus item 1 clears them. 03:24: Unchanged. The 2 Nov publish window opens at 04:00Z, but the latest graded book (cd4fc5b8d8) is refused on its PC2 breaches. 89220b9dd fixes them in code,
     and focus item 2''s run grades them. 06:21: Unchanged. The fifth reader''s ''partly'' is the after-the-last-rung GAP. The live pages change only at a publish, and no graded book is publishable until
     focus item 1''s run. 09:25: Unchanged. The live pages change only at a publish. The bb58608b9 book passed every publish gate at 08:46Z and lost only a ref race (its own row below), so focus item 1 is
-    the publish, not a new book.'
+    the publish, not a new book. 12:24: Unchanged. On the 85b044be54 book the debt slot fills with SYN-2016-210 on all four checks, and ''notice before the miss'' refusals read 2. The live pages change
+    only at a publish, and that book is refused on 9 billing breaches (focus item 1).'
   corrected: false
 - what: 'THE PAGES'', THIS STRETCH. Two engines write notices for one debt, with different balances. On 55 of 402 debt matches on the 209c3350ab book, the old arrears engine''s first or second notice narrates
     the debt the desk holds, at a different amount: on 22 Jul 2019, OCC-9edd7eed4aab''s desk reads GBP 60.78 overdue and its first notice says GBP 18.71 outstanding; OCC-69932b473610 prints GBP 79.11 beside
@@ -315,7 +286,8 @@ wrong:
     publish. 15:20: Unchanged. The live pages change only at a publish, and the cd4fc5b8d8 book''s 344 profile class 2 breaches refuse the publish until focus item 1 clears them. 03:24: Unchanged. The 2
     Nov publish window opens at 04:00Z, but the latest graded book (cd4fc5b8d8) is refused on its PC2 breaches. 89220b9dd fixes them in code, and focus item 2''s run grades them. 06:21: Unchanged. ''Notice
     before the miss'' refusals read 2 on the 3dc5a92948 cast. Focus item 1''s run re-reads the cast; the live pages change only at a publish. 09:25: Unchanged. ''Notice before the miss'' refusals read 2
-    on the 3dc5a92948 cast. The live pages change only at a publish (focus item 1); item 2''s run re-reads the cast.'
+    on the 3dc5a92948 cast. The live pages change only at a publish (focus item 1); item 2''s run re-reads the cast. 12:24: Unchanged. ''Notice before the miss'' refusals read 2 on the 85b044be54 cast too.
+    The live pages change only at a publish (focus item 1).'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds. SYN-2016-550''s story ends ''15 Dec 2024, Debt cleared'' while its page prints
     GBP 258.84 owed: GBP 71.31 is an electricity bill from 2 Nov 2018, unpaid and held flat for six years, and GBP 187.53 is the gas bill of 7 Jan 2024, unpaid while every later bill is paid on its date.
@@ -330,7 +302,8 @@ wrong:
     11:59Z), so PROS-2025-0013 and PROS-2020-0191 are not traced. Focus item 3. 15:20: Unchanged. PROS-2025-0013 and PROS-2020-0191 were not traced on cd4fc5b8d8; desk-cure P1 held there (0 of 1,069 journeys
     cured on a due date). Focus item 4''s run traces any that survive. 03:24: Unchanged. PROS-2025-0013 and PROS-2020-0191 are not traced. Focus item 2''s run traces any that survive. 06:21: Unchanged.
     PROS-2025-0013 and PROS-2020-0191 are not traced. Focus item 1''s run traces any that survive. 09:25: Unchanged. PROS-2025-0013 and PROS-2020-0191 are not traced. The 85b044be54 fresh run is in 2021
-    (09:22Z); focus item 2 traces any that survive.'
+    (09:22Z); focus item 2 traces any that survive. 12:24: Unchanged, and now re-read. On the 85b044be54 book desk-cure P1 held again (0 of 1,078 journeys cured on a due date), and PROS-2025-0013 and PROS-2020-0191
+    are both still refused as ''cleared while still owed'' (debt_p4.txt); PROS-2020-0191 also holds an agency placement its story never shows. Neither is traced. Focus item 1 traces them.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. A storage-heated home is billed on a single rate while its meter is settled two-rate. On the 209c3350ab book, 36 of 560 electricity accounts are settled on profile
     class 2 and billed single-rate on all 537 of their term rows. That gives the E2 summer over-estimates their cause, and it is why the storage-heating Explore slot is empty (96 of 96 refused: no PC2 meter
@@ -344,7 +317,9 @@ wrong:
     publish is refused. Focus item 1. 03:24: Improved in code, not graded. 89220b9dd traced the refutation: one estimate scaler gave a storage home''s Night register Day''s ratio (738 of 1,335 PC2 estimates
     charged at 0.28x to 13.4x), and the page never wrote a profile class, so the storage slot could not fill. Both are fixed, with tests that red on the old code, and the per-row predictions are filed (SEAT_PREREGISTRATION_THE_PC2_FIXES_PREDICTED_PER_ROW_FOR_THE_NEXT_FRESH_RUN_2026-10-30.md).
     Focus item 2 grades them and says whether the slot fills. 06:21: Unchanged. Fixed in code by 89220b9dd, not graded. Focus item 1''s run grades the per-row predictions and says whether the storage slot
-    fills. 09:25: Unchanged. Fixed in code by 89220b9dd, not graded. Focus item 2''s run grades the per-row predictions and says whether the storage slot fills.'
+    fills. 09:25: Unchanged. Fixed in code by 89220b9dd, not graded. Focus item 2''s run grades the per-row predictions and says whether the storage slot fills. 12:24: Improved, not corrected. On the 85b044be54
+    book the storage-heating Explore slot fills (PROS-2017-0233), and 7 of 8 slots fill. But INV_E7_METER_BILLED_ON_TWO_REGISTERS still reads 2 and the estimated-run row''s exception still covers three
+    storage homes not printing the two-rate settlement they hold. 1b709ac0e fixes the two E7 rows in code; no book carries it yet.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. Every gas read is held and billed as a kWh register, with no volume and no conversion: 23,816 gas invoices on 586 pages, while the page says gas is converted at gross
     calorific value. The roster''s cv_factor and cf are never read on any read or bill path, and no gas volume crosses the seam. Found by the fifth cold read (32d7dff8d, N11). The K8 page is written (e0f8c1fbe,
@@ -358,8 +333,9 @@ wrong:
     unchecked). I read one at origin: monthly_bill_assembly.py:840 bills the converted advance less the estimated run with no lower bound, so a run that over-settles bills a negative month. On this world
     the volume and the settled kWh agree by construction (replay dkWh 0.0), so it is latent, not live. One reader adds that a prepayment gas bill is not converted at all. Focus item 2. 09:25: Improved,
     not corrected. a9e9128aa fixed the six reader pairs on top of 34b764a0f (its own row is now corrected). No fresh book carrying both has been graded: the 85b044be54 run is mid-way, and prediction 4 is
-    graded by focus item 2.'
-  corrected: false
+    graded by focus item 2. 12:24: Corrected. On the 85b044be54 fresh book, the first carrying 34b764a0f and a9e9128aa, INV_GAS_READ_IS_A_VOLUME_CONVERTED_AT_CV_AND_CF reads 0 of 23,745 gas records (/var/tmp/fresh-grade-85b044be54/grade.txt),
+    so gas prediction 4 held. The pages carrying it go live with the next publish, which the page row carries. Focus item 1 commits the grade.'
+  corrected: true
 - what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. The rows took meter_serial and the kWh register
     as given, and each reader read billing arithmetic, the thing it was primed to read. Leg three''s instrument sees only what its reader''s trade looks for. Focus item 4 changes the sixth reader''s trade;
     nothing yet makes the rows ask what a meter is. 09:20: Unchanged. Focus item 4 builds the blind worktree and item 5 changes the reader''s trade; nothing yet makes the rows ask what a meter is. 12:20:
@@ -369,13 +345,14 @@ wrong:
     sits uncommitted in the shared tree, and the fix is not on origin). Nothing yet makes the rows ask what a meter is. Focus item 5. 06:21: Unchanged. tools/blind_worktree.py''s manifest on origin still
     writes str(book) and str(site) (lines 117-119), and the fix is not landed. Nothing yet makes the rows ask what a meter is. Focus item 3. 09:25: Improved, not fixed. 491243e09 landed the blind tree''s
     fixes: the manifest names the book and the ruling only, the copy is by allow-list, and the check is case-folded and reads the book to any depth. Nothing yet makes the rows ask what a meter is; the sixth
-    cold read (focus item 5) is the next test of it.'
+    cold read (focus item 5) is the next test of it. 12:24: Unchanged. Nothing yet makes the rows ask what a meter is; the sixth cold read (focus item 3) is the next test of it.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. The draw ledger bound cb53859273 (the declared-policy estimate commit) to a-gas-read-is-a-volume-and-the-bill-converts-it as its landing, at 08:16Z. Nothing about
     gas volume landed. The item was re-drawn, so the cost was a stretch''s confusion, not lost work, but a ledger that credits one item with another''s commit says an unbuilt item is done. 15:20: Unchanged.
     The item''s 14:27Z claim has nothing bound to it yet, and the binding defect is not traced. 03:24: Unchanged, and the gas item''s second claim ended worse: it was retired at 17:59Z with nothing landed
     (its own row below). The binding defect is not traced. 06:21: Unchanged. The binding defect is not traced. This stretch''s gas landing (34b764a0f) is bound to its own item, so no new instance is known.
-    09:25: Unchanged. The binding defect is not traced, and no new instance is known: a9e9128aa and 491243e09 are bound to their own items.'
+    09:25: Unchanged. The binding defect is not traced, and no new instance is known: a9e9128aa and 491243e09 are bound to their own items. 12:24: Unchanged. The binding defect is not traced, and no new
+    instance is known.'
   corrected: false
 - what: 'THE COMPANY''S, THIS STRETCH. The Economy 7 and profile class 2 builds (fca63e87d, 32ddfa8ca) bill PC2 homes wrongly: on cd4fc5b8d8, 344 breaches across eight rows, every one on a PC2 account.
     Bills sit up to GBP 3.9k below revenue, 15 crisis-winter bills carry no EBSS credit, two accounts have 62- and 152-day gaps between bills, occupier accounts print Anytime on their first two bills, and
@@ -383,7 +360,9 @@ wrong:
     item 1. 03:24: Fixed in code, not graded. 89220b9dd named each of the seven points bill, row or record and fixed it: the Night register took Day''s estimate ratio (points 1, 2, 3, 6), the estimate row
     reshaped PC2 on PC1 (170 -> 10 re-graded on the same ledger), a void day kept its band kWh (point 5), and the page never wrote a profile class (point 7). The per-row predictions are filed before any
     run. Focus item 2 grades them. 06:21: Unchanged. Fixed in code by 89220b9dd, not graded. Focus item 1''s run grades the per-row predictions. 09:25: Unchanged. Fixed in code by 89220b9dd, not graded.
-    Focus item 2''s run grades the per-row predictions.'
+    Focus item 2''s run grades the per-row predictions. 12:24: Improved, not corrected. On the 85b044be54 book the 344 breaches are 9, on four rows: E7 two registers 2, read-monotonic 2, ToU bands 2, estimate
+    3. 1b709ac0e traced and fixed six of them (one E7 void-stub defect on OCC-23ee23cb44e4 and OCC-7e06d09fc108). The other three are a different defect: an actual read''s downward catch-up is shared over
+    Day and Night by printed share, so Night reads go backwards on PROS-2017-0336 and PROS-2024-0010. Not fixed. Focus item 1.'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the second time in two stretches. a-gas-read-is-a-volume-and-the-bill-converts-it was retired at 2026-10-30T17:59Z,
     but its landing had been SIGTERMed at 15:49Z (/tmp/gas_land.out, rc=143). The work, graded 23,745 -> 0 on a replay, exists only as salvage 4391d1800d in the reflog of /var/tmp/se-seat-executor, which
@@ -391,7 +370,8 @@ wrong:
     was the same shape. Focus item 1 lands this instance. Nothing yet checks a retirement against origin, so the class is not fixed. 06:21: The instance is closed and the class is not. 34b764a0f landed
     the gas build from salvage 4391d1800d, keeping only the build''s paths, and the item retired at 06:16Z with its commit on origin. That is a retirement that matched origin, but only because the executor
     checked. Nothing yet checks a retirement against origin, so the next SIGTERMed landing can be retired the same way. 09:25: Unchanged. No retirement this stretch was false (both retired items have their
-    commits on origin: a9e9128aa, d1b04bbd0), but nothing checks a retirement against origin, so the class is not fixed.'
+    commits on origin: a9e9128aa, d1b04bbd0), but nothing checks a retirement against origin, so the class is not fixed. 12:24: Unchanged. No false retirement is known this stretch: the-site-is-current
+    retired with a1bead7ab on origin and handed its unbuilt part 2 on as a continuation. Nothing checks a retirement against origin, so the class is not fixed.'
   corrected: false
 - what: 'THE PAGES'', CARRIED AS ONE ROW FROM 06:21 ON 2 NOV. The live pages carry twelve fixes that are made and graded or seen by a cold read, and none is live, because no graded book has been publishable
     since cd4fc5b8d8''s PC2 breaches. They are: ''Paid in total'' (597720378), world life events on the supplier''s timeline (4d7f6021a, 597720378), the EBSS credit and overdue figures (d9828b5b3, 4b378c355,
@@ -401,27 +381,33 @@ wrong:
     build refuses on INV_GAS_READ_IS_A_VOLUME_CONVERTED_AT_CV_AND_CF too. It stays false until focus item 1''s book is graded clean, or each breach names its cause, and a publish puts these pages live.
     09:25: Improved, not corrected, and its cause was not what I said. The refusal since 28 Oct was the over-ceiling grader, not the books: it compared the ledger''s EPG share on settled kWh with the discount
     on billed kWh (6062596dc, fixed). The bb58608b9 book then passed every publish gate at 08:46Z, but the commit failed on ''cannot lock ref HEAD'' because 491243e09 moved the shared HEAD mid-commit, and
-    the publisher logged it as an unnameable refusal and waits for the next run. Focus item 1 publishes it.'
+    the publisher logged it as an unnameable refusal and waits for the next run. Focus item 1 publishes it. 12:24: Unchanged, and the cause I gave at 09:25 was wrong (its own row below). bb58608b9 never
+    passed every gate: after the grader fix it was refused four times by the domain-invariant gate (renewal notice 1,171, plus 9 PC2 rows). The 85b044be54 book fixes the renewal row (0 of 1,171) and is
+    refused on 9 breaches on four rows. Focus item 1 fixes the last three and the next run publishes.'
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. The gas build landed with defects that both blind readers raised within minutes, and that its own tests did not catch. On 34b764a0f, readers A and B agree on six findings
-    (WORKER_FINDING_BOTH_BLIND_READERS_RAISE_6_ON_34B764A0FD_2026-11-02.md). The month after an estimated run has no lower bound (monthly_bill_assembly.py:840; read by the seat at origin, latent on this
-    world). The row''s flag-severity leg is graded as a breach (domain_invariant_runner.py:716). Its imperial leg cannot fail, because the ledger derives the flag from the unit it checks. volume_from_kwh
-    reads any unknown unit as hcf, and the page prints 2.832 where the conversion uses 2.8317. A blind row written by the seat that built the code passed all of it. That is the ''row asks what was built,
-    not what a meter is'' shape again. Focus item 2 checks each pair and fixes the confirmed ones. 09:25: Corrected. a9e9128aa confirmed all six pairs at HEAD and fixed each with a test that fails without
-    it: a converted advance below the estimated run is a credit on the run and never a negative month, the flag leg flags, the imperial flag comes from the meter record, an unknown unit raises, and the
-    page prints the factor the conversion uses. The K8 page names the credit-back rule, and the finding is in done/. The class (a row that asks what was built) stays open on its own row.'
-  corrected: true
-- what: 'MINE, NEW. For five days I told the director the publish was refused because no graded book was clean, and named the PC2 breaches as the reason. The publisher''s own refusal string said otherwise:
-    ''carved GBP 197,965.24 != booked GBP 193,406.52'', an over-ceiling grader left comparing billed-kWh EPG with the settled-kWh share 82d26fbd4 moved the ledger to on 28 Oct. I did not read the refusal
-    I was describing. The director found it by reading the live site. 6062596dc fixed the grader, with a test that reds on the old comparison.'
-  corrected: true
 - what: 'THE MACHINE''S, NEW. A book that passed every publish gate did not publish. At 08:46Z the bb58608b9 publish commit failed on ''fatal: cannot lock ref HEAD: is at 491243e09 but expected a9e9128aa'':
     another lane landed on the shared HEAD between the gate and the ref update. The publisher classed it as a refusal with ''no FAILED/ERROR summary'' and ''UNNAMEABLE'', recorded no cause, and holds until
-    the next sim run (about 10:04Z). A ref race is a retry, not a refusal. Focus item 1.'
-  corrected: false
+    the next sim run (about 10:04Z). A ref race is a retry, not a refusal. Focus item 1. 12:24: Corrected, and its premise was mine and wrong. The ref race at 08:46Z was the paused-banner commit, not the
+    book, which had been refused on bills at 08:36Z. a1bead7ab re-lands a banner commit that loses git''s ref race on the new HEAD through surgical_land.land, records lost_commit_race if every attempt loses,
+    and its control drives git''s real text with three mutants each firing.'
+  corrected: true
 - what: 'THE MACHINE''S, NEW. The naive organ has asked no question since 2026-08-10T07:48Z. By the advisor''s count of docs/observability/naive_organ_log.jsonl, 26,580 entries since then are declines under
     the purpose line, and the last 2,000 fire on three claims that are its own unanswered questions fed back to it. Nothing noticed for twelve weeks: a guard that refuses everything passes every test of
-    whether it refuses correctly. Found by the director''s advisor (steer of 2 Nov). Focus item 4.'
+    whether it refuses correctly. Found by the director''s advisor (steer of 2 Nov). Focus item 4. 12:24: Improved, not corrected. The cause is found and the repair is landing now (surgical_land pid 1927192):
+    the organ read its own questions back from LATEST.md, declined three as purpose, and those declines filled its 3-question cap on every cycle from 10 Aug. It stays false until that lands and the organ
+    is seen to ask.'
+  corrected: false
+- what: 'MINE, NEW. For a second stretch running I described a refusal I had not read. The 06:21 and 09:22 records both said bb58608b9 ''passed every publish gate at 08:46Z and failed only on cannot lock
+    ref HEAD'', and focus item 1 was built on it. The log says the book was REFUSED (bills) at 08:36Z, and the ref race was the banner commit. The worker spent its first hours re-offering a book that could
+    not publish. The seat corrected it beside the claim in the advisor file at 11:50Z. The habit is the same as the five-day PC2 misreading: name the refusal string before naming its cause.'
+  corrected: true
+- what: 'MINE, NEW. The 09:22 direction told the worker to write a Done section inside the live advisor file and not move it. 1d623ccad and a1bead7ab did, and the advisor channel refused the director''s
+    2 Nov value-test steer as unsigned. It failed closed: the signed text at 2e50f42c3 is intact and is what focus item 2 acts on. Reopened in wrong_triage.yaml as a fix whose owner is my own focus prose;
+    no item this record writes asks for an in-place edit.'
+  corrected: false
+- what: THE MACHINE'S, NEW. The bb58608b9 run marker (run_complete_20261102T070308Z.md) is still in the staging root, refused at 09:44Z, 10:33Z, 11:04Z and 11:14Z by the same domain-invariant rows, and
+    re-offered every cycle; at 12:20Z it was skipped behind the 7c34f48a64 run, which predates 1b709ac0e and will carry six of the same nine. A book refused on rows no later commit has touched is re-graded,
+    not retired, and holds the publisher's slot.
   corrected: false
 for_the_director:
 - id: a-practitioner-question-k4-published-sources-exhausted
