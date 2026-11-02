@@ -60,7 +60,9 @@ focus:
 - id: the-sixth-cold-read
   lane: H_harness
   side: other
-  what: First land the tools/blind_worktree.py fixes from docs/staging/done/WORKER_FINDING_BOTH_BLIND_READERS_RAISE_1_ON_2DBAFE2D23_2026-10-30.md,
+  what: DO NOT DRAW BEFORE /var/tmp/fresh-grade-85b044be54/ALLDONE EXISTS. The worktree fixes below landed
+    on origin at 491243e096 (2 Nov); only the cold read is left, and it waits on item 1's grade and pages.
+    First land the tools/blind_worktree.py fixes from docs/staging/done/WORKER_FINDING_BOTH_BLIND_READERS_RAISE_1_ON_2DBAFE2D23_2026-10-30.md,
     copying that uncommitted file into the commit. On origin, lines 117-119 still write str(book) and
     str(site) into MANIFEST.json. Name the book and the ruling only, copy by allow-list of the file types
     the pages read, make check() case-insensitive, and read the book's names recursively. Each fix needs
