@@ -52,7 +52,23 @@ GAS = {"read_unit": "m3", "opening_read_volume": 616.856, "closing_read_volume":
        "calorific_value_basis": "fixed_stand_in", "correction_factor": 1.02264,
        "consumption_kwh": 643.6, "catchup_kwh": -387.1,
        "opening_read_kwh": 6921.5, "closing_read_kwh": 7178.0}
+#: An imperial meter's bill: 40 hundred cubic feet, over a thousand kWh, so the printed kWh has a comma.
+IMPERIAL = dict(GAS, read_unit="hcf", opening_read_volume=100.0, closing_read_volume=140.0,
+                volume_advance=40.0, consumption_kwh=1271.0, catchup_kwh=0.0)
 ELEC = {"opening_read_kwh": 4289.3, "closing_read_kwh": 5013.1, "consumption_kwh": 723.8}
+
+
+def _shown_kwh(text):
+    """The kWh the page prints after "÷ 3.6 MJ per kWh", read with its thousands separator."""
+    return float(re.search(r"÷ 3.6 MJ per kWh\s*([\d,.]+) kWh", text).group(1).replace(",", ""))
+
+
+def _print_tol(volume, factor_printed):
+    """What the printed digits allow: half the kWh's 1dp, half the volume's 3dp at each end, and
+    half the 4th decimal of the imperial factor where one is printed (1.0 prints none)."""
+    per_unit = factor_printed * 1.02264 * 39.5 / 3.6
+    factor_half_unit = 0.0 if factor_printed == 1.0 else 0.00005 * 1.02264 * 39.5 / 3.6 * volume
+    return 0.05 + 2 * 0.0005 * per_unit + factor_half_unit
 
 
 def _rows(*invs, tmp_path):
@@ -72,7 +88,21 @@ def test_a_gas_bill_prints_volume_cv_and_factor_and_they_produce_the_kwh(tmp_pat
     assert "616.856 m³" in gas and "639.714 m³" in gas and "22.858 m³" in gas
     assert "× 1.02264" in gas and "× 39.5 MJ/m³" in gas
     assert "a fixed figure, not the period's published average" in gas
-    # The arithmetic the page shows produces the kWh it prints, within the printed digit.
-    shown = float(re.search(r"÷ 3.6 MJ per kWh\s*([\d.]+) kWh", gas).group(1))
-    assert abs(22.858 * 1.02264 * 39.5 / 3.6 - shown) <= 0.05 + 0.0005 * 11.3
+    # The arithmetic the page shows produces the kWh it prints, within the printed digits.
+    assert abs(22.858 * 1.02264 * 39.5 / 3.6 - _shown_kwh(gas)) <= _print_tol(22.858, 1.0)
     assert "4,289.3" in elec or "4289.3" in elec
+
+
+def test_an_imperial_bill_prints_the_factor_the_conversion_uses_and_it_produces_the_kwh(tmp_path):
+    """The hcf leg. Defects: the page printing 2.832 while the conversion uses 100 x 0.3048^3 (2.8317),
+    and a kWh over a thousand read as its digits before the comma."""
+    from company.billing.gas_volume_conversion import M3_PER_HUNDRED_CUBIC_FEET, kwh_from_volume
+
+    (imperial,) = _rows(IMPERIAL, tmp_path=tmp_path)
+    assert "hundred cubic feet" in imperial and "40.000 hundred cubic feet" in imperial
+    printed = float(re.search(r"Imperial meter: × ([\d.]+) to cubic metres", imperial).group(1))
+    assert printed == round(M3_PER_HUNDRED_CUBIC_FEET, 4)
+    shown = _shown_kwh(imperial)
+    assert shown == 1271.0
+    assert abs(40.0 * printed * 1.02264 * 39.5 / 3.6 - shown) <= _print_tol(40.0, printed)
+    assert abs(kwh_from_volume(40.0, "hcf", 39.5) - shown) <= _print_tol(40.0, printed)

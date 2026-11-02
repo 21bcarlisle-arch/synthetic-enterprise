@@ -943,7 +943,7 @@ function gasReadRows(inv) {
   return "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_volume, 3) + " " + unit + "</td></tr>" +
     "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_volume, 3) + " " + unit + "</td></tr>" +
     "<tr><td>Gas used</td><td class=\"n\">" + num(inv.volume_advance, 3) + " " + unit + "</td></tr>" +
-    (inv.read_unit === "hcf" ? "<tr><td>Imperial meter: \u00d7 2.832 to cubic metres</td><td></td></tr>" : "") +
+    (inv.read_unit === "hcf" ? "<tr><td>Imperial meter: \u00d7 2.8317 to cubic metres (100 \u00d7 0.3048\u00b3)</td><td></td></tr>" : "") +
     "<tr><td>Correction factor</td><td class=\"n\">\u00d7 " + num(inv.correction_factor, 5) + "</td></tr>" +
     "<tr><td>Calorific value" + (inv.calorific_value_basis === "fixed_stand_in" ?
       " (a fixed figure, not the period's published average)" : "") + "</td><td class=\"n\">\u00d7 " +
