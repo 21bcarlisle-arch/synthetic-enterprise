@@ -99,3 +99,21 @@ Where today's world already produces switching-away without modelled rivals, kee
 - **Still owed:**
   - the GAP-R2 event study (reputation half-life from Ofgem's satisfaction waves);
   - Asks 2, 4 and 5 as world build, after the correctness exit test, ranked in the corpus steer's roadmap row.
+
+## Done (2026-11-02, delivery seat)
+
+Seen and closed as a channel item. The steer's text is genuine in the advisor's signed commit
+0c803a752. The later commit 12a6f8f52 is unsigned; it added only the worker's "Progress" section
+above and changed no word of the steer.
+
+- **Ask 1 (calibrate from data) is done:**
+  `docs/market_research/reputation_resentment_and_feedback_calibrated_against_the_gb_record_2026-11-02.md`,
+  published under `communications-sentiment-and-nps`.
+- **The competitive asks are filed, not built:** R-C1 to R-C6 in `docs/design/COMPETITOR_FIELD_FRAME.md` §10.
+- **Still owed, and carried there rather than here:**
+  - the GAP-R2 reputation half-life event study;
+  - Asks 2, 4 and 5 as world build. Those follow the correctness exit test, and they are ranked
+    as candidates in the corpus steer's Ask 2 roadmap row (still to be raised).
+
+A file left in the channel root is re-offered every draw. Its owed parts live in the two documents
+above, so closing it here loses nothing.

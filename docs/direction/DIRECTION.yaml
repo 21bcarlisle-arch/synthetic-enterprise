@@ -443,78 +443,143 @@ for_the_director:
 - id: a-practitioner-question-k4-published-sources-exhausted
   raised: '2026-10-29'
   kind: strategy
-  what: 'A practitioner question (K4), published sources exhausted: in a new account''s first months, does a supplier''s BILLING estimate follow the settlement EAC its data collector sends (BSC Annex S-2
-    4.3.7: EAC = AAAF*AA + (1-AAAF)*PEAC, AAAF = min(FYC*SPAR, 1)), or its own reads from the first one? And what SPAR does the trade actually see? 179 estimate breaches on the 209c3350ab book turn on this,
-    and they hold the correctness stretch''s exit open.'
-  proposal: Build the BSC blend for the billing estimate with SPAR as a named input carried as an honest GAP, and re-draw INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS's band from the same EAC, so the row
+  what: 'A practitioner question (K4), published sources exhausted: in a new account''s first months,
+    does a supplier''s BILLING estimate follow the settlement EAC its data collector sends (BSC Annex
+    S-2 4.3.7: EAC = AAAF*AA + (1-AAAF)*PEAC, AAAF = min(FYC*SPAR, 1)), or its own reads from the first
+    one? And what SPAR does the trade actually see? 179 estimate breaches on the 209c3350ab book turn
+    on this, and they hold the correctness stretch''s exit open.'
+  proposal: Build the BSC blend for the billing estimate with SPAR as a named input carried as an honest
+    GAP, and re-draw INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS's band from the same EAC, so the row
     and the estimator read one figure.
-  recommendation: 'I recommend the blend: the settlement EAC is what a supplier receives, it moves on every advance, and SLC 27.15 already ranks the supplier''s own metered history above the registry figure,
-    so both established halves lean against holding the registry figure for six months. Trade-off: with SPAR unknown, the blend''s weight is a stated belief, not a value. Holding position: the 179 stay
-    excepted on E1 as their cause. Would change it: a practitioner saying billing uses the supplier''s own reads from the first read, in which case E1 is narrowed to the one-read case only.'
+  recommendation: 'I recommend the blend: the settlement EAC is what a supplier receives, it moves on
+    every advance, and SLC 27.15 already ranks the supplier''s own metered history above the registry
+    figure, so both established halves lean against holding the registry figure for six months. Trade-off:
+    with SPAR unknown, the blend''s weight is a stated belief, not a value. Holding position: the 179
+    stay excepted on E1 as their cause. Would change it: a practitioner saying billing uses the supplier''s
+    own reads from the first read, in which case E1 is narrowed to the one-read case only.'
   status: answered
-  resolution: 'Returned to the seat (director, 30 Oct 07:26): the method is a supplier choice, not his. Baseline is today''s standard practice: the billing estimate and first DD from the quote''s consumption
-    (declared, else registry EAC or AQ); settlement separately on the DC''s EAC. Improving it is the supplier''s experiment. Done: knowledge §10 of how_a_supplier_shapes_an_estimate_for_an_unread_month.md;
-    INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS redrawn to grade the declared policy, 179 -> 0 on the 209c3350ab and 3dc5a92948 books, exception retired. Not to be raised again.'
-  evidence: 'docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md; docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
-    section 8 (GAP: SPAR is Market Domain Data, not published within reach)'
+  resolution: 'Returned to the seat (director, 30 Oct 07:26): the method is a supplier choice, not his.
+    Baseline is today''s standard practice: the billing estimate and first DD from the quote''s consumption
+    (declared, else registry EAC or AQ); settlement separately on the DC''s EAC. Improving it is the supplier''s
+    experiment. Done: knowledge §10 of how_a_supplier_shapes_an_estimate_for_an_unread_month.md; INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
+    redrawn to grade the declared policy, 179 -> 0 on the 209c3350ab and 3dc5a92948 books, exception retired.
+    Not to be raised again.'
+  evidence: 'docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md;
+    docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (GAP: SPAR
+    is Market Domain Data, not published within reach)'
   resolved: '2026-10-30'
   commitment:
     work_id: new-account-first-months-experiment
-    done_means: the world draws a declared annual use with an error against true use by channel and tenancy, and one pre-registered supplier variant is graded against the quote baseline on the ruling's
-      five outcomes
+    done_means: the world draws a declared annual use with an error against true use by channel and tenancy,
+      and one pre-registered supplier variant is graded against the quote baseline on the ruling's five
+      outcomes
     due: '2026-12-15'
 - id: the-improvement-loop-world-then-supplier-then
   raised: '2026-10-30'
   kind: strategy
-  what: 'The improvement loop (world, then supplier, then round again) is ruled in W7 but not embedded: no area records how far round it has got, the world reacts in full to one pain point in seven, and
+  what: 'The improvement loop (world, then supplier, then round again) is ruled in W7 but not embedded:
+    no area records how far round it has got, the world reacts in full to one pain point in seven, and
     its one full reaction is the supplier''s own churn curve.'
-  proposal: 'Adopt docs/design/THE_IMPROVEMENT_LOOP.md. One loop per area, with its stage DERIVED from artefacts rather than kept by hand: knowledge with a range for every pain point, a world that reacts
-    at that range (never 0) with no supplier belief imported, frozen, graded on fresh seeds at the range''s low, central and high, then settled or ''we cannot tell'', then a blind practitioner''s exploit
-    check. The world gets more nuanced only on three triggers: an exploit is found, a range is too wide to settle, or a cold read finds a new class. Blind roles by construction: a sparse worktree per role
-    with the other side''s code absent. Built now only where it helps the correctness exit test (the blind worktree for the cold reader). The rest comes after, starting with a new account''s first months.'
-  recommendation: 'I recommend you say yes to the design and rule one question that is yours: does the scorecard stay a vector (customer money, time and carbon; company outcomes; fairness), with a variant
-    winning only if it is no worse on every axis, and every weighted trade brought to you? The A5 frame reserves the fitness function to you. The trade-off: Pareto-only will call some real wins undecided.
-    That is the safe direction under F11. Until you rule, I hold to Pareto-only and build the blind worktree, which helps close the correctness exit test. What would change my view: a settled result you
-    judge worth a trade the vector refuses.'
+  proposal: 'Adopt docs/design/THE_IMPROVEMENT_LOOP.md. One loop per area, with its stage DERIVED from
+    artefacts rather than kept by hand: knowledge with a range for every pain point, a world that reacts
+    at that range (never 0) with no supplier belief imported, frozen, graded on fresh seeds at the range''s
+    low, central and high, then settled or ''we cannot tell'', then a blind practitioner''s exploit check.
+    The world gets more nuanced only on three triggers: an exploit is found, a range is too wide to settle,
+    or a cold read finds a new class. Blind roles by construction: a sparse worktree per role with the
+    other side''s code absent. Built now only where it helps the correctness exit test (the blind worktree
+    for the cold reader). The rest comes after, starting with a new account''s first months.'
+  recommendation: 'I recommend you say yes to the design and rule one question that is yours: does the
+    scorecard stay a vector (customer money, time and carbon; company outcomes; fairness), with a variant
+    winning only if it is no worse on every axis, and every weighted trade brought to you? The A5 frame
+    reserves the fitness function to you. The trade-off: Pareto-only will call some real wins undecided.
+    That is the safe direction under F11. Until you rule, I hold to Pareto-only and build the blind worktree,
+    which helps close the correctness exit test. What would change my view: a settled result you judge
+    worth a trade the vector refuses.'
   status: answered
-  resolution: 'Yes (director, 31 Oct 08:54 GMT, ''Yes to all three''; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md). THE_IMPROVEMENT_LOOP.md marked adopted.
-    His ruling on the question reserved to him: the scorecard stays a vector (customer money, time and carbon; company outcomes; fairness); a variant wins only if it is no worse on every axis; every weighted
-    trade goes to him. Build order as proposed: the blind worktree now (landed 2dbafe2d2, fixes in the-sixth-cold-read), the rest after the correctness exit test, starting with a new account''s first months.'
-  evidence: docs/design/THE_IMPROVEMENT_LOOP.md; docs/staging/SEAT_FINDING_THE_WORLD_REACTS_TO_ONE_PAIN_POINT_IN_SEVEN_AND_ITS_RENEWAL_SHOCK_IS_THE_SUPPLIERS_OWN_CHURN_CURVE_2026-10-30.md; DOMAIN_INVARIANTS.yaml:9
-    blindfold_disclosure (knowledge notes quote code constants)
+  resolution: 'Yes (director, 31 Oct 08:54 GMT, ''Yes to all three''; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md).
+    THE_IMPROVEMENT_LOOP.md marked adopted. His ruling on the question reserved to him: the scorecard
+    stays a vector (customer money, time and carbon; company outcomes; fairness); a variant wins only
+    if it is no worse on every axis; every weighted trade goes to him. Build order as proposed: the blind
+    worktree now (landed 2dbafe2d2, fixes in the-sixth-cold-read), the rest after the correctness exit
+    test, starting with a new account''s first months.'
+  evidence: docs/design/THE_IMPROVEMENT_LOOP.md; docs/staging/SEAT_FINDING_THE_WORLD_REACTS_TO_ONE_PAIN_POINT_IN_SEVEN_AND_ITS_RENEWAL_SHOCK_IS_THE_SUPPLIERS_OWN_CHURN_CURVE_2026-10-30.md;
+    DOMAIN_INVARIANTS.yaml:9 blindfold_disclosure (knowledge notes quote code constants)
   resolved: '2026-11-02'
   commitment:
     work_id: the-sixth-cold-read
-    done_means: the blind worktree's fixes are on origin and the sixth cold read is read from it and graded on all three legs of the correctness ruling
+    done_means: the blind worktree's fixes are on origin and the sixth cold read is read from it and graded
+      on all three legs of the correctness ruling
     due: '2026-11-09'
 - id: the-time-steer-s-hidden-value-of
   raised: '2026-10-30'
   kind: canon_intent
-  what: The time steer's hidden value of a household's own time is read as compatible with M3 (time never converted to pounds). I am building on that reading.
-  proposal: M3 governs what we SCORE. The household's own minutes-for-money trade-off is a hidden trait, the hassle price (GBP per hour of its own effort), used only inside its own decisions (switching,
-    complaining, adopting, staying), as price elasticity is. The scorecard counts minutes per class T1-T5 and never multiplies the hassle price into value created.
-  recommendation: 'I recommend you agree this reading of M3: the hassle price stays a hidden household trait and never enters the score. Without it the world cannot register a supplier that saves time,
+  what: The time steer's hidden value of a household's own time is read as compatible with M3 (time never
+    converted to pounds). I am building on that reading.
+  proposal: M3 governs what we SCORE. The household's own minutes-for-money trade-off is a hidden trait,
+    the hassle price (GBP per hour of its own effort), used only inside its own decisions (switching,
+    complaining, adopting, staying), as price elasticity is. The scorecard counts minutes per class T1-T5
+    and never multiplies the hassle price into value created.
+  recommendation: 'I recommend you agree this reading of M3: the hassle price stays a hidden household
+    trait and never enters the score. Without it the world cannot register a supplier that saves time,
     and ''pricing only moves value'' stays true by construction. I proceed on it unless you object.'
   status: answered
-  resolution: Yes (director, 31 Oct 08:54 GMT; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md). M3 governs what is scored. The hassle price is a hidden household
-    trait used only inside the household's own decisions, and it never enters the score. Recorded in THE_IMPROVEMENT_LOOP.md's adoption note.
-  evidence: docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md section 9.3 Q4; docs/design/THE_IMPROVEMENT_LOOP.md section 8
+  resolution: Yes (director, 31 Oct 08:54 GMT; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md).
+    M3 governs what is scored. The hassle price is a hidden household trait used only inside the household's
+    own decisions, and it never enters the score. Recorded in THE_IMPROVEMENT_LOOP.md's adoption note.
+  evidence: docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md section 9.3 Q4; docs/design/THE_IMPROVEMENT_LOOP.md
+    section 8
   resolved: '2026-11-02'
-  no_action: confirms the reading the seat was already building on; the hassle-price build is sequenced in the next-world-additions roadmap the 30 Oct corpus steer owes, after the correctness exit test
+  no_action: confirms the reading the seat was already building on; the hassle-price build is sequenced
+    in the next-world-additions roadmap the 30 Oct corpus steer owes, after the correctness exit test
 - id: m3-names-three-currencies-money-time-carbon
   raised: '2026-10-30'
   kind: canon_intent
-  what: 'M3 names three currencies (money, time, carbon). Your 30 Oct steer asks if that is the whole set of needs energy products serve. Payment-method and fix choices say it is not: in Ofgem''s 2022 survey,
-    control is the top reason standard-credit payers give and budgeting the top reason prepayment payers give, and only 10-24% cite price.'
-  proposal: 'Amend M3 (not a new rule): ''M3. Money, time and carbon, above a floor. Money, time and carbon, and the ways money is shaped. Money is two things, measured apart: cost (what is paid) and cash
-    flow (when, and how much at once). Peace of mind is two things, measured apart: certainty (not being surprised) and control (deciding when money leaves). Time means household effort, in household minutes
-    per kind of activity. Carbon is what customers have saved and could save in CO2. Each is measured in its own unit and never converted to pounds. Comfort and health are a floor, not a currency: no gain
-    in any need justifies a breach.'' The fix premium stays booked as value moved until the note''s three-leg test (section 6.1) is run.'
-  recommendation: I recommend amending M3 with the wording above rather than adding a new M-rule, because a separate rule would leave the three-currency wording standing beside it; the build waits for the
+  what: 'M3 names three currencies (money, time, carbon). Your 30 Oct steer asks if that is the whole
+    set of needs energy products serve. Payment-method and fix choices say it is not: in Ofgem''s 2022
+    survey, control is the top reason standard-credit payers give and budgeting the top reason prepayment
+    payers give, and only 10-24% cite price.'
+  proposal: 'Amend M3 (not a new rule): ''M3. Money, time and carbon, above a floor. Money, time and carbon,
+    and the ways money is shaped. Money is two things, measured apart: cost (what is paid) and cash flow
+    (when, and how much at once). Peace of mind is two things, measured apart: certainty (not being surprised)
+    and control (deciding when money leaves). Time means household effort, in household minutes per kind
+    of activity. Carbon is what customers have saved and could save in CO2. Each is measured in its own
+    unit and never converted to pounds. Comfort and health are a floor, not a currency: no gain in any
+    need justifies a breach.'' The fix premium stays booked as value moved until the note''s three-leg
+    test (section 6.1) is run.'
+  recommendation: I recommend amending M3 with the wording above rather than adding a new M-rule, because
+    a separate rule would leave the three-currency wording standing beside it; the build waits for the
     correctness exit test, as your steer says.
   status: answered
-  resolution: Yes (director, 31 Oct 08:54 GMT; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md). M3 amended in DIRECTOR_CANON.md with the row's wording verbatim,
-    as an amendment, not a new M-rule; CLAUDE.md's M3 quote and THE_MODEL_ON_A_PAGE.md's v4 quote updated; canon drift check 17 claims 0 drifting, 84 served pages hold.
-  evidence: docs/design/CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md (DISCOVER/FRAME, 10 GAPs named, none filled with a guess)
+  resolution: Yes (director, 31 Oct 08:54 GMT; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md).
+    M3 amended in DIRECTOR_CANON.md with the row's wording verbatim, as an amendment, not a new M-rule;
+    CLAUDE.md's M3 quote and THE_MODEL_ON_A_PAGE.md's v4 quote updated; canon drift check 17 claims 0
+    drifting, 84 served pages hold.
+  evidence: docs/design/CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md (DISCOVER/FRAME, 10 GAPs named, none
+    filled with a guess)
   resolved: '2026-11-02'
-  no_action: the amendment is landed in the same commit; the build that follows waits for the correctness exit test and is sequenced in the roadmap the 30 Oct corpus steer owes
+  no_action: the amendment is landed in the same commit; the build that follows waits for the correctness
+    exit test and is sequenced in the roadmap the 30 Oct corpus steer owes
+- id: licensed-microdata-for-the-customer-needs-corpus
+  raised: '2026-11-02'
+  kind: reserved
+  what: Licensed microdata for the customer-needs corpus (30 Oct steer, 16:51 addendum step 4). Fitting
+    the precarity, affluence and life-stage factors the parsimony ruling keeps needs a household-level
+    joint that no published cross-tab gives. Registering with the UK Data Service is an account and a
+    licence agreement, so it is yours.
+  proposal: 'One UK Data Service registration under the End User Licence, covering Understanding Society,
+    the Wealth and Assets Survey, the English Housing Survey and the SERL statistical dataset (SN 8963).
+    The registration states the use honestly and asks the depositors whether it counts as commercial.
+    No SecureLab or SERL per-home access: those need an accredited researcher and a university partner.'
+  recommendation: 'I recommend you register once with the UK Data Service, for the End User Licence datasets
+    only, and declare the purpose plainly. Understanding Society alone is the only route to fit the three
+    latent factors on the same households and to test whether life stage outweighs income. The trade-off:
+    the EUL bars commercial use without permission, and Poesys aims at enterprise value, so the depositors
+    may refuse or impose conditions. Until you rule, every factor loading is fitted one attribute at a
+    time from published cross-tabs and any joint is carried as an assumption with a range. A no changes
+    nothing already built. What would change my view: a published joint (for example FCA Financial Lives
+    tables cut two ways) that makes the registration unnecessary.'
+  status: open
+  resolution: ''
+  g5_class: real_world_commitment
+  evidence: docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md section 6 (datasets, access terms graded P, what
+    each would change)
