@@ -914,8 +914,7 @@ function stageBilled(d, c) {
       billEquationHtml(inv) + "</div>") +
     panel("customer", "Meter reads behind it",
       '<div class="table-scroll"><table><tbody>' +
-      "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
-      "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_kwh, 1) + "</td></tr>" +
+      gasReadRows(inv) +
       // After estimated readings the opening is the last estimate, so the difference is this
       // period's usage plus the catch-up on the estimates (back_billing_and_liability.md §13).
       "<tr><td>" + (Number(inv.catchup_kwh) ? "Usage this period" : "Difference charged") + "</td><td class=\"n\">" +
@@ -930,6 +929,27 @@ function stageBilled(d, c) {
     "</div>" +
     '<p class="prov">Bill ' + esc(inv.id) + " as issued " + dt(inv.date) + ". One of " + invs.length +
     " on this account; the figures are the ones actually charged, not a reconstruction.</p>";
+}
+
+// A gas meter registers volume, and the bill converts it: kWh = volume x correction factor x CV / 3.6
+// (docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md C3). A record without a
+// volume is an electricity meter, or a book built before the gas meter read volume.
+function gasReadRows(inv) {
+  if (!inv.read_unit) {
+    return "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
+      "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_kwh, 1) + "</td></tr>";
+  }
+  var unit = inv.read_unit === "hcf" ? "hundred cubic feet" : "m\u00b3";
+  return "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_volume, 3) + " " + unit + "</td></tr>" +
+    "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_volume, 3) + " " + unit + "</td></tr>" +
+    "<tr><td>Gas used</td><td class=\"n\">" + num(inv.volume_advance, 3) + " " + unit + "</td></tr>" +
+    (inv.read_unit === "hcf" ? "<tr><td>Imperial meter: \u00d7 2.832 to cubic metres</td><td></td></tr>" : "") +
+    "<tr><td>Correction factor</td><td class=\"n\">\u00d7 " + num(inv.correction_factor, 5) + "</td></tr>" +
+    "<tr><td>Calorific value" + (inv.calorific_value_basis === "fixed_stand_in" ?
+      " (a fixed figure, not the period's published average)" : "") + "</td><td class=\"n\">\u00d7 " +
+      num(inv.calorific_value_mj_per_m3, 1) + " MJ/m\u00b3</td></tr>" +
+    "<tr><td>\u00f7 3.6 MJ per kWh</td><td class=\"n\">" +
+      num(Number(inv.consumption_kwh) + (Number(inv.catchup_kwh) || 0), 1) + " kWh</td></tr>";
 }
 
 function stagePaid(d, c) {

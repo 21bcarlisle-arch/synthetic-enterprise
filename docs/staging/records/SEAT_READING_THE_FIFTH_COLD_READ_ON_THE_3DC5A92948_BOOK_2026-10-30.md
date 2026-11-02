@@ -109,7 +109,7 @@ metering and collections records that no real supplier could issue". It confirme
   calorific value".
 - All 23,816 gas invoices on 586 pages carry kWh register reads and no volume field.
 - The roster's `cv_factor` and `cf` are never read on the read or bill path.
-- Finding: `docs/staging/SEAT_FINDING_THE_FIFTH_COLD_READ_FINDS_EVERY_GAS_READ_HELD_AND_BILLED_AS_A_KWH_REGISTER_WITH_NO_VOLUME_OR_CONVERSION_2026-10-30.md`.
+- Finding: `docs/staging/done/SEAT_FINDING_THE_FIFTH_COLD_READ_FINDS_EVERY_GAS_READ_HELD_AND_BILLED_AS_A_KWH_REGISTER_WITH_NO_VOLUME_OR_CONVERSION_2026-10-30.md`.
   Its K8 knowledge page is owed before any build, and which side of the seam the volume belongs to is
   not yet decided.
 

@@ -3,7 +3,7 @@
 # A gas read is a volume, and the bill converts it to kWh
 
 K8 page for N11 of the fifth cold read,
-`docs/staging/SEAT_FINDING_THE_FIFTH_COLD_READ_FINDS_EVERY_GAS_READ_HELD_AND_BILLED_AS_A_KWH_REGISTER_WITH_NO_VOLUME_OR_CONVERSION_2026-10-30.md`,
+`docs/staging/done/SEAT_FINDING_THE_FIFTH_COLD_READ_FINDS_EVERY_GAS_READ_HELD_AND_BILLED_AS_A_KWH_REGISTER_WITH_NO_VOLUME_OR_CONVERSION_2026-10-30.md`,
 under the correctness ruling
 (`docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md`).
 Written 30 Oct 2026, before any build. The question: **what does a GB domestic gas read register, and

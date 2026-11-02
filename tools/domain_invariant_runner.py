@@ -752,6 +752,44 @@ def ev_gas_single_register(inv, book):
     return tally
 
 
+#: Cubic metres in a hundred cubic feet (100 x 0.3048^3, a unit identity) and MJ in a kWh.
+M3_PER_HCF, MJ_PER_KWH = 100 * 0.3048 ** 3, 3.6
+
+
+def ev_gas_read_is_a_volume(inv, book):
+    """Each gas period's reads hold a volume in m3 or hcf, it carries the CV and correction factor it
+    was converted at, and the kWh its reads span is that volume converted within print precision.
+
+    Tolerance, from what the record prints: two kWh reads at 1dp, two volume reads at 3dp, the CV at
+    1dp and the factor at 5dp. The row's own predicate counts no volume rounding; this export prints
+    the register to 3dp, so its half-unit at each end is added rather than ignored."""
+    tally = Tally("gas read/bill record (one period's register advance)")
+    for a in book:
+        if a.fuel != "gas":
+            continue
+        for p in a.periods:
+            reads = [r for r in p.get("reads", ()) if r.get("read_kwh") is not None]
+            if len(reads) < 2:
+                continue
+            where = "{} {}".format(a.cid, p.get("period_end"))
+            opening = next((r for r in reads if r.get("read_type") == OPENING), None)
+            closing = next((r for r in reads if r.get("read_type") != OPENING), None)
+            unit = closing.get("read_unit") if closing else None
+            cv, cf = _num(p.get("calorific_value_mj_per_m3")), _num(p.get("correction_factor"))
+            if (opening is None or unit not in ("m3", "hcf") or cv is None or cf is None
+                    or opening.get("read_volume") is None or closing.get("read_volume") is None
+                    or p.get("imperial_meter", unit == "hcf") != (unit == "hcf")):
+                tally.band(where, None, 0.0, 0.0)
+                continue
+            volume = float(closing["read_volume"]) - float(opening["read_volume"])
+            computed = volume * (M3_PER_HCF if unit == "hcf" else 1.0) * cf * cv / MJ_PER_KWH
+            spanned = float(closing["read_kwh"]) - float(opening["read_kwh"])
+            per_m3 = cf * cv / MJ_PER_KWH * (M3_PER_HCF if unit == "hcf" else 1.0)
+            tol = (2 * 0.05 + abs(computed) * (0.05 / cv + 0.000005 / cf) + 2 * 0.0005 * per_m3)
+            tally.band(where, spanned - computed, -tol, tol)
+    return tally
+
+
 #: An Economy 7 meter's register labels, and the profile class that registers one.
 E7_LABELS = frozenset({"Day", "Night"})
 E7_PROFILE_CLASS = 2
@@ -2118,6 +2156,7 @@ EVALUATORS = {
     "INV_DD_STEP_CHANGE": (ev_dd_step_change, None),
     "INV_FUEL_IDENTIFIER": (ev_fuel_identifier, None),
     "INV_GAS_SINGLE_REGISTER": (ev_gas_single_register, None),
+    "INV_GAS_READ_IS_A_VOLUME_CONVERTED_AT_CV_AND_CF": (ev_gas_read_is_a_volume, None),
     "INV_E7_METER_BILLED_ON_TWO_REGISTERS": (ev_e7_meter_two_registers, "profile_class"),
     "INV_CROSS_FUEL_PRICE_SCALE": (ev_cross_fuel_price_scale, None),
     "INV_PERIODS_CONTIGUOUS": (ev_periods_contiguous, None),

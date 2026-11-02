@@ -675,8 +675,10 @@ _CAP_UIG_ARTEFACT = (
 # Before 1 Jan 2019 no allowance existed, and charging nothing would assert zero for a physical
 # loss. A stated BELIEF: the first cap's 2.00%, which is the AUGE's GY2018-19 domestic forecast.
 # Range 2.00%-3.81%; the top is GY2017-18's actual UIG share of LDZ throughput
-# (`q6_uig_share_of_ldz_throughput`'s high, AUG Statement 2024-25 p.27).
+# (`q6_uig_share_of_ldz_throughput`'s high, AUG Statement 2024-25 p.27). The 2.00% is Ofgem's first cap
+# allowance (docs/domain_artefact_library/regulatory/ofgem_cap_uig_allowance.json).
 PRE_CAP_UIG_UPLIFT_BELIEF: float = 0.02
+# EVIDENCE RANGE: the first Ofgem cap's 2.00% to GY2017-18's actual 3.81% (AUG Statement 2024-25 p.27).
 PRE_CAP_UIG_UPLIFT_RANGE: tuple[float, float] = (0.02, 0.0381)
 
 

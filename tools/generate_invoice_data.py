@@ -138,6 +138,14 @@ def _real_invoice(inv):
         read_type=inv.get("read_type"),
         opening_read_kwh=inv.get("opening_read_kwh"),
         closing_read_kwh=inv.get("closing_read_kwh"),
+        # A gas meter registers volume: its reads in their own unit and what they were converted at.
+        read_unit=inv.get("read_unit"),
+        opening_read_volume=inv.get("opening_read_volume"),
+        closing_read_volume=inv.get("closing_read_volume"),
+        volume_advance=inv.get("volume_advance"),
+        calorific_value_mj_per_m3=inv.get("calorific_value_mj_per_m3"),
+        calorific_value_basis=inv.get("calorific_value_basis"),
+        correction_factor=inv.get("correction_factor"),
         # The reads after an estimated run span this as well as the usage (§13).
         catchup_kwh=inv.get("catchup_kwh"),
         registers=inv.get("registers"),

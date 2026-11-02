@@ -65,6 +65,7 @@ from company.billing.back_billing import (
     RecoveryPeriod,
     barred_unrecovered_gbp,
 )
+from company.billing.gas_volume_conversion import conversion_terms, kwh_from_volume
 from company.billing.pre_bill_validation import release_on_measured_rate, validate_bill
 from company.billing.read_duty_register import read_instruction_due
 from company.billing.theft_indicator import screen_billing_run
@@ -113,6 +114,11 @@ class ReadArrival(Protocol):
     status: str
     estimated_consumption_kwh: float | None
     consecutive_estimated_count: int
+    # On an actual GAS read, and only there, the arrival also carries `read_unit` ("m3" | "hcf")
+    # and `register_volume`, the meter's cumulative index: a gas meter registers volume, and the
+    # supplier converts it (`company.billing.gas_volume_conversion`). Both or neither; None on an
+    # estimated read. The index never falls and is counted from the change-of-supply read, which the
+    # supplier holds at 0. Read with getattr, since an electricity feed has no reason to carry them.
 
 
 @runtime_checkable
@@ -754,6 +760,11 @@ def build_monthly_bills(
         # (read date, register kWh) for each read that arrived, from the change-of-supply opening
         # read at 0: what the meter has told the company, and all `annualised_advance_kwh` reads.
         register_reads: list[tuple[date, float]] = []
+        # A gas meter's volume index at its last actual read, from 0 at the change-of-supply read
+        # (the same opening `register_reads` takes), in the unit the meter reads.
+        gas_volume_index = 0.0
+        # The unit the meter reads, from the metering record the supplier holds for the point.
+        gas_read_unit = "hcf" if customer_data.get("gas_meter_imperial") is True else "m3"
         consecutive_estimated = 0
         previous_period_end = None
         # The date this account was first held: EBSS goes to whoever held it at 00:00 on the 1st
@@ -804,6 +815,8 @@ def build_monthly_bills(
                 # event still stands for settlement and the read duty, which reads it separately.
                 bill = _charged_at_the_meter(true_bill, event)
                 read_advance_kwh = true_bill["total_consumption_kwh"]
+                if commodity == "gas" and getattr(event, "register_volume", None) is not None:
+                    gas_volume_index = event.register_volume
                 if event.status == "actual":
                     register_reads.append((date.fromisoformat(true_bill["period_end"]),
                                            register_reads[-1][1] + read_advance_kwh))
@@ -816,11 +829,34 @@ def build_monthly_bills(
                             _economy_7_register_kwh(months[month])))
                 consecutive_estimated = event.consecutive_estimated_count
             elif event.status == "actual":
+                volume_read = (commodity == "gas"
+                               and getattr(event, "register_volume", None) is not None)
+                if volume_read:
+                    # A gas read is a volume: the advance since the last actual read, converted
+                    # (C2). The month bills that less the run's use, and where the conversion
+                    # disagrees with the settled kWh the settled records are rescaled to it.
+                    converted_kwh = kwh_from_volume(
+                        event.register_volume - gas_volume_index, event.read_unit)
+                    month_kwh = converted_kwh - sum(p["used_kwh"] for p in pending_estimated_run)
+                    if (true_bill["total_consumption_kwh"] > 0
+                            and abs(month_kwh - true_bill["total_consumption_kwh"]) > 0.005):
+                        true_bill = generate_bill(
+                            customer_id, _estimated_settlement_records(
+                                months[month], month_kwh / true_bill["total_consumption_kwh"],
+                                commodity),
+                            contract_type, previous_bill_total_gbp, segment, commodity,
+                            payment_channel,
+                        )
                 bill = _annotate_billing_basis(true_bill, event, true_bill)
                 # The register's advance since the last actual read: the one consumption figure a
                 # read gives a supplier. Taken before the catch-up empties the pending run.
                 read_advance_kwh = true_bill["total_consumption_kwh"] + sum(
                     p["used_kwh"] for p in pending_estimated_run)
+                if volume_read:
+                    gas_read_unit = event.read_unit
+                    bill["register_opening_volume"] = gas_volume_index
+                    bill["register_closing_volume"] = event.register_volume
+                    gas_volume_index = event.register_volume
                 register_reads.append((
                     date.fromisoformat(true_bill["period_end"]),
                     register_reads[-1][1] + read_advance_kwh,
@@ -1121,6 +1157,9 @@ def build_monthly_bills(
             # supplier allocates; a PC2 meter is billed on its Day and Night registers.
             if customer_data.get("registered_profile_class") is not None:
                 bill["profile_class"] = customer_data["registered_profile_class"]
+            if commodity == "gas":
+                # What every gas bill was converted at, and the unit its meter reads (C3).
+                bill.update(conversion_terms(), gas_read_unit=gas_read_unit)
             bills.append(bill)
             if theft_screen_out is not None:
                 screen_periods.setdefault(customer_id, []).append({

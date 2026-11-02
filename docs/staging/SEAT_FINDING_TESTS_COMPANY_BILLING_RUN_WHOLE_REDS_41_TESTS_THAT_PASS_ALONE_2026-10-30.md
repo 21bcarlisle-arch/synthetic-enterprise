@@ -38,3 +38,11 @@ a cwd or a module-level cache. That state breaks these tests. They are not broke
 - **Whether the simulation reds were order as well.**
 
 NEXT: none -- the bisection is a tick-sized item, not drawn here
+
+## An observation, not a bisection (2026-10-30, seat executor, gas volume build)
+
+In an isolated worktree at origin 792adb1a96, with the gas volume build applied (it touches no file the four red
+files import beyond `company/billing/monthly_bill_assembly.py`), `python3 -m pytest -p no:cacheprovider -q
+tests/company/billing` read **2,535 passed, 0 failed** (158.9 s). I cannot say from one run whether the order
+dependence was fixed by another landing, depends on `.pytest_cache` (disabled here), or depends on the shared
+tree's state. The next step is the same run with the cache provider on, and then on the shared tree.

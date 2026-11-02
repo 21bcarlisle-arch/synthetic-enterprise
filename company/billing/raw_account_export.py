@@ -117,6 +117,15 @@ FIELDS: dict[str, tuple[str, str]] = {
     "register_id": (IDENTIFIER, "which register on the meter"),
     "register_label": (EVENT, "what the register is called on the bill (Anytime, Night)"),
     "read_kwh": (MEASURED, "what the register said"),
+    "read_volume": (MEASURED, "what a gas meter's register said, in its own unit: a gas meter "
+                              "registers volume, and read_kwh beside it is that volume converted"),
+    "read_unit": (EVENT, "the unit a gas register reads in: m3, or hcf (hundreds of cubic feet) on "
+                         "an imperial meter"),
+    "imperial_meter": (EVENT, "whether the gas meter reads in hundreds of cubic feet"),
+    "calorific_value_mj_per_m3": (CONTRACTED, "the calorific value the gas period was converted at"),
+    "calorific_value_basis": (EVENT, "what that CV is: the period average of the published daily "
+                                     "values, or a fixed stand-in the Regulations do not allow"),
+    "correction_factor": (CONTRACTED, "the volume correction factor the gas period was converted at"),
     "read_type": (EVENT, "actual, estimated, customer or deemed — how the read was obtained; "
                          "or carried_forward, meaning it is the previous period's closing read"),
     "volume_basis": (EVENT, "whether this period's volume can be established from exported "
@@ -261,7 +270,7 @@ def _reads_from_invoice(inv: dict) -> list[dict]:
     reg = registers[0]
     ident = {"register_id": reg.get("register_id", "1"),
              "register_label": reg.get("label", "Anytime")}
-    return [
+    reads = [
         # The opening reading is the PREVIOUS period's closing reading, not a separate visit. Its
         # type is that period's, not this one's, so claiming this bill's `read_type` for it would
         # attribute an actual read to an estimated period (or the reverse).
@@ -270,6 +279,11 @@ def _reads_from_invoice(inv: dict) -> list[dict]:
         dict(ident, read_date=inv.get("period_end"), read_kwh=closing,
              read_type=inv.get("read_type", "U")),
     ]
+    if inv.get("read_unit"):
+        # A gas register reads volume; each reading carries it beside the kWh it converts to.
+        for read, volume in zip(reads, (inv.get("opening_read_volume"), inv.get("closing_read_volume"))):
+            read.update(read_unit=inv["read_unit"], read_volume=volume)
+    return reads
 
 
 def _reads_per_register(inv: dict, registers: list[dict]) -> list[dict]:
@@ -320,6 +334,11 @@ def raw_account(customer_id: str, record: dict) -> dict:
         # these come from the term record. Absent on a ledger that predates them.
         if "contracted_terms" in inv:
             period["contracted_terms"] = inv["contracted_terms"]
+        # What a gas period's volume was converted at. Absent on a ledger that predates it.
+        for key in ("imperial_meter", "calorific_value_mj_per_m3", "calorific_value_basis",
+                    "correction_factor"):
+            if inv.get(key) is not None:
+                period[key] = inv[key]
         if inv.get("held_periods_reconciled"):
             period["held_periods_reconciled"] = inv["held_periods_reconciled"]
         # A TWO-RATE BILL HAS NO ONE RATE. The invoice's own `unit_rate_p_per_kwh` on a ToU bill

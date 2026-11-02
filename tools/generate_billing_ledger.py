@@ -22,6 +22,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from company.billing.dd_review import billing_account_of
+from company.billing.gas_volume_conversion import volume_from_kwh
 from company.billing.pre_bill_validation import (
     BillValidationResult,
     ValidationOutcome,
@@ -360,6 +361,9 @@ def generate(run_json_path=None, out_path=None):
     running_closing_read: dict[tuple[str, str], float] = {}
     # A time-of-use meter has one cumulative index per register, keyed by its band label.
     running_register_read: dict[tuple[str, str, str], float] = {}
+    # A gas meter's printed volume index, in the unit it reads: the meter's own at an actual read,
+    # advanced by the estimate's volume between them.
+    running_volume_read: dict[tuple[str, str], float] = {}
 
     if not bills:
         result = {
@@ -484,6 +488,29 @@ def generate(run_json_path=None, out_path=None):
             month_opening_kwh = bill["register_opening_kwh"]
             closing_read_kwh = bill["register_closing_kwh"]
         running_closing_read[read_key] = closing_read_kwh
+        gas_volume = None
+        if commodity == "gas" and bill.get("calorific_value_mj_per_m3") is not None:
+            unit = bill.get("gas_read_unit", "m3")
+            opening_volume = running_volume_read.get(read_key, 0.0)
+            if read_type == "A" and bill.get("register_closing_volume") is not None:
+                closing_volume = bill["register_closing_volume"]
+            else:
+                closing_volume = opening_volume + volume_from_kwh(
+                    register_consumption_kwh, unit, bill["calorific_value_mj_per_m3"],
+                    bill["correction_factor"])
+            running_volume_read[read_key] = closing_volume
+            gas_volume = {
+                # The meter's register as it reads, and the conversion the kWh beside it came from
+                # (docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md C3).
+                "read_unit": unit,
+                "imperial_meter": unit == "hcf",
+                "opening_read_volume": round(opening_volume, 3),
+                "closing_read_volume": round(closing_volume, 3),
+                "volume_advance": round(round(closing_volume, 3) - round(opening_volume, 3), 3),
+                "calorific_value_mj_per_m3": bill["calorific_value_mj_per_m3"],
+                "calorific_value_basis": bill.get("calorific_value_basis"),
+                "correction_factor": bill["correction_factor"],
+            }
 
         # ADVISOR_STEER_BILL_ARITHMETIC.md Defect 1 (2026-07-11), R10 class fix:
         # the DISPLAYED billed usage is derived from the already-rounded
@@ -617,6 +644,8 @@ def generate(run_json_path=None, out_path=None):
             "opening_read_kwh": opening_read_rounded,
             "closing_read_kwh": closing_read_rounded,
         }
+        if gas_volume is not None:
+            inv.update(gas_volume)
         if bill.get("read_true_up_kwh") is not None:
             inv["catchup_kwh"] = catchup_kwh
         # D3 step 2 (docs/design/maturity_map.yaml "Estimated billing &

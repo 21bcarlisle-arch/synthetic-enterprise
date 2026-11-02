@@ -141,6 +141,7 @@ def _odds(share: float) -> float:
     return share / (1.0 - share)
 
 
+# DESNZ Q4 2024 smart meter statistics, domestic: (not in smart mode, installed), millions, per fuel.
 _DESNZ_TRADITIONAL_MODE_MILLIONS = {"electricity": (1.4, 20.5), "gas": (2.2, 15.5)}
 _DESNZ_BLEND = 3.6 / 36.0
 SMART_MODE_FUEL_ODDS_RATIO = {fuel: _odds(out / of) / _odds(_DESNZ_BLEND)
@@ -318,7 +319,7 @@ def premise_theft_study(premise_id: str, true_monthly_kwh: list[float],
 
 
 # --- A meter's registration error (K5, W2_36 2026-10-23) ----------------------------------------
-# unbilled_energy_and_revenue_assurance.md s.K5, "World build". An in-service meter is held to the
+# docs/market_research/unbilled_energy_and_revenue_assurance.md s.K5, "World build". An in-service meter is held to the
 # limit it met when new, with "no additional tolerance". Error = (registered - true) / true, so a
 # negative edge is a SLOW meter (energy used and never billed) and a positive edge a FAST one (the
 # customer overbilled). Each band is the widest the cited limit allows at any load point, so the
@@ -445,6 +446,13 @@ def simulate_instructed_read(customer_id: str, period_end: str, meter_type: str,
                                forced_catch_up=False)
 
 
+#: 1 kWh = 3.6 MJ, by definition of the units (docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md R4).
+MJ_PER_KWH = 3.6
+#: Cubic metres in a hundred cubic feet: 1 ft = 0.3048 m exactly, so 100 x 0.3048^3 (GOV.UK rounds
+#: it to 2.83). A unit identity, not an estimate.
+M3_PER_HUNDRED_CUBIC_FEET = 100 * 0.3048 ** 3
+
+
 @dataclass(frozen=True)
 class MeterReadEvent:
     customer_id: str
@@ -457,6 +465,11 @@ class MeterReadEvent:
     consecutive_estimated_count: int = 0
     forced_catch_up: bool = False
     must_read_attempted: bool = False
+    # A gas meter registers volume, not energy (Ofgem CV letter, 5 Aug 2014). On an actual gas read
+    # these are the meter's cumulative index and its unit ("m3", or "hcf" on an imperial meter);
+    # None on every other read. docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md C1.
+    read_unit: Optional[str] = None
+    register_volume: Optional[float] = None
 
 
 def meter_type_for_customer(customer: dict) -> str:
@@ -768,6 +781,9 @@ class SimulatedReadFeed:
     company's Protocol does not pass them, and a real feed knows which meter it reads, so the feed
     keeps them from the record `meter_type_for` is handed. The register arm changes no read while
     `q6_read_visit_access_failure_rate` is null; `must_read_arm="ceiling"` is the upper bound.
+
+    The second is the gas meter's volume index (`_gas_index`): a gas meter registers volume, so an
+    actual gas read carries it, and only the reads it adds to change.
     """
 
     def __init__(self, must_read_arm: str = "register", instructed_read_arm: str = "register",
@@ -782,6 +798,9 @@ class SimulatedReadFeed:
         self._base_seed = base_seed
         self._meter: dict[str, dict] = {}
         self._exchanged_on: dict[str, Optional[str]] = {}
+        # A gas meter's cumulative volume index (m3), and the last period it advanced over.
+        self._gas_register: dict[str, tuple[str, float]] = {}
+        self._imperial: dict[str, bool] = {}
 
     def meter_type_for(self, customer: Optional[dict]) -> str:
         """Carries the inline path's own `if customer_data else` fallback."""
@@ -789,6 +808,9 @@ class SimulatedReadFeed:
             self._meter[customer["customer_id"]] = {
                 "commodity": customer.get("commodity", "electricity"), "aq_kwh": customer.get("aq_kwh"),
                 "half_hourly": customer.get("metering") == "HH"}
+            # GAP G2: the share of GB domestic gas meters that are imperial is not published, so no
+            # household is drawn imperial; an account recorded as one reads in hundreds of cubic feet.
+            self._imperial[customer["customer_id"]] = customer.get("gas_meter_imperial") is True
         if not customer:
             return "traditional"
         meter_type = meter_type_for_customer(customer)
@@ -832,6 +854,30 @@ class SimulatedReadFeed:
     def _meter_of(self, customer_id: str) -> dict:
         return {**self._meter.get(customer_id, {}), "must_read_arm": self.must_read_arm}
 
+    def _gas_index(self, event: MeterReadEvent, true_consumption_kwh: float) -> MeterReadEvent:
+        """The gas meter's own register on an actual read: the period's energy as the volume it took.
+
+        The world knows the energy a home burned; its meter advanced by that energy at the gas's CV
+        and the standard correction factor, V = kWh x 3.6 / (CV x CF), once per period however many
+        reads the period is asked for. Only the volume reaches the supplier, which converts it back.
+        The CV is the world's one stand-in until the daily LDZ series is transcribed (G1).
+        """
+        cid = event.customer_id
+        if (self._meter.get(cid) or {}).get("commodity") != "gas":
+            return event
+        from simulation.live_population import GAS_CORRECTION_FACTOR, GAS_CV_FACTOR
+
+        last_period, volume_m3 = self._gas_register.get(cid, (None, 0.0))
+        if last_period != event.period_end:
+            volume_m3 += true_consumption_kwh * MJ_PER_KWH / (GAS_CV_FACTOR * GAS_CORRECTION_FACTOR)
+            self._gas_register[cid] = (event.period_end, volume_m3)
+        if event.status != "actual":
+            return event
+        if self._imperial.get(cid):
+            return dataclasses.replace(event, read_unit="hcf",
+                                       register_volume=volume_m3 / M3_PER_HUNDRED_CUBIC_FEET)
+        return dataclasses.replace(event, read_unit="m3", register_volume=volume_m3)
+
     def read_for(
         self,
         customer_id: str,
@@ -840,11 +886,11 @@ class SimulatedReadFeed:
         true_consumption_kwh: float,
         consecutive_estimated_count: int,
     ) -> MeterReadEvent:
-        return simulate_read(
+        return self._gas_index(simulate_read(
             customer_id, period_end, self.meter_in_force(customer_id, period_end, meter_type),
             true_consumption_kwh,
             consecutive_estimated_count, **self._meter_of(customer_id),
-        )
+        ), true_consumption_kwh)
 
     def final_read_for(
         self,
@@ -859,11 +905,11 @@ class SimulatedReadFeed:
         The company decides WHEN to ask for one (the SLC 27.17 final bill); whether
         it gets one is the world's business: `simulate_final_read`.
         """
-        return simulate_final_read(
+        return self._gas_index(simulate_final_read(
             customer_id, period_end, self.meter_in_force(customer_id, period_end, meter_type),
             true_consumption_kwh,
             consecutive_estimated_count, **self._meter_of(customer_id),
-        )
+        ), true_consumption_kwh)
 
     def instructed_read_for(
         self,
@@ -874,9 +920,9 @@ class SimulatedReadFeed:
         consecutive_estimated_count: int,
     ) -> MeterReadEvent:
         """The visit for a read the company instructed: `simulate_instructed_read`, at this feed's arm."""
-        return simulate_instructed_read(
+        return self._gas_index(simulate_instructed_read(
             customer_id, period_end, self.meter_in_force(customer_id, period_end, meter_type),
             true_consumption_kwh,
             consecutive_estimated_count, arm=self.instructed_read_arm,
             **self._meter_of(customer_id),
-        )
+        ), true_consumption_kwh)
