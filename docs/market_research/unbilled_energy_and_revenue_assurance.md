@@ -1443,6 +1443,51 @@ the supplier has already measured at the same meter.
   the next read's catch-up.
 - The released bill is a marked copy carrying `pre_bill_release`, as the other two releases are.
 
+### 4f. A domestic-ceiling hold on an opening estimate made from the registry figure (2026-11-02, K8 for the held-bill queue)
+
+Asked by the 08f267b666 book. Its ledger's `exception_queue` holds 9 bills on 3 accounts
+(SYN-2016-582, PROS-2024-0010, PROS-2025-0106). Every one is an estimate from before the account's
+first actual read, on a listed dwelling, at 1,224 to 2,633 kWh a month. §4d cannot release them
+because there is no read yet. SYN-2016-582's four, Dec 2016 to Mar 2017, went out as one £1,220.95
+catch-up on the 31 Jul 2017 read, 5.7 times the bill before
+(`SEAT_FINDING_THREE_SMALL_EXCEPTIONS_..._2026-10-29.md` §3, corrected 2026-11-02).
+
+**What the rules and the industry say.**
+- The opening estimate is the annual figure the supplier is handed on registration (EAC for
+  electricity, AQ for gas), spread by the profile (`opening_estimate_kwh`, D48 slice 4).
+- An EAC is not a guess. The settlement data collector derives it from this meter's own advances and
+  the profile coefficients. Each new advance moves it: BSC Annex S-2 §4.3.7, "EAC = AAAF * AA +
+  (1 - AAAF) * PEAC", with AA = MADV / FYC.
+  (`how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §1 and §8.) So it is the industry's
+  measurement of this supply point's volume, taken before the gain.
+- SLC 21B.5 asks for a bill at least twice a year, and HMRC Notice 701/19 s.3.2.1 gives a dwelling
+  5% VAT at any volume (§4c, §4d).
+
+**What follows.** The listing answers the mislabel half. The volume half asks whether the estimate is
+wrong in scale. Before the supplier's own first read, the best evidence of this meter's scale is the
+registry figure. An estimate no higher than that figure, spread over the bill's own days, is not
+wrong in scale: it is the registry figure. Holding it protects nobody. The energy is billed anyway,
+later and all at once. An estimate above the registry figure for its own period stays held. So does
+an estimate with no registry figure behind it (the TDCV stand-in), and one already contradicted by a
+read (§4d governs once a read exists). The first of these is the case the screen exists for: a month's
+energy put on a seven-day stub.
+
+**No published source** describes how a supplier's exception queue treats a high opening estimate on
+a confirmed dwelling. **GAP**, the same one as §4d. The rule adds no threshold. It compares the
+estimate with a figure the supplier already held.
+
+**Choices for the build, and why.**
+- The bill carries the registry figure it was handed (`registry_annual_kwh`). The release
+  recomputes that figure's share for the bill's own period, on the PC1 shape (and on the PC2 split
+  for a two-register meter). It allows the larger of the two. It does not trust the assembly's
+  number for the estimate.
+- The release is still decided in one function, `release_on_measured_rate`. Both doors ask it (§4d),
+  so a released opening estimate is counted as billed by the first read's catch-up and not billed
+  twice.
+- Before any read only. An estimate made from the registry figure after a read that spans too
+  little to replace it is left to §4d, which compares it with the measured rate. **Open:** whether
+  the registry should also answer there.
+
 ### 4e. A meter already on supply is exchanged for a smart one (2026-10-21, K8 for W2 / D48)
 
 Asked by the measure of the 8b6fea024 run: 0 of 945 accounts changed meter type in their life, so

@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from company.billing.back_billing import BackBillingAssessment, BackBillingReason
+from company.billing.unread_month_estimate import opening_estimate_kwh, split_on_register_shape
 from company.compliance.domain_invariants import (
     _FOOTING_COMPONENT_KEYS,
     check_back_billing_cap_respected,
@@ -56,6 +57,9 @@ class ValidationOutcome(str, Enum):
     #: Held on consumption scale alone, an estimate on a confirmed dwelling at a daily rate this
     #: account's own meter had already measured -- see `release_on_measured_rate`.
     RELEASED_ON_MEASURED_RATE = "released_on_the_meters_measured_rate"
+    #: Held on consumption scale alone, an estimate on a confirmed dwelling before its first read and
+    #: no higher than the registry figure the account was handed -- see `release_on_measured_rate`.
+    RELEASED_ON_REGISTRY_FIGURE = "released_on_the_registry_figure"
 
 
 @dataclass(frozen=True)
@@ -416,9 +420,14 @@ def release_on_measured_rate(
     volume half asks whether the estimate is wrong in scale. An earlier read-to-read rate at the same
     meter at least as high as the estimate's says it is not, and holding it only defers the energy to
     one late catch-up: PROS-2017-0336 went 14 months unbilled (SLC 21B.5 asks a bill twice a year).
-    An estimate above every rate measured, or before any read, stays held. No threshold is
-    introduced. Rules and choices: docs/market_research/unbilled_energy_and_revenue_assurance.md §4d.
+    An estimate above every rate measured stays held. No threshold is introduced. Rules and
+    choices: docs/market_research/unbilled_energy_and_revenue_assurance.md §4d.
     The assembly's catch-up asks this same function, so a released estimate is reconciled as billed.
+
+    Before any read the meter's measured scale is the registry figure the account was handed
+    (`registry_annual_kwh`, an EAC the data collector made from this meter's own advances): an
+    estimate at or under its share of the bill's own days is released (§4f). SYN-2016-582's four
+    opening months otherwise reached the customer as one £1,220.95 catch-up at its first read.
     """
     if not (result.held and result.consumption_scale_only):
         return None
@@ -430,7 +439,7 @@ def release_on_measured_rate(
         return None
     prior = [rate for end, rate in measured_daily_rates(own_bills) if end < bill["period_end"]]
     if not prior:
-        return None
+        return _release_on_registry_figure(bill, result)
     measured = max(prior)
     if bill.get("total_consumption_kwh", 0.0) / _days_in_period(bill) > measured:
         return None
@@ -441,6 +450,40 @@ def release_on_measured_rate(
         "confirmed_by": ("supply address on the council tax list; estimate at or under a daily rate "
                          "this meter's own earlier reads measured"),
         "measured_kwh_per_day": measured,
+    }
+    return released
+
+
+def _registry_share_kwh(bill: dict) -> float | None:
+    """The registry figure's kWh for the bill's own days: the larger of the PC1 shape and the PC2
+    register split, so a two-register meter is not held for its shape. None without a figure."""
+    annual = bill.get("registry_annual_kwh")
+    commodity = bill.get("commodity", "electricity")
+    if not annual or annual <= 0:
+        return None
+    start = dt.date.fromisoformat(bill["period_start"])
+    end = dt.date.fromisoformat(bill["period_end"])
+    key = "eac_kwh" if commodity == "electricity" else "aq_kwh"
+    shares = [opening_estimate_kwh(commodity, {key: annual}, start, end)]
+    if commodity == "electricity":
+        shares.append(sum(split_on_register_shape(annual, start, end).values()))
+    shares = [share for share in shares if share is not None]
+    return max(shares) if shares else None
+
+
+def _release_on_registry_figure(bill: dict, result: BillValidationResult) -> dict | None:
+    """`release_on_measured_rate`'s answer before the account's first read (§4f)."""
+    share = _registry_share_kwh(bill)
+    if share is None or bill.get("total_consumption_kwh", 0.0) > share + 0.01:
+        return None
+    released = dict(bill)
+    released["pre_bill_release"] = {
+        "outcome": ValidationOutcome.RELEASED_ON_REGISTRY_FIGURE.value,
+        "held_for": list(result.reasons),
+        "confirmed_by": ("supply address on the council tax list; an opening estimate no higher "
+                         "than the registry figure for its own days, before this supplier's "
+                         "first read"),
+        "registry_share_kwh": round(share, 2),
     }
     return released
 
