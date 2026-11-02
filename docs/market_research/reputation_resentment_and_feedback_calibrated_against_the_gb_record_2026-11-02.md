@@ -211,6 +211,9 @@ the pack and this page as their knowledge base:
   no aggregate is published.
 - **GAP-R6.** Any GB link from supplier reputation to uptake of advice or products (pack E4 gap 8). Ofgem's 2021
   observation that trust may *increase* inertia among the disengaged is the only P statement, and it is qualitative.
+- **GAP-R7.** What holds a supplier's persistent satisfaction level (§8.3). Not its service as Citizens Advice
+  measures it: r = −0.04 across the seven groups (§9). Until something establishes a cause, the level is a stated
+  per-supplier assumption.
 
 Licensed microdata that would close R2 and R6 (Understanding Society, the Ofgem CIM microdata if deposited) is G5 to
 register for. It belongs on the corpus steer's single `for_the_director` microdata row, not here.
@@ -296,8 +299,108 @@ covariance of a group with the average it is part of, which overstates the SE sl
   says the larger part of a supplier's standing is a level fed every month by how it serves (Octopus +8 to +15,
   OVO −6 to −11, all six waves), which an event sum cannot hold. A rebuilt index needs both: a level that tracks the
   supplier's ongoing service, and an event term whose decay stays A at 12-24 months until a GAP-R2 route opens.
+  *(Corrected the same day, §9: "fed by how it serves" was inferred, not tested, and the test refutes it. The
+  persistent level stands; its cause is GAP-R7. The level does not track the supplier's measured service.)*
 - **The roadmap's "cheapest move" did not change the order.** Reputation stays sixth: its event decay is still
   unsourced. The persistent-level finding is D and usable, so stage 0 knowledge for that half now exists.
+
+## 9. Is the persistent level fed by service? The §8.5 inference tested against Citizens Advice's star rating (D, 2026-11-02)
+
+§8.5 says a supplier's standing is "a level fed every month by how it serves". §8 measured the level and did not
+test the cause. Citizens Advice publishes a quarterly star rating per supplier from Q4 2017, built from what the
+supplier did (complaints, contact, billing, switching), not from what its customers said. If the level is service,
+the two should rank the seven groups alike.
+
+### 9.1 Pre-registration (written 2026-11-02 22:07 UTC, before any Citizens Advice figure was opened)
+
+What was known when this was written: the six Ofgem waves of §8.2, and that the Citizens Advice rating exists, is
+quarterly, and scores suppliers out of five on several service measures. Which measures, which quarters are
+published and which of the seven groups are rated in them were not known.
+
+1. **Between groups, sign and size.** Over the quarters that overlap the Ofgem waves, a group's mean Citizens Advice
+   overall rating and its six-wave mean Ofgem gap correlate positively, Pearson r between 0.5 and 0.95 across the
+   seven groups. The slope is 3 to 12 Ofgem points per star. r at or below 0.3, or negative, refutes "fed by service"
+   and §8.5 must call the level untested.
+2. **The ends.** Octopus is the top-rated of the seven on Citizens Advice. OVO and ScottishPower are both in its
+   bottom three.
+3. **The mechanism is failure, not contact.** The complaints measure correlates with the Ofgem gap more strongly
+   (negatively) than the customer-contact measure (call waits, email response) does, in absolute r.
+4. **Within groups, nothing.** Wave-on-wave changes in a group's Ofgem gap do not track changes in its Citizens
+   Advice rating over the matching quarters: |r| below 0.3. §8.3 found the within-group movement is sampling noise,
+   so a real within-group signal here would contradict §8, not confirm it.
+
+Rules fixed before reading: a measure that is itself a survey of customer satisfaction is left out of the test,
+because it would be the Ofgem quantity again. A group the rating does not cover in a quarter is left out of that
+quarter, not filled. Groups are mapped to Ofgem's definitions (OVO with SSE, Octopus with Co-op, London Power and,
+from Jul 2024, Shell); where the rating scores the brands separately, the brand with the larger book stands for the
+group and the choice is printed.
+
+### 9.2 What the data is
+
+Citizens Advice's historic star-rating CSVs, fetched 2026-11-02 22:08 UTC
+(`data/lake/citizens_advice_star_rating_2023_2026/`, sheet ids, SHA-256 and the derivation there). Four measures:
+overall stars, contact ease stars (call wait and email response), average call wait in seconds, and weighted
+complaints per 10,000 customers (Energy Ombudsman, Citizens Advice consumer service, Extra Help Unit). None is a
+satisfaction survey, so none was excluded. Each Ofgem wave is joined to the quarter holding its fieldwork (Q3 2023,
+Q1 2024, Q3 2024, Q1 2025, Q3 2025, Q1 2026). Brands: E.ON Next, Octopus Energy (Citizens Advice prints Co-op's
+complaints identical to it), Ovo Energy. Shell has no column. **Not foreseen in §9.1:** the methodology changed
+from Q4 2025, so the Q1 2026 overall and contact ratings are on the new basis. Every between-group figure is shown
+on all six quarters and on the five old-method quarters. Neither changes a verdict.
+
+| Group (six-quarter means) | Ofgem gap, pts | Overall stars | Contact ease stars | Call wait, s | Complaints per 10k |
+|---|---|---|---|---|---|
+| Octopus | +10.5 | 3.18 | 3.13 | 155 | 27 |
+| Utilita | +0.2 | 2.22 | 3.17 | 207 | 117 |
+| E.ON | −1.3 | 3.06 | 3.33 | 131 | 41 |
+| British Gas | −1.5 | 2.67 | 3.47 | 161 | 84 |
+| EDF | −6.3 | 2.60 | 2.77 | 260 | 49 |
+| ScottishPower | −7.3 | 3.28 | 4.13 | 92 | 68 |
+| OVO | −8.3 | 3.21 | 3.77 | 109 | 71 |
+
+### 9.3 What it shows
+
+- **Citizens Advice's view of a supplier's service does not rank the groups the way their own customers do.**
+  Across the seven groups, the six-wave mean Ofgem gap against the overall star rating: r = −0.04 (Spearman −0.46;
+  five old-method quarters, r = −0.16). ScottishPower and OVO have the best overall stars of the seven and the two
+  lowest satisfaction gaps. Utilita has the worst stars and the highest complaint rate, and sits at the GB average.
+- **Contact runs the wrong way.** Contact ease stars against the gap: r = −0.42 (five quarters −0.49). Call wait:
+  r = +0.12, again the wrong sign (longer waits, higher satisfaction). Both carry no weight at n = 7 (permutation
+  p 0.35 and 0.78), but neither is the positive link the inference needs.
+- **Complaints is the only measure with the expected sign, and it is weak and leans on one group.** r = −0.30
+  (permutation p 0.51; five quarters −0.34). Without Octopus it is +0.41. Without Utilita it is −0.66, but that cut
+  was chosen after seeing the table and is a hypothesis, not a result: Utilita's book is mostly prepayment, and its
+  customers may judge it against different expectations.
+- **Within groups, nothing moves together.** Wave-on-wave change in the gap against change in the measure:
+  overall −0.09, contact 0.00, call wait −0.05, complaints −0.24 (n = 35 each). This is what §8.3's finding that the
+  within-group movement is noise predicts. The sector-wide fall in complaints (Citizens Advice's average went from
+  80 to 45 per 10k across these quarters) and the rise in GB satisfaction (69% to 81%) move together, but that is
+  one series against another over the fall in bills (§8.3, last bullet), and cannot be attributed.
+- **What n = 7 can say.** An r near zero on seven groups cannot rule out a modest link, but the pre-registered rule
+  was a refutation at or below 0.3, and the point estimate is not close: the measured service ranking and the
+  satisfaction ranking disagree at both ends.
+
+### 9.4 The pre-registration, scored
+
+1. **Between groups: refuted.** r = −0.04 against a predicted 0.5 to 0.95, and the slope is −0.7 points per star,
+   not 3 to 12.
+2. **The ends: refuted.** Octopus is third of seven on overall stars (3.18, behind ScottishPower 3.28 and OVO
+   3.21). OVO and ScottishPower are the top two, not in the bottom three.
+3. **Failure over contact: refuted as written.** |r| for complaints (0.30) is below contact's (0.42). Complaints
+   has the predicted sign; contact has the opposite one.
+4. **Within groups, nothing: confirmed.** Every |r| is below 0.3.
+
+### 9.5 What this changes
+
+- **§8.5's "a level fed every month by how it serves" is withdrawn.** The persistent level is D (§8.3). That it is
+  service, as service is measured from outside, is refuted on this test. What holds a group's level is now **GAP-R7**
+  (§7). Candidates the evidence allows, none tested: brand and what the supplier stands for; who its customers are
+  (Utilita's prepayment book, ScottishPower's Scottish one); what Citizens Advice does not count, such as tariff
+  design, app experience and how problems are resolved rather than whether they reach a third party; and
+  satisfaction as a slow habit of the book itself.
+- **For the reputation rebuild:** the level is a per-supplier constant the world states as an assumption (A, with
+  the §8.2 range, about −11 to +15 points), not a function of the world's complaint or contact rates. Tying it to
+  service would assert a link that the GB record, at this resolution, does not show.
+- **No world or company value changes here.** The reputation index is not built from this page yet (§0, §5).
 
 ## Sources
 
@@ -305,6 +408,7 @@ covariance of a group with the average it is part of, which overstates the SE sl
 - Ofgem/Ipsos, *Consumer Survey 2021: Engagement report*, slides 44-45 and p.3. https://www.ofgem.gov.uk/sites/default/files/2023-07/Consumer%20Survey%202021%20-%20Engagement%20report.pdf (P; `data/lake/ofgem_consumer_survey_2021/`)
 - Ofgem, *Consumer Impacts of Market Conditions* survey, Waves 3-6, C4 by trust to treat fairly (P, derived D; `data/lake/ofgem_cim_wave3_2022/`, `data/lake/ofgem_cim_waves4_6_2023_2025/`)
 - Ofgem, *Customers' satisfaction with their supplier: supplier level findings*, six waves Aug-Sep 2023 to Jan 2026, Table 1 (P, derived D; `data/lake/ofgem_energy_consumer_satisfaction_supplier_level_2023_2026/`, URLs and SHA-256 there)
+- Citizens Advice, *Historic star rating data* (24 Mar 2026), charts 2, 4, 5 and 12 as CSV. https://www.citizensadvice.org.uk/policy/publications/historic-star-rating-data/ (P, derived D; `data/lake/citizens_advice_star_rating_2023_2026/`, sheet ids and SHA-256 there)
 - Ofgem, *Customer satisfaction indicators: previous updates* (GfK: a Feb 2018 per-supplier snapshot and a GB series 2010-2017). https://www.ofgem.gov.uk/publications/customer-satisfaction-indicators-previous-updates (P)
 - Trustpilot profile pages, read 2026-11-02: https://uk.trustpilot.com/review/octopus.energy, https://uk.trustpilot.com/review/www.britishgas.co.uk (P for the platform's own figures)
 - The advisor's pack and the sentiment page, as cited inline. Their [lit] and [unverified] items keep those grades.
