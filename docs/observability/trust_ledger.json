@@ -328,5 +328,25 @@
     "subject": "reading-review-live-2026-10-28:c89a199faf:armB",
     "task_class": "harness_supervisor",
     "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-11-02",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "goldfish primer; 9 findings, 7 paired by the seat, 7 of 7 paired confirmed at HEAD; unpaired: A8 tariff-placement response not drawn, A9 run label on reading 5",
+    "rework_required": false,
+    "subject": "design-read-2026-11-02:THE_VALUE_TEST_REDESIGN@efc8340b5:armA",
+    "task_class": "pricing",
+    "verdict": "needs_work"
+  },
+  {
+    "defects_found_post_close": 0,
+    "evaluated_at": "2026-11-02",
+    "evaluator_name": "phase-close-evaluator",
+    "notes": "skeptic primer (can it lose?); 14 findings, 7 paired, 7 of 7 paired confirmed; unpaired: B2 selection-as-transfer, B4 1.9% base, B9 sign before baseline, B10 SLC 22B, B11 prediction 4 transfer, B12 pre-2019 cap arm, B14 seed-steerable bar",
+    "rework_required": false,
+    "subject": "design-read-2026-11-02:THE_VALUE_TEST_REDESIGN@efc8340b5:armB",
+    "task_class": "pricing",
+    "verdict": "needs_work"
   }
 ]

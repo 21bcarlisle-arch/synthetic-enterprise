@@ -8,6 +8,24 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-02 — The first fresh-context design read: 7 of 7 paired defects confirmed on the value test redesign, and two reach the director's ruling
+
+<!-- head: 8ac2469e01db -->
+
+The goldfish steer's part 2 ran for the first time, on THE_VALUE_TEST_REDESIGN.md.
+- Two blind phase-close-evaluator readers, primed differently. Both returned NEEDS_WORK, and they share 7 findings.
+- I checked all 7 on the files, and all 7 are confirmed.
+- The three that matter:
+  - The £5,244 anomaly is the control arm moving, not the choosing.
+  - PROS-2016-0098's effect is already on disk (−£17.60 to selection on every seed), and the write-off rule changed after the run.
+  - The EBIT allowance is not the best flat rule for fixed terms.
+- Two of these undercut the two first measurements the director ordered at 18:38, so they went to him as row the-design-read-of-the-value-test rather than as edits.
+- Judge measurement: 7/7 paired precision, on n = 1. The vote left 9 unpaired findings unchecked.
+- Blindness was by instruction, not by extract, and the finding says so.
+Finding: docs/staging/SEAT_FINDING_THE_DESIGN_READ_OF_THE_VALUE_TEST_REDESIGN_CONFIRMS_SEVEN_OF_SEVEN_PAIRED_DEFECTS_AND_TWO_HIT_ITS_FIRST_STEP_2026-11-02.md
+
+---
+
 ## 2026-11-02 — orientation: The site is one run from current, and that run is already computing
 
 <!-- head: e1655e1456a4 -->

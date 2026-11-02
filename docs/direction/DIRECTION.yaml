@@ -642,3 +642,33 @@ for_the_director:
   evidence: 'docs/design/THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md (the table: evidence, unlocks,
     cost, what comes first); pages 1-7 of the customer-needs domain in docs/market_research/*_2026-11-02.md;
     docs/design/THE_IMPROVEMENT_LOOP.md section 5'
+- id: the-design-read-of-the-value-test
+  raised: '2026-11-02'
+  kind: strategy
+  what: The design read of the value test redesign, which you adopted at 18:38, finds its first step and
+    its renewal baseline rest on misreadings. Two blind readers each raised the same 7 defects, and all
+    7 check out on the files.
+  proposal: 'Amend three things you ruled. (1) Replace the 12-draw family with: find why the published
+    control arm earned £235,588 against £229,503-£231,026 on every re-draw. The value arm sits inside
+    its family, so the £5,244 is the control moving, not the choosing. A 4th draw also lands outside the
+    range of 3 half the time, so widening to 12 cannot tell the causes apart. (2) Drop ''PROS-2016-0098
+    under today''s write-off rule'' as a measurement. It is already on disk: -£17.60 to selection on every
+    seed. And the write-off rule changed on 28 and 29 Oct, after the run, so it is not one variable. (3)
+    Set the renewal baseline as the best flat margin found by a sweep, keeping the EBIT allowance as a
+    reference arm. The repo''s own artefact says the allowance governs the default tariff, not a fixed
+    term, and a higher flat margin (£61.75/MWh) earned less than £2/MWh. The other four defects are fixes
+    inside your frame: term boundaries counted as households, a verdict rule that cannot return a loss,
+    book sizing from a 72-of-272 re-draw, and the write-off text in §4. They land with the amendment as
+    one pass.'
+  recommendation: 'I recommend all three amendments. They cost nothing now, since the build already waits
+    for the correctness exit test, and the first measurement still costs one run. The trade-off: a swept
+    best flat margin is a harder baseline than the EBIT allowance, so the advantage is likelier to lose
+    its sign at 272 accounts. That is the point of a baseline that can win. Holding position until you
+    rule: the note stays as you adopted it, nothing is drawn, and the page still says the answer is not
+    in. What would change it: if you meant the EBIT allowance as the regulator''s yardstick rather than
+    the best flat rule, keep it and I will relabel rule 4 to say so.'
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_FINDING_THE_DESIGN_READ_OF_THE_VALUE_TEST_REDESIGN_CONFIRMS_SEVEN_OF_SEVEN_PAIRED_DEFECTS_AND_TWO_HIT_ITS_FIRST_STEP_2026-11-02.md;
+    value_cycle_ab_s1_{three_arm,noise_floor}_20261008r.json; simulation/arrears_engine.py:264-287,832;
+    docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md:136-139
