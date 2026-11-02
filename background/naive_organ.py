@@ -306,6 +306,28 @@ def _last_commit_epoch() -> float:
         return 0.0
 
 
+def without_own_output(text: str, log_entries: list[dict]) -> str:
+    """The claims surface with every line that carries one of the organ's own questions removed.
+
+    The digest (render_digest_section) is published into LATEST.md, which is the surface T3 and
+    T4 read. From 2026-08-10 to 2026-11-02 the organ read its own open questions back as claims;
+    the three that quote GOAL_CONST's "north star" were declined as purpose on every cycle and
+    filled the max_new cap, so nothing was asked for twelve weeks. Matching on the logged question
+    text, not on the digest's heading or line shape, keeps this true if the digest is re-worded.
+    """
+    needles = {" ".join((e.get("question") or "").split()) for e in log_entries}
+    needles = {q for q in needles if len(q) >= 20}
+    if not needles or not text:
+        return text
+    kept = []
+    for line in text.splitlines():
+        flat = " ".join(line.split())
+        if flat.startswith("**NAIVE ORGAN asks:**") or any(q in flat for q in needles):
+            continue
+        kept.append(line)
+    return "\n".join(kept)
+
+
 def load_state(*, gitlog_window: str = "3 days ago") -> dict:
     """Assemble the organ's observable world from disk + git. Test code builds
     the dict directly and never calls this."""
@@ -322,6 +344,7 @@ def load_state(*, gitlog_window: str = "3 days ago") -> dict:
         claims_text = LATEST_PATH.read_text(encoding="utf-8")
     except Exception:
         pass
+    claims_text = without_own_output(claims_text, _read_jsonl(ORGAN_LOG_PATH))
     gitlog_subjects: list[str] = []
     try:
         r = subprocess.run(
@@ -778,6 +801,15 @@ def run_detectors(state: dict) -> list[Trigger]:
     return fired
 
 
+def _fingerprint(trigger: Trigger) -> tuple:
+    return (trigger.trigger_id, _normalise_claim(trigger.claim_text))
+
+
+def _declined_fingerprints(log_path: Path) -> set:
+    return {(e.get("trigger_id"), _normalise_claim((e.get("fired_on", {}) or {}).get("claim", "")))
+            for e in _read_jsonl(log_path) if e.get("verdict") == "declined_purpose"}
+
+
 # ── debounce: a (trigger_id, normalised-claim) already OPEN is not re-asked ──
 def _open_fingerprints(log_path: Path) -> set:
     out = set()
@@ -796,6 +828,10 @@ def ask_organ(trigger: Trigger, *, invoke_fn: InvokeFn | None = None,
 
     # THE LINE — never question PURPOSE. A code gate, before any Opus spend.
     if is_purpose_claim(trigger.claim_text):
+        # A decline already on record is not written again: 27,663 identical declines were how
+        # the twelve-week silence looked in the log.
+        if _fingerprint(trigger) in _declined_fingerprints(log_path):
+            return None
         entry = {
             "entry_id": datetime.now(timezone.utc).isoformat(),
             "trigger_id": trigger.trigger_id,
@@ -861,12 +897,16 @@ def run_system_organ(state: dict, *, invoke_fn: InvokeFn | None = None,
     latency on the live publish path; any un-asked triggers surface next cycle).
     None = no cap (the test/analysis default)."""
     written = []
+    asked = 0
     for trig in run_detectors(state):
-        if max_new is not None and len(written) >= max_new:
+        if max_new is not None and asked >= max_new:
             break
         rec = ask_organ(trig, invoke_fn=invoke_fn, log_path=log_path)
         if rec is not None:
             written.append(rec)
+            # The cap bounds model calls. A decline makes none, so it must not spend a slot:
+            # three declines ahead of every real trigger was the other half of the silence.
+            asked += rec.get("verdict") == "open"
     return written
 
 

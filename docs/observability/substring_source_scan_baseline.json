@@ -222,6 +222,12 @@
       "subject": "unknown"
     },
     {
+      "path": "background/naive_organ.py",
+      "function": "without_own_output",
+      "subject": "unknown",
+      "reason": "reads LATEST.md and the organ's own jsonl log, never Python: the census's evidence for it names no .py path. Its substring match is the organ's own logged questions against the claims surface (2026-11-02 self-feed repair)"
+    },
+    {
       "path": "background/primary_state_scan.py",
       "function": "_map_atom_prefixes",
       "subject": "unknown"
