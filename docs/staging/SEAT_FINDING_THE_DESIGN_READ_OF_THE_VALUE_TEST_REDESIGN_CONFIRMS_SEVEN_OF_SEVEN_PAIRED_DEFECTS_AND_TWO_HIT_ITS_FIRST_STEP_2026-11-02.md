@@ -68,30 +68,82 @@ This is the design read live on its first qualifying proposal. It is not an edit
      control's £235,588.
    - The best flat rule is an empirical optimum, and a margin sweep (`tools/run_price_ladder.py`) finds it.
 
-## Raised by one reader only (not filed under the vote; kept for the 11 Nov review)
+## Raised by one reader only (not filed under the vote; each checked by the seat at HEAD `80d4422589`, 2 Nov)
 
 - A#8 (MAJOR): the tariff-placement arm assumes the world draws an SVT household's take-up of an offer. The cited
   `CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md` §5 does not show that, and the feed calls the conversion desk unbuilt.
+  **Confirmed.** §5 lists traits the world "should draw as a joint distribution", and that note's §3 says it "makes
+  no claim about the code". `decisions.decisions_that_existed.outside_it` (`product_not_upliftable`) calls the
+  conversion "a desk this company has not built". The world's `svt_conversion_event`
+  (`simulation/customer_events.py:512`) records a household leaving the SVT at a term boundary. It is not a drawn
+  response to an offer the supplier makes.
 - A#9 (MINOR): reading 5's 0.264–0.8 ratio is the 18 Sep run's and is not labelled with its run.
+  **Confirmed.** `control_as_share_of_regulated_allowance` sits under the feed's `decisions` block (18 Sep,
+  b329e702b). Reading 5's row omits the block name, so its run cannot be read from the row.
 - B#2 (BLOCKING by B): choosing at a matched price level can itself be a transfer, by charging inelastic
   households more. `household_side` has households paying 13.2% over the cap on the value arm against 11.3% on
   control. The renewal arm has no household-share pass/fail rule.
+  **Confirmed in substance. The 8 Oct figures do not show it on the choosing leg.**
+  - The numbers are right: value −13.20%, control −11.34% (`household_side` in
+    `value_cycle_ab_s1_three_arm_20261008r.json`).
+  - But the level arm is −13.47%. On that run, matched-level choosing left households 0.27 points *better* off
+    than flat at the same level. The rise against control is the level leg's.
+  - The 18 Sep run's `household` block in the feed goes the other way: value −20.07% against level −19.43%. There,
+    choosing cost households 0.64 points.
+  - So the mechanism is live and the two runs disagree on its sign. Each percentage is over its own arm's book
+    (1,779 and 1,724 customer-years on 8 Oct), so they are not one population.
+  - The missing rule is real. Rule 6's customer-cost axis is a "no worse" test in name only: it has no margin and
+    cannot return a loss (pair 5).
 - B#4 (MINOR): 1.9% is of cap costs excluding headroom, VAT and the allowance itself, not of revenue. The post-Oct
   2023 allowance is not a flat £44.
+  **Confirmed.** `docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md` §B quotes the base as
+  "excluding headroom, VAT and the EBIT allowance itself". §C gives a fixed £19.76 plus 1.3975% of the cap level,
+  £45.16 in 11a. The note's "1.9% of revenue" and "about £44 per customer a year" misstate both.
 - B#9 (MAJOR): §6 publishes a sign against the £2 control (step 2) before the sourced baseline exists (step 4).
+  **Confirmed.** Step 2 says the runner "alone lets the page state the sign its family already carries", and that
+  sign is against £2/MWh. The artefact's §D calls that control a fraction of the allowance. The fix need not
+  reorder the steps. A sign published at step 2 can say on its face that it is against a sub-allowance control.
 - B#10 (MAJOR): the acquisition-only tariff ban (SLC 22B, Apr 2022 to Mar 2027) and the pre-2017 four-tariff limit
   are not applied to the renewal or acquisition arms.
+  **One of its three legs confirmed.**
+  - *Acquisition arm: confirmed.* The note never names SLC 22B, and a per-prospect margin not open to existing
+    customers breaches it from 1 Apr 2022. The check exists to reuse: `NO_ACQUISITION_ONLY_TARIFF`
+    (`company/compliance/domain_invariants.py:990`).
+  - *Renewal arm: refuted.* The Market-wide Derogation from 14 Apr 2022 expressly permits "bespoke, retention-only
+    deals" at the end of a fixed term (same file, :974-980).
+  - *Four-tariff limit: refuted for this world.* Ofgem stopped enforcing the RMR rules on 14 Apr 2016
+    (`docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md` §6). No renewal in the run predates that.
+    The formal removal date is unverified there.
 - B#11 (MAJOR): prediction 4 forecasts a pure transfer and does not say whether confirming it counts for or against
   the thesis.
+  **Confirmed, with one refinement.** Prediction 4 fixes signs only: households pay less and company margin falls.
+  It does not say how the thesis reads either outcome. "Pure transfer" over-reads it, though. Created against moved
+  turns on the size of the household's gain against the company's loss, and the prediction states neither.
 - B#12 (MINOR): the cap baseline for the tariff-placement arm has no 2016–2018 plan. A#7 adds that the prepayment
   cap from Apr 2017 exists.
+  **Confirmed.** Rule 4's 2016–2018 GAP is written under the fixed-term bullet only. The CMA prepayment charge
+  restriction ran from Apr 2017 to Dec 2020. Its levels are already a named GAP in
+  `docs/market_research/default_tariff_cap_and_epg_on_the_bill.md:144-147`, and the note does not cite it.
 - B#14 (MINOR): prediction 2's bar is t(0.975, n−1), and no seed count is fixed, so the author can steer it.
+  **Confirmed.** The feed's `distance_to_a_sign.sems_needed_is_derived_from_the_family_size` is true, and the bar is
+  4.30 = t(0.975, 2). At 12 seeds it would be 2.20. Prediction 2 names no n. The feed's own text says "the seed
+  set is fixed before the draw", so the fix is one number in the pre-registration.
+
+**What the unpaired check says.**
+- 7 of 9 hold in full, B#2 holds in substance, and B#10 holds on one of three legs. None is wholly refuted.
+- On this design, the both-raise vote dropped about as much true signal (8) as it kept (7).
+- n = 1 design, so this is not a rate. It is one data point for the 11 Nov two-reader review.
+- **The director's row `the-design-read-of-the-value-test` is unchanged.** Neither B#2 nor B#10 touches what he
+  ruled: the first step's two measurements and the renewal baseline. Both are fixes inside his frame. They join
+  pairs 3–6 in the one amendment pass after his answer: a household-share rule on the renewal arm, and SLC 22B on
+  the acquisition arm.
 
 ## Measured like the code review
 
 - **Precision:** 7 of 7 filed pairs confirmed. Pair 1 counts once, though its two halves give different reasons.
-- **Coverage:** 2 of A's 9 findings and 7 of B's 14 were left out by the vote and were not checked. On a first
-  read, nothing here says whether the vote discarded signal.
+- **Coverage:** 2 of A's 9 findings and 7 of B's 14 were left out by the vote. *Correction, beside the claim:* they
+  were unchecked when this was first written. They have now been checked above, and 8 of 9 hold at least in
+  substance, so on this read the vote did discard signal.
 - **Prior in-turn reads:** they did not catch any of the seven. The note's own §2 shows they caught the
   reading-4 misread and the "in full, no recovery" write-off error. Pair 3 shows that correction was itself
   incomplete.
