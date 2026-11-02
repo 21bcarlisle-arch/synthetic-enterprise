@@ -74,7 +74,31 @@ def test_the_grade_names_a_carve_the_ledger_never_booked_and_a_negative_estimate
     broken = grade({"bills": [inside, stub], "ledger_pnl": {"epg_receipt_gbp": receipt}})
     named = defects(broken)
     assert len(named) == 2
-    assert named[0].startswith("carved GBP") and "below zero, worst s 2023-01-17" in named[1]
+    assert named[0].startswith("paid on settled kWh GBP") and "below zero, worst s 2023-01-17" in named[1]
+
+
+def test_the_receipt_is_graded_on_the_settled_share_the_treasury_paid_not_the_billed_one():
+    """Defect: a grade that compares the ledger to the discount on BILLED kWh after 82d26fbd4e.
+
+    The ledger books `epg_support_gbp`, the share on settled kWh, which is what the scheme paid. An
+    over-estimated bill carves more than that, by design. Comparing carved to booked refused every
+    book from 2 Nov on (carved GBP 197,965.24 != booked GBP 193,406.52 at bb58608b91, and the booked
+    figure is exactly the bills' settled share). A settled share the ledger never books must still red.
+    """
+    from tools.grade_svt_invoices_over_ceiling import defects
+
+    receipt = round(100 * (0.6747 - 0.34) / 1.05, 2)
+    over_estimated = {**_bill("a", "2023-01-01", 34.0), "hmt_epg_receipt_gbp": receipt,
+                      "epg_support_gbp": receipt * 0.8}
+    held = {**_bill("h", "2023-02-01", 34.0), "total_consumption_kwh": 0.0,
+            "epg_support_gbp": 12.5}
+    booked = receipt * 0.8 + 12.5
+    g = grade({"bills": [over_estimated, held], "ledger_pnl": {"epg_receipt_gbp": booked}})
+    assert g["epg_receipt"]["carved_gbp"] != g["epg_receipt"]["booked_gbp"]
+    assert defects(g) == []
+    lost = grade({"bills": [over_estimated, held],
+                  "ledger_pnl": {"epg_receipt_gbp": receipt * 0.8}})
+    assert defects(lost)[0].startswith("paid on settled kWh GBP")
 
 
 def test_a_book_billed_over_the_ceiling_is_a_defect_and_the_misgrade_residual_is_not():
