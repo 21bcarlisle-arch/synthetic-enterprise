@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-10-26T09:01:08Z",
+    "checked_at": "2026-11-02T20:23:26Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,36 +9,36 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 16
+    "open_findings": 22
   },
   "figures_caveat": null,
   "last_verified": {
-    "generated_at": "2026-10-26T12:09:33Z",
-    "git_commit": "4ae8da9b0f",
+    "generated_at": "2026-11-02T22:04:22Z",
+    "git_commit": "08f267b666",
     "population": {
-      "accounts": 1291,
-      "bills": 52791,
-      "total_revenue_gbp": 2906732.96
+      "accounts": 1293,
+      "bills": 52837,
+      "total_revenue_gbp": 2855820.88
     },
-    "run_id": "run_output_4ae8da9b0f_20261026T022647Z.json",
+    "run_id": "run_output_08f267b666_20261102T173915Z.json",
     "run_retained": true,
-    "verified_at": "2026-10-26T12:09:33Z"
+    "verified_at": "2026-11-02T22:04:22Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=65bbdc6787; blocking tests: ERROR tests/background/test_derived_artefact_register.py::TestSeatGuard::test_the_entrypoint_is_seat_guarded",
-  "paused_since": "2026-11-02T04:00:49Z",
+  "paused_reason": "scoped publish-path suite red at git=0a6391d186; blocking tests: FAILED tests/background/test_a_refusing_gate_banner_is_a_string_a_gate_prints.py::test_every_gate_the_chain_runs_is_either_named_or_declared_unnameable",
+  "paused_since": "2026-11-02T23:32:06Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-10-26T12:09:33Z",
-    "git_commit": "4ae8da9b0f",
+    "generated_at": "2026-11-02T22:04:22Z",
+    "git_commit": "08f267b666",
     "population": {
-      "accounts": 1291,
-      "bills": 52791,
-      "total_revenue_gbp": 2906732.96
+      "accounts": 1293,
+      "bills": 52837,
+      "total_revenue_gbp": 2855820.88
     },
-    "run_id": "run_output_4ae8da9b0f_20261026T022647Z.json",
+    "run_id": "run_output_08f267b666_20261102T173915Z.json",
     "run_retained": true,
-    "verified_at": "2026-10-26T12:09:33Z"
+    "verified_at": "2026-11-02T22:04:22Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-02T17:23:12Z"
+  "written_at": "2026-11-02T23:32:06Z"
 }
