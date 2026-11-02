@@ -197,6 +197,18 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def get_gas_charging_area(self, account_id: str) -> str | None:
+        """The gas distribution charging area (LDZ) of this account's gas supply point, or None.
+
+        OBSERVABLE: a supplier holds the MPRN, and the MPRN's LDZ comes with it. It crosses because
+        the bill's gas CV is the published daily value for THAT area (SI 1996/439; C6 of
+        `docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md`), and the ONS
+        region is not the area (London is NT, SE and EA). None where the supply point has no area
+        on the transporters' list (mostly off-grid). The five independent networks (LC, LO, LS, LT,
+        LW) come back as their own codes, which carry no published CV.
+        """
+        raise NotImplementedError
+
     def notify_churn(
         self,
         account_id: str,
@@ -395,6 +407,9 @@ class StubSimInterface(SimInterface):
         the exact failure this seam exists to make visible. So it is a dict a test can populate.
         """
         return self._payment_methods.get(account_id, "direct_debit")
+
+    def get_gas_charging_area(self, account_id: str) -> str | None:
+        return None
 
     def notify_churn(self, account_id, event_date, *, reason="non-renewal",
                  sim_churn_probability=None, company_churn_estimate=None):
@@ -656,6 +671,19 @@ class LiveSimInterface(SimInterface):
         if supply_point is not None and board.notice_as_of(supply_point, as_of) is not None:
             return PAY_ON_RECEIPT_METHOD
         return drawn
+
+    def get_gas_charging_area(self, account_id: str) -> str | None:
+        """The LDZ of the account's gas supply point, from the home's output area. See the base class.
+
+        Raises for an account the world drew no home for: a supplier holds an area for every point it
+        bills, so an unknown id is a caller defect and is not booked as 'no area'."""
+        from sim.ldz_calorific_value import ldz_for_output_area
+        from simulation.live_population import live_drawn_households
+        homes = live_drawn_households()
+        if account_id not in homes:
+            raise ValueError(f"get_gas_charging_area({account_id!r}): the world drew no home under "
+                             "that id, so its charging area cannot be said")
+        return ldz_for_output_area(homes[account_id].output_area)
 
     def notify_churn(self, account_id, event_date, *, reason="non-renewal",
                  sim_churn_probability=None, company_churn_estimate=None):

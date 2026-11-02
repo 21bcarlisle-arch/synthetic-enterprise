@@ -158,9 +158,19 @@ def test_the_run_hands_the_company_its_payment_method_through_the_seam():
         and not (isinstance(node.value, ast.Constant) and node.value.value is None)
     ]
     assert routes, "the run no longer hands the company a payment method at all"
+    def _assigned(name):
+        return [n.value for n in ast.walk(tree) if isinstance(n, ast.Assign)
+                and any(isinstance(t, ast.Name) and t.id == name for t in n.targets)
+                and not (isinstance(n.value, ast.Constant) and n.value.value is None)]
+
+    def _is_seam_call(value):
+        return (isinstance(value, ast.Call) and isinstance(value.func, ast.Attribute)
+                and value.func.attr == "get_payment_method")
+
+    # A name copied from another (the SVT-priced method) is followed to what that name is assigned.
     for value in routes:
-        assert (isinstance(value, ast.Call) and isinstance(value.func, ast.Attribute)
-                and value.func.attr == "get_payment_method"), (
+        resolved = _assigned(value.id) if isinstance(value, ast.Name) else [value]
+        assert resolved and all(_is_seam_call(v) for v in resolved), (
             f"the run resolves the company's payment method via {ast.unparse(value)}, "
             "not SimInterface.get_payment_method"
         )
