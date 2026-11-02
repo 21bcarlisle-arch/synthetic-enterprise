@@ -219,3 +219,23 @@ exceptions:
     filed: 2026-10-30
     retired_by: the printed energy line priced on the printed kWh (the same volume the Treasury's share is computed on), graded 0 on a fresh run
     max_breached: 350
+  # 2026-11-02: the 65bbdc6787 book graded the nine 7c34f48a64 breaches at 0 (1b709ac0e9, 8cf2ecb744) and
+  # one row new to the refusal list, below. It was hidden before: those accounts' bills printed single-rate
+  # or one-band, which the row did not grade on the PC2 per-register shape.
+  - invariant: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
+    scope: 18 of 30,710 graded estimated bills on the 65bbdc6787 book (graded 2 Nov), all electricity, all above the bound and all in Jun to Oct, on four profile class 2 (Economy 7) accounts - PROS-2017-0336 (12 bills, 2018 Jun-Oct and one August a year 2019 to 2024; 2018 August 33% over), SYN-2016-565 (4, August, 4 to 8%), SYN-2016-042 (1, 2%) and SYN-2016-225 (1, 1%)
+    reason: >-
+      Traced 2 Nov to one cause. On a PC2 meter the estimate takes the annualised advance (switch on) and spreads
+      it on PC2's TOTAL shape (split_on_register_shape), where the row, and the window route beside it
+      (estimate_unread_register_kwh), annualise each register on its own PC2 share. A storage home's Night
+      register carries its winter heat, which PC2 gives a summer month about a quarter of; on the total shape
+      PROS-2017-0336's August 2018 estimate reads 64 kWh a day, and the same reads through the per-register window
+      give 36, the row's bound. Reproduced from the book's register reads, not inferred. The four homes are the
+      storage homes already excepted under INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER (a), now billed on two
+      registers. It moves no published figure materially: an estimate is trued up at the next actual read (the
+      catch-up on PROS-2017-0336 was -1,943 kWh in May 2018 and -6,495 in Nov 2018), so lifetime kWh and revenue
+      are unchanged and only timing moves; the largest single-bill excess is about 15 kWh a day over 31 days,
+      near 475 kWh, about 60 GBP. 18 of 30,710 is 0.06% of the graded bills.
+    filed: 2026-11-02
+    retired_by: the PC2 annualised-advance estimate annualising each register on its own share, graded 0 on a fresh run (the same fix as the storage-home cause of INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER (a))
+    max_breached: 18

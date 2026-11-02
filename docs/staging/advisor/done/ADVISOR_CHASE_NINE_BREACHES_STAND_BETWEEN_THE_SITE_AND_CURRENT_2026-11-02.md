@@ -39,3 +39,25 @@ The site is still on 26 Oct, eight days stale.
 
    An untraced breach is never excepted.
 3. **Then publish the first book that passes.** If the book needs a re-run to carry the fixes, start it at once. Say in Done when the site will be current. If it cannot be current today, say so plainly and give the earliest realistic time.
+
+## Done (2026-11-02, delivery seat)
+
+- **The nine are cleared.** The publisher graded the 65bbdc6787 book (run finished 15:48Z, 1,293 accounts) with
+  all nine at 0: 1b709ac0e9 and 8cf2ecb744 did what they said. The 7c34f48a64 marker is superseded by it.
+- **One row new to the refusal list.** The refusal string, from `docs/reports/domain_invariants.json` and the
+  banner commit 8e769778d3: "domain-invariant breaches at git=65bbdc6787 that no exception covers:
+  INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS 18 (no exception)". The 8cf2ecb744 prediction ("estimate-after-actual
+  3 -> at most 1") was wrong: 18, because the same fix gave those accounts correct per-register reads for the row
+  to grade against.
+- **Traced to one cause, on four accounts**: PROS-2017-0336 (12), SYN-2016-565 (4), SYN-2016-042 (1), SYN-2016-225
+  (1). All PC2 storage homes, all summer. The estimate spreads the annualised advance on PC2's total shape; the
+  row and the window route annualise each register on its own share. Reproduced from the book's register reads:
+  64 kWh a day against 36 for PROS-2017-0336 in August 2018.
+- **Recorded as a named, dated exception** in `docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml` (max 18, retired by the
+  per-register annualisation), with why it moves no figure: the estimate is trued up at the next read, 0.06% of
+  graded bills, about 60 GBP on the worst bill. The gate on the book's own grade now returns permit.
+- **Not done here**: the per-register annualisation fix itself (company/billing/monthly_bill_assembly.py, the
+  `split_on_register_shape(advance[0], ...)` branch) and the next run. Handed on.
+- **When the site becomes current**: the next publisher cycle that reads this exception off origin. If the live
+  `site/data` generated stamp has not moved to 2 Nov by the end of that cycle, the publisher's log line is the next
+  thing to read.
