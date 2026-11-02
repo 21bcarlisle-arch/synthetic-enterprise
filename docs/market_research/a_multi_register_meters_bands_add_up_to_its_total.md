@@ -73,9 +73,17 @@ total register). The band catch-ups therefore sum to the total's catch-up.
   design). Section 2 settles that the first register keeps advancing. Which band is "Rate 1" is the
   supplier's switching table: **GAP**. No source says whether a supplier makes Peak or Off-peak its
   rate 1. We take the first band in `TOU_BANDS`. The sums do not depend on the choice.
-- **The catch-up is shared across the bands in proportion to the bill's own band split.** This is a
-  belief. The true split is the bands' actual readings, and the ledger does not hold a per-band true
-  index for the estimated months. GAP: the per-band actual reading at the catch-up.
+- **On an Economy 7 meter, each band closes on its own actual reading (§3), from 2 Nov 2026.** The
+  company holds each register's advance since the last read, because it already uses that figure for
+  the per-register estimate. The bill carries it as `register_advance_kwh`, and the ledger closes each
+  band on it (`generate_billing_ledger.catchup_shares`). The last band takes the remainder, so the sum
+  still holds.
+  - Before this, the catch-up was shared by the bill's own band split. That cannot reproduce a read. On
+    the bb58608b91 book it ran Night 795 kWh below its May actual read on PROS-2017-0336
+    (`INV_READ_MONOTONIC`).
+  - **Elsewhere the catch-up is still shared in proportion to the bill's own band split.** That covers
+    ToU bands on smart meters, and any read that gives no register advance. This is a belief. GAP: the
+    per-band actual reading at the catch-up on those meters.
 - **What the raw export can grade.** The export carries the total register on single-rate periods and
   the band registers on ToU periods, never both on one period. The checkable form is that the meter's
   import is continuous where the printed register set changes: on one serial, the band readings at the
