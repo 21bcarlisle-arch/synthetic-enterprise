@@ -47,6 +47,10 @@ def _returned_dict_keys(tree: ast.AST) -> set[str]:
     def dicts(value: ast.AST):
         if isinstance(value, ast.Dict):
             yield value
+            # `**({"k": v} if present else {})` keeps a key absent, not None, on an older run.
+            for k, v in zip(value.keys, value.values):
+                if k is None:
+                    yield from dicts(v)
         elif isinstance(value, ast.BinOp) and isinstance(value.op, ast.BitOr):
             yield from dicts(value.left)
             yield from dicts(value.right)
@@ -113,8 +117,11 @@ def _census() -> tuple[set[str], set[str]]:
     # A tool that loads the saved payload is a consumer too. The sections were the only readers
     # this asked about, so `retention_gate_value_test_log` (read by `renewal_population_by_step`)
     # and `nudge_physics_log` (read by `generate_customer_sample`) were dropped with this green.
+    # Both names a tool gives the saved payload: `generate_billing_ledger` reads it as `data`, and
+    # `renewal_notice_log` and `hedge_var_log` were dropped with this green until 2026-11-02.
     for tool in sorted((_ROOT / "tools").glob("*.py")):
-        read |= {k for k in _keys_read_off_data(ast.parse(tool.read_text()), "run")
+        tree = ast.parse(tool.read_text())
+        read |= {k for name in ("run", "data") for k in _keys_read_off_data(tree, name)
                  if k.endswith("_log")}
     return produced & read, _extract_report_data_keys(report_tree)
 
