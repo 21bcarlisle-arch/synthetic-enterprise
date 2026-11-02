@@ -46,3 +46,19 @@ files import beyond `company/billing/monthly_bill_assembly.py`), `python3 -m pyt
 tests/company/billing` read **2,535 passed, 0 failed** (158.9 s). I cannot say from one run whether the order
 dependence was fixed by another landing, depends on `.pytest_cache` (disabled here), or depends on the shared
 tree's state. The next step is the same run with the cache provider on, and then on the shared tree.
+
+## The cache provider on, at origin 85b044be54 (2026-11-02, Lane 0 `the-fresh-run-after-the-pc2-and-gas-fixes`)
+
+The step the note above names. In a clean worktree at origin 85b044be54 (the gas build on origin), with the cache
+provider on, `python3 -m pytest tests/company/billing -q -rfE` read **2,536 passed, 0 failed** (157.8 s). The 41 reds
+do not reproduce with the cache provider on or off, so `.pytest_cache` was not the cause.
+
+What this does not establish: which commit removed the order dependence between cd4fc5b8d8 and here, or whether it
+depended on the cd4fc5b8d8 worktree's own state. No bisection was run, because there is no red to bisect. If the
+whole-directory read reds again, that is a new episode and a fresh finding.
+
+## Done
+
+The reds do not reproduce at origin HEAD, so the pretest gate the fresh run needs is clean. Moved to done/ under
+DIRECTION item `the-fresh-run-after-the-pc2-and-gas-fixes`. Left: nothing on this finding. The open class it names
+(nothing ties a billing basis change to the tests that drive it) belongs to the stretch log, not here.
