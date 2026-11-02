@@ -108,6 +108,14 @@ RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 
 
+def dump_ledger(result: dict) -> str:
+    """Compact on purpose: this file is committed, and at indent=2 the 1,293-account book was
+    137 MiB against GitHub's 100 MiB per-file push limit (2026-11-02: the publish was refused
+    by name). Compact is 87% of the limit, so it is a stopgap -- the durable choice is in
+    docs/staging/done/SEAT_FINDING_THE_PUBLISHED_RUN_OUTGREW_GITHUBS_FILE_LIMIT_2026-10-10.md."""
+    return json.dumps(result, separators=(",", ":"))
+
+
 def _printed_unit_rate(printed_consumption_kwh, printed_commodity_amount_gbp):
     """The p/kWh rate to print on the usage line, or None if none reproduces it.
 
@@ -402,7 +410,7 @@ def generate(run_json_path=None, out_path=None):
             "exception_queue": exception_queue_as_dicts(held_bills),
         }
         Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(out_path).write_text(json.dumps(result, indent=2))
+        Path(out_path).write_text(dump_ledger(result))
         return result
 
     held_reads: list[BillValidationResult] = []
@@ -1086,7 +1094,7 @@ def generate(run_json_path=None, out_path=None):
     }
 
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    Path(out_path).write_text(json.dumps(result, indent=2))
+    Path(out_path).write_text(dump_ledger(result))
     return result
 
 
