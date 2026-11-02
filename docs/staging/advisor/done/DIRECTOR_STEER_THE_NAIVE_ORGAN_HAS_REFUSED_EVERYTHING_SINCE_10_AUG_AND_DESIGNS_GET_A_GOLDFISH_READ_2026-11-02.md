@@ -102,3 +102,19 @@ August are what it is waiting on. Answering or closing them is the next lever, a
 **Still owed (part 2).** The fresh-context design read. Its first qualifying proposal is
 `THE_VALUE_TEST_REDESIGN.md`, which does not exist on 2 Nov. It runs through the phase-close
 evaluator or the two-reader machinery (no new gate) and is measured through `judge_validation`.
+
+## Done (moved to done/, 2 Nov, worker tick)
+
+Read against its signed bytes (1a20efa5d). The later commit 1f731c537 is unsigned, and it changes none of the
+director's text: it only appends the part 1 Done section above. Part 1 is landed in 1f731c537a. The organ is
+repaired, not retired. Its control is
+`tests/background/test_the_naive_organ_asks_again_and_never_reads_its_own_questions.py`, and the single-verdict scan
+is above.
+
+Part 2, the fresh-context design read, is still owed. It does not need this file to stay in the channel, where the
+unsigned edit made the doorbell refuse it on every tick. `docs/direction/DIRECTION.yaml` carries it:
+- focus item 2 (`the-capabilities-page-and-the-value-test-redesign`) writes `THE_VALUE_TEST_REDESIGN.md`;
+- that release unblocks the queued `the-design-read-runs-on-the-value-test-redesign`, the first qualifying design
+  for the read.
+
+Its first findings go to the stretch log, as the steer asks.
