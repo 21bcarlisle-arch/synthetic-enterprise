@@ -482,10 +482,12 @@ items:
     reason: "Triaged 2026-10-27 by the delivery seat, ahead of the 7-day line. Ten shapes in three days, and the tenth delayed the correctness ruling's exit test by about three hours. The cheapest leg that would have caught the costly shape is the artefact check, because the row named its own artefact. It stays listed until that check is on origin."
   - id: a-lane-edits-a-live-advisor-file-in-place
     problem: "A lane recording what has landed inside a live docs/staging/advisor/ file breaks that file's signature chain, and nothing stops the edit."
-    match: ["Four advisor files were edited in place"]
+    match: ["Four advisor files were edited in place", "told the worker to write a Done section inside the live advisor file"]
     first_seen: "2026-10-25"
-    fate: accept
-    reason: "Triaged 2026-10-27 by the delivery seat. The failure is loud and fails closed: the advisor channel refuses an edited file as unsigned, so the director's words cannot be silently altered, only delayed. There has been no instance since 25 Oct across twelve orientations, and every Done note since then went through the sanctioned move to done/. A guard on this would only guard the machine's own channel. Reopen on the next refusal."
+    fate: fix
+    status: open
+    owner: "the delivery seat's own focus prose: a Done note is written in the commit that moves the file to docs/staging/advisor/done/, never into the live file (2 Nov 12:24 orientation)"
+    reason: "Triaged 2026-10-27 as accept; REOPENED 2026-11-02 12:24 on the refusal it named. The 09:22 direction told a worker to write a ## Done section into the live value-test steer and not move it; 1d623ccad and a1bead7ab did, and the channel refused the director's 2 Nov steer as unsigned. It failed closed (the signed text at 2e50f42c3 is intact), but the cause was the seat's own instruction, so the fix is in the seat's prose, not a guard."
   - id: the-level-grader-reads-the-working-copy-not-origin
     problem: "The brief's level grader and the_basics read the shared checkout, so when it falls behind origin they report landed work as ABSENT and closed findings as BLOCKING."
     match: ["The brief reads the shared checkout, which is 57 commits behind origin"]
