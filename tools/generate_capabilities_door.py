@@ -38,6 +38,7 @@ which this writes a plausible page from nothing.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import time
@@ -932,6 +933,11 @@ def plan_for(ids: list[str], levels: dict[str, dict]) -> dict:
     }
 
 
+def _first_sentence(text: str) -> str:
+    """The first sentence of `text`, without its full stop."""
+    return re.split(r"(?<=[.!?])\s", text, maxsplit=1)[0].rstrip(". ")
+
+
 def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
          levels: dict[str, dict]) -> list[dict]:
     """The gaps the two columns above CANNOT show — never a re-list of what they already do.
@@ -976,7 +982,10 @@ def gaps(world: list[dict], supplier: list[dict], seams: list[dict], book: dict,
             "title": "Half-built, not absent",
             "what": ("Listed above as coming next, which understates it: these exist and work "
                      "in part, and are not finished. " +
-                     "; ".join(f"{e['name']} — {e['what'][:90].rstrip('. ')}" for e in part_built) + "."),
+                     # The FIRST SENTENCE, not the first 90 characters: a character cut published
+                     # "and it change;" and "approved on 25;" to the director's reading on 2 Nov.
+                     "; ".join(f"{e['name']} — {_first_sentence(e['what'])}"
+                               for e in part_built) + "."),
         })
 
     if not any(s["status"] == LIVE for s in seams):

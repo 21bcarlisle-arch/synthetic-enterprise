@@ -156,6 +156,12 @@ for (const job of jobs) {
   // probe reads it as the reader who taps it does. Only `.fold`: any other closed `<details>` is
   // still read as closed, so content hidden by accident still goes red.
   await page.evaluate(() => document.querySelectorAll("details.fold").forEach((d) => { d.open = true; }));
+  // `openAll` reads the page as a reader who taps EVERY fold, for a control whose subject is the
+  // words anywhere on the page (`site/test_no_published_page_renders_an_empty_field.py`) rather
+  // than what is shown before a tap. Off by default, so "closed by accident" stays red elsewhere.
+  if (job.openAll) {
+    await page.evaluate(() => document.querySelectorAll("details").forEach((d) => { d.open = true; }));
+  }
 
   const elements = await page.evaluate((wanted) => {
     const out = {};

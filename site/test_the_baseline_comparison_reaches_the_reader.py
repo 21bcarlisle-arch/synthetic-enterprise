@@ -208,9 +208,9 @@ def _text(fragment: str) -> str:
     string and never on the screen.
     """
     # A path or hash run sits one tap down in an evidence fold (steer of 26 Oct, 3(b)); its
-    # label is CSS content, so the run itself is still the sentence's text. Unwrap it
+    # label ("a commit") is dropped and the run itself kept as the sentence's text. Unwrap it
     # before stripping tags, or the tag boundary reads as a space before the comma.
-    fragment = re.sub(r'<label class="ev"[^>]*><input[^>]*><span class="ev-v">(.*?)</span></label>',
+    fragment = re.sub(r'<label class="ev"[^>]*><input[^>]*>(?:<span class="ev-k">[^<]*</span>)?<span class="ev-v">(.*?)</span></label>',
                       r"\1", fragment, flags=re.S)
     return re.sub(r"\s+", " ", html_lib.unescape(re.sub(r"<[^>]+>", " ", fragment))).strip()
 
@@ -3080,8 +3080,8 @@ def _feed_with_household(saving=(1000.0, 500.0, 250.0)) -> dict:
         "not_a_target": "A diagnostic, not a target.",
         "excludes": [
             {"currency": "money", "state": "measured", "what": "What each household paid us."},
-            {"currency": "carbon", "state": "designed, never measured",
-             "what": "Nothing instruments what a household's carbon did."},
+            {"currency": "carbon", "state": "emissions measured, saving not",
+             "what": "No tonne saved is counted."},
             {"currency": "time", "state": "absent",
              "what": "No measure of a household's time exists anywhere in this project."},
         ],
@@ -3146,7 +3146,7 @@ def test_the_two_currencies_this_figure_does_not_reach_are_on_the_page():
     """The mission promises money, TIME and CARBON. This figure reaches one of the three, and a
     number published without that is a number a reader takes for the whole of "value shared"."""
     rendered = _render(_feed_with_household())["arms-household"]
-    assert "carbon" in rendered and "designed, never measured" in rendered
+    assert "carbon" in rendered and "emissions measured, saving not" in rendered
     assert "time" in rendered and "absent" in rendered
     assert "not value CREATED" in rendered, (
         "the page publishes a share of a surplus as though it were value created")

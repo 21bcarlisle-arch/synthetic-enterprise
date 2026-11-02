@@ -583,3 +583,31 @@ for_the_director:
   g5_class: real_world_commitment
   evidence: docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md section 6 (datasets, access terms graded P, what
     each would change)
+- id: the-value-test-redesign-two-choices-in
+  raised: '2026-11-02'
+  kind: strategy
+  what: 'The value test redesign: two choices in it are yours. (1) What the flat baseline is: the regulator''s
+    efficient-supplier margin for renewals, and leaving SVT households at the cap for the new tariff arm.
+    (2) The order: measure the published figure''s own anomaly before building anything new.'
+  proposal: 'Adopt docs/design/THE_VALUE_TEST_REDESIGN.md. In two minutes: today''s test can''t answer
+    because (a) the published £5,244 falls outside its own re-draw range (£9,375-£11,766) on the same
+    code, world and book, cause unknown; (b) its verdict is withheld only because the run is on older
+    code than the page, while within its own family the advantage is positive at 13.7 standard errors;
+    (c) it reaches only households at the end of a fixed term, and most renewals are SVT; (d) the £2/MWh
+    control is 26-80% of the regulator''s allowance. Redesign: one run, at the page''s code, for every
+    figure on the page; a tariff-placement arm for SVT households; the flat baseline set at Ofgem''s EBIT
+    allowance (cap baseline for the SVT arm); the book sized by power; scored on your 31 Oct vector; six
+    predictions filed now. Build waits for the correctness exit test.'
+  recommendation: 'I recommend adopting the note as written and taking the two one-run measurements first:
+    a 12-draw family to test whether £5,244 is an extreme but ordinary draw, and PROS-2016-0098 alone
+    under today''s write-off rule. They cost one run each and decide whether the page''s current figure
+    can be stated at all. Trade-off: the EBIT-allowance baseline is harder to beat than today''s, so the
+    advantage will likely shrink and may lose its sign at 272 accounts (prediction 2). Holding position
+    until you rule: nothing is built; the page says plainly the answer is not in. What would change it:
+    if you want ''beating a flat supplier'' to mean beating one that charges the cap, the cap becomes
+    the renewal baseline too, and the test becomes about extraction rather than choosing.'
+  status: open
+  resolution: ''
+  evidence: docs/design/THE_VALUE_TEST_REDESIGN.md §2 (each advisor reading re-measured against site/data/value_arms.json);
+    two fresh-context reads (both NEEDS_WORK, all findings corrected in place); the world already recovers
+    about 5p in the pound of written-off debt, with debt-sale price a named GAP (§4).
