@@ -22,7 +22,7 @@ Quotation marks mark the director's own words, checked against the repository. T
 
 **M2. Created, then shared.** "Value is created and THEN shared, so every decision has two sides. Transfer is not creation." "Charging someone the cap transfers value rather than creating any." *(28 Aug)*
 
-**M3. Three currencies.** "Money, time and carbon". His plain words for the same three, 5 Oct: "we save customers cash, carbon and convenience". Time means household effort, measured in its own unit (household minutes per kind of activity) and never converted to pounds. *(28 Aug, 5 Sept, 5 Oct; time's unit ruled 12 Oct, decision 3)*
+**M3. Money, time and carbon, above a floor.** Money, time and carbon, and the ways money is shaped. Money is two things, measured apart: cost (what is paid) and cash flow (when, and how much at once). Peace of mind is two things, measured apart: certainty (not being surprised) and control (deciding when money leaves). Time means household effort, in household minutes per kind of activity. Carbon is what customers have saved and could save in CO2. Each is measured in its own unit and never converted to pounds. Comfort and health are a floor, not a currency: no gain in any need justifies a breach. *(Amended 31 Oct on his words "Yes to all three", wording verbatim from the `for_the_director` row `m3-names-three-currencies-money-time-carbon`; the earlier wording, "Money, time and carbon" and 5 Oct's "we save customers cash, carbon and convenience", is in git history. 28 Aug, 5 Sept, 5 Oct; time's unit ruled 12 Oct, decision 3.)*
 
 **M4. The method is the asset.** "The enterprise value is the automated METHOD of finding those customers, not the book." The book is the evidence that the method works. *(28 Aug)*
 

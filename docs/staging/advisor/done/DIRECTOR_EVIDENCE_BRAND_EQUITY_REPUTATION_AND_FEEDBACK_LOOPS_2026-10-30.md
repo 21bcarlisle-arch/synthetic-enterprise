@@ -529,3 +529,8 @@ draw time: it has no attribution. It does not say it acts "on the director's sta
 beside it, `DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md`,
 quotes him (16:53 and 16:59 GMT) and names this pack as its evidence. When that steer is worked, this
 pack is read there as evidence to verify, not as an instruction.
+
+Evidence named by path (2026-11-02, worker tick, because the line above names no path or commit and
+`tests/design/test_a_director_ask_cannot_stand_still_or_close_without_evidence.py` reds every lane
+on it): moved in 5eb489de3e; the steer that carries it as evidence is
+`docs/staging/advisor/DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md`.

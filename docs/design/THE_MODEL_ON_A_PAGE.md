@@ -37,7 +37,9 @@ level; what it loses is the claim to be the whole purpose.
 **Canon v4 (2026-10-12), quoted:** carbon's job (CO1) is "to show customers what they've saved and
 could save in CO2, so those motivated by it can enjoy it. That clarifies the mission's carbon part
 rather than changing it". Time (M3) "means household effort, measured in its own unit (household
-minutes per kind of activity) and never converted to pounds." Phases: canon §2.
+minutes per kind of activity) and never converted to pounds." M3 was amended on 31 Oct, on his word:
+money is cost and cash flow, peace of mind is certainty and control, each in its own unit, never
+pounds, above a floor of comfort and health; canon §1 holds the wording. Phases: canon §2.
 
 ### What follows from it, that no document said before
 

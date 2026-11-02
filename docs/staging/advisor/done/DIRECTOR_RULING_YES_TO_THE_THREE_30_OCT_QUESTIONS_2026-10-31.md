@@ -26,3 +26,17 @@ Probable failure mode: M3's new wording leaving a stale three-currency quote els
 Proportionality: contract-touching — implement with the named mitigation (drift check across every quote of M3).
 
 — Director ruling, 31 Oct 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+2026-11-02, worker tick. All three rows closed as answered in `docs/direction/DIRECTION.yaml`:
+`the-improvement-loop-world-then-supplier-then` with its commitment (work `the-sixth-cold-read`, due
+2026-11-09: the blind worktree's fixes on origin and the sixth cold read graded from it); the other
+two with a named no-action reason (the hassle-price build and the M3 build are sequenced in the
+roadmap the 30 Oct corpus steer owes, after the correctness exit test). M3 amended in
+`docs/design/DIRECTOR_CANON.md` with the row's wording verbatim, as an amendment. Every live quote of
+M3 updated: CLAUDE.md quotes the new wording verbatim, and THE_MODEL_ON_A_PAGE.md's dated v4 quote
+carries a line saying it was amended and where. The served harness page is generated from canon at
+publish (`tools/canon_lessons.py`), so it follows. `tools/canon_drift_check.py`: 17 claims, 0
+drifting; 84 served pages hold. `docs/design/THE_IMPROVEMENT_LOOP.md` is marked adopted, with the
+vector scorecard recorded as his ruling.

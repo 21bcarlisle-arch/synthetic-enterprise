@@ -6,6 +6,14 @@ This is a design note, not a build. Every claim about the tree was checked at `f
 build waits for the correctness stretch's exit test. One part is the exception the steer named; it
 is marked below.*
 
+**Adopted, 2026-10-31.** The director said "Yes to all three"
+(`docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md`). His
+ruling on §3 D: **the scorecard stays a vector** (customer money, time and carbon; company outcomes;
+fairness). A variant wins only if it is no worse on every axis, and every weighted trade between
+axes goes to him. Build order as in §5: the blind worktree now, the rest after the exit test. The
+household's hassle price is a hidden trait used only in its own decisions and never enters the
+score (§8).
+
 ## 1. The problem, in my words
 
 For each area of the business, the loop has to turn evidence into a supplier lesson that **would
