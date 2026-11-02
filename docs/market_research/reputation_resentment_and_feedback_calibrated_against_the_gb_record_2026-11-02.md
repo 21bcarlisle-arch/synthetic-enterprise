@@ -5,7 +5,7 @@
 This page answers the director's steer of 30 Oct, *reputation is a stock and the supplier listens through biased
 feedback* (`docs/staging/advisor/DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md`).
 It covers the NOW half only, as drafting: Ask 1 (calibrate from data) and the evidence for Ask 2's stock split. The
-competitive asks are filed under the competition topic (§6), not built. **No world or company value changes here.**
+competitive asks are filed under the competition topic (§6), not built. **No world or company value changes here**, except the log-only repair-decay fix in §5 (D1, 2026-11-02).
 World build waits for the correctness exit test (`docs/direction/priority_order.yaml`, `correctness_stretch`).
 
 It starts from the advisor's evidence pack
@@ -172,8 +172,17 @@ here so the wiring does not inherit them.**
   0-100. One Ofgem enforcement action (−12) is carried at full weight ten years later, and a supplier that does well
   for long enough saturates at 100. Every GB bound in the pack points to a finite half-life (§4.2).
 
-Fixing either is a world change for a fidelity reason, so it is lawful under R13. **It waits for the correctness exit
-test** and the roadmap the corpus steer owes, where the reputation candidate is ranked against the others.
+Fixing either is a world change for a fidelity reason, so it is lawful under R13.
+
+- **D1 is fixed (2026-11-02).** A repair now fades on the grievance clock, 1 point a month, so a −5 is gone in five
+  months. It needed no new number. The same rate, not a faster one, because no source sets a repair's own decay.
+  Log-only, so no published figure moves. *(Correction beside the earlier sentence here, which said both fixes wait
+  for the correctness exit test: a log-only defect fix that needs no new constant is correctness work, not a feature.)*
+- **D2 is not fixed, on purpose.** "No decay" asserts an infinite half-life, which K2 says is a value we know is
+  wrong. But a decay rate would have to be picked from the pack's A range (12-24 months), and §8 shows the GB record
+  cannot narrow it. The GRI is log-only today, so it waits for the improvement loop's stage 1 for reputation, where
+  the world reacts at its range rather than at one value. §8 adds a second reason it needs rebuilding, not a decay
+  term alone: the record says a supplier's standing is mostly a persistent level, which the GRI has no term for.
 
 ## 6. Filed under the competition topic, not built
 
@@ -190,9 +199,11 @@ the pack and this page as their knowledge base:
 
 - **GAP-R1.** A response rate for any GB supplier's tNPS, CSAT or CES survey, and the response rate by satisfaction
   level. Unpublished.
-- **GAP-R2.** A half-life for reputational damage in GB energy. A candidate method is an event study on Ofgem's
-  half-yearly satisfaction waves (2018-2025) around the npower, ScottishPower and British Gas enforcement dates.
-  **This is the cheapest gap to close from published data**, and it is the next derivation this page owes.
+- **GAP-R2.** A half-life for reputational damage in GB energy. **Still open; the cheap route is shut (§8).** The
+  event study this row proposed cannot be run on Ofgem's waves: they are per supplier only from Aug-Sep 2023, after
+  every named event. Routes left: wave microdata (not published), Which?'s annual per-supplier surveys (S,
+  paywalled), commercial brand trackers (G5 to buy). The Citizens Advice star rating is per supplier from Q4 2017
+  but measures operations (complaints, contact), not reputation.
 - **GAP-R3.** Trust to charge a fair price after 2021. CIM asks only about fair treatment.
 - **GAP-R4.** The UK Home account base for 2017-18, needed to turn Centrica's net losses into a rate. Even then, the
   rate would be net, not gross.
@@ -204,10 +215,96 @@ the pack and this page as their knowledge base:
 Licensed microdata that would close R2 and R6 (Understanding Society, the Ofgem CIM microdata if deposited) is G5 to
 register for. It belongs on the corpus steer's single `for_the_director` microdata row, not here.
 
+## 8. GAP-R2: what the supplier-level satisfaction waves can and cannot say about a half-life (D, 2026-11-02)
+
+### 8.1 Pre-registration (written 2026-11-02 20:47 UTC, before any supplier-level wave figure was read)
+
+What was known when this was written: the 2019 Ofgem archive holds one per-supplier snapshot (Feb 2018, GfK) and a
+GB-only quarterly series (2010-2017); Ofgem's own customer-service page says supplier-level findings are published
+only from the Jan-Feb 2024 wave. No per-supplier figure from any wave after Feb 2018 had been opened.
+
+1. **Feasibility, predicted:** the event study GAP-R2 names (npower, ScottishPower, British Gas enforcement dates
+   inside 2018-2025) cannot be run on Ofgem's waves, because no supplier-level wave brackets any of those dates.
+2. **Persistence, predicted:** across the supplier-level waves, a supplier's gap from the wave's mean on overall
+   satisfaction carries over half a year with a coefficient rho between 0.5 and 0.9. That is an implied half-life of
+   6 to 39 months.
+3. **British Gas, predicted:** its overall-satisfaction gap is negative in the first supplier-level wave (about a year
+   after the Feb 2023 prepayment reports) and smaller in magnitude by the last wave.
+Any of these can be refuted by the figures; the result section states which were.
+
+### 8.2 What the data is
+
+Ofgem's Energy Consumer Satisfaction Survey (BMG, for Ofgem and Citizens Advice), question A5, overall satisfaction
+with one's own supplier, % satisfied or very satisfied. Six half-yearly waves, Aug-Sep 2023 to Jan 2026, seven
+supplier groups in every wave, bases 105-1,170 per group per wave
+(`data/lake/ofgem_energy_consumer_satisfaction_supplier_level_2023_2026/`). **This is quantity 2 of §0, aggregated
+over a supplier's own customers. It is not quantity 4,** the world's view of that supplier. It is the nearest
+published per-supplier series, and a reputation stock that never showed here among the supplier's own customers would
+be hard to tell from one that does not exist.
+
+Gap from the GB average, in points:
+
+| Group | Aug-Sep 23 | Jan-Feb 24 | Jul 24 | Jan 25 | Jul-Aug 25 | Jan 26 | Sampling SE of one gap |
+|---|---|---|---|---|---|---|---|
+| British Gas | −2 | −2 | −2 | −1 | −1 | −1 | 1.6-2.0 |
+| EDF | −8 | −6 | −8 | −7 | −3 | −6 | 2.9-3.3 |
+| E.ON | 0 | +1 | −2 | −5 | −2 | 0 | 2.3-2.6 |
+| Octopus | +15 | +14 | +9 | +8 | +8 | +9 | 1.5-2.1 |
+| OVO (incl. SSE) | −8 | −10 | −6 | −6 | −9 | −11 | 2.9-3.2 |
+| ScottishPower | −7 | −8 | −7 | −9 | −8 | −5 | 3.3-3.8 |
+| Utilita | +6 | −5 | +7 | +3 | −6 | −4 | 3.9-5.6 |
+| *GB average, %* | *69* | *73* | *78* | *81* | *82* | *81* | |
+
+SE assumes a design effect of 1.5 for quota sampling and weighting (A; Ofgem does not print one) and ignores the
+covariance of a group with the average it is part of, which overstates the SE slightly.
+
+### 8.3 What it shows
+
+- **The supplier gaps are a fixed ranking, not a decaying stock.** Of the variance of the 42 gaps (43.6 points²),
+  41.5 is between the seven groups' own six-wave means. Sampling noise in a single gap is about 9 points², and the
+  within-group deviations carry nothing from one wave to the next: their lag-one coefficient is −0.03, against the
+  short-panel (Nickell) bias of about −0.2 that six waves give when the true value is zero. Nothing transient moved that could be timed.
+- **The pooled persistence of a gap is near one.** Gap on last wave's gap: raw 0.77 a half-year (n = 35), 0.66 at
+  a year, 0.62 at two years. Corrected for sampling noise in the regressor: 0.89-1.06 a half-year as the design effect
+  runs 1.0-2.0, a "half-life" of 30-68 months at the one- and two-year lags. That is the persistence of whatever keeps
+  a supplier above or below the market, mostly service, not the memory of an event. **It is not a half-life for
+  reputational damage and must not be used as one.**
+- **One move clears the noise, and it is composition, not reputation.** Octopus fell from +14 to +9 between Feb and
+  Jul 2024, the wave in which the Shell Energy Retail book it took over on 1 Dec 2023 (Shell itself sat at −8 and −4 in
+  the two earlier waves) is counted inside it.
+- **British Gas carries no visible whole-book tail.** Its gap is −2 seven months after the Feb 2023 forced-prepayment
+  reports and −1 by 2025-26, inside one SE throughout. This adds five waves to §3 row 2 (damage to a minority need not
+  reach whole-book satisfaction). It cannot say whether a tail existed in the first seven months.
+- **The sector series moves with bills, not like a memory.** The GB average's shortfall from its April 2020 peak
+  (78%, Ofgem's own reference in the Jan-Feb 2024 and Jul 2024 reports) was 11 points in Nov-Dec 2022 (67%), 9 in
+  Aug-Sep 2023, 5 in Jan-Feb 2024 and 0 in Jul 2024, then above it. It barely closed through 2023 and closed fast once
+  the cap fell. A half-life fitted to the second leg (about 6 months) would be the speed of relief, not of forgetting.
+
+### 8.4 The pre-registration, scored
+
+1. **Feasibility: confirmed.** No supplier-level wave brackets any named event; the first is seven months after the
+   British Gas reports.
+2. **Persistence: inside the range in the raw number, refuted in what it means.** Raw 0.77 sits inside 0.5-0.9;
+   noise-corrected, it sits at or above the top. The prediction assumed a decaying gap to time. There was none: the
+   gaps are a near-fixed ranking and the movement within it is noise.
+3. **British Gas: right in sign, unscoreable in size.** Negative in the first wave and smaller by the last, but the
+   one-point change is inside one SE. It is not evidence of recovery.
+
+### 8.5 What this changes
+
+- **The GRI is wrong in two ways, not one.** It has no decay (D2), and it has no persistent level. The GB record
+  says the larger part of a supplier's standing is a level fed every month by how it serves (Octopus +8 to +15,
+  OVO −6 to −11, all six waves), which an event sum cannot hold. A rebuilt index needs both: a level that tracks the
+  supplier's ongoing service, and an event term whose decay stays A at 12-24 months until a GAP-R2 route opens.
+- **The roadmap's "cheapest move" did not change the order.** Reputation stays sixth: its event decay is still
+  unsourced. The persistent-level finding is D and usable, so stage 0 knowledge for that half now exists.
+
 ## Sources
 
 - Centrica plc, *Annual Report and Accounts 2018*, pp.19-20. https://www.centrica.com/media/1112/annual_report_2018.pdf (P; extracts in `data/lake/centrica_annual_report_2018/`)
 - Ofgem/Ipsos, *Consumer Survey 2021: Engagement report*, slides 44-45 and p.3. https://www.ofgem.gov.uk/sites/default/files/2023-07/Consumer%20Survey%202021%20-%20Engagement%20report.pdf (P; `data/lake/ofgem_consumer_survey_2021/`)
 - Ofgem, *Consumer Impacts of Market Conditions* survey, Waves 3-6, C4 by trust to treat fairly (P, derived D; `data/lake/ofgem_cim_wave3_2022/`, `data/lake/ofgem_cim_waves4_6_2023_2025/`)
+- Ofgem, *Customers' satisfaction with their supplier: supplier level findings*, six waves Aug-Sep 2023 to Jan 2026, Table 1 (P, derived D; `data/lake/ofgem_energy_consumer_satisfaction_supplier_level_2023_2026/`, URLs and SHA-256 there)
+- Ofgem, *Customer satisfaction indicators: previous updates* (GfK: a Feb 2018 per-supplier snapshot and a GB series 2010-2017). https://www.ofgem.gov.uk/publications/customer-satisfaction-indicators-previous-updates (P)
 - Trustpilot profile pages, read 2026-11-02: https://uk.trustpilot.com/review/octopus.energy, https://uk.trustpilot.com/review/www.britishgas.co.uk (P for the platform's own figures)
 - The advisor's pack and the sentiment page, as cited inline. Their [lit] and [unverified] items keep those grades.

@@ -89,6 +89,33 @@ class TestCustomerResentmentState:
         ))
         assert state.current_score(DATE) == pytest.approx(10.0)
 
+    def test_a_repair_fades_and_does_not_offset_a_grievance_years_later(self):
+        # Defect it names: repairs never decayed, so one well-resolved
+        # complaint discounted every later grievance for the whole tenure.
+        state = CustomerResentmentState(account_id="C1")
+        state.record(FrictionEvent(
+            event_type=FrictionEventType.COMPLAINT_RESOLVED_WELL,
+            occurred_at=dt.date(2018, 1, 15),
+            score_delta=-5.0,
+        ))
+        state.record(FrictionEvent(
+            event_type=FrictionEventType.BILLING_ERROR,
+            occurred_at=DATE,
+            score_delta=15.0,
+        ))
+        assert state.current_score(DATE) == pytest.approx(15.0)
+        # ...and while it is still fresh, it does repair.
+        fresh = CustomerResentmentState(account_id="C2")
+        fresh.record(FrictionEvent(
+            event_type=FrictionEventType.BILLING_ERROR,
+            occurred_at=DATE, score_delta=15.0,
+        ))
+        fresh.record(FrictionEvent(
+            event_type=FrictionEventType.COMPLAINT_RESOLVED_WELL,
+            occurred_at=DATE, score_delta=-5.0,
+        ))
+        assert fresh.current_score(DATE) == pytest.approx(10.0)
+
     def test_amplifier(self):
         state = CustomerResentmentState(account_id="C1")
         state.record(FrictionEvent(

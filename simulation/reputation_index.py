@@ -110,6 +110,10 @@ class GlobalReputationIndex:
         return event
 
     def score(self, as_of: dt.date) -> float:
+        # Events never fade here, which asserts an infinite half-life. Left so
+        # on purpose: no GB source sets the rate (GAP-R2), and the record shows
+        # standing is mostly a persistent service level this sum has no term
+        # for. Reputation calibration page 2026-11-02, §5 D2 and §8.
         gri = self._starting_gri
         for event in sorted(self._events, key=lambda e: e.occurred_at):
             if event.occurred_at > as_of:

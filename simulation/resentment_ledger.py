@@ -24,7 +24,7 @@ Friction event types with calibrated scores:
 - BILL_SHOCK (>50% variance): +18
 - COMPLAINT_RESOLVED_WELL: -5 (reduces resentment)
 
-Decay rate: -1 point per month (forgetting curve).
+Decay rate: -1 point per month (forgetting curve), for repairs as for grievances.
 
 WHICH SIDE OF THE WALL (moved from `company/core/` 2026-08-09, KNIFE pass 3,
 design B1_behavioural_physics_is_misfiled)
@@ -110,11 +110,13 @@ class CustomerResentmentState:
             months_ago = (as_of.year - e.occurred_at.year) * 12 + (as_of.month - e.occurred_at.month)
             months_ago = max(0, months_ago)
             delta = e.score_delta * e.amplifier
-            if delta > 0:
-                decayed = max(0.0, delta - months_ago * _MONTHLY_DECAY_RATE)
-                total += decayed
-            else:
-                total += delta  # repairs don't decay
+            # A repair fades on the same clock as a grievance. Undecayed, one
+            # well-resolved complaint offset every later grievance for life:
+            # surplus loyalty, which the recovery evidence says does not occur
+            # (reputation calibration page 2026-11-02, D1). Same rate, not a
+            # faster one, because no source sets a repair's own decay.
+            faded = max(0.0, abs(delta) - months_ago * _MONTHLY_DECAY_RATE)
+            total += faded if delta > 0 else -faded
         return max(0.0, total)
 
     @property

@@ -47,7 +47,9 @@ divides two populations, so it is not a parameter.
   source yet. A test of overcharging against fair pricing, run on unsourced decay rates, would publish the decay rate
   rather than the answer (F11). The half-life study is the cheapest move that changes that.
 - **What would change the order:** if the W11 row is answered yes and the joint is fitted, life stage and precarity may
-  rise above reputation. If GAP-R2 finds a short half-life, rows 6 and 8 fall further.
+  rise above reputation. If GAP-R2 finds a short half-life, rows 6 and 8 fall further. *(2 Nov, later: GAP-R2 cannot be closed from Ofgem's waves, which are per supplier only from
+  Aug-Sep 2023. They show supplier standing as a persistent level, not a decaying stock. Row 6 stays sixth; the
+  calibration page §8 has the derivation.)*
 
 ## 3. What this note does not do
 
