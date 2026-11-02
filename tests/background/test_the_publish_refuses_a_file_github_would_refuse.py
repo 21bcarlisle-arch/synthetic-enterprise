@@ -17,6 +17,9 @@ WHAT EACH TEST KILLS:
     `save_run_output_json`
   * `..._the_committed_run_compacts_and_is_admitted` -- the real committed run, written by the
     real writer, read back equal and admitted by the real guard
+  * `..._the_billing_ledger_writer_is_compact`      -- restore `json.dumps(result, indent=2)` at
+    either `generate_billing_ledger.generate` write (2026-11-02: indent=2 wrote 143.8 MB on the
+    08f267b666 book and the publish was refused by name; compact is 91.2 MB)
 """
 from __future__ import annotations
 
@@ -169,3 +172,21 @@ def test_the_save_json_path_sim_runner_takes_is_compact(tmp_path, monkeypatch):
     rar.main()
 
     assert out.read_text() == json.dumps(data, separators=(",", ":"))
+
+
+@pytest.mark.parametrize("with_bills", [True, False])
+def test_the_billing_ledger_writer_is_compact(tmp_path, with_bills):
+    """`docs/state/billing_ledger.json` is committed by the publish too. Both writes in
+    `generate` -- the no-bills one and the full one -- are compact."""
+    from tests.tools.test_generate_billing_ledger_pw import _resi_bill, _run
+    from tools.generate_billing_ledger import generate
+
+    bills = [_resi_bill("CMP-01", "2022-%02d-28" % m, 150.0) for m in range(1, 4)] if with_bills else []
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run(bills)))
+    out = tmp_path / "ledger.json"
+
+    result = generate(rj, out)
+
+    assert (result["meta"]["invoice_count"] > 0) == with_bills
+    assert out.read_text() == json.dumps(result, separators=(",", ":"))
