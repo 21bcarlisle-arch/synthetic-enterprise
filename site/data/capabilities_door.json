@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-26T12:06:03Z",
- "git_commit": "18535538667faa48945caf54094fd13960a35b7f",
+ "generated_at": "2026-11-03T02:19:37Z",
+ "git_commit": "247eebe517b30f05ff77fb3a4cadd1f0e66ed055",
  "published_from": {
-  "commit": "18535538667faa48945caf54094fd13960a35b7f",
+  "commit": "247eebe517b30f05ff77fb3a4cadd1f0e66ed055",
   "tree_was_clean": true,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
@@ -1509,21 +1509,21 @@
  "scale": {
   "figures": [
    {
-    "value": 550,
+    "value": 752,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-10-19T08:53:00Z"
+    "as_of": "2026-10-26T12:06:36Z"
    },
    {
-    "value": 961,
+    "value": 1289,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
    }
   ],
   "agree": false,
-  "low": 550,
-  "high": 961,
+  "low": 752,
+  "high": 1289,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -1536,8 +1536,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 550\u2013961 customers",
-   "what": "Everything on this page is true of a supplier with 550\u2013961 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 550 (accounts in the live customer feed), 961 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 752\u20131289 customers",
+   "what": "Everything on this page is true of a supplier with 752\u20131289 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 752 (accounts in the live customer feed), 1289 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
@@ -1549,7 +1549,7 @@
     "waiting_on_count": 0
    },
    "title": "Half-built, not absent",
-   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it change; Futures beyond the real record \u2014 Stress worlds past the end of the real data exist today. The forward years approved on 25; Three clocks kept straight \u2014 What happened physically, what was billed, and what was settled are three different dates,; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premi; The collections journey, end to end \u2014 Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is hande."
+   "what": "Listed above as coming next, which understates it: these exist and work in part, and are not finished. The price cap as a real constraint \u2014 Ofgem's cap binds what can be charged rather than sitting in a lookup table, and it changes within the year the way the real one does; Futures beyond the real record \u2014 Stress worlds past the end of the real data exist today; Three clocks kept straight \u2014 What happened physically, what was billed, and what was settled are three different dates, and the supplier reconciles all three per bill rather than pretending they agree; Carbon measured on three ledgers \u2014 Customer, portfolio and grid carbon accounted separately \u2014 the measurement the whole premise rests on; The collections journey, end to end \u2014 Missed payment, reminder, dunning ladder, arrangement, and the point where a debt is handed on."
   },
   {
    "plan": {
@@ -1590,51 +1590,8 @@
  ],
  "fixed_this_week": {
   "window_days": 7,
-  "as_of": "26 Oct 2026",
+  "as_of": "03 Nov 2026",
   "published_run": "4ae8da9b0f",
-  "items": [
-   {
-    "commit": "4ef70aba9258f1f7a7a07d510ba2c4c9bcc3196c",
-    "what": "Standard-variable bills above the price cap: the Energy Price Guarantee now reaches the household's bill from October 2022 to June 2023, and with a household moving into an empty home no longer priced as a business, the fall was graded on a fresh run in d909b6933. Not closed: the fix for an empty home's estimated stub over-credits five bills, and that is open (140b5ff7b).",
-    "at": 1792801593,
-    "date": "Sat 24 Oct",
-    "in_published_run": true
-   },
-   {
-    "commit": "4bc21e92095bf2369d4ebdc7bd3cdad4e97929f2",
-    "what": "A household moving into an empty home is billed as a home, not as a business.",
-    "at": 1792780005,
-    "date": "Fri 23 Oct",
-    "in_published_run": true
-   },
-   {
-    "commit": "1e358809beb335756c28108e6a4477426fc3803a",
-    "what": "A household on the default tariff pays one unit rate; a time-of-use pair now needs the household's choice, not just a smart meter.",
-    "at": 1792805305,
-    "date": "Sat 24 Oct",
-    "in_published_run": true
-   },
-   {
-    "commit": "50001b0b7b6f88d54ff54520f86873bb2463f14c",
-    "what": "A time-of-use bill prints its peak and off-peak registers, each with its own units, rate and charge.",
-    "at": 1792813397,
-    "date": "Sat 24 Oct",
-    "in_published_run": true
-   },
-   {
-    "commit": "d8129f3f6afcc6f0e7229fe05e881fda3f7ecd5f",
-    "what": "The Energy Bills Support Scheme's monthly credit reduces what a household owes for electricity in winter 2022-23.",
-    "at": 1792777874,
-    "date": "Fri 23 Oct",
-    "in_published_run": true
-   },
-   {
-    "commit": "746df31c8905e5bfe205657f062b393f041d6c75",
-    "what": "On this page, a function with no linked test can no longer read Live.",
-    "at": 1792830002,
-    "date": "Sat 24 Oct",
-    "in_published_run": true
-   }
-  ]
+  "items": []
  }
 }

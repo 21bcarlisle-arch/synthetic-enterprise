@@ -174,7 +174,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -309,7 +309,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -607,7 +607,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -861,7 +861,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5214,
+      "stall_consecutive_unchanged": 6619,
       "forward_attachments": []
     },
     {
@@ -1088,7 +1088,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5213,
+      "stall_consecutive_unchanged": 6619,
       "forward_attachments": []
     },
     {
@@ -1156,7 +1156,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 183,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -1180,7 +1180,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 184,
+      "stall_consecutive_unchanged": 1027,
       "forward_attachments": []
     },
     {
@@ -1225,7 +1225,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5214,
+      "stall_consecutive_unchanged": 6619,
       "forward_attachments": []
     },
     {
@@ -1291,7 +1291,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5213,
+      "stall_consecutive_unchanged": 6620,
       "forward_attachments": []
     },
     {
@@ -1315,7 +1315,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -1335,7 +1335,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5213,
+      "stall_consecutive_unchanged": 6619,
       "forward_attachments": []
     },
     {
@@ -1518,7 +1518,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -1541,7 +1541,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -1744,7 +1744,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 1027,
       "forward_attachments": []
     },
     {
@@ -1769,7 +1769,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5214,
+      "stall_consecutive_unchanged": 6619,
       "forward_attachments": []
     },
     {
@@ -2004,7 +2004,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16133,
+      "stall_consecutive_unchanged": 16229,
       "forward_attachments": []
     },
     {
@@ -2038,7 +2038,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 4,
-      "level_current": 1,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 100,
@@ -2050,7 +2050,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 303,
+      "stall_consecutive_unchanged": 3087,
       "forward_attachments": []
     },
     {
@@ -2074,7 +2074,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3013,
+      "stall_consecutive_unchanged": 2260,
       "forward_attachments": []
     },
     {
@@ -2098,7 +2098,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stall_consecutive_unchanged": 15,
       "forward_attachments": []
     },
     {
@@ -2120,30 +2120,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5,
-      "forward_attachments": []
-    },
-    {
-      "id": "B13_a_dual_fuel_household_is_one_account_across_both_fuels",
-      "name": "",
-      "lane": "B_commercial",
-      "value_stream": "meter_to_cash",
-      "value_stream_label": "Meter to Cash",
-      "epoch": 4,
-      "level_current": 2,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 85,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "B7_customer_state_layer_moves_and_shocks",
-        "EP12_adapter_css_rec_switching"
-      ],
-      "chain": null,
-      "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stall_consecutive_unchanged": 15,
       "forward_attachments": []
     },
     {
@@ -2166,7 +2143,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 5,
+      "stall_consecutive_unchanged": 14,
       "forward_attachments": []
     },
     {
@@ -2234,7 +2211,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 15,
+      "stall_consecutive_unchanged": 2702,
       "forward_attachments": []
     },
     {
@@ -2374,7 +2351,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stall_consecutive_unchanged": 1028,
       "forward_attachments": []
     },
     {
@@ -8352,6 +8329,29 @@
       "at_target": true,
       "stalled": true,
       "stall_consecutive_unchanged": 836,
+      "forward_attachments": []
+    },
+    {
+      "id": "B13_a_dual_fuel_household_is_one_account_across_both_fuels",
+      "name": "",
+      "lane": "B_commercial",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 4,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 85,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B7_customer_state_layer_moves_and_shocks",
+        "EP12_adapter_css_rec_switching"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     }
   ],

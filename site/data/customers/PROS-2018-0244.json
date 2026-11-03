@@ -7,19 +7,20 @@
   "acquisition_date": "2018-08-11",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Traditional",
+  "profile_class": 1,
   "mpan": {
     "top_line": "0100781",
-    "bottom_line": "13535120513"
+    "bottom_line": "1329934276164"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 1.4,
-  "lifetime_gross_gbp": 0.92,
+  "lifetime_revenue_gbp": 1.39,
+  "lifetime_gross_gbp": 0.91,
   "lifetime_net_gbp": 0.1,
   "lifetime_net_after_cts_gbp": -0.05,
   "cost_to_serve_gbp": 0.15,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 3.4
+    "recommended_uplift_pct": 3.6
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -32,7 +33,7 @@
   "commodity_split": {
     "electricity": {
       "net_gbp": 0.1,
-      "revenue_gbp": 1.4
+      "revenue_gbp": 1.39
     },
     "gas": null
   },
@@ -41,10 +42,10 @@
     {
       "year": 2018,
       "revenue_gbp": 0,
-      "gross_gbp": 0.92,
+      "gross_gbp": 0.91,
       "net_gbp": 0.1,
-      "tariff_min": 141.39,
-      "tariff_max": 141.39
+      "tariff_min": 141.41,
+      "tariff_max": 141.41
     }
   ],
   "timeline": [
@@ -53,25 +54,27 @@
       "date": "2018-08-11",
       "detail": "Final bill",
       "commodity": "electricity",
-      "effect": "Closing read estimated; billed \u00a31.01"
+      "effect": "Closing read estimated; billed \u00a31.00"
     },
     {
       "type": "moved_out",
       "date": "2018-08-12",
       "detail": "Moved out",
       "commodity": "electricity"
-    },
+    }
+  ],
+  "world_life_events_outside_supply": [
     {
       "date": "2024-08-17",
       "type": "life_event",
       "commodity": null,
       "detail": "New baby",
-      "effect": "Real downstream drift: income stress low -> moderate"
+      "seen_by": "world"
     }
   ],
   "invoices": [
     {
-      "id": "PROS-2018-0244-INV14548",
+      "id": "PROS-2018-0244-INV14734",
       "date": "2018-08-11",
       "period_start": "2018-08-11",
       "period_end": "2018-08-11",
@@ -88,22 +91,36 @@
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
-      "meter_serial": "M00062124",
-      "mpan": "1000000000819",
+      "scheme_credit_gbp": null,
+      "scheme_credit_applied_gbp": null,
+      "epg_discount_gbp": null,
+      "epg_support_gbp": null,
+      "meter_serial": "M3291505138",
+      "mpan": "1329934276164",
       "mprn": null,
       "read_type": "E",
       "opening_read_kwh": 0.0,
       "closing_read_kwh": 5.4,
+      "read_unit": null,
+      "opening_read_volume": null,
+      "closing_read_volume": null,
+      "volume_advance": null,
+      "calorific_value_mj_per_m3": null,
+      "calorific_value_basis": null,
+      "correction_factor": null,
+      "catchup_kwh": null,
       "registers": [
         {
-          "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 5.4,
           "amount_gbp": 0.47,
-          "unit_rate_p_per_kwh": 8.7
+          "unit_rate_p_per_kwh": 8.7,
+          "register_id": "1"
         }
       ],
       "catchup_applied": false,
+      "term_tariff_type": "fixed",
+      "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
       "catchup_periods_covered": null,
@@ -111,7 +128,10 @@
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
-      "catchup_back_billing_cap_applied": null
+      "catchup_back_billing_cap_applied": null,
+      "invoice_number": 14734,
+      "due_date": "2018-08-29",
+      "document_type": "bill"
     }
   ],
   "ledger": {
@@ -120,17 +140,17 @@
       {
         "date": "2018-08-15",
         "type": "invoice_raised",
-        "invoice_number": 14548,
+        "invoice_number": 14734,
         "amount_gbp": 1.0,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV14548 raised",
+        "description": "Invoice INV14734 raised",
         "running_balance_gbp": 1.0
       },
       {
         "date": "2018-08-29",
         "type": "payment_received",
-        "invoice_number": 14548,
+        "invoice_number": 14734,
         "amount_gbp": -1.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -142,7 +162,11 @@
     "total_billed_gbp": 1.0,
     "total_collected_gbp": 1.0,
     "total_written_off_gross_gbp": 0,
-    "total_recovered_gbp": 0
+    "total_scheme_credit_gbp": 0,
+    "total_deemed_gbp": 0,
+    "total_refunded_gbp": 0,
+    "total_recovered_gbp": 0,
+    "total_epg_support_gbp": 0.0
   },
   "consumption": {
     "unit": "kWh",

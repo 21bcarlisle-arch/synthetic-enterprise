@@ -1,17 +1,17 @@
 {
-  "decision_run_at": "2026-10-26T12:06:45Z",
-  "portfolio_as_of": "2026-10-26T12:06:42Z",
+  "decision_run_at": "2026-11-03T02:20:21Z",
+  "portfolio_as_of": "2026-11-03T02:20:18Z",
   "run_identity_fields": [
     "decision_run_at",
     "portfolio_as_of"
   ],
-  "market_as_of_date": "2026-10-25",
+  "market_as_of_date": "2026-11-02",
   "market_data_stale_days": 1,
-  "elec_spot_gbp_per_mwh": 136.82,
+  "elec_spot_gbp_per_mwh": 149.7,
   "gas_spot_gbp_per_mwh": 32.25,
-  "elec_12m_forward_gbp_per_mwh": 145.41,
+  "elec_12m_forward_gbp_per_mwh": 156.53,
   "gas_12m_forward_gbp_per_mwh": 33.86,
-  "treasury_gbp": 914130.1,
+  "treasury_gbp": 860278.85,
   "active_customers": 453,
   "hedge_recommendation": "INCREASE",
   "hedge_affected_customers": [
@@ -61,8 +61,6 @@
     "PROS-2024-0359",
     "PROS-2024-0359g",
     "SYN-2016-031",
-    "SYN-2016-031g",
-    "SYN-2016-045",
     "SYN-2016-150",
     "SYN-2016-150g",
     "SYN-2016-201",
@@ -77,16 +75,16 @@
     "SYN-2016-388",
     "SYN-2016-411g",
     "SYN-2016-433",
-    "SYN-2016-433g",
     "SYN-2016-434",
+    "SYN-2016-434g",
     "SYN-2016-503g"
   ],
   "renewal_window_days": 60,
   "renewal_flags": [],
   "acquisition_prices": {
-    "resi_elec_gbp_per_mwh": 225.41,
-    "sme_elec_gbp_per_mwh": 219.41,
-    "ic_elec_gbp_per_mwh": 209.41,
+    "resi_elec_gbp_per_mwh": 236.53,
+    "sme_elec_gbp_per_mwh": 230.53,
+    "ic_elec_gbp_per_mwh": 220.53,
     "ic_gas_gbp_per_mwh": 53.86
   }
 }

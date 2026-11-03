@@ -7,15 +7,16 @@
   "acquisition_date": "2020-08-12",
   "tariff_name": "Standard Variable (Electricity)",
   "meter_type": "Traditional",
+  "profile_class": 1,
   "mpan": {
     "top_line": "0100208",
-    "bottom_line": "17704618198"
+    "bottom_line": "1727340284408"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 30.16,
-  "lifetime_gross_gbp": 26.59,
-  "lifetime_net_gbp": 17.01,
-  "lifetime_net_after_cts_gbp": 9.48,
+  "lifetime_revenue_gbp": 30.26,
+  "lifetime_gross_gbp": 26.69,
+  "lifetime_net_gbp": 17.12,
+  "lifetime_net_after_cts_gbp": 9.58,
   "cost_to_serve_gbp": 7.53,
   "pricing_action": {
     "flag": "OK",
@@ -31,24 +32,24 @@
   "forward_looking_account_id": "PROS-2020-0248",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 17.01,
-      "revenue_gbp": 30.16
+      "net_gbp": 17.12,
+      "revenue_gbp": 30.26
     },
     "gas": null
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2020-0248g",
-    "gas_lifetime_net_gbp": 12.82,
-    "gas_lifetime_revenue_gbp": 18.52,
-    "combined_net_gbp": 29.83,
-    "combined_revenue_gbp": 48.68
+    "gas_lifetime_net_gbp": 13.0,
+    "gas_lifetime_revenue_gbp": 18.74,
+    "combined_net_gbp": 30.11,
+    "combined_revenue_gbp": 49.0
   },
   "annual_pnl": [
     {
       "year": 2020,
       "revenue_gbp": 0,
-      "gross_gbp": 26.59,
-      "net_gbp": 17.01,
+      "gross_gbp": 26.69,
+      "net_gbp": 17.12,
       "tariff_min": 169.62,
       "tariff_max": 169.62
     }
@@ -59,25 +60,28 @@
       "date": "2020-09-30",
       "detail": "Final bill",
       "commodity": "electricity",
-      "effect": "Closing read actual; billed \u00a319.36"
-    },
+      "effect": "Closing read actual; billed \u00a320.15"
+    }
+  ],
+  "world_life_events_outside_supply": [
     {
       "date": "2024-05-05",
       "type": "life_event",
       "commodity": null,
       "detail": "Retirement starts",
-      "effect": "Real downstream drift: income stress low -> moderate"
+      "seen_by": "world"
     },
     {
       "date": "2024-09-05",
       "type": "life_event",
       "commodity": null,
-      "detail": "Boiler replaced"
+      "detail": "Boiler replaced",
+      "seen_by": "world"
     }
   ],
   "invoices": [
     {
-      "id": "PROS-2020-0248-INV17635",
+      "id": "PROS-2020-0248-INV17821",
       "date": "2020-08-31",
       "period_start": "2020-08-12",
       "period_end": "2020-08-31",
@@ -85,31 +89,45 @@
       "consumption_kwh": 38.0,
       "unit_rate_p_per_kwh": 11.26,
       "commodity_amount_gbp": 4.28,
-      "standing_charge_gbp": 4.6,
+      "standing_charge_gbp": 4.64,
       "days_in_period": 20,
-      "standing_charge_gbp_per_day": 0.23,
+      "standing_charge_gbp_per_day": 0.232,
       "non_commodity_amount_gbp": 2.16,
       "vat_gbp": 0.55,
-      "amount_gbp": 11.59,
+      "amount_gbp": 11.63,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
-      "meter_serial": "M00062031",
-      "mpan": "1000000000816",
+      "scheme_credit_gbp": null,
+      "scheme_credit_applied_gbp": null,
+      "epg_discount_gbp": null,
+      "epg_support_gbp": null,
+      "meter_serial": "M0590070332",
+      "mpan": "1727340284408",
       "mprn": null,
       "read_type": "E",
       "opening_read_kwh": 0.0,
       "closing_read_kwh": 38.0,
+      "read_unit": null,
+      "opening_read_volume": null,
+      "closing_read_volume": null,
+      "volume_advance": null,
+      "calorific_value_mj_per_m3": null,
+      "calorific_value_basis": null,
+      "correction_factor": null,
+      "catchup_kwh": null,
       "registers": [
         {
-          "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 38.0,
           "amount_gbp": 4.28,
-          "unit_rate_p_per_kwh": 11.26
+          "unit_rate_p_per_kwh": 11.26,
+          "register_id": "1"
         }
       ],
       "catchup_applied": false,
+      "term_tariff_type": "svt",
+      "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
       "catchup_periods_covered": null,
@@ -117,50 +135,70 @@
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
-      "catchup_back_billing_cap_applied": null
+      "catchup_back_billing_cap_applied": null,
+      "invoice_number": 17821,
+      "due_date": "2020-09-17",
+      "document_type": "bill"
     },
     {
-      "id": "PROS-2020-0248-INV17636",
+      "id": "PROS-2020-0248-INV17822",
       "date": "2020-09-30",
       "period_start": "2020-09-01",
       "period_end": "2020-09-30",
       "commodity": "electricity",
-      "consumption_kwh": 68.0,
-      "unit_rate_p_per_kwh": 11.26,
+      "consumption_kwh": 68.1,
+      "unit_rate_p_per_kwh": 11.25,
       "commodity_amount_gbp": 7.66,
-      "standing_charge_gbp": 6.9,
+      "standing_charge_gbp": 6.96,
       "days_in_period": 30,
-      "standing_charge_gbp_per_day": 0.23,
+      "standing_charge_gbp_per_day": 0.232,
       "non_commodity_amount_gbp": 3.88,
-      "vat_gbp": 0.92,
-      "amount_gbp": 19.36,
+      "vat_gbp": 0.96,
+      "amount_gbp": 20.15,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
-      "meter_serial": "M00062031",
-      "mpan": "1000000000816",
+      "scheme_credit_gbp": null,
+      "scheme_credit_applied_gbp": null,
+      "epg_discount_gbp": null,
+      "epg_support_gbp": null,
+      "meter_serial": "M0590070332",
+      "mpan": "1727340284408",
       "mprn": null,
       "read_type": "A",
       "opening_read_kwh": 38.0,
-      "closing_read_kwh": 106.0,
+      "closing_read_kwh": 110.1,
+      "read_unit": null,
+      "opening_read_volume": null,
+      "closing_read_volume": null,
+      "volume_advance": null,
+      "calorific_value_mj_per_m3": null,
+      "calorific_value_basis": null,
+      "correction_factor": null,
+      "catchup_kwh": 4.0,
       "registers": [
         {
-          "register_id": "1",
           "label": "Anytime",
-          "consumption_kwh": 68.0,
+          "consumption_kwh": 68.1,
           "amount_gbp": 7.66,
-          "unit_rate_p_per_kwh": 11.26
+          "unit_rate_p_per_kwh": 11.25,
+          "register_id": "1"
         }
       ],
-      "catchup_applied": false,
-      "catchup_period_start": null,
-      "catchup_period_end": null,
-      "catchup_periods_covered": null,
-      "catchup_direction": null,
-      "catchup_raw_delta_gbp": null,
-      "catchup_adjustment_gbp": null,
-      "catchup_written_off_gbp": null,
-      "catchup_back_billing_cap_applied": null
+      "catchup_applied": true,
+      "term_tariff_type": "svt",
+      "default_tariff_excess_p_per_kwh": null,
+      "catchup_period_start": "2020-08-12",
+      "catchup_period_end": "2020-08-31",
+      "catchup_periods_covered": 1,
+      "catchup_direction": "undercharge",
+      "catchup_raw_delta_gbp": 0.72,
+      "catchup_adjustment_gbp": 0.69,
+      "catchup_written_off_gbp": 0.0,
+      "catchup_back_billing_cap_applied": false,
+      "invoice_number": 17822,
+      "due_date": "2020-10-18",
+      "document_type": "bill"
     }
   ],
   "ledger": {
@@ -169,18 +207,18 @@
       {
         "date": "2020-09-03",
         "type": "invoice_raised",
-        "invoice_number": 17635,
-        "amount_gbp": 11.59,
+        "invoice_number": 17821,
+        "amount_gbp": 11.63,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV17635 raised",
-        "running_balance_gbp": 11.59
+        "description": "Invoice INV17821 raised",
+        "running_balance_gbp": 11.63
       },
       {
         "date": "2020-09-17",
         "type": "payment_received",
-        "invoice_number": 17635,
-        "amount_gbp": -11.59,
+        "invoice_number": 17821,
+        "amount_gbp": -11.63,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -189,18 +227,18 @@
       {
         "date": "2020-10-04",
         "type": "invoice_raised",
-        "invoice_number": 17636,
-        "amount_gbp": 19.36,
+        "invoice_number": 17822,
+        "amount_gbp": 20.15,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV17636 raised",
-        "running_balance_gbp": 19.36
+        "description": "Invoice INV17822 raised",
+        "running_balance_gbp": 20.15
       },
       {
         "date": "2020-10-18",
         "type": "payment_received",
-        "invoice_number": 17636,
-        "amount_gbp": -19.36,
+        "invoice_number": 17822,
+        "amount_gbp": -20.15,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -208,10 +246,14 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 30.95,
-    "total_collected_gbp": 30.95,
+    "total_billed_gbp": 31.78,
+    "total_collected_gbp": 31.78,
     "total_written_off_gross_gbp": 0,
-    "total_recovered_gbp": 0
+    "total_scheme_credit_gbp": 0,
+    "total_deemed_gbp": 0,
+    "total_refunded_gbp": 0,
+    "total_recovered_gbp": 0,
+    "total_epg_support_gbp": 0.0
   },
   "consumption": {
     "unit": "kWh",

@@ -13,32 +13,32 @@
   },
   "figures_caveat": null,
   "last_verified": {
-    "generated_at": "2026-11-02T22:04:22Z",
-    "git_commit": "08f267b666",
+    "generated_at": "2026-11-03T02:24:29Z",
+    "git_commit": "0a6391d186",
     "population": {
       "accounts": 1293,
       "bills": 52837,
       "total_revenue_gbp": 2855820.88
     },
-    "run_id": "run_output_08f267b666_20261102T173915Z.json",
+    "run_id": "run_output_0a6391d186_20261102T212232Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-02T22:04:22Z"
+    "verified_at": "2026-11-03T02:24:29Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=0a6391d186; blocking tests: FAILED tests/background/test_a_refusing_gate_banner_is_a_string_a_gate_prints.py::test_every_gate_the_chain_runs_is_either_named_or_declared_unnameable",
-  "paused_since": "2026-11-02T23:32:06Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-11-02T22:04:22Z",
-    "git_commit": "08f267b666",
+    "generated_at": "2026-11-03T02:24:29Z",
+    "git_commit": "0a6391d186",
     "population": {
       "accounts": 1293,
       "bills": 52837,
       "total_revenue_gbp": 2855820.88
     },
-    "run_id": "run_output_08f267b666_20261102T173915Z.json",
+    "run_id": "run_output_0a6391d186_20261102T212232Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-02T22:04:22Z"
+    "verified_at": "2026-11-03T02:24:29Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-11-03T00:25:51Z"
+  "verification_state": "verified",
+  "written_at": "2026-11-03T02:24:29Z"
 }
