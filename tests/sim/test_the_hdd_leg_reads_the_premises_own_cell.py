@@ -251,6 +251,37 @@ def test_every_registered_premise_has_a_cell_whatever_the_curriculum_serves():
     assert not no_cell, f"registered premises the world holds no weather for: {no_cell}"
 
 
+def test_the_store_covers_every_record_of_the_book_the_run_settles():
+    """THE DEFECT (N13 cause 2, 2026-11-03): the store was built over the book as drawn on 11 Oct,
+    the draw moved, and 490 of 1,052 settled records (227 of 477 gas) sat beyond `MAX_SNAP_KM` of any
+    held cell. Their HDD read the 1991-2020 monthly normal and their world metered last year's gas
+    use to the decimal. The roster test above stayed green throughout: it asks 18 points, and the
+    drawn-book test above asks only premises "whose cell the store holds".
+
+    Asked of the records the runner adopts, so a redraw without `tools.build_weather_world --build`
+    reds here naming the count. Red at the 11 Oct store (mutation: restore it and run this).
+    """
+    from simulation.run_phase2b import (
+        ACQUIRED_CUSTOMERS,
+        ELEC_CUSTOMERS,
+        GAS_CUSTOMERS,
+        SUCCESSOR_ELEC_CUSTOMERS,
+    )
+    from simulation.weather_inputs import cell_weather_for_customer
+
+    book = {}
+    for c in [*ELEC_CUSTOMERS, *GAS_CUSTOMERS, *SUCCESSOR_ELEC_CUSTOMERS, *ACQUIRED_CUSTOMERS]:
+        book.setdefault(c["customer_id"], c)
+    drawn = [cid for cid in book if not cid.startswith("C")]
+    assert len(drawn) >= 50, f"{len(drawn)} drawn records in the settled book; nothing to control"
+
+    no_sky = [(cid, cell_weather_for_customer(c).refusal) for cid, c in book.items()
+              if not cell_weather_for_customer(c).series]
+    assert not no_sky, (
+        f"{len(no_sky)} of {len(book)} settled records have no sky and read the climate normal; "
+        f"rebuild the store over this book (tools.build_weather_world --build): {no_sky[:3]}")
+
+
 def test_a_leg_admitted_after_adoption_reads_its_premises_sky_once_adopted(_no_adopted_book):
     """THE DEFECT (N13, 2026-11-03): B7's incoming occupant is admitted INSIDE the loop, after the
     runner's one `adopt_book`, so its id was in no book and its gas leg read the monthly normal at a
