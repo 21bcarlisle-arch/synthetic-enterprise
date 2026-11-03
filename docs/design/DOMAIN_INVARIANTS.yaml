@@ -3149,3 +3149,139 @@ invariants:
   - period_end
   checkable: true
   gap: 'CHECKABLE from 2026-10-30, on a book whose ledger carries the gas build (C1-C3 of docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md): the world''s gas meter registers volume, an actual read carries it, and the supplier converts it (company/billing/gas_volume_conversion.py). Every book before that build holds a kWh register and breaches on every gas period, which is the finding this row was written for (fifth cold read, N11). Of the blind writer''s six GAPs, the page closes (1) the regulations and which CV applies (R2, R3, R5), (3) the correction factor at 1.02264 [S], and (4) the imperial factor, 100 x 0.3048^3 m3 per hundred cubic feet, a unit identity; it narrows (2) the CV range to 38-41 MJ/m3 [S] and (6) smart meters to R9 [S]. (5), what a gas bill must print about the conversion, stays open as the page''s G3. Leg (e) adds the volume read''s own print rounding (3dp at each end), which the predicate said was nil for a register read to its last digit. What this row does NOT grade: the CV is a fixed stand-in until the daily charging-area series lands (G1), and a fixed CV is not compliant (R6); the record says so in calorific_value_basis, and a row grading that field is owed with G1. Leg (e) is graded on the kWh the two readings span (closing less opening), not on billed_kwh: after an estimated run the readings span the month plus the run''s catch-up (back_billing_and_liability.md section 13), which is what the volume advance converts to, so billed_kwh alone would breach every catch-up bill (reader A#4, 2 Nov). Severities as the row states them (2 Nov): no volume, or an imperial flag that disagrees with the unit, breaches; a volume without its CV or factor flags; the printed flag is the account''s metering record, not the read unit.'
+- id: INV_TWO_RATE_BILL_PRINTS_ONE_READ_PAIR_PER_REGISTER
+  family: bill_presentation
+  grades: page
+  counts:
+    numerator: printed electricity bills charging k >= 2 registers whose "Meter reads behind it" panel does not print exactly one opening/closing read pair per charged register under that register's usage-line
+      label, or prints a read pair whose advance equals the SUM of two or more charged lines' kWh in place of the per-register pairs
+    denominator: every printed electricity bill whose usage section charges two or more registers on separate lines (Day/Night, Economy 7, profile class 2, or any other multi-register tariff)
+    unit graded: one printed bill page (one invoice as the customer sees it)
+  statement: 'A two-rate (Economy 7 / profile class 2) electricity meter has one register per rate, and each register is read on its own. A bill that charges Day and Night (or Rate 1 and Rate 2) on separate
+    lines must, where it prints the reads behind the charge, print one opening and one closing read for EACH charged register, labelled as that register''s usage line is labelled. A single opening/closing
+    pair equal to the sum of the Day and Night reads is not a read: on a legacy clock- or teleswitch-switched two-rate meter no register holds that sum, so no display can show it. On a smart (SMETS2) meter
+    a total Active Import Register does exist and does equal the band sum; it may be printed only as an extra, separately labelled total, alongside the per-band pairs, never instead of them and never as
+    the read the band charges are billed from.'
+  predicate: 'For a printed bill with charged usage lines L = {l_1..l_k}, k >= 2, each carrying a register label lab(l_i) and kWh(l_i); let P = the read pairs printed in the read panel, each with label
+    lab(p), opening o(p), closing c(p). (a) Coverage: for every l_i there is exactly one p in P with lab(p) == lab(l_i) (bijection between charged lines and band read pairs; labels compared after case/whitespace
+    normalisation, so "Day"/"day" match, but "Day"/"Rate 1" do not unless the page itself equates them). (b) No summed read in place of registers: P does not consist of a single pair (|P| == 1) while k
+    >= 2, and no unlabelled or generically labelled pair ("Meter", "Reading", "Electricity") appears as the only pair on a k >= 2 bill. (c) No sum disguised as a read: for no p in P that is not explicitly
+    labelled as a total import register does c(p) - o(p) equal sum_{i in S} kWh(l_i) for some S with |S| >= 2 while no per-band pairs are printed (tolerance: the page''s own kWh print precision, 0.5 x 10^-d).
+    (d) Total register (smart only): a pair labelled as total import is permitted only when meter_type is smart AND (a) holds for the band pairs; then o(total) == sum o(band) and c(total) == sum c(band)
+    within print tolerance. On a legacy (non-smart) two-rate meter any pair labelled or behaving as a total is a breach. (e) Scope: a page that prints NO read panel is not graded here (whether reads must
+    be printed is a GAP, below); single-register bills (k == 1) are not graded here.'
+  lower: 1
+  upper: 1
+  lower_source: 'physics: one cumulative register per rate on a two-rate meter; read pairs per charged register = 1'
+  upper_source: 'physics: one cumulative register per rate on a two-rate meter; read pairs per charged register = 1'
+  source: 'Meter physics plus belief (strong logic) on what a bill prints. What the files read establish: docs/market_research/a_multi_register_meters_bands_add_up_to_its_total.md section 2: "A legacy two-rate
+    (Economy 7) meter is the other case. Its registers are switched by a clock or teleswitch, so both keep advancing whatever the tariff" (two registers, no total register on a legacy E7 meter); same file
+    section 1, quoting DECC SMETS2 v1.58 5.5.8.1 "ESME shall be capable of recording Consumption according to Time-of-use Bands in one of forty-eight Tariff Registers" and 5.5.9.1 "cumulative Active Energy
+    Imported in the Active Import Register", with the page''s conclusion "Over any window, the Tariff Registers'' advances sum to the total''s advance" (so on a smart meter a total register exists and equals
+    the band sum, which is why leg (d) is carved out); same file section 2, Shell Energy: "The meter reading that''s used for your billing is TOU Rate 1 for single-rate tariffs, and both TOU Rate 1 and
+    TOU Rate 2 for two-rate tariffs" and National Grid (search summary only) "Imp R1" plus "Imp R2" for two-rate (a two-rate bill is billed from both band registers, not from a sum); docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md
+    item 6: SLC 22A.3 "each of the following are separately identified from each other and any other charges: (a) the Standing Charge(s); (b) the Unit Rate(s) or, where applicable, Time of Use Rates", SLC
+    31H.1 bills "sufficient to enable that Domestic Customer to understand and manage the costs associated with their Tariff", 31H.12(b) "how any charges ... are calculated"; same file, "GAP: per-register
+    reads": "A two-register meter has a read per register"; item 7: "one register is one register for the life of the serial"; docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md R5:
+    "An E7 bill prints a day and a night register, each with its rate", and R1: PC2 is "Domestic Economy 7 Customers" (Elexon, via that page); docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md:
+    ''Multi-Register Metering Arrangement'' "means using one or more Electricity Meters for the purpose of ... registers" (the regulatory object is per-register).'
+  severity:
+    single_summed_pair_on_two_rate_bill: breach
+    band_pair_missing_or_extra: breach
+    total_pair_on_legacy_meter: breach
+    band_label_differs_from_usage_line_label: flag
+    smart_total_printed_without_band_pairs: breach
+  export_fields:
+  - invoice_id
+  - meter_serial
+  - meter_type
+  - tariff_type
+  - usage_line_label
+  - usage_line_kwh
+  - printed_read_label
+  - printed_opening_read
+  - printed_closing_read
+  - printed_read_type
+  checkable: false
+  gap: 'NOT YET GRADED (2026-11-03): no evaluator in tools/domain_invariant_runner. Written blind, from docs/market_research and site/data/knowledge_topics.json only, for the sixth cold read''s N12 (docs/staging/records/SEAT_READING_THE_SIXTH_COLD_READ_ON_THE_85B044BE54_BOOK_2026-11-03.md).
+    On the 85b044be54 pages the seat counts 1,731 two-register bills on 39 PC2 pages whose read panel prints one summed pair (PROS-2017-0233 INV12356: 3,622.7 = Day 1,978.5 + Night 1,644.2). GAP (1): no
+    file read quotes a licence condition that REQUIRES a domestic bill to print meter reads at all, or per register: SLC 31H.4''s fixed list (as quoted in a_tou_tariff_needs_the_households_choice_not_its_meter.md)
+    has "None of them ... per-register"; the per-register read rests on meter physics plus 31H.1/31H.12(b) (understand and check how charges are calculated) and is a belief, which is why a page with no
+    read panel is out of scope (leg e) rather than a breach. GAP (2): no file read gives what a legacy Economy 7 meter''s own display labels its registers (e.g. "Normal"/"Low", "Rate 1"/"Rate 2", R1/R2);
+    the Shell and National Grid labels quoted are for smart meters. Labels are therefore matched to the bill''s own usage-line labels, not to a meter vocabulary. GAP (3): which band a supplier calls "Rate
+    1" (Day or Night) is unestablished (a_multi_register_meters_bands_add_up_to_its_total.md section 4, "GAP"); a Rate-1/Rate-2 page is graded only for internal label consistency. GAP (4): the legacy-versus-smart
+    split in leg (d) needs meter_type on the page or export; where it is absent, a printed total is graded as legacy (flagged as unresolvable rather than passed). Correction to the brief''s plain-words
+    claim "No display on a two-register meter shows such a sum": true for a legacy E7 meter, NOT for a SMETS2 meter, whose Active Import Register is that sum; the row grades the sum printed INSTEAD OF the
+    band reads, which is wrong on both meter types.'
+- id: INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR
+  family: weather_driven_demand
+  grades: ledger
+  counts:
+    numerator: (upper side) calendar-month pairs (m, m minus 12 months) on one gas leg where both months' kWh rest on actual or prepayment-meter reads and |kWh(m) - kWh(m-12)| <= tol; (lower side) gas legs
+      whose winter month-pairs show a median year-on-year relative change below the dispersion floor
+    denominator: (upper side) every calendar-month pair on a gas leg with both months measured (read_type in {actual, prepayment}), both months' kWh above the zero-use floor; (lower side) every gas leg
+      with at least 3 such winter (Nov-Mar) month-pairs
+    unit graded: one gas leg (one account x MPRN x meter serial, across its supply period); month-pairs are counted within it
+  statement: 'Domestic gas use is mostly space heating, and space heating follows outdoor temperature, so a home''s measured gas use in a calendar month moves from one year to the next with that month''s
+    heating degree days, with behaviour, and (in 2022) with price. Two measured monthly totals matching to 0.1 kWh a year apart is a coincidence of order a few in a thousand per month-pair; a gas leg that
+    repeats more than about one month in its life, and especially winter months and months straddling the 2022 crisis, is not carrying measured use. It is carrying a seasonal-normal shape (an AQ spread
+    by a profile, which repeats by construction) labelled as measured. The other side: a leg whose winter months barely move at all year on year is equally not weather-driven.'
+  predicate: 'For each gas leg g, let M_g = months whose kWh is held on reads with read_type in {actual, prepayment} at BOTH the opening and closing read bounding that month (a month whose kWh was apportioned
+    from a longer actual advance by a profile is tagged apportioned and excluded; estimated, deemed and customer-unverified months excluded), and kWh >= z (zero-use floor, below). For each month m in M_g
+    with m-12 in M_g: repeat(m) = |kWh(m) - kWh(m-12)| <= tol, tol = 0.5 x 10^-d (d = decimal places the record holds for monthly kWh; 0.05 kWh at one decimal). (A, upper side) R_g = count of repeat(m)
+    over the leg. R_g <= 1 passes; R_g == 2 flag; R_g >= 3 breach; any repeat in a winter month (Nov-Mar) that is part of a run of >= 2 consecutive years (m, m-12, m-24 all equal within tol) breach regardless
+    of R_g. Book level: sum R_g / sum pairs <= 0.01 (belief, see source). (B, lower side) For legs with >= 3 winter month-pairs: median over winter pairs of |kWh(m)/kWh(m-12) - 1| >= f, f = 0.01 (belief,
+    range 0.01-0.03; the grader uses the lenient end). Below f: flag. z = the leg''s own July-August median measured month x 0.5, floor 1 kWh (excludes vacant/off months, where a repeat of ~0 is credible;
+    z is a definitional exclusion, not a domain constant).'
+  lower: 0
+  upper: 1
+  lower_source: 'count side: a count cannot be negative and the expected count under weather-driven demand is ~0; dispersion side (leg B): belief f = 0.01, range 0.01-0.03, reasoning in source'
+  upper_source: 'belief (stated, with reasoning in source): expected repeats per leg well under 1 at tol = 0.05 kWh; 1 allowed for coincidence, 2 flagged, 3 or more breach; no file read gives this number'
+  source: 'Belief derived from the knowledge layer; no file read gives a repeat count. Physics of the driver: site/data/knowledge_topics.json, fabric topic "How it works": "A home''s space-heating demand
+    is, to a good approximation, its heat-loss coefficient ... multiplied by how cold it has been over the season, less the heat the sun and the occupants supply for free"; docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md
+    "Controls and end-use split": "Domestic gas end use is roughly 75% space heating (DESNZ 2024), with hot water 12-25% and cooking 5-10%"; docs/market_research/gas_demand_cumulative_hdd_cwv.md, National
+    Grid Gas Demand Forecasting Methodology 2020: "Effective temperature takes into account the previous day''s temperature due to consumer behaviour" (demand is regressed on weather). Year-to-year variation
+    in the driver: docs/market_research/other_market_germany_2026-10-25.md (and other_market_japan): "UK HDD 2,710-2,961 over 2018-2025 (2024: 2,812)" (Eurostat nrg_chdd_a) - an annual spread of about 9%,
+    and a single month averages fewer days than a year so its HDD varies at least as much (strong logic); docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 4: "January
+    2025 ran markedly colder than January 2023-2024, visible in the per-year shares", and January carries "17.05%" of domestic gas against July "2.33%" (DESNZ Energy Trends 4.2). Weather plus price in the
+    record: docs/market_research/how_much_a_same_households_use_moves_year_on_year_and_in_2022.md section 2B, DESNZ ECUK Table C9, domestic gas 2021 to 2022 "-11.6%" temperature-corrected and "-19.2%" unadjusted
+    (weather alone about 7.6 points of annual use in one year); section 2A SERL: gas "10.8% lower than the previous winter (accounting for weather)", IQR "(1.19%, 22.44%)"; section 1: "some households continued
+    to use up to around 1 kWh of electricity per day or 15-20% more than predicted throughout 2021/22, others decreased by similar levels" (individual households swing by much more than the sample median).
+    Why a repeat signals a shape, not a meter: how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 3, Xoserve: AQ is "An estimate of the amount of gas (in kWh) that a supply meter point will
+    use in the coming year under ''seasonal normal'' weather conditions", spread monthly by the Annual Load Profile; a fixed AQ times a fixed seasonal-normal profile repeats month for month. Reasoning for
+    the bounds (belief): on a ~1,400 kWh January, weather alone (annual ~5-9%, monthly more) and behaviour put the same-month year-on-year difference at a spread of tens of kWh; the chance that a difference
+    with that spread lands inside a 0.1 kWh window is of order 0.1/50, about 0.2% per winter pair; summer months (~2-3% of annual use, smaller spread) perhaps nearer 1%. A leg of 2016-2025 has at most ~108
+    pairs, so the expected count is below 1, and 3 or more (or a winter run across 2022) is not credible. Leg B: weather alone moved national annual gas ~7.6 points in 2021-22 and individual households
+    swing 15-20%, so a median winter year-on-year change below 1% across a leg is not a weather-driven home; the 1% floor is the lenient end of a 1-3% belief range (F11, erring against the thesis that the
+    record is defective).'
+  severity:
+    repeats_above_upper_on_one_leg: breach
+    winter_repeat_run_two_years_or_more: breach
+    exactly_two_repeats_on_one_leg: flag
+    book_repeat_share_above_one_percent: breach
+    winter_dispersion_below_floor: flag
+  export_fields:
+  - account_id
+  - mprn
+  - meter_serial
+  - commodity
+  - month
+  - month_kwh
+  - opening_read_type
+  - closing_read_type
+  - opening_read_date
+  - closing_read_date
+  - apportioned_flag
+  checkable: false
+  gap: 'NOT YET GRADED (2026-11-03): no evaluator in tools/domain_invariant_runner. Written blind, from docs/market_research and site/data/knowledge_topics.json only, for the sixth cold read''s N13 (docs/staging/records/SEAT_READING_THE_SIXTH_COLD_READ_ON_THE_85B044BE54_BOOK_2026-11-03.md).
+    On the 85b044be54 pages the seat counts 1,635 of 4,413 gas month-pairs read A or M at both ends repeating to 0.1 kWh, 114 of 383 legs repeating on 10% or more of their pairs. GAP (1): no file read gives
+    monthly GB heating-degree-day series or their year-to-year spread by calendar month; the Eurostat figure is annual UK (2,710-2,961, 2018-2025), and the monthly spread is inferred as at least the annual
+    one (strong logic, not a number read). The 0.2%/1% per-pair coincidence figures, the R_g thresholds 1/2/3, the book share 1%, and the dispersion floor f (1-3%) are stated beliefs with the reasoning
+    above, not sourced constants. GAP (2): no GB study publishes a same-household, weather-corrected, ordinary-year distribution of year-on-year change (how_much_a_same_households_use_moves_year_on_year_and_in_2022.md
+    section 1, "That is a GAP"); individual-household monthly spread is therefore bounded from the SERL 15-20% remark and the 2022/23 IQR, not measured. GAP (3): whether a supplier''s record holds a CALENDAR-month
+    kWh on actual reads at all depends on read frequency: a quarterly- or annually-read credit meter has no actual read at month ends, so its monthly kWh is apportioned; the row excludes apportioned months,
+    and if the record cannot distinguish apportioned from read-bounded months the row is ungradable for that leg (reported as such, not passed). Smart gas meters (daily/monthly reads) and prepayment meters
+    are where read-bounded calendar months exist; no file read establishes the read frequency of either in 2016-2025. GAP (4): prepayment gas months are included as measured per the brief, but no file read
+    establishes how a prepayment record''s monthly kWh is formed (meter vend/credit data versus reads); if it is derived from vends or an AQ, leg A grades the derivation, not the meter. GAP (5): an AQ-driven
+    ESTIMATE that repeats last year is lawful and expected (Xoserve seasonal-normal AQ); the defect graded here is a repeat carried on months labelled actual, and the row cannot by itself tell a mislabelled
+    estimate from a mis-sourced measured value.'
