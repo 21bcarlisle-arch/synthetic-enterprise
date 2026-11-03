@@ -64,4 +64,18 @@ for one of two reasons:
 
 Full record: `docs/staging/records/SEAT_RESULT_N13_THE_WORLD_REPEATS_GAS_USE_BECAUSE_HALF_THE_BOOK_HAS_NO_SKY_2026-11-03.md`.
 
+## Cause 2 closed at the store (2026-11-03, later the same day)
+
+The store was rebuilt over today's book with HadUK temperature for every book cell: 836 cells, and
+**0 of 1,052 settled records** (0 of 477 gas) now lack a sky, down from 490 (227). The 227
+former-normal gas premises read a 2022 HDD 13.1% below the normal on the mean, and none reads
+the same January in 2018 and 2022. A control now asks the settled book rather than the roster and
+goes red at the old store. Record:
+`docs/staging/records/SEAT_RESULT_THE_WEATHER_STORE_NOW_COVERS_THE_DRAWN_BOOK_2026-11-03.md`.
+
+**This finding stays BLOCKING until the next published run shows it.** That means the blind
+year-on-year row grades no world-side repeats on the full book. A fixed cause is a prediction about
+that run, not the run. One residual is still open: PROS-2019-0208g meters a flat 4.5 kWh a day from
+April 2021 with a sky. That is a separate question, and it is in the N13 result.
+
 **Reverse:** delete this file.
