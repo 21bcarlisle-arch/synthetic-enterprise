@@ -566,7 +566,8 @@ def _run_rails(
         )
         decided = "success" if outcome == "success" else "failed"
         rails_rng = rails_rngs.setdefault(cid, random.Random(f"{seed + 1}:{cid}"))
-        resolved = resolve_submission(submission, decided, rng=rails_rng)
+        resolved = resolve_submission(submission, decided, rng=rails_rng,
+                                      instruction_cancelled=shock.cancel_return and exit_ is None)
 
         failure_reason = ""
         if resolved.status == "failed" and resolved.reason_code is not None:

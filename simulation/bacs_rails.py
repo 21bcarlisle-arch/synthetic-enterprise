@@ -248,7 +248,7 @@ def submit_collection(reference: str, customer_id: str, amount_gbp: float, submi
 
 
 def resolve_submission(submission: BacsSubmission, decided_outcome: Literal["success", "failed"],
-                        rng=None) -> BacsSubmission:
+                        rng=None, instruction_cancelled: bool = False) -> BacsSubmission:
     """Apply an ALREADY-DECIDED behavioural outcome (from
     simulation/arrears_engine.py::payment_outcome() for a collection, or the
     caller's own mandate-setup/amendment logic) and return the resolved
@@ -277,6 +277,11 @@ def resolve_submission(submission: BacsSubmission, decided_outcome: Literal["suc
     # life -- less honest than a fixed dominant code, not more (R12/R13:
     # never fabricate a distribution that can't be anchored).
     reason_code = 0 if 0 in reason_codes else next(iter(reason_codes))
+    # A payer cancel that overtakes a collection in flight returns that collection as ARUDD 1, not
+    # "Refer to Payer" (dd_failure_basis_and_live_arrears_provision_rates.md section 4). The cause
+    # is the caller's to know; the rails only name it.
+    if instruction_cancelled:
+        reason_code = 1
 
     outcome_date = submission.expected_outcome_date
     if submission.submission_type == "collection":

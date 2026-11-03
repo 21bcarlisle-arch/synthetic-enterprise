@@ -159,6 +159,17 @@ def test_the_rails_put_nothing_on_after_a_cancellation(monkeypatch):
         assert shocked[cid][-1].outcome == "failed"
 
 
+def test_the_collection_the_cancel_overtook_comes_back_instruction_cancelled(monkeypatch):
+    """Defect caught: the cancel-month return named "Refer to Payer", a cause not modelled."""
+    monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", None)
+    ids = _dd_ids(10)
+    cancel = {"review_month": "2022-04", "cancelled_month": "2022-04", "failure_multiplier": 1.0}
+    shocked = dcb.build_dd_collection_book(*_book(ids, cancel, stress="low")).all_attempts()
+    returned = [a for a in shocked if a.outcome == "failed"]
+    assert len(returned) == len(ids)
+    assert {a.failure_reason for a in returned} == {br.ARUDD_REASON_CODES[1]}
+
+
 def test_the_uplift_raises_returns_in_the_arrears_engine():
     ids = _dd_ids(60)
     uplift = {"review_month": "2022-01", "cancelled_month": None, "failure_multiplier": 4.0}

@@ -51,3 +51,15 @@ def test_it_lands_the_next_working_day_before_any_collection_fails():
     collection = br.submit_collection("c1", "h1", 120.0, FRIDAY)
     returned = br.resolve_submission(collection, "failed", rng=random.Random(0))
     assert rec.available_date < collection.expected_outcome_date <= returned.expected_outcome_date
+
+
+def test_a_collection_overtaken_by_a_cancel_returns_arudd_1_and_no_other_does():
+    """Defect caught: an overtaken collection returned "Refer to Payer", or the flag leaked to a
+    collection the payer did not cancel or to a success."""
+    collection = br.submit_collection("c1", "h1", 120.0, FRIDAY)
+    code = lambda sub, out, cancelled: br.resolve_submission(  # noqa: E731
+        sub, out, rng=random.Random(0), instruction_cancelled=cancelled).reason_code
+    assert code(collection, "failed", True) == 1
+    assert br.ARUDD_REASON_CODES[1] == "Instruction Cancelled"
+    assert code(collection, "failed", False) == 0
+    assert code(collection, "success", True) is None

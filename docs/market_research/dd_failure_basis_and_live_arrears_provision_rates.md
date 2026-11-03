@@ -417,7 +417,10 @@ claim) [S]. **A late failure is therefore possible, and it comes through a diffe
   collection is presented against the cancelled mandate. The rate is
   `PAYER_CANCELLATION_PROBABILITY = None`, with this GAP as its reason. The draw refuses unless the
   caller supplies a probability from its own sourced or registered model (today, DD4b's toggled
-  cancel share).
+  cancel share). When DD4b's cancel overtakes that month's collection, the collection returns as
+  ARUDD 1 "Instruction Cancelled" (section 4), not "Refer to Payer" (2026-11-03). The world still
+  draws the cancel and that failed collection together. A cancel drawn as its own dated act,
+  noticed before the next collection, is still W2_41's open defect.
 
 ### 5. Indemnity claims (DDIC / DDICA) under the Direct Debit Guarantee
 
