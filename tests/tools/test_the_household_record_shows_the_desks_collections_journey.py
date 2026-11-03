@@ -8,8 +8,8 @@ build fixed, still shown to a reader of explore.
   * `test_the_published_run_carries_the_desks_journeys` -- the report's whitelist passes them.
   * `test_every_dated_stage_of_a_journey_reaches_the_reaction_chain` -- one event per stage, the
     re-offer and the write-off included, beside the ledger's notices rather than replacing them.
-  * `test_while_the_desk_holds_the_debt_the_ledgers_letters_yield_and_its_facts_stay` -- one
-    narrator per letter: the ledger's notices dated inside a desk hold are not on the record.
+  * `test_where_the_desk_runs_the_ledgers_letters_yield_and_its_facts_stay` -- one
+    narrator per letter: on an account the desk runs, the ledger's notices are not on the record.
   * `test_the_explore_debt_journey_reads_the_desk_and_can_still_refuse` -- the partition: the scorer
     takes the desk branch when the record has one, the ledger branch when not, and refuses a
     journey that never got past a reminder.
@@ -63,8 +63,7 @@ def test_every_dated_stage_of_a_journey_reaches_the_reaction_chain():
     desk = [e for e in chain if e["event_type"].startswith("collections_")]
     assert [e["event_type"] for e in desk] == ["collections_" + s["stage"] for s in JOURNEY["stages"]]
     ledger = [e["event_type"] for e in chain if e["event_type"].startswith("arrears_")]
-    assert ledger == ["arrears_payment_missed", "arrears_first_notice"], (
-        "the ledger's stages stay, less its letter dated inside the desk's hold")
+    assert ledger == ["arrears_payment_missed"], "the ledger's facts stay, less its letters, on an account the desk runs"
     reoffer, = [e for e in desk if e["event_type"] == "collections_repayment_plan_reoffer"]
     write_off, = [e for e in desk if e["event_type"] == "collections_write_off"]
     assert "past the top rung" in reoffer["description"]
@@ -73,35 +72,38 @@ def test_every_dated_stage_of_a_journey_reaches_the_reaction_chain():
     assert "the world names why" in unanswered["description"], "an unknown answer says why"
     alone = build_customer_ledger("SYN-2016-001", [], [], [], LEDGER_CASE)
     assert [e for e in chain if not e["event_type"].startswith("collections_")] == [
-        e for e in alone if e["event_type"] != "arrears_second_notice"]
+        e for e in alone if e["event_type"] not in ("arrears_first_notice", "arrears_second_notice")]
 
 
-def test_while_the_desk_holds_the_debt_the_ledgers_letters_yield_and_its_facts_stay():
+def test_where_the_desk_runs_the_ledgers_letters_yield_and_its_facts_stay():
     """DEFECT LINE (209c3350ab, 55 of 402 debt stories): the ledger's per-bill letter and the desk's
     rung narrated one debt at two amounts (OCC-9edd7eed4aab, 22 Jul 2019: GBP18.71 beside GBP60.78).
-    One supplier sends one letter per act; the desk's is the one on the record while it holds the
-    account (`company_debt_management.md`, "Who sends the overdue notice")."""
-    held = {"exit": "cured", "stages": [_stage("missed_payment", "2019-02-01"), _stage("cured", "2019-03-01")]}
+    And on 0a6391d186, the last two: letters dated OUTSIDE any journey on an account the desk runs,
+    where the desk had decided there was nothing to chase -- PROS-2018-0137's gas DD returned over a
+    home GBP125 in credit, OCC-8ea4e221f344's gas bill overdue while a plan held the account. One
+    dunning run per account (`company_debt_management.md`, "Who sends the overdue notice")."""
+    cured = {"exit": "cured", "stages": [_stage("missed_payment", "2019-02-01"), _stage("cured", "2019-03-01")]}
     still_open = {"exit": None, "stages": [_stage("missed_payment", "2020-06-01")]}
     case = {"arrears_history": [{"arrears_gbp": 18.71, "stages": [
-        {"stage": "FIRST_NOTICE", "date": "2019-01-25"},       # before the hold: the only narrator
+        {"stage": "FIRST_NOTICE", "date": "2019-01-25"},       # before any journey
         {"stage": "PAYMENT_MISSED", "date": "2019-02-01"},     # a fact, not a letter
-        {"stage": "FIRST_NOTICE", "date": "2019-02-08"},       # inside: yields
-        {"stage": "SECOND_NOTICE", "date": "2019-03-01"},      # on the exit day: still held
-        {"stage": "SECOND_NOTICE", "date": "2019-03-02"},      # after the cure: the only narrator
+        {"stage": "FIRST_NOTICE", "date": "2019-02-08"},       # inside a journey
+        {"stage": "SECOND_NOTICE", "date": "2019-03-01"},      # on the exit day
+        {"stage": "SECOND_NOTICE", "date": "2019-03-02"},      # after the cure: the traced shape
         {"stage": "FIRST_NOTICE", "date": "2024-01-01"}]}]}   # inside a journey with no exit yet
-    chain = build_customer_ledger("SYN-2016-001", [], [], [], case, collections_journeys=[held, still_open])
-    kept = [(e["date"], e["event_type"]) for e in chain if e["event_type"].startswith("arrears_")]
-    assert kept == [("2019-01-25", "arrears_first_notice"), ("2019-02-01", "arrears_payment_missed"),
-                    ("2019-03-02", "arrears_second_notice")]
-    # The partition can be taken both ways: with no hold, every letter is on the record.
-    assert sum(e["event_type"].startswith("arrears_") for e in
-               build_customer_ledger("SYN-2016-001", [], [], [], case)) == 6
-    # A dual-fuel gas leg: the desk holds the home on the electricity account. Its letters yield to
-    # that journey, and the journey's own events are shown once, on the electricity leg, not here.
-    gas = build_customer_ledger("SYN-2016-001", [], [], [], case, collections_journeys=[],
-                                desk_journeys=[held, still_open])
-    assert [(e["date"], e["event_type"]) for e in gas] == kept
+    facts = [("2019-02-01", "arrears_payment_missed")]
+    for journeys in ([cured, still_open], [cured]):
+        chain = build_customer_ledger("SYN-2016-001", [], [], [], case, collections_journeys=journeys)
+        assert [(e["date"], e["event_type"]) for e in chain if e["event_type"].startswith("arrears_")] == facts
+    # The partition can be taken both ways: where the desk never ran, the ledger's letter is the only
+    # narrator and every one is on the record -- and a journey with no dated stage is not a run.
+    for journeys in (None, [], [{"exit": None, "stages": []}]):
+        assert sum(e["event_type"].startswith("arrears_") for e in build_customer_ledger(
+            "SYN-2016-001", [], [], [], case, collections_journeys=journeys)) == 6
+    # A dual-fuel gas leg: the desk runs the home on the electricity account. Its letters yield to
+    # that run, and the journey's own events are shown once, on the electricity leg, not here.
+    gas = build_customer_ledger("SYN-2016-001", [], [], [], case, collections_journeys=[], desk_journeys=[cured])
+    assert [(e["date"], e["event_type"]) for e in gas] == facts
 
 
 HH = {"legs": ["electricity"]}
