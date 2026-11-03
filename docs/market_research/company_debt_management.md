@@ -808,6 +808,56 @@ puts them in order from the point where our ladder ran out.*
   write-off on any other clock (GAP A3 is erred on the side of chasing).
 - **Not built:** live agency placement (GAP A2), DRS (GAP A4), Fuel Direct, and involuntary PPM (reserved).
 
+### A stale balance with no new miss: may act, not must (2026-11-03)
+*Raised by the fifth cold read (`docs/staging/records/SEAT_READING_THE_FIFTH_COLD_READ_ON_THE_3DC5A92948_BOOK_2026-10-30.md`
+P6): SYN-2016-550 carries electricity bills of Oct 2018 and May 2020 and a gas bill of Dec 2023, "all
+unchased". The question: must a supplier act on old arrears when nothing new has been missed?*
+
+- **The licence sets no clock.** 27.5 is a standing duty ("becomes aware or has reason to believe"). A
+  balance still unpaid is evidence of difficulty, but the 27.6 offer for it has already been made. 27.5B
+  dates only the *first* contact. 27.8A(g) re-engagement is tied to a *failed arrangement*, and these
+  balances have none. GAP A1 still stands: no published text gives a re-contact interval. **ESTABLISHED as
+  an absence** in the SLC 27 text quoted above.
+- **The regulator expects movement, but does not set a duty.** Ofgem's *Consumer Vulnerability Strategy:
+  Progress Report* (16 Jul 2026, pp. 24–26,
+  https://www.ofgem.gov.uk/sites/default/files/2026-07/consumer-vulnerability-strategy-progress-report.pdf)
+  says "around 58% of consumers who were behind on their bills were in arrears without a repayment plan"
+  at the end of 2025, up from about 49% at the end of 2020. It also says "suppliers should ... move more
+  customers into sustainable repayment arrangements". It names "prolonged non-payment" among the
+  automated triggers E.ON and ScottishPower use "to prompt proactive contact". **ESTABLISHED:** a
+  quiet-balance trigger is published GB practice. **GAP A5:** no published duration for "prolonged". It
+  is a practitioner question (K4).
+- **Answer: a supplier MAY act, and Ofgem's stated direction favours acting. It is not required on any
+  clock.** A balance kept on a live account stays demandable (27.8C is met once the offer is made), and
+  the statute bar (s.29(5)) rewards contact that draws an acknowledgement.
+
+**Measured on the published book** (0a6391d186, `docs/state/billing_ledger.json`, as of 4 Jul 2025, the
+latest issue date). An account counts if it holds a bill with status `overdue` whose due date is more
+than 365 days before as of. A "desk act" is any stage of any collections-desk journey on the account.
+- **35 accounts** hold such a bill: 18 on electricity and 17 on gas. Those bills' face values run from
+  £15.48 to £369.10 per account, median £93.13 (bands: 10 under £50, 22 from £50 to £200, 3 of £200 or more).
+- **0 of the 35 had no desk act in the 12 months before as of.** All 35 have an open journey. The
+  re-offer fires because these households keep paying new bills after their due date. SYN-2016-550
+  (both legs, one account) was re-offered the plan twice a month through 16 Jun 2025. P6's "unchased"
+  does not hold on this book. It read a page that did not yet show the desk's journey.
+- **The residual shape is real, and it is narrow.** Measured from each account's oldest overdue due
+  date, the longest quiet gap is over 90 days on 4 of the 35. Three are leavers awaiting the
+  final-bill write-off (SYN-2016-306 at 346 days, PROS-2019-0063g at 171, PROS-2020-0013g at 71 after
+  its last bill). One is live: **SYN-2016-021**, holding two 2019 gas bills (face £105.69, £83.88 still owed), had no contact for
+  166 days (1 Jan – 16 Jun 2023). It missed no bill in that stretch: the desk opens on every miss.
+
+### Design choice: no stale-balance step yet, and the reason
+- **Not built.** The world answers every plan offer None (`ARRANGEMENT_ACCEPTANCE_GAP`;
+  `domestic_repayment_plan_take_up_and_keep_rates.md`). A further offer on a quiet balance would add a
+  recorded act. It would not change any money, any arrangement or any outcome. The measured gap it
+  would close is one live account for one 166-day stretch, and its interval would be an invented number
+  (GAP A5).
+- **What would change this:** the world starts pricing plan take-up, or a run shows live quiet gaps
+  over 90 days on more than a handful of accounts. Then build a `prolonged non-payment` re-offer in
+  `collections_journey.py`, keyed to an observable. The candidate is a bill cycle passing with the
+  balance held and no desk act. Its duration goes to a practitioner first. Re-run the census above
+  (count, gaps, fuel) on that run before building.
+
 ## One ladder for one act: the ledger's per-bill notices take their days from the desk (2026-10-24)
 
 *K8 page for `the-published-household-record-shows-the-desks-collections-journey`. There are two
