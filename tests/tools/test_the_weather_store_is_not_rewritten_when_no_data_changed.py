@@ -127,3 +127,30 @@ def test_a_build_that_fetched_nothing_does_not_dirty_the_series_file(store, monk
         "a build with an empty `todo` rewrote the series file anyway -- the same no-op that a "
         "quota-exhausted run performs, and the reason `git status` cannot be trusted to say "
         "whether a weather build actually brought anything back")
+
+
+def test_a_write_killed_midway_leaves_the_previous_series_whole(store, monkeypatch):
+    """THE DEFECT (2026-11-03): `_write` opened the series itself for writing, so a pull stopped by
+    `timeout` or SIGTERM while the 34 MB file was being re-rendered left it truncated under a
+    `cells.json` naming every cell. It now writes a sibling and renames it. Both legs: the kill
+    leaves the old bytes, and the same write uninterrupted lands the new ones.
+    """
+    cells = _cells()
+    bw._write(cells, {CELL_IDS[0]: _rows(CELL_IDS[0], 4.2)})
+    before = bw.SERIES_PATH.read_bytes()
+
+    real = gzip.GzipFile.write
+
+    def dies(self, data):
+        real(self, data)
+        raise KeyboardInterrupt("killed mid-write")
+
+    monkeypatch.setattr(gzip.GzipFile, "write", dies)
+    with pytest.raises(KeyboardInterrupt):
+        bw._write(cells, {CELL_IDS[0]: _rows(CELL_IDS[0], 9.9)})
+    assert bw.SERIES_PATH.read_bytes() == before, "a killed write damaged the series"
+
+    monkeypatch.setattr(gzip.GzipFile, "write", real)
+    assert bw._write(cells, {CELL_IDS[0]: _rows(CELL_IDS[0], 9.9)})["series_rewritten"]
+    with gzip.open(bw.SERIES_PATH, "rt", newline="") as handle:
+        assert "9.9" in handle.read()
