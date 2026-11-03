@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-11-03T03:24:18Z",
+  "generated_at": "2026-11-03T08:29:14Z",
   "run_generated_at": "2026-11-03T02:14:32Z",
   "run_git_commit": "0a6391d186",
   "household_count": 752,
@@ -51,7 +51,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 1 Feb 2025",
        "drawn_from": "2025-02-01"
       },
       {
@@ -91,7 +91,7 @@
      ],
      "portal": {
       "message": "Welcome to Poesys. Your electricity and gas supply started on 1 Feb 2025.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 1 Feb 2025",
       "pays": "Set up at your first bill",
       "balance": "Nothing owed",
       "usage": [],
@@ -124,7 +124,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 1 Feb 2025",
        "drawn_from": "2025-02-01"
       },
       {
@@ -164,7 +164,7 @@
      ],
      "portal": {
       "message": "Your first electricity bill is ready: £88.24.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 1 Feb 2025",
       "pays": "Set up at your first bill",
       "balance": "£188.57 to pay",
       "usage": [
@@ -218,7 +218,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 1 Feb 2025",
        "drawn_from": "2025-02-01"
       },
       {
@@ -258,7 +258,7 @@
      ],
      "portal": {
       "message": "Your electricity bill is ready: £95.81.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 1 Feb 2025",
       "pays": "Direct debit",
       "balance": "£196.41 to pay",
       "usage": [
@@ -314,7 +314,7 @@
    "feature": "The renewal",
    "rule": "The largest gap between the supplier's stored churn belief and the true probability at a renewal decision",
    "filled": true,
-   "glossary": "Renewal: a fixed-price tariff is ending, and the supplier decides what to offer before the household decides whether to stay.",
+   "glossary": "Renewal: a fixed-price tariff is ending, or a household on the default tariff is due an offer, and the supplier decides what to offer before the household decides whether to stay.",
    "household": "SYN-2016-031",
    "fuels": [
     "electricity",
@@ -351,7 +351,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 26 Jan 2016",
        "drawn_from": "2016-01-26"
       },
       {
@@ -391,7 +391,7 @@
      ],
      "portal": {
       "message": "Welcome to Poesys. Your electricity and gas supply started on 26 Jan 2016.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 26 Jan 2016",
       "pays": "Set up at your first bill",
       "balance": "Nothing owed",
       "usage": [],
@@ -429,8 +429,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 152.0 £/MWh from 25 Jan 2019",
-       "drawn_from": "2019-01-25"
+       "v": "Standard variable since 1 Feb 2020",
+       "drawn_from": "2020-02-01"
       },
       {
        "k": "Churn risk it held",
@@ -490,8 +490,8 @@
       }
      ],
      "portal": {
-      "message": "Your fixed tariff is ending. We have an offer for you.",
-      "tariff": "Fixed from 25 Jan 2019",
+      "message": "You are on our standard variable tariff. We have an offer for you.",
+      "tariff": "Standard variable since 1 Feb 2020",
       "pays": "Direct debit",
       "balance": "£63.78 to pay",
       "usage": [
@@ -809,8 +809,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 267.0 £/MWh from 24 Jan 2024",
-       "drawn_from": "2024-01-24"
+       "v": "Electricity: Fixed at 267.0 £/MWh from 24 Jan 2024; Gas: Standard variable since 1 Feb 2020",
+       "drawn_from": "2020-02-01"
       },
       {
        "k": "Churn risk it held",
@@ -871,7 +871,7 @@
      ],
      "portal": {
       "message": "Sorry to see you go. Your final bill will follow.",
-      "tariff": "Fixed from 24 Jan 2024",
+      "tariff": "Electricity: Fixed from 24 Jan 2024; Gas: Standard variable since 1 Feb 2020",
       "pays": "Direct debit",
       "balance": "£364.66 to pay",
       "usage": [
@@ -1014,7 +1014,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 30 Aug 2017",
        "drawn_from": "2017-08-30"
       },
       {
@@ -1054,7 +1054,7 @@
      ],
      "portal": {
       "message": "Welcome to Poesys. Your electricity and gas supply started on 30 Aug 2017.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 30 Aug 2017",
       "pays": "Set up at your first bill",
       "balance": "Nothing owed",
       "usage": [],
@@ -1092,7 +1092,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 30 Aug 2017",
        "drawn_from": "2017-08-30"
       },
       {
@@ -1132,7 +1132,7 @@
      ],
      "portal": {
       "message": "Your gas bill is estimated. Send us a reading to make it accurate.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 30 Aug 2017",
       "pays": "Direct debit",
       "balance": "£45.79 to pay",
       "usage": [
@@ -1260,7 +1260,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 30 Aug 2017",
        "drawn_from": "2017-08-30"
       },
       {
@@ -1300,7 +1300,7 @@
      ],
      "portal": {
       "message": "We have a meter reading and your bill now reflects what you used.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 30 Aug 2017",
       "pays": "Direct debit",
       "balance": "£2.25 in credit",
       "usage": [
@@ -1443,7 +1443,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 13 Aug 2016",
        "drawn_from": "2016-08-13"
       },
       {
@@ -1483,7 +1483,7 @@
      ],
      "portal": {
       "message": "Welcome to Poesys. Your electricity and gas supply started on 13 Aug 2016.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 13 Aug 2016",
       "pays": "Set up at your first bill",
       "balance": "Nothing owed",
       "usage": [],
@@ -1516,8 +1516,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 143.0 £/MWh from 13 Aug 2018",
-       "drawn_from": "2018-08-13"
+       "v": "Standard variable since 1 Sep 2019",
+       "drawn_from": "2019-09-01"
       },
       {
        "k": "Churn risk it held",
@@ -1573,7 +1573,7 @@
      ],
      "portal": {
       "message": "Your account closes on your moving date. Your final bill will follow.",
-      "tariff": "Fixed from 13 Aug 2018",
+      "tariff": "Standard variable since 1 Sep 2019",
       "pays": "Direct debit",
       "balance": "£43.78 to pay",
       "usage": [
@@ -1696,8 +1696,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 143.0 £/MWh from 13 Aug 2018",
-       "drawn_from": "2018-08-13"
+       "v": "Standard variable since 1 Sep 2019",
+       "drawn_from": "2019-09-01"
       },
       {
        "k": "Churn risk it held",
@@ -1753,7 +1753,7 @@
      ],
      "portal": {
       "message": "No message: this household has left.",
-      "tariff": "Fixed from 13 Aug 2018",
+      "tariff": "Standard variable since 1 Sep 2019",
       "pays": "Direct debit",
       "balance": "£43.78 to pay",
       "usage": [
@@ -1876,8 +1876,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 143.0 £/MWh from 13 Aug 2018",
-       "drawn_from": "2018-08-13"
+       "v": "Standard variable since 1 Sep 2019",
+       "drawn_from": "2019-09-01"
       },
       {
        "k": "Churn risk it held",
@@ -1933,7 +1933,7 @@
      ],
      "portal": {
       "message": "Your final bill is ready: electricity £48.85 and gas £64.65.",
-      "tariff": "Fixed from 13 Aug 2018",
+      "tariff": "Standard variable since 1 Sep 2019",
       "pays": "Direct debit",
       "balance": "£43.78 to pay",
       "usage": [
@@ -2056,8 +2056,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 143.0 £/MWh from 13 Aug 2018",
-       "drawn_from": "2018-08-13"
+       "v": "Standard variable since 1 Sep 2019",
+       "drawn_from": "2019-09-01"
       },
       {
        "k": "Churn risk it held",
@@ -2113,7 +2113,7 @@
      ],
      "portal": {
       "message": "We have refunded the credit on your closed account.",
-      "tariff": "Fixed from 13 Aug 2018",
+      "tariff": "Standard variable since 1 Sep 2019",
       "pays": "Direct debit",
       "balance": "Nothing owed",
       "usage": [
@@ -2256,8 +2256,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 146.0 £/MWh from 28 Apr 2019",
-       "drawn_from": "2019-04-28"
+       "v": "Standard variable since 1 May 2020",
+       "drawn_from": "2020-05-01"
       },
       {
        "k": "Churn risk it held",
@@ -2318,7 +2318,7 @@
      ],
      "portal": {
       "message": "Your account is overdue. Please pay or call us.",
-      "tariff": "Fixed from 28 Apr 2019",
+      "tariff": "Standard variable since 1 May 2020",
       "pays": "Pay on receipt of bill",
       "balance": "£20.46 to pay",
       "usage": [
@@ -2441,8 +2441,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 146.0 £/MWh from 28 Apr 2019",
-       "drawn_from": "2019-04-28"
+       "v": "Standard variable since 1 May 2020",
+       "drawn_from": "2020-05-01"
       },
       {
        "k": "Churn risk it held",
@@ -2503,7 +2503,7 @@
      ],
      "portal": {
       "message": "Your account is overdue. Please pay or call us.",
-      "tariff": "Fixed from 28 Apr 2019",
+      "tariff": "Standard variable since 1 May 2020",
       "pays": "Pay on receipt of bill",
       "balance": "£20.46 to pay",
       "usage": [
@@ -2626,8 +2626,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 146.0 £/MWh from 28 Apr 2019",
-       "drawn_from": "2019-04-28"
+       "v": "Standard variable since 1 May 2020",
+       "drawn_from": "2020-05-01"
       },
       {
        "k": "Churn risk it held",
@@ -2688,7 +2688,7 @@
      ],
      "portal": {
       "message": "Your account is still overdue. Please pay or call us.",
-      "tariff": "Fixed from 28 Apr 2019",
+      "tariff": "Standard variable since 1 May 2020",
       "pays": "Pay on receipt of bill",
       "balance": "£20.46 to pay",
       "usage": [
@@ -2811,8 +2811,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 146.0 £/MWh from 28 Apr 2019",
-       "drawn_from": "2019-04-28"
+       "v": "Standard variable since 1 May 2020",
+       "drawn_from": "2020-05-01"
       },
       {
        "k": "Churn risk it held",
@@ -2873,7 +2873,7 @@
      ],
      "portal": {
       "message": "We can set up a payment plan you can afford.",
-      "tariff": "Fixed from 28 Apr 2019",
+      "tariff": "Standard variable since 1 May 2020",
       "pays": "Pay on receipt of bill",
       "balance": "£172.73 to pay",
       "usage": [
@@ -2996,8 +2996,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Fixed at 146.0 £/MWh from 28 Apr 2019",
-       "drawn_from": "2019-04-28"
+       "v": "Standard variable since 1 May 2020",
+       "drawn_from": "2020-05-01"
       },
       {
        "k": "Churn risk it held",
@@ -3058,7 +3058,7 @@
      ],
      "portal": {
       "message": "Thank you: your account is no longer overdue.",
-      "tariff": "Fixed from 28 Apr 2019",
+      "tariff": "Standard variable since 1 May 2020",
       "pays": "Pay on receipt of bill",
       "balance": "Nothing owed",
       "usage": [
@@ -3177,21 +3177,21 @@
   {
    "id": "storage_heating",
    "feature": "Storage heating",
-   "rule": "A two-rate (profile class 2) home billed on its meter's registers",
+   "rule": "The two-rate (profile class 2) home whose actual reads put the most of its use on the night register, where storage heaters charge",
    "filled": true,
    "glossary": "Storage heating: heaters that charge overnight on a two-rate meter (such as Economy 7), whose night units are billed cheaper.",
-   "household": "PROS-2017-0233",
+   "household": "PROS-2020-0189",
    "fuels": [
     "electricity"
    ],
    "segment": "resi",
-   "span": "3 Aug 2017 to 1 Aug 2020",
-   "story": "A two-rate meter whose night units are billed cheaper.",
+   "span": "2 Jul 2020 to 7 Jun 2025",
+   "story": "Heaters that charge overnight: most of the use lands on the cheaper night register.",
    "opening": 1,
    "moments": [
     {
-     "iso": "2017-08-03",
-     "date": "3 Aug 2017",
+     "iso": "2020-07-02",
+     "date": "2 Jul 2020",
      "kind": "joined",
      "title": "Switched in",
      "story": "The household joins Poesys for electricity.",
@@ -3200,45 +3200,45 @@
      "supplier": [
       {
        "k": "Customer since",
-       "v": "3 Aug 2017",
-       "drawn_from": "2017-08-03"
+       "v": "2 Jul 2020",
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Fuels",
        "v": "Electricity",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "How they pay",
        "v": "No payment yet",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2017-08-03"
+       "v": "Fixed from 2 Jul 2020",
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Payment record",
        "v": "0 of 0 bills paid, 0 returned, 0 missed",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Meter reads",
        "v": "0 bills, 0 on an actual read",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Balance on the books",
        "v": "Nothing owed",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       }
      ],
      "decision": "No decision about this household is on record yet.",
      "truth": [
       {
        "k": "Household",
-       "v": "three to four person, social renter"
+       "v": "two person, private renter"
       },
       {
        "k": "Money",
@@ -3254,8 +3254,8 @@
       }
      ],
      "portal": {
-      "message": "Welcome to Poesys. Your electricity supply started on 3 Aug 2017.",
-      "tariff": "Standard Variable",
+      "message": "Welcome to Poesys. Your electricity supply started on 2 Jul 2020.",
+      "tariff": "Fixed from 2 Jul 2020",
       "pays": "Set up at your first bill",
       "balance": "Nothing owed",
       "usage": [],
@@ -3263,55 +3263,55 @@
      }
     },
     {
-     "iso": "2017-08-31",
-     "date": "31 Aug 2017",
+     "iso": "2020-07-31",
+     "date": "31 Jul 2020",
      "kind": "first_bill",
      "title": "First bill",
-     "story": "The first electricity bill: £28.33 for 172 kWh, estimated, charged as Day 123.3 kWh at 14.72p and Night 48.9 kWh at 6.91p before VAT.",
+     "story": "The first electricity bill: £57.17 for 393 kWh, estimated, charged as Day 264.1 kWh at 14.63p and Night 128.6 kWh at 6.88p before VAT.",
      "why": "The amount follows from the reading and the tariff; nothing else is behind it.",
      "gap": null,
      "supplier": [
       {
        "k": "Customer since",
-       "v": "3 Aug 2017",
-       "drawn_from": "2017-08-03"
+       "v": "2 Jul 2020",
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Fuels",
        "v": "Electricity",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "How they pay",
        "v": "No payment yet",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2017-08-03"
+       "v": "Fixed from 2 Jul 2020",
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Payment record",
        "v": "0 of 0 bills paid, 0 returned, 0 missed",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Meter reads",
        "v": "1 bills, 0 on an actual read",
-       "drawn_from": "2017-08-31"
+       "drawn_from": "2020-07-31"
       },
       {
        "k": "Balance on the books",
-       "v": "£28.33 owed",
-       "drawn_from": "2017-08-31"
+       "v": "£57.17 owed",
+       "drawn_from": "2020-07-31"
       }
      ],
      "decision": "No decision about this household is on record yet.",
      "truth": [
       {
        "k": "Household",
-       "v": "three to four person, social renter"
+       "v": "two person, private renter"
       },
       {
        "k": "Money",
@@ -3327,83 +3327,78 @@
       }
      ],
      "portal": {
-      "message": "Your first electricity bill is ready: £28.33.",
-      "tariff": "Standard Variable",
+      "message": "Your first electricity bill is ready: £57.17.",
+      "tariff": "Fixed from 2 Jul 2020",
       "pays": "Set up at your first bill",
-      "balance": "£28.33 to pay",
+      "balance": "£57.17 to pay",
       "usage": [
        {
-        "month": "2017-08",
-        "e": 172,
+        "month": "2020-07",
+        "e": 393,
         "g": 0
        }
       ],
       "bills": [
        {
         "fuel": "electricity",
-        "when": "31 Aug 2017",
-        "kwh": 172,
-        "amount": "£28.33, charged as Day 123.3 kWh at 14.72p and Night 48.9 kWh at 6.91p before VAT",
+        "when": "31 Jul 2020",
+        "kwh": 393,
+        "amount": "£57.17, charged as Day 264.1 kWh at 14.63p and Night 128.6 kWh at 6.88p before VAT",
         "badge": "Estimated"
        }
       ]
      }
     },
     {
-     "iso": "2017-12-31",
-     "date": "31 Dec 2017",
+     "iso": "2020-12-31",
+     "date": "31 Dec 2020",
      "kind": "bill",
      "title": "A winter bill",
-     "story": "The electricity bill of 31 Dec 2017: £53.06 for 418 kWh, estimated, charged as Day 202.3 kWh at 14.71p and Night 215.5 kWh at 6.92p before VAT.",
+     "story": "The electricity bill of 31 Dec 2020: £107.55 for 1,188 kWh, on an actual read, charged as Day 174.8 kWh at 14.63p and Night 1,013.2 kWh at 6.88p before VAT.",
      "why": "The amount follows from the reading and the tariff then in force.",
      "gap": null,
      "supplier": [
       {
        "k": "Customer since",
-       "v": "3 Aug 2017",
-       "drawn_from": "2017-08-03"
+       "v": "2 Jul 2020",
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Fuels",
        "v": "Electricity",
-       "drawn_from": "2017-08-03"
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "How they pay",
        "v": "Direct debit",
-       "drawn_from": "2017-12-16"
+       "drawn_from": "2020-12-15"
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2017-08-03"
+       "v": "Fixed from 2 Jul 2020",
+       "drawn_from": "2020-07-02"
       },
       {
        "k": "Payment record",
-       "v": "3 of 4 bills paid, 1 returned, 1 missed",
-       "drawn_from": "2017-12-17"
+       "v": "5 of 5 bills paid, 0 returned, 0 missed",
+       "drawn_from": "2020-12-16"
       },
       {
        "k": "Meter reads",
-       "v": "5 bills, 0 on an actual read",
-       "drawn_from": "2017-12-31"
+       "v": "6 bills, 2 on an actual read, last on 31 Dec 2020",
+       "drawn_from": "2020-12-31"
       },
       {
        "k": "Balance on the books",
-       "v": "£88.51 owed",
-       "drawn_from": "2017-12-31"
-      },
-      {
-       "k": "Debt stage",
-       "v": "Affordable arrangement put to the household -- GBP35.45 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
-       "drawn_from": "2017-12-17"
+       "v": "£107.55 owed",
+       "drawn_from": "2020-12-31"
       }
      ],
-     "decision": "17 Dec 2017: A further bill missed past the top rung: payment plan offered again -- £35.45 overdue",
+     "decision": "No decision about this household is on record yet.",
      "truth": [
       {
        "k": "Household",
-       "v": "three to four person, social renter"
+       "v": "two person, private renter"
       },
       {
        "k": "Money",
@@ -3419,72 +3414,84 @@
       }
      ],
      "portal": {
-      "message": "Your electricity bill is ready: £53.06.",
-      "tariff": "Standard Variable",
+      "message": "Your electricity bill is ready: £107.55.",
+      "tariff": "Fixed from 2 Jul 2020",
       "pays": "Direct debit",
-      "balance": "£88.51 to pay",
+      "balance": "£107.55 to pay",
       "usage": [
        {
-        "month": "2017-08",
-        "e": 172,
+        "month": "2020-07",
+        "e": 393,
         "g": 0
        },
        {
-        "month": "2017-09",
-        "e": 237,
+        "month": "2020-08",
+        "e": 374,
         "g": 0
        },
        {
-        "month": "2017-10",
-        "e": 272,
+        "month": "2020-09",
+        "e": 482,
         "g": 0
        },
        {
-        "month": "2017-11",
-        "e": 404,
+        "month": "2020-10",
+        "e": 553,
         "g": 0
        },
        {
-        "month": "2017-12",
-        "e": 418,
+        "month": "2020-11",
+        "e": 906,
+        "g": 0
+       },
+       {
+        "month": "2020-12",
+        "e": 1188,
         "g": 0
        }
       ],
       "bills": [
        {
         "fuel": "electricity",
-        "when": "31 Dec 2017",
-        "kwh": 418,
-        "amount": "£53.06, charged as Day 202.3 kWh at 14.71p and Night 215.5 kWh at 6.92p before VAT",
+        "when": "31 Dec 2020",
+        "kwh": 1188,
+        "amount": "£107.55, charged as Day 174.8 kWh at 14.63p and Night 1,013.2 kWh at 6.88p before VAT",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "30 Nov 2020",
+        "kwh": 906,
+        "amount": "£19.92, including a £63.00 credit correcting the estimated bills from 2 Jul 2020 to 31 Oct 2020, charged as Day 164.1 kWh at 14.63p and Night 741.8 kWh at 6.88p before VAT",
+        "badge": "Actual read"
+       },
+       {
+        "fuel": "electricity",
+        "when": "31 Oct 2020",
+        "kwh": 553,
+        "amount": "£74.59, charged as Day 333.2 kWh at 14.63p and Night 219.8 kWh at 6.87p before VAT",
         "badge": "Estimated"
        },
        {
         "fuel": "electricity",
-        "when": "30 Nov 2017",
-        "kwh": 404,
-        "amount": "£51.31, charged as Day 195.6 kWh at 14.71p and Night 208.5 kWh at 6.92p before VAT",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "31 Oct 2017",
-        "kwh": 272,
-        "amount": "£39.31, charged as Day 163.8 kWh at 14.72p and Night 108.1 kWh at 6.92p before VAT",
-        "badge": "Estimated"
-       },
-       {
-        "fuel": "electricity",
-        "when": "30 Sep 2017",
-        "kwh": 237,
-        "amount": "£35.45, charged as Day 150.6 kWh at 14.71p and Night 86.3 kWh at 6.92p before VAT",
+        "when": "30 Sep 2020",
+        "kwh": 482,
+        "amount": "£67.00, charged as Day 306.2 kWh at 14.63p and Night 175.4 kWh at 6.87p before VAT",
         "badge": "Estimated"
        }
       ]
      }
     }
    ],
-   "breaches": [],
-   "breach_count": 0
+   "breaches": [
+    {
+     "rule": "above_cap",
+     "date": "2022-06-30",
+     "fuel": "electricity",
+     "text": "Electricity bill of 30 Jun 2022: 28.71p/kWh all-in including VAT, against a ceiling of 28.34p/kWh for a default tariff then (GB average; the cap is set per region)"
+    }
+   ],
+   "breach_count": 1
   },
   {
    "id": "shock_2022",
@@ -3527,7 +3534,7 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
+       "v": "Fixed from 18 Aug 2019",
        "drawn_from": "2019-08-18"
       },
       {
@@ -3567,7 +3574,7 @@
      ],
      "portal": {
       "message": "Welcome to Poesys. Your electricity supply started on 18 Aug 2019.",
-      "tariff": "Standard Variable",
+      "tariff": "Fixed from 18 Aug 2019",
       "pays": "Set up at your first bill",
       "balance": "Nothing owed",
       "usage": [],
@@ -3600,8 +3607,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2019-08-18"
+       "v": "Standard variable since 1 Sep 2020",
+       "drawn_from": "2020-09-01"
       },
       {
        "k": "Payment record",
@@ -3645,7 +3652,7 @@
      ],
      "portal": {
       "message": "Your electricity bill is ready: £311.11.",
-      "tariff": "Standard Variable",
+      "tariff": "Standard variable since 1 Sep 2020",
       "pays": "Direct debit",
       "balance": "£311.11 to pay",
       "usage": [
@@ -3768,8 +3775,8 @@
       },
       {
        "k": "Tariff",
-       "v": "Standard variable",
-       "drawn_from": "2019-08-18"
+       "v": "Standard variable since 1 Sep 2020",
+       "drawn_from": "2020-09-01"
       },
       {
        "k": "Payment record",
@@ -3813,7 +3820,7 @@
      ],
      "portal": {
       "message": "Your bill has changed because energy prices have changed.",
-      "tariff": "Standard Variable",
+      "tariff": "Standard variable since 1 Sep 2020",
       "pays": "Direct debit",
       "balance": "£531.04 to pay",
       "usage": [

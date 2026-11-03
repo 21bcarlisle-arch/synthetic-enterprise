@@ -173,6 +173,24 @@ over-estimates leave `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS`, because a p
 PC2's shape does not carry winter night load into a summer day. The row's other three E2 residuals
 (SYN-2016-396g, PROS-2016-0263g, and any direct-electric home) do not move.
 
+## Telling a storage-heated home from its bills (added 3 Nov 2026, for Explore's storage slot)
+
+The seventh cold read rejected the slot's household: a PC2 meter is the meter, not the heating (R1),
+and that home sat at 45% night on bills that were all estimates. What a supplier can see that heating
+leaves behind is the **night register's share of actual reads**.
+
+- **The choice: at least 53% of actual-read units on the night register**, over bills that include a
+  winter and a summer one. 53% is the lowest share Nottingham CHA's trial measured in storage homes
+  (G4). It sits above the cap's 42% and above PC2's 45.3% for the average E7 home, so a home at the
+  average E7 split is not shown as storage-heated.
+- **Estimates are excluded.** An estimate is shaped on PC2 (above), so its night share is the
+  supplier's own profile, not evidence of heaters.
+- **Which way this errs.** It wrongly turns away a storage home with a high daytime base load. That is
+  the safe direction: the slot can end up empty, but it does not show a home that isn't storage-heated.
+- **Not established (GAP).** No published annual consumption band specific to storage-heated homes was
+  found. The slot keeps the floor it already had: more than the 2,700 kWh medium TDCV for a home that
+  does not heat with electricity.
+
 ## Sources
 
 - Elexon, *Profiling* (elexon.co.uk/bsc/settlement/profiling/), read 2026-10-22, via `docs/data-sources/profile-class-2.md`.

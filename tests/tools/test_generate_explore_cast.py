@@ -305,11 +305,35 @@ def test_the_storage_story_shows_a_winter_bill_on_its_day_and_night_lines():
     assert winter and winter[0]["date"] == "2019-01-31", got[1]
     (m,) = [m for m in gen._moments_for(hh, ev, got[1]) if m["kind"] == "bill"]
     assert "Day 812.3 kWh at 13.13p" in m["story"] and "Night 1,204.0 kWh at 3.37p" in m["story"], m["story"]
+    no_winter = "it has no winter bill on an actual read of its two registers to show"
     summer_only = _hh([aug])
-    assert "it has no winter bill on its two registers to show" in gen._slot_failures(
-        "storage_heating", *summer_only, gen._score_storage(*summer_only, {})[1])
-    assert "it has no winter bill on its two registers to show" not in gen._slot_failures(
-        "storage_heating", hh, ev, got[1])
+    assert no_winter in gen._slot_failures("storage_heating", *summer_only, gen._score_storage(*summer_only, {})[1])
+    assert no_winter not in gen._slot_failures("storage_heating", hh, ev, got[1])
+    # An estimated winter bill is the supplier's guess at the heating (seventh cold read, storage slot).
+    est = _hh([aug, dict(jan, read_type="E")])
+    assert no_winter in gen._slot_failures("storage_heating", *est, gen._score_storage(*est, {})[1])
+
+
+def test_the_storage_slot_reads_heating_on_the_night_register_not_the_meter():
+    """Seventh cold read: the slot showed a profile class 2 home at the average Economy 7 night split
+    (45%), which tests the meter, not the heating. Defects named: a home under the night-share floor
+    passing; a home over it failing; a share measured from one season passing. Every leg reached."""
+    def regs(day, night):
+        return [{"label": "Day", "consumption_kwh": day}, {"label": "Night", "consumption_kwh": night}]
+    under = "the least a storage-heated home was measured at"
+    unmeasured = "so its night share is not measured"
+
+    def fails(*bills):
+        hh, ev = _hh(list(bills))
+        return " ".join(gen._slot_failures("storage_heating", hh, ev, gen._score_storage(hh, ev, {})[1]))
+    heated = fails(_inv("2018-08-31", 300, 30, registers=regs(200, 100)),
+                   _inv("2019-01-31", 1500, 90, registers=regs(300, 1200)))
+    average_e7 = fails(_inv("2018-08-31", 300, 30, registers=regs(200, 100)),
+                       _inv("2019-01-31", 600, 60, registers=regs(310, 290)))
+    winter_only = fails(_inv("2019-01-31", 1500, 90, registers=regs(300, 1200)))
+    assert under not in heated and unmeasured not in heated, heated
+    assert under in average_e7, average_e7
+    assert unmeasured in winter_only, winter_only
 
 def test_a_two_rate_bill_quotes_each_registers_rate_with_its_network_and_policy_costs():
     """Seventh cold read, storage slot: PROS-2017-0233's Dec 2017 bill read "Night 215.5 kWh at
@@ -691,3 +715,28 @@ def test_a_credit_note_not_yet_due_is_not_added_back_to_what_is_owed():
     Can-refuse beside it: the same story without the credit note still refuses."""
     assert gen.CLEARED_WHILE_OWED not in _cleared_hh(caught_up=False, credit_note=True)
     assert gen.CLEARED_WHILE_OWED in _cleared_hh(caught_up=False)
+
+
+def test_the_tariff_label_reads_the_term_the_bills_record_at_the_moment():
+    """Seventh cold read, N16: "any renewal on record" printed "Fixed from 25 Jan 2019" on a home billed
+    on the default tariff since Feb 2020, and a joining fix as "Standard Variable". Defects named: a
+    fix that rolled to SVT still read fixed; a joining fix read SVT; a renewal made before its first
+    fixed bill missed; a renewal decision on SVT told its fix is ending. Every leg reached."""
+    bills = [_inv("2019-{:02d}-28".format(m), 100, 10, term_tariff_type="fixed" if m < 4 or 6 <= m < 9 else "svt")
+             for m in range(1, 13)]
+    renewal = {"date": "2019-05-28", "type": "renewed", "detail": "Tariff renewed at 152.0 £/MWh"}
+    hh, ev = _hh(bills, timeline=[renewal])
+
+    def label(iso, office=False):
+        return gen._tariff_words(gen.term_in_force(hh, ev, iso), back_office=office)[0]
+    assert label("2019-02-15") == "Fixed from 1 Jan 2019"
+    assert label("2019-04-15") == "Standard variable since 1 Apr 2019"
+    assert label("2019-05-30", office=True) == "Fixed at 152.0 £/MWh from 28 May 2019"
+    assert label("2019-07-15", office=True) == "Fixed at 152.0 £/MWh from 28 May 2019"
+    assert label("2019-11-15") == "Standard variable since 1 Sep 2019"
+    msg = gen._template(hh, ev, "2019-11-20", "renewal_decision",
+                        {"company_belief": 0.3, "sim_truth": 0.1, "description": "offer"})[2]
+    assert msg.startswith("You are on our standard variable tariff."), msg
+    msg = gen._template(hh, ev, "2019-08-20", "renewal_decision",
+                        {"company_belief": 0.3, "sim_truth": 0.1, "description": "offer"})[2]
+    assert msg.startswith("Your fixed tariff is ending."), msg

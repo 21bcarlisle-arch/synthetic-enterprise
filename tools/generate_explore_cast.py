@@ -155,6 +155,66 @@ def _known_by(records: list[dict], iso: str) -> list[dict]:
     return [r for r in records if (r.get("date") or "9999") <= iso]
 
 
+#: A renewal is dated a few days before the first bill of the fix it starts (SYN-2016-031: renewed
+#: 25 Jan 2019, first fixed bill from 1 Feb), so a renewal this close before a fixed run is its start.
+_RENEWAL_LEAD_DAYS = 40
+
+
+def _leg_term(ev: dict, fuel: str, iso: str) -> dict | None:
+    """The term one leg was on at `iso`, as its bills record it (`term_tariff_type`), or None.
+
+    The door is the bill's period START, not its issue date: the supplier holds a contract term from
+    the day it begins, and the bill is only where the run writes it down. A `renewed` record after
+    the last such period start is a fix begun before its first bill. Reading "any renewal on
+    record" printed "Fixed from 25 Jan 2019" on a household billed on the default tariff since Feb
+    2020 (seventh cold read, N16)."""
+    bills = sorted((i for i in ev["invoice"] if i["fuel"] == fuel and (i.get("document_type") or "bill") == "bill"
+                    and (i.get("period_start") or i["date"]) <= iso), key=lambda i: i.get("period_start") or i["date"])
+    renewals = [e for e in ev["timeline"] if e.get("type") == "renewed" and e.get("fuel") == fuel and e["date"] <= iso]
+    if not bills:
+        return None
+    cur = bills[-1]
+    term = cur.get("term_tariff_type")
+    late = [e for e in renewals if e["date"] > (cur.get("period_start") or cur["date"])]
+    if late:
+        return {"term": "fixed", "since": late[-1]["date"], "renewal": late[-1]}
+    if term is None:
+        return {"term": None, "since": cur.get("period_start") or cur["date"], "renewal": None}
+    k = len(bills) - 1
+    while k > 0 and bills[k - 1].get("term_tariff_type") == term:
+        k -= 1
+    since = bills[k].get("period_start") or bills[k]["date"]
+    lead = date.fromisoformat(since[:10]).toordinal() - _RENEWAL_LEAD_DAYS
+    ren = next((e for e in reversed(renewals) if date.fromisoformat(e["date"][:10]).toordinal() >= lead), None)
+    if term == "fixed" and ren:
+        return {"term": "fixed", "since": ren["date"], "renewal": ren}
+    return {"term": term, "since": since, "renewal": None}
+
+
+def term_in_force(hh: dict, ev: dict, iso: str) -> list[tuple[str, dict]]:
+    """(fuel, term) for each leg with a bill period begun by `iso`."""
+    return [(f, t) for f in hh["legs"] for t in [_leg_term(ev, f, iso)] if t]
+
+
+def _tariff_words(terms: list[tuple[str, dict]], back_office: bool) -> tuple[str, str | None]:
+    """The tariff line and the date it is drawn from. Legs on the same term share one line."""
+    def one(t):
+        if t["term"] == "fixed":
+            rate = (t["renewal"] or {}).get("detail", "").replace("Tariff renewed at ", "")
+            return ("Fixed at {} from {}".format(rate, _day(t["since"])) if back_office and rate
+                    else "Fixed from {}".format(_day(t["since"])))
+        if t["term"] == "svt":
+            return "Standard variable since {}".format(_day(t["since"]))
+        return "Not recorded on the bills"
+    if not terms:
+        return "No bill yet", None
+    words = [one(t) for _, t in terms]
+    since = min(t["since"] for _, t in terms)
+    if len(set(words)) == 1:
+        return words[0], since
+    return "; ".join("{}: {}".format(f.capitalize(), w) for (f, _), w in zip(terms, words)), since
+
+
 def _is_outcome(r: dict) -> bool:
     return str(r.get("event_type", "")).startswith("outcome_") or r.get("type") in ("renewed", "churned")
 
@@ -383,7 +443,6 @@ def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     acq = min(a.get("acquisition_date") or "9999" for a in hh["legs"].values())
     inv = _known_by(ev["invoice"], iso)
     led = _known_by(ev["ledger"], iso)
-    tl = _known_by(ev["timeline"], iso)
     rc = [r for r in _known_by(ev["reaction"], iso) if r.get("event_type") != "journey_state"]
     rows = [_row("Customer since", _day(acq), acq),
             _row("Fuels", " and ".join(f.capitalize() for f in hh["legs"]), acq)]
@@ -391,9 +450,8 @@ def _supplier(hh: dict, ev: dict, iso: str) -> tuple[list[dict], str]:
     rows.append(_row("How they pay", {"direct_debit": "Direct debit", "standard_credit": "Pays each bill on receipt",
                                      "prepayment": "Prepayment"}.get((pay or {}).get("method"), "No payment yet"),
                      (pay or {}).get("date") or acq))
-    ren = _latest(tl, lambda r: r.get("type") == "renewed")
-    rows.append(_row("Tariff", ("Fixed at {} from {}".format(ren["detail"].replace("Tariff renewed at ", ""), _day(ren["date"]))
-                                if ren else "Standard variable"), (ren or {}).get("date") or acq))
+    words, since = _tariff_words(term_in_force(hh, ev, iso), back_office=True)
+    rows.append(_row("Tariff", words, since or acq))
     belief = _latest(rc, lambda r: r.get("company_belief") is not None)
     if belief:
         rows.append(_row("Churn risk it held", "{} at the {} renewal".format(_fmt_level(belief["company_belief"]), _day(belief["date"])),
@@ -490,11 +548,10 @@ def _portal(hh: dict, ev: dict, iso: str, message: str) -> dict:
               "amount": _fmt_bill(i.get("amount_gbp")) + _bill_extras(i),
               "badge": {"A": "Actual read", "M": "Prepayment meter"}.get(i.get("read_type"), "Estimated")} for i in inv[-4:]][::-1]
     owed, _ = _owed(inv, led, ev["ledger"])
-    ren = _latest(_known_by(ev["timeline"], iso), lambda r: r.get("type") == "renewed")
     pay = _latest(led, lambda r: r.get("method") in ("direct_debit", "standard_credit", "prepayment"))
     return {
         "message": message,
-        "tariff": "Fixed from {}".format(_day(ren["date"])) if ren else "Standard Variable",
+        "tariff": _tariff_words(term_in_force(hh, ev, iso), back_office=False)[0],
         "pays": {"direct_debit": "Direct debit", "standard_credit": "Pay on receipt of bill",
                  "prepayment": "Prepayment"}.get((pay or {}).get("method"), "Set up at your first bill"),
         "balance": ("{} to pay".format(_fmt_gbp(owed)) if owed > 0.005 else
@@ -539,9 +596,12 @@ def _template(hh, ev, iso, kind, rec):
     if kind == "renewal_decision":
         b, t = rec.get("company_belief"), rec.get("sim_truth")
         offered = rec.get("outcome") == "retained" or bool(re.search(r"\boffer", rec.get("description") or "", re.I))
-        on_fix = any(e.get("type") == "renewed" and e["date"] < iso for e in ev["timeline"])
+        # Only a fix ends; a household already on the default tariff is being offered one (N16).
+        terms = {t["term"] for _, t in term_in_force(hh, _before_outcome(ev, iso), iso)}
+        on_fix, on_svt = terms == {"fixed"}, terms == {"svt"}
         return ("The renewal decision", _renewal_words(rec),
-                ("Your fixed tariff is ending. " if on_fix else "Your tariff is up for review. ")
+                ("Your fixed tariff is ending. " if on_fix else
+                 "You are on our standard variable tariff. " if on_svt else "Your tariff is up for review. ")
                 + ("We have an offer for you." if offered else "Here are your options."),
                 "The simulation drew this household's real chance of leaving as {}.".format(_fmt_level(t)),
                 {"believed": "{} chance it would leave".format(_fmt_level(b)),
@@ -659,7 +719,7 @@ def _debt_why(hh, ev, iso):
 #: (the cold read of 23 Oct asked what an "estimate trap" was). It defines; it does not narrate.
 GLOSSARY = {
     "switch_in": "Switching in: a household moves its supply to this supplier, and its first bill is the first test of the new account.",
-    "renewal": "Renewal: a fixed-price tariff is ending, and the supplier decides what to offer before the household decides whether to stay.",
+    "renewal": "Renewal: a fixed-price tariff is ending, or a household on the default tariff is due an offer, and the supplier decides what to offer before the household decides whether to stay.",
     "estimate_trap": "An estimate trap: bills are worked out from guessed meter readings until a real reading arrives and corrects the account in one step.",
     "mover": "A home move: the leaving occupant gets a final bill, and whoever moves in next opens a new account on the same meter.",
     "debt": "The debt journey: a bill goes unpaid, then reminders and a payment plan follow, and it ends repaid, written off or with a collection agency.",
@@ -678,7 +738,7 @@ def _cast_rules():
         ("mover", "The mover", "The longest-supplied household that moves out, is billed to the move on a closing read and settles, and whose meter point opens to a new occupant's account", _score_mover),
         ("debt", "The debt journey", "The arrears journey that goes deepest: missed payment, notices, then repaid, written off or passed to an agency", _score_debt),
         ("ev", "The EV home", "The household whose electric car moved its use the most, with the supplier's inference set against it", _score_ev),
-        ("storage_heating", "Storage heating", "A two-rate (profile class 2) home billed on its meter's registers", _score_storage),
+        ("storage_heating", "Storage heating", "The two-rate (profile class 2) home whose actual reads put the most of its use on the night register, where storage heaters charge", _score_storage),
         ("shock_2022", "The 2022 shock", "The largest year-on-year rise in one month's bill through the 2022 crisis", _score_shock),
     ]
 
@@ -925,6 +985,7 @@ def _score_ev(hh, ev, person):
 
 
 def _score_storage(hh, ev, person):
+    """Ranked by the night register's share of the actual-read units: the heating, not the meter."""
     for i in ev["invoice"]:
         if len(i.get("registers") or []) > 1:
             keys = [(_acq(hh), "joined", {}), (i["date"], "first_bill", i)]
@@ -933,16 +994,41 @@ def _score_storage(hh, ev, person):
             w = _winter_two_register_bill(ev, after=i["date"])
             if w:
                 keys.append((w["date"], "bill", {**w, "label": "A winter bill"}))
-            return (1, keys, 1)
+            share = night_share(ev)
+            return (share[0] if share else 0.0, keys, 1)
     return None
 
 
+_WINTER, _SUMMER = ("12", "01", "02"), ("06", "07", "08")
+
+
+def _actual_two_register_bills(ev, months=None):
+    return [i for i in ev["invoice"] if i["fuel"] == "electricity" and len(i.get("registers") or []) > 1
+            and i.get("read_type") == "A" and not i.get("catchup_applied")
+            and (months is None or (i.get("period_start") or i["date"])[5:7] in months)]
+
+
+def _is_night(r) -> bool:
+    return (r.get("label") or "").lower() in ("night", "off-peak")
+
+
+def night_share(ev) -> tuple[float, int] | None:
+    """The night register's share of the units on actual-read two-register bills, and their count;
+    None unless they hold a winter and a summer bill, so the share is not one season's. An estimate
+    is shaped by the supplier's own profile (PC2 averages 45% night), so it cannot evidence heating."""
+    bills = _actual_two_register_bills(ev)
+    if not _actual_two_register_bills(ev, _WINTER) or not _actual_two_register_bills(ev, _SUMMER):
+        return None
+    tot = sum(r.get("consumption_kwh") or 0 for i in bills for r in i["registers"])
+    night = sum(r.get("consumption_kwh") or 0 for i in bills for r in i["registers"] if _is_night(r))
+    return (night / tot, len(bills)) if tot > 0 else None
+
+
 def _winter_two_register_bill(ev, after=""):
-    """The first electricity bill after `after` whose period opens in December to February and
-    which prints two or more registers, or None."""
-    return next((i for i in ev["invoice"] if i["fuel"] == "electricity" and i["date"] > after
-                 and len(i.get("registers") or []) > 1
-                 and (i.get("period_start") or i["date"])[5:7] in ("12", "01", "02")), None)
+    """The first ACTUAL-read electricity bill after `after` whose period opens in December to
+    February and which prints two or more registers, or None. An estimated winter bill shows the
+    supplier's guess at the heating, not the heating (seventh cold read, storage slot)."""
+    return next((i for i in _actual_two_register_bills(ev, _WINTER) if i["date"] > after), None)
 
 
 STORAGE_EMPTY_REASON = (
@@ -1000,6 +1086,14 @@ LIMITATION_YEARS = 6
 #: §3. Compared over the twelve months either side of the arrival, so each side holds every season
 #: once; it is not weather-normalised (GAP), so a cold year on one side moves it.
 EV_ADDED_KWH_BAND = (1750.0, 3300.0)
+
+#: A storage-heated home charges its heaters on the night register. Nottingham CHA's trial measured
+#: the off-peak share of the whole meter at 53% (old storage heaters) to 66% (new): Element Energy
+#: for BEIS, RP 2019/021, in `docs/market_research/when_an_electrically_heated_homes_water_heater_runs.md`
+#: E6 and `a_storage_heated_homes_default_tariff_is_two_rate.md` G4. The floor is the trial's lowest,
+#: above both the cap's assumed 42% night split (SLC 28AD.36(a)) and PC2's 45.3% for an average
+#: Economy 7 home, so a home at the average E7 split is not shown as storage-heated.
+STORAGE_NIGHT_SHARE_FLOOR = 0.53
 
 #: A storage-heated home heats with electricity, so it uses more than the Ofgem medium TDCV for a
 #: home that does NOT heat with it (2,700 kWh to 30 Jun 2026, `docs/market_research/ASSUMPTIONS.md`).
@@ -1118,7 +1212,13 @@ def _slot_failures(slot_id, hh, ev, keys) -> list[str]:
         if winter and summer and sum(winter) / len(winter) <= sum(summer) / len(summer):
             out.append("it uses no more electricity in winter than in summer")
         if not _winter_two_register_bill(ev):
-            out.append("it has no winter bill on its two registers to show")
+            out.append("it has no winter bill on an actual read of its two registers to show")
+        share = night_share(ev)
+        if share is None:
+            out.append("its actual reads do not cover both a winter and a summer bill, so its night share is not measured")
+        elif share[0] < STORAGE_NIGHT_SHARE_FLOOR:
+            out.append("its actual reads put less than {:.0f}% of its use on the night register, the least a "
+                       "storage-heated home was measured at".format(100 * STORAGE_NIGHT_SHARE_FLOOR))
     elif slot_id == "shock_2022":
         bills = [r for _, k, r in keys if k == "bill"]
         shock = next(r for _, k, r in keys if k == "shock_2022")
@@ -1290,7 +1390,7 @@ def _story_line(slot_id, hh, keys) -> str:
         "debt": "From a missed payment to the end of the debt.",
         "ev": "An electric car arrives; the supplier sees only the meter.",
         "shock_2022": "The 2022 crisis reaches one household's bill.",
-        "storage_heating": "A two-rate meter whose night units are billed cheaper.",
+        "storage_heating": "Heaters that charge overnight: most of the use lands on the cheaper night register.",
     }.get(slot_id, "")
 
 
