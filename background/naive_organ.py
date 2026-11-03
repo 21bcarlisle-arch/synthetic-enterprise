@@ -896,18 +896,44 @@ def run_system_organ(state: dict, *, invoke_fn: InvokeFn | None = None,
     `max_new` caps the number of NEW records produced in one pass (bounds Opus
     latency on the live publish path; any un-asked triggers surface next cycle).
     None = no cap (the test/analysis default)."""
+    log_path = log_path or ORGAN_LOG_PATH
     written = []
     asked = 0
-    for trig in run_detectors(state):
+    fired = run_detectors(state)
+    tally = {"fired": len(fired), "asked": 0, "declined": 0, "already_open": 0,
+             "already_declined": 0, "over_cap": 0}
+    for i, trig in enumerate(fired):
         if max_new is not None and asked >= max_new:
+            tally["over_cap"] = len(fired) - i
             break
         rec = ask_organ(trig, invoke_fn=invoke_fn, log_path=log_path)
-        if rec is not None:
-            written.append(rec)
-            # The cap bounds model calls. A decline makes none, so it must not spend a slot:
-            # three declines ahead of every real trigger was the other half of the silence.
-            asked += rec.get("verdict") == "open"
+        if rec is None:
+            tally["already_declined" if is_purpose_claim(trig.claim_text) else "already_open"] += 1
+            continue
+        written.append(rec)
+        # The cap bounds model calls. A decline makes none, so it must not spend a slot:
+        # three declines ahead of every real trigger was the other half of the silence.
+        asked += rec.get("verdict") == "open"
+        tally["asked" if rec.get("verdict") == "open" else "declined"] += 1
+    _write_last_cycle(tally, log_path)
     return written
+
+
+# A silent log is only readable beside why the last cycle wrote nothing. On 2026-11-03 every one
+# of 11 fired triggers was debounced by an open question from July/August that nobody answered.
+def last_cycle_path(log_path: Path | None = None) -> Path:
+    return (log_path or ORGAN_LOG_PATH).parent / ".naive_organ_last_cycle.json"
+
+
+def _write_last_cycle(tally: dict, log_path: Path) -> None:
+    opens = open_questions(log_path=log_path)
+    record = dict(tally, at=datetime.now(timezone.utc).isoformat(), open_backlog=len(opens),
+                  oldest_open_asked_at=min((e.get("asked_at") or "" for e in opens), default=None),
+                  newest_open_asked_at=max((e.get("asked_at") or "" for e in opens), default=None))
+    path = last_cycle_path(log_path)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(record, sort_keys=True) + "\n")
+    tmp.replace(path)
 
 
 # ── TARGET 2 — the ADVISOR. FALSIFY an advisor-staged doc BEFORE the agent acts
@@ -1243,6 +1269,7 @@ def _main(argv: list[str]) -> int:
     if len(argv) >= 2 and argv[1] == "cycle":
         written = run_organ_cycle()
         print("naive organ cycle: {} new question(s) asked".format(len(written)))
+        print("last cycle: " + last_cycle_path().read_text().strip())
         section = render_digest_section()
         if section:
             print("\n" + section)
