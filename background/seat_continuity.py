@@ -278,6 +278,9 @@ def note_activity(tool: str, *, session_id: str = "", pid: int | None = None,
         # seat left behind is uncommitted in ITS tree -- so `_uncommitted_paths` and the last
         # commit are asked of this path, not of the sweeper's own `PROJECT_DIR`.
         "tree": tree,
+        # The seat's FIRST beat, so a handoff can tell its edits from the shared tree's older
+        # dirt. See `_uncommitted_paths(since=...)`.
+        "since": float(prev.get("since") or now),
         "tool_count": int(prev.get("tool_count", 0)) + 1,
         "recent_tools": tail,
     }
@@ -397,7 +400,8 @@ def _verdict(rec: dict, now: float) -> str:
     return DEAD if _any_interactive_seat() is False else LIVE
 
 
-def _uncommitted_paths(tree: Path | str | None = None) -> list[str] | None:
+def _uncommitted_paths(tree: Path | str | None = None, *,
+                       since: float | None = None) -> list[str] | None:
     """SOURCE paths the seat left behind, IN THE TREE THAT SEAT WAS BEATING IN.
 
     `tree` defaults to this process's own `PROJECT_DIR` and is passed by `sweep()` from the
@@ -434,6 +438,14 @@ def _uncommitted_paths(tree: Path | str | None = None) -> list[str] | None:
     `docs/staging/` is dropped ON TOP of that, and only here: a staged document is already IN
     the tick's draw by the act of existing there, so naming it as unadopted work is telling the
     reader about the queue he is currently reading.
+
+    `since` (the seat's first beat) drops paths last written BEFORE the seat existed. Measured
+    2026-11-03 on the shared tree: 70 of the 79 source paths a 2 Nov handoff blamed on its dead
+    seat had not been written for over two days -- 46 of them in one 24 Sep write -- so every
+    seat that died there "held" the same old dirt and the died-holding-nothing guard below never
+    fired. A DELETED path has no mtime and is kept: the seat may have deleted it, and an
+    unknown is not a no. A row with no `since` (beaten before the field existed) is not
+    filtered.
     """
     from background import tree_divergence
 
@@ -447,7 +459,16 @@ def _uncommitted_paths(tree: Path | str | None = None) -> list[str] | None:
     paths = tree_divergence.changed_paths(root)
     if paths is None:
         return None  # git could not answer; an unavailable check is not an empty tree (R15)
-    return sorted(p for p in paths if not p.startswith("docs/staging/"))
+    held = sorted(p for p in paths if not p.startswith("docs/staging/"))
+    if since is None:
+        return held
+
+    def _touched_since(rel: str) -> bool:
+        try:
+            return (root / rel).stat().st_mtime >= since
+        except OSError:
+            return True
+    return [p for p in held if _touched_since(p)]
 
 
 #: How many top-level areas the subject names before it stops. `alarm_repetition._slug` keeps the
@@ -629,7 +650,9 @@ def _handoff_for(rec: dict, *, now: float, staging_dir: Path | None = None) -> s
     from background import alarm_repetition, seat_work_in_hand
 
     claims = seat_work_in_hand._load(seat_work_in_hand.CLAIMS_FILE)
-    uncommitted = _uncommitted_paths(rec.get("tree"))
+    since = rec.get("since")
+    uncommitted = _uncommitted_paths(rec.get("tree"),
+                                     since=float(since) if since is not None else None)
     if not claims and uncommitted == []:
         return None  # died holding nothing; a handoff here would be the noise this replaces
     # `uncommitted is None` falls THROUGH the guard on purpose: git could not be asked, so we do

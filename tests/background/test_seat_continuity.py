@@ -219,7 +219,7 @@ def dead_seat_holding_work(beat, no_seat, tmp_path, monkeypatch):
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", claims)
     monkeypatch.setattr(sc, "_uncommitted_paths",
-                        lambda tree=None: ["simulation/net_new_acquisition.py", "docs/design/X.md"])
+                        lambda tree=None, since=None: ["simulation/net_new_acquisition.py", "docs/design/X.md"])
     monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234 the commit before it died")
     return p
 
@@ -267,7 +267,7 @@ def test_MUTATION_a_LIVE_seat_files_nothing(beat, seat_present, tmp_path, monkey
     """The null control on the whole mechanism: no death, no handoff, no noise."""
     p, write = beat
     write(60)
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["a.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: ["a.py"])
     staging = tmp_path / "staging"
     staging.mkdir()
     assert sc.sweep(path=p, now=NOW, staging_dir=staging) is None
@@ -279,7 +279,7 @@ def test_a_seat_that_died_holding_NOTHING_files_nothing(beat, no_seat, tmp_path,
     this module exists to replace."""
     p, write = beat
     write(sc.SILENT_AFTER_SECONDS + 1)
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: [])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: [])
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "no-claims.json")
     staging = tmp_path / "staging"
@@ -313,7 +313,7 @@ def test_a_NEW_session_arriving_on_a_cold_heartbeat_does_NOT_DESTROY_the_old_one
     write(sc.SILENT_AFTER_SECONDS + 60, session_id="old-session")
     staging = tmp_path / "staging"
     staging.mkdir()
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["half/an/edit.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: ["half/an/edit.py"])
     monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "deadbeef before it died")
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
@@ -345,7 +345,7 @@ def test_MUTATION_a_LIVE_seat_in_ANOTHER_TREE_cannot_suppress_a_dead_seats_hando
     sc.note_activity("Bash", session_id="live-seat", path=p, now=NOW - 5)
     staging = tmp_path / "staging"
     staging.mkdir()
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["orphaned/work.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: ["orphaned/work.py"])
     monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
@@ -370,7 +370,7 @@ def test_MUTATION_the_SAME_session_on_a_cold_heartbeat_hands_nothing_over(
     write(sc.SILENT_AFTER_SECONDS + 60, session_id="s1")
     staging = tmp_path / "staging"
     staging.mkdir()
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["still/being/edited.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: ["still/being/edited.py"])
     sc.note_activity("Read", session_id="s1", path=p, now=NOW, staging_dir=staging)
     assert sc.sweep(path=p, now=NOW, staging_dir=staging) is None
     assert not list(staging.glob("*.md"))
@@ -417,11 +417,11 @@ def test_a_SECOND_interruption_files_its_OWN_handoff(beat, no_seat, tmp_path, mo
     p, write = beat
 
     write(sc.SILENT_AFTER_SECONDS + 1, session_id="session-one")
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["first/edit.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: ["first/edit.py"])
     assert sc.sweep(path=p, now=NOW, staging_dir=staging) is not None
 
     write(sc.SILENT_AFTER_SECONDS + 1, session_id="session-two")
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["second/quite/different.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: ["second/quite/different.py"])
     assert sc.sweep(path=p, now=NOW + 86_400, staging_dir=staging) is not None
 
     docs = sorted(staging.glob("*.md"))
@@ -502,7 +502,7 @@ def test_the_SAME_unadopted_work_across_two_deaths_is_ONE_document(
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
     monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["simulation/hedged_settlement.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: ["simulation/hedged_settlement.py"])
     staging = tmp_path / "staging"
     staging.mkdir()
     p, write = beat
@@ -532,7 +532,7 @@ def test_the_document_SAYS_what_work_it_is_about(beat, no_seat, tmp_path, monkey
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
     monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
     monkeypatch.setattr(sc, "_uncommitted_paths",
-                        lambda tree=None: ["simulation/hedged_settlement.py", "tests/simulation/t.py"])
+                        lambda tree=None, since=None: ["simulation/hedged_settlement.py", "tests/simulation/t.py"])
     staging = tmp_path / "staging"
     staging.mkdir()
     p, write = beat
@@ -572,7 +572,7 @@ def test_the_handoff_reads_the_tree_the_DEAD_SEAT_was_beating_in(no_seat, tmp_pa
     for t in (dead_tree, sweeper_tree):
         t.mkdir()
     monkeypatch.setattr(sc, "PROJECT_DIR", sweeper_tree)
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: (
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None, since=None: (
         ["a-lane-the-dead-seat-held/its_edit.src"] if Path(tree or "") == dead_tree
         else ["a-lane-still-live/another_lanes_work.src"]))
     monkeypatch.setattr(sc, "_last_commit", lambda tree=None: (
@@ -732,3 +732,32 @@ def test_an_UNREADABLE_tree_files_ANYWAY_and_says_the_list_is_UNKNOWN(
     text = next(staging.glob("*.md")).read_text(encoding="utf-8")
     assert "could not be read" in text and "UNKNOWN, not empty" in text
     assert "The tree is clean" not in text
+
+
+def test_a_dead_seat_holds_only_what_was_written_after_its_first_beat(tmp_path, monkeypatch):
+    """The shared tree's older dirt is not the dead seat's work (2026-11-03: 70 of 79 paths a
+    2 Nov handoff named had not been written for over two days). One partition, both sides: a
+    path written before the seat's first beat is dropped, one written after is kept, and one
+    that is deleted -- no mtime, so the seat may have deleted it -- is kept."""
+    import os
+
+    from background import tree_divergence
+    before, after = tmp_path / "old.py", tmp_path / "new.py"
+    before.write_text("x")
+    after.write_text("y")
+    first_beat = NOW
+    os.utime(before, (first_beat - 86400, first_beat - 86400))
+    os.utime(after, (first_beat + 60, first_beat + 60))
+    monkeypatch.setattr(tree_divergence, "changed_paths",
+                        lambda _d=None: ["old.py", "new.py", "deleted.py"])
+
+    assert sc._uncommitted_paths(tmp_path) == ["deleted.py", "new.py", "old.py"]
+    assert sc._uncommitted_paths(tmp_path, since=first_beat) == ["deleted.py", "new.py"]
+
+
+def test_a_beat_keeps_the_seats_FIRST_beat_as_its_since(tmp_path):
+    p = tmp_path / "hb.json"
+    sc.note_activity("Bash", session_id="s1", path=p, now=NOW)
+    sc.note_activity("Read", session_id="s1", path=p, now=NOW + 500)
+    (row,) = sc._seats(sc._read(p)).values()
+    assert row["since"] == NOW and row["ts"] == NOW + 500
