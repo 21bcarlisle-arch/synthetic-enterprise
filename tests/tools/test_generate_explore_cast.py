@@ -311,6 +311,17 @@ def test_the_storage_story_shows_a_winter_bill_on_its_day_and_night_lines():
     assert "it has no winter bill on its two registers to show" not in gen._slot_failures(
         "storage_heating", hh, ev, got[1])
 
+def test_a_two_rate_bill_quotes_each_registers_rate_with_its_network_and_policy_costs():
+    """Seventh cold read, storage slot: PROS-2017-0233's Dec 2017 bill read "Night 215.5 kWh at
+    1.52p", the register's energy component after the bill took 5.40p/kWh of network and policy
+    costs off it. Defect named: the summary quotes the energy component as the rate charged."""
+    regs = [{"label": "Day", "consumption_kwh": 202.3, "unit_rate_p_per_kwh": 9.313},
+            {"label": "Night", "consumption_kwh": 215.5, "unit_rate_p_per_kwh": 1.517}]
+    dec = _inv("2017-12-31", 417.8, 22.11, registers=regs, non_commodity_amount_gbp=22.56)
+    got = gen._bill_extras(dec)
+    assert "Day 202.3 kWh at 14.71p and Night 215.5 kWh at 6.92p before VAT" in got, got
+
+
 def test_the_published_feed_matches_a_fresh_build_in_shape(feed):
     if not FEED.is_file():
         pytest.skip("feed not yet generated")
@@ -424,9 +435,12 @@ def test_an_empty_slot_with_matches_names_the_checks_that_failed(feed):
 
 
 def test_MUTATION_checks_that_pass_everything_put_the_gas_only_ev_home_back(real, monkeypatch):
+    # Keyed to the property, not to which home ranks first: once EV events were drawn only on held
+    # fuels, the top-ranked EV home stopped being the gas-only one and the old leg went red.
+    refused = {k for k, v in _candidates(real, "ev").items() if v}
     monkeypatch.setattr(gen, "validity_failures", lambda *a: [])
     ev = next(s for s in gen.build(*real)["slots"] if s["id"] == "ev")
-    assert ev["filled"] and "electricity" not in ev["fuels"], "the mutation did not restore the 4ae8da9b0f defect"
+    assert ev["filled"] and ev["household"] in refused, "the mutation did not restore the 4ae8da9b0f defect"
 
 
 def test_the_default_account_is_an_ordinary_full_record(real, feed):

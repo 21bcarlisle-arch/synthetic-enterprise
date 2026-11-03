@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-11-03T02:19:44Z",
+  "generated_at": "2026-11-03T03:24:18Z",
   "run_generated_at": "2026-11-03T02:14:32Z",
   "run_git_commit": "0a6391d186",
   "household_count": 752,
@@ -103,7 +103,7 @@
      "date": "28 Feb 2025",
      "kind": "first_bill",
      "title": "First bill",
-     "story": "The first electricity bill: £88.24 for 298 kWh, on an actual read, charged as Peak 88.2 kWh at 28.49p and Off-peak 209.9 kWh at 12.31p.",
+     "story": "The first electricity bill: £88.24 for 298 kWh, on an actual read, charged as Peak 88.2 kWh at 33.99p and Off-peak 209.9 kWh at 17.81p before VAT.",
      "why": "The amount follows from the reading and the tariff; nothing else is behind it.",
      "gap": null,
      "supplier": [
@@ -186,7 +186,7 @@
         "fuel": "electricity",
         "when": "28 Feb 2025",
         "kwh": 298,
-        "amount": "£88.24, charged as Peak 88.2 kWh at 28.49p and Off-peak 209.9 kWh at 12.31p",
+        "amount": "£88.24, charged as Peak 88.2 kWh at 33.99p and Off-peak 209.9 kWh at 17.81p before VAT",
         "badge": "Actual read"
        }
       ]
@@ -197,7 +197,7 @@
      "date": "31 Mar 2025",
      "kind": "bill",
      "title": "Three months in",
-     "story": "The electricity bill of 31 Mar 2025: £95.81 for 326 kWh, on an actual read, charged as Peak 91.4 kWh at 28.49p and Off-peak 234.5 kWh at 12.30p.",
+     "story": "The electricity bill of 31 Mar 2025: £95.81 for 326 kWh, on an actual read, charged as Peak 91.4 kWh at 33.99p and Off-peak 234.5 kWh at 17.80p before VAT.",
      "why": "The amount follows from the reading and the tariff then in force.",
      "gap": null,
      "supplier": [
@@ -285,7 +285,7 @@
         "fuel": "electricity",
         "when": "31 Mar 2025",
         "kwh": 326,
-        "amount": "£95.81, charged as Peak 91.4 kWh at 28.49p and Off-peak 234.5 kWh at 12.30p",
+        "amount": "£95.81, charged as Peak 91.4 kWh at 33.99p and Off-peak 234.5 kWh at 17.80p before VAT",
         "badge": "Actual read"
        },
        {
@@ -299,7 +299,7 @@
         "fuel": "electricity",
         "when": "28 Feb 2025",
         "kwh": 298,
-        "amount": "£88.24, charged as Peak 88.2 kWh at 28.49p and Off-peak 209.9 kWh at 12.31p",
+        "amount": "£88.24, charged as Peak 88.2 kWh at 33.99p and Off-peak 209.9 kWh at 17.81p before VAT",
         "badge": "Actual read"
        }
       ]
@@ -3267,7 +3267,7 @@
      "date": "31 Aug 2017",
      "kind": "first_bill",
      "title": "First bill",
-     "story": "The first electricity bill: £28.33 for 172 kWh, estimated, charged as Day 123.3 kWh at 9.32p and Night 48.9 kWh at 1.51p.",
+     "story": "The first electricity bill: £28.33 for 172 kWh, estimated, charged as Day 123.3 kWh at 14.72p and Night 48.9 kWh at 6.91p before VAT.",
      "why": "The amount follows from the reading and the tariff; nothing else is behind it.",
      "gap": null,
      "supplier": [
@@ -3343,7 +3343,7 @@
         "fuel": "electricity",
         "when": "31 Aug 2017",
         "kwh": 172,
-        "amount": "£28.33, charged as Day 123.3 kWh at 9.32p and Night 48.9 kWh at 1.51p",
+        "amount": "£28.33, charged as Day 123.3 kWh at 14.72p and Night 48.9 kWh at 6.91p before VAT",
         "badge": "Estimated"
        }
       ]
@@ -3354,7 +3354,7 @@
      "date": "31 Dec 2017",
      "kind": "bill",
      "title": "A winter bill",
-     "story": "The electricity bill of 31 Dec 2017: £53.06 for 418 kWh, estimated, charged as Day 202.3 kWh at 9.31p and Night 215.5 kWh at 1.52p.",
+     "story": "The electricity bill of 31 Dec 2017: £53.06 for 418 kWh, estimated, charged as Day 202.3 kWh at 14.71p and Night 215.5 kWh at 6.92p before VAT.",
      "why": "The amount follows from the reading and the tariff then in force.",
      "gap": null,
      "supplier": [
@@ -3455,28 +3455,28 @@
         "fuel": "electricity",
         "when": "31 Dec 2017",
         "kwh": 418,
-        "amount": "£53.06, charged as Day 202.3 kWh at 9.31p and Night 215.5 kWh at 1.52p",
+        "amount": "£53.06, charged as Day 202.3 kWh at 14.71p and Night 215.5 kWh at 6.92p before VAT",
         "badge": "Estimated"
        },
        {
         "fuel": "electricity",
         "when": "30 Nov 2017",
         "kwh": 404,
-        "amount": "£51.31, charged as Day 195.6 kWh at 9.31p and Night 208.5 kWh at 1.52p",
+        "amount": "£51.31, charged as Day 195.6 kWh at 14.71p and Night 208.5 kWh at 6.92p before VAT",
         "badge": "Estimated"
        },
        {
         "fuel": "electricity",
         "when": "31 Oct 2017",
         "kwh": 272,
-        "amount": "£39.31, charged as Day 163.8 kWh at 9.32p and Night 108.1 kWh at 1.52p",
+        "amount": "£39.31, charged as Day 163.8 kWh at 14.72p and Night 108.1 kWh at 6.92p before VAT",
         "badge": "Estimated"
        },
        {
         "fuel": "electricity",
         "when": "30 Sep 2017",
         "kwh": 237,
-        "amount": "£35.45, charged as Day 150.6 kWh at 9.31p and Night 86.3 kWh at 1.52p",
+        "amount": "£35.45, charged as Day 150.6 kWh at 14.71p and Night 86.3 kWh at 6.92p before VAT",
         "badge": "Estimated"
        }
       ]

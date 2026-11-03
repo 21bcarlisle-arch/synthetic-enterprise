@@ -100,6 +100,15 @@ total register). The band catch-ups therefore sum to the total's catch-up.
   read (PROS-2017-0233, which printed 3,622.7, the sum of Day 1,978.5 and Night 1,644.2). Whether a
   smart ToU bill should also print the total register is a presentation choice no source settles:
   **GAP**, and it is not printed.
+- **A register's quoted rate is the rate the household pays for it (3 Nov 2026).** The bill builder
+  stores each register's energy component only, after taking network and policy costs off at one rate
+  per kWh (`saas/bill_generator.tou_registers`). Quoted bare, PROS-2017-0233's Dec 2017 night register
+  read 1.52p, below any 2017 overnight wholesale price, where the tariff's night rate was 6.92p before
+  VAT (0.47 of the 14.71p day rate, as `E7_NIGHT_TO_DAY_RATIO` states). The Explore cast's bill
+  summaries therefore quote energy plus network and policy per register, before VAT, and the lines
+  then add up to the bill. The page's printed bill still shows the energy component on its usage
+  lines beside a separate network line. That is filed, not fixed here
+  (`SEAT_FINDING_A_PRINTED_ECONOMY_7_BILL_SHOWS_A_1_5P_NIGHT_RATE_2026-11-03.md`).
 
 ## 5. Limits
 
