@@ -82,3 +82,19 @@ not: among stored pairs, 54 of 141 under 3 km are identical, 50/194 at 3–6 km,
 0/300 at 12–15 km (probe: `/tmp/era5probe/dup.py`, through `regimes.json`). Open-Meteo's best-match
 blends finer grids, so copying a neighbour's series would put an approximation in a store
 whose contract is each cell's own pull. The pull stays one request per cell.
+
+## ERA5, the third increment (05:05–05:12): the daily bucket binds
+
+After the hourly reset, the pull got **8 cells** before Open-Meteo answered "Daily API request limit
+exceeded" (resets at UTC midnight). **440 book cells are still temperature-only** (389 store cells
+carry the archive). This UTC day spent about 57 successful requests (26 + 22 + 8), so the
+**daily** bucket, not the hourly one, sets the true pace: about 57 cells a day, or **roughly 8 more
+days** for the 440. One cell, `E302N0191`, got a response that was not JSON
+("Expecting value") and was refused and recorded. It stays incomplete, and the next pass asks again.
+
+**How to run it from here:** once per UTC day, soon after 00:00 UTC, run `SE_DRAW_POPULATION=1 python3 -u
+-m tools.build_weather_world --build --no-temperature` until it stops on the daily bucket, then land
+`sim/weather_world/daily.csv.gz` with the count. Re-running it the same day cannot help, and the tool
+says so. The strict xfail on
+`tests/simulation/test_every_settling_domestic_premise_reads_a_complete_stored_cell.py` comes off
+in the commit where `--list` prints `BOOK CELLS NOT YET COMPLETE: 0`.
