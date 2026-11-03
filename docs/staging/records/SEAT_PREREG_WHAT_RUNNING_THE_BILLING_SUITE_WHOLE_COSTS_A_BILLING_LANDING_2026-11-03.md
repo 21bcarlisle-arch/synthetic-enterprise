@@ -40,5 +40,15 @@ Selection on today's tree, test files (main selection | capped import-derived ex
    133 `test_*.py` files, not 135: two entries in the directory are not test files.
 3. **Held.** For `monthly_bill_assembly.py` alone, today's selection was 45 files plus 27 extras,
    and the refusing file was in neither; with the rule it is selected.
-4. **Pending.** The simulation importers of `ea2f3394d` are being timed one file each; the first
-   full-run file passed 130s on its own, beyond the 30s per-file cap.
+4. **Held, and it decides against the simulation half.** `ea2f3394d`'s 79 simulation importers are
+   already in the import-derived leg (30s per file, 180s in all). Timed one file each, uncapped, the
+   first 13 took **1,447s**, eight times today's whole budget, before I stopped the run: four files ran
+   154s, 253s, 462s and 474s, and every file passed. Over the 100 non-merge simulation landings since
+   2026-10-20, the median pulls 35 importers and nearly half pull 72 or more. The one recorded
+   simulation red (`SEAT_FINDING_TWO_DUAL_FUEL_MOVER_TESTS_RED_AFTER_TWELVE_EARLIER_SIMULATION_FILES_AND_
+   PASS_ALONE_2026-11-02.md`) is order-dependent and passes alone, so a per-file run would not have
+   caught it at any cost. The simulation half is therefore not built. The whole-suite pretest before
+   each fresh run stays the leg that catches it, as the triage row already said.
+
+The box was shared with a full-suite census and two other landings throughout, so every wall time
+above runs high by an unmeasured amount.
