@@ -327,6 +327,7 @@ from simulation.vulnerability_state import (
 )
 from simulation.weather_inputs import (
     adopt_book,
+    adopt_record,
     adopt_shared_world,
     cloud_cover_for_customer,
     lookback_mean_temps,
@@ -2997,6 +2998,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         if record.get("segment", "resi") == "resi":
             _admitted_resi_ids.add(leg)
         _incoming_occupant_book.append(record)
+        # The HDD leg resolves a sky from the bare id, so the occupant's record joins the adopted
+        # book: without it every OCC- gas leg read the monthly normal at its premise's cell (N13).
+        adopt_record(record)
         # B7 slice 6: the vacated home stands empty for its tenure's void, read from the
         # register for the MOVER's tenure (the home vacated is theirs). The meter point's account
         # still opens on the move date, because the supplier stays registered and settles the

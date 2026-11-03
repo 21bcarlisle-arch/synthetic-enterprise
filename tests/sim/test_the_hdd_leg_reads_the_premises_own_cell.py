@@ -249,3 +249,44 @@ def test_every_registered_premise_has_a_cell_whatever_the_curriculum_serves():
     no_cell = [(c["customer_id"], cell_weather_for_customer_id(c["customer_id"]).refusal)
                for c in book if not cell_weather_for_customer_id(c["customer_id"]).series]
     assert not no_cell, f"registered premises the world holds no weather for: {no_cell}"
+
+
+def test_a_leg_admitted_after_adoption_reads_its_premises_sky_once_adopted(_no_adopted_book):
+    """THE DEFECT (N13, 2026-11-03): B7's incoming occupant is admitted INSIDE the loop, after the
+    runner's one `adopt_book`, so its id was in no book and its gas leg read the monthly normal at a
+    premise whose cell the store holds. 15 of 15 occupier gas legs on the 85b044be54 book repeated
+    last year's month to 0.1 kWh in the world's own consumption.
+
+    Both sides at once: before `adopt_record` the occupant reads the normal (so it is the adoption
+    that moves it, not a resolver answering a cell for every id), after it reads its premise's sky
+    day for day. Delete `adopt_record`'s body and the second side reds.
+    """
+    from simulation.weather_inputs import adopt_book, adopt_record
+
+    adopt_book([REFUSED_RECORD])
+    from company.interfaces.supply_book import registered_supply_points
+
+    premise = next(c for c in registered_supply_points() if c["customer_id"] == HELD)
+    occupant = {**premise, "customer_id": "OCC-TEST-INCOMING", "incoming_occupant_of": HELD}
+
+    assert hdd_reading(COLD_YEAR_DAY, occupant["customer_id"]).from_normal, (
+        "an id in no book read weather before it was adopted; the control cannot tell adoption "
+        "from a resolver that answers a cell for everything")
+    adopt_record(occupant)
+    for day in (COLD_YEAR_DAY, MILD_YEAR_DAY):
+        got, want = hdd_reading(day, occupant["customer_id"]), hdd_reading(day, HELD)
+        assert not got.from_normal and got.hdd == want.hdd, (
+            f"the adopted occupant reads {got} on {day}, its premise {want}")
+    # adopt_record adds, it does not replace: the book adopted before it still answers.
+    assert hdd_reading(COLD_YEAR_DAY, REFUSED).from_normal
+
+
+def test_the_runner_adopts_each_incoming_occupant_it_admits():
+    """The door above is inert unless `_admit_incoming_occupant` calls it. An AST call, not a grep."""
+    tree = ast.parse(Path("simulation/run_phase2b.py").read_text())
+    admit = next(n for n in ast.walk(tree)
+                 if isinstance(n, ast.FunctionDef) and n.name == "_admit_incoming_occupant")
+    called = {getattr(c.func, "id", None) for c in ast.walk(admit) if isinstance(c, ast.Call)}
+    assert "adopt_record" in called, (
+        "_admit_incoming_occupant never calls adopt_record; every OCC- gas leg would read the "
+        "1991-2020 monthly normal")

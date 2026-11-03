@@ -49,4 +49,19 @@ sky its demand read, at the run that built 85b044be54. Under (1) the work is wor
 - The blind row written with this finding (`INV_…` in `docs/design/DOMAIN_INVARIANTS.yaml`, written from the
   knowledge layer only) grades that.
 
+## The side, decided (2026-11-03)
+
+**The world repeats, not the bill.** On 43 of the 46 repeating legs I could join, the run's own
+`true_consumption_kwh` repeats. Every repeating leg except two reads the 1991–2020 monthly normal,
+for one of two reasons:
+1. **The OCC leg was never adopted** (15 legs). This is **fixed**: `weather_inputs.adopt_record` is
+   now called on admission.
+2. **The premise is more than 5 km from any cell the store holds** (29 legs). On today's starting
+   book that is 490 of 1,046 records, including 227 of 477 gas premises, because the store was
+   built on 11 Oct and the book has been redrawn since. **This one stands.** The remedy is a store
+   rebuild over today's book. It is a baseline fidelity change that moves every gas figure, so it is
+   pre-registered and run on its own.
+
+Full record: `docs/staging/records/SEAT_RESULT_N13_THE_WORLD_REPEATS_GAS_USE_BECAUSE_HALF_THE_BOOK_HAS_NO_SKY_2026-11-03.md`.
+
 **Reverse:** delete this file.

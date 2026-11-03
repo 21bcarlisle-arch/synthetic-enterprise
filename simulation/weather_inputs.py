@@ -130,12 +130,23 @@ def adopt_book(customers: list[dict]) -> None:
     A skied premise already cached in `sim.weather_hdd` is dropped for every adopted id, so a
     refusal resolved before adoption cannot outlive it. Last-writer-wins, like `adopt_shared_world`.
     """
-    from sim.weather_hdd import _WEATHER_CACHE
-
     _BOOK.clear()
     for customer in customers:
-        _BOOK[customer["customer_id"]] = customer
-        _WEATHER_CACHE.pop(customer["customer_id"], None)
+        adopt_record(customer)
+
+
+def adopt_record(customer: dict) -> None:
+    """Add ONE record to the adopted book, for a leg the runner creates after `adopt_book`.
+
+    WHY. B7's incoming occupant (`OCC-*`) is admitted inside the loop, so the one `adopt_book` call
+    before it never saw the id, and its gas leg read the 1991-2020 monthly normal at a premise whose
+    cell the store holds: 15 of 15 occupier gas legs on the 85b044be54 book repeated last year's
+    month to 0.1 kWh in the world's own consumption (N13, 2026-11-03).
+    """
+    from sim.weather_hdd import _WEATHER_CACHE
+
+    _BOOK[customer["customer_id"]] = customer
+    _WEATHER_CACHE.pop(customer["customer_id"], None)
 
 
 @dataclass(frozen=True)
