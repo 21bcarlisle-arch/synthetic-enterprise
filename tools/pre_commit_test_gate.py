@@ -960,6 +960,25 @@ DISCHARGE_SURFACE_TESTS = [
     "tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py",
 ]
 
+# THE BILLING SURFACE (2026-11-03, wrong_triage `a-billing-or-gate-change-lands-on-its-own-test-
+# selection`). A billing module's consumers are the WHOLE pipeline, not its importers: the
+# 08f267b666 publish was refused by `test_every_real_period_exports_readings_that_reproduce_our_own_
+# volume`, which imports `raw_account_export` and reads what `monthly_bill_assembly` wrote, so
+# neither the stem nor the one-level importer rule could reach it. That recurred on nearly every
+# billing landing for a week. `saas/` is on the trigger because billing imports it
+# (`monthly_bill_assembly`, `pre_bill_validation`, `dd_review`). The whole directory was 183s,
+# 2,556 tests, on 2026-11-03: docs/staging/records/SEAT_PREREG_WHAT_RUNNING_THE_BILLING_SUITE_
+# WHOLE_COSTS_A_BILLING_LANDING_2026-11-03.md.
+BILLING_SURFACE_PREFIXES = ("company/billing/", "saas/")
+BILLING_SURFACE_FILES = ("tools/generate_billing_ledger.py", "tools/independent_bill_validator.py")
+BILLING_SUITE_DIR = "tests/company/billing"
+
+
+def billing_suite_tests() -> list[str]:
+    """Every test file in the billing suite, as files rather than the directory, so the
+    import-derived leg can see they already ran."""
+    return sorted(str(p.relative_to(ROOT)) for p in (ROOT / BILLING_SUITE_DIR).rglob("test_*.py"))
+
 # THE CANON SURFACE (2026-08-10, atom OPS5). CLAUDE.md and the design doc beside it are data by
 # every prefix rule here, but they are the files that tell a seat what it may DO -- and one of the
 # rules they now carry (hook-bypass is a WALL, and the one legal move that replaced the sanctioned
@@ -1215,6 +1234,8 @@ def select_targets(files: list[str]) -> list[str]:
         targets.update(t for t in SITE_SURFACE_TESTS if (ROOT / t).exists())
     if discharge_surface_changed:
         targets.update(t for t in DISCHARGE_SURFACE_TESTS if (ROOT / t).exists())
+    if any(f.startswith(BILLING_SURFACE_PREFIXES) or f in BILLING_SURFACE_FILES for f in files):
+        targets.update(billing_suite_tests())
     for f in files:
         targets.update(tests_for(f))
         # THE ASPECT-NAMED GUARD OF ONE MODULE -- see `SUBJECT_TESTS`. Unioned with `tests_for`

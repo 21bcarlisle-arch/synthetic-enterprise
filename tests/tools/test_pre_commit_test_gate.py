@@ -1265,3 +1265,42 @@ def test_the_banner_carries_the_measurement_it_was_given():
     """A banner that dropped its detail would tell a reader the file is full and not which file
     or by how much."""
     assert "35,190 chars" in gate.rulebook_full_banner("  - CLAUDE.md is 35,190 chars")
+
+
+def _billing_file_defining(test_name: str) -> str:
+    """The billing-suite file that defines `test_name`, found by name so the control follows a
+    rename of the file."""
+    hits = [t for t in gate.billing_suite_tests()
+            if any(isinstance(n, ast.FunctionDef) and n.name == test_name
+                   for n in ast.walk(ast.parse((ROOT / t).read_bytes())))]
+    assert hits and not hits[1:], f"{test_name} is defined in {hits or 'no billing test file'}"
+    return hits[0]
+
+
+def test_a_billing_change_selects_the_test_that_refused_the_08f267b666_publish():
+    """A billing module's consumers are the whole pipeline, not its importers (2026-11-03,
+    wrong_triage `a-billing-or-gate-change-lands-on-its-own-test-selection`). The test that refused
+    the 08f267b666 publish reads `raw_account_export`, so a change to `monthly_bill_assembly` never
+    reached it by stem, subject or one-level import.
+
+    Defect it catches: dropping the billing surface from `select_targets` -- the file falls out of
+    the selection and the second assert fails while the first still holds."""
+    changed = "company/billing/monthly_bill_assembly.py"
+    refuser = _billing_file_defining("test_every_real_period_exports_readings_that_reproduce_our_own_volume")
+    narrow = (set(gate.tests_for(changed)) | set(gate.importing_tests(changed))
+              | set(gate.SUBJECT_TESTS.get(changed, ())))
+    # The branch can be taken: the derived rules alone leave the refuser out, so the rule adds it.
+    assert refuser not in narrow
+    assert refuser in gate.select_targets([changed])
+
+
+def test_every_billing_trigger_runs_the_whole_billing_suite_and_nothing_else_does():
+    """The property, keyed to the directory rather than a count: each trigger selects every file
+    under tests/company/billing, and a change elsewhere in company/ does not."""
+    suite = set(gate.billing_suite_tests())
+    assert len(suite) > 1 and all(t.startswith("tests/company/billing/") for t in suite)
+    for trigger in ("company/billing/pre_bill_validation.py", "saas/reporting.py",
+                    *gate.BILLING_SURFACE_FILES):
+        missing = suite - set(gate.select_targets([trigger]))
+        assert not missing, f"{trigger} leaves {len(missing)} billing test(s) out: {sorted(missing)[:3]}"
+    assert not suite <= set(gate.select_targets(["company/crm/enriched_churn_estimate.py"]))
