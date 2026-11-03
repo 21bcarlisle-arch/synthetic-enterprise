@@ -90,6 +90,16 @@ total register). The band catch-ups therefore sum to the total's catch-up.
   start of a ToU stretch sum to the total's closing reading before it, and the total's opening reading
   after a ToU stretch equals the bands' closing sum. Within a stretch, each period's band advances sum
   to its billed kWh plus catch-up (`INV_PERIOD_MATCHES_READS`).
+- **The reads a two-register bill prints are its registers', one pair each (3 Nov 2026).** On a
+  traditional Economy 7 meter the display shows each register and no sum (§2: two clock-switched
+  registers), so a printed total is a read nobody can find on the meter. A smart meter does keep the
+  total (§1), but the bill charges the bands, so the band pairs are the reads it is checked against.
+  The Explore page's reads panel therefore prints an opening and closing read per register, labelled
+  as the usage lines are, and the summed pair only on a single-register bill. A book without
+  per-register reads says so rather than print the sum. Source of the defect: N12 of the sixth cold
+  read (PROS-2017-0233, which printed 3,622.7, the sum of Day 1,978.5 and Night 1,644.2). Whether a
+  smart ToU bill should also print the total register is a presentation choice no source settles:
+  **GAP**, and it is not printed.
 
 ## 5. Limits
 

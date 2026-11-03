@@ -41,3 +41,23 @@
 - A door test should render a PC2 bill and fail if a printed read equals the sum of two register reads.
 - This is page-only. The ledger and the bill are right.
 - Reverse: delete this file.
+
+## Done
+
+2026-11-03, Lane 0 `n12-two-rate-read-panel-and-storage-moment`.
+- **The reads panel.** `site/explore/index.html` `gasReadRows` prints an opening and closing read per entry of
+  `inv.registers` when there are two or more, labelled "(Day)", "(Night)" as the usage lines are. The summed pair
+  stays only for a single-register bill. A register without its own reads prints "its reads are not recorded in
+  this book" instead of the sum. The total row reads "Difference charged, all registers together".
+- **The door test.** `site/explore/test_a_two_rate_bill_prints_each_registers_reads.py` renders INV12356 through the
+  page's own function and fails if any printed read equals the sum of two register reads. Against HEAD's page it is
+  red; the sum leg alone catches 3,622.7 and 3,806.8 there.
+- **The storage moment.** `tools/generate_explore_cast.py`: the storage slot adds the first winter (December to
+  February) two-register electricity bill as "A winter bill". Every bill moment with two or more registers prints
+  each register's line in its story ("charged as Day 812.3 kWh at 13.13p and Night 1,204.0 kWh at 3.37p"). A home
+  with no winter two-register bill fails the slot's checks by name. Test:
+  `tests/tools/test_generate_explore_cast.py::test_the_storage_story_shows_a_winter_bill_on_its_day_and_night_lines`.
+- **K8.** `docs/market_research/a_multi_register_meters_bands_add_up_to_its_total.md` §4 records the design choice,
+  with a GAP on whether a smart ToU bill should also print the total register.
+- **Not done here.** The published `explore_cast.json` and the page's static cast regenerate at the next publish,
+  not in this commit. No domain-invariant row grades the printed read set; the door test grades the render.
