@@ -43,5 +43,27 @@ at about 23 cells before. Prediction 4 is that it does not finish in one turn.
 The 522 tests that touch the store, the HDD leg or the weather inputs pass on the rebuilt store
 (3 xfailed).
 
+## ERA5, the first increment (later the same day)
+
+`--build --no-temperature` ran for 27 minutes and pulled **26 cells**. The store now has 359 cells
+with the archive, against 333 before. **470 book cells are still temperature-only.** No quota
+stopped the pull. Its pace was set by `_write`, which re-rendered the whole 34 MB series after
+every cell (about 40 s), and so took longer than the network fetch and the 20 s spacing combined.
+**Prediction 4 held** (the pull does not finish in one turn), but not for the reason I gave: the
+limit was this tool's write, not the hourly bucket.
+
+Two changes to `tools/build_weather_world.py` came out of this:
+- **Checkpoint every 10 cells** (`CHECKPOINT_CELLS`), not every cell. An interruption now loses at
+  most 10 pulls.
+- **Atomic write.** The series is written to a sibling file and renamed into place. Before this, a
+  kill during the rewrite left the series truncated; this turn's own stop had to be timed into a
+  20 s pause to avoid that. The gzip header is unchanged apart from the wall-clock stamp, and
+  `test_a_write_killed_midway_leaves_the_previous_series_whole` is red against the direct write.
+
+**What completes this:** run `SE_DRAW_POPULATION=1 python3 -m tools.build_weather_world --build
+--no-temperature` until `--list` prints `BOOK CELLS NOT YET COMPLETE: 0`. Then delete the strict
+xfail on `tests/simulation/test_every_settling_domestic_premise_reads_a_complete_stored_cell.py`,
+which is that store's fabric-side control. Its marker says the completing commit removes it.
+
 **Reverse:** `git revert` the landing that carries the three `sim/weather_world/` files. This file
 is deleted with it.

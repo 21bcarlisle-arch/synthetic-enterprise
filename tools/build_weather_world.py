@@ -153,6 +153,8 @@ LEVELLED = ("temperature_min_c", "temperature_mean_c", "temperature_max_c")
 PAUSE_SECONDS = 20.0
 RETRY_ATTEMPTS = 4
 RETRY_BACKOFF_SECONDS = 60.0
+#: Cells pulled between store rewrites; see the loop in `build`.
+CHECKPOINT_CELLS = 10
 
 #: The window the simulation runs over.
 START_DATE = "2016-01-01"
@@ -519,7 +521,11 @@ def build(limit: int | None = None, pause: float = PAUSE_SECONDS, progress=print
                 row[field] = record.get(field, "")
         progress(f"  [{index}/{len(todo)}] {key} {len(records)} days "
                  f"({cell['latitude']:.3f},{cell['longitude']:.3f})")
-        _write(known, held)          # after every cell, so an interruption keeps what it got
+        # EVERY `CHECKPOINT_CELLS`, not every cell: a write re-renders the whole store (34 MB at
+        # 836 cells, ~40 s), which made the rewrite, not the network, the pull's pace -- 26 cells in
+        # 27 minutes on 2026-11-03. An interruption now loses at most that many pulls.
+        if index % CHECKPOINT_CELLS == 0:
+            _write(known, held)
         time.sleep(pause)
 
     written = _write(known, held)
@@ -656,8 +662,15 @@ def _write(cells: dict[str, dict], rows: dict[str, list[dict]]) -> dict:
         # STILL `gzip.open`, not `gzip.compress`: the two differ in the header's FNAME field, and
         # switching would move every byte of a file whose byte-comparability against the artefact
         # on disk the block above is at pains to preserve.
-        with gzip.open(SERIES_PATH, "wt", newline="", encoding="utf-8") as handle:
+        # THROUGH A SIBLING AND A RENAME: a kill mid-write (a `timeout`, a SIGTERM) used to leave a
+        # truncated series under a `cells.json` that names every cell. The temp file keeps the
+        # store's name as gzip's FNAME, so the bytes are what the direct write produced.
+        partial = SERIES_PATH.with_name(SERIES_PATH.name + ".partial")
+        with open(partial, "wb") as raw, gzip.GzipFile(
+                filename=SERIES_PATH.name, mode="wb", fileobj=raw) as gz, \
+                io.TextIOWrapper(gz, encoding="utf-8", newline="") as handle:
             handle.write(rendered)
+        partial.replace(SERIES_PATH)
     return {"cells": len(held), "regimes": len(regime_of_cell), "orphans": orphans,
             "series_rewritten": rewritten}
 
