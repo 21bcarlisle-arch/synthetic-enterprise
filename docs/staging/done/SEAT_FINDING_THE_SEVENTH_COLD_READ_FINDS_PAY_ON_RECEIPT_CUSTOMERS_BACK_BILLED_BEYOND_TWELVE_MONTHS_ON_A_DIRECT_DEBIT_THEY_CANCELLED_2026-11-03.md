@@ -41,3 +41,43 @@ payer is billed.
 Scenario B. The open question for the page is the dated payment method: the feed should answer "how does this
 account pay on this date", since the ledger shows the method changing. The row should grade a pay-on-receipt
 catch-up as a breach, not a flag.
+
+## Done (2026-11-03)
+
+**The trace** (published 0a6391d186 bills and `per_customer_behavioral`, replayed through
+`supplier_dd_spells` over the issued bills). The finding's filter gave 8. Mine, which keeps the OCC-
+legs and the 2018 bills, gives 11 uncapped catch-ups on accounts paying by standard credit only, within
+90 days of the bill. For every one: `payment_channel_feed` answered `direct_debit`. The basis taken was
+`direct_debit_barred_at_the_charge_recovery_action`, nothing written off. The supplier's own spells had
+the DD stopped, so the dated answer is `standard_credit`:
+
+| account | catch-up bill | DD stopped after the bill of |
+|---|---|---|
+| PROS-2018-0016 | 2024-05-31 | 2018-02-28 |
+| PROS-2018-0016g | 2021-10-31 | 2018-02-28 |
+| SYN-2016-045 | 2022-12-31 | 2021-07-31 |
+| SYN-2016-269 | 2024-10-31 | 2024-02-29 |
+| SYN-2016-299 (gas-only) | 2018-07-08 | 2016-12-31 |
+| SYN-2016-380 | 2024-10-31 | 2022-06-30 |
+| SYN-2016-487 | 2018-11-30 | 2017-08-31 |
+| PROS-2017-0393g | 2019-09-30 | 2018-12-31 |
+| PROS-2021-0217 | 2025-06-07 | 2022-03-31 |
+| OCC-33214d16f95cg | 2023-05-31 | 2021-06-30 |
+| OCC-75d17c23c1dag | 2024-09-30 | 2022-01-31 |
+
+So the side the trace names is the undated feed, not the cap. PROS-2018-0016's "no DD payment on its
+record" is a stop in Feb 2018. Book-wide, 379 catch-ups on 63 accounts took a DD basis on a bill paid on
+receipt.
+
+**The fix.** Billing takes `payment_channel_at_feed(customer_data, period_end)`, and the catch-up's basis
+asks it at the catch-up's own bill. The published run bills once, reads the spells over the issued bills
+(the key the ledger uses), and re-bills the 63 accounts (`rebill_catchups_off_direct_debit`).
+Knowledge: `back_billing_and_liability.md` section 16. Test:
+`tests/simulation/test_a_catchup_on_a_cancelled_direct_debit_is_capped_at_twelve_months.py`. It reds
+on today's code, and under the mutation that points the catch-up back at the undated channel.
+
+**Not yet seen on a book.** The 11 move only on the next fresh run. Prediction, filed now: on it, no
+domestic catch-up from May 2018 on a bill the ledger records as paid on receipt has
+`catchup_back_billing_cap_applied` false with a window over 12 months.
+**Left open:** the DD balance book's copy of the same defect,
+`SEAT_FINDING_THE_DD_BALANCE_BOOK_KEEPS_A_LEVEL_DD_RUNNING_AFTER_THE_MANDATE_ENDED_2026-11-03.md`.

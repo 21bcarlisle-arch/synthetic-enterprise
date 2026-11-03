@@ -66,6 +66,7 @@ import functools
 
 from company.interfaces.accounting_close import close_the_books
 from company.interfaces.bill_assembly import (
+    BASIS_DD_AT_RECOVERY_ACTION,
     assemble_monthly_bills,
     billing_accuracy,
     direct_debit_money_line,
@@ -85,6 +86,7 @@ from company.interfaces.supply_book import (
 )
 from simulation import policy_costs as _policy_costs
 from simulation.arrears_engine import (
+    PAY_ON_RECEIPT_METHOD,
     book_arrears_lines,
     compute_debt_recovery,
     emergent_bad_debt_lines,
@@ -252,6 +254,65 @@ def simulated_payment_channel(customer_data: dict) -> str | None:
     ).value
 
 
+def dated_payment_channel(dd_spells: dict[str, list[tuple[str, str | None]]]):
+    """How an account pays ON a bill's period end: `simulated_payment_channel`, unless the bill falls
+    in a spell off DD (`dd_collection_book.supplier_dd_spells`, the supplier's own record of a stop or
+    a household's ADDACS 1). The same key `arrears_engine.paying_method` gives the ledger, so a bill
+    and the payment against it cannot disagree about how it was paid (N14)."""
+    def at(customer_data: dict, period_end: str) -> str | None:
+        drawn = simulated_payment_channel(customer_data)
+        spells = dd_spells.get(customer_data.get("customer_id"), ()) if customer_data else ()
+        if drawn == "direct_debit" and any(off < period_end and (on is None or period_end <= on)
+                                           for off, on in spells):
+            return PAY_ON_RECEIPT_METHOD
+        return drawn
+    return at
+
+
+def rebill_catchups_off_direct_debit(all_records, bills: list[dict], read_events: list,
+                                     behavioral: dict, **build_kwargs) -> tuple[list[dict], list]:
+    """Re-bill every account with a catch-up on a bill it pays on receipt because its DD had ended.
+
+    The spells off DD are decided on the bills (the rails run over them), so the first pass bills
+    on the method the account was set up on and this pass re-bills only the accounts whose catch-up
+    that answer got wrong, on the dated method. A spell opens on bills presented by DD, which this
+    pass does not move, so the spells it reads are the ones the ledger reads. Each account is billed
+    from its own records alone, so its bills and read events are replaced in place.
+    """
+    from company.interfaces.bill_assembly import issued_bills
+    from simulation.dd_collection_book import supplier_dd_spells
+
+    # Over the issued bills, as `emergent_bad_debt_lines` asks them for the ledger's methods.
+    spells = supplier_dd_spells(issued_bills(bills), behavioral)
+    at = dated_payment_channel(spells)
+    affected = {b["customer_id"] for b in bills
+                if b.get("catchup_back_billing_basis") == BASIS_DD_AT_RECOVERY_ACTION
+                and at({"customer_id": b["customer_id"], "segment": b.get("segment", "resi"),
+                        "commodity": b.get("commodity", "electricity")},
+                       b["period_end"]) == PAY_ON_RECEIPT_METHOD}
+    if not affected:
+        return bills, read_events
+    events: list = []
+    rebilled = build_monthly_bills([r for r in all_records if r["customer_id"] in affected],
+                                   read_events_out=events, payment_channel_at_feed=at,
+                                   **build_kwargs)
+    by_cid: dict[str, list] = {}
+    for bill, event in zip(rebilled, events):
+        by_cid.setdefault(bill["customer_id"], []).append((bill, event))
+    out_bills, out_events, taken = [], [], set()
+    for bill, event in zip(bills, read_events):
+        cid = bill["customer_id"]
+        if cid not in affected:
+            out_bills.append(bill)
+            out_events.append(event)
+        elif cid not in taken:
+            taken.add(cid)
+            for b, e in by_cid.get(cid, ()):
+                out_bills.append(b)
+                out_events.append(e)
+    return out_bills, out_events
+
+
 @functools.lru_cache(maxsize=1)
 def _listed_dwellings() -> frozenset:
     from simulation.live_population import live_premises
@@ -320,6 +381,7 @@ def build_monthly_bills(
     instructed_read_arm: str = "register",
     annualised_advance_estimate: bool | None = None,
     gas_advance_floor_nine_months: bool | None = None,
+    payment_channel_at_feed=None,
 ) -> list[dict]:
     """Run the SUPPLIER's monthly billing over this run's settled records.
 
@@ -368,6 +430,7 @@ def build_monthly_bills(
         gas_advance_floor_nine_months=gas_advance_floor_nine_months,
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
+        payment_channel_at_feed=payment_channel_at_feed,
         premise_listing_feed=simulated_council_tax_listing,
         theft_screen_out=theft_screen_out, tenancy_links=tenancy_links,
     )
@@ -467,6 +530,14 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
                                 annualised_advance_estimate=annualised_estimate_request(policy),
                                 gas_advance_floor_nine_months=gas_advance_floor_request(policy),
                                 instructed_read_arm=instructed_read_arm)
+    # N14: a catch-up on a bill the account pays on receipt, because its DD had ended, is capped at
+    # 12 months; the first pass cannot know the spells, which are decided on its own bills.
+    bills, billed_read_events = rebill_catchups_off_direct_debit(
+        all_records, bills, billed_read_events, phase2b_result.get("per_customer_behavioral", {}),
+        churned_ids=churned_ids, instruct_reads=read_instruction_request(policy),
+        annualised_advance_estimate=annualised_estimate_request(policy),
+        gas_advance_floor_nine_months=gas_advance_floor_request(policy),
+        instructed_read_arm=instructed_read_arm)
 
     # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD
     # collection book (mandate setup/collection/amendment, real AUDDIS/ARUDD/

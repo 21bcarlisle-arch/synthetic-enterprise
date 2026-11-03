@@ -644,6 +644,7 @@ def build_monthly_bills(
     churned_ids: set[str] | None = None,
     read_events_out: list | None = None,
     payment_channel_feed: Callable[[dict], str | None] | None = None,
+    payment_channel_at_feed: Callable[[dict, str], str | None] | None = None,
     premise_listing_feed: Callable[[dict], bool | None] | None = None,
     theft_screen_out: list | None = None,
     tenancy_links: dict[str, str] | None = None,
@@ -726,6 +727,13 @@ def build_monthly_bills(
     Omitting it leaves every bill's `bill_shock_population` at "unknown", which is what it was
     before this argument existed. The shock arithmetic is identical either way — this argument adds
     an attribution, not a calculation.
+
+    `payment_channel_at_feed` (2026-11-03, N14): how the account pays ON a bill's period end, from
+    the supplier's own mandate record. `payment_channel_feed` is the method the account was set up
+    on, and a direct debit can be cancelled mid-tenure, by the household or by the desk's stop. A
+    catch-up is a demand on the method in force at its own bill, so the back-billing basis asks this
+    one there: a pay-on-receipt payer whose DD ended is capped at 12 months (SLC 21BA), not deferred
+    to a DD recovery action that will never come. Omitted, the catch-up reads `payment_channel_feed`.
 
     `premise_listing_feed` (2026-09-28): whether the supply address is on the council tax list --
     a public record the supplier looks up, supplied by the caller for the reason `read_feed` is.
@@ -938,7 +946,8 @@ def build_monthly_bills(
                 # real bill, not a separate artifact.
                 catchup = _resolve_catchup(
                     customer_id, segment, pending_estimated_run, bill["period_end"],
-                    payment_channel,
+                    payment_channel if payment_channel_at_feed is None
+                    else payment_channel_at_feed(customer_data, bill["period_end"]),
                 )
                 # Every correction is billed, however small: the read nets the run to the meter
                 # (section 9 of the estimate knowledge page). Only one that rounds to 0.00 adds no

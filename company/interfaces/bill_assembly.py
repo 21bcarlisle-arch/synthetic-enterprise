@@ -39,6 +39,7 @@ from company.billing.billing_accuracy import (
     move_out_final_bills,
 )
 from company.billing.monthly_bill_assembly import (
+    BASIS_DD_AT_RECOVERY_ACTION,
     ReadArrival,
     ReadArrivalFeed,
 )
@@ -92,7 +93,7 @@ def scheme_credit(segment: str, commodity: str, month: str, held_from: str | Non
 
 
 __all__ = [
-    "MoneyBoundaryError", "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
+    "BASIS_DD_AT_RECOVERY_ACTION", "MoneyBoundaryError", "ReadArrival", "ReadArrivalFeed", "assemble_monthly_bills", "barred_at_charge_recovery",
     "billing_accuracy", "direct_debit_money_line", "held_bills", "issued_bills",
     "move_out_final_bills", "owed_after_scheme_credit", "PRINTED_MONEY_LINES", "printed_bill_money",
     "printed_total", "scheme_credit",

@@ -914,3 +914,53 @@ reader holding only the bills can grade the run, not each month: the corrected m
 plus the catch-up are the true supply, and their VAT lies between the reduced and standard rates
 (exact at the reduced rate for a domestic run). That check is
 `tools/independent_bill_validator.catchup_vat_breach`.
+
+## 16. How an account pays on the day of the catch-up (2026-11-03)
+
+**Why it matters.** The comparator in section 5 follows the payment method: for a direct-debit
+account the debit is the demand and the bar is taken at a charge recovery action (Scenario B); for an
+account that pays each bill on receipt, the bill is the demand and 21BA.1 bars energy more than 12
+months before it. So the question is not "how did the account first pay us" but **how it pays the
+catch-up bill itself**. A direct debit can end mid-tenure: the household cancels it at its bank
+(ADDACS 1), or the supplier stops it after failed collections. From the next bill the account pays on
+receipt, and every estimated bill since is a demand.
+
+**What the supplier knows (its own records) [H, practice].** A supplier holds its mandate register:
+the AUDDIS lodgement and its confirmation, every ADDACS advice (1 = instruction cancelled by the payer),
+every ARUDD return, and its own decision to stop collecting. It also holds every payment received and
+the channel it arrived by. So for any bill date it can say whether a live mandate was being collected
+against that bill. This is the Bacs scheme's own record, kept by every DD originator (the AUDDIS/ADDACS/ARUDD
+services; `docs/market_research/payments_and_direct_debit_2026-10-25.md`, section 4 for a cancel). Nothing
+outside the supplier is needed.
+
+**What our code did (discovery).** The billing organ asked one undated question per account
+(`payment_channel_feed`, answered world-side by `simulated_payment_channel`): the method the account
+was set up on. The ledger, by contrast, takes each payment's method from the dated spells off DD
+(`dd_collection_book.supplier_dd_spells`, read by `arrears_engine.paying_method`). On the 0a6391d186
+book the two disagreed on 11 catch-ups that recover a window starting more than 12 months before the
+bill. Each was billed under the deferred direct-debit basis (`BASIS_DD_AT_RECOVERY_ACTION`), with
+nothing written off, though the supplier's own record had the DD stopped months or years before
+(PROS-2018-0016: stopped after the Feb 2018 bill; catch-up of 31 May 2024 over 27 estimated months,
+£25.40 charged, paid by standard credit on 27 Jun 2024). Book-wide, 379 catch-ups on 63 accounts took a
+direct-debit basis on a bill the ledger records as paid on receipt.
+
+**The design choice.**
+- Billing takes a second, dated feed, `payment_channel_at_feed(customer_data, period_end)`, and the
+  catch-up's basis asks it at the catch-up's own bill. The world answers it from the same spells the
+  ledger reads, so a bill and the payment against it cannot disagree about how it was paid.
+- The spells are decided on the bills, so the published run bills once, reads the spells, and
+  re-bills only the accounts whose catch-up fell on a bill paid on receipt
+  (`run_phase4c_on_phase2b.rebill_catchups_off_direct_debit`). A spell opens on bills presented by DD,
+  which the second pass does not move.
+- A catch-up whose window was partly on DD and whose bill is paid on receipt is graded as a demand
+  for the whole window. That over-bars where the old DD collections had already covered part of the
+  use. It is the safe direction (F11), and it is named here, not hidden.
+
+**GAP.**
+- Whether the Ombudsman treats a window that was part-DD, part-on-receipt as Scenario B for the DD
+  months. No published case was found. The build bars the whole window.
+- The direct-debit balance book (`simulation/dd_balance_book.py`) still decides DD membership by the
+  undated method. So it keeps reviewing, and barring at reviews, a level DD that ended. Same defect,
+  second organ; filed, not fixed here.
+- The published customer page does not carry `catchup_back_billing_basis`, so a reader cannot see which
+  comparator a catch-up took.
