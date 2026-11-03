@@ -104,6 +104,22 @@ def bill_missed(due: dt.date, first_paid: Optional[dt.date], as_of: dt.date) -> 
     return first_paid is None or first_paid > due
 
 
+def bill_paid_in_its_window(payments: List[tuple], issued: dt.date, amount_gbp: float,
+                            payment_terms_days: int = 14) -> bool:
+    """Whether the cash that landed on the account from a bill's issue to its due date, both inclusive,
+    covers the bill. `payments` is the account's `(value date, GBP)` received cash, in date order.
+
+    This is what "a further bill missed" asks. Oldest-first allocation ages a balance-based account and
+    moves an on-time payment onto the standing arrear, so it cannot say whether THIS bill was paid.
+    Cash for an older debt in the window counts towards the bill, which errs away from claiming a miss
+    (SLC 0: contact "complete, accurate and not misleading"; GAP A6).
+    `docs/market_research/company_debt_management.md`, "A further bill missed"."""
+    due = issued + dt.timedelta(days=payment_terms_days)
+    lo = bisect.bisect_left(payments, (issued,))
+    hi = bisect.bisect_left(payments, (due + dt.timedelta(days=1),))
+    return sum(gbp for _on, gbp in payments[lo:hi]) >= round(amount_gbp, 2) - 0.005
+
+
 CURED = "cured"
 #: The ladder step on which SLC 27.8 has the company offer an affordable arrangement.
 PLAN_OFFER_STEP = "repayment_plan_offer"
@@ -408,6 +424,14 @@ class CollectionsJourneyDesk:
         events = ledger.events()
         bill_dues = [e.valid_time + dt.timedelta(days=payment_terms_days)
                      for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
+        # A re-offer needs a bill falling missed that day AND not paid: the day alone fired it after
+        # bills paid in full on their due date, 4,742 times on 0a6391d186 (N15).
+        payments = sorted((e.valid_time, e.amount_gbp) for e in events
+                          if e.event_type == LedgerEventType.PAYMENT_CREDIT)
+        unpaid_on = {missed_on(e.valid_time + dt.timedelta(days=payment_terms_days))
+                     for e in events if e.event_type == LedgerEventType.BILL_DEBIT
+                     and not bill_paid_in_its_window(payments, e.valid_time, e.amount_gbp,
+                                                     payment_terms_days)}
         missed = {missed_on(d) for d in bill_dues}
         openers = missed | {
             e.valid_time for e in events
@@ -437,7 +461,7 @@ class CollectionsJourneyDesk:
                 continue
             if account_id not in self._open and on not in openers:
                 continue
-            self._step(account_id, segment, on, ledger=ledger, bill_missed=on in missed,
+            self._step(account_id, segment, on, ledger=ledger, bill_missed=on in unpaid_on,
                        payment_terms_days=payment_terms_days)
         self._read_meter_recoveries(account_id, through)  # a meter changed inside this walk
         self._through[account_id] = through

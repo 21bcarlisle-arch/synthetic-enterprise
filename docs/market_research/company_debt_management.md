@@ -858,6 +858,57 @@ than 365 days before as of. A "desk act" is any stage of any collections-desk jo
   balance held and no desk act. Its duration goes to a practitioner first. Re-run the census above
   (count, gaps, fuel) on that run before building.
 
+### "A further bill missed" means the bill was not paid, not that a balance stood (2026-11-03)
+*Raised by the seventh cold read (N15,
+`docs/staging/SEAT_FINDING_THE_SEVENTH_COLD_READ_FINDS_THE_DESK_REPORTS_A_FURTHER_BILL_MISSED_AFTER_A_BILL_PAID_IN_FULL_2026-11-03.md`).
+PROS-2017-0233 had one DD returned for its £35.45 September bill. It then paid £39.31, £51.31 and £53.06,
+each in full on the day it fell due. The desk re-offered the plan the day after each one, saying "a further
+bill missed".*
+
+**What the rules and published practice say.**
+- **Allocation is one question, and the contact's wording is another.** On a balance-based domestic account
+  a payment reduces the running balance, with no bill-to-payment matching. Ageing reads that balance
+  oldest-first (`account_hierarchy_payment_allocation.md` s.1). So on 14 Nov the £39.31 ages as clearing
+  the September bill, and the £35.45 still owed sits on the October bill. That reading is right for ageing,
+  for the provision and for the statute bar (s.29(5) above). It is not a statement that the household
+  failed to pay the October bill. **ESTABLISHED** as practice (`[H]` there).
+- **The contact must be accurate.** SLC 0 (Standards of Conduct): information to a domestic customer must be
+  "complete, accurate and not misleading" (`back_billing_and_liability.md`; Ofgem *Standards of Conduct*,
+  2017). Telling a household that paid a bill in full on its due date that it missed that bill is not
+  accurate. **ESTABLISHED.**
+- **What triggers a fresh 27.6 offer is fresh evidence of difficulty.** 27.5 is "becomes aware or has
+  reason to believe". A newly missed bill is such a reason. A bill paid in full and on time is not. It is,
+  if anything, evidence against. The standing arrear is already known, and its offer has been made. A
+  quiet balance is the separate "may act, not must" case above. **DERIVED** from the 27.5 text and the
+  section above.
+- **GAP A6:** no published source says how a supplier tests "this bill was paid" on a balance-based
+  account where a DD is not earmarked to an invoice. The test below is the desk's own choice.
+
+**Design choice (`company/billing/collections_journey.py`, `bill_paid_in_its_window`).**
+- A bill counts as newly missed for the re-offer only when the cash that landed on the account between its
+  issue and its due date, both inclusive, is short of the bill. This test reads the company's own ledger
+  and is independent of allocation. Cash for an older debt in the same window counts towards the bill.
+  That errs towards not re-offering, which is the accurate-contact side. The case stays open on its rung
+  either way.
+- **The standing arrear is left alone** (`1eaf19d78`): the case stays on its rung, uncollected and
+  unplanned, until it cures. The re-offer is no longer worded as a miss that did not happen.
+
+**Measured on the published 0a6391d186 pages** (`site/data/customers/*.json`, legs grouped by base account,
+each bill judged on its own leg's cash). There were 6,599 re-offers on 237 accounts.
+- **The trace:** the desk passed `bill_missed = on in missed`, which is true on the day after *any* bill's
+  due date. It never asked whether that bill was paid. No allocation was read at all, so the
+  oldest-first hypothesis in the finding is not the cause. All 6,599 re-offers share this one code path.
+- **4,742 (72%), on 235 accounts,** fell on a day when every bill then falling due had been paid in full in
+  its window. These are the inaccurate contacts. The finding's 3,772 (57%) used a different window: the
+  latest bill before the re-offer, paid between its issue and the re-offer.
+- **1,756, on 123 accounts,** followed a bill that was short. These were true misses.
+- **101, on 3 accounts,** fell on a day with no published bill falling due. That is not yet traced.
+
+**Prediction, written before the next book is run.** Re-offers fall from 6,599 to between 1,600 and
+1,900. Not one re-offer follows a bill paid in full in its window. The number of journeys, the cures and
+every money figure stay unchanged, because the re-offer moves no money and the world answers every offer
+None.
+
 ## One ladder for one act: the ledger's per-bill notices take their days from the desk (2026-10-24)
 
 *K8 page for `the-published-household-record-shows-the-desks-collections-journey`. There are two
