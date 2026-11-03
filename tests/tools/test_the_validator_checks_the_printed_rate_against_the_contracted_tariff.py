@@ -189,3 +189,19 @@ def test_the_published_book_charges_its_contracted_tariff():
     assert sum(counts.values()) == ledger["meta"]["invoice_count"]
     assert counts.get(cmp.AGREED), counts
     assert not differ, "{} disagree with the contracted tariff: {}".format(len(differ), differ[:5])
+
+
+def test_a_two_register_catch_up_bill_prices_only_its_own_month_at_the_contract():
+    """OCC-23ee23cb44e4, Apr 2022 on the 0a6391d186 book: an Economy 7 actual bill after estimates
+    opens each register on its last ESTIMATED reading, so the readings also span the catch-up line,
+    which is priced as the correction it prints. The contract check priced the whole advance and
+    read 262 such bills as charging the wrong tariff (this one by GBP 55.51). Here each register's
+    reads advance 10 kWh more than its month, and the 10 is the catch-up's.
+    MUTATION: drop the catch-up term in `_volume_by_label`'s multi-register branch and this reds."""
+    period = _tou([_term(30.0, pair=(40.0, 20.0))])
+    period["reads"][1]["read_kwh"] = 40.0
+    period["reads"][3]["read_kwh"] = 80.0
+    period["registers"][0]["catchup_kwh"] = 10.0
+    period["registers"][1]["catchup_kwh"] = 10.0
+    # 30 kWh Peak at 40p + 70 kWh Off-peak at 20p = 26.00 all-in, carved 20.00 energy + 6.00 levy.
+    assert _verdict(period, _issued(20.00, 6.00))["verdict"] == cmp.AGREED

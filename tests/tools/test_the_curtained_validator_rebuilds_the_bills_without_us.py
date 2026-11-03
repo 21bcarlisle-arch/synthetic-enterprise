@@ -279,17 +279,23 @@ def test_every_bills_vat_matches_the_rate_the_PUBLISHED_LAW_says_applies():
             law = [ln for ln in p["lines"] if ln["label"] == "VAT"][0]["statutory_rate"]
             if law is None:
                 continue
-            # A bill that prints `catchup_vat_gbp` carries its catch-up INSIDE the VAT line, so the
-            # adjustment is part of the base. Keyed on that declaration, not on a book: the
-            # 4ae8da9b0f book prints none (catch-up outside VAT, 0 wrong either way), while the
-            # 08f267b666 book prints it on every catch-up and reads 6,219 wrong without the line
-            # and 2 with it (C5/110 and C5/113, where the catch-up VAT is not 5%).
+            # A bill that prints `catchup_vat_gbp` carries the catch-up's VAT on its VAT line, and
+            # that VAT is at the CORRECTED months' rates, not this bill's (section 15 of
+            # back_billing_and_liability.md). So the month's own VAT is graded on its own lines and
+            # the catch-up's on its run. Corrected 2026-11-03, beside the claim: this first put the
+            # adjustment in this bill's base, and called C5/110 and C5/113 real errors. Both are
+            # right: an SME month estimated over the de minimis and read under it reverses 20%
+            # and charges 5%.
             lines = ["commodity_amount_gbp", "non_commodity_amount_gbp", "standing_charge_gbp"]
-            if inv.get("catchup_vat_gbp") is not None:
-                lines.append("catchup_adjustment_gbp")
             subtotal = sum((inv.get(k) or 0.0) for k in lines)
+            own_vat = (inv.get("vat_gbp") or 0.0) - (inv.get("catchup_vat_gbp") or 0.0)
             checked += 1
-            if abs((inv.get("vat_gbp") or 0.0) - round(law * subtotal, 2)) > 0.0101:
+            if inv.get("catchup_vat_gbp") is not None:
+                why = v.catchup_vat_breach(segment=rec.get("segment"),
+                                           invoices=rec.get("invoices") or [], bill=inv)
+                if why:
+                    differ.append("{}/{}: {}".format(cid, inv.get("invoice_number"), why))
+            if abs(own_vat - round(law * subtotal, 2)) > 0.0101:
                 differ.append("{}/{}: charged {}, the law gives {:.2f} at {}".format(
                     cid, inv.get("invoice_number"), inv.get("vat_gbp"),
                     round(law * subtotal, 2), law))

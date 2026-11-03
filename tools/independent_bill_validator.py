@@ -233,6 +233,42 @@ def statutory_vat_rate(*, segment: str, commodity: str, kwh: float, days: float)
             "source": "vat_fuel_and_power_de_minimis.json"}
 
 
+def catchup_vat_breach(*, segment: str, invoices: list[dict], bill: dict) -> str | None:
+    """Why a catch-up's VAT is not one the law allows, or None. Only for a bill printing
+    `catchup_vat_gbp`.
+
+    A catch-up re-prices supplies already billed, so it bears VAT at THOSE supplies' rates, each
+    month at its own (back_billing_and_liability.md section 15). That is no single rate: an SME
+    month estimated over the de minimis and read under it reverses 20% and charges 5%, so C5/113's
+    correction is -25.88 VAT on -45.02. Grading it at the carrying bill's rate red two correct bills.
+    The export prints the corrected months' billed lines and the run's total correction, not each
+    month's true use, so what this reader can hold is the run: billed plus correction is the true
+    supply, and its VAT lies between the reduced and standard rates of its net. A domestic run is
+    reduced throughout, so there it is exact. One penny of rounding per month is allowed.
+    """
+    rates = _published("uk_vat_rates.json")["rates"]
+    reduced, standard = rates["reduced"]["rate"], rates["standard"]["rate"]
+    start, end = bill.get("catchup_period_start"), bill.get("catchup_period_end")
+    corrected = [b for b in invoices
+                 if b is not bill and b.get("commodity") == bill.get("commodity")
+                 and start <= (b.get("period_start") or "") and (b.get("period_end") or "~") <= end]
+    lines = ("commodity_amount_gbp", "non_commodity_amount_gbp", "standing_charge_gbp")
+    adj, vat = bill.get("catchup_adjustment_gbp") or 0.0, bill["catchup_vat_gbp"]
+    tol = 0.01 * (len(corrected) + 1) + 0.005
+    if segment == "resi":
+        if abs(vat - reduced * adj) > tol:
+            return "domestic catch-up VAT {} on {}, the reduced rate gives {:.2f}".format(
+                vat, adj, reduced * adj)
+        return None
+    true_net = sum((b.get(k) or 0.0) for b in corrected for k in lines) + adj
+    true_vat = sum((b.get("vat_gbp") or 0.0) for b in corrected) + vat
+    lo, hi = sorted((reduced * true_net, standard * true_net))
+    if not lo - tol <= true_vat <= hi + tol:
+        return ("the run's corrected VAT {:.2f} on {:.2f} lies outside {:.0%}-{:.0%} ({} month(s) "
+                "corrected)".format(true_vat, true_net, reduced, standard, len(corrected)))
+    return None
+
+
 # ── the reconstruction ───────────────────────────────────────────────────────────────────────
 def _volume_from_reads(period: dict) -> tuple[float | None, str]:
     """The period's volume, SUBTRACTED by this module from the two exported readings.
@@ -324,6 +360,10 @@ def _volume_by_label(period: dict) -> tuple[dict | None, str]:
         return None, "the raw export could not supply readings ({})".format(
             period.get("volume_basis"))
     label_of = {r.get("register_id"): r.get("register_label") for r in registers}
+    # Each register's readings also span its share of an actual bill's catch-up line (§13), which
+    # the one-register path above and `_energy_per_register` already take off. Missing here, 262
+    # Economy 7 catch-up bills on the 0a6391d186 book priced the run's true-up at this month's rate.
+    catchups = {r.get("register_id"): r.get("catchup_kwh") or 0.0 for r in registers}
     by_register: dict = {}
     for read in period.get("reads") or []:
         by_register.setdefault(read.get("register_id"), []).append(read.get("read_kwh"))
@@ -332,7 +372,8 @@ def _volume_by_label(period: dict) -> tuple[dict | None, str]:
         if len(reads) != 2 or None in reads or label_of.get(reg_id) is None:
             return None, "register {} has {} reading(s) and no usable label".format(
                 reg_id, len(reads))
-        out[label_of[reg_id]] = Decimal(str(reads[1])) - Decimal(str(reads[0]))
+        out[label_of[reg_id]] = (Decimal(str(reads[1])) - Decimal(str(reads[0]))
+                                 - Decimal(str(catchups.get(reg_id) or 0.0)))
     return out, ""
 
 

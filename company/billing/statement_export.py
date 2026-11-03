@@ -230,7 +230,7 @@ def bill_document(inv: dict) -> dict:
 #: is declared here instead of falling out of a sort. A supplier issues a bill and then receives
 #: money against it, so on a tie the bill lands first. State it, because a running balance is
 #: order-dependent and a reader comparing two reconstructions needs to know this was a convention.
-_EVENT_ORDER = {"bill": 0, "payment": 1, "adjustment": 2}
+_EVENT_ORDER = {"bill": 0, "deemed_account": 1, "payment": 2, "adjustment": 3}
 
 
 def account_events(record: dict) -> list[dict]:
@@ -251,6 +251,12 @@ def account_events(record: dict) -> list[dict]:
     EXCEPT WHAT WAS PART PAID. A failed payment can carry `part_paid_gbp`: money the household did
     pay, which the ledger counts in `total_paid_gbp`. Walking it as zero put the close below the
     ledger on exactly the 12 accounts of run 2248e3baf that carry one, by exactly that sum.
+
+    A BILL, OR PART OF ONE, BOOKED TO A DEEMED ACCOUNT LEAVES THIS BALANCE ON ISSUE. Days before
+    the occupier was named, or in a void, are the unnamed occupier's or the owner's, never asked of
+    this payer. The ledger takes `deemed_debt_gbp` and `deemed_share_gbp` off its balance; a walk
+    without them closed below it on all 253 occupier accounts of the 0a6391d186 book, each by
+    exactly its `total_deemed_gbp`.
     """
     events: list[dict] = []
     for inv in record.get("invoices") or []:
@@ -262,6 +268,16 @@ def account_events(record: dict) -> list[dict]:
             "detail": "bill issued for {} to {}".format(
                 inv.get("period_start"), inv.get("period_end")),
         })
+        deemed = (inv.get("deemed_debt_gbp") or 0.0) + (inv.get("deemed_share_gbp") or 0.0)
+        if deemed:
+            events.append({
+                "date": inv.get("issue_date"), "kind": "deemed_account",
+                "reference": inv.get("invoice_number"),
+                "amount_gbp": round(deemed, 2),
+                "moves_balance_gbp": round(deemed, 2),
+                "detail": "billed to the {}'s deemed account".format(
+                    inv.get("billed_to") or inv.get("deemed_share_to")),
+            })
     for pay in record.get("payments") or []:
         ok = pay.get("outcome") == "success"
         amount = pay.get("amount_gbp") or 0.0

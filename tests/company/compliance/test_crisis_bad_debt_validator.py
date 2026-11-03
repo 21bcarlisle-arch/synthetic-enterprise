@@ -191,10 +191,41 @@ def test_live_run_output_shows_crisis_step_up_pnl_accrual():
 # That clears the floor by 0.0009 points, and 2023 (1.55%) carries all of it. Three casts of this
 # book put the 2020-21 failed share at 0.52, 0.71 and 1.03 of 2019's, so a swing of this size is
 # within what the cast alone moves. Kept as a live guard. The year the step lands is the leg below.
+#: A NAMED, DATED EXCEPTION, in the shape of docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml: filed
+#: 2026-11-03, retired by W2_38 (the world's payment draw reads the bill and the household budget),
+#: with a ceiling. It lifts a failure only at or above the crisis rate the 0a6391d186 book reads
+#: (0.3295%), so a book that sinks further refuses again, and a book that clears the floor passes.
+_NO_CRISIS_IN_THE_WORLDS_PAYMENT_DRAW = (
+    "named exception (2026-11-03, retired by W2_38): the floor is right -- Centrica's residential "
+    "charge ran 1.1-3.1% of revenue in 2019-2025 and four suppliers 1.6-3.9% in 2023-24 "
+    "(bad_debt_provisioning.md 3.2) -- and the world's per-bill payment draw has no price input, "
+    "so 2022 cannot raise non-payment (WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_"
+    "..._2026-10-16.md). The 4ae8da9b0f book passed on one year-end's lump, 2023 at 1.55% with 2022 "
+    "at 0.32%, which 0a6391d186 does not repeat")
+_EXCEPTION_LOWEST_CRISIS_RATE_COVERED = 0.0032
+
+
 def test_live_run_output_shows_crisis_step_up_ifrs9_charge():
+    """MUTATION: drop the ceiling and a book at 0.10% passes; drop the exception and the
+    0a6391d186 book refuses the publish on a cause already filed against the world."""
     result = validate_run_output(_published_run_or_skip(), "ifrs9_charge")
+    if not result.passed and result.crisis_rate >= _EXCEPTION_LOWEST_CRISIS_RATE_COVERED:
+        pytest.xfail("{}: {}".format(_NO_CRISIS_IN_THE_WORLDS_PAYMENT_DRAW, result.summary()))
     assert result.passed, result.summary()
 
+
+
+def test_the_named_exception_has_a_ceiling_a_worse_book_is_not_covered_by():
+    """The exception must be able to refuse: a book whose crisis years read 0.10% is below the
+    0a6391d186 book's 0.3295% and is not lifted, while that book's own reading is."""
+    years = (2016, 2017, 2018, 2019, 2022, 2023)
+    revenue = {y: 100_000.0 for y in years}
+    worse = validate_crisis_bad_debt({y: 720.0 if y < 2020 else 100.0 for y in years}, revenue,
+                                     basis="ifrs9_charge")
+    as_read = validate_crisis_bad_debt({y: 720.0 if y < 2020 else 330.0 for y in years}, revenue,
+                                       basis="ifrs9_charge")
+    assert not worse.passed and not as_read.passed
+    assert worse.crisis_rate < _EXCEPTION_LOWEST_CRISIS_RATE_COVERED <= as_read.crisis_rate
 
 _STEP_A_YEAR_LATE = ("the IFRS 9 charge steps up in 2023 alone: 2022 is 0.33% of revenue, under every "
                      "2017-19 year, where the real 2022 charge (2.1%) was already above 2019's (1.2%)")

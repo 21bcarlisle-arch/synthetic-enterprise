@@ -24,7 +24,7 @@ import json
 import pytest
 
 from company.billing import statement_export as sx
-from tools.independent_bill_validator import statutory_vat_rate
+from tools.independent_bill_validator import catchup_vat_breach, statutory_vat_rate
 
 
 def _inv(**over):
@@ -195,6 +195,24 @@ def test_a_failed_payment_moves_the_balance_by_what_was_part_paid():
     assert events[-1]["moves_balance_gbp"] == 12.5
     assert events[-1]["balance_after_gbp"] == -27.5
     assert "FAILED" in events[-1]["detail"] and "12.50" in events[-1]["detail"]
+
+
+def test_a_bill_booked_to_a_deemed_account_leaves_this_balance_on_issue():
+    """OCC-00909e50a521 on the 0a6391d186 book: three bills before the occupier was named and part
+    of a fourth, GBP 102.30, were the unnamed occupier's. The ledger takes them off its balance;
+    the walk did not, and closed at -102.30 against 0.00, as did all 253 occupier accounts.
+
+    MUTATION: drop the deemed-account event and the close is -130.00, not 0.00."""
+    events = sx.account_events(_record(
+        [_inv(invoice_number=28, issue_date="2016-01-31", total_amount_gbp=100.0,
+              billed_to="occupier", deemed_debt_gbp=100.0),
+         _inv(invoice_number=29, issue_date="2016-02-29", total_amount_gbp=40.0,
+              deemed_share_gbp=30.0, deemed_share_to="occupier")],
+        [{"payment_date": "2016-03-14", "amount_gbp": 10.0, "outcome": "success",
+          "method": "direct_debit", "invoice_number": 29}]))
+    assert [e["kind"] for e in events] == [
+        "bill", "deemed_account", "bill", "deemed_account", "payment"]
+    assert [e["balance_after_gbp"] for e in events] == [-100.0, 0.0, -40.0, -10.0, 0.0]
 
 
 def test_a_bill_lands_before_a_payment_made_the_same_day():
@@ -379,13 +397,18 @@ def test_the_vat_charged_on_every_catchup_bill_matches_the_NET_base_across_the_r
             adj = inv.get("catchup_adjustment_gbp") or 0.0
             vat = inv.get("vat_gbp") or 0.0
             # Corrected 2026-10-29: a bill built since the split prints the correction before VAT
-            # and its VAT on the VAT line (`catchup_vat_gbp`), so the base it declares includes it.
-            # The property is that each bill's VAT matches the basis it declares, not the old shape.
-            declared = net + adj if inv.get("catchup_vat_gbp") is not None else net
-            other = net if inv.get("catchup_vat_gbp") is not None else net + adj
-            if abs(vat - expected * declared) < 0.02:
+            # and its VAT on the VAT line (`catchup_vat_gbp`). Corrected again 2026-11-03: that VAT
+            # is at the corrected months' rates, not this bill's (C5/113 reverses August's 20% and
+            # charges 5%), so the month is graded on its own lines and the catch-up on its run.
+            if inv.get("catchup_vat_gbp") is not None:
+                if catchup_vat_breach(segment=rec.get("segment"),
+                                      invoices=rec.get("invoices") or [], bill=inv):
+                    neither += 1
+                    continue
+                vat -= inv["catchup_vat_gbp"]
+            if abs(vat - expected * net) < 0.02:
                 matches += 1
-            elif abs(vat - expected * other) < 0.02:
+            elif abs(vat - expected * (net + adj)) < 0.02:
                 other_basis += 1
             else:
                 neither += 1

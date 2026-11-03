@@ -56,3 +56,19 @@ def test_a_run_handed_over_without_vat_keeps_the_whole_correction_on_one_line():
     """A caller that predates the split gets None, not a zero that reads as "no VAT on it"."""
     catchup = _resolve_catchup("C1", "resi", _run(105.0, 63.0, None)[-3:], DEMAND)
     assert catchup["chargeable_vat_gbp"] is None
+
+
+def test_an_sme_catch_up_corrects_each_months_vat_at_that_months_rate_not_the_bills():
+    """C5/113 on the 0a6391d186 book. August was estimated at 1,266 kWh (40.8 kWh/day, over the
+    33 kWh/day de minimis, so 20%: VAT 31.50 on 157.51). The read put it at 882.2 kWh (28.5/day,
+    5%: VAT 5.62 on 112.49). The correction reverses 31.50 and charges 5.62, so its VAT is -25.88
+    on a before-VAT -45.02, which is no single rate. Splitting the -70.90 at the September bill's
+    own 5% would leave 22.50 of August's standard-rate VAT charged on a reduced-rate supply.
+    MUTATION: re-derive the VAT as `raw_delta * rate / (1 + rate)` and this reds."""
+    run = [{"period_start": "2016-08-01", "period_end": "2016-08-31",
+            "total_amount_gbp": 189.01, "vat_gbp": 31.50,
+            "true_total_amount_gbp": 118.11, "true_vat_gbp": 5.62}]
+    catchup = _resolve_catchup("C5", "SME", run, "2016-10-05", "on_receipt")
+    assert catchup["raw_delta_gbp"] == pytest.approx(-70.90, abs=0.001)
+    assert catchup["chargeable_vat_gbp"] == pytest.approx(-25.88, abs=0.001)
+    assert catchup["chargeable_vat_gbp"] != pytest.approx(-70.90 * 0.05 / 1.05, abs=0.01)

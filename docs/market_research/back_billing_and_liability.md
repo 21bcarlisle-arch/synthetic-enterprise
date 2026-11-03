@@ -905,3 +905,12 @@ conclusion was wrong, and it has been corrected beside the claim.
 **Not changed.** The raw delta and the back-billing write-off stay VAT-inclusive. They are amounts
 restated or barred, not lines on the bill. **GAP (practitioner):** whether suppliers print a
 catch-up as one line before VAT or as a reverse-and-rebill of each month (§13 above).
+
+*Corrected 2026-11-03, beside the claim:* two book-wide checks still graded the catch-up at the
+rate of the bill that carries it, and called C5/110 and C5/113 (SME, 2016) VAT errors. Both are
+right by the rule above. C5/113 reverses August's 20% (estimated at 40.8 kWh/day, over the 33
+kWh/day de minimis) and charges 5% on the 28.5 kWh/day that was read: -25.88 VAT on -45.02. A
+reader holding only the bills can grade the run, not each month: the corrected months' billed lines
+plus the catch-up are the true supply, and their VAT lies between the reduced and standard rates
+(exact at the reduced rate for a domestic run). That check is
+`tools/independent_bill_validator.catchup_vat_breach`.
