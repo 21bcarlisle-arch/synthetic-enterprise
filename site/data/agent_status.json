@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-10-26T12:09:26.784072+00:00",
+  "last_updated": "2026-11-03T02:24:24.672296+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,9 +15,9 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-10-26T12:09:14.830834+00:00",
+      "last_heartbeat": "2026-11-03T02:24:24.672296+00:00",
       "last_action": "Watcher started",
-      "last_action_ts": "2026-10-26T08:07:09.703870+00:00",
+      "last_action_ts": "2026-11-03T01:31:02.577971+00:00",
       "anomaly": null,
       "role": "Monitors docs/staging/ for new files; sends NTFY to alert CC",
       "produces": "NTFY notifications on new staging files"
@@ -34,10 +34,10 @@
     },
     {
       "name": "sim-runner",
-      "status": "idle",
-      "last_heartbeat": "2026-10-26T03:28:45.241762+00:00",
-      "last_action": "Run complete in 3718s \u2014 131603 KB (run_output_4ae8da9b0f_20261026T022647Z.json)",
-      "last_action_ts": "2026-10-26T03:28:45.241762+00:00",
+      "status": "running",
+      "last_heartbeat": "2026-11-03T01:02:19.666830+00:00",
+      "last_action": "Sim started \u2014 git=8b2a07d8dd",
+      "last_action_ts": "2026-11-03T01:02:19.666830+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-10-26T11:27:06.346408+00:00",
+      "last_heartbeat": "2026-11-03T02:10:40.775828+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-10-26T11:27:03.199148+00:00",
+      "last_action_ts": "2026-11-03T02:10:40.775828+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-10-26T03:12:58.804164+00:00",
+      "last_heartbeat": "2026-11-02T22:19:38.876521+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-10-26T03:12:58.804164+00:00",
+      "last_action_ts": "2026-11-02T22:19:38.876521+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-10-26T12:09:26.784072+00:00",
+      "last_heartbeat": "2026-11-03T02:23:43.202892+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-10-26T08:07:12.197910+00:00",
+      "last_action_ts": "2026-11-03T01:31:07.931969+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-10-26T12:07:30.203250+00:00",
+      "last_heartbeat": "2026-11-03T02:01:01.891347+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-10-26T12:07:30.203250+00:00",
+      "last_action_ts": "2026-11-03T02:01:01.891347+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
@@ -143,7 +143,7 @@
       "produces": "write-landed build turns (origin-verified commit SHAs)"
     }
   ],
-  "treasury_gbp": 914130.1,
-  "net_margin_gbp": 664130.095722,
-  "enterprise_value_gbp": 418892.6777552255
+  "treasury_gbp": 860278.85,
+  "net_margin_gbp": 610278.853455,
+  "enterprise_value_gbp": 383820.14228440996
 }

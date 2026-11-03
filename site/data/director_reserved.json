@@ -1,5 +1,13 @@
 {
-  "generated_at": "2026-09-18T23:17:47.846939+00:00",
-  "open_count": 0,
-  "items": []
+  "generated_at": "2026-11-02T12:14:12.867844+00:00",
+  "open_count": 1,
+  "items": [
+    {
+      "item_id": "publish_gate_wedged",
+      "what": "The run-complete PUBLISH GATE has failed 3 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: the domain-invariant gate refused the BOOK: it breaches invariants that no named, dated exception covers, so NO test was run. NOT a test failure. The breaches are in the cause evidence and in docs/reports/DOMAIN_INVARIANTS.md; fix their cause in the code, and the next run that grades clean publishes (rc=82, git=bb58608b91). EPISODE: wedged since 2026-11-02T04:10 UTC -- 8h03m and 8 consecutive failures in THIS episode (not a fresh hour). Markers pending: 1.",
+      "how": "ATTRIBUTED CAUSE: `domain_invariant_refused` -- breaches no exception covers at git=bb58608b91: INV_E7_METER_BILLED_ON_TWO_REGISTERS 2 (no exception); INV_READ_MONOTONIC 2 (no exception); INV_TOU_BANDS_SUM_TO_THE_TOTAL 2 (no exception); INV_RENEWAL_NOTICE_42_TO_49_DAYS 1171 (no exception); INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS 3 (no exception). NO TEST WAS JUDGED -- the domain-invariant gate refused the book before the suite ran. Do NOT hunt a red and do NOT run the gate's pytest argv. Read the breaches in docs/reports/DOMAIN_INVARIANTS.md (the ATTRIBUTED CAUSE line names them), fix their cause, and offer a run made at or after the fix: this book will never grade clean. The alarm clears on the next clean publish.",
+      "why": "A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).",
+      "first_asked_at": "2026-07-18T15:21:58.968619+00:00"
+    }
+  ]
 }

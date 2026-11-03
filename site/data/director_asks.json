@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-26",
+ "as_of": "2026-11-03",
  "no_movement_days": 21,
  "counts": {
   "declined": 2,
@@ -7,10 +7,11 @@
   "shipped": 255,
   "partly": 47,
   "not_started": 6,
-  "closed_with_evidence": 71
+  "closed_with_evidence": 95,
+  "open": 1
  },
  "record_not_asks": {
-  "DIRECTOR_READING": 13,
+  "DIRECTOR_READING": 16,
   "DIRECTOR_CONSOLE": 63,
   "DIRECTOR_CANON": 11
  },
@@ -5699,6 +5700,231 @@
    "ask": "Check every [unverified] item in today's packs against its primary source as you draft each page (2026-10-25)",
    "state": "closed_with_evidence",
    "last_commit": "2026-10-25",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_QUESTION_WHY_DID_THE_TESTS_NOT_FIND_THE_EXPLORE_ERRORS_2026-10-26",
+   "source": "docs/staging/advisor/done/DIRECTOR_QUESTION_WHY_DID_THE_TESTS_NOT_FIND_THE_EXPLORE_ERRORS_2026-10-26.md",
+   "asked": "2026-10-26",
+   "ask": "Why did these bugs exist, and why did the tests not find them? (2026-10-26)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-26",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26",
+   "source": "docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md",
+   "asked": "2026-10-26",
+   "ask": "Correctness before the next feature: the domain-invariant suite and its fixes come before forward years (2026-10-26)",
+   "state": "open",
+   "last_commit": "2026-10-26",
+   "status": "open"
+  },
+  {
+   "id": "DIRECTOR_RULING_THE_FOUR_RESERVED_QUESTIONS_2026-10-26",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_THE_FOUR_RESERVED_QUESTIONS_2026-10-26.md",
+   "asked": "2026-10-26",
+   "ask": "The four reserved questions: no GitHub link, keep the analytics with a notice, stay on \u00a3100, HF token deferred (2026-10-26)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-26",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_EVERY_EXPLORE_EXAMPLE_MUST_MAKE_SENSE_TO_AN_ENERGY_READER_2026-10-26",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_EVERY_EXPLORE_EXAMPLE_MUST_MAKE_SENSE_TO_AN_ENERGY_READER_2026-10-26.md",
+   "asked": "2026-10-26",
+   "ask": "Every Explore example must make sense to an energy reader, and the examples become a standing check (2026-10-26)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-26",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_SITE_IS_READ_BY_EXTERNALS_TOMORROW_2026-10-26",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_SITE_IS_READ_BY_EXTERNALS_TOMORROW_2026-10-26.md",
+   "asked": "2026-10-26",
+   "ask": "The site is read by externals tomorrow: fix what a newcomer trips on today, and stop asking the director what canon G5 says is yours (2026-10-26)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-26",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_GO_ON_THE_TWO_READER_REVIEW_AND_START_IT_NOW_2026-10-28",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_GO_ON_THE_TWO_READER_REVIEW_AND_START_IT_NOW_2026-10-28.md",
+   "asked": "2026-10-28",
+   "ask": "Go on the two-reader review of risky commits, and start it now (2026-10-28)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-28",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_STRATEGY_AND_CANON_CONCERNS_MAY_STILL_BE_RAISED_2026-10-28",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_STRATEGY_AND_CANON_CONCERNS_MAY_STILL_BE_RAISED_2026-10-28.md",
+   "asked": "2026-10-28",
+   "ask": "Strategy and canon-intent concerns may still be raised with the director; the G5-class clause is withdrawn (2026-10-28)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-28",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_CLOSE_THAT_SAYS_YES_IS_CHECKED_AGAINST_DONE_AND_A_MONDAY_NOTE_FOR_ME_2026-10-28",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_A_CLOSE_THAT_SAYS_YES_IS_CHECKED_AGAINST_DONE_AND_A_MONDAY_NOTE_FOR_ME_2026-10-28.md",
+   "asked": "2026-10-28",
+   "ask": "A close that says \"yes, we'll do it\" is checked against done, and a short Monday note says what involved me (2026-10-28)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-28",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_A_NEW_ACCOUNTS_FIRST_MONTHS_ESTIMATE_DD_AND_PAIN_POINTS_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_A_NEW_ACCOUNTS_FIRST_MONTHS_ESTIMATE_DD_AND_PAIN_POINTS_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "A new account's first months: opening estimate, first DD, opening read, and the pain points customers meet (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_BRAND_EQUITY_REPUTATION_AND_FEEDBACK_LOOPS_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_BRAND_EQUITY_REPUTATION_AND_FEEDBACK_LOOPS_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Brand equity, reputation and feedback loops for a GB energy supplier (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_CUSTOMER_NEEDS_IN_SEGMENTATION_CONJOINT_AND_BEHAVIOURAL_RESEARCH_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_CUSTOMER_NEEDS_IN_SEGMENTATION_CONJOINT_AND_BEHAVIOURAL_RESEARCH_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Customer needs in segmentation, conjoint and behavioural research: energy, financial services and telecoms (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_EVERY_CHANGE_A_HOUSEHOLD_CAN_MAKE_PRIORITISED_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_EVERY_CHANGE_A_HOUSEHOLD_CAN_MAKE_PRIORITISED_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Every change a household can make: the catalogue, prioritised by cost, ease and remaining market (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_HOW_CUSTOMER_NEEDS_ARE_SPREAD_ACROSS_GB_AND_WHAT_THEY_CORRELATE_WITH_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_HOW_CUSTOMER_NEEDS_ARE_SPREAD_ACROSS_GB_AND_WHAT_THEY_CORRELATE_WITH_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "How customer needs are spread across GB, and what they correlate with (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_UNBILLED_ENERGY_ESTIMATES_CATCH_UP_AND_BACK_BILLING_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_UNBILLED_ENERGY_ESTIMATES_CATCH_UP_AND_BACK_BILLING_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Unbilled energy: estimates, held bills, catch-up and back-billing, unbilled revenue, and the pain points customers meet (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "A new account's billing estimate starts at today's standard practice, and improving it is the supplier's experiment, not the director's decision (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Build the customer knowledge corpus, structure and expand the knowledge base, keep the world's correlations parsimonious, and propose the next most valuable world additions as a roadmap (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_FRAME_THE_CUSTOMER_NEEDS_COST_CASH_FLOW_TIME_CARBON_PEACE_OF_MIND_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_FRAME_THE_CUSTOMER_NEEDS_COST_CASH_FLOW_TIME_CARBON_PEACE_OF_MIND_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Frame the customer needs a supplier serves (cost, cash flow, time, carbon and peace of mind, above a comfort and health floor), and bring back the canon wording (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_OWN_THE_DESIGN_OF_THE_WORLD_SUPPLIER_IMPROVEMENT_LOOP_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_OWN_THE_DESIGN_OF_THE_WORLD_SUPPLIER_IMPROVEMENT_LOOP_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Own the design of the world\u2013supplier improvement loop: here is the problem, the concerns, and some ideas, not a specification (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_PAIN_POINTS_DRIVE_THE_LOOP_KNOWLEDGE_THEN_SIM_REACTION_THEN_SUPPLIER_TESTS_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_PAIN_POINTS_DRIVE_THE_LOOP_KNOWLEDGE_THEN_SIM_REACTION_THEN_SUPPLIER_TESTS_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Pain points drive the loop: knowledge first, then the world reacts to them, then the supplier tests against them, and repeat (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Reputation is a stock and a durable price and value elasticity, and the supplier listens through biased feedback, Trustpilot included (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30.md",
+   "asked": "2026-10-30",
+   "ask": "Time is value a supplier can create: the world must feel hassle, C31 gets real priority, and \"value moved\" is said in money terms (2026-10-30)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-10-30",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md",
+   "asked": "2026-10-31",
+   "ask": "Yes to the three questions raised on 30 Oct (2026-10-31)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_YES_TO_THE_VALUE_TEST_REDESIGN_AND_REGISTER_WITH_UKDS_NON_COMMERCIAL_2026-11-02",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_VALUE_TEST_REDESIGN_AND_REGISTER_WITH_UKDS_NON_COMMERCIAL_2026-11-02.md",
+   "asked": "2026-11-02",
+   "ask": "Yes to the value test redesign as written; the director will register with the UK Data Service under the End User Licence, non-commercial (2026-11-02)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_NAIVE_ORGAN_HAS_REFUSED_EVERYTHING_SINCE_10_AUG_AND_DESIGNS_GET_A_GOLDFISH_READ_2026-11-02",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_NAIVE_ORGAN_HAS_REFUSED_EVERYTHING_SINCE_10_AUG_AND_DESIGNS_GET_A_GOLDFISH_READ_2026-11-02.md",
+   "asked": "2026-11-02",
+   "ask": "The naive organ has refused everything since 10 Aug, and design proposals get a fresh-context read before they are built (2026-11-02)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_VALUE_TEST_MUST_BE_ABLE_TO_ANSWER_AND_THE_SITE_MUST_BE_CURRENT_2026-11-02",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_VALUE_TEST_MUST_BE_ABLE_TO_ANSWER_AND_THE_SITE_MUST_BE_CURRENT_2026-11-02.md",
+   "asked": "2026-11-02",
+   "ask": "The site must be current, and the value test must be redesigned so it can return an answer (2026-11-02)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-02",
    "status": "closed_with_evidence"
   }
  ]

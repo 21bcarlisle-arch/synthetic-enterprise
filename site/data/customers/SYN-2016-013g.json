@@ -7,12 +7,13 @@
   "acquisition_date": "2016-01-11",
   "tariff_name": "Standard Variable (Gas)",
   "meter_type": "Smart",
+  "profile_class": null,
   "mpan": null,
-  "mprn": "52391462",
-  "lifetime_revenue_gbp": 33.79,
-  "lifetime_gross_gbp": 18.56,
-  "lifetime_net_gbp": 8.68,
-  "lifetime_net_after_cts_gbp": 5.97,
+  "mprn": "8112331175",
+  "lifetime_revenue_gbp": 33.77,
+  "lifetime_gross_gbp": 18.24,
+  "lifetime_net_gbp": 8.36,
+  "lifetime_net_after_cts_gbp": 5.65,
   "cost_to_serve_gbp": 2.71,
   "pricing_action": {
     "flag": "OK",
@@ -29,8 +30,8 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 8.68,
-      "revenue_gbp": 33.79
+      "net_gbp": 8.36,
+      "revenue_gbp": 33.77
     }
   },
   "dual_fuel_combined": null,
@@ -38,64 +39,67 @@
     {
       "year": 2016,
       "revenue_gbp": 0,
-      "gross_gbp": 18.56,
-      "net_gbp": 8.68,
+      "gross_gbp": 18.24,
+      "net_gbp": 8.36,
       "tariff_min": 30.59,
       "tariff_max": 30.59
     }
   ],
   "timeline": [
     {
-      "date": "2016-01-02",
-      "type": "life_event",
-      "commodity": null,
-      "detail": "Job loss"
-    },
-    {
       "type": "final_bill",
       "date": "2016-01-28",
       "detail": "Final bill",
       "commodity": "gas",
-      "effect": "Closing read actual; billed \u00a335.48"
+      "effect": "Closing read actual; billed \u00a335.46"
     },
     {
       "type": "moved_out",
       "date": "2016-01-29",
       "detail": "Moved out",
       "commodity": "gas"
+    }
+  ],
+  "world_life_events_outside_supply": [
+    {
+      "date": "2016-01-02",
+      "type": "life_event",
+      "commodity": null,
+      "detail": "Job loss",
+      "seen_by": "world"
     },
     {
       "date": "2017-05-07",
       "type": "life_event",
       "commodity": null,
       "detail": "Reemployed",
-      "effect": "Real downstream drift: income stress high -> moderate"
+      "seen_by": "world"
     },
     {
       "date": "2022-05-07",
       "type": "life_event",
       "commodity": null,
       "detail": "Income scar ended",
-      "effect": "Real downstream drift: income stress moderate -> low"
+      "seen_by": "world"
     },
     {
       "date": "2024-12-08",
       "type": "life_event",
       "commodity": null,
       "detail": "Job loss",
-      "effect": "Real downstream drift: income stress low -> high"
+      "seen_by": "world"
     },
     {
       "date": "2025-05-05",
       "type": "life_event",
       "commodity": null,
       "detail": "Reemployed",
-      "effect": "Real downstream drift: income stress high -> moderate"
+      "seen_by": "world"
     }
   ],
   "invoices": [
     {
-      "id": "SYN-2016-013g-INV21972",
+      "id": "SYN-2016-013g-INV22157",
       "date": "2016-01-28",
       "period_start": "2016-01-11",
       "period_end": "2016-01-28",
@@ -103,31 +107,45 @@
       "consumption_kwh": 981.5,
       "unit_rate_p_per_kwh": 2.159,
       "commodity_amount_gbp": 21.19,
-      "standing_charge_gbp": 3.77,
+      "standing_charge_gbp": 3.75,
       "days_in_period": 18,
-      "standing_charge_gbp_per_day": 0.2094,
+      "standing_charge_gbp_per_day": 0.2083,
       "non_commodity_amount_gbp": 8.83,
       "vat_gbp": 1.69,
-      "amount_gbp": 35.48,
+      "amount_gbp": 35.46,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
-      "meter_serial": "M00034317",
+      "scheme_credit_gbp": null,
+      "scheme_credit_applied_gbp": null,
+      "epg_discount_gbp": null,
+      "epg_support_gbp": null,
+      "meter_serial": "M3249251075",
       "mpan": null,
-      "mprn": "0000013464",
+      "mprn": "8112331175",
       "read_type": "A",
       "opening_read_kwh": 0.0,
       "closing_read_kwh": 981.5,
+      "read_unit": "m3",
+      "opening_read_volume": 0.0,
+      "closing_read_volume": 87.47,
+      "volume_advance": 87.47,
+      "calorific_value_mj_per_m3": 39.5,
+      "calorific_value_basis": "fixed_stand_in",
+      "correction_factor": 1.02264,
+      "catchup_kwh": null,
       "registers": [
         {
-          "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 981.5,
           "amount_gbp": 21.19,
-          "unit_rate_p_per_kwh": 2.159
+          "unit_rate_p_per_kwh": 2.159,
+          "register_id": "1"
         }
       ],
       "catchup_applied": false,
+      "term_tariff_type": "fixed",
+      "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
       "catchup_periods_covered": null,
@@ -135,7 +153,10 @@
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
-      "catchup_back_billing_cap_applied": null
+      "catchup_back_billing_cap_applied": null,
+      "invoice_number": 22157,
+      "due_date": "2016-02-12",
+      "document_type": "bill"
     }
   ],
   "ledger": {
@@ -144,18 +165,18 @@
       {
         "date": "2016-01-29",
         "type": "invoice_raised",
-        "invoice_number": 21972,
-        "amount_gbp": 35.48,
+        "invoice_number": 22157,
+        "amount_gbp": 35.46,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21972 raised",
-        "running_balance_gbp": 35.48
+        "description": "Invoice INV22157 raised",
+        "running_balance_gbp": 35.46
       },
       {
         "date": "2016-02-12",
         "type": "payment_received",
-        "invoice_number": 21972,
-        "amount_gbp": -35.48,
+        "invoice_number": 22157,
+        "amount_gbp": -35.46,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -163,10 +184,14 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 35.48,
-    "total_collected_gbp": 35.48,
+    "total_billed_gbp": 35.46,
+    "total_collected_gbp": 35.46,
     "total_written_off_gross_gbp": 0,
-    "total_recovered_gbp": 0
+    "total_scheme_credit_gbp": 0,
+    "total_deemed_gbp": 0,
+    "total_refunded_gbp": 0,
+    "total_recovered_gbp": 0,
+    "total_epg_support_gbp": 0.0
   },
   "consumption": {
     "unit": "kWh",

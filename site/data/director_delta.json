@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-26T12:06:00.166180+00:00",
+  "generated_at": "2026-11-03T02:19:33.145692+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -10,31 +10,32 @@
   "changed": true,
   "counts": {
     "new_decisions": 0,
-    "reserved_changed": 0,
-    "reserved_added": 0,
+    "reserved_changed": 1,
+    "reserved_added": 1,
     "reserved_cleared": 0,
-    "daemons_flipped": 5,
-    "daemons_newly_stale": 5,
+    "daemons_flipped": 3,
+    "daemons_newly_stale": 3,
     "daemons_recovered": 0,
     "daemons_appeared": 0,
     "daemons_disappeared": 0,
     "headline_moves": 2
   },
   "changes": [
-    "5 daemon(s) went stale: discovery-daemon, dispatcher, epistemic-verifier, ntfy-responder, sim-runner",
+    "reserved queue: 1 added (publish_gate_wedged)",
+    "3 daemon(s) went stale: discovery-daemon, dispatcher, ntfy-responder",
     "twin canon_version: 3 -> 4",
     "total_open_atoms: 55 -> 103"
   ],
   "detail": {
     "new_decisions": [],
-    "reserved_added": [],
+    "reserved_added": [
+      "publish_gate_wedged"
+    ],
     "reserved_cleared": [],
     "daemons_newly_stale": [
       "discovery-daemon",
       "dispatcher",
-      "epistemic-verifier",
-      "ntfy-responder",
-      "sim-runner"
+      "ntfy-responder"
     ],
     "daemons_recovered": [],
     "daemons_appeared": [],
@@ -57,17 +58,19 @@
   "current_state": {
     "latest_decision_ts": "2026-07-19T06:20:24.473486+00:00",
     "decision_count": 20,
-    "reserved_ids": [],
+    "reserved_ids": [
+      "publish_gate_wedged"
+    ],
     "daemon_status": {
       "session-watchdog": "stale",
       "staging-watcher": "live",
       "discovery-daemon": "stale",
-      "sim-runner": "stale",
+      "sim-runner": "live",
       "dispatcher": "stale",
       "ntfy-responder": "stale",
       "autonomous-runner": "retired",
       "background-worker": "live",
-      "epistemic-verifier": "stale",
+      "epistemic-verifier": "live",
       "discovery-agent": "stale",
       "supervisor": "live",
       "sanity-daemon": "live",
@@ -83,8 +86,8 @@
     "open_atoms": 103
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-09-18T23:17:47.846939+00:00",
-    "health_last_updated": "2026-10-26T12:05:42.421250+00:00",
+    "reserved_generated_at": "2026-11-02T12:14:12.867844+00:00",
+    "health_last_updated": "2026-11-03T02:19:22.028392+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }
