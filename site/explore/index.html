@@ -917,7 +917,8 @@ function stageBilled(d, c) {
       gasReadRows(inv) +
       // After estimated readings the opening is the last estimate, so the difference is this
       // period's usage plus the catch-up on the estimates (back_billing_and_liability.md §13).
-      "<tr><td>" + (Number(inv.catchup_kwh) ? "Usage this period" : "Difference charged") + "</td><td class=\"n\">" +
+      "<tr><td>" + (Number(inv.catchup_kwh) ? "Usage this period" : "Difference charged") +
+        ((inv.registers || []).length > 1 && !inv.read_unit ? ", all registers together" : "") + "</td><td class=\"n\">" +
         num(inv.consumption_kwh, 1) + " kWh</td></tr>" +
       (Number(inv.catchup_kwh) ? "<tr><td>Catch-up on the estimated readings before it</td><td class=\"n\">" +
         num(inv.catchup_kwh, 1) + " kWh</td></tr>" : "") +
@@ -935,6 +936,19 @@ function stageBilled(d, c) {
 // (docs/market_research/a_gas_read_is_a_volume_and_the_bill_converts_it.md C3). A record without a
 // volume is an electricity meter, or a book built before the gas meter read volume.
 function gasReadRows(inv) {
+  // A two-rate meter is read register by register, and a traditional Economy 7 display shows no sum
+  // of them, so each register prints its own pair under its usage line's label (sixth cold read, N12;
+  // a_multi_register_meters_bands_add_up_to_its_total.md). A book without per-register reads says
+  // so rather than print the sum no register shows.
+  var regs = inv.registers || [];
+  if (!inv.read_unit && regs.length > 1) {
+    return regs.map(function (r) {
+      if (r.opening_read_kwh == null || r.closing_read_kwh == null)
+        return "<tr><td>" + esc(r.label) + " register: its reads are not recorded in this book</td><td></td></tr>";
+      return "<tr><td>Opening read (" + esc(r.label) + ")</td><td class=\"n\">" + num(r.opening_read_kwh, 1) + "</td></tr>" +
+        "<tr><td>Closing read (" + esc(r.label) + ")</td><td class=\"n\">" + num(r.closing_read_kwh, 1) + "</td></tr>";
+    }).join("");
+  }
   if (!inv.read_unit) {
     return "<tr><td>Opening read</td><td class=\"n\">" + num(inv.opening_read_kwh, 1) + "</td></tr>" +
       "<tr><td>Closing read</td><td class=\"n\">" + num(inv.closing_read_kwh, 1) + "</td></tr>";

@@ -288,6 +288,29 @@ def test_the_storage_rule_fires_on_a_two_register_bill():
     assert gen._score_storage(hh, ev, {}) is None
 
 
+
+def test_the_storage_story_shows_a_winter_bill_on_its_day_and_night_lines():
+    """N12 of the sixth cold read: the storage slot's only bill fell in August, so its story never
+    showed the night units storage heaters run on. Defects named: no winter moment; a winter
+    moment whose story prints one summed use instead of each register's line; a home with no
+    winter two-register bill passing the slot's checks. Every leg reached first."""
+    regs = [{"label": "Day", "consumption_kwh": 812.3, "unit_rate_p_per_kwh": 13.13},
+            {"label": "Night", "consumption_kwh": 1204.0, "unit_rate_p_per_kwh": 3.37}]
+    aug = _inv("2018-08-31", 184.1, 20.0, registers=regs[:1] + [dict(regs[1], consumption_kwh=52.3)])
+    jan = _inv("2019-01-31", 2016.3, 150.0, registers=regs)
+    hh, ev = _hh([aug, jan])
+    got = gen._score_storage(hh, ev, {})
+    assert got is not None
+    winter = [r for _, k, r in got[1] if k == "bill"]
+    assert winter and winter[0]["date"] == "2019-01-31", got[1]
+    (m,) = [m for m in gen._moments_for(hh, ev, got[1]) if m["kind"] == "bill"]
+    assert "Day 812.3 kWh at 13.13p" in m["story"] and "Night 1,204.0 kWh at 3.37p" in m["story"], m["story"]
+    summer_only = _hh([aug])
+    assert "it has no winter bill on its two registers to show" in gen._slot_failures(
+        "storage_heating", *summer_only, gen._score_storage(*summer_only, {})[1])
+    assert "it has no winter bill on its two registers to show" not in gen._slot_failures(
+        "storage_heating", hh, ev, got[1])
+
 def test_the_published_feed_matches_a_fresh_build_in_shape(feed):
     if not FEED.is_file():
         pytest.skip("feed not yet generated")

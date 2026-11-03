@@ -322,6 +322,12 @@ def _bill_extras(i: dict) -> str:
                 if i.get("catchup_period_start") and i.get("catchup_period_end") else "")
         out.append("including a {} {} correcting the estimated bills{}".format(
             _fmt_gbp(abs(adj)), "charge" if adj > 0 else "credit", span))
+    regs = i.get("registers") or []
+    if len(regs) > 1:  # a two-rate bill's use is its registers' lines, as the printed bill shows them
+        out.append("charged as " + " and ".join("{} {:,.1f} kWh{}".format(
+            r.get("label"), r.get("consumption_kwh") or 0,
+            " at {:.2f}p".format(r["unit_rate_p_per_kwh"]) if r.get("unit_rate_p_per_kwh") is not None else "")
+            for r in regs))
     used = i.get("scheme_credit_applied_gbp")
     if used:
         out.append("less its {} Energy Bills Support Scheme credit".format(_fmt_gbp(used)))
@@ -916,8 +922,22 @@ def _score_ev(hh, ev, person):
 def _score_storage(hh, ev, person):
     for i in ev["invoice"]:
         if len(i.get("registers") or []) > 1:
-            return (1, [(_acq(hh), "joined", {}), (i["date"], "first_bill", i)], 1)
+            keys = [(_acq(hh), "joined", {}), (i["date"], "first_bill", i)]
+            # Storage heaters charge at night in winter, so the story shows a winter bill's Day and
+            # Night lines; the first two-register bill may fall in August (PROS-2017-0233, N12).
+            w = _winter_two_register_bill(ev, after=i["date"])
+            if w:
+                keys.append((w["date"], "bill", {**w, "label": "A winter bill"}))
+            return (1, keys, 1)
     return None
+
+
+def _winter_two_register_bill(ev, after=""):
+    """The first electricity bill after `after` whose period opens in December to February and
+    which prints two or more registers, or None."""
+    return next((i for i in ev["invoice"] if i["fuel"] == "electricity" and i["date"] > after
+                 and len(i.get("registers") or []) > 1
+                 and (i.get("period_start") or i["date"])[5:7] in ("12", "01", "02")), None)
 
 
 STORAGE_EMPTY_REASON = (
@@ -1092,6 +1112,8 @@ def _slot_failures(slot_id, hh, ev, keys) -> list[str]:
         summer = [v for k, v in mon.items() if k[5:] in ("06", "07", "08")]
         if winter and summer and sum(winter) / len(winter) <= sum(summer) / len(summer):
             out.append("it uses no more electricity in winter than in summer")
+        if not _winter_two_register_bill(ev):
+            out.append("it has no winter bill on its two registers to show")
     elif slot_id == "shock_2022":
         bills = [r for _, k, r in keys if k == "bill"]
         shock = next(r for _, k, r in keys if k == "shock_2022")
