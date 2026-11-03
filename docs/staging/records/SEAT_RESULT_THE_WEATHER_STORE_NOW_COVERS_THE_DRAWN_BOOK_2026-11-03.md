@@ -67,3 +67,18 @@ which is that store's fabric-side control. Its marker says the completing commit
 
 **Reverse:** `git revert` the landing that carries the three `sim/weather_world/` files. This file
 is deleted with it.
+
+## ERA5, the second increment (04:38–04:52)
+
+`--build --no-temperature --limit 200` pulled **22 cells** and was stopped at cell 23 by Open-Meteo's
+**hourly** bucket ("Hourly API request limit exceeded"). **448 book cells are still temperature-only**
+(381 store cells carry the archive). With the write now checkpointed, the bucket and not the tool is
+the pace: about 22 cells an hour, so roughly 20 more buckets. It does not finish in a turn. Whether
+the daily bucket binds before that is not yet measured.
+
+**A shortcut that does not hold.** ERA5 is a ~0.25° reanalysis, so I asked whether nearby 1 km cells
+already hold identical wind/cloud/precipitation, which would make re-pulling them redundant. They do
+not: among stored pairs, 54 of 141 under 3 km are identical, 50/194 at 3–6 km, 4/262 at 9–12 km,
+0/300 at 12–15 km (probe: `/tmp/era5probe/dup.py`, through `regimes.json`). Open-Meteo's best-match
+blends finer grids, so copying a neighbour's series would put an approximation in a store
+whose contract is each cell's own pull. The pull stays one request per cell.
