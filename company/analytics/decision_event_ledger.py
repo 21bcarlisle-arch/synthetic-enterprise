@@ -199,29 +199,22 @@ def _collections_journey_events(cid, journeys):
 _LEDGER_LETTERS = ("arrears_first_notice", "arrears_second_notice")
 
 
-def desk_holds(journeys) -> list:
-    """The (first day, last day or None while open) of each desk journey on one account."""
-    out = []
-    for journey in journeys or []:
-        days = [s["on"] for s in journey.get("stages", []) if s.get("on")]
-        if days:
-            out.append((min(days), max(days) if journey.get("exit") else None))
-    return out
+def desk_runs(journeys) -> bool:
+    """Whether the desk has dunned this account at all: one journey with a dated stage."""
+    return any(s.get("on") for journey in journeys or [] for s in journey.get("stages", []))
 
 
 def yield_to_the_desk(arrears_events, journeys) -> list:
-    """The ledger's events less any letter dated while the desk holds the debt: one supplier sends one
-    letter per act, so the desk's, with its account balance, is the one on the record (`docs/
-    market_research/company_debt_management.md`, "Who sends the overdue notice while the desk's journey
-    is open"). Works on `LedgerEvent`s or their dicts."""
-    held = desk_holds(journeys)
-
-    def _held(on):
-        return any(start <= on and (end is None or on <= end) for start, end in held)
-
+    """The ledger's events less its letters wherever the desk runs on the account: one supplier has one
+    dunning run per account, so where the desk opened nothing it decided there was nothing to chase,
+    and a ledger letter there is an act the company never took (`docs/market_research/
+    company_debt_management.md`, "Who sends the overdue notice"; PROS-2018-0137's gas letters went
+    out over a home in credit, OCC-8ea4e221f344's to a home paying a plan). Works on `LedgerEvent`s
+    or their dicts."""
+    if not desk_runs(journeys):
+        return list(arrears_events)
     return [e for e in arrears_events
-            if not ((e.event_type if isinstance(e, LedgerEvent) else e.get("event_type")) in _LEDGER_LETTERS
-                    and _held(e.date if isinstance(e, LedgerEvent) else e.get("date") or ""))]
+            if (e.event_type if isinstance(e, LedgerEvent) else e.get("event_type")) not in _LEDGER_LETTERS]
 
 
 def build_customer_ledger(cid, events, retention, journey_log, ledger_customer=None,

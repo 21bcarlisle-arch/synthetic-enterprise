@@ -940,8 +940,11 @@ overdue" and the ledger's first notice, the same day, "GBP18.71 outstanding".*
   desk's reminder and plan offer are the letters for that act. Their days are already the same
   (section above), and the desk's amount is the account's overdue balance, the figure a single letter
   carries.
-- **Outside a desk journey the ledger's notice stays.** It is then the only record of the act. A run
-  published before the report carried desk journeys keeps all its ledger notices.
+- ~~**Outside a desk journey the ledger's notice stays.**~~ *Corrected 2026-11-03, see "Where the desk
+  runs, its silence is a decision" below: on an account the desk runs, a gap between its journeys is the
+  desk deciding there is nothing to chase, so no ledger letter is kept there either.* An account the desk
+  has never run (no journey with a dated stage) keeps all its ledger notices, as does a run published
+  before the report carried desk journeys.
 - **Only the notices yield.** The ledger's miss, repayment, write-off, agency and recovery stages are
   not letters. They stay on the record as the ledger's facts. The commercial DISPUTE_NOTICE is not a
   desk rung (GAP B1) and stays.
@@ -976,6 +979,38 @@ check was re-run at origin/main.
 - **"Valid rises by at most 55": held** (+28). No money figure reads a notice date.
 - **"At least 55 removed": held** (3,377). Almost every ledger letter on this book fell inside a desk
   hold, so the ledger's letters had been a second copy of the desk's almost everywhere.
+
+### Where the desk runs, its silence is a decision (2026-11-03)
+*Traced on the 0a6391d186 book for the delivery item `the-last-two-notices-before-the-miss-traced`.
+After the change above, the debt slot still refused 2 of 379 debt households because their shown
+notice was dated before the miss. Both notices were the ledger's gas letters, and both were dated where
+no desk journey was open:*
+
+| household | ledger (per-fuel, gas leg) | desk (the home's one account) | why the desk opened nothing |
+|---|---|---|---|
+| PROS-2018-0137 | DD returned 19 Oct 2024 on a GBP32.05 gas bill; first notice 26 Oct, second notice 16 Nov | nothing until 18 Jan 2025, when it opened at GBP32.05 (the same bill) | the home was GBP125.31 **in credit**: a GBP157.36 electricity credit bill outweighed the gas bill. Nothing on the account was overdue |
+| OCC-8ea4e221f344 | GBP33.98 gas bill due 16 Oct 2023; first notice 23 Oct, second notice "payment plan offered" 13 Nov | journey cured 16 Oct 2023; nothing reopened | an **active payment plan held the account** (`CollectionsJourneyDesk._step` does not open while `held_by_plan`). Plan instalments cleared the bill on 14 Nov |
+
+- **The engines did not disagree on the amount.** Both read the same bill. They disagreed on whether
+  there was anything to chase at all. The desk reads the home as one account, so it saw net credit in
+  one case and an arrangement being paid in the other. The ledger reads each fuel's bills on their own,
+  so it dunned a household in credit and a household already paying a plan. A real supplier's single
+  dunning run (SAP FI-CA, section above) would send neither letter. Offering a plan to a household
+  already paying one also misstates the case (the Ofgem 2014 letter review, section above).
+- **Design choice, amended:** on an account the desk runs, meaning at least one journey with a dated
+  stage on that account or, for a dual-fuel gas leg, on the home's account, **none** of the ledger's
+  FIRST/SECOND_NOTICE letters go on the record
+  (`company/analytics/decision_event_ledger.yield_to_the_desk`). The ledger's facts stay: missed,
+  repaid, write-off, agency. No money moves. The ledger's own `notice` rows on the account statement
+  are untouched. They are a second narrator on the statement, a GAP not addressed here.
+- **Prediction, written before the rule was applied to the book:** ledger letters on the reaction
+  chains fall from 14 to 6; "notice before the miss" refusals fall from 2 to 0; valid debt households
+  rise by 0 to 2.
+  **Measured** by applying the rule to the published chains: **14 -> 6, 2 -> 0, 230 -> 231**. Held.
+- **The 6 left are on accounts the desk has never run**, so there the ledger is the only narrator, by
+  design. One of them is not honest history. PROS-2024-0010's GBP475.32 DD returned on 17 Jan 2025 and
+  got two ledger letters, and the desk never opened a journey on the account. Why is not established
+  here. Filed: `docs/staging/SEAT_FINDING_THE_DESK_NEVER_RAN_ON_FIVE_ACCOUNTS_THE_LEDGER_DUNNED_INCLUDING_475_GBP_OWED_2026-11-03.md`.
 
 ## One case, one climb: the ladder does not walk back down while an arrears case is open (2026-10-24)
 
