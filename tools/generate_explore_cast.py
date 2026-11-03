@@ -324,10 +324,15 @@ def _bill_extras(i: dict) -> str:
             _fmt_gbp(abs(adj)), "charge" if adj > 0 else "credit", span))
     regs = i.get("registers") or []
     if len(regs) > 1:  # a two-rate bill's use is its registers' lines, as the printed bill shows them
+        # A register's rate is its energy component only; the bill takes network and policy costs off
+        # each register at one rate per kWh (saas/bill_generator.tou_registers). Quoted bare, an E7
+        # night read "at 1.52p" in Dec 2017, a rate no tariff charged (seventh cold read, storage slot).
+        nc = ((i.get("non_commodity_amount_gbp") or 0) * 100 / i["consumption_kwh"]
+              if i.get("consumption_kwh") else 0.0)
         out.append("charged as " + " and ".join("{} {:,.1f} kWh{}".format(
             r.get("label"), r.get("consumption_kwh") or 0,
-            " at {:.2f}p".format(r["unit_rate_p_per_kwh"]) if r.get("unit_rate_p_per_kwh") is not None else "")
-            for r in regs))
+            " at {:.2f}p".format(r["unit_rate_p_per_kwh"] + nc) if r.get("unit_rate_p_per_kwh") is not None else "")
+            for r in regs) + (" before VAT" if any(r.get("unit_rate_p_per_kwh") is not None for r in regs) else ""))
     used = i.get("scheme_credit_applied_gbp")
     if used:
         out.append("less its {} Energy Bills Support Scheme credit".format(_fmt_gbp(used)))
