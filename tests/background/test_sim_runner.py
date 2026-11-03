@@ -3,7 +3,27 @@
 from pathlib import Path
 from unittest.mock import MagicMock
 
+import pytest
+
 from background import sim_runner
+
+
+@pytest.fixture(autouse=True)
+def _outcomes(monkeypatch):
+    """A fake run never reaches the LIVE publish-gate recorder. It writes the shared wedge state,
+    and with `subprocess.run` faked (process-wide: `sim_runner.subprocess` IS the module) a git call
+    naming `site/data/dashboard.json` let a fake below write `{}` over the live dashboard, cwd being
+    the shared tree. Measured 2026-11-03 02:49:18Z inside the post-publish readers, after the
+    0a6391d186 publish had landed; the same shape emptied it at 01:27 and 02:33."""
+    seen = []
+    monkeypatch.setattr(sim_runner, "_record_publish_gate_outcome",
+                        lambda marker, rc, **k: seen.append((marker, rc)))
+    return seen
+
+
+def _is_the_run(cmd) -> bool:
+    """The simulation command, the only subprocess call a fake here may write files for."""
+    return "tools.run_annual_report" in " ".join(str(a) for a in cmd)
 
 
 def test_run_simulation_creates_staging_marker(tmp_path, monkeypatch):
@@ -71,11 +91,11 @@ def test_run_simulation_updates_latest_json(tmp_path, monkeypatch):
     monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
 
     def fake_run(cmd, **kwargs):
-        out_json = next((Path(a) for a in cmd if a.endswith(".json")), None)
+        out_json = next((Path(a) for a in cmd if a.endswith(".json")), None) if _is_the_run(cmd) else None
         if out_json:
             out_json.parent.mkdir(parents=True, exist_ok=True)
             out_json.write_text('{"headline": "test"}')
-        out_md = next((Path(a) for a in cmd if a.endswith(".md")), None)
+        out_md = next((Path(a) for a in cmd if a.endswith(".md")), None) if _is_the_run(cmd) else None
         if out_md:
             out_md.write_text("# Report")
         m = MagicMock()
@@ -204,10 +224,10 @@ def test_run_simulation_staging_marker_name_format(tmp_path, monkeypatch):
     monkeypatch.setattr(sim_runner, "REPORTS_DIR", tmp_path / "reports")
     monkeypatch.setattr(sim_runner, "notify", lambda *a, **k: None)
     monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
-    from unittest.mock import MagicMock
     from pathlib import Path as _Path
+    from unittest.mock import MagicMock
     def fake_run(cmd, **kwargs):
-        for a in cmd:
+        for a in (cmd if _is_the_run(cmd) else ()):
             a = str(a)
             if a.endswith(".json"):
                 _Path(a).parent.mkdir(parents=True, exist_ok=True)
@@ -221,6 +241,38 @@ def test_run_simulation_staging_marker_name_format(tmp_path, monkeypatch):
     markers = list((tmp_path / "staging").glob("run_complete_*.md"))
     assert len(markers) == 1
     assert markers[0].name.startswith("run_complete_")
+
+
+def test_a_fake_run_reaches_the_outcome_step_and_writes_nothing_outside_tmp(tmp_path, monkeypatch,
+                                                                           _outcomes):
+    """The control over both halves. The outcome step IS reached (so the stub above is what
+    stands between it and the live recorder, not an early return), and a call naming a real
+    path -- the git read that emptied the dashboard -- gets no file from the fake."""
+    monkeypatch.setattr(sim_runner, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "log.md")
+    monkeypatch.setattr(sim_runner, "STAGING_DIR", tmp_path / "staging")
+    monkeypatch.setattr(sim_runner, "REPORTS_DIR", tmp_path / "reports")
+    monkeypatch.setattr(sim_runner, "notify", lambda *a, **k: None)
+    monkeypatch.setattr(sim_runner, "_git_head", lambda: "abc1234")
+    bystander = tmp_path / "elsewhere" / "dashboard.json"
+    written = []
+
+    def fake_run(cmd, **kwargs):
+        for a in (cmd if _is_the_run(cmd) else ()):
+            if str(a).endswith(".json"):
+                Path(a).parent.mkdir(parents=True, exist_ok=True)
+                Path(a).write_text("{}")
+                written.append(str(a))
+        m = MagicMock()
+        m.returncode = 0
+        return m
+    monkeypatch.setattr(sim_runner.subprocess, "run", fake_run)
+
+    sim_runner.run_simulation()
+    sim_runner.subprocess.run(["git", "log", "--", str(bystander)])
+
+    assert len(_outcomes) == 1, "run_simulation no longer reaches its outcome step"
+    assert written and not bystander.exists(), written
 
 def test_log_appends_on_second_call(tmp_path, monkeypatch):
     log_file = tmp_path / "log.md"
@@ -312,6 +364,7 @@ def test_check_hold_no_prior_hold_does_not_touch_force_republish_flag(tmp_path, 
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
+
 pytestmark = pytest.mark.operational
 
 

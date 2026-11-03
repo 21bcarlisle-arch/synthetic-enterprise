@@ -54,3 +54,38 @@ a one-off.
 
 A commit on origin whose `site/data/dashboard.json` names run 0a6391d186 (or a later run) with a
 non-empty `run_history`, and a named, fixed writer of `{}`.
+
+## Done
+
+2026-11-03, the wedge worker (cd7fc3c0). **Both halves of "done means" are met, one with a stated
+limit.**
+
+1. **The publish landed.** The publisher re-armed on the done/ path, and 19aa987bc5 (`Auto-process
+   run complete ... git=0a6391d186, net=£610,279`) is on origin with 10 `run_history` entries. The
+   episode was recorded CLOSED (publish_landed) at 02:57Z.
+2. **The writer is named and fixed.** The dashboard was emptied a third time at 02:49:18Z, after the
+   landing, by the post-publish readers' pytest (pid 3316500, child of the publisher, cwd the
+   shared tree). A temporary Python audit hook (`sys.addaudithook` through a user-site `.pth`,
+   removed afterwards) caught the stack:
+   `tests/background/test_sim_runner.py::test_run_simulation_updates_latest_json` →
+   `sim_runner.run_simulation` → `auto_process_marker` → `publish_outcome_route.route` → the real
+   `process_run_complete.record_publish_gate_outcome`. Those tests monkeypatch
+   `sim_runner.subprocess.run`, which is the process-wide `subprocess.run`. Their fakes wrote a file
+   for EVERY `.json`/`.md` argument of ANY command, `{}` in
+   `test_run_simulation_staging_marker_name_format`, which matches the 2-byte file exactly. So the
+   live recorder's git call naming `site/data/dashboard.json` produced `{}` over the live
+   dashboard. The `MagicMock/mock.stdout.split().__getitem__()/*` files holding `# Report`, removed
+   from the root earlier today, are the same fake's `.md` half. The fix is in the same commit as
+   this note: an autouse fixture stubs `sim_runner._record_publish_gate_outcome`; the fakes act only
+   on the `tools.run_annual_report` command; and one control asserts that the outcome step is
+   reached and that a call naming a real path gets no file. The control goes red when the
+   command check is mutated to always-true. No other test in `tests/` has this fake shape (grep for
+   subprocess-patching tests with `endswith(".json")`).
+
+**Not established:** that the 01:27:45Z and 02:33:06Z writes were this same test. Both fell inside a
+hook-chain gate, which runs in an extract and not in the shared tree, and test_sim_runner is not in
+`select_targets` for e5f745334's three paths. One-at-a-time runs flagged
+`test_weekly_rhythm.py::test_a_tick_alone_never_advances_the_baton` twice, but it did not
+reproduce under a write trace, so I read those flags as coincidence with a concurrent writer. If
+`{}` comes back, install the same audit hook and read the stack. Do not bisect by mtime: on this
+tree the concurrent writers make mtime bisection lie.
