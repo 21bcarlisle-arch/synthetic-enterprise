@@ -38,4 +38,13 @@ home for a direct-debit collection, read by both the ledger and the reviews.
 direct-debit collections equal to the bill they settle sits at or below the variable-DD share the page states as
 a belief with a range. A household on a level direct debit shows a credit balance in at least one summer month.
 
+**Read 2026-11-04 (seat): the ledger is the cash organ; the balance book narrates.** On 4669d77ddd the
+balance book sets a level amount for 934 DD accounts. The ledger collects it in 4 of 35,306 collections and
+from 0 accounts in every month. 33,996 collections (96.3%) are the bill. The book's bars (£46,983.97 written
+off) and its held credit (£80,966.66 liability, equity cut by the same) are still booked against cash that
+never held them. Reading, counts and the build slice `D_level_dd_is_the_collection`, with its red tests named:
+`records/SEAT_READING_WHICH_ORGAN_IS_THE_DIRECT_DEBIT_ON_THE_4669D77DDD_BOOK_2026-11-04.md`. Knowledge:
+`docs/market_research/payments_and_direct_debit_2026-10-25.md`, "What a level direct debit must be". This
+finding stays open until the slice lands.
+
 **Reverse.** Delete this file. Nothing outside `docs/staging/` was touched.
