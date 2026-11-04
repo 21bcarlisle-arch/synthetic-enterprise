@@ -212,10 +212,34 @@ D or P". The page renders from this record and from no other source.
 `site/knowledge/test_the_what_we_think_door.py` drives both surfaces against the record, and it
 fails closed when the record is unreadable.
 
-**Still owed.** Two things are not built yet:
-- *A mark on each section inside a mixed page's own body.* The rows name their `section` today.
-- *The cold reader challenging insight as well as figures* (Ask 5 of the knowledge-and-insight
-  steer).
+**Inside a page (added 2026-11-04, third slice).** Every mixed or insight page includes
+`site/knowledge/layer_marks.js` and calls it with its own directory name. Each section heading
+whose text contains an insight row's `section` is marked *Our insight* with that row's status,
+and *review overdue* once `review_by` has passed. Every other section on a mixed page is marked
+*Knowledge*. A row whose `section` names no heading on its page is shown as "not placed" above
+the headline, not dropped. A page writing its headings in static markup gives them ids `k-sec-N`.
+`site/knowledge/test_every_section_of_a_mixed_page_says_knowledge_or_insight.py` drives all 27
+pages. On its first run it found that 9 rows named a heading their page does not have: 7 on
+what-a-customer-is-worth and 1 each on two other pages, each naming the template's default
+heading where the page had renamed it. One more row, on weather-cells, named section 1 when its
+claim is section 3's title. All 10 rows were corrected in the record.
+
+**Challenging insight (added 2026-11-04, Ask 5).** `python3 -m tools.insight_challenge --due`
+lists the rows, other than refuted ones, whose `review_by` falls within 30 days. A row with no
+date counts as due. `--brief <file>` writes those rows for a reader who sees only the published
+pages and record. The reader is asked to look for each row's own `falsified_by` and to return
+held, contested, refuted or cannot tell, with dated sources. The verdict goes back into the
+record by hand: `status`, `checked`, a new `review_by` 90 days on (the record's own cadence),
+the reader's finding appended to `rests_on` and, for a refutation, `falsified_by` rewritten to
+say what refuted it. Monday's weekly step lists the rows due under *Insight due for
+challenge* (`background/weekly_rhythm.py`), so the read does not depend on anyone remembering.
+The first read ran on 4 Nov, on the 5 rows due by 4 Dec. Three stayed held
+(two weakly). "No optimal hedge" went from held to hypothesis: the reader could not tell, and
+the claim holds only for a stated objective. "Switchers act overwhelmingly on price" was
+refuted on the page's own source (44%, under half). That row stays visible, marked refuted, and
+the how-households-choose headline that carried it was corrected. The reader is the same model
+family as the builder, and blind by its brief only, as `tools/blind_worktree.py` records for the
+cold reader.
 
 **Keeping it light.** These are five facets. A sixth is added only when a real question cannot be
 answered without it, and is recorded here as a dated decision.

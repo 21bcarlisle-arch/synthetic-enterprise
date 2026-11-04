@@ -389,25 +389,27 @@
      "status": "held",
      "rests_on": [
       "source named only as 'standard energy trading practice'",
-      "Ofgem financial resilience guidance"
+      "Ofgem financial resilience guidance",
+      "Independent read 2026-11-04: held, weakly; no GB supplier account or Ofgem review found showing domestic hedge books run for trading profit (Ofgem, Strengthening Financial Resilience consultation, 2022)"
      ],
      "from_sim": false,
      "falsified_by": "Published GB supplier accounts or Ofgem resilience reviews showing domestic hedge books run for trading profit rather than to lock the quoted margin",
-     "checked": "2026-08-24",
-     "review_by": "2026-11-22",
+     "checked": "2026-11-04",
+     "review_by": "2027-02-02",
      "use": []
     },
     {
      "claim": "There is no optimal hedge the page can give, and a simulation that produced one would have optimised against its own history.",
      "section": "How it works",
-     "status": "held",
+     "status": "hypothesis",
      "rests_on": [
-      "hedging-forward-market page reasoning"
+      "hedging-forward-market page reasoning",
+      "Independent read 2026-11-04: cannot tell; no out-of-sample test exists, and variance-minimising hedge ratios are standard, so the claim holds only for a stated objective. Moved from held to hypothesis"
      ],
      "from_sim": false,
      "falsified_by": "A hedge rule that beats the layered mandate out of sample across 2016-2025 and a held-out market",
-     "checked": "2026-08-24",
-     "review_by": "2026-11-22",
+     "checked": "2026-11-04",
+     "review_by": "2027-02-02",
      "use": []
     }
    ],
@@ -570,24 +572,25 @@
       "Ofgem State of the Market 2025",
       "Ofgem CIM waves 5-6",
       "CMA Energy Market Investigation 2016",
-      "docs/market_research/svt_rates_active_passive_2016_2025.md"
+      "docs/market_research/svt_rates_active_passive_2016_2025.md",
+      "Independent read 2026-11-04: held; CMA 2016 (about 70% of Big Six customers on the SVT, 34% never considered switching) and Ofgem active-choice collective switch trial (over 20% switched, eight times control)"
      ],
      "from_sim": false,
      "falsified_by": "Survey or trial evidence that a majority of default-tariff households actively chose the default over an available fix",
-     "checked": "2026-08-30",
-     "review_by": "2026-11-28",
+     "checked": "2026-11-04",
+     "review_by": "2027-02-02",
      "use": []
     },
     {
      "claim": "The small minority who act each year act overwhelmingly on price.",
      "section": "The claim, in one sentence",
-     "status": "contested",
+     "status": "refuted",
      "rests_on": [
       "Ofgem CIM 2024 switcher reasons (base 174, multi-code)"
      ],
      "from_sim": false,
-     "falsified_by": "The page's own source: 'get a cheaper tariff' was 44% of switchers' reasons, under half; a larger base showing price below a majority would refute it",
-     "checked": "2026-08-30",
+     "falsified_by": "Refuted 2026-11-04 by an independent read, on the page's own source: 'get a cheaper tariff' was 44% of switchers' reasons (Ofgem CIM 2024, base 174, multi-code), under half, and a 2020 Ofgem and Citizens Advice survey summary gives 54%, a majority but not overwhelming. Price is at most the most common stated reason",
+     "checked": "2026-11-04",
      "review_by": "2026-11-28",
      "use": []
     }
@@ -1450,12 +1453,13 @@
      "rests_on": [
       "Ofgem cap reporting (TDCV 2,700/11,500 kWh)",
       "Ofgem Confidence Code",
-      "CMA 2016"
+      "CMA 2016",
+      "Independent read 2026-11-04: held, weakly; no comparison site or Ofgem headline found quoting a variable tariff on its forward path; Ofgem's Estimated Annual Cost decision (2017) does not say whether rates are held flat"
      ],
      "from_sim": false,
      "falsified_by": "Comparison sites or Ofgem headlines quoting a variable tariff on its expected forward path rather than today's rate held for a year",
-     "checked": "2026-08-30",
-     "review_by": "2026-11-28",
+     "checked": "2026-11-04",
+     "review_by": "2027-02-02",
      "use": []
     }
    ],
@@ -1546,7 +1550,7 @@
    "insights": [
     {
      "claim": "How finely Britain must be divided for pricing is a price list, not one number: 34, 89 or 987 weather cells depending on the tolerance, because household-weighted weather variation is far simpler than the terrain.",
-     "section": "A cell is a climate class, not a region",
+     "section": "Granularity is a price list",
      "status": "tested",
      "rests_on": [
       "Met Office HadUK-Grid 1 km 1991-2020 normals",
@@ -1595,7 +1599,7 @@
     },
     {
      "claim": "H1: bad debt and the cost to serve it dominate the downside of customer value.",
-     "section": "What the data should look like",
+     "section": "What we expect to find, stated so it can be refuted",
      "status": "hypothesis",
      "rests_on": [
       "practitioner judgement"
@@ -1608,7 +1612,7 @@
     },
     {
      "claim": "H4: value-add products earn through loyalty, not direct income.",
-     "section": "What the data should look like",
+     "section": "What we expect to find, stated so it can be refuted",
      "status": "hypothesis",
      "rests_on": [
       "practitioner judgement"
@@ -1621,7 +1625,7 @@
     },
     {
      "claim": "H5: accurate forecasting and billing is worth as much as value-add, possibly more.",
-     "section": "What the data should look like",
+     "section": "What we expect to find, stated so it can be refuted",
      "status": "hypothesis",
      "rests_on": [
       "practitioner judgement"
@@ -1634,7 +1638,7 @@
     },
     {
      "claim": "H6: the apathetic are the quiet engine and the right action is restraint.",
-     "section": "What the data should look like",
+     "section": "What we expect to find, stated so it can be refuted",
      "status": "hypothesis",
      "rests_on": [
       "practitioner judgement",
@@ -1648,7 +1652,7 @@
     },
     {
      "claim": "H7: controllable assets with permission are the only large value-add upside, and solar alone is negative to the supplier.",
-     "section": "What the data should look like",
+     "section": "What we expect to find, stated so it can be refuted",
      "status": "hypothesis",
      "rests_on": [
       "practitioner judgement"
@@ -1661,7 +1665,7 @@
     },
     {
      "claim": "H9: smart metering pays through collectability, not through metering cost.",
-     "section": "What the data should look like",
+     "section": "What we expect to find, stated so it can be refuted",
      "status": "hypothesis",
      "rests_on": [
       "practitioner judgement"
@@ -1674,7 +1678,7 @@
     },
     {
      "claim": "H10: a book drawn in population proportion averages £600-700 contribution before acquisition, netting to the market's ~£150 per customer.",
-     "section": "What the data should look like",
+     "section": "What we expect to find, stated so it can be refuted",
      "status": "hypothesis",
      "rests_on": [
       "OVO/SSE 2020 (£143) and E.ON/OVO 2026 (~£150) transaction prices as reported"
@@ -1717,7 +1721,7 @@
     },
     {
      "claim": "233 deliberately chosen houses reproduce 99% of the household-weighted variation across five measured outputs of our model of British housing; one tail in five does not close.",
-     "section": "Live evidence",
+     "section": "The evidence, measured",
      "status": "tested",
      "rests_on": [
       "docs/market_research/the_sample_is_233_houses_and_one_tail_in_five_does_not_close.md",
@@ -1830,7 +1834,7 @@
     },
     {
      "claim": "The simulated book's expected household size and payment-method risk figures, measured 27 Sep 2026; the book showing prepayment at 2.5 times direct debit reproduces its input and is not confirmation.",
-     "section": "Live evidence",
+     "section": "The evidence, measured",
      "status": "tested",
      "rests_on": [
       "simulated book of 2026-09-27",

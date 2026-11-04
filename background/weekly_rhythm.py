@@ -356,6 +356,25 @@ def _page_aging_section() -> list[str]:
             f"starting `{PAGE_AGING_EXPLAINED}` saying why not:", ""] + [f"- {p}" for p in found] + [""]
 
 
+def _insights_due_section() -> list[str]:
+    """Director, 4 Nov (Ask 5): "The cold reader, or an independent reader, challenges insights as
+    well as figures." Lists the published insight rows whose review date falls within 30 days.
+    Reports, and never blocks Monday: the read is `tools.insight_challenge --brief` given to a
+    blind reader, with the verdict written back beside the row."""
+    try:
+        from tools.insight_challenge import FACETS, due
+        rows = due(json.loads(FACETS.read_text(encoding="utf-8")), london_today(), 30)
+    except Exception as exc:  # noqa: BLE001 -- a check that cannot run is UNAVAILABLE, never clean
+        return ["## Insight due for challenge", "", f"UNAVAILABLE, not clean: {exc!r}", ""]
+    if not rows:
+        return ["## Insight due for challenge", "", "None within 30 days.", ""]
+    return ["## Insight due for challenge", "",
+            f"{len(rows)} row(s) due within 30 days. Write the brief with `python3 -m "
+            "tools.insight_challenge --brief <file>`, give it to a blind reader, and write each "
+            "verdict back beside its row in `site/data/knowledge_facets.json`:", ""] + [
+        f"- {r.get('review_by') or 'no date'} · {r['page']}: {r['claim'][:120]}" for r in rows] + [""]
+
+
 def page_aging_refusal(text: str) -> str | None:
     """Why Monday may not close for want of the page-aging check, or None."""
     lines = (text or "").splitlines()
@@ -550,6 +569,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         lines += _explore_cast_section()
         lines += _canon_against_canon_section()
         lines += _page_aging_section()
+        lines += _insights_due_section()
         lines += _merge_pressure_section()
         lines += _run_cost_section()
         lines += _priority_order_section()

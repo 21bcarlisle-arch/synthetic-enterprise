@@ -28,3 +28,12 @@
 5. **Keep it light.** Five facets, short value lists, no sub-taxonomies. Add a facet only when a real question cannot be answered without it, and record the addition as a dated design decision.
 
 **Sequencing.** This is drafting and tooling work alongside the correctness stretch, in the same lane as the corpus. Merge it with the knowledge-and-insight steer as one piece of work.
+
+## Done
+
+Done 2026-11-04 with the knowledge-and-insight steer. The five facets are in `docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md` §7, which extends the existing structure rather than replacing it.
+- **Asks 1 and 4.** Every one of the 63 pages has a record in `site/data/knowledge_facets.json`. The counts by facet are in the audit record.
+- **Ask 2.** The check refuses a missing or invalid facet, and refuses a circular use.
+- **Ask 3.** `site/knowledge/what-we-think.html` filters by every facet, and a view can be linked.
+- **Inside each mixed page.** Every section is marked knowledge or insight from the record.
+- **Ask 5.** No facet was added.

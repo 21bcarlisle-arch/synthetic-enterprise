@@ -29,3 +29,13 @@ The director's words, 08:45 GMT: "Publish insights. Don't hold back. It only rea
 
 **Publish every insight, including insight about the supplier's own strategies.** Hold nothing back for commercial reasons. Label each one as insight, with its status and its trust assessment, as set out above. Refuted insights stay visible.
 
+
+## Done
+
+Done 2026-11-04 in three slices, taken as one piece of work with the five-facet steer.
+- **Ask 1, labels.** Every Knowledge card carries its layer (e6665f30cd). Inside each of the 27 mixed or insight pages, every section is now marked *Our insight* with its status, or *Knowledge*. The marks are driven from the insight rows' `section` field by `site/knowledge/layer_marks.js`.
+- **Ask 2, trust fields.** Every row carries status, rests_on, from_sim, falsified_by, checked and review_by (b57186dc4d).
+- **Ask 3, no circularity.** `site/knowledge/test_every_page_carries_its_five_facets.py` refuses a sim-derived insight with a `world:` or `calibration:` use.
+- **Ask 4, the audit.** 36 pages are knowledge, 23 mixed and 4 insight, with 55 insight rows (`docs/staging/records/SEAT_RECORD_THE_KNOWLEDGE_FACET_AUDIT_2026-11-04.md`). The section marks found 10 rows naming a heading their page does not have, and all 10 were corrected.
+- **Ask 5, review.** `tools/insight_challenge.py` selects rows by `review_by` and writes a blind brief. The first read, of the 5 rows due by 4 Dec, refuted "switchers act overwhelmingly on price". That row stays on the site marked refuted, with what refuted it, and the page's headline was corrected. It also moved one row from held to hypothesis. A section whose row is past `review_by` shows *review overdue*.
+- **Addendum.** All insight is published at `site/knowledge/what-we-think.html`.

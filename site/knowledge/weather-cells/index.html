@@ -80,7 +80,7 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       the measurement of what lies between: <b id="c-headline">&hellip;</b>
     </div>
 
-    <h2 class="sec">1 &mdash; A cell is a climate class, not a region</h2>
+    <h2 class="sec" id="k-sec-1">1 &mdash; A cell is a climate class, not a region</h2>
     <div class="card">
       <p>The map below colours every 5&nbsp;km square of Britain by which of
       <b id="m-bands">21</b> winter-temperature classes it belongs to, coldest to warmest.
@@ -110,7 +110,7 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       </div>
     </div>
 
-    <h2 class="sec">2 &mdash; A quarter of Britain's land holds nobody &mdash; and the first
+    <h2 class="sec" id="k-sec-2">2 &mdash; A quarter of Britain's land holds nobody &mdash; and the first
     version of this page said half</h2>
     <div class="card">
       <div class="bigrow">
@@ -170,7 +170,7 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       </div>
     </div>
 
-    <h2 class="sec">3 &mdash; Granularity is a price list</h2>
+    <h2 class="sec" id="k-sec-3">3 &mdash; Granularity is a price list</h2>
     <div class="card">
       <p>Each line is the share of household-weighted variation captured by <i>N</i> cells. The
       lower line asks one partition to resolve <b>all three</b> heat-load drivers at once
@@ -192,7 +192,7 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       grid to serve three jobs.</p>
     </div>
 
-    <h2 class="sec">The classes themselves</h2>
+    <h2 class="sec" id="k-sec-4">The classes themselves</h2>
     <div class="card">
       <div class="table-scroll"><table class="fig">
         <thead><tr><th>Class</th><th>Mean winter temperature</th><th>Share of GB households</th><th>1 km cells</th></tr></thead>
@@ -400,6 +400,8 @@ fetch("../../data/weather_cells.json", {cache:"no-store"})
       "the weather-cell feed did not load (" + err.message + "), so no figure on this page is live.";
   });
 </script>
+<script src="../layer_marks.js"></script>
+<script>if (typeof layerMarks === "function") layerMarks("weather-cells");</script>
 <!-- RUN-CLOCK:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
 <p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Published with the run of 2 Nov 2026 &middot; published every Monday <span class="lf-run">(run 0a6391d186_20261102T212232Z; a written page: its figures are published anchors from the sources it cites, not readings from the run)</span></p>
 <!-- RUN-CLOCK:END -->
