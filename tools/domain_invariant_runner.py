@@ -2066,6 +2066,28 @@ def _next_month(d: date) -> date:
     return date(d.year + (d.month == 12), d.month % 12 + 1, 1)
 
 
+def _svt_month_units(book):
+    """(account, term, 1st of month, the month's one payment method or None, meter class, the SVT
+    period holding that 1st or None) for each domestic account on an SVT term on the 1st of a month."""
+    for a in book:
+        if not a.domestic:
+            continue
+        for t in a.terms():
+            if t.get("tariff_type") != "svt" or t["_last"] is None:
+                continue
+            meter = "single" if len(t["_registers"] or a.registers) == 1 else "multi"
+            d = date(t["_from"].year, t["_from"].month, 1)
+            if d < t["_from"]:
+                d = _next_month(d)
+            while d <= t["_last"]:
+                methods = a.methods_between(d, _month_end(d)) - {None}
+                p = next((p for p in a.periods if _d(p["period_start"]) <= d <= _d(p["period_end"])
+                          and [x.get("tariff_type") for x in p.get("contracted_terms") or ()] == ["svt"]),
+                         None)
+                yield a, t, d, (methods.pop() if len(methods) == 1 else None), meter, p
+                d = _next_month(d)
+
+
 def ev_svt_one_price(inv, book):
     """One SVT price per fuel, payment method and date. Each domestic account on an SVT term on the
     1st of a month is one unit, grouped with every other account on the SVT for that fuel, month and
@@ -2086,30 +2108,15 @@ def ev_svt_one_price(inv, book):
     single-rate median, and 0 within either class."""
     tally = Tally("domestic account on an SVT term on the 1st of a month (unit rate; standing charge)")
     groups = defaultdict(list)
-    for a in book:
-        if not a.domestic:
+    for a, t, d, method, meter, p in _svt_month_units(book):
+        if method is None:
+            tally.unbounded += 1
             continue
-        for t in a.terms():
-            if t.get("tariff_type") != "svt" or t["_last"] is None:
-                continue
-            d = date(t["_from"].year, t["_from"].month, 1)
-            if d < t["_from"]:
-                d = _next_month(d)
-            while d <= t["_last"]:
-                methods = a.methods_between(d, _month_end(d)) - {None}
-                if len(methods) != 1:
-                    tally.unbounded += 1
-                else:
-                    p = next((p for p in a.periods if _d(p["period_start"]) <= d <= _d(p["period_end"])
-                              and [x.get("tariff_type") for x in p.get("contracted_terms") or ()] == ["svt"]),
-                             None)
-                    days = _num(p.get("days_in_period")) if p else None
-                    meter = "single" if len(t["_registers"] or a.registers) == 1 else "multi"
-                    groups[(a.fuel, methods.pop(), meter, d)].append(
-                        (a.cid, _num(t.get("unit_rate_p_per_kwh")),
-                         _num(p.get("standing_charge_gbp_per_day")) if p else None,
-                         max(0.005, 0.01 / days) if days else 0.005))
-                d = _next_month(d)
+        days = _num(p.get("days_in_period")) if p else None
+        groups[(a.fuel, method, meter, d)].append(
+            (a.cid, _num(t.get("unit_rate_p_per_kwh")),
+             _num(p.get("standing_charge_gbp_per_day")) if p else None,
+             max(0.005, 0.01 / days) if days else 0.005))
     for (fuel, method, meter, d), units in sorted(groups.items()):
         if len(units) < 2:
             tally.unbounded += len(units)
@@ -2129,6 +2136,44 @@ def ev_svt_one_price(inv, book):
             elif sc is not None and sc_mid is not None and abs(sc - sc_mid) > sc_tol:
                 tally.hit("breach", where + " standing charge", sc, sc_mid,
                           "above" if sc > sc_mid else "below")
+    return tally
+
+
+def ev_default_dual_fuel_follows_published(inv, book):
+    """The book's DD default dual-fuel cost at the benchmark, year on year, against the sign of the
+    published default bill's move. A month's price per fuel is the median over the domestic accounts
+    paying by DD on a single-rate SVT on its 1st (`ev_svt_one_price` holds them to one price); a
+    year's cost is the mean over the months that price both fuels, so a year it prices only in part
+    is graded on the months it has, and the unit names how many."""
+    e_kwh, g_kwh = (float(inv["benchmark_kwh"][k]) for k in ("electricity", "gas"))
+    prices = defaultdict(lambda: defaultdict(list))
+    for a, t, d, method, meter, p in _svt_month_units(book):
+        if method == DIRECT_DEBIT and meter == "single" and p is not None:
+            prices[d][a.fuel].append((_num(t.get("unit_rate_p_per_kwh")),
+                                      _num(p.get("standing_charge_gbp_per_day"))))
+    by_year = defaultdict(list)
+    for d, fuels in prices.items():
+        legs = []
+        for fuel, kwh in (("electricity", e_kwh), ("gas", g_kwh)):
+            units = [(r, s) for r, s in fuels.get(fuel, ()) if r is not None and s is not None]
+            if not units:
+                break
+            legs.append(kwh * _median([r for r, _ in units]) / 100
+                        + 365 * _median([s for _, s in units]))
+        else:
+            by_year[d.year].append(sum(legs))
+    months = {y: len(v) for y, v in by_year.items()}
+    tally = Tally("year on year, DD default dual fuel at {:g}/{:g} kWh (months priced: {})".format(
+        e_kwh, g_kwh, ", ".join("{} {}".format(y, n) for y, n in sorted(months.items())) or "none"))
+    for row in _rows(inv):
+        y = row["_from"].year
+        if not by_year.get(y) or not by_year.get(y - 1):
+            tally.unbounded += 1
+            continue
+        ratio = (sum(by_year[y]) / len(by_year[y])) / (sum(by_year[y - 1]) / len(by_year[y - 1]))
+        tally.band("{} -> {} (published {})".format(y - 1, y, row.get("published_change")),
+                   round(ratio, 4), _num(row.get("lower")), _num(row.get("upper")),
+                   below="flag", above="flag", tol_abs=-1e-12)
     return tally
 
 
@@ -2448,6 +2493,8 @@ EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC_PRE_CAP": (ev_unit_rate_svt_elec_pre_cap, None),
     "INV_UNIT_RATE_SVT_GAS": (ev_unit_rate_svt_gas, None),
     "INV_UNIT_RATE_SVT_GAS_PRE_CAP": (ev_unit_rate_svt_gas_pre_cap, None),
+    "INV_UNIT_RATE_SVT_ELEC_PRE_CAP_ALL_IN_FLOOR": (ev_unit_rate_svt_elec_pre_cap, None),
+    "INV_UNIT_RATE_SVT_GAS_PRE_CAP_ALL_IN_FLOOR": (ev_unit_rate_svt_gas_pre_cap, None),
     "INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER": (ev_unit_rate_svt_elec_multi, None),
     "INV_UNIT_RATE_FIXED": (ev_unit_rate_fixed, None),
     "INV_STANDING_CHARGE_SVT_ELEC": (ev_standing_charge_svt_elec, None),
@@ -2499,6 +2546,7 @@ EVALUATORS = {
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": (ev_estimate_follows_reads, "printed_invoices"),
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": (ev_estimated_run_vs_meter, "printed_invoices"),
     "INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW": (ev_svt_one_price, None),
+    "INV_DEFAULT_DUAL_FUEL_COST_FOLLOWS_THE_PUBLISHED_DEFAULT_BILL": (ev_default_dual_fuel_follows_published, None),
     "INV_UNIT_RATE_EPG_HOUSEHOLD": (ev_unit_rate_epg_household, "non_commodity_rate_gbp_per_mwh"),
     "INV_ESTIMATE_RUN_WITHIN_TENURE": (ev_estimate_run_within_tenure, "estimate_runs"),
     "INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE": (ev_back_billing_on_receipt, "bill_record"),

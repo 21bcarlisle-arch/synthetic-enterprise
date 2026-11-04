@@ -66,3 +66,31 @@ default bill, within a stated band.
     marked.
   - (2) The blind `DOMAIN_INVARIANTS.yaml` row named above. It has to be written by a reader who has not seen this
     code, so this worker did not write it.
+
+## Progress (worker, 2026-11-04, later): the blind rows are written and graded; BLOCKING stands
+
+- **Owed item (2) is done.** An agent that opened only `docs/domain_artefact_library`, `docs/market_research`
+  and `site/knowledge` wrote three rows into `docs/design/DOMAIN_INVARIANTS.yaml`. Its files read and what it
+  saw incidentally are on the third row.
+  - `INV_UNIT_RATE_SVT_GAS_PRE_CAP_ALL_IN_FLOOR` and `INV_UNIT_RATE_SVT_ELEC_PRE_CAP_ALL_IN_FLOOR`: the all-in
+    rate is at or above the back-cast `pass_through_p_per_kwh_ex_vat_min`. The value is the same in all three
+    payment columns, so the reader needed no column rule. Severity is flag, with no ceiling (GAP, reason on
+    the row).
+  - `INV_DEFAULT_DUAL_FUEL_COST_FOLLOWS_THE_PUBLISHED_DEFAULT_BILL`: the book's DD single-rate default at
+    3,100 / 12,000 kWh moves year on year with the same sign as the RMI default bill (2016→17, 2017→18,
+    2018→19). There is no dead-band, because no source gives a single supplier's spread; that is a GAP.
+- **Graded on the b3ce2a4e73 book** (`/var/tmp/fresh-grade-b3ce2a4e73/ledger.json`):
+  - gas floor: 576 of 1,774 term-windows flagged, every example at 2.6667p;
+  - electricity floor: 0 of 2,349;
+  - direction: 2016→2017 flagged at a ratio of 0.8649 against the published +4.3%; 2017→18 and 2018→19 pass.
+- **Prediction for the first book built after 667a12d10a, written before it exists:**
+  - gas floor 0, because 2017 gas is 3.81p, above 2.73p and 2.71p;
+  - electricity floor 0;
+  - **the direction row still flags 2016→2017, at about 0.999.**
+  - Method: put 3.8095p into the b3ce2a4e73 2017 gas median. That gives £1,018.04 for 2016 and £1,016.84 for
+    2017. Electricity is flat at 13.33p in both years, and standing charges move −0.6p/day for electricity
+    and +0.3p/day for gas.
+  - What is left is the 2017 electricity row that §1b already logs as a gap: suppliers' 2017 rises were
+    mostly electricity (+8–12.5%), and the world's 2017 electricity default did not move.
+  - So N18 does not close on the gas fix alone. It closes when §1b's 2017 electricity gap is researched and
+    priced (K8 first), and a fresh book grades this row clean.

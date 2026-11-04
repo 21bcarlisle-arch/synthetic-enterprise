@@ -98,6 +98,9 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE": "reads the bill record; every leg tested in test_a_catch_up_paid_on_receipt_is_barred_from_its_issue_date.py",
     "INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL": "reads the bill record; every leg tested in test_a_plan_reoffer_follows_a_bill_not_paid_in_its_window.py",
     "INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM": "reads the Explore cast; every leg tested in test_a_printed_explore_tariff_is_the_term_the_bill_records.py",
+    "INV_UNIT_RATE_SVT_GAS_PRE_CAP_ALL_IN_FLOOR": "the pre-cap gas evaluator, reached above; every leg tested in test_a_pre_cap_default_sits_over_its_pass_through_cost_and_follows_the_published_bill.py",
+    "INV_UNIT_RATE_SVT_ELEC_PRE_CAP_ALL_IN_FLOOR": "the pre-cap electricity evaluator, reached above; every leg tested in test_a_pre_cap_default_sits_over_its_pass_through_cost_and_follows_the_published_bill.py",
+    "INV_DEFAULT_DUAL_FUEL_COST_FOLLOWS_THE_PUBLISHED_DEFAULT_BILL": "needs two priced years; every leg tested in test_a_pre_cap_default_sits_over_its_pass_through_cost_and_follows_the_published_bill.py",
 }
 
 
