@@ -3285,3 +3285,119 @@ invariants:
     establishes how a prepayment record''s monthly kWh is formed (meter vend/credit data versus reads); if it is derived from vends or an AQ, leg A grades the derivation, not the meter. GAP (5): an AQ-driven
     ESTIMATE that repeats last year is lawful and expected (Xoserve seasonal-normal AQ); the defect graded here is a repeat carried on months labelled actual, and the row cannot by itself tell a mislabelled
     estimate from a mis-sourced measured value.'
+- id: INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE
+  family: back_billing
+  grades: ledger
+  counts:
+    numerator: undercharge catch-ups on a credit bill paid on receipt whose stated window starts more than 12 calendar months before the bill's issue date, where the bill bars (writes off) nothing and the
+      days share of the catch-up before that date is at least a penny
+    denominator: every undercharge catch-up on a credit bill paid on receipt (every payment posted against it by a way other than direct debit, scheme credits aside), issued on or after 1 May 2018 (domestic)
+      or 1 Nov 2018 (non-domestic)
+    unit graded: one catch-up bill (one account, one fuel, one invoice)
+  statement: For a household that pays each bill on receipt, the bill is the charge recovery action, so a catch-up on it may recover only energy consumed in the 12 months before the bill's ISSUE date
+    (not its period end). A catch-up that recovers older energy and bars none of it is a breach, not a flag. This row supersedes INV_BACK_BILLING_12M's proxy flag for this case; that row stays for the
+    rest (direct debit, statements, periods over a year).
+  predicate: 'for each credit bill b with catchup_adjustment_gbp > 0, issue_date >= 2018-05-01 (domestic) / 2018-11-01 (non-domestic), paid on receipt: let B = issue_date less 12 calendar months, W = [catchup_period_start,
+    catchup_period_end]. If start(W) < B: share = catchup_raw_delta_gbp x days(W before B) / days(W), to the penny; breach if catchup_written_off_gbp == 0 and share >= 0.01; flag if 0 < catchup_written_off_gbp
+    < share - 0.01.'
+  applies_to:
+    segment: domestic from 2018-05-01; non-domestic from 2018-11-01 (21BA Part B; every non-domestic account is read as a microbusiness, F11)
+  lower: 0
+  upper: 12 calendar months before the issue date
+  source: 'docs/market_research/back_billing_and_liability.md §1: the supplier "must only do so in respect of units … which could reasonably be considered to have been consumed within the 12 months preceding
+    the date the charge recovery action was taken" (SLC 21BA.1); "The 12 months run back from the date of the demand, not from the read and not from when the error was found"; "For a customer who pays
+    each bill on receipt, that comes to the same thing as the under-estimate." §16: "for an account that pays each bill on receipt, the bill is the demand and 21BA.1 bars energy more than 12 months before
+    it. So the question is not ''how did the account first pay us'' but how it pays the catch-up bill itself." §2: "From 1 May 2018 for domestic customers, and 1 November 2018 for microbusinesses". Commons:
+    docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md.'
+  severity:
+    nothing_barred: breach
+    barred_less_than_the_days_share: flag
+  export_fields:
+  - bill_record.invoices.issue_date
+  - bill_record.invoices.catchup_period_start
+  - bill_record.invoices.catchup_period_end
+  - bill_record.invoices.catchup_adjustment_gbp
+  - bill_record.invoices.catchup_raw_delta_gbp
+  - bill_record.invoices.catchup_written_off_gbp
+  - bill_record.payments.method
+  checkable: true
+  reading: >-
+    Graded from 2026-11-04 (ev_back_billing_on_receipt) on the bill's own record, read from the ledger by named fields
+    (domain_invariant_runner.bill_record): the raw export carries no issue date, no window a catch-up recovers and no invoice a
+    payment settles. "12 months" is read as calendar months, as 21BA.1 words it, so energy on the day a year before issue is inside
+    the window. A bill with no payment posted against it is unbounded (how it was paid is not on the record); a bill collected by
+    direct debit is Scenario B's case and not graded here. The barred amount is the bill's written-off figure, graded as the act it is.
+    Not a bound: the days share. 21BA asks for units "reasonably considered" consumed in the window and a profile apportionment can
+    move it (§5, code gap 3), so a bill that bars something but less than the days share is a flag. GAP (§16): whether a window part on
+    direct debit and part on receipt is Scenario B for its DD months is not published; the row grades the whole window as demanded on
+    the bill, the over-barring direction §16 names.
+- id: INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL
+  family: collections_sequence
+  grades: ledger
+  counts:
+    numerator: re-offers of the repayment plan ("a further bill missed") where no bill of the household fell due between the journey's previous plan offer or re-offer and the re-offer, both inclusive,
+      or every bill that did was paid in its window
+    denominator: every re-offer of the repayment plan, once per household journey
+    unit graded: one repayment_plan_reoffer event on one billing account's collections journey
+  statement: The desk's re-offer says "a further bill missed once the plan was offered". It is accurate only if a bill fell due since the previous offer and was not paid in its window. A re-offer
+    after every such bill was paid in full is a contact telling a household it missed a bill it paid.
+  predicate: 'for each repayment_plan_reoffer on date E in a journey whose previous repayment_plan_offer or repayment_plan_reoffer is on P: breach unless some credit bill of the billing account (both fuel
+    legs) with P <= due_date <= E is missed. A bill is missed when the cash landed on its own leg on days issue_date..due_date inclusive (payments received, scheme credits carried, the paid part of a failed
+    collection) plus any credit applied to the bill is short of total_amount_gbp by more than half a penny.'
+  lower: 1 missed bill since the previous offer
+  upper: null
+  source: 'docs/market_research/company_debt_management.md, "A further bill missed means the bill was not paid, not that a balance stood (2026-11-03)": "A bill counts as newly missed for the re-offer
+    only when the cash that landed on the account between its issue and its due date, both inclusive, is short of the bill." "Telling a household that paid a bill in full on its due date that it missed
+    that bill is not accurate." "What triggers a fresh 27.6 offer is fresh evidence of difficulty ... A newly missed bill is such a reason. A bill paid in full and on time is not." Accuracy: SLC 0, "complete,
+    accurate and not misleading".'
+  severity:
+    violation: breach
+  export_fields:
+  - events.collections_journeys
+  - bill_record.invoices.issue_date
+  - bill_record.invoices.due_date
+  - bill_record.invoices.total_amount_gbp
+  - bill_record.invoices.credit_applied_gbp
+  - bill_record.payments
+  checkable: true
+  reading: >-
+    Graded from 2026-11-04 (ev_reoffer_follows_a_missed_bill). "Further" is read as a bill the previous offer did not answer, so the
+    window opens on the previous plan offer or re-offer, not at the start of the account: read from the start, one missed bill early in
+    a journey licenses every later re-offer (23 breaches on the 0a6391d186 book against 4,610 read this way). The window is inclusive at
+    both ends, the lenient reading. Cash is the leg's own, as the knowledge page's measurement reads it ("each bill judged on its own
+    leg's cash"); a credit applied to the bill and a scheme credit pay it. GAP A6 (the page): no published source says how a supplier
+    tests "this bill was paid" on a balance-based account; this is the page's test.
+- id: INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM
+  family: tariff_terms
+  grades: page
+  counts:
+    numerator: Explore cast moments x fuel leg whose printed tariff label names a kind other than the term the leg's bills record on that date, or a fixed term from a day other than its start
+    denominator: every Explore cast moment that prints a tariff label, once per fuel leg the label speaks for, dated within the leg's supply (a moment after the leg's last supplied day is graded against
+      the term it ended on)
+    unit graded: one moment (one dated entry of a cast slot's `moments`) on one fuel leg; the moment's two labels (supplier panel "Tariff" and portal `tariff`) are graded together
+  statement: A tariff label Explore prints ("Fixed from 24 Jan 2024", "Standard variable since 1 Feb 2020") must be the tariff term the household's bill records for the moment's date, per fuel.
+  predicate: 'for each moment m and leg l the label names (an unprefixed label names every leg; "Electricity: ...; Gas: ..." names each): term t = the contracted term on l''s bills holding date(m). Breach if
+    the printed kind (Fixed -> fixed, Standard variable -> svt) != t.tariff_type, or the kind is fixed and the printed "from" date != t.tariff_effective_from. Flag if the kind is svt and the printed "since"
+    date != the first day of the unbroken run of svt terms holding t; flag if the moment is dated the day t starts and the printed kind is the kind of the term ending the day before; flag if the label
+    cannot be read.'
+  lower: null
+  upper: null
+  source: 'site/knowledge/tariffs-and-the-default-tariff (site/data/knowledge_topics.json): "A fixed deal locks the unit rate and standing charge for 12, 18 or 24 months ... and ends with a renewal letter
+    42-49 days before it expires." "A GB household that does nothing at the end of a fixed deal moves to its supplier''s default tariff". So a household''s tariff on a date is one term, fixed or default,
+    and the bill records it. Accuracy of what the household is shown: docs/market_research/back_billing_and_liability.md §12, SLC 0, communications must be "complete, accurate and not misleading".'
+  severity:
+    kind: breach
+    fixed_start: breach
+    svt_since: flag
+    term_boundary: flag
+    label_not_read: flag
+  export_fields:
+  - periods.contracted_terms
+  - cast_tariffs
+  checkable: true
+  reading: >-
+    Graded from 2026-11-04 (ev_cast_tariff_label) on the Explore cast (explore_cast.json beside --printed, or --cast) against the
+    raw export's contracted terms. The cast names its household by base account; both legs of a dual-fuel household share it as their
+    billing account. A book graded without a cast reads NOT_IN_EXPORT, never clean. The printed rate ("Fixed at 267.0 £/MWh") is not
+    graded: what that figure includes is not stated on the page. tools.domain_invariant_runner.grade_cast_tariff_labels grades one cast
+    file against one book.

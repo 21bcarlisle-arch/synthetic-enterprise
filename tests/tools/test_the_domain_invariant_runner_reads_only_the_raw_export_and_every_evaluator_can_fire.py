@@ -95,6 +95,9 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_METER_SERIAL_ONE_SUPPLY_POINT": "compares accounts with each other; every leg tested in test_one_meter_serial_sits_on_one_supply_point.py",
     "INV_E7_METER_BILLED_ON_TWO_REGISTERS": "needs a registered profile class; every leg tested in test_an_economy_7_meter_is_billed_on_two_registers.py",
     "INV_GAS_READ_IS_A_VOLUME_CONVERTED_AT_CV_AND_CF": "needs a gas volume register; every leg tested in tests/company/billing/test_a_gas_read_is_a_volume_and_the_bill_converts_it.py",
+    "INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE": "reads the bill record; every leg tested in test_a_catch_up_paid_on_receipt_is_barred_from_its_issue_date.py",
+    "INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL": "reads the bill record; every leg tested in test_a_plan_reoffer_follows_a_bill_not_paid_in_its_window.py",
+    "INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM": "reads the Explore cast; every leg tested in test_a_printed_explore_tariff_is_the_term_the_bill_records.py",
 }
 
 
