@@ -88,3 +88,17 @@ because this ledger predates the desk fix. It still stands for a post-ba868134c 
 
 One mutation does not fire: counting a failed payment's netted credit. That is an equivalence on this data: none of
 the 1,896 failed payment records carries `credit_applied_gbp`.
+
+## Pre-registered for the first post-ba868134c book (2026-11-04 12:10Z, claim `n15-grade-on-a-post-ba868134c-book`)
+
+Filed before the run finished. The book is the `sim_runner` run that started about 11:50Z on the shared tree at
+5d3d11da0c (it carries ba868134c and 5d3d11da0). Between b3ce2a4e73 and 5d3d11da0c, the only change under
+`company/ saas/ simulation/ sim/` is `company/billing/collections_journey.py`, the desk fix. So the N15 row moves on
+one variable.
+
+- **The N15 row reads 0 breaches.** The 7 netted-credit re-offers on b3ce2a4e73 (PROS-2021-0236, SYN-2016-210,
+  SYN-2016-445 x3, SYN-2016-021 x2) are no longer offered. If any breach survives, it is a class the trace did not
+  name, and it gets traced and not explained away.
+- **Re-offers fall by at least 7 from 1,241 and by under 1%** (between 1,229 and 1,234), on the row's own count.
+- **Unchanged:** the account count (1,291) and the invoice count (52,715). A re-offer moves no money, so the bills do not
+  change.
