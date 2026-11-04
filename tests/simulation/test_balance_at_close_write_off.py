@@ -250,6 +250,34 @@ def test_a_repayment_the_household_made_is_never_written_off():
     assert sum(c["amount_gbp"] for k, cs in credited.items() if k[0] == "EXCESS" for c in cs) == 140.0
 
 
+def test_a_settlement_pays_what_is_left_on_its_bill_not_its_face():
+    """Defect (2026-11-04, SYN-2016-269 on the 4669d77ddd book): an 85.95 credit bill had netted
+    INV36009 (276.73) to 190.78, the desk asked 190.78, and the world's settlement on 18 Oct 2023
+    paid the face. The engine put 190.78 on INV36009 and spilled 85.95 onto INV36010, so for 39
+    desk steps the page printed 85.95 less owed than the desk chased. One control over the
+    partition: a netted bill settles at its remainder, an un-netted one at its face, and a
+    settlement that arrives before its bill opens keeps the face (PROS-2016-0263's credit path)."""
+    def settle(cid, on, month, amount):
+        return dict(_repayment(cid, on, amount), settles_month=month)
+    rows = (
+        [_credit("NETTED", "2023-07-31", 85.95), _row("NETTED", "2023-08-31", "failed", amount=276.73),
+         _row("NETTED", "2023-09-30", "failed", amount=288.9),
+         settle("NETTED", "2023-10-18", "2023-08", 276.73)]
+        + [_row("FACE", "2023-08-31", "failed", amount=276.73),
+           _row("FACE", "2023-09-30", "failed", amount=288.9),
+           settle("FACE", "2023-10-18", "2023-08", 276.73)]
+        + [_row("EARLY", "2016-01-28", "failed"), settle("EARLY", "2016-02-08", "2016-01", 100.0)]
+    )
+    _wo, credited = balance_settlement_from_outcomes(rows, set())
+
+    def repaid(cid, pe):
+        return round(sum(c["amount_gbp"] for c in credited.get((cid, pe, "electricity"), ())
+                         if c["kind"] == "repayment"), 2)
+    assert (repaid("NETTED", "2023-08-31"), repaid("NETTED", "2023-09-30")) == (190.78, 0)
+    assert (repaid("FACE", "2023-08-31"), repaid("FACE", "2023-09-30")) == (276.73, 0)
+    assert repaid("EARLY", "2016-01-28") == 100.0
+
+
 def _provision_book():
     rows = _monthly("STAYER_TWO_FAILED", 2016, 40, "failed", "success")
     rows[5] = _row("STAYER_TWO_FAILED", rows[5]["period_end"], "failed")

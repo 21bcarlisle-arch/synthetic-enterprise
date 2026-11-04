@@ -181,3 +181,16 @@ def test_a_movers_final_bill_is_decided_once_in_the_triad(monkeypatch):
         seen.add(got)
         assert triad.records[-1].settled_on is None, "the final-bill model recovers; no lump too"
     assert seen == {"success", "failed"}, seen
+
+
+def test_a_settlement_names_its_bill_so_the_engine_can_price_its_remainder():
+    """Without `settles_month` the engine can only price a settlement at the bill's face, which
+    is the SYN-2016-269 defect (test_balance_at_close_write_off::
+    test_a_settlement_pays_what_is_left_on_its_bill_not_its_face). A plan instalment names none."""
+    bills = [{"outcome": "failed", "period_end": "2022-03-31", "amount_gbp": 102.0,
+              "commodity": "electricity"}]
+    rows = wpt.repayment_rows({"repayments": [
+        {"date": "2022-05-10", "kind": "settlement", "bill_month": "2022-03"},
+        {"date": "2022-06-10", "kind": "plan_instalment", "covered_months": ["2022-03"],
+         "share": 0.5}]}, "C1", bills)
+    assert [r.get("settles_month") for r in rows] == ["2022-03", None]

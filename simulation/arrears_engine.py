@@ -1194,6 +1194,14 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 last_ack = when
                 if r["outcome"] == "repayment":
                     left = r["amount_gbp"]
+                    named = [i for i in outstanding if i["row"]["commodity"] == r["commodity"]
+                             and i["row"]["period_end"][:7] == r.get("settles_month")]
+                    if named:
+                        # A household settling a bill pays what is left on it, not its face once a
+                        # credit or an earlier payment has reduced it (debt_and_collections.md
+                        # s.7.3). At face, SYN-2016-269 paid INV36009's 276.73 on 18 Oct 2023
+                        # against the 190.78 the desk asked, and 85.95 spilled onto the next bill.
+                        left = named[0]["remaining"]
                     for item in [i for i in outstanding if i["row"]["commodity"] == r["commodity"]]:
                         if left <= 0:
                             break
