@@ -63,3 +63,21 @@ def test_a_return_shows_on_the_day_it_happens():
     its bill is missable (three such stories on the 209c3350ab book printed "0 returned")."""
     rec = payment_record([_pay(1, "2020-01-20", "payment_failed")], BILLS[:1], "2020-01-20")
     assert (rec["due"], rec["returned"]) == (0, 1), rec
+
+
+def _asked(n, due, amount, **kw):
+    return {**_bill(n, due), "amount_gbp": amount, **kw}
+
+
+def test_a_bill_a_credit_settled_is_not_missed_but_a_returned_one_still_is():
+    """N15 on the page (eighth cold read, O4): credit bills and bills settled by credit read "missed".
+    Control over the partition: the same record holds a settled bill AND a missed one, so a rule
+    that excuses everything (or nothing) fails. Red on origin: missed == 4."""
+    bills = [_asked(1, "2020-01-20", -50.0),                                  # credit bill: asked nothing
+             _asked(2, "2020-02-20", 77.87, credit_applied_gbp=10.87),        # scheme credit + netted credit
+             _asked(3, "2020-03-20", 80.0),                                  # no payment, no credit: missed
+             _asked(4, "2020-04-20", 80.0, credit_applied_gbp=80.0)]          # returned, later credit: missed
+    led = [{"type": "scheme_credit", "invoice_number": 2, "date": "2020-02-06", "amount_gbp": -67.0},
+           _pay(4, "2020-04-20", "payment_failed")]
+    rec = payment_record(led, bills, "2020-07-01")
+    assert (rec["due"], rec["payments"], rec["missed"]) == (4, 2, 2), rec
