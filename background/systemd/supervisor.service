@@ -11,6 +11,7 @@ StartLimitBurst=5
 Type=simple
 WorkingDirectory=/home/rich/synthetic-enterprise
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+EnvironmentFile=-%h/.config/synthetic-enterprise/.env.claude
 # Python 3.14 block-buffers a non-tty stdout at 128 KiB, so an unflushed print() stays
 # out of the journal for days and SIGTERM throws it away. Unbuffered, a stuck daemon and
 # a healthy one no longer look the same in the journal.

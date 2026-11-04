@@ -88,24 +88,19 @@ def test_lanes_alive_sees_a_claude_process_and_the_timer(tmp_path):
     assert lanes_alive(tmp_path / "missing", timer_active=lambda: False) is None
 
 
-def _run_cap(monkeypatch, lanes):
+def test_the_dead_man_records_a_stopped_machine_but_never_phones_itself(monkeypatch):
+    """The phone moved to background/phone_watchdog.py (director's ruling, 4 Nov) so one cap
+    covers every push. MUTANT: restore `_phone=True` here and his phone gets a fourth message."""
     from background import deadmans_switch as ds
     sent = []
     monkeypatch.setattr(ds, "_open_blocked_mints", lambda: [])
     monkeypatch.setattr(ds, "notify", lambda m, **k: sent.append((m, k)) or "id")
     monkeypatch.setattr(ds, "clear_transition", lambda key: None)
     monkeypatch.setattr(ds, "log", lambda m: None)
-    monkeypatch.setattr(ds, "lanes_alive", lambda: lanes)
+    monkeypatch.setattr(ds, "lanes_alive", lambda: [])
     ds._check_open_mint_escalation(ds.HARD_REST_CAP_SECONDS + 60)
-    return [(m, k) for m, k in sent if k.get("_phone")]
-
-
-def test_the_phone_push_fires_only_when_wedged_and_no_lane_is_alive(monkeypatch):
-    phone = _run_cap(monkeypatch, [])
-    assert len(phone) == 1 and phone[0][0].startswith("[DEAD-MAN]")
-    assert phone[0][1].get("re_escalate_after") is None          # once per episode
-    assert _run_cap(monkeypatch, ["claude pid 7"]) == []
-    assert _run_cap(monkeypatch, None) == []                     # unreadable never pages
+    assert any(m.startswith("[DEAD-MAN]") for m, _ in sent)
+    assert not [m for m, k in sent if k.get("_phone")]
 
 
 # -- the inbound route is retired by construction -------------------------------------------------

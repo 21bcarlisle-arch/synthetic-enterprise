@@ -3,6 +3,7 @@ Description=Synthetic Enterprise two-reader review -- two blind readers on the o
 After=network.target
 
 [Service]
+EnvironmentFile=-%h/.config/synthetic-enterprise/.env.claude
 Type=oneshot
 WorkingDirectory=/home/rich/synthetic-enterprise
 # Director ruling 28 Oct ("Go"): two blind, non-blocking Opus readers per commit that adds a non-test

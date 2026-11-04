@@ -6,6 +6,7 @@ After=network.target
 Type=oneshot
 WorkingDirectory=/home/rich/synthetic-enterprise
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+EnvironmentFile=-%h/.config/synthetic-enterprise/.env.claude
 # THE ACT HALF of deployment, and it is deliberately NOT in reconcile-watch: that unit is
 # report-only by design and `test_the_drift_check_never_restarts_anything` pins it there.
 # Reporting (G-D3) and acting (G-D2) are different guarantees and get different units.

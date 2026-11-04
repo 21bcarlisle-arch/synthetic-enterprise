@@ -1,0 +1,9 @@
+[Unit]
+Description=Synthetic Enterprise phone watchdog -- the only path to the director's phone (ruling 4 Nov)
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+# NTFY topic only. Deliberately NOT the Claude token: this must run when Claude cannot.
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+ExecStart=/usr/bin/python3 -m background.phone_watchdog

@@ -7,6 +7,7 @@ Type=oneshot
 WorkingDirectory=/home/rich/synthetic-enterprise
 # NTFY secret via the Option-2 out-of-tree location; `-` = still run (and log) if absent.
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+EnvironmentFile=-%h/.config/synthetic-enterprise/.env.claude
 # The tick BLOCKS until the bounded invocation it spawns exits (Type=oneshot must not return early,
 # or systemd tears down the cgroup and kills the child). TimeoutStartSec bounds a hung invocation:
 # systemd SIGTERMs the whole cgroup (tick + claude -p), so a hang becomes a skipped tick

@@ -15,6 +15,7 @@ ExecStart=/usr/bin/python3 -m background.seat_executor --once
 TimeoutStartSec=6600
 Environment=DISABLE_AUTOUPDATER=1
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+EnvironmentFile=-%h/.config/synthetic-enterprise/.env.claude
 
 [Install]
 WantedBy=default.target

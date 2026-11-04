@@ -7,6 +7,7 @@ Type=oneshot
 WorkingDirectory=/home/rich/synthetic-enterprise
 # NTFY secret via the Option-2 out-of-tree location; `-` = still run (and log) if absent.
 EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+EnvironmentFile=-%h/.config/synthetic-enterprise/.env.claude
 # Reconcile declared-vs-actual and page ONLY on a drift transition (R5). Starts, stops, enables,
 # reaps NOTHING (G-R3) -- that guarantee is about PROCESSES and it stands. Since 2026-09-25 it also
 # CLOSES THE FORK WITH ORIGIN when the shared tree is diverged, by delegating to

@@ -286,8 +286,8 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
 #: alerts? I don't ever read them. And you can stage so it's redundant."). Nothing reaches his
 #: phone any more: every message still lands in the ops mirror (`ntfy-mirror.md`, direction
 #: `out-mothballed`) and the director input log, which is what his advisor reads and relays. The
-#: one push left is the dead-man's (`_phone=True`, background/deadmans_switch.py), and only
-#: there. DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md.
+#: one path left is background/phone_watchdog.py (`_phone=True`), under the director's 4 Nov limits:
+#: login failure, machine stopped, token expiry; 3 a day; nothing 22:00-07:00.
 PHONE_PUSH_MOTHBALLED = True
 
 

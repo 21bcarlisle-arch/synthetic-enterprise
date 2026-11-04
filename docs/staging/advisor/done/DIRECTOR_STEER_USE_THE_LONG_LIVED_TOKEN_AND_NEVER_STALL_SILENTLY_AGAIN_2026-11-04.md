@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
+**Knowledge:** none -- a governance steer on how unattended sessions authenticate; it states no domain understanding a Knowledge page would carry
+
 # [DIRECTOR-STEER] Use the long-lived token, and never stall silently again (2026-11-04)
 
 **Type:** STEER, through the advisor channel. These are the director's words from chat on Wed 4 Nov:
@@ -45,3 +47,52 @@ A silent stall must reach the director within hours, not when he happens to ask.
    - Until he rules, write the alert to the site's status banner and to `docs/status/`, so the advisor sees it.
 3. **Avoid alert storms.** Alert once per incident, with a reminder after a fixed interval. Send an all-clear when it recovers.
 4. **Prove the check can fail.** Under R15, the check must be shown to fail: simulate an auth failure and a silent period, and show that the alert fires.
+
+## Done
+
+*Worker, 4 Nov 2026, about 09:15 GMT. The token's value was never read, printed or copied. Only the
+name of its one key was checked.*
+
+**Ask 1: the token is wired in.**
+
+- **Units.** `EnvironmentFile=-%h/.config/synthetic-enterprise/.env.claude` is now in the 12 user
+  units whose process spawns `claude`, directly or through a child module: supervisor,
+  staging-watcher, worker-seat-manager, deadmans-switch, naive-organ, delivery-seat, seat-executor,
+  worker-tick, two-reader-review, reconcile-watch, executor-daemon and deploy-restart. The six that
+  have a copy in the repo were changed in `background/systemd/` too. No other unit gets the token,
+  and `file-api` (open on the network) is one of those left out.
+- **Restarts.** The five long-running daemons were restarted. Each now has the token in its
+  environment and no `ANTHROPIC_API_KEY`. The timer-driven units pick it up on their next start.
+  worker-tick was not restarted, because this session runs inside it.
+- **No API key anywhere.** `ANTHROPIC_API_KEY` is not set in any unit, any `.env.*` file, the shell
+  profile or this session. No spawner sets it.
+- **Limits checked.** Every unattended spawn passes `--strict-mcp-config` with no MCP config, so it
+  uses no claude.ai connectors. None uses Remote Control or `--bare`.
+- **Proof.** At 09:08 GMT a session was run under `systemd-run` with only the token file loaded,
+  and with `HOME` set to an empty temporary directory. That directory has no `.credentials.json`,
+  so the interactive login could not be used. The session answered "OK", exit 0, which means it
+  authenticated through the token. The interactive login is no longer load-bearing.
+- **Expiry.** Recorded in `background/phone_watchdog.py` as created 2026-11-04 and expiring
+  2027-11-04. At 30 days and again at 7 days before expiry, the watchdog sends one phone message
+  and raises a `reserved` (live credential) `for_the_director` row telling him to rerun
+  `claude setup-token`.
+- **How to undo it.** Delete the `.env.claude` line from each unit, then run
+  `systemctl --user daemon-reload`.
+
+**Ask 2: the watchdog. It runs without Claude.**
+
+- **What runs it.** `background/phone_watchdog.py`, run by `phone-watchdog.timer` every 15
+  minutes. Its unit loads the NTFY file only, never the token.
+- **What it watches for:**
+  1. a login failure, meaning the latest spawn's exit line in `worker-tick-log.md` matches
+     "Failed to authenticate", "/login", "bearer" or "OAuth expired";
+  2. a stopped machine, meaning no lane is alive and there has been no work commit for 3 hours;
+  3. token expiry.
+- **Channel.** He ruled for NTFY. See `done/DIRECTOR_RULING_WATCHDOG_ALERTS_GO_BY_NTFY_AND_MUST_NOT_BE_SPAM_2026-11-04.md`.
+  For that reason no `for_the_director` row was raised about the channel.
+- **What was found.** The dead-man's switch already existed. It stayed silent for these 23 hours
+  because its phone push needs *no lane alive*, and a lane that spawns and fails sign-in looks
+  alive. The log shows the failures ran from 09:16 GMT on 3 Nov to 08:14 GMT on 4 Nov.
+- **Replay.** Run against that real log, the watchdog would have sent three messages: an alert at
+  the first check after 09:16 on 3 Nov, one reminder 12 hours later, and an all-clear after
+  recovery.

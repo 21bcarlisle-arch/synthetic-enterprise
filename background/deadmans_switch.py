@@ -485,10 +485,10 @@ def _check_open_mint_escalation(since_commit: float) -> None:
             notify(
                 f"[DEAD-MAN] The machine has landed no work for {since_commit / 3600:.1f}h and no "
                 "lane is alive (no Claude process, worker-tick timer inactive). Sign in to the "
-                "console. This is the only alert that still reaches your phone.",
+                "console.",
                 kind="real_alarm", transition_key=_DEADMAN_PHONE_KEY, state="DOWN",
-                topic_class=_digest_classes().ACTION_NEEDED, _phone=True,
-            )
+                topic_class=_digest_classes().ACTION_NEEDED,
+            )   # the phone is background/phone_watchdog.py's alone, so his 3-a-day cap is one cap
     else:
         clear_transition(_HARD_REST_CAP_KEY)
         clear_transition(_DEADMAN_PHONE_KEY)
