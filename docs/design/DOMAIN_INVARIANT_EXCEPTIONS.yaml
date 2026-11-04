@@ -228,3 +228,45 @@ exceptions:
     filed: 2026-10-30
     retired_by: the printed energy line priced on the printed kWh (the same volume the Treasury's share is computed on), graded 0 on a fresh run
     max_breached: 350
+  # 2026-11-04: three rows written blind for the seventh cold read's N14, N15 and N16 grade the published 0a6391d186
+  # book (and its published cast) for the first time. Each ceiling is that book's count. The fresh b3ce2a4e73 book,
+  # graded by the same evaluators, reads 4, 11 and 0.
+  - invariant: INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE
+    scope: >-
+      16 of 531 undercharge catch-ups on credit bills paid on receipt, issued with 21BA in force, on the 0a6391d186
+      book (e.g. PROS-2018-0016 electricity, issued 2024-06-13, recovering from 2022-02-01 with nothing barred;
+      OCC-75d17c23c1dag gas, issued 2022-07-01, from 2020-03-01; SYN-2016-487 electricity, issued 2018-12-01, from 2017-06-01)
+    reason: >-
+      N14, a defect, not an explanation. Each catch-up was billed with nothing written off though the bill was paid on
+      receipt and its window starts more than 12 months before the bill's issue date. Two causes are named on the
+      knowledge page: the catch-up's basis read the account's undated payment method, so a household whose direct
+      debit had ended was billed on the deferred DD basis (back_billing_and_liability.md §16, 11 such catch-ups), and
+      a window measured back from the period end rather than the issue date (SYN-2016-048, SYN-2016-158: 365 days
+      from period end, 372 and 369 from issue). Excepted so the row lands graded rather than held back.
+    filed: 2026-11-04
+    retired_by: the catch-up's basis read at its own bill from the dated payment spells, and the 12 months measured from the issue date (N14), graded 0 on a fresh run
+    max_breached: 16
+  - invariant: INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL
+    scope: >-
+      4,610 of 6,599 repayment-plan re-offers on 224 billing accounts on the 0a6391d186 book (e.g. OCC-17ff099218d5
+      re-offered on 2020-11-16, 2020-11-19 and 2020-12-16 after bills each paid by direct debit on their due date)
+    reason: >-
+      N15, a defect, not an explanation: the desk re-offered the plan on the day after any bill's due date, saying "a
+      further bill missed", without asking whether that bill was paid (company_debt_management.md, the 2026-11-03
+      section, which measured 4,742 with a different join). Excepted so the row lands graded rather than held back.
+    filed: 2026-11-04
+    retired_by: the re-offer keyed to a bill not paid in its window (bill_paid_in_its_window, N15), graded 0 on a fresh run
+    max_breached: 4610
+  - invariant: INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM
+    scope: >-
+      42 of 46 Explore cast moment-legs (24 of 26 moments) on the cast published with the 0a6391d186 book: joining
+      households printed "Standard variable" on a fixed first term (e.g. PROS-2025-0022 on 2025-02-01), and households on
+      the default tariff printed a fixed term that had ended (SYN-2016-210 "Fixed from 28 Apr 2019" on 2022-12-17). The
+      cast now in site/data (rebuilt on the same book after d14ff) grades 1 of 46 (SYN-2016-031g on 2024-01-24, gas
+      printed fixed while its bill records the default tariff).
+    reason: >-
+      N16, a defect, not an explanation: the cast printed a tariff the bills do not record. Excepted so the row lands
+      graded rather than held back.
+    filed: 2026-11-04
+    retired_by: the cast's tariff label read per fuel from the term each leg's bill records on the moment's date (N16), graded 0 on a fresh cast
+    max_breached: 42
