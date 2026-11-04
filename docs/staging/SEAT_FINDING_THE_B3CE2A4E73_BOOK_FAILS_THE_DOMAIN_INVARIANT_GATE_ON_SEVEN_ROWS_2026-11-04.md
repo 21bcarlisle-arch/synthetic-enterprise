@@ -325,3 +325,19 @@ estimate still sits far below a large read on the next book, that becomes the qu
 - Each home's demand is unchanged, so the book's electricity volume moves only through who stays.
   Direct debits, quotes and EFFECTIVE_EAC_KWH rise for heated legacy homes, so the first-year catch-up on
   them shrinks. **I cannot yet say** by how much churn moves.
+
+## Disposition of the redraw `the-seven-gate-rows-on-the-newest-book` (2026-11-04, ~21:05 UTC)
+
+Drawn again at 21:00 with its three asks. All three are already answered above, at HEAD 75156811ef: (1) the
+estimated-run row was traced to the world's heating label (c07e8ccce) and the legacy registry (75156811e), and its
+predictions are filed; (2) carbon 14 -> 12 was checked row by row, and the held-bill explanation holds; (3) the
+a6b7a0fd47 book is graded in the table above. The remainder is one job: grade a fresh book carrying 514e2015bf,
+8befb331b, c07e8ccce and 75156811e against the filed predictions (est-run 5-18, carbon 10, revenue 3, overdue
+without the 78 and SYN-2016-269's 39). The continuation `electric-heated-homes-eac-double-count-and-the-fresh-grade`
+carries that job, so this id is released and not worked twice.
+
+**Why no such book existed yet:** sim-runner had deferred every cycle since 20:55 because the shared tree's
+`simulation/run_phase2b.py` was a copy from before 75156811e. I refreshed it to HEAD with `tools.refresh_to_head`,
+which keeps the old bytes in a preserved commit, so the next sim-runner cycle can run at 75156811ef. Look for the
+book as `docs/reports/run_output_75156811ef_*.json` (or a later origin head), and grade it with
+`/var/tmp/b3ce-grade-scripts/`.
