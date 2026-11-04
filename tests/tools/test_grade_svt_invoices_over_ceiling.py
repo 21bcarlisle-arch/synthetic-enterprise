@@ -142,3 +142,30 @@ def test_a_leg_whose_terms_overlap_is_a_defect_and_abutting_terms_are_not():
                                              row("2024-04-01", "2024-10-01")], "bills": []})
     assert stretched["overlapping_term_legs"] == {"g": 3}
     assert defects(stretched) == ["1 leg(s) carry overlapping account-state terms (3 pairs), first g"]
+
+
+def test_a_bill_a_fixed_term_starts_inside_is_not_graded_as_all_svt():
+    """Defect: a bill holding SVT days then fixed-tariff days graded at its whole-bill rate, so the
+    fixed days (which the cap does not bind) read as an SVT breach. SYN-2016-592, Dec 2023: SVT to
+    12 Dec at the cap, fixed from 13 Dec, recorded 0.48p over (N19 class A).
+
+    The partition: a whole-SVT bill over the cap still fires, an SVT-to-SVT roll inside a bill is
+    still graded, and only a bill a fixed term starts inside is ungradeable.
+    """
+    def term(cid, tariff_type, start, end):
+        return {**_term(cid, tariff_type), "commodity": "electricity", "term_start": start, "term_end": end}
+
+    def bill(cid):
+        return {**_bill(cid, "2019-02-01", 99.0), "period_end": "2019-02-28"}
+
+    run = {
+        "account_state_log": [
+            term("svt-only", "svt", "2019-01-01", "2019-04-01"),
+            term("svt-roll", "svt", "2019-01-01", "2019-02-14"), term("svt-roll", "svt", "2019-02-14", "2019-05-01"),
+            term("to-fixed", "svt", "2019-01-01", "2019-02-14"), term("to-fixed", "fixed", "2019-02-14", "2020-02-14"),
+        ],
+        "bills": [bill("svt-only"), bill("svt-roll"), bill("to-fixed")],
+    }
+    g = grade(run)
+    assert g["above_household_ceiling"] == 2 and g["households_above"] == 2
+    assert g["default_tariff_invoices_graded"] == 2 and g["ungradeable"] == 1

@@ -18,3 +18,9 @@ lane's in-flight edit or re-implement it. Nothing was changed.
   `get_multi_register_cap_unit_rate_for_date` also feeds `renewal_rate_chain`.
 
 Reverse: delete this file.
+
+## Done (worker, 2026-11-04)
+
+Spent. The household fix landed in 06266f4f14. Class A is fixed in the N19 closing landing
+(`bill_excess` takes the terms, and a bill a fixed term starts inside is None). Class B is still owed,
+on the five-E7 finding.

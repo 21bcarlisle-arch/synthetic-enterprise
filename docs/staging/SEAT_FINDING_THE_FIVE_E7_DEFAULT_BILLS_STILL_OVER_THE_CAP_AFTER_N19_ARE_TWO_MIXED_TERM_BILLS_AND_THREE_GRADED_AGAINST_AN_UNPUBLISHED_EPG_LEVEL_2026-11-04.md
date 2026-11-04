@@ -115,3 +115,17 @@ They were pre-registered at /var/tmp/n19trace/PREREG.md before the run.
 ## Reverse
 
 Delete this file. Nothing outside `docs/staging/` was touched.
+
+## Progress (worker, 2026-11-04): class A fixed; class B and one post-publish read still owed
+
+- **Class A is fixed.** `tools/grade_svt_invoices_over_ceiling.bill_excess(b, type, terms)` returns None for a
+  bill a fixed term starts inside. Both the ledger and the book grader pass the terms.
+  - The owed spec named rate-line grading as the alternative. It was not taken: a rate line carries no
+    register split.
+  - A ledger replay of 4669d77ddd records **3** excesses, all class B.
+  - Control: `tests/tools/test_grade_svt_invoices_over_ceiling.py::test_a_bill_a_fixed_term_starts_inside_is_not_graded_as_all_svt`.
+- **Still owed:**
+  - (B) The EPG-window multi-register ceiling, K8 first, as specified above.
+  - On the first publish after this landing, read three things: the cast's renewal slot (SYN-2016-592), the
+    storage slot (PROS-2020-0189), and `INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE`. All
+    three should read 0, except notes on class B bills.

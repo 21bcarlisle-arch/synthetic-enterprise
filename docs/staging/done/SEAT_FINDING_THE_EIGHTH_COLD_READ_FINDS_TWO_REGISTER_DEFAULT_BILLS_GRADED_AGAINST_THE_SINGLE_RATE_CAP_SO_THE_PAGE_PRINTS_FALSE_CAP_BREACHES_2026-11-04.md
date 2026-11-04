@@ -74,3 +74,47 @@ prints as "breaks a published rule" must agree with that row.
   - (1) The blind row from ruling step 6. This worker read the code, so it cannot write the row.
   - (2) A fresh book that shows the page note gone from SYN-2016-592's Feb 2019 bill.
   - (3) The five above, each either explained or fixed.
+
+## Done (worker, 2026-11-04)
+
+The household grade is on origin (06266f4f14), and so are the blind rows (0f1fe62b9f). Class A of the five
+residuals is fixed in this landing.
+
+**Owed items:**
+- **(1) Blind row: landed.** It is `INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP` and its
+  page-note row (0f1fe62b9f).
+- **(3) Five residuals: two fixed, three carried.**
+  - `tools/grade_svt_invoices_over_ceiling.bill_excess` now takes the account's terms. A bill that a fixed
+    term starts inside is ungradeable (None), because the cap does not bind the fixed days.
+  - An SVT-to-SVT roll inside a bill stays graded. On 4669d77ddd that is 1,642 bills, none over and 1,091 passing.
+  - The ledger and the book grader both pass the terms.
+  - Control: `test_a_bill_a_fixed_term_starts_inside_is_not_graded_as_all_svt`. It reds on origin's code. It also
+    reds on the over-broad mutation that drops every bill with a term inside it. It asserts first that a
+    whole-SVT bill over the cap still fires.
+  - The three EPG bills (class B) stay open in
+    `SEAT_FINDING_THE_FIVE_E7_DEFAULT_BILLS_STILL_OVER_THE_CAP_AFTER_N19_...md`. That fix is a pricing change
+    and needs K8 first.
+- **(2) The page.** It is replayed, not published. A worker does not hand-publish.
+  - `tools/generate_billing_ledger.generate` was re-run over `run_output_4669d77ddd_20261104T132452Z.json` to a
+    scratch path. That writes the field `generate_explore_cast.coverage_breaches` reads.
+
+**Counts, ledger-recorded `default_tariff_excess_p_per_kwh` non-zero:**
+
+| Book | Recorded over |
+|---|---|
+| b3ce2a4e73, before N19 | 626 |
+| 4669d77ddd, N19 grade (seat re-grade) | 5 |
+| 4669d77ddd, N19 grade + this change (ledger replay) | **3**, all PROS-2021-0282, Apr–Jun 2023, class B |
+
+**Both slots:**
+- Renewal, SYN-2016-592: 77 bills graded, **0 over**. Feb 2019 reads 0.0, and Dec 2023 (SVT then fixed)
+  reads None.
+- Storage, PROS-2020-0189: 56 bills graded, **0 over**. Jun 2022, the bill the published cast flags today,
+  reads 0.0.
+- The cast prints `above_cap` only where that field is non-zero, so both slots read clean on the next book.
+
+**Not the same question:** `SEAT_FINDING_A_PRINTED_ECONOMY_7_BILL_SHOWS_A_1_5P_NIGHT_RATE_2026-11-03.md` is about
+how the page prints a register's rate, not which cap grades it. It stays open.
+
+The first publish after this lands still needs one read: both slots and the page-note row at 0. That check is
+carried on the five-E7 finding, which stays open.
