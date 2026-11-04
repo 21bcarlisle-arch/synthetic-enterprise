@@ -399,6 +399,25 @@ def _bill_extras(i: dict) -> str:
     return "".join(", " + x for x in out)
 
 
+def _settled_without_payment(i: dict, rows: list[dict], due: date) -> bool:
+    """A bill with no payment on it that asked nothing by its due date: a credit bill (a negative
+    total), or a bill credit covered whole -- scheme credit posted on it by then, plus the credit
+    netted off it unless a collection on it was returned (a later credit paying a returned bill
+    is still a missed payment). N15 on the page: SYN-2016-592 read "7 missed" with one real
+    failure; on the 2026-11-04 export 159 credit bills and 175 credit-settled bills read missed
+    beside 3,246 genuine late payers. `company_debt_management.md`, "A further bill missed"."""
+    asked = i.get("amount_gbp")
+    if asked is None:
+        return False
+    if asked <= 0:
+        return True
+    credit = sum(-(r.get("amount_gbp") or 0.0) for r in rows if r.get("type") == "scheme_credit"
+                 and r.get("date") and date.fromisoformat(r["date"][:10]) <= due)
+    if not any(r.get("type") == "payment_failed" for r in rows):
+        credit += i.get("credit_applied_gbp") or 0.0
+    return credit >= round(asked, 2) - 0.005
+
+
 def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
     """The household summary's "N of D bills paid, R returned, M missed", counted per BILL.
 
@@ -429,6 +448,8 @@ def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
         paid = min((date.fromisoformat(r["date"][:10]) for r in rows
                     if r.get("type") == "payment_received" and r.get("date")), default=None)
         verdict = bill_missed(on, paid, cutoff)
+        if verdict and _settled_without_payment(i, rows, on):
+            verdict = False
         if verdict is None:
             continue
         due.append((rows, missed_on(on).isoformat()))
