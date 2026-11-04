@@ -277,6 +277,71 @@ carries a dated, traced exception on a fresh book. That needs a fresh run carryi
 heating fix, plus the three questions left open: the electric-heated double count, the supplier's re-estimate after
 reads, and the overdue row's remaining classes.
 
+## The two open questions answered: no double count; the registry, not the meter (2026-11-04, ~19:50 UTC)
+
+The knowledge is in `docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md` §4 (K8).
+
+**(a) Electric-heated homes.** On the a6b7a0fd47 book the 47 drawn storage or direct-electric homes meter
+5-10 MWh/yr on full years, with a tail at 13-23 MWh: PROS-2017-0336 (EPC F, 5-bed detached), SYN-2016-355,
+PROS-2019-0246, PROS-2024-0010 and SYN-2016-201. BEIS/Element Energy (2019/021) model a storage-heated
+73 m² terrace at 12.8 MWh (9.7 MWh insulated) and a 174 m² detached house at 21.9 MWh (16.0 MWh insulated).
+The DESNZ Economy 7 meter median is 3.3-4.1 MWh. The world's heated homes therefore sit where they should,
+and the drawn band (a PC1 quartile range, defined by meter class and blind to the dwelling) works as their
+appliance base. **There is no double count, and the 3 kWh/HDD coefficient is not changed.** Nothing
+published refutes it.
+
+**The cause is the registry.** All 15 breaching electric-heated homes (19 runs) are legacy premises still
+registered at their drawn band. The 10 electric-heated fabric premises, registered on their own reads since
+1 Oct, breach none. The fix carries the 1 Oct rule (BSCP504 §3.2.6.51) to every domestic legacy premise:
+`run_phase2b.register_legacy_premises_on_their_own_reads`. The band moves to a world-side map
+(`_WORLD_BASE_EAC_KWH`) that `_base_profile_eac` reads first. **The world's demand is therefore unchanged,
+and only the roster's EAC moves.** Occupier legs take the premise's level, and a mover's new home drops it.
+This is the "world-side true EAC and supplier-side declaration" split that `_base_profile_eac`'s
+docstring named as owed, for legacy premises. The read error stays zero, a stated lag-only model.
+Control: `tests/simulation/test_a_legacy_premise_is_registered_on_its_own_reads.py`, one partition. Three
+mutations each turn it red: the map not read, legacy premises skipped, and a non-domestic point
+re-registered.
+
+**(b) Re-estimating after a read.** BSC Annex S-2 §4.3.7 (P40 text): every valid advance gives a new EAC
+straight away, w × AA + (1 − w) × previous EAC, with w = min(FYC × SPAR, 1) and no minimum interval. SPAR's
+value is a GAP. Whether a supplier's billing estimate follows the D0019 EAC or its own reads in the first
+months is also a GAP. **The company's estimate rule is not changed.** SYN-2016-566's case was a registry
+of 1,410.5 kWh on a home metering 13 MWh, and it was oil-heated, so c07e8ccce takes its meter down to its
+band. With this change, the registry follows the meter for every domestic premise. If a first-year
+estimate still sits far below a large read on the next book, that becomes the question.
+
+**Predictions, filed before any run carries this change:**
+- On a fresh book carrying c07e8ccce **but not this change** (if one is cut before this lands), the earlier
+  prediction stands: est-run 54 → 15-30, carbon 12 → 10, revenue 4 → 3.
+- On a book carrying **both**, est-run falls to **5-18**. The 12 first-year "below" runs on electric-heated
+  legacy homes leave (PROS-2017-0336 twice, SYN-2016-118, -175, -225, -329, -409, -441, -541, -565 (2017),
+  PROS-2017-0364 (2018), PROS-2018-0214). The 7 summer "above" runs stay, because they are the class shape
+  spreading a heated year (exception (a)): SYN-2016-215 twice, -221, -565 (2019), -582, PROS-2017-0351 and
+  -0364 (2022).
+- Refutation: if more than 3 of those 12 remain, the registry is not what the estimates read. The next
+  suspect is then `_company_eac_estimate`'s first-term basis.
+- Carbon and revenue are as for c07e8ccce alone (12 → 10, 4 → 3). Their held bills are gated on the
+  meter's monthly kWh (SLC 6.7), which this change does not touch.
+- Each home's demand is unchanged, so the book's electricity volume moves only through who stays.
+  Direct debits, quotes and EFFECTIVE_EAC_KWH rise for heated legacy homes, so the first-year catch-up on
+  them shrinks. **I cannot yet say** by how much churn moves.
+
+## Disposition of the redraw `the-seven-gate-rows-on-the-newest-book` (2026-11-04, ~21:05 UTC)
+
+Drawn again at 21:00 with its three asks. All three are already answered above, at HEAD 75156811ef: (1) the
+estimated-run row was traced to the world's heating label (c07e8ccce) and the legacy registry (75156811e), and its
+predictions are filed; (2) carbon 14 -> 12 was checked row by row, and the held-bill explanation holds; (3) the
+a6b7a0fd47 book is graded in the table above. The remainder is one job: grade a fresh book carrying 514e2015bf,
+8befb331b, c07e8ccce and 75156811e against the filed predictions (est-run 5-18, carbon 10, revenue 3, overdue
+without the 78 and SYN-2016-269's 39). The continuation `electric-heated-homes-eac-double-count-and-the-fresh-grade`
+carries that job, so this id is released and not worked twice.
+
+**Why no such book existed yet:** sim-runner had deferred every cycle since 20:55 because the shared tree's
+`simulation/run_phase2b.py` was a copy from before 75156811e. I refreshed it to HEAD with `tools.refresh_to_head`,
+which keeps the old bytes in a preserved commit, so the next sim-runner cycle can run at 75156811ef. Look for the
+book as `docs/reports/run_output_75156811ef_*.json` (or a later origin head), and grade it with
+`/var/tmp/b3ce-grade-scripts/`.
+
 ## The overdue row's last 11, traced and fixed (2026-11-04, claim `overdue-row-credit-remainder-and-pc2-in-loop-estimate`)
 
 **Both readings filed above were wrong in their frame.** The credit remainder is not held because
