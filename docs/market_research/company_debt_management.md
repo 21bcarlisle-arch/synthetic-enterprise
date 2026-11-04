@@ -909,6 +909,24 @@ each bill judged on its own leg's cash). There were 6,599 re-offers on 237 accou
 every money figure stay unchanged, because the re-offer moves no money and the world answers every offer
 None.
 
+**Paid means what the bill asked (2026-11-04).** On the b3ce2a4e73 book the blind row
+`INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL` found 11 re-offers of 1,241 after no missed bill. The prediction
+above said 0. Traced (`docs/staging/SEAT_FINDING_THE_N15_ROW_FINDS_ELEVEN_RE_OFFERS_AFTER_PAID_BILLS_ON_THE_B3CE2A4E73_BOOK_2026-11-04.md`):
+- **7 were the desk's error.** The bill had an earlier credit bill netted off it, and the household paid the
+  rest on time. SLC 31H.12 has a bill ask for its charges less the account's credit, so the household was
+  asked the net and paid it. **ESTABLISHED** (`home_moves.md` s.8.8a choice 11). The desk compared the cash
+  with the bill's face. The ledger keeps the bill whole and the credit as an unearmarked note. Oldest-first
+  allocation then gives that note to any older arrear, and an open journey always has one. So no reading
+  of the ledger balance can recover what the bill asked.
+- **Design choice:** the desk is told what each netted bill asked (`CollectionsJourneyDesk.note_bill_asked`).
+  It is the company's own document, so the epistemic wall is not touched. The window test then reads that
+  amount instead of the face. A bill that asked £0 cannot be missed.
+- **4 were the row's error, not the desk's.** Three bills were DD returns (SYN-2016-066, -306, -380), and
+  credit bills issued 4 to 9 months later settled them. The export's `credit_applied_gbp` on a failed bill
+  is that later credit, not money that landed in the window. In the fourth (PROS-2020-0016), the window
+  held a late payment for the previous bill, with its £67 EBSS. The row counts that payment, as the desk
+  does, and the bill itself was paid 37 days late. These are filed to the row's blind writer.
+
 ## One ladder for one act: the ledger's per-bill notices take their days from the desk (2026-10-24)
 
 *K8 page for `the-published-household-record-shows-the-desks-collections-journey`. There are two

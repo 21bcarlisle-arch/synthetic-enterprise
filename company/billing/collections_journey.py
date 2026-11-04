@@ -409,6 +409,15 @@ class CollectionsJourneyDesk:
         self._open: Dict[str, _Journey] = {}
         self._closed: List[_Journey] = []
         self._through: Dict[str, dt.date] = {}
+        #: invoice_ref -> what the bill asked, where a credit bill was netted off it (SLC 31H.12).
+        #: The ledger keeps the bill whole and the credit as an unearmarked note, which oldest-first
+        #: allocation hands to any older arrear, so the face is not what the household was asked.
+        self._asked: Dict[str, float] = {}
+
+    def note_bill_asked(self, invoice_ref: str, asked_gbp: float) -> None:
+        """Record that the bill `invoice_ref` asked `asked_gbp`: its charges less the credit this
+        company netted off it. A bill never noted asked its face."""
+        self._asked[invoice_ref] = round(max(0.0, asked_gbp), 2)
 
     def advance(self, ledger: AccountLedger, segment: Segment, through: dt.date,
                 payment_terms_days: int = 14) -> None:
@@ -425,13 +434,16 @@ class CollectionsJourneyDesk:
         bill_dues = [e.valid_time + dt.timedelta(days=payment_terms_days)
                      for e in events if e.event_type == LedgerEventType.BILL_DEBIT]
         # A re-offer needs a bill falling missed that day AND not paid: the day alone fired it after
-        # bills paid in full on their due date, 4,742 times on 0a6391d186 (N15).
+        # bills paid in full on their due date, 4,742 times on 0a6391d186 (N15). Paid means what the
+        # bill ASKED: judged on its face, a bill a credit bill had paid down read missed, 7 of the
+        # 11 re-offers the blind row found on b3ce2a4e73.
         payments = sorted((e.valid_time, e.amount_gbp) for e in events
                           if e.event_type == LedgerEventType.PAYMENT_CREDIT)
         unpaid_on = {missed_on(e.valid_time + dt.timedelta(days=payment_terms_days))
                      for e in events if e.event_type == LedgerEventType.BILL_DEBIT
-                     and not bill_paid_in_its_window(payments, e.valid_time, e.amount_gbp,
-                                                     payment_terms_days)}
+                     and not bill_paid_in_its_window(
+                         payments, e.valid_time, self._asked.get(e.invoice_ref, e.amount_gbp),
+                         payment_terms_days)}
         missed = {missed_on(d) for d in bill_dues}
         openers = missed | {
             e.valid_time for e in events

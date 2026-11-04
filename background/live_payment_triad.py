@@ -1347,6 +1347,11 @@ class LivePaymentTriad:
             invoice_ref=invoice_ref,
         )
         self._ledger_book.post(bill)
+        # What this bill asked once the leg's credit came off it: the desk judges a miss on that,
+        # never the face the ledger keeps (N15 on b3ce2a4e73: 7 re-offers after bills a credit paid).
+        if credit_taken > 0:
+            self._consumer.collections_journeys.note_bill_asked(invoice_ref, ask_gbp)
+            self._cf_consumer.collections_journeys.note_bill_asked(invoice_ref, ask_gbp)
         # A credit bill (the supplier issued a negative bill) is a credit on the account, which the
         # household's page nets against its next bill. Posting max(0, ask) lost it, and the desk
         # then chased the next bill the page showed as paid down.

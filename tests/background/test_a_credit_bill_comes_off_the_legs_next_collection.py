@@ -33,6 +33,10 @@ def test_the_next_paid_bill_is_collected_net_of_the_credit_and_no_credit_is_left
     events = triad._ledger_book.ledger(account_of("CRED-0")).events()
     assert round(sum(e.amount_gbp * (1 if e.event_type.name == "BILL_DEBIT" else -1)
                      for e in events), 2) == 0.0
+    # Both desks are told what the netted bill asked, so its 70.00 paid on the due date is not read
+    # as a miss of its 100.00 face (N15 on b3ce2a4e73); the un-netted March bill asked its face.
+    for consumer in (triad._consumer, triad._cf_consumer):
+        assert list(consumer.collections_journeys._asked.values()) == [70.0]
 
 
 def test_a_credit_waits_only_when_nothing_on_the_leg_is_unpaid():
