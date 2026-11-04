@@ -160,7 +160,16 @@ household asked on the bill after a credit that was larger than the first bill i
 (PROS-2016-0020, SYN-2016-291) only arises because the remainder is never used up. Next: trace the triad's ask on
 INV9317 and the desk's allocation of the 10.00 before either side changes.
 
-**2 (SYN-2016-380, Oct 2021): not yet traced.** The desk is asked 165.75 and the bill is published at 148.96.
+**2 (SYN-2016-380, Oct 2021): traced as far as the class, not the cause.** INV41230 is a PC2 (Economy 7) electricity
+bill, estimated, single fuel, published at 148.95. The desk is asked 165.75, which is 16.80 more (16.00 ex VAT). Nothing is
+open before it: the page balance had been 0 since 18 Oct. So the desk's in-loop bill and the published bill differ.
+The desk's in-loop bill is built by `dd_collection_book.issued_bills_before` over the leg's records settled before
+the cutoff. The published bill is built over the whole book. Two readings, and I cannot yet say which holds:
+- The published PC2 estimate depends on records settled after the bill was issued. That would breach the epistemic
+  wall, because a supplier cannot estimate October from November's reads. If so, the published bill is the wrong one.
+- The in-loop build is missing part of the estimate's annualisation window (308a3f168e's per-register advance).
+Next: rebuild this leg's October bill twice, through `build_monthly_bills`, once over records before 2021-11-01
+and once over all of them, and diff the register estimates.
 
 `INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` (53): not started this turn. The one-variable replays named above
 are still the next step.

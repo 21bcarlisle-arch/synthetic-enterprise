@@ -877,6 +877,10 @@ page should print is a separate question, not settled here (GAP).
     That is a world-side defect (`world_payment_truth.repayment_rows` prices a `settlement` at the
     bill's issued amount, and the triad's crossing carries the bill event's amount). It is filed,
     not fixed here.
+  - **Fixed 2026-11-04 (8befb331b).** A settlement now names its bill, and the engine prices it at
+    what is left on that bill while the bill is open. A settlement that arrives before its bill opens
+    keeps the face. Found again on SYN-2016-269: an 85.95 spill onto the next bill, worth 39 desk
+    steps on the overdue row.
 - **Whether a credit or payment on one fuel may discharge the other fuel's debt: GAP.**
   - SLC 27.16 defines Credit per Domestic Supply Contract. The world nets per fuel on that reading.
   - Many suppliers run a dual-fuel home as one account, which is the desk's reading
