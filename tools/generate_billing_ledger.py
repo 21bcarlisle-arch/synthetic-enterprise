@@ -928,6 +928,18 @@ def generate(run_json_path=None, out_path=None):
                 pay["scheme_credit_gbp"] = scheme_applied
                 inv["scheme_credit_gbp"] = scheme_applied
             payments_by_cid.setdefault(cid, []).append(pay)
+        else:
+            # A credit bill partly inside the window or the void: the engine credits the named
+            # payer its own share alone (`_resolve_bills`), so the rest is the deemed account's, as a
+            # charge's is above. Printed whole on the payer, the deemed share stood as credit the
+            # engine never gave it (OCC-81b87bae7becg: -4.84 printed, 1.64 netted, 3.20 held for good).
+            deemed_share = ((bill.get("occupier_share", 0.0) or 0.0)
+                            + (bill.get("void_owner_share", 0.0) or 0.0))
+            if 0.0 < deemed_share < 1.0:
+                payer_face = round(printed_total * (1.0 - deemed_share), 2)
+                inv["deemed_share_gbp"] = round(printed_total - payer_face, 2)
+                inv["deemed_share_to"] = ("owner" if bill.get("void_owner_share", 0.0)
+                                          > bill.get("occupier_share", 0.0) else "occupier")
 
         written_off = write_offs.get((cid, period_end, commodity))
         # A case is for what is still owed once account credit on the same contract is netted

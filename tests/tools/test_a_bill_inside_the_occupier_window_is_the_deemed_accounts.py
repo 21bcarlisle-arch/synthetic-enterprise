@@ -119,3 +119,20 @@ def test_a_window_month_the_ebss_credit_paid_leaves_the_payers_page_at_nothing(t
         "the month credit is not on the deemed bill: the partition is not reached")
     led = build_account_ledger(cust, "2024-12-31")
     assert led["current_balance_gbp"] == 0.0, led["entries"]
+
+
+def test_a_part_window_credit_bill_credits_the_payer_its_own_share_alone(tmp_path):
+    """A credit bill partly inside the window: the engine credits the named payer (1 - share) of it
+    and nets that off the next bill, so the rest is the deemed account's. Printed whole on the payer,
+    the occupier's share stood as credit nothing drew (OCC-81b87bae7becg, 2017: -4.84 printed, 1.64
+    netted, 3.20 held for good, and the desk chased bills the page showed paid down). One partition:
+    the next bill nets the payer's share, and the page closes on what is still owed. MUTATION (run):
+    drop the credit branch's deemed share and the first assert reds."""
+    credit = dict(_resi_bill("OCC-7", "2017-02-28", -50.0), occupier_share=0.6,
+                  catchup_applied=True, catchup_direction="overcharge")
+    cust = _ledger(tmp_path, [credit, _resi_bill("OCC-7", "2017-03-31")])["OCC-7"]
+    first, second = cust["invoices"]
+    assert first["deemed_share_gbp"] == -30.0 and first["deemed_share_to"] == "occupier"
+    assert second.get("credit_applied_gbp") == 20.0, "the payer's share never met the next bill"
+    led = build_account_ledger(cust, "2019-12-31")
+    assert led["current_balance_gbp"] == round(sum(i["outstanding_gbp"] for i in cust["invoices"]), 2)

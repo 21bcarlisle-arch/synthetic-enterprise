@@ -278,6 +278,39 @@ def test_a_settlement_pays_what_is_left_on_its_bill_not_its_face():
     assert repaid("EARLY", "2016-01-28") == 100.0
 
 
+def test_a_settlement_carries_what_its_bill_asked_not_what_a_later_credit_left():
+    """Defect (2026-11-04, the 4669d77ddd book): the settlement's cash is what the bill asked when it
+    was collected, its face less the credit waiting then, and the triad crosses exactly that. Two
+    shapes priced it wrongly, and the page netted what the desk did not:
+    - WAITED (PROS-2016-0020g): a 23.43 credit paid a 13.43 bill in full, so it asked 0. Its
+      settlement, priced at face, became a 13.43 phantom repayment that took the 10.00 credit
+      remainder's label with it, and the page never netted the remainder.
+    - LATER (SYN-2016-380): a 131.07 bill asked 84.32 after a waiting 46.75 credit. A later credit
+      cleared it, and the 84.32 it carried in 2021 went oldest-first onto a 160.36 bill, which the
+      desk chased 76.04 of while the page priced the settlement at face and netted it all.
+    One control over the partition; the NETTED/FACE/EARLY arms are the test above."""
+    def settle(cid, on, month, amount):
+        return dict(_repayment(cid, on, amount), settles_month=month)
+    rows = (
+        [_credit("WAITED", "2017-05-31", 23.43), _row("WAITED", "2017-06-30", "failed", amount=13.43),
+         settle("WAITED", "2017-07-29", "2017-06", 13.43),
+         _row("WAITED", "2017-07-31", "success", amount=15.06)]
+        + [_credit("LATER", "2019-08-31", 46.75), _row("LATER", "2019-09-30", "failed", amount=131.07),
+           _credit("LATER", "2020-10-31", 84.32), _row("LATER", "2021-01-31", "failed", amount=160.36),
+           settle("LATER", "2021-09-13", "2019-09", 131.07)]
+    )
+    _wo, credited = balance_settlement_from_outcomes(rows, set())
+
+    def netted(cid, pe, kind):
+        return round(sum(c["amount_gbp"] for c in credited.get((cid, pe, "electricity"), ())
+                         if c["kind"] == kind), 2)
+    assert netted("WAITED", "2017-06-30", "credit") == 13.43
+    assert (netted("WAITED", "2017-07-31", "credit"), netted("WAITED", "2017-07-31", "repayment")) \
+        == (10.0, 0)
+    assert netted("LATER", "2019-09-30", "credit") == 131.07
+    assert netted("LATER", "2021-01-31", "repayment") == 84.32
+
+
 def _provision_book():
     rows = _monthly("STAYER_TWO_FAILED", 2016, 40, "failed", "success")
     rows[5] = _row("STAYER_TWO_FAILED", rows[5]["period_end"], "failed")

@@ -661,8 +661,34 @@ later unpaid bill that the page still showed owed (SYN-2016-083: -28.53 in Jul 2
 a Jan 2019 failed bill). The page's rule (`arrears_engine.resolved_settlement`, SLC 31H.12) is the
 one the triad now follows. A credit bill nets that fuel's oldest unpaid bill if there is one.
 Otherwise it waits for that fuel's next bill, and the household is asked, and pays, the rest.
-Not established: a credit that meets an open bill smaller than itself. The page holds the rest
-for the next bill. The triad leaves all of it to the desk's oldest-first allocation.
+~~Not established: a credit that meets an open bill smaller than itself. The page holds the rest
+for the next bill. The triad leaves all of it to the desk's oldest-first allocation.~~
+*Answered 2026-11-04, from the traces of PROS-2016-0020g, SYN-2016-291, OCC-81b87bae7becg and
+SYN-2016-380 on the 4669d77ddd book.* Both sides already carry the rest forward, and the triad
+and the engine agree. The 23.43 credit paid PROS-2016-0020g's 13.43 bill in full and left 10.00
+waiting. INV9317 asked 5.06 in the triad, and the engine netted the 10.00 there too. The page kept
+the 10.00 for good for a different reason. **A household's later settlement of a bill carries what
+that bill asked**: its face less the credit waiting when it was collected. That is the cash the
+triad sends across (`live_payment_triad`, the settlement event is the collection event). The engine
+priced the settlement at the bill's face, or at what was still left on it. A bill that asked 0 then
+became a 13.43 phantom repayment. Because the engine labels the whole waiting credit with its
+latest kind, the 10.00 then read as a repayment, which the page does not net off a paid bill.
+SYN-2016-380 is the other side of the same rule. Its Sep 2019 bill asked 84.32 after a 46.75 credit.
+A 2020 credit then cleared it, and its 2021 settlement carried 84.32 oldest-first onto a later
+bill. The desk chased the 16.80 that left, while the page had priced the settlement at face and
+netted it all. So **the settlement is priced at what the bill asked**
+(`arrears_engine.balance_settlement_from_outcomes`). A settlement that arrives before its bill
+opens keeps the face, as before. The cross-fuel question does not arise: once the remainder is
+used up, nothing stands on one fuel's page to net against the other's missed bill.
+A credit bill partly inside the occupier's window is the deemed account's for the occupier's share,
+as a charge is. The engine credits the named payer (1 - share). The page printed the whole credit on
+the payer, and the occupier's share stood there as credit nothing drew (OCC-81b87bae7becg, 3.20).
+*Open, not changed here:*
+- A DD for £0 still draws a "returned" outcome.
+- The world settles bills that other credit or cash has already cleared. This and the £0 DD both
+  move cash that the engine now mirrors rather than corrects.
+- The engine still labels a pooled credit with its latest kind. So a real overpayment landing on a
+  credit remainder would hide that remainder from the page again.
 
 **The write-off clock. GAP, and a choice.** Section 2.7 lists the close-to-write-off clock as not
 established (supplier policy, said by Ofgem to differ), and Centrica's Note 17 records enforcement

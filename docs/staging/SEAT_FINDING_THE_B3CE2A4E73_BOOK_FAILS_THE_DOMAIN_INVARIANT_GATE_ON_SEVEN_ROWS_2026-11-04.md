@@ -276,3 +276,45 @@ The gate still refuses: 138 unexcepted breaches over 6 rows. **Not done:** by th
 carries a dated, traced exception on a fresh book. That needs a fresh run carrying 514e2015bf, 8befb331b and this
 heating fix, plus the three questions left open: the electric-heated double count, the supplier's re-estimate after
 reads, and the overdue row's remaining classes.
+
+## The overdue row's last 11, traced and fixed (2026-11-04, claim `overdue-row-credit-remainder-and-pc2-in-loop-estimate`)
+
+**Both readings filed above were wrong in their frame.** The credit remainder is not held because
+nothing carries it forward: the triad and the engine both net it off the next bill. And SYN-2016-380's
+October bill is not two bills. The run's own DD book collected 148.96 for it in-loop, the same as the
+published 148.95, so the wall question does not arise. Both groups are one engine defect, plus one
+page defect:
+- **The world's settlement of a bill was priced at the wrong figure.** The triad's settlement carries
+  the cash the bill *asked*: its face less the credit waiting when it was collected. The engine
+  priced it at the face, or at what was still left on the bill. PROS-2016-0020g's June 2017 bill was
+  paid in full by a waiting credit (asked 0). Its settlement at face became a 13.43 phantom
+  repayment, and the 10.00 credit remainder took the "repayment" label with it, so the page never
+  netted it. SYN-2016-291 had the same shape (20.42). SYN-2016-380's Sep 2019 bill asked 84.32. A 2020
+  credit cleared it, and its 2021 settlement carried 84.32 onto a later bill, leaving 16.80 the desk
+  chased (165.75 = 148.95 + 16.80) while the page had netted the face.
+  Fix: `balance_settlement_from_outcomes` records each bill's ask at collection and prices its
+  settlement there. A settlement before its bill opens keeps the face.
+  Control: `test_balance_at_close_write_off.py::test_a_settlement_carries_what_its_bill_asked_not_what_a_later_credit_left`
+  (red on HEAD's engine, measured).
+- **OCC-81b87bae7becg: a credit bill partly in the occupier window was printed whole on the payer.**
+  The engine credits the payer (1 - share) = 1.64. The page printed -4.84, and 3.20 stood as credit
+  for good. Fix: the credit branch of `generate_billing_ledger` takes the deemed share off as a
+  charge's is. Control: `test_a_bill_inside_the_occupier_window_is_the_deemed_accounts.py::test_a_part_window_credit_bill_credits_the_payer_its_own_share_alone`
+  (red on HEAD, measured).
+- Knowledge: `debt_and_collections.md` s.7.3, the "not established" line answered beside its claim.
+
+**Re-graded post-run on the 4669d77ddd book with both fixes** (`/var/tmp/grade-overdue-cr/`, same
+chain): INV_OVERDUE_WITHIN_PAGE_BALANCE 128 -> **90**, and the census leaves **0 unexplained**. All 90
+are the back-billing write-off class that 514e2015bf fixes in-loop (78 as before, plus SYN-2016-269's
+12 steps from Nov 2024, whose 85.95 part this fixes and whose 10.41 part is a write-off). No other row
+moved. The cap-note row reads 3 against 147 because this worktree is on newer origin code, not
+because of this change.
+**Engine side effect, measured:** the book's written-off total falls GBP 291.91 (13,574.18 ->
+13,282.27, 280 -> 275 cases, 8 legs), because settlements now carry the triad's cash. The desk
+agrees on the one leg checked: PROS-2020-0223g's journey cured on 2023-08-26, while the old engine
+wrote off 141.33 of it.
+
+**Prediction for the first fresh run carrying 514e2015bf, 8befb331b and this fix, filed before it
+runs:** INV_OVERDUE_WITHIN_PAGE_BALANCE reads 0, or at most 5 from the draw. Refuted if any breach is
+neither a back-billing write-off nor a new class. Bad debt is lower than an un-fixed engine would
+give on the same book, by an amount of the order of GBP 300.

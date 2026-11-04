@@ -1128,6 +1128,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
         events.sort(key=lambda e: (e[0], e[1]))
 
         outstanding: list[dict] = []  # oldest first; each {"row", "remaining"}
+        asked: dict[tuple[str, str], float] = {}  # (commodity, bill month) -> what it asked
         unapplied: dict[str, float] = {}  # commodity -> credit waiting on the account
         last_ack: date | None = None
 
@@ -1173,6 +1174,9 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 outstanding.append(item)
                 if unapplied.get(r["commodity"], 0.0) > 0:
                     _net(item, when, last_credit_pe[r["commodity"]])
+                # The bill asked its charges less the credit waiting when it was collected (SLC
+                # 31H.12), and that is the cash the household's later settlement of it carries.
+                asked[(r["commodity"], r["period_end"][:7])] = item["remaining"]
             elif kind == 1:
                 c = r["commodity"]
                 unapplied[c] = round(unapplied.get(c, 0.0) - r["amount_gbp"], 2)
@@ -1194,14 +1198,16 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 last_ack = when
                 if r["outcome"] == "repayment":
                     left = r["amount_gbp"]
-                    named = [i for i in outstanding if i["row"]["commodity"] == r["commodity"]
-                             and i["row"]["period_end"][:7] == r.get("settles_month")]
-                    if named:
-                        # A household settling a bill pays what is left on it, not its face once a
-                        # credit or an earlier payment has reduced it (debt_and_collections.md
-                        # s.7.3). At face, SYN-2016-269 paid INV36009's 276.73 on 18 Oct 2023
-                        # against the 190.78 the desk asked, and 85.95 spilled onto the next bill.
-                        left = named[0]["remaining"]
+                    settles = (r["commodity"], r.get("settles_month"))
+                    if settles in asked:
+                        # A household settling a bill pays what the bill asked, which is the cash
+                        # the triad crosses: its face less the credit netted when it was collected
+                        # (debt_and_collections.md s.7.3). Not the face: SYN-2016-269 paid INV36009's
+                        # 276.73 against the 190.78 asked. Not what a later credit left on it either:
+                        # SYN-2016-380 paid its Sep 2019 bill's 84.32 in Sep 2021, after a 2020
+                        # credit had cleared it, and the page netted 16.80 the desk still chased.
+                        # A bill a waiting credit paid in full asked 0 (PROS-2016-0020g, SYN-2016-291).
+                        left = asked[settles]
                     for item in [i for i in outstanding if i["row"]["commodity"] == r["commodity"]]:
                         if left <= 0:
                             break
