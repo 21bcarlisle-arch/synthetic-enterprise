@@ -159,6 +159,13 @@ def _entry_in_the_normal_direction(event: dict[str, Any]) -> dict[str, Any] | No
         return _entry(eid, ts, "5100", "1001", amount,
                       f"Network/levy pass-through remitted: {cid}", et)
 
+    # The Treasury's EPG share is supplier revenue the household was not billed for, paid in
+    # cash; `saas.ledger.derive_pnl` counts it in revenue. Unmapped until 2026-11-04, the
+    # journal's 2022 and 2023 revenue on the a6b7a0fd47 book read £252,708 short.
+    if et == "epg_receipt_event":
+        return _entry(eid, ts, "1001", "4001", amount,
+                      f"EPG support received from HM Treasury: {cid}", et)
+
     if et == "settlement_event":
         return _entry(eid, ts, "5001", "1001", amount,
                       f"Wholesale settlement: {cid}", et)

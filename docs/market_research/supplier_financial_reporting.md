@@ -45,7 +45,7 @@ the stack above.
 
 The page and the ledger are two P&Ls of one book. The page reads the settlement records. The ledger's management
 accounts read £3,208,743 of revenue and £839,563 of non-commodity cost, against the settlement records' £3,464,489
-and £1,223,851. **I cannot yet say** which is right; that is a separate finding (below).
+and £1,223,851. Gap 5 below measures which is right, line by line.
 
 | Stack line | This stack | The book, as the page counts it | What kind of gap |
 |---|---|---|---|
@@ -64,6 +64,71 @@ and £1,223,851. **I cannot yet say** which is right; that is a separate finding
 
 Neither is value created. A margin at this level, taken from a customer billed at the cap, is the M2 shape:
 transfer read as margin because the cost that would have absorbed it is missing. Every per-customer CLV inherits it.
+
+
+#### Gap 5 measured: the ledger and the settlement records, per year and per fuel (a6b7a0fd47 book, 2026-11-04)
+
+**What each figure counts.**
+- **Settlement revenue:** `years[y].commodity_split[fuel].revenue_gbp`, ex-VAT, by delivery.
+- **Bills ex-VAT:** Σ `total_amount_gbp − vat_gbp` over `bills`, by `period_start` year.
+- **EPG:** Σ `epg_support_gbp`, the Treasury's share that the household was not billed.
+- **Settlement non-commodity:** the modelled levies plus network cost (`policy_cost_gbp + network_cost_gbp`, and
+  their gas pair). This is what the company owes the levy bodies and network operators.
+- **Bill non-commodity:** Σ `non_commodity_amount_gbp`, the unit-rate price component the household was billed.
+  It excludes the standing charge. This is the figure `saas/ledger.py` books as its non-commodity *cost*
+  (`make_non_commodity_cost_event`).
+
+| year | fuel | settlement revenue | bills ex-VAT | EPG | residual | settlement non-commodity | bill non-commodity | gap |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| 2016 | elec | 114,206 | 102,025 | 0 | 12,182 | 53,828 | 36,217 | 17,611 |
+| 2016 | gas | 57,583 | 57,150 | 0 | 434 | 16,309 | 14,035 | 2,273 |
+| 2017 | elec | 238,958 | 245,914 | 0 | −6,956 | 109,497 | 77,465 | 32,032 |
+| 2017 | gas | 115,777 | 115,986 | 0 | −209 | 30,697 | 29,238 | 1,459 |
+| 2018 | elec | 232,070 | 231,968 | 0 | 102 | 105,095 | 70,298 | 34,797 |
+| 2018 | gas | 121,057 | 122,696 | 0 | −1,640 | 26,078 | 26,546 | −468 |
+| 2019 | elec | 215,807 | 220,435 | 0 | −4,628 | 97,229 | 63,200 | 34,029 |
+| 2019 | gas | 100,819 | 99,593 | 0 | 1,226 | 22,569 | 25,271 | −2,702 |
+| 2020 | elec | 193,072 | 193,384 | 0 | −312 | 93,243 | 60,280 | 32,963 |
+| 2020 | gas | 75,246 | 75,233 | 0 | 13 | 18,310 | 21,895 | −3,585 |
+| 2021 | elec | 197,828 | 201,216 | 0 | −3,388 | 93,195 | 62,410 | 30,784 |
+| 2021 | gas | 75,451 | 76,489 | 0 | −1,037 | 18,696 | 22,660 | −3,965 |
+| 2022 | elec | 325,682 | 276,946 | 47,792 | 945 | 96,518 | 70,067 | 26,451 |
+| 2022 | gas | 156,998 | 132,538 | 23,506 | 953 | 19,336 | 27,258 | −7,922 |
+| 2023 | elec | 462,769 | 332,883 | 130,818 | −933 | 114,135 | 76,926 | 37,209 |
+| 2023 | gas | 224,352 | 175,074 | 50,592 | −1,315 | 27,610 | 29,608 | −1,998 |
+| 2024 | elec | 289,596 | 287,339 | 0 | 2,256 | 127,028 | 73,409 | 53,619 |
+| 2024 | gas | 131,422 | 130,381 | 0 | 1,041 | 28,641 | 26,016 | 2,625 |
+| 2025 | elec | 141,072 | 141,877 | 0 | −805 | 64,949 | 26,271 | 38,677 |
+| 2025 | gas | 70,818 | 69,608 | 0 | 1,210 | 14,999 | 10,432 | 4,567 |
+| **all** | elec | 2,411,061 | 2,233,988 | 178,610 | −1,537 | 954,717 | 616,543 | **338,174** |
+| **all** | gas | 1,129,522 | 1,054,748 | 74,098 | 676 | 223,245 | 232,960 | **−9,715** |
+
+**Revenue: the settlement record is right, and the gap was the journal dropping the EPG.**
+- Settlement revenue equals bills ex-VAT plus the EPG to within £861 over the whole book.
+- The year residuals offset each other. The 2016 electricity +£12k is the largest; it is timing between delivery
+  and `period_start`, and is not attributed further.
+- `saas.ledger.derive_pnl` already counts the EPG (`ledger_pnl.revenue_gbp` £3,492,488).
+- The **management accounts** read £3,283,630. `company/finance/double_entry.to_journal_entry` had no branch for
+  `epg_receipt_event` and returned None. Every pound the Treasury paid was dropped: £71,298 in 2022 and £181,410 in
+  2023. **Fixed 2026-11-04**, with a control in
+  `tests/company/finance/test_the_journal_books_the_treasurys_epg_share_as_revenue.py`.
+- Three more event types the ledger emits are still dropped the same way: `revenue_restatement_event`,
+  `back_billing_write_off_event` and `dd_back_billing_write_off_event`. Each needs its account pair decided, and
+  they are filed rather than guessed.
+
+**Non-commodity: the settlement record is right in kind, and the ledger books a price as a cost.**
+- The whole gap is electricity: £338k over the book, £26k–£54k every year. Gas agrees to within 4%.
+- The ledger's cost is the unit-rate non-commodity *price* billed to the household. It omits whatever network
+  and policy cost the tariff recovers through the standing charge: £268k of electricity standing charge was billed
+  over the book.
+- A supplier pays the charges the network operators and levy bodies invoice, not what it chose to put in the unit
+  rate. The settlement records' modelled levies and network are that cost. Whether they are the *right* levels is
+  their own fidelity question (§1a: ECO and WHD absent, GAP).
+- The owner is `saas/ledger.py`: book the settlement records' levies and network as the cost event. Until then the
+  ledger's gross margin is overstated by about £330k, about 9.5% of revenue.
+
+**N21's margin after this step: 15.50%, unchanged.** Neither fix touches a settlement record, and the page reads
+the settlement records (£548,926 over £3,540,583).
 
 
 
