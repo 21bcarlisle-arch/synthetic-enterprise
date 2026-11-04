@@ -173,3 +173,106 @@ and once over all of them, and diff the register estimates.
 
 `INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` (53): not started this turn. The one-variable replays named above
 are still the next step.
+
+## INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER: prediction before the candidate split (filed 2026-11-04 ~19:20 UTC, before any per-leg feature was read)
+
+Of the three candidates, only 308a3f168e changes how an electricity estimate is built *after* an actual read, and it
+does so only on a PC2 (Economy 7) meter. 54f76662d1 releases estimates *before* an account's first read, and those are
+not graded here, because a run needs an actual read before it. 7ec8b1030d moves the world's use, and that moves the
+meter, but on electricity it acts only through the heating share. **Prediction:** at least half of the 52 electricity
+breaches are on PC2 legs, so 308a3f168e carries the row. This is refuted if fewer than 26 are PC2. In that case the
+next candidate is 7ec8b1030d, and the test is whether more than half sit on the 490 premises that left the climate normal.
+
+**Result: the prediction is refuted, and none of the three commits is the defect.** 15 of the 52 electricity breaches
+are on two-register legs (fewer than 26), so 308a3f168e does not carry the row. Comparing the same legs across books
+settled it without a full replay. The **estimates are identical** on the 85b044be54 and 4669d77ddd books, but the
+**world's use is not**. SYN-2016-566's true electricity was 175 kWh in Jan 2017 on the earlier book and 2,085 on the
+later one. In 2018 it metered 13,452 kWh against a registry EAC of 1,410.5. The estimates were right for the
+declared home, and the meter moved under them.
+
+The mechanism has two parts, both on the world side:
+- `dwelling_records.build_properties` gave **every home without a gas account with us** `electric_storage`
+  (`DEFAULT_HEATING_SYSTEM`), whatever the world drew. On today's draw that is 124 electricity-only homes. Only 36 of
+  them were drawn storage-heated, and 11 direct electric. The other 77 were drawn with oil (28), gas bought elsewhere
+  (36), communal heat (10) or a heat pump (3). `registered_profile_class`'s own docstring named this default and
+  routed around it for the profile class only.
+- The legacy shape adds 3 kWh per degree day for `electric_storage`, but only when the premise has a temperature
+  (`if mean_temp is None: shape = list(base_shape)`). Before 7ec8b1030d, 263 of 575 electricity premises had no sky,
+  so the wrong label added nothing. The rebuilt store gave them one, and the heating term fired on top of a LOW-band EAC.
+
+So **7ec8b1030d revealed the defect; it did not create it.** The store fix was right. On the a6b7a0fd47 book, 28 of the
+54 breaches are on homes the world drew non-electrically heated: gas 14, oil 8, communal 5, heat pump 1. The other 26 are
+19 on drawn electric-heated homes, 6 occupier legs that copy their premise's record, and 1 gas.
+
+**Fix (world, fidelity, decided blind to results):** `dwelling_record` carries the drawn household's
+`drawn_heating_system`. `build_properties` maps it: storage and direct both become `electric_storage` (resistive heat;
+the legacy shape has one coefficient for both); a gas boiler becomes `gas_boiler`; a heat pump, oil, communal heat or none
+take no electric term. The heat pump's electricity is the ASHP overlay's (`Household.ashp_annual_kwh`), so a term here
+would count it twice. The authored C-roster, with no drawn household, keeps the old rule. The key is
+`drawn_heating_system`, not `heating_system`, so the mover path's `{**property, **dwelling_record(...)}` merge cannot
+overwrite the mapped value with a raw one. Control: `tests/simulation/test_a_drawn_home_is_heated_by_what_the_world_drew.py`.
+It is one partition control: a rule that heats nothing reds the storage leg, and the old rule reds the oil leg. Both
+legs were red on the reverted line (measured).
+
+**Prediction for the first fresh run carrying it, filed before that run:** INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
+falls from 54 to between 15 and 30. The non-electric 28 leave, along with any of the 6 occupier legs whose premise is
+non-electric. INV_ANNUAL_USE_ELEC_ACCOUNT's 16 flags fall. The book's electricity revenue and settled volume fall,
+because about 77 homes lose roughly 6-12 MWh a year of heating they never had.
+
+**What it does not fix (named, not yet traced):**
+- The 19 on genuinely electric-heated homes. Their EAC is drawn from a TDCV band, and the heating is added on top.
+  Whether a storage home's drawn band already includes its heating (a double count) is the next question for the
+  knowledge layer.
+- The supplier's estimate does not follow the reads. SYN-2016-566 kept estimating about 150 kWh/month after a 1,639 kWh
+  actual read, because with less than a year of reads it stays on the registry figure. Whether a real supplier
+  re-estimates sooner (via the D0019 EAC/AA after each read) is the other question. INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
+  does not grade it.
+
+**Separate, found on the way:** `tests/simulation/test_the_worlds_dwelling_is_drawn_not_believed.py::test_the_worlds_dwelling_never_crosses_the_wall`
+is red on origin 5683caa403. Its text scan flags `company/interfaces/sim_interface.py:681`, where
+`get_gas_charging_area` (3042023498) imports `live_drawn_households` to return only the home's LDZ. That is the seam
+returning an observable, which looks like a scan too broad for the sanctioned crossing. It is the interface steward's
+to rule on, not changed here.
+
+## INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL 14 -> 12 and INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE 4, row by row (2026-11-04)
+
+Full breach lists from the carbon evaluator on both 4669d77ddd ledgers
+(`/var/tmp/grade-a6b7/carbon_grade-4669{,-fix}.json`). **The held-bill explanation holds.** The two rows that left
+are `SYN-2016-604g gas 2017` and `SYN-2016-604g gas 2017 months` (7,670.0 against 7,844.3 kWh, 11 of 12 months). That is
+the July bill 6f9976757d released. The other 12 rows are identical in value on both ledgers.
+
+All 12 of those are **held bills too**, on three electricity legs. Every month missing from the carbon panel is in the
+exception queue as `slc_6_7_billing_accuracy: 2,200-2,640 kWh over a month is implausible for a resi electricity account`:
+SYN-2016-355 (7 bills, 2017-19), PROS-2017-0233 (5, 2019-20) and PROS-2020-0167 (1, Jan 2024). So the billing gate
+is right, and these are the same over-heated homes as the estimated-run row. PROS-2020-0167 was drawn oil-heated,
+so this fix covers it. SYN-2016-355 (direct electric, MEDIUM EAC 2,468.5) and PROS-2017-0233 (storage, HIGH EAC
+3,634.6) are drawn electric-heated, and they meter 15-20 MWh a year. That is the open double-count question above.
+
+Revenue's 4: PROS-2020-0025 was drawn with communal heat, so this fix covers it. SYN-2016-264 is storage-heated, and OCC-bad56e8f97f9 and
+OCC-8c6b8bb21743 are occupier legs. Not traced further this turn.
+
+**Prediction for the first fresh run carrying the heating fix:** carbon 12 -> 10 (PROS-2020-0167's two leave),
+revenue 4 -> 3 (PROS-2020-0025 leaves), give or take the draw.
+
+## The a6b7a0fd47 book graded (2026-11-04)
+
+The run ended 19:06. Graded at origin 5683caa403 with the same chain (`/var/tmp/b3ce-grade-scripts/`), scratch
+`/var/tmp/grade-a6b7/`. **The run is at a6b7a0fd47, which carries neither the desk fix (514e2015bf), the settlement fix
+(8befb331b) nor the builder fix (6f9976757d).** The builder is post-run, so it applies; the other two are in-loop, so they do not.
+The overdue prediction ("falls by the 78") therefore does not apply to this book.
+
+| Row | 4669d77ddd | a6b7a0fd47 | pre-registered | held? |
+|---|---:|---:|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 128 | 64 | -78 for a run carrying 514e2015bf | n/a: not carried. It still moved 64 for a reason not traced here; the holder of that row has it |
+| INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER | 53 | 54 | none for this book | traced above; the heating fix is predicted to bring it to 15-30 |
+| INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL | 14 | 12 | 12 with the builder fix | yes |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 5 | 4 | 4 with the builder fix | yes |
+| INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS | 1 | 1 | no move | yes |
+| INV_PERIODS_CONTIGUOUS | 1 | 0 | 0 | yes |
+| INV_OPENING_IS_THE_PREVIOUS_CLOSING | 1 | 0 | 0 | yes |
+| INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE | 147 | 3 | (N19's row, not this finding's) | |
+
+The gate still refuses: 138 unexcepted breaches over 6 rows. **Not done:** by the done-means, every row reads 0 or
+carries a dated, traced exception on a fresh book. That needs a fresh run carrying 514e2015bf, 8befb331b and this
+heating fix, plus the three questions left open: the electric-heated double count, the supplier's re-estimate after
+reads, and the overdue row's remaining classes.

@@ -1160,6 +1160,9 @@ def dwelling_record(premise: DrawnPremise) -> dict:
         "property_type": PROPERTY_TYPE_RECORD_NAME[household.property_type],
         "epc_rating": household.epc_rating,
         "bedrooms": household.bedrooms,
+        # The world's own heating, so the legacy demand shape does not have to guess it from
+        # whether the home buys gas from us (`dwelling_records._heating_system`).
+        "drawn_heating_system": household.heating_system.value,
     }
 
 

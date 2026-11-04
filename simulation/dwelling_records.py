@@ -431,6 +431,39 @@ class DwellingNotDrawn(KeyError):
     """
 
 
+#: The drawn household's heating, in the legacy demand shape's vocabulary
+#: (`demand_model.ELEC_HEATING_KWH_PER_DEGREE_DAY`). Storage and direct electric are both resistive
+#: heat on the meter, and the legacy shape has one coefficient and one set of heating periods for it.
+#: Gas boilers heat on a gas meter, which may be another supplier's. A heat pump's electricity is
+#: added once, by the ASHP overlay (`Household.ashp_annual_kwh`), so it takes no term here. Oil,
+#: LPG, solid fuel and communal heat reach no register (W2_20). Any value not listed is passed
+#: through and takes no electric heating term.
+_LEGACY_HEATING_BY_DRAWN = {
+    "electric_storage": "electric_storage",
+    "electric_direct": "electric_storage",
+    "gas_boiler_combi": GAS_HEATING_SYSTEM,
+    "gas_boiler_system": GAS_HEATING_SYSTEM,
+}
+
+
+def _heating_system(has_gas_leg: bool, drawn: str | None) -> str:
+    """The heating the legacy demand shape adds to this home's electricity.
+
+    THE DEFECT (2026-11-04): every home without a gas account with us was given
+    `electric_storage`, so 88 of 124 drawn electricity-only homes whose world household heats by
+    gas bought elsewhere, oil, communal heat or a heat pump carried 3 kWh per degree day of storage
+    heating on top of a LOW-band EAC. It was silent while those premises had no sky (no
+    temperature, no heating term) and surfaced when 7ec8b1030d gave them one: their meters read
+    about ten times their EAC. A home the world drew no household for (the authored roster) keeps
+    the old rule.
+    """
+    if has_gas_leg:
+        return GAS_HEATING_SYSTEM
+    if drawn is None:
+        return DEFAULT_HEATING_SYSTEM
+    return _LEGACY_HEATING_BY_DRAWN.get(drawn, drawn)
+
+
 def build_properties(customers: list[dict], dwellings: dict | None = None) -> dict:
     """Build one physical dwelling record per resi electricity customer.
 
@@ -521,7 +554,7 @@ def build_properties(customers: list[dict], dwellings: dict | None = None) -> di
             # traces the same house on.
             "pensioner_present": pensioner_present,
             "someone_employed": someone_employed,
-            "heating_system": GAS_HEATING_SYSTEM if cid in gas_customer_ids else DEFAULT_HEATING_SYSTEM,
+            "heating_system": _heating_system(cid in gas_customer_ids, phys.get("drawn_heating_system")),
             "assets": dict(ASSET_PROFILE_BY_CUSTOMER.get(cid, DEFAULT_ASSETS)),
         }
     return properties
