@@ -38,3 +38,56 @@ change moving true use under the estimates, or the draw). Two accounts, SYN-2016
 leg's periods in 2017 and look like a single defect.
 
 **Reverse:** delete this file.
+
+## Prediction before tracing INV_OVERDUE_WITHIN_PAGE_BALANCE (filed 2026-11-04, before the 4669d77ddd re-grade was read)
+
+The steps that 6a3da3e48 (N15) and ba868134c keep are the re-offers on days a bill was truly unpaid. Prediction: the
+breaching steps are those where the desk's standing arrear (`undisputed_overdue_gbp`) is larger than the page balance,
+and they are re-offer/arrangement steps that the calendar trigger used to fire on days the page balance had already
+caught up. Before N15, the breach was there on these accounts too and was diluted, not absent: refuted if fewer than
+half of the 4669d77ddd breaches are `arrangement_offered` or `repayment_plan_reoffer` steps.
+
+## Re-graded on the 4669d77ddd book (2026-11-04)
+
+`run_output_4669d77ddd_20261104T132452Z.json`, the same chain (`/var/tmp/b3ce-grade-scripts/`) at origin 61ddb41250,
+scratch `/var/tmp/grade-4669/`. ba868134c and 4669d77dd moved none of the seven:
+
+| Row | b3ce2a4e73 | 4669d77ddd |
+|---|---:|---:|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 128 | 128 (6,391 checked, 13 households) |
+| INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER | 53 | 53 |
+| INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL | 14 | 14 |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 5 | 5 |
+| INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS | 1 | 1 |
+| INV_PERIODS_CONTIGUOUS | 1 | 1 |
+| INV_OPENING_IS_THE_PREVIOUS_CLOSING | 1 | 1 |
+
+An eighth row now reds the gate: `INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE` 147, N19's blind row
+(0f1fe62b9f), which 61ddb41250 says waits on a household fix not yet on origin. Not this finding's.
+
+## INV_OVERDUE_WITHIN_PAGE_BALANCE traced: the prediction is refuted
+
+The prediction above named N15's re-offer steps. 110 of the 128 are `arrangement_offered`/`repayment_plan_reoffer`,
+so the count it set to refute it does not fire. But the cause is not N15. Census
+(`/var/tmp/grade-4669/overdue_census.py`), each breach's excess set beside the household's back-billing write-offs
+on bills issued by the step:
+
+- **78 of 128: the excess is exactly a back-billing write-off.** OCC-75d17c23c1da's GBP 63.22 is
+  `catchup_written_off_gbp` on gas bill INV3866 (June 2022), on every step from July 2022. N14 (c6e1a29e1) caps a
+  catch-up on a bill paid on receipt in a second pass after the run (`rebill_catchups_off_direct_debit`). The desk's
+  bills come in-loop from `StopNoticeBoard.issued_bills_before`, which never re-billed, so the desk chased the
+  uncapped first pass. The page was right; the desk was wrong. This is N14's regression, which landed after
+  85b044be54 and before b3ce2a4e73.
+  Fix: the board asks the same second pass when a bill carries a DD-basis catch-up. Control:
+  `tests/simulation/test_the_desk_is_asked_the_capped_catchup_the_page_prints.py`. On origin's code it is red: the
+  desk is asked 1034.31 against 857.36 printed. The uncapped arm still asks its whole bill.
+  **Prediction for the next fresh run carrying it:** this row falls to the 50 below, on the same households, give
+  or take the draw.
+- **32: a credit bill the page nets and the desk does not.** SYN-2016-269 (credit bill INV36008 of -85.95, Aug 2023,
+  27 steps; and 12 more from Nov 2024 at 85.95 + a 10.41 write-off) and OCC-81b87bae7bec (gas credit bill -4.84, of
+  which 1.64 was netted, leaving 3.20; 5 steps in 2017). Not yet traced into the triad's credit-note path.
+- **6: a standing credit on one fuel leg beside a missed bill on the other.** PROS-2016-0020 (electricity page at
+  -10.00, gas DD returned 37.12), SYN-2016-291 (-20.42 vs 45.11). The row nets the two pages and the desk does not
+  net across legs. That is a definition question (does a credit on one fuel's account reduce what is overdue on the
+  other's?), to be answered from the knowledge layer before either side is changed.
+  SYN-2016-380's 2 steps (desk 165.75 against one returned bill of 148.95, 16.80 over) are not yet explained.

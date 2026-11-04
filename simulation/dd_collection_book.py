@@ -273,6 +273,20 @@ class StopNoticeBoard:
         # rebuild serves both, and only the latest two cutoffs are ever asked again.
         self._bills_memo: dict[str, dict[tuple[str, bool], list[dict]]] = {}
 
+    def _behavioral(self, supply_point: str) -> dict:
+        """What the rails read of this supply point so far, keyed as `per_customer_behavioral`."""
+        behavioral = {supply_point: {
+            "income_stress_trajectory": self._stress_trajectory_of(supply_point)}}
+        if self._dd_shock_responses_of is not None:
+            from simulation.dd_shock_response import RECORD_KEY
+            responses = self._dd_shock_responses_of(supply_point)
+            if responses:
+                behavioral[supply_point][RECORD_KEY] = responses
+        if self._payment_truth_of is not None:
+            from simulation.world_payment_truth import RECORD_KEY as TRUTH_KEY
+            behavioral[supply_point][TRUTH_KEY] = self._payment_truth_of(supply_point)
+        return behavioral
+
     def issued_bills_before(self, supply_point: str, cutoff: str, churned: bool = False
                             ) -> list[dict]:
         """The supplier's issued bills over this supply point's records settled before `cutoff`
@@ -283,10 +297,22 @@ class StopNoticeBoard:
         if bills is None:
             records = [r for r in self._records.get(supply_point, [])
                        if r.get("settlement_date", "9999") < cutoff]
-            from company.interfaces.bill_assembly import issued_bills
-            from simulation.run_phase4c_on_phase2b import build_monthly_bills
-            bills = (issued_bills(build_monthly_bills(records, {supply_point} if churned else set()))
-                     if records else [])
+            from company.interfaces.bill_assembly import BASIS_DD_AT_RECOVERY_ACTION, issued_bills
+            from simulation.run_phase4c_on_phase2b import (
+                build_monthly_bills,
+                rebill_catchups_off_direct_debit,
+            )
+            churned_ids = {supply_point} if churned else set()
+            bills = build_monthly_bills(records, churned_ids) if records else []
+            # N14's second pass, asked here too: the published run re-bills a catch-up that fell on a
+            # bill paid on receipt, capping it, and the desk was posted the uncapped first pass. 78 of
+            # the 128 INV_OVERDUE_WITHIN_PAGE_BALANCE breaches on the 4669d77ddd book were exactly the
+            # written-off part (OCC-75d17c23c1dag's GBP 63.22 on its June 2022 gas bill).
+            if any(b.get("catchup_back_billing_basis") == BASIS_DD_AT_RECOVERY_ACTION for b in bills):
+                bills, _ = rebill_catchups_off_direct_debit(   # the read events are not kept here
+                    records, bills, [None] * len(bills), self._behavioral(supply_point),
+                    churned_ids=churned_ids)
+            bills = issued_bills(bills)
             memo[(cutoff, churned)] = bills
             while len(memo) > 2:
                 del memo[min(memo)]
@@ -335,17 +361,8 @@ class StopNoticeBoard:
         bills = self.issued_bills_before(supply_point, cutoff.isoformat())
         if not bills:
             return None
-        behavioral = {supply_point: {
-            "income_stress_trajectory": self._stress_trajectory_of(supply_point)}}
-        if self._dd_shock_responses_of is not None:
-            from simulation.dd_shock_response import RECORD_KEY
-            responses = self._dd_shock_responses_of(supply_point)
-            if responses:
-                behavioral[supply_point][RECORD_KEY] = responses
-        if self._payment_truth_of is not None:
-            from simulation.world_payment_truth import RECORD_KEY as TRUTH_KEY
-            behavioral[supply_point][TRUTH_KEY] = self._payment_truth_of(supply_point)
-        spells = supplier_dd_spell_notices(bills, behavioral, self._seed).get(supply_point, [])
+        spells = supplier_dd_spell_notices(bills, self._behavioral(supply_point),
+                                           self._seed).get(supply_point, [])
         if spells and bacs_rails.REMANDATE_ACCEPTANCE_PROBABILITY is None:
             self._final[supply_point] = spells
         self._spells_through[supply_point] = (cutoff, spells)
