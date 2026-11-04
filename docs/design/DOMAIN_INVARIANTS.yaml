@@ -3342,14 +3342,17 @@ invariants:
   statement: The desk's re-offer says "a further bill missed once the plan was offered". It is accurate only if a bill fell due since the previous offer and was not paid in its window. A re-offer
     after every such bill was paid in full is a contact telling a household it missed a bill it paid.
   predicate: 'for each repayment_plan_reoffer on date E in a journey whose previous repayment_plan_offer or repayment_plan_reoffer is on P: breach unless some credit bill of the billing account (both fuel
-    legs) with P <= due_date <= E is missed. A bill is missed when the cash landed on its own leg on days issue_date..due_date inclusive (payments received, scheme credits carried, the paid part of a failed
-    collection) plus any credit applied to the bill is short of total_amount_gbp by more than half a penny.'
+    legs) with P <= due_date <= E is missed. A bill is missed when what landed on its own leg on days issue_date..due_date inclusive, from payment records posted against this invoice_number or against none
+    (payments received, scheme credits carried and account credit netted, each on a payment whose outcome put money on the account, and the paid part of a failed collection), is short of total_amount_gbp
+    by more than half a penny. The bill''s own credit_applied_gbp is not read.'
   lower: 1 missed bill since the previous offer
   upper: null
   source: 'docs/market_research/company_debt_management.md, "A further bill missed means the bill was not paid, not that a balance stood (2026-11-03)": "A bill counts as newly missed for the re-offer
     only when the cash that landed on the account between its issue and its due date, both inclusive, is short of the bill." "Telling a household that paid a bill in full on its due date that it missed
     that bill is not accurate." "What triggers a fresh 27.6 offer is fresh evidence of difficulty ... A newly missed bill is such a reason. A bill paid in full and on time is not." Accuracy: SLC 0, "complete,
-    accurate and not misleading".'
+    accurate and not misleading". The same page, "Paid means what the bill asked (2026-11-04)": "The export''s `credit_applied_gbp` on a failed bill is that later credit, not money that landed in the
+    window"; "the window held a late payment for the previous bill, with its £67 EBSS ... and the bill itself was paid 37 days late." Attribution: account_hierarchy_payment_allocation.md s.1, a payment
+    allocates to the invoices its remittance names, else oldest-first.'
   severity:
     violation: breach
   export_fields:
@@ -3357,7 +3360,7 @@ invariants:
   - bill_record.invoices.issue_date
   - bill_record.invoices.due_date
   - bill_record.invoices.total_amount_gbp
-  - bill_record.invoices.credit_applied_gbp
+  - bill_record.invoices.invoice_number
   - bill_record.payments
   checkable: true
   reading: >-
@@ -3365,8 +3368,17 @@ invariants:
     window opens on the previous plan offer or re-offer, not at the start of the account: read from the start, one missed bill early in
     a journey licenses every later re-offer (23 breaches on the 0a6391d186 book against 4,610 read this way). The window is inclusive at
     both ends, the lenient reading. Cash is the leg's own, as the knowledge page's measurement reads it ("each bill judged on its own
-    leg's cash"); a credit applied to the bill and a scheme credit pay it. GAP A6 (the page): no published source says how a supplier
-    tests "this bill was paid" on a balance-based account; this is the page's test.
+    leg's cash"). Two tightenings from 2026-11-04, each on the b3ce2a4e73 book (11 breaches to 7). (1) Credit counts only where a
+    payment record against the bill carries it, dated in the window: on that book every bill with credit_applied_gbp whose collection
+    went through has such a record (605 in the window, 25 after it), and none of the 67 whose collection was returned does, because
+    there the figure is a credit bill 4 to 9 months later that settled the debt (SYN-2016-066, -380). A bill not paid by its due date
+    is missed; credit applied later does not un-miss it. (2) Cash is the bill's own: a payment posted against an older invoice pays
+    that one, so it does not count, and neither does a scheme credit riding on it (PROS-2020-0016: the April bill's late £19.37 and
+    its £67 EBSS fell in the May bill's window, and the May bill was paid 37 days late). This is stricter than the page's design
+    choice ("Cash for an older debt in the same window counts towards the bill"), which was the desk's test for a balance with no
+    earmark. The ledger's payments name their bill, and oldest-first gives the older bill's money to the older bill too. A payment
+    naming no bill still counts towards any bill whose window holds it (none on that book). SYN-2016-306 fell to either rule. GAP A6
+    (the page): no published source says how a supplier tests "this bill was paid" on a balance-based account.
 - id: INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM
   family: tariff_terms
   grades: page

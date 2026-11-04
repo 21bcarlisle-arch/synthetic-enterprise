@@ -65,3 +65,26 @@ the credit netted at issue covers it. Every remaining breach is a failed or late
 Journeys, cures and money figures do not change, because a re-offer moves no money.
 
 **Reverse:** delete this file; revert the commit that adds `note_bill_asked`.
+
+## The row's 4, amended blind (2026-11-04, claim `n15-row-credit-applied-on-a-failed-bill-is-later-credit`)
+
+A writer with no access to company/, simulation/ or background/ (nor this file) amended `_bills_missed` from the
+knowledge pages and the ledger data alone:
+- **Credit.** The bill's `credit_applied_gbp` is no longer read. Credit counts only as carried on a payment record
+  posted against the bill, on that record's date, when the payment went through. In the data, 67 bills whose own
+  collection was returned carry `credit_applied_gbp` with nothing dated in their window; 25 successfully collected
+  bills had their credit netted after the due date, so "outcome success" alone would still have been too lenient.
+- **The window's lenience, decided: tightened.** Cash posted against an older invoice no longer pays this bill
+  (`account_hierarchy_payment_allocation.md` s.1: the remittance names the bill; oldest-first gives it to the older
+  bill too). A payment naming no bill still counts (none on this book). This overrides the debt page's lenient design
+  choice, which was written for an unearmarked balance; the row's reading says so.
+
+**Graded on `/var/tmp/fresh-grade-b3ce2a4e73/ledger.json`.** Writer's prediction, filed before running: 11 → 7, the
+four named here clearing. Result: **7 of 1,241**, the same four. One rule at a time: credit only → 8 (PROS-2020-0016
+stays); attribution only → 9 (SYN-066, -380 stay). The 7 left are exactly the desk's class, fixed in ba868134c, which
+this ledger predates, so the next fresh book should read 0 on this row. My earlier prediction (0–8, every survivor a
+failed or late bill) is wrong in its second half on this ledger: the survivors are the desk's netted-credit bills,
+because this ledger predates the desk fix. It still stands for a post-ba868134c book.
+
+One mutation does not fire: counting a failed payment's netted credit. That is an equivalence on this data: none of
+the 1,896 failed payment records carries `credit_applied_gbp`.

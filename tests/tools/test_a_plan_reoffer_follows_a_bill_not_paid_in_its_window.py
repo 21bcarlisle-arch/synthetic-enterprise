@@ -5,7 +5,10 @@ Defect this catches: the desk re-offered the plan on the day after any bill's du
 whether it was paid (0a6391d186: OCC-17ff099218d5 re-offered on 16 Nov 2020 after its gas bill was
 collected in full on 15 Nov). Mutations, each reds this file: the window opened at the account's start
 (one early miss then licenses every re-offer); cash read across both legs or outside issue..due; a
-credit applied to the bill not counted; the gas leg's bills not joined to the household's journey.
+credit netted on the bill's payment not counted; the gas leg's bills not joined to the household's journey;
+the bill's own `credit_applied_gbp` read as landed (b3ce2a4e73: SYN-2016-066's returned DD, settled by a
+credit bill four months later); cash posted against an older bill counted (PROS-2020-0016); a payment
+naming no bill not counted.
 """
 from __future__ import annotations
 
@@ -65,11 +68,34 @@ def test_a_miss_before_the_previous_offer_does_not_make_the_reoffer_true():
     assert _grade([_pay(2, "2020-03-15")], old_miss=True) == (1, [PAID])
 
 
+def _credited(on, outcome="success", n=2):
+    """The ledger's shape for a bill an earlier credit paid down: the credit rides on the bill's payment."""
+    return dict(_pay(n, on, amount=0.0, outcome=outcome), credit_applied_gbp=40.0)
+
+
 def test_a_bill_paid_by_credit_or_by_scheme_credit_is_paid():
-    assert _grade([], gas_bill=_bill(2, "2020-03-01", "2020-03-15", credit_applied_gbp=40.0)) == (1, [PAID])
+    netted = _bill(2, "2020-03-01", "2020-03-15", credit_applied_gbp=40.0)
+    assert _grade([_credited("2020-03-15")], gas_bill=netted) == (1, [PAID])
     paid = {"invoice_number": 2, "payment_date": "2020-03-15", "amount_gbp": 0.0, "method": "direct_debit",
             "outcome": "success", "scheme_credit_gbp": 40.0}
     assert _grade([paid]) == (1, [PAID])
+
+
+def test_a_returned_collection_later_settled_by_a_credit_bill_is_still_missed():
+    """b3ce2a4e73, SYN-2016-066: the 16 Feb 2022 DD was returned; a credit bill of 30 Jun settled it, and
+    the export's credit_applied_gbp on the February bill is that June credit. Not paid by its due date."""
+    settled_later = _bill(2, "2020-03-01", "2020-03-15", credit_applied_gbp=40.0)
+    assert _grade([_pay(2, "2020-03-15", outcome="failed")], gas_bill=settled_later) == (1, [])
+    assert _grade([], gas_bill=settled_later) == (1, [])
+    assert _grade([_credited("2020-03-20")], gas_bill=settled_later) == (1, [])   # netted after its due date
+
+
+def test_cash_posted_against_an_older_bill_does_not_pay_this_one():
+    """b3ce2a4e73, PROS-2020-0016: the April bill's late £19.37 and its £67 EBSS landed in the May bill's
+    window; the May bill was paid 37 days late. The payment names its bill; a payment naming none counts."""
+    older = dict(_pay(3, "2020-03-10", amount=0.0), scheme_credit_gbp=40.0)
+    assert _grade([_pay(3, "2020-03-10"), older]) == (1, [])
+    assert _grade([_pay(None, "2020-03-10")]) == (1, [PAID])
 
 
 def test_a_book_read_without_the_bill_record_is_unbounded_and_never_clean():

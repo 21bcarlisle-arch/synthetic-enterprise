@@ -159,7 +159,7 @@ BILL_RECORD_FIELDS = ("invoice_number", "document_type", "issue_date", "due_date
                       "catchup_raw_delta_gbp", "catchup_written_off_gbp", "catchup_period_start",
                       "catchup_period_end")
 PAYMENT_RECORD_FIELDS = ("invoice_number", "payment_date", "amount_gbp", "method", "outcome",
-                         "scheme_credit_gbp", "part_paid_gbp")
+                         "scheme_credit_gbp", "part_paid_gbp", "credit_applied_gbp")
 
 
 def bill_record(rec: dict) -> dict:
@@ -2277,30 +2277,37 @@ PAID_OUTCOMES = {"success", "credit"}
 
 def _cash(p) -> float:
     """What one payment record put on the account: the money received, any scheme credit it carried,
-    and the part of a failed collection that was paid."""
+    any account credit netted on it, and the part of a failed collection that was paid."""
     cash = 0.0
     if p.get("outcome") in PAID_OUTCOMES:
-        cash += _num(p.get("amount_gbp")) or 0.0
+        cash += (_num(p.get("amount_gbp")) or 0.0) + (_num(p.get("credit_applied_gbp")) or 0.0)
         if p.get("method") != SCHEME_CREDIT_METHOD:
             cash += _num(p.get("scheme_credit_gbp")) or 0.0
     return cash + (_num(p.get("part_paid_gbp")) or 0.0)
 
 
 def _bills_missed(accts) -> list[tuple[date, bool]]:
-    """(due date, missed) for every credit bill of the household. Missed when the cash that landed on
-    the bill's own leg between its issue and its due date, both inclusive, plus any credit the bill
-    applied, is short of it (company_debt_management.md, the 2026-11-03 section). A bill of nothing
-    or less is never missed."""
+    """(due date, missed) for every credit bill of the household. Missed when what landed on the bill's
+    own leg between its issue and its due date, both inclusive, is short of it: a bill is missed when it
+    is not paid by its due date (company_debt_management.md, the 2026-11-03 section and "Paid means what
+    the bill asked (2026-11-04)"). What landed is read from the payment records posted against this bill,
+    or against no bill: cash, scheme credit, and account credit netted on a payment that went through,
+    each on the record's own date. The bill's `credit_applied_gbp` is not read: on a returned collection
+    it is a credit bill that settled the debt months later, which does not un-miss it. A payment posted
+    against an older bill pays that bill, not this one (the payment names its bill, the remittance of
+    account_hierarchy_payment_allocation.md s.1; oldest-first would give it to the older bill too).
+    A bill of nothing or less is never missed."""
     out = []
     for a in accts:
         rec = a.bill_record or {}
-        cash = [(_d(p["payment_date"]), _cash(p)) for p in rec.get("payments") or () if p.get("payment_date")]
+        pays = [(p.get("invoice_number"), _d(p["payment_date"]), _cash(p))
+                for p in rec.get("payments") or () if p.get("payment_date")]
         for b in rec.get("invoices") or ():
             if b.get("document_type") != CREDIT_BILL or not (b.get("issue_date") and b.get("due_date")):
                 continue
-            issued, due = _d(b["issue_date"]), _d(b["due_date"])
+            issued, due, n = _d(b["issue_date"]), _d(b["due_date"]), b.get("invoice_number")
             total = _num(b.get("total_amount_gbp")) or 0.0
-            landed = (_num(b.get("credit_applied_gbp")) or 0.0) + sum(x for d, x in cash if issued <= d <= due)
+            landed = sum(x for m, d, x in pays if m in (n, None) and issued <= d <= due)
             out.append((due, total > 0.005 and landed < total - 0.005))
     return out
 
