@@ -203,9 +203,19 @@ refuted it.
 - refuses the circular use above;
 - refuses an insight with no `review_by`.
 
-**Not built yet: the site filter.** The steer's Ask 3, filtering by any facet, needs the facets to
-exist first. It is the next step after this back-fill, and it follows K8 as any change to a page
-does.
+**On the site (added 2026-11-04, second slice).** Every card on the Knowledge index carries its
+layer: `Knowledge`, `Insight` or `Knowledge + insight`. `site/knowledge/what-we-think.html`
+publishes every insight row, refuted ones struck through beside what refuted it. It filters pages
+and insights by any facet, and the filter is kept in the address so a view can be linked. "Weakest
+grade: S or A" with "Read by: world" answers "everything a world parameter rests on graded below
+D or P". The page renders from this record and from no other source.
+`site/knowledge/test_the_what_we_think_door.py` drives both surfaces against the record, and it
+fails closed when the record is unreadable.
+
+**Still owed.** Two things are not built yet:
+- *A mark on each section inside a mixed page's own body.* The rows name their `section` today.
+- *The cold reader challenging insight as well as figures* (Ask 5 of the knowledge-and-insight
+  steer).
 
 **Keeping it light.** These are five facets. A sixth is added only when a real question cannot be
 answered without it, and is recorded here as a dated decision.

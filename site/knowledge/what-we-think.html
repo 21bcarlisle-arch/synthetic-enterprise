@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poesys -- What we think, and how sure we are</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../brand/brand.css">
+<style>
+/* Brand palette consumed from ../brand/brand.css (BRAG tokens, no raw hex). */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+/* Nav sits on the RIGHT on every section (2026-08-12, DIRECTOR_OBSERVATION_PUBLISHED_SURFACE_NAV_AND_STAMPS item 3: "The nav sits on different sides depending on which section
+   you are in. The director's preference is consistent right-hand alignment."). The doors
+   here are loose flex children rather than the front door's grouped nav.doors, so the group
+   is pushed right by giving the first link the free space -- no markup change, and the
+   wordmark stays left as it does on every other surface. Shared cause with item 1: these are
+   the pages built from the older left-aligned template. */
+.wrap { max-width: 860px; margin: 0 auto; padding: 40px 20px; }
+.hero-h { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 8px; }
+.hero-sub { font-size: 14px; color: var(--muted); max-width: 720px; margin-bottom: 28px; }
+.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted); margin-bottom: 12px; margin-top: 36px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 20px; margin-bottom: 12px; display: block; text-decoration: none; color: inherit; }
+a.card:hover { border-color: var(--teal); }
+.card-h { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--text); }
+.card-p { font-size: 13px; color: var(--muted); }
+.card-a { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: ui-monospace, monospace; word-break: break-word; }
+.card-a:empty { display: none; }
+.muted { color: var(--muted); font-size: 12px; }
+.inline-link { color: var(--blue); text-decoration: none; border-bottom: 1px dashed var(--border); }
+.inline-link:hover { border-bottom-color: var(--blue); }
+/* The review badge is EMPTY in the markup and filled from the record. It carried the word
+   "Stub" in hand-typed markup until 2026-08-24, by which time all seven pages it said that
+   about had been written and checked against published sources -- the index went on calling
+   them unwritten for six days while each page's own header said "A written page, not a
+   stub." Nothing here may state a review state; the state comes from the feed. */
+/* Quieter since 2026-10-23 (director's steer, item 5): the label sits at the card's foot in
+   muted type; only a page past its threshold keeps a colour, and an unchecked one is italic. */
+.state-badge { display: inline-block; font-size: 10px; color: var(--muted); margin-right: 6px; }
+.state-badge:empty { display: none; }
+.state-badge.rev-fresh { color: var(--muted); }
+.state-badge.rev-unchecked { color: var(--muted); font-style: italic; }
+.state-badge.rev-due { color: var(--amber); }
+.card-why { font-size: 13px; color: var(--text); margin-top: 6px; }
+.why-k { font-weight: 600; }
+.card-foot { margin-top: 6px; font-size: 10px; color: var(--muted); }
+.card-foot .card-a { display: inline-block; font-size: 10px; margin-top: 0; }
+.theme { margin-top: 30px; }
+.theme-h { font-size: 19px; font-weight: 750; margin-bottom: 2px; }
+.theme-why { font-size: 13px; color: var(--muted); margin-bottom: 12px; max-width: 720px; }
+.brief { max-width: 760px; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; margin: 0 0 18px; font-size: 13px; line-height: 1.55; }
+.brief-h { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
+.brief ul { margin: 0; padding-left: 18px; }
+.brief li { margin: 3px 0; }
+.themes-nav { font-size: 13px; margin-bottom: 8px; }
+.themes-nav a { color: var(--blue); text-decoration: none; }
+.census { border-collapse: collapse; font-size: 12px; margin: 6px 0 14px; }
+.census th, .census td { text-align: left; padding: 3px 10px 3px 0; border-bottom: 1px solid var(--border); }
+.census td.n { text-align: right; font-variant-numeric: tabular-nums; }
+footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 11px; color: var(--muted); }
+
+/* Mobile pass. Added 2026-08-20: these pages had no breakpoint at all -- the control that
+   requires one only ever looked at nine top-level doors, none of them Knowledge. */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  main, .wrap, article, .page { padding-left: 14px; padding-right: 14px; }
+  h1 { font-size: 24px; }
+}
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table.pack-verification { border-collapse: collapse; width: 100%; margin: 6px 0 14px; font-size: 0.9em; }
+  table.pack-verification caption { text-align: left; font-weight: 600; padding: 4px 0; }
+  /* On a phone the table is wider than the screen and scrolls in its box; the caption is held
+     to the screen's width and to its left edge, so it reads whole without scrolling. */
+  @media (max-width: 640px) {
+    table.pack-verification caption { position: sticky; left: 0; max-width: calc(100vw - 28px); }
+  }
+  table.pack-verification th, table.pack-verification td { border-bottom: 1px solid rgba(127,127,127,.25); padding: 4px 6px; text-align: left; vertical-align: top; }
+  table.pack-verification td:nth-child(n+2):nth-child(-n+5) { text-align: right; white-space: nowrap; }
+.facet-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12px; margin: 8px 0 10px; }
+.facet-bar label { color: var(--muted); }
+.facet-bar select { font-size: 12px; margin-left: 4px; }
+.presets { font-size: 12px; margin-bottom: 14px; }
+.presets a { color: var(--blue); text-decoration: none; margin-right: 12px; }
+.facets { border-collapse: collapse; font-size: 12px; margin: 6px 0 14px; width: 100%; }
+.facets th, .facets td { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.layer-badge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); }
+.layer-knowledge { color: var(--muted); }
+.layer-insight { color: var(--amber); border-color: var(--amber); }
+.layer-mixed { color: var(--text); }
+.st-refuted { text-decoration: line-through; color: var(--muted); }
+.st-contested { color: var(--amber); }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a href="../" class="nav-logo wordmark">poesys.</a>
+  <!-- IA-NAV:START (rendered from site/ia_register.py -- do not hand-edit) -->
+  <span class="doors">
+  <a href="../" class="nav-link">Home</a>
+  <a href="../capabilities/" class="nav-link">Capabilities</a>
+  <a href="../harness/" class="nav-link">How it&rsquo;s built</a>
+  <a href="../code/" class="nav-link">The code</a>
+  <a href="./" class="nav-link active">Knowledge</a>
+  <a href="../explore/" class="nav-link">Explore</a>
+  </span>
+  <!-- IA-NAV:END -->
+</nav>
+<div class="wrap">
+  <h1 class="hero-h">What we think, and how sure we are</h1>
+  <p class="hero-sub">
+    The <a class="inline-link" href="./">Knowledge</a> pages hold two different things.
+    <em>Knowledge</em> is what outside sources say, or what we work out from outside data by a
+    named method. <em>Insight</em> is ours: an interpretation, a synthesis or a hypothesis. It may
+    be wrong, so every insight here says how far it has been tested, what would show it wrong,
+    and when it is next checked. An insight that has been shown wrong stays on this page, struck
+    through, with what refuted it. Some insights come from our own simulation; those are marked,
+    and none of them may set or calibrate the simulated world.
+  </p>
+
+  <h2 class="sec">Filter by any facet</h2>
+  <p class="muted">Every page carries five facets: what it is about (domain), whether it is
+    knowledge or insight (layer), who could know it (side), how sure we are (trust), and what reads
+    it (use). Pick any combination; the address bar keeps it, so a filtered view can be linked.</p>
+  <div class="facet-bar" id="facet-bar"></div>
+  <p class="presets">Examples:
+    <a href="#domain=customer_needs_and_behaviour">Customer needs and behaviour</a>
+    <a href="#status=hypothesis">Insight not yet tested</a>
+    <a href="#reads=world&amp;grade=below_dp">What the simulated world reads that is graded below D or P</a>
+    <a href="#status=refuted">Insight shown wrong</a>
+    <a href="#sim=yes">Insight drawn from our own simulation</a>
+    <a href="#">Everything</a>
+  </p>
+  <p id="facet-counts"></p>
+
+  <h2 class="sec">Insights</h2>
+  <div id="facet-insights"></div>
+
+  <h2 class="sec">Pages</h2>
+  <div id="facet-pages"></div>
+</div>
+<script>
+// THE FIVE FACETS, from site/data/knowledge_facets.json (schema: docs/design/
+// THE_KNOWLEDGE_BASE_STRUCTURE.md section 7; refused when incomplete by
+// site/knowledge/test_every_page_carries_its_five_facets.py). Titles come from
+// knowledge_wholesale.json; if that alone fails the page still renders, by page name.
+// FAIL-CLOSED: an unreadable facet record says so. An empty table would read as "no insight".
+function esc(s){ return String(s).replace(/[&<>"]/g, function (c) {
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+var FACETS = {
+  domain: ["market_and_regulation", "household_and_assets", "customer_needs_and_behaviour",
+           "supplier_operations", "products_measures_services", "other_markets"],
+  layer: ["knowledge", "mixed", "insight"],
+  side: ["world", "supplier", "both", "neither"],
+  grade: ["P", "D", "S", "A", "below_dp"],
+  verified: ["yes", "partly", "no"],
+  status: ["hypothesis", "tested", "held", "contested", "refuted"],
+  sim: ["yes", "no"],
+  reads: ["world", "calibration", "supplier"]
+};
+var LABEL = {
+  domain: "About", layer: "Layer", side: "Who can know it", grade: "Weakest grade",
+  verified: "Checked at source", status: "Insight status", sim: "From our simulation",
+  reads: "Read by"
+};
+var NICE = {
+  market_and_regulation: "Market and regulation", household_and_assets: "Households and their homes",
+  customer_needs_and_behaviour: "Customer needs and behaviour", supplier_operations: "Supplier operations",
+  products_measures_services: "Products, measures and services", other_markets: "Other markets",
+  knowledge: "Knowledge", mixed: "Knowledge with insight", insight: "Insight",
+  world: "The world (hidden truth)", supplier: "The supplier", both: "Both", neither: "Neither (comparison only)",
+  below_dp: "S or A (below D/P)", P: "P, primary publication", D: "D, derived from primary data",
+  S: "S, secondary summary", A: "A, assumption", calibration: "A calibration target"
+};
+function nice(v){ return NICE[v] || v; }
+
+function parseFilter(hash){
+  var f = {};
+  var h = String(hash || "").replace(/^#/, "");
+  if (!h) { return f; }
+  var parts = h.split("&");
+  for (var i = 0; i < parts.length; i++) {
+    var kv = parts[i].split("=");
+    var k = decodeURIComponent(kv[0] || ""), v = decodeURIComponent(kv[1] || "");
+    if (FACETS[k] && FACETS[k].indexOf(v) >= 0) { f[k] = v; }
+  }
+  return f;
+}
+
+function readsKind(page, kind){
+  var u = page.use || [];
+  for (var i = 0; i < u.length; i++) { if (u[i].indexOf(kind + ":") === 0) { return true; } }
+  return false;
+}
+
+// A page matches on its own facets; an insight row matches on its page's facets AND its own
+// (status, sim). A row-level filter also narrows the pages to those holding a matching row.
+function pageMatches(p, f){
+  var t = p.trust || {};
+  if (f.domain && p.domain !== f.domain) { return false; }
+  if (f.layer && p.layer !== f.layer) { return false; }
+  if (f.side && p.side !== f.side) { return false; }
+  if (f.grade === "below_dp") { if (t.grade_floor !== "S" && t.grade_floor !== "A") { return false; } }
+  else if (f.grade && t.grade_floor !== f.grade) { return false; }
+  if (f.verified && t.verified !== f.verified) { return false; }
+  if (f.reads && !readsKind(p, f.reads)) { return false; }
+  return true;
+}
+function rowMatches(r, f){
+  if (f.status && r.status !== f.status) { return false; }
+  if (f.sim === "yes" && !r.from_sim) { return false; }
+  if (f.sim === "no" && r.from_sim) { return false; }
+  return true;
+}
+
+function select(f){
+  var pages = [], rows = [];
+  var slugs = Object.keys(FEED.pages).sort();
+  var rowFilter = !!(f.status || f.sim);
+  for (var i = 0; i < slugs.length; i++) {
+    var p = FEED.pages[slugs[i]];
+    if (!pageMatches(p, f)) { continue; }
+    var hit = 0, ins = p.insights || [];
+    for (var j = 0; j < ins.length; j++) {
+      if (rowMatches(ins[j], f)) { rows.push({ slug: slugs[i], row: ins[j] }); hit++; }
+    }
+    if (!rowFilter || hit) { pages.push(slugs[i]); }
+  }
+  return { pages: pages, rows: rows };
+}
+
+var FEED = null, TITLES = {};
+function title(slug){ return TITLES[slug] || slug.replace(/-/g, " "); }
+function layerBadge(layer){
+  return '<span class="layer-badge layer-' + esc(layer) + '">' + esc(nice(layer)) + "</span>";
+}
+
+function renderBar(f){
+  var keys = Object.keys(FACETS), html = [];
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i], opts = ['<option value="">Any</option>'];
+    for (var j = 0; j < FACETS[k].length; j++) {
+      var v = FACETS[k][j];
+      opts.push('<option value="' + esc(v) + '"' + (f[k] === v ? " selected" : "") + ">" + esc(nice(v)) + "</option>");
+    }
+    html.push('<label>' + esc(LABEL[k]) + '<select data-facet="' + k + '" onchange="pick(this)">' +
+              opts.join("") + "</select></label>");
+  }
+  document.getElementById("facet-bar").innerHTML = html.join("");
+}
+
+function render(f){
+  var s = select(f);
+  var total = Object.keys(FEED.pages).length, allRows = 0, slugs = Object.keys(FEED.pages);
+  for (var i = 0; i < slugs.length; i++) { allRows += (FEED.pages[slugs[i]].insights || []).length; }
+  document.getElementById("facet-counts").textContent =
+    s.pages.length + " of " + total + " pages and " + s.rows.length + " of " + allRows +
+    " insights match." + (Object.keys(f).length ? "" : " No filter is set, so this is everything.");
+
+  var ir = ['<div class="table-scroll"><table class="facets"><tr><th>Insight</th><th>Status</th>' +
+            "<th>Rests on</th><th>What would show it wrong</th><th>Checked</th><th>Next review</th><th>Page</th></tr>"];
+  for (var a = 0; a < s.rows.length; a++) {
+    var r = s.rows[a].row;
+    ir.push("<tr><td" + (r.status === "refuted" ? ' class="st-refuted"' : "") + ">" + esc(r.claim) +
+      (r.from_sim ? ' <span class="layer-badge layer-insight">From our simulation</span>' : "") +
+      '</td><td class="st-' + esc(r.status) + '">' + esc(r.status) + "</td><td>" +
+      esc((r.rests_on || []).join("; ")) + "</td><td>" + esc(r.falsified_by || "") + "</td><td>" +
+      esc(r.checked || "") + "</td><td>" + esc(r.review_by || "") + '</td><td><a href="./' +
+      esc(s.rows[a].slug) + '/">' + esc(title(s.rows[a].slug)) + "</a></td></tr>");
+  }
+  ir.push("</table></div>");
+  document.getElementById("facet-insights").innerHTML = s.rows.length ? ir.join("") :
+    '<p class="muted">No insight matches this filter.</p>';
+
+  var pr = ['<div class="table-scroll"><table class="facets"><tr><th>Page</th><th>Layer</th><th>About</th>' +
+            "<th>Who can know it</th><th>Weakest grade</th><th>Checked at source</th><th>Newest source</th><th>Read by</th></tr>"];
+  for (var b = 0; b < s.pages.length; b++) {
+    var p = FEED.pages[s.pages[b]], t = p.trust || {}, u = p.use || [], n = { world: 0, calibration: 0, supplier: 0 };
+    for (var c = 0; c < u.length; c++) { var kind = u[c].split(":")[0]; if (kind in n) { n[kind]++; } }
+    var reads = [];
+    if (n.world) { reads.push(n.world + " world"); }
+    if (n.calibration) { reads.push(n.calibration + " calibration"); }
+    if (n.supplier) { reads.push(n.supplier + " supplier"); }
+    pr.push('<tr><td><a href="./' + esc(s.pages[b]) + '/">' + esc(title(s.pages[b])) + "</a></td><td>" +
+      layerBadge(p.layer) + "</td><td>" + esc(nice(p.domain)) + "</td><td>" + esc(nice(p.side)) +
+      "</td><td>" + esc(t.grade_floor || "") + "</td><td>" + esc(t.verified || "") + "</td><td>" +
+      esc(t.vintage || "") + "</td><td>" + esc(reads.join(", ") || "none found") + "</td></tr>");
+  }
+  pr.push("</table></div>");
+  document.getElementById("facet-pages").innerHTML = s.pages.length ? pr.join("") :
+    '<p class="muted">No page matches this filter.</p>';
+}
+
+function currentFilter(){ return parseFilter(location.hash); }
+function pick(el){
+  var f = currentFilter(), k = el.getAttribute("data-facet");
+  if (el.value) { f[k] = el.value; } else { delete f[k]; }
+  var parts = [];
+  for (var key in f) { parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(f[key])); }
+  location.hash = parts.join("&");
+}
+window.onhashchange = function () { if (FEED) { var f = currentFilter(); renderBar(f); render(f); } };
+
+fetch("../data/knowledge_wholesale.json?t=" + Date.now())
+  .then(function (r) { return r.json(); })
+  .then(function (w) { var t = (w && w.topics) || []; for (var i = 0; i < t.length; i++) { TITLES[t[i].id] = t[i].title; } })
+  .catch(function () {})
+  .then(function () { return fetch("../data/knowledge_facets.json?t=" + Date.now()); })
+  .then(function (r) { return r.json(); })
+  .then(function (feed) {
+    if (!feed || !feed.pages || !Object.keys(feed.pages).length) { throw new Error("empty facet record"); }
+    FEED = feed;
+    var f = currentFilter();
+    renderBar(f);
+    render(f);
+  })
+  .catch(function () {
+    document.getElementById("facet-counts").textContent =
+      "The facet record could not be loaded, so this page cannot say which pages are knowledge and which are insight.";
+  });
+</script>
+<footer>
+  Reference material. Figures on linked pages carry their own source and vintage.
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">&copy; 2026 Poesys Platforms. All rights reserved.</div>
+</footer>
+<!-- RUN-CLOCK:START (written at publish by tools/generate_dashboard_data.py -- do not hand-edit) -->
+<p class="lf-prov" style="max-width:1060px;margin:24px auto 8px;padding:0 22px;font-size:11.5px;color:var(--muted,#666)">Figures from the run of 2 Nov 2026 &middot; published every Monday <span class="lf-run">(run 0a6391d186_20261102T212232Z; no figure here is typed by hand)</span></p>
+<!-- RUN-CLOCK:END -->
+<!-- SITE-FOOTER:START (rendered from site/ia_register.py -- do not hand-edit) -->
+<p class="site-analytics-notice" style="max-width:1060px;margin:0 auto;padding:10px 20px 24px;text-align:center;font-size:11px;color:var(--muted,#666);">Poesys counts page views with Cloudflare Web Analytics. It sets no cookies and does not track you across sites. <a href="../privacy/" style="color:inherit;">Privacy</a></p>
+<!-- SITE-FOOTER:END -->
+</body>
+</html>
