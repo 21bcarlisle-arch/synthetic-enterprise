@@ -398,3 +398,42 @@ unpaid still comes from the exit model, so no pound moves, only the date. The bi
 drawn like any other. **Direction of error:** this favours the company, because a gone household's paid
 DD now arrives on time. **GAP:** no published share of movers who cancel the mandate before the final
 collection, which would turn some of these into returns followed by payment by another route.
+
+## What a level direct debit must be, and how many households pay one (seat, 4 Nov 2026, N20)
+
+*Gathered from §2 and `what_bill_shock_is.md` for the N20 build (which organ collects a household's
+direct debit). No new source was read; each line cites the passage above it comes from.*
+
+**What the rules and Ofgem's guidance require of a fixed (level) direct debit.**
+- **Its basis (SLC 27.15, since 21 Oct 2022).** The fixed amount "must" be based on "the best and most
+  current information available", including the supplier's estimate of what "has been or will be
+  supplied". It is an estimate of future use, not the last bill. The duty is absolute (§2, third read).
+- **Its review.** The licence sets no review frequency (§2, consultation responses). Ofgem's 2023
+  progress update lists what it secured: more frequent adequacy assessments, an extra review "when a
+  Direct Debit rises beyond a set tolerance", and "Where a consumer is in a credit position, we expect
+  suppliers to reduce the associated Direct Debit level." **GAP:** how often suppliers review (named gap 6).
+- **Refund of credit (SLC 27.16).** On the customer's request, "in a timely manner", unless it is "fair
+  and reasonable in all the circumstances" not to, with reasons given. No day count (named gap 3). Ofgem:
+  "Customers can ask their suppliers for a refund of their net balance at any time."
+- **What it implies.** A level direct debit is collected monthly at a set amount, whatever that month's
+  bill is. The balance builds credit in the warm months and draws it down in the cold ones. That is why
+  Ofgem's credit-balance measure exists and why its Dec 2023 bridge carries a £450m seasonal component.
+
+**What share of direct-debit households pay a level amount.**
+- **Published:** 15 million households paying by fixed direct debit and in credit, year to June 2025
+  (`what_bill_shock_is.md`). Direct debit is 72–74% of GB domestic customers in 2025 (headline table).
+- **Published:** about 29 million domestic electricity customers (Ofgem, 2020, quoted in this repository's
+  restricted-meter pages).
+- **[derived] lower bound:** 15m / (0.72–0.74 × 28–29m) ≈ **70–74%** of direct-debit households pay
+  a level amount. It is a lower bound because the 15m counts only those *in credit* on the date; a
+  fixed-DD household in debit is not in it.
+- **GAP:** the exact fixed/variable split (`what_bill_shock_is.md`, "not settled", item 1). The belief
+  this page states for a build is **a level-amount share of direct-debit households between 0.70 and
+  0.95**. The ceiling below 1 leaves room for the variable-DD households Ofgem's £725m non-fixed-DD
+  credit bridge shows exist. It means **no more than 5–30%** of a book's direct-debit collections should
+  equal the bill they settle, apart from the months a level amount happens to equal its bill.
+
+**Against the simulated world.** On the 4669d77ddd book the page ledger collects **33,996 of 35,306
+(96.3%)** direct debits at the bill they settle. The supplier's balance book sets a level amount for 934
+accounts, but the ledger collects it on 4 collections and 0 accounts. The reading is in
+`docs/staging/records/SEAT_READING_WHICH_ORGAN_IS_THE_DIRECT_DEBIT_ON_THE_4669D77DDD_BOOK_2026-11-04.md`.
