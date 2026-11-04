@@ -22,3 +22,10 @@
 5. **Review insight.** Every insight carries a review date. The cold reader, or an independent reader, challenges insights as well as figures. A refuted insight stays visible, marked refuted, with what refuted it. It is not deleted.
 
 **Sequencing.** The labelling, the trust fields and the audit are drafting work. They can run now, beside the correctness stretch, in the same lane as the corpus work. The no-circularity rule binds immediately.
+
+## Addendum, 08:45 GMT: publish all insight
+
+The director's words, 08:45 GMT: "Publish insights. Don't hold back. It only really me who looks"
+
+**Publish every insight, including insight about the supplier's own strategies.** Hold nothing back for commercial reasons. Label each one as insight, with its status and its trust assessment, as set out above. Refuted insights stay visible.
+
