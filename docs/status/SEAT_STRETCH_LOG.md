@@ -8,6 +8,57 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-04 — orientation: Against the thesis, nothing moved
+
+<!-- head: 5200cd62396b -->
+
+*Written by the orientation seat from its own record (2026-11-04T21:23:50.675033+00:00; 9 commits, 4 substantive, since 2026-11-04T18:20:55.366609+00:00).*
+
+Commit split (product code by path): 0 supplier, 3 world, 0 both, 6 other.
+
+## What the stretch meant
+
+Against the thesis, nothing moved. No per-customer decision changed, the renewal belief still ranks leavers backwards, and the stretch landed 0 supplier commits against 3 world commits. The supplier-first order was not kept in what landed. It was kept in what is in flight: the N20 level-direct-debit build is in a live surgical_land (pid 1650693). That same landing holds saas/ledger.py and DOMAIN_INVARIANTS.yaml, which is why the draw refused items 3 and 4 twice each. The refusals are correct (the holder is doing adjacent work in the same files), so those items were blocked, not passed over. The world commits were not drift. c07e8ccce (77 electricity-only homes drawn with gas, oil or a heat pump carried storage heating) and 75156811e (legacy premises registered at their drawn band rather than on their own reads) are the traced causes of the estimated-run gate row. The seven-gate-rows finding answers all three of its asks at 75156811ef. The carbon 14 -> 12 move is explained row by row: two rows left with 604g's released July bill, and the 12 that remain are held bills on over-heated homes, which the billing gate is right to hold. That closes last stretch's unexplained-move row. The a6b7a0fd47 book grades 138 unexcepted breaches over 6 rows. It was cut before 514e2015b and 8befb331b, so it could not test the overdue prediction my last record asked it to test. That is my error, and the worker caught it. N21 reads 15.50% on that book, inside the pre-registered 15.0-16.0%, so N18 raised the margin as predicted. The margin is still a figure the company cannot earn, because the GBP 55 placeholder is untouched. That remains the thesis's most serious defect, and it goes first. The book that matters is now running. sim-runner launched run_annual_report at 5200cd6239 (21:10Z, docs/reports/run_output_5200cd6239_20261104T211046Z.json). It carries every in-loop fix: 7ec8b1030d, N18, 514e2015b, 8befb331b, c07e8ccce and 75156811e. The continuation electric-heated-homes-eac-double-count-and-the-fresh-grade owns its grade against the filed predictions (est-run 5-18, carbon 10, revenue 3), so the grade is not in focus, to avoid a second writer. It does not carry N20 or the 11-breach overdue landing (pid 1581071). The promote unit for a6b7a0fd47 died at import: its hand-written promote.sh ran sim_runner without SE_NTFY_TOPIC. The book reached run_output_latest.json anyway. This is an instance of an accepted class, not a new row. The executor pilot's verdict is ready and reads REVERT: Sonnet lands 64% against 81% and reworks 54% against 40%, although it is cheaper per landed item. I am letting its window close on 6 Nov rather than extending it. Of the previous focus, 2 of 5 were drawn: two were refused on a held path, and N17 was not reached again.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. No policy carries the rebuilt belief, and it is in not_now under the 26 Oct ruling.
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: The triage owner landed (8befb331b: a settlement pays what is left on its bill). It is not graded on a book yet. The 5200cd6239 book is the first to carry it.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. No cold read ran this stretch.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the second time in two stretches. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. The seven-gate-rows redraw was released to a named successor, which is the honest shape, but nothing yet enforces it. Item 2 checks N20 against origin by hand.
+- NOT corrected: THE MACHINE'S, NEW. The naive organ has asked no question since 2026-08-10T07:48Z. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged.
+- NOT corrected: THE MACHINE'S, NEW. The publisher refused 15 times on a scoped-suite red that was a full 12 GB /tmp of probe scratch under free names. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged.
+- NOT corrected: THE MACHINE'S, NEW. The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. Read the 5200cd6239 book's ledger size when it ends.
+- NOT corrected: THE MACHINE'S, NEW. A hand re-offer of a refused run marker was deleted before any publisher read it. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. No re-offer was attempted.
+- NOT corrected: THE COMPANY'S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged since partial. 5 catch-ups and 2 gas legs stay uncapped (the period end is tested, not the issue date). It is in not_now.
+- NOT corrected: THE MACHINE'S, NEW. The orienting seat did not run for 24 hours (3 Nov 09:23Z to 4 Nov 06:25Z), and nothing reached the director. 21:23 4 Nov: Unchanged. The seat ran on time, and the watchdog has still not been seen to fire on a stall.
+- NOT corrected: THE COMPANY'S OR THE PAGES', NEW. A correctness fix put a new regression on the page: INV_OVERDUE_WITHIN_PAGE_BALANCE reads 128 on b3ce2a4e73, against 0 on 85b044be54. 21:23 4 Nov: Partly corrected. 514e2015b (78) and 8befb331b (39) are on origin, and the last 11 are in a live landing (pid 1581071). It reads 64 on a6b7a0fd47, which carries neither fix. It is graded on the 5200cd6239 book by the continuation.
+- NOT corrected: THE COMPANY'S, NEW (N20). The direct debit is the bill: 96.8% of DD payments equal their invoice, while the balance book models a level DD. 21:23 4 Nov: The build is in a live surgical_land (pid 1650693) and not on origin. It is focus item 2.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 21:23 4 Nov: Not worked. It is item 4, and the running book tests 7ec8b1030d as its cause.
+- NOT corrected: THE PAGES', NEW (N21). The pages publish a 14.5% margin after cost to serve, against the library's 2-5%. 21:23 4 Nov: It reads 15.50% on a6b7a0fd47 (N18 raised it, as predicted). Not fixed: it was refused on a held saas/ledger.py. It is focus item 1.
+- NOT corrected: THE PAGES', NEW. N15 and N16 survive on the six-stage household page: its tariff name and bill tally read the old way. 21:23 4 Nov: Half corrected. The tariff label was refused on a held DOMAIN_INVARIANTS.yaml. It is focus item 3.
+- corrected: THE MACHINE'S, NEW. The 6f9976757 prediction that "no other row moves" was wrong: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL fell from 14 to 12 and nobody has explained why. 21:23 4 Nov: Corrected (explained). Traced row by row in the seven-gate-rows finding: the 2 rows that left were 604g's released July bill, and the 12 that remain are held bills on over-heated homes that the gate rightly holds. The wrong prediction stays beside the claim.
+- corrected: MINE, NEW. The 18:20 record told item 1 to grade the a6b7a0fd47 book against "the overdue row falls by the 78", but that run was cut before 514e2015b and 8befb331b, so the prediction could not apply to it. 21:23 4 Nov: Corrected. The worker named this in the grade table, and the 5200cd6239 book carries both fixes.
+
+## Chosen against
+
+- A focus row to grade the 5200cd6239 book against the seven-gate-rows predictions.
+- The overdue row's last 11 breaches.
+- Cutting another fresh run to carry N20 and the 11-breach overdue fix before 9 Nov.
+- Ending the executor pilot early on its REVERT verdict.
+- Carrying the rebuilt renewal belief into a policy, or any other new per-customer lever.
+- N21's gaps 3, 4, 6 and 7, the catch-up cap on the issue date, the gzip ledger, aging out probe scratch, and reaping the at-risk worktrees.
+- The OPS and SITE atoms in the stall census.
+
+## Focus for the next stretch
+
+- `the-company-is-charged-its-real-cost-to-serve`
+- `the-ledger-collects-the-level-direct-debit`
+- `the-household-page-prints-the-billed-term`
+- `which-side-holds-electricity-use-flat`
+
+---
+
 ## 2026-11-04 — orientation: The steer held: four of the five items were drawn and every one landed work
 
 <!-- head: af33608f4988 -->
