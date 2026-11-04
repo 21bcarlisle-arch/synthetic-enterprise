@@ -1,869 +1,244 @@
 version: 1
-oriented_at: '2026-11-03T06:21:01.733173+00:00'
-thesis_read: 'The supplier-first item was answered, and the correctness stretch did not exit. 1eaf19d78 settled
-  the debt-after-the-last-rung question knowledge first: a supplier may act on a stale arrears balance but need
-  not, and on the published book 0 of 35 accounts holding a bill more than a year overdue went 12 months without
-  a desk act, so no step was built. That is a supplier decision recorded with its reason, and the brief counts it
-  as ''other''. The seventh cold read (3ba98b87b), in a new trade (consumer protection and collections), graded
-  leg one met as the gate reads it, and legs two and three not met. It found three new classes, and two are supplier
-  defects a real customer would feel. N14: 8 pay-on-receipt customers were back-billed beyond 12 months, GBP 111
-  in all, because billing reads an undated payment method. N15: the desk told 222 accounts that they had missed
-  a bill they paid. N16: the Explore tariff label ignores the term in force, so the renewal slot tells a four-year
-  SVT customer that their fix is ending. The storage slot tests a meter, not heating. So the exit test is further
-  away than the 03:20 record implied. Its own leg one is green only because no invariant row asks N14-N16, which
-  is the instrument''s blindness again: the reader missed N14, and only the seat''s named check found it. Two machine
-  fixes landed. 4f7468e1d makes a billing landing run tests/company/billing whole, so its triage row is retired
-  as fixed and leaves wrong. Its simulation half is deliberately not built (13 of 79 importers took 1,447s). d3888b81b
-  stops the sim-runner tests clobbering the live dashboard. d56b52dee explained the naive organ''s silence: 104
-  open questions hold its debounce. It is readable now, not repaired. Against the thesis, nothing moved. No per-customer
-  decision exists that a flat-rule baseline could fail to make, and the live renewal belief still ranks leavers
-  backwards. The split was 0 supplier, 4 world and 20 other of 24, with 8 no-work merges. The world''s 4 were the
-  weather store: N13''s HDD rebuild and three ERA5 increments, which is fidelity work owed under the ruling. But
-  zero supplier commits is a stretch that went sideways for the company, and the supplier''s work this stretch was
-  a read and a knowledge page. Of the previous focus, 4 of 5 were drawn and finished. The fifth (the last two notices
-  before the miss) was not drawn, for the second stretch running at the tail. It now sits in not_now behind N15,
-  which is the same file and the larger instance. This record puts the two supplier defects first, the page label
-  third, and the three blind invariant rows the ruling owes fourth, so a fresh run can grade all of them, and N13''s
-  HDD rebuild, at once. Two loose ends. The ERA5 pull needs one run per UTC day for about eight days, and nothing
-  owns it, because its continuation retired at 05:22Z. It feeds only fabric eligibility, so it is in not_now. The
-  at-risk worktrees are unchanged, plus a new unlocked fork salvage (agent-a2883773f258c8d08, 05:01Z) that nobody
-  has read.'
+oriented_at: "2026-11-04T15:23:14.496579+00:00"
+thesis_read: >-
+  Fixes kept landing, and the exit test has not moved. The last accepted record is 09:21. The 12:23 record was
+  refused because one lane was an atom id, but its items were worked anyway. Of its five items, two landed. The
+  DD balance book now reads the dated spells (4669d77dd), which moves GBP 2,475.43 of review bars that sat off
+  DD. N18 is closed (667a12d10, 6a026b67d): the world's 2016-2018 default bills now meet Ofgem's published ones
+  (GBP 1,068 / 1,115 / 1,173 against 1,071 / 1,117 / 1,175), and the N18 row (818fee571) fires on the old book.
+  The 12:23 record called N18 the company's. That was wrong: it was the world's SVT table, and the row in `wrong`
+  says so. N15 is corrected on the book. The blind row reads 0 of 1,234 re-offers on the first post-ba868134c book
+  (796808ace), as pre-registered. It survives only on the household page's bill tally, and continuation
+  n15-page-bill-tally-counts-credit-as-missed holds that fix as 77c6bb11f in /var/tmp/se-seat-executor. That commit
+  is not on origin, so it is the at-risk shape that `wrong` already carries. N13 stays corrected (92e949025: 10 of
+  2,387 gas pairs repeat, against 1,635 of 4,413). No new in-place advisor edit is known: both 4 Nov knowledge steers
+  moved to advisor/done/ in their closing commit (e65298c5f), so that row is corrected. Three items were not touched:
+  the seven gate rows, N19's false cap breaches and N17's flat electricity. Two of them are legs one and two of the
+  exit test, and the 9 Nov publish is the gate's next refusal. Against the thesis, this stretch moved the world
+  closer to the published record, and it made no per-customer decision that a flat baseline could fail to make.
+  The renewal belief still ranks leavers backwards. N18 also raises 2017 and 2018 revenue, so N21's 14.5% margin
+  will probably get worse, not better, and nothing has measured it. The commit_split is 1 supplier, 3 world and
+  20 other. Supplier grading counts as other, but even so, 3 world fixes to 1 supplier fix is the wrong way round,
+  and this focus puts four supplier items ahead of the one world item. Six commits carried no work, all of them
+  automatic merges, and each focus item landed around them, so this is noise and not a stall. No book on origin
+  yet carries N18, so this focus owns a fresh run before the window.
 stretch_reviewed:
-  since: '2026-11-03T03:20:03.622835+00:00'
+  since: "2026-11-04T09:21:08.759110+00:00"
   commits: 24
-  substantive: 9
+  substantive: 12
 focus:
-- id: n14-back-billing-reads-the-payment-method-on-the-bill-date
+- id: the-seven-gate-rows-on-the-newest-book
   lane: D_billing_metering
   side: supplier
-  what: 'Close N14 (docs/staging/SEAT_FINDING_THE_SEVENTH_COLD_READ_FINDS_PAY_ON_RECEIPT_CUSTOMERS_BACK_BILLED_BEYOND_TWELVE_MONTHS_ON_A_DIRECT_DEBIT_THEY_CANCELLED_2026-11-03.md).
-    First, check origin for the W2_41 mandate-cancel landing (surgical_land pid 933878 at the brief).
-    It touches the same mid-tenure direct-debit cancellation, so build on it and do not race it. Measure
-    first: for each of the 8 pay-on-receipt catch-ups (start with PROS-2018-0016), print what payment_channel_feed
-    answered, the method on the account''s ledger payments around the bill date, and which back-billing
-    basis company/billing/monthly_bill_assembly.py (BASIS_DD_AT_RECOVERY_ACTION, line 507) took. Then
-    read docs/market_research/back_billing_and_liability.md and SLC 21BA in docs/domain_artefact_library/,
-    and write on that page what the supplier knows about how an account pays on a given date (its own
-    mandate and payment records), with any GAP labelled (K8). Fix the side the trace names, so that a
-    catch-up on an account paying on receipt at the bill date is capped at 12 months. Add a test that
-    reds on today''s code. Leave the side to the trace: the undated simulated_payment_channel answer is
-    the suspect, not the verdict.'
-  why: 'It is a real back-billing breach: a supplier charging energy SLC 21BA bars, to customers who paid
-    it. It blocks the exit test as a new class. Done means the trace is printed in the commit or a record,
-    the knowledge page says what is known about the dated payment method, and the fix and its red-on-today
-    test are on origin, or the record shows why the 8 are lawful.'
-  written_at: 1793687238.507
-- id: n15-a-re-offer-follows-a-missed-bill-not-a-standing-arrear
-  lane: C_customer_ops
-  side: supplier
-  what: 'Close N15 (docs/staging/SEAT_FINDING_THE_SEVENTH_COLD_READ_FINDS_THE_DESK_REPORTS_A_FURTHER_BILL_MISSED_AFTER_A_BILL_PAID_IN_FULL_2026-11-03.md).
-    Measure first: for PROS-2017-0233''s 31 Oct 2017 bill, print the first_paid the desk held on 15 Nov,
-    and how company/billing/collections_journey.py (bill_missed at line 98, the re-offer at line 484)
-    allocated the 14 Nov collection, oldest-first or to the bill. Then print, book-wide on the published
-    0a6391d186 pages, how many of the 3,772 re-offers after a paid bill share that cause. Read SLC 27
-    and the Standards of Conduct in docs/domain_artefact_library/ and docs/market_research/company_debt_management.md
-    on allocation and accurate contact, and write what a supplier does on that page first (K8). Fix the
-    side the trace names, so that the desk does not report a miss where the bill was paid on its date.
-    Add a test that reds on today''s code. Leave the standing arrear itself alone (1eaf19d78 recorded
-    that choice).'
-  why: It tells customers who paid on time that they missed a bill, on 57% of re-offers, which is a complaint
-    in itself and a new class that blocks the exit test. Done means the cause is measured, the knowledge
-    page states the allocation and contact rule, and the fix and its red-on-today test are on origin.
-  written_at: 1793687238.507
-- id: n16-the-explore-label-reads-the-term-in-force-and-the-storage-slot-reads-heating
-  lane: H_harness
-  side: other
-  what: 'Close N16 (docs/staging/SEAT_FINDING_THE_SEVENTH_COLD_READ_FINDS_THE_EXPLORE_TARIFF_LABEL_IGNORES_THE_TERM_IN_FORCE_2026-11-03.md).
-    In tools/generate_explore_cast.py, make the customer label (line 497), on_fix (line 543) and the back-office
-    ''Fixed at ... from ...'' (line 395) read the bill''s term_tariff_type at the moment''s date, and
-    make the renewal slot''s copy say ''Your fixed tariff is ending'' only when a fixed term ends. Print
-    the 22-moment agreement table before and after (3 of 22 agree today). Give the storage_heating slot
-    a heating predicate from the knowledge layer, not a meter one: read docs/market_research/ for storage-heating
-    consumption and night share before choosing it. Leave the slot honestly empty, with the failing check
-    named, if no household passes. Add a door test that reds on today''s page. Then regenerate site/data/explore_cast.json,
-    which ships on push (98caf4510 did the same).'
-  why: It makes the live renewal slot tell an SVT customer that their fix is ending, and the storage slot
-    shows a meter rather than heating, so leg two of the exit test fails on two slots. It may also re-diagnose
-    what every read called 'a fix billed at the cap'. Done means the regenerated cast is on origin, with
-    22 of 22 labels agreeing with the billed term or an honest gap, and the storage slot valid or honestly
-    empty.
-  written_at: 1793687238.507
-- id: three-blind-invariant-rows-for-n14-n15-n16
+  what: 'Close docs/staging/SEAT_FINDING_THE_B3CE2A4E73_BOOK_FAILS_THE_DOMAIN_INVARIANT_GATE_ON_SEVEN_ROWS_2026-11-04.md.
+    First re-run tools/domain_invariant_runner.py on the newest graded book (the 4669d77ddd run, marker
+    done/run_complete_20261104T132452Z.md) and print the seven rows beside the b3ce2a4e73 counts, because
+    ba868134c and 4669d77dd may have moved them. Then start with INV_OVERDUE_WITHIN_PAGE_BALANCE (128
+    on b3ce2a4e73, 0 on 85b044be54; for example, OCC-75d17c23c1da prints GBP 336.84 overdue against a
+    GBP 273.62 balance on re-offer steps). Before tracing, write down the prediction that the steps 6a3da3e48
+    and ba868134c now keep are the ones whose standing arrear is larger than the page balance. Trace company/billing/collections_journey.py
+    against the page''s overdue figure and fix whichever side is wrong. Add a test that reds on today''s
+    code and asserts the partition: a step whose overdue is within the balance still prints. Next, take
+    INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER (53) against the finding''s pre-registered split, then
+    the revenue rows, re-graded from built pages and not per_customer_lifetime. Trace SYN-2016-604g''s
+    three rows once, as one gas-leg gap. Land each row''s fix as soon as it is proven. Do not hand-publish.'
+  why: The gate is leg one of the exit test, and it will refuse the 9 Nov publish. The 128 is a regression
+    that a correctness fix introduced, so the desk may be printing more overdue than a household owes.
+    Done means each of the seven rows reads 0 on a replay of the newest book, or carries a named, dated
+    exception with a traced cause, and the finding is in done/ with the counts.
+  written_at: 1793806129.402
+- id: two-register-bills-graded-against-the-multi-register-cap
   lane: D_billing_metering
-  side: other
-  what: 'The ruling''s step 6 owes three rows in company/compliance/domain_invariants.py, written by an
-    agent that has not read the code under test, from docs/market_research/back_billing_and_liability.md,
-    company_debt_management.md and the tariff knowledge pages only. The rows are: a catch-up on an account
-    paying on receipt at the bill date that recovers more than 12 months is a BREACH, not a flag (it supersedes
-    INV_BACK_BILLING_12M''s flag for that case); a ''further bill missed'' collections event must follow
-    a bill not paid by its due date; and a printed tariff label must agree with the billed term at the
-    same date (graded on site/data/explore_cast.json and the customer pages, since the runner cannot see
-    the page). Each row cites its source. First show that each row CAN fire: run it on the published 0a6391d186
-    book and print its breach count (expect 8, about 3,772 and 19 on today''s book). Land the rows whatever
-    the order of items 1 to 3. A row that reds origin''s book is the evidence, so give it a named, dated
-    exception until its fix lands, rather than holding the row back.'
-  why: Leg one of the exit test reads green only because no row asks these three questions, and the ruling
-    turns each confirmed objection into a row so that the next book is graded on it. Done means the three
-    rows are on origin, each with its source and a printed non-zero count on the published book, and a
-    fresh run grades them.
-  written_at: 1793687238.507
+  side: supplier
+  what: 'Close docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_TWO_REGISTER_DEFAULT_BILLS_GRADED_AGAINST_THE_SINGLE_RATE_CAP_SO_THE_PAGE_PRINTS_FALSE_CAP_BREACHES_2026-11-04.md
+    (N19). Knowledge first (K8): on the price-cap page under docs/market_research/, state what SLC 28AD
+    and the cap methodology publish for the multi-register (Economy 7) ceiling and its split convention,
+    with the source, and label any GAP. Then make default_tariff_invoice_excess_p_per_kwh in company/compliance/domain_invariants.py
+    grade a profile-class-2 bill against the multi-register cap at the bill''s own register split. Add
+    a test that reds on today''s code, and assert first that a real single-rate breach still fires. Print
+    the before and after counts on the newest book (626 recorded excesses on b3ce2a4e73, all PC2). Regenerate
+    the cast with tools/generate_explore_cast.py, and show that the renewal slot (SYN-2016-592) and the
+    storage slot (PROS-2020-0189) no longer print a breach. Read SEAT_FINDING_A_PRINTED_ECONOMY_7_BILL_SHOWS_A_1_5P_NIGHT_RATE_2026-11-03.md
+    on the same pass, and if it is the same register question, close it with this one.'
+  why: It is leg two of the exit test. Two of the eight slots tell a reader the company broke the cap
+    when it did not, and the page is the only thing the director reads. Done means the knowledge section,
+    the fix and its red-on-today test are on origin with the counts printed, and both slots read clean
+    in the regenerated cast.
+  written_at: 1793806129.402
+- id: which-organ-is-the-direct-debit
+  lane: D_billing_metering
+  side: supplier
+  what: 'Read N20 (docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_THE_LEDGER_COLLECTS_NINETY_SEVEN_PERCENT_OF_DIRECT_DEBITS_AT_EXACTLY_THE_BILL_2026-11-04.md:
+    33,992 of 35,122 DD payments equal their invoice) against simulation/dd_balance_book.py, which since
+    4669d77dd reads the same dated spells. In a record under docs/staging/records/, say which organ collects
+    the cash a household''s bank pays (the ledger''s per-bill collection, or the balance book''s level
+    amount), and which one only narrates. Print, for the newest book, how many DD accounts the balance
+    book sets a level amount for against how many the ledger collects a level amount from. Knowledge first:
+    in docs/market_research/, state what Ofgem''s DD guidance and SLC 27 say a level DD must be (review,
+    refund of credit, the amount''s basis), and label the share of GB DD households on a level amount
+    as published or GAP. End the record with a build design for making the level amount the one collected,
+    set out as a slice of D_billing_metering with its own red-on-today test named. Do not build it in
+    this item.'
+  why: Cash flow is half of M3''s money, and certainty and control are peace of mind. A ledger that collects
+    the bill and a balance book that models a level DD cannot both be the company''s DD, so every cash-flow
+    and bill-shock figure reads one organ while the household lives in the other. The 12:23 item asked
+    for this reading, and 4669d77dd landed without it. Done means the record names the organ, the counts
+    and knowledge section are on origin, and the build slice is filed.
+  written_at: 1793806129.402
+- id: a-fresh-book-carrying-n18-and-the-margin-decomposed
+  lane: E_finance_treasury
+  side: supplier
+  what: When items 1 and 2 have landed, or at 2026-11-07T18:00Z if they have not, launch one fresh run
+    on origin HEAD through tools.launch_long_job, so that the 9 Nov publish carries N18 (6a026b67d), the
+    DD spells (4669d77dd) and the desk fix (ba868134c). Check that no run is already in flight first.
+    Before it finishes, pre-register in a record what N21's margin after cost to serve (14.5% on b3ce2a4e73,
+    against 2-5% in the library) will read on it, and say whether N18 raises it. Then close or advance
+    docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_THE_PAGES_PUBLISH_A_FOURTEEN_PERCENT_MARGIN_AFTER_COST_TO_SERVE_AGAINST_THE_LIBRARYS_TWO_TO_FIVE_2026-11-04.md.
+    Before dividing, say what the numerator and denominator count. Lay the book's cost lines beside the
+    library's cost stack (wholesale, network, policy, operating, bad debt, depreciation, EBIT) in the
+    market research doc the finding cites. Name each line that is missing or defined differently, and
+    say for each one whether it is a definition difference on the page or a cost the company does not
+    bear.
+  why: A margin several times the industry's is either a missing cost or transferred value (M2), and the
+    CLV every per-customer decision is graded on inherits it. N18 lands more revenue on the same costs,
+    so the next book will probably read higher still. Done means the run is finished and offered to the
+    publisher, the prediction sits beside the result, and each gap in the cost stack is named with a fix
+    filed against its owner.
+  written_at: 1793806129.402
+- id: which-side-holds-electricity-use-flat
+  lane: W2_customer_generator
+  side: world
+  unblocks: Leg three of the correctness exit test, and every annual-use estimate, forecast and CLV the
+    supplier forms from a household's metered electricity history.
+  what: 'Measure before fixing, as for N13: docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_METERED_ELECTRICITY_USE_BARELY_MOVES_FROM_ONE_YEAR_TO_THE_NEXT_2026-11-04.md
+    (N17: median same-month change 1.1%, against NEED''s 14.7%; 48.6% of 5,179 pairs under 1%). Pre-register
+    in a record which side you expect. Then split the b3ce2a4e73 pairs into the world''s true use and
+    the billed read, by OCC, SYN and PROS. Name the side in a commit. If it is the world, cite the year-on-year
+    variance in docs/market_research/ and file the fix as a slice of W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape.
+    If it is the company, fix the estimator with a red-on-today test.'
+  why: A world where use never moves gives the supplier nothing to infer, so no per-customer forecast
+    can beat the flat baseline on it. Done means the side is named with the split printed, and the fix
+    is either filed against the owning atom or on origin.
+  written_at: 1793806129.402
 not_now:
-- what: the-last-two-notices-before-the-miss-traced (last record's item 5).
-  why: 'It was not drawn for the second stretch running at the tail. N15 is the same file, collections_journey.py,
-    and the larger instance of the desk narrating what the record contradicts: 3,772 events against 2 households,
-    both already refused by the slot''s predicate. It returns once N15 lands, because that fix may change both refusals.'
-- what: 'The naive organ''s backlog pass: answer the open questions LATEST.md still raises, and mark the rest as
-    misses so the debounce releases.'
-  why: d56b52dee made the silence readable (11 fired, 11 already open, backlog 104), so it can no longer be mistaken
-    for the twelve-week fault. It does not hold the exit test and loses to two supplier defects. It returns when
-    the exit test holds, or sooner if a worker has a spare window.
-- what: A focus item for the daily ERA5 pull (tools/build_weather_world --build --no-temperature once per UTC day,
-    about eight days for 440 cells).
-  why: It feeds fabric-path eligibility, not the HDD leg that N13 turned on, so no supplier result waits on it.
-    A focus item is drawn once, and this needs one run a day. It returns when a fabric-path result is being graded,
-    or when someone gives it a scheduled owner.
-- what: Carrying the corrected renewal belief into a policy.
-  why: 'The correctness ruling''s exit test is not met: the seventh read found three new classes. A lever graded
-    on a book that back-bills unlawfully and mislabels tariffs would be graded on defects.'
-- what: a-settlement-repays-what-is-left-on-its-bill (simulation/world_payment_truth.repayment_rows and background/live_payment_triad._cross_settlement).
-  why: The debt slot is filled validly without it, and the only debt result it corrects is not read before the exit
-    test. It loses to N14 and N15, which are the supplier's own acts.
-- what: The simulation half of the test-selection fix (run every tests/simulation file that imports a changed module).
-  why: 'a3e5bc75a measured it: 13 of 79 importers took 1,447s, and the recorded simulation red passes alone, so
-    its cost is known and its benefit is not. The billing half, which caught the real publish refusal, is built.'
-- what: The durable fix for the billing ledger's size (a committed gzip read through one helper).
-  why: The published ledger is 91.2 MB, and the size refusal fires by name. It returns when a ledger is measured
-    above 95 MB.
-- what: Working the four value-test defects the design read calls 'fixes inside your frame'.
-  why: The open row the-design-read-of-the-value-test proposes they land with the director's amendment in one pass.
-    Landing them first would pre-empt his ruling.
-- what: Reaping the at-risk worktrees, including the new unlocked fork salvage agent-a2883773f258c8d08 (f180d69ee,
-    05:01Z).
-  why: Reaping is irreversible and none of them blocks focus. Each needs a read against origin first. The new salvage
-    is unlocked, so it is the one a reaper would take, and it should be read before any reap.
+  - what: Carrying the rebuilt renewal belief into a policy, or any other new per-customer lever.
+    why: The director's 26 Oct ruling holds feature work until the correctness exit is met, and all three legs failed
+      on the last book. A lever graded now would be graded on a margin nobody has explained (N21) and on a DD form no
+      supplier runs (N20).
+  - what: Building the level-DD collection form now (N20's fix).
+    why: Item 3 first establishes which organ is the DD and what the rules require. Rebuilding the cash-flow measure
+      on an unestablished reading would be a number picked because a number was needed.
+  - what: N15 and N16 on the six-stage household page as a focus item.
+    why: Continuation n15-page-bill-tally-counts-credit-as-missed holds it, and its commit 77c6bb11f is landing. A focus
+      row would be a second writer. If it is retired without that commit on origin, it comes back as a focus item.
+  - what: The catch-up cap tested against the period end, not the issue date (5 uncapped catch-ups and 2 gas legs).
+    why: It is real and small, and its finding is on file and drawable. The gate rows would refuse the whole book,
+      so they go first.
+  - what: The debt slot's three 'cleared while owed' households (PROS-2020-0191, SYN-2016-066, SYN-2016-380).
+    why: The slot is filled validly without them, and two of the three may share the overdue regression's cause. They
+      are re-read after item 1 lands.
+  - what: Reaping the at-risk worktrees, the gzip ledger, aging out free-named probe scratch, and the naive organ's backlog.
+    why: None of them holds the exit test, and reaping cannot be undone. The ledger is at 84 MB, so it has room for
+      the next book. edfe62eef in /var/tmp/se-direction-seat is the 09:21 direction, which this record supersedes, so
+      it is disposable.
+  - what: The OPS6/OPS7/OPS8 publish-path atoms and the SITE atoms that the stall census lists.
+    why: Their file_scopes are taking commits under other ids, so the counter is stale, and the work is not. None of
+      them is a correctness leg.
 wrong:
-- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards. On
-    268 desk states from 2019 it reads AUC 0.333, and its mean is 0.193 on end-of-fix rolls, where 40 of 92 households
-    leave, against 0.378 on the other rolls, where 6 of 176 leave. The company holds each term''s tariff type before
-    the roll and does not use it (7dc923787, 7eb9f2695). Focus item 1 rebuilds it. 23:20: The fix is built, default
-    off (7a7ad95dc): 0.819 [0.757, 0.877] out of sample from 2019, and 0.819 in the run (f16695c2a). It stays false,
-    because no policy carries it yet, and its first-year multiplier defect is graded by section 12, which is running.
-    02:22: Section 12 graded (a7fc5c728): with the prior, the in-run AUC is 0.806 [0.745, 0.860]. It stays false
-    because no policy carries it yet. The seeds are queued, behind item 2''s money split. 05:22: Unchanged. Section
-    14''s four dice seeds are running (seed 1''s all_on_save_odds arm is live), and no policy carries the belief
-    yet. 08:24: Unchanged. Section 14 seed 1 is void (P14a: flat departed 353, the same as the default), so seed
-    5 replaces it, and seed 2 is running. No seed is graded, and no policy carries the belief. 11:21: Seed 2 graded
-    (6f1c336e2), and the grader corrected (9fc114520): ending_term minus flat parity is +GBP 2,866. Seed 3 is running,
-    and seeds 4 and 5 are to come. No policy carries the belief. 14:20: Seed 3 finished at 13:54Z, and all three
-    arm files are on disk. It is not graded; its continuation is now drawable. Seeds 4 and 5 are to come, and no
-    policy carries the belief. 17:20: Seed 3 graded valid (2644ea3ab, P14a'' symdiff 113): ending_term minus flat
-    is +GBP 3,026 on departures and +GBP 594 on parity, and P14b and P14c held. Two valid seeds now agree in sign.
-    Seed 4 is running (flat done, all_on_ending_term live), and seed 5 is to come. No policy carries the belief.
-    20:24: Seed 4 graded valid (706bbbc1e, P14a'' symdiff 119): ending_term minus flat is +GBP 7,946 on departures
-    but -GBP 140 on parity, so P14b is the wrong sign on this seed. Across three seeds the net is +2,140 +/- 1,887.
-    Seed 5 is running (flat done, all_on_ending_term live), and its grade is queued on the .rc. Section 17 (1044c8fe0)
-    found that the belief''s only act is the offer. No policy carries it. 08:23: Seed 5''s three arms finished by
-    22:50Z and are not graded: grade-section-14-seed-5-the-four-seed-grade was drawn and landed nothing. Focus item
-    2 grades it. No policy carries the belief. 11:23: Seed 5 graded and the four-seed grade written (427e5f021):
-    mean net +GBP 1,556, but the departure interval is [-GBP 1,306, +GBP 8,542], so the pre-registered rule is not
-    met and the switch stays off. The corrected belief is built and graded, and no policy carries it, so the company''s
-    live renewal belief still ranks leavers backwards. 14:20: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. 17:24: Unchanged. No policy carries the corrected
-    belief. 20:21: Unchanged. No policy carries the corrected belief. 23:24: Unchanged. No policy carries the corrected
-    belief. 49a577707 adds that the four-seed grade ran on books with over-cap bills in both arms, so its pound
-    differences are not trusted until the fresh run is graded. 02:24: Unchanged, but its blocker has moved. d909b6933
-    graded the fresh run, and over-cap bills fell from 29.8% to 0.42% of graded default-tariff invoices. So the
-    corrected belief''s grade can be re-taken on a clean book. That is focus item 3. No policy carries it yet. 05:24:
-    Unchanged. The clean-book re-take is pre-registered (6891c01e2) and launched (s14clean-driver, 05:05Z), but
-    it has computed nothing: it waits on the C30 arms, which wait on memory (focus item 1). No policy carries the
-    corrected belief. 08:24: Unchanged. The clean-book re-take is computing now: seed 2''s flat arm finished at
-    07:38Z and all_on_ending_term is live, with seeds 3 to 5 to follow. No policy carries the corrected belief.
-    11:22: Unchanged. The clean-book re-take finished seeds 2 and 3, and seed 4''s flat arm is live (11:17Z). The
-    grade is about 4 arm-hours away. No policy carries the corrected belief. 14:20: Unchanged. The clean-book re-take
-    finished seed 4 (flat by 12:24Z, all_on_ending_term by 13:19Z), and seed 5''s flat arm has been live since 13:27Z,
-    so the grade is about 2 arm-hours away and rearm.py hands it off. No policy carries the corrected belief. 17:20:
-    Unchanged, but the clean-book re-take is on disk and not graded. /var/tmp/se-s14clean-out/grade.txt (grade.rc=0,
-    16:36 BST) gives ending_term minus flat across 4 seeds as net +GBP 2,781 +/- 2,277 and departures net +GBP 2,852
-    +/- 3,414, so the departure interval still spans zero. grade-section-14-on-the-clean-book is now drawable and
-    grades it against the pre-registration. No policy carries the corrected belief. 20:20: Unchanged. 5cdb72eb3
-    graded section 14''s clean-book re-take against its pre-registration, and the switch stays off: mean net clears
-    zero, but the departure interval still straddles it. The corrected belief is built and graded twice, and no
-    policy carries it, so the live renewal belief still ranks leavers backwards. 23:24: Unchanged. No policy carries
-    the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead
-    of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief, so the live renewal
-    belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 06:22:
-    Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
-    The ruling puts the basics ahead of levers, so it is not in focus. 09:20: Unchanged. No policy carries the corrected
-    belief, so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers,
-    so it is not in focus. 12:23: Unchanged. No policy carries the corrected belief, so the live renewal belief
-    still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 15:22: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling
-    puts the basics ahead of levers, so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it
-    is not in focus. 21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still
-    ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 00:20: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling
-    puts the basics ahead of levers, so it is not in focus. 03:21: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it
-    is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still
-    ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 09:24: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The ruling
-    puts the basics ahead of levers, so it is not in focus. 12:24: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The ruling puts the basics ahead of levers, so it
-    is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still
-    ranks leavers backwards. The ruling puts the basics ahead of levers, and today''s site steer is ahead of both,
-    so it is not in focus. 18:21: Unchanged. No policy carries the corrected belief, so the live renewal belief
-    still ranks leavers backwards. The ruling puts the basics ahead of levers, so it is not in focus. 21:23: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
-    ruling puts this behind its exit test, so it is not in focus. 00:24: Unchanged. No policy carries the corrected
-    belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not
-    met, so it is not in focus. 03:22: Unchanged. No policy carries the corrected belief, so the live renewal belief
-    still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus. 06:24:
-    Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
-    The correctness ruling''s exit test is not met, so it is not in focus. 09:20: Unchanged. No policy carries the
-    corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test
-    is not met, so it is not in focus. 12:21: Unchanged. No policy carries the corrected belief, so the live renewal
-    belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus.
-    15:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
-    The correctness ruling''s exit test is not met (the first cold read found eight new classes), so it is not in
-    focus. 18:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers
-    backwards. The correctness ruling''s exit test is not met (its second cold read has not run), so it is not in
-    focus. 21:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers
-    backwards. The correctness ruling''s exit test is not met, and the stretch found no renewal notice is ever sent,
-    which item 1 fixes first. So it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so
-    the live renewal belief still ranks leavers backwards. The renewal notice is now sent (50c14a9dc), but the correctness
-    ruling''s exit test is not met, so it is not in focus. 03:22: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so
-    it is not in focus. 06:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still
-    ranks leavers backwards. The second cold read did not meet the exit test, so it is not in focus. 09:24: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
-    ruling''s exit test is not met, so it is not in focus. 12:21: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so
-    it is not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still
-    ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus. 18:24: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
-    ruling''s exit test is not met, so it is not in focus. 21:24: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so
-    it is not in focus. 00:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still
-    ranks leavers backwards. The correctness ruling''s exit test is not met (the third cold read graded all three
-    legs not met), so it is not in focus. 03:20: Unchanged. No policy carries the corrected belief, so the live
-    renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in
-    focus. 06:23: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers
-    backwards. The correctness ruling''s exit test is not met, so it is not in focus. 09:24: Unchanged. No policy
-    carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s
-    exit test is not met, so it is not in focus. 12:22: Unchanged. No policy carries the corrected belief, so the
-    live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is
-    not in focus. 15:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks
-    leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus. 18:21: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
-    ruling''s exit test is not met (the fourth cold read graded legs two and three not met), so it is not in focus.
-    21:22: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
-    The correctness ruling''s exit test is not met (leg one is met in the letter on the 9553d403b7 book, legs two
-    and three are not re-read), so it is not in focus. 00:24: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met (the
-    fresh run that grades the last billing fixes has not launched), so it is not in focus. 03:24: Unchanged. No
-    policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
-    ruling''s exit test is not met, so it is not in focus. 06:23: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not met (the
-    fifth cold read graded leg three not met), so it is not in focus. 09:20: Unchanged. No policy carries the corrected
-    belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not
-    met (the sixth cold read has not run), so it is not in focus. 12:20: Unchanged. No policy carries the corrected
-    belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not
-    met (the sixth cold read has not run), so it is not in focus. 15:20: Unchanged. No policy carries the corrected
-    belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not
-    met (the sixth cold read has not run), so it is not in focus. 03:24: Unchanged. No policy carries the corrected
-    belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test is not
-    met, so it is not in focus. 06:21: Unchanged. No policy carries the corrected belief, so the live renewal belief
-    still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus. 09:25:
-    Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
-    The correctness ruling''s exit test is not met, and today''s site steer comes first, so it is not in focus.
-    12:24: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
-    The correctness ruling''s exit test is not met, so it is not in focus. 15:21: Unchanged. No policy carries the
-    corrected belief, so the live renewal belief still ranks leavers backwards. The correctness ruling''s exit test
-    is not met, so it is not in focus. 18:22: Unchanged. No policy carries the corrected belief, so the live renewal
-    belief still ranks leavers backwards. The correctness ruling''s exit test is not met, so it is not in focus.
-    21:21: Unchanged. No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards.
-    The correctness ruling''s exit test is not met, so it is not in focus. 00:23: Unchanged. No policy carries the
-    corrected belief, so the live renewal belief still ranks leavers backwards. The sixth cold read graded legs
-    two and three not met, so the correctness ruling''s exit test is not met and this is not in focus. 03:20: Unchanged.
-    No policy carries the corrected belief, so the live renewal belief still ranks leavers backwards. The correctness
-    ruling''s exit test is not met, so it is not in focus. 06:21: Unchanged. No policy carries the corrected belief,
-    so the live renewal belief still ranks leavers backwards. The seventh cold read found three new classes, so
-    the correctness ruling''s exit test is not met and this is not in focus.'
-  corrected: false
-- what: 'THE PAGES'', THIS STRETCH. Two engines write notices for one debt, with different balances. On 55 of 402
-    debt matches on the 209c3350ab book, the old arrears engine''s first or second notice narrates the debt the
-    desk holds, at a different amount: on 22 Jul 2019, OCC-9edd7eed4aab''s desk reads GBP 60.78 overdue and its
-    first notice says GBP 18.71 outstanding; OCC-69932b473610 prints GBP 79.11 beside the desk''s GBP 273.85. A
-    reader sees two amounts owed. Found by 1ba034b9c (SEAT_FINDING_THE_OLD_ARREARS_ENGINE_NARRATES_THE_DESKS_DEBT_ON_ITS_OWN_CLOCK_AND_AMOUNT_2026-10-29.md).
-    Focus item 3. 18:21: Fixed in code, not graded. 5d7775b40, knowledge first (company_debt_management.md), makes
-    the old engine''s letters yield while the desk holds a debt: 55 -> 3 on the 209c3350ab book, and the finding
-    moved to done/. It stays false until the fresh run''s cast is rebuilt and the pages change at the 2 Nov publish.
-    21:22: Unchanged. Fixed in code (5d7775b40) and carried by the 9553d403b7 run, but that book''s cast was not
-    built, so it is not graded. Focus item 2 builds it. 00:24: Unchanged. Fixed in code (5d7775b40), not graded:
-    no book carrying it has had its cast built. Focus item 2. 03:24: Improved, not corrected. The ecb7e21fb book''s
-    cast is built: ''notice before the miss'' refusals read 2, down from 3. The pages change only at the 2 Nov publish.
-    06:23: Unchanged. ''Notice before the miss'' refusals read 2 on the 3dc5a92948 cast. The pages change only at
-    the 2 Nov publish. 09:20: Unchanged. The pages change only at the 2 Nov publish. 12:20: Unchanged. The pages
-    change only at the 2 Nov publish. 15:20: Unchanged. The live pages change only at a publish, and the cd4fc5b8d8
-    book''s 344 profile class 2 breaches refuse the publish until focus item 1 clears them. 03:24: Unchanged. The
-    2 Nov publish window opens at 04:00Z, but the latest graded book (cd4fc5b8d8) is refused on its PC2 breaches.
-    89220b9dd fixes them in code, and focus item 2''s run grades them. 06:21: Unchanged. ''Notice before the miss''
-    refusals read 2 on the 3dc5a92948 cast. Focus item 1''s run re-reads the cast; the live pages change only at
-    a publish. 09:25: Unchanged. ''Notice before the miss'' refusals read 2 on the 3dc5a92948 cast. The live pages
-    change only at a publish (focus item 1); item 2''s run re-reads the cast. 12:24: Unchanged. ''Notice before
-    the miss'' refusals read 2 on the 85b044be54 cast too. The live pages change only at a publish (focus item 1).
-    15:21: Unchanged. ''Notice before the miss'' refusals read 2 on the 85b044be54 cast. The live pages change only
-    at a publish (focus item 1). 18:22: Unchanged. The live pages change only at a publish, which focus item 1 owes.
-    21:21: Unchanged. ''Notice before the miss'' refusals read 2 on the last cast read. The live pages change only
-    at a publish, which pid 510056 is attempting now. 00:23: Unchanged. The live pages change only at a publish,
-    which focus item 1 owes. 03:20: Improved, not corrected. The 0a6391d186 pages are live, so 5d7775b40''s fix
-    now reaches a reader. But the last cast read still refused 2 households on ''notice before the miss'', and neither
-    is traced. Focus item 5 traces them. 06:21: Unchanged. The trace item (last record''s item 5) was not drawn,
-    and the last cast read still refuses 2 households on ''notice before the miss''. It moves to not_now behind
-    N15 (focus item 2), which is the same file and the larger instance: the desk tells 222 accounts that they missed
-    a bill they paid.'
-  corrected: false
-- what: 'THE COMPANY''S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still
-    holds. SYN-2016-550''s story ends ''15 Dec 2024, Debt cleared'' while its page prints GBP 258.84 owed: GBP 71.31
-    is an electricity bill from 2 Nov 2018, unpaid and held flat for six years, and GBP 187.53 is the gas bill of
-    7 Jan 2024, unpaid while every later bill is paid on its date. The debt slot''s validity predicate passed it,
-    because nothing checks that a ''cleared'' ending agrees with the owed figure. Found by the fourth cold read
-    (fb40dbb3a, leg two). Focus item 2. 21:22: Fixed in code, not graded. 70e66b721, knowledge first (debt_and_collections.md
-    s.7.6): 2,510 of 3,413 cures on the 209c book were due-date artefacts of FIFO, and the prediction (P1: zero
-    such cures) is filed for the next fresh run. Focus item 2 grades it. 00:24: Unchanged. Fixed in code (70e66b721),
-    not graded: the next fresh run (focus item 2) grades its P1. 03:24: Improved, not corrected. The ecb7e21fb cast
-    still refuses three debt households whose story says ''cleared'' while their own balance is past due. So P1
-    of 70e66b721 (zero such cures) is not yet graded held, and three is not zero. Focus item 1 grades P1 on the
-    3dc5a92948 book and traces any cure that survives. 06:23: Improved, not corrected. P1 held on the 3dc5a92948
-    book: 0 journeys cured on a due date they still hold (74d6c0759). Two ''cleared while still owed'' households
-    remain: PROS-2025-0013''s story is dated after its page''s record ends, and PROS-2020-0191''s desk cured over
-    a returned-DD bill of GBP 40.73 the page still holds, cause not established. SYN-2016-550 still carries GBP
-    256.08 of old bills held flat and never chased (fifth read, P6). 09:20: Unchanged. PROS-2025-0013 and PROS-2020-0191
-    are not traced; focus item 3 re-reads them on its book and traces any ''cleared while still owed'' household
-    that survives. 12:20: Unchanged. The fresh run did not launch (it waits on the gas build, rightly tombstoned
-    at 11:59Z), so PROS-2025-0013 and PROS-2020-0191 are not traced. Focus item 3. 15:20: Unchanged. PROS-2025-0013
-    and PROS-2020-0191 were not traced on cd4fc5b8d8; desk-cure P1 held there (0 of 1,069 journeys cured on a due
-    date). Focus item 4''s run traces any that survive. 03:24: Unchanged. PROS-2025-0013 and PROS-2020-0191 are
-    not traced. Focus item 2''s run traces any that survive. 06:21: Unchanged. PROS-2025-0013 and PROS-2020-0191
-    are not traced. Focus item 1''s run traces any that survive. 09:25: Unchanged. PROS-2025-0013 and PROS-2020-0191
-    are not traced. The 85b044be54 fresh run is in 2021 (09:22Z); focus item 2 traces any that survive. 12:24: Unchanged,
-    and now re-read. On the 85b044be54 book desk-cure P1 held again (0 of 1,078 journeys cured on a due date), and
-    PROS-2025-0013 and PROS-2020-0191 are both still refused as ''cleared while still owed'' (debt_p4.txt); PROS-2020-0191
-    also holds an agency placement its story never shows. Neither is traced. Focus item 1 traces them. 15:21: Traced,
-    not fixed. f5c770b12 finds two causes. PROS-2025-0013''s story prints the arrears case''s repayment of 7 Jul
-    2025, three days after the page ledger''s as_of of 4 Jul, so the story runs past the ledger''s clock. PROS-2020-0191''s
-    desk cures on 16 Jan 2025 over GBP 40.73 that the arrears engine still holds: two homes for one debt, and which
-    is wrong is not established. Focus item 3 fixes both. 18:22: Unchanged. Traced by f5c770b12, not fixed: focus
-    item 3 was not drawn this stretch, so it carries forward. 21:21: Unchanged. Traced by f5c770b12, not fixed:
-    the item was not drawn for a second stretch, because self-issued continuations ran ahead of it. Focus item 1.
-    00:23: Half fixed. 714780d4a cuts the reaction chain at the page ledger''s as_of, so PROS-2025-0013 no longer
-    says ''repaid'' past its ledger. c144971da traced PROS-2020-0191 to the world: its settlement paid a gas bill''s
-    issued face (GBP 170.74) after a credit bill had cut it to GBP 85.36, and the desk netted that phantom cash
-    across fuels and cured. The fix is world-side (simulation/world_payment_truth.repayment_rows and background/live_payment_triad._cross_settlement).
-    Focus item 3. 03:20: Unchanged. PROS-2025-0013 is fixed (714780d4a). PROS-2020-0191''s world-side fix (a settlement
-    repays what is left on its bill) was not drawn. It moves to not_now, because the published debt slot is filled
-    validly without it and no debt result is being read before the exit test. 06:21: Unchanged. PROS-2025-0013 is
-    fixed (714780d4a). PROS-2020-0191''s world-side settlement fix stays in not_now, and no new ''cleared while
-    still owed'' household is known.'
-  corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to
-    34 supply points and a gas bill with no volume. The rows took meter_serial and the kWh register as given, and
-    each reader read billing arithmetic, the thing it was primed to read. Leg three''s instrument sees only what
-    its reader''s trade looks for. Focus item 4 changes the sixth reader''s trade; nothing yet makes the rows ask
-    what a meter is. 09:20: Unchanged. Focus item 4 builds the blind worktree and item 5 changes the reader''s trade;
-    nothing yet makes the rows ask what a meter is. 12:20: Unchanged. The blind worktree tool is landing now (surgical_land
-    pid 1956162) and is not on origin; nothing yet makes the rows ask what a meter is. Focus items 4 and 5. 15:20:
-    Improved, not fixed. tools/blind_worktree.py is on origin (2dbafe2d2), but both blind readers found its MANIFEST.json
-    writes absolute paths into the reader''s tree, the repo root among them (WORKER_FINDING_BOTH_BLIND_READERS_RAISE_1_ON_2DBAFE2D23_2026-10-30.md,
-    unchecked). Nothing yet makes the rows ask what a meter is. Focus item 5. 03:24: Unchanged. tools/blind_worktree.py''s
-    manifest still writes absolute paths (docs/staging/done/WORKER_FINDING_BOTH_BLIND_READERS_RAISE_1_ON_2DBAFE2D23_2026-10-30.md
-    sits uncommitted in the shared tree, and the fix is not on origin). Nothing yet makes the rows ask what a meter
-    is. Focus item 5. 06:21: Unchanged. tools/blind_worktree.py''s manifest on origin still writes str(book) and
-    str(site) (lines 117-119), and the fix is not landed. Nothing yet makes the rows ask what a meter is. Focus
-    item 3. 09:25: Improved, not fixed. 491243e09 landed the blind tree''s fixes: the manifest names the book and
-    the ruling only, the copy is by allow-list, and the check is case-folded and reads the book to any depth. Nothing
-    yet makes the rows ask what a meter is; the sixth cold read (focus item 5) is the next test of it. 12:24: Unchanged.
-    Nothing yet makes the rows ask what a meter is; the sixth cold read (focus item 3) is the next test of it. 15:21:
-    Unchanged. The sixth cold read was not drawn this stretch, though its gate (the 85b044be54 grade, 1947ad002)
-    was met at 13:20Z. Focus item 4. 18:22: Unchanged. The sixth cold read was not drawn for a second stretch. Nothing
-    yet makes the rows ask what a meter is. Focus item 4. 21:21: Unchanged. The sixth cold read was not drawn for
-    a third stretch. Nothing yet makes the rows ask what a meter is. Focus item 2. 00:23: Improved, not fixed. The
-    sixth reader''s trade was GB metering and settlement. It raised N13 (gas use repeating to the decimal), which
-    five earlier readers had read past, and the named check found N12. Changing the trade found a new class, which
-    shows the instrument''s blindness, not its repair. N12 and N13 now have blind rows written from the knowledge
-    layer only. Nothing yet makes the rows ask what a meter is. 03:20: Unchanged. No cold read ran this stretch.
-    Focus item 2 is the seventh, in a trade no reader has used yet. Nothing yet makes the rows ask what a meter
-    is. 06:21: Unchanged, and the seventh read shows it again. Its reader was a consumer-protection and collections
-    practitioner. It raised N15 and N16, and it missed N14 ("no catch-up exceeds 12 months"), which only the seat''s
-    named check (a) found. Nothing yet makes the rows ask what a meter is, or what a payment method was on the date.'
-  corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. The draw ledger bound cb53859273 (the declared-policy estimate commit) to
-    a-gas-read-is-a-volume-and-the-bill-converts-it as its landing, at 08:16Z. Nothing about gas volume landed.
-    The item was re-drawn, so the cost was a stretch''s confusion, not lost work, but a ledger that credits one
-    item with another''s commit says an unbuilt item is done. 15:20: Unchanged. The item''s 14:27Z claim has nothing
-    bound to it yet, and the binding defect is not traced. 03:24: Unchanged, and the gas item''s second claim ended
-    worse: it was retired at 17:59Z with nothing landed (its own row below). The binding defect is not traced. 06:21:
-    Unchanged. The binding defect is not traced. This stretch''s gas landing (34b764a0f) is bound to its own item,
-    so no new instance is known. 09:25: Unchanged. The binding defect is not traced, and no new instance is known:
-    a9e9128aa and 491243e09 are bound to their own items. 12:24: Unchanged. The binding defect is not traced, and
-    no new instance is known. 15:21: Unchanged. The binding defect is not traced, and no new instance is known.
-    18:22: Unchanged. The binding defect is not traced, and no new instance is known. 21:21: Unchanged. The binding
-    defect is not traced, and no new instance is known. 00:23: Unchanged. The binding defect is not traced, and
-    no new instance is known: 333541278 is bound to the-sixth-cold-read. 03:20: Unchanged. The binding defect is
-    not traced, and no new instance is known. 06:21: Unchanged. The binding defect is not traced, and no new instance
-    is known.'
-  corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the second
-    time in two stretches. a-gas-read-is-a-volume-and-the-bill-converts-it was retired at 2026-10-30T17:59Z, but
-    its landing had been SIGTERMed at 15:49Z (/tmp/gas_land.out, rc=143). The work, graded 23,745 -> 0 on a replay,
-    exists only as salvage 4391d1800d in the reflog of /var/tmp/se-seat-executor, which the next draw reset to 5eb489de3.
-    The brief''s at-risk worktree census reads each worktree''s HEAD, so it does not see a salvage the worktree
-    has since moved past. The evidence-packs item last stretch was the same shape. Focus item 1 lands this instance.
-    Nothing yet checks a retirement against origin, so the class is not fixed. 06:21: The instance is closed and
-    the class is not. 34b764a0f landed the gas build from salvage 4391d1800d, keeping only the build''s paths, and
-    the item retired at 06:16Z with its commit on origin. That is a retirement that matched origin, but only because
-    the executor checked. Nothing yet checks a retirement against origin, so the next SIGTERMed landing can be retired
-    the same way. 09:25: Unchanged. No retirement this stretch was false (both retired items have their commits
-    on origin: a9e9128aa, d1b04bbd0), but nothing checks a retirement against origin, so the class is not fixed.
-    12:24: Unchanged. No false retirement is known this stretch: the-site-is-current retired with a1bead7ab on origin
-    and handed its unbuilt part 2 on as a continuation. Nothing checks a retirement against origin, so the class
-    is not fixed. 15:21: Unchanged. the-last-pc2-catch-up-defect-then-the-publish retired at 14:25Z with its fix,
-    grade and trace on origin (8cf2ecb74, 1947ad002, f5c770b12), and handed its unfinished step, the publish verdict,
-    to a continuation. That handoff was right, but only because the executor chose it: nothing checks a retirement
-    against origin, so the class is not fixed. 18:22: Unchanged. No false retirement is known this stretch: all
-    four retired items have their work on origin. But the-nine-breaches-cleared-or-named-then-the-publish retired
-    on the ''or'' in my own done-clause with no publish made, so a retirement that matches its words can still leave
-    the work''s point undone. Nothing checks a retirement against origin, so the class is not fixed. 21:21: Unchanged.
-    the-65bbdc6787-book-published-or-its-refusal-named retired at 20:34Z with no publish, though my done-clause
-    said a refusal named and fixed without a publish is not done. It named the refusal (the ledger over GitHub''s
-    file limit), landed the stopgap (58d49405e, 5654fa2e7) and handed the publish to the continuation the-08f267b666-book-republish-and-grade.
-    The 08f267b666 book supersedes 65bbdc6787, so the handoff was right, but nothing checked the retirement against
-    its done-clause. The class is not fixed. 00:23: Unchanged. the-sixth-cold-read retired at 00:18Z with 333541278
-    on origin. the-08f267b666-book-republish-and-grade retired at 22:42Z with no publish: it recorded why (f000ad71d)
-    and its successor book 0a6391d186 is being graded. Both matched origin only because the executor checked. Nothing
-    checks a retirement against origin, so the class is not fixed. 03:20: Unchanged, and a new instance. the-0a6391d186-publish-lands
-    retired at 02:05:07Z, when the publish had been refused at 02:01Z (247eebe51) and nothing was on origin. It
-    handed off to the-0a6391d186-publish-relands-after-the-dashboard-clobber-is-fixed. The publisher''s own retry
-    then landed the book at 02:48Z (19aa987bc), so that continuation''s premise is spent, and it is still queued.
-    Nothing checks a retirement against origin, or a continuation against a premise another lane has spent. 06:21:
-    Unchanged. No false retirement is known this stretch: a-debt-held-flat-after-the-last-rung and the seventh cold
-    read retired from focus with 1eaf19d78 and 3ba98b87b on origin, and the spent publish continuation retired with
-    d3888b81b. Nothing checks a retirement against origin, so the class is not fixed.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. The naive organ has asked no question since 2026-08-10T07:48Z. By the advisor''s count
-    of docs/observability/naive_organ_log.jsonl, 26,580 entries since then are declines under the purpose line,
-    and the last 2,000 fire on three claims that are its own unanswered questions fed back to it. Nothing noticed
-    for twelve weeks: a guard that refuses everything passes every test of whether it refuses correctly. Found by
-    the director''s advisor (steer of 2 Nov). Focus item 4. 12:24: Improved, not corrected. The cause is found and
-    the repair is landing now (surgical_land pid 1927192): the organ read its own questions back from LATEST.md,
-    declined three as purpose, and those declines filled its 3-question cap on every cycle from 10 Aug. It stays
-    false until that lands and the organ is seen to ask. 15:21: Repaired, not yet seen to ask. 1f731c537 is on origin,
-    and the daemon restarted on it at 14:20Z (pid 2565733). But docs/observability/naive_organ_log.jsonl has had
-    no entry since 11:30Z: no question and no decline across two of its 30-minute cycles. Silence is not asking.
-    Focus item 5. 18:22: Unchanged, and longer. No entry since 11:30Z, about seven hours, and the daemon has restarted
-    again (pid 3120959). Focus item 5 was not drawn. 21:21: Unchanged, and longer. docs/observability/naive_organ_log.jsonl''s
-    last entry is still 11:30:23Z, about ten hours. The daemon''s own log spoke 31 minutes ago, so it is alive and
-    asks nothing. Focus item 4 was not drawn for a second stretch. 00:23: Unchanged, and longer. docs/observability/naive_organ_log.jsonl''s
-    last entry is still 2026-11-02T11:30:23Z, about thirteen hours ago. The daemon is alive (its own log spoke 33
-    minutes ago). Focus item 5 has not been drawn for three stretches. 03:20: Unchanged, and longer. docs/observability/naive_organ_log.jsonl''s
-    last entry is still 2026-11-02T11:30:23Z, about sixteen hours. The daemon is alive (its own log spoke 1h09m
-    before the brief). It has gone undrawn for four stretches because it sat at item 5. Focus item 4. 06:21: Explained,
-    not corrected. d56b52dee ran one cycle in-process. 11 triggers fired, and the debounce refused all 11 because
-    the same question is already open: 104 questions from 13 Jul to 10 Aug are unanswered, and only 7 have ever
-    been answered. Each cycle now writes a tally, so its silence can be read, with a mutation-proven test. It still
-    asks nothing. The owed pass (answer the questions LATEST.md still raises, mark the rest as misses) is in not_now.'
-  corrected: false
-- what: 'MINE, NEW. The 09:22 direction told the worker to write a Done section inside the live advisor file and
-    not move it. 1d623ccad and a1bead7ab did, and the advisor channel refused the director''s 2 Nov value-test steer
-    as unsigned. It failed closed: the signed text at 2e50f42c3 is intact and is what focus item 2 acts on. Reopened
-    in wrong_triage.yaml as a fix whose owner is my own focus prose; no item this record writes asks for an in-place
-    edit. 15:21: Unchanged, and a new instance from another lane. No item this record writes asks for an in-place
-    edit. But 12a6f8f52 appended a Progress section inside the live 30 Oct reputation steer, and the advisor channel
-    now refuses that file as unsigned. The diff from the signed 0c803a752 is that note only, so the director''s
-    text is intact. 18:22: Unchanged. No new in-place edit is known this stretch: 9cbdb5ac4 moved the reputation
-    steer to done/ in the commit that closed it. 21:21: Unchanged. No new in-place edit is known: 358355e81 and
-    ac5fe5e91 moved the advisor files they closed to done/. 00:23: Unchanged. No new in-place edit is known. 03:20:
-    Unchanged. No new in-place edit is known. 06:21: Unchanged. No new in-place edit is known. The seventh reading
-    left the ruling file where it is, as the ruling says.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. The publisher refused 15 times over 14.2h on a scoped-suite red that was a full 12
-    GB /tmp, not a test. 8 GB of week-old probe scratch sat under names no SCRATCH_PATTERNS entry matches, and disk_headroom''s
-    reaper would free 0 MB by design. It is the second instance (the first, 5 Sep, named the wall-crossing register).
-    512ea8826 cleared it and filed it, but that commit is on the shared HEAD only. Nothing ages out a probe written
-    under a free name, so the class is not fixed. 21:21: Unchanged. 512ea8826 is now on origin, and /tmp reads 1.3
-    of 12 GB. Nothing ages out a probe written under a free name, so the class is not fixed. 00:23: Unchanged. Nothing
-    ages out a probe written under a free name, so the class is not fixed. 03:20: Unchanged. Nothing ages out a
-    probe written under a free name, so the class is not fixed. 06:21: Unchanged. Nothing ages out a probe written
-    under a free name, so the class is not fixed.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. The billing ledger outgrew GitHub''s 100 MiB file limit and refused the 08f267b666
-    publish at 20:02Z: docs/state/billing_ledger.json was 143.8 MB at indent=2, up 72% in one book. The same class
-    was fixed on 10 Oct for the run output only, by gzip, and nothing asked which other committed files could grow
-    past the limit. 58d49405e and 5654fa2e7 write the ledger compact (91.2 MB, 87% of the limit), which is a stopgap
-    with 13% headroom. The durable choice (commit a gzip, read through one helper) is filed in WORKER_FINDING_THE_BILLING_LEDGER_OUTGREW_GITHUBS_FILE_LIMIT_AND_COMPACT_LEAVES_13_PERCENT_2026-11-02.md
-    and not built. 00:23: Unchanged. docs/state/billing_ledger.json reads 91.2 MB (23:54Z), and the gzip choice
-    is not built. 03:20: Unchanged. docs/state/billing_ledger.json reads 91.2 MB on the published 0a6391d186 book
-    (02:14Z), and the gzip choice is not built. 06:21: Unchanged. The published 0a6391d186 ledger reads 91.2 MB,
-    and the gzip choice is not built.'
-  corrected: false
-- what: 'THE COMPANY''S OR THE WORLD''S, NEW. On a third of gas legs, metered gas use repeats last year''s same
-    month to the decimal. On the 85b044be54 book, 1,635 of 4,413 gas month-pairs on actual or prepayment-meter reads
-    repeat to 0.1 kWh, in every year and every month, winter included. 114 of 383 legs repeat on 10% or more of
-    their pairs, against 0-8% for electricity. OCC-098fe5fa8b46 reads 724.3 / 1,060.0 / 1,408.6 / 1,439.2 kWh for
-    Oct-Jan in both 2020-21 and 2021-22. Five cold reads and every blind row read past it. Which side repeats is
-    not established: either the world''s gas demand reads the monthly normal (W1_14''s class, closed for 91 premises
-    on 30 Sep), or the company bills a profiled estimate and labels it actual. Found by the sixth cold read (333541278).
-    The measurement is pre-registered (9d04f33b7) and queued (n13-which-side-repeats-gas-use). Focus item 2 fixes
-    the side it names. 03:20: Half fixed, side named. ea2f3394d measured it as the world: 43 of 46 repeating legs
-    repeat in true_consumption_kwh, and they read the 1991-2020 monthly normal. 15 OCC legs were admitted after
-    the runner''s adopt_book, and that is fixed with a mutation-proven control. 29 SYN/PROS legs sit more than 5
-    km from any weather cell, which is 227 of 477 gas records on today''s book. That needs a store rebuild, and
-    continuation rebuild-the-weather-store-over-todays-drawn-book owns it. A landing of it was in flight at the
-    brief and is not on origin. The 8b2a07d8dd run finished at 02:31Z, carries only the OCC half, and waits behind
-    the publisher. 06:21: Unchanged in the grade. 7ec8b1030 rebuilt the store, so 490 of 1,052 premises (227 of
-    477 gas) read their own cell on the HDD leg. No run has started since then, so the repeat count has not been
-    re-measured. The ERA5 columns (a88f37d61, f763637d8: 440 book cells are still temperature-only, about eight
-    daily pulls) feed the fabric path, not the HDD leg, so they do not hold N13. The next fresh run grades it.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. A hand re-offer of a refused run marker was deleted before any publisher read it.
-    At 21:45Z the-08f267b666-book-republish-and-grade copied done/run_complete_20261102T173915Z.md back into docs/staging/,
-    because the automatic re-arm allows one attempt per marker. At 21:50Z the worker''s two-rooms repair removed
-    it as ''redundant, already archived''. The hand re-publish lost two such races on a hot tree (f000ad71d). Nothing
-    distinguishes a deliberate re-offer from a stray copy, so no route to a second publish attempt on one marker
-    survives the repair. 03:20: Unchanged. No re-offer was attempted this stretch: the 0a6391d186 book landed on
-    the publisher''s own retry. Nothing distinguishes a deliberate re-offer from a stray copy. 06:21: Unchanged.
-    No re-offer was attempted this stretch. Nothing distinguishes a deliberate re-offer from a stray copy.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. A test wrote into the live tree and refused a publish. At 01:27:45Z site/data/dashboard.json
-    on the shared tree was overwritten with {}, 24 minutes after the publisher wrote it and inside another lane''s
-    surgical_land gate. The 02:01Z publish of the 0a6391d186 book was refused on an empty run_history (247eebe51).
-    The cause is sim_runner''s own tests: their fake subprocess wrote {} to any .json a git call named. The fix''s
-    landing (surgical_land pid 3459249) was in flight at the brief and is not on origin. The book landed anyway
-    at 02:48Z on the publisher''s retry, so the cost was 47 minutes and a spent continuation, not the publish. 06:21:
-    Corrected. d3888b81b is on origin: the sim-runner tests'' fake subprocess no longer writes {} over the live
-    dashboard, and the finding moved to done/. The continuation it spent retired at 04:47Z.'
-  corrected: true
-- what: 'THE COMPANY''S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. On the published
-    0a6391d186 pages, 8 catch-up bills on accounts paying on receipt at the time recover energy from more than 12
-    months before the bill, GBP 111.11 ex-VAT in all. The cap is not applied, nothing is written off, and every
-    one was paid. Example: PROS-2018-0016, 31 May 2024, after 27 estimated bills from Feb 2022. 7 of the 8 paid
-    by direct debit first and moved to standard credit later, and billing reads one undated payment method per account
-    and fuel (simulation/run_phase4c_on_phase2b.py:224), so the deferred direct-debit basis is applied and the cap
-    never runs. INV_BACK_BILLING_12M only flags it. Found by the seventh cold read''s named check (a), N14 (3ba98b87b).
-    Focus item 1.'
-  corrected: false
-- what: 'THE COMPANY''S, NEW. The collections desk tells customers who paid on time that they missed a bill. On
-    the published pages, 3,772 of 6,599 ''a further bill missed: payment plan offered again'' events (57%, on 222
-    accounts) follow a bill that was paid in full before the re-offer. On PROS-2017-0233, every bill after one returned
-    direct debit is collected on its due date, the GBP 35.45 arrear is never collected or planned, and the desk
-    re-offers three times, each ''a further bill missed''. The likely cause, not measured, is oldest-first allocation
-    making each on-time payment of the new bill clear the old arrear instead. Found by the seventh cold read, N15
-    (3ba98b87b). Focus item 2.'
-  corrected: false
-- what: 'THE PAGES'', NEW. The Explore tariff label ignores the term in force. The renewal slot tells SYN-2016-031,
-    on SVT since Feb 2020, ''Your fixed tariff is ending'' in Jan 2024. On 22 cast moments with a bill on record,
-    the printed tariff disagrees with the billed term_tariff_type on 19. tools/generate_explore_cast.py (lines 395,
-    497 and 543) prints ''Fixed'' if any renewal is on record. The storage-heating slot is not valid either: its
-    rule tests a two-rate meter, not storage heating (3,635-4,919 kWh a year). So leg two of the exit test is not
-    met. Every read since the first has filed ''a fix billed at the cap'', and on the cast households that is at
-    least partly this label. Found by the seventh cold read, N16 (3ba98b87b). Focus item 3.'
-  corrected: false
-for_the_director:
-- id: a-practitioner-question-k4-published-sources-exhausted
-  raised: '2026-10-29'
-  kind: strategy
-  what: 'A practitioner question (K4), published sources exhausted: in a new account''s first months,
-    does a supplier''s BILLING estimate follow the settlement EAC its data collector sends (BSC Annex
-    S-2 4.3.7: EAC = AAAF*AA + (1-AAAF)*PEAC, AAAF = min(FYC*SPAR, 1)), or its own reads from the first
-    one? And what SPAR does the trade actually see? 179 estimate breaches on the 209c3350ab book turn
-    on this, and they hold the correctness stretch''s exit open.'
-  proposal: Build the BSC blend for the billing estimate with SPAR as a named input carried as an honest
-    GAP, and re-draw INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS's band from the same EAC, so the row
-    and the estimator read one figure.
-  recommendation: 'I recommend the blend: the settlement EAC is what a supplier receives, it moves on
-    every advance, and SLC 27.15 already ranks the supplier''s own metered history above the registry
-    figure, so both established halves lean against holding the registry figure for six months. Trade-off:
-    with SPAR unknown, the blend''s weight is a stated belief, not a value. Holding position: the 179
-    stay excepted on E1 as their cause. Would change it: a practitioner saying billing uses the supplier''s
-    own reads from the first read, in which case E1 is narrowed to the one-read case only.'
-  status: answered
-  resolution: 'Returned to the seat (director, 30 Oct 07:26): the method is a supplier choice, not his.
-    Baseline is today''s standard practice: the billing estimate and first DD from the quote''s consumption
-    (declared, else registry EAC or AQ); settlement separately on the DC''s EAC. Improving it is the supplier''s
-    experiment. Done: knowledge §10 of how_a_supplier_shapes_an_estimate_for_an_unread_month.md; INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
-    redrawn to grade the declared policy, 179 -> 0 on the 209c3350ab and 3dc5a92948 books, exception retired.
-    Not to be raised again.'
-  evidence: 'docs/staging/SEAT_FINDING_E1_BILLS_THE_REGISTRY_FIGURE_OVER_A_METERS_OWN_READS_AND_SETS_139_ESTIMATE_BREACHES_2026-10-29.md;
-    docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (GAP: SPAR
-    is Market Domain Data, not published within reach)'
-  resolved: '2026-10-30'
-  commitment:
-    work_id: new-account-first-months-experiment
-    done_means: the world draws a declared annual use with an error against true use by channel and tenancy,
-      and one pre-registered supplier variant is graded against the quote baseline on the ruling's five
-      outcomes
-    due: '2026-12-15'
-- id: the-improvement-loop-world-then-supplier-then
-  raised: '2026-10-30'
-  kind: strategy
-  what: 'The improvement loop (world, then supplier, then round again) is ruled in W7 but not embedded:
-    no area records how far round it has got, the world reacts in full to one pain point in seven, and
-    its one full reaction is the supplier''s own churn curve.'
-  proposal: 'Adopt docs/design/THE_IMPROVEMENT_LOOP.md. One loop per area, with its stage DERIVED from
-    artefacts rather than kept by hand: knowledge with a range for every pain point, a world that reacts
-    at that range (never 0) with no supplier belief imported, frozen, graded on fresh seeds at the range''s
-    low, central and high, then settled or ''we cannot tell'', then a blind practitioner''s exploit check.
-    The world gets more nuanced only on three triggers: an exploit is found, a range is too wide to settle,
-    or a cold read finds a new class. Blind roles by construction: a sparse worktree per role with the
-    other side''s code absent. Built now only where it helps the correctness exit test (the blind worktree
-    for the cold reader). The rest comes after, starting with a new account''s first months.'
-  recommendation: 'I recommend you say yes to the design and rule one question that is yours: does the
-    scorecard stay a vector (customer money, time and carbon; company outcomes; fairness), with a variant
-    winning only if it is no worse on every axis, and every weighted trade brought to you? The A5 frame
-    reserves the fitness function to you. The trade-off: Pareto-only will call some real wins undecided.
-    That is the safe direction under F11. Until you rule, I hold to Pareto-only and build the blind worktree,
-    which helps close the correctness exit test. What would change my view: a settled result you judge
-    worth a trade the vector refuses.'
-  status: answered
-  resolution: 'Yes (director, 31 Oct 08:54 GMT, ''Yes to all three''; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md).
-    THE_IMPROVEMENT_LOOP.md marked adopted. His ruling on the question reserved to him: the scorecard
-    stays a vector (customer money, time and carbon; company outcomes; fairness); a variant wins only
-    if it is no worse on every axis; every weighted trade goes to him. Build order as proposed: the blind
-    worktree now (landed 2dbafe2d2, fixes in the-sixth-cold-read), the rest after the correctness exit
-    test, starting with a new account''s first months.'
-  evidence: docs/design/THE_IMPROVEMENT_LOOP.md; docs/staging/SEAT_FINDING_THE_WORLD_REACTS_TO_ONE_PAIN_POINT_IN_SEVEN_AND_ITS_RENEWAL_SHOCK_IS_THE_SUPPLIERS_OWN_CHURN_CURVE_2026-10-30.md;
-    DOMAIN_INVARIANTS.yaml:9 blindfold_disclosure (knowledge notes quote code constants)
-  resolved: '2026-11-02'
-  commitment:
-    work_id: the-sixth-cold-read
-    done_means: the blind worktree's fixes are on origin and the sixth cold read is read from it and graded
-      on all three legs of the correctness ruling
-    due: '2026-11-09'
-- id: the-time-steer-s-hidden-value-of
-  raised: '2026-10-30'
-  kind: canon_intent
-  what: The time steer's hidden value of a household's own time is read as compatible with M3 (time never
-    converted to pounds). I am building on that reading.
-  proposal: M3 governs what we SCORE. The household's own minutes-for-money trade-off is a hidden trait,
-    the hassle price (GBP per hour of its own effort), used only inside its own decisions (switching,
-    complaining, adopting, staying), as price elasticity is. The scorecard counts minutes per class T1-T5
-    and never multiplies the hassle price into value created.
-  recommendation: 'I recommend you agree this reading of M3: the hassle price stays a hidden household
-    trait and never enters the score. Without it the world cannot register a supplier that saves time,
-    and ''pricing only moves value'' stays true by construction. I proceed on it unless you object.'
-  status: answered
-  resolution: Yes (director, 31 Oct 08:54 GMT; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md).
-    M3 governs what is scored. The hassle price is a hidden household trait used only inside the household's
-    own decisions, and it never enters the score. Recorded in THE_IMPROVEMENT_LOOP.md's adoption note.
-  evidence: docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md section 9.3 Q4; docs/design/THE_IMPROVEMENT_LOOP.md
-    section 8
-  resolved: '2026-11-02'
-  no_action: confirms the reading the seat was already building on; the hassle-price build is sequenced
-    in the next-world-additions roadmap the 30 Oct corpus steer owes, after the correctness exit test
-- id: m3-names-three-currencies-money-time-carbon
-  raised: '2026-10-30'
-  kind: canon_intent
-  what: 'M3 names three currencies (money, time, carbon). Your 30 Oct steer asks if that is the whole
-    set of needs energy products serve. Payment-method and fix choices say it is not: in Ofgem''s 2022
-    survey, control is the top reason standard-credit payers give and budgeting the top reason prepayment
-    payers give, and only 10-24% cite price.'
-  proposal: 'Amend M3 (not a new rule): ''M3. Money, time and carbon, above a floor. Money, time and carbon,
-    and the ways money is shaped. Money is two things, measured apart: cost (what is paid) and cash flow
-    (when, and how much at once). Peace of mind is two things, measured apart: certainty (not being surprised)
-    and control (deciding when money leaves). Time means household effort, in household minutes per kind
-    of activity. Carbon is what customers have saved and could save in CO2. Each is measured in its own
-    unit and never converted to pounds. Comfort and health are a floor, not a currency: no gain in any
-    need justifies a breach.'' The fix premium stays booked as value moved until the note''s three-leg
-    test (section 6.1) is run.'
-  recommendation: I recommend amending M3 with the wording above rather than adding a new M-rule, because
-    a separate rule would leave the three-currency wording standing beside it; the build waits for the
-    correctness exit test, as your steer says.
-  status: answered
-  resolution: Yes (director, 31 Oct 08:54 GMT; docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_30_OCT_QUESTIONS_2026-10-31.md).
-    M3 amended in DIRECTOR_CANON.md with the row's wording verbatim, as an amendment, not a new M-rule;
-    CLAUDE.md's M3 quote and THE_MODEL_ON_A_PAGE.md's v4 quote updated; canon drift check 17 claims 0
-    drifting, 84 served pages hold.
-  evidence: docs/design/CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md (DISCOVER/FRAME, 10 GAPs named, none
-    filled with a guess)
-  resolved: '2026-11-02'
-  no_action: the amendment is landed in the same commit; the build that follows waits for the correctness
-    exit test and is sequenced in the roadmap the 30 Oct corpus steer owes
-- id: licensed-microdata-for-the-customer-needs-corpus
-  raised: '2026-11-02'
-  kind: reserved
-  what: Licensed microdata for the customer-needs corpus (30 Oct steer, 16:51 addendum step 4). Fitting
-    the precarity, affluence and life-stage factors the parsimony ruling keeps needs a household-level
-    joint that no published cross-tab gives. Registering with the UK Data Service is an account and a
-    licence agreement, so it is yours.
-  proposal: 'One UK Data Service registration under the End User Licence, covering Understanding Society,
-    the Wealth and Assets Survey, the English Housing Survey and the SERL statistical dataset (SN 8963).
-    The registration states the use honestly and asks the depositors whether it counts as commercial.
-    No SecureLab or SERL per-home access: those need an accredited researcher and a university partner.'
-  recommendation: 'I recommend you register once with the UK Data Service, for the End User Licence datasets
-    only, and declare the purpose plainly. Understanding Society alone is the only route to fit the three
-    latent factors on the same households and to test whether life stage outweighs income. The trade-off:
-    the EUL bars commercial use without permission, and Poesys aims at enterprise value, so the depositors
-    may refuse or impose conditions. Until you rule, every factor loading is fitted one attribute at a
-    time from published cross-tabs and any joint is carried as an assumption with a range. A no changes
-    nothing already built. What would change my view: a published joint (for example FCA Financial Lives
-    tables cut two ways) that makes the registration unnecessary.'
-  status: answered
-  resolution: 'Ruled 2 Nov 18:38: ''Register (non commercial)''. He registers himself; the pack (study
-    numbers 6614, 7215, 9315, 8963, the paste-in description and the handling rules) is docs/director/UKDS_REGISTRATION_PACK.md.
-    The W11 conflict it exposes is raised as your-2-nov-ruling-to-register-with.'
-  g5_class: real_world_commitment
-  evidence: docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md section 6 (datasets, access terms graded P, what
-    each would change)
-  resolved: '2026-11-02'
-  commitment:
-    work_id: the-ukds-microdata-pre-commit-guard
-    done_means: A pre-commit guard refuses any staged file under ~/ukds/ or carrying a UKDS dataset signature,
-      with a test that reds without it, landed before any file is placed in ~/ukds/
-    due: '2026-11-09'
-- id: the-value-test-redesign-two-choices-in
-  raised: '2026-11-02'
-  kind: strategy
-  what: 'The value test redesign: two choices in it are yours. (1) What the flat baseline is: the regulator''s
-    efficient-supplier margin for renewals, and leaving SVT households at the cap for the new tariff arm.
-    (2) The order: measure the published figure''s own anomaly before building anything new.'
-  proposal: 'Adopt docs/design/THE_VALUE_TEST_REDESIGN.md. In two minutes: today''s test can''t answer
-    because (a) the published £5,244 falls outside its own re-draw range (£9,375-£11,766) on the same
-    code, world and book, cause unknown; (b) its verdict is withheld only because the run is on older
-    code than the page, while within its own family the advantage is positive at 13.7 standard errors;
-    (c) it reaches only households at the end of a fixed term, and most renewals are SVT; (d) the £2/MWh
-    control is 26-80% of the regulator''s allowance. Redesign: one run, at the page''s code, for every
-    figure on the page; a tariff-placement arm for SVT households; the flat baseline set at Ofgem''s EBIT
-    allowance (cap baseline for the SVT arm); the book sized by power; scored on your 31 Oct vector; six
-    predictions filed now. Build waits for the correctness exit test.'
-  recommendation: 'I recommend adopting the note as written and taking the two one-run measurements first:
-    a 12-draw family to test whether £5,244 is an extreme but ordinary draw, and PROS-2016-0098 alone
-    under today''s write-off rule. They cost one run each and decide whether the page''s current figure
-    can be stated at all. Trade-off: the EBIT-allowance baseline is harder to beat than today''s, so the
-    advantage will likely shrink and may lose its sign at 272 accounts (prediction 2). Holding position
-    until you rule: nothing is built; the page says plainly the answer is not in. What would change it:
-    if you want ''beating a flat supplier'' to mean beating one that charges the cap, the cap becomes
-    the renewal baseline too, and the test becomes about extraction rather than choosing.'
-  status: answered
-  resolution: 'Ruled 2 Nov 18:38: ''Yes to the value test''. THE_VALUE_TEST_REDESIGN.md adopted as written;
-    the build waits for the correctness exit test.'
-  evidence: docs/design/THE_VALUE_TEST_REDESIGN.md §2 (each advisor reading re-measured against site/data/value_arms.json);
-    two fresh-context reads (both NEEDS_WORK, all findings corrected in place); the world already recovers
-    about 5p in the pound of written-off debt, with debt-sale price a named GAP (§4).
-  resolved: '2026-11-02'
-  commitment:
-    work_id: the-value-test-two-one-run-measurements
-    done_means: The 12-draw family and PROS-2016-0098 alone under today's write-off rule are run once
-      the publish path is clear, and a reading says whether the page's figure can be stated
-    due: '2026-11-09'
-- id: your-2-nov-ruling-to-register-with
-  raised: '2026-11-02'
-  kind: canon_intent
-  what: 'Your 2 Nov ruling to register with the UK Data Service meets W11. W11: ''Published aggregates
-    and cross-tabs only. The ratified pitch stakes a public claim that no household data has entered the
-    system; that must stay true.'' EUL files are de-identified, but they are household-level records,
-    so once on this machine that public claim is false as worded, even with the files kept outside the
-    repo and only aggregates leaving.'
-  proposal: 'Amend W11 to: ''No personal microdata in the repository, the site, the world or the company.
-    Licensed, de-identified survey microdata may be read on this machine outside the repository, under
-    its licence, and only non-disclosive aggregates (fitted loadings, cross-tabs meeting the depositor''s
-    cell rules) leave it.'' Reword the pitch claim to match before any file is downloaded. The amendment
-    goes to docs/staging/ as a proposal for your words; nothing in canon changes until you say so.'
-  recommendation: 'I recommend the amendment, because the factor fit the parsimony ruling asks for needs
-    one household-level joint and the handling rules in your ruling already keep every record out of the
-    repo, the site and the simulation. The trade-off is a weaker public claim: from ''no household data
-    entered the system'' to ''no household record leaves a licensed local store''. Until you answer, registering
-    is safe but no file is placed in ~/ukds/; every factor stays fitted from published cross-tabs. What
-    would change my view: if the pitch claim is load-bearing with an external reader, keep W11 and drop
-    the download.'
-  status: answered
-  resolution: 'Yes, 3 Nov 17:46 (''Yes to all your recommendations''). W11 amended verbatim in DIRECTOR_CANON.md;
-    the pitch claim reworded to ''no household record leaves a licensed local store'' in the pitch, the
-    site constitution, f2, f3, the coverage page and the registration pack; CLAUDE.md quotes the new W11.
-    Still owed before any file lands in ~/ukds/: a commit control refusing the licensed files and their
-    row-level contents, proven to fire, and a note of where the licence conditions are kept.'
-  evidence: docs/design/DIRECTOR_CANON.md W11 and H14; docs/director/UKDS_REGISTRATION_PACK.md; docs/staging/advisor/DIRECTOR_RULING_YES_TO_THE_VALUE_TEST_REDESIGN_AND_REGISTER_WITH_UKDS_NON_COMMERCIAL_2026-11-02.md
-  resolved: '2026-11-04'
-  commitment:
-    work_id: ukds-licensed-files-commit-refusal-control
-    done_means: a pre-commit control refuses any staged file from the licensed local store or carrying
-      its row-level contents, a test shows it firing on a planted file, and the licence conditions (storage,
-      access, deletion, no linkage) are recorded with where they are kept
-    due: '2026-11-13'
-- id: the-next-world-additions-ranked-30-oct
-  raised: '2026-11-02'
-  kind: strategy
-  what: The next world additions, ranked (30 Oct corpus steer, Ask 2; the reputation steer's world asks
-    folded in). Nothing is built before the correctness exit test holds. Today the world reacts to one
-    pain point in seven, so most of what the supplier could optimise has nothing to press against.
-  proposal: 'Build in this order, each as an improvement-loop area, after the exit test: (1) household
-    reactions to the six pain points the world ignores (M each; unlocks every customer-outcomes experiment);
-    (2) price sensitivity as two traits, cutting use and shopping, with shopping anti-correlated with
-    need (M; lets renewal pricing be graded for transfer against creation); (3) the hassle price you agreed
-    on 31 Oct (M; the only way a time-saving offer can beat a price cut); (4) capability as a moderator
-    of shopping, since confidence separates engaged from disengaged by 31-34 points and trust by 2-6 (S);
-    (5) prepayment drawn through both routes, chosen and imposed (S-M); (6) reputation as stocks with
-    salience triggers, after fixing its two non-decaying stocks and running the half-life study, because
-    none of its constants has a GB source yet (M); (7) drawn age and life stage, since age outspreads
-    income on every CIM Wave 3 need, but households carry no age today (M-L); (8) the public review channel
-    and the supplier''s feedback loop (L). Held: precarity and affluence until your W11 answer; trust
-    and segments, as the evidence does not support them.'
-  recommendation: 'I recommend this order: reactions first, because every later row scales a household
-    reaction and multiplies zero without one. I proceed on it after the exit test unless you object. The
-    trade-off: your overcharging-against-fair-pricing hypothesis waits until row 6, so its answer is not
-    set by unsourced decay rates. What would change it: a yes on W11 lifts life stage and precarity above
-    reputation, and a short reputation half-life drops rows 6 and 8.'
-  status: answered
-  resolution: 'Yes, 3 Nov 17:46. The order holds after the correctness exit test. Re-ranked with W11 answered
-    yes: life stage and precarity/affluence sit together at row 6 (one build, one Understanding Society
-    joint), above reputation (now 7) and the review channel (8). Rows 1-5 unchanged. Recorded in THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md
-    section 2.'
-  evidence: 'docs/design/THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md (the table: evidence, unlocks,
-    cost, what comes first); pages 1-7 of the customer-needs domain in docs/market_research/*_2026-11-02.md;
-    docs/design/THE_IMPROVEMENT_LOOP.md section 5'
-  resolved: '2026-11-04'
-  commitment:
-    work_id: w11-amended-and-the-pitch-claim-reworded
-    done_means: the roadmap note records the 3 Nov yes and the re-rank of life stage and precarity above
-      reputation
-    due: '2026-11-04'
-- id: the-design-read-of-the-value-test
-  raised: '2026-11-02'
-  kind: strategy
-  what: The design read of the value test redesign, which you adopted at 18:38, finds its first step and
-    its renewal baseline rest on misreadings. Two blind readers each raised the same 7 defects, and all
-    7 check out on the files.
-  proposal: 'Amend three things you ruled. (1) Replace the 12-draw family with: find why the published
-    control arm earned £235,588 against £229,503-£231,026 on every re-draw. The value arm sits inside
-    its family, so the £5,244 is the control moving, not the choosing. A 4th draw also lands outside the
-    range of 3 half the time, so widening to 12 cannot tell the causes apart. (2) Drop ''PROS-2016-0098
-    under today''s write-off rule'' as a measurement. It is already on disk: -£17.60 to selection on every
-    seed. And the write-off rule changed on 28 and 29 Oct, after the run, so it is not one variable. (3)
-    Set the renewal baseline as the best flat margin found by a sweep, keeping the EBIT allowance as a
-    reference arm. The repo''s own artefact says the allowance governs the default tariff, not a fixed
-    term, and a higher flat margin (£61.75/MWh) earned less than £2/MWh. The other four defects are fixes
-    inside your frame: term boundaries counted as households, a verdict rule that cannot return a loss,
-    book sizing from a 72-of-272 re-draw, and the write-off text in §4. They land with the amendment as
-    one pass.'
-  recommendation: 'I recommend all three amendments. They cost nothing now, since the build already waits
-    for the correctness exit test, and the first measurement still costs one run. The trade-off: a swept
-    best flat margin is a harder baseline than the EBIT allowance, so the advantage is likelier to lose
-    its sign at 272 accounts. That is the point of a baseline that can win. Holding position until you
-    rule: the note stays as you adopted it, nothing is drawn, and the page still says the answer is not
-    in. What would change it: if you meant the EBIT allowance as the regulator''s yardstick rather than
-    the best flat rule, keep it and I will relabel rule 4 to say so.'
-  status: answered
-  resolution: 'Yes, 3 Nov 17:46: all three amendments (find why the control arm earned 235,588 in place
-    of the 12-draw family; drop PROS-2016-0098 as a measurement; a swept best flat margin as the renewal
-    baseline, the EBIT allowance kept as a reference arm), with the other four fixes in the same pass.
-    Drawn after the correctness exit test, as his 26 Oct ruling orders.'
-  evidence: docs/staging/SEAT_FINDING_THE_DESIGN_READ_OF_THE_VALUE_TEST_REDESIGN_CONFIRMS_SEVEN_OF_SEVEN_PAIRED_DEFECTS_AND_TWO_HIT_ITS_FIRST_STEP_2026-11-02.md;
-    value_cycle_ab_s1_{three_arm,noise_floor}_20261008r.json; simulation/arrears_engine.py:264-287,832;
-    docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md:136-139
-  resolved: '2026-11-04'
-  commitment:
-    work_id: value-test-design-read-three-amendments-and-four-fixes
-    done_means: the value-test design note carries the three amendments and four fixes in one landing,
-      and the control arm's 235,588 against 229,503-231,026 has a named cause or a stated 'cannot yet
-      say' with the one-variable run that would settle it
-    due: '2026-11-27'
+  - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards
+      (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Unchanged. No
+      policy carries the rebuilt belief, and the correctness exit is not met, so it is in not_now.'
+    corrected: false
+  - what: 'THE COMPANY''S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger
+      still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Unchanged. On b3ce2a4e73 the
+      debt slot refuses 3 households for it (92e949025), and it is in not_now behind item 1.'
+    corrected: false
+  - what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up
+      to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Unchanged.
+      The eighth read''s named checks found N17 and N18, which no trade owns, so the checks work. But the read still
+      found five new classes, and the triage closes this row only when a read carrying the checks finds none.'
+    corrected: false
+  - what: 'THE MACHINE''S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the
+      second time in two stretches. [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Unchanged. No false retirement
+      is known, but n15-page-bill-tally-counts-credit-as-missed''s work is 77c6bb11f, on no remote ref, and nothing
+      would stop that continuation retiring if its landing died.'
+    corrected: false
+  - what: 'THE MACHINE''S, NEW. The naive organ has asked no question since 2026-08-10T07:48Z. [Earlier tails are
+      in decisions.jsonl.] 15:23 4 Nov: Unchanged. d56b52dee explains it and does not repair it.'
+    corrected: false
+  - what: 'MINE, NEW. The 09:22 direction told the worker to write a Done section inside the live advisor file and
+      not move it. [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Corrected. Three advisor closes in a row moved
+      the files to advisor/done/, with the Done note in the moving commit (0fa98c781, and e65298c5f for both knowledge
+      steers), and no in-place edit is known. The correctness ruling stays live, as its exit is not met.'
+    corrected: true
+  - what: 'THE MACHINE''S, NEW. The publisher refused 15 times on a scoped-suite red that was a full 12 GB /tmp
+      of probe scratch under free names. [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Unchanged. Nothing ages
+      out a probe written under a free name.'
+    corrected: false
+  - what: 'THE MACHINE''S, NEW. The billing ledger outgrew GitHub''s 100 MiB file limit, and compact JSON is only
+      a stopgap. [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Unchanged. 84.19 MB on b3ce2a4e73, and the gzip
+      choice is not built.'
+    corrected: false
+  - what: 'THE COMPANY''S OR THE WORLD''S, NEW. On a third of gas legs, metered gas use repeated last year''s same
+      month to the decimal (1,635 of 4,413 pairs on 85b044be54). [Earlier tails are in decisions.jsonl.] 15:23 4 Nov:
+      Corrected. It was the world''s side, and the store rebuild (7ec8b1030) holds on b3ce2a4e73, with 10 of 2,387 pairs
+      (92e949025). The same shape on electricity is N17, which is a separate row.'
+    corrected: true
+  - what: 'THE MACHINE''S, NEW. A hand re-offer of a refused run marker was deleted before any publisher read it.
+      [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Unchanged. No re-offer was attempted, and nothing tells a
+      deliberate re-offer from a stray copy.'
+    corrected: false
+  - what: 'THE COMPANY''S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. [Earlier tails
+      are in decisions.jsonl.] 15:23 4 Nov: Partly corrected. c6e1a29e1 holds on b3ce2a4e73, but 5 catch-ups and 2 gas
+      legs stay uncapped, because the cap tests the period end and not the issue date. That is in not_now.'
+    corrected: false
+  - what: 'THE COMPANY''S, NEW. The collections desk tells customers who paid on time that they missed a bill.
+      [Earlier tails are in decisions.jsonl.] 15:23 4 Nov: Corrected on the book. The blind N15 row reads 0 of 1,234
+      re-offers on the first post-ba868134c book (796808ace), as pre-registered. The household page''s tally is a
+      separate row, below.'
+    corrected: true
+  - what: 'THE MACHINE''S, NEW. The orienting seat did not run for 24 hours (3 Nov 09:23Z to 4 Nov 06:25Z), and
+      nothing reached the director. 15:23 4 Nov: Unchanged. The watchdog is on origin and running (0fa98c781), but it
+      has not been seen to fire on a stall.'
+    corrected: false
+  - what: 'MINE, NEW. The 06:21 record said ''a fresh run grades them'' and named no owner. 15:23 4 Nov: Corrected.
+      92e949025 graded the b3ce2a4e73 book, and item 4 names the owner of the next run before it is launched.'
+    corrected: true
+  - what: 'THE MACHINE''S, NEW. three-blind-invariant-rows-for-n14-n15-n16 was drawn and swept back with nothing
+      landed. 15:23 4 Nov: Corrected. 87ea585e1 landed it, and each row fires on the published book (16, 4,610, 42).'
+    corrected: true
+  - what: 'THE COMPANY''S, NEW. The direct-debit balance book keeps a level DD running, and bars balances at its
+      annual reviews, after the mandate has ended. 15:23 4 Nov: Corrected. 4669d77dd reads the ledger''s dated spells,
+      and a red-on-today test is on origin (GBP 2,475.43 of 20,448.73 review bars sat off DD).'
+    corrected: true
+  - what: 'THE COMPANY''S OR THE PAGES'', NEW. A correctness fix put a new regression on the page:
+      INV_OVERDUE_WITHIN_PAGE_BALANCE reads 128 on b3ce2a4e73, against 0 on 85b044be54. 15:23 4 Nov: Not worked. It
+      is focus item 1.'
+    corrected: false
+  - what: 'THE WORLD''S, NEW (N18), AND MINE IN THE LABEL. Every 2017 gas SVT bill was priced under the cheapest region''s
+      pass-through cost. The 12:23 record called it the company''s, but it was the world''s SVT table. 15:23 4 Nov:
+      Corrected. 667a12d10 and 6a026b67d price each pre-cap year to Ofgem''s published default bill, and the 818fee571
+      row fires on the old book.'
+    corrected: true
+  - what: 'THE PAGES'', NEW (N19). Two-register default bills are graded against the single-rate cap, so two slots
+      print cap breaches that are not breaches. 15:23 4 Nov: Not worked. It is focus item 2.'
+    corrected: false
+  - what: 'THE COMPANY''S, NEW (N20). The direct debit is the bill: 96.8% of DD payments equal their invoice, while
+      the balance book models a level DD. 15:23 4 Nov: Not worked. The 4669d77dd landing did not record which organ is
+      the DD, so focus item 3 does that.'
+    corrected: false
+  - what: 'THE WORLD''S OR THE COMPANY''S, NEW (N17). Metered electricity barely moves from one year to the next (a
+      median same-month change of 1.1%, against NEED''s 14.7%). 15:23 4 Nov: Not worked. It is focus item 5.'
+    corrected: false
+  - what: 'THE PAGES'', NEW (N21). The pages publish a 14.5% margin after cost to serve, against the library''s 2-5%.
+      15:23 4 Nov: Not measured. N18 probably raises it. It is focus item 4.'
+    corrected: false
+  - what: 'THE PAGES'', NEW. N15 and N16 survive on the six-stage household page: its tariff name and bill tally read
+      the old way. 15:23 4 Nov: In hand. The tally fix is 77c6bb11f, which is landing under its continuation and is
+      not yet on origin.'
+    corrected: false
+  - what: 'MINE, NEW. The 12:23 record was refused because its fifth item named an atom as its lane, so the stretch
+      ran with 09:21 as the accepted record. 15:23 4 Nov: Corrected. Every lane in this record is a map lane, and the
+      atom is named in the prose.'
+    corrected: true
+for_the_director: []

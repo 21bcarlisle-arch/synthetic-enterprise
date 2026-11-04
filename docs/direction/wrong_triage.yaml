@@ -627,3 +627,34 @@ items:
     fate: fold
     owner: "docs/staging/reference/CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
     reason: "Both instances are closed by hand (bb58608b9 and 7c34f48a64 markers sit in docs/staging/done/, the second with a .superseded.txt naming its rows), and the marker queue is the publish gate's own state, so the remedy is that register's. Eight 'Unchanged'-shaped tails would record nothing."
+  # 2026-11-04 09:21Z orientation: four rows first listed 29-30 Oct, triaged ahead of the 7-day line.
+  - id: the-draw-ledger-bound-another-items-commit-to-the-gas-item
+    problem: "The draw ledger bound cb53859273 (the declared-policy estimate commit) to the gas-volume item as its landing."
+    match: ["The draw ledger bound cb53859273"]
+    first_seen: "2026-10-30"
+    fate: accept
+    reason: "Triaged 2026-11-04 by the delivery seat. One instance, and it cost a stretch's confusion, not work: the item was re-drawn and landed under its own id (34b764a0f). No second instance has appeared in six days of bindings, including every landing this stretch (c6e1a29e1, 6a3da3e48, d14ff599e bound to their own items). Binding since 16 Oct is by id only (the-draw-ledger-credits-an-item-by-path-overlap), so the cause is not traceable from what remains. Reopen as a fix on a second mis-binding."
+  - id: a-desk-cure-over-a-bill-the-world-still-holds
+    problem: "The collections desk closes a journey as cleared over bills the ledger still holds."
+    match: ["closes a journey as cleared over bills the ledger still holds"]
+    first_seen: "2026-10-30"
+    fate: fix
+    status: open
+    owner: "not_now a-settlement-repays-what-is-left-on-its-bill (simulation/world_payment_truth.repayment_rows, background/live_payment_triad._cross_settlement)"
+    reason: "Triaged 2026-11-04 by the delivery seat. PROS-2025-0013 is fixed (714780d4a). PROS-2020-0191 is traced to the world: a settlement paid a bill's issued face after a credit bill had cut it, and the fix is world-side. It stays a fix because a desk telling a household its debt is cleared while its page shows it owing is a real defect. It is not in focus, because the debt slot is filled validly without it."
+  - id: a-cold-reader-sees-only-what-its-trade-looks-for
+    problem: "Every cold read and blind row passed defects outside its reader's trade (a meter serial on 34 supply points, gas use repeating to the decimal, N14)."
+    match: ["Four cold reads and every blind row passed a meter serial"]
+    first_seen: "2026-10-30"
+    fate: fix
+    status: open
+    owner: "the delivery seat's cold-read focus prose: each read takes a trade no reader has used, plus seat-named checks on meter identity, read repetition and the payment method on the date (the-eighth-cold-read, 4 Nov)"
+    reason: "Triaged 2026-11-04 by the delivery seat. Changing the trade found new classes on the sixth and seventh reads, which shows the instrument's blindness and does not repair it. The seat's named check found N14 where the reader did not, so the named checks are the owned fix. It stays listed until a read carrying them finds no new class."
+  - id: a-continuation-retires-without-its-work-on-origin
+    problem: "A continuation or item can be retired as done while its landing died and nothing is on origin."
+    match: ["A finished build was retired as done with nothing on origin"]
+    first_seen: "2026-10-30"
+    fate: fix
+    status: open
+    owner: "background/seat_continuation.py (retire asks for a commit on origin/main that names the id, or a named successor holding the rest, as delivery_lane.focus_tombstone_refusal already does for focus rows)"
+    reason: "Triaged 2026-11-04 by the delivery seat. Focus-row tombstones already require a binding commit on origin (a-tombstone-retires-a-row-without-checking-its-done). Continuation retirement does not, and two instances (the gas build, the 0a6391d186 publish) retired with nothing on origin. Both were recovered, so no work was lost, but the next SIGTERMed landing can retire the same way."
