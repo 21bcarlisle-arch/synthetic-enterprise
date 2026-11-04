@@ -18,6 +18,9 @@ _HERE = Path(__file__).resolve().parent
 UNITS_DIR = _HERE / "systemd"
 PY = "/usr/bin/python3"
 ENV_FILE = "/home/rich/.config/synthetic-enterprise/.env.ntfy"
+# The long-lived login token: a unit whose process spawns `claude` must load it, or the spawned
+# session fails sign-in when the interactive login expires (3 Nov, 0fa98c781a).
+CLAUDE_ENV_FILE = "%h/.config/synthetic-enterprise/.env.claude"
 
 # G-L3 crash-loop bound: >BURST failures in INTERVAL seconds -> unit goes to `failed`.
 START_LIMIT_BURST = 5
@@ -47,7 +50,8 @@ def generate_unit(entry: dict) -> str:
         f"Type=simple\n"
         f"WorkingDirectory=/home/rich/synthetic-enterprise\n"
         f"EnvironmentFile=-{ENV_FILE}\n"
-        f"# Python 3.14 block-buffers a non-tty stdout at 128 KiB, so an unflushed print() stays\n"
+        + (f"EnvironmentFile=-{CLAUDE_ENV_FILE}\n" if entry.get("signs_in_to_claude") else "")
+        + f"# Python 3.14 block-buffers a non-tty stdout at 128 KiB, so an unflushed print() stays\n"
         f"# out of the journal for days and SIGTERM throws it away. Unbuffered, a stuck daemon and\n"
         f"# a healthy one no longer look the same in the journal.\n"
         f"Environment=PYTHONUNBUFFERED=1\n"

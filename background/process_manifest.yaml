@@ -40,6 +40,7 @@ processes:
   # ── MIGRATED (OPS1 sub-step 4 release, worker-seat first — director-gated 2026-07-17): live
   #    under systemd, verified seeding-by-id + idle + console-untouched before this flip ──
   - session: worker-seat-manager
+    signs_in_to_claude: true   # spawns `claude`; loads .env.claude (0fa98c781a)
     command: python3 background/worker_seat.py
     match: worker_seat.py
     owner: systemd
@@ -65,6 +66,7 @@ processes:
     purpose: "The interactive worker seat, seeded by worker-seat-manager against the dedicated WORKER_SESSION_ID (never `claude -c`). Live 2026-07-17; seat liveness is worker-seat-manager's keep-alive job."
 
   - session: supervisor
+    signs_in_to_claude: true   # spawns `claude`; loads .env.claude (0fa98c781a)
     command: python3 background/supervisor.py
     match: supervisor.py
     owner: systemd
@@ -73,6 +75,7 @@ processes:
     purpose: "Escalation watchdog over the pull-loop transport (G-L4-as-mapped: find_work is the sole DRAW authority; the Stop hook delivers; this daemon polls every 2min and escalates stuck/map-exhausted, ZERO pane writes / ZERO turn delivery). Migrated live 2026-07-17 as step 3 of the serial-autonomy go-live."
 
   - session: deadmans-switch
+    signs_in_to_claude: true   # spawns `claude`; loads .env.claude (0fa98c781a)
     command: python3 background/deadmans_switch.py
     match: deadmans_switch.py
     owner: systemd
@@ -82,6 +85,7 @@ processes:
 
   # ── DARK: present as a daemon but a no-op unless its flag; director-gated ──
   - session: executor-daemon
+    signs_in_to_claude: true   # spawns `claude`; loads .env.claude (0fa98c781a)
     command: python3 background/executor_daemon.py
     match: executor_daemon.py
     owner: systemd
@@ -116,6 +120,7 @@ processes:
     purpose: "Leftover run_complete-marker sweep + resource/formation observers, every 30 min"
 
   - session: staging-watcher
+    signs_in_to_claude: true   # spawns `claude`; loads .env.claude (0fa98c781a)
     command: python3 background/staging_watcher.py
     match: staging_watcher.py
     owner: systemd
@@ -234,6 +239,7 @@ processes:
     purpose: "RETIRED page-comment authority channel (safe no-op)"
 
   - session: naive-organ
+    signs_in_to_claude: true   # spawns `claude`; loads .env.claude (0fa98c781a)
     command: python3 -m background.naive_organ daemon
     match: background.naive_organ   # the argv TOKEN, not the module's stem: `_runs_daemon` asks
                                     # for basename-equality against some argument, and this daemon
