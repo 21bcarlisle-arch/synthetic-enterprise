@@ -11,8 +11,14 @@ MUTATIONS, each applied in place and reverted:
   * `DEFAULT_TARIFF_TYPES` gains "fixed": the fixed leg fails, `test_the_partition` reds.
   * the `(1.0 + vat_rate)` factor dropped: the at-the-ceiling SVT bill stays within, but the bill
     priced 4% over it ex-VAT passes too, and `test_vat_is_on_the_household_side` reds.
+  * the multi-register branch dropped (every bill graded at the single-rate cap and its own mix):
+    the at-cap Economy 7 bill reads as a breach, `test_an_economy_7_bill_is_graded_at_28ad_36` reds.
+  * the 58/42 split replaced by the bill's own mix: same red. The leg over the multi-register cap
+    keeps the branch able to refuse.
 """
 from __future__ import annotations
+
+from datetime import date
 
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
@@ -20,6 +26,7 @@ from company.compliance.domain_invariants import (
     check_default_tariff_invoice_within_household_ceiling,
     default_tariff_invoice_excess_p_per_kwh,
 )
+from company.pricing.ofgem_price_cap import get_multi_register_cap_unit_rate_for_date
 
 
 def _invoice(period_start: str, p_per_kwh_inc_vat: float, *, fuel="electricity", kwh=300.0,
@@ -65,3 +72,34 @@ def test_what_cannot_be_graded_says_so():
     assert default_tariff_invoice_excess_p_per_kwh(
         _invoice("2023-01-01", 99.0, catchup_applied=True), "svt") is None
     assert default_tariff_invoice_excess_p_per_kwh(_invoice("2023-01-01", 99.0), "deemed") > 0
+
+
+def _economy_7_invoice(period_start: str, over_multi_register_cap: float) -> dict:
+    """SYN-2016-592's Feb 2019 shape (N19): 72% day, night at 3.352p, no non-commodity. The day rate
+    puts the 58/42 all-in rate at `over_multi_register_cap` times the multi-register cap."""
+    day_kwh, night_kwh, night_p, vat_rate = 733.2, 278.3, 3.352, 0.05
+    ceiling_ex_vat = get_multi_register_cap_unit_rate_for_date(date.fromisoformat(period_start)) / 10.0 / (1 + vat_rate)
+    day_p = (over_multi_register_cap * ceiling_ex_vat - 0.42 * night_p) / 0.58
+    energy = (day_kwh * day_p + night_kwh * night_p) / 100.0
+    net = energy + 20.0
+    return {"period_start": period_start, "commodity": "electricity", "consumption_kwh": day_kwh + night_kwh,
+            "commodity_amount_gbp": energy, "non_commodity_amount_gbp": 0.0,
+            "vat_gbp": net * vat_rate, "amount_gbp": net * (1 + vat_rate),
+            "registers": [
+                {"label": "Day", "consumption_kwh": day_kwh, "commodity_amount_gbp": day_kwh * day_p / 100.0},
+                {"label": "Night", "consumption_kwh": night_kwh, "commodity_amount_gbp": night_kwh * night_p / 100.0}]}
+
+
+def test_an_economy_7_bill_is_graded_at_28ad_36():
+    """SLC 28AD.4 and .36(a): a two-register default bill is graded against the multi-register cap at
+    58/42. At the cap it passes, though its own 72%-day mix sits over the single-rate cap; 3% over it
+    still fails, so the branch can refuse."""
+    at_cap = _economy_7_invoice("2019-02-01", 1.0)
+    own_mix_p = 100.0 * at_cap["commodity_amount_gbp"] / at_cap["consumption_kwh"] * 1.05
+    single_rate_p = default_tariff_invoice_excess_p_per_kwh(
+        {**at_cap, "registers": None}, "svt")
+    assert single_rate_p and single_rate_p > 0, (
+        f"the fixture must be one the single-rate grade calls a breach ({own_mix_p:.2f}p), or it "
+        "cannot tell the two grades apart")
+    assert default_tariff_invoice_excess_p_per_kwh(at_cap, "svt") == 0.0
+    assert default_tariff_invoice_excess_p_per_kwh(_economy_7_invoice("2019-02-01", 1.03), "svt") > 0

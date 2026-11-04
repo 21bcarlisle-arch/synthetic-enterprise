@@ -47,3 +47,30 @@ a default-tariff two-register invoice is within the multi-register cap at the as
 prints as "breaks a published rule" must agree with that row.
 
 **Reverse.** Delete this file. Nothing outside `docs/staging/` was touched.
+
+## Progress (worker, 2026-11-04): the household grade is fixed; BLOCKING stands until a book shows it and the blind row is written
+
+- **K8 first.** The knowledge page `docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md`
+  has a new section, "Grading this company's own two-register default bill against the cap".
+- **Build.** `default_tariff_invoice_excess_p_per_kwh` now grades a Day/Night bill at 28AD.36(a)'s 58/42,
+  against `get_multi_register_cap_unit_rate_for_date`. Any other multi-register bill is graded at its own
+  mix against the same cap. That is a named simplification, and no default bill in the book is of that kind.
+  The ledger's `default_tariff_excess_p_per_kwh` and the cast's "breaks a published rule" note both read
+  this function. So both change on the next book, and neither needs a code change of its own.
+- **Control.** `test_an_economy_7_bill_is_graded_at_28ad_36` is built on SYN-2016-592's Feb 2019 shape.
+  - A bill at the multi-register cap passes. A bill 3% over it fails.
+  - The test first asserts that its fixture is one the single-rate grade calls a breach.
+  - Two mutations fire it: dropping the branch, and replacing 58/42 with the bill's own mix.
+- **Re-graded on the 4669d77ddd run output, through the new function.**
+  - Two-register default bills: 748 pass, 397 cannot be graded, **5 over**. The old grade flagged 626.
+  - Single-register bills are unchanged: 0 over.
+- **Prediction refuted in part, kept beside the result.** The seat predicted "0". The book shows 5.
+  - PROS-2021-0282, Apr–Jun 2023, 0.56p over. These fall under the EPG, and the commons carries no EPG
+    multi-register level, so the check scales the EPG by the cap's ratio. That gap is the likely cause.
+    It is not attributed.
+  - SYN-2016-592, Dec 2023, 0.48p over. Not attributed.
+  - SYN-2016-380, Aug 2024, 0.26p over. Not attributed.
+- **Still owed before this closes.**
+  - (1) The blind row from ruling step 6. This worker read the code, so it cannot write the row.
+  - (2) A fresh book that shows the page note gone from SYN-2016-592's Feb 2019 bill.
+  - (3) The five above, each either explained or fixed.
