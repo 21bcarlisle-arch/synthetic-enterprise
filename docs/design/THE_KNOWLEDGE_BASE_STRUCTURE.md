@@ -165,3 +165,47 @@ account and an agreement with a third party: a real-world commitment, reserved t
 **What happens meanwhile.** Every factor loading stays fitted from the published cross-tabs, one
 attribute at a time, and is graded as such. Where a joint is needed, the world carries it as an A
 with a range and the page says which licensed dataset would close it.
+
+## 7. Five facets on every page (director, 4 Nov: "Yes")
+
+*Added 2026-11-04 for two steers taken as one piece of work:
+`docs/staging/advisor/DIRECTOR_STEER_ONE_LIGHT_TAXONOMY_FIVE_FACETS_ON_EVERY_PAGE_AND_CLAIM_2026-11-04.md`
+and `..._KNOWLEDGE_AND_INSIGHT_ARE_DIFFERENT_LAYERS_AND_EVERY_CLAIM_CARRIES_A_TRUST_GRADE_2026-11-04.md`.
+This extends §2 and §3. It does not replace them. The six domains and the page placement stay as
+they are. §3's two labels become the `side` facet: `informs` is the page-level value, and
+`seen_by_supplier` stays per quantity.*
+
+**Where the facets live.** One record per served page goes in `site/data/knowledge_facets.json`,
+keyed by the page's directory name. That record is the page's machine-readable header. One file is
+used, not a field in each page record, because the page records are spread across eleven JSON files under `site/data/knowledge_*.json`
+in different shapes. A facet can then change without editing any page body, and the site can join
+facets to pages by slug.
+
+| Facet | Field | Values |
+|---|---|---|
+| Domain | `domain` | `market_and_regulation`, `household_and_assets`, `customer_needs_and_behaviour`, `supplier_operations`, `products_measures_services`, `other_markets` (§2) |
+| Layer | `layer` | `knowledge` (what outside sources say, or what we derive from outside data by a named method), `insight` (our interpretation, synthesis or hypothesis), or `mixed`. A mixed page lists each insight section under `insights` |
+| Side | `side` | `world`, `supplier`, `both` or `neither`. `neither` is kept from §3 for the other-markets pages, which test a design and are never a runtime input |
+| Trust, knowledge | `trust` | `grade_floor`: the weakest D/P/S/A grade among the page's figures (the 30 Oct data standard). `verified`: `yes`, `partly` or `no`, against the primary source. `vintage`: the date of the newest source relied on |
+| Trust, insight | each row of `insights` | `claim`, then `status` (`hypothesis`, `tested`, `held`, `contested` or `refuted`), `rests_on` (the knowledge and runs it rests on), `from_sim` (true when drawn from our own simulation), `falsified_by`, `checked` and `review_by` |
+| Use | `use` | What reads the page: entries of the form `world:<module>`, `calibration:<target>`, `supplier:<module>` and `page:<slug>`. These sit beside the `atoms` field each page already carries, which is the existing link from idea to code and is not copied here |
+
+**No circularity.** The steer said this rule binds immediately. An insight with `from_sim: true`
+may not list a `world:` or `calibration:` use. A world parameter rests on knowledge graded D or P
+only. Insight may guide what to test or build, never what the world is calibrated to.
+
+**Refuted insight stays.** It keeps its row, with `status: refuted` and, in `falsified_by`, what
+refuted it.
+
+**The check.** `site/knowledge/test_every_page_carries_its_five_facets.py`:
+
+- refuses a served page with no record, and a record with a missing or invalid facet;
+- refuses the circular use above;
+- refuses an insight with no `review_by`.
+
+**Not built yet: the site filter.** The steer's Ask 3, filtering by any facet, needs the facets to
+exist first. It is the next step after this back-fill, and it follows K8 as any change to a page
+does.
+
+**Keeping it light.** These are five facets. A sixth is added only when a real question cannot be
+answered without it, and is recorded here as a dated decision.
