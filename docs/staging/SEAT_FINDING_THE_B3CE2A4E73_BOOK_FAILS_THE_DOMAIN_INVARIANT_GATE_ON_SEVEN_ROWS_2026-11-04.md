@@ -91,3 +91,35 @@ on bills issued by the step:
   net across legs. That is a definition question (does a credit on one fuel's account reduce what is overdue on the
   other's?), to be answered from the knowledge layer before either side is changed.
   SYN-2016-380's 2 steps (desk 165.75 against one returned bill of 148.95, 16.80 over) are not yet explained.
+
+## SYN-2016-604g's three rows traced: one held bill (2026-11-04)
+
+The run has all 13 of the gas leg's bills, but the billing ledger issues 12. July 2017 sits in the exception queue:
+"billed usage 253.5 kWh does not reconcile with the printed meter reads 5001.4 -> 5255.0". June closed the register
+at 5001.45, which prints 5001.4. July's register opened at 5001.450000000001, and `generate_billing_ledger` started
+the usage line there, which rounds to 5001.5. The 0.1 kWh went to a catch-up line that a bill with no true-up never
+prints. The gate was right to hold the bill; the builder was wrong. Across the book this is the only such bill (1 of
+8,030 actual bills with a register and no true-up whose opening rounds apart from the previous close).
+Fix: a gap below print precision, with no true-up, is float noise, so the usage line opens on the printed close.
+Control: `tests/tools/test_an_actual_bill_with_no_catch_up_opens_on_the_last_printed_close.py` (red on origin with
+the same hold; the true-up arm still prints its 0.1 kWh catch-up).
+**Prediction, filed before the re-grade of the 4669d77ddd book with this builder:** INV_PERIODS_CONTIGUOUS 1 -> 0,
+INV_OPENING_IS_THE_PREVIOUS_CLOSING 1 -> 0, INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE 5 -> 4 (SYN-2016-604g leaves),
+and no other row moves.
+
+## INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER against its pre-registered split: refuted (2026-11-04)
+
+On the 4669d77ddd book (census `/var/tmp/grade-4669/estrun_census.py`): **2 of 53** breaches are on N14-rebilled
+accounts (66 such accounts in the book), against the "more than half" the prediction needed. N14's second pass is not
+the cause. Split: electricity 52, gas 1; 41 below the band (the estimate is well under the meter's advance, ratios
+0.10-0.33) and 12 above (3.1-5.3). Runs that start in 2016-17: 31 of 53. Runs of 2 bills: 20. 44 accounts, none with
+more than 2. Gas is 1, so N13 (the gas-noise change) does not carry it. **I cannot yet say** which change does. The
+electricity-side candidates between 85b044be54 (4) and b3ce2a4e73 (53): 7ec8b1030d (490 premises leave the climate
+normal and read the weather store), 308a3f168e (an E7 meter's annualised estimate is per register) and 54f76662d1
+(held opening estimates issued). Next: one-variable replays of a breaching account's leg, one candidate at a time.
+
+**Result (the 4669d77ddd book re-graded with the fixed builder, `/var/tmp/grade-4669-fix/grade.txt`):**
+INV_PERIODS_CONTIGUOUS 1 -> 0, INV_OPENING_IS_THE_PREVIOUS_CLOSING 1 -> 0, INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE 5 -> 4:
+as predicted. **"No other row moves" was wrong:** INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL also fell, 14 -> 12. I did not
+predict it. The likely reading is that the held month was missing from one panel's year for this leg, but I have not
+checked it row by row. Every other row reads as before.

@@ -522,8 +522,14 @@ def generate(run_json_path=None, out_path=None):
             # stays the previous bill's closing, the estimated reading the customer was last shown
             # (back_billing_and_liability.md §13): the register less the month is a read nobody
             # took, and 6,436 actual bills on the 37abacdf42 book printed one.
-            month_opening_kwh = bill["register_opening_kwh"]
             closing_read_kwh = bill["register_closing_kwh"]
+            # With no estimated run to true up, a gap below print precision between the register's
+            # opening and the previous close is float noise, not use: SYN-2016-604g's July 2017 gas
+            # bill opened at 5001.450000000001 after a 5001.45 close, printed 5001.4 -> 5255.0 beside
+            # 253.5 kWh, and the gate held it, a month-long hole in the leg (4669d77ddd book).
+            if (bill.get("read_true_up_kwh") is not None
+                    or abs(bill["register_opening_kwh"] - opening_read_kwh) >= 0.05):
+                month_opening_kwh = bill["register_opening_kwh"]
         running_closing_read[read_key] = closing_read_kwh
         gas_volume = None
         if commodity == "gas" and bill.get("calorific_value_mj_per_m3") is not None:
