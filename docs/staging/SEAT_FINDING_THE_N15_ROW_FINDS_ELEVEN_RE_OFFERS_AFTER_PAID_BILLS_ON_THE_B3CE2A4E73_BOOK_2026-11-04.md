@@ -102,3 +102,17 @@ one variable.
 - **Re-offers fall by at least 7 from 1,241 and by under 1%** (between 1,229 and 1,234), on the row's own count.
 - **Unchanged:** the account count (1,291) and the invoice count (52,715). A re-offer moves no money, so the bills do not
   change.
+
+### Amended before the result (2026-11-04 13:55Z)
+
+The run named above never ran. The runner restarted at 12:30Z, held, deferred four cycles, and started the first run
+carrying both fixes at 13:24Z on **4669d77ddd** (`run_output_4669d77ddd_20261104T132452Z.json`). That commit also
+changes `simulation/dd_balance_book.py` (a bill in a spell off DD is no longer reviewed or barred at review). That
+change moves what a DD collects, so it can move failures, journeys and re-offers. **The book now moves on two
+variables, not one.**
+- **Stands:** the N15 row reads 0. A breach is judged one bill at a time, so attributing a survivor needs no clean
+  diff: each one gets traced, and none is explained away.
+- **Withdrawn, as not attributable:** the re-offer range of 1,229–1,234. The DD book can move it in either direction.
+  I will report the count, and I will not read it as the desk fix's effect.
+- **Stands:** accounts 1,291. Invoice count 52,715, because the DD change moves amounts, not the number of bills. Not
+  carried over: re-offers move no money. On this book, money can move.
