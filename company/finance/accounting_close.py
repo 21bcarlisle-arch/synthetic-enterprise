@@ -112,6 +112,7 @@ def close_the_books(
     broker_commission_events: list[dict[str, Any]] | None = None,
     payment_model: Any = None,
     back_billing_bars: list[dict[str, Any]] | None = None,
+    level_dd_collections: dict[str, list[dict[str, Any]]] | None = None,
 ) -> AccountingClose:
     """Close this run's books over the settled records and assembled bills.
 
@@ -134,6 +135,8 @@ def close_the_books(
         `saas.payment_behaviour`.
     `back_billing_bars` — each SLC 21BA bar taken on a direct-debit balance where the debit asked
         for it (the DD balance book's `bar_actions`), written off as revenue not collected.
+    `level_dd_collections` — the level direct debits the households on one pay, the schedule the
+        page ledger collects; cash is booked at those amounts and dates (`saas.ledger.build_ledger`).
 
     The SLC 21B.4 visits the billing run instructed are read off `bills` here, not handed in: each
     bill carrying `read_instruction_raised` is one visit at the area-round price
@@ -167,6 +170,7 @@ def close_the_books(
         issued_bills,
         model,
         extra_events=extra_events or None,
+        level_dd_collections=level_dd_collections,
     )
     pnl = derive_pnl(events)
     meta = ledger_summary(events)

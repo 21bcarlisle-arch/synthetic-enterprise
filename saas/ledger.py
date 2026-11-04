@@ -117,15 +117,25 @@ def make_payment_received_event(
     bill: dict[str, Any],
     provision_gbp: float,
     payment_date: str,
+    collected_gbp: float | None = None,
 ) -> dict[str, Any]:
-    """Cash collected against a bill: total billed minus bad-debt provision."""
+    """Cash collected against a bill: total billed minus bad-debt provision.
+
+    `collected_gbp` is the level direct debit collected in the bill's month, where the household
+    pays one: the cash is that amount, not the bill, less the provision in the same proportion. A
+    simplification: the provision is the bill's expected loss, and scaling it to the collection
+    keeps it per bill rather than re-modelling loss on a running balance."""
+    amount = bill["total_amount_gbp"] - provision_gbp
+    if collected_gbp is not None:
+        total = bill["total_amount_gbp"]
+        amount = collected_gbp * (amount / total) if total > 0 else collected_gbp - provision_gbp
     return {
         "transaction_id": _tid("payment_received", bill["customer_id"], bill["period_end"]),
         "event_type": "payment_received_event",
         "timestamp": payment_date,
         "customer_id": bill["customer_id"],
         "bill_period_end": bill["period_end"],
-        "amount_gbp": bill["total_amount_gbp"] - provision_gbp,
+        "amount_gbp": amount,
     }
 
 
@@ -506,6 +516,7 @@ def build_ledger(
     bills: list[dict[str, Any]],
     payment_behaviour: Any = None,
     extra_events: list[dict[str, Any]] | None = None,
+    level_dd_collections: dict[str, list[dict[str, Any]]] | None = None,
 ) -> list[dict[str, Any]]:
     """Derive the full transaction log from simulation outputs.
 
@@ -518,9 +529,29 @@ def build_ledger(
     `extra_events` — optional list of pre-built events (Phase 8a acquisition_spend_event
         and fixed_cost_event dicts) to merge into the sorted output.
 
+    `level_dd_collections` — the level direct-debit schedule the page ledger collects
+        (`{customer_id: [{month, collection_date, amount_gbp}]}`, the run's
+        `level_dd_collections`). A bill in a month the schedule covers is paid that month's
+        level amount on its collection date, paired in period order exactly as
+        `tools/generate_billing_ledger` pairs them; every other bill pays itself.
+
     Returns events sorted chronologically.
     """
     events: list[dict[str, Any]] = []
+    level_for: dict[tuple[str, str], dict[str, Any]] = {}
+    if level_dd_collections:
+        month_bills: dict[tuple[str, str], list[str]] = {}
+        for b in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
+            if b["customer_id"] in level_dd_collections:
+                month_bills.setdefault((b["customer_id"], b["period_end"][:7]), []).append(
+                    b["period_end"])
+        for cid, cols in level_dd_collections.items():
+            by_month: dict[str, list[dict[str, Any]]] = {}
+            for col in cols:
+                by_month.setdefault(col["month"], []).append(col)
+            for month, month_cols in by_month.items():
+                for period_end, col in zip(month_bills.get((cid, month), ()), month_cols):
+                    level_for[(cid, period_end)] = col
 
     # Infer commodity per customer from settlement records (needed for billing events
     # because generate_bill() doesn't carry the commodity field).
@@ -570,7 +601,12 @@ def build_ledger(
             payment_date = payment_behaviour.expected_payment_date(
                 b["period_end"], credit_risk
             )
-            events.append(make_payment_received_event(b, provision, payment_date))
+            level = level_for.get((cid, b["period_end"]))
+            if level is not None:
+                payment_date = level["collection_date"]
+            events.append(make_payment_received_event(
+                b, provision, payment_date,
+                collected_gbp=None if level is None else level["amount_gbp"]))
             if provision > 0:
                 events.append(make_bad_debt_event(b, provision, payment_date))
                 # A2_decision_rights_register (2026-07-12): CREDIT_COLLECTIONS_

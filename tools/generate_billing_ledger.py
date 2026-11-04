@@ -420,6 +420,15 @@ def generate(run_json_path=None, out_path=None):
     arrears_by_cid = {}
     segment_by_cid = {}
     invoice_number = 1
+    # A level direct debit is collected at the amount the supplier set, on the payment day, whatever
+    # the month's bill is (payments_and_direct_debit_2026-10-25.md, "What a level direct debit must
+    # be"). The run hands over one schedule for the households the world put on a level amount, and
+    # the books (`saas.ledger.build_ledger`) read the same one. Each DD bill takes its month's next
+    # collection in order. A run that predates the schedule carries none, and every DD pays its bill.
+    level_dd: dict[tuple[str, str], list[dict]] = {}
+    for cid, cols in (data.get("level_dd_collections") or {}).items():
+        for c in cols:
+            level_dd.setdefault((cid, c["month"]), []).append(c)
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
@@ -921,6 +930,13 @@ def generate(run_json_path=None, out_path=None):
                 "income_stress_at_time": stress,
                 "tone": _tone,
             }
+            level = (level_dd.get((cid, period_end[:7])) or [None]).pop(0) \
+                if method == "direct_debit" else None
+            if level is not None:
+                # The household's bank pays the level amount, and the balance carries the difference.
+                pay["amount_gbp"] = round(level["amount_gbp"], 2)
+                pay["payment_date"] = level["collection_date"]
+                pay["level_dd"] = True
             if part_paid:
                 # A mover's final bill paid in part: the case below is for the rest.
                 pay["part_paid_gbp"] = part_paid

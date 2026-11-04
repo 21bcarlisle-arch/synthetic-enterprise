@@ -99,8 +99,9 @@ from simulation.dd_balance_book import (
     forecast_inputs_from_run,
 )
 from simulation.dd_collection_book import build_dd_collection_book
-from simulation.dd_level_collection_book import build_dd_level_collection_book
+from simulation.dd_level_collection_book import build_dd_level_collection_book, level_dd_collections
 from simulation.household import households_whose_account_closed, supply_points_that_left
+from simulation.household_segments import pays_a_level_direct_debit
 from simulation.meter_reads import (
     SimulatedReadFeed,
     meter_read_log_from_events,
@@ -627,6 +628,9 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # changes no existing figure. This is the Fixed-DD counterpart to
     # build_dd_collection_book above (which is Variable DD: raw bill sizes it).
     dd_level_collection_book = build_dd_level_collection_book(dd_balance_book)
+    # N20 (2026-11-04): the households the world put on a level amount pay it. The page ledger and
+    # the books read this one schedule; every other DD account keeps paying each bill.
+    level_dd_schedule = level_dd_collections(dd_level_collection_book, pays_a_level_direct_debit)
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
@@ -878,7 +882,11 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         ),
         # SLC 21BA on direct debit: the bars the balance book took at its recovery actions, with
         # the review as built. The other arm of the review toggle is published, not booked.
-        back_billing_bars=dd_balance_book.bar_actions,
+        # Only a level account carries the balance a bar acts on: a variable one pays each bill, and
+        # its arrears are the engine's write-offs. Booking its bar too wrote off revenue twice.
+        back_billing_bars=[b for b in dd_balance_book.bar_actions
+                           if b["customer_id"] in level_dd_schedule],
+        level_dd_collections=level_dd_schedule,
     )
     ledger_events = books.events
     ledger_pnl = books.pnl
@@ -917,6 +925,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         "dd_balance_book": dd_balance_book.serialise(),
         "dd_back_billing_if_review_seeks_balance": dd_back_billing_if_review_seeks_balance,
         "dd_level_collection_book": dd_level_collection_book.serialise(),
+        "level_dd_collections": level_dd_schedule,
         "meter_read_log": meter_read_log,
         **({"theft_screen": theft_screen} if theft_screen is not None else {}),
         # D48: billed against what the reads later showed, by kind -- read off the assembled

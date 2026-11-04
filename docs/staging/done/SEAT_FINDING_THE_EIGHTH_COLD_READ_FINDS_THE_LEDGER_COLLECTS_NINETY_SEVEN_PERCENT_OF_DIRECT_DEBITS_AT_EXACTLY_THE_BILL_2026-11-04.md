@@ -48,3 +48,20 @@ never held them. Reading, counts and the build slice `D_level_dd_is_the_collecti
 finding stays open until the slice lands.
 
 **Reverse.** Delete this file. Nothing outside `docs/staging/` was touched.
+
+## Done
+
+2026-11-04, the N20 build (delivery lane `the-ledger-collects-the-level-direct-debit`).
+- The world draws a level or variable flag per DD household (`simulation/household_segments.pays_a_level_direct_debit`,
+  0.70–0.95 from the knowledge page, at its midpoint).
+- The page ledger and the books read one level schedule (`simulation/dd_level_collection_book.level_dd_collections`)
+  and landed together. The books' DD bars are filtered to level accounts.
+- Tests:
+  - `tests/company/billing/test_a_level_direct_debit_account_pays_its_level_amount_not_its_bill.py` (with the
+    partition leg and the two-cash-record agreement leg);
+  - `tests/company/billing/test_the_share_of_dd_collections_equal_to_their_bill_sits_inside_the_published_belief.py`.
+- The blind row `INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE` is in
+  `docs/design/DOMAIN_INVARIANTS.yaml`.
+- On 4669d77ddd with the schedule injected, the bill-equal share falls from 0.963 to 0.207.
+- The figures the next fresh run moves, and the three owed follow-ups, are in
+  `records/SEAT_RECORD_THE_FIGURES_THE_LEVEL_DIRECT_DEBIT_WILL_MOVE_ON_THE_NEXT_FRESH_RUN_2026-11-04.md`.

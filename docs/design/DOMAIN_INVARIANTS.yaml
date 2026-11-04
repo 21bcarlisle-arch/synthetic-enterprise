@@ -4097,3 +4097,88 @@ invariants:
     fabric_physics.storage_charge_kwh; the claims ''the world bills every household at the GB average'', ''a default tariff is priced at min(method column, DD)'', and ''from 2019 the E7 pair is struck so
     0.58 x day + 0.42 x night equals the multi-register cap rate'' (a_storage_heated_homes_default_tariff_is_two_rate.md choice 2: a pair struck AT the cap passes this row only by the 1.5% tolerance and
     the absolute half-penny, so any non-energy charge added on top of a cap-struck energy pair would breach); book counts (36 of 560 storage accounts); staging file names.'
+- id: INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE
+  family: payment
+  grades: ledger
+  source: docs/market_research/payments_and_direct_debit_2026-10-25.md ('What a level direct debit must be, and how many households pay one'); docs/market_research/what_bill_shock_is.md
+    ('The populations', 'What is not settled' 1)
+  statement: A level (fixed) direct debit is collected at a set monthly amount whatever that month's bill is, and at least about 70% of GB direct-debit households pay one. So across a book's
+    successful direct-debit collections, the share that track the bill they settle (amount equal to the bill, and not merely a level amount that happens to equal it) can be no more than the
+    variable-DD share, at most 30%; and at least 70% of the book's direct-debit accounts must show a level amount held across consecutive collections.
+  applies_to:
+    commodity: electricity and gas, each fuel's collections graded on that fuel's invoices
+    segment: domestic
+    payment: payments[] with method == 'direct_debit' and outcome == 'success'; every other method and outcome is outside the row and counted as such
+    period: the whole run (2016-2025). The 70% floor is a 2025 figure; earlier years are graded against it as a stated belief (see gaps)
+    supplier: a book whose direct-debit product mirrors the market's mix (level by default, variable as the exception). A supplier that sells only variable DD is outside the published premise;
+      the run must declare it, and the row then reports NOT GRADED with that reason rather than pass or fail
+  predicate: 'Unit: one successful DD collection p, joined to invoice i by invoice_number. a = p.amount_gbp; T = i.total_amount_gbp; s = p.scheme_credit_gbp, else i.scheme_credit_gbp, else 0;
+    d = i.deemed_share_gbp or 0. Penny tolerance e = 0.01 GBP (two figures each rounded to the penny can differ by one penny and no more). EXCLUDED, each counted with its reason: (x1) no
+    invoice_number or no matching invoice (unjoinable); (x2) a <= 0 or T <= 0 (a credit or nil bill has no level-vs-bill reading); (x3) the account''s first successful DD collection, and any
+    collection settling the account''s first invoice (a new account''s first bill covers a part period and the first level amount is an opening estimate; one collection cannot show which
+    product the account pays); (x4) any collection settling the account''s last invoice when that invoice ends before the ledger''s last billed month (a leaver''s final bill: collecting the final
+    bill by the existing mandate is published move-out practice, so it equals the bill on a level DD too). EQUAL: |a - T| <= e, or s > 0 and |a - (T - s)| <= e (a scheme credit netted from
+    the month''s collection), or d > 0 and |a - (T - d)| <= e (counted equal against the company: what deemed_share removes is not established, see gaps). An EQUAL collection is COINCIDENT-LEVEL
+    if a is also within e of the same account''s previous or next graded DD collection on that fuel (a level amount repeated, which happened to equal this bill); otherwise it is BILL-TRACKING.
+    Everything else graded is NOT-EQUAL. Leg A (book): q = BILL-TRACKING / (BILL-TRACKING + COINCIDENT-LEVEL + NOT-EQUAL); q must be <= upper 0.30. Leg B (book): an account with >= 3 graded
+    collections on a fuel is LEVEL-SHOWN if two consecutive graded collections share an amount within e and are NOT-EQUAL or COINCIDENT-LEVEL (s added back where s > 0); the share of such
+    accounts that are LEVEL-SHOWN must be >= 0.70. Leg C (per account, LEVEL-SHOWN accounts only): between two amount changes the amount holds; a graded collection that differs from both its
+    neighbours by more than e (after adding back s) is a ONE-OFF, and a BILL-TRACKING collection on a LEVEL-SHOWN account is an INTERLEAVE (a level amount does not become the bill and revert).'
+  evaluation: 'Shares are tested with a 95% Wilson interval whose n is the number of ACCOUNTS contributing graded collections (collections cluster within accounts, so the collection count overstates
+    the evidence). Leg A: BREACH if the interval''s lower edge > 0.30; FLAG (cannot tell) if q > 0.30 and the interval reaches 0.30. Leg B: BREACH if the upper edge < 0.70; FLAG if the share < 0.70
+    and the interval reaches 0.70. Fewer than 10 contributing accounts on a leg: NOT GRADED, ''cannot tell at n = k'', printed as the result. Vacuity control, over the whole partition: report
+    the count of successful DD collections and of each class x1, x2, x3, x4, EQUAL (and within it gross, net-of-scheme-credit, net-of-deemed), COINCIDENT-LEVEL, BILL-TRACKING, NOT-EQUAL; plus
+    accounts graded, LEVEL-SHOWN, ONE-OFF and INTERLEAVE counts. The classes must sum to the collection total. No successful DD collection, or none left after x1-x4: the row was NOT EXERCISED,
+    said in those words, never a pass. A run whose graded collections are all one class has exercised only that side; say which.'
+  lower: null
+  upper: 0.30
+  severity:
+    violation: Leg A breach (bill-tracking share above the variable-DD ceiling); Leg B breach (too few accounts show a level amount)
+    flag: Leg A or Leg B cannot tell; Leg C per account, each ONE-OFF not explained by s and each INTERLEAVE, reported as an account count with the first three account ids
+  export_fields:
+  - customers[<id>].payments[].invoice_number, payment_date, amount_gbp, method, outcome, scheme_credit_gbp (optional)
+  - customers[<id>].invoices[].invoice_number, period_start, period_end, total_amount_gbp, scheme_credit_gbp (optional), deemed_share_gbp (optional)
+  - the fuel of each invoice (to grade per fuel); if the export carries none, collections are graded per customer and dual-fuel accounts are reported as a count
+  checkable: true
+  sources:
+  - 'docs/market_research/payments_and_direct_debit_2026-10-25.md, ''What a level direct debit must be'': a level DD is "collected monthly at a set amount, whatever that month''s bill is" (the
+    reason a level collection equal to its bill is coincidence, and the basis of Leg C); SLC 27.15 sets it from estimated future supply, not the last bill'
+  - 'Same section: 15m households on fixed DD and in credit (year to June 2025) over 0.72-0.74 x 28-29m DD households = 0.70-0.74 [derived], a LOWER bound on the level share because a fixed-DD
+    household in debit is not counted. Upper 0.30 on q = 1 - 0.70; Leg B lower 0.70 = the same floor'
+  - 'Same section: the variable-DD share is not zero (Ofgem Dec 2023 bridge, GBP 725m of credit held by non-fixed DD customers), which is why the level share is not 1; no number for it is published'
+  - 'docs/market_research/what_bill_shock_is.md, ''The populations'': ~15m rising to ~17m fixed-DD households in credit (12 months to Dec 2025); ''What is not settled'' 1: the fixed/variable split is
+    not published'
+  - 'docs/market_research/a_new_accounts_first_months_2026-10-30.md section 3: the four families of practice (level with periodic review, level with continuous monitoring, variable DD "depends on
+    smart reads", customer-adjustable band); annual cost / 12, a balance spread over 12 months (the basis for x3: the first amount is an opening estimate)'
+  - 'docs/market_research/payments_and_direct_debit_2026-10-25.md, ''A DD is never late'' (citing home_moves.md): "collecting the final bill by the existing direct debit" is published move-out
+    practice (the basis for x4)'
+  - 'docs/market_research/energy_bills_support_scheme_delivery.md, ''A bill the credit covered in part'': for DD, suppliers credited the account, refunded the credit, or lowered the direct debit;
+    the credit is never a household payment (the basis for testing T - s and adding s back in Legs B and C)'
+  gaps:
+  - The fixed/variable DD split itself (what_bill_shock_is.md, not settled 1). The 0.70 floor is derived from households in credit only; no published ceiling on the level share exists, so Leg A has
+    no lower bound (null). The page's belief of 0.70-0.95 would put q at 0.05 or more, but a supplier choosing to offer no variable DD may legitimately reach 0, so 0.05 is not used.
+  - The split before 2025. Variable DD is described as depending on smart reads, so earlier years plausibly had a higher level share and the 2025 floor is the looser bound for them; this is a
+    stated belief with that reason, not a published series.
+  - Household share versus collection share. The bound is on households; q is on collections. Equal monthly collections per household are assumed; if variable-DD households are collected more or
+    less often than level ones the two differ, and no published figure says which.
+  - deemed_share_gbp is graded from its name only; whether a DD collects the bill net of it is not established, so matching T - d is counted EQUAL (against the company, F11) and reported apart.
+  - The review cadence (payments page named gap 6; first-review point GAP in a_new_accounts_first_months_2026-10-30.md) is not published, so Leg C cannot bound how often a level amount may change,
+    only that it holds between changes. The materiality test for a change (Ofgem 2022, where a change would be immaterial, use discretion) has no published threshold;
+    the +/-5% band is a supplier convention.
+  - The export carries no review date, mandate spell or advance notice, so amount changes are inferred from the amounts; a re-presented collection after a return can read as a ONE-OFF.
+  written_by: blind agent, 2026-11-04; read only docs/domain_artefact_library, docs/market_research, site/knowledge and this file for format
+  files_read:
+  - docs/design/DOMAIN_INVARIANTS.yaml (lines 1-12 and the last row, lines 4037-4099; line count and a grep for that row's id)
+  - docs/market_research/payments_and_direct_debit_2026-10-25.md (whole)
+  - docs/market_research/what_bill_shock_is.md (whole)
+  - docs/market_research/energy_bills_support_scheme_delivery.md (grep for direct debit/credit/collect lines; lines 176-215)
+  - docs/market_research/a_new_accounts_first_months_2026-10-30.md (grep for first-collection lines; lines 68-120)
+  - docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md (grep lines only)
+  - docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md (lines 60-80)
+  - docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md (grep 'direct debit' lines only)
+  - site/knowledge/index.html (text around 'fixed/variable/level/monthly direct debit' only)
+  - 'file-name greps over docs/domain_artefact_library, site/knowledge and docs/market_research for direct debit, fixed/variable DD, scheme credit and first collection'
+  blindfold_disclosure: 'Seen incidentally inside the notes, no bound taken from any: simulation/population_draw DD_SHARE_ELEC 0.72 / DD_SHARE_GAS 0.75; _TARGET_DD_SHARE 0.74;
+    company/billing/dd_collections_desk, dd_review, annual_consumption_estimate; simulation/bacs_rails, arrears_engine, dd_shock_response (PB4 15% trigger); bill_assembly.owed_after_scheme_credit
+    and ''the world nets the credit from the month''s collection''; the 4669d77ddd reading (33,996 of 35,306 DD collections, 96.3%, at the bill; a level amount set for 934 accounts and collected
+    on 4 collections, 0 accounts) and a staging records file name.'

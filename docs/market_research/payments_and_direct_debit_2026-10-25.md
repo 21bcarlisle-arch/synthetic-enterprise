@@ -437,3 +437,17 @@ direct debit). No new source was read; each line cites the passage above it come
 (96.3%)** direct debits at the bill they settle. The supplier's balance book sets a level amount for 934
 accounts, but the ledger collects it on 4 collections and 0 accounts. The reading is in
 `docs/staging/records/SEAT_READING_WHICH_ORGAN_IS_THE_DIRECT_DEBIT_ON_THE_4669D77DDD_BOOK_2026-11-04.md`.
+
+**A tighter floor the derivation above did not use (blind invariant writer, 4 Nov).** `what_bill_shock_is.md`
+also gives ~17m fixed-DD households in credit over the 12 months to Dec 2025. The same division gives a lower
+bound of about **0.79–0.84**, not 0.70–0.74. The build keeps the stated 0.70–0.95 range, because the 0.70
+figure is the looser bound and is therefore the safe one for a ceiling on bill-sized collections. If the 17m
+figure is the better-dated of the two, the range's floor should rise.
+
+**Built (4 Nov, N20).** The world draws a level or variable flag per DD household
+(`simulation/household_segments.pays_a_level_direct_debit`, share at this range's midpoint, 0.825). The
+balance book's level schedule is what the page ledger and the books collect for flagged accounts. Measured on
+the 4669d77ddd book with the schedule injected and no run launched: 758 of 934 accounts are on a level amount,
+and the share of DD collections equal to their bill falls from 0.963 to **0.207**. Row
+`INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE` in `docs/design/DOMAIN_INVARIANTS.yaml`
+states the property blind.

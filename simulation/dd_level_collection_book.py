@@ -166,3 +166,19 @@ def build_dd_level_collection_book(balance_book: DDBalanceBook) -> DDLevelCollec
             ))
         book.schedules[cid] = schedule
     return book
+
+
+def level_dd_collections(level_book: DDLevelCollectionBook, pays_level) -> dict[str, list[dict]]:
+    """The schedule the household's bank pays, for the accounts the world put on a level amount.
+
+    ``pays_level(customer_id)`` is the world's mandate-type draw
+    (`household_segments.pays_a_level_direct_debit`). An account it puts on a variable amount is
+    left out and keeps paying each bill. The page ledger (`tools/generate_billing_ledger`) and the
+    books (`saas.ledger.build_ledger`) both read this, so the two cash records cannot collect
+    different amounts. One row per billed month, in billing order: `{month, collection_date,
+    amount_gbp}`."""
+    return {
+        cid: [{"month": c.collection_date[:7], "collection_date": c.collection_date,
+               "amount_gbp": c.amount_gbp} for c in cols]
+        for cid, cols in level_book.schedules.items() if pays_level(cid)
+    }

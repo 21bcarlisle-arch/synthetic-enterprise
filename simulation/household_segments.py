@@ -362,6 +362,26 @@ def payment_channel_for_customer(customer_id: str, fuel: str = "electricity") ->
             else PaymentChannel.STANDARD_CREDIT)
 
 
+#: The share of direct-debit households paying a LEVEL (fixed) amount, not each bill. A stated
+#: belief with a range, not a published figure: `docs/market_research/payments_and_direct_debit_
+#: 2026-10-25.md`, "What a level direct debit must be", derives a lower bound of 70-74% (15m fixed-DD
+#: households in credit over 72-74% of ~28-29m) and states 0.70-0.95 for a build. The exact split is
+#: a GAP. The draw takes the range's midpoint. At the 0.70 bound the variable share sits on the
+#: invariant's own 0.30 ceiling, so the run could not tell a pass from a fail.
+LEVEL_DD_SHARE_RANGE = (0.70, 0.95)
+LEVEL_DD_SHARE = sum(LEVEL_DD_SHARE_RANGE) / 2
+
+
+def pays_a_level_direct_debit(customer_id: str) -> bool:
+    """Whether this household's direct debit is a level amount (True) or each bill (False).
+
+    One draw per household, on its own stream, carried with the mandate for the account's life: a
+    dual-fuel household's two legs pay the same kind, as they pay the same channel. It says nothing
+    about whether the household pays by direct debit at all -- that is `payment_channel_for_customer`
+    -- so a non-DD leg's answer is never read. The company sees only the mandate type it set."""
+    return random.Random(f"level_dd_{household_of(customer_id)}").random() < LEVEL_DD_SHARE
+
+
 # Layer 2 dimension 2 (fuel poverty / income-band, 2026-07-09): DESNZ "Annual
 # Fuel Poverty Statistics in England, 2025 (2024 data)" (fetched 2026-07-08,
 # see ASSUMPTIONS.md) gives fuel-poverty rate (LILEE metric) BY ELECTRICITY
