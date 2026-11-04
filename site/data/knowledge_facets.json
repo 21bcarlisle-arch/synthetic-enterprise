@@ -1,0 +1,1860 @@
+{
+ "_note": "The five facets (domain, layer, side, trust, use) for every served Knowledge page, keyed by page directory, back-filled 2026-11-04 by the knowledge facet audit; the schema and values are docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md section 7, and the audit record is docs/staging/records/SEAT_RECORD_THE_KNOWLEDGE_FACET_AUDIT_2026-11-04.md.",
+ "pages": {
+  "acquisition-and-retention-economics": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2025-11"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/analytics/acquisition_cost_amortisation.py",
+    "supplier:company/analytics/clv_three_horizon.py",
+    "supplier:company/analytics/forward_clv.py",
+    "supplier:company/compliance/domain_invariants.py",
+    "supplier:company/crm/churn_desk.py",
+    "supplier:company/crm/competitive_pressure.py",
+    "supplier:company/crm/save_offer.py",
+    "supplier:company/interfaces/growth_desk.py",
+    "supplier:company/market/transfer_objection_register.py",
+    "supplier:company/pricing/value_based_renewal.py",
+    "supplier:saas/growth_mandate.py",
+    "supplier:saas/ledger.py",
+    "supplier:saas/opex_ledger.py",
+    "world:simulation/debt_objection.py",
+    "world:simulation/departure_risks.py",
+    "world:simulation/payment_behaviour_source.py",
+    "world:simulation/renewal_engagement.py",
+    "world:simulation/svt_rates.py",
+    "page:capabilities",
+    "page:harness",
+    "page:home"
+   ]
+  },
+  "back-billing-and-liability": {
+   "domain": "supplier_operations",
+   "layer": "mixed",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "Because the twelve-month limit runs from the demand for payment, not the bill or the read, a direct debit set too low can cost a supplier money even when every bill it sent was right.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "Ofgem SLC 21BA decision (5 Mar 2018)",
+      "docs/market_research/back_billing_and_liability.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "An Ofgem or Energy Ombudsman ruling that a correct bill, not a payment demand, starts the twelve-month clock for a direct-debit customer",
+     "checked": "2026-10-08",
+     "review_by": "2027-01-06",
+     "use": []
+    },
+    {
+     "claim": "The twelve-month limit protects a landlord of an ordinary let for a void period.",
+     "section": "How it works",
+     "status": "hypothesis",
+     "rests_on": [
+      "our reading of the licence; Ofgem has not stated it"
+     ],
+     "from_sim": false,
+     "falsified_by": "An Ofgem statement, Ombudsman decision or court case holding a landlord liable beyond twelve months for a void",
+     "checked": "2026-10-08",
+     "review_by": "2027-01-06",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/billing/back_billing.py",
+    "supplier:company/billing/monthly_bill_assembly.py",
+    "supplier:company/billing/pre_bill_validation.py",
+    "supplier:company/billing/statement_export.py",
+    "supplier:company/crm/churn_model.py",
+    "world:sim/customer_state_layer.py",
+    "world:simulation/household_segments.py",
+    "page:home",
+    "page:payments-and-direct-debit"
+   ]
+  },
+  "bad-debt-provisioning": {
+   "domain": "supplier_operations",
+   "layer": "mixed",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "yes",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "The simulated world's stock of debt more than 91 days old matched Ofgem's indicators when checked on 12 October 2026.",
+     "section": "Live evidence",
+     "status": "tested",
+     "rests_on": [
+      "Ofgem debt and arrears indicators",
+      "world run of 2026-10-12"
+     ],
+     "from_sim": true,
+     "falsified_by": "A re-run whose 91-day debt stock falls outside Ofgem's published level",
+     "checked": "2026-10-15",
+     "review_by": "2027-01-13",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/billing/arrears_engine.py",
+    "supplier:company/compliance/crisis_bad_debt_validator.py",
+    "supplier:company/compliance/domain_invariants.py",
+    "supplier:company/finance/bad_debt_provision.py",
+    "supplier:company/finance/cash_forecast_provision.py",
+    "supplier:company/finance/treasury.py",
+    "supplier:company/policy/decision_policy.py",
+    "supplier:company/pricing/default_belief.py",
+    "supplier:saas/capital/solvency.py",
+    "supplier:saas/growth_mandate.py",
+    "world:simulation/net_new_acquisition.py",
+    "world:simulation/world_payment_truth.py",
+    "page:harness"
+   ]
+  },
+  "carbon-price": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "yes",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": []
+  },
+  "communications-sentiment-and-nps": {
+   "domain": "customer_needs_and_behaviour",
+   "layer": "mixed",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "What drives a household to leave is a badly handled complaint, not dissatisfaction in general.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "Ofgem/GfK complaints survey 2014 (23% against 9%)",
+      "Ofgem CIM wave 6 Table 56 (3.0% against 5.4%)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A GB source showing dissatisfied non-complainants leave more than satisfied households, or no handling gradient once complaints about the switch itself are removed",
+     "checked": "2026-10-05",
+     "review_by": "2027-01-03",
+     "use": []
+    },
+    {
+     "claim": "Reputation acts as a durable stock: overcharging is penalised late.",
+     "section": "What this page does not yet establish",
+     "status": "tested",
+     "rests_on": [
+      "Centrica Annual Report 2018",
+      "docs/market_research/reputation_resentment_and_feedback_calibrated_against_the_gb_record_2026-11-02.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "A GB series showing customer losses from an overcharge ending within a year; the size and decay rate are unpublished, so only the shape is tested",
+     "checked": "2026-10-05",
+     "review_by": "2027-01-03",
+     "use": []
+    },
+    {
+     "claim": "Trust decides where a move goes more than whether a move happens.",
+     "section": "What this page does not yet establish",
+     "status": "tested",
+     "rests_on": [
+      "Ofgem CIM waves 3-6 (distrusting households move supplier 1.2-1.6x; trusting ones change tariff with it 1.3-1.6x)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A wave in which trust separates whether households move as strongly as where they go",
+     "checked": "2026-10-05",
+     "review_by": "2027-01-03",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/crm/css_tracker.py",
+    "world:simulation/complaint_generation.py",
+    "world:simulation/satisfaction_churn.py"
+   ]
+  },
+  "dated-household-cost-and-price-series": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "debt-and-collections": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "yes",
+    "vintage": "2026-08"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/billing/annual_consumption_estimate.py",
+    "supplier:company/billing/arrears_engine.py",
+    "supplier:company/billing/collections_journey.py",
+    "supplier:company/billing/dd_collections_desk.py",
+    "supplier:company/billing/dd_review.py",
+    "supplier:company/billing/ppm_debt_loading.py",
+    "supplier:company/billing/ppm_warrant_register.py",
+    "supplier:company/finance/bad_debt_provision.py",
+    "supplier:company/finance/cash_forecast_provision.py",
+    "supplier:company/interfaces/wall_protocol.py",
+    "supplier:company/pricing/default_belief.py",
+    "supplier:company/pricing/value_based_renewal.py",
+    "supplier:company/regulatory/energy_bill_support.py",
+    "supplier:saas/bill_generator.py",
+    "world:sim/customer_state_layer.py",
+    "world:simulation/arrears_engine.py",
+    "world:simulation/bacs_rails.py",
+    "world:simulation/customer_events.py",
+    "world:simulation/dd_shock_response.py",
+    "world:simulation/fabric_demand_path.py",
+    "world:simulation/life_events.py",
+    "world:simulation/payment_behaviour_source.py",
+    "world:simulation/payment_method_dynamics.py",
+    "world:simulation/run_phase2b.py",
+    "world:simulation/run_phase4c_on_phase2b.py",
+    "world:simulation/vulnerability_state.py",
+    "world:simulation/world_payment_truth.py",
+    "page:capabilities",
+    "page:home",
+    "page:model/map",
+    "page:payments-and-direct-debit"
+   ]
+  },
+  "electricity-wholesale": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2025"
+   },
+   "insights": [],
+   "use": [
+    "page:harness"
+   ]
+  },
+  "ev-charging-and-the-saving-against-petrol-and-diesel": {
+   "domain": "products_measures_services",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-09"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/pricing/standing_charge_assessor.py"
+   ]
+  },
+  "ev-solar-and-batteries-as-products": {
+   "domain": "products_measures_services",
+   "layer": "mixed",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-01"
+   },
+   "insights": [
+    {
+     "claim": "A supplier's money in EV, solar and batteries comes from tariffs that move energy in time and from keeping the households that own the kit, much more than from energy volumes.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "Ofgem SEG annual report year 5",
+      "Ofgem State of the market 2025-26",
+      "SMMT registrations",
+      "docs/market_research/ev_solar_and_batteries_as_products.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "Supplier accounts or a costed book in which volume margin on kit owners exceeds time-shift and retention value",
+     "checked": "2026-10-05",
+     "review_by": "2027-01-03",
+     "use": []
+    }
+   ],
+   "use": [
+    "world:simulation/run_phase2b.py"
+   ]
+  },
+  "gas-boilers-and-heating-controls": {
+   "domain": "household_and_assets",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "gas-wholesale": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "no",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": [
+    "page:harness"
+   ]
+  },
+  "gb-electricity-market": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "yes",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "heat-pumps-and-fabric-measures": {
+   "domain": "household_and_assets",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "heating-behaviour-comfort-and-health-floors": {
+   "domain": "customer_needs_and_behaviour",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "hedging-forward-market": {
+   "domain": "market_and_regulation",
+   "layer": "mixed",
+   "side": "both",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "no",
+    "vintage": "2026-10"
+   },
+   "insights": [
+    {
+     "claim": "Hedging is buying certainty, not trying to beat the market: a supplier accepts being worse off in falling markets as the price of surviving rising ones.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "source named only as 'standard energy trading practice'",
+      "Ofgem financial resilience guidance"
+     ],
+     "from_sim": false,
+     "falsified_by": "Published GB supplier accounts or Ofgem resilience reviews showing domestic hedge books run for trading profit rather than to lock the quoted margin",
+     "checked": "2026-08-24",
+     "review_by": "2026-11-22",
+     "use": []
+    },
+    {
+     "claim": "There is no optimal hedge the page can give, and a simulation that produced one would have optimised against its own history.",
+     "section": "How it works",
+     "status": "held",
+     "rests_on": [
+      "hedging-forward-market page reasoning"
+     ],
+     "from_sim": false,
+     "falsified_by": "A hedge rule that beats the layered mandate out of sample across 2016-2025 and a held-out market",
+     "checked": "2026-08-24",
+     "review_by": "2026-11-22",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/interfaces/hedge_desk.py",
+    "supplier:company/trading/hedge_desk.py",
+    "world:simulation/run_phase2b.py",
+    "page:capabilities",
+    "page:home"
+   ]
+  },
+  "home-moves": {
+   "domain": "customer_needs_and_behaviour",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "yes",
+    "vintage": "2025-12"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/billing/billing_accuracy.py",
+    "supplier:company/billing/credit_refund.py",
+    "supplier:company/billing/monthly_bill_assembly.py",
+    "supplier:company/crm/customer_registry.py",
+    "supplier:company/crm/move_out_register.py",
+    "supplier:company/crm/move_with_us_offer.py",
+    "supplier:company/interfaces/wall_protocol.py",
+    "supplier:company/regulatory/gsop.py",
+    "supplier:saas/reporting/annual_report.py",
+    "world:sim/customer_state_layer.py",
+    "world:sim/weather_hdd.py",
+    "world:simulation/arrears_engine.py",
+    "world:simulation/arrival_route.py",
+    "world:simulation/credit_refund_events.py",
+    "world:simulation/meter_reads.py",
+    "world:simulation/move_destination.py",
+    "world:simulation/move_out_notice_feed.py",
+    "world:simulation/move_with_us_answer.py",
+    "world:simulation/run_phase2b.py",
+    "world:simulation/run_phase4c_on_phase2b.py",
+    "page:back-billing-and-liability",
+    "page:capabilities"
+   ]
+  },
+  "household-carbon-and-the-measures-that-save-it": {
+   "domain": "household_and_assets",
+   "layer": "mixed",
+   "side": "world",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "For a gas-heated home the measures that save the most carbon, and most often money too, are heating measures, not changes to when electricity is used.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "DESNZ GHG conversion factors 2016-2025",
+      "NESO half-hourly carbon intensity",
+      "docs/market_research/every_change_a_household_can_make.md (many inputs are unverified pack assumptions)"
+     ],
+     "from_sim": false,
+     "falsified_by": "Measured timing-shift carbon savings comparable with heating-measure savings at 2024-25 grid intensity, once the unverified inputs are replaced by sourced ones",
+     "checked": "2026-10-05",
+     "review_by": "2027-01-03",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/billing/fuel_mix.py",
+    "supplier:company/carbon/half_hourly_footprint.py",
+    "supplier:company/regulatory/carbon_emissions.py",
+    "supplier:company/regulatory/fuel_mix_reconciliation.py",
+    "supplier:saas/reporting/annual_report.py",
+    "page:capabilities"
+   ]
+  },
+  "household-flexibility-and-the-advice-roadmap": {
+   "domain": "products_measures_services",
+   "layer": "mixed",
+   "side": "both",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "partly",
+    "vintage": "2026-06"
+   },
+   "insights": [
+    {
+     "claim": "A supplier's flexibility value now lies in automated, tariff-embedded shifting rather than paid events.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "NESO DFS winter reviews 2022/23-2024/25",
+      "Centre for Net Zero (BIEE 2023)",
+      "CrowdFlex closure report (NESO 2026)",
+      "docs/market_research/household_flexibility_and_the_advice_roadmap_2026-10-25.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "Event payments recovering well above 2024/25 levels, or measured automated shifting worth less per home than paid events",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "how-gb-gas-and-power-prices-move": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "how-households-behave-toward-a-supplier": {
+   "domain": "customer_needs_and_behaviour",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "no",
+    "vintage": "2025-07"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/analytics/forward_clv.py",
+    "supplier:company/crm/churn_model.py",
+    "supplier:company/crm/enriched_churn_estimate.py",
+    "supplier:company/crm/next_best_action.py",
+    "supplier:company/pricing/discovered_price_sensitivity.py",
+    "world:simulation/contact_response.py",
+    "world:simulation/household_segments.py",
+    "world:simulation/run_phase2b.py",
+    "page:harness"
+   ]
+  },
+  "how-households-choose": {
+   "domain": "customer_needs_and_behaviour",
+   "layer": "mixed",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "Most households are on a standard variable tariff because of an absence of decisions, not because they chose it; choosing and paying are separated by years.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "Ofgem State of the Market 2025",
+      "Ofgem CIM waves 5-6",
+      "CMA Energy Market Investigation 2016",
+      "docs/market_research/svt_rates_active_passive_2016_2025.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "Survey or trial evidence that a majority of default-tariff households actively chose the default over an available fix",
+     "checked": "2026-08-30",
+     "review_by": "2026-11-28",
+     "use": []
+    },
+    {
+     "claim": "The small minority who act each year act overwhelmingly on price.",
+     "section": "The claim, in one sentence",
+     "status": "contested",
+     "rests_on": [
+      "Ofgem CIM 2024 switcher reasons (base 174, multi-code)"
+     ],
+     "from_sim": false,
+     "falsified_by": "The page's own source: 'get a cheaper tariff' was 44% of switchers' reasons, under half; a larger base showing price below a majority would refute it",
+     "checked": "2026-08-30",
+     "review_by": "2026-11-28",
+     "use": []
+    }
+   ],
+   "use": [
+    "calibration:simulation/departure_level_anchor.py",
+    "supplier:company/crm/churn_desk.py",
+    "supplier:company/crm/churn_model.py",
+    "supplier:company/crm/competitive_pressure.py",
+    "supplier:company/crm/next_best_action.py",
+    "supplier:company/crm/save_offer.py",
+    "supplier:company/market/dfs_published_record.py",
+    "supplier:company/policy/decision_policy.py",
+    "supplier:saas/churn_model.py",
+    "supplier:saas/growth_mandate.py",
+    "world:simulation/customer_events.py",
+    "world:simulation/departure_risks.py",
+    "world:simulation/household_segments.py",
+    "world:simulation/live_population.py",
+    "world:simulation/market_switching_propensity.py",
+    "world:simulation/net_new_acquisition.py",
+    "world:simulation/population_draw.py",
+    "world:simulation/renewal_engagement.py",
+    "world:simulation/svt_rates.py",
+    "page:capabilities",
+    "page:harness",
+    "page:home"
+   ]
+  },
+  "how-houses-change": {
+   "domain": "household_and_assets",
+   "layer": "insight",
+   "side": "world",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "no",
+    "vintage": "2026-10-02"
+   },
+   "insights": [
+    {
+     "claim": "A supplier that cannot tell background change in a house from what it caused cannot honestly claim to have saved anyone anything.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "proving-and-showing-household-savings (uncontrolled studies find about 9.6% where controlled find about 2%)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A savings estimate shown unbiased without a comparison group or a background-change model",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    },
+    {
+     "claim": "In our model, over 2016-2025 on 3,000 homes, 10.6% of homes change insulation without their recorded energy rating changing.",
+     "section": "Live evidence",
+     "status": "tested",
+     "rests_on": [
+      "docs/design/W2_24_HOUSING_PHASE3_FRAME.md",
+      "3,000-home draw 2016-2025"
+     ],
+     "from_sim": true,
+     "falsified_by": "A re-measure on the current model giving a materially different share",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    },
+    {
+     "claim": "Defect in our model: gas-heated homes eligible for a heat pump never reach boiler replacement, so 71% of homes have a boiler that can never be replaced.",
+     "section": "Live evidence",
+     "status": "tested",
+     "rests_on": [
+      "docs/staging/done/SEAT_FINDING_SEVENTY_ONE_PERCENT_OF_HOUSEHOLDS_HAVE_A_BOILER_THAT_CAN_NEVER_BE_REPLACED_AND_THE_DIAL_THAT_LOOKS_LIKE_THE_FIX_DOES_NOT_TOUCH_IT_2026-09-06.md",
+      "simulation/life_events.py"
+     ],
+     "from_sim": true,
+     "falsified_by": "A run of the current model where those homes do reach boiler replacement",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "how-many-synthetic-households": {
+   "domain": "household_and_assets",
+   "layer": "mixed",
+   "side": "world",
+   "trust": {
+    "grade_floor": "D",
+    "verified": "yes",
+    "vintage": "2026-06"
+   },
+   "insights": [
+    {
+     "claim": "A synthetic book represents Britain when the distribution of what its households do matches, so a chosen-and-weighted sample beats a random one; on the full demand vector 8,823 to 11,522 households match a 120,000 reference within five points.",
+     "section": "The claim, in one sentence",
+     "status": "tested",
+     "rests_on": [
+      "DESNZ NEED anonymised 2026 sample",
+      "Census 2021 TS017/TS041",
+      "Scotland Census 2022",
+      "HadUK-Grid normals",
+      "tools/demand_vector_coverage.py"
+     ],
+     "from_sim": false,
+     "falsified_by": "A re-run of tools/demand_vector_coverage.py where a random sample of the same size passes, or where the figure keeps rising against a larger reference (the page itself says convergence is not shown)",
+     "checked": "2026-10-14",
+     "review_by": "2027-01-12",
+     "use": [
+      "world:simulation/settlement_choice.py"
+     ]
+    }
+   ],
+   "use": [
+    "world:simulation/dwelling_records.py",
+    "world:simulation/settlement_choice.py",
+    "page:harness"
+   ]
+  },
+  "imbalance-cashout-settlement": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "no",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/trading/triad_exposure_register.py",
+    "page:capabilities",
+    "page:home"
+   ]
+  },
+  "merit-order-residual-demand": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "yes",
+    "vintage": "2025-07"
+   },
+   "insights": [],
+   "use": []
+  },
+  "metering-and-reads": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "no",
+    "vintage": "2026-08"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/billing/gas_volume_conversion.py",
+    "supplier:company/billing/monthly_bill_assembly.py",
+    "supplier:company/billing/raw_account_export.py",
+    "supplier:company/billing/unread_month_estimate.py",
+    "supplier:company/interfaces/sim_interface.py",
+    "world:sim/ldz_calorific_value.py",
+    "world:simulation/meter_reads.py",
+    "world:simulation/price_response.py",
+    "page:smart-meters-and-half-hourly-settlement"
+   ]
+  },
+  "network-limits-on-home-electrification": {
+   "domain": "household_and_assets",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-01"
+   },
+   "insights": [],
+   "use": []
+  },
+  "next-best-action-and-cross-sell": {
+   "domain": "products_measures_services",
+   "layer": "mixed",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "yes",
+    "vintage": "2025-11"
+   },
+   "insights": [
+    {
+     "claim": "The quantity to rank customers on is what an action changes, not how likely the customer is to leave; doing nothing is always an option.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "Ofgem consumer-engagement trials (2019)",
+      "FCA general insurance pricing evaluation",
+      "peer-reviewed uplift field experiments",
+      "docs/market_research/next_best_action_and_cross_sell.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "A GB trial in which targeting the highest-churn-propensity customers retains as many as targeting the highest uplift",
+     "checked": "2026-10-16",
+     "review_by": "2027-01-14",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/crm/next_best_action.py",
+    "supplier:company/crm/renewal_advice_desk.py",
+    "supplier:company/pricing/renewal_rate_chain.py"
+   ]
+  },
+  "non-commodity-costs": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "D",
+    "verified": "no",
+    "vintage": "2022-11"
+   },
+   "insights": [],
+   "use": [
+    "page:capabilities"
+   ]
+  },
+  "other-market-australia": {
+   "domain": "other_markets",
+   "layer": "mixed",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [
+    {
+     "claim": "Of the GB build, the weather-driven demand engine and the solar, battery and EV advice would transfer to Australia, while the price replay, settlement and billing would need rebuilding.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "docs/market_research/other_market_australia_2026-10-25.md",
+      "the advisor's transferability ratings (judgement, not a measurement)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A component-by-component port in which a component rated as transferring needs rebuilding, or one rated for rebuilding carries over",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "other-market-belgium": {
+   "domain": "other_markets",
+   "layer": "mixed",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-03"
+   },
+   "insights": [
+    {
+     "claim": "Of the GB build, the weather and wholesale price engines would transfer to Belgium, while billing, settlement and debt would need rebuilding.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "docs/market_research/other_market_belgium_2026-10-25.md",
+      "the advisor's transferability ratings (judgement, not a measurement)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A component-by-component port in which a component rated as transferring needs rebuilding, or one rated for rebuilding carries over",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "other-market-france": {
+   "domain": "other_markets",
+   "layer": "mixed",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-01"
+   },
+   "insights": [
+    {
+     "claim": "Of the GB build, the demand engine and asset advice (after recalibration) would transfer to France, while tariffs, settlement and network limits would need rebuilding.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "docs/market_research/other_market_france_2026-10-25.md",
+      "the advisor's transferability ratings (judgement, not a measurement)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A component-by-component port in which a component rated as transferring needs rebuilding, or one rated for rebuilding carries over",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "other-market-germany": {
+   "domain": "other_markets",
+   "layer": "mixed",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-09"
+   },
+   "insights": [
+    {
+     "claim": "Of the GB build, the physics and price replay would transfer to Germany, while billing, tariff, settlement and debt machinery would need rebuilding.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "docs/market_research/other_market_germany_2026-10-25.md",
+      "the advisor's transferability ratings (judgement, not a measurement)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A component-by-component port in which a component rated as transferring needs rebuilding, or one rated for rebuilding carries over",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "other-market-italy": {
+   "domain": "other_markets",
+   "layer": "mixed",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2025"
+   },
+   "insights": [
+    {
+     "claim": "Of the GB build, the weather engine and debt principles would transfer to Italy, while the connection model, zonal 15-minute prices, billing, default service and arrears rules would need rebuilding.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "docs/market_research/other_market_italy_2026-10-25.md",
+      "the advisor's transferability ratings (judgement, not a measurement)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A component-by-component port in which a component rated as transferring needs rebuilding, or one rated for rebuilding carries over",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "other-market-japan": {
+   "domain": "other_markets",
+   "layer": "mixed",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2025"
+   },
+   "insights": [
+    {
+     "claim": "Of the GB build, the 30-minute clock and the meter-data feed would transfer to Japan, while heating, cooling, area prices, regulated tariff, billing and new-occupant rules would need rebuilding.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "docs/market_research/other_market_japan_2026-10-25.md",
+      "the advisor's transferability ratings (judgement, not a measurement)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A component-by-component port in which a component rated as transferring needs rebuilding, or one rated for rebuilding carries over",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "other-market-spain": {
+   "domain": "other_markets",
+   "layer": "mixed",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "Of the GB build, the weather engine would transfer to Spain, while the regulated dynamic price, power subscription, network tariff and billing would need rebuilding.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "docs/market_research/other_market_spain_2026-10-25.md",
+      "the advisor's transferability ratings (judgement, not a measurement)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A component-by-component port in which a component rated as transferring needs rebuilding, or one rated for rebuilding carries over",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "other-markets-compared-with-gb": {
+   "domain": "other_markets",
+   "layer": "insight",
+   "side": "neither",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [
+    {
+     "claim": "Most of what the GB build does to model households transfers to other markets, but most of the GB supplier's commercial rules (prepayment, the fixed direct debit, the all-supplier cap, supplier-owned meters, the deemed contract, the SoLR levy) are GB peculiarities.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "the seven country pages and research notes",
+      "the advisor's synthesis"
+     ],
+     "from_sim": false,
+     "falsified_by": "A second-market port in which household modelling needs rebuilding or the named GB rules turn out common elsewhere",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    },
+    {
+     "claim": "Germany and Belgium are closest to GB, Japan furthest.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "the advisor's closeness ranking (judgement, not a measured distance)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A measured distance over the sixteen dimensions that orders the countries differently",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "payments-and-direct-debit": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-05"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/analytics/clv_three_horizon.py",
+    "supplier:company/billing/annual_consumption_estimate.py",
+    "supplier:company/billing/dd_collections_desk.py",
+    "supplier:company/billing/pre_bill_validation.py",
+    "supplier:saas/bill_generator.py",
+    "world:simulation/arrears_engine.py",
+    "page:model/map",
+    "page:unbilled-energy-and-revenue-assurance"
+   ]
+  },
+  "price-cap": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/billing/monthly_bill_assembly.py",
+    "supplier:company/billing/unread_month_estimate.py",
+    "supplier:company/compliance/domain_invariants.py",
+    "supplier:company/pricing/ofgem_price_cap.py",
+    "supplier:company/pricing/renewal_rate_chain.py",
+    "supplier:company/pricing/tou_desk.py",
+    "supplier:company/regulatory/epg_reconciliation_register.py",
+    "supplier:saas/tariff_pricing.py",
+    "world:simulation/hedged_settlement.py",
+    "world:simulation/run_phase2b.py",
+    "page:capabilities",
+    "page:debt-and-collections",
+    "page:home"
+   ]
+  },
+  "proving-and-showing-household-savings": {
+   "domain": "products_measures_services",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2025"
+   },
+   "insights": [],
+   "use": []
+  },
+  "pv-roofs-orientation-and-yield": {
+   "domain": "household_and_assets",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "read-access-and-theft-duties": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/billing/energy_theft_book.py",
+    "supplier:company/billing/monthly_bill_assembly.py",
+    "supplier:company/billing/ppm_warrant_register.py",
+    "supplier:company/billing/read_duty_register.py",
+    "supplier:company/billing/revenue_protection_register.py",
+    "supplier:company/billing/revenue_protection_visit_register.py",
+    "supplier:company/billing/theft_indicator.py",
+    "supplier:company/billing/theft_risk_scoring_register.py",
+    "supplier:company/compliance/domain_invariants.py",
+    "supplier:company/finance/accounting_close.py",
+    "supplier:company/market/uig_allocation_register.py",
+    "supplier:company/policy/decision_policy.py",
+    "world:simulation/meter_reads.py"
+   ]
+  },
+  "regional-supply-cost": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "D",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/market/llf_register.py"
+   ]
+  },
+  "smart-meters-and-half-hourly-settlement": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": []
+  },
+  "solar-pv-and-home-batteries": {
+   "domain": "household_and_assets",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-05"
+   },
+   "insights": [],
+   "use": []
+  },
+  "suppliers-accounts-and-capital": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026-06"
+   },
+   "insights": [],
+   "use": [
+    "page:home",
+    "page:model/map"
+   ]
+  },
+  "switching-mechanics": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026-02"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/interfaces/transfer_objection.py",
+    "supplier:company/market/transfer_objection_register.py",
+    "page:model/map"
+   ]
+  },
+  "tariffs-and-the-default-tariff": {
+   "domain": "products_measures_services",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": [
+    "supplier:saas/bill_generator.py"
+   ]
+  },
+  "the-customer-needs-framework": {
+   "domain": "customer_needs_and_behaviour",
+   "layer": "mixed",
+   "side": "world",
+   "trust": {
+    "grade_floor": "D",
+    "verified": "yes",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "A household's needs split into cost, cash flow, certainty, control, time and carbon above a comfort and health floor, and different households feel each.",
+     "section": "How it works",
+     "status": "tested",
+     "rests_on": [
+      "M3 (director canon)",
+      "docs/market_research/the_customer_needs_framework_cost_worry_switching_cim_waves_3_6_2026-11-02.md",
+      "Ofgem CIM waves 3-6 cross-tabs (D)"
+     ],
+     "from_sim": false,
+     "falsified_by": "Cross-tabs in which the same attribute separates every need equally, so the needs do not fall on different households",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Difficulty paying bills, not income, separates who is hit by cost, cash-flow squeeze and worry.",
+     "section": "The claim, in one sentence",
+     "status": "tested",
+     "rests_on": [
+      "Ofgem CIM wave 3 Tables 108-110, 129-136 (D)",
+      "CIM wave 4"
+     ],
+     "from_sim": false,
+     "falsified_by": "A later wave or a household-level dataset (e.g. Understanding Society) where income separates these measures as much as bill difficulty once age is held",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Age separates who will switch supplier and who will pay more for green or service.",
+     "section": "The claim, in one sentence",
+     "status": "contested",
+     "rests_on": [
+      "CIM wave 3 stated intent (41.6% at 16-24, 9.0% at 75+)",
+      "revealed switching waves 4-6"
+     ],
+     "from_sim": false,
+     "falsified_by": "Already partly contested: the revealed age gap is +3 to +7 points against +19 to +32 stated and fading by 2025; refuted if it reaches zero",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Trust in the supplier decides whether a price rise feels fair.",
+     "section": "The claim, in one sentence",
+     "status": "tested",
+     "rests_on": [
+      "CIM wave 3 (-30.3 points among distrusting households)"
+     ],
+     "from_sim": false,
+     "falsified_by": "A wave in which fairness of a rise does not differ by trust",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Price sensitivity is two traits, cutting use and shopping around, not one dial.",
+     "section": "What this page does not yet establish",
+     "status": "tested",
+     "rests_on": [
+      "docs/market_research/price_sensitivity_is_two_traits_cutting_use_and_shopping_cim_waves_3_6_2026-11-02.md",
+      "CIM E20a and C4, waves 3-6"
+     ],
+     "from_sim": false,
+     "falsified_by": "Household-level data where cutting use and comparing tariffs move together with age and income",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Worry about bills peaks at ages 35-54.",
+     "section": "Live evidence",
+     "status": "refuted",
+     "rests_on": [
+      "advisor prediction written before the tables were read"
+     ],
+     "from_sim": false,
+     "falsified_by": "Refuted by CIM wave 3: worry is a plateau to 54, not a 35-54 peak",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Income is a strong gradient for cost, cash-flow and worry needs.",
+     "section": "Live evidence",
+     "status": "refuted",
+     "rests_on": [
+      "advisor prediction written before the tables were read"
+     ],
+     "from_sim": false,
+     "falsified_by": "Refuted by CIM wave 3: income separates far less than bill difficulty, its top-band gap not excluded from zero",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Need is anti-correlated with switching: the most squeezed households switch less.",
+     "section": "Live evidence",
+     "status": "refuted",
+     "rests_on": [
+      "advisor prediction written before the tables were read"
+     ],
+     "from_sim": false,
+     "falsified_by": "Refuted by CIM waves 3-6: households behind on bills state and report more switching (8.2-9.3% against 3.5-4.1%)",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    },
+    {
+     "claim": "Control is lower when a household is behind on bills.",
+     "section": "Live evidence",
+     "status": "refuted",
+     "rests_on": [
+      "sister page on payment method, wave 3 only"
+     ],
+     "from_sim": false,
+     "falsified_by": "Did not hold past wave 3; restated as \"not higher\"",
+     "checked": "2026-11-02",
+     "review_by": "2027-01-31",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "the-first-year-blind-spot": {
+   "domain": "supplier_operations",
+   "layer": "insight",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "In our simulated world, one measure that could not see a household's first year (the bill-shock count) produced the whole apparent link between tenure and loyalty.",
+     "section": "The claim, in one sentence",
+     "status": "tested",
+     "rests_on": [
+      "docs/staging/WORKER_FINDING_THE_WORLDS_BILL_SHOCK_COUNT_IS_BLIND_IN_A_HOUSEHOLDS_FIRST_YEAR_AND_CARRIES_THE_WHOLE_TENURE_GRADIENT_2026-10-01.md",
+      "pre-registered per-term table"
+     ],
+     "from_sim": true,
+     "falsified_by": "A run of the old measure with year one made visible in which the tenure gradient survives",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    },
+    {
+     "claim": "A churn-by-tenure table is only as honest as the measures behind it in each year; a measure blind in some years can manufacture a pattern.",
+     "section": "In plain terms",
+     "status": "held",
+     "rests_on": [
+      "the finding above"
+     ],
+     "from_sim": false,
+     "falsified_by": "Hard to refute as a method rule; refuted in a given table by showing every measure is defined in every year",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    },
+    {
+     "claim": "Real GB evidence points the other way from the simulated gradient: new customers are less loyal than long-standing ones.",
+     "section": "In plain terms",
+     "status": "held",
+     "rests_on": [
+      "docs/market_research/first_renewal_departure_rate_small_gb_supplier.md",
+      "docs/market_research/svt_rates_active_passive_2016_2025.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "Published GB data showing first-year customers retained at higher rates than long-tenure ones",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/analytics/clv_three_horizon.py",
+    "supplier:company/billing/monthly_bill_assembly.py",
+    "supplier:company/crm/churn_desk.py",
+    "supplier:company/crm/churn_model.py",
+    "supplier:company/crm/save_offer.py",
+    "supplier:company/crm/service_quality_monitor.py",
+    "supplier:saas/bill_generator.py",
+    "supplier:saas/growth_mandate.py",
+    "supplier:saas/reporting/annual_report.py",
+    "world:simulation/customer_events.py",
+    "world:simulation/dd_review_in_loop.py",
+    "world:simulation/dd_shock_response.py",
+    "world:simulation/departure_risks.py",
+    "world:simulation/experienced_bill_shock.py",
+    "world:simulation/household_segments.py",
+    "world:simulation/renewal_engagement.py",
+    "world:simulation/run_phase4c_on_phase2b.py",
+    "world:simulation/svt_rates.py"
+   ]
+  },
+  "the-price-a-household-is-shown": {
+   "domain": "products_measures_services",
+   "layer": "mixed",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2025-04"
+   },
+   "insights": [
+    {
+     "claim": "A household choosing between a fix and its variable deal compares a real forward price with an implied one that nobody is offering, because both the cap headline and comparison sites annualise today's variable rate.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "Ofgem cap reporting (TDCV 2,700/11,500 kWh)",
+      "Ofgem Confidence Code",
+      "CMA 2016"
+     ],
+     "from_sim": false,
+     "falsified_by": "Comparison sites or Ofgem headlines quoting a variable tariff on its expected forward path rather than today's rate held for a year",
+     "checked": "2026-08-30",
+     "review_by": "2026-11-28",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/analytics/acquisition_cost_amortisation.py",
+    "supplier:company/pricing/value_based_renewal.py",
+    "supplier:saas/growth_mandate.py",
+    "supplier:saas/ledger.py",
+    "supplier:saas/opex_ledger.py"
+   ]
+  },
+  "the-residual-and-the-change": {
+   "domain": "customer_needs_and_behaviour",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "no",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": []
+  },
+  "unbilled-energy-and-revenue-assurance": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "yes",
+    "vintage": "2026-07"
+   },
+   "insights": [],
+   "use": [
+    "supplier:company/billing/billing_accuracy.py",
+    "supplier:company/billing/monthly_bill_assembly.py",
+    "supplier:company/billing/pre_bill_validation.py",
+    "supplier:company/billing/theft_indicator.py",
+    "supplier:company/billing/unread_month_estimate.py",
+    "supplier:company/crm/churn_model.py",
+    "supplier:company/policy/decision_policy.py",
+    "supplier:saas/ledger.py",
+    "world:sim/customer_state_layer.py",
+    "world:simulation/household_segments.py",
+    "world:simulation/life_events.py",
+    "world:simulation/meter_reads.py",
+    "world:simulation/policy_costs.py",
+    "world:simulation/run_phase2b.py",
+    "page:back-billing-and-liability",
+    "page:payments-and-direct-debit"
+   ]
+  },
+  "vpps-and-local-flexibility": {
+   "domain": "market_and_regulation",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-08"
+   },
+   "insights": [],
+   "use": []
+  },
+  "vulnerability-and-the-psr": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": [
+    "page:model/map"
+   ]
+  },
+  "weather-cells": {
+   "domain": "household_and_assets",
+   "layer": "mixed",
+   "side": "world",
+   "trust": {
+    "grade_floor": "D",
+    "verified": "yes",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "How finely Britain must be divided for pricing is a price list, not one number: 34, 89 or 987 weather cells depending on the tolerance, because household-weighted weather variation is far simpler than the terrain.",
+     "section": "A cell is a climate class, not a region",
+     "status": "tested",
+     "rests_on": [
+      "Met Office HadUK-Grid 1 km 1991-2020 normals",
+      "Census 2021/2022 via ONS Postcode Directory",
+      "OS Open UPRN",
+      "docs/market_research/how_many_weather_cells_britain_needs_and_why_the_answer_is_a_curve.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "A re-partition on the same sources where cell counts at the stated tolerances change materially, or household-weighted variation tracking terrain variation",
+     "checked": "2026-09-06",
+     "review_by": "2026-12-05",
+     "use": [
+      "world:sim/weather_world.py"
+     ]
+    }
+   ],
+   "use": [
+    "world:sim/weather_world.py",
+    "page:harness"
+   ]
+  },
+  "what-a-customer-is-worth": {
+   "domain": "supplier_operations",
+   "layer": "insight",
+   "side": "supplier",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [
+    {
+     "claim": "A customer's value is contribution multiplied by survival, so the drivers are an order: does it pay, does it stay, how big is the margin bet, then everything else; for a negative-contribution customer churn is a benefit and loyalty-building is harmful.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "practitioner judgement",
+      "Ofgem cap cost allowances",
+      "OVO/SSE 2020 and E.ON/OVO 2026 transaction prices"
+     ],
+     "from_sim": false,
+     "falsified_by": "A variance decomposition of fully-costed value on a costed book where the drivers do not fall in that order",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    },
+    {
+     "claim": "H1: bad debt and the cost to serve it dominate the downside of customer value.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "practitioner judgement"
+     ],
+     "from_sim": false,
+     "falsified_by": "A variance decomposition putting debt and collections below 40% of downside variance",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    },
+    {
+     "claim": "H4: value-add products earn through loyalty, not direct income.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "practitioner judgement"
+     ],
+     "from_sim": false,
+     "falsified_by": "Measuring the loyalty parameter rather than assuming it",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    },
+    {
+     "claim": "H5: accurate forecasting and billing is worth as much as value-add, possibly more.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "practitioner judgement"
+     ],
+     "from_sim": false,
+     "falsified_by": "A supplier forecasting on premise physics showing no fall in churn, contacts, debt or volume risk",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    },
+    {
+     "claim": "H6: the apathetic are the quiet engine and the right action is restraint.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "practitioner judgement",
+      "Ofgem engagement trials"
+     ],
+     "from_sim": false,
+     "falsified_by": "The disengaged archetype not ranking near the top on lifetime value, or unsolicited offers not raising their churn",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    },
+    {
+     "claim": "H7: controllable assets with permission are the only large value-add upside, and solar alone is negative to the supplier.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "practitioner judgement"
+     ],
+     "from_sim": false,
+     "falsified_by": "Measured shape value of a permissioned EV and battery outside £60-120 a year, or solar positive to the supplier",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    },
+    {
+     "claim": "H9: smart metering pays through collectability, not through metering cost.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "practitioner judgement"
+     ],
+     "from_sim": false,
+     "falsified_by": "Debt outcomes no better on smart than traditional meters at the same payment method",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    },
+    {
+     "claim": "H10: a book drawn in population proportion averages £600-700 contribution before acquisition, netting to the market's ~£150 per customer.",
+     "section": "What the data should look like",
+     "status": "hypothesis",
+     "rests_on": [
+      "OVO/SSE 2020 (£143) and E.ON/OVO 2026 (~£150) transaction prices as reported"
+     ],
+     "from_sim": false,
+     "falsified_by": "A costed book that does not land near £150 after a buyer's overhead",
+     "checked": "2026-10-13",
+     "review_by": "2027-01-11",
+     "use": []
+    }
+   ],
+   "use": [
+    "page:harness"
+   ]
+  },
+  "what-a-house-does-to-its-energy": {
+   "domain": "household_and_assets",
+   "layer": "mixed",
+   "side": "world",
+   "trust": {
+    "grade_floor": "D",
+    "verified": "partly",
+    "vintage": "2026-06"
+   },
+   "insights": [
+    {
+     "claim": "Because house properties come in bundles, the homes where the potential to save is largest are a thin, specific minority that an average-home model never sees.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "DESNZ NEED 2026",
+      "EHS 2022-23",
+      "docs/market_research/independence_invents_one_house_in_five_that_does_not_exist.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "A NEED-based decomposition showing saving potential spread evenly across the stock rather than concentrated",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    },
+    {
+     "claim": "233 deliberately chosen houses reproduce 99% of the household-weighted variation across five measured outputs of our model of British housing; one tail in five does not close.",
+     "section": "Live evidence",
+     "status": "tested",
+     "rests_on": [
+      "docs/market_research/the_sample_is_233_houses_and_one_tail_in_five_does_not_close.md",
+      "simulation/fabric_physics.py"
+     ],
+     "from_sim": true,
+     "falsified_by": "A re-measure on the current model giving a materially different count or coverage",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    },
+    {
+     "claim": "Area deprivation adds little to energy use once the house itself is known.",
+     "section": "How it works",
+     "status": "tested",
+     "rests_on": [
+      "docs/market_research/area_deprivation_adds_little_once_the_house_is_known.md",
+      "DESNZ NEED 2026"
+     ],
+     "from_sim": false,
+     "falsified_by": "A NEED cross-tab where deprivation decile moves metered use materially within the same size, fabric and fuel band",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    }
+   ],
+   "use": [
+    "world:simulation/fabric_physics.py",
+    "world:simulation/premise_population.py",
+    "world:simulation/premise_trace.py",
+    "page:harness",
+    "page:what-a-supplier-can-see-of-a-house"
+   ]
+  },
+  "what-a-supplier-can-see-of-a-house": {
+   "domain": "household_and_assets",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "A",
+    "verified": "no",
+    "vintage": "2023"
+   },
+   "insights": [],
+   "use": []
+  },
+  "which-cars-households-run-and-what-they-use": {
+   "domain": "household_and_assets",
+   "layer": "knowledge",
+   "side": "world",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-10"
+   },
+   "insights": [],
+   "use": []
+  },
+  "who-drives-how-far-and-where-they-park": {
+   "domain": "household_and_assets",
+   "layer": "mixed",
+   "side": "world",
+   "trust": {
+    "grade_floor": "S",
+    "verified": "partly",
+    "vintage": "2026-09"
+   },
+   "insights": [
+    {
+     "claim": "Mileage follows the driver, not the fuel: high-mileage drivers choose diesel or electric cars rather than the fuel making people drive further, so a simulated home must draw its people and their mileage before its car.",
+     "section": "The claim, in one sentence",
+     "status": "hypothesis",
+     "rests_on": [
+      "DfT NTS0901/0904/0908",
+      "MOT-based analyses",
+      "docs/market_research/who_drives_how_far_and_where_they_park_2026-10-25.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "A panel showing a household's mileage rising after it switches to a cheaper-per-mile car, beyond what its prior mileage predicts",
+     "checked": "2026-10-25",
+     "review_by": "2027-01-23",
+     "use": []
+    }
+   ],
+   "use": []
+  },
+  "who-lives-where": {
+   "domain": "household_and_assets",
+   "layer": "mixed",
+   "side": "world",
+   "trust": {
+    "grade_floor": "D",
+    "verified": "partly",
+    "vintage": "2025"
+   },
+   "insights": [
+    {
+     "claim": "Occupancy has to be learned from the meter, not looked up from the address, because an output area explains only 9% of household size.",
+     "section": "The claim, in one sentence",
+     "status": "held",
+     "rests_on": [
+      "Census 2021 TS017 by output area",
+      "docs/market_research/the_postcode_explains_nine_percent_of_who_lives_there.md"
+     ],
+     "from_sim": false,
+     "falsified_by": "A published or derived address-level predictor explaining well over 9% of household size, or meter data that cannot separate occupancy either",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    },
+    {
+     "claim": "The simulated book's expected household size and payment-method risk figures, measured 27 Sep 2026; the book showing prepayment at 2.5 times direct debit reproduces its input and is not confirmation.",
+     "section": "Live evidence",
+     "status": "tested",
+     "rests_on": [
+      "simulated book of 2026-09-27",
+      "simulation/dwelling_records.py"
+     ],
+     "from_sim": true,
+     "falsified_by": "A redraw of the book whose expected mean household size drifts well away from the national 2.359",
+     "checked": "2026-10-02",
+     "review_by": "2026-12-31",
+     "use": []
+    }
+   ],
+   "use": [
+    "supplier:company/billing/dd_collections_desk.py",
+    "supplier:company/finance/cash_forecast_provision.py",
+    "supplier:company/pricing/default_belief.py",
+    "supplier:company/pricing/value_based_renewal.py",
+    "world:simulation/arrears_engine.py",
+    "world:simulation/bacs_rails.py",
+    "world:simulation/dd_attribution.py",
+    "world:simulation/demand_model.py",
+    "world:simulation/dwelling_records.py",
+    "world:simulation/payment_behaviour_source.py"
+   ]
+  }
+ }
+}
