@@ -146,7 +146,7 @@ def test_q1_2023_is_the_OFGEM_CAP_and_the_name_used_to_say_EPG():
 #: states these as ranges at M confidence; the module carries the midpoint.
 _PUBLISHED_PRECAP_GAS_BAND_PENCE = {
     2016: (3.8, 4.2),
-    2017: (2.1, 3.5),
+    2017: (3.8, 4.2),
     2018: (3.5, 4.0),
 }
 
@@ -239,6 +239,37 @@ def test_pre_cap_gas_sits_inside_the_PUBLISHED_band():
         assert low <= pence <= high, (
             f"{year}: {pence}p/kWh is outside the published {low}-{high}p range"
         )
+
+
+def test_pre_cap_gas_is_never_under_the_cheapest_regions_pass_through_cost():
+    """DEFECT (N18, 2026-11-04): the 2017 gas default stood at 2.67p ex VAT, under the 2.73p that
+    Ofgem's back-cast puts on wholesale, network and policy in the CHEAPEST region. A default tariff
+    below its own pass-through cost is not a price any supplier charged. The band test above could
+    not see it, because the band came from the same misread row as the value.
+
+    Read against the commons, not a restated figure. Every pre-2019 back-cast period that starts
+    inside the record must be reached, so a commons edit cannot empty this test.
+    """
+    import json
+    from pathlib import Path
+
+    artefact = json.loads(
+        (
+            Path(__file__).resolve().parents[2]
+            / "docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json"
+        ).read_text()
+    )
+    periods = [
+        p for p in artefact["gas_by_payment_method"]["direct_debit"]["periods"]
+        if "2016-01-01" <= p["starts"] < "2019-01-01"
+    ]
+    assert len(periods) >= 5, f"only {len(periods)} pre-cap back-cast periods inside the record"
+    under = []
+    for p in periods:
+        ex_vat_pence = get_svt_gas_rate_gbp_per_mwh(p["starts"]) / 10.0 / 1.05
+        if ex_vat_pence < p["pass_through_p_per_kwh_ex_vat_min"]:
+            under.append((p["starts"], round(ex_vat_pence, 3), p["pass_through_p_per_kwh_ex_vat_min"]))
+    assert not under, f"pre-cap gas default under the lowest-region pass-through cost: {under}"
 
 
 def test_gas_crisis_rate_is_far_above_the_pre_crisis_level():

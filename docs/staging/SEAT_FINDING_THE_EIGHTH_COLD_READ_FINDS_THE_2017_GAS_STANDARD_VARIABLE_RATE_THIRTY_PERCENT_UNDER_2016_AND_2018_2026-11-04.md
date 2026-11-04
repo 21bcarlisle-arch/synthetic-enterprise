@@ -46,3 +46,23 @@ benchmark consumption, the default dual-fuel annual cost moves year to year in t
 default bill, within a stated band.
 
 **Reverse.** Delete this file. Nothing outside `docs/staging/` was touched.
+
+## Progress (worker, 2026-11-04): the source is attributed and the world row is corrected; BLOCKING stands
+
+- **Attribution, now settled.** The world reads that row. `simulation/svt_rates._SVT_GAS_PRECAP_PENCE_PER_KWH[2017]`
+  was 2.80p inc VAT, the midpoint of "~2.1–3.5". 2.80 / 1.05 = 2.67p ex VAT, which is the flat 2.67p on every
+  2017 bill. The 2016 row (4.00 → 3.81) and the 2018 row (3.75 → 3.57) match their medians in the same way.
+- **K8, knowledge first.** `docs/market_research/svt_rates_active_passive_2016_2025.md` §1b withdraws the row. It
+  names three records against it: the RMI default dual-fuel bill rose, the back-cast pass-through floor rose,
+  and the suppliers' 2016 gas cuts and 2017 electricity-only rises. It replaces the row with a belief of
+  ~3.8–4.2p inc VAT, the 2016 band.
+- **Build.** 2017 is now 4.00p inc VAT, so 3.81p ex VAT, above the 2.73p / 2.71p floors.
+  `tests/simulation/test_svt_rates.py::test_pre_cap_gas_is_never_under_the_cheapest_regions_pass_through_cost`
+  reads the commons for every pre-2019 period in the record. It fires on the old 2.80 (mutation run).
+- **Not attributed with it, on purpose:** the 2017 electricity row and the 2018 gas row. Both are logged as gaps
+  in §1b.
+- **Still owed before this closes.**
+  - (1) A fresh book shows the 2017 gas SVT at about 3.81p ex VAT, and every published figure that moves is
+    marked.
+  - (2) The blind `DOMAIN_INVARIANTS.yaml` row named above. It has to be written by a reader who has not seen this
+    code, so this worker did not write it.

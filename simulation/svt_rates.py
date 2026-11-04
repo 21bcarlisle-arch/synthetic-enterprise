@@ -208,11 +208,13 @@ def get_svt_elec_rate_charged_to_household_gbp_per_mwh(date_str: str) -> float |
 #: and that band is asserted rather than described by
 #: `tests/simulation/test_svt_rates.py`.
 #:   2016  ~3.8–4.2  -> 4.00
-#:   2017  ~2.1–3.5  -> 2.80   (the source notes a Q4 low of 2.07p)
+#:   2017  ~3.8–4.2  -> 4.00   (corrected 2026-11-04, source §1b; was 2.80 from a
+#:                             "~2.1–3.5" row that averaged fixes in, and 2.80 inc VAT
+#:                             sat under the lowest-region pass-through cost of 2017)
 #:   2018  ~3.5–4.0  -> 3.75
 _SVT_GAS_PRECAP_PENCE_PER_KWH: dict[int, float] = {
     2016: 4.00,
-    2017: 2.80,
+    2017: 4.00,
     2018: 3.75,
 }
 

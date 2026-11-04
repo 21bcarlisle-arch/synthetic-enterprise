@@ -11,10 +11,49 @@ Research completed: 2026-06-22. Source: R&D agent, web-sourced from Ofgem, DESNZ
 | Year | Electricity SVT (p/kWh) | Gas SVT (p/kWh) | Annual Dual-Fuel Bill | Confidence |
 |------|------------------------|-----------------|----------------------|------------|
 | 2016 | ~13.5–14.5 | ~3.8–4.2 | ~£1,000–£1,100 | M |
-| 2017 | ~13.5–14.5 | ~2.1–3.5 (Q4 low: 2.07p) | ~£1,050–£1,150 | M |
+| 2017 | ~13.5–14.5 | ~3.8–4.2 (corrected 2026-11-04, §1b) | ~£1,050–£1,150 | M |
 | 2018 | ~14.5–16.0 | ~3.5–4.0 | ~£1,100–£1,200 | M |
 
-Rates back-derived from BEIS QEP bills + Ofgem SVT league tables; treat as ±15%. Gas fell to 2.07p/kWh Q4 2017 then recovered.
+Rates back-derived from BEIS QEP bills + Ofgem SVT league tables; treat as ±15%. The 2017 gas row
+used to read "~2.1–3.5 (Q4 low: 2.07p)" and "Gas fell to 2.07p/kWh Q4 2017 then recovered". That was
+wrong, and §1b says why.
+
+### 1b. The 2017 gas default did not fall 30% (correction, 2026-11-04)
+
+The withdrawn 2017 row ("~2.1–3.5", "Q4 low 2.07p") reads like an average over every tariff (BEIS QEP
+averages fixes in with the default), not the default itself. Three published records contradict it:
+
+- **The default dual-fuel bill rose.** Ofgem RMI, large-legacy-supplier average SVT: £1,071 (2016),
+  £1,117 (2017), £1,175 (2018)
+  (`cheapest_fix_against_the_default_tariff_gb_2016_2025.md` §2, ESTABLISHED). The withdrawn row
+  makes the default dual-fuel unit cost at TDCV *fall* about 16% from 2016 to 2017.
+- **The cost floor rose.** Ofgem's back-cast in the cap model (v1.31, "for illustration only") puts
+  the lowest-region gas pass-through (wholesale + network + policy, ex VAT, DD) at 2.39–2.52p for the
+  2016 periods and at 2.73p / 2.71p for April / October 2017
+  (`docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json`). The withdrawn
+  midpoint is 2.80p inc VAT, so 2.67p ex VAT: below the cost of energy, network and policy in the
+  cheapest region, before any operating cost.
+- **The suppliers' own price actions.** The gas SVT cuts came early in **2016**: E.ON −5.1% from
+  1 Feb 2016, British Gas −5.1% from 16 Mar, ScottishPower −5.4% from 15 Mar, EDF −5% from 24 Mar,
+  npower −5.2% and SSE −5.3% from 28/29 Mar (uSwitch / MoneySavingExpert / lovemoney press coverage,
+  searched 2026-11-04). The **2017** rises were mostly to electricity. British Gas raised electricity
+  12.5% from mid-September 2017 and said "the gas price will remain unchanged". EDF cut gas 5.2% in
+  February 2017 and raised electricity 8.4% in March. ScottishPower's 2017 rise averaged 10.8% on
+  electricity. Not settled this pass: whether npower's and E.ON's 2017 rises touched gas (each was
+  reported at single-digit percentages either way).
+
+**The belief that replaces the row (M confidence).** Through 2017 the gas default held at about its
+post-cut 2016 level, so **~3.8–4.2p/kWh inc VAT**, the same band as 2016. Its error band is the
+±5% spread of the 2017 gas price actions above, which sits inside this table's own ±15%. No
+published record puts a 2017 gas default below the 2016 one by more than about 5%.
+
+**Left open, and not fixed alongside this, so the move can be attributed:**
+- The **2017 electricity** row (~13.5–14.5, the same as 2016) is not consistent with the 2017
+  electricity rises of 8–12.5%. The RMI dual-fuel series rose about 4%. With gas flat, that implies
+  electricity up roughly 8–10%. This is a GAP for a separate change.
+- The **2018 gas** row (~3.5–4.0) sits below 2016–17 while the 2018 back-cast floor rose to
+  2.86–3.09p. That is not a contradiction of the floor, but it does not fit the 2018 dual-fuel rise
+  either. GAP, for the same follow-on.
 
 ### 1a. What a supplier could READ of the pre-cap default, per fuel and ex VAT (2026-10-14)
 
