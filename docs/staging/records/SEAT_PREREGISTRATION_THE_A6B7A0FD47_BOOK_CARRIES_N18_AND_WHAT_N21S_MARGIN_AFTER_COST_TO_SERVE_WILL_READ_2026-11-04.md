@@ -79,9 +79,38 @@ every pound drops through.
    cost (about 9–10 points) and by the ledger lines the page omits (about 5.7 points). N18 widens it by about one
    point, as the drawn item expected.
 
-## Result
+## Result (graded 2026-11-04 19:12Z; the predictions above are unrevised)
 
-*To be filled from the book. Grade against 1–4 above; do not revise them.*
+**The book.** `run_output_a6b7a0fd47_20261104T173649Z.json` finished at 19:07Z (Result=success).
+- sim-runner made its own run at the same commit, `..._20261104T173613Z.json`. That run started 36 s earlier, once
+  the landings had cleared, and finished in the same minute.
+- The two agree on every figure below.
+- sim-runner promoted its copy. `run_output_latest.json` is byte-identical to it, and its marker
+  `run_complete_20261104T173613Z.md` is held for the Monday publish window. So the book is offered to the 9 Nov
+  publish.
+
+| | predicted | measured | grade |
+|---|---|---|---|
+| 1. ratio | 15.4%, band 15.0–16.0%, up | **15.50%** (£548,926 / £3,540,583) | **held** |
+| 2. settlement revenue | +£37k, band £25k–£55k, all in 2017–18; later years under £5k each | **+£76,094**. 2017 +£25,864 and 2018 +£20,611 (+£46,475 together). Every later year moved £2.1k–£6.9k (+£29,619), and 2022 and 2023 were over £5k. | **missed** |
+| 3. direction up; churn and renewal pull the other way | | Up. The book holds **10 more legs**, not fewer (1,301 against 1,291; +7 to +22 per year from 2018). | **direction held; the named counter-pull was wrong in sign** |
+| 4. falsifiers (14.48%, or outside 14.48–16.5%) | | not met | **not falsified** |
+| 5. the conclusion of the decomposition does not move | | The ledger lines the page omits are within £2k of 4669d77ddd: bad debt £69,620, acquisition £74,230, write-offs £45,196, fixed £5,700. Cost to serve is £240,607. | **held** |
+
+**What the miss says.**
+- 2017–18 is a quarter above the sized £37k. Of that £46.5k of revenue, about 92% (£42.6k) dropped through to net.
+- The later-year revenue comes with more legs. So the higher pre-cap price kept or added accounts rather than
+  losing them.
+- **I cannot yet say** through which path. The candidates are the SVT departure decision, the renewal reference, or
+  a different draw sequence downstream of a changed treasury. Each is measurable by diffing the two books'
+  `svt_departures` and `acquired_customers` by year.
+- The bill-basis sizing also undercounts settlement revenue on SVT periods, by about a quarter here.
+
+**A defect in this run's own plumbing.** The follow-on `promote-fresh-run-a6b7a0fd47` failed:
+`python3 -m background.sim_runner --promote` raises at import, `SE_NTFY_TOPIC is not set`.
+- The documented hand-promotion route needs `background/.env.ntfy` loaded first, and nothing says so at the call.
+- It cost nothing here, because sim-runner's own book was promoted.
+- A hand-launched run that is the only book at its commit would not be offered.
 
 **Reverse.** Delete this record. Stop or let finish the two `longjob-*` units. Remove the worktree with
 `git worktree unlock` + `git worktree remove /var/tmp/fresh-run-wt-a6b7a0fd47`. If the promote has fired, the

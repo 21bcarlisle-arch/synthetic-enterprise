@@ -75,5 +75,9 @@ predicts **15.4%** (band 15.0–16.0%) on the a6b7a0fd47 book. That is +£37k of
 costs, so yes, N18 raises it. The book is running (`longjob-fresh-run-a6b7a0fd47`), and a follow-on unit promotes
 it to the publisher when it ends.
 
-**Stays open** until the result sits beside that prediction, and until gaps 1 and 2 are either fixed or each owned
-by a drawn item.
+**Result (19:12Z): 15.50%** on the a6b7a0fd47 book, inside the band. N18 raised the figure as predicted. The
+revenue prediction missed: +£76k against £25–55k, with 10 more legs, not fewer. The grade is in the record. The
+book is the one `run_output_latest.json` now holds for the 9 Nov publish.
+
+**Stays open** until gaps 1 and 2 are either fixed or each owned by a drawn item. Under the 26 Oct ruling, both are
+correctness work, not features.
