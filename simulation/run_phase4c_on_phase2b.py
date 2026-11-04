@@ -93,7 +93,11 @@ from simulation.arrears_engine import (
 )
 from simulation.contact_centre import generate_contact_centre_log
 from simulation.credit_refund_events import generate_credit_refund_log
-from simulation.dd_balance_book import build_dd_balance_book, forecast_inputs_from_run
+from simulation.dd_balance_book import (
+    build_dd_balance_book,
+    dd_spells_from_run,
+    forecast_inputs_from_run,
+)
 from simulation.dd_collection_book import build_dd_collection_book
 from simulation.dd_level_collection_book import build_dd_level_collection_book
 from simulation.household import households_whose_account_closed, supply_points_that_left
@@ -602,6 +606,9 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # review rule; under the default rule they change nothing.
     dd_book_terms = forecast_inputs_from_run(phase2b_result)
     offsets_dual_fuel_legs = dual_fuel_offset_request(policy)
+    # A bill in a spell off DD is paid on receipt, on the ledger's own key, so it is not in the book.
+    dd_book_terms["dd_spells"] = dd_spells_from_run(
+        {"bills": bills, "per_customer_behavioral": phase2b_result.get("per_customer_behavioral")})
     dd_balance_book = build_dd_balance_book(bills, opening_dd, churned_ids, **dd_book_terms,
                                             offsets_dual_fuel_legs=offsets_dual_fuel_legs)
     dd_back_billing_if_review_seeks_balance = {

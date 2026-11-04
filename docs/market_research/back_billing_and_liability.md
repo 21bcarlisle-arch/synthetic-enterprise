@@ -959,8 +959,19 @@ direct-debit basis on a bill the ledger records as paid on receipt.
 **GAP.**
 - Whether the Ombudsman treats a window that was part-DD, part-on-receipt as Scenario B for the DD
   months. No published case was found. The build bars the whole window.
-- The direct-debit balance book (`simulation/dd_balance_book.py`) still decides DD membership by the
-  undated method. So it keeps reviewing, and barring at reviews, a level DD that ended. Same defect,
-  second organ; filed, not fixed here.
+- ~~The direct-debit balance book still decides DD membership by the undated method.~~ Fixed
+  2026-11-04: `simulation/dd_balance_book.py` admits a bill only when the ledger's dated key
+  (`arrears_engine.paying_method` over `supplier_dd_spells`) says it was paid by DD. A stopped account
+  leaves the book at its last DD bill; a re-signed mandate comes back with one month's collection, not
+  one per month of the spell. On 0a6391d186, £2,475.43 of the £20,448.73 barred at reviews (35 of 395
+  review bars) and £83.14 of the £2,974.26 at final bills (2 of 56) sat in spells off DD; 68 of 934
+  accounts in the book have a spell, none re-signed. Rebuilt with the spells: reviews £17,982.63, final
+  bills £3,161.05, accounts barred 272 -> 253.
+- **GAP: when the balance at a stop is sought.** A level DD's balance at the stop is asked for by the
+  next bill, paid on receipt, which is a charge recovery action. The book does not take that action.
+  An account that later closes is barred as at its last DD bill, booked under final bills (three
+  accounts move on 0a6391d186, +£186.79 net); an account still open is counted in
+  `barred_if_sought_at_run_end_gbp`, an exposure. Practice for the stop's own statement is not
+  established here.
 - The published customer page does not carry `catchup_back_billing_basis`, so a reader cannot see which
   comparator a catch-up took.

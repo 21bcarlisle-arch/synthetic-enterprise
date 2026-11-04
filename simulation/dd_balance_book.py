@@ -40,8 +40,8 @@ artefact where none existed before, with NO existing number changed:
   for the monthly-billed book this repo runs; correct for every other cadence.
 * The DD-customer population and the standing level-DD chain are IDENTICAL to
   the two sibling artefacts so the three stay mutually consistent: the DD
-  population is ``payment_method(...) == "direct_debit"`` (same gate as
-  ``dd_collection_book``); the standing monthly DD is the amount the supplier SET
+  population is each bill's ``paying_method(...) == "direct_debit"`` (the ledger's
+  dated key: a bill in a spell off DD is not a DD bill); the standing monthly DD is the amount the supplier SET
   AT REGISTRATION in the first year (handed in through ``opening_dd_gbp``, never
   read off a bill), then each subsequent year is the amount the supplier
   SET after reviewing the prior year's actual spend, asked for through
@@ -123,7 +123,7 @@ from company.interfaces.dd_review_outcome import (  # noqa: F401 -- REVIEW_RULES
     reviewed_standing,
     simple_balance_after_window,
 )
-from simulation.arrears_engine import payment_method
+from simulation.arrears_engine import paying_method
 
 # How many per-customer trajectories to carry on the serialised surface so a
 # business page can render a REAL customer's seasonal saw-tooth (not a synthetic
@@ -336,6 +336,15 @@ def forecast_inputs_from_run(run: Mapping) -> dict:
             "term_forwards": run.get("basis_risk_terms")}
 
 
+def dd_spells_from_run(run: Mapping) -> dict[str, list[tuple[str, str | None]]]:
+    """The spells off DD the ledger reads (`arrears_engine._resolve_bills`), from a run's own
+    bills and behavioural record, for a book rebuilt after the run."""
+    from company.interfaces.bill_assembly import issued_bills
+    from simulation.dd_collection_book import supplier_dd_spells
+    return supplier_dd_spells(issued_bills(run.get("bills") or []),
+                              run.get("per_customer_behavioral") or {})
+
+
 def closed_ids_from_bills(bills: list[dict]) -> tuple[set[str], str]:
     """The accounts a finished run closed, and the run's last billed month: an account is closed
     when its last bill predates that month. See ``review_arms_from_run`` for why this, and not the
@@ -361,10 +370,11 @@ def review_arms_from_run(run: Mapping) -> dict | None:
     if not bills or not opening:
         return None
     closed, _ = closed_ids_from_bills(bills)
+    spells = dd_spells_from_run(run)
     out = {}
     for name, seek in (("never_seeks", False), ("seeks", True)):
         book = build_dd_balance_book(bills, opening, closed, seek_balance_at_review=seek,
-                                     **forecast_inputs_from_run(run))
+                                     dd_spells=spells, **forecast_inputs_from_run(run))
         out[name] = {"accounts": book.back_billing_accounts, "bar_actions": book.bar_actions,
                      "review_step_ups": book.review_step_ups}
     return out
@@ -379,6 +389,7 @@ def build_dd_balance_book(
     term_records: list[dict] | None = None,
     term_forwards: list[dict] | None = None,
     offsets_dual_fuel_legs: bool = False,
+    dd_spells: Mapping[str, list[tuple[str, str | None]]] | None = None,
 ) -> DDBalanceBook:
     """Carry each direct-debit customer's level-DD credit/debit balance
     tick-by-tick and aggregate the portfolio held-credit liability over time.
@@ -431,7 +442,14 @@ def build_dd_balance_book(
     ``basis_risk_terms``: the supplier's own forward each term was priced from) are read only by
     ``own_forecast_plus_balance``, which asks the door for the term end and forward rate of each
     review (``review_forecast_inputs``); without them that rule prices the whole year at the known
-    rate. See the module docstring for the wall-clean basis
+    rate.
+
+    ``dd_spells`` (``dd_collection_book.supplier_dd_spells``, ``dd_spells_from_run``) are the
+    spells each account spent off DD after the supplier's stop or the household's ADDACS 1. A bill
+    inside one is paid on receipt, so it is not in this book: no level collection funds it and no
+    review of that DD runs. The key is the ledger's (``arrears_engine.paying_method``). None reads
+    every account as on the mandate it opened with, which is wrong for each one that left it (N14's
+    defect, second organ: back_billing_and_liability.md s.16). See the module docstring for the wall-clean basis
     and the exact consistency with ``dd_collection_book`` / ``dd_review_runner``.
     """
     # `own_forecast_plus_balance` already adds the balance it finds to the debit it sets
@@ -445,7 +463,7 @@ def build_dd_balance_book(
                 "recover the review's debit balance twice: that rule already adds it to the debit")
         seek_balance_at_review = False
     args = (bills, opening_dd_gbp, closed_ids, seek_balance_at_review, review_rule, term_records,
-            term_forwards)
+            term_forwards, dd_spells)
     if offsets_dual_fuel_legs:
         return _book_with_dual_fuel_offsets(*args)
     return _build_book(*args)
@@ -527,6 +545,7 @@ def _build_book(
     review_rule: str,
     term_records: list[dict] | None,
     term_forwards: list[dict] | None,
+    dd_spells: Mapping[str, list[tuple[str, str | None]]] | None = None,
     offsets: Mapping[str, Mapping[date, float]] | None = None,
     trace: dict | None = None,
 ) -> DDBalanceBook:
@@ -540,16 +559,27 @@ def _build_book(
     by_cust: dict[str, list[tuple[date, float]]] = {}
     true_by_cust: dict[str, list[tuple[date, date, float]]] = {}
     bills_by_cust: dict[str, list[Mapping]] = {}
+    # The period ends of the first DD bill after a spell off DD: the re-signed mandate collects
+    # from there, so that bill's level collection is one month, not one per month of the spell.
+    resumes: set[tuple[str, date]] = set()
+    off_before: set[str] = set()
     true_charge_of = _true_charges(bills)
-    for b in bills:
-        method = payment_method(
+    for b in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
+        method = paying_method(
             b.get("segment", "resi"),
             float(b["total_amount_gbp"]),
             b["customer_id"],
             b.get("commodity", "electricity"),
+            b["period_end"],
+            dd_spells or {},
         )
         if method != "direct_debit":
+            if b["customer_id"] in by_cust:
+                off_before.add(b["customer_id"])
             continue
+        if b["customer_id"] in off_before:
+            off_before.discard(b["customer_id"])
+            resumes.add((b["customer_id"], date.fromisoformat(b["period_end"])))
         by_cust.setdefault(b["customer_id"], []).append(
             (date.fromisoformat(b["period_end"]), float(b["total_amount_gbp"]))
         )
@@ -682,7 +712,8 @@ def _build_book(
             # 3 under quarterly. The first bill collects the single DD that
             # funds it; anything less would open every customer in debt by
             # construction.
-            n_collections = 1 if prev_d is None else max(1, _months_between(prev_d, d))
+            n_collections = (1 if prev_d is None or (cid, d) in resumes
+                             else max(1, _months_between(prev_d, d)))
             standing = standing_dd_by_window[wi]
             balance += standing * n_collections - amt
             recovery.append([start, d, true_charge, standing * n_collections])
