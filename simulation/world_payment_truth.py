@@ -146,7 +146,8 @@ def build(triad, through: dt.date) -> dict[str, dict]:
 
 def repayment_rows(truth: dict, cid: str, bill_rows: list[dict]) -> list[dict]:
     """The leg's repayments as engine rows (`outcome: "repayment"`), each priced from the issued
-    amounts of the bills it settles. A repayment for a bill the supplier never issued is dropped."""
+    amounts of the bills it settles. A repayment for a bill the supplier never issued is dropped.
+    A settlement carries `settles_month`, so the engine can price it at what is left on that bill."""
     amount_by_month: dict[str, float] = {}
     commodity_by_month: dict[str, str] = {}
     for b in bill_rows:
@@ -165,10 +166,15 @@ def repayment_rows(truth: dict, cid: str, bill_rows: list[dict]) -> list[dict]:
         commodity = next((commodity_by_month[m] for m in months if m in commodity_by_month), None)
         if commodity is None or amount <= 0:
             continue
-        rows.append({"customer_id": cid, "period_end": rp["date"], "commodity": commodity,
-                     "amount_gbp": round(amount, 2), "due_date": dt.date.fromisoformat(rp["date"]),
-                     "method": None, "outcome": "repayment", "days_late": 0,
-                     "repayment_kind": rp["kind"]})
+        row = {"customer_id": cid, "period_end": rp["date"], "commodity": commodity,
+               "amount_gbp": round(amount, 2), "due_date": dt.date.fromisoformat(rp["date"]),
+               "method": None, "outcome": "repayment", "days_late": 0,
+               "repayment_kind": rp["kind"]}
+        if rp["kind"] == "settlement":
+            # The engine prices it at what is left on this bill when it is still open
+            # (`arrears_engine.balance_settlement_from_outcomes`); the face is the fallback.
+            row["settles_month"] = rp["bill_month"]
+        rows.append(row)
     return rows
 
 

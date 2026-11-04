@@ -123,3 +123,44 @@ INV_PERIODS_CONTIGUOUS 1 -> 0, INV_OPENING_IS_THE_PREVIOUS_CLOSING 1 -> 0, INV_B
 as predicted. **"No other row moves" was wrong:** INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL also fell, 14 -> 12. I did not
 predict it. The likely reading is that the held month was missing from one panel's year for this leg, but I have not
 checked it row by row. Every other row reads as before.
+
+## The 50 left after 514e2015bf, traced (2026-11-04)
+
+Census re-run on `/var/tmp/grade-4669-fix/ledger.json`: 128 breaches, 78 the back-billing write-off 514e2015bf fixes,
+50 left in six groups.
+
+**39 (SYN-2016-269, 27 + 12): the world's settlement paid the bill's face, not what was left on it. Fixed.**
+An 85.95 credit bill (INV36008, Aug 2023) netted INV36009 (276.73) to 190.78. The desk asked 190.78. On 18 Oct 2023
+`world_payment_truth.repayment_rows` priced the triad's settlement of that bill at its issued face, 276.73, and the
+engine put 190.78 on INV36009 and 85.95 on INV36010. From then on the page printed 85.95 less owed than the desk
+chased (the 12 from Nov 2024 are the same 85.95 plus a 10.41 write-off). The desk is right. §7.3 of
+`debt_and_collections.md` already says so from the PROS-2020-0191 trace ("a household settling a bill pays what is
+left on it, not its face"), filed then and not fixed. Fix: a settlement row carries `settles_month`, and the engine
+prices it at that bill's remainder while the bill is open. A settlement that arrives before its bill opens keeps
+the face, which is PROS-2016-0263's path. Control: `test_balance_at_close_write_off.py::
+test_a_settlement_pays_what_is_left_on_its_bill_not_its_face`. The mutation that drops the remainder fires it.
+This is a world correction made for fidelity, blind to supplier results. It moves bad debt where a settled bill had
+been netted: the household now pays less on that day, and the later bill keeps its debt.
+**Prediction for the next fresh run carrying it, filed before it runs:** SYN-2016-269 leaves the row. The row falls
+to at most 11 (the groups below) plus whatever the draw moves.
+
+**9 (OCC-81b87bae7bec 5, PROS-2016-0020 2, SYN-2016-291 2): one class, and it is not a cross-fuel question at root.**
+In each case a credit bill is larger than the bill it first meets:
+- PROS-2016-0020 gas: -23.43 (Jun 2017), INV9316 13.43 netted in full, 10.00 left.
+- SYN-2016-291 electricity: 42.62 (Mar 2023), 20.42 left.
+- OCC-81b87bae7bec gas: -4.84, 1.64 netted, 3.20 left.
+
+After that the household pays every later bill at face, so the page holds the remainder as a standing credit for
+months or years. A later missed bill, on either fuel, is then chased by the desk at its face, while the row nets
+the page credit. §7.3 lists this as not established ("a credit that meets an open bill smaller than itself. The
+page holds the rest for the next bill. The triad leaves all of it to the desk's oldest-first allocation"). The
+engine's own walk nets the remainder off the next paid bill (SLC 31H.12). The page's ledger never shows that second
+netting, and the household is never asked the net amount. So the first question is single-fuel: what is the
+household asked on the bill after a credit that was larger than the first bill it met? The cross-fuel question
+(PROS-2016-0020, SYN-2016-291) only arises because the remainder is never used up. Next: trace the triad's ask on
+INV9317 and the desk's allocation of the 10.00 before either side changes.
+
+**2 (SYN-2016-380, Oct 2021): not yet traced.** The desk is asked 165.75 and the bill is published at 148.96.
+
+`INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER` (53): not started this turn. The one-variable replays named above
+are still the next step.
