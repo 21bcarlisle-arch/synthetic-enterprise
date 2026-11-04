@@ -3716,3 +3716,384 @@ invariants:
     company/interfaces/save_offer, tools.published_route_split.SVT_TENURE_OBSERVATIONS, simulation/market_switching_propensity.py, simulation/save_on_loss_notice.py, company/pricing/tou_desk.py, simulation/tou_periods.py
     (1.5x/0.79x), MARKET_SAVINGS_BY_YEAR; world churn constants 0.20/0.10; the world''s back-derived pre-cap per-fuel SVT ranges (svt_rates §1 table, incl. the withdrawn 2017 gas ''~2.1-3.5'' and its 2.80p
     midpoint); a GBP 55 cost to serve; staging file names. The existing suite''s commodity-floor rows were read for format.'
+- id: INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP
+  family: unit_rate
+  grades: invoice
+  twin_of: INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER
+  source: docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (SLC 28AD.4, .34, .36(a)); docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json
+  statement: A default-tariff (SVT or deemed) domestic electricity bill that prints a Day and a Night register has an all-in unit rate, weighted at SLC 28AD.36(a)'s Assumed Consumption Split for an Economy
+    7 Tariff (58% Day/peak, 42% Night/off-peak), at or below the multi-register cap unit rate for the cap window its period falls in. Standing charge excluded, ex-VAT. From 1 Jan 2019 to 31 Dec 2025.
+  applies_to:
+    commodity: electricity
+    segment: domestic
+    tariff: 'term_tariff_type in {svt, deemed}. Not fixed: a fixed term the household chose is outside 28AD (slc_28ad_multi_register_cap_test.md ''What the text settles'' 4); see gaps for 28AD Default Fixed
+      Term Contracts.'
+    meter: 'the bill prints exactly two registers, labelled Day and Night (an Economy 7 Tariff: ''two separate Unit Rates'', 17 day/normal hours and 7 night/low hours, SLC definitions). A bill printing
+      Peak/Off-peak or any other multi-register label is a Multi-Register Tariff other than E7, whose split is the supplier''s notified one (28AD.36(b), .37) and is not visible on the page: not graded here.'
+  law: 'SLC 28AD.2 (aggregate Charges for Supply Activities at any consumption level x kWh <= Relevant Maximum Charge); 28AD.4 (a Multi-Register Tariff is assessed on the Multi-Register benchmark); 28AD.34
+    (consumption in different periods is weighted using an Assumed Consumption Split); 28AD.36(a) verbatim: ''in respect of each Economy 7 Tariff, off-peak and peak consumption levels of 42% and 58%, respectively,
+    shall be the Assumed Consumption Split''. Paragraph and split VERIFIED against the licence text in the commons; the brief''s citation (28AD.36(a), 58% day / 42% night) is correct. Because the Relevant
+    Maximum Charge is a nil-consumption part plus a per-kWh slope and 28AD.2 binds at every x, the unit-rate part must be at or below the cap slope on its own (slc_28ad_multi_register_cap_test.md ''What
+    the text settles'' 3).'
+  basis: p/kWh EX-VAT, all-in unit rate (energy + unit-rate-borne non-energy), standing charge excluded, VAT excluded. The ceiling is the cap model's multi-register DIRECT DEBIT unit rate, the median over
+    the model's 15 Total rows (14 regions + GB), (benchmark - nil) / 4,200 kWh (docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#basis.method, .multi_register_benchmark_kwh).
+    Same basis as the export rows, so no VAT conversion is needed.
+  quantity:
+    energy_part_p_per_kwh: 'E = 0.58 x Day.unit_rate_p_per_kwh + 0.42 x Night.unit_rate_p_per_kwh (each register''s printed rate, energy only, ex-VAT). Weighted on the ASSUMED split, never on the bill''s
+      own Day/Night kWh: 28AD.34 grades the tariff, not the household.'
+    non_energy_part_p_per_kwh: N = 100 x non_commodity_amount_gbp / consumption_kwh (the unit-rate-borne non-energy charge per kWh billed, ex-VAT). The bill prints it as one total, not per register, so
+      it is taken as uniform across registers; see gaps.
+    graded_rate_p_per_kwh: R = E + N
+    excluded: standing_charge_gbp (the nil-consumption part, graded by INV_STANDING_CHARGE_SVT_ELEC); vat_gbp.
+  evaluation: 'Unit: one printed bill. Preconditions, else NOT GRADED with the reason printed (never a pass): commodity == electricity; term_tariff_type in {svt, deemed}; exactly two registers labelled
+    Day and Night, each with a unit_rate_p_per_kwh; consumption_kwh > 0; the registers'' amount_gbp sum to commodity_amount_gbp within 1p per register (otherwise the printed register rates are not the whole
+    energy charge and E is not this bill''s rate: ''cannot tell''); period wholly inside 2019-01-01..2025-12-31. Window: if [period_start, period_end] lies inside one row, C = that row''s upper. If it straddles
+    a row boundary, the bill prints one rate per register for the whole period and its kWh are not split by window, so: BREACH if R exceeds the HIGHEST overlapped row''s upper_with_tolerance + 0.5 / consumption_kwh;
+    FLAG if it exceeds the day-weighted mean of the overlapped rows'' upper x 1.015. Grade: BREACH if R > C x 1.015 + 0.5 / consumption_kwh. Report R, C and (R - C) beside every breach. EPG windows (2022-10-01..2023-06-30):
+    grade against the multi-register cap only. The cap stayed in force under 28AD throughout; the EPG lowered what the household paid and the Treasury paid the supplier the gap, so whichever of the two
+    rates the printed register rates carry (household-charged or the supplier''s tariff), each is at or below the supplier''s tariff, which 28AD bounds by the cap. The household-side EPG bound is null (GAP,
+    below): an E7 bill is NOT graded against the single-rate EPG 34.0p, because the published text says suppliers set the E7 rates'' discounts individually. Vacuity control: report the count of bills graded,
+    not graded (by reason) and in each window; zero breaches over zero graded bills is not a pass.'
+  rows:
+  - from: '2016-01-01'
+    to: '2018-12-31'
+    upper: null
+    lower: null
+    upper_source: 'GAP, not a ceiling of zero: SLC 28AD did not exist. The cap started on 1 Jan 2019 (Domestic Gas and Electricity (Tariff Cap) Act 2018; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md
+      §4 ''The cap started on 1 January 2019''). Not graded.'
+  - from: '2019-01-01'
+    to: '2019-03-31'
+    lower: null
+    upper: 14.63
+    upper_with_tolerance: 14.849
+    single_rate_ceiling_for_row_b_diagnosis: 15.723
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2019-01-01].multi_register_p_per_kwh_ex_vat = 14.63 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2019-04-01'
+    to: '2019-09-30'
+    lower: null
+    upper: 16.469
+    upper_with_tolerance: 16.716
+    single_rate_ceiling_for_row_b_diagnosis: 17.666
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2019-04-01].multi_register_p_per_kwh_ex_vat = 16.469 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2019-10-01'
+    to: '2020-03-31'
+    lower: null
+    upper: 15.763
+    upper_with_tolerance: 15.999
+    single_rate_ceiling_for_row_b_diagnosis: 16.986
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2019-10-01].multi_register_p_per_kwh_ex_vat = 15.763 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2020-04-01'
+    to: '2020-09-30'
+    lower: null
+    upper: 15.614
+    upper_with_tolerance: 15.848
+    single_rate_ceiling_for_row_b_diagnosis: 16.766
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2020-04-01].multi_register_p_per_kwh_ex_vat = 15.614 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2020-10-01'
+    to: '2021-03-31'
+    lower: null
+    upper: 14.932
+    upper_with_tolerance: 15.156
+    single_rate_ceiling_for_row_b_diagnosis: 16.152
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2020-10-01].multi_register_p_per_kwh_ex_vat = 14.932 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2021-04-01'
+    to: '2021-09-30'
+    lower: null
+    upper: 16.558
+    upper_with_tolerance: 16.806
+    single_rate_ceiling_for_row_b_diagnosis: 18.004
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2021-04-01].multi_register_p_per_kwh_ex_vat = 16.558 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2021-10-01'
+    to: '2022-03-31'
+    lower: null
+    upper: 18.383
+    upper_with_tolerance: 18.659
+    single_rate_ceiling_for_row_b_diagnosis: 19.784
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2021-10-01].multi_register_p_per_kwh_ex_vat = 18.383 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2022-04-01'
+    to: '2022-09-30'
+    lower: null
+    upper: 25.41
+    upper_with_tolerance: 25.791
+    single_rate_ceiling_for_row_b_diagnosis: 26.942
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2022-04-01].multi_register_p_per_kwh_ex_vat = 25.41 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2022-10-01'
+    to: '2022-12-31'
+    lower: null
+    upper: 46.54
+    upper_with_tolerance: 47.238
+    single_rate_ceiling_for_row_b_diagnosis: 49.246
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2022-10-01].multi_register_p_per_kwh_ex_vat = 46.54 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+    epg_upper: null
+    epg_source: 'GAP: no published multi-register / Economy 7 EPG level. docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2022-10-01] carries elec_epg = 340.0 GBP/MWh
+      inc VAT, a SINGLE-RATE typical-household figure; docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#basis.epg: ''Its multi-register level is not carried here''; GOV.UK
+      (quoted in docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md R4): for multi-register tariffs ''suppliers have flexibility to apply slightly different discounts to the individual
+      rates ... Each supplier will approach this differently'', and ''The page publishes single-rate figures only''. Graded against the cap only.'
+  - from: '2023-01-01'
+    to: '2023-03-31'
+    lower: null
+    upper: 63.871
+    upper_with_tolerance: 64.829
+    single_rate_ceiling_for_row_b_diagnosis: 64.139
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-01-01].multi_register_p_per_kwh_ex_vat = 63.871 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+    epg_upper: null
+    epg_source: 'GAP: no published multi-register / Economy 7 EPG level. docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-01-01] carries elec_epg = 340.0 GBP/MWh
+      inc VAT, a SINGLE-RATE typical-household figure; docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#basis.epg: ''Its multi-register level is not carried here''; GOV.UK
+      (quoted in docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md R4): for multi-register tariffs ''suppliers have flexibility to apply slightly different discounts to the individual
+      rates ... Each supplier will approach this differently'', and ''The page publishes single-rate figures only''. Graded against the cap only.'
+  - from: '2023-04-01'
+    to: '2023-06-30'
+    lower: null
+    upper: 47.12
+    upper_with_tolerance: 47.827
+    single_rate_ceiling_for_row_b_diagnosis: 47.912
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-04-01].multi_register_p_per_kwh_ex_vat = 47.12 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+    epg_upper: null
+    epg_source: 'GAP: no published multi-register / Economy 7 EPG level. docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[from=2023-04-01] carries elec_epg = 340.0 GBP/MWh
+      inc VAT, a SINGLE-RATE typical-household figure; docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#basis.epg: ''Its multi-register level is not carried here''; GOV.UK
+      (quoted in docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md R4): for multi-register tariffs ''suppliers have flexibility to apply slightly different discounts to the individual
+      rates ... Each supplier will approach this differently'', and ''The page publishes single-rate figures only''. Graded against the cap only.'
+  - from: '2023-07-01'
+    to: '2023-09-30'
+    lower: null
+    upper: 27.292
+    upper_with_tolerance: 27.701
+    single_rate_ceiling_for_row_b_diagnosis: 28.541
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-07-01].multi_register_p_per_kwh_ex_vat = 27.292 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2023-10-01'
+    to: '2023-12-31'
+    lower: null
+    upper: 24.984
+    upper_with_tolerance: 25.359
+    single_rate_ceiling_for_row_b_diagnosis: 25.964
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2023-10-01].multi_register_p_per_kwh_ex_vat = 24.984 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2024-01-01'
+    to: '2024-03-31'
+    lower: null
+    upper: 26.228
+    upper_with_tolerance: 26.621
+    single_rate_ceiling_for_row_b_diagnosis: 27.121
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-01-01].multi_register_p_per_kwh_ex_vat = 26.228 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2024-04-01'
+    to: '2024-06-30'
+    lower: null
+    upper: 22.106
+    upper_with_tolerance: 22.438
+    single_rate_ceiling_for_row_b_diagnosis: 23.35
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-04-01].multi_register_p_per_kwh_ex_vat = 22.106 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2024-07-01'
+    to: '2024-09-30'
+    lower: null
+    upper: 19.97
+    upper_with_tolerance: 20.27
+    single_rate_ceiling_for_row_b_diagnosis: 21.308
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-07-01].multi_register_p_per_kwh_ex_vat = 19.97 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2024-10-01'
+    to: '2024-12-31'
+    lower: null
+    upper: 22.189
+    upper_with_tolerance: 22.522
+    single_rate_ceiling_for_row_b_diagnosis: 23.335
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2024-10-01].multi_register_p_per_kwh_ex_vat = 22.189 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2025-01-01'
+    to: '2025-03-31'
+    lower: null
+    upper: 22.656
+    upper_with_tolerance: 22.996
+    single_rate_ceiling_for_row_b_diagnosis: 23.672
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-01-01].multi_register_p_per_kwh_ex_vat = 22.656 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2025-04-01'
+    to: '2025-06-30'
+    lower: null
+    upper: 24.529
+    upper_with_tolerance: 24.897
+    single_rate_ceiling_for_row_b_diagnosis: 25.742
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-04-01].multi_register_p_per_kwh_ex_vat = 24.529 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2025-07-01'
+    to: '2025-09-30'
+    lower: null
+    upper: 23.371
+    upper_with_tolerance: 23.722
+    single_rate_ceiling_for_row_b_diagnosis: 24.564
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-07-01].multi_register_p_per_kwh_ex_vat = 23.371 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2025-10-01'
+    to: '2025-12-31'
+    lower: null
+    upper: 24.129
+    upper_with_tolerance: 24.491
+    single_rate_ceiling_for_row_b_diagnosis: 25.215
+    upper_source: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[from=2025-10-01].multi_register_p_per_kwh_ex_vat = 24.129 (ex-VAT, DD, median of 15 Total rows,
+      (benchmark - nil)/4,200 kWh)
+  - from: '2026-01-01'
+    to: null
+    lower: null
+    upper: null
+    upper_source: 'GAP: docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#basis.coverage ends before 2026-01-01; ''From P15b the multi-register benchmark consumption changed
+      and the model does not state the new value''. Not graded until that divisor is witnessed.'
+  tolerance:
+    upper_relative: 0.015
+    upper_absolute_p_per_kwh: 0.5 / consumption_kwh (half a penny of the printed non_commodity_amount_gbp spread over the bill's kWh; N is derived from a rounded amount)
+    reason: 'The ceilings are GB MEDIANS of the model''s 15 Total rows, not a published GB-average level and not the household''s regional level, so they carry the derivation''s own error. For the single-rate
+      column built the same way, the worst disagreement with the published cap over 21 periods is 1.34% (docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#cross_check_against_published_cap_levels.worst_relative_error
+      = 0.0134; computed here against ofgem_default_tariff_cap_windows.json elec/10/1.05 the model sits BELOW the published level in 15 of 21 windows, worst Oct 2020 at -1.34%, so the derivation errs toward
+      false breaches). The multi-register column has no published series to cross-check (docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#basis.corroboration), but ONE published
+      point exists: Ofgem''s 2018 decision overview gives the Q1 2019 multi-register level as 15.4p/kWh inc VAT (docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md §4 ''Electricity multi-register:
+      23p/day and 15.4p/kWh''; the same list''s single-rate 16.5p = 15.723 x 1.05, so the list is inc-VAT); 14.63 x 1.05 = 15.36, inside that figure''s own 0.05p rounding. 1.5% is the single-rate tolerance,
+      carried because the column is built identically and the one corroborating point agrees to 0.3%. It does NOT absorb a regional spread: see regional_caveat.'
+  regional_caveat: 'What GB-median levels force: the row is exact only for a supplier that prices every household at the GB-average level. The cap is set per region (14) (docs/market_research/default_tariff_cap_and_epg_on_the_bill.md
+    ''Regional level''; tariffs_and_the_default_tariff_2026-10-25.md §4: network allowance £234-£298 typical dual fuel), and a household in a high-network region may lawfully be charged above the GB median.
+    The regional spread of the multi-register unit rate is NOT in the commons, so no regional margin is added: report (R - C) beside every breach so a reader can judge it. The bill carries no region. The
+    page default_tariff_cap_and_epg_on_the_bill.md says the world bills every household at the GB average; that is a claim about the code, not established here, and if it stops being true this row false-fires
+    in high-cost regions.'
+  payment_method_caveat: The commons' multi-register column is DIRECT DEBIT only (docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#what_this_is) and the printed bill carries
+    no payment method. Graded at DD for every bill. For single-rate, standard credit sits at least 1.053x DD and prepayment 0.965-0.992x DD (default_tariff_cap_and_epg_on_the_bill.md 'Payment method', read
+    off ofgem_cap_unit_rate_composition.json by_payment_method). So the DD grade can false-fire on a standard-credit E7 bill by up to about 5%, and is lenient on a prepayment one. If the evaluator can see
+    from the same page that the account paid by standard credit in the window, a breach whose R/C sits within that window's single-rate standard-credit/DD unit-rate ratio is printed as FLAG, not breach,
+    with the ratio named as a BELIEF (carried across meter types, not published for multi-register).
+  severity:
+    above_upper: breach (SLC 28AD.2, .4, .34, .36(a))
+    straddling_bill_above_day_weighted_ceiling_only: flag
+    not_graded: reported with its reason, never counted as a pass
+  export_fields:
+  - period_start
+  - period_end
+  - term_tariff_type
+  - commodity
+  - consumption_kwh
+  - commodity_amount_gbp
+  - non_commodity_amount_gbp
+  - standing_charge_gbp
+  - vat_gbp
+  - registers[].label
+  - registers[].consumption_kwh
+  - registers[].unit_rate_p_per_kwh
+  - registers[].amount_gbp
+  checkable: true
+  sources:
+  - docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (28AD.2, .4, .34, .36(a), definitions of Multi-Register Tariff, Economy 7 Tariff, Relevant 28AD Customer; the levels table)
+  - docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json (periods[].multi_register_p_per_kwh_ex_vat; basis.method, .coverage, .corroboration, .epg)
+  - 'docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json (windows[].elec_epg: single-rate only; epg_note)'
+  - docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md (R3, R4 GOV.UK EPG multi-register quote, G1, G2)
+  - docs/market_research/default_tariff_cap_and_epg_on_the_bill.md (who pays under the EPG; payment method; regional level)
+  - docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md §4 (cap start date; Q1 2019 multi-register 15.4p/kWh)
+  gaps:
+  - 'GAP (EPG): no published multi-register / Economy 7 EPG unit rate exists in the commons or the knowledge layer. ofgem_default_tariff_cap_windows.json carries elec_epg 340.0 GBP/MWh (single-rate typical
+    household); ofgem_cap_multi_register_unit_rates.json basis.epg says its multi-register level is not carried; the GOV.UK EPG regional-rates page (quoted in a_storage_heated_homes_default_tariff_is_two_rate.md
+    R4) says suppliers set the discounts on the individual E7 rates and publishes single-rate figures only. The household-side E7 ceiling in 2022-10..2023-06 is therefore null; only the cap is graded. Deriving
+    one (for example the multi-register cap less the single-rate cap-minus-EPG discount) would be a constructed number, not a published one, and is not done. Closing it needs the EPG scheme text or the
+    government''s per-supplier E7 discount rule.'
+  - 'GAP (non-energy per register): non_commodity_amount_gbp is printed as one bill total. N is taken as uniform per kWh across Day and Night. If the supplier''s non-energy charge differs by register (e.g.
+    time-banded network charges), N at the bill''s realised split differs from N at the 58/42 assumed split, and the grade is off by (realised - assumed share) x (difference in per-register non-energy rate).
+    Not visible on the bill.'
+  - 'GAP (2026+): the multi-register benchmark kWh changed from P15b and again from P16b and the new values are not witnessed in the commons; not graded from 2026-01-01.'
+  - 'GAP (pre-2019): no statutory ceiling existed; not graded (honestly null, not zero).'
+  - 'GAP (28AD Default Fixed Term Contracts): 28AD also covers a default fixed term; a printed term_tariff_type ''fixed'' cannot be told apart from a chosen fix, so fixed bills are not graded.'
+  - 'GAP (multi-register DD column uncorroborated beyond one point): only Q1 2019 is checked against a published figure (15.4p inc VAT). Every other window rests on the cap model derivation.'
+  - 'GAP (regional, payment method): see regional_caveat and payment_method_caveat.'
+  - 'Disagreement noted: slc_28ad_multi_register_cap_test.md quotes 28AD.34 referring to ''28A.4'' and ''28A.21'' (the consolidation''s own drafting carried from the prepayment cap); the artefact flags
+    this itself. The licence''s split paragraph is 28AD.36(a); the knowledge pages (a_storage_heated_homes_default_tariff_is_two_rate.md R3) cite it correctly. No page-versus-licence disagreement on the
+    split was found.'
+  written_by: blind agent, 2026-11-04; read only docs/domain_artefact_library, docs/market_research, site/knowledge and this file for format
+  files_read:
+  - docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (whole)
+  - docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json (whole)
+  - docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json (first 150 lines; all windows via json load)
+  - docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (top-level keys, basis head, grep 'multi')
+  - docs/domain_artefact_library/ and regulatory/ (directory listing); grep over docs/domain_artefact_library, docs/market_research, site/knowledge for Economy 7 / multi-register / 28AD / EPG / 'flexibility
+    to apply'
+  - docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md (whole)
+  - docs/market_research/default_tariff_cap_and_epg_on_the_bill.md (whole)
+  - docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md (lines 100-180 + grep lines)
+  - docs/market_research/ofgem_cap_windows.md (lines 76-100 + grep lines)
+  - docs/market_research/svt_rates_active_passive_2016_2025.md, docs/domain_artefact_library/INDEX.md (grep lines only)
+  - 'site/knowledge/ (listing; price-cap, tariffs-and-the-default-tariff, metering-and-reads directories listed, no E7/EPG text in any index.html by grep: JS shells)'
+  - docs/design/DOMAIN_INVARIANTS.yaml (meta head, id list, INV_UNIT_RATE_SVT_ELEC tolerance/EPG notes lines 300-340, INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER, INV_UNIT_RATE_EPG_HOUSEHOLD, INV_E7_METER_BILLED_ON_TWO_REGISTERS,
+    INV_OVERDUE_WITHIN_PAGE_BALANCE, the last three rows) for format
+  blindfold_disclosure: 'Seen incidentally inside the knowledge pages, no bound taken from any: company/regulatory/epg_reconciliation_register.py, simulation.price_cap_enforcement.*, simulation.svt_product.*,
+    saas.bill_generator, saas.ledger, saas.money.display_rate_gbp_per_day, company.pricing.renewal_rate_chain / ofgem_price_cap, company/billing/unread_month_estimate.PC2_MONTHLY_REGISTER_SHARE, simulation/run_phase2b.registered_profile_class,
+    fabric_physics.storage_charge_kwh; the claims ''the world bills every household at the GB average'', ''a default tariff is priced at min(method column, DD)'', and ''from 2019 the E7 pair is struck so
+    0.58 x day + 0.42 x night equals the multi-register cap rate'' (a_storage_heated_homes_default_tariff_is_two_rate.md choice 2: a pair struck AT the cap passes this row only by the 1.5% tolerance and
+    the absolute half-penny, so any non-energy charge added on top of a cap-struck energy pair would breach); book counts (36 of 560 storage accounts); staging file names.'
+- id: INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE
+  family: unit_rate
+  grades: page
+  twin_of: INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP
+  source: docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (SLC 28AD.4); the twin row's sources
+  statement: On a two-register (Day/Night) electricity bill, the household page prints a note that the bill broke a published rule by exceeding the default-tariff ceiling only when Row INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP
+    grades that bill over its ceiling, and the excess it prints is measured against the MULTI-REGISTER ceiling, not the single-rate one.
+  applies_to:
+    commodity: electricity
+    segment: domestic
+    meter: bills printing exactly two registers labelled Day and Night
+    tariff: every term_tariff_type (a note on a bill Row A does not cover is itself graded)
+  predicate: 'Let x = the bill''s printed default_tariff_excess_p_per_kwh (null or 0 = no note). Let A = Row A''s outcome on the same bill: OVER (R > C x 1.015 + 0.5/kWh), WITHIN_TOLERANCE (C < R <= that),
+    WITHIN (R <= C), or NOT_GRADED with its reason; R, C as Row A defines them; C_1R = the window''s single_rate_ceiling_for_row_b_diagnosis. (a) BREACH: x > 0 and A == WITHIN. The page says a published
+    rule was broken where the multi-register ceiling was met. If additionally |x - (R - C_1R)| is within the agreement tolerance, name the cause: the note used the single-rate ceiling. (b) BREACH: x > 0
+    and the bill''s period lies wholly before 2019-01-01 (no default-tariff cap existed). (c) BREACH: x > 0, A == OVER, and |x - (R - C)| > agreement tolerance. The printed excess is not the multi-register
+    excess; name the single-rate cause as in (a) where it fits. (d) FLAG: x > 0 and A == WITHIN_TOLERANCE (the exceedance is inside the ceiling''s own derivation error, so neither the note nor its absence
+    is established). (e) FLAG: x > 0 and term_tariff_type == fixed (28AD binds a chosen fix not at all, but a 28AD Default Fixed Term Contract is not distinguishable on the page). (f) FLAG: x is null or
+    0 and A == OVER (the page omits a breach Row A found; Row A already carries the breach, so this row only flags the silence). (g) NOT GRADED: A == NOT_GRADED for any reason other than pre-2019 or fixed
+    (2026+, EPG household side, straddle-only flag, cannot-tell), reported with the reason. Agreement tolerance = C x 0.015 + 0.5 / consumption_kwh + half the last printed digit of x: the page and Row A
+    must agree to within the ceiling''s own uncertainty, nothing more.'
+  evaluation: 'Unit: one printed two-register bill. Vacuity control, over the whole partition: report how many bills fall in each of (a)-(g) and in ''x > 0 and A == OVER and agreeing'' and ''x null/0 and
+    A in {WITHIN, WITHIN_TOLERANCE}''. A run where no bill reaches the agreeing-note branch AND no bill reaches the no-note-within branch has not exercised the row; say so rather than report zero breaches.'
+  lower: null
+  upper: null
+  severity:
+    violation: breach ((a), (b), (c))
+    flag: (d), (e), (f)
+  export_fields:
+  - printed bills[].default_tariff_excess_p_per_kwh
+  - 'and every Row A field: period_start, period_end, term_tariff_type, commodity, consumption_kwh, commodity_amount_gbp, non_commodity_amount_gbp, registers[].label, registers[].unit_rate_p_per_kwh, registers[].amount_gbp'
+  checkable: true
+  sources:
+  - 'Row INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP and its sources (SLC 28AD.4: a Multi-Register Tariff is assessed on the Multi-Register benchmark, never the single-rate one)'
+  - 'docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (''What the text settles'' 1 and the levels table: the multi-register unit rate is 0.4-8% below single-rate, so a note keyed
+    to the single-rate ceiling under-reports, and a note keyed to it on a within-cap bill is impossible while one keyed to MR on a bill under single-rate is real)'
+  - docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json#periods[].single_rate_p_per_kwh_ex_vat (the diagnosis ceiling)
+  gaps:
+  - The field's own definition is taken from the brief (p/kWh by which the page says the bill exceeded its ceiling). Whether the page computes it ex-VAT, at the assumed split and including N is not stated
+    in any page read; the agreement test assumes Row A's quantity, and a page computing on another basis will show as (c) with no named cause.
+  - 'Row A''s GAPs (EPG household side, regional, payment method, 2026+, uniform N) carry over: a note in an EPG window is graded against the cap only, and a note citing the EPG is not graded.'
+  - The page may print the ceiling figure itself as well as the excess; no such field was named in the brief, so the 'which ceiling' check is made through x alone (cases (a) and (c)).
+  written_by: blind agent, 2026-11-04; read only docs/domain_artefact_library, docs/market_research, site/knowledge and this file for format
+  files_read:
+  - docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (whole)
+  - docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json (whole)
+  - docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json (first 150 lines; all windows via json load)
+  - docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (top-level keys, basis head, grep 'multi')
+  - docs/domain_artefact_library/ and regulatory/ (directory listing); grep over docs/domain_artefact_library, docs/market_research, site/knowledge for Economy 7 / multi-register / 28AD / EPG / 'flexibility
+    to apply'
+  - docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md (whole)
+  - docs/market_research/default_tariff_cap_and_epg_on_the_bill.md (whole)
+  - docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md (lines 100-180 + grep lines)
+  - docs/market_research/ofgem_cap_windows.md (lines 76-100 + grep lines)
+  - docs/market_research/svt_rates_active_passive_2016_2025.md, docs/domain_artefact_library/INDEX.md (grep lines only)
+  - 'site/knowledge/ (listing; price-cap, tariffs-and-the-default-tariff, metering-and-reads directories listed, no E7/EPG text in any index.html by grep: JS shells)'
+  - docs/design/DOMAIN_INVARIANTS.yaml (meta head, id list, INV_UNIT_RATE_SVT_ELEC tolerance/EPG notes lines 300-340, INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER, INV_UNIT_RATE_EPG_HOUSEHOLD, INV_E7_METER_BILLED_ON_TWO_REGISTERS,
+    INV_OVERDUE_WITHIN_PAGE_BALANCE, the last three rows) for format
+  blindfold_disclosure: 'Seen incidentally inside the knowledge pages, no bound taken from any: company/regulatory/epg_reconciliation_register.py, simulation.price_cap_enforcement.*, simulation.svt_product.*,
+    saas.bill_generator, saas.ledger, saas.money.display_rate_gbp_per_day, company.pricing.renewal_rate_chain / ofgem_price_cap, company/billing/unread_month_estimate.PC2_MONTHLY_REGISTER_SHARE, simulation/run_phase2b.registered_profile_class,
+    fabric_physics.storage_charge_kwh; the claims ''the world bills every household at the GB average'', ''a default tariff is priced at min(method column, DD)'', and ''from 2019 the E7 pair is struck so
+    0.58 x day + 0.42 x night equals the multi-register cap rate'' (a_storage_heated_homes_default_tariff_is_two_rate.md choice 2: a pair struck AT the cap passes this row only by the 1.5% tolerance and
+    the absolute half-penny, so any non-energy charge added on top of a cap-struck energy pair would breach); book counts (36 of 560 storage accounts); staging file names.'

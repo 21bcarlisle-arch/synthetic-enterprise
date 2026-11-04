@@ -1661,6 +1661,134 @@ def _printed_bills(a) -> list[dict]:
                    if i.get("period_start") and i.get("period_end")), key=lambda i: i["period_start"])
 
 
+#: SLC 28AD.36(a), as the multi-register invoice row states it: Day 58%, Night 42%.
+E7_ASSUMED_SPLIT = {"Day": 0.58, "Night": 0.42}
+
+
+def _e7_invoice_grade(inv, a, i):
+    """The multi-register invoice row's outcome on one printed bill: (outcome, R, C, reason).
+    outcome is OVER, WITHIN_TOLERANCE, WITHIN, STRADDLE_FLAG or NOT_GRADED. R is the all-in rate at
+    58/42 ex-VAT, C the ceiling (the highest overlapped window's on a straddling bill).
+
+    One reading the row leaves open, made here: a bill whose period a contracted term starts inside
+    is NOT GRADED. Its register rates blend two tariffs, so they are not the default tariff's rate.
+    On 4669d77ddd two such SVT-then-fixed bills read as breaches, and each one's SVT part sat at the
+    cap (SYN-2016-592 Dec 2023, SYN-2016-380 Aug 2024)."""
+    if i.get("commodity", a.fuel) != "electricity":
+        return "NOT_GRADED", None, None, "not electricity"
+    if i.get("term_tariff_type") not in ("svt", "deemed"):
+        return "NOT_GRADED", None, None, "not a default term"
+    regs = {r.get("label"): r for r in i.get("registers") or ()}
+    if set(regs) != set(E7_ASSUMED_SPLIT) or any(_num(r.get("unit_rate_p_per_kwh")) is None
+                                                 for r in regs.values()):
+        return "NOT_GRADED", None, None, "not a Day/Night pair with rates"
+    kwh = _num(i.get("consumption_kwh")) or 0.0
+    if kwh <= 0:
+        return "NOT_GRADED", None, None, "no kWh"
+    if abs(sum(_num(r.get("amount_gbp")) or 0.0 for r in regs.values())
+           - (_num(i.get("commodity_amount_gbp")) or 0.0)) > 0.01 * len(regs) + 1e-9:
+        return "NOT_GRADED", None, None, "registers do not sum to the energy line"
+    ps, pe = _d(i["period_start"]), _d(i["period_end"])
+    if any(ps < t["_from"] <= pe for t in a.terms()):
+        return "NOT_GRADED", None, None, "spans a term change"
+    rows = [dict(r, _from=_d(r["from"]), _to=_d(r["to"]) if r.get("to") else date.max)
+            for r in inv.get("rows") or ()]
+    rows = [r for r in rows if r["_from"] <= pe and ps <= r["_to"]]
+    if not rows or any(_num(r.get("upper")) is None for r in rows):
+        return "NOT_GRADED", None, None, "pre-cap" if pe < date(2019, 1, 1) else "no ceiling in the window"
+    r_all_in = (sum(share * _num(regs[k]["unit_rate_p_per_kwh"]) for k, share in E7_ASSUMED_SPLIT.items())
+                + 100.0 * (_num(i.get("non_commodity_amount_gbp")) or 0.0) / kwh)
+    tol, pennies = _tol(inv, "upper_relative"), 0.5 / kwh
+    c = max(_num(r["upper"]) for r in rows)
+    if r_all_in > c * (1 + tol) + pennies:
+        return "OVER", r_all_in, c, None
+    if len(rows) > 1:
+        days = [((min(pe, r["_to"]) - max(ps, r["_from"])).days + 1, _num(r["upper"])) for r in rows]
+        mean = sum(n * u for n, u in days) / sum(n for n, _ in days)
+        if r_all_in > mean * (1 + tol):
+            return "STRADDLE_FLAG", r_all_in, mean, None
+    return ("WITHIN_TOLERANCE" if r_all_in > c else "WITHIN"), r_all_in, c, None
+
+
+def _two_register_page_bills(book):
+    for a in book:
+        if not a.domestic or a.printed is None:
+            continue
+        for i in _printed_bills(a):
+            if {r.get("label") for r in i.get("registers") or ()} == set(E7_ASSUMED_SPLIT):
+                yield a, i
+
+
+def ev_e7_default_invoice_within_multi_register_cap(inv, book):
+    """Each printed Day/Night default-tariff bill, its all-in rate at 58/42 against the multi-register
+    ceiling (`_e7_invoice_grade`). A bill not graded is UNBOUNDED, and the unit names how many there
+    were for each reason, so zero breaches over zero graded bills cannot read as a pass."""
+    reasons = defaultdict(int)
+    tally = Tally("")
+    for a, i in _two_register_page_bills(book):
+        outcome, r, c, why = _e7_invoice_grade(inv, a, i)
+        where = "{} bill {} to {}".format(a.cid, i["period_start"], i["period_end"])
+        if outcome == "NOT_GRADED":
+            reasons[why] += 1
+            tally.unbounded += 1
+            continue
+        tally.checked += 1
+        if outcome == "OVER":
+            tally.hit("breach", where, round(r, 4), c, "above by {:.4f}p".format(r - c))
+        elif outcome == "STRADDLE_FLAG":
+            tally.hit("flag", where, round(r, 4), round(c, 4), "above the day-weighted ceiling")
+    tally.unit = "printed Day/Night bill on a default term (not graded: {})".format(
+        ", ".join("{} {}".format(n, k) for k, n in sorted(reasons.items())) or "none")
+    return tally
+
+
+def ev_page_cap_note_agrees_with_e7_grade(inv, book):
+    """The page's printed excess on each Day/Night bill against the invoice row's own grade, by the
+    row's cases (a)-(g). The unit counts every case, the two agreeing ones included, so a book that
+    reaches neither agreeing case is visibly unexercised."""
+    # The twin row is read from the file unless the caller hands it over (a fixture does).
+    twin = inv.get("_twin") or next((r for r in load_invariants() if r["id"] == inv.get("twin_of")), None)
+    if twin is None:
+        tally = Tally("printed Day/Night bill (the twin row is missing from the file)")
+        return tally
+    cases = defaultdict(int)
+    tally = Tally("")
+    for a, i in _two_register_page_bills(book):
+        x = _num(i.get("default_tariff_excess_p_per_kwh")) or 0.0
+        outcome, r, c, why = _e7_invoice_grade(twin, a, i)
+        where = "{} bill {} to {}".format(a.cid, i["period_start"], i["period_end"])
+        if x > 0 and _d(i["period_end"]) < date(2019, 1, 1):
+            case = "b"
+        elif x > 0 and i.get("term_tariff_type") == "fixed":
+            case = "e"
+        elif outcome in ("NOT_GRADED", "STRADDLE_FLAG"):
+            case = "g"
+        elif x > 0 and outcome == "WITHIN":
+            case = "a"
+        elif x > 0 and outcome == "WITHIN_TOLERANCE":
+            case = "d"
+        elif x > 0:
+            agree = c * _tol(twin, "upper_relative") + 0.5 / float(i["consumption_kwh"]) + 0.00005
+            case = "agreeing note" if abs(x - (r - c)) <= agree else "c"
+        elif outcome == "OVER":
+            case = "f"
+        else:
+            case = "no note, within"
+        cases[case] += 1
+        if case == "g":
+            tally.unbounded += 1
+            continue
+        tally.checked += 1
+        if case in ("a", "b", "c"):
+            tally.hit("breach", where, x, None if r is None else round(r - c, 4),
+                      "({}) printed excess against the multi-register grade".format(case))
+        elif case in ("d", "e", "f"):
+            tally.hit("flag", where, x, None if r is None else round(r - c, 4), "({})".format(case))
+    tally.unit = "printed Day/Night bill ({})".format(
+        ", ".join("{} {}".format(k, n) for k, n in sorted(cases.items())) or "none")
+    return tally
+
+
 def ev_billed_ex_vat_reconciles(inv, book):
     """Per account: B, the page's bills before VAT (amount less `vat_gbp`, so each bill grades on
     its own VAT), against R, the page's "Revenue, before VAT". U is the before-VAT amount of every
@@ -2531,6 +2659,10 @@ EVALUATORS = {
     "INV_SERIAL_REGISTER_COUNT_STABLE": (ev_serial_register_count_stable, None),
     "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23": (ev_ebss_credit, None),
     "INV_EBSS_CREDIT_ON_THE_BILL": (ev_ebss_credit_on_the_bill, "printed_invoices"),
+    "INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP": (
+        ev_e7_default_invoice_within_multi_register_cap, "printed_invoices"),
+    "INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE": (
+        ev_page_cap_note_agrees_with_e7_grade, "printed_invoices"),
     "INV_MPAN_CORE_FORMAT": (ev_mpan_core_format, "mpan"),
     "INV_METER_SERIAL_ONE_SUPPLY_POINT": (ev_meter_serial_one_supply_point, "meter_serial"),
     "INV_RENEWAL_NOTICE_42_TO_49_DAYS": (ev_renewal_notice, "bills"),
