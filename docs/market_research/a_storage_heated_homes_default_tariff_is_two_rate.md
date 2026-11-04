@@ -173,6 +173,33 @@ over-estimates leave `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS`, because a p
 PC2's shape does not carry winter night load into a summer day. The row's other three E2 residuals
 (SYN-2016-396g, PROS-2016-0263g, and any direct-electric home) do not move.
 
+## Grading this company's own two-register default bill against the cap (added 4 Nov 2026, N19)
+
+Choice 2 strikes the pair at the multi-register cap. The check on each bill has to grade it the same
+way, or a bill that is at the cap reads as a breach.
+
+- **The rule.** SLC 28AD.4 grades a multi-register tariff against the multi-register benchmark. 28AD.36(a)
+  weights every Economy 7 tariff at 58% day and 42% night
+  (`docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md`). The household's own
+  mix is not the test.
+- **What the check did.** `company.compliance.domain_invariants.default_tariff_invoice_excess_p_per_kwh`
+  graded every electricity bill at the single-rate cap and at the bill's own mix. A storage home runs
+  about 72% day in a winter month, so its E7 default bill read as over the cap. On the b3ce2a4e73 book
+  that was 626 bills, every one of them two-register, and the household page printed each one as
+  "breaks a published rule".
+- **The choice.** A Day/Night bill is graded at 58/42 against the multi-register cap. Any other
+  multi-register tariff is graded at the bill's own mix, read as 28AD.36(b)'s "historic consumption
+  data". That is a named simplification: one bill's mix stands for the history. No default bill this
+  book prints is of that kind.
+- **Measured on the 4669d77ddd book.** Of 1,150 two-register default bills, 748 pass, 397 cannot be
+  graded, and **5 are over**. Single-register bills are unchanged. The seat had predicted 0, and 5 is
+  what the book shows.
+  - Three of the five are Apr–Jun 2023, under the EPG. The commons does not carry an EPG multi-register
+    level, so the check scales the EPG by the cap's multi-register ratio. That gap is the likely cause,
+    but it is not attributed.
+  - The other two are SYN-2016-592 (Dec 2023, 0.48p over) and SYN-2016-380 (Aug 2024, 0.26p over). They
+    are not attributed either.
+
 ## Telling a storage-heated home from its bills (added 3 Nov 2026, for Explore's storage slot)
 
 The seventh cold read rejected the slot's household: a PC2 meter is the meter, not the heating (R1),

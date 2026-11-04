@@ -1,0 +1,120 @@
+**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+
+# N19. Two-register default bills are graded against the single-rate cap at the household's own day/night mix, so the page prints cap breaches that are not breaches (2026-11-04)
+
+**Source.** Reader objections O1 and O2 in the eighth cold read
+(`records/SEAT_READING_THE_EIGHTH_COLD_READ_ON_THE_B3CE2A4E73_BOOK_2026-11-04.md`), confirmed by the seat on the
+b3ce2a4e73 pages.
+
+**What the page prints.** The renewal slot (SYN-2016-592) prints this under every moment: "This household breaks a
+published rule 53 times. Electricity bill of 28 Feb 2019: 16.89p/kWh all-in including VAT, against a ceiling of
+16.52p/kWh for a default tariff then". The storage slot (PROS-2020-0189) prints the same kind of note for its
+June 2022 bill. A pricing reader takes either as a supplier admitting a cap breach.
+
+**What the record shows.**
+- Every bill in the book that carries a `default_tariff_excess_p_per_kwh` is a **two-register electricity bill
+  (profile class 2)**: 626 bills on 11–14 households a year, 2019–2025. No single-register bill carries one.
+- SYN-2016-592, Feb 2019: Day 733.2 kWh at 13.332p and Night 278.3 kWh at 3.352p (energy). The all-in rate at
+  the household's own mix (72% day) is 16.09p ex-VAT.
+  - Recorded excess: 0.3699p. That is 16.09p less the **single-rate** cap of 15.723p ex-VAT.
+  - SLC 28AD.31(a) grades an Economy 7 tariff at an assumed 58% / 42% split. At that split the bill is
+    **14.64p** against the multi-register cap of **14.63p**
+    (`docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json`, Jan–Mar 2019). It is
+    at the cap, within rounding.
+- June 2025: Day 26.07p and Night 9.33p. At 58/42 the bill is about 24.5p ex-VAT, against a multi-register cap
+  of about 24.6p. The recorded excess is 3.36p.
+- The suite's `INV_UNIT_RATE_SVT_ELEC_MULTI_REGISTER` weights 0.58/0.42 and is CLEAN on 353 term-windows. It
+  agrees with the seat, and it disagrees with the record the page reads.
+
+**Cause, read in the code.** `company/compliance/domain_invariants.default_tariff_invoice_excess_p_per_kwh`
+(line 427) takes `get_cap_unit_rate_for_date` for every electricity invoice. That is the single-rate ceiling. It
+divides the bill's own charge by its own kWh. It never calls `get_multi_register_cap_unit_rate_for_date`, which sits
+in the same module of the commons, and it never applies the 58/42 split. `tools/generate_billing_ledger.py:622`
+records the result. `tools/generate_explore_cast.coverage_breaches` prints it, and so does
+`tools/grade_svt_invoices_over_ceiling.py`.
+
+**Why it matters beyond the page.** The function is the household side of the ceiling
+(`DEFAULT_TARIFF_INVOICE_WITHIN_HOUSEHOLD_CEILING`). A real breach on a two-register home and a false one look
+the same to it. The cast's `above_cap` census (22 of 751 households) is this artefact.
+
+**What a fix needs.** Before the build, the knowledge on `docs/market_research/slc_28ad_multi_register_cap_test.md`
+(the commons) and `a_storage_heated_homes_default_tariff_is_two_rate.md`. Then the function grades a multi-register
+invoice at the 58/42 split against the multi-register cap. The 626 bills re-grade to their true count, which this
+seat predicts is 0.
+
+**The row this owes (ruling step 6).** It must be written blind from SLC 28AD.31 and the multi-register artefact:
+a default-tariff two-register invoice is within the multi-register cap at the assumed split. A note the page
+prints as "breaks a published rule" must agree with that row.
+
+**Reverse.** Delete this file. Nothing outside `docs/staging/` was touched.
+
+## Progress (worker, 2026-11-04): the household grade is fixed; BLOCKING stands until a book shows it and the blind row is written
+
+- **K8 first.** The knowledge page `docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md`
+  has a new section, "Grading this company's own two-register default bill against the cap".
+- **Build.** `default_tariff_invoice_excess_p_per_kwh` now grades a Day/Night bill at 28AD.36(a)'s 58/42,
+  against `get_multi_register_cap_unit_rate_for_date`. Any other multi-register bill is graded at its own
+  mix against the same cap. That is a named simplification, and no default bill in the book is of that kind.
+  The ledger's `default_tariff_excess_p_per_kwh` and the cast's "breaks a published rule" note both read
+  this function. So both change on the next book, and neither needs a code change of its own.
+- **Control.** `test_an_economy_7_bill_is_graded_at_28ad_36` is built on SYN-2016-592's Feb 2019 shape.
+  - A bill at the multi-register cap passes. A bill 3% over it fails.
+  - The test first asserts that its fixture is one the single-rate grade calls a breach.
+  - Two mutations fire it: dropping the branch, and replacing 58/42 with the bill's own mix.
+- **Re-graded on the 4669d77ddd run output, through the new function.**
+  - Two-register default bills: 748 pass, 397 cannot be graded, **5 over**. The old grade flagged 626.
+  - Single-register bills are unchanged: 0 over.
+- **Prediction refuted in part, kept beside the result.** The seat predicted "0". The book shows 5.
+  - PROS-2021-0282, Apr–Jun 2023, 0.56p over. These fall under the EPG, and the commons carries no EPG
+    multi-register level, so the check scales the EPG by the cap's ratio. That gap is the likely cause.
+    It is not attributed.
+  - SYN-2016-592, Dec 2023, 0.48p over. Not attributed.
+  - SYN-2016-380, Aug 2024, 0.26p over. Not attributed.
+- **Still owed before this closes.**
+  - (1) The blind row from ruling step 6. This worker read the code, so it cannot write the row.
+  - (2) A fresh book that shows the page note gone from SYN-2016-592's Feb 2019 bill.
+  - (3) The five above, each either explained or fixed.
+
+## Done (worker, 2026-11-04)
+
+The household grade is on origin (06266f4f14), and so are the blind rows (0f1fe62b9f). Class A of the five
+residuals is fixed in this landing.
+
+**Owed items:**
+- **(1) Blind row: landed.** It is `INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP` and its
+  page-note row (0f1fe62b9f).
+- **(3) Five residuals: two fixed, three carried.**
+  - `tools/grade_svt_invoices_over_ceiling.bill_excess` now takes the account's terms. A bill that a fixed
+    term starts inside is ungradeable (None), because the cap does not bind the fixed days.
+  - An SVT-to-SVT roll inside a bill stays graded. On 4669d77ddd that is 1,642 bills, none over and 1,091 passing.
+  - The ledger and the book grader both pass the terms.
+  - Control: `test_a_bill_a_fixed_term_starts_inside_is_not_graded_as_all_svt`. It reds on origin's code. It also
+    reds on the over-broad mutation that drops every bill with a term inside it. It asserts first that a
+    whole-SVT bill over the cap still fires.
+  - The three EPG bills (class B) stay open in
+    `SEAT_FINDING_THE_FIVE_E7_DEFAULT_BILLS_STILL_OVER_THE_CAP_AFTER_N19_...md`. That fix is a pricing change
+    and needs K8 first.
+- **(2) The page.** It is replayed, not published. A worker does not hand-publish.
+  - `tools/generate_billing_ledger.generate` was re-run over `run_output_4669d77ddd_20261104T132452Z.json` to a
+    scratch path. That writes the field `generate_explore_cast.coverage_breaches` reads.
+
+**Counts, ledger-recorded `default_tariff_excess_p_per_kwh` non-zero:**
+
+| Book | Recorded over |
+|---|---|
+| b3ce2a4e73, before N19 | 626 |
+| 4669d77ddd, N19 grade (seat re-grade) | 5 |
+| 4669d77ddd, N19 grade + this change (ledger replay) | **3**, all PROS-2021-0282, Apr–Jun 2023, class B |
+
+**Both slots:**
+- Renewal, SYN-2016-592: 77 bills graded, **0 over**. Feb 2019 reads 0.0, and Dec 2023 (SVT then fixed)
+  reads None.
+- Storage, PROS-2020-0189: 56 bills graded, **0 over**. Jun 2022, the bill the published cast flags today,
+  reads 0.0.
+- The cast prints `above_cap` only where that field is non-zero, so both slots read clean on the next book.
+
+**Not the same question:** `SEAT_FINDING_A_PRINTED_ECONOMY_7_BILL_SHOWS_A_1_5P_NIGHT_RATE_2026-11-03.md` is about
+how the page prints a register's rate, not which cap grades it. It stays open.
+
+The first publish after this lands still needs one read: both slots and the page-note row at 0. That check is
+carried on the five-E7 finding, which stays open.

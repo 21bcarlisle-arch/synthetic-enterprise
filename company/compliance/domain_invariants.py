@@ -52,6 +52,7 @@ from company.compliance.segment_debt_policy import (
 from company.pricing.ofgem_price_cap import (
     get_cap_unit_rate_for_date,
     get_cap_unit_rate_gbp_per_mwh,
+    get_multi_register_cap_unit_rate_for_date,
 )
 
 _CAP_ANCHOR_YEARS = range(2019, 2026)
@@ -424,12 +425,40 @@ DEFAULT_TARIFF_TYPES = ("svt", "deemed")
 DEFAULT_TARIFF_CAP_ROUNDING_TOLERANCE = 0.005
 
 
+#: SLC 28AD.36(a): an Economy 7 tariff is graded at 58% day and 42% night, whatever the household's
+#: own mix (`docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md`).
+ECONOMY_7_ASSUMED_DAY_SHARE = 0.58
+ECONOMY_7_REGISTER_LABELS = ("Day", "Night")
+
+
+def _multi_register_energy_p_per_kwh(invoice: dict) -> Optional[float]:
+    """A two-register bill's energy rate, ex-VAT p/kWh, at the split 28AD.36 grades it at; None for
+    a single-register bill. Economy 7 takes the assumed 58/42. Any other multi-register tariff takes
+    the bill's own mix, as 28AD.36(b)'s "historic consumption data" (one bill's mix stands for the
+    history: a NAMED SIMPLIFICATION, and the E7 bills are every default two-register bill we print).
+    """
+    registers = [r for r in invoice.get("registers") or () if (r.get("consumption_kwh") or 0) > 0]
+    if len(registers) < 2:
+        return None
+    rate = {r.get("label"): 100.0 * (r.get("commodity_amount_gbp") or 0.0) / r["consumption_kwh"]
+            for r in registers}
+    day, night = ECONOMY_7_REGISTER_LABELS
+    if set(rate) == {day, night}:
+        return ECONOMY_7_ASSUMED_DAY_SHARE * rate[day] + (1 - ECONOMY_7_ASSUMED_DAY_SHARE) * rate[night]
+    kwh = sum(r["consumption_kwh"] for r in registers)
+    return 100.0 * sum(r.get("commodity_amount_gbp") or 0.0 for r in registers) / kwh
+
+
 def default_tariff_invoice_excess_p_per_kwh(invoice: dict, tariff_type: str) -> Optional[float]:
     """How far a default-tariff invoice's all-in unit rate sits above the household's ceiling, p/kWh.
 
     0.0 when within it, or when the tariff is not a default one. None when the invoice cannot be
     graded: no cap in force yet, no consumption, or a catch-up, whose charge covers earlier periods
     under earlier ceilings. GB-average levels: the regional cap is not in the commons (GAP).
+
+    A two-register electricity bill is graded the way SLC 28AD.4 grades it: against the
+    multi-register cap, at the assumed split. Graded at the single-rate cap and its own mix, 626
+    Economy 7 bills on the b3ce2a4e73 book read as breaches that were at the cap (N19).
     """
     if tariff_type not in DEFAULT_TARIFF_TYPES:
         return 0.0
@@ -438,12 +467,17 @@ def default_tariff_invoice_excess_p_per_kwh(invoice: dict, tariff_type: str) -> 
     if kwh <= 0 or net <= 0 or invoice.get("catchup_applied"):
         return None
     on = date.fromisoformat(str(invoice.get("period_start") or invoice["date"])[:10])
-    ceiling = get_cap_unit_rate_for_date(invoice.get("commodity") or "electricity", on, net_of_epg=True)
+    commodity = invoice.get("commodity") or "electricity"
+    energy = _multi_register_energy_p_per_kwh(invoice) if commodity == "electricity" else None
+    if energy is None:
+        ceiling = get_cap_unit_rate_for_date(commodity, on, net_of_epg=True)
+        energy = 100.0 * (invoice.get("commodity_amount_gbp") or 0.0) / kwh
+    else:
+        ceiling = get_multi_register_cap_unit_rate_for_date(on, net_of_epg=True)
     if ceiling is None:
         return None
     vat_rate = (invoice.get("vat_gbp") or 0.0) / net
-    unit = (invoice.get("commodity_amount_gbp") or 0.0) + (invoice.get("non_commodity_amount_gbp") or 0.0)
-    charged = 100.0 * unit * (1.0 + vat_rate) / kwh
+    charged = (energy + 100.0 * (invoice.get("non_commodity_amount_gbp") or 0.0) / kwh) * (1.0 + vat_rate)
     ceiling_p = ceiling / 10.0
     return max(0.0, charged - ceiling_p) if charged > ceiling_p * (1 + DEFAULT_TARIFF_CAP_ROUNDING_TOLERANCE) else 0.0
 

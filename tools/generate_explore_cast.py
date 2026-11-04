@@ -1520,7 +1520,9 @@ _CAST_FINDING = ("SEAT_FINDING_EXPLORES_CAST_FINDS_STANDARD_VARIABLE_BILLS_ABOVE
 #: or whose finding has left the open rooms while the gap remains, is RED: a feature has stopped
 #: working and nothing is working on it. An entry whose gap has closed is reported, never red, so
 #: the run getting more honest cannot red the build.
-ACCOUNTED_BY = {"above_cap": _CAST_FINDING, "storage_heating": _CAST_FINDING,
+ACCOUNTED_BY = {"above_cap": "SEAT_FINDING_THE_FIVE_E7_DEFAULT_BILLS_STILL_OVER_THE_CAP_AFTER_N19_ARE_TWO_MIXED_TERM_"
+                             "BILLS_AND_THREE_GRADED_AGAINST_AN_UNPUBLISHED_EPG_LEVEL_2026-11-04.md",
+                "storage_heating": _CAST_FINDING,
                 "ev": "SEAT_FINDING_AN_EV_LIFE_EVENT_IS_DRAWN_WITHOUT_THE_HOUSEHOLDS_FUEL_LEGS_AND_ITS_EFFECT_IS_A_"
                       "RAW_BEFORE_AFTER_AVERAGE_2026-10-26.md",
                 "debt": "SEAT_FINDING_THE_PUBLISHED_BOOKS_PAGES_CARRY_NO_DUE_DATE_SO_ITS_DEBT_SLOT_STAYS_EMPTY_UNTIL_"

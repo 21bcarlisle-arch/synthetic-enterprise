@@ -625,7 +625,7 @@ def generate(run_json_path=None, out_path=None):
             bill.get("days_in_period") or 0, bill["period_start"])
         term = term_of_bill(account_terms, bill)
         term_type = term["tariff_type"] if term else None
-        term_excess = bill_excess(bill, term_type) if term_type else None
+        term_excess = bill_excess(bill, term_type, account_terms) if term_type else None
         inv = {
             "invoice_number": invoice_number,
             "customer_id": cid,

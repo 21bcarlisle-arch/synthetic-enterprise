@@ -88,8 +88,25 @@ def term_of_bill(terms: dict[str, list[dict]], b: dict) -> dict | None:
                  if t["term_start"] <= iso < t["term_end"]), None)
 
 
-def bill_excess(b: dict, tariff_type: str) -> float | None:
-    """The class invariant over a run bill's own unrounded amounts (None: not gradeable)."""
+def a_capped_term_ends_inside(terms: dict[str, list[dict]], b: dict) -> bool:
+    """A term the cap does not bind (a fixed renewal) starts inside the bill's period."""
+    start = str(b["period_start"])[:10]
+    end = str(b.get("period_end") or start)[:10]
+    return any(start < t["term_start"] <= end and t["tariff_type"] not in DEFAULT_TARIFF_TYPES
+               and t.get("commodity", b.get("commodity")) == b.get("commodity")
+               for t in terms.get(b["customer_id"], ()))
+
+
+def bill_excess(b: dict, tariff_type: str, terms: dict[str, list[dict]] | None = None) -> float | None:
+    """The class invariant over a run bill's own unrounded amounts (None: not gradeable).
+
+    With `terms`, also None for a bill a fixed term starts inside: its charge is part SVT and part
+    a tariff the cap does not bind, and the whole-bill rate grades the mix. SYN-2016-592's Dec 2023
+    and SYN-2016-380's Aug 2024 bills read 0.48p and 0.26p over that way with their SVT days at the
+    cap (N19 class A). An SVT-to-SVT roll inside a bill stays graded: 1,091 such bills pass.
+    """
+    if terms is not None and a_capped_term_ends_inside(terms, b):
+        return None
     invoice = {**b, "amount_gbp": b.get("total_amount_gbp"),
                "consumption_kwh": b.get("total_consumption_kwh")}
     return default_tariff_invoice_excess_p_per_kwh(invoice, tariff_type)
@@ -108,7 +125,7 @@ def grade(run: dict) -> dict:
         term = term_of_bill(terms, b)
         if term is None or term["tariff_type"] not in DEFAULT_TARIFF_TYPES:
             continue
-        excess = bill_excess(b, term["tariff_type"])
+        excess = bill_excess(b, term["tariff_type"], terms)
         if excess is None:
             ungradeable += 1
             continue
