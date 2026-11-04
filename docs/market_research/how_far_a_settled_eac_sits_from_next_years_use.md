@@ -5,8 +5,8 @@
 **Asked by** claim `size-the-registry-eac-read-error-from-the-published-record` (2026-10-01). The
 world currently gives a fabric premise's registry EAC **zero read error**
 (`SEAT_FINDING_A_FABRIC_PREMISES_REGISTRY_EAC_IS_NOW_ITS_OWN_READS_..._2026-10-01.md`), and that
-assumption alone now sets year-one bill shock. This document is knowledge only: **no world
-change follows from it here.** Any change is a separate item with its own pre-registration.
+assumption alone now sets year-one bill shock. Sections 1-3 are knowledge only: **no world
+change follows from them here.** §4 (4 Nov 2026) records the one that did, and why.
 
 There are three questions:
 1. How far does a settled EAC sit from next year's actual use, by meter type?
@@ -167,6 +167,60 @@ heat electric homes as if electricity cost what gas costs?
 
 ---
 
+## 4. What an electrically heated home meters, and what its registry EAC should be (added 4 Nov 2026)
+
+**Asked by** the drawn item `electric-heated-homes-eac-double-count-and-the-fresh-grade`. On the a6b7a0fd47
+book, 19 of the 54 INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER breaches are on homes the world drew
+storage- or direct-electric-heated. Those homes meter 5-10 MWh a year, with a tail at 13-23 MWh (large
+or E/F-rated homes), against registry EACs of 1,400-4,000 kWh. Two questions were asked: is the drawn
+band already heating-inclusive (a double count), and does a real EAC follow the reads? Researched
+first-hand unless marked REPO (quoted from an earlier page).
+
+**What is published (FH):**
+- **Every Economy 7 meter, metered** (DESNZ sub-national statistics, GB). The median was 4,102 kWh in 2016,
+  3,918 in 2019 and 3,344 in 2024; the 2024 mean was 4,664. That is every PC2 meter, with or without storage
+  heating. Ofgem records a stakeholder claim that about half of E7 users have storage heating and use
+  "significantly" more (TDCV decision, 25 May 2023, para 2.21). That is an assertion, not a finding.
+- **A storage-heated home, modelled to a heating standard** (BEIS/Element Energy, Research Paper 2019/021,
+  Tables 7-1, 7-4, 7-10). A 73 m² solid-wall terrace uses **12.8 MWh** a year (9.7 MWh with loft and wall
+  insulation). A 174 m² un-insulated detached house uses **21.9 MWh** (16.0 MWh insulated). Hot water is
+  included. These are demand models, not meters.
+- **NEED 2026, gas not the main heating fuel** (2024 year; our own percentiles from the published 50k file).
+  Median 3,200 kWh, p75 6,000, p90 9,600. Homes over 200 m²: median 6,000, p90 15,900. The class mixes in
+  oil, LPG and communal heat, and has no electric-heating field.
+- **The TDCVs are defined by meter class, not by heating.** PC1's quartiles are those of every single-rate
+  meter (decision para 2.15). PC2 (2,200/3,900/6,700 from Oct 2023) includes storage and non-storage homes
+  (para 2.12), and Ofgem says it is "bound to be below [its] actual value". Neither is a figure for an
+  electrically heated home. Ofgem's own advice is to use the consumer's figures.
+- **A real EAC follows the reads.** BSC Annex S-2 §4.3.7 (P40 legal text, FH): every valid advance gives a
+  new EAC, EAC_new = w × AA + (1 − w) × EAC_previous, with w = min(FYC × SPAR, 1). BSCP504 v53.0 §4.9 sets
+  no minimum read interval. The "6 months apart" is DESNZ's statistical definition of an AA, not a BSC
+  rule. A gaining supplier is handed the latest EAC (§3.2.6.51, REPO).
+
+**Not established (GAP):** a metered annual figure for storage-heated or direct-electric homes; how far such
+homes ration heat; SPAR's value (Market Domain Data, behind a login); the lag from a read to its D0019; and
+whether a supplier's billing estimate in its first months follows the D0019 EAC, its own reads, or a blend
+(Citizens Advice, FH, implies its own earlier pattern but gives no weighting).
+
+**What the design does, and why:**
+1. **No double count to remove.** The drawn band is a PC1 quartile range, drawn blind to the dwelling. On
+   an electric-heated home it acts as the appliance base, and the legacy shape adds the heating to it. The
+   world's resulting 5-10 MWh, with its 13-23 MWh tail on large poorly rated homes, sits inside the BEIS
+   modelled range (9.7-21.9 MWh) and above the E7 population, which is where a heated home should sit.
+   `demand_model.ELEC_HEATING_KWH_PER_DEGREE_DAY` (3 kWh/HDD) is therefore **not changed**. Nothing published
+   refutes it, and nothing published licenses a better number. SYN-2016-201 (a two-bed EPC E flat at
+   13-15 MWh) sits above the 73 m² terrace's 12.8 MWh, and is the case to watch.
+2. **The defect is the registry, not the meter.** The own-reads rule of 1 Oct reached the fabric premises
+   only. On the a6b7a0fd47 book, **all 15** breaching electric-heated homes were legacy premises still
+   registered at their drawn band. The 10 electric-heated fabric premises, registered on their own reads,
+   breach none. From 4 Nov a domestic legacy premise is registered on its own first-year import, as a fabric
+   premise is (`run_phase2b.register_legacy_premises_on_their_own_reads`). The band stays the world's demand
+   level, so the meter does not move; only what the registry hands the supplier does.
+3. **The supplier's first-year estimate rule is not changed.** Whether to re-estimate from the first reads
+   is a GAP above. With the registry carrying the home's use, the case behind it (an estimate held at the
+   registry figure after a large read) loses its cause. If the next book still shows it, that becomes the
+   question.
+
 ## Sources
 - DESNZ, *Subnational methodology and guidance booklet* (2026), §3.1.3 and "Annualised
   MPAN-level electricity consumption data":
@@ -179,3 +233,13 @@ heat electric homes as if electricity cost what gas costs?
   https://www.ofgem.gov.uk/sites/default/files/docs/2018/06/draft_electricity_licence_condition_default_tariff_cap_-_28ad_v1.0.pdf
 - Not read, named for the next reader: BSCP504 (EAC/AA calculation) and the in-force SLC 28AD
   text.
+- §4 (4 Nov 2026): Ofgem, *Decision on revised TDCVs and Economy 7 consumption split*, 25 May 2023:
+  https://www.ofgem.gov.uk/sites/default/files/2023-05/TDCV%202023%20Decision%20Letter.pdf · DESNZ,
+  *Subnational electricity consumption statistics 2005-2024* (18 Dec 2025):
+  https://assets.publishing.service.gov.uk/media/69426e905431f4f94d7f0b5e/Subnational_electricity_consumption_statistics_2005-2024.xlsx
+  · BEIS/Element Energy, *Evidence gathering for electric heating options in off gas grid homes* (2019/021):
+  https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/831079/Electric_heating_options_in_off-gas_grid_homes.pdf
+  · Elexon, *P40 Modification Report* v0.3 (Annex S-2 §4.3.7):
+  https://assets.elexon.co.uk/wp-content/uploads/sites/11/2012/02/28170318/p40_mr_v0.3.pdf · Elexon, BSCP504
+  v53.0 §4.9 (as above) · Citizens Advice, *If you think you've been charged too much for your energy*
+  (retrieved 4 Nov 2026).

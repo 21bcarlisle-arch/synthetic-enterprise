@@ -595,6 +595,11 @@ def stamp_registered_profile_class(customer: dict, household_register, as_of: st
 #: non-domestic profile from its own evidence, which is a separate piece of work.
 _EAC_LEVELLED_PROFILE_CLASSES = frozenset({1, 2})
 
+#: The level the WORLD scales a legacy premise's base profile to: its drawn band, by account. Set
+#: only where the registry EAC (the roster's `eac_kwh`) was replaced by the home's own reads, so the
+#: registry can follow the meter without the meter following the registry. Cleared per run.
+_WORLD_BASE_EAC_KWH: dict[str, float] = {}
+
 
 def _base_profile_eac(customer: dict) -> float | None:
     """The annual consumption that sets the LEVEL of this account's base profile,
@@ -626,10 +631,33 @@ def _base_profile_eac(customer: dict) -> float | None:
     """
     if customer.get("profile_class", 1) not in _EAC_LEVELLED_PROFILE_CLASSES:
         return None
-    declared = customer.get("eac_kwh")
+    declared = _WORLD_BASE_EAC_KWH.get(customer.get("customer_id"), customer.get("eac_kwh"))
     if declared is None:
         return None
     return float(declared)
+
+
+def register_legacy_premises_on_their_own_reads(customers, shape_fn_for, run_dates):
+    """Hand each domestic legacy premise the registry EAC a real one carries: its own reads.
+
+    BSCP504 s3.2.6.51, as `fabric_demand_path.registry_eac_from_own_reads` applies it to a fabric
+    premise. The drawn band moves to `_WORLD_BASE_EAC_KWH` first, so `shape_fn_for(customer, cid)`
+    (which levels through `_base_profile_eac`) builds the same demand before and after, and only
+    the roster's `eac_kwh` moves. Clears the map, then yields `(cid, drawn, own, basis)` per premise.
+    """
+    _WORLD_BASE_EAC_KWH.clear()
+    if len(run_dates) < 365:
+        return
+    for customer in customers:
+        cid = customer["customer_id"]
+        if customer.get("segment") != "resi" or _base_profile_eac(customer) is None:
+            continue
+        drawn = float(customer["eac_kwh"])
+        _WORLD_BASE_EAC_KWH[cid] = drawn
+        own, basis = registry_eac_from_own_reads(
+            shape_fn_for(customer, cid), run_dates, customer["acquisition_date"])
+        customer["eac_kwh"] = round(own, 1)
+        yield cid, drawn, own, basis
 
 # Phase 4c-1 property records only cover resi electricity customers (C1-C4).
 # SME customers (C5, C6) get this default property for 4c-2's demand-shape
@@ -2220,6 +2248,36 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         _fab_customer["eac_kwh"] = round(_own_eac, 1)
         EFFECTIVE_EAC_KWH[_fab_cid] = _fab_customer["eac_kwh"]
 
+    def _legacy_shape_fn(customer: dict, cid: str):
+        """A legacy premise's demand: its class profile at its world level, weather-adjusted."""
+        return _weather_adjusted_shape_fn(
+            SHAPE_LOADERS[registered_profile_class(
+                customer, household_demand_register,
+                max(customer.get("acquisition_date") or REPORT_START, REPORT_START))],
+            weather_by_customer[cid], properties.get(cid, DEFAULT_PROPERTY),
+            cloud_cover_means=cloud_cover_by_customer.get(cid),
+            latitude_deg=customer.get("location", {}).get("lat"),
+            household_register=household_demand_register, customer_id=cid,
+            eac_kwh=_base_profile_eac(customer),
+        )
+
+    # THE SAME RULE ON A LEGACY PREMISE (2026-11-04). The rule above reached the fabric premises
+    # only, so a legacy home kept its drawn TDCV band as its registry EAC while its demand is that
+    # band plus heating, EPC band and occupancy. On the a6b7a0fd47 book all 15 drawn electric-heated
+    # homes behind INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER breaches were legacy (the 10 fabric
+    # ones breach none): SYN-2016-355 registered 2,468.5 kWh and metered 15-20 MWh. The band stays
+    # the world's base level (`_WORLD_BASE_EAC_KWH`), so the demand is unchanged and only what the
+    # registry hands the supplier moves.
+    _run_dates = [(date.fromisoformat(REPORT_START) + timedelta(days=_i)).isoformat()
+                  for _i in range((date.fromisoformat(REPORT_END) - date.fromisoformat(REPORT_START)).days)]
+    for _leg_cid, _drawn_eac, _own_eac, _own_basis in register_legacy_premises_on_their_own_reads(
+            [c for c in ELEC_CUSTOMERS + SUCCESSOR_ELEC_CUSTOMERS
+             if c["customer_id"] not in fabric_series_by_customer and not is_hh_customer(c)],
+            _legacy_shape_fn, _run_dates):
+        EFFECTIVE_EAC_KWH[_leg_cid] = round(_own_eac, 1)
+        print(f"  registry EAC {_leg_cid} [legacy]: drawn {_drawn_eac} -> own reads "
+              f"{_own_eac:.0f} kWh ({_own_basis[:22]})")
+
     # A HALF-HOURLY ACCOUNT IS HANDED AN EAC TOO (2026-10-19). The HH roster records carry
     # `eac_kwh: None`, so before its first actual read the bill fell back to the TDCV MEDIUM
     # band: C7 billed 3,100 kWh a year against 13,230 used, and was 67% of the open closing
@@ -3018,6 +3076,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _by_point[leg] = _by_point[premise]
         if premise in EFFECTIVE_EAC_KWH:
             EFFECTIVE_EAC_KWH[leg] = EFFECTIVE_EAC_KWH[premise]
+        # The occupier's record copies the premise's registry EAC; its demand keeps the premise's level.
+        if premise in _WORLD_BASE_EAC_KWH:
+            _WORLD_BASE_EAC_KWH[leg] = _WORLD_BASE_EAC_KWH[premise]
         # Fabric eligibility is a verdict on the premise, so the incoming leg carries its premise's.
         fabric_eligibility_verdicts.extend(
             FabricEligibility(leg, _v.is_eligible, _v.reason)
@@ -3359,6 +3420,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             )
             properties[cid] = _new_home["property"]
             _rec["eac_kwh"] = EFFECTIVE_EAC_KWH[cid] = _new_home["eac_kwh"]
+            _WORLD_BASE_EAC_KWH.pop(cid, None)  # the new home's own level, as before
         # ...and a GAS LEG that moved with it (s.8.7, choice 3): the new home's coordinate, and the
         # heating share refitted on the new dwelling's own gas trace under the household's
         # occupancy. Its sky already turned on the move date (`_carry_gas_leg`); its AQ is kept.
