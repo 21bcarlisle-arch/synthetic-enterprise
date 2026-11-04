@@ -19,7 +19,7 @@ supplier and share their data, we would run a parallel personalised bill against
 publish the difference — **including where we were wrong**" (`docs/vision/pitch.md` §4). Today this exists as "a
 plan and a walled interface built to receive it. **No volunteer has been approached and no real household data
 has entered the system**" (ibid.). PURPOSE_PITCH_V4 makes the load-bearing honesty claims explicit and dated:
-*"no external person has yet seen this work", "no household data has entered the system", "no volunteer has been
+*"no external person has yet seen this work", "no household record leaves a licensed local store" (the 3 Nov W11 wording), "no volunteer has been
 approached"* (§ time-sensitive facts). F3 must not falsify any of these — **DISCOVER designs the machinery; it
 does not run it.**
 

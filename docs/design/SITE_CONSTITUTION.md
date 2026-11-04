@@ -49,7 +49,7 @@ built; this is how it is shown, explained, navigated).
    pitch stakes a public claim that the company "publishes what it decided and why, and corrects
    itself in public"; the site is where that is true or false.
 7. **(v4) Time-sensitive honesty facts must stay accurate** (load-bearing, will expire): *no
-   external person has yet seen this work · no household data has entered the system · no volunteer
+   external person has yet seen this work · no household record leaves a licensed local store (W11, 3 Nov) · no volunteer
    has been approached.* Any surface asserting these must be data-driven so it cannot silently drift
    false once they change.
 

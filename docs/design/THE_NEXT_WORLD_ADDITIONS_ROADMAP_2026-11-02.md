@@ -50,6 +50,14 @@ divides two populations, so it is not a parameter.
   rise above reputation. If GAP-R2 finds a short half-life, rows 6 and 8 fall further. *(2 Nov, later: GAP-R2 cannot be closed from Ofgem's waves, which are per supplier only from
   Aug-Sep 2023. They show supplier standing as a persistent level, not a decaying stock. Row 6 stays sixth; the
   calibration page §8 has the derivation.)*
+- **3 Nov: the director said yes to this order and to the W11 amendment** ("Yes to all your recommendations", via
+  `DIRECTOR_RULING_YES_TO_THE_THREE_2_NOV_QUESTIONS_AND_THE_ADVISORS_OPEN_RECOMMENDATIONS_2026-11-03.md`). The re-rank
+  he asked for: **life stage (row 7) and precarity and affluence (held) now sit together at row 6, above reputation**,
+  which falls to 7, and the review channel to 8. They share one input, the Understanding Society joint, so they are one
+  build, not two. Reputation still has no GB source for any decay constant, while the age and income spreads are
+  graded D today and the joint is now permitted. Rows 1-5 do not move: every factor still scales a reaction. The new
+  row 6 cannot start until the commit control on the licensed files fires and the joint is fitted. Until then its
+  factors stay fitted from published cross-tabs, as they are today.
 
 ## 3. What this note does not do
 

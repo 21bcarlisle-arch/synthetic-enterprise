@@ -34,3 +34,23 @@ Probable failure mode: a household-level file reaching the repository, a test fi
 Proportionality: contract-touching — implement with the named mitigations (amend, then reword, then the control, then download).
 
 — Director ruling, 3 Nov 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+*4 Nov, the autonomous worker, claim `w11-amended-and-the-pitch-claim-reworded`.*
+
+**A1, in the order he set.**
+- **W11 amended**, verbatim from the row, in `docs/design/DIRECTOR_CANON.md`, with the `Director-doc: his-words` trailer citing this file. `CLAUDE.md` quotes the new wording.
+- **The pitch claim reworded** to "no household record leaves a licensed local store" wherever it was stated as a present fact: `PURPOSE_PITCH_V4.md`, `SITE_CONSTITUTION.md`, `f2_explaining_what_we_do_simply.md`, `f3_volunteer_programme_mechanics.md`, `POPULATION_COVERAGE_JOINT_STRUCTURE.md` (marked beside the claim), and `docs/director/UKDS_REGISTRATION_PACK.md`. The dated log lines in f3 ("honesty facts untouched ... no household data held") are records of their day and stay as written.
+- **Canon drift check run.** It carries no W11 claim, so it neither holds nor refuses one. The served How it's built page (`site/harness/index.html`) still shows the old quote. That file is rewritten from canon by `tools/harness_page_figures.py` on the next publish, and another lane has it edited in place, so it is not landed by hand here.
+- **Not done, and owed before any file is downloaded:** the commit control that refuses the licensed files and their row-level contents, proven to fire, and a record of where the licence conditions are kept. The row is closed against `ukds-licensed-files-commit-refusal-control`, due 13 Nov. Nothing is in `~/ukds/`.
+
+**A2.** He said yes to the order. The re-rank is written in `THE_NEXT_WORLD_ADDITIONS_ROADMAP_2026-11-02.md` §2. Life stage, precarity and affluence are now one row at 6, above reputation (7) and the review channel (8), because they share one Understanding Society joint. Rows 1-5 do not move. Nothing is built before the correctness exit test.
+
+**A3.** He said yes. The row is closed against `value-test-design-read-three-amendments-and-four-fixes`, due 27 Nov. It is drawn after the correctness exit test.
+
+**B, ranked. None goes ahead of the exit test.**
+1. **The test-order hunt, measured first.** It is the cheapest of the four, and its answer could be "none here, stop". Order dependence in a shared tree would also hide correctness reds.
+2. **The naive organ's purpose line.** Split questioning the goal from questioning whether something serves it, and prove both branches on the 13 Jul wording.
+3. **A replayable run snapshot from the run ledger.** It is the largest of the four. Start by weighing the run ledger, which nothing calls today.
+4. **Propose-then-certify for the map register.** It waits on the map steer's own design.

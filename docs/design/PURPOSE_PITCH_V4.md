@@ -37,7 +37,7 @@ The doc is internally consistent and unusually honest about its own gaps. The co
 
 **11. Claim-status discipline becomes a standing publication rule.** The Note on Claims classifies every figure (observed / external benchmark / chosen / not-yet-instrumented / hypothesis / retracted). That maps onto the existing provenance discipline and should govern anything the site publishes.
 
-**Time-sensitive facts to keep true or update:** "no external person has yet seen this work", "no household data has entered the system", "no volunteer has been approached". These are load-bearing honesty claims with an expiry date.
+**Time-sensitive facts to keep true or update:** "no external person has yet seen this work", "no household record leaves a licensed local store" (reworded 3 Nov from "no household data has entered the system", with canon W11), "no volunteer has been approached". These are load-bearing honesty claims with an expiry date.
 
 **Your agency:** the assessment above is the advisor's reading. Where you judge a flag wrong, or see a coherence issue we missed, say so with reasoning. What is NOT open: the text below, which is ratified verbatim.
 

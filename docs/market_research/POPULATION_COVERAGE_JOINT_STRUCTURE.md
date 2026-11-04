@@ -35,7 +35,7 @@ joint-structure question** — by the stage-1 finding they cannot add an *observ
 they were not parsed this pass. They matter for **generator anchoring** (real marginal shares), not for
 the orthogonality decision that gates stage 3. Recorded as an honest deferral, not a data gap. The
 ⛔ items are the two richest joint sources and are deliberately **not obtained** — the pitch's public
-"no household data entered the system" claim depends on that, and it holds.
+"no household data entered the system" claim depended on that, and it held. *(3 Nov: W11 is amended on the director's word. Licensed, de-identified files may now be read on this machine outside the repository; the claim reads "no household record leaves a licensed local store".)*
 
 ---
 

@@ -11,6 +11,10 @@ order, what to paste, how the files are handled, and two things to read before y
    that public claim is no longer true as worded. I have raised this as one `for_the_director` row
    (`your-2-nov-ruling-to-register-with`) with a recommendation. **Registering is safe either way. Do not put the files on
    the machine until you have answered that row.**
+   *(3 Nov: answered yes. W11 now reads "No personal microdata in the repository, the site, the world or the company.
+   Licensed, de-identified survey microdata may be read on this machine outside the repository, under its licence, and
+   only non-disclosive aggregates ... leave it." The pitch claim reads "no household record leaves a licensed local
+   store". The files still wait for a control that refuses any commit carrying them, proven to fire.)*
 2. **Is this use commercial?** The UKDS End User Licence lets you use the data for non-commercial purposes and asks
    for permission for anything commercial. Today Poesys is a simulation: no customers, no revenue, nothing sold. But
    the mission says it is "creating enterprise value", and M4 says the enterprise value is the method. If the fitted

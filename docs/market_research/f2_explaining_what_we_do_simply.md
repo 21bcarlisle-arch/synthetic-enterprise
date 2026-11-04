@@ -25,7 +25,7 @@ epistemic wall guards on the sim side.
 
 Three facts frame the gap precisely:
 
-1. **There is no real customer yet.** Poesys holds no household data and takes no household money
+1. **There is no real customer yet.** Poesys holds no customer's data, no household record leaves a licensed local store (W11, 3 Nov), and it takes no household money
    (the volunteer programme, F3, "will not open until a security-posture review has completed").
    So F2 is *forward* discovery: the consent/explanation machinery a real pilot would need, plus a
    **testable bar** to hold it to, designed before any household is exposed. This is the honest

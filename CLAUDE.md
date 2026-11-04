@@ -223,7 +223,7 @@ become documentation, design records and knowledge, "never a runtime input the c
 **The four principles (W7):** world first; freeze, then solve; separate the work; truth stays an
 instrument. Read them in canon before any world or supplier build.
 
-**No personal microdata (W11).** "Published aggregates and cross-tabs only."
+**No personal microdata (W11).** "No personal microdata in the repository, the site, the world or the company. Licensed, de-identified survey microdata may be read on this machine outside the repository, under its licence, and only non-disclosive aggregates (fitted loadings, cross-tabs meeting the depositor's cell rules) leave it."
 
 **Historical ground truth.** The 2016–2025 record is what happened. 2022 is a fact, not a scenario.
 

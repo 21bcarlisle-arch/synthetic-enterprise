@@ -84,7 +84,7 @@ Quotation marks mark the director's own words, checked against the repository. T
 
 **W10. Independent anchors.** Generation and validation take their anchors from disjoint sources. The company never validates against simulation truth. *(20–23 July)*
 
-**W11. No personal microdata.** "Published aggregates and cross-tabs only. The ratified pitch stakes a public claim that no household data has entered the system; that must stay true." *(20 July)*
+**W11. No personal microdata.** "No personal microdata in the repository, the site, the world or the company. Licensed, de-identified survey microdata may be read on this machine outside the repository, under its licence, and only non-disclosive aggregates (fitted loadings, cross-tabs meeting the depositor's cell rules) leave it." *(20 July; amended 3 Nov on his words "Yes to all your recommendations", wording verbatim from the `for_the_director` row `your-2-nov-ruling-to-register-with`. The pitch claim it carried, "no household data has entered the system", now reads "no household record leaves a licensed local store". The earlier wording, "Published aggregates and cross-tabs only", is in git history.)*
 
 **W12. The uncommon are over-represented.** Customers who get suboptimal treatment in a real book precisely because they are uncommon "are over-represented rather than rounded away". *(7 Sept)*
 
