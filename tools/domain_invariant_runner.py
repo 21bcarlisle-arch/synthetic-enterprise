@@ -149,12 +149,62 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
     return out
 
 
+#: The bill's own dated record, read from the ledger by name for the rows the raw export cannot
+#: answer: it carries no issue date (a bill's demand date under SLC 21BA.1), no window a catch-up
+#: says it recovers, and no invoice a payment was posted against. Each field is a date, an amount
+#: printed on the bill or a payment received. The one figure the company worked out is
+#: `catchup_written_off_gbp`, read as the act it is (what the bill did not demand), never as a bound.
+BILL_RECORD_FIELDS = ("invoice_number", "document_type", "issue_date", "due_date", "period_start",
+                      "period_end", "total_amount_gbp", "credit_applied_gbp", "catchup_adjustment_gbp",
+                      "catchup_raw_delta_gbp", "catchup_written_off_gbp", "catchup_period_start",
+                      "catchup_period_end")
+PAYMENT_RECORD_FIELDS = ("invoice_number", "payment_date", "amount_gbp", "method", "outcome",
+                         "scheme_credit_gbp", "part_paid_gbp")
+
+
+def bill_record(rec: dict) -> dict:
+    """One ledger customer's bills and payments, the named fields only."""
+    return {"invoices": [{k: i.get(k) for k in BILL_RECORD_FIELDS} for i in rec.get("invoices") or ()],
+            "payments": [{k: p.get(k) for k in PAYMENT_RECORD_FIELDS} for p in rec.get("payments") or ()]}
+
+
+def load_cast_tariffs(cast_path: Path) -> dict[str, list[dict]]:
+    """household -> each Explore cast moment that prints a tariff label: its date, kind and every
+    label it prints, as (panel, text). A moment prints the supplier panel's "Tariff" row and the
+    portal's `tariff`; both are kept, since either can be the one that is wrong."""
+    out = defaultdict(list)
+    for slot in (json.loads(Path(cast_path).read_text()).get("slots") or ()):
+        for m in slot.get("moments") or ():
+            labels = [("supplier", r.get("v")) for r in m.get("supplier") or () if r.get("k") == "Tariff"]
+            if (m.get("portal") or {}).get("tariff"):
+                labels.append(("portal", m["portal"]["tariff"]))
+            if labels and m.get("iso") and slot.get("household"):
+                out[slot["household"]].append({"iso": m["iso"], "kind": m.get("kind"),
+                                               "fuels": slot.get("fuels"), "labels": labels})
+    return dict(out)
+
+
 def load_book(raw_path: Path | None = None, ledger_path: Path | None = None,
-              events_path: Path | None = None, printed_path: Path | None = None) -> dict[str, dict]:
+              events_path: Path | None = None, printed_path: Path | None = None,
+              cast_path: Path | None = None) -> dict[str, dict]:
     """customer_id -> raw export, its `events` (the company's dated acts) beside it where known.
-    From a bundle the export wrote, or produced from a ledger here. With `printed_path`, each
-    account also carries `printed`, what its page shows (`load_printed`)."""
+    From a bundle the export wrote, or produced from a ledger here, where each account also carries
+    its `bill_record`. With `printed_path`, each account also carries `printed`, what its page shows
+    (`load_printed`). With `cast_path` (by default the `explore_cast.json` beside `printed_path`),
+    each account also carries its household's `cast_tariffs`."""
     printed = load_printed(printed_path) if printed_path is not None else {}
+    if cast_path is None and printed_path is not None:
+        cast_path = Path(printed_path).parent / "explore_cast.json"
+    cast = load_cast_tariffs(cast_path) if cast_path is not None and Path(cast_path).exists() else {}
+    book = _load_raw(raw_path, ledger_path, events_path, printed)
+    for cid, raw in book.items():
+        moments = cast.get(raw.get("billing_account_id") or cid)
+        if moments:
+            raw["cast_tariffs"] = moments
+    return book
+
+
+def _load_raw(raw_path, ledger_path, events_path, printed) -> dict[str, dict]:
     if raw_path is not None:
         book = json.loads(raw_path.read_text())
         if events_path is not None:
@@ -173,7 +223,8 @@ def load_book(raw_path: Path | None = None, ledger_path: Path | None = None,
         leaks = derived_leaks(r) + derived_leaks(ev)
         if leaks:
             raise ValueError("the raw export for {} carries derived fields: {}".format(cid, leaks[:3]))
-        out[cid] = dict(r, events=ev, **({"printed": printed[cid]} if cid in printed else {}))
+        out[cid] = dict(r, events=ev, bill_record=bill_record(rec),
+                        **({"printed": printed[cid]} if cid in printed else {}))
     return out
 
 
@@ -197,6 +248,10 @@ class Account:
         self.notices = events.get("renewal_notices")
         # What the page prints (`load_printed`); None where the book was read without it.
         self.printed = raw.get("printed")
+        # The bill's own dated record (`bill_record`), where the book was read from a ledger.
+        self.bill_record = raw.get("bill_record")
+        # The Explore cast's printed tariff labels for this account's household (`load_cast_tariffs`).
+        self.cast_tariffs = raw.get("cast_tariffs")
         self.registers = {r.get("register_id") for p in self.periods for r in p.get("reads", ())}
         self.start = _d(self.periods[0]["period_start"]) if self.periods else None
         self.end = _d(self.periods[-1]["period_end"]) if self.periods else None
@@ -2148,6 +2203,238 @@ def ev_estimate_run_within_tenure(inv, book):
     return tally
 
 
+# ── N14: a catch-up on a bill paid on receipt is the demand, dated by its issue (2026-11-04) ──────
+
+#: SLC 21BA in force: Part A (domestic) from 1 May 2018, Part B (microbusiness) from 1 Nov 2018
+#: (21BA.9(b)). The export cannot tell a microbusiness from a larger business, so every non-domestic
+#: account takes Part B's date: it over-grades a larger business, the safe direction (F11).
+BACK_BILLING_IN_FORCE = {"domestic": date(2018, 5, 1), "business": date(2018, 11, 1)}
+#: The government's scheme credit is posted as a payment against a bill; it is no way of paying.
+SCHEME_CREDIT_METHOD = "scheme_credit"
+
+
+def ev_back_billing_on_receipt(inv, book):
+    """Each undercharge catch-up on a credit bill the household pays on receipt, issued once 21BA is
+    in force for its segment. Such a bill is the charge recovery action, so its 12 months run back
+    from its ISSUE date. A bill is paid on receipt when every payment posted against it is by a way
+    other than direct debit; one with no payment posted says nothing about how it was paid and is
+    unbounded, and one collected by direct debit is the DD case, which this row does not grade.
+
+    Graded where the window the catch-up says it recovers starts before issue less 12 calendar
+    months. The days share of the catch-up's (VAT-inclusive) raw delta that falls before that date
+    is what 21BA.1 bars on the days apportionment. A bill that bars nothing of it, where that share is
+    at least a penny, breaches. A bill that bars something but less than that share is a flag: 21BA
+    asks for units "reasonably considered" consumed in the window, and a profile apportionment can
+    move the share, so the days share is not a bound (back_billing_and_liability.md §5, code gap 3)."""
+    tally = Tally("undercharge catch-up on a credit bill paid on receipt, issued with 21BA in force")
+    for a in book:
+        if not a.bill_record:
+            continue
+        start = BACK_BILLING_IN_FORCE["domestic" if a.domestic else "business"]
+        methods = defaultdict(set)
+        for p in a.bill_record.get("payments") or ():
+            if p.get("method") and p.get("method") != SCHEME_CREDIT_METHOD:
+                methods[p.get("invoice_number")].add(p["method"])
+        for b in a.bill_record.get("invoices") or ():
+            if (b.get("document_type") != CREDIT_BILL or not b.get("catchup_period_start")
+                    or not b.get("issue_date") or (_num(b.get("catchup_adjustment_gbp")) or 0.0) <= 0):
+                continue
+            issued = _d(b["issue_date"])
+            paid_by = methods.get(b.get("invoice_number"), set())
+            if issued < start or DIRECT_DEBIT in paid_by:
+                continue
+            if not paid_by:
+                tally.unbounded += 1
+                continue
+            tally.checked += 1
+            bound = _years_before(issued, 1)
+            first = _d(b["catchup_period_start"])
+            last = _d(b.get("catchup_period_end") or b["period_end"])
+            if first >= bound:
+                continue
+            old_days = (min(last, bound - timedelta(days=1)) - first).days + 1
+            delta = _num(b.get("catchup_raw_delta_gbp"))
+            delta = _num(b.get("catchup_adjustment_gbp")) if delta is None else delta
+            share = round(delta * old_days / ((last - first).days + 1), 2)
+            barred = _num(b.get("catchup_written_off_gbp")) or 0.0
+            where = "{} {} bill issued {} recovers from {} ({} days before issue)".format(
+                a.cid, a.fuel, b["issue_date"], b["catchup_period_start"], (issued - first).days)
+            if barred <= 0 and share >= 0.01:
+                tally.hit("breach", where, 0.0, share, "nothing barred")
+            elif 0 < barred < share - 0.01:
+                tally.hit("flag", where, barred, share, "barred less than the days share")
+    return tally
+
+
+# ── N15: "a further bill missed" follows a bill not paid in its window (2026-11-04) ─────────────
+
+#: The desk's plan offers, and the one that says a further bill was missed.
+PLAN_OFFER = "repayment_plan_offer"
+PLAN_REOFFER = "repayment_plan_reoffer"
+#: Payment outcomes that put money on the account.
+PAID_OUTCOMES = {"success", "credit"}
+
+
+def _cash(p) -> float:
+    """What one payment record put on the account: the money received, any scheme credit it carried,
+    and the part of a failed collection that was paid."""
+    cash = 0.0
+    if p.get("outcome") in PAID_OUTCOMES:
+        cash += _num(p.get("amount_gbp")) or 0.0
+        if p.get("method") != SCHEME_CREDIT_METHOD:
+            cash += _num(p.get("scheme_credit_gbp")) or 0.0
+    return cash + (_num(p.get("part_paid_gbp")) or 0.0)
+
+
+def _bills_missed(accts) -> list[tuple[date, bool]]:
+    """(due date, missed) for every credit bill of the household. Missed when the cash that landed on
+    the bill's own leg between its issue and its due date, both inclusive, plus any credit the bill
+    applied, is short of it (company_debt_management.md, the 2026-11-03 section). A bill of nothing
+    or less is never missed."""
+    out = []
+    for a in accts:
+        rec = a.bill_record or {}
+        cash = [(_d(p["payment_date"]), _cash(p)) for p in rec.get("payments") or () if p.get("payment_date")]
+        for b in rec.get("invoices") or ():
+            if b.get("document_type") != CREDIT_BILL or not (b.get("issue_date") and b.get("due_date")):
+                continue
+            issued, due = _d(b["issue_date"]), _d(b["due_date"])
+            total = _num(b.get("total_amount_gbp")) or 0.0
+            landed = (_num(b.get("credit_applied_gbp")) or 0.0) + sum(x for d, x in cash if issued <= d <= due)
+            out.append((due, total > 0.005 and landed < total - 0.005))
+    return out
+
+
+def ev_reoffer_follows_a_missed_bill(inv, book):
+    """Each re-offer of the repayment plan, the desk's "a further bill missed", once per household
+    journey. A FURTHER bill is one the previous plan offer did not answer, so the re-offer needs a
+    bill of the household falling due on or after the journey's previous plan offer or re-offer and
+    on or before the re-offer itself that was missed. No such bill, or every such bill paid in its
+    window, breaches. A household whose legs carry no bill record is unbounded."""
+    tally = Tally("re-offer of the repayment plan (a further bill missed)")
+    for ba, accts in _households(book).items():
+        journeys = _journeys(accts)
+        if not journeys:
+            continue
+        if not any(a.bill_record for a in accts):
+            tally.unbounded += sum(k == PLAN_REOFFER for j in journeys for k, _ in _events(j))
+            continue
+        bills = _bills_missed(accts)
+        for i, j in enumerate(journeys):
+            previous = None
+            for kind, on in _events(j):
+                if kind not in (PLAN_OFFER, PLAN_REOFFER):
+                    continue
+                if kind == PLAN_REOFFER:
+                    tally.checked += 1
+                    window = [missed for due, missed in bills
+                              if (previous is None or previous <= due) and due <= on]
+                    if not any(window):
+                        tally.hit("breach", "{} journey {} re-offer {} (previous offer {})".format(
+                            ba, i, on, previous), len(window), "a bill due since the previous offer, missed",
+                            "every bill due since the previous offer paid in its window" if window
+                            else "no bill due since the previous offer")
+                previous = on
+    return tally
+
+
+# ── N16: the tariff Explore prints is the term the bill records (2026-11-04) ────────────────────
+
+#: How the cast spells a term's kind, and the date it prints beside it ("Fixed from 24 Jan 2024",
+#: "Standard variable since 1 Feb 2020"); "Electricity: ...; Gas: ..." names each fuel's.
+TARIFF_KINDS = (("fixed", "fixed"), ("standard variable", "svt"))
+LABEL_DATE = re.compile(r"\b(?:from|since) (\d{1,2} [A-Z][a-z]{2} \d{4})")
+LABEL_FUEL = re.compile(r"^(Electricity|Gas):\s*")
+
+
+def _label_claims(text: str) -> list[tuple[str | None, str | None, date | None]]:
+    """(fuel or None for every fuel, kind or None if unread, printed date or None) per claim."""
+    from datetime import datetime
+    out = []
+    for part in str(text or "").split(";"):
+        part, fuel = part.strip(), None
+        m = LABEL_FUEL.match(part)
+        if m:
+            fuel, part = m.group(1).lower(), part[m.end():]
+        kind = next((k for word, k in TARIFF_KINDS if part.lower().startswith(word)), None)
+        d = LABEL_DATE.search(part)
+        out.append((fuel, kind, datetime.strptime(d.group(1), "%d %b %Y").date() if d else None))
+    return out
+
+
+def _svt_since(terms, term) -> date:
+    """The first day of the unbroken run of SVT terms that holds `term`: the default tariff's terms
+    are cut at every cap window, so one stay on it is several terms."""
+    start = term["_from"]
+    for t in sorted(terms, key=lambda t: t["_from"], reverse=True):
+        if t.get("tariff_type") == "svt" and t["_last"] is not None and t["_last"] + timedelta(days=1) == start:
+            start = t["_from"]
+    return start
+
+
+def ev_cast_tariff_label(inv, book):
+    """Each Explore cast moment, per fuel leg it speaks for, against the contracted term the leg's
+    bills record for the moment's date (on or after the leg's last supplied day, the term it ended
+    on; before its first, unbounded). The moment's two printed labels are both read. A printed kind
+    other than the term's, or a fixed term printed from a day other than its start, breaches. A
+    default tariff printed "since" a day other than the start of its unbroken SVT run is a flag: the
+    page may date the stay by its first whole bill, and that reading is not the row's to rule out.
+    So is the kind of the term that ended the day before, on a moment dated the day a term starts,
+    and a label the row cannot read. One hit per moment and leg, the breach first."""
+    tally = Tally("Explore cast moment x fuel leg it prints a tariff for")
+    for a in book:
+        if not a.cast_tariffs or a.start is None:
+            continue
+        terms = a.terms()
+        for m in a.cast_tariffs:
+            on = _d(m["iso"])
+            claims = [(panel, kind, printed) for panel, text in m["labels"]
+                      for fuel, kind, printed in _label_claims(text) if fuel in (None, a.fuel)]
+            if not claims:
+                continue
+            if on < a.start:
+                tally.unbounded += 1
+                continue
+            day = min(on, a.end)
+            held = next((t for t in terms if t["_from"] <= day <= (t["_last"] or a.end)), None)
+            if held is None:
+                tally.unbounded += 1
+                continue
+            tally.checked += 1
+            where = "{} {} {} {}".format(a.cid, a.fuel, m["iso"], m.get("kind"))
+            billed = held.get("tariff_type")
+            starts = _svt_since(terms, held) if billed == "svt" else held["_from"]
+            wrong = [(p, k, d) for p, k, d in claims if k is not None and k != billed]
+            dated = [(p, k, d) for p, k, d in claims if k == billed and d is not None and d != starts]
+            # A moment dated on the day a term starts may show the household as it stood up to it
+            # (a renewal decision is dated by the term it begins): the kind of the term that ended
+            # the day before is a flag there, not a breach.
+            before = next((t for t in terms if t["_last"] == day - timedelta(days=1)), None)
+            if wrong and held["_from"] == day and before is not None and all(
+                    k == before.get("tariff_type") for _, k, _ in wrong):
+                tally.hit("flag", where, wrong[0][1], billed, "term boundary")
+            elif wrong:
+                tally.hit("breach", where + " " + ",".join(sorted({p for p, _, _ in wrong})),
+                          wrong[0][1], billed, "kind")
+            elif dated and billed == "fixed":
+                tally.hit("breach", where, dated[0][2].isoformat(), starts.isoformat(), "fixed start")
+            elif dated:
+                tally.hit("flag", where, dated[0][2].isoformat(), starts.isoformat(), "svt since")
+            elif any(k is None for _, k, _ in claims):
+                tally.hit("flag", where, None, billed, "label not read")
+    return tally
+
+
+def grade_cast_tariff_labels(cast_path: Path, raw_book: dict[str, dict]) -> Tally:
+    """INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM on one cast file against one book (`load_book`)."""
+    cast = load_cast_tariffs(cast_path)
+    accounts = []
+    for cid, raw in raw_book.items():
+        moments = cast.get(raw.get("billing_account_id") or cid)
+        accounts.append(Account(cid, dict(raw, cast_tariffs=moments) if moments else raw))
+    return ev_cast_tariff_label(None, accounts)
+
+
 #: invariant ID -> (evaluator, the export field it needs on some period or account, or None)
 EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC": (ev_unit_rate_svt_elec, None),
@@ -2207,6 +2494,9 @@ EVALUATORS = {
     "INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW": (ev_svt_one_price, None),
     "INV_UNIT_RATE_EPG_HOUSEHOLD": (ev_unit_rate_epg_household, "non_commodity_rate_gbp_per_mwh"),
     "INV_ESTIMATE_RUN_WITHIN_TENURE": (ev_estimate_run_within_tenure, "estimate_runs"),
+    "INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE": (ev_back_billing_on_receipt, "bill_record"),
+    "INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL": (ev_reoffer_follows_a_missed_bill, "bill_record"),
+    "INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM": (ev_cast_tariff_label, "cast_tariffs"),
 }
 
 
@@ -2216,6 +2506,8 @@ def run(invariants: list[dict], raw_book: dict[str, dict]) -> list[dict]:
     fields = {k for a in raw_book.values() for p in a.get("periods", ()) for k, v in p.items()
               if v is not None}
     fields |= {k for a in raw_book.values() for k, v in (a.get("events") or {}).items() if v}
+    # Read beside the export, never part of it: the bill's own record and the cast's labels.
+    fields |= {k for a in raw_book.values() for k in ("bill_record", "cast_tariffs") if a.get(k)}
     # The page's records, named apart from the export's: a row graded on the page reads NOT_IN_EXPORT
     # on a book read without `--printed`, never clean.
     fields |= {"printed_" + k if k == "invoices" else k for a in raw_book.values()
@@ -2328,12 +2620,14 @@ def main(argv=None) -> int:
     ap.add_argument("--events", type=Path, help="with --raw: customer_id -> the account's events")
     ap.add_argument("--printed", type=Path,
                     help="the published per-customer files (site/data/customers), for the rows graded on the invoice or the page")
+    ap.add_argument("--cast", type=Path,
+                    help="an Explore cast (explore_cast.json) whose printed tariff labels to grade; default the one beside --printed")
     ap.add_argument("--invariants", type=Path, default=INVARIANTS_PATH)
     ap.add_argument("--json", type=Path, help="also write the full result, examples included")
     ap.add_argument("--strict", action="store_true", help="return 1 on any BREACH")
     ap.add_argument("--exceptions", type=Path, default=EXCEPTIONS_PATH)
     args = ap.parse_args(argv)
-    raw = load_book(args.raw, args.ledger, args.events, args.printed)
+    raw = load_book(args.raw, args.ledger, args.events, args.printed, args.cast)
     results = run(load_invariants(args.invariants), raw)
     verdict = gate(results, load_exceptions(args.exceptions))
     print(render(results, len(raw)))
