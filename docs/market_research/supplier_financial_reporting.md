@@ -34,7 +34,38 @@ HoC Library, KPMG IFRS 9 briefings, BEIS Select Committee evidence
 | EBIT allowance | 1.9–2.4% |
 | VAT | 5% on ex-VAT |
 
-## 2. Real Supplier Gross and Net Margins
+### 1a. The book's cost lines beside this stack (N21, 2026-11-04)
+
+The household pages publish "net after cost to serve" at 14.5% of revenue. This table lays the book's lines beside
+the stack above.
+- **Book:** b3ce2a4e73. 4669d77ddd reads the same to the penny on every line here except back-billing write-offs.
+- **Basis:** ex-VAT settlement revenue, 2016 to June 2025, 1,291 per-fuel legs, 5,562 leg-years.
+- **Numerator:** revenue less wholesale, the modelled levies, network, capital cost and the flat cost to serve.
+- **Denominator:** the same records' revenue.
+
+The page and the ledger are two P&Ls of one book. The page reads the settlement records. The ledger's management
+accounts read £3,208,743 of revenue and £839,563 of non-commodity cost, against the settlement records' £3,464,489
+and £1,223,851. **I cannot yet say** which is right; that is a separate finding (below).
+
+| Stack line | This stack | The book, as the page counts it | What kind of gap |
+|---|---|---|---|
+| Wholesale | 35–40% | **42.5%** (£1,470,868). Calm years on the ledger basis: 2019 30.9%, 2020 23.6%, 2024 32.4%. The 2022 crisis year is 99.5%. | **Definition difference.** The book's wholesale is spot or hedge price times settled kWh. This stack's figure includes shaping and balancing. The calm years read low, and **I cannot yet say** whether that is world wholesale or revenue. The measurement is £/MWh against the cap's wholesale allowance per cap period. |
+| Network + policy | ~23% + 10–17% | **35.3%** together on the page (£1,223,851; the run JSON does not split them at book level). 26.2% on the ledger basis. | **Within the band on the page.** ECO and WHD are not in `simulation/policy_costs.py`. Whether a supplier this size carried either obligation depends on the scheme thresholds year by year, and that is not established here: **GAP**. |
+| Operating costs (service, billing, IT, metering, industry charges) | 17–18% incl. metering. The cap's "operating, debt and industry costs" allowance is £297.92 per dual-fuel DD customer per year (ASSUMPTIONS.md, MARGIN_REALISM Step 3; one period's figure, bundling bad debt and industry charges). | **6.8%** (£236,523). This is the flat £55 per leg per year in `saas/cost_to_serve.py`, about £110 per dual-fuel home, £42.5 per leg-year as realised. | **A cost the company does not bear.** The £55 is an unanchored placeholder (ASSUMPTIONS.md says so). It is the largest single gap: about 9–10 points. The MARGIN_REALISM Step 3 build has been parked since July. The cap's allowance per period is not in the tree: **GAP**. |
+| Bad debt | ~1–2.5% (DD book) | **Not on the page.** The ledger carries £68,039 (2.0%) realised and £147,585 (4.3%) provisioned. | **Definition difference.** The company bears it and the page leaves it out. |
+| Acquisition / marketing | inside opex (~11% of it) | **Not on the page.** The ledger carries £74,216 (2.1%). | **Definition difference.** |
+| Back-billing write-offs, fixed cost, read visits | inside opex | **Not on the page.** The ledger carries £46,984–£50,458, £5,700 and £1,494 (1.5% together). | **Definition difference.** |
+| Depreciation | not stated in this stack. The cap's EBIT method counts £90 per customer of fixed assets in capital employed (`price_cap_ebit_allowance.md` §C). | **None anywhere.** The book has £31,688 of capital cost (0.9%), which is a hedge-collateral proxy, not depreciation. | **A cost the company does not bear.** No published depreciation rate is in the tree: **GAP**. |
+| EBIT | 1.9–2.4% (`domain_invariants.NET_MARGIN_PCT_OF_REVENUE` holds 2–5%; this file's §2 says 1–3%) | The residual: 14.5% on the page. Deducting the ledger lines the page omits gives about 8.8%. | **Not a cost.** The page's figure is not EBIT, and comparing it with the invariant's band compares two quantities. The library's own two bands also disagree with each other. |
+
+**Read.** Of the roughly 10–12 points between 14.5% and the library's band:
+- about 5.7 points are a page definition: costs the ledger bears and the page omits;
+- most of the rest is operating cost the company is not charged.
+
+Neither is value created. A margin at this level, taken from a customer billed at the cap, is the M2 shape:
+transfer read as margin because the cost that would have absorbed it is missing. Every per-customer CLV inherits it.
+
+
 
 ### OVO Energy (most multi-year transparency)
 
