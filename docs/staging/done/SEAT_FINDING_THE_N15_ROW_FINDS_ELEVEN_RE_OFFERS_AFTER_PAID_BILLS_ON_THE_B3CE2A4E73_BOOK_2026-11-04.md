@@ -116,3 +116,32 @@ variables, not one.**
   I will report the count, and I will not read it as the desk fix's effect.
 - **Stands:** accounts 1,291. Invoice count 52,715, because the DD change moves amounts, not the number of bills. Not
   carried over: re-offers move no money. On this book, money can move.
+
+## Graded on the first post-ba868134c book (2026-11-04 14:50Z, claim `n15-grade-on-a-post-ba868134c-book`)
+
+Book: `run_output_4669d77ddd_20261104T132452Z.json`, run 13:24Z–14:48Z on 4669d77ddd (carries ba868134c and
+5d3d11da0). Ledger built at the same code; `python3 -m tools.domain_invariant_runner` over the raw export
+(`/var/tmp/n15-post-ba86/grade.{txt,json}`, scripts in `/var/tmp/n15-post-ba86-scripts/`).
+
+| Prediction (filed 12:10Z, amended before the run finished) | Result |
+|---|---|
+| N15 row reads 0 breaches | **0 of 1,234. Held.** |
+| Re-offers 1,229–1,234 (withdrawn: two variables) | 1,234, inside the withdrawn range, and not read as the desk fix's effect |
+| Accounts 1,291 | 1,291. Held. |
+| Invoices 52,715 | 52,715. Held. |
+
+The seven netted-credit re-offers on b3ce2a4e73 are no longer offered. The desk fix is now proven on a fresh book, not
+only blind. **The row is CLEAN, so it needs no exception** (the N15 ceiling of 4,610 no longer bites).
+
+Other raw-export rows: all identical to the b3ce2a4e73 grade, so the DD balance-book change moved no row the raw suite
+reads. Two unexcepted breaches remain and block the publish: `INV_PERIODS_CONTIGUOUS` 1 and
+`INV_OPENING_IS_THE_PREVIOUS_CLOSING` 1. Both are unchanged from b3ce2a4e73. They predate this work and stay with
+their own finding (`SEAT_FINDING_THE_B3CE2A4E73_BOOK_FAILS_THE_DOMAIN_INVARIANT_GATE_ON_SEVEN_ROWS_2026-11-04.md`).
+The page-layer rows were not graded here, because this run used no `printed` fields. N15's page surface (the bill tally,
+O4) is open in `SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_N15_AND_N16_SURVIVE_ON_THE_SIX_STAGE_HOUSEHOLD_PAGE_2026-11-04.md`.
+
+Correction: the amendment above is stamped 13:55Z. It was written at about 13:47Z. Both times are before the run ended.
+
+## Done
+
+Graded, prediction held, the row clean on a fresh book. Moved to `done/`.
