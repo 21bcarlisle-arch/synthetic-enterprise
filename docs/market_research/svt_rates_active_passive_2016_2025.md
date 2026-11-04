@@ -11,8 +11,8 @@ Research completed: 2026-06-22. Source: R&D agent, web-sourced from Ofgem, DESNZ
 | Year | Electricity SVT (p/kWh) | Gas SVT (p/kWh) | Annual Dual-Fuel Bill | Confidence |
 |------|------------------------|-----------------|----------------------|------------|
 | 2016 | ~13.5–14.5 | ~3.8–4.2 | ~£1,000–£1,100 | M |
-| 2017 | ~13.5–14.5 | ~3.8–4.2 (corrected 2026-11-04, §1b) | ~£1,050–£1,150 | M |
-| 2018 | ~14.5–16.0 | ~3.5–4.0 | ~£1,100–£1,200 | M |
+| 2017 | ~15.0–16.0 (corrected 2026-11-04, §1c) | ~3.8–4.2 (corrected 2026-11-04, §1b) | ~£1,050–£1,150 | M |
+| 2018 | ~15.8–16.8 (corrected 2026-11-04, §1c) | ~4.0–4.4 (corrected 2026-11-04, §1c) | ~£1,100–£1,200 | M |
 
 Rates back-derived from BEIS QEP bills + Ofgem SVT league tables; treat as ±15%. The 2017 gas row
 used to read "~2.1–3.5 (Q4 low: 2.07p)" and "Gas fell to 2.07p/kWh Q4 2017 then recovered". That was
@@ -47,13 +47,49 @@ post-cut 2016 level, so **~3.8–4.2p/kWh inc VAT**, the same band as 2016. Its 
 ±5% spread of the 2017 gas price actions above, which sits inside this table's own ±15%. No
 published record puts a 2017 gas default below the 2016 one by more than about 5%.
 
-**Left open, and not fixed alongside this, so the move can be attributed:**
+**Left open here and closed the same day in §1c, as a separate change so each move can be attributed:**
 - The **2017 electricity** row (~13.5–14.5, the same as 2016) is not consistent with the 2017
   electricity rises of 8–12.5%. The RMI dual-fuel series rose about 4%. With gas flat, that implies
   electricity up roughly 8–10%. This is a GAP for a separate change.
 - The **2018 gas** row (~3.5–4.0) sits below 2016–17 while the 2018 back-cast floor rose to
   2.86–3.09p. That is not a contradiction of the floor, but it does not fit the 2018 dual-fuel rise
   either. GAP, for the same follow-on.
+
+### 1c. 2017 electricity and the 2018 pair, priced to the published default bill (2026-11-04)
+
+§1b left two rows open. Both are now priced by one method, stated here so it can be checked.
+
+**Method.** Ofgem's RMI large-legacy SVT average is the only published pre-cap default level, and it
+is a dual-fuel DD bill at TDCV (3,100 / 12,000 kWh) (§1a). Price each year's unit rates so the world's
+own default bill at that consumption, with its own standing charges, meets the RMI annual average.
+**The method is checked where it was not tuned:** with the 2016 rows untouched the world's 2016 bill
+is £1,068 against RMI's £1,071, and its 2019 bill, read from the cap commons, is £1,206 against the
+month-weighted cap level of £1,206. Neither year was fitted.
+
+| Year | RMI default bill | World bill before | Electricity p/kWh inc VAT | Gas p/kWh inc VAT | World bill after |
+|---|---|---|---|---|---|
+| 2016 | £1,071 | £1,068 | 14.00 (unchanged) | 4.00 (unchanged) | £1,068 |
+| 2017 | £1,117 | £1,068 | **15.50** (was 14.00) | 4.00 (§1b) | £1,115 |
+| 2018 | £1,175 | £1,086 | **16.30** (was 15.25) | **4.20** (was 3.75) | £1,173 |
+
+**How the fuels are split.** The bill gives a total, not a split, so the split is a belief (M):
+- **2017:** gas held at its §1b level, so the whole rise goes to electricity. That is what the
+  suppliers did. Their 2017 rises were electricity: British Gas +12.5% with gas unchanged, EDF
+  +8.4% with gas cut 5.2%, ScottishPower +10.8% on electricity (§1b). 14.00 → 15.50 is +10.7%,
+  inside that range. Band ~15.0–16.0: if 2017 gas sat at the low or high end of 3.8–4.2, the bill
+  match moves electricity by about ±0.8p.
+- **2018:** both fuels scaled together by the same factor (×1.053 on 2017). The 2018 rises were
+  dual-fuel and blamed on wholesale costs. British Gas raised "both electricity and gas" by an
+  average 5.5% from 29 May 2018 (Centrica, 10 April 2018), then by 3.8% from 1 October. E.ON's
+  rises were 2.7% (April) and 4.8% (16 August). npower's was ~5.5% (17 June), ScottishPower's
+  ~5.5% (1 June), and SSE's 6.7–7.8% (11 July). EDF's were 1.4% (7 June) and ~6% (31 August).
+  These are dual-fuel figures from press coverage (MoneySavingExpert, uSwitch, Selectra), searched
+  2026-11-04. The withdrawn 2018 gas row (~3.5–4.0) put gas **below** 2017 in the year every large
+  supplier raised it. That row is withdrawn with the 2017 one.
+- **GAP, kept:** no published source gives a single supplier's per-fuel SVT for these years (§1a),
+  so the split within a year is the belief above. The level is not a belief: it is the RMI bill.
+
+**Not changed:** 2016 (the method reproduces it), and every year from 2019 (the cap commons).
 
 ### 1a. What a supplier could READ of the pre-cap default, per fuel and ex VAT (2026-10-14)
 

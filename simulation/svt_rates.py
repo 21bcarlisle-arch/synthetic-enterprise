@@ -91,11 +91,14 @@ CAP_PERIOD_START_MONTHS: tuple[int, ...] = (1, 4, 7, 10)
 #: `docs/market_research/svt_rates_active_passive_2016_2025.md` §1. The source
 #: states ±15% and M confidence. Carried per YEAR and not per quarter because the
 #: figures were only ever annual — the quarterly keys this table used to have were
-#: three real values wearing twelve slots.
+#: three real values wearing twelve slots. 2017 and 2018 are not midpoints: since
+#: 2026-11-04 (§1c) they are priced so the world's default dual-fuel bill at TDCV
+#: meets Ofgem's RMI large-legacy SVT average (£1,117, £1,175). The old 14.00 and
+#: 15.25 left the world's 2017 bill flat while the published one rose 4%.
 _SVT_ELEC_PRECAP_PENCE_PER_KWH: dict[int, float] = {
     2016: 14.00,
-    2017: 14.00,
-    2018: 15.25,
+    2017: 15.50,
+    2018: 16.30,
 }
 
 
@@ -211,11 +214,13 @@ def get_svt_elec_rate_charged_to_household_gbp_per_mwh(date_str: str) -> float |
 #:   2017  ~3.8–4.2  -> 4.00   (corrected 2026-11-04, source §1b; was 2.80 from a
 #:                             "~2.1–3.5" row that averaged fixes in, and 2.80 inc VAT
 #:                             sat under the lowest-region pass-through cost of 2017)
-#:   2018  ~3.5–4.0  -> 3.75
+#:   2018  ~4.0–4.4  -> 4.20   (corrected 2026-11-04, source §1c; was 3.75, under 2017
+#:                             in the year every large supplier raised gas; now both
+#:                             fuels are scaled to the RMI 2018 default bill)
 _SVT_GAS_PRECAP_PENCE_PER_KWH: dict[int, float] = {
     2016: 4.00,
     2017: 4.00,
-    2018: 3.75,
+    2018: 4.20,
 }
 
 

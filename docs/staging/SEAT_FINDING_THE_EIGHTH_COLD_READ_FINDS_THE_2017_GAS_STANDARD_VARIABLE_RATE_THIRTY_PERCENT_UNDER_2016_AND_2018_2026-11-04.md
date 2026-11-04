@@ -94,3 +94,30 @@ default bill, within a stated band.
     mostly electricity (+8–12.5%), and the world's 2017 electricity default did not move.
   - So N18 does not close on the gas fix alone. It closes when §1b's 2017 electricity gap is researched and
     priced (K8 first), and a fresh book grades this row clean.
+
+## Progress (worker, 2026-11-04, third pass): 2017 electricity and the 2018 pair are priced; BLOCKING stands until a book grades it
+
+- **K8 first.** `svt_rates_active_passive_2016_2025.md` §1c prices each pre-cap year so the world's
+  own default dual-fuel bill at TDCV meets Ofgem's RMI annual average. It checks the method on
+  years it was not fitted to: 2016 is £1,068 against £1,071, and 2019, read from the cap commons,
+  is £1,206 against £1,206.
+- **Build.**
+  - 2017 electricity 14.00 → 15.50p inc VAT. That is +10.7%, inside the suppliers' 2017 electricity
+    rises of 8.4–12.5%.
+  - 2018: electricity 15.25 → 16.30p and gas 3.75 → 4.20p. Both are scaled together, because the
+    2018 rises were dual-fuel: British Gas +5.5% on both fuels from 29 May 2018, then +3.8% from
+    1 October.
+  - World bills are now £1,068 / £1,115 / £1,173 / £1,206 for 2016–19.
+  - New control: `tests/simulation/test_svt_rates.py::test_the_pre_cap_default_bill_is_the_published_default_bill`,
+    with a 2% tolerance. It fires on each of the three old values (three mutation runs).
+- **The prediction above is superseded by this change, not refuted by a book.** "Still flags
+  2016→2017 at ~0.999" was a prediction for a book built between 667a12d10a and this commit. No such
+  book was graded, so it was never tested. It stays above as written.
+- **New prediction for the first book built after this commit, written before it exists.** All three
+  rows read 0.
+  - Gas floor 0 and electricity floor 0.
+  - Direction row, at about these ratios: 2016→17 ≈ 1.04, 2017→18 ≈ 1.05, 2018→19 ≈ 1.03.
+  - The book's ratios can differ slightly from these, because the evaluator walks the book's own
+    priced months.
+- **Still owed before this closes:** (1) a fresh book graded on the three blind rows; (2) mark every
+  published figure that moves. Every 2017 bill and every 2018 bill moves.

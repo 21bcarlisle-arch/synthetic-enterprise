@@ -147,7 +147,7 @@ def test_q1_2023_is_the_OFGEM_CAP_and_the_name_used_to_say_EPG():
 _PUBLISHED_PRECAP_GAS_BAND_PENCE = {
     2016: (3.8, 4.2),
     2017: (3.8, 4.2),
-    2018: (3.5, 4.0),
+    2018: (4.0, 4.4),
 }
 
 #: The years the world's own record spans (CLAUDE.md: "the 2016-2025 record is
@@ -217,8 +217,8 @@ def test_the_post_cap_gas_leg_IS_the_commons():
 #: held them against their source.
 _PUBLISHED_PRECAP_ELEC_BAND_PENCE = {
     2016: (13.5, 14.5),
-    2017: (13.5, 14.5),
-    2018: (14.5, 16.0),
+    2017: (15.0, 16.0),
+    2018: (15.8, 16.8),
 }
 
 
@@ -279,3 +279,39 @@ def test_gas_crisis_rate_is_far_above_the_pre_crisis_level():
         get_svt_gas_rate_gbp_per_mwh("2022-11-01")
         > get_svt_gas_rate_gbp_per_mwh("2020-06-01") * 2.5
     )
+
+
+#: Ofgem RMI, "Average SVT (large legacy suppliers)", annual averages, dual fuel, DD, TDCV,
+#: inc VAT (`docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md` §2,
+#: ESTABLISHED). The only published pre-cap default LEVEL; the per-fuel split is a belief (§1c).
+_RMI_DEFAULT_DUAL_FUEL_BILL_GBP = {2016: 1071, 2017: 1117, 2018: 1175}
+
+
+def _world_default_dual_fuel_bill_gbp(year: int) -> float:
+    from simulation.policy_costs import (
+        get_electricity_standing_charge_per_day,
+        get_gas_standing_charge_per_day,
+    )
+
+    total = 0.0
+    for m in range(1, 13):
+        d = f"{year}-{m:02d}-15"
+        units = 3100 * get_svt_elec_rate_gbp_per_mwh(d) + 12000 * get_svt_gas_rate_gbp_per_mwh(d)
+        standing = (get_electricity_standing_charge_per_day(d) + get_gas_standing_charge_per_day(d))
+        total += units / 1000 / 12 + standing * 1.05 * 365 / 12
+    return total
+
+
+def test_the_pre_cap_default_bill_is_the_published_default_bill():
+    """DEFECT (N18, 2026-11-04): the world's 2017 default dual-fuel bill was flat on 2016 (£1,068
+    both years) while Ofgem's published default rose to £1,117, and 2018 sat £89 under £1,175. Each
+    per-fuel row was inside its own band; only the bill could see it. 2% is under half the smallest
+    published year-on-year move (+4.3%, 2016->2017), so no passing level can hide a published step.
+    The untuned years sit well inside it: 2016 at -0.3%, and 2019 (the cap) at 0.0%.
+    """
+    for year, published in _RMI_DEFAULT_DUAL_FUEL_BILL_GBP.items():
+        world = _world_default_dual_fuel_bill_gbp(year)
+        assert abs(world / published - 1) <= 0.02, (
+            f"{year}: the world's default bill at TDCV is £{world:,.0f}, "
+            f"the published one £{published:,}"
+        )
