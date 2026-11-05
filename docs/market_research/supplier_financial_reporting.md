@@ -50,7 +50,7 @@ and £1,223,851. Gap 5 below measures which is right, line by line.
 | Stack line | This stack | The book, as the page counts it | What kind of gap |
 |---|---|---|---|
 | Wholesale | 35–40% | **42.5%** (£1,470,868). Calm years on the ledger basis: 2019 30.9%, 2020 23.6%, 2024 32.4%. The 2022 crisis year is 99.5%. | **Definition difference.** The book's wholesale is spot or hedge price times settled kWh. This stack's figure includes shaping and balancing. The calm years read low, and **I cannot yet say** whether that is world wholesale or revenue. The measurement is £/MWh against the cap's wholesale allowance per cap period. |
-| Network + policy | ~23% + 10–17% | **35.3%** together on the page (£1,223,851; the run JSON does not split them at book level). 26.2% on the ledger basis. | **Within the band on the page.** ECO and WHD are not in `simulation/policy_costs.py`. Whether a supplier this size carried either obligation depends on the scheme thresholds year by year, and that is not established here: **GAP**. |
+| Network + policy | ~23% + 10–17% | **35.3%** together on the page (£1,223,851; the run JSON does not split them at book level). 26.2% on the ledger basis. | **Within the band on the page.** ECO and WHD are not in `simulation/policy_costs.py`, and that is right for this book: it was never over any scheme threshold ("Gap 4 settled" below). |
 | Operating costs (service, billing, IT, metering, industry charges) | 17–18% incl. metering. The cap's "operating, debt and industry costs" allowance is £297.92 per dual-fuel DD customer per year (ASSUMPTIONS.md, MARGIN_REALISM Step 3; one period's figure, bundling bad debt and industry charges). | **6.8%** (£236,523). This is the flat £55 per leg per year in `saas/cost_to_serve.py`, about £110 per dual-fuel home, £42.5 per leg-year as realised. | **A cost the company does not bear.** The £55 is an unanchored placeholder (ASSUMPTIONS.md says so). It is the largest single gap: about 9–10 points. The MARGIN_REALISM Step 3 build has been parked since July. The cap's allowance per period is not in the tree: **GAP**. |
 | Bad debt | ~1–2.5% (DD book) | **Not on the page.** The ledger carries £68,039 (2.0%) realised and £147,585 (4.3%) provisioned. | **Definition difference.** The company bears it and the page leaves it out. |
 | Acquisition / marketing | inside opex (~11% of it) | **Not on the page.** The ledger carries £74,216 (2.1%). | **Definition difference.** |
@@ -129,6 +129,88 @@ transfer read as margin because the cost that would have absorbed it is missing.
 
 **N21's margin after this step: 15.50%, unchanged.** Neither fix touches a settlement record, and the page reads
 the settlement records (£548,926 over £3,540,583).
+
+#### Gap 4 settled: ECO and WHD were never this book's obligations (2026-11-05)
+
+Both schemes are recovered through the cap's policy cost allowance (Ofgem, cap Appendix 5, 2018; ECO/WHD allowance
+decision, Feb 2022). Each binds only suppliers above a domestic customer threshold, counted on the 31 December before
+the scheme year:
+
+| Scheme | Period | Threshold (domestic customers) | Source |
+|---|---|---|---|
+| ECO2 / ECO2t | to 30 Sep 2018 | 250,000, plus 400 GWh elec or 2,000 GWh gas | SI 2014/3219 art 4; SI 2017/490 |
+| ECO3 | Dec 2018 → Mar 2022 | 250,000 → 200,000 → 150,000 by phase | SI 2018/1183 |
+| ECO4, GBIS | Jul 2022 → Mar 2026 | 150,000, plus 300 GWh elec or 700 GWh gas | SI 2022/875 art 4; Ofgem GBIS guidance v2.1 |
+| WHD SY1–SY8 | to Mar 2019 | 250,000 | SI 2011/1033; Ofgem SY7 and SY8 reports |
+| WHD SY9 | 2019/20 | 200,000 (core group only) | Ofgem SY8 report |
+| WHD SY10–SY11 | 2020/21–2021/22 | 150,000 (core group only) | Ofgem SY10 report |
+| WHD SY12 | 2022/23 | 50,000 | SI 2022/772 reg 6(5) |
+| WHD SY13–SY15 | Apr 2023 → Mar 2026 | **1,000** | SI 2022/772 reg 6(5) |
+
+**The book against them.** On the 5200cd6239 book, the domestic legs active in December were:
+- 2022: 179 electricity and 126 gas;
+- 2023: 185 and 134;
+- 2024: 181 and 130.
+
+At most 497 customer ids of every segment were active in any of those years. That is under even WHD's 1,000 on any
+reading of "customer", households or accounts. So:
+- the absence in `simulation/policy_costs.py` is a real small-supplier exemption, not a missing cost;
+- the margin it leaves is the one Ofgem names: costs "beneath the level allowed in the cap".
+
+**Two things follow.**
+- Under M2 this margin is a transfer. An exemption creates no value, so it should not be read as evidence the
+  method works.
+- **It holds only while the book stays under 1,000 domestic customers.** A book that grows past 1,000 from 2023
+  carries a WHD obligation the world does not yet charge.
+
+#### Gap 6 measured: the book's electricity wholesale against the cap's own wholesale allowance (a6b7a0fd47 book, 2026-11-05)
+
+**What each figure counts.**
+- **Book:** Σ `wholesale_cost_gbp` over Σ `consumption_kwh` in `years[y].per_customer_monthly`, domestic
+  electricity legs (SYN-/PROS-, no `g` suffix), grouped by the cap period each month starts in. It is spot or hedge
+  price times settled kWh (`simulation/hedged_settlement.py`).
+- **Cap:** DF + CM unit-rate allowance, ex-VAT, direct debit, single-rate, regional median
+  (`docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json`: share × unit rate). DF is
+  Ofgem's direct-fuel allowance: forward purchase on its index, shaping, imbalance, transaction costs and losses.
+- Gas is not measured: the composition artefact covers electricity only.
+
+| Cap period | Book £/MWh | Cap DF+CM £/MWh | Book ÷ cap |
+|---|---|---|---|
+| Apr–Sep 2016 | 38.3 | 50.3 | 0.76 |
+| Apr–Sep 2017 | 41.8 | 58.8 | 0.71 |
+| Apr–Sep 2018 | 54.4 | 64.6 | 0.84 |
+| Apr–Sep 2019 | 46.4 | 84.2 | **0.55** |
+| Oct 2019–Mar 2020 | 38.4 | 76.6 | **0.50** |
+| Apr–Sep 2020 | 31.6 | 74.3 | **0.43** |
+| Oct 2021–Mar 2022 | 157.2 | 94.6 | 1.66 |
+| Oct–Dec 2022 | 255.7 | 374.9 | 0.68 |
+| Jan–Mar 2023 | 184.7 | 518.1 | 0.36 |
+| Jan–Mar 2024 | 75.1 | 156.6 | 0.48 |
+| Apr–Jun 2025 | 92.2 | 134.1 | 0.69 |
+
+The book's wholesale is below the cap's allowance in every period except the 2021–22 spike. In the calm periods
+of 2019–2020 it is about half. That accounts for the low calm-year wholesale share.
+
+**Three explanations the evidence allows. I cannot yet say how the gap splits between them.**
+1. **Losses not borne. A cost the company does not bear.** Real supplier volumes are settled grossed up by
+   line-loss factors and the TLM. `hedged_settlement` multiplies by metered kWh; `company/market/llf_register.py`
+   exists but the settlement does not read it. Physics bounds this at a few percent up to about ten percent. It
+   cannot explain 0.43–0.55 on its own.
+2. **Shaping, imbalance and transaction cost not borne. A cost the company does not bear.** DF carries them on top
+   of the baseload forward. The book pays a settlement-period price on a settled volume, which already carries the
+   shape, but no imbalance or trading cost. No sourced size is in the tree.
+3. **Hedge timing against Ofgem's lagged index. Real.** The cap prices a forward bought months earlier. In falling
+   markets (2023–25) a book buying closer to delivery pays less, and in rising ones it pays more: 1.66 in winter
+   2021–22. This is real. It cannot by itself explain 2019–20, when forwards and spot were close.
+
+**GAP, owner B5_shaped_cost_benchmark_value_add (world, `simulation/hedged_settlement.py`).** The next
+measurement isolates (3): compare the book's spot price itself against the cap's DF index price for the same
+window. The calm-period residual after that comparison is (1) plus (2). Losses then need their own knowledge row
+before the settlement reads `llf_register`.
+
+**N21's margin after this measurement: unchanged.** It is a measurement, and nothing in the book changed. If the
+book's wholesale rose to the cap's allowance in the calm periods, the margin would fall by several points. That
+direction errs against our thesis, so it is flagged here and not assumed.
 
 
 

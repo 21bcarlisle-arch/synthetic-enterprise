@@ -383,3 +383,51 @@ wrote off 141.33 of it.
 runs:** INV_OVERDUE_WITHIN_PAGE_BALANCE reads 0, or at most 5 from the draw. Refuted if any breach is
 neither a back-billing write-off nor a new class. Bad debt is lower than an un-fixed engine would
 give on the same book, by an amount of the order of GBP 300.
+
+## The fresh 5200cd6239 book graded against the filed predictions (2026-11-05, claim `electric-heated-homes-eac-double-count-and-the-fresh-grade`)
+
+The claim's two questions, (a) and (b), were already answered above at 75156811e, so only the grade was left
+to do. The run `run_output_5200cd6239_20261104T211046Z.json` carries 514e2015bf, 8befb331b, c07e8ccce and
+75156811e. It does **not** carry 9744dd436's in-loop settlement fix, though that fix's page half applies,
+because the builder runs post-run. It was graded at origin 2f7a387b8b with the same chain
+(`/var/tmp/b3ce-grade-scripts/`). Scratch is `/var/tmp/grade-5200/`, and every breach row is listed in
+`/var/tmp/grade-5200/rows.txt`.
+
+| Row | a6b7a0fd47 | 5200cd6239 | filed | held? |
+|---|---:|---:|---|---|
+| INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER | 54 | **8** | 5-18; refuted if more than 3 of the 12 named "below" runs stay | **yes**: 0 of the 12 stay, and all 7 named summer "above" runs stay |
+| INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL | 12 | **14** | 10 | **no** (see below) |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 4 | **0** | 3 | no, but on the good side. **I cannot yet say** why: four in-loop changes moved together |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 64 | **0** | 0 or at most 5, for a run with 9744dd436 | 0 without 9744dd436's engine half. Its 11 were the page half here, or this draw did not reach them |
+| INV_EBSS_CREDIT_EACH_MONTH / _ON_THE_BILL | 6 / 6 | 7 / 7 | none | one new account of the excepted class (below) |
+
+**Est-run.** 7 of the 8 are the summer "above" runs named before the run. The eighth is PROS-2016-0263g, the
+exception's class (c). **The filed reason "single-rate bills on a two-rate settlement" was wrong for five of the
+seven.** Five of them print two registers, so the class average was not the cause there. A heated year spread
+by the profile class's average shape over-estimates summer three to five times, on both meter types.
+Exception (a) is re-based to 8, and its retirement is now the estimate following the home's own seasonal shape.
+Whether a GB supplier does that is a GAP.
+
+**Carbon 12 → 14.** As predicted, PROS-2020-0167 (oil, which c07e8ccce covers) left. As predicted, SYN-2016-355 and
+PROS-2017-0233 stayed. SYN-2016-175 (2016 and 2017, 4 checks) was **not** predicted. It is one of the 12 heated
+legacy homes, and its winter bills are now held. My reading is that the registry now follows its meter, so its
+estimates rose into the gate's range, but I have not traced it.
+All 14 checks are months missing from the carbon panel because the exception queue holds them on
+`vat_by_segment` and `slc_6_7_billing_accuracy`: 16 bills on the three homes. **The root is company-side.**
+`RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY` (company/compliance/domain_invariants.py) is a flat 2,100 kWh/month,
+sourced as "observed sim population + headroom". A storage-heated home metering 15-22 MWh a year, which BEIS/Element
+Energy publish (how_far_a_settled_eac_sits_from_next_years_use.md §4), uses more than that in a winter month.
+So the gate reads a heated home as a business. The fix is to scale that envelope, and the VAT-by-consumption
+test, by the meter's own registered EAC, which since 75156811e follows its reads. That changes a company
+billing gate, so the knowledge page comes first (K8). It is not done here. The exception is re-based to 14
+with this cause.
+
+**EBSS 6 → 7.** OCC-da79d3238e02's October 2022 bill carries `deemed_share_to: occupier`. The unnamed
+occupier's deemed account held the 1st, which is the exception's guidance-5.4 case. Both rows are re-based to 7.
+
+**After the re-base, the gate on this book reads 3 unexcepted breaches on 1 row:**
+INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE. That is N19's row, not this finding's. Every
+row this finding owns is 0 or carries a dated, traced exception on a fresh book, so its done-means is met.
+The finding stays open for one more thing: the heated-home envelope above, the next item.
+
+NEXT: none -- the remaining heated-home billing-gate envelope needs its knowledge page first and is filed above as the next item

@@ -131,3 +131,51 @@ book. SME and I&C remain unanchored.
 
 **Still open after this claim:** gaps 3 (SME/I&C only), 4, 6 and 7; the ledger's non-commodity cost line; and the
 three journal event types.
+
+## Closed 2026-11-05 (worker, claim `the-company-is-charged-its-real-cost-to-serve`): gaps 1, 2 and 5 on origin; 3, 4, 6 and 7 each fixed or labelled GAP
+
+**On origin.** Gap 5 is in d2dfc1ddc (the journal books the EPG). Gaps 2 and 1 are in 2f7a387b8 (the cap's OC + PAAC +
+SMNCC per cap period; the "contribution" label). `annual_pnl.revenue_gbp` is the customer's monthly revenue summed,
+None when absent (`tools/generate_customer_data.py` at origin).
+
+**Gap 3. GAP, narrowed to SME and I&C.** Ofgem's OC includes depreciation (Table A6.1), so the domestic book now
+bears it through 2f7a387b8. SME and I&C still carry the flat £55 per leg. No published depreciation or
+cost-to-serve figure for non-domestic supply is in the tree; the cap does not cover them. Owner: knowledge layer,
+then `saas/cost_to_serve.py`, B_commercial.
+
+**Gap 6. Measured, and labelled GAP for the split.** The table is in
+`docs/market_research/supplier_financial_reporting.md` §1a, "Gap 6 measured". The book's domestic electricity
+wholesale is 0.43–0.55 of the cap's DF + CM allowance in 2019–20, 0.71–0.86 in 2016–18, 1.66 in winter 2021–22
+and 0.36–0.71 in 2023–25.
+- Two of the three causes are costs the company does not bear: losses (the settlement multiplies metered kWh;
+  `llf_register` is unread) and imbalance or trading cost.
+- The third is real hedge timing against Ofgem's lagged index.
+- **I cannot yet say** how it splits. The next measurement is the book's spot price against the cap's DF index
+  for the same window.
+- Owner: B5_shaped_cost_benchmark_value_add, world.
+- The direction is against our thesis: correcting it lowers the margin.
+
+**Gap 7. GAP, and worse than filed: the band guards nothing.**
+- `NET_MARGIN_PCT_OF_REVENUE` (2–5%) is listed in `ALL_INVARIANTS` and no code anywhere evaluates it against a
+  quantity (`grep net_margin_pct_of_revenue` finds only its own definition).
+- So the book's 14.5% never had anything to fail, and the three bands (2–5%, 1–3%, 1.9–2.4% EBIT) are three
+  quantities with no definitions.
+- The ruling's step 4 says the band is written from the knowledge pages by an agent that has not read the code.
+  This seat has read both the code and the book, so it does not write the band.
+- The definition it needs is the cap's EBIT: revenue less every cost the cap allows for, including OC, bad debt,
+  acquisition and depreciation. That is not the page's "contribution after cost to serve", which is a different
+  quantity. It is already labelled so on the page.
+- Owner: the domain-invariant suite (ruling step 4), `company/compliance/domain_invariants.py`.
+
+**Gap 4. Fixed, as a real exemption.** Thresholds by scheme year are now in
+`docs/market_research/supplier_financial_reporting.md` §1a, "Gap 4 settled", read from the statutory instruments and
+Ofgem's reports.
+- ECO never fell below 150,000 customers.
+- WHD fell to 1,000 from April 2023.
+- The book never exceeded 497 active customer ids, and had about 180 domestic electricity legs each December.
+- So no obligation was missing. The margin is Ofgem's own "costs beneath the level allowed in the cap": a transfer
+  under M2, not created value.
+- It stops holding if the book passes 1,000 domestic customers from 2023.
+
+**Correction, beside the claim.** `historical_policy_costs_2016_2024.md` said ECO was "embedded in opex allowance".
+It is in the cap's policy cost allowance, and the line is corrected there.
