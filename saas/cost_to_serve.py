@@ -56,12 +56,52 @@ SETTLEMENT_PERIODS_PER_YEAR = 17_520  # 48 half-hourly periods/day * 365 days (e
 GAS_SETTLEMENT_PERIODS_PER_YEAR = 365  # one record per gas day
 
 # Annual fixed overhead per account (£), by segment: billing/IT/customer
-# service plus smart-meter operation.
+# service plus smart-meter operation. SME and I&C are unanchored (GAP: the
+# domestic cap does not cover them and nothing published decomposes their cost
+# to serve). The resi figure is NOT read for a dated charge: a resi account is
+# charged `RESI_COST_TO_SERVE_GBP_PER_YEAR` for the cap period in force (N21,
+# 2026-11-04). It stays here, unanchored, only for callers with no date.
 FIXED_OVERHEAD_GBP_PER_YEAR = {
     "resi": 55.00,
     "SME": 120.00,
     "I&C": 500.00,  # dedicated account management, complex settlement, credit facility
 }
+
+# What the cap allows to serve one resi fuel account for a year, £ ex VAT, direct debit, at
+# benchmark consumption, as (cap period start, electricity, gas). Ofgem default tariff cap level
+# model v1.28, `ElecSingle_Other_Benchmark` / `Gas_Other_Benchmark`, identical in all 15 regions:
+# OC + PAAC + SMNCC less the DD bad debt Ofgem puts inside OC (Appendix 6 §2.6, £0.84 / £0.46 at
+# 2017, indexed with OC) to June 2025; CO + IC + SMNCC from July 2025. Rows before January 2019
+# are Ofgem's back-casts of its 2017 benchmark (£78.26 / £89.20, Appendix 6 Table A6.2).
+# Bad debt and capital are the book's own lines and are not in it. Sales and marketing is,
+# unseparated (GAP), so the book's acquisition line double-counts some of it: that errs against
+# our thesis. Table, netting and choices:
+# docs/market_research/the_caps_operating_debt_and_industry_allowance_per_cap_period.md.
+RESI_COST_TO_SERVE_GBP_PER_YEAR: tuple[tuple[str, float, float], ...] = (
+    ("2015-04-01", 79.03, 89.86), ("2015-10-01", 79.19, 90.04), ("2016-04-01", 79.42, 90.31),
+    ("2016-10-01", 79.90, 90.85), ("2017-04-01", 80.85, 91.93), ("2017-10-01", 81.69, 92.95),
+    ("2018-04-01", 85.45, 96.35), ("2018-10-01", 95.26, 107.92), ("2019-04-01", 98.63, 110.98),
+    ("2019-10-01", 99.36, 111.98), ("2020-04-01", 102.42, 114.77), ("2020-10-01", 102.92, 109.03),
+    ("2021-04-01", 103.03, 109.30), ("2021-10-01", 104.65, 108.18), ("2022-04-01", 105.88, 106.55),
+    ("2022-10-01", 111.40, 111.85), ("2023-04-01", 116.44, 116.72), ("2023-10-01", 117.87, 118.06),
+    ("2024-04-01", 119.30, 118.41), ("2024-10-01", 124.42, 122.79), ("2025-04-01", 126.69, 124.41),
+    ("2025-07-01", 113.16, 109.36), ("2025-10-01", 112.82, 114.35),
+)
+
+
+def fixed_overhead_gbp_per_year(segment: str, commodity: str = "electricity",
+                                on_date: str | None = None) -> float:
+    """A year's cost to serve one account of `segment` and `commodity`, at the cap period in force
+    on `on_date` ("YYYY-MM-DD..."). Resi with a date reads the sourced schedule (before its first
+    period, the first; after its last, the last). Without a date, or for SME and I&C, the flat
+    `FIXED_OVERHEAD_GBP_PER_YEAR` figure."""
+    if segment != "resi" or not on_date:
+        return FIXED_OVERHEAD_GBP_PER_YEAR[segment]
+    row = RESI_COST_TO_SERVE_GBP_PER_YEAR[0]
+    for candidate in RESI_COST_TO_SERVE_GBP_PER_YEAR:
+        if on_date[:10] >= candidate[0]:
+            row = candidate
+    return row[2] if commodity == "gas" else row[1]
 
 # Bad debt provision as a fraction of revenue, by segment. SME accounts
 # carry a lower rate — credit-checked at acquisition and faster to
@@ -104,7 +144,7 @@ def get_bad_debt_rate(year: int, segment: str) -> float:
     return year_rates.get(segment, BAD_DEBT_RATE.get(segment, 0.02))
 
 def cost_to_serve_for_period(segment: str, revenue_gbp: float, commodity: str = "electricity",
-                             periods: int = 1) -> float:
+                             periods: int = 1, settlement_date: str | None = None) -> float:
     """Return the cost-to-serve (£) for `periods` settlement periods for one account.
 
     segment: "resi" or "SME" — must be a key in FIXED_OVERHEAD_GBP_PER_YEAR.
@@ -132,10 +172,13 @@ def cost_to_serve_for_period(segment: str, revenue_gbp: float, commodity: str = 
         records THIS commodity actually produces per year, not a single
         universal divisor (see GAS_SETTLEMENT_PERIODS_PER_YEAR's docstring
         for the cross-fuel bug this parameter fixes).
+    settlement_date: the record's date. A resi record with one is charged the cap period's
+        sourced figure (`fixed_overhead_gbp_per_year`); without one, the flat figure.
     """
+    annual = fixed_overhead_gbp_per_year(segment, commodity, settlement_date)
     if commodity == "gas":
-        return FIXED_OVERHEAD_GBP_PER_PERIOD_GAS[segment] * periods
-    return FIXED_OVERHEAD_GBP_PER_PERIOD[segment] * periods
+        return annual / GAS_SETTLEMENT_PERIODS_PER_YEAR * periods
+    return annual / SETTLEMENT_PERIODS_PER_YEAR * periods
 
 
 def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -> dict:
@@ -204,7 +247,8 @@ def build_cost_to_serve(settlement_records: list[dict], customers: list[dict]) -
         commodity = record.get("commodity", "electricity")
         cost = cost_to_serve_for_period(
             segment, record["revenue_gbp"], commodity,
-            periods=record.get("settlement_periods_folded", 1))
+            periods=record.get("settlement_periods_folded", 1),
+            settlement_date=record.get("settlement_date"))
         margin = record["margin_gbp"]
         net_of_all_costs = record["net_margin_gbp"]
 
@@ -246,7 +290,8 @@ def build_cost_to_serve_ledger_events(
         commodity = record.get("commodity", "electricity")
         cost = cost_to_serve_for_period(
             segment, record["revenue_gbp"], commodity,
-            periods=record.get("settlement_periods_folded", 1))
+            periods=record.get("settlement_periods_folded", 1),
+            settlement_date=record.get("settlement_date"))
         by_month[month] = by_month.get(month, 0.0) + cost
 
     return [

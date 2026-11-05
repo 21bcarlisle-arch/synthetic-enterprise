@@ -227,9 +227,16 @@ def _per_year_data(run, cid):
         per_cust = ydata.get("per_customer", {})
         cdata = per_cust.get(cid, {})
         if cdata:
+            # The run's per-customer year row carries no revenue; its monthly rows do, and they sum
+            # to the year's settlement revenue exactly. `.get(.., 0)` printed 0 beside a non-zero
+            # gross and net on every page (N21). No revenue anywhere is None, never 0.
+            revenue = cdata.get("revenue_gbp")
+            months = ydata.get("per_customer_monthly", {}).get(cid)
+            if revenue is None and months:
+                revenue = sum(m.get("revenue_gbp", 0.0) for m in months.values())
             years_out.append({
                 "year": int(yr),
-                "revenue_gbp": round(cdata.get("revenue_gbp", 0), 2),
+                "revenue_gbp": _round_or_none(revenue, 2),
                 "gross_gbp": round(cdata.get("gross_gbp", 0), 2),
                 "net_gbp": round(cdata.get("net_gbp", 0), 2),
                 "tariff_min": round(cdata.get("tariff_min_gbp_per_mwh", 0), 2),

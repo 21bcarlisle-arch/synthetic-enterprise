@@ -81,3 +81,53 @@ book is the one `run_output_latest.json` now holds for the 9 Nov publish.
 
 **Stays open** until gaps 1 and 2 are either fixed or each owned by a drawn item. Under the 26 Oct ruling, both are
 correctness work, not features.
+
+## Advanced 2026-11-04 (worker, claim `the-company-is-charged-its-real-cost-to-serve`): gaps 5 and 1
+
+N21's margin on the a6b7a0fd47 book starts at **15.50%** (£548,926 over £3,540,583).
+
+**Gap 5 measured.** The per-year, per-fuel table is in `docs/market_research/supplier_financial_reporting.md` §1a,
+"Gap 5 measured".
+- **Revenue.** The settlement records are right. They equal bills ex-VAT plus the EPG to within £861.
+  - The management accounts dropped the whole £252,708 EPG receipt: the journal had no branch for
+    `epg_receipt_event`.
+  - Fixed, with a control red on HEAD.
+- **Non-commodity.** The settlement records are right in kind.
+  - `saas/ledger.py` books the billed unit-rate non-commodity *price* as its cost. That is £338k short on
+    electricity, about what the standing charge recovers. Gas agrees.
+  - **Open, owner `saas/ledger.py`:** book the settlement records' levies and network as the cost event.
+- **Still dropped by the journal, open:** `revenue_restatement_event`, `back_billing_write_off_event` and
+  `dd_back_billing_write_off_event`. Each needs its account pair decided.
+- Margin after this step: **15.50%**, unchanged. The page reads the settlement records.
+
+**Gap 1.** On the household page:
+- "Net margin" now reads "Margin after network, policy and capital".
+- The bottom line now reads "Contribution after cost to serve", with a sentence saying it is not profit and naming
+  what it leaves out.
+- `annual_pnl.revenue_gbp` is the customer's own monthly revenue summed: `tools/generate_customer_data._per_year_data`
+  had read a key the run never writes. It is None, never 0, when there is none.
+- Margin after this step: **15.50%**, unchanged. Labels only.
+
+**Gap 2.** Knowledge first:
+`docs/market_research/the_caps_operating_debt_and_industry_allowance_per_cap_period.md`, read cell by cell from
+Ofgem's cap level model v1.28 and Appendix 6.
+
+- **The charge.** `saas/cost_to_serve.py` now charges each resi fuel account, per cap period, the cap's benchmark
+  OC + PAAC + SMNCC, less the DD bad debt inside OC. From July 2025 it is CO + IC + SMNCC.
+  - That is £79–127 per fuel account per year, against the flat £55.
+  - A dual-fuel home is charged £171 in 2016 and £238 in 2024.
+- **Not charged:** PAP, DRC and the debt floats. The book bears bad debt and capital on its own lines.
+- **GAP:** sales and marketing sits inside OC, unseparated, so the book's acquisition line double-counts some of it.
+  That errs against our thesis, bounded by about £17 per leg-year.
+- **Control:** `tests/saas/test_the_cost_to_serve_sits_inside_the_caps_published_allowance.py`, with bands written
+  from the published cells. All six are red on HEAD.
+- **Downstream:** the renewal desk and the value-based arm read the same dated charge.
+- **Margin after this step:** **about 9.7%**, from offline repricing of the a6b7a0fd47 book's leg-months, as
+  pre-registered (`records/SEAT_PREREGISTRATION_N21_MARGIN_UNDER_THE_CAPS_SOURCED_COST_TO_SERVE_2026-11-04.md`). The
+  next fresh book grades it.
+
+**Gap 3 narrowed.** Depreciation is inside Ofgem's OC (Table A6.1). Charging OC therefore charges it for the domestic
+book. SME and I&C remain unanchored.
+
+**Still open after this claim:** gaps 3 (SME/I&C only), 4, 6 and 7; the ledger's non-commodity cost line; and the
+three journal event types.

@@ -44,7 +44,7 @@ from company.crm.next_best_action import (
     states_for_decision,
 )
 from company.pricing.renewal_desk import pre_margin_unit_rate
-from saas.cost_to_serve import FIXED_OVERHEAD_GBP_PER_YEAR
+from saas.cost_to_serve import fixed_overhead_gbp_per_year
 
 if TYPE_CHECKING:
     from company.policy.decision_policy import DecisionPolicy
@@ -135,7 +135,7 @@ def term_contribution_per_year(
         return None
     recovered = standing_charge_opex_per_year(fuel, term_start) if segment == "resi" else 0.0
     return ((unit_rate_gbp_per_mwh - cost) * company_eac_kwh / 1000.0
-            + recovered - FIXED_OVERHEAD_GBP_PER_YEAR[segment])
+            + recovered - fixed_overhead_gbp_per_year(segment, fuel, term_start))
 
 
 def term_contribution_per_month(**term) -> float | None:

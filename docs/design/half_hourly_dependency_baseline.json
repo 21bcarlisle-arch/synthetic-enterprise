@@ -2,8 +2,8 @@
   "_doc": "Half-hourly reads of the RETAINED settlement book, frozen. The spine (hedged_settlement, hh_consumption, imbalance_ledger, the meter-read path) is half-hourly by design and deliberately NOT scanned. See tools/half_hourly_dependency_ratchet.py.",
   "reads": {
     "saas/cost_to_serve.py": [
-      "periods=record.get(\"settlement_periods_folded\", 1))",
-      "periods=record.get(\"settlement_periods_folded\", 1))"
+      "periods=record.get(\"settlement_periods_folded\", 1),",
+      "periods=record.get(\"settlement_periods_folded\", 1),"
     ],
     "saas/ledger.py": [
       "\"settlement_period\": record[\"settlement_period\"],",

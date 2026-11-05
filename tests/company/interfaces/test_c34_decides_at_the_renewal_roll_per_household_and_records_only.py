@@ -29,7 +29,7 @@ from company.interfaces.renewal_advice import RenewalAdviceDesk, term_contributi
 from company.policy import decision_policy as dp
 from company.policy.decision_policy import CURRENT_POLICY
 from company.pricing.renewal_desk import TARGET_MARGIN_GBP_PER_MWH, pre_margin_unit_rate
-from saas.cost_to_serve import FIXED_OVERHEAD_GBP_PER_YEAR
+from saas.cost_to_serve import FIXED_OVERHEAD_GBP_PER_YEAR, fixed_overhead_gbp_per_year
 from simulation.policy_costs import (
     get_electricity_network_cost_per_mwh,
     get_electricity_policy_cost_per_mwh,
@@ -130,7 +130,8 @@ def test_the_contribution_is_the_rate_over_the_terms_own_cost_plus_the_standing_
     got = term_contribution_per_month(unit_rate_gbp_per_mwh=rate, company_eac_kwh=3100, **term)
     # Ofgem's nil-consumption electricity opex for April-September 2019 (v1.31, direct debit).
     assert got == pytest.approx(
-        (TARGET_MARGIN_GBP_PER_MWH * 3.1 + 41.57 - FIXED_OVERHEAD_GBP_PER_YEAR["resi"]) / 12.0)
+        (TARGET_MARGIN_GBP_PER_MWH * 3.1 + 41.57
+         - fixed_overhead_gbp_per_year("resi", "electricity", term["term_start"])) / 12.0)
     # The old reading, the spread over the forward, is GBP 15+ a month on the same leg.
     assert (rate - term["company_forward_per_mwh"]) * 3.1 / 12.0 - got > 15.0
 
@@ -171,9 +172,12 @@ def test_the_standing_charge_opex_credited_is_the_legs_own_fuel_at_the_cap_perio
     assert standing_charge_opex_per_year("electricity", "2025-08-01") == 45.77
     term = dict(_real_term(), unit_rate_gbp_per_mwh=150.0, company_eac_kwh=3100)
     resi = term_contribution_per_year(**term)
-    # A gas leg on the same rate and costs is credited the gas allowance, not the electricity one.
-    assert term_contribution_per_year(**dict(term, fuel="gas")) - resi == pytest.approx(68.06 - 41.57)
+    # A gas leg on the same rate and costs is credited the gas allowance, not the electricity one,
+    # and charged the gas cost to serve for the period (N21: the two fuels differ).
+    cts = {f: fixed_overhead_gbp_per_year("resi", f, term["term_start"]) for f in ("electricity", "gas")}
+    assert term_contribution_per_year(**dict(term, fuel="gas")) - resi == pytest.approx(
+        (68.06 - cts["gas"]) - (41.57 - cts["electricity"]))
     # The domestic cap does not cover SME: no credit, so it differs from resi by the overheads only.
     sme = term_contribution_per_year(**dict(term, segment="SME"))
     assert resi - sme == pytest.approx(41.57 + FIXED_OVERHEAD_GBP_PER_YEAR["SME"]
-                                       - FIXED_OVERHEAD_GBP_PER_YEAR["resi"])
+                                       - cts["electricity"])

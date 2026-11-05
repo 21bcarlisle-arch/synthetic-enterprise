@@ -546,6 +546,11 @@ choices, and each one is ours:
       - **CO alone from July 2025, not CO + IC + DRC.** GBP 55 counts billing, IT, customer service
         and smart-meter operation (`saas/cost_to_serve.py`), which is what CO is. The quantity
         nets no bad debt (DRC's subject), and it nets no industry charges (IC).
+        - *Amended 2026-11-04 (N21 gap 2):* the cost netted is no longer the flat GBP 55. It is the
+          cap's own benchmark OC + PAAC + SMNCC (CO + IC + SMNCC from July 2025) for the leg's fuel
+          and period, about GBP 79–127 a year
+          (`the_caps_operating_debt_and_industry_allowance_per_cap_period.md`). The nil-column
+          credit above is unchanged. The rest of the cost is recovered through the unit rate.
     - **GAP, stated with its direction.** Before July 2025, OC bundles the costs that CO, IC and
       DRC later separate, so it credits some recovery of bad debt and industry costs that the
       quantity never charges. Ofgem's own split bounds the bias at the boundary. CO was 76% of

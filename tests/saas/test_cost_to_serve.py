@@ -76,6 +76,10 @@ def test_empty_input_returns_zeroed_structures():
         "by_customer": {},
     }
 
+# Every fixture record below is dated in the cap period from 2019-10-01, so an expectation priced
+# on this date is the charge the module reads for the record (N21: resi is charged per cap period).
+_ON = "2020-01-01"
+
 
 def test_aggregates_across_periods_and_customers():
     records = [
@@ -86,7 +90,7 @@ def test_aggregates_across_periods_and_customers():
 
     result = build_cost_to_serve(records, CUSTOMERS)
 
-    c1_cost = 2 * cost_to_serve_for_period("resi", 10.0)
+    c1_cost = 2 * cost_to_serve_for_period("resi", 10.0, settlement_date=_ON)
     c5_cost = cost_to_serve_for_period("SME", 100.0)
 
     assert result["by_customer"]["C1"]["cost_to_serve_gbp"] == c1_cost
@@ -204,7 +208,7 @@ def test_ledger_events_aggregates_by_month():
     events = build_cost_to_serve_ledger_events(records, CUSTOMERS)
     by_month = {e["month"]: e["amount_gbp"] for e in events}
     assert set(by_month) == {"2020-01", "2020-02"}
-    per_period = cost_to_serve_for_period("resi", 10.0)
+    per_period = cost_to_serve_for_period("resi", 10.0, settlement_date=_ON)
     assert by_month["2020-01"] == pytest.approx(2 * per_period)
     assert by_month["2020-02"] == pytest.approx(per_period)
 
@@ -265,8 +269,8 @@ def test_build_cost_to_serve_reads_commodity_from_record():
     ]
     result = build_cost_to_serve(records, CUSTOMERS)
     expected = (
-        cost_to_serve_for_period("resi", 10.0, "electricity")
-        + cost_to_serve_for_period("resi", 10.0, "gas")
+        cost_to_serve_for_period("resi", 10.0, "electricity", settlement_date=_ON)
+        + cost_to_serve_for_period("resi", 10.0, "gas", settlement_date=_ON)
     )
     assert result["by_customer"]["C1"]["cost_to_serve_gbp"] == pytest.approx(expected)
 
@@ -277,5 +281,5 @@ def test_build_cost_to_serve_defaults_to_electricity_when_commodity_absent():
     records = [_record("C1", revenue_gbp=10.0, margin_gbp=2.0)]  # no commodity key
     result = build_cost_to_serve(records, CUSTOMERS)
     assert result["by_customer"]["C1"]["cost_to_serve_gbp"] == pytest.approx(
-        cost_to_serve_for_period("resi", 10.0)
+        cost_to_serve_for_period("resi", 10.0, settlement_date=_ON)
     )

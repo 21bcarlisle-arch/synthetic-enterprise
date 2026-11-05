@@ -898,12 +898,15 @@ def test_a_gas_renewal_is_costed_on_the_gas_cadence_and_the_gas_standing_charge(
     book = _dual_fuel_book()
     gas = vbr.observed_account_state("C1", "2021-01-01", book, "resi", "gas")
 
+    # Each record is charged the cap period in force on its own date (N21).
+    gas_dates = [r["settlement_date"] for r in book if r["commodity"] == "gas"]
     expected_cts = sum(
-        cost_to_serve_for_period("resi", 32.0, "gas", periods=1) for _ in range(12))
+        cost_to_serve_for_period("resi", 32.0, "gas", periods=1, settlement_date=d) for d in gas_dates)
     assert gas["cost_to_serve_gbp_per_year"] == pytest.approx(expected_cts)
     # And it is NOT what the electricity cadence would have charged on the same records.
     assert gas["cost_to_serve_gbp_per_year"] != pytest.approx(
-        sum(cost_to_serve_for_period("resi", 32.0, "electricity", periods=1) for _ in range(12)))
+        sum(cost_to_serve_for_period("resi", 32.0, "electricity", periods=1, settlement_date=d)
+            for d in gas_dates))
 
     # The gas standing charge, from the gas table. These records carry no stamped
     # `standing_charge_gbp`, so the fallback path is the one under test -- 12 distinct

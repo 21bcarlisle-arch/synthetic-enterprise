@@ -99,14 +99,16 @@ def test_the_guard_still_offers_where_the_strike_sits_well_above_cost_and_refuse
                                  term["locked_network_cost_per_mwh"])
     # The offering branch first: a strike an upstream writer raised GBP 30/MWh over cost buys a 3% cut.
     assert _guard_offers(floor + 30.0)
-    # An unmoved strike now contributes about -GBP 4 a year once the standing charge's opex is
-    # credited (§6.1, 2026-10-20), and the replacement spend avoided carries it over a cut that only
-    # sells down to the floor; so the same strike is offered at the resi base rate and refused once
-    # the 2022 bad-debt belief is netted. On the spread over wholesale it read GBP 230 a year and
-    # was offered at both.
+    # An unmoved strike is refused to a debtor. Under the flat GBP 55 it contributed about -GBP 4 a
+    # year and was still offered at the resi base belief; charged the cap's own cost to serve (N21,
+    # 2026-11-04, about GBP 99 on a 2019 electricity leg) it contributes about -GBP 48 and is not.
+    # Keyed to the property, not to which strike shows it: somewhere within GBP 30/MWh of cost the
+    # 2022 bad-debt belief still decides, offered at the base rate and refused once it is netted.
     unmoved = floor + TARGET_MARGIN_GBP_PER_MWH + 1.0
-    assert _guard_offers(unmoved, default_belief_rate=0.02)
     assert not _guard_offers(unmoved, default_belief_rate=0.08)
+    decided_by_the_belief = [x for x in range(1, 31) if _guard_offers(floor + x, default_belief_rate=0.02)
+                             and not _guard_offers(floor + x, default_belief_rate=0.08)]
+    assert decided_by_the_belief, "no strike near cost where netting the bad-debt belief decides"
 
 
 def test_a_missed_retention_with_no_contribution_is_counted_unpriced_not_summed_as_zero():

@@ -122,21 +122,24 @@ def test_billed_foots_to_paid_credit_write_off_and_owed(judged):
 
 def test_the_column_for_us_foots_and_ends_on_the_legs_own_records(judged):
     steps = (("Revenue, before VAT", "less wholesale energy", "Gross margin"),
-             ("Gross margin", "less network, policy and capital", "Net margin"),
-             ("Net margin", "less cost to serve", "Net after cost to serve"))
+             ("Gross margin", "less network, policy and capital", "Margin after network, policy and capital"),
+             ("Margin after network, policy and capital", "less cost to serve", "Contribution after cost to serve"))
     wrong = []
     for k, rows in judged:
         for top, less, result in steps:
             if abs(_gbp(rows[top]) - _gbp(rows[less]) - _gbp(rows[result])) > 2 * PENNY:
                 wrong.append((k["c"]["customer_group"], top, less, result))
         record = sum(f["lifetime_net_after_cts_gbp"] for f in k["fuels"].values())
-        if abs(_gbp(rows["Net after cost to serve"]) - record) > PENNY:
-            wrong.append((k["c"]["customer_group"], "bottom line", rows["Net after cost to serve"], round(record, 2)))
+        if abs(_gbp(rows["Contribution after cost to serve"]) - record) > PENNY:
+            wrong.append((k["c"]["customer_group"], "bottom line", rows["Contribution after cost to serve"],
+                          round(record, 2)))
     assert not wrong, f"{len(wrong)} breaks in the column for us: {wrong[:5]}"
 
 
 def test_the_page_says_what_gross_and_net_count():
     page = INDEX.read_text()
-    for words in ("<b>Gross margin</b> is revenue less the", "<b>Net margin</b> takes those out",
-                  "<b>Cost to serve</b>"):
+    # N21: the bottom line is a contribution, not a net margin, and the page says what it leaves out.
+    for words in ("<b>Gross margin</b> is revenue less the",
+                  "<b>Margin after network, policy and capital</b> takes those out",
+                  "<b>Cost to serve</b>", "<b>Contribution after cost to serve</b> is not profit"):
         assert words in page, words

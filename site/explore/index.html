@@ -1047,15 +1047,17 @@ function stageJudged(d, c, fuels) {
     "<tr><td>less wholesale energy</td><td class=\"n\">" + gbp(us.wholesale) + "</td></tr>" +
     "<tr><td>Gross margin</td><td class=\"n\">" + gbp(us.gross) + "</td></tr>" +
     "<tr><td>less network, policy and capital</td><td class=\"n\">" + gbp(us.pass) + "</td></tr>" +
-    "<tr><td>Net margin</td><td class=\"n\">" + gbp(us.net) + "</td></tr>" +
+    "<tr><td>Margin after network, policy and capital</td><td class=\"n\">" + gbp(us.net) + "</td></tr>" +
     "<tr><td>less cost to serve</td><td class=\"n\">" + gbp(us.cost_to_serve_gbp) + "</td></tr>" +
-    "<tr><td>Net after cost to serve</td><td class=\"n\">" + gbp(us.lifetime_net_after_cts_gbp) + "</td></tr>" +
+    "<tr><td>Contribution after cost to serve</td><td class=\"n\">" + gbp(us.lifetime_net_after_cts_gbp) + "</td></tr>" +
     "</tbody></table>" +
     "<p style=\"font-size:12px;color:var(--muted);margin-top:8px\"><b>Gross margin</b> is revenue less the " +
     "wholesale energy bought for this home only. Network charges, government levies and the cost of capital " +
-    "are still inside it, which is why it looks large. <b>Net margin</b> takes those out. <b>Cost to serve</b> " +
+    "are still inside it, which is why it looks large. <b>Margin after network, policy and capital</b> takes those out. <b>Cost to serve</b> " +
     "is what it costs to have the account at all: billing it, answering it, collecting from it. Each fuel is " +
-    "its own account, so a dual-fuel home carries two. Summed over " +
+    "its own account, so a dual-fuel home carries two. <b>Contribution after cost to serve</b> is not profit: " +
+    "bad debt, acquisition, back-billing write-offs and overheads are counted for the whole company in its " +
+    "accounts, not per home, and are not taken out here. Summed over " +
     (us.legs > 1 ? "both fuels" : "the one fuel") + ".</p>") +
     /* SIM, not company: this panel prints `sim_truth` beside the company's belief, and sim_truth
        is the household's real churn disposition -- a figure no supplier can read. Attributing

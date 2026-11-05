@@ -608,3 +608,16 @@ def test_base_id_agrees_with_the_clv_models_own_billing_account_rule():
         f"_base_id and saas.customer_reaction._billing_account_id disagree on {disagree} "
         "-- the generator would attribute a leg's value to an account that never received it"
     )
+
+
+def test_annual_pnl_revenue_is_the_customers_monthly_revenue_not_zero():
+    """N21: `years[y].per_customer` has no `revenue_gbp`, so every page printed revenue 0 beside a
+    non-zero gross and net. The monthly rows carry it. Mutation: restore `.get("revenue_gbp", 0)` ->
+    red. A customer with no revenue anywhere reads None, not 0."""
+    from tools.generate_customer_data import _per_year_data
+    run = {"years": {"2023": {
+        "per_customer": {"C1": {"gross_gbp": 20.0, "net_gbp": 15.0}, "C2": {"gross_gbp": 1.0, "net_gbp": 1.0}},
+        "per_customer_monthly": {"C1": {"2023-01": {"revenue_gbp": 60.0}, "2023-02": {"revenue_gbp": 40.5}}},
+    }}}
+    assert _per_year_data(run, "C1")[0]["revenue_gbp"] == 100.5
+    assert _per_year_data(run, "C2")[0]["revenue_gbp"] is None

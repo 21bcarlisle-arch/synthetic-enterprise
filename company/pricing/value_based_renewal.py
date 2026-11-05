@@ -1782,7 +1782,8 @@ def observed_account_state(
         "cost_to_serve_gbp_per_year": sum(
             cost_to_serve_for_period(
                 segment, float(r.get("revenue_gbp") or 0.0), commodity,
-                periods=int(r.get("settlement_periods_folded", 1) or 1))
+                periods=int(r.get("settlement_periods_folded", 1) or 1),
+                settlement_date=r.get("settlement_date"))
             for r in window),
     }
 
