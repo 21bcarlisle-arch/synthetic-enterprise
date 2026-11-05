@@ -51,3 +51,25 @@ the baseline the grading book is measured from.
 - A margin above 9.9% with cost to serve in its band means revenue moved. The renewal desk pricing to the higher
   charge is the first suspect.
 - A cost to serve outside its band refutes the leg-month proxy, as in the original falsifier.
+
+## Graded on the fd91027799 book (2026-11-05 02:30Z)
+
+**Book.** `docs/reports/run_output_fd91027799_20261105T004022Z.json`, origin fd91027799, no imports off commit.
+`/var/tmp/n21-gap6/grade.py` computes Σ `net_margin_after_cost_to_serve_gbp` over Σ settlement revenue; it reads
+15.50% on a6b7a0fd47 and 15.85% on 5200cd6239.
+
+| | a6b7a0fd47 | 5200cd6239 (flat £55) | **fd91027799 (the cap's charge)** | Predicted (re-based) |
+|---|---|---|---|---|
+| Settlement revenue | £3,540,583 | £3,187,582 | **£3,171,687** | within ±3% of £3.19M |
+| Cost to serve | £240,607 | £241,774 | **£449,258** | about £449k (£420k–£480k) |
+| Contribution after cost to serve | £548,926 | £505,120 | **£294,859** | |
+| Margin | 15.50% | 15.85% | **9.30%** | about 9.3% (8.8%–9.9%) |
+
+- **Prediction 1 held.** Cost to serve is £449,258. The leg-month proxy was right to within 0.1%.
+- **Prediction 2 held,** re-based: 9.30%, inside the band. Against the original a6b7a0fd47 band (9.2–10.2%) it
+  is also inside.
+- **Revenue moved −0.5%.** The renewal desk reading the higher charge did not visibly move pricing.
+- **Prediction 3, ungraded.** The run JSON carries no cost to serve per year, only per book and per customer
+  lifetime, so the 1.5× → 2.2× multiple cannot be read from it.
+- **The original "15.50% → 9.67%" baseline.** It was overtaken by the 5200cd6239 book before any grade existed. The
+  re-base is filed and landed (b5b1129a6) before this book was read.

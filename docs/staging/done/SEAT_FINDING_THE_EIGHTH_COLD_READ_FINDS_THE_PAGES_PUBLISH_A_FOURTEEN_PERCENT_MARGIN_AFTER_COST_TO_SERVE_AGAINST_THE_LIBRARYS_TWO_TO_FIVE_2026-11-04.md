@@ -179,3 +179,29 @@ Ofgem's reports.
 
 **Correction, beside the claim.** `historical_policy_costs_2016_2024.md` said ECO was "embedded in opex allowance".
 It is in the cap's policy cost allowance, and the line is corrected there.
+
+## Done (2026-11-05)
+
+**The margin, graded.** On the fd91027799 book N21's figure moves:
+- from **15.50%** on a6b7a0fd47 and **15.85%** on 5200cd6239, the flat £55 baseline;
+- to **9.30%** (£294,859 over £3,171,687), with cost to serve at £449,258.
+
+Both are inside the pre-registered bands. The record is
+`records/SEAT_PREREGISTRATION_N21_MARGIN_UNDER_THE_CAPS_SOURCED_COST_TO_SERVE_2026-11-04.md`.
+
+**What is done.**
+- Gaps 1, 2 and 5 are on origin (d2dfc1ddc, 2f7a387b8).
+- Gap 4 is fixed as a real exemption, and gaps 3, 6 and 7 are labelled GAP with owners (b5b1129a6).
+
+**What 9.30% still is.**
+- It is a **contribution, not EBIT.** The ledger's bad debt, acquisition and write-offs are still outside it.
+- About half of calm-year electricity wholesale is a cost the book may not be bearing (gap 6). That pushes it
+  further down when fixed.
+- The ECO/WHD exemption it keeps is a transfer, not created value.
+
+**Still open, each with its owner above.**
+- Gap 6's split (B5).
+- Gap 7's blind band (ruling step 4).
+- SME and I&C cost to serve (gap 3).
+- `saas/ledger.py` booking the settlement records' levies and network as cost.
+- The three journal event types that are still dropped.
