@@ -1129,23 +1129,39 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
 
         outstanding: list[dict] = []  # oldest first; each {"row", "remaining"}
         asked: dict[tuple[str, str], float] = {}  # (commodity, bill month) -> what it asked
-        unapplied: dict[str, float] = {}  # commodity -> credit waiting on the account
+        # commodity -> the credit waiting on the account, oldest first, each sum [amount, the
+        # credit_period_end it is listed under, its kind]. One pooled figure carried one label, so a
+        # repayment's excess landing on a credit bill's remainder relabelled the remainder too, and
+        # the page, which nets only "credit", lost it (SYN-2016-380, fd91027799).
+        pool: dict[str, list[list]] = {}
         last_ack: date | None = None
+
+        def _waiting(commodity: str) -> float:
+            return round(sum(p[0] for p in pool.get(commodity, ())), 2)
+
+        def _draw(commodity: str, upto: float) -> list[tuple[float, str, str]]:
+            """Take up to `upto` of the waiting credit, oldest first, as (amount, period_end, kind)."""
+            taken = []
+            sums = pool.get(commodity, [])
+            while sums and upto > 0.005:
+                take = round(min(sums[0][0], upto), 2)
+                taken.append((take, sums[0][1], sums[0][2]))
+                upto = round(upto - take, 2)
+                sums[0][0] = round(sums[0][0] - take, 2)
+                if sums[0][0] <= 0.005:
+                    sums.pop(0)
+            return taken
 
         def _key(row: dict) -> tuple[str, str, str]:
             return (cid, row["period_end"], row["commodity"])
 
-        def _net(item: dict, when: date, credit_period_end: str) -> None:
-            commodity = item["row"]["commodity"]
-            take = min(item["remaining"], unapplied.get(commodity, 0.0))
-            if take <= 0:
-                return
-            item["remaining"] = round(item["remaining"] - take, 2)
-            unapplied[commodity] = round(unapplied[commodity] - take, 2)
-            credited.setdefault(_key(item["row"]), []).append(
-                {"date": when, "amount_gbp": round(take, 2), "credit_period_end": credit_period_end,
-                 "kind": last_credit_kind[commodity]})
-            if item["remaining"] <= 0:
+        def _net(item: dict, when: date) -> None:
+            for take, credit_period_end, kind in _draw(item["row"]["commodity"], item["remaining"]):
+                item["remaining"] = round(item["remaining"] - take, 2)
+                credited.setdefault(_key(item["row"]), []).append(
+                    {"date": when, "amount_gbp": take, "credit_period_end": credit_period_end,
+                     "kind": kind})
+            if item["remaining"] <= 0 and item in outstanding:
                 outstanding.remove(item)
 
         def _write_off(item: dict, when: date, leg: str) -> None:
@@ -1163,8 +1179,6 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     outstanding.remove(item)
                     _write_off(item, barred_at, LEG_STATUTE_BAR)
 
-        last_credit_pe: dict[str, str] = {}
-        last_credit_kind: dict[str, str] = {}
         for when, kind, r in events:
             if when > horizon:
                 break
@@ -1172,29 +1186,29 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             if kind == 0:
                 item = {"row": r, "remaining": r["amount_gbp"]}
                 outstanding.append(item)
-                if unapplied.get(r["commodity"], 0.0) > 0:
-                    _net(item, when, last_credit_pe[r["commodity"]])
+                if _waiting(r["commodity"]) > 0:
+                    _net(item, when)
                 # The bill asked its charges less the credit waiting when it was collected (SLC
                 # 31H.12), and that is the cash the household's later settlement of it carries.
                 asked[(r["commodity"], r["period_end"][:7])] = item["remaining"]
             elif kind == 1:
                 c = r["commodity"]
-                unapplied[c] = round(unapplied.get(c, 0.0) - r["amount_gbp"], 2)
-                last_credit_pe[c], last_credit_kind[c] = r["period_end"], "credit"
+                if -r["amount_gbp"] > 0:
+                    pool.setdefault(c, []).append([round(-r["amount_gbp"], 2), r["period_end"],
+                                                   "credit"])
                 for item in [i for i in outstanding if i["row"]["commodity"] == c]:
-                    _net(item, when, r["period_end"])
+                    _net(item, when)
             else:
                 c = r["commodity"]
-                if r["outcome"] == "success" and unapplied.get(c, 0.0) > 0:
+                if r["outcome"] == "success" and _waiting(c) > 0:
                     # The bill asks for what is owed (SLC 31H.12): its charges less the credit on
                     # the account, so the household pays the rest and the credit is used up
                     # (home_moves.md s.8.8a, choice 11). Credit waits only when nothing on this fuel
                     # is outstanding, so whether this restarts the clock cannot matter (choice 12).
-                    take = round(min(r["amount_gbp"], unapplied[c]), 2)
-                    unapplied[c] = round(unapplied[c] - take, 2)
-                    credited.setdefault(_key(r), []).append(
-                        {"date": when, "amount_gbp": take, "credit_period_end": last_credit_pe[c],
-                         "kind": last_credit_kind[c]})
+                    for take, credit_period_end, credit_kind in _draw(c, r["amount_gbp"]):
+                        credited.setdefault(_key(r), []).append(
+                            {"date": when, "amount_gbp": take,
+                             "credit_period_end": credit_period_end, "kind": credit_kind})
                 last_ack = when
                 if r["outcome"] == "repayment":
                     left = r["amount_gbp"]
@@ -1207,7 +1221,14 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                         # SYN-2016-380 paid its Sep 2019 bill's 84.32 in Sep 2021, after a 2020
                         # credit had cleared it, and the page netted 16.80 the desk still chased.
                         # A bill a waiting credit paid in full asked 0 (PROS-2016-0020g, SYN-2016-291).
-                        left = asked[settles]
+                        # And never more than is still open on the contract: the household repays
+                        # the balance it is told, so a bill other money already cleared has nothing
+                        # left to settle (debt_and_collections.md s.7.3; 25 settlements carried
+                        # GBP 1,497.46 over the open balance on fd91027799). The triad sends the same
+                        # cash (`open_on_contract_gbp`).
+                        left = min(asked[settles], round(sum(
+                            i["remaining"] for i in outstanding
+                            if i["row"]["commodity"] == r["commodity"]), 2))
                     for item in [i for i in outstanding if i["row"]["commodity"] == r["commodity"]]:
                         if left <= 0:
                             break
@@ -1224,13 +1245,12 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                         # a settlement dated before the engine opens the bill it settles met an
                         # empty list, and was dropped, so the P&L wrote off money the household
                         # had paid (PROS-2016-0263, GBP 215.97, 2026-10-15).
-                        c = r["commodity"]
-                        unapplied[c] = round(unapplied.get(c, 0.0) + left, 2)
-                        last_credit_pe[c], last_credit_kind[c] = r["period_end"], "repayment"
+                        pool.setdefault(r["commodity"], []).append([left, r["period_end"],
+                                                                    "repayment"])
         _bar(horizon)
         if leaver and closing_out is not None:
             closing_out[cid] = round(sum(i["remaining"] for i in outstanding)
-                                     - sum(unapplied.values()), 2)
+                                     - sum(_waiting(c) for c in pool), 2)
         if leaver:
             # The company's own write-off date, a year after the final bill was issued: the date
             # the desk writes the same balance off on (debt_and_collections.md s.7.3).
@@ -1238,6 +1258,24 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             for item in outstanding:
                 _write_off(item, closed_on, LEG_CLOSE)
     return out, credited
+
+
+def open_on_contract_gbp(rows: list[dict], through: date) -> float:
+    """What is still owed on one leg's contract at the end of `through`, by the walk the book is
+    settled with (`balance_settlement_from_outcomes`), over that leg's rows in its shape whose event
+    falls on or before that day. Never negative: a contract in credit owes nothing.
+
+    The world's triad sizes a household's later settlement with it, so the cash the household sends
+    and the engine's price of that settlement are one walk, not two that can drift."""
+    def _on(r: dict) -> date:
+        return r["due_date"] + timedelta(days=r["days_late"] if r["outcome"] == "success" else 0)
+    upto = [r for r in rows if _on(r) <= through]
+    if not upto:
+        return 0.0
+    closing: dict[str, float] = {}
+    cid = upto[0]["customer_id"]
+    balance_settlement_from_outcomes(upto, {cid}, closing)
+    return max(0.0, closing.get(cid, 0.0))
 
 
 def balance_write_offs_from_outcomes(resolved: list[dict], churned_ids: set[str]

@@ -683,12 +683,27 @@ used up, nothing stands on one fuel's page to net against the other's missed bil
 A credit bill partly inside the occupier's window is the deemed account's for the occupier's share,
 as a charge is. The engine credits the named payer (1 - share). The page printed the whole credit on
 the payer, and the occupier's share stood there as credit nothing drew (OCC-81b87bae7becg, 3.20).
-*Open, not changed here:*
-- A DD for £0 still draws a "returned" outcome.
-- The world settles bills that other credit or cash has already cleared. This and the £0 DD both
-  move cash that the engine now mirrors rather than corrects.
-- The engine still labels a pooled credit with its latest kind. So a real overpayment landing on a
-  credit remainder would hide that remainder from the page again.
+~~*Open, not changed here:*~~ *Changed 2026-11-05.* Counted on the fd91027799 book first:
+29 credit-bill months and 5 fully credited bills drew a "failed" collection. 25 settlements carried
+£1,497.46 more than was still open on their fuel. 3 of those excesses relabelled a credit remainder
+(£299.35). Detail:
+`docs/staging/SEAT_FINDING_THE_WORLD_PRESENTS_A_NIL_DIRECT_DEBIT_AND_SETTLES_BILLS_ALREADY_CLEARED_2026-11-05.md`.
+- **Nothing due, nothing presented.** GAP: no published source was found (Bacs or supplier practice).
+  This is taken as a stated belief from strong logic. A DD is a pull for a stated amount, so an
+  amount of £0 submits no item, and there is nothing for a bank to return. A credit bill, or a bill
+  a waiting credit paid in full, is settled by the credit on its due date. The triad now draws no
+  outcome for it, presents no collection, and queues no settlement (`live_payment_triad.
+  record_period`, `nothing_due`).
+- **The household repays the balance it is told, never more.** GAP: no published source was found
+  on whether a household in arrears clears its whole balance or one bill at a time. The smallest
+  change is the one taken here. Each settlement keeps its per-bill draw and date, and carries the
+  lesser of what the bill asked and what is still open on that fuel's contract on the day it lands.
+  The engine prices it that way, and the triad sends that cash, from one walk
+  (`arrears_engine.open_on_contract_gbp`). Plan instalments are not in the triad's walk. The plan
+  book is off on every shipped world, so this is named rather than built.
+- **Pooled credit keeps each sum's kind.** The engine's waiting credit is now a list of sums, oldest
+  first, and each sum keeps its own kind and period. A repayment's excess no longer relabels a credit
+  bill's remainder, which the page nets.
 
 **The write-off clock. GAP, and a choice.** Section 2.7 lists the close-to-write-off clock as not
 established (supplier policy, said by Ofgem to differ), and Centrica's Note 17 records enforcement

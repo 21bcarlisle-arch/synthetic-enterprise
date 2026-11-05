@@ -116,7 +116,11 @@ from interface.contracts.payment_observable_seam import (
     SCHEMA_VERSION as SEAM_SCHEMA_VERSION,
 )
 from interface.contracts.wall_envelope import WallRequest
-from simulation.arrears_engine import PAY_ON_RECEIPT_METHOD, mover_final_bill_outcome
+from simulation.arrears_engine import (
+    PAY_ON_RECEIPT_METHOD,
+    mover_final_bill_outcome,
+    open_on_contract_gbp,
+)
 from simulation.dd_shock_response import failure_table as dd_failure_table
 from simulation.household import household_of
 from simulation.payment_behaviour_source import (
@@ -763,6 +767,15 @@ class LivePaymentTriad:
         # Credit bill money waiting on a leg (supply point) for that leg's next bill: see
         # `record_period`, where the bill's collection is asked net of it.
         self._leg_credit: dict = {}
+        # Each leg's bills, credits and crossed settlements in the engine's row shape, so a later
+        # settlement is sized by the engine's own walk (`arrears_engine.open_on_contract_gbp`).
+        # Plan instalments are not here: the plan book is off on every shipped world.
+        self._leg_rows: dict = {}
+        # Asks of nothing (a credit bill, or a bill a waiting credit paid): no collection presented.
+        self._n_nil_asks = 0
+        # Later settlements other money had cleared in full (not sent), or in part (cut to the rest).
+        self._n_settlements_already_cleared = 0
+        self._n_settlements_cut_to_balance = 0
         self._outcomes_by_customer: dict = {}
         self._early_checks: dict = {}
         self._early_cured: set = set()
@@ -1066,9 +1079,25 @@ class LivePaymentTriad:
         if self._household_plans.repays_through_plan(account_id, bill_due, settled_on):
             self._n_settlements_withdrawn += 1
             return
+        # The household repays the balance it is told, never more: a bill a credit or other money
+        # has cleared since has nothing left to settle, and one part cleared is settled for the rest
+        # (debt_and_collections.md s.7.3). The engine prices the settlement with the same walk.
+        bill_month = world_payment_truth.bill_month_of(int(invoice_ref.rsplit("::", 1)[1]))
+        leg_rows = self._leg_rows.setdefault(event.customer_id, [])
+        cash = round(min(event.amount_gbp, open_on_contract_gbp(leg_rows, settled_on)), 2)
+        if cash <= 0.005:
+            self._n_settlements_already_cleared += 1
+            return
+        if cash < event.amount_gbp - 0.005:
+            self._n_settlements_cut_to_balance += 1
+            event = dataclasses.replace(event, amount_gbp=cash)
+        commodity = next((r["commodity"] for r in leg_rows), "electricity")
+        leg_rows.append({"customer_id": event.customer_id, "period_end": settled_on.isoformat(),
+                         "commodity": commodity, "amount_gbp": cash, "due_date": settled_on,
+                         "outcome": "repayment", "days_late": 0, "settles_month": bill_month,
+                         "method": None})
         # The leg is the event's: a billing account holds both fuels, and a settled gas bill is gas.
-        self._crossed_settlements.append((account_id, bill_due, settled_on,
-                                          world_payment_truth.bill_month_of(int(invoice_ref.rsplit("::", 1)[1])),
+        self._crossed_settlements.append((account_id, bill_due, settled_on, bill_month,
                                           event.customer_id))
         hand_over = self._consumer.observe_hand_over(
             emit_wire_responses(
@@ -1173,6 +1202,8 @@ class LivePaymentTriad:
             "withdrawn": self.settlements_withdrawn,
             "crossed_despite_a_plan": self.settlements_crossed_despite_a_plan,
             "lost_at_close": self._n_settlements_lost_at_close,
+            "already_cleared": self._n_settlements_already_cleared,
+            "cut_to_balance": self._n_settlements_cut_to_balance,
             "crossed_after_close": self.settlements_crossed_after_close,
         }
 
@@ -1268,12 +1299,23 @@ class LivePaymentTriad:
         if waiting - credit_taken > 0.005:
             self._leg_credit[customer_id] = round(waiting - credit_taken, 2)
         ask_gbp = round(amount_gbp - credit_taken, 2)
+        # NOTHING DUE, NOTHING PRESENTED. A credit bill, or a bill a waiting credit paid in full,
+        # asks GBP 0: no collection is submitted, so there is nothing for a bank to return and
+        # nothing to settle later. The bill is settled by the credit on its due date. Drawing an
+        # outcome for it returned 29 credit-bill months and failed 5 credited bills on the
+        # fd91027799 book (debt_and_collections.md s.7.3). The draws stay keyed by period.
+        nothing_due = ask_gbp <= 0.005
+        self._n_nil_asks += nothing_due
         event = generate_payment_event(
             customer_id, period_index, due_date, ask_gbp, stress, method,
             segment=segment,
             dd_failure_prob=dd_failure_table(shock_mult * plan_mult),
         )
-        if method == DIRECT_DEBIT and dd_shock_effect is not None and dd_shock_effect.cancel_return:
+        if nothing_due:
+            event = dataclasses.replace(event, result="success", days_late=0,
+                                        payment_date=due_date.isoformat(), dd_failure_reason=None)
+        elif (method == DIRECT_DEBIT and dd_shock_effect is not None
+                and dd_shock_effect.cancel_return):
             event = dataclasses.replace(event, result="failed", days_late=0, payment_date=None,
                                         dd_failure_reason=CANCELLED_OTHER)
         elif plan_force and event.result != "failed":
@@ -1289,7 +1331,7 @@ class LivePaymentTriad:
         # pay-on-receipt path ask it. Asked with the due date (the next month's), the bill before the
         # final was drawn as an exit too, on 21 of the 209c3350ab book's mover DDs, and the final
         # bill's draw was seeded apart from the DD book's draw of it: 71 of its 211 disagreed.
-        if moved_out_on and world_payment_truth.UNIFIED:
+        if moved_out_on and world_payment_truth.UNIFIED and not nothing_due:
             if period_end is None:
                 last_supplied = date.fromisoformat(moved_out_on) - timedelta(days=1)
                 y, m = int(bill_month[:4]), int(bill_month[5:7])
@@ -1322,7 +1364,7 @@ class LivePaymentTriad:
         # paid before use.
         budget_unpaid = False
         budget_cleared: tuple = ()
-        if (household_budget.BUDGET_DECIDES_PAYMENT and final_exit is None
+        if (household_budget.BUDGET_DECIDES_PAYMENT and final_exit is None and not nothing_due
                 and method != PREPAYMENT and normalise_segment(segment) == RESIDENTIAL):
             paid_now, budget_cleared = self._budget_book.settle_month(
                 supply_point=customer_id, household=household_of(customer_id),
@@ -1420,7 +1462,7 @@ class LivePaymentTriad:
         # not in the observe loop below: from this line on, a collection that is
         # never answered at all is VISIBLE as an open conversation, where before
         # it was indistinguishable from one never submitted.
-        if method == DIRECT_DEBIT:
+        if method == DIRECT_DEBIT and not nothing_due:
             collection_request = WallRequest(
                 correlation_id=correlation_id,
                 request_type=COLLECTION_REQUEST_TYPE,
@@ -1499,11 +1541,13 @@ class LivePaymentTriad:
         # the simulated "now" for this crossing; taking it from the message
         # would make the counterparty the author of the one fact that can
         # contradict it (R15 TAUTOLOGY).
-        hand_over = self._consumer.observe_hand_over(
-            emit_wire_responses(event, seam_input),
-            received_at=datetime.combine(due_date, time(12, 0)),
-        )
-        self._hand_overs.append(hand_over)
+        # An ask of nothing moves no money, so nothing crosses on any leg (`nothing_due`).
+        if not nothing_due:
+            hand_over = self._consumer.observe_hand_over(
+                emit_wire_responses(event, seam_input),
+                received_at=datetime.combine(due_date, time(12, 0)),
+            )
+            self._hand_overs.append(hand_over)
 
         # UNSOLICITED INBOUND, the second channel the rails really have (atom
         # EP6, Q2). A cancelled/closed/deceased mandate is reported by ADDACS
@@ -1521,7 +1565,8 @@ class LivePaymentTriad:
         # document `sender` checkable against an authenticated one, which is the
         # only thing that keeps `sequence` (and therefore the gap detector)
         # meaningful when a participant could relay another's stream.
-        for advice in self._mandate_stream.emit_for_event(event, seam_input):
+        for advice in (() if nothing_due
+                       else self._mandate_stream.emit_for_event(event, seam_input)):
             advice_wire = emit_wire_notification(advice)
             self._consumer.observe_wire_unsolicited(advice_wire)
             self._cf_consumer.observe_wire_unsolicited(advice_wire)
@@ -1537,7 +1582,7 @@ class LivePaymentTriad:
         # the same dates -- proven, not assumed, by
         # test_counterfactual_differs_only_in_the_reference.)
         cf_correlation_id = _counterfactual_correlation_id(invoice_ref, correlation_id)
-        if correlation_id != invoice_ref:
+        if correlation_id != invoice_ref and not nothing_due:
             self._n_ambiguous_records += 1
             if event.result == "success":
                 # A credit that actually LANDED unattributable -- the only kind
@@ -1549,10 +1594,10 @@ class LivePaymentTriad:
         # were migrated, the D8 counterfactual would differ in the transport
         # as well as in the remittance reference, and would stop isolating
         # one variable.
-        for cf_wire in emit_wire_responses(
+        for cf_wire in (() if nothing_due else emit_wire_responses(
             event,
             SeamAdapterInput(account_id=account_id, correlation_id=cf_correlation_id),
-        ):
+        )):
             self._cf_consumer.observe_wire(cf_wire)
 
         # A MOVER'S FINAL BILL, PART PAID: the household paid `final_part_gbp` of it by card on the
@@ -1615,6 +1660,16 @@ class LivePaymentTriad:
             days_late=event.days_late,
             settled_on=settled_on,
         ))
+        leg_rows = self._leg_rows.setdefault(customer_id, [])
+        if credit_gbp > 0:
+            leg_rows.append({"customer_id": customer_id, "period_end": period_end or bill_month,
+                             "commodity": fuel, "amount_gbp": -round(credit_gbp, 2),
+                             "due_date": due_date, "outcome": "credit", "days_late": 0, "method": None})
+        elif amount_gbp > 0:
+            leg_rows.append({"customer_id": customer_id, "period_end": period_end or bill_month,
+                             "commodity": fuel, "amount_gbp": round(amount_gbp - final_part_gbp, 2),
+                             "due_date": due_date, "outcome": event.result,
+                             "days_late": int(event.days_late or 0), "method": None})
         if budget_unpaid:
             self._budget_unpaid[len(self._records) - 1] = (
                 event, account_id, invoice_ref, f"{customer_id}::p{period_index}::budget")
