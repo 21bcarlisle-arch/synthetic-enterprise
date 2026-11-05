@@ -116,9 +116,11 @@ exceptions:
       later that month is owed nothing; the export carries no window, so the row counts it as the
       payer's. The other nine breaches on the same rebuild under 2bef058eb were a defect (a window
       month the credit paid read as share 0), fixed in bill assembly; a run before that fix grades 12.
+      Re-based 2026-11-05 on the fresh 5200cd6239 book: 7. The six above plus OCC-da79d3238e02 (Oct 2022),
+      whose October bill carries deemed_share_to occupier: the deemed account held the 1st, the same case.
     filed: 2026-10-28
     retired_by: the raw export carrying each account's void and occupier window, and the row exempting a month the payer did not hold on its 1st
-    max_breached: 6
+    max_breached: 7
   # 2026-10-28: the two twins graded on what the page prints (second cold read, N1), measured on the
   # 1691ec0ecd book rebuilt with origin's tools and its pages built from that ledger in memory.
   # Counts beside docs/staging/SEAT_FINDING_THE_SECOND_COLD_READ_FINDS_SEVEN_NEW_CLASSES_AND_THE_SUITE_GRADES_A_RECORD_THE_PAGE_DOES_NOT_PRINT_2026-10-28.md.
@@ -134,9 +136,10 @@ exceptions:
       credit owed) and a month the unnamed occupier's deemed account held on the 1st with the payer
       named later (guidance 5.4). The export carries neither window, so the row counts the month as
       the payer's. Before the page carried the credit (this commit) the row breached 1,193 of 2,277.
+      Re-based 2026-11-05 on the 5200cd6239 book: 7, the ledger row's seventh (OCC-da79d3238e02, Oct 2022 bill).
     filed: 2026-10-28
     retired_by: the raw export carrying each account's void and occupier window, as for INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23
-    max_breached: 6
+    max_breached: 7
   # 2026-10-28: the second cold read's six rows (N2, N3, N5, N6, N7, estimate against the meter), written
   # blind and graded on the 1a02c46116 book. Grade and causes beside the pre-registration,
   # docs/staging/records/SEAT_PREREGISTRATION_THE_SECOND_COLD_READS_CLASSES_GRADED_ON_THE_1A02C46116_BOOK_2026-10-28.md.
@@ -179,9 +182,14 @@ exceptions:
       is right. Leg 3 is graded outside the runner: 1,621 part-year fuel-legs print a co2e_kg, an open
       breach this row does not count. Both are in
       docs/staging/SEAT_FINDING_THREE_SMALL_EXCEPTIONS_TRACED_ON_THE_209C_BOOK_MOVERS_DDS_HELD_BILLS_AND_THE_REVENUE_ROWS_CLASSES_2026-10-29.md.
+      Re-based 2026-11-05 on the fresh 5200cd6239 book: 14 checks on 7 account-years of three electric-heated
+      homes, SYN-2016-175 (2016-17), SYN-2016-355 (2017-19) and PROS-2017-0233 (2019-20). Each missing month is one
+      of 16 bills the exception queue holds on vat_by_segment and slc_6_7_billing_accuracy, the same class. Its
+      root is the company's flat 2,100 kWh/month resi envelope, which reads a heated home's winter month as a
+      business. Traced in the B3CE2A4E73 finding, 2026-11-05 section.
     filed: 2026-10-28
     retired_by: the carbon panel counting energy used as the row says (true-up kWh in the months they reconcile; knowledge page first)
-    max_breached: 6
+    max_breached: 14
   - invariant: INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER
     scope: 4 of 4,294 runs of estimated bills on the fresh cd4fc5b8d8 book (graded 30 Oct; 6 of 4,317 on 209c3350ab), all above 3 and all in summer (Jun to Oct), on PROS-2016-0263g (c), PROS-2017-0336 (a, one run), SYN-2016-396g (b) and SYN-2016-565 (a); PROS-2024-0010 and 0336's second run left with the E7 and PC2 builds
     reason: >-
@@ -202,9 +210,14 @@ exceptions:
       (shaping note 6: the household's own shape is not known). (c) PROS-2016-0263g's gas use fell from
       11,426 to 1,102 kWh a year in 2020. That is a household change inside the run, the case the row's
       own severity names.
+      Re-based 2026-11-05 on the fresh 5200cd6239 book (carrying c07e8ccce and 75156811e): 8, all above and all
+      in summer, as predicted before the run. Seven are electrically heated homes estimated on the class shape:
+      SYN-2016-215 (2021, 2023), -221, -565 (2019), -582, PROS-2017-0351 and -0364 (2022). Five of them are on
+      two-rate meters, so (a) is no longer only the single-rate case: a heated year spread by the profile
+      class's average shape over-estimates summer three to five times. The eighth is (c), PROS-2016-0263g.
     filed: 2026-10-29
-    retired_by: the three storage homes' bills printing the two-rate settlement they hold, under ruling step 3 (a; their heating type was read 2026-10-30). (b) and (c) are the row's lawful tail and stay excepted
-    max_breached: 3
+    retired_by: (a) an electrically heated home's estimate following its own seasonal shape from its reads, not the class average (whether a GB supplier does so is a GAP; knowledge page first). (b) and (c) are the row's lawful tail and stay excepted
+    max_breached: 8
   # 2026-10-30: two rows that read UNCHECKABLE on the raw export are graded (leg one reads the five uncheckable
   # rows), on the 9553d403b7 book. Each breach count below is that book's, to be re-based on the next fresh run's
   # grade. Grade, causes and the three rows that stay ungraded on the runner, with why, in
