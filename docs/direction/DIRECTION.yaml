@@ -1,197 +1,194 @@
 version: 1
-oriented_at: "2026-11-04T21:23:50.675033+00:00"
+oriented_at: "2026-11-05T00:24:35.390650+00:00"
 thesis_read: >-
-  Against the thesis, nothing moved. No per-customer decision changed, the renewal belief still ranks leavers
-  backwards, and the stretch landed 0 supplier commits against 3 world commits. The supplier-first order was not
-  kept in what landed. It was kept in what is in flight: the N20 level-direct-debit build is in a live surgical_land
-  (pid 1650693). That same landing holds saas/ledger.py and DOMAIN_INVARIANTS.yaml, which is why the draw refused
-  items 3 and 4 twice each. The refusals are correct (the holder is doing adjacent work in the same files), so those
-  items were blocked, not passed over. The world commits were not drift. c07e8ccce (77 electricity-only homes drawn
-  with gas, oil or a heat pump carried storage heating) and 75156811e (legacy premises registered at their drawn
-  band rather than on their own reads) are the traced causes of the estimated-run gate row. The seven-gate-rows
-  finding answers all three of its asks at 75156811ef. The carbon 14 -> 12 move is explained row by row: two rows
-  left with 604g's released July bill, and the 12 that remain are held bills on over-heated homes, which the billing
-  gate is right to hold. That closes last stretch's unexplained-move row. The a6b7a0fd47 book grades 138 unexcepted
-  breaches over 6 rows. It was cut before 514e2015b and 8befb331b, so it could not test the overdue prediction my
-  last record asked it to test. That is my error, and the worker caught it. N21 reads 15.50% on that book, inside
-  the pre-registered 15.0-16.0%, so N18 raised the margin as predicted. The margin is still a figure the company
-  cannot earn, because the GBP 55 placeholder is untouched. That remains the thesis's most serious defect, and it
-  goes first. The book that matters is now running. sim-runner launched run_annual_report at 5200cd6239 (21:10Z,
-  docs/reports/run_output_5200cd6239_20261104T211046Z.json). It carries every in-loop fix: 7ec8b1030d, N18,
-  514e2015b, 8befb331b, c07e8ccce and 75156811e. The continuation electric-heated-homes-eac-double-count-and-the-fresh-grade
-  owns its grade against the filed predictions (est-run 5-18, carbon 10, revenue 3), so the grade is not in focus,
-  to avoid a second writer. It does not carry N20 or the 11-breach overdue landing (pid 1581071). The promote unit
-  for a6b7a0fd47 died at import: its hand-written promote.sh ran sim_runner without SE_NTFY_TOPIC. The book reached
-  run_output_latest.json anyway. This is an instance of an accepted class, not a new row. The executor pilot's
-  verdict is ready and reads REVERT: Sonnet lands 64% against 81% and reworks 54% against 40%, although it is
-  cheaper per landed item. I am letting its window close on 6 Nov rather than extending it. Of the previous focus,
-  2 of 5 were drawn: two were refused on a held path, and N17 was not reached again.
+  Against the thesis this stretch moved the supplier's foundations, but not yet its decisions. Of 3 substantive commits,
+  2 were supplier-side, which keeps the supplier-first order for the first time in three stretches. f874c6836 (N20)
+  makes a household on a level direct debit pay the level amount, and the page ledger and the books now read one
+  schedule. On the 4669d77ddd book the share of DD collections equal to their bill falls from 0.963 to 0.207, inside
+  the 0.12-0.25 filed first. M3's cash-flow, certainty and control measures can now be read from a ledger that
+  collects what a real supplier collects. It is on origin, both tests and the blind invariant row are in it, and the
+  finding is in done/, so item 2 leaves focus. Two legs are owed and named in the commit: the invariant row has no
+  evaluator, and the share test is xfail until a run carries the schedule. d2dfc1ddc closes N21 gap 5. The
+  management accounts' GBP 257k revenue gap to the settlement records was every EPG pound dropped from the journal.
+  N21 gaps 2 and 1 (the flat GBP 55 replaced by Ofgem's OC + PAAC + SMNCC per cap period, GBP 79-127 per fuel
+  account) are in a live surgical_land (pid 2993767). That is the change that gives every per-customer CLV a
+  sourced cost, so nothing about "beats the baseline" can be tested until it is on origin. 9744dd436 lands the
+  overdue row's last 11 breaches, so all three overdue fixes are now on origin. The fresh book docs/reports/run_output_5200cd6239_20261104T211046Z.json
+  ended at 22:48Z. It carries 514e2015b, 8befb331b, c07e8ccce, 75156811e and 7ec8b1030d. It does not carry 9744dd436,
+  N20 or N21. It is the first book that can test the correctness stretch's exit test, and nobody has graded it.
+  Its continuation has sat unclaimed for 4.8h and expires at six. I am putting it first in focus under the
+  continuation's own id, so either source draws one claim and there is no second writer. Previous focus: 1 of 4
+  drawn. Item 1 was refused 31 times on a saas/ledger.py held by the N20 landing, and is now landing. Item 3 was
+  refused 3 times on DOMAIN_INVARIANTS.yaml, which N20 has now released. Item 4 was never drawn, so the book it
+  asked to be pre-registered against ended without a prediction. That item was my error as written: its own finding
+  already records that 7ec8b1030 moved gas from 37% exact repeats to 0.3% and did not move electricity, so the cause
+  I asked it to test had been measured out. I have rewritten it against the prediction the finding filed before any
+  measurement (repeats concentrate on premises with no weather cell, and the near-flat spread is everywhere because
+  base load has no year-to-year term). The executor pilot reads REVERT and its window closes on 6 Nov; I am leaving it
+  to close by construction.
 stretch_reviewed:
-  since: "2026-11-04T18:20:55.366609+00:00"
-  commits: 9
-  substantive: 4
+  since: "2026-11-04T21:23:50.675033+00:00"
+  commits: 6
+  substantive: 3
 focus:
+- id: electric-heated-homes-eac-double-count-and-the-fresh-grade
+  lane: D_billing_metering
+  side: supplier
+  what: 'This is the live continuation of the same id, so claim it under that id and do not open a second
+    one. docs/reports/run_output_5200cd6239_20261104T211046Z.json ended at 22:48Z. Grade it now with /var/tmp/b3ce-grade-scripts/
+    against every row of docs/design/DOMAIN_INVARIANTS.yaml. Print each row''s count beside the filed
+    predictions in docs/staging/SEAT_FINDING_THE_B3CE2A4E73_BOOK_FAILS_THE_DOMAIN_INVARIANT_GATE_ON_SEVEN_ROWS_2026-11-04.md
+    (est-run 54 -> 15-30, carbon 12 -> 10, revenue 4 -> 3, overdue -78 against 4669d77ddd). Keep any miss
+    beside its prediction. Note that this book does not carry 9744dd436, N20 or N21, so the overdue row''s
+    last 11 should still show. Then the continuation''s two questions: (a) K8 first. Establish from docs/market_research/
+    and the commons what a GB storage or direct-electric home uses a year, and whether a TDCV band already
+    includes the heating, before touching demand_model.ELEC_HEATING_KWH_PER_DEGREE_DAY or the EAC. (b)
+    What D0019 EAC/AA practice says about re-estimating after a large first-year actual read (SYN-2016-566),
+    with a red-on-today test if the supplier''s estimator is wrong. Also read the size of the ledger this
+    book writes and say whether it still fits under 100 MiB.'
+  why: The 26 Oct exit test is zero unexplained breaches on a fresh book, and this is the first book that
+    can test it. An ungraded book is a run the correctness stretch paid for and learned nothing from.
+    Done means every row's count on 5200cd6239 is filed beside its prediction, each surviving breach carries
+    a traced cause or a named and dated exception, (a) and (b) are answered on the knowledge layer with
+    any fix landed, and the finding is in done/.
+  written_at: 1793838586.891
 - id: the-company-is-charged-its-real-cost-to-serve
   lane: B_commercial
   side: supplier
-  what: 'saas/ledger.py is held by the N20 surgical_land ("A household on a level direct debit pays the
-    level amount", pid 1650693). First wait for it with tools.wait_for, and do not edit around it. Then
-    re-read saas/ledger.py at HEAD and work gaps 5, 2 and 1 of docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_THE_PAGES_PUBLISH_A_FOURTEEN_PERCENT_MARGIN_AFTER_COST_TO_SERVE_AGAINST_THE_LIBRARYS_TWO_TO_FIVE_2026-11-04.md,
-    in that order. (5) Measure, per year and per fuel, which lines make up the GBP 256k revenue gap and
-    the GBP 384k non-commodity gap between saas/ledger.py and the settlement records. Say which record
-    is right for each line before anything is divided. (2) K8 first: in docs/market_research/, write what
-    the cap methodology publishes per cap period for the operating-cost, debt and industry allowances.
-    Net out what the book already charges elsewhere, and label anything unpublished as a GAP. Then replace
-    the flat GBP 55 in saas/cost_to_serve.py with that sourced per-period figure, plus a red-on-today
-    test that the charge per dual-fuel account sits inside the published band. (1) Make the page figure
-    name what it is, and fix annual_pnl''s revenue_gbp: 0. Print N21''s margin after each step, starting
-    from 15.50% on the a6b7a0fd47 book.'
-  why: Every per-customer CLV inherits a margin carrying about a third of the real cost of serving a home.
-    Value the company cannot earn makes "beats the baseline" untestable, so this goes ahead of everything
-    else the supplier owns. It was refused last stretch only because its file was held. Done means the
-    knowledge section, the sourced charge and its test, the page label and the per-line gap-5 table are
-    on origin, with the margin printed at each step.
-  written_at: 1793827751.747
-- id: the-ledger-collects-the-level-direct-debit
-  lane: D_billing_metering
-  side: supplier
-  what: 'The build is in a live surgical_land (pid 1650693). Do not rebuild it. Wait for it with tools.wait_for.
-    If it lands, check each done-means against origin/main: both tests named in docs/staging/records/SEAT_READING_WHICH_ORGAN_IS_THE_DIRECT_DEBIT_ON_THE_4669D77DDD_BOOK_2026-11-04.md,
-    the world level/variable flag with its origin in tools/domain_constant_origins.py, generate_billing_ledger
-    and saas/ledger reading one schedule, and INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE
-    in DOMAIN_INVARIANTS.yaml. Land whatever is missing. Then file the list of published cash-flow, bill-shock
-    and balance-sheet figures it moves, stating that the running 5200cd6239 book does not carry it, and
-    move the N20 finding to done/. If the landing dies, read its log, and re-land from its worktree with
-    tools.surgical_land.'
-  why: Cash flow, certainty and control are three of M3's measures, and all three are read today from
-    a ledger that collects the bill while the household is on a level amount (N20). The work is nearly
-    finished. Without a check, it is the shape that has twice been retired with nothing on origin. Done
-    means every leg is on origin and the N20 finding is in done/.
-  written_at: 1793827751.747
+  what: 'Gaps 2 and 1 are in a live surgical_land (pid 2993767, "A resi account is charged what the cap
+    allows to serve it"). Wait for it with tools.wait_for and do not rebuild it. When it ends, check origin/main
+    for the knowledge page docs/market_research/the_caps_operating_debt_and_industry_allowance_per_cap_period.md,
+    the per-period charge in saas/cost_to_serve.py, tests/saas/test_the_cost_to_serve_sits_inside_the_caps_published_al*,
+    and the household page''s "contribution" label. If it died, read its log and re-land from its worktree
+    with tools.surgical_land. Then grade N21''s margin against docs/staging/records/SEAT_PREREGISTRATION_N21_MARGIN_UNDER_THE_CAPS_SOURCED_COST_TO_SERVE_2026-11-04.md
+    and print it, starting from 15.50%. Fix annual_pnl''s revenue_gbp: 0 if the landing did not. Close
+    gaps 3, 4, 6 and 7 of docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_THE_PAGES_PUBLISH_A_FOURTEEN_PERCENT_MARGIN_AFTER_COST_TO_SERVE_AGAINST_THE_LIBRARYS_TWO_TO_FIVE_2026-11-04.md
+    by fixing each one or labelling it a GAP in the finding, then move the finding to done/.'
+  why: Every per-customer lifetime value inherits this cost, and until it is sourced the baseline comparison
+    the thesis rests on cannot be made. The build is nearly finished, and a nearly-finished landing is
+    the shape this machine has twice retired with nothing on origin. Done means gaps 1, 2 and 5 are on
+    origin, the graded margin is printed beside its pre-registration, and the N21 finding is in done/.
+  written_at: 1793838586.891
 - id: the-household-page-prints-the-billed-term
   lane: D_billing_metering
   side: other
-  what: docs/design/DOMAIN_INVARIANTS.yaml is held by surgical_land pid 1650693, so wait for it first.
-    Then close the N16 half of docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_N15_AND_N16_SURVIVE_ON_THE_SIX_STAGE_HOUSEHOLD_PAGE_2026-11-04.md.
+  what: f874c6836 has released docs/design/DOMAIN_INVARIANTS.yaml, so this is no longer blocked. Close
+    the N16 half of docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_N15_AND_N16_SURVIVE_ON_THE_SIX_STAGE_HOUSEHOLD_PAGE_2026-11-04.md.
     The six-stage household page must print the tariff of the term in force at each bill's date, as d14ff599e
-    did for the Explore cast, not the account-level tariff_name. PROS-2016-0187 and SYN-2016-185 are the
-    cases. Find the generator under tools/ that emits tariff_name. Write the finding's two rows blind
-    into DOMAIN_INVARIANTS.yaml, run each against the published book and print its count. Check SYN-2016-185's
-    6.24p -> 7.15p "fixed" prepayment move once, and say whether it is a defect.
-  why: A class fixed on one surface and still printed on another is what the next cold read will find,
-    and it would fail leg three on an error we already understand. Done means the page fix, both blind
-    rows with their counts, and the finding in done/ are on origin.
-  written_at: 1793827751.747
+    did for the Explore cast, and not the account-level tariff_name. PROS-2016-0187 and SYN-2016-185 are
+    the cases. Find the generator under tools/ that emits tariff_name and fix it there. Have the finding's
+    two rows written blind into DOMAIN_INVARIANTS.yaml, run each against the published book, and print
+    its count. Check SYN-2016-185's 6.24p -> 7.15p "fixed" prepayment move once, and say in the finding
+    whether it is a defect.
+  why: A class fixed on one surface and still printed on another is exactly what the next cold read finds,
+    and it would fail leg three of the exit test on an error we already understand. Done means the page
+    fix, both blind rows with their counts, and the finding in done/ are on origin.
+  written_at: 1793838586.891
 - id: which-side-holds-electricity-use-flat
   lane: W2_customer_generator
   side: world
   unblocks: Leg three of the correctness exit test, and every annual-use estimate, forecast and CLV the
     supplier forms from a household's metered electricity history.
-  what: Before docs/reports/run_output_5200cd6239_20261104T211046Z.json ends, pre-register in a record
-    whether 7ec8b1030d explains N17 (median same-month electricity change 1.1% against NEED's 14.7%; 48.6%
-    of 5,179 pairs under 1%). 7ec8b1030d gave 490 of 1,052 premises their own sky in place of the climate
-    normal, so state the median you expect. When the book ends, repeat the N17 measurement on it and on
-    b3ce2a4e73. Split the pairs into the world's true use and the billed read, by OCC, SYN and PROS, and
-    with and without a sky before 7ec8b1030d. Name the side in a commit on docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_METERED_ELECTRICITY_USE_BARELY_MOVES_FROM_ONE_YEAR_TO_THE_NEXT_2026-11-04.md.
-    If it is the world, cite the year-on-year variance in docs/market_research/ and file the fix as a
-    slice of W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape. If it is the company,
-    fix the estimator with a red-on-today test.
+  what: Test the prediction already filed in docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_METERED_ELECTRICITY_USE_BARELY_MOVES_FROM_ONE_YEAR_TO_THE_NEXT_2026-11-04.md
+    on the ended docs/reports/run_output_5200cd6239_20261104T211046Z.json book. The prediction says that
+    in the world's own settlement the exact repeats concentrate on premises with no weather cell, and
+    the near-flat spread is on every premise because base load has no year-to-year term. Repeat N17's
+    measurement (median same-month electricity change, share of pairs under 1%), split by the world's
+    true use against the billed read, by OCC, SYN and PROS, and by whether the premise has a weather cell.
+    Name the side in the finding. If it is the world, cite the year-on-year variance of non-heating load
+    in docs/market_research/ (NEED) and file the fix as a slice of W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape.
+    If it is the company, fix the estimator with a red-on-today test. Write the blind row the finding
+    owes (ruling step 6) with INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR's evaluator as one build.
   why: A world where use never moves gives the supplier nothing to infer, so no per-customer forecast
-    can beat the flat baseline on it. The book that tests the obvious candidate cause is running now,
-    so the prediction has to be filed before it ends or it is worth nothing. Done means the prediction,
-    the split and the named side are on origin, and the fix is filed against its atom or landed.
-  written_at: 1793827751.747
+    can beat the flat baseline on it. The book now exists, and the finding's prediction predates it. Done
+    means the split and the named side are on origin beside the prediction, and the fix is filed against
+    W2_30 or landed.
+  written_at: 1793838586.891
 not_now:
-  - what: A focus row to grade the 5200cd6239 book against the seven-gate-rows predictions.
-    why: The continuation electric-heated-homes-eac-double-count-and-the-fresh-grade owns that job, and a focus row would
-      make a second writer. The seven-gate-rows steer is dropped from focus because its three asks are answered at
-      75156811ef.
-  - what: The overdue row's last 11 breaches.
-    why: They are in a live surgical_land (pid 1581071), and continuation overdue-row-credit-remainder-and-pc2-in-loop-estimate
-      holds the rest.
-  - what: Cutting another fresh run to carry N20 and the 11-breach overdue fix before 9 Nov.
-    why: 5200cd6239 is running and carries every traced gate fix. A second run now would change two things against filed
-      predictions. N20 and item 1 move published figures that the run after it should carry, once both are on origin.
-  - what: Ending the executor pilot early on its REVERT verdict.
-    why: Its window closes on 6 Nov by construction. About two days of 1-in-N Sonnet turns costs less than a config edit
-      landing through twenty gates against the live landings.
+  - what: A separate focus row to grade 5200cd6239, alongside the continuation that owns the grade.
+    why: Two ids for one grade is two writers. Putting the continuation's own id first in focus keeps one claim, and
+      it stops the grade expiring unclaimed at six hours, which is the real risk.
+  - what: Cutting a fresh run now to carry 9744dd436, N20 and N21.
+    why: N21 gaps 2 and 1 are still landing, and 5200cd6239 is ungraded. A run cut now would change three things against
+      filed predictions and miss the one that moves the margin most. Cut it once item 2 is on origin and item 1 has
+      graded 5200cd6239.
+  - what: The settlement-cash continuation (the world settling bills already cleared, a GBP 0 DD drawing a return).
+    why: It is claimed and in hand (seat_work_in_hand), so a focus row would be a second writer.
   - what: Carrying the rebuilt renewal belief into a policy, or any other new per-customer lever.
-    why: The 26 Oct ruling holds feature work until the exit test is met, and a lever graded now would be graded on a margin
-      that carries a placeholder cost (item 1).
-  - what: N21's gaps 3, 4, 6 and 7, the catch-up cap on the issue date, the gzip ledger, aging out probe scratch, and
-      reaping the at-risk worktrees.
-    why: None of them holds the exit test. The first three are GAPs or small and are on file. Reaping cannot be undone.
-  - what: The OPS and SITE atoms in the stall census.
-    why: Their file_scopes are taking commits under other ids, so the counter is stale, not the work, and none of them
-      is a correctness leg.
+    why: The 26 Oct ruling holds feature work until the exit test is met, and a lever graded now would be graded on a
+      margin that still carries the flat GBP 55 until item 2 lands.
+  - what: Ending the executor pilot early on its REVERT verdict.
+    why: Its window closes on 6 Nov by construction, and a config edit landing through twenty gates against two live
+      landings costs more than one more day of 1-in-N Sonnet turns.
+  - what: Building the N20 invariant row's evaluator and an origins entry for the level-DD share.
+    why: The evaluator is owed and named in f874c6836, but it can only be graded on a run that carries the schedule.
+      The origins table excludes simulation/ on purpose (R13), and the range carries its citation inline.
+  - what: Reaping the seven at-risk worktrees, the catch-up cap on the issue date, aging out probe scratch, and the OPS
+      and SITE stall census.
+    why: None of them holds the exit test. Reaping cannot be undone. The stalled atoms' file_scopes are taking commits
+      under other ids, so what is stale is the counter, not the work.
 wrong:
   - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards
-      (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged.
-      No policy carries the rebuilt belief, and it is in not_now under the 26 Oct ruling.'
+      (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 00:24 5 Nov: Unchanged. It
+      is in not_now under the 26 Oct ruling.'
     corrected: false
   - what: 'THE COMPANY''S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger
-      still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: The triage owner landed
-      (8befb331b: a settlement pays what is left on its bill). It is not graded on a book yet. The 5200cd6239 book
-      is the first to carry it.'
+      still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 00:24 5 Nov: The 5200cd6239 book, which
+      carries 8befb331b, has ended. It is ungraded, and focus item 1 grades it.'
     corrected: false
   - what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up
-      to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged.
+      to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 00:24 5 Nov: Unchanged.
       No cold read ran this stretch.'
     corrected: false
   - what: 'THE MACHINE''S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the
-      second time in two stretches. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. The seven-gate-rows
-      redraw was released to a named successor, which is the honest shape, but nothing yet enforces it. Item 2 checks
-      N20 against origin by hand.'
+      second time in two stretches. [Earlier tails are in decisions.jsonl.] 00:24 5 Nov: No new instance. N20 was
+      checked on origin (f874c6836) before it left focus. Nothing yet enforces it, and item 2 checks N21 by hand.'
     corrected: false
   - what: 'THE MACHINE''S, NEW. The naive organ has asked no question since 2026-08-10T07:48Z. [Earlier tails are
-      in decisions.jsonl.] 21:23 4 Nov: Unchanged.'
+      in decisions.jsonl.] 00:24 5 Nov: Unchanged. The worker finding traces it to 104 questions still open.'
     corrected: false
   - what: 'THE MACHINE''S, NEW. The publisher refused 15 times on a scoped-suite red that was a full 12 GB /tmp
-      of probe scratch under free names. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged.'
+      of probe scratch under free names. [Earlier tails are in decisions.jsonl.] 00:24 5 Nov: Unchanged.'
     corrected: false
   - what: 'THE MACHINE''S, NEW. The billing ledger outgrew GitHub''s 100 MiB file limit, and compact JSON is only
-      a stopgap. [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. Read the 5200cd6239 book''s ledger
-      size when it ends.'
+      a stopgap. [Earlier tails are in decisions.jsonl.] 00:24 5 Nov: Unchanged. docs/state/billing_ledger.json
+      is 91 MB from 3 Nov. The 5200cd6239 book''s ledger is not yet generated, and focus item 1 reads its size.'
     corrected: false
   - what: 'THE MACHINE''S, NEW. A hand re-offer of a refused run marker was deleted before any publisher read it.
-      [Earlier tails are in decisions.jsonl.] 21:23 4 Nov: Unchanged. No re-offer was attempted.'
+      [Earlier tails are in decisions.jsonl.] 00:24 5 Nov: Unchanged. No re-offer was attempted.'
     corrected: false
   - what: 'THE COMPANY''S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. [Earlier tails
-      are in decisions.jsonl.] 21:23 4 Nov: Unchanged since partial. 5 catch-ups and 2 gas legs stay uncapped (the
-      period end is tested, not the issue date). It is in not_now.'
+      are in decisions.jsonl.] 00:24 5 Nov: Unchanged since partial. 5 catch-ups and 2 gas legs stay uncapped. It is
+      in not_now.'
     corrected: false
   - what: 'THE MACHINE''S, NEW. The orienting seat did not run for 24 hours (3 Nov 09:23Z to 4 Nov 06:25Z), and
-      nothing reached the director. 21:23 4 Nov: Unchanged. The seat ran on time, and the watchdog has still not been
-      seen to fire on a stall.'
+      nothing reached the director. 00:24 5 Nov: Unchanged. The seat ran on time again (3.0h), and the watchdog has
+      still not been seen to fire on a stall.'
     corrected: false
   - what: 'THE COMPANY''S OR THE PAGES'', NEW. A correctness fix put a new regression on the page:
-      INV_OVERDUE_WITHIN_PAGE_BALANCE reads 128 on b3ce2a4e73, against 0 on 85b044be54. 21:23 4 Nov: Partly corrected.
-      514e2015b (78) and 8befb331b (39) are on origin, and the last 11 are in a live landing (pid 1581071). It reads 64
-      on a6b7a0fd47, which carries neither fix. It is graded on the 5200cd6239 book by the continuation.'
+      INV_OVERDUE_WITHIN_PAGE_BALANCE reads 128 on b3ce2a4e73, against 0 on 85b044be54. 00:24 5 Nov: All three fixes
+      are now on origin (514e2015b, 8befb331b, 9744dd436). Not yet graded on a book. 5200cd6239 carries the first two,
+      and item 1 grades it.'
     corrected: false
   - what: 'THE COMPANY''S, NEW (N20). The direct debit is the bill: 96.8% of DD payments equal their invoice, while
-      the balance book models a level DD. 21:23 4 Nov: The build is in a live surgical_land (pid 1650693) and not on
-      origin. It is focus item 2.'
-    corrected: false
+      the balance book models a level DD. 00:24 5 Nov: Corrected. f874c6836 is on origin, and on 4669d77ddd the share
+      falls to 0.207, inside the filed 0.12-0.25. The finding is in done/. The invariant row''s evaluator and a run
+      carrying the schedule are owed and named in the commit.'
+    corrected: true
   - what: 'THE WORLD''S OR THE COMPANY''S, NEW (N17). Metered electricity barely moves from one year to the next (a
-      median same-month change of 1.1%, against NEED''s 14.7%). 21:23 4 Nov: Not worked. It is item 4, and the
-      running book tests 7ec8b1030d as its cause.'
+      median same-month change of 1.1%, against NEED''s 14.7%). 00:24 5 Nov: Not worked. It is item 4, now against
+      the ended 5200cd6239 book.'
     corrected: false
   - what: 'THE PAGES'', NEW (N21). The pages publish a 14.5% margin after cost to serve, against the library''s 2-5%.
-      21:23 4 Nov: It reads 15.50% on a6b7a0fd47 (N18 raised it, as predicted). Not fixed: it was refused on a held
-      saas/ledger.py. It is focus item 1.'
+      00:24 5 Nov: Gap 5 is on origin (d2dfc1ddc: the journal had dropped every EPG pound). Gaps 2 and 1 are in a
+      live landing (pid 2993767). It is focus item 2.'
     corrected: false
   - what: 'THE PAGES'', NEW. N15 and N16 survive on the six-stage household page: its tariff name and bill tally read
-      the old way. 21:23 4 Nov: Half corrected. The tariff label was refused on a held DOMAIN_INVARIANTS.yaml. It is
-      focus item 3.'
+      the old way. 00:24 5 Nov: Half corrected. DOMAIN_INVARIANTS.yaml is now released, and it is focus item 3.'
     corrected: false
-  - what: 'THE MACHINE''S, NEW. The 6f9976757 prediction that "no other row moves" was wrong: INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL
-      fell from 14 to 12 and nobody has explained why. 21:23 4 Nov: Corrected (explained). Traced row by row in the
-      seven-gate-rows finding: the 2 rows that left were 604g''s released July bill, and the 12 that remain are held
-      bills on over-heated homes that the gate rightly holds. The wrong prediction stays beside the claim.'
-    corrected: true
-  - what: 'MINE, NEW. The 18:20 record told item 1 to grade the a6b7a0fd47 book against "the overdue row falls by
-      the 78", but that run was cut before 514e2015b and 8befb331b, so the prediction could not apply to it. 21:23 4 Nov:
-      Corrected. The worker named this in the grade table, and the 5200cd6239 book carries both fixes.'
+  - what: 'MINE, NEW. The 21:23 record asked item 4 to test 7ec8b1030d as N17''s cause before 5200cd6239 ended. Its
+      own finding already recorded that 7ec8b1030 did not move electricity, the book ended at 22:48Z with the item
+      undrawn, and no prediction was filed. 00:24 5 Nov: Corrected. Item 4 now tests the prediction the finding filed
+      before any measurement.'
     corrected: true
 for_the_director: []
