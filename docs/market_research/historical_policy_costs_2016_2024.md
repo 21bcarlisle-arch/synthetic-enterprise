@@ -78,7 +78,10 @@ TNUoS set in £/kW demand (converted at 45% load factor ≈ 3,942 h/yr). DUoS va
 - **Capacity Market (CM):** ~£2–6/MWh (highly variable by auction year)
 - **BSUoS (Balancing Services Use of System):** ~£5–15/MWh (very volatile; peaked in 2021-22)
 - **Warm Home Discount pass-through:** ~£0.5–1/MWh
-- **Energy Company Obligation (ECO):** embedded in opex allowance
+- **Energy Company Obligation (ECO):** in the cap's **policy cost** allowance, not opex. *(Corrected 2026-11-05; this line
+  said "embedded in opex allowance". Ofgem, cap Appendix 5 (2018) lists ECO and WHD under policy costs, and says
+  "suppliers that are not obligated under ECO and WHD schemes will incur costs beneath the level allowed in the cap".
+  Thresholds by scheme year: `supplier_financial_reporting.md` §1a, "Gap 4 settled".)*
 
 **Elexon SSP is commodity-only.** Adding the "All-in non-wholesale" column to SSP gives the approximate full cost stack a real supplier faces on each MWh supplied.
 

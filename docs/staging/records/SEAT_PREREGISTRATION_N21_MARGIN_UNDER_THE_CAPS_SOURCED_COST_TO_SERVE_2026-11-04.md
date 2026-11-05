@@ -29,3 +29,25 @@ Written before `saas/cost_to_serve.py` changed. The charge is defined in
 - The run JSON carries no settlement records, so the changed module cannot be run over this book.
 - The grade is the next fresh book.
 - Until then the offline repricing above is the only number, and it is labelled that way wherever it is printed.
+
+## Re-based before the grading book exists (2026-11-05 00:43Z, worker)
+
+**Why a re-base.** The grading book is `longjob-fresh-run-fd91027799` at origin fd91027799. It was launched at 00:40Z
+and is still queued, and nothing of it has been read. The book before it, 5200cd6239, already moved off a6b7a0fd47
+while still on the flat £55: revenue £3,187,582, cost to serve £241,774, margin **15.85%**. So 15.50% is no longer
+the baseline the grading book is measured from.
+
+**What else changes from 5200cd6239 to fd91027799**, so the delta cannot be attributed to the charge alone:
+- the renewal desk and the value-based arm read the new charge;
+- the arrears engine;
+- the DD level collection book;
+- household segments.
+
+**Prediction on the fd91027799 book.** The same ×1.859 repricing, applied to 5200cd6239's cost to serve:
+1. Cost to serve **about £449k** (band £420k–£480k).
+2. Margin 15.85% → **about 9.3%** (band 8.8%–9.9%), if revenue stays within ±3% of £3.19M.
+
+**Falsifiers.**
+- A margin above 9.9% with cost to serve in its band means revenue moved. The renewal desk pricing to the higher
+  charge is the first suspect.
+- A cost to serve outside its band refutes the leg-month proxy, as in the original falsifier.
