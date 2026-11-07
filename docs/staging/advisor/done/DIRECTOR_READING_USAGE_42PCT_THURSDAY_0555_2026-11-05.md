@@ -25,3 +25,22 @@
   - the cold read only on a book that carries new fixes.
 - **The 9 Nov publish must run.** Leave headroom for the Monday run and its grading before the 03:00 reset.
 - **Last weekend the director reserved weekend headroom (from 80%).** He has not asked for that this week. If he does, a reading will say so.
+
+## Done
+
+Actioned Sat 7 Nov at 15:26Z by a worker tick, through the dial. This is 2.4 days after the
+reading: no earlier tick had drawn it.
+
+    python3 -m background.tick_mode slow --until 2026-11-09T03:00Z --then normal
+
+- **Why slow, and why now.** The reading projected 100% around early Saturday afternoon at the
+  working rate. It is now Saturday afternoon. No later reading exists, so I cannot say where usage
+  stands, and I have not estimated it. `slow` spaces worker-tick and seat-executor spawns 4h apart
+  and delivery-seat 12h apart. That is the dial's nearest setting to "hold about 0.6 an hour", and
+  it protects headroom for the 9 Nov run and publish. At 03:00Z on Monday the dial reverts to normal
+  by itself, ahead of the run.
+- **Correctness stays first.** Nothing about the order changed. The other advisor steers sit behind
+  the correctness exit test, or are due at the 11 Nov review, and none of them was fanned out.
+- **Not added to `POINT_READINGS`.** That list has stopped at 25 Oct, and 42% was read after the
+  2 Nov reset. One point after a reset gives `usd_per_point()` nothing it can fit.
+- **To reverse:** `python3 -m background.tick_mode normal`.

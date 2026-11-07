@@ -14,6 +14,7 @@ This directory is the company's institutional memory. It captures:
 | `knowledge_map.md` | Master map: domain → what we know → confidence → gaps → next questions |
 | `research_methodology.md` | How to run R&D sessions efficiently; agent briefing patterns that work |
 | `source_guide.md` | Authoritative sources by topic: URLs, quality ratings, update frequency |
+| `reading_log.md` | External sources on software, product and AI practice: claim, evidence grade, verdict, what was done |
 | `domain/` | Deep dives by domain (created as knowledge grows) |
 
 ## How this directory grows

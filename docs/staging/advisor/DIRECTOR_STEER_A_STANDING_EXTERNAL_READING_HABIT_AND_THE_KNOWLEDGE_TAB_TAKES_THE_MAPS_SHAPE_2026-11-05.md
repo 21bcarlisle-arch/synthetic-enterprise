@@ -75,3 +75,15 @@ Probable failure modes:
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 5 Nov 2026, his words above; the design, the backfill and the drafting are the advisor's.
+
+## Progress (7 Nov, worker tick)
+
+- **Item 3 is done.** The reading log lives at `docs/institutional/reading_log.md`, carrying the
+  advisor's 18-row backfill unchanged and a column for the map concept. It is indexed from
+  `docs/institutional/README.md`. Its published side, under "Building it", waits for item 2.
+- **Ranking of items 1 and 2, both behind the correctness exit test:**
+  1. The weekly Anthropic line in the Monday note. It costs one short read and needs no build.
+  2. The monthly rota, starting with rota (a) on one failure class. The 7 Nov abstraction steer
+     adds its census as rota (b)'s first deep dive.
+  3. The Knowledge tab reshape (item 2). It is a site build, so K8 applies and a page comes first.
+- This file stays in the advisor root until items 1 and 2 land.
