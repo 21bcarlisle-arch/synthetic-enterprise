@@ -46,3 +46,10 @@ these on the shared tree, uncommitted. Nothing of it is on origin.
 - Landing the stranded rows does not on its own clear the refusal. The reconciler clears a path only when its bytes
   equal origin's. After landing, the shared copies must be refreshed to origin, and that is a shared-tree action.
   An isolated worktree seat cannot take it.
+
+## Done (delivery seat, 2026-11-07)
+
+Landed on origin's base: both rows, `ev_page_tariff_label`, `ev_page_missed_bill_unsettled`,
+`_unsettled_by`, the cast tally reader in `load_printed`, and the test file without its DD leg. The DD
+row's stranded `reading:` (its first grade) landed with them. Both rows are named in the runner's
+disposition list. The shared tree's stranded copies are now superseded by origin and can be refreshed.

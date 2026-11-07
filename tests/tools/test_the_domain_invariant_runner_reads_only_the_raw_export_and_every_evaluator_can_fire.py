@@ -106,6 +106,8 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR": "needs month-pairs a year apart; every leg tested in test_a_metered_month_moves_from_last_years_like_a_household.py",
     "INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD": "needs month-pairs a year apart; every leg tested in test_a_metered_month_moves_from_last_years_like_a_household.py",
     "INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE": "reads printed Day/Night bills; every case tested in test_an_economy_7_default_bill_and_its_page_note_are_graded_on_the_multi_register_cap.py",
+    "INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM": "reads printed household pages; every leg tested in test_a_household_page_prints_the_billed_term_and_counts_only_unsettled_bills_missed.py",
+    "INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED": "reads the Explore cast's printed tallies; every leg tested in test_a_household_page_prints_the_billed_term_and_counts_only_unsettled_bills_missed.py",
 }
 
 

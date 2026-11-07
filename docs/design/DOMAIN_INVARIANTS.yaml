@@ -4222,3 +4222,100 @@ invariants:
     company/billing/dd_collections_desk, dd_review, annual_consumption_estimate; simulation/bacs_rails, arrears_engine, dd_shock_response (PB4 15% trigger); bill_assembly.owed_after_scheme_credit
     and ''the world nets the credit from the month''s collection''; the 4669d77ddd reading (33,996 of 35,306 DD collections, 96.3%, at the bill; a level amount set for 934 accounts and collected
     on 4 collections, 0 accounts) and a staging records file name.'
+  reading: >-
+    Graded from 2026-11-05 (ev_dd_collections_equal_to_the_bill) on Leg A alone, from the ledger's bill record: x1-x4, EQUAL gross or net of scheme
+    credit (deemed_share is not in the bill record, so d = 0), COINCIDENT-LEVEL against the neighbouring graded collections, and a 95% Wilson interval
+    over contributing accounts. Legs B and C and the class partition are not built; with Leg A inside its bound the row reads FLAGGED, never clean. First
+    reading, the published book (predates the level schedule): BREACH, 33,655 of 34,067 graded collections track the bill (0.988), 923 accounts.
+- id: INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM
+  family: tariff_terms
+  grades: invoice
+  counts:
+    numerator: bills on household pages whose printed tariff_name contradicts every contracted term in force on any day of the bill's period
+    denominator: bills printed on household pages that carry a tariff_name
+    unit graded: one issued bill (one fuel, one billing period)
+  statement: >-
+    The tariff a household page prints beside a bill names the contracted term that charged that bill. "Fixed (<fuel>)" appears only where a fixed term was in force during the
+    period; "Standard Variable (<fuel>)" only where the default tariff (svt) was. The bill's own term_tariff_type is one of the periods.contracted_terms overlapping the period. An
+    account-level label that is not true of the bill (the objection: fixed-term bills labelled "Standard Variable") breaches. A period that crosses a term change was charged under
+    two terms; a label naming only one of them is not false but hides a change the bill must show, so it is flagged, not breached.
+  predicate: >-
+    For each bill b with period [s, e]: T(b) = the contracted_terms of b's account with tariff_effective_from <= e and (tariff_effective_to is null or >= s). (1) BREACH if
+    b.term_tariff_type is not in {t.tariff_type for t in T(b)}. (2) BREACH if b.tariff_name's family (Fixed -> fixed; Standard Variable -> svt) is not in that set. (3) BREACH if the
+    fuel in tariff_name is not the bill's fuel. (4) FLAG if |T(b)| >= 2 and the page names one term with no change date: 31H.12(d) requires the bill to show the change and its
+    date; no rule says how a single summary label reads across a change (GAP). (5) FLAG where term_tariff_type is deemed, flex or pass_through: no source read sets their printed
+    name (GAP).
+  lower: null
+  upper: null
+  source: >-
+    docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md: "If the customer does nothing, they move to a default tariff." and "In practice the rollover lands on the SVT"
+    (SLC 22C.7); "SLC 31H.12(d) [H]: \"if the Domestic Supply Contract or Deemed Contract provides for a further change of the product or price this must be indicated on the bill
+    together with the date on which the change takes place.\""; "SLC 31H.1 and 31H.12(b) [H]: the bill must let the household \"understand and manage the costs associated with
+    their Tariff\""; "A period that crosses a term change prints one usage line per contracted rate"; "GAP, the line layout." | docs/market_research/company_debt_management.md:
+    SLC 0, information to a domestic customer must be "complete, accurate and not misleading". Cold read eight, O33 and O34 (PROS-2016-0187, SYN-2016-185).
+  severity:
+    term_not_in_force: breach
+    printed_name: breach
+    fuel: breach
+    term_changed_mid_bill: flag
+    name_unmapped: flag
+    label_not_read: flag
+  export_fields:
+  - periods.contracted_terms
+  - printed_invoices
+  checkable: true
+  written_by: blind agent, 2026-11-05; read only docs/market_research (grepped excerpts) and this row's brief; opened nothing under tools/, company/, simulation/, saas/, sim/, site/explore/ or tests/
+  files_read:
+  - docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md
+  - docs/market_research/company_debt_management.md
+  reading: >-
+    Graded from 2026-11-05 (ev_page_tariff_label) on each published page's `invoices[].tariff_name` against the raw export's contracted terms. The page's Priced stage prints the
+    label of the bill it reads; site/explore/test_the_priced_stage_tariff_door.py drives that stage over every page. First reading, 2026-11-05, the published book (52,828 bills, 1,293 pages): 0 breached of 46,473 bills graded, 997 flagged (2.1%), all "term changed
+    mid-bill", 0 unbounded. Before the page fix there was no per-bill label to grade; the door drove HEAD's page over HEAD's files and found 864 of 1,293 Priced panels printing a
+    kind the bill did not record.
+- id: INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED
+  family: collections_sequence
+  grades: page
+  counts:
+    numerator: household tallies whose printed M ("N of D bills paid, R returned, M missed") exceeds the number of that household's bills that asked a positive amount and were not settled in their window
+    denominator: household tallies printed ("N of D bills paid, R returned, M missed"), one per Explore cast moment
+    unit graded: one printed tally, checked against the household's own bills due before the moment
+  statement: >-
+    A bill counts as missed only if it asked the household for a positive amount and that amount was not met by its due date. The amount asked is the charge less the account credit
+    netted onto it, Energy Bills Support Scheme credit included. The window runs from issue to due date, both inclusive. A credit bill and a bill whose asked amount is £0 after
+    netting are never missed. A bill met in full in its window is never missed, by cash or by credit already on the account. A bill whose direct debit was returned and which was not
+    otherwise met by its due date stays missed even if a later credit bill or payment clears it. The over-count shape (one failed payment, "7 missed") breaches.
+  predicate: >-
+    For each tally and each bill b of the household due before it: asked(b) = b.total_amount_gbp - account credit (EBSS included) netted onto b on or before b.due_date; met(b) =
+    cash landing on b in [b.issue_date, b.due_date] + that credit. unsettled(b) = asked(b) > 0 and met(b) < asked(b). BREACH if printed M > count{unsettled}. Credit applied after
+    the due date (credit_applied_gbp from a later credit bill against a returned DD) does not enter met(b). FLAG (GAP) if a bill was part-paid in its window. FLAG if printed M <
+    count{unsettled}: not this row's objection, but the same definition implies it.
+  lower: null
+  upper: null
+  source: >-
+    docs/market_research/debt_and_collections.md §7.5: "A bill is missed from the day after its due date if no payment landed on it by that date. A later payment does not un-miss it,
+    though it cures the journey."; "No licence condition defines a \"missed payment\"." (GAP); "How a part-paid bill should count ... Not published." | docs/market_research/company_debt_management.md:
+    "A bill counts as newly missed for the re-offer only when the cash that landed on the account between its issue and its due date, both inclusive, is short of the bill."; "A bill
+    that asked £0 cannot be missed."; "The export's `credit_applied_gbp` on a failed bill is that later credit, not money that landed in the window"; "Telling a household that paid
+    a bill in full on its due date that it missed that bill is not accurate." | docs/market_research/energy_bills_support_scheme_delivery.md: "What changes is what the household
+    owes." | docs/market_research/payments_and_direct_debit_2026-10-25.md: "a DD has two outcomes on its date: collected, or returned." Cold read eight, O4 (SYN-2016-592).
+  severity:
+    counted_missed_when_settled: breach
+    fewer_missed_than_unsettled: flag
+    part_paid_in_window: flag
+  export_fields:
+  - bill_record
+  - payment_tallies
+  checkable: true
+  written_by: blind agent, 2026-11-05; read only docs/market_research (grepped excerpts) and this row's brief; opened nothing under tools/, company/, simulation/, saas/, sim/, site/explore/ or tests/
+  files_read:
+  - docs/market_research/debt_and_collections.md
+  - docs/market_research/company_debt_management.md
+  - docs/market_research/payments_and_direct_debit_2026-10-25.md
+  - docs/market_research/home_moves.md
+  - docs/market_research/energy_bills_support_scheme_delivery.md
+  reading: >-
+    Graded from 2026-11-05 (ev_page_missed_bill_unsettled) on the Explore cast's printed tallies (explore_cast.json beside --printed) against the ledger's bill record. The
+    credit netted onto a bill is read as by its due date unless a collection on it failed, the source's own reading of `credit_applied_gbp`. First reading, 2026-11-05: 4 breached of 26 tallies on the cast committed at d14ff599e. All four are SYN-2016-368, whose bills Energy Bills Support Scheme credit
+    met on their due dates, printed "4 missed" and "5 missed". That cast predates the N15 generator fix (8d99f4d31c). On the cast that generator writes from the same
+    book: 0 of 26, 0 flagged, and it lands beside this row.

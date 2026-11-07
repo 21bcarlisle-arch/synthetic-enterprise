@@ -85,6 +85,9 @@ def load_invariants(path: Path = INVARIANTS_PATH) -> list[dict]:
     return yaml.safe_load(path.read_text())["invariants"]
 
 
+_TALLY = re.compile(r"(\d+) of (\d+) bills paid, (\d+) returned, (\d+) missed")
+
+
 def load_printed(customers_dir: Path) -> dict[str, dict]:
     """customer_id -> what the customer page prints for it, read from the published per-customer
     files (`site/data/customers/<id>.json`), not rebuilt: the bills as the page renders them, the
@@ -139,7 +142,18 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
                 runs[(slot.get("household"), words[1])].append(
                     {"n": int(words[0]), "iso": m.get("iso"),
                      "never_read": "since the household joined" in str((m.get("gap") or {}).get("truth"))})
+    # The cast's "N of D bills paid, R returned, M missed", per moment, on the household's page.
+    tallies = defaultdict(list)
+    for slot in ((json.loads(cast.read_text()).get("slots") or ()) if cast.exists() else ()):
+        for m in slot.get("moments") or ():
+            for row in [r for v in m.values() if isinstance(v, list) for r in v if isinstance(r, dict)]:
+                hit = _TALLY.match(str(row.get("v") or "")) if row.get("k") == "Payment record" else None
+                if hit:
+                    tallies[slot.get("household")].append({"iso": m.get("iso"), "missed": int(hit.group(4))})
+                    break
     for cid, pr in out.items():
+        if cid == pr.get("household") and tallies.get(cid):
+            pr["payment_tallies"] = tallies[cid]
         pr["estimate_runs"] = runs.get((pr.get("household"), pr.get("commodity")), [])
         pr["panel_meters"] = {"header": pr.get("meter_type")}
         if cid in sample_rows:
@@ -2615,6 +2629,111 @@ def grade_cast_tariff_labels(cast_path: Path, raw_book: dict[str, dict]) -> Tall
     return ev_cast_tariff_label(None, accounts)
 
 
+_PRINTED_KIND = (("standard variable", "svt"), ("fixed", "fixed"), ("deemed", "deemed"),
+                 ("flexible", "flex"), ("pass-through", "pass_through"))
+
+
+def ev_page_tariff_label(inv, book):
+    """Each printed bill against the contracted terms the export records over its period. Breach: the
+    bill's own `term_tariff_type`, or the kind its `tariff_name` prints, is not a term in force over
+    the period, or the label names another fuel. Flag: the period crosses a term change and the
+    label names one term; the term is deemed, flex or pass-through (no source sets their printed
+    name); the label cannot be read. A bill with no label or no term over its period is not graded."""
+    tally = Tally("printed bill with a tariff label")
+    for a in book:
+        if not a.printed or a.start is None:
+            continue
+        terms = a.terms()
+        for b in a.printed.get("invoices") or ():
+            label = b.get("tariff_name")
+            if not label or (b.get("document_type") or "bill") != "bill":
+                continue
+            lo, hi = _d(b.get("period_start") or b["date"]), _d(b.get("period_end") or b["date"])
+            held = {t.get("tariff_type") for t in terms if t["_from"] <= hi and lo <= (t["_last"] or a.end)}
+            if not held:
+                tally.unbounded += 1
+                continue
+            tally.checked += 1
+            where = "{} {} {}".format(a.cid, b.get("date"), label)
+            kind = next((k for w, k in _PRINTED_KIND if str(label).lower().startswith(w)), None)
+            fuel = str(b.get("commodity") or a.fuel or "")
+            if b.get("term_tariff_type") not in held:
+                tally.hit("breach", where, b.get("term_tariff_type"), sorted(held), "term not in force")
+            elif kind is not None and kind not in held:
+                tally.hit("breach", where, kind, sorted(held), "printed name")
+            elif fuel and "({})".format(fuel.capitalize()) not in label:
+                tally.hit("breach", where, label, fuel, "fuel")
+            elif kind is None:
+                tally.hit("flag", where, label, sorted(held), "label not read")
+            elif len(held) > 1:
+                tally.hit("flag", where, kind, sorted(held), "term changed mid-bill")
+            elif kind in ("deemed", "flex", "pass_through"):
+                tally.hit("flag", where, kind, sorted(held), "name unmapped")
+    return tally
+
+
+def _unsettled_by(accts, on: date) -> tuple[int, int]:
+    """(bills that asked a positive sum and were not met by their due date, part-paid ones among
+    them) across a household's legs, for bills due before `on`. Met = cash that landed on the bill
+    from issue to due date, both inclusive, plus scheme credit dated by the due date, plus the
+    credit netted onto it unless a collection on it failed (then that credit is a later credit
+    bill's, `company_debt_management.md`)."""
+    missed = part = 0
+    for a in accts:
+        rec = a.bill_record or {}
+        pays = defaultdict(list)
+        for p in rec.get("payments") or ():
+            pays[p.get("invoice_number")].append(p)
+        for b in rec.get("invoices") or ():
+            if (b.get("document_type") or "bill") != "bill" or not b.get("due_date") or not b.get("issue_date"):
+                continue
+            due, issued = _d(b["due_date"]), _d(b["issue_date"])
+            if due >= on:
+                continue
+            rows = pays.get(b.get("invoice_number"), ())
+            asked = b.get("total_amount_gbp") or 0.0
+            if not any(p.get("outcome") == "failed" for p in rows):
+                asked -= b.get("credit_applied_gbp") or 0.0
+            asked -= sum(p.get("scheme_credit_gbp") or 0.0 for p in rows if _d(p["payment_date"]) <= due)
+            if asked <= 0.005:
+                continue
+            cash = sum(p.get("amount_gbp") or 0.0 for p in rows
+                       if p.get("outcome") == "success" and issued <= _d(p["payment_date"]) <= due)
+            if cash < asked - 0.005:
+                missed += 1
+                part += cash > 0.005
+    return missed, part
+
+
+def ev_page_missed_bill_unsettled(inv, book):
+    """Each printed "M missed" on a household's cast moments against the household's bills that were
+    unsettled at their due date, dated before the moment. More printed than unsettled breaches;
+    fewer is a flag, and so is a moment where a part-paid bill makes the count ambiguous (GAP)."""
+    tally = Tally("Explore cast moment printing a household payment tally")
+    by_hh = defaultdict(list)
+    for a in book:
+        if a.printed:
+            by_hh[a.printed.get("household")].append(a)
+    for hh, accts in by_hh.items():
+        home = next((a for a in accts if a.cid == hh), None)
+        if home is None or not home.printed.get("payment_tallies"):
+            continue
+        if not all(a.bill_record for a in accts):
+            tally.unbounded += len(home.printed["payment_tallies"])
+            continue
+        for t in home.printed["payment_tallies"]:
+            tally.checked += 1
+            unsettled, part = _unsettled_by(accts, _d(t["iso"]))
+            where = "{} {}".format(hh, t["iso"])
+            if t["missed"] > unsettled:
+                tally.hit("breach", where, t["missed"], unsettled, "counted missed when settled")
+            elif t["missed"] < unsettled:
+                tally.hit("flag", where, t["missed"], unsettled, "fewer missed than unsettled")
+            elif part:
+                tally.hit("flag", where, t["missed"], unsettled, "part-paid in window")
+    return tally
+
+
 #: invariant ID -> (evaluator, the export field it needs on some period or account, or None)
 def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     centre, half = (k + z * z / 2) / (n + z * z), z * math.sqrt(k * (n - k) / n + z * z / 4) / (n + z * z)
@@ -2855,6 +2974,8 @@ EVALUATORS = {
     "INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE": (ev_dd_collections_equal_to_the_bill, "bill_record"),
     "INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR": (ev_gas_monthly_use_repeat, None),
     "INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD": (ev_elec_monthly_use_moves, None),
+    "INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM": (ev_page_tariff_label, "printed_invoices"),
+    "INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED": (ev_page_missed_bill_unsettled, "payment_tallies"),
 }
 
 
