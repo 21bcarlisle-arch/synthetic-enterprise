@@ -1159,6 +1159,50 @@ def findings_now() -> dict:
             "blocking": by_sev.get("BLOCKING", []), "unclassified": by_sev.get("UNCLASSIFIED", [])}
 
 
+def live_alarms(staging_dir: Path | None = None) -> dict:
+    """Every live repeating-alarm document BY NAME, newest observation first.
+
+    `findings_now()` names only BLOCKING and UNCLASSIFIED documents and COUNTS the rest, and
+    `alarm_repetition` files at LATENT. So a firing alarm reached the seat as one of eighteen
+    LATENTs: the 7 Nov fork-open filing (17:31 UTC, live for 13 days by its own counts) was on
+    the shared tree's filesystem when the 18:48 orientation globbed it, and absent from its
+    record. The filing being untracked was NOT the gap -- this process runs on the shared tree
+    and reads the filesystem. The gap was the brief naming it. Fail-soft like every brief field.
+    """
+    try:
+        from background import alarm_repetition as ar
+        rows = []
+        for path in ar.alarm_documents(staging_dir or STAGING_DIR):
+            counts = ar.document_counts(path)
+            rows.append({"name": path.name, "room": path.parent.name,
+                         "first": counts.first, "last": counts.last, "days": counts.days})
+    except Exception as exc:
+        return {"available": False, "why": repr(exc)}
+    rows.sort(key=lambda r: (r["last"] or "", r["name"]), reverse=True)
+    return {"available": True, "alarms": rows}
+
+
+def _render_live_alarms(block: dict | None) -> str:
+    """The live alarms as lines the seat reads, ABOVE the JSON so no truncation can drop them."""
+    if not block:
+        return ""
+    if not block.get("available", False):
+        return ("\n\nTHE LIVE REPEATING ALARMS COULD NOT BE READ ({}) -- so whether one is firing "
+                "now is NOT known, and silence below is not evidence that none is.".format(
+                    block.get("why", "unknown")))
+    rows = block.get("alarms") or []
+    if not rows:
+        return "\n\nNO REPEATING ALARM is live in the staging root or in_progress/."
+    return (
+        "\n\nLIVE REPEATING ALARMS, newest observation first. Each is a condition a daemon saw "
+        "hold again and again; a recent `last` is a condition holding NOW. They file at LATENT, "
+        "so the severity counts below hide them. Read any whose `last` is today before writing "
+        "focus; one your focus leaves alone should be left by choice, not by not seeing it:\n\n"
+        + "\n".join("  last {}  {:>3} day(s) since {}  {}{}".format(
+            r.get("last") or "?", r.get("days", 0), r.get("first") or "?", r["name"],
+            "" if r.get("room") == "staging" else f" ({r.get('room')}/)") for r in rows))
+
+
 def staging_flow() -> dict:
     """Is the work queue draining or silting up? The FOLDER, not the documents in it.
 
@@ -1842,6 +1886,7 @@ def build_brief(now: datetime | None = None) -> dict:
         # the console seat happened to remember it.
         "unlanded_worktree_commits": _unlanded_worktree_commits(),
         "findings": findings_now(),
+        "live_alarms": live_alarms(),
         "levels_moved": moved,
         "levels_recorded": levels_recorded_since(since),
         # A ROW THE MAP CANNOT SEE MOVING IS WORSE THAN ONE THAT DID NOT MOVE. `levels_moved` and
@@ -2373,6 +2418,7 @@ def _prompt(brief: dict) -> str:
         + _lane_crash_sentence(running)
         + running_sentence
         + ended_sentence
+        + _render_live_alarms(brief.get("live_alarms"))
         + "\n\n" + _render_unlanded(brief.get("unlanded_worktree_commits"))
         + "\n\nWHAT THE STRETCH ABOVE WAS MEASURED OVER. Everything you are about to grade -- the "
           "commits, the substantive count, the shape -- was read from HEAD *and* origin/main "
