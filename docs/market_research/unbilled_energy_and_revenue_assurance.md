@@ -1487,6 +1487,9 @@ estimate with a figure the supplier already held.
 - Before any read only. An estimate made from the registry figure after a read that spans too
   little to replace it is left to §4d, which compares it with the measured rate. **Open:** whether
   the registry should also answer there.
+  **Answered for electricity, 7 Nov 2026:** yes. BSCP504's expected advance is the EAC times the
+  profile whatever the read history, and an electricity bill within twice it now passes the ceiling
+  itself, so this release is reached only by gas (`how_far_a_settled_eac_sits_from_next_years_use.md` §5).
 
 ### 4e. A meter already on supply is exchanged for a smart one (2026-10-21, K8 for W2 / D48)
 

@@ -312,12 +312,27 @@ RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY = RangeInvariant(
     # kWh/month, BILL_CORRECTNESS_ADDENDUM.md) -- comfortable margin above
     # genuine domestic variation, still catches that exact defect class
     # (an SME account mislabeled resi) if it recurs.
+    # NAMED SIMPLIFICATION (2026-11-07): `high` is a population screen with no published source. It
+    # is not what real validation compares a read against: BSCP504's data collector fails an advance
+    # over twice the meter's OWN expected advance (READ_VALIDATION_EXPECTED_ADVANCE_THRESHOLD below).
+    # To do it properly, the supplier would hold the data collector's current EAC (each D0019 moves
+    # it); the company holds only the EAC it was handed at registration. So the meter's figure LIFTS
+    # this screen (`domestic_bill_ceiling_kwh`) and never lowers it: lowered, it would hold the bills
+    # of homes whose use has grown since registration (SYN-2016-050, SYN-2016-487 on the fd91027799
+    # book). The error runs lenient for a meter registered light whose use has grown since.
     source=(
-        "high: observed sim population + headroom, below C6's real SME 2,346.8 kWh/month; "
+        "high: observed sim population + headroom, below C6's real SME 2,346.8 kWh/month (a named "
+        "simplification; lifted per meter by its registered EAC, BSCP504 App. 4.2 step 5); "
         "low: no published per-bill floor exists, so physical zero"
     ),
     low=0.0, high=2100.0, unit="kWh/~30 days",
 )
+# BSCP504 v.2025-09-22 (Elexon, NHH data collection), the "Validate" appendix (4.2), step 5: "Check
+# consumption/generation does not exceed twice the expected advance. (using the EAC times the Profile
+# Coefficient, or some other equivalent method.)" Electricity only: the gas tolerances sit in the UNC
+# Validation Rules document (TPD M5.3.3), not found -- a GAP. Knowledge page:
+# docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md section 5.
+READ_VALIDATION_EXPECTED_ADVANCE_THRESHOLD = 2.0
 RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY = RangeInvariant(
     id="resi_consumption_envelope_gas_monthly",
     description="Plausible per-bill (~30 day) resi gas consumption",
@@ -1310,8 +1325,28 @@ def check_vat(
     return invariant.check(actual_rate) and abs(actual_rate - expected) <= invariant.tolerance
 
 
+def domestic_bill_ceiling_kwh(
+    commodity: str, days_in_period: float, expected_kwh: Optional[float] = None
+) -> float:
+    """The most kWh a domestic bill of this period passes the ceiling checks with.
+
+    The population screen scaled to the period, lifted for electricity to twice the meter's own
+    expected advance (`expected_kwh`: its registered EAC times the profile for these days) where that
+    is higher -- BSCP504's read-validation rule. A storage-heated home's winter month is what its
+    meter is registered to use, not a business (SYN-2016-175: 2,152 kWh in Dec 2016 on an EAC of
+    18,721.5). Never lowered by the meter's figure (see the envelope's simplification note)."""
+    envelope = (
+        RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY if commodity == "electricity"
+        else RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY
+    )
+    screen = envelope.high * (days_in_period / _DAYS_PER_MONTH)
+    if commodity == "electricity" and expected_kwh is not None and expected_kwh > 0:
+        return max(screen, READ_VALIDATION_EXPECTED_ADVANCE_THRESHOLD * expected_kwh)
+    return screen
+
+
 def consumption_implied_vat_rate(
-    commodity: str, kwh: float, days_in_period: float
+    commodity: str, kwh: float, days_in_period: float, expected_kwh: Optional[float] = None
 ) -> Optional[float]:
     """The VAT rate IMPLIED by metered consumption alone, independent of the
     bill's declared `segment` label -- the independent signal the vat_by_segment
@@ -1342,12 +1377,7 @@ def consumption_implied_vat_rate(
         return None
     if kwh <= 0 or days_in_period <= 0:
         return None
-    envelope = (
-        RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY if commodity == "electricity"
-        else RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY
-    )
-    domestic_ceiling = envelope.high * (days_in_period / _DAYS_PER_MONTH)
-    if kwh > domestic_ceiling:
+    if kwh > domestic_bill_ceiling_kwh(commodity, days_in_period, expected_kwh):
         return VAT_SME.value
     return VAT_RESIDENTIAL.value
 
@@ -1358,8 +1388,15 @@ def check_vat_consistent_with_consumption(
     actual_vat_rate: float,
     kwh: float,
     days_in_period: float,
+    expected_kwh: Optional[float] = None,
 ) -> bool:
     """Independent cross-check for the `vat_by_segment` Tier-1 control.
+
+    `expected_kwh` (the meter's registered expectation for the period) is passed only for a supply
+    address on the council tax list: a dwelling takes the reduced rate at any volume (HMRC Notice
+    701/19 s.3.2.1), so there the volume can only say the meter is a heavy domestic one. Off the
+    list it is not passed, so a business premise on a domestic label, whose registry figure is
+    business-sized, is still caught by the screen (the C6 class).
 
     The arithmetic `check_vat()` above compares the bill's VAT rate to the rate
     its OWN `segment` label implies. Both sides are the same function of the
@@ -1378,7 +1415,7 @@ def check_vat_consistent_with_consumption(
     low consumption cannot refute a business label without false-positiving
     every microbusiness. Honest signal strength: strong in one direction only,
     which is why the flag is a hard HELD only for the well-anchored direction."""
-    implied = consumption_implied_vat_rate(commodity, kwh, days_in_period)
+    implied = consumption_implied_vat_rate(commodity, kwh, days_in_period, expected_kwh)
     if implied is None or implied == VAT_RESIDENTIAL.value:
         # No usable signal, or the weak (non-flaggable) direction: consumption
         # looks domestic, which a genuine small business also does.
@@ -1402,7 +1439,9 @@ def check_resi_consumption_plausible(fuel: str, annual_kwh: float) -> bool:
     return invariant.check(annual_kwh)
 
 
-def check_resi_bill_consumption_plausible(fuel: str, kwh: float, days_in_period: float) -> bool:
+def check_resi_bill_consumption_plausible(
+    fuel: str, kwh: float, days_in_period: float, expected_kwh: Optional[float] = None
+) -> bool:
     """Per-bill plausibility check for a sub-annual billing period. Scales
     the monthly-equivalent envelope by the period's actual length rather
     than annualizing the observed value and comparing to an annual band --
@@ -1413,7 +1452,8 @@ def check_resi_bill_consumption_plausible(fuel: str, kwh: float, days_in_period:
         else RESI_CONSUMPTION_ENVELOPE_GAS_MONTHLY
     )
     scale = days_in_period / _DAYS_PER_MONTH
-    return invariant.low * scale <= kwh <= invariant.high * scale
+    return (invariant.low * scale <= kwh
+            <= domestic_bill_ceiling_kwh(fuel, days_in_period, expected_kwh))
 
 
 _BACK_BILLING_LIMIT_DAYS = 365

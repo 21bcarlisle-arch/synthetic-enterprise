@@ -218,13 +218,18 @@ def validate_bill(bill: dict) -> BillValidationResult:
     # honest design (see check_vat_consistent_with_consumption docstring) -- it
     # never flags a business rate on domestic-scale consumption, because a
     # genuine microbusiness looks identical there.
+    # The meter's registered expectation for these days lifts both ceilings to BSCP504's twice the
+    # expected advance (domain_invariants.domestic_bill_ceiling_kwh); the VAT half only on a listed
+    # dwelling (HMRC 701/19 s.3.2.1). how_far_a_settled_eac_sits_from_next_years_use.md section 5.
+    expected = _registry_share_kwh(bill)
+    vat_expected = expected if bill.get("premise_council_tax_listed") is True else None
     if actual_vat is not None:
         vat_kwh = bill.get("total_consumption_kwh", 0.0)
         vat_days = _days_in_period(bill)
         if not check_vat_consistent_with_consumption(
-            segment, commodity, actual_vat, vat_kwh, vat_days
+            segment, commodity, actual_vat, vat_kwh, vat_days, vat_expected
         ):
-            implied = consumption_implied_vat_rate(commodity, vat_kwh, vat_days)
+            implied = consumption_implied_vat_rate(commodity, vat_kwh, vat_days, vat_expected)
             scale_reasons += 1
             reasons.append(
                 f"vat_by_segment: declared segment={segment!r} (VAT {actual_vat:.4f} "
@@ -237,7 +242,7 @@ def validate_bill(bill: dict) -> BillValidationResult:
     if segment == "resi":
         days = _days_in_period(bill)
         kwh = bill.get("total_consumption_kwh", 0.0)
-        if not check_resi_bill_consumption_plausible(commodity, kwh, days):
+        if not check_resi_bill_consumption_plausible(commodity, kwh, days, expected):
             scale_reasons += 1
             reasons.append(
                 f"slc_6_7_billing_accuracy: {kwh:.1f} kWh over {days:.0f} days is implausible "
@@ -461,8 +466,11 @@ def _registry_share_kwh(bill: dict) -> float | None:
     commodity = bill.get("commodity", "electricity")
     if not annual or annual <= 0:
         return None
-    start = dt.date.fromisoformat(bill["period_start"])
-    end = dt.date.fromisoformat(bill["period_end"])
+    try:
+        start = dt.date.fromisoformat(bill["period_start"])
+        end = dt.date.fromisoformat(bill["period_end"])
+    except (KeyError, TypeError, ValueError):
+        return None  # an unreadable period lifts nothing; check_bill_period_sane holds it
     key = "eac_kwh" if commodity == "electricity" else "aq_kwh"
     shares = [opening_estimate_kwh(commodity, {key: annual}, start, end)]
     if commodity == "electricity":

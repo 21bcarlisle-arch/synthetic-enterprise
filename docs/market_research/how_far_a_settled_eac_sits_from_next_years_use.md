@@ -7,6 +7,7 @@ world currently gives a fabric premise's registry EAC **zero read error**
 (`SEAT_FINDING_A_FABRIC_PREMISES_REGISTRY_EAC_IS_NOW_ITS_OWN_READS_..._2026-10-01.md`), and that
 assumption alone now sets year-one bill shock. Sections 1-3 are knowledge only: **no world
 change follows from them here.** §4 (4 Nov 2026) records the one that did, and why.
+§5 (7 Nov 2026) records what a domestic bill's ceiling check compares against, and the company change that followed.
 
 There are three questions:
 1. How far does a settled EAC sit from next year's actual use, by meter type?
@@ -220,6 +221,71 @@ whether a supplier's billing estimate in its first months follows the D0019 EAC,
    is a GAP above. With the registry carrying the home's use, the case behind it (an estimate held at the
    registry figure after a large read) loses its cause. If the next book still shows it, that becomes the
    question.
+
+## 5. What a domestic bill's ceiling check compares against (added 7 Nov 2026)
+
+**Asked by** the drawn item `the-billing-gate-scales-a-homes-electricity-by-its-own-meter`. On the
+fd91027799 book the exception queue holds 16 winter estimates on three listed, storage-heated homes
+(SYN-2016-175, SYN-2016-355, PROS-2017-0233; EACs 18.7-23.7 MWh). The company's pre-bill gate reads each
+one as a business: it compares the bill with a flat 2,100 kWh a month, a figure sourced as "observed sim
+population + headroom". Each held estimate is 0.91-1.18 times its own EAC spread by the PC1 shape, and
+exactly its EAC on the meter's PC2 register split. The holds are the whole cause of the carbon row's
+exception. Researched first-hand (FH) by a discovery pass on 7 Nov unless marked.
+
+**What is published (FH):**
+- **Electricity read validation is per meter, at twice the expected advance.** BSCP504 (NHH data
+  collection, effective 22 Sep 2025), "Validate" appendix (4.2, as extracted), step 5: "Check
+  consumption/generation does not exceed twice the expected advance. (using the EAC times the Profile
+  Coefficient, or some other equivalent method.)" A read over it fails validation, "except where it is
+  caused by a seasonal register Time Pattern Regime", and the data collector may set it valid "where good
+  reason exists". With no prior valid read, the expected advance may be the class-average EAC times the
+  coefficient, or an AA from reads either side. The per-class EAC/AA tolerances are in Market Domain Data,
+  behind a login. **GAP** for those numbers.
+- **Gas read validation is tolerance-banded against the meter, but the numbers are not found.** UNC TPD
+  Section M v6.24 §5.3.2-5.3.5: an inner band the user can override and an outer band it cannot, for
+  Class 2-4 meters checked by the user and then the CDSP. The values sit in the UNC Validation Rules
+  document (§5.3.3), not located. **GAP.**
+- **VAT follows the premise, not the volume.** HMRC Notice 701/19 §3.2.1: fuel for "genuine domestic use"
+  at a dwelling takes the reduced rate; the notice sets no volume limit on it (read from its absence). The
+  1,000 kWh a month (33 a day) electricity and 4,397 kWh a month (145 a day) gas thresholds of §5.2 and
+  §4.2 are the de minimis for business use only. (Also found: a temporary 0% rate on domestic electricity
+  in GB from 1 Oct 2026 to 30 Jun 2027. That is outside the 2016-2025 record and changes nothing here.)
+- **Not found:** any Ofgem, Citizens Advice or Energy UK statement of what a supplier's bill exception
+  queue compares a domestic bill against. **GAP.** The BSCP504 check is the industry's only published
+  per-meter comparison, and it is the data collector's, applied to reads.
+- **What storage-heated and direct-electric homes meter in a month: still GAP.** §4 holds the annual
+  evidence (BEIS/Element Energy modelled 9.7-21.9 MWh). No metered monthly peak share for electric heating
+  was found; the PC2 profile coefficients are the published shape.
+
+**What the design does, and why:**
+1. **The meter's registered EAC lifts the ceiling to BSCP504's rule.** For electricity the ceiling is the
+   larger of the population screen and twice the registry figure's share of the bill's days (the larger of
+   the PC1 shape and the PC2 register split, as §4f of `unbilled_energy_and_revenue_assurance.md` already
+   computes it). `company/compliance/domain_invariants.domestic_bill_ceiling_kwh`,
+   `READ_VALIDATION_EXPECTED_ADVANCE_THRESHOLD = 2.0`. Applying a data collector's read check to a
+   supplier's bill is our choice: it is the one published per-meter comparison.
+2. **It lifts and never lowers.** A real collector compares against the current EAC, which every advance
+   moves (§4). The company holds only the EAC it was handed at registration. Measured on the fd91027799
+   book: lowering the screen to 2x that figure would newly flag 46 electricity bills, all on two homes
+   (SYN-2016-050, SYN-2016-487) whose use has doubled since 2016. So the flat screen stays as the floor,
+   now labelled a named simplification. The error runs lenient for a meter registered light whose use has
+   grown.
+3. **The VAT half lifts only on a listed dwelling.** On the council tax list the premise is a dwelling, and
+   §3.2.1 gives it the reduced rate at any volume. Off the list, a business premise on a domestic label
+   has a business-sized registry figure, so lifting there would hide the C6 class. The screen stays.
+4. **Gas is unchanged.** No tolerance is published to us. 2x on the AQ would newly flag 202 gas bills on
+   the same book, mostly short spring reads, which is a reason not to borrow electricity's number.
+5. **Answers §4f's open question for electricity.** "Whether the registry should also answer there" (after
+   a read too short to replace it): yes, because BSCP504's expected advance is the EAC times the profile
+   whatever the read history. SYN-2016-175 is that case: one 23-day April read, then winter estimates at
+   its registry share, each above the spring rate §4d compared them with.
+
+**Sources (§5):** Elexon, BSCP504 *Non Half Hourly Data Collection for SVA Metering Systems Registered
+in SMRS*, effective 22 Sep 2025:
+https://bscdocs.elexon.co.uk/bsc-procedures/bscp504-non-half-hourly-data-collection-for-sva-metering-systems-registered-in-smrs
+· Joint Office, UNC TPD Section M v6.24 (18 May 2026):
+https://www.gasgovernance.co.uk/sites/default/files/related-files/2026-05/15%20TPD%20Section%20M%20-%20Supply%20Point%20Metering.pdf
+· HMRC, *VAT on fuel and power (Notice 701/19)*: https://www.gov.uk/guidance/vat-on-fuel-and-power-notice-70119
 
 ## Sources
 - DESNZ, *Subnational methodology and guidance booklet* (2026), §3.1.3 and "Annualised

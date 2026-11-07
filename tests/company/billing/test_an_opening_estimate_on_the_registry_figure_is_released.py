@@ -24,16 +24,18 @@ from company.billing.pre_bill_validation import (
 )
 
 EAC = 22909.7  # SYN-2016-582's registry figure
+AQ = 50000.0    # a large gas home: January's share, 8,525.9 kWh, is over the gas screen (8,147.2)
 
 
-def _bill(customer_id, start, end, kwh, basis="estimated", listed=True, registry=EAC):
-    """A resi electricity bill at 5% VAT that fails the ceiling on scale alone."""
+def _bill(customer_id, start, end, kwh, basis="estimated", listed=True, registry=EAC,
+          fuel="electricity"):
+    """A resi bill at 5% VAT that fails the population screen on scale alone."""
     days = (int(end[8:]) - int(start[8:])) + 1
     commodity = round(kwh * 0.15, 2)
     standing = round(days * 0.30, 2)
     vat = round((commodity + standing) * 0.05, 2)
     bill = {
-        "customer_id": customer_id, "segment": "resi", "commodity": "electricity",
+        "customer_id": customer_id, "segment": "resi", "commodity": fuel,
         "period_start": start, "period_end": end,
         "total_consumption_kwh": kwh, "commodity_amount_gbp": commodity,
         "non_commodity_amount_gbp": 0.0, "standing_charge_gbp": standing, "vat_gbp": vat,
@@ -47,32 +49,54 @@ def _bill(customer_id, start, end, kwh, basis="estimated", listed=True, registry
 
 def test_every_leg_of_the_registry_release_is_reachable():
     """Assert the release CAN be taken before asserting what each refusal does: a release that
-    refused everything would pass every refusal below. January's 2,633.2 kWh is the printed
-    estimate, and the registry figure's share of those 31 days to the tenth."""
+    refused everything would pass every refusal below.
+
+    Gas since 2026-11-07. An electricity bill no higher than its registry share now passes the ceiling
+    itself (BSCP504's twice the expected advance, `domestic_bill_ceiling_kwh`), so for electricity
+    this release is unreachable by construction; gas has no published tolerance and keeps the screen.
+    January's 8,525.9 kWh is the AQ's share of those 31 days."""
     jan = ("2017-01-01", "2017-01-31")
+    gas = dict(registry=AQ, fuel="gas")
     bills = [
-        _bill("AT", *jan, 2633.2),                         # the registry figure's own share
-        _bill("OVER", *jan, 2800.0),                       # above it: wrong in scale for this meter
-        _bill("STUB", "2017-01-25", "2017-01-31", 2633.2),  # a month's energy on a seven-day stub
-        _bill("NOFIGURE", *jan, 2633.2, registry=None),    # the TDCV stand-in, no measurement behind it
-        _bill("UNLISTED", *jan, 2633.2, listed=None),      # the mislabel half is unanswered
+        _bill("AT", *jan, 8525.8, **gas),                          # the registry figure's own share
+        _bill("OVER", *jan, 9000.0, **gas),                        # above it: wrong in scale for this meter
+        _bill("STUB", "2017-01-25", "2017-01-31", 8525.8, **gas),  # a month's energy on a seven-day stub
+        _bill("NOFIGURE", *jan, 8525.8, registry=None, fuel="gas"),  # the TDCV stand-in
+        _bill("UNLISTED", *jan, 8525.8, listed=None, **gas),       # the mislabel half is unanswered
     ]
     assert all(validate_bill(b).held and validate_bill(b).consumption_scale_only for b in bills)
     passing, held = validate_bills(bills)
     released = {b["customer_id"]: b["pre_bill_release"] for b in passing}
     assert list(released) == ["AT"]
     assert released["AT"]["outcome"] == ValidationOutcome.RELEASED_ON_REGISTRY_FIGURE.value
-    assert released["AT"]["registry_share_kwh"] == pytest.approx(2633.2, abs=0.05)
+    assert released["AT"]["registry_share_kwh"] == pytest.approx(8525.85, abs=0.05)
     assert sorted(r.customer_id for r in held) == ["NOFIGURE", "OVER", "STUB", "UNLISTED"]
 
 
+def test_an_electric_estimate_at_its_registry_share_passes_the_ceiling_and_a_stub_does_not():
+    """The electricity side of the same partition, on SYN-2016-582's figure: the share and a little
+    over it pass on the meter's own expectation; a month on a seven-day stub (over twice the expected
+    advance) and the same volume with no figure behind it stay held; off the council tax list the
+    VAT half still holds it."""
+    jan = ("2017-01-01", "2017-01-31")
+    assert not validate_bill(_bill("AT", *jan, 2633.2)).held
+    assert not validate_bill(_bill("OVER", *jan, 2800.0)).held
+    assert validate_bill(_bill("STUB", "2017-01-25", "2017-01-31", 2633.2)).held
+    assert validate_bill(_bill("NOFIGURE", *jan, 2633.2, registry=None)).held
+    unlisted = validate_bill(_bill("UNLISTED", *jan, 2633.2, listed=None))
+    assert unlisted.held and all(r.startswith("vat_by_segment") for r in unlisted.reasons)
+
+
 def test_after_a_read_the_measured_rate_decides_not_the_registry():
-    """Once the meter has a read, §4d governs: an estimate at the registry figure but above every rate
-    the meter measured stays held."""
-    read = _bill("READ", "2017-01-01", "2017-01-31", 1000.0, basis="actual")
-    feb = _bill("READ", "2017-02-01", "2017-02-28", 2403.2)
-    assert release_on_measured_rate(feb, validate_bill(feb), [read, feb]) is None
-    assert release_on_measured_rate(feb, validate_bill(feb), [feb]) is not None
+    """Gas: once the meter has a read, §4d governs, so an estimate at the registry figure but above
+    every rate the meter measured stays held. Electricity no longer reaches this: BSCP504's expected
+    advance is the EAC times the profile whatever the read history, so the ceiling passes it."""
+    read = _bill("READ", "2016-12-01", "2016-12-31", 3000.0, basis="actual", registry=AQ, fuel="gas")
+    jan = _bill("READ", "2017-01-01", "2017-01-31", 8525.8, registry=AQ, fuel="gas")
+    assert release_on_measured_rate(jan, validate_bill(jan), [read, jan]) is None
+    assert release_on_measured_rate(jan, validate_bill(jan), [jan]) is not None
+    after_a_read = _bill("READ", "2017-02-01", "2017-02-28", 2403.2)
+    assert not validate_bill(after_a_read).held
 
 
 # --- The billing run stamps the figure, and the catch-up and the issuance door agree -------------
@@ -139,8 +163,8 @@ def test_the_opening_estimates_issue_and_the_first_read_reconciles_them_as_sent(
         estimates = [b for b in mine if b["billing_basis"] == "estimated"]
         assert len(estimates) == 2
         assert all(b["registry_annual_kwh"] == EAC for b in estimates)
-        # Over the population ceiling, so the release is what issues them, not a pass.
-        assert all(validate_bill(b).held for b in estimates)
+        # Listed, the meter's figure passes them; unlisted, the screen holds them (VAT half).
+        assert all(validate_bill(b).held == (cid != "C1") for b in estimates)
         held_here = sum((cid, b["period_end"]) in held_keys for b in estimates)
         assert held_here == (0 if cid == "C1" else 2), cid
         catchup = mine[-1]
