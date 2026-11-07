@@ -286,3 +286,24 @@ The assumed curve in Section 6 is built from these anchors (**A**).
 `customer_outcomes_candidates` (`docs/direction/priority_order.yaml`). Not yet verified against primary
 sources and no world change made: the 30 Oct standard requires verification first, and the rule is a world
 fidelity change the seat decides once that is done. The pack stays here as the source.
+
+## Primary check (delivery seat, 2026-11-07) — done; the rule is not yet decided (candidate `the-worlds-write-off-rule-meets-gb-evidence`)
+
+The pack's load-bearing figures were checked against primaries: `docs/market_research/final_account_debt_recovery_primary_check_2026-11-07.md`.
+- **Verified at P:** SPERL 35.7% / 32.0% coverage and its current-vs-final matrix; Octopus 30.6% / 34.3%; the DRS
+  working paper's ~75% and 56.7% floor; the 28-day objection; the £500 assignment ceiling.
+- **Corrected:** SPERL's 2023 impairment charge is £201.2m, not £207.0m. The DRS 75% covers closed **and** live
+  accounts, not old live debt alone. The assignment floor is **£20**, not £10 (REC Debt Assignment Protocol v3.1,
+  7 Nov 2025), and only for debt repaid through a prepayment meter. Assigned debt is **not** a 0% loss: the REC
+  pays the losing supplier 90% of the ex-VAT debt plus VAT.
+- **New, at P, which the pack could not get:** Centrica 2025 annual report p.175 provisions UK residential
+  **final** bills at **84.0%** (2024: 85.6%), and 87.8% over 90 days. That is a year-end stock of aged final debt,
+  not the loss at the moment of leaving, but it sits **above** the pack's proposed 65–80% loss.
+- **Still GAP:** recovery on final accounts over time, and debt-sale prices in pence per pound. No primary
+  publishes either.
+
+**What it means for the rule (not yet decided; K8 says the knowledge page comes first):** writing off 100% of
+every leaver's failed bill is contradicted at grade P, but by less than the pack argued. The evidence supports a
+final-account loss of roughly 84–88% on aged final debt, with a recovery path whose timing is a GAP. Next: amend
+`docs/market_research/debt_and_collections.md` with the rule and its GAPs, then build, then run the value test's
+write-off measurement against it.
