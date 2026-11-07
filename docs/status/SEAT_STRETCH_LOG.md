@@ -8,6 +8,14 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-07 — Plugins census: one plugin installed (cloudflare); agent-estimate rejected
+
+<!-- head: fa915ac0d7d2 -->
+
+The director's 7 Nov plugins steer, items 1 and 4. Installed on Skynet: cloudflare@cloudflare only, user scope; nothing from Anthropic's official marketplace, so security-guidance is not on. The seats already have built-in code-review, simplify and security-review skills. agent-estimate is rejected in the reading log: its limits are unmeasured picked numbers. pyright-lsp and the code-review comparison wait for the token measurement and the 11 Nov review.
+
+---
+
 ## 2026-11-05 — orientation: Against the thesis this stretch moved the supplier's foundations, but not yet its decisions
 
 <!-- head: 2f7a387b8b8e -->
