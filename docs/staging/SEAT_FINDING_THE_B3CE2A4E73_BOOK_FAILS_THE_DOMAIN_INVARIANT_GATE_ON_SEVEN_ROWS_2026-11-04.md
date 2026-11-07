@@ -581,3 +581,18 @@ It is the first built at or after a66e97829, and the first that can carry the sc
 - If either share reads above 0.30, the schedule reaches the book but not the ledger's payments. That is the next defect, and not a tolerance to widen.
 - INV_ELEC 2 legs and INV_GAS 1 are unchanged, since nothing in between touches demand. The cap-note row stays at 3. Every other count is unchanged except denominators.
 - 26c891276's (2) stays at 19 within plus or minus 3, because nothing in between touches the triad.
+
+## One fate for each unexcepted red on 8c7489e0d9, before the 9 Nov window (delivery seat, 2026-11-07 ~20:00 GMT)
+
+| Row | Fate | Where |
+|---|---|---|
+| INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE (3) | **Fixed in company/**. Under the EPG, a two-register bill is graded against the published multi-register cap, not the EPG scaled by the cap's ratio. A replay on this book takes the 3 excesses to 0, and nothing else moves. | `company/compliance/domain_invariants.py`; the E7 finding's 7 Nov progress |
+| INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD (2 legs) | **Dated exception**, world side (N17). Recheck by 2026-11-23. It is retired by the W2_30 slice `n17_year_on_year_slice_note` plus the ERA5 pull. | `DOMAIN_INVARIANT_EXCEPTIONS.yaml` |
+| INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR (1, SYN-2016-206g) | **Traced to the world; dated exception**. It is refused a fabric trace and settles on the 70/30 split, so every month with no heating degree days is aq x 0.30/365 a day with a constant AQ. That gives 421.4295 kWh in five Julys and two Augusts, and a register advance of 37.5584 m3 every time. Recheck by 2026-11-23. | `DOMAIN_INVARIANT_EXCEPTIONS.yaml` |
+| INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE (1) | **Not re-graded here**. It is read from the first fresh book carrying the level DD schedule (continuation `grade-the-first-book-carrying-the-level-dd-schedule`). No such book existed at 19:42Z. If that book is still red, its fate is owed before 04:00Z on 9 Nov. | — |
+
+The N15/N16 page rows (INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM, INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED) are
+now on origin, so the next book is graded on them too. Their first readings were 0 and 0 (cast after 8d99f4d31c).
+Neither has an exception. If either is red on the next book, it needs a fate as well.
+
+`recheck_by` is a recorded commitment, not a control: `gate()` checks only the five required fields and the ceiling.

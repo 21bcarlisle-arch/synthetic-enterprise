@@ -200,6 +200,27 @@ way, or a bill that is at the cap reads as a breach.
   - The other two are SYN-2016-592 (Dec 2023, 0.48p over) and SYN-2016-380 (Aug 2024, 0.26p over). They
     are not attributed either.
 
+### Under the EPG, a two-register bill is graded against the multi-register cap alone (added 7 Nov 2026)
+
+- **What was established.** The three Apr–Jun 2023 bills are PROS-2021-0282's. Each is charged at the
+  single-rate EPG, 34.00p inc VAT at 58/42, because the bill subtracts the EPG receipt at one flat rate
+  per kWh on both registers. The check's ceiling was the EPG scaled by the cap's multi-register ratio,
+  33.44p. That bound appears in no published source. R4 says suppliers set the E7 discounts themselves,
+  and GOV.UK publishes single-rate figures only. The blind row
+  `INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP` grades the same bills against the
+  multi-register cap, about 47p, and finds them within.
+- **The choice.** From 1 Oct 2022 to 30 Jun 2023, the household check grades a two-register bill against
+  the published multi-register cap, with no EPG bound. A single-register bill keeps min(cap, EPG). This
+  changes only the check. `get_multi_register_cap_unit_rate_for_date` and the renewal chain's pricing
+  are untouched.
+- **GAP.** The household-side EPG level for an Economy 7 tariff. Until one is found, the check can
+  miss an E7 bill that kept less of the EPG discount than it should. It cannot invent a breach.
+- **Measured on the 8c7489e0d9 book.** Of 23,783 graded default bills, 3 were over before the change and
+  0 after. The 3 were PROS-2021-0282's Apr, May and Jun 2023 bills, 0.562p each. No other bill's grade
+  moved, which is what was predicted before the replay.
+- **Still open.** A bill carved out this way prints a negative Night energy rate (−0.587p,
+  PROS-2021-0282, Feb and Mar 2023). That is a separate page objection.
+
 ## Telling a storage-heated home from its bills (added 3 Nov 2026, for Explore's storage slot)
 
 The seventh cold read rejected the slot's household: a PC2 meter is the meter, not the heating (R1),

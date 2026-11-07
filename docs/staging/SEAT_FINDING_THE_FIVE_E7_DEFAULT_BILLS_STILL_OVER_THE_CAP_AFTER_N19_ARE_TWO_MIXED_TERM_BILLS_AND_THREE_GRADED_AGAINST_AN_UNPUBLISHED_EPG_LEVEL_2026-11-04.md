@@ -129,3 +129,21 @@ Delete this file. Nothing outside `docs/staging/` was touched.
   - On the first publish after this landing, read three things: the cast's renewal slot (SYN-2016-592), the
     storage slot (PROS-2020-0189), and `INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE`. All
     three should read 0, except notes on class B bills.
+
+## Progress (delivery seat, 2026-11-07): class B fixed in the company's grade
+
+- `company.compliance.domain_invariants.default_tariff_invoice_excess_p_per_kwh` now grades a two-register
+  bill against `get_multi_register_cap_unit_rate_for_date(on, net_of_epg=False)`: the published
+  multi-register cap, with no scaled EPG. A single-register bill keeps min(cap, EPG). The change was
+  scoped to the grade alone, so `ofgem_price_cap` and `renewal_rate_chain` are untouched and no price moves.
+  K8: the choice and the GAP are on `a_storage_heated_homes_default_tariff_is_two_rate.md`, in the 7 Nov
+  section.
+- Control: `test_an_economy_7_bill_under_the_epg_is_graded_against_the_published_multi_register_cap`
+  names PROS-2021-0282's Apr 2023 bill. It was red before the change and is green after it. Its leg 3% over
+  the cap shows the branch can still refuse.
+- Replay on the 8c7489e0d9 run output, predicted before it was run: the household-ceiling excesses go from
+  3 to 0 (PROS-2021-0282, Apr, May and Jun 2023, 0.562p each). No other bill's grade moves, out of 23,783
+  graded. The ledger's page note reads this function through `bill_excess`, so the cap-note row should
+  read 0 on the next fresh book.
+- **Still open:** PROS-2021-0282's printed negative Night energy rate in Feb and Mar 2023, and the
+  post-publish read of the three slots named above.

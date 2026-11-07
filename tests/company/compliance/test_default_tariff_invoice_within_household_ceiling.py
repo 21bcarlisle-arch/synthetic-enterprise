@@ -15,6 +15,9 @@ MUTATIONS, each applied in place and reverted:
     the at-cap Economy 7 bill reads as a breach, `test_an_economy_7_bill_is_graded_at_28ad_36` reds.
   * the 58/42 split replaced by the bill's own mix: same red. The leg over the multi-register cap
     keeps the branch able to refuse.
+  * the multi-register ceiling taken `net_of_epg=True` (the EPG scaled by the cap's ratio, N19 class
+    B): PROS-2021-0282's Apr 2023 bill reads 0.56p over, and
+    `test_an_economy_7_bill_under_the_epg_is_graded_against_the_published_multi_register_cap` reds.
 """
 from __future__ import annotations
 
@@ -103,3 +106,33 @@ def test_an_economy_7_bill_is_graded_at_28ad_36():
         "cannot tell the two grades apart")
     assert default_tariff_invoice_excess_p_per_kwh(at_cap, "svt") == 0.0
     assert default_tariff_invoice_excess_p_per_kwh(_economy_7_invoice("2019-02-01", 1.03), "svt") > 0
+
+
+def _pros_2021_0282_april_2023(day_p: float = 37.784, night_p: float = 5.872) -> dict:
+    """PROS-2021-0282's Apr 2023 Economy 7 SVT bill as the run output records it (N19 class B): Day
+    37.784p and Night 5.872p energy, 8.000p non-commodity on both, ex-VAT, 5% VAT. At 58/42 that is
+    32.381p ex-VAT, 34.00p inc VAT: the single-rate EPG, landed on by a flat per-kWh EPG receipt."""
+    day_kwh, night_kwh, vat_rate = 312.0, 226.0, 0.05
+    kwh = day_kwh + night_kwh
+    energy = (day_kwh * day_p + night_kwh * night_p) / 100.0
+    net = energy + kwh * 0.08
+    return {"period_start": "2023-04-01", "commodity": "electricity", "consumption_kwh": kwh,
+            "commodity_amount_gbp": energy, "non_commodity_amount_gbp": kwh * 0.08,
+            "vat_gbp": net * vat_rate, "amount_gbp": net * (1 + vat_rate),
+            "registers": [
+                {"label": "Day", "consumption_kwh": day_kwh, "commodity_amount_gbp": day_kwh * day_p / 100.0},
+                {"label": "Night", "consumption_kwh": night_kwh, "commodity_amount_gbp": night_kwh * night_p / 100.0}]}
+
+
+def test_an_economy_7_bill_under_the_epg_is_graded_against_the_published_multi_register_cap():
+    """N19 class B. Under the EPG no multi-register household level was published: suppliers set the
+    E7 discounts themselves (GOV.UK, R4 in a_storage_heated_homes_default_tariff_is_two_rate.md). The
+    grade scaled the single-rate EPG by the cap's multi/single ratio (33.44p inc VAT) and called
+    PROS-2021-0282's 34.00p bill a breach, so its page printed a false cap-breach note. Graded against
+    the published multi-register cap (about 47p) it is within. A bill over that cap still fails, so
+    the branch can refuse; the single-rate EPG leg is held by `test_the_partition`."""
+    assert default_tariff_invoice_excess_p_per_kwh(_pros_2021_0282_april_2023(), "svt") == 0.0
+    cap_p = get_multi_register_cap_unit_rate_for_date(date(2023, 4, 1), net_of_epg=False) / 10.0
+    k = 1.03 * (cap_p / 1.05 - 8.0) / 24.381  # energy scaled so the all-in rate sits 3% over the cap
+    over = _pros_2021_0282_april_2023(day_p=37.784 * k, night_p=5.872 * k)
+    assert default_tariff_invoice_excess_p_per_kwh(over, "svt") > 0

@@ -287,3 +287,43 @@ exceptions:
     filed: 2026-11-04
     retired_by: the cast's tariff label read per fuel from the term each leg's bill records on the moment's date (N16), graded 0 on a fresh cast
     max_breached: 42
+  # 2026-11-07: the two month-on-last-year rows are red on the world's side, not the company's. Both are graded on
+  # the 8c7489e0d9 book (970d701b0a), and both have the same cause: a premise refused its fabric trace settles on a
+  # population shape that has no year-to-year term. Each is a dated decision. It is not a widened bound: both rows
+  # keep their bounds, and a count above the ceiling refuses again.
+  - invariant: INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD
+    scope: >-
+      Both book legs on the 8c7489e0d9 book, as on fd91027799. Leg A: the median |r-1| is 0.0075, against a floor of
+      0.05. Leg B: 29.3% of near pairs fall within 0.1 kWh, against a bound of 16.9%.
+    reason: >-
+      N17, the world's side (eafd683107). World truth equals the billed read in every cut. 519 of 712 electricity
+      premises are refused fabric ("no weather archive": the cell carries temperature only, and the ERA5 pull is
+      unfinished). They settle on legacy_pc1_rescaled, which moves 0.56% a year. Fabric premises move 4.5%, and real
+      half-hourly homes move 7-17%. The company bills the reads it is given, so no company change can clear this row.
+    filed: 2026-11-07
+    recheck_by: 2026-11-23
+    retired_by: >-
+      the W2_30 slice n17_year_on_year_slice_note
+      (docs/design/simplifications/W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape.yaml),
+      with the premises' weather cells from the ERA5 pull (W1_14_weather_cells_for_household_heat_load), graded on a
+      fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file this with the newest counts.
+    max_breached: 2
+  - invariant: INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR
+    scope: >-
+      SYN-2016-206g's gas leg on the 8c7489e0d9 book, its only breach: 421.4295 kWh in July 2018, 2019, 2021, 2022 and
+      2023, and in August 2019 and 2022. Each is a 31-day month on an actual read, and each register advance is
+      37.5584 m3. The book leg passes: 10 of 3,743 pairs (0.27%, bound 1%).
+    reason: >-
+      Traced to the world. SYN-2016-206g is one of the book's 355 gas households refused a fabric trace ("no fabric
+      trace: keeping the population constant"). It settles on gas_settlement.resi_daily_gas_kwh's population 70/30
+      split. In a month with no heating degree days, that function returns aq_kwh x 0.30 / 365 a day, and the AQ is
+      the same every year. So every all-warm 31-day month lands on the same kWh to four decimals. The company only
+      converts the meter's advance at its fixed calorific-value stand-in, so the repeat reaches it before it reads.
+      A real household's summer gas (hot water and cooking) moves with occupancy and the mains water temperature.
+      That year-to-year term is what is missing here, the gas half of N17.
+    filed: 2026-11-07
+    recheck_by: 2026-11-23
+    retired_by: >-
+      the gas half of W2_30 (a fitted seasonal split for the premises now refused it, or a hot-water term that moves
+      year to year), graded on a fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file.
+    max_breached: 1

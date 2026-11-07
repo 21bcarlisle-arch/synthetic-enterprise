@@ -488,7 +488,12 @@ def default_tariff_invoice_excess_p_per_kwh(invoice: dict, tariff_type: str) -> 
         ceiling = get_cap_unit_rate_for_date(commodity, on, net_of_epg=True)
         energy = 100.0 * (invoice.get("commodity_amount_gbp") or 0.0) / kwh
     else:
-        ceiling = get_multi_register_cap_unit_rate_for_date(on, net_of_epg=True)
+        # Under the EPG no multi-register household level was published: suppliers set the E7
+        # discounts themselves (GOV.UK; R4 in a_storage_heated_homes_default_tariff_is_two_rate.md).
+        # The EPG scaled by the cap's multi/single ratio was a bound of our own making, and it called
+        # bills at the single-rate EPG breaches (N19 class B). GAP: the household-side E7 EPG level.
+        # The published bound left is the multi-register cap itself.
+        ceiling = get_multi_register_cap_unit_rate_for_date(on, net_of_epg=False)
     if ceiling is None:
         return None
     vat_rate = (invoice.get("vat_gbp") or 0.0) / net
