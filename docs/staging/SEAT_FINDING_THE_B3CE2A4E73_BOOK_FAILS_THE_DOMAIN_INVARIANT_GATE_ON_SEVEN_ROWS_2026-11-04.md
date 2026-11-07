@@ -502,3 +502,70 @@ the test xfails, and the share computed anyway is about **96.5%** again.
 `share_equal_to_the_bill` at or below the 0.30 ceiling, near f874c6836b's **0.207** on an injected schedule
 (range 0.15–0.30). If it reads above 0.30, the schedule reaches the book but not the ledger's payments, and
 that is the next defect, not a tolerance to widen.
+
+## The 8c7489e0d9 book graded through the whole gate, and 26c891276's own grade (2026-11-07 ~18:10 GMT)
+
+`run_output_8c7489e0d9_20261107T154715Z.json` (finished 17:21Z), graded at origin 5b838d5960 with
+`/var/tmp/b3ce-grade-scripts/` (ledger.py, then grade.py), over 1,302 accounts. Scratch: `/var/tmp/grade-8c74-seat/`.
+**The gate grew between the two grades.** eafd683107 wired evaluators for INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR and
+INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD, and INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE
+now has its evaluator too. On fd91027799 they read UNCHECKABLE or NO_EVALUATOR. So, to keep one variable, **fd91027799 was
+re-graded at the same origin** (`/var/tmp/grade-fd91-seat/`).
+
+**Verdict, identical on both books:** 7 unexcepted breaches on 4 rows, and 7 rows excepted.
+
+| Row (unexcepted) | fd91027799 at 5b838d5960 | **8c7489e0d9** | what it is |
+|---|---:|---:|---|
+| INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE | 3 | **3** | N19's 3 class B bills, as filed |
+| INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD | 2 legs | **2 legs** | median abs(r-1) 0.0075 against a floor of 0.05; 29.3% of near pairs within 0.1 kWh against a bound of 16.9%. This is N17, the world side (W2_30 slice, eafd683107) |
+| INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR | 1 | **1** | SYN-2016-206g, 3 July repeats. The book leg passes: 10 of 3,743 pairs (0.27%, bound 1%) |
+| INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE | 1 (Leg A 0.991) | **1 (Leg A 0.991)** | N20. This book has no schedule (below) |
+
+The pre-registered row-by-row test (every row the same, and none may rise) **held**. Every breach and exception count
+is equal. Only the denominators moved, which is what 26c891276 does: overdue steps went from 6,658 to 6,695, plan
+re-offers from 1,272 to 1,289, SVT account-months from 32,593 to 32,603, and DD step-change flags from 1,561 to 1,562.
+INV_OVERDUE_WITHIN_PAGE_BALANCE stays 0.
+
+**Correction to the filed claim that the cap-note row is "still the only unexcepted red":** it is not, and it was not on
+fd91027799 either once the new evaluators are counted. As the gate stands, three other rows are red without an
+exception. The cap-note row's 3 class B bills are unchanged.
+
+**N20 on 8c7489e0d9:** `level_dd_collections` is **absent**. The test xfails. `share_equal_to_the_bill` reads
+34,888 of 36,143, or **96.5%**. Both are as filed.
+
+**26c891276's own grade.** The v2 replay (`/var/tmp/se-grade-8c74-scripts/v2/`) prices the settlement at the old
+engine's rule. So it was graded on the CURRENT engine's walk instead (`v3/count.py`, which probes
+`balance_settlement_from_outcomes` at the point where it prices a settlement):
+
+| | fd91027799 | filed for 8c7489e0d9 | **8c7489e0d9** | held? |
+|---|---:|---:|---:|---|
+| (1a) failed credit-bill months | 29 | 0 | **0** (405 DD, 103 standard credit, 39 PPM: no failures) | **yes** |
+| (1b) failed fully credited bills (a nil ask) | 5 | 0 | **1** (OCC-cede70b10116) | **no**, by one |
+| (2) settlements whose cash is over the open balance | 25, GBP 1,497.46 | 0 | **19, GBP 682.47** (18 legs; 5 also over the amount asked) | **no** |
+| (3) relabelled credit | 3, GBP 299.35 | 0 | **0** | **yes** |
+
+**(2) is refuted, and the cause is visible in the rows.** SYN-2016-047 is one example. Its Jul 2021 DD failed at GBP 64.38. A May 2023 credit
+of GBP 43.67 (due 15 Jun 2023) then left GBP 20.71 open on that leg. Even so, the world sent GBP 64.38 on 20 Jul 2023. SYN-2016-255
+(a GBP 125.18 credit, Oct 2020, before a 2022 settlement) and SYN-2016-329 have the same shape. So the triad's
+`open_on_contract_gbp(leg_rows, settled_on)` does not see a credit that the engine's walk does see.
+Two explanations fit the evidence, and I have not tested either.
+- **(i)** The settlement crosses before the later credit row is appended to `_leg_rows`. That would happen through a `force` crossing by a reader, or through a record order that is not calendar order.
+- **(ii)** `_leg_rows` for that leg is missing the credit, or carries a different amount. Its credit row is written from `credit_gbp`, but the engine's row comes from `_resolve_bills`.
+
+Other legs have the same shape when the money in between is another settlement rather than a credit (SYN-2016-217 and -217g,
+PROS-2018-0016g). The P&L effect is at most GBP 682.47 of cash that should not have been sent. It is no longer
+GBP 1,497.46. Scratch for this: `count_v3.txt` and `classify.txt`.
+
+**What this means for the 9 Nov publish.** Suppose the next book clears N20. It is still refused on the cap-note row (3), on N17's
+electricity row (2 legs, a world fix that waits on the ERA5 pull), and on SYN-2016-206g's gas row (1). None of the three has a
+dated exception. Each needs either a fix or a named, dated exception before a book can pass. Both are options under the
+26 Oct ruling's step 4. That choice is the next item, not this one.
+
+### Pre-registration for the next book (filed 18:10 GMT, before the runner starts it at about 18:40Z)
+
+It is the first built at or after a66e97829, and the first that can carry the schedule.
+- `level_dd_collections` **present**. The N20 test's `share_equal_to_the_bill` is at or below 0.30, near 0.207 (range 0.15 to 0.30), as filed.
+- The gate row's Leg A (BILL-TRACKING, excluding x1 to x4) is also at or below 0.30, so the row is **CLEAN**, or at worst FLAG. Its Leg B (accounts that show a level amount) is at least 0.70.
+- If either share reads above 0.30, the schedule reaches the book but not the ledger's payments. That is the next defect, and not a tolerance to widen.
+- INV_ELEC 2 legs and INV_GAS 1 are unchanged, since nothing in between touches demand. The cap-note row stays at 3. Every other count is unchanged except denominators.
+- 26c891276's (2) stays at 19 within plus or minus 3, because nothing in between touches the triad.
