@@ -121,3 +121,26 @@ default bill, within a stated band.
     priced months.
 - **Still owed before this closes:** (1) a fresh book graded on the three blind rows; (2) mark every
   published figure that moves. Every 2017 bill and every 2018 bill moves.
+
+## Closed (2026-11-07): the fd91027799 book grades all three blind rows clean, as predicted
+
+Claim `grade-the-fd91027799-book-through-the-whole-invariant-gate`. The book was graded at origin f6daa03a4f
+with `/var/tmp/b3ce-grade-scripts/`. The full table is in the B3CE finding's 7 Nov section.
+
+| Row | filed | fd91027799 |
+|---|---|---|
+| INV_UNIT_RATE_SVT_GAS_PRE_CAP_ALL_IN_FLOOR | 0 | **0** of 1,435 term-windows (576 of 1,774 on b3ce2a4e73) |
+| INV_UNIT_RATE_SVT_ELEC_PRE_CAP_ALL_IN_FLOOR | 0 | **0** of 2,204 |
+| INV_DEFAULT_DUAL_FUEL_COST_FOLLOWS_THE_PUBLISHED_DEFAULT_BILL | 0; ≈1.04, 1.05, 1.03 | **0** of 3: 2016→17 **1.0431**, 2017→18 **1.0518**, 2018→19 **1.0284** |
+
+Both owed items are met. (1) A fresh book graded on the three rows: done, above. (2) The published figures that
+move: **none has moved yet.** The last publish (3 Nov) predates this book, and the next opens Mon 9 Nov 04:00 GMT.
+That publish moves:
+- every 2017 SVT bill on both fuels: gas from 2.67p to about 3.81p all-in ex VAT, and electricity by +10.7%;
+- every 2018 SVT bill on both fuels;
+- the 2016-2019 revenue, gross margin and default-bill comparison lines that are built from them.
+
+Those are this book's prices. I have not measured the change in the P&L lines; the publish's own diff will
+show it.
+
+**Reverse.** `git mv` this file back to `docs/staging/`.

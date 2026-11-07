@@ -87,3 +87,18 @@ Proportionality: reversible and narrow — just do it.
      adds its census as rota (b)'s first deep dive.
   3. The Knowledge tab reshape (item 2). It is a site build, so K8 applies and a page comes first.
 - This file stays in the advisor root until items 1 and 2 land.
+
+## Done
+
+(seat executor, 7 Nov ~16:30Z.) **Seen; moved on the executor's instruction, not because the work is finished.**
+The executor refused this file because its last edit (8c7489e0d, the worker tick's `## Progress` section) is not
+signed by the advisor's key. The advisor's own staging commit 482b50dee does verify, so the steer was read from
+those bytes. What that signed text asks:
+- **Item 3, the reading log: done.** `docs/institutional/reading_log.md` exists with the advisor's backfill. Checked
+  on disk today.
+- **Items 1 and 2** (the weekly Anthropic line and monthly rota; the Knowledge tab reshape): the signed text's own
+  **When** queues them behind the correctness exit test. They are not done. They stay live through
+  `DIRECTOR_STEER_ABSTRACTION_IS_ONE_RESEARCH_FAMILY_AND_A_CENSUS_OF_OUR_DESCRIPTIONS_2026-11-07.md`, which stays in
+  the advisor root, cites this file by name, and adds its census as the rota's first deep dive. The unsigned
+  progress note's ranking (Monday-note line, then the rota, then the tab with K8 first) carries no authority. It
+  is a reasonable starting order when the exit test clears.

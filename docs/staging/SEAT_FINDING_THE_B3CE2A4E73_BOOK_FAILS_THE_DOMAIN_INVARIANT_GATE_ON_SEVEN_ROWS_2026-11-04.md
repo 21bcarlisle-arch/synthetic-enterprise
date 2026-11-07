@@ -431,3 +431,42 @@ row this finding owns is 0 or carries a dated, traced exception on a fresh book,
 The finding stays open for one more thing: the heated-home envelope above, the next item.
 
 NEXT: none -- the remaining heated-home billing-gate envelope needs its knowledge page first and is filed above as the next item
+
+## The fd91027799 book graded through the whole gate, against the filed predictions (2026-11-07, claim `grade-the-fd91027799-book-through-the-whole-invariant-gate`)
+
+`run_output_fd91027799_20261105T004022Z.json` carries 9744dd436's in-loop settlement fix, every other
+correctness fix to date, and N18's three pricing commits. It does **not** carry 26c891276. It was graded at origin
+f6daa03a4f with the same chain (`/var/tmp/b3ce-grade-scripts/`), over 1,302 accounts. Scratch is
+`/var/tmp/grade-fd91/` (`grade.txt`, `grade.json`). The two-day delay before the grade was the host outage
+(`SEAT_FINDING_A_SIXTY_HOUR_HOST_OUTAGE_..._2026-11-07.md`).
+
+| Row | 5200cd6239 | **fd91027799** | filed | held? |
+|---|---:|---:|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 0 | **0** | 0 or at most 5, for a run with 9744dd436 | **yes** |
+| INV_UNIT_RATE_SVT_GAS_PRE_CAP_ALL_IN_FLOOR (N18) | — | **0** of 1,435 | 0 | **yes** |
+| INV_UNIT_RATE_SVT_ELEC_PRE_CAP_ALL_IN_FLOOR (N18) | — | **0** of 2,204 | 0 | **yes** |
+| INV_DEFAULT_DUAL_FUEL_COST_FOLLOWS_THE_PUBLISHED_DEFAULT_BILL (N18) | — | **0** of 3 | 0; ratios ≈1.04, 1.05, 1.03 | **yes**: 1.0431, 1.0518, 1.0284 (published +4.30%, +5.19%, +2.6%) |
+| INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE | 3 | **3** | 0 apart from the 3 class B bills | **yes**, in count. Unexcepted, so it is the gate's only red (N19's row) |
+| INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER | 8 | **7** | 8 | **no**, by one, on the good side. Inside the exception's ceiling of 8. I have not traced which run left |
+| INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL | 14 | **14** | 14 | **yes** |
+| INV_EBSS_CREDIT_EACH_MONTH / _ON_THE_BILL | 7 / 7 | **7 / 7** | 7 / 7 | **yes** |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 0 | **0** | — | stays 0 |
+
+**The verdict:** 3 unexcepted breaches on 1 row (the cap-note row), and 7 rows excepted. The excepted rows include
+`INV_UNIT_RATE_EPG_HOUSEHOLD` 336 and `INV_PPM_NOT_CREDIT_BILLED` 12, both on their own dated exceptions. Every row
+this finding owns is 0 or inside its traced exception on this book.
+
+**The miss this grade found is N20's, not this finding's.** `level_dd_collections` is absent from this book, and
+from every saved book. `extract_report_data` dropped it, so N20's share test could only ever xfail. On this book,
+34,888 of 36,139 successful DD collections (**96.5%**) equal their bill, against the 30% ceiling. The fix and its
+control landed in the commit before this one. **The run at 8c7489e0d9 now in flight predates that fix**, so the
+first book to carry the schedule is the runner's next one, and N20's test is graded there.
+
+**The other three readings the item asked for:**
+- **The billing ledger this book writes** is 86,052,705 bytes (82.1 MiB), against 100 MiB.
+- **Explore slots:** 8 of 8 filled, rebuilt from this book through the publish pipeline's page generators in a
+  scratch worktree. They are switch_in PROS-2025-0022, renewal SYN-2016-592, estimate_trap PROS-2017-0264,
+  mover PROS-2017-0351, debt SYN-2016-217, ev PROS-2017-0183, storage_heating PROS-2020-0189 and shock_2022
+  PROS-2019-0246. One book-level coverage flag: `above_cap`, 1 household of 757. The households were not
+  cold-read here, so "filled" is not "valid to a reader".
+- **26c891276's grade** (`grade-nil-ask-and-cleared-settlement-on-fresh-book`) is owed on the 8c7489e0d9 book.
