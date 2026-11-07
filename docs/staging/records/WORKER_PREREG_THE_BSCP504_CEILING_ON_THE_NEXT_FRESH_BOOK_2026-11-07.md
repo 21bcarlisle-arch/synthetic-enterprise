@@ -21,3 +21,12 @@ bills, all on SYN-2016-175, SYN-2016-355 and PROS-2017-0233, each 0.91-1.18x its
    14 checks remain; then the residual is the panel's own shape (no true-up kWh in the month it reconciles).
 4. INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER and the catch-up rows on these three homes: **I cannot
    say.** Energy that was billed at the next read is now billed monthly, which moves both. No prediction.
+
+## Addendum, 21:25 UTC 7 Nov: a control on the pre-change book, filed before it is read
+
+The ledger builder runs `validate_bills` again with the code at the grader's HEAD
+(`tools/generate_billing_ledger.py:377`). So grading the fa915ac0d7 book (built before 8b6316995) at HEAD
+5035e71d4c separates the ledger-side lift from the run-side one (energy no longer rolled to the next read).
+Predicted for the control: (1) and (2) as above, with no ceiling hold on the three homes; (3) **I cannot say**,
+because the usage panel is drawn from the run's bills, which still carry the roll-forward. The fresh book
+then adds only the run-side change.
