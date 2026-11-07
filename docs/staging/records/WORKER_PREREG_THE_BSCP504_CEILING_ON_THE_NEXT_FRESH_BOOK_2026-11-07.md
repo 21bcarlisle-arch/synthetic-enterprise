@@ -30,3 +30,10 @@ The ledger builder runs `validate_bills` again with the code at the grader's HEA
 Predicted for the control: (1) and (2) as above, with no ceiling hold on the three homes; (3) **I cannot say**,
 because the usage panel is drawn from the run's bills, which still carry the roll-forward. The fresh book
 then adds only the run-side change.
+
+**The control, read 21:20 UTC** (`/var/tmp/grade-8b63/fa915/`, the b3ce chain's `ledger.py` then `grade.py` at
+5035e71d4c): exception queue **0** (16 on fd91027799 before the change), so (1) and (2) hold on the ledger side;
+INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL **0 of 5,667** (14 on fd91027799), so the ledger-side lift alone clears
+it, against my "cannot say". INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE stays **3**, exactly the three homes
+(page bills 1.17-1.18x run revenue): the ledger now issues energy the run still rolled forward, so the fresh
+book is where that row moves (filed at 20:39: at most 1). Est-run 7, none on the three homes.
