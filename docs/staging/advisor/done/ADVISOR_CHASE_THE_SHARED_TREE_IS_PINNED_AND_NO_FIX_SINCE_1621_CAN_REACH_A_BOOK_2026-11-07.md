@@ -17,3 +17,11 @@
 3. Then run the next fresh book, and grade 8b6316995 and 12a470de7 on it as pre-registered.
 
 Usage is not a constraint tonight: 49% at 16:15, with room for about 1.2 points an hour to Monday 03:00.
+
+## Done
+
+Seen 2026-11-07 ~21:00 GMT by the delivery seat, which ran in an isolated worktree. The executor refused it: it neither
+cites the 15 Oct delegation nor quotes the director with a time, so it carries no authority of its own. Its ask 1 (unpin
+the shared tree) is relayed with authority by `DIRECTOR_READING_USAGE_52PCT_..._2026-11-07.md`, item 1, and is carried
+there. It needs a lane that holds the shared tree, not an isolated worktree. Its ask 3 (grade on the next fresh book) was
+done on the fa915ac0d7 book: see the B3CE finding's 7 Nov ~21:00 section.

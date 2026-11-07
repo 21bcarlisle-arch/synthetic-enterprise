@@ -596,3 +596,66 @@ now on origin, so the next book is graded on them too. Their first readings were
 Neither has an exception. If either is red on the next book, it needs a fate as well.
 
 `recheck_by` is a recorded commitment, not a control: `gate()` checks only the five required fields and the ceiling.
+
+## The fa915ac0d7 book, the first carrying the level DD schedule, graded through the whole gate (2026-11-07 ~21:00 GMT)
+
+`run_output_fa915ac0d7_20261107T184010Z.json` (finished 20:15Z) was graded at origin 3ced67a162 with
+`/var/tmp/b3ce-grade-scripts/` (ledger.py, then grade.py), over 1,302 accounts. Scratch: `/var/tmp/grade-fa91-seat/`.
+The grading code had moved since the last grade (082d84d27, f7f0a8ca43, 12a470de7, 8b6316995). To keep the book
+the only variable, **8c7489e0d9 was re-graded at the same origin** (`/var/tmp/grade-8c74-at-3ced/`). Between the two
+books exactly one commit touches `simulation/`, `sim/`, `company/` or `saas/`: **8178e24218**, which puts the
+schedule into the saved book.
+
+**The pre-registration (18:10 GMT), graded:**
+
+| Filed prediction | Read | Held? |
+|---|---|---|
+| `level_dd_collections` present | present, 766 supply points | **yes** |
+| N20 test `share_equal_to_the_bill` ≤ 0.30, near 0.207 (0.15–0.30) | 7,677 of 36,152 = **0.212** | **yes** |
+| Gate row Leg A ≤ 0.30, row CLEAN or FLAG | 7,499 of 34,607 = **0.217**, **FLAGGED** (Legs B and C not built) | **yes** |
+| Leg B ≥ 0.70 | not graded: the evaluator has not built it | cannot tell |
+| INV_ELEC 2 legs, INV_GAS 1 | 2 legs, 1, both now excepted (082d84d27) | **yes** |
+| Cap-note row stays at 3 | **CLEAN (0)** | no, but filed before 082d84d27 changed the grade. On the 8c7489e0d9 book at the same origin it is also 0, so this is the grade fix, not the book |
+| Every other count unchanged except denominators | **two rows rose** (below) | **no** |
+| 26c891276's (2) at 19 ± 3 | **19, GBP 682.47** (v3/count.py, same 18 legs) | **yes** (it still counts faces; see the 12a470de7 correction above) |
+
+**Verdict on the fa915ac0d7 book: 1,772 unexcepted breaches on 3 rows, 8 rows excepted. The publish is refused.**
+
+| Row (unexcepted) | 8c7489e0d9 at 3ced67a162 | **fa915ac0d7 at 3ced67a162** | cause |
+|---|---:|---:|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 0 | **1,724** of 6,695 steps | the level schedule, 8178e24218. All 1,724 are on level-DD households (176 of 454) |
+| INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE | 0 | **45** of 1,139 | the level schedule. All 45 are level-DD supply points, "missed DD without a return" |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 3 | **3** | the grading code, not the book: the exception's ceiling is 1 |
+| INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE | 1 (Leg A 0.991) | **0** (FLAGGED, 0.217) | N20 cleared, as filed |
+
+**Unpredicted, and now the publish's blocker: the page still reads "a DD pays its bill by the bill's due date".** The level
+schedule reaches the ledger's payments (the share is right), but two page readings were built on the per-bill world.
+- **Overdue.** The world's collections journey opens on a missed per-bill DD and prints that bill as overdue. On a level
+  account the balance runs on the schedule, so 852 of the 1,724 steps print an overdue sum to a household that is in
+  credit or at zero. The other 872 print more than it owes. The excess has a median of GBP 46.51, a maximum of GBP 449.05
+  and a sum of GBP 113,865. Example: OCC-226d3bc42b37 is GBP 73.57 in credit on 15 Mar 2025, after a level GBP 104.42 on
+  10 Mar. Its GBP 109.73 bill's per-bill DD is "returned" that day. The page then prints "GBP109.73 outstanding", a missed
+  payment, two reminders, and a GBP 345.38 arrangement offer.
+- **Payment record.** `generate_explore_cast.payment_record` counts a bill as missed when no payment on it lands by its due
+  date. A level collection dated after the bill's due date therefore reads as a missed DD with no return.
+- Both are one definition error, filed as
+  `SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md`.
+
+**INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE's 3** are SYN-2016-175, SYN-2016-355 and PROS-2017-0233. These are exactly
+8b6316995's three storage-heated homes. That commit released their winter estimates at the company's pre-bill gate. So the
+page code at 3ced67a162 now bills months that the engine of either book, built before 8b6316995, held: the page bills sit
+13–17% over the book's revenue. This is a mixed-version reading. **Prediction for the first book built at or after
+8b6316995:** this row reads at most 1 again, with PROS-2017-0117 the excepted one. If it reads more, the release reaches
+the page but not the engine's revenue, and that is a defect.
+
+**Not graded by this script:** INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM reads UNREACHED (0 checked) and
+INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED reads NOT_IN_EXPORT. `grade.py` does not build `cast_tariffs` or
+`payment_tallies`. That is a gap in this scratch script, not a clean reading. The publisher's own gate must build both,
+or say that it does not.
+
+**What this means for the 9 Nov publish.** Neither book passes.
+- **8c7489e0d9:** N20 is red, because 96.5% of its DDs equal their bill (no schedule). INV_BILLED_EX_VAT is also at 3
+  under the current page code.
+- **fa915ac0d7:** N20 is clear, but 176 households' pages print false arrears.
+- I do not recommend a dated exception for the overdue row. It would publish "GBPx overdue" to households in credit,
+  which is the absurdity the row was written to catch (O10, O16, O18). The fix belongs to the new finding.
