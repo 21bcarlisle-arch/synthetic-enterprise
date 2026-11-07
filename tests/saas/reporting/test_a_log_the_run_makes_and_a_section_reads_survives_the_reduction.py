@@ -187,3 +187,30 @@ def test_writer_3s_section_tells_a_missing_log_from_a_log_that_is_empty():
     assert "C1" in fired and "5.0" in fired.replace("5.00", "5.0"), (
         "the fired state must still publish its rows -- the repair must not have cost the table"
     )
+
+
+#: The page-ledger builder reads the SAVED payload, so a key it reads that the run returns is a key
+#: the reduction must carry, whatever its suffix. Eight such keys on the day this was written.
+_PAGE_LEDGER = _ROOT / "tools" / "generate_billing_ledger.py"
+_RUN_4C = _ROOT / "simulation" / "run_phase4c_on_phase2b.py"
+_MIN_PAGE_LEDGER_KEYS = 4
+
+
+def test_every_key_the_page_ledger_reads_off_the_saved_run_survives_the_reduction():
+    """THE DEFECT (2026-11-07). `level_dd_collections` is returned by the 4c run since f874c6836b
+    (N20) and read by `generate_billing_ledger`, but `extract_report_data` did not forward it. Every
+    saved book therefore printed each direct debit collected at its bill: 96.5% of 36,139 on the
+    fd91027799 book, against a published ceiling of 30%. The census above saw nothing because it
+    only asks about `*_log` keys of `run_phase2b`.
+    """
+    produced = (_returned_dict_keys(ast.parse(_RUN.read_text()))
+                | _returned_dict_keys(ast.parse(_RUN_4C.read_text())))
+    tree = ast.parse(_PAGE_LEDGER.read_text())
+    read = _keys_read_off_data(tree, "data") | _keys_read_off_data(tree, "run")
+    under = produced & read
+    assert len(under) >= _MIN_PAGE_LEDGER_KEYS, (
+        f"only {sorted(under)} selected -- the walk stopped matching, so a green here means nothing")
+    dropped = sorted(under - _extract_report_data_keys(ast.parse(_REPORT.read_text())))
+    assert not dropped, (
+        f"{dropped}: the run returns each and `tools/generate_billing_ledger.py` reads it off the "
+        "saved run, but `extract_report_data` does not forward it, so the page ledger never sees it")

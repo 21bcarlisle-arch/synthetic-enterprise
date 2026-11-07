@@ -1343,6 +1343,9 @@ def extract_report_data(run_output: dict) -> dict:
         # record on each customer's staggered payment day (the Fixed-DD
         # counterpart to the Variable-DD dd_collection_book). Additive/read-only.
         "dd_level_collection_book": run_output.get("dd_level_collection_book", {}),
+        # N20: the per-household level DD schedule the page ledger collects. Computed by the run
+        # since f874c6836b but dropped here, so every saved book collected each DD at its bill.
+        "level_dd_collections": run_output.get("level_dd_collections", {}),
         # DD3 (atom DD_seasonal_cashflow_physics): held customer credit booked as
         # a LIABILITY in the double-entry chart -- the closing balance sheet with
         # DD2's held-credit reclassified from equity, exposing the cash-rich-but-

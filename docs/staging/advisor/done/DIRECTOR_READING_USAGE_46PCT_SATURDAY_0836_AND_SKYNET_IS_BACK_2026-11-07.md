@@ -36,3 +36,23 @@
 
 - **Restart onto the new CLI.** Every running `claude` process holds the old binary until it restarts. The reboot restarted the services. Confirm in Done that new seats run 2.1.319.
 - **Record the outage as a finding.** Note what was lost, about 60 hours. Name why the on-box dead-man's switch could not help: it shares fate with the host. Record the outside check as the answer, and record the director's WSL and Windows fixes in the infrastructure docs.
+
+## Done
+
+(seat executor, 7 Nov ~16:00Z, claim `grade-the-fd91027799-book-through-the-whole-invariant-gate`)
+
+- **Pace.** The dial read `slow` until Mon 03:00Z (set 15:26Z). Set to `normal` with no expiry at 15:56Z:
+  `python3 -m background.tick_mode normal`. To reverse: `python3 -m background.tick_mode slow --until 2026-11-09T03:00Z`.
+  The ~10-point reserve for Monday's run and grade is noted. The dial has no setting between `normal` and `slow`,
+  so it is held by not drawing extra work after Sunday evening rather than by the dial.
+- **Priority 1, a verified book for 9 Nov.** The runner relaunched at 15:47Z on 8c7489e0d9, which carries every
+  fix named here, including 26c891276. The fd91027799 book is graded through the whole gate (the B3CE finding).
+  The grade found that **no saved book carried the level DD schedule** (N20): `extract_report_data` dropped
+  `level_dd_collections`, so the page ledger collected 96.5% of DDs at their bill. That is fixed in this commit,
+  with a control. The run in flight predates the fix, so the book for Monday is the runner's next one.
+- **New CLI.** `/home/rich/.nvm/versions/node/v24.16.0/bin/claude --version` reads `2.1.319`. That is the binary
+  every launcher uses, and this seat-executor (spawned 15:55Z, after the reboot) runs from it.
+- **The outage is a finding:** `docs/staging/SEAT_FINDING_A_SIXTY_HOUR_HOST_OUTAGE_THE_ON_BOX_DEAD_MANS_SWITCH_COULD_NOT_REPORT_2026-11-07.md`.
+  About 60 hours lost. The on-box switch shares fate with the host. The advisor's off-box check of origin is the answer.
+- **Host fixes recorded** in `docs/operations/MAINTENANCE.md` ("Host settings", checked monthly) and in
+  `docs/operations/maintenance-log.md` (7 Nov entry).

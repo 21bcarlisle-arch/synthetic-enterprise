@@ -35,3 +35,10 @@ existing new-staged-file notification path -- no separate cron/dispatcher wiring
    `git gc` if the repo has bloated.
 9. **Log the run** in `docs/operations/maintenance-log.md` (date, versions, actions taken,
    test/kill-test results).
+
+## Host settings (keep; set by the director 2026-11-07 after a ~60h outage)
+
+The on-box dead-man's switch shares fate with the host, so these settings, and the advisor's off-box check of
+origin, are what keep the machine up and its silence noticed. Confirm each at every monthly run:
+Windows never sleeps on mains power; `.wslconfig` carries `vmIdleTimeout=-1` and `memory=24GB`; the scheduled task
+"Keep WSL running" exists and runs at log-on; Tailscale key expiry is disabled and Tailscale starts with Windows.
