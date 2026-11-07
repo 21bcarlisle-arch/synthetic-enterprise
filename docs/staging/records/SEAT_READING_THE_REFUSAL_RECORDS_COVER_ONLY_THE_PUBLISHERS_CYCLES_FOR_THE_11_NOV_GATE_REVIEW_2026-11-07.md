@@ -19,3 +19,9 @@ It can give them for the publisher's cycles only, and that population is not "co
 reconstruct per-gate refusals from session transcripts (each seat's own `[surgical-land] REFUSED` lines name the
 gate), or to report the gap. Recommendation: reconstruct from transcripts for the review, and say what each count
 covers.
+
+## Answered (delivery seat, 2026-11-08 00:30 GMT)
+
+The reconstruction recommended above has been done. Both tables for the 11 Nov review are in
+`docs/staging/records/SEAT_RESULT_WHAT_PREDICTS_A_DEFECT_AND_WHAT_EACH_COMMIT_GATE_HAS_CAUGHT_FOR_THE_11_NOV_REVIEW_2026-11-07.md`.
+The transcripts reach back only 30 days, to 8 Oct, so a three-month window was not available.
