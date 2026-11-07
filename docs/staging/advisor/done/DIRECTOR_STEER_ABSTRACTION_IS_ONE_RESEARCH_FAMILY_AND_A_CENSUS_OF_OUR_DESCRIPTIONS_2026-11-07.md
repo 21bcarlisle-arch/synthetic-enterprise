@@ -62,3 +62,10 @@ Probable failure mode: a census that marks something "checked" because a test ex
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 7 Nov 2026, his words above; the framing and drafting are the advisor's.
+
+## Done
+
+2026-11-07, worker tick. Queued behind the exit test, third in `held_behind_the_exit_test`
+(`docs/direction/priority_order.yaml`), after the token measurement it links to. No build now, as the
+steer says. The census's "checked" grade will need a control proven to go red on drift, per the steer's
+failure mode.

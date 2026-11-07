@@ -280,3 +280,9 @@ The assumed curve in Section 6 is built from these anchors (**A**).
 11. **OVO receivables and ECL coverage:** only the impairment charge is available, via a secondary source. Companies House filings were not read.
 12. **Scottish prescription period (5 years)** and the per-fuel application of the DAP £500 threshold: not verified against primary legal text.
 13. **Pre-2020 "normal year" bad-debt % of revenue:** not sourced. A CMA 2016 energy market investigation appendix would likely have it.
+## Done
+
+2026-11-07, worker tick. Filed as the candidate `the-worlds-write-off-rule-meets-gb-evidence` in
+`customer_outcomes_candidates` (`docs/direction/priority_order.yaml`). Not yet verified against primary
+sources and no world change made: the 30 Oct standard requires verification first, and the rule is a world
+fidelity change the seat decides once that is done. The pack stays here as the source.

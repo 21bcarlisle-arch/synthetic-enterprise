@@ -56,3 +56,10 @@ Probable failure mode: counting a cached re-read of a file as if it were a fresh
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 7 Nov 2026, his words above; the census and drafting are the advisor's.
+
+## Done
+
+2026-11-07, worker tick. Queued, not measured: the steer says "behind the correctness exit test. Rank it
+yourself." It is the first entry of `held_behind_the_exit_test` in `docs/direction/priority_order.yaml`,
+ahead of the abstraction census because the census's interface question depends on its numbers. No
+refactor, no gate. The pyright trial from the plugins steer runs inside it.

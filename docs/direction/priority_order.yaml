@@ -51,6 +51,22 @@ customer_outcomes_candidates:
       estimates, a large credit balance, a catch-up bill, a billing error reaching churn), from the
       advisor's evidence packs
     audit: docs/staging/records/SEAT_READING_DOES_THE_WORLD_REACT_TO_PAIN_POINTS_THE_AUDIT_THE_DIRECTOR_ASKED_FOR_2026-10-30.md
+    evidence: docs/staging/advisor/done/DIRECTOR_EVIDENCE_WHAT_HOUSEHOLDS_DO_AFTER_A_PAIN_POINT_2026-11-07.md
+      # two layers: internal state on almost every pain point, external action in trigger windows.
+      # Verify its S/A rows against primary sources (30 Oct standard) before any world parameter rests on it.
+  - id: the-worlds-write-off-rule-meets-gb-evidence
+    source: docs/staging/advisor/done/DIRECTOR_EVIDENCE_WHAT_HAPPENS_TO_UNPAID_DOMESTIC_ENERGY_DEBT_2026-11-07.md
+    world_first: replace "every failed bill written off in full for any customer who ever leaves" with a
+      final-account loss phased over time, after verifying the pack's section 6 against primary sources; the
+      rule is the seat's to decide. Then the value test's write-off measurement runs against it
+      (docs/design/THE_VALUE_TEST_REDESIGN.md).
+# 2026-11-07: three harness steers the director staged for after the exit test, ranked by the seat.
+# Item 3 of the plugins steer (code-review against our two readers) rides the 11 Nov review row in
+# DIRECTION.yaml; pyright is trialled inside the token measurement, not before it.
+held_behind_the_exit_test:
+  - docs/staging/advisor/done/DIRECTOR_STEER_MEASURE_WHERE_READING_TOKENS_GO_BEFORE_SPLITTING_ANY_FILE_2026-11-07.md
+  - docs/staging/advisor/done/DIRECTOR_STEER_OFFICIAL_PLUGINS_EARN_THEIR_PLACE_AGAINST_OUR_OWN_NUMBERS_2026-11-07.md
+  - docs/staging/advisor/done/DIRECTOR_STEER_ABSTRACTION_IS_ONE_RESEARCH_FAMILY_AND_A_CENSUS_OF_OUR_DESCRIPTIONS_2026-11-07.md
 steps:
   1:
     name: knowledge, now and wide

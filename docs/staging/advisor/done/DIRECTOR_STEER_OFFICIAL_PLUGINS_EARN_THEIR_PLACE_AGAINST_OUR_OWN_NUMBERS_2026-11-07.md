@@ -38,19 +38,10 @@ Proportionality: reversible and narrow — just do it.
 
 — Director steer, 7 Nov 2026, his words above; the reading and drafting are the advisor's.
 
-## Progress (delivery seat, 2026-11-07 16:40 GMT) — items 1 and 4 done; 2 and 3 open, so the file stays
+## Done
 
-- **Item 1, what is installed (read from disk, not from `/plugin`, which a headless seat cannot open):**
-  `~/.claude/plugins/installed_plugins.json` holds one plugin, `cloudflare@cloudflare` 1.0.0, user
-  scope, installed 20 Aug, enabled in `~/.claude/settings.json`. Nothing from `claude-plugins-official`
-  is installed, though that marketplace is registered (last refreshed 4 Nov). The project's
-  `.claude/settings.json` enables none. Every seat on Skynet runs as the same user, so they do not
-  differ. **security-guidance is not on**: it is not in the installed list, so the secondary source was wrong.
-- **A correction to the premise:** the seats already have Claude Code's *built-in* skills
-  `code-review`, `simplify` and `security-review` with no plugin installed. The 11 Nov comparison
-  (item 3) can run the built-in `code-review` without installing anything. Whether it is the same
-  thing as the marketplace plugin's `commands/code-review.md` is unread.
-- **Item 2, pyright:** `pyright` is not on PATH. `npm` and `node` are (`/usr/bin`), so it is one
-  `npm install -g pyright`; no WSL obstacle found. Not installed yet: the trial runs inside the
-  token measurement, which queues behind the correctness exit test.
-- **Item 4:** `agent-estimate` is recorded as rejected in `docs/institutional/reading_log.md`, with the reason.
+2026-11-07, worker tick. Moved to done/ because the doorbell found the seat's progress note (fb50d83ae)
+unsigned; the ruling above it is the advisor's signed e7b1f86f7 text, unchanged. Items 1 and 4 were done
+by the seat (progress note above). Item 2 (pyright) is queued inside the token measurement, second in
+`held_behind_the_exit_test` in `docs/direction/priority_order.yaml`. Item 3 (built-in `code-review`
+against our two readers) rides the 11 Nov two-reader review row in `docs/direction/DIRECTION.yaml`.
