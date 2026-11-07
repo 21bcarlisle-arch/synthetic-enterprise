@@ -117,6 +117,11 @@
              "Verification paused since " + esc((d && d.paused_since) || "unknown") +
              " · showing run " + esc(run) +
              " (last verified " + esc(lastVerified.verified_at || "never") + ")";
+      /* Which gate refuses and why, in a reader's words (publish_provenance.record_paused's
+         `gate`). Director, 7 Nov: "Not updated" should never be silent. */
+      if (d && d.paused_gate) {
+        line += " · " + esc(d.paused_gate);
+      }
     }
     /* What a reader must know about the figures shown (publish_provenance.figures_caveat):
        only while the run it was written about is still the one shown. */

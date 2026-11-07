@@ -40,4 +40,21 @@
    as soon as a book passes the full gate.
 3. **Not done, handed on.** If no book passes the gate by Monday, the site's status line must name the refusing
    gate. That step depends on the 21:34 book's grade, so it was handed on as a continuation.
+   **Done (delivery seat, 2026-11-07, later the same night).** Whatever the 21:34 book grades, a domain-invariant
+   refusal now reaches the status line in a reader's words. The publisher already pushed the refusal to
+   `site/data/publish_provenance.json`, but only as `paused_reason`, the internal string, which the banner deliberately
+   does not print (2 Nov). So the line said "did not pass its correctness checks" and no more. Now
+   `domain_invariant_runner.plain_refusal` tells each unexcepted row by its own `statement` from
+   `DOMAIN_INVARIANTS.yaml`, with its count over what was checked. The publisher passes that sentence to
+   `record_paused(gate=...)`, and both `banner_line` and `freshness-banner.js` print it as `paused_gate`. On the
+   fa915ac0d7 grade the line would read: "Refused by the domain-invariant check: 2 of its rules are broken and no
+   dated exception covers them. Every overdue amount the customer page prints on a collections step is part of what
+   the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]:
+   broken on 1,724 of 6,695 checked (...); ... [INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE]: broken on 45 of
+   1,139 checked (...)." Control: `tests/background/test_the_status_line_names_the_gate_that_refuses_the_publish.py`.
+   Three of its five mutations were run and all three fired.
+   **Limit.** The banner only moves when the window opens, Mon 9 Nov 04:00, and the publisher grades a book. Before
+   then the HOLD path grades nothing. Only the domain-invariant gate carries a reader's why. The other refusals
+   (the bills grade, the fast suite) still print the generic sentence. The run-bytes-off-commit refusal pushes no
+   banner at all.
 4. Spend: this turn went on the unpin only. No new feature work was drawn.

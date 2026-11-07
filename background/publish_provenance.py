@@ -333,6 +333,7 @@ def _blank() -> dict:
         "showing_run": None,
         "last_verified": None,
         "paused_since": None,
+        "paused_gate": None,
         "annotation": {"open_findings": 0, "nonblocking_reds": [], "checked_at": None},
         "written_at": None,
     }
@@ -402,6 +403,7 @@ def record_verified(*, run_id, git_commit, generated_at=None, population=None,
     # R11's no-orphan-transitions clause read the other way round: the release of a hold must
     # clear everything the hold asserted, not just the flag the code happens to check.
     state["paused_reason"] = None
+    state["paused_gate"] = None
     # The caveat was about the run this replaces, so it goes with it (record_figures_caveat).
     state["figures_caveat"] = None
     return _write(state, path, now)
@@ -433,7 +435,7 @@ def figures_caveat(state) -> str | None:
     return None
 
 
-def record_paused(*, reason=None, path: Path = None, now=None) -> dict:
+def record_paused(*, reason=None, gate=None, path: Path = None, now=None) -> dict:
     """The scoped gate is RED. Stamps the pause once; moves no freshness field, ever.
 
     Returns the written state. `paused_since` is preserved across repeated calls — see the
@@ -445,6 +447,11 @@ def record_paused(*, reason=None, path: Path = None, now=None) -> dict:
         state["paused_since"] = _now_iso(now)
     if reason:
         state["paused_reason"] = str(reason)[:400]
+    # `gate` is the refusal in a reader's words (which gate, which rules, how many), and is what
+    # the status line prints; `paused_reason` stays the publisher's string and is not rendered.
+    # Written on every pause, None included: a later pause by another gate must not go on
+    # printing the last gate's why. Director, 7 Nov: "Not updated" should never be silent.
+    state["paused_gate"] = str(gate)[:PAUSED_GATE_CHARS] if gate else None
     # showing_run / last_verified deliberately untouched: what the visitor is looking at has
     # not changed, and saying it has would be the fake-fresh sin.
     return _write(state, path, now)
@@ -507,6 +514,10 @@ def record_annotation(*, open_findings=None, nonblocking_reds=None, measured_on=
     return _write(state, path, now)
 
 
+#: The reader's why is longer than the publisher's: it carries the rule each breach broke.
+#: A layout bound on the banner, not a domain quantity.
+PAUSED_GATE_CHARS = 900
+
 PAUSED_PLAIN = ("The latest run did not pass its correctness checks, so this site shows the last "
                 "verified figures while it is fixed")
 
@@ -538,6 +549,8 @@ def banner_line(state=None, now=None) -> str:
         line = (PAUSED_PLAIN + " · Verification paused since {} · showing run {} (last verified {})").format(
             state.get("paused_since") or "unknown", run,
             (state.get("last_verified") or {}).get("verified_at") or "never")
+        if state.get("paused_gate"):
+            line += " · " + str(state["paused_gate"])
     caveat = figures_caveat(state)
     return line + (" · " + caveat if caveat else "")
 

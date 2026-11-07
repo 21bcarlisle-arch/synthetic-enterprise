@@ -3075,6 +3075,40 @@ def gate(results: list[dict], register: dict) -> dict:
             "refusal": refusal or None}
 
 
+#: How long one rule's sentence may run on the site's status line before it is cut at a word.
+#: A layout bound, not a domain quantity: the line sits in a banner a reader takes in at a glance.
+PLAIN_STATEMENT_CHARS = 200
+
+
+def plain_refusal(verdict: dict, results: list[dict], invariants: list[dict]) -> str | None:
+    """The refusal in a reader's words, for the site's status line: which gate, which rules, how
+    many of what. None when the gate does not refuse.
+
+    Director, 7 Nov: if no book passes the gate, "say on the site's status line which gate is
+    refusing and why. Not updated should never be silent." `verdict["refusal"]` names IDs and
+    "no exception", which is the publisher's why, not the reader's; the reader's why is the rule
+    the book broke, so each row is told by its own `statement` from DOMAIN_INVARIANTS.yaml, with
+    the count over what was checked and the unit counted. The ID stays in brackets so the line can
+    be traced to docs/reports/DOMAIN_INVARIANTS.md."""
+    if not verdict.get("refuse"):
+        return None
+    statements = {i["id"]: str(i.get("statement") or "").strip() for i in invariants}
+    graded = {r["id"]: r for r in results}
+    parts = []
+    for u in verdict["unexcepted"]:
+        rule = re.split(r"(?<=\.)\s", statements.get(u["id"]) or "")[0].rstrip(".")
+        if len(rule) > PLAIN_STATEMENT_CHARS:
+            rule = rule[:PLAIN_STATEMENT_CHARS].rsplit(" ", 1)[0] + "\u2026"
+        r = graded.get(u["id"]) or {}
+        count = ("{:,} of {:,} checked (unit: {})".format(int(u["breached"]), int(r["checked"]), r.get("unit"))
+                 if r.get("checked") else "{:,}".format(int(u["breached"])))
+        parts.append("{} [{}]: broken on {}".format(rule or "a rule with no statement", u["id"], count))
+    n = len(parts)
+    return ("Refused by the domain-invariant check: {} of its rules {} broken and no dated "
+            "exception covers {}. {}.").format(
+        n, "is" if n == 1 else "are", "it" if n == 1 else "them", "; ".join(parts))
+
+
 def render_verdict(verdict: dict) -> str:
     n = sum(u["breached"] for u in verdict["unexcepted"])
     mode = (("ENFORCED: the publish is refused" if verdict["refuse"] else

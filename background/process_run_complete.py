@@ -4787,16 +4787,42 @@ def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, regist
         log("Domain invariants: " + reason)
         return register.get("enforce") is not True, reason
     verdict = runner.gate(results, register)
+    try:
+        plain = runner.plain_refusal(verdict, results, runner.load_invariants())
+    except Exception as exc:  # noqa: BLE001 -- the reader's sentence must not cost the grade
+        plain = None
+        log("Domain invariants: the reader's refusal sentence failed ({}: {})".format(
+            type(exc).__name__, exc))
     DOMAIN_INVARIANT_TABLE.write_text("# Domain invariants at git={}\n\n{}\n\n{}\n".format(
         git_hash, runner.render_verdict(verdict), runner.render(results, len(raw))))
     DOMAIN_INVARIANT_JSON.write_text(json.dumps(
-        {"git": git_hash, "accounts": len(raw), "verdict": verdict, "results": results},
+        {"git": git_hash, "accounts": len(raw), "verdict": verdict, "plain_refusal": plain,
+         "results": results},
         indent=1, default=str) + "\n")
     log("Domain invariants: " + runner.render_verdict(verdict).splitlines()[0])
     if verdict["refuse"] and verdict["enforce"]:
         return False, "domain-invariant breaches at git={} that no exception covers: {}".format(
             git_hash, verdict["refusal"])
     return True, None
+
+
+#: Said when the graded table cannot supply the reader's sentence (an ungradable book, or a table
+#: graded at another commit): the gate is still named, so the status line is never silent.
+DOMAIN_INVARIANT_PLAIN_FALLBACK = ("Refused by the domain-invariant check; what it found is in "
+                                   "docs/reports/DOMAIN_INVARIANTS.md")
+
+
+def _domain_invariant_plain(git_hash):
+    """The reader's sentence for the status line, from the table this run's grade wrote, keyed to
+    the git hash like `_domain_invariant_cause`: a table graded at another commit is another book."""
+    try:
+        record = json.loads(DOMAIN_INVARIANT_JSON.read_text())
+    except (OSError, ValueError):
+        return DOMAIN_INVARIANT_PLAIN_FALLBACK
+    graded = str(record.get("git") or "")
+    if not git_hash or not graded or not (graded.startswith(git_hash) or git_hash.startswith(graded)):
+        return DOMAIN_INVARIANT_PLAIN_FALLBACK
+    return record.get("plain_refusal") or DOMAIN_INVARIANT_PLAIN_FALLBACK
 
 
 def _domain_invariant_cause(git_hash):
@@ -8793,7 +8819,7 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
         return None
 
 
-def _publish_provenance_banner(git_hash, *, reason=None):
+def _publish_provenance_banner(git_hash, *, reason=None, gate=None):
     """Publish the staleness BANNER while the numbers stay put (ruling property 3).
 
     THE ONE THING THAT MUST NOT FREEZE. On a red scoped gate the publisher returns before
@@ -8821,7 +8847,7 @@ def _publish_provenance_banner(git_hash, *, reason=None):
         return False
     try:
         _prov = publish_provenance
-        state = _prov.record_paused(reason=reason)
+        state = _prov.record_paused(reason=reason, gate=gate)
         log("Provenance banner: {}".format(_prov.banner_line(state)))
         target = str(_prov.PROVENANCE_FILE)
     except Exception as exc:  # noqa: BLE001 -- see docstring
@@ -11446,7 +11472,8 @@ def _process(marker_path_str):
     _inv_ok, _inv_reason = _domain_invariant_gate_permits_publish(git_hash)
     if not _inv_ok:
         log("Domain-invariant gate REFUSED the publish - not committing content: " + _inv_reason)
-        _publish_provenance_banner(git_hash, reason=_inv_reason)
+        _publish_provenance_banner(git_hash, reason=_inv_reason,
+                                   gate=_domain_invariant_plain(git_hash))
         return EXIT_DOMAIN_INVARIANT_REFUSED
 
     log("Running fast test suite (SIM_FAST_MODE=1)")
