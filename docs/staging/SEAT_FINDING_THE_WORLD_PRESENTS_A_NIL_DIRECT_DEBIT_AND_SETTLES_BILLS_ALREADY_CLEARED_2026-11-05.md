@@ -79,3 +79,8 @@ This script's own replay prices settlements at the pre-fix rule.
   date (`while all_terms: heappop`). So a reader that crosses with `force=True` (`provision_stock`,
   `write_off_closed_balances`) while an earlier-starting term posts can cross another account's lump before
   that account's later term has posted the credit.
+- **Correction to (2), same day.** "Refuted" was wrong. The count compared each settlement's FACE with the open balance,
+  because the world's truth kept no cash for a crossed settlement and `repayment_rows` priced it at the face. SYN-2016-047's
+  64.38 is its bill's face, not what crossed. The engine cut it again, so no P&L carried the GBP 682.47. The truth now
+  records the cash, and the engine's row carries it. (2) is re-graded on the first book that carries that change, with a
+  prediction of 0. The full correction is in the B3CE2A4E73 finding, beside the grade.

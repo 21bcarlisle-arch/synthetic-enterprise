@@ -112,10 +112,13 @@ def build(triad, through: dt.date) -> dict[str, dict]:
     # A billing account holds both fuels' legs, and each leg is its own contract (SLC 27.16). Until
     # 2026-10-28 every settlement went to the account's first leg, electricity: on 5e3e9966a5 no gas
     # leg held one, 523 sat on electricity, and the reg 6D refund paid out that phantom credit.
-    for _account_id, _bill_due, settled_on, month, cid in triad._crossed_settlements:
+    # The cash is what crossed, cut to the balance still open (`_cross_settlement`). Without it the
+    # engine re-priced every settlement at the bill's face, and 19 cut settlements on 8c7489e0d9
+    # read as cash the world sent over the open balance when none had been.
+    for _account_id, _bill_due, settled_on, month, cid, cash in triad._crossed_settlements:
         if cid in out:
             out[cid]["repayments"].append({"date": settled_on.isoformat(), "kind": "settlement",
-                                           "bill_month": month})
+                                           "bill_month": month, "amount_gbp": cash})
     book = triad._household_plans
     for (account_id, agreed_on), terms in book._terms.items():
         if (account_id not in by_account or terms.kind != REPAYMENT_PLAN or not terms.debt
@@ -145,8 +148,8 @@ def build(triad, through: dt.date) -> dict[str, dict]:
 
 
 def repayment_rows(truth: dict, cid: str, bill_rows: list[dict]) -> list[dict]:
-    """The leg's repayments as engine rows (`outcome: "repayment"`), each priced from the issued
-    amounts of the bills it settles. A repayment for a bill the supplier never issued is dropped.
+    """The leg's repayments as engine rows (`outcome: "repayment"`): a settlement at the cash that
+    crossed, a plan instalment at its share of the issued amounts of the bills it covers. A repayment for a bill the supplier never issued is dropped.
     A settlement carries `settles_month`, so the engine can price it at what is left on that bill."""
     amount_by_month: dict[str, float] = {}
     commodity_by_month: dict[str, str] = {}
@@ -159,7 +162,8 @@ def repayment_rows(truth: dict, cid: str, bill_rows: list[dict]) -> list[dict]:
     for rp in truth.get("repayments", ()):
         if rp["kind"] == "settlement":
             months = [rp["bill_month"]]
-            amount = sum(amount_by_month.get(m, 0.0) for m in months)
+            # The cash that crossed; a book saved before it was recorded falls back to the face.
+            amount = rp.get("amount_gbp", sum(amount_by_month.get(m, 0.0) for m in months))
         else:
             months = rp["covered_months"]
             amount = rp["share"] * sum(amount_by_month.get(m, 0.0) for m in months)
@@ -172,7 +176,7 @@ def repayment_rows(truth: dict, cid: str, bill_rows: list[dict]) -> list[dict]:
                "repayment_kind": rp["kind"]}
         if rp["kind"] == "settlement":
             # The engine prices it at what is left on this bill when it is still open
-            # (`arrears_engine.balance_settlement_from_outcomes`); the face is the fallback.
+            # (`arrears_engine.balance_settlement_from_outcomes`), never above the cash.
             row["settles_month"] = rp["bill_month"]
         rows.append(row)
     return rows

@@ -556,6 +556,18 @@ Other legs have the same shape when the money in between is another settlement r
 PROS-2018-0016g). The P&L effect is at most GBP 682.47 of cash that should not have been sent. It is no longer
 GBP 1,497.46. Scratch for this: `count_v3.txt` and `classify.txt`.
 
+**Correction (2026-11-07, same day, on reading the code): the 19 are not cash the world sent.** The count read each repayment
+row's `amount_gbp`, and `world_payment_truth.repayment_rows` set that to the bill's FACE: the truth kept only the bill month of a
+crossed settlement, never its cash. The 64.38 is the Jul 2021 bill's face. The triad's own cut (`_cross_settlement`) is tested to
+send the rest only (`test_a_settlement_carries_only_what_a_credit_left_open`: GBP 70 of a GBP 100 bill after a GBP 30 credit),
+and the engine cut the face to `min(asked, open)` again, so neither P&L carried the 682.47. So (2) was neither held nor refuted
+by this count: it measured a face, and could reach 0 only on a book where no settlement was ever cut. Neither (i) nor (ii) is
+shown. The book does not record the triad's cash, so I cannot yet say whether its walk agrees with the engine's.
+The fix makes the claim measurable: the truth now records the cash on each settlement, and the engine's row carries it
+(`tests/simulation/test_the_world_records_the_cash_a_settlement_carried.py`). **Prediction for the first book carrying it:**
+the same count reads (2) = **0**, and no P&L figure moves from this change. Any residual is a real (ii) disagreement between
+`_leg_rows` and `_resolve_bills`, and is the next item. The pre-registration below still holds for the 18:40Z book, which predates it.
+
 **What this means for the 9 Nov publish.** Suppose the next book clears N20. It is still refused on the cap-note row (3), on N17's
 electricity row (2 legs, a world fix that waits on the ERA5 pull), and on SYN-2016-206g's gas row (1). None of the three has a
 dated exception. Each needs either a fix or a named, dated exception before a book can pass. Both are options under the

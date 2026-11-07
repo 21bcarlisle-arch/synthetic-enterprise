@@ -1098,7 +1098,7 @@ class LivePaymentTriad:
                          "method": None})
         # The leg is the event's: a billing account holds both fuels, and a settled gas bill is gas.
         self._crossed_settlements.append((account_id, bill_due, settled_on, bill_month,
-                                          event.customer_id))
+                                          event.customer_id, event.amount_gbp))
         hand_over = self._consumer.observe_hand_over(
             emit_wire_responses(
                 event, SeamAdapterInput(account_id=account_id, correlation_id=correlation_id)),
