@@ -97,3 +97,13 @@ map_notes:
     # `population_coverage.REDUCES_OVER` still declares itself `blind_to` both of this row''s two
 
     # components. HARDEN when those two land and the fitted distribution survives a cold-eyes pass.'
+  n17_year_on_year_slice_note: 'SLICE, filed 2026-11-07 from N17 (docs/staging/done/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_METERED_ELECTRICITY_USE_BARELY_MOVES_FROM_ONE_YEAR_TO_THE_NEXT_2026-11-04.md):
+    a household''s electricity has no year-to-year term on the fallback shape. On the fd91027799 run, 519 of 712 electricity
+    premises settle on legacy_pc1_rescaled, refused fabric with "no weather archive" (their cell is temperature-only; the
+    ERA5 pull stood at 440 cells to go on 3 Nov, f763637d83). The world''s own metered month moves a median 0.56% on
+    them, in every season and in 2022 (0.42%), against fabric premises 4.5% (summer 3.6%) and the four real HH-metered
+    homes 7-17%. NEED (docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md) puts dwelling-level annual
+    median |r-1| at 0.147 and SERL a same-household winter IQR of (-0.48%, 17.56%). Two remedies, separable: finish the
+    ERA5 pull (W1_14), which moves premises onto fabric; and give the fallback and the fabric base load a household
+    year-to-year term drawn from NEED/SERL, which INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD grades
+    (book median |r-1| in [0.05, 0.30]). Graded 0.0075 on fd91027799.'

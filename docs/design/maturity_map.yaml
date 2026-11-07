@@ -1714,7 +1714,7 @@
 
 - id: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
   title: "per-household half-hourly electricity shape and seasonal gas shape as the demand deliverable, published as modelled and explicitly not validated"
-  notes_rehomed: [map_comment_note]
+  notes_rehomed: [map_comment_note, n17_year_on_year_slice_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3

@@ -3272,8 +3272,8 @@ invariants:
   - opening_read_date
   - closing_read_date
   - apportioned_flag
-  checkable: false
-  gap: 'NOT YET GRADED (2026-11-03): no evaluator in tools/domain_invariant_runner. Written blind, from docs/market_research and site/data/knowledge_topics.json only, for the sixth cold read''s N13 (docs/staging/records/SEAT_READING_THE_SIXTH_COLD_READ_ON_THE_85B044BE54_BOOK_2026-11-03.md).
+  checkable: true
+  gap: 'GRADED from 2026-11-07 by ev_gas_monthly_use_repeat in tools/domain_invariant_runner. Written blind, from docs/market_research and site/data/knowledge_topics.json only, for the sixth cold read''s N13 (docs/staging/records/SEAT_READING_THE_SIXTH_COLD_READ_ON_THE_85B044BE54_BOOK_2026-11-03.md).
     On the 85b044be54 pages the seat counts 1,635 of 4,413 gas month-pairs read A or M at both ends repeating to 0.1 kWh, 114 of 383 legs repeating on 10% or more of their pairs. GAP (1): no file read gives
     monthly GB heating-degree-day series or their year-to-year spread by calendar month; the Eurostat figure is annual UK (2,710-2,961, 2018-2025), and the monthly spread is inferred as at least the annual
     one (strong logic, not a number read). The 0.2%/1% per-pair coincidence figures, the R_g thresholds 1/2/3, the book share 1%, and the dispersion floor f (1-3%) are stated beliefs with the reasoning
@@ -3285,6 +3285,46 @@ invariants:
     establishes how a prepayment record''s monthly kWh is formed (meter vend/credit data versus reads); if it is derived from vends or an AQ, leg A grades the derivation, not the meter. GAP (5): an AQ-driven
     ESTIMATE that repeats last year is lawful and expected (Xoserve seasonal-normal AQ); the defect graded here is a repeat carried on months labelled actual, and the row cannot by itself tell a mislabelled
     estimate from a mis-sourced measured value.'
+- id: INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD
+  family: weather_driven_demand
+  grades: ledger
+  counts:
+    numerator: (leg A) the book median over measured month-pairs of |kWh(m)/kWh(m-12) - 1|; (leg B) month-pairs within 0.1 kWh of the same month a year earlier
+    denominator: (leg A) every calendar-month pair on a domestic electricity leg with both months measured (closing read A, C or prepayment-meter M at both ends) and both months at or above the leg's
+      zero-use floor; (leg B) the pairs among those within 1 kWh of the same month a year earlier
+    unit graded: the electricity book; legs (MPAN x meter serial) repeating three or more times are flagged to trace it
+  statement: 'A household''s metered electricity in a calendar month moves from one year to the next with occupancy, holidays, appliances, weather and (in 2022) price. Across a book the typical monthly
+    change is a matter of percent, not of tenths of a percent, and two measured monthly totals agreeing to 0.1 kWh a year apart are no more common than a smooth spread of changes puts there. A book whose
+    median month barely moves, or whose repeats bunch at zero, is not carrying measured household use.'
+  predicate: 'Pairs as INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR''s M_g, on domestic electricity legs. (A) median |r - 1| over all pairs within [lower, upper]; outside is a breach. (B) among pairs with
+    |kWh(m) - kWh(m-12)| <= 1 kWh, the share with |difference| <= 0.1 kWh must not exceed 3/21 (at one decimal place, 3 of the 21 lattice values in [-1, 1]; a spread locally flat over 2 kWh puts that
+    share there) by more than the one-sided 99.9% binomial bound; above it is a breach. A leg with three or more pairs within 0.1 kWh is a flag.'
+  lower: 0.05
+  upper: 0.30
+  lower_source: 'belief from docs/market_research/how_much_a_same_households_use_moves_year_on_year_and_in_2022.md section 2A (SERL, 5,594 GB households, winter 2022/23): electricity reduction against
+    each household''s own weather-corrected counterfactual has IQR "(-0.48%, 17.56%)", so half of same households moved by more than about 9% over a whole winter; a calendar month averages fewer days
+    and moves at least as much (strong logic). The lower bound is set at about half of that, 0.05, the lenient end (F11): that winter was a price shock and an ordinary year may move less. Section 1:
+    "some households continued to use up to around 1 kWh of electricity per day or 15-20% more than predicted throughout 2021/22".'
+  upper_source: 'docs/market_research/how_far_a_settled_eac_sits_from_next_years_use.md, NEED 2026 50k sample, 330,884 consecutive-year domestic electricity pairs 2016-2024: median |r-1| 0.147, p75
+    0.304. That is annual and bundles change of occupier, EAC-to-AA transitions and 100 kWh rounding, so it is wider than one household''s annual change; a month is noisier than a year. The upper bound
+    is the dwelling-level p75, 0.30: a book median month above the annual p75 of dwellings would mean the typical household changes more than three in four dwellings do. Belief, not a number read.'
+  source: 'NEED (how_far_a_settled_eac_sits_from_next_years_use.md section 1) and SERL (how_much_a_same_households_use_moves_year_on_year_and_in_2022.md section 2A). Written for the eighth cold read''s
+    N17 (docs/staging/done/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_METERED_ELECTRICITY_USE_BARELY_MOVES_FROM_ONE_YEAR_TO_THE_NEXT_2026-11-04.md), from those pages, before the book was graded.'
+  severity:
+    book_median_outside_band: breach
+    repeats_above_chance: breach
+    three_or_more_repeats_on_one_leg: flag
+  export_fields:
+  - account_id
+  - mpan
+  - meter_serial
+  - period_start
+  - period_end
+  - closing_read_type
+  - consumption_kwh
+  gap: 'GAP (1): no GB study publishes a same-household, ordinary-year distribution of MONTHLY electricity change (the gas row''s GAP (2), on this fuel); both bounds are beliefs from an annual
+    dwelling-level spread and a seasonal same-household one. GAP (2): the share of electricity months a supplier holds on read-bounded calendar months (smart, prepayment) is not established; the row
+    grades only those it finds.'
 - id: INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE
   family: back_billing
   grades: ledger

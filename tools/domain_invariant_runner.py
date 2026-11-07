@@ -2616,6 +2616,174 @@ def grade_cast_tariff_labels(cast_path: Path, raw_book: dict[str, dict]) -> Tall
 
 
 #: invariant ID -> (evaluator, the export field it needs on some period or account, or None)
+def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    centre, half = (k + z * z / 2) / (n + z * z), z * math.sqrt(k * (n - k) / n + z * z / 4) / (n + z * z)
+    return centre - half, centre + half
+
+
+def ev_dd_collections_equal_to_the_bill(inv, book):
+    """Leg A only: the book's share of graded successful DD collections that track their bill
+    (equal to it, gross or net of scheme credit, and not a repeated level amount), at most `upper`,
+    by a 95% Wilson interval whose n is the accounts contributing. Exclusions x1-x4 as the row
+    states. Legs B and C and the class partition are not built here: the row reads FLAGGED at
+    best until they are, never clean on Leg A alone. Fewer than 10 accounts is not graded."""
+    tally = Tally("book: its successful DD collections, graded on Leg A")
+    upper, e = inv.get("upper", 0.30), 0.01
+    recs = [a.bill_record for a in book if a.bill_record]
+    last_month = max((str(i.get("period_end") or "")[:7] for r in recs for i in r.get("invoices") or ()), default="")
+    tracking = graded_n = accounts = 0
+    for rec in recs:
+        invs = {i.get("invoice_number"): i for i in rec.get("invoices") or ()}
+        order = sorted(invs.values(), key=lambda i: str(i.get("period_start") or ""))
+        if not order:
+            continue
+        first, last = order[0].get("invoice_number"), order[-1]
+        pays = sorted((p for p in rec.get("payments") or ()
+                       if p.get("method") == "direct_debit" and p.get("outcome") == "success"),
+                      key=lambda p: str(p.get("payment_date")))
+        graded = []
+        for k, p in enumerate(pays):
+            i = invs.get(p.get("invoice_number"))
+            amount, total = p.get("amount_gbp") or 0.0, (i or {}).get("total_amount_gbp") or 0.0
+            if i is None or amount <= 0 or total <= 0 or k == 0 or p.get("invoice_number") == first:
+                continue
+            if (p.get("invoice_number") == last.get("invoice_number")
+                    and str(last.get("period_end") or "")[:7] < last_month):
+                continue
+            s = p.get("scheme_credit_gbp") or 0.0
+            graded.append((amount, abs(amount - total) <= e or (s > 0 and abs(amount - (total - s)) <= e)))
+        for j, (amount, equal) in enumerate(graded):
+            level = any(abs(amount - graded[n][0]) <= e for n in (j - 1, j + 1) if 0 <= n < len(graded))
+            tracking += equal and not level
+        graded_n += len(graded)
+        accounts += bool(graded)
+    if accounts < 10:
+        tally.unbounded += 1
+        return tally
+    tally.checked += 1
+    q = tracking / graded_n
+    lo, hi = _wilson(round(q * accounts), accounts)
+    where = "book: {} of {} graded DD collections track the bill ({:.3f}), {} accounts".format(
+        tracking, graded_n, q, accounts)
+    if lo > upper:
+        tally.hit("breach", where, round(q, 3), upper, "Leg A")
+    elif q > upper:
+        tally.hit("flag", where, round(q, 3), upper, "Leg A cannot tell")
+    else:
+        tally.hit("flag", where, round(q, 3), upper, "Legs B and C not built")
+    return tally
+
+
+# ── month on the same month a year earlier (N13 gas, N17 electricity) ───────────────────────
+
+#: A closing read the household's meter gave: actual, customer, or the prepayment meter's own (M).
+_MEASURED = ACTUAL_READ_TYPES | {"M", "prepayment"}
+_WINTER = {11, 12, 1, 2, 3}
+
+
+def _calendar_month(p) -> date | None:
+    a, b = _d(p["period_start"]), _d(p["period_end"])
+    return a if a.day == 1 and b == _month_end(a) else None
+
+
+def _measured_months(a: Account) -> dict[tuple, dict[date, float]]:
+    """leg (meter point x serial) -> {month: kWh} for whole calendar months whose kWh rests on
+    measured reads at both ends: this period's closing read, and the previous period's closing read
+    on the same leg (the opening read is that one carried forward). Estimated or deemed at either
+    end, a part month, or a period with no volume is not a measured month."""
+    legs, last = defaultdict(dict), {}
+    for p in a.periods:
+        leg = (p.get("mprn") or p.get("mpan"), p.get("meter_serial"))
+        closing = _closing_type(p)
+        month, kwh = _calendar_month(p), period_kwh(p)
+        if (month is not None and kwh is not None and closing in _MEASURED
+                and last.get(leg) in _MEASURED):
+            legs[leg][month] = kwh
+        last[leg] = closing
+    return legs
+
+
+def _year_on_year(book, fuel):
+    """(account, leg, [(month, kWh, kWh a year earlier)]) on measured months of domestic legs, both
+    months at or above the leg's zero-use floor z = half its July-August median, at least 1 kWh."""
+    for a in book:
+        if a.fuel != fuel or not a.domestic:
+            continue
+        for leg, months in _measured_months(a).items():
+            summer = [k for m, k in months.items() if m.month in (7, 8)]
+            z = max(1.0, 0.5 * _median(summer)) if summer else 1.0
+            pairs = [(m, k, months[m.replace(year=m.year - 1)]) for m, k in sorted(months.items())
+                     if m.replace(year=m.year - 1) in months
+                     and k >= z and months[m.replace(year=m.year - 1)] >= z]
+            if pairs:
+                yield a, leg, months, pairs
+
+
+#: Two monthly totals held to one decimal place are the same reading within half a unit each side.
+_REPEAT_TOL = 0.05 + 1e-9
+
+
+def ev_gas_monthly_use_repeat(inv, book):
+    """The row's legs A and B per gas leg, and its book-level repeat share."""
+    tally = Tally("gas leg with a measured month a year after another")
+    repeats = pairs_n = 0
+    for a, leg, months, pairs in _year_on_year(book, "gas"):
+        tally.checked += 1
+        where = "{} {}".format(a.cid, leg[1])
+        hits = [m for m, k, k0 in pairs if abs(k - k0) <= _REPEAT_TOL]
+        repeats, pairs_n = repeats + len(hits), pairs_n + len(pairs)
+        run = [m for m in hits if m.month in _WINTER and m.replace(year=m.year - 2) in months
+               and abs(months[m] - months[m.replace(year=m.year - 2)]) <= _REPEAT_TOL]
+        if len(hits) >= 3 or run:
+            tally.hit("breach", where, len(hits), 1, "repeats" if not run else "winter run " + str(run[0]))
+        elif len(hits) == 2:
+            tally.hit("flag", where, 2, 1, "exactly two repeats")
+        winter = [abs(k / k0 - 1) for m, k, k0 in pairs if m.month in _WINTER]
+        if len(winter) >= 3 and _median(winter) < 0.01:
+            tally.hit("flag", where, round(_median(winter), 4), 0.01, "winter dispersion below floor")
+    share = repeats / pairs_n if pairs_n else None
+    tally.book = {"repeats": repeats, "pairs": pairs_n, "share": share and round(share, 4),
+                  "upper": 0.01, "breach": bool(share and share > 0.01)}
+    if tally.book["breach"]:
+        tally.hit("breach", "book", round(share, 4), 0.01, "book repeat share")
+    return tally
+
+
+def ev_elec_monthly_use_moves(inv, book):
+    """Book level, two legs. (A) the median |r-1| over measured month-pairs lies inside [lower,
+    upper]. (B) chance: within 1 kWh of last year's month, the share within 0.1 kWh is no more than
+    a locally flat spread gives at one decimal (3 of the 21 values), at the 99.9% binomial bound.
+    Per leg, three or more repeats within 0.1 kWh is flagged so the book breach can be traced."""
+    tally = Tally("electricity book (measured month-pairs)")
+    ratios, near, exact = [], 0, 0
+    for a, leg, _months, pairs in _year_on_year(book, "electricity"):
+        hits = 0
+        for m, k, k0 in pairs:
+            ratios.append(abs(k / k0 - 1))
+            d = abs(k - k0)
+            near += d <= 1.0 + 1e-9
+            if d <= 0.1 + 1e-9:
+                exact, hits = exact + 1, hits + 1
+        if hits >= 3:
+            tally.hit("flag", "{} {}".format(a.cid, leg[1]), hits, 2, "leg repeats within 0.1 kWh")
+    if not ratios:
+        return tally
+    lo, hi = _num(inv.get("lower")), _num(inv.get("upper"))
+    median = _median(ratios)
+    tally.band("book median |r-1| n={}".format(len(ratios)), round(median, 4), lo, hi)
+    tally.checked = 1
+    chance = 3 / 21
+    bound = _binomial_upper(near, chance)
+    share = exact / near if near else 0.0
+    if near and share > bound:
+        tally.hit("breach", "book within 0.1 kWh of {} within 1 kWh".format(near), round(share, 4),
+                  round(bound, 4), "above chance")
+    tally.book = {"pairs": len(ratios), "median_abs_r_minus_1": round(median, 4), "band": [lo, hi],
+                  "within_1_kwh": near, "within_0_1_kwh": exact, "share": round(share, 4),
+                  "chance": round(chance, 4), "upper_999": round(bound, 4)}
+    return tally
+
+
 EVALUATORS = {
     "INV_UNIT_RATE_SVT_ELEC": (ev_unit_rate_svt_elec, None),
     "INV_UNIT_RATE_SVT_ELEC_PRE_CAP": (ev_unit_rate_svt_elec_pre_cap, None),
@@ -2684,6 +2852,9 @@ EVALUATORS = {
     "INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE": (ev_back_billing_on_receipt, "bill_record"),
     "INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL": (ev_reoffer_follows_a_missed_bill, "bill_record"),
     "INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM": (ev_cast_tariff_label, "cast_tariffs"),
+    "INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE": (ev_dd_collections_equal_to_the_bill, "bill_record"),
+    "INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR": (ev_gas_monthly_use_repeat, None),
+    "INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD": (ev_elec_monthly_use_moves, None),
 }
 
 

@@ -79,3 +79,29 @@ that run, not the run. One residual is still open: PROS-2019-0208g meters a flat
 April 2021 with a sky. That is a separate question, and it is in the N13 result.
 
 **Reverse:** delete this file.
+
+## Graded on the fd91027799 book (2026-11-07)
+
+`INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR` now has an evaluator (`ev_gas_monthly_use_repeat`
+in `tools/domain_invariant_runner.py`). On the ledger of `run_output_fd91027799_20261105T004022Z.json`,
+the first published-class run after the store rebuild:
+
+| | count |
+|---|---:|
+| gas legs with a measured month-pair | 140 |
+| month-pairs (whole calendar month, A/C/M read at both ends, above the leg's zero-use floor) | 3,743 |
+| pairs repeating to 0.1 kWh | **10 (0.27%)**, under the row's 1% book bound |
+| legs breached (3 or more repeats) | 1 (SYN-2016-206g) |
+| legs flagged (exactly 2) | 2 (PROS-2017-0183g, SYN-2016-258g) |
+| legs with winter dispersion under 1% | 0 |
+
+On the 85b044be54 pages it was 1,635 of 4,413 (37%). The world-side repeat this finding named is
+gone from the heating months. PROS-2019-0208g, the flat 4.5 kWh a day residual, has 54 pairs and 0 repeats here.
+
+**The residual, named.** All seven repeats on the three legs are **July** months
+(SYN-2016-206g: July 2019, 2022 and 2023 at 421.4 kWh). The summer gas, hot water and cooking,
+has no year-to-year term. This is the same mechanism as N17 on electricity: a base load with no
+household draw from one year to the next. It is filed as the W2_30 slice in
+`docs/design/simplifications/W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape.yaml`
+(`n17_year_on_year_slice_note`), and the gas row grades it from now on. It does not breach the
+book bound. This finding moves to done/; the residual is N17's.

@@ -102,6 +102,9 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_UNIT_RATE_SVT_ELEC_PRE_CAP_ALL_IN_FLOOR": "the pre-cap electricity evaluator, reached above; every leg tested in test_a_pre_cap_default_sits_over_its_pass_through_cost_and_follows_the_published_bill.py",
     "INV_DEFAULT_DUAL_FUEL_COST_FOLLOWS_THE_PUBLISHED_DEFAULT_BILL": "needs two priced years; every leg tested in test_a_pre_cap_default_sits_over_its_pass_through_cost_and_follows_the_published_bill.py",
     "INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP": "reads printed Day/Night bills; every outcome tested in test_an_economy_7_default_bill_and_its_page_note_are_graded_on_the_multi_register_cap.py",
+    "INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE": "needs ten accounts' bill records; Leg A tested in test_a_level_direct_debit_row_grades_leg_a.py",
+    "INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR": "needs month-pairs a year apart; every leg tested in test_a_metered_month_moves_from_last_years_like_a_household.py",
+    "INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD": "needs month-pairs a year apart; every leg tested in test_a_metered_month_moves_from_last_years_like_a_household.py",
     "INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE": "reads printed Day/Night bills; every case tested in test_an_economy_7_default_bill_and_its_page_note_are_graded_on_the_multi_register_cap.py",
 }
 
