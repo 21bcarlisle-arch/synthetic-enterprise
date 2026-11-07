@@ -53,3 +53,24 @@ Landed on origin's base: both rows, `ev_page_tariff_label`, `ev_page_missed_bill
 `_unsettled_by`, the cast tally reader in `load_printed`, and the test file without its DD leg. The DD
 row's stranded `reading:` (its first grade) landed with them. Both rows are named in the runner's
 disposition list. The shared tree's stranded copies are now superseded by origin and can be refreshed.
+
+## Unpinned (delivery seat, 2026-11-07 21:00 UTC)
+
+The shared tree fast-forwarded fa915ac0d7 to f248d5ffa (20 commits). Every path refusing the fast-forward was
+superseded by origin:
+- The runner, `DOMAIN_INVARIANTS.yaml` and the runner's disposition test were refreshed with `refresh_to_head --base
+  origin/main`. The runner needed `--discard-prose`, because its one "prose" line is byte-identical at origin
+  `tools/domain_invariant_runner.py:2737`.
+- The EAC page was 6ed871310c's blob from 1 Oct. It was refreshed with `--base-wins`.
+- The untracked household-page test equalled origin's file plus the DD leg, and origin had moved that leg to
+  `test_a_level_direct_debit_row_grades_leg_a.py`.
+- Both 4 Nov findings had been moved to done/ on the shared tree, but origin had since kept them in the staging root
+  and extended them. They were put back.
+- Four untracked done/ copies were strict prefixes of origin's, and five advisor/done index entries were older than
+  origin's.
+- The only real unlanded writing was three orientation entries in the stretch log, and they landed in f248d5ffa.
+
+Nothing was deleted without preservation. The bytes are under `refs/preserved/unpin-2026-11-07/*` and
+`refs/preserved/refresh-to-head/unpin-2026-11-07*`, with copies in `/var/tmp/shared-tree-unpin-evidence-2026-11-07/`.
+
+**Why the outage left a pin, and the watchdog check the advisor asked for, are not done here.** They are handed on.

@@ -191,4 +191,23 @@ wrong:
       undrawn, and no prediction was filed. 00:24 5 Nov: Corrected. Item 4 now tests the prediction the finding filed
       before any measurement.'
     corrected: true
-for_the_director: []
+for_the_director:
+- id: the-publish-window-is-anchored-to-monday
+  raised: '2026-11-07'
+  kind: strategy
+  what: The publish window is anchored to Monday by your 26 Sep ruling, so a book that passes the full
+    gate this weekend still cannot reach the site before Mon 9 Nov 04:00 GMT. Your 7 Nov 20:22 reading
+    expected the site updated this week.
+  proposal: 'Allow one early publish this week: the first book after the 21:00 UTC unpin that passes the
+    full invariant gate goes to the site at once. The Monday anchor then resumes unchanged. Your ruling
+    was there to stop six publishes in a day (the 4 Sep cadence that wasn''t real), and one publish this
+    week does not undo that. If you say no, the window holds and Monday''s publish goes ahead as ruled.'
+  recommendation: I recommend one early publish this week, as soon as a book passes the full gate, with
+    Monday kept as the standing anchor.
+  status: open
+  resolution: ''
+  evidence: 'Ruling: director 2026-09-26 09:29 UTC (docs/design/canon_review_2026-10/inputs/director_words_filtered.md:35),
+    enforced by background/publish_freshness.content_publish_window. Hold state: next_opens 2026-11-09T04:00Z,
+    last figures on origin 2026-11-03T02:48Z (run 0a6391d186). Reading: docs/staging/advisor/done/DIRECTOR_READING_USAGE_52PCT_SATURDAY_2022_AND_HE_EXPECTED_THE_SITE_UPDATED_THIS_WEEK_2026-11-07.md
+    item 2. The shared tree fast-forwarded to f248d5ffa at 21:00 UTC; sim-runner''s next run starts about
+    21:34 UTC.'

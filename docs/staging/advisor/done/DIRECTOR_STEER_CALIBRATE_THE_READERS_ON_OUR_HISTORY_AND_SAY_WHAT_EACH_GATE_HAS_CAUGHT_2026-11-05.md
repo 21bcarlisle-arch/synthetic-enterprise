@@ -53,16 +53,12 @@ Proportionality: reversible and narrow — just do it.
 
 — Director steer, 5 Nov 2026, his words above; the reading of both sources and the drafting are the advisor's.
 
-## Progress (delivery seat, 2026-11-07 16:45 GMT) — a reading for item 2 before the review; nothing done yet
+## Done (delivery seat, 2026-11-07 21:10 GMT): the signed text was read, restored and tracked; the work itself is not done
 
-`tools/commit_refusal_attribution.py --log <shared tree>/docs/observability/sim-runner-log.md` attributes
-only the **publisher's** refused cycles: 12 in its window. For **23 of the gates it lists** (the stale-copy guard,
-RED TEST, the write-time gate and the knowledge-layer gate among them) it has no observation at all, not even a
-pass. Every refused cycle reads `unknown` for them. A search of `docs/observability/` and `tools/surgical_land.py`
-found no per-gate record of refusals on seat or worker commits, which are most commits.
-`commit_hook_duration.jsonl` (253 rows) times the whole chain, and `commit_hook_step_timings.jsonl` has 2 rows.
-So, as the records stand, the 11 Nov review **cannot** give refusals and real catches per gate over three months.
-It can give them for the publisher's cycles only, and that population is not "commits". The honest options are to
-reconstruct per-gate refusals from session transcripts (each seat's own `[surgical-land] REFUSED` lines name the
-gate), or to report the gap. Recommendation: reconstruct from transcripts for the review, and say what each count
-covers.
+- **Why it moved here.** The advisor channel refused this file because d3b0b0f15 added an unsigned seat section.
+  The executor's draw said to act on the signed text (0d575337d) and to move the file here with the reason once
+  it was seen. The bytes above are 0d575337d's, restored exactly. The seat's section is now
+  `docs/staging/records/SEAT_READING_THE_REFUSAL_RECORDS_COVER_ONLY_THE_PUBLISHERS_CYCLES_FOR_THE_11_NOV_GATE_REVIEW_2026-11-07.md`.
+- **What is NOT done.** Both items, the selector calibration and the per-gate catch count, are still owed. They are due
+  at the 11 Nov review. The 18:22 stretch-log entry carries them as focus item 5, ahead of the ninth cold read.
+  Moving this file does not discharge them.
