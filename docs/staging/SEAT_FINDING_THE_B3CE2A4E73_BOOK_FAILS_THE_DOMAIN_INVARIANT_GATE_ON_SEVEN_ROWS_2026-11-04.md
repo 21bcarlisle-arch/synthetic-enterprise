@@ -470,3 +470,35 @@ first book to carry the schedule is the runner's next one, and N20's test is gra
   PROS-2019-0246. One book-level coverage flag: `above_cap`, 1 household of 757. The households were not
   cold-read here, so "filled" is not "valid to a reader".
 - **26c891276's grade** (`grade-nil-ask-and-cleared-settlement-on-fresh-book`) is owed on the 8c7489e0d9 book.
+
+## Pre-registration for the 8c7489e0d9 book and the first book carrying the level DD schedule (2026-11-07 16:35 GMT, before either book exists)
+
+Claim `grade-the-first-book-carrying-the-level-dd-schedule`. Written while
+`run_output_8c7489e0d9_20261107T154715Z.json` is still being built (runner PID 6294, started 15:47).
+Between fd91027799 and 8c7489e0d9 exactly one commit touches `simulation/`, `sim/`, `company/`, `saas/`
+or the triad: **26c891276**. So any movement between the two books, on any row, is 26c891276's or
+noise, and nothing else's.
+
+**26c891276's own prediction** (filed in `SEAT_FINDING_THE_WORLD_PRESENTS_A_NIL_DIRECT_DEBIT..._2026-11-05.md`)
+is graded with its own script, `/var/tmp/settle-cleared-scripts/count.py`, plus one change, noted here
+before running it: that script's replay prices each settlement at `asked[settles]`, the PRE-fix rule, so its
+class (2) and (3) counters measure what the old engine *would* have done with the book's outcomes, not the
+cash the world sent. A copy (`/var/tmp/se-grade-8c74-scripts/v2/`) reads the settlement row's own
+`amount_gbp` instead. Both are reported; the v2 numbers are the grade.
+- (1a) failed credit-bill months: **0** (fd91: 29). (1b) failed fully credited bills: **0** (fd91: 5).
+- (2) settlements over the open balance, v2: **0** (fd91: 25, £1,497.46).
+- (3) relabelled credit, v2: **0** (fd91: 3, £299.35).
+- P&L bad debt rises by **£0–1,500** against fd91's.
+- Outcomes not involving a £0 ask: identical, except through a desk contact, uncounted ("I cannot yet say").
+
+**The rest of the gate on 8c7489e0d9**, against fd91027799's table above: every row the same count, except
+that no row may rise. INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE stays at **3** (N19's
+class B bills), still the only unexcepted red. INV_OVERDUE_WITHIN_PAGE_BALANCE stays 0.
+
+**N20's share test on 8c7489e0d9:** the book predates 8178e24218, so `level_dd_collections` is **absent**,
+the test xfails, and the share computed anyway is about **96.5%** again.
+
+**N20's share test on the first book built at or after a66e97829:** `level_dd_collections` **present**, and
+`share_equal_to_the_bill` at or below the 0.30 ceiling, near f874c6836b's **0.207** on an injected schedule
+(range 0.15–0.30). If it reads above 0.30, the schedule reaches the book but not the ledger's payments, and
+that is the next defect, not a tolerance to widen.
