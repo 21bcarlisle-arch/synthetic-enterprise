@@ -33,4 +33,33 @@ own invoice, so they are not in the five; they sit on the DD-deferred basis and 
 **Size.** £367.50 over five catch-ups; the unbarred share is the days beyond the line, a few pounds. Latent because the
 amounts are small, but it is a rule the pages print and the Ombudsman reads at the day.
 
-**Reverse:** delete this file.
+## Done (2026-11-07)
+
+**Fix.** `build_monthly_bills` takes `bill_issue_date_feed(customer_id, period_end)`, and `_resolve_catchup` is
+handed the issue date it returns, not the period end. The world wrapper answers with
+`simulated_bill_issue_date`: `bill_due_date` less `PAYMENT_TERMS_DAYS`, which is the ledger's own `issue_date`
+(`tools/generate_billing_ledger.py`). The open question above is answered: the delay is a deterministic draw
+keyed on (customer, period end), so billing can know it before the ledger prints it. The bill carries the day as
+`catchup_billing_date`, and the pre-bill gate's two comparators re-derive the write-off at it. Without this,
+`test_the_desk_is_asked_the_capped_catchup_the_page_prints` went red. Its 16-month write-off differed in size
+by the delay, so the gate held the bill (mutation-checked: re-dating the gate at the period end reds it). Knowledge:
+`docs/market_research/back_billing_and_liability.md` section 17.
+
+**Test.** `tests/simulation/test_a_catchup_is_capped_at_the_day_its_bill_is_issued.py` replays SYN-2016-048's
+Jan 2025 bill (issued 2025-02-07, window from 2024-02-01). Both arms run on one run: dated at the period end it is
+not capped, and at the issue it is capped with a write-off. With the fix reverted to `period_end` it goes red
+(mutation run 2026-11-07). The issue date is also checked against the ledger's for three accounts.
+
+**Before and after on fd91027799** (`docs/reports/run_output_fd91027799_20261105T004022Z.json`, domestic
+undercharge catch-ups from May 2018, window more than 365 days before the issue date, cap not applied):
+- **Before (measured on the book):** 5 on the pay-on-receipt basis, £45.26 charged. They are SYN-2016-048 (Jan 2025,
+  372 days), SYN-2016-158 (Nov 2020, 369), SYN-2016-240 (Aug 2020, 379), SYN-2016-334 (Jan 2021, 370) and
+  PROS-2020-0016 (Jun 2024, 366). Each is within 365 days of its period end, so this defect accounts for all 5.
+  There are also 143 more on the direct-debit basis. That basis defers the bar to a charge recovery action, so this
+  fix does not change them (124 of the 143 are over the line from the period end too).
+- **After (the cap decision replayed on those 5 rows, not a re-run book):** `BackBillingAssessment` dated at the
+  issue gives `cap_applies` True on all 5. The barred share is 0.27% to 3.84% of each window, so a few pounds in
+  all. Dated at the period end it gave False on all 5. **Prediction for the next book:** 0 pay-on-receipt catch-ups
+  uncapped over the line from issue. A non-zero count means another cause.
+
+**Reverse:** revert the commit that carries this section.

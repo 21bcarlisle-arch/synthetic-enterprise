@@ -645,6 +645,7 @@ def build_monthly_bills(
     read_events_out: list | None = None,
     payment_channel_feed: Callable[[dict], str | None] | None = None,
     payment_channel_at_feed: Callable[[dict, str], str | None] | None = None,
+    bill_issue_date_feed: Callable[[str, str], str] | None = None,
     premise_listing_feed: Callable[[dict], bool | None] | None = None,
     theft_screen_out: list | None = None,
     tenancy_links: dict[str, str] | None = None,
@@ -734,6 +735,12 @@ def build_monthly_bills(
     catch-up is a demand on the method in force at its own bill, so the back-billing basis asks this
     one there: a pay-on-receipt payer whose DD ended is capped at 12 months (SLC 21BA), not deferred
     to a DD recovery action that will never come. Omitted, the catch-up reads `payment_channel_feed`.
+
+    `bill_issue_date_feed` (2026-11-07): the day the supplier issues the bill for
+    (customer_id, period_end), the date its ledger prints. SLC 21BA.1 counts the 12 months back from
+    the charge recovery action, which for a bill paid on receipt is its issue, a few days after the
+    period end (back_billing_and_liability.md s.17). Omitted, the period end stands in for it, which
+    under-bars by the issue delay.
 
     `premise_listing_feed` (2026-09-28): whether the supply address is on the council tax list --
     a public record the supplier looks up, supplied by the caller for the reason `read_feed` is.
@@ -944,8 +951,11 @@ def build_monthly_bills(
                 # undercharge) onto THIS bill, matching how a real catch-up
                 # correction actually appears: as an adjustment on the next
                 # real bill, not a separate artifact.
+                catchup_billing_date = (
+                    bill["period_end"] if bill_issue_date_feed is None
+                    else bill_issue_date_feed(customer_id, bill["period_end"]))
                 catchup = _resolve_catchup(
-                    customer_id, segment, pending_estimated_run, bill["period_end"],
+                    customer_id, segment, pending_estimated_run, catchup_billing_date,
                     payment_channel if payment_channel_at_feed is None
                     else payment_channel_at_feed(customer_data, bill["period_end"]),
                 )
@@ -975,6 +985,8 @@ def build_monthly_bills(
                     bill["catchup_written_off_gbp"] = catchup["written_off_gbp"]
                     bill["catchup_back_billing_cap_applied"] = catchup["back_billing_cap_applied"]
                     bill["catchup_back_billing_basis"] = catchup["back_billing_basis"]
+                    # The day the cap counted back from, so the pre-bill gate re-derives it there.
+                    bill["catchup_billing_date"] = catchup_billing_date
                     if "recovery_periods" in catchup:
                         bill["catchup_recovery_periods"] = catchup["recovery_periods"]
                     bill["catchup_is_material"] = catchup["is_material"]

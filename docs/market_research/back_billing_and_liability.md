@@ -975,3 +975,32 @@ direct-debit basis on a bill the ledger records as paid on receipt.
   established here.
 - The published customer page does not carry `catchup_back_billing_basis`, so a reader cannot see which
   comparator a catch-up took.
+
+## 17. Which day the 12 months count back from (2026-11-07)
+
+**What the rule says.** 21BA.1 counts back 12 months from "the date the charge recovery action was
+taken" (section 1). For an account that pays each bill on receipt, the action is the bill, so the day is
+the day the bill is issued. That is a few days after the period it charges ends, once the billing run
+has made it. [H] 21BA.1; section 1, point 1.
+
+**What our code did (discovery).** Billing tested the catch-up's window against the bill's period end
+(`monthly_bill_assembly`, `_resolve_catchup(..., bill["period_end"])`). The ledger issues the bill
+`bill_generation_delay_days` later (`simulation/arrears_engine.bill_due_date` less the payment terms;
+mean 3 days, tail to about two weeks). So a window opening 365 days before the period end, and up to
+14 days more than 365 before the issue, was not capped. On the b3ce2a4e73 book there were 5 such
+pay-on-receipt catch-ups, and on fd91027799 there were 5 (£45.26 charged; 366-379 days from issue).
+One b3ce2a4e73 bill (SYN-2016-207, April 2018) had a period end before the rule's 1 May 2018 start and
+an issue date after it, so the rule was skipped entirely.
+
+**The design choice.** Billing takes the date the supplier will issue each bill
+(`bill_issue_date_feed(customer_id, period_end)`). The world answers it with the ledger's own date
+(`run_phase4c_on_phase2b.simulated_bill_issue_date`), so the cap and the printed bill use the same day.
+The supplier knows its own issue date. It is passed in only because the run's delay draw lives
+world-side. The bill carries the day as `catchup_billing_date`, and the pre-bill gate
+(`domain_invariants.check_back_billing_cap_respected`) re-derives the write-off there. Re-derived at the
+period end, a capped write-off differs in size by the delay, so the gate held the bill. The barred share is apportioned by days, as before, so a window a week over the line bars
+about a week's charges.
+
+**GAP.** The payment method is still asked at the period end, not the issue date. The ledger keys how
+a bill was paid on its period end too (`arrears_engine.paying_method`), so both sides agree. A mandate
+that ends between the two dates is not modelled.

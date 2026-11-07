@@ -63,6 +63,7 @@ this docstring disagreeing with it is a defect in this docstring.
 """
 
 import functools
+from datetime import timedelta
 
 from company.interfaces.accounting_close import close_the_books
 from company.interfaces.bill_assembly import (
@@ -87,6 +88,8 @@ from company.interfaces.supply_book import (
 from simulation import policy_costs as _policy_costs
 from simulation.arrears_engine import (
     PAY_ON_RECEIPT_METHOD,
+    PAYMENT_TERMS_DAYS,
+    bill_due_date,
     book_arrears_lines,
     compute_debt_recovery,
     emergent_bad_debt_lines,
@@ -226,6 +229,14 @@ def _get_all_customers() -> list[dict]:
 # `RUN_OUTPUT_LATEST_PATH` / `RUN_OUTPUT_VERSIONED_DIR` moved to
 # `tools/run_annual_report.py` with `save_run_output_json()` — where a run's
 # REPORT data is persisted is a reporting concern, not the run module's.
+
+
+def simulated_bill_issue_date(customer_id: str, period_end: str) -> str:
+    """The day the bill for (customer_id, period_end) is issued: the ledger's own date
+    (`tools/generate_billing_ledger.py`, its due date less the payment terms). Billing caps a
+    catch-up at it, so the cap and the printed bill share one day (SLC 21BA.1 counts from the
+    demand)."""
+    return (bill_due_date(customer_id, period_end) - timedelta(days=PAYMENT_TERMS_DAYS)).isoformat()
 
 
 def simulated_payment_channel(customer_data: dict) -> str | None:
@@ -387,6 +398,7 @@ def build_monthly_bills(
     annualised_advance_estimate: bool | None = None,
     gas_advance_floor_nine_months: bool | None = None,
     payment_channel_at_feed=None,
+    bill_issue_date_feed=simulated_bill_issue_date,
 ) -> list[dict]:
     """Run the SUPPLIER's monthly billing over this run's settled records.
 
@@ -436,6 +448,7 @@ def build_monthly_bills(
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
         payment_channel_at_feed=payment_channel_at_feed,
+        bill_issue_date_feed=bill_issue_date_feed,
         premise_listing_feed=simulated_council_tax_listing,
         theft_screen_out=theft_screen_out, tenancy_links=tenancy_links,
     )

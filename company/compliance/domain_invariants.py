@@ -1518,7 +1518,7 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
 
     period_start_raw = bill.get("catchup_period_start")
     period_end_raw = bill.get("catchup_period_end")
-    billing_date_raw = bill.get("period_end")
+    billing_date_raw = _catchup_billing_date(bill)
     raw_delta = bill.get("catchup_raw_delta_gbp")
     if not period_start_raw or not period_end_raw or not billing_date_raw or raw_delta is None:
         return False  # fail closed: cannot verify, so do not pass it
@@ -1555,9 +1555,16 @@ def check_back_billing_cap_respected(bill: dict) -> bool:
     return abs(actual_written_off - expected_written_off) <= 0.05
 
 
+def _catchup_billing_date(bill: dict) -> str | None:
+    """The day the assembly counted the 12 months back from: the bill's issue date where billing was
+    handed one (`catchup_billing_date`, back_billing_and_liability.md s.17). A bill without the stamp
+    was capped at its period end, so that is the date to re-derive at."""
+    return bill.get("catchup_billing_date") or bill.get("period_end")
+
+
 def _dd_back_billing_respected(bill: dict) -> bool:
     periods = bill.get("catchup_recovery_periods")
-    billing_date_raw = bill.get("period_end")
+    billing_date_raw = _catchup_billing_date(bill)
     if not periods or not billing_date_raw:
         return False
     try:
