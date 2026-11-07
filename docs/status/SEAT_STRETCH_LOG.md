@@ -8,11 +8,155 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-07 — orientation: The machine is back and the correctness stretch moved forward
+
+<!-- head: b6ac50aaf987 -->
+
+*Written by the orientation seat from its own record (2026-11-07T18:22:39.027612+00:00; 17 commits, 3 substantive, since 2026-11-07T15:26:58.881719+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 16 other.
+
+## What the stretch meant
+
+The machine is back and the correctness stretch moved forward. Three of the five focus items landed on origin inside 2.9 hours. Item 1 is done. fd91027799 went through the whole invariant gate and N18 closed on it (fa915ac0d). The first fresh book carrying 26c891276, 8c7489e0d9, was then run and graded (970d701b0, 3c4c40cfb). It moved no row from fd91027799, as pre-registered. That grade also corrected the seat's own earlier claim that the cap-note row was the only unexcepted red: three more rows are red without an exception (N17's electricity row, 2 legs; SYN-2016-206g's gas repeat, 1; N20's level DD row, 1). fd91027799's billing ledger is 82.1 MiB against GitHub's 100 MiB limit. Item 2 is done. N17's side is the world: three in four homes settle on a shape with no year-to-year term. The W2_30 slice is filed and both month-on-last-year rows now grade (eafd68310). Item 3 is done. The billing gate's electricity ceiling now lifts to BSCP504's twice the expected advance on the meter's own registration (8b6316995, knowledge page section 5 cited, red-on-today test naming SYN-2016-175). The invented flat 2,100 kWh no longer decides a storage-heated home's bill, and the carbon exception's retirement is pre-registered for the next book. So that wrong row is now corrected. The sim-runner row is corrected too: 8c7489e0d9 was run at origin and carries 26c891276. Two things went backwards. First, 26c891276's central prediction was refuted. The triad still sends cash over what the engine's walk holds open (19 settlements, GBP 682.47; it was 25 and GBP 1,497.46). A worker is on that now as a continuation. Second, the seat wrote a progress section into the advisor-signed calibrate steer (d3b0b0f15), and that is why the advisor channel now refuses the file's signature. Items 4 (the ninth cold read) and 5 (the 11 Nov calibration) were never drawn. Item 5 is due in four days, so it moves ahead of the cold read, as the last record said it would. The commit split reads 1 supplier, 0 world and 16 other, with 3 substantive. That undercounts the supplier: the classifier calls the grades "other", although they grade the supplier's books, and 8b6316995 (a company billing fix) landed after the brief was cut. Against the thesis, the position is this. The per-customer-versus-flat-baseline comparison is still held by the 26 Oct ruling. Its exit test now has a concrete shape: the next publish window opens at 04:00Z on 9 Nov, and a book can pass only when each of four unexcepted reds has a fix or a named, dated exception. That decision is item 1. The next fresh book (runner start about 18:40Z) is the first to carry the level DD schedule and the BSCP504 ceiling, and its grade is already queued as a continuation. The executor pilot's REVERT verdict stands, and executor turns stay on the control arm.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 7 Nov: Unchanged. It is in not_now under the 26 Oct ruling.
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 18:22 7 Nov: 26c891276 was graded on 8c7489e0d9. Relabelled credit and failed credit-bill months fell to 0. But 19 settlements (GBP 682.47) still send cash over the engine's open balance, against a filed 0. A worker is tracing it as a continuation.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:22 7 Nov: Not drawn. Item 4 is the ninth read, on the next book, with the named checks.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the second time in two stretches. [Earlier tails are in decisions.jsonl.] 18:22 7 Nov: No new instance this stretch. Item 5 builds the guard.
+- NOT corrected: THE MACHINE'S, NEW. The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap. [Earlier tails are in decisions.jsonl.] 18:22 7 Nov: Measured. fd91027799's ledger is 82.1 MiB, under the limit for now. The fix in tools/generate_billing_ledger.py is not built, and it is in not_now with its trigger.
+- NOT corrected: THE COMPANY'S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. [Earlier tails are in decisions.jsonl.] 18:22 7 Nov: Not drawn. It is now item 2.
+- NOT corrected: THE MACHINE'S, NEW. The orienting seat did not run for 24 hours (3 Nov 09:23Z to 4 Nov 06:25Z), and nothing reached the director. 18:22 7 Nov: Then the whole guest was off for about 60 hours, and nothing reached him. It is open in for_the_director as off-box-liveness, and there is no answer yet.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 18:22 7 Nov: The side is named: the world (eafd68310). Three in four homes settle on a shape with no year-to-year term, and the W2_30 slice is filed. The row reads 2 legs red on 8c7489e0d9, and the world fix waits on the ERA5 pull.
+- NOT corrected: THE PAGES', NEW. N15 and N16 survive on the six-stage household page: its tariff name and bill tally read the old way. 18:22 7 Nov: Their rows, evaluators and tests are still stranded uncommitted on the shared tree. Only the DD evaluator landed (eafd68310). Item 1 lands the rest first. *Correction, 20:55 7 Nov (delivery seat): they had already reached origin in f7f0a8ca43; the shared tree's uncommitted copies were superseded, not stranded, and are preserved under refs/preserved/refresh-to-head/ before the tree was fast-forwarded.*
+- corrected: THE COMPANY'S, NEW. The billing gate's monthly electricity envelope is a flat 2,100 kWh, sourced as "observed sim population + headroom". It is an invented constant that reads the world, and it holds a storage-heated home's winter bills as a business's (16 bills and 14 carbon checks on 5200cd6239). 18:22 7 Nov: Fixed in 8b6316995. The ceiling lifts to BSCP504's twice the meter's expected advance, with a red-on-today test. Retiring the carbon exception is pre-registered for the next book.
+- corrected: THE MACHINE'S, NEW. After the outage the sim-runner restarted its pinned be1e7e0101 run instead of asking for HEAD, so the run in flight (pid 17508) lacks 26c891276, the one world fix that landed before the outage. 18:22 7 Nov: Replaced. 8c7489e0d9 ran from 15:47Z to 17:21Z and carries 26c891276.
+- corrected: THE MACHINE'S, NEW. The seat filed "the cap-note row is still the only unexcepted red". It was not true on fd91027799 once the new evaluators counted: three other rows are red without an exception. Corrected in the B3CE finding beside the claim (970d701b0).
+- NOT corrected: THE MACHINE'S, NEW. The seat added an unsigned progress section to the advisor-signed calibrate steer (d3b0b0f15), and the advisor channel now refuses the file's signature. Item 3 moves the section into a seat record.
+- NOT corrected: THE MACHINE'S, NEW. 26c891276's pre-registration filed "(2) falls to 0", and it read 19 settlements (GBP 682.47). The prediction stands beside its refutation in the finding. The cause is untested and in work.
+
+## Chosen against
+
+- Working the triad-settles-cash-over-the-open-balance defect (19 settlements, GBP 682.47) as a focus row.
+- Grading the next fresh book as its own focus row.
+- Building N17's world fix, the base-load year-to-year term in the W2_30 slice, now.
+- Carrying the corrected renewal belief into a policy, or building the per-customer CLV against the flat-rule baseline.
+- Sharding the billing ledger now.
+- The 7 Nov steers (token measurement, the abstraction research family, the plugins follow-up) and the reading-rota and Knowledge-tab reshape.
+- Reaping the at-risk worktrees, or committing the stranded archival moves on the shared tree.
+
+## Focus for the next stretch
+
+- `the-nine-nov-book-meets-the-gate-or-names-why`
+- `a-pay-on-receipt-catch-up-is-capped-at-its-issue-date`
+- `calibrate-the-readers-selector-for-the-11-nov-review`
+- `the-ninth-cold-read-on-the-next-fresh-book`
+- `a-continuation-retires-only-with-its-work-on-origin`
+
+---
+
 ## 2026-11-07 — Plugins census: one plugin installed (cloudflare); agent-estimate rejected
 
 <!-- head: fa915ac0d7d2 -->
 
 The director's 7 Nov plugins steer, items 1 and 4. Installed on Skynet: cloudflare@cloudflare only, user scope; nothing from Anthropic's official marketplace, so security-guidance is not on. The seats already have built-in code-review, simplify and security-review skills. agent-estimate is rejected in the reading log: its limits are unmeasured picked numbers. pyright-lsp and the code-review comparison wait for the token measurement and the 11 Nov review.
+
+---
+
+## 2026-11-07 — orientation: The project did not move against the thesis this stretch
+
+<!-- head: 8c7489e0d911 -->
+
+*Written by the orientation seat from its own record (2026-11-07T15:26:58.881719+00:00; 6 commits, 1 substantive, since 2026-11-05T03:20:45.880342+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 5 other.
+
+## What the stretch meant
+
+The project did not move against the thesis this stretch. It stood still, because the machine was off. The guest went down soon after 03:31Z on 5 Nov (the last line in every daemon log) and came back at 15:24Z on 7 Nov (uptime -s). That is about 60 hours with no daemon, seat, worker or run. The six commits in the stretch are five advisor-channel files pushed from off the box and one world fix, 26c891276, which landed at 03:29Z just before the outage. So the split reads 0 supplier, 1 world and 5 other, with 1 substantive commit, and that is an outage and not a choice about balance. The brief says none of the previous focus was drawn. That is true, but the steer was not at fault. The box was off, and when it came back the record was 60h old against FOCUS_MAX_AGE_HOURS = 12, so direction.unreachable_focus returned nothing. At 15:25Z the executor stood down with "no unclaimed focus item", correctly. Nothing reached the director during the outage, because the dead-man's switch runs on the box that was down. That is the earlier "seat did not run for 24 hours" row again, now 60 hours long, and it is the one concern raised below. Two things moved under the outage and change the focus. First, the sim-runner restarted its pinned be1e7e0101 run at 15:24Z (pid 17508). That run lacks 26c891276, the world's nil-collection and settlement fix. The continuation that was to grade that fix on a fresh book died with the box, so no book in hand or in flight can grade it. Item 1 now starts by replacing that run with one at origin/main. Second, slow tick mode was set at 15:26Z until 9 Nov 03:00Z. The seat now spawns every 12h, which is also the record's lifetime, so this focus is ordered for about three worker draws before it expires. Against the thesis, the position is the 5 Nov one. Cost to serve is sourced (N21 corrected, 9.30% contribution on fd91027799). The per-customer-versus-flat-rule comparison is still held by the 26 Oct ruling until the correctness exit test is met. The freshest book, fd91027799, which carries every correctness fix but 26c891276, has still not been put through the invariant gate. The focus is unchanged in substance and order, because nothing has invalidated it. The 11 Nov reader review the director staged on 5 Nov is added fifth. The executor pilot's window closed on 6 Nov with a REVERT verdict: the sonnet arm landed 64% against 80% and was reworked 51% against 40%, despite being 3.8x cheaper per landing. Executor turns stay on the control arm.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:27 7 Nov: Unchanged, because the box was off. It is in not_now under the 26 Oct ruling.
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 15:27 7 Nov: The world-side settlement fix landed (26c891276, 03:29Z 5 Nov). Its grade on a fresh book died with the box, and item 1 relaunches the run it needs.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:27 7 Nov: No cold read ran, because the box was off. Item 4 is the ninth, with the named checks.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the second time in two stretches. [Earlier tails are in decisions.jsonl.] 15:27 7 Nov: No new instance. The fix in seat_continuation.py is not built.
+- NOT corrected: THE MACHINE'S, NEW. The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap. [Earlier tails are in decisions.jsonl.] 15:27 7 Nov: Triaged as a fix owned by tools/generate_billing_ledger.py. docs/state/billing_ledger.json is 91 MB, and fd91027799's run output is 145 MB. Item 1 reads that book's ledger size.
+- NOT corrected: THE COMPANY'S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. [Earlier tails are in decisions.jsonl.] 15:27 7 Nov: Triaged as a fix owned by monthly_bill_assembly.py. Its finding sits in done/ only in the working tree, with no Done section and no fix.
+- NOT corrected: THE MACHINE'S, NEW. The orienting seat did not run for 24 hours (3 Nov 09:23Z to 4 Nov 06:25Z), and nothing reached the director. 15:27 7 Nov: Worse. The whole guest was off for about 60 hours (5 Nov 03:31Z to 7 Nov 15:24Z), and nothing reached him, because the dead-man runs on the box that was down. It is raised in for_the_director as off-box-liveness.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 15:27 7 Nov: Not drawn, because the box was off. It stays item 2.
+- NOT corrected: THE PAGES', NEW. N15 and N16 survive on the six-stage household page: its tariff name and bill tally read the old way. 15:27 7 Nov: The live surgical_land (pid 447723) died with the box, and no N16 commit is on origin. The continuation was retired at 03:27Z 5 Nov, so it reads as done. That is one more instance of the retired-with-nothing-on-origin row.
+- NOT corrected: THE COMPANY'S, NEW. The billing gate's monthly electricity envelope is a flat 2,100 kWh, sourced as "observed sim population + headroom". It is an invented constant that reads the world, and it holds a storage-heated home's winter bills as a business's (16 bills and 14 carbon checks on 5200cd6239). 15:27 7 Nov: Not drawn, because the box was off. It stays item 3.
+- NOT corrected: THE MACHINE'S, NEW. After the outage the sim-runner restarted its pinned be1e7e0101 run instead of asking for HEAD, so the run in flight (pid 17508) lacks 26c891276, the one world fix that landed before the outage. Item 1 replaces it.
+
+## Chosen against
+
+- The token-reading measurement, the abstraction research family, and the external-reading rota and Knowledge-tab reshape (the 5 and 7 Nov steers).
+- Re-running the 26c891276 grade as its own focus row, or grading the be1e7e0101 run when it finishes.
+- Building an off-box dead-man (a scheduled check on the ops-repo liveness heartbeat) without asking.
+- Carrying the corrected renewal belief into a policy, or building the per-customer CLV against the flat-rule baseline.
+- The pay-on-receipt catch-up cap fix, and N19 class B (the EPG-window ceiling on 3 Economy 7 bills).
+- Committing the 174 stranded archival moves in the working tree, reaping the seven at-risk worktrees, or the stalled-counter census.
+
+## Focus for the next stretch
+
+- `grade-the-fd91027799-book-through-the-whole-invariant-gate`
+- `which-side-holds-electricity-use-flat`
+- `the-billing-gate-scales-a-homes-electricity-by-its-own-meter`
+- `the-ninth-cold-read-on-the-fd91027799-pages`
+- `calibrate-the-readers-selector-for-the-11-nov-review`
+
+---
+
+## 2026-11-05 — orientation: For the first time the supplier has a sourced cost to serve each customer, so a per-customer lifetime value can now be built that a flat-rule baseline could be compare
+
+<!-- head: be1e7e010177 -->
+
+*Written by the orientation seat from its own record (2026-11-05T03:20:45.880342+00:00; 6 commits, 3 substantive, since 2026-11-05T00:24:35.390650+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 5 other.
+
+## What the stretch meant
+
+For the first time the supplier has a sourced cost to serve each customer, so a per-customer lifetime value can now be built that a flat-rule baseline could be compared against. 2f7a387b8 replaces the invented flat GBP 55 with Ofgem's own OC + PAAC + SMNCC per cap period (GBP 79-127 per fuel account a year). On the fd91027799 book (be1e7e010) the household contribution falls from 15.85% to 9.30%, and cost to serve is GBP 449,258 against a pre-registered ~GBP 449k. Both are inside the filed bands. Gaps 3, 4, 6 and 7 were disposed before that book was read (b5b1129a6): ECO and WHD were never this book's obligations, and calm-year wholesale is half the cap's allowance. That is why 9.30% still sits above the library's 2-5%, and the finding is in done/ on origin. So N21 is corrected. The baseline comparison itself stays held by the 26 Oct ruling until the correctness exit test is met, and that is the right order: a CLV graded on a book that fails its own invariants proves nothing. The exit test moved too. fd9102779 graded 5200cd6239: est-run 54 -> 8 as predicted, overdue 64 -> 0, revenue 4 -> 0, and carbon 12 -> 14, which refutes its prediction. After the re-based exceptions the gate reads 3 unexcepted breaches, all on N19's cap-note row. The overdue regression is therefore corrected on a fresh book. The 5200cd6239 grade also exposed a company gate built on an invented constant: RESI_CONSUMPTION_ENVELOPE_ELEC_MONTHLY is a flat 2,100 kWh, sourced as "observed sim population + headroom". That is both an unsourced number and the world's population leaking into a supplier rule, and it holds a storage-heated home's winter bills as a business's. It becomes focus. The stretch's balance is 1 supplier, 0 world and 5 other commits, 3 of them substantive. The "other" commits are grades of supplier billing, so the supplier side is where the work went. Previous focus: 3 of 4 drawn, and items 1 and 2 are on origin. Item 3 (N16 on the household page) is in a live surgical_land (pid 447723). Item 4 (which side holds electricity flat) went undrawn for a second stretch, because Lane 0 works in order and it sat last. The steer is the thing that drifted, so it moves to second. Two BLOCKING findings, N13 and N17, cannot close until the year-on-year row has an evaluator. The freshest book, fd91027799, carries 9744dd436, N20, N21, both N18 price fixes and N19 class A, and it has not been run through the invariant gate at all. Grading it is the cheapest step toward the exit test, and it is first. The be1e7e0101 run now in flight (pid 186468) carries no code over fd91027799, so nothing waits for it. The executor pilot still reads REVERT, and its window closes on 6 Nov by construction.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: Unchanged. It is in not_now under the 26 Oct ruling.
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: The overdue row reads 0 on 5200cd6239. The debt-slot finding still names three households, and the world-side settlement fix is in a live landing (pid 318338).
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: No cold read ran this stretch. Item 4 is the ninth, with the named checks.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. A finished build was retired as done with nothing on origin, for the second time in two stretches. [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: No new instance. N21 was checked on origin (2f7a387b8, be1e7e010) before it left focus. Nothing yet enforces it.
+- NOT corrected: THE MACHINE'S, NEW. The naive organ has asked no question since 2026-08-10T07:48Z. [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: Unchanged.
+- NOT corrected: THE MACHINE'S, NEW. The publisher refused 15 times on a scoped-suite red that was a full 12 GB /tmp of probe scratch under free names. [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: Unchanged.
+- NOT corrected: THE MACHINE'S, NEW. The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap. [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: Unchanged. docs/state/billing_ledger.json is 91 MB from 3 Nov. The 5200cd6239 grade did not read its ledger's size, and item 1 reads fd91027799's.
+- NOT corrected: THE MACHINE'S, NEW. A hand re-offer of a refused run marker was deleted before any publisher read it. [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: Unchanged. No re-offer was attempted.
+- NOT corrected: THE COMPANY'S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. [Earlier tails are in decisions.jsonl.] 03:20 5 Nov: Unchanged. 5 catch-ups and 2 gas legs stay uncapped. It is in not_now.
+- NOT corrected: THE MACHINE'S, NEW. The orienting seat did not run for 24 hours (3 Nov 09:23Z to 4 Nov 06:25Z), and nothing reached the director. 03:20 5 Nov: Unchanged. The seat ran on time again (2.9h), and the watchdog has still not been seen to fire on a stall.
+- corrected: THE COMPANY'S OR THE PAGES', NEW. A correctness fix put a new regression on the page: INV_OVERDUE_WITHIN_PAGE_BALANCE reads 128 on b3ce2a4e73, against 0 on 85b044be54. 03:20 5 Nov: Corrected. It reads 0 on the fresh 5200cd6239 book (fd9102779, on origin). Item 1 re-grades it on fd91027799, which carries 9744dd436's engine half.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 03:20 5 Nov: Not drawn for a second stretch. It moves to item 2, with the evaluator it shares with N13.
+- corrected: THE PAGES', NEW (N21). The pages publish a 14.5% margin after cost to serve, against the library's 2-5%. 03:20 5 Nov: Corrected. 2f7a387b8 and b5b1129a6 are on origin, and on fd91027799 the contribution is 9.30%, inside the pre-registered band (be1e7e010). The rest of the gap to 2-5% is traced in the finding, which is in done/.
+- NOT corrected: THE PAGES', NEW. N15 and N16 survive on the six-stage household page: its tariff name and bill tally read the old way. 03:20 5 Nov: The N16 fix is in a live surgical_land (pid 447723). The finding is in done/ only in the working tree.
+- NOT corrected: THE COMPANY'S, NEW. The billing gate's monthly electricity envelope is a flat 2,100 kWh, sourced as "observed sim population + headroom". It is an invented constant that reads the world, and it holds a storage-heated home's winter bills as a business's (16 bills and 14 carbon checks on 5200cd6239). It is item 3.
+- corrected: MINE, NEW. The 00:24 record asked item 1 to answer questions (a) and (b), which the finding had already answered at 75156811e. It also left item 4 last, where it went undrawn for a second stretch. Corrected: item 1 now names only what the book has not been graded on, and the electricity item is second.
+
+## Chosen against
+
+- Grading the be1e7e0101 run now in flight (pid 186468) as a separate item, or waiting for it before item 1.
+- The settlement-cash continuation, and the N16 household-page fix, as focus rows.
+- N19 class B, the EPG-window multi-register ceiling for 3 Economy 7 bills.
+- Carrying the corrected renewal belief into a policy, or building the per-customer CLV against flat-rule baseline now that cost to serve is sourced.
+- The pay-on-receipt catch-up cap tested against the issue date (SEAT_FINDING_THE_CATCH_UP_CAP_IS_TESTED_AGAINST_THE_PERIOD_END_NOT_THE_DAY_THE_BILL_WAS_ISSUED).
+- Ending the executor pilot early on its REVERT verdict.
+- Reaping the seven at-risk worktrees, aging out probe scratch, and the stalled OPS and SITE atom census.
+
+## Focus for the next stretch
+
+- `grade-the-fd91027799-book-through-the-whole-invariant-gate`
+- `which-side-holds-electricity-use-flat`
+- `the-billing-gate-scales-a-homes-electricity-by-its-own-meter`
+- `the-ninth-cold-read-on-the-fd91027799-pages`
 
 ---
 
