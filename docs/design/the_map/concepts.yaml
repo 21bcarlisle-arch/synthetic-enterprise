@@ -729,7 +729,7 @@ concepts:
   - id: build.independent_review
     prefLabel: Independent review
     altLabel: [blind review, cold read, fresh-context reviewer]
-    definition: Finished work is read before it closes by a reviewer with no memory of building it, as an outsider would.
+    definition: Finished work is read before it closes by a reviewer with no memory of building it; blind to the build, though the same kind of model as the builder, so not independent of it.
     match: ["Fagan, Design and code inspections to reduce errors in program development (IBM Systems Journal, 1976)"]
     placed: [build/Testing and controls, build/Agents and models]
     rule: H13
@@ -744,7 +744,7 @@ concepts:
     placed: [build/Agents and models, build/Observability]
     rule: R12
     enforced_by: [tests/company/test_carbon_not_a_target.py]
-    gap: {evidence: "the guard is a reachability test that passes or fails; nothing records what it would have refused, so there is no count to show"}
+    gap: {evidence: "the guard is a reachability test that passes or fails; nothing records what it would have refused, so there is no count to show", enforced_by: "the one guard covers carbon; margin and the other outputs have no reachability guard yet"}
 
   - id: build.learning
     prefLabel: Learning

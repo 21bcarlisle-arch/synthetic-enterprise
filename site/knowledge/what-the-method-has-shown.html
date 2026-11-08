@@ -74,8 +74,9 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
 .results td.q { font-weight: 600; min-width: 180px; }
 .status { font-weight: 700; white-space: nowrap; }
 .s-did-not-hold, .s-withdrawn { color: var(--amber); }
-.s-we-cannot-tell, .s-no-association { color: var(--muted); }
+.s-we-cannot-tell, .s-measured { color: var(--muted); }
 .quote { color: var(--muted); font-size: 12px; margin-top: 4px; }
+.results td.when { white-space: nowrap; color: var(--muted); font-size: 11.5px; }
 @media (max-width: 640px) { .results { font-size: 13px; } }
 </style>
 </head>
@@ -103,21 +104,22 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     knowledge, and any of them may be wrong.
   </p>
   <p class="muted" id="mr-counts">Loading the results&hellip;</p>
-  <div class="sec">Every question, with its status</div>
+  <div class="sec">Each question whose answer is published, with its status</div>
   <div class="table-scroll"><table class="results" id="mr-rows"></table></div>
   <div class="sec">What each status means</div>
   <ul class="muted" style="padding-left:18px;">
     <li><b>Held</b>: a prediction written down before the run, and the run did not refute it.</li>
     <li><b>Did not hold</b>: a prediction written down before the run, and the run refuted it.</li>
-    <li><b>No association</b>: the relation we measured is no larger than shuffling the data produces.</li>
     <li><b>Withdrawn</b>: something we published and later took back, kept with the reason.</li>
+    <li><b>Measured</b>: a result with no prediction written down before it. It describes; it does not confirm.</li>
     <li><b>We cannot tell</b>: the evidence does not settle it either way, and the record says so.</li>
   </ul>
   <div class="sec">The improvement loop</div>
   <p class="muted" id="mr-loop"></p>
   <p class="muted">
     Each status is read from the published record of that experiment, not written here; the
-    sentence in quotes is that record&rsquo;s own. The record behind this page is
+    sentence in quotes is that record&rsquo;s own. Each row carries the date of its own experiment; the
+    stamp at the foot of the page is the latest publish, not the date of these results. The record behind this page is
     <code id="mr-source"></code>, rebuilt at every publish.
   </p>
 </div>
@@ -126,32 +128,33 @@ function esc(s) {
   return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-var LABEL = { "held": "Held", "did not hold": "Did not hold", "no association": "No association",
-              "withdrawn": "Withdrawn", "we cannot tell": "We cannot tell" };
+var LABEL = { "held": "Held", "did not hold": "Did not hold", "withdrawn": "Withdrawn",
+              "measured": "Measured", "we cannot tell": "We cannot tell" };
 function render(feed) {
   var rows = feed.rows, n = rows.length;
-  var html = "<tr><th>The question</th><th>Status</th><th>Why that status</th></tr>";
+  var html = "<tr><th>The question</th><th>Status</th><th>Why that status</th><th>Dated</th></tr>";
   for (var i = 0; i < n; i++) {
     var r = rows[i];
     var label = LABEL[r.status] || "We cannot tell";
     html += '<tr id="mr-' + esc(r.id) + '"><td class="q"><a class="inline-link" href="' + esc(r.page) + '">' +
             esc(r.question) + '</a></td><td class="status s-' + esc(r.status).replace(/ /g, "-") + '">' +
             esc(label) + "</td><td>" + esc(r.why_this_status) +
-            (r.finding ? '<div class="quote">&ldquo;' + esc(r.finding) + "&rdquo;</div>" : "") + "</td></tr>";
+            (r.finding ? '<div class="quote">&ldquo;' + esc(r.finding) + "&rdquo;</div>" : "") +
+            '</td><td class="when">' + esc(r.dated) + "</td></tr>";
   }
   document.getElementById("mr-rows").innerHTML = html;
-  var c = feed.counts || {}, parts = [];
-  for (var j = 0; j < (feed.statuses || []).length; j++) {
-    var s = feed.statuses[j];
-    if (c[s]) { parts.push(c[s] + " " + (LABEL[s] || s).toLowerCase()); }
-  }
+  // Counted from the rows shown, never read from the feed's own tally, and every status is named even
+  // at zero: "0 did not hold" is itself a result a reader is owed.
+  var c = {}, parts = [];
+  for (var m = 0; m < n; m++) { var st = LABEL[rows[m].status] ? rows[m].status : "we cannot tell"; c[st] = (c[st] || 0) + 1; }
+  for (var s in LABEL) { parts.push((c[s] || 0) + " " + LABEL[s].toLowerCase()); }
   document.getElementById("mr-counts").textContent =
     n + (n === 1 ? " question" : " questions") + ": " + parts.join(", ") + ".";
   var loop = feed.loop || {};
   document.getElementById("mr-loop").textContent =
-    "The improvement loop, in which the world is made to react to a pain point and the supplier then " +
-    "tests itself against that reaction, has completed " + (loop.rounds || 0) + " rounds: " + (loop.why || "") +
-    ". The questions above come from the method's experiments before it.";
+    "The improvement loop is where the world is made to react to a pain point and the supplier then " +
+    "tests itself against that reaction. " + (loop.why ? loop.why.charAt(0).toUpperCase() + loop.why.slice(1) + ". " : "") +
+    "The questions above come from the method's experiments before it.";
   document.getElementById("mr-source").textContent = "site/data/method_results.json";
 }
 fetch("../data/method_results.json?t=" + Date.now())

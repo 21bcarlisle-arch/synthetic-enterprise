@@ -2807,5 +2807,93 @@
     "evidence": "SYN-2021-001 (electricity, resi) average unit rate 419.0 GBP/MWh in 2023 is implausible against the Ofgem-cap-derived band for that year",
     "finding_key": "population:unit_rate_vs_cap_band:SYN-2021-001:2023",
     "state": "open"
+  },
+  "cold-eyes:what-the-method-has-shown:status-not-keyed-to-answer": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "tools/method_results_feed.py maps reviewers all_measured->held, pricing_arms not-provisional->held, engagement outside_the_null->held, none with a filed prediction and none checking the sign/rate; a reviewer error rate of 0.9, a per-customer arm that LOSES, or a negative rho would each render 'Held', contradicting the page's own definition (a prediction filed before the run). Latent today because every row falls elsewhere.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:status-not-keyed-to-answer",
+    "state": "fixed",
+    "resolution": "held/did not hold now reachable only from a filed prediction; a settled source with none reads 'measured'. Door test asserts it (MUTATION leg). (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:engagement-is-by-construction": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "The engagement row is shown as a question the method put to its world with status 'no association', but engagement_separation.json's own by_construction says the two are drawn independently and 'the figure checks the build, it does not discover anything'. Caveat not on the page. Headline '42 are MORE price-sensitive' (42/115=36.5%) is below the book's own base rate 239/603=39.6%, which is not shown.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:engagement-is-by-construction",
+    "state": "fixed",
+    "resolution": "row removed: its own by_construction says it checks the build; the module docstring says why it is not a row. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:independent-review-card-vs-wall": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "The 'Independent review' practice card and harness layer 6 say the reviewer reads 'as an outsider would'; the cold-eyes protocol's wall says restricted context gives blindness, not independence, and may never be reported as independent. The map flags 'Nothing' for this practice while this page says we cannot tell whether reviewers catch defects (0 of 1 measured).",
+    "finding_key": "cold-eyes:what-the-method-has-shown:independent-review-card-vs-wall",
+    "state": "fixed",
+    "resolution": "register definition, Building it card and harness layer 6 now say blind to the build, not independent of the builder. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:reviewer-denominator": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "'0 of 1 reviewers' counts only phase-close-evaluator (1 pass); harness layer 6 reports 10 blind reviews in 30 days (12 per the_map blind_review_count) from the cold-eyes walk, which judge_validation does not count at all. Denominator undercounts the reviewers the question asks about.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:reviewer-denominator",
+    "state": "fixed",
+    "resolution": "why-line now says the count is of reviewers whose passes are traced to later defects, and that the blind reviews in the ledger are not traced at all. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:dd-held-without-effect-and-history": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "DD 'Held' renders no n, effect or interval (source: -GBP154.50 [-236.08,-61.50], 95 matched, price-cap cohort only) and the question is unqualified while the result is cohort-restricted. The same question's earlier published claim (-GBP201.93, 09-03) went to -GBP0.40 [-77.20,+109.67] on 10-01 and is not on the page despite 'results that went against us stay'.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:dd-held-without-effect-and-history",
+    "state": "open",
+    "resolution": "PARTLY: matched n, mean and 95% interval and the price-cap scope are now on the row. The earlier 3 Sep claim that fell on 1 Oct is not in dd_opening_arms.json, so the feed cannot show it without a typed row; owed to the feed's generator. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:counts-hide-zero-did-not-hold": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "The counts line drops zero statuses, so '0 did not hold' never appears although the title promises results that 'held, failed and could not be told' (K2: omission asserts nothing). 'Every question' is a hand-listed SOURCES tuple of four, not derived; completeness unbacked.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:counts-hide-zero-did-not-hold",
+    "state": "fixed",
+    "resolution": "counts line names every status at zero and is recounted from the rows; heading says 'each question whose answer is published'. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:pricing-why-understates-source": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "pricing-arms why says 'error bar wider than the effect'; value_arms.json headline says the figure and bound were measured in different worlds/books and nothing bounds anything. Quoted note also refers to 'the error bar below', which is not on this page.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:pricing-why-understates-source",
+    "state": "fixed",
+    "resolution": "why-line reads world_provenance: figures measured in 2 different worlds, so one spread cannot bound another; the 'below' quote is gone. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:withdrawn-row-unreadable": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "The withdrawn row quotes the surviving paragraph and says 'the middle sentence' was withdrawn; the reader must infer which. The question cell is not a question.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:withdrawn-row-unreadable",
+    "state": "fixed",
+    "resolution": "row quotes only the withdrawn sentence and asks it as a question. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:clock-mismatch": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "Run-clock footer says 'Figures from the run of 2 Nov 2026 ... no figure here is typed by hand'; pricing rows are from runs of 2026-09-17/18, engagement generated 11-03 from an unclean tree, and loop rounds=0 is hard-coded in the generator. No per-row clock.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:clock-mismatch",
+    "state": "fixed",
+    "resolution": "each row carries its own experiment date; the page says the foot stamp is the publish, not the results; the typed rounds:0 is gone. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:not-a-target-card-scope": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "'Outputs are diagnostics' card states the general practice; its only guard covers carbon. Margin, which value_arms calls 'a diagnostic and never a target', has no guard; the card does not say the practice is held for carbon only.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:not-a-target-card-scope",
+    "state": "fixed",
+    "resolution": "card and register gap say the one guard covers carbon; margin and other outputs have none yet. (seat executor, 8 Nov)"
+  },
+  "cold-eyes:what-the-method-has-shown:loop-jargon-and-js-fallback": {
+    "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",
+    "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
+    "evidence": "The loop paragraph's 'correctness stretch's exit test' is opaque to a reader. JS relabels an unknown status as 'We cannot tell' while counts come from the feed and are never recomputed from rows, so they could disagree silently.",
+    "finding_key": "cold-eyes:what-the-method-has-shown:loop-jargon-and-js-fallback",
+    "state": "fixed",
+    "resolution": "loop line is plain English; counts recounted from rows. (seat executor, 8 Nov)"
   }
 }

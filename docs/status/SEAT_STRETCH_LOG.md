@@ -17347,3 +17347,16 @@ practice it holds in *Building it* now link to each other.
   that drops unreadable sources) each turned it red.
 - **Found, not mine:** `tests/tools/test_e2_revenue_reconciliation_surfaces.py` is red on this base: `explore/index.html`
   renders a net-margin figure and is not in the registry.
+
+**Cold read of What the method has shown (seat executor, 8 Nov late).** A blind fork, the same kind of model as the
+builder (blind, not independent), filed 11 findings. 10 are fixed in this landing and 1 stays open in
+`docs/observability/sanity_adjudication_ledger.json`.
+- **The serious one:** three rows could become "held" when their source simply reached a state, whatever the
+  result said. That was latent: no row was in that state. "Held" now needs a filed prediction. A source that has
+  settled without a prediction reads "measured".
+- **Removed:** the engagement row. Its own source says it checks the build and discovers nothing.
+- **Corrected beside the claim:** the Independent review card and layer 6 said the reviewer reads "as an outsider
+  would". It is blind to the build, not independent of the builder. The Outputs are diagnostics card claimed more
+  than its one guard (carbon) covers; it now says margin has no guard.
+- **Open:** the DD row cannot show the earlier 3 Sep claim that fell on 1 Oct. That reversal is not in
+  `dd_opening_arms.json`, so the feed would have to type it in. It is owed to that feed's generator.

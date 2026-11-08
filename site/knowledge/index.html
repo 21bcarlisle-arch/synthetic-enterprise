@@ -599,7 +599,7 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <div class="practice-wrap" id="practice-build.independent_review">
     <a class="card practice" href="../model/map/#c-build.independent_review" data-concept="build.independent_review">
       <div class="card-h">Independent review</div>
-      <div class="card-p">Finished work is read before it closes by a reviewer with no memory of building it, as an outsider would.</div>
+      <div class="card-p">Finished work is read before it closes by a reviewer with no memory of building it; blind to the build, though the same kind of model as the builder, so not independent of it.</div>
       <div class="card-foot">Taken from: Fagan, Design and code inspections to reduce errors in program development (IBM Systems Journal, 1976)</div>
     </a>
     <a class="card-back" href="../harness/#layer-6">Held on How it&rsquo;s built by layer 6 of the control stack, Independent judgement &rarr;</a>
@@ -610,7 +610,7 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       <div class="card-p">A figure the machine produces is read to understand it and never fed back as something to maximise.</div>
       <div class="card-foot">Taken from: Goodhart&rsquo;s law (Goodhart 1975; Strathern 1997: when a measure becomes a target, it ceases to be a good measure)</div>
     </a>
-    <p class="card-back">No layer of the control stack holds it yet: its guard, <code>tests/company/test_carbon_not_a_target.py</code>, refuses any decision code that can reach a carbon figure, and is not one of the stack&rsquo;s layers.</p>
+    <p class="card-back">No layer of the control stack holds it yet. Its one guard, <code>tests/company/test_carbon_not_a_target.py</code>, refuses decision code that can reach a carbon figure; margin and the other outputs have no such guard yet.</p>
   </div><!-- /practice -->
   <div class="practice-wrap" id="practice-build.learning">
     <a class="card practice" href="../model/map/#c-build.learning" data-concept="build.learning">

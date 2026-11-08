@@ -12,6 +12,9 @@ branches can never be produced. So:
   * the committed feed is what `tools.method_results_feed` builds from the source feeds today;
   * every status the vocabulary names CAN be produced, each from its source field (one control over
     the whole partition, so a builder that only ever says "held" fails it);
+  * "held" comes ONLY from a filed prediction: a source reaching a settled state with no prediction
+    (a comparison no longer provisional, every reviewer measured) reads "measured", never "held"
+    (cold read, 8 Nov: an earlier builder published those as "held" whatever the result said);
   * a missing source becomes a "we cannot tell" row naming why, never a dropped row;
   * the page's own JavaScript, driven against the feed, renders each row once with the feed's status;
   * the card sits under Building it and carries the insight layer the What we've learned filter reads.
@@ -32,7 +35,7 @@ ROOT = SITE.parent
 PAGE = HERE / "what-the-method-has-shown.html"
 FEED_URL = "../data/method_results.json"
 FEED = json.loads((ROOT / mrf.OUT).read_text(encoding="utf-8"))
-SOURCES = ("value_arms", "dd_opening_arms", "engagement_separation", "judge_validation")
+SOURCES = ("value_arms", "dd_opening_arms", "judge_validation")
 
 
 def _render(feed) -> dict:
@@ -65,11 +68,29 @@ def test_every_status_can_be_produced_from_its_source_field(tmp_path):
     def flip(name, d):
         if name == "dd_opening_arms":
             d["filed_prediction"]["verdict"] = "refuted"
-        if name == "engagement_separation":
-            d["association"]["outside_the_null"] = True
+        if name == "value_arms":
+            d["provisional"] = False
+        if name == "judge_validation":
+            d["measurement_coverage"]["all_measured"] = True
     seen = {r["status"] for r in mrf.build(_root(tmp_path / "a"))["rows"]}
     seen |= {r["status"] for r in mrf.build(_root(tmp_path / "b", flip))["rows"]}
     assert seen == set(mrf.STATUSES), f"statuses never produced: {set(mrf.STATUSES) - seen}"
+
+
+def test_MUTATION_held_needs_a_filed_prediction_a_settled_source_without_one_reads_measured(tmp_path):
+    def settle(name, d):
+        if name == "value_arms":
+            d["provisional"] = False
+        if name == "judge_validation":
+            d["measurement_coverage"]["all_measured"] = True
+    rows = {r["id"]: r["status"] for r in mrf.build(_root(tmp_path, settle))["rows"]}
+    assert rows["pricing-arms"] == "measured" and rows["reviewers"] == "measured", rows
+
+
+def test_every_status_is_counted_on_the_page_even_at_zero():
+    text = _render(FEED)["mr-counts"]["textContent"]
+    for s in mrf.STATUSES:
+        assert f"{sum(r['status'] == s for r in FEED['rows'])} {s}" in text, (s, text)
 
 
 def test_MUTATION_a_refuted_prediction_reads_did_not_hold(tmp_path):

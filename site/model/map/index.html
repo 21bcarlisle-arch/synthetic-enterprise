@@ -89,7 +89,7 @@ code { font-size: 12px; overflow-wrap: anywhere; }
   <div class="table-scroll"><table class="grid"><thead><tr><th>Concept</th><th>Established practice</th>
   <th>Our rule</th><th>What enforces it</th><th>What the record shows, computed at publish</th></tr></thead>
   <tbody>
-<tr><th><a href="#c-build.mutation">Checks that can fail</a></th><td>Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)</td><td><code>R15</code></td><td><code>docs/design/control_registry.json</code></td><td>575 of 2373 test files record the mutation that put their defect back</td></tr>
+<tr><th><a href="#c-build.mutation">Checks that can fail</a></th><td>Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)</td><td><code>R15</code></td><td><code>docs/design/control_registry.json</code></td><td>575 of 2375 test files record the mutation that put their defect back</td></tr>
 <tr><th><a href="#c-build.gate">The commit gate</a></th><td>DORA: continuous integration, trunk-based development</td><td><code>H9</code><br><span class="sub">its mechanisms: tools/surgical_land.py, tools/isolate_hunks.py</span></td><td><code>tools/git-hooks/pre-commit</code><br><code>tools/git-hooks/commit-msg</code></td><td>24 distinct checks named in the pre-commit hook</td></tr>
 <tr><th><a href="#c-build.dead_code">Dead code</a></th><td>Fowler, Refactoring (2nd ed.): the dead-code smell</td><td><span class="gap">Gap: canon states no dead-code rule; the August orphan register keeps an uncalled module as &#x27;unhooked&#x27;</span></td><td><code>tools/capability_index.py</code><br><code>docs/design/ORPHAN_DISPOSITION_REGISTER.md</code></td><td>6 supplier modules nothing imports and no command runs, 1,479 lines</td></tr>
 <tr><th><a href="#c-build.one_home">One source of truth</a></th><td>Single source of truth; DRY (Hunt and Thomas, The Pragmatic Programmer)</td><td><code>H5</code></td><td><code>tools/canon_drift_check.py</code></td><td>35 modules (37 module-concept pairs) carry a mapped concept&#x27;s name and are not its declared home</td></tr>
@@ -734,7 +734,7 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p>No link from here.</p>
 </section><section class="panel" id="c-build.independent_review">
 <h3>Independent review <span class="sub">build.independent_review</span></h3>
-<p>Finished work is read before it closes by a reviewer with no memory of building it, as an outsider would.</p>
+<p>Finished work is read before it closes by a reviewer with no memory of building it; blind to the build, though the same kind of model as the builder, so not independent of it.</p>
 <p class="sub">Taken from: Fagan, Design and code inspections to reduce errors in program development (IBM Systems Journal, 1976)</p>
 <p class="sub">Also called: blind review, cold read, fresh-context reviewer</p>
 <h4>What the map flags</h4>
