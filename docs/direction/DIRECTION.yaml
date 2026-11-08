@@ -56,23 +56,23 @@ focus:
     replay to 0 on level-DD households with N20's Leg A unmoved, and the finding moves to done/ with the
     replay numbers.
   written_at: 1794086869.322
-- id: calibrate-the-readers-selector-for-the-11-nov-review
+- id: hold-the-11-nov-two-reader-and-gate-review
   lane: H_harness
   side: other
-  what: 'For the two-reader review due 2026-11-11, do the two items the steer asked for. The steer is
-    now in docs/staging/advisor/done/DIRECTOR_STEER_CALIBRATE_THE_READERS_ON_OUR_HISTORY_AND_SAY_WHAT_EACH_GATE_HAS_CAUGHT_2026-11-05.md
-    at its signed bytes, and the seat''s earlier work is in docs/staging/records/SEAT_READING_THE_REFUSAL_RECORDS_COVER_ONLY_THE_PUBLISHERS_CYCLES_FOR_THE_11_NOV_GATE_REVIEW_2026-11-07.md.
-    Section 1: trace the defects confirmed since June to an introducing commit, using the CLASS_* documents,
-    the head-red and standing-red registers and the trial''s labelled set. Measure whether commit size,
-    a new module, or any other observable predicts a confirmed defect, each with its count and interval.
-    Section 2: the refusal records cover only the publisher''s 12 cycles, so reconstruct seat and worker
-    refusals from the session transcripts. List each gate with what it caught, what it refused wrongly
-    and what it cost, and mark every gate with no evidence as "no evidence". Write both tables into a
-    record under docs/staging/records/ that the review will read. Propose no new gate.'
-  why: He asked for it by a date. It is measurement, so the 26 Oct ruling does not hold it, and it has
-    gone undrawn for two stretches while the deadline came in to four days. Done means both tables are
-    on origin in a record that the 11 Nov review cites.
-  written_at: 1794086869.322
+  what: 'DO NOT DRAW BEFORE 2026-11-11 00:00. Hold the review. Read the 7 Nov tables
+    (docs/staging/records/SEAT_RESULT_WHAT_PREDICTS_A_DEFECT_AND_WHAT_EACH_COMMIT_GATE_HAS_CAUGHT_FOR_THE_11_NOV_REVIEW_2026-11-07.md),
+    the 8 Nov plant-and-judge record (SEAT_RESULT_PLANT_THE_DEFECT_ON_THE_NO_EVIDENCE_GATES_AND_THE_REST_OF_THE_STALE_COPY_AND_SITE_LANE_REFUSALS_2026-11-08.md)
+    and trust_ledger''s confirmed-findings rate over the two weeks. Decide the two-reader selector: the
+    evidence favours 200+ .py lines touching company/saas/sim over the new-module rule. Apply the stop
+    rule (fewer than half the filed findings confirmed stops it). Record the decision and set its held-out check date.'
+  why: The director asked for this review by 11 Nov. The trial was ruled to be scored for two weeks from its
+    28 Oct start (DIRECTOR_RULING_GO_ON_THE_TWO_READER_REVIEW_AND_START_IT_NOW_2026-10-28.md), so a review
+    held before 11 Nov grades a short window. All pre-review evidence is on origin (7b6ff1e144, 744c7d00ef).
+    It was drawn on 8 Nov from a continuation whose "On or after" wording the draw's embargo grammar does
+    not read, and a continuation goes stale after 6 hours, so it is carried here instead.
+  done_means: A dated decision record on origin naming the selector and its held-out check, with the
+    selector change landed if one is made.
+  written_at: 1794117600.0
 - id: the-ninth-cold-read-on-the-next-fresh-book
   lane: D_billing_metering
   side: other
