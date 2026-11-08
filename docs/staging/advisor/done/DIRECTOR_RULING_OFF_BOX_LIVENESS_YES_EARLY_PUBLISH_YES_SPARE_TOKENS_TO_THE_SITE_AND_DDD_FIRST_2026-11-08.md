@@ -65,3 +65,20 @@ Proportionality: contract-touching (a live credential and a public site) — imp
   correctness gate still governs what the site shows.
 - Not done here: the ops-repo workflow, the stop-cause investigation, the early-publish change to
   `content_publish_window`, and the site work. Each is a continuation, not a claim on this file.
+
+**Builds, later on 8 Nov** (delivery-lane claim `director-ruling-off-box-liveness-early-publish-site-ddd-2026-11-08`;
+this lands the two continuations above, ahead of their dues):
+- **`off-box-liveness-workflow`: done.**
+  - Ops repo 2b628fed8: `.github/workflows/off-box-deadman.yml`, hourly. It sends the single push when the ops
+    heartbeat, the public `liveness` heartbeat and the newest box-committed commit on main are all over 6h old,
+    once per outage. A stale heartbeat with another fresh box signal is a warning on the run, never a push.
+  - The credential is the Actions secret `NTFY_TOPIC` only.
+  - **Proof:** 6 tests, and a dispatched forced-stale dry run on GitHub decided `dead`. Replayed hourly over
+    4 Oct-8 Nov, it would have sent one push (5 Nov) and no false one.
+  - **Causes:** on 5-7 Nov the host stopped the WSL VM while Windows stayed up. Who stopped it we cannot tell, and
+    the finding names what would tell. 3-4 Nov was an expired OAuth session, not a stop.
+  - Record: `docs/staging/done/SEAT_FINDING_A_SIXTY_HOUR_HOST_OUTAGE_THE_ON_BOX_DEAD_MANS_SWITCH_COULD_NOT_REPORT_2026-11-07.md`.
+- **`early-publish-this-week`: done.** `publish_freshness.EARLY_PUBLISH_FROM` opens the content window once
+  between his 13:22 yes and the Monday 9 Nov 04:00 anchor. It is tested, both mutations fire, and the full gate
+  still decides.
+- **Site spend:** the choice is in the stretch log's 8 Nov entry. The work itself is still to do.

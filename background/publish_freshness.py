@@ -299,6 +299,13 @@ def publish_week_start(now: float | None = None) -> datetime:
     return start
 
 
+#: The director's one early publish (8 Nov 2026 13:22 GMT, his "yes" to `the-publish-window-is-anchored-
+#: to-monday`): figures last on origin before his yes may publish once before the next Monday anchor, and the
+#: full gate still decides whether a book is fit. Self-expiring: it is tested after the owed-this-week rule, so it
+#: is reached only while `last` falls in the current week, and from Mon 9 Nov 04:00 every such `last` is after it.
+EARLY_PUBLISH_FROM = datetime(2026, 11, 8, 13, 22, tzinfo=timezone.utc).timestamp()
+
+
 def content_publish_window(now: float | None = None, *, published_ts_fn=None) -> dict:
     """May the publisher put new FIGURES on origin now? Once per week, from Monday 04:00.
 
@@ -325,6 +332,9 @@ def content_publish_window(now: float | None = None, *, published_ts_fn=None) ->
         is_open, why = True, "when figures last reached origin is unknown -- publishing rather than risk skipping the week"
     elif last < start.timestamp():
         is_open, why = True, "this week's figures are owed (last on origin {})".format(
+            datetime.fromtimestamp(last, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"))
+    elif last < EARLY_PUBLISH_FROM <= ts:  # reached only when `last` is this week, so only 8-9 Nov
+        is_open, why = True, "the director's one early publish (8 Nov 13:22): figures last on origin {}".format(
             datetime.fromtimestamp(last, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"))
     else:
         is_open, why = False, "this week's figures reached origin {}; the next publish opens {}".format(

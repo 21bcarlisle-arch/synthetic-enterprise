@@ -428,3 +428,19 @@ def test_the_snapshot_carries_the_as_at_date_from_the_content_clock(monkeypatch)
     expected = datetime.fromtimestamp(now - 3 * 86400, timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
     assert snap["as_at_utc"] == expected, "the as-at date came from the push clock, not the figures"
     assert snap["cadence_seconds"] == pf.PUBLISH_CADENCE_SECONDS
+
+
+def test_the_directors_one_early_publish_opens_once_and_cannot_open_again():
+    """8 Nov 13:22 "yes": one early publish before Monday. Defect it names: an early clause that
+    stayed open after the early publish landed, or that reopened a later week's closed window."""
+    def at(*a):
+        return datetime(*a, tzinfo=timezone.utc).timestamp()
+
+    def window(now, last):
+        return pf.content_publish_window(now, published_ts_fn=lambda: last)["open"]
+
+    tuesday = at(2026, 11, 3, 2, 48)  # the week's figures were already on origin
+    assert not window(at(2026, 11, 8, 13, 0), tuesday)       # before his yes: Monday anchor holds
+    assert window(at(2026, 11, 8, 14, 30), tuesday)          # after it: the one early publish
+    assert not window(at(2026, 11, 8, 21, 0), at(2026, 11, 8, 20, 0))  # once landed, closed again
+    assert not window(at(2026, 11, 12, 9, 0), at(2026, 11, 10, 4, 5))  # a later week: never reopens

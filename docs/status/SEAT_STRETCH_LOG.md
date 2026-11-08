@@ -17244,3 +17244,26 @@ joint (W2_19) are queued and ranked above billing, which is above the supplier o
 budget dials revert automatically at 02:50Z on 2026-09-07.
 
 ---
+
+---
+
+### 8 Nov 2026: the director's 13:22 ruling (off-box liveness, early publish, site spend, DDD first)
+
+**Built.**
+- The off-box dead-man (ops repo 2b628fed8). Replayed over five weeks of heartbeats, it would have sent one push,
+  for 5 Nov, and no false one.
+- The one early publish, as a self-expiring clause in `content_publish_window`.
+- DDD first in rota (b).
+
+**Found.**
+- 5-7 Nov: the host stopped the WSL VM while Windows stayed up. Why, we cannot tell.
+- 3-4 Nov: not an outage. An expired OAuth session failed every invocation for 24h while the heartbeat stayed
+  green. The off-box heartbeat check cannot see that shape; the advisor's landing check can.
+
+**Site spend this week, chosen.**
+- First, what the cold reads flagged on the household pages: part-year diagnostics, and closed accounts still
+  holding credit and debt. These are on the site now and wrong, and an early publish would carry them again.
+- Then the Knowledge tab taking the map's shape (world / running a supplier / building it).
+- The invariant gate holds for both. Each is added on top of the correctness stretch, never in place of it.
+
+**Spent.** This turn went on item 1, plus about ten minutes of gates for the landing.
