@@ -5345,6 +5345,17 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("Pack verification census failed: {}".format(exc))
     try:
+        # The reading log's published side (director's steer of 5 Nov): the Knowledge tab's
+        # reading-log page reads this feed, rebuilt from docs/institutional/reading_log.md at each
+        # publish so a row the advisor appends reaches the site without anyone remembering.
+        from tools import reading_log_feed as _rlf
+        _rl = _rlf.build()
+        _rlf.write(_rl)
+        log("Generated {} -- {} sources, placed on the map {}".format(
+            _rlf.OUT, len(_rl["rows"]), _rl["placed"]))
+    except Exception as exc:
+        log("Reading log feed failed: {}".format(exc))
+    try:
         # G13: the proof-of-caller for the projection store. G12 built the store on 2026-08-11
         # and NOTHING READ IT for eight days -- the "design with no caller" the founding
         # instruction was written to end, reproduced by the very atom meant to prevent it.

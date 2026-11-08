@@ -17290,3 +17290,16 @@ is owed before 04:00. Otherwise Monday's publish runs the stale tree's gate code
   it's built linking to their practice and back; method insight (the improvement loop's results, including the
   "we cannot tell" ones) under *What we've learned*.
 - **Spent.** About one turn of build, plus one gate cycle.
+
+**Site spend, second build (seat executor, 8 Nov evening).** The reading log is published under *Building it*.
+- **Chosen, and why.** It was the first of the three items the Knowledge-tab build handed on, and the only one that
+  needed no new judgement: the log already exists (`docs/institutional/reading_log.md`, 20 rows) and the 5 Nov
+  steer names its home. The control-stack back-links and method insight wait for the next turn.
+- **What changed.** `site/knowledge/reading-log.html` renders every row (claim, evidence grade, verdict, what was
+  done) from `site/data/reading_log.json`, which `tools/reading_log_feed.py` builds from the log at each publish.
+  The log stays the one home. A card under *Building it* links to it.
+- **Found.** Each row's concept is resolved against the map's register. 7 rows land on a defined practice, 6 on a
+  step of the How-it's-built spine (only one of which, Testing and controls, has a panel on the map yet), 2 name
+  nothing. 5 rows name three practices the register does not hold: *Independent review*, *Outputs are
+  diagnostics* and *Learning*. The page says so. Adding them is a register edit, for the map's owner, not this build.
+- **Spent.** About one turn of build, plus one gate cycle.
