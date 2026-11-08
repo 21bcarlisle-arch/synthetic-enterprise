@@ -902,9 +902,15 @@ def cycle_admission(**admit_kwargs) -> dict:
             f"{decision['budget_mb']:.0f} MB) but cannot see undeclared residents, and a cycle "
             f"is the cheaper thing to defer")}
     if decision["admitted"]:
-        hold = resource_headroom.landing_hold_reason()
+        # FIRST IN, FIRST OUT: refused by the hold, the runner takes its place in the landings
+        # register, and landings that register after it wait behind it (2026-11-08: a stream of
+        # overlapping landings had held every cycle from 03:59 UTC).
+        hold = resource_headroom.landing_hold_reason(wait_as="sim-runner")
         if hold:
             decision = {**decision, "admitted": False, "reason": hold}
+    else:
+        # Not waiting on landings, so it must not hold them while memory or a long job refuses it.
+        resource_headroom.withdraw_waiter()
     if not decision["admitted"]:
         log(f"DEFERRED this cycle -- {decision['reason']}")
         resource_headroom.record_deferral(decision)

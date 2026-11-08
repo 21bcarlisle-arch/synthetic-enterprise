@@ -485,13 +485,20 @@ LANDING_HOLD_SECONDS = 90 * 60
 
 
 def _wait_for_pending_landings(say, deadline_seconds: float | None = None, sleep=None,
-                               reason_fn=None) -> str | None:
-    """Landings come before experiments (director, 2026-10-09): a new launch waits while any landing
-    is pending, then proceeds; past the deadline it returns the reason to refuse with."""
+                               reason_fn=None, wait_as: str = "launch_long_job") -> str | None:
+    """Landings come before experiments (director, 2026-10-09): a new launch waits while a landing
+    that was pending when it arrived is still pending, then proceeds; landings registering after it
+    wait behind it (first in, first out). Past the deadline it gives up its place and returns the
+    reason to refuse with."""
     import time as _time
 
-    from background.resource_headroom import landing_hold_reason
-    reason_fn = reason_fn or landing_hold_reason
+    from background.resource_headroom import landing_hold_reason, withdraw_waiter
+    if reason_fn is None:
+        def reason_fn():
+            return landing_hold_reason(wait_as=wait_as)
+    else:
+        def withdraw_waiter():
+            return None
     sleep = sleep or _time.sleep
     deadline = LANDING_HOLD_SECONDS if deadline_seconds is None else deadline_seconds
     start = _time.monotonic()
@@ -504,6 +511,7 @@ def _wait_for_pending_landings(say, deadline_seconds: float | None = None, sleep
             say(f"  . HELD: {reason}")
             told = True
         if _time.monotonic() - start >= deadline:
+            withdraw_waiter()
             return f"held for {deadline:.0f}s and the landing has not finished: {reason}"
         sleep(30)
 
@@ -594,7 +602,8 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     case_refusal = run_case_refusal(expect_minutes, run_case)
     if case_refusal:
         raise LaunchRefused(case_refusal)
-    landing_wait = _wait_for_pending_landings(say, deadline_seconds=landing_deadline_seconds)
+    landing_wait = _wait_for_pending_landings(say, deadline_seconds=landing_deadline_seconds,
+                                              wait_as=f"launch {job}")
     if landing_wait:
         raise NoRoom(landing_wait)
     if guest_total_mb is None:

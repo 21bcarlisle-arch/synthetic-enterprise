@@ -132,3 +132,101 @@ def test_a_test_process_never_waits_on_the_real_pending_landings(monkeypatch):
     monkeypatch.setattr(rh, "pending_landings",
                         lambda path=None, proc_root=None: [{"pid": 1, "label": "real"}])
     assert rh.landing_hold_reason() is None
+
+
+def _claimant(label, kind=None):
+    """A live process standing in for another landing or run, and its register row."""
+    import subprocess
+    proc = subprocess.Popen(["sleep", "300"])
+    row = {"pid": proc.pid, "starttime": rh._proc_starttime(proc.pid), "label": label, "since": "x"}
+    if kind:
+        row["kind"] = kind
+    return proc, row
+
+
+def _register(path, row):
+    import json
+    rows = json.loads(path.read_text()) if path.exists() else []
+    path.write_text(json.dumps(rows + [row]))
+
+
+def _end(proc):
+    proc.kill()
+    proc.wait()
+
+
+def test_a_waiting_run_is_admitted_between_overlapping_landings(tmp_path, monkeypatch):
+    """Defect (2026-11-08): no book from 03:59 UTC, 156 sim_run deferrals that day, every one a
+    landing hold. Each landing registered while the last was still gating, so "any landing pending"
+    was true at every cycle and the runner was never admitted. First in, first out: a landing that
+    registers AFTER the run was refused waits behind it, so the run goes when the landings that were
+    ahead of it finish, however many arrive later."""
+    monkeypatch.delenv(rh.LANDING_ENV, raising=False)
+    landings = tmp_path / "landings.json"
+    procs = []
+    try:
+        first, row = _claimant("landing 0")
+        procs.append(first)
+        _register(landings, row)
+        assert rh.landing_hold_reason(landings, wait_as="sim-runner"), "a pending landing did not hold"
+        admitted_at = None
+        previous = first
+        for n in range(1, 6):  # the stream: each landing registers before the previous one ends
+            nxt, row = _claimant(f"landing {n}")
+            procs.append(nxt)
+            _register(landings, row)
+            _end(previous)
+            previous = nxt
+            if rh.landing_hold_reason(landings, wait_as="sim-runner") is None:
+                admitted_at = n
+                break
+        assert admitted_at == 1, f"the run was never admitted through {n} overlapping landings"
+        assert not any(r.get("kind") == rh.WAITER_KIND for r in rh.pending_landings(landings)), \
+            "an admitted run kept its place and would hold the landings behind it"
+    finally:
+        for p in procs:
+            if p.poll() is None:
+                _end(p)
+
+
+def test_a_landing_waits_only_for_runs_that_were_refused_before_it(tmp_path, monkeypatch):
+    """The other side of the partition, and the control that the run does not jump the queue: a
+    landing registered BEFORE the run still holds it; a landing registered AFTER a waiting run is
+    held by it; a landing ahead of the waiting run is not; a landing's own child work never is."""
+    import os
+    monkeypatch.delenv(rh.LANDING_ENV, raising=False)
+    me = {"pid": os.getpid(), "starttime": rh._proc_starttime(os.getpid()), "label": "me", "since": "x"}
+    procs = []
+    try:
+        # Control: a landing ahead of the run holds it, even after the run takes its place.
+        landing, row = _claimant("earlier landing")
+        procs.append(landing)
+        ahead = tmp_path / "ahead.json"
+        _register(ahead, row)
+        assert "landings come before experiments" in (rh.landing_hold_reason(ahead, wait_as="run") or "")
+        later, row = _claimant("later landing")
+        procs.append(later)
+        _register(ahead, row)
+        assert "earlier landing" in (rh.landing_hold_reason(ahead, wait_as="run") or ""), \
+            "the run jumped a landing that was pending before it"
+        _end(landing)
+        assert rh.landing_hold_reason(ahead, wait_as="run") is None, "the later landing held the run"
+
+        # The landing's side: held by a waiting run ahead of it, not by one behind it.
+        run, run_row = _claimant("sim-runner", kind=rh.WAITER_KIND)
+        procs.append(run)
+        monkeypatch.setenv(rh.LANDING_ENV, "me")
+        behind = tmp_path / "behind.json"
+        _register(behind, run_row)
+        _register(behind, me)
+        assert "first in, first out" in (rh.landing_hold_reason(behind) or ""), \
+            "a landing registered after a waiting run went first"
+        before = tmp_path / "before.json"
+        _register(before, me)
+        _register(before, run_row)
+        assert rh.landing_hold_reason(before) is None, "a run refused after the landing held it"
+        assert rh.landing_hold_reason(tmp_path / "child.json") is None, "the landing's own work was held"
+    finally:
+        for p in procs:
+            if p.poll() is None:
+                _end(p)

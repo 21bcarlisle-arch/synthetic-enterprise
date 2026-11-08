@@ -880,7 +880,7 @@ def landing_pending(label: str, path: Path | None = None, proc_root: Path | None
     pid = os.getpid()
     claim = {"pid": pid, "starttime": _proc_starttime(pid, proc_root), "label": label,
              "since": _now_iso()}
-    with _ledger_lock():
+    with _ledger_lock(target):
         rows = [r for r in (_read_json(target, []) or []) if isinstance(r, dict)
                 and _is_live(r, proc_root)]
         rows.append(claim)
@@ -890,7 +890,7 @@ def landing_pending(label: str, path: Path | None = None, proc_root: Path | None
     try:
         yield claim
     finally:
-        with _ledger_lock():
+        with _ledger_lock(target):
             rows = [r for r in (_read_json(target, []) or []) if isinstance(r, dict)
                     and _is_live(r, proc_root)
                     and not (r.get("pid") == pid and r.get("since") == claim["since"])]
@@ -901,10 +901,33 @@ def landing_pending(label: str, path: Path | None = None, proc_root: Path | None
             os.environ[LANDING_ENV] = previous
 
 
-def landing_hold_reason(path: Path | None = None) -> str | None:
-    """Why a non-landing job must wait now, or None. Never holds a landing's own work."""
-    if os.environ.get(LANDING_ENV):
-        return None
+#: A row in the landings register is a landing unless it says otherwise; a run the hold refused
+#: registers as `kind: waiter` so the order of arrival, not a timer, decides who goes next.
+WAITER_KIND = "waiter"
+
+
+def _is_waiter(row: dict) -> bool:
+    return row.get("kind") == WAITER_KIND
+
+
+def landing_hold_reason(path: Path | None = None, wait_as: str | None = None,
+                        proc_root: Path | None = None) -> str | None:
+    """Why this process must wait now, or None. FIRST IN, FIRST OUT between landings and runs.
+
+    The register is in arrival order. A row waits only for live rows of the OTHER kind ahead of it:
+    a landing waits for runs that were refused before it registered, a waiting run waits for the
+    landings that were already pending when it was refused. Landings never hold each other, and
+    runs never hold each other -- the memory governor judges those.
+
+    Before this (2026-11-08: no book from 03:59 UTC, 156 sim_run deferrals that day, every one a
+    landing hold) any pending landing held every run, so a stream of overlapping landings -- each
+    registering while the last was still gating -- starved the sim-runner indefinitely.
+
+    `wait_as`: a non-landing job that the hold refuses takes its place at the back of the register
+    under this label, and is held from then on only by landings ahead of it; once nothing ahead
+    holds it, its row is withdrawn (it is admitted) and the landings behind it go. Without
+    `wait_as` a non-landing job is held by any live landing, as before.
+    """
     if path is None:
         # A TEST NEVER READS THE REAL REGISTER (found 2026-10-09: the first landing of this rule
         # timed out at 3,600 s because its own gate's tests called launch() in-process and sat in
@@ -912,11 +935,49 @@ def landing_hold_reason(path: Path | None = None) -> str | None:
         from background.live_ledger_guard import in_test_process
         if in_test_process():
             return None
-    live = pending_landings(path)
-    if not live:
+    target = path or PENDING_LANDINGS_PATH
+    landing = bool(os.environ.get(LANDING_ENV))
+    pid = os.getpid()
+    with _ledger_lock(target):
+        rows = pending_landings(target, proc_root)
+        mine = next((i for i, r in enumerate(rows) if r.get("pid") == pid
+                     and _is_waiter(r) != landing), None)
+        if mine is None and landing:
+            # The landing's own work in a child process (no row of its own): never held.
+            return None
+        ahead = rows if mine is None else rows[:mine]
+        blockers = [r for r in ahead if _is_waiter(r) == landing]
+        if not landing and wait_as is not None:
+            if blockers and mine is None:
+                rows.append({"pid": pid, "starttime": _proc_starttime(pid, proc_root),
+                             "label": wait_as, "since": _now_iso(), "kind": WAITER_KIND})
+                _write_json(target, rows)
+            elif not blockers and mine is not None:
+                del rows[mine]
+                _write_json(target, rows)
+    if not blockers:
         return None
+    if landing:
+        return ("first in, first out: this landing registered after {} waiting run(s) ({})".format(
+            len(blockers), "; ".join(f"{r.get('label')} pid {r.get('pid')}" for r in blockers)))
     return ("landings come before experiments: {} pending ({})".format(
-        len(live), "; ".join(f"{r.get('label')} pid {r.get('pid')}" for r in live)))
+        len(blockers), "; ".join(f"{r.get('label')} pid {r.get('pid')}" for r in blockers)))
+
+
+def withdraw_waiter(path: Path | None = None, proc_root: Path | None = None) -> None:
+    """Give up this process's place in the queue. A run refused for a reason other than landings
+    (memory, a resident long job) is not waiting on landings and must not hold them."""
+    if path is None:
+        from background.live_ledger_guard import in_test_process
+        if in_test_process():
+            return
+    target = path or PENDING_LANDINGS_PATH
+    pid = os.getpid()
+    with _ledger_lock(target):
+        rows = pending_landings(target, proc_root)
+        kept = [r for r in rows if not (_is_waiter(r) and r.get("pid") == pid)]
+        if len(kept) != len(rows):
+            _write_json(target, kept)
 
 
 class QueueTimeout(RuntimeError):
