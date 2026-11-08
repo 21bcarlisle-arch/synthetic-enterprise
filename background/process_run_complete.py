@@ -5703,6 +5703,16 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("value_arms.json generation failed: {}".format(exc))
     try:
+        # What the method has shown (director's steer of 5 Nov, item 2: method insight, including
+        # "we cannot tell" and the experiments that failed, under What we've learned). It reads the
+        # experiment feeds' own status fields, so it runs after value_arms.json is regenerated above.
+        from tools import method_results_feed as _mrf
+        _mr = _mrf.build()
+        _mrf.write(_mr)
+        log("Generated {} -- {}".format(_mrf.OUT, _mr["counts"]))
+    except Exception as exc:
+        log("Method results feed failed: {}".format(exc))
+    try:
         # Explore stage 3's SECOND CLOCK (site/data/explore_hh_days.json). The stage is titled
         # "electricity across a day" and rendered it by YEAR, in the same table as gas, which
         # made the two clocks one clock and lost the thing that stage exists to teach. Wired

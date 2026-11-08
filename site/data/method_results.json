@@ -1,0 +1,69 @@
+{
+ "what_this_is": "The questions the method has put to its world, each with the status its own published record gives it. A result that went against us stays.",
+ "statuses": [
+  "held",
+  "did not hold",
+  "no association",
+  "withdrawn",
+  "we cannot tell"
+ ],
+ "counts": {
+  "held": 1,
+  "did not hold": 0,
+  "no association": 1,
+  "withdrawn": 1,
+  "we cannot tell": 2
+ },
+ "loop": {
+  "design": "docs/design/THE_IMPROVEMENT_LOOP.md",
+  "rounds": 0,
+  "why": "the improvement loop's register is built after the correctness stretch's exit test, so no area has gone round it yet"
+ },
+ "rows": [
+  {
+   "id": "pricing-arms",
+   "question": "Does pricing each renewal for the customer earn more than one margin for everyone?",
+   "status": "we cannot tell",
+   "finding": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
+   "why_this_status": "the comparison marks itself provisional: its error bar is wider than the effect it measures",
+   "source": "site/data/value_arms.json",
+   "page": "../capabilities/#value-arms"
+  },
+  {
+   "id": "pricing-arms-withdrawn",
+   "question": "A claim about the flat-margin arm, published and taken back",
+   "status": "withdrawn",
+   "finding": "One margin for every household again, but set at the level the per-customer arm actually charged. It prices the same renewals through the same guards under the same lawful ceiling. Anything it earns came from the PRICE LEVEL and not from choosing per customer.",
+   "why_this_status": "withdrawn on 2026-09-18: The middle sentence was a claim about a RUN, written as a module constant, and no run this page has ever published made it true.",
+   "source": "site/data/value_arms.json",
+   "page": "../capabilities/#value-arms"
+  },
+  {
+   "id": "dd-opening",
+   "question": "Does sizing a new account's first direct debit from an estimate beat waiting for its first bill?",
+   "status": "held",
+   "finding": "Once a fabric premise's registry EAC is its own reads in the record the DD opening reads, the estimate beats the first bill on the households opened under the price cap: the matched mean change in distance from square goes negative, with a 95% interval that excludes zero.",
+   "why_this_status": "a prediction filed on 2026-10-01 before the run, which the run did not refute",
+   "source": "site/data/dd_opening_arms.json",
+   "page": "../capabilities/#dd-opening"
+  },
+  {
+   "id": "engagement",
+   "question": "Are the households that do not shop around also the ones least moved by price?",
+   "status": "no association",
+   "finding": "Of the 115 disengaged households on the book -- the long-default tail, the least likely to choose at a renewal -- 42 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 603 households their rank correlation is +0.03, inside the -0.08 to +0.09 that shuffling the pairs produces.",
+   "why_this_status": "rank correlation +0.03 across 603 households, inside the -0.08 to +0.09 that 2,000 shuffles produce",
+   "source": "site/data/engagement_separation.json",
+   "page": "../capabilities/#engagement-separation"
+  },
+  {
+   "id": "reviewers",
+   "question": "Do the fresh-context reviewers that pass finished work catch the defects that later surface?",
+   "status": "we cannot tell",
+   "finding": null,
+   "why_this_status": "0 of 1 reviewers have the 3 passes a measured error rate needs",
+   "source": "site/data/judge_validation.json",
+   "page": "../harness/#meaning"
+  }
+ ]
+}

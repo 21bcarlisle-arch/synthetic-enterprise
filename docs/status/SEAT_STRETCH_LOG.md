@@ -17333,3 +17333,17 @@ practice it holds in *Building it* now link to each other.
   records nothing it would have refused. The register carries that as a named gap.
 - **The map page** had not been regenerated since 26 Oct. This landing carries the generator's current output, so
   its other rows move to today's register as well.
+
+**Site spend, fifth build (seat executor, 8 Nov late).** Method insight is published under *What we've learned*.
+- **What the method has shown** (`site/knowledge/what-the-method-has-shown.html`, a card under *Building it*
+  carrying the insight layer the filter reads). Each question the method has put to its world, with a status
+  computed from the field the experiment's own published feed carries: 1 held (the estimated DD opening
+  prediction), 1 no association (shopping and price sensitivity), 1 withdrawn (the flat-margin arm's claim), 2 we
+  cannot tell (the pricing arms, provisional; the reviewers, none with the passes a measured error rate needs).
+- **Said plainly on the page:** the improvement loop itself has run 0 rounds. Its register is built after the
+  correctness stretch's exit test, so these are the method's experiments before it.
+- **Fail-closed.** A missing source becomes a "we cannot tell" row naming why, never a dropped row. The door test
+  asserts all five statuses can be produced, and two planted faults (a builder that can only say "held"; a builder
+  that drops unreadable sources) each turned it red.
+- **Found, not mine:** `tests/tools/test_e2_revenue_reconciliation_surfaces.py` is red on this base: `explore/index.html`
+  renders a net-margin figure and is not in the registry.
