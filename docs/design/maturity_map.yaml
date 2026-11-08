@@ -1886,7 +1886,7 @@
   # then the save is re-graded. Save-offer page section 8. The world half is W3_3.
   dial_inherited: 90
   provenance: director_ruling
-  depends_on: []
+  depends_on: [W3_3_the_network_charge_splits_per_unit_and_per_day]  # 2026-11-08: the L2 note above, made drawable
   couples_with: [B8_discovered_price_sensitivity_holdout, W3_3_the_network_charge_splits_per_unit_and_per_day]
   file_scope: ['company/pricing/renewal_rate_chain.py',
     'tests/company/pricing/test_writer_one_reads_its_margin_on_the_unit_rate.py',
