@@ -91,3 +91,53 @@ INV_BILLED_EX_VAT's mixed-version 3, which is predicted to clear on the first bo
 - **What moves.** The company's receivables, provision, cash timing and treasury on level accounts. Pre-register those
   figures before the first book built with it.
 - **Not recommended** (unchanged): a dated exception on row 1, or a page-side rewrite of the desk's figure.
+
+## Step 2, measured before building (worker, 8 Nov 2026)
+
+These measurements are on the fa915ac0d7 book (`docs/reports/run_output_fa915ac0d7_20261107T184010Z.json`): its
+`opening_dd_by_customer`, `annual_dd_review.events`, `level_dd_collections` (766 households, 29,519 months) and `bills`. They
+settle where phase 2b can get the amount from.
+
+1. **The in-loop review alone is not enough.**
+   - `simulation/dd_review_in_loop.InLoopDDReview` already runs causally inside phase 2b. It reaches the company's
+     `annual_dd_review_view` door, the same chain as the post-loop `annual_dd_review`.
+   - Rebuilt from the opening amount and those review events, that chain gives the scheduled amount on **18,885 of 29,519**
+     level months.
+   - The other 10,634 differ, usually upward: median +GBP 5.89, range −71 to +461. Example: C2 reviews to GBP 35 in
+     Apr 2017, and the schedule collects 35.70.
+   - The difference is the review seeking the debit balance (`dd_review.REVIEW_SEEKS_BALANCE`, on since 20 Oct), plus DD
+     spells. Both live only in `build_dd_balance_book`.
+   - **So phase 2b must ask the balance book, not the review.**
+2. **The balance book is almost causal, and where it is not, the schedule uses hindsight.**
+   - Test: `build_dd_balance_book` run on a leg's bills up to month m, against the full book, on 40 sampled level households.
+     **359 of 367** prefix months match.
+   - The 8 that differ (−GBP 0.67 to +0.28) all come after runs of estimated bills.
+   - The cause is `_true_charges` (`simulation/dd_balance_book.py:287`): an estimated period's true charge includes its share
+     of a catch-up that a **later** read bills. So a review that seeks the balance sizes its step-up partly from a read the
+     supplier has not yet taken.
+   - That is the epistemic wall in miniature, inside the post-loop schedule: small in pounds, wrong in kind.
+3. **Sanity.** The full book on bills alone (no spells, no term records) reproduces the published schedule on 1,590 of
+   1,757 of the sample's months. The rest are the DD spells and closures the run passes in.
+
+**Design, decided.**
+- At each billed month, phase 2b asks `build_dd_balance_book` for a level leg's collection, over the bills and DD spells
+  known so far. That is the same door the in-loop review uses, asked as it asks.
+- It records that amount on the leg's staggered day. `record_period` then collects that collection, not the bill, and draws
+  its outcome. A return is that amount on that day.
+- Phase 4c's schedule must then be the **causal** one, the same amounts phase 2b collected, rather than a hindsight
+  rebuild. Otherwise the page and the desk collect different sums on about 2% of months.
+- The hindsight fix in `_true_charges` (a catch-up counts only from the date it was billed) is its own one-variable step,
+  landed and graded first. It moves only the balance-seeking step-up.
+
+**Pre-registration for the first book built with Step 2** (written before any build):
+- INV_OVERDUE_WITHIN_PAGE_BALANCE: **1,724 → 0** on level-DD households.
+- INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE stays **0**.
+- N20's Leg A stays **≤ 0.30**. The share leg is **unchanged**.
+- Level-DD returns: their count moves from per bill to per scheduled collection, and the total returned moves from bill faces
+  to scheduled amounts. I cannot yet say in which direction the total moves.
+- Receivables on level accounts fall, because in-credit accounts stop carrying a bill face as owed. The provision falls with
+  them.
+- Treasury's cash timing moves to the staggered day.
+- Every non-level account: **byte-identical** payment events.
+
+If a non-level account moves, the change has leaked past the mandate-type draw.
