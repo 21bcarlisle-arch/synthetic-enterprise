@@ -193,3 +193,5 @@ script `/var/tmp/l2a/measure.py`).**
 
 **Next, Step 2b** (continuation `level-dd-step-2b-phase-2b-collects-the-causal-level-amount`): phase 2b asks the balance book for each level leg's collection, the causal amount, and the outcome
 draw goes on that collection.
+
+**Grade item drawn early (seat executor, 04:10 UTC 8 Nov).** `grade-the-first-book-carrying-the-level-dd-fix-through-the-whole-gate-and-the-bscp504-prereg` was drawn with no book to grade. The newest book, `run_output_84f7fc8fe0_20261108T021850Z.json` (finished 03:59Z), and af31e73fa7 before it both carry 8b6316995 but not step 2a (ee0982734c). Step 2b is not on origin. The runner's next run starts about 05:18Z and will carry 2a only. This finding's own pre-registration (1,724 → 0) is for a book built with step 2, so that book cannot answer it. The item is re-keyed to the first book whose commit has the step 2b landing as an ancestor. Nothing was graded, and no book was started by hand.
