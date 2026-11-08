@@ -4476,7 +4476,7 @@
   blocked_on: null
   depends_on: []
   couples_with: [C29_decisions_stop_being_lookup_tables, C32_one_obligation_one_vulnerability_scorer]
-  file_scope: ['company/billing/arrears_engine.py', 'company/billing/breathing_space_register.py', 'company/billing/capacity_to_pay.py', 'company/crm/customer_retention.py', 'company/crm/portfolio_churn_risk.py', 'tests/company/']
+  file_scope: ['company/billing/arrears_engine.py', 'company/billing/breathing_space_register.py', 'archive/unhooked_supplier/company/billing/capacity_to_pay.py', 'company/crm/customer_retention.py', 'company/crm/portfolio_churn_risk.py', 'tests/company/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a collections desk that sends a final notice to a customer whose debt adviser filed a Breathing Space moratorium three weeks ago, because the moratorium register and the dunning calendar are different systems that have never been introduced -- and a retention desk reporting the value of saves it was never at risk of losing"
 

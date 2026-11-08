@@ -112,3 +112,63 @@ crm 25, market 18 (uig held), finance 10, billing 9 (including C32's ppm_warrant
 regulatory 9 (including C32's consumer_vulnerability_register), trading 5, then compliance,
 pricing, risk, sustainability, carbon and portal. Each one is held by a test file that also
 touches live code, by import or by quoted name. Each of those files needs a judgement.
+
+## Increment 3a (built 8 Nov): 39 modules, 41 whole tests, and the archived legs of 32 coverage files
+
+The 89 split in two. One half is held only by the `test_phase_*_coverage_expansion` and
+`*_coverage_depth` family. Those files are concatenated sections, one class per module, so they
+split cleanly by section. The other half is held by tests that exercise live code in the same
+function, such as `test_control_mutation`, the portal suite, the one-calendar deadline test and
+the carbon controls. Those need a judgement per file, and they are increment 3b.
+
+- **The set.** The same fixed point as increment 2, over the same census (an import or a quoted
+  dotted name in `tests/`), but the coverage family is allowed as a *surgery* referrer. It gives
+  39 modules: crm 15, market 8, finance 7, regulatory 4, billing 2, trading 2, risk 1. Of the
+  family, 2 files reach only the set and move whole. 32 are split.
+- **The split.** The split is mechanical. A top-level section that names a set module, or uses a
+  name imported from one, moves with the helpers it calls. In a class that reaches both sides,
+  the methods that reach the set move, along with the `self.` helpers they call. Four files did
+  this with imports inside methods: `ja`, `iz`, `jb` and `jc`. Each archived copy sits at the
+  file's own path under `archive/unhooked_supplier/`, with a header saying the live legs stay
+  where they were. Three checks ran on every file:
+  - the live text names no set module;
+  - test functions are conserved (live plus archived equals the original);
+  - no moved unit reaches live code, so no live leg left with the archive.
+
+  All 32 passed all three. The split moved 559 test functions and kept 432.
+- **Kept out on purpose:** `uig_allocation_register` (EP10's store), C32's
+  `ppm_warrant_register` and `consumer_vulnerability_register`, and the two atom-credited test
+  subjects, `carbon_ledger` and `credit_balance_control`. `hedging_schedule` is held too.
+  B4's store cites `tests/company/market/test_hedging_schedule.py` in its 29 Jul DISCOVER entry,
+  and `test_no_committed_store_claims_an_unlanded_falsifier` refuses that citation once the file
+  moves. The citation is evidence, not a falsifier, so it belongs in `_STALE_CITATION`. That
+  register asks for the sha of the commit that retired the file, and no commit can name its own
+  sha. 3b has to pick one of two routes:
+  - let the register accept the `archive/MANIFEST.txt` row as the retirement record; or
+  - add a marked correction to the B4 entry that gives the file's archive path.
+- **Registers.** 39 rows leave the disposition register and 39 leave `orphan_baseline`.
+  `--dispositions` reads 53 orphans with 53 ruled. The wall-clock ratchet drops
+  `contract_exposure_register`. One wall-census member is paid down:
+  `enterprise_value_gbp -> company/finance/board_dashboard.py`.
+- **Lint.** On the 32 split files, ruff findings fell from 161 to 60, and no file's I001 or E402
+  count rose.
+
+- **Two gates met on the way.** The first was the pre-commit test gate. It passed every
+  *added* staged test file to pytest by name, and naming a file skips
+  `archive/conftest.py`. Increments 1 and 2 passed only because renames never reached the
+  selector (`--diff-filter=ACM`). This increment's added leg files failed collection, so the
+  gate's `tests_for` now selects nothing under `archive/`, and a mutation-checked test holds
+  that. The second was the scope-evidence gate. It refused `capacity_to_pay.py` because closed
+  atom C33 lists it in `file_scope`, so that entry now points at the archive path.
+  `customer_retention.py` sits in the same row and will meet the same gate in 3b.
+
+## Increment 3b (what is left): 53 orphans
+
+Three of the 53 stay: `uig_allocation_register` and C32's two keeps. `hedging_schedule` waits on
+the route above. `carbon_ledger` and `credit_balance_control` need their atom credits read before
+they move. The rest are held by 81 test files that reach live code or a held module, and that
+count includes the live legs of the 3a split. Most of those files exercise live code beside an
+orphan, so they cannot be cut by section. Re-derive the census at draw time. The tool that made the
+3a split, an AST splitter with the three checks above, is worth adapting. It will not cover the
+cases where one test function exercises both an orphan and live code. Those need a decision for
+each function.

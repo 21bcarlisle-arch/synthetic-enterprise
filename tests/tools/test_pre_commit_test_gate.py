@@ -75,6 +75,18 @@ def test_the_stem_glob_does_not_over_match_a_longer_module_name():
     ), f"selection leaked past the supervisor stem: {selected}"
 
 
+def test_an_archived_test_file_is_never_selected_but_a_live_one_still_is():
+    """archive/ is collected by nothing (archive/conftest.py). Naming a file to pytest skips that
+    conftest, though, and an archived test imports a module that has left its path. Both halves
+    run against real files on disk, so a guard that drops every test file also fails here."""
+    archived = "archive/unhooked_supplier/tests/company/test_phase_hq_coverage_expansion.py"
+    live = "tests/company/test_phase_hq_coverage_expansion.py"
+    assert (ROOT / archived).exists() and (ROOT / live).exists()
+    assert gate.tests_for(live) == [live]
+    assert gate.tests_for(archived) == []
+    assert not [t for t in gate.select_targets([archived, live]) if t.startswith("archive/")]
+
+
 def test_non_python_file_maps_to_no_tests():
     assert gate.tests_for("docs/status/LATEST.md") == []
     assert gate.tests_for("background/process_manifest.yaml") == []

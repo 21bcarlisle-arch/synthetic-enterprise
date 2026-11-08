@@ -915,6 +915,12 @@ def tests_for(path: str) -> list[str]:
     p = Path(path)
     if p.suffix != ".py":
         return []
+    if p.parts[:1] == ("archive",):
+        # archive/conftest.py collects nothing there, but a path passed to pytest BY NAME skips
+        # collect_ignore, and an archived test imports a module that is no longer at that path.
+        # Renames never reached this function (the staged list is --diff-filter=ACM). An ADDED
+        # archive file did: archive increment 3a's cut legs failed collection 28 times.
+        return []
     if p.name.startswith("test_") and (ROOT / p).exists():
         return [str(p)]
     matches = set(ROOT.glob(f"tests/**/test_{p.stem}.py"))

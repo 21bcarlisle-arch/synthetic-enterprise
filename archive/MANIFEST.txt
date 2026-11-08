@@ -377,3 +377,115 @@ tests/company/trading/test_trade_blotter.py | 2 company.trading
 tests/company/trading/test_triad_exposure_register.py | 2 company.trading
 tests/company/trading/test_wholesale_position_report.py | 2 company.trading
 tests/simulation/test_phase_mt_triad_curtailment.py | 2 company.market
+company/billing/billing_dispute.py | 3 company.billing
+company/billing/capacity_to_pay.py | 3 company.billing
+company/crm/ancillary_products.py | 3 company.crm
+company/crm/contact_centre_metrics.py | 3 company.crm
+company/crm/contact_journey.py | 3 company.crm
+company/crm/contact_log.py | 3 company.crm
+company/crm/contract_exposure_register.py | 3 company.crm
+company/crm/conversation_log.py | 3 company.crm
+company/crm/credit_scoring.py | 3 company.crm
+company/crm/eep_book.py | 3 company.crm
+company/crm/marketing_budget.py | 3 company.crm
+company/crm/multisite_account.py | 3 company.crm
+company/crm/portal_analytics.py | 3 company.crm
+company/crm/renewals_book.py | 3 company.crm
+company/crm/switch_analytics.py | 3 company.crm
+company/crm/switching_report.py | 3 company.crm
+company/crm/tariff_notification.py | 3 company.crm
+company/finance/board_dashboard.py | 3 company.finance
+company/finance/board_kpis.py | 3 company.finance
+company/finance/cash_flow_forecast.py | 3 company.finance
+company/finance/company_pl.py | 3 company.finance
+company/finance/payroll.py | 3 company.finance
+company/finance/revenue_accruals.py | 3 company.finance
+company/finance/trade_finance.py | 3 company.finance
+company/market/dadc_contract_register.py | 3 company.market
+company/market/gas_interruption.py | 3 company.market
+company/market/hedge_performance.py | 3 company.market
+company/market/interconnector_monitor.py | 3 company.market
+company/market/interruptible_supply_register.py | 3 company.market
+company/market/market_share_estimator.py | 3 company.market
+company/market/network_charge_ledger.py | 3 company.market
+company/market/price_monitor.py | 3 company.market
+company/regulatory/annual_obligations.py | 3 company.regulatory
+company/regulatory/ee_obligation_tracker.py | 3 company.regulatory
+company/regulatory/regulatory_breach_log.py | 3 company.regulatory
+company/regulatory/supplier_fitness_register.py | 3 company.regulatory
+company/risk/annual_board_pack.py | 3 company.risk
+company/trading/credit_rating_book.py | 3 company.trading
+company/trading/otc_margin_book.py | 3 company.trading
+tests/company/billing/test_billing_dispute.py | 3 whole
+tests/company/billing/test_capacity_to_pay.py | 3 whole
+tests/company/crm/test_ancillary_products.py | 3 whole
+tests/company/crm/test_contact_centre_metrics.py | 3 whole
+tests/company/crm/test_contact_journey.py | 3 whole
+tests/company/crm/test_contact_log.py | 3 whole
+tests/company/crm/test_conversation_log.py | 3 whole
+tests/company/crm/test_credit_scoring.py | 3 whole
+tests/company/crm/test_eep_book.py | 3 whole
+tests/company/crm/test_marketing_budget.py | 3 whole
+tests/company/crm/test_multisite_account.py | 3 whole
+tests/company/crm/test_phase_co_contract_exposure.py | 3 whole
+tests/company/crm/test_portal_analytics.py | 3 whole
+tests/company/crm/test_renewals_book.py | 3 whole
+tests/company/crm/test_switch_analytics.py | 3 whole
+tests/company/crm/test_switching_report.py | 3 whole
+tests/company/crm/test_tariff_notification.py | 3 whole
+tests/company/finance/test_board_dashboard.py | 3 whole
+tests/company/finance/test_board_kpis.py | 3 whole
+tests/company/finance/test_cash_flow_forecast.py | 3 whole
+tests/company/finance/test_company_pl.py | 3 whole
+tests/company/finance/test_payroll.py | 3 whole
+tests/company/finance/test_revenue_accruals.py | 3 whole
+tests/company/finance/test_trade_finance.py | 3 whole
+tests/company/market/test_gas_interruption.py | 3 whole
+tests/company/market/test_hedge_performance.py | 3 whole
+tests/company/market/test_interconnector_monitor.py | 3 whole
+tests/company/market/test_network_charge_ledger.py | 3 whole
+tests/company/market/test_phase_cm_market_share.py | 3 whole
+tests/company/market/test_phase_cu_interruptible.py | 3 whole
+tests/company/market/test_phase_cv_dadc.py | 3 whole
+tests/company/market/test_price_monitor.py | 3 whole
+tests/company/regulatory/test_annual_obligations.py | 3 whole
+tests/company/regulatory/test_ee_obligation_tracker.py | 3 whole
+tests/company/regulatory/test_phase_cx_breach.py | 3 whole
+tests/company/regulatory/test_phase_cy_fitness.py | 3 whole
+tests/company/risk/test_phase_ci_annual_board_pack.py | 3 whole
+tests/company/test_phase_hr_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_hu_coverage_expansion.py | 3 whole
+tests/company/test_phase_id_coverage_expansion.py | 3 whole
+tests/company/test_phase_ig_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_jw_coverage_depth.py | 3 archived legs only; the live legs stay at this path
+tests/company/trading/test_credit_rating_book.py | 3 whole
+tests/company/trading/test_phase_cc_otc_margin_book.py | 3 whole
+tests/company/test_phase_hq_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_hs_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ht_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_hv_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_hx_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_hz_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ia_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ic_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ie_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_if_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ih_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ij_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_il_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_im_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_in_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ip_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_iq_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ir_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_it_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_iv_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_iw_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ix_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_iz_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ja_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_jb_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_jc_coverage_expansion.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_js_coverage_depth.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_ju_coverage_depth.py | 3 archived legs only; the live legs stay at this path
+tests/company/test_phase_jv_coverage_depth.py | 3 archived legs only; the live legs stay at this path

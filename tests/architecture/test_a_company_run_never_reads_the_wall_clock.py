@@ -250,7 +250,8 @@ HONEST_READS = {
 #: MAY ONLY SHRINK. Lowered 2026-10-03 when the run-reached ones were fixed (leg 3) and the honest
 #: ones moved to HONEST_READS. Every one left is reached by no run (no production importer) or
 #: only by the portal, which has no run date to pass (retention_risk.retention_risk's fallback).
-#: Five entries left 2026-11-08 with their modules for archive/unhooked_supplier/ (increment 2).
+#: Five entries left 2026-11-08 with their modules for archive/unhooked_supplier/ (increment 2),
+#: and contract_exposure_register's the same day (increment 3a).
 WALL_CLOCK_READS_2026_10_03 = {
     "company/billing/account_closure.py": 1,
     "company/billing/collections.py": 2,
@@ -258,7 +259,6 @@ WALL_CLOCK_READS_2026_10_03 = {
     "company/billing/direct_debit.py": 1,
     "company/billing/invoice.py": 1,
     "company/compliance/consumer_duty_board_report.py": 1,
-    "company/crm/contract_exposure_register.py": 1,
     "company/crm/home_registry.py": 4,
     "company/crm/retention_risk.py": 1,
     "company/crm/service_log.py": 1,

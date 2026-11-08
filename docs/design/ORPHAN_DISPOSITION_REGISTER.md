@@ -194,8 +194,6 @@ a new orphan still needs a judgement and a ruling whose subject got wired still 
 
 <!-- ORPHAN-DISPOSITIONS
 company.billing.account_closure | unhooked | consumers:company.billing | Account closure process: final bill, deposit, debt referral under Ofgem SLC 21B.; 3 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in the docstrings of company/billing/monthly_bill_assembly.py and simulation/final_bill_outcome.py as where a status and a calibration note live
-company.billing.billing_dispute | unhooked | consumers:company.billing | Billing Dispute Resolution Book (Phase FC).; 2 test(s); no importer
-company.billing.capacity_to_pay | unhooked | consumers:company.billing | Capacity-to-Pay (CtP) affordability assessment for customers in arrears.; 4 test(s); no importer
 company.billing.credit_balance_control | unhooked | consumers:company.billing | Undischarged credit-balance control (SLC 14 / Ofgem DD Market Compliance Review).; 1 test(s); no importer
 company.billing.dd_mandate_register | unhooked | consumers:company.billing | Direct Debit Mandate Register (Phase GD).; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/dd_collection_book.py's docstring as a thing NOT fully resolved there
 company.billing.payment_deferral | unhooked | consumers:company.billing | no docstring; 1 test(s); no importer
@@ -205,73 +203,36 @@ company.carbon.carbon_ledger | unhooked | consumers:company.carbon | E5 — the 
 company.compliance.board_meeting_register | unhooked | consumers:company.compliance | Board Meeting Minutes Register (Phase DR).; 2 test(s); no importer
 company.compliance.consumer_duty_board_report | unhooked | consumers:company.compliance | Consumer Duty Annual Board Report Register (Phase FW).; 1 test(s); no importer
 company.compliance.fair_value_assessment_register | unhooked | consumers:company.compliance | Consumer Duty Fair Value Assessment Register (Phase GP).; 3 test(s); no importer
-company.crm.ancillary_products | unhooked | consumers:company.crm | Smart home product bundle and ancillary revenue tracker.; 3 test(s); no importer
 company.crm.campaign_tracker | unhooked | consumers:company.crm | Outbound contact campaign tracker: retention, renewal, and collections campaigns.; 2 test(s); no importer
-company.crm.contact_centre_metrics | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.contact_journey | unhooked | consumers:company.crm | Customer contact preferences and multi-channel communication management.; 2 test(s); no importer
-company.crm.contact_log | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.contract_exposure_register | unhooked | consumers:company.crm | Contract Exposure Register — tracks regulatory supply obligations.; 2 test(s); no importer
-company.crm.conversation_log | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.credit_scoring | unhooked | consumers:company.crm | Customer credit scoring and risk tier classification.; 2 test(s); no importer
 company.crm.customer_retention | unhooked | consumers:company.crm | Customer Retention Offer Book — Phase AE.; 1 test(s); no importer
 company.crm.decarb_recommender | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.eep_book | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer
 company.crm.energy_profile | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
 company.crm.home_registry | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/crm/decarb_recommender.py's docstring as what it reads
 company.crm.life_event_impact | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
-company.crm.marketing_budget | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.multisite_account | unhooked | consumers:company.crm | Multisite I&C account management: corporate customer with multiple supply points.; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- listed in company/crm/account_hierarchy.py's docstring inventory of the account views
-company.crm.portal_analytics | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer
 company.crm.portfolio_repricing | unhooked | consumers:company.crm | Portfolio Repricing Action Book — Phase AC.; 2 test(s); no importer
-company.crm.renewals_book | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer
 company.crm.solr_intake | unhooked | consumers:company.crm | no docstring; 3 test(s); no importer
-company.crm.switch_analytics | unhooked | consumers:company.crm | no docstring; 5 test(s); no importer
-company.crm.switching_report | unhooked | consumers:company.crm | Customer gain/loss switching analytics: market share movement, churn tracking.; 2 test(s); no importer
-company.crm.tariff_notification | unhooked | consumers:company.crm | Tariff change notification system: 42-day advance notice per Ofgem SLC 25B.; 3 test(s); no importer
-company.finance.board_dashboard | unhooked | consumers:company.finance | Integrated board KPI dashboard: the monthly view an energy supplier board reviews.; 2 test(s); no importer
-company.finance.board_kpis | unhooked | consumers:company.finance | no docstring; 2 test(s); no importer
-company.finance.cash_flow_forecast | unhooked | consumers:company.finance | no docstring; 2 test(s); no importer
-company.finance.company_pl | unhooked | consumers:company.finance | no docstring; 2 test(s); no importer
 company.finance.credit_facility | unhooked | consumers:company.finance | no docstring; 3 test(s); no importer
-company.finance.payroll | unhooked | consumers:company.finance | Staff headcount and payroll cost model: operational cost driver for company P&L.; 2 test(s); no importer
 company.finance.pnl | unhooked | consumers:company.finance | Company Layer — P&L from Ledger Events.; 2 test(s); no importer
-company.finance.revenue_accruals | unhooked | consumers:company.finance | Revenue accruals ledger: billed vs unbilled accrual for month-end close.; 5 test(s); no importer
-company.finance.trade_finance | unhooked | consumers:company.finance | Trade finance instrument registry: letters of credit, bank guarantees, parent guarantees.; 3 test(s); no importer
 company.finance.treasury | unhooked | consumers:company.finance | FI3 -- Treasury management: cash position, working capital, MCR headroom, and forward cash flow projection.; 3 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/net_new_acquisition.py's docstring as the home of a constant
 company.market.capacity_market | unhooked | consumers:company.market | Capacity Market participation: CM unit registration, auction, and obligations.; 4 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/regulatory/capacity_market.py's docstring as the provider side that already exists
-company.market.dadc_contract_register | unhooked | consumers:company.market | Data Aggregator / Data Collector (DA/DC) Contract Register.; 2 test(s); no importer
 company.market.dsr_book | unhooked | consumers:company.market | no docstring; 5 test(s); no importer
-company.market.gas_interruption | unhooked | consumers:company.market | Gas supply interruption risk: interruptibility, UK gas emergency, IGEM procedures.; 4 test(s); no importer
-company.market.hedge_performance | unhooked | consumers:company.market | no docstring; 3 test(s); no importer
 company.market.hedging_schedule | unhooked | consumers:company.market | Commodity hedging schedule: forward delivery vs open position by month.; 5 test(s); no importer
-company.market.interconnector_monitor | unhooked | consumers:company.market | Interconnector cross-border price exposure: NEMO, BritNed, IFA1/2, VikingLink.; 2 test(s); no importer
-company.market.interruptible_supply_register | unhooked | consumers:company.market | Interruptible Gas Supply Contract Register.; 2 test(s); no importer
 company.market.market_report | unhooked | consumers:company.market | Ofgem domestic market report data.; 1 test(s); no importer
-company.market.market_share_estimator | unhooked | consumers:company.market | Market Share Estimator — estimates supplier position in each segment.; 2 test(s); no importer
-company.market.network_charge_ledger | unhooked | consumers:company.market | Network charge pass-through ledger: TNUoS, DUoS, BSUoS tracking.; 2 test(s); no importer
-company.market.price_monitor | unhooked | consumers:company.market | Wholesale energy price monitor: alerts on spot/forward prices vs trigger levels.; 2 test(s); no importer
 company.market.switch_governance | unhooked | consumers:company.market | Switching cooling-off and objection management: 14-day right, ET resolution.; 4 test(s); no importer
 company.market.uig_allocation_register | unhooked | consumers:company.market | Unidentified Gas (UIG) Allocation Register (Phase GN).; 2 test(s); no importer
 company.portal.app | unhooked | none:company.portal | C2 -- Customer self-service portal.; 34 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in tools/generate_explore_hh_day.py's docstring as the page that calls the read; the tool does not import or run it
 company.pricing.segment_profitability | unhooked | consumers:company.pricing | Tariff Segment Profitability Book.; 1 test(s); no importer
 company.pricing.tou_product_launch | unhooked | consumers:company.pricing | ToU Product Launch Decision Engine -- Phase X.; 1 test(s); no importer
 company.pricing.tou_rate_card | unhooked | consumers:company.pricing | EV ToU Rate Card Optimiser -- Phase Y.; 1 test(s); no importer
-company.regulatory.annual_obligations | unhooked | consumers:company.regulatory | Annual regulatory obligations report packaging ECO4, WHD, GSOP and Ofgem returns.; 3 test(s); no importer
 company.regulatory.consumer_vulnerability_register | unhooked | consumers:company.regulatory | Consumer Vulnerability Duty Action Register (Phase DG).; 1 test(s); no importer
-company.regulatory.ee_obligation_tracker | unhooked | consumers:company.regulatory | Energy efficiency obligation referral tracker: ECO4, GBIS, WHD, BUS.; 3 test(s); no importer
 company.regulatory.price_cap | unhooked | consumers:company.regulatory | no docstring; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/pricing/ofgem_price_cap.py's docstring as an existing table already carrying the change
-company.regulatory.regulatory_breach_log | unhooked | consumers:company.regulatory | Regulatory Breach Log.; 2 test(s); no importer
 company.regulatory.renewable_obligation | unhooked | consumers:company.regulatory | no docstring; 1 test(s); no importer
 company.regulatory.seg_export_estimator | unhooked | consumers:company.regulatory | SEG Export Estimator — Phase R.; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in tools/weather_driver_sensitivity.py's docstring as the holder of a national PV yield figure
-company.regulatory.supplier_fitness_register | unhooked | consumers:company.regulatory | Supplier Fitness and Propriety Assessment Register.; 3 test(s); no importer
-company.risk.annual_board_pack | unhooked | consumers:company.risk | Annual Board Pack synthesiser — aggregates company-level risk signals.; 2 test(s); no importer
 company.risk.capital_adequacy | unhooked | consumers:company.risk | Regulatory Capital Adequacy Assessment (Phase EV).; 2 test(s); no importer
 company.risk.risk_appetite | unhooked | consumers:company.risk | no docstring; 5 test(s); no importer
 company.sustainability.carbon_intensity_register | unhooked | none:company.sustainability | Carbon Intensity Register (Phase FD).; 1 test(s); no importer
 company.sustainability.environmental_impact | unhooked | none:company.sustainability | Environmental Impact Register — Scope 3 downstream gas emissions.; 2 test(s); no importer
 company.trading.credit_limits | unhooked | consumers:company.trading | Counterparty credit limit management.; 2 test(s); no importer
-company.trading.credit_rating_book | unhooked | consumers:company.trading | Supplier credit rating model: wholesale counterparty assessment for trading.; 4 test(s); no importer
-company.trading.otc_margin_book | unhooked | consumers:company.trading | OTC derivative variation margin call tracking (ISDA CSA mechanism).; 2 test(s); no importer
 company.billing.dd_indemnity | unhooked | consumers:company.billing | DD Indemnity Claim Register: BACS Direct Debit Guarantee claim management.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.billing.deemed_contract | unhooked | consumers:company.billing | Deemed Contract Register: tracks uncontracted supply; Ofgem notification obligations.; 7 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.crm.onboarding_journey | unhooked | consumers:company.crm | Customer Onboarding Journey Tracker (Phase FE).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
