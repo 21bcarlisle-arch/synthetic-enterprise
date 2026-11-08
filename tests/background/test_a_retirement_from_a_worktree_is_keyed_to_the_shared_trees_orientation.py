@@ -69,6 +69,8 @@ def test_a_release_from_the_worktree_blocks_the_executors_re_promotion(tmp_path,
     monkeypatch.setattr(seat_continuation, "STORE", store)
     row = {"id": "a-finished-focus-row", "what": "done already", "why": "it landed"}
     monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus", lambda *a, **k: [dict(row)])
+    # Origin evidence is its own rule (test_a_continuation_retires_only_with_its_work_on_origin).
+    monkeypatch.setattr(delivery_lane, "focus_tombstone_refusal", lambda *a, **k: None)
     _run_in(monkeypatch, main)
     delivery_lane.hand_off_focus(row["id"], "landed")          # the executor promotes
     _run_in(monkeypatch, worktree)

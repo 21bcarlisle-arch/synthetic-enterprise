@@ -634,6 +634,8 @@ def test_a_turn_that_released_its_claim_discharges_the_handoff(monkeypatch, tmp_
     monkeypatch.setattr(seat_continuation, "STORE", tmp_path / "continuations.json")
     seat_continuation.hand_off("done-and-released", what="w", why="y", done_means="d")
     monkeypatch.setattr(seat_executor.delivery_lane, "held", lambda *a, **k: set())
+    # Origin evidence is its own rule (test_a_continuation_retires_only_with_its_work_on_origin).
+    monkeypatch.setattr(seat_executor.delivery_lane, "focus_tombstone_refusal", lambda *a, **k: None)
 
     assert seat_executor._still_claimed("done-and-released") is False
     assert seat_executor.seat_continuation_drop("done-and-released") is True

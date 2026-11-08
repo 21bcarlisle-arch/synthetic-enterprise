@@ -553,6 +553,8 @@ def test_release_discharges_the_offer_and_the_claim_over_the_whole_partition(
         this docstring predicted two, and the extra two are the reason the property is asserted
         against the DRAW and not against the printed line.
     """
+    # Origin evidence is its own rule (test_a_continuation_retires_only_with_its_work_on_origin).
+    monkeypatch.setattr(delivery_lane, "focus_tombstone_refusal", lambda *a, **k: None)
     claims = tmp_path / "claims.json"
     monkeypatch.setattr(seat_continuation, "STORE", store)
     monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
@@ -618,9 +620,11 @@ def _grade_row(store, out):
 
 
 def test_a_continuation_RETIRES_when_its_artefact_exists_and_is_HELD_naming_it_when_not(
-        store, tmp_path):
+        store, tmp_path, monkeypatch):
     """The whole partition in one control: retirable when present, held on a missing path, held on
     a running job -- and the hold names what holds it. A hold that refused everything fails leg 1."""
+    # Origin evidence is its own rule (test_a_continuation_retires_only_with_its_work_on_origin).
+    monkeypatch.setattr(delivery_lane, "focus_tombstone_refusal", lambda *a, **k: None)
     out = tmp_path / "run" / "DONE.json"
     ended, running = (lambda job: False), (lambda job: True)
 

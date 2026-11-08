@@ -646,11 +646,42 @@ def retirement_hold(item: Mapping, *, exists=os.path.exists, job_running=None) -
     return "; ".join(parts)
 
 
+def origin_refusal(item: Mapping, items: list[dict], *, origin_evidence=None) -> str | None:
+    """Why `item` may not retire on the releasing tick's word, or None when origin holds its work.
+
+    A RELEASE IS A BELIEF; ORIGIN IS THE FACT (N16, 2026-11). A tick ran `--release` after its
+    `surgical_land` died, nothing reached origin/main, and the continuation retired anyway -- so the
+    N15/N16 rows sat stranded on the shared tree through the outage with no offer left to redraw
+    them. Three instances in two stretches. `delivery_lane.focus_tombstone_refusal` already asks the
+    right question of focus rows (a commit ON ORIGIN that binds the id, or a premise recorded
+    spent), so this asks it of continuations too rather than keeping a second definition.
+
+    THE OTHER WAY OUT is a successor that holds the rest: an entry whose `supersedes` names this id
+    (`_superseded_ids`). Its work is then carried on, so retiring the predecessor loses nothing.
+    """
+    if str(item.get("id")) in _superseded_ids(items):
+        return None
+    if origin_evidence is None:
+        from background import delivery_lane  # lazy: delivery_lane imports this module
+        origin_evidence = delivery_lane.focus_tombstone_refusal
+    try:
+        reason = origin_evidence(str(item.get("id")))
+    except Exception as exc:  # noqa: BLE001 -- a probe that cannot answer holds, it does not pass
+        reason = f"origin could not be asked ({exc})"
+    if not reason:
+        return None
+    return (f"origin/main holds no commit that binds it and no successor declares it replaces it: "
+            f"{reason}; or hand the rest off with --supersedes {item.get('id')}")
+
+
 def held_reason(work_id: str, path: Path | None = None, **probes) -> str | None:
-    """`retirement_hold` for the LIVE (unretired) continuation `work_id`, or None if there is none."""
-    for item in _load(path):
+    """Why the LIVE (unretired) continuation `work_id` cannot retire, or None if nothing holds it."""
+    origin_evidence = probes.pop("origin_evidence", None)
+    items = _load(path)
+    for item in items:
         if item.get("id") == work_id and not item.get("retired_at"):
-            return retirement_hold(item, **probes)
+            return (retirement_hold(item, **probes)
+                    or origin_refusal(item, items, origin_evidence=origin_evidence))
     return None
 
 
@@ -722,15 +753,18 @@ def retire(work_id: str, *, orientation: str | None = None, now: float | None = 
 
     A ROW WHOSE ARTEFACT IS ABSENT IS HELD, NOT RETIRED, and returns False -- see
     `retirement_hold`. The hold is written onto the row (`retire_held`) so the refusal is on disk
-    with its reason, and `held_reason` lets a caller print it.
+    with its reason, and `held_reason` lets a caller print it. So is a row whose work origin/main
+    does not hold -- see `origin_refusal`.
     """
+    origin_evidence = probes.pop("origin_evidence", None)
     items = _load(path)
     hit = False
     held = False
     stamp = time.time() if now is None else now
     for item in items:
         if item.get("id") == work_id and not item.get("retired_at"):
-            hold = retirement_hold(item, **probes)
+            hold = (retirement_hold(item, **probes)
+                    or origin_refusal(item, items, origin_evidence=origin_evidence))
             if hold:
                 item["retire_held"] = {"at": stamp, "reason": hold}
                 held = True
