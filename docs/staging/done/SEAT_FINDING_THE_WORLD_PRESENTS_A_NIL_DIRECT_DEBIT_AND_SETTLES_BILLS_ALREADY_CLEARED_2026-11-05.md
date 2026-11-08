@@ -132,3 +132,51 @@ of (b) is the collections desk's journey, not this finding's world settlement, a
 ## Done
 
 2026-11-08: (a) read 0 of 1,426 on 84f7fc8fe0, as filed. Moved to done/. (b)'s ledger leg continues as `the-desk-cure-ledger-leg-on-84f7fc8fe0`.
+
+## (b)'s ledger leg, graded on 84f7fc8fe0 (2026-11-08, claim `the-desk-cure-ledger-leg-on-84f7fc8fe0`)
+
+**The reader.** It no longer uses my list of entries. It uses the page's own running balance:
+`tools.generate_payment_ledger_data.build_account_ledger` over the same published ledger
+(`/var/tmp/grade-84f7-triad/ledger.json`, `meta.source_json` = the 84f7fc8fe0 run output). It reads that balance the
+way `tools.generate_explore_cast._owed_past_due` does: at the end of each cure date, take the last running balance per
+fuel and subtract the positive bills issued by then but not yet due. Neither module imports the desk
+(`company/billing/collections_journey`). Scripts and outputs are in `/var/tmp/grade-84f7-ledgerleg/` (`leg.py`, `split.py`).
+
+**Result against the 0-to-3 filed above: REFUTED.** I also filed my own interim prediction before the second read
+(`prediction.txt`): at most 10 left after the level split. That was refuted too.
+
+| Read | Cures over a balance owed past due |
+|---|---|
+| Hand-built FIFO replay (previous section) | 186 of 976 |
+| Page running balance, read as Explore's fourth check reads it | **134 of 976, on 76 accounts** |
+| Same, but a leg paying by level DD on the cure date is capped at its shortfall against the schedule, max(0, min(balance past due, requested - received)) (Ofgem 20 Sep 2011, App. 2 para 2.8, as filed in 6bf6fce7f) | **85 of 976, on 39 accounts** |
+
+- **133 of the 134 are on accounts with level DD collections.** The one that is not is SYN-2016-015, a dual-fuel home
+  one of whose legs holds GBP 71.37 on 15 Apr 2018. This book predates level DD step 2b. Here the desk still ages each bill
+  from its own due date, and on level legs it marks a bill paid when its collection is taken, whatever the amount. So most
+  of this count is the blocking level-DD finding seen from the desk's side. It is not a new cash disagreement. My test
+  for "on level DD at the cure date" (the latest payment row on or before that date carries `level_dd`) is my own
+  heuristic, and I cannot yet say how far the 85 depend on it.
+- **Of the 85:** in 34 the account is nil or in credit by run end, so the debt was a transient. 24 of those show nothing
+  outstanding on any invoice. In 51 the page still holds a debit at run end. **39 of those 51 cures, on 13 accounts, have every
+  invoice marked paid while the page balance stays positive.** At run end, 7 of the 13 are still on level DD, where a
+  debit with every collection taken is not arrears. The other 6 have left level DD and still carry a debit that no bill
+  asks for. Examples: PROS-2016-0098 at GBP 29.29 from Nov 2018 to run end, over 13
+  cures; PROS-2016-0092 at GBP 59.24; PROS-2019-0246 at GBP 189.20. Here the invoice ledger and the page balance disagree
+  about what is owed. The desk sides with the invoice flags. So "every bill paid" on a level-paid bill does not mean
+  "nothing owed", and that is the second shape this leg finds.
+- **SYN-2016-021's two (INV22817, INV22820): not held on the balance reading.** The account is in credit at both
+  2023 cures (GBP -77.66 on 1 Jan and GBP -60.59 on 21 Jun). The two 2019 gas bills are still "outstanding" per bill on
+  an account the balance has in credit. That is the per-invoice versus account-balance shape, not a cure over debt. The
+  candidate is withdrawn on this reading.
+- **SYN-2016-550 itself: 0 of its 6 cures are held** (2017-01-24 to 2018-10-25).
+
+**Disposition.** The DIRECTION row does not close on this book. The independent reader does not read 0 to 3, and the
+residue is mostly level-DD legs that the desk ages bill by bill. The re-grade goes to the first book carrying level DD
+step 2b. It is added as a pre-registration leg on
+`SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md`,
+together with the 6 accounts that left level DD carrying a debit no bill asks for.
+
+2026-11-08 (later): the ledger leg was graded on the page's running balance at 134, or 85 under the level-DD definition,
+against 0 to 3 filed: refuted. SYN-2016-021 was withdrawn and SYN-2016-550 read 0. The re-grade moves to the level-DD
+step 2b book.

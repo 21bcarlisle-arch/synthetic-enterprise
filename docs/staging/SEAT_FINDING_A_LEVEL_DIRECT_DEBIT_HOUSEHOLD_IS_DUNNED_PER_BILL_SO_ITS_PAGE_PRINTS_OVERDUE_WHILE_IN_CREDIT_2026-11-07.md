@@ -284,3 +284,16 @@ change and the desk change land **together, or not at all**.
 - On level legs, journeys open **only** on a date where a level collection was returned. If any opens on a bill's
   due date, part 2 has a leak.
 - The number of level-leg journeys is at most the number of returned level collections.
+
+## Added pre-registration leg: the desk's cures, read on the page's balance (worker, 8 Nov 2026, before step 2b lands)
+
+On 84f7fc8fe0, an independent reader read **85 of 976** desk cures with something still owed. The reader is the page's
+running balance from `build_account_ledger`, read as `_owed_past_due` reads it, with level legs capped at their shortfall
+against the schedule. **133 of 134** cures on the uncapped reading were on level-DD accounts. On **13** accounts (39 of the cures), every
+invoice was marked paid while the page balance stayed in debit to run end. **6** of those had left level DD, so their
+debit is one no bill asks for. The method and rows are in
+`done/SEAT_FINDING_THE_WORLD_PRESENTS_A_NIL_DIRECT_DEBIT_AND_SETTLES_BILLS_ALREADY_CLEARED_2026-11-05.md`.
+
+**Prediction for the first book carrying step 2b:** the same reader reads **0 to 3** cures over a shortfall. If it
+reads more, the desk and the page still disagree about what a level account owes after step 2b. Also predicted: no account that has
+left level DD carries a page debit with every bill marked paid. Today 6 do. If either fails, SYN-2016-550's DIRECTION row stays open, and the leg becomes its own finding.
