@@ -102,6 +102,10 @@ _CITATION = re.compile(
 # rather than that the repo got cleaner.
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 MONEY_CONSTANT_FLOOR = 150          # measured: 174
+#: The floor counts live + archived money constants, because archive increments 1-4b (745a5fd27d,
+#: 19cd6bfd5d, 640bcd13e5, 13ce18d9e3, 83a213f854, 6b70382ded) took live 185 -> 118 and the shelf
+#: holds the other 67, to the unit. Re-typing 150 as today's live count would red the next
+#: increment and stay green over a constant deleted outright; subtracting the shelf does neither.
 CITED_CONSTANT_FLOOR = 5            # measured: 7
 
 #: The last commit before R1 wired the researched acquisition model — the tree the finding was
@@ -339,11 +343,19 @@ def unreached_cited_constants(root: Path) -> list[tuple[str, str, str]]:
 # THE POPULATION FLOORS — asserted first, because a walker that sees nothing passes everything
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
+def _archive_shelves(root: Path) -> list[Path]:
+    shelf = root / "archive"
+    return sorted(d for d in shelf.iterdir() if d.is_dir()) if shelf.is_dir() else []
+
+
 def test_the_walker_still_sees_the_repo():
     constants = _money_constants(ROOT)
     cited = [c for c in constants if c[2]]
-    assert len(constants) >= MONEY_CONSTANT_FLOOR, (
-        f"only {len(constants)} money constants found, floor is {MONEY_CONSTANT_FLOOR}. "
+    shelved = sum(len(_money_constants(d)) for d in _archive_shelves(ROOT))
+    floor = MONEY_CONSTANT_FLOOR - shelved
+    assert len(constants) >= floor, (
+        f"only {len(constants)} money constants found, floor is {MONEY_CONSTANT_FLOOR} less the "
+        f"{shelved} archive/ holds ({floor}). "
         "The name pattern or the scope has stopped matching the tree -- this control is now "
         "passing because it is blind, not because the tree is clean."
     )
@@ -465,6 +477,25 @@ def test_it_fires_on_the_historical_defect(tmp_path):
     assert [(r, n) for r, n, _ in unreached] == [
         ("saas/opex_ledger.py", "CAC_ONE_OFF_GBP_PER_DUAL_FUEL_CUSTOMER")
     ], "the control did not fire on the defect it was built for"
+
+
+def test_the_archive_shelf_is_seen_by_the_floor_and_never_walked_as_live(tmp_path):
+    """Defect: the floor subtracts a shelf the walker cannot read, or the live walk reads the shelf.
+
+    A shelf reading of zero leaves the floor where it was and proves nothing; a live walk that
+    descended into archive/ would count a module twice and hold the floor green over a blind half.
+    Real tree first, then a planted pair at the same relative path.
+    """
+    shelved = [c[:2] for d in _archive_shelves(ROOT) for c in _money_constants(d)]
+    assert shelved, "archive/ holds supplier code but the walker sees no money constant in it"
+    assert not set(shelved) & {c[:2] for c in _money_constants(ROOT)}
+
+    rel = "company/pricing/planted.py"
+    _write_tree(tmp_path, {rel: "PLANTED_LIVE_GBP = 12.5\n"})
+    _write_tree(tmp_path / "archive" / "unhooked_supplier", {rel: "PLANTED_SHELVED_GBP = 7.5\n"})
+    assert [c[1] for c in _money_constants(tmp_path)] == ["PLANTED_LIVE_GBP"]
+    assert [c[1] for d in _archive_shelves(tmp_path) for c in _money_constants(d)] == [
+        "PLANTED_SHELVED_GBP"]
 
 
 def test_a_checkout_under_dot_claude_is_walked_and_a_dot_claude_inside_it_is_not(tmp_path):

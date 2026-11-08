@@ -594,7 +594,19 @@ def repo_program_files() -> list:
     import subprocess
     out = subprocess.run(["git", "ls-files", "*.py"], cwd=PROJECT,
                          capture_output=True, text=True, check=True).stdout
-    return [p for p in out.split("\n") if p]
+    # archive/ is code no run reaches, kept at its old path (archive/README.md), so no atom owes it
+    # a home: increment 4b (6b70382ded) shelved test_c2_discovery_wired.py and C2 went red here.
+    return [p for p in out.split("\n") if p and not p.startswith("archive/")]
+
+
+def test_the_archive_is_not_program_the_map_owes_a_home():
+    """Defect: the exclusion above is never taken, or it takes the live tree with it."""
+    import subprocess
+    shelved = subprocess.run(["git", "ls-files", "archive/*.py"], cwd=PROJECT,
+                             capture_output=True, text=True, check=True).stdout.split()
+    files = repo_program_files()
+    assert shelved, "archive/ tracks no .py, so the exclusion is untested -- drop it or re-point this"
+    assert files and not set(shelved) & set(files)
 
 
 def check_file_scope_names_the_atoms_own_program(atoms, files) -> list:

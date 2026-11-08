@@ -55,6 +55,8 @@ to be recorded. Observed after the repair, each applied in place and reverted:
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 from tools.domain_constant_origins import (
     _classify,
     duplicates,
@@ -63,6 +65,31 @@ from tools.domain_constant_origins import (
     unreadable,
     without_origin,
 )
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def _archive_roots(root: Path = ROOT) -> list[Path]:
+    """Every archive shelf holding supplier code at its original relative path (`archive/README.md`)."""
+    shelf = root / "archive"
+    if not shelf.is_dir():
+        return []
+    return sorted(d for d in shelf.iterdir()
+                  if d.is_dir() and any((d / pkg).is_dir() for pkg in ("company", "saas")))
+
+
+def _archived(count) -> int:
+    """How many of a population the archive holds, by the SAME scanner the live floor counts with.
+
+    WHY THE FLOORS SUBTRACT THIS, and not a number typed in today. Archive increments 1-4b
+    (745a5fd27d, 19cd6bfd5d, 640bcd13e5, 13ce18d9e3, 83a213f854, 6b70382ded) moved 302 -> 171
+    literal constants, 68 -> 62 promoted, 246 -> 126 unsourced out of `company/`, and the archive
+    shelf holds 131, 6 and 120 of them: the populations were CONSERVED to the unit. A floor that
+    falls by exactly what the archive holds stays able to fail when the scan goes blind (both halves
+    fall together) or a constant is deleted outright (the live half falls alone), and does not red
+    the next archive increment, which a re-typed floor would.
+    """
+    return sum(count(d) for d in _archive_roots())
 
 #: THE DEBT, MEASURED 2026-08-30 AT COMMIT e707b0cb7. 223 domain constants in scope, of which 197
 #: declare no origin at all. It may fall and it may never rise.
@@ -270,9 +297,10 @@ def test_the_whole_domain_named_population_is_still_in_scope():
     literals = scan()
     lifted = promoted()
     total = len(literals) + len(lifted)
-    assert total >= DOMAIN_NAMED_POPULATION_FLOOR, (
+    floor = DOMAIN_NAMED_POPULATION_FLOOR - _archived(lambda d: len(scan(d)) + len(promoted(d)))
+    assert total >= floor, (
         f"{len(literals)} literal + {len(lifted)} promoted = {total} domain-named constants, below "
-        f"the floor of {DOMAIN_NAMED_POPULATION_FLOOR}. Constants have left the SCOPE of this "
+        f"the floor of {DOMAIN_NAMED_POPULATION_FLOOR} less what archive/ holds ({floor}). Constants have left the SCOPE of this "
         "control rather than gained an origin — check for a rename out of the name regex, a "
         "narrowed DOMAIN_NAME, or a package dropped from SCOPE. If they were genuinely deleted, "
         "lower this floor in the commit that deleted them.")
@@ -290,19 +318,23 @@ def test_the_unsourced_domain_constant_debt_only_SHRINKS():
     does is make the next one impossible, and make the count a thing that has to be argued down.
     """
     debt = without_origin()
+    # Debt that moved to archive/ was not paid, so it lowers the CEILING as well as the floor:
+    # left at 255 over a live 126, the ratchet would admit 129 new picked numbers in silence.
+    shelved = _archived(lambda d: len(without_origin(d)))
+    floor, ceiling = UNSOURCED_DEBT_FLOOR - shelved, UNSOURCED_DEBT_CEILING - shelved
 
     # THE FLOOR FIRST, because the ceiling below cannot fail on its own. See UNSOURCED_DEBT_FLOOR.
-    assert len(debt) >= UNSOURCED_DEBT_FLOOR, (
+    assert len(debt) >= floor, (
         f"only {len(debt)} domain constants read as having no origin, below the floor of "
-        f"{UNSOURCED_DEBT_FLOOR}. 197 constants do not become documented in one commit, so the "
+        f"{UNSOURCED_DEBT_FLOOR} less the {shelved} archive/ holds ({floor}). 197 constants do not become documented in one commit, so the "
         "likely cause is that `_classify` or `_comment_block` has broken OPEN and is discharging "
         "constants it should not. If the debt was genuinely worked down past this floor, lower "
         "the floor in the same commit that did the work — that edit is the record that it "
         "happened.")
 
-    assert len(debt) <= UNSOURCED_DEBT_CEILING, (
+    assert len(debt) <= ceiling, (
         f"{len(debt)} domain constants declare no origin, above the ratchet of "
-        f"{UNSOURCED_DEBT_CEILING}. A rate, price, probability, threshold or cap must carry ONE "
+        f"{UNSOURCED_DEBT_CEILING} less the {shelved} archive/ holds ({ceiling}). A rate, price, probability, threshold or cap must carry ONE "
         "of: a citation (a docs/ path or a named publisher), a labelled BELIEF the company holds "
         "that something grades, or a NAMED SIMPLIFICATION saying what it would take to do "
         "properly. New since the baseline:\n  "
@@ -363,12 +395,39 @@ def test_the_scan_has_not_lost_its_SUBJECTS():
     keep `THRESHOLD` in them and the debt went back to 197.
     """
     found = scan()
+    floor = CONSTANT_POPULATION_FLOOR - _archived(lambda d: len(scan(d)))
 
-    assert len(found) >= CONSTANT_POPULATION_FLOOR, (
+    assert len(found) >= floor, (
         f"the scan found only {len(found)} domain constants in company/ and saas/, below the "
-        f"floor of {CONSTANT_POPULATION_FLOOR} measured on 2026-08-30. The debt ratchets above "
+        f"floor of {CONSTANT_POPULATION_FLOOR} measured on 2026-08-30 less what archive/ holds "
+        f"({floor}). The debt ratchets above "
         "are counted against this population, so they are meaningless until this is explained: "
         "either the packages moved, the naming convention changed, or the scan is broken.")
+
+
+def test_the_archive_is_out_of_scope_and_the_exclusion_is_TAKEN(tmp_path):
+    """Defect: the floors subtract an archive the scan cannot see, or one it still counts as live.
+
+    `_archived` lowers every floor above, so it must be shown to see something (an empty archive
+    reading would leave the floors where they were and say nothing), and the live scan must be shown
+    not to see it (a live scan that walked archive/ would double-count and keep a floor green over
+    a blind half). Both legs on the real tree, then a planted pair, so the walker is proven to
+    reach a live module and to skip an archived one at the same relative path.
+    """
+    assert _archive_roots(), "no archive shelf found; the floors above subtract nothing"
+    shelved = {(r["path"], r["name"]) for d in _archive_roots() for r in scan(d)}
+    assert shelved, "the archive shelf holds supplier code but the scan sees none of it"
+    live = {(r["path"], r["name"]) for r in scan()}
+    assert not live & shelved, f"constants counted both live and archived: {sorted(live & shelved)[:5]}"
+
+    planted = "company/pricing/planted.py"
+    for base, name in ((tmp_path, "PLANTED_LIVE_RATE"),
+                       (tmp_path / "archive" / "unhooked_supplier", "PLANTED_SHELVED_RATE")):
+        (base / planted).parent.mkdir(parents=True, exist_ok=True)
+        (base / planted).write_text(f"{name} = 0.123\n")
+    assert [r["name"] for r in scan(tmp_path)] == ["PLANTED_LIVE_RATE"]
+    assert [d.name for d in _archive_roots(tmp_path)] == ["unhooked_supplier"]
+    assert [r["name"] for r in scan(_archive_roots(tmp_path)[0])] == ["PLANTED_SHELVED_RATE"]
 
 
 def test_an_UNPARSEABLE_file_is_reported_and_not_silently_skipped():

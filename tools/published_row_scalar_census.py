@@ -288,7 +288,9 @@ def specificity(value: float, rows: list[Published]) -> int:
 
     THIS, NOT PRECISION, IS WHAT MAKES A COLLISION EVIDENCE, and the poison round is what settled
     it. `_CAPACITY_MARKET_GBP_PER_KW_YR = 75.0` collides with exactly ONE row in the entire
-    commons -- `capacity_market_auction_results#clearing_prices/6/t1_gbp_per_kw_year`. A value of
+    commons -- `capacity_market_auction_results#clearing_prices/6/t1_gbp_per_kw_year`. (Corrected
+    2026-11-08: two since faf7b1a7e4 added a gas cross-check row at 75.06 GBP/MWh; it is still the
+    only one in its own unit, which is what the poison test now asserts.) A value of
     `0.9` collides with dozens. The first is a fingerprint; the second is a number people like.
 
     A SIGNIFICANT-FIGURES RANK WAS TRIED FIRST AND WOULD HAVE BURIED THE CASE THIS FILE EXISTS

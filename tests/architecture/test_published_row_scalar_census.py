@@ -51,9 +51,24 @@ def test_the_poison_is_the_most_specific_collision_the_commons_can_produce():
 
     Specificity is the census's ranking axis, and a ranking that buries the motivating case is
     the "discovery narrower than the thing it governs" defect wearing a rank instead of a filter.
+
+    RE-KEYED 2026-11-08 FROM `specificity == 1`, which was a fact about the commons rather than
+    about the census. faf7b1a7e4 published the cap composition's gas cross-check, whose row 11
+    `derived_gbp_per_mwh = 75.06` agrees with 75.0 to three significant figures, and the bare count
+    went to 2 with the census unchanged. That row counts pounds per MWh of gas, not pounds per kW
+    of capacity per year. What the reader needs is that the poison is the ONLY collision IN ITS OWN
+    UNIT and that it ranks in the units-agree block, ahead of every unranked hit; that is asserted.
     """
     rows = census_tool.published_rows()
-    assert census_tool.specificity(POISON.value, rows) == 1
+    hits = census_tool.census([POISON], rows)
+    agreeing = [h for h in hits if census_tool.units_agree(h)]
+    assert [(h.published.artefact, h.published.pointer) for h in agreeing] == [
+        ("regulatory/capacity_market_auction_results.json", "clearing_prices/6/t1_gbp_per_kw_year")
+    ], f"the poison's same-unit collisions are {[h.published.pointer for h in agreeing]}"
+    same_unit = [r for r in rows if census_tool._within_rounding(POISON.value, r.value)
+                 and census_tool.unit_signature(r.pointer.split("/")[-1])
+                 == census_tool.unit_signature(POISON.name)]
+    assert len(same_unit) == 1, f"75.0 GBP/kW/yr now collides with {len(same_unit)} same-unit rows"
 
 
 def test_a_module_level_scalar_is_discovered_at_all():
