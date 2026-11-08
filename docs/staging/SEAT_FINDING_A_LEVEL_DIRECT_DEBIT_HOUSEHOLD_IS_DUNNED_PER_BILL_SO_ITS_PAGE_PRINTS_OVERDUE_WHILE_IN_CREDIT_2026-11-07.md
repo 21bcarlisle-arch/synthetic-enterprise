@@ -195,3 +195,42 @@ script `/var/tmp/l2a/measure.py`).**
 draw goes on that collection.
 
 **Grade item drawn early (seat executor, 04:10 UTC 8 Nov).** `grade-the-first-book-carrying-the-level-dd-fix-through-the-whole-gate-and-the-bscp504-prereg` was drawn with no book to grade. The newest book, `run_output_84f7fc8fe0_20261108T021850Z.json` (finished 03:59Z), and af31e73fa7 before it both carry 8b6316995 but not step 2a (ee0982734c). Step 2b is not on origin. The runner's next run starts about 05:18Z and will carry 2a only. This finding's own pre-registration (1,724 → 0) is for a book built with step 2, so that book cannot answer it. The item is re-keyed to the first book whose commit has the step 2b landing as an ancestor. Nothing was graded, and no book was started by hand.
+
+## Step 2b, first increment: phase 2b asks the book, and phase 4c hands the page what phase 2b asked (worker, 8 Nov 2026)
+
+**Landed in this commit.** The outcome draw is not touched yet.
+- `simulation/dd_review_in_loop.InLoopLevelCollection`: as each month posts in `_post_month_bill`, a leg that
+  `pays_a_level_direct_debit` asks `build_dd_balance_book` for this month's `collected_gbp`. The book reads the leg's
+  bills and DD spells known so far: the stop board's bills to the month's end (`StopNoticeBoard.bills_before`, before
+  the pre-bill gate, as phase 4c builds its book), and the rails' spells over the issued ones. The row is dated on the
+  staggered day, held to supply start, and rolled to a Bacs day (N22/N23, `level_collection_dates`).
+- **Asked once a window.** The standing amount, and its step-up, are set at the first DD bill of each 12-month
+  window, so the amount is fixed for the window. A leg's final month asks again.
+- Phase 4c's `level_dd_collections` is now the loop's schedule (`level_dd_schedule_from_the_loop`). The rebuild
+  stays, as `level_dd_schedule_reconcile` beside it, and that reconcile is forwarded by `extract_report_data`.
+  - A run with the dual-fuel offsets on keeps the rebuild, because the loop does not ask them.
+  - A run with no loop schedule also keeps the rebuild.
+- Control: `tests/simulation/test_phase_2b_collects_the_level_amount_the_book_would_set.py`.
+  - A 40-month seasonal leg, opened low so a debit builds and the review steps up. Its amounts run GBP 30.00, 167.88,
+    129.75 and 163.62. The loop's schedule equals the post-loop book's on all 40 months, and the book is asked 4 times.
+  - Four mutations, all red: the window test removed; the cutoff a month early; the offsets switch ignored; no supply
+    start.
+
+**Pre-registration for the first book built at or after this commit** (written before any book carries it):
+- `level_dd_schedule_reconcile.source` is `in_loop`.
+- `differ` is **at most 2% of matched months**. Either way, it is not zero for a known reason I cannot yet size: the
+  loop's bills are assembled without the run's `tenancy_links`, and before the final read a churned leg's last bill
+  takes.
+- `only_in_loop` and `only_post_loop` are **at most 1%** of months.
+- INV_OVERDUE_WITHIN_PAGE_BALANCE is **unchanged in kind**. The desk still dunns the bill face, so it stays near 1,724
+  and moves only by the months where the schedule changed.
+- N20's share leg moves by at most the `differ` share.
+- Every non-level account is **byte-identical**. The loop asks nothing for a leg the mandate draw puts on a variable
+  amount.
+- If `differ` is above 2%, then the in-loop bills and the published bills are not one assembly, and that is the next
+  item, ahead of the outcome draw.
+
+**Next, Step 2b's second increment** (still this continuation): `record_period` takes the loop's row for a level leg,
+so the draw is on the collection (its amount, on its collection date). A return is that amount, and the desk's journey
+opens on the account's debit balance rather than a bill's face. Its pre-registration is the "Step 2, measured before
+building" block above (1,724 → 0).

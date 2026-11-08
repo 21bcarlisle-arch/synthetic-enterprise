@@ -183,7 +183,7 @@ from simulation.customer_events import (
     roll_lifecycle_event,
     svt_conversion_event,
 )
-from simulation.dd_review_in_loop import InLoopDDReview
+from simulation.dd_review_in_loop import InLoopDDReview, InLoopLevelCollection
 from simulation.dd_shock_response import RECORD_KEY as _DD_SHOCK_RECORD_KEY
 from simulation.dd_shock_response import DDShockResponseBook, respond_to_told_amount
 from simulation.debt_objection import apply_objection, debt_objection_active, objection_request_day
@@ -253,7 +253,10 @@ from simulation.household_demand_shape import (
     seasonal_gas_split,
     seasonal_gas_splits_for_book,
 )
-from simulation.household_segments import active_renewal_probability_for_customer
+from simulation.household_segments import (
+    active_renewal_probability_for_customer,
+    pays_a_level_direct_debit,
+)
 from simulation.household_segments import tenure_for_customer as _tenure_of_household
 from simulation.live_population import (
     campaign_quotes_paid_for,
@@ -2775,6 +2778,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                                                         _told["review_date"]),
                                             True)
         _issued_ask = _issued_ask_gbp(cid, held["month"], left)
+        # Level DD step 2b: the amount this month's level collection takes, asked of the balance book
+        # over the bills and spells known now. Recorded for phase 4c's schedule; the outcome draw
+        # below is still the bill's until the collection is posted in its place.
+        if pays_a_level_direct_debit(cid):
+            _level_in_loop.collect(cid, held["month"], left)
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
             # The day the bill for the month falls due, as the billing ledger dates it: issued after
@@ -2908,6 +2916,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         payment_truth_of=(_payment_triad.payment_truth_so_far
                           if _world_payment_truth.UNIFIED else None))
     install_stop_notice_board(_dd_stop_board)
+    _level_in_loop = InLoopLevelCollection(_dd_stop_board, get_customer)
     # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
     # Fed anywhere else it would see records the list has not, and the point-in-time window
     # `_company_eac_estimate` depends on would quietly widen. `simulation/settlement_fold.py`
@@ -6597,6 +6606,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _payment_triad, date.fromisoformat(effective_end))
                 if _world_payment_truth.UNIFIED else None),
         ),
+        # Level DD step 2b: the schedule phase 2b collected, which phase 4c hands the page and books.
+        "level_dd_collected_in_loop": _level_in_loop.collected,
         # DD4b: only present when its toggles are switched on, so the shipped output is unchanged.
         **({"dd_shock_response_summary": _dd_shock_book.summary(),
             "dd_review_told_in_loop": _dd_in_loop_review.told}

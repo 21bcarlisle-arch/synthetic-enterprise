@@ -268,10 +268,10 @@ class StopNoticeBoard:
         # Otherwise the spells as billed through a month, re-asked once a later month is billed.
         self._spells_through: dict[str, tuple[date, list[tuple[str, str | None]]]] = {}
         self._billed: dict[tuple[str, str], str] = {}
-        # supply point -> {(cutoff, churned): the issued bills of the records before cutoff}. The
+        # supply point -> {(cutoff, churned): (bills, issued bills) of the records before cutoff}. The
         # desk asks month m's bill at cutoff m+1, which is this board's own ask at m+1, so one
         # rebuild serves both, and only the latest two cutoffs are ever asked again.
-        self._bills_memo: dict[str, dict[tuple[str, bool], list[dict]]] = {}
+        self._bills_memo: dict[str, dict[tuple[str, bool], tuple[list[dict], list[dict]]]] = {}
 
     def _behavioral(self, supply_point: str) -> dict:
         """What the rails read of this supply point so far, keyed as `per_customer_behavioral`."""
@@ -287,14 +287,26 @@ class StopNoticeBoard:
             behavioral[supply_point][TRUTH_KEY] = self._payment_truth_of(supply_point)
         return behavioral
 
+    def records_of(self, supply_point: str) -> list[dict]:
+        """The settled rows observed so far for this supply point."""
+        return self._records.get(supply_point, [])
+
     def issued_bills_before(self, supply_point: str, cutoff: str, churned: bool = False
                             ) -> list[dict]:
         """The supplier's issued bills over this supply point's records settled before `cutoff`
         (an ISO date), by the money side's own door. `churned` bills the leg as one that left, so
         its last bill takes the closing read, as the published run bills a leaver."""
+        return self._bills_before(supply_point, cutoff, churned)[1]
+
+    def bills_before(self, supply_point: str, cutoff: str, churned: bool = False) -> list[dict]:
+        """The same bills before the pre-bill gate: what phase 4c builds its DD balance book over."""
+        return self._bills_before(supply_point, cutoff, churned)[0]
+
+    def _bills_before(self, supply_point: str, cutoff: str, churned: bool
+                      ) -> tuple[list[dict], list[dict]]:
         memo = self._bills_memo.setdefault(supply_point, {})
-        bills = memo.get((cutoff, churned))
-        if bills is None:
+        pair = memo.get((cutoff, churned))
+        if pair is None:
             records = [r for r in self._records.get(supply_point, [])
                        if r.get("settlement_date", "9999") < cutoff]
             from company.interfaces.bill_assembly import BASIS_DD_AT_RECOVERY_ACTION, issued_bills
@@ -312,11 +324,11 @@ class StopNoticeBoard:
                 bills, _ = rebill_catchups_off_direct_debit(   # the read events are not kept here
                     records, bills, [None] * len(bills), self._behavioral(supply_point),
                     churned_ids=churned_ids)
-            bills = issued_bills(bills)
-            memo[(cutoff, churned)] = bills
+            pair = (bills, issued_bills(bills))
+            memo[(cutoff, churned)] = pair
             while len(memo) > 2:
                 del memo[min(memo)]
-        return bills
+        return pair
 
     def issued_bill_for(self, supply_point: str, month: str, churned: bool = False) -> dict | None:
         """The bill the supplier issued for this supply point's `month` ("YYYY-MM"), over every

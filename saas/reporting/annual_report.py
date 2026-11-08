@@ -1346,6 +1346,9 @@ def extract_report_data(run_output: dict) -> dict:
         # N20: the per-household level DD schedule the page ledger collects. Computed by the run
         # since f874c6836b but dropped here, so every saved book collected each DD at its bill.
         "level_dd_collections": run_output.get("level_dd_collections", {}),
+        # Step 2b: whether that schedule is the one phase 2b collected, and how it differs from the
+        # post-loop rebuild, so the first book carrying it can be graded from the saved output.
+        "level_dd_schedule_reconcile": run_output.get("level_dd_schedule_reconcile", {}),
         # DD3 (atom DD_seasonal_cashflow_physics): held customer credit booked as
         # a LIABILITY in the double-entry chart -- the closing balance sheet with
         # DD2's held-credit reclassified from equity, exposing the cash-rich-but-

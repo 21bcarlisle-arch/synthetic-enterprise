@@ -53,7 +53,7 @@ supply.
 from __future__ import annotations
 
 from datetime import date
-from typing import Callable, Optional
+from typing import Callable, Mapping, Optional
 
 
 def _month_end(month: str) -> str:
@@ -156,3 +156,123 @@ def reconcile(told: list[dict], post_loop_events: list[dict]) -> dict:
         "max_abs_rise_gap_on_matched": round(max((abs(rise(a[k]) - rise(b[k])) for k in both),
                                                  default=0.0), 4),
     }
+
+
+class InLoopLevelCollection:
+    """Step 2b of the level-DD finding (`docs/staging/SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_
+    DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md`): the level amount a
+    household's bank pays THIS month, asked of the balance book (`build_dd_balance_book`) over the
+    leg's bills and DD spells known so far, as the month posts.
+
+    The post-loop schedule (`run_phase4c_on_phase2b`, `build_dd_level_collection_book`) rebuilt it
+    after the run from every bill. Step 2a (ee0982734c) made the book causal, so a book over the
+    bills to month m gives month m the amount the full book gives it; asked here, phase 2b and the
+    page collect one schedule, and nothing in it is sized from a bill not yet issued.
+
+    ASKED ONCE A WINDOW. The book's standing amount is set at the first DD bill of each 12-month
+    window (anchored on the leg's first DD bill) and its step-up is taken then too, so it is fixed
+    for the window: a later month of the window reads the amount asked at its first. A new window,
+    a first ask, or a leg billed as one that left asks the book again.
+
+    The bills are the stop board's (`StopNoticeBoard.bills_before`): the same assembly, rebilled for
+    N14 as the published run is, before the pre-bill gate, because phase 4c builds its book over
+    those. The spells are the rails' over the issued bills (`supplier_dd_spells`), as
+    `dd_spells_from_run` reads them post-run. Not asked: the closed set (a final bill's bar moves
+    no collected amount) and the dual-fuel offsets (`offsets_dual_fuel_legs`; off by default, and a
+    run with it on keeps the post-loop rebuild -- `level_dd_schedule_from_the_loop` refuses it)."""
+
+    def __init__(self, board, customer_of: Callable[[str], Optional[dict]]):
+        self._board = board
+        self._customer_of = customer_of
+        # The leg's first supplied day, as `supply_starts` reads it post-run: its earliest bill's start.
+        self._supply_start: dict[str, date] = {}
+        self._opening: dict[str, Optional[float]] = {}
+        # leg -> (anchor month, window index, standing amount)
+        self._window: dict[str, tuple[str, int, float]] = {}
+        self.collected: dict[str, list[dict]] = {}
+        self.books_asked = 0
+
+    def _opening_of(self, cid: str) -> Optional[float]:
+        if cid not in self._opening:
+            from simulation.run_phase4c_on_phase2b import _opening_dd_by_customer
+            customer = self._customer_of(cid)
+            rows = self._board.records_of(cid)
+            first = min((r["settlement_date"][:7] for r in rows), default=None)
+            self._opening[cid] = (None if customer is None or first is None else
+                                  _opening_dd_by_customer(
+                                      [customer], [r for r in rows
+                                                   if r["settlement_date"][:7] == first]).get(cid))
+        return self._opening[cid]
+
+    def _ask_book(self, cid: str, month: str, left: bool) -> Optional[tuple[str, int, float]]:
+        from simulation.dd_balance_book import build_dd_balance_book
+        from simulation.dd_collection_book import supplier_dd_spells
+        opening = self._opening_of(cid)
+        if opening is None:
+            return None
+        y, m = int(month[:4]), int(month[5:7])
+        cutoff = f"{y + m // 12:04d}-{m % 12 + 1:02d}-01"
+        bills = self._board.bills_before(cid, cutoff, churned=left)
+        spells = supplier_dd_spells(self._board.issued_bills_before(cid, cutoff, churned=left),
+                                    self._board._behavioral(cid))
+        self.books_asked += 1
+        if bills and cid not in self._supply_start:
+            from simulation.dd_level_collection_book import supply_starts
+            self._supply_start.update(supply_starts([b for b in bills if b["customer_id"] == cid]))
+        points = build_dd_balance_book(bills, {cid: opening}, dd_spells=spells).trajectories.get(cid)
+        point = next((p for p in reversed(points or []) if p.month == month), None)
+        if point is None:
+            return None
+        return points[0].month, _months_between(points[0].month, month) // 12, point.collected_gbp
+
+    def collect(self, cid: str, month: str, left: bool = False) -> Optional[dict]:
+        """`{month, scheduled_date, collection_date, amount_gbp}` for the leg's level collection
+        paying for `month`, or None: no opening amount, or no DD bill for the month in the book."""
+        from simulation.dd_level_collection_book import level_collection_dates
+        from simulation.dd_payment_day import staggered_payment_day
+        known = self._window.get(cid)
+        if (known is None or left
+                or _months_between(known[0], month) // 12 != known[1]):
+            known = self._ask_book(cid, month, left)
+            if known is None:
+                return None
+            self._window[cid] = known
+        scheduled, collected = level_collection_dates(month, staggered_payment_day(cid),
+                                                      self._supply_start.get(cid))
+        row = {"month": month, "scheduled_date": scheduled.isoformat(),
+               "collection_date": collected.isoformat(), "amount_gbp": known[2]}
+        self.collected.setdefault(cid, []).append(row)
+        return row
+
+
+def level_dd_schedule_from_the_loop(in_loop: Mapping[str, list[dict]] | None,
+                                    rebuilt: Mapping[str, list[dict]],
+                                    offsets_dual_fuel_legs: bool) -> tuple[dict, dict]:
+    """The level schedule phase 4c hands the page and the books, and how it compares with the
+    post-loop rebuild: `(schedule, reconcile)`.
+
+    The schedule is the loop's (`InLoopLevelCollection.collected`) for the households the world put
+    on a level amount, which is what phase 2b collected. A run with no loop schedule, or with the
+    dual-fuel offsets on (which the loop does not ask), keeps the rebuild, and says so."""
+    def key_rows(schedule):
+        return {(cid, r["month"]): r for cid, rows in schedule.items() for r in rows}
+
+    if in_loop is None or offsets_dual_fuel_legs:
+        return dict(rebuilt), {"source": "post_loop_rebuild",
+                               "why": ("no loop schedule in the run" if in_loop is None else
+                                       "dual-fuel offsets on: the loop does not ask them")}
+    loop_rows, post_rows = key_rows(in_loop), key_rows(rebuilt)
+    both = set(loop_rows) & set(post_rows)
+    moved = [k for k in both
+             if abs(loop_rows[k]["amount_gbp"] - post_rows[k]["amount_gbp"]) > 0.005
+             or loop_rows[k]["collection_date"] != post_rows[k]["collection_date"]]
+    return (dict(in_loop),
+            {"source": "in_loop",
+             "months_in_loop": len(loop_rows), "months_post_loop": len(post_rows),
+             "matched": len(both) - len(moved), "differ": len(moved),
+             "only_in_loop": len(set(loop_rows) - set(post_rows)),
+             "only_post_loop": len(set(post_rows) - set(loop_rows)),
+             "differ_sample": [{"customer_id": k[0], "month": k[1],
+                                "in_loop_gbp": loop_rows[k]["amount_gbp"],
+                                "post_loop_gbp": post_rows[k]["amount_gbp"]}
+                               for k in sorted(moved)[:20]]})
