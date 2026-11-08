@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # The archive-question gate now reads `advisor/done/`, and 64 rulings archived before it carry his quoted questions with no register entry (2026-11-08)
 
@@ -65,3 +65,12 @@ the archival rule) before it checks what each one says.
 
 Revert the landing commit. The register's dispositions are additive and keyed per question, so
 the old extractor ignores them.
+
+## Done
+
+2026-11-08, claim `census-the-archived-rulings-quoted-questions`. All 136 questions now have a
+disposition: 115 answered, 19 `wrong` (not his question), 2 `carried` on EP16. None needs him. Re-running
+the extractor over both archives leaves 0 without a disposition. Record:
+`docs/staging/records/SEAT_RESULT_CENSUS_OF_THE_ARCHIVED_RULINGS_QUOTED_QUESTIONS_2026-11-08.md`. The
+known gap (a ruling in his voice with no quotation marks yields no questions) stands, with no case since
+15 Oct.
