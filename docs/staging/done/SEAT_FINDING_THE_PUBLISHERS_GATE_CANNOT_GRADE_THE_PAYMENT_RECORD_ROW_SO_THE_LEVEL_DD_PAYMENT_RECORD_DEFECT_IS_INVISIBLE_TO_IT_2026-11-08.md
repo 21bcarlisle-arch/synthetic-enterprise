@@ -96,8 +96,11 @@ On this book through the publisher's path there are 45 CLEAN, 15 FLAGGED, 8 BREA
   - INV_OPENING_DAY_CREDIT_IS_ONLY_WHAT_WAS_COLLECTED_ON_OR_AFTER_SUPPLY_START
   - the four household-diagnostics rows (gas against weather twice, winter/summer ratio, electric-heating verdict)
 - **Seen in passing, not a path gap:** INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD reports
-  1 checked and 2 breached. Its breaches are counted in a different unit from its checks. That needs reading
-  before the count is divided by anything.
+  1 checked and 2 breached.
+  - *Corrected the same day, after reading the row's output:* I first wrote that its breaches were counted in a
+    different unit from its checks. They are not. The row grades one book, and two of that book's legs
+    breached: the median |r-1| 0.0075 is under 0.05, and 29% of pairs sit within 0.1 kWh, against 17%
+    expected by chance. The verdict excepts it. Nothing here needs fixing.
 
 ## Done
 
