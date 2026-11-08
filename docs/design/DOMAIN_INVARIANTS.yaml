@@ -4828,3 +4828,22 @@ invariants:
     hot-water and cooking base. It should be replaced from published monthly gas profiles (e.g. Xoserve non-daily-metered
     profiles) when read.'
   written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO
+  family: account_arithmetic
+  grades: page
+  statement: When supply on a fuel leg ends, the account has one balance, the one the final bill states. A credit is refunded within 10 working days of the final bill's issue. A debt is collected, pursued or written off, and a write-off releases at most what the account owed. A closed account does not carry a credit, or a write-off of money it was never owed.
+  predicate: 'for each fuel leg whose page shows a final bill on F and no bill dated after F, on the page ledger (owed positive): (1) domestic, F >= 2019-05-01: the balance at the end of the 10th E&W working day after the later of F and the last bill posted or payment taken on the leg >= 0, to the penny; (2) each write-off on the leg, of amount w on day W: w <= max(0, the balance the line before it); (3) flag: the balance at the page''s as-of date <= 0'
+  lower: null
+  upper: null
+  source: 'docs/market_research/home_moves.md §8.8 (GSoP 2015 reg 6D, inserted by SI 2019/218 reg 3, in force 1 May 2019: "within 10 working days of issuing a customer''s final bill ... refund any outstanding credit balance"; SLC 27.17, the final bill is a statement of account), §8.8a (one balance per fuel contract, SLC 27.16) and §8.8b (one balance at close: refund, final collection or write-off). Working days from the commons'' docs/domain_artefact_library/regulatory/england_and_wales_bank_holidays.json. Ninth cold read O7 and O20: SYN-2016-250 holds a credit four years after its 2021 final bill; SYN-2016-428 owes GBP 111.93 from 2019; SYN-2016-035 holds a credit on electricity and a debt on gas.'
+  severity:
+    credit_unrefunded_after_10_working_days: breach
+    write_off_above_the_balance_owed: breach
+    debt_standing_at_as_of: flag
+  export_fields:
+  - printed timeline final_bill dates (final_bills)
+  - printed ledger.entries.running_balance_gbp
+  - printed ledger.entries.type (write_off, invoice_raised)
+  - printed ledger.as_of_date
+  checkable: true
+  gap: 'Written 2026-11-08 by the delivery seat from home_moves.md §8.8-8.8b, NOT blind: the writer had read the page files and the runner, not the billing code. Graded by tools/domain_invariant_runner.ev_closed_account_balance on a book read with --printed. Leg (3) is a flag because no rule sets a window for collecting a departed customer''s debt (GAP G8.10-G8.12); what the rules do fix is that the debt stays the departing customer''s and that a write-off is of a debt. The export carries no jurisdiction, so the E&W calendar is applied to every leg. Non-domestic legs are outside reg 6D and graded on legs (2) and (3) only.'
