@@ -466,16 +466,35 @@ No new source was read. Each line cites the passage on this repository's pages i
   a return may be re-presented within a month (§3; "A DD is never late", above). So on a level account,
   what fails is **that month's scheduled collection, at its amount, on its date**. No bill is "due by
   direct debit", so no bill's face is what was missed.
-- **What is owed.** On a level account the household's arrears are the **account's debit balance**:
-  bills less collections and other credit. A returned collection on an account still in credit leaves
-  nothing overdue. It only makes the credit smaller.
+- **What is owed.** On a level account the household's arrears are the **collections it defaulted on,
+  up to the account's debit balance** (bills less collections and other credit). A debit balance while
+  every collection is taken is not arrears: the schedule and its annual review exist to recover it. A
+  returned collection on an account still in credit leaves nothing overdue. It only makes the credit
+  smaller.
+  - *Corrected 8 Nov 2026 (worker, step 2b).* This line said "the household's arrears are the
+    account's debit balance". That would put every level account in seasonal debit into arrears with
+    no collection missed. Ofgem's reporting definition says otherwise: a direct debit customer is
+    counted in debt only "where they have joined the scheme specifically to repay a debt, or where
+    they have fallen into debt while on direct debit by defaulting on one or more payments. All other
+    direct debit customers, including those customers with a debit at the end of a payment scheme that
+    will be rolled into a new payment scheme, should be excluded." (Ofgem, *Social obligations data
+    review – consultation on proposed changes*, letter of 20 September 2011, Appendix 2, row on
+    guidance para 2.8; https://www.ofgem.gov.uk/ofgem-publications/57228/social-obligations-data-review-consultation-proposed-changes.pdf).
+    The guidance then in force was narrower still: "direct debit customers should only be included
+    where they have joined the direct debit scheme specifically to repay a debt. All other direct debit
+    customers should be excluded, including those that have had their payments increased because
+    previous payments were set too low" (same letter, p.2). On either wording, a debit on a working
+    schedule is not debt. The proposed wording is a 2011 consultation; whether it was adopted unchanged
+    is not checked here (GAP, narrow: it does not change the definition this build uses).
 - **Who dunns, and on what.** A supplier runs one dunning run per account and reads its balance. It
   would not chase a home in net credit (`company_debt_management.md`, "Where the desk runs, its silence
   is a decision", PROS-2018-0137; SAP FI-CA keeps the dunning level on the account, not the item).
   SLC 27's duties start from "reason to believe" a customer is in payment difficulty (27.5). A returned
   instalment on an account in credit is not, on its own, a debt.
 
-**GAP (practitioner, K4).** No published source says what a GB desk does on the day a level DD is
+**GAP (practitioner, K4), narrowed 8 Nov.** Whether a return on an account in credit is a debt is now
+settled by the Ofgem definition above: it is not, because the account has not "fallen into debt". What
+is still unpublished is the desk's operational step on that day. No published source says what a GB desk does on the day a level DD is
 returned on an account in credit. Practice suggests that it re-presents the collection (ARUDD 0) and
 tells the household it could not collect, without opening arrears action. That is the build's stated
 belief, and it is the question to put to him if a run shows it wrong.
@@ -491,7 +510,16 @@ belief, and it is the question to put to him if a run shows it wrong.
    phase 4c, and only replaces the successes. So the company desk dunns a level household's bill face
    while the page and the books run on the schedule. The fix belongs where the outcome is drawn.
    Phase 2b must collect the schedule, draw a return per scheduled collection, and let the desk read
-   the account's debit balance. A page-side rewrite of the desk's figure would print acts the company
+   the defaulted collections up to the account's debit balance (corrected 8 Nov: this said "the
+   account's debit balance", which would dun a level account in seasonal debit; see "What is owed").
+   - **The desk's own definition, for the build.** The company knows what it asked for: each level
+     collection crosses as its own `CollectionRequest` (amount, requested date), and each return
+     crosses as an ARUDD line. On a level account a bill is a statement and is never dunned on its due
+     date. The desk's overdue figure is the **shortfall against the schedule, capped by the
+     debit**: `max(0, min(collections requested to date - cash received to date, debit balance))`.
+     A returned collection that is later paid by card, or re-presented and taken, stops counting. The
+     figure is aged from the oldest collection still short, and the journey opens only on a return.
+     A bill's face is never the figure. A page-side rewrite of the desk's figure would print acts the company
    never took, so it is not done. **Direction of error until it lands:** against the company's page,
    because 176 households read false arrears and the publish gate refuses them.
 
