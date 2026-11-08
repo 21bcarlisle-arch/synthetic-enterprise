@@ -170,7 +170,10 @@ wrong:
   - what: 'THE COMPANY''S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still
       holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 21:21 7 Nov: The 19 settlements (GBP 682.47) were
       the count reading bill faces, not cash (12a470de7). The world now records each settlement''s cash, and a filed
-      prediction says the first book carrying it (f248d5ffa, running now) reads 0. It is open until that book does.'
+      prediction says the first book carrying it (f248d5ffa, running now) reads 0. It is open until that book does.
+      8 Nov: On 84f7fc8fe0 the desk''s own record reads 0 of 976 cures over a bill still owed. A ledger-side replay is not
+      yet faithful: 186 cures, 184 of them with nothing outstanding at run end. Two real candidates remain, both
+      SYN-2016-021 (2019 gas bills, GBP 83.29). Open on the-desk-cure-ledger-leg-on-84f7fc8fe0.'
     corrected: false
   - what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34
       supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 21:21 7 Nov: Not drawn
@@ -210,8 +213,8 @@ wrong:
       682.47). The prediction stands beside its refutation in the finding. 21:21 7 Nov: The cause is found: the
       count priced the engine row at the bill''s face, because the world never recorded a settlement''s cash
       (12a470de7, test first, mutation-proven). A new prediction is filed (0 on the first book carrying it). Open
-      until it is read.'
-    corrected: false
+      until it is read. 8 Nov: Read on 84f7fc8fe0: 0 of 1,426 settlements, as filed. Closed; the finding is in done/.'
+    corrected: true
   - what: 'THE COMPANY''S, NEW. A level direct-debit household is dunned bill by bill. On fa915ac0d7, the collections journey
       prints a bill''s face as overdue on 1,724 steps across 176 of 454 level-DD households (852 of them while the
       household is in credit or at zero; GBP 113,865 of excess), and 45 payment records read "missed DD, no return".
