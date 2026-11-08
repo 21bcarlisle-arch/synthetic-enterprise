@@ -17267,3 +17267,11 @@ budget dials revert automatically at 02:50Z on 2026-09-07.
 - The invariant gate holds for both. Each is added on top of the correctness stretch, never in place of it.
 
 **Spent.** This turn went on item 1, plus about ten minutes of gates for the landing.
+
+**Not yet live (14:40Z, worker tick).** The early-publish clause is on origin but not on the primary checkout,
+where the publisher runs. That checkout is 26 commits behind, and its `content_publish_window()` still says
+closed until Mon 04:00. `reconcile-watch` cannot fast-forward it because 122 paths block the move. They are the
+index of the archive seat that died at 14:06Z. Most of that index already matches origin; the rest is older
+than origin. The 48h abandonment rule will not clear it before Monday. In practice nothing is lost this
+weekend, because no book can pass the gate until step 2b lands. But the adopt-or-discard decision on that index
+is owed before 04:00. Otherwise Monday's publish runs the stale tree's gate code, not origin's.
