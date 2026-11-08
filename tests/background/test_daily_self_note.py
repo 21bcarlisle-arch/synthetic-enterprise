@@ -303,7 +303,7 @@ def test_open_question_line_in_note_red_when_open_check_when_none(monkeypatch, t
     root, ip = tmp_path / "r", tmp_path / "ip"
     root.mkdir()
     (root / "DIRECTOR_RULING_Q_2026-07-28.md").write_text(
-        "# [DIRECTOR-RULING] — q\n\n## Questions\n\n1. Is the beta thing done?\n", encoding="utf-8")
+        '# [DIRECTOR-RULING] — q\n\n- 09:00 GMT: "Is the beta thing done?"\n', encoding="utf-8")
     # No register at that path -> the question is open (silent) -> 🔴 (fail-closed, not a dropped line).
     line = sm1.open_question_line(root, ip, tmp_path / "no_register.json")
     assert "🔴" in line and "1 unanswered" in line and "SILENT" in line, line

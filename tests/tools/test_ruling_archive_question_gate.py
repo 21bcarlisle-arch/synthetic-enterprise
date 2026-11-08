@@ -4,7 +4,9 @@ DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED 2026-07-28 §2 ("impossible to archi
 while it carries an unanswered question, enforced mechanically"). R15 demands the control FIRE on
 its own named defect and PASS when the defect is absent:
 
-  - FIRES: a ruling being ADDED to docs/staging/done/ that carries an OPEN question -> exit 1.
+  - FIRES: a ruling being ADDED to either archive (docs/staging/done/, docs/staging/advisor/done/)
+    that carries an OPEN question -> exit 1.
+  - EDITS: an edit to an archived ruling refuses only a question the edit adds.
   - PASSES: the same ruling once every question is CLOSED -> exit 0.
   - FAIL-CLOSED: a done/-bound ruling whose staged blob is UNREADABLE -> exit 1 (unverifiable archive
     may hide an open question — the fail-open direction R15 forbids).
@@ -29,8 +31,7 @@ import background.open_question_register as oqr
 
 _RULING_BODY = (
     "# [DIRECTOR-RULING] — sample archival test\n\n"
-    "## Questions\n\n"
-    "1. Is the alpha thing actually done?\n"
+    '- 09:00 GMT: "Is the alpha thing actually done?"\n'
 )
 _PATH = "docs/staging/done/DIRECTOR_RULING_SAMPLE_2026-07-28.md"
 
@@ -81,7 +82,7 @@ def test_non_ruling_in_done_not_blocked(tmp_path, monkeypatch):
 
 def test_ruling_with_no_questions_allowed(tmp_path, monkeypatch):
     _with_register(tmp_path, monkeypatch, {})
-    body = "# [DIRECTOR-RULING] — no questions\n\n## DECISION\n\nWe did the thing. Done.\n"
+    body = "# [DIRECTOR-RULING] — no questions\n\n## DECISION\n\nDid we do the thing? Done.\n"
     code, _ = gate.evaluate([_PATH], blob_reader=_reader({_PATH: body}))
     assert code == 0
 
@@ -91,7 +92,37 @@ def test_empty_paths_allowed():
     assert code == 0 and msg == ""
 
 
+_ADVISOR_PATH = "docs/staging/advisor/done/DIRECTOR_RULING_SAMPLE_2026-07-28.md"
+
+
+def test_the_advisor_archive_is_gated_like_done(tmp_path, monkeypatch):
+    """The 8 Nov plant: the same open-question ruling refused in done/ passed in advisor/done/."""
+    _with_register(tmp_path, monkeypatch, {})
+    assert all(p.startswith(gate.DONE_PREFIXES) for p in (_PATH, _ADVISOR_PATH))
+    code, msg = gate.evaluate([_ADVISOR_PATH], blob_reader=_reader({_ADVISOR_PATH: _RULING_BODY}))
+    assert code == 1 and "unanswered question" in msg, msg
+
+
+def test_an_edit_refuses_only_the_question_it_adds(tmp_path, monkeypatch):
+    """The whole partition first: a legacy edit passes, an added question refuses, an unreadable HEAD
+    falls back to the archival rule. Then each leg's reason."""
+    _with_register(tmp_path, monkeypatch, {})
+    added = _RULING_BODY + '- 09:05 GMT: "And is the beta thing done?"\n'
+    staged = _reader({_ADVISOR_PATH: added})
+    legacy = gate.evaluate([], blob_reader=_reader({_ADVISOR_PATH: _RULING_BODY}),
+                           edited=[_ADVISOR_PATH], head_reader=_reader({_ADVISOR_PATH: _RULING_BODY}))
+    adds = gate.evaluate([], blob_reader=staged, edited=[_ADVISOR_PATH],
+                         head_reader=_reader({_ADVISOR_PATH: _RULING_BODY}))
+    no_head = gate.evaluate([], blob_reader=_reader({_ADVISOR_PATH: _RULING_BODY}),
+                            edited=[_ADVISOR_PATH], head_reader=_reader({}))
+    assert (legacy[0], adds[0], no_head[0]) == (0, 1, 1), (legacy, adds, no_head)
+    # The added question is named, the legacy one is not.
+    assert "beta thing" in adds[1] and "alpha thing" not in adds[1], adds[1]
+    assert "this edit adds 1" in adds[1], adds[1]
+
+
 def test_live_gate_clean_today():
     """On the real repo, nothing is currently staged for done/, so the gate's live run is a no-op
     (exit 0). The FIRING direction is proven by the fixture tests above."""
-    assert gate.archived_ruling_paths() == [] or gate.main() in (0, 1)
+    archived, edited = gate.archived_ruling_paths()
+    assert (archived, edited) == ([], []) or gate.main() in (0, 1)

@@ -12,15 +12,18 @@ carries an unanswered question, enforced MECHANICALLY** (the archive-block gate,
 
 DESIGN (ruling §2, "the mechanism is yours"):
 
-  EXTRACTION — a ruling carries questions in ONE of two AUTHORITATIVE forms, and ONLY these two:
-    (a) an explicit enumerated block under a heading naming the register/questions — "Seed the
-        register with these" / "## QUESTIONS" — each numbered/bulleted item is a question;
-    (b) a `?`-terminated sentence inside the **DECISION** section only.
-  Prose questions ELSEWHERE (rhetorical framing in a PROBLEM/PREAMBLE section — "an explicit block?
-  a parser? a convention?", "why am I the bottleneck?") are NOT obligations and are NOT captured.
-  This is the §2-requested rhetorical-vs-obligation split. When genuinely ambiguous the mechanism
-  defaults to TRACKED (fail-closed toward the ruling's intent) and lets a cheap close-with-reason
-  ("the question is wrong, because…") discharge a false positive — the asymmetry the ruling names.
+  EXTRACTION (narrowed 2026-11-08) — a question is a `?`-terminated sentence inside the DIRECTOR'S
+    QUOTED WORDS: a double-quoted span ("…" or “…”) that stays inside one paragraph. Since October his
+    rulings reach the tree through the advisor channel, which quotes him verbatim and then drafts its
+    own headings, lists and recommendations around the quote. The two earlier forms (an enumerated
+    block under a heading naming "questions"; any `?`-sentence under a DECISION heading) read that
+    drafting as his questions: "THE FOUR RESERVED QUESTIONS" made every ruling line a question, and
+    a list of the seat's own closures became 15 open questions. Quoted words are the one part of the
+    file that is his. A question outside quotes (the advisor's framing, a rhetorical preamble) is not
+    an obligation and is not captured. Known cost: a ruling written in his voice with no quotation
+    marks yields no questions; none has arrived that way since the advisor channel opened (15 Oct).
+    A false positive (a quoted page sentence that happens to end in `?`) is discharged by a cheap
+    close-with-reason ("the question is wrong, because…"), the asymmetry the ruling names.
 
   TRACKING — questions are DERIVED from PRIMARY state (the ruling bodies themselves), never from a
   hand-maintained list that could drift from the rulings. The register file
@@ -56,6 +59,8 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 IN_PROGRESS_DIR = STAGING_DIR / "in_progress"
+# The advisor channel's live rulings (G8). Their archive is advisor/done/, which, like done/, is discharged.
+ADVISOR_DIR_NAME = "advisor"
 REGISTER_PATH = PROJECT_DIR / "docs" / "observability" / "open_question_register.json"
 
 # A ruling/steer, by filename convention OR content header (R7: content is the primary signal).
@@ -63,22 +68,12 @@ REGISTER_PATH = PROJECT_DIR / "docs" / "observability" / "open_question_register
 _RULING_STEER_PREFIXES = ("DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_")
 _RULING_STEER_HEADER_RE = re.compile(r"\[[A-Z0-9 _-]*(?:RULING|STEER)\]", re.IGNORECASE)
 
-# EXTRACTION FORM (a): a heading whose text names the register/questions — "Seed the register with
-# these", "## QUESTIONS", "## Open questions". Captures the block body until the next heading.
-_QUESTION_BLOCK_RE = re.compile(
-    r"^#{1,6}[^\n]*\b(?:seed the register|open questions?|questions?)\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
-    re.IGNORECASE | re.DOTALL | re.MULTILINE,
-)
-# A numbered ("1." / "1)") or bulleted ("-"/"*") item line inside a block (first line = the question).
-_ITEM_LINE_RE = re.compile(r"^\s*(?:\d+[.)]|[-*])\s+(.+?)\s*$", re.MULTILINE)
-
-# EXTRACTION FORM (b): the DECISION section only. `?`-terminated sentences inside it are obligations.
-_DECISION_BLOCK_RE = re.compile(
-    r"^#{1,6}[^\n]*\bDECISION\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
-    re.IGNORECASE | re.DOTALL | re.MULTILINE,
-)
-# A sentence ending in '?'. Greedy-but-bounded: from a sentence boundary / start up to the '?'.
+# The director's quoted words: a straight-quoted span that does not cross a blank line, or a curly-quoted
+# span. Straight quotes must not cross a paragraph so one stray quote mark cannot pair across the file.
+_QUOTED_SPAN_RE = re.compile(r'"([^"\n]*(?:\n(?![ \t]*\n)[^"\n]*)*)"|\u201c([^\u201d]*?)\u201d')
+# A sentence ending in '?', from a sentence boundary / span start up to the '?'.
 _QUESTION_SENTENCE_RE = re.compile(r"([^.!?\n][^.!?\n]*?\?)")
+_HAS_WORD_RE = re.compile(r"[A-Za-z]")
 
 # Disposition statuses that CLOSE a question (unblock archival). "carried" is deliberately NOT here:
 # it is non-silent but unanswered, so it still blocks. Absent disposition == "open" (silent).
@@ -115,37 +110,25 @@ def _ruling_date(name: str) -> str | None:
 
 
 def extract_questions(body: str) -> list[str]:
-    """The questions a ruling body poses, per the two AUTHORITATIVE forms (see module docstring).
-
-    Returns de-duplicated raw question strings (markdown preserved for display, truncated). Order:
-    block items first (their numbered order), then DECISION `?`-sentences. FAIL-SAFE: a body with no
-    such block and no DECISION `?`-sentence yields [] — this module never fabricates a question, so a
-    rhetorical-only ruling contributes none (the correct answer, not a false alarm)."""
+    """The questions a ruling body poses: `?`-terminated sentences in the director's quoted words
+    (see module docstring). De-duplicated, in order of appearance, truncated for display. FAIL-SAFE:
+    a body with no quoted `?`-sentence yields [] — this module never fabricates a question."""
     if not body:
         return []
     seen: set[str] = set()
     out: list[str] = []
-
-    def _add(raw: str) -> None:
-        s = re.sub(r"\s+", " ", (raw or "")).strip()
-        if not s:
-            return
-        norm = _normalize(s)
-        if norm in seen:
-            return
-        seen.add(norm)
-        out.append((s[:200] + "…") if len(s) > 201 else s)
-
-    # FORM (a): explicit register/questions block(s).
-    for bm in _QUESTION_BLOCK_RE.finditer(body):
-        for im in _ITEM_LINE_RE.finditer(bm.group(1)):
-            _add(im.group(1))
-
-    # FORM (b): `?`-terminated sentences inside the DECISION section only.
-    for dm in _DECISION_BLOCK_RE.finditer(body):
-        for qm in _QUESTION_SENTENCE_RE.finditer(dm.group(1)):
-            _add(qm.group(1))
-
+    for sm in _QUOTED_SPAN_RE.finditer(body):
+        span = sm.group(1) if sm.group(1) is not None else sm.group(2)
+        span = re.sub(r"\s+", " ", span or "")
+        for qm in _QUESTION_SENTENCE_RE.finditer(span):
+            s = qm.group(1).strip()
+            if not _HAS_WORD_RE.search(s):
+                continue
+            norm = _normalize(s)
+            if norm in seen:
+                continue
+            seen.add(norm)
+            out.append((s[:200] + "…") if len(s) > 201 else s)
     return out
 
 
@@ -202,8 +185,8 @@ def all_tracked_questions(
     in_progress_dir: Path | None = None,
     register_path: Path | None = None,
 ) -> list[dict]:
-    """Every question extracted from every ACTIVE ruling (staging root + in_progress; NOT done/ —
-    a ruling in done/ is discharged), each merged with its disposition. Sorted (date, ruling, key).
+    """Every question extracted from every ACTIVE ruling (staging root, its advisor/ channel and
+    in_progress; NOT done/ or advisor/done/ — an archived ruling is discharged), each merged with its disposition. Sorted (date, ruling, key).
 
     LAW-C independence: reads ONLY the ruling bodies (primary state) + the disposition register;
     imports nothing from the tick. The question SET is derived, never hand-listed, so it cannot
@@ -212,7 +195,7 @@ def all_tracked_questions(
     sip = in_progress_dir or IN_PROGRESS_DIR
     dispositions = load_dispositions(register_path)
     rows: list[dict] = []
-    for name, body in _iter_ruling_bodies(sroot, sip):
+    for name, body in _iter_ruling_bodies(sroot, Path(sroot) / ADVISOR_DIR_NAME, sip):
         for q in extract_questions(body):
             rows.append(_row(name, q, dispositions))
     rows.sort(key=lambda r: (r["date"] or "9999-99-99", r["ruling"], r["key"]))

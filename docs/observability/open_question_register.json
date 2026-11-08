@@ -50,6 +50,104 @@
       "status": "answered",
       "disposition": "ANSWERED (2026-07-28 -- director-delegated, 27271871e section 3b): blast radius is DELIBERATELY FOLDED into value as a tie-breaker; risk is NOT scored separately. Honest basis (the ruling's own sanctioned disposition, 'if folded for simplicity, say so and leave it; not worth a mechanism'): for these gaps value and risk move together -- a gap touching many surfaces is both higher-value to fix and higher-risk to leave -- so a single blast-radius term serves both as the diagnostic tie-breaker. No separate risk axis exists in the ordering and none is warranted; left folded, no mechanism added. R12 respected: blast-radius is a tie-breaker diagnostic, never a target.",
       "recorded": "2026-07-28"
+    },
+    "15946dc66c7b": {
+      "ruling": "DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30.md",
+      "question": "The billing estimate should be based on the consumption used in the quote shouldn't it?",
+      "status": "answered",
+      "disposition": "Yes, as the baseline. The billing estimate and first DD come from the consumption used in the quote (declared use where the channel takes one, else registry/DC EAC or AQ): docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md §10, and the redrawn INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS quote rung (the ruling's Done 2 and 4). The billing-to-settlement gap is owed as a GAP there.",
+      "recorded": "2026-11-08"
+    },
+    "1afc59cb978d": {
+      "ruling": "DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30.md",
+      "question": "It might quick or validate the quote assumption for example?",
+      "status": "answered",
+      "disposition": "Yes: validating or correcting the quote assumption early is a named lever of new-account-first-months-experiment in docs/direction/priority_order.yaml customer_outcomes_candidates (the ruling's Done 3), drawn after the correctness exit test.",
+      "recorded": "2026-11-08"
+    },
+    "a480ddf52d11": {
+      "ruling": "DIRECTOR_RULING_A_NEW_ACCOUNTS_ESTIMATE_STARTS_AT_STANDARD_PRACTICE_AND_THE_SUPPLIER_EXPERIMENTS_2026-10-30.md",
+      "question": "This might vary by channel?",
+      "status": "answered",
+      "disposition": "Yes: channel is both a dimension of the world's quote-error draw and a lever of new-account-first-months-experiment (priority_order.yaml customer_outcomes_candidates; the ruling's Done 3). Not yet built: it waits behind the correctness exit test.",
+      "recorded": "2026-11-08"
+    },
+    "db7c9273781f": {
+      "ruling": "DIRECTOR_RULING_THE_FOUR_RESERVED_QUESTIONS_2026-10-26.md",
+      "question": "Do we need HF?",
+      "status": "answered",
+      "disposition": "Not now. The ruling's own item 4: the uk_pv metadata matters only to the PV roof distribution in step 8 of priority_order.yaml; closed as deferred in 8be05177e, raised again as one line when step 8 reaches PV.",
+      "recorded": "2026-11-08"
+    },
+    "5c413766ce79": {
+      "ruling": "DIRECTOR_RULING_YES_TO_THE_THREE_2_NOV_QUESTIONS_AND_THE_ADVISORS_OPEN_RECOMMENDATIONS_2026-11-03.md",
+      "question": "does this work move enterprise value?",
+      "status": "wrong",
+      "disposition": "Not his question: the advisor quotes it as an example string the naive organ's purpose filter declines (the ruling's item B1). Its work is ranked in the ruling's Done, B2.",
+      "recorded": "2026-11-08"
+    },
+    "5ba1210856ca": {
+      "ruling": "DIRECTOR_RULING_YES_TO_THE_THREE_2_NOV_QUESTIONS_AND_THE_ADVISORS_OPEN_RECOMMENDATIONS_2026-11-03.md",
+      "question": "what decision rule actually consumes the physics forecast's output?",
+      "status": "wrong",
+      "disposition": "Not his question: the advisor quotes the naive organ's own 13 Jul catch as an example of a question that serves the purpose (item B1). Its work is ranked in the ruling's Done, B2.",
+      "recorded": "2026-11-08"
+    },
+    "e155c58be442": {
+      "ruling": "DIRECTOR_STEER_MEASURE_WHERE_READING_TOKENS_GO_BEFORE_SPLITTING_ANY_FILE_2026-11-07.md",
+      "question": "Do we use abstractions?",
+      "status": "answered",
+      "disposition": "Yes. The steer itself lists them, as found by the advisor at 482b50dee: the seam (company/interfaces/sim_interface.py), tools/capability_index.py, skills, the memory index cut to pointers on 23 Oct, and the map register.",
+      "recorded": "2026-11-08"
+    },
+    "0b5691fa10b2": {
+      "ruling": "DIRECTOR_STEER_MEASURE_WHERE_READING_TOKENS_GO_BEFORE_SPLITTING_ANY_FILE_2026-11-07.md",
+      "question": "Would it help with token efficiency?",
+      "status": "not_measurable",
+      "disposition": "Not yet measured. His instruction was 'Measure it'; the measurement is first in held_behind_the_exit_test in docs/direction/priority_order.yaml (the steer's Done), and its answer may be 'reading is not where the tokens go, stop'.",
+      "recorded": "2026-11-08"
+    },
+    "c82c3e8fcbc0": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_IS_READ_BY_EXTERNALS_TOMORROW_2026-10-26.md",
+      "question": "Also the website says 11 decisions waiting on me?",
+      "status": "answered",
+      "disposition": "It did, and it was wrong under G5: the queue now holds reserved actions only, nine rows were closed as the seat's own calls with how to reverse each (8be05177e), and the panel is counted at publish and read 'nothing is waiting on him' (7222fae89). The steer's Done §1.",
+      "recorded": "2026-11-08"
+    },
+    "5e7f641927ae": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_IS_READ_BY_EXTERNALS_TOMORROW_2026-10-26.md",
+      "question": "What do you recommend?",
+      "status": "answered",
+      "disposition": "Answered in the steer itself, §1: close the non-reserved items on the seat's recommendation, and the advisor's recommendation on each reserved one. He ruled the reserved four the same day in DIRECTOR_RULING_THE_FOUR_RESERVED_QUESTIONS_2026-10-26.md.",
+      "recorded": "2026-11-08"
+    },
+    "8560cdc35448": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_IS_READ_BY_EXTERNALS_TOMORROW_2026-10-26.md",
+      "question": "Is it valid to even be asking me these questions?",
+      "status": "answered",
+      "disposition": "Mostly no: canon G5 reserves six kinds of action, and the advisor's answer in the steer §1 is that most of the 13 rows were not his to rule. The queue now carries reserved actions only (8be05177e); escalating strategy and canon-intent concerns stays, raised as the-26-oct-advisor-steer-asks-that (7222fae89).",
+      "recorded": "2026-11-08"
+    },
+    "944424b4de0b": {
+      "ruling": "DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md",
+      "question": "Why did these bugs exist ?",
+      "status": "answered",
+      "disposition": "Answered in docs/staging/advisor/done/DIRECTOR_QUESTION_WHY_DID_THE_TESTS_NOT_FIND_THE_EXPLORE_ERRORS_2026-10-26.md, Done: the advisor's hypotheses held against the code, with counts on the 4ae8da9b0f book.",
+      "recorded": "2026-11-08"
+    },
+    "9f37633507e8": {
+      "ruling": "DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md",
+      "question": "Why did tests not find them?",
+      "status": "answered",
+      "disposition": "Same file's Done: the tests checked each quantity's mechanism, not its two-sided range against the Knowledge pages, so no test asked whether an example made sense to an energy reader. The remedy is this ruling's domain-invariant suite.",
+      "recorded": "2026-11-08"
+    },
+    "1efba0d7a79d": {
+      "ruling": "DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md",
+      "question": "So what should we and it do about it?",
+      "status": "answered",
+      "disposition": "The advisor's plan, which he approved at 18:30 ('Ok do it'): this ruling's six steps, recorded as correctness_stretch in docs/direction/priority_order.yaml with its exit test.",
+      "recorded": "2026-11-08"
     }
   }
 }

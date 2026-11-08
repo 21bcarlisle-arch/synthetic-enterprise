@@ -1,9 +1,8 @@
 """DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED 2026-07-28, deliverable 1 — mechanism self-tests.
 
 Proves `background.open_question_register`:
-  - EXTRACTION (the §2 rhetorical-vs-obligation split): the explicit "Seed the register" block yields
-    its items; a `?`-sentence in the DECISION section is captured; a rhetorical `?` in a PROBLEM /
-    preamble section is NOT (the whole point of the split); a ruling with no block/DECISION-? yields [].
+  - EXTRACTION (narrowed 2026-11-08): only `?`-sentences in the director's quoted words are
+    questions; the advisor's own headings, lists and `?`-sentences around the quote are not.
   - DISPOSITION (R15 BOTH WAYS): a question with no register entry is `open` and BLOCKS; recording
     `answered` CLOSES it (unblocks); `carried` is NON-SILENT but still BLOCKS (the ruling archives on
     an ANSWER, not an acknowledgement).
@@ -29,40 +28,49 @@ def _ruling(dir_: Path, name: str, body: str) -> Path:
     return p
 
 
-_BLOCK_RULING = """# [DIRECTOR-RULING] — sample
+# The shape of an advisor-channel ruling: his words quoted, the advisor's drafting around them.
+_ADVISOR_RULING = """# [DIRECTOR-RULING] The four reserved questions — sample
 
-## 1. DECISION
+**Type:** RULING, through the advisor channel. The director's words:
 
-We will do the thing. Is this the right seam to build on?
+- 13:47 GMT: "Hide the link. Stay on the tier. Do we need HF?"
+- 13:50 GMT: “Why did the tests
+  not find them? Fix it.”
 
-## 2. PROBLEM — the mechanism is yours
+## The rulings
 
-How is it extracted (a block? a parser?), and why am I the bottleneck?
+1. **Is the link needed?** No.
+2. Should the advisor recommend more?
 
-## 3. Seed the register with these
+## Questions
 
-1. First question about `merit_order`?
-2. Second question about the counter?
+1. Is this list item a question?
 """
 
 
-def test_extraction_split_block_and_decision_yes_preamble_no():
-    qs = oqr.extract_questions(_BLOCK_RULING)
+def test_only_questions_in_his_quoted_words_are_extracted():
+    qs = oqr.extract_questions(_ADVISOR_RULING)
+    # His quoted questions, straight and curly quotes, a curly quote across a line break.
+    assert qs == ["Do we need HF?", "Why did the tests not find them?"], qs
+    # The advisor's headings and list items are not his words: the 8 Nov false positives.
     joined = " ||| ".join(qs)
-    # Block items captured.
-    assert any("First question about" in q for q in qs), qs
-    assert any("Second question about" in q for q in qs), qs
-    # DECISION-section `?` sentence captured.
-    assert any("right seam to build on" in q for q in qs), qs
-    # PROBLEM-section rhetorical `?` NOT captured (the rhetorical-vs-obligation split).
-    assert "bottleneck" not in joined, qs
-    assert "a parser" not in joined, qs
-    assert len(qs) == 3, qs
+    assert "link needed" not in joined and "list item" not in joined, qs
 
 
-def test_extraction_empty_when_no_block_or_decision_question():
-    body = "# [DIRECTOR-RULING] — x\n\n## PROBLEM\n\nWhy is this hard? Because reasons.\n"
-    # A `?` only in a non-DECISION section => not an obligation => no questions.
+def test_extraction_empty_when_no_quoted_question():
+    body = ('# [DIRECTOR-RULING] — x\n\n## DECISION\n\nWhy is this hard? Because reasons.\n\n'
+            '- 09:00: "Do it."\n')
+    # A `?` outside quotes, and a quote without a `?`, pose no question.
+    assert oqr.extract_questions(body) == []
+
+
+def test_a_quoted_mark_with_no_words_is_not_a_question():
+    body = '# [DIRECTOR-RULING] — x\n\n- 09:00 GMT: "Fine. ?"\n'
+    assert oqr.extract_questions(body) == []
+
+
+def test_a_straight_quote_does_not_pair_across_a_paragraph():
+    body = '# [DIRECTOR-RULING] — x\n\nA stray " mark.\n\nIs this his question? No " it is not.\n'
     assert oqr.extract_questions(body) == []
 
 
@@ -85,7 +93,7 @@ def _seed(reg: Path, mapping: dict[str, dict]) -> None:
 def test_open_when_absent_blocks__answered_unblocks__carried_still_blocks(tmp_path):
     root, ip = tmp_path / "root", tmp_path / "ip"
     reg = tmp_path / "reg.json"
-    body = "# [DIRECTOR-RULING] — x\n\n## Questions\n\n1. Alpha question here?\n"
+    body = '# [DIRECTOR-RULING] — x\n\n- 09:00 GMT: "Alpha question here?"\n'
     _ruling(root, "DIRECTOR_RULING_X_2026-07-28.md", body)
     name = "DIRECTOR_RULING_X_2026-07-28.md"
     q = oqr.extract_questions(body)[0]
@@ -112,7 +120,7 @@ def test_open_when_absent_blocks__answered_unblocks__carried_still_blocks(tmp_pa
 def test_corrupt_register_fails_closed_all_open(tmp_path):
     root, ip = tmp_path / "root", tmp_path / "ip"
     reg = tmp_path / "reg.json"
-    body = "# [DIRECTOR-RULING] — x\n\n## Questions\n\n1. Alpha question here?\n"
+    body = '# [DIRECTOR-RULING] — x\n\n- 09:00 GMT: "Alpha question here?"\n'
     _ruling(root, "DIRECTOR_RULING_X_2026-07-28.md", body)
     reg.write_text("{ this is not valid json ", encoding="utf-8")  # corrupt
     rows = oqr.open_questions(root, ip, reg)
@@ -121,7 +129,7 @@ def test_corrupt_register_fails_closed_all_open(tmp_path):
 
 def test_missing_register_fails_closed(tmp_path):
     root, ip = tmp_path / "root", tmp_path / "ip"
-    body = "# [DIRECTOR-RULING] — x\n\n## Questions\n\n1. Alpha question here?\n"
+    body = '# [DIRECTOR-RULING] — x\n\n- 09:00 GMT: "Alpha question here?"\n'
     _ruling(root, "DIRECTOR_RULING_X_2026-07-28.md", body)
     rows = oqr.open_questions(root, ip, tmp_path / "does_not_exist.json")
     assert len(rows) == 1 and rows[0]["blocks_archive"], rows
@@ -140,28 +148,23 @@ def test_law_c_independence_no_supervisor_import():
 # --------------------------------------------------------------------------- #
 # LIVE: the real seeded register + the real ruling cohere as designed.
 # --------------------------------------------------------------------------- #
-def test_live_no_question_ruling_all_six_answered_and_archived():
-    """The real repo state after deliverable 4 (commit 155251dad): all six §3 questions carry an
-    ANSWERED disposition, so the archive gate permitted the ruling into done/. Terminal state —
-    supersedes the intermediate 'five carried, one answered' snapshot.
+def test_active_rulings_include_the_advisor_channel(tmp_path):
+    """The advisor channel's live rulings are active: their questions are surfaced before archival."""
+    root, ip = tmp_path / "root", tmp_path / "ip"
+    body = '# [DIRECTOR-RULING] — x\n\n- 09:00 GMT: "Alpha question here?"\n'
+    _ruling(root / "advisor", "DIRECTOR_RULING_X_2026-11-08.md", body)
+    _ruling(root / "advisor" / "done", "DIRECTOR_RULING_Y_2026-11-08.md", body)
+    rows = oqr.open_questions(root, ip, tmp_path / "reg.json")
+    assert [r["ruling"] for r in rows] == ["DIRECTOR_RULING_X_2026-11-08.md"], rows
 
-    Two invariants, on primary state (R9):
-      (1) the ruling is DISCHARGED — no NO_QUESTION row survives in the ACTIVE staging scan
-          (all_tracked_questions() excludes done/), so nothing still blocks;
-      (2) read directly from the archived body, its six questions are ALL answered, 0 silent, and
-          blocking_questions_for_ruling() == 0 — i.e. the archive gate WOULD permit this move
-          (the ruling's own acceptance test, satisfied by mechanism not banner)."""
-    # (1) discharged out of the active scan
-    active_nq = [r for r in oqr.all_tracked_questions() if "NO_QUESTION_LEFT_UNANSWERED" in r["ruling"]]
-    assert active_nq == [], [r["question"][:40] for r in active_nq]
 
-    # (2) the archived body itself: six questions, all closed, gate would permit
-    done_ruling = oqr.STAGING_DIR / "done" / "DIRECTOR_RULING_NO_QUESTION_LEFT_UNANSWERED_2026-07-28.md"
-    assert done_ruling.exists(), f"archived ruling missing: {done_ruling}"
-    body = done_ruling.read_text(encoding="utf-8")
-    dispositions = oqr.load_dispositions()
-    rows = [oqr._row(done_ruling.name, q, dispositions) for q in oqr.extract_questions(body)]
-    assert len(rows) == 6, [r["question"][:40] for r in rows]
-    assert all(r["status"] == "answered" for r in rows), [(r["question"][:40], r["status"]) for r in rows]
-    assert sum(1 for r in rows if r["silent"]) == 0, "no seeded question may be silent (deliverable 2)"
-    assert oqr.blocking_questions_for_ruling(done_ruling.name, body) == [], "archive gate must permit a fully-answered ruling"
+def test_live_every_recorded_disposition_names_a_ruling_on_disk():
+    """A disposition is a closure of a question in a real ruling. One naming no ruling in staging,
+    its advisor channel or either archive is a typo'd or renamed key that closes nothing."""
+    dirs = [oqr.STAGING_DIR, oqr.STAGING_DIR / "done", oqr.STAGING_DIR / "advisor",
+            oqr.STAGING_DIR / "advisor" / "done", oqr.IN_PROGRESS_DIR]
+    names = {p.name for d in dirs if d.is_dir() for p in d.glob("*.md")}
+    disp = oqr.load_dispositions()
+    assert disp, "the live register must load"
+    missing = sorted({r.get("ruling") for r in disp.values()} - names)
+    assert not missing, missing
