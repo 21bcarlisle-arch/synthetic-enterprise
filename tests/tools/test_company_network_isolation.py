@@ -155,11 +155,12 @@ def test_MUTATION_a_new_route_fails_the_gate(monkeypatch):
     """The property the gate exists for. Drop one entry from the baseline and the route it
     covered must read as new."""
     trimmed = dict(iso.KNOWN_ROUTES)
-    victim = trimmed.pop("company.portal.app")
+    victim = trimmed.pop("company.interfaces.recorded_sim_interface")
     assert victim
     monkeypatch.setattr(iso, "KNOWN_ROUTES", trimmed)
     problems = iso.gate_violations()
-    assert any("NEW ROUTE" in p and "company.portal.app" in p for p in problems), problems
+    assert any("NEW ROUTE" in p and "company.interfaces.recorded_sim_interface" in p
+               for p in problems), problems
 
 
 def test_MUTATION_a_stale_baseline_entry_fails_the_gate(monkeypatch):

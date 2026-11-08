@@ -202,21 +202,16 @@ HONEST_READS = {
         "when the feed FILE was written; read back only by PriceFeed.is_stale",
     ("company/market/price_feed.py", "is_stale"):
         "the age of the feed file on this machine, against that file's own write stamp",
-    ("company/portal/app.py", "switch_tariff"):
-        "live portal request (the portal serves in real time, outside any run): a reference seed",
-    ("company/portal/app.py", "submit_contact"):
-        "live portal request: the day the visitor submitted the contact form",
-    ("company/portal/app.py", "smart_meter_post"):
-        "live portal request: the day the visitor submitted the smart-meter form",
 }
 
 #: Wall-clock DEFECT reads per company file -- a simulated-world date that falls back to today.
 #: MAY ONLY SHRINK. Lowered 2026-10-03 when the run-reached ones were fixed (leg 3) and the honest
 #: ones moved to HONEST_READS. Every one left is reached by no run (no production importer) or
-#: only by the portal, which has no run date to pass (retention_risk.retention_risk's fallback).
+#: by a caller with no run date to pass (retention_risk.retention_risk's fallback).
 #: Five entries left 2026-11-08 with their modules for archive/unhooked_supplier/ (increment 2),
 #: and contract_exposure_register's the same day (increment 3a); account_closure's and
-#: consumer_duty_board_report's left in increment 3b.
+#: consumer_duty_board_report's left in increment 3b; the portal's three HONEST_READS rows left
+#: in increment 4.
 WALL_CLOCK_READS_2026_10_03 = {
     "company/billing/collections.py": 2,
     "company/billing/contract.py": 2,
@@ -237,9 +232,9 @@ def test_every_honest_read_names_a_live_read():
 
 def test_an_honest_read_excuses_its_function_not_its_file(tmp_path, monkeypatch):
     """A new read in an allowlisted file, outside the named function, is still counted."""
-    probe = REPO / "company/portal/app.py"
+    probe = REPO / "company/market/price_feed.py"
     assert _clock_reads(probe) == 0 < len(_clock_read_sites(probe))
-    fake = tmp_path / "company/portal/app.py"
+    fake = tmp_path / "company/market/price_feed.py"
     fake.parent.mkdir(parents=True)
     fake.write_text(probe.read_text(encoding="utf-8")
                     + "\n\ndef some_new_handler():\n    return date.today()\n", encoding="utf-8")
@@ -250,9 +245,9 @@ def test_an_honest_read_excuses_its_function_not_its_file(tmp_path, monkeypatch)
 def test_the_census_sees_the_tree():
     """A census that counted nothing would make the ratchet below pass on any tree."""
     assert _clock_reads(REPO / "company/billing/collections.py") >= 1
-    # 16 live reads on 2026-11-08, after archive increment 2 took five; the floor asks only
-    # that the census counts a tree's worth, not today's number.
-    assert sum(census().values()) >= 10
+    # 13 live reads on 2026-11-08, after archive increment 4; the floor asks
+    # only that the census counts a tree's worth, not today's number.
+    assert sum(census().values()) >= 5
 
 
 def test_no_company_file_gains_a_wall_clock_read():

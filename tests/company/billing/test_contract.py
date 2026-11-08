@@ -4,10 +4,7 @@ from datetime import date
 from company.billing.contract import (
     contract_end_date, days_until_renewal, is_in_notice_window, renewal_summary
 )
-from starlette.testclient import TestClient
-from company.portal.app import app
 
-client = TestClient(app, raise_server_exceptions=True)
 
 _PIVOT = date(2026, 6, 26)
 
@@ -65,20 +62,6 @@ def test_renewal_summary_variable():
     s = renewal_summary(_customer("variable"), as_of=_PIVOT)
     assert s["is_fixed"] is False
     assert s["end_date"] is None
-
-
-def test_dashboard_renders_for_fixed_customer():
-    r = client.get("/account/C1")
-    assert r.status_code == 200
-    # C1 is fixed_1yr — should see contract renewal info
-    assert "renewal" in r.text.lower() or "Contract" in r.text
-
-
-def test_dashboard_template_has_renewal_block():
-    with open("company/portal/templates/dashboard.html") as f:
-        html = f.read()
-    assert "renewal" in html
-    assert "days_until_renewal" in html or "days" in html
 
 
 def test_contract_end_date_returns_date_object():

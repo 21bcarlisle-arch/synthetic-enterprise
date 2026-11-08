@@ -3,10 +3,6 @@
 from datetime import date, timedelta
 from company.compliance.working_days import add_working_days as _add_working_days
 from company.crm.service_log import ServiceLog, ServiceEvent
-from starlette.testclient import TestClient
-from company.portal.app import app
-
-client = TestClient(app, raise_server_exceptions=True)
 
 
 def _complaint_event(cid, event_date, outcome="pending"):
@@ -68,23 +64,6 @@ def test_complaint_resolved_outcome():
     d = log.complaint_deadlines()[0]
     assert d["resolved"] is True
     assert d["ack_overdue"] is False
-
-
-def test_admin_complaints_route_returns_200():
-    r = client.get("/admin/complaints")
-    assert r.status_code == 200
-
-
-def test_admin_complaints_shows_empty_state():
-    r = client.get("/admin/complaints")
-    # Either shows table or empty state
-    assert "Complaint" in r.text
-
-
-def test_admin_link_from_admin_page():
-    with open("company/portal/templates/admin_complaints.html") as f:
-        html = f.read()
-    assert "acknowledge" in html.lower() or "Ofgem" in html
 
 
 def test_add_working_days_starting_friday():

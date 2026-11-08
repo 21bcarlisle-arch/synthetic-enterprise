@@ -115,8 +115,8 @@ class PriceFeed:
 # (KNIFE pass 3, design B8_market_feed_is_the_observable). It is the world-facing
 # INTAKE surface, so it belongs on the sanctioned seam where a legitimate
 # world-publishes-to-company crossing is legible as such; this module is the
-# company's own READER of the resulting file and keeps its two company-side
-# consumers (market.rate_comparison, portal.app).
+# company's own READER of the resulting file. Its two company-side consumers
+# (market.rate_comparison, portal.app) were archived on 8 Nov 2026, increment 4.
 #
 # Deliberately NOT re-exported from here. A re-export would leave the old
 # non-seam import path working, so the crossing this pass cut could silently

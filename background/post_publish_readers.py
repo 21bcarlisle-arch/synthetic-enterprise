@@ -160,7 +160,7 @@ def reader_tests(artefacts=ARTEFACTS, root: Path = PROJECT_DIR) -> list[str]:
     consts = artefact_constants(artefacts, root)
     # The LAST component, matched on an import line, not the dotted name: `from company.billing
     # import statement_export as sx` never spells `company.billing.statement_export`, and that is
-    # the case hop 2 exists for. On an IMPORT line because `company/portal/app.py` binds one, and
+    # the case hop 2 exists for. On an IMPORT line because a module named `app` (the archived portal's) binds one, and
     # a bare `\bapp\b` is in half the suite.
     hop2 = [(re.compile(r"(?m)^\s*(?:from|import)\s[^\n]*\b{}\b".format(
                 re.escape(mod.rsplit(".", 1)[-1]))),

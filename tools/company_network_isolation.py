@@ -105,8 +105,6 @@ KNOWN_ROUTES: dict[str, str] = {
         "sim.gas_prices_history (wget, FRED)",
     "company.interfaces.recorded_sim_interface":
         "inherits the seam's route by importing it",
-    "company.portal.app":
-        "inherits the seam's route by importing it",
 }
 
 

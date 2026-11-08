@@ -105,9 +105,11 @@ director's instruction:
   OPINION about value and retention"*, feeding cost-to-serve, churn risk and CLV. It is modelling **of**
   customers for our decisions, not modelling **for** a customer producing a household outcome. Nothing
   it computes is ever offered to the household it is about.
-- **Advice — MODULES ON DISK, NO RECIPIENT.** `company/pricing/switching_recommendation.py` renders
-  inside `company/portal/app.py`, and `company/crm/decarb_recommender.py` exists and is discovery-wired.
-  But **nothing in `simulation/` consumes a recommendation** and no simulated customer visits the
+- **Advice — MODULES ON DISK, NO RECIPIENT.** `company/pricing/switching_recommendation.py` rendered
+  inside the customer portal, and `company/crm/decarb_recommender.py` exists and is discovery-wired.
+  *(Corrected 8 Nov 2026: this said the recommendation "renders inside `company/portal/app.py`". No
+  run reached the portal, and it moved to `archive/unhooked_supplier/` that day.)*
+  But **nothing in `simulation/` consumes a recommendation** and no simulated customer ever visited the
   portal, so no advice has ever reached a household or changed one's behaviour. The channel is built
   everywhere except at the point where it would matter.
 

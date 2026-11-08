@@ -196,9 +196,9 @@ a new orphan still needs a judgement and a ruling whose subject got wired still 
 company.billing.ppm_warrant_register | unhooked | consumers:company.billing | PPM Installation Warrant Register (Phase FX).; 1 test(s); no importer
 company.carbon.carbon_ledger | unhooked | consumers:company.carbon | E5 — the carbon three-ledger: the company's carbon P&L (SAVED / SPENT / NET).; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/carbon/half_hourly_footprint.py's docstring as the SAVED/SPENT/NET ledger beside it
 company.crm.decarb_recommender | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
+company.crm.service_log | unhooked | consumers:company.crm | KEEP for C32_one_obligation_one_vulnerability_scorer, whose file_scope names it (its free-text flag_type is the vocabulary that atom converges); 8 test(s); no importer; arrived 2026-11-08 when its only importer, company.portal.app, was archived (increment 4)
 company.crm.home_registry | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/crm/decarb_recommender.py's docstring as what it reads
 company.market.uig_allocation_register | unhooked | consumers:company.market | Unidentified Gas (UIG) Allocation Register (Phase GN).; 2 test(s); no importer
-company.portal.app | unhooked | none:company.portal | C2 -- Customer self-service portal.; 34 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in tools/generate_explore_hh_day.py's docstring as the page that calls the read; the tool does not import or run it
 company.regulatory.consumer_vulnerability_register | unhooked | consumers:company.regulatory | Consumer Vulnerability Duty Action Register (Phase DG).; 1 test(s); no importer
 company.crm.onboarding_journey | unhooked | consumers:company.crm | Customer Onboarding Journey Tracker (Phase FE).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 ORPHAN-DISPOSITIONS -->

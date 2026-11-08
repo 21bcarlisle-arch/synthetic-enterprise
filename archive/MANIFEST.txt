@@ -634,3 +634,76 @@ tests/company/pricing/test_tou_migration_scenario.py | 3b whole
 tests/company/regulatory/test_seg_book.py | 3b whole
 tests/company/pricing/test_ev_cross_subsidy.py | 3b whole
 tests/company/pricing/test_tou_tariff_assessor.py | 3b whole
+company/portal/__init__.py | 4 company.portal
+company/portal/app.py | 4 company.portal
+company/portal/templates/admin.html | 4 company.portal
+company/portal/templates/admin_collections.html | 4 company.portal
+company/portal/templates/admin_complaints.html | 4 company.portal
+company/portal/templates/admin_renewals.html | 4 company.portal
+company/portal/templates/admin_retention.html | 4 company.portal
+company/portal/templates/admin_vulnerability.html | 4 company.portal
+company/portal/templates/base.html | 4 company.portal
+company/portal/templates/billing.html | 4 company.portal
+company/portal/templates/bills.html | 4 company.portal
+company/portal/templates/consumption.html | 4 company.portal
+company/portal/templates/contact.html | 4 company.portal
+company/portal/templates/dashboard.html | 4 company.portal
+company/portal/templates/direct_debit.html | 4 company.portal
+company/portal/templates/login.html | 4 company.portal
+company/portal/templates/payment_confirm.html | 4 company.portal
+company/portal/templates/regulatory.html | 4 company.portal
+company/portal/templates/smart_meter.html | 4 company.portal
+company/portal/templates/statement.html | 4 company.portal
+company/portal/templates/tariff_compare.html | 4 company.portal
+company/portal/templates/tariff_switch_confirm.html | 4 company.portal
+company/portal/templates/trading.html | 4 company.portal
+company/billing/consumption.py | 4 company.billing (its only importer was the portal)
+company/billing/consumption_forecast.py | 4 company.billing (its only importer was the portal)
+company/billing/eac_calibration.py | 4 company.billing (its only importer was the portal)
+company/billing/efficiency_advice.py | 4 company.billing (its only importer was the portal)
+company/billing/hh_consumption.py | 4 company.billing (its only importer was the portal)
+company/billing/payment_ledger.py | 4 company.billing (its only importer was the portal)
+company/billing/payments.py | 4 company.billing (its only importer was the portal)
+company/billing/usage_benchmark.py | 4 company.billing (its only importer was the portal)
+company/market/rate_comparison.py | 4 company.market (its only importer was the portal)
+tests/company/billing/test_consumption.py | 4 whole
+tests/company/billing/test_efficiency_advice.py | 4 whole
+tests/company/billing/test_hh_consumption.py | 4 whole
+tests/company/billing/test_usage_benchmark.py | 4 whole
+tests/company/crm/test_csat.py | 4 archived legs only; the live legs stay at this path
+tests/company/crm/test_ombudsman.py | 4 archived legs only; the live legs stay at this path
+tests/company/portal/test_admin_csat.py | 4 whole
+tests/company/portal/test_admin_nav.py | 4 whole
+tests/company/portal/test_admin_renewals.py | 4 whole
+tests/company/portal/test_admin_retention.py | 4 whole
+tests/company/portal/test_admin_vulnerability.py | 4 whole
+tests/company/portal/test_design_system.py | 4 whole
+tests/company/portal/test_portal_contact.py | 4 whole
+tests/company/portal/test_portal_dd.py | 4 whole
+tests/company/portal/test_portal_regulatory.py | 4 whole
+tests/company/portal/test_portal_regulatory_css.py | 4 whole
+tests/company/portal/test_portal_statement.py | 4 whole
+tests/company/portal/test_smart_meter.py | 4 whole
+tests/company/portal/test_tariff_compare.py | 4 whole
+tests/company/portal/test_tou_band.py | 4 whole
+tests/company/portal/test_trading_route.py | 4 whole
+tests/company/test_phase_im_coverage_expansion.py | 4 whole
+tests/test_payment_ledger.py | 4 whole
+tests/company/billing/test_consumption_forecast.py | 4 whole
+tests/company/billing/test_eac_calibration.py | 4 whole
+tests/company/billing/test_payments.py | 4 whole
+tests/company/market/test_rate_comparison.py | 4 whole
+tests/company/portal/test_consumption.py | 4 whole
+tests/company/portal/test_portal.py | 4 whole
+tests/company/portal/test_portal_admin.py | 4 whole
+tests/company/portal/test_trading_spot_feed.py | 4 whole
+tests/company/portal/test_portal_payment.py | 4 whole
+tests/company/billing/test_carbon_footprint.py | 4 archived legs only; the live legs stay at this path
+tests/company/billing/test_collections.py | 4 archived legs only; the live legs stay at this path
+tests/company/billing/test_contract.py | 4 archived legs only; the live legs stay at this path
+tests/company/billing/test_fuel_mix.py | 4 archived legs only; the live legs stay at this path
+tests/company/crm/test_complaint_deadlines.py | 4 archived legs only; the live legs stay at this path
+tests/company/portal/test_hh_consumption_feed.py | 4 archived legs only; the live legs stay at this path
+tests/company/pricing/test_switching_recommendation.py | 4 archived legs only; the live legs stay at this path
+tests/company/test_phase_hv_coverage_expansion.py | 4 archived legs only; the live legs stay at this path
+tests/company/test_phase_ik_coverage_expansion.py | 4 archived legs only; the live legs stay at this path

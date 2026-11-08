@@ -74,21 +74,6 @@ def test_recommendation_has_required_fields():
     assert "urgency" in result
 
 
-def test_dashboard_route_returns_200():
-    from starlette.testclient import TestClient
-    from company.portal.app import app
-    client = TestClient(app, raise_server_exceptions=True)
-    r = client.get("/account/C1")
-    assert r.status_code == 200
-
-
-def test_dashboard_template_has_switch_widget():
-    with open("company/portal/templates/dashboard.html") as f:
-        html = f.read()
-    assert "switch_rec" in html
-    assert "Tariff advice" in html
-
-
 from company.pricing.switching_recommendation import _cap_p_per_kwh
 
 

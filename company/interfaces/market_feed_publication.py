@@ -25,8 +25,9 @@ reason that does not apply here.
 
 WHAT STAYED BEHIND, AND WHY
 ---------------------------
-`company/market/price_feed.py` keeps `PriceFeed` (the READING side) and its two
-company-side consumers, `market.rate_comparison` and `portal.app`. Only the
+`company/market/price_feed.py` keeps `PriceFeed` (the READING side). Its two
+company-side consumers, `market.rate_comparison` and `portal.app`, were archived
+on 8 Nov 2026 (archive increment 4: no run reached them). Only the
 world-facing publication surface relocated. The company reads the FILE this
 writes; it still never calls a SIM function.
 

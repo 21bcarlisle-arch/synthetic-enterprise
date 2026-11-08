@@ -40,22 +40,6 @@ def test_renewable_trend_direction():
     assert fuel_mix_summary(2025)["trend_direction"] == "up"
 
 
-def test_regulatory_route_has_fuel_mix():
-    from starlette.testclient import TestClient
-    from company.portal.app import app
-    client = TestClient(app, raise_server_exceptions=True)
-    r = client.get("/regulatory")
-    assert r.status_code == 200
-    assert "Fuel Mix" in r.text
-
-
-def test_regulatory_template_has_fuel_section():
-    with open("company/portal/templates/regulatory.html") as f:
-        html = f.read()
-    assert "fuel_mix" in html
-    assert "Renewable" in html
-
-
 def test_a_period_before_the_fetched_editions_is_absent():
     # No clamping: a year with no DESNZ edition held has no disclosure mix
     assert get_fuel_mix(2010) is None

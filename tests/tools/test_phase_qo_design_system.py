@@ -1,7 +1,7 @@
 """Tests for Phase QO shadow-side design system (PRIORITIES.md P1):
 kpi-card/kpi-grid and rag-chip give the shadow mirror the same component
-vocabulary as the customer portal's design system (company/portal/templates/
-base.html), plus population_anchoring.json (Phase PQ/PR/PS) surfaced as
+vocabulary as the customer portal's design system (archived since 8 Nov 2026 at
+archive/unhooked_supplier/company/portal/templates/base.html), plus population_anchoring.json (Phase PQ/PR/PS) surfaced as
 rag-chips on the Sim tab for the first time."""
 from tools.generate_shadow_html import build_index, build_sim, CSS, _population_anchoring_rag
 

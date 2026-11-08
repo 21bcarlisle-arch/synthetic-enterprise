@@ -253,3 +253,59 @@ names one by an import or a quoted dotted name. It found 133 files.
 The portal (one increment), then the C2 trio after a marked correction to
 `THE_MODEL_ON_A_PAGE.md`. Then `carbon_ledger`, whenever E5 is decided. The weekly caller for
 `--dispositions` is still owed (point 3 of Done means).
+
+## Increment 4 (built 8 Nov): the portal, 9 modules only it imported, 30 whole tests and the archived legs of 11 shared files
+
+The census was re-derived at draw time from `capability_index.build_rows()`, which skips `archive/`.
+
+- **The cascade.** `company.portal.app` was the only importer of ten live modules, and each was
+  already in `orphan_baseline`, so no run reached it. They were `billing.consumption`,
+  `consumption_forecast`, `eac_calibration`, `efficiency_advice`, `hh_consumption`,
+  `payment_ledger`, `payments`, `usage_benchmark`, `market.rate_comparison` and
+  `crm.service_log`. Nine moved with the portal: the package (23 files, templates included)
+  and those nine.
+- **`crm.service_log` stays. Corrected during this build:** it moved in the first pass and was
+  moved back. C32 (`C32_one_obligation_one_vulnerability_scorer`, a live atom at harden) names it
+  in `file_scope`, and the 24 Oct ruling keeps any module in a live atom's scope. It now has no
+  importer, so it gets a register row as a C32 keep. `--dispositions` reads 8 orphans with 8
+  ruled.
+- **`market.price_feed` does not cascade.** `market_feed_publication` still imports it. Two
+  comments that called `rate_comparison` and the portal its consumers now say both are archived.
+- **The census.** 51 test files named the set. 30 moved whole: 18 were pure, and 12 kept nothing
+  live, or only a local-constant tautology (`test_portal_payment`'s `VAT == 0.05`). 11 were split
+  (184 functions: 136 kept, 48 archived). The whole moves carry 460 test functions. Function
+  counts are conserved on every split file. No live residue names a set module. No live module
+  loses its last referring test file; the largest drop is `billing.invoice`, from 14 files to 7.
+  No touched file's I001, E402 or F401 count rose. `test_phase_im_coverage_expansion.py` already
+  had 3a legs at its archive path, so its last 8 live tests are appended there under a divider
+  and the live file is removed.
+- **Controls edited by hand, each cut to its live part:**
+  - `tools.company_network_isolation.KNOWN_ROUTES` loses `company.portal.app` (shrink-only). The
+    new-route mutation is re-homed onto `company.interfaces.recorded_sim_interface`, so it still
+    has a victim that fires.
+  - The wall-clock test's `HONEST_READS` loses its three portal rows. The
+    excuses-its-function-not-its-file leg probes `company/market/price_feed.py::is_stale`
+    instead. The census floor goes from `>= 10` to `>= 5`, because 13 reads remain and
+    `home_registry` (4 of them) leaves with the C2 trio.
+  - `test_wall_channel_census`'s synthetic reader strings name `company/crm/retention_risk.py`
+    instead of the portal. They are fixture text; nothing reads them as a path.
+  - C32's `file_scope` points the admin vulnerability template at its archive path.
+- **Left alone on purpose:** `test_internal_seam_verifier`. Its `company.billing.payments`
+  strings are planted source that the static verifier parses; it never imports them.
+  `test_current_tree_passes` is red on the clean base, as filed above, and is unchanged here.
+  `wall_channel_census_baseline.json`'s four portal reader rows, `decisions.jsonl` (a ledger),
+  the stores' prose, and the §4 table in the register (kept unedited as evidence) all stay.
+- **Whole-repo scans checked.** Every `rglob` or `os.walk` over a repo-wide root in `tools/` and
+  `background/` was read. `closed_atom_delivery` is the only one that reached `archive/`, and 3b
+  fixed it. The rest are rooted at `company/`, `tests/`, `site/` or a named directory.
+- **Full collection:** 34,737 tests, no errors. `tests/architecture`, `tests/design`, `tests/controls`
+  and the index, map and closed-atom tests: 1,213 passed and 5 red. All 5 are red on a clean
+  `origin/main` (13ce18d9e3) with the same counts: the cited-constant walker, the three
+  domain-constant-origin tests and the published-row poison. 3a filed them.
+
+## What is left (after increment 4)
+
+The C2 trio, after a marked correction to `THE_MODEL_ON_A_PAGE.md`. `carbon_ledger`, whenever E5
+is decided. Of the 8 orphans, 4 are now keeps: C32's three (`ppm_warrant_register`,
+`consumer_vulnerability_register`, `service_log`) and EP10's `uig_allocation_register`. The
+weekly caller for `--dispositions` is still owed.

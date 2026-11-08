@@ -19,9 +19,11 @@ that decides what the supplier had to buy; the second is what the same meter loo
 nothing is being heated.
 
 WHICH SIDE OF THE WALL THIS IS ON -- checked, not assumed. For an HH-settled meter the supplier
-genuinely receives these reads: `company/portal/app.py::consumption_page` calls
-`company.billing.hh_consumption.recent_hh_periods` over `docs/market_data/consumption_feed.json`
-for exactly the accounts whose `metering == "HH"`. So this is one of the few places where the
+genuinely receives these reads, as `docs/market_data/consumption_feed.json` for the accounts
+whose `metering == "HH"`. (The supplier code that read that feed, the portal's `consumption_page`
+through `company.billing.hh_consumption.recent_hh_periods`, was archived to
+`archive/unhooked_supplier/` in increment 4, 8 Nov 2026, because no run reached it.
+`company/carbon/half_hourly_footprint.py` still names the path as a constant.) So this is one of the few places where the
 world's record and the company's picture are the SAME artefact -- which is the wall lesson of
 stage 3 rather than an exception to it, because the profile-class household next to it reports a
 handful of times a year and its curve is inferred. `corroboration` below MEASURES that agreement

@@ -266,7 +266,8 @@ def _add_days(date_str: str, days: int) -> str:
 
 
 # ---------------------------------------------------------------------------
-# SQLite-backed portal helpers (used by company/portal/app.py)
+# SQLite-backed portal helpers (the portal that used them, company/portal/app.py, is archived
+# at archive/unhooked_supplier/ since increment 4, 8 Nov 2026)
 # ---------------------------------------------------------------------------
 
 import sqlite3

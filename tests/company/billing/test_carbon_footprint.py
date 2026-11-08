@@ -50,21 +50,6 @@ def test_carbon_trend_returns_list():
     assert all("year" in t and "kg_co2e" in t for t in trend)
 
 
-def test_consumption_template_has_carbon():
-    with open("company/portal/templates/consumption.html") as f:
-        html = f.read()
-    assert "carbon" in html
-    assert "CO" in html
-
-
-def test_consumption_route_returns_200():
-    from starlette.testclient import TestClient
-    from company.portal.app import app
-    client = TestClient(app, raise_server_exceptions=True)
-    r = client.get("/account/C1/consumption")
-    assert r.status_code == 200
-
-
 def test_carbon_estimate_structure():
     result = estimate_carbon(5000, "electricity", 2022)
     assert "kg_co2e" in result

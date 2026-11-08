@@ -3285,7 +3285,7 @@ def _artefact() -> dict:
 
 def _readers() -> set[str]:
     """Channel F's width: `bills` and `clv_snapshots` are read business-side, `private_blob` not."""
-    return {"bills -> saas/reporting/annual_report.py", "clv_snapshots -> company/portal/app.py"}
+    return {"bills -> saas/reporting/annual_report.py", "clv_snapshots -> company/crm/retention_risk.py"}
 
 
 def _frozen(artefact: dict | None = None) -> dict[str, tuple[str, ...]]:
@@ -3329,7 +3329,7 @@ def test_MUTATION_a_RENAMED_nested_field_fails_because_the_new_name_is_an_additi
 
 def test_MUTATION_a_key_acquiring_its_FIRST_business_reader_is_a_new_crossing_and_fails():
     art = _artefact()
-    readers = _readers() | {"private_blob -> company/portal/app.py"}
+    readers = _readers() | {"private_blob -> company/crm/retention_risk.py"}
     drift = wcc.check_nested_schema(wcc.nested_schema(art, readers), _frozen())
     assert not drift.ok and drift.newly_read == ("private_blob",), drift.report()
     assert "NEW crossing on channel F" in drift.report()
