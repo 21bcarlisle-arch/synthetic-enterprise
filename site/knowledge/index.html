@@ -49,6 +49,8 @@ a.card:hover { border-color: var(--teal); }
 .layer-badge.layer-insight, .layer-badge.layer-mixed { color: var(--amber); }
 .card-why { font-size: 13px; color: var(--text); margin-top: 6px; }
 .why-k { font-weight: 600; }
+.card-back { display: block; font-size: 11px; color: var(--blue); text-decoration: none; margin: -8px 0 14px 20px; }
+p.card-back { color: var(--muted); }
 .card-foot { margin-top: 6px; font-size: 10px; color: var(--muted); }
 .part { margin-top: 44px; }
 .part-h { font-size: 23px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 2px; padding-top: 10px; border-top: 2px solid var(--border); }
@@ -562,26 +564,38 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <section class="part" id="part-build" data-part="build">
   <h2 class="part-h">Building it</h2>
   <p class="part-why">How Poesys itself is built: the software, product and AI practices it follows, each with the outside source it is taken from and what enforces it here. These are the map's “How it’s built” concepts, read from its register.</p>
-  <a class="card practice" href="../model/map/#c-build.mutation" data-concept="build.mutation">
-    <div class="card-h">Checks that can fail</div>
-    <div class="card-p">A check counts only once it has been seen to fail when the defect it guards is put back.</div>
-    <div class="card-foot">Taken from: Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)</div>
-  </a>
-  <a class="card practice" href="../model/map/#c-build.gate" data-concept="build.gate">
-    <div class="card-h">The commit gate</div>
-    <div class="card-p">Every change passes the same automated checks before it lands, and the gate is never skipped.</div>
-    <div class="card-foot">Taken from: DORA: continuous integration, trunk-based development</div>
-  </a>
-  <a class="card practice" href="../model/map/#c-build.dead_code" data-concept="build.dead_code">
-    <div class="card-h">Dead code</div>
-    <div class="card-p">Code nothing calls is removed or archived; it costs reading time, test time and trust.</div>
-    <div class="card-foot">Taken from: Fowler, Refactoring (2nd ed.): the dead-code smell</div>
-  </a>
-  <a class="card practice" href="../model/map/#c-build.one_home" data-concept="build.one_home">
-    <div class="card-h">One source of truth</div>
-    <div class="card-p">Each concept is defined once, and everything else reads that definition.</div>
-    <div class="card-foot">Taken from: Single source of truth; DRY (Hunt and Thomas, The Pragmatic Programmer)</div>
-  </a>
+  <div class="practice-wrap" id="practice-build.mutation">
+    <a class="card practice" href="../model/map/#c-build.mutation" data-concept="build.mutation">
+      <div class="card-h">Checks that can fail</div>
+      <div class="card-p">A check counts only once it has been seen to fail when the defect it guards is put back.</div>
+      <div class="card-foot">Taken from: Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)</div>
+    </a>
+    <a class="card-back" href="../harness/#layer-5">Held on How it&rsquo;s built by layer 5 of the control stack, Proof the checks work &rarr;</a>
+  </div><!-- /practice -->
+  <div class="practice-wrap" id="practice-build.gate">
+    <a class="card practice" href="../model/map/#c-build.gate" data-concept="build.gate">
+      <div class="card-h">The commit gate</div>
+      <div class="card-p">Every change passes the same automated checks before it lands, and the gate is never skipped.</div>
+      <div class="card-foot">Taken from: DORA: continuous integration, trunk-based development</div>
+    </a>
+    <a class="card-back" href="../harness/#layer-4">Held on How it&rsquo;s built by layer 4 of the control stack, The commit gate &rarr;</a>
+  </div><!-- /practice -->
+  <div class="practice-wrap" id="practice-build.dead_code">
+    <a class="card practice" href="../model/map/#c-build.dead_code" data-concept="build.dead_code">
+      <div class="card-h">Dead code</div>
+      <div class="card-p">Code nothing calls is removed or archived; it costs reading time, test time and trust.</div>
+      <div class="card-foot">Taken from: Fowler, Refactoring (2nd ed.): the dead-code smell</div>
+    </a>
+    <p class="card-back">No layer of the control stack holds it yet: nothing in canon states a dead-code rule.</p>
+  </div><!-- /practice -->
+  <div class="practice-wrap" id="practice-build.one_home">
+    <a class="card practice" href="../model/map/#c-build.one_home" data-concept="build.one_home">
+      <div class="card-h">One source of truth</div>
+      <div class="card-p">Each concept is defined once, and everything else reads that definition.</div>
+      <div class="card-foot">Taken from: Single source of truth; DRY (Hunt and Thomas, The Pragmatic Programmer)</div>
+    </a>
+    <a class="card-back" href="../harness/#layer-7">Held on How it&rsquo;s built by layer 7 of the control stack, The published state &rarr;</a>
+  </div><!-- /practice -->
   <a class="card reading-log" href="./reading-log.html">
     <div class="card-h">The reading log</div>
     <div class="card-p">Every outside source we have read on building software, products and AI agents: what it claims, how strong its evidence is, our verdict and what we did. Rejected sources stay, with the reason.</div>

@@ -158,7 +158,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       so instead of showing a number.
     </p>
     <ol class="stack">
-      <li><b>Direction.</b> The director sets purpose, and his rulings are kept in his own words.
+      <li id="layer-1"><b>Direction.</b> The director sets purpose, and his rulings are kept in his own words.
         A planning agent turns them into priorities and never writes code. No agent spends real
         money, contacts a real person or makes a real-world commitment: those are walls, not approvals.
         <details class="held"><summary>Show the code that holds it</summary>Held by <code>background/one_way_door.py</code> and
@@ -167,7 +167,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
 <span class="ev"><span><b>Fired, last 30 days:</b> 61 commits changed a director document and carried the marked reason the gate demands; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 4 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-1:END -->
         <a class="down" href="#human">What the director decided, and what is reserved to him &darr;</a></li>
-      <li><b>Knowledge before build.</b> Every price, rate or threshold in the code must say where
+      <li id="layer-2"><b>Knowledge before build.</b> Every price, rate or threshold in the code must say where
         it came from, and a sourced figure must actually be used. A published knowledge page comes
         before a new capability.
         <details class="held"><summary>Show the code that holds it</summary>Held by <code>tests/architecture/test_a_domain_constant_carries_its_origin.py</code>
@@ -176,7 +176,7 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
 <span class="ev"><span><b>Fired, last 30 days:</b> 64 sourced research documents added, each refused unless it names the knowledge page it feeds; last 24 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-2:END -->
         <a class="down" href="../knowledge/">The Knowledge pages this layer guards &darr;</a></li>
-      <li><b>The walls.</b> The simulated supplier can know only what a real supplier could know,
+      <li id="layer-3"><b>The walls.</b> The simulated supplier can know only what a real supplier could know,
         and it cannot open a network connection. The simulated world's hidden truth never reaches it.
         <details class="held"><summary>Show the code that holds it</summary>Held by <code>company/interfaces/sim_interface.py</code>, the one doorway,
         and <code>tools/company_network_isolation.py</code>.</details>
@@ -184,23 +184,25 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
 <span class="ev"><span><b>Fired, last 30 days:</b> No tool call was denied for reaching across the wall in the window; the last denial was 4 Sep 2026. The network wall refuses by construction and leaves nothing to count.</span><span><b>Shown able to fail:</b> 8 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-3:END -->
         <a class="down" href="#wired">How the code is wired, and where it crosses the wall &darr;</a></li>
-      <li><b>The commit gate.</b> Every commit runs a chain of checks before it is written, and
+      <li id="layer-4"><b>The commit gate.</b> Every commit runs a chain of checks before it is written, and
         another on its message. Limits on size and known shortcuts are frozen at today's level, and any growth is refused. Skipping the
         gate is never allowed.
         <details class="held"><summary>Show the code that holds it</summary>Held by <code>tools/git-hooks/</code>; the count is in the figures below.</details>
 <!-- HARNESS-LAYER-4:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 5 of the publishing agent&#x27;s 26 commit attempts refused; last 19 Oct 2026. Only that agent logs its gate, so other agents&#x27; refusals are not counted.</span><span><b>Shown able to fail:</b> 10 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-4:END -->
+        <a class="down practice-link" href="../knowledge/#practice-build.gate">The practice it holds: The commit gate &darr;</a>
         <a class="down" href="#rules-sec">The rules the gate runs &darr;</a></li>
-      <li><b>Proof the checks work.</b> Each control is shown failing on its own defect by putting
+      <li id="layer-5"><b>Proof the checks work.</b> Each control is shown failing on its own defect by putting
         that defect back.
         <details class="held"><summary>Show the code that holds it</summary>Held by <code>docs/design/control_registry.json</code> and the tests that
         name their own defect.</details>
 <!-- HARNESS-LAYER-5:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Counted, last 30 days:</b> 541 of 2,182 test files record the planted fault they were seen to fail on; 61 of them added in the window, the last 24 Oct 2026.</span></span>
 <!-- HARNESS-LAYER-5:END -->
+        <a class="down practice-link" href="../knowledge/#practice-build.mutation">The practice it holds: Checks that can fail &darr;</a>
         <a class="down" href="#checks">Checks that can actually fail &darr;</a></li>
-      <li><b>Independent judgement.</b> Fresh AI reviewers with no memory of the build read
+      <li id="layer-6"><b>Independent judgement.</b> Fresh AI reviewers with no memory of the build read
         finished work cold, as an outsider would, before a phase of work or a public page is closed.
         <details class="held"><summary>Show the code that holds it</summary>Held by <code>.claude/agents/phase-close-evaluator.md</code> and the
         cold-eyes review in <code>.claude/skills/cold-eyes-walk/</code>.</details>
@@ -208,16 +210,18 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
 <span class="ev"><span><b>Fired, last 30 days:</b> 10 blind reviews recorded; last 21 Oct 2026.</span><span><b>Shown able to fail:</b> 2 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-6:END -->
         <a class="down" href="#meaning">How the reviewers are graded &darr;</a></li>
-      <li><b>The published state.</b> What was deployed is fetched back and compared byte for byte
+      <li id="layer-7"><b>The published state.</b> What was deployed is fetched back and compared byte for byte
         with what a reader is served. Each page's own code is run against the real data in the tests.
         The simulated world is checked against the published figures its Knowledge pages cite.
-        <details class="held"><summary>Show the code that holds it</summary>Held by <code>tools/assert_deployed_bytes_are_served.py</code> and
-        <code>tools/world_claims.py</code>.</details>
+        <details class="held"><summary>Show the code that holds it</summary>Held by <code>tools/assert_deployed_bytes_are_served.py</code>,
+        <code>tools/world_claims.py</code> and <code>tools/canon_drift_check.py</code>, which checks the
+        canon page still matches the code.</details>
 <!-- HARNESS-LAYER-7:START (written at publish by tools/harness_page_figures.py -- do not hand-edit) -->
 <span class="ev"><span><b>Fired, last 30 days:</b> 27 of 69 publish gate runs stopped a publish; last 13 Oct 2026.</span><span><b>Shown able to fail:</b> 4 tests that name this layer&#x27;s code record a planted fault</span></span>
 <!-- HARNESS-LAYER-7:END -->
+        <a class="down practice-link" href="../knowledge/#practice-build.one_home">The practice it holds: One source of truth &darr;</a>
         <a class="down" href="#publish-status">The publishing agent's latest state &darr;</a></li>
-      <li><b>Learning.</b> A mistake is fixed as a class, not an instance, and becomes a rule that
+      <li id="layer-8"><b>Learning.</b> A mistake is fixed as a class, not an instance, and becomes a rule that
         runs. A check that keeps refusing becomes work, not a retry. Each week a review reads the
         rules, the code and the findings together.
         <details class="held"><summary>Show the code that holds it</summary>Held by <code>background/finding_classes.py</code> and
