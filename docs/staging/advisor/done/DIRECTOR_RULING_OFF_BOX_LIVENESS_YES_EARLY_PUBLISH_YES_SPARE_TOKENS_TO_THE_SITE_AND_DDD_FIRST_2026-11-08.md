@@ -51,3 +51,17 @@ Probable failure modes:
 Proportionality: contract-touching (a live credential and a public site) — implement with the named mitigations.
 
 — Director ruling, 8 Nov 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+(seat executor, 8 Nov.) **The ruling is recorded and its work is carried by named commitments; the builds are not done.**
+- **Close (both rows):** `off-box-liveness` and `the-publish-window-is-anchored-to-monday` are answered in
+  `docs/direction/DIRECTION.yaml` with work id, done-means and due (28 Oct rule): `off-box-liveness-workflow`, due
+  15 Nov (the workflow proven against a stale heartbeat, its credential only in repo secrets, both stops given a cause
+  or "we cannot tell"); `early-publish-this-week`, due 10 Nov. `director_concerns --overdue` chases both.
+- **Item 3, DDD first:** recorded as the head of rota (b) in `docs/institutional/reading_log.md`. The rota itself still
+  queues behind the correctness exit test (5 Nov steer's own **When**).
+- **Item 2, site spend:** handed on as a continuation; the choice and its spend go in the stretch log when made. The
+  correctness gate still governs what the site shows.
+- Not done here: the ops-repo workflow, the stop-cause investigation, the early-publish change to
+  `content_publish_window`, and the site work. Each is a continuation, not a claim on this file.

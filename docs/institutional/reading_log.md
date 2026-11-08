@@ -11,6 +11,12 @@ Set up on the director's 5 Nov steer
 The first block is the advisor's backfill for early October to 5 Nov. Sources whose verdict the
 advisor could not reconstruct were left out rather than guessed.
 
+**Rota (b), the wider craft, starts with domain-driven design (Evans)** (director, 8 Nov 13:22 GMT: "Yes when we
+research the author include or start with DDD"). Its first pass checks the concept register against DDD's bounded
+contexts: each term records the area it belongs to, and where the world's meaning and the supplier's differ, both are
+recorded with the translation at the seam ("customer": a household in the world, an account in the supplier). The
+rest of rota (b) follows in the 5 Nov steer's order.
+
 **Evidence grades, weakest first:** vendor post · single author · book · peer-reviewed ·
 multi-organisation data. Most of what reaches us is one of the first two.
 

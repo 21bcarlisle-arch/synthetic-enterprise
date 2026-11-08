@@ -230,47 +230,60 @@ wrong:
       gate verdict from it is not clean on those two rows. Item 3 grades them through the publisher''s own path.'
     corrected: false
 for_the_director:
-  - id: off-box-liveness
-    raised: "2026-11-07"
-    kind: canon_intent
-    what: >-
-      The machine was off for about 60 hours (5 Nov 03:31Z to 7 Nov 15:24Z), and nothing told you. The dead-man's
-      switch, the one push you kept on 15 Oct, runs on the same guest, so it cannot report the guest being down. Your
-      advisor went on staging steers through those two days, and nothing on the box read them. I cannot tell from the
-      box whether you shut it down on purpose, and nothing in its logs says.
-    proposal: >-
-      Investigate first: did you shut the PC or WSL down between 5 Nov 03:31Z and 7 Nov 15:24Z? If not, move the
-      dead-man's single push off the box. A scheduled GitHub Actions workflow on the ops repo would read the liveness
-      heartbeat the sim-runner already pushes there, and send that same one push when the heartbeat is more than 6
-      hours old. Nothing else reaches your phone.
-    recommendation: >-
-      I recommend the off-box check if the outage was not yours. It keeps your 15 Oct ruling (one push, only when the
-      machine is dead) and fixes the one case the ruling cannot see today. The evidence is two stops in five days (24h
-      on 3-4 Nov, 60h on 5-7 Nov), and the second cost the whole stretch. The trade-off is one more workflow, and a
-      push from GitHub's servers rather than from your box. Until you rule, nothing changes, the on-box dead-man stays
-      as it is, and the work goes on. If you say the outage was yours, I will withdraw this and record that a planned
-      shutdown is not a fault.
-    status: open
-  - id: the-publish-window-is-anchored-to-monday
-    raised: "2026-11-07"
-    kind: strategy
-    what: >-
-      The publish window is anchored to Monday by your 26 Sep ruling, so a book that passes the full gate this weekend
-      still cannot reach the site before Mon 9 Nov 04:00 GMT. Your 7 Nov 20:22 reading expected the site updated this
-      week.
-    proposal: >-
-      Allow one early publish this week: the first book after the 21:00 UTC unpin that passes the full invariant gate
-      goes to the site at once. The Monday anchor then resumes unchanged. Your ruling was there to stop six publishes in
-      a day (the 4 Sep cadence that wasn't real), and one publish this week does not undo that. If you say no, the
-      window holds and Monday's publish goes ahead as ruled.
-    recommendation: >-
-      I recommend one early publish this week, as soon as a book passes the full gate, with Monday kept as the standing
-      anchor.
-    status: open
-    resolution: ""
-    evidence: >-
-      Ruling: director 2026-09-26 09:29 UTC (docs/design/canon_review_2026-10/inputs/director_words_filtered.md:35),
-      enforced by background/publish_freshness.content_publish_window. Hold state: next_opens 2026-11-09T04:00Z, last
-      figures on origin 2026-11-03T02:48Z (run 0a6391d186). Reading:
-      docs/staging/advisor/done/DIRECTOR_READING_USAGE_52PCT_SATURDAY_2022_AND_HE_EXPECTED_THE_SITE_UPDATED_THIS_WEEK_2026-11-07.md
-      item 2. The shared tree fast-forwarded to f248d5ffa at 21:00 UTC; sim-runner's next run starts about 21:34 UTC.
+- id: off-box-liveness
+  raised: '2026-11-07'
+  kind: canon_intent
+  what: The machine was off for about 60 hours (5 Nov 03:31Z to 7 Nov 15:24Z), and nothing told you. The
+    dead-man's switch, the one push you kept on 15 Oct, runs on the same guest, so it cannot report the
+    guest being down. Your advisor went on staging steers through those two days, and nothing on the box
+    read them. I cannot tell from the box whether you shut it down on purpose, and nothing in its logs
+    says.
+  proposal: 'Investigate first: did you shut the PC or WSL down between 5 Nov 03:31Z and 7 Nov 15:24Z?
+    If not, move the dead-man''s single push off the box. A scheduled GitHub Actions workflow on the ops
+    repo would read the liveness heartbeat the sim-runner already pushes there, and send that same one
+    push when the heartbeat is more than 6 hours old. Nothing else reaches your phone.'
+  recommendation: I recommend the off-box check if the outage was not yours. It keeps your 15 Oct ruling
+    (one push, only when the machine is dead) and fixes the one case the ruling cannot see today. The
+    evidence is two stops in five days (24h on 3-4 Nov, 60h on 5-7 Nov), and the second cost the whole
+    stretch. The trade-off is one more workflow, and a push from GitHub's servers rather than from your
+    box. Until you rule, nothing changes, the on-box dead-man stays as it is, and the work goes on. If
+    you say the outage was yours, I will withdraw this and record that a planned shutdown is not a fault.
+  status: answered
+  resolution: 'Director 8 Nov 13:22 GMT: yes. He does not know why the machine went off, so the 5-7 Nov
+    stop was not planned. Build the off-box check on the ops repo; find the cause of both stops or say
+    we cannot tell. Ruling: docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md'
+  resolved: '2026-11-08'
+  commitment:
+    work_id: off-box-liveness-workflow
+    done_means: A scheduled GitHub Actions workflow on the ops repo sends the single dead-man push when
+      the sim-runner heartbeat is over 6h old, proven to fire against a stale heartbeat in a test, its
+      credential held only in repo secrets; and the 3-4 Nov and 5-7 Nov stops each carry a named cause
+      or 'we cannot tell' with what would tell next time.
+    due: '2026-11-15'
+- id: the-publish-window-is-anchored-to-monday
+  raised: '2026-11-07'
+  kind: strategy
+  what: The publish window is anchored to Monday by your 26 Sep ruling, so a book that passes the full
+    gate this weekend still cannot reach the site before Mon 9 Nov 04:00 GMT. Your 7 Nov 20:22 reading
+    expected the site updated this week.
+  proposal: 'Allow one early publish this week: the first book after the 21:00 UTC unpin that passes the
+    full invariant gate goes to the site at once. The Monday anchor then resumes unchanged. Your ruling
+    was there to stop six publishes in a day (the 4 Sep cadence that wasn''t real), and one publish this
+    week does not undo that. If you say no, the window holds and Monday''s publish goes ahead as ruled.'
+  recommendation: I recommend one early publish this week, as soon as a book passes the full gate, with
+    Monday kept as the standing anchor.
+  status: answered
+  resolution: 'Director 8 Nov 13:22 GMT: yes. One early publish as soon as a book passes the full gate;
+    the Monday anchor then resumes as ruled. Ruling: docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md'
+  evidence: 'Ruling: director 2026-09-26 09:29 UTC (docs/design/canon_review_2026-10/inputs/director_words_filtered.md:35),
+    enforced by background/publish_freshness.content_publish_window. Hold state: next_opens 2026-11-09T04:00Z,
+    last figures on origin 2026-11-03T02:48Z (run 0a6391d186). Reading: docs/staging/advisor/done/DIRECTOR_READING_USAGE_52PCT_SATURDAY_2022_AND_HE_EXPECTED_THE_SITE_UPDATED_THIS_WEEK_2026-11-07.md
+    item 2. The shared tree fast-forwarded to f248d5ffa at 21:00 UTC; sim-runner''s next run starts about
+    21:34 UTC.'
+  resolved: '2026-11-08'
+  commitment:
+    work_id: early-publish-this-week
+    done_means: The first book to pass the full invariant gate after 8 Nov is on the site before Mon 9
+      Nov 04:00 GMT or the Monday publish goes ahead as ruled, and content_publish_window is back on the
+      Monday anchor afterwards.
+    due: '2026-11-10'
