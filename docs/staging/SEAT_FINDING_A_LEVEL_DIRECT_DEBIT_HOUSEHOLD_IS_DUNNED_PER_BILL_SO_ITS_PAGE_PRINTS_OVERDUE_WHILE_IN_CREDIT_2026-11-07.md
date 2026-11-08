@@ -237,3 +237,50 @@ opens on the account's debit balance rather than a bill's face. Its pre-registra
 building" block above (1,724 → 0). That landing, not this one, hands off the grade, in the shape the 06:45 note
 asks for. The grade also reads this increment's `level_dd_schedule_reconcile` rows, against the pre-registration
 here.
+
+## Step 2b, second increment: the definition first, and why the world side cannot land alone (worker, 8 Nov 2026)
+
+**Nothing in the run moves in this commit.** It corrects the definition the desk will be built on, and
+measures why the outcome draw cannot change by itself.
+
+**The definition, corrected.** The knowledge page said that on a level account "the household's arrears are the
+account's debit balance". Ofgem's reporting definition says otherwise. A DD customer is in debt only "where they
+have fallen into debt while on direct debit by defaulting on one or more payments". It excludes "all other
+direct debit customers, including those customers with a debit at the end of a payment scheme" (letter of
+20 Sep 2011, Appendix 2, para 2.8). So a level account in seasonal debit with every collection taken is
+**not** in arrears. The page now says that, with the correction beside the old line
+(`payments_and_direct_debit_2026-10-25.md`, "What is owed"). The desk's figure for the build is the shortfall against the schedule,
+capped by the debit balance: `max(0, min(requested to date - received to date, debit balance))`. The journey opens
+only on a return. The K4 gap narrows to the desk's operational step on the day of a return.
+
+**Measured: why the outcome draw cannot change first.** The question is what the desk would do if phase 2b
+presented each level collection at its amount on its day, and the desk kept ageing bills from their due dates as it
+does now. A level collection for month m lands on the payment day *inside* month m, before month m's bill exists.
+So a leg in seasonal debit has a bill unpaid at its due date with nothing missed. On the fa915ac0d7 page ledger
+(`/var/tmp/grade-fa91-seat/ledger.json`; script `/var/tmp/l2b2-measure/fifo_on_level.py`, cash and bill faces as the
+page carries them):
+- 755 level legs and 31,395 bill due dates;
+- **10,247 due dates on 544 legs** find the leg in debit with no level collection yet failed;
+- median debit GBP 81.03.
+- The maximum, GBP 4,608.14, is not checked. It is likely a leg that left DD and was paid on receipt afterwards, which the script
+  does not separate.
+
+So a world-only landing would replace 1,724 false steps with several thousand false journey *openings*. The world
+change and the desk change land **together, or not at all**.
+
+**The cut, decided.** One landing, three parts:
+1. **World** (`LivePaymentTriad.record_period`, fed from `_post_month_bill`). A level leg that is not stopped,
+   cancelled or on its final month presents `InLoopLevelCollection`'s row: that amount on its collection date. The
+   per-period draw becomes the collection's outcome, still keyed by period, so no seed moves. The budget book and any
+   later settlement read that amount. A credit bill posts its credit note and does not cancel the month's collection.
+   The final month keeps the bill path, because a final bill is settled on its face.
+2. **Desk** (`company/billing/collections_journey`, plus the view it reads). An account whose collection requests
+   carry a level schedule is dunned on the shortfall above. Its bills' due dates are not openers. The company knows
+   this from its own `CollectionRequest`s and the ARUDD returns, so it knows only what it asked for and what came back.
+3. **Page**: a failed level payment row's arrears case is the shortfall, not the bill's face
+   (`tools/generate_billing_ledger.py`, the `level` pop).
+
+**Pre-registration**, the same as "Step 2, measured before building" with two additions. Both are written before any code:
+- On level legs, journeys open **only** on a date where a level collection was returned. If any opens on a bill's
+  due date, part 2 has a leak.
+- The number of level-leg journeys is at most the number of returned level collections.
