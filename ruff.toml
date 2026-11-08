@@ -1,5 +1,8 @@
 line-length = 100
 target-version = "py311"
+# archive/ holds code no run reaches, kept only for restore (archive/README.md).
+extend-exclude = ["archive"]
+force-exclude = true
 
 [lint]
 select = ["E", "F", "W", "I"]

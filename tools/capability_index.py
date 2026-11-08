@@ -186,6 +186,11 @@ DECLARED_ROOTS: tuple[str, ...] = (
 #: and DECLARED_ROOTS is an integrity failure, never a silent skip — that is
 #: how a new package would otherwise land invisible to the reuse surface.
 EXCLUDED_ROOTS: dict[str, str] = {
+    "archive": (
+        "supplier modules no run reached, archived with their tests at their "
+        "original paths so a restore is a `git mv` back (archive/README.md); "
+        "offering them as reuse would re-wire code the review ruled unhooked"
+    ),
     "tests": (
         "the evidence side of the index, not the capability side -- these files "
         "appear on rows as `evidence`, so indexing them as capabilities would "

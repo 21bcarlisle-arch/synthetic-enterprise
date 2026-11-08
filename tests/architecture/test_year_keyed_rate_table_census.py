@@ -218,27 +218,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/market/triad_notification_book.py::_TNUOS_TRIAD_RATE_GBP_PER_KW":
         "the same NESO Transmission Charges statements at a 'representative midlands zone'; two "
         "tables reading one publication at two different zones, neither pinned.",
-    "company/market/tnuos_ledger.py::_TNUOS_RESIDUAL_P_PER_KWH":
-        "TNUoS residual tariff is published GBP/kW/year per zone; this table is a national "
-        "average in p/kWh, so the pin needs the zone rows plus a stated averaging.",
-    "company/market/network_charges.py::_TNUOS_PENCE_PER_KWH":
-        "a THIRD reading of the TNUoS residual, flat across segments; pinning the publication "
-        "once would collapse this and the two above onto one source.",
-    "company/market/duos_ledger.py::_DUOS_UNIT_RATE_P_PER_KWH":
-        "DUoS charging statements are published per DNO and voltage level; the table's own "
-        "comment says 'representative values', which is a reading of 14 published sets.",
-    "company/market/bsuos_ledger.py::_BSUOS_RATE_GBP_PER_MWH":
-        "NESO publishes BSUoS daily/half-hourly and, from April 2023, as a fixed tariff; the "
-        "table is an annual average, so the pin is the tariff rows plus the averaging.",
-    "company/market/gas_network_ledger.py::_NTS_RATE_P_PER_KWH":
-        "National Gas Transmission publishes NTS entry/exit capacity and commodity charges; the "
-        "table is a single blended p/kWh, so the pin needs the charge components named.",
-    "company/market/gas_network_ledger.py::_LDZ_RATE_P_PER_KWH":
-        "LDZ transportation charges are published per distribution network and load band; this "
-        "is a national blend of thirteen published sets.",
-    "company/market/gas_network_ledger.py::_GGL_RATE_GBP_PER_METER_YEAR":
-        "the SAME Green Gas Levy series as policy_costs' table of the identical name, in a "
-        "different module with its own values — the duplicate a bare-name register cannot see.",
     "company/regulatory/green_gas_levy_register.py::_GGL_RATE_GBP_PER_METER_PER_DAY":
         "a THIRD reading of the Green Gas Levy, in GBP/meter/DAY against a Nov-Oct levy year; "
         "its own comment says 'approximate rates calibrated to' the statutory instruments.",
@@ -290,9 +269,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/regulatory/compliance.py::_SMART_METER_TARGETS":
         "Ofgem/DESNZ publish smart meter rollout targets per supplier per year under the "
         "framework licence condition; the table is a market-wide percentage.",
-    "company/market/smart_meter_rollout.py::_ANNUAL_TARGETS":
-        "the second reading of the same rollout targets, in a different module and unit; both "
-        "would collapse onto one pin of the published tolerance levels.",
     "company/finance/corporation_tax.py::_CT_RATE_BY_YEAR":
         "HMRC publishes the CT main rate per financial year in the Finance Acts; a single "
         "statutory rate per year, and the table's own comment admits it excludes the small "
@@ -303,9 +279,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/regulatory/solr_exposure.py::_SOLR_LEVY_HISTORY_GBP_PER_MWH":
         "Ofgem publishes SoLR levy claim determinations per failed supplier; the table is an "
         "allocated per-MWh figure across all of them, so the pin is the determinations.",
-    "company/market/gas_imbalance_ledger.py::_NBP_ANNUAL_GBP_PER_MWH":
-        "NBP day-ahead settlement prices are published daily by ICE/Heren; the table is an "
-        "annual average, so the pin is the daily series plus the stated averaging.",
     "company/pricing/ofgem_price_cap.py::_ELEC_CAP_GBP_PER_MWH":
         "the published cap WINDOWS are already pinned in ofgem_default_tariff_cap_windows.json; "
         "this table is an annual average of them and should be derived from the pin, not "
@@ -459,7 +432,7 @@ _BAND_PINNED: dict[str, str] = {
 # are published series with no commons pin, so this is the true bucket; pinning them pays it back.
 # 39 -> 37 on 2026-10-27, paid: both standing-charge tables are gone, the readers serve the
 # commons' cap periods directly (tests/simulation/test_standing_charge_reproduces_the_cap_model.py).
-_MAX_PUBLISHED_UNPINNED = 37  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+_MAX_PUBLISHED_UNPINNED = 28  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
 # the point -- pinning a table is the only sanctioned way to move this number.
 #
@@ -469,6 +442,9 @@ _MAX_PUBLISHED_UNPINNED = 37  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # NOT: no publication was fetched for it, because a51 had already fetched it. The cost of the
 # second half was one loader, and the reason to do it is that the first half made the two homes
 # visible to each other on the annual report without making them agree by construction.
+#
+# 37 -> 28 on 2026-11-08: nine tables left with their modules when the unhooked company.market
+# modules were archived (archive/MANIFEST.txt). Not pinned, removed: no run read them.
 
 # The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
 # into a dumping ground. Declared here rather than left implicit; see the test of that name.

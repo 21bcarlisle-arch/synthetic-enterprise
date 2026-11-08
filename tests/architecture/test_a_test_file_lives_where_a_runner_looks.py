@@ -60,6 +60,12 @@ _TEST_FILE_PATTERNS = ("test_*.py", "*_test.py")
 
 _SKIP_DIR_PARTS = frozenset({"__pycache__", ".git", "node_modules", ".venv", "venv"})
 
+# Top-level roots whose suites are uncollected ON PURPOSE. `archive/` holds supplier modules no run
+# reaches, kept with their tests only so a restore is a `git mv` back (archive/README.md); running
+# them would be paying for code the review ruled out. Top level only: an `archive/` dir anywhere
+# else is still a misplaced suite.
+_UNCOLLECTED_BY_RULING = frozenset({"archive"})
+
 
 def collected_roots(project_dir: pathlib.Path) -> tuple[str, ...]:
     """The directories some runner in this repo actually points pytest at.
@@ -139,7 +145,7 @@ def scan(project_dir: pathlib.Path, roots: tuple[str, ...]) -> tuple[list[str], 
             rel = path.relative_to(project_dir)
             if _SKIP_DIR_PARTS & set(rel.parts):
                 continue
-            if rel.parts and rel.parts[0] in roots:
+            if rel.parts and (rel.parts[0] in roots or rel.parts[0] in _UNCOLLECTED_BY_RULING):
                 continue
             seen.add(path)
             candidates.append(path)
@@ -208,6 +214,16 @@ def test_the_same_file_under_a_collected_root_is_not_a_finding(tmp_path):
     src.unlink()
     (root / "tests" / "tools" / "test_generate_thing.py").write_text(body)
     assert scan(root, ROOTS)[0] == []
+
+
+def test_the_archive_is_uncollected_only_at_the_top_level(tmp_path):
+    root = _tree(tmp_path)
+    for rel in ("archive/unhooked_supplier/tests/test_x.py", "tools/archive/test_y.py"):
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text("def test_it():\n    assert True\n")
+    misplaced = scan(root, ROOTS)[0]
+    assert "tools/archive/test_y.py" in misplaced
+    assert "archive/unhooked_supplier/tests/test_x.py" not in misplaced
 
 
 def test_a_production_module_named_like_a_test_is_not_a_finding_until_it_defines_one(tmp_path):

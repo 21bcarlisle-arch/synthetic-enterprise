@@ -248,7 +248,6 @@ company.crm.credit_assessment_register | unhooked | consumers:company.crm | Cust
 company.crm.credit_scoring | unhooked | consumers:company.crm | Customer credit scoring and risk tier classification.; 2 test(s); no importer
 company.crm.css_tracker | unhooked | consumers:company.crm | Customer Satisfaction Survey (CSS) tracker.; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/feedback_survey.py's docstring as the scale its score matches
 company.crm.customer_comm_preferences | unhooked | consumers:company.crm | Customer Communication Preference Register.; 2 test(s); no importer
-company.crm.customer_registry | unhooked | consumers:company.crm | Company Layer — Customer Registry (CRM foundation).; 2 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.crm.customer_retention | unhooked | consumers:company.crm | Customer Retention Offer Book — Phase AE.; 1 test(s); no importer
 company.crm.decarb_recommender | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
 company.crm.dual_fuel_account | unhooked | consumers:company.crm | Dual-Fuel Account Consolidator — unified gas + electricity view.; 1 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- listed in company/crm/account_hierarchy.py's docstring inventory of the account views
@@ -269,7 +268,6 @@ company.crm.portfolio_repricing | unhooked | consumers:company.crm | Portfolio R
 company.crm.priority_services | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
 company.crm.property_improvement | unhooked | consumers:company.crm | Property improvement event tracker.; 1 test(s); no importer
 company.crm.renewal_conversion | unhooked | consumers:company.crm | Renewal Conversion Rate Book.; 1 test(s); no importer
-company.crm.renewal_notice_register | unhooked | consumers:company.crm | Renewal Notice Register (Phase DQ).; 1 test(s); no importer
 company.crm.renewals_book | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer
 company.crm.solr_intake | unhooked | consumers:company.crm | no docstring; 3 test(s); no importer
 company.crm.solr_register | unhooked | consumers:company.crm | Supplier of Last Resort (SoLR) Register: tracks customer transfers from failed suppliers.; 1 test(s); no importer
@@ -298,63 +296,24 @@ company.finance.revenue_accruals | unhooked | consumers:company.finance | Revenu
 company.finance.trade_finance | unhooked | consumers:company.finance | Trade finance instrument registry: letters of credit, bank guarantees, parent guarantees.; 3 test(s); no importer
 company.finance.treasury | unhooked | consumers:company.finance | FI3 -- Treasury management: cash position, working capital, MCR headroom, and forward cash flow projection.; 3 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/net_new_acquisition.py's docstring as the home of a constant
 company.finance.working_capital | unhooked | consumers:company.finance | Working capital daily cash position: inflows, outflows, headroom monitoring.; 1 test(s); no importer
-company.market.agreed_capacity_register | unhooked | consumers:company.market | Agreed Capacity Register (Phase GS).; 2 test(s); no importer
-company.market.bsc_settlement_run_register | unhooked | consumers:company.market | BSC Settlement Run Tracking Register (Phase DH).; 1 test(s); no importer
-company.market.bsuos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.capacity_market | unhooked | consumers:company.market | Capacity Market participation: CM unit registration, auction, and obligations.; 4 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/regulatory/capacity_market.py's docstring as the provider side that already exists
-company.market.capacity_market_register | unhooked | consumers:company.market | Capacity Market Revenue Register (Phase EX).; 1 test(s); no importer
-company.market.cfd_levy | unhooked | consumers:company.market | CfD (Contracts for Difference) levy tracker.; 1 test(s); no importer
 company.market.curve_monitor | unhooked | consumers:company.market | Wholesale forward curve anomaly detection.; 2 test(s); no importer
 company.market.dadc_contract_register | unhooked | consumers:company.market | Data Aggregator / Data Collector (DA/DC) Contract Register.; 2 test(s); no importer
-company.market.day_ahead_book | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
-company.market.dno_network_charge_dispute_register | unhooked | consumers:company.market | no docstring; 2 test(s); no importer
-company.market.dso_flexibility_tender_register | unhooked | consumers:company.market | DSO Flexibility Tender Register.; 2 test(s); no importer
 company.market.dsr_book | unhooked | consumers:company.market | no docstring; 5 test(s); no importer
 company.market.dsr_portfolio | unhooked | consumers:company.market | Demand side response (DSR) event management: grid stress, customer curtailment.; 2 test(s); no importer
-company.market.dtn_log | unhooked | consumers:company.market | Data Transfer Network (DTN) message log.; 1 test(s); no importer
-company.market.duos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
-company.market.embedded_network_register | unhooked | consumers:company.market | Embedded Network Supply Register (Phase DO).; 1 test(s); no importer
-company.market.ev_demand_forecast | unhooked | consumers:company.market | EV Charging Demand Forecaster (Phase FS).; 1 test(s); no importer
 company.market.flexible_asset | unhooked | consumers:company.market | Flexible asset dispatch: battery/pump storage for BM and triad avoidance.; 2 test(s); no importer
-company.market.gas_imbalance_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.gas_interruption | unhooked | consumers:company.market | Gas supply interruption risk: interruptibility, UK gas emergency, IGEM procedures.; 4 test(s); no importer
-company.market.gas_network_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
-company.market.gas_otc_book | unhooked | consumers:company.market | Wholesale gas OTC trading book (NBP market).; 1 test(s); no importer
-company.market.gas_storage | unhooked | consumers:company.market | Gas storage position: seasonal injection, withdrawal, and storage optimisation.; 1 test(s); no importer
-company.market.grid_connection_queue_register | unhooked | consumers:company.market | Grid Connection Queue Register.; 2 test(s); no importer
 company.market.hedge_performance | unhooked | consumers:company.market | no docstring; 3 test(s); no importer
 company.market.hedging_schedule | unhooked | consumers:company.market | Commodity hedging schedule: forward delivery vs open position by month.; 5 test(s); no importer
-company.market.hh_data_quality | unhooked | consumers:company.market | Half-hourly (HH) meter data quality checker.; 1 test(s); no importer
-company.market.imbalance | unhooked | consumers:company.market | Imbalance price risk model.; 1 test(s); no importer
-company.market.imbalance_analytics | unhooked | consumers:company.market | Settlement imbalance analytics: cash-out cost tracking, systematic bias detection.; 1 test(s); no importer; NEAREST DUPLICATE IN THE TREE - shares ImbalanceDirection and ImbalanceRecord with the wired company.market.imbalance_ledger (50% symbol overlap, the highest measured), but adds bias detection the ledger does not have, so it is not a superseded copy; consolidation is owed to AO6_consolidation_rhythm
 company.market.interconnector_monitor | unhooked | consumers:company.market | Interconnector cross-border price exposure: NEMO, BritNed, IFA1/2, VikingLink.; 2 test(s); no importer
-company.market.interconnector_monitor_register | unhooked | consumers:company.market | Wholesale Energy Market Interconnect Quality Register (Phase DP).; 1 test(s); no importer
 company.market.interruptible_supply_register | unhooked | consumers:company.market | Interruptible Gas Supply Contract Register.; 2 test(s); no importer
-company.market.intraday_book | unhooked | consumers:company.market | Intraday electricity trading book.; 1 test(s); no importer
-company.market.llf_register | unhooked | consumers:company.market | Line Loss Factor (LLF) Register (Phase GL).; 1 test(s); no importer
-company.market.load_forecast | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
-company.market.map_contract_register | unhooked | consumers:company.market | Meter Asset Provider (MAP) Contract Register (Phase GJ).; 2 test(s); no importer
 company.market.market_report | unhooked | consumers:company.market | Ofgem domestic market report data.; 1 test(s); no importer
 company.market.market_share_estimator | unhooked | consumers:company.market | Market Share Estimator — estimates supplier position in each segment.; 2 test(s); no importer
-company.market.market_share_intelligence | unhooked | consumers:company.market | Market Share Intelligence (Phase EK).; 1 test(s); no importer
 company.market.metering_contracts | unhooked | consumers:company.market | Metering services: Meter Operator (MOP) and Data Collector (DC) contracts.; 2 test(s); no importer
-company.market.mpan_register | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
-company.market.mpas_registry | unhooked | consumers:company.market | MPAS supply point registry: MPAN/MPRN registration, gain/loss and objections.; 1 test(s); no importer
-company.market.mprn_register | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.network_charge_ledger | unhooked | consumers:company.market | Network charge pass-through ledger: TNUoS, DUoS, BSUoS tracking.; 2 test(s); no importer
-company.market.network_charges | unhooked | consumers:company.market | Network Use of System (UoS) charges.; 1 test(s); no importer
-company.market.portfolio_position | unhooked | consumers:company.market | no docstring; 1 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
-company.market.ppa_book | unhooked | consumers:company.market | Power Purchase Agreement (PPA) book: long-term renewable offtake contracts.; 1 test(s); no importer
 company.market.price_monitor | unhooked | consumers:company.market | Wholesale energy price monitor: alerts on spot/forward prices vs trigger levels.; 2 test(s); no importer
-company.market.prosumer_balance_register | unhooked | consumers:company.market | Prosumer Balance Register (Phase EH).; 1 test(s); no importer
-company.market.seasonal_demand | unhooked | consumers:company.market | Seasonal demand forecast: portfolio-level load profile for hedging decisions.; 1 test(s); no importer
-company.market.settlement_reconciler | unhooked | consumers:company.market | M1 -- Elexon settlement interface: receive and reconcile settlement statements.; 2 test(s); no importer
 company.market.shipper_code_register | unhooked | consumers:company.market | Xoserve Shipper Code Register.; 2 test(s); no importer
-company.market.smart_meter_programme_register | unhooked | consumers:company.market | Smart Meter Installation Programme Register (Phase GI).; 2 test(s); no importer
-company.market.smart_meter_rollout | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.switch_governance | unhooked | consumers:company.market | Switching cooling-off and objection management: 14-day right, ET resolution.; 4 test(s); no importer
-company.market.tariff_benchmarking | unhooked | consumers:company.market | Tariff Benchmarking Register (Phase EZ).; 1 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
-company.market.tnuos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.tpi_commission_book | unhooked | consumers:company.market | Third-Party Intermediary (TPI) commission tracking for I&C customers.; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/crm/tpi_commission_desk.py's docstring under WHAT THIS DOOR DOES NOT CARRY -- the prose wiring it says the door does not use it
 company.market.triad_notification_book | unhooked | consumers:company.market | Triad Notification Book — proactive I&C demand reduction for TNUoS Triad avoidance.; 3 test(s); no importer
 company.market.uig_allocation_register | unhooked | consumers:company.market | Unidentified Gas (UIG) Allocation Register (Phase GN).; 2 test(s); no importer
@@ -448,15 +407,11 @@ company.billing.dd_indemnity | unhooked | consumers:company.billing | DD Indemni
 company.billing.deemed_contract | unhooked | consumers:company.billing | Deemed Contract Register: tracks uncontracted supply; Ofgem notification obligations.; 7 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.crm.onboarding_journey | unhooked | consumers:company.crm | Customer Onboarding Journey Tracker (Phase FE).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.crm.service_ticket | unhooked | consumers:company.crm | Customer Service Ticket Book (Phase EW).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.bsc_performance_assurance_register | unhooked | consumers:company.market | BSC Performance Assurance Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.bsc_settlement_dispute_register | unhooked | consumers:company.market | BSC Settlement Dispute Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.market.css_performance_register | unhooked | consumers:company.market | CSS Performance Register (Phase GA).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.market.dcc_meter_registration | unhooked | consumers:company.market | DCC Meter Registration Register (Phase GB).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.market.erroneous_transfer | unhooked | consumers:company.market | no docstring; 11 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.market.meter_technical_investigation_register | unhooked | consumers:company.market | Meter Technical Investigation Register — SLC 21A / GS(SS)5 Schedule 3.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.mop_appointment_register | unhooked | consumers:company.market | Meter Operator (MOP) Appointment Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.market.mpas_standing_data_correction_register | unhooked | consumers:company.market | MPAS Standing Data Correction Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.transfer_objection_register | unhooked | consumers:company.market | Transfer Objection Register (Phase GO).; 4 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.regulatory.annual_compliance_attestation_register | unhooked | consumers:company.regulatory | Annual Compliance Attestation Register (Phase GM).; 4 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.regulatory.gsop_tracker | unhooked | consumers:company.regulatory | no docstring; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.trading.bsc_credit_register | unhooked | consumers:company.trading | BSC Credit Assurance Register (Phase FI).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled

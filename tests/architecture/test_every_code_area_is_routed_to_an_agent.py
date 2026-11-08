@@ -21,7 +21,9 @@ AGENTS = ROOT / ".claude" / "agents"
 #: A top-level directory holding at least this share of the product code (tracked Python outside
 #: tooling and tests, which are routed by their subject) is a code area some agent must be routed to.
 SHARE = 0.05
-NOT_A_CODE_AREA = {"tests", "tools", "background", "site", "docs", ".claude", "functions"}
+# archive: code no run reaches, kept only for restore (archive/README.md); no agent works in it.
+NOT_A_CODE_AREA = {"tests", "tools", "background", "site", "docs", ".claude", "functions",
+                   "archive"}
 
 
 def _descriptions() -> dict[str, str]:
