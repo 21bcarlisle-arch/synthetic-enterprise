@@ -566,6 +566,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
         lines += end_to_end_section()
         lines += _world_claims_section()
         lines += _the_map_section()
+        lines += _orphan_dispositions_section()
         lines += _explore_cast_section()
         lines += _canon_against_canon_section()
         lines += _page_aging_section()
@@ -671,6 +672,30 @@ def _the_map_section() -> list[str]:
     return ["## The map: concepts, their layers, and what attaches to none", "", measured, "", plan, "",
             "**Reporting only.** A second home or an uncalled home is read in the end-to-end check; "
             "it becomes binding once the backlog it exposes is planned.", ""]
+
+
+def _orphan_dispositions_section() -> list[str]:
+    """DOES THE ORPHAN REGISTER STILL MATCH THE TREE (the archive's Done means, point 3, owed since
+    24 Oct). The commit gate runs the live-register test only when the register or the index is
+    staged, so a company-side change that strips a module's last caller, or wires an archived hold
+    back in, leaves `docs/design/ORPHAN_DISPOSITION_REGISTER.md` wrong with nothing to say so. This
+    is the weekly read; ~20 s here instead of on every commit."""
+    title = "## Company-side orphans: does every one still carry its ruling"
+    try:
+        from tools import capability_index as ci
+        rows = ci.build_rows()
+        bad = ci.disposition_findings(rows)
+        subjects = [r for r in ci.orphans(rows) if r["module"].startswith(ci.DISPOSITION_PREFIXES)]
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        return [title, "", f"**NOT MEASURED** -- `tools.capability_index` raised "
+                f"{type(exc).__name__}: {exc}", ""]
+    if bad:
+        return [title, "", f"**RED: {len(bad)} disposition finding(s).** The register has drifted "
+                "from the tree. Rule each new orphan, drop each stale row, or re-render the consumer "
+                "column (`python3 tools/capability_index.py --render-dispositions`).", ""] + \
+            [f"- {f}" for f in bad] + [""]
+    return [title, "", f"{len(subjects)} company-side orphan(s), each carrying a ruling whose referent "
+            "holds.", ""]
 
 
 def _explore_cast_section() -> list[str]:

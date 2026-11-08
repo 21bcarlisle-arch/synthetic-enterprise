@@ -349,3 +349,20 @@ any of them, and the ruling named all three.
 reference. EP10 holds `uig_allocation_register`, and E5 holds `carbon_ledger` until it is decided.
 The archive is therefore done except for those holds. Still owed: the weekly caller for
 `--dispositions` (point 3 of Done means).
+
+## Done
+
+(seat executor, 8 Nov, claim `archive-dispositions-weekly-caller`.) **Point 3 is met; points 1 and 2 stand as
+measured above.**
+- **Point 3:** the weekly caller is the Monday step. `background/weekly_rhythm._orphan_dispositions_section` runs
+  `capability_index.disposition_findings` over the live tree and prints clean, **RED** with each finding, or
+  **NOT MEASURED** with the exception. Monday's end-to-end check reads it. The commit gate is unchanged: the
+  live-register test still runs only when the register or the index is staged. That leaves a company-side change
+  that strips a module's last caller unseen at commit time; the Monday read is what catches it, within a week.
+  Live reading on 8 Nov: "6 company-side orphan(s), each carrying a ruling whose referent holds." (~18 s.)
+- Proven both ways in `tests/background/test_weekly_rhythm.py`: clean, red and unmeasured are each reachable;
+  an unstubbed miniature tree with an unruled orphan turns the section red. Two mutations (findings ignored;
+  section dropped from Monday) each red.
+- **Point 2, read plainly:** `--dispositions` reads 6 `unhooked`, not 0. Each of the 6 is a named hold (C32 x3,
+  the wall's reference, EP10, E5). They are rulings, not open archive work, so this finding closes. A hold
+  released later is that atom's own work.

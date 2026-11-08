@@ -39,6 +39,9 @@ def rhythm(tmp_path, monkeypatch):
     # tests/tools/test_work_cost_estimate.py. Here only its place in the documents is under test.
     from tools import work_cost_estimate
     monkeypatch.setattr(work_cost_estimate, "render", lambda: "ESTIMATE-TABLE")
+    # The orphan index walks the whole tree (~20 s); its own section test is below.
+    from tools import capability_index
+    monkeypatch.setattr(capability_index, "build_rows", lambda root=None: [])
     return tmp_path
 
 
@@ -692,3 +695,47 @@ def test_the_monday_step_writes_the_directors_note_and_friday_does_not(rhythm, m
     monkeypatch.setattr(director_concerns, "monday_note", lambda now=None: 1 / 0)
     wr.write_monday_note(now=_at(2026, 9, 14), path=note)
     assert "NOT WRITTEN" in note.read_text() and "ZeroDivisionError" in note.read_text()
+
+
+def test_the_monday_step_reads_the_orphan_register_and_says_when_it_cannot(monkeypatch, tmp_path):
+    """The archive's Done means, point 3: `--dispositions` has a weekly caller.
+    DEFECT: a section that read clean whatever the register said, or vanished when the index raised.
+    The control is over the whole partition: clean, red and unmeasured are each reachable."""
+    from tools import capability_index as ci
+
+    row = {"module": "company.billing.abandoned", "status": "orphan"}
+    monkeypatch.setattr(ci, "build_rows", lambda root=None: [row])
+    monkeypatch.setattr(ci, "orphans", lambda rows: [r for r in rows if r["status"] == "orphan"])
+    monkeypatch.setattr(ci, "disposition_findings", lambda rows, root=None: [])
+    clean = "\n".join(wr._orphan_dispositions_section())
+    assert "1 company-side orphan(s), each carrying a ruling" in clean and "RED" not in clean, clean
+    assert "Company-side orphans" in wr._step_body(wr.MONDAY_STEP, date(2026, 11, 9), [])
+
+    monkeypatch.setattr(ci, "disposition_findings",
+                        lambda rows, root=None: ["UNRULED ORPHAN: company.billing.abandoned"])
+    red = "\n".join(wr._orphan_dispositions_section())
+    assert "**RED: 1 disposition finding(s).**" in red and "UNRULED ORPHAN" in red, red
+
+    def boom(root=None):
+        raise OSError("no tree")
+    monkeypatch.setattr(ci, "build_rows", boom)
+    text = "\n".join(wr._orphan_dispositions_section())
+    assert "NOT MEASURED" in text and "no tree" in text, text
+
+
+def test_the_orphan_section_goes_red_on_a_real_unruled_orphan(tmp_path, monkeypatch):
+    """Unstubbed, over a miniature tree: a company module nothing imports and no row rules on
+    must turn the Monday section red. DEFECT: the section reading a different register, or none."""
+    from tools import capability_index as ci
+
+    (tmp_path / "company" / "billing").mkdir(parents=True)
+    (tmp_path / "company" / "__init__.py").write_text("", encoding="utf-8")
+    (tmp_path / "company" / "billing" / "__init__.py").write_text("", encoding="utf-8")
+    (tmp_path / "company" / "billing" / "abandoned.py").write_text(
+        '"""A register nothing imports."""\nVALUE = 1\n', encoding="utf-8")
+    reg = tmp_path / ci.DISPOSITION_REGISTER
+    reg.parent.mkdir(parents=True)
+    reg.write_text("# r\n\n<!-- ORPHAN-DISPOSITIONS\n\nORPHAN-DISPOSITIONS -->\n", encoding="utf-8")
+    monkeypatch.setattr(ci, "ROOT", tmp_path)
+    text = "\n".join(wr._orphan_dispositions_section())
+    assert "**RED:" in text and "company.billing.abandoned" in text, text
