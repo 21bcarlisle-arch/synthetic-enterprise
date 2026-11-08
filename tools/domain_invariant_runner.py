@@ -117,6 +117,10 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
             # carries it (`generate_payment_ledger_data`). Before 2026-11-08 nothing built it here,
             # so INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE read NOT_IN_EXPORT on every book.
             "payment_record": d.get("payment_record"),
+            # The dates the page says supply closed: its timeline's final bills, one per fuel leg.
+            # Before 2026-11-08 nothing read them, so no row could grade a closed account's balance.
+            "final_bills": sorted(e["date"] for e in d.get("timeline") or ()
+                                  if isinstance(e, dict) and e.get("type") == "final_bill" and e.get("date")),
         }
     # The carbon panel is its own file, per household and year, one leg per fuel.
     carbon = Path(customers_dir).parent / "explore_carbon.json"
@@ -1686,6 +1690,85 @@ def ev_overdue_within_page_balance(inv, book):
     return tally
 
 
+#: England and Wales bank holidays, from the commons (GOV.UK's published calendar). Reg 6D counts
+#: working days; the export carries no jurisdiction, so the E&W calendar is the one applied.
+_BANK_HOLIDAYS_FILE = PROJECT / "docs/domain_artefact_library/regulatory/england_and_wales_bank_holidays.json"
+#: GSoP 2015 reg 6D (SI 2019/218 reg 3): a credit on the final bill is refunded within 10 working
+#: days of its issue. In force from 1 May 2019; a final bill before then owed no refund by a deadline.
+REFUND_WORKING_DAYS = 10
+REG_6D_IN_FORCE = date(2019, 5, 1)
+
+
+def _bank_holidays() -> frozenset:
+    try:
+        rows = json.loads(_BANK_HOLIDAYS_FILE.read_text()).get("holidays") or ()
+    except (OSError, json.JSONDecodeError):
+        return frozenset()
+    return frozenset(_d(r["date"]) for r in rows if r.get("date"))
+
+
+def _working_days_after(start: date, n: int, holidays) -> date:
+    d = start
+    while n > 0:
+        d += timedelta(days=1)
+        if d.weekday() < 5 and d not in holidays:
+            n -= 1
+    return d
+
+
+def _balance_at(entries, on: str) -> float:
+    """The page ledger's last running balance dated on or before `on`; nothing before its first entry."""
+    last = 0.0
+    for e in entries:
+        if e["date"] <= on and e.get("running_balance_gbp") is not None:
+            last = float(e["running_balance_gbp"])
+    return last
+
+
+def ev_closed_account_balance(inv, book):
+    """A closed account's one balance, on the page ledger (owed positive, credit negative).
+
+    An account is closed on its page's last final bill F when no bill on the page is dated after F.
+    Leg 1 (domestic, F on or after 1 May 2019): the balance at the end of the 10th E&W working day
+    after F -- or after the last bill posted or payment taken, if later -- is not a credit.
+    Leg 2: every write-off on a closed account releases at most what the page says was owed the day
+    before it, so a write-off on an account in credit or settled breaches.
+    Leg 3 (the file's `flag`): a debt still standing at the page's as-of date. No rule sets a window
+    for collecting it, so it is evidence to explain, not a breach."""
+    tally = Tally("closed account (one fuel leg) and each write-off on one")
+    holidays = _bank_holidays()
+    for a in book:
+        pr = a.printed
+        if not pr or not pr.get("final_bills"):
+            continue
+        closed_on = pr["final_bills"][-1]
+        if any(str(i.get("date") or "") > closed_on for i in pr.get("invoices") or ()):
+            continue
+        entries = sorted((e for e in pr.get("page_ledger") or () if e.get("date")), key=lambda e: e["date"])
+        if not entries:
+            continue
+        as_of = str((pr.get("page_totals") or {}).get("as_of_date") or entries[-1]["date"])
+        if a.domestic and _d(closed_on) >= REG_6D_IN_FORCE:
+            # The clock runs from the final bill, or from the last bill posted or cash taken after it:
+            # an instalment collected after the final bill turns a debt into a credit, which is
+            # owed back on the same terms (a corrected final bill restarts reg 6D's clock).
+            last = max([closed_on] + [e["date"] for e in entries
+                                      if e.get("type") in ("invoice_raised", "payment_received")])
+            graded_on = _working_days_after(_d(last), REFUND_WORKING_DAYS, holidays).isoformat()
+            if graded_on <= as_of:
+                tally.band("{} credit unrefunded on {} (final bill {})".format(a.cid, graded_on, closed_on),
+                           round(_balance_at(entries, graded_on), 2), 0.0, None, tol_abs=0.005)
+        for i, e in enumerate(entries):
+            if e.get("type") != "write_off":
+                continue
+            owed = max(float(entries[i - 1].get("running_balance_gbp") or 0.0), 0.0) if i else 0.0
+            tally.band("{} write-off on {}".format(a.cid, e["date"]),
+                       round(-float(e.get("amount_gbp") or 0.0), 2), None, round(owed, 2), tol_abs=0.005)
+        tally.band("{} debt standing on {} (final bill {})".format(a.cid, as_of, closed_on),
+                   round(_balance_at(entries, as_of), 2), None, 0.0, above="flag", tol_abs=0.005)
+    return tally
+
+
 def _years_before(d: date, n: int) -> date:
     try:
         return d.replace(year=d.year - n)
@@ -3018,6 +3101,7 @@ EVALUATORS = {
     "INV_STATUTE_BARRED_WRITE_OFF_AGE": (ev_statute_barred_write_off, "bills"),
     "INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE": (ev_billed_ex_vat_reconciles, "lifetime_revenue_gbp"),
     "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": (ev_payment_record, "payment_record"),
+    "INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO": (ev_closed_account_balance, "final_bills"),
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": (ev_carbon_matches_usage, "carbon_years"),
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": (ev_smart_billed_on_reads, "meter_type"),
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": (ev_meter_type_one_value, "panel_meters"),

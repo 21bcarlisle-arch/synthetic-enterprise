@@ -327,3 +327,22 @@ exceptions:
       the gas half of W2_30 (a fitted seasonal split for the premises now refused it, or a hot-water term that moves
       year to year), graded on a fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file.
     max_breached: 1
+  # 2026-11-08: the closed-account row (ninth cold read O7, O20), graded on the af31e73fa7 book's pages. Split and
+  # causes in docs/staging/SEAT_FINDING_THE_NINTH_COLD_READ_FINDS_CLOSED_ACCOUNTS_STILL_HOLDING_CREDIT_AND_DEBT_YEARS_AFTER_THEIR_LAST_BILL_2026-11-08.md.
+  - invariant: INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO
+    scope: >-
+      184 on the af31e73fa7 book: 146 domestic fuel legs closed from 1 May 2019 still holding a credit 10 working days
+      after their final bill or last collection (GBP 21,287), and 38 write-offs on closed legs that release more
+      than the page says was owed, 21 of them on a leg in credit or settled. The 244 standing debts are the row's
+      flag, not counted here. The book before the level-DD schedule (0a6391d186) reads 1 and 0.
+    reason: >-
+      A known defect, not an explanation. 420 of the 421 stranded legs are level-DD legs. Their cash is
+      right, and the close was never built for a level schedule. The refund and closing_balances read the
+      per-bill walk, which marks every bill paid. The write-off reads a failed bill's face value. The page reads
+      the level-DD running balance. home_moves.md section 8.8b gives the rules and the build's choices.
+    filed: 2026-11-08
+    recheck_by: 2026-11-22
+    retired_by: >-
+      the close built on level DD step 2b's schedule (home_moves.md 8.8b choices 1-4), with one balance deciding the
+      refund, the last collection and the write-off, graded 0 on a fresh run
+    max_breached: 184
