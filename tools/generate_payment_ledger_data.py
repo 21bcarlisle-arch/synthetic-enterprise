@@ -229,6 +229,9 @@ def generate(customers_dir=None, ledger_path=None):
         print("Skipped: billing ledger has no invoices")
         return 0
 
+    # Lazy: the cast module imports the collections journey, which only this patch needs.
+    from tools.generate_explore_cast import payment_record
+
     count = 0
     for cid, cust in ledger_customers.items():
         cust_file = customers_dir / (cid + ".json")
@@ -236,6 +239,15 @@ def generate(customers_dir=None, ledger_path=None):
             continue
         existing = json.loads(cust_file.read_text())
         existing["ledger"] = build_account_ledger(cust, as_of)
+        # The account's "N of D bills paid, R returned, M missed" at the ledger's as-of date, by the
+        # function the Explore cast prints it with, over this file's own bills (patched in earlier by
+        # generate_invoice_data) and ledger. The publisher's invariant gate reads it from here; the
+        # runner may not import the code under test.
+        if existing.get("invoices") is not None:
+            existing["payment_record"] = payment_record(existing["ledger"]["entries"], existing["invoices"],
+                                                        existing["ledger"]["as_of_date"])
+        else:
+            existing.pop("payment_record", None)
         cust_file.write_text(json.dumps(existing, indent=2))
         count += 1
     print("Updated", count, "customer ledgers (as of", as_of, ")")

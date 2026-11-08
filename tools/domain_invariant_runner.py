@@ -113,6 +113,10 @@ def load_printed(customers_dir: Path) -> dict[str, dict]:
             "commodity": d.get("commodity"),
             "household": d.get("base_account_id"),
             "acquisition_date": d.get("acquisition_date"),
+            # "N of D bills paid, R returned, M missed" at the page's as-of date, as the page file
+            # carries it (`generate_payment_ledger_data`). Before 2026-11-08 nothing built it here,
+            # so INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE read NOT_IN_EXPORT on every book.
+            "payment_record": d.get("payment_record"),
         }
     # The carbon panel is its own file, per household and year, one leg per fuel.
     carbon = Path(customers_dir).parent / "explore_carbon.json"
