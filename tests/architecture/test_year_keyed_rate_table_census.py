@@ -215,12 +215,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "simulation/triad.py::_TNUOS_TRIAD_TARIFF_BY_YEAR":
         "NGESO/NESO publish TNUoS Triad tariffs per zone; this table names Zone 14 (London) as "
         "representative, so the pin is the zone row and the representativeness is the reading.",
-    "company/market/triad_notification_book.py::_TNUOS_TRIAD_RATE_GBP_PER_KW":
-        "the same NESO Transmission Charges statements at a 'representative midlands zone'; two "
-        "tables reading one publication at two different zones, neither pinned.",
-    "company/regulatory/green_gas_levy_register.py::_GGL_RATE_GBP_PER_METER_PER_DAY":
-        "a THIRD reading of the Green Gas Levy, in GBP/meter/DAY against a Nov-Oct levy year; "
-        "its own comment says 'approximate rates calibrated to' the statutory instruments.",
     # `company/regulatory/capacity_market.py::_CM_OBLIGATION_RATE_BY_YEAR` CAME OFF on 2026-09-07
     # (a51), and this edit is the record the work happened. Its entry said the supplier obligation
     # rate "is a derived ALLOCATION of those across supplied volume, not a clearing price", and
@@ -269,16 +263,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/regulatory/compliance.py::_SMART_METER_TARGETS":
         "Ofgem/DESNZ publish smart meter rollout targets per supplier per year under the "
         "framework licence condition; the table is a market-wide percentage.",
-    "company/finance/corporation_tax.py::_CT_RATE_BY_YEAR":
-        "HMRC publishes the CT main rate per financial year in the Finance Acts; a single "
-        "statutory rate per year, and the table's own comment admits it excludes the small "
-        "profits rate and marginal relief, which is a reading.",
-    "company/regulatory/ets_registry.py::_UKETS_PRICE_GBP_PER_TONNE":
-        "UK ETS auction clearing prices are published per auction by ICE Futures Europe; the "
-        "table is an annual average of those, so the pin is the auction series.",
-    "company/regulatory/solr_exposure.py::_SOLR_LEVY_HISTORY_GBP_PER_MWH":
-        "Ofgem publishes SoLR levy claim determinations per failed supplier; the table is an "
-        "allocated per-MWh figure across all of them, so the pin is the determinations.",
     "company/pricing/ofgem_price_cap.py::_ELEC_CAP_GBP_PER_MWH":
         "the published cap WINDOWS are already pinned in ofgem_default_tariff_cap_windows.json; "
         "this table is an annual average of them and should be derived from the pin, not "
@@ -335,16 +319,6 @@ _NOT_PUBLISHED: dict[str, str] = {
     # `company/billing/cot.py`'s `_SVT_ELEC_PENCE` / `_CAP_ELEC_PENCE` (module retired: no production
     # importer, an invented SVT+20% deemed rate, and a "cap" tabulated for 2016-2018 when the
     # default tariff cap began in January 2019).
-    "company/billing/economy7.py::_E7_DAY_RATE_PPM":
-        "the company's own Economy 7 day rate; a commercial price, not a published figure.",
-    "company/billing/economy7.py::_E7_NIGHT_RATE_PPM":
-        "the company's own Economy 7 night rate; same reasoning as the day rate above.",
-    "company/billing/seg_portfolio.py::_SEG_RATE_HISTORY_PENCE_PER_KWH":
-        "the company's own Smart Export Guarantee export rate. SEG obliges suppliers to offer a "
-        "tariff above zero; the LEVEL is set by each supplier, so there is nothing to pin.",
-    "company/billing/smart_export.py::_SEG_RATES_PPM":
-        "the second module carrying the company's own SEG offer rates; a duplicate worth "
-        "collapsing, but not a published-law pin.",
     "company/regulatory/seg_book.py::_SEG_RATE_P_PER_KWH_BY_YEAR":
         "its own comment says 'illustrative competitive rates ... based on publicly available "
         "SEG rate comparisons' — a survey of other suppliers' offers, not a publication.",
@@ -432,7 +406,7 @@ _BAND_PINNED: dict[str, str] = {
 # are published series with no commons pin, so this is the true bucket; pinning them pays it back.
 # 39 -> 37 on 2026-10-27, paid: both standing-charge tables are gone, the readers serve the
 # commons' cap periods directly (tests/simulation/test_standing_charge_reproduces_the_cap_model.py).
-_MAX_PUBLISHED_UNPINNED = 28  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+_MAX_PUBLISHED_UNPINNED = 23  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
 # the point -- pinning a table is the only sanctioned way to move this number.
 #
@@ -445,6 +419,9 @@ _MAX_PUBLISHED_UNPINNED = 28  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 #
 # 37 -> 28 on 2026-11-08: nine tables left with their modules when the unhooked company.market
 # modules were archived (archive/MANIFEST.txt). Not pinned, removed: no run read them.
+#
+# 28 -> 23 the same day, archive increment 2: five more left the same way, with four
+# not_published entries.
 
 # The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
 # into a dumping ground. Declared here rather than left implicit; see the test of that name.

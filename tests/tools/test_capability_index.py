@@ -1063,5 +1063,7 @@ def test_the_live_register_rules_on_every_live_orphan():
     declared, errors = ci.parse_dispositions(
         (REPO / ci.DISPOSITION_REGISTER).read_text(encoding="utf-8"))
     assert errors == []
-    assert len(declared) == len(subjects) > 200
+    # Not a count floor: the archive shrinks this register toward zero (92 on 2026-11-08).
+    # disposition_findings above already refuses an empty register.
+    assert len(declared) == len(subjects) > 0
     assert {r["class"] for r in declared} <= set(ci.DISPOSITION_CLASSES)

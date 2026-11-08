@@ -130,16 +130,13 @@ _SURFACE_GLOBS = (
     "sim/risk_committee_rules.py",
     "company/risk/*.py",
     "company/pricing/*.py",
-    # CORRECTED 2026-08-22: this was `company/crm/renewal_pricing_engine.py`,
-    # a path that has never existed in any commit. The module is real and lives
-    # under company/pricing, where the glob above was reaching it by accident.
-    "company/pricing/renewal_pricing_engine.py",
     "company/crm/portfolio_repricing.py",
     "company/regulatory/supplier_fitness_register.py",
     # ADDED 2026-08-22: the two most carbon-adjacent decision modules on disk,
     # neither of which was a subject of this guard until today.
     "company/crm/decarb_recommender.py",
-    "company/sustainability/decarbonisation_score.py",
+    # 2026-11-08: renewal_pricing_engine and decarbonisation_score left for
+    # archive/unhooked_supplier/ -- no run reached either -- so they are not named.
 )
 
 

@@ -74,3 +74,41 @@ The primary checkout refuses a landing while it is behind origin. Build each inc
 `git worktree add --detach <dir> origin/main`, then run `surgical_land` and
 `promote_worktree_landing`. The year-keyed census ratchet edit needs `--drops` on that file: the
 stale-copy guard reads a ratchet coming down as a revert of the commit that last set it.
+
+## Increment 2 (built 8 Nov, later the same day): 131 modules, 153 tests
+
+Re-derived at draw time rather than taken from the count above. The rule is the one increment 1
+used, run to a fixed point over `capability_index.build_rows()`, with one tightening: a test's
+quoted dotted name (`"company.x.y"` in a monkeypatch target or an importlib call) counts as an
+import. That is why the set is 131/153 and not the 148/175 filed above. The 17-module gap is the
+tests that patch live code by string. Those need increment 3's surgery.
+
+- The store check ran over the set before anything moved. `uig_allocation_register` (EP10) and the
+  two C32 keeps stay out. `test_carbon_ledger.py` and `test_credit_balance_control.py` are NOT in
+  the set under the rule, so their atom credits stand without a ruling.
+  `test_no_committed_store_claims_an_unlanded_falsifier` and its markdown half both pass after
+  the move. The stores that name archived module paths name them as subjects, not as falsifiers.
+- Controls changed. The wall-clock ratchet loses five entries, and its census floor goes from
+  `>= 20` to `>= 10`, because 16 reads remain and the floor only asks that the census sees a tree.
+  The year-keyed census loses 9 entries (5 published-unpinned and 4 not-published), and its ratchet
+  goes from 28 to 23. `test_carbon_not_a_target` stops naming two surfaces.
+  `test_the_live_register_rules_on_every_live_orphan` goes from `> 200` to `> 0`, because the
+  archive drives that register toward zero and an empty register is already refused.
+- `--dispositions` now reads 92 orphans and 92 ruled.
+- Left alone on purpose: `size_ratchet_baseline.json` and `conditional_registration_survey.json`
+  (stale rows refuse nothing; increment 1 left them too), `consolidation_ledger.jsonl` (a ledger),
+  and `site/data/*` (generated). Prose in the stores, `concepts.yaml`, `DOMAIN_INVARIANTS.yaml`
+  blindfold notes and a few live-module docstrings still names archived paths as history.
+
+**Seen on the way, not caused here:** `tests/tools/test_internal_seam_verifier.py::test_current_tree_passes`
+is red on a clean `origin/main` (b16a733403). `company/billing/monthly_bill_assembly.py:87` imports
+`company.pricing.tou_desk.meter_is_economy_7` across domains, with no seam and no baseline entry.
+It has been there since 32ddfa8ca2 (30 Oct). It needs a seam export or a documented baseline row,
+and that belongs to the billing lane.
+
+## Increment 3 (what is left): 89 modules
+
+crm 25, market 18 (uig held), finance 10, billing 9 (including C32's ppm_warrant_register),
+regulatory 9 (including C32's consumer_vulnerability_register), trading 5, then compliance,
+pricing, risk, sustainability, carbon and portal. Each one is held by a test file that also
+touches live code, by import or by quoted name. Each of those files needs a judgement.

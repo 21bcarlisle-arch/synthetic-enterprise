@@ -250,23 +250,19 @@ HONEST_READS = {
 #: MAY ONLY SHRINK. Lowered 2026-10-03 when the run-reached ones were fixed (leg 3) and the honest
 #: ones moved to HONEST_READS. Every one left is reached by no run (no production importer) or
 #: only by the portal, which has no run date to pass (retention_risk.retention_risk's fallback).
+#: Five entries left 2026-11-08 with their modules for archive/unhooked_supplier/ (increment 2).
 WALL_CLOCK_READS_2026_10_03 = {
     "company/billing/account_closure.py": 1,
     "company/billing/collections.py": 2,
     "company/billing/contract.py": 2,
     "company/billing/direct_debit.py": 1,
     "company/billing/invoice.py": 1,
-    "company/billing/switching.py": 1,
     "company/compliance/consumer_duty_board_report.py": 1,
     "company/crm/contract_exposure_register.py": 1,
     "company/crm/home_registry.py": 4,
     "company/crm/retention_risk.py": 1,
     "company/crm/service_log.py": 1,
-    "company/finance/customer_lifetime_revenue.py": 1,
     "company/pricing/switching_recommendation.py": 1,
-    "company/regulatory/ico_breach_register.py": 1,
-    "company/regulatory/ofgem_redress_register.py": 1,
-    "company/regulatory/statutory_accounts_register.py": 1,
 }
 
 
@@ -291,7 +287,9 @@ def test_an_honest_read_excuses_its_function_not_its_file(tmp_path, monkeypatch)
 def test_the_census_sees_the_tree():
     """A census that counted nothing would make the ratchet below pass on any tree."""
     assert _clock_reads(REPO / "company/billing/collections.py") >= 1
-    assert sum(census().values()) >= 20
+    # 16 live reads on 2026-11-08, after archive increment 2 took five; the floor asks only
+    # that the census counts a tree's worth, not today's number.
+    assert sum(census().values()) >= 10
 
 
 def test_no_company_file_gains_a_wall_clock_read():
