@@ -141,3 +141,51 @@ settle where phase 2b can get the amount from.
 - Every non-level account: **byte-identical** payment events.
 
 If a non-level account moves, the change has leaked past the mandate-type draw.
+
+## Step 2a, the hindsight in `_true_charges`: pre-registration (seat, 8 Nov 2026, written before the code)
+
+**The change.** A recovery action (an annual review that seeks the balance, or the final bill) reads each earlier
+period's true charge **as known on the action's date**: its bill, plus the share of a catch-up only when the catch-up's
+own bill ends on or before that date. `_true_charges` (the hindsight figure) is unchanged and still feeds the published
+`true_charge_gbp` and `tools/dd_book_legs`. One variable: what the bar at a review may read.
+
+**Prediction, on the fa915ac0d7 book's bills, opening amounts and DD spells:**
+- The prefix test (book on a leg's bills up to month m against the full book, the same 40-household sample idea):
+  every month matches, where 359 of 367 did. If any month still differs, the hindsight has a second route.
+- The final-bill bar (`barred_at_final_bills_gbp`) is **unchanged to the penny**: every catch-up a final bill's
+  periods carry is billed by the final bill.
+- Only reviews after a run of estimated bills move; their bar can move either way (a catch-up not yet billed can
+  lower or raise a period's charge). I cannot yet say the sign of the total.
+- Every leg with no catch-up before a review: byte-identical trajectory.
+
+**Graded (8 Nov, on the fa915ac0d7 book's bills, rebuilt post-run with `closed_ids_from_bills` and `dd_spells_from_run`;
+script `/var/tmp/l2a/measure.py`).**
+
+| | before | after |
+|---|---:|---:|
+| prefix test, every DD leg with both a catch-up and a review step-up (538 legs, 31,379 months) | 322 differ | **0** |
+| review bars, seeks arm (the switch's arm) | GBP 16,118.66 | GBP 17,157.86 |
+| review step-ups (1,317) | GBP 14,755.34 | GBP 14,668.74 |
+| final-bill bars, seeks arm | GBP 3,025.74 | GBP 3,084.16 |
+| final-bill bars, never-seeks arm | GBP 27,732.31 | GBP 27,734.42 |
+| run-end exposure, never-seeks arm | GBP 44,915.85 | GBP 44,904.34 |
+| level trajectories moved (of 941) | | 91 |
+
+- The prefix leg held: the hindsight had one route into the schedule, and it is closed.
+- **My final-bill prediction was wrong**, and it was wrong in two ways.
+  - On the seeks arm, all six moved final bills are legs whose earlier review bar moved, so what was left open changed.
+  - On the never-seeks arm, two final bills and four run-end exposures moved, by GBP 9 or less. Every one of them is a
+    leg that **left DD**, where the catch-up was billed on a receipt-paid bill after the last DD bill. The "final" action is
+    dated at that last DD bill, so it could not have known the catch-up either. Same hindsight, second route, now closed.
+- Reviews bar more in total (+GBP 1,039.20) and step up less (−GBP 86.60). A review that could see a later catch-up's
+  upward share took more of the debit as barred and left less to step up. Without that sight, the oldest shortfall is
+  smaller at the review, and more of it ages into a later action.
+- Not changed: `_true_charges` itself, so the published `true_charge_gbp` and `tools/dd_book_legs` keep the end-of-run
+  figure. That is a post-run reading, not an action.
+- Control: `test_a_review_reads_only_the_catch_ups_billed_by_its_own_date` (the prefix property). Mutation-proven: with
+  the as-of filter reverted, it goes red.
+- **N20 Leg A and the page rows are not graded by this step.** They need a book built at this commit. The 91 moved
+  legs change the level schedule that the page and the books read, so the next book carries this change.
+
+**Next, Step 2b:** phase 2b asks the balance book for each level leg's collection, the causal amount, and the outcome
+draw goes on that collection.

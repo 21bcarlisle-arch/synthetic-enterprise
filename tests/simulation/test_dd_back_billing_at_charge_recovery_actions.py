@@ -203,3 +203,27 @@ def test_the_publishers_rebuild_closes_an_account_whose_last_bill_predates_the_r
             and not open_row["closed"] and open_row["exposure_gbp"] > 0
             and open_["seeks"]["review_step_ups"]
             and review_arms_from_run({"bills": SHORT}) is None), (closed_row, open_row)
+
+
+def test_a_review_reads_only_the_catch_ups_billed_by_its_own_date():
+    """The defect (8 Nov, the fa915ac0d7 book: 322 of 31,379 months on 538 legs): a period's true
+    charge carried its share of a catch-up a LATER read billed, so a review that seeks the balance
+    barred, and sized its step-up, from a read the supplier had not yet taken. Held as the property:
+    the book built on the bills up to any month collects and acts exactly as the whole book did."""
+    bills = _bills([100.0] * 12 + [150.0] * 12 + [100.0] * 6)
+    bills[27].update({
+        "catchup_applied": True, "catchup_period_start": bills[0]["period_start"],
+        "catchup_period_end": bills[26]["period_end"], "catchup_raw_delta_gbp": 540.0,
+        "catchup_adjustment_gbp": 540.0, "total_amount_gbp": 640.0,
+    })
+    full = build_dd_balance_book(bills, {DD: 60.0}, {DD}, seek_balance_at_review=True)
+    # The catch-up is in the book, and the review after year two does bar and step up.
+    assert full.trajectories[DD][0].true_charge_gbp > 100.0
+    assert any(r["action"] == "review" and r["date"] == "2022-01-01" and r["amount_gbp"] > 0
+               for r in full.bar_actions)
+    for m in range(1, 28):
+        prefix = build_dd_balance_book(bills[:m], {DD: 60.0}, set(), seek_balance_at_review=True)
+        assert ([p.collected_gbp for p in prefix.trajectories[DD]]
+                == [p.collected_gbp for p in full.trajectories[DD][:m]]), m
+        assert prefix.review_step_ups == [r for r in full.review_step_ups
+                                          if r["date"] <= bills[m - 1]["period_end"]], m

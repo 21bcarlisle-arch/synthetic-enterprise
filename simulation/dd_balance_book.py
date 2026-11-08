@@ -285,7 +285,7 @@ class DDBalanceBook:
 
 
 def _true_charges(bills: list[dict]) -> dict[int, float]:
-    """What each period's energy truly cost, as the supplier knows it: `id(bill) -> charge`.
+    """What each period's energy truly cost, as the supplier knows it at the end: `id(bill) -> charge`.
 
     A read period's bill is its true charge. An estimated period's is its estimate plus a share of
     the catch-up the next read billed, pro rata to the estimates in that run (the estimates are
@@ -293,8 +293,18 @@ def _true_charges(bills: list[dict]) -> dict[int, float]:
     the catch-up it carried for earlier periods. Never the world's `true_total_amount_gbp`: the
     figure is booked, so it must be one the supplier could have formed. A catch-up below the
     materiality threshold was never billed, and leaves its run at the estimates.
+
+    A recovery action before the catch-up is billed cannot know its share: `_charge_parts` keeps
+    each share with the day it is billed, and `_charge_known_on` reads them as of the action.
     """
-    out = {id(b): float(b["total_amount_gbp"]) for b in bills}
+    return {k: base + sum(share for _, share in shares)
+            for k, (base, shares) in _charge_parts(bills).items()}
+
+
+def _charge_parts(bills: list[dict]) -> dict[int, tuple[float, list[tuple[date, float]]]]:
+    """`id(bill) -> (charge without later catch-ups, [(day the catch-up is billed, its share)])`."""
+    base = {id(b): float(b["total_amount_gbp"]) for b in bills}
+    shares: dict[int, list[tuple[date, float]]] = {id(b): [] for b in bills}
     by_supply: dict[tuple, list[dict]] = {}
     for b in bills:
         by_supply.setdefault((b["customer_id"], b.get("commodity")), []).append(b)
@@ -303,8 +313,8 @@ def _true_charges(bills: list[dict]) -> dict[int, float]:
             if not c.get("catchup_applied"):
                 continue
             # The catch-up line is before VAT and its VAT is on the VAT line: the total moved by both.
-            out[id(c)] -= (float(c.get("catchup_adjustment_gbp") or 0.0)
-                           + float(c.get("catchup_vat_gbp") or 0.0))
+            base[id(c)] -= (float(c.get("catchup_adjustment_gbp") or 0.0)
+                            + float(c.get("catchup_vat_gbp") or 0.0))
             run = [b for b in supply if b is not c
                    and c["catchup_period_start"][:10] <= b["period_start"][:10]
                    and b["period_end"][:10] <= c["catchup_period_end"][:10]]
@@ -312,10 +322,19 @@ def _true_charges(bills: list[dict]) -> dict[int, float]:
                 continue
             delta = float(c.get("catchup_raw_delta_gbp") or 0.0)
             weight = sum(float(b["total_amount_gbp"]) for b in run)
+            billed_on = date.fromisoformat(c["period_end"][:10])
             for b in run:
                 share = float(b["total_amount_gbp"]) / weight if weight > 0 else 1.0 / len(run)
-                out[id(b)] += delta * share
-    return out
+                shares[id(b)].append((billed_on, delta * share))
+    return {k: (base[k], shares[k]) for k in base}
+
+
+def _charge_known_on(recovery: list[list], on: date) -> None:
+    """Set each recovery period's charge (`p[2]`) to what the supplier knows on `on`: its bill,
+    plus each catch-up share billed by then (`p[4]`, from `_charge_parts`)."""
+    for p in recovery:
+        base, shares = p[4]
+        p[2] = base + sum(share for billed_on, share in shares if billed_on <= on)
 
 
 def _settle_oldest_first(periods: list[list], amount: float) -> None:
@@ -557,13 +576,14 @@ def _build_book(
     # the same population gate dd_collection_book applies (a customer with no DD
     # mandate holds no seasonal DD credit).
     by_cust: dict[str, list[tuple[date, float]]] = {}
-    true_by_cust: dict[str, list[tuple[date, date, float]]] = {}
+    true_by_cust: dict[str, list[tuple]] = {}
     bills_by_cust: dict[str, list[Mapping]] = {}
     # The period ends of the first DD bill after a spell off DD: the re-signed mandate collects
     # from there, so that bill's level collection is one month, not one per month of the spell.
     resumes: set[tuple[str, date]] = set()
     off_before: set[str] = set()
     true_charge_of = _true_charges(bills)
+    parts_of = _charge_parts(bills)
     for b in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         method = paying_method(
             b.get("segment", "resi"),
@@ -586,7 +606,8 @@ def _build_book(
         end = date.fromisoformat(b["period_end"])
         start = (date.fromisoformat(b["period_start"][:10]) if b.get("period_start")
                  else end.replace(day=1))
-        true_by_cust.setdefault(b["customer_id"], []).append((end, start, true_charge_of[id(b)]))
+        true_by_cust.setdefault(b["customer_id"], []).append(
+            (end, start, true_charge_of[id(b)], parts_of[id(b)]))
         bills_by_cust.setdefault(b["customer_id"], []).append(b)
 
     if seek_balance_at_review is None:
@@ -661,7 +682,8 @@ def _build_book(
                 book.forecast_forward_taken += "forward_rate_per_mwh_ex_vat" in inputs
             standing_dd_by_window[wi] = reviewed_standing(
                 review_rule, windows[prev_wi], windows[wi][0], **kwargs)
-        # [start, end, true charge, collected] per period, for the recovery actions below.
+        # [start, end, charge known at the last action, collected, its parts] per period, for the
+        # recovery actions below.
         recovery: list[list] = []
         barred_here = 0.0
         sought_at_review = False
@@ -679,13 +701,14 @@ def _build_book(
         if trace is not None:
             trace["positions"][cid] = []
             trace["actions"][cid] = []
-        for (d, amt), (_, start, true_charge) in zip(seq, truth):
+        for (d, amt), (_, start, true_charge, parts) in zip(seq, truth):
             while draws and draws[0][0] <= d:
                 balance += draws.pop(0)[1]
             wi = _months_between(anchor, d) // 12
             if seek_balance_at_review and wi != prev_wi and balance < 0:
+                _charge_known_on(recovery, start)
                 barred = min(-balance, barred_at_charge_recovery(
-                    [tuple(p) for p in recovery], start, is_domestic=True))
+                    [tuple(p[:4]) for p in recovery], start, is_domestic=True))
                 sought_at_review = True
                 _settle_oldest_first(recovery, barred)
                 balance += barred
@@ -716,7 +739,7 @@ def _build_book(
                              else max(1, _months_between(prev_d, d)))
             standing = standing_dd_by_window[wi]
             balance += standing * n_collections - amt
-            recovery.append([start, d, true_charge, standing * n_collections])
+            recovery.append([start, d, true_charge, standing * n_collections, parts])
             prev_d = d
             month = f"{d.year:04d}-{d.month:02d}"
             points.append(BalancePoint(
@@ -732,8 +755,9 @@ def _build_book(
             month_balance[month] = balance
             if trace is not None:
                 trace["positions"][cid].append((d, balance))
+        _charge_known_on(recovery, seq[-1][0])
         closing = min(max(0.0, -balance), barred_at_charge_recovery(
-            [tuple(p) for p in recovery], seq[-1][0]))
+            [tuple(p[:4]) for p in recovery], seq[-1][0]))
         met = closed_ids is not None and cid in closed_ids
         if met and trace is not None:
             # The final bill's own action: what it seeks after the bar, keyed the day after it so the
