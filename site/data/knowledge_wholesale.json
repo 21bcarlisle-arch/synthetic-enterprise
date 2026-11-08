@@ -859,6 +859,34 @@
     "reason": "The original near-naked-hedging reading traced to a point-in-time volatility-calculation that could see slightly ahead of itself; once that foresight leak was closed, the apparent behaviour disappeared. The claim was retracted, not tuned away.",
     "evidence_href": "/proof/"
   },
+  "parts": [
+    {
+      "id": "world",
+      "title": "The world",
+      "why": "The markets, the prices and the households a GB supplier lives among. The simulated world has to reproduce this before any customer can be found in it.",
+      "themes": [
+        "markets",
+        "households",
+        "other-markets"
+      ]
+    },
+    {
+      "id": "supplier",
+      "title": "Running a supplier",
+      "why": "What a supplier does among them: winning and keeping customers, metering, billing and collecting, and the rules, accounts and capital it trades under.",
+      "themes": [
+        "customers",
+        "billing"
+      ]
+    },
+    {
+      "id": "build",
+      "title": "Building it",
+      "why": "How Poesys itself is built: the software, product and AI practices it follows, each with the outside source it is taken from and what enforces it here. These are the map's “How it’s built” concepts, read from its register.",
+      "themes": [],
+      "register_spine": "build"
+    }
+  ],
   "themes": [
     {
       "id": "markets",
@@ -871,6 +899,11 @@
       "why": "Who the customers are, what their homes use and how they behave. The simulated world has to reproduce this before any customer can be found in it."
     },
     {
+      "id": "other-markets",
+      "title": "Other markets",
+      "why": "Reference: how seven other countries' household energy markets differ from GB's, and how much of what is built here would transfer. Knowledge only: none of it is on the roadmap."
+    },
+    {
       "id": "customers",
       "title": "Winning and serving customers",
       "why": "What a customer is worth, what it costs to win and keep one, and what to offer each. This is the method Poesys exists to automate."
@@ -879,16 +912,6 @@
       "id": "billing",
       "title": "Metering, billing, debt and regulation",
       "why": "How energy used becomes money collected, and the rules that apply when it does not."
-    },
-    {
-      "id": "carbon",
-      "title": "Carbon",
-      "why": "Where the carbon behind a bill comes from, in the power market and in the home."
-    },
-    {
-      "id": "other-markets",
-      "title": "Other markets",
-      "why": "How seven other countries' household energy markets differ from GB's, and how much of what is built here would transfer. Knowledge only: none of it is on the roadmap."
     }
   ],
   "topics": [
@@ -1025,7 +1048,7 @@
       "atoms": [
         "W1_6b_merit_order_reconstruction"
       ],
-      "theme": "carbon",
+      "theme": "markets",
       "why": "Carbon costs reach the wholesale price through the marginal plant, so they reach every bill, whatever the household thinks about carbon."
     },
     {
@@ -1585,7 +1608,7 @@
         "W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing",
         "E5_carbon_three_ledger"
       ],
-      "theme": "carbon",
+      "theme": "households",
       "why": "Saving customers carbon is one of the three things Poesys sets out to do. This page says where a home's carbon sits and which measures move it."
     },
     {
@@ -1857,7 +1880,7 @@
         "E5_carbon_three_ledger",
         "C30_advice_reaches_a_household"
       ],
-      "theme": "carbon",
+      "theme": "households",
       "why": "Heat pumps and insulation are the measures that move a home's carbon most. The world gives every heat-pump home the same fixed extra electricity, and the company prices insulation above every measured saving."
     },
     {

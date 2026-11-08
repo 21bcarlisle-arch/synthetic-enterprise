@@ -17275,3 +17275,18 @@ index of the archive seat that died at 14:06Z. Most of that index already matche
 than origin. The 48h abandonment rule will not clear it before Monday. In practice nothing is lost this
 weekend, because no book can pass the gate until step 2b lands. But the adopt-or-discard decision on that index
 is owed before 04:00. Otherwise Monday's publish runs the stale tree's gate code, not origin's.
+
+**Site spend, first build (seat executor, later 8 Nov).** The Knowledge tab now takes the map's shape.
+- **Chosen over the cold-read items, and why.** The closed-account balances (213 credits, 208 debts) are a
+  billing defect, not a page defect: the page prints what the ledger holds. Its fix is correctness-stretch work in
+  `company/`, and the finding stays in the queue at that severity. The part-year gas diagnostic had already landed
+  (447c1b61d). That left the tab as the largest site item that is purely site work.
+- **What changed.** Three parts: *The world*, *Running a supplier* and *Building it*. The six themes are now the
+  second level, with Other markets as reference under the world. Carbon is a filter, not a section: 5 cards whose
+  own record copy names carbon, across three themes. *What we've learned* filters on the facet record's
+  insight and mixed layers (27 pages). *Building it* lists the register's four `build` concepts, each linking to
+  its panel on the map. Nothing was deleted; three cards moved.
+- **Not done, handed on.** The reading log's published page under *Building it*; the control-stack boxes on How
+  it's built linking to their practice and back; method insight (the improvement loop's results, including the
+  "we cannot tell" ones) under *What we've learned*.
+- **Spent.** About one turn of build, plus one gate cycle.
