@@ -2679,6 +2679,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # next month starts or the run ends -- never twice, since the ledger keys a bill on (customer,
     # month).
     _payment_month_open: dict[str, dict] = {}  # cid -> the month being accumulated
+    #: The leg whose term the loop is posting now: still posting until the next term is popped.
+    _term_leg_in_hand: list = [None]
     # (cid, month) -> the EBSS credit an unnamed occupier's deemed account still has to net.
     _occupier_credit_left: dict[tuple[str, str], float] = {}
 
@@ -2779,10 +2781,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                             True)
         _issued_ask = _issued_ask_gbp(cid, held["month"], left)
         # Level DD step 2b: the amount this month's level collection takes, asked of the balance book
-        # over the bills and spells known now. Recorded for phase 4c's schedule; the outcome draw
-        # below is still the bill's until the collection is posted in its place.
-        if pays_a_level_direct_debit(cid):
-            _level_in_loop.collect(cid, held["month"], left)
+        # over the bills and spells known now, recorded for phase 4c's schedule and PRESENTED: the
+        # outcome draw below is the collection's (that amount, on its day), and a return is that
+        # amount. A churned leg's final month is settled on its final bill's face, so it keeps the
+        # bill path; the triad also keeps it for a stopped or cancelled mandate and a mover's final.
+        _level_row = (_level_in_loop.collect(cid, held["month"], left)
+                      if pays_a_level_direct_debit(cid) else None)
         _pm_rec = _payment_triad.record_period(
             customer_id=cid,
             # The day the bill for the month falls due, as the billing ledger dates it: issued after
@@ -2807,6 +2811,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                              else _dd_shock_book.effect(household_of(cid), held["month"])),
             moved_out_on=_moved_out_on_by_leg.get(cid),
             household_legs=len(_fuels_of_household.get(household_of(cid), ())) or 1,
+            level_collection=None if left else _level_row,
         )
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
@@ -2825,7 +2830,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     # A dual household's journey waits for its slower leg: whole terms post in turn.
     _payment_triad.legs_still_posting = lambda household: {
         leg for leg in (household, household + GAS_LEG_ID_SUFFIX)
-        if _pending_starts.get(leg) or leg in _payment_month_open}
+        if _pending_starts.get(leg) or leg in _payment_month_open or leg == _term_leg_in_hand[0]}
     # SLC 14: the company's own objection register. It decides a debt objection from its OWN
     # ledger at the switch request; the world only completes or cancels the switch (EP12).
     _transfer_objection_register = open_transfer_objection_register()
@@ -3355,6 +3360,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     while all_terms:
         term_start_str, cid, _, commodity, term = heapq.heappop(all_terms)
         _pending_starts[cid].remove(term_start_str)
+        # Popped, its start leaves `_pending_starts` before its first month opens, and a settlement
+        # delivered for another household in that gap walked this account past the leg's unposted
+        # months (SYN-2016-452's gas level cash posted behind a reminder already sent, 2017-01-30).
+        _term_leg_in_hand[0] = cid
         if term.pop(_HELD_FOR_THE_DECISION_LEG, False):
             term_start_str = term["acquisition_date"]
         _spliced = bool(term.get(_DECLINED_FIX_SPLICE))

@@ -47,6 +47,11 @@ def test_every_journey_opens_the_day_after_a_bill_the_ledger_made_due(walked):
     for b in walked["bills"]:
         dues.setdefault(household_of(b["customer_id"]), set()).add(
             bill_due_date(b["customer_id"], b["period_end"]))
+    # A level direct debit household owes its schedule, not its bills: its journey opens the day
+    # after a returned level collection (level DD step 2b), which is a collection day, not a due date.
+    for cid, rows in (walked.get("level_dd_collections") or {}).items():
+        dues.setdefault(household_of(cid), set()).update(
+            date.fromisoformat(r["collection_date"]) for r in rows)
     stray = [(acct, opened) for acct, opened in _openings(walked)
              if opened - timedelta(days=1) not in dues.get(acct, ())]
     assert not stray, (

@@ -239,6 +239,47 @@ def age_balance(
     )
 
 
+@dataclass(frozen=True)
+class LevelSchedule:
+    """What this company asked of a level direct debit account, from its own records only.
+
+    `requests` are the level collections it submitted, `(collection date, GBP, invoice ref)`.
+    `other_asks` are bills on the account no level collection paid for (a leg off DD, a final
+    bill), `(due date, GBP asked)`. Both come from the company's own acts: it set the level amount
+    and it issued the bills. Which collections came back is read off the ARUDD returns."""
+    requests: tuple
+    other_asks: tuple = ()
+
+
+def level_shortfall(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.date
+                    ) -> Optional[AgedItem]:
+    """What a level DD account owes past its schedule on `as_of`, aged from the oldest request the
+    cash has not met, or None.
+
+    `max(0, min(requested to date - received to date, debit balance))`: Ofgem counts a DD customer
+    in debt only "by defaulting on one or more payments", not one "with a debit at the end of a
+    payment scheme" (letter of 20 Sep 2011, App. 2 para 2.8;
+    `docs/market_research/payments_and_direct_debit_2026-10-25.md`, "What is owed"). A seasonal debit
+    with every collection taken is therefore nothing overdue, and a shortfall in credit is nothing
+    owed. Received is every payment on the account: a repayment of a returned collection meets it."""
+    asked = sorted([(d, gbp) for d, gbp, _ref in schedule.requests if d <= as_of]
+                   + [(d, gbp) for d, gbp in schedule.other_asks if d < as_of])
+    received = round(sum(e.amount_gbp for e in ledger.events_through(as_of)
+                         if e.event_type == LedgerEventType.PAYMENT_CREDIT), 2)
+    short = round(min(sum(g for _d, g in asked) - received, ledger.balance(as_of)), 2)
+    if short <= 0.005:
+        return None
+    met = received
+    due = as_of
+    for d, gbp in asked:  # the cash meets the oldest request first
+        if met + 0.005 < gbp:
+            due = d
+            break
+        met -= gbp
+    return AgedItem(reference=ledger.account_id, outstanding_gbp=short, due_date=due,
+                    days_overdue=(as_of - due).days, disputed=False)
+
+
 def ageing_buckets(items: Sequence[AgedItem]) -> Dict[str, Dict[str, float]]:
     """Aggregate AgedItems into 30/60/90+ buckets, EXCLUDING disputed items."""
     buckets: Dict[str, Dict[str, float]] = {
@@ -1036,6 +1077,7 @@ def collections_snapshot(
     disputed_refs: Sequence[str] = (),
     *,
     moratorium_active: bool,
+    level_schedule: Optional[LevelSchedule] = None,
 ) -> dict:
     """One collections view over either accounting model. Returns ageing buckets,
     the current dunning step, and the undisputed overdue total that would bear
@@ -1046,6 +1088,10 @@ def collections_snapshot(
     is still owed and still read by the churn and pricing beliefs."""
     if accounting_model_is_open_item:
         items = age_open_items(ledger, as_of, payment_terms_days, disputed_refs)
+    elif level_schedule is not None:
+        # A level DD account owes its schedule, not its bills (`level_shortfall`).
+        one = level_shortfall(ledger, level_schedule, as_of)
+        items = [one] if one is not None else []
     else:
         one = age_balance(ledger, as_of, payment_terms_days)
         items = [one] if one is not None else []
