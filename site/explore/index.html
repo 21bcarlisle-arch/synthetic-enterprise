@@ -1146,15 +1146,18 @@ function hddPanel(fuels) {
       'the whole reason the two fuels are shown on separate scales above.</p>');
   }
   var m = (gasLeg.consumption || {}).monthly || [];
-  var byYear = {};
-  m.forEach(function (x) {
-    var y = String(x.month).slice(0, 4);
-    byYear[y] = (byYear[y] || 0) + (x.kwh || 0);
-  });
-  var years = Object.keys(byYear).filter(function (y) { return HDD_BY_YEAR[y]; }).sort();
+  var fy = fullYears(m);
+  var byYear = fy.byYear;
+  var years = fy.years.filter(function (y) { return HDD_BY_YEAR[y]; });
+  var partNote = fy.part.length
+    ? " Left out as part years (fewer than 12 whole months on supply): " + esc(fy.part.join(", ")) +
+      ". A part year enters at a fraction of a year&rsquo;s gas whatever the weather, so it " +
+      "would read as the household ignoring the cold."
+    : "";
   if (!years.length) {
-    return panel("customer", "Gas against the weather", '<p>No year of this ' +
-      'household&rsquo;s gas overlaps the weather archive, so there is nothing to compare.</p>');
+    return panel("customer", "Gas against the weather", '<p>No full supplied year of this ' +
+      'household&rsquo;s gas overlaps the weather archive, so there is nothing to compare.' +
+      partNote + '</p>');
   }
   var pairs = years.map(function (y) { return [HDD_BY_YEAR[y], byYear[y]]; });
   var r = correlate(pairs);
@@ -1172,7 +1175,7 @@ function hddPanel(fuels) {
   }).join("");
 
   var verdict = r === null
-    ? "Too few overlapping years on this account to put a number on the relationship."
+    ? "Too few full years on this account to put a number on the relationship."
     : "Across these " + years.length + (years.length === 1 ? " year" : " years") + " the two move together with a correlation of " +
       "<b>r = " + r.toFixed(2) + "</b>" +
       (r > 0.6 ? " — the household&rsquo;s gas is following the weather, not its habits."
@@ -1186,24 +1189,57 @@ function hddPanel(fuels) {
     '<div class="table-scroll"><table><thead><tr><th>Year</th><th class="n">Heating degree days</th>' +
     '<th></th><th class="n">Gas kWh</th><th></th></tr></thead><tbody>' + rows +
     "</tbody></table></div>" +
-    '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + verdict + " " +
+    '<p style="font-size:12px;color:var(--muted);margin-top:8px">' + verdict + partNote + " " +
     "Degree days are measured, not modelled: " + esc(HDD_META.source || "the weather archive") +
     ", " + esc(HDD_META.location || "London") + ", base " +
     esc(String(HDD_META.hdd_base_c || 15.5)) + "&deg;C. The supplier bills on the meter and " +
     "never on this &mdash; the comparison is available to you, not to it.</p>");
 }
 
+/* The months of a series that are WHOLE months on supply. The monthly series carries no day
+   count, so its first and last months may be stubs (a supply that starts on 20 May bills May
+   at a third of a month), and both are dropped. That also drops a supply that genuinely began
+   on 1 January -- the safe direction, since a stub read as a whole month is what N24 found. */
+function interiorMonths(monthly) {
+  var m = (monthly || []).slice().sort(function (a, b) {
+    return String(a.month) < String(b.month) ? -1 : String(a.month) > String(b.month) ? 1 : 0;
+  });
+  return m.length > 2 ? m.slice(1, -1) : [];
+}
+
+/* Calendar years with all twelve months whole on supply -- the carbon panel's "12 months
+   billed" (half_hourly_footprint.Leg.full_year), less the possible stubs at each end.
+   Returns {years: full years sorted, byYear: kWh per full year, part: the years left out}. */
+function fullYears(monthly) {
+  var count = {}, kwh = {}, all = {};
+  (monthly || []).forEach(function (x) { all[String(x.month).slice(0, 4)] = true; });
+  interiorMonths(monthly).forEach(function (x) {
+    var y = String(x.month).slice(0, 4);
+    count[y] = (count[y] || 0) + 1;
+    kwh[y] = (kwh[y] || 0) + (x.kwh || 0);
+  });
+  var years = [], byYear = {}, part = [];
+  Object.keys(all).sort().forEach(function (y) {
+    if (count[y] === 12) { years.push(y); byYear[y] = kwh[y]; } else { part.push(y); }
+  });
+  return {years: years, byYear: byYear, part: part};
+}
+
 /* Mean winter month against mean summer month for one fuel's monthly series. Returns null
    rather than a number when either season is missing — a ratio computed from one December is
    not a seasonal fact, and printing it would be inventing the shape of a year. */
 function seasonalSwing(monthly) {
-  var win = [], sum = [];
-  (monthly || []).forEach(function (x) {
+  /* A FULL WINTER AND A FULL SUMMER (ninth cold read, N24): every one of Dec/Jan/Feb and of
+     Jun/Jul/Aug must be on record as a whole month. PROS-2024-0335's only "summer" was a 7-day
+     June 2025 stub, and the page told it it heats with electricity at 6.1x. */
+  var win = [], sum = [], seen = {};
+  interiorMonths(monthly).forEach(function (x) {
     var mm = String(x.month).slice(5, 7), k = x.kwh || 0;
-    if (mm === "12" || mm === "01" || mm === "02") { win.push(k); }
-    else if (mm === "06" || mm === "07" || mm === "08") { sum.push(k); }
+    if (mm === "12" || mm === "01" || mm === "02") { win.push(k); seen[mm] = true; }
+    else if (mm === "06" || mm === "07" || mm === "08") { sum.push(k); seen[mm] = true; }
   });
-  if (!win.length || !sum.length) { return null; }
+  var need = ["12", "01", "02", "06", "07", "08"];
+  if (!need.every(function (mm) { return seen[mm]; })) { return null; }
   var avg = function (a) { return a.reduce(function (p, q) { return p + q; }, 0) / a.length; };
   var s = avg(sum);
   return s > 0 ? avg(win) / s : null;
