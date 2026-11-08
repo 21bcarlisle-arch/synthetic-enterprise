@@ -1,0 +1,293 @@
+{
+ "source": "docs/institutional/reading_log.md",
+ "register": "docs/design/the_map/concepts.yaml",
+ "rows": [
+  {
+   "read": "Oct (backfill)",
+   "source": "loki-mode (autonomous build harness repo)",
+   "claim": "A per-commit evidence record that keeps facts apart from judgement, with a headline computed from the facts",
+   "evidence": "Single project",
+   "verdict": "Deferred",
+   "done": "Tested against our history: it would not have caught no-caller or stale figures. It led to the no-caller class count",
+   "concept": "Commit gate",
+   "placed": {
+    "kind": "concept",
+    "label": "The commit gate",
+    "anchor": "c-build.gate"
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "DeepSeek harness `AGENTS.md`",
+   "claim": "Agent rules for a large codebase",
+   "evidence": "Vendor repo",
+   "verdict": "Adopt three",
+   "done": "Assert relationships, not presence; removability by construction; invariants in both directions; deterministic checks before judgement (addenda on the 29 Jul mothball ruling)",
+   "concept": "Checks that can fail",
+   "placed": {
+    "kind": "concept",
+    "label": "Checks that can fail",
+    "anchor": "c-build.mutation"
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "WikiSkill (Google, arXiv 2608.27454)",
+   "claim": "Agents need raw experience, accumulated knowledge and executable code kept apart. The middle layer drives the gain",
+   "evidence": "One paper, benchmarks, unreplicated",
+   "verdict": "Adopt the idea",
+   "done": "Class documents moved to `docs/staging/reference/` so the drain does not consume them",
+   "concept": "Learning",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "GEPA (prompt evolution against an eval)",
+   "claim": "Tune instructions as trainable parameters",
+   "evidence": "Paper and posts",
+   "verdict": "**Reject**",
+   "done": "It goal-seeks against our own score (R12, C1)",
+   "concept": "Outputs are diagnostics",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "Product Talk on evals",
+   "claim": "Binary yes/no checks beat graded scores",
+   "evidence": "Practitioner blog",
+   "verdict": "Already have / adopt partly",
+   "done": "Deterministic before judgement. Judge validation measures the model graders",
+   "concept": "Checks that can fail",
+   "placed": {
+    "kind": "concept",
+    "label": "Checks that can fail",
+    "anchor": "c-build.mutation"
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "*Observability Engineering*, 2nd ed. (Majors, Fong-Jones, Miranda)",
+   "claim": "Wide structured events, the core analysis loop, SLOs",
+   "evidence": "Book",
+   "verdict": "Gap found",
+   "done": "Our run ledger exists and nothing calls it, so we fail the arbitrary-question test (`ADVISOR_FINDINGS_THE_HARNESS_HAS_NO_WIDE_EVENT..._2026-10-11`)",
+   "concept": "Observability",
+   "placed": {
+    "kind": "step",
+    "label": "Observability",
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "Merge-queue post (LinkedIn)",
+   "claim": "Batch changes and bisect on failure",
+   "evidence": "Single author",
+   "verdict": "Question staged",
+   "done": "`ADVISOR_QUESTION_WOULD_BATCH_THEN_BISECT_LANDING_CUT_GATE_TIME_2026-10-15`",
+   "concept": "Commit gate",
+   "placed": {
+    "kind": "concept",
+    "label": "The commit gate",
+    "anchor": "c-build.gate"
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "Anthropic, \"Solving code review at Anthropic\"",
+   "claim": "Parallel bug hunters, verifier votes, risk tiers, incidents as evals",
+   "evidence": "Vendor, internal data",
+   "verdict": "Adopt as a trial",
+   "done": "Two-reader trial: one reader caught 1 of 5 known-bad commits; two agreeing readers flagged 4 of 5 bad and 0 of 5 clean. Now runs on qualifying commits",
+   "concept": "Independent review",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "Google Harness² (recursive harness tuning)",
+   "claim": "Rewrite the harness files per task, from behavioural contrast",
+   "evidence": "Paper, benchmarks",
+   "verdict": "**Reject**",
+   "done": "Self-tuning again, and its gains go to weak models",
+   "concept": "Outputs are diagnostics",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "MIT Technology Review / Snowflake, data engineering",
+   "claim": "Data engineers move to AI; synthetic-data quality is a top worry",
+   "evidence": "Sponsored survey",
+   "verdict": "Nothing to adopt",
+   "done": "Positioning only: our validation ladder answers the synthetic-data worry",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "AWS Lambda Web Functions",
+   "claim": "Lambda runs normal web servers",
+   "evidence": "Vendor",
+   "verdict": "Not relevant",
+   "done": "Poesys has no cloud functions",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "Anthropic, \"When to fold subagents into your main agent loop\"",
+   "claim": "A single loop with skills beats org-chart subagents. Keep agents for checking, parallelism and permissions",
+   "evidence": "Vendor, customer cases",
+   "verdict": "Already have",
+   "done": "Serial by default; context halved 23 Oct; the reader trial justifies the checking agents",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "Anthropic, \"The AI-Native SDLC Playbook\" (Claxton)",
+   "claim": "Intent, spec and plan artefacts; hooks; continuous evals; review on every PR",
+   "evidence": "Vendor guide",
+   "verdict": "Mostly have",
+   "done": "Gap: no eval re-runs when CLAUDE.md, skills or hooks change",
+   "concept": "Delivery and CI",
+   "placed": {
+    "kind": "step",
+    "label": "Delivery and CI",
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct–Nov (backfill)",
+   "source": "Predbat (springfall2008/batpred)",
+   "claim": "Home battery planner. Personal-use licence: ideas only, no code",
+   "evidence": "Open repo, mature",
+   "verdict": "Adopt two ideas, queued",
+   "done": "A replayable run snapshot; a test-order hunt (ruled 3 Nov). Also a knowledge source for asset optimisation",
+   "concept": "Testing and controls",
+   "placed": {
+    "kind": "step",
+    "label": "Testing and controls",
+    "anchor": "s-build-Testing-and-controls"
+   }
+  },
+  {
+   "read": "Nov (backfill)",
+   "source": "Google Elephant-Goldfish model",
+   "claim": "Fresh-context reviewers read a design before it is built",
+   "evidence": "Vendor, \"thousands\" of users, no metrics",
+   "verdict": "Adopt",
+   "done": "A design read before build (2 Nov). Its first read found 7 defects in the value-test design",
+   "concept": "Independent review",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "Oct (backfill)",
+   "source": "Graph and taxonomy technologies (OGM/Neo4j, GraphQL, SKOS, semantic layer, AST)",
+   "claim": "Ways to abstract nodes and taxonomies",
+   "evidence": "General",
+   "verdict": "Adopt two ideas, no tooling",
+   "done": "SKOS fields; one computable definition per measure (24 Oct)",
+   "concept": "One source of truth",
+   "placed": {
+    "kind": "concept",
+    "label": "One source of truth",
+    "anchor": "c-build.one_home"
+   }
+  },
+  {
+   "read": "Nov (backfill)",
+   "source": "NVIDIA Auto Ontology",
+   "claim": "A model extracts a business ontology from databases, with certified definitions",
+   "evidence": "Vendor repo",
+   "verdict": "No tooling; one idea",
+   "done": "Propose then certify, for drafting the register (ruled 3 Nov)",
+   "concept": "One source of truth",
+   "placed": {
+    "kind": "concept",
+    "label": "One source of truth",
+    "anchor": "c-build.one_home"
+   }
+  },
+  {
+   "read": "5 Nov (backfill)",
+   "source": "Mc Gowan, \"Review Gates for Code You Didn't Write\"",
+   "claim": "Over 336 PRs, size predicts must-fix findings and path does not; gates only grow",
+   "evidence": "Single author, own data",
+   "verdict": "Adopt as calibration",
+   "done": "For 11 Nov: calibrate the reader selector on our own history, and report what each gate caught (staged 5 Nov)",
+   "concept": "Commit gate",
+   "placed": {
+    "kind": "concept",
+    "label": "The commit gate",
+    "anchor": "c-build.gate"
+   }
+  },
+  {
+   "read": "7 Nov",
+   "source": "`agent-estimate` (kiloloop), a Claude Code plugin for effort estimates",
+   "claim": "Estimates agent task time from per-model limits",
+   "evidence": "Single maintainer, alpha; its model limits are labelled by its author \"Local policy (unmeasured)\"; accuracy evidence anecdotal (one 4–8x over-estimate)",
+   "verdict": "**Reject**",
+   "done": "Third-party, not Anthropic's. Its limits are picked numbers presented as estimates: \"a number you need is a question to research, never a value to pick\". Pacing estimates come from our own session records, through the token measurement (`DIRECTOR_STEER_MEASURE_WHERE_READING_TOKENS_GO..._2026-11-07`)",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "7 Nov",
+   "source": "Anthropic official plugin marketplace (`claude-plugins-official`): `pyright-lsp`, `code-review`",
+   "claim": "Language-server navigation instead of grep-and-read; a packaged PR review",
+   "evidence": "Vendor",
+   "verdict": "Trial, queued",
+   "done": "`pyright-lsp` trialled inside the token measurement; `code-review` compared with our two readers on the labelled set at the 11 Nov review (`DIRECTOR_STEER_OFFICIAL_PLUGINS_EARN_THEIR_PLACE..._2026-11-07`)",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  }
+ ],
+ "placed": {
+  "concept": 7,
+  "step": 6,
+  "unplaced": 5,
+  "none": 2
+ },
+ "rejected": 3
+}
