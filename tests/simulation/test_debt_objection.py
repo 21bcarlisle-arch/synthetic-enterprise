@@ -56,7 +56,7 @@ def _live_run():
     import simulation.run_phase2b as rp
     from simulation.run_phase2b import main as run_phase2b
 
-    captured, segments, answers = [], {}, []
+    captured, segments, answers, bill_dues = [], {}, [], set()
     original_request = rp.request_debt_objection
 
     def _request(*a, **k):
@@ -70,7 +70,8 @@ def _live_run():
         captured.append(self)
 
     def _record(self, **k):
-        segments[(k["customer_id"], k["due_date"])] = k.get("segment", "resi")
+        segments[k["customer_id"]] = k.get("segment", "resi")
+        bill_dues.add((k["customer_id"], k["due_date"]))
         return original_record(self, **k)
 
     mp = pytest.MonkeyPatch()
@@ -83,6 +84,7 @@ def _live_run():
         mp.undo()
     result["_triad_records"] = list(captured[-1].records)
     result["_triad_segments"] = segments
+    result["_bill_dues"] = bill_dues
     result["_objection_answers"] = answers
     return result
 
@@ -111,7 +113,7 @@ def test_a_live_run_cures_some_unpaid_bills_and_leaves_others_unpaid(_live_run):
     "every cure is past day 28" became "every cure is the re-presentation or past day 28".)"""
     segments = _live_run["_triad_segments"]
     failed = [r for r in _live_run["_triad_records"] if r.result == "failed"
-              and not is_business(segments[(r.customer_id, r.due_date)])]
+              and not is_business(segments[r.customer_id])]
     cured = [r for r in failed if r.settled_on is not None]
     never = [r for r in failed if r.settled_on is None]
     assert cured and never, (len(cured), len(never))
@@ -122,7 +124,8 @@ def test_a_live_run_cures_some_unpaid_bills_and_leaves_others_unpaid(_live_run):
     assert all(r.payment_method == DIRECT_DEBIT for r in re_presented)
     # Re-keyed 2026-10-20: the household budget also clears an unpaid bill, on a LATER bill's due
     # date for the same supply point, which can be exactly 28 days on (a February bill).
-    due_dates = {(r.customer_id, r.due_date) for r in _live_run["_triad_records"]}
+    # A bill's due date, as the run passed it: a level month's record is due on its collection day.
+    due_dates = _live_run["_bill_dues"]
     assert all(r.settled_on > r.due_date + timedelta(days=28)
                or (r.settled_on > r.due_date and (r.customer_id, r.settled_on) in due_dates)
                for r in later)

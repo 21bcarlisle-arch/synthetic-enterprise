@@ -771,6 +771,9 @@ class LivePaymentTriad:
         # settlement is sized by the engine's own walk (`arrears_engine.open_on_contract_gbp`).
         # Plan instalments are not here: the plan book is off on every shipped world.
         self._leg_rows: dict = {}
+        #: leg -> the last day of the last month it presented a level collection for. Its next
+        #: collection can land any day after, so the account's ledger is complete only to here.
+        self._leg_level_floor: dict = {}
         # Asks of nothing (a credit bill, or a bill a waiting credit paid): no collection presented.
         self._n_nil_asks = 0
         # Later settlements other money had cleared in full (not sent), or in part (cut to the rest).
@@ -1037,7 +1040,10 @@ class LivePaymentTriad:
                    else self.legs_still_posting(account_id.removeprefix("ACC-")))
         if any(leg not in self._leg_last_due for leg in posting):
             return None
-        dues = [self._leg_last_due[leg] for leg in posting] or [self._last_due(account_id)]
+        # A level leg's next collection is dated inside its next month, before that month's bill
+        # falls due, so its ledger is complete only to the end of the last month it presented.
+        dues = [min(self._leg_last_due[leg], self._leg_level_floor.get(leg, date.max))
+                for leg in posting] or [self._last_due(account_id)]
         return min(min(dues), self._lived_through)
 
     def _settle_held(self, account_id: str, bound: Optional[date] = None) -> None:
@@ -1235,6 +1241,7 @@ class LivePaymentTriad:
         bill_month: Optional[str] = None,
         credit_gbp: float = 0.0,
         period_end: Optional[str] = None,
+        level_collection: Optional[dict] = None,
     ) -> dict:
         """Generate the ONE canonical W2_11 payment event for this
         (customer, period), cross the seam + feed the company consumer LIVE,
@@ -1253,7 +1260,17 @@ class LivePaymentTriad:
         `bill_month` is the month the bill charges for, which keys this bill's draws and outcome;
         `due_date` is when it falls due, after the month has ended. Omitted, the due date's month.
         `period_end` is the bill's last day, which keys a mover's exit draw as every other caller of
-        `mover_final_bill_outcome` keys it. Omitted, the month's last day or the last supplied day."""
+        `mover_final_bill_outcome` keys it. Omitted, the month's last day or the last supplied day.
+
+        `level_collection` is the month's level direct debit (`dd_review_in_loop.InLoopLevelCollection`
+        row: `amount_gbp` on `collection_date`) for a household the world put on a level amount. When
+        the month is collected by DD and is not a mover's final month, the collection presented is
+        THAT amount on THAT day, and the period's outcome draw (still keyed by period, so no seed
+        moves) is the collection's: a return is the level amount, not the bill's face. The bill still
+        posts at its face, and a credit bill still posts its credit note; neither changes what the
+        schedule collects (payments_and_direct_debit_2026-10-25.md, "What a level direct debit must
+        be"). The company is told it is a level collection (`note_level_collection_request`), which is
+        its own act: it set the amount."""
         self._deliver_settlements_through(due_date)
         bill_month = bill_month or due_date.isoformat()[:7]
         period_index = _period_index_for(bill_month)
@@ -1277,6 +1294,14 @@ class LivePaymentTriad:
         if method == DIRECT_DEBIT and dd_shock_effect is not None and dd_shock_effect.cancelled:
             method = PAY_ON_RECEIPT_METHOD
         stress = income_stress_value if income_stress_value else "low"
+        # A mover's final month is settled on the final bill's face, so it keeps the bill path.
+        final_month = bool(moved_out_on) and (
+            period_end is not None and date.fromisoformat(period_end[:10])
+            >= date.fromisoformat(moved_out_on[:10]) - timedelta(days=1))
+        level = (level_collection if method == DIRECT_DEBIT and level_collection is not None
+                 and not final_month else None)
+        presented_on = (date.fromisoformat(level["collection_date"]) if level is not None
+                        else due_date)
         # EP4, the world side (`simulation/plan_offer_response.py`): the household's money this
         # month, which is what an income shock to an agreed plan reads, and the effect of any
         # lower-payment or pause agreement on this collection. A credit bill only: a meter is paid
@@ -1294,11 +1319,13 @@ class LivePaymentTriad:
         # 2017 took 28.53 off a Jan 2019 bill the page still showed owed. The bill debit stays
         # whole; the credit note is already on the ledger. The draws are keyed by period, not
         # amount, so no outcome moves.
-        waiting = self._leg_credit.pop(customer_id, 0.0)
+        # A level collection takes the level amount whatever the bill: credit stays on the balance.
+        waiting = 0.0 if level is not None else self._leg_credit.pop(customer_id, 0.0)
         credit_taken = round(min(amount_gbp, waiting), 2)
         if waiting - credit_taken > 0.005:
             self._leg_credit[customer_id] = round(waiting - credit_taken, 2)
-        ask_gbp = round(amount_gbp - credit_taken, 2)
+        ask_gbp = (round(level["amount_gbp"], 2) if level is not None
+                   else round(amount_gbp - credit_taken, 2))
         # NOTHING DUE, NOTHING PRESENTED. A credit bill, or a bill a waiting credit paid in full,
         # asks GBP 0: no collection is submitted, so there is nothing for a bank to return and
         # nothing to settle later. The bill is settled by the credit on its due date. Drawing an
@@ -1307,7 +1334,7 @@ class LivePaymentTriad:
         nothing_due = ask_gbp <= 0.005
         self._n_nil_asks += nothing_due
         event = generate_payment_event(
-            customer_id, period_index, due_date, ask_gbp, stress, method,
+            customer_id, period_index, presented_on, ask_gbp, stress, method,
             segment=segment,
             dd_failure_prob=dd_failure_table(shock_mult * plan_mult),
         )
@@ -1331,7 +1358,7 @@ class LivePaymentTriad:
         # pay-on-receipt path ask it. Asked with the due date (the next month's), the bill before the
         # final was drawn as an exit too, on 21 of the 209c3350ab book's mover DDs, and the final
         # bill's draw was seeded apart from the DD book's draw of it: 71 of its 211 disagreed.
-        if moved_out_on and world_payment_truth.UNIFIED and not nothing_due:
+        if moved_out_on and world_payment_truth.UNIFIED and not nothing_due and level is None:
             if period_end is None:
                 last_supplied = date.fromisoformat(moved_out_on) - timedelta(days=1)
                 y, m = int(bill_month[:4]), int(bill_month[5:7])
@@ -1401,9 +1428,10 @@ class LivePaymentTriad:
         if credit_gbp > 0:
             # It waits for the leg's next bill only when nothing on the leg is unpaid: the page
             # nets an open unpaid bill first, and the desk's ledger already does that oldest-first.
-            if not any(r.customer_id == customer_id and r.result == "failed"
-                       and (r.settled_on is None or r.settled_on > issue_date)
-                       for r in self._records):
+            if level is None and not any(
+                    r.customer_id == customer_id and r.result == "failed"
+                    and (r.settled_on is None or r.settled_on > issue_date)
+                    for r in self._records):
                 self._leg_credit[customer_id] = round(
                     self._leg_credit.get(customer_id, 0.0) + credit_gbp, 2)
             credit_note = LedgerEvent(
@@ -1463,28 +1491,31 @@ class LivePaymentTriad:
         # never answered at all is VISIBLE as an open conversation, where before
         # it was indistinguishable from one never submitted.
         if method == DIRECT_DEBIT and not nothing_due:
+            submitted_on = min(issue_date, presented_on)
             collection_request = WallRequest(
                 correlation_id=correlation_id,
                 request_type=COLLECTION_REQUEST_TYPE,
                 schema_version=SEAM_SCHEMA_VERSION,
-                as_of=datetime.combine(issue_date, time(0, 0)),
-                emitted_at=datetime.combine(issue_date, time(0, 0)),
+                as_of=datetime.combine(submitted_on, time(0, 0)),
+                emitted_at=datetime.combine(submitted_on, time(0, 0)),
                 payload=CollectionRequest(
                     account_id=account_id,
                     mandate_ref=mandate_ref_for(account_id),
                     amount_gbp=ask_gbp,
                     rail=PaymentRail.BACS_DIRECT_DEBIT,
-                    requested_collection_date=due_date,
+                    requested_collection_date=presented_on,
                 ),
             )
-            self._consumer.note_collection_request(collection_request)
+            note_request = ("note_level_collection_request" if level is not None
+                            else "note_collection_request")
+            getattr(self._consumer, note_request)(collection_request)
             # The shadow is told identically, for the reason it is billed
             # identically: a counterfactual whose company held a different set
             # of open conversations would be a second company. For DD the two
             # correlation ids are the same value (`_counterfactual_correlation_id`
             # returns the invoice ref, which IS this crossing's id), so this is
             # the same exchange in both books rather than a parallel one.
-            self._cf_consumer.note_collection_request(collection_request)
+            getattr(self._cf_consumer, note_request)(collection_request)
             # ONE ITEM PER SUBMISSION, named as a limit rather than left to be
             # read off the counts. This triad bills and collects customer by
             # customer, so the "file" a real bureau would receive with thousands
@@ -1545,7 +1576,7 @@ class LivePaymentTriad:
         if not nothing_due:
             hand_over = self._consumer.observe_hand_over(
                 emit_wire_responses(event, seam_input),
-                received_at=datetime.combine(due_date, time(12, 0)),
+                received_at=datetime.combine(presented_on, time(12, 0)),
             )
             self._hand_overs.append(hand_over)
 
@@ -1624,7 +1655,7 @@ class LivePaymentTriad:
         # -- and the cash waits in the queue until the run reaches that day.
         settled_on = (None if final_exit is not None or budget_unpaid
                       else later_settlement_date(event, segment=segment))
-        window_end = due_date + timedelta(days=early_contact.EARLY_WINDOW_DAYS)
+        window_end = presented_on + timedelta(days=early_contact.EARLY_WINDOW_DAYS)
         if (event.result == "failed" and not budget_unpaid and early_contact.EARLY_CONTACT_SHARE
                 and self._contacts_received is not None
                 and (settled_on is None or settled_on > window_end)):
@@ -1634,7 +1665,7 @@ class LivePaymentTriad:
                 window_end, check_seq,
                 dataclasses.replace(
                     event, result="success", payment_method=ARREARS_REPAYMENT,
-                    days_late=(window_end - due_date).days,
+                    days_late=(window_end - presented_on).days,
                     payment_date=window_end.isoformat(), dd_failure_reason=None),
                 account_id, invoice_ref, f"{customer_id}::p{period_index}::early"))
         if settled_on is not None:
@@ -1642,7 +1673,7 @@ class LivePaymentTriad:
                 settled_on, len(self._records),
                 dataclasses.replace(
                     event, result="success", payment_method=ARREARS_REPAYMENT,
-                    days_late=(settled_on - due_date).days,
+                    days_late=(settled_on - presented_on).days,
                     payment_date=settled_on.isoformat(), dd_failure_reason=None),
                 account_id, invoice_ref, f"{customer_id}::p{period_index}::settlement"))
 
@@ -1650,10 +1681,11 @@ class LivePaymentTriad:
             self._outcomes_by_customer.setdefault(customer_id, {})[bill_month] = {
                 "result": event.result, "days_late": int(event.days_late or 0),
                 "method": world_payment_truth.engine_method(method)}
+        # What fell due is what was presented: a level month's collection, on its own day.
         self._records.append(PeriodRecord(
             customer_id=customer_id, period_index=period_index,
             invoice_ref=invoice_ref, account_id=account_id,
-            due_date=due_date, issue_date=issue_date,
+            due_date=presented_on, issue_date=issue_date,
             payment_method=method, result=event.result,
             dd_failure_reason=event.dd_failure_reason,
             correlation_id=correlation_id,
@@ -1661,7 +1693,16 @@ class LivePaymentTriad:
             settled_on=settled_on,
         ))
         leg_rows = self._leg_rows.setdefault(customer_id, [])
-        if credit_gbp > 0:
+        if level is not None:
+            # What a level household owes is its schedule: the row its later settlement is sized on
+            # is the collection (that amount, on its day), so a repaid return repays that amount.
+            # Named: the desk caps its figure at the debit balance, and this walk does not, so a
+            # household in credit can still repay a returned collection (the K4 gap, "What is owed").
+            leg_rows.append({"customer_id": customer_id, "period_end": period_end or bill_month,
+                             "commodity": fuel, "amount_gbp": ask_gbp, "due_date": presented_on,
+                             "outcome": event.result, "days_late": int(event.days_late or 0),
+                             "method": None})
+        elif credit_gbp > 0:
             leg_rows.append({"customer_id": customer_id, "period_end": period_end or bill_month,
                              "commodity": fuel, "amount_gbp": -round(credit_gbp, 2),
                              "due_date": due_date, "outcome": "credit", "days_late": 0, "method": None})
@@ -1696,6 +1737,11 @@ class LivePaymentTriad:
         # A later settlement dated on or before the previous due date has already crossed: this
         # call delivered every one up to THIS due date before anything else.
         previous_due = self._leg_last_due.get(customer_id)
+        if level is not None:
+            y, m = int(bill_month[:4]), int(bill_month[5:7])
+            self._leg_level_floor[customer_id] = date(y + m // 12, m % 12 + 1, 1) - timedelta(days=1)
+        else:
+            self._leg_level_floor.pop(customer_id, None)
         self._journey_segments[account_id] = segment
         self._leg_last_due[customer_id] = due_date
         self._legs_of_account.setdefault(account_id, set()).add(customer_id)

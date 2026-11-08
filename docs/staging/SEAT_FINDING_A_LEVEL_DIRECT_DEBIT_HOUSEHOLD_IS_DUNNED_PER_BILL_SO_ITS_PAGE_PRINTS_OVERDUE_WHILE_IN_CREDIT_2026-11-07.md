@@ -297,3 +297,85 @@ debit is one no bill asks for. The method and rows are in
 **Prediction for the first book carrying step 2b:** the same reader reads **0 to 3** cures over a shortfall. If it
 reads more, the desk and the page still disagree about what a level account owes after step 2b. Also predicted: no account that has
 left level DD carries a page debit with every bill marked paid. Today 6 do. If either fails, SYN-2016-550's DIRECTION row stays open, and the leg becomes its own finding.
+
+## Step 2b, second increment: the world presents the level collection, the desk owes the schedule (worker, 8 Nov 2026)
+
+**Landed in this commit, the three parts together**, on the definition in
+`payments_and_direct_debit_2026-10-25.md`, "What is owed" (6bf6fce7f).
+1. **World.** `run_phase2b._post_month_bill` hands `InLoopLevelCollection`'s row to
+   `LivePaymentTriad.record_period(level_collection=...)`. A month collected by DD that is not a churned leg's final
+   month, a mover's final month, stopped or cancelled presents that amount on its Bacs-rolled date. The outcome
+   draw is unchanged (keyed by period), so only the amount and the date move. A return is the level amount. The
+   bill still posts at its face, and a credit bill still posts its credit note without cancelling the collection.
+   The world's own settlement walk (`_leg_rows`, which sizes a later repayment) reads the collection, so a repaid
+   return repays the amount missed.
+2. **Desk.** The company records its level requests (`note_level_collection_request`, its own act). Such an
+   account is viewed through `arrears_engine.level_shortfall`: `max(0, min(requested - received, debit balance))`,
+   aged from the oldest request the cash has not met. Its journey opens only on the day after an ARUDD return,
+   and a bill a level collection paid opens nothing on its due date. It cures when the shortfall is met, even
+   with a bill still unpaid in seasonal debit.
+3. **Page.** A failed level payment row's arrears case is the desk's figure on the day the return counts as
+   missed. If the desk has no stage that day, no case opens: either the return left nothing short (in credit), or
+   a journey already open carries the debt.
+
+4. **The walk.** The desk's walk read the ledger as complete to the latest bill due date of each leg. A level
+   collection is dated inside its month, *before* that month's bill falls due, so this was no longer true. The
+   first build raised `DunningOfAClearedDebtError` in a phase 2b run to Jun 2017: SYN-2016-452 was sent a
+   reminder on 30 Jan 2017, and gas level cash then posted behind it, leaving the ledger at GBP -7.30.
+   There were two routes, and both are closed.
+   - The other leg's collection. `_walk_bound` now stops a level leg at the end of the last month it presented.
+   - The term just popped. In phase 2b, a popped term leaves `_pending_starts` before its first month opens, so
+     `legs_still_posting` did not count it. It now counts the term in hand. This gap was older than this change;
+     level cash is what made it bite.
+   - On the same window after the fix, 28 cash posts still land on or before an already-walked day. The
+     examples are budget clearances posted on the walked day itself, and an occupier's gas leg paid on
+     receipt. Neither is a level collection. Origin's count on the same window is in the commit message.
+
+**Control.** `tests/simulation/test_a_level_dd_household_is_dunned_on_its_schedule_not_its_bills.py`, five legs.
+- **The named household.** OCC-226d3bc42b37's electricity leg as af31e73fa7 billed it (Oct 2024 to Mar 2025,
+  level GBP 104.42 on the 10th), with February's collection returned. No journey opens, and the one return is
+  GBP 104.42 on 10 Feb, not the GBP 109.73 bill. On origin before this commit the test is red:
+  `record_period` has no level argument.
+- **Seasonal debit with every collection taken.** GBP 60 level, winter bills. The account is in debit, and
+  nothing opens.
+- **A return in seasonal debit.** The journey opens on 6 Jan at GBP 60, not at the debit balance. This is the
+  partition control: the branch can be taken.
+- **The return repaid.** The journey cures on 25 Jan while the account is still GBP 80 in debit with December's
+  bill unpaid.
+- **No collection lands on a walked day.** A dual-fuel level household, posted month by month: neither
+  leg's collection is dated on or before the desk's walk. The cross-leg route is unit-tested. The term-in-hand
+  route is covered by `tests/simulation/test_debt_objection.py`, which went red without it.
+- **Eight mutations, all red:**
+  - the desk ignores level;
+  - the view reads bills;
+  - the world presents the bill;
+  - it opens on the return day rather than the day after;
+  - the figure is the balance;
+  - the cure waits on bills;
+  - the world's settlement rows are bill-shaped;
+  - the walk has no floor for a level leg.
+
+**Named, not built.**
+- The world's settlement walk does not cap at the debit balance, as the desk does. A household in credit can
+  still repay a returned collection. This is the K4 gap the knowledge page keeps.
+- `arrears_state` and `receivable` (the provision's reads) still age the balance. They are not the journey, and
+  the pre-registration's receivables leg grades them as they stand.
+- The dual-fuel offsets path keeps the post-loop rebuild, so with offsets on the loop presents nothing new. That
+  path is off by default.
+
+**Pre-registration for the first book built at or after this commit.** This is the "Step 2, measured before
+building" block, with the two added legs and the desk-cure leg above. It is unchanged, and was written before
+this code.
+- INV_OVERDUE_WITHIN_PAGE_BALANCE: **1,724 → 0** on level-DD households.
+- INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE: stays **0**.
+- N20 Leg A: **≤ 0.30**. The share leg: **unchanged**.
+- On level legs, journeys open **only** on a return date (plus one day). The number of level-leg journeys is
+  **at most** the number of returned level collections.
+- The page-balance cure reader: **0 to 3** cures over a shortfall. No account that left level DD carries a page
+  debit with every bill marked paid.
+- Every non-level account: **byte-identical** payment events.
+- The increment-1 rows for `level_dd_schedule_reconcile`: `differ` **≤ 2%** of matched months, and `only_*`
+  **≤ 1%**.
+- The BSCP504 rows in `records/WORKER_PREREG_THE_BSCP504_CEILING_ON_THE_NEXT_FRESH_BOOK_2026-11-07.md`.
+- **Added now:** level-DD returns are counted per collection, dated on the collection day, at the level amount.
+  I cannot yet say whether their total moves up or down.

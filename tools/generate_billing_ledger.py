@@ -430,10 +430,20 @@ def generate(run_json_path=None, out_path=None):
     for cid, cols in (data.get("level_dd_collections") or {}).items():
         for c in cols:
             level_dd.setdefault((cid, c["month"]), []).append(c)
+    # A returned level collection is owed as the desk figures it, the shortfall against the
+    # schedule capped at the debit balance (`arrears_engine.level_shortfall`), not as the bill's
+    # face: the desk's own journey stage on the day it counts as missed carries that figure.
+    desk_overdue_on: dict[tuple[str, str], float] = {}
+    for j in data.get("collections_journeys") or []:
+        acct = str(j.get("account_id")).removeprefix("ACC-")
+        for st in j.get("stages") or ():
+            if st.get("overdue_gbp") is not None and st.get("on"):
+                desk_overdue_on[(acct, st["on"])] = float(st["overdue_gbp"])
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
         segment = bill.get("segment", "resi")
+        level_missed_on = None
         segment_by_cid.setdefault(cid, segment)
         amount = bill["total_amount_gbp"]
         period_end = bill["period_end"]
@@ -933,6 +943,8 @@ def generate(run_json_path=None, out_path=None):
             }
             level = (level_dd.get((cid, period_end[:7])) or [None]).pop(0) \
                 if method == "direct_debit" else None
+            level_missed_on = (None if level is None else
+                               date.fromisoformat(level["collection_date"]) + timedelta(days=1))
             if level is not None:
                 # The household's bank pays the level amount, and the balance carries the difference.
                 pay["amount_gbp"] = round(level["amount_gbp"], 2)
@@ -966,7 +978,17 @@ def generate(run_json_path=None, out_path=None):
         amount = round(asked - part_paid, 2)
         if credits:
             amount = max(round(amount - sum(c["amount_gbp"] for c in credits), 2), 0.0) + 0.0
-        if outcome == "failed":
+        if outcome == "failed" and level_missed_on is not None:
+            # No desk figure that day: the return left nothing short of the schedule (an account in
+            # credit), or a journey already open carries the debt. Either way no new case opens.
+            shortfall = desk_overdue_on.get((billing_account_of(cid), level_missed_on.isoformat()))
+            if not shortfall:
+                outcome_case = None
+            else:
+                amount, due_date, outcome_case = round(shortfall, 2), level_missed_on, "failed"
+        else:
+            outcome_case = outcome
+        if outcome_case == "failed":
             # A case that is not written off is still an open balance, and ends on BALANCE_OPEN.
             still_open = written_off is None
             wo_date = None if written_off is None else written_off["date"]
@@ -986,7 +1008,7 @@ def generate(run_json_path=None, out_path=None):
                                            archetype, method=method, write_off_date=wo_date),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
-        elif outcome == "dispute":
+        elif outcome_case == "dispute":
             still_open = written_off is None
             wo_date = None if written_off is None else written_off["date"]
             write_off_year = (wo_date or due_date + timedelta(days=60)).year

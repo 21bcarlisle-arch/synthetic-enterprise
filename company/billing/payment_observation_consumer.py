@@ -143,6 +143,7 @@ from company.billing.account_ledger import (
 )
 from company.billing.arrears_engine import (
     AgedItem,
+    LevelSchedule,
     age_balance,
     age_open_items,
     ageing_buckets,
@@ -895,8 +896,15 @@ class PaymentObservationConsumer:
             # A statute-barred debt on a live account, and a closed account's balance a year after
             # its final bill, are written off on this ledger under their named rules.
             post_write_off=self._post_desk_write_off,
+            # A level DD account is dunned on its schedule's shortfall, opened only by a return.
+            level_of=lambda account_id: (
+                None if account_id not in self._level_requests
+                else (self.level_schedule_of(account_id), self.level_returns_of(account_id))),
         )
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
+        #: account -> the level collections this company submitted, `(date, GBP, invoice ref)`.
+        #: Its own act: it set the amount (`note_level_collection_request`).
+        self._level_requests: Dict[str, List[tuple]] = {}
         self._rail_failures: Dict[str, List[RailFailureNote]] = {}
         self._mandate_beliefs: Dict[str, MandateBelief] = {}
         self._recognised_cash_refs: Set[str] = set()
@@ -1243,6 +1251,40 @@ class PaymentObservationConsumer:
             request_type=request.request_type,
             emitted_at=request.emitted_at,
         )
+
+    def note_level_collection_request(self, request: WallRequest) -> None:
+        """Record that the company submitted a LEVEL direct debit collection: the amount it set for
+        the account, on the payment day, whatever the month's bill is. Leg 1 as
+        `note_collection_request` records it, and the account's collections view reads it from then
+        on as a level account (`arrears_engine.level_shortfall`)."""
+        self.note_collection_request(request)
+        payload = request.payload
+        self._level_requests.setdefault(payload.account_id, []).append(
+            (payload.requested_collection_date, round(payload.amount_gbp, 2),
+             request.correlation_id))
+
+    def level_schedule_of(self, account_id: str, payment_terms_days: int = 14
+                          ) -> Optional[LevelSchedule]:
+        """The account's level schedule as this company knows it, or None for an account it never
+        collected a level amount from. A bill no level collection paid for (a leg off DD, a final
+        bill) is asked on its own due date, at what it asked once a credit came off it."""
+        requests = self._level_requests.get(account_id)
+        if not requests:
+            return None
+        level_refs = {ref for _d, _g, ref in requests}
+        asked = self.collections_journeys.asked_of
+        other = tuple(
+            (e.valid_time + dt.timedelta(days=payment_terms_days), asked(e.invoice_ref, e.amount_gbp))
+            for e in self.ledger_book.ledger(account_id).events()
+            if e.event_type == LedgerEventType.BILL_DEBIT and e.invoice_ref not in level_refs)
+        return LevelSchedule(requests=tuple(requests), other_asks=other)
+
+    def level_returns_of(self, account_id: str) -> List[dt.date]:
+        """The value dates of the collections the bank returned on a level account (ARUDD): the only
+        days its collections journey can open on a level collection."""
+        if account_id not in self._level_requests:
+            return []
+        return sorted({f.value_date for f in self._dd_failures.get(account_id, [])})
 
     def observe_interim(self, interim: WallInterim) -> bool:
         """Process one NON-TERMINAL leg -- leg 2 of a multi-leg exchange (Q3).
@@ -2181,6 +2223,7 @@ class PaymentObservationConsumer:
             accounting_model_is_open_item=segment.is_business,
             as_of=as_of,
             moratorium_active=self.breathing_space.moratorium_active(account_id, as_of),
+            level_schedule=self.level_schedule_of(account_id),
         )
 
     def snapshot(
