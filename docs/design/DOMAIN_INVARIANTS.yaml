@@ -4319,3 +4319,512 @@ invariants:
     credit netted onto a bill is read as by its due date unless a collection on it failed, the source's own reading of `credit_applied_gbp`. First reading, 2026-11-05: 4 breached of 26 tallies on the cast committed at d14ff599e. All four are SYN-2016-368, whose bills Energy Bills Support Scheme credit
     met on their due dates, printed "4 missed" and "5 missed". That cast predates the N15 generator fix (8d99f4d31c). On the cast that generator writes from the same
     book: 0 of 26, 0 flagged, and it lands beside this row.
+- id: INV_DD_COLLECTION_IS_DATED_ON_A_BACS_PROCESSING_DAY
+  family: payment_rails
+  grades: ledger
+  counts:
+    numerator: 'direct debit collections printed on a payment ledger (any "payment received" line whose method is direct
+      debit, first presentations and re-presentations alike) whose printed date is NOT a Bacs processing day: a Saturday,
+      a Sunday, or an England and Wales bank holiday, including substitute days (e.g. Tue 27 Dec 2016 for Christmas Day
+      on a Sunday) and Good Friday, Easter Monday, the early-May, spring and summer bank holidays'
+    denominator: every direct debit collection printed on any payment ledger (the cold read's frame is 36,096 across 922+
+      accounts)
+    unit graded: one direct debit collection line on a payment ledger
+  statement: 'A Bacs direct debit moves money only on a Bacs processing day. The cycle is input, processing and entry on
+    three consecutive English bank working days, and the payer is debited and the supplier credited on the entry day. Weekends
+    and bank holidays are non-processing days. So a direct debit that was collected has a collection date that is a processing
+    day. A ledger line saying "payment received" by direct debit on a Sunday or on 25 Dec is printing a date on which no
+    Bacs collection can happen. The share of such lines on a correct ledger is zero. Note for the reader: if collections
+    were dated on their scheduled day-of-month with no roll at all, about 2/7 (28.6%) of them would fall on a weekend, plus
+    about 2-3% on bank holidays. The 29% observed is what "no roll applied" predicts.'
+  predicate: 'For each DD collection c with printed date d(c): is_processing_day(d(c)) where is_processing_day(d) = weekday(d)
+    in Mon..Fri AND d not in the England and Wales bank-holiday list for d''s year (gov.uk bank-holidays, England-and-Wales
+    division, which includes substitute days). Count c in the numerator when is_processing_day(d(c)) is false. Graded share
+    = numerator / denominator; also count accounts with >= 1 such line. Breach when the share > 0. Scottish and Northern
+    Irish-only holidays (2 Jan, St Andrew''s, 12 July) are processing days and are NOT counted (see GAP).'
+  lower: 0
+  upper: 0
+  lower_source: 'Bacs scheme: weekends and bank holidays are non-processing days, so the share of DD collections on them
+    is 0'
+  upper_source: 'Bacs scheme: weekends and bank holidays are non-processing days, so the share of DD collections on them
+    is 0'
+  source: 'docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md, "1. The collection cycle: ESTABLISHED
+    [G]" (Bacs glossary, https://www.bacs.co.uk/resources/glossary/): "Day 1 (input) ... Day 2 (processing) ... Day 3 (entry):
+    the payer is debited and the supplier credited on the same day. Days are English bank working days, which exclude weekends
+    and public holidays." docs/market_research/payments_and_direct_debit_2026-10-25.md, section 3 "Bacs direct debit mechanics":
+    "Day 2: the payer is debited and the merchant credited"; and "A DD is never late": "A Bacs collection is taken on its
+    processing day or returned through ARUDD." Bacs via CIPP, "Tips for the bank holiday period from Bacs.co.uk" (5 Apr
+    2023, https://www.cipp.org.uk/resources/news/tips-for-the-bank-holiday-period-from-bacs-co-uk.html): "As bank holidays
+    are Bacs non-processing days"; "ensure your software reflects Bacs non-processing days". Pay.UK press release "Payments
+    and bank holiday processing" (https://newseventsinsights.wearepay.uk/media-centre/press-releases/payments-and-bank-holiday-processing):
+    "bank holidays are non-payment processing days".'
+  severity:
+    dd_collection_dated_saturday_or_sunday: breach
+    dd_collection_dated_on_england_wales_bank_holiday: breach
+    dd_collection_dated_on_substitute_bank_holiday: breach
+  export_fields:
+  - account_id
+  - payment_id
+  - payment_method
+  - payment_date_printed
+  - scheduled_collection_date
+  - presentation_number
+  - amount
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP (1): no file read and no source fetched prints the full Bacs processing calendar for each year 2016-2025. The
+    row takes the England and Wales bank-holiday list as the non-processing list. That rests on the glossary''s "English
+    bank working days" and on Pay.UK and Bacs naming bank holidays as non-processing days. That Bacs ignores Scottish-only
+    holidays is inferred from "English" and is not quoted. GAP (2): a ledger may legitimately print the date the supplier
+    POSTED the receipt (e.g. the day after entry) rather than the entry date. If so, the posting date should also be a working
+    day, but no source read fixes the posting convention. The row grades the printed date as the collection date because
+    the line says "payment received". GAP (3): the brief''s count covers only Sat, Sun, 25 Dec, 26 Dec and 1 Jan. The full
+    predicate also catches Easter, May, August and substitute days, so a re-count will be at or above 10,546.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_DD_DUE_ON_A_NON_PROCESSING_DAY_IS_COLLECTED_ON_THE_NEXT_PROCESSING_DAY
+  family: payment_rails
+  grades: ledger
+  counts:
+    numerator: direct debit collections whose scheduled (notified) date s is a non-processing day and whose printed collection
+      date d is not the first Bacs processing day on or after s (d < s, or d later than that first processing day)
+    denominator: every direct debit collection whose scheduled date s is a non-processing day (Sat, Sun, England and Wales
+      bank holiday or substitute day), where s is derivable from the account's chosen collection day-of-month or a printed
+      notice
+    unit graded: one direct debit collection line on a payment ledger
+  statement: 'When a direct debit falls due on a weekend or bank holiday, Bacs practice is to collect it on the next working
+    day. It is not collected early and not skipped. So the gap from scheduled date to collection date is 0 when the scheduled
+    day is a processing day. Otherwise it is exactly the run of non-processing days that starts at the scheduled day: 1-2
+    days for a weekend, 1-3 for a bank-holiday weekend, and at most 4 at Christmas or New Year (e.g. Sat 25 Dec 2021, Sun
+    26, Mon 27 and Tue 28 substitute days, so collected Wed 29 Dec). A collection moved forward to a later date is still
+    the same month''s collection on the same mandate. It needs no new advance notice, because the payer was told the date
+    and the scheme rolls it.'
+  predicate: 'For each DD collection with scheduled date s and printed date d: next_pd(s) = min{ t >= s : is_processing_day(t)
+    } (is_processing_day as in INV_DD_COLLECTION_IS_DATED_ON_A_BACS_PROCESSING_DAY). Require d == next_pd(s), so 0 <= d
+    - s <= 4 calendar days. A collection re-presented after an ARUDD return is graded on its own re-presentation date and
+    is not counted here. Two-sided: d < s is a breach (collected before the notified date); d > next_pd(s) is a breach unless
+    d is itself a later processing day within 3 working days of s (see severity: ARUDD 9 makes > 3 working days late returnable).'
+  lower: 0
+  upper: 4
+  lower_source: 'Bacs: "Direct Debits due on bank holidays should be collected on the next working day" (never earlier)'
+  upper_source: 'logic over the England and Wales bank-holiday calendar: the longest run of consecutive non-processing days
+    2016-2025 is 4 (Christmas/New Year with substitute days), so next_pd(s) - s <= 4 calendar days'
+  source: 'Bacs via CIPP, 5 Apr 2023 (https://www.cipp.org.uk/resources/news/tips-for-the-bank-holiday-period-from-bacs-co-uk.html):
+    "Remember that Direct Debits due on bank holidays should be collected on the next working day." Pay.UK, "Payments and
+    bank holiday processing" (August 2022 bank holiday): "Direct Debits due on bank holiday Monday should be collected on
+    the Tuesday (30 August) instead." GoCardless, "Direct Debit timings" (https://gocardless.com/guides/recurring-payments/timings,
+    vendor): "If the scheduled date falls on a weekend or public holiday, the payment will be taken on the next working
+    day" and "If a payment date falls on a Saturday or Sunday, it will be processed on the next working day." docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md,
+    section 2, ARUDD code 9 "Presentation overdue": "More than 3 working days after the advance-notice date" (so the roll
+    must not go past 3 working days); and section 1, "Advance notice: the default is 10 working days plus postal time before
+    the first collection or any change to amount, date or frequency".'
+  severity:
+    collected_before_scheduled_date: breach
+    collected_on_the_non_processing_day_itself: breach
+    collected_later_than_next_processing_day_within_3_working_days: flag
+    collected_more_than_3_working_days_after_scheduled_date: breach
+  export_fields:
+  - account_id
+  - payment_id
+  - chosen_collection_day_of_month
+  - scheduled_collection_date
+  - payment_date_printed
+  - presentation_number
+  - advance_notice_date
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP (1): the "next working day" rule is quoted from Bacs bank-holiday guidance (via CIPP) and Pay.UK for bank holidays,
+    and from a vendor (GoCardless) for weekends. No Bacs scheme rulebook clause was read that states the weekend case in
+    the scheme''s own words. GAP (2): whether "next working day" means the payer''s debit (entry) day or the input day is
+    not stated in the quotes. The row reads it as the debit day, which is the date a household''s statement and a supplier''s
+    receipt show. GAP (3): some service users may move a due date back to the PRECEDING working day under their own DDI
+    terms. No source read says energy suppliers do, so d < s is graded a breach (an early collection is one the advance
+    notice did not tell the payer about). GAP (4): if the ledger does not carry the scheduled date, s is reconstructed from
+    the chosen day-of-month, which needs that field exported.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_DD_COLLECTIONS_PILE_ONTO_MONDAYS_AS_THE_WEEKEND_ROLL_PREDICTS
+  family: payment_rails
+  grades: ledger
+  counts:
+    numerator: direct debit collections printed on a Monday that is a processing day
+    denominator: every direct debit collection on a book whose collections are scheduled on a fixed day-of-month (level
+      monthly DD), over at least 12 months (all accounts pooled)
+    unit graded: one direct debit collection line, pooled over a book
+  statement: A level direct debit is collected on the same day of the month. Over a year that day lands on each weekday
+    about equally often. Weekend days roll to Monday, so Monday carries its own 1/7 plus Saturday's and Sunday's, about
+    3/7 (43%) of collections. Bank-holiday Mondays push a little of that to Tuesday, and each of Tuesday to Friday carries
+    about 1/7 (14%). Saturday and Sunday carry none. This is the other side of the zero-weekend row. A ledger with no weekend
+    collections but a flat weekday spread has moved weekend items somewhere other than the next processing day.
+  predicate: share_mon = numerator / denominator, with share_sat == share_sun == 0 (from INV_DD_COLLECTION_IS_DATED_ON_A_BACS_PROCESSING_DAY).
+    Require 0.35 <= share_mon <= 0.47, and each of Tue..Fri in [0.11, 0.19]. Out of band is a flag, not a breach. A book
+    whose chosen days cluster (e.g. all on the 1st) is not uniform over weekdays in a short window, so grade only over >=
+    12 months and >= 500 collections.
+  lower: 0.35
+  upper: 0.47
+  lower_source: 'stated belief from logic: 3/7 = 0.43 under uniform weekday incidence of a fixed day-of-month, less about
+    8 bank-holiday Mondays a year rolling to Tuesday, with a sampling allowance'
+  upper_source: 'stated belief from logic: 3/7 = 0.43 plus sampling allowance; cannot exceed 3/7 by much because only Sat
+    and Sun roll to Monday'
+  source: 'Logic built on the roll rule cited in INV_DD_DUE_ON_A_NON_PROCESSING_DAY_IS_COLLECTED_ON_THE_NEXT_PROCESSING_DAY
+    (Bacs/CIPP "collected on the next working day"; GoCardless "If a payment date falls on a Saturday or Sunday, it will
+    be processed on the next working day"). docs/market_research/payments_and_direct_debit_2026-10-25.md, "A returned level
+    direct debit": "A level direct debit is a set amount collected monthly"; and docs/market_research/a_new_accounts_first_months_2026-10-30.md
+    section 3: OVO, Octopus etc. take a level DD "monthly from then on, on the day you''ve chosen" (Octopus help page, fetched
+    2026-11-08).'
+  severity:
+    monday_share_outside_band: flag
+    weekday_share_outside_band: flag
+  export_fields:
+  - account_id
+  - payment_id
+  - chosen_collection_day_of_month
+  - payment_date_printed
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP: no source publishes the distribution of GB energy customers'' chosen collection days, or the weekday distribution
+    of energy DD collections. The band is a stated belief from the roll rule and calendar arithmetic, not an observed figure.
+    Variable (pay-as-you-use) DDs scheduled from a bill date are excluded because their scheduling rule is not established.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_FIRST_LEVEL_DD_IS_NOT_COLLECTED_BEFORE_SUPPLY_START
+  family: account_opening
+  grades: ledger
+  counts:
+    numerator: (lower side) accounts paying a level monthly direct debit whose first DD collection is dated before the account's
+      supply start date (the cold read found 336); (upper side) such accounts whose first DD collection is dated more than
+      45 days after supply start
+    denominator: every account paying a level monthly direct debit from the start of supply (a mandate in place at sign-up),
+      with a supply start date and at least one DD collection on its ledger
+    unit graded: one account (first DD collection against supply start date)
+  statement: 'A level direct debit pays for energy the supplier supplies. Before the supply start date the supplier supplies
+    nothing. During that time the switch is still in its cooling-off period or the registration window, and it can still
+    be cancelled, objected to or withdrawn. Published supplier practice puts the first collection ON the supply start date
+    (Octopus, "to put your account in credit"), "on or around" it (So Energy), shortly after it (ScottishPower), on the
+    chosen day following it (Bristol Energy), or about 14 days after joining (E.ON Next). None published here takes it before.
+    The Bacs scheme also requires advance notice before the first collection: 10 working days plus postal time by default,
+    shorter only by agreement. So days(first collection - supply start) >= 0 on a correct ledger. It sits within about a
+    cycle and a half after, because the first collection is no later than the first chosen collection day after supply start
+    plus the notice period. Collecting 10 to 26 days before supply starts (the cold read''s examples) takes money for a
+    supply that has not begun and may never begin.'
+  predicate: 'For each graded account a: delta(a) = date(first DD collection on a) - supply_start_date(a), in calendar days.
+    Breach if delta < -3. Flag if -3 <= delta < 0 (So Energy''s "on or around" is the only published wording that might
+    allow this). Pass if 0 <= delta <= 45. Flag if delta > 45 (no published practice found that late). A collection dated
+    on a non-processing day is graded first under INV_DD_COLLECTION_IS_DATED_ON_A_BACS_PROCESSING_DAY. Its rolled date,
+    not the printed date, is compared here only when the scheduled date is known.'
+  lower: 0
+  upper: 45
+  lower_source: 'Published supplier practice: Octopus "Octopus Energy will take your first Direct Debit on the date we start
+    supplying your energy" (https://octopus.energy/help-and-faqs/articles/when-will-my-first-direct-debit-go-out/, fetched
+    2026-11-08); Bristol Energy "Your first Direct Debit payment will leave your bank account on this day, following your
+    supply start date"; ScottishPower "we will take an initial payment shortly after you come on supply" (search summaries
+    2026-11-08; the ScottishPower page returned 403); plus logic: nothing is supplied before the supply start date'
+  upper_source: 'stated belief: first chosen monthly collection day after supply start (<= 31 days) plus the Bacs default
+    10 working days of advance notice (about 14 calendar days) = about 45 days; E.ON Next "We usually take your first payment
+    about 14 days after you join us" (search summary) sits well inside it'
+  source: 'docs/market_research/a_new_accounts_first_months_2026-10-30.md, section 3: "Since about 21 October 2022, SLC
+    27.15 requires a fixed DD on the ''best and most current information available''", "General practice [P]: annual cost
+    / 12 ... notice of a change between 5 working days and a month, 14 days common", and the Octopus row "Smart history
+    / the losing supplier''s data after the switch completes | Octopus estimates first, then refines ''once the switch completes''".
+    docs/market_research/payments_and_direct_debit_2026-10-25.md, section 3: "Advance notice. The default is ''10 working
+    days'', which can be reduced by agreement with the payer"; "AUDDIS (setting up the instruction). Responses arrive about
+    3 working days after a Direct Debit Instruction (DDI) is submitted." docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md,
+    section 1: "Advance notice: the default is 10 working days plus postal time before the first collection or any change
+    to amount, date or frequency [G][F][DDG]"; "First collection on a new AUDDIS mandate: possible 2 working days after
+    the DDI is lodged. Bacs recommends 5"; section 2 ARUDD code 8 "amount not yet due". docs/market_research/switching_mechanics_2026-10-25.md:
+    "a ''Cooling off period (14 days)'' follows"; "SLC 14A.1 (as drafted): the gaining supplier completes a transfer ''within
+    five Working Days''"; "Cooling-off cancellation: ''It is for the Gaining Supplier to withdraw the switch''". Supplier
+    help pages, fetched or searched 2026-11-08: Octopus (quoted above); So Energy "we will take your first Direct Debit
+    payment on or around the date that your energy supply starts (Supply Start Date)" (search summary; the page redirected
+    and was not re-fetched); E.ON Next and ScottishPower as above.'
+  severity:
+    first_dd_more_than_3_days_before_supply_start: breach
+    first_dd_1_to_3_days_before_supply_start: flag
+    first_dd_more_than_45_days_after_supply_start: flag
+  export_fields:
+  - account_id
+  - payment_method
+  - dd_type
+  - supply_start_date
+  - sign_up_date
+  - mandate_lodged_date
+  - first_dd_notice_date
+  - first_dd_collection_date
+  - first_dd_amount
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP (1): no licence condition or Bacs rule read here says in terms that a supplier MAY NOT collect before the supply
+    start date. The lower bound rests on logic (a level DD pays for supply, and none exists yet), on every published supplier
+    statement found (on, around or after supply start), and on the switch still being cancellable in cooling-off. It is
+    a belief with strong logic, not a quoted prohibition. Whether a pre-supply collection breaches the Consumer Contracts
+    Regulations 2013 or the Direct Debit Guarantee ("in error") was not established. GAP (2): So Energy''s "on or around"
+    is not quantified. The -3 day flag band is a stated allowance, not a sourced figure. GAP (3): the ledger does not print
+    the advance-notice date, so the 10-working-day notice cannot be graded from the ledger. It needs first_dd_notice_date
+    exported. GAP (4): the 45-day upper edge is a belief. No source gives the latest first collection a supplier publishes.
+    GAP (5): a home move (supply start set by the move-in date and the mandate signed weeks before) is the case most likely
+    to produce an early first collection in practice, and no source read settles it. It is graded the same.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_OPENING_DAY_CREDIT_IS_ONLY_WHAT_WAS_COLLECTED_ON_OR_AFTER_SUPPLY_START
+  family: account_opening
+  grades: page
+  counts:
+    numerator: welcome or account pages dated on the supply start date that print a credit balance while printing "No bills
+      yet" (or no bill), where the credit is not accounted for by DD collections dated ON the supply start date, or exceeds
+      one level DD amount
+    denominator: every account page dated on an account's supply start date (the welcome page) for an account paying a level
+      monthly DD
+    unit graded: one printed account page dated on the supply start date
+  statement: On the day supply starts, no energy has yet been billed, so the account balance is whatever the household has
+    paid in. A level DD household can be in credit that day only if its first collection was taken that day, which is Octopus's
+    published practice. Then the credit is exactly one level DD amount (£131.07 if the level DD is £131.07). A page that
+    prints "£131.07 in credit" and "No bills yet" on the supply start day is only consistent with the rules if the ledger
+    shows that £131.07 collected ON that day. If it was collected 10 days earlier, the page is showing pre-supply money
+    (see INV_FIRST_LEVEL_DD_IS_NOT_COLLECTED_BEFORE_SUPPLY_START). The page's figure is graded against the ledger it summarises.
+  predicate: 'On page p dated D == supply_start_date(a), with printed balance B (credit positive) and no bill printed: let
+    C = sum of DD collections on a with date in [supply_start_date(a), D] (i.e. dated D). Require B == C within £0.01, and
+    0 <= B <= level_dd_amount(a). Breach if B > 0 and C == 0 (credit sourced from a collection before supply start). Breach
+    if B > level_dd_amount(a). A non-DD credit (goodwill, a transferred credit from the old supplier) must be printed as
+    its own line to count, and is otherwise graded as unexplained.'
+  lower: 0
+  upper: 1
+  lower_source: 'logic: no bill exists on the supply start date, so credit cannot be negative from usage'
+  upper_source: 'upper is in units of one level DD amount: at most one collection can fall on the supply start date (Octopus
+    "take your first Direct Debit on the date we start supplying your energy ... to put your account in credit"); Octopus
+    also says its start-date and chosen-day payments are never "within 10 days of each other" (search summary, 2026-11-08)'
+  source: 'Octopus help page (https://octopus.energy/help-and-faqs/articles/when-will-my-first-direct-debit-go-out/, fetched
+    2026-11-08): "Octopus Energy will take your first Direct Debit on the date we start supplying your energy", and "having
+    some credit when your account opens can help". docs/market_research/payments_and_direct_debit_2026-10-25.md, "A returned
+    level direct debit": "Bills post to the account, and the collections pay into its balance"; "On a level account the
+    household''s arrears are the account''s debit balance: bills less collections and other credit." docs/market_research/a_new_accounts_first_months_2026-10-30.md
+    section 1: the opening rung "arrives after the first DD is set".'
+  severity:
+    opening_credit_from_pre_supply_collection: breach
+    opening_credit_exceeds_one_level_dd: breach
+    opening_credit_unexplained_by_ledger: breach
+  export_fields:
+  - account_id
+  - page_date
+  - supply_start_date
+  - printed_balance
+  - printed_bill_count
+  - level_dd_amount
+  - dd_collection_dates
+  - dd_collection_amounts
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP (1): only Octopus was found publishing a collection ON the supply start date. Suppliers that collect after it
+    would show £0 on the welcome page, which also passes. GAP (2): a credit carried from the losing supplier does not move
+    to the gainer (the losing supplier refunds it), but no source read states that in terms, so such a line is graded only
+    if printed separately. GAP (3): Bacs cash is not final until about Day 4 (payments_and_direct_debit_2026-10-25.md section
+    3, "In about 1% of cases they arrive on day 4"). Whether a page may show a same-day collection as credit before it clears
+    is not established.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_GAS_AGAINST_WEATHER_IS_COMPUTED_OVER_FULL_SUPPLIED_YEARS_ONLY
+  family: weather_driven_demand
+  grades: page
+  counts:
+    numerator: '"Gas against the weather" panels whose printed year series, or whose correlation, includes a year in which
+      the household was supplied (or billed) for fewer than 328 days, without normalising both gas and heating degree days
+      to the same supplied days'
+    denominator: every printed "Gas against the weather" panel (the cold read graded 304 gas pages with three or more years;
+      297 include a part year)
+    unit graded: one printed "Gas against the weather" panel
+  statement: 'A correlation between a year''s heating degree days and the same year''s billed gas tests whether the home
+    burns more gas in colder years. It is only a test if each point is the same kind of thing: a whole year of gas against
+    that whole year''s degree days. Comparing a part year''s gas (the 2016 "7,240" kWh of a home supplied from mid-year)
+    with a full calendar year''s HDD mixes a supply-length effect into the weather effect. A short year has less gas whatever
+    the weather, and its year''s HDD is not the HDD of the supplied months. Supply length is unrelated to weather, so including
+    part years drags r toward zero or below. A printed "r = -0.78, weaker than the heating story predicts" from such a series
+    measures the start and end dates, not the heating. Each year in the series must be a full supplied year (CalTRACK''s
+    billing-method sufficiency: 365 days with no more than 37 missing). Otherwise both kWh and HDD must be taken over the
+    identical supplied days and expressed per day.'
+  predicate: 'For each year y printed in the panel: supplied_days(y) = days in y with the gas leg on supply and billed.
+    Require supplied_days(y) >= 328 (365 - 37) for every y entering the correlation. Alternatively the panel states and
+    uses per-day values with HDD summed over exactly the supplied days of y. A printed year with supplied_days < 328 may
+    appear only if visibly marked as part year and excluded from r. The page passes only if every y entering r passes.'
+  lower: 328
+  upper: 366
+  lower_source: 'CalTRACK methods 2.2.1.1-2.2.1.2 as read in docs/market_research/proving_and_showing_household_savings_2026-10-25.md:
+    "Daily and billing methods: a 365-day baseline ... with no more than 37 missing days (10%)"'
+  upper_source: 'calendar: a year has at most 366 days'
+  source: 'docs/market_research/proving_and_showing_household_savings_2026-10-25.md, "CalTRACK" (fetched 2026-10-25, https://caltrack-technical-documentation.readthedocs.io/en/latest/methods.html):
+    "Daily and billing methods: a 365-day baseline ending at the intervention, with no more than 37 missing days (10%)";
+    summary table: "CalTRACK ~90% coverage | corrected - <=37 missing days (10%) for daily/billing". docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md
+    line 83: domestic gas "end use is roughly 75% space heating (DESNZ 2024), with hot water 12-25% and cooking 5-10%" (so
+    weather should dominate a full year''s gas). docs/market_research/gas_boilers_and_heating_controls_2026-10-25.md: "Space
+    heating | ~77%". Logic: a correlation compares like with like, and a part year is not like a full year.'
+  severity:
+    part_year_enters_correlation: breach
+    part_year_printed_unmarked_but_excluded_from_r: flag
+  export_fields:
+  - account_id
+  - mprn
+  - supply_start_date
+  - supply_end_date
+  - panel_year
+  - panel_gas_kwh
+  - panel_hdd
+  - supplied_days_in_year
+  - printed_r
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP (1): CalTRACK''s 365-day/37-missing-day rule is for a savings baseline, not a year-on-year weather correlation.
+    It is borrowed as the nearest published data-sufficiency rule. No source sets a sufficiency rule for a household-facing
+    weather panel. GAP (2): whether "billed gas" in a year counts estimated bills is not settled here. A year whose gas
+    rests on estimates spread by a profile is not measured weather response (see INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR),
+    but this row grades only the period.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_GAS_WEATHER_R_IS_PRINTED_ONLY_WITH_THE_BOUND_ITS_YEARS_EARN
+  family: weather_driven_demand
+  grades: page
+  counts:
+    numerator: '"Gas against the weather" panels that print a correlation r and a verdict on it ("weaker than the heating
+      story predicts", "strong", etc.) when the number of full supplied years n is below 4, or without an interval, or whose
+      verdict is contradicted by the interval (a verdict of "weaker than predicted" when the interval includes the predicted
+      positive r); also panels printing r < 0 as a finding about heating'
+    denominator: every printed "Gas against the weather" panel that prints an r (the cold read found 259 of 304 negative)
+    unit graded: one printed "Gas against the weather" panel
+  statement: 'Heating physics says a home burns more gas in a colder year, so r(HDD, gas) over full years should be positive.
+    Space heating is about 75% of domestic gas. But GB annual HDD varies only by roughly a tenth between years, and behaviour
+    and price move annual gas by more than that: weather-normalised gas fell about 30% in autumn 2022 against 2021 in the
+    Living Lab. With 3 to 9 annual points, r is very noisy. At n = 3 the Fisher interval is undefined (standard error 1/sqrt(n-3)).
+    At n = 4 a printed r of -0.78 has a 95% interval of about (-0.99, +0.72). A verdict printed on r from a handful of years
+    is a figure without the bound its sample size earns. A negative r is not a finding about heating unless its bound excludes
+    zero AND years straddling 2022 are separated. Otherwise the panel should say "we cannot tell".'
+  predicate: Let n = number of full supplied years entering r (per INV_GAS_AGAINST_WEATHER_IS_COMPUTED_OVER_FULL_SUPPLIED_YEARS_ONLY).
+    (a) r is printed only if n >= 4, with its 95% interval tanh(atanh(r) +/- 1.96/sqrt(n-3)). (b) A verdict that r is weaker
+    or stronger than the heating prediction is printed only if the interval excludes the predicted band (r > 0). Otherwise
+    the verdict is "cannot tell". (c) If the series spans winter 2021/22 and 2022/23, the panel either separates the 2022-2023
+    crisis years or says price moved gas too. (d) -1 <= r <= 1 (any printed value outside is a breach).
+  lower: -1
+  upper: 1
+  lower_source: definition of Pearson r; the physics prediction is r > 0 (space heating ~75% of domestic gas, DESNZ 2024,
+    via gas_demand_what_drives_it_and_the_term_the_model_is_missing.md)
+  upper_source: definition of Pearson r
+  source: 'docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md line 83: "roughly 75% space
+    heating (DESNZ 2024)". docs/market_research/gas_boilers_and_heating_controls_2026-10-25.md line 357: Living Lab (Energy
+    Systems Catapult, 2022), "36 homes cut weather-normalised gas by about 30% in Sep-Oct 2022 vs 2021". docs/market_research/proving_and_showing_household_savings_2026-10-25.md
+    (EVO M&V Focus #5, "why R2 doesn''t matter"; CalTRACK fractional savings uncertainty) for weather-model fits being judged
+    on their uncertainty, not their goodness of fit. Statistics: Fisher z-transform, SE = 1/sqrt(n-3) (standard; Fisher
+    1915/1921). Project rule, CLAUDE.md: "a figure published without the bound its sample size earns is worse than no figure".'
+  severity:
+    r_printed_with_fewer_than_4_full_years: breach
+    verdict_not_supported_by_interval: breach
+    r_printed_without_interval: flag
+    crisis_years_not_separated: flag
+  export_fields:
+  - account_id
+  - mprn
+  - panel_years_used
+  - n_full_years
+  - printed_r
+  - printed_verdict
+  - printed_interval
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP (1): no knowledge page read here gives the published year-to-year spread of GB annual HDD 2016-2025, or the
+    published distribution of a household''s year-on-year r(HDD, gas). "Roughly a tenth" is a stated belief to be replaced
+    by the HDD feed''s own figures. The n >= 4 floor is arithmetic, not a sourced threshold. GAP (2): what r a well-behaved
+    household should show over full years is not established. It is only signed positive, so no tighter two-sided band is
+    offered. GAP (3): the size of the 2022 price effect on annual (not Sep-Oct) gas for the general population is not read
+    here. The Living Lab is 36 homes over two months.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_WINTER_SUMMER_RATIO_NEEDS_A_FULL_WINTER_AND_A_FULL_SUMMER
+  family: weather_driven_demand
+  grades: page
+  counts:
+    numerator: printed winter-to-summer ratios ("Winter months run N x summer months on this meter") where either the winter
+      (Dec-Feb) or the summer (Jun-Aug) used has less than 90% of its days with metered or billed data on this meter
+    denominator: every printed winter-to-summer ratio on a household page
+    unit graded: one printed winter/summer ratio statement
+  statement: 'A ratio of winter to summer use is a statement about a whole season against a whole season. A 7-day June stub
+    is not a summer. It is one week, which may be a holiday week or a week before the household moved in properly. Dividing
+    a winter''s daily rate by it can produce any number. The ratio must use the same season definition for both terms: Dec-Feb
+    against Jun-Aug, as SERL reports it. Each season must have at least 90% of its days with data (the nearest published
+    sufficiency rule, CalTRACK''s 90% coverage). With less, the page should say "not enough summer yet" rather than print
+    a multiple.'
+  predicate: 'For a ratio R = mean_daily_kWh(winter W) / mean_daily_kWh(summer S) printed on a page: require covered_days(W)
+    >= 0.9 * days(W) and covered_days(S) >= 0.9 * days(S), where W is Dec-Feb and S is Jun-Aug (or the page''s stated definition,
+    applied identically to both). Both are measured on the same meter, and both come from actual or smart reads, not profile-spread
+    estimates. Breach if either season falls short. Ratio values are not bounded by this row (see INV_ELECTRIC_HEATING_VERDICT_AGREES_WITH_THE_HOMES_GAS_SUPPLY).'
+  lower: 0.9
+  upper: 1.0
+  lower_source: 'CalTRACK coverage as read in proving_and_showing_household_savings_2026-10-25.md: "over 90% of hours must
+    be present in the same calendar month" (hourly); "no more than 37 missing days (10%)" (daily/billing)'
+  upper_source: 'definition: coverage share cannot exceed 1'
+  source: 'docs/market_research/proving_and_showing_household_savings_2026-10-25.md, CalTRACK: "Hourly methods need no minimum
+    baseline length, but over 90% of hours must be present in the same calendar month and the neighbouring months of the
+    previous year"; "no more than 37 missing days (10%)". docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md:
+    SERL''s seasonal measures are Dec-Feb against Jun-Aug ("Component | Dec-Feb kWh/day | Jun-Aug kWh/day | Ratio"), and
+    "The exit test should not be a ratio for one home. It should be the median across a set of gas-heated fabric premises".'
+  severity:
+    summer_or_winter_under_90pct_covered: breach
+    seasons_defined_differently: breach
+  export_fields:
+  - account_id
+  - mpan
+  - printed_ratio
+  - winter_window
+  - summer_window
+  - winter_covered_days
+  - summer_covered_days
+  - read_types_used
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP: CalTRACK''s 90% is a savings-baseline coverage rule, borrowed as the nearest published sufficiency rule. No
+    source sets one for a household-facing seasonal ratio. Whether a single winter and a single summer suffice, or two of
+    each are needed, is not established.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md
+- id: INV_ELECTRIC_HEATING_VERDICT_AGREES_WITH_THE_HOMES_GAS_SUPPLY
+  family: weather_driven_demand
+  grades: page
+  counts:
+    numerator: pages printing "this home heats with electricity" (or equivalent) for a home that also takes mains gas whose
+      own gas use shows a winter-heavy heating load, or where the electricity ratio behind the verdict fails INV_WINTER_SUMMER_RATIO_NEEDS_A_FULL_WINTER_AND_A_FULL_SUMMER
+    denominator: every page that prints a heating-fuel verdict for a home
+    unit graded: one printed heating-fuel verdict
+  statement: 'A gas-heated home''s electricity still swings with the season, but modestly. SERL measures the monthly max/min
+    of gas-heated homes without PV at 1.36-1.47 (2021-2023), and electricity rising 30-50% from warm to freezing days, from
+    lighting, cooking and supplementary heaters. A large electricity swing suggests electric heating. But a home on mains
+    gas whose gas bill rises in winter is heated by gas, whatever one week of June electricity says. Supplementary electric
+    heaters in gas homes are common and are not "heating with electricity". So a verdict that a home heats with electricity
+    must rest on a full-season ratio. If the same household takes gas, it must also be consistent with that gas: gas with
+    no heating-season rise. Otherwise the page must not print it.'
+  predicate: 'For a page printing an electric-heating verdict for home h: (a) the ratio behind it passes INV_WINTER_SUMMER_RATIO_NEEDS_A_FULL_WINTER_AND_A_FULL_SUMMER;
+    (b) if h has a live gas leg with at least one full winter and one full summer, require gas winter/summer daily ratio
+    < 2 (gas not carrying a heating load) before the verdict prints; otherwise the verdict is "gas-heated, with some electric
+    heating" or none. (c) An electricity ratio <= 1.47 never supports an electric-heating verdict (inside SERL''s gas-heated
+    band).'
+  lower: 1.36
+  upper: 1.47
+  lower_source: SERL, gas-heated homes without PV, monthly max/min 2023 = 1.36 (the_seasonal_swing_of_a_gas_heated_homes_electricity.md)
+  upper_source: SERL, gas-heated homes without PV, monthly max/min 2021 = 1.47 (same page); a ratio at or below this is
+    the gas-heated median band and cannot evidence electric heating
+  source: 'docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md: SERL table "2021 ... 1.47 | 2022
+    ... 1.42 | 2023 ... 1.36" (gas-heated homes without PV); "electricity in these homes rises 30-50% from days of 20-25
+    C to days of -5-0 C"; SERL''s attribution "electric supplementary heating, increased lighting, increased preparation
+    of hot meals and hot drinks"; "What is not established: The per-household distribution of the ratio for gas-heated homes.
+    SERL publishes the monthly median ... not the distribution of each home''s own winter/summer ratio." docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md
+    line 83: gas end use "roughly 75% space heating (DESNZ 2024)". docs/market_research/heating_behaviour_comfort_and_health_floors_2026-10-25.md
+    line 226: "Summer space heating still appears: median 16% of summer heat demand in combi homes" (DHW24).'
+  severity:
+    electric_heating_verdict_on_part_season_ratio: breach
+    electric_heating_verdict_on_home_with_winter_heavy_gas: breach
+    electric_heating_verdict_on_ratio_inside_gas_heated_band: breach
+  export_fields:
+  - account_id
+  - mpan
+  - mprn
+  - printed_verdict
+  - printed_electricity_ratio
+  - gas_winter_kwh_per_day
+  - gas_summer_kwh_per_day
+  - winter_covered_days
+  - summer_covered_days
+  checkable: false
+  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  gap: 'GAP (1): SERL''s 1.36-1.47 is the MEDIAN gas-heated home''s monthly max/min, not a per-household band, and not the
+    Dec-Feb/Jun-Aug ratio the page prints. No per-household distribution is published, so the row uses it only as the floor
+    below which electric heating is never inferred, not as a two-sided test. GAP (2): no source read gives the winter/summer
+    electricity ratio that does indicate primary electric heating, or the gas winter/summer ratio of a home with gas only
+    for hot water and cooking. The "< 2" gas threshold is a stated belief, from 75% space-heating share and a mostly-flat
+    hot-water and cooking base. It should be replaced from published monthly gas profiles (e.g. Xoserve non-daily-metered
+    profiles) when read.'
+  written_blind: ninth cold read (2026-11-08), from the knowledge pages and published scheme rules only; records/SEAT_READING_THE_NINTH_COLD_READ_ON_THE_AF31E73FA7_BOOK_2026-11-08.md

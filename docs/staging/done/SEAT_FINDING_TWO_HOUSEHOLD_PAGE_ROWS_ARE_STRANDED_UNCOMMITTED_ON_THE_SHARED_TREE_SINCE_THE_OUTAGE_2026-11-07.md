@@ -74,3 +74,37 @@ Nothing was deleted without preservation. The bytes are under `refs/preserved/un
 `refs/preserved/refresh-to-head/unpin-2026-11-07*`, with copies in `/var/tmp/shared-tree-unpin-evidence-2026-11-07/`.
 
 **Why the outage left a pin, and the watchdog check the advisor asked for, are not done here.** They are handed on.
+
+## Done, the last three pieces (2026-11-08, `the-ninth-cold-read-on-the-next-fresh-book`)
+
+**What was still stranded, re-measured.** The rows, the evaluators and
+`tests/tools/test_a_household_page_prints_the_billed_term_and_counts_only_unsettled_bills_missed.py` were already on
+origin (f7f0a8ca43). Three pieces were still uncommitted on the shared tree, unchanged since 02:32Z on 5 Nov:
+- `tools/generate_invoice_data.py`: `tariff_label` and the per-bill `tariff_name`;
+- `site/explore/index.html`: the Priced stage prints the bill's `tariff_name` instead of the account's;
+- `site/explore/test_the_priced_stage_tariff_door.py`: the door test, untracked.
+
+Each differed from origin only by those hunks.
+
+**Why it mattered.** Without the generator hunk no page bill carries a `tariff_name`. On the af31e73fa7 book,
+graded through the publisher's own function (`process_run_complete._domain_invariant_gate_permits_publish`),
+INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM read **UNREACHED, 0 checked**. With the three files, on the same book:
+
+| row | checked | breached | flagged |
+|---|---:|---:|---:|
+| INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM | 47,504 | 0 | 1,053 (term changed mid-bill) |
+| INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED | 28 | 0 | 12 |
+
+The door test passes on that book's 1,302 pages.
+
+**What landed, and what waits.** Only the generator hunk landed (`tools/generate_invoice_data.py`), in the commit
+that carries this section. That is what the gate row grades: the page file's per-bill `tariff_name`.
+- The page hunk (`site/explore/index.html`) and the door test **stay on the shared tree until a publish has rebuilt the
+  pages with the generator**.
+- The landing gate ran the door test against the committed live pages, which carry no per-bill `tariff_name`. All
+  1,293 read "Not recorded on this bill" on a fixed bill.
+- So landing the page first would have printed that line on every live page until the next publish. The gate's
+  refusal was right.
+- Continuation: `land-the-household-page-tariff-row-after-the-next-publish`.
+
+Reverse: revert the generator commit.

@@ -47,6 +47,19 @@ _STATUS_MAP = dict(
 )
 
 
+#: The words a bill's own recorded term (`term_tariff_type`) prints as. The tariff is a fact about a
+#: term, not an account: the household page printed "Standard Variable (Electricity)" from the
+#: account on bills the run recorded as fixed (eighth cold read, N16 on the household page).
+_TERM_WORDS = dict(fixed="Fixed", svt="Standard Variable", deemed="Deemed", flex="Flexible",
+                   pass_through="Pass-through")
+
+
+def tariff_label(term_tariff_type, commodity):
+    """The tariff one bill was billed on, from its recorded term; None when the run records none."""
+    words = _TERM_WORDS.get(term_tariff_type)
+    return None if words is None else "{} ({})".format(words, str(commodity).capitalize())
+
+
 class PortalBillDoesNotFootError(ValueError):
     """A customer-portal invoice whose printed lines do not add to its printed total."""
 
@@ -156,6 +169,7 @@ def _real_invoice(inv):
         # The run's recorded term for this bill and its default-tariff verdict, graded on unrounded
         # amounts upstream; None when the run records no term (an older book).
         term_tariff_type=inv.get("term_tariff_type"),
+        tariff_name=tariff_label(inv.get("term_tariff_type"), inv["commodity"]),
         default_tariff_excess_p_per_kwh=inv.get("default_tariff_excess_p_per_kwh"),
         catchup_period_start=inv.get("catchup_period_start"),
         catchup_period_end=inv.get("catchup_period_end"),
