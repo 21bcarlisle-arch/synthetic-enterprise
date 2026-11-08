@@ -56,7 +56,7 @@ _SCRIPT_RE = re.compile(r"<script\b.*?</script\s*>", re.IGNORECASE | re.DOTALL)
 _STYLE_RE = re.compile(r"<style\b.*?</style\s*>", re.IGNORECASE | re.DOTALL)
 _COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 _CARD_RE = re.compile(
-    r"""<a\s+class="card"\s+href="\./(?P<slug>[^"/]+)/">(?P<body>.*?)</a>""", re.DOTALL)
+    r"""<a\s+class="card"\s+href="\./(?P<slug>[^"/]+)/"[^>]*>(?P<body>.*?)</a>""", re.DOTALL)
 _CARD_H_RE = re.compile(r"""<div class="card-h">(?P<h>.*?)</div>""", re.DOTALL)
 _CARD_P_RE = re.compile(r"""<div class="card-p">(?P<p>.*?)</div>""", re.DOTALL)
 _BADGE_RE = re.compile(r"""<span class="state-badge" id="state-(?P<slug>[^"]+)"></span>""")
@@ -158,7 +158,7 @@ def test_the_card_copy_is_quoted_from_the_record(feed, markup):
 
 _THEME_RE = re.compile(
     r"""<section class="theme" id="theme-(?P<id>[^"]+)" data-theme="(?P=id)">\s*"""
-    r"""<h2 class="theme-h">(?P<h>.*?)</h2>\s*<p class="theme-why">(?P<why>.*?)</p>"""
+    r"""<h3 class="theme-h">(?P<h>.*?)</h3>\s*<p class="theme-why">(?P<why>.*?)</p>"""
     r"""(?P<body>.*?)</section>""", re.DOTALL)
 _CARD_WHY_RE = re.compile(r"""<div class="card-why"><span class="why-k">[^<]*</span>\s*(?P<w>.*?)</div>""",
                           re.DOTALL)

@@ -24,6 +24,14 @@ the customer declares), or **public** (published, so both sides read it, at its 
 
 ## 2. The six domains
 
+**Since 8 Nov the tab's top level is three parts, not six themes** (director's steer of 5 Nov, item 2, brought
+forward on 8 Nov): *The world* (Markets and prices, Households and their homes, Other markets), *Running a
+supplier* (Winning and serving customers; Metering, billing, debt and regulation) and *Building it* (the map
+register's `build` concepts). The themes are the second level, Carbon is a filter over every part, and *What
+we've learned* filters on the `layer` facet. The record is `parts` in `site/data/knowledge_wholesale.json`;
+`site/knowledge/test_the_knowledge_tab_takes_the_maps_shape.py` holds it. The `domain` facet below is still a
+second, finer classification of the same pages, and is not yet reconciled with the themes.
+
 The site already groups the pages under six themes (`site/knowledge/index.html`). Five of them match
 the steer's suggested domains in substance. The proposal keeps three of them, splits *Winning and
 serving customers* between operations, products and the new domain, folds *Carbon* into the two

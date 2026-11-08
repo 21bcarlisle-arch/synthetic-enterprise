@@ -50,6 +50,15 @@ a.card:hover { border-color: var(--teal); }
 .card-why { font-size: 13px; color: var(--text); margin-top: 6px; }
 .why-k { font-weight: 600; }
 .card-foot { margin-top: 6px; font-size: 10px; color: var(--muted); }
+.part { margin-top: 44px; }
+.part-h { font-size: 23px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 2px; padding-top: 10px; border-top: 2px solid var(--border); }
+.part-why { font-size: 13.5px; color: var(--muted); margin-bottom: 6px; max-width: 720px; }
+.filters { margin: 10px 0 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.filt { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); cursor: pointer; }
+.filt.on { border-color: var(--teal); font-weight: 700; }
+.filt[disabled] { opacity: .5; cursor: not-allowed; }
+.hidden-by-filter { display: none !important; }
 .theme { margin-top: 30px; }
 .theme-h { font-size: 19px; font-weight: 750; margin-bottom: 2px; }
 .theme-why { font-size: 13px; color: var(--muted); margin-bottom: 12px; max-width: 720px; }
@@ -108,19 +117,35 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         the published range fails the build. <!--claims:count--><b>6</b> claims are published, and at the publish of 3 Nov 2026 <b>6</b> of them held.<!--/claims:count--></li>
       <li>Where the published record does not settle a question, the page says so plainly
         rather than filling it with a guess.</li>
-      <li>The pages are grouped into six themes below. Each card says why the simulation
-        needs it.</li>
+      <li>The pages sit in three parts: <b>the world</b> a supplier lives in, <b>running a
+        supplier</b> in it, and <b>building it</b>, the software practice behind Poesys itself.
+        Each card says why the simulation needs it. Carbon, and what we have learned, are filters
+        across all three.</li>
     </ul>
   </div>
 
-  <nav class="themes-nav" aria-label="Themes">
+  <nav class="themes-nav" aria-label="Parts">
+    <a href="#part-world"><b>The world</b></a>:
     <a href="#theme-markets">Markets and prices</a> &middot;
     <a href="#theme-households">Households and their homes</a> &middot;
+    <a href="#theme-other-markets">Other markets</a><br>
+    <a href="#part-supplier"><b>Running a supplier</b></a>:
     <a href="#theme-customers">Winning and serving customers</a> &middot;
-    <a href="#theme-billing">Metering, billing, debt and regulation</a> &middot;
-    <a href="#theme-carbon">Carbon</a> &middot;
-    <a href="#theme-other-markets">Other markets</a>
+    <a href="#theme-billing">Metering, billing, debt and regulation</a><br>
+    <a href="#part-build"><b>Building it</b></a>: the practices behind the software
   </nav>
+
+  <!-- The filters cut across all three parts. "Carbon" is every card whose own title, blurb or
+       why line (quoted from the record) names carbon; it is in the markup, so it works without
+       the facet record. "What we've learned" is every page the facet record marks insight or
+       knowledge-with-insight; it needs that record, and says so if it cannot be read.
+       site/knowledge/test_the_knowledge_tab_takes_the_maps_shape.py grades both sets. -->
+  <div class="filters" id="filters" role="group" aria-label="Filter the cards">
+    <button type="button" class="filt on" data-filter="all">All pages</button>
+    <button type="button" class="filt" data-filter="carbon">Carbon</button>
+    <button type="button" class="filt" id="filter-learned" data-filter="learned">What we&rsquo;ve learned</button>
+    <span class="muted" id="filter-note"></span>
+  </div>
 
   <!-- REAL <a> links, not built by script (tools/site_reachability.py strips inline scripts
        before reading hrefs, on purpose: a route only JavaScript can build is not a route a
@@ -128,8 +153,11 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        theme are quoted from site/data/knowledge_wholesale.json, and
        site/knowledge/test_index_reflects_the_record.py fails if any drifts from it. The badge
        is left EMPTY here and filled below. -->
+  <section class="part" id="part-world" data-part="world">
+  <h2 class="part-h">The world</h2>
+  <p class="part-why">The markets, the prices and the households a GB supplier lives among. The simulated world has to reproduce this before any customer can be found in it.</p>
   <section class="theme" id="theme-markets" data-theme="markets">
-  <h2 class="theme-h">Markets and prices</h2>
+  <h3 class="theme-h">Markets and prices</h3>
   <p class="theme-why">Where a supplier's costs come from: the wholesale price, the costs added on top of it, and the cap on what it may charge.</p>
   <a class="card" href="./electricity-wholesale/">
     <div class="card-h">GB electricity wholesale</div>
@@ -209,15 +237,21 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The forward years are graded against these bands at every time scale before any forward run is used for a supplier result, and the world's replayed gas price fails them below a month.</div>
     <div class="card-foot"><span class="layer-badge" id="layer-how-gb-gas-and-power-prices-move"></span><span class="state-badge" id="state-how-gb-gas-and-power-prices-move"></span></div>
   </a>
-  <a class="card" href="./dated-household-cost-and-price-series/">
+  <a class="card" href="./dated-household-cost-and-price-series/" data-carbon="1">
     <div class="card-h">What things cost a household, by date: fuel, energy, kit and carbon, 2016 to 2035</div>
     <div class="card-p">Petrol, capped energy, solar, batteries, heat pumps and grid carbon each have a published dated series, and all moved a lot between 2016 and 2026. No road-fuel price exists in the code, and the company's retrofit costs are fixed.</div>
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> A saving shown to a household is only true at the price that applied on that date, and the company's advice still prices kit at four fixed figures.</div>
     <div class="card-foot"><span class="layer-badge" id="layer-dated-household-cost-and-price-series"></span><span class="state-badge" id="state-dated-household-cost-and-price-series"></span></div>
   </a>
+  <a class="card" href="./carbon-price/" data-carbon="1">
+    <div class="card-h">The UK carbon price (UK ETS + CPS)</div>
+    <div class="card-p">The traded ETS price, charged per tonne emitted, plus Carbon Price Support, charged per unit of fuel burned for generation.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Carbon costs reach the wholesale price through the marginal plant, so they reach every bill, whatever the household thinks about carbon.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-carbon-price"></span><span class="state-badge" id="state-carbon-price"></span></div>
+  </a>
   </section>
   <section class="theme" id="theme-households" data-theme="households">
-  <h2 class="theme-h">Households and their homes</h2>
+  <h3 class="theme-h">Households and their homes</h3>
   <p class="theme-why">Who the customers are, what their homes use and how they behave. The simulated world has to reproduce this before any customer can be found in it.</p>
   <a class="card" href="./how-many-synthetic-households/">
     <div class="card-h">How many synthetic households represent Britain</div>
@@ -261,7 +295,7 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Most households sit on the default tariff and few switch. The simulated households have to be as slow to move as real ones.</div>
     <div class="card-foot"><span class="layer-badge" id="layer-how-households-choose"></span><span class="state-badge" id="state-how-households-choose"></span></div>
   </a>
-  <a class="card" href="./the-customer-needs-framework/">
+  <a class="card" href="./the-customer-needs-framework/" data-carbon="1">
     <div class="card-h">What households need from a supplier and who feels each need: cost, cash flow, certainty, control, time and carbon</div>
     <div class="card-p">In Ofgem's November 2022 survey, difficulty paying bills separates how households feel the cost, the cash-flow squeeze and the worry far more than income band does; age separates who will switch and who will pay more; and trust separates who thinks a price rise is fair. The households most in need said they were more willing to switch, not less.</div>
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The world is to draw a few hidden household traits, and the company is to read signals of need. This page says which attributes carry which need, where the advisor's picture failed on the tables, and which of the survey's measures are only stated.</div>
@@ -321,9 +355,77 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-why"><span class="why-k">Why the simulation needs it.</span> The world labels every drawn roof east/west and never lets the label reach output; a personalised solar home needs its own facing, tilt, size, age and sky.</div>
     <div class="card-foot"><span class="layer-badge" id="layer-pv-roofs-orientation-and-yield"></span><span class="state-badge" id="state-pv-roofs-orientation-and-yield"></span></div>
   </a>
+  <a class="card" href="./household-carbon-and-the-measures-that-save-it/" data-carbon="1">
+    <div class="card-h">Where a gas-heated home's carbon comes from, and which measures save it</div>
+    <div class="card-p">On today's grid the gas boiler is five to six times the carbon of all the home's electricity. The measures that save both money and carbon are mostly heating measures; the timing measures are small on both.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Saving customers carbon is one of the three things Poesys sets out to do. This page says where a home's carbon sits and which measures move it.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-household-carbon-and-the-measures-that-save-it"></span><span class="state-badge" id="state-household-carbon-and-the-measures-that-save-it"></span></div>
+  </a>
+  <a class="card" href="./heat-pumps-and-fabric-measures/" data-carbon="1">
+    <div class="card-h">What a heat pump and insulation really deliver in GB homes, and what they cost and save</div>
+    <div class="card-p">A typical air-source heat pump delivers about 2.8 units of heat per unit of electricity over a year, almost exactly break-even with gas at the October 2026 cap, while cutting heating carbon by two thirds or more. Measured insulation savings are about 3% loft, 7-10% cavity, 16-19% solid wall.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Heat pumps and insulation are the measures that move a home's carbon most. The world gives every heat-pump home the same fixed extra electricity, and the company prices insulation above every measured saving.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-heat-pumps-and-fabric-measures"></span><span class="state-badge" id="state-heat-pumps-and-fabric-measures"></span></div>
+  </a>
   </section>
+  <section class="theme" id="theme-other-markets" data-theme="other-markets">
+  <h3 class="theme-h">Other markets</h3>
+  <p class="theme-why">Reference: how seven other countries' household energy markets differ from GB's, and how much of what is built here would transfer. Knowledge only: none of it is on the roadmap.</p>
+  <a class="card" href="./other-markets-compared-with-gb/">
+    <div class="card-h">Seven markets against GB: what transfers from the build and what a second market would need</div>
+    <div class="card-p">Households transfer, the GB supplier's commercial rules mostly do not: prepayment, the fixed direct debit, the all-supplier cap, supplier-owned meters, the deemed contract and the SoLR levy are GB peculiarities. How many of each pack's open items were checked at source is counted at the foot of this index.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It says which parts of the GB build a second market could reuse and which it would have to build new. Knowledge only, not on the roadmap.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-markets-compared-with-gb"></span><span class="state-badge" id="state-other-markets-compared-with-gb"></span></div>
+  </a>
+  <a class="card" href="./other-market-australia/">
+    <div class="card-h">Australia against GB: what carries over, and what a second market would need</div>
+    <div class="card-p">Five regional five-minute prices, quarterly bills in arrears, no prepayment to speak of, a default price that caps standing offers only, and 4.3 million rooftop solar systems. Knowledge only, not on the roadmap.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows which parts of the GB build are general and which are GB's own: the advice on solar, batteries and EVs transfers best here, the price replay and billing least.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-market-australia"></span><span class="state-badge" id="state-other-market-australia"></span></div>
+  </a>
+  <a class="card" href="./other-market-belgium/">
+    <div class="card-h">Belgium against GB: three regional rulebooks, no price cap, and bad payers handed to the network</div>
+    <div class="card-p">Close to GB on climate and wholesale, far from it on billing, settlement and debt: monthly advances and an annual true-up, 15-minute settlement, no price cap, a federal social tariff, and bad payers moved to the network operator. Knowledge only, not on the roadmap.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It is the clearest case of debt leaving the supplier's book, which GB's model never allows, and of a household's 15-minute peak setting its network bill.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-market-belgium"></span><span class="state-badge" id="state-other-market-belgium"></span></div>
+  </a>
+  <a class="card" href="./other-market-france/">
+    <div class="card-h">France against GB: a regulated tariff only the incumbent sells, a power limit in every home, and electric heating</div>
+    <div class="card-p">A regulated tariff on 55.8% of homes that only the incumbent sells, a subscribed power limit from 3 to 36 kVA, per-home off-peak hours, 37% electric heating, households still profiled for settlement, and no prepayment. Knowledge only, not on the roadmap.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows a market anchored to a published regulated cost stack rather than a cap, and a home whose power limit and off-peak hours are set by the network, both of which GB's model lacks.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-market-france"></span><span class="state-badge" id="state-other-market-france"></span></div>
+  </a>
+  <a class="card" href="./other-market-germany/">
+    <div class="card-h">Germany against GB: a default supplier with no price cap, a yearly true-up bill and a fifteen-minute clock</div>
+    <div class="card-p">Germany's basic-supply default is uncapped, households pay monthly advances with a yearly true-up, prepayment is negligible, smart meters cover 5.9% of metering points, and network operators carried out 239,269 disconnections in 2024.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows which parts of the GB build are GB-specific: the cap, prepayment, the deemed contract and fixed direct debit all have no German equivalent.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-market-germany"></span><span class="state-badge" id="state-other-market-germany"></span></div>
+  </a>
+  <a class="card" href="./other-market-italy/">
+    <div class="card-h">Italy against GB: contracted kilowatts, an auctioned default service and arrears that follow the customer</div>
+    <div class="card-p">Italian homes contract a power level (typically 3 kW) that the network's smart meter enforces, are billed every two months on readings, face power limitation rather than prepayment, and can have arrears billed through their next supplier.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows the GB build assumes an uncapped connection and no regulatory heating calendar; Italy has both, and a summer peak.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-market-italy"></span><span class="state-badge" id="state-other-market-italy"></span></div>
+  </a>
+  <a class="card" href="./other-market-japan/">
+    <div class="card-h">Japan against GB: an incumbent's regulated tariff, a breaker the household chooses and no supplier for a new occupant</div>
+    <div class="card-p">Japan settles in half-hours with universal network-owned smart meters, like GB's target, but heats room by room with air conditioners, keeps an incumbent-only regulated tariff on about 65% of incumbent contracts, cuts off non-payers around day 51 and has no supplier for a new occupant.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It is the market where the GB build's half-hour clock transfers best and its deemed contract, debt objection and supplier-of-last-resort assumptions transfer worst.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-market-japan"></span><span class="state-badge" id="state-other-market-japan"></span></div>
+  </a>
+  <a class="card" href="./other-market-spain/">
+    <div class="card-h">Spain against GB: a dynamic regulated price, a power subscription and bills paid after the reading</div>
+    <div class="card-p">Spain's regulated price is a dynamic hourly-shaped tariff sold only by incumbents' regulated arms, every home subscribes to a power level, meters have been universal and network-owned since 2018, and bills are paid after an actual read.</div>
+    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows that GB's cap, fixed direct debit and prepayment are choices, not givens: Spain has a regulated product, no credit balances and no prepayment.</div>
+    <div class="card-foot"><span class="layer-badge" id="layer-other-market-spain"></span><span class="state-badge" id="state-other-market-spain"></span></div>
+  </a>
+  </section>
+  </section>
+  <section class="part" id="part-supplier" data-part="supplier">
+  <h2 class="part-h">Running a supplier</h2>
+  <p class="part-why">What a supplier does among them: winning and keeping customers, metering, billing and collecting, and the rules, accounts and capital it trades under.</p>
   <section class="theme" id="theme-customers" data-theme="customers">
-  <h2 class="theme-h">Winning and serving customers</h2>
+  <h3 class="theme-h">Winning and serving customers</h3>
   <p class="theme-why">What a customer is worth, what it costs to win and keep one, and what to offer each. This is the method Poesys exists to automate.</p>
   <a class="card" href="./what-a-customer-is-worth/">
     <div class="card-h">What a customer is worth, and what drives it</div>
@@ -393,7 +495,7 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   </a>
   </section>
   <section class="theme" id="theme-billing" data-theme="billing">
-  <h2 class="theme-h">Metering, billing, debt and regulation</h2>
+  <h3 class="theme-h">Metering, billing, debt and regulation</h3>
   <p class="theme-why">How energy used becomes money collected, and the rules that apply when it does not.</p>
   <a class="card" href="./metering-and-reads/">
     <div class="card-h">Metering and meter reads</div>
@@ -456,79 +558,29 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     <div class="card-foot"><span class="layer-badge" id="layer-suppliers-accounts-and-capital"></span><span class="state-badge" id="state-suppliers-accounts-and-capital"></span></div>
   </a>
   </section>
-  <section class="theme" id="theme-carbon" data-theme="carbon">
-  <h2 class="theme-h">Carbon</h2>
-  <p class="theme-why">Where the carbon behind a bill comes from, in the power market and in the home.</p>
-  <a class="card" href="./household-carbon-and-the-measures-that-save-it/">
-    <div class="card-h">Where a gas-heated home's carbon comes from, and which measures save it</div>
-    <div class="card-p">On today's grid the gas boiler is five to six times the carbon of all the home's electricity. The measures that save both money and carbon are mostly heating measures; the timing measures are small on both.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Saving customers carbon is one of the three things Poesys sets out to do. This page says where a home's carbon sits and which measures move it.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-household-carbon-and-the-measures-that-save-it"></span><span class="state-badge" id="state-household-carbon-and-the-measures-that-save-it"></span></div>
-  </a>
-  <a class="card" href="./carbon-price/">
-    <div class="card-h">The UK carbon price (UK ETS + CPS)</div>
-    <div class="card-p">The traded ETS price, charged per tonne emitted, plus Carbon Price Support, charged per unit of fuel burned for generation.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Carbon costs reach the wholesale price through the marginal plant, so they reach every bill, whatever the household thinks about carbon.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-carbon-price"></span><span class="state-badge" id="state-carbon-price"></span></div>
-  </a>
-  <a class="card" href="./heat-pumps-and-fabric-measures/">
-    <div class="card-h">What a heat pump and insulation really deliver in GB homes, and what they cost and save</div>
-    <div class="card-p">A typical air-source heat pump delivers about 2.8 units of heat per unit of electricity over a year, almost exactly break-even with gas at the October 2026 cap, while cutting heating carbon by two thirds or more. Measured insulation savings are about 3% loft, 7-10% cavity, 16-19% solid wall.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> Heat pumps and insulation are the measures that move a home's carbon most. The world gives every heat-pump home the same fixed extra electricity, and the company prices insulation above every measured saving.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-heat-pumps-and-fabric-measures"></span><span class="state-badge" id="state-heat-pumps-and-fabric-measures"></span></div>
-  </a>
   </section>
-
-  <section class="theme" id="theme-other-markets" data-theme="other-markets">
-  <h2 class="theme-h">Other markets</h2>
-  <p class="theme-why">How seven other countries' household energy markets differ from GB's, and how much of what is built here would transfer. Knowledge only: none of it is on the roadmap.</p>
-  <a class="card" href="./other-markets-compared-with-gb/">
-    <div class="card-h">Seven markets against GB: what transfers from the build and what a second market would need</div>
-    <div class="card-p">Households transfer, the GB supplier's commercial rules mostly do not: prepayment, the fixed direct debit, the all-supplier cap, supplier-owned meters, the deemed contract and the SoLR levy are GB peculiarities. How many of each pack's open items were checked at source is counted at the foot of this index.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It says which parts of the GB build a second market could reuse and which it would have to build new. Knowledge only, not on the roadmap.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-markets-compared-with-gb"></span><span class="state-badge" id="state-other-markets-compared-with-gb"></span></div>
+  <section class="part" id="part-build" data-part="build">
+  <h2 class="part-h">Building it</h2>
+  <p class="part-why">How Poesys itself is built: the software, product and AI practices it follows, each with the outside source it is taken from and what enforces it here. These are the map's “How it’s built” concepts, read from its register.</p>
+  <a class="card practice" href="../model/map/#c-build.mutation" data-concept="build.mutation">
+    <div class="card-h">Checks that can fail</div>
+    <div class="card-p">A check counts only once it has been seen to fail when the defect it guards is put back.</div>
+    <div class="card-foot">Taken from: Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)</div>
   </a>
-  <a class="card" href="./other-market-australia/">
-    <div class="card-h">Australia against GB: what carries over, and what a second market would need</div>
-    <div class="card-p">Five regional five-minute prices, quarterly bills in arrears, no prepayment to speak of, a default price that caps standing offers only, and 4.3 million rooftop solar systems. Knowledge only, not on the roadmap.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows which parts of the GB build are general and which are GB's own: the advice on solar, batteries and EVs transfers best here, the price replay and billing least.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-market-australia"></span><span class="state-badge" id="state-other-market-australia"></span></div>
+  <a class="card practice" href="../model/map/#c-build.gate" data-concept="build.gate">
+    <div class="card-h">The commit gate</div>
+    <div class="card-p">Every change passes the same automated checks before it lands, and the gate is never skipped.</div>
+    <div class="card-foot">Taken from: DORA: continuous integration, trunk-based development</div>
   </a>
-  <a class="card" href="./other-market-belgium/">
-    <div class="card-h">Belgium against GB: three regional rulebooks, no price cap, and bad payers handed to the network</div>
-    <div class="card-p">Close to GB on climate and wholesale, far from it on billing, settlement and debt: monthly advances and an annual true-up, 15-minute settlement, no price cap, a federal social tariff, and bad payers moved to the network operator. Knowledge only, not on the roadmap.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It is the clearest case of debt leaving the supplier's book, which GB's model never allows, and of a household's 15-minute peak setting its network bill.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-market-belgium"></span><span class="state-badge" id="state-other-market-belgium"></span></div>
+  <a class="card practice" href="../model/map/#c-build.dead_code" data-concept="build.dead_code">
+    <div class="card-h">Dead code</div>
+    <div class="card-p">Code nothing calls is removed or archived; it costs reading time, test time and trust.</div>
+    <div class="card-foot">Taken from: Fowler, Refactoring (2nd ed.): the dead-code smell</div>
   </a>
-  <a class="card" href="./other-market-france/">
-    <div class="card-h">France against GB: a regulated tariff only the incumbent sells, a power limit in every home, and electric heating</div>
-    <div class="card-p">A regulated tariff on 55.8% of homes that only the incumbent sells, a subscribed power limit from 3 to 36 kVA, per-home off-peak hours, 37% electric heating, households still profiled for settlement, and no prepayment. Knowledge only, not on the roadmap.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows a market anchored to a published regulated cost stack rather than a cap, and a home whose power limit and off-peak hours are set by the network, both of which GB's model lacks.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-market-france"></span><span class="state-badge" id="state-other-market-france"></span></div>
-  </a>
-  <a class="card" href="./other-market-germany/">
-    <div class="card-h">Germany against GB: a default supplier with no price cap, a yearly true-up bill and a fifteen-minute clock</div>
-    <div class="card-p">Germany's basic-supply default is uncapped, households pay monthly advances with a yearly true-up, prepayment is negligible, smart meters cover 5.9% of metering points, and network operators carried out 239,269 disconnections in 2024.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows which parts of the GB build are GB-specific: the cap, prepayment, the deemed contract and fixed direct debit all have no German equivalent.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-market-germany"></span><span class="state-badge" id="state-other-market-germany"></span></div>
-  </a>
-  <a class="card" href="./other-market-italy/">
-    <div class="card-h">Italy against GB: contracted kilowatts, an auctioned default service and arrears that follow the customer</div>
-    <div class="card-p">Italian homes contract a power level (typically 3 kW) that the network's smart meter enforces, are billed every two months on readings, face power limitation rather than prepayment, and can have arrears billed through their next supplier.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows the GB build assumes an uncapped connection and no regulatory heating calendar; Italy has both, and a summer peak.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-market-italy"></span><span class="state-badge" id="state-other-market-italy"></span></div>
-  </a>
-  <a class="card" href="./other-market-japan/">
-    <div class="card-h">Japan against GB: an incumbent's regulated tariff, a breaker the household chooses and no supplier for a new occupant</div>
-    <div class="card-p">Japan settles in half-hours with universal network-owned smart meters, like GB's target, but heats room by room with air conditioners, keeps an incumbent-only regulated tariff on about 65% of incumbent contracts, cuts off non-payers around day 51 and has no supplier for a new occupant.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It is the market where the GB build's half-hour clock transfers best and its deemed contract, debt objection and supplier-of-last-resort assumptions transfer worst.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-market-japan"></span><span class="state-badge" id="state-other-market-japan"></span></div>
-  </a>
-  <a class="card" href="./other-market-spain/">
-    <div class="card-h">Spain against GB: a dynamic regulated price, a power subscription and bills paid after the reading</div>
-    <div class="card-p">Spain's regulated price is a dynamic hourly-shaped tariff sold only by incumbents' regulated arms, every home subscribes to a power level, meters have been universal and network-owned since 2018, and bills are paid after an actual read.</div>
-    <div class="card-why"><span class="why-k">Why the simulation needs it.</span> It shows that GB's cap, fixed direct debit and prepayment are choices, not givens: Spain has a regulated product, no credit balances and no prepayment.</div>
-    <div class="card-foot"><span class="layer-badge" id="layer-other-market-spain"></span><span class="state-badge" id="state-other-market-spain"></span></div>
+  <a class="card practice" href="../model/map/#c-build.one_home" data-concept="build.one_home">
+    <div class="card-h">One source of truth</div>
+    <div class="card-p">Each concept is defined once, and everything else reads that definition.</div>
+    <div class="card-foot">Taken from: Single source of truth; DRY (Hunt and Thomas, The Pragmatic Programmer)</div>
   </a>
   </section>
 
@@ -605,6 +657,37 @@ function renderBadges(feed, today){
 // the shape that reaches a reader is the feed 404ing after a good deploy.
 // THE LAYER LABEL per card, from the five-facet record (THE_KNOWLEDGE_BASE_STRUCTURE.md section 7).
 // Separate from the review chain: either record failing leaves the other's labels standing.
+// THE FILTERS. Plain show/hide over cards already in the markup: with no script every card shows.
+// A part or theme left with no visible card is hidden with it, so a filter never shows an empty
+// heading. "What we've learned" reads the layer the facet record gives each card (renderLayers
+// sets data-layer); until that record loads the button stays disabled and says why.
+function applyFilter(which){
+  var cards = document.querySelectorAll("section.part a.card");
+  for (var i = 0; i < cards.length; i++) {
+    var c = cards[i], show = true;
+    if (which === "carbon") { show = c.getAttribute("data-carbon") === "1"; }
+    if (which === "learned") { var l = c.getAttribute("data-layer"); show = l === "insight" || l === "mixed"; }
+    c.classList.toggle("hidden-by-filter", !show);
+  }
+  var groups = document.querySelectorAll("section.theme, section.part");
+  for (var j = 0; j < groups.length; j++) {
+    var g = groups[j];
+    g.classList.toggle("hidden-by-filter", !g.querySelector("a.card:not(.hidden-by-filter)"));
+  }
+  var btns = document.querySelectorAll("#filters .filt");
+  for (var k = 0; k < btns.length; k++) { btns[k].classList.toggle("on", btns[k].getAttribute("data-filter") === which); }
+  var shown = document.querySelectorAll("section.part a.card:not(.hidden-by-filter)").length;
+  document.getElementById("filter-note").textContent = which === "all" ? "" : shown + " of " + cards.length + " cards";
+}
+(function(){
+  var btns = document.querySelectorAll("#filters .filt");
+  for (var k = 0; k < btns.length; k++) {
+    btns[k].addEventListener("click", function(){ applyFilter(this.getAttribute("data-filter")); });
+  }
+  var learned = document.getElementById("filter-learned");
+  learned.disabled = true;
+  learned.title = "Waiting for the record of which pages are knowledge and which are insight.";
+})();
 var LAYER_LABEL = { knowledge: "Knowledge", insight: "Insight", mixed: "Knowledge + insight" };
 function renderLayers(facets){
   var pages = (facets && facets.pages) || {};
@@ -614,7 +697,12 @@ function renderLayers(facets){
     if (!el || !LAYER_LABEL[layer]) { continue; }
     el.textContent = LAYER_LABEL[layer];
     el.className = "layer-badge layer-" + layer;
+    var card = el.closest ? el.closest("a.card") : null;
+    if (card) { card.setAttribute("data-layer", layer); }
   }
+  var learned = document.getElementById("filter-learned");
+  learned.disabled = false;
+  learned.title = "Pages that are our own interpretation, or knowledge with insight in it.";
 }
 fetch("../data/knowledge_facets.json?t=" + Date.now())
   .then(function (r) { return r.json(); })
@@ -622,6 +710,8 @@ fetch("../data/knowledge_facets.json?t=" + Date.now())
   .catch(function () {
     document.getElementById("layer-note").textContent =
       "The record of which pages are knowledge and which are insight could not be loaded, so the cards do not say.";
+    document.getElementById("filter-learned").title =
+      "Unavailable: the record of which pages are insight could not be loaded.";
   });
 
 fetch("../data/knowledge_wholesale.json?t=" + Date.now())
