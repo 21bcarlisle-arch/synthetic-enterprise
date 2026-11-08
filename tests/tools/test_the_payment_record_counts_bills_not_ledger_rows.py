@@ -81,3 +81,31 @@ def test_a_bill_a_credit_settled_is_not_missed_but_a_returned_one_still_is():
            _pay(4, "2020-04-20", "payment_failed")]
     rec = payment_record(led, bills, "2020-07-01")
     assert (rec["due"], rec["payments"], rec["missed"]) == (4, 2, 2), rec
+
+
+def test_a_level_collection_on_its_scheduled_day_is_paid_and_a_returned_one_is_missed():
+    """fa915ac0d7, the first book with the level DD schedule: 45 supply points read "missed DD
+    without a return", because a level collection lands on the schedule's day and that day can fall
+    after the bill's due date. No bill on a level account is due by direct debit. Control over the
+    partition: one record holds a level collection taken after its bill's due date (paid), a level
+    collection returned (missed), and a variable DD taken after its due date (still missed). So a rule
+    that excuses everything, or nothing, fails. Red before the fix: missed == 3."""
+    bills = [_bill(1, "2025-03-05"), _bill(2, "2025-04-05"), _bill(3, "2025-05-05")]
+    led = [{**_pay(1, "2025-03-25"), "level_dd": True},                  # scheduled day, after the due date
+           _pay(2, "2025-04-25", "payment_failed"),                       # the level collection returned
+           _pay(3, "2025-05-25")]                                         # a variable DD, late: a miss
+    rec = payment_record(led, bills, "2025-07-01")
+    assert (rec["due"], rec["payments"], rec["missed"], rec["missed_dd"]) == (3, 1, 2, 2), rec
+
+
+def test_the_page_ledger_carries_the_level_flag_the_record_reads():
+    """The billing ledger marks a level collection (`level_dd`); the page ledger is what the record
+    reads, so the flag must reach its payment row, and must not appear on a variable DD's."""
+    from tools.generate_payment_ledger_data import build_account_ledger
+    inv = {"issue_date": "2025-02-20", "due_date": "2025-03-05", "total_amount_gbp": 80.0}
+    pay = {"payment_date": "2025-03-25", "amount_gbp": 70.0, "method": "direct_debit", "outcome": "success"}
+    cust = {"invoices": [{**inv, "invoice_number": 1}, {**inv, "invoice_number": 2}],
+            "payments": [{**pay, "invoice_number": 1, "level_dd": True}, {**pay, "invoice_number": 2}]}
+    rows = {e["invoice_number"]: e for e in build_account_ledger(cust, "2025-07-01")["entries"]
+            if e["type"] == "payment_received"}
+    assert rows[1].get("level_dd") is True and "level_dd" not in rows[2], rows

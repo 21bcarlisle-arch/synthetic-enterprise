@@ -116,6 +116,8 @@ def build_account_ledger(cust, as_of):
                     "date": pay["payment_date"], "type": "payment_received", "invoice_number": num,
                     "amount_gbp": round(-pay["amount_gbp"], 2), "info_amount_gbp": None,
                     "method": pay["method"], "description": "Payment received",
+                    # A level collection lands on the schedule's day, not by the bill's due date.
+                    **({"level_dd": True} if pay.get("level_dd") else {}),
                 })
             continue
         method = pay["method"] if pay else None

@@ -448,6 +448,14 @@ def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
         paid = min((date.fromisoformat(r["date"][:10]) for r in rows
                     if r.get("type") == "payment_received" and r.get("date")), default=None)
         verdict = bill_missed(on, paid, cutoff)
+        # A level direct debit pays the month's scheduled collection on its own day, which can fall
+        # after the bill's due date: no bill on a level account is due by direct debit, so the
+        # collection taken on its day is not a miss (`payments_and_direct_debit_2026-10-25.md`, "A
+        # returned level direct debit"). Only a return misses it.
+        level_on = min((date.fromisoformat(r["date"][:10]) for r in rows
+                        if r.get("level_dd") and r.get("type") == "payment_received"), default=None)
+        if verdict and level_on is not None and paid is not None and paid <= max(on, level_on):
+            verdict = False
         if verdict and _settled_without_payment(i, rows, on):
             verdict = False
         if verdict is None:

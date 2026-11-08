@@ -49,3 +49,45 @@ The share leg must not move. If it does, the fix has changed what the schedule c
 ## Not recommended
 
 A dated exception on INV_OVERDUE_WITHIN_PAGE_BALANCE. It would publish "GBPx overdue" to households that are in credit, which is exactly what the row was written to catch (cold reads O10, O16 and O18).
+
+## Step 1, the payment record: pre-registration (seat, 8 Nov 2026, written before the grade is run)
+
+**Where the fix lives, decided.** The knowledge section is "A returned level direct debit: what is missed, and what is
+owed" in `payments_and_direct_debit_2026-10-25.md`. It splits the work into two steps.
+- **Step 1, the page.** `payment_record` reads a level collection as on time on its own scheduled day. The page ledger's
+  payment row carries the flag `level_dd` that the billing ledger already sets.
+- **Step 2, the world and the desk.** Row 1 is not fixed on the page. Its figure is the desk's own journey from phase 2b,
+  which never sees the schedule, so a page rewrite would print acts the company never took.
+
+**Prediction.** Re-grade the fa915ac0d7 book (`/var/tmp/grade-fa91-seat/ledger.json`, unchanged) with
+`/var/tmp/b3ce-grade-scripts/grade.py` at this commit:
+- INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE: **45 -> 0**.
+- INV_OVERDUE_WITHIN_PAGE_BALANCE: **unchanged at 1,724**.
+- Every other row unchanged.
+
+If the record row lands above 0, some level bills are missed for a reason other than the date their collection lands on.
+
+**Graded (8 Nov, at origin 78e94ce98b plus this change; `/var/tmp/grade-fa91-levelrec/`).** The prediction held.
+
+| Row | fa915ac0d7 at 3ced67a162 | at this change |
+|---|---:|---:|
+| INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE | 45 | **0** (CLEAN, 1,139 checked) |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 1,724 | **1,724** |
+| every other row | | unchanged (diffed across all rows) |
+
+The verdict goes from 1,772 unexcepted breaches on 3 rows to **1,727 on 2**. The publish is still refused, on row 1 and on
+INV_BILLED_EX_VAT's mixed-version 3, which is predicted to clear on the first book built at or after 8b6316995.
+
+## Step 2, still open: the world draws a return per scheduled collection, and the desk reads the account's balance
+
+- **Where.** `background/live_payment_triad.LivePaymentTriad.record_period` takes one bill (due date, amount) and draws its
+  outcome. The level schedule is built only in phase 4c (`simulation/run_phase4c_on_phase2b.py`, line 643), from DD2's
+  balance book, after phase 2b's desk has walked every journey.
+- **What it needs.** Phase 2b must know a level household's monthly amount when it collects. That amount is the
+  registration DD and then each year's reviewed amount, through `company/interfaces/dd_review_outcome.py`. The collection
+  is posted at that amount on the staggered day, and the per-bill outcome draw becomes a draw on that collection. A return
+  is the collection's amount on its date. The desk already reads the account as one balance, so its overdue figure becomes
+  the debit balance.
+- **What moves.** The company's receivables, provision, cash timing and treasury on level accounts. Pre-register those
+  figures before the first book built with it.
+- **Not recommended** (unchanged): a dated exception on row 1, or a page-side rewrite of the desk's figure.

@@ -451,3 +451,46 @@ the 4669d77ddd book with the schedule injected and no run launched: 758 of 934 a
 and the share of DD collections equal to their bill falls from 0.963 to **0.207**. Row
 `INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE` in `docs/design/DOMAIN_INVARIANTS.yaml`
 states the property blind.
+
+## A returned level direct debit: what is missed, and what is owed (seat, 8 Nov 2026)
+
+*K8 page for `fix-level-dd-households-dunned-per-bill`, raised by
+`docs/staging/SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md`.
+No new source was read. Each line cites the passage on this repository's pages it rests on.*
+
+**What the rules and published practice establish.**
+- **What is collected.** A level direct debit is a set amount collected monthly, whatever that month's bill
+  is ("What a level direct debit must be", above). Bills post to the account, and the collections pay into
+  its balance.
+- **What a return is.** A Bacs collection is taken on its processing day or returned through ARUDD, and
+  a return may be re-presented within a month (§3; "A DD is never late", above). So on a level account,
+  what fails is **that month's scheduled collection, at its amount, on its date**. No bill is "due by
+  direct debit", so no bill's face is what was missed.
+- **What is owed.** On a level account the household's arrears are the **account's debit balance**:
+  bills less collections and other credit. A returned collection on an account still in credit leaves
+  nothing overdue. It only makes the credit smaller.
+- **Who dunns, and on what.** A supplier runs one dunning run per account and reads its balance. It
+  would not chase a home in net credit (`company_debt_management.md`, "Where the desk runs, its silence
+  is a decision", PROS-2018-0137; SAP FI-CA keeps the dunning level on the account, not the item).
+  SLC 27's duties start from "reason to believe" a customer is in payment difficulty (27.5). A returned
+  instalment on an account in credit is not, on its own, a debt.
+
+**GAP (practitioner, K4).** No published source says what a GB desk does on the day a level DD is
+returned on an account in credit. Practice suggests that it re-presents the collection (ARUDD 0) and
+tells the household it could not collect, without opening arrears action. That is the build's stated
+belief, and it is the question to put to him if a run shows it wrong.
+
+**The choices this build makes, and why.**
+1. **The payment record (page).** A level collection is on time on its own scheduled day. A bill on a
+   level account is counted as paid when that month's collection is received, and as missed only when
+   that collection is returned. The record used to read a bill's due date as the deadline. On
+   fa915ac0d7, 45 supply points showed "missed DD without a return" for a collection that was taken
+   on its scheduled day (`INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE`).
+2. **The collections journey (world and desk, not built in this step).** In phase 2b the world still
+   draws one DD outcome per bill, at the bill's face. The level schedule is built after that, in
+   phase 4c, and only replaces the successes. So the company desk dunns a level household's bill face
+   while the page and the books run on the schedule. The fix belongs where the outcome is drawn.
+   Phase 2b must collect the schedule, draw a return per scheduled collection, and let the desk read
+   the account's debit balance. A page-side rewrite of the desk's figure would print acts the company
+   never took, so it is not done. **Direction of error until it lands:** against the company's page,
+   because 176 households read false arrears and the publish gate refuses them.
