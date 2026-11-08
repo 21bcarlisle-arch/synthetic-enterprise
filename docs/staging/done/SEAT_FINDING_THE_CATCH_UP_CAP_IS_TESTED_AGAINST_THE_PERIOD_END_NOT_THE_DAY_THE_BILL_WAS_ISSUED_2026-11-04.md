@@ -63,3 +63,25 @@ undercharge catch-ups from May 2018, window more than 365 days before the issue 
   uncapped over the line from issue. A non-zero count means another cause.
 
 **Reverse:** revert the commit that carries this section.
+
+## Graded (2026-11-08, on the first fresh book after the fix)
+
+**Book:** `docs/reports/run_output_84f7fc8fe0_20261108T021850Z.json`. Its commit, 84f7fc8fe0, descends from the fix
+d7bdc0c4df. **The bar:** SLC 21BA.1, which bars charges for energy consumed more than 12 months before the charge
+recovery action. Domestic customers are protected from 1 May 2018. Source:
+`docs/market_research/back_billing_and_liability.md` (draft 21BA text, the 2018 decision) and
+`company/billing/back_billing.py:_BACK_BILLING_RULES_START`.
+
+**Result: 0, against the prediction of 0. The prediction held.**
+- 6,587 catch-ups were applied: 1,397 on the pay-on-receipt basis (`pay_on_bill_true_vs_billed`) and 5,190 on the
+  direct-debit basis (`direct_debit_barred_at_the_charge_recovery_action`). Every one carries `catchup_billing_date`.
+- 46 pay-on-receipt undercharge catch-ups have a window that starts more than 365 days before the printed issue
+  date. 42 are capped with a write-off. The other 4 were issued before 1 May 2018, so the cap did not yet apply
+  (SYN-2016-016 on 2017-02-01, -023g on 2017-06-04, -240 on 2017-09-02, -159g on 2018-04-09).
+- Each of the 5 rows named on fd91027799 is now capped: SYN-2016-048 (£0.60 written off), -158 (£0.01),
+  -240 Aug 2020 (£0.03), -334 (£0.17) and PROS-2020-0016 (£0.01).
+- `check_back_billing_cap_respected` passes every non-DD catch-up on the book: 0 failures, so each write-off
+  matches the size re-derived at the issue date.
+
+Not graded here: the 5,190 direct-debit-basis rows. They defer the bar to the charge recovery action, so this
+fix did not touch them.
