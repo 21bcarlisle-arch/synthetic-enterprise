@@ -768,7 +768,10 @@ function stagePriced(d, c) {
       'p/kWh — which is why a low-use month makes it look expensive. It does not change with use; that is the whole point of it.</p>') +
     panel("company", "What the supplier committed to",
       '<div class="table-scroll"><table><tbody>' +
-      "<tr><td>Tariff</td><td class=\"n\">" + esc(d.tariff_name || "—") + "</td></tr>" +
+      // The bill's own term (N16): the account name is one label for every bill, wrong on a fixed term. A feed
+      // built before the generator wrote the field has no key at all, and keeps the account's name until republished.
+      "<tr><td>Tariff</td><td class=\"n\">" + esc("tariff_name" in inv ? (inv.tariff_name || "Not recorded on this bill")
+        : (d.tariff_name || "—")) + "</td></tr>" +
       "<tr><td>Unit rate, all-in before VAT</td><td class=\"n\">" + allInP.toFixed(2) + " p/kWh</td></tr>" +
       "<tr><td>Energy component of the unit rate</td><td class=\"n\">" + energyP.toFixed(2) + " p/kWh</td></tr>" +
       "<tr><td>Standing charge</td><td class=\"n\">" + gbp(inv.standing_charge_gbp_per_day, 4) + "/day</td></tr>" +
