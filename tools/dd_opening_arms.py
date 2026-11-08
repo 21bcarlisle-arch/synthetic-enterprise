@@ -793,6 +793,7 @@ def publish_view(result: dict | None) -> dict:
         "filed_prediction": filed_prediction_view(
             (pa.get("window0_matched_by_opening_cohort") or {}).get(
                 "opened_under_the_price_cap") or {}),
+        "earlier_claims": [dict(c) for c in EARLIER_CLAIMS],
     }
 
 
@@ -807,6 +808,42 @@ FILED_PREDICTION = {
                   "under the price cap: the matched mean change in distance from square goes "
                   "negative, with a 95% interval that excludes zero."),
 }
+
+
+# What this comparison published BEFORE and later took back. Historical record, so typed here
+# rather than computed: the 3 Sep artefact is overwritten by every re-run, and a reader of
+# "What the method has shown" must still meet the claim that fell. No prediction was filed
+# for the 3 Sep figure (the 09-02 and 09-03 pre-registrations predict nothing about matched
+# drift), so it is a published result withdrawn, not a prediction refuted.
+EARLIER_CLAIMS = (
+    {
+        "published_on": "2026-09-03",
+        "published_in": ("docs/staging/done/SEAT_FINDING_THE_OPENING_DD_ESTIMATE_WORKS_AND_NOTHING_"
+                         "PUBLISHED_CAN_SEE_IT_2026-09-03.md"),
+        "the_words": ("Sizing the opening direct debit from an estimate cut year-one drift by "
+                      "about £200 per household, with a 95% interval that excluded zero."),
+        "clock": PUBLISHED_CLOCK,
+        "population": "accounts opened under the price cap (the cap rule refused the rest)",
+        "n_matched_accounts": 96,
+        "mean_change_in_abs_drift_gbp": -201.93,
+        "mean_change_in_abs_drift_ci95_gbp": [-257.57, -143.50],
+        "withdrawn_on": "2026-10-01",
+        "withdrawn_in": ("docs/staging/done/SEAT_FINDING_UNDER_THE_RATE_SOLD_RULE_THE_ESTIMATED_DD_"
+                         "OPENING_NO_LONGER_BEATS_THE_FIRST_BILL_2026-10-01.md"),
+        # The like-for-like figure: the same price-cap population on the 1 Oct run.
+        "rerun_same_population": {"n_matched_accounts": 95,
+                                  "mean_change_in_abs_drift_gbp": -33.68,
+                                  "mean_change_in_abs_drift_ci95_gbp": [-157.94, 163.55]},
+        "rerun_whole_book": {"n_matched_accounts": 194,
+                             "mean_change_in_abs_drift_gbp": -0.40,
+                             "mean_change_in_abs_drift_ci95_gbp": [-77.20, 109.67]},
+        "why": ("A re-run on 1 Oct put the same price-cap population at £33.68 closer, with a "
+                "95% interval from £157.94 closer to £163.55 further, so we could no longer tell "
+                "the two rules apart. Holding households and bills fixed, the rule change was "
+                "worth £3.27; the collapse came with the run, where four households whose registry "
+                "consumption figure was a fraction of their own use set the mean."),
+    },
+)
 
 
 def filed_prediction_view(cohort: Mapping[str, Any]) -> dict:

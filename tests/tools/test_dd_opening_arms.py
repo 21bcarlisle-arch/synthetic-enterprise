@@ -457,3 +457,18 @@ def test_the_arms_do_not_review_a_departed_households_final_bill_on_either_leg()
     dates = {c: [e["review_date"] for e in events if e["customer_id"] == c] for c in opening}
     assert dates["C2"] == ["2021-01-28", "2022-01-28"]
     assert dates["C1"] == dates["C1g"] == ["2021-01-28"]
+
+
+def test_each_earlier_claim_published_a_difference_its_like_for_like_rerun_cannot_tell_from_zero():
+    """An earlier claim is on the page BECAUSE it fell: its own interval excluded zero and the
+    re-run on the same population spans it. A row that met neither would be a claim kept for colour, not one
+    taken back. Keyed to that property, not to the figures."""
+    from tools.dd_opening_arms import EARLIER_CLAIMS
+    assert EARLIER_CLAIMS
+    for c in EARLIER_CLAIMS:
+        lo, hi = c["mean_change_in_abs_drift_ci95_gbp"]
+        assert lo <= c["mean_change_in_abs_drift_gbp"] <= hi and hi < 0, c
+        r = c["rerun_same_population"]
+        rlo, rhi = r["mean_change_in_abs_drift_ci95_gbp"]
+        assert rlo <= r["mean_change_in_abs_drift_gbp"] <= rhi and rlo < 0 < rhi, c
+        assert c["published_on"] < c["withdrawn_on"] and c["the_words"] and c["why"]

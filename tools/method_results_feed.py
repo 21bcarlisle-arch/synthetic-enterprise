@@ -79,9 +79,23 @@ def dd_opening(root: Path) -> list[dict]:
                f"£{-fp['mean_change_in_abs_drift_gbp']:,.2f} closer to the bill on average (95% interval "
                f"£{-hi:,.2f} to £{-lo:,.2f} closer), on the billed clock"
                if None not in (fp.get("mean_change_in_abs_drift_gbp"), lo, hi) else "")
-    return [_row("dd-opening", q, "dd_opening_arms", page, "held" if held else "did not hold", fp.get("statement"),
-                 f"a prediction filed on {fp.get('filed_on')}, before the run, which the run "
-                 f"{'did not refute' if held else 'refuted'}{figures}", fp.get("filed_on"))]
+    out = [_row("dd-opening", q, "dd_opening_arms", page, "held" if held else "did not hold", fp.get("statement"),
+                f"a prediction filed on {fp.get('filed_on')}, before the run, which the run "
+                f"{'did not refute' if held else 'refuted'}{figures}", fp.get("filed_on"))]
+    # The claim this comparison published earlier and took back. It stays: "a result that went
+    # against us stays". A feed without the field says so rather than dropping the row.
+    earlier = d.get("earlier_claims")
+    if not isinstance(earlier, list):
+        return out + [_unreadable("dd-opening-earlier", q, "dd_opening_arms", page,
+                                  "does not say what it published before")]
+    for i, c in enumerate(earlier):
+        rid = "dd-opening-withdrawn" + (f"-{i + 1}" if i else "")
+        if not (c.get("the_words") and c.get("why")):
+            out.append(_unreadable(rid, q, "dd_opening_arms", page, "names an earlier claim without its words or reason"))
+            continue
+        out.append(_row(rid, f"{q} (as published on {c.get('published_on')})", "dd_opening_arms", page,
+                        "withdrawn", c["the_words"], c["why"], c.get("withdrawn_on")))
+    return out
 
 
 def pricing_arms(root: Path) -> list[dict]:

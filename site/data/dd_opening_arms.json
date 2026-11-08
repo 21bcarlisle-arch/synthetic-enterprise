@@ -44,6 +44,40 @@
   },
   "clock": "billed",
   "clock_note": "Every figure below is derived from the company's own ISSUED BILLS, so it is on the billed clock and cannot be reconciled against a settled-realised headline.",
+  "earlier_claims": [
+    {
+      "clock": "billed",
+      "mean_change_in_abs_drift_ci95_gbp": [
+        -257.57,
+        -143.5
+      ],
+      "mean_change_in_abs_drift_gbp": -201.93,
+      "n_matched_accounts": 96,
+      "population": "accounts opened under the price cap (the cap rule refused the rest)",
+      "published_in": "docs/staging/done/SEAT_FINDING_THE_OPENING_DD_ESTIMATE_WORKS_AND_NOTHING_PUBLISHED_CAN_SEE_IT_2026-09-03.md",
+      "published_on": "2026-09-03",
+      "rerun_same_population": {
+        "mean_change_in_abs_drift_ci95_gbp": [
+          -157.94,
+          163.55
+        ],
+        "mean_change_in_abs_drift_gbp": -33.68,
+        "n_matched_accounts": 95
+      },
+      "rerun_whole_book": {
+        "mean_change_in_abs_drift_ci95_gbp": [
+          -77.2,
+          109.67
+        ],
+        "mean_change_in_abs_drift_gbp": -0.4,
+        "n_matched_accounts": 194
+      },
+      "the_words": "Sizing the opening direct debit from an estimate cut year-one drift by about \u00a3200 per household, with a 95% interval that excluded zero.",
+      "why": "A re-run on 1 Oct put the same price-cap population at \u00a333.68 closer, with a 95% interval from \u00a3157.94 closer to \u00a3163.55 further, so we could no longer tell the two rules apart. Holding households and bills fixed, the rule change was worth \u00a33.27; the collapse came with the run, where four households whose registry consumption figure was a fraction of their own use set the mean.",
+      "withdrawn_in": "docs/staging/done/SEAT_FINDING_UNDER_THE_RATE_SOLD_RULE_THE_ESTIMATED_DD_OPENING_NO_LONGER_BEATS_THE_FIRST_BILL_2026-10-01.md",
+      "withdrawn_on": "2026-10-01"
+    }
+  ],
   "filed_prediction": {
     "clock": "billed",
     "filed_in": "docs/staging/SEAT_FINDING_UNDER_THE_RATE_SOLD_RULE_THE_ESTIMATED_DD_OPENING_NO_LONGER_BEATS_THE_FIRST_BILL_2026-10-01.md",

@@ -2845,8 +2845,8 @@
     "adjudicated_by": "cold-eyes-walk (fork; independence: false)",
     "evidence": "DD 'Held' renders no n, effect or interval (source: -GBP154.50 [-236.08,-61.50], 95 matched, price-cap cohort only) and the question is unqualified while the result is cohort-restricted. The same question's earlier published claim (-GBP201.93, 09-03) went to -GBP0.40 [-77.20,+109.67] on 10-01 and is not on the page despite 'results that went against us stay'.",
     "finding_key": "cold-eyes:what-the-method-has-shown:dd-held-without-effect-and-history",
-    "state": "open",
-    "resolution": "PARTLY: matched n, mean and 95% interval and the price-cap scope are now on the row. The earlier 3 Sep claim that fell on 1 Oct is not in dd_opening_arms.json, so the feed cannot show it without a typed row; owed to the feed's generator. (seat executor, 8 Nov)"
+    "state": "fixed",
+    "resolution": "FIXED: matched n, mean and 95% interval and the price-cap scope are on the held row (8 Nov), and the 3 Sep claim (GBP201.93 closer, 96 matched) that fell on 1 Oct (same population GBP33.68, interval spanning zero) is now `earlier_claims` in site/data/dd_opening_arms.json, typed in tools/dd_opening_arms.py, and a 'withdrawn' row on the page: no prediction was filed for it, so it is a claim taken back, not a prediction refuted. (seat executor, 8 Nov)"
   },
   "cold-eyes:what-the-method-has-shown:counts-hide-zero-did-not-hold": {
     "adjudicated_at": "2026-11-08T20:50:15.628003+00:00",

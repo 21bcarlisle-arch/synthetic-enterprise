@@ -134,3 +134,21 @@ def test_building_it_carries_the_card_where_what_weve_learned_can_find_it():
 
 def test_node_is_available_for_the_page_legs():
     assert shutil.which("node"), "the page legs need node to drive the page's own JavaScript"
+
+
+def test_the_dd_claim_that_fell_is_a_withdrawn_row_with_its_words_and_reason():
+    """Cold read, 8 Nov: the 3 Sep "about £200 closer" claim fell on 1 Oct and was not on the page.
+    No prediction was filed for it, so it is withdrawn, not "did not hold"."""
+    row = next(r for r in mrf.build()["rows"] if r["id"] == "dd-opening-withdrawn")
+    claim = json.loads((SITE / "data" / "dd_opening_arms.json").read_text(encoding="utf-8"))["earlier_claims"][0]
+    assert row["status"] == "withdrawn" and row["finding"] == claim["the_words"]
+    assert row["why_this_status"] == claim["why"] and row["dated"] == claim["withdrawn_on"]
+
+
+def test_MUTATION_a_dd_feed_that_forgets_its_earlier_claims_says_so_rather_than_dropping_the_row(tmp_path):
+    def forget(name, d):
+        if name == "dd_opening_arms":
+            d.pop("earlier_claims", None)
+    rows = {r["id"]: r for r in mrf.build(_root(tmp_path, forget))["rows"]}
+    assert "dd-opening-withdrawn" not in rows
+    assert rows["dd-opening-earlier"]["status"] == "we cannot tell", rows

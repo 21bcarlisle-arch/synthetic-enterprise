@@ -10,7 +10,7 @@
  "counts": {
   "held": 1,
   "did not hold": 0,
-  "withdrawn": 1,
+  "withdrawn": 2,
   "measured": 0,
   "we cannot tell": 2
  },
@@ -45,6 +45,16 @@
    "status": "held",
    "finding": "Once a fabric premise's registry EAC is its own reads in the record the DD opening reads, the estimate beats the first bill on the households opened under the price cap: the matched mean change in distance from square goes negative, with a 95% interval that excludes zero.",
    "why_this_status": "a prediction filed on 2026-10-01, before the run, which the run did not refute: across 95 matched accounts the estimate moved the direct debit £154.50 closer to the bill on average (95% interval £61.50 to £236.08 closer), on the billed clock",
+   "dated": "2026-10-01",
+   "source": "site/data/dd_opening_arms.json",
+   "page": "../capabilities/#dd-opening"
+  },
+  {
+   "id": "dd-opening-withdrawn",
+   "question": "For accounts opened under the price cap, does sizing the first direct debit from an estimate beat waiting for the first bill? (as published on 2026-09-03)",
+   "status": "withdrawn",
+   "finding": "Sizing the opening direct debit from an estimate cut year-one drift by about £200 per household, with a 95% interval that excluded zero.",
+   "why_this_status": "A re-run on 1 Oct put the same price-cap population at £33.68 closer, with a 95% interval from £157.94 closer to £163.55 further, so we could no longer tell the two rules apart. Holding households and bills fixed, the rule change was worth £3.27; the collapse came with the run, where four households whose registry consumption figure was a fraction of their own use set the mean.",
    "dated": "2026-10-01",
    "source": "site/data/dd_opening_arms.json",
    "page": "../capabilities/#dd-opening"
