@@ -299,33 +299,6 @@ def test_the_mapping_never_hands_the_cost_tables_a_segment_they_do_not_know():
             assert cost_segment in (RESI_SEGMENT, SME_SEGMENT)
 
 
-def test_the_vocabulary_the_arm_checks_against_is_the_one_the_model_branches_on():
-    """THE FAILURE MODE THAT MADE THIS SUBTLE. There are THREE segment vocabularies in
-    this company: the churn model's (`resi`/`SME`/`I&C`), `segment_profitability`'s
-    (`residential_credit`/`residential_ppm`/`sme`/`i_and_c`), and the cost tables' two.
-    An arm that validated against the wrong one would match NOTHING and fall back for
-    every account -- indistinguishable from the original defect, and silent.
-
-    So the arm imports its vocabulary from the module that BRANCHES on it, and this test
-    holds those two together.
-    """
-    from company.pricing import segment_profitability
-
-    assert IC_SEGMENT in CHURN_SEGMENTS
-    assert set(CHURN_SEGMENTS).isdisjoint(segment_profitability.KNOWN_SEGMENTS), (
-        "the churn vocabulary and the profitability vocabulary now overlap; if they are "
-        "being unified that is fine, but this test is the place that has to say so"
-    )
-    source = inspect.getsource(segments_for)
-    assert "CHURN_SEGMENTS" in source, (
-        "the mapping must validate against the churn model's own vocabulary; validating "
-        "against any other set matches nothing and falls back silently"
-    )
-    # And the behavioural half, so this does not rest on reading source text: every value
-    # the churn model branches on must survive the mapping unchanged.
-    for known in CHURN_SEGMENTS:
-        churn_segment, _ = segments_for(known, is_domestic=(known == RESI_SEGMENT))
-        assert churn_segment == known
 
 
 @pytest.mark.parametrize("bogus", ["i_and_c", "sme", "residential_credit", "", "IC", None])

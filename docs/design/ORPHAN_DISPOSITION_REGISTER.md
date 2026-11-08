@@ -193,59 +193,14 @@ the ruling**, and the renderer touches neither; it also never adds a row and nev
 a new orphan still needs a judgement and a ruling whose subject got wired still needs retiring.
 
 <!-- ORPHAN-DISPOSITIONS
-company.billing.account_closure | unhooked | consumers:company.billing | Account closure process: final bill, deposit, debt referral under Ofgem SLC 21B.; 3 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in the docstrings of company/billing/monthly_bill_assembly.py and simulation/final_bill_outcome.py as where a status and a calibration note live
-company.billing.credit_balance_control | unhooked | consumers:company.billing | Undischarged credit-balance control (SLC 14 / Ofgem DD Market Compliance Review).; 1 test(s); no importer
-company.billing.dd_mandate_register | unhooked | consumers:company.billing | Direct Debit Mandate Register (Phase GD).; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/dd_collection_book.py's docstring as a thing NOT fully resolved there
-company.billing.payment_deferral | unhooked | consumers:company.billing | no docstring; 1 test(s); no importer
 company.billing.ppm_warrant_register | unhooked | consumers:company.billing | PPM Installation Warrant Register (Phase FX).; 1 test(s); no importer
-company.billing.prepayment | unhooked | consumers:company.billing | Prepayment meter (PPM) management.; 1 test(s); no importer
 company.carbon.carbon_ledger | unhooked | consumers:company.carbon | E5 — the carbon three-ledger: the company's carbon P&L (SAVED / SPENT / NET).; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/carbon/half_hourly_footprint.py's docstring as the SAVED/SPENT/NET ledger beside it
-company.compliance.board_meeting_register | unhooked | consumers:company.compliance | Board Meeting Minutes Register (Phase DR).; 2 test(s); no importer
-company.compliance.consumer_duty_board_report | unhooked | consumers:company.compliance | Consumer Duty Annual Board Report Register (Phase FW).; 1 test(s); no importer
-company.compliance.fair_value_assessment_register | unhooked | consumers:company.compliance | Consumer Duty Fair Value Assessment Register (Phase GP).; 3 test(s); no importer
-company.crm.campaign_tracker | unhooked | consumers:company.crm | Outbound contact campaign tracker: retention, renewal, and collections campaigns.; 2 test(s); no importer
-company.crm.customer_retention | unhooked | consumers:company.crm | Customer Retention Offer Book — Phase AE.; 1 test(s); no importer
 company.crm.decarb_recommender | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
-company.crm.energy_profile | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
 company.crm.home_registry | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/crm/decarb_recommender.py's docstring as what it reads
-company.crm.life_event_impact | unhooked | consumers:company.crm | no docstring; 1 test(s); no importer
-company.crm.portfolio_repricing | unhooked | consumers:company.crm | Portfolio Repricing Action Book — Phase AC.; 2 test(s); no importer
-company.crm.solr_intake | unhooked | consumers:company.crm | no docstring; 3 test(s); no importer
-company.finance.credit_facility | unhooked | consumers:company.finance | no docstring; 3 test(s); no importer
-company.finance.pnl | unhooked | consumers:company.finance | Company Layer — P&L from Ledger Events.; 2 test(s); no importer
-company.finance.treasury | unhooked | consumers:company.finance | FI3 -- Treasury management: cash position, working capital, MCR headroom, and forward cash flow projection.; 3 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in simulation/net_new_acquisition.py's docstring as the home of a constant
-company.market.capacity_market | unhooked | consumers:company.market | Capacity Market participation: CM unit registration, auction, and obligations.; 4 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/regulatory/capacity_market.py's docstring as the provider side that already exists
-company.market.dsr_book | unhooked | consumers:company.market | no docstring; 5 test(s); no importer
-company.market.hedging_schedule | unhooked | consumers:company.market | Commodity hedging schedule: forward delivery vs open position by month.; 5 test(s); no importer
-company.market.market_report | unhooked | consumers:company.market | Ofgem domestic market report data.; 1 test(s); no importer
-company.market.switch_governance | unhooked | consumers:company.market | Switching cooling-off and objection management: 14-day right, ET resolution.; 4 test(s); no importer
 company.market.uig_allocation_register | unhooked | consumers:company.market | Unidentified Gas (UIG) Allocation Register (Phase GN).; 2 test(s); no importer
 company.portal.app | unhooked | none:company.portal | C2 -- Customer self-service portal.; 34 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in tools/generate_explore_hh_day.py's docstring as the page that calls the read; the tool does not import or run it
-company.pricing.segment_profitability | unhooked | consumers:company.pricing | Tariff Segment Profitability Book.; 1 test(s); no importer
-company.pricing.tou_product_launch | unhooked | consumers:company.pricing | ToU Product Launch Decision Engine -- Phase X.; 1 test(s); no importer
-company.pricing.tou_rate_card | unhooked | consumers:company.pricing | EV ToU Rate Card Optimiser -- Phase Y.; 1 test(s); no importer
 company.regulatory.consumer_vulnerability_register | unhooked | consumers:company.regulatory | Consumer Vulnerability Duty Action Register (Phase DG).; 1 test(s); no importer
-company.regulatory.price_cap | unhooked | consumers:company.regulatory | no docstring; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in company/pricing/ofgem_price_cap.py's docstring as an existing table already carrying the change
-company.regulatory.renewable_obligation | unhooked | consumers:company.regulatory | no docstring; 1 test(s); no importer
-company.regulatory.seg_export_estimator | unhooked | consumers:company.regulatory | SEG Export Estimator — Phase R.; 2 test(s); no importer; arrived 2026-09-08 when a path in a DOCSTRING stopped counting as an edge -- cited in tools/weather_driver_sensitivity.py's docstring as the holder of a national PV yield figure
-company.risk.capital_adequacy | unhooked | consumers:company.risk | Regulatory Capital Adequacy Assessment (Phase EV).; 2 test(s); no importer
-company.risk.risk_appetite | unhooked | consumers:company.risk | no docstring; 5 test(s); no importer
-company.sustainability.carbon_intensity_register | unhooked | none:company.sustainability | Carbon Intensity Register (Phase FD).; 1 test(s); no importer
-company.sustainability.environmental_impact | unhooked | none:company.sustainability | Environmental Impact Register — Scope 3 downstream gas emissions.; 2 test(s); no importer
-company.trading.credit_limits | unhooked | consumers:company.trading | Counterparty credit limit management.; 2 test(s); no importer
-company.billing.dd_indemnity | unhooked | consumers:company.billing | DD Indemnity Claim Register: BACS Direct Debit Guarantee claim management.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.billing.deemed_contract | unhooked | consumers:company.billing | Deemed Contract Register: tracks uncontracted supply; Ofgem notification obligations.; 7 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 company.crm.onboarding_journey | unhooked | consumers:company.crm | Customer Onboarding Journey Tracker (Phase FE).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.crm.service_ticket | unhooked | consumers:company.crm | Customer Service Ticket Book (Phase EW).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.css_performance_register | unhooked | consumers:company.market | CSS Performance Register (Phase GA).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.dcc_meter_registration | unhooked | consumers:company.market | DCC Meter Registration Register (Phase GB).; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.erroneous_transfer | unhooked | consumers:company.market | no docstring; 11 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.meter_technical_investigation_register | unhooked | consumers:company.market | Meter Technical Investigation Register — SLC 21A / GS(SS)5 Schedule 3.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.market.mpas_standing_data_correction_register | unhooked | consumers:company.market | MPAS Standing Data Correction Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.regulatory.annual_compliance_attestation_register | unhooked | consumers:company.regulatory | Annual Compliance Attestation Register (Phase GM).; 4 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.regulatory.gsop_tracker | unhooked | consumers:company.regulatory | no docstring; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.trading.bsc_credit_register | unhooked | consumers:company.trading | BSC Credit Assurance Register (Phase FI).; 2 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
-company.trading.emir_reporting_register | unhooked | consumers:company.trading | EMIR Trade Repository Reporting Register.; 3 test(s); no importer; ruled 2026-10-05 when the register was found red at HEAD with it unruled
 ORPHAN-DISPOSITIONS -->
 
 ---

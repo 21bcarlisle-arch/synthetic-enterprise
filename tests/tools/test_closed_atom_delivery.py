@@ -93,7 +93,8 @@ def test_the_prior_art_query_answers_the_question_that_cost_us_W2_12(rows):
     assert [h["id"] for h in hits] == ["W2_12_change_of_tenancy_debt_physics"]
     reach = hits[0]["reach"]
     assert reach["company/crm/change_of_tenancy_register.py"] is None
-    assert reach["company/billing/account_closure.py"] is None
+    # account_closure reached nothing and was archived (increment 3b); the row names it there
+    assert reach["archive/unhooked_supplier/company/billing/account_closure.py"] is None
     assert reach["simulation/final_bill_outcome.py"] == "imported"
     assert reach["simulation/arrears_engine.py"] == "imported"
 

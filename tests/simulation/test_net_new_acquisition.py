@@ -1631,37 +1631,6 @@ def shared_fabric_traces():
         yield
 
 
-def test_c_the_booked_spend_REACHES_THE_RUN_and_therefore_the_P_AND_L(
-    shipped_supply_book, shared_fabric_traces
-):
-    """The wiring, proven by running the thing rather than by reading it.
-
-    A helper nothing calls books nothing, and that failure mode is invisible to every
-    test above. This runs `run_phase2b.main` over a truncated window -- 5.6 s measured
-    2026-08-25 -- and asserts the campaign's quotes are in the run's OWN
-    `acquisition_spend_events`, which is the list `run_phase4c_on_phase2b` hands to
-    `close_the_books`. Then it runs the P&L over exactly those events and asserts the
-    money arrives as an operating cost, because a spend event the income statement
-    ignored would be booked and still free.
-    """
-    from company.finance.pnl import company_income_statement
-    from simulation.run_phase2b import main
-
-    result = main(report_end="2016-06-30")
-    events = result["acquisition_spend_events"]
-    campaign_rows = [e for e in events if e["billing_account"].startswith("PROS-")]
-
-    assert campaign_rows, "the run booked no campaign spend -- the helper is not wired in"
-    spent = round(-sum(e["amount_gbp"] for e in campaign_rows), 2)
-    assert spent > 0
-
-    statement = company_income_statement(campaign_rows)
-    # TO THE PENNY, not exact: the statement sums unrounded floats, and at the 400-founder book the
-    # summation order gave 4500.2699999999995 against 4500.27 (2026-10-09).
-    assert round(statement["acquisition_spend_gbp"], 2) == spent, (
-        "the campaign's spend events reached the run and not the income statement"
-    )
-    assert round(statement["total_operating_costs_gbp"], 2) >= spent
 
 
 def test_MUTATION_c_the_PRE_BUILD_run_books_none_of_it(shipped_supply_book, shared_fabric_traces):

@@ -60,7 +60,6 @@ COMMONS = instrument.COMMONS
 #: switching rate. The register exists so the second one cannot arrive unheld, which is exactly
 #: how the first one got nine years wrong.
 _LANE_READINGS: dict[str, str] = {
-    "company.market.market_report": "_UK_SWITCHING_RATE_PCT",
     # Added 2026-08-31 when `market_conditions` stopped carrying a normalised ratio as its
     # primary form. This entry is the repair: the reading now HAS units, so the band check
     # below can reach it. It could not before, and that is the whole defect.
@@ -160,9 +159,6 @@ _MULTIPLIER_READINGS: dict[str, tuple[str, str, int, str | None]] = {
 #: units convention: `market_departure_rate` returns 0.176 and `market_departure_rate_pct` returns
 #: 17.6, and a checker that guessed would report both as fine forever.
 _CALLABLE_READINGS: dict[str, tuple[str, str, float]] = {
-    "company.market.market_report:get_switching_rate": (
-        "company.market.market_report", "get_switching_rate", 1.0,
-    ),
     "simulation.market_switching_propensity:market_departure_rate_pct": (
         "simulation.market_switching_propensity", "market_departure_rate_pct", 1.0,
     ),
@@ -366,8 +362,10 @@ def test_the_band_is_narrower_than_the_thing_it_is_meant_to_discriminate():
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 
 def test_every_lane_reading_of_the_switching_rate_is_inside_the_published_band():
-    """THE ONE THAT MATTERS. MUTATION: restore any pre-2026-08-30 value of
-    `_UK_SWITCHING_RATE_PCT` -- 2021 at 6.1, 2020 at 14.2 -- and this fires.
+    """THE ONE THAT MATTERS. MUTATION: move any registered reading out of its year's band and
+    this fires. (`company/market/market_report.py::_UK_SWITCHING_RATE_PCT`, 2021 at 6.1 and 2020
+    at 14.2, was the first instance; no run reached that module and it left for
+    archive/unhooked_supplier/ in increment 3b, 2026-11-08.)
 
     Keyed to the property. Moving a reading anywhere inside its year's band passes; moving it out
     fails, in either direction. It cannot be satisfied by pinning today's number, and it does not
@@ -392,6 +390,18 @@ def test_every_lane_reading_of_the_switching_rate_is_inside_the_published_band()
         f"only {checked} (lane, year) pairs compared -- a control over an emptied register "
         f"reports a constant PASS"
     )
+
+
+def test_mutation_a_a_lane_reading_moved_outside_its_band_is_caught(monkeypatch):
+    """Move the READING and the containment leg must fire. Re-homed 2026-11-08 from
+    market_report's table (archived, increment 3b) onto a lane reading a run reaches."""
+    import company.crm.market_conditions as mc
+
+    broken = dict(mc.MARKET_SWITCHING_RATE_PCT_BY_YEAR)
+    broken[2021] = 6.1  # the value f5 §9 disconfirmed live, in market_report's old table
+    monkeypatch.setattr(mc, "MARKET_SWITCHING_RATE_PCT_BY_YEAR", broken)
+    with pytest.raises(AssertionError, match="2021"):
+        test_every_lane_reading_of_the_switching_rate_is_inside_the_published_band()
 
 
 def test_the_register_names_the_worlds_own_realised_departure_rate():
@@ -1467,7 +1477,9 @@ def test_every_callable_shaped_reading_is_inside_the_published_band():
     The two lanes sit at different points INSIDE the band and that is correct, not a discrepancy:
     the world reads the HIGH endpoint (§6's anti-flattering curriculum tie-break -- more book to
     re-win) and the company reads the MIDPOINT (its own belief, not the director's dial). B3's
-    rule holds -- both are held to the record, neither is pinned to the other.
+    rule holds -- both are held to the record, neither is pinned to the other. (2026-11-08: the
+    company's callable here, market_report.get_switching_rate, reached no run and was archived
+    with its module; the company's reading is held through market_conditions in `_LANE_READINGS`.)
 
     MUTATION: make either callable return its year's rate times 1.5 and this fires on that year.
     """
@@ -1483,7 +1495,9 @@ def test_every_callable_shaped_reading_is_inside_the_published_band():
                 f"({below:+.2f}pp from the low edge, {above:+.2f}pp from the high edge)"
             )
             checked += 1
-    assert checked >= 30, (
+    # Every registered callable over every published year. Was `>= 30` while market_report's
+    # get_switching_rate was registered; it left for the archive 2026-11-08 (increment 3b).
+    assert checked >= len(_CALLABLE_READINGS) * len(bands) >= 20, (
         f"only {checked} (callable, year) pairs compared -- a control over an emptied register "
         f"reports a constant PASS"
     )
@@ -1671,22 +1685,6 @@ _NOT_A_LEVEL_READING: dict[str, str] = {
         "the band and the share it is derived from. It also returns an INTERVAL over an "
         "unestablished quantity rather than a value, so there is no level in it to hold.",
     # --- the level's DENOMINATOR and its neighbours in the same module ---
-    "company.market.market_report:_UK_DOMESTIC_ACCOUNTS_M":
-        "the DENOMINATOR the switching rate is expressed over, not the rate. It is caught here "
-        "only by module co-location. Worth naming rather than filtering: a rate is a ratio, and "
-        "the denominator drifting is the other way its level can go wrong.",
-    "company.market.market_report:_UK_AVG_ELEC_UNIT_RATE_P_KWH":
-        "a published domestic PRICE series, not a switching level. Same module as the rate table.",
-    "company.market.market_report:_UK_AVG_GAS_UNIT_RATE_P_KWH":
-        "a published domestic PRICE series, not a switching level. Same module as the rate table.",
-    "company.market.market_report:get_market_elec_rate":
-        "accessor over the electricity PRICE table above.",
-    "company.market.market_report:get_market_gas_rate":
-        "accessor over the gas PRICE table above.",
-    "company.market.market_report:compare_to_market":
-        "compares this company's price with the market's; returns a price comparison.",
-    "company.market.market_report:market_benchmark":
-        "assembles the price benchmark record; carries no switching level of its own.",
     # --- company/crm/market_conditions: the non-switching half of the module ---
     "company.crm.market_conditions:market_rate_move_pct":
         "how far the whole market's PRICE moved into a year, derived from the Ofgem cap. A "
@@ -2289,16 +2287,6 @@ def test_a_lane_reading_covers_the_whole_published_window():
 # ═══════════════════════════════════════════════════════════════════════════════════════════
 # (c) MUTATION LEGS — the commons is not privileged either
 # ═══════════════════════════════════════════════════════════════════════════════════════════
-
-def test_mutation_a_a_lane_reading_moved_outside_its_band_is_caught(monkeypatch):
-    """Move the READING and the containment leg must fire."""
-    import company.market.market_report as mr
-
-    broken = dict(mr._UK_SWITCHING_RATE_PCT)
-    broken[2021] = 6.1  # the value f5 §9 disconfirmed live
-    monkeypatch.setattr(mr, "_UK_SWITCHING_RATE_PCT", broken)
-    with pytest.raises(AssertionError, match="2021"):
-        test_every_lane_reading_of_the_switching_rate_is_inside_the_published_band()
 
 
 def test_mutation_b_a_drifting_band_is_caught(monkeypatch, tmp_path):

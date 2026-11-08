@@ -270,14 +270,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/pricing/ofgem_price_cap.py::_GAS_CAP_GBP_PER_MWH":
         "the gas half of the above, and the same repair: derive the annual average from the "
         "already-pinned cap windows rather than tabulating it separately.",
-    "company/market/market_report.py::_UK_AVG_ELEC_UNIT_RATE_P_KWH":
-        "DESNZ Quarterly Energy Prices publishes average domestic unit rates; published "
-        "statistic rather than law, but a real publication with a real number.",
-    "company/market/market_report.py::_UK_AVG_GAS_UNIT_RATE_P_KWH":
-        "the gas half of the same DESNZ Quarterly Energy Prices tables; unpinned.",
-    "company/market/market_report.py::_UK_DOMESTIC_ACCOUNTS_M":
-        "Ofgem's Retail Market Indicators publish domestic account counts; the table is a "
-        "market total in millions and is a straightforward pin once the series is fetched.",
     "saas/non_commodity.py::_NON_COMMODITY_ELEC_RESI_BY_YEAR":
         "an aggregate of DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and metering. No publication "
         "states the aggregate; the pin is each component, which is most of this register.",
@@ -319,9 +311,6 @@ _NOT_PUBLISHED: dict[str, str] = {
     # `company/billing/cot.py`'s `_SVT_ELEC_PENCE` / `_CAP_ELEC_PENCE` (module retired: no production
     # importer, an invented SVT+20% deemed rate, and a "cap" tabulated for 2016-2018 when the
     # default tariff cap began in January 2019).
-    "company/regulatory/seg_book.py::_SEG_RATE_P_PER_KWH_BY_YEAR":
-        "its own comment says 'illustrative competitive rates ... based on publicly available "
-        "SEG rate comparisons' — a survey of other suppliers' offers, not a publication.",
     "company/market/rego_portfolio.py::_REGO_PRICE_BY_YEAR":
         "REGO certificate prices are traded bilaterally and OTC; no official publication states "
         "an annual REGO price, which is why brokers' marks differ from each other.",
@@ -363,12 +352,6 @@ _BAND_PINNED: dict[str, str] = {
         "three pre-cap years remain — which is how a table becomes discoverable by getting "
         "smaller, and is worth noticing: this census cannot see a tuple-keyed table, and that one "
         "was wrong in 11 of its 32 published rows.",
-    "company/market/market_report.py::_UK_SWITCHING_RATE_PCT":
-        "gb_domestic_switching_rate.json holds the band; "
-        "tests/architecture/test_switching_rate_commons.py holds this table inside it year by "
-        "year with three mutation legs. Nine of its ten values were outside the published band "
-        "before that control existed. MOVED here from _PUBLISHED_UNPINNED on 2026-08-30: it was "
-        "never unpinned, and parking it there is what took that bucket to its ratchet.",
     "simulation/departure_level_anchor.py::YEAR_LEVEL_ANCHOR":
         "the world's own departure LEVEL, derived from the same commons band by "
         "tools/fit_year_level_anchor.py and held inside it by "
@@ -406,7 +389,7 @@ _BAND_PINNED: dict[str, str] = {
 # are published series with no commons pin, so this is the true bucket; pinning them pays it back.
 # 39 -> 37 on 2026-10-27, paid: both standing-charge tables are gone, the readers serve the
 # commons' cap periods directly (tests/simulation/test_standing_charge_reproduces_the_cap_model.py).
-_MAX_PUBLISHED_UNPINNED = 23  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+_MAX_PUBLISHED_UNPINNED = 20  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
 # the point -- pinning a table is the only sanctioned way to move this number.
 #
@@ -422,6 +405,10 @@ _MAX_PUBLISHED_UNPINNED = 23  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 #
 # 28 -> 23 the same day, archive increment 2: five more left the same way, with four
 # not_published entries.
+#
+# 23 -> 20 the same day, archive increment 3b: market_report's three price and account tables
+# left with it, and its pinned switching table; the relapse guards on renewable_obligation's two
+# RO tables and company/market/capacity_market's clearing prices went with their files.
 
 # The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
 # into a dumping ground. Declared here rather than left implicit; see the test of that name.
@@ -669,9 +656,24 @@ def test_the_unratcheted_bucket_is_declared_as_a_hole():
 _MUST_NOT_BE_LITERALS = (
     "company/regulatory/roc_ledger.py::_ROC_OBLIGATION_LEVEL",
     "company/regulatory/roc_ledger.py::_ROC_BUY_OUT_PRICE_GBP",
-    "company/regulatory/renewable_obligation.py::_OBLIGATION_LEVEL_ROC_PER_MWH",
-    "company/regulatory/renewable_obligation.py::_BUYOUT_PRICE_GBP_PER_ROC",
 )
+
+
+def test_the_ro_readers_agree_with_the_commons():
+    """The company's RO reader serves the published series, not a restatement of it.
+    renewable_obligation's half left with it for archive/unhooked_supplier/ (increment 3b)."""
+    from company.regulatory import roc_ledger
+
+    levels = {
+        int(e["obligation_year"]): e["roc_per_mwh"]
+        for e in _load_commons(RO_COMMONS, "obligation_levels")
+    }
+    prices = {
+        int(e["obligation_year"]): e["gbp_per_roc"]
+        for e in _load_commons(RO_COMMONS, "buy_out_prices")
+    }
+    assert roc_ledger._ROC_OBLIGATION_LEVEL == levels
+    assert roc_ledger._ROC_BUY_OUT_PRICE_GBP == prices
 
 
 def test_the_ro_tables_have_not_been_re_inlined():
@@ -716,7 +718,6 @@ def test_the_switching_reading_has_not_been_re_inlined():
 # separately from the two above for the same reason they are held separately from each other: a
 # relapse message citing the wrong incident sends the next reader to the wrong file.
 _MUST_NOT_BE_LITERALS_CM = (
-    "company/market/capacity_market.py::_CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR",
     "company/market/ic_flexibility_revenue.py::_CM_DELIVERY_GBP_PER_KW_YR",
 )
 
@@ -838,24 +839,6 @@ def test_the_two_lanes_hold_one_law_and_keep_their_own_readings():
     # world's own reading here.
     assert policy_costs.get_cm_levy_per_mwh("2022-01-15") == pytest.approx(published[2021])
     assert policy_costs.get_cm_levy_per_mwh("2022-04-15") == pytest.approx(published[2022])
-
-
-def test_the_ro_readers_agree_with_the_commons():
-    """The company's two RO readers serve the published series, not a restatement of it."""
-    from company.regulatory import renewable_obligation, roc_ledger
-
-    levels = {
-        int(e["obligation_year"]): e["roc_per_mwh"]
-        for e in _load_commons(RO_COMMONS, "obligation_levels")
-    }
-    prices = {
-        int(e["obligation_year"]): e["gbp_per_roc"]
-        for e in _load_commons(RO_COMMONS, "buy_out_prices")
-    }
-    assert roc_ledger._ROC_OBLIGATION_LEVEL == levels
-    assert roc_ledger._ROC_BUY_OUT_PRICE_GBP == prices
-    assert renewable_obligation._OBLIGATION_LEVEL_ROC_PER_MWH == levels
-    assert renewable_obligation._BUYOUT_PRICE_GBP_PER_ROC == prices
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════════

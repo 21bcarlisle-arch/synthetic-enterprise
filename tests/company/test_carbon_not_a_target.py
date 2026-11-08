@@ -130,13 +130,13 @@ _SURFACE_GLOBS = (
     "sim/risk_committee_rules.py",
     "company/risk/*.py",
     "company/pricing/*.py",
-    "company/crm/portfolio_repricing.py",
-    "company/regulatory/supplier_fitness_register.py",
     # ADDED 2026-08-22: the two most carbon-adjacent decision modules on disk,
     # neither of which was a subject of this guard until today.
     "company/crm/decarb_recommender.py",
     # 2026-11-08: renewal_pricing_engine and decarbonisation_score left for
     # archive/unhooked_supplier/ -- no run reached either -- so they are not named.
+    # portfolio_repricing followed the same day (archive increment 3b), and
+    # supplier_fitness_register had gone in increment 3a without leaving this list.
 )
 
 

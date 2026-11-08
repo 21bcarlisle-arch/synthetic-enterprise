@@ -376,7 +376,7 @@ def test_the_repo_ledger_audits_clean():
 def test_a_real_derived_description_is_judged_honestly_not_waved_through():
     """Against the live index, the tool must either produce a blind-safe packet
     or name why not -- never quietly show a description full of module names."""
-    packet = br.build_packet("company.billing.dd_mandate_register")
+    packet = br.build_packet("company.billing.direct_debit")  # dd_mandate_register until archived, 2026-11-08
     assert packet["plain_words_source"] == "index"
     if packet["leaks"]:
         assert packet["shown"] is None or all(

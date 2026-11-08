@@ -489,3 +489,148 @@ tests/company/test_phase_jc_coverage_expansion.py | 3 archived legs only; the li
 tests/company/test_phase_js_coverage_depth.py | 3 archived legs only; the live legs stay at this path
 tests/company/test_phase_ju_coverage_depth.py | 3 archived legs only; the live legs stay at this path
 tests/company/test_phase_jv_coverage_depth.py | 3 archived legs only; the live legs stay at this path
+company/billing/account_closure.py | 3b company.billing
+company/billing/credit_balance_control.py | 3b company.billing
+company/billing/dd_indemnity.py | 3b company.billing
+company/billing/dd_mandate_register.py | 3b company.billing
+company/billing/deemed_contract.py | 3b company.billing
+company/billing/payment_deferral.py | 3b company.billing
+company/billing/prepayment.py | 3b company.billing
+company/compliance/board_meeting_register.py | 3b company.compliance
+company/compliance/consumer_duty_board_report.py | 3b company.compliance
+company/compliance/fair_value_assessment_register.py | 3b company.compliance
+company/crm/campaign_tracker.py | 3b company.crm
+company/crm/customer_retention.py | 3b company.crm
+company/crm/energy_profile.py | 3b company.crm
+company/crm/life_event_impact.py | 3b company.crm
+company/crm/portfolio_repricing.py | 3b company.crm
+company/crm/service_ticket.py | 3b company.crm
+company/crm/solr_intake.py | 3b company.crm
+company/finance/credit_facility.py | 3b company.finance
+company/finance/pnl.py | 3b company.finance
+company/finance/treasury.py | 3b company.finance
+company/market/capacity_market.py | 3b company.market
+company/market/css_performance_register.py | 3b company.market
+company/market/dcc_meter_registration.py | 3b company.market
+company/market/dsr_book.py | 3b company.market
+company/market/erroneous_transfer.py | 3b company.market
+company/market/hedging_schedule.py | 3b company.market
+company/market/market_report.py | 3b company.market
+company/market/meter_technical_investigation_register.py | 3b company.market
+company/market/mpas_standing_data_correction_register.py | 3b company.market
+company/market/switch_governance.py | 3b company.market
+company/pricing/segment_profitability.py | 3b company.pricing
+company/pricing/tou_product_launch.py | 3b company.pricing
+company/pricing/tou_rate_card.py | 3b company.pricing
+company/regulatory/annual_compliance_attestation_register.py | 3b company.regulatory
+company/regulatory/gsop_tracker.py | 3b company.regulatory
+company/regulatory/price_cap.py | 3b company.regulatory
+company/regulatory/renewable_obligation.py | 3b company.regulatory
+company/regulatory/seg_export_estimator.py | 3b company.regulatory
+company/risk/capital_adequacy.py | 3b company.risk
+company/risk/risk_appetite.py | 3b company.risk
+company/sustainability/carbon_intensity_register.py | 3b company.sustainability
+company/sustainability/environmental_impact.py | 3b company.sustainability
+company/trading/bsc_credit_register.py | 3b company.trading
+company/trading/credit_limits.py | 3b company.trading
+company/trading/emir_reporting_register.py | 3b company.trading
+company/crm/eac_drift_assessor.py | 3b company.crm
+company/crm/household_profile.py | 3b company.crm
+company/crm/portfolio_churn_risk.py | 3b company.crm
+company/pricing/tou_migration_scenario.py | 3b company.pricing
+company/regulatory/seg_book.py | 3b company.regulatory
+company/pricing/ev_cross_subsidy.py | 3b company.pricing
+company/pricing/tou_tariff_assessor.py | 3b company.pricing
+tests/architecture/test_a_company_run_never_reads_the_wall_clock.py | 3b archived legs only; the live legs stay at this path
+tests/architecture/test_switching_rate_commons.py | 3b archived legs only; the live legs stay at this path
+tests/architecture/test_year_keyed_rate_table_census.py | 3b archived legs only; the live legs stay at this path
+tests/company/billing/test_account_closure.py | 3b whole
+tests/company/billing/test_billing_deadlines_count_bank_holidays.py | 3b archived legs only; the live legs stay at this path
+tests/company/billing/test_credit_balance_control.py | 3b whole
+tests/company/billing/test_dd_indemnity.py | 3b whole
+tests/company/billing/test_dd_mandate_register.py | 3b whole
+tests/company/billing/test_deemed_contract.py | 3b whole
+tests/company/billing/test_payment_deferral.py | 3b whole
+tests/company/billing/test_phase_gd_dd_mandate.py | 3b whole
+tests/company/billing/test_prepayment.py | 3b whole
+tests/company/carbon/test_household_carbon_has_a_gas_leg.py | 3b archived legs only; the live legs stay at this path
+tests/company/compliance/test_board_meeting_register.py | 3b whole
+tests/company/compliance/test_every_company_deadline_counts_on_the_one_calendar.py | 3b archived legs only; the live legs stay at this path
+tests/company/compliance/test_fair_value_assessment_register.py | 3b whole
+tests/company/compliance/test_phase_fw_consumer_duty_board_report.py | 3b whole
+tests/company/compliance/test_phase_gp_fair_value_assessment.py | 3b whole
+tests/company/crm/test_campaign_tracker.py | 3b whole
+tests/company/crm/test_customer_retention.py | 3b whole
+tests/company/crm/test_energy_profile.py | 3b whole
+tests/company/crm/test_life_event_impact.py | 3b whole
+tests/company/crm/test_portfolio_repricing.py | 3b whole
+tests/company/crm/test_service_ticket.py | 3b archived legs only; the live legs stay at this path
+tests/company/crm/test_solr_intake.py | 3b whole
+tests/company/crm/test_w2_12_tenancy_change_coupling.py | 3b archived legs only; the live legs stay at this path
+tests/company/finance/test_a_credit_balance_on_receivables_is_a_liability.py | 3b archived legs only; the live legs stay at this path
+tests/company/finance/test_credit_facility.py | 3b whole
+tests/company/finance/test_pnl.py | 3b whole
+tests/company/finance/test_treasury.py | 3b whole
+tests/company/market/test_capacity_market.py | 3b whole
+tests/company/market/test_dcc_meter_registration.py | 3b whole
+tests/company/market/test_dsr_book.py | 3b whole
+tests/company/market/test_erroneous_transfer.py | 3b whole
+tests/company/market/test_hedging_schedule.py | 3b whole
+tests/company/market/test_market_report.py | 3b whole
+tests/company/market/test_meter_technical_investigation_register.py | 3b whole
+tests/company/market/test_mpas_standing_data_correction_register.py | 3b whole
+tests/company/market/test_phase_ga_css_performance.py | 3b archived legs only; the live legs stay at this path
+tests/company/market/test_phase_gb_dcc_registration.py | 3b whole
+tests/company/market/test_phase_gz_mti_register.py | 3b archived legs only; the live legs stay at this path
+tests/company/market/test_phase_hb_mpas_correction.py | 3b whole
+tests/company/market/test_switch_governance.py | 3b whole
+tests/company/pricing/test_segment_profitability.py | 3b whole
+tests/company/pricing/test_the_arm_reaches_its_own_segment.py | 3b archived legs only; the live legs stay at this path
+tests/company/pricing/test_tou_product_launch.py | 3b whole
+tests/company/pricing/test_tou_rate_card.py | 3b whole
+tests/company/regulatory/test_annual_compliance_attestation_register.py | 3b whole
+tests/company/regulatory/test_carbon_emissions_single_series.py | 3b archived legs only; the live legs stay at this path
+tests/company/regulatory/test_gsop_tracker.py | 3b whole
+tests/company/regulatory/test_phase_gm_compliance_attestation.py | 3b whole
+tests/company/regulatory/test_price_cap.py | 3b whole
+tests/company/regulatory/test_price_cap_characterization.py | 3b whole
+tests/company/regulatory/test_renewable_obligation.py | 3b whole
+tests/company/regulatory/test_seg_export_estimator.py | 3b whole
+tests/company/risk/test_capital_adequacy.py | 3b whole
+tests/company/risk/test_independent_amount.py | 3b archived legs only; the live legs stay at this path
+tests/company/risk/test_risk_appetite.py | 3b whole
+tests/company/sustainability/test_carbon_intensity_register.py | 3b whole
+tests/company/sustainability/test_phase_cq_environmental_impact.py | 3b whole
+tests/company/test_a_register_that_can_refuse_names_the_key_the_book_and_the_registrar.py | 3b archived legs only; the live legs stay at this path
+tests/company/test_phase_hq_coverage_expansion.py | 3b archived legs only; the live legs stay at this path
+tests/company/test_phase_hr_coverage_expansion.py | 3b whole
+tests/company/test_phase_hs_coverage_expansion.py | 3b whole
+tests/company/test_phase_ht_coverage_expansion.py | 3b whole
+tests/company/test_phase_ic_coverage_expansion.py | 3b whole
+tests/company/test_phase_ie_coverage_expansion.py | 3b whole
+tests/company/test_phase_if_coverage_expansion.py | 3b archived legs only; the live legs stay at this path
+tests/company/test_phase_ig_coverage_expansion.py | 3b whole
+tests/company/test_phase_ii_coverage_expansion.py | 3b archived legs only; the live legs stay at this path
+tests/company/test_phase_ij_coverage_expansion.py | 3b archived legs only; the live legs stay at this path
+tests/company/test_phase_iv_coverage_expansion.py | 3b whole
+tests/company/test_phase_iw_coverage_expansion.py | 3b archived legs only; the live legs stay at this path
+tests/company/test_phase_iz_coverage_expansion.py | 3b whole
+tests/company/test_phase_jc_coverage_expansion.py | 3b whole
+tests/company/test_phase_jt_coverage_depth.py | 3b archived legs only; the live legs stay at this path
+tests/company/test_phase_ju_coverage_depth.py | 3b whole
+tests/company/test_phase_jv_coverage_depth.py | 3b whole
+tests/company/test_phase_jw_coverage_depth.py | 3b whole
+tests/company/test_phase_nr_credit_risk_capital.py | 3b archived legs only; the live legs stay at this path
+tests/company/trading/test_bsc_credit_register.py | 3b whole
+tests/company/trading/test_credit_limits.py | 3b whole
+tests/company/trading/test_emir_reporting_register.py | 3b whole
+tests/controls/test_control_mutation.py | 3b archived legs only; the live legs stay at this path
+tests/simulation/test_net_new_acquisition.py | 3b archived legs only; the live legs stay at this path
+tests/tools/test_weather_driver_sensitivity.py | 3b archived legs only; the live legs stay at this path
+tests/company/crm/test_eac_drift_assessor.py | 3b whole
+tests/company/crm/test_household_profile.py | 3b whole
+tests/company/crm/test_portfolio_churn_risk.py | 3b whole
+tests/company/pricing/test_tou_migration_scenario.py | 3b whole
+tests/company/regulatory/test_seg_book.py | 3b whole
+tests/company/pricing/test_ev_cross_subsidy.py | 3b whole
+tests/company/pricing/test_tou_tariff_assessor.py | 3b whole

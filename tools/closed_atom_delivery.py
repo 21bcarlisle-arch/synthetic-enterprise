@@ -96,7 +96,10 @@ def _scan(root: Path) -> tuple[dict, set]:
     invoked: set[str] = set()
     for p in root.rglob("*"):
         rel = str(p.relative_to(root))
-        if rel.startswith("tests/") or ".git/" in rel or "site-packages" in rel:
+        # archive/ is code kept out of the live tree (archive/README.md): an archived test that
+        # imports a live module is not a reacher, the same exclusion capability_index makes.
+        if (rel.startswith(("tests/", "archive/")) or ".git/" in rel
+                or "site-packages" in rel):
             continue
         if not p.is_file() or p.suffix not in (".py", "") + _EXEC_SUFFIXES:
             continue

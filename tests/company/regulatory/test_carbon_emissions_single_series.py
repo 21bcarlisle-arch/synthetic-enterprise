@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
 
 from company.billing.carbon_footprint import electricity_intensity, estimate_carbon
 from company.regulatory import carbon_emissions as ce
@@ -158,12 +157,6 @@ def test_the_published_gas_factor_is_unchanged():
 # The readers                                                                  #
 # --------------------------------------------------------------------------- #
 
-def test_the_two_deleted_series_are_gone_from_their_old_homes():
-    import company.billing.carbon_footprint as footprint
-    import company.sustainability.carbon_intensity_register as register
-
-    assert not hasattr(footprint, "_ELECTRICITY_INTENSITY_G_CO2E_PER_KWH")
-    assert not hasattr(register, "_GRID_AVERAGE_INTENSITY")
 
 
 def test_the_surviving_consumers_all_read_the_owner():
@@ -210,10 +203,3 @@ def test_the_sections_closing_sentence_agrees_with_its_own_table():
     assert f"({round((1.0 - i1 / i0) * 100.0)}% reduction)" in summaries[0]
 
 
-def test_the_register_compares_against_the_published_level_and_refuses_without_one():
-    from company.sustainability.carbon_intensity_register import FuelMixSnapshot, FuelSource
-
-    mix = {FuelSource.NATURAL_GAS: 1.0}
-    whole = FuelMixSnapshot(year=2024, fuel_mix=mix, total_kwh_supplied=1.0)
-    assert whole.vs_grid_average == pytest.approx(394.0 - grid_intensity_g_co2e_per_kwh(2024))
-    assert FuelMixSnapshot(year=2030, fuel_mix=mix, total_kwh_supplied=1.0).vs_grid_average is None

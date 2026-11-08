@@ -32,7 +32,6 @@ reader "completing" the pattern would report an overdrawn company as holding zer
 import pytest
 
 from company.finance.double_entry import balance_sheet, build_journal
-from company.finance.treasury import working_capital
 
 
 def _billing(cid="C1", amount=100.0, period="2022-01-01"):
@@ -122,19 +121,6 @@ def test_an_ordinary_debit_balance_is_untouched():
     assert bs["equation_holds"] is True
 
 
-def test_working_capital_does_not_move_when_the_credit_is_reclassified():
-    """A downstream published figure that must NOT change. `treasury.working_capital`
-    subtracts liabilities from current assets, and the split adds the same amount to
-    each side, so the working-capital line a reader sees is identical either way.
-    Computed here from the components rather than asserted as a constant, so it stays
-    a statement about the split and not about this fixture's arithmetic."""
-    bs = balance_sheet(build_journal(PAID_AHEAD, opening_treasury=OPENING))
-    netted_assets = bs["cash_gbp"] - bs["customer_accounts_in_credit_gbp"]
-
-    assert working_capital(bs) == pytest.approx(
-        netted_assets - (bs["total_liabilities_gbp"] - bs["customer_accounts_in_credit_gbp"])
-        - bs["vat_payable_gbp"]
-    )
 
 
 def _rendered_balance_sheet_section(bs):

@@ -1,0 +1,672 @@
+# ARCHIVED LEGS of tests/architecture/test_year_keyed_rate_table_census.py (archive increment 3b). The tests here reach a module
+# under archive/unhooked_supplier/; the live legs stay at tests/architecture/test_year_keyed_rate_table_census.py.
+"""Every year-keyed rate table in the repo is classified — discovered by AST, not by `vars()`.
+
+THE DEFECT THIS EXISTS FOR (2026-08-19,
+WORKER_FINDING_THE_REPORTS_RO_OBSERVATORY_PUBLISHES_TEN_YEARS_OF_RATES_THAT_MATCH_NO_PUBLICATION).
+`docs/reports/ANNUAL_REPORT.md`'s "RO Cost Observatory" published ten years of obligation
+levels and buy-out prices that matched no publication on either column, understating the RO
+line by GBP486,458.88 (27.74%) against the RO cost the same run charged. Two R10 class
+controls already governed exactly that defect family — `test_policy_cost_year_basis.py`
+(discovers via `vars(policy_costs)`) and `test_policy_cost_values_vs_source.py` (classifies
+everything in `policy_costs.YEAR_KEY_BASIS`). Neither could name the offending tables, not by
+omission but BY CONSTRUCTION: they live in `company/regulatory/`, and both enumerators are
+scoped to one module.
+
+    A register of unverified constants inherits the blindness of its own enumerator.
+
+So the register said of `_RO_COST_BY_OY_START` "GBP1.72M, the largest line" — and that table
+is RIGHT — while the table that was wrong by GBP486k was out of scope and unaddable by any
+mutation of either control. The class was scoped as "tables in this module" rather than
+"year-keyed rate tables"; this file is the enumerator both controls should have had.
+
+WHAT THE CENSUS MEASURED ON ITS FIRST RUN. 61 year-keyed rate tables across `simulation/`,
+`company/` and `saas/` — against a register that enumerated 13, one module's worth. The
+finding said the unregistered population was "unknown and at least two". It is 47. Among
+them: a THIRD RO obligation-level table (`company/regulatory/renewable_obligation.py`)
+carrying levels around 0.09 ROC/MWh against a published 0.47-0.49, three separate readings
+of the TNUoS residual, three of the Green Gas Levy, and three of the Capacity Market auction
+results — each pair of which is two tables of the same law with different numbers.
+
+DISCOVERY IS THE CONTROL, and it must not be narrower than the thing it governs:
+  * module-level dict literals, found by walking the AST of every `.py` file in scope —
+    NOT `vars()` of a module, which requires someone to have thought of that module.
+  * int keys inside a plausible year range, numeric values, 3+ entries.
+  * the value may be spelled as a negative or as arithmetic — see `_is_numeric_literal`,
+    which carries the two fail-open shapes this walker's first draft actually had.
+
+STATUSES. Every discovered table carries one:
+  * `pinned`             — asserted EQUAL to the regulation commons by leg (a) below. The
+                           commons holds the publisher's own units and this file performs the
+                           conversion, so the derivation is under test rather than assumed.
+  * `published_unpinned` — a real published figure with no commons pin yet. RATCHETED: this
+                           count may only go DOWN.
+  * `not_published`      — nothing publishes a figure of this table's shape (the company's
+                           own tariff, a modelling probability, a representative blend).
+                           Requires a reason. NOT ratcheted, and that is a named hole, not an
+                           oversight: see `test_the_unratcheted_bucket_is_declared_as_a_hole`.
+
+WHAT THIS FILE DOES NOT CLOSE. `published_unpinned` is 40 tables and only shrinks when
+someone fetches a publication; the census makes the gap visible and monotone, it does not
+make it closed. And a table whose values are LOADED from the commons (the repaired RO pair)
+vanishes from this census entirely, because it is no longer a literal — leg (e) exists so
+that "absent" cannot be confused with "unchecked".
+"""
+from __future__ import annotations
+
+import ast
+import json
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+SCOPE = ("simulation", "company", "saas")
+COMMONS_DIR = ROOT / "docs" / "domain_artefact_library" / "regulatory"
+CCL_COMMONS = COMMONS_DIR / "ccl_main_rates.json"
+RO_COMMONS = COMMONS_DIR / "ro_obligation_and_buyout.json"
+NATGAS_COMMONS = COMMONS_DIR / "desnz_natural_gas_conversion_factor.json"
+TD_LOSSES_COMMONS = COMMONS_DIR / "desnz_td_losses_conversion_factor.json"
+
+_MIN_YEAR, _MAX_YEAR = 1990, 2100
+_MIN_ENTRIES = 3
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# DISCOVERY — repo-wide, by AST. The leg the two predecessors could not have.
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def _is_numeric_literal(node: ast.AST) -> bool:
+    """A numeric value written out in the source, however it is spelled.
+
+    TWO FAIL-OPEN SHAPES LIVE HERE, both found by running the census against the real tree
+    rather than against an idea of it, and both pinned by their own mutation below:
+
+      * a NEGATIVE rate is an `ast.UnaryOp`, not an `ast.Constant`. A walk that checks only
+        for `Constant` silently skips `_CFD_LEVY_BY_YEAR` (2022: -5.0, the crisis rebate) —
+        a table already IN the register the census replaces.
+      * a rate written as ARITHMETIC is an `ast.BinOp`. `_GGL_RATE_GBP_PER_METER_YEAR`
+        spells every entry `0.576 * 365 / 100`, showing its p/day working. Skipping it would
+        drop a whole published levy from the population while the ratchet read green.
+
+    A census that silently drops rows is worse than no census, because its own count is what
+    later readers trust.
+    """
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+        return _is_numeric_literal(node.operand)
+    if isinstance(node, ast.BinOp) and isinstance(
+        node.op, (ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow)
+    ):
+        return _is_numeric_literal(node.left) and _is_numeric_literal(node.right)
+    return (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, (int, float))
+        and not isinstance(node.value, bool)
+    )
+
+
+def _is_year_key(node: ast.AST) -> bool:
+    return (
+        isinstance(node, ast.Constant)
+        and isinstance(node.value, int)
+        and not isinstance(node.value, bool)
+        and _MIN_YEAR <= node.value <= _MAX_YEAR
+    )
+
+
+def discover_year_keyed_tables(root: Path = ROOT, scope=SCOPE) -> dict[str, int]:
+    """Every module-level year-keyed numeric dict literal in scope.
+
+    Returns {"<repo-relative module>::<NAME>": entry_count}. The key carries the MODULE
+    because two tables can share a name — `_GGL_RATE_GBP_PER_METER_YEAR` exists in both
+    `simulation/policy_costs.py` and `company/market/gas_network_ledger.py` with different
+    values. A bare-name register, which is what `YEAR_KEY_BASIS` is, cannot tell them apart.
+    """
+    found: dict[str, int] = {}
+    for package in scope:
+        for path in sorted((root / package).rglob("*.py")):
+            try:
+                tree = ast.parse(path.read_text())
+            except (SyntaxError, UnicodeDecodeError):  # pragma: no cover - none in scope
+                continue
+            for node in tree.body:
+                if isinstance(node, ast.Assign):
+                    targets, value = node.targets, node.value
+                elif isinstance(node, ast.AnnAssign) and node.value is not None:
+                    targets, value = [node.target], node.value
+                else:
+                    continue
+                if not isinstance(value, ast.Dict) or len(value.keys) < _MIN_ENTRIES:
+                    continue
+                if not all(k is not None and _is_year_key(k) for k in value.keys):
+                    continue
+                if not all(_is_numeric_literal(v) for v in value.values):
+                    continue
+                rel = path.relative_to(root).as_posix()
+                for target in targets:
+                    if isinstance(target, ast.Name):
+                        found[f"{rel}::{target.id}"] = len(value.keys)
+    return found
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# THE REGISTER
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+# status "pinned": (commons artefact, the conversion this file performs to compare).
+# The conversion is NOT in the commons on purpose — see the artefacts' `why_native_units`.
+_PINNED: dict[str, str] = {
+    "simulation/policy_costs.py::_CCL_ELECTRICITY_RATE_BY_YEAR": "ccl_electricity_gbp_per_mwh",
+    "simulation/policy_costs.py::_GAS_CCL_RATE_BY_YEAR": "ccl_gas_gbp_per_mwh",
+    "company/regulatory/ccl_ledger.py::_CCL_ELECTRICITY_P_KWH": "ccl_electricity_pence_per_kwh",
+    "company/regulatory/ccl_ledger.py::_CCL_GAS_P_KWH": "ccl_gas_pence_per_kwh",
+    "simulation/policy_costs.py::_RO_COST_BY_OY_START": "ro_effective_gbp_per_mwh_1dp",
+    "company/regulatory/carbon_emissions.py::DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV":
+        "desnz_natural_gas_kg_co2e_per_kwh_gross_cv",
+    "company/regulatory/carbon_emissions.py::DESNZ_TD_LOSSES_KG_CO2E_PER_KWH":
+        "desnz_td_losses_kg_co2e_per_kwh",
+}
+
+# status "published_unpinned": a real publication exists; no commons pin yet. RATCHETED DOWN.
+_PUBLISHED_UNPINNED: dict[str, str] = {
+    "simulation/household_budget.py::_BASKET_EX_ENERGY_FACTOR":
+        "ONS MM23 CPIH divisions ex-energy, rebased to 2026/27 = 1, transcribed from "
+        "docs/market_research/household_budget_w2_4.md. The pin is the index series in the commons.",
+    "simulation/household_budget.py::_CPIH_FACTOR":
+        "ONS MM23 all-items CPIH, rebased to 2026/27 = 1; same page, same repair.",
+    "simulation/household_budget.py::_AWE_FACTOR":
+        "ONS LMS KAB9 whole-economy AWE, rebased to 2026/27 = 1; same page, same repair.",
+    "simulation/household_budget.py::_BENEFIT_PATH_FACTOR":
+        "the April uprating path (previous September's CPI, frozen 2016-2019): published DWP "
+        "uprating statements, calendar-averaged, so the pin carries the averaging as a reading.",
+    "simulation/policy_costs.py::_CFD_LEVY_BY_YEAR":
+        "LCCC/EMRS publish the interim levy rate per quarter; the table is an annual average, "
+        "so the pin must carry the averaging as a stated reading.",
+    "simulation/policy_costs.py::_NETWORK_COST_RESI_SME_BY_YEAR":
+        "GBP869k, the largest unpinned line. DUoS+TNUoS combined across 14 DNO regions; the "
+        "tabulated figure is a national blend and no single publication states it.",
+    "simulation/policy_costs.py::_DUOS_IC_BY_YEAR":
+        "the I&C-connected variant: HV/EHV DUoS tariffs are published per DNO with red/amber/"
+        "green time bands, so no published figure has this table's single annual GBP/MWh shape.",
+    # `simulation/policy_costs.py::_CM_LEVY_BY_YEAR` CAME OFF on 2026-09-07, and this edit is the
+    # record the work happened. Its entry said the pin "is the Annex 9 row and not the quotient" --
+    # correct, and it is now moot: the Annex 9 row IS the commons artefact, the quotient is stated
+    # in that artefact's own `basis.derivation`, and the module loads it instead of restating it.
+    #
+    # THE TWO TABLES AGREED ON ALL NINE YEARS BEFORE THIS, which is the part worth writing down.
+    # a53 landed the company-side half at f716b6eac and the sim kept its literals, so one published
+    # series had two homes that matched by coincidence: nothing made them keep matching, and the
+    # annual report publishes both readings side by side with a live reconciliation, so a drifting
+    # literal would have surfaced as a delta the page attributes to obligation-year keying. A
+    # register cannot see "agrees today, unconstrained tomorrow" -- only the load can close it.
+    # Held in `_MUST_NOT_BE_LITERALS_SUPPLIER_LEVY` below and equality-checked by
+    # `test_the_sim_cm_levy_reader_serves_the_commons`.
+    "simulation/policy_costs.py::_FIT_LEVY_BY_YEAR":
+        "Ofgem FIT annual levelisation; published per levelisation period, not per obligation "
+        "year, so the pin must carry the period-to-year mapping as a stated reading.",
+    "simulation/policy_costs.py::_MUTUALIZATION_LEVY_BY_YEAR":
+        "SoLR mutualisation recovery totals are published per event; the table is an allocated "
+        "per-MWh figure, so the pin is the event total and the allocation is the reading.",
+    "simulation/policy_costs.py::_GAS_NETWORK_COST_BY_YEAR":
+        "transportation charges vary by LDZ and exit point; national blend, same shape as the "
+        "electricity network tables.",
+    "simulation/policy_costs.py::_GGL_RATE_GBP_PER_METER_YEAR":
+        "Green Gas Levy is published GBP/meter/DAY by DESNZ in statutory instruments; this "
+        "table spells the annualisation in its own values (0.576 * 365 / 100), which is why "
+        "discovery has to read arithmetic. A genuinely cheap pin, and the next one to do.",
+    "simulation/triad.py::_TNUOS_TRIAD_TARIFF_BY_YEAR":
+        "NGESO/NESO publish TNUoS Triad tariffs per zone; this table names Zone 14 (London) as "
+        "representative, so the pin is the zone row and the representativeness is the reading.",
+    # `company/regulatory/capacity_market.py::_CM_OBLIGATION_RATE_BY_YEAR` CAME OFF on 2026-09-07
+    # (a51), and this edit is the record the work happened. Its entry said the supplier obligation
+    # rate "is a derived ALLOCATION of those across supplied volume, not a clearing price", and
+    # that "what is still missing is the allocation, not the prices" -- correct, and it was the
+    # right thing to have written down, because it named exactly what to go and find. THE
+    # ALLOCATION IS PUBLISHED: Ofgem Annex 9 gives the CM cost per customer per year, and this
+    # repo has carried it in docs/market_research/capacity_market_levy_2016_2024.md since Phase
+    # 30a. It is now in the commons as capacity_market_supplier_levy.json and the module reads it.
+    #
+    # WHAT THE TABLE ACTUALLY HELD was not an allocation at all: it was the clearing price series
+    # under a fourth name, and multiplying it by an estimated peak and an invented 0.92 de-rating
+    # factor missed the published levy by 8.51x at 2016 and 0.03x at 2021. The pin was cheaper
+    # than it looked in one direction and far more expensive in the other.
+    # `company/market/capacity_market.py::_CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR` and
+    # `company/market/ic_flexibility_revenue.py::_CM_DELIVERY_GBP_PER_KW_YR` CAME OFF on
+    # 2026-09-07, and this edit is the record the work happened. This register's own docstring had
+    # named them since 2026-08-19 -- "three of the Capacity Market auction results, each pair of
+    # which is two tables of the same law with different numbers" -- and the entry above said
+    # pinning the publication once "is what pinning it once would collapse". It did. Both tables
+    # now load from the commons through `company/market/capacity_market_published_record.py` and
+    # are held in `_MUST_NOT_BE_LITERALS_CM` below.
+    #
+    # WHAT THE CENSUS COULD NOT SEE, and it is worth writing down because it bounds this control.
+    # A THIRD home for the same price was the scalar `_CAPACITY_MARKET_GBP_PER_KW_YR = 75.0` in
+    # `company/market/flexibility_potential.py`. This census discovers year-keyed DICTS, so a
+    # single-value copy of one row of a published series is invisible to it -- and that copy was
+    # the one doing damage, at GBP930/household/year. Discovery must not be narrower than the
+    # thing it governs; here it was narrower in a dimension nobody had named.
+    #
+    # THAT BOUND IS STILL TRUE OF THIS CENSUS, and it is not deleted, because it correctly says
+    # what this file can and cannot see. What changed on 2026-09-08 is that the hole is now
+    # covered ELSEWHERE: `tools/published_row_scalar_census.py` walks every module-level number in
+    # `company/`, `saas/` and `simulation/` against every row of every JSON artefact in the
+    # commons, ranked by how few published rows a value collides with. Its own reachability floor
+    # is the constant named above, fed back in as a poison round --
+    # `tests/architecture/test_published_row_scalar_census.py`.
+    "company/regulatory/fit_book.py::_FIT_LEVELISATION_RATE_PER_MWH":
+        "Ofgem FIT levelisation, the company-side twin of policy_costs' _FIT_LEVY_BY_YEAR; "
+        "published per levelisation period, so the pin carries the period-to-year mapping.",
+    "company/regulatory/warm_home_discount.py::_CORE_DISCOUNT":
+        "the WHD core group rebate is set in the Warm Home Discount Regulations each scheme "
+        "year; a single statutory GBP figure per year and a cheap pin once the SIs are fetched.",
+    "company/regulatory/warm_home_discount.py::_BROADER_DISCOUNT":
+        "the broader group rebate from the same Regulations; supplier-set within a statutory "
+        "floor before 2022, so the pin must state which of the two regimes each year is under.",
+    "company/regulatory/compliance.py::_SMART_METER_TARGETS":
+        "Ofgem/DESNZ publish smart meter rollout targets per supplier per year under the "
+        "framework licence condition; the table is a market-wide percentage.",
+    "company/pricing/ofgem_price_cap.py::_ELEC_CAP_GBP_PER_MWH":
+        "the published cap WINDOWS are already pinned in ofgem_default_tariff_cap_windows.json; "
+        "this table is an annual average of them and should be derived from the pin, not "
+        "restated beside it. The nearest thing here to an already-solved pin.",
+    "company/pricing/ofgem_price_cap.py::_GAS_CAP_GBP_PER_MWH":
+        "the gas half of the above, and the same repair: derive the annual average from the "
+        "already-pinned cap windows rather than tabulating it separately.",
+    "company/market/market_report.py::_UK_AVG_ELEC_UNIT_RATE_P_KWH":
+        "DESNZ Quarterly Energy Prices publishes average domestic unit rates; published "
+        "statistic rather than law, but a real publication with a real number.",
+    "company/market/market_report.py::_UK_AVG_GAS_UNIT_RATE_P_KWH":
+        "the gas half of the same DESNZ Quarterly Energy Prices tables; unpinned.",
+    "company/market/market_report.py::_UK_DOMESTIC_ACCOUNTS_M":
+        "Ofgem's Retail Market Indicators publish domestic account counts; the table is a "
+        "market total in millions and is a straightforward pin once the series is fetched.",
+    "saas/non_commodity.py::_NON_COMMODITY_ELEC_RESI_BY_YEAR":
+        "an aggregate of DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and metering. No publication "
+        "states the aggregate; the pin is each component, which is most of this register.",
+    "saas/non_commodity.py::_NON_COMMODITY_GAS_RESI_BY_YEAR":
+        "the gas aggregate of GDN transportation, NTS and metering; same shape, same repair.",
+}
+
+# status "not_published": nothing publishes a figure of this shape.
+_NOT_PUBLISHED: dict[str, str] = {
+    "simulation/life_events.py::_SOLAR_INSTALL_PROB_BY_YEAR":
+        "a marginal annual install PROBABILITY the world draws against, derived from DESNZ "
+        "cumulative installs over a household count. The derivation is a modelling choice.",
+    "simulation/life_events.py::_EV_ACQUIRED_PROB_BY_YEAR":
+        "same shape: an annual acquisition hazard derived from a published stock series. The "
+        "stock is published; this hazard is the model's own reading of it.",
+    "simulation/life_events.py::_HEAT_PUMP_INSTALL_PROB_BY_YEAR":
+        "an annual install hazard for a gas-heated home, derived from published install counts; "
+        "the hazard is a modelling construct, not a published figure.",
+    "simulation/life_events.py::_BATTERY_INSTALL_PROB_WITH_SOLAR_BY_YEAR":
+        "a CONDITIONAL probability (battery given solar). No publication states a conditional; "
+        "the BEIS penetration figure it cites is a stock share, which is a different quantity.",
+    "simulation/market_switching_propensity.py::_POST_BAN_STRUCTURAL_FACTOR":
+        "a structural multiplier the model applies after the 2023 fairer-pricing rule; a "
+        "modelling assumption about behaviour, with no published counterpart of this shape.",
+    "simulation/market_switching_propensity.py::MARKET_SAVINGS_BY_YEAR":
+        "the modelled saving available from switching, used to drive propensity. Published "
+        "switching SAVINGS estimates exist but are computed differently; this is the world's.",
+    # `company/crm/market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR` was classified here
+    # until 2026-08-31, on the reason "the company's own belief multiplier on market switching
+    # intensity — a belief the epistemic wall specifically ALLOWS to be wrong. Pinning it would
+    # be the violation." THAT REASON WAS THE DEFECT, not a mitigation of it. DESNZ and Ofgem
+    # publish GB domestic switching; a supplier can look it up; so being wrong about it is an
+    # ordinary defect and not the wall doing its job. The classification bought the table six
+    # weeks of silence while it asserted 31.0% for 2016 against a published 17.0-17.6% and
+    # inverted the record's shape across 2016-2021. The table now loads from the commons and is
+    # held in `_MUST_NOT_BE_LITERALS_SWITCHING` below.
+    # Three entries left here on 2026-10-05: `company/crm/css_tracker.py::_INDUSTRY_AVERAGE_OVERALL`
+    # (a regulator-attributed 0-10 series matching no publication, now an explicit None) and
+    # `company/billing/cot.py`'s `_SVT_ELEC_PENCE` / `_CAP_ELEC_PENCE` (module retired: no production
+    # importer, an invented SVT+20% deemed rate, and a "cap" tabulated for 2016-2018 when the
+    # default tariff cap began in January 2019).
+    "company/regulatory/seg_book.py::_SEG_RATE_P_PER_KWH_BY_YEAR":
+        "its own comment says 'illustrative competitive rates ... based on publicly available "
+        "SEG rate comparisons' — a survey of other suppliers' offers, not a publication.",
+    "company/market/rego_portfolio.py::_REGO_PRICE_BY_YEAR":
+        "REGO certificate prices are traded bilaterally and OTC; no official publication states "
+        "an annual REGO price, which is why brokers' marks differ from each other.",
+}
+
+
+# status "band_pinned": a commons artefact states a BAND rather than a scalar, and a control holds
+# the table inside it year by year. Added 2026-08-30.
+#
+# WHY A FOURTH BUCKET EXISTS. Three buckets could not describe a table that IS pinned but not by
+# equality, so the only home for one was `_PUBLISHED_UNPINNED` with a paragraph explaining that it
+# was not really unpinned — which is how that bucket reached its own ratchet ceiling. The register
+# was mis-describing its best-evidenced entries as its weakest.
+#
+# The distinction is real and not bookkeeping. `_PINNED` asserts EQUALITY against a published
+# scalar. A switching record states COUNTS, and a count over an account total that drifts is a
+# RANGE; forcing a scalar out of it would mean choosing a point inside the band and then asserting
+# the world equals the choice. Band-pinning asserts the weaker, true thing — the table lies inside
+# what the record supports — and it is falsifiable in both directions, which is what makes it a pin
+# rather than a note.
+_BAND_PINNED: dict[str, str] = {
+    "simulation/svt_rates.py::_SVT_GAS_PRECAP_PENCE_PER_KWH":
+        "MOVED here from _PUBLISHED_UNPINNED on 2026-09-08 by the owning lane, which is the "
+        "correction the entry there invited in writing: the CM pass classified it from the "
+        "table's own comment rather than from the sources, to unwedge a whole-tree gate, and said "
+        "so. It was never unpinned. `svt_rates_active_passive_2016_2025.md` §1 states a RANGE per "
+        "year (2016 ~3.8-4.2, 2017 ~2.1-3.5, 2018 ~3.5-4.0) precisely because the figures are "
+        "back-derived from bills, and "
+        "test_svt_rates.py::test_pre_cap_gas_sits_inside_the_PUBLISHED_band holds every year "
+        "inside its own range. That is the band_pinned shape exactly: a source that states a "
+        "range, and a control falsifiable in both directions against it.",
+    "simulation/svt_rates.py::_SVT_ELEC_PRECAP_PENCE_PER_KWH":
+        "the electricity half of the row above, pinned the same way by "
+        "test_svt_rates.py::test_pre_cap_elec_sits_inside_the_PUBLISHED_band against the same "
+        "source's electricity column (2016 ~13.5-14.5, 2017 ~13.5-14.5, 2018 ~14.5-16.0). NEW to "
+        "the census on 2026-09-08, and it is the residue of a table that SHRANK: "
+        "`_SVT_ELEC_PENCE_PER_KWH` carried 46 quarter-keyed rows out to 2029 and was invisible "
+        "here because its keys were tuples. The post-cap rows now load the commons and only the "
+        "three pre-cap years remain — which is how a table becomes discoverable by getting "
+        "smaller, and is worth noticing: this census cannot see a tuple-keyed table, and that one "
+        "was wrong in 11 of its 32 published rows.",
+    "company/market/market_report.py::_UK_SWITCHING_RATE_PCT":
+        "gb_domestic_switching_rate.json holds the band; "
+        "tests/architecture/test_switching_rate_commons.py holds this table inside it year by "
+        "year with three mutation legs. Nine of its ten values were outside the published band "
+        "before that control existed. MOVED here from _PUBLISHED_UNPINNED on 2026-08-30: it was "
+        "never unpinned, and parking it there is what took that bucket to its ratchet.",
+    "simulation/departure_level_anchor.py::YEAR_LEVEL_ANCHOR":
+        "the world's own departure LEVEL, derived from the same commons band by "
+        "tools/fit_year_level_anchor.py and held inside it by "
+        "test_switching_rate_commons.py::test_the_worlds_realised_departure_rate_is_inside_the_"
+        "published_band, whose mutation leg halves any one year's entry and fires on that year. "
+        "Band and not scalar for the same reason as the row above: the record states counts.",
+}
+
+# Ratchet. May only be LOWERED. Raising it to make a red test green is the goal-seeking R12
+# forbids, applied to a control — and is exactly how a register stops shrinking.
+#
+# LOWERED 40 -> 39 on 2026-08-30, by moving `_UK_SWITCHING_RATE_PCT` to `_BAND_PINNED` where it
+# always belonged. A ratchet paid down by pinning something, which is the only move it permits.
+#
+# LOWERED 39 -> 37 on 2026-09-07, by fetching the GB Capacity Market auction results into the
+# commons and collapsing BOTH remaining clearing-price tables onto them. Paid down the way the
+# ratchet intends: two tables left this bucket because a publication was fetched, not because a
+# bucket was re-labelled.
+#
+# NET 39 -> 38, not 37: the same pass ADDED `simulation/svt_rates.py::_SVT_GAS_PRECAP_PENCE_PER_KWH`,
+# which arrived unclassified from another lane and was reddening the classification leg for every
+# lane in the tree. Recorded as two separate movements rather than one net figure, because a
+# ratchet that only ever shows its net is a ratchet you cannot audit: this bucket was PAID DOWN by
+# two and CHARGED one, and the charge is somebody else's table.
+# 36 -> 35 on 2026-09-08: `_SVT_GAS_PRECAP_PENCE_PER_KWH` moved to _BAND_PINNED by its owning lane,
+# taking up the correction that entry itself invited. Paid down by re-reading the source rather than
+# by re-labelling a bucket -- the range is in the publication and the control already existed, so
+# this entry was in the wrong bucket from the day it was written, exactly as `_UK_SWITCHING_RATE_PCT`
+# was. AND THE SAME PASS CHARGED NOTHING, which is worth recording because it easily could have:
+# `_SVT_ELEC_PRECAP_PENCE_PER_KWH` is new to the census on the same day and went to _BAND_PINNED
+# with its own control written for it. A new table arriving unclassified is how this ratchet went UP
+# last time.
+# 35 -> 39 on 2026-10-19, CHARGED, not paid: 78a36a84c added household_budget's four price-level
+# tables unclassified, which reddened this leg for every commit importing a censused module. They
+# are published series with no commons pin, so this is the true bucket; pinning them pays it back.
+# 39 -> 37 on 2026-10-27, paid: both standing-charge tables are gone, the readers serve the
+# commons' cap periods directly (tests/simulation/test_standing_charge_reproduces_the_cap_model.py).
+_MAX_PUBLISHED_UNPINNED = 23  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+# obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
+# the point -- pinning a table is the only sanctioned way to move this number.
+#
+# 37 -> 36 later the same day: `simulation/policy_costs.py::_CM_LEVY_BY_YEAR` came off, the SIM
+# side of the same publication. Paid down the way the ratchet intends -- a table left because it
+# now loads the artefact, not because a bucket was re-labelled -- and note what this movement is
+# NOT: no publication was fetched for it, because a51 had already fetched it. The cost of the
+# second half was one loader, and the reason to do it is that the first half made the two homes
+# visible to each other on the annual report without making them agree by construction.
+#
+# 37 -> 28 on 2026-11-08: nine tables left with their modules when the unhooked company.market
+# modules were archived (archive/MANIFEST.txt). Not pinned, removed: no run read them.
+#
+# 28 -> 23 the same day, archive increment 2: five more left the same way, with four
+# not_published entries.
+
+# The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
+# into a dumping ground. Declared here rather than left implicit; see the test of that name.
+_UNRATCHETED_BUCKET = "_NOT_PUBLISHED"
+
+
+def _register() -> dict[str, str]:
+    out = {k: "pinned" for k in _PINNED}
+    out.update({k: "published_unpinned" for k in _PUBLISHED_UNPINNED})
+    out.update({k: "band_pinned" for k in _BAND_PINNED})
+    out.update({k: "not_published" for k in _NOT_PUBLISHED})
+    return out
+
+
+def _load_commons(path: Path, key: str) -> list[dict]:
+    """NO FAIL-OPEN PATH (R15). Missing, empty or malformed RAISES.
+
+    Returning `[]` would make the equality leg iterate over nothing and pass — the
+    fail-silent shape that lets a control report green while checking nothing.
+    """
+    if not path.exists():
+        raise FileNotFoundError(f"regulation commons artefact missing: {path}")
+    raw = json.loads(path.read_text())
+    entries = raw.get(key)
+    if not entries:
+        raise ValueError(f"regulation commons artefact has no {key}: {path}")
+    return entries
+
+
+def _module_attr(dotted_key: str):
+    """Import the module named in a register key and return the named table."""
+    import importlib
+
+    rel, name = dotted_key.split("::")
+    module = importlib.import_module(rel[:-3].replace("/", "."))
+    return getattr(module, name)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (a) EQUALITY — a pinned table equals the publication, after a conversion done HERE
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def _ccl_pins(commodity: str, asserted_only: bool = True) -> dict[int, float]:
+    """CCL rates by obligation year.
+
+    `asserted_only` is the provenance gate. Equality asserts `primary`/`bracketed` ONLY —
+    a figure nobody fetched must not be served as the published law. COVERAGE asks a
+    different question ("is this year in the register at all?") and so counts `recalled`
+    too; conflating the two would report an honestly-declared recalled year as a hole.
+    """
+    pins = _load_commons(CCL_COMMONS, "rates")
+    return {
+        int(p["from"][:4]): p["gbp_per_kwh"]
+        for p in pins
+        if p["commodity"] == commodity
+        and (not asserted_only or p["provenance"] in ("primary", "bracketed"))
+    }
+
+
+def _ro_pins() -> dict[int, float]:
+    """The RO effective cost, MULTIPLIED HERE from two separately published series.
+
+    This is the whole point of splitting the commons into level and price. Had the artefact
+    carried the GBP/MWh product, this comparison would be a tautology, and worse, a wrong
+    level could be cancelled by a wrong price and still land on a plausible product.
+    """
+    levels = {
+        int(e["obligation_year"]): e["roc_per_mwh"]
+        for e in _load_commons(RO_COMMONS, "obligation_levels")
+        if e["provenance"] in ("primary", "secondary")
+    }
+    prices = {
+        int(e["obligation_year"]): e["gbp_per_roc"]
+        for e in _load_commons(RO_COMMONS, "buy_out_prices")
+        if e["provenance"] in ("primary", "secondary")
+    }
+    return {y: levels[y] * prices[y] for y in sorted(set(levels) & set(prices))}
+
+
+def _expected_for(conversion: str, asserted_only: bool = True) -> tuple[dict[int, float], float]:
+    """(published value per year, absolute tolerance) under a named conversion."""
+    if conversion == "ccl_electricity_gbp_per_mwh":
+        return {y: v * 1000.0 for y, v in _ccl_pins("electricity", asserted_only).items()}, 0.005
+    if conversion == "ccl_gas_gbp_per_mwh":
+        return {y: v * 1000.0 for y, v in _ccl_pins("gas", asserted_only).items()}, 0.005
+    if conversion == "ccl_electricity_pence_per_kwh":
+        return {y: v * 100.0 for y, v in _ccl_pins("electricity", asserted_only).items()}, 0.0005
+    if conversion == "ccl_gas_pence_per_kwh":
+        return {y: v * 100.0 for y, v in _ccl_pins("gas", asserted_only).items()}, 0.0005
+    if conversion == "ro_effective_gbp_per_mwh_1dp":
+        # The table's stated reading is the product tabulated to 1dp. The tolerance IS that
+        # reading, declared: 0.05 is the widest a 1dp rounding can be, and nothing wider is
+        # admitted. The shipped table's worst residual under it is 0.023.
+        return _ro_pins(), 0.05
+    if conversion == "desnz_natural_gas_kg_co2e_per_kwh_gross_cv":
+        # Transcribed per year from DESNZ's flat files (see the artefact's legend); 2022 is absent
+        # on purpose, and the window leg below holds the code to the same absence.
+        return {int(e["year"]): float(e["kg_co2e_per_kwh_gross_cv"])
+                for e in _load_commons(NATGAS_COMMONS, "factors")
+                if e["provenance"] == "transcribed"}, 0.000005
+    if conversion == "desnz_td_losses_kg_co2e_per_kwh":
+        # Transcribed per year from each BEIS/DESNZ workbook (canon v4 CO4's named line, 2026-10-12).
+        return {int(e["year"]): float(e["kg_co2e_per_kwh"])
+                for e in _load_commons(TD_LOSSES_COMMONS, "factors")
+                if e["provenance"] == "transcribed"}, 0.000005
+    raise ValueError(f"unknown conversion: {conversion!r}")
+
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (b) COVERAGE — a pinned table's year with no pin is a hole, not a pass
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def _years_outside_commons_window(key: str, conversion: str) -> list[int]:
+    """Table years that fall before the first, or after the last, year the commons pins."""
+    table = _module_attr(key)
+    expected, _ = _expected_for(conversion, asserted_only=False)
+    lo, hi = min(expected), max(expected)
+    return sorted(y for y in table if y < lo or y > hi)
+
+
+
+
+# Table years that predate the commons' own coverage. `_CCL_*_P_KWH` tabulate back to 2001;
+# `ccl_main_rates.json` starts at 2016 because that is what the CCL pass fetched. Declared
+# and ratcheted rather than skipped, so "the commons does not go back that far" stays a
+# visible, shrinking number instead of a silent exemption inside the equality leg.
+_MAX_YEARS_OUTSIDE_COMMONS_WINDOW = 20
+
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (c) SCOPE — the census population, discovered repo-wide, must equal the register
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (d) RATCHET — the unpinned published surface may only shrink
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (e) NO-RELAPSE — a table repaired by LOADING from the commons must not become a literal again
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+# These names carried the GBP486k defect. They are gone from the census because they are no
+# longer literals — `company/regulatory/ro_commons.py` loads them. "Absent" and "unchecked"
+# look identical to a census, so this leg makes absence load-bearing.
+_MUST_NOT_BE_LITERALS = (
+    "company/regulatory/roc_ledger.py::_ROC_OBLIGATION_LEVEL",
+    "company/regulatory/roc_ledger.py::_ROC_BUY_OUT_PRICE_GBP",
+    "company/regulatory/renewable_obligation.py::_OBLIGATION_LEVEL_ROC_PER_MWH",
+    "company/regulatory/renewable_obligation.py::_BUYOUT_PRICE_GBP_PER_ROC",
+)
+
+
+
+
+# The company's reading of the GB domestic switching record, same repair one series along
+# (2026-08-31). Held separately from the RO names because the evidence is different and a
+# relapse message that cited the wrong incident would send the next reader to the wrong file.
+_MUST_NOT_BE_LITERALS_SWITCHING = (
+    "company/crm/market_conditions.py::MARKET_SWITCHING_RATE_PCT_BY_YEAR",
+    "company/crm/market_conditions.py::MARKET_SWITCHING_MULTIPLIER_BY_YEAR",
+)
+
+
+
+
+# The GB Capacity Market auction results, same repair one publication along (2026-09-07). Held
+# separately from the two above for the same reason they are held separately from each other: a
+# relapse message citing the wrong incident sends the next reader to the wrong file.
+_MUST_NOT_BE_LITERALS_CM = (
+    "company/market/capacity_market.py::_CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR",
+    "company/market/ic_flexibility_revenue.py::_CM_DELIVERY_GBP_PER_KW_YR",
+)
+
+
+
+
+# The Ofgem Annex 9 supplier levy, the SIM half of the pair a51/a53 opened (2026-09-07). Held
+# separately from `_MUST_NOT_BE_LITERALS_CM` above even though both say "capacity market": that
+# tuple is the auction CLEARING PRICE, which is what a capacity PROVIDER is paid, and this one is
+# the LEVY ON DEMAND, which is what a supplier pays. Conflating them is the exact error the levy
+# artefact exists to prevent, and a relapse message that named the wrong one would teach it.
+_MUST_NOT_BE_LITERALS_SUPPLIER_LEVY = (
+    "simulation/policy_costs.py::_CM_LEVY_BY_YEAR",
+)
+
+CM_LEVY_COMMONS = COMMONS_DIR / "capacity_market_supplier_levy.json"
+
+
+
+
+
+
+
+
+def test_the_ro_readers_agree_with_the_commons():
+    """The company's two RO readers serve the published series, not a restatement of it."""
+    from company.regulatory import renewable_obligation, roc_ledger
+
+    levels = {
+        int(e["obligation_year"]): e["roc_per_mwh"]
+        for e in _load_commons(RO_COMMONS, "obligation_levels")
+    }
+    prices = {
+        int(e["obligation_year"]): e["gbp_per_roc"]
+        for e in _load_commons(RO_COMMONS, "buy_out_prices")
+    }
+    assert roc_ledger._ROC_OBLIGATION_LEVEL == levels
+    assert roc_ledger._ROC_BUY_OUT_PRICE_GBP == prices
+    assert renewable_obligation._OBLIGATION_LEVEL_ROC_PER_MWH == levels
+    assert renewable_obligation._BUYOUT_PRICE_GBP_PER_ROC == prices
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# (f) MUTATION — R15: every leg above is proven to FIRE on its own named defect
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

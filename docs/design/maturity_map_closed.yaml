@@ -523,7 +523,7 @@
   block_reason: null   # 2026-07-29: BUILT (f2fe0bde1), L1 SELF-CERTIFIED in the ledger (LEVEL_UP_SELF_CERTIFIED, channel=self). The prior block_reason (preserved in the simplifications note) cited the abolished R16 level gate; per ruling item 2 recording -- not permission -- validates the move.
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: ["company/crm/change_of_tenancy_register.py", "company/billing/account_closure.py", "simulation/final_bill_outcome.py", "simulation/arrears_engine.py", "saas/home_move_win_rate.py"]
+  file_scope: ["company/crm/change_of_tenancy_register.py", "archive/unhooked_supplier/company/billing/account_closure.py", "simulation/final_bill_outcome.py", "simulation/arrears_engine.py", "saas/home_move_win_rate.py"]
   simplifications_count: 5
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's home-move flow: a move-out final bill that may never be paid, two accounts landing on deemed rates, a void property, and the single best moment to win a high-value low-churn customer"
@@ -4476,7 +4476,7 @@
   blocked_on: null
   depends_on: []
   couples_with: [C29_decisions_stop_being_lookup_tables, C32_one_obligation_one_vulnerability_scorer]
-  file_scope: ['company/billing/arrears_engine.py', 'company/billing/breathing_space_register.py', 'archive/unhooked_supplier/company/billing/capacity_to_pay.py', 'company/crm/customer_retention.py', 'company/crm/portfolio_churn_risk.py', 'tests/company/']
+  file_scope: ['company/billing/arrears_engine.py', 'company/billing/breathing_space_register.py', 'archive/unhooked_supplier/company/billing/capacity_to_pay.py', 'archive/unhooked_supplier/company/crm/customer_retention.py', 'archive/unhooked_supplier/company/crm/portfolio_churn_risk.py', 'tests/company/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a collections desk that sends a final notice to a customer whose debt adviser filed a Breathing Space moratorium three weeks ago, because the moratorium register and the dunning calendar are different systems that have never been introduced -- and a retention desk reporting the value of saves it was never at risk of losing"
 

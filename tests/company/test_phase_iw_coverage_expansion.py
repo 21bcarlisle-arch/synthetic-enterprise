@@ -2,7 +2,6 @@
 
 import datetime as dt
 import unittest
-from company.market.dsr_book import DSRBook, DispatchResult
 from company.regulatory.licence_health import (
     build_licence_health_report, LicenceCheckStatus, LicenceCheck,
 )
@@ -11,76 +10,6 @@ TS = dt.datetime(2024, 3, 15, 10, 0, 0)
 TS_END = dt.datetime(2024, 3, 15, 12, 0, 0)
 
 
-class TestDSRBook(unittest.TestCase):
-    def test_enroll_creates_active_participant(self):
-        book = DSRBook()
-        p = book.enroll("C1", "MPAN1", contracted_mw=2.0,
-                        enrolled_date=dt.date(2024, 1, 1), payment_per_mwh_gbp=50.0)
-        self.assertEqual(p.customer_id, "C1")
-        self.assertAlmostEqual(p.contracted_mw, 2.0)
-
-    def test_dispatch_delivered_result(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1))
-        ev = book.dispatch("C1", requested_mw=2.0, dispatch_start=TS,
-                           dispatch_end=TS_END, delivered_mw=2.0)
-        self.assertEqual(ev.result, DispatchResult.DELIVERED)
-        self.assertEqual(ev.event_id, "DSR-0001")
-
-    def test_dispatch_partial_result(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1))
-        ev = book.dispatch("C1", 2.0, TS, TS_END, delivered_mw=0.5)
-        self.assertEqual(ev.result, DispatchResult.PARTIAL)
-
-    def test_dispatch_payment_gbp(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1), payment_per_mwh_gbp=50.0)
-        ev = book.dispatch("C1", 2.0, TS, TS_END, delivered_mw=2.0)
-        expected_mwh = 2.0 * 2.0
-        expected_payment = round(expected_mwh * 50.0, 2)
-        self.assertAlmostEqual(ev.payment_gbp, expected_payment, places=2)
-
-    def test_dispatch_raises_for_inactive(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1))
-        p = book._participants["C1"]
-        from dataclasses import replace
-        book._participants["C1"] = replace(p, status="suspended")
-        with self.assertRaises((ValueError, AttributeError)):
-            book.dispatch("C1", 2.0, TS, TS_END, 2.0)
-
-    def test_dispatch_event_duration_hours(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1))
-        ev = book.dispatch("C1", 2.0, TS, TS_END, delivered_mw=2.0)
-        self.assertAlmostEqual(ev.duration_hours, 2.0, places=2)
-
-    def test_dispatch_event_delivered_mwh(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1))
-        ev = book.dispatch("C1", 2.0, TS, TS_END, delivered_mw=3.0)
-        self.assertAlmostEqual(ev.delivered_mwh, 3.0 * 2.0, places=2)
-
-    def test_delivery_rate(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1))
-        ev = book.dispatch("C1", 2.0, TS, TS_END, delivered_mw=1.5)
-        self.assertAlmostEqual(ev.delivery_rate, 75.0, places=1)
-
-    def test_total_contracted_mw(self):
-        book = DSRBook()
-        book.enroll("A", "M1", 3.0, dt.date(2024, 1, 1))
-        book.enroll("B", "M2", 2.0, dt.date(2024, 1, 1))
-        self.assertAlmostEqual(book.total_contracted_mw(), 5.0, places=2)
-
-    def test_annual_summary_structure(self):
-        book = DSRBook()
-        book.enroll("C1", "MPAN1", 2.0, dt.date(2024, 1, 1))
-        book.dispatch("C1", 2.0, TS, TS_END, delivered_mw=2.0)
-        s = book.annual_summary(2024)
-        self.assertEqual(s["dispatch_events"], 1)
-        self.assertIn("total_payments_gbp", s)
 
 
 class TestLicenceHealth(unittest.TestCase):

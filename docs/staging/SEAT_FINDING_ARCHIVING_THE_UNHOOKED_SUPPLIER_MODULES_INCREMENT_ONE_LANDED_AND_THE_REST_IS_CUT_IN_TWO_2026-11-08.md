@@ -172,3 +172,84 @@ orphan, so they cannot be cut by section. Re-derive the census at draw time. The
 3a split, an AST splitter with the three checks above, is worth adapting. It will not cover the
 cases where one test function exercises both an orphan and live code. Those need a decision for
 each function.
+
+## Increment 3b (built 8 Nov): 52 modules, 68 whole tests, and the archived legs of 25 shared files
+
+The census was re-derived at draw time: the 53 orphans in the register, and every test file that
+names one by an import or a quoted dotted name. It found 133 files.
+
+- **Held, with the reason for each.** Eight orphans stay, and `--dispositions` now reads 8
+  orphans with 8 ruled.
+  - `uig_allocation_register`: EP10's store.
+  - C32's `ppm_warrant_register` and `consumer_vulnerability_register`.
+  - `carbon_ledger`: E5 is an open atom, blocked on a values call that is the director's. This
+    module is its only build, and E5's `file_scope` names its test.
+  - The C2 trio (`home_registry`, `onboarding_journey` and `decarb_recommender`):
+    `THE_MODEL_ON_A_PAGE.md` says decarb_recommender "exists and is discovery-wired".
+    Archiving it makes that sentence false on a director document, so it needs a marked
+    correction first.
+  - `company.portal.app`: 34 test files, 21 of them shared with live billing and crm code. It
+    is a package with templates, and `tools.company_network_isolation.KNOWN_ROUTES` names it.
+    It is the next increment, on its own.
+- **The cascade.** Archiving the 45 made seven live modules orphans, because the 45 were their
+  only importers: `eac_drift_assessor`, `household_profile`, `portfolio_churn_risk`,
+  `tou_migration_scenario`, `seg_book`, `ev_cross_subsidy` and `tou_tariff_assessor`. Each was
+  already in `orphan_baseline` (no run reached them), and each was held only by its own test.
+  They moved too. The fixed point is 52.
+- **The split.** It works per unit. A top-level test, a Test class, or one method of a class
+  moves when it reaches the set. It can reach the set by an imported name, an attribute chain,
+  an inner import or a quoted name, directly or through a file-level helper, fixture or
+  constant. 68 files moved whole and 25 split (235 functions archived, 494 kept). Function
+  counts are conserved on every file. `test_dd_mandate_register.py` moved whole, by hand: the one
+  test the tool kept is a guard that the module stays caller-free, which means nothing once the
+  module is archived.
+- **Two checks on the split.**
+  - No live module loses its last referring test file. This was checked against HEAD's census
+    of every test file: none drops to zero, and the largest drop is 2 files.
+  - Each file's own I001 and E402 counts did not rise.
+- **One defect in the tool, caught before it landed.** Sixteen 3a coverage files already had
+  their archived legs at the archive path. The first write overwrote those legs. The repaired
+  files append the 3b legs under a marked divider, so the diff on those 16 is insertions only.
+- **Controls edited by hand, each one cut to its live part:**
+  - The wall-clock ratchet drops `account_closure` and `consumer_duty_board_report`. Leg 1
+    (gsop_tracker) is archived, and the docstring says so.
+  - The switching-rate commons drops market_report's 1 lane reading, 1 callable reading and 7
+    classified names. The band mutation is re-homed onto `company.crm.market_conditions`, so
+    the containment leg still has a mutation that fires.
+  - The year-keyed census drops market_report's four tables, the `seg_book` row, and the
+    relapse guards on two archived files. `_MAX_PUBLISHED_UNPINNED` goes from 23 to 20. The RO
+    reader check keeps its live half, `roc_ledger`.
+  - The one-calendar deadline test drops the 13 archived modules from its binding lists. The
+    behaviour leg on `gsop` stays.
+  - `test_blind_review` judges `direct_debit` instead of `dd_mandate_register`.
+  - `test_carbon_not_a_target` stops naming `portfolio_repricing`.
+  - `test_closed_atom_delivery` reads W2_12's `account_closure` at its archive path.
+- **hedging_schedule took the first route.** `_STALE_CITATION` now has an entry that names the
+  ruling commit `4e3a978bf5`, and points at the MANIFEST row and the `git log` that names the
+  moving commit. The cited lines are unchanged at the archive path.
+- **file_scope re-pointed** on closed rows W2_12 (`account_closure`) and C33
+  (`customer_retention` and `portfolio_churn_risk`).
+- **The suite.** Full collection is 33,246 tests with no errors, against 34,907 on a clean
+  `origin/main` (77a090802d). Two more store-register entries were needed on the way:
+  `test_credit_balance_control.py` is named in W2_16's cross-worker note, which credits nothing,
+  so it is declared in `_DECLARED_HONEST_ABSENCE`; and the callable-readings floor in the
+  switching commons is now keyed to the register's size instead of a fixed `>= 30`.
+  `test_switching_rate_commons::test_every_discovered_switching_level_candidate_is_registered_or_classified`,
+  which is red on the clean base, is green here.
+- **A scan that walked the archive.** `tools/closed_atom_delivery` counted any non-`tests/` file
+  as a reacher, so archived test legs made `change_of_tenancy_register` read as "imported". The
+  scan now skips `archive/`. The W2_12 prior-art test is the proof: it is red without the
+  exclusion. `test_carbon_not_a_target` also named `supplier_fitness_register`, which 3a
+  archived; that test was red on the clean base and is fixed here. **Any other whole-tree scan
+  that does not exclude `archive/` can be wrong the same way.** The pre-commit gate's selection
+  covers only part of the suite.
+- **Expected, not a defect:** the value-arms page compares a run's commit with HEAD over
+  `company/`. A run made before this commit sees 52 deleted paths with no exemption, so it
+  withdraws its claim to describe the current code until the next run. Increments 1 to 3a did
+  the same.
+
+## What is left
+
+The portal (one increment), then the C2 trio after a marked correction to
+`THE_MODEL_ON_A_PAGE.md`. Then `carbon_ledger`, whenever E5 is decided. The weekly caller for
+`--dispositions` is still owed (point 3 of Done means).

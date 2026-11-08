@@ -35,10 +35,8 @@ from company.carbon.half_hourly_footprint import (
 )
 from company.regulatory.carbon_emissions import (
     DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV,
-    GAS_EMISSION_FACTOR_G_CO2E_PER_KWH,
     grid_intensity_g_co2e_per_kwh,
 )
-from company.sustainability.environmental_impact import EnvironmentalImpactRegister
 
 REPO = Path(__file__).resolve().parents[3]
 
@@ -214,29 +212,6 @@ def _numeric_literals(path: Path) -> list[float]:
             if isinstance(node, ast.Constant) and isinstance(node.value, float)]
 
 
-def test_exactly_one_gas_factor_is_used_and_it_is_the_co2e_one():
-    """MUTATION (must fire): put DESNZ's CO2-only 0.18253 back -- in the owner's 2023 entry, or as
-    `_GAS_EMISSION_FACTOR` in company/sustainability/environmental_impact.py."""
-    assert DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV[2023] == DESNZ_2023_CO2E, (
-        "the owner's 2023 gas factor is not DESNZ's CO2e figure")
-    assert gas_leg(2023, 1_000, 12).co2e_kg == pytest.approx(1_000 * DESNZ_2023_CO2E)
-
-    # The year-less published figure is DERIVED from the same table, not a second number.
-    latest = DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV[max(DESNZ_NATURAL_GAS_KG_CO2E_PER_KWH_GROSS_CV)]
-    assert GAS_EMISSION_FACTOR_G_CO2E_PER_KWH == round(1000 * latest)
-
-    # The SECR register's gas default is that one figure.
-    record = EnvironmentalImpactRegister().record_gas_scope3(2023, 1_000)
-    assert record.emission_factor_kgco2e_per_kwh == pytest.approx(GAS_EMISSION_FACTOR_G_CO2E_PER_KWH / 1000)
-
-    # And the CO2-only value is not a number anywhere in the company's code (comments may name it).
-    offenders = [
-        str(p.relative_to(REPO))
-        for package in ("company", "saas")
-        for p in sorted((REPO / package).rglob("*.py"))
-        if DESNZ_2023_CO2_ONLY in _numeric_literals(p)
-    ]
-    assert not offenders, f"DESNZ's CO2-only gas factor is a live number in: {offenders}"
 
 
 def test_grid_losses_are_a_named_line_at_the_published_factor_and_never_in_the_total():

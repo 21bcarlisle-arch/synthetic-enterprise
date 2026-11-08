@@ -287,6 +287,16 @@ _STALE_CITATION: dict[str, str] = {
         "SITE1_expert_doors' 2026-07-16 entry describes the guard it built and R15-mutated; the "
         "guard is still there under the shorter name."
     ),
+    # ---- 2026-11-08: a file retired by the archive, not renamed. -------------------------------
+    "tests/company/market/test_hedging_schedule.py": (
+        "2026-11-08. B4_traded_product_ladder's 2026-07-29 DISCOVER entry cites this file's lines "
+        "18-19 as EVIDENCE that HedgingSchedule takes a hand-fed price, not as a falsifier. The "
+        "module reached no run and left with its test for archive/unhooked_supplier/ under the "
+        "ruling landed at 4e3a978bf5 (section 4), in archive increment 3b; archive/MANIFEST.txt "
+        "carries the row and `git log -- archive/unhooked_supplier/tests/company/market/"
+        "test_hedging_schedule.py` names the commit that moved it. The cited lines are unchanged "
+        "there, so the evidence still reads."
+    ),
 }
 
 # THE ENUMERATION. Every mention the lexicon silences whose FILE the index does not carry, with
@@ -330,6 +340,13 @@ _DECLARED_HONEST_ABSENCE: dict[str, str] = {
         "what design work IS. Checked against the map, not read off the prose. Delete this entry "
         "when the control lands; a declaration that a landed file is absent describes nothing and "
         "would silence a real future over-claim on this path."
+    ),
+    "W2_16_payment_outcome_rng_substream_isolation::tests/company/billing/test_credit_balance_control.py": (
+        "2026-11-08. A CROSS-WORKER IMPACT note, 'flagged not swallowed': the test asserted C7 "
+        "holds a multi-year credit, and the note warns that premise dies at the next ledger "
+        "regeneration. It credits nothing to W2_16. The module reached no run and left with this "
+        "test for archive/unhooked_supplier/ in archive increment 3b, so the path is absent "
+        "because it was archived, not because a build was claimed."
     ),
 }
 

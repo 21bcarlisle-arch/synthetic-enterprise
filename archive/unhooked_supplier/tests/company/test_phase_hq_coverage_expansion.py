@@ -231,3 +231,176 @@ class TestPortalAnalyticsExpanded:
         to_ = base + dt.timedelta(hours=5)
         logins = pa.events_in_period(from_, to_, action=PortalAction.LOGIN)
         assert len(logins) == 1
+
+
+# ==== archive increment 3b: the legs that stayed live in 3a, archived now (the live file is still at its path) ====
+
+# ARCHIVED LEGS of tests/company/test_phase_hq_coverage_expansion.py (archive increment 3b). The tests here reach a module
+# under archive/unhooked_supplier/; the live legs stay at tests/company/test_phase_hq_coverage_expansion.py.
+"""Phase HQ: Coverage expansion for 8 thin-test company modules."""
+import datetime as dt
+import pytest
+
+# ===== switch_governance =====
+from company.market.switch_governance import (
+    COOLING_OFF_DAYS, OBJECTION_WINDOW_DAYS,
+    ObjectionReason, ObjectionOutcome, ErroneousTransferStatus,
+    CoolingOffCancellation, SwitchGovernanceBook,
+)
+
+class TestSwitchGovernanceExpanded:
+    def test_cooling_off_boundary_exact(self):
+        c = CoolingOffCancellation("C1","M1", dt.date(2022,1,1), dt.date(2022,1,1)+dt.timedelta(COOLING_OFF_DAYS))
+        assert c.within_cooling_off
+
+    def test_cancellations_in_cooling_off_count(self):
+        book = SwitchGovernanceBook()
+        book.record_cancellation("C1","M1", dt.date(2022,1,1), dt.date(2022,1,5))
+        book.record_cancellation("C2","M2", dt.date(2022,1,1), dt.date(2022,2,5))
+        assert book.cancellations_in_cooling_off() == 1
+
+    def test_objection_id_format(self):
+        book = SwitchGovernanceBook()
+        obj = book.raise_objection("M1","S1",dt.date(2022,1,1),dt.date(2022,1,5),ObjectionReason.DEBT)
+        assert obj.objection_id.startswith("OBJ-")
+
+    def test_objection_sequential_ids(self):
+        book = SwitchGovernanceBook()
+        o1 = book.raise_objection("M1","S1",dt.date(2022,1,1),dt.date(2022,1,5),ObjectionReason.DEBT)
+        o2 = book.raise_objection("M2","S1",dt.date(2022,1,1),dt.date(2022,1,5),ObjectionReason.DEBT)
+        assert o1.objection_id != o2.objection_id
+
+    def test_objection_withdrawn(self):
+        book = SwitchGovernanceBook()
+        obj = book.raise_objection("M1","S1",dt.date(2022,1,1),dt.date(2022,1,5),ObjectionReason.DEBT)
+        book.resolve_objection(obj.objection_id, ObjectionOutcome.WITHDRAWN, dt.date(2022,1,20))
+        assert obj.outcome == ObjectionOutcome.WITHDRAWN
+        assert len(book.open_objections()) == 0
+
+    def test_et_id_format(self):
+        book = SwitchGovernanceBook()
+        et = book.report_et("M1","L","G",dt.date(2022,1,1),dt.date(2022,1,7))
+        assert et.et_id.startswith("ET-")
+
+    def test_et_closed_no_action_resolves(self):
+        book = SwitchGovernanceBook()
+        et = book.report_et("M1","L","G",dt.date(2022,1,1),dt.date(2022,1,7))
+        book.resolve_et(et.et_id, ErroneousTransferStatus.CLOSED_NO_ACTION, dt.date(2022,1,30))
+        assert et.is_resolved
+
+    def test_annual_summary_empty_year(self):
+        book = SwitchGovernanceBook()
+        s = book.annual_summary(1999)
+        assert s["cooling_off_cancellations"] == 0
+        assert s["erroneous_transfers"] == 0
+
+    def test_annual_summary_ets_resolved_count(self):
+        book = SwitchGovernanceBook()
+        et = book.report_et("M1","L","G",dt.date(2022,5,1),dt.date(2022,5,5))
+        book.resolve_et(et.et_id, ErroneousTransferStatus.CUSTOMER_RETURNED, dt.date(2022,5,20))
+        s = book.annual_summary(2022)
+        assert s["ets_resolved"] == 1
+
+    def test_open_objections_cleared_after_resolve(self):
+        book = SwitchGovernanceBook()
+        obj = book.raise_objection("M1","S1",dt.date(2022,1,1),dt.date(2022,1,5),ObjectionReason.IDENTITY_MISMATCH)
+        book.resolve_objection(obj.objection_id, ObjectionOutcome.REJECTED, dt.date(2022,1,15))
+        assert book.open_objections() == []
+
+
+# ===== dsr_book =====
+from company.market.dsr_book import (
+    DSRStatus, DispatchResult, DSRParticipant, DispatchEvent, DSRBook
+)
+
+class TestDSRBookExpanded:
+    def _book_with_customer(self):
+        book = DSRBook()
+        book.enroll("C1","M1", contracted_mw=2.0, enrolled_date=dt.date(2022,1,1), payment_per_mwh_gbp=50.0)
+        return book
+
+    def _dispatch(self, book, delivered_mw=1.8, hours=2):
+        start = dt.datetime(2022,6,1,10,0)
+        end = start + dt.timedelta(hours=hours)
+        return book.dispatch("C1", requested_mw=2.0, dispatch_start=start, dispatch_end=end, delivered_mw=delivered_mw)
+
+    def test_participant_starts_active(self):
+        book = self._book_with_customer()
+        p = book._participants["C1"]
+        assert p.status == DSRStatus.ACTIVE
+
+    def test_dispatch_full_delivery(self):
+        book = self._book_with_customer()
+        ev = self._dispatch(book, delivered_mw=2.0)
+        assert ev.result == DispatchResult.DELIVERED
+
+    def test_dispatch_partial_delivery(self):
+        book = self._book_with_customer()
+        ev = self._dispatch(book, delivered_mw=1.0)
+        assert ev.result == DispatchResult.PARTIAL
+
+    def test_dispatch_non_delivery(self):
+        book = self._book_with_customer()
+        ev = self._dispatch(book, delivered_mw=0.0)
+        assert ev.result == DispatchResult.NON_DELIVERY
+
+    def test_payment_calculated_correctly(self):
+        book = self._book_with_customer()
+        ev = self._dispatch(book, delivered_mw=2.0, hours=2)
+        assert ev.payment_gbp == pytest.approx(200.0)
+
+    def test_event_id_format(self):
+        book = self._book_with_customer()
+        ev = self._dispatch(book)
+        assert ev.event_id.startswith("DSR-")
+
+    def test_total_contracted_mw(self):
+        book = DSRBook()
+        book.enroll("C1","M1",2.0,dt.date(2022,1,1))
+        book.enroll("C2","M2",3.0,dt.date(2022,1,1))
+        assert book.total_contracted_mw() == pytest.approx(5.0)
+
+    def test_delivery_rate_year_none_when_no_events(self):
+        book = self._book_with_customer()
+        assert book.delivery_rate_year(2020) is None
+
+    def test_total_payments_gbp_by_year(self):
+        book = self._book_with_customer()
+        self._dispatch(book, delivered_mw=2.0, hours=1)
+        assert book.total_payments_gbp(2022) == pytest.approx(100.0)
+        assert book.total_payments_gbp(2021) == 0.0
+
+    def test_duration_hours_and_mwh(self):
+        start = dt.datetime(2022,1,1,10,0)
+        end = dt.datetime(2022,1,1,12,30)
+        ev = DispatchEvent("E1","C1",2.0,2.0,start,end,DispatchResult.DELIVERED,100.0)
+        assert ev.duration_hours == pytest.approx(2.5)
+        assert ev.delivered_mwh == pytest.approx(5.0)
+
+
+# ===== licence_health =====
+from company.regulatory.licence_health import (
+    LicenceCheckStatus, LicenceCheck, LicenceHealthReport,
+    build_licence_health_report
+)
+
+def _healthy_report():
+    return build_licence_health_report(
+        as_of=dt.date(2022,3,31), active_customer_count=500,
+        net_assets_gbp=500_000, treasury_gbp=500_000,
+        weeks_cash_runway=20, bad_debt_ratio_pct=1.0,
+        complaints_per_100=0.5,
+    )
+
+
+
+# ===== meter_read_validation =====
+from company.billing.meter_read_validation import (
+    ReadSource, ValidationResult, ValidationFlag, MeterReadValidation
+)
+
+def _mrv(read=10000, prev=9630, read_dt=None, prev_dt=None, expected_kwh=10.0):
+    if read_dt is None: read_dt = dt.date(2022,6,1)
+    if prev_dt is None: prev_dt = dt.date(2022,5,1)
+    return MeterReadValidation(read_dt, read, prev, prev_dt, expected_kwh, ReadSource.CUSTOMER)
+
