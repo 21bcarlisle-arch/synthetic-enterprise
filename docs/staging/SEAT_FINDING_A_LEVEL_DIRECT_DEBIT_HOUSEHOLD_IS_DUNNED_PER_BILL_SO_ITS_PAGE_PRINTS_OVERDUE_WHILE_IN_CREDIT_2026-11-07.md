@@ -187,5 +187,9 @@ script `/var/tmp/l2a/measure.py`).**
 - **N20 Leg A and the page rows are not graded by this step.** They need a book built at this commit. The 91 moved
   legs change the level schedule that the page and the books read, so the next book carries this change.
 
-**Next, Step 2b:** phase 2b asks the balance book for each level leg's collection, the causal amount, and the outcome
+**Step 2a is landed** as ee0982734c (8 Nov). A second draw of the same step that day, as
+`a-dd-step-up-counts-a-catch-up-only-from-the-day-it-is-billed`, found it already on origin and changed nothing. Its
+"367 of 367 on the 40-household sample" is met by the row above: 0 of 31,379 months differ over all 538 legs.
+
+**Next, Step 2b** (continuation `level-dd-step-2b-phase-2b-collects-the-causal-level-amount`): phase 2b asks the balance book for each level leg's collection, the causal amount, and the outcome
 draw goes on that collection.
