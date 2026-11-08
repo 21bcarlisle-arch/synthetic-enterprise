@@ -35,3 +35,33 @@ It does not touch N20's share leg, which reads collections against bills.
 - This is the open level-DD item's territory (`fix-level-dd-households-dunned-per-bill`). That item should take it, or say why not.
 
 **Reverse.** Delete this file.
+
+## Done (seat, 8 Nov 2026)
+
+Taken here with N22, as the drawn direction asked, not by `fix-level-dd-households-dunned-per-bill`.
+Both concern the date a collection lands, and the level schedule is where both are dated.
+
+**Knowledge (K8).** `docs/market_research/payments_and_direct_debit_2026-10-25.md`, "The day a
+collection lands": the first collection may not precede supply start.
+- The rule rests on Octopus's published practice, quoted word for word, and on logic. No licence
+  clause was found that forbids it in terms (GAP 3).
+
+**Evaluator.** `INV_FIRST_LEVEL_DD_IS_NOT_COLLECTED_BEFORE_SUPPLY_START` is now `checkable: true`
+(`tools/domain_invariant_runner.ev_first_dd_not_before_supply`). It grades an account whose first
+payment is a DD, against its first period's start.
+- **Red on af31e73fa7:** 336 accounts with a first DD before supply. 268 breach (more than 3 days
+  early) and 68 flag (1-3 days early). That is the cold read's count exactly.
+
+**Fix.** `level_collection_dates` (`simulation/dd_level_collection_book.py`): a payment day before the
+leg's supply start is scheduled on the supply start date (`supply_starts`, its earliest bill's
+`period_start`), then rolled by `collected_on`.
+- The amount and the month it pays for are unchanged, so N20's share leg cannot move.
+- 415 level collections were held to supply start.
+
+**Replay on af31e73fa7:** 268 breaches -> **0**, 68 early flags -> **0**.
+
+**Residual, named.**
+- 192 accounts flag on the far side, a first DD more than 45 days after supply. 191 of them were
+  there before this change.
+- That edge is the row's own stated belief (GAP 4), and why those first collections come late is
+  not yet asked. It is a flag, not a breach.

@@ -64,6 +64,7 @@ from simulation.arrears_engine import (
     PAYMENT_TERMS_DAYS,
     _tone_for_bill,
     bill_due_date,
+    paid_on,
 )
 from simulation.arrears_engine import (
     arrears_stages as _arrears_stages,
@@ -897,7 +898,7 @@ def generate(run_json_path=None, out_path=None):
             inv["billed_to"] = deemed_payer
             inv["deemed_debt_gbp"] = round(printed_total - (whole_credit or 0.0), 2)
         elif not is_credit:
-            payment_date = due_date + timedelta(days=days_late)
+            payment_date = paid_on(due_date, days_late, method)
             # A bill only partly inside the window or the void: the engine asks the named payer for
             # its own share alone (`_resolve_bills`), and the rest is the deemed account's. This
             # used to collect the full printed total, so the payer paid the occupier's days, or a

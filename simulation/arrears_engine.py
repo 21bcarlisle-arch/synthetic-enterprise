@@ -100,6 +100,7 @@ from company.interfaces.collections_communication import (
     ledger_notices,
     ledger_write_off_fallback,
 )
+from simulation.bacs_processing_day import collected_on
 from simulation.meter_reads import assumption_toggle
 from simulation.rng_substream import substream
 from simulation.segment_vocabulary import (
@@ -140,6 +141,16 @@ def bill_due_date(customer_id: str, period_end: str) -> date:
     return (date.fromisoformat(period_end[:10])
             + timedelta(days=bill_generation_delay_days(customer_id, period_end[:10])
                         + PAYMENT_TERMS_DAYS))
+
+
+def paid_on(due_date: date, days_late: int, method: str | None) -> date:
+    """The day a bill's payment moves: `days_late` after it falls due, and for a direct debit the
+    first Bacs processing day on or after that (`bacs_processing_day.collected_on`). A bill can fall
+    due on a Sunday; a DD cannot be collected on one. The engine's walk and the page ledger both
+    date a payment here. On the af31e73fa7 ledger 2,484 bill-sized DD collections were dated on a
+    weekend or bank holiday (N22)."""
+    on = due_date + timedelta(days=days_late)
+    return collected_on(on) if method == "direct_debit" else on
 
 
 #: This subsystem's own RNG namespace (C-S2). Baked into every derived seed so
@@ -1108,7 +1119,6 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     out: dict[tuple[str, str, str], dict] = {}
     credited: dict[tuple[str, str, str], list[dict]] = {}
     for cid, rows in by_cid.items():
-        horizon = max(r["due_date"] for r in rows)
         leaver = cid in churned_ids
         # Contributions sort before credits and payments on the same day: a bill cannot acknowledge
         # itself, and a same-day credit meets the bill it arrives beside.
@@ -1119,13 +1129,19 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             elif r["outcome"] == "credit":
                 events.append((r["due_date"], 1, r))
             elif r["outcome"] == "success":
-                events.append((r["due_date"] + timedelta(days=r["days_late"]), 2, r))
+                events.append((paid_on(r["due_date"], r["days_late"], r.get("method")), 2, r))
             elif r["outcome"] == "repayment":
                 # One payment truth (`world_payment_truth.py`): the household repays arrears. It
                 # discharges the oldest outstanding bill on its fuel first and, as a payment by
                 # the debtor, restarts the limitation clock.
                 events.append((r["due_date"], 2, r))
         events.sort(key=lambda e: (e[0], e[1]))
+        horizon = max(r["due_date"] for r in rows)
+        # The walk runs to its last event, not its last due date: a DD due on a Sunday is collected
+        # on the Monday (`paid_on`), and stopping at the due date dropped it (PROS-2020-0126g, due
+        # Sun 22 Jun 2025). Only a DD's roll extends it: what else falls after the last due date is
+        # left out as before. `horizon` stays the last due date for the bar and the closing below.
+        last_event = max([horizon] + [e[0] for e in events if e[2].get("method") == DD_METHOD])
 
         outstanding: list[dict] = []  # oldest first; each {"row", "remaining"}
         asked: dict[tuple[str, str], float] = {}  # (commodity, bill month) -> what it asked
@@ -1180,7 +1196,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     _write_off(item, barred_at, LEG_STATUTE_BAR)
 
         for when, kind, r in events:
-            if when > horizon:
+            if when > last_event:
                 break
             _bar(when)
             if kind == 0:
@@ -1268,7 +1284,9 @@ def open_on_contract_gbp(rows: list[dict], through: date) -> float:
     The world's triad sizes a household's later settlement with it, so the cash the household sends
     and the engine's price of that settlement are one walk, not two that can drift."""
     def _on(r: dict) -> date:
-        return r["due_date"] + timedelta(days=r["days_late"] if r["outcome"] == "success" else 0)
+        if r["outcome"] == "success":
+            return paid_on(r["due_date"], r["days_late"], r.get("method"))
+        return r["due_date"]
     upto = [r for r in rows if _on(r) <= through]
     if not upto:
         return 0.0

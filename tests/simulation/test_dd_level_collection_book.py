@@ -11,7 +11,10 @@ itself flips False on a hand-built varying schedule.
 """
 from __future__ import annotations
 
+from datetime import date
+
 from company.interfaces.dd_review_outcome import reviewed_monthly_amount
+from simulation.bacs_processing_day import collected_on
 from simulation.dd_balance_book import build_dd_balance_book
 from simulation.dd_level_collection_book import (
     _SAMPLE_SCHEDULE_CUSTOMERS,
@@ -161,9 +164,11 @@ def test_collection_lands_on_staggered_payment_day():
     assert 1 <= day <= 28
     for c in book.schedules[_DD_ID]:
         assert c.payment_day == day
-        assert int(c.collection_date[8:10]) == day
+        # Scheduled on the payment day, collected on the first Bacs processing day from it (N22).
+        assert int(c.scheduled_date[8:10]) == day
+        assert c.collection_date == collected_on(date.fromisoformat(c.scheduled_date)).isoformat()
         # A valid, in-every-month date (<=28), one per billed month.
-        assert c.collection_date[:7] in {f"2016-{m:02d}" for m in range(1, 13)}
+        assert c.month in {f"2016-{m:02d}" for m in range(1, 13)}
 
 
 # ---- population gate (inherited from DD2) ------------------------------------

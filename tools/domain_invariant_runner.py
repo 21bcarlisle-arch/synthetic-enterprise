@@ -800,6 +800,61 @@ def ev_dd_step_change(inv, book):
     return tally
 
 
+#: The published England and Wales calendar, read here from the commons and not through the world's
+#: or the company's reading of it (`simulation.bacs_processing_day`, `company.compliance.working_days`).
+BANK_HOLIDAYS_PATH = (PROJECT / "docs" / "domain_artefact_library" / "regulatory"
+                      / "england_and_wales_bank_holidays.json")
+
+
+def _bank_holiday_dates() -> frozenset:
+    return frozenset(_d(h["date"]) for h in json.loads(BANK_HOLIDAYS_PATH.read_text())["holidays"])
+
+
+def _non_processing_kind(d: date, bank_holiday_dates: frozenset) -> str | None:
+    """None on a Bacs processing day; else what kind of non-processing day it is."""
+    if d.weekday() == 5:
+        return "saturday"
+    if d.weekday() == 6:
+        return "sunday"
+    return "bank_holiday" if d in bank_holiday_dates else None
+
+
+def ev_dd_on_a_processing_day(inv, book):
+    """Every DD received is dated on a Bacs processing day (Mon-Fri, not an E&W bank holiday)."""
+    holidays = _bank_holiday_dates()
+    tally = Tally("direct debit collection")
+    for a in book:
+        for p in a.payments:
+            if p.get("payment_method") != DIRECT_DEBIT:
+                continue
+            tally.checked += 1
+            kind = _non_processing_kind(_d(p["payment_date"]), holidays)
+            if kind:
+                tally.hit("breach", "{} {}".format(a.cid, p["payment_date"]), kind, "processing day",
+                          kind)
+    return tally
+
+
+def ev_first_dd_not_before_supply(inv, book):
+    """An account whose first payment is a DD (a mandate from the start) takes it no earlier than its
+    supply start, the first period's start. More than 3 days before is a breach, 1-3 days a flag, and
+    more than `upper` days after a flag, as the file says."""
+    tally = Tally("account paying by direct debit from its first payment")
+    upper = _num(inv.get("upper"))
+    for a in book:
+        if not a.payments or a.start is None or a.payments[0].get("payment_method") != DIRECT_DEBIT:
+            continue
+        delta = (_d(a.payments[0]["payment_date"]) - a.start).days
+        tally.checked += 1
+        where = "{} first DD {} supply {}".format(a.cid, a.payments[0]["payment_date"], a.start)
+        if delta < -3:
+            tally.hit("breach", where, delta, 0, "before supply")
+        elif delta < 0:
+            tally.hit("flag", where, delta, 0, "1-3 days before supply")
+        elif upper is not None and delta > upper:
+            tally.hit("flag", where, delta, upper, "late first collection")
+    return tally
+
 def ev_fuel_identifier(inv, book):
     tally = Tally("bill period")
     for a in book:
@@ -2980,6 +3035,8 @@ EVALUATORS = {
     "INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD": (ev_elec_monthly_use_moves, None),
     "INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM": (ev_page_tariff_label, "printed_invoices"),
     "INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED": (ev_page_missed_bill_unsettled, "payment_tallies"),
+    "INV_DD_COLLECTION_IS_DATED_ON_A_BACS_PROCESSING_DAY": (ev_dd_on_a_processing_day, None),
+    "INV_FIRST_LEVEL_DD_IS_NOT_COLLECTED_BEFORE_SUPPLY_START": (ev_first_dd_not_before_supply, None),
 }
 
 

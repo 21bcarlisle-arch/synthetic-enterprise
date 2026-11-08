@@ -4370,8 +4370,8 @@ invariants:
   - scheduled_collection_date
   - presentation_number
   - amount
-  checkable: false
-  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  checkable: true
+  evaluator: tools/domain_invariant_runner.py::ev_dd_on_a_processing_day (2026-11-08)
   gap: 'GAP (1): no file read and no source fetched prints the full Bacs processing calendar for each year 2016-2025. The
     row takes the England and Wales bank-holiday list as the non-processing list. That rests on the glossary''s "English
     bank working days" and on Pay.UK and Bacs naming bank holidays as non-processing days. That Bacs ignores Scottish-only
@@ -4548,8 +4548,8 @@ invariants:
   - first_dd_notice_date
   - first_dd_collection_date
   - first_dd_amount
-  checkable: false
-  evaluator_owed: written blind for the ninth cold read's N22/N23/N24; no evaluator yet
+  checkable: true
+  evaluator: tools/domain_invariant_runner.py::ev_first_dd_not_before_supply (2026-11-08)
   gap: 'GAP (1): no licence condition or Bacs rule read here says in terms that a supplier MAY NOT collect before the supply
     start date. The lower bound rests on logic (a level DD pays for supply, and none exists yet), on every published supplier
     statement found (on, around or after supply start), and on the switch still being cancellable in cooling-off. It is

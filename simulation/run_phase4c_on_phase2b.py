@@ -102,7 +102,11 @@ from simulation.dd_balance_book import (
     forecast_inputs_from_run,
 )
 from simulation.dd_collection_book import build_dd_collection_book
-from simulation.dd_level_collection_book import build_dd_level_collection_book, level_dd_collections
+from simulation.dd_level_collection_book import (
+    build_dd_level_collection_book,
+    level_dd_collections,
+    supply_starts,
+)
 from simulation.household import households_whose_account_closed, supply_points_that_left
 from simulation.household_segments import pays_a_level_direct_debit
 from simulation.meter_reads import (
@@ -640,7 +644,8 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # drift), reads no other structure, draws no RNG, mutates nothing, and
     # changes no existing figure. This is the Fixed-DD counterpart to
     # build_dd_collection_book above (which is Variable DD: raw bill sizes it).
-    dd_level_collection_book = build_dd_level_collection_book(dd_balance_book)
+    # N23 (2026-11-08): no level collection before the leg's supply starts.
+    dd_level_collection_book = build_dd_level_collection_book(dd_balance_book, supply_starts(bills))
     # N20 (2026-11-04): the households the world put on a level amount pay it. The page ledger and
     # the books read this one schedule; every other DD account keeps paying each bill.
     level_dd_schedule = level_dd_collections(dd_level_collection_book, pays_a_level_direct_debit)

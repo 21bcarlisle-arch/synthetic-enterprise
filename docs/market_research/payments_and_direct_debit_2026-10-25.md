@@ -494,3 +494,78 @@ belief, and it is the question to put to him if a run shows it wrong.
    the account's debit balance. A page-side rewrite of the desk's figure would print acts the company
    never took, so it is not done. **Direction of error until it lands:** against the company's page,
    because 176 households read false arrears and the publish gate refuses them.
+
+## The day a collection lands (seat, 8 Nov 2026, N22 and N23)
+
+*K8 page for `a-direct-debit-lands-on-a-bacs-processing-day-and-not-before-supply`, raised by the ninth
+cold read (`docs/staging/done/SEAT_FINDING_THE_NINTH_COLD_READ_FINDS_DIRECT_DEBITS_COLLECTED_ON_WEEKENDS_AND_CHRISTMAS_DAY_2026-11-08.md`
+and `..._A_LEVEL_DIRECT_DEBIT_COLLECTED_BEFORE_THE_SUPPLY_STARTS_ON_336_ACCOUNTS_2026-11-08.md`). The
+quotes below were fetched and checked word for word on 8 Nov 2026.*
+
+**What a processing day is.**
+- The Bacs cycle runs on "three English bank working days" (Bacs glossary, https://www.bacs.co.uk/resources/glossary/,
+  "Bacs cycle").
+- "As bank holidays are Bacs non-processing days" (Bacs via CIPP, 5 Apr 2023,
+  https://www.cipp.org.uk/resources/news/tips-for-the-bank-holiday-period-from-bacs-co-uk.html). Pay.UK:
+  "bank holidays are non-payment processing days" (9 Aug 2022,
+  https://newseventsinsights.wearepay.uk/media-centre/press-releases/payments-and-bank-holiday-processing).
+- "Direct Debit payments are not made on weekends or bank holidays" (GoCardless,
+  https://gocardless.com/guides/recurring-payments/timings).
+- So a processing day is Monday to Friday, and not an England and Wales bank holiday. Substitute days
+  are bank holidays. The calendar 2012–2028 is in the regulation commons:
+  `docs/domain_artefact_library/regulatory/england_and_wales_bank_holidays.json` (GOV.UK, the same
+  source of record as `company/compliance/working_days.py`).
+- 2016–2025 has no run of non-processing days longer than four: Good Friday to Easter Monday, and
+  Christmas with substitute days (Sat 25 Dec 2021 to Tue 28 Dec 2021).
+
+**Which way a due date on a non-processing day rolls: forward.**
+- "Remember that Direct Debits due on bank holidays should be collected on the next working day" (Bacs
+  via CIPP, above).
+- "Direct Debits due on bank holiday Monday should be collected on the Tuesday (30 August) instead"
+  (Pay.UK, above).
+- "If the scheduled date falls on a weekend or public holiday, the payment will be taken on the next
+  working day" (GoCardless, above).
+- None of the pages read supports collecting on the working day before.
+
+**Whether a first collection may precede the supply start: published practice says no.**
+- "Octopus Energy will take your first Direct Debit on the date we start supplying your energy"
+  (https://octopus.energy/help-and-faqs/articles/when-will-my-first-direct-debit-go-out/).
+- The other suppliers' wording is in `INV_FIRST_LEVEL_DD_IS_NOT_COLLECTED_BEFORE_SUPPLY_START`
+  (`docs/design/DOMAIN_INVARIANTS.yaml`): So Energy "on or around", ScottishPower "shortly after",
+  E.ON Next "about 14 days after you join". Those were read from search summaries only.
+- The scheme requires advance notice: "The notice period (default is 10 working days plus postal time)
+  given to the payer" (Bacs glossary, "Advance notice"). The Direct Debit Guarantee: "the organisation
+  will notify you (normally 10 working days) in advance of your account being debited or as otherwise
+  agreed" (https://www.directdebit.co.uk/direct-debit-explained/direct-debit-guarantee/).
+- A payment request before the mandate is approved "is explicitly disallowed by the scheme"
+  (GoCardless, above).
+
+**GAP.**
+1. No Bacs rulebook clause was read that states the weekend roll in the scheme's own words. The
+   weekend case rests on GoCardless, a scheme member's guide, and the bank-holiday case on Bacs and
+   Pay.UK.
+2. That Scottish-only and Northern Irish-only holidays are processing days is inferred from "English
+   bank working days". No source says so in terms.
+3. No licence condition or scheme rule read here forbids a collection before supply start in terms.
+   The rule rests on logic (nothing is supplied yet, and the switch can still be cancelled), and on
+   every supplier statement found.
+4. Whether a household's statement shows the entry day or a later posting day is not established.
+   The ledger here prints the entry day.
+
+**The choices this build makes, and why.**
+1. **The roll is the world's.** The supplier submits a collection for a date, and the rails move money
+   only on a processing day. So the date a DD lands is rails physics, and it lives in
+   `simulation/bacs_processing_day.collected_on`. Both the level schedule
+   (`simulation/dd_level_collection_book.level_collection_dates`) and the bill-sized DD
+   (`simulation/arrears_engine.paid_on`, read by the engine's walk and the page ledger) call it.
+2. **The first level collection waits for the supply.** A payment day that falls before the supply
+   starts in the first month is scheduled on the supply start date, as Octopus publishes, and then
+   rolled. The amount and the month it pays for are unchanged, so N20's share leg does not move.
+3. **The advance notice is not modelled.** Sign-up precedes supply start by the switch window
+   (`switching_mechanics_2026-10-25.md`), which is where a supplier gives the first notice. The ledger
+   does not print a notice date, so the ten working days cannot be graded (the row's GAP 3).
+
+**Measured on the af31e73fa7 book, replayed.** Before: 11,067 of 36,098 DD collections were on a
+non-processing day (5,184 Saturday, 5,192 Sunday, 691 bank holiday), over 924 accounts. 336 accounts'
+first DD came before supply (268 more than 3 days before). After: 0 and 0. 11,523 payment dates moved,
+and no amount moved.

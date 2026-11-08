@@ -52,7 +52,9 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
+from datetime import date
 
+from simulation.bacs_processing_day import collected_on
 from simulation.dd_balance_book import DDBalanceBook
 from simulation.dd_payment_day import staggered_payment_day
 
@@ -75,10 +77,13 @@ class LevelCollection:
     """One fixed level-DD collection: the standing amount sized it, not the
     month's bill."""
 
-    collection_date: str   # 'YYYY-MM-DD' -- the staggered payment day in-month
+    collection_date: str   # 'YYYY-MM-DD' -- the day Bacs collects it (`level_collection_dates`)
     amount_gbp: float      # the FIXED standing level DD (== DD2's collected_gbp)
     payment_day: int       # the customer's staggered day-of-month (1-28)
     consumed_gbp: float    # that month's actual bill -- carried for contrast only
+    month: str = ""        # 'YYYY-MM' the collection pays for: the bill's month, which a rolled
+    #                        date can leave (a collection due Sat 30th lands on Mon 1st)
+    scheduled_date: str = ""  # the date the mandate schedules, before Bacs rolls it
 
 
 @dataclass
@@ -97,10 +102,10 @@ class DDLevelCollectionBook:
         cols = self.schedules.get(cid, [])
         if not cols:
             return True
-        anchor = cols[0].collection_date[:7]
+        anchor = cols[0].month or cols[0].collection_date[:7]
         by_window: dict[int, set] = {}
         for c in cols:
-            wi = _window_index(c.collection_date[:7], anchor)
+            wi = _window_index(c.month or c.collection_date[:7], anchor)
             by_window.setdefault(wi, set()).add(round(c.amount_gbp, 2))
         return all(len(amounts) == 1 for amounts in by_window.values())
 
@@ -141,9 +146,40 @@ class DDLevelCollectionBook:
         }
 
 
-def build_dd_level_collection_book(balance_book: DDBalanceBook) -> DDLevelCollectionBook:
+def level_collection_dates(month: str, day: int, supply_start: date | None) -> tuple[date, date]:
+    """`(scheduled, collected)` for the level collection paying for `month` on payment day `day`.
+
+    A mandate collects for a supply that exists. A payment day that falls before the supply starts
+    is scheduled on the supply start date instead, as Octopus publishes ("we will take your first
+    Direct Debit on the date we start supplying your energy"). Bacs then collects on the first
+    processing day on or after the scheduled day (`collected_on`). On the af31e73fa7 book 336
+    accounts' first collection was dated up to 26 days before their supply started (N23), and
+    11,067 DD collections fell on a weekend or bank holiday (N22). Knowledge:
+    `docs/market_research/payments_and_direct_debit_2026-10-25.md`, "The day a collection lands"."""
+    scheduled = date(int(month[:4]), int(month[5:7]), day)
+    if supply_start is not None and scheduled < supply_start:
+        scheduled = supply_start
+    return scheduled, collected_on(scheduled)
+
+
+def supply_starts(bills) -> dict[str, date]:
+    """Each leg's first supplied day: the earliest `period_start` among its bills."""
+    out: dict[str, date] = {}
+    for b in bills:
+        start = date.fromisoformat(str(b["period_start"])[:10])
+        if b["customer_id"] not in out or start < out[b["customer_id"]]:
+            out[b["customer_id"]] = start
+    return out
+
+
+def build_dd_level_collection_book(balance_book: DDBalanceBook,
+                                   supply_start: dict[str, date] | None = None,
+                                   ) -> DDLevelCollectionBook:
     """Size a fixed level-DD collection for every billed month DD2 carries,
-    landing it on the customer's staggered payment day.
+    landing it on the day Bacs collects the customer's staggered payment day.
+
+    `supply_start` is each leg's first supplied day (its earliest bill's `period_start`). Without
+    it no collection is held back to the start of supply.
 
     Pure, deterministic, idempotent: reads ``balance_book`` and the per-customer
     ``staggered_payment_day`` digest only, draws no RNG, mutates nothing. See the
@@ -155,14 +191,18 @@ def build_dd_level_collection_book(balance_book: DDBalanceBook) -> DDLevelCollec
         points = balance_book.trajectories[cid]
         day = staggered_payment_day(cid)  # 1-28, deterministic per customer
         schedule: list[LevelCollection] = []
+        start = (supply_start or {}).get(cid)
         for p in points:
             # p.month is 'YYYY-MM'; the staggered day (<=28) exists in every
             # month, so no short-month clamping is needed.
+            scheduled, collected = level_collection_dates(p.month, day, start)
             schedule.append(LevelCollection(
-                collection_date=f"{p.month}-{day:02d}",
+                collection_date=collected.isoformat(),
                 amount_gbp=p.collected_gbp,   # the FIXED standing level DD sizes it
                 payment_day=day,
                 consumed_gbp=p.consumed_gbp,
+                month=p.month,
+                scheduled_date=scheduled.isoformat(),
             ))
         book.schedules[cid] = schedule
     return book
@@ -175,10 +215,10 @@ def level_dd_collections(level_book: DDLevelCollectionBook, pays_level) -> dict[
     (`household_segments.pays_a_level_direct_debit`). An account it puts on a variable amount is
     left out and keeps paying each bill. The page ledger (`tools/generate_billing_ledger`) and the
     books (`saas.ledger.build_ledger`) both read this, so the two cash records cannot collect
-    different amounts. One row per billed month, in billing order: `{month, collection_date,
-    amount_gbp}`."""
+    different amounts. One row per billed month, in billing order: `{month, scheduled_date,
+    collection_date, amount_gbp}`. `month` is the bill's, which a rolled collection can leave."""
     return {
-        cid: [{"month": c.collection_date[:7], "collection_date": c.collection_date,
-               "amount_gbp": c.amount_gbp} for c in cols]
+        cid: [{"month": c.month, "scheduled_date": c.scheduled_date,
+               "collection_date": c.collection_date, "amount_gbp": c.amount_gbp} for c in cols]
         for cid, cols in level_book.schedules.items() if pays_level(cid)
     }
