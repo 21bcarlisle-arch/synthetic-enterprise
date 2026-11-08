@@ -707,3 +707,10 @@ tests/company/portal/test_hh_consumption_feed.py | 4 archived legs only; the liv
 tests/company/pricing/test_switching_recommendation.py | 4 archived legs only; the live legs stay at this path
 tests/company/test_phase_hv_coverage_expansion.py | 4 archived legs only; the live legs stay at this path
 tests/company/test_phase_ik_coverage_expansion.py | 4 archived legs only; the live legs stay at this path
+company/crm/home_registry.py | 4b company.crm (the C2 trio)
+company/crm/onboarding_journey.py | 4b company.crm (the C2 trio)
+company/crm/decarb_recommender.py | 4b company.crm (the C2 trio)
+tests/company/crm/test_decarb_recommender.py | 4b whole
+tests/company/crm/test_onboarding_journey.py | 4b whole
+tests/company/crm/test_home_registry.py | 4b archived legs only; the live legs stay at this path
+tests/company/crm/test_c2_discovery_wired.py | 4b archived legs only; the live legs stay at this path

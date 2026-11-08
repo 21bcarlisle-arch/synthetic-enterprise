@@ -309,3 +309,43 @@ The C2 trio, after a marked correction to `THE_MODEL_ON_A_PAGE.md`. `carbon_ledg
 is decided. Of the 8 orphans, 4 are now keeps: C32's three (`ppm_warrant_register`,
 `consumer_vulnerability_register`, `service_log`) and EP10's `uig_allocation_register`. The
 weekly caller for `--dispositions` is still owed.
+
+## Increment 4b (built 8 Nov): the C2 trio, with 2 whole tests and the archived legs of 2 shared files
+
+`home_registry`, `onboarding_journey` and `decarb_recommender` move to the archive. No run reached
+any of them, and the ruling named all three.
+
+- **The cascade stops at the trio, on purpose.** Archiving the trio leaves `property_discovery`
+  with no importer, and through it `property_model`. The 3b rule would take both. They stay,
+  because two live world tests import `property_discovery` as the wall's reference:
+  `test_the_dwelling_record_is_the_worlds` reads its `_NEVER_KNOWN_AT_SIGNUP_FIELDS`, and
+  `test_the_worlds_dwelling_is_drawn_not_believed` calls its zero-knowledge fallback. Moving it
+  would mean re-homing a definition that the world side relies on. It gets a KEEP row in the
+  register. `--dispositions` reads 6 orphans with 6 ruled.
+- **Tests.** `test_decarb_recommender` and `test_onboarding_journey` move whole. Two files are
+  split. `test_home_registry` keeps 9 of 29 functions (its `property_model` tests).
+  `test_c2_discovery_wired` keeps 3 of 13: the import guard's own mutation, and the no-ground-truth
+  checks on the two modules that stay. Function counts are conserved on both.
+- **Controls cut:** the one-calendar binding list loses `onboarding_journey`. The wall-clock
+  ratchet loses `home_registry`'s 4 reads, leaving 9 against the floor of 5.
+  `test_carbon_not_a_target` stops naming `decarb_recommender`. Closed C2's `file_scope` points
+  the three at their archive paths, which keeps `test_c2_wall_read_enforcement` scanning them.
+- **Canon.** A marked factual correction on `THE_MODEL_ON_A_PAGE.md` replaces "exists and is
+  discovery-wired". The `canon_claims.yaml` anchor follows it, and the claim's note says the
+  probe holds trivially until a restore. `canon_drift_check`: 17 claims, 0 drifting.
+- **Seen on the way, not caused here:**
+  `tests/simulation/test_the_worlds_dwelling_is_drawn_not_believed.py::test_the_worlds_dwelling_never_crosses_the_wall`
+  is red on a clean `origin/main` (7aa05943c0). `company/interfaces/sim_interface.py:681`
+  (`get_gas_charging_area`, from `3042023498` on 2 Nov) imports `live_drawn_households` to read
+  one field, the output area. Either the seam is right and the test should check what crosses
+  rather than the import, or the seam should take a narrower world accessor, such as
+  `output_area_of(account_id)`. The narrower accessor is the safer direction (F11). It belongs to
+  the wall lane, and the seat has changed neither side.
+
+## What is left (after increment 4b)
+
+6 orphans, all ruled. Four are keeps for a named reason: C32's `ppm_warrant_register`,
+`consumer_vulnerability_register` and `service_log`, and `property_discovery` as the wall's
+reference. EP10 holds `uig_allocation_register`, and E5 holds `carbon_ledger` until it is decided.
+The archive is therefore done except for those holds. Still owed: the weekly caller for
+`--dispositions` (point 3 of Done means).

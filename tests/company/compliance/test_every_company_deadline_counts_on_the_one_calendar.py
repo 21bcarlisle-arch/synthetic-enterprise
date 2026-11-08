@@ -29,7 +29,6 @@ D = dt.date
 
 ADD = [
     "company.crm.change_of_tenancy_register",
-    "company.crm.onboarding_journey",
     "company.crm.service_log",
     "company.market.transfer_objection_register",
     "company.regulatory.gsop",

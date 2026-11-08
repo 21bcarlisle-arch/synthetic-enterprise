@@ -132,8 +132,9 @@ _SURFACE_GLOBS = (
     "company/pricing/*.py",
     # ADDED 2026-08-22: the two most carbon-adjacent decision modules on disk,
     # neither of which was a subject of this guard until today.
-    "company/crm/decarb_recommender.py",
-    # 2026-11-08: renewal_pricing_engine and decarbonisation_score left for
+    # 2026-11-08: decarb_recommender, added 2026-08-22 as the most carbon-adjacent decision
+    # module, left for archive/unhooked_supplier/ in increment 4b (no run reached it).
+    # renewal_pricing_engine and decarbonisation_score left for
     # archive/unhooked_supplier/ -- no run reached either -- so they are not named.
     # portfolio_repricing followed the same day (archive increment 3b), and
     # supplier_fitness_register had gone in increment 3a without leaving this list.

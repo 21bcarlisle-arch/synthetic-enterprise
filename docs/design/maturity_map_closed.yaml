@@ -185,7 +185,7 @@
   loop_stage: idle
   dial_inherited: 3
   records_rehomed: [evidence]
-  file_scope: ["company/crm/property_model.py", "company/crm/property_discovery.py", "company/crm/home_registry.py", "company/crm/onboarding_journey.py", "company/crm/decarb_recommender.py", "tests/company/crm/test_c2_discovery_wired.py", "tests/company/crm/test_c2_wall_read_enforcement.py"]
+  file_scope: ["company/crm/property_model.py", "company/crm/property_discovery.py", "archive/unhooked_supplier/company/crm/home_registry.py", "archive/unhooked_supplier/company/crm/onboarding_journey.py", "archive/unhooked_supplier/company/crm/decarb_recommender.py", "tests/company/crm/test_c2_discovery_wired.py", "tests/company/crm/test_c2_wall_read_enforcement.py"]
   simplifications_count: 7
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier only learns a property's true attributes via meter install/survey/customer disclosure"

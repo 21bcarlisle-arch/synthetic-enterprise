@@ -194,7 +194,7 @@ claims:
 
   - id: MISSION_decarb_advice_has_no_recipient
     page: docs/design/THE_MODEL_ON_A_PAGE.md
-    anchor: "`company/crm/decarb_recommender.py` exists and is discovery-wired"
+    anchor: "`company/crm/decarb_recommender.py` read the company's discovered home belief"
     claim: "the world never reads the company's decarbonisation recommender either"
     expects: absent
     probe:
@@ -205,6 +205,8 @@ claims:
       Registered as a SECOND claim rather than folded into the one above: the two recommenders
       could gain a recipient independently, and a single probe going green on one of them would
       hide the other -- the population-floor lesson applied to a two-member population.
+      2026-11-08: the recommender is archived (increment 4b), so the probe holds trivially until a
+      build restores it, and that restore is when it bites again.
 
   # ---------------------------------------------------------------- A47: the household side
   # Registered the same day the figure landed, which is the point of the register: the canon

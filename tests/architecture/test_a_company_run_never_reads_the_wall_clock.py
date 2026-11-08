@@ -211,13 +211,12 @@ HONEST_READS = {
 #: Five entries left 2026-11-08 with their modules for archive/unhooked_supplier/ (increment 2),
 #: and contract_exposure_register's the same day (increment 3a); account_closure's and
 #: consumer_duty_board_report's left in increment 3b; the portal's three HONEST_READS rows left
-#: in increment 4.
+#: in increment 4, and home_registry's four reads in 4b.
 WALL_CLOCK_READS_2026_10_03 = {
     "company/billing/collections.py": 2,
     "company/billing/contract.py": 2,
     "company/billing/direct_debit.py": 1,
     "company/billing/invoice.py": 1,
-    "company/crm/home_registry.py": 4,
     "company/crm/retention_risk.py": 1,
     "company/crm/service_log.py": 1,
     "company/pricing/switching_recommendation.py": 1,
@@ -245,7 +244,7 @@ def test_an_honest_read_excuses_its_function_not_its_file(tmp_path, monkeypatch)
 def test_the_census_sees_the_tree():
     """A census that counted nothing would make the ratchet below pass on any tree."""
     assert _clock_reads(REPO / "company/billing/collections.py") >= 1
-    # 13 live reads on 2026-11-08, after archive increment 4; the floor asks
+    # 9 live reads on 2026-11-08, after archive increment 4b; the floor asks
     # only that the census counts a tree's worth, not today's number.
     assert sum(census().values()) >= 5
 

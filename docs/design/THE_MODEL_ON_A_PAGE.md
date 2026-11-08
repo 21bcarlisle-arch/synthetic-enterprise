@@ -106,9 +106,11 @@ director's instruction:
   customers for our decisions, not modelling **for** a customer producing a household outcome. Nothing
   it computes is ever offered to the household it is about.
 - **Advice — MODULES ON DISK, NO RECIPIENT.** `company/pricing/switching_recommendation.py` rendered
-  inside the customer portal, and `company/crm/decarb_recommender.py` exists and is discovery-wired.
-  *(Corrected 8 Nov 2026: this said the recommendation "renders inside `company/portal/app.py`". No
-  run reached the portal, and it moved to `archive/unhooked_supplier/` that day.)*
+  inside the customer portal, and `company/crm/decarb_recommender.py` read the company's discovered home belief.
+  *(Corrected 8 Nov 2026: this said the recommendation "renders inside `company/portal/app.py`", and
+  that the decarbonisation recommender "exists and is discovery-wired". No run reached the portal or
+  the recommender, whose only callers were tests. Both moved to `archive/unhooked_supplier/` that
+  day.)*
   But **nothing in `simulation/` consumes a recommendation** and no simulated customer ever visited the
   portal, so no advice has ever reached a household or changed one's behaviour. The channel is built
   everywhere except at the point where it would matter.
