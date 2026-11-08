@@ -403,6 +403,23 @@ def hand_off(
     return items[-1]
 
 
+def _window_opens(item: Mapping) -> float:
+    """When this continuation's offer window starts: when it was written, or its dated embargo if later.
+
+    An item embargoed past its own six hours could never be drawn (2026-11-08): `read-the-monday-
+    status-line-against-the-gate` was written at 23:53 Sat for the 04:00 Mon publish, had no stamp,
+    and was drawn 28 hours early; with a stamp it would have expired 22 hours before it lifted.
+    The window measures freshness of judgement, and judgement about Monday is fresh on Monday.
+    """
+    written = float(item.get("written_at") or 0.0)
+    try:
+        from background import delivery_lane  # lazily: delivery_lane imports this module
+        until = delivery_lane.embargoed_until(dict(item), dated_only=True)
+    except Exception:
+        until = None
+    return max(written, until or 0.0)
+
+
 def live(now: float | None = None, path: Path | None = None) -> list[dict]:
     """Continuations still inside their window and not superseded, in the order they were written.
 
@@ -428,7 +445,7 @@ def live(now: float | None = None, path: Path | None = None) -> list[dict]:
     dead = _superseded_ids(items)
     return [
         i for i in items
-        if float(i.get("written_at") or 0.0) >= cutoff
+        if _window_opens(i) >= cutoff
         and i.get("id") not in dead
         and not i.get("retired_at")
     ]
@@ -462,7 +479,7 @@ def expired(now: float | None = None, path: Path | None = None) -> list[dict]:
     dead = _superseded_ids(items)
     stale = [
         i for i in items
-        if float(i.get("written_at") or 0.0) < cutoff
+        if _window_opens(i) < cutoff
         and i.get("id") not in dead
         and not i.get("retired_at")
     ]
