@@ -321,7 +321,8 @@ def hand_off(
         raise ValueError(
             f"the draw cannot read this embargo and would hand the item out at once: {unread[0]!r}. "
             "Write `DO NOT DRAW BEFORE HH:MM on YYYY-MM-DD` or `DO NOT DRAW BEFORE /abs/path "
-            "EXISTS`, one phrase per path -- globs and braces are not paths."
+            "EXISTS`, one phrase per path -- globs and braces are not paths. A condition on another "
+            "item's landing has no grammar: hand this off FROM that landing instead."
         )
     if lane:
         known = _map_lanes()

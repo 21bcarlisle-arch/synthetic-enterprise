@@ -148,6 +148,958 @@
       "status": "answered",
       "disposition": "The advisor's plan, which he approved at 18:30 ('Ok do it'): this ruling's six steps, recorded as correctness_stretch in docs/direction/priority_order.yaml with its exit test.",
       "recorded": "2026-11-08"
+    },
+    "1ad0871fa5b9": {
+      "ruling": "ADVISOR_ESCALATION_WORKTREE_PING_DEPLOY_2026-07-19.md",
+      "question": "Are they real?",
+      "status": "answered",
+      "disposition": "Answered in the ruling's own body by the advisor: the WORKTREE UNDECLARED pings were real firings but every one was a healthy transient (merged, reaped moments later), i.e. noise, because the ratified H24 hygiene fix was not in the running reconciler. b8f77cfb30 (19 Jul) graced MERGED-pending-reap worktrees so healthy churn no longer pages.",
+      "recorded": "2026-11-08"
+    },
+    "d3b025cdc1c4": {
+      "ruling": "ADVISOR_ESCALATION_WORKTREE_PING_DEPLOY_2026-07-19.md",
+      "question": "No problem?",
+      "status": "answered",
+      "disposition": "Fragment of \"Are they real? No problem? Don't know.\" Same answer as the ruling's body: no problem, the pings were healthy transients; b8f77cfb30 stopped paging on healthy churn.",
+      "recorded": "2026-11-08"
+    },
+    "3bfdaf0abcee": {
+      "ruling": "ADVISOR_STEER_NTFY_TAXONOMY_2026-07-18.md",
+      "question": "Are these messages the right ones?",
+      "status": "answered",
+      "disposition": "Answered in the steer's own body: the genuine [ACT]s and major-transition [FYI]s were right; three classes were wrong (advisory [STEER]s, operational publish-gate alarms, and staging receipts paged him) and go mirror-only. Later overtaken by the 15 Oct mothball (565bd6303b).",
+      "recorded": "2026-11-08"
+    },
+    "dacf76fef7a0": {
+      "ruling": "ADVISOR_STEER_VELOCITY_AND_PRIORITY.md",
+      "question": "is it parallel?",
+      "status": "answered",
+      "disposition": "Answered in the steer's own body by the advisor's audit: no, the work was serial not parallel (single-doc consumption ~7 min apart), and §1 orders a parallel batch on every non-build turn.",
+      "recorded": "2026-11-08"
+    },
+    "c0f4017a18a6": {
+      "ruling": "ADVISOR_STEER_VELOCITY_AND_PRIORITY.md",
+      "question": "is it prioritising well?",
+      "status": "answered",
+      "disposition": "Answered in the steer's own body: no, there was one real priority inversion, the standing-charge double-charge fix sitting behind cosmetic items; §2 re-ranks it to the top.",
+      "recorded": "2026-11-08"
+    },
+    "702fe2653e58": {
+      "ruling": "ADVISOR_STEER_VELOCITY_AND_PRIORITY.md",
+      "question": "stuck on trivial requests?",
+      "status": "answered",
+      "disposition": "Answered in the steer's own body: yes, trivial footer/crawler items were flattened into the deep queue by the advisor's own batched staging; §3 batches them into one cosmetic lane.",
+      "recorded": "2026-11-08"
+    },
+    "6092a1d13d62": {
+      "ruling": "DIRECTOR_RULING_FIX_DOUBLE_MESSAGING_2026-07-29.md",
+      "question": "is it up?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because \"is it up?\" is the ruling's description of what reconcile()'s `unit_active or tmux_present` check answered (and why it missed two launchers), not a question he asked.",
+      "recorded": "2026-11-08"
+    },
+    "13cc39ab268b": {
+      "ruling": "DIRECTOR_RULING_IDEA_FIRST_EXTERNAL_REGISTER_2026-07-24.md",
+      "question": "could a real supplier know this?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because \"could a real supplier know this?\" is the epistemic-wall test the front-door copy says every line is tested against, a check string, not a question owed to him.",
+      "recorded": "2026-11-08"
+    },
+    "6e8968cc3a2f": {
+      "ruling": "DIRECTOR_RULING_NIGHT_ENFORCEMENT_2026-07-23.md",
+      "question": "You are condoning doing nothing all night?",
+      "status": "answered",
+      "disposition": "Answered in the ruling's own sign-off: \"No.\" The ruling then orders the hierarchy build and three seeds that night; its processing header records rung 4 built and R15-proven and the three seeds minted as propose-docs in docs/design/proposals/.",
+      "recorded": "2026-11-08"
+    },
+    "15381b77a8a2": {
+      "ruling": "DIRECTOR_RULING_PHONE_SIGNER_NO_CONSOLE_2026-07-29.md",
+      "question": "Why am I having to paste this?",
+      "status": "answered",
+      "disposition": "Answered in the ruling's §0: because of the advisor's console-by-default habit, recorded as an error (the console is not more reliable, only more visible to the advisor); the rule became console-as-last-resort. The paste path was later removed by the advisor channel, 4a581cd723.",
+      "recorded": "2026-11-08"
+    },
+    "85c601fcfb4f": {
+      "ruling": "DIRECTOR_RULING_PRODUCT_FIRST_2026-07-23.md",
+      "question": "What can the director SEE or JUDGE today that he could not yesterday?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the question the ruling prescribes for the daily note to answer each day, a check string for the machine, not a question asked of anyone.",
+      "recorded": "2026-11-08"
+    },
+    "91db5910098d": {
+      "ruling": "DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10.md",
+      "question": "is the entire repo green at HEAD?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is one of the two questions the ruling says the publish gate conflated, a description of the gate's logic, not a question to him.",
+      "recorded": "2026-11-08"
+    },
+    "983f687af2b0": {
+      "ruling": "DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10.md",
+      "question": "may the site update?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the second of the two questions the ruling says the publish gate conflated, describing the gate, not asked of him.",
+      "recorded": "2026-11-08"
+    },
+    "78cbe4501d35": {
+      "ruling": "DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md",
+      "question": "should this have been shared?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because \"should this have been shared?\" is the question the ruling says no gate asks and wants the machine to ask itself (§5), a check string, not a question owed to him.",
+      "recorded": "2026-11-08"
+    },
+    "492de9faf3d5": {
+      "ruling": "DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md",
+      "question": "is it tested, does it pass?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it quotes the phase-close checklist's existing question as the incentive that produced 91 registers, a check string, not a question to him.",
+      "recorded": "2026-11-08"
+    },
+    "2b2a042fb574": {
+      "ruling": "DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md",
+      "question": "does this already exist?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the question the ruling says the checklist never asks, a check string for the machine to ask itself.",
+      "recorded": "2026-11-08"
+    },
+    "50d2ae87f787": {
+      "ruling": "DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28.md",
+      "question": "Does this capability already exist elsewhere — did I search before building?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the line §5.2 adds to the phase-close checklist for the machine to ask itself, not a question owed to him.",
+      "recorded": "2026-11-08"
+    },
+    "0bc69a3ee191": {
+      "ruling": "DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07.md",
+      "question": "does this die at 10⁵?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because \"does this die at 10^5?\" is the write-time gate's scale check the ruling prescribes for load-bearing choices, a check string, not a question to him.",
+      "recorded": "2026-11-08"
+    },
+    "7ae037344539": {
+      "ruling": "DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07.md",
+      "question": "does this die at 10^5?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the same scale check, restated as WORK THIS CREATES item 2 for the write-time gate, not a question to him.",
+      "recorded": "2026-11-08"
+    },
+    "6be24d80dce6": {
+      "ruling": "DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05.md",
+      "question": "Can we stage this but prioritise it or get it working in parallel on it?",
+      "status": "answered",
+      "disposition": "Answered in the ruling's §5: yes, staged as product work drawn ahead of the next product item, and run as a parallel fork since its file scope was disjoint. It was staged and the pull started the same day (afc2a13648, 8016f7176f, 5 Sep). The derivation then sat undrawn until 3606b21b7e minted it as bounded successors on 6 Sep.",
+      "recorded": "2026-11-08"
+    },
+    "e6ce7ac3a324": {
+      "ruling": "DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE_2026-07-27.md",
+      "question": "Should we have given it the problem to solve rather than tell it what to do?",
+      "status": "answered",
+      "disposition": "Answered in the ruling's own AMENDMENT: \"Yes.\" §1 and §5 are restated as problems with non-negotiables, the invented ~1/hour rate is withdrawn, and the advisor's standing practice becomes \"decisions transmit as decisions; implementations arrive as problems\".",
+      "recorded": "2026-11-08"
+    },
+    "845f214f9a8b": {
+      "ruling": "DIRECTOR_RULING_WORK_IS_THE_DEFAULT_2026-07-23.md",
+      "question": "Why does it not always have something to do?",
+      "status": "answered",
+      "disposition": "Answered in the ruling's diagnosis: it does have work but cannot see it, because rest was the default and only the advisor's staged docs turned goals into tasks, and nothing inside was authorised to mint them. The fix is the 7-rung work-source hierarchy (rungs 2 and 4 R15-proven per its processing header).",
+      "recorded": "2026-11-08"
+    },
+    "bb08e038ab8d": {
+      "ruling": "DIRECTOR_STEER_ADVISOR_CHANNEL_NO_PASTE_2026-10-15.md",
+      "question": "So I don't have to paste?",
+      "status": "answered",
+      "disposition": "Same file's Done: yes. The advisor channel (4a581cd723, with provenance in 7bc3e3d3a) draws a file in docs/staging/advisor/ that carries his quoted words or his 15 Oct delegation as his paste, at rung zero in every lane.",
+      "recorded": "2026-11-08"
+    },
+    "e23ca57e79b1": {
+      "ruling": "DIRECTOR_STEER_ADVISOR_CHANNEL_NO_PASTE_2026-10-15.md",
+      "question": "Give now and next instructions and guidance directly?",
+      "status": "answered",
+      "disposition": "Fragment of the same 09:49 request (\"So you can do it. Give now and next instructions and guidance directly?\"). Same file's Done: yes, the advisor writes the instructions directly into docs/staging/advisor/ and every lane draws them first (4a581cd723).",
+      "recorded": "2026-11-08"
+    },
+    "d6a1c5b77953": {
+      "ruling": "DIRECTOR_STEER_CONTEXT_AS_MANAGED_RESOURCE_2026-07-19.md",
+      "question": "It's tired?",
+      "status": "answered",
+      "disposition": "Answered in the steer's body and folded into docs/design/RESOURCE_AWARE_SCHEDULING_PROPOSAL.md §9 (5004604f8d): in effect yes, but \"precision degrades before reasoning does\". Judgment held for hours while one fragile string edit failed at high context fill.",
+      "recorded": "2026-11-08"
+    },
+    "ae9718a5fb4c": {
+      "ruling": "DIRECTOR_STEER_CONTEXT_AS_MANAGED_RESOURCE_2026-07-19.md",
+      "question": "How do we help make it stronger?",
+      "status": "answered",
+      "disposition": "Answered by the five directions in the steer and docs/design/RESOURCE_AWARE_SCHEDULING_PROPOSAL.md §9 (5004604f8d): delegate earlier, measure context fill as a sensor, make the fragile map-append unbreakable, reset at phase boundaries, and protect state across compaction.",
+      "recorded": "2026-11-08"
+    },
+    "44614a3c2ae5": {
+      "ruling": "DIRECTOR_STEER_MOTHBALL_NTFY_2026-10-15.md",
+      "question": "Should we not mothball the ntfy alerts?",
+      "status": "answered",
+      "disposition": "Same file's Done: yes. Phone push stopped with every message kept in the ops mirror, the inbound responder retired, and one dead-man's push kept (565bd6303b). Canon and CLAUDE.md were amended in his words.",
+      "recorded": "2026-11-08"
+    },
+    "c97aa3a9f89a": {
+      "ruling": "DIRECTOR_STEER_RESOURCE_AWARE_SCHEDULING_2026-07-19.md",
+      "question": "Why can't it do anything else in parallel?",
+      "status": "answered",
+      "disposition": "docs/design/RESOURCE_AWARE_SCHEDULING_PROPOSAL.md §0 (b8f77cfb30, 19 Jul): it could have, because the suite ran in the background. The stall was the orchestrator choosing to wait on the result rather than end the turn and re-draw light work. Nothing made interleaving the default, which the rest of the proposal fixes.",
+      "recorded": "2026-11-08"
+    },
+    "ddd8217548fc": {
+      "ruling": "DIRECTOR_STEER_USE_THE_LONG_LIVED_TOKEN_AND_NEVER_STALL_SILENTLY_AGAIN_2026-11-04.md",
+      "question": "Can we avoid this?",
+      "status": "answered",
+      "disposition": "Same file's Done: yes. The one-year long-lived token is loaded in the 12 units that spawn claude, and a session with no interactive credentials was shown to authenticate through it. background/phone_watchdog.py warns 30 and 7 days before expiry and alerts on login failures.",
+      "recorded": "2026-11-08"
+    },
+    "2e87280fb161": {
+      "ruling": "DIRECTOR_STEER_THE_CONTROL_STACK_SHOWS_MEANING_LEARNING_AND_WHAT_IT_REFUSES_2026-10-23.md",
+      "question": "And what about ontology and some of the other themes we've discussed in the this chat?",
+      "status": "answered",
+      "disposition": "Same file's Done: How it's built gained a section \"Meaning, learning, and what it is not allowed to do\", which names ontology as \"concepts checked where parts meet\". Live figures come from tools/harness_page_figures.py, with the honest gaps one click down.",
+      "recorded": "2026-11-08"
+    },
+    "b20b46cc1b2b": {
+      "ruling": "DIRECTOR_STEER_ESTIMATE_THE_COST_OF_WORK_TO_COME_2026-10-24.md",
+      "question": "work has it got to do lined up and in backlog?",
+      "status": "answered",
+      "disposition": "Fragment of \"So how much work has it got to do lined up and in backlog?\" The advisor answered in the file (106 open atoms, 218 level-steps, 110 staging files). The Done's forecast puts it at 212 open level steps, about 259 points, 2.6 weeks (1.0-8.2) at full allowance (e7b6155430).",
+      "recorded": "2026-11-08"
+    },
+    "63e5d79f4af7": {
+      "ruling": "DIRECTOR_STEER_ESTIMATE_THE_COST_OF_WORK_TO_COME_2026-10-24.md",
+      "question": "Do we estimate the token cost of work to come?",
+      "status": "answered",
+      "disposition": "The file states that at the time no, only backward cost was measured. Its Done says e7b6155430 and the executor built it: a per-class estimate on every drawn item, a rolling forecast on the pace row, estimate-against-actual logging, and a COST FLAG above 10 points.",
+      "recorded": "2026-11-08"
+    },
+    "7a422d3fdb88": {
+      "ruling": "DIRECTOR_STEER_PAIN_POINTS_DRIVE_THE_LOOP_KNOWLEDGE_THEN_SIM_REACTION_THEN_SUPPLIER_TESTS_2026-10-30.md",
+      "question": "Is the SIM making customers react and behave to pain points?",
+      "status": "answered",
+      "disposition": "Same file's Done: mostly no. Of seven pain points the world reacts in full only to a price rise or renewal, and that renewal-shock reaction reads the supplier's own churn curve. The others are partial or absent. Audit: SEAT_FINDING_THE_WORLD_REACTS_TO_ONE_PAIN_POINT_IN_SEVEN..._2026-10-30.md, confirmed by a second reading in docs/staging/records/.",
+      "recorded": "2026-11-08"
+    },
+    "4aeac313cac3": {
+      "ruling": "DIRECTOR_STEER_CHEAPER_PER_LANDED_RESULT_SCRIPTS_TIERS_AND_EFFORT_2026-10-23.md",
+      "question": "Should we use ollama and the GPU more or is that marginal with complications and consequences?",
+      "status": "answered",
+      "disposition": "Answered in the file by the advisor and taken up in Done: marginal. A 12 GB-class model cannot do the token-heavy work and competes for memory, so there is no local model, and the levers are scripts, model tiers and effort (docs/staging/records/SEAT_PROPOSAL_CHEAPER_PER_LANDED_RESULT_ON_THE_NEW_TIER_2026-10-23.md).",
+      "recorded": "2026-11-08"
+    },
+    "9bd96aec9916": {
+      "ruling": "DIRECTOR_RULING_GO_ON_THE_TWO_READER_REVIEW_AND_START_IT_NOW_2026-10-28.md",
+      "question": "Go, but also and after this answer me why are actions for me not getting flagged better and reminded?",
+      "status": "answered",
+      "disposition": "The \"Go\" half is this file's Done (readers started 28 Oct). The \"why\" half is answered in docs/staging/advisor/done/DIRECTOR_STEER_A_CLOSE_THAT_SAYS_YES_IS_CHECKED_AGAINST_DONE_AND_A_MONDAY_NOTE_FOR_ME_2026-10-28.md: everything waited for him to pull it, the noise fix closed rows silently, and closes were never checked against done. Its Done adds commitment/due grading (director_concerns --overdue) and the Monday note.",
+      "recorded": "2026-11-08"
+    },
+    "421228ad001c": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_COPY_PACK_FOR_A_NEWCOMER_2026-10-25.md",
+      "question": "Is there no way to use the spare tokens productively?",
+      "status": "answered",
+      "disposition": "Yes: the advisor drafted the site copy and evidence packs in parallel in its own chat, and he said \"Do it\" at 05:30; the same file's Done records the copy landing as batches outside the serial gate (Explore in ff77e6057b, Capabilities rows, the five sheets, Knowledge index, How it's built).",
+      "recorded": "2026-11-08"
+    },
+    "6cf89734f694": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_COPY_PACK_FOR_A_NEWCOMER_2026-10-25.md",
+      "question": "On knowledge creation for example ?",
+      "status": "answered",
+      "disposition": "Fragment of \"Is there no way to use the spare tokens productively? On knowledge creation...?\": answered as part of it. The 25 Oct evidence packs were researched in the advisor's chat and published as Knowledge pages in 7fb1aabcc3 and 2d33139a4b, as this file's A4 Done section records.",
+      "recorded": "2026-11-08"
+    },
+    "78d531149742": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_COPY_PACK_FOR_A_NEWCOMER_2026-10-25.md",
+      "question": "Or improving the website?",
+      "status": "answered",
+      "disposition": "Fragment of the same spare-tokens question: answered as part of it. The website copy was drafted in the advisor's chat and landed in batches. This file's Done names A1 (ff77e6057b), A2, A3, A4, A5 and A6, with the single publish and cold read handed on as `site-copy-pack-publish-and-cold-read`.",
+      "recorded": "2026-11-08"
+    },
+    "5ba6c5105a6e": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_COPY_PACK_FOR_A_NEWCOMER_2026-10-25.md",
+      "question": "The test on every line of supplier code: could a real supplier know this?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is advisor-drafted copy for the Wall sheet's opening (section A3). It is the check the machine applies to each line of supplier code, not a question asked of us. It landed as the sheet's text in `tools/model_on_a_page_sheets.py`.",
+      "recorded": "2026-11-08"
+    },
+    "4e14c156b778": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_COPY_PACK_FOR_A_NEWCOMER_2026-10-25.md",
+      "question": "Is it working?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the first line of the advisor's drafted opening for the Score sheet (section A3), page copy that poses the reader's question. He did not ask it. It landed as sheet text.",
+      "recorded": "2026-11-08"
+    },
+    "e92ad7191192": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_COPY_PACK_FOR_A_NEWCOMER_2026-10-25.md",
+      "question": "Three tests: does it survive a worst-case shock, does it earn on a probability-weighted basis, and does each household save money, time and carbon?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the advisor's drafted Score-sheet copy (A3) stating the three tests the score applies. It is a page sentence, not a question owed to him.",
+      "recorded": "2026-11-08"
+    },
+    "cb4554779ca2": {
+      "ruling": "DIRECTOR_STEER_THE_VALUE_TEST_MUST_BE_ABLE_TO_ANSWER_AND_THE_SITE_MUST_BE_CURRENT_2026-11-02.md",
+      "question": "Reading the capabilities tab I see issues, are these the ones you mentioned?",
+      "status": "answered",
+      "disposition": "Answered in the same file's Part 2, which is the advisor's answer listing the issues (an advantage below its own re-draws, 3.7% of renewals priced, one household moving the figure, mixed code and books, a weak baseline, blank fields, the carbon contradiction). He replied \"Yes\". Item 6's page fixes and the redesign doc landed in efc8340b5c (`docs/design/THE_VALUE_TEST_REDESIGN.md`).",
+      "recorded": "2026-11-08"
+    },
+    "e8e19a646e10": {
+      "ruling": "DIRECTOR_STEER_THE_BOOK_IS_SINGLE_FUEL_DO_THE_KNOWLEDGE_WORK_2026-10-17.md",
+      "question": "How many customers does the supplier start with?",
+      "status": "answered",
+      "disposition": "Answered by the file's measurement and its Done. The opening book was 400 accounts in 395 homes. After the fuel-split correction the 400 is held as supply points, about 220-233 households, and whether he meant 400 households is raised as `the-founder-number-has-two-readings-now`.",
+      "recorded": "2026-11-08"
+    },
+    "1c682e65f460": {
+      "ruling": "DIRECTOR_STEER_THE_BOOK_IS_SINGLE_FUEL_DO_THE_KNOWLEDGE_WORK_2026-10-17.md",
+      "question": "Is this representative and typical of the mix for a supplier?",
+      "status": "answered",
+      "disposition": "No. Same file's Done: the book was 1% dual fuel, against a published ~72% of homes with one supplier for both fuels and ~90% of gas homes switching both together (`docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md`). It was corrected to 73.6% dual (76.4% over eight seeds), and `tests/simulation/test_the_opening_book_bears_the_published_fuel_split.py` now holds it.",
+      "recorded": "2026-11-08"
+    },
+    "9d4ceb3e1b0c": {
+      "ruling": "DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md",
+      "question": "Do we have knowledge on the range and importance of energy supplier brand equity and and attributes?",
+      "status": "answered",
+      "disposition": "Yes, now. The advisor's evidence pack (summarised in the file) and the Done's calibrated page `docs/market_research/reputation_resentment_and_feedback_calibrated_against_the_gb_record_2026-11-02.md`, published under `communications-sentiment-and-nps`, grade every reputation constant with a range or a GAP. No current constant rests on a GB source.",
+      "recorded": "2026-11-08"
+    },
+    "e9229968789d": {
+      "ruling": "DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md",
+      "question": "Or maybe simualte trust pilot?",
+      "status": "answered",
+      "disposition": "Fragment of his 16:59 ask about supplier feedback. The answer is yes: Ask 4 adopts a Trustpilot-like public review channel (organic and invited reviews, invitation policy as a supplier decision, a regulator panel). The Done carries it as world build after the correctness exit test, so it is planned and not yet built.",
+      "recorded": "2026-11-08"
+    },
+    "d45386cd64bb": {
+      "ruling": "DIRECTOR_STEER_REPUTATION_IS_A_STOCK_AND_THE_SUPPLIER_LISTENS_THROUGH_BIASED_FEEDBACK_2026-10-30.md",
+      "question": "So some of this should wait for that perhaps?",
+      "status": "answered",
+      "disposition": "Yes. The 17:20 addendum splits the asks: our-supplier-only items now (behind the exit test), and competitive items wait. The Done files the competitive half as R-C1 to R-C6 in `docs/design/COMPETITOR_FIELD_FRAME.md` §10, not built.",
+      "recorded": "2026-11-08"
+    },
+    "ebbc0c261f87": {
+      "ruling": "DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30.md",
+      "question": "Do we have a list of the all changes and investments customers can make to save money and carbon?",
+      "status": "answered",
+      "disposition": "Partly then, yes now. The advisor found ~20 physical measures in `household_carbon_and_the_measures_that_save_it.md` §5, missing the money levers and several measures. The Done publishes the complete ranked catalogue `docs/market_research/every_change_a_household_can_make.md`.",
+      "recorded": "2026-11-08"
+    },
+    "6a72f87945ed": {
+      "ruling": "DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30.md",
+      "question": "Do we have strong knowledge and research on this to drive both SIM and supplier?",
+      "status": "answered",
+      "disposition": "Not strong enough then. The file says no measure carried applicability, uptake, barriers, hassle, observability or evidence strength. The Done's catalogue `docs/market_research/every_change_a_household_can_make.md` is now the single list the world and the supplier both read. Its world-side use (per-home applicability) is still to be built after the exit test.",
+      "recorded": "2026-11-08"
+    },
+    "a81525631a28": {
+      "ruling": "DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30.md",
+      "question": "Is time/effort/hassle a factor hidden in customer typology and psychology?",
+      "status": "answered",
+      "disposition": "No. Same file, \"What the advisor found\": households carry activation energy and an engagement archetype, but no value of their own time and no hassle sensitivity per activity, so the world could not register time saved. The design is now sketched in `docs/design/THE_IMPROVEMENT_LOOP.md` §8.",
+      "recorded": "2026-11-08"
+    },
+    "fe6bca16da77": {
+      "ruling": "DIRECTOR_STEER_TIME_IS_VALUE_A_SUPPLIER_CAN_CREATE_AND_THE_WORLD_MUST_FEEL_HASSLE_2026-10-30.md",
+      "question": "Is it considered or in plan somewhere?",
+      "status": "answered",
+      "disposition": "Yes, in plan but idle. C31 (`docs/design/C31_TIME_AS_A_CURRENCY_DISCOVER_FRAME_2026-10-04.md`) framed time as T1-T4 but sat at level 0, deprioritised ~1,900 times. The Done records pass 4 written (§9), the hidden hassle price added, and BUILD after the exit test, no longer deprioritised by default.",
+      "recorded": "2026-11-08"
+    },
+    "84391dca7fd5": {
+      "ruling": "DIRECTOR_STEER_THE_NAIVE_ORGAN_HAS_REFUSED_EVERYTHING_SINCE_10_AUG_AND_DESIGNS_GET_A_GOLDFISH_READ_2026-11-02.md",
+      "question": "Do we still have naive organ ?",
+      "status": "answered",
+      "disposition": "Yes, but it had been silently dead since 10 Aug: it re-read its own questions and filled its cap with purpose declines. Same file's Done: repaired, not retired, in 1f731c537a, with control `tests/background/test_the_naive_organ_asks_again_and_never_reads_its_own_questions.py`.",
+      "recorded": "2026-11-08"
+    },
+    "bd73cd8bd789": {
+      "ruling": "DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md",
+      "question": "Are there other things I've asked for this never finished shipping?",
+      "status": "answered",
+      "disposition": "Yes. Same file's Done: the ledger `tools/director_asks_ledger.py` over `docs/direction/director_asks.yaml` (first cut b8b14269e1) found 368 asks: 255 shipped, 47 partly, 6 not started, 28 superseded, 2 declined. Each partly row is published on How it's built with its next step.",
+      "recorded": "2026-11-08"
+    },
+    "47dbbb3ba08c": {
+      "ruling": "DIRECTOR_STEER_A_LEDGER_OF_EVERYTHING_I_ASKED_FOR_AND_WHETHER_IT_SHIPPED_2026-10-24.md",
+      "question": "(Maybe for good reason, maybe not?",
+      "status": "answered",
+      "disposition": "Fragment of \"Are there other things I've asked for this never finished shipping? (Maybe for good reason, maybe not?)\": answered as part of it. The ledger records, for each unshipped ask, why and whether the reason still holds. The Done lists the ones that matter most (W1_8 zonal pricing still open after he ruled it out, the run manifest without a caller, and others) and four recommended to close.",
+      "recorded": "2026-11-08"
+    },
+    "e7c8741afc75": {
+      "ruling": "DIRECTOR_STEER_OTHER_MARKETS_ARE_KNOWLEDGE_ONLY_2026-10-25.md",
+      "question": "You may have to look at cooling and cooking too?",
+      "status": "answered",
+      "disposition": "Yes. Cooling and cooking were added as dimensions 12 and 13 of every country pack. The Done publishes the seven packs (7fb1aabcc3, `site/knowledge/other-market-*`) and the comparison page `site/knowledge/other-markets-compared-with-gb/`. AC ownership runs from ~25% (France) to 90%+ (Japan).",
+      "recorded": "2026-11-08"
+    },
+    "63d301cec174": {
+      "ruling": "DIRECTOR_STEER_OTHER_MARKETS_ARE_KNOWLEDGE_ONLY_2026-10-25.md",
+      "question": "Also switching, homemove?",
+      "status": "answered",
+      "disposition": "Fragment of the same 07:22 list. Switching and home moves are dimensions 14 and 15 of each pack, published in 7fb1aabcc3. The synthesis notes that only Australia and Germany have a GB-like deemed contract on move-in.",
+      "recorded": "2026-11-08"
+    },
+    "be32aef59a4d": {
+      "ruling": "DIRECTOR_STEER_OTHER_MARKETS_ARE_KNOWLEDGE_ONLY_2026-10-25.md",
+      "question": "Does debt sit with supplier or dno?",
+      "status": "answered",
+      "disposition": "In GB, with the supplier: the supplier bills the household and carries its arrears; the DNO bills the supplier for use of the network (DUoS), never the household. A switch leaves the debt with the old supplier, except prepayment debt moved under the Debt Assignment Protocol. GB evidence: docs/staging/advisor/done/DIRECTOR_EVIDENCE_WHAT_HAPPENS_TO_UNPAID_DOMESTIC_ENERGY_DEBT_2026-11-07.md. Abroad, same file's synthesis item 5 and pack dimension 16 (7fb1aabcc3): mostly the same, but Italy's CMOR lets arrears follow the customer, and in Belgium debtors move to the DSO as social supplier.",
+      "recorded": "2026-11-08"
+    },
+    "3e67d1a0b9c6": {
+      "ruling": "DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md",
+      "question": "What is the difference between sim and simulation?",
+      "status": "answered",
+      "disposition": "Both are the world. `sim/` is the market (Elexon, NESO and the weather record, point-in-time prices, forward curves). `simulation/` is the households and the runners. The split came from history but now falls on a job line. Same file's Done: the code-tab legend (`site/code/index.html`, \"What each cluster is\"), plus finding 8 in `docs/staging/SEAT_FINDING_OWN_CODE_REVIEW_UNUSED_DUPLICATED_AND_WALL_CROSSING_2026-10-24.md`.",
+      "recorded": "2026-11-08"
+    },
+    "90cb04444939": {
+      "ruling": "DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md",
+      "question": "And between company and saas?",
+      "status": "answered",
+      "disposition": "Both are the supplier. `saas/` is the first business layer (July) and was never folded into `company/`. Same file's Done: the code-tab legend, and the seat finding's rulings to keep both packages and fold module by module, merging the two churn models after B2.",
+      "recorded": "2026-11-08"
+    },
+    "b1381bbafd98": {
+      "ruling": "DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md",
+      "question": "Why do some not have import edges?",
+      "status": "answered",
+      "disposition": "Because nothing but their tests imports them. In `tools/` that mostly means scripts run by hand. In `company/`/`saas/` it means code that is built and tested but never reached by a run: 268 ruled orphans. The legend note in `site/code/index.html` and finding 1 of the seat finding say so.",
+      "recorded": "2026-11-08"
+    },
+    "4116ae6db247": {
+      "ruling": "DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md",
+      "question": "Why does this matter?",
+      "status": "answered",
+      "disposition": "The seat finding (`docs/staging/SEAT_FINDING_OWN_CODE_REVIEW_UNUSED_DUPLICATED_AND_WALL_CROSSING_2026-10-24.md` §§1, 4, 5) gives the reasons. The unused modules carry ~23% of test functions and a third of supplier grep hits, and every whole-tree gate reads them. Separately, three crossings make the world's churn truth come from a supplier model (B2), so the belief-against-truth gap partly measures a model against itself.",
+      "recorded": "2026-11-08"
+    },
+    "a5b67d07da5f": {
+      "ruling": "DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md",
+      "question": "Do we have any redundant old code that does things we don't need any more or goes no where, or doesn't get called or used ?",
+      "status": "answered",
+      "disposition": "Yes. The seat finding counts 268 supplier modules (41,565 lines) imported only by their tests, and rules them to be archived with their tests after the 26 Oct publish, except 2 kept for C32. The archive is carried by hand-off `archive-the-unhooked-supplier-modules`. I found no landed archive commit on this tree. The census of 8 Nov found that archive not landed on origin/main; filed in the census finding.",
+      "recorded": "2026-11-08"
+    },
+    "c055b5f5ae89": {
+      "ruling": "DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md",
+      "question": "Also why wasn't this picked up automatically?",
+      "status": "answered",
+      "disposition": "Seat finding §2: an `owed` deferral was accepted once it named how the debt dies, with no owner and no date, and the orphan control lost its only caller, so it went red unseen. The advisor's second hypothesis was refuted. The mechanism is `tools/wall_crossing_dispositions.py` (owner and due date, an overdue debt refused at commit), as the Done records.",
+      "recorded": "2026-11-08"
+    },
+    "cc47de7af4fb": {
+      "ruling": "DIRECTOR_STEER_OWN_THE_DESIGN_OF_THE_WORLD_SUPPLIER_IMPROVEMENT_LOOP_2026-10-30.md",
+      "question": "Can it be improved?",
+      "status": "answered",
+      "disposition": "Fragment of \"do we have demarcation... is it embedded. Can it be improved?\": answered as part of it. Same file's Done: the demarcation is strong but the cycle is not embedded. The recommended improvement is in `docs/design/THE_IMPROVEMENT_LOOP.md` (stages derived from artefacts, grading across range endpoints, three nuance triggers, blind roles by sparse worktree) and was raised as `the-improvement-loop-world-then-supplier-then`.",
+      "recorded": "2026-11-08"
+    },
+    "f44899d114bb": {
+      "ruling": "DIRECTOR_STEER_OWN_THE_DESIGN_OF_THE_WORLD_SUPPLIER_IMPROVEMENT_LOOP_2026-10-30.md",
+      "question": "would this work in the real market, or does it exploit something our world fails to punish?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the advisor's proposed exploit check: the sentence an independent reader would ask of a winning strategy, offered as a prompt in \"Some ideas\". It was not asked by him.",
+      "recorded": "2026-11-08"
+    },
+    "19699b5e5fc7": {
+      "ruling": "DIRECTOR_STEER_THE_CONTROL_STACK_SHOWS_DOORS_PACE_AND_HOW_WORK_IS_BALANCED_2026-10-23.md",
+      "question": "And how we balance work ?",
+      "status": "answered",
+      "disposition": "Fragment of his 09:25 list (two-way doors, pace and tokens, and how we balance work). Same file's Done: How it's built gained \"Two-way doors, pace and how work is balanced\". It covers work drawn from the map with dials that order but never zero it, the 4 Sep lesson card, and the weekly product share of commits (4% to 24% over eight weeks), shown as it reads.",
+      "recorded": "2026-11-08"
+    },
+    "94663342fa09": {
+      "ruling": "DIRECTOR_STEER_SHOW_EVERYTHING_WE_HAVE_LEARNED_FROM_THE_RECORD_NOT_FROM_MEMORY_2026-10-23.md",
+      "question": "What else?",
+      "status": "answered",
+      "disposition": "Same file's Done: the record was mined, not memory. Every canon principle is shown in its current words (19 of 168 name the code that holds them), and 26 cause-principle-mechanism-evidence chains are generated at publish (`tools/canon_lessons.chains`). The retrospectives and the done queue are not mined yet.",
+      "recorded": "2026-11-08"
+    },
+    "c13210d7777a": {
+      "ruling": "DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md",
+      "question": "Why have a banner?",
+      "status": "answered",
+      "disposition": "There was no need for one. The steer takes the banner off the home page, and the Done lands that in e825e80992: one quiet clock line written at publish, with publisher state moved to How it's built.",
+      "recorded": "2026-11-08"
+    },
+    "0df1efef7c4a": {
+      "ruling": "DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md",
+      "question": "No need?",
+      "status": "answered",
+      "disposition": "Fragment of \"Why have a banner? No need?\": answered as part of it. There was no need, and the banner was removed in e825e80992.",
+      "recorded": "2026-11-08"
+    },
+    "026822bbb72b": {
+      "ruling": "DIRECTOR_STEER_THE_FRONT_DOOR_SHOWS_THE_AMBITION_AND_WHAT_HAS_BEEN_BUILT_2026-10-22.md",
+      "question": "how impressive is this, and why?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the fourth cold-reader question the ruling prescribes for the energy and tech readers, not one asked of us. The Done records their answers: neither summary led with the failings.",
+      "recorded": "2026-11-08"
+    },
+    "7fd8d7414e4b": {
+      "ruling": "DIRECTOR_STEER_COMFORT_HEALTH_AND_CARBON_ARE_OUTPUTS_AND_BUDGET_FIRST_ADVICE_IS_PARKED_2026-10-25.md",
+      "question": "And the thermostat and timer settings?",
+      "status": "answered",
+      "disposition": "Done (refused for attribution, but pointing to the substance): `docs/design/PERSONALISED_ASSET_WORLD.md` §4 draws setpoint and setback, schedule type and hours, timer use (~46%) and flow temperature per home from EFUS, with indoor temperature per half hour as an output. The gas setpoint and presence schedule landed in 0388be7c12.",
+      "recorded": "2026-11-08"
+    },
+    "b515af8d4e74": {
+      "ruling": "DIRECTOR_STEER_COMFORT_HEALTH_AND_CARBON_ARE_OUTPUTS_AND_BUDGET_FIRST_ADVICE_IS_PARKED_2026-10-25.md",
+      "question": "Many people have the heating on all the time and could save money?",
+      "status": "answered",
+      "disposition": "Fewer than \"many\" say they do, more than that behave as if they do. `docs/market_research/heating_behaviour_comfort_and_health_floors_2026-10-25.md` (\"Continuous heating\") gives 6% heating all year and ~4% reporting 17 h+ runs, but 30.9% of homes show a flat living-room profile (H15). The median is 7-8 h a day. The 31%-more-gas for 24 h against 9 h is from one test house in the ruling's pack, so the saving is real but home-specific and bounded by the health floor (§6 of `docs/design/PERSONALISED_ASSET_WORLD.md`). Note that boiler homes are never `continuous` in `fabric_physics.py`, per the page's own FLAG.",
+      "recorded": "2026-11-08"
+    },
+    "8b669399890e": {
+      "ruling": "DIRECTOR_STEER_KNOWLEDGE_AND_INSIGHT_ARE_DIFFERENT_LAYERS_AND_EVERY_CLAIM_CARRIES_A_TRUST_GRADE_2026-11-04.md",
+      "question": "Maybe all knowledge and insight needs a degree of trust/truth assessment?",
+      "status": "answered",
+      "disposition": "Yes. Same file's Done: every Knowledge and insight row now carries status, rests_on, from_sim, falsified_by, checked and review_by (b57186dc4d), and knowledge carries its D/P/S/A grade. The audit is in `docs/staging/records/SEAT_RECORD_THE_KNOWLEDGE_FACET_AUDIT_2026-11-04.md`.",
+      "recorded": "2026-11-08"
+    },
+    "5dbc5cddb135": {
+      "ruling": "DIRECTOR_STEER_VERIFY_THE_PACKS_UNVERIFIED_ITEMS_AS_YOU_DRAFT_2026-10-25.md",
+      "question": "Why did search budgets run out?",
+      "status": "answered",
+      "disposition": "Same file's \"Why\": the advisor's per-turn search allowance was shared across six or seven parallel passes and ran out, and its sandbox blocked gov.uk spreadsheets, the Eurostat, PVGIS and legislation.gov.uk APIs, Ofgem zips and gated datasets.",
+      "recorded": "2026-11-08"
+    },
+    "4eff426b54c0": {
+      "ruling": "DIRECTOR_STEER_VERIFY_THE_PACKS_UNVERIFIED_ITEMS_AS_YOU_DRAFT_2026-10-25.md",
+      "question": "How can we solve this?",
+      "status": "answered",
+      "disposition": "The host, which has its own network and no shared allowance, checks every [unverified] item at source as it drafts each page, and the advisor caps itself at two or three passes a turn. Same file's Done: pages checked in 7fb1aabcc3/2d33139a4b, with per-pack counts on `site/knowledge/index.html#pack-verification` (GB: 73 confirmed, 5 partly, 17 corrected, 89 open).",
+      "recorded": "2026-11-08"
+    },
+    "9999b56f6745": {
+      "ruling": "DIRECTOR_STEER_OFFICIAL_PLUGINS_EARN_THEIR_PLACE_AGAINST_OUR_OWN_NUMBERS_2026-11-07.md",
+      "question": "Are their claude code skills, such as approved by anthropic we should consider using or adding?",
+      "status": "answered",
+      "disposition": "Yes, a few. Same file: trial `pyright-lsp` inside the token measurement, compare Anthropic's `code-review` with our two readers at the 11 Nov review, and reject `agent-estimate` (third-party, unmeasured limits). The rejection is recorded in `docs/institutional/reading_log.md` by fb50d83aec, and the Done says where items 2 and 3 are queued.",
+      "recorded": "2026-11-08"
+    },
+    "0c9298d1a0a1": {
+      "ruling": "DIRECTOR_STEER_OFFICIAL_PLUGINS_EARN_THEIR_PLACE_AGAINST_OUR_OWN_NUMBERS_2026-11-07.md",
+      "question": "or do our agents have access to these already?",
+      "status": "answered",
+      "disposition": "Fragment of the same plugins question. fb50d83aec: only `cloudflare@cloudflare` is installed, nothing from `claude-plugins-official`, and security-guidance is not on. The seats already have the built-in `code-review`, `simplify` and `security-review` skills with no plugin.",
+      "recorded": "2026-11-08"
+    },
+    "e804c9ed8e5b": {
+      "ruling": "DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md",
+      "question": "Same with price elasticity, (not cashflow)?",
+      "status": "answered",
+      "disposition": "His 16:44 question is answered on docs/market_research/price_sensitivity_is_two_traits_cutting_use_and_shopping_cim_waves_3_6_2026-11-02.md, which quotes it and which the same file's Done lists as page 1. Yes, the same split applies: price sensitivity is two traits, kept apart from cash flow. Cutting use rises with age in all four CIM waves. Shopping falls with age, and shopping itself splits into looking (follows income and capability) and moving (follows need).",
+      "recorded": "2026-11-08"
+    },
+    "0b2bdf15f172": {
+      "ruling": "DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md",
+      "question": "Not clear cut and linear correlation to wealth?",
+      "status": "answered",
+      "disposition": "Same page, §2 and §5 (D-graded, CIM Waves 3-6): confirmed not linear in wealth. Income separates comparing tariffs by 11-19 points in every wave, but it barely moves cutting use or moving supplier, and no middle-income peak shows in incidence. A GB kWh elasticity by income band is a named GAP that needs SERL microdata (reserved, G5).",
+      "recorded": "2026-11-08"
+    },
+    "0dc0a1236ba6": {
+      "ruling": "DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md",
+      "question": "Is age or family circumstance a consideration for correlation?",
+      "status": "answered",
+      "disposition": "Yes, and age matters more than income. docs/market_research/age_life_stage_and_life_events_cim_wave3_2026-11-02.md (Done item 4) finds the age spread larger than the income spread on all 7 CIM Wave 3 affordability measures and on engagement. Under-5s in the household are the largest non-age contrast (+17.9 on energy-cost worry). Single parents cannot be tested, because Wave 3 has no household-type crossbreak. Life stage is kept as one of the parsimony ruling's factors.",
+      "recorded": "2026-11-08"
+    },
+    "499ad825c896": {
+      "ruling": "DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md",
+      "question": "Will it start with your research and assess itself and maybe expand?",
+      "status": "answered",
+      "disposition": "Same file's Done, 'The advisor's synthesis was tested, not taken (addendum 16:50)': yes, and it was expanded. Two claims held (life stage outweighs income; capability separates engaged from disengaged by +31 to +34). Five were corrected, including the 3-5x gap, the unsourced 44/13/38 fix share and worry peaking at 35-54. All seven customer-needs pages were written.",
+      "recorded": "2026-11-08"
+    },
+    "f1cf5992d0d5": {
+      "ruling": "DIRECTOR_STEER_BUILD_THE_CUSTOMER_KNOWLEDGE_CORPUS_AND_PROPOSE_THE_NEXT_SIM_ADDITIONS_2026-10-30.md",
+      "question": "Will it ensure it's backed where possible by data not just word searches of summaries and articles?",
+      "status": "answered",
+      "disposition": "Same file's Done: yes where the data is published. All seven pages are D-graded, derived from Ofgem's own CIM tables, with the extracts in data/lake/ofgem_cim_*. Licensed microdata went to him as a reserved row, and no file is downloaded until the W11 row `your-2-nov-ruling-to-register-with` is answered.",
+      "recorded": "2026-11-08"
+    },
+    "9aa6dcda4366": {
+      "ruling": "DIRECTOR_STEER_A_STANDING_EXTERNAL_READING_HABIT_AND_THE_KNOWLEDGE_TAB_TAKES_THE_MAPS_SHAPE_2026-11-05.md",
+      "question": "What about a periodic external exploration?",
+      "status": "answered",
+      "disposition": "Same file §1, the advisor's design he approved at 07:36 ('Do it'): yes, a weekly what's-new-from-Anthropic line in the Monday note plus a monthly rota, with a hard budget. Done: the habit is queued behind the correctness exit test and not yet running. The reading log (item 3) exists at docs/institutional/reading_log.md.",
+      "recorded": "2026-11-08"
+    },
+    "e10b9d2f41ed": {
+      "ruling": "DIRECTOR_STEER_A_STANDING_EXTERNAL_READING_HABIT_AND_THE_KNOWLEDGE_TAB_TAKES_THE_MAPS_SHAPE_2026-11-05.md",
+      "question": "Plus perhaps research related to the issue and failure categories we have?",
+      "status": "answered",
+      "disposition": "Same file §1, rota (a), approved 07:36: yes, one of the nine docs/staging/reference/CLASS_* failure classes a month against the published field, with at most three recommendations. Done: queued behind the correctness exit test, not started.",
+      "recorded": "2026-11-08"
+    },
+    "b2d0ae71c5f5": {
+      "ruling": "DIRECTOR_STEER_A_STANDING_EXTERNAL_READING_HABIT_AND_THE_KNOWLEDGE_TAB_TAKES_THE_MAPS_SHAPE_2026-11-05.md",
+      "question": "So knowledge is divided into simulation, supplier and code/harness?",
+      "status": "answered",
+      "disposition": "Same file §2, approved 07:36: yes, three sections. 'The world' (markets, prices, households), 'Running a supplier', and 'Building it' (software, product and AI practice). Carbon is a cross-cutting filter, and the map's register drives the tab. Done: the reshape is queued behind the exit test and not yet built.",
+      "recorded": "2026-11-08"
+    },
+    "74587eb3c055": {
+      "ruling": "DIRECTOR_STEER_A_STANDING_EXTERNAL_READING_HABIT_AND_THE_KNOWLEDGE_TAB_TAKES_THE_MAPS_SHAPE_2026-11-05.md",
+      "question": "Does the website tab structrue still make sense?",
+      "status": "answered",
+      "disposition": "Same file §2, last bullet, approved 07:36: yes, the other tabs keep their jobs (How it's built, The code, Capabilities, Explore). Only Knowledge reshapes, and each control-stack box links to its practice page in 'Building it'. Done: not yet built, queued behind the exit test.",
+      "recorded": "2026-11-08"
+    },
+    "f7456be7fd05": {
+      "ruling": "DIRECTOR_STEER_A_STANDING_EXTERNAL_READING_HABIT_AND_THE_KNOWLEDGE_TAB_TAKES_THE_MAPS_SHAPE_2026-11-05.md",
+      "question": "How will the knowledge tab be structured?",
+      "status": "answered",
+      "disposition": "Same file §2, approved 07:36. There is one classification: the map's concept register drives the tab. The three sections are the top level, the six domains become the second level, and nothing is deleted. Knowledge/insight are labels with a 'What we've learned' filter, and carbon is a filter. Done: queued behind the exit test (K8 page first).",
+      "recorded": "2026-11-08"
+    },
+    "d6dba9d1db9d": {
+      "ruling": "DIRECTOR_STEER_EVERY_EXPLORE_EXAMPLE_MUST_MAKE_SENSE_TO_AN_ENERGY_READER_2026-10-26.md",
+      "question": "Can you check the explore examples make sense?",
+      "status": "answered",
+      "disposition": "Same file: the advisor checked them, and five of seven filled slots told a story an energy professional would reject. Done (26 Oct): each slot now ranks only among households that pass named checks in tools/generate_explore_cast.py. The EV home and storage heating are honestly empty, the 2022 shock and estimate trap were re-cast, and the defects were filed as findings.",
+      "recorded": "2026-11-08"
+    },
+    "3b1dc00ae9f3": {
+      "ruling": "DIRECTOR_STEER_EVERY_EXPLORE_EXAMPLE_MUST_MAKE_SENSE_TO_AN_ENERGY_READER_2026-10-26.md",
+      "question": "Would an energy professional believe this?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the check string the ruling prescribes for the post-publish cold domain reader (layer 2) to ask itself, not a question asked of the delivery seat. His 18:24 words are 'Can you check the explore examples make sense? And can you get it to check them'.",
+      "recorded": "2026-11-08"
+    },
+    "79bb229cafb8": {
+      "ruling": "DIRECTOR_STEER_EVERY_EXPLORE_EXAMPLE_MUST_MAKE_SENSE_TO_AN_ENERGY_READER_2026-10-26.md",
+      "question": "If not, what is wrong?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the second half of the cold reader's prescribed check string ('Would an energy professional believe this? If not, what is wrong?'), the advisor's drafting for the machine, not a question owed to him.",
+      "recorded": "2026-11-08"
+    },
+    "5b3718f51426": {
+      "ruling": "DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md",
+      "question": "… (I quite liked showing CRM like software interface) Or maybe even better make it look like the customers portal?",
+      "status": "answered",
+      "disposition": "Same file: the design he approved has three views, with view 1 as a Poesys account portal. Done: built on Explore with the customer's account page beside the supplier's back office and the truth. It is drawn from the run's invoices and ledger, not yet rendered from company/portal/templates/, and it does not claim to be the supplier's own portal.",
+      "recorded": "2026-11-08"
+    },
+    "26e5ff1f2fca": {
+      "ruling": "DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md",
+      "question": "What about time?",
+      "status": "answered",
+      "disposition": "Same file's design, 'Time': a 2016-2025 strip of four to six key moments from the household's own timeline, opening on the most telling one. Done: built, with ‹ › stepping, Play and arrow keys.",
+      "recorded": "2026-11-08"
+    },
+    "b32f82d40609": {
+      "ruling": "DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md",
+      "question": "… How do we keep this simple but look impressive and professional?",
+      "status": "answered",
+      "disposition": "Answered by the design he approved in the same file: the advisor's mock-up (docs/design/explore_three_views_mockup_2026-10-23/Main.dc.html), one household per feature tab, opening on the telling moment, with three views and a gap strip. Done built it. The cold-reader 'how impressive' pass was named as not done there.",
+      "recorded": "2026-11-08"
+    },
+    "94619b1fed56": {
+      "ruling": "DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md",
+      "question": "Also we've built variants of this before haven't we?",
+      "status": "answered",
+      "disposition": "Yes. The same file's 'What already exists, used rather than rebuilt' names them: the earlier Explore page's truth-and-belief plumbing and customer-only view, site/data/customers/*.json, customer_sample.json and the rule-based cast in case_studies.json. Done reuses them.",
+      "recorded": "2026-11-08"
+    },
+    "6931444025a1": {
+      "ruling": "DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md",
+      "question": "How do we keep this live?",
+      "status": "answered",
+      "disposition": "Same file's Done: the cast is chosen by rule at every publish by tools/generate_explore_cast.py, wired into process_run_complete. The first moment is written into the page at publish.",
+      "recorded": "2026-11-08"
+    },
+    "0af5e128e368": {
+      "ruling": "DIRECTOR_STEER_EXPLORE_IS_A_LIVE_FEATURE_DEMO_THAT_PROVES_THE_FEATURES_WORK_2026-10-23.md",
+      "question": "Is the almost a form of automatics feature demo?",
+      "status": "answered",
+      "disposition": "Yes. Same file's work item 4 makes Explore a feature-coverage test, and Done shows it working that way. On the 19 Oct run 6 of 8 slots filled. The mover and storage heating show empty with their reasons, and the rule breaches found (bills above the cap, an unchased debt) were filed as a finding.",
+      "recorded": "2026-11-08"
+    },
+    "1c8049fad078": {
+      "ruling": "DIRECTOR_STEER_THE_ADVICE_ROADMAP_NEEDS_ITS_KNOWLEDGE_FIRST_2026-10-25.md",
+      "question": "Also should we do more research on key future topics?",
+      "status": "answered",
+      "disposition": "Same file's Done: yes. Six research packs (boilers, EVs, PV and batteries, heat pumps and fabric, proving savings, flexibility) were published as Knowledge pages in 7fb1aabcc3.",
+      "recorded": "2026-11-08"
+    },
+    "d2eed2646b51": {
+      "ruling": "DIRECTOR_STEER_THE_ADVICE_ROADMAP_NEEDS_ITS_KNOWLEDGE_FIRST_2026-10-25.md",
+      "question": "How do gas boilers work and how do choices in the sim appear and gas usage and choices for customer and advice that the supplier can offer?",
+      "status": "answered",
+      "disposition": "Same file's Done: the boilers pack landed in 7fb1aabcc3 as site/knowledge/gas-boilers-and-heating-controls/. Like each pack, it gives what the world holds as hidden truth, what the supplier can observe, infer or must ask, and what the advice saves and how it is proven.",
+      "recorded": "2026-11-08"
+    },
+    "a11d58804f0e": {
+      "ruling": "DIRECTOR_STEER_THE_ADVICE_ROADMAP_NEEDS_ITS_KNOWLEDGE_FIRST_2026-10-25.md",
+      "question": "There may be others too we need for our roadmap?",
+      "status": "answered",
+      "disposition": "Same file's Done: yes. The advisor added PV and batteries, heat pumps and fabric, savings proof and flexibility to his boiler and EV topics, and the advice-roadmap order is ruled into docs/direction/priority_order.yaml steps 8-12 in 970f388c31.",
+      "recorded": "2026-11-08"
+    },
+    "a4684b053f34": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Is there a forward plan for knowledge either independently or as part of the work intended ?",
+      "status": "answered",
+      "disposition": "Same file's Done, item 5: yes. tools/knowledge_plan.py generates the forward knowledge plan from the map: 134 rows priced at 40 points (30-59), with a lagging measure of 45 of 167 recent builds drawn before their knowledge.",
+      "recorded": "2026-11-08"
+    },
+    "3a96c2852f77": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Also is there knowledge for the main things already built?",
+      "status": "answered",
+      "disposition": "Partly. The six built domains the map steer found with notes but no page now all have one: payments/DD 997cfc67e, switching 3660142eb, accounts and capital 25d95f3ab, and tariffs, smart meters/HHS and vulnerability/PSR 2d33139a4b. But by the map's own coverage today (tools.the_map.build()['coverage']), only 114 of 745 modules attach to a concept with knowledge, and 631 attach to none, with no machinery ruled yet.",
+      "recorded": "2026-11-08"
+    },
+    "f36ea2bdcbe5": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Is it worth converting some or all of the 200 research notes too into pages?",
+      "status": "answered",
+      "disposition": "Not all. Same file's item 4 says write a page only where a domain lacks one and attach every note to a page as evidence. Done/997cfc67e ruled all 102 notes that sat on no page: 77 attach to a page, 13 are owed a page, 12 are dead.",
+      "recorded": "2026-11-08"
+    },
+    "1cf242836afe": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "How can we tie all this together into some structure?",
+      "status": "answered",
+      "disposition": "Same file's approved structure, built in ebc3c34e2e: one small curated concept register (docs/design/the_map/concepts.yaml) viewed through four spines (world, supplier value chain, running the company, how it's built). Links, gaps and topic interconnections are generated from it by tools/the_map.py.",
+      "recorded": "2026-11-08"
+    },
+    "06e3cdf3d275": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Ontology or taxonomy?",
+      "status": "answered",
+      "disposition": "Fragment of 'Ontology or taxonomy? Or feature architecture? Or a bit of both?'. Same file answers it as both: the concept register with its relations is 'the ontology core', and the spines are views over it. SKOS field names were borrowed for the taxonomy side (ebc3c34e2e).",
+      "recorded": "2026-11-08"
+    },
+    "7e35ea08adec": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Or feature architecture?",
+      "status": "answered",
+      "disposition": "Fragment of the same question. Feature architecture is the supplier value-chain spine (acquire ... advise, optimise), with each concept layered knowledge -> world rule -> what crosses the wall -> supplier feature (same file, built in ebc3c34e2e).",
+      "recorded": "2026-11-08"
+    },
+    "32570ea05086": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Or a bit of both?",
+      "status": "answered",
+      "disposition": "Fragment of the same question; same file: yes, both. The ontology is the register of concepts and relations, and the feature architecture is its spines and layers, one register serving both (ebc3c34e2e).",
+      "recorded": "2026-11-08"
+    },
+    "c5be01f02ef7": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "How can humans and AI understand and interrogate, with interconnections of knowledge maps above the interconnectiion of the SIM and then supplier beneath?",
+      "status": "answered",
+      "disposition": "Same file's design and Done. The generated map page at /model/map/ (685ffeadb0) shows each concept's layers, from knowledge above to world rule, wall and supplier feature beneath, with topic interconnections tappable across spines. For agents, item 6's per-turn file was measured (tools/knowledge_plan.py --token-saving: 10.0k characters to save 3.6k) and is not yet wired in.",
+      "recorded": "2026-11-08"
+    },
+    "cc78ca01b432": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Im not sure which comes first?",
+      "status": "answered",
+      "disposition": "Fragment of his 'which comes first? Is the structure an output or an input?'. Same file, 'a small input, a large output': the curated concept register comes first as the input, and everything else is generated from it.",
+      "recorded": "2026-11-08"
+    },
+    "55d1c69b5727": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Is the structure an output or an input?",
+      "status": "answered",
+      "disposition": "Same file, 'The structure: a small input, a large output': both. The register (about 100-150 concepts, now 68 in docs/design/the_map/concepts.yaml) is the curated input. The links, gaps and interconnections are generated output (tools/the_map.py, ebc3c34e2e).",
+      "recorded": "2026-11-08"
+    },
+    "51f715038eb2": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "You've included code but what about data (for decision making etc)?",
+      "status": "answered",
+      "disposition": "Same file adds a 'beliefs and decisions' layer on the supplier spine. Each forecast is a data product: what it is built from, then the code, the decisions it feeds and its grade against hidden truth. It is built as `kind: belief` in docs/design/the_map/concepts.yaml (4 today, e.g. collect.cash_forecast, whose grade is still a recorded gap).",
+      "recorded": "2026-11-08"
+    },
+    "163cf5eb6aee": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "What about recommendations … and then asset optimisation (EV charging and battery control)?",
+      "status": "answered",
+      "disposition": "Same file adds 'advise, optimise' to the supplier spine, built in docs/design/the_map/concepts.yaml as steps Advise and Optimise with concepts such as advise.measured_saving, advise.ev_fuel_saving, optimise.demand_flexibility_event and optimise.wholesale_shaping.",
+      "recorded": "2026-11-08"
+    },
+    "66f977add828": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Does it work for both SIM and supplier or is this just for supplier?",
+      "status": "answered",
+      "disposition": "Both. Same file's spines include 'The world' alongside the supplier's value chain, and the wall is where they meet. docs/design/the_map/concepts.yaml carries world/ and supplier/ placements and a world, wall and supplier home per concept.",
+      "recorded": "2026-11-08"
+    },
+    "dc8cd07c3465": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Does all knowledge wr have fit somewhere?",
+      "status": "answered",
+      "disposition": "Not yet. The coverage check (c4d903dc9b, named in Done) first counted 1 of 22 pages and 11 of 179 notes on a concept. Re-run today (tools.the_map.build()['coverage']): 22 of 52 pages sit on a concept, and every one of 228 notes is ruled (attached, owed a page or dead; 0 unruled). The check is still reporting-only, not binding.",
+      "recorded": "2026-11-08"
+    },
+    "b9171ceec70b": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Do all main features of sim and supplier link somewhere?",
+      "status": "answered",
+      "disposition": "No. The module coverage count (c4d903dc9b) was 38 of 740 attached. Re-run today it is 114 of 745 attached, 631 on none and 0 declared machinery, and 58 of 68 concepts miss a layer (all with a recorded reason). It stays reporting-only until that backlog is planned (same file's Done).",
+      "recorded": "2026-11-08"
+    },
+    "a7a4d1e31cb3": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Should there be a kbowledge section for harness and code itself?",
+      "status": "answered",
+      "disposition": "Yes. Same file's fourth spine, 'How it's built', layers practice -> our rule -> enforced_by -> evidence (spine `build` in docs/design/the_map/concepts.yaml). The 5 Nov steer then made 'Building it' a Knowledge tab section, with its reading log at docs/institutional/reading_log.md.",
+      "recorded": "2026-11-08"
+    },
+    "5741d8ef9095": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "Where we learn and apply best practice of both AI coding but also general IT/data best practice ?",
+      "status": "answered",
+      "disposition": "Continuation of 'Should there be a knowledge section for harness and code itself?'. The 'How it's built' spine takes established practice with sources (DORA, SRE book, Fowler, mutation testing, Anthropic guidance) to our rule and its enforcement. docs/institutional/reading_log.md (5 Nov steer) records each source's verdict.",
+      "recorded": "2026-11-08"
+    },
+    "962232f1f4ca": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_ONE_CONCEPT_REGISTER_FOUR_SPINES_AND_A_KNOWLEDGE_PLAN_2026-10-24.md",
+      "question": "With some topic interconnections below potentially?",
+      "status": "answered",
+      "disposition": "Yes. Topic interconnections are generated from the register's relations and shown under the selected concept, tappable across spines, on the map page 685ffeadb0 (Done items 1-3).",
+      "recorded": "2026-11-08"
+    },
+    "4cfe5d8e77af": {
+      "ruling": "DIRECTOR_STEER_CAPABILITIES_SHORTER_AND_ITS_GAPS_ARE_A_FIX_LIST_2026-10-24.md",
+      "question": "Some good stuff but it's long, and flags errors that we should be fixing?",
+      "status": "answered",
+      "disposition": "Same file's Done answers both halves. Fixing: each §1 error has a status, with settlement wording and the cap series corrected in 746df31c89. Gas-follows-mover, debt realism and cap levels by region are handed on by name, and the over-cap close waits on the run and 140b5ff7b. Long: words on load went from about 5,230 to 2,524.",
+      "recorded": "2026-11-08"
+    },
+    "8b8de5c60fc4": {
+      "ruling": "DIRECTOR_STEER_THE_OTHER_PAGES_MATCH_THE_FRONT_DOOR_2026-10-23.md",
+      "question": "And recommend some improvements?",
+      "status": "answered",
+      "disposition": "Fragment of 'Can you review the other pages. And recommend some improvements?'. The same file's §1-7 are the advisor's review and recommendations, and Done shipped them: banner removed 75e55464c0, Capabilities 368673a800, How it's built ebc69c6da, Knowledge d5cd1359db, code tab 4e9c7a524. Cold readers ran on each.",
+      "recorded": "2026-11-08"
+    },
+    "63d1d943aa70": {
+      "ruling": "DIRECTOR_STEER_THE_MODEL_ON_A_PAGE_IS_GENERATED_CURRENT_AND_LAYERED_2026-10-24.md",
+      "question": "Also I really like the diagram on home page, but i thought we already review this to create a multi layer live artefact?",
+      "status": "answered",
+      "disposition": "Same file: yes, and only partly shipped. The 27 Jul ruling made only the list under the picture computed, and the 9 Oct L2 drill-down sheets never shipped. Done: the picture is now generated at publish by tools/model_on_a_page_picture.py from THE_MODEL_ON_A_PAGE.md and the maturity map, and five L2 sheets are at /model/<band>/ (content corrected in 9451cb34e).",
+      "recorded": "2026-11-08"
+    },
+    "1b40d17f68ee": {
+      "ruling": "DIRECTOR_STEER_FRAME_THE_CUSTOMER_NEEDS_COST_CASH_FLOW_TIME_CARBON_PEACE_OF_MIND_2026-10-30.md",
+      "question": "I wonder if money, time, carbon and worry (risk and uncertainty) arr the mix of customer needs that are being optimised by energy products and services?",
+      "status": "answered",
+      "disposition": "Same file's Done framed it in docs/design/CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md as seven needs, each with its own unit: cost, cash flow, certainty, control, time, carbon, and a comfort/health floor. He accepted it 31 Oct ('Yes to all three'), and M3 is amended verbatim in DIRECTOR_CANON.md (83f5525c6f).",
+      "recorded": "2026-11-08"
+    },
+    "af829b9bd63e": {
+      "ruling": "DIRECTOR_STEER_FRAME_THE_CUSTOMER_NEEDS_COST_CASH_FLOW_TIME_CARBON_PEACE_OF_MIND_2026-10-30.md",
+      "question": "What about control?",
+      "status": "answered",
+      "disposition": "Yes. Control is a separate need under peace of mind (deciding when money leaves), measured apart from certainty. Framed in CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md and written into M3 by 83f5525c6f.",
+      "recorded": "2026-11-08"
+    },
+    "af352cf27c8f": {
+      "ruling": "DIRECTOR_STEER_FRAME_THE_CUSTOMER_NEEDS_COST_CASH_FLOW_TIME_CARBON_PEACE_OF_MIND_2026-10-30.md",
+      "question": "Or cash low?",
+      "status": "answered",
+      "disposition": "Fragment of 'Or cash flow? Or is that part of money?'. Answered as both: money is two things measured apart, cost (what is paid) and cash flow (when, and how much at once). Framed in CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md and in amended M3 (83f5525c6f).",
+      "recorded": "2026-11-08"
+    },
+    "537d00738512": {
+      "ruling": "DIRECTOR_STEER_FRAME_THE_CUSTOMER_NEEDS_COST_CASH_FLOW_TIME_CARBON_PEACE_OF_MIND_2026-10-30.md",
+      "question": "Or is that part of money?",
+      "status": "answered",
+      "disposition": "Fragment of the same question: yes, cash flow is part of money but measured apart from cost. That is amended M3's 'Money is two things, measured apart' (83f5525c6f).",
+      "recorded": "2026-11-08"
+    },
+    "f77d0e89c266": {
+      "ruling": "DIRECTOR_STEER_FRAME_THE_CUSTOMER_NEEDS_COST_CASH_FLOW_TIME_CARBON_PEACE_OF_MIND_2026-10-30.md",
+      "question": "I'm thinking why do some people pay more deliberately by cash or prepayment rather than have DD discount and smoothing?",
+      "status": "answered",
+      "disposition": "Same file's Done gives the GB evidence. In Ofgem's 2022 survey, 89% of DD, 85% of SC and 72% of PPM users give an active reason for their method. Control is SC payers' top reason and budgeting PPM payers', and only 55% know costs vary by method. Imposed PPM is a separate population (CUSTOMER_NEEDS_BEYOND_THREE_CURRENCIES.md; also docs/market_research/why_households_pay_the_way_they_do_cim_wave3_2026-11-02.md).",
+      "recorded": "2026-11-08"
+    },
+    "5f6977f9349b": {
+      "ruling": "DIRECTOR_STEER_FORWARD_YEARS_MUST_REPRODUCE_VOLATILITY_AT_EVERY_SCALE_2026-10-25.md",
+      "question": "Will the gas price have appropriate volatility too?",
+      "status": "carried",
+      "disposition": "Not yet. The K8 page (docs/market_research/how_gb_gas_and_power_prices_move_2026-10-25.md §0.1) finds the world's 'NBP' is a monthly-flat TTF proxy, so daily and weekly gas volatility is zero by construction (recorded as blocking in 085f89e42e). What would answer it: a daily NBP (or daily TTF plus FX) history (gap 9), volatility claims in tools/world_claims.py (none exist), and EP16 grading the generators against them. Carried on EP16 (forward-years grading against the volatility claims), which his 26 Oct correctness ruling holds behind the correctness stretch.",
+      "recorded": "2026-11-08"
+    },
+    "b847cb1a34a8": {
+      "ruling": "DIRECTOR_STEER_FORWARD_YEARS_MUST_REPRODUCE_VOLATILITY_AT_EVERY_SCALE_2026-10-25.md",
+      "question": "And mix and depth of backwardation and contango?",
+      "status": "carried",
+      "disposition": "Not yet. The same page §0.2 finds the forward quote is an EWMA times a fixed monthly shape times an always-positive premium. Backwardation arises only from the shape or EWMA lag, and the seasonal spread cannot invert. The record's share of backwardated days is unpublished (gap 4). What would answer it: measure that share and the slope-on-spot from NBP and GB forward settlements, file it as a world claim, and grade the forward quote under EP16. Carried on EP16 (forward-years grading against the volatility claims), which his 26 Oct correctness ruling holds behind the correctness stretch.",
+      "recorded": "2026-11-08"
+    },
+    "cfcffbbea15a": {
+      "ruling": "DIRECTOR_STEER_SHOW_THE_HARNESS_AS_A_LIVE_CONTROL_STACK_2026-10-23.md",
+      "question": "Compared with other AI agent harness diagrams you have seen, what does this one show that they do not?",
+      "status": "wrong",
+      "disposition": "The question is wrong, because it is the extra check string the ruling prescribes for the cold tech reader, not his question. His 09:20 words ask how to show the harness. The reader did answer it (same file's Done): 'live per-layer evidence that each check can fail, with sample sizes, instead of boxes and arrows'.",
+      "recorded": "2026-11-08"
+    },
+    "94c35c5a94bf": {
+      "ruling": "DIRECTOR_STEER_A_CLOSE_THAT_SAYS_YES_IS_CHECKED_AGAINST_DONE_AND_A_MONDAY_NOTE_FOR_ME_2026-10-28.md",
+      "question": "why are actions for me not getting flagged better and reminded?",
+      "status": "answered",
+      "disposition": "Same file, 'What went wrong': everything waited for him to pull it, the noise fix hid every non-G5 row, and closes were never checked against done. Done fixed it: closes carry commitment {work_id, done_means, due} or no_action and are graded overdue (`director_concerns --overdue`), and a weekly docs/operations/MONDAY_NOTE_FOR_THE_DIRECTOR.md is written.",
+      "recorded": "2026-11-08"
+    },
+    "15f2e90df0ee": {
+      "ruling": "DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md",
+      "question": "When do we move to future weather and price simulation?",
+      "status": "answered",
+      "disposition": "Same ruling: right after the basics (payment and debt engine, dual fuel with gas following the mover, switching), ahead of the tariff, EV and battery levers. It landed in canon P1 and docs/direction/priority_order.yaml in e3e5842fcb. The basics' definition of done is in the stretch log, and it has not yet been met.",
+      "recorded": "2026-11-08"
+    },
+    "e19e06e61fda": {
+      "ruling": "DIRECTOR_RULING_FORWARD_YEARS_COME_RIGHT_AFTER_THE_BASICS_2026-10-24.md",
+      "question": "Is it in the plan?",
+      "status": "answered",
+      "disposition": "Fragment of 'When do we move to future weather and price simulation? Is it in the plan?'. Same ruling, 'Where it stood': yes, as step 6 of 7, a hypothesis taken after the levers. It is now moved ahead of the long-horizon levers in e3e5842fcb.",
+      "recorded": "2026-11-08"
+    },
+    "43053347c4b9": {
+      "ruling": "DIRECTOR_STEER_KNOWLEDGE_THAT_CHECKS_THE_WORLD_2026-10-19.md",
+      "question": "In terms of root cause, do we need to make sure knowledge is created, referenced and crosschecked better?",
+      "status": "answered",
+      "disposition": "Yes. The advisor's answer, which he endorsed ('Yes, well done'), is that the knowledge existed and nothing tested the world against it. Done built anchor-or-range (tools/world_constant_anchors.py, 446 bare constants registered), knowledge pages carrying world-claims (tools/world_claims.py) re-run on population changes, and the two fuel-mix tables reconciled to one source each.",
+      "recorded": "2026-11-08"
+    },
+    "b2e07bceda80": {
+      "ruling": "DIRECTOR_STEER_KNOWLEDGE_THAT_CHECKS_THE_WORLD_2026-10-19.md",
+      "question": "Or not?",
+      "status": "answered",
+      "disposition": "Fragment of 'do we need to make sure knowledge is created, referenced and crosschecked better? Or not?'. Answered yes, the crosschecking: see the same file's Done (world_constant_anchors, world_claims).",
+      "recorded": "2026-11-08"
+    },
+    "ef6a2158bf0e": {
+      "ruling": "DIRECTOR_STEER_THE_MAP_REGISTER_BORROWS_SKOS_FIELDS_AND_ONE_DEFINITION_PER_MEASURE_2026-10-24.md",
+      "question": "But are any of these of use too?",
+      "status": "answered",
+      "disposition": "Same file's Done: two ideas borrowed and no tooling adopted. SKOS field names (prefLabel, altLabel, definition, match) are in docs/design/the_map/concepts.yaml, and one computable definition per measure is kept in form but unproven (ebc3c34e2e). Graph DB, GraphQL and OGM were rejected, and AST was already in use.",
+      "recorded": "2026-11-08"
+    },
+    "6b3c72f249cf": {
+      "ruling": "DIRECTOR_STEER_ABSTRACTION_IS_ONE_RESEARCH_FAMILY_AND_A_CENSUS_OF_OUR_DESCRIPTIONS_2026-11-07.md",
+      "question": "Should we have perhaps research these topics as part of our harness knowledge base, including abstraction?",
+      "status": "answered",
+      "disposition": "Yes. Same file §1, approved 06:28 ('Add it'): abstraction, ontology/taxonomy, knowledge graphs, AST/code graphs, dimensional models and semantic layers are one research family in the monthly rota under 'Building it'. Done: queued third in held_behind_the_exit_test in docs/direction/priority_order.yaml.",
+      "recorded": "2026-11-08"
+    },
+    "e78f5c89e0a8": {
+      "ruling": "DIRECTOR_STEER_ONE_LIGHT_TAXONOMY_FIVE_FACETS_ON_EVERY_PAGE_AND_CLAIM_2026-11-04.md",
+      "question": "Do we need a taxonomy for all this?",
+      "status": "answered",
+      "disposition": "Yes, a light one, approved 08:49. Same file's Done: five facets (domain, layer, side, trust, use) in docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md §7. All 63 pages have records in site/data/knowledge_facets.json, a check refuses missing or circular facets, and site/knowledge/what-we-think.html filters by facet.",
+      "recorded": "2026-11-08"
     }
   }
 }

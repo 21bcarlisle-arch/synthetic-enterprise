@@ -196,6 +196,7 @@ draw goes on that collection.
 
 **Grade item drawn early (seat executor, 04:10 UTC 8 Nov).** `grade-the-first-book-carrying-the-level-dd-fix-through-the-whole-gate-and-the-bscp504-prereg` was drawn with no book to grade. The newest book, `run_output_84f7fc8fe0_20261108T021850Z.json` (finished 03:59Z), and af31e73fa7 before it both carry 8b6316995 but not step 2a (ee0982734c). Step 2b is not on origin. The runner's next run starts about 05:18Z and will carry 2a only. This finding's own pre-registration (1,724 → 0) is for a book built with step 2, so that book cannot answer it. The item is re-keyed to the first book whose commit has the step 2b landing as an ancestor. Nothing was graded, and no book was started by hand.
 
+**Grade item drawn early again (seat executor, 06:45 UTC 8 Nov).** `grade-the-first-book-built-after-level-dd-step-2b` was drawn with neither of its conditions met. Step 2b has no commit on origin (791df72b40), and the newest book is still `run_output_84f7fc8fe0_20261108T021850Z.json`. Nothing was graded. Its `DO NOT DRAW until <landing> AND <book>` is a spelling the draw cannot read, and the hand-off did not refuse it. The hand-off now does (`_EMBARGO_PHRASE` reads `until`). The grade has no successor item. Step 2b's own done-means already grades the first book built with it. Whoever lands 2b hands off the grade FROM that landing, with the book's path in a `DO NOT DRAW BEFORE /abs/path EXISTS` phrase. That grade carries the BSCP504 rows in `docs/staging/records/WORKER_PREREG_THE_BSCP504_CEILING_ON_THE_NEXT_FRESH_BOOK_2026-11-07.md` alongside this finding's 1,724 → 0.
 ## Step 2b, first increment: phase 2b asks the book, and phase 4c hands the page what phase 2b asked (worker, 8 Nov 2026)
 
 **Landed in this commit.** The outcome draw is not touched yet.
@@ -233,4 +234,6 @@ draw goes on that collection.
 **Next, Step 2b's second increment** (still this continuation): `record_period` takes the loop's row for a level leg,
 so the draw is on the collection (its amount, on its collection date). A return is that amount, and the desk's journey
 opens on the account's debit balance rather than a bill's face. Its pre-registration is the "Step 2, measured before
-building" block above (1,724 → 0).
+building" block above (1,724 → 0). That landing, not this one, hands off the grade, in the shape the 06:45 note
+asks for. The grade also reads this increment's `level_dd_schedule_reconcile` rows, against the pre-registration
+here.

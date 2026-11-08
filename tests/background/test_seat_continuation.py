@@ -121,6 +121,8 @@ def test_an_embargo_the_draw_CANNOT_READ_is_refused_at_hand_off_and_one_it_can_i
     with pytest.raises(ValueError) as exc:
         _hand(store, "glob", what="DO NOT DRAW BEFORE /var/tmp/o/{A,B}_1.json ALL EXIST. Grade.")
     assert "{A,B}" in str(exc.value), "the refusal must quote the phrase it could not read"
+    with pytest.raises(ValueError):
+        _hand(store, "until", what="DO NOT DRAW until origin/main carries the landing of x. Grade.")
     for i, readable in enumerate((
         "DO NOT DRAW BEFORE /var/tmp/o/A_1.json EXISTS. DO NOT DRAW BEFORE /var/tmp/o/B_1.json EXISTS.",
         "DO NOT DRAW BEFORE 10:45 on 2026-09-18, then grade.",
