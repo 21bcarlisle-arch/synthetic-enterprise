@@ -78,7 +78,9 @@ def test_every_map_link_lands_on_a_panel_the_map_has():
 
 def test_the_resolver_can_return_each_of_its_four_kinds():
     resolve = rlf.resolver()
-    got = {resolve(c)["kind"] for c in ("The commit gate", "Observability", "Independent review", "—")}
+    # The unplaced leg needs a label no register can hold, not a practice the register lacks today:
+    # "Independent review" stood here until 8 Nov, when the register took it in and this went red.
+    got = {resolve(c)["kind"] for c in ("The commit gate", "Observability", "No practice by this name", "—")}
     assert got == {"concept", "step", "unplaced", "none"}, got
     assert resolve("commit gate")["anchor"] == "c-build.gate"  # an altLabel resolves to its concept
 

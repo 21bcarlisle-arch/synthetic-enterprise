@@ -181,7 +181,31 @@ def second_homes_on_the_map(root: Path, rows: list[dict], concepts: list[dict] |
             "name and are not its declared home")
 
 
-EVIDENCE = {f.__name__: f for f in (mutation_recorded_share, gate_hook_count, orphan_count)}
+def blind_review_count(root: Path, rows: list[dict]) -> str | None:
+    ledger = root / "docs" / "observability" / "blind_review_ledger.jsonl"
+    if not ledger.exists():
+        return None
+    n = sum(1 for line in _text_jsonl(ledger).splitlines() if line.strip())
+    return f"{n} blind reviews recorded in the ledger" if n else None
+
+
+def mistake_class_count(root: Path, rows: list[dict]) -> str | None:
+    try:
+        from background.finding_classes import CLASSES
+    except Exception:  # noqa: BLE001 -- a register that will not import is a figure not computed
+        return None
+    return f"{len(CLASSES)} classes of mistake registered, each with its disposition" if CLASSES else None
+
+
+def _text_jsonl(path: Path) -> str:
+    """The one store read as text that is not Markdown, JSON or YAML: a JSON-lines ledger."""
+    if path.suffix != ".jsonl":
+        raise ValueError(f"{path}: not a JSON-lines ledger")
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+EVIDENCE = {f.__name__: f for f in (mutation_recorded_share, gate_hook_count, orphan_count,
+                                    blind_review_count, mistake_class_count)}
 
 
 @functools.lru_cache(maxsize=2)

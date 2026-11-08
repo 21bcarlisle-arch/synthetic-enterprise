@@ -596,6 +596,30 @@ footer { max-width: 860px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     </a>
     <a class="card-back" href="../harness/#layer-7">Held on How it&rsquo;s built by layer 7 of the control stack, The published state &rarr;</a>
   </div><!-- /practice -->
+  <div class="practice-wrap" id="practice-build.independent_review">
+    <a class="card practice" href="../model/map/#c-build.independent_review" data-concept="build.independent_review">
+      <div class="card-h">Independent review</div>
+      <div class="card-p">Finished work is read before it closes by a reviewer with no memory of building it, as an outsider would.</div>
+      <div class="card-foot">Taken from: Fagan, Design and code inspections to reduce errors in program development (IBM Systems Journal, 1976)</div>
+    </a>
+    <a class="card-back" href="../harness/#layer-6">Held on How it&rsquo;s built by layer 6 of the control stack, Independent judgement &rarr;</a>
+  </div><!-- /practice -->
+  <div class="practice-wrap" id="practice-build.not_a_target">
+    <a class="card practice" href="../model/map/#c-build.not_a_target" data-concept="build.not_a_target">
+      <div class="card-h">Outputs are diagnostics</div>
+      <div class="card-p">A figure the machine produces is read to understand it and never fed back as something to maximise.</div>
+      <div class="card-foot">Taken from: Goodhart&rsquo;s law (Goodhart 1975; Strathern 1997: when a measure becomes a target, it ceases to be a good measure)</div>
+    </a>
+    <p class="card-back">No layer of the control stack holds it yet: its guard, <code>tests/company/test_carbon_not_a_target.py</code>, refuses any decision code that can reach a carbon figure, and is not one of the stack&rsquo;s layers.</p>
+  </div><!-- /practice -->
+  <div class="practice-wrap" id="practice-build.learning">
+    <a class="card practice" href="../model/map/#c-build.learning" data-concept="build.learning">
+      <div class="card-h">Learning</div>
+      <div class="card-p">A mistake is fixed as a class rather than as the one instance, and the class becomes a check that runs.</div>
+      <div class="card-foot">Taken from: Beyer et al., Site Reliability Engineering (O&rsquo;Reilly, 2016), ch. 15: Postmortem culture, learning from failure</div>
+    </a>
+    <a class="card-back" href="../harness/#layer-8">Held on How it&rsquo;s built by layer 8 of the control stack, Learning &rarr;</a>
+  </div><!-- /practice -->
   <a class="card reading-log" href="./reading-log.html">
     <div class="card-h">The reading log</div>
     <div class="card-p">Every outside source we have read on building software, products and AI agents: what it claims, how strong its evidence is, our verdict and what we did. Rejected sources stay, with the reason.</div>

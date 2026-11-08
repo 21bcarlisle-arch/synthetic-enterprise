@@ -62,21 +62,24 @@ code { font-size: 12px; overflow-wrap: anywhere; }
   <p class="sub">This is the pilot: two slices are mapped, supplier &lsquo;Collect&rsquo; and How it&rsquo;s
   built &lsquo;Testing and controls&rsquo;. A step in a dashed box is not on the register yet. Tap a concept
   to open it; its links jump across spines.</p>
-  <ul class="spines"><li><b>The world</b><div class="steps"><span class="step" title="0 concepts placed here">Weather</span><span class="step" title="0 concepts placed here">Demand</span><span class="step" title="0 concepts placed here">Generation and merit order</span><span class="step" title="0 concepts placed here">Wholesale price</span><span class="step" title="0 concepts placed here">Settlement</span><span class="step" title="0 concepts placed here">Who lives where</span><span class="step" title="0 concepts placed here">Home physics</span><span class="step" title="0 concepts placed here">Households</span><span class="step" title="0 concepts placed here">Choices</span></div></li><li><b>The supplier&#x27;s value chain</b><div class="steps"><span class="step" title="0 concepts placed here">Acquire</span><span class="step" title="0 concepts placed here">Switch</span><span class="step" title="0 concepts placed here">Meter</span><span class="step" title="1 concepts placed here">Bill (1)</span><a class="step on" href="#s-supplier-Collect">Collect</a><span class="step" title="0 concepts placed here">Settle</span><span class="step" title="1 concepts placed here">Hedge (1)</span><span class="step" title="0 concepts placed here">Renew or lose</span><span class="step" title="0 concepts placed here">Move</span><span class="step" title="0 concepts placed here">Advise</span><span class="step" title="0 concepts placed here">Optimise</span></div></li><li><b>Running the company</b><div class="steps"><span class="step" title="0 concepts placed here">Accounts</span><span class="step" title="1 concepts placed here">Capital (1)</span><span class="step" title="0 concepts placed here">Trading risk</span><span class="step" title="0 concepts placed here">Regulation</span><span class="step" title="2 concepts placed here">Vulnerability (2)</span><span class="step" title="0 concepts placed here">Complaints</span></div></li><li><b>How it&#x27;s built</b><div class="steps"><a class="step on" href="#s-build-Testing-and-controls">Testing and controls</a><span class="step" title="1 concepts placed here">Delivery and CI (1)</span><span class="step" title="0 concepts placed here">Agents and models</span><span class="step" title="1 concepts placed here">Data and lineage (1)</span><span class="step" title="0 concepts placed here">Security</span><span class="step" title="0 concepts placed here">Observability</span></div></li></ul>
+  <ul class="spines"><li><b>The world</b><div class="steps"><span class="step" title="1 concepts placed here">Weather (1)</span><span class="step" title="0 concepts placed here">Demand</span><span class="step" title="2 concepts placed here">Generation and merit order (2)</span><span class="step" title="2 concepts placed here">Wholesale price (2)</span><span class="step" title="2 concepts placed here">Settlement (2)</span><span class="step" title="0 concepts placed here">Who lives where</span><span class="step" title="11 concepts placed here">Home physics (11)</span><span class="step" title="10 concepts placed here">Households (10)</span><span class="step" title="9 concepts placed here">Choices (9)</span></div></li><li><b>The supplier&#x27;s value chain</b><div class="steps"><span class="step" title="0 concepts placed here">Acquire</span><span class="step" title="6 concepts placed here">Switch (6)</span><span class="step" title="3 concepts placed here">Meter (3)</span><span class="step" title="1 concepts placed here">Bill (1)</span><a class="step on" href="#s-supplier-Collect">Collect</a><span class="step" title="3 concepts placed here">Settle (3)</span><span class="step" title="3 concepts placed here">Hedge (3)</span><span class="step" title="4 concepts placed here">Renew or lose (4)</span><span class="step" title="0 concepts placed here">Move</span><span class="step" title="11 concepts placed here">Advise (11)</span><span class="step" title="6 concepts placed here">Optimise (6)</span></div></li><li><b>Running the company</b><div class="steps"><span class="step" title="1 concepts placed here">Accounts (1)</span><span class="step" title="3 concepts placed here">Capital (3)</span><span class="step" title="0 concepts placed here">Trading risk</span><span class="step" title="1 concepts placed here">Regulation (1)</span><span class="step" title="8 concepts placed here">Vulnerability (8)</span><span class="step" title="0 concepts placed here">Complaints</span></div></li><li><b>How it&#x27;s built</b><div class="steps"><a class="step on" href="#s-build-Testing-and-controls">Testing and controls</a><span class="step" title="1 concepts placed here">Delivery and CI (1)</span><span class="step" title="3 concepts placed here">Agents and models (3)</span><span class="step" title="1 concepts placed here">Data and lineage (1)</span><span class="step" title="0 concepts placed here">Security</span><span class="step" title="1 concepts placed here">Observability (1)</span></div></li></ul>
   <section class="slice" id="s-supplier-Collect"><h2>The supplier&#x27;s value chain &rsaquo; Collect</h2>
   <div class="table-scroll"><table class="grid"><thead><tr><th>Concept</th><th>Knowledge</th><th>World rule</th><th>Crosses the wall</th><th>Supplier feature</th></tr></thead>
   <tbody>
-<tr><th><a href="#c-collect.mandate">Direct debit mandate</a></th><td><a href="../../knowledge/debt-and-collections/">debt-and-collections</a><br><span class="sub">11 research notes</span></td><td><code>simulation.bacs_rails</code> <span class="tag ok">called</span></td><td><span class="gap">Gap: a cancelled mandate is not an observable the seam carries</span></td><td><code>company.billing.direct_debit</code> <span class="tag ok">called</span></td></tr>
-<tr><th><a href="#c-collect.amount">Setting the direct debit amount</a></th><td><a href="../../knowledge/debt-and-collections/">debt-and-collections</a><br><span class="sub">11 research notes</span></td><td><code>simulation.dd_review_in_loop</code> <span class="tag ok">called</span></td><td><code>company.interfaces.dd_review_outcome</code> <span class="tag ok">called</span></td><td><code>company.billing.dd_review</code> <span class="tag ok">called</span></td></tr>
-<tr><th><a href="#c-collect.collection">Collection and its failure</a></th><td><a href="../../knowledge/debt-and-collections/">debt-and-collections</a><br><span class="sub">11 research notes</span></td><td><code>simulation.world_payment_truth</code> <span class="tag ok">called</span></td><td><code>company.interfaces.dd_collection_instructions</code> <span class="tag ok">called</span></td><td><code>company.billing.dd_collections_desk</code> <span class="tag ok">called</span></td></tr>
-<tr><th><a href="#c-collect.arrears">Arrears and collections</a></th><td><a href="../../knowledge/debt-and-collections/">debt-and-collections</a><br><span class="sub">11 research notes</span></td><td><code>simulation.arrears_engine</code> <span class="tag ok">called</span></td><td><code>company.interfaces.collections_communication</code> <span class="tag ok">called</span></td><td><code>company.billing.collections_journey</code> <span class="tag ok">called</span></td></tr>
-<tr><th><a href="#c-collect.payment_method">Payment method and prepayment</a></th><td><a href="../../knowledge/debt-and-collections/">debt-and-collections</a><br><span class="sub">11 research notes</span></td><td><code>simulation.payment_method_dynamics</code> <span class="tag ok">called</span></td><td><span class="gap">Gap: a change of method is not an observable the seam carries</span></td><td><code>company.billing.payment_method_register</code> <span class="tag bad">nothing calls it</span></td></tr>
+<tr><th><a href="#c-collect.mandate">Direct debit mandate</a></th><td><a href="../../knowledge/payments-and-direct-debit/">payments-and-direct-debit</a><br><span class="sub">10 research notes</span></td><td><code>simulation.bacs_rails</code> <span class="tag ok">called</span></td><td><span class="gap">Gap: a cancelled mandate is not an observable the seam carries</span></td><td><code>company.billing.direct_debit</code> <span class="tag ok">called</span></td></tr>
+<tr><th><a href="#c-collect.amount">Setting the direct debit amount</a></th><td><a href="../../knowledge/payments-and-direct-debit/">payments-and-direct-debit</a><br><span class="sub">10 research notes</span></td><td><code>simulation.dd_review_in_loop</code> <span class="tag ok">called</span></td><td><code>company.interfaces.dd_review_outcome</code> <span class="tag ok">called</span></td><td><code>company.billing.dd_review</code> <span class="tag ok">called</span></td></tr>
+<tr><th><a href="#c-collect.collection">Collection and its failure</a></th><td><a href="../../knowledge/payments-and-direct-debit/">payments-and-direct-debit</a><br><span class="sub">10 research notes</span></td><td><code>simulation.world_payment_truth</code> <span class="tag ok">called</span></td><td><code>company.interfaces.dd_collection_instructions</code> <span class="tag ok">called</span></td><td><code>company.billing.dd_collections_desk</code> <span class="tag ok">called</span></td></tr>
+<tr><th><a href="#c-collect.arrears">Arrears and collections</a></th><td><a href="../../knowledge/debt-and-collections/">debt-and-collections</a><br><span class="sub">12 research notes</span></td><td><code>simulation.arrears_engine</code> <span class="tag ok">called</span></td><td><code>company.interfaces.collections_communication</code> <span class="tag ok">called</span></td><td><code>company.billing.collections_journey</code> <span class="tag ok">called</span></td></tr>
+<tr><th><a href="#c-collect.payment_method">Payment method and prepayment</a></th><td><a href="../../knowledge/debt-and-collections/">debt-and-collections</a><br><span class="sub">12 research notes</span></td><td><code>simulation.payment_method_dynamics</code> <span class="tag ok">called</span></td><td><span class="gap">Gap: a change of method is not an observable the seam carries</span></td><td><code>company.billing.payment_method_register</code> <span class="tag bad">not in the tree</span></td></tr>
+<tr><th><a href="#c-switch.debt_objection">Debt objection</a></th><td><a href="../../knowledge/switching-mechanics/">switching-mechanics</a><br><span class="sub">6 research notes</span></td><td><code>simulation.debt_objection</code> <span class="tag ok">called</span></td><td><span class="gap">Gap: the company raises no objection of its own; the world draws industry practice (EP12)</span></td><td><span class="gap">Gap: the company raises no objection of its own; the world draws industry practice (EP12)</span></td></tr>
+<tr><th><a href="#c-capital.ccb_coverage">Credit balance cash coverage</a></th><td><a href="../../knowledge/suppliers-accounts-and-capital/">suppliers-accounts-and-capital</a><br><span class="sub">3 research notes</span></td><td><span class="gap">Gap: a direction is the regulator&#x27;s; the world issues none</span></td><td><span class="gap">Gap: nothing crosses: cash and balances are the company&#x27;s own</span></td><td><span class="gap">Gap: no module computes cash against fixed-DD credit balances</span></td></tr>
+<tr><th><a href="#c-vuln.ability_to_pay">Ability-to-pay principles</a></th><td><a href="../../knowledge/vulnerability-and-the-psr/">vulnerability-and-the-psr</a><br><span class="sub">3 research notes</span></td><td><span class="gap">Gap: financial vulnerability (V2) is drawn and drives nothing yet; arrears run off income_stress</span></td><td><span class="gap">Gap: V2 never crosses; the company infers it from payment behaviour</span></td><td><span class="gap">Gap: company.crm.affordability_inference infers ability to pay from payment behaviour and is not declared the home until it is ruled</span></td></tr>
   </tbody></table></div>
   <h3 class="band">Beliefs and decisions</h3>
   <p class="sub">The data the supplier decides on: each belief is built only from what crosses the wall,
   feeds named decisions, and is graded against the simulation's hidden truth.</p>
   <div class="beliefs"><div class="belief"><h4><a href="#c-collect.cash_forecast">Forward cash forecast per customer</a></h4><p><b>Built from</b> bills, payments and returns, payment method, the account&#x27;s record</p><p><b>The belief, in code</b> <code>company.finance.cash_forecast_provision</code> <span class="tag ok">called</span></p><p><b>Decides</b> provision, payment plans, early warnings</p><p><b>Graded against the truth</b> <span class="gap">Gap: no grade against the world&#x27;s hidden payments yet</span></p></div>
-<div class="belief"><h4><a href="#c-collect.consumption_forecast">Consumption forecast per property</a></h4><p><b>Built from</b> reads, registered consumption, weather</p><p><b>The belief, in code</b> <code>company.billing.consumption_forecast</code> <span class="tag ok">called</span></p><p><b>Decides</b> direct debit amount, unbilled estimate, purchasing, CLV</p><p><b>Graded against the truth</b> <span class="gap">Gap: no grade against the world&#x27;s true consumption yet</span></p></div>
+<div class="belief"><h4><a href="#c-collect.consumption_forecast">Consumption forecast per property</a></h4><p><b>Built from</b> reads, registered consumption, weather</p><p><b>The belief, in code</b> <code>company.billing.consumption_forecast</code> <span class="tag bad">not in the tree</span></p><p><b>Decides</b> direct debit amount, unbilled estimate, purchasing, CLV</p><p><b>Graded against the truth</b> <span class="gap">Gap: no grade against the world&#x27;s true consumption yet</span></p></div>
 <div class="belief"><h4><a href="#c-collect.cant_pay_wont_pay">Can&#x27;t pay versus won&#x27;t pay</a></h4><p><b>Built from</b> payment history, contact record, declared circumstances</p><p><b>The belief, in code</b> <code>company.crm.affordability_inference</code> <span class="tag ok">called</span></p><p><b>Decides</b> payment plan level, support referral, collections tone</p><p><b>Graded against the truth</b> <span class="gap">Gap: no grade against the world&#x27;s hidden finances yet</span></p></div></div>
   <h3 class="band">Measures, one definition each</h3>
   <p class="sub">A measure carries what it counts, over whom, and the one function that computes it. The
@@ -86,10 +89,12 @@ code { font-size: 12px; overflow-wrap: anywhere; }
   <div class="table-scroll"><table class="grid"><thead><tr><th>Concept</th><th>Established practice</th>
   <th>Our rule</th><th>What enforces it</th><th>What the record shows, computed at publish</th></tr></thead>
   <tbody>
-<tr><th><a href="#c-build.mutation">Checks that can fail</a></th><td>Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)</td><td><code>R15</code></td><td><code>docs/design/control_registry.json</code></td><td>544 of 2185 test files record the mutation that put their defect back</td></tr>
-<tr><th><a href="#c-build.gate">The commit gate</a></th><td>DORA: continuous integration, trunk-based development</td><td><code>H9</code><br><span class="sub">its mechanisms: tools/surgical_land.py, tools/isolate_hunks.py</span></td><td><code>tools/git-hooks/pre-commit</code><br><code>tools/git-hooks/commit-msg</code></td><td>23 distinct checks named in the pre-commit hook</td></tr>
-<tr><th><a href="#c-build.dead_code">Dead code</a></th><td>Fowler, Refactoring (2nd ed.): the dead-code smell</td><td><span class="gap">Gap: canon states no dead-code rule; the August orphan register keeps an uncalled module as &#x27;unhooked&#x27;</span></td><td><code>tools/capability_index.py</code><br><code>docs/design/ORPHAN_DISPOSITION_REGISTER.md</code></td><td>268 supplier modules nothing imports and no command runs, 41,435 lines</td></tr>
-<tr><th><a href="#c-build.one_home">One source of truth</a></th><td>Single source of truth; DRY (Hunt and Thomas, The Pragmatic Programmer)</td><td><code>H5</code></td><td><code>tools/canon_drift_check.py</code></td><td>22 modules (25 module-concept pairs) carry a mapped concept&#x27;s name and are not its declared home</td></tr>
+<tr><th><a href="#c-build.mutation">Checks that can fail</a></th><td>Mutation testing literature (DeMillo, Lipton and Sayward 1978; PIT, Stryker)</td><td><code>R15</code></td><td><code>docs/design/control_registry.json</code></td><td>575 of 2373 test files record the mutation that put their defect back</td></tr>
+<tr><th><a href="#c-build.gate">The commit gate</a></th><td>DORA: continuous integration, trunk-based development</td><td><code>H9</code><br><span class="sub">its mechanisms: tools/surgical_land.py, tools/isolate_hunks.py</span></td><td><code>tools/git-hooks/pre-commit</code><br><code>tools/git-hooks/commit-msg</code></td><td>24 distinct checks named in the pre-commit hook</td></tr>
+<tr><th><a href="#c-build.dead_code">Dead code</a></th><td>Fowler, Refactoring (2nd ed.): the dead-code smell</td><td><span class="gap">Gap: canon states no dead-code rule; the August orphan register keeps an uncalled module as &#x27;unhooked&#x27;</span></td><td><code>tools/capability_index.py</code><br><code>docs/design/ORPHAN_DISPOSITION_REGISTER.md</code></td><td>6 supplier modules nothing imports and no command runs, 1,479 lines</td></tr>
+<tr><th><a href="#c-build.one_home">One source of truth</a></th><td>Single source of truth; DRY (Hunt and Thomas, The Pragmatic Programmer)</td><td><code>H5</code></td><td><code>tools/canon_drift_check.py</code></td><td>35 modules (37 module-concept pairs) carry a mapped concept&#x27;s name and are not its declared home</td></tr>
+<tr><th><a href="#c-build.independent_review">Independent review</a></th><td>Fagan, Design and code inspections to reduce errors in program development (IBM Systems Journal, 1976)</td><td><code>H13</code></td><td><code>.claude/agents/phase-close-evaluator.md</code><br><code>.claude/skills/cold-eyes-walk/SKILL.md</code></td><td>12 blind reviews recorded in the ledger</td></tr>
+<tr><th><a href="#c-build.learning">Learning</a></th><td>Beyer et al., Site Reliability Engineering (O&#x27;Reilly, 2016), ch. 15: Postmortem culture, learning from failure</td><td><code>R10</code></td><td><code>background/finding_classes.py</code><br><code>background/weekly_rhythm.py</code></td><td>9 classes of mistake registered, each with its disposition</td></tr>
   </tbody></table></div></section>
   <h2>The selected concept</h2>
   <p class="sub">Tap a concept above. Nothing is selected until you do.</p>
@@ -100,7 +105,7 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p class="sub">Also called: dd mandate, direct debit instruction, AUDDIS</p>
 <p class="sub">Map atoms building it: W2_41_a_household_cancels_its_mandate_as_its_own_act</p>
 <h4>What the map flags</h4>
-<ul class="list"><li>Crosses the wall: a cancelled mandate is not an observable the seam carries</li><li>1 modules carry this concept's name and are not its declared home: <code>company.billing.dd_mandate_register</code> (nothing calls it)</li></ul>
+<ul class="list"><li>Crosses the wall: a cancelled mandate is not an observable the seam carries</li></ul>
 <h4>How it connects, across all four spines</h4>
 <p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>feeds <a href="#c-collect.collection">Collection and its failure</a></li></ul>
 </section><section class="panel" id="c-collect.amount">
@@ -117,9 +122,8 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p>The supplier presents the debit on the agreed day; the bank pays it or returns it with a reason code.</p>
 <p class="sub">Taken from: Bacs: ARUDD and ADDACS reason codes</p>
 <p class="sub">Also called: dd collection, payment collection, failed payment, ARUDD, ADDACS, dd failure, bacs return</p>
-<p class="sub">Map atoms building it: PB8_a_households_payment_channel_changes_over_its_tenure</p>
 <h4>What the map flags</h4>
-<ul class="list"><li>2 modules carry this concept's name and are not its declared home: <code>company.billing.payment_behaviour</code> (nothing calls it), <code>simulation.dd_collection_book</code> (called)</li></ul>
+<ul class="list"><li>1 modules carry this concept's name and are not its declared home: <code>simulation.dd_collection_book</code> (called)</li></ul>
 <h4>How it connects, across all four spines</h4>
 <p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>graded by <a href="#c-collect.dd_failure_rate">Direct debit failure rate</a></li><li>causes <a href="#c-collect.arrears">Arrears and collections</a></li><li>feeds (from) <a href="#c-collect.mandate">Direct debit mandate</a></li></ul>
 </section><section class="panel" id="c-collect.arrears">
@@ -129,16 +133,17 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p class="sub">Also called: arrears, debt collection, collections journey, debt referral</p>
 <p class="sub">Map atoms building it: EP4_collections_journey</p>
 <h4>What the map flags</h4>
-<ul class="list"><li>9 modules carry this concept's name and are not its declared home: <code>company.billing.account_closure</code> (nothing calls it), <code>company.billing.arrears_engine</code> (called), <code>company.billing.capacity_to_pay</code> (nothing calls it), <code>company.billing.debt_referral</code> (called), <code>company.finance.bad_debt_provision</code> (called), <code>company.finance.debt_collection</code> (called), <code>company.pricing.default_belief</code> (called), <code>saas.arrears_classifier</code> (called), <code>saas.reporting.arrears_ledger</code> (called)</li></ul>
+<ul class="list"><li>7 modules carry this concept's name and are not its declared home: <code>company.billing.arrears_engine</code> (called), <code>company.billing.debt_referral</code> (called), <code>company.finance.bad_debt_provision</code> (called), <code>company.finance.debt_collection</code> (called), <code>company.pricing.default_belief</code> (called), <code>saas.arrears_classifier</code> (called), <code>saas.reporting.arrears_ledger</code> (called)</li></ul>
 <h4>How it connects, across all four spines</h4>
-<p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>feeds <a href="#c-collect.payment_method">Payment method and prepayment</a></li><li>causes (from) <a href="#c-collect.amount">Setting the direct debit amount</a></li><li>causes (from) <a href="#c-collect.collection">Collection and its failure</a></li></ul>
+<p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>feeds <a href="#c-collect.payment_method">Payment method and prepayment</a></li><li>causes (from) <a href="#c-collect.amount">Setting the direct debit amount</a></li><li>causes (from) <a href="#c-collect.collection">Collection and its failure</a></li><li>depends on (from) <a href="#c-switch.debt_objection">Debt objection</a></li></ul>
+<p class="sub">Running the company</p><ul class="list"><li>depends on (from) <a href="#c-vuln.ability_to_pay">Ability-to-pay principles</a></li></ul>
 </section><section class="panel" id="c-collect.payment_method">
 <h3>Payment method and prepayment <span class="sub">collect.payment_method</span></h3>
 <p>How a household pays; moving someone to prepayment for debt is tightly restricted.</p>
 <p class="sub">Taken from: SLC 28B; Ofgem involuntary prepayment rules (2023)</p>
 <p class="sub">Also called: payment method, prepayment, ppm, pay as you go</p>
 <h4>What the map flags</h4>
-<ul class="list"><li>Crosses the wall: a change of method is not an observable the seam carries</li><li>5 modules carry this concept's name and are not its declared home: <code>company.billing.ppm_debt_loading</code> (called), <code>company.billing.ppm_emergency_credit_register</code> (called), <code>company.billing.ppm_warrant_register</code> (nothing calls it), <code>company.billing.prepayment</code> (nothing calls it), <code>company.pricing.default_belief</code> (called)</li></ul>
+<ul class="list"><li>Crosses the wall: a change of method is not an observable the seam carries</li><li>4 modules carry this concept's name and are not its declared home: <code>company.billing.ppm_debt_loading</code> (called), <code>company.billing.ppm_emergency_credit_register</code> (called), <code>company.billing.ppm_warrant_register</code> (nothing calls it), <code>company.pricing.default_belief</code> (called)</li></ul>
 <h4>How it connects, across all four spines</h4>
 <p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>feeds (from) <a href="#c-collect.arrears">Arrears and collections</a></li></ul>
 </section><section class="panel" id="c-collect.cash_forecast">
@@ -148,7 +153,7 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p class="sub">Also called: cash forecast, cash flow forecast</p>
 <p class="sub">Map atoms building it: E6_a_forward_cash_forecast_per_customer_charges_expected_loss_as_arrears_build</p>
 <h4>What the map flags</h4>
-<ul class="list"><li>graded by: no grade against the world&#x27;s hidden payments yet</li><li>1 modules carry this concept's name and are not its declared home: <code>company.finance.cash_flow_forecast</code> (nothing calls it)</li></ul>
+<ul class="list"><li>graded by: no grade against the world&#x27;s hidden payments yet</li></ul>
 <h4>How it connects, across all four spines</h4>
 <p>No link from here.</p>
 </section><section class="panel" id="c-collect.consumption_forecast">
@@ -157,7 +162,7 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p class="sub">Taken from: SLC 27.15 best current information; MRA/REC estimated annual consumption</p>
 <p class="sub">Also called: consumption forecast, annual consumption estimate, load forecast</p>
 <h4>What the map flags</h4>
-<ul class="list"><li>graded by: no grade against the world&#x27;s true consumption yet</li><li>2 modules carry this concept's name and are not its declared home: <code>company.billing.annual_consumption_estimate</code> (called), <code>company.market.load_forecast</code> (nothing calls it)</li></ul>
+<ul class="list"><li>graded by: no grade against the world&#x27;s true consumption yet</li><li>1 modules carry this concept's name and are not its declared home: <code>company.billing.annual_consumption_estimate</code> (called)</li></ul>
 <h4>How it connects, across all four spines</h4>
 <p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>depends on (from) <a href="#c-collect.amount">Setting the direct debit amount</a></li></ul>
 </section><section class="panel" id="c-collect.cant_pay_wont_pay">
@@ -166,9 +171,9 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p class="sub">Taken from: SLC 27.5 and 28B ability to pay; Ofgem Consumer Standards 2023</p>
 <p class="sub">Also called: affordability, ability to pay, cant pay</p>
 <h4>What the map flags</h4>
-<ul class="list"><li>graded by: no grade against the world&#x27;s hidden finances yet</li><li>2 modules carry this concept's name and are not its declared home: <code>company.billing.capacity_to_pay</code> (nothing calls it), <code>company.billing.payment_plan_adequacy</code> (nothing calls it)</li></ul>
+<ul class="list"><li>graded by: no grade against the world&#x27;s hidden finances yet</li></ul>
 <h4>How it connects, across all four spines</h4>
-<p>No link from here.</p>
+<p class="sub">Running the company</p><ul class="list"><li>feeds (from) <a href="#c-vuln.ability_to_pay">Ability-to-pay principles</a></li></ul>
 </section><section class="panel" id="c-collect.dd_failure_rate">
 <h3>Direct debit failure rate <span class="sub">collect.dd_failure_rate</span></h3>
 <p>The share of presented direct debit collections that the bank returns unpaid.</p>
@@ -177,9 +182,519 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <h4>Measures, one definition each</h4><ul class="list"><li><b>Direct debit failure rate</b>: counts collections returned unpaid, over collections presented in the period. Computed by <span class="gap">Gap: no function is named as its one definition yet</span>.</li>
 <li><b><code>direct_debit_share_of_accounts</code></b>, stated on <code>gb_payment_method_migration_rates</code>: published range 66.5% to 75.5%, checked against the drawn world by <code>tools.world_claims._direct_debit_share_of_accounts</code>. <span class="sub">DESNZ Quarterly Energy Prices, Dec 2025 commentary, p.9: standard electricity DD 69% (Sept 2020) to 72% (Sept 2025), gas to 73%.</span></li></ul>
 <h4>What the map flags</h4>
-<ul class="list"><li>computed by: no function is named as its one definition yet</li><li>1 modules carry this concept's name and are not its declared home: <code>company.billing.payment_behaviour</code> (nothing calls it)</li></ul>
+<ul class="list"><li>computed by: no function is named as its one definition yet</li></ul>
 <h4>How it connects, across all four spines</h4>
 <p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>graded by (from) <a href="#c-collect.collection">Collection and its failure</a></li></ul>
+</section><section class="panel" id="c-switch.loss_notice">
+<h3>Loss notice <span class="sub">switch.loss_notice</span></h3>
+<p>The losing supplier is told a meter point is being registered away, first while the switch can still be stopped and then when it cannot.</p>
+<p class="sub">Taken from: REC Schedule 23 Registration Services, paras 7.1.9 and 13.4</p>
+<p class="sub">Also called: invitation to intervene, secured inactive, registration loss, change of supplier notice</p>
+<p class="sub">Map atoms building it: EP12_adapter_css_rec_switching</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>1 modules carry this concept's name and are not its declared home: <code>simulation.save_on_loss_notice</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>feeds <a href="#c-switch.save">Save offer on a loss notice</a></li><li>feeds <a href="#c-switch.debt_objection">Debt objection</a></li></ul>
+</section><section class="panel" id="c-switch.debt_objection">
+<h3>Debt objection <span class="sub">switch.debt_objection</span></h3>
+<p>The losing supplier may stop a domestic credit customer&#x27;s switch for charges outstanding more than 28 days after it asked for them.</p>
+<p class="sub">Taken from: SLC 14.4(a); Ofgem decision on domestic objections (Jul 2016)</p>
+<p class="sub">Also called: objection, transfer blocking, debt block</p>
+<p class="sub">Map atoms building it: EP12_adapter_css_rec_switching</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: the company raises no objection of its own; the world draws industry practice (EP12)</li><li>Supplier feature: the company raises no objection of its own; the world draws industry practice (EP12)</li><li>2 modules carry this concept's name and are not its declared home: <code>company.interfaces.transfer_objection</code> (called), <code>company.market.transfer_objection_register</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>depends on <a href="#c-collect.arrears">Arrears and collections</a></li><li>feeds (from) <a href="#c-switch.loss_notice">Loss notice</a></li></ul>
+</section><section class="panel" id="c-switch.save">
+<h3>Save offer on a loss notice <span class="sub">switch.save</span></h3>
+<p>An offer to a household that has asked to leave; it keeps the household only if the household cancels with the new supplier.</p>
+<p class="sub">Taken from: SLC 22B retention derogation; REC R0287 (Feb 2026)</p>
+<p class="sub">Also called: save offer, retention tariff, win-back</p>
+<h4>What the map flags</h4>
+<p>Nothing: every layer it needs is filled and no second home was found.</p>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>feeds (from) <a href="#c-switch.loss_notice">Loss notice</a></li></ul>
+</section><section class="panel" id="c-switch.erroneous_transfer">
+<h3>Erroneous transfer <span class="sub">switch.erroneous_transfer</span></h3>
+<p>A switch of the wrong meter point or a customer who never agreed, returned to the old supplier with £30 compensation.</p>
+<p class="sub">Taken from: SLC 14; Ofgem erroneous transfers paper (2016); GSoP (2020)</p>
+<p class="sub">Also called: erroneous switch, mistaken switch</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: the world has no failed or erroneous switch (registration_loss_seam GAPS)</li><li>Crosses the wall: no failed switch crosses the seam</li><li>Supplier feature: nothing to handle while the world sends none</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-capital.mcr">
+<h3>Minimum capital requirement <span class="sub">capital.mcr</span></h3>
+<p>A domestic supplier holds at least zero, and aims for £115, of adjusted net assets per dual-fuel customer, from 31 March 2025.</p>
+<p class="sub">Taken from: SLC 4B; Ofgem financial resilience decision (26 Jul 2023)</p>
+<p class="sub">Also called: capital target, capital floor, adjusted net assets, mcr</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: capital is the company&#x27;s own; the world holds no rule for it</li><li>Crosses the wall: nothing crosses: the company reads its own balance sheet</li><li>1 modules carry this concept's name and are not its declared home: <code>saas.capital.solvency</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-capital.ccb_coverage">
+<h3>Credit balance cash coverage <span class="sub">capital.ccb_coverage</span></h3>
+<p>Ofgem may ringfence customers&#x27; credit balances when a supplier&#x27;s cash falls below 20% of its gross fixed direct debit credit balances.</p>
+<p class="sub">Taken from: Ofgem financial resilience decision (26 Jul 2023): Cash Coverage Trigger</p>
+<p class="sub">Also called: cash coverage trigger, customer credit balances, ringfencing</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: a direction is the regulator&#x27;s; the world issues none</li><li>Crosses the wall: nothing crosses: cash and balances are the company&#x27;s own</li><li>Supplier feature: no module computes cash against fixed-DD credit balances</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-accounts.segmental_statement">
+<h3>Consolidated Segmental Statement <span class="sub">accounts.segmental_statement</span></h3>
+<p>An audited statement separating supply from other activities down to EBIT, reconciled to the statutory accounts.</p>
+<p class="sub">Taken from: SLC 19A; Ofgem CSS modification (Sep 2025)</p>
+<p class="sub">Also called: segmental statement, segment profitability, supply ebit</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: an accounting statement has no world rule</li><li>Crosses the wall: nothing crosses: the company&#x27;s own ledgers</li><li>1 modules carry this concept's name and are not its declared home: <code>saas.reporting.css_statement</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-world.driver_mileage">
+<h3>Annual mileage per driver <span class="sub">world.driver_mileage</span></h3>
+<p>The miles a household&#x27;s car is driven in a year, skewed and set by who drives it rather than by its fuel.</p>
+<p class="sub">Taken from: DfT National Travel Survey NTS0901, NTS0904</p>
+<p class="sub">Also called: annual mileage, miles driven, car miles per year</p>
+<p class="sub">Map atoms building it: W1_29_the_worlds_homes_are_drawn_too_alike_in_half_hourly_behaviour</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: mileage never crosses; a supplier can only ask, or bound it from charging kWh</li><li>Supplier feature: no module estimates a customer&#x27;s mileage</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-world.offstreet_parking">
+<h3>Off-street parking <span class="sub">world.offstreet_parking</span></h3>
+<p>Whether a home&#x27;s car can be parked, and so charged, on the home&#x27;s own land overnight.</p>
+<p class="sub">Taken from: DfT National Travel Survey NTS0908; DfT EV driver tracker</p>
+<p class="sub">Also called: driveway, has_driveway, home charging access</p>
+<p class="sub">Map atoms building it: KNIFE3_wall_crossing_paydown, W2_18_the_housing_joint_the_sample_and_the_ceiling</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: nothing crosses; a supplier asks or reads weak address signals</li><li>Supplier feature: no module holds a customer&#x27;s parking</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-world.vehicle_energy_per_mile">
+<h3>Vehicle energy per mile <span class="sub">world.vehicle_energy_per_mile</span></h3>
+<p>The energy a car uses per mile on the road, set by its model and the day&#x27;s temperature, plus what is lost charging it.</p>
+<p class="sub">Taken from: EV Database real-world consumption; ADAC charging-loss tests; ICCT Lab-to-Road</p>
+<p class="sub">Also called: ev efficiency, wh per mile, miles per kwh, real-world fuel economy</p>
+<p class="sub">Map atoms building it: W1_29_the_worlds_homes_are_drawn_too_alike_in_half_hourly_behaviour</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: nothing crosses unless the customer shares car data</li><li>Supplier feature: no module holds a car&#x27;s efficiency</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-world.phev_electric_share">
+<h3>Plug-in hybrid electric share <span class="sub">world.phev_electric_share</span></h3>
+<p>The share of a plug-in hybrid&#x27;s miles or energy that is electric, set by how often its owner charges it.</p>
+<p class="sub">Taken from: ICCT/Fraunhofer real-world PHEV use (2022); EU OBFCM (2025)</p>
+<p class="sub">Also called: utility factor, phev electric miles</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: the world has no plug-in hybrid; an EV is one flag</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: nothing to infer while the world draws none</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-world.ev_home_charging">
+<h3>Home EV charging <span class="sub">world.ev_home_charging</span></h3>
+<p>The electricity a household&#x27;s car draws through the home meter, set by its miles, its efficiency and how often and when it is plugged in.</p>
+<p class="sub">Taken from: Electric Nation trial (WPD); DfT EV driver tracker</p>
+<p class="sub">Also called: ev charging load, ev annual kwh, charging session, plug-in</p>
+<p class="sub">Map atoms building it: W1_29_the_worlds_homes_are_drawn_too_alike_in_half_hourly_behaviour</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: only the metered half-hourly total crosses; the car&#x27;s own load is not separated</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-advise.ev_fuel_saving">
+<h3>EV fuel saving <span class="sub">advise.ev_fuel_saving</span></h3>
+<p>What a household&#x27;s electric miles cost against the same miles in its previous petrol or diesel car at that week&#x27;s pump price.</p>
+<p class="sub">Taken from: AA pence-per-mile; DESNZ GHG conversion factors 2026</p>
+<p class="sub">Also called: ev saving vs petrol, pence per mile, fuel counterfactual</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no household holds a petrol or diesel car to compare against</li><li>Crosses the wall: mileage and the previous car never cross; the supplier must ask</li><li>Supplier feature: no module computes it</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-home.boiler_in_use_efficiency">
+<h3>Boiler in-use efficiency <span class="sub">home.boiler_in_use_efficiency</span></h3>
+<p>The share of a gas boiler&#x27;s fuel delivered as useful heat over a season in a real home, which falls as the return water temperature rises above about 55°C.</p>
+<p class="sub">Taken from: BRE S10TP-12 (SAP 10 seasonal efficiency); GASTEC for EST in-situ condensing boiler trial (2009)</p>
+<p class="sub">Also called: seasonal boiler efficiency, condensing efficiency, sedbuk, erp efficiency</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: nothing crosses: the supplier sees only metered gas and must ask for the boiler&#x27;s model and age</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-home.flow_temperature">
+<h3>Boiler flow temperature <span class="sub">home.flow_temperature</span></h3>
+<p>The temperature a boiler sends water out to the radiators at, set on the boiler; below about 55°C return it condenses.</p>
+<p class="sub">Taken from: Nesta Money Saving Boiler Challenge evidence (Oct 2022); BEIS Boiler Plus (Apr 2018)</p>
+<p class="sub">Also called: flow temp, boiler flow setting, weather compensation</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no home holds a flow temperature; boiler efficiency is fixed by age</li><li>Crosses the wall: not inferable from meter data; must be asked</li><li>Supplier feature: the advice is named in the offer book&#x27;s comments and blocked on a source</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-home.heating_setpoint_and_schedule">
+<h3>Heating setpoint and schedule <span class="sub">home.heating_setpoint_and_schedule</span></h3>
+<p>The temperature a household sets its thermostat to and the periods it heats in, which with the building set the temperature it actually lives at.</p>
+<p class="sub">Taken from: EFUS 2017 heating patterns and occupancy (BEIS)</p>
+<p class="sub">Also called: thermostat setting, setpoint, heating schedule, heating hours, setback</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: only weakly inferable from the half-hourly gas shape; must be asked or read from a connected thermostat</li><li>Supplier feature: nothing in the company estimates a household&#x27;s setpoint or schedule</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-advise.health_floor">
+<h3>Health floor on heating advice <span class="sub">advise.health_floor</span></h3>
+<p>The indoor temperature below which no advice may push a home; 18°C for a living room, higher for the old and ill, with any room-hour below 16°C flagged.</p>
+<p class="sub">Taken from: WHO Housing and Health Guidelines (2018); PHE minimum home temperature thresholds (2014); NICE NG6</p>
+<p class="sub">Also called: minimum indoor temperature, cold home threshold, 18c floor</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: a health floor is a rule on advice, not a property of the world; the world produces the temperatures it is checked against</li><li>Crosses the wall: nothing crosses: the floor is the company&#x27;s own rule</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-home.heat_pump_spf">
+<h3>Heat pump seasonal performance factor <span class="sub">home.heat_pump_spf</span></h3>
+<p>The heat a heat pump delivers over a year divided by the electricity it uses, at a stated boundary; median 2.80 for air-source in the Electrification of Heat trial.</p>
+<p class="sub">Taken from: Energy Systems Catapult, Electrification of Heat demonstration (2023); DECC RHPP final report (2016)</p>
+<p class="sub">Also called: spf, scop, heat pump efficiency, coefficient of performance</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: only measurable with a heat meter or an assumed heat demand; the supplier sees the electricity</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-home.measured_insulation_saving">
+<h3>Measured insulation saving <span class="sub">home.measured_insulation_saving</span></h3>
+<p>The median weather-corrected fall in a home&#x27;s gas after an insulation measure, against a comparison group without one, as NEED reports it.</p>
+<p class="sub">Taken from: DESNZ National Energy Efficiency Data-Framework (NEED) reports 2018-2026</p>
+<p class="sub">Also called: need saving, insulation saving</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: the world&#x27;s insulation changes the fabric; the measured saving is an output to grade it against</li><li>Crosses the wall: the supplier sees gas before and after and must build its own comparison group</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-asset.pv_self_consumption">
+<h3>Solar self-consumption <span class="sub">asset.pv_self_consumption</span></h3>
+<p>The share of a home&#x27;s solar generation used on site rather than exported, by month; SAP gives it as exp(-C1(C2 E/D)^C3) with coefficients that move with usable battery kWh.</p>
+<p class="sub">Taken from: BRE S10TP-07, SAP 10.2 PV self-use factor</p>
+<p class="sub">Also called: self-use factor, self-consumption, solar self-use</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: net import crosses; generation and self-use do not unless the household shares inverter data</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-asset.battery_operating_mode">
+<h3>Home battery operating mode <span class="sub">asset.battery_operating_mode</span></h3>
+<p>How a home battery is set to run - self-consumption, timed grid charge to a target state of charge, timed export, and a reserve floor - which decides most of what it earns.</p>
+<p class="sub">Taken from: manufacturer controls (GivEnergy, Tesla Powerwall 3); Octopus Flux and Intelligent Flux terms</p>
+<p class="sub">Also called: battery mode, reserve floor, battery schedule, grid charging</p>
+<p class="sub">Map atoms building it: C_supply_start_consumer_routing, KNIFE3_wall_crossing_paydown, PB7_the_company_learns_what_it_can_now_see, W2_40_voids_tied_to_move_outs, W3_1b_intra_year_price_cap_granularity</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: settings never cross; the supplier must ask or read an inverter API with consent</li><li>Supplier feature: the company holds no battery settings</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-asset.pv_array_orientation">
+<h3>Solar array orientation and tilt <span class="sub">asset.pv_array_orientation</span></h3>
+<p>The compass direction and slope of a roof plane carrying panels; with location it sets the share of the best possible yield an array can reach.</p>
+<p class="sub">Taken from: PVGIS (EU JRC); MCS irradiance zone tables</p>
+<p class="sub">Also called: azimuth, roof aspect, panel tilt, roof pitch</p>
+<p class="sub">Map atoms building it: KNIFE3_wall_crossing_paydown, W2_18_the_housing_joint_the_sample_and_the_ceiling</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: orientation never crosses; the supplier asks, or infers it from generation data</li><li>Supplier feature: the company holds no orientation</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-asset.pv_specific_yield">
+<h3>Solar specific yield <span class="sub">asset.pv_specific_yield</span></h3>
+<p>Annual generation per kilowatt of installed panel; DESNZ publishes the Feed-in Tariff fleet&#x27;s median as a load factor each year.</p>
+<p class="sub">Taken from: DESNZ Feed-in Tariff load factor analysis</p>
+<p class="sub">Also called: kWh per kWp, solar load factor, yield per kWp</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: generation crosses only through a FiT generation meter or consented inverter data</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-network.connect_and_notify">
+<h3>Connect and notify <span class="sub">network.connect_and_notify</span></h3>
+<p>The route by which an installer may fit one EV charger, heat pump or small generator and tell the DNO within 28 days, open only when the home&#x27;s supply passes the ENA form&#x27;s conditions.</p>
+<p class="sub">Taken from: ENA EV charge point and heat pump form v3.3; EREC G98, G99, G100</p>
+<p class="sub">Also called: notify or apply, apply to connect, ENA connection form, G98 notification</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no connection step: every device installs instantly</li><li>Crosses the wall: an installer&#x27;s notification goes to the DNO, not the supplier</li><li>Supplier feature: no module plans install lead time or conversion loss</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-network.looped_service">
+<h3>Looped service <span class="sub">network.looped_service</span></h3>
+<p>One service cable feeding two or more homes through a shared cut-out; it rules out connect and notify, and covers about 3.9 million GB homes.</p>
+<p class="sub">Taken from: DESNZ Unlooping electricity network connections (Jan 2026)</p>
+<p class="sub">Also called: looped supply, shared service cable, unlooping</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no home carries a looped flag</li><li>Crosses the wall: invisible to a supplier until a survey finds it</li><li>Supplier feature: none</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-network.cut_out_rating">
+<h3>Cut-out rating and supply phase <span class="sub">network.cut_out_rating</span></h3>
+<p>The amp rating of the DNO&#x27;s main fuse at the home (typically 60-100 A) and whether the supply is single- or three-phase; together they bound what can be added before an application.</p>
+<p class="sub">Taken from: ENA form v3.3 (13.8 kVA / 60 A per phase)</p>
+<p class="sub">Also called: main fuse rating, cut-out fuse, fuse upgrade, three-phase supply</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no home carries a cut-out rating or phase; a 22 kW charger is drawn regardless</li><li>Crosses the wall: not visible to a supplier</li><li>Supplier feature: none</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-optimise.third_party_flex">
+<h3>Third-party flexibility capture <span class="sub">optimise.third_party_flex</span></h3>
+<p>An independent party trades or balances a supplier&#x27;s customer&#x27;s demand turn-down or turn-up, and the supplier is compensated for the resulting deviation at a reference price funded by all suppliers by market share.</p>
+<p class="sub">Taken from: BSC P415 (live 7 Nov 2024); Supplier Compensation Reference Price Methodology v2.0; P444; P510 and P511</p>
+<p class="sub">Also called: virtual trading party, virtual lead party, vtp, deviation volume, supplier compensation</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no rival aggregator agent exists; no MSID is ever claimed by another party</li><li>Crosses the wall: no compensation or deviation volume crosses</li><li>Supplier feature: nothing books compensation or the mutualisation levy</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-optimise.dno_flexibility">
+<h3>Local network flexibility <span class="sub">optimise.dno_flexibility</span></h3>
+<p>A distribution network buys demand turn-down or turn-up in named zones through standard products, paying availability per MW per hour and utilisation per MWh, settled per minute with a performance multiplier.</p>
+<p class="sub">Taken from: ENA Open Networks standard products; Elexon Flexibility Market Rules FMR-VSM (30 Jan 2026) and FMR-SBM; DNO SLC31E reports</p>
+<p class="sub">Also called: dno flexibility, dso flexibility, flexibility zone, peak reduction, scheduled utilisation</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no network zone map, call or local price exists</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: company.market.dso_flexibility_tender_register exists and has no caller</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-optimise.demand_flexibility_event">
+<h3>Demand flexibility event <span class="sub">optimise.demand_flexibility_event</span></h3>
+<p>A called window in which a household is paid to use less (or more) than a baseline of its own recent similar days, with payment on delivered kWh.</p>
+<p class="sub">Taken from: NESO Demand Flexibility Service terms (2022/23-2024/25); BSC P376 baselining</p>
+<p class="sub">Also called: demand flexibility service, dfs, saving session, turn-down event</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: no event notice or delivered-volume settlement crosses the seam; the world dispatches and books its own events</li><li>2 modules carry this concept's name and are not its declared home: <code>company.market.dfs_published_record</code> (called), <code>company.market.flexibility_revenue</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-optimise.wholesale_shaping">
+<h3>Wholesale shaping under half-hourly settlement <span class="sub">optimise.wholesale_shaping</span></h3>
+<p>The fall in a supplier&#x27;s own purchase cost when its customers&#x27; settled half-hourly demand moves from expensive to cheap periods.</p>
+<p class="sub">Taken from: Ofgem MHHS decision (benefits £1.6-4.5bn to 2045); Elexon half-hourly settlement</p>
+<p class="sub">Also called: load shifting value, smart charging value, tariff-embedded shifting</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: households do not shift load in response to a price signal beyond the time-of-use peak window</li><li>Crosses the wall: half-hourly reads cross, but no shifting instruction goes back</li><li>Supplier feature: no module values a household&#x27;s shifted kWh against the company&#x27;s half-hourly costs</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-advise.measured_saving">
+<h3>Measured household saving <span class="sub">advise.measured_saving</span></h3>
+<p>A home&#x27;s weather-normalised baseline prediction of what it would have used, minus what it used, with its fractional savings uncertainty.</p>
+<p class="sub">Taken from: IPMVP Option C (EVO 10000-1:2022); CalTRACK methods; ASHRAE Guideline 14</p>
+<p class="sub">Also called: measured saving, metered saving, avoided energy use, savings uncertainty</p>
+<h4>Measures, one definition each</h4><ul class="list"><li><b>Measured household saving</b>: counts baseline-predicted minus metered kWh, weather-normalised, over a home or a portfolio over a reporting period. Computed by <span class="gap">Gap: no estimator exists; the household-side figure (company.analytics.household_value_share) is a price comparison against the default tariff, not a change in use</span>.</li></ul>
+<h4>What the map flags</h4>
+<ul class="list"><li>computed by: no estimator exists; the household-side figure (company.analytics.household_value_share) is a price comparison against the default tariff, not a change in use</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-advise.deemed_saving">
+<h3>Deemed saving <span class="sub">advise.deemed_saving</span></h3>
+<p>A fixed saving assigned to a measure in advance from a model, reduced by an in-use factor or a treated-share adjustment.</p>
+<p class="sub">Taken from: Ofgem ECO Measures Table v1.6 (2014); ECO4 and GBIS partial project scores</p>
+<p class="sub">Also called: deemed score, in-use factor, deemed savings</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: the world holds the prebound effect that makes deemed savings over-predict</li><li>Crosses the wall: nothing crosses: a deemed saving is the supplier&#x27;s own table</li><li>Supplier feature: no deemed-savings table is held</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-advise.savings_claim">
+<h3>Savings claim to a customer <span class="sub">advise.savings_claim</span></h3>
+<p>A statement to a customer of money, energy or carbon saved, which must state its basis and evidence class and be achieved by a significant share of those it is shown to.</p>
+<p class="sub">Taken from: Ofgem SLC 0 Standards of Conduct; CMA Green Claims Code (2021); ASA rulings British Gas (4 Mar 2026) and Octopus (23 Apr 2025)</p>
+<p class="sub">Also called: savings claim, you saved, up to claim</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: a claim is the supplier&#x27;s statement; the world holds only the true saving it is graded against</li><li>Crosses the wall: no claim reaches a household yet</li><li>Supplier feature: no claim is shown to any household yet</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-price.realised_volatility">
+<h3>Realised price volatility <span class="sub">price.realised_volatility</span></h3>
+<p>The standard deviation of daily log price changes over a period, scaled to that period&#x27;s trading days; it clusters in calm and turbulent spells and is higher for gas in winter.</p>
+<p class="sub">Taken from: OIES NG60 (Alterman 2012): returns method</p>
+<p class="sub">Also called: realised volatility, price volatility, volatility clustering, monthly volatility</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: the company reads the same history through the seam; no volatility observable is separately published to it</li><li>Supplier feature: no company measure of realised volatility is graded against the record</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-price.curve_shape">
+<h3>Forward curve shape <span class="sub">price.curve_shape</span></h3>
+<p>Whether near-dated contracts trade above (backwardation) or below (contango) later ones, and the winter-over-summer spread; both follow the spot level.</p>
+<p class="sub">Taken from: ICE Endex NBP and UK base load futures: month, quarter and season contracts</p>
+<p class="sub">Also called: backwardation, contango, seasonal spread, curve slope</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: the forward quote crosses as a price, not as a curve with a slope</li><li>Supplier feature: nothing measures the curve&#x27;s slope or the record&#x27;s share of backwardated days, which is unpublished</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-price.spark_spread">
+<h3>Clean spark spread <span class="sub">price.spark_spread</span></h3>
+<p>The power price less the cost of the gas a standard 49.13%-efficient plant burns to make it and, for the clean spread, the carbon it emits at 0.411 t/MWh.</p>
+<p class="sub">Taken from: GB market convention: 49.13% CCGT efficiency, 0.411 tCO2/MWh</p>
+<p class="sub">Also called: spark spread, dark spread, clean dark spread, gas-to-power margin</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no module computes the spread, and the replayed gas price is monthly, so its daily range cannot be formed</li><li>Crosses the wall: nothing crosses: the spread is a market quantity the company does not trade</li><li>Supplier feature: the company does not own generation</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-cost.dated_series">
+<h3>Dated cost series <span class="sub">cost.dated_series</span></h3>
+<p>A price or installed cost recorded against the date it applied, with its granularity (region, size band, payment method), so a household&#x27;s comparison uses the value of its own date.</p>
+<p class="sub">Taken from: DESNZ weekly road fuel prices; DESNZ Solar PV cost data; Boiler Upgrade Scheme statistics</p>
+<p class="sub">Also called: dated series, pump price, road fuel price, installed cost, kit cost</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no road-fuel price and no dated kit cost exists in the world</li><li>Crosses the wall: published prices are public; nothing crosses because nothing is held</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-carbon.grid_factor_year">
+<h3>Grid carbon factor and its data year <span class="sub">carbon.grid_factor_year</span></h3>
+<p>DESNZ&#x27;s annual electricity factor describes grid data one or two years older than the year it is issued for; the methodology paper&#x27;s consistent series is indexed by data year.</p>
+<p class="sub">Taken from: DESNZ GHG conversion factors 2026 methodology, Tables 9 and 1.6</p>
+<p class="sub">Also called: conversion factor, grid emission factor, data year, reporting year</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: the world replays NESO&#x27;s measured intensity and holds no DESNZ factor</li><li>Crosses the wall: a published factor; nothing crosses</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-tariff.default_tariff">
+<h3>Default tariff <span class="sub">tariff.default_tariff</span></h3>
+<p>An open-ended tariff whose price moves when the cap moves; a household that does nothing at the end of a fixed term lands on it, and since 1 Jan 2019 its price is capped per fuel, payment method and region.</p>
+<p class="sub">Taken from: Domestic Gas and Electricity (Tariff Cap) Act 2018; SLC 22C.7; SLC 28AD</p>
+<p class="sub">Also called: standard variable tariff, svt, evergreen tariff, default tariff cap</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: the company sees an account&#x27;s tariff from its own book; no seam row is the default product itself</li><li>Supplier feature: the company sets no default price: the world prices the default at the published cap</li><li>3 modules carry this concept's name and are not its declared home: <code>company.pricing.ofgem_price_cap</code> (called), <code>simulation.price_cap_enforcement</code> (called), <code>simulation.svt_rates</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>depends on <a href="#c-tariff.fixed_term_end">End of a fixed term</a></li><li>feeds (from) <a href="#c-tariff.fixed_term_end">End of a fixed term</a></li></ul>
+<p class="sub">The world</p><ul class="list"><li>graded by <a href="#c-tariff.default_share">Share of households on the default tariff</a></li></ul>
+</section><section class="panel" id="c-tariff.fixed_term_end">
+<h3>End of a fixed term <span class="sub">tariff.fixed_term_end</span></h3>
+<p>The supplier writes 42-49 days before a fix ends; a household that does nothing moves to the default, or to a fixed default no dearer than the cheapest evergreen tariff, with no exit fee.</p>
+<p class="sub">Taken from: SLC 22C.4(a) and 22C.7 (from 6 Dec 2017)</p>
+<p class="sub">Also called: renewal notice, end of fix, rollover, fixed term default</p>
+<p class="sub">Map atoms building it: KNIFE3_wall_crossing_paydown</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Supplier feature: company.crm.renewal_notice_register would be the home and is uncalled; the renewal price is struck in the renewal rate chain</li><li>2 modules carry this concept's name and are not its declared home: <code>company.crm.renewal_advice_desk</code> (called), <code>company.crm.renewal_notice_register</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The world</p><ul class="list"><li>feeds <a href="#c-tariff.default_tariff">Default tariff</a></li><li>depends on (from) <a href="#c-tariff.default_tariff">Default tariff</a></li></ul>
+</section><section class="panel" id="c-tariff.exit_fee">
+<h3>Exit fee <span class="sub">tariff.exit_fee</span></h3>
+<p>A flat fee per fuel for leaving a fixed term early; none may be charged in the final 49 days, and no rule caps its size.</p>
+<p class="sub">Taken from: SLC 22C; Which? exit-fee guidance</p>
+<p class="sub">Also called: early termination fee, termination fee</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no household pays or weighs an exit fee</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: company.billing.exit_fee is uncalled, waives at 42 days not 49, and prices per kWh where published fees are flat</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-tariff.time_of_use">
+<h3>Time-of-use tariff <span class="sub">tariff.time_of_use</span></h3>
+<p>A tariff whose unit rate depends on the time of day, from an Economy 7 night rate on a restricted meter to half-hourly rates on a smart meter.</p>
+<p class="sub">Taken from: SLC 22G (restricted meters); Ofgem State of the Market (Jan 2026)</p>
+<p class="sub">Also called: tou, economy 7, restricted meter, multi-register, agile, ev tariff</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>3 modules carry this concept's name and are not its declared home: <code>company.market.tou_periods</code> (called), <code>sim.profile_class_2</code> (called), <code>simulation.demand_response</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-tariff.default_share">
+<h3>Share of households on the default tariff <span class="sub">tariff.default_share</span></h3>
+<p>Domestic accounts on a default tariff over domestic accounts, on a named basis (with or without prepayment).</p>
+<p class="sub">Taken from: Ofgem SVT trends (2017); State of the Market (2019, 2025, 2026); Commons Library CBP-9714</p>
+<p class="sub">Also called: default share, svt share, fixed share, tariff mix</p>
+<h4>Measures, one definition each</h4><ul class="list"><li><b>Share of households on the default tariff</b>: counts domestic accounts on a default tariff, over domestic accounts, basis named (all-domestic or excluding prepayment). Computed by <code>tools.published_tariff_mix</code>.</li></ul>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: the share emerges from simulation.svt_product&#x27;s households; tools.svt_generated_share_check reads it</li><li>Crosses the wall: a check on the world&#x27;s output, never crossing</li><li>Supplier feature: a world check, not a supplier belief</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The world</p><ul class="list"><li>graded by (from) <a href="#c-tariff.default_tariff">Default tariff</a></li></ul>
+</section><section class="panel" id="c-meter.smart_meter">
+<h3>Smart meter <span class="sub">meter.smart_meter</span></h3>
+<p>A meter that records half-hourly use and communicates it over the DCC network; one that has stopped communicating is in traditional mode.</p>
+<p class="sub">Taken from: SMETS1/SMETS2 technical specifications; DESNZ Smart Meters in Great Britain statistics</p>
+<p class="sub">Also called: smets1, smets2, smart mode, traditional mode, smart meter penetration</p>
+<p class="sub">Map atoms building it: W2_21_the_premise_joint_is_fitted_not_drawn_independently</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: the meter type rides on the customer record the world renders, with no seam row of its own</li><li>Supplier feature: saas.smart_meter_rollout is a second copy of the rollout series, 4-10 points above the record</li><li>2 modules carry this concept's name and are not its declared home: <code>saas.smart_meter_rollout</code> (called), <code>simulation.publish_consumption_data</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-settle.reconciliation_run">
+<h3>Settlement reconciliation run <span class="sub">settle.reconciliation_run</span></h3>
+<p>A re-run of settlement that replaces estimated or profiled volumes with actual reads as they arrive, at fixed lags after the settlement day up to the final run.</p>
+<p class="sub">Taken from: BSC Section U and the SVAA settlement calendar; Elexon settlement-run glossary</p>
+<p class="sub">Also called: reconciliation run, r1, r2, r3, rf, final reconciliation, settlement run timetable</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: each run&#x27;s revision crosses through the bitemporal event log, not a named seam row</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-settle.mhhs">
+<h3>Market-wide half-hourly settlement <span class="sub">settle.mhhs</span></h3>
+<p>Every meter settled on its own half-hourly volumes, with non-communicating meters on load-shaping shapes; migration from 22 Oct 2025 to 7 May 2027.</p>
+<p class="sub">Taken from: Ofgem MHHS decision (20 Apr 2021); CR022 (Jun 2023); Elexon MHHS programme</p>
+<p class="sub">Also called: mhhs, half-hourly settlement, load shaping service, elective hhs</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: the run ends in 2025, before migration; every non-HH home settles on a profile</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: nothing to settle while the world has none; company.market.mhhs_tracker holds a 5 Jun 2025 go-live the record does not</li><li>3 modules carry this concept's name and are not its declared home: <code>company.market.mhhs_tracker</code> (called), <code>simulation.settlement_daily</code> (called), <code>simulation.tou_periods</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-meter.hh_data_consent">
+<h3>Half-hourly data consent <span class="sub">meter.hh_data_consent</span></h3>
+<p>Which granularity of a home&#x27;s meter data a supplier may use, and for what, under the 2012 framework and SLC 47 as modified from 3 Nov 2022.</p>
+<p class="sub">Taken from: SLC 47 (electricity supply licence); DECC data access and privacy framework (2012); Ofgem decision (Jun 2019)</p>
+<p class="sub">Also called: data access and privacy framework, slc 47, hh opt-out, data granularity</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no household chooses a data granularity</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: the company holds whatever the world reads; no consent state</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-vuln.psr">
+<h3>Priority Services Register <span class="sub">vuln.psr</span></h3>
+<p>A supplier&#x27;s register of customers in vulnerable situations, permanent or temporary, who get free priority services and whose needs are shared with the network.</p>
+<p class="sub">Taken from: SLC 26 (electricity and gas supply licences); Ofgem PSR review (2015-16)</p>
+<p class="sub">Also called: psr, priority services register, needs code, psr registration</p>
+<p class="sub">Map atoms building it: C32_one_obligation_one_vulnerability_scorer</p>
+<h4>What the map flags</h4>
+<p>Nothing: every layer it needs is filled and no second home was found.</p>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">Running the company</p><ul class="list"><li>feeds <a href="#c-vuln.ability_to_pay">Ability-to-pay principles</a></li></ul>
+</section><section class="panel" id="c-vuln.ability_to_pay">
+<h3>Ability-to-pay principles <span class="sub">vuln.ability_to_pay</span></h3>
+<p>Repayment set by what the household can afford, with contact after two missed monthly payments and pauses considered.</p>
+<p class="sub">Taken from: SLC 27.5B, 27.8A, 27.8B; Ofgem Consumer Standards decision (Oct 2023)</p>
+<p class="sub">Also called: repayment plan, struggling to pay, slc 27.8a</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: financial vulnerability (V2) is drawn and drives nothing yet; arrears run off income_stress</li><li>Crosses the wall: V2 never crosses; the company infers it from payment behaviour</li><li>Supplier feature: company.crm.affordability_inference infers ability to pay from payment behaviour and is not declared the home until it is ruled</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The supplier&#x27;s value chain</p><ul class="list"><li>feeds <a href="#c-collect.cant_pay_wont_pay">Can&#x27;t pay versus won&#x27;t pay</a></li><li>depends on <a href="#c-collect.arrears">Arrears and collections</a></li></ul>
+<p class="sub">Running the company</p><ul class="list"><li>feeds (from) <a href="#c-vuln.psr">Priority Services Register</a></li></ul>
+</section><section class="panel" id="c-vuln.self_disconnection">
+<h3>Self-disconnection <span class="sub">vuln.self_disconnection</span></h3>
+<p>A prepayment household going without supply because it cannot top up; the supplier must try to identify it and offer support credit.</p>
+<p class="sub">Taken from: SLC 27A (from Dec 2020); Ofgem self-disconnection decision (Oct 2020)</p>
+<p class="sub">Also called: self-rationing, friendly-hours credit, emergency credit, additional support credit</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>Crosses the wall: only consumption crosses; the hidden state never does. No prepayment meter, so no self-disconnection</li><li>1 modules carry this concept's name and are not its declared home: <code>company.billing.ppm_emergency_credit_register</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-vuln.fuel_poverty">
+<h3>Fuel poverty <span class="sub">vuln.fuel_poverty</span></h3>
+<p>In England, a home rated D-G whose income after housing and energy costs is below the poverty line; in the devolved nations, fuel spending of 10% or more of income.</p>
+<p class="sub">Taken from: DESNZ annual fuel poverty statistics (LILEE); Scottish House Condition Survey</p>
+<p class="sub">Also called: lilee, low income low energy efficiency, warm home discount, whd</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no fuel-poverty status is drawn or checked</li><li>Crosses the wall: nothing crosses; WHD eligibility comes from government data matching</li><li>Supplier feature: company.regulatory.fuel_poverty, company.crm.fuel_poverty and company.billing.whd_register have no caller</li><li>1 modules carry this concept's name and are not its declared home: <code>company.regulatory.warm_home_discount</code> (called)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-need.bill_difficulty">
+<h3>Difficulty keeping up with bills <span class="sub">need.bill_difficulty</span></h3>
+<p>A household&#x27;s own report of keeping up with all its bills and credit commitments - no difficulty, a struggle from time to time or constantly, or behind on some or many.</p>
+<p class="sub">Taken from: Ofgem Consumer Impacts of Market Conditions survey, question F5 (Wave 3, Table 179)</p>
+<p class="sub">Also called: keeping up with bills, behind on bills, bill struggle</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: not drawn as its own state; the nearest is financial vulnerability (V2), which drives nothing yet</li><li>Crosses the wall: never crosses; the company sees arrears and contact, not the report</li><li>Supplier feature: not asked of a customer; inferred from payment behaviour</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The world</p><ul class="list"><li>feeds <a href="#c-need.worry_falling_behind">Worry about falling behind on energy bills</a></li></ul>
+</section><section class="panel" id="c-need.worry_falling_behind">
+<h3>Worry about falling behind on energy bills <span class="sub">need.worry_falling_behind</span></h3>
+<p>The share of bill payers very or fairly worried about falling behind on energy bills because energy or general costs rise; stated, not measured.</p>
+<p class="sub">Taken from: Ofgem Consumer Impacts of Market Conditions survey, question E4 (Wave 3, Tables 158-162)</p>
+<p class="sub">Also called: bill worry, worried about falling behind</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no stated-worry trait is drawn</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: a survey item only; the company holds no worry measure</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p class="sub">The world</p><ul class="list"><li>feeds (from) <a href="#c-need.bill_difficulty">Difficulty keeping up with bills</a></li></ul>
+</section><section class="panel" id="c-need.switching_intent">
+<h3>Stated intent to switch <span class="sub">need.switching_intent</span></h3>
+<p>A household&#x27;s stated likelihood of switching supplier or tariff in the next three months; a stated intent, not a switch.</p>
+<p class="sub">Taken from: Ofgem Consumer Impacts of Market Conditions survey, question D3 (Waves 3-6)</p>
+<p class="sub">Also called: intends to switch, will switch in three months</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: switching propensity is not a drawn trait distinct from engagement</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: revealed switching by group is not sourced in the corpus</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-need.stated_willingness_to_pay">
+<h3>Stated willingness to pay slightly more <span class="sub">need.stated_willingness_to_pay</span></h3>
+<p>Agreement that the household would pay slightly more for better service or for green energy investment; an attitude, not a price, and an upper bound on what is paid.</p>
+<p class="sub">Taken from: Ofgem Consumer Impacts of Market Conditions survey, question D8 (Wave 3, Tables 133-134)</p>
+<p class="sub">Also called: pay more for green, pay more for service</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>World rule: no willingness to pay for service or carbon is drawn</li><li>Crosses the wall: nothing crosses</li><li>Supplier feature: no price for certainty, service or carbon is published (GAP-6)</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
 </section><section class="panel" id="c-build.mutation">
 <h3>Checks that can fail <span class="sub">build.mutation</span></h3>
 <p>A check counts only once it has been seen to fail when the defect it guards is put back.</p>
@@ -217,12 +732,41 @@ code { font-size: 12px; overflow-wrap: anywhere; }
 <p>Nothing: every layer it needs is filled and no second home was found.</p>
 <h4>How it connects, across all four spines</h4>
 <p>No link from here.</p>
+</section><section class="panel" id="c-build.independent_review">
+<h3>Independent review <span class="sub">build.independent_review</span></h3>
+<p>Finished work is read before it closes by a reviewer with no memory of building it, as an outsider would.</p>
+<p class="sub">Taken from: Fagan, Design and code inspections to reduce errors in program development (IBM Systems Journal, 1976)</p>
+<p class="sub">Also called: blind review, cold read, fresh-context reviewer</p>
+<h4>What the map flags</h4>
+<p>Nothing: every layer it needs is filled and no second home was found.</p>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-build.not_a_target">
+<h3>Outputs are diagnostics <span class="sub">build.not_a_target</span></h3>
+<p>A figure the machine produces is read to understand it and never fed back as something to maximise.</p>
+<p class="sub">Taken from: Goodhart&#x27;s law (Goodhart 1975; Strathern 1997: when a measure becomes a target, it ceases to be a good measure)</p>
+<p class="sub">Also called: anti-goal-seek, never a target, goodhart</p>
+<p class="sub">Canon rules whose mechanisms touch it: CO3</p>
+<h4>What the map flags</h4>
+<ul class="list"><li>evidence: the guard is a reachability test that passes or fails; nothing records what it would have refused, so there is no count to show</li></ul>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
+</section><section class="panel" id="c-build.learning">
+<h3>Learning <span class="sub">build.learning</span></h3>
+<p>A mistake is fixed as a class rather than as the one instance, and the class becomes a check that runs.</p>
+<p class="sub">Taken from: Beyer et al., Site Reliability Engineering (O&#x27;Reilly, 2016), ch. 15: Postmortem culture, learning from failure</p>
+<p class="sub">Also called: class not instance, class of mistake, finding class</p>
+<p class="sub">Canon rules whose mechanisms touch it: G13</p>
+<h4>What the map flags</h4>
+<p>Nothing: every layer it needs is filled and no second home was found.</p>
+<h4>How it connects, across all four spines</h4>
+<p>No link from here.</p>
 </section>
   <h2>What the map finds</h2>
-  <p>13 concepts registered. Findings, by kind:</p>
-  <ul class="list"><li>also named, not declared: 9</li><li>home orphan: 1</li><li>measure on no mapped page: 5</li></ul>
-  <p class="sub">77 of 179 research notes attach to a published knowledge page;
-  102 attach to none.</p>
+  <p>71 concepts registered. Findings, by kind:</p>
+  <ul class="list"><li>also named, not declared: 17</li><li>home gone: 4</li><li>measure on no mapped page: 5</li></ul>
+  <p class="sub">211 of 228 research notes attach to a published knowledge page;
+  17 attach to none.</p>
   <h4>Measures a page states about the world that reach no mapped concept</h4>
   <ul class="list"><li><code>dual_share_of_homes</code>, stated on <code>how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches</code>, computed by <code>tools.world_claims._dual_share_of_homes</code></li><li><code>dual_share_of_gas_homes</code>, stated on <code>how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches</code>, computed by <code>tools.world_claims._dual_share_of_gas_homes</code></li><li><code>gas_home_share</code>, stated on <code>how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches</code>, computed by <code>tools.world_claims._gas_home_share</code></li><li><code>gas_only_share_of_homes</code>, stated on <code>how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches</code>, computed by <code>tools.world_claims._gas_only_share_of_homes</code></li><li><code>gas_only_homes_without_gas</code>, stated on <code>how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches</code>, computed by <code>tools.world_claims._gas_only_homes_without_gas</code></li></ul>
   <p class="sub">The register is <code>docs/design/the_map/concepts.yaml</code>; the map is

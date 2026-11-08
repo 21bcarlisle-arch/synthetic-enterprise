@@ -725,3 +725,33 @@ concepts:
     rule: H5
     enforced_by: [tools/canon_drift_check.py]
     evidence: second_homes_on_the_map
+
+  - id: build.independent_review
+    prefLabel: Independent review
+    altLabel: [blind review, cold read, fresh-context reviewer]
+    definition: Finished work is read before it closes by a reviewer with no memory of building it, as an outsider would.
+    match: ["Fagan, Design and code inspections to reduce errors in program development (IBM Systems Journal, 1976)"]
+    placed: [build/Testing and controls, build/Agents and models]
+    rule: H13
+    enforced_by: [.claude/agents/phase-close-evaluator.md, .claude/skills/cold-eyes-walk/SKILL.md]
+    evidence: blind_review_count
+
+  - id: build.not_a_target
+    prefLabel: Outputs are diagnostics
+    altLabel: [anti-goal-seek, never a target, goodhart]
+    definition: A figure the machine produces is read to understand it and never fed back as something to maximise.
+    match: ["Goodhart's law (Goodhart 1975; Strathern 1997: when a measure becomes a target, it ceases to be a good measure)"]
+    placed: [build/Agents and models, build/Observability]
+    rule: R12
+    enforced_by: [tests/company/test_carbon_not_a_target.py]
+    gap: {evidence: "the guard is a reachability test that passes or fails; nothing records what it would have refused, so there is no count to show"}
+
+  - id: build.learning
+    prefLabel: Learning
+    altLabel: [class not instance, class of mistake, finding class]
+    definition: A mistake is fixed as a class rather than as the one instance, and the class becomes a check that runs.
+    match: ["Beyer et al., Site Reliability Engineering (O'Reilly, 2016), ch. 15: Postmortem culture, learning from failure"]
+    placed: [build/Testing and controls, build/Agents and models]
+    rule: R10
+    enforced_by: [background/finding_classes.py, background/weekly_rhythm.py]
+    evidence: mistake_class_count

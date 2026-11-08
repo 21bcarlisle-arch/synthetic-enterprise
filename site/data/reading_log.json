@@ -39,9 +39,9 @@
    "done": "Class documents moved to `docs/staging/reference/` so the drain does not consume them",
    "concept": "Learning",
    "placed": {
-    "kind": "unplaced",
-    "label": null,
-    "anchor": null
+    "kind": "concept",
+    "label": "Learning",
+    "anchor": "c-build.learning"
    }
   },
   {
@@ -53,9 +53,9 @@
    "done": "It goal-seeks against our own score (R12, C1)",
    "concept": "Outputs are diagnostics",
    "placed": {
-    "kind": "unplaced",
-    "label": null,
-    "anchor": null
+    "kind": "concept",
+    "label": "Outputs are diagnostics",
+    "anchor": "c-build.not_a_target"
    }
   },
   {
@@ -109,9 +109,9 @@
    "done": "Two-reader trial: one reader caught 1 of 5 known-bad commits; two agreeing readers flagged 4 of 5 bad and 0 of 5 clean. Now runs on qualifying commits",
    "concept": "Independent review",
    "placed": {
-    "kind": "unplaced",
-    "label": null,
-    "anchor": null
+    "kind": "concept",
+    "label": "Independent review",
+    "anchor": "c-build.independent_review"
    }
   },
   {
@@ -123,9 +123,9 @@
    "done": "Self-tuning again, and its gains go to weak models",
    "concept": "Outputs are diagnostics",
    "placed": {
-    "kind": "unplaced",
-    "label": null,
-    "anchor": null
+    "kind": "concept",
+    "label": "Outputs are diagnostics",
+    "anchor": "c-build.not_a_target"
    }
   },
   {
@@ -207,9 +207,9 @@
    "done": "A design read before build (2 Nov). Its first read found 7 defects in the value-test design",
    "concept": "Independent review",
    "placed": {
-    "kind": "unplaced",
-    "label": null,
-    "anchor": null
+    "kind": "concept",
+    "label": "Independent review",
+    "anchor": "c-build.independent_review"
    }
   },
   {
@@ -284,9 +284,9 @@
   }
  ],
  "placed": {
-  "concept": 7,
+  "concept": 12,
   "step": 6,
-  "unplaced": 5,
+  "unplaced": 0,
   "none": 2
  },
  "rejected": 3

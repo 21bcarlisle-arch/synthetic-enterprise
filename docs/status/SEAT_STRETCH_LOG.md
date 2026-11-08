@@ -17316,3 +17316,20 @@ practice it holds in *Building it* now link to each other.
   we've learned*; and the register gap the reading log exposed (Independent review, Outputs are diagnostics and
   Learning are practices the log names and the map does not hold; layers 6 and 8 are those practices, unjoined).
 - **Spent.** Most of one turn across both builds, two gate cycles.
+
+**Site spend, fourth build (seat executor, 8 Nov late).** The register gap the reading log exposed is closed.
+- **Three practices enter the register's build spine:** *Independent review* (Fagan inspections; rule H13; held by
+  the phase-close evaluator and the cold-eyes walk), *Outputs are diagnostics* (Goodhart; R12; held by the
+  carbon-not-a-target reachability guard) and *Learning* (SRE postmortem culture; R10; held by the finding-class
+  register and the weekly rhythm). Each has a card under *Building it* and a panel on the map.
+- **The derived join now reaches layers 6 and 8.** Independent review links to and from layer 6, Learning to and
+  from layer 8. Outputs are diagnostics is held by no layer and its card says so.
+- **The reading log now places every row.** 12 rows on a concept, 6 on a step, 2 on nothing, 0 unplaced (was 7, 6,
+  2, 5).
+- **Corrected beside it.** The reading-log door test used "Independent review" as its example of a label the
+  register does not hold. That was today's answer, not the property, so it went red when the register became more
+  complete. It now uses a label no register can hold.
+- **Not computed, said so.** *Outputs are diagnostics* has no evidence figure: its guard passes or fails and
+  records nothing it would have refused. The register carries that as a named gap.
+- **The map page** had not been regenerated since 26 Oct. This landing carries the generator's current output, so
+  its other rows move to today's register as well.
