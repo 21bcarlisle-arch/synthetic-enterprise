@@ -4936,7 +4936,10 @@ def awaited_paths(item: dict) -> list[str]:
         return []
 
 
-_EMBARGO_PHRASE = re.compile(r"do\s+not\s+(?:draw|start)\s+before\b", re.IGNORECASE)
+#: `until` as well as `before`: `grade-the-first-book-built-after-level-dd-step-2b` (8 Nov) said
+#: `DO NOT DRAW until origin/main carries the landing of <id> AND ...`, a condition no grammar reads,
+#: and was drawn at 06:45 with neither condition met -- the second early draw of that grade that day.
+_EMBARGO_PHRASE = re.compile(r"do\s+not\s+(?:draw|start)\s+(?:before|until)\b", re.IGNORECASE)
 
 
 def unresolved_embargoes(text: str) -> list[str]:
