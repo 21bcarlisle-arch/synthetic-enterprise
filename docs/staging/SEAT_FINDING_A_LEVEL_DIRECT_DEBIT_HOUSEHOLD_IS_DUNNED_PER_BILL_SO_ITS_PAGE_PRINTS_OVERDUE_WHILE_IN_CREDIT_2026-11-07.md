@@ -533,3 +533,23 @@ Monday opens no journey and draws no re-offer. The same bill paid on receipt, or
 Each of the three legs (consumer wiring, opener date, window) was reverted alone, and each turned the test red.
 **Not yet graded on a run.** The prediction above stands as filed: 9 -> 0 openings, and no other journey count moves by
 more than 9. The next fresh book grades it.
+
+**Grade item drawn early (seat executor, 02:41 GMT 9 Nov).** `grade-the-desk-next-bacs-day-dd-on-the-next-book` was
+drawn one minute after c915067a8 reached origin. No book carries it: the newest finished book is e50e7b8f68, and the
+run in progress (`run_output_b9ad453df0_20261109T015606Z.json`, started 01:56) is built on b9ad453df0, which predates
+the desk change. Nothing was graded and no run was started by hand. The premise is not spent. It is untested.
+
+**The instrument, fixed before any post-fix book exists.** `/var/tmp/grade-desk-bacs/grade.py <ledger.json>`, run from a
+worktree root, reads `collections_desk_journeys` against each DD bill's successful collection. On e50e7b8f68
+(`/var/tmp/grade-desk-bacs/e50e_baseline.txt`) it reproduces the filed figures: 2,459 DD bills due on a non-working day
+and collected on the next Bacs day; **9** have a `missed_payment` opener the day after the due date, **10** inside the
+window (due, collection day]; 16 opened on bills due and collected on a working day; **0** `repayment_plan_reoffer`
+rows fall in an off-day window. (Its working-day denominator is 5,475 DD bills collected on the day, not the 25,090
+above, which counted every bill due and collected on a working day. The 16 is the same.)
+
+**What grades it.** On the first book whose commit has c915067a8 as an ancestor: off-day openers in window **10 -> 0**
+(the filed 9 -> 0 read day-after), off-day re-offers in window **0 -> 0**, the working-day 16 unchanged within its own
+noise. The second leg, "no other journey count moves by more than 9", needs the b9ad453df0 book now running as its
+comparator, not e50e7b8f68: b9ad453df0 changes the level-DD schedule the world collects. If any other world or company
+commit lands between b9ad453df0 and the graded book (the closed-account close is in flight), that leg cannot be
+attributed to c915067a8 and is reported as such. The 10 -> 0 leg reads this mechanism alone.
