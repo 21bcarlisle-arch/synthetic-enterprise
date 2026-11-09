@@ -116,6 +116,9 @@ holders):
 **GAP: a GB elasticity of consumption by income band.** None is on file. The 30 Oct pack's claim that the middle
 responds most rests on summaries (**S**), and this page does not find it in incidence (§2). The SERL microdata would
 settle it. It sits behind a UK Data Service licence, which is reserved to the director (G5), and §5 names it.
+*(2026-11-09: the director registered, and SERL's statistical release (SN 8963) is now read. It has no household
+income, so the income-band GAP stands. By area deprivation the percentage cut is flat, 7-13% in every IMD quintile:
+`the_crisis_consumption_cut_by_deprivation_and_tenure_serl_2026-11-09.md`.)*
 
 ## 4. The pre-registration, graded
 

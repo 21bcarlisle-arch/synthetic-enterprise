@@ -51,3 +51,64 @@ Only the documentation, the column names and the list of groups and months had b
 | C6 | In kWh/day, the least deprived quintile's absolute gas cut is larger than the most deprived's | not larger |
 
 Each verdict will sit beside its prediction. A refuted prediction stays as written.
+
+## 3. Results (D)
+
+Gas-heated homes, 7,140 or more reporting in each crisis-winter month. The smallest published group is social renters
+(620 homes). Groups under 100 homes (part-own, rent free, no answer) are not shown. **Intervals** are 95% from 2,000
+draws that perturb each monthly mean by SERL's own standard error. They treat months as independent, which is rough,
+and they do not cover the panel's changing make-up (§1).
+
+**The lockdown months move the answer.** On the registered 2021 baseline, the cut is 12.7%. Leaving out January-March
+2021 gives 6.9%. That is 5.8 points apart, over the 3-point bound set in §1, so both are shown. The lockdown inflated
+2021's winter use, which flatters the cut; the April-December baseline has only three heating months to fit the slope.
+**The honest statement is a cut of 7-13%.** The SERL panel holders' own estimate, on per-home data, is a median of
+10.8% (on file as P, `heating_behaviour_comfort_and_health_floors_2026-10-25.md` §5), which sits inside it.
+
+| # | Result (registered baseline; April-December 2021 in brackets) | Verdict |
+|---|---|---|
+| C1 | All gas-heated homes: **12.7% [12.0, 13.3]** (6.9% [6.1, 7.8]) | **Held on the registered baseline**, which the sensitivity shows is lockdown-inflated |
+| C2 | IMD 1 minus IMD 5: **+1.6 points [-0.4, +3.6]** (-0.1 [-2.6, +2.6]). The most deprived cut **at least as much** | **Refuted**: no deprivation gradient in the percentage cut |
+| C3 | Social renters minus owner-occupiers: **+0.5 [-1.8, +2.8]** (+0.5 [-2.5, +3.5]) | **Refuted**: social renters cut the same |
+| C4 | Electricity imports minus gas: **+0.9 [-0.2, +1.9]** (+2.6 [+1.1, +4.0]) | **Refuted**: electricity fell by at least as much as gas |
+| C5 | October-December 2023: **5.7%**, 0.45 of the crisis winter's 12.7% | **Refuted**, narrowly: just over half the cut had gone by late 2023. The two windows cover different months |
+| C6 | Absolute gas cut: IMD 5 **8.2 kWh/day**, IMD 1 **6.1** | **Held** |
+
+**By group, gas, crisis winter (cut %, registered baseline; April-December baseline in brackets).**
+
+| IMD quintile (1 = most deprived) | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| Gas cut | 14.4 (7.6) | 12.9 (6.7) | 13.9 (8.0) | 11.1 (5.5) | 12.8 (7.8) |
+| kWh/day | 6.1 | 6.0 | 7.2 | 6.2 | 8.2 |
+| Homes (fewest in a month) | 1,420 | 1,580 | 1,330 | 1,310 | 1,500 |
+
+| Tenure | Own outright or mortgage | Private rent | Social rent |
+|---|---|---|---|
+| Gas cut | 13.1 (7.2) | **17.0 (11.2)** | 13.5 (7.7) |
+| Electricity cut | 14.6 (10.5) | 9.4 (5.5) | 10.2 (5.6) |
+| Homes (fewest in a month) | 5,920 | 420 | 620 |
+
+Private renters cut gas **3.9 points more** than owner-occupiers [+1.2, +6.6] (+4.0 [+0.5, +7.4] on the other
+baseline): the one group contrast that clears zero on both.
+
+## 4. What this means
+
+1. **The crisis cut was general, not concentrated in the comfortable.** In percent, the most deprived areas cut gas as
+   much as the least deprived, and social renters as much as owners. I predicted the reverse (C2, C3), on the
+   reasoning that the deprived had less headroom. That reasoning is not supported at area level. The absolute cut is
+   larger where use is larger (C6), so the kWh and the pounds saved still lean to the better-off.
+2. **Private renters cut gas the most**, against the CIM survey finding that renters lower the thermostat less often
+   (sister page §2). One reading consistent with both: renters who cannot change the boiler heat fewer hours or rooms.
+   This page cannot tell which. It is a lead for the comfort-floor page, not a finding about the floor.
+3. **For the world's model of crisis demand:** a weather-adjusted fall of 7-13% in gas and a similar fall in
+   electricity in the EPG winter, with no deprivation gradient in percent, partly persisting into late 2023. Area
+   deprivation is not a lever on the size of the cut. This bears on the open GAP on the price-sensitivity page (an
+   elasticity of consumption by income band): at area level the gradient is flat. **It is not an income-band answer**:
+   SERL's statistical release has no household income, and IMD is a property of the area, not the household.
+4. **For the precarity proxy (sister page):** IMD is the one precarity-adjacent grouping a supplier holds for every
+   customer, from the postcode. On consumption response it separates nothing. Whether it separates precarity itself is
+   not testable on the end-user Understanding Society file, which carries no IMD.
+
+**Not established here.** Per-home distributions (SERL's per-home Observatory needs a university partnership). How much
+of the cut is the panel's changing make-up. The cut by income or payment method. No world or supplier value changes on
+this page.

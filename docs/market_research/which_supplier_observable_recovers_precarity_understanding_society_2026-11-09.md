@@ -72,3 +72,59 @@ relation of benefit receipt or age 65+ to it.
 | P6 | **Age points the wrong way**: the precarious share among households whose reference person is 65+ is under half that among the under-65s | at least half |
 
 Each verdict will sit beside its prediction. A refuted prediction stays as written.
+
+## 3. Results (D)
+
+21,385 households carry a positive weight. The flag-by-flag and AUC results use the 17,389 households with every
+item answered (precarious share 20.6% there). Intervals on the contrasts are 95% from 200 bootstrap replicates that
+resample PSUs within strata. The smallest published cell has 1,348 households.
+
+| # | Result | Verdict |
+|---|---|---|
+| P1 | **20.7%** are precarious (n = 18,649): 11.9% find it difficult, 14.7% cannot keep warm | **Refuted**, narrowly: just over 20% |
+| P2 | Precision: behind on bills **68.2%**, prepayment **40.6%** | **Held** |
+| P3 | Prepayment flags **25.5%** of precarious households | **Held**: three in four precarious households do not prepay |
+| P4 | AUC: prepayment + arrears **0.680**, income quintile alone **0.647**; income minus the pair -0.033 [-0.047, -0.021] | **Held, and stronger than predicted**: the supplier's own two records beat income |
+| P5 | Renting adds **+0.058 [+0.050, +0.065]**; then means-tested benefit adds **+0.015 [+0.013, +0.021]** | **Held**, though the benefit interval just reaches 0.02 |
+| P6 | Precarious: **10.8%** of households whose reference person is 65+ (n = 6,189), **25.1%** of the rest (n = 11,200), a ratio of 0.43 | **Held** |
+
+**Each flag against the target (weighted).**
+
+| Flag | Households flagged | Precarious among flagged | Precarious households flagged | Precarious among the unflagged | AUC alone |
+|---|---|---|---|---|---|
+| Prepayment | 12.9% | 40.6% | 25.5% | 17.6% | 0.58 |
+| Behind on bills | 10.1% | 68.2% | 33.4% | 15.2% | 0.65 |
+| Renting (any) | 37.2% | 35.7% | 64.5% | 11.6% | 0.67 |
+| Social renting | 19.3% | 36.6% | 34.3% | 16.7% | — |
+| Means-tested benefit | 19.4% | 44.0% | 41.5% | 14.9% | 0.64 |
+| Reference person 65+ | 31.8% | 10.8% | 16.7% | 25.1% | 0.60 (inverse) |
+
+**Combinations (AUC, in-sample).** Prepayment + arrears 0.68; + renting 0.74; + means-tested benefit 0.75; + age 65+
+**0.77**. Without arrears (prepayment, renting, benefit, age) 0.74. Income quintile + renting 0.72. Everything,
+income included, 0.78. **Income adds 0.018 to what a supplier could hold.**
+
+## 4. What this means
+
+1. **A supplier can recover precarity about as well without income as with it.** Its own two records (prepayment and
+   arrears) beat income quintile alone. With renting, Warm Home Discount matching and age, it reaches 0.77, and
+   income adds under 0.02 to that. This is what the sister page's loadings implied, now measured as recovery: the
+   precarity factor is visible to a supplier through what it holds (W1), and income is not the missing key.
+2. **Recovery is partial, and that is the honest size of it.** An AUC of 0.77 is a useful ranking, not a diagnosis.
+   The sharpest single flag, arrears, is right two times in three but finds only a third of precarious households.
+   Prepayment finds a quarter. **A supplier that reads precarity from prepayment alone misses three in four
+   precarious customers.** The world should draw the precarity state correlated with these flags at these strengths,
+   so that a supplier which over-trusts one flag is wrong in the world as it would be in life.
+3. **Tenure is the strongest single observable, and the one a supplier is least likely to hold.** Renting recalls
+   two thirds of precarious households. A supplier typically learns tenure only if the customer says, or from
+   change-of-tenancy patterns. That is a finding about where to look, not a licence to infer it.
+4. **Age points away from precarity.** The 65+ are under half as often precarious. A supplier that uses age (for
+   example, from the Priority Services Register) as a stand-in for hardship would target the wrong households.
+   Age belongs to the separate cash-buffer axis and to the PSR's own needs, not to precarity.
+5. **Caution on arrears.** Wave 14 asks about all household bills. A supplier sees only its own energy arrears,
+   which is narrower, so its arrears flag would recall fewer precarious households than shown here. Its precision is
+   not established either way. Means-tested benefit is visible to a supplier only through WHD matching, which also
+   applies a cost-to-heat test in Core Group 2, so the benefit row is an upper bound on what matching shows.
+
+**Not established here.** Energy-specific arrears. Consumption-based signals (a supplier holds the meter reads), which
+this survey does not carry. Area deprivation (IMD), which a supplier can read from the postcode, is not in the end-user
+file. No world or supplier value changes on this page.
