@@ -535,3 +535,45 @@ NEXT: grade a book carrying this change and 8e73c52356 on the same readers. Then
 and `tools/generate_billing_ledger.py` is unchanged from 505df564e3. So it is the book named in "Prediction for the first book carrying
 8e73c52356 with the level-return branch unchanged" above. Grade it with `/var/tmp/grade-505d-remainder/count_a.py`
 on that book's ledger: shape A at 178 ± 18, SYN-2016-487 still at 3.07 + 3.07. The page fix waits for that grade.
+
+## C7 on 16 Jul 2019: the desk's ledger, not its view, is GBP 18.12 heavier than the page (seat executor, 9 Nov 2026 ~16:45 GMT)
+
+Measured on the 505df564e3 book: `run_output_505df564e3_20261109T124818Z.json` against `/var/tmp/grade-505d/ledger.json`.
+C7 is a single-fuel electricity account. It has no `C7g`.
+
+**What agrees.**
+- **Bills:** the run has 42, totalling GBP 4,915.22. The page has the same 42, totalling 4,915.27. Every difference is a
+  rounding difference of 0.01.
+- **Cash:** the run's `level_dd_collections` and the page's payments are the same 42 (date, amount) pairs, GBP 4,866.72,
+  with no extras on either side.
+- **Closing balance:** the run's `closing_balances` reads 48.55, the same as the page.
+
+**What does not.**
+- The desk printed GBP 66.67 overdue at every stage, from 16 Jul 2019 to the write-off on 30 Jun 2020. It wrote off
+  **66.67**.
+- `_write_off_if_closed` posts `closed_balance_due_for_write_off(ledger, on)`, which is the desk ledger's own balance.
+  So the desk's `AccountLedger` held 66.67 owed where the page and `closing_balances` hold 48.55.
+- That is a real divergence of GBP 18.12 between the two records. It is not an artefact of the ageing view.
+- 66.67 is exactly the page's running balance between the 5 Jun 2019 bill and the 12 Jun collection of GBP 108
+  (48.55 + 108 − 89.88). That may be a coincidence, so I record it as a lead and not as a mechanism.
+- **The opening day rules out one reading of that lead.** `days_overdue = 1` on 16 Jul puts the unmet ask at 15 Jul,
+  the final bill's due date. Under `level_shortfall`, every level request was met, so the desk did receive the 12 Jun
+  cash. A ledger missing the 12 Jun payment would have aged the shortfall from 12 Jun, at 34 days.
+- What fits both figures: the desk ledger carries GBP 18.12 more debit, or less credit, than the page. The extra is
+  not in a `BILL_DEBIT`, because `other_asks` reads only bills, and the final bill alone (89.88) bounds the shortfall
+  above 66.67.
+- **Mechanism not established.** The run json carries no desk ledger events, so this book cannot name the GBP 18.12.
+  The next instrument is a dump of C7's in-run `ledger_book.ledger("C7").events()` at the end of the run, or a
+  replay of C7 alone.
+
+**Why it matters beyond C7.** If this shape is the 63 closed accounts behind the 312 still-level rows, then:
+- the desk writes off more than the page says is owed;
+- bad debt is overstated by the sum of these gaps, if the P&L reads the desk's write-off.
+
+I cannot yet say whether it does. That is the question after the mechanism.
+
+**Prediction for book-4dee9854a4** (filed before any of its output was read, at 16:45 GMT with the run still going):
+- C7's journey opens on 16 Jul 2019 at GBP 66.67 and writes off 66.67.
+- Neither 3feea0ac3 (the nil-ask predicate) nor 8e73c52356 (the closing statement, which applies to left-level
+  journeys) touches how the desk's ledger is posted, and C7 reads level throughout.
+- **Refuted if** C7's write-off reads 48.55, or any figure other than 66.67.
