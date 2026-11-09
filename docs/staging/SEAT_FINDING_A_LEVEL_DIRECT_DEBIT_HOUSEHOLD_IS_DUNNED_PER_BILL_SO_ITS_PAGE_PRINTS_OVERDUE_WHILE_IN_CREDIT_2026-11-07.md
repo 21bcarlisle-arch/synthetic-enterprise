@@ -766,3 +766,11 @@ for `WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MI
 The direction item is not released. Releasing it would tombstone the item, and the read is still owed. The four
 seat-named checks stay with it unchanged: meter identity, read repetition, payment method on the bill date, and a
 closed account's balance a year after its last bill.
+
+**Still held, 10:50 GMT 9 Nov (worker tick).** The 9d7dcfc19c book (`run_output_9d7dcfc19c_20261109T085204Z.json`)
+finished at 10:44. The publisher graded it at about 10:50 and refused it on the same two rows, at the same counts:
+INV_OVERDUE_WITHIN_BALANCE 71 and INV_OVERDUE_WITHIN_PAGE_BALANCE 80. The seat filed at 09:22 that this book "can only
+fail the same way" (DIRECTION.yaml `not_now`). That prediction **held**, to the count. The book's commit predates
+d8264b525e (the level-DD cure fix) and the close still landing, so it carries neither. The read waits on H46's book,
+the first one carrying both, and it is not drawn before 16:00 GMT today. That is the soonest such a book could finish:
+the close is still landing, and a run takes about two hours.
