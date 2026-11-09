@@ -9,13 +9,13 @@ Defects these name:
   * the cache never refreshes, so every month collects the opening amount -- the control asserts
     the amount changes across windows before asserting the loop agrees (a guard that never moves
     would agree with a book that never moves);
-  * phase 4c keeps the hindsight rebuild although the loop collected, or takes the loop's schedule
-    while the dual-fuel offsets (which the loop does not ask) are on.
+  * phase 4c keeps the hindsight rebuild although the loop collected. (With the dual-fuel offsets
+    on it now takes the loop's schedule too: the loop asks them,
+    `test_a_dual_level_household_collects_one_schedule_with_the_offsets_on.py`.)
 
 Mutations performed 2026-11-08: the window test in `collect` removed so the first ask is reused
 for the run (red, the amounts-move leg); the cutoff one month early so month m's bill is not in
-the book (red, every month None); `level_dd_schedule_from_the_loop` ignoring the offsets switch
-(red); the supply start not passed to the collection dates (red).
+the book (red, every month None); the supply start not passed to the collection dates (red).
 """
 from __future__ import annotations
 
@@ -99,10 +99,8 @@ def test_phase_4c_reads_the_loop_schedule_and_keeps_the_rebuild_only_where_the_l
     loop, rebuilt = _run(n_months=14)
     altered = {CID: [dict(r) for r in loop.collected[CID]]}
     altered[CID][-1]["amount_gbp"] += 1.0
-    schedule, reconcile = level_dd_schedule_from_the_loop(altered, rebuilt, False)
+    schedule, reconcile = level_dd_schedule_from_the_loop(altered, rebuilt)
     assert schedule == altered and reconcile["source"] == "in_loop"
     assert reconcile["differ"] == 1 and reconcile["matched"] == 13
-    schedule, reconcile = level_dd_schedule_from_the_loop(altered, rebuilt, True)
-    assert schedule == rebuilt and reconcile["source"] == "post_loop_rebuild"
-    schedule, reconcile = level_dd_schedule_from_the_loop(None, rebuilt, False)
+    schedule, reconcile = level_dd_schedule_from_the_loop(None, rebuilt)
     assert schedule == rebuilt and reconcile["source"] == "post_loop_rebuild"

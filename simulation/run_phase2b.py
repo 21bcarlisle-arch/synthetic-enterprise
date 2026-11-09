@@ -2921,7 +2921,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         payment_truth_of=(_payment_triad.payment_truth_so_far
                           if _world_payment_truth.UNIFIED else None))
     install_stop_notice_board(_dd_stop_board)
-    _level_in_loop = InLoopLevelCollection(_dd_stop_board, get_customer)
+    # The page's book sets a dual household's credit against its other leg's debt when the company
+    # offers it; the collection the world presents is asked of the same book, so it does too.
+    # A leg with a term still to post is a supply the company still holds (`_pending_starts`).
+    _level_in_loop = InLoopLevelCollection(
+        _dd_stop_board, get_customer,
+        offsets_dual_fuel_legs=policy.dd_review_offsets_dual_fuel_legs,
+        still_supplied=lambda leg: bool(_pending_starts.get(leg)) or leg == _term_leg_in_hand[0])
     # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
     # Fed anywhere else it would see records the list has not, and the point-in-time window
     # `_company_eac_estimate` depends on would quietly widen. `simulation/settlement_fold.py`

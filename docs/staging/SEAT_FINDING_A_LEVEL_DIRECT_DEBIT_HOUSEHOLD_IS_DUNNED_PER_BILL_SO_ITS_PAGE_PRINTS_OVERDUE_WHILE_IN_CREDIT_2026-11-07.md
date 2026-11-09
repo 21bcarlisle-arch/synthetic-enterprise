@@ -436,3 +436,49 @@ OCC-17ff099218d5's 50 payments, 9 are dated after their due date. I have not che
    is computed and not skipped.
 2. `generate_explore_cast.payment_record` (and any desk reading of due dates) reads a DD collected on the first
    Bacs processing day on or after its due date as on time. Count the 194 under that rule before building it.
+
+## One schedule with the offsets on: phase 2b asks the offsets (worker, 9 Nov 2026)
+
+**Which of the two, and why.** Phase 2b now asks the book with `dd_review_offsets_dual_fuel_legs` applied. The other
+choice, handing the page the loop's schedule whatever the switch says, would have made world and page agree by
+dropping the offsets from what every dual household is collected. Under SLC 27.8D the household's money moves:
+a review the other leg's credit covers is not stepped up. Only this choice keeps that effect on what is actually
+collected.
+
+**What changed.**
+- `InLoopLevelCollection(offsets_dual_fuel_legs=, still_supplied=)` asks the book over both legs as known at the
+  cutoff. A leg that has left is billed and closed as a leaver.
+- Phase 2b posts whole terms by start date, so the electricity term goes before the gas term of the same start.
+  At the electricity review, the gas leg has therefore billed only to the end of the term before. The book reads
+  "still ours" off a bill on or after the review, so it found the gas supply gone and offered nothing. A supplier
+  knows it still supplies the gas leg, so `still_supplied` (a term of that leg still to post, or in hand) tells the
+  book (`supplied_through`). Post-run, nothing passes it, so the post-loop book is unchanged.
+- `StopNoticeBoard.observe` drops its cached bills for any cutoff later than a new row. Asking for the other leg
+  before its term posted had cached an empty answer.
+- `level_dd_schedule_from_the_loop` takes the loop's schedule whatever the switch says. The run output's
+  `level_dd_collections` is that schedule, so the loop's rows are saved, and `level_dd_schedule_reconcile` is
+  computed against the rebuild instead of being skipped. No second copy is written: when `source` is
+  `in_loop` it would be byte-identical to `level_dd_collections`.
+
+**Control.** `tests/simulation/test_a_dual_level_household_collects_one_schedule_with_the_offsets_on.py`.
+- A dual household posted term by term. Its review sets a GBP 755.28 offset, which moves the electricity amount
+  from 171.41 to 108.47. The loop equals the post-loop book on both legs, and the page takes the loop's schedule.
+- Red on origin: `InLoopLevelCollection` takes no offsets argument.
+- Partition control: with `still_supplied` off, the electricity leg misses its offset.
+- With offsets off, the schedule is identical to the loop as it was built before.
+- Five mutations, all red.
+
+**Pre-registration for the first fresh book built at or after this commit** (written before any book carries it):
+- INV_OVERDUE_WITHIN_PAGE_BALANCE **at most 5** and INV_OVERDUE_WITHIN_BALANCE **at most 5** on level households
+  (80 and 71 on e50e7b8f68).
+- J1 (a level leg's journey opens only the day after a level return) on **at least 95%** of level-leg openings
+  (496 of 655 on e50e7b8f68).
+- `level_dd_schedule_reconcile.source` is `in_loop`. `differ` is **at most 2%** of matched months, and each
+  `only_*` is **at most 1%**: the increment-1 legs, first graded here.
+- The post-loop book's `dual_fuel_offsets` count is within **10%** of e50e7b8f68's. The world's payments move,
+  but the book is sized from bills.
+- Single-fuel level households: the collection schedule is **byte-identical** to e50e7b8f68's on the same
+  inputs, unless another commit moves them. If one moves, the board's cache was serving a stale answer
+  somewhere off the offsets path, and that is a finding of its own.
+- **Refuted if** either overdue row is above 20 on level households, or `differ` is above 5%. That would mean the
+  split was not the main cause of the 80 and the 71.
