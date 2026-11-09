@@ -597,3 +597,9 @@ quotes below were fetched and checked word for word on 8 Nov 2026.*
 non-processing day (5,184 Saturday, 5,192 Sunday, 691 bank holiday), over 924 accounts. 336 accounts'
 first DD came before supply (268 more than 3 days before). After: 0 and 0. 11,523 payment dates moved,
 and no amount moved.
+
+**On time means the collection day (seat, 9 Nov 2026).** A DD due on a non-processing day and collected on
+the next processing day was collected as the scheme says it must be, so the household record counts it as paid,
+not missed: `company/billing/collections_journey.last_day_to_pay`. On the e50e7b8f68 book the record had
+counted 2,442 such bills missed, on 194 accounts. The roll applies to direct debit only. Whether a
+pay-on-receipt payment made on the next working day is on time is GAP 5: no source read here says so.

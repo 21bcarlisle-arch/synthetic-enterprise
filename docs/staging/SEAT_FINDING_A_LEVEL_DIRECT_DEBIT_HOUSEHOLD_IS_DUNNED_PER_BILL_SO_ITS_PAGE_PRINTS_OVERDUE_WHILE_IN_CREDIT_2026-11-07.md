@@ -436,3 +436,42 @@ OCC-17ff099218d5's 50 payments, 9 are dated after their due date. I have not che
    is computed and not skipped.
 2. `generate_explore_cast.payment_record` (and any desk reading of due dates) reads a DD collected on the first
    Bacs processing day on or after its due date as on time. Count the 194 under that rule before building it.
+
+## Recommended next 2, done: a DD collected on the next Bacs day is on time (seat, 9 Nov 2026)
+
+**The count first, filed as the prediction for the fix.** On the e50e7b8f68 ledger (`/var/tmp/grade-e50e/ledger.json`),
+with origin b97dcf8e15's `payment_record`: 194 accounts have missed DD > returns, matching the gate's 194. Every missed DD
+bill on those accounts was sorted:
+
+| missed DD bill on a breaching account | bills |
+|---|---|
+| due on a weekend or bank holiday, collected on the first Bacs processing day after it | **2,442** |
+| due on a working day, collected later (after a return) | 86 |
+| due on a non-working day, collected later than the first processing day | 28 |
+| never paid | 18 |
+
+**All 194 accounts are explained by the first row alone. Prediction: 194 -> 0, residual 0.** Script:
+`/var/tmp/dd-bacs-count/count.py`.
+
+**The fix.** `company/billing/collections_journey.last_day_to_pay(due, by_direct_debit=)` is the first England and
+Wales working day on or after a DD's due date (`company.compliance.working_days`, the company's reading of the same
+GOV.UK calendar 75f66f6521's `simulation/bacs_processing_day` reads; the company may not import the world's). For any
+other method it is the due date (the knowledge page's GAP: no source read says a pay-on-receipt payment rolls).
+`bill_missed` takes `by_direct_debit`, and `tools/generate_explore_cast.payment_record` passes it when the bill's ledger
+rows are a DD's. Test: `tests/tools/test_a_dd_collected_on_the_next_bacs_day_is_on_time.py`. C1's Sunday 8 May 2016
+due date collected Monday 9 May reads paid. That leg, the partition leg and the bank-holiday leg are red on b97dcf8e15.
+The control, a DD collected Wednesday 11 May, reads missed before and after.
+
+**Replayed on the same ledger.** INV_PAYMENT_RECORD's breaching accounts went from **194 to 0**, as predicted.
+Book-wide, 2,442 bills moved from missed to paid: missed went from 6,595 to 4,153, missed DD from 2,729 to 287, and
+returns held at 359. Bills due held at 47,534. On the full suite grade, no other row moved
+(`/var/tmp/dd-bacs-count/grade_after.txt`). The verdict went from 345 unexcepted breaches on 3 rows to **151 on 2**:
+INV_OVERDUE_WITHIN_BALANCE 71 and INV_OVERDUE_WITHIN_PAGE_BALANCE 80, both still recommended-next 1. The publish is still refused.
+
+**The desk, measured, not changed.** Of 2,459 successful DD bills collected on the next processing day after an
+off-day due date, the desk opened a "missed payment" journey the day after the due date on **9**. The baseline is 16
+of 25,090 bills due and collected on a working day. The desk reads the balance, so a Monday collection mostly cures
+the step it would open. `CollectionsDesk.advance` still dates `unpaid_on` from `missed_on(due)` with
+`bill_paid_in_its_window` closing on the due date. That is the same misreading on a smaller scale, and changing it
+moves the company's in-run behaviour. It needs a fresh run to grade, so it is filed as the next item rather than
+folded in here. Prediction for that item: 9 -> 0 such openings, and no other journey count moves by more than 9.

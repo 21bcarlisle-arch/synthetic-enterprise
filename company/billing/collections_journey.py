@@ -81,6 +81,7 @@ from company.billing.arrears_engine import (
     fifo_unpaid_bills,
 )
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
+from company.compliance.working_days import is_working_day
 from company.crm.account_hierarchy import AccountingModel, Segment, default_accounting_model
 
 MISSED_PAYMENT = "missed_payment"
@@ -95,13 +96,28 @@ def missed_on(due: dt.date) -> dt.date:
     return due + dt.timedelta(days=1)
 
 
-def bill_missed(due: dt.date, first_paid: Optional[dt.date], as_of: dt.date) -> Optional[bool]:
+def last_day_to_pay(due: dt.date, *, by_direct_debit: bool = False) -> dt.date:
+    """The last day a payment on a bill due on `due` is on time. A direct debit due on a weekend or
+    bank holiday is collected on the next Bacs processing day, never the one before, so that day is
+    on time (`docs/market_research/payments_and_direct_debit_2026-10-25.md`, "The day a collection
+    lands"). Until 2026-11-09 a DD due Sunday 8 May 2016 and collected Monday 9 May read "missed DD
+    without a return": 194 accounts on the e50e7b8f68 book. Any other method keeps its due date
+    (GAP on that page: no source read says a pay-on-receipt payment rolls too)."""
+    d = due
+    while by_direct_debit and not is_working_day(d):
+        d += dt.timedelta(days=1)
+    return d
+
+
+def bill_missed(due: dt.date, first_paid: Optional[dt.date], as_of: dt.date, *,
+                by_direct_debit: bool = False) -> Optional[bool]:
     """Whether a bill due on `due` is missed as read on `as_of`: None while it is not yet missable,
-    else True unless a payment landed on it on or before its due date. A payment after that day does
+    else True unless a payment landed on it by its `last_day_to_pay`. A payment after that day does
     not un-miss it, though it can cure the journey."""
-    if missed_on(due) > as_of:
+    last = last_day_to_pay(due, by_direct_debit=by_direct_debit)
+    if missed_on(last) > as_of:
         return None
-    return first_paid is None or first_paid > due
+    return first_paid is None or first_paid > last
 
 
 def bill_paid_in_its_window(payments: List[tuple], issued: dt.date, amount_gbp: float,

@@ -39,7 +39,7 @@ from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from company.billing.collections_journey import bill_missed, missed_on
+from company.billing.collections_journey import bill_missed, last_day_to_pay, missed_on
 from company.compliance.domain_invariants import default_tariff_invoice_excess_p_per_kwh
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -447,7 +447,9 @@ def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
         on = date.fromisoformat(i["due_date"][:10])
         paid = min((date.fromisoformat(r["date"][:10]) for r in rows
                     if r.get("type") == "payment_received" and r.get("date")), default=None)
-        verdict = bill_missed(on, paid, cutoff)
+        # A DD due on a weekend or bank holiday is collected, on time, the next Bacs processing day.
+        by_dd = any(r.get("method") == "direct_debit" for r in rows)
+        verdict = bill_missed(on, paid, cutoff, by_direct_debit=by_dd)
         # A level direct debit pays the month's scheduled collection on its own day, which can fall
         # after the bill's due date: no bill on a level account is due by direct debit, so the
         # collection taken on its day is not a miss (`payments_and_direct_debit_2026-10-25.md`, "A
@@ -460,7 +462,7 @@ def payment_record(led: list[dict], inv: list[dict], as_of: str) -> dict:
             verdict = False
         if verdict is None:
             continue
-        due.append((rows, missed_on(on).isoformat()))
+        due.append((rows, missed_on(last_day_to_pay(on, by_direct_debit=by_dd)).isoformat()))
         if verdict:
             missed.append(rows)
     return {"due": len(due), "payments": len(due) - len(missed), "returned": returned, "missed": len(missed),
