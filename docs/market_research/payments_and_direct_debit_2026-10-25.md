@@ -724,3 +724,30 @@ world truth crosses.
 grade. Measured on the page ledger, `on_level_dd` reads level on every one of them. 312 of the 320 are on 63
 accounts that never collect level again: closed accounts whose last payment happened to be a level collection.
 That is the finding's next section.
+
+## One record of what was collected: a month settled on its face is not on the level schedule (worker, 9 Nov 2026)
+
+*K8 page for `name-c7s-gbp-18-12-desk-ledger-gap`. No new source was read. The finding is
+`docs/staging/WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md`,
+in the section "C7's GBP 18.12, named".*
+
+**What is established.** A Bacs collection is one amount, taken on one day or returned (§3). One collection cannot be both
+the level amount on its scheduled day and a bill's face on the bill's due date. The supplier's ledger and the statement
+it prints are one account of the same cash ("What a level direct debit must be", above).
+
+**What the tree did.** For a churned leg's final month, a mover's final month, and a month under a stopped or cancelled
+mandate, the world settles the bill's face on its due date. The in-loop level schedule still recorded that month's level
+row, and the page and `closing_balances` read the schedule. On C7 the world presented GBP 89.88 on 15 Jul 2019, while the
+page counted GBP 108 collected on 12 Jun. The desk's ledger held 66.67 owed and wrote it off. The page said 48.55.
+
+**The choice the build makes.** The schedule holds only what the world presented. A month the triad settled on its face
+is taken back off it (`InLoopLevelCollection.withdraw`). This chooses neither record as right. It makes the page, the
+closing balance and the desk read one account of the cash.
+
+**What this does not settle, and is the next question (GAP, logic and not yet a published source).** For a level leg
+leaving the supplier, the world skips the last in-supply level collection and collects the final bill's face. A real
+supplier would take the scheduled collection while it still supplies the household. It would then put the closing balance
+on the final bill and collect that balance by the existing mandate (`home_moves.md`, "Debt prevention at move-out"). So
+today the level shortfall a leaver carries is never asked for, and it is written off. That is a fidelity question about
+the world, separate from this change. **Direction of error:** this change moves bad debt to what the world actually
+collected. It does not touch the larger understatement of collection at move-out.

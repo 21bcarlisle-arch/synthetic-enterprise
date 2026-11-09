@@ -2813,6 +2813,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             household_legs=len(_fuels_of_household.get(household_of(cid), ())) or 1,
             level_collection=None if left else _level_row,
         )
+        # The page's schedule holds only what the world presented (`InLoopLevelCollection.withdraw`).
+        if _level_row is not None and _payment_triad.last_level_presented is not _level_row:
+            _level_in_loop.withdraw(cid, _level_row)
         _cx_desk.observe_payment(PaymentOutcome(
             customer_id=cid,
             due_date=_pm_rec["due_date"],

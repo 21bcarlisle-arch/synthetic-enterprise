@@ -298,6 +298,18 @@ class InLoopLevelCollection:
         self.collected.setdefault(cid, []).append(row)
         return row
 
+    def withdraw(self, cid: str, row: dict) -> None:
+        """Take back a row the world did not present. The triad settles some months on the bill's
+        face instead: a churned leg's final month, a mover's, and a stopped or cancelled mandate.
+        Left in, the page and `closing_balances` counted cash nobody collected. On the 4dee9854a4
+        book, C7's 12 Jun 2019 GBP 108 sat on the page while the desk held the 89.88 face, so the
+        desk wrote off 18.12 more than the page said was owed."""
+        rows = self.collected.get(cid, [])
+        for i in range(len(rows) - 1, -1, -1):
+            if rows[i] is row:
+                del rows[i]
+                return
+
 
 def level_dd_schedule_from_the_loop(in_loop: Mapping[str, list[dict]] | None,
                                     rebuilt: Mapping[str, list[dict]]) -> tuple[dict, dict]:

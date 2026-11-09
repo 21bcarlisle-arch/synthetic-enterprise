@@ -774,6 +774,8 @@ class LivePaymentTriad:
         #: leg -> the last day of the last month it presented a level collection for. Its next
         #: collection can land any day after, so the account's ledger is complete only to here.
         self._leg_level_floor: dict = {}
+        # The level row the last `record_period` presented, or None if it settled the bill's face.
+        self.last_level_presented: Optional[dict] = None
         # Asks of nothing (a credit bill, or a bill a waiting credit paid): no collection presented.
         self._n_nil_asks = 0
         # Later settlements other money had cleared in full (not sent), or in part (cut to the rest).
@@ -1300,6 +1302,7 @@ class LivePaymentTriad:
             >= date.fromisoformat(moved_out_on[:10]) - timedelta(days=1))
         level = (level_collection if method == DIRECT_DEBIT and level_collection is not None
                  and not final_month else None)
+        self.last_level_presented = level
         presented_on = (date.fromisoformat(level["collection_date"]) if level is not None
                         else due_date)
         # EP4, the world side (`simulation/plan_offer_response.py`): the household's money this
