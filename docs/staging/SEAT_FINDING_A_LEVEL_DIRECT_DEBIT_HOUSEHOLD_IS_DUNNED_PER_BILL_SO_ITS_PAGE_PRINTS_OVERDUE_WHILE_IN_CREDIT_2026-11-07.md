@@ -646,3 +646,69 @@ So all three refusing rows of this book, and the 11 publish-gate failures of thi
 origin. The gate keeps re-grading a book built before the fix, and that book cannot pass. **No test is red, and none can
 be repaired.** The wedge clears, or fails with a new named cause, on the 05:09 run's book. That book should finish about 08:00
 GMT, going by the last run's 2 h 50 min. No dated exception is proposed, for the reason under "Not recommended" above.
+
+## The 298149a1fc book, the first carrying 1936f66251, graded, and the correctness-stretch exit test on it: not met (worker, 9 Nov 2026 ~07:10 GMT)
+
+`run_output_298149a1fc_20261109T050900Z.json` (finished 06:57Z; 298149a1fc descends from 1936f66251). Graded from a clean
+`git archive` of 0f4c93eea4 (no shared-tree edits) with the same scripts as the b9ad453df0 grade, copied to
+`/var/tmp/grade-2981/` (`run.sh`). **The instrument was checked first:** run on the b9ad453df0 book, it reproduces the filed
+299 unexcepted breaches on 3 rows, Leg A 18,296 / 34,578 and 459 legs exactly (`/var/tmp/grade-2981/control-b9ad/`).
+
+**The two pre-registrations above, graded:**
+
+| Filed prediction | Read | Held? |
+|---|---|---|
+| loop schedule holds ≥ 740 legs | **766** | yes |
+| `only_post_loop` ≤ 2% of post-loop months | **0** of 29,546 | yes |
+| `differ` ≤ 3% | 60 of 29,546 (0.2%) | yes |
+| INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL Leg A in 0.17 to 0.27 | **0.216** (7,494 / 34,638, 929 accounts) | yes: FLAGGED, not breached |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE ≤ 15 | **80** of 6,077 steps, on 6 households | **no**: refuted (over 40) |
+| INV_OVERDUE_WITHIN_BALANCE ≤ 15 | **71** of 1,086 openings, on 70 accounts | **no**: refuted (over 40) |
+
+Verdict: **151 unexcepted breaches on 2 rows; 8 excepted. The publish is refused** (the publisher's own grade of this
+book had not run at 07:02; this is the same runner, and the instrument check above says it should match).
+
+**The gas-leg defect is fixed**, and so is the third refusing row. **The refutation clause's reading is itself refuted.** It said
+an overdue row above 40 "would mean something other than the opening cache is still splitting the schedules". The
+schedules are not split: `only_post_loop` is 0 and `differ` is 0.2%. Both rows read exactly what they read on the
+e50e7b8f68 replay (71 and 80). There they were attributed to two schedules, and that attribution is withdrawn: one schedule
+gives the same counts. The residual on b9ad453df0 was 9 and 8 on the households the dropped legs did not touch. The
+restored level gas legs bring the rest.
+
+**INV_OVERDUE_WITHIN_BALANCE 71: the row cannot see an instalment default.** Classified per opening
+(`/var/tmp/grade-2981/ab_INV_OVERDUE_WITHIN_BALANCE.json`):
+- **70 of 71** open within 7 days after a failed level instalment on the household. On **40** of them the opening
+  overdue equals the failed instalment(s) to the penny.
+- **1** (PROS-2016-0370, 16 Jan 2017, GBP 6.91) has no return in the 7 days before. Its overdue is the gas bill (33.73)
+  less the instalment (26.82): seasonal debit dunned, the defect this finding is named for.
+
+By the definition this finding adopted from Ofgem (letter of 20 Sep 2011, App. 2 para 2.8, on
+`payments_and_direct_debit_2026-10-25.md` "What is owed"), a DD customer who defaults on a payment is in debt. So these
+70 journeys are owed. The row's second leg asks whether "a bill was unpaid past its due date". On a level account
+the debt is the missed instalment, and the bill is settled against the schedule. **The row is wrong for level households,
+not the desk.** The one exception is the desk.
+
+**INV_OVERDUE_WITHIN_PAGE_BALANCE 80: 6 households, 53 steps on SYN-2016-021.** All 6 hold a level DD leg. Three
+pay the other fuel by prepayment or standard credit (SYN-2016-021's electricity is prepayment, its gas is level DD).
+The printed overdue (for example 40.65) is above the sum of both fuel pages' balances (26.67). **I cannot yet say** which
+side is wrong. Candidate: the desk caps the shortfall by one leg's debit, `min(shortfall, debit balance)`, and the
+row sums both pages, where a prepayment or credit page can hold a credit. Not traced.
+
+**The exit test (ruling of 26 Oct), on this book:**
+1. *Suite on the full book with zero unexplained breaches*: **not met.** 151 unexcepted on 2 rows. 70 of the 71
+   are explained above as a row defect, but no dated exception names them yet, and 80 are not explained.
+2. *Eight Explore slots filled validly or honestly empty*: **not graded on this book.** The cast is only written by
+   a publish, and this one is refused. One check on the b9ad453df0 cast was refusing the publish two cycles running (the
+   per-fuel tariff label). That was a parser defect, not a page error, and it is fixed at 0f4c93eea4.
+3. *One cold read finds no new class*: **not run.** Leg 1 fails, so the exit cannot be met on this book. The ninth
+   cold read (af31e73fa7) did find a new class: the closed-account balances finding.
+
+**Recommended next, one variable each:**
+1. **INV_OVERDUE_WITHIN_BALANCE's second leg reads an instalment default on a level household.** A journey on a level
+   leg is owed when an instalment presented before the opening has failed and has not been made good. Every other
+   household keeps the bill reading. Prediction for a re-grade of this same book (no run needed, since the row only
+   reads): 71 -> 1, and the 1 is PROS-2016-0370. The row is the suite's, written blind from the Knowledge pages. So the change
+   cites the page's corrected "What is owed" paragraph and is a factual correction to match it. It is not a new reading of the
+   code.
+2. **Trace SYN-2016-021's 53 steps**: compare the desk's overdue against each fuel page on the same day, before choosing
+   which side moves.
