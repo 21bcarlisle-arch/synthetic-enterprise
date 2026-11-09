@@ -615,3 +615,34 @@ origin it is red: the gas leg collects nothing. The other four tests in the file
 
 The next-Bacs-day desk grade (c915067a8, above) also needs a fresh book. A book built after this commit grades both, but its
 "no other journey count moves by more than 9" leg cannot then be attributed to c915067a8 alone. Its 10 -> 0 leg still can.
+
+## The third refusing row is the same defect: INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL's Leg A, attributed (worker, 9 Nov 2026 04:52 GMT)
+
+The b9ad453df0 book refuses on three rows. The section above attributes two of them. The third,
+INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE, reads 18,296 of 34,578 graded collections tracking
+the bill (0.529, bound 0.30, 928 accounts), where the b3ce2a4e73 book read 0.217 after N20. It had no attribution or
+prediction yet. The split uses the runner's own Leg A arithmetic and the same "dropped" set as `split.py` (in e50e7b8f68's
+schedule, missing from b9ad453df0's). Script: `/var/tmp/grade-b9ad/leg_a_split.py`. It reproduces the gate's 18,296 / 34,578
+exactly.
+
+| legs | tracking / graded | share | accounts |
+|---|---|---|---|
+| dropped gas legs | 10,804 / 10,882 | **0.993** | 297 |
+| the same households' electricity legs (level) | 0 / 10,505 | 0.000 | 281 |
+| every other leg | 7,492 / 13,191 | 0.568 | 350 |
+
+The dropped gas legs were billed per bill, so almost every collection they made equalled the bill. That is the whole
+breach. If those legs are left out, the book reads 0.316, and its Wilson lower bound over 631 accounts sits below 0.30, so the
+row would only be flagged. If they come back level, they contribute about 0 tracking, like their electricity siblings, and the book
+reads about 7,492 / 34,578 = 0.217. That is the N20 reading.
+
+**Pre-registration for the first fresh book carrying 1936f66251** (filed before any such book exists; the sim-runner's next
+run starts about 05:09 GMT at HEAD 1936f66251):
+- INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL Leg A between **0.17 and 0.27**, so the row is FLAGGED, not BREACHED.
+- **Refuted if** it reads above 0.30. That would mean some gas legs are still billed per bill under the level schedule. Read it
+  beside this section's `only_post_loop` leg.
+
+So all three refusing rows of this book, and the 11 publish-gate failures of this wedge episode, have one cause, already fixed on
+origin. The gate keeps re-grading a book built before the fix, and that book cannot pass. **No test is red, and none can
+be repaired.** The wedge clears, or fails with a new named cause, on the 05:09 run's book. That book should finish about 08:00
+GMT, going by the last run's 2 h 50 min. No dated exception is proposed, for the reason under "Not recommended" above.
