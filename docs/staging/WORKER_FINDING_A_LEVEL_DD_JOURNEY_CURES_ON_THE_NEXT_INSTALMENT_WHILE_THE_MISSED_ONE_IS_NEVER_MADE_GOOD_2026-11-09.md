@@ -412,3 +412,19 @@ GAP "for direct debit, the world nets the credit"). That GAP is already filed, a
 
 NEXT: grade a book carrying this change and 8e73c52356 on the same readers. Then C7's run ledger against its page on
 16 Jul 2019, the closing-account overdue that exceeds the balance.
+
+**The book that grades it (launched 9 Nov 2026 16:07 GMT, no output read).**
+- **The run.** `launch_long_job` job `book-4dee9854a4`, out of loop, in the locked worktree
+  `/var/tmp/book-wt-4dee9854a4`. The shared tree's uncommitted W3_3 bytes still defer `sim_runner`. The book is at
+  origin 4dee9854a4, which carries 3feea0ac3 (this fix) and 8e73c52356 (the closing statement). The import
+  closure is clean (`paths: []`). Its run json path is in `/var/tmp/grade-ondd-scripts/RUN_PATH`.
+- **The grade.** The unit `grade-chain-book-4dee9854a4` waits for the run, then runs `/var/tmp/grade-ondd-scripts/after_run.sh`.
+  Those are the 505d readers, plus `overdue_breaches.py`, `classify.py` and `probe_net.py`. The control is the
+  505df564e3 ledger. The chain writes `ALLDONE` or `NO_DONE` in `/var/tmp/grade-ondd/`.
+- **Predictions, filed above before any output:**
+  - `probe_net` reads 0 still-collecting accounts as left.
+  - `classify` shows no breach on a leg that goes on collecting level while reading as left.
+  - The never-level journeys are identical, unless 8e73c52356 moved one through company-wide cash, which is the
+    first cause to rule out.
+  - The 320 still-level page rows do **not** fall to about 20.
+  - The total overdue movement **cannot be attributed between the two commits**, because this book carries both.
