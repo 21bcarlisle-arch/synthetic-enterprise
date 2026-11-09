@@ -25,7 +25,7 @@
     "verified_at": "2026-11-03T02:24:29Z"
   },
   "paused_gate": "Refused by the domain-invariant check: 2 of its rules are broken and no dated exception covers them. The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date [INV_OVERDUE_WITHIN_BALANCE]: broken on 71 of 1,086 checked (unit: collections journey opening); Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 80 of 6,077 checked (unit: household collections step printing an overdue figure).",
-  "paused_reason": "domain-invariant breaches at git=298149a1fc that no exception covers: INV_OVERDUE_WITHIN_BALANCE 71 (no exception); INV_OVERDUE_WITHIN_PAGE_BALANCE 80 (no exception)",
+  "paused_reason": "domain-invariant breaches at git=9d7dcfc19c that no exception covers: INV_OVERDUE_WITHIN_BALANCE 71 (no exception); INV_OVERDUE_WITHIN_PAGE_BALANCE 80 (no exception)",
   "paused_since": "2026-11-08T20:48:26Z",
   "schema": 1,
   "showing_run": {
@@ -41,5 +41,5 @@
     "verified_at": "2026-11-03T02:24:29Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-09T10:09:39Z"
+  "written_at": "2026-11-09T11:58:23Z"
 }
