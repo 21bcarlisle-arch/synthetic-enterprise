@@ -37,3 +37,15 @@ starve the draw and break Rule 0. The control is one assertion: a `holds` id is 
 the same id is drawable once it is set.
 
 Until then, expect G15 to be drawn again on later ticks. Each one should hold the atom the same way and cite this file.
+
+## Done (2026-11-09, worker on the seat's Lane 0 call)
+
+`correctness_stretch.holds` in `docs/direction/priority_order.yaml` names seven atoms in no step, each with a
+one-line reason, and `supervisor.correctness_stretch_refusals` refuses them while `exit_met` is unset (live:
+4 refusals became 11). Held, on the test "builds a new capability and corrects nothing already in a book": G15,
+A50, A51 (the use-case programme), B8 (a retention holdout), and W1_14, W2_18, W2_19 (asset-world phase 1,
+which is step 8's subject). Deliberately NOT held: W3_3 (it is in step 4 and corrects a cost basis), W2_21
+(it corrects implausible joint draws already in the book), D46, W2_30, W2_40, W1_6b, W1_29, DD_seasonal and
+every harness/site atom. The control is
+`test_a_held_unranked_atom_is_refused_until_the_exit_and_an_unheld_one_never_is`; dropping the holds loop
+reds it and the live-read test.

@@ -1082,10 +1082,16 @@ def correctness_stretch_refusals(path: Path | None = None) -> dict:
             return {}
         steps = {int(k): v for k, v in (data.get("steps") or {}).items()}
         ruling = stretch.get("ruling") or "the correctness stretch"
-        return {aid: (f"refused by the correctness stretch ({ruling}): step {k} is held until its "
-                      "exit test is recorded met")
-                for k in sorted({int(s) for s in (stretch.get("ahead_of_steps") or [])})
-                for aid in ((steps.get(k) or {}).get("atoms") or [])}
+        out = {aid: (f"refused by the correctness stretch ({ruling}): step {k} is held until its "
+                     "exit test is recorded met")
+               for k in sorted({int(s) for s in (stretch.get("ahead_of_steps") or [])})
+               for aid in ((steps.get(k) or {}).get("atoms") or [])}
+        # `holds`: atoms in no step that are still feature work. 79 of 102 live atoms sit in no
+        # step, so the steps alone let G15 be drawn to build mid-stretch (2026-11-09).
+        for aid, why in (stretch.get("holds") or {}).items():
+            out.setdefault(aid, f"refused by the correctness stretch ({ruling}): held until its exit "
+                                f"test is recorded met -- {why}")
+        return out
     except Exception:
         return {}
 

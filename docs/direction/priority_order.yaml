@@ -18,6 +18,17 @@ since: "2026-10-05"
 correctness_stretch:
   ruling: docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md
   ahead_of_steps: [6, 7, 8, 9, 10, 11, 12, 13]
+  # Atoms in NO step that the stretch also holds (seat, 2026-11-09). The test: it builds a new
+  # capability (a use case, forward years, the asset world, advice) and corrects nothing already in
+  # a book. Correctness and harness work is never held here -- a blanket hold would starve the draw.
+  holds:
+    G15_forward_curve_series_to_backtest_hedging_by_physics: a forward series to backtest hedging, a use case the ruling defers
+    A50_the_supplier_use_case_register_is_published_with_a_status_per_item: publishes the use-case register, no book figure changes
+    A51_the_plain_english_report_on_the_use_case_register_reaches_the_director: reports the use-case pulls, and depends on G15
+    B8_discovered_price_sensitivity_holdout: a retention-campaign holdout, a new supplier capability
+    W1_14_weather_cells_for_household_heat_load: asset-world phase 1 (step 8); its L3 extends cells to other seeds, the published book already reads its own
+    W2_18_the_housing_joint_the_sample_and_the_ceiling: asset-world phase 1 of housing (step 8), new per-home ceilings
+    W2_19_who_lives_where_money_and_composition: asset-world phase 1 of people (step 8), a new population model
   work: [the Explore slots pass validity checks or are honestly empty (landed 26 Oct),
          SVT unit rates against cap and wholesale per fuel per period (cap side measured 26 Oct, at the cap),
          root causes -- life events by fuel held, prepayment billed as prepayment, the read duty bounding

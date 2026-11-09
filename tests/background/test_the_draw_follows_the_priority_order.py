@@ -151,5 +151,34 @@ def test_the_live_stretch_is_read_as_written():
         pytest.skip("no correctness stretch in the live priority order")
     steps = set(stretch.get("ahead_of_steps") or [])
     held = {aid for k, v in (live.get("steps") or {}).items() if int(k) in steps
-            for aid in (v or {}).get("atoms") or []}
+            for aid in (v or {}).get("atoms") or []} | set(stretch.get("holds") or {})
     assert stretch.get("exit_met") or set(supervisor.correctness_stretch_refusals()) == held
+
+
+_HOLDS = ("correctness_stretch: {ruling: THE_RULING.md, ahead_of_steps: [6, 7], "
+          "holds: {U_feature: a new use case}%s}\n" + _ORDER)
+
+
+def test_a_held_unranked_atom_is_refused_until_the_exit_and_an_unheld_one_never_is(world):
+    """The partition over an atom in NO step, in one control: a `holds` id is refused while
+    `exit_met` is unset and drawable once it is set; an unheld unranked id is drawable throughout.
+
+    MUTATION (must fire): drop the `holds` loop in `correctness_stretch_refusals` -> U_feature is
+    drawn during the stretch.
+    MUTATION (must fire): hold every unranked atom -> U_correctness is never drawn."""
+    order = world / "priority_order.yaml"
+    pair = _disjoint("U_feature") + _disjoint("U_correctness")
+
+    order.write_text(_HOLDS % "")
+    supervisor.MATURITY_MAP_PATH.write_text(pair)
+    during = {a["id"] for s in range(50)
+              for a in supervisor._maturity_map_draw_concurrent(rng=random.Random(s))}
+    why = supervisor.correctness_stretch_refusals()
+
+    order.write_text(_HOLDS % ", exit_met: READING.md")
+    after = {a["id"] for s in range(50)
+             for a in supervisor._maturity_map_draw_concurrent(rng=random.Random(s))}
+
+    assert during == {"U_correctness"}
+    assert after == {"U_feature", "U_correctness"}
+    assert "a new use case" in why["U_feature"] and "THE_RULING.md" in why["U_feature"]
