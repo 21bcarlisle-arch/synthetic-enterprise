@@ -752,3 +752,17 @@ three homes are in the book.
 5. INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER: 7 breaches. No prediction was filed. None is on the three homes.
 
 The BSCP504 prereg is fully graded and can retire.
+
+## The tenth cold read waits on this finding (2026-11-09, worker tick)
+
+The direction item `the-tenth-cold-read-carries-the-seat-named-checks` says to run "on the first book that passes item 1's
+gate" and "if item 1's book fails, this waits". Item 1's book, `run_output_298149a1fc_20261109T050900Z.json`, was graded
+by 7e8dfb553e and failed: 151 unexcepted breaches on INV_OVERDUE_WITHIN_BALANCE (71) and INV_OVERDUE_WITHIN_PAGE_BALANCE
+(80). At 08:50 GMT no newer book is in `docs/reports/` and no run is in flight. So no read was run. Running it on this
+book would grade household pages that the gate has already refused, and that would not count as the exit test's leg.
+
+The read becomes ripe when a book carrying the fix for this finding's overdue rows passes the gate. The fix is also needed
+for `WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md`.
+The direction item is not released. Releasing it would tombstone the item, and the read is still owed. The four
+seat-named checks stay with it unchanged: meter identity, read repetition, payment method on the bill date, and a
+closed account's balance a year after its last bill.
