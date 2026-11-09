@@ -150,3 +150,45 @@ built (K8).
   debit is now dunned. I cannot yet say how many.
 - **Refuted if:** any non-level journey's cure date moves; or any level-at-cure cure is recorded on an item aged
   0 days; or any left-level cure lands while `_owes_a_bill_due_by` holds.
+
+## M2's missing test, built (delivery seat, 9 Nov 2026 ~11:20 GMT)
+
+The test is `test_a_left_level_household_one_bill_behind_does_not_cure_on_each_due_date`, in the same file.
+
+**The case.** The household is on level DD from October to December at its bills' own GBP 100, so it leaves level DD
+square. January's bill fails and is never paid. Every later bill is collected at its face on its due date.
+
+**What the desk sees on each due date.** The cash goes to the oldest bill first. The GBP 100 still owed moves onto the
+bill due that day, and the view reads it 0 days overdue. The stopped schedule has been met. Only `_owes_a_bill_due_by`
+holds the journey open.
+
+**The partition leg runs first.** It is the same household with January re-collected 20 days late. The desk must cure
+that one.
+
+**Results:**
+- At HEAD: 8 of 8 tests pass.
+- With M2 applied (the desk passes `level[0]` whenever `level_of` is set): this test goes red and the other 7 stay green.
+  The mutant cured on 14 Mar and 14 Apr 2025, each time with GBP 100 owed and an item aged 0 days. That is the left-level
+  aged-0d shape the book prediction says reads 0.
+- **M2 is now a mutation that fires, not a missing test.**
+
+## The book grade: not yet run, because no book carries the fix (9 Nov 2026 ~11:20 GMT)
+
+The newest book is 9d7dcfc19c (run finished 10:45 UTC). It is **not** a descendant of d8264b525e, which landed at 10:39.
+
+The shared tree's HEAD does carry the fix. The sim runner logged "Waiting 4685s before next run" at 10:58, so the next run
+starts at about 12:16 UTC and finishes at about 14:10 UTC. That is the first book that can grade the prediction above.
+
+**The instrument, fixed now:**
+- Copy that run's `docs/state/billing_ledger.json`.
+- Run `python3 /var/tmp/grade-2981-replay/desk_own.py <ledger>` from a repo worktree.
+- The prediction's three refutation legs read off its rows:
+  - `('left level', 'aged 0d item')` reads 0;
+  - `('level at cure', 'aged 0d item')` reads 0;
+  - `('left level', 'days=None')` is graded against `_owes_a_bill_due_by` through `join.py`, which needs the
+    `split.py` rows first.
+- Never-level cure dates are byte-identical only between two arms from one recipe. Across a different book that leg
+  cannot be graded: it reads "cannot say", not "held".
+
+**The pre-fix reference is 298149a1fc (`desk_own.txt`):** 2 left-level aged 0d, 195 left-level no item, 110 level-at-cure
+aged 0d, 91 level-at-cure no item.

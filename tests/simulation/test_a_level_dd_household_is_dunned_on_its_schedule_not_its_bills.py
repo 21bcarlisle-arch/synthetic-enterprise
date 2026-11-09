@@ -231,3 +231,50 @@ def test_an_account_that_left_level_dd_is_dunned_on_its_bills(triad, monkeypatch
 def lpt_owes(ledger, on):
     from company.billing.collections_journey import _owes_a_bill_due_by
     return _owes_a_bill_due_by(ledger, on, 14)
+
+
+# Level for October to December at the bills' own GBP 100, so the account leaves level DD square.
+# Then each bill is collected at its face on its due date (all weekdays).
+LEFT_SQUARE = [
+    ("2024-10", "2024-10-31", date(2024, 11, 14), 100.00),
+    ("2024-11", "2024-11-29", date(2024, 12, 13), 100.00),
+    ("2024-12", "2024-12-31", date(2025, 1, 14), 100.00),
+    ("2025-01", "2025-01-31", date(2025, 2, 14), 100.00),
+    ("2025-02", "2025-02-28", date(2025, 3, 14), 100.00),
+    ("2025-03", "2025-03-31", date(2025, 4, 14), 100.00),
+]
+
+
+def _left_square(m):
+    return (f"{m}-05", 100.00) if m in {"2024-10", "2024-11", "2024-12"} else None
+
+
+def test_a_left_level_household_one_bill_behind_does_not_cure_on_each_due_date(triad, monkeypatch):
+    """A household that has left level DD misses January's bill and then pays each later bill on its
+    due date. On every due date, the cash goes to the oldest bill first. The GBP 100 still owed moves
+    onto the bill due that day, so the view reads it 0 days overdue. The stopped schedule asks
+    nothing and has been met. Only the bill walk (`_owes_a_bill_due_by`) sees a bill due that is
+    still unpaid. A desk that kept this account on its schedule cured on 14 Mar and 14 Apr 2025,
+    each time with GBP 100 owed (mutation M2 on d8264b525e, which no other test here reds).
+
+    Partition first: the same household with January re-collected 20 days late is square, so the
+    desk must be able to cure it."""
+    _fail_months(monkeypatch, ["2025-01"])
+    made_good = LivePaymentTriad()
+    made_good._method_for = lambda cid, fuel="electricity": DIRECT_DEBIT
+    monkeypatch.setattr(lpt, "later_settlement_date", lambda event, segment="resi": (
+        date.fromisoformat(event.due_date) + timedelta(days=20) if event.result == "failed" else None))
+    _replay(made_good, "LEFT-MADE-GOOD", LEFT_SQUARE, _left_square)
+    _open, cured_good, _j = _journey_state(made_good, "LEFT-MADE-GOOD", date(2025, 6, 30))
+    assert cured_good, "a left-level household that made its missed bill good must be able to cure"
+
+    monkeypatch.setattr(lpt, "later_settlement_date", lambda event, segment="resi": None)
+    _replay(triad, "LEFT-BEHIND", LEFT_SQUARE, _left_square)
+    ledger = triad._ledger_book.ledger(lpt.account_of("LEFT-BEHIND"))
+    still_open, cured, journeys = _journey_state(triad, "LEFT-BEHIND", date(2025, 6, 30))
+    assert journeys, "January's failed bill must open a journey, or the hold below proves nothing"
+    # The shape the hold is about: on each due date the household owes, yet the view reads 0 days.
+    for due in (date(2025, 3, 14), date(2025, 4, 14)):
+        assert ledger.balance(due) == pytest.approx(100.00) and lpt_owes(ledger, due), due
+    assert cured == [], f"cured one bill behind on {cured}"
+    assert still_open, journeys
