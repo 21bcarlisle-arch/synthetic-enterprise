@@ -65,6 +65,5 @@ def test_no_wall_crossing_in_the_market_chain_participants():
         [
             "company/trading/hedge_decision.py",
             "company/risk/hedge_policy.py",
-            "company/market/hedge_performance.py",
         ]
     )

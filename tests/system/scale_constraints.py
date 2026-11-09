@@ -324,7 +324,9 @@ def probe_global_rng_users(
         })
         if hits:
             offenders[str(path.relative_to(root))] = hits
-    return {"offenders": offenders, "modules_scanned": scanned}
+    per_package = {pkg: sum(1 for p in paths if p.is_relative_to(root / pkg)) for pkg in packages}
+    return {"offenders": offenders, "modules_scanned": scanned,
+            "modules_found": len(paths), "found_per_package": per_package}
 
 
 def assert_no_global_rng_draws(record: dict, allowed: set[str] | None = None) -> None:

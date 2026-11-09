@@ -83,12 +83,19 @@ def test_cs2_the_global_rng_scan_actually_reaches_the_stochastic_code():
 
     A scan that silently resolved to nothing would report 'compliant' forever —
     an unavailable check is a FAILED check (R15).
+
+    Keyed to the property, not a count: a fixed floor (it was `> 500`) went red
+    when archive increment 3a moved modules out, with the scan still complete.
     """
     record = sc.probe_global_rng_users()
-    assert record["modules_scanned"] > 500, (
-        "the global-RNG scan covered only "
-        f"{record['modules_scanned']} modules across {sc.STOCHASTIC_PACKAGES} — far "
-        "fewer than this codebase has. The scan is not reaching the code it audits."
+    empty = [pkg for pkg, n in record["found_per_package"].items() if n == 0]
+    assert not empty, (
+        f"the global-RNG scan found no modules in {empty} — it is not reaching the "
+        "code it audits."
+    )
+    assert record["modules_scanned"] == record["modules_found"], (
+        f"the global-RNG scan parsed {record['modules_scanned']} of "
+        f"{record['modules_found']} modules — the rest were silently skipped."
     )
 
 
