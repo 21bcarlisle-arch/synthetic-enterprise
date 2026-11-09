@@ -603,3 +603,59 @@ the next processing day was collected as the scheme says it must be, so the hous
 not missed: `company/billing/collections_journey.last_day_to_pay`. On the e50e7b8f68 book the record had
 counted 2,442 such bills missed, on 194 accounts. The roll applies to direct debit only. Whether a
 pay-on-receipt payment made on the next working day is on time is GAP 5: no source read here says so.
+
+## Leaving level direct debit with a debit: the closing statement (worker, 9 Nov 2026)
+
+*K8 page for the open half of d8264b525e. The GAP is filed in
+`docs/staging/WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md`
+("no closing statement for a level scheme"). This page is written before any build. Nothing below is built.*
+
+**What the tree does today.** Once a leg leaves level DD, d8264b525e walks it on its bills
+(`collections_journey._owes_a_bill_due_by`). The debit the scheme had not yet recovered is then aged from the
+due dates of the bills it sat on, which can be months old. The finding's fixture opens at GBP 290 and goes straight
+to the plan-offer rung, on a debit that no one ever demanded as a debt.
+
+**What the rules and published practice establish.**
+- **A scheme-end debit is not debt in itself.** Ofgem's reporting definition excludes "customers with a debit at the
+  end of a payment scheme that will be rolled into a new payment scheme" ("What is owed", above; guidance para 2.8).
+  A leaver's debit is *not* rolled into a new scheme, so that exclusion does not reach it. But the definition counts
+  a DD customer in debt only on "defaulting on one or more payments", and a household whose collections were all
+  taken has defaulted on nothing. On that wording the debit becomes debt only after it has been asked for and not paid.
+- **The licence's own debt clock starts at a written demand.** "Outstanding Charges means the amount of any Charges
+  which are due to the licensee from a Domestic Customer, have been demanded of that Domestic Customer by the licensee
+  in Writing at least 28 days previously and remain unpaid" (Electricity Supply Standard Conditions, consolidated to
+  1 August 2025, definitions, read in `final_account_debt_recovery_primary_check_2026-11-07.md` row 4a). This
+  definition governs a transfer objection (SLC 14.4). It does not define arrears for dunning. It is still the one
+  place the licence names when an unpaid amount counts against the customer: 28 days after a written demand.
+- **Published supplier practice is a statement with a term.** British Gas, on a stopped mandate: "we'll have to
+  cancel your Direct Debit and send you a bill instead" (§ "Off direct debit and back on", above). Budget Energy, on a
+  customer who cancels: "If you cancel your Direct Debit, but still owe us money, you'll need to clear that balance
+  within four weeks"
+  (https://budgetenergy.co.uk/support/billing-payment/payment-support/cancelling-direct-debit/, read 9 Nov 2026).
+  The same page warns of a higher rate off DD, which matches §6.
+- **SLC 27 still applies.** A leaver's debit that goes unpaid past its term is an ordinary debt. The "reason to
+  believe" duties (27.5) and the repayment-plan rungs then apply as they would to any on-receipt bill.
+
+**GAPs.**
+1. Only one supplier's published term was found (four weeks). Whether the term is usually 14 days, 28 days or "on
+   receipt" across GB suppliers is unpublished. *Belief, with a range:* 14 to 28 days. 28 matches both the licence
+   clock and Budget's four weeks.
+2. Whether a supplier sends a standalone closing statement or folds the debit into the first pay-on-receipt bill is
+   unpublished. The two differ only in the document. Both demand the same amount with one term.
+3. Whether suppliers offer by default to spread a leaver's seasonal debit over the next on-receipt bills is
+   unpublished. This is a practitioner question (K4), filed with the build if the book shows it matters.
+
+**The choice the build should make, and why (proposed, not built).**
+- On the day a leg leaves level DD, the desk demands that leg's debit balance once, in writing, on a closing
+  statement. The statement is due **28 days** later, the upper edge of GAP 1's range and the licence's own clock.
+  The longer term is the gentler one for the household and the slower cash for the company, so it errs against our
+  thesis (F11).
+- Bills presented while the leg was level are **not** dunned from their own due dates. The statement replaces them as
+  the demand. Bills after leaving are on-receipt bills and are dunned on their own due dates, as today.
+- The journey opens only if the statement is unpaid at its due date. It opens at the statement's amount (less anything
+  paid), on the **first** rung, not the plan-offer rung.
+- A leg that leaves level DD in credit is unchanged: e0aeece0d3 refunds it.
+- **Prediction, for whoever builds it, filed before any build.** On the first book carrying it, no left-level journey
+  opens earlier than 28 days after the leg's last level collection. The plan-offer rung is never the first rung of a
+  left-level journey. The never-level legs' journeys are byte-identical. The direction the overdue rows move is
+  **I cannot yet say**: fewer and later openings, but each one at the full scheme debit.

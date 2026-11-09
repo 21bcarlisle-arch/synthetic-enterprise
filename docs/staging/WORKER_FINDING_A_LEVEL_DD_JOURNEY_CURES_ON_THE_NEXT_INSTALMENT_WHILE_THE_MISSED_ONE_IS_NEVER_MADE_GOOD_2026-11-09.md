@@ -137,6 +137,9 @@ rung. A real supplier sends a closing statement with its own terms. Ofgem's para
 payment scheme is not debt by itself. Nothing in the tree models that statement, so the opening rung on a left-level
 account is harsher than practice. That is the open half of this fix. It needs a knowledge-page entry before it is
 built (K8).
+*The K8 entry is written (worker, 9 Nov 2026): `docs/market_research/payments_and_direct_debit_2026-10-25.md`,
+"Leaving level direct debit with a debit: the closing statement". It proposes a 28-day closing statement that opens
+the journey on its first rung. The build is not done, and the entry holds the build's prediction.*
 
 ## Prediction for the first book carrying the fix (filed before any such book exists)
 
