@@ -1281,11 +1281,12 @@ class PaymentObservationConsumer:
             return None
         level_refs = {ref for _d, _g, ref in requests}
         asked = self.collections_journeys.asked_of
-        other = tuple(
-            (e.valid_time + dt.timedelta(days=payment_terms_days), asked(e.invoice_ref, e.amount_gbp))
-            for e in self.ledger_book.ledger(account_id).events()
-            if e.event_type == LedgerEventType.BILL_DEBIT and e.invoice_ref not in level_refs)
-        return LevelSchedule(requests=tuple(requests), other_asks=other)
+        bills = [(e, asked(e.invoice_ref, e.amount_gbp))
+                 for e in self.ledger_book.ledger(account_id).events()
+                 if e.event_type == LedgerEventType.BILL_DEBIT and e.invoice_ref not in level_refs]
+        other = tuple((e.valid_time + dt.timedelta(days=payment_terms_days), gbp) for e, gbp in bills)
+        return LevelSchedule(requests=tuple(requests), other_asks=other,
+                             nil_refs=frozenset(e.invoice_ref for e, gbp in bills if gbp <= 0.005))
 
     def level_returns_of(self, account_id: str) -> List[dt.date]:
         """The value dates of the collections the bank returned on a level account (ARUDD): the only

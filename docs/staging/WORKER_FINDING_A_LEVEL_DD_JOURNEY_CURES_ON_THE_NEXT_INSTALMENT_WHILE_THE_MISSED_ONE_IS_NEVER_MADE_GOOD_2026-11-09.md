@@ -366,3 +366,49 @@ run end):
 
 NEXT: the leaving predicate (`on_level_dd` must not read a still-collecting account as left), then the level-era
 remainder on true leavers.
+
+## The leaving predicate, measured: the premise was mostly wrong, and a narrower defect is fixed (seat executor, 9 Nov 2026 ~17:30 GMT)
+
+**The premise, re-measured before building.** The section above read the 320 still-level page steps as false
+leavers. I tested that on the 505df564e3 page ledger, with that commit's own `on_level_dd`, on each breach's date
+(`/var/tmp/ondd-probe/classify.py`).
+- `on_level_dd` reads **level on every one of the 320**, and on every one of the 105 journey-opening rows.
+- **312 of the 320 are on 63 accounts that never collect level again** after the breach. C7 is one: its final bill
+  was June 2019, and it was written off on 30 Jun 2020. "Still level at end" in `overdue_breaches.py` means only
+  that the last payment was a level collection, so it puts closed accounts in the still-level column.
+- The other 8 are on 4 accounts that do go on collecting level.
+- **Correction, beside the claim above:** the 320 are not the false-leaver shape. The prediction filed there (320
+  falls to about 20 on the first book with a corrected predicate) **I now expect to FAIL**. It stays as filed.
+
+**What the 320 are, as far as measured.** The desk's in-run figure exceeds the page balance on closed accounts. On
+C7 it printed GBP 66.67 overdue on 16 Jul 2019, against a page balance of GBP 48.55. A desk replay over the page
+ledger (`/var/tmp/ondd-probe/replay_bal.py`) opens **0** journeys over the balance, under 505df564e3's code and
+under HEAD's. So the breach lives in how the run's own ledger differs from the page on a closing account, and not in
+the predicate. **Mechanism not established.** The next measurement is C7's run ledger against its page on 16 Jul
+2019. The 505df564e3 book also does not carry 8e73c52356 (the closing statement), so the next book moves these
+rows for that reason too.
+
+**The defect that is real, and is fixed here.** A bill that asked nothing read as the leg having left. Two kinds of
+bill ask nothing:
+- an EBSS-covered bill, which the run posts net of its credit, at GBP 0;
+- a month whose level amount is GBP 0, which presents nothing and records no request.
+
+On the netted page ledger (`/var/tmp/ondd-probe/probe_net.py`), 505df564e3's `on_level_dd` reads **6 accounts that
+go on collecting level as having left, on 359 account-days**. The build reads **0 and 0**.
+- K8: `payments_and_direct_debit_2026-10-25.md`, "A month the level schedule asks nothing of is not a departure".
+- The change: `arrears_engine._shows_how_it_pays` and `LevelSchedule.nil_refs`. The triad also records a nil ask
+  as asked nothing (`note_bill_asked`).
+- The controls are `tests/company/billing/test_a_level_dd_month_that_asks_nothing_is_not_read_as_leaving.py` (the
+  partition: a nil month reads level, and a billed month off the schedule still reads left) and
+  `tests/simulation/test_a_level_dd_household_is_dunned_on_its_schedule_not_its_bills.py::test_a_level_month_of_nothing_is_not_read_as_leaving_level_dd`
+  (end to end through the triad).
+- Mutations that fire: no skip, which fails all three; no triad note, which fails the triad test.
+- One equivalence: the GBP 0 face check. A GBP 0 bill's ask is its face, so `level_schedule_of` already puts it in
+  `nil_refs`. The check was deleted.
+
+**The world side, named and not changed.** The world presents no level collection in an EBSS month for a level
+account. Published practice kept collecting, refunded, or lowered the DD (`energy_bills_support_scheme_delivery.md`,
+GAP "for direct debit, the world nets the credit"). That GAP is already filed, and nothing new is filed here.
+
+NEXT: grade a book carrying this change and 8e73c52356 on the same readers. Then C7's run ledger against its page on
+16 Jul 2019, the closing-account overdue that exceeds the balance.

@@ -672,3 +672,55 @@ proposed, with three refinements the first probe forced. Each is stated here so 
   prepayment rung.
 - **The view splits past-due from current.** On 15 Feb a missed January bill prints GBP 150 overdue, not GBP 290. The
   statement's GBP 140 is not due until 28 Feb.
+
+## A month the level schedule asks nothing of is not a departure (seat executor, 9 Nov 2026)
+
+*K8 page for the leaving predicate, `arrears_engine.on_level_dd` (d8264b525e). The reading behind it is in
+`docs/staging/WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md`,
+"The leaving predicate, measured".*
+
+**What the tree does today.** A leg is read as on level DD while its latest bill is one a level collection paid
+for. A bill the company asked nothing for therefore reads as the leg having left. Two kinds of bill ask nothing:
+- **A bill the Energy Bills Support Scheme credit covered.** No collection is presented that month.
+- **A month whose level amount is GBP 0.** Nothing is presented, and no request is recorded.
+
+Either way the leg reads as having left, and is walked on its bills, until the next level-paid bill is issued. On
+the 505df564e3 page ledger, with each EBSS-covered bill posted net of its credit as the run's ledger posts it, that
+code reads **6 accounts that go on collecting level as having left, on 359 account-days**, all in Nov 2022 to Apr
+2023. How many journeys that opened in the run is **not measured**. The page replay opens none for this shape under
+either code once the credit is netted. Without the netting it opens 5, on the reminder rung, but those 5 are an
+artefact of the replay.
+
+**What published practice establishes.**
+- **The EBSS credit never moved a direct-debit customer off direct debit.** Suppliers either credited the account
+  and kept collecting, refunded the credit after the collection cleared (OVO), or lowered the direct debit
+  (`energy_bills_support_scheme_delivery.md`, "A bill the credit covered in part"). On none of these routes did
+  the payment arrangement end.
+- **Lowering the level amount is what Ofgem expects of an account in credit.** "Where a consumer is in a credit
+  position, we expect suppliers to reduce the associated Direct Debit level" (§ "What a level direct debit must
+  be", above). A lowered amount, even to nothing for a month, is the scheme working, not the scheme ending.
+- **What ends a level arrangement** is a cancelled mandate, a supplier stopping the DD and billing instead (British
+  Gas, § "Off direct debit and back on"), or the account closing. Each one is followed by a bill the household is
+  asked to pay. A bill that asks for nothing is evidence of none of them.
+
+**GAP.** No published source says whether a supplier presents a GBP 0 level collection or skips the month. The
+choice below does not depend on the answer.
+
+**The choice the build makes, and why.** A bill that asked nothing, either a zero bill on the ledger or one whose
+ask the company recorded as nothing, is **not evidence either way**. The leg keeps the state its previous bill
+gave it. A true leaver whose next bill asks nothing still reads as left, because its previous bill was not
+level-paid. A leg still on level reads as level through the month. What the company records: it issued the bill
+and set its ask, so it knows it asked nothing (`collections_journey.note_bill_asked`). That is its own act, and no
+world truth crosses.
+
+**Measured on the build, page ledger netted as above:** 0 accounts and 0 account-days, against 6 and 359.
+
+**Prediction, filed before any book carries it.** On the first book with this change:
+- no journey opens on a leg that goes on collecting level after the opening day while the leg reads as left;
+- the never-level journeys are byte-identical;
+- the overdue rows move by **no more than a few dozen**. This change is not what moved them from 151 to 614.
+
+**Not this.** It does not explain the 320 page-step breaches on "still level at end" accounts in the 505df564e3
+grade. Measured on the page ledger, `on_level_dd` reads level on every one of them. 312 of the 320 are on 63
+accounts that never collect level again: closed accounts whose last payment happened to be a level collection.
+That is the finding's next section.

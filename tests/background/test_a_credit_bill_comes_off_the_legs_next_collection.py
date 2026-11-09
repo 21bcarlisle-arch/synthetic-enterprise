@@ -9,7 +9,7 @@ page's 47.05.
 """
 import datetime as dt
 
-from background.live_payment_triad import LivePaymentTriad, account_of
+from background.live_payment_triad import LivePaymentTriad, _period_index_for, account_of
 
 
 def _payments(triad, cid):
@@ -35,8 +35,12 @@ def test_the_next_paid_bill_is_collected_net_of_the_credit_and_no_credit_is_left
                      for e in events), 2) == 0.0
     # Both desks are told what the netted bill asked, so its 70.00 paid on the due date is not read
     # as a miss of its 100.00 face (N15 on b3ce2a4e73); the un-netted March bill asked its face.
+    # Corrected 9 Nov 2026: this pinned the dict to [70.0]. The January credit bill asked nothing,
+    # and is now recorded so (a nil ask is no sign of leaving level DD, `_shows_how_it_pays`).
     for consumer in (triad._consumer, triad._cf_consumer):
-        assert list(consumer.collections_journeys._asked.values()) == [70.0]
+        cj = consumer.collections_journeys
+        assert [cj.asked_of(f"CRED-0::{_period_index_for(m)}", 100.0) for m in ("2018-01", "2018-02", "2018-03")] == [
+            0.0, 70.0, 100.0], cj._asked
 
 
 def test_a_credit_waits_only_when_nothing_on_the_leg_is_unpaid():
