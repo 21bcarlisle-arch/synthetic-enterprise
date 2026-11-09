@@ -2,7 +2,7 @@
 
 # The seat's own code review: what is unused, what is duplicated, what crosses the wall, and why nothing flagged it (2026-10-24)
 
-Acting on `docs/staging/advisor/DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md`
+Acting on `docs/staging/advisor/done/DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md`
 (director, 24 Oct 09:35 and 09:40). The advisor's illustration was tested, not adopted. Every
 figure below was measured on `52a5f2cf3` today; how is beside it.
 
@@ -102,3 +102,24 @@ the unused modules hold 38% of `tariff` hits, 31% of `hedge`, 34% of `register`,
 - B2 world-truth churn (hand-off `b2-world-churn-truth`): K8 page from the switching evidence the
   knowledge layer holds, a labelled range where it is missing, predictions filed, before/after on
   one seed, the published churn belief-against-truth figures re-graded.
+
+## Done
+
+(seat executor, 9 Nov, claim `OPS6_scoped_publish_path_suite`.) Everything this finding ruled for action has
+landed or is held by a control that refuses when it slips. Nothing is left for it to block. Measured
+at `994f7e56d5`:
+
+- **The archive (§4 row 1, §6 bullet 1):** 278 supplier modules are under `archive/unhooked_supplier/`
+  (increments 1 to 4b, the last being `6b70382ded`). `capability_index --dispositions` reads 6 company-side
+  orphans, all 6 ruled as named holds. The orphan check got its weekly caller in `2dfd6f44fd` (Monday's
+  step), so the "no automated caller" defect in §1 row 3 is gone.
+- **The six owed wall crossings (§3, §4 rows B2/A/B14):** `tools.wall_crossing_dispositions` reads 6 live
+  crossings, 91 ruled, OK. Each owed row has owner `KNIFE3_wall_crossing_paydown`, a live H_harness atom,
+  and a due date (B2 on 21 Nov, A and B14 on 28 Nov). The commit gate refuses the tree the day after either
+  date. That control is what keeps B2 from being forgotten. A BLOCKING header on this file only stopped
+  unrelated level raises in H_harness: OPS6's L1 was refused on it this morning (`553556381`).
+- **The churn-model merge** is ruled "after B2", so it waits on the KNIFE3 row above. Nothing new is owed here.
+- **READMEs and code-tab legend:** landed with the finding (`4e3a978bf5`).
+
+The B2 build is still KNIFE3's open work, and the register's due date is where it shows up. Reverse: move
+this file back to `docs/staging/` and delete this section.
