@@ -992,11 +992,18 @@ def generate(run_json_path=None, out_path=None):
                 (billing_account_of(cid), level_missed_on.isoformat()), (None, 0.0))
             taken = taken_in_journey.setdefault(n_journey, {})
             shortfall = round(figure - sum(v for leg, v in taken.items() if leg != cid), 2)
+            if shortfall > 0:
+                # The leg takes the figure UNCAPPED, so the other leg's rise is still a rise.
+                taken[cid] = max(taken.get(cid, 0.0), shortfall)
+            # The desk's figure is the journey's running total, so it can carry earlier months'
+            # shortfall, which those months' own cases already print: a case is capped at its own
+            # bill (PROS-2019-0246 16165, face 60.48 repaid 60.48, printed 269.94). On the
+            # 4dee9854a4 book no earlier in-journey miss lacked a case, so the cap drops no debt.
+            shortfall = min(shortfall, round(asked - part_paid, 2))
             if shortfall <= 0:
                 outcome_case = None
             else:
-                taken[cid] = max(taken.get(cid, 0.0), shortfall)
-                # Owed is the desk's figure less what this case's own record shows met it: a
+                # Owed is the capped figure less what this case's own record shows met it: a
                 # case printing ARREARS_REPAID 25.70 over a 3.07 shortfall is not 3.07 owed.
                 level_gross = shortfall
                 amount = max(round(shortfall - sum(c["amount_gbp"] for c in credits), 2), 0.0) + 0.0

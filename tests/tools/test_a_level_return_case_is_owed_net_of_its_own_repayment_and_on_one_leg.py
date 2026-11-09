@@ -6,11 +6,15 @@ the return counts as missed. Before this fix it printed that figure as owed for 
   over a 3.07 shortfall and still printed 3.07 owed;
 - the figure is the ACCOUNT's, so a two-fuel account's gas return, missed inside the journey the
   electricity return opened, printed the same 3.07 a second time.
+- the figure is the journey's running total, so a bill repaid in full could print earlier months'
+  shortfall (PROS-2019-0246 16165: face 60.48, repaid 60.48, printed 269.94): a case is capped at
+  its own bill, and the cap does not hand the excess to the other leg.
 On book-4dee9854a4 that was 182 cases, GBP 16,826.18, on 100 accounts
 (WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_..._2026-11-09.md, "shape A").
 
 The partition: a return with no repayment still owes the desk's whole figure, and a second leg
-whose journey figure RISES carries the rise. So the fix cannot pass by zeroing every level case.
+whose journey figure RISES carries the rise, and a figure under its bill is not capped. So the fix
+cannot pass by zeroing every level case, nor by printing every case at its bill.
 """
 import json
 from datetime import date
@@ -21,7 +25,7 @@ import tools.generate_billing_ledger as gbl
 from tests.tools.test_generate_billing_ledger_pw import _resi_bill, _run
 
 JAN, FEB = "2019-01-28", "2019-02-28"
-LEVEL = ("REPAID", "SHORT", "DUAL", "DUALg", "RISE", "RISEg")
+LEVEL = ("REPAID", "SHORT", "DUAL", "DUALg", "RISE", "RISEg", "OVER", "OVERD", "OVERDg")
 
 
 def _row(outcome, amount):
@@ -64,6 +68,9 @@ def ledger(tmp_path, monkeypatch):
         _journey("DUAL", ("missed_payment", "2019-02-11", 40.0), ("reminder", "2019-02-26", 40.0)),
         # Here the gas return adds to the account's shortfall: 40 rises to 65.
         _journey("RISE", ("missed_payment", "2019-02-11", 40.0), ("reminder", "2019-02-26", 65.0)),
+        # The journey's running total carries earlier months: 300 against a 120 bill.
+        _journey("OVER", ("missed_payment", "2019-02-11", 300.0)),
+        _journey("OVERD", ("missed_payment", "2019-02-11", 300.0), ("reminder", "2019-02-26", 300.0)),
     ]
     (tmp_path / "run.json").write_text(json.dumps(run))
     return gbl.generate(tmp_path / "run.json", tmp_path / "ledger.json")["customers"]
@@ -105,3 +112,18 @@ def test_an_accounts_one_shortfall_prints_on_one_leg(ledger):
 def test_a_second_leg_carries_what_the_journey_rose_by(ledger):
     assert _feb(ledger, "RISE")[0]["outstanding_gbp"] == 40.0
     assert _feb(ledger, "RISEg")[0]["outstanding_gbp"] == 25.0
+
+
+def test_a_case_is_capped_at_its_own_bill(ledger):
+    inv, (case,) = _feb(ledger, "OVER")
+    assert (inv["outstanding_gbp"], case["arrears_gbp"]) == (120.0, 120.0)
+
+
+def test_the_cap_does_not_hand_the_excess_to_the_other_leg(ledger):
+    assert _feb(ledger, "OVERD")[0]["outstanding_gbp"] == 120.0
+    assert _feb(ledger, "OVERDg")[1] == [] and _feb(ledger, "OVERDg")[0]["outstanding_gbp"] == 0.0
+
+
+def test_both_sides_of_the_cap_are_reachable(ledger):
+    """SHORT's 40 is under its 120 bill and OVER's 300 above it: both arms are exercised."""
+    assert _feb(ledger, "SHORT")[0]["outstanding_gbp"] < 120.0 == _feb(ledger, "OVER")[0]["outstanding_gbp"]
