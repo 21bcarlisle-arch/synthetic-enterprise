@@ -106,7 +106,7 @@ last collection is §8.8b choice 3, still unbuilt). Test:
 four fates first.
 
 **Prediction.** On the first book whose commit carries this close, `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO`
-breaches **10 or fewer** of the 184 it breached on af31e73fa7. Why it could fail: the walk-plus-difference
+breaches **10 or fewer** of the 184 it breached on af31e73fa7. **HELD: 2, on 505df564e3** (graded below). Why it could fail: the walk-plus-difference
 matched the page's balance at close on 850 of 857 leavers, so about 7 should still miss; more than 10 means
 the match on af31e73fa7 does not carry to a book with step 2b's offsets on (b9ad453df). Standing debts are
 flagged, not breached, and stay; their count is not predicted. The 184 exception in
@@ -120,3 +120,39 @@ a gate whose test selection runs that same fixture, and the turn ran out of time
 first: this landing began within 20 minutes of the draw, on bytes the 09:02 turn had already tested.
 
 **Reverse.** Delete this file; revert the row, its evaluator, its exception and §8.8b in the landing commit.
+
+## Graded on the first book carrying the close (2026-11-09)
+
+**Book.** `docs/reports/run_output_505df564e3_20261109T124818Z.json`. `git merge-base --is-ancestor` puts
+e0aeece0d (the close) and d8264b525e (the cure fix) under 505df564e3. Ledger:
+`/var/tmp/grade-505d/ledger.json`, rebuilt by the cure grade's own chain from the book's locked worktree.
+Script: `/var/tmp/grade-505d-closed/grade_closed.py`. It is that chain's `grade.py`, plus the page's final-bill
+dates. The chain's grade read this row NOT_IN_EXPORT, because the in-memory page carried no `final_bills`.
+The dates are rebuilt the way `generate_customer_reaction_chain` dates a final bill: `issue_date`, or else
+`period_end`, of every bill with `final_bill`.
+
+| Book | Close on it | Checked | Breached | Flagged (standing debts) |
+|---|---|---|---|---|
+| af31e73fa7 (pages, 8 Nov) | no | 1,549 | 184 | 244 |
+| 9d7dcfc19c (control, same script) | no | 1,497 | 131 | 278 |
+| **505df564e3** | **yes** | **1,505** | **2** | **313** |
+
+**Prediction: HELD.** 2 is at most 10. The control shows the script can fail: on the last book without the close,
+the same script reads 131. Attribution is partial. 505df564e3 carries both the close and the cure fix, so the
+131-to-2 drop belongs to both together, not to the close alone. No write-off on a closed leg now releases more
+than was owed: 0 of the 38 such breaches on af31e73fa7 remain.
+
+**The residue: 2 credits, no over-write-offs.** On both, the close paid a refund, but the refund came out short
+of the page's balance:
+- PROS-2016-0263g: final bill 14 Sep 2021, page balance −£195.29, refunded £193.64 on 28 Sep, so −£1.65 is left.
+- PROS-2017-0351: final bill 22 Nov 2024, page balance −£1,312.24, refunded £1,290.38 on 6 Dec, so −£21.86 is left.
+
+These are the level-match misses the prediction allowed for: the walk-plus-difference did not match the page
+on about 7 of 857 leavers. Not yet traced: why the walk-plus-difference falls short on these two.
+
+**Standing debts went up (flag, not breach, and not predicted): 244, then 278, then 313.** A debt that the
+close leaves standing is §8.8b choice 3, the last collection, which is still not built. The rise has not
+been traced. It goes to that build, not to this row.
+
+**Done.** The 184 exception is replaced by a narrower one in `DOMAIN_INVARIANT_EXCEPTIONS.yaml`, with
+max_breached 2. It names the two legs and the trace still owed. This finding moves to done/.
