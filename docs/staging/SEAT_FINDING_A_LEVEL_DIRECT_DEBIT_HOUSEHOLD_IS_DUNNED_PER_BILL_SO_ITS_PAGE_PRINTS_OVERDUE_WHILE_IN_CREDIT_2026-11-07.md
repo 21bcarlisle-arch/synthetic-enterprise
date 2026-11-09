@@ -712,3 +712,43 @@ row sums both pages, where a prepayment or credit page can hold a credit. Not tr
    code.
 2. **Trace SYN-2016-021's 53 steps**: compare the desk's overdue against each fuel page on the same day, before choosing
    which side moves.
+
+## The desk-cure ledger leg and the BSCP504 rows on the step 2b books (worker, 9 Nov 2026 ~07:40 GMT)
+
+Drawn as `grade-the-first-book-carrying-level-dd-step-2b-a3136e29f`. **Most of the premise was already spent.** The first
+book carrying step 2b, e50e7b8f68, was graded above (~23:50 8 Nov), and so were b9ad453df0 and 298149a1fc. Two legs the
+item names had not been graded on any step 2b book: the desk-cure ledger leg (5b32ecb0f4) and the BSCP504 rows. Both are
+graded here. Scratch: `/var/tmp/grade-2981-cure/`. Code: the clean `git archive` of 0f4c93eea4 at `/var/tmp/grade-2981/code`.
+
+**The instrument was checked first.** `leg.py` and `split.py`, run on the 84f7fc8fe0 ledger at this code, reproduce the filed
+134 and 85 exactly.
+
+| Filed prediction | 84f7fc8fe0 (control) | e50e7b8f68 | 298149a1fc | Held? |
+|---|---:|---:|---:|---|
+| Cures over a balance owed past due, level legs capped at the shortfall: 0 to 3 | 85 | **348** | **347** (109 accounts; 192 level at cure) | **no** |
+| Uncapped reading | 134 | 352 | 351 | (not filed) |
+| No account that left level DD carries a page debit with every bill paid (6 today) | 6 accounts | not computed | **1** account (SYN-2016-299, GBP 8.63, 3 cures) | **no** |
+| SYN-2016-550 reads 0 | 0 | not computed | 0 of 6 cures | yes |
+
+The prediction is refuted. The count went up, not down. Split by shape on 298149a1fc: **88** level-at-cure cures and **151**
+cures on 19 accounts that later left level DD have an invoice due by the cure still unpaid at run end. Trace: SYN-2016-549's
+electricity instalment fails on 4 Apr 2018. The desk cures when May's instalment is collected, and April's GBP 45 is still
+outstanding at run end. **104** level-at-cure cures have nothing unpaid at run end. I cannot yet say whether those are the
+desk or the reader, because the reader was written before step 2b. Following this leg's own clause, the defect is
+now its own finding:
+`WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md`.
+SYN-2016-550's DIRECTION row stays open on that finding, as this leg said it would.
+
+This also bears on INV_OVERDUE_WITHIN_BALANCE's recommended re-reading above ("owed when an instalment presented before the
+opening has failed and has not been made good"). On these books such an instalment is often never made good at all. So
+the re-reading would pass the 70 openings, and it would also show that the debt they open on outlives their cure.
+
+**The BSCP504 rows** (`records/WORKER_PREREG_THE_BSCP504_CEILING_ON_THE_NEXT_FRESH_BOOK_2026-11-07.md`), on 298149a1fc. All
+three homes are in the book.
+1. Exception queue: **0** entries. (1) holds.
+2. No ceiling hold under the screen: holds, because nothing is queued.
+3. INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL: **0 of 5,671**. Holds.
+4. INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE, filed at most 1: **0 of 1,302**. Holds, as it did on e50e7b8f68.
+5. INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER: 7 breaches. No prediction was filed. None is on the three homes.
+
+The BSCP504 prereg is fully graded and can retire.
