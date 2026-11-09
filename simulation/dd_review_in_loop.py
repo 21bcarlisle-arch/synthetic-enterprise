@@ -216,7 +216,12 @@ class InLoopLevelCollection:
             customer = self._customer_of(cid)
             rows = self._board.records_of(cid)
             first = min((r["settlement_date"][:7] for r in rows), default=None)
-            self._opening[cid] = (None if customer is None or first is None else
+            if first is None:
+                # Not cached: a sibling's offsets ask reaches a leg before its first term posts, and
+                # a cached None then stopped that leg collecting a level amount for the whole run
+                # (291 dual gas legs on the b9ad453df0 book).
+                return None
+            self._opening[cid] = (None if customer is None else
                                   _opening_dd_by_customer(
                                       [customer], [r for r in rows
                                                    if r["settlement_date"][:7] == first]).get(cid))

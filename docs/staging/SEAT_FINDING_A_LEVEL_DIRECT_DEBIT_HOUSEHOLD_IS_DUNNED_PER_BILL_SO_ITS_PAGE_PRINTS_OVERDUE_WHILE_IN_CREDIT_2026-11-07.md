@@ -553,3 +553,65 @@ noise. The second leg, "no other journey count moves by more than 9", needs the 
 comparator, not e50e7b8f68: b9ad453df0 changes the level-DD schedule the world collects. If any other world or company
 commit lands between b9ad453df0 and the graded book (the closed-account close is in flight), that leg cannot be
 attributed to c915067a8 and is reported as such. The 10 -> 0 leg reads this mechanism alone.
+
+## The b9ad453df0 book, the first carrying "one schedule", graded: refuted, and the main cause is a new defect (worker, 9 Nov 2026 ~05:00 GMT)
+
+`run_output_b9ad453df0_20261109T015606Z.json` (finished 03:39Z). Graded at origin 0f074c607c, whose commits after
+b9ad453df0 change only the company desk (c915067a8) and readers. The tools are the same as e50e7b8f68's: the ledger from
+`/var/tmp/b3ce-grade-scripts/ledger.py`, the suite from `grade.py`, and `/var/tmp/grade-e50e/level_legs.py`. To list every
+breach rather than five examples, `/var/tmp/grade-b9ad/all_breaches.py` and `split.py` were used. Scratch: `/var/tmp/grade-b9ad/`.
+
+**The pre-registration, graded:**
+
+| Filed prediction | Read | Held? |
+|---|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE ≤ 5 on level households | **241** | **no** (refuted: over 20) |
+| INV_OVERDUE_WITHIN_BALANCE ≤ 5 | **57** | **no** (refuted) |
+| J1 on ≥ 95% of level-leg openings | **122 of 945** | **no** |
+| reconcile `source` is `in_loop` | `in_loop` | yes |
+| `differ` ≤ 2% of matched months | 1,169 of 16,517 (**7.1%**) | **no** (refuted: over 5%) |
+| each `only_*` ≤ 1% | only_in_loop 176 (1.0%); only_post_loop **11,858 of 29,544 (40%)** | **no** |
+| INV_PAYMENT_RECORD 0 (0f9ebbad56, read at origin) | **0** | yes |
+
+Verdict: **299 unexcepted breaches on 3 rows (57 + 241 + 1 INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL), so the publish is refused.**
+
+**Why: the loop's schedule lost the gas leg of almost every dual household.** The loop's schedule holds 459 legs. e50e7b8f68's
+rebuild held 766. The 307 legs it lost are all gas legs, and 291 of them have an electricity leg that is in the loop's
+schedule. Cause: `InLoopLevelCollection._opening_of` cached its answer even when the leg had no records yet. With the offsets
+on, the electricity leg's ask reads the gas leg's opening amount before the gas term has posted (phase 2b posts the
+electricity term first). It got `None`, cached it, and the gas leg then returned `None` at every ask of its own. It collected
+no level amount for the whole run, and the world and page billed it per bill while its electricity leg ran level. With
+offsets off, the sibling is never asked, so this is new in b9ad453df0. The 22 dual gas legs that survived are households
+whose gas term posted before the electricity leg's first ask. The step-2b control seeded `_opening` and never reached
+`_opening_of`, which is why it was green.
+
+**Attribution, from the full breach lists (households whose gas leg was dropped, against the rest):**
+
+| Row | dropped-gas households | the rest |
+|---|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE | 233 steps on 19 households | **8 steps, 1 household** |
+| INV_OVERDUE_WITHIN_BALANCE | 48 on 37 | **9 on 9** |
+| J1 openings the day after a level return | 92 of 886 | **30 of 59** |
+
+The `differ` sample (OCC-01f752dc9316: 34.96 in the loop against 34 in the rebuild, reversed by 0.96 the next year) is also
+a dropped-gas household: without the gas leg, its offsets differ. The run does not save the rebuild per row, so **I cannot
+yet say** how much of the 1,169 is this.
+
+**The fix (this commit).** `_opening_of` no longer caches a `None` given before the leg has records. Control:
+`test_a_leg_asked_by_its_sibling_before_its_first_term_still_collects_its_own_level_amount` in
+`tests/simulation/test_a_dual_level_household_collects_one_schedule_with_the_offsets_on.py`. It goes through `_opening_of`
+with offsets on. Both legs must equal the post-loop rebuild, and its partition leg requires offsets off to collect gas. On
+origin it is red: the gas leg collects nothing. The other four tests in the file are unchanged and green.
+
+**Pre-registration for the first fresh book whose commit carries this fix** (written before any book holds it):
+- The loop's `level_dd_collections` holds at least **740** legs, and `only_post_loop` is at most **2%** of post-loop months.
+- INV_OVERDUE_WITHIN_PAGE_BALANCE at most **15** and INV_OVERDUE_WITHIN_BALANCE at most **15**: this book's residual
+  (8 and 9), with room for the restored legs.
+- `differ` at most **3%**.
+- J1 is not predicted. On the households this defect did not touch, it holds on 30 of 59. Those 29 off-return openings are
+  unexplained, and they are the next thing to read once the gas legs are back.
+- **Refuted if** either overdue row is above 40, or `only_post_loop` is above 5%. That would mean something other than the
+  opening cache is still splitting the schedules.
+
+The next-Bacs-day desk grade (c915067a8, above) also needs a fresh book. A book built after this commit grades both, but its
+"no other journey count moves by more than 9" leg cannot then be attributed to c915067a8 alone. Its 10 -> 0 leg still can.

@@ -147,3 +147,36 @@ def test_the_board_answers_a_leg_asked_before_its_rows_arrived_from_the_rows():
     assert board.bills_before(GAS, "2021-05-01") == []
     board.observe(_rows(GAS, "gas", "2021-04", 120.0))
     assert [b["period_end"] for b in board.bills_before(GAS, "2021-05-01")] == ["2021-04-30"]
+
+
+def test_a_leg_asked_by_its_sibling_before_its_first_term_still_collects_its_own_level_amount(monkeypatch):
+    """The fixtures above seed `_opening`, so they never reach `_opening_of`. Through it, the
+    electricity leg's offsets ask read the gas leg's opening before the gas term had posted, the
+    None was cached, and the gas leg collected no level amount for the rest of the run: 291 dual
+    gas legs on the b9ad453df0 book (459 households in the loop's schedule, 766 in the rebuild's).
+    Offsets off never asks the sibling, so it is the partition control: both legs collect."""
+    import simulation.run_phase4c_on_phase2b as phase4c
+
+    monkeypatch.setattr(phase4c, "_opening_dd_by_customer",
+                        lambda customers, _rows: {customers[0]["customer_id"]:
+                                                  OPENING[customers[0]["customer_id"]]})
+    _, rebuilt = _post_loop(offsets=True)
+    collected = {}
+    for offsets in (False, True):
+        months = _months("2021-04", N_MONTHS)
+        board = StopNoticeBoard(lambda _cid: [])
+        pending: dict[str, int] = {}
+        loop = InLoopLevelCollection(board, lambda cid: {"customer_id": cid},
+                                     offsets_dual_fuel_legs=offsets,
+                                     still_supplied=lambda leg: pending.get(leg, 0) > 0)
+        terms = [months[i:i + TERM] for i in range(0, N_MONTHS, TERM)]
+        for k, term in enumerate(terms):
+            for cid in (ELEC, GAS):
+                pending[cid] = len(terms) - k - 1
+                for month in term:
+                    board.observe(_rows(cid, _fuel(cid), month, _kwh(cid, months.index(month), month)))
+                    loop.collect(cid, month)
+        collected[offsets] = loop.collected
+    assert len(collected[False].get(GAS, [])) == N_MONTHS, "the partition control: offsets off collects gas"
+    assert collected[True].get(GAS) == rebuilt[GAS]
+    assert collected[True][ELEC] == rebuilt[ELEC]
