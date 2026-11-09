@@ -367,6 +367,108 @@ run end):
 NEXT: the leaving predicate (`on_level_dd` must not read a still-collecting account as left), then the level-era
 remainder on true leavers.
 
+## The 45 left-level holds: the page is wrong, not the desk (worker, 9 Nov 2026 ~17:00 GMT)
+
+**Instruments.** All of these are in `/var/tmp/grade-505d-remainder/`. Each reads `/var/tmp/grade-505d/ledger.json` (the page)
+and `docs/reports/run_output_505df564e3_20261109T124818Z.json` (the run).
+- `trace487.py`: the page rebuild (residual.py's `build`) against every figure the desk printed.
+- `window487.py`: the rebuild's events where the two figures part.
+- `shapes.py`, `explain45.py`, `count_a.py`, `count_a2.py`: the census.
+
+**Where the in-run ledger puts a failed level request's remainder.** The answer is oldest-first carry on one account
+balance. It is never kept per invoice, and it is never dropped.
+- The desk's `AccountLedger` holds one balance per billing account.
+- A returned level collection posts no cash. Its shortfall is `level_shortfall`: requested less received, capped at the
+  balance.
+- Later cash is allocated by remittance, otherwise oldest first (`_post_cash` → `AccountLedger.allocate`). So the next
+  money in meets the remainder first.
+- Once the account has left level DD, the 505df564e3 desk reads the same oldest-first walk (`fifo_unpaid_bills`).
+
+**SYN-2016-487, traced.**
+- On 13 Oct 2017 the level collection of GBP 24 was returned. The desk opened a journey at GBP 3.07, which is the
+  account's debit balance that day.
+- The rebuild agrees with the desk to the penny on 13 Oct, 28 Oct and 7 Nov 2017. From 18 Jan 2018 the rebuild reads
+  **GBP 39.61 more owed** than the desk on every stage date, through to Dec 2019.
+- On 17 Jun 2019 the desk read 17.90 and the rebuild 57.51. On 19 Jun, after the GBP 29.70 payment, the desk read 0 and
+  the rebuild 27.81. The 27.81 is that same 39.61 gap less the 11.80 credit the desk was holding.
+- The 39.61 opens between 7 Nov 2017 and 18 Jan 2018. Over that window the desk took in GBP 109.76 of cash. That equals
+  the household's two repayments (25.70 + 19.06) plus three of the level collections the run presented: elec 24 on
+  13 Nov and 12 Dec, gas 17 on 27 Nov. The match is within the 0.02 of rounding between the run's bills and the page's
+  bills.
+- The page shows none of those level collections. Its settlement engine (`simulation/arrears_engine.paying_method` over
+  `supplier_dd_spells`) took the household off DD after two Refer-to-Payer returns on its per-bill DD book (15 Nov and
+  15 Dec 2017). From then on it prints every bill as standard credit and failed. The run's own `level_dd_collections`
+  carries on presenting 24 and 17 each month until Sep 2018.
+
+**What the page prints at run end, and why it is wrong (shape A).** `tools/generate_billing_ledger.py` (the level-return
+branch, about line 983) builds the case for a returned level collection like this:
+- It sets the case amount to the desk's figure for the day after the miss (`desk_overdue_on`). That figure is keyed by
+  billing account, so a two-fuel account gets the same account-level figure on **each** leg. For SYN-2016-487 that is
+  3.07 on 46965 and 3.07 on 47070.
+- It then sets `outstanding_gbp = arrears_gbp`, without netting the repayment the case itself records. 46965's stages
+  read `ARREARS_REPAID 25.70` on 17 Dec 2017, but it prints 3.07 owed for ever.
+- The tell is that `credit_applied_gbp = asked - part_paid - amount - repaid` comes out **negative**, at exactly
+  −arrears on every such case.
+
+**The census.**
+- All 8 accounts carry shape A. 7 of the 8 also carry shape B: the run's level schedule collects for 7 to 10 months past
+  the last level payment the page shows. SYN-2016-217 does not.
+- **33 of the 45** holds have nothing due and unpaid at run end except shape-A invoices.
+- The other 12 also carry one ordinary on-receipt case that is real page debt:
+  - PROS-2018-0016, 13762: GBP 98.30, 10 holds;
+  - SYN-2016-217, 33999: GBP 5.20, 2 holds.
+
+  Why the desk cured over those I cannot yet say. PROS-2018-0016 carries shape B, so a cash gap is the first candidate.
+- **Book-wide, shape A is 178 cases, GBP 16,445.40, on 100 billing accounts** (the control reads 184, GBP 17,053.50, on
+  100). It splits two ways:
+  - A1, 82 cases, GBP 3,172.05: the recorded repayment is at least the case, and the page still prints it.
+  - A2, 96 cases, GBP 13,273.35: the desk's cumulative shortfall is above the face the household repaid. The repayment
+    is ignored there too.
+- 7 billing accounts carry the same account-level figure on both legs in one month.
+
+**Which side is wrong.**
+- **On shape A, the page.** It prints as owed a case its own record shows repaid. On a dual-fuel account it prints the
+  account's one shortfall twice. The desk's cure on 19 Jun 2019 is correct on the cash the desk holds.
+- **On shape B, I cannot yet say.** The run says level DD went on being collected. The page's settlement engine says the
+  mandate was off. One of the two records is wrong about Nov 2017 to Sep 2018. That needs its own trace of what the
+  world's bank returned on those level requests, and the run json does not log their outcomes.
+- So the cure is not over a debt the desk failed to see. It is over a debt the page invented, on a household the desk
+  had told it was clear. That is the same "told it is cleared while the page shows it owing" defect, sitting on the
+  page side.
+
+**Does 8e73c52356's closing statement already re-date this remainder? No.**
+- `left_level_asks` changes only what the desk asks and when. The desk's ledger does not carry this remainder: the
+  household's repayment and the level cash met it, oldest first.
+- The figure that holds these rows is the page's per-invoice case amount, written by `tools/generate_billing_ledger.py`,
+  and 8e73c52356 does not touch it.
+
+**Prediction for the first book carrying 8e73c52356 with `tools/generate_billing_ledger.py`'s level-return branch
+unchanged** (filed before that book exists):
+- `count_a.py` reads shape-A cases at 178 ± 18. The case opens on the desk's figure on the day of the return, and
+  8e73c52356 changes only left-level journeys.
+- The 14 shape-A invoices on the 8 accounts print the same outstanding amounts. For example, SYN-2016-487 is 3.07 + 3.07.
+- The shape-A-only left-level holds do not read 0. I do not predict their count, because 8e73c52356 moves left-level
+  cure dates.
+- **Refuted if** shape A reads 0, or any of the 14 invoices prints 0, on a book with that branch unchanged.
+
+**The fix, filed and not built.** It is built only after that book is graded, so that one book does not carry two
+changes. In `tools/generate_billing_ledger.py`:
+1. Net the case's own repayments and credits against the desk's figure:
+   `outstanding = max(0, desk figure - repaid - credit)`.
+2. Put an account-level desk figure on one leg only, not on each.
+
+The prediction for the first book carrying it:
+- A1 reads 0.
+- The 33 shape-A-only holds read 0.
+- A2's printed total falls by at least the sum of its recorded repayments.
+- No invoice outside shape A changes its outstanding amount.
+
+**Open, not settled here:**
+- shape B: which record is right about level collections after two Refer-to-Payer returns;
+- the 12 holds over a real on-receipt case.
+
+NEXT: grade the 8e73c52356 book against the prediction above, then build the page fix.
+
 ## The leaving predicate, measured: the premise was mostly wrong, and a narrower defect is fixed (seat executor, 9 Nov 2026 ~17:30 GMT)
 
 **The premise, re-measured before building.** The section above read the 320 still-level page steps as false
@@ -428,3 +530,8 @@ NEXT: grade a book carrying this change and 8e73c52356 on the same readers. Then
     first cause to rule out.
   - The 320 still-level page rows do **not** fall to about 20.
   - The total overdue movement **cannot be attributed between the two commits**, because this book carries both.
+
+**The same book grades the shape-A prediction (worker, 9 Nov 2026 ~16:20 GMT).** book-4dee9854a4 carries 8e73c52356,
+and `tools/generate_billing_ledger.py` is unchanged from 505df564e3. So it is the book named in "Prediction for the first book carrying
+8e73c52356 with the level-return branch unchanged" above. Grade it with `/var/tmp/grade-505d-remainder/count_a.py`
+on that book's ledger: shape A at 178 ± 18, SYN-2016-487 still at 3.07 + 3.07. The page fix waits for that grade.
