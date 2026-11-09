@@ -749,3 +749,35 @@ desk that is itself wrong. Recommendation: the first.
 
 NEXT: name the −400 and the 64 accounts where the desk writes off less than the page (the larger class), before the
 C7-shape fix, because it is twelve times the size.
+
+## The consistency fix lands, and its prediction is filed before any book carries it (worker, 9 Nov 2026 ~22:30 GMT)
+
+**What lands.** These are the bytes written at 18:30 in the shared tree, unchanged. The schedule holds only what the world
+presented: `LivePaymentTriad.last_level_presented`, `InLoopLevelCollection.withdraw`, and the `withdraw` call after
+`record_period` in `run_phase2b._post_month_bill`. The K8 page is `payments_and_direct_debit_2026-10-25.md`, "What is
+owed" and "One record of what was collected". The control is
+`tests/simulation/test_the_level_schedule_holds_only_what_the_world_presented.py`. Two mutations fire. With `withdraw`
+made a no-op, both tests fail. With the triad reporting the row it was handed, the partition test fails.
+
+**Why this and not the 21:00 recommendation first.** The 21:00 section above recommends the world-side fix: present the
+leaving month's level row, then ask the closing balance. It calls this one "a page that agrees with a desk that is itself
+wrong". **Correction, beside that claim:** the desk is not wrong about the cash. It records what the world presented,
+which was GBP 89.88 on 15 Jul. The fidelity defect is in the world. It skips a collection a real supplier would take.
+The page printed GBP 108 that nobody collected. This fix makes the page show the world's cash. The world-side fix is
+still owed, and it is still the larger one. It needs its own K8 amendment ("What this does not settle" on the page).
+
+**Prediction for the first book carrying this commit, filed before any of its output exists.**
+- C7: `closing_balances`, the page balance and the desk's write-off all read **66.67** to the penny.
+- **The 396 still-level PAGE_BALANCE rows fall to about 94, between 80 and 110. They do not fall below 40.**
+  - I split the 4dee9854a4 rows by account class (`/var/tmp/c7-1812/classes.json` and `rows.json`).
+  - 300 rows sit on 39 accounts of the C7 shape, where the desk is heavier, plus 2 on the one C7+EBSS account. Those rows close.
+  - 84 rows sit on 12 accounts in the "level, unexplained" class, and 10 sit on 2 accounts that were not written off.
+    This fix does not touch either group.
+  - **Correction, beside the 19:30 prediction ("below 40"):** that prediction was filed before the class split
+    existed, and the split refutes it as a mechanism.
+- The 24 lighter C7-shape accounts open no new PAGE_BALANCE row. The page falls to the desk's figure, and the desk's
+  overdue cannot exceed its own balance.
+- **Refuted if** C7 still closes on 48.55 on the page, the still-level count stays above 110, or it falls below 80.
+  A fall below 80 would mean the fix also moved a class I read as untouched.
+
+NEXT: grade the first book carrying this commit against the prediction above, then the K8 amendment for the leaver's closing-balance collection.
