@@ -82,3 +82,20 @@ next cycle is GREEN, predictions 2–4 cannot be graded. Say so, and do not coun
 
 The 900-character line is long for a status banner. Whether the banner should carry the sentence
 or link to `docs/reports/DOMAIN_INVARIANTS.md` is a presentation call I have not made.
+
+## Addendum, 06:40Z: the banner reached origin by the old route at 05:54, and carries defect 2 live
+
+While this repair was gating, another lane landed `0f4c93eea4` (05:30Z, "The Explore tariff check
+reads a per-fuel label"), which fixed the site test that had been refusing the banner. The
+publisher's next cycle then committed the banner through the old `git commit` route:
+`Provenance banner published to origin.` at 05:54Z, commit `0c711545b8`. So since then the live line reads
+`paused` since 2026-11-08T20:48:26Z, which is correct, but its `paused_gate` is the sliced 900-character
+sentence ending "(unit: book: its successful DD collections,".
+
+What this changes. Defect 1 is not refuted, but its instance cleared because the red test was
+fixed, not because the route changed. Any `site/**` test that reds on a refused book's working copy
+will silence the banner again on the old route; the repair (`955520f65` on origin) removes that
+route. Defect 2 is now on the live site, and it clears at the next pause write that runs the
+repaired `plain_refusal`. Prediction 4 is unchanged and is the one to grade. Predictions 1–3 now
+need the next red cycle whose working copy reds a site test, or a cycle on the repaired code; a
+cycle that publishes on the old route proves nothing about the new one.
