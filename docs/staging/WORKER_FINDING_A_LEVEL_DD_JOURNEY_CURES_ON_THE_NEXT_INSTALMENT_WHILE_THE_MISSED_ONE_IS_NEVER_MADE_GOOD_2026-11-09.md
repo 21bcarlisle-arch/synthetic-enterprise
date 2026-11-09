@@ -195,3 +195,39 @@ starts at about 12:16 UTC and finishes at about 14:10 UTC. That is the first boo
 
 **The pre-fix reference is 298149a1fc (`desk_own.txt`):** 2 left-level aged 0d, 195 left-level no item, 110 level-at-cure
 aged 0d, 91 level-at-cure no item.
+
+## The book that grades it: launched off the shared tree (delivery seat, 9 Nov 2026 ~12:50 GMT)
+
+**Why not the sim runner's run.** The runner has deferred every cycle since 12:16 UTC. The shared tree holds
+uncommitted W3_3 bytes in `simulation/policy_costs.py` and `simulation/hedged_settlement.py`, and they belong to a live
+worker tick (pid 938268). `sim_runner` has no clean-extract route: it always runs in the shared tree. So this book runs
+outside the loop, as `fresh-run-209c3350ab` did. It touches nothing of the holder's.
+
+**The run.** `launch_long_job` job `book-505df564e3`. It runs in a locked worktree `/var/tmp/book-wt-505df564e3`, which is
+origin 505df564e3 and carries both d8264b525e and e0aeece0d. The import closure reads clean against 505df564e3
+(`paths: []`). The output is `docs/reports/run_output_505df564e3_20261109T124818Z.json`, and it is promoted by hand once it completes.
+The grade chain is `/var/tmp/grade-505d-scripts/after_run.sh`, writing to `/var/tmp/grade-505d/`. Its readers are the
+ones named above, copied and pointed at the run worktree instead of the shared tree.
+
+**The never-level leg can be graded after all.** The section above says it needs two arms from one recipe. The
+9d7dcfc19c book is that second arm. Between 9d7dcfc19c and 505df564e3, the only commits touching `company/`, `simulation/`,
+`saas/` or `sim/` are d8264b525e, e0aeece0d and their merge. Both ledgers are rebuilt with one reader, the 505df564e3 one,
+and the control is at `/var/tmp/grade-505d/control-9d7d/`. Cure dates are compared on accounts with no level-DD payment at all.
+**One caveat, written down before the run.** The arm carries two fixes. e0aeece0d changes cash on level leavers, and
+the cash reaches the treasury, so a never-level account could still move through a company-wide decision. If a
+never-level journey moves, that is the first cause to rule out before calling the prediction refuted.
+
+**The control arm, read before the arm exists** (9d7dcfc19c, the pre-fix book, same readers):
+- `desk_own`: left level, aged 0d: **2**. Left level, no item: **195**. Level at cure, aged 0d: **110**. Level at cure, no item: **91**.
+  These are the same counts as 298149a1fc.
+- `compose`: **347** holds on 109 accounts. Left level with an invoice unpaid at run end: **151** (19 accounts). Level at
+  cure with an invoice unpaid: **90** (45 accounts).
+- `join` within the unpaid shapes: left level, aged 0d: **1**. Left level, no item: **150**. Level at cure, aged 0d: **45**.
+  Level at cure, no item: **45**.
+- So on the one-recipe baseline, the prediction's targets are 151 → 0, then 45 → 0 (it read 43 on 298149a1fc), and 45
+  persists.
+
+**Started 13:05:35 GMT.** The queue held it behind the W3_3 landing. A detached unit, `grade-chain-book-505df564e3`, waits
+for the job to end and then runs `after_run.sh`. It writes `ALLDONE` or `NO_DONE` in `/var/tmp/grade-505d/`.
+
+No output has been read. The prediction above stands as written.
