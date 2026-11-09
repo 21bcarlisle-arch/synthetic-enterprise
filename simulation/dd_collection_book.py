@@ -341,6 +341,17 @@ class StopNoticeBoard:
     def observe(self, records: list[dict]) -> None:
         """Take a term's settled records as the run settles them."""
         from simulation.household import household_of
+        earliest: dict[str, str] = {}
+        for r in records:
+            sp, day = r["customer_id"], r.get("settlement_date", "9999")
+            earliest[sp] = min(day, earliest.get(sp, day))
+        # A cutoff after a new row was billed without it: a dual household's level ask reads the
+        # other leg's bills before that leg's term has posted (`InLoopLevelCollection`).
+        for sp, day in earliest.items():
+            memo = self._bills_memo.get(sp)
+            if memo:
+                for key in [k for k in memo if k[0] > day]:
+                    del memo[key]
         for r in records:
             self._records.setdefault(r["customer_id"], []).append(r)
             self._billed.setdefault((household_of(r["customer_id"]), r.get("commodity")),

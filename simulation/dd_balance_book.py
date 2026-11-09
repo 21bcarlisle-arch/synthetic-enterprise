@@ -409,6 +409,7 @@ def build_dd_balance_book(
     term_forwards: list[dict] | None = None,
     offsets_dual_fuel_legs: bool = False,
     dd_spells: Mapping[str, list[tuple[str, str | None]]] | None = None,
+    supplied_through: Mapping[str, date] | None = None,
 ) -> DDBalanceBook:
     """Carry each direct-debit customer's level-DD credit/debit balance
     tick-by-tick and aggregate the portfolio held-credit liability over time.
@@ -484,7 +485,7 @@ def build_dd_balance_book(
     args = (bills, opening_dd_gbp, closed_ids, seek_balance_at_review, review_rule, term_records,
             term_forwards, dd_spells)
     if offsets_dual_fuel_legs:
-        return _book_with_dual_fuel_offsets(*args)
+        return _book_with_dual_fuel_offsets(*args, supplied_through=supplied_through)
     return _build_book(*args)
 
 
@@ -493,7 +494,8 @@ def build_dd_balance_book(
 _MAX_OFFSET_PASSES = 64
 
 
-def _book_with_dual_fuel_offsets(*args) -> DDBalanceBook:
+def _book_with_dual_fuel_offsets(*args, supplied_through: Mapping[str, date] | None = None
+                                 ) -> DDBalanceBook:
     """The book with each dual household's offsets settled in date order. An offset moves both
     legs' later balances, so each pass fixes every household's earliest action whose offset is not
     yet the one its balances call for, drops that household's later offsets, and rebuilds."""
@@ -501,7 +503,7 @@ def _book_with_dual_fuel_offsets(*args) -> DDBalanceBook:
     for _ in range(_MAX_OFFSET_PASSES):
         trace: dict[str, dict] = {"positions": {}, "actions": {}}
         book = _build_book(*args, offsets=offsets, trace=trace)
-        rows, changed = _settle_next_offsets(trace, offsets)
+        rows, changed = _settle_next_offsets(trace, offsets, supplied_through)
         if not changed:
             book.offsets_dual_fuel_legs = True
             book.dual_fuel_offsets = rows
@@ -516,10 +518,13 @@ def _credit_before(positions: list, key: date) -> float:
     return max(0.0, held[-1]) if held else 0.0
 
 
-def _settle_next_offsets(trace: dict, offsets: dict) -> tuple[list, bool]:
+def _settle_next_offsets(trace: dict, offsets: dict,
+                         supplied_through: Mapping[str, date] | None = None) -> tuple[list, bool]:
     """Compare each household's actions, in date order, with the offsets the last pass applied.
     Fix the first that differs and drop the household's later offsets; report every offset made.
-    ``offsets[leg][key]`` is + on the debit leg at its action and - on the credit leg's draw."""
+    ``offsets[leg][key]`` is + on the debit leg at its action and - on the credit leg's draw.
+    ``supplied_through[leg]``: a date the caller knows the leg is still supplied on though its bills
+    do not reach it yet (phase 2b asks mid-run, `InLoopLevelCollection`). Post-run, the bills say."""
     positions, actions = trace["positions"], trace["actions"]
     households: dict[str, list[str]] = {}
     for cid in sorted(positions):
@@ -534,6 +539,9 @@ def _settle_next_offsets(trace: dict, offsets: dict) -> tuple[list, bool]:
         for key, kind, leg, recoverable, on in acts:
             other = legs[1] if leg == legs[0] else legs[0]
             last_end = positions[other][-1][0] if positions[other] else None
+            known = (supplied_through or {}).get(other)
+            if known is not None and last_end is not None and known > last_end:
+                last_end = known
             # The other leg's credit is there to set off only while that supply is still ours: at a
             # review it must bill on or after the review; at a final bill it may close the same day.
             open_then = last_end is not None and last_end >= (on if kind == "final_bill" else key)

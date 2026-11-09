@@ -52,7 +52,7 @@ supply.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from typing import Callable, Mapping, Optional
 
 
@@ -178,12 +178,30 @@ class InLoopLevelCollection:
     N14 as the published run is, before the pre-bill gate, because phase 4c builds its book over
     those. The spells are the rails' over the issued bills (`supplier_dd_spells`), as
     `dd_spells_from_run` reads them post-run. Not asked: the closed set (a final bill's bar moves
-    no collected amount) and the dual-fuel offsets (`offsets_dual_fuel_legs`; off by default, and a
-    run with it on keeps the post-loop rebuild -- `level_dd_schedule_from_the_loop` refuses it)."""
+    no collected amount on its own leg).
 
-    def __init__(self, board, customer_of: Callable[[str], Optional[dict]]):
+    THE DUAL-FUEL OFFSETS (`offsets_dual_fuel_legs`, the company's
+    `DecisionPolicy.dd_review_offsets_dual_fuel_legs`, on for every standing policy). An offset at a
+    review covers the debit leg's balance from the other leg's credit, so its step-up shrinks, and
+    the credit leg's later reviews read the lower credit. On, the book is asked over the household's
+    legs as known now (the other leg's bills and spells before the same cutoff, a leg that has left
+    billed and closed as one that left), so the amount the world collects carries the offsets the
+    page's book carries. Phase 2b posts a household's legs term by term, not month by month, so the
+    other leg may not yet be billed to this month: an offset is then read off its bills so far, and
+    `level_dd_schedule_from_the_loop`'s reconcile counts the months that moves."""
+
+    def __init__(self, board, customer_of: Callable[[str], Optional[dict]],
+                 offsets_dual_fuel_legs: bool = False,
+                 still_supplied: Optional[Callable[[str], bool]] = None):
         self._board = board
         self._customer_of = customer_of
+        self._offsets = offsets_dual_fuel_legs
+        # Whether the supplier still holds a leg's supply now (phase 2b: a term of it is still to
+        # post). The book offers the other leg's credit only while that supply is ours; post-run it
+        # reads that off a bill on or after the review, which mid-run may not be billed yet.
+        self._still_supplied = still_supplied or (lambda _leg: False)
+        # Legs billed as ones that left, so a sibling's later ask closes them as the post-loop book does.
+        self._left: set[str] = set()
         # The leg's first supplied day, as `supply_starts` reads it post-run: its earliest bill's start.
         self._supply_start: dict[str, date] = {}
         self._opening: dict[str, Optional[float]] = {}
@@ -212,6 +230,8 @@ class InLoopLevelCollection:
             return None
         y, m = int(month[:4]), int(month[5:7])
         cutoff = f"{y + m // 12:04d}-{m % 12 + 1:02d}-01"
+        if left:
+            self._left.add(cid)
         bills = self._board.bills_before(cid, cutoff, churned=left)
         spells = supplier_dd_spells(self._board.issued_bills_before(cid, cutoff, churned=left),
                                     self._board._behavioral(cid))
@@ -219,11 +239,40 @@ class InLoopLevelCollection:
         if bills and cid not in self._supply_start:
             from simulation.dd_level_collection_book import supply_starts
             self._supply_start.update(supply_starts([b for b in bills if b["customer_id"] == cid]))
-        points = build_dd_balance_book(bills, {cid: opening}, dd_spells=spells).trajectories.get(cid)
+        bills, openings, closed, supplied = list(bills), {cid: opening}, set(), {}
+        if self._offsets:
+            closed = {cid} if left else set()
+            for other in self._other_legs(cid):
+                other_opening = self._opening_of(other)
+                if other_opening is None:
+                    continue
+                gone = other in self._left
+                other_bills = self._board.bills_before(other, cutoff, churned=gone)
+                if not other_bills:
+                    continue
+                bills += other_bills
+                openings[other] = other_opening
+                spells = {**spells, **supplier_dd_spells(
+                    self._board.issued_bills_before(other, cutoff, churned=gone),
+                    self._board._behavioral(other))}
+                if gone:
+                    closed.add(other)
+                elif self._still_supplied(other):
+                    supplied[other] = date.fromisoformat(cutoff) - timedelta(days=1)
+        points = build_dd_balance_book(bills, openings, closed or None, dd_spells=spells,
+                                       offsets_dual_fuel_legs=self._offsets,
+                                       supplied_through=supplied or None).trajectories.get(cid)
         point = next((p for p in reversed(points or []) if p.month == month), None)
         if point is None:
             return None
         return points[0].month, _months_between(points[0].month, month) // 12, point.collected_gbp
+
+    @staticmethod
+    def _other_legs(cid: str) -> list[str]:
+        """The household's other fuel leg, keyed as the book's offsets pair them (`billing_account_of`)."""
+        from simulation.household import GAS_LEG_ID_SUFFIX, household_of
+        home = household_of(cid)
+        return [leg for leg in (home, home + GAS_LEG_ID_SUFFIX) if leg != cid]
 
     def collect(self, cid: str, month: str, left: bool = False) -> Optional[dict]:
         """`{month, scheduled_date, collection_date, amount_gbp}` for the leg's level collection
@@ -246,21 +295,21 @@ class InLoopLevelCollection:
 
 
 def level_dd_schedule_from_the_loop(in_loop: Mapping[str, list[dict]] | None,
-                                    rebuilt: Mapping[str, list[dict]],
-                                    offsets_dual_fuel_legs: bool) -> tuple[dict, dict]:
+                                    rebuilt: Mapping[str, list[dict]]) -> tuple[dict, dict]:
     """The level schedule phase 4c hands the page and the books, and how it compares with the
     post-loop rebuild: `(schedule, reconcile)`.
 
     The schedule is the loop's (`InLoopLevelCollection.collected`) for the households the world put
-    on a level amount, which is what phase 2b collected. A run with no loop schedule, or with the
-    dual-fuel offsets on (which the loop does not ask), keeps the rebuild, and says so."""
+    on a level amount: what phase 2b presented, and what the desk dunned against. Whatever the
+    dual-fuel offsets switch says. It used to keep the rebuild with the offsets on, and then the
+    page collected one schedule while the world and the desk ran another (the e50e7b8f68 grade,
+    80 + 71 breaches). The loop now asks the offsets itself. A run with no loop schedule keeps the
+    rebuild, and says so."""
     def key_rows(schedule):
         return {(cid, r["month"]): r for cid, rows in schedule.items() for r in rows}
 
-    if in_loop is None or offsets_dual_fuel_legs:
-        return dict(rebuilt), {"source": "post_loop_rebuild",
-                               "why": ("no loop schedule in the run" if in_loop is None else
-                                       "dual-fuel offsets on: the loop does not ask them")}
+    if in_loop is None:
+        return dict(rebuilt), {"source": "post_loop_rebuild", "why": "no loop schedule in the run"}
     loop_rows, post_rows = key_rows(in_loop), key_rows(rebuilt)
     both = set(loop_rows) & set(post_rows)
     moved = [k for k in both

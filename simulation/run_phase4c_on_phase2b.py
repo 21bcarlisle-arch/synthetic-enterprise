@@ -477,8 +477,8 @@ def theft_screen_request(policy, phase2b_result: dict) -> tuple[list | None, dic
 def dual_fuel_offset_request(policy) -> bool:
     """Whether the DD book sets a dual household's credit on one fuel against its debt on the other,
     by the company switch (`DecisionPolicy.dd_review_offsets_dual_fuel_legs`), on for every standing
-    policy since 3d518bdefc. Off builds the book exactly as before. On, phase 4c hands the page the
-    post-loop rebuild, not the schedule phase 2b collected (`level_dd_schedule_from_the_loop`)."""
+    policy since 3d518bdefc. Off builds the book exactly as before. Phase 2b's level collection asks
+    the same switch (`InLoopLevelCollection`), so the page and the world collect one schedule."""
     from simulation.run_phase2b import CURRENT_POLICY
 
     return bool((policy or CURRENT_POLICY).dd_review_offsets_dual_fuel_legs)
@@ -654,8 +654,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # each month posted; the rebuild above stays for its reconcile and for runs that lack it.
     level_dd_schedule, level_dd_schedule_reconcile = level_dd_schedule_from_the_loop(
         phase2b_result.get("level_dd_collected_in_loop"),
-        level_dd_collections(dd_level_collection_book, pays_a_level_direct_debit),
-        offsets_dual_fuel_legs)
+        level_dd_collections(dd_level_collection_book, pays_a_level_direct_debit))
 
     # Phase 3 (CORE_FIDELITY_PHASES.md item 1): meter-read arrival/
     # estimation/failure events, one per bill -- company-observable data
