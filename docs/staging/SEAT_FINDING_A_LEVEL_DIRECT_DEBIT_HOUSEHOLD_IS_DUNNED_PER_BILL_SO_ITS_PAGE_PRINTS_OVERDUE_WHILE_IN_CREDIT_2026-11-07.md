@@ -774,3 +774,9 @@ fail the same way" (DIRECTION.yaml `not_now`). That prediction **held**, to the 
 d8264b525e (the level-DD cure fix) and the close still landing, so it carries neither. The read waits on H46's book,
 the first one carrying both, and it is not drawn before 16:00 GMT today. That is the soonest such a book could finish:
 the close is still landing, and a run takes about two hours.
+
+**Still held, 16:30 GMT 9 Nov (seat executor).** The 505df564e3 book failed the gate: the overdue rows went up, not
+down (see the cure finding, ~15:40). The next candidate is `book-4dee9854a4`, launched at 16:07 with about two hours
+to run. Its own filed prediction is that the 320 still-level page rows do not fall, so it is not expected to pass
+either. This read stays unrun and stays claimed for the first book that passes. The seat used the idle time on the
+director's UKDS notice instead (`advisor/done/DIRECTOR_NOTICE_THE_UKDS_MICRODATA_IS_IN_UKDS_AND_YOURS_TO_READ_2026-11-09.md`).

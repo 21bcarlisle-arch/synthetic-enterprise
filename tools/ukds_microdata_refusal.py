@@ -8,10 +8,15 @@ signature". Only aggregates may leave that directory, and they leave as files wr
 What counts as a signature, and why each one:
 
 - the path resolves into `~/ukds/` (a symlink, or a copy the hook can trace back);
-- a path component of the shape a UKDS download unpacks to: `UKDA-6614-tab`, `UKDA-7215-stata`, and so on;
-- a UKDS study information page, `UKDA_Study_<n>_Information.htm`, which ships inside every bundle;
-- a statistical-package microdata file (`.dta`, `.sav`, `.por`, `.sas7bdat`). Nothing in this tree is one, and a
-  published aggregate is never shipped in those formats here.
+- a path component of the shape a UKDS download unpacks to: `UKDA-6614-tab`, `UKDA-7215-stata`, and any other
+  format word. SERL (SN 8963) is offered only as `UKDA-8963-csv`, which a list of formats missed on 9 Nov;
+- a UKDS study page or file note. The real bundles carry `read<SN>.htm` and `<SN>_file_information.rtf`;
+  `UKDA_Study_<n>_Information.htm` is the older name;
+- a statistical-package microdata file (`.dta`, `.sav`, `.por`, `.sas7bdat`), or a UKDS `.tab` copied out of its
+  bundle on its own. Nothing in this tree is one, and a published aggregate is never shipped in those formats here.
+
+A loose SERL `.csv` copied out of its bundle under its own name is NOT caught: a path cannot tell it from a fresh
+aggregate. That leg rests on the resolve check and on the rule that aggregates are written fresh.
 
 A DOI or a study number in prose (`UKDA-SN-9315`, `SN 6614`) is not a signature: the registration pack and the
 knowledge pages cite them as the licence requires.
@@ -27,9 +32,11 @@ from pathlib import Path
 
 UKDS_HOME = Path(os.path.expanduser("~/ukds"))
 
-_BUNDLE_DIR = re.compile(r"^UKDA-\d{4}-(tab|stata|spss|sas)$", re.IGNORECASE)
-_STUDY_PAGE = re.compile(r"^UKDA_Study_\d+_Information\.html?$", re.IGNORECASE)
-_MICRODATA_SUFFIXES = {".dta", ".sav", ".por", ".sas7bdat"}
+_BUNDLE_DIR = re.compile(r"^UKDA-\d{4}-[a-z]+$", re.IGNORECASE)
+_STUDY_PAGE = re.compile(
+    r"^(UKDA_Study_\d+_Information\.html?|read\d{4}\.html?|\d{4}_file_information\.rtf)$", re.IGNORECASE
+)
+_MICRODATA_SUFFIXES = {".dta", ".sav", ".por", ".sas7bdat", ".tab"}
 
 
 def reason(path: str, repo: Path) -> str | None:
@@ -40,7 +47,7 @@ def reason(path: str, repo: Path) -> str | None:
             return f"a directory named like a UKDS download bundle ({part})"
     name = parts[-1] if parts else path
     if _STUDY_PAGE.match(name):
-        return "a UKDS study information page, which ships inside a download bundle"
+        return "a UKDS study page or file note, which ships inside a download bundle"
     if Path(name).suffix.lower() in _MICRODATA_SUFFIXES:
         return f"a statistical-package microdata file ({Path(name).suffix})"
     try:

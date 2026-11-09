@@ -52,3 +52,24 @@ def test_a_path_that_resolves_into_the_licensed_store_is_refused(tmp_path, monke
     assert guard.reason("linked.tab", repo) is not None
     (repo / "fresh.csv").write_text("factor,loading\n")
     assert guard.reason("fresh.csv", repo) is None
+
+
+def test_the_shapes_the_real_bundles_unpack_to_are_refused(tmp_path, monkeypatch):
+    """The 9 Nov download: SERL ships only as `UKDA-8963-csv`, and every bundle's study page is `read<SN>.htm`.
+
+    Defect it names: a format list that knew tab/stata/spss/sas let a copied SERL bundle through whole, and a
+    study-page pattern for the older `UKDA_Study_<n>_Information.htm` name let the real pages through loose.
+    """
+    repo = _repo(tmp_path)
+    monkeypatch.chdir(repo)
+    refused = [
+        "data/UKDA-8963-csv/csv/serl_daily_aggregated_statistics.csv",
+        "read9315.htm",
+        "9593_file_information.rtf",
+        "was_r7_hhold.tab",
+    ]
+    for rel in refused:
+        _stage(repo, rel)
+    _stage(repo, "docs/reports/fitted_loadings.csv", "factor,loading\n")
+    found = dict(guard.violations(guard.staged(repo), repo))
+    assert set(found) == set(refused), "a fresh aggregate csv passes; every bundle shape is refused"
