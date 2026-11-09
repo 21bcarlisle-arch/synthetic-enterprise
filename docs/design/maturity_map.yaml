@@ -960,24 +960,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an intermittent fault traced to the bench before any board is replaced"
 
-- id: OPS6_scoped_publish_path_suite
-  title: "Define the publish-path's own suite, and let it alone block publishing"
-  notes_rehomed: [gain, name, origin_note]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 1
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 1
-  provenance: director_ruling
-  depends_on: [OPS2_publish_gate_head_worktree]
-  couples_with: [H23_publish_gate_scope_marker]
-  records_rehomed: [evidence]
-  file_scope: ['background/process_run_complete.py', 'tests/background/', 'background/publish_scope.py', 'tests/background/test_publish_scope.py', 'tests/background/test_process_run_complete.py']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a factory that stops the line for a fault on the line, not for an unreconciled invoice in accounts"
-
 - id: OPS7_provenance_stamps_on_live_pages
   title: "Stamp run id, verifying commit and verification time on the page itself"
   notes_rehomed: [gain, name, origin_note]
