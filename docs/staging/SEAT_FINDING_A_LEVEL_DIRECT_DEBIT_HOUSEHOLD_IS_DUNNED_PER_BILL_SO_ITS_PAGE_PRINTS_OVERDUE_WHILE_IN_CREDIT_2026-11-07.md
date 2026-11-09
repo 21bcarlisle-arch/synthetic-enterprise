@@ -521,3 +521,15 @@ the step it would open. `CollectionsDesk.advance` still dates `unpaid_on` from `
 `bill_paid_in_its_window` closing on the due date. That is the same misreading on a smaller scale, and changing it
 moves the company's in-run behaviour. It needs a fresh run to grade, so it is filed as the next item rather than
 folded in here. Prediction for that item: 9 -> 0 such openings, and no other journey count moves by more than 9.
+
+**The desk, changed (2026-11-09).** The desk now reads a DD bill's `last_day_to_pay` too. The company knows which bills
+it asked the bank to collect, because it submitted them: a DD `CollectionRequest`'s correlation id is the invoice ref
+(`background/live_payment_triad.py`), so `PaymentObservationConsumer.note_collection_request` tells the desk
+(`CollectionsJourneyDesk.note_bill_collected_by_direct_debit`). That bill's miss is dated from the first working day on
+or after its due date, and `bill_paid_in_its_window` counts cash up to that day. Two places read it: the opener, and
+the "further bill missed" re-offer. The second was not in the 9; it was found when mutating its window did not fire.
+Tests: `tests/company/billing/test_the_desk_reads_a_next_bacs_day_dd_as_on_time.py`. A DD due Saturday and collected
+Monday opens no journey and draws no re-offer. The same bill paid on receipt, or a DD collected Wednesday, still does.
+Each of the three legs (consumer wiring, opener date, window) was reverted alone, and each turned the test red.
+**Not yet graded on a run.** The prediction above stands as filed: 9 -> 0 openings, and no other journey count moves by
+more than 9. The next fresh book grades it.

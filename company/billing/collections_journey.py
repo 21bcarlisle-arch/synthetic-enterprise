@@ -71,7 +71,7 @@ import datetime as dt
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
-from company.billing.account_ledger import AccountLedger, LedgerEventType
+from company.billing.account_ledger import AccountLedger, LedgerEvent, LedgerEventType
 from company.billing.arrears_engine import (
     CLOSED_ACCOUNT_RULE,
     MORATORIUM_HOLD,
@@ -121,16 +121,18 @@ def bill_missed(due: dt.date, first_paid: Optional[dt.date], as_of: dt.date, *,
 
 
 def bill_paid_in_its_window(payments: List[tuple], issued: dt.date, amount_gbp: float,
-                            payment_terms_days: int = 14) -> bool:
-    """Whether the cash that landed on the account from a bill's issue to its due date, both inclusive,
-    covers the bill. `payments` is the account's `(value date, GBP)` received cash, in date order.
+                            payment_terms_days: int = 14, *, by_direct_debit: bool = False) -> bool:
+    """Whether the cash that landed on the account from a bill's issue to its `last_day_to_pay`, both
+    inclusive, covers the bill. `payments` is the account's `(value date, GBP)` received cash, in date
+    order.
 
     This is what "a further bill missed" asks. Oldest-first allocation ages a balance-based account and
     moves an on-time payment onto the standing arrear, so it cannot say whether THIS bill was paid.
     Cash for an older debt in the window counts towards the bill, which errs away from claiming a miss
     (SLC 0: contact "complete, accurate and not misleading"; GAP A6).
     `docs/market_research/company_debt_management.md`, "A further bill missed"."""
-    due = issued + dt.timedelta(days=payment_terms_days)
+    due = last_day_to_pay(issued + dt.timedelta(days=payment_terms_days),
+                          by_direct_debit=by_direct_debit)
     lo = bisect.bisect_left(payments, (issued,))
     hi = bisect.bisect_left(payments, (due + dt.timedelta(days=1),))
     return sum(gbp for _on, gbp in payments[lo:hi]) >= round(amount_gbp, 2) - 0.005
@@ -435,6 +437,9 @@ class CollectionsJourneyDesk:
         #: bills: its journey opens only on a returned collection, and cures when the shortfall
         #: against the schedule is met (`arrears_engine.level_shortfall`, Ofgem 2011 para 2.8).
         self._level_of = level_of
+        #: invoice refs this company asked the bank to collect by direct debit
+        #: (`note_bill_collected_by_direct_debit`).
+        self._by_dd: set = set()
 
     def asked_of(self, invoice_ref: str, face_gbp: float) -> float:
         """What the bill `invoice_ref` asked: its face, less any credit netted off it."""
@@ -444,6 +449,12 @@ class CollectionsJourneyDesk:
         """Record that the bill `invoice_ref` asked `asked_gbp`: its charges less the credit this
         company netted off it. A bill never noted asked its face."""
         self._asked[invoice_ref] = round(max(0.0, asked_gbp), 2)
+
+    def note_bill_collected_by_direct_debit(self, invoice_ref: str) -> None:
+        """Record that this company submitted the bill `invoice_ref` for collection by direct debit:
+        its own act, so known before any cash arrives. Such a bill due on a weekend or bank holiday
+        is on time if paid by the next working day (`last_day_to_pay`), and the desk reads it so."""
+        self._by_dd.add(invoice_ref)
 
     def advance(self, ledger: AccountLedger, segment: Segment, through: dt.date,
                 payment_terms_days: int = 14) -> None:
@@ -471,13 +482,20 @@ class CollectionsJourneyDesk:
         # 11 re-offers the blind row found on b3ce2a4e73.
         payments = sorted((e.valid_time, e.amount_gbp) for e in events
                           if e.event_type == LedgerEventType.PAYMENT_CREDIT)
-        unpaid_on = {missed_on(e.valid_time + dt.timedelta(days=payment_terms_days))
+        # A DD bill due on a weekend or bank holiday is collected, on time, the next working day, so
+        # it falls missed the day after that, never the day after its due date. Read from its due
+        # date, 9 of 2,459 such bills opened a journey on a household that paid on time
+        # (e50e7b8f68).
+        def _missed_on(e: LedgerEvent) -> dt.date:
+            return missed_on(last_day_to_pay(e.valid_time + dt.timedelta(days=payment_terms_days),
+                                             by_direct_debit=e.invoice_ref in self._by_dd))
+        unpaid_on = {_missed_on(e)
                      for e in events if e.event_type == LedgerEventType.BILL_DEBIT
                      and e.invoice_ref not in level_refs
                      and not bill_paid_in_its_window(
                          payments, e.valid_time, self._asked.get(e.invoice_ref, e.amount_gbp),
-                         payment_terms_days)} | returns
-        missed = {missed_on(e.valid_time + dt.timedelta(days=payment_terms_days))
+                         payment_terms_days, by_direct_debit=e.invoice_ref in self._by_dd)} | returns
+        missed = {_missed_on(e)
                   for e in events if e.event_type == LedgerEventType.BILL_DEBIT
                   and e.invoice_ref not in level_refs} | returns
         openers = missed | {

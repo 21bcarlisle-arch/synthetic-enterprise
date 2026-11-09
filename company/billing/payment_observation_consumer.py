@@ -190,6 +190,7 @@ from interface.contracts.payment_observable_seam import (
     BacsReasonCategory,
     DDOutcomeStatus,
     PaymentNotification,
+    PaymentRail,
     RemittanceAdvice,
     SettlementConfirmation,
     arudd_reason_code_for,
@@ -1251,6 +1252,11 @@ class PaymentObservationConsumer:
             request_type=request.request_type,
             emitted_at=request.emitted_at,
         )
+        # A DD collection's correlation id is the invoice it collects, so the desk knows which
+        # bills it asked the bank for, and reads one due on a non-working day as on time if
+        # collected the next working day.
+        if getattr(request.payload, "rail", None) == PaymentRail.BACS_DIRECT_DEBIT:
+            self.collections_journeys.note_bill_collected_by_direct_debit(request.correlation_id)
 
     def note_level_collection_request(self, request: WallRequest) -> None:
         """Record that the company submitted a LEVEL direct debit collection: the amount it set for
