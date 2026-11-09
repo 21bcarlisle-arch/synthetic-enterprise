@@ -721,7 +721,8 @@ _NOTICE_AMOUNT_NOTES = {"FIRST_NOTICE": ledger_notice_wording("FIRST_NOTICE"),
 
 def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
                     archetype: str = "NEUTRAL", *, method: str,
-                    write_off_date: date | None = None) -> list[dict]:
+                    write_off_date: date | None = None,
+                    write_off_gbp: float | None = None) -> list[dict]:
     """`method` is REQUIRED and keyword-only, deliberately.
 
     A default of `"direct_debit"` would have preserved the exact defect this
@@ -737,6 +738,9 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
     `still_open` is a case `balance_write_offs` does not write off. Nothing in the world clears
     it -- re-presentation and arrangement paydown are unbuilt -- so it ends on `BALANCE_OPEN`, a
     statement that moves no money, never on a resolution that did not happen.
+
+    `write_off_gbp` is what `balance_write_offs` wrote off, when that is less than the case: a
+    level-DD leaver's over-collection discharged part of it (home_moves.md s.8.8b choice 4).
     """
     # Which notices went out, and when, is the supplier's dunning decision (2026-10-12): asked.
     stages = [opening_arrears_stage(method, due_date), *ledger_notices(due_date, arrears_gbp)]
@@ -748,9 +752,11 @@ def arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
             write_off_date = ledger_write_off_fallback(due_date)
         write_off_date = max(write_off_date, due_date)
         stages = stages[:1] + [st for st in stages[1:] if st["date"] <= write_off_date.isoformat()]
+        written = arrears_gbp if write_off_gbp is None else round(write_off_gbp, 2)
         stages.append({"stage": "WRITTEN_OFF", "date": write_off_date.isoformat(),
+                        "amount_gbp": written,
                         "note": "Debt written off -- bad debt provision raised"})
-        stages.extend(_post_writeoff_stages(arrears_gbp, write_off_date, archetype))
+        stages.extend(_post_writeoff_stages(written, write_off_date, archetype))
     return stages
 
 
@@ -1075,11 +1081,57 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     return rows
 
 
+def level_collection_difference(resolved: list[dict], level_dd_collections: dict | None
+                                ) -> dict[str, tuple[float, date]]:
+    """Per leg on a level direct debit: (what its bills asked less what the bank paid, the day of
+    its last level collection), over the months the level amount was collected.
+
+    The walk takes a paid DD bill as paid at its face. A household on a level amount paid that
+    amount instead, so its one balance (SLC 27.16) differs from the walk's by the sum of the
+    differences. The months are matched exactly as the page matches them
+    (`tools.generate_billing_ledger`): each DD bill, in period order, takes its month's next
+    collection. Measured on the af31e73fa7 book, the walk's closing balance plus this difference
+    is the page's balance at close on 850 of 857 leavers; the walk alone is on 360
+    (home_moves.md s.8.8b)."""
+    if not level_dd_collections:
+        return {}
+    queue: dict[tuple[str, str], list[dict]] = {}
+    for cid, cols in level_dd_collections.items():
+        for c in cols:
+            queue.setdefault((cid, c["month"]), []).append(c)
+    out: dict[str, tuple[float, date]] = {}
+    for r in sorted((r for r in resolved if r["outcome"] != "repayment"),
+                    key=lambda r: (r["customer_id"], r["period_end"])):
+        if r.get("method") != DD_METHOD:
+            continue
+        months = queue.get((r["customer_id"], r["period_end"][:7]))
+        if not months:
+            continue
+        c = months.pop(0)
+        if r["outcome"] != "success":
+            continue
+        held = out.get(r["customer_id"], (0.0, date.min))
+        out[r["customer_id"]] = (round(held[0] + r["amount_gbp"] - c["amount_gbp"], 2),
+                                 max(held[1], date.fromisoformat(c["collection_date"])))
+    return out
+
+
 def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str],
-                                     closing_out: dict[str, float] | None = None
+                                     closing_out: dict[str, float] | None = None,
+                                     *, level_dd_collections: dict | None = None,
+                                     last_collection_out: dict[str, date] | None = None
                                      ) -> tuple[dict[tuple[str, str, str], dict],
                                                 dict[tuple[str, str, str], list[dict]]]:
     """The balance-at-close rule over already-resolved bills. Pure: no RNG.
+
+    ``level_dd_collections`` is the level direct-debit schedule (``level_dd_collections`` in the
+    run output). A leaver on it closes on its one balance, the walk's plus
+    `level_collection_difference` (home_moves.md s.8.8b, choice 1): a credit goes to the refund
+    and nothing is written off; a debt is written off up to that balance, newest bill first, since
+    an over-collection discharges the oldest first. A shortfall the bills do not hold stays a
+    standing debt: the last collection that would take it is not built (s.8.8b choice 3).
+    ``last_collection_out`` takes each such leaver's last level collection date, which the refund
+    clock runs from (s.8.8b choice 2).
 
     ``closing_out``, if given, takes each leaver's balance at its final bill's due date, keyed by
     the leg's ``customer_id`` (one fuel's contract): what is still outstanding less the credit
@@ -1112,6 +1164,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     for its charges less the credit (SLC 31H.12, home_moves.md s.8.8a), and that netting is listed
     in ``credits_applied`` under the PAID bill's key. Only what neither use takes waits to close.
     """
+    level = level_collection_difference(resolved, level_dd_collections)
     by_cid: dict[str, list[dict]] = {}
     for row in resolved:
         by_cid.setdefault(row["customer_id"], []).append(row)
@@ -1264,14 +1317,27 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                         pool.setdefault(r["commodity"], []).append([left, r["period_end"],
                                                                     "repayment"])
         _bar(horizon)
+        difference, last_collection = level.get(cid, (0.0, None))
+        closing = round(sum(i["remaining"] for i in outstanding)
+                        - sum(_waiting(c) for c in pool) + difference, 2)
         if leaver and closing_out is not None:
-            closing_out[cid] = round(sum(i["remaining"] for i in outstanding)
-                                     - sum(_waiting(c) for c in pool), 2)
+            closing_out[cid] = closing
+        if leaver and last_collection_out is not None and last_collection is not None:
+            last_collection_out[cid] = last_collection
         if leaver:
             # The company's own write-off date, a year after the final bill was issued: the date
             # the desk writes the same balance off on (debt_and_collections.md s.7.3).
             closed_on = closed_account_write_off_date(horizon - timedelta(days=PAYMENT_TERMS_DAYS))
-            for item in outstanding:
+            # No more is written off than the one balance owes (s.8.8b choice 4). Off a level
+            # schedule the balance is the outstanding bills less the waiting credit, and every
+            # outstanding bill is written off whole, as it always was.
+            owed = max(0.0, closing) if cid in level else None
+            for item in (list(reversed(outstanding)) if owed is not None else outstanding):
+                if owed is not None:
+                    item["remaining"] = round(min(item["remaining"], owed), 2)
+                    owed = round(owed - item["remaining"], 2)
+                    if item["remaining"] <= 0.005:
+                        continue
                 _write_off(item, closed_on, LEG_CLOSE)
     return out, credited
 
@@ -1303,7 +1369,8 @@ def balance_write_offs_from_outcomes(resolved: list[dict], churned_ids: set[str]
 
 
 def resolved_settlement(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                        seed: int = 42) -> tuple[dict[tuple[str, str, str], dict],
+                        seed: int = 42, *, level_dd_collections: dict | None = None
+                        ) -> tuple[dict[tuple[str, str, str], dict],
                                                  dict[tuple[str, str, str], dict],
                                                  dict[tuple[str, str, str], list[dict]]]:
     """``(outcomes, write_offs, credits_applied)``: each issued bill's resolved row keyed
@@ -1320,19 +1387,23 @@ def resolved_settlement(bills: list[dict], behavioral: dict, churned_ids: set[st
     resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
     outcomes = {(r["customer_id"], r["period_end"], r["commodity"]): r
                 for r in resolved if r["outcome"] != "repayment"}
-    return (outcomes, *balance_settlement_from_outcomes(resolved, churned_ids))
+    return (outcomes, *balance_settlement_from_outcomes(
+        resolved, churned_ids, level_dd_collections=level_dd_collections))
 
 
 def balance_settlement(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                       seed: int = 42) -> tuple[dict[tuple[str, str, str], dict],
+                       seed: int = 42, *, level_dd_collections: dict | None = None
+                       ) -> tuple[dict[tuple[str, str, str], dict],
                                                 dict[tuple[str, str, str], list[dict]]]:
     """Every written-off case in the book and every credit netted against a case, under the
     balance-at-close rule."""
-    return resolved_settlement(bills, behavioral, churned_ids, seed)[1:]
+    return resolved_settlement(bills, behavioral, churned_ids, seed,
+                               level_dd_collections=level_dd_collections)[1:]
 
 
 def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                       seed: int = 42) -> dict[tuple[str, str, str], dict]:
+                       seed: int = 42, *, level_dd_collections: dict | None = None
+                       ) -> dict[tuple[str, str, str], dict]:
     """Every written-off case in the book, under the balance-at-close rule, net of credits.
 
     The single source every consumer reads: `compute_emergent_bad_debt` (the P&L),
@@ -1340,11 +1411,14 @@ def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str
     `tools.generate_billing_ledger` (the household's arrears history). None of them re-derives the
     balance, which is what keeps the ledger and the P&L agreeing by construction.
     """
-    return balance_settlement(bills, behavioral, churned_ids, seed)[0]
+    return balance_settlement(bills, behavioral, churned_ids, seed,
+                              level_dd_collections=level_dd_collections)[0]
 
 
 def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                            seed: int = 42, closing_out: dict[str, float] | None = None
+                            seed: int = 42, closing_out: dict[str, float] | None = None,
+                            *, level_dd_collections: dict | None = None,
+                            last_collection_out: dict | None = None
                             ) -> dict[str, dict[tuple[str, int], float]]:
     """`compute_emergent_bad_debt`'s charge, kept apart by LINE: the write-off at close, the
     statute-barred write-off, and leg 4b's stayer provision (empty while leg 4b is off). Each is
@@ -1359,7 +1433,9 @@ def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: se
     """
     from company.interfaces.bill_assembly import issued_bills
     resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
-    written_off, credited = balance_settlement_from_outcomes(resolved, churned_ids, closing_out)
+    written_off, credited = balance_settlement_from_outcomes(
+        resolved, churned_ids, closing_out, level_dd_collections=level_dd_collections,
+        last_collection_out=last_collection_out)
     lines: dict[str, dict[tuple[str, int], float]] = {
         LEG_CLOSE: {}, LEG_STATUTE_BAR: {}, "stayer_provision": {}, "total": {}}
     total = lines["total"]
@@ -1450,7 +1526,8 @@ def apply_emergent_bad_debt(all_records: list[dict], emergent_by_customer_year: 
 
 
 def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                           seed: int = 42) -> dict[tuple[str, int], float]:
+                           seed: int = 42, *, level_dd_collections: dict | None = None
+                           ) -> dict[tuple[str, int], float]:
     """Post-close DCA-recovered / debt-sale proceeds on the same written-off cases
     `compute_emergent_bad_debt` books, keyed by (customer_id, year of the RECOVERED/SOLD stage).
 
@@ -1459,7 +1536,9 @@ def compute_debt_recovery(bills: list[dict], behavioral: dict, churned_ids: set[
     SIM-side only.
     """
     result: dict[tuple[str, int], float] = {}
-    for (cid, _pe, _c), wo in sorted(balance_write_offs(bills, behavioral, churned_ids, seed).items()):
+    for (cid, _pe, _c), wo in sorted(balance_write_offs(
+            bills, behavioral, churned_ids, seed,
+            level_dd_collections=level_dd_collections).items()):
         if wo["leg"] != LEG_CLOSE:
             continue
         trajectory = (behavioral.get(cid) or {}).get("income_stress_trajectory") or []

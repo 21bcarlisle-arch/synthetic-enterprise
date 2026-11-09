@@ -697,16 +697,22 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # behaviour, not a calibrated assumption.
     # Each closed account's balance at its final bill, per fuel, from the same walk that writes it
     # off (home_moves.md s.8.8a): owed positive, credit negative.
+    # A leaver on the level schedule closes on its one balance, what it paid against what it was
+    # billed, not on the walk's paid-at-face bills (home_moves.md s.8.8b).
     closing_balances: dict[str, float] = {}
+    last_level_collection: dict = {}
     emergent_bad_debt_by_line = emergent_bad_debt_lines(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
         churned_ids,
         closing_out=closing_balances,
+        level_dd_collections=level_dd_schedule,
+        last_collection_out=last_level_collection,
     )
     # A closed account the ledger holds in credit is refunded from that balance (reg 6D), so the
     # refund log and the debt the P&L writes off are one book (home_moves.md s.8.8a).
-    credit_refund_log = generate_credit_refund_log(bills, customer_segments, closing_balances)
+    credit_refund_log = generate_credit_refund_log(bills, customer_segments, closing_balances,
+                                                   last_collection=last_level_collection)
 
     # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
     # post-write-off DCA recovery / debt-sale proceeds, applied as a
@@ -717,6 +723,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
         churned_ids,
+        level_dd_collections=level_dd_schedule,
     )
     # Both applied here, by one call that also returns each customer's lines -- write-off at
     # close, statute-barred, leg 4b provision, placeholder released, DCA recovery -- so a

@@ -151,9 +151,12 @@ def build_account_ledger(cust, as_of):
                     "method": "payment_plan", "description": stage["note"],
                 })
             elif name == "WRITTEN_OFF":
+                # What was written off, which a level-DD leaver's over-collection can make less
+                # than the case (home_moves.md s.8.8b choice 4).
                 entries.append({
                     "date": stage["date"], "type": "write_off", "invoice_number": num,
-                    "amount_gbp": round(-arr["arrears_gbp"], 2), "info_amount_gbp": None,
+                    "amount_gbp": round(-stage.get("amount_gbp", arr["arrears_gbp"]), 2),
+                    "info_amount_gbp": None,
                     "method": None, "description": stage["note"],
                 })
             elif name in ("RECOVERED", "SOLD"):

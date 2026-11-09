@@ -94,4 +94,29 @@ own per-bill book is wrong. It holds the bills as paid, so the company does not 
 the close on its schedule. Owed when 2b lands: the close reads the page's running balance, one balance decides the
 refund, the last collection and the write-off, and the row grades 0 on a fresh run.
 
+## The close lands, and its prediction (2026-11-09, filed before any book carries it)
+
+**Built.** A level-DD leaver closes on its one balance: the per-bill walk plus what its bills asked less what
+the bank paid (`arrears_engine.level_collection_difference`, matched month by month as the page matches them).
+A credit goes to the refund log, with the reg 6D clock run from the later of the final bill and the last
+collection. A debt is written off up to that balance, newest bill first; no more is written off than is owed,
+and the page posts what was written off, not the case. A shortfall no bill holds stays a standing debt (the
+last collection is §8.8b choice 3, still unbuilt). Test:
+`tests/simulation/test_a_level_dd_leavers_one_balance_is_refunded_or_written_off.py`, one control over the
+four fates first.
+
+**Prediction.** On the first book whose commit carries this close, `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO`
+breaches **10 or fewer** of the 184 it breached on af31e73fa7. Why it could fail: the walk-plus-difference
+matched the page's balance at close on 850 of 857 leavers, so about 7 should still miss; more than 10 means
+the match on af31e73fa7 does not carry to a book with step 2b's offsets on (b9ad453df). Standing debts are
+flagged, not breached, and stay; their count is not predicted. The 184 exception in
+`DOMAIN_INVARIANT_EXCEPTIONS.yaml` is retired on that book, not here.
+
+**Why this took five gate attempts.** The landings at pids 2583013, 3152134 and 3995967, then the executor
+turns ending 01:16, 05:05, 07:55 and 09:57 on 9 Nov, were each killed, not refused: the journal reads "did not
+finish inside 5400s" for every turn on this item. Each turn re-verified the same patch (166 targeted tests in
+94 s, then `tests/simulation/test_run_phase4c_on_phase2b.py`, whose fixture alone takes 1,014 s), then began
+a gate whose test selection runs that same fixture, and the turn ran out of time. The cure was to land
+first: this landing began within 20 minutes of the draw, on bytes the 09:02 turn had already tested.
+
 **Reverse.** Delete this file; revert the row, its evaluator, its exception and §8.8b in the landing commit.

@@ -49,6 +49,7 @@ def generate_credit_refund_log(
     bills: list[dict],
     customer_segments: dict[str, str],
     closing_balances: dict[str, float],
+    last_collection: dict[str, dt.date] | None = None,
 ) -> list[dict]:
     """One reg 6D refund event per closed domestic account the ledger closes in credit.
 
@@ -56,6 +57,10 @@ def generate_credit_refund_log(
     bill, for leavers only. An account it does not hold is not evaluated: no balance is not a credit.
     The final bill is the account's last bill, issued at its period end. Returns plain
     JSON-serialisable dicts.
+
+    ``last_collection`` is a level-DD leaver's last level collection. One taken after the final
+    bill is part of the credit, so the refund clock runs from the later of the two
+    (home_moves.md s.8.8b choice 2).
     """
     last_bill: dict[str, dict] = {}
     for bill in bills:
@@ -70,12 +75,13 @@ def generate_credit_refund_log(
             continue
         if normalise_segment(customer_segments.get(cid, RESIDENTIAL)) != RESIDENTIAL:
             continue
-        final = last_bill[cid]
+        final = dt.date.fromisoformat(last_bill[cid]["period_end"])
+        collected = (last_collection or {}).get(cid)
         log.append({
             "customer_id": cid,
             **refund_on_account_closure(
                 account_id=cid,
-                final_bill_issued=dt.date.fromisoformat(final["period_end"]),
+                final_bill_issued=max(final, collected) if collected else final,
                 credit_amount_gbp=round(-balance, 2),
             ),
         })

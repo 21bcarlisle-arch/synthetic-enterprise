@@ -368,7 +368,9 @@ def generate(run_json_path=None, out_path=None):
     # `bad_debt_gbp` agree per account;
     # tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds that on the
     # real run.
-    resolved, write_offs, credits_applied = _resolved_settlement(bills, behavioral, churned, seed=42)
+    resolved, write_offs, credits_applied = _resolved_settlement(
+        bills, behavioral, churned, seed=42,
+        level_dd_collections=data.get("level_dd_collections"))
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -1004,8 +1006,11 @@ def generate(run_json_path=None, out_path=None):
                 # agree, which is the whole point of
                 # PAYMENT_CHANNEL_DD_CONSISTENCY. Reading it from anywhere else
                 # would reintroduce the two-generator disagreement.
-                "stages": _arrears_stages(amount, due_date, still_open,
-                                           archetype, method=method, write_off_date=wo_date),
+                "stages": _arrears_stages(
+                    amount, due_date, still_open, archetype, method=method,
+                    write_off_date=wo_date,
+                    write_off_gbp=(None if written_off is None
+                                   else min(amount, written_off["amount_gbp"]))),
             }
             arrears_by_cid.setdefault(cid, []).append(arr)
         elif outcome_case == "dispute":
