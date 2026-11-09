@@ -249,12 +249,27 @@ class LevelSchedule:
     and it issued the bills. Which collections came back is read off the ARUDD returns."""
     requests: tuple
     other_asks: tuple = ()
+    #: Refs of bills that asked nothing (a scheme credit covered them, or the level amount was nothing).
+    #: They are no evidence of how the leg pays (`_shows_how_it_pays`).
+    nil_refs: frozenset = frozenset()
+
+
+def _shows_how_it_pays(e: LedgerEvent, schedule: LevelSchedule) -> bool:
+    """Whether bill `e` says anything about how its leg pays. A bill that asked nothing does not: no
+    collection is presented for it, level or otherwise, and nothing ended the arrangement. The EBSS
+    credit covered whole bills on level accounts that went on collecting level, which then read as
+    leavers (6 accounts, 359 account-days on the 505df564e3 page ledger;
+    payments_and_direct_debit_2026-10-25.md, "A month the level schedule asks nothing of is not a
+    departure"). A GBP 0 bill is in `nil_refs` too: what
+    it asked is its face (`PaymentObservationConsumer.level_schedule_of`)."""
+    return e.invoice_ref not in schedule.nil_refs
 
 
 def on_level_dd(ledger: AccountLedger, schedule: LevelSchedule, on: dt.date) -> bool:
     """Whether the account is still collected by a level direct debit on `on`: some supply leg's
-    latest bill issued by `on` is one a level collection paid for. A leg is the bill reference
-    before its first `::` (one leg when there is none).
+    latest bill issued by `on` that asked something is one a level collection paid for. A leg is the
+    bill reference before its first `::` (one leg when there is none). A bill that asked nothing
+    leaves the leg as its previous bill read (`_shows_how_it_pays`).
 
     An account that has left level DD owes its bills again, the debit its scheme ran up included,
     so it is dunned on them, not on a schedule that stopped asking (SYN-2016-549 on 298149a1fc: 150
@@ -263,7 +278,7 @@ def on_level_dd(ledger: AccountLedger, schedule: LevelSchedule, on: dt.date) -> 
     level_refs = {ref for _d, _g, ref in schedule.requests}
     latest: Dict[str, LedgerEvent] = {}
     for e in ledger.events_through(on):
-        if e.event_type != LedgerEventType.BILL_DEBIT:
+        if e.event_type != LedgerEventType.BILL_DEBIT or not _shows_how_it_pays(e, schedule):
             continue
         ref = e.invoice_ref or ""
         leg = ref.partition("::")[0] if "::" in ref else ""
@@ -329,7 +344,8 @@ def level_leave_dates(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.
     latest: Dict[str, LedgerEvent] = {}
     state = False
     leaves: List = []
-    bills = [e for e in ledger.events_through(as_of) if e.event_type == LedgerEventType.BILL_DEBIT]
+    bills = [e for e in ledger.events_through(as_of) if e.event_type == LedgerEventType.BILL_DEBIT
+             and _shows_how_it_pays(e, schedule)]
     for i, e in enumerate(bills):
         ref = e.invoice_ref or ""
         leg = ref.partition("::")[0] if "::" in ref else ""

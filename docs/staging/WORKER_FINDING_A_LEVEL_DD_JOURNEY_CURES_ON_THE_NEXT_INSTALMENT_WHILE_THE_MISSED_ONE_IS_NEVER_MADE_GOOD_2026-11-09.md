@@ -468,3 +468,70 @@ The prediction for the first book carrying it:
 - the 12 holds over a real on-receipt case.
 
 NEXT: grade the 8e73c52356 book against the prediction above, then build the page fix.
+
+## The leaving predicate, measured: the premise was mostly wrong, and a narrower defect is fixed (seat executor, 9 Nov 2026 ~17:30 GMT)
+
+**The premise, re-measured before building.** The section above read the 320 still-level page steps as false
+leavers. I tested that on the 505df564e3 page ledger, with that commit's own `on_level_dd`, on each breach's date
+(`/var/tmp/ondd-probe/classify.py`).
+- `on_level_dd` reads **level on every one of the 320**, and on every one of the 105 journey-opening rows.
+- **312 of the 320 are on 63 accounts that never collect level again** after the breach. C7 is one: its final bill
+  was June 2019, and it was written off on 30 Jun 2020. "Still level at end" in `overdue_breaches.py` means only
+  that the last payment was a level collection, so it puts closed accounts in the still-level column.
+- The other 8 are on 4 accounts that do go on collecting level.
+- **Correction, beside the claim above:** the 320 are not the false-leaver shape. The prediction filed there (320
+  falls to about 20 on the first book with a corrected predicate) **I now expect to FAIL**. It stays as filed.
+
+**What the 320 are, as far as measured.** The desk's in-run figure exceeds the page balance on closed accounts. On
+C7 it printed GBP 66.67 overdue on 16 Jul 2019, against a page balance of GBP 48.55. A desk replay over the page
+ledger (`/var/tmp/ondd-probe/replay_bal.py`) opens **0** journeys over the balance, under 505df564e3's code and
+under HEAD's. So the breach lives in how the run's own ledger differs from the page on a closing account, and not in
+the predicate. **Mechanism not established.** The next measurement is C7's run ledger against its page on 16 Jul
+2019. The 505df564e3 book also does not carry 8e73c52356 (the closing statement), so the next book moves these
+rows for that reason too.
+
+**The defect that is real, and is fixed here.** A bill that asked nothing read as the leg having left. Two kinds of
+bill ask nothing:
+- an EBSS-covered bill, which the run posts net of its credit, at GBP 0;
+- a month whose level amount is GBP 0, which presents nothing and records no request.
+
+On the netted page ledger (`/var/tmp/ondd-probe/probe_net.py`), 505df564e3's `on_level_dd` reads **6 accounts that
+go on collecting level as having left, on 359 account-days**. The build reads **0 and 0**.
+- K8: `payments_and_direct_debit_2026-10-25.md`, "A month the level schedule asks nothing of is not a departure".
+- The change: `arrears_engine._shows_how_it_pays` and `LevelSchedule.nil_refs`. The triad also records a nil ask
+  as asked nothing (`note_bill_asked`).
+- The controls are `tests/company/billing/test_a_level_dd_month_that_asks_nothing_is_not_read_as_leaving.py` (the
+  partition: a nil month reads level, and a billed month off the schedule still reads left) and
+  `tests/simulation/test_a_level_dd_household_is_dunned_on_its_schedule_not_its_bills.py::test_a_level_month_of_nothing_is_not_read_as_leaving_level_dd`
+  (end to end through the triad).
+- Mutations that fire: no skip, which fails all three; no triad note, which fails the triad test.
+- One equivalence: the GBP 0 face check. A GBP 0 bill's ask is its face, so `level_schedule_of` already puts it in
+  `nil_refs`. The check was deleted.
+
+**The world side, named and not changed.** The world presents no level collection in an EBSS month for a level
+account. Published practice kept collecting, refunded, or lowered the DD (`energy_bills_support_scheme_delivery.md`,
+GAP "for direct debit, the world nets the credit"). That GAP is already filed, and nothing new is filed here.
+
+NEXT: grade a book carrying this change and 8e73c52356 on the same readers. Then C7's run ledger against its page on
+16 Jul 2019, the closing-account overdue that exceeds the balance.
+
+**The book that grades it (launched 9 Nov 2026 16:07 GMT, no output read).**
+- **The run.** `launch_long_job` job `book-4dee9854a4`, out of loop, in the locked worktree
+  `/var/tmp/book-wt-4dee9854a4`. The shared tree's uncommitted W3_3 bytes still defer `sim_runner`. The book is at
+  origin 4dee9854a4, which carries 3feea0ac3 (this fix) and 8e73c52356 (the closing statement). The import
+  closure is clean (`paths: []`). Its run json path is in `/var/tmp/grade-ondd-scripts/RUN_PATH`.
+- **The grade.** The unit `grade-chain-book-4dee9854a4` waits for the run, then runs `/var/tmp/grade-ondd-scripts/after_run.sh`.
+  Those are the 505d readers, plus `overdue_breaches.py`, `classify.py` and `probe_net.py`. The control is the
+  505df564e3 ledger. The chain writes `ALLDONE` or `NO_DONE` in `/var/tmp/grade-ondd/`.
+- **Predictions, filed above before any output:**
+  - `probe_net` reads 0 still-collecting accounts as left.
+  - `classify` shows no breach on a leg that goes on collecting level while reading as left.
+  - The never-level journeys are identical, unless 8e73c52356 moved one through company-wide cash, which is the
+    first cause to rule out.
+  - The 320 still-level page rows do **not** fall to about 20.
+  - The total overdue movement **cannot be attributed between the two commits**, because this book carries both.
+
+**The same book grades the shape-A prediction (worker, 9 Nov 2026 ~16:20 GMT).** book-4dee9854a4 carries 8e73c52356,
+and `tools/generate_billing_ledger.py` is unchanged from 505df564e3. So it is the book named in "Prediction for the first book carrying
+8e73c52356 with the level-return branch unchanged" above. Grade it with `/var/tmp/grade-505d-remainder/count_a.py`
+on that book's ledger: shape A at 178 ± 18, SYN-2016-487 still at 3.07 + 3.07. The page fix waits for that grade.

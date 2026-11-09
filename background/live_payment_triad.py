@@ -1418,7 +1418,9 @@ class LivePaymentTriad:
         self._ledger_book.post(bill)
         # What this bill asked once the leg's credit came off it: the desk judges a miss on that,
         # never the face the ledger keeps (N15 on b3ce2a4e73: 7 re-offers after bills a credit paid).
-        if credit_taken > 0:
+        # A bill that asked nothing is recorded as asking nothing, a level month of GBP 0 included: the
+        # desk must not read it as a bill left unpaid, nor as the leg having left level DD.
+        if credit_taken > 0 or nothing_due:
             self._consumer.collections_journeys.note_bill_asked(invoice_ref, ask_gbp)
             self._cf_consumer.collections_journeys.note_bill_asked(invoice_ref, ask_gbp)
         # A credit bill (the supplier issued a negative bill) is a credit on the account, which the

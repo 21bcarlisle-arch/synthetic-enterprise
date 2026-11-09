@@ -281,3 +281,18 @@ def test_a_left_level_household_one_bill_behind_does_not_cure_on_each_due_date(t
         assert ledger.balance(due) == pytest.approx(100.00) and lpt_owes(ledger, due), due
     assert cured == [], f"cured one bill behind on {cured}"
     assert still_open, journeys
+
+
+def test_a_level_month_of_nothing_is_not_read_as_leaving_level_dd(triad, monkeypatch):
+    """December's level amount is GBP 0, so nothing is presented and no level request is recorded.
+    Read as a leaver from its GBP 140 December bill, the leg was dunned on that bill on 15 Jan, though
+    every collection the schedule asked was taken and January's level collection follows. The
+    company set the ask, so it records that December asked nothing (`note_bill_asked`) and the leg
+    stays on level (`arrears_engine._shows_how_it_pays`)."""
+    _fail_months(monkeypatch, [])
+    _replay(triad, "SEAS-NIL", SEASONAL,
+            lambda m: (f"{m}-05", 0.0 if m == "2024-12" else 60.00))
+    ledger = triad._ledger_book.ledger(lpt.account_of("SEAS-NIL"))
+    assert ledger.balance(date(2025, 1, 16)) > 100.0  # in debit, with December's bill unpaid: it can fail
+    _open, _cured, journeys = _journey_state(triad, "SEAS-NIL", date(2025, 6, 30))
+    assert journeys == [], journeys
