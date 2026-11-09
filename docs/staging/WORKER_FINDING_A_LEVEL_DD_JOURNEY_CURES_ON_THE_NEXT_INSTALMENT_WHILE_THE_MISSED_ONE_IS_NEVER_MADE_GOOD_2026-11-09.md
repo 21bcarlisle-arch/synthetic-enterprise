@@ -682,3 +682,70 @@ the balance. It means the page's account balance and its invoices still disagree
 the C7 class (a desk ledger heavier than the page), now visible on 16 more accounts. It is not a new defect.
 
 NEXT: cap a level case at its own bill's remainder, after measuring how often an earlier in-journey miss opened no case.
+
+## C7's GBP 18.12, named from the code: the leaving month's level collection is on the page and never reached the desk (seat executor, 9 Nov 2026 ~21:00 GMT)
+
+**The mechanism, read from the code and checked on C7's own figures.**
+- `simulation/run_phase2b.py::_post_month_bill` calls `_level_in_loop.collect(cid, month, left)` for every level leg.
+  With `left=True` (the open month of a leg that left, posted at run end), `InLoopLevelCollection.collect` still
+  appends the month's level row to `collected`, which becomes `level_dd_collections`, which the page collects.
+- The same call hands the triad `level_collection=None if left else _level_row`. So the desk is presented the final
+  bill's face on the bill path, and never the level row.
+- C7, final month June 2019: the page collects the level GBP 108 on 12 Jun; the desk is presented the final bill's
+  face, GBP 89.88, which the `dd_collection_book` records as collected. 108 − 89.88 = **18.12**, the whole gap.
+- It also explains the opening date, which the earlier "missing 12 Jun collection" lead could not: the desk received
+  every level request it was shown, and its unmet figure is aged from the final bill's due date.
+- So the earlier claim "the extra is not in a `BILL_DEBIT`" stands; the extra is **less credit** in the desk:
+  89.88 of cash where the page has 108.
+
+**Which record is right.** The household was supplied, and on level DD, through June. Published practice takes
+that month's level collection and then states the closing balance on the final bill
+(`payments_and_direct_debit_2026-10-25.md`). The page's 12 Jun 108 is the right one. The desk's record replaces it
+with the final bill's face, which is neither the level amount nor the closing balance. The final bill's own
+settlement (the closing balance, 48.55 for C7) is then not presented to anyone: that is a second, separate gap.
+
+**Prediction for the population, filed before measuring it** (book `run_output_4dee9854a4_20261109T160658Z.json`):
+- For every collections journey that ends in a write-off on an account that closed, and whose last billed month has
+  a row in `level_dd_collections`, the desk's written-off figure minus the page's `closing_balances` equals that
+  row's level amount minus the final month's bill face, to within GBP 0.05, on at least 90% of such accounts.
+- Most of the 63 closed accounts behind the 312 still-level page rows are in that set.
+- **Refuted if** fewer than 90% match, or the matched gap is not where the 312 rows sit.
+
+**Graded (same evening, on the 4dee9854a4 book and its page `/var/tmp/grade-ondd/ledger.json`; script
+`/var/tmp/c7-1812/measure2.py`, rows and classes beside it).** What each figure counts: an *account* is a billing
+account (both legs); *write-off* is the desk's `write_off` stage amount on its page journey (all 152 by rule
+`closed_account_unpaid_a_year_after_its_final_bill`); *page* is minus the sum of the legs' page `balance_gbp`;
+*gap* is write-off − page.
+
+| Class | Accounts | Gap sum, GBP |
+|---|---|---|
+| Final month on level, gap = level row − final face (**the C7 shape**) | 64 | +929.97 (40 heavier by +1,548.92; 24 lighter) |
+| Final month on level, gap unexplained | 47 | −5,040.75 |
+| C7 shape plus exactly one −400 | 1 | −323.57 |
+| Final month not on level, gap exactly −400 per account | 3 | −1,200.00 |
+| Final month not on level, gap unexplained | 17 | −6,642.78 |
+| Desk and page agree | 20 | −0.04 |
+
+- **The prediction FAILED as filed:** 64 of the 114 level-final-month accounts match (56%, not ≥90%). The
+  mechanism is real and exact on 64 accounts, C7 among them, but it is not the only divergence on closed accounts.
+- **The worry in the drawn item is wrong in direction.** Across the 152 written-off accounts the desk wrote off
+  GBP 25,580.62 against page balances of GBP 37,857.79. The C7 shape overstates write-offs by GBP 1,548.92 on 40
+  accounts. A larger, unexplained class (64 accounts, −11,683.53) has the desk writing off much less than the page
+  says is owed. Several gaps are exactly −400.00, the EBSS credit: the page and the desk disagree on whether the
+  scheme's credit reached a closed account.
+- **Does the P&L read it?** `total_bad_debt_gbp` (9,493.66) is the world's `bad_debt_gbp` on settlement records and
+  does not read the desk. The desk's write-offs (`write_off_closed_balances`) feed the company's provision stocks
+  (`_company_provision_by_year_end`), so the IFRS 9 charge reads the desk's ledger. Which way the gap moves that
+  charge I cannot yet say: the desk is lighter in total, and the provision is a stock read, not a sum of write-offs.
+- I did not check whether the 40 heavier accounts are the ones behind the 396 still-level page rows. That was the
+  second leg of the prediction, and it stays ungraded.
+
+**The fix, filed and not built (world side, its own book).** In `_post_month_bill`, either the leaving month's level
+row reaches the triad when its collection date falls inside supply (what practice does), with the final bill then
+asking the closing balance, or `collect(..., left=True)` stops recording a row the triad never presents. The first is
+right and touches the mover/churn final-bill exit model (`mover_final_bill_outcome` runs only when `level is None`),
+so it needs the K8 page amended first. The second is a one-line consistency fix that makes the page agree with a
+desk that is itself wrong. Recommendation: the first.
+
+NEXT: name the −400 and the 64 accounts where the desk writes off less than the page (the larger class), before the
+C7-shape fix, because it is twelve times the size.
