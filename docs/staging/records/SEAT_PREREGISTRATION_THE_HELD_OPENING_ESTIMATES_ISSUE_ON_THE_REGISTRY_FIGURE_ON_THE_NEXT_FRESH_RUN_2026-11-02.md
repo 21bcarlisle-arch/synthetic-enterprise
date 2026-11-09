@@ -57,7 +57,7 @@ at worktree HEAD 6fb4731a41. That HEAD descends from 8b2a07d8dd, and the only bi
 | 1. `exception_queue` holds 0 of the 9 | 9 held | **0 held** (book-wide `held_bill_count` 0) | **holds** |
 | 2. SYN-2016-582's first printed bill is 2016-12-31; its 2017-07 bill has `catchup_unbilled_periods` 0 | first 2017-04-30; 4; £1,220.95 | first **2016-12-31**; **0**; £30.65 | **holds** |
 | 3. No new hold anywhere | 9 | 0; invoice count 52,828 → 52,837 (+9, the nine released) | **holds** |
-| 4. INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL loses its checks on these three accounts | — | not read | **UNGRADED**: it reads the printed pages, and this run has none until the publish window (Mon 9 Nov 04:00 GMT) |
+| 4. INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL loses its checks on these three accounts | — | not read | **UNGRADED** here; graded 9 Nov on the b9ad453df0 printed pages: **holds** (0 breaches on all three; see below) |
 
 **The open route is closed.** The assembly stamped the registration figure, not the later company EAC.
 PROS-2024-0010's estimates carry `registry_annual_kwh` 22,744.6, not 18,357. The other two carry 22,909.7 and 33,937.5.
@@ -82,3 +82,35 @@ a probable SME-as-household mislabel. The release decides only *whether the esti
 segment question, and that question is not reopened here.
 
 **Next:** grade prediction 4 against the first printed pages built from a run that descends from 54f76662d1.
+
+### Prediction 4, graded 9 Nov 05:20Z on the first printed pages that descend from 54f76662d1
+
+**The pages graded:** the b9ad453df0 run (`run_complete_20261109T015606Z`; `merge-base --is-ancestor 54f76662d1
+b9ad453df0` true). The publisher wrote its 1,302 customer files (04:38Z) and `explore_carbon.json` (04:46Z) on the shared
+tree in the 9 Nov cycle. The ledger's `meta.source_json` names the same run, with `held_bill_count` 0, and the gate's own
+`docs/reports/domain_invariants.json` is stamped `git: b9ad453df0`. The publish to origin was refused by **other** rows
+(see 298149a1fc), so these pages were printed but not released. They are still that run's printed pages, and that is
+what this prediction reads. I loaded them with the runner's own `load_book(ledger_path=…, printed_path=…)` and ran
+`ev_carbon_matches_usage` once on each account, read only, from a worktree at 298149a1fc.
+
+| account | year | carbon kWh | usage kWh | months, carbon / usage | checks | breaches |
+|---|---|---|---|---|---|---|
+| SYN-2016-582 elec | 2016 | 756.6 | 756.6 | 1 / 1 | | |
+| | 2017 | 7,936.9 | 7,936.8 | 12 / 12 | 3 | **0** |
+| PROS-2024-0010 elec | 2024 | 19,709.9 | 19,709.7 | 12 / 12 | | |
+| | 2025 | 971.4 | 971.4 | 1 / 1 | 3 | **0** |
+| PROS-2025-0106 elec | 2025 | 3,830.3 | 3,830.3 | 3 / 3 | 1 | **0** |
+
+Book-wide, the row reads CLEAN: 0 breaches in 8,829 account-years, which matches the gate's table.
+
+**Verdict: holds, on the reading the prediction meant.** "Loses its checks" was loose wording. It meant the excepted
+*breaching* checks (6 checks on these three accounts in the 209c3350ab scope). Read literally, as "these accounts are no
+longer checked", it is **refuted**: all three are still checked (7 checks) and pass. Every year the exception named now
+matches to 0.2 kWh or better, with the same months on both panels: SYN-2016-582 2017, PROS-2024-0010 2024 and
+PROS-2025-0106 2025. SYN-2016-582's Dec 2016 month now appears on both panels. That agrees with prediction 2's first
+bill of 2016-12-31.
+
+**What this does not add.** The exception register was already re-based on 5 Nov to three other accounts
+(SYN-2016-175, SYN-2016-355 and PROS-2017-0233, on the 5200cd6239 book), so these three had already left the row's
+scope. This grade confirms that on printed pages. It does not move the register. All four predictions are now graded,
+and this pre-registration is closed.
