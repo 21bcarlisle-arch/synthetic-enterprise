@@ -115,6 +115,11 @@ one state: half of V is T (P(T | V) = 50.9%), and two thirds of T is V (P(V | T)
    Pensioners rarely prepay, so pooling inflates prepayment's odds ratio from 3.24 (one instrument) to 4.00. Some of
    that age gradient is real (T, one instrument for all ages, puts the 65+ at 0.43 of the rest's rate). How much is
    not separable on this file. **This is the new GAP (G7 on the wiring page).**
+   **Corrected by measurement, 9 Nov:** it is separable (`hheat` is asked of every age), and the explanation above is
+   wrong. The instrument sets the pensioners' level, but lifting it to the household gap leaves the pooled odds ratio
+   where it was. The pooled excess over the under-65s is age composition (about 55%) plus the pensioners' own
+   stronger within-age relation (about 45%), not instrument inflation:
+   `separating_the_age_routed_deprivation_instrument_from_the_household_understanding_society_2026-11-09.md`.
 3. **The world draws no age (G3), so it can only take the pooled cells or a single-instrument version of them.**
    Under F11 the build's default should be the weaker one: the under-65 cells' odds-ratio structure (prepayment
    within tenure 2.4 / 1.6 / 1.5, tenure 2.8 to 4.8 without prepayment), renormalised so the population share equals

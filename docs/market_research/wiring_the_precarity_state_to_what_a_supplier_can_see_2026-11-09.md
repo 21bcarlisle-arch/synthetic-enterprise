@@ -137,6 +137,19 @@ on a 420-home group in a changing panel. It is recorded as a lead, not wired.
   (36.2% V) and pensioners about a £200 unexpected expense (7.6%). Pooling them inflates prepayment's odds ratio
   from 3.24 to 4.00, because pensioners rarely prepay. How much of the age gap is the household and how much is
   the question is not separable on this file. A wave that asks one item of every age would close it.
+  **Separated 9 Nov, and the inflation claim above is corrected**
+  (`separating_the_age_routed_deprivation_instrument_from_the_household_understanding_society_2026-11-09.md`). Wave
+  14 does ask one item of every age (`hheat`, cannot keep the home warm), so the gap is separable on this file. About
+  56% of V's log age gap is the question and 44% the household (65+ OR 0.45 on `hheat`). But the instrument sets
+  the pensioners' **level**, not prepayment's odds ratio: lifting the 65+ cells to the household gap leaves the pooled
+  odds ratio where it was. The excess of the pooled ratio over the under-65s' comes from age composition (older
+  households prepay less and are less deprived on one question, a real confounder an age-less world should carry) and
+  from the pensioners' own stronger within-age relation, which this file cannot assign to household or question. The
+  default stays the under-65 structure, now on F11 alone, and the reason it was given (instrument inflation) is
+  withdrawn. That page's arms for the build: floor the under-65 cells (OR 3.48 in its rebuild), central 3.87, upper
+  4.22, each renormalised to the toggle. The household relation lies between 3.87 and 4.2, so the default
+  understates prepayment by a known margin. What stays open: whether the pensioners' within-age relation (OR 6.0
+  on the £200 item) is household or question.
 
 ## 6. Done means, for the build that follows (not for this page)
 

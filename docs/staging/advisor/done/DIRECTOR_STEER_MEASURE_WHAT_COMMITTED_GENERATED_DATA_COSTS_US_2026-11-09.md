@@ -49,3 +49,11 @@ Probable failure mode: a recommendation that moves a file the door tests or `gen
 Proportionality: reversible and narrow — just do it (measurement only).
 
 — Director steer, 9 Nov 2026, his words above; the census and drafting are the advisor's.
+
+## Done
+
+Ranked, as the steer asks ("behind the correctness exit test. Rank it yourself"), on 9 Nov by the delivery seat:
+added to `held_behind_the_exit_test` in `docs/direction/priority_order.yaml`, fourth of the four harness steers held
+there. It sits last because the token-measurement steer of 7 Nov asks the nearer question (where a session's time
+and reading go) and may answer whether repository size is where the time goes before this census starts. No
+measurement has been run yet; when it is drawn, the census and the reader list per file come first, as written above.
