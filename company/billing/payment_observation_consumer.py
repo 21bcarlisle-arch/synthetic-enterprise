@@ -149,6 +149,7 @@ from company.billing.arrears_engine import (
     ageing_buckets,
     collections_snapshot,
     fifo_unpaid_bills,
+    on_level_dd,
 )
 from company.billing.breathing_space_register import BreathingSpaceRegister
 from company.billing.collections_journey import CollectionsJourneyDesk
@@ -2222,14 +2223,18 @@ class PaymentObservationConsumer:
             self.ledger_book.ledger(account_id), ar_segment, through)
 
     def _collections_view(self, account_id: str, segment: Segment, as_of: dt.date) -> dict:
-        """This account's collections snapshot at one date, off this company's own ledger."""
+        """This account's collections snapshot at one date, off this company's own ledger. A level
+        DD account is read on its schedule only while it is still collected that way (`on_level_dd`)."""
+        ledger = self.ledger_book.ledger(account_id)
+        schedule = self.level_schedule_of(account_id)
         return collections_snapshot(
-            self.ledger_book.ledger(account_id),
+            ledger,
             segment,
             accounting_model_is_open_item=segment.is_business,
             as_of=as_of,
             moratorium_active=self.breathing_space.moratorium_active(account_id, as_of),
-            level_schedule=self.level_schedule_of(account_id),
+            level_schedule=(schedule if schedule is not None and on_level_dd(ledger, schedule, as_of)
+                            else None),
         )
 
     def snapshot(

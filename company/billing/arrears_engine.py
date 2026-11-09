@@ -251,6 +251,29 @@ class LevelSchedule:
     other_asks: tuple = ()
 
 
+def on_level_dd(ledger: AccountLedger, schedule: LevelSchedule, on: dt.date) -> bool:
+    """Whether the account is still collected by a level direct debit on `on`: some supply leg's
+    latest bill issued by `on` is one a level collection paid for. A leg is the bill reference
+    before its first `::` (one leg when there is none).
+
+    An account that has left level DD owes its bills again, the debit its scheme ran up included,
+    so it is dunned on them, not on a schedule that stopped asking (SYN-2016-549 on 298149a1fc: 150
+    of 151 journeys cured after leaving level read no shortfall while its failed bills stood
+    unpaid). Per leg, because 61 accounts on that book mix a level leg with a non-level one."""
+    level_refs = {ref for _d, _g, ref in schedule.requests}
+    latest: Dict[str, LedgerEvent] = {}
+    for e in ledger.events_through(on):
+        if e.event_type != LedgerEventType.BILL_DEBIT:
+            continue
+        ref = e.invoice_ref or ""
+        leg = ref.partition("::")[0] if "::" in ref else ""
+        if leg not in latest or e.valid_time >= latest[leg].valid_time:
+            latest[leg] = e
+    if not latest:
+        return any(d <= on for d, _g, _r in schedule.requests)
+    return any(e.invoice_ref in level_refs for e in latest.values())
+
+
 def level_shortfall(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.date
                     ) -> Optional[AgedItem]:
     """What a level DD account owes past its schedule on `as_of`, aged from the oldest request the

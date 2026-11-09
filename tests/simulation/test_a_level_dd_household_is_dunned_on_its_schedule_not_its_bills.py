@@ -164,3 +164,70 @@ def test_no_level_collection_lands_on_a_day_the_desk_has_walked(triad, monkeypat
                 level_collection={"month": month, "collection_date": collected.isoformat(),
                                   "amount_gbp": level})
     assert any(w is not None for w in walked), "the desk never walked, so this proves nothing"
+
+
+# The missed instalment must be made good before a level journey cures (SYN-2016-549 on 298149a1fc:
+# its 4 Apr 2018 GBP 45 failed, 4 May's was collected, and the desk cured on 4 May with April never
+# re-collected). Oldest-first, May's cash meets April's request and the shortfall moves onto the
+# request presented that day, which ages 0 days and read as nothing overdue.
+
+def _journey_state(triad, cid, on):
+    """(open?, cure dates) for the household's account, walked through `on`."""
+    journeys = triad.collections_journeys(on)
+    cured = [s["on"] for j in journeys for s in j["stages"] if s["stage"] == "cured"]
+    return any(j.get("exit") is None for j in journeys), cured, journeys
+
+
+def test_a_missed_instalment_not_made_good_holds_the_journey_and_a_made_good_one_cures(
+        triad, monkeypatch):
+    """Both branches in one control, the cure first so a desk that never cures cannot pass.
+
+    Made good: January's GBP 60 returns on 5 Jan and is re-collected on 25 Jan, so the journey cures.
+    Not made good: January's GBP 60 returns, February's GBP 60 is collected on 5 Feb, and nothing
+    else is paid. The household is one instalment behind on every day after, so the journey stays
+    open with GBP 60 owed."""
+    _fail_months(monkeypatch, ["2025-01"])
+    repaid = LivePaymentTriad()
+    repaid._method_for = lambda cid, fuel="electricity": DIRECT_DEBIT
+    monkeypatch.setattr(lpt, "later_settlement_date", lambda event, segment="resi": (
+        date.fromisoformat(event.due_date) + timedelta(days=20) if event.result == "failed" else None))
+    good = _replay(repaid, "SEAS-MADE-GOOD", SEASONAL, lambda m: (f"{m}-05", 60.00))
+    assert [j["exit"] for j in good] == ["cured"], good
+
+    monkeypatch.setattr(lpt, "later_settlement_date", lambda event, segment="resi": None)
+    _replay(triad, "SEAS-NEVER-GOOD", SEASONAL, lambda m: (f"{m}-05", 60.00))
+    still_open, cured, journeys = _journey_state(triad, "SEAS-NEVER-GOOD", date(2025, 6, 30))
+    assert journeys, "the return must open a journey, or the hold below proves nothing"
+    assert cured == [], f"cured over the unmade-good January instalment on {cured}"
+    assert still_open, journeys
+    last = journeys[-1]["stages"][-1]
+    assert last["overdue_gbp"] == pytest.approx(60.00), last
+
+
+def test_an_account_that_left_level_dd_is_dunned_on_its_bills(triad, monkeypatch):
+    """Level for October to December (GBP 60 against GBP 320 of bills), then each bill collected at
+    its face. January's bill (GBP 150) fails and is paid 20 days late. Read on the stopped schedule,
+    that met everything asked and the journey cured on 6 Mar, with GBP 260 owed on bills past their
+    due dates. Walked on its bills, it does not cure while a bill due is unpaid."""
+    _fail_months(monkeypatch, ["2025-01"])
+    monkeypatch.setattr(lpt, "later_settlement_date", lambda event, segment="resi": (
+        date.fromisoformat(event.due_date) + timedelta(days=20) if event.result == "failed" else None))
+    level_months = {"2024-10", "2024-11", "2024-12"}
+    _replay(triad, "SEAS-LEFT", SEASONAL,
+            lambda m: (f"{m}-05", 60.00) if m in level_months else None)
+    ledger = triad._ledger_book.ledger(lpt.account_of("SEAS-LEFT"))
+    _open, cured, journeys = _journey_state(triad, "SEAS-LEFT", date(2025, 6, 30))
+    assert journeys, "January's failed bill must open a journey"
+    # The view reads what the bills owe once the schedule has stopped, the scheme's debit included,
+    # not the stopped schedule's shortfall (GBP 150 on 15 Feb).
+    first = journeys[0]["stages"][0]
+    assert first["overdue_gbp"] == pytest.approx(ledger.balance(date.fromisoformat(first["on"]))), first
+    assert date(2025, 3, 6) not in [date.fromisoformat(c) for c in cured], cured
+    for c in cured:
+        on = date.fromisoformat(c)
+        assert ledger.balance(on) <= 0.005 or not lpt_owes(ledger, on), (c, ledger.balance(on))
+
+
+def lpt_owes(ledger, on):
+    from company.billing.collections_journey import _owes_a_bill_due_by
+    return _owes_a_bill_due_by(ledger, on, 14)
