@@ -48,7 +48,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Sequence
+from typing import Callable, Dict, List, Optional, Sequence
 
 from company.billing.account_ledger import (
     AccountLedger,
@@ -301,6 +301,153 @@ def level_shortfall(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.da
         met -= gbp
     return AgedItem(reference=ledger.account_id, outstanding_gbp=short, due_date=due,
                     days_overdue=(as_of - due).days, disputed=False)
+
+
+#: The term of the closing statement a household leaving level DD with a debit is sent. Cited: the
+#: licence counts an unpaid charge against the customer 28 days after a written demand (ESSC
+#: definitions, "Outstanding Charges"), and Budget Energy asks a leaver to clear the balance "within
+#: four weeks". GAP 1 of `docs/market_research/payments_and_direct_debit_2026-10-25.md`, "Leaving
+#: level direct debit with a debit": the range is 14 to 28 days, and the upper edge errs against our
+#: thesis (F11), being the slower cash.
+CLOSING_STATEMENT_TERM_DAYS = 28
+
+
+def left_level_on(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.date
+                  ) -> Optional[dt.date]:
+    """The day this account last left level DD, on or before `as_of`, or None while it is still on it
+    or never was. That is the first bill date on which `on_level_dd` reads False after reading True
+    with a level-paid bill seen; a return to level clears it. One pass over the bills."""
+    leaves = level_leave_dates(ledger, schedule, as_of)
+    return leaves[-1] if leaves and leaves[-1] is not None else None
+
+
+def level_leave_dates(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.date) -> List:
+    """Every day on or before `as_of` this account left level DD, in order, with a trailing None if it
+    is back on it. The desk opens a leaver's journey only on a closing statement's due date, so it
+    needs each of them, not only the last."""
+    level_refs = {ref for _d, _g, ref in schedule.requests}
+    latest: Dict[str, LedgerEvent] = {}
+    state = False
+    leaves: List = []
+    bills = [e for e in ledger.events_through(as_of) if e.event_type == LedgerEventType.BILL_DEBIT]
+    for i, e in enumerate(bills):
+        ref = e.invoice_ref or ""
+        leg = ref.partition("::")[0] if "::" in ref else ""
+        if leg not in latest or e.valid_time >= latest[leg].valid_time:
+            latest[leg] = e
+        if i + 1 < len(bills) and bills[i + 1].valid_time == e.valid_time:
+            continue  # read the state once a day's bills are all in, as `on_level_dd` does
+        now = any(b.invoice_ref in level_refs for b in latest.values())
+        if state and not now:
+            leaves.append(e.valid_time)
+        elif now and not state and leaves:
+            leaves.append(None)
+        state = now
+    return leaves
+
+
+@dataclass(frozen=True)
+class LeftLevel:
+    """What an account that has left level DD owes and from when (`left_level_asks`).
+
+    `asks` are `(due date, GBP)` in due order: what the bills issued before `left` still owed on that
+    day once its cash had met them oldest bill first (`_fifo_unpaid`), with a level-paid remainder
+    owed from the missed instalment's date up to the shortfall and from the closing statement's due
+    date beyond it; then every bill issued from `left` on, at its own due date. Cash after `left`
+    meets the earliest due first, with `carried_credit` (a credit standing on the day of leaving)."""
+    left: dt.date
+    asks: tuple
+    carried_credit: float = 0.0
+
+
+def left_level_asks(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.date,
+                    payment_terms_days: int = 14,
+                    dunned_at: Optional[Callable[[dt.date], bool]] = None) -> Optional[LeftLevel]:
+    """What an account that has left level DD was asked, or None for one still on it or never on it.
+
+    The debit the scheme leaves is demanded once, on a closing statement issued the day the account
+    left, due `CLOSING_STATEMENT_TERM_DAYS` later. It replaces the level-paid bills as the demand, so
+    they are not aged from their own due dates: no one asked for them as debts (Ofgem 2011 App. 2
+    para 2.8). Where a journey was already open over a missed instalment on the day of leaving
+    (`dunned_at(left)`), that shortfall stays owed from the request it missed (`level_shortfall`):
+    leaving does not cure a case being dunned. A shortfall no journey held -- the household was in
+    credit on the day its collection came back -- was never pursued, so it goes on the statement with
+    the rest: dated from the request, SYN-2016-217's first contact on the 9d7dcfc19c book came 130 days
+    overdue, on the prepayment rung. Every other bill is an on-receipt bill, owed from its own due date.
+
+    Cash taken up to the day of leaving paid the scheme's bills, oldest first, as it always has. Cash
+    after it pays the earliest due first, so a household that pays its first on-receipt bill on time
+    is not read as having missed it because the payment went to the statement not yet due."""
+    left = left_level_on(ledger, schedule, as_of)
+    if left is None:
+        return None
+    level_refs = {ref for _d, _g, ref in schedule.requests}
+    terms = dt.timedelta(days=payment_terms_days)
+    events = ledger.events_through(as_of)
+    before = [e for e in events if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time < left]
+    credit = round(sum(e.amount_gbp for e in events
+                       if not e.event_type.is_debit and e.valid_time <= left), 2)
+    missed = (level_shortfall(ledger, schedule, left)
+              if dunned_at is not None and dunned_at(left) else None)
+    missed_left = round(missed.outstanding_gbp, 2) if missed is not None else 0.0
+    statement_due = left + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS)
+    asks: List[tuple] = []
+    for e in before:
+        gbp = round(e.amount_gbp, 2)
+        if credit >= gbp - 0.005:
+            credit = round(credit - gbp, 2)
+            continue
+        owed, credit = round(gbp - credit, 2), 0.0
+        if e.invoice_ref not in level_refs:
+            asks.append((e.valid_time + terms, owed))
+            continue
+        carve = round(min(owed, missed_left), 2)
+        if carve > 0.005:
+            asks.append((missed.due_date, carve))
+            missed_left = round(missed_left - carve, 2)
+        if owed - carve > 0.005:
+            asks.append((statement_due, round(owed - carve, 2)))
+    asks += [(e.valid_time + terms, round(e.amount_gbp, 2)) for e in events
+             if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time >= left]
+    return LeftLevel(left=left, asks=tuple(sorted(asks, key=lambda a: a[0])), carried_credit=credit)
+
+
+def unpaid_asks(ledger: AccountLedger, left: LeftLevel, as_of: dt.date) -> List[tuple]:
+    """`(due date, unpaid GBP)` for what an account that left level DD still owes on `as_of`: the
+    cash after leaving, with any credit carried, meets `left.asks` earliest due first."""
+    credit = round(left.carried_credit + sum(
+        e.amount_gbp for e in ledger.events_through(as_of)
+        if not e.event_type.is_debit and e.valid_time > left.left), 2)
+    unpaid: List[tuple] = []
+    for due, gbp in left.asks:
+        if credit >= gbp - 0.005:
+            credit = round(credit - gbp, 2)
+            continue
+        unpaid.append((due, round(gbp - credit, 2)))
+        credit = 0.0
+    return unpaid
+
+
+def age_left_level(ledger: AccountLedger, left: LeftLevel, as_of: dt.date) -> List[AgedItem]:
+    """`age_balance` for an account that has left level DD, in two items: what is past its due date,
+    aged from the earliest such date, and the rest of a positive balance, current. One item aged
+    whole would print a closing statement not yet due as overdue beside a missed on-receipt bill."""
+    bal = round(ledger.balance(as_of), 2)
+    if bal <= 0.005:
+        return []
+    unpaid = unpaid_asks(ledger, left, as_of)
+    past = [(d, g) for d, g in unpaid if d < as_of]
+    past_gbp = round(min(sum(g for _d, g in past), bal), 2)
+    items = []
+    if past_gbp > 0.005:
+        due = min(d for d, _g in past)
+        items.append(AgedItem(reference=ledger.account_id, outstanding_gbp=past_gbp, due_date=due,
+                              days_overdue=(as_of - due).days, disputed=False))
+    if bal - past_gbp > 0.005:
+        due = min((d for d, _g in unpaid if d >= as_of), default=as_of)
+        items.append(AgedItem(reference=ledger.account_id, outstanding_gbp=round(bal - past_gbp, 2),
+                              due_date=due, days_overdue=(as_of - due).days, disputed=False))
+    return items
 
 
 def ageing_buckets(items: Sequence[AgedItem]) -> Dict[str, Dict[str, float]]:
@@ -1101,6 +1248,7 @@ def collections_snapshot(
     *,
     moratorium_active: bool,
     level_schedule: Optional[LevelSchedule] = None,
+    left_level: Optional[LeftLevel] = None,
 ) -> dict:
     """One collections view over either accounting model. Returns ageing buckets,
     the current dunning step, and the undisputed overdue total that would bear
@@ -1115,6 +1263,10 @@ def collections_snapshot(
         # A level DD account owes its schedule, not its bills (`level_shortfall`).
         one = level_shortfall(ledger, level_schedule, as_of)
         items = [one] if one is not None else []
+    elif left_level is not None:
+        # An account that left level DD owes its closing statement and its later bills
+        # (`left_level_asks`), not the level-paid bills' own due dates.
+        items = age_left_level(ledger, left_level, as_of)
     else:
         one = age_balance(ledger, as_of, payment_terms_days)
         items = [one] if one is not None else []

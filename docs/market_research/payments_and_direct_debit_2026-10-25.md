@@ -608,7 +608,7 @@ pay-on-receipt payment made on the next working day is on time is GAP 5: no sour
 
 *K8 page for the open half of d8264b525e. The GAP is filed in
 `docs/staging/WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md`
-("no closing statement for a level scheme"). This page is written before any build. Nothing below is built.*
+("no closing statement for a level scheme"). This page was written before the build; the build is recorded at its end.*
 
 **What the tree does today.** Once a leg leaves level DD, d8264b525e walks it on its bills
 (`collections_journey._owes_a_bill_due_by`). The debit the scheme had not yet recovered is then aged from the
@@ -659,3 +659,16 @@ to the plan-offer rung, on a debit that no one ever demanded as a debt.
   opens earlier than 28 days after the leg's last level collection. The plan-offer rung is never the first rung of a
   left-level journey. The never-level legs' journeys are byte-identical. The direction the overdue rows move is
   **I cannot yet say**: fewer and later openings, but each one at the full scheme debit.
+
+**Built (worker, 9 Nov 2026), in `arrears_engine.left_level_asks` and the collections desk.** The choice above is built as
+proposed, with three refinements the first probe forced. Each is stated here so the page still says what the code does.
+- **Cash is allocated in two stages.** Cash up to the day of leaving pays the scheme's bills oldest first, as before.
+  Cash after it meets the earliest due date first. With one oldest-first walk, January's on-time payment went to the
+  scheme debit, so the household read as having missed January. With one due-date walk, the level collections' cash
+  paid January's bill, so a missed January read as paid.
+- **A missed instalment keeps its date only if a journey was open over it on the day of leaving.** Otherwise it goes
+  on the statement with the rest. A collection returned while the account read in credit was never pursued.
+  Dated back to its request, SYN-2016-217 on the 9d7dcfc19c book had its first contact 130 days overdue, on the
+  prepayment rung.
+- **The view splits past-due from current.** On 15 Feb a missed January bill prints GBP 150 overdue, not GBP 290. The
+  statement's GBP 140 is not due until 28 Feb.

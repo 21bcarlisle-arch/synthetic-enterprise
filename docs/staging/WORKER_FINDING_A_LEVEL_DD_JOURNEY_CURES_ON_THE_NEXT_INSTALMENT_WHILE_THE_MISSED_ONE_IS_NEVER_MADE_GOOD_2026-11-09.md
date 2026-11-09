@@ -231,3 +231,56 @@ never-level journey moves, that is the first cause to rule out before calling th
 for the job to end and then runs `after_run.sh`. It writes `ALLDONE` or `NO_DONE` in `/var/tmp/grade-505d/`.
 
 No output has been read. The prediction above stands as written.
+
+## The closing statement: before count, build, and its prediction graded (worker, 9 Nov 2026 ~14:00 GMT)
+
+**Instrument.** The 505df564e3 book was still running, so this grade replays the desk itself over the
+9d7dcfc19c book's page ledger (`/var/tmp/grade-505d/control-9d7d/ledger.json`), once with HEAD's `company/`
+(3c78bc24c1, which carries d8264b525e) and once with the build. Each arm runs the same 180 level-DD accounts and the
+same ledger, so the code is the only thing that changes. Scripts: `/var/tmp/closing-stmt/scripts/replay.py` and `compare.py`.
+- A replayed journey is the desk's own walk on a ledger rebuilt from the page.
+- The replay asks no Breathing Space register, and every bill asks its face.
+- So these are not the book's own journeys.
+
+**The before figure.** On HEAD, **7** left-level journeys on **7** accounts open on a scheme debit no statement ever
+demanded: their oldest unpaid bill is a level-paid bill. All 7 open between 30 and 85 days overdue. The first rung is
+the **plan offer on 5** and the final notice on 2.
+
+**The build.** `arrears_engine.left_level_asks` and the desk's statement openers are built as the K8 entry
+(payments_and_direct_debit, "Leaving level direct debit with a debit") proposed. Three refinements were forced by a
+probe and are recorded on that page: two-stage cash allocation; a missed instalment keeps its date only when a journey
+held it on the day of leaving; past-due is split from current. The control is
+`tests/company/billing/test_a_level_dd_leaver_is_sent_a_closing_statement_before_its_debit_is_dunned.py`:
+- The partition asserts both branches first: a statement left unpaid opens, and one paid inside 28 days never opens.
+- Six mutations fire: no re-dating, no statement opener, no carve, always carve, single-stage allocation, and whole
+  balance printed overdue.
+- One existing assertion was keyed to the old reading. It had GBP 290 overdue on 15 Feb with the scheme debit not yet
+  due. It is corrected beside the claim.
+
+**The prediction e3242c6bb filed, graded on the replay:**
+- *The plan-offer rung is never the first rung of a left-level journey:* **HELD.** It was the first rung on 5 of 9
+  before, and is on 0 of 9 after. All 9 open 1 day overdue, at `reminder` (8) or `reminder_2` (1).
+- *No left-level journey opens earlier than 28 days after the leg's last level collection:* **FELL, on 3 of 9** (also 3
+  on HEAD). The prediction was wrong, and the cause is not the build. Those three accounts never left level DD. Each
+  level collection is presented before the bill it pays is issued, so when the latest issued bill is not level-paid,
+  `arrears_engine.on_level_dd` (d8264b525e) reads the account as having left. 5 of the 8 "leaver" accounts carry on
+  collecting level into 2025. That is a defect in the leaving predicate. It is filed here as the next item and is not
+  fixed in this commit. Under the build, those false leavers now open on the first rung at small sums (GBP 7.39,
+  GBP 27.15). Before the build they opened at the plan offer or the final notice.
+- *Never-level journeys are byte-identical:* **cannot say from this replay**, because it replays level accounts only.
+  By construction, an account with no level schedule takes the unchanged path (`level_of` None). The 278 journeys
+  opened while on level are byte-identical between the arms.
+- *Direction of the overdue rows:* **I cannot yet say.** That needs a book that carries the build.
+
+**GAPs carried as GAPs.** These are unchanged from the K8 entry:
+1. The term is 14 to 28 days. The build uses 28, at `CLOSING_STATEMENT_TERM_DAYS`.
+2. Whether the statement is a standalone statement or folded into the first bill.
+3. Whether the debit is spread by default.
+
+**Not changed, and downstream of this:**
+- `cash_forecast_provision`, `default_belief` and the consumer's page `snapshot` still age a leaver's balance by bill
+  date.
+- The provision therefore still ages the scheme debit from the level bills.
+- It is named here, not fixed.
+
+NEXT: the leaving predicate. `on_level_dd` must not read an account that is still collecting level as having left.

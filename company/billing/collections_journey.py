@@ -74,13 +74,17 @@ from typing import Any, Callable, Dict, List, Optional
 from company.billing.account_ledger import AccountLedger, LedgerEvent, LedgerEventType
 from company.billing.arrears_engine import (
     CLOSED_ACCOUNT_RULE,
+    CLOSING_STATEMENT_TERM_DAYS,
     MORATORIUM_HOLD,
     closed_account_write_off_date,
     closed_balance_due_for_write_off,
     dunning_path,
     fifo_unpaid_bills,
+    left_level_asks,
+    level_leave_dates,
     level_shortfall,
     on_level_dd,
+    unpaid_asks,
 )
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.compliance.working_days import is_working_day
@@ -231,13 +235,18 @@ UNREACHED_EXITS = {
 }
 
 
-def _owes_a_bill_due_by(ledger: AccountLedger, on: dt.date, payment_terms_days: int) -> bool:
+def _owes_a_bill_due_by(ledger: AccountLedger, on: dt.date, payment_terms_days: int,
+                        left_level: Optional[Any] = None) -> bool:
     """Whether, with `on`'s cash landed, a bill due on or before `on` is still owed oldest-first.
+    For an account that has left level DD, `left_level` is what it was asked (`left_level_asks`):
+    its scheme's bills are owed from the closing statement's due date, not their own.
 
     The journey may cure only when this is False. A balance read on a due date reads 0 days overdue
     when FIFO has moved the old debt onto the bill due that day, yet that bill is missed at midnight
     and nothing more can land on it: a household one bill behind that pays each new bill on its due
     date "cured" monthly with its balance never lower (debt_and_collections.md s.7.6)."""
+    if left_level is not None:
+        return any(due <= on for due, _gbp in unpaid_asks(ledger, left_level, on))
     return any(bill + dt.timedelta(days=payment_terms_days) <= on
                for bill, _gbp in fifo_unpaid_bills(ledger, on))
 
@@ -443,6 +452,14 @@ class CollectionsJourneyDesk:
         #: (`note_bill_collected_by_direct_debit`).
         self._by_dd: set = set()
 
+    def dunning_at_leaving(self, account_id: str) -> Callable[[dt.date], bool]:
+        """`dunned_at(left)` for `arrears_engine.left_level_asks`: whether this account's open journey
+        was already open on the day it left level DD, so the shortfall it holds keeps its date."""
+        def dunned_at(left: dt.date) -> bool:
+            journey = self._open.get(account_id)
+            return journey is not None and dt.date.fromisoformat(journey.stages[0]["on"]) <= left
+        return dunned_at
+
     def asked_of(self, invoice_ref: str, face_gbp: float) -> float:
         """What the bill `invoice_ref` asked: its face, less any credit netted off it."""
         return self._asked.get(invoice_ref, round(face_gbp, 2))
@@ -500,6 +517,12 @@ class CollectionsJourneyDesk:
         missed = {_missed_on(e)
                   for e in events if e.event_type == LedgerEventType.BILL_DEBIT
                   and e.invoice_ref not in level_refs} | returns
+        # A household that left level DD with a debit is sent one closing statement for it, due
+        # CLOSING_STATEMENT_TERM_DAYS later; its journey can open only once that is missed.
+        statements = ({d + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS)
+                       for d in level_leave_dates(ledger, level[0], through) if d is not None}
+                      if level is not None else set())
+        missed |= {missed_on(d) for d in statements}
         openers = missed | {
             e.valid_time for e in events
             if e.event_type.is_debit and e.event_type != LedgerEventType.BILL_DEBIT}
@@ -518,7 +541,7 @@ class CollectionsJourneyDesk:
             last = bills[bisect.bisect_right(bills, on) - 1] if bills and bills[0] <= on else None
             return last is not None and on >= closed_account_write_off_date(last)
         movers = openers | bars | {e.valid_time for e in events} | {
-            d + dt.timedelta(days=t) for d in bill_dues for t in triggers}
+            d + dt.timedelta(days=t) for d in [*bill_dues, *statements] for t in triggers}
         if level is not None:
             # A level shortfall ages from the request the cash has not met.
             movers |= {d + dt.timedelta(days=t) for d, _g, _r in level[0].requests for t in triggers}
@@ -531,18 +554,23 @@ class CollectionsJourneyDesk:
                 continue
             if account_id not in self._open and on not in openers:
                 continue
+            on_level = level is not None and on_level_dd(ledger, level[0], on)
             self._step(account_id, segment, on, ledger=ledger, bill_missed=on in unpaid_on,
                        payment_terms_days=payment_terms_days,
-                       level=(level[0] if level is not None and on_level_dd(ledger, level[0], on)
-                              else None))
+                       level=level[0] if on_level else None,
+                       left_level=(left_level_asks(ledger, level[0], on, payment_terms_days,
+                                                   self.dunning_at_leaving(account_id))
+                                   if level is not None and not on_level else None))
         self._read_meter_recoveries(account_id, through)  # a meter changed inside this walk
         self._through[account_id] = through
 
     def _step(self, account_id: str, segment: Segment, on: dt.date, *,
               ledger: Optional[AccountLedger] = None, bill_missed: bool = False,
-              payment_terms_days: int = 14, level: Optional[Any] = None) -> None:
+              payment_terms_days: int = 14, level: Optional[Any] = None,
+              left_level: Optional[Any] = None) -> None:
         """`level` is the account's `LevelSchedule` while it is collected by a level DD on `on`
-        (`on_level_dd`), else None: an account that has left level DD is walked on its bills."""
+        (`on_level_dd`), else None: an account that has left level DD is walked on its bills, and its
+        scheme's debit on the closing statement (`left_level`, from `left_level_asks`)."""
         held_by_plan = self._read_instalments(account_id, on)
         view = self._view_at(account_id, segment, on)
         overdue = (view.get("max_days_overdue") or 0) > 0 and (
@@ -564,7 +592,8 @@ class CollectionsJourneyDesk:
                 (level is not None and ledger is not None
                  and level_shortfall(ledger, level, on) is None)
                 or (level is None and not (ledger is not None
-                                           and _owes_a_bill_due_by(ledger, on, payment_terms_days)))):
+                                           and _owes_a_bill_due_by(ledger, on, payment_terms_days,
+                                                                       left_level)))):
             journey.enter(CURED, on, "overdue balance cleared on the ledger", view)
             journey.exit = CURED
             self._refuse(journey.as_record(), account_id)

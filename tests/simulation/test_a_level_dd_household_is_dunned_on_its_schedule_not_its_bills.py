@@ -218,10 +218,13 @@ def test_an_account_that_left_level_dd_is_dunned_on_its_bills(triad, monkeypatch
     ledger = triad._ledger_book.ledger(lpt.account_of("SEAS-LEFT"))
     _open, cured, journeys = _journey_state(triad, "SEAS-LEFT", date(2025, 6, 30))
     assert journeys, "January's failed bill must open a journey"
-    # The view reads what the bills owe once the schedule has stopped, the scheme's debit included,
-    # not the stopped schedule's shortfall (GBP 150 on 15 Feb).
+    # The view reads what the bills owe once the schedule has stopped, not the stopped schedule's
+    # shortfall. Corrected 9 Nov 2026: this asserted the whole balance (GBP 290) overdue on 15 Feb,
+    # the scheme's GBP 140 debit included. That debit is demanded on the closing statement of
+    # 31 Jan, due 28 Feb (`arrears_engine.left_level_asks`), so on 15 Feb only January's GBP 150 is.
     first = journeys[0]["stages"][0]
-    assert first["overdue_gbp"] == pytest.approx(ledger.balance(date.fromisoformat(first["on"]))), first
+    assert first["on"] == "2025-02-15" and first["overdue_gbp"] == pytest.approx(150.00), first
+    assert ledger.balance(date(2025, 2, 15)) == pytest.approx(290.00)
     assert date(2025, 3, 6) not in [date.fromisoformat(c) for c in cured], cured
     for c in cured:
         on = date.fromisoformat(c)

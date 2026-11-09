@@ -149,6 +149,7 @@ from company.billing.arrears_engine import (
     ageing_buckets,
     collections_snapshot,
     fifo_unpaid_bills,
+    left_level_asks,
     on_level_dd,
 )
 from company.billing.breathing_space_register import BreathingSpaceRegister
@@ -2227,14 +2228,18 @@ class PaymentObservationConsumer:
         DD account is read on its schedule only while it is still collected that way (`on_level_dd`)."""
         ledger = self.ledger_book.ledger(account_id)
         schedule = self.level_schedule_of(account_id)
+        on_level = schedule is not None and on_level_dd(ledger, schedule, as_of)
         return collections_snapshot(
             ledger,
             segment,
             accounting_model_is_open_item=segment.is_business,
             as_of=as_of,
             moratorium_active=self.breathing_space.moratorium_active(account_id, as_of),
-            level_schedule=(schedule if schedule is not None and on_level_dd(ledger, schedule, as_of)
-                            else None),
+            level_schedule=schedule if on_level else None,
+            # One that has left it owes a closing statement for the scheme's debit (`left_level_asks`).
+            left_level=(left_level_asks(ledger, schedule, as_of, dunned_at=self.collections_journeys
+                                        .dunning_at_leaving(account_id))
+                        if schedule is not None and not on_level else None),
         )
 
     def snapshot(
