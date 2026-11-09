@@ -53,3 +53,28 @@ must cure.
 **Recommended next, one variable.** Find the cure predicate for a level leg in the collections desk (step 2b's
 "shortfall against the schedule"). Then print its shortfall for SYN-2016-549 on 4 May 2018. The prediction, filed before
 reading the code: it prints 0, because it compares May's collection against May's instalment.
+
+## Correction, before any run: the predicate is cumulative, so the filed mechanism is wrong (worker, 9 Nov 2026 ~08:00 GMT)
+
+The hypothesis above said the cure "reads the shortfall for the current period". **It does not.**
+`arrears_engine.level_shortfall` (`company/billing/arrears_engine.py:254`) computes
+`min(requested to date - received to date, debit balance)`. That is cumulative. A failed April instalment that was never
+made good stays in "requested". The prediction filed above ("prints 0, because it compares May's collection against May's
+instalment") is withdrawn as a mechanism. It was refuted by reading the code, not by running it.
+
+Two candidates remain, read from the code and not yet printed:
+1. **The debit-balance cap.** A shortfall is counted only up to the debit balance (Ofgem: "a shortfall in credit is
+   nothing owed"). If the desk's ledger balance on the cure day is nil or in credit, the journey cures by design. The page
+   then still shows the failed instalment's invoice as outstanding. That would make it a page-and-desk disagreement
+   about one account, not a false cure. The page reader put SYN-2016-549 at GBP 2.79 owed on 4 May 2018. So the two
+   balances differ by at least that much on that day.
+2. **Once level, always level.** The desk's `level_of` (`payment_observation_consumer.py:901`) returns a schedule
+   for any account that has *ever* had a level collection requested. So `_step(level=True)` follows the account after it
+   leaves level DD. On that path, a journey cures whenever the view shows nothing overdue. It never asks
+   `_owes_a_bill_due_by`, and it opens only on a level return. This fits the 151 cures on 19 accounts that left level DD.
+   One example is SYN-2016-549 in 2020: on standard credit, three failed bills unpaid, journeys cured.
+
+**Prediction, filed before printing:** on SYN-2016-549, `level_of` is non-None after its last level request on
+24 Jan 2019. Candidate 2 accounts for at least 140 of the 151 left-level cures. Candidate 1 accounts for most of the 88
+level-at-cure cures that still have an unpaid invoice. Recommended next, one variable: replay the desk on SYN-2016-549
+alone and print `level_of`, `level_shortfall` and `ledger.balance` on each cure day.
