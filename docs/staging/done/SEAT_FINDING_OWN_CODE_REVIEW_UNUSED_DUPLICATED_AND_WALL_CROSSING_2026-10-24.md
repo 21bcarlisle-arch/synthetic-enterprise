@@ -2,7 +2,7 @@
 
 # The seat's own code review: what is unused, what is duplicated, what crosses the wall, and why nothing flagged it (2026-10-24)
 
-Acting on `docs/staging/advisor/DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md`
+Acting on `docs/staging/advisor/done/DIRECTOR_STEER_REVIEW_YOUR_OWN_CODE_FOR_WHAT_IS_UNUSED_DUPLICATED_OR_CROSSES_THE_WALL_2026-10-24.md`
 (director, 24 Oct 09:35 and 09:40). The advisor's illustration was tested, not adopted. Every
 figure below was measured on `52a5f2cf3` today; how is beside it.
 

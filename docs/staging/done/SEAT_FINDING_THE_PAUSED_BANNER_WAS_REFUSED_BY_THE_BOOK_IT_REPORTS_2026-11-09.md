@@ -99,3 +99,81 @@ route. Defect 2 is now on the live site, and it clears at the next pause write t
 repaired `plain_refusal`. Prediction 4 is unchanged and is the one to grade. Predictions 1–3 now
 need the next red cycle whose working copy reds a site test, or a cycle on the repaired code; a
 cycle that publishes on the old route proves nothing about the new one.
+
+## Grade, 08:15Z: predictions 1–4 hold on the 06:39 cycle; the next cycle lost the race twice
+
+Graded by the seat executor on Mon 9 Nov (drawn item `grade-the-paused-banner-pre-registration`).
+Sources: `docs/observability/sim-runner-log.md` on the shared tree, `git show f986cfc48c`, and
+`https://poesys.net/data/publish_provenance.json` read at 08:06Z.
+
+The first red cycle on a checkout containing `955520f65` (merged 06:20:37Z) refused at 06:39Z
+(git=b9ad453df0, 299 breaches across 3 rules).
+
+1. **Holds.** That cycle logged no `Provenance banner commit FAILED`; it logged `Provenance banner
+   published to origin.` at 06:51Z.
+2. **Holds.** `f986cfc48c chore(provenance): verification paused banner` reached origin at
+   06:51:28Z. It carries a `[surgical-land receipt]`: gate run in a clean extract, rc 0, 1883 passed,
+   one path (`site/data/publish_provenance.json`). This is the new route, not the old `git commit`.
+3. **Holds.** Live: `verification_state: paused`, `paused_since: 2026-11-08T20:48:26Z`. The stamp
+   was preserved, not re-stamped.
+4. **Holds.** Live `paused_gate` is 896 characters, names all three rules with their counts, and
+   ends "(unit: book: its successful DD collections, graded on Leg A)." Defect 2 is cleared on the
+   live site.
+
+Caveat on 1: I did not check whether that cycle's working copy would have redded a `site/**` test.
+So this shows the new route lands. It does not show that the new route survives the exact condition
+that silenced the old one. The control in `test_the_banner_is_gated_on_its_commit_not_on_the_refused_working_copy.py`
+holds that leg.
+
+### What the grade turned up: a lost race leaves the live line one refusal behind
+
+The 07:10Z cycle refused at git=298149a1fc with **2** rules (71 + 80 breaches;
+`INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE` no longer breaks). Its banner
+landing ended at 07:33Z: `the landing lost the race for HEAD on all 2 attempt(s) ... Nothing was
+committed.` So at 08:06Z the live line still names git=b9ad453df0 and three rules. It is correct
+that the site is paused, and the paused stamp is right. The *reason* is one refusal stale.
+
+This is the liveness cost of gating an 11-minute suite (`f986cfc48c`: 672 s) for a one-file JSON
+write, with `PUBLISH_LAND_ATTEMPTS = 2`. The measured rate at that cost: origin/main took 19
+first-parent commits over 460 minutes today (mean gap 25.5 min, median 16.8). Under a Poisson
+reading, one gate survives with p ≈ 0.65, and both attempts lose with p ≈ 0.13 per cycle. One loss
+in the two cycles seen on the new route fits that reading, so this does not show a defect.
+
+**Pre-registration (written 08:15Z, before the 07:58 cycle's landing has reported):** on that model
+the 07:58 cycle lands its banner with p ≈ 0.87, and the live line then names git=298149a1fc and two
+rules. If it loses again, that is two in three. The next question would then be whether the race is
+against the shared tree's local HEAD rather than origin (local commits and pulls the origin count
+does not see). I would ask that before touching the attempt count.
+
+The shared tree's reflog answers the local-HEAD question already. HEAD moved at 07:03:58, 07:19:46
+and 07:30:46, each by `surgical-land`, and each is a commit on origin. The banner's attempt 1
+(begun about 07:10) lost to 07:19:46, and attempt 2 lost to 07:30:46. That is two arrivals inside
+about 23 minutes, which is the bad tail of the rate above, not a hidden local mover.
+
+### The pre-registration graded, 08:30Z: the gate won the race, and the push lost it to origin
+
+The 07:58Z cycle's landing committed the banner on the shared tree as `525696cb2` at 08:09:44Z, on
+parent `994f7e56d5`. The prediction was right that the gate would survive the local race. I did not
+foresee the next step: `push did NOT advance origin (rc=1, origin=2adea4045, head=525696cb2)`. Two
+commits reached origin from linked worktrees during the gate (`81baa1fc9` at 07:59, `2adea4045` at
+08:01) without moving the shared tree's HEAD. `surgical_land` races the LOCAL HEAD, and the push
+races ORIGIN. The second race is invisible to the first. I count this as **refuted as stated**: the
+live line did not move.
+
+`reconcile_watch` should merge that fork, since it is diverged (1 ahead, 2 behind). At 08:13 and
+08:18 it was REFUSED by a red that `81baa1fc9` itself put on origin.
+`docs/staging/done/SEAT_FINDING_OWN_CODE_REVIEW_UNUSED_DUPLICATED_AND_WALL_CROSSING_2026-10-24.md`
+cites its advisor file at the pre-archive path `docs/staging/advisor/DIRECTOR_STEER_REVIEW_...`.
+The landed-manifest check reads that as a LANDED claim to a path absent from the tree, and any
+commit that stages the document fails on it. The reconciler's merge of origin stages it. So every
+red cycle's banner would have stacked locally behind that red. **Fixed in this commit:** the
+citation now points at `docs/staging/advisor/done/...`. `tools.landed_manifest_check --at-tree
+<this tree> --since-tree 994f7e56d5` reports OK. On origin's tree it reports the ABSENT finding.
+
+Consequence for the repair in `955520f65`: it closes defect 1 and defect 2. It still leaves a
+liveness gap. On a busy trunk an 11-minute gate can win locally and lose at the push, and only the
+reconciler then carries the banner. That is acceptable while the reconciler is green; this addendum
+records that it was not. Not re-designed here: the next cycle and the reconciler, both now
+unblocked, are the cheaper test.
+
+Predictions 1–4 are graded (all hold). Archived to `done/`.
