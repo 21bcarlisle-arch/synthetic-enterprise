@@ -285,10 +285,10 @@
   {
    "read": "9 Nov",
    "source": "LeCun & Balestriero, \"Proving and Improving the Platonic Representation Hypothesis with JEPA\" (29 Oct), via MindStudio's write-up",
-   "claim": "A learned world model that predicts in an abstract representation space rather than raw pixels or words, so it can ignore unpredictable detail; a ~109M-parameter JEPA model reportedly beat models up to 72B on one world-understanding benchmark",
+   "claim": "A learned world model that predicts in an abstract representation space rather than raw pixels or words, so it can ignore unpredictable detail; it must be kept from \"collapse\" (one generic summary for everything); \"good views\" (different observations of the same event) push models towards shared structure. A ~109M-parameter JEPA model reportedly beat models up to 72B on one world-understanding benchmark",
    "evidence": "One paper, one benchmark, read through a vendor blog",
-   "verdict": "Not relevant",
-   "done": "Poesys's world is an explicit simulation built from the GB record, not a learned model, and must stay inspectable and fail-closed behind the wall. The one echo: model what matters at the level it is predictable (aggregate observables, not exact household detail) — already how the world is built. Also appears as E-08 in the director's 5 Nov research pack",
+   "verdict": "Already have (parallels); no tooling",
+   "done": "Poesys's world is an explicit simulation of the GB record behind the wall, not a learned model. Three parallels, filed under the abstraction family (7 Nov steer): (1) model each thing at the level it is predictable, which is how the world is fitted to aggregates; (2) collapse is our averaging failure, one measure across distinct populations (bill shock, average unit rate), which the register's one-definition-per-measure must not reproduce by merging distinct concepts; (3) good views is triangulation, a claim held by two independent observations (world claims against published data) rather than one. Also E-08 in the director's 5 Nov research pack",
    "concept": "—",
    "placed": {
     "kind": "none",
