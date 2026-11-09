@@ -12,6 +12,7 @@ names a household or a figure: those move with each run.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -50,9 +51,22 @@ def _billed_term(accounts: list[dict], iso: str, before_renewal: bool) -> str | 
     return terms.pop() if len(terms) == 1 and None not in terms else None
 
 
-def _says(label: str | None) -> str | None:
-    lab = (label or "").lower()
+def _one(part: str) -> str | None:
+    lab = part.strip().lower()
     return "fixed" if lab.startswith("fixed") else "svt" if lab.startswith("standard variable") else None
+
+
+def _says(label: str | None) -> str | None:
+    """The term the label prints, or None. A dual household whose legs share a term but not a start
+    date prints one "Fuel: ..." part per leg; it says a term only when every part says the same one."""
+    parts = (label or "").split("; ")
+    if len(parts) == 1:
+        return _one(parts[0])
+    fuel = re.compile(r"^(electricity|gas): ", re.I)
+    if not all(fuel.match(p) for p in parts):
+        return None
+    said = {_one(fuel.sub("", p)) for p in parts}
+    return said.pop() if len(said) == 1 else None
 
 
 def disagreements(feed: dict) -> tuple[list[str], int]:
@@ -116,3 +130,12 @@ def test_the_storage_slot_shows_a_home_whose_night_register_carries_its_heating(
     assert share >= STORAGE_NIGHT_SHARE_FLOOR, "night share {:.0%} on actual reads".format(share)
     winter = [m for m in slot["moments"] if m.get("title") == "A winter bill"]
     assert winter and all("on an actual read" in m["story"] for m in winter), "the winter bill shown is not an actual read"
+
+
+def test_a_per_fuel_label_says_a_term_only_when_every_leg_says_it():
+    """DEFECT: a per-fuel line read as no term at all (a correct page refused the publish on the
+    b9ad453df0 book), or read off its first leg alone (a wrong second leg would then pass)."""
+    both_svt = "Electricity: Standard variable since 1 Jul 2022; Gas: Standard variable since 1 Jul 2020"
+    assert _says(both_svt) == "svt"
+    assert _says("Electricity: Standard variable since 1 Jul 2022; Gas: Fixed from 1 Jul 2020") is None
+    assert _says("Electricity: Fixed at 20p from 1 Jul 2022; Gas: Fixed from 1 Jul 2020") == "fixed"
