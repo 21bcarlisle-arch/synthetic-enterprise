@@ -177,3 +177,8 @@ records that it was not. Not re-designed here: the next cycle and the reconciler
 unblocked, are the cheaper test.
 
 Predictions 1–4 are graded (all hold). Archived to `done/`.
+
+**Outcome, 08:35Z.** Once `b595f2af0` cured the red, `525696cb2` reached origin by 08:25. The live
+line read at 08:35Z: `written_at 2026-11-09T07:58:07Z`, `paused` since 2026-11-08T20:48:26Z (stamp
+preserved), git=298149a1fc, two rules, `paused_gate` 603 characters ending ".". The banner is one
+refusal current again. It got there through the reconciler, not through the cycle's own push.
