@@ -577,3 +577,44 @@ I cannot yet say whether it does. That is the question after the mechanism.
 - Neither 3feea0ac3 (the nil-ask predicate) nor 8e73c52356 (the closing statement, which applies to left-level
   journeys) touches how the desk's ledger is posted, and C7 reads level throughout.
 - **Refuted if** C7's write-off reads 48.55, or any figure other than 66.67.
+
+## book-4dee9854a4, graded: the nil-ask predicate holds, shape A holds, and C7's opening moved but its write-off did not (seat executor, 9 Nov 2026 ~18:05 GMT)
+
+**What was measured.**
+- **The run:** `run_output_4dee9854a4_20261109T160658Z.json`, at origin 4dee9854a4. It carries 3feea0ac3 and 8e73c52356.
+- **The readers:** `/var/tmp/grade-ondd/` (ALLDONE 17:56), with the 505df564e3 book as the control.
+- **The predictions:** filed in the two sections above before any output existed. The C7 prediction landed as
+  e24cf12d4 at 16:4x, with the run still going.
+
+| Prediction | Result | Graded |
+|---|---|---|
+| `probe_net` reads 0 still-collecting accounts as left | `{'accounts': 394}`. No `with_false_days` key, so 0 accounts and 0 account-days (control 6 and 359) | **held** |
+| `classify` shows no breach on a leg that goes on collecting level while reading as left | no "reads LEFT" class in either invariant. Every row reads level | **held** |
+| The never-level journeys are identical | 643 against 643, identical True | **held** |
+| The 320 still-level page rows do not fall to about 20 | **396** (control 320) | **held**. The fix was never going to move them, as the "leaving predicate, measured" section says |
+| The total overdue movement cannot be attributed between the two commits | BALANCE 129, of which 106 still level and 23 left (control 129: 105 and 24). PAGE_BALANCE 509, of which 396 and 113 (control 485: 320 and 165) | **stands**. The book carries both commits |
+| Shape A at 178 ± 18 | **182**, GBP 16,826.18, on 100 accounts, 7 stamped on both legs (control 178, 16,445.40, 100, 7) | **held** |
+| SYN-2016-487 still prints 3.07 + 3.07 | 46965 3.07, 47070 3.07 | **held** |
+| C7 writes off 66.67 | write-off on 30 Jun 2020, GBP 66.67. `closing_balances` still 48.55 | **held** |
+| C7 opens on 16 Jul 2019 at 66.67 | it opens on **30 Jul 2019**, at 66.67 | **REFUTED on the date** |
+
+**The refuted half, read and not explained away.**
+- I predicted that neither commit touches C7, "because C7 reads level throughout". The opening moved 14 days, so
+  something in this book changed how the desk walks C7.
+- 30 Jul is the day after 1 Jul + 28. That is the final bill's date plus `CLOSING_STATEMENT_TERM_DAYS`, the
+  shape 8e73c52356 introduced.
+- The likeliest reading: the desk now reads C7's final bill, which no level collection paid, as a leaving, and
+  dates the miss from the closing statement.
+- **I cannot yet say whether 3feea0ac3 or 8e73c52356 caused it.** Both are in this book. The closing-statement term
+  is the evidence for 8e73c52356, and it is not a one-variable run.
+- What did not move is the GBP 18.12 between the desk ledger and the page. That is the defect that matters, because
+  it is the amount written off.
+
+**What this closes, and what it hands on.**
+- The nil-ask leaving predicate is graded. Its fix holds on a real book, with 0 false leavers.
+- The shape-A page fix filed in "The 45 left-level holds" was waiting only for this grade. It is now unblocked, and
+  its own prediction (A1 reads 0, the 33 shape-A-only holds read 0) is filed in that section.
+- The 396 still-level page rows remain the C7 shape: closed accounts whose desk ledger is heavier than the page. Their
+  mechanism needs C7's in-run `ledger_book.ledger("C7").events()`, which no run json carries.
+
+NEXT: build the shape-A page fix in tools/generate_billing_ledger.py, then name C7's GBP 18.12 from an in-run ledger dump.
