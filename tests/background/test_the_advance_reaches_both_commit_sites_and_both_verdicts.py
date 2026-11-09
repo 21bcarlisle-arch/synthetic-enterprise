@@ -49,7 +49,6 @@ def publisher(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "_commit_pathspec", lambda *a, **k: ["site/data/dashboard.json"])
     monkeypatch.setattr(prc, "_clear_two_rooms_before_commit", lambda *a, **k: {})
     monkeypatch.setattr(prc, "_record_commit_hook_duration", lambda *a, **k: None)
-    monkeypatch.setattr(prc, "_git_add_or_refuse", lambda *a, **k: True)
 
     calls = []
 
@@ -66,6 +65,12 @@ def publisher(tmp_path, monkeypatch):
         calls.append(["git", "commit", "-m", msg, "--"] + list(pathspec))
         return {"sha": "0" * 40, "refusal": "", "lost": []}
     monkeypatch.setattr(prc, "_land_publish_commit", fake_land)
+
+    # THE BANNER IS A SURGICAL LANDING TOO (9 Nov), recorded in the same shape.
+    def fake_land_surface(paths, msg, *, label, git_hash="unknown"):
+        calls.append(["git", "commit", "-m", msg, "--"] + list(paths))
+        return "0" * 40
+    monkeypatch.setattr(prc, "_land_liveness_surface", fake_land_surface)
     return calls
 
 

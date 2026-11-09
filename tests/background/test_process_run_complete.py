@@ -1804,48 +1804,6 @@ def test_the_kills_diagnostic_survives_the_kill_only_when_the_hooks_are_unbuffer
                     "unbuffered env is then belt-and-braces rather than the fix")
 
 
-def test_the_commit_runs_its_hook_chain_unbuffered(monkeypatch):
-    """THE WIRING. The env above only helps if `git commit` is actually given it -- git
-    passes its own environment to every hook, so this one call reaches the whole chain.
-
-    THE SUBJECT IS THE LIVENESS COMMIT NOW (2026-09-08). The content publish is a surgical
-    landing, whose gate is a `sh tools/git-hooks/pre-commit` this module does not build the
-    environment for; `_commit_and_push_paths` is the `git commit` that remains, it runs the same
-    chain, and it is the one that can still be killed blind. Driving this against the content
-    path after the route change would have asserted about a call that no longer happens.
-
-    MUTATION: drop `env=_commit_hook_env()` from the `git commit` subprocess.run in
-    `_commit_and_push_paths` and this fails, restoring the blind kill.
-    """
-    seen = {}
-    target = Path(prc.PROJECT_DIR) / "site" / "data" / "publish_provenance.json"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text("{}")
-    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
-    monkeypatch.setattr(prc, "_git_add_or_refuse", lambda *a, **k: True)
-
-    def _run(argv, **kw):
-        if argv[:2] == ["git", "commit"]:
-            seen["env"] = kw.get("env")
-        return _FakeCompleted(0)
-
-    monkeypatch.setattr(prc.subprocess, "run", _run)
-    prc._commit_and_push_paths([str(target)], "msg", label="Provenance banner",
-                               git_hash="abc1234")
-
-    env = seen.get("env")
-    assert env is not None, "`git commit` must be given an explicit environment"
-    assert env.get(prc.GIT_COMMIT_HOOK_ENV_UNBUFFERED) == "1", (
-        "the hook chain must run unbuffered or its progress dies with it; got {!r}".format(
-            env.get(prc.GIT_COMMIT_HOOK_ENV_UNBUFFERED)))
-    assert "PATH" in env, "the inherited environment must be preserved, not replaced"
-    # The builder must never write through to the process it is called from: a publish cycle
-    # runs other children (the gate suite among them) whose buffering is not ours to change.
-    before = dict(os.environ)
-    prc._commit_hook_env()
-    assert dict(os.environ) == before, "_commit_hook_env must not mutate os.environ"
-
-
 def test_commit_timeout_has_real_headroom_over_the_hook_chain():
     """A CONTROL THAT COULD NOT FAIL, REPLACED (2026-08-25).
 
@@ -2539,66 +2497,6 @@ def test_a_successful_publish_still_writes_the_fingerprint(tmp_path, monkeypatch
     assert prc.LAST_FINGERPRINT_FILE.exists()
 
 
-def test_liveness_is_never_easier_to_publish_than_content():
-    """The asymmetry that made the freeze INVISIBLE (2026-08-13, director).
-
-    Both paths run the same pre-commit hook chain. While the liveness commit had a larger
-    deadline than the content commit, there was a band of hook-chain cost in which the site's
-    'I am alive' signal published on schedule and its figures could not publish at all -- which
-    is precisely the state the director found by eye after eighteen hours.
-
-    THE TWO DEADLINES STOPPED BEING ONE CONSTANT (2026-09-08). Until then both paths ran `git
-    commit` and this asserted they read the same name. The content publish is a surgical landing
-    now, so its hook chain runs under `surgical_land.GATE_TIMEOUT_SECONDS` while the liveness
-    commit still runs under `GIT_COMMIT_HOOK_TIMEOUT_SECONDS` -- two mechanisms, two numbers, and
-    the identity assertion is no longer available. What the identity was PROTECTING still is, and
-    it is an inequality: the content path must never die on a hook chain the liveness path
-    survives. It may be more generous; it may not be less.
-
-    MUTATION: give the liveness path a deadline above `surgical_land.GATE_TIMEOUT_SECONDS` (or
-    drop the landing's own timeout below `GIT_COMMIT_HOOK_TIMEOUT_SECONDS`) and this fails.
-    """
-    import ast
-    import inspect
-
-    from tools import surgical_land
-
-    def commit_timeouts(fn):
-        """The `timeout=` on every `git commit` subprocess call in fn's source."""
-        tree = ast.parse(inspect.getsource(fn).lstrip())
-        found = []
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Call):
-                continue
-            argv = node.args[0] if node.args else None
-            # The liveness path writes `["git", "commit", ...] + list(paths)`, so unwrap a
-            # concatenation before looking for the literal.
-            while isinstance(argv, ast.BinOp) and isinstance(argv.op, ast.Add):
-                argv = argv.left
-            is_commit = isinstance(argv, ast.List) and any(
-                isinstance(e, ast.Constant) and e.value == "commit" for e in argv.elts)
-            if not is_commit:
-                continue
-            for kw in node.keywords:
-                if kw.arg == "timeout":
-                    found.append(ast.unparse(kw.value))
-        return found
-
-    liveness = commit_timeouts(prc._commit_and_push_paths)
-    assert liveness, "expected a `git commit` call with a timeout on the liveness path"
-    assert set(liveness) == {"GIT_COMMIT_HOOK_TIMEOUT_SECONDS"}, liveness
-    # THE CONTENT PATH HAS NO `git commit` AT ALL, and that is the thing to assert rather than
-    # assume -- if one came back, its deadline would be unbounded by anything here.
-    assert not commit_timeouts(prc.git_commit_push), (
-        "the content publish shelled out to `git commit` again -- that is the shared-tree hook "
-        "chain this route replaced, and its deadline is outside this comparison")
-    assert surgical_land.GATE_TIMEOUT_SECONDS >= prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, (
-        "the content commit's gate ({}s) dies sooner than the liveness commit's ({}s) -- that is "
-        "the band in which the site keeps saying 'I am alive' while its figures cannot publish "
-        "at all".format(surgical_land.GATE_TIMEOUT_SECONDS,
-                        prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS))
-
-
 # ── A TEST PROCESS MAY NOT WRITE THE LIVE sim-runner-log (2026-08-21) ─────────────────────────
 #
 # THE OBSERVED DEFECT, not a hypothetical: on 2026-08-21 between 20:49 and 20:51 UTC the live
@@ -2669,78 +2567,6 @@ def test_a_redirected_sim_runner_log_still_writes(monkeypatch, tmp_path):
 # to add. Nine consecutive publish cycles failed that way; it took 1h43m to find.
 
 _LOCK_STDERR = "fatal: Unable to create '/home/rich/synthetic-enterprise/.git/index.lock': File exists."
-
-
-def _publish_with_add(monkeypatch, tmp_path, *, add):
-    """Drive the BANNER/HEARTBEAT publish with `git add` answering `add()`.
-
-    Returns (landed?, the git subcommands actually attempted, the lines logged).
-
-    THE SUBJECT MOVED, AND THE CLASS DID NOT (2026-09-08). This drove `git_commit_push` until
-    the content publish became a surgical landing -- which has no index and therefore no `git
-    add` to leave unchecked. `_commit_and_push_paths` (the banner and liveness-heartbeat
-    chokepoint) still stages one, so it is where the unchecked-add class now lives, and it is
-    the second instance the R10 census below already names. Driving these against the content
-    path after the route change would have been an assertion about a `git add` that no longer
-    happens: green for every mutation, including the one it names.
-    """
-    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
-    target = tmp_path / "site" / "data" / "publish_provenance.json"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text("{}")
-    monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
-    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
-    logged = []
-    monkeypatch.setattr(prc, "log", lambda msg, *a, **kw: logged.append(str(msg)))
-    attempted = []
-
-    def fake_run(cmd, **kwargs):
-        attempted.append(list(cmd[:2]))
-        if list(cmd[:2]) == ["git", "add"]:
-            return add()
-        return fake_completed(cmd, **kwargs)
-    monkeypatch.setattr(prc.subprocess, "run", fake_run)
-
-    landed = prc._commit_and_push_paths([str(target)], "msg", label="Provenance banner",
-                                        git_hash="abc1234")
-    return landed, attempted, "\n".join(logged)
-
-
-def test_a_failed_git_add_refuses_the_cycle_and_names_the_lock(tmp_path, monkeypatch):
-    """MUTATION: drop the rc check in `_git_add_or_refuse` (return True unconditionally) and
-    all three assertions below fail -- which is exactly the pre-fix mechanism.
-
-    `git add` is ALL-OR-NOTHING, so a failed add can only ever be followed by a MISLEADING
-    commit error. The publish must therefore stop AT the add, and say the lock's own words.
-    """
-    def locked():
-        return types.SimpleNamespace(returncode=128, stdout="", stderr=_LOCK_STDERR)
-
-    landed, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=locked)
-
-    # 1. The publish is refused, and says so -- never a silent False.
-    assert landed is False
-    # 2. `git commit` is never reached. Pre-fix it WAS, and its pathspec complaint is the
-    #    wrong diagnosis that cost 1h43m.
-    assert ["git", "commit"] not in attempted, (
-        "the publish walked into a commit that cannot work: {}".format(attempted))
-    # 3. The lock's own message survives to the log, verbatim -- the one line naming the cause.
-    assert "index.lock" in logged and "File exists" in logged
-    assert "NOTHING IS STAGED" in logged
-
-
-def test_a_successful_git_add_still_reaches_the_commit(tmp_path, monkeypatch):
-    """NULL CONTROL: the same call, one field changed -- the add's return code -- must PROCEED.
-
-    Refusing every cycle is the cheap way to green the test above, and it would be a total
-    publishing outage. This moves the SAMPLE (rc 128 -> 0), not the law."""
-    def clean():
-        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
-
-    _landed, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=clean)
-
-    assert ["git", "commit"] in attempted
-    assert "NOTHING IS STAGED" not in logged
 
 
 def test_no_publish_path_git_add_goes_unchecked(tmp_path, monkeypatch):

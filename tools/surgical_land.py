@@ -242,6 +242,14 @@ class IndexNotRefreshed(LandingRefused):
         self.sha = sha
 
 
+class NothingToLand(LandingRefused):
+    """The named paths are already at HEAD, so there is no commit to make.
+
+    A subclass so a caller can tell the expected steady state (a banner byte-identical to the
+    committed copy) from a refusal by TYPE rather than by matching the wording. Still a
+    `LandingRefused`: no commit was created, and every existing catch keeps catching it."""
+
+
 class BaseMoved(LandingRefused):
     """The ONE refusal that is retryable: HEAD moved under the gate, so the verdict describes a
     tree that is no longer the one this commit would create.
@@ -1708,7 +1716,7 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         # the other history's content is all here, but its COMMITS are not, so the merge is
         # still worth making. Only a pathspec landing has nothing to do.
         if merge_parent is None:
-            raise LandingRefused(
+            raise NothingToLand(
                 "the named paths are already at HEAD -- the resulting tree is identical, so "
                 "there is nothing to land. (If you expected a change, check the pathspec.)")
     files = changed_paths(root, parent_tree, result_tree)

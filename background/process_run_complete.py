@@ -4791,7 +4791,8 @@ def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, regist
         return register.get("enforce") is not True, reason
     verdict = runner.gate(results, register)
     try:
-        plain = runner.plain_refusal(verdict, results, runner.load_invariants())
+        plain = runner.plain_refusal(verdict, results, runner.load_invariants(),
+                                     limit=publish_provenance.PAUSED_GATE_CHARS)
     except Exception as exc:  # noqa: BLE001 -- the reader's sentence must not cost the grade
         plain = None
         log("Domain invariants: the reader's refusal sentence failed ({}: {})".format(
@@ -8931,64 +8932,64 @@ def _provenance_is_publishable(paths, *, label="publish") -> bool:
     return True
 
 
-#: git's own words when a commit's final ref update finds HEAD is not the commit it started from.
-#: The hook chain has already returned PASS by then, so this text never comes from a gate.
-REF_LOCK_RACE_MARK = "cannot lock ref"
 #: THE FIFTH PRODUCTION ROUTE: causes only the liveness surface's own commit can write, declared
 #: here so the closed-set control asks the code which causes are reachable.
 LIVENESS_SURFACE_ONLY_CAUSES = frozenset({publish_cause.LOST_COMMIT_RACE})
 
 
-def _lost_the_ref_race(tail) -> bool:
-    return bool(tail) and REF_LOCK_RACE_MARK in tail
+def _land_liveness_surface(paths, msg, *, label, git_hash="unknown") -> str:
+    """Land exactly `paths` through `surgical_land.land`. Returns the sha, or "" (recorded).
 
+    THE GATE MUST GRADE THE TREE THIS COMMIT CREATES, NOT THE SHARED WORKING COPY (9 Nov). Until
+    today this was a pathspec `git commit` in the shared tree, and the hook chain runs its tests on
+    the files ON DISK. On a red cycle the files on disk are the refused book: the publisher has
+    written all of `site/data/` and then declined to commit it. So the site lane graded the
+    REFUSED feed and refused the banner whose only job is to say the feed was refused. 8 Nov 20:59
+    and 9 Nov 04:29 and 04:58: `site/explore/test_the_tariff_label_is_the_term_in_force.py` red on
+    the working copy, green on HEAD's feed, and poesys.net kept saying "Verified 3 Nov".
+    `surgical_land` gates a clean extract of HEAD plus these paths, which is the commit itself --
+    and it is the route the content publish has taken since 2026-09-08.
 
-def _reland_after_lost_ref_race(paths, msg, *, label, git_hash="unknown") -> str:
-    """Re-land `paths` on the NEW HEAD through `surgical_land.land`. Returns the sha, or "".
-
-    The same clean-extract route the content publish takes: `land` overlays only these paths on
-    the mover's commit, re-runs the full gate on that tree, and swaps under compare-and-swap, so
-    the mover's work is kept and a second race is retried rather than re-filed. A red gate on the
-    new tree is a real NO and is recorded as `GATE_REFUSAL`; losing every attempt is
-    `LOST_COMMIT_RACE`, a cause on which no test was judged.
+    A lost race is retried inside `land` (`BaseMoved`), so the old git-ref-race re-land is
+    gone with the `git commit` it existed for. A byte-identical banner is the EXPECTED steady state
+    (`NothingToLand`) and records nothing. Losing every attempt is `LOST_COMMIT_RACE`, on which
+    no test was judged; any other refusal is the gate's NO on the right tree, `GATE_REFUSAL`.
     """
     root = Path(PROJECT_DIR).resolve()
     try:
         relative = [str(Path(p).resolve().relative_to(root)) for p in paths]
     except ValueError as exc:
         _record_liveness_surface_refusal(
-            label, publish_cause.LOST_COMMIT_RACE,
-            "the commit lost a ref race and the retry could not name its paths inside the "
-            "repository ({}); nothing was committed".format(exc), git_hash)
+            label, publish_cause.GATE_REFUSAL,
+            "the landing could not name its paths inside the repository ({}); nothing was "
+            "committed".format(exc), git_hash)
         return ""
     lost = []
 
     def _on_lost(attempt, exc):
         lost.append(attempt)
 
-    log("{} commit lost a ref race after its hook chain passed -- re-landing on the new HEAD "
-        "through the clean extract.".format(label))
+    from tools import surgical_land
     try:
-        from tools import surgical_land
         sha = surgical_land.land(root, relative, msg, attempts=PUBLISH_LAND_ATTEMPTS,
                                  on_lost=_on_lost)
+    except surgical_land.NothingToLand:
+        return ""
     except Exception as exc:  # noqa: BLE001 -- every failure is a recorded value, never a raise
         _text = str(exc)
         if len(lost) >= PUBLISH_LAND_ATTEMPTS:
             cause = publish_cause.LOST_COMMIT_RACE
-            why = ("the commit lost a ref race, and the re-landing lost it again on all {} "
-                   "attempt(s); no test was judged on any tree that still exists: {}".format(
-                       PUBLISH_LAND_ATTEMPTS, _text))
+            why = ("the landing lost the race for HEAD on all {} attempt(s); no test was judged "
+                   "on any tree that still exists: {}".format(PUBLISH_LAND_ATTEMPTS, _text))
         else:
             cause = publish_cause.GATE_REFUSAL
-            why = "the commit lost a ref race, and the re-landing on the new HEAD refused: {}" \
-                .format(_text)
+            why = "the pre-commit hook chain refused the landing: {}".format(_text)
             _record_commit_refusal_reds(_text, "", git_hash)
-        log("{} re-landing REFUSED: {}".format(label, why[:1500]))
+        log("{} commit FAILED: {}".format(label, why[:1500]))
         _record_liveness_surface_refusal(label, cause, why, git_hash)
         return ""
-    log("{} re-landed as {} after {} lost race(s).".format(label, sha[:9], len(lost) + 1))
-    # The re-landing ran the full chain on the new tree and it passed: the paired discharge.
+    if lost:
+        log("{} landed as {} after {} lost race(s).".format(label, sha[:9], len(lost)))
     _record_commit_hook_pass(git_hash)
     return sha
 
@@ -9009,9 +9010,10 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     Three properties every caller inherits, none of them optional:
       * NARROW PATHSPEC -- commits ONLY these paths, never the whole index, so a concurrent
         writer's staged work can never be swept into a heartbeat or a banner commit.
-      * NEVER HOLDS THE LOCK ACROSS THE COMMIT -- the pre-commit gate takes the real tree lock
-        itself, so committing under it deadlocks (2026-08-03, 8 TreeLockTimeout). `git add`
-        under the lock; commit unlocked, by pathspec.
+      * GATED ON THE COMMIT, NOT THE WORKING COPY -- `_land_liveness_surface` lands through
+        `surgical_land`, whose hook chain runs in a clean extract of HEAD plus these paths. On a
+        red cycle the shared working copy IS the refused book, so grading it refuses the banner
+        that exists to say so (9 Nov). `land` takes the tree lock only for its own swap.
       * SELF-VERIFYING PUSH -- ground-truth `ls-remote`, never the push's own rc. A phantom
         "up to date" must not be recorded as a publish.
     """
@@ -9098,61 +9100,8 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
         _record_liveness_surface_refusal(
             label, publish_cause.BEHIND_ORIGIN, "{} -- {}".format(_behind, _why), git_hash)
         return False
-    with tree_lock():
-        # THE SAME UNCHECKED ADD, at the site the finding did not name (2026-08-25). The
-        # banner/heartbeat path stages exactly as blindly as the publish path did, so a lock
-        # here produces the same misleading pathspec error one function down. Fixing only the
-        # caught instance is what makes a class recur -- see `_git_add_or_refuse`.
-        if not _git_add_or_refuse(list(paths), timeout=30, label=label):
-            return False
-    # The SAME budget the content commit gets, from the SAME constant -- see
-    # GIT_COMMIT_HOOK_TIMEOUT_SECONDS for why a liveness path with its own, larger number is the
-    # mechanism that hides a content freeze rather than a harmless duplication.
-    result = subprocess.run(["git", "commit", "-m", msg, "--"] + list(paths),
-                            cwd=str(PROJECT_DIR), timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
-                            env=_commit_hook_env(), capture_output=True, text=True)
-    _tail = ""
-    if result.returncode != 0:
-        _tail = (stderr_tail(getattr(result, "stderr", None))
-                 or stderr_tail(getattr(result, "stdout", None)))
-    if result.returncode != 0 and _lost_the_ref_race(_tail):
-        # THE CHAIN PASSED AND THE REF MOVED UNDER IT (08:46Z 2 Nov: `cannot lock ref 'HEAD': is
-        # at 491243e09 but expected a9e9128aa`, filed as an UNNAMEABLE refusal). That is a verdict
-        # about a tree that no longer exists, not a NO, so it is re-gated on the new HEAD.
-        if not _reland_after_lost_ref_race(paths, msg, label=label, git_hash=git_hash):
-            return False
-    elif result.returncode != 0:
-        # Byte-identical to the committed copy is the EXPECTED steady state (a banner whose
-        # paused_since does not re-stamp; a heartbeat that has not ticked) and stays quiet.
-        # Anything else -- a hook refusal, a lock, a broken index -- says what it was, because
-        # a banner silently refused by a gate is the failure this whole build exists to end.
-        # THE PREDICATE, not a second copy of it (2026-09-08). `_git_said_nothing_to_commit`
-        # already said it owned this distinction "shared with `_commit_and_push_paths`" while
-        # this line spelled it out by hand -- the exact drift its own docstring warns about, and
-        # visible the moment the content path stopped being its other caller.
-        if _tail and not _git_said_nothing_to_commit(_tail):
-            log("{} commit FAILED (rc={}):\n{}".format(label, result.returncode, _tail))
-            # R10, the class and not the instance: this is the SAME hook chain refusing the SAME
-            # tree, and a banner/heartbeat refusal discards the node ids exactly as the content
-            # path did. Guarded by the same "not a clean no-op" test the log line uses.
-            _record_commit_refusal_reds(getattr(result, "stdout", None),
-                                        getattr(result, "stderr", None), git_hash)
-            # AND THE CAUSE ITSELF, for the reason two lines up gives about the reds: this exit
-            # is a refusal of the LIVENESS surface and it left the same orphaned log line as the
-            # other two. Inside the "not a clean no-op" guard on purpose -- a byte-identical
-            # banner is the expected steady state and recording it as a refusal would fill the
-            # field with non-events, which is how a record stops being read.
-            _record_liveness_surface_refusal(
-                label, publish_cause.GATE_REFUSAL,
-                "the pre-commit hook chain refused the commit (rc={}): {}".format(
-                    result.returncode, _tail), git_hash)
+    if not _land_liveness_surface(paths, msg, label=label, git_hash=git_hash):
         return False
-    # Paired with the refusal fold this same function does through `_record_commit_refusal_reds`
-    # ten lines up. The liveness commit runs the SAME hook chain, so it must discharge the ledger
-    # it can add to -- a path that only ever adds turns the register into a ratchet. A re-landed
-    # race has already recorded its own pass.
-    if result.returncode == 0:
-        _record_commit_hook_pass(git_hash)
     push = subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=str(PROJECT_DIR),
                           timeout=60, stderr=subprocess.PIPE, text=True)
     local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),

@@ -54,6 +54,7 @@ import pytest
 
 from background import process_run_complete as prc
 from background import supervisor as sup
+from tools import surgical_land
 
 # The real 2026-08-26 refusal, trimmed to two of its six node ids. REAL repo paths, because
 # `wedge_suspects` resolves the blame trail by reading the test file's imports -- a fabricated
@@ -279,6 +280,12 @@ def test_the_node_ids_are_read_from_both_streams_not_from_the_log_tail(publish):
     assert node_ids == [RED_A, RED_B], node_ids
 
 
+def _refusing(kind, text):
+    def fake_land(*a, **k):
+        raise kind(text)
+    return fake_land
+
+
 def test_the_banner_path_records_its_refusal_too(tmp_path, monkeypatch):
     """R10, the class not the instance: the banner/heartbeat chokepoint meets the SAME hook
     chain refusing the SAME tree, and discarded the node ids in exactly the same way."""
@@ -289,9 +296,11 @@ def test_the_banner_path_records_its_refusal_too(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PROJECT_DIR", repo)
     monkeypatch.setattr(prc, "tree_lock", lambda: contextlib.nullcontext())
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
-    monkeypatch.setattr(prc, "_git_add_or_refuse", lambda *a, **k: True)
     monkeypatch.setattr(prc.subprocess, "run",
                         lambda cmd, **kw: _FakeCompleted(1, HOOK_REFUSAL_STDOUT, ""))
+    # The banner lands through the clean extract (9 Nov); its refusal carries the chain's output.
+    monkeypatch.setattr(surgical_land, "land", _refusing(
+        surgical_land.LandingRefused, HOOK_REFUSAL_STDOUT))
 
     assert prc._commit_and_push_paths([str(target)], "msg", label="Provenance banner",
                                       git_hash="deadbee") is False
@@ -301,16 +310,10 @@ def test_the_banner_path_records_its_refusal_too(tmp_path, monkeypatch):
 
 
 def test_the_banner_paths_clean_no_op_stays_silent_and_records_nothing(tmp_path, monkeypatch):
-    """The banner path's OTHER branch, and the one that now owns `_git_said_nothing_to_commit`.
+    """The banner path's OTHER branch: a byte-identical banner is the EXPECTED steady state.
 
-    The content publish stopped being that predicate's second caller when it became a surgical
-    landing (2026-09-08), and the banner path had been spelling the same test out by hand two
-    lines from the shared one -- the drift its own docstring warns about. Re-pointed, so this is
-    the test that keeps the predicate honest.
-
-    MUTATION: invert the guard (`if _tail and _git_said_nothing_to_commit(_tail)`) -> a
-    byte-identical banner, which is the EXPECTED steady state, is narrated as a FAILED commit
-    and records an empty red set against it.
+    MUTATION: drop the `except surgical_land.NothingToLand` arm in `_land_liveness_surface` -> the
+    no-op is narrated as a FAILED commit and records an empty red set against it.
     """
     repo = tmp_path / "repo"
     target = repo / "site" / "data" / "publish_provenance.json"
@@ -319,9 +322,10 @@ def test_the_banner_paths_clean_no_op_stays_silent_and_records_nothing(tmp_path,
     monkeypatch.setattr(prc, "PROJECT_DIR", repo)
     monkeypatch.setattr(prc, "tree_lock", lambda: contextlib.nullcontext())
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
-    monkeypatch.setattr(prc, "_git_add_or_refuse", lambda *a, **k: True)
     monkeypatch.setattr(prc.subprocess, "run",
                         lambda cmd, **kw: _FakeCompleted(1, CLEAN_NO_OP_STDOUT, ""))
+    monkeypatch.setattr(surgical_land, "land", _refusing(
+        surgical_land.NothingToLand, "the named paths are already at HEAD"))
     said = []
     monkeypatch.setattr(prc, "log", lambda m: said.append(str(m)))
 

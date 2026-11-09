@@ -138,6 +138,14 @@ def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeyp
     monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: 0)
     import background._seat as seat
     monkeypatch.setattr(seat, "is_resident_seat", lambda: True)
+    # The banner LANDS (9 Nov): a clean extract of HEAD plus its one path, never a `git commit` in
+    # the shared tree whose working copy is the refused book. Recorded in the commit's shape.
+    landed = []
+
+    def _fake_land(paths, msg, *, label, git_hash="unknown"):
+        landed.append(list(paths))
+        return "0" * 40
+    monkeypatch.setattr(prc, "_land_liveness_surface", _fake_land)
 
     ok = prc._publish_provenance_banner("deadbeef", reason="scoped suite red")
     assert ok is True
@@ -149,11 +157,11 @@ def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeyp
     assert state["last_verified"]["git_commit"] == VERIFIED_SHA
 
     # (b) the ONLY path committed is the banner. Not one figure travelled with it.
-    commits = [a for a in pushed["argv"] if a[:2] == ["git", "commit"]]
-    assert commits, "no banner commit was attempted"
-    for c in commits:
-        paths = c[c.index("--") + 1:]
+    assert landed, "no banner commit was attempted"
+    for paths in landed:
         assert paths == [str(p)], paths
+    assert not [a for a in pushed["argv"] if a[:2] == ["git", "commit"]], \
+        "the banner must not commit in the shared tree"
 
 
 def test_the_banner_publisher_refuses_on_foreign_soil(monkeypatch, tmp_path):

@@ -41,6 +41,7 @@ import pytest
 from background import origin_reconcile as orc
 from background import process_run_complete as prc
 from background import publish_cause as pc
+from tools import surgical_land
 
 HOT_ORIGIN_AHEAD = 23
 
@@ -144,10 +145,21 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
     monkeypatch.setattr(prc, "_commits_origin_is_ahead_by", lambda: ahead)
     monkeypatch.setattr(prc, "_record_commit_refusal_reds", lambda *a, **k: None)
 
+    # THE COMMIT IS A SURGICAL LANDING NOW (9 Nov): the banner's hook chain must grade the tree
+    # the commit creates, not the shared working copy that holds the refused book. `commit_rc`
+    # and `commit_tail` keep their meaning: 0 lands, a "nothing to commit" tail is the byte-
+    # identical steady state (`NothingToLand`), anything else is the chain's NO.
+    def fake_land(root, paths, message, attempts=1, on_lost=None, **kwargs):
+        if commit_rc == 0:
+            return local_head
+        if "nothing to commit" in commit_tail:
+            raise surgical_land.NothingToLand(commit_tail)
+        raise surgical_land.LandingRefused(commit_tail)
+
+    monkeypatch.setattr(surgical_land, "land", fake_land)
+
     def fake_run(cmd, **kwargs):
         argv = list(cmd)
-        if argv[:2] == ["git", "commit"]:
-            return types.SimpleNamespace(returncode=commit_rc, stdout="", stderr=commit_tail)
         if argv[:2] == ["git", "push"]:
             return types.SimpleNamespace(returncode=push_rc, stdout="", stderr="")
         if argv[:2] == ["git", "rev-parse"]:
@@ -162,10 +174,6 @@ def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, comm
             assert argv[3:] == [local_head, remote_head], (
                 "ancestry must be asked of (our commit, origin's tip); got {}".format(argv[3:]))
             return types.SimpleNamespace(returncode=0 if is_ancestor else 1, stdout="", stderr="")
-        if argv[:2] == ["git", "add"]:
-            # Staging succeeds. Named rather than swept up by the catch-all, because "the add
-            # worked" is a real modelled answer and the catch-all no longer has one.
-            return types.SimpleNamespace(returncode=0, stdout="", stderr="")
         if argv[:2] == ["git", "fetch"]:
             return types.SimpleNamespace(returncode=fetch_rc, stdout="", stderr="")
         if argv[:3] == ["git", "merge-tree", "--write-tree"]:

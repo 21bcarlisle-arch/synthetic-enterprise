@@ -3225,7 +3225,8 @@ def gate(results: list[dict], register: dict) -> dict:
 PLAIN_STATEMENT_CHARS = 200
 
 
-def plain_refusal(verdict: dict, results: list[dict], invariants: list[dict]) -> str | None:
+def plain_refusal(verdict: dict, results: list[dict], invariants: list[dict],
+                  limit: int | None = None) -> str | None:
     """The refusal in a reader's words, for the site's status line: which gate, which rules, how
     many of what. None when the gate does not refuse.
 
@@ -3234,24 +3235,51 @@ def plain_refusal(verdict: dict, results: list[dict], invariants: list[dict]) ->
     "no exception", which is the publisher's why, not the reader's; the reader's why is the rule
     the book broke, so each row is told by its own `statement` from DOMAIN_INVARIANTS.yaml, with
     the count over what was checked and the unit counted. The ID stays in brackets so the line can
-    be traced to docs/reports/DOMAIN_INVARIANTS.md."""
+    be traced to docs/reports/DOMAIN_INVARIANTS.md.
+
+    `limit` is the status line's room. The sentence is FITTED to it, never cut by it: the first
+    live refusal (9 Nov 04:18, three rules) ran past the store's 900-character slice and the line
+    ended mid-unit, "(unit: book: its successful DD collections,". What must survive is every
+    rule's ID and count, so the statements shorten first, then go, and only then are rules past
+    the first few counted rather than named."""
     if not verdict.get("refuse"):
         return None
     statements = {i["id"]: str(i.get("statement") or "").strip() for i in invariants}
     graded = {r["id"]: r for r in results}
-    parts = []
+    rows = []
     for u in verdict["unexcepted"]:
         rule = re.split(r"(?<=\.)\s", statements.get(u["id"]) or "")[0].rstrip(".")
-        if len(rule) > PLAIN_STATEMENT_CHARS:
-            rule = rule[:PLAIN_STATEMENT_CHARS].rsplit(" ", 1)[0] + "\u2026"
         r = graded.get(u["id"]) or {}
         count = ("{:,} of {:,} checked (unit: {})".format(int(u["breached"]), int(r["checked"]), r.get("unit"))
                  if r.get("checked") else "{:,}".format(int(u["breached"])))
-        parts.append("{} [{}]: broken on {}".format(rule or "a rule with no statement", u["id"], count))
-    n = len(parts)
-    return ("Refused by the domain-invariant check: {} of its rules {} broken and no dated "
-            "exception covers {}. {}.").format(
-        n, "is" if n == 1 else "are", "it" if n == 1 else "them", "; ".join(parts))
+        rows.append((rule, u["id"], count))
+    n = len(rows)
+
+    def told(rule, chars):
+        if chars <= 0:
+            return ""
+        if len(rule) > chars:
+            rule = rule[:chars].rsplit(" ", 1)[0].rstrip(",;:") + "\u2026"
+        return (rule or "a rule with no statement") + " "
+
+    def sentence(chars, shown):
+        parts = ["{}[{}]: broken on {}".format(told(rule, chars), rid, count)
+                 for rule, rid, count in rows[:shown]]
+        if shown < n:
+            parts.append("and {} more, named in docs/reports/DOMAIN_INVARIANTS.md".format(n - shown))
+        return ("Refused by the domain-invariant check: {} of its rules {} broken and no dated "
+                "exception covers {}. {}.").format(
+            n, "is" if n == 1 else "are", "it" if n == 1 else "them", "; ".join(parts))
+
+    for chars in (PLAIN_STATEMENT_CHARS, 150, 100, 60, 0):
+        line = sentence(chars, n)
+        if limit is None or len(line) <= limit:
+            return line
+    for shown in range(n - 1, 0, -1):
+        line = sentence(0, shown)
+        if len(line) <= limit:
+            return line
+    return line[:limit]
 
 
 def render_verdict(verdict: dict) -> str:
