@@ -160,10 +160,17 @@ def _is_mappable(changed: str) -> bool:
     return changed.endswith(".py") and changed.split("/", 1)[0] in ANALYSED_ROOTS
 
 
-def select(changed_files: list[str], root: Path = ROOT):
+def select(changed_files: list[str], root: Path = ROOT, barrier=()):
     """Core selection. Returns a dict:
       { full_suite: bool, reason: str, tests: [sorted test files], unmappable: [changed non-py] }
-    full_suite=True means 'cannot safely narrow -- run everything'."""
+    full_suite=True means 'cannot safely narrow -- run everything'.
+
+    `barrier`: repo files the walk reaches but does not pass through -- their importers are not
+    impacted BY WAY OF them. For an orchestrator that imports everything it runs: without it,
+    every test of the orchestrator's own bookkeeping reaches whatever it orchestrates. A barrier
+    file that is itself changed is still walked (a change is never its own barrier); a barrier
+    absent from the graph is inert, which widens, the safe direction."""
+    barrier = frozenset(barrier) - set(changed_files)
     changed = [c.strip() for c in changed_files if c.strip()]
     unmappable = [c for c in changed if not _is_mappable(c)]
     if unmappable:
@@ -195,6 +202,8 @@ def select(changed_files: list[str], root: Path = ROOT):
         node = q.popleft()
         if node.startswith(TEST_ROOT + "/"):
             impacted_tests.add(node)
+        if node in barrier:
+            continue
         for importer in reverse.get(node, ()):
             if importer not in seen:
                 seen.add(importer)

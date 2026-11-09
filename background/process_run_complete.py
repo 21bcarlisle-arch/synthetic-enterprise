@@ -1305,6 +1305,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 from background import (  # noqa: E402
     finding_severity,  # (OPS9 header parser; exoneration field)
     publish_cause,  # (which of the four an rc=77 was, and the observation that decided it)
+    publish_content,  # (the LATEST.md results block: a declared publish-path source, OPS6)
     publish_delivery_deferral,  # (a landed commit whose delivery is still with the cadence)
     publish_gate_blocking_read,  # (the record's honesty contract)
     publish_provenance,  # BOUND HERE ON PURPOSE — see below
@@ -1577,64 +1578,11 @@ def regenerate_report(json_path):
 
 
 def update_latest_md(data, elapsed_s, git_hash="unknown"):
-    text = LATEST_MD.read_text()
-    ts_now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    text = re.sub(r"Last updated: \S+", "Last updated: {}".format(ts_now), text)
-
-    ledger = data.get("_ledger_headline", {})
-    net = data.get("total_net_gbp", ledger.get("net_margin_gbp", 0))  # total_net_gbp includes bad debt + hedging costs
-    gross = ledger.get("gross_margin_gbp", data.get("total_gross_gbp", 0))
-    capital = data.get("total_capital_gbp", 0)
-    t_start = data.get("starting_treasury_gbp", 0)
-    t_end = data.get("final_treasury_gbp", 0)
-    committee = data.get("committee_wake_ups_total", 0)
-    bills = data.get("bills_total", 0)
-    ev = data.get("enterprise_value_gbp", 0)
-    net_cts = data.get("net_margin_after_cost_to_serve_gbp", 0)
-    ret_log = data.get("retention_log", [])
-    no_offer = data.get("no_offer_churn_log", [])
-    churned = data.get("churned_billing_accounts", [])
-    mins = elapsed_s / 60
-
-    offers = len(ret_log)
-    retained = sum(1 for r in ret_log if r.get("outcome") == "retained")
-    no_offer_churns = len(no_offer)
-    churn_count = len(churned)
-
-    # THE BLOCK CARRIES ITS OWN CLOCK (2026-09-19). Every financial figure on a surface carries
-    # its basis, and this block — the only live £ on the status page — carried none. The clock it
-    # was supposed to get was the `Net position:` line stamped below, and that line was deleted
-    # from LATEST.md on 2026-07-03 (`e50ae96c1`), so the `re.sub` matched nothing and wrote
-    # nothing for 78 days without raising: a zero-match substitution is silent by construction.
-    # Undated, the figure cannot be told from the dated records of earlier runs in the same file,
-    # which is exactly how the page came to state two net margins with no basis between them.
-    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    parts = [
-        "**Latest simulation results (2016–2025)** — auto-processed ({:.0f}s / {:.0f} min)"
-        " // run {}, {}:".format(elapsed_s, mins, git_hash, date_str),
-        "- Net margin: \xa3{:,.2f} | Gross: \xa3{:,.2f} | Capital: \xa3{:,.0f}".format(net, gross, capital),
-        "- Treasury: \xa3{:,.0f} → \xa3{:,.0f} | {} committee interventions | {} bills issued".format(t_start, t_end, committee, bills),
-        "- Enterprise value: \xa3{:,.2f} | Net after CTS: \xa3{:,.0f}".format(ev, net_cts),
-        "- Retention: {} offers, {}/{} retained | {} no-offer churns | {} total churned accounts".format(
-            offers, retained, offers, no_offer_churns, churn_count),
-    ]
-    new_block = "\n".join(parts)
-
-    start_marker = "**Latest simulation results"
-    try:
-        start_idx = text.index(start_marker)
-        end_idx = text.find("\n\n", start_idx)
-        if end_idx == -1:
-            end_idx = len(text)
-        text = text[:start_idx] + new_block + text[end_idx:]
-    except ValueError:
-        # Block not yet present — append to end on first auto-process
-        text = text.rstrip() + "\n\n" + new_block + "\n"
+    """The results block lives in `background/publish_content.py`, a declared publish-path
+    source; this file is the scope's barrier (OPS6). `LATEST_MD` is read here so the name
+    tests patch stays the one the block is written to."""
+    if publish_content.write_latest_results(LATEST_MD, data, elapsed_s, git_hash):
         log("Created 'Latest simulation results' block in LATEST.md")
-    # The `Net position:` re.sub that stood here is gone rather than repaired: its anchor has not
-    # existed in LATEST.md since 2026-07-03, it is the clock the block above now carries inline,
-    # and a second home for one published quantity is what this whole repair is about.
-    LATEST_MD.write_text(text)
 
 
 def _update_latest_md_organ_section():

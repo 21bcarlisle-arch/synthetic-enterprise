@@ -41,10 +41,28 @@ prediction before running it. Read this as a measurement and nothing more.
    `test_a_duplicate_marker_is_not_a_publish.py`, `test_publish_gate_alert.py` and
    `test_head_green_census.py` are the **publisher's own bookkeeping**.
 4. **Why that happens:** `background/process_run_complete.py` is a declared `PUBLISH_PATH_SOURCES` entry.
+   **Correction (same day):** this is the wrong edge. With the publisher removed from the declaration
+   the scope is still 348. The publisher imports four declared producers, so its importers reach them
+   through it. See the re-grade below.
    The publisher is about 9,000 lines, and every test that imports it is selected, which accounts for
    **166 of the 348** blocking files (`tests/background/`). So an alarm or census red in the publisher
    still freezes the site. That is the failure the 10 Aug ruling exists to end.
    Filed: `docs/staging/SEAT_FINDING_THE_PUBLISHERS_OWN_HARNESS_TESTS_ARE_HALF_THE_BLOCKING_PUBLISH_SCOPE_2026-11-09.md`.
+
+## Re-grade after the barrier (9 Nov, same script)
+
+`publish_scope.PUBLISH_PATH_BARRIERS = ("background/process_run_complete.py",)`, and the LATEST.md block is
+moved to `background/publish_content.py`. Scope: **207** files.
+
+| kind | BLOCK | mixed | annotate | no test red |
+|---|---|---|---|---|
+| publish | 4 | 0 | 21 | 60 |
+| commit-chain | 0 | 0 | 4 | 11 |
+
+Predicted before the run: all 7 bookkeeping episodes would annotate. **6 did.**
+`test_control_mutation.py` still blocks because it imports the dashboard generator directly, and it should.
+The 4 that still block all guard a published figure: settlement reconciliation, the partial-year
+CLV headline, website integrity and generator mutation. The table below is the original grading.
 
 ## Per episode
 

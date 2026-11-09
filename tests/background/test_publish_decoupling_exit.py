@@ -93,7 +93,9 @@ def test_a_publish_path_red_still_blocks():
     scope = publish_scope.resolve_scope()
     joined = "\n".join(scope["tests"])
     assert "generate_dashboard_data" in joined
-    assert "process_run_complete" in joined
+    # The publisher's own figure (the LATEST.md results block) is guarded from its declared
+    # home; the publisher itself is the scope's barrier, not a source (OPS6, 9 Nov).
+    assert "tests/background/test_publish_content.py" in scope["tests"]
 
 
 def test_a_red_gate_publishes_the_banner_and_never_the_content(tmp_path, monkeypatch):

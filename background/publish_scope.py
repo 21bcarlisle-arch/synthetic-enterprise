@@ -96,9 +96,8 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 #                                            that the dashboard renders NEXT TO those totals
 #   * simulation/publish_market_feed.py    — produces docs/market_data/price_feed.json
 #   * simulation/publish_consumption_data.py — produces docs/market_data/consumption_feed.json
-#   * background/process_run_complete.py   — the publisher itself: LATEST.md, the site build,
-#                                            the commit/push. Its own tests are in scope
-#                                            because a broken publisher publishes wrongly.
+#   * background/publish_content.py        — the one figure the publisher computed itself:
+#                                            the results block in docs/status/LATEST.md
 #
 # ADDING TO THIS LIST IS CHEAP AND SAFE (it can only widen what blocks). REMOVING FROM IT IS
 # THE DANGEROUS DIRECTION — a removal is a claim that this module can no longer make a
@@ -109,8 +108,31 @@ PUBLISH_PATH_SOURCES = [
     "tools/generate_insights.py",
     "simulation/publish_market_feed.py",
     "simulation/publish_consumption_data.py",
-    "background/process_run_complete.py",
+    "background/publish_content.py",
 ]
+
+# ── THE BARRIER: the orchestrator, which runs the publish path and is not part of it ────────
+#
+# `background/process_run_complete.py` imports four of the sources above, so with the selector
+# walking imports transitively, every test of the publisher's alarm, census, marker and git
+# bookkeeping reached them THROUGH it: 141 of 348 blocking files (OPS6, 9 Nov). Dropping the
+# publisher from the list above changed nothing (348 either way), because the edge that put them
+# there was the publisher's import of the producers, not its own membership.
+#
+# THE EVIDENCE FOR THE REMOVAL ("the dangerous direction", above). Read on 9 Nov:
+# `generate_site` is a no-op; every site/data figure is written by a producer it imports; its
+# other writes are its own state files and the domain-invariant report, whose gate this scope
+# does not narrow. Its one inline figure, the LATEST.md results block, moved to
+# publish_content.py. What remains can stop a publish or deliver a stale or partial one, never
+# change a figure in it: the paused banner says the first, and the post-publish reader
+# `test_the_published_series_and_the_ledger_it_came_from_are_committed_together` reads the
+# second. `_commit_pathspec` (which of the cycle's files land) is the nearest residue, and a
+# defect there is a partial publish, read by that same reader.
+#
+# A barrier absent from the tree is inert: the walk goes through it, which only widens.
+PUBLISH_PATH_BARRIERS = (
+    "background/process_run_complete.py",
+)
 
 # The vacuity floor. Not tuned to today's count (that would make an ordinary refactor red the
 # gate for nothing) — set an order of magnitude below the measured 129 so it fires on a scope
@@ -213,7 +235,7 @@ def resolve_scope(sources=None, root: Path = PROJECT_DIR) -> dict:
 
     try:
         from tools.select_impacted_tests import select
-        selection = select(declared, root=root)
+        selection = select(declared, root=root, barrier=PUBLISH_PATH_BARRIERS)
     except Exception as exc:  # noqa: BLE001 -- an unavailable check is a FAILED check (R15)
         return {
             "full_suite": True,
@@ -248,7 +270,8 @@ def resolve_scope(sources=None, root: Path = PROJECT_DIR) -> dict:
         "tests": tests,
         "sources": declared,
         "reason": "{} publish-path source(s) -> {} blocking test file(s) via the static import "
-                  "graph.".format(len(declared), len(tests)),
+                  "graph, not walked through {}.".format(len(declared), len(tests),
+                                                         ", ".join(PUBLISH_PATH_BARRIERS)),
     }
 
 

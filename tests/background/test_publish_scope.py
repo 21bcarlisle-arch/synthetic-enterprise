@@ -65,7 +65,7 @@ def test_a_collapsed_scope_is_treated_as_broken_not_as_good_news(monkeypatch):
     monkeypatch.setattr(
         publish_scope, "PUBLISH_PATH_SOURCES", ["tools/select_impacted_tests.py"])
 
-    def _tiny(_sources, root=None):
+    def _tiny(_sources, root=None, barrier=()):
         return {"full_suite": False, "tests": ["tests/tools/test_select_impacted_tests.py"],
                 "unmappable": [], "reason": "forced"}
 
@@ -629,6 +629,55 @@ def test_a_publish_path_red_blocks_and_a_red_outside_it_only_annotates(
         assert blocking.returncode == 0, (
             "a red outside the publish path blocked the publish -- the old whole-repo gate "
             "under a new name:\n" + blocking.stdout[-1500:])
+
+
+_ALARM_TEST = "tests/test_publisher_alarm.py"
+
+
+def _orchestrator_repo(root, *, figure_defective):
+    """The two-module repo plus the shape OPS6 found live: an orchestrator that imports the
+    publish path to run it, and an alarm test that imports only the orchestrator."""
+    root.mkdir()
+    _two_module_repo(root, publish_path_defective=figure_defective)
+    (root / "tools" / "orchestrator.py").write_text(
+        "from tools import figure\n\ndef run():\n    return figure.margin()\n\n"
+        "def alarm_census():\n    return 0\n")
+    (root / _ALARM_TEST).write_text(
+        "from tools import orchestrator\n\ndef test_the_alarm_census_is_reconciled():\n"
+        "    assert orchestrator.alarm_census() == 1\n")
+    return root
+
+
+@pytest.mark.parametrize("barrier", [True, False], ids=["barrier", "no_barrier_mutation"])
+def test_a_red_in_the_publishers_own_bookkeeping_annotates_and_a_figure_red_still_blocks(
+        tmp_path, monkeypatch, barrier):
+    """THIRD ARM (OPS6, 9 Nov): 141 of 348 blocking files were the publisher's own alarm and
+    census tests, in scope only because the publisher imports the producers it runs. With the
+    orchestrator a barrier, its bookkeeping red annotates while a figure red still blocks. The
+    mutation drops the barrier and the bookkeeping red must block again, or the green came from
+    something other than the barrier."""
+    monkeypatch.setattr(publish_scope, "MIN_SCOPED_TEST_FILES", 1)
+    monkeypatch.setattr(publish_scope, "PUBLISH_PATH_BARRIERS",
+                        ("tools/orchestrator.py",) if barrier else ())
+    base = _base_argv_with_ignores()
+
+    clean = _orchestrator_repo(tmp_path / "clean", figure_defective=False)
+    scope = publish_scope.resolve_scope(sources=["tools/figure.py"], root=clean)
+    assert (_ALARM_TEST in scope["tests"]) is not barrier, scope
+    blocking = _gate_rc(publish_scope.scoped_pytest_argv(base, scope, run_root=clean), clean)
+    remainder = _gate_rc(publish_scope.remainder_pytest_argv(base), clean)
+    assert remainder.returncode != 0 and "test_the_alarm_census_is_reconciled" in remainder.stdout
+    if barrier:
+        assert blocking.returncode == 0, "the publisher's bookkeeping red blocked the publish:\n" \
+            + blocking.stdout[-1500:]
+    else:
+        assert blocking.returncode != 0
+
+    red = _orchestrator_repo(tmp_path / "red", figure_defective=True)
+    scope = publish_scope.resolve_scope(sources=["tools/figure.py"], root=red)
+    refused = _gate_rc(publish_scope.scoped_pytest_argv(base, scope, run_root=red), red)
+    assert refused.returncode != 0, (
+        "a red on the published figure did not block once the orchestrator became a barrier")
 
 
 def test_the_domain_invariant_gate_is_not_narrowed_by_the_publish_scope(tmp_path, monkeypatch):
