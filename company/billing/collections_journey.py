@@ -79,6 +79,8 @@ from company.billing.arrears_engine import (
     closed_balance_due_for_write_off,
     dunning_path,
     fifo_unpaid_bills,
+    level_shortfall,
+    on_level_dd,
 )
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.compliance.working_days import is_working_day
@@ -530,13 +532,17 @@ class CollectionsJourneyDesk:
             if account_id not in self._open and on not in openers:
                 continue
             self._step(account_id, segment, on, ledger=ledger, bill_missed=on in unpaid_on,
-                       payment_terms_days=payment_terms_days, level=level is not None)
+                       payment_terms_days=payment_terms_days,
+                       level=(level[0] if level is not None and on_level_dd(ledger, level[0], on)
+                              else None))
         self._read_meter_recoveries(account_id, through)  # a meter changed inside this walk
         self._through[account_id] = through
 
     def _step(self, account_id: str, segment: Segment, on: dt.date, *,
               ledger: Optional[AccountLedger] = None, bill_missed: bool = False,
-              payment_terms_days: int = 14, level: bool = False) -> None:
+              payment_terms_days: int = 14, level: Optional[Any] = None) -> None:
+        """`level` is the account's `LevelSchedule` while it is collected by a level DD on `on`
+        (`on_level_dd`), else None: an account that has left level DD is walked on its bills."""
         held_by_plan = self._read_instalments(account_id, on)
         view = self._view_at(account_id, segment, on)
         overdue = (view.get("max_days_overdue") or 0) > 0 and (
@@ -549,9 +555,16 @@ class CollectionsJourneyDesk:
             journey.enter(MISSED_PAYMENT, on, "journey opened: a bill is unpaid past its due date",
                           view)
         # A level account owes its schedule: a bill unpaid by its due date is the seasonal debit
-        # the schedule carries, so only the shortfall (the view's overdue) holds a journey open.
-        elif not overdue and (level or not (ledger is not None
-                                            and _owes_a_bill_due_by(ledger, on, payment_terms_days))):
+        # the schedule carries, so only the shortfall holds a journey open -- the shortfall itself,
+        # not the view's overdue. Oldest-first, the next instalment's cash meets the failed one and
+        # moves the shortfall onto the request presented that day, which ages 0 days: read as
+        # overdue, the journey cured though the missed instalment was never made good (43 of the 88
+        # level-at-cure cures held over a debt on 298149a1fc; SYN-2016-549 on 4 May 2018, GBP 45).
+        elif not overdue and (
+                (level is not None and ledger is not None
+                 and level_shortfall(ledger, level, on) is None)
+                or (level is None and not (ledger is not None
+                                           and _owes_a_bill_due_by(ledger, on, payment_terms_days)))):
             journey.enter(CURED, on, "overdue balance cleared on the ledger", view)
             journey.exit = CURED
             self._refuse(journey.as_record(), account_id)

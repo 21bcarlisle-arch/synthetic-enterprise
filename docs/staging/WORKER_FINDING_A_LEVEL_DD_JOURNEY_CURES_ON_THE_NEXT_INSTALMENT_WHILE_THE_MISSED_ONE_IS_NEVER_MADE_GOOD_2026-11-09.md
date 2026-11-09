@@ -78,3 +78,75 @@ Two candidates remain, read from the code and not yet printed:
 24 Jan 2019. Candidate 2 accounts for at least 140 of the 151 left-level cures. Candidate 1 accounts for most of the 88
 level-at-cure cures that still have an unpaid invoice. Recommended next, one variable: replay the desk on SYN-2016-549
 alone and print `level_of`, `level_shortfall` and `ledger.balance` on each cure day.
+
+## The replay, graded (worker, 9 Nov 2026)
+
+**Readers.** `/var/tmp/grade-2981-replay/replay.py` replays the desk predicate on one account from a ledger
+rebuilt off the page rows. `desk_own.py` and `join.py` grade the whole book from the desk's own cure stage:
+`days_overdue` 0 means the view held a shortfall item aged 0 days, and None means it held no item.
+**The rebuild is not faithful past 2022.** It lacks write-offs and the cash the desk posts itself. On 272 cures it
+reads a shortfall more than 0 days old where the desk read none, so the book-wide grade uses only the desk's own record.
+
+**SYN-2016-549, each cure day:**
+- 4 May 2018: level_of is set; level_shortfall is GBP 45.00, aged 0 days; the balance is GBP 201.82.
+- 26 Nov 2018: level_shortfall is GBP 42.84, aged 0 days; the balance is GBP 204.70.
+- The desk recorded both cures as overdue 0 and days 0. That is an item aged 0 days, not the absence of an item.
+- Every cure from 14 Apr 2020 on is after the last level request (24 Jan 2019). level_of is still set. The desk read
+  days None, meaning no item. `_owes_a_bill_due_by` reads True on every one in the rebuild.
+
+**The prediction, graded:**
+1. *level_of is non-None after 24 Jan 2019:* **HELD.** `_level_requests` is never cleared.
+2. *Candidate 2 explains 140 or more of the 151 left-level cures:* **HELD.** 150 of 151 cured with no item in a level view.
+   That view never asks for the scheme's debit. The one left is aged 0 days.
+3. *Candidate 1 explains most of the 88:* **FELL.** 43 of the 88 cured on an item aged 0 days. At most 45 could be the
+   debit-balance cap or a met schedule.
+
+**The cause the prediction missed, a third mechanism.** The shortfall is cumulative, as the 08:00 correction says. But
+the cash is applied to the oldest request first. So the next instalment's cash meets the failed one, and the shortfall
+moves onto the request presented that day. That request ages 0 days. The desk cured on "the view reads nothing
+overdue", which needs more than 0 days. The non-level path already guards this exact day-of-due shape with
+`_owes_a_bill_due_by`. The level path had no equivalent. Book-wide on the desk's own record: 110 level-at-cure cures
+are of this shape, and 91 had no item.
+
+## The fix (worker, 9 Nov 2026)
+
+- `arrears_engine.on_level_dd(ledger, schedule, on)` decides whether an account is still on level DD. It is, while
+  some supply leg's latest bill issued by `on` is one a level collection paid for. The leg is the part of the bill
+  reference before its first `::`. It is per leg because 61 accounts on 298149a1fc mix a level leg with a non-level
+  one. Level requests are always DD, so their correlation id is the invoice reference.
+- The desk walks an account on its schedule only while `on_level_dd`. A level journey cures only when
+  `level_shortfall` is None. The view's "nothing overdue" is no longer enough. An account that has left level DD is
+  walked on its bills: it cures only if `not _owes_a_bill_due_by`.
+- The consumer's collections view reads the schedule only while `on_level_dd`. After that, it ages the balance on
+  its bills, the debit the scheme ran up included.
+- **Control and partition leg, in one test:** `test_a_missed_instalment_not_made_good_holds_the_journey_and_a_made_good_one_cures`.
+  The made-good branch is asserted first. The left-level leg is `test_an_account_that_left_level_dd_is_dunned_on_its_bills`.
+  At HEAD that account cured on 6 Mar 2025 with GBP 260 owed on bills past due.
+- **Mutations:**
+  - M1, the level cure reads the view again: red.
+  - M4, the level cure never fires: red, on two tests.
+  - M3, the view keeps the schedule after the account leaves level: red, on the opening amount.
+  - M2, the desk keeps the account on level after it leaves: **does not fire alone. This is a missing test, not an
+    equivalence.** The fixed view still blocks the cure, except when a left-level household pays down to a balance
+    that sits only on a bill due that day. There, the level path's `level_shortfall` excludes today's ask and cures,
+    and `_owes_a_bill_due_by` holds. No fixture here builds that case. It is filed below.
+
+**GAP, filed: no closing statement for a level scheme.** Once an account leaves level DD, its scheme debit is aged
+from the due dates of the bills it sat on. The fixture's journey opens at GBP 290 and goes straight to the plan-offer
+rung. A real supplier sends a closing statement with its own terms. Ofgem's para 2.8 says a debit at the end of a
+payment scheme is not debt by itself. Nothing in the tree models that statement, so the opening rung on a left-level
+account is harsher than practice. That is the open half of this fix. It needs a knowledge-page entry before it is
+built (K8).
+
+## Prediction for the first book carrying the fix (filed before any such book exists)
+
+- The finding's 151 shape (left level, an invoice due by the cure unpaid at run end) reads **0**.
+- Within the 88 shape, the 43 cures on an item aged 0 days read **0**. **The 45 with no item I predict will persist.**
+  These are level-at-cure cures where the schedule was met or the balance cap applied, while a bill the scheme had not
+  covered is unpaid at run end. That is a seasonal debit, which para 2.8 says is not debt. So the drawn "88 reads 0"
+  is not what this fix should do, and I am not claiming it.
+- Cure dates on accounts that never held a level request are **byte-identical**: neither predicate changed for them.
+- **Expected and unsized:** more journeys, and longer ones, on accounts that left level DD in seasonal debit. Their
+  debit is now dunned. I cannot yet say how many.
+- **Refuted if:** any non-level journey's cure date moves; or any level-at-cure cure is recorded on an item aged
+  0 days; or any left-level cure lands while `_owes_a_bill_due_by` holds.
