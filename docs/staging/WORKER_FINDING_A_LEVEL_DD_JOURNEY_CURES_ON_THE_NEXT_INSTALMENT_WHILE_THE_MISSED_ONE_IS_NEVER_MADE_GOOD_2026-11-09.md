@@ -284,3 +284,85 @@ held it on the day of leaving; past-due is split from current. The control is
 - It is named here, not fixed.
 
 NEXT: the leaving predicate. `on_level_dd` must not read an account that is still collecting level as having left.
+
+## The 505df564e3 book, graded: two legs held, the left-level leg fell, and the overdue rows quadrupled (seat executor, 9 Nov 2026 ~15:40 GMT)
+
+**The book.** `book-505df564e3` ran from 13:05 to about 14:50 GMT, at origin 505df564e3, which carries d8264b525e and
+e0aeece0d. Its run json is `docs/reports/run_output_505df564e3_20261109T124818Z.json` on the shared tree. The grade chain
+ran `after_run.sh` unchanged, and its outputs are in `/var/tmp/grade-505d/`. The control is 9d7dcfc19c, rebuilt with the
+same readers (`control-9d7d/`). **The ledger is `/var/tmp/grade-505d/ledger.json`**, and the closed-account grade
+(`grade-the-level-dd-close-on-its-first-book`) reads that path.
+
+**The prediction, leg by leg** (arm against the one-recipe control):
+
+| Leg (filed before any book) | Control 9d7dcfc19c | Arm 505df564e3 | Verdict |
+|---|---|---|---|
+| The 151 left-level shape (an invoice due by the cure still unpaid at run end) reads 0 | 151 on 19 accounts | **45 on 8 accounts** | **FELL** (residual named below) |
+| Level-at-cure cures on an item aged 0 days read 0 (`join`) | 45 | **0** | **HELD** |
+| Level-at-cure cures on an item aged 0 days (`desk_own`, every cure) | 110 | **0** | **HELD** |
+| Left-level cures on an item aged 0 days (`desk_own`) | 2 | **0** | held |
+| Schedule-met or cap cures with no item persist | 45 | **74 on 41 accounts** | **HELD** in kind. Why 45 became 74 I cannot yet say. |
+| Never-level cure dates are byte-identical | 643 journeys | 643, `identical True`, none only in one arm | **HELD** |
+| Cures held over a debt (the class listed wrong at 347) | 347 on 109 accounts | 191 on 92 accounts | moved, not cleared |
+
+**The residual: 45 left-level cures on 8 accounts, all true leavers.** Every one is dated after that account's last level
+collection: PROS-2018-0016, PROS-2019-0246, SYN-2016-206, -217, -244, -253, -360 and -487. So it is **not** the
+false-leaver defect named in the section above. All 8 were in the control's 151, and none is new.
+- **Shape.** What stays unpaid is the remainder of a failed level instalment from the level era, never made good. For
+  example, SYN-2016-487's GBP 24 failed on 12 Oct 2017 and left GBP 3.07 on each leg. SYN-2016-206's GBP 64.15 failed in
+  May 2016 and left GBP 15.36. Those invoices are still outstanding at run end.
+- **The two ledgers disagree.** Replaying 505df564e3's own `on_level_dd` and `_owes_a_bill_due_by` on a ledger rebuilt
+  from the page (`/var/tmp/grade-505d-residual/residual.py`) reads `on_level_dd=False, owes=True` on **all 45**. So the
+  predicate the fix added would have refused every one of them. The desk cured anyway, and printed `days_overdue` None
+  or negative. Its in-run ledger does not count the level-era remainder as a bill owed, and the page does.
+- **Mechanism: not established.** The next question is how the in-run ledger allocates a failed level request's
+  remainder (oldest-first carry against per-invoice), measured on SYN-2016-487 on 19 Jun 2019. That day the desk read
+  GBP 0 overdue after a GBP 29.70 payment, and the page replay reads GBP 27.81 owed. The closing-statement build
+  (8e73c52356, the section above) re-dates a missed instalment on leaving, so the next book may move this. It has not
+  been graded.
+
+**The full gate** (`domain_invariant_runner`, 1302 accounts, read with the same `grade.py` on both arms):
+- **Arm: 614 unexcepted breaches across 2 invariants, 8 excepted. ENFORCED: the publish is refused.**
+  - INV_OVERDUE_WITHIN_BALANCE: **129** (control 71).
+  - INV_OVERDUE_WITHIN_PAGE_BALANCE: **485** (control 80).
+- **Control, the same reader:** 151 (71 + 80). That is the figure `process_run`'s gate refused 9d7dcfc19c on, so the
+  reader is not the cause. I predicted "it reproduces 71 and 80" before running it. **Held.**
+- **Excepted rows, arm (control):**
+  - INV_UNIT_RATE_EPG_HOUSEHOLD 336 (337)
+  - INV_PPM_NOT_CREDIT_BILLED 12
+  - INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23 7 (7)
+  - INV_EBSS_CREDIT_ON_THE_BILL 7 (7)
+  - INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER 7 (7)
+  - INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 1
+  - INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD 2
+  - INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL 21 (20)
+- Every other row has the same status in both arms. Their checked counts fall by about 0.2% (bill periods 53,921 →
+  53,835): the book is slightly smaller, through the company-wide cash route the caveat above named.
+
+**Where the new overdue breaches sit** (`overdue_breaches.py`, every breach, grouped by the account's level status at
+run end):
+
+| Row | Control: still level / left level | Arm: still level / left level |
+|---|---|---|
+| INV_OVERDUE_WITHIN_BALANCE (journey openings) | 49 / 22 | **105 / 24** |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE (printed steps) | 20 / 60, on 6 accounts | **320 / 165, on 72 accounts** |
+
+- Most of the growth is on accounts **still collecting level DD at run end**.
+- That is the shape the false-leaver defect above predicts. `on_level_dd` reads a still-level account as having left
+  whenever the latest issued bill is not level-paid. Such an account is then walked on its bills, and prints an overdue
+  figure its page balance does not hold.
+- **I cannot yet attribute it.** The arm carries two fixes, and no third arm separates them. The test is whether the
+  320 still-level page steps fall to about the control's 20 on the first book carrying a corrected leaving predicate.
+  That prediction is filed here, before such a book exists.
+
+**What this means for the claim.**
+- The level-at-cure half of d8264b525e is **correct on a book**: the aged-0d shape is gone, and never-level journeys
+  are untouched.
+- The left-level half is **not correct yet**, for two reasons:
+  - true leavers still cure over a level-era remainder their own ledger does not see;
+  - false leavers are dunned while still paying level.
+- The fix made the gate **worse** (151 → 614). No book carrying it can be published until the leaving predicate is
+  corrected.
+
+NEXT: the leaving predicate (`on_level_dd` must not read a still-collecting account as left), then the level-era
+remainder on true leavers.
