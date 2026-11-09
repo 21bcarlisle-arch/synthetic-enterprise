@@ -398,9 +398,17 @@ def test_a_root_unavailable_scope_stops_the_gate_instead_of_running_it(monkeypat
     # guard rather than on its own subject. Same pattern the neighbouring publisher tests use.
     monkeypatch.setattr(prc, "log", lambda *a, **k: None)
 
+    # Only the SUITE is the subject. The cause record's live-ledger guard asks git for the common
+    # dir (a1bead7abe), and failing that call too made this red on the guard, not on the gate.
     ran = []
-    monkeypatch.setattr(prc.subprocess, "run",
-                        lambda *a, **k: ran.append(a) or pytest.fail("gate ran on a dead root"))
+    real_run = prc.subprocess.run
+
+    def _run(argv, *a, **k):
+        if "pytest" not in argv:
+            return real_run(argv, *a, **k)
+        ran.append(argv)
+        pytest.fail("gate ran on a dead root")
+    monkeypatch.setattr(prc.subprocess, "run", _run)
 
     empty_root = tmp_path / "checkout-that-never-materialised"
     empty_root.mkdir()
@@ -563,3 +571,90 @@ def test_the_scoped_argv_still_names_its_ordinary_tests():
 
     assert ordinary in argv, "an un-ignored scoped test must still block the publish"
     assert "heavy_ignored" not in scope, "nothing was held out, so nothing should be reported"
+
+
+# ── OPS6 EXIT (2): BOTH DIRECTIONS, ON A REAL PYTEST RUN ──────────────────────────────────
+#
+# Every test above proves the scope is SAFE (it widens when it cannot narrow). None proves it is
+# a scope at all: a scoper that always returned the full suite passes all of them. These run the
+# gate's own argv against a two-module repo and read pytest's return code, which is what the
+# publisher reads. One leg per direction, plus the third thing that blocks a publish and must
+# stay outside the scope's reach: the domain-invariant gate (ruling of 26 Oct, step 4).
+
+_PUBLISH_TEST = "tests/test_published_figure.py"
+_OUTSIDE_TEST = "tests/test_bookkeeping_ledger.py"
+
+
+def _two_module_repo(root, *, publish_path_defective):
+    (root / "tools").mkdir()
+    (root / "tests").mkdir()
+    (root / "tools" / "__init__.py").write_text("")
+    (root / "tools" / "figure.py").write_text(
+        "def margin():\n    return {}\n".format(-1 if publish_path_defective else 42))
+    (root / "tools" / "ledger.py").write_text("def rows():\n    return 0\n")
+    (root / _PUBLISH_TEST).write_text(
+        "from tools import figure\n\ndef test_the_published_margin():\n"
+        "    assert figure.margin() == 42\n")
+    # Red outside the publish path in BOTH arms: a stale ledger row, the episodes' own shape.
+    (root / _OUTSIDE_TEST).write_text(
+        "from tools import ledger\n\ndef test_the_ledger_row_is_reconciled():\n"
+        "    assert ledger.rows() == 1\n")
+    return root
+
+
+def _gate_rc(argv, root):
+    import subprocess
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+    return subprocess.run(list(argv) + ["-p", "no:cacheprovider"], cwd=str(root), env=env, capture_output=True, text=True)
+
+
+@pytest.mark.parametrize("defective", [True, False], ids=["publish_path_red", "only_outside_red"])
+def test_a_publish_path_red_blocks_and_a_red_outside_it_only_annotates(
+        tmp_path, monkeypatch, defective):
+    monkeypatch.setattr(publish_scope, "MIN_SCOPED_TEST_FILES", 1)
+    root = _two_module_repo(tmp_path, publish_path_defective=defective)
+    base = _base_argv_with_ignores()
+
+    scope = publish_scope.resolve_scope(sources=["tools/figure.py"], root=root)
+    assert not scope["full_suite"] and scope["tests"] == [_PUBLISH_TEST], scope
+    blocking = _gate_rc(publish_scope.scoped_pytest_argv(base, scope, run_root=root), root)
+    remainder = _gate_rc(publish_scope.remainder_pytest_argv(base), root)
+
+    # The outside red is real in both arms: the unscoped run sees it, so a green blocking run
+    # below is the scope's doing and not a test that never fails.
+    assert remainder.returncode != 0 and "test_the_ledger_row_is_reconciled" in remainder.stdout
+    if defective:
+        assert blocking.returncode != 0, "a red on the publish path did not block the publish"
+    else:
+        assert blocking.returncode == 0, (
+            "a red outside the publish path blocked the publish -- the old whole-repo gate "
+            "under a new name:\n" + blocking.stdout[-1500:])
+
+
+def test_the_domain_invariant_gate_is_not_narrowed_by_the_publish_scope(tmp_path, monkeypatch):
+    """A breach blocks the publish unless excepted (26 Oct, step 4), whatever the scope says. The
+    scope is patched to narrow to nothing; the gate must refuse and must never have asked it."""
+    import yaml
+
+    from background import process_run_complete as prc
+    from tests.background.test_the_domain_invariant_gate_refuses_an_unexcepted_breach_and_an_exception_lifts_it import (  # noqa: E501
+        INVARIANTS,
+        _planted_breach,
+    )
+    from tools import domain_invariant_runner as runner
+
+    asked = []
+    monkeypatch.setattr(publish_scope, "resolve_scope", lambda *a, **k: asked.append(1) or {
+        "full_suite": False, "tests": [], "sources": [], "reason": "narrowed to nothing"})
+    monkeypatch.setattr(prc, "log", lambda msg: None)
+    monkeypatch.setattr(prc, "DOMAIN_INVARIANT_TABLE", tmp_path / "DOMAIN_INVARIANTS.md")
+    monkeypatch.setattr(prc, "DOMAIN_INVARIANT_JSON", tmp_path / "domain_invariants.json")
+    monkeypatch.setattr(runner, "load_invariants", lambda *a, **k: INVARIANTS)
+    monkeypatch.setattr(runner, "load_book", lambda *a, **k: _planted_breach())
+    register = tmp_path / "exceptions.yaml"
+    register.write_text(yaml.safe_dump({"enforce": True, "exceptions": []}))
+
+    ok, reason = prc._domain_invariant_gate_permits_publish(
+        "abc", ledger_path=tmp_path / "unused.json", register_path=register)
+    assert not ok and "INV_FUEL_IDENTIFIER" in reason, reason
+    assert not asked, "the domain-invariant gate consulted the publish scope"
