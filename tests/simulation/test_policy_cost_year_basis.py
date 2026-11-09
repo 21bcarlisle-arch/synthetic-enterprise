@@ -40,8 +40,9 @@ _READERS: dict[str, tuple] = {
     "_CCL_ELECTRICITY_RATE_BY_YEAR": (
         policy_costs.get_ccl_per_mwh, {"segment": "SME"}, lambda r: r, None,
     ),
+    # SME: since W3_3 the domestic reader is keyed on the cap period, not on this table.
     "_NETWORK_COST_RESI_SME_BY_YEAR": (
-        policy_costs.get_electricity_network_cost_per_mwh, {"segment": "resi"}, lambda r: r, None,
+        policy_costs.get_electricity_network_cost_per_mwh, {"segment": "SME"}, lambda r: r, None,
     ),
     "_DUOS_IC_BY_YEAR": (
         policy_costs.get_electricity_network_cost_per_mwh, {"segment": "I&C"}, lambda r: r, None,
@@ -270,6 +271,7 @@ def test_mutation_a_register_entry_naming_a_missing_artefact_is_caught(monkeypat
 
 def test_january_2022_network_charge_predates_the_bsuos_reform():
     """The defect's own worst case: Jan-Mar 2022 must not pay the Apr-2022 reform rate."""
-    assert policy_costs.get_electricity_network_cost_per_mwh("2022-01-05") == pytest.approx(49.0)
-    assert policy_costs.get_electricity_network_cost_per_mwh("2022-04-05") == pytest.approx(66.0)
-    assert policy_costs.get_electricity_network_cost_per_mwh("2021-12-01") == pytest.approx(49.0)
+    sme = {"segment": "SME"}  # the year table's reader since W3_3
+    assert policy_costs.get_electricity_network_cost_per_mwh("2022-01-05", **sme) == pytest.approx(49.0)
+    assert policy_costs.get_electricity_network_cost_per_mwh("2022-04-05", **sme) == pytest.approx(66.0)
+    assert policy_costs.get_electricity_network_cost_per_mwh("2021-12-01", **sme) == pytest.approx(49.0)
