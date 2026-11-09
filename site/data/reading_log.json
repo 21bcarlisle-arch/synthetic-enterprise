@@ -281,13 +281,27 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "9 Nov",
+   "source": "LeCun & Balestriero, \"Proving and Improving the Platonic Representation Hypothesis with JEPA\" (29 Oct), via MindStudio's write-up",
+   "claim": "A learned world model that predicts in an abstract representation space rather than raw pixels or words, so it can ignore unpredictable detail; a ~109M-parameter JEPA model reportedly beat models up to 72B on one world-understanding benchmark",
+   "evidence": "One paper, one benchmark, read through a vendor blog",
+   "verdict": "Not relevant",
+   "done": "Poesys's world is an explicit simulation built from the GB record, not a learned model, and must stay inspectable and fail-closed behind the wall. The one echo: model what matters at the level it is predictable (aggregate observables, not exact household detail) — already how the world is built. Also appears as E-08 in the director's 5 Nov research pack",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 12,
   "step": 6,
   "unplaced": 0,
-  "none": 2
+  "none": 3
  },
  "rejected": 3
 }
