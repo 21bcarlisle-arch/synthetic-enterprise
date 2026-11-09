@@ -85,6 +85,7 @@ from simulation.arrears_engine import (
     with_credits_applied as _with_credits_applied,
 )
 from simulation.household import households_whose_account_closed, supply_points_that_left
+from tools.generate_payment_ledger_data import build_account_ledger
 from tools.grade_svt_invoices_over_ceiling import bill_excess, term_of_bill, terms_by_customer
 from tools.run_output_store import load_run_output
 
@@ -1146,7 +1147,8 @@ def generate(run_json_path=None, out_path=None):
             "invoice_count": len(invs),
             "total_billed_gbp": round(total_billed, 2),
             "total_paid_gbp": round(total_paid, 2),
-            "balance_gbp": round(total_paid - total_billed + total_deemed, 2),
+            # Set below from the page's own walk, once the refunds are on the record.
+            "balance_gbp": None,
             "total_deemed_gbp": round(total_deemed, 2),
             "failed_payment_count": failed_count,
             "arrears_case_count": len(arrs),
@@ -1170,6 +1172,16 @@ def generate(run_json_path=None, out_path=None):
         if refund["customer_id"] in customers:
             customers[refund["customer_id"]].setdefault("refunds", []).append({
                 "paid_date": refund["paid_date"], "amount_gbp": refund["credit_amount_gbp"]})
+
+    # The balance is the page's (`build_account_ledger`), not a second sum beside it. Paid less
+    # billed left out the EBSS credit, repayments, write-offs and refunds, counted payments dated
+    # after the book and charged the payer a deemed bill's credit: PROS-2020-0022 paid every bill
+    # and stood GBP 407.34 in debit, GBP 400 of it the scheme credit (4dee9854a4 book, 2026-11-09).
+    # Negative is owed, the sign this field has always had.
+    for cust in customers.values():
+        cust["balance_gbp"] = round(
+            -build_account_ledger(cust, book_as_of)["current_balance_gbp"], 2) + 0.0
+        cust["balance_as_of_date"] = book_as_of
 
     all_held = list(held_bills) + held_reads + held_money
     result = {

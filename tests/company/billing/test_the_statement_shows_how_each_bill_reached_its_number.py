@@ -24,6 +24,7 @@ import json
 import pytest
 
 from company.billing import statement_export as sx
+from tools.generate_payment_ledger_data import _book_as_of_date, build_account_ledger
 from tools.independent_bill_validator import catchup_vat_breach, statutory_vat_rate
 
 
@@ -315,24 +316,71 @@ def test_every_issued_bill_agrees_with_the_sum_of_its_own_printed_components():
 
 
 def test_the_event_walk_closes_where_the_ledger_says_it_closes():
-    """Two independent routes to one number: a walk over every bill and payment, against the
-    ledger's own stored `balance_gbp`. They agreed on all 251 accounts (2026-09-02) and on all 175
-    in run 998814330 (2026-10-06).
+    """Two independent routes to one number: a walk over every bill, credit, payment and case
+    stage, against the account page's (`build_account_ledger`) and, where the ledger declares that
+    definition (`balance_as_of_date`), its own stored `balance_gbp`. They agreed on all 251 accounts
+    (2026-09-02) and on all 175 in run 998814330 (2026-10-06).
+
+    The stored figure used to be paid less billed, and the walk agreed with it by sharing its
+    omissions: no EBSS credit, repayment, write-off or refund, and payments dated after the book.
+    PROS-2020-0022 paid every bill and printed GBP 407.34 owed (4dee9854a4 book, 2026-11-09); with
+    them, the walk and the page agree on all 1,302 accounts of that book.
 
     This one is worth more than it looks: it is the only place the failed-payment rule, the sign
     convention and the event ordering are checked together against a figure nobody wrote for this
     test's benefit."""
     ledger = _real_ledger()
-    accounts = 0
+    customers = ledger.get("customers") or {}
+    as_of = _book_as_of_date(customers)
+    accounts = declared = 0
     disagree = []
-    for cid, rec in (ledger.get("customers") or {}).items():
+    for cid, rec in customers.items():
         accounts += 1
-        doc = sx.statement(cid, rec)
-        if doc["balance_discrepancy_gbp"] is not None:
-            disagree.append((cid, doc["closing_balance_gbp"], doc["ledger_balance_gbp"]))
+        if rec.get("balance_as_of_date"):
+            declared += 1
+            doc = sx.statement(cid, rec)
+            if doc["balance_discrepancy_gbp"] is not None:
+                disagree.append((cid, doc["closing_balance_gbp"], doc["ledger_balance_gbp"]))
+        else:
+            doc = sx.statement(cid, dict(rec, balance_as_of_date=as_of))
+        page = round(-build_account_ledger(rec, as_of)["current_balance_gbp"], 2)
+        if abs(doc["closing_balance_gbp"] - page) >= sx.PENNY:
+            disagree.append((cid, doc["closing_balance_gbp"], page))
     # Non-empty, not a count: 175 accounts on 2026-10-06 against the 200 once typed here.
     assert accounts > 0, "no accounts: an emptied ledger would pass"
+    # A ledger declares the definition on every account or on none.
+    assert declared in (0, accounts)
     assert not disagree, "closing balance disagrees with the ledger on: {}".format(disagree[:5])
+
+
+def test_a_credit_a_part_payment_and_a_write_off_each_move_the_walk():
+    """The walk's terms, one account: a bill the EBSS credit covered in part and the household
+    paid net; a failed level collection part paid with no case opened; a failed bill written off."""
+    rec = {
+        "balance_as_of_date": "2023-03-01",
+        "invoices": [
+            {"invoice_number": 1, "issue_date": "2022-11-01", "total_amount_gbp": 100.0,
+             "scheme_credit_month_gbp": 66.0},
+            {"invoice_number": 2, "issue_date": "2022-12-01", "total_amount_gbp": 99.0},
+            {"invoice_number": 3, "issue_date": "2023-01-01", "total_amount_gbp": 40.0},
+        ],
+        "payments": [
+            {"invoice_number": 1, "payment_date": "2022-11-15", "amount_gbp": 34.0,
+             "outcome": "success", "method": "direct_debit", "scheme_credit_gbp": 66.0},
+            {"invoice_number": 2, "payment_date": "2022-12-05", "amount_gbp": 115.89,
+             "outcome": "failed", "method": "direct_debit", "part_paid_gbp": 52.46,
+             "level_dd": True},
+            {"invoice_number": 3, "payment_date": "2023-01-15", "amount_gbp": 40.0,
+             "outcome": "failed", "method": "direct_debit"},
+        ],
+        "arrears_history": [{"invoice_number": 3, "arrears_gbp": 40.0, "stages": [
+            {"stage": "DD_FAILED", "date": "2023-01-15", "note": "failed"},
+            {"stage": "WRITTEN_OFF", "date": "2023-02-20", "amount_gbp": 40.0, "note": "w/o"}]}],
+    }
+    walk = sx.statement("X", rec)["closing_balance_gbp"]
+    page = -build_account_ledger(rec, "2023-03-01")["current_balance_gbp"]
+    # Owed: invoice 2's 99.00 less the 52.46 part paid. The credit and the write-off settle the rest.
+    assert walk == page == -46.54
 
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════

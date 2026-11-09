@@ -426,14 +426,40 @@ def test_output_file_written(tmp_path):
     assert json.loads(out.read_text())["meta"]["invoice_count"] == 2
 
 
-def test_ic_balance_zero(tmp_path):
+def test_the_balance_is_what_is_unpaid_on_the_books_date(tmp_path):
+    """The balance is the account page's, on the book's date (its last issue). The June bill is
+    issued that day and paid after it, so it is owed; the March bill, paid, is not. This read 0.0
+    while the balance counted payments dated after the book."""
     bills = [_bill("C_IC1", "2022-03-31", 8000.0), _bill("C_IC1", "2022-06-30", 7500.0)]
     rj = tmp_path / "run.json"
     rj.write_text(json.dumps(_run(bills)))
     result = generate(rj, tmp_path / "l.json")
     cust = result["customers"]["C_IC1"]
     assert abs(cust["total_billed_gbp"] - 15500.0) < 0.01
-    assert cust["balance_gbp"] == 0.0
+    june = cust["invoices"][-1]
+    assert cust["balance_as_of_date"] == june["issue_date"] < cust["payments"][-1]["payment_date"]
+    assert cust["balance_gbp"] == -7500.0
+
+
+def _monthly_resi(period_end, amount):
+    bill = _bill("C1", period_end, amount, "resi")
+    bill["period_start"], bill["days_in_period"] = period_end[:8] + "01", int(period_end[8:])
+    return bill
+
+
+def test_a_household_that_paid_every_ebss_month_owes_none_of_the_credit(tmp_path):
+    """PROS-2020-0022 paid every bill and stood GBP 407.34 in debit, GBP 400 of it the EBSS credit:
+    the balance was paid less billed, and the household pays a credited bill net of the credit.
+    Two credited months paid in full owe nothing; the bill issued on the book's date is owed."""
+    bills = [_monthly_resi("2022-10-31", 120.0), _monthly_resi("2022-11-30", 130.0),
+             _monthly_resi("2023-06-30", 90.0)]
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run(bills)))
+    cust = generate(rj, tmp_path / "l.json")["customers"]["C1"]
+    credited = [i for i in cust["invoices"] if i.get("scheme_credit_gbp")]
+    # The branch is taken: both winter bills carry the credit and the household paid them net of it.
+    assert len(credited) == 2 and all(i["payment_status"] == "paid" for i in credited)
+    assert cust["balance_gbp"] == -90.0
 
 
 def test_churned_arrears_written_off(tmp_path, monkeypatch):

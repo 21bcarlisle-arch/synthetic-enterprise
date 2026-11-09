@@ -230,7 +230,13 @@ def bill_document(inv: dict) -> dict:
 #: is declared here instead of falling out of a sort. A supplier issues a bill and then receives
 #: money against it, so on a tie the bill lands first. State it, because a running balance is
 #: order-dependent and a reader comparing two reconstructions needs to know this was a convention.
-_EVENT_ORDER = {"bill": 0, "deemed_account": 1, "payment": 2, "adjustment": 3}
+_EVENT_ORDER = {"bill": 0, "deemed_account": 1, "credit": 1, "payment": 2, "adjustment": 3}
+
+#: The arrears stages that move the balance, as the account page posts them
+#: (`tools/generate_payment_ledger_data.build_account_ledger`): a repayment and a write-off by the
+#: stage's own amount, a resolution by the whole case.
+_CASE_STAGES_THAT_MOVE = {"ARREARS_REPAID": "stage", "WRITTEN_OFF": "stage",
+                          "RESOLVED": "case", "PAYMENT_PLAN_AGREED": "case"}
 
 
 def account_events(record: dict) -> list[dict]:
@@ -259,6 +265,7 @@ def account_events(record: dict) -> list[dict]:
     exactly its `total_deemed_gbp`.
     """
     events: list[dict] = []
+    payments = {p.get("invoice_number"): p for p in record.get("payments") or []}
     for inv in record.get("invoices") or []:
         events.append({
             "date": inv.get("issue_date"), "kind": "bill",
@@ -268,7 +275,10 @@ def account_events(record: dict) -> list[dict]:
             "detail": "bill issued for {} to {}".format(
                 inv.get("period_start"), inv.get("period_end")),
         })
-        deemed = (inv.get("deemed_debt_gbp") or 0.0) + (inv.get("deemed_share_gbp") or 0.0)
+        # A bill billed to the deemed account leaves whole, its credit with it: netting the credit
+        # off `deemed_debt_gbp` charged this payer a credit it never held (OCC-25ff8966357a, 134.00).
+        deemed = (inv.get("total_amount_gbp") or 0.0) if inv.get("billed_to") else (
+            inv.get("deemed_share_gbp") or 0.0)
         if deemed:
             events.append({
                 "date": inv.get("issue_date"), "kind": "deemed_account",
@@ -278,6 +288,36 @@ def account_events(record: dict) -> list[dict]:
                 "detail": "billed to the {}'s deemed account".format(
                     inv.get("billed_to") or inv.get("deemed_share_to")),
             })
+        pay = payments.get(inv.get("invoice_number")) or {}
+        credit = None if inv.get("billed_to") else (
+            inv.get("scheme_credit_month_gbp") or pay.get("scheme_credit_gbp")
+            or (pay.get("amount_gbp") if pay.get("method") == "scheme_credit" else None))
+        if credit:
+            events.append({
+                "date": inv.get("issue_date"), "kind": "credit",
+                "reference": inv.get("invoice_number"),
+                "amount_gbp": round(credit, 2), "moves_balance_gbp": round(credit, 2),
+                "detail": "Energy Bills Support Scheme credit",
+            })
+    for case in record.get("arrears_history") or []:
+        for stage in case.get("stages") or []:
+            moved = _CASE_STAGES_THAT_MOVE.get(stage.get("stage"))
+            if moved is None:
+                continue
+            amount = (case.get("arrears_gbp") if moved == "case"
+                      else stage.get("amount_gbp", case.get("arrears_gbp")))
+            events.append({
+                "date": stage.get("date"), "kind": "adjustment",
+                "reference": case.get("invoice_number"),
+                "amount_gbp": amount, "moves_balance_gbp": amount or 0.0,
+                "detail": stage.get("note") or stage.get("stage"),
+            })
+    for ref in record.get("refunds") or []:
+        events.append({
+            "date": ref.get("paid_date"), "kind": "adjustment", "reference": 0,
+            "amount_gbp": ref.get("amount_gbp"), "moves_balance_gbp": -(ref.get("amount_gbp") or 0.0),
+            "detail": "credit balance refunded on closing the account",
+        })
     for pay in record.get("payments") or []:
         ok = pay.get("outcome") == "success"
         amount = pay.get("amount_gbp") or 0.0
@@ -293,6 +333,10 @@ def account_events(record: dict) -> list[dict]:
                 "FAILED -- part paid {:.2f}".format(part) if part else
                 "FAILED -- balance unchanged"),
         })
+    # The balance is the book's on its own date: what is dated after it has not happened yet.
+    as_of = record.get("balance_as_of_date")
+    if as_of:
+        events = [e for e in events if (e["date"] or "") <= as_of]
     events.sort(key=lambda e: (e["date"] or "", _EVENT_ORDER.get(e["kind"], 9),
                                e["reference"] if isinstance(e["reference"], int) else 0))
     balance = 0.0

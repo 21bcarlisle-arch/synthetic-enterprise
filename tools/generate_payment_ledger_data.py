@@ -108,6 +108,15 @@ def build_account_ledger(cust, as_of):
                 "method": None,
                 "description": "Days billed to the %s's deemed account" % inv["deemed_share_to"],
             })
+        # Money the household did pay on a failed collection, whether or not the desk opened a case
+        # for the rest: a level DD part paid with nothing short opens none, and the page dropped it
+        # (OCC-cede70b10116 INV7336, GBP 52.46 received and printed as owed; 4dee9854a4 book).
+        if pay and pay.get("part_paid_gbp") and pay["payment_date"] <= as_of:
+            entries.append({
+                "date": pay["payment_date"], "type": "payment_received", "invoice_number": num,
+                "amount_gbp": round(-pay["part_paid_gbp"], 2), "info_amount_gbp": None,
+                "method": pay["method"], "description": "Part payment received",
+            })
         if arr is None:
             # A bill the account's credit wholly covered asked for nothing, so nothing was received.
             if (pay and pay["outcome"] == "success" and pay["payment_date"] <= as_of
@@ -121,12 +130,6 @@ def build_account_ledger(cust, as_of):
                 })
             continue
         method = pay["method"] if pay else None
-        if pay and pay.get("part_paid_gbp") and pay["payment_date"] <= as_of:
-            entries.append({
-                "date": pay["payment_date"], "type": "payment_received", "invoice_number": num,
-                "amount_gbp": round(-pay["part_paid_gbp"], 2), "info_amount_gbp": None,
-                "method": pay["method"], "description": "Part payment received",
-            })
         for stage in arr["stages"]:
             if stage["date"] > as_of:
                 break
