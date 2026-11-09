@@ -48,6 +48,11 @@ T's odds ratios would make a flag-reading supplier look more right than the evid
 company's inference, which is the unsafe direction (F11). So the transfer is not made silently. It is the first GAP
 (§5, G1).
 
+**Corrected by measurement, 9 Nov (G1 closed):** on a V2-shaped target (cannot save or replace broken goods, or
+cannot meet a £200 unexpected expense: 27.8%), prepayment's precision is **55.2% [53.3, 57.4]** at recall 25.8%,
+odds ratio 4.00. The transfer did not flatter the supplier; it slightly understated prepayment. The worry above was
+the right question and the wrong guess. `v2_shaped_precarity_strengths_and_the_payment_tenure_cells_understanding_society_2026-11-09.md`.
+
 ## 3. What the evidence says the wiring must reproduce
 
 From 6614 wave 14 (weighted, n = 17,389 complete households), against T:
@@ -108,13 +113,15 @@ on a 420-home group in a changing panel. It is recorded as a lead, not wired.
 
 ## 5. What is not known (GAP)
 
-- **G1. V2's own strengths.** The odds ratios of prepayment and renting against V2's construct (unable to absorb an
-  unexpected expense) are not measured. To close it: re-fit on 6614 wave 14 in `~/ukds`, aggregates only, with the
-  predictions filed first.
+- **G1. V2's own strengths. CLOSED 9 Nov.** Prepayment OR 4.00, renting 4.80, on a V2-shaped target at 27.8%
+  (`v2_shaped_precarity_strengths_and_the_payment_tenure_cells_understanding_society_2026-11-09.md`). The world's
+  30% is inside its range, so the fallback (redefine V2 as T) is not needed.
 - **G2. The joint cell table P(state | payment method × tenure).** The 6614 page publishes each flag alone. The six
   cells are not published, and multiplying single-flag odds ratios assumes no interaction, which is not measured.
-  If every cell holds at least 30 unweighted households (not yet checked), the cross-tab can leave `~/ukds` under the depositor's rules.
-  It is the same read as G1.
+  **CLOSED 9 Nov:** the six cells are published (smallest 482 households), by age band too. The flags are
+  sub-multiplicative within renting and super-multiplicative for prepaying owners (35.5% observed, 27.0% from main
+  effects), so the build draws the cells, not multiplied odds ratios. Under F11 its default is the under-65
+  (single-instrument) structure, renormalised to the toggle; the pooled cells are the upper arm.
 - **G3. Occupant age.** The world draws none, so the strongest inverse relation (65+) cannot be expressed. Drawing
   age is its own world build (it touches V1, demand and the PSR), and this page does not license it.
 - **G4. The V1-V2 joint.** It needs a survey with both PSR-type circumstance and financial vulnerability on one
@@ -126,6 +133,10 @@ on a 420-home group in a changing panel. It is recorded as a lead, not wired.
   moved to prepayment for debt, and some prepay *because* they are precarious. The world draws the initial channel
   as a trait, and `simulation/payment_method_dynamics.py` moves households to prepayment for debt later. Conditioning
   V2 on the initial channel captures the cross-section and does not separate the two.
+- **G7. The two deprivation instruments.** Wave 14 asks working-age households about savings and replacing goods
+  (36.2% V) and pensioners about a £200 unexpected expense (7.6%). Pooling them inflates prepayment's odds ratio
+  from 3.24 to 4.00, because pensioners rarely prepay. How much of the age gap is the household and how much is
+  the question is not separable on this file. A wave that asks one item of every age would close it.
 
 ## 6. Done means, for the build that follows (not for this page)
 

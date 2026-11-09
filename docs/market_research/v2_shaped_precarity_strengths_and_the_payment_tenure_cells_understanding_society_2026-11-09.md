@@ -63,4 +63,71 @@ Each verdict will sit beside its prediction. A refuted prediction stays as writt
 
 ## 3. Results
 
-*Pending: this section is written by the commit after the one that files the predictions above.*
+21,385 households carry a positive weight; 21,215 answered one of the two modules (14,306 the adult module, 6,909
+the pensioner module, none both). The flag and cell results use the 19,829 with V, payment method, arrears and one of
+the three tenures (V = 27.7% there). Intervals are 95% from 200 bootstrap replicates resampling PSUs within strata.
+The smallest published cell holds 482 households (pooled) and 43 (by age, below).
+
+| # | Result | Verdict |
+|---|---|---|
+| Q1 | **27.8%** are V (n = 21,215). The adult module 36.2%, the pensioner module 7.6% | **Held** |
+| Q2 | Prepayment's odds ratio on V **4.00 [3.68, 4.37]**, against 3.20 on T | **Refuted**: stronger on V, not weaker. Within the under-65s (one module) it is 3.24, the same as T |
+| Q3 | Renting's odds ratio on V **4.80 [4.46, 5.25]** (under-65s 3.92) | **Held** |
+| Q4 | Prepayment's precision on V **55.2% [53.3%, 57.4%]**, recall 25.8% | **Refuted**: at or above the 53% the transfer produced |
+| Q5 | Prepayment's odds ratio within owners **3.07**, within social renters **2.00**, within private renters 1.61. Owners minus social +1.07 [+0.46, +1.74] | **Held** |
+| Q6 | Smallest cell 482 unweighted households | **Held** |
+| Q7 | AUC of prepayment + arrears on V **0.677 [0.671, 0.686]** (T: 0.680) | **Held** |
+
+**The six cells, P(V | payment × tenure), weighted, all ages.**
+
+| | Owner | Private rent | Social rent |
+|---|---|---|---|
+| **Prepayment** | 35.5% [31.4, 40.0], n = 498, 2.0% of households | 53.3% [48.3, 57.7], n = 482, 3.6% | 61.6% [59.2, 64.3], n = 1,093, 7.3% |
+| **Not prepayment** | 15.2% [14.6, 15.8], n = 14,030, 60.6% | 41.4% [38.9, 44.5], n = 1,966, 14.7% | 44.5% [42.4, 46.6], n = 1,760, 11.8% |
+
+A main-effects model (prepayment, private, social: odds ratios 2.02, 3.69, 4.37) fits four cells to within 5% on the odds
+and private prepayers at 0.84 of them, and misses one: **prepaying owners are 35.5% V, where the main effects predict 27.0%.**
+Multiplying single-flag odds ratios would understate exactly the cell where prepayment tells a supplier the most.
+
+**The same cells by the reference person's age** (each age band answers one module, so the bands are not on one
+instrument and their levels are not comparable with each other):
+
+| | Owner | Private rent | Social rent |
+|---|---|---|---|
+| Under 65, prepayment | 40.7% (n = 378) | 56.8% (n = 439) | 67.2% (n = 870) |
+| Under 65, not | 22.2% (n = 8,473) | 44.6% (n = 1,705) | 57.8% (n = 1,153) |
+| 65+, prepayment | 18.5% (n = 120) | 19.4% (n = 43) | 37.0% (n = 223) |
+| 65+, not | 3.7% (n = 5,553) | 14.7% (n = 261) | 20.1% (n = 607) |
+
+Other flags on V, pooled: behind on bills flags 10.0%, precision 80.1%, recall 29.0%. Renting precision 47.5%,
+recall 64.1%. AUC: renting alone 0.685; prepayment + arrears + tenure 0.742 (T: 0.74). V and T overlap but are not
+one state: half of V is T (P(T | V) = 50.9%), and two thirds of T is V (P(V | T) = 68.0%).
+
+## 4. What this means for the wiring
+
+1. **G1 is closed, and the worry it named is not borne out.** Measured on a V2-shaped construct, prepayment's
+   precision is 55%, not below the 53% that carrying T's odds ratios to a 30% V2 produced. The transfer did not
+   flatter a flag-reading supplier. If anything it understated prepayment. Recall is the same on both constructs
+   (about a quarter), and so is the supplier's two-record AUC (0.68). **A supplier reading prepayment still misses
+   three in four V households.**
+2. **Part of the pooled strength is the instrument, not the household.** Pensioners answer a narrower item (£200
+   unexpected expense), on which 7.6% are V, against 36.2% of working-age households on savings or replacing goods.
+   Pensioners rarely prepay, so pooling inflates prepayment's odds ratio from 3.24 (one instrument) to 4.00. Some of
+   that age gradient is real (T, one instrument for all ages, puts the 65+ at 0.43 of the rest's rate). How much is
+   not separable on this file. **This is the new GAP (G7 on the wiring page).**
+3. **The world draws no age (G3), so it can only take the pooled cells or a single-instrument version of them.**
+   Under F11 the build's default should be the weaker one: the under-65 cells' odds-ratio structure (prepayment
+   within tenure 2.4 / 1.6 / 1.5, tenure 2.8 to 4.8 without prepayment), renormalised so the population share equals
+   the toggle. The pooled cells are the upper arm. Both are on this page, so the choice is the build's and can be
+   reversed in one line.
+4. **The cells must be drawn as cells, not as multiplied odds ratios (G2 closed).** The flags are sub-multiplicative
+   within renting and super-multiplicative for prepaying owners. Six cells cost nothing more to carry than two odds
+   ratios.
+5. **The world's 30% is consistent with this construct.** V is 27.8% here, inside the toggle's 26-32% range. The
+   fallback the wiring page held in reserve (redefine V2 as T at 20.7%) is not needed.
+6. **The build's acceptance band moves very little.** The two-record AUC on V (0.677) is the same as on T (0.680),
+   and with tenure 0.742 (T: 0.74). The wiring page's §6 band stands.
+
+**Not established here.** Whether the pensioner module's item and the adult module's items pick out the same
+households at the same ages (G7). Energy-specific arrears (G5). The cells for Scotland, Wales and Northern Ireland
+separately (the cells are UK-weighted).
