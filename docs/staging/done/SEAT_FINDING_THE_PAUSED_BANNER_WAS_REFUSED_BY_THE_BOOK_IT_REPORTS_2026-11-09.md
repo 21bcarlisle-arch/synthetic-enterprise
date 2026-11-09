@@ -182,3 +182,32 @@ Predictions 1–4 are graded (all hold). Archived to `done/`.
 line read at 08:35Z: `written_at 2026-11-09T07:58:07Z`, `paused` since 2026-11-08T20:48:26Z (stamp
 preserved), git=298149a1fc, two rules, `paused_gate` 603 characters ending ".". The banner is one
 refusal current again. It got there through the reconciler, not through the cycle's own push.
+
+## Decision, 9 Nov (delivery item `banner-push-races-origin`): no re-gate on a refused push
+
+The question was whether a banner whose push is refused should re-gate on a fresh origin base
+instead of leaving the commit on the shared tree for `reconcile_watch`. **No.** Three readings:
+
+- **The re-gate competes with the reconciler for the same window.** `reconcile-watch-log.md` at
+  08:03 and 08:08 shows `GATE_RUNNING`: the reconciler stands aside while the publisher holds its
+  run lock. A second 672 s gate inside the publisher would hold that lock for another 11 minutes,
+  and so delay the mechanism that already closes this fork every five minutes.
+- **It races the same arrival rate.** The loss on the push came from worktree commits reaching
+  origin during the gate. A re-gate is exposed to the same rate, with the same ~0.35 loss reading
+  above. When it loses, the stacked commit still needs the reconciler.
+- **Its one extra case is a red on origin.** The reconciler failed at 08:13 and 08:18 on a red that
+  `81baa1fc9` put on origin, and that red blocks every lane until it is fixed. I have not checked
+  whether a commit that stages only the banner would have tripped the landed-manifest check.
+  At most, the re-gate saves the minutes until such a red is cured, at the price of the first point.
+
+Measured on the new route: 1 refused push in 3 red cycles. That banner reached origin about 16
+minutes after the refusal, 15 of them spent on the origin red.
+
+Changed: the push-refusal log line no longer says "retry next cycle". When origin has forked, the
+next cycle refuses `BEHIND_ORIGIN` before it stages anything, so the commit is not retried there.
+The line now names the reconciler as the carrier for a fork, and the next landing's push for a
+tree that is only ahead. The reasoning sits beside that exit in `_commit_and_push_paths`.
+
+**Reopen if:** the reconciler's `GATE_RUNNING` or red time comes to dominate a banner's time to
+origin across several refused pushes. That would show the reconciler is the bottleneck, and these
+three readings do not.

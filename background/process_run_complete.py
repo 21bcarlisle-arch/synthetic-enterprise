@@ -9062,8 +9062,17 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
         # `liveness_surface_refusal` a latch: see `_record_liveness_surface_publish`.
         _record_liveness_surface_publish(label, local_head or git_hash)
         return True
-    log("{} push did NOT advance origin (rc={}, origin={}, head={}) -- retry next cycle.".format(
-        label, push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
+    # NO RE-GATE ON A FRESH ORIGIN BASE HERE (decided 9 Nov, banner-push-races-origin). The gate
+    # won the local HEAD race and lost the push to commits that reached origin from linked
+    # worktrees. The commit stays on this tree, and `reconcile_watch` owns that fork on a
+    # five-minute cadence. A second 672s gate here would hold the run lock the reconciler waits
+    # on (it logs GATE_RUNNING and stands aside), and would race the same arrival rate for the
+    # same ~0.35 loss. Its only extra case is a red the reconciler hits, which is a red on origin
+    # and blocks every lane until fixed. Measured: 1 lost push in 3 cycles on this route; the
+    # banner reached origin 16 min later via the reconciler, 15 of them spent on that red.
+    log("{} push did NOT advance origin (rc={}, origin={}, head={}) -- the commit stays on this "
+        "tree; reconcile_watch carries it if origin forked, the next landing's push if not.".format(
+            label, push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
     # THE FOURTH EXIT, and the last one in this function that refused in the log alone. The
     # commit EXISTS here and origin does not have it, which is the one refusal shape that leaves
     # the tree changed -- so it is the one a reader most needs to find in the record.
