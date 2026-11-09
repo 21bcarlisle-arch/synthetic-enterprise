@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-11-02T20:23:26Z",
+    "checked_at": "2026-11-03T02:57:47Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,7 +9,7 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 22
+    "open_findings": 27
   },
   "figures_caveat": null,
   "last_verified": {
@@ -24,8 +24,9 @@
     "run_retained": true,
     "verified_at": "2026-11-03T02:24:29Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_gate": "Refused by the domain-invariant check: 3 of its rules are broken and no dated exception covers them. The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date [INV_OVERDUE_WITHIN_BALANCE]: broken on 57 of 1,630 checked (unit: collections journey opening); Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 241 of 7,857 checked (unit: household collections step printing an overdue figure); A level (fixed) direct debit is collected at a set monthly amount whatever that month's bill is, and at least about 70% of GB direct-debit households pay one [INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE]: broken on 1 of 1 checked (unit: book: its successful DD collections,",
+  "paused_reason": "domain-invariant breaches at git=b9ad453df0 that no exception covers: INV_OVERDUE_WITHIN_BALANCE 57 (no exception); INV_OVERDUE_WITHIN_PAGE_BALANCE 241 (no exception); INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE 1 (no exception)",
+  "paused_since": "2026-11-08T20:48:26Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-11-03T02:24:29Z",
@@ -39,6 +40,6 @@
     "run_retained": true,
     "verified_at": "2026-11-03T02:24:29Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-11-03T02:24:29Z"
+  "verification_state": "paused",
+  "written_at": "2026-11-09T05:42:36Z"
 }
