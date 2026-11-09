@@ -442,8 +442,8 @@ def build_dd_balance_book(
       figure is an exposure, not a loss: ``barred_if_sought_at_run_end_gbp``.
 
     SLC 27.8D AT THE SAME ACTIONS, when ``offsets_dual_fuel_legs`` (the company's
-    ``DecisionPolicy.dd_review_offsets_dual_fuel_legs``; off by default, and then nothing below
-    runs). From 22 Jan 2021 a dual household may set its credit on one fuel against its debt on the
+    ``DecisionPolicy.dd_review_offsets_dual_fuel_legs``; on for every standing policy since
+    3d518bdefc. Off, nothing below runs). From 22 Jan 2021 a dual household may set its credit on one fuel against its debt on the
     other. At a review that seeks a leg's debit, and at a closed leg's final bill, the bar is taken
     first; the company then offers the household's credit on its other leg against what remains
     (``dual_fuel_offset``), and only the rest is sought. A review leg covered in full is not stepped

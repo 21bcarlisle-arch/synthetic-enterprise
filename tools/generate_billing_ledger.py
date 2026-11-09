@@ -1040,7 +1040,9 @@ def generate(run_json_path=None, out_path=None):
         # What is still owed on THIS invoice: its case's arrears_gbp, the one figure the household
         # balance also nets credit from -- never the face, which a part-credited bill no longer owes.
         inv["outstanding_gbp"] = 0.0
-        if outcome in ("failed", "dispute"):
+        # Keyed on the CASE, not the engine's outcome: a level return the desk found nothing short
+        # on opens none, and `arr` would be the last bill's (another household's) case.
+        if outcome_case in ("failed", "dispute"):
             # Credit bills and the household's own repayments both net the case, but only a
             # repayment is money in, so the two are kept apart.
             repaid = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "repayment"), 2)

@@ -476,8 +476,9 @@ def theft_screen_request(policy, phase2b_result: dict) -> tuple[list | None, dic
 
 def dual_fuel_offset_request(policy) -> bool:
     """Whether the DD book sets a dual household's credit on one fuel against its debt on the other,
-    by the company switch. Off (`DecisionPolicy.dd_review_offsets_dual_fuel_legs`, the default)
-    builds the book exactly as before."""
+    by the company switch (`DecisionPolicy.dd_review_offsets_dual_fuel_legs`), on for every standing
+    policy since 3d518bdefc. Off builds the book exactly as before. On, phase 4c hands the page the
+    post-loop rebuild, not the schedule phase 2b collected (`level_dd_schedule_from_the_loop`)."""
     from simulation.run_phase2b import CURRENT_POLICY
 
     return bool((policy or CURRENT_POLICY).dd_review_offsets_dual_fuel_legs)

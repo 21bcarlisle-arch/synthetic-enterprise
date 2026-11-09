@@ -379,3 +379,60 @@ this code.
 - The BSCP504 rows in `records/WORKER_PREREG_THE_BSCP504_CEILING_ON_THE_NEXT_FRESH_BOOK_2026-11-07.md`.
 - **Added now:** level-DD returns are counted per collection, dated on the collection day, at the level amount.
   I cannot yet say whether their total moves up or down.
+
+## The e50e7b8f68 book, the first carrying step 2b, graded (worker, 8 Nov 2026 ~23:50 GMT)
+
+`run_output_e50e7b8f68_20261108T220440Z.json` (finished 23:40Z; a3136e29fa is an ancestor). Graded at origin
+342599376c, which has no commit after the book that touches the ledger, the runner or the world. The grade used
+`/var/tmp/b3ce-grade-scripts/` (ledger.py, then grade.py), and the level legs used `/var/tmp/grade-e50e/level_legs.py`.
+Scratch: `/var/tmp/grade-e50e/`.
+
+**First, the ledger could not be built.** `tools/generate_billing_ledger.py` raised `UnboundLocalError: arr` on
+this book. Step 2b's page part sets `outcome_case = None` when the desk finds nothing short on the day after a level
+return. The block that finishes a case was still keyed on the engine's raw `outcome`, so it called `arr.update`
+on whatever case the loop last held. On the first such bill in a book that is a crash. Later in a book it rewrites the
+previous bill's case, possibly another household's, with this bill's face. This commit fixes it: the block is now keyed on
+`outcome_case`. The control is `tests/tools/test_a_level_return_with_nothing_short_opens_no_case_and_touches_no_other.py`.
+It is red on a3136e29fa: the previous household's case took a face of 120 instead of 100, and the in-credit bill showed that
+case's 100 as outstanding. A third leg is the partition control: a return that the desk found short still opens its case, at the desk's
+figure. The publisher's 23:44 ledger was built from the shared tree with this fix in it, uncommitted. That ledger
+matches mine case for case: 1,510 cases and 53,921 invoices, with no differences.
+
+**The pre-registration, graded:**
+
+| Filed prediction | Read | Held? |
+|---|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE 1,724 → 0 | **80** of 6,076 steps (5 of 5 examples on level households) | **no** |
+| INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE stays 0 | **194** of 1,139 (5 of 5 examples on non-level DD) | **no** (cause below, not step 2b) |
+| Level-leg journeys open only the day after a level return | **159 of 655** on 741 all-level accounts | **no** |
+| Level-leg journeys ≤ level returns | 655 vs 484; **105** accounts have more journeys than returns | **no** |
+| INV_BILLED_EX_VAT ≤ 1 (filed 7 Nov for the first book after 8b6316995) | **0** | **yes** |
+| Increment-1 reconcile, `differ` ≤ 2% | not computed: `level_dd_schedule_reconcile` reads `{"source": "post_loop_rebuild", "why": "dual-fuel offsets on: the loop does not ask them"}` | cannot tell |
+| Page-balance cure reader 0–3; non-level byte-identical | not run. Three commits between 84f7fc8fe0 and this book move non-level DD (75f66f6521 among them), so byte-identity cannot isolate step 2b | cannot tell |
+
+New and unexcepted: **INV_OVERDUE_WITHIN_BALANCE 71**. In 4 of its 5 examples a level household's journey opens the day
+after a level return while the page balance shows nothing overdue. Verdict: **345 unexcepted breaches on 3 rows; the
+publish is refused.**
+
+**Why the level legs fail: the world and the page run two different schedules.** `DecisionPolicy.dd_review_offsets_dual_fuel_legs`
+has been True for every standing policy since 3d518bdefc. Three docstrings still said "off by default", step 2b's commit
+repeated that, and this commit corrects two of the docstrings. With offsets on, `level_dd_schedule_from_the_loop` hands
+the page the **post-loop rebuild** (which carries the offsets). Phase 2b presents the world and the desk with
+`InLoopLevelCollection`'s rows, which do not carry them. Example: PROS-2016-0207's page collects 20.07 on the 5th and
+every collection succeeds. The desk opens on 13 Mar 2018 at 21.30, on its own schedule. The in-loop schedule is not
+saved in the run output (`level_dd_collected_in_loop` stays in the phase 2b result), so I cannot yet say how many of
+the 80 and the 71 are this split rather than something else. **Prediction:** with one schedule for world, desk and page,
+INV_OVERDUE_WITHIN_PAGE_BALANCE and INV_OVERDUE_WITHIN_BALANCE fall to at most 5 on level households, and J1 holds on at least 95% of
+openings.
+
+**INV_PAYMENT_RECORD's 194 is a different defect, and a candidate is in hand.** C1's bill fell due on Sunday 8 May 2016,
+and its DD was collected on Monday 9 May, the next Bacs processing day (75f66f6521). `payment_record` counts that as
+"missed DD without a return". A collection on the next working day after a non-business due date is on time. Of
+OCC-17ff099218d5's 50 payments, 9 are dated after their due date. I have not checked that all 194 are this case.
+
+**Recommended next, one variable each:**
+1. Make the schedule one schedule. Either phase 2b asks the book with the offsets, or phase 4c hands the page the
+   loop's schedule whatever the offsets switch says. Save `level_dd_collected_in_loop` in the run output, so that the reconcile
+   is computed and not skipped.
+2. `generate_explore_cast.payment_record` (and any desk reading of due dates) reads a DD collected on the first
+   Bacs processing day on or after its due date as on time. Count the 194 under that rule before building it.
