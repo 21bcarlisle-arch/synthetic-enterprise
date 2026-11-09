@@ -435,17 +435,22 @@ def generate(run_json_path=None, out_path=None):
     # A returned level collection is owed as the desk figures it, the shortfall against the
     # schedule capped at the debit balance (`arrears_engine.level_shortfall`), not as the bill's
     # face: the desk's own journey stage on the day it counts as missed carries that figure.
-    desk_overdue_on: dict[tuple[str, str], float] = {}
-    for j in data.get("collections_journeys") or []:
+    # The figure is the ACCOUNT's, so a two-fuel account's legs share it: each journey remembers
+    # what each leg's case already took, and a leg's case carries only what the journey's figure
+    # rises by over the other leg's (SYN-2016-487 printed one 3.07 shortfall on both legs).
+    desk_overdue_on: dict[tuple[str, str], tuple[int, float]] = {}
+    for n_journey, j in enumerate(data.get("collections_journeys") or []):
         acct = str(j.get("account_id")).removeprefix("ACC-")
         for st in j.get("stages") or ():
             if st.get("overdue_gbp") is not None and st.get("on"):
-                desk_overdue_on[(acct, st["on"])] = float(st["overdue_gbp"])
+                desk_overdue_on[(acct, st["on"])] = (n_journey, float(st["overdue_gbp"]))
+    taken_in_journey: dict[int, dict[str, float]] = {}
 
     for bill in sorted(bills, key=lambda b: (b["customer_id"], b["period_end"])):
         cid = bill["customer_id"]
         segment = bill.get("segment", "resi")
         level_missed_on = None
+        level_gross = None
         segment_by_cid.setdefault(cid, segment)
         amount = bill["total_amount_gbp"]
         period_end = bill["period_end"]
@@ -983,11 +988,19 @@ def generate(run_json_path=None, out_path=None):
         if outcome == "failed" and level_missed_on is not None:
             # No desk figure that day: the return left nothing short of the schedule (an account in
             # credit), or a journey already open carries the debt. Either way no new case opens.
-            shortfall = desk_overdue_on.get((billing_account_of(cid), level_missed_on.isoformat()))
-            if not shortfall:
+            n_journey, figure = desk_overdue_on.get(
+                (billing_account_of(cid), level_missed_on.isoformat()), (None, 0.0))
+            taken = taken_in_journey.setdefault(n_journey, {})
+            shortfall = round(figure - sum(v for leg, v in taken.items() if leg != cid), 2)
+            if shortfall <= 0:
                 outcome_case = None
             else:
-                amount, due_date, outcome_case = round(shortfall, 2), level_missed_on, "failed"
+                taken[cid] = max(taken.get(cid, 0.0), shortfall)
+                # Owed is the desk's figure less what this case's own record shows met it: a
+                # case printing ARREARS_REPAID 25.70 over a 3.07 shortfall is not 3.07 owed.
+                level_gross = shortfall
+                amount = max(round(shortfall - sum(c["amount_gbp"] for c in credits), 2), 0.0) + 0.0
+                due_date, outcome_case = level_missed_on, "failed"
         else:
             outcome_case = outcome
         if outcome_case == "failed":
@@ -1051,10 +1064,18 @@ def generate(run_json_path=None, out_path=None):
             # Credit bills and the household's own repayments both net the case, but only a
             # repayment is money in, so the two are kept apart.
             repaid = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "repayment"), 2)
+            owed_before = asked - part_paid
+            credit_applied = owed_before - amount - repaid
+            if level_gross is not None:
+                # The repayment was matched to the bill's face, so it can exceed the desk's case;
+                # of what met the case, credit is only the part the repayment did not.
+                owed_before = level_gross
+                met = owed_before - amount
+                credit_applied = met - min(repaid, met)
             arr.update(face_gbp=round(face, 2),
-                       credit_applied_gbp=round(asked - part_paid - amount - repaid, 2),
+                       credit_applied_gbp=round(credit_applied, 2),
                        repaid_gbp=repaid,
-                       stages=_with_credits_applied(arr["stages"], asked - part_paid, credits))
+                       stages=_with_credits_applied(arr["stages"], owed_before, credits))
             inv["outstanding_gbp"] = arr["arrears_gbp"]
             inv["credit_applied_gbp"] = arr["credit_applied_gbp"]
             if credits and amount == 0:

@@ -618,3 +618,67 @@ I cannot yet say whether it does. That is the question after the mechanism.
   mechanism needs C7's in-run `ledger_book.ledger("C7").events()`, which no run json carries.
 
 NEXT: build the shape-A page fix in tools/generate_billing_ledger.py, then name C7's GBP 18.12 from an in-run ledger dump.
+
+## The shape-A page fix, built and graded on the 4dee9854a4 book (seat executor, 9 Nov 2026 ~19:30 GMT)
+
+**What changed.** The level-return branch of `tools/generate_billing_ledger.py`, as filed in "The 45 left-level holds":
+1. A case now owes `max(0, desk figure - repaid - credit)`, counting this case's own repayments and credits.
+   `credit_applied_gbp` on a level case is now only the credit the repayment did not cover. It is never negative.
+2. The desk's figure belongs to the account, so the two legs share it within one journey. A leg's case carries only
+   what the journey's figure rose by over the other leg's case.
+
+The control is `tests/tools/test_a_level_return_case_is_owed_net_of_its_own_repayment_and_on_one_leg.py`. Its partition
+leg asserts three outcomes: a level case still owed, a level case repaid, and no case opened. Mutations that fire:
+- HEAD's branch: 4 of 5 tests fail;
+- no netting: 2 fail;
+- no one-leg rule: 3 fail;
+- HEAD's credit formula: 1 fails.
+
+The ledger tests (38 files, 378 passed) are green.
+
+**The grade.** I re-generated the 4dee9854a4 book's page with the fix (`/var/tmp/shapea-arm/`, `grade.py`). The
+control is `/var/tmp/grade-ondd/ledger.json`. One book and one change, so the movement is attributable.
+
+| Prediction (filed before the build) | Result | Graded |
+|---|---|---|
+| A1 reads 0 | 82 cases (GBP 3,172.11) now print 0 | **held** |
+| The 33 shape-A-only holds read 0 | left-level holds over an unpaid invoice fall from 46 on 9 accounts to **18 on 6**. The 12 named on-receipt holds remain: PROS-2018-0016 13762 (10 holds) and SYN-2016-217g 33999 (2 holds). That leaves 6 on 4 accounts (below) | **mostly held, 6 short** |
+| A2's printed total falls by at least its recorded repayments | GBP 13,654.07 falls to 6,811.32. The fall is 6,842.75, against repayments of 5,025.47 | **held** |
+| No invoice outside shape A changes its outstanding amount | **8 move**, by GBP −245.16 | **FELL** |
+| SYN-2016-487 | 46965 and 47070 both print 0 | held |
+
+- Total outstanding on the page falls from GBP 27,646.75 to 17,386.73.
+- count_a.py now reads 0, but that is by construction: its tell, a negative `credit_applied`, can no longer occur. The
+  reading is not evidence that shape A has gone. The rows above are the evidence.
+
+**Why the "outside shape A" leg fell.** It is the same defect, outside count_a's tell. All 8 are level-return cases
+whose bill face was large enough to keep the old `credit_applied` positive, so the tell missed them. Example:
+PROS-2019-0261g 16339 records repaid 53.48 against a case of 53.48, and it printed 53.48 owed. None of the 8 moved
+because of the one-leg rule. That rule removed 16 duplicate cases, all on gas legs and all inside shape A. So the
+filed partition, which defined shape A through the tell, was narrower than the defect.
+
+**The residual, not fixed here: a case can exceed its own bill.** Inside one journey, the desk's figure is the running
+total, so it can include shortfalls from earlier months. A bill repaid in full can therefore still print what
+earlier months left unpaid. PROS-2019-0246 16165 has face 60.48, repaid 60.48, and still prints 269.94.
+- On the arm, **84 level cases on 58 accounts print GBP 5,871.65 more than their own bill's remainder** (face less
+  repaid and credit).
+- These cases are the 6 left-level holds above:
+  - PROS-2019-0246 (3);
+  - SYN-2016-253g (1);
+  - SYN-2016-360 (1);
+  - SYN-2016-536 (1).
+- The obvious fix caps a level case at its bill's remainder. That loses debt only where an earlier miss in the same
+  journey opened no case of its own, and I have not measured how often that happens. So it is its own change, on
+  its own book.
+- **Prediction for it, filed now:**
+  - the 84 cases read 0 above remainder;
+  - the 6 residual holds read 0;
+  - the 12 on-receipt holds are unchanged;
+  - the page's total outstanding falls by no more than GBP 5,871.65.
+
+**Also moved, and not explained here.** "Every invoice paid, page in debit at run end" in compose.txt rises from 193
+to 209 accounts. That is expected in kind: the per-invoice figures no longer carry the cases that had stood in for
+the balance. It means the page's account balance and its invoices still disagree on those 16 accounts. That is
+the C7 class (a desk ledger heavier than the page), now visible on 16 more accounts. It is not a new defect.
+
+NEXT: cap a level case at its own bill's remainder, after measuring how often an earlier in-journey miss opened no case.
