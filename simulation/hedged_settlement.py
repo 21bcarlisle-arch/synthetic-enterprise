@@ -47,6 +47,7 @@ from simulation.policy_costs import (
     get_cfd_levy_per_mwh,
     get_cm_levy_per_mwh,
     get_electricity_network_cost_per_mwh,
+    get_electricity_network_fixed_per_day,
     get_electricity_standing_charge_per_day,
     get_fit_levy_per_mwh,
     get_mutualization_levy_per_mwh,
@@ -154,8 +155,9 @@ def run_hedged_term(
         including domestic (no exemption); highly variable £0.5–7.3/MWh by year
       fit_levy_gbp = Feed-in Tariff levelisation levy (Phase 31a) — applies to all
         segments (no domestic exemption); rising trend £4.1–8.5/MWh 2016–2024
-      network_cost_gbp = DUoS + TNUoS for resi/SME; DUoS only for I&C
-        (Phase 29a — I&C Triad TNUoS tracked separately in triad.py)
+      network_cost_gbp = resi: the cap's per-kWh network allowance on volume plus its
+        nil-consumption share per supply point per day / 48 (W3_3); SME: DUoS + TNUoS on
+        volume; I&C: DUoS only (Triad TNUoS tracked separately in triad.py)
       net_margin_gbp = margin_gbp - policy_cost_gbp - network_cost_gbp - capital_cost_gbp
 
     settled_shape, when given, is the shape the home was SETTLED on (its registered profile) where
@@ -231,9 +233,11 @@ def run_hedged_term(
             fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
             # Phase 54: SoLR mutualization levy (2021-2022 supplier failure recovery)
             mutualization_levy = get_mutualization_levy_per_mwh(date_str) * consumption_mwh
-            # Phase 29a: network charges. Resi/SME: DUoS + TNUoS unit rate.
-            # I&C: DUoS only (Triad TNUoS is an annual lump, tracked in triad.py).
-            network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            # Network: the per-kWh allowance on volume plus, for a domestic supply point, the cap's
+            # nil-consumption share per day, prorated like the standing charge that recovers it
+            # (W3_3). I&C: DUoS only (Triad TNUoS is an annual lump, tracked in triad.py).
+            network_unit = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            network_cost = network_unit + get_electricity_network_fixed_per_day(date_str, segment) / 48.0
             # Phase 62: standing charge -- fixed daily charge prorated across 48 periods.
             # Only resi/SME; I&C uses capacity-based tariffs via BSC settlement (SC=0).
             sc_per_period = get_electricity_standing_charge_per_day(date_str, segment) / 48.0
@@ -245,7 +249,8 @@ def run_hedged_term(
             # actual costs accrues to the company (policy cost risk).
             policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
             if pass_through:
-                revenue_gbp = settled["revenue_gbp"] + policy_total + network_cost + sc_per_period
+                # The per-kWh network passes through; the fixed share is the standing charge's.
+                revenue_gbp = settled["revenue_gbp"] + policy_total + network_unit + sc_per_period
                 margin_gbp = revenue_gbp - settled["wholesale_cost_gbp"]
             else:
                 revenue_gbp = settled["revenue_gbp"] + sc_per_period
@@ -434,7 +439,10 @@ def run_deemed_term(
             fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
             # Phase 54: SoLR mutualization levy
             mutualization_levy = get_mutualization_levy_per_mwh(date_str) * consumption_mwh
-            network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            # W3_3: the fixed network share is a cost per supply point per day whatever the
+            # tariff. NOTE this writer books no standing-charge revenue (finding filed 2026-11-09).
+            network_unit = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            network_cost = network_unit + get_electricity_network_fixed_per_day(date_str, segment) / 48.0
             policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
 
             records.append({
@@ -573,14 +581,17 @@ def run_flex_term(
             fit_levy = get_fit_levy_per_mwh(date_str) * consumption_mwh
             # Phase 54: SoLR mutualization levy
             mutualization_levy = get_mutualization_levy_per_mwh(date_str) * consumption_mwh
-            network_cost = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            # W3_3: the fixed network share is a cost per supply point per day whatever the
+            # tariff. NOTE this writer books no standing-charge revenue (finding filed 2026-11-09).
+            network_unit = get_electricity_network_cost_per_mwh(date_str, segment) * consumption_mwh
+            network_cost = network_unit + get_electricity_network_fixed_per_day(date_str, segment) / 48.0
             policy_total = ro_levy + cfd_levy + ccl + cm_levy + fit_levy + mutualization_levy
 
             # Phase 61: policy and network are passed through to customer (same as pass-through
             # tariffs in run_hedged_term). Revenue includes policy+network so they cancel in net.
             # Supplier earns only the flex markup; no policy cost risk accrues.
             wholesale_cost_gbp = ref_price * consumption_mwh
-            revenue_gbp = (ref_price + flex_markup_per_mwh) * consumption_mwh + policy_total + network_cost
+            revenue_gbp = (ref_price + flex_markup_per_mwh) * consumption_mwh + policy_total + network_unit
             margin_gbp = revenue_gbp - wholesale_cost_gbp  # markup + policy + network recovery
             effective_unit_rate = (
                 (revenue_gbp / consumption_mwh) if consumption_mwh > 0

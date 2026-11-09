@@ -342,6 +342,58 @@ If the simulation models variable consumption customers, note:
 - Total including locational (1.079 p/kWh Zone 14 × ~560 peak kWh) ≈ £6 + £106 = £112/yr
   = £36/MWh for high consumption vs £60/MWh for low consumption
 
+### 7d. The cap splits network cost into a per-kWh part and a per-day part (K8 for W3_3, 2026-11-09)
+
+**What the rules and the published model say.** Ofgem's default tariff cap level model builds every
+cost component twice: once at the benchmark consumption and once at nil consumption. The nil
+column *is* the standing charge; the per-kWh allowance is (benchmark − nil) / benchmark kWh. The
+network row (`NC`: DUoS, TNUoS, BSUoS and the network-side items) is split that way like every
+other row. Read 2026-11-09 off `Default-tariff-cap-level-v1.31.xlsx`, sheets
+`ElecSingle_Other_Benchmark` and `ElecSingle_Other_Nil` (direct debit, single-rate), median over
+the sheet's 15 Total rows (14 regions plus GB average, the same population as
+`ofgem_cap_standing_charges.json`):
+
+| Cap periods from | NC nil, £/yr (regional range) | NC per-kWh, p/kWh (range) | Benchmark kWh |
+|---|---|---|---|
+| Apr 2016 | 19.38 (10.6–25.7) | 3.91–3.93 | 3,100 |
+| Apr 2017 – Mar 2019 | 16.17–16.43 | 3.67–3.77 | 3,100 |
+| Apr 2019 – Mar 2022 | 16.54–17.37 (11.3–26.0) | 3.78–4.20 | 3,100 |
+| **Apr 2022** | **92.02 (39.6–105.7)** | 3.75–3.92 | 3,100 |
+| **Apr 2023** | **106.06 (53.0–133.2)** | 4.04–4.25 | 3,100 |
+| Apr 2024 | 129.35 (53.8–158.0) | 2.91–3.37 | 3,100 |
+| Apr 2025 | 92.84 (67.1–147.4) | 3.84–4.44 | 3,100 / 2,700 from Jan 2026 |
+| Apr 2026 | 124.20 (81.2–167.0) | 4.28–4.42 | 2,700 / 2,500 from Jul 2026 |
+
+The two steps are the Targeted Charging Review: the **DUoS** residual moved to fixed charges per
+supply point on 1 April 2022, and the **TNUoS** residual on 1 April 2023. Before 2022 the fixed
+network share was about £17 a year; after, £92–129. **The per-kWh part never rose with it**: it
+stays at 2.9–4.4 p/kWh across the whole series.
+
+**What this repository did, and why it was wrong.** `_NETWORK_COST_RESI_SME_BY_YEAR` is the
+whole NC benchmark allowance ÷ 3.1 MWh (£69/MWh in 2024/25) and settlement charged it on volume.
+At exactly 3,100 kWh that is the right annual total. At any other consumption it is wrong, and
+after April 2022 it is wrong by a lot: a 1,500 kWh home was charged about £104 where the cap's
+construction says £176; an 8,000 kWh home about £552 where it says £378 (Apr–Jun 2024). The world's
+standing charge, meanwhile, is the cap's whole nil column, which already includes the network
+nil; so the supplier collected the fixed network share per day and was charged it again per kWh.
+
+**Design (W3_3).** For domestic electricity, settlement charges the NC per-kWh allowance on
+metered volume and the NC nil allowance per supply point per day (÷ 365 per day, spread over the
+day's half-hours like the standing charge). Per cap period, not per Apr–Mar year, because that is
+the grain the model publishes; the world has no regions, so the 15-row median, as the standing
+charge does. Pass-through tariffs pass the per-kWh part only; the fixed part is recovered by the
+standing charge, exactly as the cap recovers it. Every price-floor caller of
+`get_electricity_network_cost_per_mwh` (the renewal lock, the rival cost floor) receives the
+per-kWh part, which is the variable cost a unit rate must cover.
+
+**GAP, not modelled.** (1) **Non-domestic.** The cap is a domestic model; SME residual charges are
+banded by agreed capacity or consumption and no band table is in the commons. SME stays on the
+per-MWh table, labelled. (2) **Gas is not a gap.** In v1.31 the `Gas_Other_Nil` sheet carries no
+`NC` value (GB average, April 2024: benchmark £170.80, nil blank), so the cap puts gas network
+cost wholly on the unit rate, and `get_gas_network_cost_per_mwh` stays per-kWh, as it was. (3) **Regions.** One national median; the regional range above is wide (2–3x on the nil).
+(4) **Banding.** Real residual charges are banded by consumption; the cap's nil allowance is one
+figure per region, and this follows the cap.
+
 ---
 
 ## 8. Data Sources
