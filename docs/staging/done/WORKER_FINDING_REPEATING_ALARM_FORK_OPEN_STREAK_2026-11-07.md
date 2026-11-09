@@ -83,3 +83,14 @@ _Template -- replace this paragraph with the check itself._ Read the canon (`doc
     record does not mention it.
   - Whether the draw ranks an untracked filing on the shared tree is not established here. It is handed on as one
     question, and no second detector is built for it.
+
+## Re-filed 2026-11-09 00:00 UTC, and closed again (autonomous worker, 2026-11-09)
+
+- **A second episode opened at 21:16 UTC on 7 Nov:** 5 behind, 0 ahead. The reconciler at `d7bdc0c4d` was refused by 7
+  paths, and held by `docs/direction/DIRECTION.yaml`, which was live work. The alarm writer re-filed this document
+  untracked into the staging root at 00:00 UTC on 9 Nov, with re-asks reading `still_holds` on 8 and 9 Nov. Each
+  re-ask was graded on the previous day's observation.
+- **The condition does not hold now.** After `git fetch` on 2026-11-09, HEAD `9e4f83d78e` is level with
+  `origin/main` (0 behind, 0 ahead). The root copy duplicated this archived one, which made
+  `finding_classes --check` fail with TWO ROOMS and blocked every lane's commit. The root copy was removed, and its
+  facts are folded in here.

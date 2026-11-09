@@ -4767,8 +4767,11 @@ def _domain_invariant_gate_permits_publish(git_hash, *, ledger_path=None, regist
     from tools import domain_invariant_runner as runner
     if ledger_path is None:
         from tools.generate_billing_ledger import OUT_PATH as ledger_path
-    register_path = register_path or runner.EXCEPTIONS_PATH
     try:
+        # Inside the try: a stale runner is refused AT ITS FIRST ATTRIBUTE, and outside it that
+        # refusal crashed the publisher with a bare rc=1 the wedge recorder could only call
+        # `unattributed` -- ten failures, 8-9 Nov, before anyone read the traceback.
+        register_path = register_path or runner.EXCEPTIONS_PATH
         register = runner.load_exceptions(register_path)
     except Exception as exc:  # noqa: BLE001 -- the register is what licenses report-only
         register = {"enforce": True}

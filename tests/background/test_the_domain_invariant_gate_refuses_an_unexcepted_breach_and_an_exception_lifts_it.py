@@ -130,3 +130,22 @@ def test_the_publisher_refuses_on_the_gate_before_its_suite_runs():
     refusing = [n for n in ast.walk(fn) if isinstance(n, ast.If) and gate_line < n.lineno < suite_line
                 and any(isinstance(b, ast.Return) for b in n.body)]
     assert refusing, "the gate's verdict is computed and nothing returns on it"
+
+
+def test_a_refused_stale_runner_is_a_named_refusal_not_a_crash(tmp_path, monkeypatch):
+    """Defect: the gate read `runner.EXCEPTIONS_PATH` outside its try, so the publisher's
+    stale-producer stand-in (every attribute raises) crashed `_process` with a bare rc=1 that the
+    wedge recorder filed as an unattributed test regression -- ten failures on 8-9 Nov. A refused
+    runner must come back as a refusal that names the staleness."""
+    import sys
+
+    from tools import stale_copy_refusal
+    monkeypatch.setattr(prc, "log", lambda msg: None)
+    monkeypatch.setattr(prc, "DOMAIN_INVARIANT_TABLE", tmp_path / "DOMAIN_INVARIANTS.md")
+    stand_in = prc._RefusedProducer("tools.domain_invariant_runner", "planted stale copy")
+    monkeypatch.setitem(sys.modules, "tools.domain_invariant_runner", stand_in)
+    monkeypatch.setattr(sys.modules["tools"], "domain_invariant_runner", stand_in, raising=False)
+    ok, reason = prc._domain_invariant_gate_permits_publish(
+        "abc", ledger_path=tmp_path / "unused.json")
+    assert not ok and stale_copy_refusal.StaleProducer.__name__ in reason \
+        and "planted stale copy" in reason, reason
