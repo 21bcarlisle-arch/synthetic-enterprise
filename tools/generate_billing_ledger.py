@@ -1062,6 +1062,23 @@ def generate(run_json_path=None, out_path=None):
             shortfall = min(shortfall, round(asked - part_paid, 2))
             if shortfall <= 0:
                 outcome_case = None
+                # The household's repayment of this return reaches the page only through a case, so
+                # with none it was dropped: PROS-2016-0117 settled its returned 30.00 on 6 Nov 2017,
+                # the desk's book and the world's closing walk counted it, and the page printed it
+                # owed for ever (78f82e4242 book). It goes on the payment, as `part_paid_gbp` does.
+                # No more than the return left owed: the engine matches a settlement to the bill's
+                # face, but the household paid the level amount it was asked (the world's payment
+                # truth: PROS-2016-0054g settled 31.21, the engine's walk says 46.10).
+                room, repaid = round(pay["amount_gbp"] - part_paid, 2), []
+                for c in sorted((c for c in credits if c.get("kind") == "repayment"),
+                                key=lambda c: c["date"]):
+                    take = round(min(c["amount_gbp"], room), 2)
+                    if take < 0.005:
+                        break
+                    repaid.append({"date": c["date"].isoformat(), "amount_gbp": take})
+                    room = round(room - take, 2)
+                if repaid:
+                    pay["repayments"] = repaid
             else:
                 # Owed is the capped figure less what this case's own record shows met it: a
                 # case printing ARREARS_REPAID 25.70 over a 3.07 shortfall is not 3.07 owed.

@@ -79,3 +79,26 @@ def test_the_page_does_not_post_a_share_dated_after_the_book():
     rec = {**_leg(100.0, 100.0), "desk_write_offs": [
         {"date": "2022-01-01", "amount_gbp": 100.0, "account_write_off_gbp": 100.0, "rule": "r"}]}
     assert build_account_ledger(rec, AS_OF)["current_balance_gbp"] == 100.0
+
+
+def test_a_repaid_level_return_with_no_case_is_money_in_on_the_page_and_the_walk():
+    """PROS-2016-0117 on the 78f82e4242 book: its 30.00 level collection was returned on 23 Oct 2017
+    and settled on 6 Nov 2017, but the return opened no case, so the page printed the 30.00 owed and
+    the desk's 8.24 write-off left it there. The repayment rides on the payment record."""
+    def leg(repayments):
+        pay = {"invoice_number": 1, "payment_date": "2019-07-01", "amount_gbp": 30.0,
+               "method": "direct_debit", "outcome": "failed", "level_dd": True}
+        if repayments:
+            pay["repayments"] = repayments
+        return {"invoices": [{"invoice_number": 1, "issue_date": "2019-06-30",
+                              "total_amount_gbp": 38.24}],
+                "payments": [pay], "arrears_history": [],
+                "collections_desk_journeys": _journey(8.24), "balance_as_of_date": AS_OF}
+
+    unpaid = _post({"E": leg([])})
+    repaid = _post({"E": leg([{"date": "2019-07-15", "amount_gbp": 30.0}])})
+    # Without the repayment the rest stays owed; with it the desk's figure closes the account.
+    assert unpaid[2] == {"E": 30.0} and repaid[2] == {"E": 0.0} and repaid[1] == []
+    # A repayment dated after the book has not happened yet.
+    late = _post({"E": leg([{"date": "2022-01-01", "amount_gbp": 30.0}])})
+    assert late[2] == {"E": 30.0}

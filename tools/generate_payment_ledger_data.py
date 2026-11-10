@@ -117,6 +117,14 @@ def build_account_ledger(cust, as_of):
                 "amount_gbp": round(-pay["part_paid_gbp"], 2), "info_amount_gbp": None,
                 "method": pay["method"], "description": "Part payment received",
             })
+        # The household's repayment of a level return that opened no case (`repayments`).
+        for rep in (pay or {}).get("repayments") or []:
+            if rep["date"] <= as_of:
+                entries.append({
+                    "date": rep["date"], "type": "payment_received", "invoice_number": num,
+                    "amount_gbp": round(-rep["amount_gbp"], 2), "info_amount_gbp": None,
+                    "method": None, "description": "Payment received towards a returned collection",
+                })
         if arr is None:
             # A bill the account's credit wholly covered asked for nothing, so nothing was received.
             if (pay and pay["outcome"] == "success" and pay["payment_date"] <= as_of

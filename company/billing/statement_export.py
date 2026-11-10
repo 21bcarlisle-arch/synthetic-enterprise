@@ -340,6 +340,14 @@ def account_events(record: dict) -> list[dict]:
                 "FAILED -- part paid {:.2f}".format(part) if part else
                 "FAILED -- balance unchanged"),
         })
+        # The household's repayment of a level return that opened no case: money in.
+        for rep in pay.get("repayments") or []:
+            events.append({
+                "date": rep.get("date"), "kind": "adjustment",
+                "reference": pay.get("invoice_number"),
+                "amount_gbp": rep.get("amount_gbp"), "moves_balance_gbp": rep.get("amount_gbp") or 0.0,
+                "detail": "repayment of a returned collection received",
+            })
     # The balance is the book's on its own date: what is dated after it has not happened yet.
     as_of = record.get("balance_as_of_date")
     if as_of:
