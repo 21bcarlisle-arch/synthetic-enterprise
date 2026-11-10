@@ -96,3 +96,70 @@ It can show a large effect on one long diagnosis. It cannot rank the configurati
 needs several closed long tasks (three or more diagnoses or design reads with confirmed keys), both arms
 on each, order alternated, and a pre-set decision rule such as "advisor adopted for long diagnoses only
 if it gains at least one strict key row on a majority of tasks at under 2x cost".
+
+## Result (seat executor, 10 Nov 2026, about 21:40 GMT)
+
+*The file above was landed as c5732f9b9 before the reading. Its sha256 was recorded at 21:15:18Z, before the
+alone run started at 21:15:37Z. The alone arm ran 21:15:37 to 21:19:23Z, and the advisor arm ran 21:19:31 to
+21:25:17Z. Raw streams, reports, prompt and map are in `/var/tmp/third-arm/`, outside the repo.*
+
+**Both runs are valid.** In the alone arm, `modelUsage` was `claude-opus-5-5` only. In the advisor arm it was
+`claude-opus-5-5` plus `claude-fable-5-2`. Neither run is an error, and the advisor arm made one `advisor` call.
+`advisorModel` is absent from `~/.claude/settings.json` afterwards. Only the per-session flag was used, and the
+installed CLI was not touched.
+
+**Blind grade.** A fresh agent did the grading. It had the key and the code at `312ccd504d`, and it did not have the
+map. The map was opened only after the grade came back: `13fa1c59` = alone, `b9cf4952` = advisor.
+
+| | Opus 5.5 alone | Opus 5.5 + Fable 5.2 advisor |
+|---|---|---|
+| K1 self-feed | strict | strict |
+| K2 cap starvation | strict | strict |
+| K3 no decline debounce | strict | strict |
+| **Strict / lenient of 3** | **3 / 3** | **3 / 3** |
+| Extra claims | All true or plausible. One side-claim is blurred: "the stale tag defeats the debounce" is a real effect but not why the declines recur | All true but one: "open questions are never closed" is false, since 7 were answered. It adds a supported account of why the stall began on 10 Aug and not in July, and it shows LATEST.md lines 2588 to 2591 are eligible but absent from the log |
+| Grader's verdict | | "slightly better … bordering on cannot tell" |
+| Main model: input / output | 52 / 23,506 | 48 / 19,402 |
+| Main model: cache read / write | 1,341,902 / 84,843 | 1,442,438 / 90,271 |
+| Advisor: input (uncached) / output | n/a | 83,480 / 13,950 |
+| API-equivalent $, main / advisor / total | 1.417 / n/a / **1.417** | 1.399 / 1.226 / **2.625** (1.85×) |
+| Five-hour window, start to end | 0.67 to 0.68 | 0.68 to 0.70 |
+| Seven-day window | 0.28 to 0.28 | 0.28 to 0.28 |
+| Time | **225 s**, 53 turns, 52 tool calls | **345 s** (1.53×), 36 turns, 35 tool calls + 1 advisor |
+| Advisor calls | n/a | 1, at tool call 33 of 36, after the search and before the write-up |
+
+**Against the prediction.** Every predicted range held, and no refutation condition was met.
+- **Quality:** 3 of 3 strict in both arms. That is the top of the 2-to-3 range, and the arms cannot be told apart.
+- **Main-model tokens:** within ±30%. Output was 17% lower with the advisor, and cache read 7% higher.
+- **Advisor:** 1 call and 83k uncached input, inside the predicted 1 to 4 calls and 30k to 300k tokens.
+- **Cost:** 1.85×, inside the predicted 1.2 to 2.5.
+- **Time:** 1.53×, inside the predicted 1.0 to 1.6, but near the top.
+- **The main model consulted the advisor unprompted**, once. It did so in the "before declaring done" position the
+  docs describe, not before committing to an approach.
+
+**Did the guidance change the outcome? Cannot tell.** The stream holds the advice only as `advisor_redacted_result`
+(encrypted), and the main model's thinking is redacted too. What can be seen is that after the call the main model
+ran three more searches. All three counted the three standing declines by their exact claim text. It then wrote
+the report. Those counts back the "why 10 Aug and not July" account that the grader gave as the advisor arm's edge.
+So the advice may have prompted that section, but nothing observable separates "the advisor asked for it" from
+"Opus would have checked it anyway".
+
+**Allowance.** Neither window shows a per-run draw at better than 0.01. The five-hour window moved 0.01 across the
+alone run and 0.02 across the advisor run. Other lanes were drawing at the same time, so these readings bound the
+draw and do not measure it. On API-equivalent dollars, the advisor's single call cost 87% as much as the whole main
+session.
+
+## What this decides, and what it would take to decide more
+
+**Decided:** on this task the advisor bought no measurable quality. Both arms found the full key. It cost 1.85×
+in API-equivalent dollars and 1.5× in time. **Not decided:** whether the advisor helps when the main model would
+miss something. This task was too easy to show that: Opus alone found all three mechanisms in under four minutes,
+so the ceiling was hit. One task decides little.
+
+Deciding more would take three or more closed tasks that Opus alone gets wrong, or only partly right, on a first
+pass. Each task needs a confirmed multi-part key; candidates are among the 17 Oct labelled commits that Opus missed
+strictly. Both arms would run on each task with the order alternated, under a rule set beforehand, for example:
+"adopt the advisor for long diagnoses only if it gains at least one strict key row on a majority of tasks at under 2×
+cost". Until then the routing stays as it is, Opus alone. No class uses the advisor. Since the advice is encrypted,
+whether it changed the outcome can only ever be read from behaviour, so any later test should log the main model's
+actions immediately after each call.
