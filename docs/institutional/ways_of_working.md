@@ -80,6 +80,28 @@ predictions after the map lands: misses whose cause is our model of the code or 
 after, because wider ranges would raise the hit rate without anyone understanding more.
 **Refuted if** 6 or more of the 20 miss for those causes, or if the ranges widen by more than half.
 
+**The named cases, each "the process let it", not "the code was wrong" (delivery seat, 10 Nov).**
+INV_OVERDUE on the 78f82e4242 book, filed at most 10, read 60: the row's reading of a leaver was never traced
+before the forecast. PAGE_BALANCE left-level steps, filed "at most 113, the cap can only lower it", read 135: a
+"can only" argued from one function, not from the states a left-level account can be in. The fix that took
+overdue rows from 151 to 614 (`f5b5a1b5b8`): drawn from the last miss with no map to read. Outside level DD,
+class L's P3 (the desk's write-off), filed 17 to 2, read 3: the filter counted one account's collections
+differently from the trace beside it, a reader miss. Every one is a model of our own code or of our reader
+that was never laid against the states first. The stop condition is the answer to all four; the fourth says
+the cause is not peculiar to level DD, which is why the measures below are per area.
+
+**Where the draw reads it (10 Nov).** The seat's brief now carries the loop's measures
+(`background/learning_loop.py`, `learning_loop` in `delivery_seat.build_brief`), printed above the JSON on
+every orientation: per area, the hit rate with the median range width, the code-or-reader misses and
+`STOP` when they reach three in seven days; regressions per fix; escapes per cold read. They are read from
+two trailers on origin, so a grade is recorded by the commit that grades it and nowhere else:
+`Graded: <area> held=<n> missed=<n> code=<n> reader=<n> regressed=<n> width=<x>` and
+`Cold-read: <surface> new-classes=<n>`. A trailer that does not parse is printed as unparsed, never dropped.
+*Prediction, filed before any trailer exists:* by 24 Nov at least two areas carry `Graded:` trailers, and the
+first time any area other than level DD reaches `STOP`, its map is drawn before its next fix. **Refuted if** by
+24 Nov no commit carries the trailer (then the measures are a page nobody feeds, and this change is retired),
+or an area shows `STOP` and the next landing in it is another fix.
+
 ---
 
 ## W2. A book carrying several changes in one area cannot grade any of them (10 Nov 2026)

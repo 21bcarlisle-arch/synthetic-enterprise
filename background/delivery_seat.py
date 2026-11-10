@@ -45,7 +45,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from background import child_diagnostics, direction_path_check, director_concerns
+from background import child_diagnostics, direction_path_check, director_concerns, learning_loop
 from background import direction as direction_mod
 from tools import maturity_map_store as map_store
 from tools import stretch_log as stretch_log_mod
@@ -1875,6 +1875,9 @@ def build_brief(now: datetime | None = None) -> dict:
         # AND THE HANDOFF QUEUE, THIRD and for the same truncation reason: read through `live()`,
         # never the raw store -- see `_continuation_queue` for the focus row a raw read cost.
         "continuation_queue": _continuation_queue(now, since),
+        # THE LEARNING LOOP'S MEASURES, WHERE THE DRAW IS MADE (director's steer of 10 Nov), ahead of
+        # `commits` for the truncation reason. Read from `Graded:`/`Cold-read:` trailers on origin.
+        "learning_loop": learning_loop.measures(),
         "commits": commits,
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
@@ -2108,6 +2111,34 @@ def _render_continuation_queue(queue: dict | None) -> str:
     )
 
 
+def _render_learning_loop(loop: dict | None) -> str:
+    """The loop's measures as the seat reads them before it draws. Always printed: an empty
+    window says so, because "no misses" and "nothing graded" must not read alike."""
+    if not isinstance(loop, dict):
+        return "\n\nTHE LEARNING LOOP'S MEASURES were not in this brief."
+    if "unreadable" in loop:
+        return "\n\nTHE LEARNING LOOP'S MEASURES could not be read: {}.".format(loop["unreadable"])
+    areas = loop.get("by_area") or {}
+    head = ("\n\nTHE LEARNING LOOP, last {} days (docs/institutional/ways_of_working.md). Before "
+            "drawing a fix in an area, read its line: STOP means three misses from our model of "
+            "the code or the reader, so the area's map is the next item, not another fix.".format(
+                loop.get("window_days")))
+    if not areas:
+        head += " NOTHING GRADED in the window -- no `Graded:` trailer on origin. {}".format(
+            loop.get("how_to_feed", ""))
+    for name, a in sorted(areas.items()):
+        head += "\n- {}: {} held of {} (hit rate {}, median range width {}); {} code-or-reader " \
+                "misses{}".format(name, a["held"], a["held"] + a["missed"], a["hit_rate"],
+                                  a["median_width"], a["code_or_reader"],
+                                  " -- STOP: map the area first" if a["stop_condition_met"] else "")
+    head += "\n- regressions per fix: {} over {} graded fixes; escapes per cold read: {}".format(
+        loop.get("regressions_per_fix"), loop.get("fixes_graded"),
+        loop.get("escapes_per_cold_read") or "no cold read in the window")
+    if loop.get("unparsed"):
+        head += "\n- UNPARSED trailers, not counted: " + "; ".join(loop["unparsed"])
+    return head
+
+
 def _prompt(brief: dict) -> str:
     # Imported here, not at module level, for `_drawn_never_landed`'s reason: `delivery_lane`
     # reaches back into this package and the pair is kept loadable by keeping the edge one-way at
@@ -2227,6 +2258,7 @@ def _prompt(brief: dict) -> str:
                 datetime.fromtimestamp(float(r.get("last_refused_at") or 0.0),
                                        timezone.utc).isoformat(timespec="minutes"),
                 r.get("contested")) for r in refused))
+    steered += _render_learning_loop(brief.get("learning_loop"))
     stalled_rows = brief.get("atoms_stalled_with_reason") or []
     if stalled_rows:
         steered += (

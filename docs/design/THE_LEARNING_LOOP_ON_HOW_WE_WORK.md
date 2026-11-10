@@ -77,7 +77,10 @@ Chosen because each is countable from records we already keep, and each can move
 4. **Repeat failures**: the same insight's trigger firing again after its change landed.
 
 Where they show: in the draw, so they steer the next draw (§7), and on the "Building it" side once the
-published feed exists (§9).
+published feed exists (§9). The draw side is built (10 Nov): `background/learning_loop.py` reads
+`Graded:` and `Cold-read:` trailers on origin over seven days, and the orienting seat's brief prints them
+above its JSON on every orientation. Repeat failures stay by hand in `ways_of_working.md`, because they need
+each insight's change date.
 
 ## 7. The first worked case: level direct debit
 
@@ -118,6 +121,6 @@ with no change yet, because W1's map may remove its cause.
 
 - The published side: the "Building it" part reads the reading log through `tools/reading_log_feed.py`;
   the same feed should read this file. Minted as the next step.
-- The draw rule as code: today the rule in §7 is applied by hand through the existing BLOCKING-finding
-  rung. If the trigger fires a second time on another area, it is built into the draw, reading graded
-  predictions from a commit trailer.
+- The draw rule as a refusal: the measures now reach the draw and print `STOP` per area (§6), but nothing
+  refuses a fix. If the trigger fires a second time on another area, the draw refuses that area's fixes
+  from the same `Graded:` trailers.

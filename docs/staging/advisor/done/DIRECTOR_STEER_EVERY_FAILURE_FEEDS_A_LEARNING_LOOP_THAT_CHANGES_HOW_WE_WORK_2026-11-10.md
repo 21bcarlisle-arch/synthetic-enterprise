@@ -67,3 +67,10 @@ practice live. Whether it works is judged as he said: by whether the same kind o
 **Not done, and owed:** the published side (the Building it part should read `ways_of_working.md` through the
 reading-log feed), and the draw rule as code, which is built if the trigger fires on a second area. Escapes per
 cold read is named as a measure and not yet computed.
+
+**Addendum, delivery seat, 10 Nov late.** The measures now show where the draw is made: `background/learning_loop.py`
+reads `Graded:` and `Cold-read:` commit trailers on origin, and the orienting seat's brief prints per-area hit rate with
+range widths, code-or-reader misses with `STOP` at three, regressions per fix and escapes per cold read, on every
+orientation. W1 names the four cases the draw cited (INV_OVERDUE 10 to 60, PAGE_BALANCE 113 to 135, the 151 to 614
+fix, class L's P3 2 to 3) and why the process let each through. The draw still refuses nothing; that is built if a
+second area reaches `STOP`.
