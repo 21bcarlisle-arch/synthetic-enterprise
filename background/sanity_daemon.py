@@ -64,8 +64,9 @@ def _digest(msg: str) -> None:
     notify(msg, kind="real_alarm",
            topic_class=notification_digest.FINDING_ANNOUNCEMENT)
 from background import coupled_triad  # noqa: E402
-from company.compliance.population_sanity import run_all_population_checks  # noqa: E402
+from background.gap_metric import reads_worse_than_blind  # noqa: E402
 from company.compliance import sanity_adjudication as adjudication  # noqa: E402
+from company.compliance.population_sanity import run_all_population_checks  # noqa: E402
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "sanity-daemon-log.md"
 RUN_OUTPUT_PATH = PROJECT_DIR / "docs" / "reports" / "run_output_latest.json"
@@ -149,7 +150,7 @@ def _coupled_gap_digest_line() -> str:
         return "COUPLED-TRIAD gap: ledger EMPTY -- 0 coupled pairs measured (fail-closed)"
 
     pairs: list[str] = []
-    unmeasured = wall_leak = worse_than_blind = 0
+    unmeasured = wall_leak = worse_than_blind = not_a_verdict = 0
     for world_id in sorted(ledger):
         entry = ledger[world_id]
         world_short = coupled_triad._short_id(world_id)
@@ -167,13 +168,17 @@ def _coupled_gap_digest_line() -> str:
         else:
             if gap <= 0:
                 wall_leak += 1
-            elif gap > 1:
+            elif reads_worse_than_blind(entry.get("metric"), gap):
                 worse_than_blind += 1
+            elif gap > 1:
+                # D9: above 1 on a metric where that is not a verdict (gap_metric's table).
+                not_a_verdict += 1
             pairs.append(f"{world_short}<->{twin_short}: {gap:.3f}")
 
     header = (
         f"COUPLED-TRIAD gap ({len(ledger)} pairs; unmeasured={unmeasured}, "
-        f"wall-leak={wall_leak}, worse-than-blind={worse_than_blind})"
+        f"wall-leak={wall_leak}, worse-than-blind={worse_than_blind}, "
+        f"above-one-not-a-verdict={not_a_verdict})"
     )
     return header + " -- " + "; ".join(pairs)
 

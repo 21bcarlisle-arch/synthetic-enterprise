@@ -275,26 +275,6 @@
   file_scope: ['tools/couple_w2_11_d5.py', 'tests/tools/test_couple_w2_11_d5.py']
   real_world_twin: "a collections team whose arrears-risk flags are built from a rolling window longer than any account has existed, so the MI cannot tell a team that lets a recovered customer off the risk list from one that never does -- and the report reads as a clean bill of health for a memory nobody has tested"
 
-- id: D9_worse_than_blind_chip_is_metric_blind
-  notes_rehomed: [name, origin_note]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 0
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 3
-  provenance: proposal
-  depends_on: [D6_payment_ageing_gap_validity]
-  couples_with: [W2_9_segment_debt_tnc, W2_11_payment_behaviour_source]
-  records_rehomed: [evidence]
-  # 2026-09-06: `site/proof/` was DELETED at 03dd8c49e (eleven pages folded into five tabs) and
-  # the coupled-gaps panel now renders on `site/harness/index.html`. The row still named the old
-  # door and a control at `site/proof/test_coupled_gaps_panel.py` that no commit ever wrote, which
-  # made D9 read as "repoint at the control that exists" when the honest state is that its build
-  # has not run. The surviving control predates the row (cfcae0bc3, 2026-07-14, three weeks before
-  # 15f44e022) so D9 stays ungradable -- but now for the reason that is true.
-  file_scope: ['tools/generate_proof_data.py', 'background/sanity_daemon.py', 'site/harness/index.html', 'tests/tools/test_generate_proof_coupled_gaps.py']
 - id: A_scope_of_need_scoring_frame
   notes_rehomed: [name]
   lane: G_data_learning

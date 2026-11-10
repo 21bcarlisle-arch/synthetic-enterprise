@@ -1382,6 +1382,21 @@ MISAPPLICATION_PREVALENCE_CAVEAT: str = (
     "D7_ageing_gap_metric_reshape."
 )
 
+# Metrics on which gap > 1 is NOT a "worse than guessing" verdict, each with the reason a reader is
+# shown instead (atom D9). The panel, the sanity digest and the door read this one table, so the
+# red verdict cannot be printed off the number alone in one reader and the metric in another.
+ABOVE_ONE_IS_NOT_WORSE_THAN_BLIND: dict = {
+    "misapplication": MISAPPLICATION_PREVALENCE_CAVEAT,
+}
+
+
+def reads_worse_than_blind(metric, gap) -> bool:
+    """True when a ledger gap is a 'worse than blind' verdict: above 1 on a metric whose
+    baseline makes that reading valid. A non-numeric gap is never a verdict."""
+    if isinstance(gap, bool) or not isinstance(gap, (int, float)) or gap <= 1:
+        return False
+    return metric not in ABOVE_ONE_IS_NOT_WORSE_THAN_BLIND
+
 
 def misapplication_gap(truth_labels: Sequence, applied_labels: Sequence,
                        *, positive_class=None) -> GapResult:

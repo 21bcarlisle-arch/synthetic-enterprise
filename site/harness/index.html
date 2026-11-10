@@ -1513,6 +1513,18 @@ function marginsNote(margins) {
     + "of the line by chance:</p><ul>" + items + "</ul>";
 }
 
+/* Pairs above 1 on a metric where that does not mean "worse than guessing" (atom D9). They are
+   left out of the count above and shown here with the reason the feed carries, so a reader sees
+   the number and why it is not a red verdict. */
+function notAVerdictNote(rows) {
+  if (!rows || !rows.length) return "";
+  return "<p>Above 1, but not counted as worse than guessing, because on this kind of measure "
+    + "a score above 1 does not mean that:</p><ul>" + rows.map(function (r) {
+      return "<li><b>" + esc(r.world_plain || r.world_atom) + "</b> reads " + esc(r.value)
+        + " on <code>" + esc(r.metric) + "</code>. " + esc(r.reason || "") + "</li>";
+    }).join("") + "</ul>";
+}
+
 function renderGaps(d) {
   var g = d.coupled_gaps || {};
   if (!g.available) {
@@ -1539,6 +1551,7 @@ function renderGaps(d) {
        that percentage would be an invented constant. A reader who can see 3.4% on n=20 does not
        need us to decide for them. */
     marginsNote(g.worse_than_blind_margins) +
+    notAVerdictNote(g.above_one_not_a_verdict) +
     (g.unmeasured ? "<p>" + n(g.unmeasured) + " pairs are not measured yet. They are listed as " +
       "unmeasured rather than assumed fine.</p>" : "");
 }

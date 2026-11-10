@@ -690,7 +690,10 @@ def _coupled_gaps(atoms):
         exactly 0 means the observables leaked theta (an epistemic-wall breach in
         spirit), a defect, NOT a triumph (design 1.2 / the W2_7 "perfect
         classifier = defect" clause).
-      * value > 1                       -> chip "worse_than_blind", severity red.
+      * value > 1                       -> chip "worse_than_blind", severity red,
+        UNLESS the metric is in gap_metric.ABOVE_ONE_IS_NOT_WORSE_THAN_BLIND (D9:
+        misapplication's baseline is the minority-class share, so >1 there is
+        not worse than no skill) -> chip "above_one_not_a_verdict", amber.
       * 0 < value <= 1                  -> chip "measured", severity blue -- the
         company has learned some, but not all, of the hidden structure (the
         honest steady state). Trend (falling/static/rising) needs a measurement
@@ -706,6 +709,7 @@ def _coupled_gaps(atoms):
             load_gap_ledger,
             world_l3_blocked,
         )
+        from background.gap_metric import ABOVE_ONE_IS_NOT_WORSE_THAN_BLIND
     except Exception:
         return dict(available=False,
                     note="background.coupled_triad not importable at generation time")
@@ -778,6 +782,8 @@ def _coupled_gaps(atoms):
             chip, severity = "untested", "amber"
         elif value <= 0:
             chip, severity = "leak", "red"
+        elif value > 1 and entry.get("metric") in ABOVE_ONE_IS_NOT_WORSE_THAN_BLIND:
+            chip, severity = "above_one_not_a_verdict", "amber"
         elif value > 1:
             chip, severity = "worse_than_blind", "red"
         else:
@@ -821,6 +827,8 @@ def _coupled_gaps(atoms):
             history=[value] if value is not None else [],
             chip=chip,
             severity=severity,
+            chip_reason=(ABOVE_ONE_IS_NOT_WORSE_THAN_BLIND.get(entry.get("metric"))
+                         if chip == "above_one_not_a_verdict" else None),
             blocks_l3=bool(blocked),
             blocks_l3_reason=block_reason if blocked else None,
         )
@@ -875,6 +883,13 @@ def _coupled_gaps(atoms):
              "percent_past_the_line": round((r["value"] - 1.0) * 100.0, 1),
              "sample_size": _sample_size(r.get("components"))}
             for r in rows if r["chip"] == "worse_than_blind"
+        ],
+        # Above 1 on a metric whose baseline does not make that a verdict (D9): shown, never counted
+        # as worse than guessing, and carrying the reason the door prints.
+        above_one_not_a_verdict=[
+            {"world_atom": r["world_atom"], "world_plain": r.get("world_plain"),
+             "metric": r["metric"], "value": r["value"], "reason": r["chip_reason"]}
+            for r in rows if r["chip"] == "above_one_not_a_verdict"
         ],
         unmeasured_ge_l2=unmeasured_ge_l2,
         # THE BASIS AUDIT'S VERDICT, on the door rather than in a function

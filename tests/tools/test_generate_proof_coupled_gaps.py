@@ -14,7 +14,8 @@ Named defects this panel must fire on:
       yet" -- the binding-rule-1 failure mode) -> shown untested/amber, counted.
   D2  a gap of exactly 0 (observables leaked theta -- an epistemic-wall breach)
       -> shown "leak"/red, NOT a triumph.
-  D3  a gap > 1 (the company is worse than blind) -> shown red.
+  D3  a gap > 1 (the company is worse than blind) -> shown red, unless the
+      metric's baseline makes >1 not a verdict (D9: misapplication) -> amber.
   D4  an empty/unavailable ledger -> fail CLOSED: every coupled pair still
       appears, marked untested; the panel is never silently empty.
 """
@@ -223,6 +224,29 @@ def test_gap_above_one_fires_worse_than_blind(monkeypatch):
     assert cg["worse_than_blind_count"] >= 1
     assert row["world_atom"] in {p["world_atom"] for p in cg["pairs"]
                                  if isinstance(p["value"], (int, float)) and p["value"] > 1}
+
+
+def test_gap_above_one_reads_the_metric_before_printing_red(monkeypatch):
+    """D9. Defect named: any gap > 1 printed as the red 'worse_than_blind' chip, including a
+    misapplication gap, whose baseline is the minority-class share so >1 there is not worse than no
+    skill (docs/design/D6_PAYMENT_AGEING_GAP_VALIDITY_DISCOVER.md). Both sides in one control: the
+    detection pair at the same value still fires red, so the exemption cannot pass by never firing."""
+    atoms = _atoms()
+    mutated = copy.deepcopy(_real_ledger())
+    assert mutated["W2_9_segment_debt_tnc"]["metric"] == "misapplication"
+    assert mutated["W2_8_self_rationing"]["metric"] == "detection"
+    mutated["W2_9_segment_debt_tnc"]["gap"] = 1.5
+    mutated["W2_8_self_rationing"]["gap"] = 1.5
+    monkeypatch.setattr(ct, "load_gap_ledger", lambda *a, **k: mutated)
+    cg = gpd._coupled_gaps(atoms)
+    rows = {r["world_atom"]: r for r in cg["pairs"]}
+    assert rows["W2_8_self_rationing"]["chip"] == "worse_than_blind"
+    assert rows["W2_8_self_rationing"]["severity"] == "red"
+    mis = rows["W2_9_segment_debt_tnc"]
+    assert mis["chip"] == "above_one_not_a_verdict" and mis["severity"] != "red"
+    assert "worse-than-no-skill" in mis["chip_reason"]
+    assert "W2_9_segment_debt_tnc" not in {m["world_atom"] for m in cg["worse_than_blind_margins"]}
+    assert [r["world_atom"] for r in cg["above_one_not_a_verdict"]] == ["W2_9_segment_debt_tnc"]
 
 
 # ---------------------------------------------------------------------------

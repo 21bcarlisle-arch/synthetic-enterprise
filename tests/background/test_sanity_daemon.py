@@ -262,6 +262,23 @@ def test_coupled_gap_digest_line_counts_unmeasured_leak_and_worse_than_blind():
     assert "untested" in line  # the null-gap pair renders as untested
 
 
+def test_a_misapplication_gap_above_one_is_not_counted_worse_than_blind():
+    """D9: the digest reads the METRIC before the number. Defect named: a misapplication gap above
+    1 counted as worse-than-blind, when its baseline is the minority-class share (D6 DISCOVER).
+    The detection pair at the same value must still count, so the leg cannot pass by never firing."""
+    import json as _json
+    path = sanity_daemon.COUPLED_GAP_LEDGER_PATH
+    path.write_text(_json.dumps({
+        "W2_9_segment_debt_tnc": {"twin_atom_id": "C11_segment_terms", "gap": 1.5,
+                                  "metric": "misapplication"},
+        "W2_8_self_rationing": {"twin_atom_id": "C10_self_rationing_detection", "gap": 1.5,
+                                "metric": "detection"},
+    }))
+    line = sanity_daemon._coupled_gap_digest_line()
+    assert "worse-than-blind=1" in line
+    assert "above-one-not-a-verdict=1" in line
+
+
 def test_coupled_gap_digest_line_fail_closed_when_ledger_missing():
     """R15 fail-closed: a missing ledger is announced explicitly, never a
     silent omission."""
