@@ -781,3 +781,45 @@ still owed, and it is still the larger one. It needs its own K8 amendment ("What
   A fall below 80 would mean the fix also moved a class I read as untouched.
 
 NEXT: grade the first book carrying this commit against the prediction above, then the K8 amendment for the leaver's closing-balance collection.
+
+## The first book carrying all three overdue fixes: pre-registration, filed before it starts (worker, 10 Nov 2026 ~00:05 GMT)
+
+**The book.** Origin 78f82e4242, run from the clean locked worktree `/var/tmp/book-wt-78f82e4242`. Its import closure
+reads `paths: []`. sim-runner is still deferring on the shared tree's non-origin bytes, so this book runs outside the loop,
+as 4dee9854a4 did. It carries four billing changes since 4dee9854a4, so **no movement below can be attributed to any one
+of them**:
+- dea1c34fdf (C7, world): the schedule holds only what the world presented.
+- 50030bb606 and 2353f8b001 (shape A and its cap, page): a level-return case owes what its own record has not met, on
+  one leg and capped at its bill.
+- 19eebf6c3e (page and statement): the ledger balance is the page's.
+- 78f82e4242 (the suite): INV_OVERDUE_WITHIN_BALANCE reads a level leg on its schedule.
+
+**The control** is the 4dee9854a4 book, graded at `/var/tmp/grade-ondd/` on the readers then in force. The grade uses
+the same readers (`/var/tmp/grade-ondd-scripts/`), run from the book's worktree, so the domain-invariant rows are
+78f82e4242's.
+
+| Row | 4dee9854a4 | Prediction for 78f82e4242 | Refuted if |
+|---|---:|---|---|
+| INV_OVERDUE_WITHIN_BALANCE (new reader) | 5 (replay) | **0 to 10**. The 5 are scheme-end residues on level legs, and C7's world change touches leavers' final months, so it may move them either way | above 10 |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, still-level steps | 396 | **80 to 110**, as filed at ~22:30 ("The consistency fix lands") | above 110 or below 80 |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, left-level steps | 113 | **at most 113**. The shape-A cap removes case figures above a bill's remainder, which can only lower what the page prints as owed past due. I cannot say by how much | above 125 |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, total | 509 | **80 to 225** | outside that range |
+| Shape A: level cases printing above their own bill's remainder | 84 (on the shape-A arm) | **0** (pennies on non-level invoices allowed, as in the cap grade: under GBP 1 in total) | any level case above its remainder |
+| Shape A: the 12 on-receipt left-level holds | 12 | **12**, the same invoices | any change |
+| C7: `closing_balances`, page balance, desk write-off | 48.55 / 48.55 / 66.67 | **all 66.67** | the page still closes on 48.55 |
+| Every other suite row | as in `/var/tmp/grade-ondd/grade.txt` | **no new unexcepted row**; the excepted rows keep their exception | any third unexcepted row |
+| The gate | refused, 638 unexcepted on 2 rows | **refused**: PAGE_BALANCE is predicted at 80 or more, and no filed change claims to close it | the gate passes |
+
+What a pass would mean, and what I expect instead: the gate is refused on INV_OVERDUE_WITHIN_PAGE_BALANCE alone. The
+remaining still-level steps are the "level, unexplained" closed accounts (84 rows on 12) and the 2 accounts not written
+off (10 rows). Their owner is the write-off-reaches-the-page item (`page-balance-omits-credit-on-closed-accounts`, the
+EBSS finding's "Open" section). If that is what the grade shows, done is naming those classes with that owner, not a pass.
+
+**Launched after the table above was written** (the file as it stood then hashed sha256 `21573c92…f024f466f` at
+00:02:40Z; the run started at 00:02:48Z).
+- **The run.** `launch_long_job` job `book-78f82e4242`, unit `longjob-book-78f82e4242`, in the locked worktree
+  `/var/tmp/book-wt-78f82e4242`. Output: `docs/reports/run_output_78f82e4242_20261110T000247Z.json`, promoted by hand
+  if it passes. Log: `/var/tmp/longjob-book-78f82e4242.log`.
+- **The grade.** Unit `longjob-grade-chain-book-78f82e4242` waits for the run, then runs
+  `/var/tmp/grade-78f-scripts/after_run.sh` (the 4dee readers, control `/var/tmp/grade-ondd/`). It writes `ALLDONE` or
+  `NO_DONE` in `/var/tmp/grade-78f/`. Whoever reads it grades the table above, held or fell beside each row.
