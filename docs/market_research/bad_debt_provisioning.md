@@ -1433,6 +1433,14 @@ statement. This build keeps that convention, and the convention is a question fo
    off more, the excess is not posted, because it would print a credit the household never held.
    The excess is listed in the ledger's `desk_write_off_unposted`. Either way the disagreement is a
    defect in one of the two figures, and the page shows it rather than resolving it.
+4. **Money the household paid is money in, whether or not a case opened.** (Added the same day,
+   once the 49 accounts where the desk wrote off less were traced.) The first defect found was on the
+   page, not the desk. A returned level collection that the household later settled opened no
+   arrears case. The page shows a repayment only as a case stage, so it dropped the money, and the
+   balance stayed above the desk's (PROS-2016-0117: GBP 30.00 settled on 6 Nov 2017). This is the
+   same rule as a part payment on a failed collection: the payment record carries it and the page
+   posts it. **Established:** a payment received reduces the balance (SLC 27.16 treats the account
+   as one balance). Nothing here needs a practitioner.
 
 ## Early warning in the forward-cash-forecast provision: which signals move P(paid) before the age band, and by how much (2026-10-21)
 
