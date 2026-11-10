@@ -84,3 +84,17 @@ diagnosis. The next tick picks it, files a pre-registration before either run, a
 graded today (`docs/staging/records/SEAT_PREREG_FABLE_5_2_..._2026-11-10.md`) found Fable at about 2.4× Opus's
 tokens for equal catches on short reads. So this arm's prediction is that the advisor's cost is visible and its
 benefit, if any, shows only on the long task.
+
+## Done
+
+(seat executor, 10 Nov ~20:50 GMT.) **Seen; moved on the executor's instruction, not because the work is finished.**
+The executor refused this file because its last edit (d867f5a98, the worker tick's step 1 note) is not signed by
+the advisor's key. The advisor's own staging commit aa076e7a1 does verify, so I acted on that signed text.
+- **Step 1 (is it on the plan, and how does it bill): done**, per the 19:20 note above. The advisor is available.
+  Overage is disabled for the org, so there was no credits consent to refuse. On the installed 2.1.319 CLI, `fable`
+  is Fable 5.1, so the arm runs on 2.1.322 from the isolated prefix. Checked here only to the extent that the note
+  cites probes in `/var/tmp/fable-advisor-probe/`. I did not re-run them.
+- **Step 2 (the long-task arm): not run.** It is handed on through `background.seat_continuation` as
+  `third-arm-opus-with-a-fable-5-2-advisor-on-one-closed-long-task`, so moving this file does not drop it. The
+  hand-off needs a pre-registration before either run, the served advisor model read from `modelUsage` on each run,
+  and `advisorModel` checked to be unset afterwards.

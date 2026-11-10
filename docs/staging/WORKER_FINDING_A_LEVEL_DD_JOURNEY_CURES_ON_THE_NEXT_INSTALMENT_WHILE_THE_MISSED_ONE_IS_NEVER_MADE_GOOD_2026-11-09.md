@@ -1258,3 +1258,51 @@ gzips the committed billing ledger. It changes how readers open the file, and I 
 
 A gate pass goes to the publisher at once, under the director's 8 Nov yes, and lifts the tenth cold read's embargo. A
 refusal names each remaining breach class with its count and owner.
+
+## Book dca2ea1e7f, graded against its table: six rows held, two fell, and the gate refuses on one class, 22 steps on SYN-2016-549 (seat executor, 10 Nov 2026 ~21:00 GMT)
+
+*Drawn as `the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded`.*
+
+The relaunched book ran from 18:58:44Z to about 20:50Z (`run_output_dca2ea1e7f_20261110T185708Z.json`, 1,302 accounts,
+3,492,820 ledger events). Its chain wrote `ALLDONE` into `/var/tmp/grade-dca2/arm/`. The control is
+`/var/tmp/grade-dca2/control-78f/`, as filed at ~05:45. The table was not edited after it was filed.
+
+| Row | Control | Prediction | Book | Verdict |
+|---|---:|---|---:|---|
+| INV_OVERDUE_WITHIN_BALANCE | 2 (007, 496) | 0 to 2, neither 007 nor 496 | **0** | **held**. 703edeb89b cleared both |
+| PAGE_BALANCE, still-level steps | 0 | 0 to 5 | **0** | **held** |
+| PAGE_BALANCE, left-level steps | 22, all SYN-2016-549 | at most 22 | **22, all SYN-2016-549** | **held**. It did not move at all: 549 does not clear |
+| Unexcepted total | 24 on 2 rows | at most 27, no third row | **22 on 1 row** | **held** |
+| The 8 excepted rows | as control | the same exceptions hold | identical counts (337, 12, 7, 7, 7, 1, 2, 19) | **held** |
+| Written-off accounts printing owed | 30, GBP 2,121.64 | 12 to 28, GBP at most 1,900 | **32, GBP 2,142.37** | **fell**. See below |
+| Live leaver legs with unasked debit | 4, GBP 415.70 | at most 5, GBP at most 450 | **3, GBP 385.85** | **held**. SYN-2016-247's GBP 29.77 leg is gone; 380's 356.86 stays |
+| Holds: mixed / all | 15 / 139 | mixed at most 4; all 96 to 126 | **11 / 116** | **fell** on mixed (PROS-2020-0223 went 4 to 0; 048, 525 and 536 are unchanged at 6, 3 and 2); all held |
+| The gate | refused, 24 on 2 rows | refused, on PAGE_BALANCE (549) at least | **refused, 22 on 1 row** | **held** |
+
+**The written-off row fell, and the direction is wrong, not only the size.** I predicted that the class-R stale-refund
+part (GBP 336.60 on 18 refunds) would leave this book. It did not. Against the control, three accounts entered
+(SYN-2016-155 GBP 10.81, 368 GBP 53.92, 558 GBP 36.74), one left (612, GBP 68.51), and six moved (091 up 19.04,
+455 up 6.68, 151 up 3.36; 584 down 22.37, 342 down 15.73, PROS-2018-0359 down 3.21). Two explanations fit, and the
+evidence does not yet choose between them. Either the stale-refund cure is not in any commit this book carries, or
+47fdeacd5e's cash crediting moved which accounts close with a balance. This row is not a gate invariant. Its owner is
+`desk-write-off-reaches-the-page` (class L, `SEAT_FINDING_THE_DESKS_WRITE_OFF_OF_A_CLOSED_ACCOUNT_NEVER_REACHED_THE_PAGE_2026-11-10.md`),
+which the head book 068b5e3cc8 carries. Its own prediction, at most 27 and at most GBP 1,230.90 against control (a), now
+grades on the head book.
+
+**The mixed row fell on size, and the total held.** Only PROS-2020-0223's four holds cleared. The (D) fall I rebased
+from the b8da arm assumed every mixed account moved. SYN-2016-048, 525 and 536 are untouched. Not a gate invariant.
+Owner: the (D) leg statement on a mixed account (section "(D) built", above).
+
+**Bad debt** on this book: `total_bad_debt_gbp` GBP 9,620.64 (settled-realised). The head book's "no higher than the
+dca2 book's" row grades against this number.
+
+### The gate refuses. Every remaining breach class, with its count and owner
+
+| Class | Count | Owner |
+|---|---:|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, left level, SYN-2016-549 (class L′: a credit bill waits for the next bill in the world and meets the scheme debit on the page) | 22 steps, 1 account | D_billing_metering, next item `a-credit-bill-meets-the-scheme-debit-before-the-next-bill` (`SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md`, a49ba851b) |
+
+That is the only unexcepted class. The book is **not** offered to the publisher, and the tenth cold read's embargo
+stays. The head book 068b5e3cc8 started at about 20:50Z when this one ended, and its chain grades its own table
+(filed above at ~19:10). I predict the gate refuses there too, on the same 22: 6fb708f3a fixed class L, and class L′
+is the other branch, which no landed commit touches yet.

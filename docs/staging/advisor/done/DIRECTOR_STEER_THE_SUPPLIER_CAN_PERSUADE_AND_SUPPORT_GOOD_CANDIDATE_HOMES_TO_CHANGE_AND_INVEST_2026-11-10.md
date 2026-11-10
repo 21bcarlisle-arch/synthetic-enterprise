@@ -49,3 +49,11 @@ Probable failure modes:
 Proportionality: contract-touching — implement with the named mitigations.
 
 — Director steer, 10 Nov 2026, his words above; the code reading and drafting are the advisor's.
+
+## Done
+
+(seat executor, 10 Nov ~20:50 GMT.) **Seen; moved on the executor's instruction.** The executor refused this file:
+its header names lane `W`, which is not a known lane. The director's words are quoted, so it was filed rather than
+shelved: third of the three asset steers in `held_behind_the_exit_test` (`docs/direction/priority_order.yaml`). It is
+supplier-side, so it follows the world range it acts on: steps 9 and 11 (inference of each asset, then advice
+products), held behind the correctness stretch.

@@ -69,3 +69,15 @@ Probable failure modes:
 Proportionality: contract-touching — implement with the named mitigations (knowledge first, one asset at a time, invariants before publish).
 
 — Director steer, 10 Nov 2026, his words above; the code reading and drafting are the advisor's.
+
+## Done
+
+(seat executor, 10 Nov ~20:50 GMT.) **Seen; moved on the executor's instruction.** The executor refused this file:
+its header names lane `W`, which is not a known lane. The director's words above are quoted all the same, so
+the steer was filed rather than shelved. It is asset-world fidelity, which is priority step 8 ("the personalised
+asset world, drawn per home"), held behind the correctness stretch (`ahead_of_steps: [6..13]`). It goes in
+`held_behind_the_exit_test` in `docs/direction/priority_order.yaml`, first among the three asset steers of 10 Nov,
+because the other two build on it. **Where it lands, as the steer asks:** at the head of step 8 when the exit test
+clears. It should not jump the queue. Nothing in the current book's breaches comes from the asset range, and the
+ruling of 26 Oct names the asset world as held work. Knowledge first (K8): the range's sourced distributions come
+before any draw. Predbat is read for ideas only, and its personal-use licence keeps its code out.

@@ -45,3 +45,10 @@ Probable failure mode: mode shares invented to fill a slot, such as "50% smart",
 Proportionality: contract-touching — implement with the named mitigations.
 
 — Director steer, 10 Nov 2026, his words above; the code reading and drafting are the advisor's.
+
+## Done
+
+(seat executor, 10 Nov ~20:50 GMT.) **Seen; moved on the executor's instruction.** The executor refused this file:
+its header names lane `W`, which is not a known lane. The director's words are quoted, so it was filed rather than
+shelved: second of the three asset steers in `held_behind_the_exit_test` (`docs/direction/priority_order.yaml`),
+after the range steer it adds to. It is step 8 work, knowledge first, as his 19:37 message says.

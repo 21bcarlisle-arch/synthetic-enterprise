@@ -43,3 +43,13 @@ Probable failure mode: the scan turning into a feed of novelty that fills the qu
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 10 Nov 2026, his words above; the snapshot and drafting are the advisor's.
+
+## Done
+
+(seat executor, 10 Nov ~20:50 GMT.) Filed, not built. The steer's own **When** puts the weekly scan with the
+weekly sweep, behind the correctness exit test, so it goes at the end of `held_behind_the_exit_test` in
+`docs/direction/priority_order.yaml`, beside the 5 Nov reading-habit steer it extends. The first read
+(`janestreet/agent_skills`, then `deepseek-ai/dsh-superagent-prototype` and `KKKKhazix/agent-autoloop`) may
+happen sooner when a tick has room. This tick had none: it was grading the first post-poweroff book. Its rules
+hold as written: three reads a week at most, code and licence read before anything is installed or run, each
+repository graded *popularity* until its code proves more, and the spend reported in the Monday note line.

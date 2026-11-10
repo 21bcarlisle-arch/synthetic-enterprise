@@ -1128,6 +1128,27 @@
       "status": "answered",
       "disposition": "Checked: available, no consent asked, overage disabled at org level so it draws plan windows only. Installed CLI 2.1.319 maps a Fable advisor to Fable 5.1 and refuses 5.2; 2.1.322 (isolated prefix) serves 5.2. Recorded in the steer's Step 1 section; the arm itself is next.",
       "recorded": "2026-11-10"
+    },
+    "67af2a609a78": {
+      "ruling": "DIRECTOR_STEER_A_THIRD_ARM_OPUS_WITH_A_FABLE_ADVISOR_AFTER_CHECKING_THE_MAX_PLAN_ALLOWS_IT_2026-11-10.md",
+      "question": "What is fable advisor?",
+      "status": "answered",
+      "disposition": "Answered in the steer's own 'What the advisor found': Claude Code's experimental advisor tool, where the main model (Opus 5.5) consults a stronger advisor model at decision points. The advisor reads the whole transcript and returns guidance. Set it per session with --advisor fable.",
+      "recorded": "2026-11-10"
+    },
+    "027ec41b6a36": {
+      "ruling": "DIRECTOR_STEER_A_THIRD_ARM_OPUS_WITH_A_FABLE_ADVISOR_AFTER_CHECKING_THE_MAX_PLAN_ALLOWS_IT_2026-11-10.md",
+      "question": "Is it a more efficient way to use fable?",
+      "status": "answered",
+      "disposition": "Answered as far as is known: only on long multi-step tasks, per the docs. Each advisor call re-reads the whole transcript uncached, and the 10 Nov blind reads put Fable at about 2.4x Opus's tokens for equal catches on short reads. The long-task arm (seat continuation third-arm-opus-with-a-fable-5-2-advisor-on-one-closed-long-task) measures it.",
+      "recorded": "2026-11-10"
+    },
+    "08458b8a23e6": {
+      "ruling": "DIRECTOR_STEER_THE_WEEKLY_SWEEP_GAINS_A_FILTERED_GITHUB_SCAN_2026-11-10.md",
+      "question": "Is this a potential sources of insight and best practice periodically?",
+      "status": "answered",
+      "disposition": "Answered in the steer: yes, with a filter. Four of this autumn's useful sources were GitHub repositories, but stars measure attention, not quality, and about 4 in 25 recent high-star repositories were relevant. So one filtered query a week, at most three reads graded popularity until the code proves more, filed in held_behind_the_exit_test.",
+      "recorded": "2026-11-10"
     }
   }
 }
