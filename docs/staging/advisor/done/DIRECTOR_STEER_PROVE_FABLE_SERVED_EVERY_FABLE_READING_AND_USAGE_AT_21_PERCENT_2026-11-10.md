@@ -29,3 +29,12 @@ Probable failure mode: reading the model from the request or the CLI's echo of `
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 10 Nov 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+*Worker tick, 10 Nov 2026 ~19:30 GMT.* "How is the test valid?" Every counted reading was served by exactly the model
+asked: 8 of 8 Opus and 8 of 8 Fable 5.2. That is read from the response's `modelUsage`, never from the flag. The
+exact-set check was proved able to fail on a real substitution: `claude-fable-5` was answered by
+`claude-opus-4-8`, in `66e1f6a0eb`. "Can we run fable 5.2?" Yes, on CLI 2.1.319, without an update. The two Fable
+readings voided by the 5-hour limit were rerun at 18:36 to 18:49 GMT, and both are valid. The test ran in full and is
+graded in `docs/staging/records/SEAT_PREREG_FABLE_5_2_AGAINST_OPUS_5_5_ON_THE_17_OCT_LABELLED_COMMITS_2026-11-10.md`.

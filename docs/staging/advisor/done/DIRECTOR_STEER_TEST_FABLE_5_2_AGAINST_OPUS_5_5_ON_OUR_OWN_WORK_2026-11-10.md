@@ -52,3 +52,20 @@ Probable failure modes:
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 10 Nov 2026, his words above; the research and drafting are the advisor's.
+
+## Done
+
+*Worker tick, 10 Nov 2026 ~19:30 GMT.* The full result is in `docs/staging/records/SEAT_PREREG_FABLE_5_2_AGAINST_OPUS_5_5_ON_THE_17_OCT_LABELLED_COMMITS_2026-11-10.md`, section "Graded".
+
+1. **Research:** in the reading log (10 Nov row, "Anthropic, Claude Fable 5.2"), committed in `04e405cc34`. The feed
+   carries it. The advisor's 10 Nov delegation-research row is also in the log and the feed.
+2. **Test on our work:** 7 labelled commits plus a refusal probe, each read blind by both models at `--effort high`,
+   and graded blind. Strict catches: **Opus 4 of 7, Fable 4 of 7**, so the result is cannot tell, as pre-registered.
+   Each model caught one defect the other missed. Fable used **2.42×** Opus's output tokens, **3.81×** the
+   API-equivalent cost and **2.65×** the time. It was slower and wrote more on all eight commits. No refusal fired.
+   Three of the cost and time predictions were refuted. They stay as written, with the cause: equal flags are not
+   equal work, because Fable at `high` thinks about three times as much as Opus at `high`.
+3. **How models are picked:** no change to `model_tier.py`. Opus stays the default and the fallback, and there is
+   no Fable class for reading work. Fable stays a candidate for long work where depth compounds. The third-arm steer
+   is that test. The refusal fallback is not proven, because nothing refused. Any future Fable class carries
+   `--fallback-model claude-opus-5-5`.

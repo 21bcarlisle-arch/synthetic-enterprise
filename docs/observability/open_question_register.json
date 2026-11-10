@@ -1114,6 +1114,20 @@
       "status": "answered",
       "disposition": "For level DD (W1, question 2): the gates did catch it, every book was refused, but a row says THAT the page and desk disagree, not which of four readers (world schedule, desk, page, invariant row) holds the wrong idea; 8 misses were the reader itself. The loop now asks this question of every failure (design section 3).",
       "recorded": "2026-11-10"
+    },
+    "5f78abe90940": {
+      "ruling": "DIRECTOR_STEER_PROVE_FABLE_SERVED_EVERY_FABLE_READING_AND_USAGE_AT_21_PERCENT_2026-11-10.md",
+      "question": "How is the test valid?",
+      "status": "answered",
+      "disposition": "Every counted reading was served by exactly the model asked (8 of 8 Opus, 8 of 8 Fable 5.2), read from the response's modelUsage; the exact-set check fails on a real substitution (claude-fable-5 answered by claude-opus-4-8, 66e1f6a0eb). Two limit-voided Fable readings were rerun valid. Graded blind: 4 of 7 strict each; see SEAT_PREREG_FABLE_5_2_AGAINST_OPUS_5_5_ON_THE_17_OCT_LABELLED_COMMITS_2026-11-10.md, Graded.",
+      "recorded": "2026-11-10"
+    },
+    "b249b45235aa": {
+      "ruling": "DIRECTOR_STEER_A_THIRD_ARM_OPUS_WITH_A_FABLE_ADVISOR_AFTER_CHECKING_THE_MAX_PLAN_ALLOWS_IT_2026-11-10.md",
+      "question": "Add it, but start by checking it's available on my max plan?",
+      "status": "answered",
+      "disposition": "Checked: available, no consent asked, overage disabled at org level so it draws plan windows only. Installed CLI 2.1.319 maps a Fable advisor to Fable 5.1 and refuses 5.2; 2.1.322 (isolated prefix) serves 5.2. Recorded in the steer's Step 1 section; the arm itself is next.",
+      "recorded": "2026-11-10"
     }
   }
 }

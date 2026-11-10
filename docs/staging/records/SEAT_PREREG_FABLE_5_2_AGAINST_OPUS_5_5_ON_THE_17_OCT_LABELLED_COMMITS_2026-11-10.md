@@ -142,3 +142,65 @@ can reach Fable 5.2, so no CLI update is needed for this test.
 
 Usage reading at the time: the director's 21% of the weekly allowance at 07:42 GMT. Under P12 that
 leaves the two reruns and one blind grading pass well inside what remains.
+
+## Graded (worker tick, 10 Nov 2026 ~19:30 GMT)
+
+**The two void readings were rerun** at 18:36 to 18:49 GMT, after an earlier rerun at 08:21 died mid-call with
+nothing written. Both reruns are valid under fact 5: `modelUsage` holds `claude-fable-5-2` alone, and neither is an
+error. Every reading counted below is valid: **8 of 8 per model**.
+
+**Grading was blind.** A fresh agent graded the 16 readings from `READINGS.md`, which carries reading ids and commit
+shas only, against the answer key above. It was told not to open the mask and was given no route to the model
+names. The grades were joined to the mask afterwards. Where it was torn between lenient and miss, it gave the lower
+grade, as instructed; it named two such cases, both graded miss.
+
+| Commit | Opus 5.5 | Fable 5.2 |
+|---|---|---|
+| 1 `09e2bf07f` | miss | miss (torn: it points at the step's constant, not the splice) |
+| 2 `b8767ebc1` | miss (torn: right function, other defect) | **strict** |
+| 3 `5f6a4f15f` | strict (the 10 slots) | strict (the 10 slots) |
+| 4 `f9a22843d` | miss | miss |
+| 5 `ac6b841fb` | strict | strict |
+| 6 `471ab8960` | strict | strict |
+| 7 `2d3b87a6b` | **strict** | miss |
+| 8 `abec13046a` (probe) | normal reading | normal reading, **no refusal** |
+
+**The five reported facts, apart and never blended:**
+
+| | Opus 5.5 | Fable 5.2 | Fable / Opus | Prediction | Graded |
+|---|---|---|---|---|---|
+| 1. Quality, strict of 7 | 4 | 4 | | Opus 2–4, Fable 2–5; under 3 apart is "cannot tell" | **held: cannot tell** |
+| 1. Quality, lenient of 7 | 0 | 0 | | | |
+| 2. Output tokens, 8 readings | 107,847 | 261,115 | **2.42×** | within ±30% | **refuted** |
+| 2. of which thinking | 60,791 | 181,723 | 2.99× | | |
+| 2. Cache read / 1-hour cache write | 8.71M / 0.55M | 13.42M / 1.15M | 1.54× / 2.10× | | |
+| 3. API-equivalent $, recomputed | 8.28 | 31.53 | **3.81×** | 1.5–2.5× | **refuted** |
+| 4. Time, summed `duration_ms` | 1,102 s | 2,915 s | **2.65×** | ≤ 1.5× | **refuted** |
+| 5. Served by exactly the model asked | 8 of 8 | 8 of 8 (2 after rerun) | | | **valid** |
+| Refusals | 0 | 0 of 8, task 8 included | | 0 of 8 | **held** |
+
+Per reading, Fable wrote more output than Opus on **all eight** commits (2.0× to 3.1×) and took longer on all
+eight (2.1× to 3.4×). So the token and time ratios are not carried by one long reading, and the two reruns' later
+hour does not explain them.
+
+The CLI's own `total_cost_usd` puts Fable at $17.11, because CLI 2.1.319 prices it at Opus rates. The recomputed
+$31.53 is the figure, as the method said.
+
+**What I got wrong, beside the prediction.** I predicted Fable's tokens would be about Opus's at equal effort, so
+its cost would be its price ratio. At `--effort high` Fable thinks about three times as much as Opus does at the
+same setting. "Equal effort" was equal flags, not equal work.
+
+**What it means.** On a blind code read, Fable 5.2 found no more of our known defects than Opus 5.5. Each found one
+the other missed, so the two are not the same reader. It drew about 2.4 times the tokens and took about 2.6 times as
+long. Seven cases cannot rank two readers 4 apiece. They can show that Fable is not a cheaper or faster reader for
+this work. Under the asymmetric loss, nothing here argues for routing reads to Fable.
+
+**Recommendation for `model_tier.py` (steer item 3).** No change to the default model: Opus stays the default and
+the fallback. No Fable class for reading work on this evidence. Fable stays a candidate where depth compounds:
+diagnosis, design reads and end-to-end checks. That needs a long-task test, and the third-arm steer
+(`DIRECTOR_STEER_A_THIRD_ARM_..._2026-11-10.md`) is that test. The fallback is still **not proven**, because no
+refusal fired. Any future Fable class must carry `--fallback-model claude-opus-5-5`, with the fallback proved on
+its first refusal.
+
+**Spend on the record:** 16 valid readings at $39.81 API-equivalent, plus 2 void and 4 probe calls. At 18:55 GMT the
+API's own rate-limit event read 0.25 of the seven-day window and 0.40 of the five-hour window used.
