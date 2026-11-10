@@ -1033,3 +1033,16 @@ outstanding at the book's end.
 NEXT: (D), the desk's cure on a mixed account. On a book carrying (P), grade it against the (D) prediction in
 8ec00af80. Before that, find out why the in-run desk cured SYN-2016-536 on 16 Feb 2023, from the in-run
 `level_shortfall`.
+
+**Re-graded on the merged base (worker, 10 Nov 2026 ~03:50 GMT).** 3099252c85, the repaid level return reaching the page,
+landed between the grade above and the promotion. It changes the page's balances. So 78f82e4242's page was regenerated
+again at b04e3832fd, once without (P) and once with it (`/var/tmp/lvl-shortfall/m-ctl`, `m-arm`):
+- **Live leaver legs with unasked debit: 15 legs and GBP 5,671.45 fall to 4 legs and GBP 410.88.**
+  - SYN-2016-380 holds 356.94 of the remainder.
+  - SYN-2016-247 holds 29.77. That is the final-bill class.
+- Closed leavers: 117 legs and 7,601.11 fall to 114 legs and 7,537.80.
+- Statements: 35 legs get one, not 50. The repayments now on the page meet some leavers' debit before they leave, so no
+  statement is asked.
+- 0 balances and 0 invoice figures moved.
+- So on origin the first figure in this section's title reads **15 legs and GBP 5,671.45** before (P), not 22 and
+  6,945.89. Those were measured at 7f69f78825 and stand as measured there.
