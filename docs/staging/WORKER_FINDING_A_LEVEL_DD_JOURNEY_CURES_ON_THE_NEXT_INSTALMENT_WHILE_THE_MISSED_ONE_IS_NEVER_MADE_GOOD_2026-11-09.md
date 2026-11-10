@@ -823,3 +823,57 @@ EBSS finding's "Open" section). If that is what the grade shows, done is naming 
 - **The grade.** Unit `longjob-grade-chain-book-78f82e4242` waits for the run, then runs
   `/var/tmp/grade-78f-scripts/after_run.sh` (the 4dee readers, control `/var/tmp/grade-ondd/`). It writes `ALLDONE` or
   `NO_DONE` in `/var/tmp/grade-78f/`. Whoever reads it grades the table above, held or fell beside each row.
+
+## Book 78f82e4242, graded against the table above (worker, 10 Nov 2026 ~03:00 GMT)
+
+The run finished at 01:46Z, and the grade chain wrote `ALLDONE` at 01:49Z. The data is in `/var/tmp/grade-78f/`
+(`grade.txt`, `overdue_breaches.txt`, `arm_overdue.json`, `split.txt`). The control is `/var/tmp/grade-ondd/`. Every
+count below comes from the readers in force at 78f82e4242, the same ones the table was filed against.
+
+| Row | Predicted | Measured | |
+|---|---|---:|---|
+| INV_OVERDUE_WITHIN_BALANCE | 0 to 10 | **60**, all on left-level legs | **FELL** |
+| PAGE_BALANCE, still-level steps | 80 to 110 | **2** (SYN-2016-291, "collects level after") | **FELL** (below 80) |
+| PAGE_BALANCE, left-level steps | at most 113 (refuted above 125) | **135** | **FELL** |
+| PAGE_BALANCE, total | 80 to 225 | **137** on 8 accounts | held on the count only, see below |
+| Shape A: level cases above their remainder | 0 | **0**. The 28 non-level penny roundings total GBP 0.29 | **HELD** |
+| Shape A: the 12 on-receipt holds | 12 | **12**, the same invoices (P2 in 5cfbea2477) | **HELD** |
+| C7: `closing_balances` / page / desk write-off | all 66.67 | **66.67 / 66.67 / 66.67** (control 48.55 / 48.55 / 66.67) | **HELD** |
+| Any other suite row | no new unexcepted row | the same 8 excepted rows with the same exceptions; no third unexcepted row | **HELD** |
+| The gate | refused | **refused: 197 unexcepted on 2 rows** (control 638) | **HELD** |
+
+**The total held only by accident.** It is not evidence. Its two legs moved in opposite directions to the
+prediction, and the errors cancelled:
+- The still-level class fell to 2. The refutation clause said a fall below 80 would mean "the fix also moved a
+  class I read as untouched", and it did. The 84 "level, unexplained" rows on 12 accounts and the 10 rows on the 2
+  accounts that were not written off closed along with the C7 shape. This book carries four changes, so **I cannot
+  yet say which of them closed those rows.**
+- The left-level class rose from 113 to 135. That is the opposite of "can only lower". The cap does not raise it,
+  so the rise comes from another change in the book: C7's schedule hand-back moves legs from still-level to
+  left-level. That is a hypothesis, not a measurement.
+
+**INV_OVERDUE_WITHIN_BALANCE fell, and its cause is the row's reading.** That was the stated meaning of a miss.
+189b32460e has since fixed the reader: the debit a leaver owes the scheme counts once the closing statement is due.
+That fix takes this book from 60 to 2 (SYN-2016-496 and SYN-2016-007, both desk residues). 703edeb89b changes the
+desk for both of them, and that change needs a new book to be graded.
+
+**Breach classes still open on this book, with count and owner:**
+- **INV_OVERDUE_WITHIN_PAGE_BALANCE, left-level steps: 135.** Owner: the desk-write-off-reaches-the-page work
+  (`SEAT_FINDING_THE_DESKS_WRITE_OFF_OF_A_CLOSED_ACCOUNT_NEVER_REACHED_THE_PAGE_2026-11-10.md`, P5). They sit on 7
+  accounts: SYN-2016-021 (58), SYN-2016-549 (44), PROS-2017-0045 (8), SYN-2016-123 (8), SYN-2016-611 (8),
+  PROS-2021-0117 (7) and SYN-2016-581 (2). Its graded residue is the desk writing off less than the page shows.
+  That landed as b512dec267 after this book was cut, so the count needs a re-grade on a later book or a page
+  regeneration.
+- **INV_OVERDUE_WITHIN_PAGE_BALANCE, still-level steps: 2.** SYN-2016-291 collects level after the step. No owner
+  has been named yet. It is the only row of its class left.
+- **INV_OVERDUE_WITHIN_BALANCE: 2** on origin's reader (60 on the reader graded here). Owner: the desk's
+  level-leaver dunning (703edeb89b), which needs a new book to grade.
+
+**Early publish this week: MISSED.** The director said yes to an early publish on 8 Nov, and that yes needed a
+passing book. 78f82e4242 is refused on two rows with 197 unexcepted breaches. Nothing is offered to the publisher,
+and the tenth cold read's embargo stays in place. The next book that can pass must carry b512dec267, 189b32460e and
+703edeb89b together. Even then, it has to clear 135 page-balance steps that no landed change has yet been measured
+to close.
+
+NEXT: run the next book from origin at or after 703edeb89b, off a clean worktree, and grade it on origin's readers.
+Predict the left-level page-balance count before the run starts.
