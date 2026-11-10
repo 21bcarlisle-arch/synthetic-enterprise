@@ -248,8 +248,9 @@ def desk_write_off_postings(legs, as_of):
     `legs` maps customer id to ledger record for the legs of ONE billing account; each carries the
     account's `collections_desk_journeys`. Returns `({cid: [posting]}, [unposted])`.
 
-    The engine's per-invoice write-off dated on the desk's day is the same closing event, so the
-    page posts only what the desk wrote off beyond it. That remainder goes to the legs that owe on
+    The engine's per-invoice write-offs dated after the account's last bill and on or before the
+    desk's day are the same closing event, so the page posts only what the desk wrote off beyond
+    them. That remainder goes to the legs that owe on
     the day, largest debit first, each up to what it owes. A desk figure above what the page shows
     owed is not posted, since it would print a credit the household never held. It is returned as
     unposted so the disagreement can be counted. A desk figure below leaves the rest owed.
@@ -260,14 +261,27 @@ def desk_write_off_postings(legs, as_of):
                      if s["stage"] == "write_off" and s["on"] <= as_of), key=lambda s: s["on"])
     postings = {cid: [] for cid in legs}
     unposted = []
+    netted = set()  # (leg, entry index) of each engine write-off an earlier stage already netted
     for stage in stages:
         day, desk = stage["on"], round(stage.get("written_off_gbp") or 0.0, 2)
         owed, already = {}, 0.0
         for cid, rec in legs.items():
             entries = build_account_ledger({**rec, "desk_write_offs": postings[cid]}, as_of)["entries"]
             owed[cid] = round(sum(e["amount_gbp"] for e in entries if e["date"] <= day), 2)
-            already += sum(-e["amount_gbp"] for e in entries
-                           if e["date"] == day and e["type"] == "write_off")
+        # The engine dates a leg's closing write-off from THAT leg's final bill, the desk from the
+        # account's last bill: on a dual-fuel account the same debt is written off days apart
+        # (SYN-2016-285: 41.95 on 31 Mar 2019 and on 4 Apr 2019), so the window is the closing one.
+        engine = {cid: build_account_ledger({**rec, "desk_write_offs": []}, as_of)["entries"]
+                  for cid, rec in legs.items()}
+        last_bill = max((e["date"] for entries in engine.values() for e in entries
+                         if e["type"] == "invoice_raised" and e["date"] <= day), default="")
+        for cid, entries in engine.items():
+            for n, e in enumerate(entries):
+                key = (cid, n)
+                if (e["type"] == "write_off" and last_bill < e["date"] <= day
+                        and key not in netted):
+                    netted.add(key)
+                    already += -e["amount_gbp"]
         left = round(desk - already, 2)
         for cid in sorted(owed, key=lambda c: (-owed[c], c)):
             take = round(min(left, owed[cid]), 2)

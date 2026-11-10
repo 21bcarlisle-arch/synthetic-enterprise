@@ -1424,7 +1424,16 @@ statement. This build keeps that convention, and the convention is a question fo
 **The design's choices.**
 1. **One event, one posting.** The desk writes off the account; the engine's per-invoice
    `WRITTEN_OFF` dated the same day is the same event. The page posts the desk's figure less what it
-   already wrote off that day, never both.
+   already wrote off that day, never both. **Amended the same day**, once the 28 accounts with an
+   unposted excess were traced: "the same day" was too narrow. The engine dates each fuel leg's
+   write-off a year after **that leg's** final bill. The desk dates the account's write-off a year
+   after the **account's** last bill. On a dual-fuel account those are days apart, and they are still
+   one closing event (SYN-2016-285: 41.95 on 31 Mar 2019 and 41.95 on 4 Apr 2019). So the page nets
+   every engine write-off dated after the account's last bill and on or before the desk's day, each
+   one once. No source is needed for this. It is the same debt, and posting it twice would write off
+   money nobody owes. **GAP, not chosen here:** which date is right for the account. One account is
+   one debt (SLC 27.16 treats the account as one balance), which points to the account's date. The
+   page keeps both dates as each side made them.
 2. **The split across fuel legs.** It is made once, in the ledger generator, where both legs are in
    hand. The share goes to the legs that owe on the day, largest debit first, each up to what it
    owes. The page and the statement walk post the stored share.

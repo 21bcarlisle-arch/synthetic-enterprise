@@ -257,3 +257,75 @@ fixed. Not measured. `test_every_journey_opens_the_day_after_a_bill_the_ledger_m
 c5d99ba357 **without** this change (3 journeys: PROS-2016-0020, SYN-2016-325, SYN-2016-005).
 `test_reconciliation_identity_holds_across_full_live_book` also fails at c5d99ba357 without this
 change, in a fresh worktree whose `site/data/customers` is stale (OCC-00909e50a521, GBP 102.30).
+
+## The 29 and the 28, traced (item `desk-and-page-agree-on-the-29-and-the-28`, 2026-11-10)
+
+**Premise, re-measured.** Book 78f82e4242, ledger regenerated at 8100fc86e (`/var/tmp/desk29/ledger.json`):
+**29** desk-written-off accounts still printing owed (GBP 1,987.24), **28** with an unposted desk
+excess (GBP 3,320.24), statement walk **0 of 1,302**. Same as the last section. Not spent.
+
+**Every gap is on the write-off day.** No account in either set has a page movement after the desk's
+day except a DCA recovery note (zero amount). So each one is "the company's ledger on the day" against
+"the page on the day". Define **X** = the page's balance on the desk's day, with every engine write-off
+dated after the account's last bill added back, and every closing refund taken out. Readers:
+`/var/tmp/desk29/s/{trace,classify,resid}.py`.
+
+| class | accounts | desk vs X | what it is |
+|---|---|---|---|
+| **U. Same write-off, another day** | **all 28** unposted (GBP 3,320.24) | desk = X on all 28 | The engine writes off each fuel leg a year after **that leg's** final bill. The desk writes off the account a year after the **account's** last bill. On a dual-fuel account those are days apart (SYN-2016-285: engine 41.95 on 31 Mar 2019, desk 41.95 on 4 Apr 2019). The posting nets only an engine write-off dated **on** the desk's day, so it found nothing owed and counted the whole figure as excess. A posting-rule defect. No money is in dispute. |
+| **R. A refund the desk never sees** | **18** owing (GBP 446.29), exact | desk = X | The run pays closing-credit refunds after the run (`simulation/run_phase4c_on_phase2b.py`, from the world walk's `closing_balances`). They never reach the company's ledger, so the desk writes off the balance **before** the refund and the page owes the refund. 19 of the 20 refunds are on dual-fuel accounts. Two parts: **stale**, the refund above the leg's cash credit (the walk this book ran on credited the face; 47fdeacd5 fixed it for the next book), GBP 336.60 on 18 of the 20 refunds; **per leg**, one leg's credit refunded while the account's other leg owes, GBP 218.00 on 13. (The two parts are summed over all 20 refunds, including the one on PROS-2017-0249 and the ones on the two accounts that are also in another class. I first wrote GBP 340.60 on 17 and GBP 218.47 on 13 here, before summing them. Those were wrong.) The stale part should go on the next book. The per-leg part will not. |
+| **L. A presented level collection the page never resolves** | **11** owing (GBP 1,540.95) | desk below X | All level DD. The world presented a level collection (`level_dd_collections`) that has no payment row on the page, neither paid nor failed. The gap equals it exactly on 3 (SYN-2016-218g 19.63 on 13 Mar 2017, SYN-2016-035g, SYN-2016-571g), and in part on the other 8. The desk's figure is below the page's by that cash, so the company's ledger counted a collection the page did not. Not traced to which side is right. |
+
+(R and L overlap on PROS-2018-0359. One account, SYN-2016-552, is R+U.)
+
+**Why the unposted count fell 31 → 28, against the prediction.** Class U is a fixed set of accounts,
+whatever the repayments do: it depends only on the two write-off dates. The repayment change moved 3
+accounts' day balances, and that changed which side of the desk they sat on. It did not create excess.
+I predicted the direction from "more cash on the page lowers the page", and I left out that U's excess
+does not depend on the page's cash at all.
+
+### Pre-registration (written before the change is measured)
+
+Change: the posting nets **every engine write-off on the account's legs dated after the account's last
+bill and on or before the desk's day**, not only the one dated on the day. Each engine amount is netted
+once across the desk's stages.
+
+On book 78f82e4242 at 8100fc86e plus this change:
+
+- **S1.** Accounts with an unposted desk excess: 28 → **0**.
+- **S2.** Desk-written-off accounts still printing owed: 29 → **30**, GBP 1,987.24 → **GBP 2,003.70**.
+  PROS-2017-0249 is U+R: once the engine's write-off is netted, its 16.46 refund stays owed.
+- **S3.** Statement walk against the page: **0 of 1,302**. Accounts the posting puts into credit: **0**.
+- **S4.** Desk postings in total fall by the same-event engine amounts no longer double-counted:
+  **I cannot predict the size** without running it, so this is not a prediction.
+
+### Result (book 78f82e4242, ledger regenerated at 8100fc86e with the change, one variable)
+
+| | predicted | measured |
+|---|---|---|
+| S1 accounts with an unposted desk excess | 0 | **0** (from 28, GBP 3,320.24) |
+| S2 desk-written-off accounts still printing owed | 30, GBP 2,003.70 | **30, GBP 2,121.64**. Count hit, amount **missed** by GBP 117.94 |
+| S3 statement walk / legs put into credit by a posting | 0 / 0 | **0 of 1,302 / 0** |
+| S4 desk postings in total | (not predicted) | GBP 17,660.71 → 17,526.31 |
+
+**Why S2's amount missed.** Two of the 29 owing accounts were also class U, and I carried only
+PROS-2017-0249 through. SYN-2016-552 rises 30.68 → 118.70, which is its refund. PROS-2019-0318 rises
+229.01 → 258.93, which is its class-L gap. Once the engine's earlier write-off is netted, the desk had
+been covering part of those gaps with it.
+
+**What is left is exactly two classes, to the penny.** The 30 accounts owe GBP 2,121.64 =
+**R** GBP 550.77 (19 accounts: the 17 exact, SYN-2016-552 and PROS-2017-0249) + **L** GBP 1,570.87
+(11 accounts). No account is unexplained.
+
+### Next pieces (each its own item)
+
+1. **L, a presented level collection the page never resolves** (11 accounts, GBP 1,570.87). The world
+   presented it (`level_dd_collections`) and the page has no payment row for it. Is it paid in the
+   world, failed in the world, or never resolved? Then which side is wrong, the page or the company's
+   ledger? Start on SYN-2016-218g: 19.63 presented on 13 Mar 2017, which matches the gap exactly.
+2. **R per leg** (GBP 218.00 on 13 refunds). The run refunds one fuel leg's credit while the
+   account's other leg owes. SLC 27.16 treats the account as one balance, so the credit should meet
+   the other leg's debt first. The refund is world-side and post-run
+   (`simulation/credit_refund_events.py`) and the desk never sees it. Both need fixing.
+3. **R stale** (GBP 336.60 on 18 refunds). This should go by itself on the first book run at or after
+   47fdeacd5. Grade it there and do not build for it.
