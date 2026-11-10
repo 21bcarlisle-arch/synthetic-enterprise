@@ -657,3 +657,34 @@ def test_a_failure_record_older_than_the_publish_beside_it_makes_no_failure_clai
     standing = render(heartbeat=hb)
     assert "PUBLISHING IS FAILING" not in superseded["text"] and superseded["state"] != "stale"
     assert "PUBLISHING IS FAILING" in standing["text"] and standing["state"] == "stale"
+
+
+# THE PAUSED STATE, THROUGH THE PAGE'S OWN SCRIPT (OPS8 exit 4, 2026-11-10).
+#
+# Every render above is of a VERIFIED provenance file. The paused sentence was pinned only by
+# `test_publish_provenance.py`'s phrases-present-in-the-source check, so replacing the branch
+# condition in `sentence()` with `true` -- the page saying "Verified" over a refused run, the
+# cardinal sin -- passed all 103 banner tests. Measured, not supposed: R15 run in the OPS8 commit.
+PAUSED_PROVENANCE = {
+    **VERIFIED_PROVENANCE,
+    "verification_state": "paused",
+    "paused_since": "2026-08-13T19:30:00Z",
+    "paused_gate": "Refused by the domain-invariant check: 2 of its rules are broken",
+}
+
+
+def test_the_page_says_paused_exactly_when_the_record_is_paused_and_never_otherwise():
+    """Both directions in one control, so a renderer stuck on either sentence fails it."""
+    paused = render(prov=PAUSED_PROVENANCE, heartbeat=_heartbeat("publishing", 0.2))
+    current = render(prov=VERIFIED_PROVENANCE, heartbeat=_heartbeat("publishing", 0.2))
+
+    # The branch can be taken: the two records render as two different states.
+    assert (paused["state"], current["state"]) == ("paused", "verified")
+    # Stale cannot be hidden: T, R and the refusing gate reach the reader.
+    assert "Verification paused since 2026-08-13T19:30:00Z" in paused["text"]
+    assert "showing run run_output_f232c3480_20260813T164721Z.json" in paused["text"]
+    assert "domain-invariant check" in paused["text"]
+    assert not paused["text"].startswith("Verified")
+    # Current cannot be shown as paused.
+    assert "paused" not in current["text"].lower()
+    assert current["text"].startswith("Verified 2026-08-13T17:17:05Z")

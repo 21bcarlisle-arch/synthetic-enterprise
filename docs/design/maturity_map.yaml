@@ -958,24 +958,6 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a printed accounts pack whose cover states the period, the preparer and the sign-off date"
 
-- id: OPS8_last_known_good_staleness_banner
-  title: "Behind, never frozen, never silent: serve last-known-good under a dated banner"
-  notes_rehomed: [gain, name, origin_note]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 2
-  level_current: 0
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 1
-  provenance: director_ruling
-  depends_on: [OPS6_scoped_publish_path_suite]
-  couples_with: [OPS7_provenance_stamps_on_live_pages]
-  records_rehomed: [evidence]
-  file_scope: ['background/process_run_complete.py', 'site/index.html', 'site/data/']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a departure board that says 'last updated 14:02' instead of going blank"
-
 - id: SITE2_two_sided_wall_exhibit
   title: "The household page stops calling itself a customer portal and becomes the wall's own exhibit"
   notes_rehomed: [gain, name]
