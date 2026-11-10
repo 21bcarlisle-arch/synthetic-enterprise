@@ -1039,6 +1039,26 @@ def generate(run_json_path=None, out_path=None):
                 inv["deemed_share_gbp"] = round(printed_total - payer_face, 2)
                 inv["deemed_share_to"] = ("owner" if bill.get("void_owner_share", 0.0)
                                           > bill.get("occupier_share", 0.0) else "occupier")
+            # A level direct debit collects its amount whatever the month's bill, a credit included
+            # (payments_and_direct_debit_2026-10-25.md, "What a level direct debit must be"), and the
+            # world presented it. Paid, it is money in on its day; returned, nothing crossed and the
+            # bill owes nothing, so no case opens. The engine pops the same month for the same bill
+            # (`arrears_engine.level_collection_difference`). Dropped here, the cash the desk counted
+            # had no row: 15 of 17 unshown collections on 78f82e4242 (SYN-2016-218g, 19.63).
+            collection_result = None if row is None else row.get("collection_result")
+            level = (None if collection_result is None else
+                     (level_dd.get((cid, period_end[:7])) or [None]).pop(0))
+            if level is not None and collection_result == "success":
+                payments_by_cid.setdefault(cid, []).append({
+                    "invoice_number": invoice_number,
+                    "payment_date": level["collection_date"],
+                    "amount_gbp": round(level["amount_gbp"], 2),
+                    "method": "direct_debit",
+                    "outcome": "success",
+                    "income_stress_at_time": stress,
+                    "tone": None,
+                    "level_dd": True,
+                })
 
         written_off = write_offs.get((cid, period_end, commodity))
         # A case is for what is still owed once account credit on the same contract is netted

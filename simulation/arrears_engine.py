@@ -1026,9 +1026,14 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         due_date = bill_due_date(cid, period_end)
         if amount <= 0:
             # A credit bill has nothing to collect, so it can neither fail nor acknowledge a debt.
+            # A level direct debit is still presented in its month (`LivePaymentTriad.record_period`:
+            # the schedule collects whatever the bill), and the triad's result for the month is that
+            # collection's, carried here for `level_collection_difference` and the page.
+            told = wpt.truth_outcome(truth, period_end)
             rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
                          "amount_gbp": amount, "due_date": due_date, "method": None,
-                         "outcome": "credit", "days_late": 0})
+                         "outcome": "credit", "days_late": 0,
+                         "collection_result": None if told is None else told["result"]})
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, int(period_end[:4]))
         method = paying_method(segment, amount, cid, commodity, period_end, dd_spells)
@@ -1089,8 +1094,8 @@ def level_collection_difference(resolved: list[dict], level_dd_collections: dict
     The walk takes a paid DD bill as paid at its face. A household on a level amount paid that
     amount instead, so its one balance (SLC 27.16) differs from the walk's by the sum of the
     differences. The months are matched exactly as the page matches them
-    (`tools.generate_billing_ledger`): each DD bill, in period order, takes its month's next
-    collection. Measured on the af31e73fa7 book, the walk's closing balance plus this difference
+    (`tools.generate_billing_ledger`): each DD bill, and each credit bill whose month the triad
+    presented, in period order, takes its month's next collection. Measured on the af31e73fa7 book, the walk's closing balance plus this difference
     is the page's balance at close on 850 of 857 leavers; the walk alone is on 360
     (home_moves.md s.8.8b)."""
     if not level_dd_collections:
@@ -1102,16 +1107,23 @@ def level_collection_difference(resolved: list[dict], level_dd_collections: dict
     out: dict[str, tuple[float, date]] = {}
     for r in sorted((r for r in resolved if r["outcome"] != "repayment"),
                     key=lambda r: (r["customer_id"], r["period_end"])):
-        if r.get("method") != DD_METHOD:
+        credit_month = r["outcome"] == "credit" and r.get("collection_result") is not None
+        if r.get("method") != DD_METHOD and not credit_month:
             continue
         months = queue.get((r["customer_id"], r["period_end"][:7]))
         if not months:
             continue
         c = months.pop(0)
-        if r["outcome"] != "success":
+        # A credit bill's month still collects the level amount, and the walk took nothing for it:
+        # the cash is all difference. It used to be dropped, so the walk's closing balance (which
+        # sizes refunds and bad debt) and the page both missed money the desk had counted: 15 of
+        # 17 unshown collections on 78f82e4242, SYN-2016-218g's 19.63 of 13 Mar 2017 among them.
+        result = r.get("collection_result") if credit_month else r["outcome"]
+        if result != "success":
             continue
+        face = 0.0 if credit_month else r["amount_gbp"]
         held = out.get(r["customer_id"], (0.0, date.min))
-        out[r["customer_id"]] = (round(held[0] + r["amount_gbp"] - c["amount_gbp"], 2),
+        out[r["customer_id"]] = (round(held[0] + face - c["amount_gbp"], 2),
                                  max(held[1], date.fromisoformat(c["collection_date"])))
     return out
 

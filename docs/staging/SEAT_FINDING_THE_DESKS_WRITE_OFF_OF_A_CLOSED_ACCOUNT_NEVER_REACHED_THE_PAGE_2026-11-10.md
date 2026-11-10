@@ -358,3 +358,27 @@ the run's refunds and its bad debt, so this is a book figure and not only the pa
 page, a level collection presented in a credit bill's month is money in, at the level amount, on its
 collection date. Pre-register the change in class L (11 accounts, GBP 1,570.87) and in the walk's
 closing balances before measuring it. The world side is `sim-engineer` work.
+
+## Class L built: a credit bill's month keeps its level collection (2026-11-10, worker tick)
+
+**The change.** This was one variable, and the page and the world's walk pair it identically. For a credit bill, the engine now carries the triad's result for the month as `collection_result`. That result is the presented level collection's own (`arrears_engine._resolve_bills`).
+- **The world's walk.** `level_collection_difference` makes that bill take its month's collection. A paid collection is all difference.
+- **The page.** `tools/generate_billing_ledger.py` posts a paid collection as a level DD payment on the credit invoice, at the level amount, on its collection date. A returned collection posts nothing, because nothing crossed and the credit bill owes nothing.
+- **The company's books.** `saas.ledger.build_ledger` already paired every bill in the month, credit bills included, so it needed no change. That is why the desk was right.
+
+**Predicted before measuring** (`/var/tmp/lvlcred/PREDICTION.md`), on book 78f82e4242, regenerated with and without the change:
+
+| | predicted | measured |
+|---|---|---|
+| P1 SYN-2016-218g walk closing balance | 73.44 → 53.81 | **73.44 → 53.81** |
+| P2 walk closing balances that rise | 0 | **0**; 59 of 850 leaver legs fall, GBP 6,860.04 in total |
+| P3 unshown collections on the 11 class-L accounts | 17 → 2 | **17 → 3, a miss.** All three are on PROS-2019-0318 (25 Jul 2022, 28 Dec 2022, 24 Mar 2023), which this change does not touch. The other ten accounts go 14 → 0. My filter counted three PROS-2019-0318 collections where the trace above counted two. |
+| P4 existing level DD rows changed | 0 | **0**; 196 rows added, all on credit invoices (GBP 22,717.63) |
+
+Across the book, schedule rows with no page payment on their date fall from 744 (GBP 55,019.57) to 548 (GBP 32,301.94). The remainder is returned collections and other classes, not graded here.
+
+**What moves when the next book runs.** The walk's closing balance sizes the reg 6D refunds and the bad debt at close. On this book that is 59 leavers whose balances fall by GBP 6,860.04, so refunds rise or write-offs fall by up to that sum on the next run. Every published refund and bad-debt figure will move. This book's published figures were made before the change, and that is stated here rather than recomputed off-run.
+
+**Seen and not built (next item, untraced on the book).** In the walk, a level household's paid DD bill still draws waiting credit of kind `"credit"` (the `_draw(... ("credit",) if on_level ...)` line). The household paid its level amount in cash whatever the credit, and the triad keeps the credit on the balance (`record_period`: "A level collection takes the level amount whatever the bill: credit stays on the balance"). So a credit bill followed by a paid month reads as credit used in the walk, while the page holds it. The unit test here places the credit last to keep this out of scope. It is a hypothesis to measure on the book, not a finding yet.
+
+**PROS-2019-0318** (three collections, GBP 190.13) is still not traced.
