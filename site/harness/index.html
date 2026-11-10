@@ -1639,10 +1639,17 @@ function renderDeliveryDecided(d) {
     ((dec.for_the_director || []).length
       ? '<div class="note"><strong>Raised with the director, each with a proposal.</strong> ' +
         "None of these blocks the work above." +
+        /* A DASH, NOT A COLON, after the page's own labels (2026-11-10). A proposal written the
+           way `director_concerns --raise` asks ("investigate: <what>", or "Investigate first: did
+           you...") printed as "Proposal: Investigate first:" -- which a reader, and the site's
+           empty-field sweep, cannot tell from an empty Proposal field followed by another label.
+           Neither slot can be empty (the proposal falls back to "none recorded", the resolution
+           is drawn only when present), so the colon was the only thing making a hole. It refused
+           all 18 of the seat's direction landings, 8-10 Nov, while one such row was carried. */
         (dec.for_the_director || []).map(function (f) {
           return "<p><b>" + esc(f.status || "open") + "</b> &middot; " + esc(f.what || "") +
-            "<br>Proposal: " + esc(f.proposal || "none recorded") +
-            (f.resolution ? "<br>Resolution: " + esc(f.resolution) : "") + "</p>";
+            "<br>Proposal &mdash; " + esc(f.proposal || "none recorded") +
+            (f.resolution ? "<br>Resolution &mdash; " + esc(f.resolution) : "") + "</p>";
         }).join("") + "</div>"
       : "<p>Nothing on this list is waiting on a human.</p>");
 }

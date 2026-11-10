@@ -1328,7 +1328,8 @@ def test_a_concern_for_the_director_reaches_the_reader_with_its_PROPOSAL_and_STA
     Both branches in one control: a feed with an open and an answered row renders what, proposal,
     status and resolution; a feed with none says nothing is waiting.
 
-    MUTATION (must fire): drop the `Proposal:` line, or the status, from `renderDeliveryDecided`.
+    MUTATION (must fire): drop the `Proposal` line, or the status, from `renderDeliveryDecided`;
+    or put the colon back after either label, which the last leg reads as an empty field.
     """
     feed = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
     decided = dict(feed.get("what_it_decided") or {})
@@ -1339,13 +1340,17 @@ def test_a_concern_for_the_director_reaches_the_reader_with_its_PROPOSAL_and_STA
                          "status": "open", "resolution": ""},
                         {"id": "tariff-cap", "what": "The cap is binding on the menu.",
                          "proposal": "price under the cap and report the gap",
-                         "status": "answered", "resolution": "Rich 2026-10-04: agreed"}]})
+                         "status": "answered", "resolution": "Rich 2026-10-04: agreed"},
+                        # The house form, capitalised, as the seat carried it 8-10 Nov.
+                        {"id": "stops", "what": "The box stopped twice.",
+                         "proposal": "Investigate first: did you shut the PC down?",
+                         "status": "answered", "resolution": "Ruling: director 8 Nov, yes"}]})
     out = _text(_render({"../data/delivery.json": dict(feed, what_it_decided=decided)})
                 ["delivery-decided"]["innerHTML"])
     for needle in ("open · The canon reads the split as fixed.",
-                   "Proposal: investigate: whether a fixed split was meant",
+                   "Proposal \u2014 investigate: whether a fixed split was meant",
                    "answered · The cap is binding on the menu.",
-                   "Resolution: Rich 2026-10-04: agreed",
+                   "Resolution \u2014 Rich 2026-10-04: agreed",
                    "None of these blocks the work above."):
         assert needle in out, f"the concerns panel lost {needle!r}"
 
@@ -1353,7 +1358,11 @@ def test_a_concern_for_the_director_reaches_the_reader_with_its_PROPOSAL_and_STA
         feed, what_it_decided=dict(decided, for_the_director=[]))})
         ["delivery-decided"]["innerHTML"])
     assert "Nothing on this list is waiting on a human." in empty
-    assert "Proposal:" not in empty
+    assert "Proposal \u2014" not in empty
+
+    # A proposal or resolution that opens with a label of its own is not an empty field.
+    from test_no_published_page_renders_an_empty_field import empty_fields
+    assert not empty_fields(out), empty_fields(out)
 
 
 def test_one_problem_copied_into_39_orientations_RENDERS_as_one_problem_not_39(

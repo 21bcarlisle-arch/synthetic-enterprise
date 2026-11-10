@@ -1,240 +1,269 @@
 version: 1
-oriented_at: '2026-11-08T18:23:00.416821+00:00'
-thesis_read: 'This stretch went backwards on the supplier. It had 3 commits, 2 carrying work, and 0 on the supplier
-  side (commit_split 0/0/0/3). One commit re-derived the five constant floors the archive had reddened; that item
-  is finished and leaves focus. The other rebuilt the Knowledge tab. No number on a page moved. Of the four focus
-  items, two were drawn. The floors item landed. The closed-accounts item is landing now: a surgical_land process
-  (pid 2949168, run from /var/tmp/closed-close) had been in its gate for an hour at 18:23. It carries the split
-  (420 of 421 stranded accounts are level-DD legs, and their cash is right), the home_moves knowledge, and an invariant
-  row that breaches 184 on af31e73fa7. The step 2b item, the one that matters most, was not drawn this stretch.
-  Its 14:46 draw expired twice. Each time the tick was killed, and fork_salvage kept its work: salvage/detached-630952183d
-  (16:06), then salvage/detached-7a80b0442980 (16:45). Its worktree /var/tmp/se-l2b-inc2 has since been reaped.
-  The salvage holds the whole build, its red-on-today test, and eight mutations, all red. The work is done and not
-  landed, so item 1 is now a landing from a tag, not a build. I also correct the last record in the same place.
-  At 15:20 it said the closed-account diagnosis existed nowhere. It was in salvage/detached-092f527cf1 from 13:41,
-  and that is what is landing now. The seat checked origin, the tree and worktrees, but not salvage tags, which
-  is where a timed-out tick''s work goes. A second problem now has a deadline. The shared checkout is 30 commits
-  behind origin. Every daemon runs code the branch has moved past, and the Monday 04:00 publish runs from that checkout.
-  It cannot fast-forward because a dead archive seat left 637 paths staged in its index. I measured them: 97 archive
-  paths are already on origin byte for byte; 124 staging files are on origin under other paths, and 1 of those differs;
-  409 customer JSON files are not on origin at all. Against the thesis, we are still on the precondition: one balance
-  that the world, the desk and the page all read the same way. The 26 Oct ruling keeps the advantage work (per-customer
-  inference against the flat-rule baseline) parked until a book passes the gate, and no book can pass before step
-  2b lands. The early publish the director approved will in practice be Monday''s: no step-2b book can be built
-  and graded before 04:00.'
+oriented_at: "2026-11-10T18:35:54.288304+00:00"
+thesis_read: >-
+  Against the thesis, this stretch went backwards. It is 12.2 hours long, and the box was off for 10 of them: the guest
+  powered off in an orderly way at 08:26:45 GMT and came back at 18:33. The journal shows systemd reaching poweroff.target,
+  not a crash, and nothing on the box shows who asked for it. That is the third stop in a week (24h on 3-4 Nov, 60h on 5-7 Nov,
+  10h today), and the off-box check the director said yes to on 8 Nov (due 15 Nov) has nothing on origin, so he was not told
+  this time either. The stop killed the dca2ea1e7f book about two minutes into its run (its log ends at 08:26:20 in the
+  registry EAC lines). The census that held it this morning had finished, and the admission had let the book through at
+  12,500 MB declared. The b8da2eed18 book and both grade chains were transient units and died with it. No book carrying
+  this week's billing fixes has run, so the 06:24 row about the books is still uncorrected, now for a different reason. The
+  launch register still lists book-dca2ea1e7f as live, and the grade-b8da continuation waits on an ALLDONE file that nothing
+  will ever write. Before the stop, two pieces of supplier work landed. The billing ledger is committed gzipped (d7c214a39:
+  91,168,764 bytes become 6,796,846). That error row is retired as fix already_fixed in wrong_triage and so leaves my wrong
+  list; it is checked on the first real publish, which has not happened. Class L also landed (6fb708f3a): a credit bill's month
+  keeps its level collection, and 59 leaver legs' closing balances fall by GBP 6,860.04 on 78f82e4242. The dca2ea1e7f
+  pre-registration does not cover that change, so a head book is needed as well. Of the previous four focus items, the books
+  item was worked until the stop, the ledger item finished and leaves focus, and the Fable test ran through the advisor
+  channel (16 of 16 readings served by the model asked for; 2 Fable readings void on the 5-hour limit). SYN-2016-549 was not
+  touched. It is the only known blocker on the gate, so this steer is drifting and it stays item 2 in the same words. The commit
+  split is 1 supplier, 1 world and 8 other, and the world commit is billing (the world's walk and the page together). A
+  second machine defect surfaced while I oriented. None of the seat's records since 8 Nov 18:23 has reached origin. All 18
+  of the seat's landings from 8 to 10 Nov were refused by a red site test, and 07abc5a7e carried one record over by hand. So
+  the record the director reviews is two days old, and every correction since then is on this box only. Nothing has
+  changed in the thesis itself. No per-customer decision has been graded against the flat-rule baseline, the corrected
+  renewal belief waits on a clean book, and the site's figures are 183.8h old. We are 15 days into the correctness stretch,
+  and today's 10 hours of it were lost to a stop the machine cannot see.
 stretch_reviewed:
-  since: '2026-11-08T15:20:15.026277+00:00'
-  commits: 3
+  since: "2026-11-10T06:23:52.584636+00:00"
+  commits: 10
   substantive: 2
 focus:
-- id: level-dd-step-2b-phase-2b-collects-the-causal-level-amount
+- id: the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded
   lane: D_billing_metering
   side: supplier
-  what: 'LAND step 2b from salvage/detached-7a80b0442980. Its parent is salvage/detached-630952183d and
-    its base is 9dfbf9f960. Do not rebuild it: the build, its test and eight red mutations are in the
-    tag. In a fresh worktree at origin/main, apply `git diff 9dfbf9f960 salvage/detached-7a80b0442980`
-    restricted to these paths ONLY: background/live_payment_triad.py, company/billing/arrears_engine.py,
-    company/billing/collections_journey.py, company/billing/payment_observation_consumer.py, simulation/run_phase2b.py,
-    tools/generate_billing_ledger.py, tests/simulation/test_debt_objection.py, tests/simulation/test_a_level_dd_household_is_dunned_on_its_schedule_not_its_bills.py,
-    the ...journey_opens_on_the_bill_the_ledger_made_due.py test, and the SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_..._2026-11-07.md
-    finding. Never take its docs/observability/* or docs/context-handshake-latest.md changes: they are
-    the dead ticks'' noise. Two ticks have already run out of time on this item. So run only the named
-    tests, then start `python3 -m tools.surgical_land` in the background within the first 20 minutes,
-    and act on its notification. Once it lands, queue the grade from that commit, with the book''s path
-    in a `DO NOT DRAW BEFORE /abs/path EXISTS` phrase. The grade carries the finding''s pre-registration
-    (INV_OVERDUE 1,724 to 0 on level-DD households, non-level accounts byte-identical), the desk-cure
-    re-grade (5b32ecb0f) and the BSCP504 rows.'
-  why: This is the only build between any book and a passing publish gate, and it carries 133 of the 134
-    desk cures. A household in credit that is sent an overdue letter has been sent a false arrears letter.
-    The work is finished, but it is in a tag that a reaper or a pruned ref can lose. Done means the code
-    paths and their test are on origin under this id, and the grade hand-off is queued.
-  written_at: 1794162565.961
-- id: unstick-the-shared-checkout-before-the-monday-publish
+  what: 'The 08:26:45 GMT poweroff killed book-dca2ea1e7f (log /var/tmp/longjob-book-dca2ea1e7f.log ends
+    at 08:26:20), book-b8da2eed18 and both grade-chain units. Nothing is running for any of them now;
+    check `ps` and `systemctl --user list-units ''longjob-*''` first. First, mark both jobs dead in the
+    launch register with the cause "guest poweroff 08:26:45". Retire or re-arm the continuation grade-b8da-book-when-its-chain-writes-alldone,
+    because its ALLDONE file can no longer be written. Then relaunch dca2ea1e7f exactly as pre-registered
+    in d41ada8f1, through launch_long_job, with its grade chain /var/tmp/grade-dca2-scripts/after_run.sh.
+    Its worktree /var/tmp/book-wt-dca2ea1e7f holds salvage 264dcb92f, so read that salvage before reusing
+    or replacing the worktree. Once it is admitted, ask the admission whether a second book fits. If it
+    does, launch a book at origin/main head as well: that one carries 6fb708f3a (class L), which the dca2
+    pre-registration does not cover. Pre-register the head book''s rows before it starts, as the dca2
+    rows plus class L''s filed effect. Drop the b8da2eed18 desk-only arm unless memory admits it beside
+    both; say so in the finding. Grade each book against its own table, writing held or fell beside every
+    row. If a book passes the gate, offer it to the publisher at once under the director''s 8 Nov yes,
+    and lift the tenth cold read''s embargo. If it fails, name every remaining breach class with its count
+    and owner.'
+  why: These are the first books carrying 703edeb89, b8da2eed1, 47fdeacd5, 3099252c8, 059d2b55c and now
+    6fb708f3a, and nothing the supplier infers can be published or compared with the flat baseline until
+    one passes. The control reads 24 unexcepted. Done means at least one of the two books is graded on
+    origin with held or fell beside each pre-registered row, and the launch register and continuation
+    queue no longer hold the dead jobs. The book does not have to pass.
+  written_at: 1794336128.77
+- id: syn-2016-549-page-balance-breach-is-named-and-fixed
+  lane: D_billing_metering
+  side: supplier
+  what: 'All 22 of the PAGE_BALANCE breaches left on the control (/var/tmp/grade-dca2/control-78f/, the
+    78f82e4242 run through head''s page code) are left-level steps on SYN-2016-549. Before reading a single
+    step, write down what a page-balance-overdue breach is on a leg that has left level DD. First regenerate
+    the control at origin head, which carries 6fb708f3a (class L), and write down whether 549''s 22 move.
+    If they fall to 0, 549 was class L: record that in the class-L finding and close this item. Otherwise
+    trace 549''s remaining steps: what the page prints, what the ledger holds, and what the desk did.
+    Decide whether the error is the page''s, the desk''s, the world''s or the reader''s. Pre-register
+    the count, then fix the cause with a control that fails without the fix. While there, trace PROS-2019-0318''s
+    three unshown collections (GBP 190.13), which the class-L finding left untraced.'
+  why: It is the gate's last known blocker on the control, so this one account may be all that stands
+    between a book and the correctness exit test. It was named last stretch and nobody touched it. Done
+    means 549's breaches fall to 0 on the regenerated control with the cause on origin, or a residual
+    is named with its cause and a dated exception or owner.
+  written_at: 1794336128.77
+- id: the-seats-direction-record-reaches-origin-again
   lane: H_harness
   side: other
-  what: 'Clear the dead archive seat''s index on /home/rich/synthetic-enterprise so that it fast-forwards
-    to origin/main before 03:30Z Mon 9 Nov. First run `git write-tree` and write its sha into a record
-    in docs/staging/records/. That sha restores the index exactly, and it is the reversal. Then classify
-    the 637 staged paths. 97 archive/ paths are byte-identical on origin. 124 docs/staging adds have basenames
-    origin already holds elsewhere; of those, docs/staging/reference/CLASS_FIGURES_ON_A_SUPERSEDED_CLOCK_2026-08-28.md
-    differs from origin, so diff it and land the difference if it is real. There are 4 staged deletions.
-    409 site/data/customers/*.json files are not on origin: say whether they are publish output that origin
-    pruned, or something else. Run `git restore --staged` on those paths only. Working-tree bytes are
-    untouched. Never checkout, stash or reset --hard. Then let reconcile-watch fast-forward, or run its
-    own fast-forward, and confirm HEAD == origin/main.'
-  why: 19 units, the publisher among them, run code from a checkout 30 commits behind origin. They miss
-    the early-publish window change (b3aa23897d) and the delivery-lane fixes. The 14:39 salvage said the
-    decision on this index was owed before Monday 04:00, and no one has made it. Done means HEAD equals
-    origin/main on the shared tree, the write-tree sha and the classification are on origin in a record,
-    and the brief's divergence line reads 0 behind.
-  written_at: 1794162565.961
-- id: a-closed-accounts-balance-reaches-zero-by-refund-collection-or-write-off
-  lane: D_billing_metering
-  side: supplier
-  what: 'The diagnosis is on its way to origin: surgical_land pid 2949168 from /var/tmp/closed-close,
-    its message beginning "A closed account''s one balance is graded on its page". Check origin before
-    you assume either way. If it was refused, re-land from that worktree or from salvage/detached-092f527cf171,
-    and do not redo the split. Once it is on origin AND step 2b (item 1) is on origin, build the close.
-    A closed level-DD leg''s balance reaches zero by one of three routes: a refund (within GSoP reg 6D''s
-    window, as home_moves states it), a final collection on the level schedule, or a write-off. Before
-    building, file a prediction in the finding for the new invariant row''s 184 breaches on af31e73fa7,
-    as they will read on the first book built after the close.'
-  why: GBP 15,694 of credit is unrefunded, which is a reg 6D breach a real supplier pays for, and GBP
-    21,554 of debt is neither collected nor written off. So the P&L writes off from a balance that is
-    wrong, and per-customer value is read off the same wrong balance. Done means the close is on origin,
-    the invariant row's exception is removed, and the prediction is graded beside it.
-  written_at: 1794162565.961
-- id: the-arrears-walk-reads-a-payment-after-the-last-due-date
-  lane: D_billing_metering
-  side: supplier
-  what: A MEASUREMENT, landing in docs/staging/SEAT_FINDING_THE_ARREARS_WALK_DROPS_A_PAYMENT_DATED_AFTER_THE_LAST_DUE_DATE_2026-11-08.md.
-    Vary one thing, the horizon. Run simulation/arrears_engine.balance_settlement_from_outcomes out to
-    max(event) for the 84 standard-credit late final-bill legs on af31e73fa7. Write closing_out and any
-    write-off at close per leg, before and after, into the finding. If any leg reads owed after its household
-    paid, write a red-on-today test naming it, and extend last_event to every event, with the rest of
-    the book byte-identical. If none does, record the equivalence and its evidence, and move the finding
-    to done/.
-  why: Writing off debt the household has already paid is false bad debt in the supplier's own books,
-    and it feeds the CLV the thesis rests on. This is its third undrawn stretch. It is now in the continuation
-    queue as well, so whether it is drawn will show whether a measurement item can reach the draw at all.
-    Done means the before/after table is on origin, with either the fix and its test or the recorded equivalence.
-  written_at: 1794162565.961
+  what: 'All 18 of the seat''s direction landings from 8 to 10 Nov were refused with "GATE RED on the
+    resulting tree ... SITE TESTS FAILED" (docs/observability/delivery-seat-log.md). Origin''s docs/direction/DIRECTION.yaml
+    is still the 8 Nov 18:23 record, carried over by hand in 07abc5a7e. Reproduce the refusal: build the
+    tree the seat''s commit would create (DIRECTION.yaml plus decisions.jsonl and wrong_triage.yaml on
+    origin/main), run the site lane on it, and name the red site/** test and why it is red on a direction-only
+    change. Fix the test or its cause. If the test is right and the tree is wrong, fix the tree. Never
+    bypass the gate. Then land the current record by pathspec, and confirm that the seat''s next orientation
+    lands without help.'
+  why: The record on origin is what the director and his advisor review. For two days every correction
+    and every wrong row has existed only on this box, and the 10 Nov poweroff showed how fragile that
+    is. The fix is small and unblocks the review channel. Done means origin's DIRECTION.yaml carries an
+    oriented_at later than 2026-11-10T00:00Z, landed by the seat's own tick, and the red test is named
+    in the alarm finding with its fix.
+  written_at: 1794336128.77
+- id: off-box-liveness-workflow
+  lane: H_harness
+  side: other
+  what: 'Build the commitment the director answered yes to on 8 Nov (due 15 Nov). A scheduled GitHub Actions
+    workflow on the ops repo reads the sim-runner liveness heartbeat already pushed there, and sends the
+    single dead-man push when that heartbeat is more than 6h old. Prove it fires with a test against a
+    stale heartbeat, and keep its credential in repo secrets only. Then write the cause of each stop,
+    or "we cannot tell" with what would tell next time, into a record: 3-4 Nov (24h), 5-7 Nov (60h), and
+    10 Nov 08:26:45 to 18:33 GMT (10h). For 10 Nov, the journal of boot -1 shows an orderly systemd poweroff
+    with nothing logged beforehand. Read the Windows side if anything on the guest can see it (wsl.exe
+    or the event log through interop). If nothing can, say that only the director''s host can tell.'
+  why: Three stops in a week have cost about 94 hours, and today's killed the only book in flight. Each
+    time, the director was not told, because the only alarm runs on the box that stopped. Nothing is on
+    origin five days before the due date. Done means the workflow is on the ops repo, its stale-heartbeat
+    test is green, and the three causes are on origin.
+  written_at: 1794336128.77
+- id: the-learning-loop-starts-on-the-level-dd-prediction-misses
+  lane: H_harness
+  side: other
+  what: 'Act on docs/staging/advisor/DIRECTOR_STEER_EVERY_FAILURE_FEEDS_A_LEARNING_LOOP_THAT_CHANGES_HOW_WE_WORK_2026-11-10.md,
+    and use its first worked case. Take the level-DD prediction misses in the 78f82e4242 grade (INV_OVERDUE
+    predicted 0-10, read 60; PAGE_BALANCE predicted at most 113, read 135; P5 predicted at most 30, read
+    49), the 9 Nov fix that took overdue rows from 151 to 614, and class L''s P3 miss (17 to 2 predicted,
+    read 3). Ask why the process let each one happen, not why the code was wrong. Write one ways-of-working
+    insight, with a trust grade, citing those failures. Build the one change to practice it implies inside
+    an existing mechanism, not a new register: for example, the grade chain refuses a fix after three
+    misses in one area until that area is mapped. File a prediction of what the change will improve, and
+    put the loop''s few measures (prediction hit rate, escapes per cold read, regressions per fix) where
+    the draw is made. Move the steer to advisor/done with a ## Done section.'
+  why: These are the director's words from 12:36 10 Nov, filed BLOCKING, and he will judge the loop by
+    whether the same kind of failure stops recurring. Level DD is the area where this stretch's predictions
+    keep missing, so the first insight lands on the supplier's billing, where it pays. Done means the
+    insight and the one change are on origin, its prediction is filed, the measures show where the draw
+    is made, and the steer is in advisor/done.
+  written_at: 1794336128.77
 not_now:
-- what: Making the site spend (the continuation site-spend-this-week, claimed by the seat executor) a focus row.
-  why: It is running and claimed. The director put it on top of the correctness stretch, not in place of it, so
-    it takes no slot from the three supplier items.
-- what: Archive increment 5 (the remaining unreached supplier modules).
-  why: The floors are re-derived (24348ac6a), so it could resume, but it only removes code and proves nothing against
-    the thesis. The last batch of moves reddened five controls. It waits until step 2b and the checkout fast-forward
-    are on origin, so it cannot be the thing that refuses either one.
-- what: Carrying the corrected renewal belief into a policy, or building per-customer CLV against the flat-rule
-    baseline.
-  why: The 26 Oct ruling holds feature work until a book passes the gate. A lever graded on balances we already
-    know are wrong would be graded against false money.
-- what: Redrawing a-pay-on-receipt-catch-up-is-capped-at-its-issue-date and the-triad-settles-cash-over-the-engine-walks-open-balance
-    (drawn 22-24h ago, not_done).
-  why: Neither is in focus, and both read balances that step 2b changes. The triad row already has a triage fate
-    (a-triad-settlement-prediction-waits-on-its-book). Each is re-read on the first step-2b book, not before.
-- what: Sharding the billing ledger now.
-  why: It is still 86.9 MiB, under the 90 MiB trigger, and it grows only when something publishes. The first book
-    that passes the gate reads its new size.
-- what: N17's world fix (the year-to-year term in W2_30).
-  why: Its dated exception runs to 23 Nov, and step 2b blocks the publish before N17 would. It unblocks no supplier
-    result today.
-- what: Reaping the seven worktrees that hold commits no remote keeps (b12-*, se-budgetpay-land, se-om2, simsuite-2cf3201c5c).
-  why: 'Reaping cannot be undone, every one is locked with a named reason, and none sits on the publish path. The
-    salvage-tag lesson in wrong applies here too: look in them before anything is reaped.'
-- what: The repeating alarms firing today (STRETCH_LOG, SEAT_CONTINUITY, SEAT_CLAIM, PRODUCT_MACHINERY, FORK_OPEN_STREAK,
-    DELIVERY_LANE strand pair, DEADMAN_*, ADVISOR_CHANNEL, DIRECTION_RECORD_DID_NOT_REACH_ORIGIN).
-  why: I read the list and left them by choice. The one with a real cost, the stale checkout under every daemon,
-    is item 2. The rest are bookkeeping and none sits on a supplier result.
-- what: The stalled site and ops atoms (SITE1, SITE12, SITE14, SITE15, D9, OPS6-8, H46).
-  why: The site-spend continuation chooses among the staged site items. Drawing these atoms alongside it would put
-    two writers on the same pages.
+- what: Finishing the Fable 5.2 test (grading the 14 valid readings, rerunning the 2 voids, the four-number report and the
+    model_tier recommendation), and then the third arm (Opus with a Fable advisor, after checking that his Max plan allows it).
+  why: >-
+    The three Fable steers are in the advisor channel, so every worker tick takes them at rung zero, ahead of focus, whether or
+    not I list them. A focus slot would only duplicate that. The third arm waits on the grading by the director's own words. It
+    must never accept the usage-credits consent. If the plan needs it, that is a for_the_director row with what it would cost.
+- what: The front-line gaps knowledge work (DIRECTOR_STEER_KNOWLEDGE_FIRST_FRONT_LINE_GAPS_2026-11-10.md, eight knowledge
+    pages from read errors to marketing permissions).
+  why: >-
+    It is knowledge first, and the director queued it by the priority order. Today's 10 hours went to a stop, and the two books
+    and 549 are the only route to the exit test. I take it at the next orientation, starting with the stage-2 billing pages
+    (disputes, paper versus paperless, marketing permission), which feed the supplier. The gas-safety correction of
+    gas_safety_incident_register.py goes with them.
+- what: Switching the corrected renewal belief on, and grading per-customer CLV against the flat-rule baseline.
+  why: >-
+    This is the centre of the thesis, but the 26 Oct ruling holds levers until the gate passes, and no book has run. I reopen
+    it the day a book passes.
+- what: Raising the length of the correctness stretch (15 days) with the director.
+  why: >-
+    This stretch lost its book to a poweroff, not to a new breach class, so there is no new evidence that the stretch is failing
+    to converge. I raise it with a proposal if a graded book turns up a new unexcepted gate row.
+- what: Fast-forwarding the shared checkout (50 behind origin; 19 units import pre-fix code).
+  why: >-
+    Books run off-tree at origin's head, so the stale imports do not reach a grade. reconcile-watch and the TREE_DIVERGENCE alarm
+    own it. I reopen it if sim-runner starts a book at the stale head.
+- what: W3_3 with the deemed and flex standing charge, and the UKDS precarity world work (W2_18/W2_19).
+  why: >-
+    Both are world-side. W3_3 moves every settled figure, so it lands only after the first passing book is graded, or the
+    billing fixes cannot be attributed. Neither blocks a supplier result this stretch.
+- what: Reaping the eight worktrees that hold commits no remote keeps, and the 19 repeating alarms.
+  why: >-
+    Reaping cannot be undone. /var/tmp/book-wt-dca2ea1e7f's salvage is read inside item 1, and the rest are locked with reasons.
+    I read the alarms. The one that costs something now, DIRECTION_RECORD_DID_NOT_REACH_ORIGIN, is item 3, and I left the
+    others by choice.
 wrong:
 - what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
-    0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:23 8 Nov: Unchanged. It stays
-    in not_now under the 26 Oct ruling.'
-  corrected: false
-- what: 'THE COMPANY''S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still
-    holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 18:23 8 Nov: Unchanged. The re-grade of the 133
-    level-DD cures rides on step 2b, which is now in salvage/detached-7a80b0442980 rather than a worktree (item
-    1).'
+    0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:36 10 Nov: Unchanged. The corrected belief
+    waits on a clean book, and none has run (item 1).'
   corrected: false
 - what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to
-    34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:23 8 Nov: Unchanged.
-    No tenth read has run.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. The billing ledger outgrew GitHub''s 100 MiB file limit, and compact JSON is only
-    a stopgap. [Earlier tails are in decisions.jsonl.] 18:23 8 Nov: Still 86.9 MiB, because nothing has published.
-    It is in not_now with its 90 MiB trigger.'
+    34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:36 10 Nov: Unchanged. The
+    tenth read is still embargoed to the first passing book.'
   corrected: false
 - what: 'THE WORLD''S OR THE COMPANY''S, NEW (N17). Metered electricity barely moves from one year to the next (a
-    median same-month change of 1.1%, against NEED''s 14.7%). 18:23 8 Nov: Unchanged, with its triage entry (fix,
-    owner W2_30, recheck by 23 Nov).'
+    median same-month change of 1.1%, against NEED''s 14.7%). 18:36 10 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).'
   corrected: false
 - what: 'THE COMPANY''S, NEW. A level direct-debit household is dunned bill by bill. On fa915ac0d7, the collections
     journey prints a bill''s face as overdue on 1,724 steps across 176 of 454 level-DD households (852 of them while
     the household is in credit or at zero; GBP 113,865 of excess), and 45 payment records read "missed DD, no return".
-    18:23 8 Nov: The build is finished but not landed. Two ticks ran out of time holding it, and it sits in salvage/detached-7a80b0442980.
-    INV_OVERDUE still reads about 1,724. Item 1 lands it from the tag.'
+    18:36 10 Nov: The control still reads 2 on INV_OVERDUE_WITHIN_BALANCE and 22 on PAGE_BALANCE (all SYN-2016-549). It is
+    ungraded on a book because the dca2ea1e7f book died in the 08:26 poweroff (items 1 and 2).'
   corrected: false
-- what: 'THE COMPANY''S, NEW. Closed accounts keep balances years after their last bill. On af31e73fa7, of 806 accounts
-    with no bill for a year or more, 213 hold a credit (GBP 15,694, with no refund, against GSoP reg 6D) and 208
-    hold a debt (GBP 21,554), neither collected nor written off on the page. This is the 25 Oct two-books class,
-    recurring. 18:23 8 Nov: Diagnosed: 420 of 421 are level-DD legs and their cash is right. That diagnosis is in
-    a landing (pid 2949168) that had not reached origin at 18:23, and nothing closes the balances yet. Item 3.'
+- what: 'THE COMPANY''S, NEW. A level-DD journey cures on the next instalment while the missed one is never made
+    good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on
+    19 accounts that later left level DD. 18:36 10 Nov: Unchanged. The b8da2eed18 arm that would grade it died in the poweroff,
+    and item 1 grades it on whichever book runs.'
   corrected: false
-- what: 'THE COMPANY''S, NEW. The arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops
-    at a leg''s last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7,
-    paid 1-15 days late. Whether closing_out then counts paid debt as owed is not yet measured. 18:23 8 Nov: Unmeasured
-    for a third stretch. It is item 4 and now also in the continuation queue.'
+- what: 'THE MACHINE''S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov)
+    will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 18:36 10 Nov:
+    Missed, and the due date has passed. His yes names the first pass and not a date, so item 1 offers the first passing book
+    at once.'
   corrected: false
-- what: 'THE MACHINE''S, NEW. A focus item that is a pure measurement (the arrears walk, item 2 at 09:24) was never
-    drawn in 3h, while the path door annotated it "nothing to land". A measurement whose prose names no file to
-    change looks spent to the machinery around the draw. 18:23 8 Nov: Still undrawn for a third stretch, now also
-    offered by the continuation queue. If the queue cannot get it drawn either, the defect is in the draw, not in
-    the prose.'
+- what: 'THE WORLD''S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
+    one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
+    Void rows also drop the fixed network share. 18:36 10 Nov: Unchanged. It lands with W3_3 after the first passing book
+    is graded.'
   corrected: false
-- what: 'THE SEAT''S, NEW. The 15:20 record "corrected" its 12:21 claim by saying the closed-account diagnosis existed
-    on no tree, origin or worktree. That correction was itself wrong. The bytes were in salvage/detached-092f527cf171
-    from 13:41, and that is what is landing now. The seat checked worktrees but not refs/tags/salvage/, which is
-    where a timed-out tick''s work goes. Step 2b nearly went the same way: its worktree was reaped, and its build
-    survives only in a tag.'
-  corrected: true
+- what: 'THE MACHINE''S, NEW. A finished build was retired as done with nothing on origin, again:
+    a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw
+    ledger, and no commit on origin binds it. 18:36 10 Nov: Unchanged, triaged as a fix under
+    a-continuation-retires-without-its-work-on-origin.'
+  corrected: false
+- what: 'THE COMPANY''S, NEW. The account page drops cash the household repaid. Its repayments fall short of the
+    world''s payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8.
+    37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 18:36 10 Nov: 6fb708f3a (class
+    L) takes unshown collections on the 11 class-L accounts from 17 to 3, all on PROS-2019-0318. Written-off accounts still
+    printing owed are ungraded on a book (item 1).'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. Neither book that carries this stretch''s fixes ran in the stretch. b8da2eed18 (launched
+    04:14) and dca2ea1e7f (05:21) both queued for memory behind head_green_census pid 1903956, a full-suite pytest
+    (3.7 GB RSS, 2h52m), while resource_headroom read 13.5 GB available. A test census held the box''s only book slot,
+    and nothing re-asked whether a book fitted beside it. 18:36 10 Nov: The census finished and dca2ea1e7f was admitted at
+    08:24, and the guest powered off at 08:26:45 and killed it. Still no book has run (item 1).'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the
+    launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone
+    waits on a file that no surviving unit can write. Nothing compares the register with the boot id.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The seat''s direction record has not reached origin since 8 Nov 18:23. All 18 of the seat''s
+    landings from 8 to 10 Nov were refused with SITE TESTS FAILED, and one record was carried over by hand (07abc5a7e). So the
+    record the director reviews is two days old (item 3).'
+  corrected: false
 for_the_director:
 - id: off-box-liveness
   raised: '2026-11-07'
   kind: canon_intent
-  what: The machine was off for about 60 hours (5 Nov 03:31Z to 7 Nov 15:24Z), and nothing told you. The dead-man's
-    switch, the one push you kept on 15 Oct, runs on the same guest, so it cannot report the guest being down. Your
-    advisor went on staging steers through those two days, and nothing on the box read them. I cannot tell from
-    the box whether you shut it down on purpose, and nothing in its logs says.
-  proposal: 'Investigate first: did you shut the PC or WSL down between 5 Nov 03:31Z and 7 Nov 15:24Z? If not, move
-    the dead-man''s single push off the box. A scheduled GitHub Actions workflow on the ops repo would read the
-    liveness heartbeat the sim-runner already pushes there, and send that same one push when the heartbeat is more
-    than 6 hours old. Nothing else reaches your phone.'
-  recommendation: I recommend the off-box check if the outage was not yours. It keeps your 15 Oct ruling (one push,
-    only when the machine is dead) and fixes the one case the ruling cannot see today. The evidence is two stops
-    in five days (24h on 3-4 Nov, 60h on 5-7 Nov), and the second cost the whole stretch. The trade-off is one more
-    workflow, and a push from GitHub's servers rather than from your box. Until you rule, nothing changes, the on-box
-    dead-man stays as it is, and the work goes on. If you say the outage was yours, I will withdraw this and record
-    that a planned shutdown is not a fault.
+  what: The machine was off for about 60 hours (5 Nov 03:31Z to 7 Nov 15:24Z), and nothing told you. The dead-man's switch,
+    the one push you kept on 15 Oct, runs on the same guest, so it cannot report the guest being down. Your advisor went on
+    staging steers through those two days, and nothing on the box read them. I cannot tell from the box whether you shut it
+    down on purpose, and nothing in its logs says.
+  proposal: 'Investigate first: did you shut the PC or WSL down between 5 Nov 03:31Z and 7 Nov 15:24Z? If not, move the dead-man''s
+    single push off the box. A scheduled GitHub Actions workflow on the ops repo would read the liveness heartbeat the sim-runner
+    already pushes there, and send that same one push when the heartbeat is more than 6 hours old. Nothing else reaches your
+    phone.'
+  recommendation: I recommend the off-box check if the outage was not yours. It keeps your 15 Oct ruling (one push, only when
+    the machine is dead) and fixes the one case the ruling cannot see today. The evidence is two stops in five days (24h on
+    3-4 Nov, 60h on 5-7 Nov), and the second cost the whole stretch. The trade-off is one more workflow, and a push from GitHub's
+    servers rather than from your box. Until you rule, nothing changes, the on-box dead-man stays as it is, and the work goes
+    on. If you say the outage was yours, I will withdraw this and record that a planned shutdown is not a fault.
   status: answered
-  resolution: 'Director 8 Nov 13:22 GMT: yes. He does not know why the machine went off, so the 5-7 Nov stop was
-    not planned. Build the off-box check on the ops repo; find the cause of both stops or say we cannot tell. Ruling:
-    docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md'
+  resolution: 'Director 8 Nov 13:22 GMT: yes. He does not know why the machine went off, so the 5-7 Nov stop was not planned.
+    Build the off-box check on the ops repo; find the cause of both stops or say we cannot tell. Ruling: docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md'
   resolved: '2026-11-08'
   commitment:
     work_id: off-box-liveness-workflow
-    done_means: A scheduled GitHub Actions workflow on the ops repo sends the single dead-man push when the sim-runner
-      heartbeat is over 6h old, proven to fire against a stale heartbeat in a test, its credential held only in
-      repo secrets; and the 3-4 Nov and 5-7 Nov stops each carry a named cause or 'we cannot tell' with what would
-      tell next time.
+    done_means: A scheduled GitHub Actions workflow on the ops repo sends the single dead-man push when the sim-runner heartbeat
+      is over 6h old, proven to fire against a stale heartbeat in a test, its credential held only in repo secrets; and the
+      3-4 Nov and 5-7 Nov stops each carry a named cause or 'we cannot tell' with what would tell next time.
     due: '2026-11-15'
 - id: the-publish-window-is-anchored-to-monday
   raised: '2026-11-07'
   kind: strategy
-  what: The publish window is anchored to Monday by your 26 Sep ruling, so a book that passes the full gate this
-    weekend still cannot reach the site before Mon 9 Nov 04:00 GMT. Your 7 Nov 20:22 reading expected the site updated
-    this week.
-  proposal: 'Allow one early publish this week: the first book after the 21:00 UTC unpin that passes the full invariant
-    gate goes to the site at once. The Monday anchor then resumes unchanged. Your ruling was there to stop six publishes
-    in a day (the 4 Sep cadence that wasn''t real), and one publish this week does not undo that. If you say no,
-    the window holds and Monday''s publish goes ahead as ruled.'
-  recommendation: I recommend one early publish this week, as soon as a book passes the full gate, with Monday kept
-    as the standing anchor.
+  what: The publish window is anchored to Monday by your 26 Sep ruling, so a book that passes the full gate this weekend still
+    cannot reach the site before Mon 9 Nov 04:00 GMT. Your 7 Nov 20:22 reading expected the site updated this week.
+  proposal: 'Allow one early publish this week: the first book after the 21:00 UTC unpin that passes the full invariant gate
+    goes to the site at once. The Monday anchor then resumes unchanged. Your ruling was there to stop six publishes in a day
+    (the 4 Sep cadence that wasn''t real), and one publish this week does not undo that. If you say no, the window holds and
+    Monday''s publish goes ahead as ruled.'
+  recommendation: I recommend one early publish this week, as soon as a book passes the full gate, with Monday kept as the
+    standing anchor.
   status: answered
-  resolution: 'Director 8 Nov 13:22 GMT: yes. One early publish as soon as a book passes the full gate; the Monday
-    anchor then resumes as ruled. Ruling: docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md'
+  resolution: 'Director 8 Nov 13:22 GMT: yes. One early publish as soon as a book passes the full gate; the Monday anchor
+    then resumes as ruled. Ruling: docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md'
   evidence: 'Ruling: director 2026-09-26 09:29 UTC (docs/design/canon_review_2026-10/inputs/director_words_filtered.md:35),
-    enforced by background/publish_freshness.content_publish_window. Hold state: next_opens 2026-11-09T04:00Z,
-    last figures on origin 2026-11-03T02:48Z (run 0a6391d186). Reading: docs/staging/advisor/done/DIRECTOR_READING_USAGE_52PCT_SATURDAY_2022_AND_HE_EXPECTED_THE_SITE_UPDATED_THIS_WEEK_2026-11-07.md
-    item 2. The shared tree fast-forwarded to f248d5ffa at 21:00 UTC; sim-runner''s next run starts about
-    21:34 UTC.'
+    enforced by background/publish_freshness.content_publish_window. Hold state: next_opens 2026-11-09T04:00Z, last figures
+    on origin 2026-11-03T02:48Z (run 0a6391d186). Reading: docs/staging/advisor/done/DIRECTOR_READING_USAGE_52PCT_SATURDAY_2022_AND_HE_EXPECTED_THE_SITE_UPDATED_THIS_WEEK_2026-11-07.md
+    item 2. The shared tree fast-forwarded to f248d5ffa at 21:00 UTC; sim-runner''s next run starts about 21:34 UTC.'
   resolved: '2026-11-08'
   commitment:
     work_id: early-publish-this-week
-    done_means: The first book to pass the full invariant gate after 8 Nov is on the site before Mon 9 Nov 04:00
-      GMT or the Monday publish goes ahead as ruled, and content_publish_window is back on the Monday anchor afterwards.
+    done_means: The first book to pass the full invariant gate after 8 Nov is on the site before Mon 9 Nov 04:00 GMT or the
+      Monday publish goes ahead as ruled, and content_publish_window is back on the Monday anchor afterwards.
     due: '2026-11-10'

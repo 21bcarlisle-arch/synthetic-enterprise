@@ -658,3 +658,73 @@ items:
     status: open
     owner: "background/seat_continuation.py (retire asks for a commit on origin/main that names the id, or a named successor holding the rest, as delivery_lane.focus_tombstone_refusal already does for focus rows)"
     reason: "Triaged 2026-11-04 by the delivery seat. Focus-row tombstones already require a binding commit on origin (a-tombstone-retires-a-row-without-checking-its-done). Continuation retirement does not, and two instances (the gas build, the 0a6391d186 publish) retired with nothing on origin. Both were recovered, so no work was lost, but the next SIGTERMed landing can retire the same way."
+  # 2026-11-07 15:27Z orientation: five rows first listed 2-3 Nov, triaged ahead of the 7-day line.
+  - id: the-naive-organ-asks-nothing
+    problem: "The naive organ has asked no question since 2026-08-10T07:48Z."
+    match: ["The naive organ has asked no question since"]
+    first_seen: "2026-11-02"
+    fate: accept
+    reason: "Triaged 2026-11-07 by the delivery seat. The cause is established and on origin: d56b52dee (3 Nov) shows it is silent because 104 of its own questions are still open, and each cycle now records why it asked nothing. Answering 104 open questions does not move the correctness exit test, and the organ is not on the supplier's priority path. Reopen as a fix if its open count falls and it still asks nothing, or if a cycle stops recording its reason."
+  - id: the-publisher-reds-on-a-full-tmp-of-probe-scratch
+    problem: "The publisher refused 15 times on a scoped-suite red that was a full 12 GB /tmp of probe scratch under free names."
+    match: ["The publisher refused 15 times on a scoped-suite red"]
+    first_seen: "2026-11-02"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md"
+    reason: "Triaged 2026-11-07 by the delivery seat. /tmp is a 12 GB tmpfs, and the 5-7 Nov guest outage emptied it (52 MB at 15:27Z), so the instance is gone and the cause (probe scratch with no age-out) is not. A refusal whose cause is the box and not the book is that register's shape. Reopen as a fix if the publisher refuses on a full /tmp again."
+  - id: a-hand-re-offer-of-a-run-marker-is-deleted-unread
+    problem: "A hand re-offer of a refused run marker was deleted before any publisher read it."
+    match: ["A hand re-offer of a refused run marker was deleted"]
+    first_seen: "2026-11-03"
+    fate: accept
+    reason: "Triaged 2026-11-07 by the delivery seat. One instance, and no re-offer has been attempted since, so there is nothing to measure a fix against. It cost a publish cycle, not work. Reopen as a fix on a second deleted re-offer."
+  - id: the-billing-ledger-outgrows-githubs-file-limit
+    problem: "The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap."
+    match: ["The billing ledger outgrew GitHub's 100 MiB file limit"]
+    first_seen: "2026-11-02"
+    fate: fix
+    status: already_fixed
+    fixed_by: "d7c214a392"
+    owner: "company/billing/ledger_store.py (the ledger is written plain AND as a deterministic gzip twin; the publish commits the gz and retires the plain file from HEAD)"
+    reason: "Triaged 2026-11-07 by the delivery seat. Real and growing: 91 MB on 3 Nov, and the fd91027799 run output it derives from is 145 MB. The next push of a larger book is refused by GitHub, which stops the publisher. Fixed 2026-11-10 by d7c214a392: gzipped, 91,168,764 bytes become 6,796,846 (6.5% of the limit) on 0a6391d186, and every reader reads either form. Check on the next publish: HEAD carries docs/state/billing_ledger.json.gz and no plain billing_ledger.json; the retirement path in _land_publish_commit has not yet run on a real publish."
+  - id: a-pay-on-receipt-catch-up-is-capped-at-the-period-end
+    problem: "Pay-on-receipt customers are back-billed for more than 12 months, because the catch-up cap is tested against the bill's period end and not its issue date."
+    match: ["Pay-on-receipt customers are back-billed for more than 12 months"]
+    first_seen: "2026-11-03"
+    fate: fix
+    status: already_fixed
+    fixed_by: "d7bdc0c4df"
+    owner: "company/billing/monthly_bill_assembly.py (~L947: hand _resolve_catchup the issue date the ledger will print, not period_end)"
+    reason: "Triaged 2026-11-07 by the delivery seat. A real back-billing breach the Ombudsman reads at the day: GBP 367.50 over 5 catch-ups on b3ce2a4e73, plus 2 gas legs. Its finding sits in docs/staging/done/ only in the working tree, with no Done section, and nothing is fixed. It is behind items that close BLOCKING findings, so it stays listed with an owner. Graded 2026-11-08 on 84f7fc8fe0 (a descendant of d7bdc0c4df, landed 7 Nov 22:13): 0 pay-on-receipt catch-ups uncapped over the line from the issue date since SLC 21BA came into force (1 May 2018), against the prediction of 0. The 4 uncapped ones over the line were all issued before May 2018. Check: the Done/Graded sections of docs/staging/done/SEAT_FINDING_THE_CATCH_UP_CAP_IS_TESTED_AGAINST_THE_PERIOD_END_NOT_THE_DAY_THE_BILL_WAS_ISSUED_2026-11-04.md."
+  # 2026-11-08 00:20Z orientation: the seat-outage row folds into its open director concern.
+  - id: the-orienting-seat-stopped-and-nothing-reached-the-director
+    problem: "The orienting seat (and then the whole guest) stopped, and nothing reached the director."
+    match: ["The orienting seat did not run for 24 hours"]
+    first_seen: "2026-11-04"
+    fate: fold
+    owner: "for_the_director off-box-liveness (DIRECTION.yaml): the fix is an off-box dead-man push, and that waits on his answer"
+    reason: "Triaged 2026-11-08 by the delivery seat, ahead of the 7-day line. Both stops (24h on 3-4 Nov, 60h on 5-7 Nov) have one cause class: the only alarm runs on the box that stopped. The remedy is the proposal already open in for_the_director, so listing it here too counts the same problem twice. Reopen as a fix if he answers that the outage was not his and the off-box push is not built within a week of that answer."
+  # 2026-11-08 06:24Z orientation: two carried rows that had no fate yet.
+  - id: metered-electricity-barely-moves-year-to-year
+    problem: "Metered electricity barely moves from one year to the next (median same-month change 0.7-1.1% against NEED's 14.7%)."
+    match: ["Metered electricity barely moves from one year to the next"]
+    first_seen: "2026-11-03"
+    fate: fix
+    status: open
+    owner: "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape (the world's year-to-year term, with the ERA5 pull); held by a dated exception, recheck by 23 Nov"
+    reason: "Triaged 2026-11-08 by the delivery seat. It is the world's and it is real: a supplier whose year-on-year forecast is graded against a world with no year-on-year variance learns nothing about forecast error. It stays a fix, but not in focus, because the publish it would block is blocked first by supplier defects. It enters focus at the 23 Nov recheck, or when it is the last gate row a book fails."
+  - id: a-triad-settlement-prediction-waits-on-its-book
+    problem: "26c891276's pre-registration filed '(2) falls to 0' and read 19 settlements (GBP 682.47); the replacement prediction (0 on the first book carrying 12a470de7) is unread."
+    match: ["26c891276's pre-registration filed"]
+    first_seen: "2026-11-07"
+    fate: fix
+    status: open
+    owner: "focus item read-the-triad-settlement-count-on-84f7fc8fe0 (background/live_payment_triad.py against docs/reports/run_output_84f7fc8fe0_20261108T021850Z.json, which carries 12a470de7)"
+    reason: "Triaged 2026-11-08 by the delivery seat. The book that settles it finished at 03:59Z 8 Nov, and the grade continuation that was to read it retired at 04:08Z having read only its level-DD leg. Reading it is one run, so it is focus item 2."
+  - id: a-stale-land-holder-blocks-the-draw-unrechecked
+    problem: "The draw refused a focus item 24 times because a worktree held a surgical_land diff unrelated to it, and nothing re-checked the stale holder while it blocked."
+    match: ["nothing re-checked the stale holder while it was blocking"]
+    first_seen: "2026-11-08"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Triaged 2026-11-09 by the delivery seat. It is the same shape as a-held-work-refusal-never-re-asks-its-diff-digest, already folded there: a dead or unrelated holder's state outliving its relevance. The closed-account item it blocked landed and was graded on a book (60f8d4b85), so the cost was hours, not work. Reopen as fix if a held refusal costs a focus item a whole stretch again."
