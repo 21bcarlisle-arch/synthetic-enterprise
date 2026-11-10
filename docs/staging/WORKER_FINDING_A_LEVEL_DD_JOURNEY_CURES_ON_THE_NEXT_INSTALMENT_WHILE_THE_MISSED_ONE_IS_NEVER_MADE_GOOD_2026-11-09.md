@@ -1046,3 +1046,93 @@ again at b04e3832fd, once without (P) and once with it (`/var/tmp/lvl-shortfall/
 - 0 balances and 0 invoice figures moved.
 - So on origin the first figure in this section's title reads **15 legs and GBP 5,671.45** before (P), not 22 and
   6,945.89. Those were measured at 7f69f78825 and stand as measured there.
+
+## (D) built: why the desk cured SYN-2016-536, and each leg's statement on a mixed account (worker, 10 Nov 2026 ~05:30 GMT)
+
+**Why the in-run desk cured SYN-2016-536 on 16 Feb 2023.** Neither filed candidate was the cause. The real cause was the
+day boundary between an ask and the cash that paid it.
+- The replay posts bills at their gross face. The run posts them net of EBSS (`payer_ask_gbp`). With bills posted net
+  (`/var/tmp/lvl-desk-probe/replay_net.py`, `NET=1`), the replay's balance is GBP 242.97 on 16 Feb, against the page's 243.
+  So EBSS explains the old replay's balance gap, which is four GBP 66.67 instalments. It does not explain the cure.
+  **Candidate 1 is refuted.**
+- The shortfall is GBP 150.75 on 15 Feb, **49.02 on 16 Feb**, and 150.75 again on 17 Feb. On 16 Feb the gas leg paid
+  bill 50068 (GBP 101.73) on its due date. `level_shortfall` counted cash through `as_of`. It counted a bill no level
+  collection paid only after its due date (`d < as_of`). So that one day, the gas leg's on-time cash met the
+  electricity schedule's missed requests (GBP 63.33, returned in 2017 and 2018) and 50041. This is candidate 2, narrowed
+  to its mechanism: the cash is the gas leg's own and arrives on time, and the cure needed only the one-day boundary.
+- No ask anywhere held the gas leg's scheme debit, because the account was still level through its electricity leg.
+- **I cannot yet say** what the GBP 49.02 the replay still reads on 16 Feb is. The replay does not reproduce the run's
+  journeys on this account: it keeps the 2018 journey open until 2025.
+
+**What changed (one commit, two mechanisms).**
+1. `arrears_engine.leg_leave_dates` and `leg_statement_asks` give each leg that leaves level DD while another leg stays
+   on it its own closing statement. The statement is the leg's level-era bills, less its own credit notes, less its level
+   requests. It is due 28 days after the leg's own leaving. `level_shortfall` counts it, and the journey walk can open on
+   its due date.
+2. `left_level_asks` dates each leg's level-paid remainder from that leg's own statement. That closes 703edeb89b's
+   SYN-2016-345 GAP.
+3. `level_shortfall` counts every ask from its own due date (`d <= as_of`), as it already counted the requests.
+
+On the 536 replay, 16 Feb now reads GBP 93.62 short (49.02 plus the 44.60 statement), so the day cannot cure.
+
+**Control:** `tests/company/billing/test_a_leg_leaving_level_dd_beside_a_level_leg_owes_its_own_statement.py`, 6 tests.
+It asserts the partition first: an unpaid statement opens a journey and holds it, and one paid late cures that day.
+Six mutations fire:
+- no leg statement asked: 4 red;
+- asks counted only after their due date: 1 red;
+- credit note ignored: 1 red;
+- requests not subtracted: 6 red;
+- `left_level_asks` dated from the account's leaving: 1 red;
+- the journey not walked on the leg statement's due date: 1 red.
+
+A seventh mutation did not fire, and it was an equivalence: a guard excluding the leg that leaves with the account. The
+guard is removed, and `leg_statement_asks` says why. `level_shortfall` is read only while the account is on level DD,
+and on its leaving day, when that leg's statement is not yet due. The one case the guard decided, an account that left
+whole and came back, it decided wrongly.
+
+**Replay over the 4 mixed accounts on the merged-base page (`m-arm`), origin c5d99ba357 against this change:**
+- PROS-2020-0223: 4 cures fall to 0, and the 2023 journey is held;
+- SYN-2016-048, 525 and 536: unchanged. On this replay 536 never cures in between, so it cannot show the fix.
+
+**Prediction for the first book carrying this, filed before any such book.** It replaces the (D) rows above, because two
+mechanisms now land together. A book cannot separate them, and the replay can.
+- The 20 holds on the 4 mixed accounts fall to **at most 4**.
+- The total of 193 falls to **between 150 and 180**. The range is wider than (D)'s 173 to 180, because the due-day boundary
+  reaches every level account with an on-receipt ask.
+- Cure dates on accounts with no level request are **byte-identical**. `level_shortfall` reads only level accounts.
+- **Refuted if** the total rises, or any never-level cure moves.
+
+**Filed, not fixed:** cash paid *before* its bill's due date still meets another leg's older missed request until that
+date. The K8 page names this as open.
+
+NEXT: grade the prediction on the first book carrying this commit.
+
+## The b8da2eed18 book: its control moved the base, so the prediction is re-read before the arm exists (worker, 10 Nov 2026 ~04:20 GMT)
+
+*Drawn as `grade-the-leg-statement-desk-on-a-book`. Written while the book is queued and has not started, so no arm
+figure exists.*
+
+**The book.** `launch_long_job` job `book-b8da2eed18`, in the locked worktree `/var/tmp/book-wt-b8da2eed18`, which is
+origin b8da2eed18 and clean. It is queued behind the head-green census for memory. Two in-run desk changes separate it
+from the 78f82e4242 book: 703edeb89b (a leaver is dunned per leg) and b8da2eed18. 3099252c85 and b512dec267 touch only
+`statement_export.py`, which is page-side. The grade chain is `/var/tmp/grade-b8da-scripts/after_run.sh`, writing to
+`/var/tmp/grade-b8da/`, with the readers in `/var/tmp/lvl-shortfall/readers/` (split and compose with the GBP 0 row fix).
+
+**The control is the 78f82e4242 run on b8da2eed18's page generator** (`/var/tmp/grade-b8da/control-78f/`). Only the run
+then differs between the arms. It reads:
+- **155** holds on 81 accounts, not 193. Same run, same desk cures (834). The page alone moved the count, through (P),
+  3099252c85 and b512dec267.
+- **18** on the 4 mixed accounts, not 20: PROS-2020-0223 4, SYN-2016-048 9, SYN-2016-525 3, SYN-2016-536 2.
+
+**So the filed total (150 to 180 from 193) can no longer show the desk change.** The page alone already reads 155,
+inside that range. The filed rows are still graded as written, and that reading is marked uninformative. The reading that
+can fail is the same claimed effect, rebased onto the one-variable control:
+- The total falls from 155 to **between 112 and 142**. That is the filed fall of 13 to 43.
+- The 4 mixed accounts fall from 18 to **at most 4**, unchanged from the filing.
+- Never-level desk journeys (account, open, cure, exit) are **identical** to the control's.
+- **Refuted if** the total rises above 155, or any never-level journey moves.
+
+**What I expect, written before the arm exists: the mixed-account row is likely to fall.** The (D) section's replay
+moved only PROS-2020-0223 (4 to 0) and left 048, 525 and 536 unchanged. If the book follows the replay, 14 of the 18
+remain, and "at most 4" is refuted. The replay is not the run, and 703edeb89b is in the book and not in the replay. I
+cannot say which way it moves them.

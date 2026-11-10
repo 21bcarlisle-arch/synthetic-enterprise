@@ -823,3 +823,32 @@ left on 27 Dec 2017, so its statement fell due on 24 Jan. The account's statemen
 reads that leg as owed from 24 Jan, and the desk cannot open before 16 Feb. Neither the old walk nor this one breaches
 the row there, because no journey opens inside the term. But the dates disagree, and the next leaver build should date
 each leg's statement from that leg's own leaving.
+
+**Built for the desk (worker, 10 Nov 2026): each leg's statement, dated from its own leaving.** This closes the GAP above.
+- `arrears_engine.leg_leave_dates` reads each supply leg's last leaving of level DD from that leg's own bills, as
+  `on_level_dd` reads the account. A leg's scheme debit is what its bills charged from its last joining to its leaving,
+  less its own credit notes and less what its level collections asked for those bills. The returned part of those
+  requests is not in it, because the schedule already asks it. So the requests' shortfall plus the statement is the
+  leg's whole debit, counted once.
+- `leg_statement_asks` asks that debit due `CLOSING_STATEMENT_TERM_DAYS` after the leg's own leaving, and
+  `level_shortfall` counts it. While another leg stays on level DD, the desk now asks what the page's closing statement
+  asks, and cannot cure over it. `left_level_asks` dates each leg's level-paid remainder from that leg's own statement.
+  SYN-2016-345's electricity leg is owed from 24 Jan 2018, not 15 Feb.
+- **The split differs from the page's, and the total does not.** The page's statement asks the leg's balance less what
+  open cases ask. The desk asks the returned instalments on the schedule and the rest on the statement. On
+  SYN-2016-536g, the page asks GBP 78.58 on the statement. The desk asks GBP 44.60 on it, and asks the returned
+  instalments the page's cases price at their bills' faces on the schedule.
+- **Every ask counts from its own due date, as cash paid that day does.** The schedule counted a bill no level collection
+  paid only from the day after its due date. Cash paid on the due date therefore had nothing to meet except an older
+  missed request. **This is why the desk cured SYN-2016-536 on 16 Feb 2023.** That day its gas leg paid its GBP 101.73
+  on-receipt bill on time. The replay with bills net of EBSS reads GBP 150.75 short on 15 Feb and on 17 Feb, and
+  GBP 49.02 on 16 Feb. That replay's balance matches the page's (GBP 242.97 against 243). The EBSS candidate is
+  refuted as the cause. The credit explains the earlier replay's GBP 266 balance gap (four instalments), not the cure.
+  The GBP 49.02 the replay still reads that day, I cannot yet say. The replay does not reproduce the run's journeys on
+  this account.
+- **Logic, not a published source:** a payment made on a bill's due date is a payment of that bill. No rule is needed
+  for it.
+- **Not fixed, and filed:** cash paid *before* its bill's due date still meets an older missed request on another leg
+  until that date. For example, a statement paid early cures a missed instalment on the other leg for the days between.
+  Whether a desk treats a prepayment as account credit (which nets it) or as the bill's (which does not) is the netting
+  question this section answered for cash paid before leaving. It is open for the schedule.
