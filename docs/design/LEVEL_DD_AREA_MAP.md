@@ -110,6 +110,11 @@ Each is a fix candidate. Under the stop condition, a fix is drawn from this list
 - **Order, by evidence:** D1 holds the gate and has an owner, so it goes first. D2 and D3 are the next two to trace.
   Each is one account, through the page generator and through a desk replay. D5 is a definition, so it goes to the
   knowledge page first (K8). D6 waits on the practitioner (K4).
+- **A commit that grades a level-DD table carries one trailer per table:**
+  `Graded: level-dd held=<n> missed=<n> code=<n> reader=<n> regressed=<n> width=<x>`. `code` and `reader` are
+  the misses caused by our model of our code or of the reader; a miss whose cause is undecided counts as `code`
+  (F11). `width` is the median filed range width over its centre, an "at most N" row reading 2.0 and a point
+  0. Without it the grade is invisible to the draw (`background/learning_loop.py`), and W1 cannot be graded.
 
 ## 6. What this map does not yet do
 

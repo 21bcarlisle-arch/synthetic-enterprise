@@ -1382,3 +1382,33 @@ Not a gate class, but owed: **class L over-refund**, 6 legs, GBP 833.30 into pag
 `desk-write-off-reaches-the-page` (class L, `SEAT_FINDING_THE_DESKS_WRITE_OFF_OF_A_CLOSED_ACCOUNT_NEVER_REACHED_THE_PAGE_2026-11-10.md`).
 
 The book is **not** offered to the publisher, and the tenth cold read's embargo stays.
+
+## The two book grades of 10 Nov, put where the learning loop reads them (seat executor, 10 Nov 2026)
+
+The dca2ea1e7f grade (789c05efe1) and the head-book grade (e6c1c11b49) landed without the `Graded:` trailer, so
+`background/learning_loop.measures()` read NOTHING GRADED on origin. The commit carrying this section carries their
+trailers. The counts are the two tables above, and the tables were not changed. How each miss is classed:
+
+| Book | Row that fell | Cause | Regressed (fix moved its target the wrong way)? |
+|---|---|---|---|
+| dca2ea1e7f | written-off printing owed | undecided between the stale-refund cure missing from the book and 47fdeacd5e's crediting. Counted `code` (F11) | yes, 30 to 32 |
+| dca2ea1e7f | holds, mixed | code: the (D) rebase assumed every mixed account moved | no |
+| 068b5e3cc8 | written-off printing owed | code: the stale-refund part still had not left, as on dca2 | yes, 27 to 29 |
+| 068b5e3cc8 | class L run half | code: the run refunds a credit the page does not print, unforeseen | yes, left-level closed 3,748.17 to 4,110.76 |
+| 068b5e3cc8 | holds, mixed | code: the same wrong rebase, filed again | no |
+
+No miss was the reader's, and none was the domain's. **Width:** the median filed width is 2.0 on both tables. Six
+of nine rows on dca2 and seven of eleven on head are "at most N" or "0 to N" bounds, which read 2.0. That is the
+baseline W1's "ranges widen by more than half" is measured against.
+
+**What this does to the measures.** level-dd reads 15 held of 20, with 5 code misses in seven days, so it prints
+`STOP`. The stop's done-means already holds: the map (`docs/design/LEVEL_DD_AREA_MAP.md`) landed in a454d03fcc
+before the head grade. All 20 predictions were filed before the map. So the STOP restates the case that drew the map.
+It is not a new trigger.
+
+**W1's count.** W1 counts "the next 20 graded predictions after the map lands". By that wording, the head book's 11
+count, because they were graded after a454d03fcc. That gives 3 model misses of 11 so far, and W1 is refuted at 6 of
+20. They were filed before the map, so they cannot test it. I count them anyway, against the thesis (F11), and say so
+here. The dca2 grade landed before the map, so its 9 do not count. **I predict** at most 2 model misses in the next
+9 graded level-DD predictions. Each of those names its S-number, and that makes W1 hold. **Refuted if** 3 or more of
+those 9 miss for code or reader.
