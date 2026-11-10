@@ -518,6 +518,12 @@ No new source was read. Each line cites the passage on this repository's pages i
       on-receipt bill (GAP 2 of "Leaving level direct debit with a debit"). Both ask the same amount
       once, with one term. The build takes the statement, because the desk already dates one
       (`left_level_asks`) and the page should print the demand the desk acts on.
+    - **Built for the page (worker, 10 Nov 2026):** `tools/generate_billing_ledger.leaver_closing_statement`.
+      A leg leaves on the issue date of its first bill after its last level-collected one, the day
+      `on_level_dd` reads it as gone. The statement asks the leg's page balance the day before, less
+      what open cases already ask. It is due 28 days later (`CLOSING_STATEMENT_TERM_DAYS`, the desk's
+      own constant). It is a demand and not a charge, so no balance moves. No statement is sent where
+      the only bill after leaving is the leg's final bill, because a final bill states the closing balance itself.
 - **Who dunns, and on what.** A supplier runs one dunning run per account and reads its balance. It
   would not chase a home in net credit (`company_debt_management.md`, "Where the desk runs, its silence
   is a decision", PROS-2018-0137; SAP FI-CA keeps the dunning level on the account, not the item).

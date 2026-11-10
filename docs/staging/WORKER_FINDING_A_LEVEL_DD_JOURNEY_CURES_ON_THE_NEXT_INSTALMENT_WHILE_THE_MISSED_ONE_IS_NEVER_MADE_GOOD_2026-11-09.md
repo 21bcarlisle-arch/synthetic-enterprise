@@ -962,3 +962,74 @@ instalment is made good only by cash that meets it.*
 - **Refuted if** the total rises, or any never-level cure moves.
 
 NEXT: build (P) in `tools/generate_billing_ledger.py`, then grade it on both regenerated pages against the table above.
+
+## (P) built and graded: the page now asks a leaver's scheme debit, and three of five legs fell (worker, 10 Nov 2026 ~03:15 GMT)
+
+**What changed.** `tools/generate_billing_ledger.leaver_closing_statement` adds a `closing_statement` record to each leg
+that leaves level DD in debit.
+- The leg leaves on the issue date of its first bill after its last level-collected one. That is the day `on_level_dd`
+  reads it as gone.
+- The statement asks the leg's page balance the day before, less what open cases asked that day. It is due 28 days
+  later (`arrears_engine.CLOSING_STATEMENT_TERM_DAYS`).
+- Its `outstanding_gbp` is what the balance owes beyond every invoice's own figure at the book's end, up to what it asked.
+- It is a demand and not a charge, so no balance moves.
+- No statement is sent where the only bill after leaving is the leg's final bill.
+
+**The control** is `tests/tools/test_a_level_dd_leavers_scheme_debit_is_asked_on_a_closing_statement.py`, 5 tests. It
+asserts the partition first: an unpaid debit is asked and outstanding, and a debit met by later cash is asked and reads 0.
+Six mutations fire:
+- no statement: 2 tests red;
+- outstanding set to asked: 2 red;
+- open cases not netted: 1 red;
+- cases repaid after leaving not counted as asking on the day: 1 red;
+- a final bill alone gets a statement: 2 red;
+- leaving dated at the last level bill: 2 red.
+
+**The grade.** Each book's page is regenerated twice from the same run json, at 7f69f78825 and with this change. One
+variable, so every movement is attributable. The pages are in `/var/tmp/lvl-shortfall/regen-*` and `armP-*`. The
+readers are `census3.py` and `readers/compose3.py`, which are census2 and compose with the statement's outstanding
+counted as asked.
+
+| Prediction (filed in 8ec00af80) | 4dee9854a4 | 78f82e4242 | |
+|---|---|---|---|
+| Live leaver legs with unasked debit: at most 1 leg and GBP 5 | 21 legs, 6,859.12 → **4 legs, 403.86** | 22 legs, 6,945.89 → **5 legs, 490.63** | **FELL** |
+| Closed leaver legs unchanged | 7, 309.27 → **1, 37.01** | 147, 10,681.09 → **141, 10,408.83** | **FELL** |
+| Cures held over a debt stay at 193 | **193** on 92 accounts | **193** on 92 accounts | **HELD** |
+| compose "left level DD, invoice unpaid" rises from 12 to between 12 and 33 | **47** | **47** | **FELL** (above the range) |
+| Every other invoice keeps its outstanding figure to the penny | 0 legs moved, 0 balances moved | 0 legs moved, 0 balances moved | **HELD** |
+
+**Why each fell, as measured.**
+- **The closed class moved, and "unchanged" was a mistake in how I classified, not in the code.**
+  - "Closed" is read at the book's end. A leg that left level DD years before it left supply is sent a statement on its
+    leaving day, which is right.
+  - 50 legs get a statement on each book. On 78f82e4242 these are:
+    - 28 in the census's "left level" class (21 live, 7 closed);
+    - 9 with no unasked debit, whose statement later cash met;
+    - 7 in its "never level" class;
+    - 6 in its "still level" class.
+
+    The last two classes need a gloss:
+    - "never level" means all their level collections were returned (PROS-2018-0016, SYN-2016-206);
+    - "still level" means they left after their last successful level collection (PROS-2024-0321: two returns in
+      Feb 2025, then on receipt).
+  - The census's class reader is narrower than the leaving the generator dates.
+- **The 5 live residues, not explained.**
+  - SYN-2016-380: GBP 356.94 left of 2,273.27;
+  - SYN-2016-549g: 6.90;
+  - SYN-2016-525g: 5.75;
+  - SYN-2016-487g: 34.27;
+  - SYN-2016-247: 86.77. Its only bill after leaving is a final bill, so it is the final-bill class, the world-side
+    question on this page's "What this does not settle".
+
+  The rest is debit that arose after the leaving day with no invoice asking for it. **Mechanism not established.**
+- **compose's rise is the point of the change.** 36 left-level holds read "no invoice unpaid" because the debit had no
+  document. 35 of them now read an unpaid statement, and 13 level-at-cure holds do too. The desk cures over a demand
+  the page now prints on **68 of the 193 holds** (47 + 21), against 20 before. That is the desk part (D), now visible
+  on the page.
+
+**SYN-2016-536g:** its statement was issued 3 Jul 2020, due 31 Jul 2020, asked GBP 112.14, and GBP 112.14 is still
+outstanding at the book's end.
+
+NEXT: (D), the desk's cure on a mixed account. On a book carrying (P), grade it against the (D) prediction in
+8ec00af80. Before that, find out why the in-run desk cured SYN-2016-536 on 16 Feb 2023, from the in-run
+`level_shortfall`.

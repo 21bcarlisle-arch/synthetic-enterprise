@@ -21,6 +21,7 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 
+from company.billing.arrears_engine import CLOSING_STATEMENT_TERM_DAYS
 from company.billing.dd_review import billing_account_of
 from company.billing.gas_volume_conversion import volume_from_kwh
 from company.billing.pre_bill_validation import (
@@ -348,6 +349,64 @@ def _held_spans(bills: list, held: list) -> dict[tuple, list[tuple[str, str]]]:
             spans.setdefault((b["customer_id"], b.get("commodity")), []).append(
                 (b["period_start"], b["period_end"]))
     return spans
+
+
+_CASE_MET_STAGES = ("ARREARS_REPAID", "CREDIT_APPLIED")
+
+
+def _case_open_on(case: dict, on: str) -> float:
+    """What an arrears case still asked on `on`: what it asks at the book's end plus what met it on
+    or after `on`."""
+    met_later = sum(st.get("amount_gbp") or 0.0 for st in case["stages"]
+                    if st["stage"] in _CASE_MET_STAGES and st["date"] >= on)
+    return max(0.0, (case.get("arrears_gbp") or 0.0) + met_later)
+
+
+def leaver_closing_statement(cust: dict, entries: list[dict]) -> dict | None:
+    """The closing statement a leg that has left level direct debit is sent for its scheme's debit,
+    or None.
+
+    The debit a level scheme ran up is still owed when the scheme ends without a new one, and is not
+    debt until it is asked for once in writing (payments_and_direct_debit_2026-10-25.md, "What is
+    owed", amended 10 Nov 2026). The desk asks it (`arrears_engine.left_level_asks`); the page asked
+    nothing, so the debit sat in the balance with no document behind it (SYN-2016-536g, GBP 112.14
+    from 2020 to the book's end on 78f82e4242, 22 live legs and GBP 6,945.89 in all).
+
+    The leg leaves on the issue date of its first bill after its last level-collected one: that is the
+    day the desk's `on_level_dd` reads it as gone. The statement asks the leg's page balance the day
+    before, less what open arrears cases already ask, and is due `CLOSING_STATEMENT_TERM_DAYS` later.
+    It is not a charge, so the balance does not move. What it still asks at the book's end is what the
+    balance owes beyond every invoice's own outstanding figure, up to what it asked.
+
+    No statement where the only bill after leaving is the leg's last: a final bill states the closing
+    balance itself (home_moves.md, "Debt prevention at move-out")."""
+    paid_by = {p["invoice_number"]: p for p in cust["payments"]}
+    bills = sorted(cust["invoices"], key=lambda i: (i["issue_date"], i["invoice_number"]))
+    level_at = [n for n, i in enumerate(bills) if (paid_by.get(i["invoice_number"]) or {}).get("level_dd")]
+    if not level_at:
+        return None
+    after = [i for i in bills[level_at[-1] + 1:] if not i.get("billed_to")
+             and ((paid_by.get(i["invoice_number"]) or {}).get("amount_gbp") or 0.0) > 0.0]
+    if len(after) < 2:
+        return None
+    on = after[0]["issue_date"]
+    before = [e for e in entries if e["date"] < on]
+    debit = before[-1]["running_balance_gbp"] if before else 0.0
+    issued_before = {i["invoice_number"] for i in bills if i["issue_date"] < on}
+    in_cases = sum(_case_open_on(a, on) for a in cust.get("arrears_history") or []
+                   if a["invoice_number"] in issued_before)
+    asked = round(debit - in_cases, 2)
+    if asked <= 0.005:
+        return None
+    owed = max(0.0, -(cust.get("balance_gbp") or 0.0))
+    on_invoices = sum(i.get("outstanding_gbp") or 0.0 for i in bills)
+    return {
+        "issue_date": on,
+        "due_date": (date.fromisoformat(on) + timedelta(days=CLOSING_STATEMENT_TERM_DAYS)).isoformat(),
+        "after_invoice": after[0]["invoice_number"],
+        "asked_gbp": asked,
+        "outstanding_gbp": round(min(asked, max(0.0, owed - on_invoices)), 2) + 0.0,
+    }
 
 
 def generate(run_json_path=None, out_path=None):
@@ -1193,9 +1252,12 @@ def generate(run_json_path=None, out_path=None):
     # and stood GBP 407.34 in debit, GBP 400 of it the scheme credit (4dee9854a4 book, 2026-11-09).
     # Negative is owed, the sign this field has always had.
     for cust in customers.values():
-        cust["balance_gbp"] = round(
-            -build_account_ledger(cust, book_as_of)["current_balance_gbp"], 2) + 0.0
+        walk = build_account_ledger(cust, book_as_of)
+        cust["balance_gbp"] = round(-walk["current_balance_gbp"], 2) + 0.0
         cust["balance_as_of_date"] = book_as_of
+        statement = leaver_closing_statement(cust, walk["entries"])
+        if statement is not None:
+            cust["closing_statement"] = statement
 
     all_held = list(held_bills) + held_reads + held_money
     result = {
