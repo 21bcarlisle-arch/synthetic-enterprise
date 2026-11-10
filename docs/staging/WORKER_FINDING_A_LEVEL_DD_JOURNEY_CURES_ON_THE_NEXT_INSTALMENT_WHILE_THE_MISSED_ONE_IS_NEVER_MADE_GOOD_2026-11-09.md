@@ -1136,3 +1136,48 @@ can fail is the same claimed effect, rebased onto the one-variable control:
 moved only PROS-2020-0223 (4 to 0) and left 048, 525 and 536 unchanged. If the book follows the replay, 14 of the 18
 remain, and "at most 4" is refuted. The replay is not the run, and 703edeb89b is in the book and not in the replay. I
 cannot say which way it moves them.
+
+## The book at origin's head, dca2ea1e7f: pre-registration, filed before it starts (seat executor, 10 Nov 2026 ~05:45 GMT)
+
+*Drawn as `the-book-carrying-the-leaver-statement-and-desk-fixes-is-run-off-tree-and-gated`.*
+
+**Premise, re-measured.** (P) landed as 059d2b55c1, and its surgical_land pid 1688374 is gone. The b8da2eed18 book is
+still queued: it has not started, so no book carries (P). It also carries no in-run change after b8da2eed18. Origin's head,
+dca2ea1e7f, carries every fix this item names. Since 78f82e4242 it adds these in-run changes:
+- 703edeb89b and b8da2eed18 (desk);
+- 47fdeacd5e (the world's settlement walk credits a level household's repayment at its cash);
+- 3099252c85 and b512dec267 (page, plus their in-run halves).
+
+So no movement below can be attributed to any one of them. The b8da2eed18 book stays queued: it is the one-variable
+desk arm, and this book does not replace it.
+
+**The control** is the 78f82e4242 run, regenerated through dca2ea1e7f's page generator (`/var/tmp/grade-dca2/control-78f/`).
+The page code is the same in both arms, so every difference below is the run. The readers are in
+`/var/tmp/grade-dca2-scripts/`: the 78f chain (`grade`, `overdue_breaches`, `classify`, `split`, `compose`,
+`never_level`, `desk_own`), plus `census3` (leaver legs), `mixed` (holds on mixed accounts) and `wo_owed`.
+`wo_owed` reproduces the filed 29 accounts and GBP 1,987.24 on `/var/tmp/desk29/ledger.json` exactly. The control already
+reads far below the 78f grade, because the page fixes since then are in it:
+
+| Row | Control (78f run, head page) | Prediction for the dca2ea1e7f book | Refuted if |
+|---|---:|---|---|
+| INV_OVERDUE_WITHIN_BALANCE | 2 (SYN-2016-007, SYN-2016-496: 703edeb89b's two) | **0 to 2, and neither 007 nor 496 is in it**. 703edeb89b was built for exactly these two | 007 or 496 still breach, or above 2 |
+| PAGE_BALANCE, still-level steps | 0 | **0 to 5**. b8da2eed18 moves desk journeys on level accounts | above 5 |
+| PAGE_BALANCE, left-level steps | 22, all on SYN-2016-549 | **at most 22**. The desk changes only make a leaver's dunning narrower. I cannot say whether 549 clears | above 30 |
+| Unexcepted total | 24 on 2 rows | **at most 27**, on no third row | above 27, or a third unexcepted row |
+| The 8 excepted rows | as in control `grade.txt` | the same exceptions hold | an excepted row loses its exception |
+| Written-off accounts still printing owed | 30, GBP 2,121.64 | **fall, to between 12 and 28 accounts, and GBP at most 1,900**. The stale-refund part of class R (GBP 336.60 on 18 refunds) "should go on the next book", per the desk finding's trace. The per-leg part stays | count above 28, or GBP above 1,900 |
+| Live leaver legs with unasked debit (census3) | 4 legs, GBP 415.70 | **at most 5 legs, GBP at most 450**. SYN-2016-380's 356.94 stays | above 5 legs or GBP 450 |
+| Holds on the 4 mixed accounts / all holds | 15 / 139 | **mixed at most 4; all between 96 and 126** (the (D) fall of 13 to 43, rebased). Not attributable to (D) alone: 47fdeacd5e moves cash in the same book | mixed above 4, or the total rises above 139 |
+| The gate | refused, 24 on 2 rows | **refused**, on PAGE_BALANCE (SYN-2016-549) at least | the gate passes |
+
+If the gate passes, the book goes to the publisher at once, under the director's 8 Nov yes ("one early publish as soon
+as a book passes the full gate"). Then the tenth cold read's embargo is lifted. If it is refused, each remaining breach
+class is named with its count and owner.
+
+**Launched after the table above was written** (the file as it stood then hashed sha256 `171be7a5…1d036143` at 05:21:18Z).
+- **The run.** `launch_long_job` job `book-dca2ea1e7f`, in the clean worktree `/var/tmp/book-wt-dca2ea1e7f` (origin
+  dca2ea1e7f, imports-off-commit `paths: []`). It is queued behind the head-green census for memory, as the b8da2eed18
+  book is. Output: `/home/rich/synthetic-enterprise/docs/reports/run_output_dca2ea1e7f_20261110T052128Z.json`. Log: `/var/tmp/longjob-book-dca2ea1e7f.log`.
+- **The grade.** Unit `longjob-grade-chain-book-dca2ea1e7f` waits for the run, then runs
+  `/var/tmp/grade-dca2-scripts/after_run.sh` into `/var/tmp/grade-dca2/arm/`. It writes `ALLDONE` or `NO_DONE`.
+  Whoever reads it grades the table above, writing held or fell beside each row.
