@@ -1004,3 +1004,42 @@ stay; graded books already running are still graded.
 - where two sides disagree on a state, that row is the next fix, and its prediction names the state.
 
 **Done means:** the map is written and every open prediction in this finding names the state it is about.
+
+## The map is written: `docs/design/LEVEL_DD_AREA_MAP.md` (worker tick, 10 Nov 2026 ~22:00 GMT)
+
+The map lists ten states (S1 to S10). For each, it names the code that decides it on every side, and it counts the
+legs in each state on the newest graded book, dca2ea1e7f (`/var/tmp/lvlmap-trace/census.py` over
+`/var/tmp/grade-dca2/arm/ledger.json`).
+
+**One correction to the section above.** There are five sides, not four. The page does not work out its own cash. It
+posts what the **world's** settlement walk says (`simulation/arrears_engine.balance_settlement_from_outcomes`). That
+walk holds its own rule for a credit bill, apart from the triad's rule. Class L′ (SYN-2016-549g) is those two world
+rules disagreeing. It is not the page disagreeing with the desk.
+
+**Six disagreements, each named by its state** (map section 4):
+- **D1** (S7c), the gate's only unexcepted class. It has an owner.
+- **D2** (S3): on two-leg accounts, the desk opens on the account's figure while the returning leg has no page case.
+  PROS-2017-0393g, 6 legs. New, and not traced.
+- **D3** (S5): the desk cures while a returned instalment is still owed on the page. PROS-2020-0191, 8 legs. The
+  sister finding's class, still present after d8264b525e.
+- **D4** (S10): the desk wrote off and the page still owes. It has an owner.
+- **D5** (S7/S9): the desk and the page define leaving differently. 436 legs leave on their final bill only, and the
+  desk has no final-bill carve. This is a definition question for the knowledge page first.
+- **D6** (S4): the desk caps a repaid return at the balance, and the world does not. K4.
+
+**Every open prediction, with the state it is about:**
+
+| Prediction | Where filed | State | Status |
+|---|---|---|---|
+| INV_OVERDUE_WITHIN_BALANCE at most 5, then at most 2, on the next fresh book | this finding, 10 Nov | S7 (leaving with a debit, the statement term) | **graded: held**, 0 on dca2ea1e7f |
+| Head book 068b5e3cc8: OVERDUE_WITHIN_BALANCE 0 to 2 | sister finding, ~19:10 10 Nov | S7 | open, grades on 068b5e3cc8 |
+| Head book: PAGE_BALANCE still-level steps 0 to 5 | sister | S1 to S3 | open |
+| Head book: PAGE_BALANCE left-level steps at most 22, and the gate refuses on them | sister, and the dca2 grade | S7c (D1) | open |
+| Head book: written-off accounts printing owed at most 27, GBP 1,230.90 | sister | S10 (D4) | open |
+| Head book: class L's run half, with no leaver leg's unasked GBP rising | sister | S6 | open |
+| Head book: live leaver legs with unasked debit at most 5, GBP 450; holds mixed at most 4 | sister | S7 (per-leg statement) | open |
+| W1: at most 3 model misses in the next 20 graded level-DD predictions | `ways_of_working.md` | the area | open, review 24 Nov |
+
+**So the stop condition's done-means holds:** the map is written, and every open prediction names its state. Level-DD
+fixes may be drawn again, in the map's order: D1, then the traces of D2 and D3, then D5 on the knowledge page.
+Each new prediction names its S-number.
