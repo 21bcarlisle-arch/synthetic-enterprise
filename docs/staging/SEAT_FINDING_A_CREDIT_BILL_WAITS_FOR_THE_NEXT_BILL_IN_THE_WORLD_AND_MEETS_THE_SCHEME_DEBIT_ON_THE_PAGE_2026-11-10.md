@@ -87,6 +87,7 @@ control is named rather than unexplained.
 Class L′ is class L's shape on the other branch: 6fb708f3a fixed a credit **bill's** month and left a bill met by a
 **scheme** credit. It is EBSS-only (Oct 2022 to Mar 2023 on level legs where the month's credit exceeds the bill). Next
 item `a-scheme-credit-month-keeps-its-level-collection`, to be pre-registered on this control. The world's walk
-(`level_collection_difference`) has to be checked for the same gap first.
+(`level_collection_difference`) has to be checked for the same gap first. The commit that grades it carries `Graded: class-l held= missed= code= reader= regressed= width=`,
+classed by `LEVEL_DD_AREA_MAP.md` §5. Class L's first grade is carried in the desk write-off finding.
 
 NEXT: a-credit-bill-meets-the-scheme-debit-before-the-next-bill

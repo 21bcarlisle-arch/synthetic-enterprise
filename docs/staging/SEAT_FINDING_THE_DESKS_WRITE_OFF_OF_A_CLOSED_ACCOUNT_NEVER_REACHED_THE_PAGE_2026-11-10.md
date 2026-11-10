@@ -375,6 +375,15 @@ closing balances before measuring it. The world side is `sim-engineer` work.
 | P3 unshown collections on the 11 class-L accounts | 17 → 2 | **17 → 3, a miss.** All three are on PROS-2019-0318 (25 Jul 2022, 28 Dec 2022, 24 Mar 2023), which this change does not touch. The other ten accounts go 14 → 0. My filter counted three PROS-2019-0318 collections where the trace above counted two. |
 | P4 existing level DD rows changed | 0 | **0**; 196 rows added, all on credit invoices (GBP 22,717.63) |
 
+**Graded for the learning loop (carried later, 10 Nov).** 6fb708f3a landed this grade without a `Graded:` trailer, so
+`background/learning_loop.py` could not see it. The commit that adds this paragraph carries it:
+`Graded: class-l held=3 missed=1 code=0 reader=1 regressed=0 width=0.0`. P1, P2 and P4 held. P3 missed because of the
+**reader**: the change did what the trace said it would (the ten other accounts went 14 → 0). The filter counted the
+returned PROS-2019-0318 collection of 25 Jul 2022, and the trace that set the centre at 2 did not. No row moved the wrong
+way. All four predictions were points, so the width is 0. The next commit that grades a class-L or L′ prediction carries
+its own trailer, classed by `LEVEL_DD_AREA_MAP.md` §5: undecided counts as `code` (F11), and an "at most N" row has
+width 2.0.
+
 Across the book, schedule rows with no page payment on their date fall from 744 (GBP 55,019.57) to 548 (GBP 32,301.94). The remainder is returned collections and other classes, not graded here.
 
 **What moves when the next book runs.** The walk's closing balance sizes the reg 6D refunds and the bad debt at close. On this book that is 59 leavers whose balances fall by GBP 6,860.04, so refunds rise or write-offs fall by up to that sum on the next run. Every published refund and bad-debt figure will move. This book's published figures were made before the change, and that is stated here rather than recomputed off-run.
