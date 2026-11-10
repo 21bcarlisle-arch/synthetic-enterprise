@@ -19,6 +19,7 @@ import json
 import pytest
 
 from company.billing import raw_account_export as rx
+from company.billing.ledger_store import load_ledger, resolve_ledger
 
 
 # ── the property, both directions ───────────────────────────────────────────────────────────
@@ -297,9 +298,9 @@ def test_every_real_period_exports_readings_that_reproduce_our_own_volume():
     PASSES, and this control fails on `11049 != 11549`. The constant was not a weaker version of
     this check; it was blind to the failure it was written for.
     """
-    if not rx.LEDGER_PATH.exists():
+    if resolve_ledger(rx.LEDGER_PATH) is None:
         pytest.skip("no billing ledger on this box")
-    ledger = json.loads(rx.LEDGER_PATH.read_text())
+    ledger = load_ledger(rx.LEDGER_PATH)
     periods = 0
     wrong = []
     for cid, rec in (ledger.get("customers") or {}).items():

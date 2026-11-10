@@ -5098,7 +5098,7 @@ def _generate_dashboard_json(json_path, git_hash="unknown"):
         from tools.generate_customer_data import generate as gen_cust
         gen_cust(json_path)
         log("Generated site/data/customers/ JSON")
-    with _ledger.step("Billing ledger generation", ["docs/state/billing_ledger.json"]):
+    with _ledger.step("Billing ledger generation", ["docs/state/billing_ledger.json.gz"]):
         # Must run before generate_invoice_data: real per-invoice bill-equation
         # data (usage, rate, standing charge) is wired from this ledger into the
         # customer JSON here; also must run before generate_shadow_html which reads
@@ -7076,14 +7076,25 @@ def _land_publish_commit(pathspec, msg, git_hash):
     # the index lose it, the file stays on disk and falls under `run_output_*.json`). A deletion
     # landed from a worktree would reach this tree through `merge --ff-only`, which refuses to
     # delete the dirty copy that sits here between every run and its publish.
+    #
+    # THE PLAIN BILLING LEDGER, THE SAME WAY (2026-11-10, `company.billing.ledger_store`). Its gz
+    # rides in on the `docs/state` directory rather than by name, so "covered" asks for the gz or
+    # any directory above it. The plain path is named explicitly so its content-None override is
+    # inside the pathspec; `build_resulting_tree` applies it after the directory's `add -A`.
     retire = {}
+    from company.billing import ledger_store
     from tools import run_output_store
-    if (run_output_store.PUBLISHED_REL in relative
-            and run_output_store.LATEST_REL not in relative
-            and run_output_store.plain_copy_is_tracked(root)):
-        relative.append(run_output_store.LATEST_REL)
-        retire = {"content": {run_output_store.LATEST_REL: None},
-                  "drops": frozenset({run_output_store.LATEST_REL})}
+
+    def _covered(rel: str) -> bool:
+        return any(rel == spec or rel.startswith(spec.rstrip("/") + "/") for spec in relative)
+
+    for plain_rel, gz_rel in ((run_output_store.LATEST_REL, run_output_store.PUBLISHED_REL),
+                              (ledger_store.LEDGER_REL, ledger_store.PUBLISHED_REL)):
+        if (_covered(gz_rel) and plain_rel not in relative
+                and run_output_store.plain_copy_is_tracked(root, plain_rel)):
+            relative.append(plain_rel)
+            retire.setdefault("content", {})[plain_rel] = None
+            retire["drops"] = retire.get("drops", frozenset()) | {plain_rel}
     lost = []
 
     def _chains_run(exhausted: bool) -> int:

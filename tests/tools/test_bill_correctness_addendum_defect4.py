@@ -32,6 +32,8 @@ from pathlib import Path
 
 import pytest
 
+from company.billing.ledger_store import load_ledger, resolve_ledger
+
 PROJECT = Path(__file__).resolve().parents[2]
 LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 SAMPLE_PATH = PROJECT / "site" / "data" / "customer_sample.json"
@@ -211,7 +213,7 @@ def _excused(key, book_commit) -> bool:
     return fix is None or not _book_carries(fix, book_commit)
 
 
-@pytest.mark.skipif(not LEDGER_PATH.exists() or not SAMPLE_PATH.exists(),
+@pytest.mark.skipif(resolve_ledger(LEDGER_PATH) is None or not SAMPLE_PATH.exists(),
                      reason="requires a real generated run (billing_ledger.json + customer_sample.json)")
 def test_billed_total_never_less_than_gross_margin_for_any_real_customer_year():
     """The actual gate: sweeps every customer-year in the live data, not
@@ -244,7 +246,7 @@ def test_billed_total_never_less_than_gross_margin_for_any_real_customer_year():
     done here is silence the negatives: they are real credits and they stay in the ledger, in the
     bills, and in every total a customer or the treasury sees.
     """
-    ledger = json.loads(LEDGER_PATH.read_text())
+    ledger = load_ledger(LEDGER_PATH)
     sample = json.loads(SAMPLE_PATH.read_text())
     billed = billed_total_by_customer_year(ledger, net_of_catchup=True, with_epg_receipt=True)
 
@@ -430,9 +432,9 @@ def test_only_a_leg_still_on_supply_can_hold_a_provisional_year():
 def test_the_gate_compares_more_years_than_it_leaves_out_on_the_real_book():
     """The exclusion is for the tail of the window. If it ever covers most of the book, the gate
     has been emptied by its own exception."""
-    if not LEDGER_PATH.exists() or not SAMPLE_PATH.exists():
+    if resolve_ledger(LEDGER_PATH) is None or not SAMPLE_PATH.exists():
         pytest.skip("requires a real generated run")
-    ledger = json.loads(LEDGER_PATH.read_text())
+    ledger = load_ledger(LEDGER_PATH)
     sample = json.loads(SAMPLE_PATH.read_text())
     compared = {(_base_id(c), row["year"]) for c, cust in sample.get("customers", {}).items()
                 for row in cust.get("annual_pnl", [])}
@@ -486,9 +488,9 @@ def test_EVERY_negative_invoice_in_the_live_ledger_is_catchup_explained():
     is paying its customer for no stated reason -- and it must never be able to hide inside a
     class that was cleared on the grounds that every member had an explanation.
     """
-    if not LEDGER_PATH.exists():
+    if resolve_ledger(LEDGER_PATH) is None:
         pytest.skip("requires a real generated run")
-    ledger = json.loads(LEDGER_PATH.read_text())
+    ledger = load_ledger(LEDGER_PATH)
 
     unexplained = [
         (cid, inv.get("invoice_number"), inv["total_amount_gbp"])

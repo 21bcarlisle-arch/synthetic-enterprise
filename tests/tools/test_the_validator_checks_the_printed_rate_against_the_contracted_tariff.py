@@ -17,6 +17,7 @@ import json
 
 import pytest
 
+from company.billing.ledger_store import load_ledger, resolve_ledger
 from tools import bill_validation_comparison as cmp
 from tools import independent_bill_validator as v
 
@@ -169,9 +170,9 @@ def test_the_published_book_charges_its_contracted_tariff():
     predates the export carries no `contracted_terms` and is named, not passed."""
     from company.billing import raw_account_export as rx
 
-    if not rx.LEDGER_PATH.exists():
+    if resolve_ledger(rx.LEDGER_PATH) is None:
         pytest.skip("no billing ledger on this box")
-    ledger = json.loads(rx.LEDGER_PATH.read_text())
+    ledger = load_ledger(rx.LEDGER_PATH)
     customers = ledger.get("customers") or {}
     first = next((i for r in customers.values() for i in r.get("invoices") or []), {})
     if "contracted_terms" not in first:

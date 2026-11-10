@@ -12,6 +12,7 @@ from company.analytics.decision_event_ledger import (
     build_customer_ledger,
     build_portfolio_event_stream,
 )
+from company.billing.ledger_store import load_ledger, resolve_ledger
 from company.crm.retention_risk import retention_risk_feature_vector
 from simulation.acquisition_funnel import FUNNEL_STAGES
 
@@ -673,7 +674,7 @@ def build_customers(dash, sample, ts, ledger=None, journey_log=None):
         + "<h2>Full Ground Truth</h2>"
         + "<p>Machine-readable per-customer data:<br>"
         + '<a href="/state/customer_sample.json">customer_sample.json</a> | '
-        + '<a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json">billing_ledger.json</a></p>'
+        + '<a href="https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json.gz">billing_ledger.json.gz</a> (gzipped JSON)</p>'
     )
     return _page("Customer Portfolio", "Customers", body, ts, git_commit, phase)
 
@@ -1768,7 +1769,7 @@ def generate(run_json_path=None):
     sample_path = DATA / "customer_sample.json"
     sample = json.loads(sample_path.read_text()) if sample_path.exists() else {}
     ledger_path = PROJECT / "docs" / "state" / "billing_ledger.json"
-    billing_ledger = json.loads(ledger_path.read_text()) if ledger_path.exists() else {}
+    billing_ledger = load_ledger(ledger_path) if resolve_ledger(ledger_path) is not None else {}
     pa_path = STATE / "population_anchoring.json"
     _population_anchoring = json.loads(pa_path.read_text()) if pa_path.exists() else {}
     latest_md = LATEST_MD.read_text() if LATEST_MD.exists() else ""

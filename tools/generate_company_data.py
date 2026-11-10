@@ -50,6 +50,14 @@ def _load(path):
         return None
 
 
+def _load_ledger(path):
+    try:
+        from company.billing.ledger_store import load_ledger
+        return load_ledger(path)
+    except Exception:
+        return None
+
+
 def _rag_counts(items, key="status"):
     return dict(Counter((i.get(key) or "UNKNOWN") for i in items))
 
@@ -825,7 +833,7 @@ def generate():
     dashboard = _load(DASHBOARD_PATH) or {}
     bridge = _load(BRIDGE_PATH) or {}
     sample = _load(SAMPLE_PATH) or {}
-    ledger = _load(LEDGER_PATH) or {}
+    ledger = _load_ledger(LEDGER_PATH) or {}
 
     meta = dashboard.get("meta", {}) or {}
     data = dict(

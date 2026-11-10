@@ -299,11 +299,12 @@ def desk_write_off_postings(legs, as_of):
 def generate(customers_dir=None, ledger_path=None):
     customers_dir = Path(customers_dir) if customers_dir else CUSTOMERS_DIR
     ledger_path = Path(ledger_path) if ledger_path else LEDGER_PATH
+    from company.billing.ledger_store import load_ledger, resolve_ledger
 
-    if not ledger_path.exists():
+    if resolve_ledger(ledger_path) is None:
         print("Skipped: no billing ledger at", str(ledger_path))
         return 0
-    ledger = json.loads(ledger_path.read_text())
+    ledger = load_ledger(ledger_path)
     ledger_customers = ledger.get("customers", dict())
     as_of = _book_as_of_date(ledger_customers)
     if as_of is None:

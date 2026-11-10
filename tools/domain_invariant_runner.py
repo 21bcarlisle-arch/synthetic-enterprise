@@ -237,8 +237,15 @@ def _load_raw(raw_path, ledger_path, events_path, printed) -> dict[str, dict]:
             if book.get(cid) is not None:
                 book[cid]["printed"] = pr
         return book
-    from company.billing.raw_account_export import account_events, derived_leaks, raw_account
-    ledger = json.loads(ledger_path.read_text())
+    # load_ledger through the raw export, the runner's one repo import: it reads the plain ledger
+    # or, in a checkout that has only the committed one, its gz.
+    from company.billing.raw_account_export import (
+        account_events,
+        derived_leaks,
+        load_ledger,
+        raw_account,
+    )
+    ledger = load_ledger(ledger_path)
     out = {}
     for cid, rec in (ledger.get("customers") or {}).items():
         r, ev = raw_account(cid, rec), account_events(cid, rec)

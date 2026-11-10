@@ -20,6 +20,7 @@ from pathlib import Path
 from company.analytics.retention_deferral_economics import (
     compute_realized_deferrals, serial_saver_summary,
 )
+from company.billing.ledger_store import load_ledger, resolve_ledger
 from company.trading.hedge_decision import VAR_REVENUE_LIMIT
 
 from background.episode_prior import load_list_prior
@@ -1455,9 +1456,9 @@ def extract_b2_taxonomy(data):
     # above -- working capital is a per-household concept, not per-fuel-account.
     ledger_path = PROJECT / "docs" / "state" / "billing_ledger.json"
     segment_working_capital = {}
-    if ledger_path.is_file():
+    if resolve_ledger(ledger_path) is not None:
         try:
-            ledger = json.loads(ledger_path.read_text())
+            ledger = load_ledger(ledger_path)
             for cid, cdata in ledger.get("customers", {}).items():
                 seg = cdata.get("segment", "unknown")
                 owed = max(0.0, -cdata.get("balance_gbp", 0.0))
@@ -2057,9 +2058,9 @@ def extract_risk_tiered_compliance():
 
     ledger_path = PROJECT / "docs" / "state" / "billing_ledger.json"
     held_bill_count = 0
-    if ledger_path.is_file():
+    if resolve_ledger(ledger_path) is not None:
         try:
-            ledger = json.loads(ledger_path.read_text())
+            ledger = load_ledger(ledger_path)
             held_bill_count = ledger.get("meta", {}).get("held_bill_count", 0)
         except (json.JSONDecodeError, OSError):
             held_bill_count = 0

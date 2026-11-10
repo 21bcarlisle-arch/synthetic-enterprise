@@ -25,16 +25,19 @@ DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
 def generate(run_json_path=None):
     run_path = Path(run_json_path) if run_json_path else RUN_OUTPUT
-    if not run_path.exists() or not LEDGER_PATH.exists() or not DASHBOARD_PATH.exists():
+    sys.path.insert(0, str(PROJECT))
+    from company.billing.ledger_store import resolve_ledger
+    if not run_path.exists() or resolve_ledger(LEDGER_PATH) is None or not DASHBOARD_PATH.exists():
         print("Skipped: missing run output, billing ledger, or dashboard.json")
         return 0
 
     sys.path.insert(0, str(PROJECT))
     from tools.generate_dashboard_data import extract_customers
     from company.analytics.decision_event_ledger import build_portfolio_event_stream
+    from company.billing.ledger_store import load_ledger
 
     run = json.loads(run_path.read_text())
-    ledger = json.loads(LEDGER_PATH.read_text())
+    ledger = load_ledger(LEDGER_PATH)
     dash_customers = extract_customers(run)
 
     stream = build_portfolio_event_stream(

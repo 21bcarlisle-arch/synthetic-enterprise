@@ -140,7 +140,7 @@ def generate():
         "- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/project/ -- no-JS HTML: Project overview (GitHub Pages mirror)",
         "- https://21bcarlisle-arch.github.io/synthetic-enterprise/shadow/sim/ -- no-JS HTML: SIM market data (GitHub Pages mirror)",
         "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/customer_sample.json -- per-customer ground truth (GitHub Pages mirror)",
-        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json -- per-customer invoice/payment/arrears ledger (GitHub Pages only: over the Cloudflare Pages 25 MiB file limit, so not on poesys.net)",
+        "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/billing_ledger.json.gz -- per-customer invoice/payment/arrears ledger, gzipped JSON (GitHub Pages only: the plain file is over GitHub's comfort and Cloudflare's 25 MiB limit, so not on poesys.net)",
         "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/population_anchoring.json -- SIM vs Ofgem/DESNZ benchmark validation (GitHub Pages mirror)",
         "- https://21bcarlisle-arch.github.io/synthetic-enterprise/state/sim_data.json -- Elexon SSP settlement data (GitHub Pages mirror)",
         "# Visitor surface (Cloudflare Pages, same generator pass -- not for advisor verification fetches):",

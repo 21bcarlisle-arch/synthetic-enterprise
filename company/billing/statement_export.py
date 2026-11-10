@@ -64,6 +64,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from company.billing.ledger_store import load_ledger
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 LEDGER_PATH = PROJECT_DIR / "docs" / "state" / "billing_ledger.json"
 
@@ -419,7 +421,7 @@ def statement_digest(doc: dict) -> str:
 
 
 def export_statement(customer_id: str, ledger_path: Path | None = None) -> dict:
-    ledger = json.loads((ledger_path or LEDGER_PATH).read_text())
+    ledger = load_ledger(ledger_path or LEDGER_PATH)
     record = (ledger.get("customers") or {}).get(customer_id)
     if record is None:
         raise KeyError("no such account in the ledger: {!r}".format(customer_id))

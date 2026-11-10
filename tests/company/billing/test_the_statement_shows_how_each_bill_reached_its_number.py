@@ -24,6 +24,7 @@ import json
 import pytest
 
 from company.billing import statement_export as sx
+from company.billing.ledger_store import load_ledger, resolve_ledger
 from tools.generate_payment_ledger_data import _book_as_of_date, build_account_ledger
 from tools.independent_bill_validator import catchup_vat_breach, statutory_vat_rate
 
@@ -254,9 +255,9 @@ def test_the_digest_moves_when_a_figure_moves():
 
 # ── against the real book ───────────────────────────────────────────────────────────────────
 def _real_ledger():
-    if not sx.LEDGER_PATH.exists():
+    if resolve_ledger(sx.LEDGER_PATH) is None:
         pytest.skip("no billing ledger on this box")
-    return json.loads(sx.LEDGER_PATH.read_text())
+    return load_ledger(sx.LEDGER_PATH)
 
 
 def test_every_issued_bill_agrees_with_the_sum_of_its_own_printed_components():

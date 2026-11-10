@@ -38,6 +38,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
+from company.billing.ledger_store import loads_ledger, resolve_ledger
+
 # What a consumer prints instead of a RAG when the ledger did not load. Shared so
 # the three surfaces cannot drift into three different phrasings of "we don't know".
 UNAVAILABLE_NOTE = "arrears not assessed -- billing ledger unavailable"
@@ -78,16 +80,19 @@ def load(ledger_path: Path | str) -> ArrearsLedgerView:
     Never raises on a bad path or bad content -- it reports. Every failure mode
     below used to be an `except: pass` that produced a green arrears column.
     """
-    path = Path(ledger_path)
+    # The plain file, or its committed gz twin where only that exists (company.billing.ledger_store).
+    path = resolve_ledger(ledger_path) or Path(ledger_path)
     try:
-        raw = path.read_text(encoding="utf-8")
+        raw = path.read_bytes()
     except (FileNotFoundError, NotADirectoryError, IsADirectoryError, PermissionError, OSError):
         return _unavailable(f"ledger not readable at {path}")
 
     try:
-        payload = json.loads(raw)
+        payload = loads_ledger(raw)
     except json.JSONDecodeError as exc:
         return _unavailable(f"ledger at {path} is not valid JSON ({exc.msg})")
+    except (UnicodeDecodeError, EOFError, OSError) as exc:
+        return _unavailable(f"ledger at {path} is not readable JSON ({type(exc).__name__})")
 
     return from_payload(payload, source=str(path))
 

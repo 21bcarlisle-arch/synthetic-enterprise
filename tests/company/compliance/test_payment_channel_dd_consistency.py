@@ -25,6 +25,7 @@ from pathlib import Path
 
 import pytest
 
+from company.billing.ledger_store import load_ledger, resolve_ledger
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
     PAYMENT_CHANNEL_DD_CONSISTENCY,
@@ -275,9 +276,9 @@ def test_scan_of_an_empty_population_is_empty_and_provably_vacuous():
 def _ledger_arrears_records():
     """Every arrears case in the real ledger, joined to the method of the
     payment that opened it."""
-    if not BILLING_LEDGER.exists():
+    if resolve_ledger(BILLING_LEDGER) is None:
         pytest.skip("billing_ledger.json not generated in this tree")
-    ledger = json.loads(BILLING_LEDGER.read_text())
+    ledger = load_ledger(BILLING_LEDGER)
     records = []
     for cid, customer in (ledger.get("customers") or {}).items():
         by_invoice = {p["invoice_number"]: p for p in (customer.get("payments") or [])}

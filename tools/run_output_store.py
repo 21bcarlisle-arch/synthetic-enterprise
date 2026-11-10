@@ -118,13 +118,14 @@ def write_published(plain: Path | str) -> Path:
     return twin
 
 
-def plain_copy_is_tracked(root: Path | str = PROJECT) -> bool:
-    """Is the plain run file still committed at HEAD? True until the first gz publish retires it.
+def plain_copy_is_tracked(root: Path | str = PROJECT, rel: str = LATEST_REL) -> bool:
+    """Is the plain run file (or another plain file `rel` with a gz twin -- the billing ledger) still
+    committed at HEAD? True until the first gz publish retires it.
 
     The retirement happens INSIDE the shared tree's own publish (a content-None landing, file left
     on disk), never as a deletion landed from elsewhere: the shared tree's copy is routinely dirty,
     and `merge --ff-only` refuses a deletion of a dirty file, which would wedge the reconciler.
     """
-    done = subprocess.run(["git", "ls-files", "--error-unmatch", "--", LATEST_REL],
+    done = subprocess.run(["git", "ls-files", "--error-unmatch", "--", rel],
                           cwd=str(root), capture_output=True, text=True, check=False)
     return done.returncode == 0

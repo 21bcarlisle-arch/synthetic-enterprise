@@ -19,6 +19,7 @@ import json
 import sys
 from pathlib import Path
 
+from company.billing.ledger_store import load_ledger, resolve_ledger
 from company.compliance.domain_invariants import check_printed_bill_foots_exactly
 from saas.money import display_rate_p_per_kwh, quantize_gbp
 
@@ -205,10 +206,10 @@ def real_invoices_for(cid, ledger_customers):
 def generate(run_json_path=None):
     path = Path(run_json_path) if run_json_path else RUN_OUTPUT
 
-    if not LEDGER_PATH.exists():
+    if resolve_ledger(LEDGER_PATH) is None:
         print("Skipped: no billing ledger at", str(LEDGER_PATH))
         return 0
-    ledger = json.loads(LEDGER_PATH.read_text())
+    ledger = load_ledger(LEDGER_PATH)
     ledger_customers = ledger.get("customers", dict())
 
     run = json.loads(path.read_text())

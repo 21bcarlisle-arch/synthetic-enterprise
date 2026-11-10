@@ -232,8 +232,9 @@ def _predecessor(cid, successions):
 
 
 def generate(run_json_path=None):
+    from company.billing.ledger_store import load_ledger, resolve_ledger
     path = Path(run_json_path) if run_json_path else RUN_OUTPUT
-    if not path.exists() or not LEDGER_PATH.exists():
+    if not path.exists() or resolve_ledger(LEDGER_PATH) is None:
         print("Skipped: missing run output or billing ledger")
         return 0
 
@@ -241,7 +242,7 @@ def generate(run_json_path=None):
     from tools.generate_payment_ledger_data import _book_as_of_date
 
     run = json.loads(path.read_text())
-    ledger = json.loads(LEDGER_PATH.read_text())
+    ledger = load_ledger(LEDGER_PATH)
     ledger_customers = ledger.get("customers", {})
     # The page ledger's clock: the chain cuts where the ledger does.
     as_of = _book_as_of_date(ledger_customers)

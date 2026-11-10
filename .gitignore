@@ -53,6 +53,8 @@ docs/observability/*.log
 company/data/
 docs/reports/ANNUAL_REPORT_*Z.md
 docs/reports/run_output_*.json
+# The plain billing ledger stays on disk for the shared tree's readers; its .gz is what is committed.
+docs/state/billing_ledger.json
 docs/observability/.autonomous_pane_state.json
 docs/observability/autonomous-turn-output.md
 docs/observability/background-task-*.md

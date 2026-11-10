@@ -430,9 +430,10 @@ def run_cycle() -> None:
     # optional (missing/unreadable file just means that one check is skipped
     # this cycle, same graceful-degradation style as the rest of this daemon).
     payments: list = []
-    if BILLING_LEDGER_PATH.is_file():
+    from company.billing.ledger_store import load_ledger, resolve_ledger
+    if resolve_ledger(BILLING_LEDGER_PATH) is not None:
         try:
-            ledger = json.loads(BILLING_LEDGER_PATH.read_text())
+            ledger = load_ledger(BILLING_LEDGER_PATH)
             for cust in ledger.get("customers", {}).values():
                 if cust.get("segment") == "resi":
                     payments.extend(cust.get("payments", []))

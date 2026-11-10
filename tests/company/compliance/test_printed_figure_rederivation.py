@@ -25,6 +25,7 @@ from pathlib import Path
 
 import pytest
 
+from company.billing.ledger_store import load_ledger, resolve_ledger
 from company.compliance import domain_invariants as di
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
@@ -169,11 +170,11 @@ def test_an_unreadable_register_row_FAILS_CLOSED():
     assert check_printed_line_rederives(line) is False
 
 
-@pytest.mark.skipif(not LEDGER.exists(), reason="no generated ledger")
+@pytest.mark.skipif(resolve_ledger(LEDGER) is None, reason="no generated ledger")
 def test_the_real_ledger_actually_carries_register_rows_with_rates():
     """FAIL-OPEN guard on the register branch: it passes vacuously if no
     invoice has registers, or if no register carries a rate."""
-    ledger = json.loads(LEDGER.read_text())
+    ledger = load_ledger(LEDGER)
     rows = [r for e in ledger["customers"].values() for i in e["invoices"]
             for r in i.get("registers", [])]
     assert len(rows) > 1000
@@ -252,11 +253,11 @@ def test_the_printed_amount_is_never_moved_to_tidy_the_printout():
 # --------------------------------------------------------------------------
 # Population-level: the real published book
 # --------------------------------------------------------------------------
-@pytest.mark.skipif(not LEDGER.exists(), reason="no generated ledger")
+@pytest.mark.skipif(resolve_ledger(LEDGER) is None, reason="no generated ledger")
 def test_every_invoice_in_the_real_ledger_rederives():
     """The control on real data, not fixtures -- the measurement that made this
     atom (86.1% of rendered usage lines failing) must now be zero."""
-    ledger = json.loads(LEDGER.read_text())
+    ledger = load_ledger(LEDGER)
     bad = [
         (c, inv.get("period_end"))
         for c, entry in ledger["customers"].items()
@@ -266,9 +267,9 @@ def test_every_invoice_in_the_real_ledger_rederives():
     assert bad == [], f"{len(bad)} printed lines do not re-derive: {bad[:5]}"
 
 
-@pytest.mark.skipif(not LEDGER.exists(), reason="no generated ledger")
+@pytest.mark.skipif(resolve_ledger(LEDGER) is None, reason="no generated ledger")
 def test_no_printed_daily_rate_carries_float_residue():
-    ledger = json.loads(LEDGER.read_text())
+    ledger = load_ledger(LEDGER)
     residue = [
         (c, inv["period_end"], repr(inv["standing_charge_gbp_per_day"]))
         for c, entry in ledger["customers"].items()
@@ -280,12 +281,12 @@ def test_no_printed_daily_rate_carries_float_residue():
     assert residue == [], residue
 
 
-@pytest.mark.skipif(not LEDGER.exists(), reason="no generated ledger")
+@pytest.mark.skipif(resolve_ledger(LEDGER) is None, reason="no generated ledger")
 def test_the_control_is_not_vacuous_on_the_real_ledger():
     """FAIL-OPEN guard on the population test above: it would also pass if
     every invoice printed no rate at all. Assert the book actually exercises
     the arithmetic."""
-    ledger = json.loads(LEDGER.read_text())
+    ledger = load_ledger(LEDGER)
     invs = [i for e in ledger["customers"].values() for i in e["invoices"]]
     with_rate = [i for i in invs if i.get("unit_rate_p_per_kwh") is not None]
     assert len(invs) > 1000

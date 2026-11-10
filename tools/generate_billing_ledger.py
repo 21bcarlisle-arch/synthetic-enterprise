@@ -13,7 +13,7 @@ Payment method by segment:
   SME     -> BACS or DD
   Resi    -> DD (default)
 
-Output: docs/state/billing_ledger.json
+Output: docs/state/billing_ledger.json, and its committed gzip twin (company/billing/ledger_store.py)
 """
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ from pathlib import Path
 from company.billing.arrears_engine import CLOSING_STATEMENT_TERM_DAYS
 from company.billing.dd_review import billing_account_of
 from company.billing.gas_volume_conversion import volume_from_kwh
+from company.billing.ledger_store import LEDGER_PATH, write_ledger
 from company.billing.pre_bill_validation import (
     BillValidationResult,
     ValidationOutcome,
@@ -108,14 +109,13 @@ RUN_JSON = PROJECT / "docs" / "reports" / "run_output_latest.json"
 # NOT under site/ (2026-10-14): at 57.7 MiB it passed Cloudflare Pages' 25 MiB per-file limit, and
 # Pages refuses the whole upload over one file. No page fetches it; every reader is a generator
 # reading disk. docs/state/ is also what the GitHub Pages mirror serves, so it stays fetchable there.
-OUT_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
+# Written plain AND gzipped (`company.billing.ledger_store`): the publish commits only the gz.
+OUT_PATH = LEDGER_PATH
 
 
 def dump_ledger(result: dict) -> str:
-    """Compact on purpose: this file is committed, and at indent=2 the 1,293-account book was
-    137 MiB against GitHub's 100 MiB per-file push limit (2026-11-02: the publish was refused
-    by name). Compact is 87% of the limit, so it is a stopgap -- the durable choice is in
-    docs/staging/done/SEAT_FINDING_THE_PUBLISHED_RUN_OUTGREW_GITHUBS_FILE_LIMIT_2026-10-10.md."""
+    """Compact: at indent=2 the 1,293-account book was 137 MiB. What is committed is the gzip of
+    these bytes (`company.billing.ledger_store.write_ledger`), 6.8 MB of the 91 MB on 0a6391d186."""
     return json.dumps(result, separators=(",", ":"))
 
 
@@ -476,8 +476,7 @@ def generate(run_json_path=None, out_path=None):
             "customers": {},
             "exception_queue": exception_queue_as_dicts(held_bills),
         }
-        Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(out_path).write_text(dump_ledger(result))
+        write_ledger(dump_ledger(result), out_path)
         return result
 
     held_reads: list[BillValidationResult] = []
@@ -1325,8 +1324,7 @@ def generate(run_json_path=None, out_path=None):
         "exception_queue": exception_queue_as_dicts(all_held),
     }
 
-    Path(out_path).parent.mkdir(parents=True, exist_ok=True)
-    Path(out_path).write_text(dump_ledger(result))
+    write_ledger(dump_ledger(result), out_path)
     return result
 
 
