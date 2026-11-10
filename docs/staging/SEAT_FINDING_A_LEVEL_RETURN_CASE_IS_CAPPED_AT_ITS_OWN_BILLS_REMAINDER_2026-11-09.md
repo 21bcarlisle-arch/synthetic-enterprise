@@ -138,6 +138,34 @@ heavier by GBP 161.59) and are unexplained here.
 `test_the_ledger_and_the_pnl_write_off_agree_per_account` reads `run_output_latest`. On this book it would fail on 79
 accounts.
 
+**Correction (same session, ~00:45 GMT, after c243a2063): the table above reads the wrong page figure.** It counted a
+written-off case's `arrears_gbp`, which is the case's face. The money the page writes off is the `WRITTEN_OFF` stage's
+`amount_gbp`, `min(case, engine)`. The 10 "not level-paid" rows are this artefact: each stage amount equals the
+engine's, and the gap is the part recovered before write-off. Re-read on the stage amount:
+
+| | control (pre-cap) | cap-arm |
+|---|---|---|
+| page written off | 220, GBP 9,036.12 | 220, GBP 9,036.12 |
+| engine minus page | 57, GBP 1,776.66 | 57, GBP 1,776.66 |
+| ... level-paid, page opened no case | 38, GBP 1,417.13 | 38, GBP 1,417.13 |
+| ... level-paid, page case lighter | 19, GBP 359.53 | 19, GBP 359.53 |
+| ... not level-paid | 0 | 0 |
+| ledger vs P&L, accounts disagreeing | 89, P&L heavier by GBP 2,664.96 | the same |
+
+- **The cap opened no write-off gap.** On the 6 written-off over-cap cases, the engine's figure was already below the
+  capped case. The cap changed their face (`arrears_gbp`), not what was written off. The parent's "GBP 604.15 write-off
+  gap" is a face difference. It is withdrawn as a gap.
+- **The real gap is older and has three homes for one quantity:**
+  - the P&L's `compute_emergent_bad_debt`, which is not passed `level_dd_collections`: GBP 11,701.08;
+  - the generator's `resolved_settlement`, which is passed them: GBP 10,812.78;
+  - the page: GBP 9,036.12.
+
+  The 57 level-paid cases are where the engine writes off a bill's face against a level schedule that the page reads
+  as nothing short, or as less short.
+- `test_the_ledger_and_the_pnl_write_off_agree_per_account` also sums `arrears_gbp`. On a partly recovered case it
+  compares the face with the P&L's net. That is a reader defect in the control itself.
+- P3 below stands as filed, graded on the stage-amount reader (`wo.py` as corrected).
+
 ### Pre-registration for the 78f82e4242 book (filed before any of its output exists)
 
 Grade chain: `/var/tmp/capgrade/after_run.sh <run json> /var/tmp/book-wt-78f82e4242`. It regenerates the ledger with
