@@ -711,6 +711,63 @@ proposed, with three refinements the first probe forced. Each is stated here so 
 - **The view splits past-due from current.** On 15 Feb a missed January bill prints GBP 150 overdue, not GBP 290. The
   statement's GBP 140 is not due until 28 Feb.
 
+## A credit bill after leaving with the debit still owed (worker, 10 Nov 2026, K8 for D1)
+
+*K8 for `a-credit-bill-meets-the-scheme-debit-before-the-next-bill`
+(`SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md`;
+`docs/design/LEVEL_DD_AREA_MAP.md` state S7c, disagreement D1). Written before the build.*
+
+**The case.** A leg leaves level DD owing a scheme debit, and the closing statement above demands it. Before the
+household pays it, the supplier issues a credit bill, for example a read catch-up that lowers an estimate.
+SYN-2016-549g: a GBP 53.98 scheme debit (the face-minus-level remainder of its returned Dec 2018 and Jan 2019 months),
+then a GBP -62.12 credit bill on 1 Sep 2020. Does the credit pay the debit, or wait to come off the next bill?
+
+**What the rules establish.**
+- **A credit exists only net of what the contract owes.** SLC 27.16 defines Credit as "the amount by which the
+  payments made by a Domestic Customer … exceeds the total amount of Charges which is due and payable … under that
+  Domestic Supply Contract" (operative text read in `home_moves.md` §8.8a). That is a running account per contract,
+  and the contract is per fuel. A downward bill on a leg that owes 53.98 makes no credit until the 53.98 is met. On
+  549g, only 62.12 − 53.98 = **8.14** is credit.
+- **The bill states one thing owed.** SLC 31H.12(a) and (c): the bill tells the household "what is owed to or by the
+  licensee" and "when and how [it] needs to make any payments or will have payments deducted". After 549g's credit
+  bill, the household owes 0 on the gas leg and is owed 8.14. Its next bill asks its charges less 8.14, not less 62.12.
+- **The order is the running account's default.** Within one contract, a credit meets the oldest outstanding charge
+  first (Clayton's Case). The world's walk (`simulation/arrears_engine.balance_settlement_from_outcomes`) and the desk
+  (`company/billing/arrears_engine.unpaid_asks`) already do this. The closing statement is the oldest charge.
+
+**GAPs.**
+1. No published supplier text was found on a credit bill meeting a closing-statement debit. The rule above follows
+   from 27.16's definition, not from practice. If GB bills are universally balance-forward, it is too obvious to be
+   written down (K4). That universality is a belief, not a reading.
+2. Whether the supplier re-issues the statement, or lets the credit bill's balance line serve as the notice, is
+   unpublished. As in GAP 2 of the closing-statement section, the two differ only in the document.
+
+**What the tree does today (book dca2ea1e7f): two rules for one credit.**
+- **The world** (`background/live_payment_triad.py`, the `_leg_credit` block) lets the whole credit wait for the
+  leg's next bill whenever no failed bill on the leg stands unsettled. It reads a level month as settled at the level
+  amount, so a scheme debit is invisible to it. 549g was asked 0, 0 and 41.60 on its Sep, Oct and Nov 2020 bills
+  (21.83, 32.37 and 49.52), and paid that.
+- **The desk** meets the credit against the statement, then chases those bills at face. It is right about the money.
+- **The page** posts the world's walk, which nets 53.98 against the old debt and the rest off the next bill. So it
+  shows 53.98 that never crossed: 22 `INV_OVERDUE_WITHIN_PAGE_BALANCE` steps, the gate's one unexcepted class.
+
+**The choice the build makes, and why.**
+- **One rule, in the world's ask, matching 27.16.** When a credit bill arrives on a leg, the credit waits for the
+  next bill only for what **exceeds the leg's own unpaid charges** on the supplier's ledger on the issue date. That is
+  the leg's bills (scheme months at their face) less the leg's cash and earlier credits. The rest meets the debt,
+  and the household is not asked for it again.
+- The page keeps its 27.16 walk. Once the world asks the right amount, the walk's netting and the cash agree. No
+  second copy of the rule is written on the page, which would be the VAT-rule shape.
+- A leg owing nothing when the credit arrives is unchanged: the whole credit waits, as today.
+
+**Prediction, filed before the build, for the first book carrying it.**
+- 549g's 22 `INV_OVERDUE_WITHIN_PAGE_BALANCE` steps fall to **0**, and the dated exception (at most 22) retires.
+- The census's 102 credits that the world let wait: **101 keep byte-identical asks**. Only 549g owed a debit when its
+  credit arrived. Refuted if more than 3 legs' asks move.
+- The 5 legs where the page took part of a credit off later paid bills (PROS-2020-0126g, PROS-2021-0152g,
+  SYN-2016-016, SYN-2016-380, SYN-2016-382) are a different shape (the world did not let the credit wait). They are
+  **not** predicted to move.
+
 ## A month the level schedule asks nothing of is not a departure (seat executor, 9 Nov 2026)
 
 *K8 page for the leaving predicate, `arrears_engine.on_level_dd` (d8264b525e). The reading behind it is in
