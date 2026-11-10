@@ -5003,3 +5003,20 @@
   records_rehomed: [evidence]
   # 2026-11-10 L2: one table, gap_metric.ABOVE_ONE_IS_NOT_WORSE_THAN_BLIND, read by the panel, the digest and the door.
   file_scope: ['tools/generate_proof_data.py', 'background/sanity_daemon.py', 'site/harness/index.html', 'tests/tools/test_generate_proof_coupled_gaps.py', 'background/gap_metric.py']
+
+- id: SITE14_the_front_door_schematic_carries_the_corrected_model
+  title: "The published schematic still tells a reader the traits are coupled and the company can die; the canon page says neither"
+  notes_rehomed: [gain]
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: worker_finding
+  depends_on: []
+  couples_with: [A45_the_canon_is_a_standing_subject, SITE13_the_baseline_comparison_carries_its_bound]
+  file_scope: ['site/index.html', 'docs/design/canon_claims.yaml']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a prospectus whose summary page is corrected while the infographic in the front of the same document keeps the withdrawn claim -- the correction is real, the reader never sees it, and which one is 'the document' is not a question the reader asks"

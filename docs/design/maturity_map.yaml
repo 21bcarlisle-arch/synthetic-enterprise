@@ -1465,22 +1465,6 @@
     'tools/c29_engagement_ranking.py', 'tools/_c29_retention_engagement_arm.py', 'tests/tools/test_c29_retention_engagement_arm.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
-- id: SITE14_the_front_door_schematic_carries_the_corrected_model
-  title: "The published schematic still tells a reader the traits are coupled and the company can die; the canon page says neither"
-  notes_rehomed: [gain]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 0
-  level_target: 2
-  loop_stage: build
-  dial_inherited: 1
-  provenance: worker_finding
-  depends_on: []
-  couples_with: [A45_the_canon_is_a_standing_subject, SITE13_the_baseline_comparison_carries_its_bound]
-  file_scope: ['site/index.html', 'docs/design/canon_claims.yaml']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a prospectus whose summary page is corrected while the infographic in the front of the same document keeps the withdrawn claim -- the correction is real, the reader never sees it, and which one is 'the document' is not a question the reader asks"
 - id: C30_advice_reaches_a_household
   title: "Advice is the third channel in the mission and has modules on disk, no recipient, and no household whose behaviour it has ever changed"
   notes_rehomed: [gain]
