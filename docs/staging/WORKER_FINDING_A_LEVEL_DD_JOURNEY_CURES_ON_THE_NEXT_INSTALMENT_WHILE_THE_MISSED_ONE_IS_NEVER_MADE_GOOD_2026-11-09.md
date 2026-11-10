@@ -1181,3 +1181,18 @@ class is named with its count and owner.
 - **The grade.** Unit `longjob-grade-chain-book-dca2ea1e7f` waits for the run, then runs
   `/var/tmp/grade-dca2-scripts/after_run.sh` into `/var/tmp/grade-dca2/arm/`. It writes `ALLDONE` or `NO_DONE`.
   Whoever reads it grades the table above, writing held or fell beside each row.
+
+## The b8da2eed18 grade, drawn again: the book has not started, so nothing is graded (seat executor, 10 Nov 2026 ~08:30 GMT)
+
+*Drawn as `grade-the-leg-statement-desk-on-a-book`.* I re-measured the premise. No book carrying b8da2eed1 has run.
+- `longjob-book-b8da2eed18-queued` and `longjob-book-dca2ea1e7f-queued` are both still queued. They wait behind
+  `tools.head_green_census` (pid 1903956, 4h 04m elapsed). Its pytest child has used 3h 40m of CPU at 90%, so it is busy,
+  not hung. They also wait behind a run of surgical_land commit gates ("landings come before experiments").
+- No `run_output_b8da2eed18_*` exists, and `/var/tmp/grade-b8da/` holds only `chain.log`, `control-78f` and `land1.log`.
+- The grade chain is armed: unit `longjob-grade-chain-book-b8da2eed18` runs `/var/tmp/grade-b8da-scripts/after_run.sh`
+  into `/var/tmp/grade-b8da/`, and writes `CORE_DONE` and then `ALLDONE`, or `NO_DONE`.
+
+The prediction to grade is the rebased one in the 04:20 section above: total 155 falls to 112–142, the mixed accounts fall
+from 18 to at most 4, and never-level journeys are identical. It stands unchanged. I relaunched nothing, because a second
+copy would run over the same seeds. The grade passes to the continuation `grade-b8da-book-when-its-chain-writes-alldone`,
+which can be taken once `/var/tmp/grade-b8da/ALLDONE` exists.
