@@ -1100,6 +1100,20 @@
       "status": "answered",
       "disposition": "Yes, a light one, approved 08:49. Same file's Done: five facets (domain, layer, side, trust, use) in docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md §7. All 63 pages have records in site/data/knowledge_facets.json, a check refuses missing or circular facets, and site/knowledge/what-we-think.html filters by facet.",
       "recorded": "2026-11-08"
+    },
+    "5d4f75dd3c31": {
+      "ruling": "DIRECTOR_STEER_EVERY_FAILURE_FEEDS_A_LEARNING_LOOP_THAT_CHANGES_HOW_WE_WORK_2026-11-10.md",
+      "question": "When things fail, such as you highlight above, are we still capturing why and trying to prevent and improve ?",
+      "status": "answered",
+      "disposition": "Product defects yes, as named classes and checks; process failures were not learned from as a pattern. Now they are: docs/design/THE_LEARNING_LOOP_ON_HOW_WE_WORK.md, insights in docs/institutional/ways_of_working.md. First case W1: 34 of 80 level-DD predictions missed, 26 from a wrong model of our own code or reader; a stop condition now puts the area map ahead of the next level-DD fix, with a prediction filed.",
+      "recorded": "2026-11-10"
+    },
+    "1f53dff6fa12": {
+      "ruling": "DIRECTOR_STEER_EVERY_FAILURE_FEEDS_A_LEARNING_LOOP_THAT_CHANGES_HOW_WE_WORK_2026-11-10.md",
+      "question": "Why did no gate catch this?",
+      "status": "answered",
+      "disposition": "For level DD (W1, question 2): the gates did catch it, every book was refused, but a row says THAT the page and desk disagree, not which of four readers (world schedule, desk, page, invariant row) holds the wrong idea; 8 misses were the reader itself. The loop now asks this question of every failure (design section 3).",
+      "recorded": "2026-11-10"
     }
   }
 }

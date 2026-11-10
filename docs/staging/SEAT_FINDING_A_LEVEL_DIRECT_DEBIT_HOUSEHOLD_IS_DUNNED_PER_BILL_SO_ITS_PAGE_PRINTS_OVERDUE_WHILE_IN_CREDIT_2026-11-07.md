@@ -981,3 +981,26 @@ each leg's statement from that leg's own leaving.
 **Forward prediction (filed now, for the first fresh book graded at or after this commit):** INV_OVERDUE_WITHIN_BALANCE
 reads **at most 2**. No breach is a journey whose opening figure is an own-leg bill paid by that leg's cash. If the
 reading is higher, the per-leg walk misses a shape the 160 replayed openings did not contain.
+
+## The stop condition fired: the next level-DD step is the area's map, not another fix (worker tick, 10 Nov 2026 ~19:00 GMT)
+
+The director's 10 Nov steer asks that failure feed a loop that changes how we work
+(`docs/staging/advisor/done/DIRECTOR_STEER_EVERY_FAILURE_FEEDS_A_LEARNING_LOOP_THAT_CHANGES_HOW_WE_WORK_2026-11-10.md`),
+and names this area as the first case. A census of every graded prediction in this finding and its sister
+(`WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_..._2026-11-09.md`), 8 to 10 Nov: **80 graded, 34 missed. 18 missed
+because our model of our own code was wrong, 8 because the reader was, 0 because we misread the domain.** The miss
+rate did not fall over the three days. The insight and its prediction are W1 in `docs/institutional/ways_of_working.md`.
+
+**So, from this commit:** no further level-DD fix is drawn until the map below exists. The fixes already landed
+stay; graded books already running are still graded.
+
+**The map** (`docs/design/LEVEL_DD_AREA_MAP.md`, not yet written):
+- the states a level-DD supply leg and its account can be in: on level, instalment missed, returned, cured, leaving,
+  left with a debit, left in credit, closed;
+- for each state, the code that decides it on each of the four sides that hold an idea of what a level account
+  owes: the world's schedule (`simulation/dd_level_collection_book.py`), the desk (`company/billing/arrears_engine.py`; the world also has `simulation/arrears_engine.py`, and the map says which decides each state), the
+  page (`tools/generate_billing_ledger.py`) and the invariant rows (`INV_OVERDUE_WITHIN_*`, `INV_PAYMENT_RECORD_*`);
+- each state traced on one real household from the newest graded book, printing what each side reads;
+- where two sides disagree on a state, that row is the next fix, and its prediction names the state.
+
+**Done means:** the map is written and every open prediction in this finding names the state it is about.

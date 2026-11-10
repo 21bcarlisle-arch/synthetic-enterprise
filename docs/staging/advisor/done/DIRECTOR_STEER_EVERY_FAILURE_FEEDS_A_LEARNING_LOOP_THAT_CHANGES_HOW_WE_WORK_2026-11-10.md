@@ -43,3 +43,27 @@ Under the 30 Oct steer ("raise concerns and the issue to solve with ideas. Let i
 - Start with the level-DD prediction misses as the first worked case, because the evidence is fresh.
 
 The director will judge it by whether the same kind of failure stops recurring, not by what is written about it.
+
+## Done
+
+*Worker tick, 10 Nov 2026 ~19:00 GMT.* The loop is designed and its first case is worked, with its change to
+practice live. Whether it works is judged as he said: by whether the same kind of failure stops recurring.
+
+- **Design:** `docs/design/THE_LEARNING_LOOP_ON_HOW_WE_WORK.md`. The six failure inputs are cited where they are
+  already recorded, not copied. Three process questions per failure. Insights live beside the reading log, in
+  `docs/institutional/ways_of_working.md`, with status, what they rest on, a change, a measure, a prediction and a
+  review date. Four health measures: prediction hit rate per area (reported with the ranges' widths, so a wider
+  range cannot buy a better rate), escapes per cold read, regressions per fix, repeat failures.
+- **First case, level DD (W1):** every graded prediction in the two level-DD findings was counted. 80 graded, 34
+  missed: 18 because our model of our own code was wrong, 8 because the reader was, 4 because a book carried
+  several changes, 0 because we misread the domain. The miss rate did not fall from 8 to 10 Nov.
+- **The change, live:** a stop condition. Three misses in one area in seven days, from our model of the code or
+  the reader, stop fixes in that area until the area's map exists. Applied to level DD in the BLOCKING finding's
+  new last section, so the existing blocking rung draws the map first in its lane. No new draw code.
+- **Prediction filed:** over the next 20 graded level-DD predictions, at most 3 misses for those causes (26 of 80
+  before), with range widths reported. Refuted at 6 or more. Review 24 Nov.
+- **W2**, a book carrying several changes grades none of them, is filed as a hypothesis with no change yet.
+
+**Not done, and owed:** the published side (the Building it part should read `ways_of_working.md` through the
+reading-log feed), and the draw rule as code, which is built if the trigger fires on a second area. Escapes per
+cold read is named as a measure and not yet computed.
