@@ -134,5 +134,8 @@ the 65+ households the under-65 structure at A1's level.
    (flag sample), against 57% on the pooled cells.
 
 **Not established here.** Whether the pensioners' within-age prepayment relation (6.0) is household or question
-(it would need a pensioner sample asked the adult items, which wave 14 routes away). Why the 513 crossover households
+(it would need a pensioner sample asked the adult items, which wave 14 routes away). **Read 10 Nov as the question** on the two items every
+age answers (`is_the_pensioners_stronger_prepayment_relation_household_or_question_understanding_society_2026-11-10.md`):
+the central arm is 3.87. That page also notes that this page's `arr` flag codes `xphsdba` 1-2 as arrears, where 1 is
+"up to date". Here it is only a validity filter, so nothing printed above moves. Why the 513 crossover households
 were routed to the adult module. The rebuild's 0.2 gap from the V2 page's odds ratios, whose code was not kept.

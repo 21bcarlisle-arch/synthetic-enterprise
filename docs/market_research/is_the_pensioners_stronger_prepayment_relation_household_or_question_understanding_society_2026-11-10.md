@@ -76,4 +76,53 @@ Each verdict will sit beside its prediction. A refuted prediction stays as writt
 
 ## 3. Results
 
-*Filled after the measurement, in a later commit.*
+The flag sample is the G7 page's rebuild: V's prepayment OR is 3.48 among the under-65s and 6.01 among the 65+.
+Intervals are 95% from 200 bootstrap replicates resampling PSUs within strata.
+
+**A coding note first.** The G7 rebuild's arrears flag (`arr`) counts `xphsdba` codes 1 and 2 as arrears. The wave 14
+dictionary has 1 = up to date with all bills, 2 = behind with some, 3 = behind with all. On the G7 page that flag
+was only a validity filter over the same codes 1-3, so the sample and every printed figure stand. The earlier pages'
+arrears outcome (`fit_v2.py`, `fit_proxy.py`: codes 2 and 3) was coded correctly. B2 below uses 2 or 3.
+
+| # | Result | Verdict |
+|---|---|---|
+| P1 | Prepayment's OR on `hheat` = 2 (cannot keep warm): under-65 **3.06 [2.77, 3.44]**, 65+ **2.25 [1.67, 2.93]** | **Refuted.** On a question both groups answer, pensioner prepayers stand out *less* than younger prepayers |
+| P2 | Household share on B1, s = **−0.56 [−1.56, −0.05]**; 98.5% of replicates below 0, 0.5% above 1 | **Refuted**: below the range, and below zero |
+| P3 | s's interval is 1.5 wide | **Held** |
+| P4 | B2, arrears (behind with some or all bills): OR under-65 **4.36 [3.76, 4.92]**, 65+ **4.42 [2.52, 6.87]**; s = **0.03 [−1.18, 0.94]**, against B1's −0.56 | **Refuted** (they differ by 0.59). Both say the same thing, though: no stronger household relation among the 65+ |
+| P5 | Matched content inside the 65+ pensioner-module households: prepayment's OR on the module's warmth item ("no money for this") **2.03 [1.23, 3.02]**, against `hheat`'s **2.06 [1.56, 2.72]** in the same households (log ratio −0.01 [−0.38, 0.26]). Adult module, under-65: 3.01 against 3.16 | **Refuted.** The "no money" route does not concentrate on prepayers when the content is held fixed |
+| P6 | Central arm **3.87 [3.49, 4.37]** (s clipped to 0). On the arrears anchor it would be 3.88 | **Refuted** (below 3.95) |
+
+**The decision, as filed.** s's interval excludes both 0 and 1, so the arm is taken at the point estimate, clipped
+to 0. **The wiring build's central arm is 3.87**, the all-question arm, whose 65+ cells are the under-65 structure at
+A1's level. The floor (the under-65 cells, 3.48) and the upper arm (4.22) stand as the G7 page set them. Read either
+way, the file would have picked 3.87 here: F11 picks it too when the two cannot be separated.
+
+**A post-hoc descriptive, not pre-registered.** It asks whether a rarer item steepens the relation by itself. Among
+under-65 adult-module households, prepayment's OR rises as the liquidity item narrows:
+- 3.54 on V (37% prevalence);
+- 3.35 on savings alone (26%);
+- 3.78 on replacing goods alone (32%);
+- 4.02 when both are reported (19%).
+
+A threshold effect, then, but not one that reaches 6.0 at the £200 item's 7.6% unless it steepens sharply in the tail.
+
+## 4. What this means
+
+1. **The pensioners' 6.0 is the question, not a household difference that the world would need.** On the two
+   things every household is asked, warmth and bill arrears, the prepayment gradient among the 65+ is no stronger
+   than among the under-65s. On warmth it is weaker. So nothing about prepaying pensioners as households makes
+   prepayment a sharper flag for them.
+2. **The question effect is the item's content and narrowness, not its "no money" wording.** On matched warmth
+   content the pensioner route has the same prepayment gradient as `hheat`. What steepens it is the £200
+   unexpected-expense item itself: a narrow liquidity question near the tail. Part of that is the threshold, as the
+   under-65 rows show.
+3. **For the build:** the central arm is 3.87 (floor 3.48, upper 4.22), each renormalised to the toggle as the
+   wiring page says. The G7 page's sentence that the household relation lies "between 3.87 and 4.2" is now read at its
+   lower end.
+
+**Not established here.** A liquidity-specific hardship among pensioner prepayers that shows up on neither warmth nor
+arrears would look like the question on this file. Separating it needs a pensioner sample asked the adult liquidity
+items, which wave 14 routes away (the 513 crossover households are too few prepayers to read). The two anchors also
+carry their own caveats: `hheat`'s threshold sits differently by age (§1), and arrears is partly mechanical for
+prepayment. They agree in direction, and that agreement is what the decision rests on.

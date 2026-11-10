@@ -148,8 +148,10 @@ on a 420-home group in a changing panel. It is recorded as a lead, not wired.
   default stays the under-65 structure, now on F11 alone, and the reason it was given (instrument inflation) is
   withdrawn. That page's arms for the build: floor the under-65 cells (OR 3.48 in its rebuild), central 3.87, upper
   4.22, each renormalised to the toggle. The household relation lies between 3.87 and 4.2, so the default
-  understates prepayment by a known margin. What stays open: whether the pensioners' within-age relation (OR 6.0
-  on the £200 item) is household or question.
+  understates prepayment by a known margin. **The pensioners' within-age relation (OR 6.0 on the £200 item) is the
+  question, 10 Nov** (`is_the_pensioners_stronger_prepayment_relation_household_or_question_understanding_society_2026-11-10.md`).
+  On `hheat` and on arrears, both asked of every age, prepayment is no sharper a flag among the 65+. So the central
+  arm is **3.87**, and the household relation sits at the lower end of 3.87-4.2.
 
 ## 6. Done means, for the build that follows (not for this page)
 
