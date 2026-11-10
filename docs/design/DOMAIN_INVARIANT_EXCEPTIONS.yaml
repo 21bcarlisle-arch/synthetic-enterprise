@@ -346,3 +346,21 @@ exceptions:
     retired_by: >-
       a trace of the two short refunds to the level_collection_difference match, then a fix, graded 0 on a fresh run
     max_breached: 2
+  - invariant: INV_OVERDUE_WITHIN_PAGE_BALANCE
+    scope: >-
+      22 steps on one household, SYN-2016-549 (arrangement_offered and repayment_plan_reoffer on 11 days from
+      2021-02-17 to 2024-12-19), on the 78f82e4242 book with its ledger regenerated at d867f5a98e. On 18 the desk is
+      the page's owed plus GBP 53.98 exactly.
+    reason: >-
+      A defect, not an explanation. The gas leg's -62.12 credit bill of Aug 2020 waited whole for the next bills in
+      the world (the triad saw nothing unpaid, because the scheme debit is not a failed bill), so the household was
+      asked 0, 0 and 41.60. The page's walk netted 53.98 of it against that scheme debit and posted 95.59 of cash
+      for those bills. The desk's figure is the cash truth. Traced in
+      docs/staging/SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md.
+      Excepted so the row lands graded rather than held back.
+    filed: 2026-11-10
+    recheck_by: 2026-11-24
+    retired_by: >-
+      a-credit-bill-meets-the-scheme-debit-before-the-next-bill (one rule for what a bill asks after a credit, the
+      page posting the ask), graded 0 on a fresh run
+    max_breached: 22

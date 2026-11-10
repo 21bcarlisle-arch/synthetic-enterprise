@@ -382,3 +382,10 @@ Across the book, schedule rows with no page payment on their date fall from 744 
 **Seen and not built (next item, untraced on the book).** In the walk, a level household's paid DD bill still draws waiting credit of kind `"credit"` (the `_draw(... ("credit",) if on_level ...)` line). The household paid its level amount in cash whatever the credit, and the triad keeps the credit on the balance (`record_period`: "A level collection takes the level amount whatever the bill: credit stays on the balance"). So a credit bill followed by a paid month reads as credit used in the walk, while the page holds it. The unit test here places the credit last to keep this out of scope. It is a hypothesis to measure on the book, not a finding yet.
 
 **PROS-2019-0318** (three collections, GBP 190.13) is still not traced.
+
+**PROS-2019-0318, traced (2026-11-10, item `syn-2016-549-page-balance-breach-is-named-and-fixed`).** Two of its three
+(28 Dec 2022 and 24 Mar 2023, GBP 62.48 each) are **class L′**. The month's bill was met by the EBSS credit, so the page
+gives it `method = "scheme_credit"`, and the level collection is taken only for `direct_debit`. The third (25 Jul 2022,
+65.17) was returned, so nothing posts. Whether its 22 Nov 2022 settlement reaches the page is not yet established. Detail and next item:
+`SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md`.
+SYN-2016-549's 22 page-balance breaches are **not** class L: the control regenerated at d867f5a98e still grades 22.
