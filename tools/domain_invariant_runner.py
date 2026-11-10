@@ -1675,15 +1675,48 @@ def _level_owed(a, opened: date) -> str | None:
     return "debit left by an ended scheme" if billed - landed > 0.005 else None
 
 
+#: The term of the closing statement a leg that leaves level direct debit with a debit is sent: the
+#: licence's own clock ("Outstanding Charges": demanded in writing at least 28 days previously, Electricity
+#: Supply SLC definitions) and Budget Energy's published four weeks, the upper edge of the 14-28 day range
+#: (payments_and_direct_debit_2026-10-25.md, "Leaving level direct debit with a debit"; GAP 1 there).
+LEFT_LEVEL_TERM_DAYS = 28
+
+
+def _left_level_owed(a, opened: date) -> bool:
+    """Whether a leg that has LEFT level direct debit by the day a journey opens still owes the debit
+    its scheme left. It has left when a level collection was presented by that day but its latest bill
+    that asked something was not met by one. It left on the issue of the first such bill after the last
+    level-met bill. The debit is demanded then and falls due `LEFT_LEVEL_TERM_DAYS` later, so it is owed
+    only on a day after that, and only while the leg's bills by that day exceed what landed on it."""
+    rec = a.bill_record or {}
+    pays = [p for p in rec.get("payments") or () if p.get("payment_date")]
+    met = {p.get("invoice_number") for p in pays if p.get("level_dd") and _d(p["payment_date"]) <= opened}
+    if not met:
+        return False
+    asked = [_d(b["issue_date"]) for b in rec.get("invoices") or ()
+             if b.get("issue_date") and _d(b["issue_date"]) <= opened and (_num(b.get("total_amount_gbp")) or 0.0) > 0.005]
+    level_met = [_d(b["issue_date"]) for b in rec.get("invoices") or ()
+                 if b.get("issue_date") and _d(b["issue_date"]) <= opened and b.get("invoice_number") in met]
+    after = [d for d in asked if not level_met or d > max(level_met)]
+    if not after or opened <= min(after) + timedelta(days=LEFT_LEVEL_TERM_DAYS):
+        return False
+    billed = sum(_num(b.get("total_amount_gbp")) or 0.0 for b in rec.get("invoices") or ()
+                 if b.get("issue_date") and _d(b["issue_date"]) <= opened)
+    return billed - sum(_cash(p) for p in pays if _d(p["payment_date"]) <= opened) > 0.005
+
+
 def _leg_owes(a, opened: date) -> bool:
     """Whether one leg owes something on the day a journey opens. A leg a level direct debit collects
     is read on its schedule (`_level_owed`): no bill on it is due by direct debit. Any other leg owes
     when one of its bills fell due before that day and no collection for it had succeeded by then; a
     bill whose collection never succeeded stays unpaid to the end, so this is lenient after a leg's
-    first failure."""
+    first failure. A leg that has left level also owes its scheme's debit once its closing statement
+    has fallen due (`_left_level_owed`): the bills the scheme sat on were met by their collections, so
+    the bill reading alone calls that debit paid."""
     if _level_leg(a, opened):
         return _level_owed(a, opened) is not None
-    return any(due < opened and (settled is None or settled >= opened) for due, settled in _bills([a]))
+    return (any(due < opened and (settled is None or settled >= opened) for due, settled in _bills([a]))
+            or _left_level_owed(a, opened))
 
 
 def ev_overdue_within_balance(inv, book):

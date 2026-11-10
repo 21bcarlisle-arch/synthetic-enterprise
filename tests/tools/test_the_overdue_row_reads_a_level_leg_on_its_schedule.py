@@ -8,15 +8,19 @@ defaulted on (Ofgem, letter of 20 Sep 2011, App. 2 para 2.8; payments_and_direct
 "What is owed"), or the debit an ended scheme left, once demanded ("Leaving level direct debit with a
 debit"). The second defect, found on the 9d7dcfc19c control: reading the HOUSEHOLD as level when one leg
 is, which breached 23 journeys opened on the other leg's unpaid bill. Each leg is read on its own terms.
+The third, found on the 78f82e4242 book (5 -> 60): a leg whose last month the world settled on its face
+reads as having LEFT level, and the bill reading calls its scheme's debit paid, because every bill the
+scheme sat on was met by its collection. 58 journeys the desk opened on that debit's closing statement,
+28 days after leaving, read "nothing overdue". A leaver owes the debit once the statement falls due.
 """
 from tools import domain_invariant_runner as runner
 
 OPENED = "2020-03-20"
 
 
-def _journey():
-    return {"events": [{"event": "missed_payment", "event_date": OPENED},
-                       {"event": "cured", "event_date": "2020-04-20"}]}
+def _journey(opened=OPENED):
+    return {"events": [{"event": "missed_payment", "event_date": opened},
+                       {"event": "cured", "event_date": "2020-06-20"}]}
 
 
 def _level_leg(cid, *, returned=False, made_good=0.0, collects_after=True, final_face=40.0):
@@ -49,11 +53,11 @@ def _bill_leg(cid, *, feb_unpaid):
     return _acct(cid, bills, pays, {p["invoice_number"]: p["payment_date"] for p in pays})
 
 
-def _acct(cid, bills, pays, settled):
+def _acct(cid, bills, pays, settled, opened=OPENED):
     raw = {"billing_account_id": "H", "bill_record": {"invoices": bills, "payments": pays},
            "events": {"bills": [{"due_date": b["due_date"], "settled_date": settled.get(b["invoice_number"])}
                                 for b in bills],
-                      "collections_journeys": [_journey()] if cid == "H" else []}}
+                      "collections_journeys": [_journey(opened)] if cid == "H" else []}}
     return runner.Account(cid, raw)
 
 
@@ -97,3 +101,25 @@ def test_each_leg_is_read_on_its_own_terms():
     assert _sides(_level_leg("H"), _bill_leg("Hx", feb_unpaid=True)) == []
     assert _sides(_level_leg("H"), _bill_leg("Hx", feb_unpaid=False)) == ["nothing defaulted on"]
     assert _sides(_level_leg("H", returned=True), _bill_leg("Hx", feb_unpaid=False)) == []
+
+
+def _leaver(opened, *, jan_feb_face=60.0):
+    """GBP 40 level instalments meet January's and February's bills (GBP 60 each, so a GBP 40 debit when
+    `jan_feb_face` is 60); March's bill, issued 1 Mar, is settled on its face on 14 Mar, off the schedule.
+    The leg left level on 1 Mar; its closing statement falls due on 29 Mar."""
+    bills = [{"invoice_number": n, "issue_date": "2020-0{}-01".format(m), "due_date": "2020-0{}-15".format(m),
+              "total_amount_gbp": jan_feb_face if m < 3 else 30.0, "document_type": "bill"}
+             for n, m in ((1, 1), (2, 2), (3, 3))]
+    pays = [{"invoice_number": n, "payment_date": "2020-0{}-10".format(m), "amount_gbp": 40.0,
+             "method": "direct_debit", "outcome": "success", "level_dd": True} for n, m in ((1, 1), (2, 2))]
+    pays.append({"invoice_number": 3, "payment_date": "2020-03-14", "amount_gbp": 30.0,
+                 "method": "direct_debit", "outcome": "success"})
+    return _acct("H", bills, pays, {p["invoice_number"]: p["payment_date"] for p in pays}, opened)
+
+
+def test_a_leaver_owes_its_schemes_debit_once_the_closing_statement_falls_due():
+    """The partition over the leaver: owed after the term, not within it, and never on a credit. A
+    reader that dropped the clause, the term or the debit test fails one leg here."""
+    assert _sides(_leaver("2020-03-30")) == []
+    assert _sides(_leaver("2020-03-29")) == ["nothing overdue"]
+    assert _sides(_leaver("2020-03-30", jan_feb_face=35.0)) == ["nothing overdue"]

@@ -186,4 +186,52 @@ Grade chain: `/var/tmp/capgrade/after_run.sh <run json> /var/tmp/book-wt-78f82e4
 - **Attribution.** Any movement against the cap-arm between the two books cannot be split between dea1c34fd,
   19eebf6c3e and draw differences. Only properties (P1) and class presence (P2, P3) are graded, not deltas.
 
-NEXT: none -- grade the 78f82e4242 book on this chain and write held or fell beside each leg.
+### The 78f82e4242 book, graded against the pre-registration (seat executor, 10 Nov 2026 ~02:00 GMT)
+
+Book `longjob-book-78f82e4242` finished 01:46 GMT, rc 0 (`docs/reports/run_output_78f82e4242_20261110T000247Z.json`,
+1,302 accounts on both ledgers). The chain filed above ran as written, with the book worktree's generator. One fix
+was made before its output existed: `holds2.py` opened the literal string `'sys.argv[2]'`, and now opens the argument.
+Outputs are in `/var/tmp/capgrade/out/` (`grade2.txt`, `holds.txt`, `wo.txt`).
+
+| Leg (filed above) | Result | Graded |
+|---|---|---|
+| P1: 0 over-remainder cases on level-paid invoices | 0. 28 residual rows, all non-level OCC/PROS penny roundings, totalling GBP 0.29 (cap-arm: 27, GBP 0.28) | **held** |
+| P1: 0 positive-face invoices owe above their face | 0. All 329 rows `over2` prints are credit invoices (negative face, outstanding 0), as on the cap-arm | **held** |
+| P2: the on-receipt holds are unchanged | PROS-2018-0016 x10 over 13762 (GBP 98.30), SYN-2016-217 x2 over 33999g (GBP 5.20): same invoices, same figures | **held** |
+| P2: SYN-2016-536's hold stays over 49914 and 50041 | stays, 16 Feb 2023, 49914 GBP 24.05 + 50041 GBP 19.88, same figures. Elec leg level to 2 Jun 2025 (101 instalments), balance GBP 121.45 in credit. Gas leg level to 13 May 2020 (43), GBP 178.12 owed | **held** |
+| P3: "level-paid, page opened no case" at 30 or more cases and GBP 1,000 or more | 21 cases, GBP 953.54 (cap-arm: 38, GBP 1,417.13) | **FELL on both thresholds**: the class persists but is smaller |
+| P3: ledger vs P&L disagreement on 60 or more accounts | 77 accounts, P&L heavier by GBP 2,176.97 | **held** (but see the correction below) |
+| P3: refuted if engine minus page falls below GBP 500 | GBP 1,314.57 on 41 cases (21 no case, 20 lighter, 0 not level-paid) | **not refuted** |
+
+Totals: engine 272 write-offs, GBP 10,838.68. Page 240 cases, GBP 9,524.11. Total outstanding 11,187.05 (cap-arm
+10,951.29). As filed, none of these movements can be attributed. The book differs from the cap-arm by dea1c34fd,
+19eebf6c3e and 78f82e4242, and the draws may differ too. PROS-2024-0010's Dec 2024 elec bill (GBP 476.16, no
+page case) is half of the no-case class on its own.
+
+**What this settles.** The cap property holds on a second book with the world-side C7 fix under it. The cap and C7
+fixes have now met on one book, and nothing either one guarantees broke. SYN-2016-536's hold is the two things
+named above and neither commit reached it. The engine/page write-off gap is still there.
+
+**Correction, beside the "three homes" claim above.** That claim was "the P&L's `compute_emergent_bad_debt` ...
+GBP 11,701.08". This is not what the run books. The run's P&L (`simulation/run_phase4c_on_phase2b.py:704`) calls
+`emergent_bad_debt_lines(..., level_dd_collections=level_dd_schedule)`. On both books it equals the generator's
+engine to the penny: GBP 10,812.78 on 4dee9854a4 (re-read in its own worktree) and GBP 10,838.68 on 78f82e4242.
+The GBP 11,701.08 (the same on both books) comes only from
+`tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py:65`, which calls
+`compute_emergent_bad_debt` without the schedule. So the quantity has two homes, not three: the booked
+P&L/engine and the page. The control's own "P&L" side is a figure the run never books. That is a second reader
+defect in that control, next to its summing of `arrears_gbp`. The ledger-vs-P&L rows above (89 accounts / 77
+accounts) are measured against that unbooked figure. They overstate the gap. The gap the run actually has is the
+engine-minus-page row.
+
+**Left open (owned here, not built this turn).**
+- Correct the control to read the run's own call (with the level schedule) and the `WRITTEN_OFF` stage amount.
+  It will then measure the real engine/page gap (GBP 1,314.57 on this book) and still fail on it, correctly.
+- The 21 + 20 level-paid cases: the engine writes off a bill's face against a level schedule that the page reads
+  as nothing short, or as less short. This is the C7 class (the per-bill view is heavier than the schedule view)
+  on the write-off side. Its fix belongs where the engine meets the schedule. It is not this finding's cap.
+- SYN-2016-536g: when a level DD stops, the shortfall against the schedule is billed. Today it sits unbilled in
+  the running balance. SYN-2016-536: an in-credit level leg dunned per bill. That is the BLOCKING finding
+  `SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md`.
+
+NEXT: none -- graded; the control's two reader defects and the engine/schedule write-off class are the open threads above
