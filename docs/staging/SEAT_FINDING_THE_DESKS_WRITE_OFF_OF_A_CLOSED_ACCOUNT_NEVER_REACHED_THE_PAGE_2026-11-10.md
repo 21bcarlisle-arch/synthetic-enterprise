@@ -85,3 +85,21 @@ bill the desk never counted.
 **What is left is defect (2), the amount.** The desk wrote off less than the page shows on 63 accounts
 and more on 70. Each is now counted (the balance owed, and `desk_write_off_unposted`), and the next
 piece is to make the desk's closing figure and the page's agree. P5 is graded when book 78f82e4242 lands.
+
+## P5, graded on book 78f82e4242 (`/var/tmp/grade-78f/ledger.json`, the split applied to it)
+
+The book carries the C7 schedule fix and the level cap. Before the posting: 152 desk write-offs, 121
+short on the page by GBP 17,678.65, and 123 accounts printing owed (GBP 21,963.08).
+
+| | predicted | measured |
+|---|---|---|
+| P5 desk-written-off accounts still printing owed | 30 or fewer | **49** (GBP 3,673.84). **Missed** |
+| accounts with an unposted excess | (not predicted) | **26** (GBP 2,743.39), against 70 on 4dee9854a4 |
+| accounts put into credit / walk against page | 0 / 0 | **0 / 0 of 1,302** |
+
+I had the direction right and the side wrong. The C7 fix mostly removed the desk's write-offs that were
+**above** the page (70 to 26). The desk's write-offs **below** the page fell only from 63 to 49.
+PROS-2016-0117 is an example: on this book the page shows 38.24 owed on the day, against the desk's
+8.24, so 30.00 stays owed. What is left is the desk writing off less than the page shows. That is the
+next piece: the desk's closing figure for a level-DD leaver has to count the final bill as the page
+does.
