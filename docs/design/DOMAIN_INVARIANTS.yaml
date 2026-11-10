@@ -2561,18 +2561,18 @@ invariants:
 - id: INV_OVERDUE_WITHIN_BALANCE
   family: account_arithmetic
   grades: ledger
-  statement: The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date. An account with a debt stage open has at least one missed or returned collection, or an unpaid bill past its due date.
-  predicate: at every dated state, 0 <= overdue_gbp <= balance_owed_gbp; debt_stage open => (missed + returned >= 1) or (an issued bill with due_date < date and unpaid)
+  statement: The overdue amount on an account is part of what the account owes, so 0 <= overdue <= balance owed at every date. An account with a debt stage open has defaulted on something on at least one of its legs. A leg collected by a level direct debit has no bill due by direct debit. It has defaulted when an instalment presented before the opening was returned and not made good, or when its scheme has ended and left a debit. Any other leg has defaulted when a bill is unpaid past its due date.
+  predicate: at every dated state, 0 <= overdue_gbp <= balance_owed_gbp; debt_stage open on date d => some leg L with (L level on d and (a level instalment presented before d returned and not made good by d, or no level collection after d and bills(L, d) - landed(L, d) > 0)) or (L not level on d and an issued bill on L with due_date < d unpaid on d)
   lower: 0
   upper: balance_owed_gbp
-  source: 'Logic of an account ledger (an overdue sum is a subset of the balance). Cold-read objections O10, O16 and O18: SYN-2016-356 shows "£23.88 owed" beside "GBP71.73 overdue", and "£59.77 owed" beside "GBP147.56 overdue". PROS-2017-0264 shows "Debt stage: Overdue balance cleared" with "0 returned, 0 missed".'
+  source: 'Logic of an account ledger (an overdue sum is a subset of the balance). Cold-read objections O10, O16 and O18: SYN-2016-356 shows "£23.88 owed" beside "GBP71.73 overdue", and "£59.77 owed" beside "GBP147.56 overdue". PROS-2017-0264 shows "Debt stage: Overdue balance cleared" with "0 returned, 0 missed". For a level direct debit leg, docs/market_research/payments_and_direct_debit_2026-10-25.md, "What is owed": a DD customer is in debt only "where they have fallen into debt while on direct debit by defaulting on one or more payments" (Ofgem, letter of 20 Sep 2011, App. 2 para 2.8); and "Leaving level direct debit with a debit" on the same page for an ended scheme.'
   severity:
     violation: breach
   export_fields:
   - payments
   - periods.due_date
   checkable: partial
-  checkable_part: 'The second leg, graded by tools/domain_invariant_runner.ev_overdue_within_balance from 2026-10-27: at each collections journey''s opening, some bill fell due before that day and no collection for it had succeeded (periods.due_date, periods.settled_date).'
+  checkable_part: 'The second leg, graded by tools/domain_invariant_runner.ev_overdue_within_balance from 2026-10-27, at each collections journey''s opening, per leg (_leg_owes). Corrected 2026-11-09, because it was written blind to level direct debit: it read every leg on its bills, so 70 of 71 openings on the 298149a1fc book that followed a returned instalment breached. It excepts nothing. A leg is level on d when its latest bill issued by d that asked something was met by a level collection (bill_record payments[].level_dd, the export''s reading of arrears_engine.on_level_dd). Made good means cash other than a scheduled instalment, landed on the leg after the return and by d, of at least the instalment. Any other leg owes when some bill fell due before d and no collection for it had succeeded by then (periods.due_date, periods.settled_date). A book read without its bill record reads every leg on its bills. A household is not read as level because one leg is: on the 9d7dcfc19c control that breached 23 journeys opened on the other leg''s unpaid bill.'
   uncheckable_part: 'The first leg (0 <= overdue <= balance) compares two sums the company worked out, which the raw export does not carry by design. It belongs on the generated page, which prints both.'
   gap: first leg ungradeable on the raw export (computed sums); second leg graded
 - id: INV_ESTIMATE_RUN_WITHIN_TENURE

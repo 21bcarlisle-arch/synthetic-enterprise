@@ -780,3 +780,96 @@ down (see the cure finding, ~15:40). The next candidate is `book-4dee9854a4`, la
 to run. Its own filed prediction is that the 320 still-level page rows do not fall, so it is not expected to pass
 either. This read stays unrun and stays claimed for the first book that passes. The seat used the idle time on the
 director's UKDS notice instead (`advisor/done/DIRECTOR_NOTICE_THE_UKDS_MICRODATA_IS_IN_UKDS_AND_YOURS_TO_READ_2026-11-09.md`).
+
+## INV_OVERDUE_WITHIN_BALANCE read on the schedule: pre-registration (seat executor, 9 Nov 2026 ~23:40 GMT, filed before the new reader exists)
+
+Drawn as `the-overdue-row-reads-a-level-dd-household-on-its-schedule` (recommended next 1, above). The claim
+`page-balance-omits-credit-on-closed-accounts` names the same knowledge page. It is different work: the ledger's
+`balance_gbp`, in `tools/generate_billing_ledger.py`. It touches neither this row nor the runner, so this is not one item
+under two ids.
+
+**What the row reads.** A level household is one with a leg whose latest bill that asked something, issued by the
+opening, was met by a level collection (`payments[].level_dd`). This is the export's view of `arrears_engine.on_level_dd`,
+read from the ledger's own payment record, not by calling the code under test. Such a household is owed when a level
+instalment presented before the opening was returned and has not been made good. Made good means cash that is not a
+scheduled instalment, landed on that leg after the return and by the opening, of at least the instalment. Every other
+household keeps the bill reading.
+
+**Found while reading the premise, before any count.** The 4dee9854a4 classification (`/var/tmp/grade-ondd/classify.txt`)
+splits the 106 "still level" breaches into 49 that collect level after the opening and **57 that never collect level
+again**. On the first of those, C2, there is no returned collection anywhere in the record (`level_dd` failed = 0). Its
+electricity leg ends with bill 32 (31 Mar 2018) and its gas leg with bill 56 (4 Apr 2018). Each was met by the leg's last level
+collection, of GBP 35.70 and GBP 47.49 against faces of GBP 49.23 and GBP 87.01. The journey opens on 3 May 2018.
+`on_level_dd` reads C2 as level on that day because the last bill on each leg is a level-paid one. In fact the scheme
+has ended, and what is owed is the debit it left. That is owed once demanded ("Leaving level direct debit with a debit",
+on the same page). So the literal reading the item names ("an instalment ... has failed") would keep these 57 as breaches
+of the row, when they are the desk acting correctly. Two readings are therefore pre-registered and both are run:
+
+- **A, literal.** Level household: owed only when a returned instalment has not been made good.
+- **B, A plus the leaver.** A level leg with no level collection after the opening, where its own bills less the
+  cash and credit landed on it leave a debit at the opening, is owed that debit. Ofgem counts the debtor who "defaulted on
+  one or more payments". A debit that has been demanded and not paid is that. Whether 28 days have passed since the demand
+  is a timing question for another row, and it is not graded here.
+
+**Predictions (filed before the reader exists).**
+
+| Ledger | Today | A predicted | B predicted |
+|---|---:|---:|---:|
+| `/var/tmp/grade-ondd/ledger.json` (4dee9854a4) | 129 | 60 to 85 (the 49 clear to at most 5; the 57 leavers stay; most of the other 23 stay) | at most 35 (the 49 and at least 50 of the 57 clear; at least 15 of the other 23 stay) |
+| 9d7dcfc19c control (`/var/tmp/grade-ovrow/ledger_9d7d.json`, built at this origin from `run_output_9d7dcfc19c_20261109T085204Z.json`) | 71 | at most 5 (70 of 71 open after a returned level instalment, as on 298149a1fc; PROS-2016-0370's GBP 6.91 seasonal debit stays) | at most 5, and the same as A or lower |
+
+If B clears fewer than 50 of the 57, the leaver clause is the wrong reading and the row lands as A, with the residual
+filed. The control's "today" figure is re-read on the regenerated ledger before anything else is run. If it is not 71,
+that is reported, and the predictions are graded against what it does read.
+
+### Graded (seat executor, 9 Nov 2026 ~00:10 GMT 10 Nov; scripts `/var/tmp/grade-ovrow-scripts/`, results `/var/tmp/grade-ovrow/`)
+
+Both "today" figures reproduced on the regenerated ledgers before anything else was read: **129** and **71**.
+
+| Ledger | Old | A filed | A read | B filed | B read | Held? |
+|---|---:|---|---:|---|---:|---|
+| 4dee9854a4 | 129 | 60 to 85 | 84 | at most 35 | 25 | **A held, B held** |
+| 9d7dcfc19c control | 71 | at most 5 | **23** | at most 5 | **23** | **both fell** |
+
+**Why the control fell, and the correction.** All 23 are journeys that passed the bill reading and breach the new
+one. They sit on five households (SYN-2016-334 has 15 of them) that mix a level leg with a leg paying its own bills. The
+journey opened on the other leg's unpaid bill. The reader took the household as level when any leg was, as
+`on_level_dd`'s `any` does. That is the wrong unit for the row. The journey is the billing account's, so it is owed when
+**either leg** has defaulted, each leg read on its own terms. This is a second variable, chosen after the control's
+answer was known. So the per-leg figures below are **measured, not predictions held**:
+
+| Ledger | Old | Per-leg A | Per-leg B (landed) |
+|---|---:|---:|---:|
+| 4dee9854a4 | 129 | 64 | **5** |
+| 9d7dcfc19c control | 71 | 0 | **0** |
+
+- **PROS-2016-0370**, which I predicted would stay, clears. Its gas level instalment of GBP 26.82 was returned on
+  12 Dec 2016 and never made good, 35 days before the opening. The earlier classification looked back only 7 days, so it
+  missed this. The row is right to call the household owed. Whether GBP 6.91 was the right figure is a question for the
+  page row, not this one.
+- **The sub-predictions on 4dee9854a4.**
+  - The 49 that go on collecting clear to at most 5: **held**. None remains.
+  - At least 50 of the 57 leavers clear: **held**. At most 5 remain.
+  - At least 15 of the other 23 stay: **fell**. None stays. Per leg, each had a level leg that had defaulted.
+- **The 5 that remain on 4dee9854a4 are the desk's, not the row's:** PROS-2018-0173 (19 Apr 2019, GBP 1.16),
+  PROS-2023-0377, SYN-2016-287 (20 Sep 2018, GBP 0.27), SYN-2016-471, and SYN-2016-496 journey 1 (17 Aug 2018,
+  GBP 45.48). Each is a level leg whose last level collection was before the opening, with nothing returned. Its
+  own bills less what landed leave no debit, and its other leg, if it has one, has paid every bill. The desk opened
+  "a bill is unpaid past its due date" on a leg that had defaulted on nothing. This is the PROS-2016-0370 shape from
+  298149a1fc, a scheme-end residue dunned as debt. It belongs with
+  `WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md`'s
+  closing-statement build. The row stands as a breach on them, and no exception is filed.
+
+**Control.** `tests/tools/test_the_overdue_row_reads_a_level_leg_on_its_schedule.py` asserts the partition first. A level
+leg that owes, a level leg that does not, a bill leg that owes and a bill leg that does not each grade as they should.
+Then: made good, never a bill face, an ended scheme's debit against its credit, and per leg. All five mutations fire:
+made good ignored, no ended-scheme clause, no level reading, the ended-scheme clause on every level leg, and the
+household read as level.
+
+**Forward prediction (filed now, for the first fresh book graded at or after this commit, with no desk change to
+level journeys in between):** INV_OVERDUE_WITHIN_BALANCE reads **at most 10**, and every breach is a level leg with
+nothing returned and no debit at the opening. If it reads more, the row's level reading is wrong somewhere this
+control did not reach.
+
+**Recommended next:** the 5 residuals go to the closing-statement build. Gating a leaver's opening on a demand unpaid
+28 days should clear them. The row is not widened to pass them.

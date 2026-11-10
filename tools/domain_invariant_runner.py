@@ -181,7 +181,7 @@ BILL_RECORD_FIELDS = ("invoice_number", "document_type", "issue_date", "due_date
                       "catchup_raw_delta_gbp", "catchup_written_off_gbp", "catchup_period_start",
                       "catchup_period_end")
 PAYMENT_RECORD_FIELDS = ("invoice_number", "payment_date", "amount_gbp", "method", "outcome",
-                         "scheme_credit_gbp", "part_paid_gbp", "credit_applied_gbp")
+                         "scheme_credit_gbp", "part_paid_gbp", "credit_applied_gbp", "level_dd")
 
 
 def bill_record(rec: dict) -> dict:
@@ -1635,27 +1635,77 @@ def ev_collections_ordered(inv, book):
     return tally
 
 
+def _level_leg(a, on: date) -> bool:
+    """Whether leg `a` is collected by a level direct debit on `on`, read from its own payment record:
+    its latest bill issued by `on` that asked something was met by a level collection, or, before any
+    such bill, a level collection has been presented. This is the same reading as the desk's
+    `arrears_engine.on_level_dd`, made from the record rather than by calling it."""
+    rec = a.bill_record or {}
+    level = [p for p in rec.get("payments") or () if p.get("level_dd") and p.get("payment_date")]
+    if not any(_d(p["payment_date"]) <= on for p in level):
+        return False
+    asked = [b for b in rec.get("invoices") or ()
+             if b.get("issue_date") and _d(b["issue_date"]) <= on and (_num(b.get("total_amount_gbp")) or 0.0) > 0.005]
+    if not asked:
+        return True
+    latest = max(asked, key=lambda b: _d(b["issue_date"]))
+    return latest.get("invoice_number") in {p.get("invoice_number") for p in level}
+
+
+def _level_owed(a, opened: date) -> str | None:
+    """What level leg `a` owes on the day a journey opens, or None. A level instalment presented
+    before that day and returned is owed unless cash other than a scheduled instalment landed on the
+    leg after the return, by that day, to at least its amount. A leg that collects nothing level after
+    that day has ended its scheme, and its debit (its bills less what landed on it, by that day) is
+    owed once demanded ("Leaving level direct debit with a debit")."""
+    rec = a.bill_record or {}
+    pays = [p for p in rec.get("payments") or () if p.get("payment_date")]
+    for f in pays:
+        if not (f.get("level_dd") and f.get("outcome") == "failed" and _d(f["payment_date"]) < opened):
+            continue
+        later = sum(_cash(p) for p in pays if not p.get("level_dd")
+                    and _d(f["payment_date"]) < _d(p["payment_date"]) <= opened)
+        if later < (_num(f.get("amount_gbp")) or 0.0) - 0.005:
+            return "returned instalment"
+    if any(p.get("level_dd") and _d(p["payment_date"]) > opened for p in pays):
+        return None
+    billed = sum(_num(b.get("total_amount_gbp")) or 0.0 for b in rec.get("invoices") or ()
+                 if b.get("issue_date") and _d(b["issue_date"]) <= opened)
+    landed = sum(_cash(p) for p in pays if _d(p["payment_date"]) <= opened)
+    return "debit left by an ended scheme" if billed - landed > 0.005 else None
+
+
+def _leg_owes(a, opened: date) -> bool:
+    """Whether one leg owes something on the day a journey opens. A leg a level direct debit collects
+    is read on its schedule (`_level_owed`): no bill on it is due by direct debit. Any other leg owes
+    when one of its bills fell due before that day and no collection for it had succeeded by then; a
+    bill whose collection never succeeded stays unpaid to the end, so this is lenient after a leg's
+    first failure."""
+    if _level_leg(a, opened):
+        return _level_owed(a, opened) is not None
+    return any(due < opened and (settled is None or settled >= opened) for due, settled in _bills([a]))
+
+
 def ev_overdue_within_balance(inv, book):
-    """The row's second leg only: an open debt stage has a bill unpaid past its due date. Read at
-    each journey's opening: some bill fell due before that day and no collection for it had
-    succeeded by then. A bill whose collection never succeeded stays unpaid to the end, so this
-    leg is lenient after a household's first failure. The first leg (overdue within the balance)
-    compares two sums the company worked out, which the export does not carry by design."""
+    """The row's second leg only: an open debt stage has something the household defaulted on, on
+    at least one of its legs (`_leg_owes`), read at each journey's opening. The journey is the billing
+    account's, so a household with one leg on level direct debit and one paying its bills owes when
+    either does. The first leg (overdue within the balance) compares two sums the company worked
+    out, which the export does not carry by design."""
     tally = Tally("collections journey opening")
     for ba, accts in _households(book).items():
-        bills = _bills(accts)
-        if not bills:
+        if not _bills(accts):
             continue
         for i, j in enumerate(_journeys(accts)):
             opened = _opened(_events(j))
             if opened is None:
                 continue
             tally.checked += 1
-            unpaid = any(due < opened and (settled is None or settled >= opened)
-                         for due, settled in bills)
-            if not unpaid:
+            if not any(_leg_owes(a, opened) for a in accts):
+                level = any(_level_leg(a, opened) for a in accts)
                 tally.hit("breach", "{} journey {} opened {}".format(ba, i, opened), opened,
-                          "a bill unpaid past its due date", "nothing overdue")
+                          "a returned level instalment, an ended scheme's debit, or a bill unpaid past its due date",
+                          "nothing defaulted on" if level else "nothing overdue")
     return tally
 
 
