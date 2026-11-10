@@ -79,4 +79,83 @@ PROS-2019-0246 16165 prints 0 (was 269.94).
   The desk wrote off its running total. That is the C7 class again (desk heavier than the page). Whether the P&L reads
   the desk's write-off is still the parent's open question.
 
-NEXT: none -- the cap is landed; the remaining hold and the write-off gap belong to the parent finding's open threads.
+## The level cap meets the C7 schedule fix on one book; the write-off gap is the engine writing off level-paid bills (2026-11-10) (seat executor)
+
+**Answers this finding's "Left open"** (SYN-2016-536's
+hold and the GBP 604.15 desk/page write-off gap). 2353f8b00 (the cap, ledger side) was graded only on a re-generated
+4dee9854a4 book; dea1c34fd (the C7 schedule fix, world side) changes the run. The two meet first on the book at origin
+78f82e4242 (`longjob-book-78f82e4242`, launched 10 Nov 00:02 GMT by the worker holding
+`the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated`). This seat grades that book and does not run a second.
+
+### SYN-2016-536's remaining hold, named (measured on the 4dee9854a4 cap-arm ledger, `/var/tmp/cap-arm/ledger.json`)
+
+The hold is the desk curing journey 2020-04-15 on **16 Feb 2023** while the page still holds 49914 (elec, Nov 2018,
+owes GBP 24.05) and 50041 (gas, Oct 2020, owes GBP 19.88). It is two different things on the two legs, and neither is a
+cap defect:
+
+- **Gas leg: a true leaver from level DD.** SYN-2016-536g paid level DD until 13 May 2020 (43 instalments), then paid
+  on receipt by standard credit, mid-journey. Its page running balance is GBP 112.14 on 15 Apr 2020 and stays in the
+  balance to book end (GBP 178.12 = 112.14 + the three unpaid standard-credit bills 50041, 50084, 50086 at 65.98).
+  The 112.14 is level-era under-collection plus two missed instalments (50035 GBP 23.38, 50036 GBP 16.39) whose cases
+  print `ARREARS_REPAID` with no cash against them. **No invoice holds it.** When a level DD stops, the shortfall
+  against the schedule becomes the balance, and a supplier bills it. Here it sits in the running balance and is never
+  asked for. That is the parent worker finding's "the missed one is never made good" class, on a leaver.
+- **Elec leg: still level, misread as left.** SYN-2016-536 paid level DD to 2 Jun 2025 (101 instalments) and ends
+  **GBP 121.45 in credit** on the page, while printing 49914 at GBP 24.05 overdue since 2018. Two defects: (a) the
+  hold reader (`split.py`'s "latest payment is level") reads the leg as not level on 16 Feb 2023, because the latest
+  dated payment is the EBSS `scheme_credit` row of 18 Jan 2023, not the 3 Jan DD; (b) an in-credit level leg
+  printing a 2018 bill as overdue is the BLOCKING class in
+  `SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md`.
+  Only GBP 14.16 of the credit was netted against it.
+
+So the "1 of 6 residual holds" is not one residual. It is a gas leaver whose level shortfall nobody bills, plus an elec
+leg that reads as overdue while in credit.
+
+### The write-off gap is larger than GBP 604.15, and was there before the cap
+
+Reader: `/var/tmp/capgrade/wo.py`. The engine side is `resolved_settlement`, called exactly as
+`tools/generate_billing_ledger.py` calls it. The P&L side is `compute_emergent_bad_debt`, called as
+`tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py` calls it.
+Same run (4dee9854a4), two ledgers:
+
+| | control (`shapea-arm`, pre-cap) | cap-arm (2353f8b00) |
+|---|---|---|
+| engine write-offs | 268, GBP 10,812.78 | 268, GBP 10,812.78 |
+| page written-off cases | 220, GBP 9,824.19 | 220, GBP 9,220.04 |
+| engine minus page | 73 cases, GBP 988.59 | 68 cases, GBP 1,592.74 |
+| ... level-paid, page opened NO case | 38, GBP 1,417.13 | 38, GBP 1,417.13 |
+| ... level-paid, page case lighter | 25, GBP -266.95 | 20, GBP +337.20 |
+| ... not level-paid | 10, GBP -161.59 | 10, GBP -161.59 |
+| ledger vs P&L, accounts disagreeing | 83, P&L heavier by GBP 1,876.89 | 79, P&L heavier by GBP 2,481.04 |
+
+The cap moved the gap by exactly 1,592.74 - 988.59 = GBP 604.15: the parent's figure, reconciled. **The larger
+class predates the cap.** In 38 cases the engine writes off the face of a level-paid bill (OCC-01e79fcf2d4f 263: bill
+GBP 24.14 against an GBP 80 instalment) where the desk saw nothing short on the return day, so the page opens no case
+and shows no debt. The P&L books bad debt that the page says was never owed. This is the C7 shape again: the desk's
+or engine's per-bill view is heavier than the page's schedule view. Ten non-level cases run the other way (page
+heavier by GBP 161.59) and are unexplained here.
+
+`test_the_ledger_and_the_pnl_write_off_agree_per_account` reads `run_output_latest`. On this book it would fail on 79
+accounts.
+
+### Pre-registration for the 78f82e4242 book (filed before any of its output exists)
+
+Grade chain: `/var/tmp/capgrade/after_run.sh <run json> /var/tmp/book-wt-78f82e4242`. It regenerates the ledger with
+78f82e4242's generator, then runs `grade2.py` (the capprobe `grade.py` readers, cap-arm as control), `split.py` +
+`holds2.py` (`holds.py` on the book's own split), and `wo.py`.
+
+- **P1, the cap holds on a new book.** 0 over-remainder cases on level-paid invoices. All residual over-remainder rows
+  are penny roundings, totalling under GBP 1.00. 0 positive-face invoices owe above their face.
+  *Refuted if* any level-paid case exceeds its remainder by more than 1p.
+- **P2, holds.** The on-receipt holds (PROS-2018-0016 x10, SYN-2016-217 x2) are unchanged. Neither commit touches an
+  on-receipt leg. If the world draws SYN-2016-536 identically, its hold stays over 49914 and 50041: dea1c34fd withdraws
+  presented-or-not schedule rows, not 2018/2020 unpaid bills. *Refuted if* it goes. Then the schedule fix reached
+  the leaver's balance, which would be news.
+- **P3, the write-off gap is not closed by either commit.** The "level-paid, page opened no case" class persists at 30
+  or more cases and GBP 1,000 or more. Ledger vs P&L disagreement persists on 60 or more accounts. Neither commit
+  touches the engine's per-bill write-off of a level-paid bill.
+  *Refuted if* engine minus page falls below GBP 500.
+- **Attribution.** Any movement against the cap-arm between the two books cannot be split between dea1c34fd,
+  19eebf6c3e and draw differences. Only properties (P1) and class presence (P2, P3) are graded, not deltas.
+
+NEXT: none -- grade the 78f82e4242 book on this chain and write held or fell beside each leg.
