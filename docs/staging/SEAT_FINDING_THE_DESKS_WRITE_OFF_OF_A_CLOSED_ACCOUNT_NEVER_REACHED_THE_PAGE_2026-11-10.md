@@ -329,3 +329,32 @@ been covering part of those gaps with it.
    (`simulation/credit_refund_events.py`) and the desk never sees it. Both need fixing.
 3. **R stale** (GBP 336.60 on 18 refunds). This should go by itself on the first book run at or after
    47fdeacd5. Grade it there and do not build for it.
+
+## Class L traced: a credit bill eats that month's level collection (2026-11-10, same item)
+
+**A first hypothesis, refuted.** "The unshown collection sits next to a credit bill" was tested on the
+two bills **before** each collection: **0 of 17**. That was the wrong window, because the page keys a
+level collection by the month of the bill's period end.
+
+**What it is.** On a level-DD leg, the page takes the month's level collection
+(`level_dd_collections`, keyed by leg and month) only while posting a bill whose method is
+`direct_debit` (`tools/generate_billing_ledger.py`, the `level = (level_dd.get((cid, period_end[:7]))`
+line). A **credit bill**, such as a read catch-up that refunds an overcharge, has no method and takes
+the `else` branch. Its month's level collection is never taken, so the cash the household's bank paid
+that month has no row on the page. **15 of the 17** unshown collections across the 11 accounts are in a
+credit bill's month: 14 where the next bill is the credit, and SYN-2016-037g on 3 Apr 2017, whose
+credit falls a month later. The two that are not are PROS-2019-0318 on 28 Dec 2022 and 24 Mar 2023,
+and those are not traced. SYN-2016-218g: 19.63 presented on 13 Mar 2017, and the 1 Apr 2017 bill is
+a -11.30 catch-up credit.
+
+**Who is right.** A level direct debit collects the set amount whatever the month's bill is
+(`payments_and_direct_debit_2026-10-25.md`, "What a level direct debit must be"). The company's ledger
+counted the 19.63, which is why the desk's figure is 19.63 below the page. **The world's closing walk
+drops it too**: `closing_balances` for SYN-2016-218g is 73.44, the page's figure. So the page and the
+world's walk are both wrong in the same way, and the desk is right. The walk's closing balance sizes
+the run's refunds and its bad debt, so this is a book figure and not only the page's.
+
+**Next piece (`a-credit-bills-month-keeps-its-level-collection`):** in the world's walk and on the
+page, a level collection presented in a credit bill's month is money in, at the level amount, on its
+collection date. Pre-register the change in class L (11 accounts, GBP 1,570.87) and in the walk's
+closing balances before measuring it. The world side is `sim-engineer` work.
