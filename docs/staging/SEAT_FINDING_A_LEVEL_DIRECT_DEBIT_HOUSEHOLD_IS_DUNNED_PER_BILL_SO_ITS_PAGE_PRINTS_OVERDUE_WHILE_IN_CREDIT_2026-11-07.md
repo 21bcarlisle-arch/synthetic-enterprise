@@ -873,3 +873,60 @@ control did not reach.
 
 **Recommended next:** the 5 residuals go to the closing-statement build. Gating a leaver's opening on a demand unpaid
 28 days should clear them. The row is not widened to pass them.
+
+## The forward prediction on the 78f82e4242 book: fell (5 -> 60), and the cause is the row's reading of a leaver (worker, 10 Nov 2026)
+
+The drawn item (`level-dd-scheme-end-residue-dunned`) asked for the 5 residuals above to be cleared. I re-measured
+the premise first, with the same runner on both book ledgers (`/var/tmp/cap-arm/ledger.json` and
+`/var/tmp/capgrade/out/ledger.json`; scripts `/var/tmp/lvlres/`). The 4dee9854a4 cap-arm still reads 5. The
+78f82e4242 book reads **60**. So the forward prediction above (at most 10, each a level leg) **fell**. As that
+prediction said it would mean, the row's level reading was wrong somewhere the control did not reach.
+
+**What it was.** dea1c34fd (world side) takes a month the world settled on its face off the level schedule. So a
+leg whose last month was settled on its face now reads as having *left* level, because its latest bill that asked
+something was not met by a level collection. The row then read that leg on its bills only. Every bill the scheme
+had covered was met by its collection, so the scheme's debit read as paid. C7 shows the shape: GBP 108 a month was
+collected against bills of GBP 120 to 163, the face-settled final bill was issued on 1 Jul 2019, and the desk opened
+on 30 Jul at GBP 66.67. That is the closing statement's 28-day term, exactly as `left_level_asks` builds it. The desk
+journey is the same on both books. Only the row's reading moved. All 60 were "nothing overdue" (read as not level),
+including the original 5.
+
+**The fix (the row, not the desk).** `_left_level_owed`: a leg that presented a level collection by the opening
+but whose latest asked bill was not met by one has left. It left on the issue date of the first such bill after
+its last level-met bill. It owes its debit (bills less what landed, by the opening) once the closing statement is
+due, `LEFT_LEVEL_TERM_DAYS` = 28 after leaving. That term comes from the knowledge page "Leaving level direct debit
+with a debit": the licence's 28-day demand clock and Budget Energy's four weeks. The term is part of the reading.
+Without it, both residuals below would pass.
+
+**Measured after the fix, not predicted:** 78f82e4242 **60 -> 2**. 4dee9854a4 cap-arm 5 -> 5 (unchanged, as it
+must be: the clause reads only legs that have left). 9d7dcfc19c control 0 -> 0. Four of the original five
+(PROS-2018-0173, PROS-2023-0377, SYN-2016-287, SYN-2016-471) clear on 78f82e4242. Their last month is now
+face-settled, so their scheme debit reappears and is past its statement's term.
+
+**Control:** `test_a_leaver_owes_its_schemes_debit_once_the_closing_statement_falls_due` checks three things: owed
+after the term, not owed within it, and never owed on a credit. Three mutations fire: the clause dropped, the term
+dropped, and the debit test dropped.
+
+**The 2 that remain are the desk's, and both open inside the closing statement's term:**
+- **SYN-2016-496 journey 1** (17 Aug 2018, GBP 45.48, "61 days overdue", opened straight onto final notice). The gas
+  leg was level at GBP 18 against bills of GBP 12 to 32, and its final bill was issued on 10 Aug. The electricity
+  leg was never level and paid every bill. 61 days before the opening is 17 Jun, the due date of electricity bill
+  47807, which was paid on 17 Jun. This is the same journey, with the same figures, on the cap-arm.
+- **SYN-2016-007** (24 Jan 2019, GBP 9.20, "1 day overdue"). The electricity leg collected GBP 38.01 four times
+  against bills totalling GBP 137.26, so it stood GBP 14.78 in credit. Its final bill of GBP 9.20 was issued on
+  9 Jan, due 23 Jan, and settled on its face on 23 Jan. The gas leg left on 23 Jan with a GBP 57.61 debit whose
+  statement was not due until 20 Feb.
+
+Both are two-leg billing accounts closing on small final bills. On each, the journey's figure matches neither leg's
+statement. **Hypothesis, not tested:** the desk's account-level walk lets one leg's scheme shortfall land on the
+other leg's on-receipt bills, which are then aged from their own due dates. This cannot be the whole story: many
+of the 58 that cleared are two-leg accounts too. **I cannot yet say** which branch of `left_level_asks` /
+`collections_journey` produces these two. The next step is to replay these two accounts through the desk on the
+78f82e4242 book.
+
+**Not graded here:** INV_OVERDUE_WITHIN_PAGE_BALANCE. It needs the printed pages (`--printed`), and no published
+set carries this book.
+
+**Forward prediction (filed now, for the first fresh book graded at or after this commit, with no desk change to
+leavers in between):** INV_OVERDUE_WITHIN_BALANCE reads **at most 5**. Every breach is a journey opened within 28
+days of a leg leaving level, on a two-leg account.
