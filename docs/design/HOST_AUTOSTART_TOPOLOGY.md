@@ -46,6 +46,14 @@ and WSL then shut down when the director's last terminal window closed. Nothing 
 from 08:00 to 18:41. `systemctl --user --failed` was empty: every timer was simply not firing.
 Why the keeper exited is not established.
 
+**Correction (10 Nov, 21:30Z, from the Windows event log): the cause above is wrong.** At 08:26:17
+Windows Update began installing *Windows Subsystem for Linux 3.0.5.0* (System Event 43). At 08:26:41
+its Restart Manager closed `wsl.exe`, `wslhost.exe` and `vmwp.exe` and logged each "cannot be
+restarted", and the guest powered off cleanly at 08:26:45. The receipt is written only when a keeper
+starts, so it cannot show one exiting. The 5-minute trigger is still the right fix: it relaunches WSL
+after an update like this, and after the 5 Nov guest kernel panic. Record:
+`docs/staging/records/SEAT_RESULT_THE_THREE_STOPS_OF_3_TO_10_NOV_HAVE_THREE_DIFFERENT_CAUSES_2026-11-10.md`.
+
 Fix, applied by the director from an elevated PowerShell at 18:41 GMT: a repeating trigger every
 5 minutes on the same task, `MultipleInstances=IgnoreNew` (a live keeper makes the tick a no-op)
 and no execution time limit. The receipt gained `2026-11-10T18:41:32+00:00` when it was started
