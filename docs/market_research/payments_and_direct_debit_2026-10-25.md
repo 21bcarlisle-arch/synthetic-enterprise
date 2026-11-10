@@ -486,6 +486,38 @@ No new source was read. Each line cites the passage on this repository's pages i
     previous payments were set too low" (same letter, p.2). On either wording, a debit on a working
     schedule is not debt. The proposed wording is a 2011 consultation; whether it was adopted unchanged
     is not checked here (GAP, narrow: it does not change the definition this build uses).
+  - *Amended 10 Nov 2026 (worker): a debit at the end of a scheme that is not rolled into a new one.*
+    The 2011 wording excludes only "customers with a debit at the end of a payment scheme that will be
+    rolled into a new payment scheme". A leg that leaves level direct debit (its mandate stopped after
+    returns, or the household moved to paying on receipt) has no new scheme to roll into, so that
+    exclusion does not reach its debit. Three things follow, and none needs a new source:
+    1. **The debit is still owed.** It is charges for energy supplied, which the collections did not
+       cover. Leaving the scheme does not cancel it.
+    2. **It is not yet debt.** The household has defaulted on nothing by having a debit. The licence
+       starts its own debt clock at a written demand: "Outstanding Charges" are charges that "have been
+       demanded ... in Writing at least 28 days previously and remain unpaid" (Electricity Supply
+       Standard Conditions, definitions, read in `final_account_debt_recovery_primary_check_2026-11-07.md`
+       row 4a). So the supplier must **ask for it, in writing, once**. Published practice is a bill or a
+       statement with a term: "send you a bill instead" (British Gas) and "clear that balance within four
+       weeks" (Budget Energy), both quoted in "Leaving level direct debit with a debit", below.
+    3. **A missed instalment is made good only by cash that meets it.** The schedule's shortfall is
+       cumulative: requested to date less received to date. The next instalment, when it is collected,
+       pays the next request. It does not pay the one that was returned. Re-presentation, a card payment
+       or a repayment makes the missed one good. A debit that no document asks for cannot be made good
+       by anything, because nothing tells the household it is owed.
+    - **What the tree does today (measured 10 Nov 2026, worker).** On the 78f82e4242 book, with its
+      page regenerated at origin 7f69f78825, **22 live legs that have left level DD carry GBP 6,945.89
+      that no document on the page asks for**: the page balance is a debit and no invoice's
+      outstanding figure holds it. The 4dee9854a4 book reads 21 legs and GBP 6,859.12. SYN-2016-536g
+      is one: GBP 112.14 from its last level collection (13 Mar 2020) to book end. The desk's level
+      walk does not see such a debit when the account's other leg is still on level DD: `on_level_dd`
+      keeps the whole account on the schedule, and `level_shortfall` counts only what the schedule and
+      the bills asked. 4 of the 22 legs are of that shape. The reader is in the cure finding,
+      "A leaver's scheme debit no document asks for".
+    - **GAP, unchanged:** whether the demand is a standalone statement or folded into the first
+      on-receipt bill (GAP 2 of "Leaving level direct debit with a debit"). Both ask the same amount
+      once, with one term. The build takes the statement, because the desk already dates one
+      (`left_level_asks`) and the page should print the demand the desk acts on.
 - **Who dunns, and on what.** A supplier runs one dunning run per account and reads its balance. It
   would not chase a home in net credit (`company_debt_management.md`, "Where the desk runs, its silence
   is a decision", PROS-2018-0137; SAP FI-CA keeps the dunning level on the account, not the item).

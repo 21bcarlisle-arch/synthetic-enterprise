@@ -877,3 +877,88 @@ to close.
 
 NEXT: run the next book from origin at or after 703edeb89b, off a clean worktree, and grade it on origin's readers.
 Predict the left-level page-balance count before the run starts.
+
+## A leaver's scheme debit no document asks for: measured, and the cure count pre-registered before any build (worker, 10 Nov 2026 ~03:20 GMT)
+
+*Drawn as `a-level-dd-leavers-schedule-shortfall-is-billed`. The id it retires,
+`a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see`, is disposed as premise-spent by
+50030bb606: its question was answered by "The 45 left-level holds: the page is wrong" and the shape-A fix that 78f82e4242
+graded. K8 first: "What is owed" on `payments_and_direct_debit_2026-10-25.md` now says what happens to a debit at the end
+of a scheme that is not rolled into a new one. It is still owed, it is not debt until asked once in writing, and a missed
+instalment is made good only by cash that meets it.*
+
+**What each figure counts.**
+- A *leg* is one `customer_id` on the page, one fuel of a billing account.
+- A leg has *left level* when its last payment that moved money was not a level collection and an earlier one was.
+  A row that moved no money is not a payment, for example an EBSS-covered bill asking GBP 0.
+- *Owed* is the page balance when it is a debit. *Asked* is the sum of the leg's invoices' `outstanding_gbp`. *Unasked*
+  is owed less asked, when above GBP 0.01.
+- A leg is *live* unless its last bill period ends more than 45 days before the book date.
+
+**The instrument.** `/var/tmp/lvl-shortfall/census2.py` measures the debit. The cure count uses `readers/split.py` and
+`readers/compose.py`, which are the grade-78f readers with one fix each.
+- **The split.py fix the drawn item asked for.** split.py took the latest payment row as the leg's payment method, so an
+  EBSS-covered row that moved no money read as "not level". So did compose.py's `last_level`. Both now skip rows with
+  `amount_gbp` of 0. On every ledger below, the fix moves one hold from "left level" to "level at cure" (143 becomes 144)
+  and changes no count.
+- **The pages.** Both books' pages are regenerated with origin 7f69f78825's generator (`/var/tmp/lvl-shortfall/regen-*`),
+  so b512dec267 (the desk's write-off reaches the page) is in both. The closed-leaver class is that work's, not this one's.
+
+| Book (page at 7f69f78825) | Live leaver legs with unasked debit | GBP | Closed leaver legs | GBP | Cures held over a debt (split) | compose: left level, invoice unpaid / none unpaid |
+|---|---:|---:|---:|---:|---:|---|
+| 4dee9854a4 | 21 | 6,859.12 | 7 | 309.27 | **193** on 92 accounts | 12 / 36 |
+| 78f82e4242 | 22 | 6,945.89 | 147 | 10,681.09 | **193** on 92 accounts | 12 / 36 |
+
+- The cure count is 193 on both books, on the pages as graded and as regenerated. It was 347 on the 9d7dcfc19c control.
+  The reader counts the desk's own cures (834 on each book), and these books share them at this grain.
+- **SYN-2016-536g, the drawn example, traced.** Its page balance owes GBP 178.12 at book end. Three open cases ask
+  65.98 of it: 50041's 19.88, 50084's 30.29 and 50086's 15.81. **112.14 is asked by nothing.** That is the gas leg's
+  debit on 13 Mar 2020, the day of its last level collection, less the 13.69 repaid on 50026 in 2019.
+- **Correction, beside the drawn item.** The item says 50035 and 50036 "print ARREARS_REPAID with no cash". They are
+  real cash. The world's payment truth posts `repayment` rows (`simulation/arrears_engine`, outcome `repayment`): GBP
+  16.39 on 10 Sep 2020, then 6.99 and 16.39 on 12 Mar 2022. The page balance counts them as `arrears_resolved`. What is
+  missing is a payment row for them on the page, not the money. They repaid the two bills' faces (23.38 and 16.39), not
+  the 26.83 instalments the bills stood behind.
+- **The desk's side, on 536.** The desk dunned an account-level figure of about GBP 100 to 130 from Apr 2020. It cured on
+  16 Feb 2023, when the page's gas leg owed 132.02, including 50041, which had been failed since Nov 2020. The electricity
+  leg was still on level DD, so `on_level_dd` kept the whole account on the schedule. **Why `level_shortfall` read
+  nothing that day I cannot yet say.** A desk replay over the regenerated page
+  (`/var/tmp/lvl-shortfall/replay_one.py`) reads GBP 169.49 short on that day, so it does not reproduce the cure. That
+  replay posts no EBSS credit. Its balance is 508.97 against the page's 243, so it is not faithful past 2022, the
+  caveat the 9 Nov replay already carried. There are two candidates, neither one printed:
+  - the run's desk counts the EBSS credit as cash received against requests the schedule stopped making in EBSS months;
+  - the gas leg's later on-receipt cash meets the schedule's asks.
+
+  The next instrument is the in-run desk's `level_shortfall` on that day. No run json carries it.
+- **4 of the 22 live legs** are on accounts whose other leg is still on level DD: PROS-2020-0223g, SYN-2016-048,
+  SYN-2016-525g and SYN-2016-536g, GBP 1,272.88 in all. They carry **20 of the 193 holds**. The other 18 legs are on
+  accounts where every leg has left level DD. There the desk already asks a closing statement (`left_level_asks`), and
+  the page prints none.
+
+**The build this pre-registers, in two parts, each graded alone.**
+- **(P) The page asks what the desk asks.** `tools/generate_billing_ledger.py` prints a closing statement for each live
+  leg that leaves level DD in debit. The statement asks that leg's debit on the day of its last level collection, net of
+  its open cases, due 28 days later. Its outstanding figure is what later cash and credit have not met.
+- **(D) The desk asks it on a mixed account.** When one leg leaves and another stays on level DD, the leaving leg's
+  statement becomes an ask that `level_shortfall` counts, dated from that leg's own leaving. This also closes 703edeb89b's
+  GAP on SYN-2016-345, the leg's own leaving date.
+
+**Predictions, filed before either part is built.**
+
+(P), on the two pages regenerated with (P) alone (one variable):
+- Live leaver legs with unasked debit read **at most 1 leg and GBP 5** on each book, against 21 and 22 now.
+- Closed leaver legs are **unchanged**: 7 / 309.27 and 147 / 10,681.09.
+- Cures held over a debt stay at **193** on each book. The reader counts the desk's cures, and a page change cannot move
+  them.
+- compose's "left level DD, an invoice due by the cure is still unpaid" **rises from 12 to between 12 and 33**. On the 78f
+  page, 21 left-level holds on live-leaver accounts fall after their leg's statement would be due.
+- Every invoice that is not a statement keeps its outstanding figure to the penny.
+- **Refuted if** any of these misses.
+
+(D), on the first book carrying it:
+- The 20 holds on the 4 mixed accounts fall to **at most 4**.
+- The total falls from 193 to **between 173 and 180**.
+- Cure dates on accounts with no level-DD payment are **byte-identical**.
+- **Refuted if** the total rises, or any never-level cure moves.
+
+NEXT: build (P) in `tools/generate_billing_ledger.py`, then grade it on both regenerated pages against the table above.
