@@ -81,6 +81,7 @@ from company.billing.arrears_engine import (
     dunning_path,
     fifo_unpaid_bills,
     left_level_asks,
+    leg_statement_asks,
     level_leave_dates,
     level_shortfall,
     on_level_dd,
@@ -519,8 +520,10 @@ class CollectionsJourneyDesk:
                   and e.invoice_ref not in level_refs} | returns
         # A household that left level DD with a debit is sent one closing statement for it, due
         # CLOSING_STATEMENT_TERM_DAYS later; its journey can open only once that is missed.
+        # A leg that leaves while another stays on level DD is sent its own (`leg_statement_asks`).
         statements = ({d + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS)
                        for d in level_leave_dates(ledger, level[0], through) if d is not None}
+                      | {d for d, _g in leg_statement_asks(ledger, level[0], through)}
                       if level is not None else set())
         missed |= {missed_on(d) for d in statements}
         openers = missed | {

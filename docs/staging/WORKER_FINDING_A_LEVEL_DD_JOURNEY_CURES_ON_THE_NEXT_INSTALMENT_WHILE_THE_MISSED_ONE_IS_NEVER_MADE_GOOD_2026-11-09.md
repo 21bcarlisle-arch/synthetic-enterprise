@@ -1046,3 +1046,63 @@ again at b04e3832fd, once without (P) and once with it (`/var/tmp/lvl-shortfall/
 - 0 balances and 0 invoice figures moved.
 - So on origin the first figure in this section's title reads **15 legs and GBP 5,671.45** before (P), not 22 and
   6,945.89. Those were measured at 7f69f78825 and stand as measured there.
+
+## (D) built: why the desk cured SYN-2016-536, and each leg's statement on a mixed account (worker, 10 Nov 2026 ~05:30 GMT)
+
+**Why the in-run desk cured SYN-2016-536 on 16 Feb 2023.** Neither filed candidate was the cause. The real cause was the
+day boundary between an ask and the cash that paid it.
+- The replay posts bills at their gross face. The run posts them net of EBSS (`payer_ask_gbp`). With bills posted net
+  (`/var/tmp/lvl-desk-probe/replay_net.py`, `NET=1`), the replay's balance is GBP 242.97 on 16 Feb, against the page's 243.
+  So EBSS explains the old replay's balance gap, which is four GBP 66.67 instalments. It does not explain the cure.
+  **Candidate 1 is refuted.**
+- The shortfall is GBP 150.75 on 15 Feb, **49.02 on 16 Feb**, and 150.75 again on 17 Feb. On 16 Feb the gas leg paid
+  bill 50068 (GBP 101.73) on its due date. `level_shortfall` counted cash through `as_of`. It counted a bill no level
+  collection paid only after its due date (`d < as_of`). So that one day, the gas leg's on-time cash met the
+  electricity schedule's missed requests (GBP 63.33, returned in 2017 and 2018) and 50041. This is candidate 2, narrowed
+  to its mechanism: the cash is the gas leg's own and arrives on time, and the cure needed only the one-day boundary.
+- No ask anywhere held the gas leg's scheme debit, because the account was still level through its electricity leg.
+- **I cannot yet say** what the GBP 49.02 the replay still reads on 16 Feb is. The replay does not reproduce the run's
+  journeys on this account: it keeps the 2018 journey open until 2025.
+
+**What changed (one commit, two mechanisms).**
+1. `arrears_engine.leg_leave_dates` and `leg_statement_asks` give each leg that leaves level DD while another leg stays
+   on it its own closing statement. The statement is the leg's level-era bills, less its own credit notes, less its level
+   requests. It is due 28 days after the leg's own leaving. `level_shortfall` counts it, and the journey walk can open on
+   its due date.
+2. `left_level_asks` dates each leg's level-paid remainder from that leg's own statement. That closes 703edeb89b's
+   SYN-2016-345 GAP.
+3. `level_shortfall` counts every ask from its own due date (`d <= as_of`), as it already counted the requests.
+
+On the 536 replay, 16 Feb now reads GBP 93.62 short (49.02 plus the 44.60 statement), so the day cannot cure.
+
+**Control:** `tests/company/billing/test_a_leg_leaving_level_dd_beside_a_level_leg_owes_its_own_statement.py`, 6 tests.
+It asserts the partition first: an unpaid statement opens a journey and holds it, and one paid late cures that day.
+Six mutations fire:
+- no leg statement asked: 4 red;
+- asks counted only after their due date: 1 red;
+- credit note ignored: 1 red;
+- requests not subtracted: 6 red;
+- `left_level_asks` dated from the account's leaving: 1 red;
+- the journey not walked on the leg statement's due date: 1 red.
+
+A seventh mutation did not fire, and it was an equivalence: a guard excluding the leg that leaves with the account. The
+guard is removed, and `leg_statement_asks` says why. `level_shortfall` is read only while the account is on level DD,
+and on its leaving day, when that leg's statement is not yet due. The one case the guard decided, an account that left
+whole and came back, it decided wrongly.
+
+**Replay over the 4 mixed accounts on the merged-base page (`m-arm`), origin c5d99ba357 against this change:**
+- PROS-2020-0223: 4 cures fall to 0, and the 2023 journey is held;
+- SYN-2016-048, 525 and 536: unchanged. On this replay 536 never cures in between, so it cannot show the fix.
+
+**Prediction for the first book carrying this, filed before any such book.** It replaces the (D) rows above, because two
+mechanisms now land together. A book cannot separate them, and the replay can.
+- The 20 holds on the 4 mixed accounts fall to **at most 4**.
+- The total of 193 falls to **between 150 and 180**. The range is wider than (D)'s 173 to 180, because the due-day boundary
+  reaches every level account with an on-receipt ask.
+- Cure dates on accounts with no level request are **byte-identical**. `level_shortfall` reads only level accounts.
+- **Refuted if** the total rises, or any never-level cure moves.
+
+**Filed, not fixed:** cash paid *before* its bill's due date still meets another leg's older missed request until that
+date. The K8 page names this as open.
+
+NEXT: grade the prediction on the first book carrying this commit.

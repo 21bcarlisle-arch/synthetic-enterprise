@@ -299,9 +299,21 @@ def level_shortfall(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.da
     payment scheme" (letter of 20 Sep 2011, App. 2 para 2.8;
     `docs/market_research/payments_and_direct_debit_2026-10-25.md`, "What is owed"). A seasonal debit
     with every collection taken is therefore nothing overdue, and a shortfall in credit is nothing
-    owed. Received is every payment on the account: a repayment of a returned collection meets it."""
+    owed. Received is every payment on the account: a repayment of a returned collection meets it.
+
+    A leg that has left level DD while another leg stays on it owes its scheme's debit on its own
+    closing statement (`leg_statement_asks`), and that is asked here too. Without it the schedule
+    read only the level leg's requests and the leaver's later bills: SYN-2016-536 was cured on 16 Feb
+    2023 while its gas leg owed GBP 132.02, the GBP 112.14 statement included, because no ask held
+    the gas scheme's debit and that day's on-receipt gas payment met the electricity schedule's
+    missed requests."""
+    # Every ask counts from its own day, as the cash paid that day does. Counted only after its due
+    # date, a bill paid on that date was cash with nothing to meet but an older missed request: the
+    # desk cured SYN-2016-536 on 16 Feb 2023, the day its gas leg paid a GBP 101.73 bill on time.
     asked = sorted([(d, gbp) for d, gbp, _ref in schedule.requests if d <= as_of]
-                   + [(d, gbp) for d, gbp in schedule.other_asks if d < as_of])
+                   + [(d, gbp) for d, gbp in schedule.other_asks if d <= as_of]
+                   + [(d, gbp) for d, gbp in leg_statement_asks(ledger, schedule, as_of)
+                      if d <= as_of])
     received = round(sum(e.amount_gbp for e in ledger.events_through(as_of)
                          if e.event_type == LedgerEventType.PAYMENT_CREDIT), 2)
     short = round(min(sum(g for _d, g in asked) - received, ledger.balance(as_of)), 2)
@@ -360,6 +372,101 @@ def level_leave_dates(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.
             leaves.append(None)
         state = now
     return leaves
+
+
+def _leg_of(ref: Optional[str]) -> str:
+    """The supply leg of a bill reference: the part before its first `::`, or "" when there is none."""
+    ref = ref or ""
+    return ref.partition("::")[0] if "::" in ref else ""
+
+
+#: The event id prefix of a credit bill's note (`background.live_payment_triad`: `credit:<leg>:<period>`).
+#: The note carries no invoice reference, so its leg is read from the id this company gave it.
+CREDIT_NOTE_EVENT_PREFIX = "credit:"
+
+
+def _credit_note_leg(e: LedgerEvent) -> Optional[str]:
+    if e.event_type != LedgerEventType.ADJUSTMENT_CREDIT or not e.event_id.startswith(
+            CREDIT_NOTE_EVENT_PREFIX):
+        return None
+    return e.event_id[len(CREDIT_NOTE_EVENT_PREFIX):].rpartition(":")[0] or None
+
+
+@dataclass(frozen=True)
+class LegLeft:
+    """One supply leg's last leaving of level DD (`leg_leave_dates`): the day it left, and the GBP its
+    scheme left owing beyond what the schedule asked of it (0 when the scheme left it in credit)."""
+    leg: str
+    left: dt.date
+    scheme_debit_gbp: float
+
+
+def leg_leave_dates(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.date
+                    ) -> Dict[str, LegLeft]:
+    """Per supply leg that has left level DD by `as_of` and not come back: when, and its scheme debit.
+
+    A leg leaves on the first bill, after one a level collection paid, that is not level-paid; a bill
+    that asked nothing leaves it as it was (`_shows_how_it_pays`), as `on_level_dd` reads the account.
+    The scheme debit is what the leg's bills from its last joining to its leaving charged, less its
+    own credit notes over the same span and less what its level collections asked for those bills.
+    The returned or unpaid part of those requests is not in it: the schedule already asks them
+    (`level_shortfall`). So the requests' shortfall plus this is the leg's whole debit, counted once."""
+    level_refs = {ref for _d, _g, ref in schedule.requests}
+    requested: Dict[str, float] = {}
+    for _d, gbp, ref in schedule.requests:
+        requested[ref] = round(requested.get(ref, 0.0) + gbp, 2)
+    events = ledger.events_through(as_of)
+    bills: Dict[str, List[LedgerEvent]] = {}
+    for e in events:
+        if e.event_type == LedgerEventType.BILL_DEBIT:
+            bills.setdefault(_leg_of(e.invoice_ref), []).append(e)
+    notes: Dict[str, List[LedgerEvent]] = {}
+    for e in events:
+        leg = _credit_note_leg(e)
+        if leg is not None:
+            notes.setdefault(leg, []).append(e)
+    out: Dict[str, LegLeft] = {}
+    for leg, legs_bills in bills.items():
+        state, joined, left = False, None, None
+        for e in legs_bills:
+            if not _shows_how_it_pays(e, schedule):
+                continue
+            now = e.invoice_ref in level_refs
+            if now and not state:
+                joined, left = e.valid_time, None
+            elif state and not now:
+                left = e.valid_time
+            state = now
+        if left is None or joined is None:
+            continue
+        era = [e for e in legs_bills if joined <= e.valid_time < left]
+        charged = sum(e.amount_gbp for e in era if e.invoice_ref in level_refs
+                      or e.invoice_ref in schedule.nil_refs)
+        asked = sum(requested.get(e.invoice_ref, 0.0) for e in era)
+        credited = sum(n.amount_gbp for n in notes.get(leg, []) if joined <= n.valid_time < left)
+        out[leg] = LegLeft(leg=leg, left=left,
+                           scheme_debit_gbp=max(0.0, round(charged - credited - asked, 2)))
+    return out
+
+
+def leg_statement_asks(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.date
+                       ) -> List[tuple]:
+    """`(due date, GBP)` of the closing statement of every leg that left level DD in debit while
+    another leg stayed on it, due `CLOSING_STATEMENT_TERM_DAYS` after the leg's own leaving.
+
+    The account-wide statement (`left_level_asks`) is sent only once the account's last level leg
+    leaves, so until then nothing asked a leaver's scheme debit. Each leg demands its own debit when
+    it leaves (payments_and_direct_debit_2026-10-25.md, "The debit a leaver owes is its leg's").
+    `level_shortfall` is read only while the account is on level DD, and on the day it leaves (the
+    `missed` carve in `left_level_asks`), when the last leg's statement is not yet due, so no leg is
+    asked here and on the account statement at once. Excluding the last leg instead would drop a left
+    leg's debit from an account that left whole and came back to level DD."""
+    asks = []
+    for one in leg_leave_dates(ledger, schedule, as_of).values():
+        if one.scheme_debit_gbp > 0.005:
+            asks.append((one.left + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS),
+                         one.scheme_debit_gbp))
+    return sorted(asks)
 
 
 def observed_cash_event_id(correlation_id: str) -> str:
@@ -442,6 +549,10 @@ def left_level_asks(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.da
               if dunned_at is not None and dunned_at(left) else None)
     missed_left = round(missed.outstanding_gbp, 2) if missed is not None else 0.0
     statement_due = left + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS)
+    # Each leg's remainder is due on its own statement: a leg that left before the account did was
+    # demanded from its own leaving (SYN-2016-345's electricity leg on 24 Jan 2018, not 15 Feb).
+    leg_due = {leg: one.left + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS)
+               for leg, one in leg_leave_dates(ledger, schedule, left).items()}
     asks: List[tuple] = []
     for e, gbp in owed_after_own:
         if gbp <= 0.005:
@@ -458,7 +569,8 @@ def left_level_asks(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.da
             asks.append((missed.due_date, carve))
             missed_left = round(missed_left - carve, 2)
         if owed - carve > 0.005:
-            asks.append((statement_due, round(owed - carve, 2)))
+            asks.append((min(leg_due.get(_leg_of(e.invoice_ref), statement_due), statement_due),
+                         round(owed - carve, 2)))
     asks += [(e.valid_time + terms, round(e.amount_gbp, 2)) for e in events
              if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time >= left]
     return LeftLevel(left=left, asks=tuple(sorted(asks, key=lambda a: a[0])), carried_credit=credit)
