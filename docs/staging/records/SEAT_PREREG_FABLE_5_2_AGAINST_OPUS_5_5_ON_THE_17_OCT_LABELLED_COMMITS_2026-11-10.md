@@ -100,3 +100,45 @@ is better at diagnosis or design reads. A null result here leaves the routing as
 default, and no Fable class is added on this evidence alone. Proving that the fallback fires needs
 a refusal to occur. If none occurs, the fallback is **not** proven, and any Fable class would have
 to carry `--fallback-model claude-opus-5-5` and be tested on its first refusal.
+
+## Added after filing: the fifth reported fact, which model served each reading
+
+*Added 10 Nov, about 08:00 GMT, on the director's 07:42 steer
+(`DIRECTOR_STEER_PROVE_FABLE_SERVED_EVERY_FABLE_READING_AND_USAGE_AT_21_PERCENT_2026-11-10.md`).
+This is a validity condition, not a changed prediction. It was written before any reading was graded.
+The 16 readings had already run (07:10 to 07:24). The seat that wrote this section has seen the
+id-to-model map, so it does not grade. The grading goes to a reader that has not seen it.*
+
+**5. Served model.** A reading counts only if the CLI's `modelUsage` for that call holds **exactly**
+the requested model, with no second key, and the call is not an error. Any other reading is void,
+is reported as void, and is never counted. A rerun replaces it.
+
+**Why "exactly", proved on a real substitution (CLI 2.1.319, 07:57 to 07:59 GMT).**
+A one-word prompt, `--output-format stream-json`, reading the API's own `message.model`:
+
+| Requested | `message.model` (from the response) | `modelUsage` keys |
+|---|---|---|
+| `claude-fable-5-2` | `claude-fable-5-2` | `claude-fable-5-2` |
+| `claude-opus-5-5` | `claude-opus-5-5` | `claude-opus-5-5` |
+| `opus` (alias) | `claude-opus-5-5` | `claude-opus-5-5` |
+| `claude-fable-5` | **`claude-opus-4-8`** | `claude-fable-5` **and** `claude-opus-4-8` |
+
+The last row is a substitution. `claude-fable-5` took 17,785 cache-write tokens and wrote 0 output
+tokens, and `claude-opus-4-8` answered. A check that asked "is the requested model in `modelUsage`?"
+would have passed it. The exact-set check, or `message.model`, catches it. So the check can fail,
+and it does fail on a real substitution.
+
+The `unrecognized_model` warning on `claude-fable-5-2` comes from the CLI's own price table. The
+server did serve Fable 5.2: its `message.model` and `modelUsage` both name it, and only it. The CLI
+can reach Fable 5.2, so no CLI update is needed for this test.
+
+**Result over the 16 readings in `/var/tmp/fable-trial/readings/`:**
+- **8 of 8 Opus readings** were served by `claude-opus-5-5` alone.
+- **8 of 8 Fable readings** were served by `claude-fable-5-2` alone. **No substitution occurred.**
+- **2 Fable readings are void.** Those are commit 6 (`471ab8960`) and commit 7 (`2d3b87a6b`). Both
+  returned `is_error` with "You've hit your 5-hour limit · resets 8:20am". That is a usage-limit
+  stop. It is **not a refusal**, so it is not counted against the refusal prediction. Both are rerun
+  after the reset and checked by the same rule.
+
+Usage reading at the time: the director's 21% of the weekly allowance at 07:42 GMT. Under P12 that
+leaves the two reruns and one blind grading pass well inside what remains.
