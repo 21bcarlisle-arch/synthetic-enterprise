@@ -1196,3 +1196,65 @@ The prediction to grade is the rebased one in the 04:20 section above: total 155
 from 18 to at most 4, and never-level journeys are identical. It stands unchanged. I relaunched nothing, because a second
 copy would run over the same seeds. The grade passes to the continuation `grade-b8da-book-when-its-chain-writes-alldone`,
 which can be taken once `/var/tmp/grade-b8da/ALLDONE` exists.
+
+## The 08:26:45 poweroff killed both books: dca2ea1e7f relaunched, a head book pre-registered, the b8da arm dropped (seat executor, 10 Nov 2026 ~19:10 GMT)
+
+*Drawn as `the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded`.*
+
+**What died.** The guest powered off at 08:26:45 GMT. `book-dca2ea1e7f` had been running for two minutes: it was
+admitted at 08:24:11Z, and its log ends at 08:26:20 in the Phase 2b customer listing. The poweroff also took
+`book-b8da2eed18` (still queued), and both grade-chain units with it. At 18:55 no process or `longjob-*` unit survived. The
+launch register settles a row only from a systemd exit record, and these had none, so it held them at UNKNOWN. I settled
+both rows that claimed `live` (`book-dca2ea1e7f`, `grade-chain-book-b8da2eed18`) to `died`, with the cause "guest
+poweroff 08:26:45". `book-b8da2eed18` had no record of its own. I dropped the continuation
+`grade-b8da-book-when-its-chain-writes-alldone`, because its ALLDONE can no longer be written. The old log is kept as
+`/var/tmp/longjob-book-dca2ea1e7f.killed-0826.log`.
+
+**The "salvage" 264dcb92f is not this book's.** It is a worker-tick `fork_salvage` commit, also stamped 08:26:44. It holds
+`book_growth_campaign.json`, `book_subset_verdict.json` and `token-log.md`, and nothing from the book's worktree.
+`/var/tmp/book-wt-dca2ea1e7f` no longer existed, so I rebuilt it clean at dca2ea1e7f (imports-off-commit `paths: []`).
+
+**dca2ea1e7f relaunched, the same run and the same readers.** I used `tools.run_annual_report` over the full window,
+not fast, as the 78f82e4242 control ran. It went through `launch_long_job` and was admitted at 18:58:44Z. The new artefact
+is `docs/reports/run_output_dca2ea1e7f_20261110T185708Z.json` (RUN_PATH updated). Its grade chain,
+`longjob-grade-chain-book-dca2ea1e7f`, runs `/var/tmp/grade-dca2-scripts/after_run.sh` into `/var/tmp/grade-dca2/arm/`.
+The table filed at ~05:45 above stands unchanged and is the one this book is graded against.
+
+**A second book does not fit beside it, so the b8da2eed18 desk-only arm is dropped.** I asked the admission at 19:02. It
+would refuse the head book: 19,592 MB resident plus a 12,500 MB declared peak is 32,092 MB, against 23,010 MB. Memory
+cannot admit a third book beside two that do not fit together. The desk-only arm would also have answered a question
+the dca2 book makes moot: what b8da2eed18 alone moves, when no published figure waits on that split. So I am not running
+it. I queued the head book on `--wait-for-pid` of the dca2 run, so it starts when dca2 ends, and never alongside it.
+
+### The head book, 068b5e3cc8: pre-registration, filed before it starts
+
+Since dca2ea1e7f, origin's head adds two commits that touch the run's code. **6fb708f3ae** (class L) keeps a credit
+bill's month's level collection. It changes the arrears engine (run) and the ledger generator (page). **d7c214a392**
+gzips the committed billing ledger. It changes how readers open the file, and I expect no figure to move from it.
+
+**Two controls.**
+- (a) The 78f82e4242 run through head's page generator, `/var/tmp/grade-head/control-78f/`, measured 19:00. It moves
+  only these rows against the dca2-page control:
+  - written-off accounts printing owed: 30 / GBP 2,121.64 to 27 / GBP 1,230.90;
+  - left-level closed legs' unasked GBP: 7,318.46 to 4,749.88;
+  - all holds: 139 to 142.
+  The unexcepted total is still 24 on the same 2 rows. So class L's page half is already in this control.
+- (b) The dca2ea1e7f BOOK through head's page generator (`/var/tmp/grade-head/cross-dca2/`), written by the head chain
+  before it grades. Against (b), the head book differs only in class L's run half. Against (a), it carries everything.
+
+| Row | Control (a) | Prediction for the 068b5e3cc8 book | Refuted if |
+|---|---:|---|---|
+| INV_OVERDUE_WITHIN_BALANCE | 2 (007, 496) | **0 to 2, neither 007 nor 496**, as for dca2 | 007 or 496 breach, or above 2 |
+| PAGE_BALANCE, still-level steps | 0 | **0 to 5** | above 5 |
+| PAGE_BALANCE, left-level steps | 22, all SYN-2016-549 | **at most 22**. Class L lowers leaver balances. That could raise "overdue above balance" on 549g, and I cannot say which way | above 30 |
+| Unexcepted total | 24 on 2 rows | **at most 27, no third row** | above 27, or a third unexcepted row |
+| The 8 excepted rows | as (a) | the same exceptions hold | an excepted row loses its exception |
+| Written-off accounts printing owed | 27, GBP 1,230.90 | **9 to 27 accounts, GBP at most 1,230.90**. The class-R stale-refund part (GBP 336.60) and the desk fixes come on top of class L's page half, which (a) already holds. SYN-2016-218 stays off the list | count above 27, GBP above 1,230.90, or SYN-2016-218 on it |
+| Class L, run half, against (b) | n/a | **no leaver leg's unasked GBP rises against (b), and the left-level closed total does not rise**. This is the filed P2 (59 of 850 world-walk closing balances fall, none rise), seen through the page | any leaver class's unasked GBP above (b)'s |
+| Bad debt, head book against the dca2 book | n/a | **`total_bad_debt_gbp` no higher than the dca2 book's**. The closing balance sizes write-off, and class L only lowers it | head above dca2 |
+| Live leaver legs with unasked debit (census3) | 4, GBP 415.70 | **at most 5 legs, GBP at most 450** | above 5 or GBP 450 |
+| Holds: mixed / all | 15 / 142 | **mixed at most 4; all between 96 and 129** (dca2's fall, rebased by +3) | mixed above 4, or all above 142 |
+| The gate | refused, 24 on 2 rows | **refused**, on PAGE_BALANCE (SYN-2016-549) at least | the gate passes |
+
+A gate pass goes to the publisher at once, under the director's 8 Nov yes, and lifts the tenth cold read's embargo. A
+refusal names each remaining breach class with its count and owner.
