@@ -143,3 +143,26 @@ def test_a_settle_now_keeps_the_exit_time_systemd_gave(tmp_path):
         "2026-09-29T10:01:46Z", "oom-kill", "9")
     assert seat.ended_since(SINCE.replace(hour=9), register=path)["died"][0]["ended_at"] == (
         "2026-09-29T10:01:46Z")
+
+
+#: `book-dca2ea1e7f` as the 10 Nov hand settle wrote it: reask()'s whole answer stored as the
+#: evidence, the exit time inside it. The 21:24Z orientation crashed on `re.search` over this dict,
+#: so the seat wrote no record at all.
+POWEROFF = {
+    "job": "book-dca2ea1e7f", "unit": "longjob-book-dca2ea1e7f", "artefact": None, "log": None,
+    "launched_at": "2026-09-29T12:10:00Z", "claim": "died", "settled_at": "2026-09-29T19:00:00Z",
+    "evidence": {"verdict": "died", "exited_at": "2026-09-29T08:26:45Z",
+                 "why": "guest poweroff 08:26:45 GMT: the WSL guest powered off"},
+}
+
+
+def test_a_hand_settled_row_with_its_answer_as_evidence_is_read_not_crashed_on(tmp_path):
+    """A dict in `evidence` is read as check() would have written it: the death is listed, with the
+    exit time it carries as `ended_at`, and the rest of the register still reads.
+
+    MUTATION: drop the dict branch in ended_since and this raises TypeError, as the 21:24Z seat did.
+    """
+    seen = seat.ended_since(SINCE, register=_register(tmp_path, [POWEROFF, RUN_A2]))
+    assert [d["job"] for d in seen["died"]] == ["book-dca2ea1e7f", "ab5-runA2"]
+    row = seen["died"][0]
+    assert row["ended_at"] == "2026-09-29T08:26:45Z" and row["ended_by"] is None

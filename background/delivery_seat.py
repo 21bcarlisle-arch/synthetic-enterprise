@@ -1126,6 +1126,14 @@ def ended_since(since: datetime, register: Path | None = None) -> dict:
         if not any(t is not None and t >= since for t in (settled, launched)):
             continue
         evidence = r.get("evidence") or ""
+        if isinstance(evidence, dict):
+            # A HAND SETTLE ONCE STORED reask()'s whole answer here (10 Nov, the poweroff rows), and
+            # one such row stopped every orientation. Read it as check() would have written it.
+            exited = exited or _stamp(evidence.get("exited_at"))
+            r = {**r, "exited_at": r.get("exited_at") or evidence.get("exited_at")}
+            evidence = str(evidence.get("why") or "")
+        elif not isinstance(evidence, str):
+            evidence = str(evidence)
         result = r.get("result") or (re.search(r"Result=([\w-]+)", evidence) or [None, None])[1]
         status = r.get("exit_status") or (
             re.search(r"ExecMainStatus=(\d+)", evidence) or [None, None])[1]
