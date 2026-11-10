@@ -486,6 +486,38 @@ No new source was read. Each line cites the passage on this repository's pages i
     previous payments were set too low" (same letter, p.2). On either wording, a debit on a working
     schedule is not debt. The proposed wording is a 2011 consultation; whether it was adopted unchanged
     is not checked here (GAP, narrow: it does not change the definition this build uses).
+  - *Amended 10 Nov 2026 (worker): a debit at the end of a scheme that is not rolled into a new one.*
+    The 2011 wording excludes only "customers with a debit at the end of a payment scheme that will be
+    rolled into a new payment scheme". A leg that leaves level direct debit (its mandate stopped after
+    returns, or the household moved to paying on receipt) has no new scheme to roll into, so that
+    exclusion does not reach its debit. Three things follow, and none needs a new source:
+    1. **The debit is still owed.** It is charges for energy supplied, which the collections did not
+       cover. Leaving the scheme does not cancel it.
+    2. **It is not yet debt.** The household has defaulted on nothing by having a debit. The licence
+       starts its own debt clock at a written demand: "Outstanding Charges" are charges that "have been
+       demanded ... in Writing at least 28 days previously and remain unpaid" (Electricity Supply
+       Standard Conditions, definitions, read in `final_account_debt_recovery_primary_check_2026-11-07.md`
+       row 4a). So the supplier must **ask for it, in writing, once**. Published practice is a bill or a
+       statement with a term: "send you a bill instead" (British Gas) and "clear that balance within four
+       weeks" (Budget Energy), both quoted in "Leaving level direct debit with a debit", below.
+    3. **A missed instalment is made good only by cash that meets it.** The schedule's shortfall is
+       cumulative: requested to date less received to date. The next instalment, when it is collected,
+       pays the next request. It does not pay the one that was returned. Re-presentation, a card payment
+       or a repayment makes the missed one good. A debit that no document asks for cannot be made good
+       by anything, because nothing tells the household it is owed.
+    - **What the tree does today (measured 10 Nov 2026, worker).** On the 78f82e4242 book, with its
+      page regenerated at origin 7f69f78825, **22 live legs that have left level DD carry GBP 6,945.89
+      that no document on the page asks for**: the page balance is a debit and no invoice's
+      outstanding figure holds it. The 4dee9854a4 book reads 21 legs and GBP 6,859.12. SYN-2016-536g
+      is one: GBP 112.14 from its last level collection (13 Mar 2020) to book end. The desk's level
+      walk does not see such a debit when the account's other leg is still on level DD: `on_level_dd`
+      keeps the whole account on the schedule, and `level_shortfall` counts only what the schedule and
+      the bills asked. 4 of the 22 legs are of that shape. The reader is in the cure finding,
+      "A leaver's scheme debit no document asks for".
+    - **GAP, unchanged:** whether the demand is a standalone statement or folded into the first
+      on-receipt bill (GAP 2 of "Leaving level direct debit with a debit"). Both ask the same amount
+      once, with one term. The build takes the statement, because the desk already dates one
+      (`left_level_asks`) and the page should print the demand the desk acts on.
 - **Who dunns, and on what.** A supplier runs one dunning run per account and reads its balance. It
   would not chase a home in net credit (`company_debt_management.md`, "Where the desk runs, its silence
   is a decision", PROS-2018-0137; SAP FI-CA keeps the dunning level on the account, not the item).
@@ -751,3 +783,37 @@ on the final bill and collect that balance by the existing mandate (`home_moves.
 today the level shortfall a leaver carries is never asked for, and it is written off. That is a fidelity question about
 the world, separate from this change. **Direction of error:** this change moves bad debt to what the world actually
 collected. It does not touch the larger understatement of collection at move-out.
+
+## The debit a leaver owes is its leg's: which leg a payment paid (worker, 10 Nov 2026)
+
+*K8 for the change that clears INV_OVERDUE_WITHIN_BALANCE's last two breaches on the 78f82e4242 book. Written from the
+replay, before the build lands.*
+
+**What the tree did.** `left_level_asks` met every bill issued before the account left from one account-wide pool of
+cash, oldest bill first. On a dual-fuel account, the leg that left level DD with a scheme debit then absorbed cash the
+other leg had paid against its own on-receipt bills. Those bills read as unpaid, and aged from their own due dates.
+SYN-2016-007 was dunned GBP 9.20 on 24 Jan 2019, the day after its electricity final bill was collected on its due date,
+while that leg stood GBP 14.78 in credit. SYN-2016-496 was dunned GBP 45.48 at 61 days from electricity bills its
+standing credit had paid. The debt in both was the gas scheme's debit, whose closing statement was not yet due.
+
+**What is established.** The section above already makes the debit the leg's: "the desk demands that leg's debit
+balance once". A payment made to an energy account pays that account: a direct debit is collected under the fuel's own
+mandate for the bill it collects, and a push payment carries the account's own reference. *Logic, not a published
+source:* no published rule was found that says this, and none is needed. A household paying its electricity account is
+not paying its gas debt.
+
+**The choice the build makes.** Cash up to the day of leaving meets its own leg's bills first, oldest first. A crossing's
+reference starts with the leg, as a bill's does. A direct debit is referenced by the invoice it collects. A push payment
+is referenced by the leg's account, ambiguous about which invoice but not about which leg. What names no leg (a plan
+instalment, a credit note) and what is left of any leg's own cash then meet the remaining bills, oldest first. That
+second step is the account netting a household in credit on one fuel would expect. Replayed over all 160 leaver openings
+on the 78f82e4242 book, this clears 5 openings and adds none. Each of the 5 was the desk dunning a paid bill or a leg in
+credit: SYN-2016-007, SYN-2016-496, SYN-2016-182, SYN-2016-376 and PROS-2017-0056. On SYN-2016-376 the first real miss
+is a day later, and the desk opens on it then.
+
+**GAP, logic.** The desk still dates the statement from the day the *account* leaves level, which is the day its last
+level leg leaves. This page says each leg demands its own debit when it leaves. On SYN-2016-345 the electricity leg
+left on 27 Dec 2017, so its statement fell due on 24 Jan. The account's statement is not due until 15 Feb. The row
+reads that leg as owed from 24 Jan, and the desk cannot open before 16 Feb. Neither the old walk nor this one breaches
+the row there, because no journey opens inside the term. But the dates disagree, and the next leaver build should date
+each leg's statement from that leg's own leaving.

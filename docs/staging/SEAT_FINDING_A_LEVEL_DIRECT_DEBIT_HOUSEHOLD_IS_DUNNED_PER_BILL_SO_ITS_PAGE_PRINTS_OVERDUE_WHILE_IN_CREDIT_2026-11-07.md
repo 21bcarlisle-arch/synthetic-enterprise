@@ -930,3 +930,54 @@ set carries this book.
 **Forward prediction (filed now, for the first fresh book graded at or after this commit, with no desk change to
 leavers in between):** INV_OVERDUE_WITHIN_BALANCE reads **at most 5**. Every breach is a journey opened within 28
 days of a leg leaving level, on a two-leg account.
+
+## The 2 desk residuals replayed: one leg's scheme debit landed on the other leg's paid bills (worker, 10 Nov 2026)
+
+Drawn as `left-level-journey-opens-inside-the-statement-term`. Re-measured first: 189b32460e (the cited commit) is on
+origin and its 2 residuals are still the desk's, so the premise stands. The replay script
+(`/tmp/lvlreplay/replay.py`) rebuilds each billing account's desk ledger from the 78f82e4242 book's ledger
+(`/var/tmp/capgrade/out/ledger.json`). Bills are `<leg>::<invoice>`. Cash is `payobs:<leg>::…`, as the triad's
+correlation ids make it. The script then calls `arrears_engine` directly.
+
+**The hypothesis held, and the branch is `left_level_asks`.** The unchanged code reproduces both journeys to the
+penny. SYN-2016-007 opens on 24 Jan 2019 at GBP 9.20, 1 day overdue. SYN-2016-496 opens on 17 Aug 2018 at GBP 45.48,
+61 days overdue. The walk before the day of leaving met every bill from one account-wide pool, oldest first. The gas
+leg's scheme debit therefore used up cash the electricity leg had paid for its own bills, and the newest electricity
+bills came out unpaid, each aged from its own due date. On 007 that was the final bill collected on its due date. On
+496 it was bill 47807, paid on 17 Jun by standing credit.
+
+**Two fixes were tried first and refuted by the replay, recorded so neither is tried again:**
+- *On-receipt bills first:* this hid PROS-2018-0222's electricity final bill, whose own collection failed on 27 Aug 2019.
+  That is a real default.
+- *An on-receipt bill keeps cash that paid it within its window* (`bill_paid_in_its_window`): 496 stays, because its
+  July electricity bill was paid 4 days late, on 19 Jul. That cash went back into the pool.
+
+**The fix: cash meets its own leg's bills first** (`arrears_engine.cash_leg`). A crossing's reference starts with the
+leg. A direct debit is referenced by the invoice it collects. A push payment is referenced by the leg's account, which
+is invoice-ambiguous by design but not leg-ambiguous. What names no leg, plus any leg's leftover, then meets what
+remains, oldest first. Knowledge: the new section "The debit a leaver owes is its leg's" on the payments page.
+
+**Measured on the replay over all 160 openings made while off level on the 78f82e4242 book (not a prediction):** the old
+code reproduces an overdue at all 160. The new code clears **5** and adds **0**:
+- SYN-2016-007 and SYN-2016-496, the two residuals.
+- SYN-2016-182: the gas final bill's collection failed, but that leg stood GBP 23.94 in credit.
+- PROS-2017-0056: the same shape, GBP 14.03 in credit.
+- SYN-2016-376: the old opening aged the gas debit from electricity bill 41969, which was paid on its due date. The first
+  real miss (41970, due 20 Feb 2018) opens a day later.
+
+The row called those last three owed, because it reads a leg's bills leniently after a failure. None of the three is a
+row breach on either code.
+
+**Control:** `tests/company/billing/test_a_leavers_cash_meets_its_own_legs_bills_first.py` asserts the partition
+first: a paid own-leg bill is not overdue, and the same bill with its collection returned is. It then checks the
+statement and the netting of surplus and unnamed cash. Three mutations fire: no leg attribution (3 fail), a leg's
+surplus not pooled (1 fails), and own cash not used up (3 fail).
+
+**Found, not fixed (GAP on the payments page):** the desk dates the statement from the *account's* leaving, which is
+its last level leg. The page and the row date it per leg. SYN-2016-345 shows the gap: its electricity statement was due
+on 24 Jan 2018, the account's on 15 Feb. Neither walk breaches the row there, but the next leaver build should date
+each leg's statement from that leg's own leaving.
+
+**Forward prediction (filed now, for the first fresh book graded at or after this commit):** INV_OVERDUE_WITHIN_BALANCE
+reads **at most 2**. No breach is a journey whose opening figure is an own-leg bill paid by that leg's cash. If the
+reading is higher, the per-leg walk misses a shape the 160 replayed openings did not contain.

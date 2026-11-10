@@ -362,6 +362,24 @@ def level_leave_dates(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.
     return leaves
 
 
+def observed_cash_event_id(correlation_id: str) -> str:
+    """The ledger event id of cash this company observed for crossing `correlation_id`
+    (`PaymentObservationConsumer._post_cash`)."""
+    return f"payobs:{correlation_id}"
+
+
+def cash_leg(e: LedgerEvent) -> Optional[str]:
+    """The supply leg a credit was paid to, or None where it names none. A crossing's reference starts
+    with the leg, as a bill's does (`on_level_dd`): a direct debit's is the invoice it collects, and a
+    push payment's is the leg's own account reference, invoice-ambiguous by design but not
+    leg-ambiguous. A plan instalment, a credit note or a write-off names no leg."""
+    ref = e.remittance[0] if e.remittance else ""
+    if not ref and e.event_type == LedgerEventType.PAYMENT_CREDIT and e.event_id.startswith(
+            observed_cash_event_id("")):
+        ref = e.event_id[len(observed_cash_event_id("")):]
+    return (ref.partition("::")[0] or None) if "::" in ref else None
+
+
 @dataclass(frozen=True)
 class LeftLevel:
     """What an account that has left level DD owes and from when (`left_level_asks`).
@@ -391,9 +409,13 @@ def left_level_asks(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.da
     the rest: dated from the request, SYN-2016-217's first contact on the 9d7dcfc19c book came 130 days
     overdue, on the prepayment rung. Every other bill is an on-receipt bill, owed from its own due date.
 
-    Cash taken up to the day of leaving paid the scheme's bills, oldest first, as it always has. Cash
-    after it pays the earliest due first, so a household that pays its first on-receipt bill on time
-    is not read as having missed it because the payment went to the statement not yet due."""
+    Cash taken up to the day of leaving meets its own supply leg's bills first, oldest first, then
+    what cash names no leg, with any leg's surplus, meets what is left, oldest first (`cash_leg`). One
+    account-wide pool put a leg's scheme debit on the other leg's paid bills, which then aged from
+    their own due dates: on the 78f82e4242 book SYN-2016-007 was dunned GBP 9.20 the day after paying
+    it, and SYN-2016-496 GBP 45.48 from electricity bills its standing credit had paid. Cash after
+    leaving pays the earliest due first, so a household that pays its first on-receipt bill on time is
+    not read as having missed it because the payment went to the statement not yet due."""
     left = left_level_on(ledger, schedule, as_of)
     if left is None:
         return None
@@ -401,15 +423,29 @@ def left_level_asks(ledger: AccountLedger, schedule: LevelSchedule, as_of: dt.da
     terms = dt.timedelta(days=payment_terms_days)
     events = ledger.events_through(as_of)
     before = [e for e in events if e.event_type == LedgerEventType.BILL_DEBIT and e.valid_time < left]
-    credit = round(sum(e.amount_gbp for e in events
-                       if not e.event_type.is_debit and e.valid_time <= left), 2)
+    own: Dict[Optional[str], float] = {}
+    for e in events:
+        if not e.event_type.is_debit and e.valid_time <= left:
+            leg = cash_leg(e)
+            own[leg] = round(own.get(leg, 0.0) + e.amount_gbp, 2)
+    owed_after_own: List[tuple] = []
+    for e in before:
+        ref = e.invoice_ref or ""
+        leg = ref.partition("::")[0] if "::" in ref else ""
+        gbp, have = round(e.amount_gbp, 2), (own.get(leg, 0.0) if leg else 0.0)
+        take = min(have, gbp)
+        if leg:
+            own[leg] = round(have - take, 2)
+        owed_after_own.append((e, round(gbp - take, 2)))
+    credit = round(sum(own.values()), 2)
     missed = (level_shortfall(ledger, schedule, left)
               if dunned_at is not None and dunned_at(left) else None)
     missed_left = round(missed.outstanding_gbp, 2) if missed is not None else 0.0
     statement_due = left + dt.timedelta(days=CLOSING_STATEMENT_TERM_DAYS)
     asks: List[tuple] = []
-    for e in before:
-        gbp = round(e.amount_gbp, 2)
+    for e, gbp in owed_after_own:
+        if gbp <= 0.005:
+            continue
         if credit >= gbp - 0.005:
             credit = round(credit - gbp, 2)
             continue

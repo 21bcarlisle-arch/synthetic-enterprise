@@ -150,6 +150,7 @@ from company.billing.arrears_engine import (
     collections_snapshot,
     fifo_unpaid_bills,
     left_level_asks,
+    observed_cash_event_id,
     on_level_dd,
 )
 from company.billing.breathing_space_register import BreathingSpaceRegister
@@ -1610,7 +1611,7 @@ class PaymentObservationConsumer:
         harmless (the ledger's own idempotent dedup), defence in depth on top
         of `observe()`'s own correlation-id gate."""
         event = LedgerEvent(
-            event_id=f"payobs:{correlation_id}",
+            event_id=observed_cash_event_id(correlation_id),
             account_id=account_id,
             event_type=LedgerEventType.PAYMENT_CREDIT,
             amount_gbp=round(amount_gbp, 2),
