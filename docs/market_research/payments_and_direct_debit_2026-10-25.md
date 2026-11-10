@@ -751,3 +751,37 @@ on the final bill and collect that balance by the existing mandate (`home_moves.
 today the level shortfall a leaver carries is never asked for, and it is written off. That is a fidelity question about
 the world, separate from this change. **Direction of error:** this change moves bad debt to what the world actually
 collected. It does not touch the larger understatement of collection at move-out.
+
+## The debit a leaver owes is its leg's: which leg a payment paid (worker, 10 Nov 2026)
+
+*K8 for the change that clears INV_OVERDUE_WITHIN_BALANCE's last two breaches on the 78f82e4242 book. Written from the
+replay, before the build lands.*
+
+**What the tree did.** `left_level_asks` met every bill issued before the account left from one account-wide pool of
+cash, oldest bill first. On a dual-fuel account, the leg that left level DD with a scheme debit then absorbed cash the
+other leg had paid against its own on-receipt bills. Those bills read as unpaid, and aged from their own due dates.
+SYN-2016-007 was dunned GBP 9.20 on 24 Jan 2019, the day after its electricity final bill was collected on its due date,
+while that leg stood GBP 14.78 in credit. SYN-2016-496 was dunned GBP 45.48 at 61 days from electricity bills its
+standing credit had paid. The debt in both was the gas scheme's debit, whose closing statement was not yet due.
+
+**What is established.** The section above already makes the debit the leg's: "the desk demands that leg's debit
+balance once". A payment made to an energy account pays that account: a direct debit is collected under the fuel's own
+mandate for the bill it collects, and a push payment carries the account's own reference. *Logic, not a published
+source:* no published rule was found that says this, and none is needed. A household paying its electricity account is
+not paying its gas debt.
+
+**The choice the build makes.** Cash up to the day of leaving meets its own leg's bills first, oldest first. A crossing's
+reference starts with the leg, as a bill's does. A direct debit is referenced by the invoice it collects. A push payment
+is referenced by the leg's account, ambiguous about which invoice but not about which leg. What names no leg (a plan
+instalment, a credit note) and what is left of any leg's own cash then meet the remaining bills, oldest first. That
+second step is the account netting a household in credit on one fuel would expect. Replayed over all 160 leaver openings
+on the 78f82e4242 book, this clears 5 openings and adds none. Each of the 5 was the desk dunning a paid bill or a leg in
+credit: SYN-2016-007, SYN-2016-496, SYN-2016-182, SYN-2016-376 and PROS-2017-0056. On SYN-2016-376 the first real miss
+is a day later, and the desk opens on it then.
+
+**GAP, logic.** The desk still dates the statement from the day the *account* leaves level, which is the day its last
+level leg leaves. This page says each leg demands its own debit when it leaves. On SYN-2016-345 the electricity leg
+left on 27 Dec 2017, so its statement fell due on 24 Jan. The account's statement is not due until 15 Feb. The row
+reads that leg as owed from 24 Jan, and the desk cannot open before 16 Feb. Neither the old walk nor this one breaches
+the row there, because no journey opens inside the term. But the dates disagree, and the next leaver build should date
+each leg's statement from that leg's own leaving.
