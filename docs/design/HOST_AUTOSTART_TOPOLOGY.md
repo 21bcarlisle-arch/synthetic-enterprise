@@ -31,12 +31,25 @@ migration completed 2026-07-17, so **once WSL boots the whole stack comes up una
 
 | Task | Trigger | Action | Principal | Status |
 |---|---|---|---|---|
-| **`SkynetBootStart`** | **Boot** +30s | `wsl.exe -d Ubuntu -e /bin/sh -c "date -Is >> ~/.wsl_autostart_receipt; exec sleep infinity"` | `21bca`, **S4U** | added 2026-08-12 |
+| **`SkynetBootStart`** | **Boot** +30s; **every 5 min** (added 2026-11-10) | `wsl.exe -d Ubuntu -e /bin/sh -c "date -Is >> ~/.wsl_autostart_receipt; exec sleep infinity"` | `21bca`, **S4U** | added 2026-08-12; MultipleInstances=IgnoreNew, ExecutionTimeLimit=none since 2026-11-10 |
 | `Start WSL2` | Logon | `wsl.exe -d Ubuntu` | `21bca`, Interactive | kept as fallback |
 | `WSL-SSH-Forward` | Boot | `PowerShell -File C:\wsl-ssh-forward.ps1` | `21bca`, Interactive | has never run |
 | ~~`SkynetAutoStart`~~ | ~~Logon~~ | ~~`…start_worker.sh`~~ | — | **RETIRED 2026-08-12** |
 
 Distro name as Windows knows it is `Ubuntu`; `Skynet` is the Linux hostname.
+
+### 2026-11-10 — the keeper died and nothing relaunched it
+
+The boot trigger starts the `sleep infinity` keeper once per boot. The receipt's last line was
+2026-11-07T15:47:15Z, so the keeper had exited before WSL stopped at about 08:25 GMT on 10 Nov,
+and WSL then shut down when the director's last terminal window closed. Nothing landed on `main`
+from 08:00 to 18:41. `systemctl --user --failed` was empty: every timer was simply not firing.
+Why the keeper exited is not established.
+
+Fix, applied by the director from an elevated PowerShell at 18:41 GMT: a repeating trigger every
+5 minutes on the same task, `MultipleInstances=IgnoreNew` (a live keeper makes the tick a no-op)
+and no execution time limit. The receipt gained `2026-11-10T18:41:32+00:00` when it was started
+by hand. A dead keeper is now replaced within 5 minutes rather than at the next boot.
 
 ### What the outage was
 
