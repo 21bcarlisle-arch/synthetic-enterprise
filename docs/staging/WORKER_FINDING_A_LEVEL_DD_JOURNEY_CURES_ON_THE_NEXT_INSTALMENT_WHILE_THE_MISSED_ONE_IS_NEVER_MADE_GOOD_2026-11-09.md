@@ -1306,3 +1306,79 @@ That is the only unexcepted class. The book is **not** offered to the publisher,
 stays. The head book 068b5e3cc8 started at about 20:50Z when this one ended, and its chain grades its own table
 (filed above at ~19:10). I predict the gate refuses there too, on the same 22: 6fb708f3a fixed class L, and class L′
 is the other branch, which no landed commit touches yet.
+
+## Book 068b5e3cc8 (head), graded against its table: eight rows held, three fell, and the gate refuses on the same 22 steps on SYN-2016-549 (worker, 10 Nov 2026 ~23:10 GMT)
+
+*Drawn as `grade-the-head-book-068b5e3cc8-when-its-chain-writes-alldone`.*
+
+The book ran from ~20:50Z to 22:38Z (`run_output_068b5e3cc8_20261110T190254Z.json`, 1,302 accounts). Its chain wrote
+`ALLDONE` into `/var/tmp/grade-head/arm/` at 22:44, and the cross arm (b) into `/var/tmp/grade-head/cross-dca2/` at
+22:42. Neither died. The table filed at ~19:10 was not edited after it was filed.
+
+| Row | Control (a) | Prediction | Book | Verdict |
+|---|---:|---|---:|---|
+| INV_OVERDUE_WITHIN_BALANCE | 2 (007, 496) | 0 to 2, neither 007 nor 496 | **0** | **held** |
+| PAGE_BALANCE, still-level steps | 0 | 0 to 5 | **0** | **held** |
+| PAGE_BALANCE, left-level steps | 22, all SYN-2016-549 | at most 22 | **22, all SYN-2016-549** | **held** |
+| Unexcepted total | 24 on 2 rows | at most 27, no third row | **22 on 1 row** | **held** |
+| The 8 excepted rows | as (a) | the same exceptions hold | identical (337, 12, 7, 7, 7, 1, 2, 19) | **held** |
+| Written-off accounts printing owed | 27, GBP 1,230.90 | 9 to 27, GBP at most 1,230.90, SYN-2016-218 off | **29, GBP 1,374.58**; 218 off | **fell** on count and GBP |
+| Class L, run half, against (b) | n/a | no leaver leg's unasked GBP rises; left-level closed total does not rise | left-level closed **3,748.17 to 4,110.76** (two new legs: PROS-2020-0012 93.61, SYN-2016-369 268.98); still-level closed 571.24 to 1,014.29 | **fell** |
+| Bad debt, head against dca2 | n/a | no higher than GBP 9,620.64 | **GBP 9,477.56** (-143.08) | **held** |
+| Live leaver legs with unasked debit | 4, GBP 415.70 | at most 5, GBP at most 450 | **3, GBP 385.85** (same three as dca2) | **held** |
+| Holds: mixed / all | 15 / 142 | mixed at most 4; all 96 to 129 | **11 / 119** | **fell** on mixed (048, 525, 536 unchanged at 6, 3, 2), as on dca2; all held |
+| The gate | refused, 24 on 2 rows | refused, on PAGE_BALANCE (549) at least | **refused, 22 on 1 row** | **held** |
+
+My closing prediction on the dca2 grade (the gate refuses on the same 22) held: class L′ is untouched by any landed
+commit.
+
+### Why the class-L run-half row fell: the run refunds a credit the page does not print
+
+Against (b), the head book differs on **44 of 1,302 legs, and on every one only in `balance_gbp` and `refunds`**.
+`payments`, `invoices`, `total_paid_gbp` and `total_billed_gbp` are identical on every leg. So class L's run half
+changes nothing but the final refund. That splits three ways:
+
+- **36 legs cured**: a page credit totalling GBP 2,505.78 that (b) left stranded is now refunded to exactly zero. This is
+  what class L was for, and it is the larger effect.
+- **6 legs over-refunded**: the refund exceeds the credit the page shows, and the leg is pushed into debit by
+  GBP 833.30 more than in (b). None of them has a sibling leg absorbing it (the account sums move the same way):
+
+  | Leg | page balance (b) | head | refund rise |
+  |---|---:|---:|---:|
+  | OCC-caee88f5fe53 | 0.00 | -197.15 | 197.15 |
+  | PROS-2017-0351 | +316.61 | -78.14 | 394.75 |
+  | PROS-2019-0318 | -82.43 | -124.96 | 42.53 (a refund to a leg already in debit) |
+  | PROS-2020-0012 | 0.00 | -93.61 | 93.61 |
+  | PROS-2020-0191 | -130.25 | -283.14 | 152.89 (a refund to a leg already in debit) |
+  | SYN-2016-369 | 0.00 | -268.98 | 268.98 |
+- **2 partial** (PROS-2016-0263g 64.81 to 1.65; SYN-2016-493 24.46 to 11.56).
+
+So the run's closing credit, which sizes the refund, holds money the page's payments do not, on six legs. Two
+explanations fit and I cannot yet say which: (i) class L's run half keeps a level collection that its page half does
+not print on these legs (the two halves key on different predicates); or (ii) the run's refund counts the kept
+collection twice. The next step that chooses between them is one walk: SYN-2016-369's 2024 collections in the run
+output against its page `payments`, around the 2024-08-20 refund (303.65 head, 34.67 in (b)).
+
+The filed P2 (59 of 850 world-walk closing balances fall, none rise) was about the world walk. Through the page, a
+refund rising past the page's credit is a debit rising, and I did not foresee it. That is the miss, kept beside it.
+
+**The written-off row** rose against (b) as well (29, GBP 1,215.51 to 29, GBP 1,374.58): PROS-2018-0359 +47.12,
+PROS-2019-0318 +42.53, SYN-2016-037 +41.42, SYN-2016-151 +28.00. PROS-2019-0318's +42.53 is exactly its new refund to
+a debtor leg, then written off. The other three are not yet attributed. Against (a) the book also fell, so the
+class-R stale-refund part predicted to leave has still not left, as on dca2.
+
+**What the gate does not see.** No invariant compares a final refund with the page's closing credit, which is why six
+over-refunds reach the page with the gate unmoved. The class is "a refund never exceeds the credit the page shows on
+the day it is paid". It belongs in the blind-written suite (ruling of 26 Oct, step 4), and I am filing it here for
+that writer rather than writing it myself from the code under test.
+
+### The gate refuses. Every remaining breach class, with its count and owner
+
+| Class | Count | Owner |
+|---|---:|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, left level, SYN-2016-549 (class L′) | 22 steps, 1 account | D_billing_metering, `a-credit-bill-meets-the-scheme-debit-before-the-next-bill` (`SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md`) |
+
+Not a gate class, but owed: **class L over-refund**, 6 legs, GBP 833.30 into page debit; owner
+`desk-write-off-reaches-the-page` (class L, `SEAT_FINDING_THE_DESKS_WRITE_OFF_OF_A_CLOSED_ACCOUNT_NEVER_REACHED_THE_PAGE_2026-11-10.md`).
+
+The book is **not** offered to the publisher, and the tenth cold read's embargo stays.
