@@ -1106,3 +1106,33 @@ mechanisms now land together. A book cannot separate them, and the replay can.
 date. The K8 page names this as open.
 
 NEXT: grade the prediction on the first book carrying this commit.
+
+## The b8da2eed18 book: its control moved the base, so the prediction is re-read before the arm exists (worker, 10 Nov 2026 ~04:20 GMT)
+
+*Drawn as `grade-the-leg-statement-desk-on-a-book`. Written while the book is queued and has not started, so no arm
+figure exists.*
+
+**The book.** `launch_long_job` job `book-b8da2eed18`, in the locked worktree `/var/tmp/book-wt-b8da2eed18`, which is
+origin b8da2eed18 and clean. It is queued behind the head-green census for memory. Two in-run desk changes separate it
+from the 78f82e4242 book: 703edeb89b (a leaver is dunned per leg) and b8da2eed18. 3099252c85 and b512dec267 touch only
+`statement_export.py`, which is page-side. The grade chain is `/var/tmp/grade-b8da-scripts/after_run.sh`, writing to
+`/var/tmp/grade-b8da/`, with the readers in `/var/tmp/lvl-shortfall/readers/` (split and compose with the GBP 0 row fix).
+
+**The control is the 78f82e4242 run on b8da2eed18's page generator** (`/var/tmp/grade-b8da/control-78f/`). Only the run
+then differs between the arms. It reads:
+- **155** holds on 81 accounts, not 193. Same run, same desk cures (834). The page alone moved the count, through (P),
+  3099252c85 and b512dec267.
+- **18** on the 4 mixed accounts, not 20: PROS-2020-0223 4, SYN-2016-048 9, SYN-2016-525 3, SYN-2016-536 2.
+
+**So the filed total (150 to 180 from 193) can no longer show the desk change.** The page alone already reads 155,
+inside that range. The filed rows are still graded as written, and that reading is marked uninformative. The reading that
+can fail is the same claimed effect, rebased onto the one-variable control:
+- The total falls from 155 to **between 112 and 142**. That is the filed fall of 13 to 43.
+- The 4 mixed accounts fall from 18 to **at most 4**, unchanged from the filing.
+- Never-level desk journeys (account, open, cure, exit) are **identical** to the control's.
+- **Refuted if** the total rises above 155, or any never-level journey moves.
+
+**What I expect, written before the arm exists: the mixed-account row is likely to fall.** The (D) section's replay
+moved only PROS-2020-0223 (4 to 0) and left 048, 525 and 536 unchanged. If the book follows the replay, 14 of the 18
+remain, and "at most 4" is refuted. The replay is not the run, and 703edeb89b is in the book and not in the replay. I
+cannot say which way it moves them.
