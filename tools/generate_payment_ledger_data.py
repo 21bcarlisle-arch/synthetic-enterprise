@@ -170,6 +170,19 @@ def build_account_ledger(cust, as_of):
                     "description": stage["note"],
                 })
 
+    # The desk's write-off of the closed account, this leg's share of what the page had not already
+    # written off that day (`desk_write_off_postings`). Without it 121 accounts the company wrote off
+    # printed GBP 17,782.71 the page never wrote off (4dee9854a4 book).
+    for wo in cust.get("desk_write_offs", []):
+        if wo["date"] <= as_of:
+            entries.append({
+                "date": wo["date"], "type": "write_off", "invoice_number": 0,
+                "amount_gbp": round(-wo["amount_gbp"], 2), "info_amount_gbp": None,
+                "method": None,
+                "description": "Closed-account balance written off (GBP %.2f on the account)"
+                               % wo["account_write_off_gbp"],
+            })
+
     # Reg 6D: the credit a leaver's final bill closed in, paid back on the day the company pays it.
     for ref in cust.get("refunds", []):
         if ref["paid_date"] <= as_of:
@@ -219,6 +232,46 @@ def build_account_ledger(cust, as_of):
         "total_recovered_gbp": total_recovered,
         "total_epg_support_gbp": total_epg_support,
     }
+
+
+def desk_write_off_postings(legs, as_of):
+    """Split each account-level write-off the collections desk made across the account's fuel legs.
+
+    `legs` maps customer id to ledger record for the legs of ONE billing account; each carries the
+    account's `collections_desk_journeys`. Returns `({cid: [posting]}, [unposted])`.
+
+    The engine's per-invoice write-off dated on the desk's day is the same closing event, so the
+    page posts only what the desk wrote off beyond it. That remainder goes to the legs that owe on
+    the day, largest debit first, each up to what it owes. A desk figure above what the page shows
+    owed is not posted, since it would print a credit the household never held. It is returned as
+    unposted so the disagreement can be counted. A desk figure below leaves the rest owed.
+    (`docs/market_research/bad_debt_provisioning.md`, "How the company's write-off reaches the
+    account page".)"""
+    first = legs[min(legs)]
+    stages = sorted((s for j in first.get("collections_desk_journeys") or [] for s in j["stages"]
+                     if s["stage"] == "write_off" and s["on"] <= as_of), key=lambda s: s["on"])
+    postings = {cid: [] for cid in legs}
+    unposted = []
+    for stage in stages:
+        day, desk = stage["on"], round(stage.get("written_off_gbp") or 0.0, 2)
+        owed, already = {}, 0.0
+        for cid, rec in legs.items():
+            entries = build_account_ledger({**rec, "desk_write_offs": postings[cid]}, as_of)["entries"]
+            owed[cid] = round(sum(e["amount_gbp"] for e in entries if e["date"] <= day), 2)
+            already += sum(-e["amount_gbp"] for e in entries
+                           if e["date"] == day and e["type"] == "write_off")
+        left = round(desk - already, 2)
+        for cid in sorted(owed, key=lambda c: (-owed[c], c)):
+            take = round(min(left, owed[cid]), 2)
+            if take < 0.005:
+                break
+            postings[cid].append({"date": day, "amount_gbp": take, "account_write_off_gbp": desk,
+                                  "rule": stage.get("rule")})
+            left = round(left - take, 2)
+        if left >= 0.005:
+            unposted.append({"account_id": first["collections_desk_journeys"][0]["account_id"],
+                             "date": day, "desk_gbp": desk, "unposted_gbp": left})
+    return postings, unposted
 
 
 def generate(customers_dir=None, ledger_path=None):

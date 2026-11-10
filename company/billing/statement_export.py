@@ -312,6 +312,13 @@ def account_events(record: dict) -> list[dict]:
                 "amount_gbp": amount, "moves_balance_gbp": amount or 0.0,
                 "detail": stage.get("note") or stage.get("stage"),
             })
+    # The desk's write-off of the closed account, this leg's share as the ledger split it.
+    for wo in record.get("desk_write_offs") or []:
+        events.append({
+            "date": wo.get("date"), "kind": "adjustment", "reference": 0,
+            "amount_gbp": wo.get("amount_gbp"), "moves_balance_gbp": wo.get("amount_gbp") or 0.0,
+            "detail": "closed-account balance written off",
+        })
     for ref in record.get("refunds") or []:
         events.append({
             "date": ref.get("paid_date"), "kind": "adjustment", "reference": 0,

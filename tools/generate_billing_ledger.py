@@ -85,7 +85,7 @@ from simulation.arrears_engine import (
     with_credits_applied as _with_credits_applied,
 )
 from simulation.household import households_whose_account_closed, supply_points_that_left
-from tools.generate_payment_ledger_data import build_account_ledger
+from tools.generate_payment_ledger_data import build_account_ledger, desk_write_off_postings
 from tools.grade_svt_invoices_over_ceiling import bill_excess, term_of_bill, terms_by_customer
 from tools.run_output_store import load_run_output
 
@@ -1173,6 +1173,20 @@ def generate(run_json_path=None, out_path=None):
             customers[refund["customer_id"]].setdefault("refunds", []).append({
                 "paid_date": refund["paid_date"], "amount_gbp": refund["credit_amount_gbp"]})
 
+    # The desk's account-level write-off of a closed account, split across its legs once, here, where
+    # both legs are in hand. The page and the statement walk post each leg's stored share.
+    legs_by_account: dict[str, dict] = {}
+    for cid, cust in customers.items():
+        if cust["collections_desk_journeys"]:
+            legs_by_account.setdefault(billing_account_of(cid), {})[cid] = cust
+    desk_unposted = []
+    for legs in legs_by_account.values():
+        postings, unposted = desk_write_off_postings(legs, book_as_of)
+        desk_unposted += unposted
+        for cid, posted in postings.items():
+            if posted:
+                customers[cid]["desk_write_offs"] = posted
+
     # The balance is the page's (`build_account_ledger`), not a second sum beside it. Paid less
     # billed left out the EBSS credit, repayments, write-offs and refunds, counted payments dated
     # after the book and charged the payer a deemed bill's credit: PROS-2020-0022 paid every bill
@@ -1194,6 +1208,8 @@ def generate(run_json_path=None, out_path=None):
             "held_money_reconciliation_count": len(held_money),
         },
         "customers": customers,
+        # Where the desk wrote off more than the page showed owed that day: not posted, counted here.
+        "desk_write_off_unposted": desk_unposted,
         "exception_queue": exception_queue_as_dicts(all_held),
     }
 

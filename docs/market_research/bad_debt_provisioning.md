@@ -1409,6 +1409,31 @@ The 2026-10-12 fidelity check puts the cause in the world: the world writes off 
 seventh of what a large supplier does per pound billed. A write-off cannot create a loss the world
 never produced.
 
+## How the company's write-off reaches the account page (2026-11-10)
+
+Written before the page posts the desk's write-off (K8). The section above builds the write-off on
+the company's ledger. This one says how it shows on the account page and in `balance_gbp`.
+
+**What is established.** A write-off is an accounting derecognition (IFRS 9 5.4.4). It does not
+release the debt in law, and collection may continue (Centrica: GBP 105m of 2025's GBP 135m written
+off was still under enforcement, above). **GAP:** no published source says whether a GB supplier's
+customer statement shows a written-off balance as owed or as closed. The page's existing convention
+(`tools/generate_payment_ledger_data.py` docstring) is that a write-off closes the line on the
+statement. This build keeps that convention, and the convention is a question for a practitioner.
+
+**The design's choices.**
+1. **One event, one posting.** The desk writes off the account; the engine's per-invoice
+   `WRITTEN_OFF` dated the same day is the same event. The page posts the desk's figure less what it
+   already wrote off that day, never both.
+2. **The split across fuel legs.** It is made once, in the ledger generator, where both legs are in
+   hand. The share goes to the legs that owe on the day, largest debit first, each up to what it
+   owes. The page and the statement walk post the stored share.
+3. **When the desk and the page disagree on the amount.** If the desk wrote off less than the page
+   shows owed, the rest stays owed on the page, because that is what the company did. If it wrote
+   off more, the excess is not posted, because it would print a credit the household never held.
+   The excess is listed in the ledger's `desk_write_off_unposted`. Either way the disagreement is a
+   defect in one of the two figures, and the page shows it rather than resolving it.
+
 ## Early warning in the forward-cash-forecast provision: which signals move P(paid) before the age band, and by how much (2026-10-21)
 
 *The second slice of the payment-and-debt engine, §9c of the 2026-10-11 seat proposal. The build is
