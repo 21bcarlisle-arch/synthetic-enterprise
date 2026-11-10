@@ -1441,6 +1441,19 @@ statement. This build keeps that convention, and the convention is a question fo
    same rule as a part payment on a failed collection: the payment record carries it and the page
    posts it. **Established:** a payment received reduces the balance (SLC 27.16 treats the account
    as one balance). Nothing here needs a practitioner.
+5. **A repayment is posted at the cash that crossed, once.** (Added 2026-11-10, written before
+   the change was measured.) The world's payment truth records what each household sent, and when.
+   The page posts every repayment at that cash, on the day it was received. It does so whatever case,
+   return or paid bill the walk applied it to, and never twice. **Established:** a level direct-debit
+   customer is asked the level amount, not the bill: "a level direct debit is collected monthly at a
+   set amount, whatever that month's bill is" (`payments_and_direct_debit_2026-10-25.md`, "What a level
+   direct debit must be"). So the settlement of a
+   returned level collection is the level amount, whatever the month's bill was. Money paid above
+   what is owed is credit on the account (SLC 27.16). The world's walk credits that cash, and keeps
+   what finds nothing owed as credit. A later level collection does not use that credit, because the
+   household paid that collection in full. So it waits for a later debt, or for the refund when the
+   account closes. **Choice:** where several repayments arrive on one day they are posted as one line
+   per payment record. The day, not the instalment, is what the household's bank statement shows.
 
 ## Early warning in the forward-cash-forecast provision: which signals move P(paid) before the age band, and by how much (2026-10-21)
 

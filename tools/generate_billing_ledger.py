@@ -428,9 +428,13 @@ def generate(run_json_path=None, out_path=None):
     # `bad_debt_gbp` agree per account;
     # tests/tools/test_the_ledger_and_the_pnl_write_off_agree_on_the_real_book.py holds that on the
     # real run.
+    # The household's repayments at the cash the world says crossed: the page posts each in full.
+    truth_repayments: list[dict] = []
     resolved, write_offs, credits_applied = _resolved_settlement(
         bills, behavioral, churned, seed=42,
-        level_dd_collections=data.get("level_dd_collections"))
+        level_dd_collections=data.get("level_dd_collections"), repayments_out=truth_repayments)
+    # (leg, day received) -> what the page already posts of that repayment, from cases and returns.
+    repaid_posted: dict[tuple[str, str], float] = {}
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -1076,6 +1080,8 @@ def generate(run_json_path=None, out_path=None):
                     if take < 0.005:
                         break
                     repaid.append({"date": c["date"].isoformat(), "amount_gbp": take})
+                    key = (cid, c["credit_period_end"])
+                    repaid_posted[key] = round(repaid_posted.get(key, 0.0) + take, 2)
                     room = round(room - take, 2)
                 if repaid:
                     pay["repayments"] = repaid
@@ -1148,6 +1154,10 @@ def generate(run_json_path=None, out_path=None):
             # Credit bills and the household's own repayments both net the case, but only a
             # repayment is money in, so the two are kept apart.
             repaid = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "repayment"), 2)
+            for c in credits:
+                if c.get("kind") == "repayment":
+                    key = (cid, c["credit_period_end"])
+                    repaid_posted[key] = round(repaid_posted.get(key, 0.0) + c["amount_gbp"], 2)
             owed_before = asked - part_paid
             credit_applied = owed_before - amount - repaid
             if level_gross is not None:
@@ -1192,6 +1202,29 @@ def generate(run_json_path=None, out_path=None):
                     if inv is not None:
                         inv["payment_status"] = "written_off"
                         inv["outstanding_gbp"] = 0.0
+
+    # Every household repayment reaches the page at the cash that crossed, once. Cases and level
+    # returns post the walk's share of it; the rest went nowhere: the excess a later PAID bill drew
+    # from the account, and a level return's cash above the bill's face. On 78f82e4242 the page
+    # posted GBP 88,764.23 of GBP 94,133.49 received, short on 157 legs (SYN-2016-256g 576.40 of
+    # 820.40). It goes on the payment of the bill the household was settling, else its latest bill.
+    # By (leg, day): two settlements can cross on one day (SYN-2016-244, 15 Feb 2017).
+    received: dict[tuple[str, str], list] = {}
+    for rp in truth_repayments:
+        key = (rp["customer_id"], rp["period_end"])
+        got = received.setdefault(key, [0.0, rp.get("settles_month")])
+        got[0] = round(got[0] + rp["amount_gbp"], 2)
+    for (cid, on), (cash, month) in received.items():
+        rest = round(cash - repaid_posted.get((cid, on), 0.0), 2)
+        pays = payments_by_cid.get(cid) or []
+        if rest < 0.005 or not pays:
+            continue
+        by_num = {i["invoice_number"]: i["period_end"][:7] for i in invoices_by_cid.get(cid, [])}
+        pay = (next((p for p in pays if month and by_num.get(p["invoice_number"]) == month), None)
+               or max((p for p in pays if p["payment_date"] <= on),
+                      key=lambda p: p["payment_date"], default=pays[0]))
+        pay.setdefault("repayments", []).append({"date": on, "amount_gbp": rest})
+        pay["repayments"].sort(key=lambda r: r["date"])
 
     journeys_by_account: dict[str, list] = {}
     for j in data.get("collections_journeys") or []:

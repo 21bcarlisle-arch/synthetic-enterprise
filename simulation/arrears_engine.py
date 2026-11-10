@@ -1173,6 +1173,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     credited: dict[tuple[str, str, str], list[dict]] = {}
     for cid, rows in by_cid.items():
         leaver = cid in churned_ids
+        on_level = cid in (level_dd_collections or {})
         # Contributions sort before credits and payments on the same day: a bill cannot acknowledge
         # itself, and a same-day credit meets the bill it arrives beside.
         events = []
@@ -1208,17 +1209,19 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
         def _waiting(commodity: str) -> float:
             return round(sum(p[0] for p in pool.get(commodity, ())), 2)
 
-        def _draw(commodity: str, upto: float) -> list[tuple[float, str, str]]:
-            """Take up to `upto` of the waiting credit, oldest first, as (amount, period_end, kind)."""
+        def _draw(commodity: str, upto: float, kinds: tuple = ("credit", "repayment")
+                  ) -> list[tuple[float, str, str]]:
+            """Take up to `upto` of the waiting credit of `kinds`, oldest first, as (amount,
+            period_end, kind)."""
             taken = []
-            sums = pool.get(commodity, [])
+            sums = [s for s in pool.get(commodity, []) if s[2] in kinds]
             while sums and upto > 0.005:
                 take = round(min(sums[0][0], upto), 2)
                 taken.append((take, sums[0][1], sums[0][2]))
                 upto = round(upto - take, 2)
                 sums[0][0] = round(sums[0][0] - take, 2)
                 if sums[0][0] <= 0.005:
-                    sums.pop(0)
+                    pool[commodity].remove(sums.pop(0))
             return taken
 
         def _key(row: dict) -> tuple[str, str, str]:
@@ -1274,7 +1277,12 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     # the account, so the household pays the rest and the credit is used up
                     # (home_moves.md s.8.8a, choice 11). Credit waits only when nothing on this fuel
                     # is outstanding, so whether this restarts the clock cannot matter (choice 12).
-                    for take, credit_period_end, credit_kind in _draw(c, r["amount_gbp"]):
+                    # A level household's paid collection was its level amount in cash, which
+                    # `difference` reconciles to the face, so it used no repayment the household
+                    # sent beyond what was open: that waits for a later debt or the refund at
+                    # close (OCC-3c914ee8cef5g's 16.55, drawn here, was never refunded).
+                    for take, credit_period_end, credit_kind in _draw(
+                            c, r["amount_gbp"], ("credit",) if on_level else ("credit", "repayment")):
                         credited.setdefault(_key(r), []).append(
                             {"date": when, "amount_gbp": take,
                              "credit_period_end": credit_period_end, "kind": credit_kind})
@@ -1282,7 +1290,14 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 if r["outcome"] == "repayment":
                     left = r["amount_gbp"]
                     settles = (r["commodity"], r.get("settles_month"))
-                    if settles in asked:
+                    if on_level:
+                        # A level household is asked its level amount, not the bill's face, and
+                        # `level_collection_difference` leaves failed months out, so the walk
+                        # adds up only if it credits the cash. At the face it credited 49.38 for
+                        # OCC-1bb3be076448's 27.00 and 23.00 for OCC-3c914ee8cef5g's 39.55
+                        # (78f82e4242: 130 rows over, 149 under). Excess waits as credit, below.
+                        pass
+                    elif settles in asked:
                         # A household settling a bill pays what the bill asked, which is the cash
                         # the triad crosses: its face less the credit netted when it was collected
                         # (debt_and_collections.md s.7.3). Not the face: SYN-2016-269 paid INV36009's
@@ -1369,7 +1384,8 @@ def balance_write_offs_from_outcomes(resolved: list[dict], churned_ids: set[str]
 
 
 def resolved_settlement(bills: list[dict], behavioral: dict, churned_ids: set[str],
-                        seed: int = 42, *, level_dd_collections: dict | None = None
+                        seed: int = 42, *, level_dd_collections: dict | None = None,
+                        repayments_out: list | None = None
                         ) -> tuple[dict[tuple[str, str, str], dict],
                                                  dict[tuple[str, str, str], dict],
                                                  dict[tuple[str, str, str], list[dict]]]:
@@ -1380,6 +1396,7 @@ def resolved_settlement(bills: list[dict], behavioral: dict, churned_ids: set[st
     ``outcomes`` rather than drawing them again. Its own draw could not see the world's payment
     truth, so a bill the P&L wrote off read as paid on the ledger, and the reverse (2026-10-15).
     A bill with no row is wholly the occupier's or the owner's (B7), so no named payer is asked.
+    ``repayments_out``, if given, takes the household repayment rows the walk was fed, at their cash.
     """
     # Only the bills the supplier issues: a bill its pre-bill gate holds never reached the customer,
     # so it cannot fail and a held credit was never given. The ledger runs the same gate.
@@ -1387,6 +1404,8 @@ def resolved_settlement(bills: list[dict], behavioral: dict, churned_ids: set[st
     resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
     outcomes = {(r["customer_id"], r["period_end"], r["commodity"]): r
                 for r in resolved if r["outcome"] != "repayment"}
+    if repayments_out is not None:
+        repayments_out.extend(r for r in resolved if r["outcome"] == "repayment")
     return (outcomes, *balance_settlement_from_outcomes(
         resolved, churned_ids, level_dd_collections=level_dd_collections))
 

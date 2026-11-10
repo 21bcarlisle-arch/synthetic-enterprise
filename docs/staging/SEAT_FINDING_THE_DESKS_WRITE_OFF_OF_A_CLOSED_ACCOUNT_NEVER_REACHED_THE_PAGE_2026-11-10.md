@@ -172,3 +172,88 @@ Some legs go the other way (OCC-1bb3be076448: truth 27.00, page 49.38).
 **Next piece:** post the household's repayments on the page from one source and check them against
 the world's payment truth on every leg. Then re-measure the 37 and the 31. Probably not the desk: on
 PROS-2016-0117, which this item was drawn on, the desk was right.
+
+## The page's repayments against the world's cash (item `page-repayments-agree-with-the-worlds-payment-truth`, 2026-11-10)
+
+**What is being compared.** Per leg, dated on or before the book date (2025-07-04):
+**T**, the cash of each household repayment the world's payment truth records, as the engine receives
+it (`world_payment_truth.repayment_rows`); **E**, what the engine's walk credits as kind `repayment`
+(`credits_applied`); **P**, what the page posts as household money in (`ARREARS_REPAID` stage amounts
+plus `payments[*].repayments`). Reader: `/var/tmp/repay-truth/measure.py`. The figures above (194 legs,
+GBP 6,399.16) came from another reader that I could not find, so this section re-baselines on its own.
+
+**Baseline, book 78f82e4242, ledger regenerated at c5d99ba357:** T GBP 94,133.49, E 92,548.54, P 88,764.23.
+The page differs from the cash on **186 legs**: short on 157 (GBP 5,939.92), over on 29 (GBP 570.66).
+The desk figures reproduce: **37** accounts still printing owed (GBP 2,281.34), **31** with an unposted
+excess (GBP 3,252.82), the statement walk **0 of 1,302**. The engine writes off 272 bills, GBP 10,838.68.
+
+**Where the gap is. Every mismatched row is on a level-DD leg.** 912 rows agree. The rest:
+
+- *The engine credits the face, not the cash.* It prices a settlement at `min(asked, open)`, and both
+  are in face terms. A level household settles the **level amount** it was asked. 130 rows are credited
+  above the cash (GBP +2,647.70; OCC-1bb3be076448, cash 27.00 and credited 49.38). 144 are credited below it
+  (GBP -3,906.90; OCC-3c914ee8cef5g, cash 39.55 and credited 23.00, the summer face). 5 are credited
+  nothing (GBP -325.75) because the walk counts the leg as paid at face. `level_collection_difference`
+  skips failed months, so a settled failed month adds up only if the walk credits the **cash**. On a
+  leaver, crediting the face misstates the closing balance by the difference, which moves the P&L's
+  write-off too.
+- *The page does not show repayment cash the walk puts on a paid bill.* That is the excess pooled and
+  drawn by a later paid bill: 106 bills, GBP 2,016.82, never shown as money in. The page posts **less**
+  than the walk on 96 level-return bills with no case (GBP 1,767.49), and there it posts the cash, because
+  the room cap already stops at the level amount.
+
+### Pre-registration (written before either change is measured)
+
+The change:
+1. In the engine's walk, a settlement on a level-DD leg credits the cash that crossed. What finds
+   nothing open waits as credit on the account, as other excess already does. Other legs are unchanged:
+   cash already equals the credit on all 388 of their rows.
+2. On the page, any part of a truth repayment's cash that no stage or `repayments` entry posts goes on
+   the payment record, dated on the day it was received. The page and the statement walk both read
+   that record.
+
+On book 78f82e4242, regenerated with both changes:
+
+- **Q1.** Legs where the page differs from the cash by a penny or more: 186 → **0 to 5**. Any left are
+  dated so that the stage date, `max(paid, case opened)`, passes the book date.
+- **Q2.** Legs where the engine credits more than the cash: 77 → **0**.
+- **Q3.** Desk-written-off accounts still printing owed: 37 → **25 to 35**. Accounts with an unposted
+  excess: 31 → **31 to 40**. More cash on the page pushes some accounts below the desk's figure.
+- **Q4.** Statement walk against the page: **0 of 1,302**.
+- **Q5.** Engine write-offs (GBP 10,838.68): **I cannot predict the sign**. The face over-credit raises
+  them and the dropped cash lowers them. Predicted |change| < GBP 2,500. This figure feeds the P&L, so
+  the run's bad debt moves on the next book and has to be marked when it does.
+
+### Result on book 78f82e4242 (the ledger regenerated from the run output with the change, one build)
+
+| | predicted | measured |
+|---|---|---|
+| Q1 legs where the page differs from the cash | 0 to 5 | **0 of 367** (page GBP 94,133.49 = cash GBP 94,133.49). The first build left **17** (GBP 640.21). Two settlements on one day shared one key and the second was lost (SYN-2016-244, 15 Feb 2017). Fixed before landing, so Q1 is **missed** on the build it was written for. |
+| Q2 legs the engine credits above the cash | 0 | **0** |
+| Q3 desk-written-off accounts still printing owed | 25 to 35 | **29** (GBP 1,987.24), from 37 (GBP 2,281.34) |
+| Q3 accounts with an unposted excess | 31 to 40 | **28** (GBP 3,320.24), from 31. **Missed**: I had the direction wrong. I cannot yet say why it fell. |
+| Q4 statement walk against the page | 0 of 1,302 | **0 of 1,302** |
+| Q5 engine write-offs | \|change\| < GBP 2,500 | 272 bills GBP 10,838.68 → **283, GBP 10,957.34** (+GBP 118.66) |
+
+**A second engine defect, found by the measurement and not predicted.** The first engine build
+credited the cash, but a later **paid** level collection drew the excess back out of the account, as
+if the household had paid less. The household paid that collection in full, and `difference` already
+reconciles it to the face. So the walk lost cash that crossed, and the refund at close never paid it
+back. The test was: of the closed legs in credit on the page, how many equal the corrected walk's
+closing credit less the run's refund? On the first build, **0 of 43**. With a level leg's paid
+collection no longer drawing repayment credit, **39 of 41** (GBP 1,217.48). The 2 left are
+PROS-2016-0263g (GBP 1.65) and PROS-2017-0351 (66.31 on the page, against 44.45). They are recorded, not traced.
+
+**What this moves, and has to be marked.** Legs in credit on the page rise from 215 to 260. 41 of
+them are closed level legs whose credit the run's refund log (paid from the old walk) never repaid. The
+next book's reg 6D refunds come from the corrected walk, so they should rise by about GBP 1,200, and its
+bad debt by about GBP 120. Both are book figures. Grade them on the first book run with this code.
+`open_on_contract_gbp`, which sizes the world's cash, does not pass the level schedule, so the cash
+each household sends is unchanged.
+
+**Out of scope, recorded.** On a level leg the page nets a **credit bill's** credit from the level
+collection as if the collection were smaller (`credit_applied_gbp`), but a level collection is
+fixed. Not measured. `test_every_journey_opens_the_day_after_a_bill_the_ledger_made_due` fails at
+c5d99ba357 **without** this change (3 journeys: PROS-2016-0020, SYN-2016-325, SYN-2016-005).
+`test_reconciliation_identity_holds_across_full_live_book` also fails at c5d99ba357 without this
+change, in a fresh worktree whose `site/data/customers` is stale (OCC-00909e50a521, GBP 102.30).
