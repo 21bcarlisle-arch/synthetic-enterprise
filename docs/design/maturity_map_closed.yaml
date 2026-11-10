@@ -5020,3 +5020,21 @@
   file_scope: ['site/index.html', 'docs/design/canon_claims.yaml']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a prospectus whose summary page is corrected while the infographic in the front of the same document keeps the withdrawn claim -- the correction is real, the reader never sees it, and which one is 'the document' is not a question the reader asks"
+- id: OPS8_last_known_good_staleness_banner
+  title: "Behind, never frozen, never silent: serve last-known-good under a dated banner"
+  notes_rehomed: [gain, name, origin_note]
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 2
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 1
+  provenance: director_ruling
+  depends_on: [OPS6_scoped_publish_path_suite]
+  couples_with: [OPS7_provenance_stamps_on_live_pages]
+  records_rehomed: [evidence]
+  # 2026-11-10 L2: paused state rendered through the page's own JS; R15 both ways (gate_authorizations).
+  file_scope: ['background/process_run_complete.py', 'site/index.html', 'site/data/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a departure board that says 'last updated 14:02' instead of going blank"
