@@ -83,3 +83,18 @@ with its count, cause and owner.
 ## Reverse
 
 Stop the `longjob-launcher-crbook` unit. Delete this file. Nothing outside `docs/staging/` and `/var/tmp` is touched.
+
+## State at 10:45 GMT (worker tick)
+
+Not launched, and correctly so. `longjob-launcher-crbook` is alive and has logged `close-refund fix not on origin` every
+five minutes since 05:40. The fix is not refused or lost. Its test
+(`test_a_level_leavers_final_bill_meets_its_credit_before_the_refund.py`) and item 1's test
+(`test_a_close_refund_waits_for_the_money_it_pays_out.py`) sit untracked in the seat executor's worktree
+`/var/tmp/se-seat-executor` (pid 346075), beside uncommitted edits to `simulation/arrears_engine.py` and
+`simulation/credit_refund_events.py`. The seat is landing the fix together with item 1. Condition (c), the three-hour
+stall, lapsed at 08:40, so the book launches on the first poll after that landing reaches origin. The table above is
+unchanged. Column B applies if item 1's commit is in the book's sha.
+
+**Deadline.** The launcher gives up at **13:40 GMT** and writes `/var/tmp/crbook/NO_LAUNCH`. If that file exists and the
+book has not launched, the next tick re-arms `waitlaunch.sh` under the same table. It must not launch a second book by
+hand while `longjob-launcher-crbook` is active.

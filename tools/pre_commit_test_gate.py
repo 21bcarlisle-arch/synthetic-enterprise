@@ -1115,9 +1115,37 @@ def data_surface_tests(path: str) -> list[str]:
             # a fixture/conftest that names the path is not itself a runnable guard
             if Path(ref).name.startswith("test_"):
                 targets.add(ref)
-        elif ref.startswith(CODE_PREFIXES):
+        elif ref.startswith(CODE_PREFIXES) and _names_it_outside_prose(ref, (path, p.name)):
             targets.update(tests_for(ref))
     return sorted(t for t in targets if (ROOT / t).exists())
+
+
+def _names_it_outside_prose(module: str, needles: tuple[str, ...]) -> bool:
+    """Does a string this module's code EVALUATES name the document, or only its prose?
+
+    A K8 page like docs/market_research/home_moves.md is cited by 20-odd modules and loaded by
+    none, and counting each citation as a read selected 42 test files for the page alone, among
+    them the 18-minute phase4c run, so the page could not pass the 3,600 s gate by itself
+    (2026-11-11). Comments never reach the AST, and a docstring or a bare string statement is
+    prose. Every other string literal counts, because an error message cannot be told from a path
+    the code opens. Fails toward running: an unreadable or unparseable file counts as a reader.
+
+    Only modules are filtered. A test that names a document stays selected, because a test's
+    docstring can be the guard relationship itself (test_simplifications_store and its README)."""
+    try:
+        tree = ast.parse((ROOT / module).read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, ValueError, UnicodeDecodeError):
+        return True
+    prose: set[int] = set()
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)):
+            prose.add(id(node.value))
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Constant) and isinstance(node.value, str)
+                and id(node) not in prose and any(n in node.value for n in needles)):
+            return True
+    return False
 
 
 def _imports_module(source: str, dotted: str) -> bool:
