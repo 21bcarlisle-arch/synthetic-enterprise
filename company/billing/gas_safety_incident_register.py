@@ -1,18 +1,30 @@
 """Gas Safety Incident Register.
 
-Gas Safety (Installation and Use) Regulations 1998 (SI 1998/2451) and RIDDOR
-(Reporting of Injuries, Diseases and Dangerous Occurrences Regulations 2013).
+Who does what, from the statute: docs/market_research/who_does_what_in_a_gas_escape_or_co_incident_2026-11-11.md
+(GSMR 1996 regs 6-7, GSIUR 1998 regs 35-37, RIDDOR 2013 reg 11, Gas Act 1986 s7A, read 11 Nov 2026).
 
-When a gas supplier is notified of a gas safety incident, it must:
-1. Make the supply safe immediately (isolate if required).
-2. Investigate and arrange Gas Safe registered engineer response.
-3. Report RIDDOR-reportable events (dangerous gas fittings, CO incidents,
-   gas escapes leading to injury) to HSE within 15 days.
-4. Maintain records for 3 years (GSIUR Reg 35).
+For piped network gas the SUPPLIER does not make the supply safe. The occupier shuts off at the
+emergency control (GSIUR 37(2)). The conveyor (the gas distribution network) attends and stops the
+escape within 12 hours (GSMR 7(4)/(5)). The supplier's own 12-hour duty in GSIUR 37(1) is disapplied
+for network gas by 37(7). The supplier's duties are these:
+1. Report an escape it discovers or is told of "forthwith" to the emergency reporting service
+   provider (GSMR 7(3)).
+2. On a reported CO escape, advise the user of the immediate action to take, and that a competent
+   person must examine the fitting (GSIUR 37(8)).
+3. When the conveyor tells it of a RIDDOR 11(1) incident (GSMR 7(15)), cause an investigation
+   "as soon as is reasonably practicable" and tell HSE (GSMR 7(14)/(16)).
 
-Epistemic: company learns of incidents via customer contact, Gas Safe
-notification, or emergency response; it does not have real-time gas
-network sensor data.
+The RIDDOR 11(1) report itself, due within 14 days, is the CONVEYOR's. The deadline this register
+tracks is that report, as the supplier hears of it, not a filing the supplier makes.
+
+The states below (ENGINEER_DISPATCHED, SUPPLY_ISOLATED, MADE_SAFE) still describe the network's acts
+as if they were the supplier's. Rebuilding the state machine as the supplier's own record is filed
+as a finding; the knowledge page says what that record holds. No retention period is asserted here:
+the old "3 years (GSIUR Reg 35)" cited the employer's maintenance duty, and no supplier retention
+period has been found (GAP).
+
+Epistemic: company learns of incidents via customer contact or the conveyor's GSMR 7(15) notice;
+it does not see the network's attendance or gas network sensor data.
 """
 from __future__ import annotations
 
@@ -56,8 +68,9 @@ _RIDDOR_TYPES = frozenset({
     GasSafetyIncidentType.DANGEROUS_FITTING,
 })
 
-# RIDDOR: 15 calendar days from occurrence
-_RIDDOR_DAYS = 15
+# RIDDOR 2013 reg 11(1)(b): the conveyor's report is due "within 14 days of the incident"
+# (legislation.gov.uk/uksi/2013/1471/regulation/11). The old 15 had no source in reg 11.
+_RIDDOR_DAYS = 14
 
 _OPEN = frozenset({
     IncidentStatus.REPORTED,

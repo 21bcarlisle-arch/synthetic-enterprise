@@ -36,11 +36,11 @@ def test_co_confirmed_requires_riddor():
     assert reg._records[0].requires_riddor_notification is True
 
 
-def test_riddor_deadline_15_days():
+def test_riddor_deadline_is_reg_11s_14_days_not_15():
     reg = GasSafetyIncidentRegister()
     reg.report_incident("A", "M", GasSafetyIncidentType.EXPLOSION, IncidentSeverity.HIGH, DATE)
     r = reg._records[0]
-    assert r.riddor_deadline == DATE + dt.timedelta(days=15)
+    assert r.riddor_deadline == DATE + dt.timedelta(days=14)  # RIDDOR 2013 reg 11(1)(b)
 
 
 def test_injuries_trigger_riddor():
