@@ -43,3 +43,31 @@ Probable failure mode: comparing Ember's annual or monthly figures with our half
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 11 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done (2026-11-11, delivery seat)
+
+*Acted on the signed text in d828276d6. The later unsigned edit (bb69c250d) only corrected the lane header,
+and the body is byte-identical.*
+
+1. **Definitions.** Landed in 91a611f13 as §1a of `docs/market_research/household_carbon_and_the_measures_that_save_it.md`.
+   Today it is *corrected beside the claim*: "every GB generator" was wrong. NESO's mix leaves out embedded thermal.
+2. **Ember check.** This is §1b of the same page, with the basis of each source tabled before any
+   differencing. Ember is CC-BY-4.0. Its UK figure is lifecycle CO2e, gross, generation-only, with
+   Northern Ireland in, and upscaled to capture captive and small thermal. Rebased to our basis, it agrees
+   within a few percent in 2016–18 and runs 13–25% above ours in 2024–25. The leading cause is about
+   43 TWh a year of embedded and captive thermal generation that NESO's mix does not count. The GB/NI split
+   is a GAP. The "few percent above" fill bias traces to the import term, and the fill fills 0 half hours
+   today. **The world series is unchanged.** The what-and-why went to the director first, as asked:
+   `docs/staging/SEAT_FINDING_THE_NATIONAL_CARBON_FIGURE_DOES_NOT_COUNT_EMBEDDED_THERMAL_2026-11-11.md`, and
+   `for_the_director` row `the-customer-carbon-figure-co1-inherits-neso`.
+   Pre-registered: `docs/staging/records/SEAT_PREREG_WHAT_EMBER_SAYS_ABOUT_OUR_GB_CARBON_HISTORY_2026-11-11.md`.
+   P2 was refuted for 2023–25, and the miss is kept beside it.
+3. **Imports: small, so stopped.** Tranberg et al. 2019, supplementary Table 4: hourly flow tracing moved GB
+   +0.9% in 2017, from 346 produced to 349 consumed. That is an order below the embedded-thermal gap. It is
+   recorded in §1a. Scarlat et al. was not read: the publisher returned 403.
+4. **Reading log.** `docs/institutional/reading_log_against_the_gaps.md` G4 now has rows for Electricity Maps
+   ("learn from the method; no data feed"), Ember and Tranberg. *Corrected beside the claim:* the marginal
+   withdrawal is **verified** ("Our latest research on Marginal emission factors", 13 May 2024, updated 14 Jan
+   2025). The steer had it right, and the seat's 91a611f13 note saying it was not found was wrong.
+
+No fetched byte is a runtime input (W6). Ember's CSV was read once, outside the repository.

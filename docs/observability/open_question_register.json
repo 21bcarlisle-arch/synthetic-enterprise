@@ -1173,6 +1173,30 @@
       "question": "Is it worth us look at long lists of academic papers and listing candidates for knowledge?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-11, worker tick): yes, at listing depth, and the first lists show why. Two OpenAlex passes per gap (UK-affiliated, then unrestricted) over the four first-in-line gaps returned graded candidates for each, and three provisional absences that are findings in their own right (no measured GB battery mode shares; no GB randomised evidence that advice changes adoption; hassle never measured as a quantity). Listing is cheap (about 15 free queries); reading waits for each gap's build. docs/institutional/reading_log_against_the_gaps.md."
+    },
+    "a4b0112e5a7c": {
+      "ruling": "DIRECTOR_STEER_STATE_OUR_CARBON_DEFINITIONS_AND_ADD_A_SECOND_INDEPENDENT_CHECK_2026-11-11.md",
+      "question": "Is any of this data free?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-11, delivery seat): partly. Electricity Maps' app is free. Their data plans start at EUR 2,500 a year per country, and their API terms page returned 403, so what the free tier allows is not established. Their collector code and emission factors are open (electricitymaps-contrib, AGPL-3.0). Ember's data, the independent check we used, is free under CC-BY-4.0. docs/market_research/household_carbon_and_the_measures_that_save_it.md §1a-1b; docs/institutional/reading_log_against_the_gaps.md G4."
+    },
+    "6eccb0ee14a8": {
+      "ruling": "DIRECTOR_STEER_STATE_OUR_CARBON_DEFINITIONS_AND_ADD_A_SECOND_INDEPENDENT_CHECK_2026-11-11.md",
+      "question": "What can we learn from it and the apis?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-11, delivery seat): learn from the method, take no data feed (W6). Their method is consumption-based flow tracing, lifecycle factors by default, and validation against Ember. Following their own validation source (Ember) found the material thing: NESO's national figure, which ours inherits, does not count about 43 TWh a year of embedded and captive thermal generation, which may put our customer figure 10-25% low in 2023-25 (finding plus a for_the_director row). docs/market_research/household_carbon_and_the_measures_that_save_it.md §1a-1b; docs/institutional/reading_log_against_the_gaps.md G4."
+    },
+    "850c451414cc": {
+      "ruling": "DIRECTOR_STEER_STATE_OUR_CARBON_DEFINITIONS_AND_ADD_A_SECOND_INDEPENDENT_CHECK_2026-11-11.md",
+      "question": "Can we not also learn from how they model and forecast?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-11, delivery seat): the model, yes; the forecast, no, because their forecast method and accuracy are not published (not found on their methodology, docs or updates pages). From the model: flow tracing moves GB only +0.9% (Tranberg et al. 2019, built on their data, 2017), so it is not worth building. They built a machine-learned marginal signal and withdrew it ('incompatibility with regulation', verified 13 May 2024/14 Jan 2025), so we keep average. docs/market_research/household_carbon_and_the_measures_that_save_it.md §1a-1b; docs/institutional/reading_log_against_the_gaps.md G4."
+    },
+    "05672430ad6d": {
+      "ruling": "DIRECTOR_STEER_STATE_OUR_CARBON_DEFINITIONS_AND_ADD_A_SECOND_INDEPENDENT_CHECK_2026-11-11.md",
+      "question": "What works better or worse than how we do it?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-11, delivery seat): BETTER in theirs, and in Ember's: counting all generation. Ours inherits NESO's omission of embedded thermal, the largest difference found (10-25% by 2023-25, GB/NI split a GAP). SMALL either way: consumption-based flow tracing against our per-market import factors (+0.9% for GB). OURS is the reporting-compatible choice: location-based average on operational factors (GHG Protocol Scope 2, DESNZ). Lifecycle is a different quantity, not a better one. FORECAST: not comparable, because theirs is unpublished. docs/market_research/household_carbon_and_the_measures_that_save_it.md §1a-1b; docs/institutional/reading_log_against_the_gaps.md G4."
     }
   }
 }

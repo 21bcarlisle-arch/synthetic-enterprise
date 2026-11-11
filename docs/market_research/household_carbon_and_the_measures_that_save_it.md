@@ -50,10 +50,10 @@ The household's electricity carbon (`company/billing/carbon_footprint.py`,
 
 | Choice | Ours | Why, and what it leaves out |
 |---|---|---|
-| **Average or marginal** | **Average**: every GB generator's emissions over every kWh generated, per half hour | GHG Protocol *Scope 2 Guidance* (2015) §6.10: location-based scope 2 is "based on average energy generation emission factors", and "Companies shall not use marginal emission factors … for a location-based scope 2 calculation" [sourced, PDF read 11 Nov]. The same paragraph says marginal factors "can be more useful for avoided emissions analyses". That is the open side, below |
+| **Average or marginal** | **Average**: the emissions of the generation NESO's national mix counts, over that generation, per half hour. *Corrected beside the claim (11 Nov, item 2):* this row first said "every GB generator". NESO's mix counts transmission-metered plant plus its estimate of embedded wind and solar. Embedded and captive thermal (gas CHP, waste, landfill gas, oil) is not in it. On Ember's UK figures that is about 43 TWh a year, §1b | GHG Protocol *Scope 2 Guidance* (2015) §6.10: location-based scope 2 is "based on average energy generation emission factors", and "Companies shall not use marginal emission factors … for a location-based scope 2 calculation" [sourced, PDF read 11 Nov]. The same paragraph says marginal factors "can be more useful for avoided emissions analyses". That is the open side, below |
 | **Direct or lifecycle** | **Operational, at the generator**, on NESO's Table 1 factors: gas CCGT 394, coal 937 g/kWh; nuclear, wind, solar and hydro **zero**, so no lifecycle for them | Biomass sits at 120 g/kWh. That is neither its stack CO2 nor zero, so it carries some convention. **GAP:** what NESO's 120 counts is not established here. Electricity Maps defaults to the IPCC AR5 factors and offers both a lifecycle and a direct set [sourced, electricitymaps.com/methodology, 11 Nov]. Their figures are not ours to compare until the basis is matched |
 | **Losses** | **Generation basis, losses NOT included** (measured 2026-10-05, §2) | DESNZ advises adding T&D (0.01853 kg/kWh in 2025). A figure that adds them says so |
-| **Imports** | Inside NESO's historic mix, as NESO counts them. In our fill for the half hours NESO left blank: **one fixed factor per market**, NESO Table 1 (France 53, Netherlands 474, Belgium 179, Ireland 458 g/kWh), Norway from its annual SSB mix with thermal at 394. None of them varies by hour, and none is flow-traced. **ElecLink and Viking are left out** because NESO's mix leaves them out (`OUTSIDE_NESO_MIX`, `sim/elexon_fuel_outturn.py`) | *Corrected beside the claim:* the steer's "imports are counted at `import_factor` (one factor …)" is one factor **per market**, not one in total. Whether hourly or flow-traced import factors would move GB's average materially is item 3 and is **not yet answered**: GAP |
+| **Imports** | Inside NESO's historic mix, as NESO counts them. In our fill for the half hours NESO left blank: **one fixed factor per market**, NESO Table 1 (France 53, Netherlands 474, Belgium 179, Ireland 458 g/kWh), Norway from its annual SSB mix with thermal at 394. None of them varies by hour, and none is flow-traced. **ElecLink and Viking are left out** because NESO's mix leaves them out (`OUTSIDE_NESO_MIX`, `sim/elexon_fuel_outturn.py`) | *Corrected beside the claim:* the steer's "imports are counted at `import_factor` (one factor …)" is one factor **per market**, not one in total. Whether hourly or flow-traced import factors move GB's average materially (item 3): **small**. In Tranberg et al. (2019, *ESR*, doi:10.1016/j.esr.2019.100367, supplementary Table 4), hourly flow tracing over 2017 took GB from 346 kgCO2eq/MWh produced to 349 consumed, **+0.9%**. Their basis is ecoinvent fuel-chain factors, not ours. The import factors it implies differ from each exporter's own average by -9% (France to GB, 69 against 76) to +19% (Netherlands to GB, 871 against 734), Table 5. GB's import share was about 7% in 2017 and 15% in 2024-25. Even at twice the 2017 effect, flow tracing stays near ±2%, an order below the scope gap in §1b. So we stop there, as the steer asks. Scarlat et al. (2021, *Applied Energy*) was not read: the publisher returned 403 |
 | **Consumption-based** | **No.** Generation in GB, imports added at their factor. No flow tracing of what GB re-exports | Electricity Maps is "attributional, location-based, and consumption-based", with flow tracing [sourced, their methodology page]. That difference has to be named before any figure of theirs is set beside ours |
 
 **"Carbon saved by shifting" on average intensity is a stated choice, not a fact.** Moving a kWh
@@ -67,11 +67,92 @@ emissions factors in national electricity systems", *Applied Energy* (doi:10.101
 Beltrami et al. (2020), "Where did the time (series) go? Estimation of marginal emission factors with
 autoregressive components", *Energy Economics* (doi:10.1016/j.eneco.2020.104905).
 
-*Corrected beside the claim:* the steer says Electricity Maps "withdrew" its marginal signal, citing
-"major limitations" and "the incompatibility with regulation". Their marginal explainer (2019, updated
-14 Jan 2025) and methodology page do not say that. What they do say is that "marginal and average
-emissions should never be mixed together". The withdrawal may be published elsewhere. Until its page is
-found, it is not cited here as a reason. The reason that does stand is the GHG Protocol's.
+*Corrected beside the claim, twice.* On 11 Nov morning this page said the steer's Electricity Maps
+"withdrawal" was not on their pages. **That was wrong, and the steer was right.** Their publication
+"Our latest research on Marginal emission factors" (published 13 May 2024, updated 14 Jan 2025,
+electricitymaps.com/resources/publications/our-latest-research-on-marginal-emission-factors) concludes:
+"marginal signals come with major limitations, such as the incompatibility with regulation, which is
+why we no longer offer marginal signals". Their 2018 machine-learning article, updated the same day,
+carries the same note. The miss was searching the explainer and methodology pages and not the
+publications list. Two reasons now stand together for not using marginal for this figure: the GHG Protocol's
+"shall not", and the practitioner who built a marginal signal and then withdrew it. Neither of them settles
+"saved by shifting", which stays a stated choice.
+
+### 1b. Ember as a second check on 2016–2025 (2026-11-11, steer item 2)
+
+*Pre-registered before the data was read:
+`docs/staging/records/SEAT_PREREG_WHAT_EMBER_SAYS_ABOUT_OUR_GB_CARBON_HISTORY_2026-11-11.md`.*
+**Knowledge only (W6).** The file was fetched once by the harness. Nothing in `sim/`, `company/` or `saas/` reads it.
+
+**What each one counts, before any differencing.** The basis is read from *Ember Methodology v1.6*
+(files.ember-energy.org/public-downloads/ember_electricity_data_methodology.pdf) and checked against the
+factors its own CSV implies. Ember is CC-BY-4.0 (ember-energy.org/creative-commons). Source: Ember, yearly
+electricity data, release of 3 Nov 2026.
+
+| | Ours (`sim/grid_carbon_history.py`, NESO historic mix) | Ember, United Kingdom |
+|---|---|---|
+| Area | GB | **UK**, Northern Ireland included (from Green Collective) |
+| Generation counted | Transmission-metered, plus NESO's embedded wind and solar | All. GB from ESO, "upscaled for bio, gas and hydro based on the quarterly total generation reported by DESNZ" to capture "captive and small thermal". Annual from the Energy Institute, **gross** |
+| Factors | Operational at the stack: gas 394, coal 937, biomass 120, zero-carbon 0 | **Lifecycle CO2e**, upstream methane included. Gas per Jordaan et al. 2022, CHP-adjusted. Bio 230, solar 48, hydro 24, other fossil 700 (IPCC AR5 midpoints), cut 6% for thermal on gross generation. The CSV implies gas 480, coal 962, bio 216, nuclear 4.8, wind 12.7, other fossil 658 |
+| Imports | In the denominator, at a factor | **Out.** Intensity is over generation only ("Total generation" row) |
+| Clock | Half-hourly, averaged here by energy over each calendar year | Annual |
+
+**By year.** "Ours" is NESO's intensity weighted by its GENERATION column, which is the figure
+a customer's annual kWh actually meets. "Ember rebased" is Ember's TWh by fuel, converted to net
+(÷1.06 thermal, ÷1.01 other), priced at NESO's operational factors, with Ember's net imports added at the
+import factor NESO's own mix implies that year (below). It is shown as a range because NESO has no factor for Ember's "other fossil" (300, NESO's OTHER, to 700).
+
+| Year | Ember as published (lifecycle, UK, no imports) | Ours | Published ÷ ours | Ember rebased to our basis | Rebased ÷ ours |
+|---|---|---|---|---|---|
+| 2016 | 333 | 282 | +18% | 265–277 | −6% to −2% |
+| 2017 | 302 | 249 | +21% | 237–248 | −5% to −1% |
+| 2018 | 286 | 222 | +29% | 218–230 | −2% to +3% |
+| 2019 | 268 | 195 | +37% | 197–210 | +1% to +8% |
+| 2020 | 243 | 173 | +40% | 177–188 | +3% to +9% |
+| 2021 | 267 | 187 | +43% | 194–206 | +4% to +10% |
+| 2022 | 255 | 183 | +40% | 188–201 | +3% to +10% |
+| 2023 | 235 | 151 | +56% | 164–178 | +9% to +18% |
+| 2024 | 216 | 128 | +69% | 144–158 | +13% to +24% |
+| 2025 | 218 | 130 | +68% | 146–162 | +13% to +25% |
+
+**Where they agree.** The shape agrees: the two move the same way in all 9 steps, falling in 7 and rising in 2021 and 2025. On a matched basis the two agree within a few percent in 2016–2018.
+
+**Where they part, and the leading explanation.** The rebased gap grows from about −4% to about +19% because
+Ember counts generation NESO's mix does not. Against NESO's GB columns, Ember's UK figures carry 14–19 TWh more gas,
+16–19 TWh more bioenergy and waste, and 10–13 TWh of "other fossil" in every year, about 43 TWh or 13% of
+generation. That is steady, while NESO's transmission gas halved. So the share of the carbon that
+the national figure does not see grows as the transmission system decarbonises. Adding only that
+excess thermal to ours, at operational factors, lifts 2024 from 128 to 145–167. **I cannot yet say** how much
+of it is Northern Ireland, which is a different system, and how much is GB embedded and captive thermal,
+which a GB household's kWh does meet. DESNZ *Energy Trends* 5.1 and *DUKES* 5.6, by region and producer type, would split it.
+**GAP.**
+
+**What it means for the customer figure (F11, erring against our thesis).** If most of the excess is GB embedded
+thermal, our customer figure **understates** GB average intensity by roughly 10–25% in 2023–2025, and by less
+earlier. A low grid figure flatters every electrification measure in §4 and §5. The series is NOT changed: the
+steer asks for what and why first, and the GB/NI split is not established. Finding:
+`docs/staging/SEAT_FINDING_THE_NATIONAL_CARBON_FIGURE_DOES_NOT_COUNT_EMBEDDED_THERMAL_2026-11-11.md`.
+
+**The "few percent ABOVE" fill bias.** Ember cannot apportion it, because Ember has no half-hours. But the
+check led to the term. On the half hours where both exist:
+
+| Year | Fill − historic mix | Fill import share | Historic-mix import share | Fill import factor | Historic mix's implied import factor | ElecLink + Viking share of import MW |
+|---|---|---|---|---|---|---|
+| 2016 | −3.5% | 6.7% | 6.7% | 240 | 241 | 0 |
+| 2018 | +0.1% | 7.3% | 7.4% | 218 | 192 | 0 |
+| 2021 | +2.4% | 10.2% | 10.3% | 161 | 117 | 0 |
+| 2023 | +5.0% | 10.7% | 12.2% | 128 | 72 | 14% |
+| 2024 | +7.1% | 12.4% | 15.7% | 103 | 57 | 24% |
+| 2025 | +3.9% | 11.8% | 15.2% | 93 | 74 | 25% |
+
+The bias is the **import term**. (1) The fill's per-market factors price imports at 20–55 g above (2018–2025) the factor
+NESO's own mix implies. That factor is the residual after GAS, COAL, BIOMASS and OTHER at NESO's table, so it
+also absorbs any domestic difference, and it is an attribution, not a measurement. (2) The fill's import share
+falls short of the historic mix's by about the ElecLink and Viking flows it leaves out, which suggests
+**NESO's historic mix does count those two cables**, contrary to `OUTSIDE_NESO_MIX`'s premise for this file. At
+2024 shares, (1) is about 5–6 g and (2) about 1–3 g, against an 8.8 g bias. Before 2018 the sign flips,
+which is consistent with the pre-split OTHER pricing. **Effect today: none.** `coverage_by_year` shows 0 filled
+half hours in every year, so the fill reaches no published value.
 
 ---
 
