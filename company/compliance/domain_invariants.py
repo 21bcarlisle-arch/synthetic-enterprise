@@ -2135,5 +2135,58 @@ def check_read_duty_fires_when_due(summary: dict) -> bool:
     return read_duty_firing(summary)["clean"]
 
 
+#: Written blind (ruling 2026-10-26 step 4) from home_moves.md §8.8-8.8a and the page feed alone; the
+#: refund code under test was not opened. Filed for a blind writer by e6c1c11b4, which saw six legs
+#: on the 068b5e3cc8 book pushed into page debit by a refund and no row able to see it.
+REFUND_WITHIN_THE_PAGE_CREDIT = StructuralInvariant(
+    id="refund_within_the_page_credit",
+    description=(
+        "A refund never exceeds the credit the page shows on the day it is paid: each refund line on a "
+        "leg's ledger pays at most the credit the page printed immediately before it"
+    ),
+    source="SLC 27.16 (a credit is payments in excess of the charges due under that contract); "
+           "SLC 27.17 (the final bill is a statement of account); GSoP 2015 reg 6D (refund 'any "
+           "outstanding credit balance'); docs/market_research/home_moves.md §8.8-8.8a ('the refund "
+           "and the closing balance are the same figure')",
+)
+ALL_INVARIANTS.append(REFUND_WITHIN_THE_PAGE_CREDIT)
+
+#: The page ledger's own name for money paid back to the customer (a debit, owed positive).
+REFUND_LEDGER_TYPE = "refund_debit"
+_REFUND_PENNY_TOLERANCE_GBP = 0.005
+
+
+def refunds_beyond_the_page_credit(entries) -> list[dict]:
+    """Each refund line on a page ledger (owed positive, credit negative) that pays more than the
+    credit the page printed immediately before it: {date, refunded_gbp, credit_gbp, excess_gbp}.
+
+    The credit before a refund line is its own printed balance with the refund taken back out,
+    floored at nil, so a charge printed earlier the same day counts against it (one balance, SLC
+    27.16) and a payment printed after it does not rescue it: a collection taken after a refund
+    collects a debt the refund made. A refund to a leg in debt is all excess. A refund line that
+    prints no balance is unread and returned with None, never passed."""
+    out = []
+    for day, refunded, balance_after in refund_lines(entries):
+        if balance_after is None:
+            out.append({"date": day, "refunded_gbp": round(refunded, 2), "credit_gbp": None, "excess_gbp": None})
+            continue
+        credit = max(0.0, -(balance_after - refunded))
+        if refunded > credit + _REFUND_PENNY_TOLERANCE_GBP:
+            out.append({"date": day, "refunded_gbp": round(refunded, 2), "credit_gbp": round(credit, 2),
+                        "excess_gbp": round(refunded - credit, 2)})
+    return out
+
+
+def refund_lines(entries) -> list[tuple[str, float, Optional[float]]]:
+    """(date, amount, the balance the page prints on that line) for each refund line, in page order."""
+    return [(str(e["date"]), float(e.get("amount_gbp") or 0.0),
+             None if e.get("running_balance_gbp") is None else float(e["running_balance_gbp"]))
+            for e in entries or () if isinstance(e, dict) and e.get("date") and e.get("type") == REFUND_LEDGER_TYPE]
+
+
+def check_refund_within_the_page_credit(entries) -> bool:
+    return not refunds_beyond_the_page_credit(entries)
+
+
 def invariant_count() -> int:
     return len(ALL_INVARIANTS)

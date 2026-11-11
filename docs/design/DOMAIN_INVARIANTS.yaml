@@ -4848,6 +4848,24 @@ invariants:
   checkable: true
   gap: 'Written 2026-11-08 by the delivery seat from home_moves.md §8.8-8.8b, NOT blind: the writer had read the page files and the runner, not the billing code. Graded by tools/domain_invariant_runner.ev_closed_account_balance on a book read with --printed. Leg (3) is a flag because no rule sets a window for collecting a departed customer''s debt (GAP G8.10-G8.12); what the rules do fix is that the debt stays the departing customer''s and that a write-off is of a debt. The export carries no jurisdiction, so the E&W calendar is applied to every leg. Non-domestic legs are outside reg 6D and graded on legs (2) and (3) only.'
 
+- id: INV_REFUND_WITHIN_THE_PAGE_CREDIT
+  family: account_arithmetic
+  grades: page
+  statement: A refund pays back a credit the customer holds. It never exceeds the credit the page shows on the day it is paid, so it never puts the leg into debt or pays money to a leg already in debt. The final bill is a statement of account with one balance, and a charge posted before it counts against the credit.
+  predicate: 'for each refund_debit line on a fuel leg''s page ledger (owed positive), of amount r printing running balance b: r <= max(0, -(b - r)), to the half-penny -- the credit the page printed immediately before it. A charge printed earlier the same day counts against the credit; a payment printed after the refund does not rescue it, since it collects a debt the refund made. A refund line that prints no balance is a missing breach.'
+  lower: null
+  upper: null
+  source: 'docs/market_research/home_moves.md §8.8 (GSoP 2015 reg 6D, SI 2019/218: "refund any outstanding credit balance"), §8.8a ("a credit is payments in excess of that contract''s charges (SLC 27.16). So the refund and the closing balance are the same figure"; SLC 27.17, the final bill is a statement of account). The class was found on the 068b5e3cc8 book by e6c1c11b4: six legs pushed into page debit by a final refund, and filed for a blind writer.'
+  severity:
+    refund_beyond_the_page_credit: breach
+  export_fields:
+  - printed ledger.entries.type (refund_debit)
+  - printed ledger.entries.amount_gbp
+  - printed ledger.entries.running_balance_gbp
+  checkable: true
+  written_blind: 'delivery seat, 2026-11-11, from home_moves.md §8.8-8.8a, the page files of the 068b5e3cc8 book and this runner. No file under company/billing/, simulation/ or tools/generate_* was opened; the refund code under test was not read.'
+  gap: 'The page prints no separate refund-due figure, so the credit is the ledger''s own balance. A refund is not graded for being SHORT here: an unrefunded closing credit is INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO''s leg (1). Whether a supplier may refund a credit and collect a same-period final bill by direct debit as two movements is not settled by any source read (SLC 27.16 nets them); the row reads the one balance the page prints.'
+
 # Written blind for the tenth cold read's N25/N26/N27/N28, 2026-11-11, from the knowledge layer only.
 # No file under company/, saas/, simulation/, sim/, tools/, background/, tests/ or site/ was opened, and
 # no .py/.js/.html file anywhere. site/knowledge/ was listed; it holds no .md or .json page content

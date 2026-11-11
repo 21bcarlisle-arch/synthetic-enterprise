@@ -1859,6 +1859,34 @@ def ev_closed_account_balance(inv, book):
     return tally
 
 
+#: The page ledger's name for money paid back to the customer (a debit, owed positive).
+REFUND_LEDGER_TYPE = "refund_debit"
+
+
+def ev_refund_within_page_credit(inv, book):
+    """Each refund line on a leg's page ledger pays at most the credit the page printed immediately
+    before it: its own printed balance with the refund taken back out, floored at nil. A charge
+    printed earlier the same day counts against the credit; a payment printed after the refund does
+    not rescue it. A refund line that prints no balance is a `missing` breach. The invariant library
+    states the same predicate (`company.compliance.domain_invariants.refunds_beyond_the_page_credit`);
+    this runner imports no company code, so
+    tests/tools/test_a_refund_never_exceeds_the_credit_the_page_shows.py holds the two to the same
+    verdict on every leg of one fixture."""
+    tally = Tally("refund line on one fuel leg's page ledger")
+    for a in book:
+        for e in (a.printed or {}).get("page_ledger") or ():
+            if e.get("type") != REFUND_LEDGER_TYPE or not e.get("date"):
+                continue
+            refunded = round(float(e.get("amount_gbp") or 0.0), 2)
+            after = e.get("running_balance_gbp")
+            where = "{} refund on {}".format(a.cid, e["date"])
+            if after is None:
+                tally.band(where, None, None, 0.0)
+                continue
+            tally.band(where, refunded, None, round(max(0.0, -(float(after) - refunded)), 2), tol_abs=0.005)
+    return tally
+
+
 def _years_before(d: date, n: int) -> date:
     try:
         return d.replace(year=d.year - n)
@@ -3192,6 +3220,7 @@ EVALUATORS = {
     "INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE": (ev_billed_ex_vat_reconciles, "lifetime_revenue_gbp"),
     "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": (ev_payment_record, "payment_record"),
     "INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO": (ev_closed_account_balance, "final_bills"),
+    "INV_REFUND_WITHIN_THE_PAGE_CREDIT": (ev_refund_within_page_credit, "page_ledger"),
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": (ev_carbon_matches_usage, "carbon_years"),
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": (ev_smart_billed_on_reads, "meter_type"),
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": (ev_meter_type_one_value, "panel_meters"),
