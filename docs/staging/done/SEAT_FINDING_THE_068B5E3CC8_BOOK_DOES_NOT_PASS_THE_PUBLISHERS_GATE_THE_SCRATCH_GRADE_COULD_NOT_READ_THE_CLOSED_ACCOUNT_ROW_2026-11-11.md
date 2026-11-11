@@ -45,3 +45,33 @@ book. Either way, the next "passes the gate" claim is made through `_domain_inva
 ## Reverse
 
 Delete this file. Nothing outside `docs/staging/` is touched.
+
+## SYN-2016-493 traced (2026-11-11, worker)
+
+The GBP 12.90 is the walk's credit after a -42.56 credit bill (Feb 2018) was drawn against INV47681 at
+its 42.87 face, while the level DD paid 31.00. The page then printed that 31.00 collection as 0.00. So
+the walk was 42.56 short of the true credit (55.46), and the page was 31.00 short. The final 26.13 was
+collected at face on 19 Jul, after the refund. This is not the exception's class. It is mechanism B of
+home_moves.md §8.8c, fixed in the commit that adds this section. Through the publisher's gate on the
+rebuilt 068b5e3cc8 pages, INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO reads **0 breached** (FLAGGED 87 of
+1,687; it was 3 breached). The excepted pair, PROS-2016-0263g and PROS-2017-0351, also close at 0.00. So
+once a fresh book confirms this, the exception can be retired. The gate still refuses on
+INV_REFUND_WITHIN_THE_PAGE_CREDIT (12, residual named in the 205 finding). This stays BLOCKING until a
+fresh book passes.
+
+## Retired (2026-11-11 23:20, worker)
+
+The fresh book has passed. The publisher's gate ran on the 6fe7827ab2 book (cab13bbd18, carrying s.8.8c and s.8.8d),
+graded at 2e401fe1fc and published at e816040ce8. Its committed `docs/reports/domain_invariants.json` (git
+6fe7827ab2) reads: INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO FLAGGED, **0 breached** of 1,687 (87 flagged);
+INV_REFUND_WITHIN_THE_PAGE_CREDIT CLEAN, 0 of 176; refuse False, unexcepted []. The closed-account row is not in the
+excepted list, so the pair the exception named (PROS-2016-0263g, PROS-2017-0351) closes at zero without it. The
+exception's `retired_by` asked for a trace, a fix, and 0 on a fresh run. The trace is the section above, the fix is
+cab13bbd18, and the 0 is this book. So the exception is removed from `docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml` in
+this commit. A future breach on this row now refuses the publish at 1, not 3.
+
+Still open, and not part of this finding: `launch_d1_book.sh` grades through `after_run.sh`. That is the downstream
+consequence named above. The 2e401fe1fc grade went through `grade_one.sh` and the publisher, not through the scratch
+chain, so this retirement does not rest on it.
+
+Reverse: restore the 19-line exception block from this commit's parent and move this file back to the staging root.

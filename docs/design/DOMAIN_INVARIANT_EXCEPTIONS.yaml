@@ -255,22 +255,3 @@ exceptions:
       the gas half of W2_30 (a fitted seasonal split for the premises now refused it, or a hot-water term that moves
       year to year), graded on a fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file.
     max_breached: 1
-  # 2026-11-09: the closed-account row (ninth cold read O7, O20). It was excepted at 184 on af31e73fa7. The close
-  # (e0aeece0d) brings it to 2 on the first book that carries it, 505df564e3; on 9d7dcfc19c, the control, the same
-  # script reads 131. Graded in
-  # docs/staging/done/SEAT_FINDING_THE_NINTH_COLD_READ_FINDS_CLOSED_ACCOUNTS_STILL_HOLDING_CREDIT_AND_DEBT_YEARS_AFTER_THEIR_LAST_BILL_2026-11-08.md.
-  - invariant: INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO
-    scope: >-
-      2 on the 505df564e3 book. Both are domestic fuel legs that the close refunded short of the page balance:
-      PROS-2016-0263g (final bill 2021-09-14, GBP 1.65 left in credit) and PROS-2017-0351 (final bill 2024-11-22,
-      GBP 21.86 left). No write-off on a closed leg releases more than was owed. Standing debts are the row's flag and
-      are not counted here.
-    reason: >-
-      A known residue, not yet explained. The close sizes the refund from the per-bill walk plus the
-      level-collection difference. On af31e73fa7 that matched the page balance on 850 of 857 leavers. These two are
-      misses of that match, and why the difference falls short on them has not been traced.
-    filed: 2026-11-09
-    recheck_by: 2026-11-23
-    retired_by: >-
-      a trace of the two short refunds to the level_collection_difference match, then a fix, graded 0 on a fresh run
-    max_breached: 2
