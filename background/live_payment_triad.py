@@ -103,6 +103,7 @@ from company.billing.payment_observation_consumer import (
     DEFAULT_RECONCILIATION_GRACE_DAYS,
     HandOverAssessment,
     PaymentObservationConsumer,
+    observed_cash_event_id,
 )
 from company.interfaces.collection_submission import encode_collection_request
 from company.interfaces.dd_review_outcome import billing_account_of
@@ -1215,6 +1216,36 @@ class LivePaymentTriad:
             "crossed_after_close": self.settlements_crossed_after_close,
         }
 
+    def _leg_owed_on(self, account_id: str, customer_id: str, on: date) -> float:
+        """What the supplier's own ledger says this leg owes on `on`, on bills already due: the
+        leg's bills at their face, less the cash paid to the leg and the credit notes issued on it.
+
+        The contract is per fuel (SLC 27.16), so the other leg's cash and credits are not counted.
+        A credit note names no leg on the ledger; its event id does. Cash that names
+        no leg (a plan instalment, a write-off) is not counted, so this can only overstate what is
+        owed where a plan or write-off has run. A bill not yet due is not counted, so cash paid
+        early on it can only understate, and a credit then waits whole, as before this read.
+
+        A READER CANNOT WAIT (`_deliver_settlements_through`): a lump the household paid before `on`
+        may still be held for the journey walk, so the account's held lumps through `on` cross
+        first. Unforced, CRED-42's 28 Mar settlement was not on the ledger on 31 Mar, and its
+        settled bill read as owed."""
+        self._deliver_settlements_through(on, force=account_id)
+        terms = timedelta(days=PAYMENT_TERMS_DAYS)
+        leg = f"{customer_id}::"
+        # The leg's cash is what `arrears_engine.cash_leg` names: a remittance or an observed
+        # crossing whose reference starts with the leg. Matched here on the prefix, because importing
+        # that module would be a new wall edge (`test_live_payment_triad_is_the_only_bridge`).
+        own = (observed_cash_event_id(leg), f"credit:{customer_id}:")
+        owed = 0.0
+        for e in self._ledger_book.ledger(account_id).events_through(on):
+            if e.event_type == LedgerEventType.BILL_DEBIT:
+                if (e.invoice_ref or "").startswith(leg) and e.valid_time + terms <= on:
+                    owed += e.amount_gbp
+            elif (e.remittance[:1] and e.remittance[0].startswith(leg)) or e.event_id.startswith(own):
+                owed -= e.amount_gbp
+        return max(0.0, round(owed, 2))
+
     def _method_for(self, customer_id: str, fuel: str = "electricity") -> str:
         """The supply point's method, from the world's one channel draw -- the one
         `SimInterface.get_payment_method` reports for it. The fuel must be the supply
@@ -1433,12 +1464,22 @@ class LivePaymentTriad:
         if credit_gbp > 0:
             # It waits for the leg's next bill only when nothing on the leg is unpaid: the page
             # nets an open unpaid bill first, and the desk's ledger already does that oldest-first.
+            # And only the part of it that exceeds what the leg still owes (SLC 27.16: a credit is
+            # payments in excess of the charges due under that contract). A leg that left level DD
+            # owes its scheme debit at the bills' face, which the records above read as settled at
+            # the level amount: SYN-2016-549g's GBP -62.12 waited whole over a 53.98 scheme debit,
+            # the household was asked 0, 0 and 41.60, and the page's walk netted the 53.98
+            # (payments_and_direct_debit_2026-10-25.md, "A credit bill after leaving with the debit
+            # still owed").
             if level is None and not any(
                     r.customer_id == customer_id and r.result == "failed"
                     and (r.settled_on is None or r.settled_on > issue_date)
                     for r in self._records):
-                self._leg_credit[customer_id] = round(
-                    self._leg_credit.get(customer_id, 0.0) + credit_gbp, 2)
+                waits = round(credit_gbp - min(
+                    credit_gbp, self._leg_owed_on(account_id, customer_id, issue_date)), 2)
+                if waits > 0.005:
+                    self._leg_credit[customer_id] = round(
+                        self._leg_credit.get(customer_id, 0.0) + waits, 2)
             credit_note = LedgerEvent(
                 event_id=f"credit:{customer_id}:{period_index}",
                 account_id=account_id,
