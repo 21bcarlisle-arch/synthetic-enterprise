@@ -694,6 +694,12 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
         publish_freshness, "PUBLISH_GATE_STATE_FILE",
         _publish_clock_dir / "publish_gate_state_absent.json", raising=False,
     )
+    # THE THIRD INPUT, the git cross-check: `last_committed_ts` / the origin-ref read run `git log`
+    # with cwd=PROJECT_DIR, so the seeded clock above was only half the verdict -- `snapshot` takes
+    # the OLDER clock, and the live repo's content age decided every cycle test. It surfaced on
+    # 2026-11-11 when the real figures sat 195h unmoved. A non-repo cwd makes git answer nothing,
+    # which reads `unknown`: no claim either way, the same choice as the gate record above.
+    monkeypatch.setattr(publish_freshness, "PROJECT_DIR", _publish_clock_dir, raising=False)
     # RUNG 1d PRODUCER STARVATION (2026-08-17) -- the NINTH instance, and the first that leaks the
     # other way: a test WRITING live state that a priority-zero rung READS. `sim_runner.
     # record_run_outcome` defaults to the real `.sim_producer_state.json`, and the existing
