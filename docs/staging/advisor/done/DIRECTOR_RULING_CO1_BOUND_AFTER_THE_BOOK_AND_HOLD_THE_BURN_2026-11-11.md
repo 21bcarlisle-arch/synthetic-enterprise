@@ -21,3 +21,15 @@
 3. **Everything goes to the fix and its book.** Land the close-refund fix and its run wiring (s.8.8c, s.8.8d), then run and grade the one book carrying them. Books still run one at a time, and the morning's ban on model-comparison arms stands.
 4. **Re-read usage at 18:00 GMT today.** If the burn since 12:00 is still above **0.6 an hour**, also pause the feature third (W3_3) until the Mon 16 Nov reset, and say so in the direction record. Correctness keeps its claim either way.
 5. The 11 Nov ruling (a third to features, serious-class exit test, weekly balance review) otherwise stands unchanged.
+
+## Done
+
+(seat executor, 11 Nov.) Item 1: the `for_the_director` row `the-customer-carbon-figure-co1-inherits-neso` is
+answered to this ruling, with a commitment (done-means: the bound line renders beside the customer carbon figure,
+landed after the close-refund book is graded on origin; due 20 Nov). Not built now. Item 2: the 11 Nov
+forward-weather steer is filed in `held_behind_the_exit_test` in `docs/direction/priority_order.yaml`, marked
+"not drawn before Mon 16 Nov", for the Friday balance review; no knowledge pass was run. Items 3 and 5 stand as
+the draw order and need no edit. Item 4 (re-read usage at 18:00 GMT, pause W3_3 if the burn since 12:00 is over
+0.6/h) is a timed check this executor turn cannot hold; it is the advisor's reading to relay, and the seat acts
+on it when it arrives. The level-DD area map drawn this turn reads code only and runs no book, so it is inside
+item 3's "everything goes to the fix and its book" (it is the map the next level-DD fix needs).

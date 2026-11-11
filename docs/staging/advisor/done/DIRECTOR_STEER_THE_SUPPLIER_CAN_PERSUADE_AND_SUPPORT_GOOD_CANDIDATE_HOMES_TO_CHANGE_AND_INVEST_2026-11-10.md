@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [DIRECTOR-STEER] The supplier can persuade and support good candidate homes to change and to invest (2026-11-10)
 
@@ -57,3 +57,5 @@ its header names lane `W`, which is not a known lane. The director's words are q
 shelved: third of the three asset steers in `held_behind_the_exit_test` (`docs/direction/priority_order.yaml`). It is
 supplier-side, so it follows the world range it acts on: steps 9 and 11 (inference of each asset, then advice
 products), held behind the correctness stretch.
+
+(Corrected 11 Nov: the header lane read `W`, which is not a lane in `background/finding_severity.py`; it now reads `W2_customer_generator`, as the advisor asked in the 11 Nov forward-weather steer.)

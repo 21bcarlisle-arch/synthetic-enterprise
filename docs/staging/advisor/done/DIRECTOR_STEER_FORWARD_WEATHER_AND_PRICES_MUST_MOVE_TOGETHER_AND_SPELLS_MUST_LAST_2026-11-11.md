@@ -56,3 +56,12 @@ Three steers staged on 10 Nov carry `**Lane:** W`, which is not a lane in `backg
 - `DIRECTOR_STEER_THE_SUPPLIER_CAN_PERSUADE_AND_SUPPORT_GOOD_CANDIDATE_HOMES_TO_CHANGE_AND_INVEST_2026-11-10.md`
 
 — Director steer, 11 Nov 2026, his words above; the code reading and drafting are the advisor's.
+
+## Done
+
+(seat executor, 11 Nov.) **Filed, not built, on his 12:00 ruling** ("Steers already staged, including the 11 Nov
+forward-weather steer, are queued for the weekly balance review and not drawn before Mon 16 Nov"). It sits in
+`held_behind_the_exit_test` in `docs/direction/priority_order.yaml` with that date on it. The advisor's code reading
+was not re-checked this turn; whoever draws it after the reset checks it first (the steer asks for that). The plain
+correction at the foot was made now, because it is a factual correction: the three 10 Nov asset steers' headers
+read `**Lane:** W2_customer_generator`.

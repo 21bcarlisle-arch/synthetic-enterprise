@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [DIRECTOR-STEER] A real range of PV, battery, EV and load in the world, with Predbat as inspiration (2026-11-10)
 
@@ -81,3 +81,5 @@ because the other two build on it. **Where it lands, as the steer asks:** at the
 clears. It should not jump the queue. Nothing in the current book's breaches comes from the asset range, and the
 ruling of 26 Oct names the asset world as held work. Knowledge first (K8): the range's sourced distributions come
 before any draw. Predbat is read for ideas only, and its personal-use licence keeps its code out.
+
+(Corrected 11 Nov: the header lane read `W`, which is not a lane in `background/finding_severity.py`; it now reads `W2_customer_generator`, as the advisor asked in the 11 Nov forward-weather steer.)

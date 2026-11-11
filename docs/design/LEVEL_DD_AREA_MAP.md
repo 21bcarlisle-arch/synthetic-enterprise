@@ -123,3 +123,5 @@ Each is a fix candidate. Under the stop condition, a fix is drawn from this list
 - The DISAGREE counts come from a crude reader, written today and not mutation-checked. Each example was checked by
   hand, and the others were not. Treat each count as at most the true number until a second reader agrees.
 - The map is of origin c5732f9b95. A landed fix that changes a state's code updates that row in the same commit.
+- **11 Nov:** the function-by-function companion, with the ledger each function reads and the 8 graded misses placed,
+  is `LEVEL_DD_AREA_MAP_2026-11-11.md`. Its §3 corrects this page's D3 count basis and its §2 records W1 as refuted.

@@ -188,18 +188,28 @@ for_the_director:
 - id: the-customer-carbon-figure-co1-inherits-neso
   raised: '2026-11-11'
   kind: strategy
-  what: The customer carbon figure (CO1) inherits NESO's national intensity, which does not count 33-40 TWh
-    a year (net) of embedded and captive thermal. The DESNZ split is now read. Northern Ireland is 13-21%.
-    About half of the GB part is used on site and never reaches the grid. So a GB household's figure runs
-    about 5-8% low in 2024 (within 3-15%), and 0-4% before 2019. That still flatters electrification, and
-    the gap grows each year.
+  what: The customer carbon figure (CO1) inherits NESO's national intensity, which does not count 33-40
+    TWh a year (net) of embedded and captive thermal. The DESNZ split is now read. Northern Ireland is
+    13-21%. About half of the GB part is used on site and never reaches the grid. So a GB household's
+    figure runs about 5-8% low in 2024 (within 3-15%), and 0-4% before 2019. That still flatters electrification,
+    and the gap grows each year.
   proposal: Show an annual 'embedded thermal not counted' bound beside the customer-facing carbon figure,
-    as the T&D losses line already is. Take it from household_carbon s1b, which gives a floor, a
-    proportional case and an all case per year. Keep NESO's half-hourly series unchanged as the shape.
+    as the T&D losses line already is. Take it from household_carbon s1b, which gives a floor, a proportional
+    case and an all case per year. Keep NESO's half-hourly series unchanged as the shape.
   recommendation: I recommend the bound line using the proportional case (2024 +5-8%) with its range,
-    and no rescaling of the world series. The split DESNZ does not publish (thermal reaching public
-    supply, by fuel) stays a named GAP on the line. Silence means the seat builds the line next.
-  status: open
-  resolution: ''
+    and no rescaling of the world series. The split DESNZ does not publish (thermal reaching public supply,
+    by fuel) stays a named GAP on the line. Silence means the seat builds the line next.
+  status: answered
+  resolution: 'Director ruling 11 Nov 12:00 GMT (''Do it''): approved as recommended -- proportional case
+    (2024 +5-8%) with its range beside the customer carbon figure like the T&D losses line, no rescaling
+    of NESO''s half-hourly series, the unpublished DESNZ split a named GAP. Queued behind the close-refund
+    book: not built until that book is graded on origin. docs/staging/advisor/done/DIRECTOR_RULING_CO1_BOUND_AFTER_THE_BOOK_AND_HOLD_THE_BURN_2026-11-11.md'
   evidence: docs/staging/SEAT_FINDING_THE_NATIONAL_CARBON_FIGURE_DOES_NOT_COUNT_EMBEDDED_THERMAL_2026-11-11.md;
     docs/market_research/household_carbon_and_the_measures_that_save_it.md s1b
+  resolved: '2026-11-11'
+  commitment:
+    work_id: the-customer-carbon-figure-co1-inherits-neso
+    done_means: the annual embedded-thermal-not-counted bound line (proportional case with range, DESNZ
+      split GAP) renders beside the customer carbon figure, landed after the close-refund book is graded
+      on origin
+    due: '2026-11-20'

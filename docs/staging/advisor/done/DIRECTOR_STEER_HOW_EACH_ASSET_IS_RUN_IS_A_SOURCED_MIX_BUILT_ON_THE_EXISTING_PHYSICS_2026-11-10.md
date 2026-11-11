@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** W · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** unassigned · **Atom:** `unminted`
 
 # [DIRECTOR-STEER] How each asset is run is a sourced mix, built on the existing physics (2026-11-10)
 
@@ -52,3 +52,5 @@ Proportionality: contract-touching — implement with the named mitigations.
 its header names lane `W`, which is not a known lane. The director's words are quoted, so it was filed rather than
 shelved: second of the three asset steers in `held_behind_the_exit_test` (`docs/direction/priority_order.yaml`),
 after the range steer it adds to. It is step 8 work, knowledge first, as his 19:37 message says.
+
+(Corrected 11 Nov: the header lane read `W`, which is not a lane in `background/finding_severity.py`; it now reads `W2_customer_generator`, as the advisor asked in the 11 Nov forward-weather steer.)

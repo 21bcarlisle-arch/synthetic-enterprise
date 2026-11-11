@@ -1197,6 +1197,24 @@
       "question": "What works better or worse than how we do it?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-11, delivery seat): BETTER in theirs, and in Ember's: counting all generation. Ours inherits NESO's omission of embedded thermal, the largest difference found (10-25% by 2023-25, GB/NI split a GAP). SMALL either way: consumption-based flow tracing against our per-market import factors (+0.9% for GB). OURS is the reporting-compatible choice: location-based average on operational factors (GHG Protocol Scope 2, DESNZ). Lifecycle is a different quantity, not a better one. FORECAST: not comparable, because theirs is unpublished. docs/market_research/household_carbon_and_the_measures_that_save_it.md §1a-1b; docs/institutional/reading_log_against_the_gaps.md G4."
+    },
+    "e840f7856075": {
+      "ruling": "DIRECTOR_RULING_CO1_BOUND_AFTER_THE_BOOK_AND_HOLD_THE_BURN_2026-11-11.md",
+      "question": "How's progress?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-11, advisor in chat at 11:56-12:00, relayed in this ruling's 'The reading' section): the burn and what waits on him were set out, with the CO1 recommendation he answered 'Do it'."
+    },
+    "f10cf79cfdda": {
+      "ruling": "DIRECTOR_STEER_FORWARD_WEATHER_AND_PRICES_MUST_MOVE_TOGETHER_AND_SPELLS_MUST_LAST_2026-11-11.md",
+      "question": "Wil it still work when we simualted forward dates and weather?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-11, advisor in chat, relayed in this steer's 'What the advisor found'): not fully. Historical years are coupled; forward years replay analogue weather uncoupled from synthetic prices, so joint cold-still-expensive spells are under-represented. The fix is this steer, held to the 13 Nov balance review."
+    },
+    "e90cecef7977": {
+      "ruling": "DIRECTOR_STEER_FORWARD_WEATHER_AND_PRICES_MUST_MOVE_TOGETHER_AND_SPELLS_MUST_LAST_2026-11-11.md",
+      "question": "Huh?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-11, advisor in chat, relayed in this steer's 'What the advisor found'): forward years do not simulate weather; they replay one real 2016-2025 year each (sim/weather_world.py::extended_by_analogue_years). A statistical generator exists (sim/weather_engine.py) but the forward world does not use it."
     }
   }
 }
