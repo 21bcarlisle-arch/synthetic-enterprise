@@ -8,6 +8,94 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-11 — orientation: Sideways, and the reason is a fault in the machine, not the code
+
+<!-- head: 038bdef0ea19 -->
+
+*Written by the orientation seat from its own record (2026-11-11T06:20:22.549512+00:00; 6 commits, 2 substantive, since 2026-11-11T03:22:09.504239+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 6 other.
+
+## What the stretch meant
+
+Sideways, and the reason is a fault in the machine, not the code. The close-refund fix was never on origin. The last direction and the 05:30 pre-registration both said it was "being landed". It was not. The first landing was refused because tools/git-hooks/pre-commit timed out at 3,600 s (/var/tmp/crfix-land1.log). The second, surgical_land pid 1920905, died and left no line in any log. Its source worktree, /var/tmp/wt-close-refund-sizing, no longer exists. So the armed book launcher (longjob-launcher-crbook) has logged "waiting: close-refund fix not on origin" every five minutes since 05:40, and it gives up at about 13:40Z. The work survives in two salvage commits. Tag salvage/detached-45b982e738bd holds both tests, and also about 1,300 regenerated site files that must not land. /var/tmp/crfix2/mut (3364405088) holds the residual-12 work (home_moves.md s.8.8d). That worktree was UNLOCKED and had no declared owner, so a reap would have lost it. I locked it at this orientation with a reason. Its parent is e58699ec9, so it does not yet carry the close-refund fix's own test. The rest of the stretch was sound. The slack ceilings have one fate each (b4ddeade0). The 19 plan re-offers are traced and their exception is retired at 0 of 1,248 (a481c9ab9). The D1 renewal moves are attributed to treasury feedback, not to run noise (1b69ca127). The baseline comparison the thesis asks for is pre-registered before any arm runs (c65c4cb8b). That last one is the closest the project has come to the thesis, and it is still only a design. Against the thesis nothing moved: no book passes the gate, no per-customer decision has met the flat baseline, and the renewal belief is still off. The commit_split (0 supplier, 0 world, 6 other) mislabels billing-correctness records and a pre-registered supplier comparison as "other". Even so, the stretch landed records and no code. Of the 4 previous focus items, all 4 were drawn. Items 3 and 4 finished, so they leave focus. Item 1 could not start its own work because the fix it builds on was not on origin. Item 2 is armed and waiting. The steer bit, and the landing beneath it failed silently.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 06:20 11 Nov: Unchanged. The comparison that switches it on is pre-registered (c65c4cb8b) and waits on the first passing book.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 06:20 11 Nov: Unchanged. The eleventh read waits on a passing book.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 06:20 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 06:20 11 Nov: Not re-read on any later book. It is in the pre-registered table of item 3.
+- NOT corrected: THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 06:20 11 Nov: Missed by a day. The fix that the first pass depends on is not on origin (item 1).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 06:20 11 Nov: Unchanged. It lands with W3_3 after the first passing book is graded.
+- NOT corrected: THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 06:20 11 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 06:20 11 Nov: Not re-read. The pre-registered table of item 3 re-reads the 29.
+- NOT corrected: THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 06:20 11 Nov: Unchanged. No stop this stretch.
+- NOT corrected: THE COMPANY'S, NEW. Class L's run half refunds past the credit the page prints. On 068b5e3cc8, 6 legs are pushed GBP 833.30 into page debit (two of them were already in debit), and no invariant compares a refund with the page's credit, so the gate passed them silently. Its filed P2 (no closing balance rises) was about the world walk and missed this (items 3 and 4). 03:22 11 Nov: Much larger than filed. The blind row (3cb902dc8) reads 205 of 238 refund lines, GBP 5,061.85, 2016 to 2025. 06:20 11 Nov: Still 205 on origin code, because neither fix is on origin (items 1 and 2).
+- NOT corrected: THE MACHINE'S, NEW. The close-refund fix was reported as "being landed" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing. Landing 1 was refused when its pre-commit gate timed out at 3,600 s. Landing 2 (pid 1920905) died without a log line, and its source worktree is gone. The only copy of the residual work was in an unlocked worktree with no owner (/var/tmp/crfix2/mut), which the seat locked at 06:20. A book launcher has been waiting on the fix since 05:40.
+
+## Chosen against
+
+- Landing the whole salvage 45b982e738 as it stands, so that the launcher's condition is met fastest.
+- Building a register line for a surgical_land that dies, which is the second instance this week.
+- Raising the pre-commit gate's 3,600 s timeout, or narrowing its test selection, so that the landing goes through.
+- Publishing 068b5e3cc8 or e1587ec5b now to meet the overdue early-publish date.
+- Switching on the corrected renewal belief, or running the c65c4cb8b comparison, before a book passes.
+- W3_3 (the deemed and flex standing charge), the UKDS precarity wiring (W2_18, W2_19, 84d37afb2), and N17.
+- Fast-forwarding the shared checkout (99 behind), reaping the 7 other worktrees with unpushed commits, and the 20 repeating alarms.
+
+## Focus for the next stretch
+
+- `the-close-refund-fix-reaches-origin`
+- `a-close-refund-waits-for-the-money-it-pays-out`
+- `the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate`
+
+---
+
+## 2026-11-11 — orientation: Forward on correctness, and the last direction was wrong about how close the exit is
+
+<!-- head: dc3e7dfeb4a6 -->
+
+*Written by the orientation seat from its own record (2026-11-11T03:22:09.504239+00:00; 15 commits, 6 substantive, since 2026-11-11T00:21:33.255852+00:00).*
+
+Commit split (product code by path): 1 supplier, 1 world, 0 both, 13 other.
+
+## What the stretch meant
+
+Forward on correctness, and the last direction was wrong about how close the exit is. It said the gate was one build away. It was not, because the grade behind that claim (6fff2c257) came from a scratch chain that cannot read the closed-account row. That chain counted NOT_IN_EXPORT as a pass. Graded through the publisher's own function on publisher-built pages, both 068b5e3cc8 (5fdf9c106) and the first D1 book e1587ec5b (dc3e7dfeb) are refused. Two rows refuse: INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO (3 legs) and the new blind row INV_REFUND_WITHIN_THE_PAGE_CREDIT. The blind row was written as the 26 Oct ruling's step 4 asks (3cb902dc8). It found 205 of 238 refund lines paying GBP 5,061.85 past the page's credit, in every year from 2016 to 2025, not the 6 legs the last focus named. So step 4 worked as intended: the gate would have certified a book that refunds debtors, and now it cannot. D1 did what it was built for: INV_OVERDUE_WITHIN_PAGE_BALANCE went from 22 to 0 of 6,385 on e1587ec5b, and its exception is retired. That closes the level-DD dunning row. The close-refund fix is being landed now (surgical_land pid 995912). On 068b5e3cc8's output, the refund row goes from 205 to 12 and the closed-account row from 3 to 0, and no row gets worse. The residual 12 all pay a refund before money that arrives after it, mostly a final DD that is returned and part-paid later. That residual is now the whole distance to the first passing book, and it is item 1. Against the thesis, nothing moved: no per-customer decision has been set against the flat baseline, and the renewal belief is still off. Both wait on the ruling, correctly. The commit_split (1 supplier, 1 world, 13 other) understates the supplier share again: D1, class L-prime, the blind refund row and the close-refund fix are all billing correctness. All four previous focus items were drawn, and items 1, 3 and 4 retired with their work on origin. Item 2 ran and graded its book; the book did not pass. The steer bit.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:22 11 Nov: Unchanged. It waits on the first passing book. Item 4 pre-registers the comparison that switches it on.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 03:22 11 Nov: Unchanged. The tenth read ran on a refused book, and the eleventh did not run because the gate refused (dc3e7dfeb).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 03:22 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
+- corrected: THE COMPANY'S, NEW. A level direct-debit household is dunned bill by bill. On fa915ac0d7, the collections journey prints a bill's face as overdue on 1,724 steps across 176 of 454 level-DD households (852 of them while the household is in credit or at zero; GBP 113,865 of excess), and 45 payment records read "missed DD, no return". 03:22 11 Nov: Corrected. On the D1 book e1587ec5b, INV_OVERDUE_WITHIN_PAGE_BALANCE reads 0 of 6,385, and its exception is retired (dc3e7dfeb), so a regression now refuses the publish.
+- NOT corrected: THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 03:22 11 Nov: Still not re-read on any later book. Item 2's table carries it.
+- NOT corrected: THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 03:22 11 Nov: Missed, and the offer 6fff2c257 filed would have failed closed. His yes names the first pass (item 2).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 03:22 11 Nov: Unchanged. It lands with W3_3 after the first passing book is graded.
+- NOT corrected: THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 03:22 11 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 03:22 11 Nov: Not re-read this stretch. The close-refund fix moves bad debt at close by about GBP 500, so item 2 re-reads the 29.
+- NOT corrected: THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 03:22 11 Nov: Unchanged. No stop this stretch.
+- NOT corrected: THE COMPANY'S, NEW. Class L's run half refunds past the credit the page prints. On 068b5e3cc8, 6 legs are pushed GBP 833.30 into page debit (two of them were already in debit), and no invariant compares a refund with the page's credit, so the gate passed them silently. Its filed P2 (no closing balance rises) was about the world walk and missed this (items 3 and 4). 03:22 11 Nov: Much larger than filed. The blind row (3cb902dc8) reads 205 of 238 refund lines, GBP 5,061.85, 2016 to 2025; the 6 was a change, read as a level. The close-refund fix (landing) takes it to 12; item 1.
+- corrected: THE MACHINE'S, NEW. The seat called 068b5e3cc8 a gate pass (6fff2c257) and offered it to the publisher from a scratch grade that counted the unreadable closed-account row (NOT_IN_EXPORT) as clean. The last direction then told the director the exit was one build away. Through the publisher's own function, the book refuses on 3 closed-account legs.
+
+## Chosen against
+
+- Switching on the corrected renewal belief, or running the baseline comparison, now.
+- Widening the closed-account or refund exceptions to let 068b5e3cc8 or e1587ec5b publish now and meet the early-publish date.
+- Making the scratch grade.py chain fail on a NOT_IN_EXPORT row, instead of only retiring it from use.
+- Reconciling the launch register with the boot id; fast-forwarding the shared checkout (93 behind origin); reaping the 7 worktrees with unpushed commits.
+- W3_3 (deemed and flex standing charge), the UKDS precarity world work (W2_18, W2_19) and the N17 year-to-year metering fix.
+
+## Focus for the next stretch
+
+- `a-close-refund-waits-for-the-money-it-pays-out`
+- `the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate`
+- `the-slack-domain-invariant-ceilings-are-retired-or-rebased`
+- `the-first-baseline-comparison-is-pre-registered-before-a-book-passes`
+
+---
+
 ## 2026-11-11 — orientation: This stretch moved forward, after a week that went backwards
 
 <!-- head: 71a1242cb439 -->
