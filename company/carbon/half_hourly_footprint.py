@@ -78,8 +78,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from company.regulatory.carbon_emissions import (
+    EmbeddedThermalBoundUnavailable,
     GasFactorUnavailable,
     TDLossFactorUnavailable,
+    embedded_thermal_uplift_pct,
     gas_factor_kg_co2e_per_kwh,
     grid_intensity_g_co2e_per_kwh,
     grid_intensity_level,
@@ -438,6 +440,13 @@ TD_LOSSES_BASIS = (
     "reporting year (company/regulatory/carbon_emissions.py). Its own line, beside the "
     "generation-basis electricity figure and not added into it or into the total."
 )
+EMBEDDED_THERMAL_BASIS = (
+    "Generation NESO's series does not count: embedded and captive gas, bioenergy, waste and oil "
+    "plant whose output reaches public supply. Shown as a range, the electricity figure times the "
+    "percent household_carbon §1b gives for that year (company/regulatory/carbon_emissions.py). "
+    "DESNZ does not split by fuel what reaches public supply (GAP), so this is a bound, not a "
+    "measurement. Its own line, not added into the electricity figure or the total."
+)
 GAS_LEG_BASIS = (
     "Gas this supplier billed the household for in the year -- kWh read from its own gas meter, "
     "converted at gross calorific value -- times DESNZ's natural-gas conversion factor for that "
@@ -468,6 +477,8 @@ class Leg:
     closed_on: str | None = None
     closure_cause: str | None = None
     td_losses_co2e_kg: float | None = None     # electricity only; its own line, never in co2e_kg
+    embedded_thermal_co2e_kg: tuple[float, float] | None = None   # electricity only; a range, never in co2e_kg
+    embedded_thermal_unavailable: str | None = None
 
     @property
     def full_year(self) -> bool:
@@ -509,11 +520,18 @@ def electricity_leg(year: int, billed_kwh: float | None, months_billed: int) -> 
         return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4), co2e_kg=None,
                    months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS,
                    td_losses_co2e_kg=td,
+                   embedded_thermal_unavailable="no electricity figure for the bound to scale",
                    reason=f"grid intensity not established for {year}: "
                           + str(grid_intensity_unavailable_reason(int(year))))
+    try:
+        lo, hi = embedded_thermal_uplift_pct(int(year))
+        thermal, why = (round(co2e_kg * lo / 100.0, 4), round(co2e_kg * hi / 100.0, 4)), None
+    except EmbeddedThermalBoundUnavailable as exc:
+        thermal, why = None, str(exc)
     return Leg(fuel="electricity", status=BILLED, kwh=round(kwh, 4), co2e_kg=co2e_kg,
                months_billed=int(months_billed), basis=ELECTRICITY_LEG_BASIS,
-               td_losses_co2e_kg=td)
+               td_losses_co2e_kg=td, embedded_thermal_co2e_kg=thermal,
+               embedded_thermal_unavailable=why)
 
 
 def gas_closure_cause(*, gas_point_lost: bool, household_left: bool,
@@ -633,6 +651,11 @@ class HouseholdFootprint:
                 row["reason"] = "; ".join(r for r in (part, leg.reason) if r)
             if leg.fuel == "electricity" and leg.status == BILLED:
                 row["td_losses_co2e_kg"] = None if part else leg.td_losses_co2e_kg
+                row["embedded_thermal_co2e_kg"] = (
+                    None if part or leg.embedded_thermal_co2e_kg is None
+                    else list(leg.embedded_thermal_co2e_kg))
+                if leg.embedded_thermal_unavailable and not part:
+                    row["embedded_thermal_unavailable"] = leg.embedded_thermal_unavailable
             if leg.closed_on:
                 row["closed_on"] = leg.closed_on
                 row["closure_cause"] = leg.closure_cause

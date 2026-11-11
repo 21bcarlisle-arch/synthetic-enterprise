@@ -38,6 +38,7 @@ from pathlib import Path
 from company.carbon.half_hourly_footprint import (
     CHANGE_BASIS,
     ELECTRICITY_LEG_BASIS,
+    EMBEDDED_THERMAL_BASIS,
     FOOTPRINT_BASIS,
     GAS_LEG_BASIS,
     MEASURED,
@@ -647,6 +648,7 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict,
         # sixth of its carbon and would show a heat pump as an increase.
         "household_basis": {"electricity": ELECTRICITY_LEG_BASIS, "gas": GAS_LEG_BASIS,
                             "td_losses": TD_LOSSES_BASIS,
+                            "embedded_thermal": EMBEDDED_THERMAL_BASIS,
                             "total": TOTAL_BASIS, "change": CHANGE_BASIS},
         "households": households or {},
     }

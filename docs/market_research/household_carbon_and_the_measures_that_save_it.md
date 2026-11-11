@@ -191,6 +191,12 @@ does not meet. Part is captive use, which never reaches the grid. The rest, abou
 thermal that the household does meet. Pre-registration: P1 held in 2023–25 and was slightly exceeded in 2016–17.
 P2 held. P3 was slightly low. P4 is below.
 
+**Shown to the customer (director ruling 11 Nov 2026, built the same day).** The proportional column above is
+`EMBEDDED_THERMAL_UPLIFT_PCT_PROPORTIONAL` in `company/regulatory/carbon_emissions.py`. Each household's electricity
+year prints it as a kg range, on its own line beside the T&D losses line, and never adds it into the figure or the
+total. NESO's series is not rescaled. 2017, 2019 and 2021 were not worked out here, so their line says "not worked
+out" with that reason (**GAP**). The split DESNZ does not publish stays the GAP named above.
+
 **NESO's historic-mix IMPORTS column counts ElecLink and Viking.** The dataset metadata (NESO Data Portal,
 `historic-generation-mix`, field `IMPORTS`) says only "Interconnector Imports" and lists no cables, so the definition
 does not settle it. The data does. On every half hour of 2023–2025 where both exist (about 17,500 a year),

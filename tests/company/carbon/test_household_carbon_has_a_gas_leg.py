@@ -228,3 +228,30 @@ def test_grid_losses_are_a_named_line_at_the_published_factor_and_never_in_the_t
     assert electricity_leg(2016, 2_700, 12).td_losses_co2e_kg == round(2_700 * TD[2016], 4)
     # A year with no published factor is not known, never a neighbour's.
     assert electricity_leg(2030, 2_700, 12).td_losses_co2e_kg is None
+
+
+def test_the_uncounted_embedded_thermal_is_a_range_at_its_own_years_case_and_never_in_the_total():
+    """Director ruling 11 Nov 2026 (CO1): the proportional case from household_carbon §1b, as a range
+    beside the figure. One control over the partition: a worked year carries a range, a year the
+    page did not work carries a named gap, and a year with no grid figure carries its own reason.
+
+    Fires if the range folds into the electricity figure or the total, if a gap year borrows a
+    neighbour's case, if the range uses one end twice, or if the gap's reason is lost."""
+    from company.regulatory.carbon_emissions import EMBEDDED_THERMAL_UPLIFT_PCT_PROPORTIONAL as UP
+    e = electricity_leg(2024, 2_700, 12)
+    lo, hi = UP[2024]
+    assert e.embedded_thermal_co2e_kg == (round(e.co2e_kg * lo / 100, 4), round(e.co2e_kg * hi / 100, 4))
+    assert e.embedded_thermal_co2e_kg[0] < e.embedded_thermal_co2e_kg[1]
+    h = HouseholdFootprint("H", 2024, e, gas_leg(2024, 11_500, 12))
+    assert h.total_co2e_kg == round(e.co2e_kg + h.gas.co2e_kg, 4)
+    assert h.as_dict()["electricity"]["embedded_thermal_co2e_kg"] == list(e.embedded_thermal_co2e_kg)
+
+    gap = electricity_leg(2019, 2_700, 12)
+    assert gap.co2e_kg is not None and gap.embedded_thermal_co2e_kg is None
+    assert "2019" in gap.embedded_thermal_unavailable and "GAP" in gap.embedded_thermal_unavailable
+    assert "2019" in HouseholdFootprint("H", 2019, gap, gas_leg(2019, 11_500, 12)).as_dict()[
+        "electricity"]["embedded_thermal_unavailable"]
+
+    no_grid = electricity_leg(2016, 2_700, 12)
+    assert no_grid.co2e_kg is None and no_grid.embedded_thermal_co2e_kg is None
+    assert no_grid.embedded_thermal_unavailable

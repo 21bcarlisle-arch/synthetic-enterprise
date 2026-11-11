@@ -673,3 +673,34 @@ def test_grid_losses_are_their_own_named_line_and_never_in_the_total():
     assert "<td>Electricity lost in the grid</td><td><b>4,321 kg</b>" in panel, panel[:1500]
     kg = [int(x.replace(",", "")) for x in re.findall(r"<td><b>([\d,]+) kg", panel)[:3]]
     assert abs(kg[2] - (kg[0] + kg[1])) <= 1, "the losses were folded into the total"
+
+
+def test_the_uncounted_embedded_thermal_is_its_own_range_and_never_in_the_total():
+    """Director ruling 11 Nov 2026 (CO1, row the-customer-carbon-figure-co1-inherits-neso): NESO's
+    figure leaves out embedded and captive thermal plant, so a range goes on its own named line beside
+    it, never into the electricity figure or the total. A year with no worked bound says why.
+
+    One control over the partition: one row gets a known range and one gets the named gap, and both
+    must render. A line that only ever printed the gap, or only the range, fails here.
+
+    MUTATION (must fire): drop `embeddedThermalLine(...)` from `householdCarbon`; print `r[0]` twice;
+    drop the unavailable reason; add the range into the total.
+    """
+    carbon = json.loads(json.dumps(_load(CARBON)))
+    group = next(g for g, h in sorted((carbon.get("households") or {}).items())
+                 if any(y["electricity"]["status"] == "billed" and y["electricity"]["co2e_kg"]
+                        and y["gas"]["status"] == "billed" and y["gas"]["co2e_kg"]
+                        and y["year"] == h["headline_year"] for y in h["years"]))
+    year = next(y for y in carbon["households"][group]["years"]
+                if y["year"] == carbon["households"][group]["headline_year"])
+    year["electricity"]["embedded_thermal_co2e_kg"] = [1234.0, 5678.0]
+    panel = _household_panel(_stage(group, carbon))
+    assert ("<td>Electricity from plant the national figure leaves out</td>"
+            "<td><b>1,234 to 5,678 kg</b>") in panel, panel[:1500]
+    kg = [int(x.replace(",", "")) for x in re.findall(r"<td><b>([\d,]+) kg", panel)[:3]]
+    assert abs(kg[2] - (kg[0] + kg[1])) <= 1, "the uncounted thermal was folded into the total"
+
+    year["electricity"]["embedded_thermal_co2e_kg"] = None
+    year["electricity"]["embedded_thermal_unavailable"] = "not worked out for 2019 (GAP)"
+    panel = _household_panel(_stage(group, carbon))
+    assert "<b>not worked out</b></td><td>not worked out for 2019 (GAP). " in panel, panel[:1500]

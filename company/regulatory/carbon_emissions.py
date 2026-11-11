@@ -204,6 +204,33 @@ def td_losses_kg_co2e_per_kwh(year: int) -> float:
         f"{min(DESNZ_TD_LOSSES_KG_CO2E_PER_KWH)}-{max(DESNZ_TD_LOSSES_KG_CO2E_PER_KWH)}")
 
 
+#: THE EMBEDDED-THERMAL BOUND (director ruling 11 Nov 2026, row the-customer-carbon-figure-co1-inherits-neso:
+#: the proportional case with its range, beside the customer figure like the T&D line; NESO's series not rescaled).
+#: NESO's historic mix leaves out embedded and captive thermal generation (gas CHP, bioenergy and waste, oil). Percent
+#: added to the generation-basis figure when the GB thermal that reaches public supply is counted at the all-fuel
+#: transfer rate: the "Proportional" column of docs/market_research/household_carbon_and_the_measures_that_save_it.md
+#: §1b ("The GB/NI split, read"; DESNZ regional generation timeseries, NESO operational factors). Low end, high end.
+#: The page computed 2016, 2018, 2020 and 2022-2025 only; the other years are absent and say so, never interpolated.
+EMBEDDED_THERMAL_UPLIFT_PCT_PROPORTIONAL = {
+    2016: (0.0, 1.0), 2018: (1.0, 2.0), 2020: (2.0, 4.0), 2022: (2.0, 4.0),
+    2023: (4.0, 6.0), 2024: (5.0, 8.0), 2025: (4.0, 7.0),
+}
+
+
+class EmbeddedThermalBoundUnavailable(ValueError):
+    """household_carbon §1b holds no proportional case for this year. Never a nearest year."""
+
+
+def embedded_thermal_uplift_pct(year: int) -> tuple[float, float]:
+    """The (low, high) percent NESO's figure leaves out for embedded thermal, that year."""
+    year = int(year)
+    if year in EMBEDDED_THERMAL_UPLIFT_PCT_PROPORTIONAL:
+        return EMBEDDED_THERMAL_UPLIFT_PCT_PROPORTIONAL[year]
+    raise EmbeddedThermalBoundUnavailable(
+        f"the uncounted embedded thermal was not worked out for {year}: household_carbon §1b gives the "
+        "proportional case for 2016, 2018, 2020 and 2022-2025 only (GAP)")
+
+
 #: Scope 1 factor for supplied gas, gCO2e/kWh, for a consumer that has no year to ask about. Also
 #: the published value (the annual report's `Gas CO2 (t)` column). DERIVED from the table above --
 #: the latest DESNZ set to the nearest gram, 183 -- so it is the same figure as before and cannot
