@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-10T18:42:09.228940+00:00",
+ "generated_at": "2026-11-11T00:25:54.067745+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
@@ -251,118 +251,68 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-10T18:35:54.288304+00:00",
+  "oriented_at": "2026-11-11T00:21:33.255852+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Against the thesis, this stretch went backwards. It is 12.2 hours long, and the box was off for 10 of them: the guest powered off in an orderly way at 08:26:45 GMT and came back at 18:33. The journal shows systemd reaching poweroff.target, not a crash, and nothing on the box shows who asked for it. That is the third stop in a week (24h on 3-4 Nov, 60h on 5-7 Nov, 10h today), and the off-box check the director said yes to on 8 Nov (due 15 Nov) has nothing on origin, so he was not told this time either. The stop killed the dca2ea1e7f book about two minutes into its run (its log ends at 08:26:20 in the registry EAC lines). The census that held it this morning had finished, and the admission had let the book through at 12,500 MB declared. The b8da2eed18 book and both grade chains were transient units and died with it. No book carrying this week's billing fixes has run, so the 06:24 row about the books is still uncorrected, now for a different reason. The launch register still lists book-dca2ea1e7f as live, and the grade-b8da continuation waits on an ALLDONE file that nothing will ever write. Before the stop, two pieces of supplier work landed. The billing ledger is committed gzipped (d7c214a39: 91,168,764 bytes become 6,796,846). That error row is retired as fix already_fixed in wrong_triage and so leaves my wrong list; it is checked on the first real publish, which has not happened. Class L also landed (6fb708f3a): a credit bill's month keeps its level collection, and 59 leaver legs' closing balances fall by GBP 6,860.04 on 78f82e4242. The dca2ea1e7f pre-registration does not cover that change, so a head book is needed as well. Of the previous four focus items, the books item was worked until the stop, the ledger item finished and leaves focus, and the Fable test ran through the advisor channel (16 of 16 readings served by the model asked for; 2 Fable readings void on the 5-hour limit). SYN-2016-549 was not touched. It is the only known blocker on the gate, so this steer is drifting and it stays item 2 in the same words. The commit split is 1 supplier, 1 world and 8 other, and the world commit is billing (the world's walk and the page together). A second machine defect surfaced while I oriented. None of the seat's records since 8 Nov 18:23 has reached origin. All 18 of the seat's landings from 8 to 10 Nov were refused by a red site test, and 07abc5a7e carried one record over by hand. So the record the director reviews is two days old, and every correction since then is on this box only. Nothing has changed in the thesis itself. No per-customer decision has been graded against the flat-rule baseline, the corrected renewal belief waits on a clean book, and the site's figures are 183.8h old. We are 15 days into the correctness stretch, and today's 10 hours of it were lost to a stop the machine cannot see.",
+  "thesis_read": "This stretch moved forward, after a week that went backwards. Two books carrying the week's billing fixes ran and were graded against tables filed before they started: dca2ea1e7f (789c05efe) and the head book 068b5e3cc8 (e6c1c11b4). On the head book, eight rows held and three fell. The gate now refuses on 22 steps on one row, all of them on one account (SYN-2016-549, class L-prime). The control read 24 steps on two rows. INV_OVERDUE_WITHIN_BALANCE reads 0, and still-level PAGE_BALANCE reads 0. The cause is named (a49ba851b): the world lets a credit bill wait for the next bill, while the page nets it against the scheme debit. The K8 page for the fix is on origin (c5f52ed3d, SLC 27.16 and 31H.12). So the correctness exit test is one build and one book away, for the first time. What has not moved is the thesis itself. No per-customer decision has been compared with the flat-rule baseline. The corrected renewal belief is still off. Under the 26 Oct ruling, both wait for that passing book. The commit_split reads 28 other and 0 supplier. That is partly the classifier, because the two book grades, the D1 K8 page and the level-DD area map are supplier billing work. But it is also true that no supplier code landed in these 5.8 hours. The stretch graded earlier code and wrote knowledge. All five items of the previous focus were drawn and all five retired, so the steer was followed. The direction record reached origin again at d479caae2, and origin carries the 18:35 10 Nov record. The off-box dead-man was built, and the three stops have causes on origin (6b45ff5ad). The learning loop is live: aff95ded0 puts its measures where the draw is made. One new error matters. Class L's run half refunds past the credit the page prints on 6 legs (GBP 833.30 into page debit). No invariant compares a refund with the page's credit, so the gate cannot see it. A passing gate would therefore still publish that defect. That is why it is item 3, and why its blind invariant is item 4, not something left for later.",
   "focus": [
    {
-    "id": "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
+    "id": "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "The 08:26:45 GMT poweroff killed book-dca2ea1e7f (log /var/tmp/longjob-book-dca2ea1e7f.log ends at 08:26:20), book-b8da2eed18 and both grade-chain units. Nothing is running for any of them now; check `ps` and `systemctl --user list-units 'longjob-*'` first. First, mark both jobs dead in the launch register with the cause \"guest poweroff 08:26:45\". Retire or re-arm the continuation grade-b8da-book-when-its-chain-writes-alldone, because its ALLDONE file can no longer be written. Then relaunch dca2ea1e7f exactly as pre-registered in d41ada8f1, through launch_long_job, with its grade chain /var/tmp/grade-dca2-scripts/after_run.sh. Its worktree /var/tmp/book-wt-dca2ea1e7f holds salvage 264dcb92f, so read that salvage before reusing or replacing the worktree. Once it is admitted, ask the admission whether a second book fits. If it does, launch a book at origin/main head as well: that one carries 6fb708f3a (class L), which the dca2 pre-registration does not cover. Pre-register the head book's rows before it starts, as the dca2 rows plus class L's filed effect. Drop the b8da2eed18 desk-only arm unless memory admits it beside both; say so in the finding. Grade each book against its own table, writing held or fell beside every row. If a book passes the gate, offer it to the publisher at once under the director's 8 Nov yes, and lift the tenth cold read's embargo. If it fails, name every remaining breach class with its count and owner.",
-    "why": "These are the first books carrying 703edeb89, b8da2eed1, 47fdeacd5, 3099252c8, 059d2b55c and now 6fb708f3a, and nothing the supplier infers can be published or compared with the flat baseline until one passes. The control reads 24 unexcepted. Done means at least one of the two books is graded on origin with held or fell beside each pre-registered row, and the launch register and continuation queue no longer hold the dead jobs. The book does not have to pass.",
-    "written_at": 1794336128.77
+    "what": "Build D1 exactly as the K8 page on origin says (c5f52ed3d, docs/market_research/payments_and_direct_debit_2026-10-25.md, and SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md): on a leg that has left level DD while owing its scheme debit, a credit bill meets that debit first, and only the excess waits for the next bill. The world and the page must take the same path. First, look at what is already in flight. A worker (claude pid 3282603) and two pytest runs on occupier/EBSS and gas-leg tests were live at 00:21Z. The worktree /var/tmp/wt-d1-credit-scheme-debit is clean apart from salvage e158df903, which holds only bookkeeping files and is disposable. Before touching code, file the prediction in the finding: SYN-2016-549's 22 left-level PAGE_BALANCE steps on the regenerated control at origin head, the count after the fix, and which other legs move. Then write a control that fails without the fix. Regenerate the control from 068b5e3cc8's run output through the fixed code, write held or fell beside the prediction, and land by pathspec.",
+    "why": "This is the last gate row on the head book: 22 steps on 1 row, every one on 549. The early publish the director said yes to on 8 Nov, the tenth cold read, the corrected renewal belief and the baseline comparison all wait on a passing book. Done means the fix and its failing-without-it control are on origin, and the regenerated control reads 0 unexcepted PAGE_BALANCE steps on 549. Otherwise a residual is named with its cause and an owner.",
+    "written_at": 1794356753.725
    },
    {
-    "id": "syn-2016-549-page-balance-breach-is-named-and-fixed",
+    "id": "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "All 22 of the PAGE_BALANCE breaches left on the control (/var/tmp/grade-dca2/control-78f/, the 78f82e4242 run through head's page code) are left-level steps on SYN-2016-549. Before reading a single step, write down what a page-balance-overdue breach is on a leg that has left level DD. First regenerate the control at origin head, which carries 6fb708f3a (class L), and write down whether 549's 22 move. If they fall to 0, 549 was class L: record that in the class-L finding and close this item. Otherwise trace 549's remaining steps: what the page prints, what the ledger holds, and what the desk did. Decide whether the error is the page's, the desk's, the world's or the reader's. Pre-register the count, then fix the cause with a control that fails without the fix. While there, trace PROS-2019-0318's three unshown collections (GBP 190.13), which the class-L finding left untraced.",
-    "why": "It is the gate's last known blocker on the control, so this one account may be all that stands between a book and the correctness exit test. It was named last stretch and nobody touched it. Done means 549's breaches fall to 0 on the regenerated control with the cause on origin, or a residual is named with its cause and a dated exception or owner.",
-    "written_at": 1794336128.77
+    "what": "Once D1 is on origin, pre-register the next head book's table before it starts: the 068b5e3cc8 rows, plus D1's filed effect, plus class L's over-refund row if item 3 has landed. Launch it through launch_long_job with its grade chain, as 068b5e3cc8 was launched (/var/tmp/grade-head). First check `ps` and `systemctl --user list-units 'longjob-*'` so that nothing is launched twice. Grade it with held or fell beside every row and a Graded: trailer for the learning loop. If the gate passes, offer the book to the publisher at once under the director's 8 Nov yes (early publish, then the Monday anchor resumes), and lift the embargo on the-tenth-cold-read-on-the-first-book-that-passes-the-gate. If it fails, name every remaining class with its count and owner.",
+    "why": "Nothing the supplier infers can reach the site, or be set against the flat baseline, until a book passes. The early-publish commitment is already past its 10 Nov due date. Done means the book is graded on origin. If it passed, it has been offered to the publisher. The book does not have to pass.",
+    "written_at": 1794356753.725
    },
    {
-    "id": "the-seats-direction-record-reaches-origin-again",
-    "lane": "H_harness",
-    "side": "other",
-    "what": "All 18 of the seat's direction landings from 8 to 10 Nov were refused with \"GATE RED on the resulting tree ... SITE TESTS FAILED\" (docs/observability/delivery-seat-log.md). Origin's docs/direction/DIRECTION.yaml is still the 8 Nov 18:23 record, carried over by hand in 07abc5a7e. Reproduce the refusal: build the tree the seat's commit would create (DIRECTION.yaml plus decisions.jsonl and wrong_triage.yaml on origin/main), run the site lane on it, and name the red site/** test and why it is red on a direction-only change. Fix the test or its cause. If the test is right and the tree is wrong, fix the tree. Never bypass the gate. Then land the current record by pathspec, and confirm that the seat's next orientation lands without help.",
-    "why": "The record on origin is what the director and his advisor review. For two days every correction and every wrong row has existed only on this box, and the 10 Nov poweroff showed how fragile that is. The fix is small and unblocks the review channel. Done means origin's DIRECTION.yaml carries an oriented_at later than 2026-11-10T00:00Z, landed by the seat's own tick, and the red test is named in the alarm finding with its fix.",
-    "written_at": 1794336128.77
+    "id": "class-l-over-refunds-six-legs-past-the-page-credit",
+    "lane": "D_billing_metering",
+    "side": "supplier",
+    "what": "Class L's run half refunds past the credit the page prints on 6 legs: OCC-caee88f5fe53, PROS-2017-0351, PROS-2019-0318, PROS-2020-0012, PROS-2020-0191 and SYN-2016-369. That is GBP 833.30 into page debit on 068b5e3cc8 (e6c1c11b4). Do the one walk the grade names. Compare SYN-2016-369's 2024 collections in the run output with its page payments around the 2024-08-20 refund (303.65 on head, 34.67 in arm b). Decide between (i) the run half keeps a level collection the page half does not print, because the two halves key on different predicates, and (ii) the run's refund counts the kept collection twice. Write down which before fixing. Fix it with a control that fails without the fix, and pre-register what happens to the 6 legs and to the written-off-printing-owed row (29, GBP 1,374.58; PROS-2019-0318's +42.53 is this refund). Fold the queued continuation a-scheme-credit-month-keeps-its-level-collection (PROS-2019-0318, 2 x GBP 62.48) into the same walk if it is the same predicate split. Otherwise leave it in the queue.",
+    "why": "A refund to a household that is already in debt is money paid out wrongly. The gate cannot see it, so a passing book would publish it. Done means the cause is chosen with evidence, the fix and its control are on origin, and the 6 legs have a pre-registered count for the next book to grade.",
+    "written_at": 1794356753.725
    },
    {
-    "id": "off-box-liveness-workflow",
-    "lane": "H_harness",
-    "side": "other",
-    "what": "Build the commitment the director answered yes to on 8 Nov (due 15 Nov). A scheduled GitHub Actions workflow on the ops repo reads the sim-runner liveness heartbeat already pushed there, and sends the single dead-man push when that heartbeat is more than 6h old. Prove it fires with a test against a stale heartbeat, and keep its credential in repo secrets only. Then write the cause of each stop, or \"we cannot tell\" with what would tell next time, into a record: 3-4 Nov (24h), 5-7 Nov (60h), and 10 Nov 08:26:45 to 18:33 GMT (10h). For 10 Nov, the journal of boot -1 shows an orderly systemd poweroff with nothing logged beforehand. Read the Windows side if anything on the guest can see it (wsl.exe or the event log through interop). If nothing can, say that only the director's host can tell.",
-    "why": "Three stops in a week have cost about 94 hours, and today's killed the only book in flight. Each time, the director was not told, because the only alarm runs on the box that stopped. Nothing is on origin five days before the due date. Done means the workflow is on the ops repo, its stale-heartbeat test is green, and the three causes are on origin.",
-    "written_at": 1794336128.77
-   },
-   {
-    "id": "the-learning-loop-starts-on-the-level-dd-prediction-misses",
-    "lane": "H_harness",
-    "side": "other",
-    "what": "Act on docs/staging/advisor/DIRECTOR_STEER_EVERY_FAILURE_FEEDS_A_LEARNING_LOOP_THAT_CHANGES_HOW_WE_WORK_2026-11-10.md, and use its first worked case. Take the level-DD prediction misses in the 78f82e4242 grade (INV_OVERDUE predicted 0-10, read 60; PAGE_BALANCE predicted at most 113, read 135; P5 predicted at most 30, read 49), the 9 Nov fix that took overdue rows from 151 to 614, and class L's P3 miss (17 to 2 predicted, read 3). Ask why the process let each one happen, not why the code was wrong. Write one ways-of-working insight, with a trust grade, citing those failures. Build the one change to practice it implies inside an existing mechanism, not a new register: for example, the grade chain refuses a fix after three misses in one area until that area is mapped. File a prediction of what the change will improve, and put the loop's few measures (prediction hit rate, escapes per cold read, regressions per fix) where the draw is made. Move the steer to advisor/done with a ## Done section.",
-    "why": "These are the director's words from 12:36 10 Nov, filed BLOCKING, and he will judge the loop by whether the same kind of failure stops recurring. Level DD is the area where this stretch's predictions keep missing, so the first insight lands on the supplier's billing, where it pays. Done means the insight and the one change are on origin, its prediction is filed, the measures show where the draw is made, and the steer is in advisor/done.",
-    "written_at": 1794336128.77
+    "id": "a-refund-never-exceeds-the-credit-the-page-shows-written-blind",
+    "lane": "D_billing_metering",
+    "side": "supplier",
+    "what": "Following step 4 of the 26 Oct ruling (docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md), write the invariant \"a refund never exceeds the credit the page shows on the day it is paid\" into company/compliance/domain_invariants.py and the gate. The writer must work blind to company/billing's refund code: from the rule and the page feed only, not from the code under test. This must be a different tick from item 3's builder. Prove that it fires on 068b5e3cc8's run output (6 legs expected), and that a synthetic leg refunded exactly to zero passes.",
+    "why": "e6c1c11b4 found the class and filed it for a blind writer, not for the author of the fix. Without it, the gate certifies a book that refunds debtors. Done means the invariant is on origin, red on 068b5e3cc8 for the named legs and green on the zero-refund case.",
+    "written_at": 1794356753.725
    }
   ],
   "not_now": [
    {
-    "what": "Finishing the Fable 5.2 test (grading the 14 valid readings, rerunning the 2 voids, the four-number report and the model_tier recommendation), and then the third arm (Opus with a Fable advisor, after checking that his Max plan allows it).",
-    "why": "The three Fable steers are in the advisor channel, so every worker tick takes them at rung zero, ahead of focus, whether or not I list them. A focus slot would only duplicate that. The third arm waits on the grading by the director's own words. It must never accept the usage-credits consent. If the plan needs it, that is a for_the_director row with what it would cost."
+    "what": "Switching on the corrected renewal belief (AUC 0.806 in run, against 0.333 live), and grading per-customer CLV against the flat-rule baseline.",
+    "why": "This is the centre of the thesis, and it is now closer than at any point this month. But the 26 Oct ruling holds levers until a book passes, and a pass is one build away. Starting it now would put a belief change into the same book as D1, and then neither result could be attributed. I take it the day a book passes."
    },
    {
-    "what": "The front-line gaps knowledge work (DIRECTOR_STEER_KNOWLEDGE_FIRST_FRONT_LINE_GAPS_2026-11-10.md, eight knowledge pages from read errors to marketing permissions).",
-    "why": "It is knowledge first, and the director queued it by the priority order. Today's 10 hours went to a stop, and the two books and 549 are the only route to the exit test. I take it at the next orientation, starting with the stage-2 billing pages (disputes, paper versus paperless, marketing permission), which feed the supplier. The gas-safety correction of gas_safety_incident_register.py goes with them."
+    "what": "Reconciling the launch register with the boot id, so that a guest poweroff marks its jobs dead by itself.",
+    "why": "The dead rows from 10 Nov were settled by hand (28db40f61), and the brief now shows them as died. The defect is real but costs nothing until the next stop. It stays a wrong row, and I put it in focus if a stop strands a job again."
    },
    {
-    "what": "Switching the corrected renewal belief on, and grading per-customer CLV against the flat-rule baseline.",
-    "why": "This is the centre of the thesis, but the 26 Oct ruling holds levers until the gate passes, and no book has run. I reopen it the day a book passes."
+    "what": "The front-line gaps knowledge work (eight pages, from read errors to marketing permissions) and the four 10 Nov world-asset steers (PV, battery, EV and load ranges; asset dispatch mix; persuading good candidate homes; the GitHub sweep).",
+    "why": "Those steers were filed behind the exit test in 789c05efe, by the priority order. The exit test is one build away, and four supplier items that reach it outrank knowledge pages that do not. I take the stage-2 billing pages first once a book passes."
    },
    {
-    "what": "Raising the length of the correctness stretch (15 days) with the director.",
-    "why": "This stretch lost its book to a poweroff, not to a new breach class, so there is no new evidence that the stretch is failing to converge. I raise it with a proposal if a graded book turns up a new unexcepted gate row."
+    "what": "W3_3, the deemed and flex standing charge, and the UKDS precarity world work (W2_18 and W2_19, 84d37afb25).",
+    "why": "Both are world-side, and W3_3 moves every settled figure. Landing either before the first passing book is graded would make D1 and class L impossible to attribute. Neither blocks a supplier result this stretch."
    },
    {
-    "what": "Fast-forwarding the shared checkout (50 behind origin; 19 units import pre-fix code).",
-    "why": "Books run off-tree at origin's head, so the stale imports do not reach a grade. reconcile-watch and the TREE_DIVERGENCE alarm own it. I reopen it if sim-runner starts a book at the stale head."
-   },
-   {
-    "what": "W3_3 with the deemed and flex standing charge, and the UKDS precarity world work (W2_18/W2_19).",
-    "why": "Both are world-side. W3_3 moves every settled figure, so it lands only after the first passing book is graded, or the billing fixes cannot be attributed. Neither blocks a supplier result this stretch."
-   },
-   {
-    "what": "Reaping the eight worktrees that hold commits no remote keeps, and the 19 repeating alarms.",
-    "why": "Reaping cannot be undone. /var/tmp/book-wt-dca2ea1e7f's salvage is read inside item 1, and the rest are locked with reasons. I read the alarms. The one that costs something now, DIRECTION_RECORD_DID_NOT_REACH_ORIGIN, is item 3, and I left the others by choice."
+    "what": "Fast-forwarding the shared checkout (78 behind origin; 19 units import pre-fix code), and reaping the 8 worktrees with unpushed commits.",
+    "why": "Books run off-tree at origin head, so the stale imports do not reach a grade. reconcile-watch and the TREE_DIVERGENCE alarm own the fast-forward. Reaping a worktree cannot be undone. /var/tmp/wt-d1-credit-scheme-debit's salvage is bookkeeping only and disposable; the rest are locked with reasons. I read the 18 repeating alarms, and I leave them by choice: none of them stands between a book and the gate."
    }
   ],
-  "for_the_director": [
-   {
-    "id": "off-box-liveness",
-    "raised": "2026-11-07",
-    "kind": "canon_intent",
-    "what": "The machine was off for about 60 hours (5 Nov 03:31Z to 7 Nov 15:24Z), and nothing told you. The dead-man's switch, the one push you kept on 15 Oct, runs on the same guest, so it cannot report the guest being down. Your advisor went on staging steers through those two days, and nothing on the box read them. I cannot tell from the box whether you shut it down on purpose, and nothing in its logs says.",
-    "proposal": "Investigate first: did you shut the PC or WSL down between 5 Nov 03:31Z and 7 Nov 15:24Z? If not, move the dead-man's single push off the box. A scheduled GitHub Actions workflow on the ops repo would read the liveness heartbeat the sim-runner already pushes there, and send that same one push when the heartbeat is more than 6 hours old. Nothing else reaches your phone.",
-    "recommendation": "I recommend the off-box check if the outage was not yours. It keeps your 15 Oct ruling (one push, only when the machine is dead) and fixes the one case the ruling cannot see today. The evidence is two stops in five days (24h on 3-4 Nov, 60h on 5-7 Nov), and the second cost the whole stretch. The trade-off is one more workflow, and a push from GitHub's servers rather than from your box. Until you rule, nothing changes, the on-box dead-man stays as it is, and the work goes on. If you say the outage was yours, I will withdraw this and record that a planned shutdown is not a fault.",
-    "status": "answered",
-    "resolution": "Director 8 Nov 13:22 GMT: yes. He does not know why the machine went off, so the 5-7 Nov stop was not planned. Build the off-box check on the ops repo; find the cause of both stops or say we cannot tell. Ruling: docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md",
-    "resolved": "2026-11-08",
-    "commitment": {
-     "work_id": "off-box-liveness-workflow",
-     "done_means": "A scheduled GitHub Actions workflow on the ops repo sends the single dead-man push when the sim-runner heartbeat is over 6h old, proven to fire against a stale heartbeat in a test, its credential held only in repo secrets; and the 3-4 Nov and 5-7 Nov stops each carry a named cause or 'we cannot tell' with what would tell next time.",
-     "due": "2026-11-15"
-    }
-   },
-   {
-    "id": "the-publish-window-is-anchored-to-monday",
-    "raised": "2026-11-07",
-    "kind": "strategy",
-    "what": "The publish window is anchored to Monday by your 26 Sep ruling, so a book that passes the full gate this weekend still cannot reach the site before Mon 9 Nov 04:00 GMT. Your 7 Nov 20:22 reading expected the site updated this week.",
-    "proposal": "Allow one early publish this week: the first book after the 21:00 UTC unpin that passes the full invariant gate goes to the site at once. The Monday anchor then resumes unchanged. Your ruling was there to stop six publishes in a day (the 4 Sep cadence that wasn't real), and one publish this week does not undo that. If you say no, the window holds and Monday's publish goes ahead as ruled.",
-    "recommendation": "I recommend one early publish this week, as soon as a book passes the full gate, with Monday kept as the standing anchor.",
-    "status": "answered",
-    "resolution": "Director 8 Nov 13:22 GMT: yes. One early publish as soon as a book passes the full gate; the Monday anchor then resumes as ruled. Ruling: docs/staging/advisor/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md",
-    "evidence": "Ruling: director 2026-09-26 09:29 UTC (docs/design/canon_review_2026-10/inputs/director_words_filtered.md:35), enforced by background/publish_freshness.content_publish_window. Hold state: next_opens 2026-11-09T04:00Z, last figures on origin 2026-11-03T02:48Z (run 0a6391d186). Reading: docs/staging/advisor/done/DIRECTOR_READING_USAGE_52PCT_SATURDAY_2022_AND_HE_EXPECTED_THE_SITE_UPDATED_THIS_WEEK_2026-11-07.md item 2. The shared tree fast-forwarded to f248d5ffa at 21:00 UTC; sim-runner's next run starts about 21:34 UTC.",
-    "resolved": "2026-11-08",
-    "commitment": {
-     "work_id": "early-publish-this-week",
-     "done_means": "The first book to pass the full invariant gate after 8 Nov is on the site before Mon 9 Nov 04:00 GMT or the Monday publish goes ahead as ruled, and content_publish_window is back on the Monday anchor afterwards.",
-     "due": "2026-11-10"
-    }
-   }
-  ],
+  "for_the_director": [],
   "orientations_recorded": 10,
   "skips_recorded": 0,
   "refusals_recorded": 10
@@ -371,9 +321,9 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:36 10 Nov: Unchanged. The corrected belief waits on a clean book, and none has run (item 1).",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 00:21 11 Nov: Unchanged. It waits on the first passing book, which is now one build away (items 1 and 2).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
     "times_listed": 39,
     "corrected": false,
     "fate": "fix",
@@ -384,9 +334,9 @@
    },
    {
     "key": "triage:a-cold-reader-sees-only-what-its-trade-looks-for",
-    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:36 10 Nov: Unchanged. The tenth read is still embargoed to the first passing book.",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 00:21 11 Nov: Unchanged. The tenth read is still embargoed to the first passing book (item 2).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
     "times_listed": 39,
     "corrected": false,
     "fate": "fix",
@@ -397,9 +347,9 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 18:36 10 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 00:21 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
     "times_listed": 39,
     "corrected": false,
     "fate": "fix",
@@ -410,9 +360,9 @@
    },
    {
     "key": "text:a level direct-debit household is dunned bill by bill",
-    "what": "THE COMPANY'S, NEW. A level direct-debit household is dunned bill by bill. On fa915ac0d7, the collections journey prints a bill's face as overdue on 1,724 steps across 176 of 454 level-DD households (852 of them while the household is in credit or at zero; GBP 113,865 of excess), and 45 payment records read \"missed DD, no return\". 18:36 10 Nov: The control still reads 2 on INV_OVERDUE_WITHIN_BALANCE and 22 on PAGE_BALANCE (all SYN-2016-549). It is ungraded on a book because the dca2ea1e7f book died in the 08:26 poweroff (items 1 and 2).",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
+    "what": "THE COMPANY'S, NEW. A level direct-debit household is dunned bill by bill. On fa915ac0d7, the collections journey prints a bill's face as overdue on 1,724 steps across 176 of 454 level-DD households (852 of them while the household is in credit or at zero; GBP 113,865 of excess), and 45 payment records read \"missed DD, no return\". 00:21 11 Nov: Graded on the head book 068b5e3cc8: INV_OVERDUE_WITHIN_BALANCE is 0 and still-level PAGE_BALANCE is 0. The residual is 22 left-level steps, all on SYN-2016-549 (class L-prime, item 1).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
     "times_listed": 39,
     "corrected": false,
     "fate": null,
@@ -423,10 +373,10 @@
    },
    {
     "key": "text:a level-dd journey cures on the next instalment while the missed one is never made good",
-    "what": "THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 18:36 10 Nov: Unchanged. The b8da2eed18 arm that would grade it died in the poweroff, and item 1 grades it on whichever book runs.",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
+    "what": "THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 00:21 11 Nov: The two 10 Nov books were graded on the gate rows, and this count was not re-read on either. The next book's table must carry it (item 2).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
     "first_at": "2026-11-09T09:22:34.424419+00:00",
-    "times_listed": 17,
+    "times_listed": 19,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -436,10 +386,10 @@
    },
    {
     "key": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed",
-    "what": "THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 18:36 10 Nov: Missed, and the due date has passed. His yes names the first pass and not a date, so item 1 offers the first passing book at once.",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
+    "what": "THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 00:21 11 Nov: Missed. His yes names the first pass, and item 2 offers that book at once.",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
     "first_at": "2026-11-09T09:22:34.424419+00:00",
-    "times_listed": 17,
+    "times_listed": 19,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -449,10 +399,10 @@
    },
    {
     "key": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 18:36 10 Nov: Unchanged. It lands with W3_3 after the first passing book is graded.",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 00:21 11 Nov: Unchanged. It lands with W3_3 after the first passing book is graded.",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
     "first_at": "2026-11-09T15:20:17.459238+00:00",
-    "times_listed": 13,
+    "times_listed": 15,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -462,9 +412,9 @@
    },
    {
     "key": "triage:a-continuation-retires-without-its-work-on-origin",
-    "what": "THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 18:36 10 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin.",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
+    "what": "THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 00:21 11 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin.",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
     "times_listed": 11,
     "corrected": false,
     "fate": "fix",
@@ -475,10 +425,10 @@
    },
    {
     "key": "text:the account page drops cash the household repaid",
-    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 18:36 10 Nov: 6fb708f3a (class L) takes unshown collections on the 11 class-L accounts from 17 to 3, all on PROS-2019-0318. Written-off accounts still printing owed are ungraded on a book (item 1).",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
+    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 00:21 11 Nov: On the head book, 29 written-off accounts print owed (GBP 1,374.58). The prediction was 9 to 27, so it fell. PROS-2019-0318's +42.53 is class L's over-refund (item 3).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
     "first_at": "2026-11-10T03:20:12.810361+00:00",
-    "times_listed": 5,
+    "times_listed": 7,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -488,9 +438,22 @@
    },
    {
     "key": "text:neither book that carries this stretch's fixes ran in the stretch",
-    "what": "THE MACHINE'S, NEW. Neither book that carries this stretch's fixes ran in the stretch. b8da2eed18 (launched 04:14) and dca2ea1e7f (05:21) both queued for memory behind head_green_census pid 1903956, a full-suite pytest (3.7 GB RSS, 2h52m), while resource_headroom read 13.5 GB available. A test census held the box's only book slot, and nothing re-asked whether a book fitted beside it. 18:36 10 Nov: The census finished and dca2ea1e7f was admitted at 08:24, and the guest powered off at 08:26:45 and killed it. Still no book has run (item 1).",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
+    "what": "THE MACHINE'S, NEW. Neither book that carries this stretch's fixes ran in the stretch. b8da2eed18 (launched 04:14) and dca2ea1e7f (05:21) both queued for memory behind head_green_census pid 1903956, a full-suite pytest (3.7 GB RSS, 2h52m), while resource_headroom read 13.5 GB available. A test census held the box's only book slot, and nothing re-asked whether a book fitted beside it. 00:21 11 Nov: Corrected. dca2ea1e7f and the head book 068b5e3cc8 both ran on 10 Nov and were graded (789c05efe, e6c1c11b4).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
     "first_at": "2026-11-10T06:23:52.584636+00:00",
+    "times_listed": 5,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:a guest poweroff leaves its dead jobs listed as live",
+    "what": "THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 00:21 11 Nov: The rows were settled by hand (28db40f61), and the brief now shows them as died. Nothing yet compares the register with the boot id.",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
+    "first_at": "2026-11-10T18:35:54.288304+00:00",
     "times_listed": 3,
     "corrected": false,
     "fate": null,
@@ -500,12 +463,12 @@
     "reason": null
    },
    {
-    "key": "text:a guest poweroff leaves its dead jobs listed as live",
-    "what": "THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id.",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
+    "key": "text:the seat's direction record has not reached origin since 8 nov 18:23",
+    "what": "THE MACHINE'S, NEW. The seat's direction record has not reached origin since 8 Nov 18:23. All 18 of the seat's landings from 8 to 10 Nov were refused with SITE TESTS FAILED, and one record was carried over by hand (07abc5a7e). So the record the director reviews is two days old. 00:21 11 Nov: Corrected by d479caae2. The Harness page's concern labels take a dash, and origin carries the 18:35 10 Nov record.",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
     "first_at": "2026-11-10T18:35:54.288304+00:00",
-    "times_listed": 1,
-    "corrected": false,
+    "times_listed": 3,
+    "corrected": true,
     "fate": null,
     "status": null,
     "retired": false,
@@ -513,10 +476,10 @@
     "reason": null
    },
    {
-    "key": "text:the seat's direction record has not reached origin since 8 nov 18:23",
-    "what": "THE MACHINE'S, NEW. The seat's direction record has not reached origin since 8 Nov 18:23. All 18 of the seat's landings from 8 to 10 Nov were refused with SITE TESTS FAILED, and one record was carried over by hand (07abc5a7e). So the record the director reviews is two days old (item 3).",
-    "last_at": "2026-11-10T18:35:54.288304+00:00",
-    "first_at": "2026-11-10T18:35:54.288304+00:00",
+    "key": "text:class l's run half refunds past the credit the page prints",
+    "what": "THE COMPANY'S, NEW. Class L's run half refunds past the credit the page prints. On 068b5e3cc8, 6 legs are pushed GBP 833.30 into page debit (two of them were already in debit), and no invariant compares a refund with the page's credit, so the gate passed them silently. Its filed P2 (no closing balance rises) was about the world walk and missed this (items 3 and 4).",
+    "last_at": "2026-11-11T00:21:33.255852+00:00",
+    "first_at": "2026-11-11T00:21:33.255852+00:00",
     "times_listed": 1,
     "corrected": false,
     "fate": null,
@@ -529,8 +492,8 @@
     "key": "triage:the-billing-ledger-outgrows-githubs-file-limit",
     "what": "THE MACHINE'S, NEW. The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap. [Earlier tails are in decisions.jsonl.] 06:24 10 Nov: Still 91.2 MB on origin. It was drawn last stretch and nothing landed. It is item 4.",
     "last_at": "2026-11-10T06:23:52.584636+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 38,
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
+    "times_listed": 36,
     "corrected": false,
     "fate": "fix",
     "status": "already_fixed",
@@ -542,8 +505,8 @@
     "key": "triage:a-desk-cure-over-a-bill-the-world-still-holds",
     "what": "THE COMPANY'S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 03:20 10 Nov: Graded on book 78f82e4242 (7f69f7882): shape A at 0 level cases above their remainder, as predicted. The cures still held over a leaver's debt are the level-DD cure row's.",
     "last_at": "2026-11-10T03:20:12.810361+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 36,
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
+    "times_listed": 34,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -854,8 +817,8 @@
     "key": "triage:a-triad-settlement-prediction-waits-on-its-book",
     "what": "THE MACHINE'S, NEW. 26c891276's pre-registration filed \"(2) falls to 0\", and it read 19 settlements (GBP 682.47). The prediction stands beside its refutation in the finding. 09:24 8 Nov: Read on 84f7fc8fe0, the first book carrying 12a470de7 (b16a73340): 0 of 1,426 settlements carry more cash than the engine's walk holds open, as the replacement prediction filed.",
     "last_at": "2026-11-08T09:24:02.767219+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 8,
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
+    "times_listed": 6,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -932,8 +895,8 @@
     "key": "triage:a-pay-on-receipt-catch-up-is-capped-at-the-period-end",
     "what": "THE COMPANY'S, NEW. Pay-on-receipt customers are back-billed for more than 12 months. [Earlier tails are in decisions.jsonl.] 03:20 8 Nov: Fixed on origin (d7bdc0c4d): the cap runs 12 months back from the issue date (SLC 21BA.1), with its test.",
     "last_at": "2026-11-08T03:20:16.019625+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 4,
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": "fix",
     "status": "already_fixed",
@@ -945,8 +908,8 @@
     "key": "text:the scratch grader used for every book this week (/var/tmp/b3ce-grade-scripts/grade.py) does not build cast_tariffs or payment_tallies, so n15 and n16 read unreached and not_in_export, not 0",
     "what": "THE MACHINE'S, NEW. The scratch grader used for every book this week (/var/tmp/b3ce-grade-scripts/grade.py) does not build cast_tariffs or payment_tallies, so N15 and N16 read UNREACHED and NOT_IN_EXPORT, not 0. 03:20 8 Nov: The ninth read graded both through the publisher's own path: MISSED_BILL read 28 checked, and TARIFF read 47,504 checked once the stranded generator hunk landed (bb6c7b549).",
     "last_at": "2026-11-08T03:20:16.019625+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 4,
+    "first_at": "2026-11-08T03:20:16.019625+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -966,59 +929,145 @@
     "retired": false,
     "owner": null,
     "reason": null
-   },
-   {
-    "key": "triage:the-orienting-seat-stopped-and-nothing-reached-the-director",
-    "what": "THE MACHINE'S, NEW. The orienting seat did not run for 24 hours (3 Nov 09:23Z to 4 Nov 06:25Z), and nothing reached the director. 21:21 7 Nov: Then the whole guest was off for about 60 hours, and nothing reached him. It is open in for_the_director as off-box-liveness, with no answer yet.",
-    "last_at": "2026-11-07T21:21:50.766507+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 2,
-    "corrected": false,
-    "fate": "fold",
-    "status": null,
-    "retired": true,
-    "owner": "for_the_director off-box-liveness (DIRECTION.yaml): the fix is an off-box dead-man push, and that waits on his answer",
-    "reason": "Triaged 2026-11-08 by the delivery seat, ahead of the 7-day line. Both stops (24h on 3-4 Nov, 60h on 5-7 Nov) have one cause class: the only alarm runs on the box that stopped. The remedy is the proposal already open in for_the_director, so listing it here too counts the same problem twice. Reopen as a fix if he answers that the outage was not his and the off-box push is not built within a week of that answer."
-   },
-   {
-    "key": "text:n15 and n16 survive on the six-stage household page: its tariff name and bill tally read the old way",
-    "what": "THE PAGES', NEW. N15 and N16 survive on the six-stage household page: its tariff name and bill tally read the old way. 21:21 7 Nov: Their rows, evaluators and tests are on origin (f7f0a8ca4), and their first readings were 0 and 0.",
-    "last_at": "2026-11-07T21:21:50.766507+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 2,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the seat added an unsigned progress section to the advisor-signed calibrate steer (d3b0b0f15), and the advisor channel now refuses the file's signature",
-    "what": "THE MACHINE'S, NEW. The seat added an unsigned progress section to the advisor-signed calibrate steer (d3b0b0f15), and the advisor channel now refuses the file's signature. 21:21 7 Nov: The steer is restored to its signed 0d575337d bytes, and the section is now a seat record (2e8ef7e47).",
-    "last_at": "2026-11-07T21:21:50.766507+00:00",
-    "first_at": "2026-11-07T21:21:50.766507+00:00",
-    "times_listed": 2,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
    }
   ],
-  "distinct": 49,
-  "triaged": 10,
+  "distinct": 47,
+  "triaged": 9,
   "triaged_by_fate": {
    "fix": 8,
-   "fold": 2,
+   "fold": 1,
    "accept": 0
   },
-  "untriaged": 39,
-  "distinct_open": 16,
-  "rows": 460,
+  "untriaged": 38,
+  "distinct_open": 15,
+  "rows": 459,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "text:a level direct-debit household is dunned bill by bill"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "text:the account page drops cash the household repaid"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": true,
+    "problem": "text:neither book that carries this stretch's fixes ran in the stretch"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "text:a guest poweroff leaves its dead jobs listed as live"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": true,
+    "problem": "text:the seat's direction record has not reached origin since 8 nov 18:23"
+   },
+   {
+    "at": "2026-11-11T00:21:33.255852+00:00",
+    "corrected": false,
+    "problem": "text:class l's run half refunds past the credit the page prints"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:a level direct-debit household is dunned bill by bill"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:the account page drops cash the household repaid"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:neither book that carries this stretch's fixes ran in the stretch"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:a guest poweroff leaves its dead jobs listed as live"
+   },
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "corrected": false,
+    "problem": "text:the seat's direction record has not reached origin since 8 nov 18:23"
+   },
    {
     "at": "2026-11-10T18:35:54.288304+00:00",
     "corrected": false,
@@ -3188,139 +3237,13 @@
     "at": "2026-11-08T03:20:16.019625+00:00",
     "corrected": true,
     "problem": "text:the 21:21 7 nov record said the exit test was \"one defect away\""
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-pay-on-receipt-catch-up-is-capped-at-the-period-end"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:the-orienting-seat-stopped-and-nothing-reached-the-director"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": true,
-    "problem": "text:n15 and n16 survive on the six-stage household page: its tariff name and bill tally read the old way"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": true,
-    "problem": "text:the seat added an unsigned progress section to the advisor-signed calibrate steer (d3b0b0f15), and the advisor channel now refuses the file's signature"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-triad-settlement-prediction-waits-on-its-book"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "text:the scratch grader used for every book this week (/var/tmp/b3ce-grade-scripts/grade.py) does not build cast_tariffs or payment_tallies, so n15 and n16 read unreached and not_in_export, not 0"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-pay-on-receipt-catch-up-is-capped-at-the-period-end"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:the-orienting-seat-stopped-and-nothing-reached-the-director"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": true,
-    "problem": "text:n15 and n16 survive on the six-stage household page: its tariff name and bill tally read the old way"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": true,
-    "problem": "text:the seat added an unsigned progress section to the advisor-signed calibrate steer (d3b0b0f15), and the advisor channel now refuses the file's signature"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "triage:a-triad-settlement-prediction-waits-on-its-book"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "corrected": false,
-    "problem": "text:the scratch grader used for every book this week (/var/tmp/b3ce-grade-scripts/grade.py) does not build cast_tariffs or payment_tallies, so n15 and n16 read unreached and not_in_export, not 0"
    }
   ],
   "refused_own_records": [
+   {
+    "at": "2026-11-10T18:35:54.288304+00:00",
+    "problems": []
+   },
    {
     "at": "2026-11-10T06:23:52.584636+00:00",
     "problems": []
@@ -3398,26 +3321,89 @@
     "problems": [
      "for_the_director rewrote the open concern 'the-publish-window-is-anchored-to-monday' -- carry it verbatim, or withdraw it with a resolution and raise the new wording under a new id"
     ]
-   },
-   {
-    "at": "2026-11-07T21:21:50.766507+00:00",
-    "problems": []
    }
   ],
-  "outstanding": 394,
-  "corrected": 66,
+  "outstanding": 395,
+  "corrected": 64,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
-   "syn-2016-549-page-balance-breach-is-named-and-fixed",
-   "the-seats-direction-record-reaches-origin-again",
-   "off-box-liveness-workflow",
-   "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+   "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
+   "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
+   "class-l-over-refunds-six-legs-past-the-page-credit",
+   "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
+       "syn-2016-549-page-balance-breach-is-named-and-fixed",
+       "the-seats-direction-record-reaches-origin-again",
+       "off-box-liveness-workflow",
+       "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+      ],
+      "focus": [
+       "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
+       "syn-2016-549-page-balance-breach-is-named-and-fixed",
+       "the-seats-direction-record-reaches-origin-again",
+       "off-box-liveness-workflow",
+       "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
+     "syn-2016-549-page-balance-breach-is-named-and-fixed",
+     "the-seats-direction-record-reaches-origin-again",
+     "off-box-liveness-workflow",
+     "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+    ],
+    "focus": [
+     "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
+     "syn-2016-549-page-balance-breach-is-named-and-fixed",
+     "the-seats-direction-record-reaches-origin-again",
+     "off-box-liveness-workflow",
+     "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 5.8h since 2026-11-10T18:35:54.288304+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 5.8h since 2026-11-10T18:35:54.288304+00:00"
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-book-carrying-the-leaver-statement-and-desk-fixes-is-run-off-tree-and-gated",
+       "syn-2016-549-page-balance-breach-is-named-and-fixed"
+      ],
+      "focus": [
+       "the-book-carrying-the-leaver-statement-and-desk-fixes-is-run-off-tree-and-gated",
+       "syn-2016-549-page-balance-breach-is-named-and-fixed",
+       "fable-5-2-against-opus-5-5-on-our-own-work",
+       "the-billing-ledger-outgrows-githubs-file-limit"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-book-carrying-the-leaver-statement-and-desk-fixes-is-run-off-tree-and-gated",
+     "syn-2016-549-page-balance-breach-is-named-and-fixed"
+    ],
+    "focus": [
+     "the-book-carrying-the-leaver-statement-and-desk-fixes-is-run-off-tree-and-gated",
+     "syn-2016-549-page-balance-breach-is-named-and-fixed",
+     "fable-5-2-against-opus-5-5-on-our-own-work",
+     "the-billing-ledger-outgrows-githubs-file-limit"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 12.2h since 2026-11-10T06:23:52.584636+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 12.2h since 2026-11-10T06:23:52.584636+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3515,74 +3501,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-11-10T03:20:12.810361+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.1h since 2026-11-10T03:20:12.810361+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-       "a-level-dd-leavers-schedule-shortfall-is-billed",
-       "desk-write-off-reaches-the-page",
-       "level-dd-scheme-end-residue-dunned"
-      ],
-      "focus": [
-       "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-       "a-level-dd-leavers-schedule-shortfall-is-billed",
-       "desk-write-off-reaches-the-page",
-       "level-dd-scheme-end-residue-dunned"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-     "a-level-dd-leavers-schedule-shortfall-is-billed",
-     "desk-write-off-reaches-the-page",
-     "level-dd-scheme-end-residue-dunned"
-    ],
-    "focus": [
-     "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-     "a-level-dd-leavers-schedule-shortfall-is-billed",
-     "desk-write-off-reaches-the-page",
-     "level-dd-scheme-end-residue-dunned"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-10T00:20:14.811382+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-10T00:20:14.811382+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-       "a-level-dd-leavers-schedule-shortfall-is-billed",
-       "desk-write-off-reaches-the-page",
-       "level-dd-scheme-end-residue-dunned"
-      ],
-      "focus": [
-       "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-       "a-level-dd-leavers-schedule-shortfall-is-billed",
-       "desk-write-off-reaches-the-page",
-       "level-dd-scheme-end-residue-dunned"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-     "a-level-dd-leavers-schedule-shortfall-is-billed",
-     "desk-write-off-reaches-the-page",
-     "level-dd-scheme-end-residue-dunned"
-    ],
-    "focus": [
-     "the-first-book-after-the-overdue-fixes-is-run-off-tree-and-gated",
-     "a-level-dd-leavers-schedule-shortfall-is-billed",
-     "desk-write-off-reaches-the-page",
-     "level-dd-scheme-end-residue-dunned"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-10T00:20:14.811382+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-10T00:20:14.811382+00:00"
    }
   ],
   "steered_recently": true,
@@ -3590,14 +3508,14 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 37,
-  "chained": 37,
+  "population": 35,
+  "chained": 35,
   "minted": 2,
-  "unminted": 34,
+  "unminted": 32,
   "unminted_by_kind": {
-   "alarm": 19,
+   "alarm": 18,
    "directive": 1,
-   "finding": 12,
+   "finding": 11,
    "reference": 2
   },
   "unresolved": [
