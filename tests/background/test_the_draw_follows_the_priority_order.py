@@ -182,3 +182,30 @@ def test_a_held_unranked_atom_is_refused_until_the_exit_and_an_unheld_one_never_
     assert during == {"U_correctness"}
     assert after == {"U_feature", "U_correctness"}
     assert "a new use case" in why["U_feature"] and "THE_RULING.md" in why["U_feature"]
+
+
+def test_the_feature_share_gives_held_atoms_a_turn_in_its_fraction_of_draws(world):
+    """The 11 Nov ruling ("about a third" to features), as one control over the partition: with no
+    share a held atom is never the primary; at share 1 it always is; at a third it is the primary in
+    roughly a third of draws, and the step-2 atom keeps the rest.
+
+    MUTATION (must fire): drop the feature-turn branch in the draw -> `third` is 0.
+    MUTATION (must fire): read the share as 1 - share -> `third` is near two thirds.
+    MUTATION (must fire): fail the share open to 1.0 -> `none` is 200."""
+    order = world / "priority_order.yaml"
+    pair = _atom("S6_forward") + _atom("S2_billing")
+
+    def s6_primaries(extra: str) -> int:
+        order.write_text(_STRETCH % extra)
+        supervisor.MATURITY_MAP_PATH.write_text(pair)
+        return sum(supervisor._maturity_map_draw_concurrent(rng=random.Random(s))[0]["id"]
+                   == "S6_forward" for s in range(300))
+
+    none, third, every = (s6_primaries(""), s6_primaries(", feature_share: 0.33"),
+                          s6_primaries(", feature_share: 1.0"))
+    order.write_text(_STRETCH % ", feature_share: oops")
+    unreadable = supervisor.correctness_stretch_feature_share()
+
+    assert (none, every) == (0, 300)
+    assert 60 <= third <= 140, third
+    assert unreadable == 0.0

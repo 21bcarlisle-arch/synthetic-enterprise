@@ -739,3 +739,13 @@ def test_the_orphan_section_goes_red_on_a_real_unruled_orphan(tmp_path, monkeypa
     monkeypatch.setattr(ci, "ROOT", tmp_path)
     text = "\n".join(wr._orphan_dispositions_section())
     assert "**RED:" in text and "company.billing.abandoned" in text, text
+
+
+def test_the_friday_step_proposes_the_weeks_balance_before_the_reset():
+    """The 11 Nov ruling: the balance is reviewed before each week of new tokens, from the step
+    that lands before Monday's reset, and it reads the live share rather than restating one.
+
+    MUTATION (must fire): drop `_balance_review_section` from the Friday branch."""
+    body = wr._step_body(wr.FRIDAY_STEP, date(2026, 11, 13), [])
+    assert "## The balance for the coming week" in body
+    assert "feature_share" in body and "accelerate" in body

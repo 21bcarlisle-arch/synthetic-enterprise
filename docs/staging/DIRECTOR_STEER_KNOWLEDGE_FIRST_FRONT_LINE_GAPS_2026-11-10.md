@@ -90,4 +90,23 @@ The item list below is the advisor's proposal, which the director shaped with th
 - Authorised users, power of attorney and identity verification, until epoch 3's walled interfaces.
 - Quarterly billing.
 
+## Work this creates
+
+*Minted by the worker tick on 11 Nov from the body above, because the steer arrived without this block
+(§4 of the 27 Jul work-definition ruling). **Author: please confirm or amend it.** Every item is a
+knowledge page first. A build slice is drawn only once its page has landed, and only if the page says
+the item matters. Under the 11 Nov ruling, the build slices draw from the feature third, and the pages
+draw as knowledge.*
+
+| # | Knowledge page (`docs/market_research/`) | Then, if the page says it matters | Side | State on 11 Nov |
+|---|---|---|---|---|
+| 1 | Read errors: transposition, misread dial, wrong register, rollover, crossed meters (extend `meter_read_latency_estimation_2026.md`) | World draws read errors at the published rates | world | not started |
+| 2 | Complaints by cause after 2024, and Ofgem's per-100k figures | Wire `simulation/complaint_generation.py` to a consumer | world | not started |
+| 3 | Low-carbon adoption as a demand step: before and after shapes, when it reaches the bill, household reaction | Adoption events move demand and bill shock | both | not started |
+| 4 | Gas safety roles | Register corrected | company | **knowledge landed** in 038bdef0ea (`who_does_what_in_a_gas_escape_or_co_incident_2026-11-11.md`). Open finding: `WORKER_FINDING_THE_GAS_SAFETY_REGISTER_RECORDS_THE_NETWORKS_MAKE_SAFE_AS_THE_SUPPLIERS_OWN_ACT_2026-11-11.md` |
+| 5 | Disputes: query, complaint or dispute; resolution routes; meter accuracy testing; goodwill and GSOP | Dispute path on the account | company | not started |
+| 6 | SEG billing, and bereavement closure | Export line on the bill; estate closure | company | not started |
+| 7 | Bill delivery: paper, paperless, PSR formats, digital exclusion, print and post cost | Delivery channel on the account | both | not started |
+| 8 | Marketing permissions: legitimate interest, PECR soft opt-in, TPS, service message or marketing | Permission state (stage 2), enforced before any offer (stage 3) | company | not started. **The page ends in a ruling the director owes:** is personalised advice a service message? |
+
 — Advisor, via the staging channel, on the director's instruction.

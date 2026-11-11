@@ -185,6 +185,11 @@ def test_a_focus_atom_in_a_held_step_is_refused_naming_the_ruling_and_lifts_at_t
     assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "PB8_idle_atom"
     assert dl.LAST_STRETCH_SKIPS == []
 
+    # 11 Nov ruling: with a feature share set, the seat spends it through its own focus.
+    # MUTATION (must fire): drop the share check in `_stretch_refusals` -> PB8 is refused here.
+    order.write_text(stretch % ", feature_share: 0.33", encoding="utf-8")
+    assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "PB8_idle_atom"
+
 
 def test_THE_SEATS_ORDER_IS_THE_DRAW_ORDER(tree):
     """`focus` is ordered and its first entry is what the seat judged mattered most. Sorting or

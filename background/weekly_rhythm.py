@@ -583,6 +583,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
                   "### Deliberately not this week, and why", "", "- ", ""]
     else:
         lines += _burn_section()
+        lines += _balance_review_section()
         lines += _cost_of_work_section()
         lines += ["## What actually happened", "",
                   "_Against Monday's ranking, item by item. Where one did not move, say whether it "
@@ -756,6 +757,34 @@ def _burn_section(days: float = 7.0) -> list[str]:
             "the director what changed and how to reverse it. Anything the weighted figure cannot "
             "judge -- whether the turns LANDED anything -- is read from the commits, not assumed.",
             ""]
+
+
+def _balance_review_section() -> list[str]:
+    """THE WEEKLY BALANCE REVIEW (director ruling, 2026-11-11 07:27: "we need to review the right
+    balance before we start each week of new tokens, and perhaps accelerate some things if we have
+    excess tokens at the end of the week"). Friday is the step that lands before the Monday 03:00
+    GMT reset. The advisor puts the proposal to him; unanswered by the reset, it stands."""
+    try:
+        import yaml
+        order = yaml.safe_load((PROJECT_DIR / "docs/direction/priority_order.yaml")
+                               .read_text(encoding="utf-8")) or {}
+        share = (order.get("correctness_stretch") or {}).get("feature_share")
+        accelerate = order.get("accelerate") or []
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot read the order says so
+        share, accelerate = f"UNREADABLE ({type(exc).__name__})", []
+    return ["## The balance for the coming week (proposal; stands at the reset unless he answers)", "",
+            f"The live feature share in the BUILD draw is `{share}` "
+            "(`docs/direction/priority_order.yaml`, `correctness_stretch.feature_share`).", "",
+            "Propose the split across **correctness and backlog / harness / world features / "
+            "supplier features / knowledge**, and name what each share is for. Base it on the week "
+            "gone, each measured, not recalled: the learning loop's hit rates; regressions; serious "
+            "classes per cold read (`serious_class_rule`); whether the site published; and the "
+            "week's usage curve. Write the agreed share into `feature_share` and stage the proposal "
+            "to the advisor channel. Correctness keeps first claim; the publish gate does not move.", "",
+            "**The accelerate list** (`priority_order.yaml` `accelerate:`), ranked: ready work worth "
+            "pulling forward from Saturday if more than the ~10-point reserve is unspent. Decide it "
+            "here, never on the day. Live list: "
+            + ("; ".join(str(a) for a in accelerate) if accelerate else "EMPTY -- write it now."), ""]
 
 
 def _cost_of_work_section() -> list[str]:

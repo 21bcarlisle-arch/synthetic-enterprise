@@ -1096,6 +1096,21 @@ def correctness_stretch_refusals(path: Path | None = None) -> dict:
         return {}
 
 
+def correctness_stretch_feature_share(path: Path | None = None) -> float:
+    """The fraction of BUILD draws taken from the stretch's held atoms, in [0, 1]; 0.0 on any error.
+
+    The director's ruling of 2026-11-11 (07:27, "Go ahead") ends the full freeze: features get
+    "about a third" of capacity and correctness keeps first claim. Fails CLOSED to 0.0 -- an
+    unreadable share is the 26 Oct freeze, never an open door."""
+    try:
+        import yaml
+        data = yaml.safe_load(Path(path or PRIORITY_ORDER_PATH).read_text(encoding="utf-8")) or {}
+        share = float(((data.get("correctness_stretch") or {}).get("feature_share")) or 0.0)
+        return min(max(share, 0.0), 1.0)
+    except Exception:
+        return 0.0
+
+
 def _in_flight_ids(stall_state: dict, now: float | None = None) -> set:
     """Atoms the draw handed out within the last BUILD_IN_PROGRESS_TTL_SECONDS and that are still
     moving (not flagged stalled). The canon: "In-flight work finishes first. The new order applies
@@ -1597,6 +1612,14 @@ def _maturity_map_draw_concurrent(rng: Any = None, exclude_stalled: bool = False
         _moving = _in_flight_ids(_load_atom_stall_state())
         _out = [a.get("id") for a in candidates
                 if a.get("id") in _refused and a.get("id") not in _moving]
+        # THE FEATURE SHARE (director, 11 Nov: "about a third" to features, correctness first).
+        # On a share-sized fraction of draws the held atoms ARE the pool, so features get a turn
+        # rather than a weight the earlier steps always outrank; on the rest they are refused.
+        if _out and (rng or random).random() < correctness_stretch_feature_share():
+            log(f"CORRECTNESS STRETCH: feature turn -- the BUILD draw is taken from {len(_out)} "
+                f"held atom(s) ({', '.join(_out[:5])}{'...' if len(_out) > 5 else ''})")
+            candidates = [a for a in candidates if a.get("id") in _refused]
+            _out = []
         if _out:
             log(f"CORRECTNESS STRETCH: {len(_out)} atom(s) refused from the BUILD draw -- "
                 f"{_refused[_out[0]]} ({', '.join(_out[:5])}{'...' if len(_out) > 5 else ''})")

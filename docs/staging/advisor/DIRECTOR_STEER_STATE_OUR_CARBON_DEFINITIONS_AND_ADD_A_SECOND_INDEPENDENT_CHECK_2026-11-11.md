@@ -1,4 +1,6 @@
-**Severity:** LATENT · **Lane:** W · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** LATENT · **Lane:** W1_market_weather · **Epoch:** unassigned · **Atom:** `unminted`
+
+*Header corrected 11 Nov by the worker tick: the lane read `W`, which is no known lane, so the advisor channel refused the file and nothing drew it. It now reads `W1_market_weather`, because the grid-carbon history lives in `sim/`. The body is unchanged.*
 
 # [DIRECTOR-STEER] State our carbon definitions, and add a second independent check (2026-11-11)
 

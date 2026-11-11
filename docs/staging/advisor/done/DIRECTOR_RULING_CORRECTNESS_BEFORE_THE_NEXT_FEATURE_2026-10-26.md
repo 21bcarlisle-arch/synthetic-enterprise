@@ -43,3 +43,13 @@ This ruling implements:
 
 - **The advisor** runs its own independent cold read every Monday after the run, on Explore plus a random handful of households, and stages what it finds.
 - **The director** reads one or two examples a week. If he finds an error the cold reader missed, that is itself a finding about the reader.
+
+## Done
+
+Archived on 11 Nov because the director's ruling of that morning amends it ("Go ahead", 07:27 GMT;
+`done/DIRECTOR_RULING_END_THE_FEATURE_FREEZE_A_THIRD_TO_FEATURES_AND_A_WEEKLY_BALANCE_REVIEW_2026-11-11.md`).
+The ruling is not withdrawn. The stretch is still live in `docs/direction/priority_order.yaml`
+(`correctness_stretch`, now pointing here), and its exit is still unmet. Steps 1, 2 and 5 landed
+26 Oct. Steps 3, 4 and 6 are carried by the stretch's `work:` list and the seat's focus. What changed
+on 11 Nov is that the full freeze became a one-third feature share, and the exit test's cold-read leg
+was narrowed to "no new SERIOUS class".

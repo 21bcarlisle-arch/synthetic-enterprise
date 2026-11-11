@@ -5105,7 +5105,14 @@ def _stretch_refusals() -> dict:
     """The correctness stretch's held atoms, read where the BUILD draw reads them. {} on any error:
     this runs inside `draw`, which never raises."""
     try:
-        from background.supervisor import correctness_stretch_refusals
+        from background.supervisor import (
+            correctness_stretch_feature_share,
+            correctness_stretch_refusals,
+        )
+        # With a feature share set (11 Nov ruling), the seat's own focus is where it spends the
+        # share, so Lane 0 does not refuse what the seat chose; the weekly review measures it.
+        if correctness_stretch_feature_share() > 0:
+            return {}
         return correctness_stretch_refusals()
     except Exception:
         return {}
