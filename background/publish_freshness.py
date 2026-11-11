@@ -306,7 +306,34 @@ def publish_week_start(now: float | None = None) -> datetime:
 EARLY_PUBLISH_FROM = datetime(2026, 11, 8, 13, 22, tzinfo=timezone.utc).timestamp()
 
 
-def content_publish_window(now: float | None = None, *, published_ts_fn=None) -> dict:
+def runs_shown_across_week(week_start: float, *, _run=None) -> tuple[str, str] | None:
+    """(run on origin's dashboard just before `week_start`, run on it now), or None if unreadable.
+
+    The window's subject is a RUN's figures, and a commit to a content path is only a proxy for
+    one. 601929ce0 (11 Nov 16:32) re-emitted the 3 Nov run's figures with the margin rate withheld;
+    the proxy read that as the week's publish and held 6fe7827ab2, the week's gate-passing book."""
+    run = _run or subprocess.run
+    ref, path = "refs/remotes/origin/main", "site/data/dashboard.json"
+
+    def shown_at(rev):
+        r = run(["git", "show", "{}:{}".format(rev, path)], cwd=str(PROJECT_DIR),
+                capture_output=True, text=True, timeout=30)
+        if getattr(r, "returncode", 1) != 0:
+            return None
+        return (json.loads(r.stdout).get("meta") or {}).get("git_commit") or None
+
+    try:
+        r = run(["git", "log", "-1", "--format=%H", "--before=@{}".format(int(week_start)), ref,
+                 "--", path], cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=15)
+        before = (r.stdout or "").strip() if getattr(r, "returncode", 1) == 0 else ""
+        then, current = (shown_at(before) if before else None), shown_at(ref)
+    except Exception:  # noqa: BLE001 -- unreadable falls back to the content-path clock
+        return None
+    return (then, current) if then and current else None
+
+
+def content_publish_window(now: float | None = None, *, published_ts_fn=None,
+                           shown_runs_fn=None) -> dict:
     """May the publisher put new FIGURES on origin now? Once per week, from Monday 04:00.
 
     OPEN when no content has reached origin since this week's start; CLOSED once it has, until
@@ -317,13 +344,16 @@ def content_publish_window(now: float | None = None, *, published_ts_fn=None) ->
     THE SUBJECT IS `content_on_origin_ts` -- the figures on origin -- not the publisher's stamp,
     because the stamp is written on any verified push (a provenance-banner push once refreshed it,
     2026-08-21), and a Monday whose gate went red must not read as "published". Its known miss is
-    the other direction: a hand edit to `LATEST.md` landing mid-week would close the window early.
-    Nothing but the publisher has committed a `CONTENT_PATHS` file since 2026-09-20.
+    the other direction: a hand edit to a content path landing mid-week would close the window
+    early. 601929ce0 did exactly that (11 Nov), so a closed verdict is overruled while origin still
+    shows the run it showed before the week began (`runs_shown_across_week`).
 
     FAIL-OPEN, DELIBERATELY, when git cannot answer: this is a cost control, and the cost of
     publishing once too often is small beside the cost of the site silently skipping its week.
     """
     fn = content_on_origin_ts if published_ts_fn is None else published_ts_fn
+    if shown_runs_fn is None:  # an injected clock without a runs reader keeps the clock-only rule
+        shown_runs_fn = runs_shown_across_week if published_ts_fn is None else (lambda _start: None)
     ts = time.time() if now is None else float(now)
     start = publish_week_start(ts)
     nxt = publish_week_start(ts + PUBLISH_CADENCE_SECONDS)  # always lands in the following week
@@ -336,6 +366,10 @@ def content_publish_window(now: float | None = None, *, published_ts_fn=None) ->
     elif last < EARLY_PUBLISH_FROM <= ts:  # reached only when `last` is this week, so only 8-9 Nov
         is_open, why = True, "the director's one early publish (8 Nov 13:22): figures last on origin {}".format(
             datetime.fromtimestamp(last, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"))
+    elif (runs := shown_runs_fn(start.timestamp())) and runs[0] == runs[1]:
+        is_open, why = True, ("this week's figures are owed: origin's content moved {} but still shows "
+                              "run {}, the run it showed before the week began").format(
+            datetime.fromtimestamp(last, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"), runs[1])
     else:
         is_open, why = False, "this week's figures reached origin {}; the next publish opens {}".format(
             datetime.fromtimestamp(last, timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
