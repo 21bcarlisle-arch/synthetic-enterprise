@@ -1033,6 +1033,108 @@ than the bill said was owed would be collecting the very payments that 27.16 def
     issued before it existed. The gap is days, so the overstatement is small. It is named here, not
     modelled.
 
+#### 8.8c A level leaver's credit and its final bill (added 2026-11-11, before the build)
+
+*Correction, beside the code:* `simulation/arrears_engine.py` and `LEVEL_DD_AREA_MAP.md` cite a
+"s.8.8b" (one balance at close for a level leaver). That section was written in a worktree on 8 Nov and
+reached origin only in two SALVAGE commits (2875feec62, 48f473b5df), never on this page. Its choices
+are in the code's comments; this section does not restore it, it adds the two rules the 068b5e3cc8
+book shows were missing.
+
+**What the evidence shows.** On the 068b5e3cc8 book, `INV_REFUND_WITHIN_THE_PAGE_CREDIT` (written
+blind, 3cb902dc8f) breaches 205 of 238 closure refunds, GBP 5,061.85 past the credit the page printed.
+Two mechanisms, read off the pages:
+- **A.** SYN-2016-369 held GBP 294.70 after its 8.95 final bill. It was refunded 303.65 on 20 Aug 2024
+  and the 8.95 was collected by DD the next day. The final bill is off the level schedule, the walk
+  took it as paid at its face beside the level credit, and the close refunded that credit whole. 187
+  of the 205 have this shape.
+- **B.** SYN-2016-493's -42.56 credit bill (Feb 2018) was drawn against the next level-paid bill at its
+  42.87 face, while the bank paid the level 31.00, and the page printed that collection as 0.00. The
+  walk lost 42.56 of credit and the page 31.00, so the close refunded 12.90 of a 55.46 credit, the
+  final DD collected 26.13 at face, and the page closed GBP 11.56 in credit.
+
+**What the rules say.** SLC 31H.12: a bill states what is owed to or by the licensee, and how payment
+is to be made. SLC 27.17: the final bill is a statement of account, so it states the one balance.
+SLC 27.16: a credit is payments in excess of the charges due under the contract. GSoP reg 6D: a credit
+on the final bill is refunded within 10 working days. Read together: the final bill nets the credit
+the account holds. If the credit covers it, nothing is collected and the rest is refunded. If not,
+the bill asks for the difference and nothing is refunded. No source says a supplier collects a final
+bill in full and refunds the credit separately. That would make the refund larger than the balance
+the final bill states. (A level DD "collects its amount whatever the month's bill, a credit included":
+`payments_and_direct_debit_2026-10-25.md`.)
+
+*Choices.*
+14. *A level leaver's credit meets its bills after its last level collection, oldest first* (A).
+    The walk lists the netting as `credits_applied` kind "credit" against those bills. The billing
+    ledger already prints a paid bill's payment less that credit (choice 11), so the final DD
+    collects only what the credit does not cover, and the refund is the rest.
+15. *A level-paid month draws no credit* (B). Its collection is cash of the level amount, and
+    `level_collection_difference` already reconciles that cash to the face. A credit bill on a level
+    leg waits on the account. It meets an arrears debt (as before), a bill paid off the schedule, or
+    the refund at close.
+16. *Named limit: a final bill whose DD failed is not netted.* A only nets bills the world collected.
+    Where the final DD was returned and the household paid part of it later, the refund still includes
+    money that arrives after it: 12 legs, GBP 256.38 past the page credit, on the 068b5e3cc8 book
+    rebuilt through this change. Netting a returned final bill changes the world's payment outcome,
+    which is a payment-truth change and not in this step.
+17. *Leavers only.* A non-leaver that left level DD with credit is in the same position until its
+    next review (G8.13, DD3). No refund exposes it, so it is not in this step.
+
+**GAP G8.15.** (G8.14 is the salvaged s.8.8b's.) Whether a supplier presents a final DD at all when the account's credit covers the
+final bill. The rules above imply it does not; no published practice confirms it.
+
+#### 8.8d A refund pays only the credit the account holds (added 2026-11-11, before the build)
+
+**What the evidence shows.** After §8.8c, `INV_REFUND_WITHIN_THE_PAGE_CREDIT` still breaches 12 of 176
+closure refunds on the rebuilt 068b5e3cc8 book, GBP 256.38. Each closes at 0.00, and each refund pays out money
+that reaches the account after the refund:
+- a returned final DD part-paid later: PROS-2019-0318 is refunded 111.33 on 12 Jun 2023 while the page holds
+  86.68. The 24.65 part payment posts the same day, after the refund. Also SYN-2016-139, -202, -361 and
+  OCC-cede70b10116;
+- a final bill paid after the refund: SYN-2016-244 holds 42.14 and is refunded 42.14 on 15 Jan 2018, but its
+  77.82 final bill, raised 7 Jan, is paid on 21 Jan. On the refund day the page owes 35.68. Also SYN-2016-206g,
+  -360, -360g, and OCC-2974d725d75a, whose last EBSS credit row is dated after its refund.
+
+The closing balance is right: it is what the leg holds once all its money is in. The date is wrong. The refund
+clock ran from the final bill's issue (reg 6D) whatever the balance was that day.
+
+**What the rules say.**
+- SLC 27.16: a credit is "payments in excess of the charges due". A payment not yet received is not a payment.
+- GSoP reg 6D: refund "any outstanding credit balance" within 10 working days of the final bill. Where the
+  final bill shows a debit, there is no outstanding credit then.
+- Published practice: British Gas (its business help page) says that if the account is in debit at the final bill, the customer makes a
+  final payment. Ofgem and Energy UK advise keeping the direct debit active until the final bill is settled.
+  No source says a supplier refunds credit before the money in it has arrived.
+
+**GAP G8.16.**
+- When does reg 6D's clock start for a credit that only exists after the final bill, because the money that
+  completes it arrived later? Nothing published says.
+- How long does a supplier wait for a DD or card payment to clear before treating it as received? Nothing
+  published was found. Bacs can return a DD for days afterwards.
+
+*Choices.*
+18. *The refund pays the closing credit on the later of: the final bill's issue, the last level collection
+    (s.8.8b choice 2), and the last money the closing credit counts, plus the reg 6D 10 working days.*
+    "Money" here means:
+    - a paid bill with cash still due on it after netted credit;
+    - a household repayment;
+    - the part payment of a returned bill;
+    - a credit row.
+
+    This extends choice 2, which already runs the clock from a level collection taken after the final bill.
+    The amount does not move. Only the day does.
+19. *No clearing period is modelled* (G8.16). Money counts on the day it posts. The rule only stops a refund
+    paying money the account has not yet been sent.
+20. *Named limit, unchanged:*
+    - A returned final DD is still not netted against the credit (choice 16). So PROS-2019-0318's
+      household pays 24.65 it did not owe, and gets it back in the refund.
+    - A level leg whose last level collection is years old still draws only credit-bill credit against its
+      later bills. So SYN-2016-244 pays its 77.82 final bill whole and gets its 42.14 back afterwards, where
+      the bill should have asked 35.68. That is SLC 31H.12 netting, not a refund rule. It is named here for its
+      own step.
+
+    Both are now visible as late refunds of money the household paid, not as refunds of money not yet received.
+
 ---
 
 ## Sources
@@ -1047,6 +1149,12 @@ than the bill said was owed would be collecting the very payments that 27.16 def
 - The Electricity and Gas (Standards of Performance) (Suppliers) (Amendment) Regulations 2019,
   SI 2019/218, reg 3 inserting reg 6D, https://www.legislation.gov.uk/uksi/2019/218 (read 2026-10-24
   via https://lawplayer.com/uk/act/uksi-2019-218) (§8.8).
+- Search results only (2026-11-11, §8.8d), not fetched: British Gas, "Business energy credits and refunds",
+  https://www.britishgas.co.uk/business/help-and-support/billing-and-payments/getting-a-refund (a final bill in
+  debit asks for a final payment); Ofgem, "Check if you are owed money on your energy bill",
+  https://www.ofgem.gov.uk/information-consumers/energy-advice-households/check-if-you-are-owed-money-your-energy-bill
+  and Energy UK, "Customer credit balances", https://www.energy-uk.org.uk/publications/energy-uk-explains-customer-credit-balances/
+  (keep the direct debit until the final bill is settled). None states a clearing period (G8.16).
 - Ofgem, *Good Energy pay a total of £150k to former prepayment meter customers due to a failure to
   issue final bills*, 7 May 2025, https://www.ofgem.gov.uk/decision/good-energy-pay-total-ps150k-former-prepayment-meter-customers-due-failure-issue-final-bills;
   *Octopus Energy pay a total of £1.5m …*, https://www.ofgem.gov.uk/decision/octopus-energy-pay-total-ps15m-former-prepayment-meter-customers-due-failure-issue-final-bills (§8.8).
