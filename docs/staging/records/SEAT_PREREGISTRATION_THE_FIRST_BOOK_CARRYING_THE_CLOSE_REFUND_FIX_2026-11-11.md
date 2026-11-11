@@ -120,6 +120,14 @@ The first launcher expired at 13:41 without launching (`NO_LAUNCH.1`), as direct
 - **Imports-off.** The launcher's reading failed under the unit (`SE_NTFY_TOPIC` unset, from importing
   background.notify), so the book was passed `--imports-off-commit ""`. `run_annual_report` then takes its own reading
   at start (line 624). A hand reading in the locked worktree a minute after launch gave `paths: []`.
+  **Corrected at 14:08: wrong.** argparse refuses an empty value before line 624 is ever reached
+  (`invalid loads value: ''`). The book died at launch, its grade chain wrote `NO_DONE` ("no run json"), and the
+  cure-row unit exited with it. Nothing was graded. The markers are in `/var/tmp/crbook/failed-cab13-1406/`.
+- **Relaunched at 14:07 GMT** as `longjob-launcher-crbook-3` (`waitlaunch3.sh`). It loads `.env.ntfy` before taking the
+  reading and writes `NO_LAUNCH` instead of launching on an empty one. The reading at launch was `{"commit":
+  "6fe7827ab2", "paths": []}`. The book `longjob-book-crfix-6fe7827ab2` is running on origin 6fe7827ab2, which is
+  cab13bbd18 plus this record and nothing else. Its grade chain is behind it, and `longjob-crbook-cure-row-3` is behind
+  that. The path above is now `run_output_6fe7827ab2_*.json`, and `/var/tmp/crbook/RUN_PATH` names it.
 - **Next tick:** when `/var/tmp/crbook/ALLDONE` exists, read held or fell for every row from `arm/` and `cross/`. Land
   them with a `Graded:` trailer. If the gate permits, offer the book with `background.sim_runner --promote` under the
   director's 8 Nov yes.
