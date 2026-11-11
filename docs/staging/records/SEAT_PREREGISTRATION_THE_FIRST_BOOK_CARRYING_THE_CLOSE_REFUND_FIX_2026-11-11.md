@@ -131,3 +131,43 @@ The first launcher expired at 13:41 without launching (`NO_LAUNCH.1`), as direct
 - **Next tick:** when `/var/tmp/crbook/ALLDONE` exists, read held or fell for every row from `arm/` and `cross/`. Land
   them with a `Graded:` trailer. If the gate permits, offer the book with `background.sim_runner --promote` under the
   director's 8 Nov yes.
+
+## Graded at 16:37 GMT (seat executor): all 15 rows held, in column B
+
+The book `run_output_6fe7827ab2_20261111T140730Z.json` was graded only through `grade_one.sh`, with the arm at 15:59 and
+the cross at 16:02. The readings are in `/var/tmp/crbook/{arm,cross}/`. Column B applied, as filed at 14:05.
+
+| # | Row | Read | B predicted | Verdict |
+|---|---|---|---|---|
+| 1 | Refund breached / lines | **0** over 176 lines (176 legs) | 0 over 150 to 200 | HELD |
+| 2 | Closed-account breached | **0** (87 flagged) | 0 to 2 | HELD |
+| 3 | Unexcepted total | **0** | 0 | HELD |
+| 4 | The gate | **PERMITS True**, 7 excepted | permits | HELD |
+| 5 | INV_OVERDUE_WITHIN_PAGE_BALANCE | 0 of 6,385 | 0 to 3 | HELD |
+| 6 | INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL | 0 of 1,248 | 0 | HELD |
+| 7 | The 7 excepted rows | EPG 337, PPM 12, EBSS 7/7, estimate run 7, gas 1, elec 2: all unchanged | unchanged | HELD |
+| 8 | Refund GBP | 21,380.64, **down 3,312.32** | down 2,500 to 4,500 | HELD |
+| 9 | Refunded legs closing in debit | 0 | 0 | HELD |
+| 10 | Written-off accounts printing owed | 28, GBP 1,195.85 | 24 to 31, GBP 900 to 1,300 | HELD |
+| 11 | Level-DD cures over a debt | 113 on 69 accounts | 106 to 126 | HELD |
+| 12 | Bad debt at close | GBP 10,293.56, 119 leg-years (down 500.92) | 10,200 to 10,400 | HELD |
+| 13 | Run `total_bad_debt_gbp` | GBP 9,037.78 (down 439.80) | down 0 to 800 | HELD |
+| 14 | Cross arm, row 1 | 201 of 238 | 195 to 205 | HELD |
+| 15 | Explore slots | 8 of 8 filled, `book_breaches {}` | 8 of 8, none breaching | HELD |
+
+The level-DD map's s.4 cure count reads **113, inside 112 to 120: HELD**. That landed separately in 6073fee791, from the
+same `arm/` reader.
+
+**What the clean sweep does not show.** Rows 8 and 12 are not independent tests. They were predicted from 068b5e3cc8's
+deltas, and they reproduce them to the penny (3,312.32 and 500.92). That confirms D1 moves asks, not money, but it is
+one observation counted twice. Rows 1 to 4 are the exit test, and those are the rows that carry weight.
+
+**Not predicted, and named here so it is not lost.** In the cross arm (the D1 run through the new page code),
+INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO breaches **23**, against 3 on the control. It refuses that arm (224 unexcepted
+on 2 rows). The page change alone makes more of the old run's closed accounts read short of zero, and the run half's
+fix is what clears them. It does not touch this book, which reads 0. But it means the page and the run half cannot be
+published separately. No row was written for it, so it is neither held nor fell.
+
+**Offered.** `background.sim_runner --promote` wrote `docs/staging/run_complete_20261111T160541Z.md` at 16:05, naming
+this JSON, and `run_output_latest.json` is byte-identical to it. The offer is under the director's 8 Nov yes. The
+publisher's sweep takes it from here. The eleventh cold read ran on this book (ab2700c1e3).
