@@ -263,4 +263,71 @@ November) are not traced. I cannot yet say which shape each of the 17 is in.
 This is a page-and-reader fix. It moves the publisher's rows on the next regeneration of any book, and the chain
 reads those rows.
 
-NEXT: trace SYN-2016-380's 102.00 on 1 Apr 2019, the one hold the dating fix did not move at all.
+*(Superseded by s.7: SYN-2016-380 is cause B. The page posts the £102 on 18 Apr, 17 days after it crossed.)*
+
+## 7. The 71 holds left after ccdfb652d, each given one cause (worker, 11 Nov 2026, evening)
+
+**Why this section exists.** The learning loop stopped level-DD at 25 held of 34, with 8 code-or-reader misses in
+7 days. Three fixes in a row moved the cure row by less than their predictions. So no fix is built here. This
+section maps the 71 holds first and names the next fix from the map.
+
+**The book.** `87e00e1458` is the first book that carries ccdfb652d. Its `per_customer_behavioral` and
+`level_dd_collections` are byte-identical (md5) to `6fe7827ab2`'s. The run's figures do not move, because ccdfb652d
+is a page fix. So the 87e read is the 6fe arm read under the same page code. Readers:
+`/var/tmp/ld71/classify.py` (one cause per hold, in priority order), `acct.py` (each leg's page balance past due,
+and the account sum), `lag.py` (when the page posts a crossed repayment).
+
+**Pre-registered at 22:24 GMT, before any cause reader had run on either book** (`/var/tmp/ld71/PREDICTION.txt`).
+`split.txt` and `compose.txt` (the 71 rows and their level, left and never split) had already been read. Cash on
+the day, returned collections, world crossings and the account sums had not.
+
+| Row (classifier partition, first match wins) | Predicted | 6fe arm | 87e (publisher chain) | Verdict |
+|---|---|---:|---:|---|
+| R0: 87e reads exactly what 6fe did (71 on 38, 48 level, 807 cures, every row below) | equal | | **71 on 38, 48, 807; every cause line identical** | held |
+| C1 level; a level instalment succeeded on the account that day | 10 to 25 | 19 | 19 | held |
+| C2 level; the world crossed a repayment that day | 5 to 17 | 16 | 16 | held |
+| C3 level; no cash on the page or in the world that day | 10 to 25 | **0** | **0** | **missed** (code: s.3's 37 "no cash" holds are all gone, and the cause is not traced, so F11) |
+| C4 the owing leg is off level, and its sibling is on level | 10 to 20 | 13 | 13 | held |
+| C5 every leg off level | 22 exactly | **23** | **23** | **missed** (reader: my classifier puts the never-level hold SYN-2016-015 here, and compose did not) |
+| C6 a reader misread, not a debt the page holds | 0 to 10 | **35** | **35** | **missed** (reader, below) |
+
+**The finding that reorders the area: 35 of the 71 are a reader misread.** `split.py` takes each level leg at
+`max(0, …)` and then sums the legs. So one fuel's credit never offsets the other fuel's debt. On off-level legs it
+does net them (SYN-2016-217 and SYN-2016-487 hold only their net). The desk works on the billing account
+(`billing_account_of`). The 25 Oct design builds it that way: "the company's ledger is the billing account … one
+account in arrears gets one reminder ladder and one statement of what is owed across both fuels". See
+`docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md`, rows "One
+collections journey?" and "Collections" (SLC 27.8D set-off since 22 Jan 2021). On these 35 cure days, the sum of the
+page legs' past-due balances is at most £0. On the account the desk works and the statement prints, nothing is
+owed, so the desk was right to cure. The reader held two rules for one account.
+
+**The 71, one cause each** (the account sums are in `/var/tmp/ld71/acct_6fe.txt`; every line is listed there):
+
+| Cause | Holds | Accounts | Kind | Code path |
+|---|---:|---:|---|---|
+| **A. A sibling fuel's credit covers the debt.** The page account is at most £0 past due, and the reader keeps the debit leg. | **35** | 24 | **Reader** | `split.py` `leg_owed` clamps level legs per leg. The desk (`billing_account_of`) is right. 17 of the classifier's C1, 6 of C2 and 12 of C4. Examples: PROS-2018-0043 (gas +215.31, elec −308.90), and SYN-2016-334 ×9 (elec off level owes up to 562.96, gas level −588.38). |
+| **B. The page posts a crossed repayment days late.** The world crossed it on the cure day, and the account is in debit. | **10** | 10 | **Code (P)** | The page carries the crossed amount as `payment_received` 3 to 19 days later (SYN-2016-380: £102 crossed 1 Apr 2019, posted 18 Apr; PROS-2019-0246: £330.42 crossed 1 Sep 2021, posted 20 Sep). Across all 17 crossings on C2 days, 12 post later, 1 posts the same day, and 4 never post as a single entry (`/var/tmp/ld71/lag`). This is the residue of s.6's P1, which read 17 where 0 to 15 was predicted. ccdfb652d dated the ARREARS_REPAID **stage**. The **payment row** for the same cash still carries its own later date. **I cannot yet say which line writes that date.** |
+| **C. A failed bill's remainder that the page carries and the desk does not.** | **10** | 1 | **Code (K or P)** | PROS-2018-0016: invoice 13762 (£138.87, DD failed 22 Feb 2021) is £12.42 outstanding to run end. The desk opens and cures 10 journeys from 2022 to 2025 without it. One account, so one trace. |
+| **D. An off-level leg where the desk's ask is below the page's past due.** | **14** | 6 | **Undecided, so code (F11)** | `unpaid_asks` (per bill, on K) against P's FIFO walk, as s.3's off-level row named. SYN-2016-206 ×7: the gas leg pays each bill about 6 weeks late. The desk opens at £16.94 when the page holds two bills past due. Also SYN-2016-015, SYN-2016-217 ×3, SYN-2016-487, SYN-2016-142 (2020) and PROS-2018-0016 (May 2020). Not traced to a line. |
+| **E. The 10 Nov D3 proper.** The next instalment cures while the account is still in debit. | **2** | 2 | **Code (K)** | `level_shortfall` meets the oldest request with new cash, capped at the K balance. SYN-2016-488 (£20.16) and SYN-2016-536 (Oct 2019, £7.87 on the account). |
+| **Total** | **71** | 38 | 35 reader, 36 code | |
+
+**What this corrects.** s.3's three shapes and s.6's P1 read every hold as K against P. Half were the reader
+against the design. The 10 Nov map's D3 ("8 legs") and s.3's "37 next-instalment" row were mostly cause A: the
+instalment that "cured" was the **other** fuel's, and the account was in credit. D3 proper is 2. *Caveat, not
+resolved:* 19 of the 35 cure before 22 Jan 2021, when SLC 27.8D gave the customer the set-off right. For those, the
+netting rests on the design's choice and the supplier's terms, not the licence. The knowledge page already carries
+this as GAP ("how often suppliers net unprompted").
+
+**The next fix, named and not built.**
+1. **The reader, not the area:** `split.py` reads the billing account, with one rule for level and off-level legs.
+   Its prediction on this same book is exact: **71 → 36 on 18 accounts** (cause A leaves, and every other line is
+   unchanged). It moves no code that the household or the run sees. After it, the filed 0 to 3 for the cure row is
+   compared against 36. Every one of those 36 is a code defect or undecided.
+2. **The first code fix, by count:** cause B (10 accounts). Trace one account first (SYN-2016-380): which writer
+   dates the payment row of a repaid level collection, and against which ledger. The prediction names P alone.
+   Then C (one account, 10 holds), D, then E.
+
+Graded: level-dd held=4 missed=3 code=1 reader=2 regressed=0 width=0.86
+
+NEXT: rebuild split.py to read the billing account, and grade it against 71 → 36 on the 87e00e1458 book.
