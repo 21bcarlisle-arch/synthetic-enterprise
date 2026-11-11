@@ -98,3 +98,28 @@ unchanged. Column B applies if item 1's commit is in the book's sha.
 **Deadline.** The launcher gives up at **13:40 GMT** and writes `/var/tmp/crbook/NO_LAUNCH`. If that file exists and the
 book has not launched, the next tick re-arms `waitlaunch.sh` under the same table. It must not launch a second book by
 hand while `longjob-launcher-crbook` is active.
+
+## State at 14:05 GMT (worker tick): launched on cab13bbd18
+
+The first launcher expired at 13:41 without launching (`NO_LAUNCH.1`), as directed. The fix had not been landed: the
+12:47 page landing lost the race to origin and its worker was killed. This tick landed it in two commits from
+`/var/tmp/crfix2/recovered` and salvage 79d98bc344. **cf399ab43** is the K8 page, home_moves.md s.8.8c and s.8.8d.
+**cab13bbd1** carries the engine, the 6-line `money_in` run wiring and both controls (5 passed).
+
+- **Re-armed** as `longjob-launcher-crbook-2` (`waitlaunch2.sh`, 8 h from the wiring landing). Condition (c) used to
+  name the retired item-1 claim. It now reads "`WIRING_SHA` cab13bbd1 is an ancestor of origin/main". It launched on
+  its first poll: `longjob-book-crfix-cab13bbd18`, at 14:01:52Z, writing
+  `docs/reports/run_output_cab13bbd18_20261111T140152Z.json`. `longjob-grade-chain-book-crfix-cab13bbd18` follows it
+  through `grade_one.sh` (arm, then cross), and nothing else grades it.
+- **Cure row:** `longjob-crbook-cure-row-2` (`cure_row_arm2.sh`) waits for `arm/DONE` and then grades the level-DD
+  map's s.4 prediction, **112 to 120**. The first cure-row unit exited 6 at 12:46 because the first launcher was still
+  alive.
+- **The column is B.** s.8.8d, item 1's residual 12, is in cab13bbd1 itself. That puts it in the book's sha, so the
+  predictions are row 1 **0**, row 3 **0** and row 4 **permits**. Every other row is unchanged from the table. I wrote
+  this at 14:05, before any of the book's output existed.
+- **Imports-off.** The launcher's reading failed under the unit (`SE_NTFY_TOPIC` unset, from importing
+  background.notify), so the book was passed `--imports-off-commit ""`. `run_annual_report` then takes its own reading
+  at start (line 624). A hand reading in the locked worktree a minute after launch gave `paths: []`.
+- **Next tick:** when `/var/tmp/crbook/ALLDONE` exists, read held or fell for every row from `arm/` and `cross/`. Land
+  them with a `Graded:` trailer. If the gate permits, offer the book with `background.sim_runner --promote` under the
+  director's 8 Nov yes.
