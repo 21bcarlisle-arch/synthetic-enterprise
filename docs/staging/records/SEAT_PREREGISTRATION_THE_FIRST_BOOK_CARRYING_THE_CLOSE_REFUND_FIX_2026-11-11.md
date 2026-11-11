@@ -1,0 +1,85 @@
+**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** unassigned · **Atom:** `unminted`
+
+# Pre-registration: the first book carrying the close-refund fix, graded only through the publisher's gate (2026-11-11)
+
+*Lane-0 item `the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate`. This is
+the exit-test book of the 26 Oct ruling. It retires the blocking finding
+`SEAT_FINDING_THE_068B5E3CC8_BOOK_DOES_NOT_PASS_THE_PUBLISHERS_GATE_THE_SCRATCH_GRADE_COULD_NOT_READ_THE_CLOSED_ACCOUNT_ROW_2026-11-11.md`
+if it grades 0 there. This table is filed before the book starts.*
+
+## When it starts, and on what
+
+When this was filed (05:30 GMT), neither fix was on origin. The close-refund fix ("A level leaver's final bill meets
+its credit before the refund…", `/var/tmp/wt-close-refund-sizing`) had been refused once because its gate timed out at
+3,600 s, and it was being landed again (surgical_land pid 1920905). Item 1 (`a-close-refund-waits-for-the-money-it-pays-out`,
+the residual 12) was claimed and in progress. The direction says to launch "once item 1 is on origin, or if it stalls
+after the close-refund fix alone is on origin". So the launch is armed, not made:
+
+- `/var/tmp/crbook-scripts/waitlaunch.sh` runs as `longjob-launcher-crbook` and has an 8-hour deadline. It launches at
+  origin/main's head only when all four of these hold:
+  - (a) `tests/simulation/test_a_level_leavers_final_bill_meets_its_credit_before_the_refund.py` is on origin;
+  - (b) this record's commit is an ancestor of origin/main;
+  - (c) item 1's delivery-lane claim is gone, or 3 hours have passed since arming. Three hours with the claim still
+    held counts as "stalls";
+  - (d) no `longjob-book-*` or `longjob-grade-chain-*` unit is active.
+
+  Then it launches `longjob-book-crfix-<sha>` and `longjob-grade-chain-book-crfix-<sha>` through `launch_long_job`.
+- **Grading, the only chain allowed:** `/var/tmp/crbook-scripts/grade_one.sh`. This is the publisher's page chain
+  (`/var/tmp/fourth-read-scripts/pages.py`, then explore_hh_day and explore_carbon) in a scratch tree built by
+  `git archive <sha>`. Then comes `_domain_invariant_gate_permits_publish(<sha>)` (`/var/tmp/eleventh-read/scripts/gate.py`),
+  with every row in `table.tsv`. The readers below run on the publisher-built `docs/state/billing_ledger.json`. The
+  scratch `grade.py`/`after_run.sh` chain is not used.
+- **Arm** `/var/tmp/crbook/arm/`: the new book. **Cross** `/var/tmp/crbook/cross/`: the D1 book e1587ec5b through the
+  same page code. Arm against cross is the run half alone. `ALLDONE` or `NO_DONE`/`NO_LAUNCH` closes it.
+
+**Which column applies.** Column B applies if any commit landed under item 1's focus id is an ancestor of the book's
+sha. Otherwise column A applies, which is the close-refund fix alone.
+
+## The control, measured through the same chain (not copied)
+
+`/var/tmp/crbook/control/` is the D1 book `run_output_e1587ec5b_20261111T012324Z.json` through origin
+**a481c9ab96**'s publisher chain and gate. The chain reproduces dc3e7dfeb4's verdict: **REFUSED, 208 unexcepted on 2
+rows, 7 excepted**. All 8 Explore slots are filled.
+
+**Corrected beside the item's claim.** The drawn item cites "347 level-DD cures over a debt (last read on 298149a1fc)".
+That reading is two fixes old. The same reader (`compose.py`, holds over a debt) reads **116 on 70 accounts** on this
+control. It read 193 on 4dee9854a4 and 78f82e4242. The item also cites "29, GBP 1,374.58" written off and printing
+owed. That is 068b5e3cc8 on its own page. Through origin's page it is **29, GBP 1,249.62**, both since class L′
+(7cf859beff) and here. The table uses the measured figures.
+
+## The table
+
+The close-refund effect was filed on 068b5e3cc8's output (`/var/tmp/close-refund-probe/{base,fix}`). It moved the
+refund row from 205 to 12 and the refund lines from 238 to 176. The closed-account row went from 3 to 0, bad debt at
+close fell by GBP 500.92, and the refund total fell by GBP 3,312.32. The D1 book shares 068b5e3cc8's refund and close
+figures to the penny (D1 moves asks, not refunds), so the same deltas are predicted here.
+
+| # | Row | Control (D1 book, a481c9ab96) | A: close-refund fix alone | B: plus item 1 | Refuted if |
+|---|---|---:|---|---|---|
+| 1 | INV_REFUND_WITHIN_THE_PAGE_CREDIT breached / refund lines | 205 / 238 | **8 to 18** over 150 to 200 lines | **0** over 150 to 200 lines | outside the column's range, or 0 lines |
+| 2 | INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO breached | 3 (ceiling 2) | **0 to 2**, so not refusing | same | above 2 |
+| 3 | Unexcepted total | 208 on 2 rows | **= row 1**, on 1 row | **0** | any other row unexcepted |
+| 4 | The gate | refused | **refused, on row 1 alone** | **permits** | the other verdict |
+| 5 | INV_OVERDUE_WITHIN_PAGE_BALANCE (no exception since dc3e7dfeb4) | 0 of 6,385 | **0 to 3** | same | above 3 |
+| 6 | INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL | 0 of 1,248 (a481c9ab96) | **0** | same | any |
+| 7 | The 7 excepted rows: EPG 337, PPM 12, EBSS ×2 7/7, estimate run 7, gas repeat 1, elec yoy 2 | as listed | **each unchanged**. None reads refunds or closing balances. PPM, EBSS, gas and elec sit AT their ceilings, so +1 refuses | same | any moves |
+| 8 | Refund GBP on the pages (`refunds.py`) | 24,692.96 | **falls by 2,500 to 4,000** | falls by 2,500 to 4,500 | outside |
+| 9 | Legs refunded yet closing in page debit (`over_refund.py`) | 0 | **0** | 0 | any |
+| 10 | Written-off accounts printing owed (`wo_owed.py`) | 29, GBP 1,249.62 | **24 to 31, GBP 900 to 1,300**. Credit that now nets a leaver's debt can only lower it | same | outside either bound |
+| 11 | Level-DD cures held over a debt (`compose.py`) | 116 on 70 accounts | **106 to 126** | same | outside |
+| 12 | Bad debt written off at close (`emergent_bad_debt_lines`, close) | GBP 10,794.48, 121 leg-years | **10,200 to 10,400** (falls about 500) | same ±100 | outside |
+| 13 | Run `total_bad_debt_gbp` (settled-realised) | GBP 9,477.58 | **falls, by 0 to 800**. I cannot size it: it is a different clock from row 12 | same | rises |
+| 14 | Cross arm, row 1 (D1 run through the new page) | — | **195 to 205**: the fix is in the run half (the walk), not the page | same | below 195 |
+| 15 | Explore slots | 8 of 8 filled | **8 of 8 filled or honestly empty**, none breaching | same | a slot breaches |
+
+**What this book can and cannot show.** Rows 1 to 4 are the exit test. Rows 8, 12 and 13 are published figures that
+move. Each is marked against the 068b5e3cc8 offer, which is still open. The grade commit carries
+`Graded: close-refund-book held= missed= code= reader= regressed=`. If the gate permits it, the book is offered to the
+publisher under the director's 8 Nov yes ("One early publish as soon as a book passes the full gate"), with
+`background.sim_runner --promote`. The eleventh cold read
+(`the-eleventh-cold-read-on-the-first-book-the-gate-passes`) runs on it. If the gate refuses, every refusing row is named
+with its count, cause and owner.
+
+## Reverse
+
+Stop the `longjob-launcher-crbook` unit. Delete this file. Nothing outside `docs/staging/` and `/var/tmp` is touched.
