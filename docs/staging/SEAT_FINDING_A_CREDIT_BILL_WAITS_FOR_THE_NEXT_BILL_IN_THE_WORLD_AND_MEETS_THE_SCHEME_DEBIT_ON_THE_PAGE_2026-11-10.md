@@ -240,3 +240,39 @@ The table above is the pre-registration. No offline instrument can size it first
 a page-ledger reader tried here failed its own control (it read 549g at 846.64 owed, not 53.98).
 
 NEXT: the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher
+
+## Item 3's walk, done independently, and the control the class was missing (worker, 11 Nov 2026 ~02:30 GMT)
+
+*Drawn as `class-l-over-refunds-six-legs-past-the-page-credit` before the section above was visible to the draw.*
+
+**The walk the grade named.** SYN-2016-369's refund rise in the 068b5e3cc8 run was **268.98 = 6 x 44.83**: its level
+collections of Oct 2022 to Mar 2023. In each of those months the EBSS credit met the bill whole. The run's row is
+`credit` with `collection_result` success, and the walk paired it. The page printed `scheme_credit` with no level row.
+So the answer is **(i)**: the two halves keyed on different predicates. It is not (ii), because no collection is counted
+twice. I wrote this down (`/var/tmp/classl-6/PREDICTION.md`) before regenerating the page at origin 1d25b4526c, which
+carries 7cf859beff. Every row held and agrees with the section above to the penny:
+
+- the six legs close at 0.00, except PROS-2017-0351 at +21.86;
+- no leg's refund moved;
+- refunded legs closing in page debit fell from 6 to 0;
+- written-off accounts printing owed went from 29, GBP 1,374.58 to 29, GBP 1,249.62.
+
+**What was still owed: a control on the property, not the branch.** 7cf859beff's test pins the scheme-credit branch.
+The page's credit-bill branch (6fb708f3a) had no page-level test at all. The defect class is the walk and the page
+each choosing their own months, and a third branch would reopen it unseen. Two changes close that:
+
+- `arrears_engine.level_collection_pairs` is now the walk's one statement of which months pair. This is a pure
+  refactor, and `level_collection_difference` consumes it.
+- `tests/tools/test_the_walk_and_the_page_pair_the_same_level_collections.py` runs one leg through every pairing
+  (a DD bill, a read catch-up credit bill and an EBSS-met bill, each paid and returned). It asserts that the page
+  posts exactly the paid collections the walk pairs, and that every branch is taken.
+
+Four mutations each turn it red:
+
+- the page drops the scheme-credit branch;
+- the page drops the credit-bill branch;
+- the walk pairs DD bills only;
+- the page posts returned collections.
+
+**Pre-registered for the next book:** the D1 table's row above (refunded legs closing in page debit: 0) is this
+item's count. The six named legs are among them.

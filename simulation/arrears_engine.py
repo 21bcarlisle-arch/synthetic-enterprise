@@ -1086,25 +1086,23 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
     return rows
 
 
-def level_collection_difference(resolved: list[dict], level_dd_collections: dict | None
-                                ) -> dict[str, tuple[float, date]]:
-    """Per leg on a level direct debit: (what its bills asked less what the bank paid, the day of
-    its last level collection), over the months the level amount was collected.
+def level_collection_pairs(resolved: list[dict], level_dd_collections: dict | None):
+    """Yield (row, collection, result, face) for every month the walk pairs a bill with its level
+    collection: each DD bill, and each credit row whose month the triad presented (a read catch-up
+    credit, or a bill the EBSS credit met whole), in period order, taking its month's next
+    collection. `result` is that collection's; `face` is what the walk already took for the bill.
 
-    The walk takes a paid DD bill as paid at its face. A household on a level amount paid that
-    amount instead, so its one balance (SLC 27.16) differs from the walk's by the sum of the
-    differences. The months are matched exactly as the page matches them
-    (`tools.generate_billing_ledger`): each DD bill, and each credit bill whose month the triad
-    presented, in period order, takes its month's next collection. Measured on the af31e73fa7 book, the walk's closing balance plus this difference
-    is the page's balance at close on 850 of 857 leavers; the walk alone is on 360
-    (home_moves.md s.8.8b)."""
+    The page (`tools.generate_billing_ledger`) must pair exactly these months. It once keyed on its
+    own predicate (a `direct_debit` bill, then a credit invoice) and missed the EBSS-met bills, so
+    the run refunded collections the page never printed: GBP 833.30 into page debit on six legs of
+    068b5e3cc8 (SYN-2016-369, 6 x 44.83). The property is held by
+    `tests/tools/test_the_walk_and_the_page_pair_the_same_level_collections.py`."""
     if not level_dd_collections:
-        return {}
+        return
     queue: dict[tuple[str, str], list[dict]] = {}
     for cid, cols in level_dd_collections.items():
         for c in cols:
             queue.setdefault((cid, c["month"]), []).append(c)
-    out: dict[str, tuple[float, date]] = {}
     for r in sorted((r for r in resolved if r["outcome"] != "repayment"),
                     key=lambda r: (r["customer_id"], r["period_end"])):
         credit_month = r["outcome"] == "credit" and r.get("collection_result") is not None
@@ -1113,15 +1111,27 @@ def level_collection_difference(resolved: list[dict], level_dd_collections: dict
         months = queue.get((r["customer_id"], r["period_end"][:7]))
         if not months:
             continue
-        c = months.pop(0)
-        # A credit bill's month still collects the level amount, and the walk took nothing for it:
-        # the cash is all difference. It used to be dropped, so the walk's closing balance (which
-        # sizes refunds and bad debt) and the page both missed money the desk had counted: 15 of
-        # 17 unshown collections on 78f82e4242, SYN-2016-218g's 19.63 of 13 Mar 2017 among them.
-        result = r.get("collection_result") if credit_month else r["outcome"]
+        # A credit row's month still collects the level amount, and the walk took nothing for it:
+        # the cash is all difference (SYN-2016-218g's 19.63 of 13 Mar 2017, 78f82e4242).
+        yield (r, months.pop(0), r.get("collection_result") if credit_month else r["outcome"],
+               0.0 if credit_month else r["amount_gbp"])
+
+
+def level_collection_difference(resolved: list[dict], level_dd_collections: dict | None
+                                ) -> dict[str, tuple[float, date]]:
+    """Per leg on a level direct debit: (what its bills asked less what the bank paid, the day of
+    its last level collection), over the months the level amount was collected.
+
+    The walk takes a paid DD bill as paid at its face. A household on a level amount paid that
+    amount instead, so its one balance (SLC 27.16) differs from the walk's by the sum of the
+    differences, over the months `level_collection_pairs` matches. Measured on the af31e73fa7
+    book, the walk's closing balance plus this difference is the page's balance at close on 850
+    of 857 leavers; the walk alone is on 360
+    (home_moves.md s.8.8b)."""
+    out: dict[str, tuple[float, date]] = {}
+    for r, c, result, face in level_collection_pairs(resolved, level_dd_collections):
         if result != "success":
             continue
-        face = 0.0 if credit_month else r["amount_gbp"]
         held = out.get(r["customer_id"], (0.0, date.min))
         out[r["customer_id"]] = (round(held[0] + face - c["amount_gbp"], 2),
                                  max(held[1], date.fromisoformat(c["collection_date"])))
