@@ -178,6 +178,9 @@ def _real_invoice(inv):
         catchup_direction=inv.get("catchup_direction"),
         catchup_raw_delta_gbp=inv.get("catchup_raw_delta_gbp"),
         catchup_adjustment_gbp=inv.get("catchup_adjustment_gbp"),
+        # The line's VAT, so a page can print the catch-up on its total's basis (N28: without it the
+        # cast printed GBP 916.14 ex-VAT inside a VAT-inclusive total). None on a pre-split ledger.
+        catchup_vat_gbp=inv.get("catchup_vat_gbp"),
         catchup_written_off_gbp=inv.get("catchup_written_off_gbp"),
         catchup_back_billing_cap_applied=inv.get("catchup_back_billing_cap_applied"),
         # What the bill itself prints and the payment record counts against (second cold read, N3):

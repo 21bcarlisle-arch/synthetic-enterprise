@@ -40,7 +40,12 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from company.billing.collections_journey import bill_missed, last_day_to_pay, missed_on
-from company.compliance.domain_invariants import default_tariff_invoice_excess_p_per_kwh
+from company.compliance.domain_invariants import (
+    bill_change_split,
+    catchup_on_the_bills_basis,
+    default_tariff_invoice_excess_p_per_kwh,
+    use_did_not_explain_is_true,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
@@ -374,14 +379,16 @@ def _bill_extras(i: dict) -> str:
     adds and the scheme credit it takes off. The page's printed bill shows both as lines; a moment
     that quoted only the total showed a 146 kWh final bill at "GBP -24.73" with no reason (N1)."""
     out = []
-    adj = i.get("catchup_adjustment_gbp")
-    if adj is not None:  # what the bill moved by: the line before VAT, and its VAT (789d0a6d20)
-        adj += i.get("catchup_vat_gbp") or 0.0
-    if i.get("catchup_applied") and adj:
+    # What the bill moved by, on the total's basis when the page carries the line's VAT; otherwise
+    # the line alone, labelled before VAT. A page file without `catchup_vat_gbp` printed GBP 916.14
+    # ex-VAT inside a VAT-inclusive total (N28, eleventh cold read O28).
+    catch = catchup_on_the_bills_basis(i)
+    if catch:
+        adj, basis = catch
         span = (" from {} to {}".format(_day(i["catchup_period_start"]), _day(i["catchup_period_end"]))
                 if i.get("catchup_period_start") and i.get("catchup_period_end") else "")
-        out.append("including a {} {} correcting the estimated bills{}".format(
-            _fmt_gbp(abs(adj)), "charge" if adj > 0 else "credit", span))
+        out.append("including a {} {}{} correcting the estimated bills{}".format(
+            _fmt_gbp(abs(adj)), "charge" if adj > 0 else "credit", " " + basis if basis else "", span))
     regs = i.get("registers") or []
     if len(regs) > 1:  # a two-rate bill's use is its registers' lines, as the printed bill shows them
         # A register's rate is its energy component only; the bill takes network and policy costs off
@@ -612,6 +619,10 @@ def _template(hh, ev, iso, kind, rec):
                 "Welcome to Poesys. Your {} supply started on {}.".format(fuels, _day(iso)),
                 "The supplier knows the address, the meter points and how it will be paid. It knows nothing else yet.",
                 None)
+    if kind == "first_bill" and not _is_first_bill(ev, rec):
+        # The first bill after an event, not the account's first (N28: a 2017 account told "Your
+        # first electricity bill is ready" in 2023). Worded as the bill it is.
+        kind, rec = "bill", {**rec, "label": rec.get("label") or "The next {} bill".format(rec["fuel"])}
     if kind == "first_bill":
         return ("First bill", "The first {} bill: {} for {:,.0f} kWh, {}{}.".format(
                     rec["fuel"], _fmt_bill(rec.get("amount_gbp")), rec.get("consumption_kwh") or 0,
@@ -659,11 +670,13 @@ def _template(hh, ev, iso, kind, rec):
                  "truth": "The {} meter had not been read since {}".format(rec["fuel"], rec["since"]),
                  "meant": "The difference lands on the next actual read", "tone": "neutral"})
     if kind == "catch_up":
-        adj = rec.get("catchup_adjustment_gbp")
-        return ("The catch-up", "An actual read on {} corrects the estimates: {} {}.".format(
-                    _day(rec["date"]), _fmt_gbp(abs(adj or 0)), "added" if (adj or 0) > 0 else "credited"),
+        adj, basis = catchup_on_the_bills_basis(rec) or (rec.get("catchup_adjustment_gbp") or 0.0, "")
+        vat = " " + basis if basis else ""
+        return ("The catch-up", "An actual read on {} corrects the estimates: {} {}{}.".format(
+                    _day(rec["date"]), _fmt_gbp(abs(adj or 0)), "added" if (adj or 0) > 0 else "credited", vat),
                 "We have a meter reading and your bill now reflects what you used.",
-                "The estimates were {} the meter by {}.".format("below" if (adj or 0) > 0 else "above", _fmt_gbp(abs(adj or 0))),
+                "The estimates were {} the meter by {}{}.".format("below" if (adj or 0) > 0 else "above",
+                                                                 _fmt_gbp(abs(adj or 0)), vat),
                 {"believed": "The estimated bills", "truth": "The meter read on {}".format(_day(rec["date"])),
                  "meant": "{} {}".format(_fmt_gbp(abs(adj or 0)), "owed in one bill" if (adj or 0) > 0 else "back to the customer"),
                  "tone": "bad" if (adj or 0) > 0 else "good"})
@@ -731,10 +744,36 @@ def _template(hh, ev, iso, kind, rec):
                     rec["fuel"], rec["month"], _fmt_gbp(rec["now"]),
                     " before its {} Energy Bills Support Scheme credit".format(_fmt_gbp(credit))
                     if credit > 0 else "", _fmt_gbp(rec["before"])),
-                "Your bill has changed because energy prices have changed.",
-                "Wholesale prices rose; the household's use did not explain the change.",
-                None)
+                *_shock_cause(rec), None)
     return (kind, "", "", "", None)
+
+
+def _is_first_bill(ev, rec) -> bool:
+    """True only when `rec` is the earliest bill on its fuel's account, by period start."""
+    leg = [i for i in ev["invoice"] if i["fuel"] == rec.get("fuel") and i.get("date")]
+    first = min(leg, key=lambda i: i.get("period_start") or i["date"], default=None)
+    return first is not None and first.get("date") == rec.get("date") and first.get("id") == rec.get("id")
+
+
+def _shock_cause(rec):
+    """(portal message, why) for the 2022 shock, from the split of the two bills the slot compares
+    (`bill_change_split`), never asserted: a 29% rise in use sat under "use did not explain the
+    change" on PROS-2019-0246 (N28, tenth and eleventh cold reads)."""
+    split = bill_change_split(rec.get("before_bill") or {}, rec.get("now_bill") or {})
+    verdict = use_did_not_explain_is_true(split)
+    if verdict is None:
+        return ("Your bill has changed.",
+                "One of the two bills is estimated, so we cannot tell how much of the change was price and how much was use.")
+    if verdict:
+        return ("Your bill has changed because energy prices have changed.",
+                "Prices rose; use changed {:+.0%} on a year earlier and explains {:.0%} of the change before VAT.".format(
+                    split["use_change"], max(split["use_share"], 0.0)))
+    return ("Your bill has changed because energy prices rose and you used {}.".format(
+                "more" if split["use_part_gbp"] > 0 else "less"),
+            "Prices rose and use changed {:+.0%} on a year earlier: by a split of price and use, use is {} and "
+            "price {} of the {} change before VAT.".format(
+                split["use_change"], _fmt_gbp(split["use_part_gbp"]), _fmt_gbp(split["price_part_gbp"]),
+                _fmt_gbp(split["change_gbp"])))
 
 
 def _debt_why(hh, ev, iso):
@@ -1086,7 +1125,8 @@ def _score_shock(hh, ev, person):
     rec = {"fuel": i["fuel"], "month": datetime.strptime(i["date"][:7], "%Y-%m").strftime("%B %Y"),
            "now": i["amount_gbp"], "before": prev["amount_gbp"],
            "scheme_credit": i.get("scheme_credit_gbp") or 0.0,
-           "kwh_now": i.get("consumption_kwh") or 0, "kwh_before": prev.get("consumption_kwh") or 0}
+           "kwh_now": i.get("consumption_kwh") or 0, "kwh_before": prev.get("consumption_kwh") or 0,
+           "now_bill": i, "before_bill": prev}
     keys = [(_acq(hh), "joined", {}), (prev["date"], "bill", {**prev, "label": "A year earlier"}), (i["date"], "shock_2022", rec)]
     return (rise, keys, 2)
 

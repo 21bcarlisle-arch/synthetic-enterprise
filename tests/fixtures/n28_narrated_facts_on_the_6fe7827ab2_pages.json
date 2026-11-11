@@ -1,0 +1,363 @@
+{
+ "source": "site/data/explore_cast.json and site/data/customers/ at e816040ce8, the 6fe7827ab2 book's published pages",
+ "slots": [
+  {
+   "id": "mover",
+   "household": "PROS-2017-0351",
+   "moments": [
+    {
+     "iso": "2024-11-23",
+     "kind": "final_bill",
+     "story": "The final bill: electricity £827.68 credit for 457 kWh to 22 Nov 2024 (closing read actual), including a £916.14 credit correcting the estimated bills from 1 May 2023 to 31 Oct 2024, charged as Day 353.6 kWh at 28.55p and Night 103.1 kWh at 13.41p before VAT.",
+     "why": "The account closes on the move date; the bill covers use up to it.",
+     "gap": null,
+     "portal": {
+      "message": "Your final bill is ready: electricity £827.68 credit.",
+      "bills": [
+       {
+        "amount": "£827.68 credit, including a £916.14 credit correcting the estimated bills from 1 May 2023 to 31 Oct 2024, charged as Day 353.6 kWh at 28.55p and Night 103.1 kWh at 13.41p before VAT"
+       },
+       {
+        "amount": "£152.55, charged as Day 407.3 kWh at 28.54p and Night 78.9 kWh at 13.42p before VAT"
+       },
+       {
+        "amount": "£127.34, charged as Day 374.3 kWh at 25.67p and Night 63.0 kWh at 12.07p before VAT"
+       },
+       {
+        "amount": "£112.24, charged as Day 327.6 kWh at 25.68p and Night 38.2 kWh at 12.06p before VAT"
+       }
+      ]
+     }
+    },
+    {
+     "iso": "2024-12-06",
+     "kind": "settled",
+     "story": "The closing credit is refunded, and nothing is left on the electricity account.",
+     "why": "A closing credit is refunded within 10 working days of the final bill (GSoP reg 6D).",
+     "gap": null,
+     "portal": {
+      "message": "We have refunded the credit on your closed account.",
+      "bills": [
+       {
+        "amount": "£827.68 credit, including a £916.14 credit correcting the estimated bills from 1 May 2023 to 31 Oct 2024, charged as Day 353.6 kWh at 28.55p and Night 103.1 kWh at 13.41p before VAT"
+       },
+       {
+        "amount": "£152.55, charged as Day 407.3 kWh at 28.54p and Night 78.9 kWh at 13.42p before VAT"
+       },
+       {
+        "amount": "£127.34, charged as Day 374.3 kWh at 25.67p and Night 63.0 kWh at 12.07p before VAT"
+       },
+       {
+        "amount": "£112.24, charged as Day 327.6 kWh at 25.68p and Night 38.2 kWh at 12.06p before VAT"
+       }
+      ]
+     }
+    }
+   ],
+   "invoices": [
+    {
+     "id": "PROS-2017-0351-INV13195",
+     "date": "2019-01-31",
+     "period_start": "2019-01-01",
+     "period_end": "2019-01-31",
+     "commodity": "electricity",
+     "consumption_kwh": 959.5,
+     "commodity_amount_gbp": 108.14,
+     "standing_charge_gbp": 6.67,
+     "non_commodity_amount_gbp": 52.77,
+     "vat_gbp": 19.88,
+     "amount_gbp": 417.4,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": 229.94,
+     "catchup_raw_delta_gbp": 241.44
+    },
+    {
+     "id": "PROS-2017-0351-INV13202",
+     "date": "2019-08-31",
+     "period_start": "2019-08-01",
+     "period_end": "2019-08-31",
+     "commodity": "electricity",
+     "consumption_kwh": 61.0,
+     "commodity_amount_gbp": 7.89,
+     "standing_charge_gbp": 6.91,
+     "non_commodity_amount_gbp": 3.35,
+     "vat_gbp": -4.93,
+     "amount_gbp": -103.58,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": -116.8,
+     "catchup_raw_delta_gbp": -122.64
+    },
+    {
+     "id": "PROS-2017-0351-INV13211",
+     "date": "2020-05-31",
+     "period_start": "2020-05-01",
+     "period_end": "2020-05-31",
+     "commodity": "electricity",
+     "consumption_kwh": 264.2,
+     "commodity_amount_gbp": 32.22,
+     "standing_charge_gbp": 7.19,
+     "non_commodity_amount_gbp": 15.06,
+     "vat_gbp": 13.65,
+     "amount_gbp": 286.62,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": 218.5,
+     "catchup_raw_delta_gbp": 229.43
+    },
+    {
+     "id": "PROS-2017-0351-INV13214",
+     "date": "2020-08-31",
+     "period_start": "2020-08-01",
+     "period_end": "2020-08-31",
+     "commodity": "electricity",
+     "consumption_kwh": 74.4,
+     "commodity_amount_gbp": 9.15,
+     "standing_charge_gbp": 7.19,
+     "non_commodity_amount_gbp": 4.24,
+     "vat_gbp": -4.23,
+     "amount_gbp": -88.88,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": -105.23,
+     "catchup_raw_delta_gbp": -110.49
+    },
+    {
+     "id": "PROS-2017-0351-INV13219",
+     "date": "2021-01-31",
+     "period_start": "2021-01-01",
+     "period_end": "2021-01-31",
+     "commodity": "electricity",
+     "consumption_kwh": 981.0,
+     "commodity_amount_gbp": 97.17,
+     "standing_charge_gbp": 7.18,
+     "non_commodity_amount_gbp": 60.83,
+     "vat_gbp": 8.18,
+     "amount_gbp": 171.69,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": -1.67,
+     "catchup_raw_delta_gbp": -1.75
+    },
+    {
+     "id": "PROS-2017-0351-INV13223",
+     "date": "2021-05-31",
+     "period_start": "2021-05-01",
+     "period_end": "2021-05-31",
+     "commodity": "electricity",
+     "consumption_kwh": 393.3,
+     "commodity_amount_gbp": 38.97,
+     "standing_charge_gbp": 7.34,
+     "non_commodity_amount_gbp": 24.38,
+     "vat_gbp": 10.9,
+     "amount_gbp": 228.88,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": 147.29,
+     "catchup_raw_delta_gbp": 154.65
+    },
+    {
+     "id": "PROS-2017-0351-INV13238",
+     "date": "2022-08-31",
+     "period_start": "2022-08-01",
+     "period_end": "2022-08-31",
+     "commodity": "electricity",
+     "consumption_kwh": 63.2,
+     "commodity_amount_gbp": 13.45,
+     "standing_charge_gbp": 14.05,
+     "non_commodity_amount_gbp": 4.61,
+     "vat_gbp": -12.09,
+     "amount_gbp": -254.08,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": -274.1,
+     "catchup_raw_delta_gbp": -287.8
+    },
+    {
+     "id": "PROS-2017-0351-INV13240",
+     "date": "2022-10-31",
+     "period_start": "2022-10-01",
+     "period_end": "2022-10-31",
+     "commodity": "electricity",
+     "consumption_kwh": 204.0,
+     "commodity_amount_gbp": 57.53,
+     "standing_charge_gbp": 14.33,
+     "non_commodity_amount_gbp": 14.9,
+     "vat_gbp": 2.45,
+     "amount_gbp": 51.38,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": -37.83,
+     "catchup_raw_delta_gbp": -39.72
+    },
+    {
+     "id": "PROS-2017-0351-INV13246",
+     "date": "2023-04-30",
+     "period_start": "2023-04-01",
+     "period_end": "2023-04-30",
+     "commodity": "electricity",
+     "consumption_kwh": 549.7,
+     "commodity_amount_gbp": 167.68,
+     "standing_charge_gbp": 15.38,
+     "non_commodity_amount_gbp": 43.97,
+     "vat_gbp": 43.17,
+     "amount_gbp": 906.51,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": 636.31,
+     "catchup_raw_delta_gbp": 668.13
+    },
+    {
+     "id": "PROS-2017-0351-INV13265",
+     "date": "2024-11-22",
+     "period_start": "2024-11-01",
+     "period_end": "2024-11-22",
+     "commodity": "electricity",
+     "consumption_kwh": 456.7,
+     "commodity_amount_gbp": 80.97,
+     "standing_charge_gbp": 13.11,
+     "non_commodity_amount_gbp": 33.8,
+     "vat_gbp": -39.42,
+     "amount_gbp": -827.68,
+     "read_type": "A",
+     "catchup_applied": true,
+     "catchup_adjustment_gbp": -916.14,
+     "catchup_raw_delta_gbp": -961.95
+    }
+   ]
+  },
+  {
+   "id": "ev",
+   "household": "PROS-2017-0183",
+   "moments": [
+    {
+     "iso": "2023-06-30",
+     "kind": "first_bill",
+     "story": "The first electricity bill: £72.49 for 166 kWh, on an actual read.",
+     "why": "The amount follows from the reading and the tariff; nothing else is behind it.",
+     "gap": null,
+     "portal": {
+      "message": "Your first electricity bill is ready: £72.49.",
+      "bills": [
+       {
+        "amount": "£18.98"
+       },
+       {
+        "amount": "£72.49"
+       },
+       {
+        "amount": "£50.94"
+       },
+       {
+        "amount": "£52.61"
+       }
+      ]
+     }
+    }
+   ],
+   "invoices": [
+    {
+     "id": "PROS-2017-0183-INV12163",
+     "date": "2017-06-30",
+     "period_start": "2017-06-19",
+     "period_end": "2017-06-30",
+     "commodity": "electricity",
+     "consumption_kwh": 120.1,
+     "commodity_amount_gbp": 6.66,
+     "standing_charge_gbp": 2.25,
+     "non_commodity_amount_gbp": 6.49,
+     "vat_gbp": 0.77,
+     "amount_gbp": 16.17,
+     "read_type": "A",
+     "catchup_applied": false,
+     "catchup_adjustment_gbp": null,
+     "catchup_raw_delta_gbp": null
+    },
+    {
+     "id": "PROS-2017-0183-INV12235",
+     "date": "2023-06-30",
+     "period_start": "2023-06-01",
+     "period_end": "2023-06-30",
+     "commodity": "electricity",
+     "consumption_kwh": 165.7,
+     "commodity_amount_gbp": 40.4,
+     "standing_charge_gbp": 15.38,
+     "non_commodity_amount_gbp": 13.26,
+     "vat_gbp": 3.45,
+     "amount_gbp": 72.49,
+     "read_type": "A",
+     "catchup_applied": false,
+     "catchup_adjustment_gbp": null,
+     "catchup_raw_delta_gbp": null
+    }
+   ]
+  },
+  {
+   "id": "shock_2022",
+   "household": "PROS-2019-0246",
+   "moments": [
+    {
+     "iso": "2022-12-31",
+     "kind": "shock_2022",
+     "story": "The electricity bill for December 2022 was £985.97 before its £67.00 Energy Bills Support Scheme credit, against £467.82 a year earlier.",
+     "why": "Wholesale prices rose; the household's use did not explain the change.",
+     "gap": null,
+     "portal": {
+      "message": "Your bill has changed because energy prices have changed.",
+      "bills": [
+       {
+        "amount": "£985.97, less its £67.00 Energy Bills Support Scheme credit"
+       },
+       {
+        "amount": "£547.29, less its £66.00 Energy Bills Support Scheme credit"
+       },
+       {
+        "amount": "£261.11, less its £66.00 Energy Bills Support Scheme credit"
+       },
+       {
+        "amount": "£182.00"
+       }
+      ]
+     }
+    }
+   ],
+   "invoices": [
+    {
+     "id": "PROS-2019-0246-INV16169",
+     "date": "2021-12-31",
+     "period_start": "2021-12-01",
+     "period_end": "2021-12-31",
+     "commodity": "electricity",
+     "consumption_kwh": 2212.0,
+     "commodity_amount_gbp": 301.05,
+     "standing_charge_gbp": 7.34,
+     "non_commodity_amount_gbp": 137.15,
+     "vat_gbp": 22.28,
+     "amount_gbp": 467.82,
+     "read_type": "A",
+     "catchup_applied": false,
+     "catchup_adjustment_gbp": null,
+     "catchup_raw_delta_gbp": null
+    },
+    {
+     "id": "PROS-2019-0246-INV16181",
+     "date": "2022-12-31",
+     "period_start": "2022-12-01",
+     "period_end": "2022-12-31",
+     "commodity": "electricity",
+     "consumption_kwh": 2855.6,
+     "commodity_amount_gbp": 716.21,
+     "standing_charge_gbp": 14.35,
+     "non_commodity_amount_gbp": 208.46,
+     "vat_gbp": 46.95,
+     "amount_gbp": 985.97,
+     "read_type": "A",
+     "catchup_applied": false,
+     "catchup_adjustment_gbp": null,
+     "catchup_raw_delta_gbp": null
+    }
+   ]
+  }
+ ]
+}

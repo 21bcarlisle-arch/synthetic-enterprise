@@ -76,7 +76,9 @@ def test_the_final_bill_names_its_catch_up_and_prints_a_credit_as_a_credit():
     hh = {"id": "PROS-2017-0351", "legs": {"electricity": {}}}
     title, story, msg, _, _ = gen._template(hh, {}, "2024-11-23", "final_bill", mv)
     assert story == ("The final bill: electricity £24.73 credit for 146 kWh to 22 Nov 2024 (closing read actual), "
-                     "including a £74.17 credit correcting the estimated bills from 1 May 2023 to 31 Oct 2024."), story
+                     "including a £74.17 credit before VAT correcting the estimated bills from 1 May 2023 to 31 Oct 2024."), story
+    # A bill without `catchup_vat_gbp` cannot say what the total moved by, so it names its basis
+    # (N28: the 6fe7827ab2 page printed GBP 916.14 bare inside a VAT-inclusive total).
     assert msg == "Your final bill is ready: electricity £24.73 credit.", msg
     # Since 789d0a6d20 the catch-up line is before VAT and its VAT is on the VAT line; the bill moved
     # by both, so the sentence names both together, as the catch-up moment does.

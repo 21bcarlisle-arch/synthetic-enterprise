@@ -27,6 +27,7 @@ automatically thereafter, never by patching the one instance.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -2186,6 +2187,175 @@ def refund_lines(entries) -> list[tuple[str, float, Optional[float]]]:
 
 def check_refund_within_the_page_credit(entries) -> bool:
     return not refunds_beyond_the_page_credit(entries)
+
+
+#: N28 (tenth and eleventh cold reads). The Explore cast narrated three sentences its own page
+#: contradicted: "Your first electricity bill is ready" six years into supply, "the household's use
+#: did not explain the change" over a 29% rise in use, and a GBP 916.14 ex-VAT catch-up printed
+#: inside a VAT-inclusive total. One class: a narrated fact nobody derived from the fields the page
+#: prints. The predicates below are what the cast now derives its sentences from, so the words and
+#: the grade cannot disagree. YAML row INV_HOUSEHOLD_PAGE_NARRATED_FACT_IS_TRUE_OF_THE_ACCOUNT.
+HOUSEHOLD_PAGE_NARRATED_FACT_IS_TRUE_OF_THE_ACCOUNT = StructuralInvariant(
+    id="household_page_narrated_fact_is_true_of_the_account",
+    description=(
+        "Each narrated sentence on a household page is true of the account's own printed record: a "
+        "'first bill' is the earliest bill on that fuel; 'use did not explain the change' holds only "
+        "when the use part of the bill change is small; a catch-up figure inside a VAT-inclusive total "
+        "is on the total's basis, or says it is before VAT"
+    ),
+    source="SLC 0 Standards of Conduct (information 'complete, accurate and not misleading'; "
+           "docs/market_research/f2_explaining_what_we_do_simply.md §2b); SLC 31H.4 (the bill's "
+           "year-on-year comparison); docs/market_research/what_bill_shock_is.md (the cause split)",
+)
+ALL_INVARIANTS.append(HOUSEHOLD_PAGE_NARRATED_FACT_IS_TRUE_OF_THE_ACCOUNT)
+
+#: Stated belief, not a sourced figure (the YAML row's gap): "did not explain" is read as "explained
+#: less than a quarter"; at a half, use is the larger cause and the claim is false.
+USE_DID_NOT_EXPLAIN_SHARE_CEILING = 0.25
+USE_EXPLAINS_SHARE_BREACH = 0.5
+#: The row's second breach leg: use moved this much, the same way as the bill, year on year.
+USE_CHANGE_BREACH_FRACTION = 0.25
+_NARRATED_PENNY_GBP = 0.01
+_ACTUAL_READS = frozenset({"A", "C", "actual", "customer"})
+
+
+def _f(v) -> Optional[float]:
+    try:
+        x = float(v)
+    except (TypeError, ValueError):
+        return None
+    return x if isfinite(x) else None
+
+
+def bill_change_split(before: dict, after: dict) -> Optional[dict]:
+    """The change between two bills split into a use part and a price part by the midpoint
+    (Marshall-Edgeworth) rule, which sums to the change with no residual. Pre-VAT charges only: the
+    energy price p is (commodity + non-commodity) / kWh, the standing charge sits in the price part.
+    None when either bill is unread (not an actual read) or lacks a field: the claim is then
+    ungradable and the page must say it cannot tell, never print a cause."""
+    if any(b.get("read_type") not in _ACTUAL_READS for b in (before, after)):
+        return None
+    vals = []
+    for b in (before, after):
+        q, c = _f(b.get("consumption_kwh")), _f(b.get("commodity_amount_gbp"))
+        nc, s = _f(b.get("non_commodity_amount_gbp")) or 0.0, _f(b.get("standing_charge_gbp"))
+        if q is None or q <= 0 or c is None or s is None:
+            return None
+        vals.append((q, (c + nc) / q, s))
+    (q0, p0, s0), (q1, p1, s1) = vals
+    use = (q1 - q0) * (p0 + p1) / 2
+    price = (p1 - p0) * (q0 + q1) / 2 + (s1 - s0)
+    change = use + price
+    return {"use_part_gbp": round(use, 2), "price_part_gbp": round(price, 2), "change_gbp": round(change, 2),
+            "use_share": (use / change) if abs(change) >= _NARRATED_PENNY_GBP else None,
+            "use_change": (q1 - q0) / q0}
+
+
+def use_did_not_explain_is_true(split: Optional[dict]) -> Optional[bool]:
+    """True when a claim that use did not explain the change may print; False when it is a breach;
+    None when the split is unreadable (say "we cannot tell"). The 0.25-0.5 band is the row's flag,
+    and a flagged claim is not printed: a page states what it can stand behind."""
+    if split is None or split["use_share"] is None:
+        return None
+    same_way = (split["use_part_gbp"] > 0) == (split["change_gbp"] > 0)
+    if same_way and abs(split["use_change"]) >= USE_CHANGE_BREACH_FRACTION:
+        return False
+    return split["use_share"] < USE_DID_NOT_EXPLAIN_SHARE_CEILING
+
+
+def catchup_on_the_bills_basis(inv: dict) -> Optional[tuple[float, str]]:
+    """(what the catch-up moved the bill's total by, the basis to print beside it). With the bill's
+    `catchup_vat_gbp` it is the line plus its VAT, on the total's own basis (basis ""). Without it the
+    VAT on the line is not printed, so the figure is the line alone and says "before VAT". None when
+    the bill carries no catch-up line."""
+    adj = _f(inv.get("catchup_adjustment_gbp"))
+    if not inv.get("catchup_applied") or not adj:
+        return None
+    vat = _f(inv.get("catchup_vat_gbp"))
+    return (round(adj + vat, 2), "") if vat is not None else (round(adj, 2), "before VAT")
+
+
+def _catchup_vat_inferred(inv: dict) -> Optional[float]:
+    """The catch-up's VAT at the bill's own VAT rate over its VAT-able lines, for grading a page
+    that does not print `catchup_vat_gbp`. None when the lines do not read."""
+    adj = _f(inv.get("catchup_adjustment_gbp"))
+    lines = [_f(inv.get(k)) for k in ("commodity_amount_gbp", "standing_charge_gbp")]
+    vat = _f(inv.get("vat_gbp"))
+    if adj is None or vat is None or None in lines:
+        return None
+    base = sum(lines) + (_f(inv.get("non_commodity_amount_gbp")) or 0.0) + adj
+    return round(adj * vat / base, 2) if abs(base) >= _NARRATED_PENNY_GBP else None
+
+
+_FIRST_BILL = re.compile(r"\b[Ff]irst (electricity|gas) bill(?! since)")
+_USE_DID_NOT_EXPLAIN = re.compile(
+    r"use did not explain|because energy prices have changed", re.I)
+_CATCHUP_FIGURE = re.compile(
+    r"(?:including a|corrects the estimates:|above the meter by|below the meter by) £([\d,]+\.\d\d)"
+    r"(?: (?:charge|credited|credit|added))?( before VAT)?")
+
+
+def _moment_texts(m: dict) -> list[str]:
+    """Every narrated string a cast moment prints: its story, why, message and portal bill lines."""
+    portal = m.get("portal") or {}
+    out = [m.get("story"), m.get("why"), m.get("portal_message"), portal.get("message")]
+    # Every line of every list the portal prints, not one named list: a sentence added to a new
+    # list is graded without this reader learning its name.
+    out += [r.get("amount") for v in portal.values() if isinstance(v, list) for r in v if isinstance(r, dict)]
+    gap = m.get("gap") or {}
+    out += [gap.get(k) for k in ("believed", "truth", "meant")] if isinstance(gap, dict) else []
+    return [str(t) for t in out if t]
+
+
+def narrated_fact_breaches(moments, invoices) -> list[dict]:
+    """Each narrated sentence on one household's cast moments that its own page invoices contradict:
+    {leg, iso, text, reason}. `invoices` is the household's page invoices, every fuel leg, each with
+    `commodity` (or `fuel`). Legs: (a) first_bill, (b) use_did_not_explain, (c) catchup_basis. A
+    sentence whose bill cannot be found is a breach with reason "unread", never a pass."""
+    bills = [dict(i, fuel=i.get("fuel") or i.get("commodity")) for i in invoices or () if isinstance(i, dict)]
+    out = []
+    for m in moments or ():
+        iso = str(m.get("iso") or "")[:10]
+        texts = _moment_texts(m)
+        for fuel in sorted({hit.group(1) for t in texts for hit in _FIRST_BILL.finditer(t)}):
+            leg = sorted((b for b in bills if b["fuel"] == fuel and b.get("date")),
+                         key=lambda b: b.get("period_start") or b["date"])
+            this = next((b for b in leg if b["date"][:10] == iso), None)
+            if this is None or leg[0] is not this:
+                out.append({"leg": "first_bill", "iso": iso, "text": "first {} bill".format(fuel),
+                            "reason": "unread" if this is None else "an earlier {} bill is dated {}".format(
+                                fuel, leg[0]["date"][:10])})
+        if any(_USE_DID_NOT_EXPLAIN.search(t) for t in texts):
+            fuel = next((w for w in ("electricity", "gas") if w in str(m.get("story") or "")), None)
+            now = next((b for b in bills if b["fuel"] == fuel and b.get("date", "")[:10] == iso
+                        and not b.get("catchup_applied")), None)
+            prev = next((b for b in bills if now and b["fuel"] == fuel and not b.get("catchup_applied")
+                         and b.get("date", "")[:7] == "{}-{}".format(int(iso[:4]) - 1, iso[5:7])), None)
+            split = bill_change_split(prev, now) if now and prev else None
+            verdict = use_did_not_explain_is_true(split)
+            if not verdict:
+                out.append({"leg": "use_did_not_explain", "iso": iso, "text": "use did not explain the change",
+                            "reason": "unread" if verdict is None else
+                            "use moved {:+.0%} and is {:.0%} of the change".format(
+                                split["use_change"], split["use_share"])})
+        for t in texts:
+            for hit in _CATCHUP_FIGURE.finditer(t):
+                printed, before_vat = float(hit.group(1).replace(",", "")), bool(hit.group(2))
+                ups = [b for b in bills if b.get("catchup_applied") and _f(b.get("catchup_adjustment_gbp"))]
+                ex = [b for b in ups if abs(abs(_f(b["catchup_adjustment_gbp"])) - printed) < _NARRATED_PENNY_GBP]
+                inc = [b for b in ups if abs(abs(_f(b["catchup_adjustment_gbp"]) + (
+                    _f(b.get("catchup_vat_gbp")) if _f(b.get("catchup_vat_gbp")) is not None
+                    else (_catchup_vat_inferred(b) or 0.0))) - printed) < _NARRATED_PENNY_GBP]
+                if before_vat and ex or not before_vat and inc:
+                    continue
+                out.append({"leg": "catchup_basis", "iso": iso, "text": hit.group(0),
+                            "reason": "the line before VAT, printed as if VAT-inclusive" if ex and not before_vat
+                            else "unread"})
+    return out
+
+
+def check_household_page_narrated_fact_is_true(moments, invoices) -> bool:
+    return not narrated_fact_breaches(moments, invoices)
 
 
 def invariant_count() -> int:

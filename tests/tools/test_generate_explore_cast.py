@@ -377,7 +377,12 @@ def test_the_verdict_can_be_green_and_can_be_red(feed, tmp_path):
     """The whole partition, so a verdict that reds everything (or nothing) is caught."""
     clean = gen.coverage_verdict(_gapless(feed), tmp_path)
     assert not clean["red"] and not clean["accounted"] and clean["spent"]
-    assert gen.coverage_verdict(feed, tmp_path)["red"]
+    # The red half is built, not read off today's book: once the 6fe7827ab2 book filled 8 of 8 slots
+    # with no rule breaching, the live feed was green under an empty findings room and this leg went
+    # red for the code being right. Keyed to the property: a gap nothing names reds.
+    gap = _gapless(feed)
+    gap["coverage"]["empty"] = ["renewal"]
+    assert gen.coverage_verdict(gap, tmp_path)["red"]
 
 
 def test_MUTATION_a_filled_slot_that_empties_reds(feed, tmp_path):
@@ -461,7 +466,17 @@ def test_an_empty_slot_with_matches_names_the_checks_that_failed(feed):
 def test_MUTATION_checks_that_pass_everything_put_the_gas_only_ev_home_back(real, monkeypatch):
     # Keyed to the property, not to which home ranks first: once EV events were drawn only on held
     # fuels, the top-ranked EV home stopped being the gas-only one and the old leg went red.
-    refused = {k for k, v in _candidates(real, "ev").items() if v}
+    # Since the 6fe7827ab2 book the top-ranked EV home (PROS-2017-0183) passes every check, so turning
+    # the checks off alone is an EQUIVALENCE on this book, not a missing test: the rank already picks
+    # a passer. The pool is cut to the refused homes so the checks are the only thing between the
+    # slot and a refused one, and both sides are asserted.
+    cands = _candidates(real, "ev")
+    refused = {k for k, v in cands.items() if v}
+    assert refused and refused != set(cands), "the book offers no refused and passing EV homes to tell apart"
+    score_ev = gen._score_ev
+    monkeypatch.setattr(gen, "_score_ev", lambda hh, *a: None if hh["id"] not in refused else score_ev(hh, *a))
+    held = next(s for s in gen.build(*real)["slots"] if s["id"] == "ev")
+    assert not held["filled"], held.get("household")
     monkeypatch.setattr(gen, "validity_failures", lambda *a: [])
     ev = next(s for s in gen.build(*real)["slots"] if s["id"] == "ev")
     assert ev["filled"] and ev["household"] in refused, "the mutation did not restore the 4ae8da9b0f defect"
