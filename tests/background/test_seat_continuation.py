@@ -657,6 +657,17 @@ def test_the_artefact_reader_takes_paths_and_jobs_and_not_patterns_or_prose():
     assert jobs == ["w2-36-seed1"]
 
 
+def test_a_path_the_item_says_to_REMOVE_is_not_an_artefact_but_one_it_says_to_read_still_is():
+    # Defect: an item asking for /var/tmp/x to be removed was held "until it exists". Both legs in
+    # one assertion, so a reader that drops EVERY path (which passes the removal leg) reds here.
+    paths, _ = seat_continuation.named_artefacts({
+        "what": "Read /var/tmp/run-9/DONE.json. 204e1 is left in /var/tmp/se-seat. "
+                "Then unlock and remove /var/tmp/se-seat as disposable.",
+        "done_means": "",
+    })
+    assert paths == ["/var/tmp/run-9/DONE.json"]
+
+
 def test_a_probe_that_cannot_answer_HOLDS_rather_than_retiring(store, tmp_path):
     out = tmp_path / "DONE.json"
     out.write_text("{}")
