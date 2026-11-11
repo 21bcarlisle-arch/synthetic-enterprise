@@ -701,6 +701,8 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     # billed, not on the walk's paid-at-face bills (home_moves.md s.8.8b).
     closing_balances: dict[str, float] = {}
     last_level_collection: dict = {}
+    # The day the last money each credit counts arrived: the refund waits for it (s.8.8d).
+    money_in: dict = {}
     emergent_bad_debt_by_line = emergent_bad_debt_lines(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
@@ -708,11 +710,13 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         closing_out=closing_balances,
         level_dd_collections=level_dd_schedule,
         last_collection_out=last_level_collection,
+        money_in_out=money_in,
     )
     # A closed account the ledger holds in credit is refunded from that balance (reg 6D), so the
     # refund log and the debt the P&L writes off are one book (home_moves.md s.8.8a).
     credit_refund_log = generate_credit_refund_log(bills, customer_segments, closing_balances,
-                                                   last_collection=last_level_collection)
+                                                   last_collection=last_level_collection,
+                                                   money_in=money_in)
 
     # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
     # post-write-off DCA recovery / debt-sale proceeds, applied as a

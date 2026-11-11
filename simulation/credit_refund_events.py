@@ -50,6 +50,7 @@ def generate_credit_refund_log(
     customer_segments: dict[str, str],
     closing_balances: dict[str, float],
     last_collection: dict[str, dt.date] | None = None,
+    money_in: dict[str, dt.date] | None = None,
 ) -> list[dict]:
     """One reg 6D refund event per closed domestic account the ledger closes in credit.
 
@@ -61,6 +62,10 @@ def generate_credit_refund_log(
     ``last_collection`` is a level-DD leaver's last level collection. One taken after the final
     bill is part of the credit, so the refund clock runs from the later of the two
     (home_moves.md s.8.8b choice 2).
+
+    ``money_in`` is the day the last money a leaver's closing credit counts reached the account
+    (`balance_settlement_from_outcomes`). A credit exists once its money does (SLC 27.16), so the
+    clock runs from that day too when it is later (s.8.8d choice 18).
     """
     last_bill: dict[str, dict] = {}
     for bill in bills:
@@ -76,7 +81,8 @@ def generate_credit_refund_log(
         if normalise_segment(customer_segments.get(cid, RESIDENTIAL)) != RESIDENTIAL:
             continue
         final = dt.date.fromisoformat(last_bill[cid]["period_end"])
-        collected = (last_collection or {}).get(cid)
+        later = [d for d in ((last_collection or {}).get(cid), (money_in or {}).get(cid)) if d]
+        collected = max(later) if later else None
         log.append({
             "customer_id": cid,
             **refund_on_account_closure(

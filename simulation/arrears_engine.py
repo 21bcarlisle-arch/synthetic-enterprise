@@ -1141,7 +1141,8 @@ def level_collection_difference(resolved: list[dict], level_dd_collections: dict
 def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str],
                                      closing_out: dict[str, float] | None = None,
                                      *, level_dd_collections: dict | None = None,
-                                     last_collection_out: dict[str, date] | None = None
+                                     last_collection_out: dict[str, date] | None = None,
+                                     money_in_out: dict[str, date] | None = None
                                      ) -> tuple[dict[tuple[str, str, str], dict],
                                                 dict[tuple[str, str, str], list[dict]]]:
     """The balance-at-close rule over already-resolved bills. Pure: no RNG.
@@ -1154,6 +1155,10 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     standing debt: the last collection that would take it is not built (s.8.8b choice 3).
     ``last_collection_out`` takes each such leaver's last level collection date, which the refund
     clock runs from (s.8.8b choice 2).
+
+    ``money_in_out`` takes, for each leaver closing in credit, the day the last money that credit
+    counts reached the account: a paid bill with cash still due on it, a repayment, the part payment
+    of a returned bill. The refund cannot pay before it (home_moves.md s.8.8d).
 
     ``closing_out``, if given, takes each leaver's balance at its final bill's due date, keyed by
     the leg's ``customer_id`` (one fuel's contract): what is still outstanding less the credit
@@ -1187,6 +1192,13 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     in ``credits_applied`` under the PAID bill's key. Only what neither use takes waits to close.
     """
     level = level_collection_difference(resolved, level_dd_collections)
+    # The bills a level collection paid. That collection is cash of its own amount whatever the bill
+    # (payments_and_direct_debit_2026-10-25.md, "What a level direct debit must be"), and
+    # `level_collection_difference` already reconciles it to the face, so a credit drawn against
+    # one was counted twice: SYN-2016-493's -42.56 credit bill met INV47681 at its 42.87 face while
+    # the bank paid 31.00, and the close refunded 12.90 of a 55.46 credit (home_moves.md s.8.8c, B).
+    level_paid = {id(r) for r, _c, result, _face in level_collection_pairs(resolved, level_dd_collections)
+                  if result == "success" and r["outcome"] == "success"}
     by_cid: dict[str, list[dict]] = {}
     for row in resolved:
         by_cid.setdefault(row["customer_id"], []).append(row)
@@ -1294,7 +1306,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     _net(item, when)
             else:
                 c = r["commodity"]
-                if r["outcome"] == "success" and _waiting(c) > 0:
+                if r["outcome"] == "success" and _waiting(c) > 0 and id(r) not in level_paid:
                     # The bill asks for what is owed (SLC 31H.12): its charges less the credit on
                     # the account, so the household pays the rest and the credit is used up
                     # (home_moves.md s.8.8a, choice 11). Credit waits only when nothing on this fuel
@@ -1357,8 +1369,58 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
         difference, last_collection = level.get(cid, (0.0, None))
         closing = round(sum(i["remaining"] for i in outstanding)
                         - sum(_waiting(c) for c in pool) + difference, 2)
+        if leaver and on_level and closing < 0 and last_collection is not None:
+            # A level leaver's bills after its last level collection, the final bill among them, were
+            # collected at their face beside the credit the schedule left, and the close then refunded
+            # that credit whole: SYN-2016-369 was refunded 303.65 and its 8.95 final bill collected
+            # the next day (187 of 238 refunds on 068b5e3cc8). A bill asks its charges less the credit
+            # on the account (SLC 31H.12), and the final bill states the one balance (SLC 27.17), so
+            # the credit meets those bills first, oldest first, and only the rest is refunded
+            # (home_moves.md s.8.8c, A). Listed as "credit", so the page prints the smaller payment.
+            for r in sorted((r for r in rows if r["outcome"] == "success" and id(r) not in level_paid
+                             and r["due_date"] > last_collection),
+                            key=lambda r: r["period_end"]):
+                if closing >= -0.005:
+                    break
+                used = round(sum(x["amount_gbp"] for x in credited.get(_key(r), ())), 2)
+                take = round(min(-closing, r["amount_gbp"] - used), 2)
+                if take <= 0.005:
+                    continue
+                credited.setdefault(_key(r), []).append(
+                    {"date": paid_on(r["due_date"], r["days_late"], r.get("method")),
+                     "amount_gbp": take, "credit_period_end": last_collection.isoformat(),
+                     "kind": "credit"})
+                closing = round(closing + take, 2)
         if leaver and closing_out is not None:
             closing_out[cid] = closing
+        if leaver and money_in_out is not None and closing < 0:
+            # The closing credit counts every payment the leg will make, but a refund dated from the
+            # final bill paid it before some of that money came: SYN-2016-244 was refunded 42.14 on
+            # 15 Jan 2018 while its 77.82 final bill was paid on 21 Jan, and PROS-2019-0318 111.33
+            # before its 24.65 part payment (12 of 176 on 068b5e3cc8). A credit is payments in excess
+            # of the charges (SLC 27.16), so it exists once the money does (home_moves.md s.8.8d).
+            # A credit bill is not money in: it posts when it is issued, by the final bill, though its
+            # row falls due later (PROS-2017-0351's -827.68 of 22 Nov 2024 is due 7 Dec).
+            arrived = []
+            for r in rows:
+                # A repayment reaches the page on the day the walk sets it against a bill, which can be
+                # later than its own row: SYN-2016-139's 11.52, dated May 2021, settles an Apr 2022 return.
+                arrived.extend(x["date"] for x in credited.get(_key(r), ()) if x["kind"] == "repayment")
+                if r["outcome"] == "success" and id(r) not in level_paid:
+                    # A level-paid bill's cash is its level collection, which `last_collection`
+                    # already dates: SYN-2016-369's July bill falls due 15 Aug, the bank paid 12 Jul.
+                    netted = sum(x["amount_gbp"] for x in credited.get(_key(r), ())
+                                 if x["kind"] == "credit")
+                    if r["amount_gbp"] - netted > 0.005:
+                        arrived.append(paid_on(r["due_date"], r["days_late"], r.get("method")))
+                elif r["outcome"] == "success":
+                    continue
+                elif r["outcome"] == "repayment" and r["due_date"] <= last_event:
+                    arrived.append(r["due_date"])
+                elif (r.get("part_paid_gbp") or 0) > 0.005:
+                    arrived.append(r["due_date"])
+            if arrived:
+                money_in_out[cid] = max(arrived)
         if leaver and last_collection_out is not None and last_collection is not None:
             last_collection_out[cid] = last_collection
         if leaver:
@@ -1459,7 +1521,8 @@ def balance_write_offs(bills: list[dict], behavioral: dict, churned_ids: set[str
 def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: set[str],
                             seed: int = 42, closing_out: dict[str, float] | None = None,
                             *, level_dd_collections: dict | None = None,
-                            last_collection_out: dict | None = None
+                            last_collection_out: dict | None = None,
+                            money_in_out: dict | None = None
                             ) -> dict[str, dict[tuple[str, int], float]]:
     """`compute_emergent_bad_debt`'s charge, kept apart by LINE: the write-off at close, the
     statute-barred write-off, and leg 4b's stayer provision (empty while leg 4b is off). Each is
@@ -1476,7 +1539,7 @@ def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: se
     resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
     written_off, credited = balance_settlement_from_outcomes(
         resolved, churned_ids, closing_out, level_dd_collections=level_dd_collections,
-        last_collection_out=last_collection_out)
+        last_collection_out=last_collection_out, money_in_out=money_in_out)
     lines: dict[str, dict[tuple[str, int], float]] = {
         LEG_CLOSE: {}, LEG_STATUTE_BAR: {}, "stayer_provision": {}, "total": {}}
     total = lines["total"]
