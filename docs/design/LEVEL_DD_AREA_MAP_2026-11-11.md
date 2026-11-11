@@ -169,6 +169,14 @@ count stays at 116, the map's claim is that **no fix in the refund or close line
 K-against-P (and T-against-P) disagreement during the life of the account, and the next level-DD fix that touches
 cures must name which of the three shapes in section 3 it moves, and on which ledger.
 
+**How it is graded (armed 11 Nov, 12:45 GMT; the book has not launched).** `/var/tmp/crbook-scripts/cure_row.py <grade
+dir>` reads all four rows and row 11 from the publisher chain's own `split.txt`, `compose.txt` and ledger. It refuses
+if compose and split disagree on the count. On the control it reads 116 on 70 / 93 / 0 / 807, all held. The refund leg
+can fire: dating every refund to 2000 reads 37, so a 0 is a measurement. The unit `longjob-crbook-cure-row` waits for
+`/var/tmp/crbook/arm/DONE` and writes `/var/tmp/crbook/arm/cure_row.tsv`. At 12:30 the fix was not on origin, and the
+first launcher's 8 h deadline falls at about 13:02. If that launcher ends without launching, the unit re-arms it
+once, unchanged. The verdict goes here, beside this table, when the TSV exists.
+
 ## 5. What this changes
 
 - **Before a level-DD prediction is filed, name the ledger it is read from (T, E, K or P) and the ledger the fix
