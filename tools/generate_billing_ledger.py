@@ -409,6 +409,21 @@ def leaver_closing_statement(cust: dict, entries: list[dict]) -> dict | None:
     }
 
 
+def _level_collection_payment(invoice_number: str, level: dict, stress) -> dict:
+    """A paid level collection in a month whose bill asked nothing: money in on its own day, at
+    the level amount (payments_and_direct_debit_2026-10-25.md, "What a level direct debit must be")."""
+    return {
+        "invoice_number": invoice_number,
+        "payment_date": level["collection_date"],
+        "amount_gbp": round(level["amount_gbp"], 2),
+        "method": "direct_debit",
+        "outcome": "success",
+        "income_stress_at_time": stress,
+        "tone": None,
+        "level_dd": True,
+    }
+
+
 def generate(run_json_path=None, out_path=None):
     if run_json_path is None:
         run_json_path = RUN_JSON
@@ -1027,6 +1042,16 @@ def generate(run_json_path=None, out_path=None):
                 pay["scheme_credit_gbp"] = scheme_applied
                 inv["scheme_credit_gbp"] = scheme_applied
             payments_by_cid.setdefault(cid, []).append(pay)
+            # A bill the scheme credit met whole is a credit to the engine (`_resolve_bills`), and
+            # the triad still presented the month's level collection, as for a credit bill below.
+            # Taken only on a DD bill, it was dropped: PROS-2019-0318's 62.48 of 28 Dec 2022 and of
+            # 24 Mar 2023 (class L'). Its slot is taken whatever the result, as the walk takes it.
+            collection_result = None if row is None else row.get("collection_result")
+            if outcome == "credit" and collection_result is not None:
+                level = (level_dd.get((cid, period_end[:7])) or [None]).pop(0)
+                if level is not None and collection_result == "success":
+                    payments_by_cid[cid].append(_level_collection_payment(
+                        invoice_number, level, stress))
         else:
             # A credit bill partly inside the window or the void: the engine credits the named
             # payer its own share alone (`_resolve_bills`), so the rest is the deemed account's, as a
@@ -1049,16 +1074,8 @@ def generate(run_json_path=None, out_path=None):
             level = (None if collection_result is None else
                      (level_dd.get((cid, period_end[:7])) or [None]).pop(0))
             if level is not None and collection_result == "success":
-                payments_by_cid.setdefault(cid, []).append({
-                    "invoice_number": invoice_number,
-                    "payment_date": level["collection_date"],
-                    "amount_gbp": round(level["amount_gbp"], 2),
-                    "method": "direct_debit",
-                    "outcome": "success",
-                    "income_stress_at_time": stress,
-                    "tone": None,
-                    "level_dd": True,
-                })
+                payments_by_cid.setdefault(cid, []).append(_level_collection_payment(
+                    invoice_number, level, stress))
 
         written_off = write_offs.get((cid, period_end, commodity))
         # A case is for what is still owed once account credit on the same contract is netted

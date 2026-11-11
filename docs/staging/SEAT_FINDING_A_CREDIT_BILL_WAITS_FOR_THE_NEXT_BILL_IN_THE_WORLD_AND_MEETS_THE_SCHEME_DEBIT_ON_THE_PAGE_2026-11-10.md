@@ -91,3 +91,30 @@ item `a-scheme-credit-month-keeps-its-level-collection`, to be pre-registered on
 classed by `LEVEL_DD_AREA_MAP.md` §5. Class L's first grade is carried in the desk write-off finding.
 
 NEXT: a-credit-bill-meets-the-scheme-debit-before-the-next-bill
+
+## Class L′ built and graded (2026-11-11, item `a-scheme-credit-month-keeps-its-level-collection`)
+
+**The world was checked first.** `_resolve_bills` nets the EBSS credit in `payer_ask_gbp`, so a bill the
+credit met whole is a credit row carrying the triad's `collection_result` (6fb708f3a), and
+`level_collection_difference` already pairs it. The gap was the page's alone.
+
+**The change.** `tools/generate_billing_ledger.py`: a bill whose engine outcome is `credit` (the page's
+`scheme_credit`) takes its month's level collection slot whatever the result, and posts a paid one as a
+level DD payment on that invoice. Test: `tests/tools/test_a_scheme_credit_month_keeps_its_level_collection.py`
+(both results, plus the next month's slot; the two mutations, dropping the month and posting a returned
+one, each fail it).
+
+**Predicted before measuring** (`/var/tmp/lvlprime/PREDICTION.md`), book 78f82e4242, regenerated with
+and without the change at this tree:
+
+| | predicted | measured |
+|---|---|---|
+| P1 PROS-2019-0318 unshown collections | 3 → 1 | **3 → 1** (25 Jul 2022, returned, stays) |
+| P2 world-walk closing balances that move | 0 | **0** of 850 |
+| P3 existing page payment rows changed | 0; every added row level DD success on an Oct 2022–Mar 2023 bill | **0**; 99 added, all level DD success, bill months 2022-10 to 2023-03, on 34 legs |
+| P4 book-wide unshown rows | fall by exactly the rows added, 2 ≤ added ≤ 128 | **548 → 449**, 99 added (GBP 4,474.09), all 99 inside the window |
+
+`Graded: class-l held=4 missed=0 code=0 reader=0 regressed=0 width=0.0` (three points and one range row:
+median 0). The page's balances fall by the cash it now shows; the walk, and so refunds and bad debt,
+do not move. Remaining 449 unshown rows are returned collections and classes not traced here; PROS-2019-0318's
+25 Jul 2022 return and its 22 Nov 2022 settlement is the open question named above.
