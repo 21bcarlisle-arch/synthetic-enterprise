@@ -62,6 +62,12 @@ python3 -m tools.stale_copy_refusal --staged || exit 1
 # tests/tools/test_a_ukds_microdata_file_cannot_be_committed.py.
 python3 -m tools.ukds_microdata_refusal --staged || exit 1
 
+# ONE WRITER ON DIRECTION.YAML WHILE THE SEAT ORIENTS (2026-11-11: two of four orientations lost
+# their landing to a second writer). Refuses a DIRECTION.yaml commit from outside the
+# delivery-seat.service cgroup while that unit runs. R15-proven in
+# tests/tools/test_a_second_writer_cannot_land_direction_under_the_seat.py.
+python3 -m tools.direction_seat_window || exit 1
+
 # TEST GATE (director P0, 2026-07-17): a commit with red tests is STRUCTURALLY IMPOSSIBLE, not
 # merely discouraged -- structural impossibility over remembered discipline (two red commits
 # landed tonight because "run tests then commit" is a remembered process, and remembered processes

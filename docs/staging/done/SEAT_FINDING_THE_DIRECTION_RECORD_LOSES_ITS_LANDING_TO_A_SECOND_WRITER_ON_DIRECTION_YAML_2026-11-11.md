@@ -34,3 +34,19 @@ Until one of them is built, the seat's landing still fails closed and now says s
 **Disposition this turn:** the 18:22 record went onto origin by hand from the seat-executor worktree.
 The 18:22 record already carries 74badda3a5's edit, so nothing is lost. The append-only files were checked
 as pure appends over origin. 204e12734 (the 12:24 record) was not landed, because it is superseded.
+
+## Done (2026-11-11, worker tick, Lane 0 `a-second-writer-never-lands-direction-yaml-under-the-seat`)
+
+The recommended option is built. `tools/direction_seat_window.py`, wired into `pre-commit`, refuses a
+commit that stages `docs/direction/DIRECTION.yaml` while `delivery-seat.service` is `active` or
+`activating` (a oneshot reads `activating` for its whole run). The one exception is a process inside
+that unit's own cgroup. The kernel answers who the seat is, so no env var needs threading through
+`surgical_land`. The refusal names two ways out: unstage the file and commit the rest, or
+`wait_for.py --pid <MainPID>`. If systemd cannot be asked, the check fails open and says so.
+Controls: `tests/tools/test_a_second_writer_cannot_land_direction_under_the_seat.py`. All five
+mutants fired: the seat exception, the state check, the staged-path check, `activating` dropped, and
+the refusal's exit code.
+
+**Not covered:** a second writer that commits DIRECTION.yaml *before* the seat starts and pushes it
+while the seat runs. This still moves origin under the seat. On 11 Nov both losses were commits made
+inside the window, so this case is left until it is measured.
