@@ -227,6 +227,9 @@ INTERCONNECTOR_MARKETS = {
 #: ElecLink 0.00-0.45 in every month of 2022 and 2024, North Sea Link ~1.0 (EP13 frame s33,
 #: `docs/market_research/neso_carbon_intensity_interconnector_treatment_2026-10-04.md`). Their
 #: flow is real supply to GB, so the dispatch serves it; the target simply does not count it.
+#: THIS IS THE CARBON INTENSITY API'S MIX ONLY. NESO's historic-mix file DOES count both cables
+#: (exact to 1 MW on 78-88% of 2023-25 half hours with them, 5-21% without: `household_carbon`
+#: §1b), so `grid_carbon_history`'s fill must not read this set.
 OUTSIDE_NESO_MIX = frozenset({"INTELEC", "INTVKL"})
 
 #: NESO's OWN published import factors (gCO2/kWh), Carbon Intensity Forecast Methodology Table 1
@@ -234,9 +237,9 @@ OUTSIDE_NESO_MIX = frozenset({"INTELEC", "INTVKL"})
 #: the reconstruction is graded against the series these factors build, so using anything else
 #: would put a factor difference into a comparison meant to measure a TIMING difference.
 #:
-#: Norway and Denmark are absent ON PURPOSE: the published table has no row for them. Norway is
-#: priced by the same table applied to its own published mix (`ANNUAL_MIX_GWH`); Denmark (Viking)
-#: is outside NESO's mix and needs no factor.
+#: Norway and Denmark are absent ON PURPOSE: the published table has no row for them. Each is
+#: priced by the same table applied to its own published mix (`ANNUAL_MIX_GWH`,
+#: `OUTPUT_BY_ENERGY_TYPE`). The API reconstruction never asks for Denmark (`OUTSIDE_NESO_MIX`).
 IMPORT_INTENSITY_G_CO2_PER_KWH = {
     "France": 53.0,
     "Netherlands": 474.0,
@@ -274,12 +277,46 @@ NORWAY_THERMAL_FACTOR_G_CO2_PER_KWH = NORWAY_THERMAL_FACTOR_BRACKET_G_CO2_PER_KW
 #: Markets priced from their own published annual mix rather than a fixed Table 1 row.
 ANNUAL_MIX_GWH = {"Norway": NORWAY_PRODUCTION_GWH}
 
+#: Denmark's electricity OUTPUT by energy type, TJ: Danish Energy Agency, Energistatistik, Tabel 6
+#: "Elproduktion fordelt på anvendt energitype". 2023 is read from the 2024 edition; 2024 and 2025
+#: are read from the 2025 edition, the latest one to carry them. Each year's sum is the table's own
+#: total (127,143 TJ for 2024). Same rule as Norway: NESO's Table 1 applied to the connected network's
+#: mix (knowledge page `household_carbon` §1b, "Pricing Viking"). This is the national mix, not
+#: DK1's alone, and not hourly. Only the historic-mix fill asks for it: the Carbon Intensity API
+#: reconstruction keeps Viking outside its mix (`OUTSIDE_NESO_MIX`).
+DENMARK_ELECTRICITY_OUTPUT_TJ = {
+    "2023": {"Olie": 859.0, "Naturgas": 2233.0, "Kul": 9090.0,
+             "Affald, ikke-bionedbrydeligt": 3539.0, "Biomasse": 20480.0, "Bionaturgas": 1367.0,
+             "Biogas": 1877.0, "Solenergi": 13169.0, "Vindkraft": 69963.0, "Vandkraft": 71.0},
+    "2024": {"Olie": 804.0, "Naturgas": 2032.0, "Kul": 6302.0,
+             "Affald, ikke-bionedbrydeligt": 3690.0, "Biomasse": 23686.0, "Bionaturgas": 1243.0,
+             "Biogas": 1720.0, "Solenergi": 13594.0, "Vindkraft": 73990.0, "Vandkraft": 81.0},
+    "2025": {"Olie": 840.0, "Naturgas": 1814.0, "Kul": 2616.0,
+             "Affald, ikke-bionedbrydeligt": 3614.0, "Biomasse": 23178.0, "Bionaturgas": 1218.0,
+             "Biogas": 1589.0, "Solenergi": 16235.0, "Vindkraft": 68711.0, "Vandkraft": 50.0},
+}
+
+#: Each Danish energy type -> the Table 1 row that prices it. Two of these are choices, and the
+#: knowledge page brackets both. Gas is priced as CCGT, the row NESO's own mix uses for GAS; OCGT
+#: would add 4-5 g. Non-biodegradable waste is priced as OTHER, where GB's energy-from-waste sits in
+#: FUELHH; pricing it as BIOMASS would take off 5 g. Biogas and biomethane are biogenic, so they take
+#: Table 1's one biogenic row, BIOMASS.
+DANISH_ENERGY_TYPE_PRICED_AS = {
+    "Olie": "OIL", "Naturgas": "CCGT", "Kul": "COAL", "Affald, ikke-bionedbrydeligt": "OTHER",
+    "Biomasse": "BIOMASS", "Bionaturgas": "BIOMASS", "Biogas": "BIOMASS",
+    "Solenergi": "SOLAR", "Vindkraft": "WIND", "Vandkraft": "NPSHYD",
+}
+
+#: Markets priced from their output by energy type under Table 1.
+OUTPUT_BY_ENERGY_TYPE = {"Denmark": (DENMARK_ELECTRICITY_OUTPUT_TJ, DANISH_ENERGY_TYPE_PRICED_AS)}
+
 
 def import_factor(market: str, year: str) -> float | None:
     """gCO2/kWh for an import from `market` in `year`, or None when nothing publishes one.
 
     The four Table 1 markets carry NESO's fixed defaults. Norway carries its own annual mix under
-    Table 1 (`ANNUAL_MIX_GWH`). Denmark is None: Viking is outside NESO's mix and never asks.
+    Table 1 (`ANNUAL_MIX_GWH`), and so does Denmark (`OUTPUT_BY_ENERGY_TYPE`). Only the
+    historic-mix fill asks for Denmark: the API reconstruction keeps Viking outside its mix.
     """
     fixed = IMPORT_INTENSITY_G_CO2_PER_KWH.get(market)
     if fixed is not None:
@@ -288,6 +325,12 @@ def import_factor(market: str, year: str) -> float | None:
     if year in mix:
         total, thermal = mix[year]
         return thermal / total * NORWAY_THERMAL_FACTOR_G_CO2_PER_KWH
+    by_type, priced_as = OUTPUT_BY_ENERGY_TYPE.get(market, ({}, {}))
+    if year in by_type:
+        output = by_type[year]
+        grams = sum(tj * NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH[priced_as[kind]]
+                    for kind, tj in output.items())
+        return grams / sum(output.values())
     return None
 
 

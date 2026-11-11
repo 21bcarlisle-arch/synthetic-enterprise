@@ -53,7 +53,7 @@ The household's electricity carbon (`company/billing/carbon_footprint.py`,
 | **Average or marginal** | **Average**: the emissions of the generation NESO's national mix counts, over that generation, per half hour. *Corrected beside the claim (11 Nov, item 2):* this row first said "every GB generator". NESO's mix counts transmission-metered plant plus its estimate of embedded wind and solar. Embedded and captive thermal (gas CHP, waste, landfill gas, oil) is not in it. On Ember's UK figures that is about 43 TWh a year, §1b | GHG Protocol *Scope 2 Guidance* (2015) §6.10: location-based scope 2 is "based on average energy generation emission factors", and "Companies shall not use marginal emission factors … for a location-based scope 2 calculation" [sourced, PDF read 11 Nov]. The same paragraph says marginal factors "can be more useful for avoided emissions analyses". That is the open side, below |
 | **Direct or lifecycle** | **Operational, at the generator**, on NESO's Table 1 factors: gas CCGT 394, coal 937 g/kWh; nuclear, wind, solar and hydro **zero**, so no lifecycle for them | Biomass sits at 120 g/kWh. That is neither its stack CO2 nor zero, so it carries some convention. **GAP:** what NESO's 120 counts is not established here. Electricity Maps defaults to the IPCC AR5 factors and offers both a lifecycle and a direct set [sourced, electricitymaps.com/methodology, 11 Nov]. Their figures are not ours to compare until the basis is matched |
 | **Losses** | **Generation basis, losses NOT included** (measured 2026-10-05, §2) | DESNZ advises adding T&D (0.01853 kg/kWh in 2025). A figure that adds them says so |
-| **Imports** | Inside NESO's historic mix, as NESO counts them. In our fill for the half hours NESO left blank: **one fixed factor per market**, NESO Table 1 (France 53, Netherlands 474, Belgium 179, Ireland 458 g/kWh), Norway from its annual SSB mix with thermal at 394. None of them varies by hour, and none is flow-traced. **ElecLink and Viking are left out** because NESO's mix leaves them out (`OUTSIDE_NESO_MIX`, `sim/elexon_fuel_outturn.py`) | *Corrected beside the claim:* the steer's "imports are counted at `import_factor` (one factor …)" is one factor **per market**, not one in total. Whether hourly or flow-traced import factors move GB's average materially (item 3): **small**. In Tranberg et al. (2019, *ESR*, doi:10.1016/j.esr.2019.100367, supplementary Table 4), hourly flow tracing over 2017 took GB from 346 kgCO2eq/MWh produced to 349 consumed, **+0.9%**. Their basis is ecoinvent fuel-chain factors, not ours. The import factors it implies differ from each exporter's own average by -9% (France to GB, 69 against 76) to +19% (Netherlands to GB, 871 against 734), Table 5. GB's import share was about 7% in 2017 and 15% in 2024-25. Even at twice the 2017 effect, flow tracing stays near ±2%, an order below the scope gap in §1b. So we stop there, as the steer asks. Scarlat et al. (2021, *Applied Energy*) was not read: the publisher returned 403 |
+| **Imports** | Inside NESO's historic mix, as NESO counts them. In our fill for the half hours NESO left blank: **one fixed factor per market**, NESO Table 1 (France 53, Netherlands 474, Belgium 179, Ireland 458 g/kWh), Norway from its annual SSB mix with thermal at 394, Denmark from Energistatistik Tabel 6 under Table 1 (115 / 93 / 68 g in 2023–25). None of them varies by hour, and none is flow-traced. **ElecLink and Viking are counted**, because the historic mix counts them (§1b). *(Corrected 2026-11-11: until then the fill left them out, on the API mix's premise.)* | *Corrected beside the claim:* the steer's "imports are counted at `import_factor` (one factor …)" is one factor **per market**, not one in total. Whether hourly or flow-traced import factors move GB's average materially (item 3): **small**. In Tranberg et al. (2019, *ESR*, doi:10.1016/j.esr.2019.100367, supplementary Table 4), hourly flow tracing over 2017 took GB from 346 kgCO2eq/MWh produced to 349 consumed, **+0.9%**. Their basis is ecoinvent fuel-chain factors, not ours. The import factors it implies differ from each exporter's own average by -9% (France to GB, 69 against 76) to +19% (Netherlands to GB, 871 against 734), Table 5. GB's import share was about 7% in 2017 and 15% in 2024-25. Even at twice the 2017 effect, flow tracing stays near ±2%, an order below the scope gap in §1b. So we stop there, as the steer asks. Scarlat et al. (2021, *Applied Energy*) was not read: the publisher returned 403 |
 | **Consumption-based** | **No.** Generation in GB, imports added at their factor. No flow tracing of what GB re-exports | Electricity Maps is "attributional, location-based, and consumption-based", with flow tracing [sourced, their methodology page]. That difference has to be named before any figure of theirs is set beside ours |
 
 **"Carbon saved by shifting" on average intensity is a stated choice, not a fact.** Moving a kWh
@@ -205,9 +205,39 @@ NESO's IMPORTS was compared with the sum of Elexon FUELHH interconnector flows (
 
 So `OUTSIDE_NESO_MIX` (`sim/elexon_fuel_outturn.py`) is right for the target it was measured on, the Carbon Intensity
 API's mix (EP13 s33). It is **wrong for the historic-mix file**, where `sim/grid_carbon_history.py`'s fill reuses it.
-**Effect today: none.** The fill fills 0 half hours. Correcting it needs a Viking (Denmark) import factor, which
-NESO's published table does not have (`import_factor("Denmark", …)` is None). Without one, the corrected fill would
-refuse every half hour from December 2023. That is a sim build, handed on, not done here.
+**Effect today: none.** The fill fills 0 half hours. Correcting it needed a Viking (Denmark) import factor, which
+NESO's published table does not have. *(Corrected 2026-11-11, beside the claim: the fill now counts both cables.
+See "Pricing Viking" below.)*
+
+**Pricing Viking (2026-11-11).** NESO has no Denmark row, and its rule for an import is Table 1 applied to the
+connected network's generation mix. That is the rule `elexon_fuel_outturn` already uses for Norway. The Danish
+Energy Agency publishes Denmark's electricity **output** by energy type, in TJ: *Energistatistik 2025*, Tabel 6,
+"Elproduktion fordelt på anvendt energitype", for 2024–25, and the 2024 edition for 2023. Each type is priced
+at its Table 1 row: oil 935, coal 937, gas at CCGT 394, non-biodegradable waste at OTHER 300, biomass,
+biomethane and biogas at BIOMASS 120, and wind, solar and hydro at 0.
+
+| Year | Total output, TJ | Fossil (oil + gas + coal), TJ | Denmark at Table 1, g/kWh | Gas at OCGT | Waste at BIOMASS |
+|---|---|---|---|---|---|
+| 2023 | 122,648 | 12,182 | **115** | 120 | 110 |
+| 2024 | 127,142 | 9,138 | **93** | 97 | 87 |
+| 2025 | 119,864 | 5,270 | **68** | 72 | 63 |
+
+- **The two choices are bracketed, and neither moves the factor by more than 5 g.** Gas is priced as CCGT
+  because that is the row NESO's own mix uses for GAS. Waste is priced as OTHER because that is where GB's
+  energy-from-waste sits in FUELHH.
+- **GAP: national, annual, and not flow-traced.** Viking lands in DK1 (West Denmark), and much of its flow
+  transits from Germany and Norway. The factor is Denmark's annual national output, as Norway's is.
+  Narrowing it needs ENTSO-E's DK1 hourly mix, which is the same debt Norway carries.
+- **GAP: the CHP allocation does not touch this.** Energistatistik changed its fuel split between power and
+  heat (200% to 125% heat efficiency). That moves fuel INPUT. Tabel 6 is electricity OUTPUT by energy type,
+  so this factor does not depend on it.
+- **A year Denmark's table does not cover is refused** as `import_unpriced:INTVKL`. It is never priced at zero.
+
+**What it did** (pre-registered: `docs/staging/records/SEAT_PREREG_COUNTING_ELECLINK_AND_VIKING_IN_THE_HISTORIC_MIX_FILL_2026-11-11.md`).
+Fill minus historic mix, as a percentage of the historic mean, before → after: 2023 +4.98% → +3.87%, 2024 +7.12% →
++5.37%, 2025 +3.87% → +1.83%. 2022 moved 0.08 points, 2021 moved 0.01, and 2016–2020 are unchanged. Every
+prediction held. `OUTSIDE_NESO_MIX` stays for the Carbon Intensity API reconstruction (EP13), the mix it was
+measured on.
 
 **The "few percent ABOVE" fill bias.** Ember cannot apportion it, because Ember has no half-hours. But the
 check led to the term. On the half hours where both exist:

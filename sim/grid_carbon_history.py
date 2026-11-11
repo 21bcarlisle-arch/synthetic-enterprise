@@ -50,9 +50,13 @@ it): sum over fuels of MW x NESO's factor, divided by total MW. The total includ
 NESO's embedded wind and solar estimate. The factors are `NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH`
 and `import_factor`, imported here and never restated. Negative readings are clamped to zero:
 pumped storage while pumping and cables while exporting are demand, not generation. ElecLink
-and Viking are left out because NESO's mix leaves them out (`OUTSIDE_NESO_MIX`). It reads a few
-percent ABOVE the historic mix (`meta["arithmetic_versus_historic_mix"]` gives the bias by year).
-Which term carries the difference is not established.
+and Viking ARE counted, because this file's IMPORTS counts them (`household_carbon` §1b). It is
+exact to 1 MW on 78-88% of 2023-25 half hours with them and 5-21% without. `OUTSIDE_NESO_MIX`
+describes the Carbon Intensity API's mix, not this one, and is not read here. ElecLink takes France's
+factor. Viking takes Table 1 applied to Denmark's published output mix, and a year that mix does not
+cover is refused as `import_unpriced:INTVKL`. The fill reads a few percent ABOVE the historic mix
+(`meta["arithmetic_versus_historic_mix"]` gives the bias by year). Most of that is the per-market
+import factors (§1b).
 
 FOUR THINGS THE DATA SHOWED THAT NOTHING HAD WRITTEN DOWN
   1. FUELHH's `settlementDate` for PERIOD 48 IS THE NEXT DAY, on every day up to 2022. The row
@@ -363,8 +367,6 @@ def fuelmix_intensity(
             continue
         market = efo.INTERCONNECTOR_MARKETS.get(fuel)
         if market is not None:
-            if fuel in efo.OUTSIDE_NESO_MIX:
-                continue
             factor = import_factor(market, key[0][:4])
             if factor is None:
                 return None, f"import_unpriced:{fuel}"

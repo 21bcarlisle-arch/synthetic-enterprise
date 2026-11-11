@@ -229,11 +229,30 @@ def test_before_the_biomass_split_other_is_priced_as_biomass():
     assert post == pytest.approx(table["OTHER"])
 
 
-def test_cables_outside_nesos_mix_carry_no_tonnes_and_leave_the_denominator():
-    """Defect: ElecLink or Viking counted, which NESO's own published mix does not do."""
-    base, _ = fuelmix_intensity(_mix(), POST, 0.0, split=SPLIT)
-    with_viking, _ = fuelmix_intensity(_mix(INTVKL=1400.0), POST, 0.0, split=SPLIT)
-    assert with_viking == base
+def test_the_fill_counts_eleclink_and_viking_because_the_historic_mix_does():
+    """Defect: the fill reusing `OUTSIDE_NESO_MIX`, which describes the Carbon Intensity API's mix.
+    NESO's historic-mix IMPORTS counts both cables (household_carbon s1b), so the fill does too:
+    ElecLink at France's Table 1 factor, Viking at Table 1 over Denmark's published output mix.
+
+    All three legs are asserted together: counted and priced in 2024, and refused with a NAMED reason
+    in a year Denmark's mix does not cover. A fill that refuses every Viking half hour passes the
+    refusal leg alone, and one that silently drops the cable passes neither.
+
+    MUTATION (must fire): skip either cable again; price Viking at 0 or at any fixed number; or price
+    an uncovered year instead of refusing it.
+    """
+    key = ("2024-06-01", 20)
+    table = efo.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH
+    denmark = efo.import_factor("Denmark", "2024")
+    assert denmark is not None and 50.0 < denmark < 150.0
+    counted, reason = fuelmix_intensity(
+        _mix(INTELEC=900.0, INTVKL=1400.0), key, 0.0, split=SPLIT)
+    assert reason is None
+    expected = (10000 * table["CCGT"] + 900 * efo.import_factor("France", "2024")
+                + 1400 * denmark) / (10000 + 6000 + 900 + 1400)
+    assert counted == pytest.approx(expected)
+    uncovered, why = fuelmix_intensity(_mix(INTVKL=1400.0), POST, 0.0, split=SPLIT)
+    assert (uncovered, why) == (None, "import_unpriced:INTVKL")
 
 
 # ---------------------------------------------------------------- the cross-checks

@@ -216,12 +216,39 @@ def test_every_cable_in_the_dataset_is_mapped_to_a_market():
     }
     unpriced = {
         market for market in fuel.INTERCONNECTOR_MARKETS.values()
-        if market not in fuel.IMPORT_INTENSITY_G_CO2_PER_KWH and market not in fuel.ANNUAL_MIX_GWH
+        if fuel.import_factor(market, "2024") is None
     }
-    assert unpriced == {"Denmark"}, (
-        "the set of markets with no published factor has changed; if a factor has been ADDED it "
-        "must be NESO's own, and if a market has been added it needs one or needs naming here"
+    assert unpriced == set(), (
+        "a cable's market has no factor in 2024; it needs NESO's own, or Table 1 over its "
+        "published mix"
     )
+
+
+def test_VIKING_is_priced_by_table_1_over_denmarks_published_output_mix():
+    """Denmark has no Table 1 row. NESO's rule is Table 1 applied to the connected network's mix,
+    and Energistatistik Tabel 6 publishes Denmark's electricity OUTPUT by energy type. Every
+    type must map to a Table 1 row, each year's sum must be the table's own printed total (a
+    transcription check), and a year the table does not carry stays None.
+
+    MUTATION (must fire): drop or mistype any Tabel 6 cell; price a renewable row above zero; map
+    a fossil row to a zero row; or price a year the table does not carry.
+    """
+    printed_total_tj = {"2023": 122648.0, "2024": 127143.0, "2025": 119864.0}
+    table = fuel.NESO_PUBLISHED_FACTOR_G_CO2_PER_KWH
+    for year, output in fuel.DENMARK_ELECTRICITY_OUTPUT_TJ.items():
+        # 1 TJ: the 2024 cells sum to 127,142 in both editions (the table rounds each cell), and
+        # a mistyped cell moves the sum by far more.
+        assert sum(output.values()) == pytest.approx(printed_total_tj[year], abs=1.0)
+        assert set(output) == set(fuel.DANISH_ENERGY_TYPE_PRICED_AS)
+    for kind in ("Kul", "Olie", "Naturgas"):
+        assert table[fuel.DANISH_ENERGY_TYPE_PRICED_AS[kind]] > 300.0
+    for kind in ("Vindkraft", "Solenergi", "Vandkraft"):
+        assert table[fuel.DANISH_ENERGY_TYPE_PRICED_AS[kind]] == 0.0
+    # 2024: 804 oil, 2,032 gas, 6,302 coal, 3,690 non-bio waste, 26,649 biogenic, over the cells'
+    # own 127,142 TJ (a share of what was priced, not of the rounded printed total).
+    expected = (804 * 935 + 2032 * 394 + 6302 * 937 + 3690 * 300 + 26649 * 120) / 127142
+    assert fuel.import_factor("Denmark", "2024") == pytest.approx(expected)
+    assert fuel.import_factor("Denmark", "2022") is None
 
 
 def test_the_import_rate_is_weighted_by_the_MW_actually_flowing():
