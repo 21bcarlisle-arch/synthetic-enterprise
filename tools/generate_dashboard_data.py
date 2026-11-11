@@ -626,6 +626,39 @@ def _period_note(year, coverage, period_from, period_to):
     )
 
 
+#: WITHHELD, with the reason the page prints. Net margin is supply revenue less every cost the
+#: supplier bears, over that revenue. Nothing this run publishes measures that, and the rate is
+#: the one figure a reader takes as the headline, so it is withheld ("We cannot tell") while the
+#: GBP lines stay published as the books read. SITE1 Expert Hour, 2026-11-11: the old rate ran
+#: to 54.91% (2023). It returns when the standing-charge seam is fixed and the rate is graded
+#: against the published band (tools/generate_world_data._MARGIN_*).
+NET_MARGIN_PCT_WITHHELD = {
+    "withheld": True,
+    "definition": (
+        "Net margin: supply revenue less every cost the supplier bears (wholesale, network, "
+        "policy, capital, bad debt and the cost of running the business), over that revenue."
+    ),
+    "reason": (
+        "We cannot tell. The annual series divides the settlement P&L's net (years[].net_gbp, "
+        "which deducts no cost to serve or operating cost) by the bill-derived ledger's revenue, "
+        "a different book (2023: GBP 557k settlement revenue against GBP 419k ledger revenue), so "
+        "the ratio is not a quantity. The management accounts' full-cost rate is a quantity but "
+        "reads 20-31% in normal years against a published 2-5% (Ofgem's cap EBIT allowance is "
+        "about 1.9-2.6%), and two open findings sit on the standing charge it rests on: the "
+        "portfolio reads the standing charge as margin (14 Oct 2026), and the deemed and flex "
+        "rows book none (9 Nov 2026). The GBP lines are published as the books read; the rate "
+        "returns when that seam is fixed."
+    ),
+    "findings": [
+        "docs/staging/SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_BECAUSE_THE_FLOOR_CARRIES_"
+        "THE_STANDING_CHARGES_NETWORK_AND_THE_PREMIUM_READS_THE_STANDING_CHARGE_AS_MARGIN_"
+        "2026-10-14.md",
+        "docs/staging/WORKER_FINDING_THE_DEEMED_AND_FLEX_WRITERS_BOOK_NO_STANDING_CHARGE_SO_THE_"
+        "FIXED_NETWORK_SHARE_HAS_NO_RECOVERY_2026-11-09.md",
+    ],
+}
+
+
 def extract_financial(data):
     # MARGIN_REALISM.md Step 1 (2026-07-10, director-decided programme, gauge
     # fix): `years[yr].revenue_gbp` is commodity/energy revenue ONLY
@@ -664,9 +697,7 @@ def extract_financial(data):
             "year": year_int,
             "revenue_gbp": _fmt(ydata.get("revenue_gbp", 0)),
             "total_revenue_gbp": _fmt(total_revenue) if total_revenue is not None else None,
-            "net_margin_pct": (
-                round(net / total_revenue * 100, 2) if total_revenue else 0.0
-            ),
+            "net_margin_pct": None,  # NET_MARGIN_PCT_WITHHELD
             "gross_gbp": _fmt(ydata.get("gross_gbp", 0)),
             "capital_gbp": _fmt(ydata.get("capital_gbp", 0)),
             "net_gbp": _fmt(net),
@@ -737,7 +768,7 @@ def extract_financial(data):
                 "revenue_gbp": _fmt(rev),
                 "gross_gbp": _fmt(sdata.get("gross_gbp", 0)),
                 "net_gbp": _fmt(net),
-                "net_margin_pct": round(net / rev * 100, 2) if rev > 0 else 0.0,
+                "net_margin_pct": None,  # NET_MARGIN_PCT_WITHHELD
             }
         segment_annual.append(row)
 
@@ -792,6 +823,7 @@ def extract_financial(data):
     }
     return {
         "annual": annual,
+        "net_margin_pct_status": NET_MARGIN_PCT_WITHHELD,
         "segment_annual": segment_annual,
         "segments": sorted(segments_seen),
         "ledger": {
@@ -1253,12 +1285,12 @@ def extract_management_accounts(data):
             "acquisition_spend_gbp": _fmt(stmt.get("acquisition_spend_gbp", 0)),
             "total_opex_gbp": _fmt(stmt.get("total_opex_gbp", 0)),
             "net_margin_gbp": net,
-            "net_margin_pct": round(net / rev * 100, 2) if rev > 0 else 0.0,
+            "net_margin_pct": None,  # NET_MARGIN_PCT_WITHHELD
             "profit_before_tax_gbp": _fmt(profit_before_tax) if profit_before_tax is not None else None,
             "corporation_tax_gbp": _fmt(corporation_tax) if corporation_tax is not None else None,
             "profit_for_year_gbp": _fmt(profit_for_year) if profit_for_year is not None else None,
         })
-    return {"annual": rows}
+    return {"annual": rows, "net_margin_pct_status": NET_MARGIN_PCT_WITHHELD}
 
 
 def _final_year_active_ids(data):
@@ -1967,7 +1999,20 @@ def extract_run_history(history_path=None, max_entries=10):
     unreadable."""
     path = history_path or RUN_HISTORY_PATH
     history, _verdict = load_list_prior(path, item_type=dict)
-    return history[-max_entries:] if len(history) > max_entries else history
+    history = history[-max_entries:] if len(history) > max_entries else history
+    return [_withhold_stored_margin_rate(h) for h in history]
+
+
+def _withhold_stored_margin_rate(entry):
+    """The ledger keeps the rate each past run computed; the publish path does not print it
+    (NET_MARGIN_PCT_WITHHELD). A copy, so the ledger itself is untouched."""
+    fin = ((entry.get("headline_metrics") or {}).get("financial"))
+    if not isinstance(fin, dict) or "net_margin_pct" not in fin:
+        return entry
+    out = dict(entry)
+    out["headline_metrics"] = dict(entry["headline_metrics"])
+    out["headline_metrics"]["financial"] = {**fin, "net_margin_pct": None}
+    return out
 
 
 # The 23 SLC/regulatory obligations shown on the Supplier Regulatory tab, each

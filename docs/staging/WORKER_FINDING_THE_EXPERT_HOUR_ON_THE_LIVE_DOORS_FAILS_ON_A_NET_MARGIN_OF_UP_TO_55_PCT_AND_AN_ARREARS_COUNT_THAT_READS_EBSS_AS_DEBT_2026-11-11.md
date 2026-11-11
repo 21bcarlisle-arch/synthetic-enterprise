@@ -50,6 +50,20 @@ stays at 2.
 EBSS are right. Bills and ledgers reconcile. Refunds equal the credit held in the sample. The payment-method
 mix is realistic. The knowledge pages are expert-grade. Failures are published rather than hidden.
 
+**Figures 1 and 2 done (2026-11-11, the delivery lane).** Net margin is defined (supply revenue less
+every cost the supplier bears, over that revenue) and WITHHELD: every `net_margin_pct` the dashboard
+producer publishes is null beside `financial.net_margin_pct_status`, whose reason the page can print.
+The annual rate divided the settlement net (no cost to serve) by the ledger's revenue, two books. The
+management accounts' full-cost rate is a quantity, but it reads 20-31% in normal years against a
+published 2-5%. It rests on the standing-charge seam (findings of 14 Oct and 9 Nov), which W3_3 holds
+paused. The insights headline published the same two-book rate (22.9%) and is withheld too. Arrears now
+uses Ofgem's definition: a bill still owed more than 91 days past its due date, read from each bill's
+own `outstanding_gbp`, so the EBSS credit is never owed. That gives 50 of 1,293 on the 0a6391d18 ledger,
+against the old 705. The control is
+`tests/tools/test_the_published_margin_rate_and_arrears_count_are_defined_or_withheld.py`. It reds on
+the feeds as they stood. The live site changes at the next publish. BLOCKER-2, BLOCKER-3 and the
+remaining items stay open on SITE1.
+
 **What retires this.** The published net margin and in_arrears either sit inside a stated plausibility
 band with a named definition, or are withheld with the reason on the page. After that, a fresh blind Hour
 on the live doors returns no BLOCKER.

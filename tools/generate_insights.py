@@ -211,12 +211,15 @@ def _financial_insight(data: dict) -> AreaInsight:
     # double-entry revenue_gbp (total, net of VAT) across all years as the
     # correct denominator, falling back to the old commodity-only figure only
     # when management_accounts is absent (older run_output shapes).
+    # WITHHELD (SITE1 Expert Hour, 2026-11-11): `net` here is the settlement P&L's net, which
+    # deducts no cost to serve, and the only revenue to divide it by is the ledger's -- another
+    # book. Their ratio is not a quantity, so no rate is published; the reason is
+    # tools.generate_dashboard_data.NET_MARGIN_PCT_WITHHELD. The GBP figures stay.
     total_revenue_all_years = sum(
         ma.get("income_statement", {}).get("revenue_gbp", 0.0)
         for ma in data.get("management_accounts", {}).values()
     )
     revenue = total_revenue_all_years or lh.get("revenue_gbp", data.get("total_revenue_gbp", 0.0))
-    net_pct = (net / revenue * 100) if revenue else 0.0
     pcl = data.get("per_customer_lifetime", {})
     def _pcl_net(cv):
         return cv.get("net_margin_gbp", cv.get("net_gbp", 0))
@@ -228,22 +231,19 @@ def _financial_insight(data: dict) -> AreaInsight:
     ic_pct = (ic_net / total_pcl * 100) if total_pcl else 0.0
     cts = data.get("cost_to_serve_portfolio_gbp", 0.0)
     net_after_cts = data.get("net_margin_after_cost_to_serve_gbp", 0.0)
-    net_frac = net_pct / 100
-    benchmark_pos = "below" if net_frac < _INDUSTRY_MARGIN_LOW else (
-        "above" if net_frac > _INDUSTRY_MARGIN_HIGH else "within")
-    headline = "Net margin {} ({} of total revenue -- {} 2-5% benchmark)".format(
-        _fmt_gbp(net), _fmt_pct(net_pct), benchmark_pos)
+    headline = "Net margin {} (rate withheld -- we cannot tell what share of revenue it is)".format(
+        _fmt_gbp(net))
     concentration_warning = ""
     if ic_pct >= 80:
         concentration_warning = " WARNING: I&C accounts for {} of margin -- high concentration risk.".format(
             _fmt_pct(ic_pct, 0))
     narrative = (
-        "Gross margin {}, net {} ({} of revenue). "
-        "Industry benchmark: 2-5% -- this business sits {} that range. "
+        "Gross margin {}, net {}; the margin rate is withheld because the net and the "
+        "revenue come from two different books. "
         "I&C customers contribute {} of net margin ({}); residential {} ({}).{} "
         "Cost to serve: {}; net after CTS: {}."
     ).format(
-        _fmt_gbp(gross), _fmt_gbp(net), _fmt_pct(net_pct), benchmark_pos,
+        _fmt_gbp(gross), _fmt_gbp(net),
         _fmt_pct(ic_pct, 0), _fmt_gbp(ic_net),
         _fmt_pct(100 - ic_pct, 0), _fmt_gbp(resi_net),
         concentration_warning, _fmt_gbp(cts), _fmt_gbp(net_after_cts))
@@ -253,7 +253,7 @@ def _financial_insight(data: dict) -> AreaInsight:
             "net_margin_gbp": round(net, 2),
             "gross_margin_gbp": round(gross, 2),
             "revenue_gbp": round(revenue, 2),
-            "net_margin_pct": round(net_pct, 2),
+            "net_margin_pct": None,
             "ic_net_margin_gbp": round(ic_net, 2),
             "ic_net_pct_of_total": round(ic_pct, 1),
             "cost_to_serve_gbp": round(cts, 2),
@@ -328,7 +328,6 @@ def _generate_coherence(insights: list, data: dict) -> tuple:
     hedge_cost = trade_m.get("hedging_cost_gbp", 0.0)
     crisis_shocks = cust_m.get("crisis_year_shocks", 0)
     ic_pct = fin_m.get("ic_net_pct_of_total", 0.0)
-    net_pct = fin_m.get("net_margin_pct", 0.0)
     net_gbp = fin_m.get("net_margin_gbp", 0.0)
     retained = cust_m.get("retained", 0)
     offers = cust_m.get("retention_offers", 0)
@@ -360,9 +359,7 @@ def _generate_coherence(insights: list, data: dict) -> tuple:
         if crisis_shocks > 0 else "minimal crisis-year bill shocks"
     )
     margin_line = (
-        "net margin {} ({} of revenue -- {} 2-5% benchmark)".format(
-            _fmt_gbp(net_gbp), _fmt_pct(net_pct),
-            "above" if net_pct > 5 else ("within" if net_pct >= 2 else "below"))
+        "net margin {} (rate withheld)".format(_fmt_gbp(net_gbp))
     )
     ic_line = (
         "with I&C customers contributing {} of net margin".format(_fmt_pct(ic_pct, 0))
@@ -434,15 +431,11 @@ def _generate_coherence(insights: list, data: dict) -> tuple:
             "to spread 2021-22 wholesale spike across 2020-2023 for residential customers".format(
                 crisis_shocks)
         )
-    elif net_pct < 2.0:
-        actions.append(
-            "Net margin {}: below 2% industry floor -- review non-commodity charge "
-            "pass-through and cost-to-serve allocation".format(_fmt_pct(net_pct))
-        )
     else:
         actions.append(
-            "Net margin {} ({} of revenue): within or above benchmark -- "
-            "focus on maintaining I&C renewal rates".format(_fmt_gbp(net_gbp), _fmt_pct(net_pct))
+            "Net margin {}: rate withheld -- the settlement net and the ledger revenue are two "
+            "books; fix the standing-charge seam before reading margin against the 2-5% "
+            "band".format(_fmt_gbp(net_gbp))
         )
 
     return narrative, tuple(actions[:3])

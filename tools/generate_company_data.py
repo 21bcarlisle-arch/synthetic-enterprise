@@ -400,46 +400,61 @@ def _cost_to_serve_distribution(sample):
     return out
 
 
+#: Ofgem's "in arrears" stock: an account with a bill unpaid for MORE THAN 91 days (13 weeks)
+#: and no repayment arrangement. CITED: Ofgem's debt and arrears indicators, as read into
+#: docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md (definition 3)
+#: and quoted on /knowledge/debt-and-collections/.
+OFGEM_ARREARS_UNPAID_DAYS = 91
+
+
 def _arrears_distribution(sample, ledger):
-    """Per-customer ARREARS-£ balance as a DISTRIBUTION -- the sibling of
-    cost-to-serve, and the last remainder of DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE
-    §C (arrears-£-per-customer). A real UK supplier carries a customer-level
-    aged-debt ledger and provisions against it; bad debt is one of the largest
-    cost-to-serve line items and is heavily segment-shaped (standard-credit and
-    early-tenure accounts carry materially more arrears than direct-debit).
+    """Per-customer ARREARS as a count and a DISTRIBUTION, under Ofgem's definition.
 
-    THROUGH-THE-WALL OBSERVABLE (epistemic wall): arrears = Σ(bills issued) -
-    Σ(payments received) per customer, read ONLY from the company's OWN
-    billed-vs-banked ledger (billing_ledger.json: total_billed_gbp,
-    total_paid_gbp). No sim-internal hardship/churn truth is read -- a real
-    supplier knows its own bills and its own receipts and nothing more. The
-    company's belief-vs-truth GAP against the sim's true arrears is a separate
-    HARNESS measure (coupled-triad), out of scope here.
+    WHAT IT IS. An account is IN ARREARS when one of its bills is still owed more than
+    OFGEM_ARREARS_UNPAID_DAYS after its due date (Ofgem's stock definition, the one
+    /knowledge/debt-and-collections/ quotes). The amount owed per account is the sum of its
+    bills' own `outstanding_gbp` past their due date -- the company's per-bill owed figure,
+    which is already net of a scheme credit (EBSS) and of credit applied from the account.
 
-    R14 (basis clock): the balance is billed MINUS banked -- every figure carries
-    that clock. R12 (anti-goal-seek): arrears is a DIAGNOSTIC, never a target; no
-    parameter is tuned toward a plausible arrears band. FAIL-CLOSED (R15): a
-    ledger with no customer carrying BOTH a billed and a paid figure returns
-    available:False, never a silently-zero total the page renders as real.
+    WHAT IT REPLACED (Expert Hour, 2026-11-11). The count was `total_billed - total_paid` > 0:
+    billed is the bill BEFORE the GBP 400 EBSS credit, and the government paid that part, not
+    the household. So every household that paid every EBSS bill read as owing the credit:
+    705 of 1,293 "in arrears" on that clock, against 50 on this one at the 0a6391d18 ledger.
 
-    RC7 / FRONT_MISSION_BLOCK wall: this is a cohort-derived £ figure, so it may
-    only appear behind a /company drill-down -- never a lead slot -- with N, a
-    FLOOR framing (gross exposure is a floor on the bad-debt base, not a point
-    estimate) and its missing-lines enumerated. Those are carried on the JSON so
-    the render cannot drop them."""
+    THE CLOCK. "Past due" is read at the ledger's own as-of date, the latest bill it issued --
+    a date the company knows. Through-the-wall: only the company's own bills and receipts.
+    R12: a diagnostic, never a target. FAIL-CLOSED: a ledger with no account carrying bills
+    with due dates returns available:False, never a zero the page renders as real."""
     led_custs = ((ledger or {}).get("customers")) or {}
     samp_custs = ((sample or {}).get("customers")) or {}
-    rows = []  # (arrears_gbp, segment, sample_customer_or_None, ledger_customer)
-    for cid, lc in led_custs.items():
-        billed = lc.get("total_billed_gbp")
-        paid = lc.get("total_paid_gbp")
-        if billed is None or paid is None:
-            continue
-        arrears = round(float(billed) - float(paid), 2)
-        seg = lc.get("segment") or "unknown"
-        rows.append((arrears, seg, samp_custs.get(cid) or {}, lc))
-    if not rows:
+    dated = [
+        (cid, lc, [i for i in (lc.get("invoices") or []) if i.get("due_date")])
+        for cid, lc in led_custs.items()
+    ]
+    dated = [d for d in dated if d[2]]
+    if not dated:
         return {"available": False, "n": 0}
+    as_of = max(i.get("issue_date") or i["due_date"] for _c, _l, invs in dated for i in invs)
+    as_of_d = datetime.fromisoformat(as_of).date()
+
+    rows = []  # (owed_past_due_gbp, segment, sample_customer, is_in_arrears, is_overdue)
+    for cid, lc, invs in dated:
+        owed = 0.0
+        oldest_days = None
+        for i in invs:
+            out = float(i.get("outstanding_gbp") or 0.0)
+            if out <= 0.005:
+                continue
+            days = (as_of_d - datetime.fromisoformat(i["due_date"]).date()).days
+            if days <= 0:
+                continue
+            owed += out
+            oldest_days = days if oldest_days is None else max(oldest_days, days)
+        rows.append((
+            round(owed, 2), lc.get("segment") or "unknown", samp_custs.get(cid) or {},
+            oldest_days is not None and oldest_days > OFGEM_ARREARS_UNPAID_DAYS,
+            oldest_days is not None,
+        ))
 
     def _stats(vs):
         s = sorted(vs)
@@ -453,30 +468,21 @@ def _arrears_distribution(sample, ledger):
             max_gbp=round(s[-1], 2),
         )
 
-    # Segment split (resi / SME / I&C carry structurally different arrears scale).
     by_segment = []
     for seg in sorted({r[1] for r in rows}):
-        segvals = [a for a, s, _, _ in rows if s == seg]
-        if segvals:
-            st = _stats(segvals)
-            st["segment"] = seg
-            by_segment.append(st)
+        st = _stats([r[0] for r in rows if r[1] == seg])
+        st["segment"] = seg
+        by_segment.append(st)
 
-    # Additional coverage cells from the SAME accounts, joined to customer_sample
-    # for the cell attribute (payment_channel is the load-bearing activity cell:
-    # standard-credit accounts run materially higher arrears than direct-debit;
-    # tenure is secondary). A cell key absent on an account (I&C legs carry no
-    # residential attribute) is SKIPPED, never bucketed as a fabricated cell; a
-    # group with <2 populated cells collapses to nothing (a one-cell
-    # "distribution" is theatre). Reads the cell key only -- no P&L field -- so
-    # R12/R13 no-goal-seek holds for the cells too.
+    # Cells joined from customer_sample (payment_channel, tenure). An account with no value
+    # for the cell is SKIPPED, never bucketed; fewer than 2 cells publishes nothing.
     def _by_cell(field):
         cells = {}
-        for a, _s, sc, _lc in rows:
-            key = (sc or {}).get(field)
+        for r in rows:
+            key = (r[2] or {}).get(field)
             if key is None or key == "":
                 continue
-            cells.setdefault(str(key), []).append(a)
+            cells.setdefault(str(key), []).append(r[0])
         if len(cells) < 2:
             return []
         out_cells = []
@@ -486,44 +492,40 @@ def _arrears_distribution(sample, ledger):
             out_cells.append(st)
         return out_cells
 
-    in_arrears = sum(1 for a, _, _, _ in rows if a > 0.005)
-    in_credit = sum(1 for a, _, _, _ in rows if a < -0.005)
-    # Accounts square to the penny (billed == banked) are neither -- counted so
-    # the split adds up to N (a veteran smell-test: 14 + 3 must not read as < N).
-    settled = len(rows) - in_arrears - in_credit
-    # FLOOR (RC7 floor-not-figure): gross exposure is Sigma of the POSITIVE
-    # balances only -- credit balances do not net off a bad-debt provision base,
-    # so this is a floor on what is owed to us, not a tidy net point estimate.
-    gross_exposure = round(sum(a for a, _, _, _ in rows if a > 0), 2)
-
-    out = _stats([a for a, _, _, _ in rows])
+    in_arrears = sum(1 for r in rows if r[3])
+    overdue = sum(1 for r in rows if r[4])
+    out = _stats([r[0] for r in rows])
     out.update(
         dict(
             available=True,
-            clock="billed_minus_banked",
-            basis="per-customer arrears balance = total billed - total banked "
-                  "(cumulative, own ledger) - drawn sample",
+            clock="owed_past_due",
+            definition=(
+                "In arrears: an account with a bill still owed more than "
+                f"{OFGEM_ARREARS_UNPAID_DAYS} days after its due date (Ofgem's definition, "
+                "/knowledge/debt-and-collections/). Owed is the bill's own outstanding "
+                "amount, so a scheme credit such as the GBP 400 EBSS is never counted as owed."
+            ),
+            as_of=as_of,
+            basis="per-account amount = sum of bills' outstanding_gbp past their due date "
+                  "at the ledger's as-of date (own ledger) - drawn sample",
             in_arrears=in_arrears,
-            in_credit=in_credit,
-            settled=settled,
-            gross_exposure_gbp=gross_exposure,
+            overdue_under_91_days=overdue - in_arrears,
+            not_overdue=len(rows) - overdue,
+            # FLOOR (RC7): what is owed to us on bills already due; no credit nets it down.
+            gross_exposure_gbp=round(sum(r[0] for r in rows), 2),
             gross_exposure_is_floor=True,
-            values_gbp=[round(a, 2) for a, _, _, _ in sorted(rows, key=lambda r: r[0])],
+            values_gbp=sorted(r[0] for r in rows),
             by_segment=by_segment,
             by_payment_channel=_by_cell("payment_channel"),
             by_tenure=_by_cell("tenure"),
-            # Missing-lines enumeration (RC7): what this balance does NOT yet
-            # capture, stated so the panel cannot read as a complete aged-debt
-            # picture. Honest-absent, not smoothed.
             missing_lines=[
-                "no aged-debt bucketing (30/60/90+ days) -- a single cumulative "
-                "balance, not a dunning-stage split",
-                "write-offs and provisions not yet deducted -- gross owed, not "
-                "net-of-provision",
-                "timing: a balance may include bills issued but not yet due, so "
-                "it overstates true overdue arrears",
-                "the drawn sample, not the full book -- a floor across N, never "
-                "a book total",
+                "repayment arrangements are not separated: the ledger records a plan "
+                "OFFERED, never one agreed, so this count is Ofgem's 'in arrears' plus "
+                "'in debt' and overstates arrears alone",
+                "closed accounts with an unpaid final bill are counted beside live ones",
+                "written-off bills that still carry an outstanding amount are counted as owed",
+                "the drawn sample across 2016-2025, not the live book at one quarter end -- "
+                "not comparable with Ofgem's quarterly percentage",
             ],
         )
     )

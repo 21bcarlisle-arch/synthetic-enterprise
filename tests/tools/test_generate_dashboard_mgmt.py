@@ -93,23 +93,24 @@ def test_extract_mgmt_accounts_years_ordered():
     assert years == list(range(2016, 2026))
 
 
-def test_net_margin_pct_computed():
+def test_net_margin_pct_is_withheld_with_its_reason():
+    # Withheld (SITE1 Expert Hour 2026-11-11): the GBP lines stay, the rate does not.
     data = _make_data(rev=1000000.0)
     result = extract_management_accounts(data)
     row = result["annual"][0]
-    expected_pct = round(row["net_margin_gbp"] / row["revenue_gbp"] * 100, 2)
-    assert abs(row["net_margin_pct"] - expected_pct) < 0.01
+    assert row["net_margin_pct"] is None and row["net_margin_gbp"] is not None
+    assert result["net_margin_pct_status"]["reason"].startswith("We cannot tell")
 
 
 def test_empty_management_accounts():
     result = extract_management_accounts({})
-    assert result == {"annual": []}
+    assert result["annual"] == []
 
 
 def test_zero_revenue_no_crash():
     data = {"management_accounts": {"2022": {"income_statement": {"revenue_gbp": 0}}}}
     result = extract_management_accounts(data)
-    assert result["annual"][0]["net_margin_pct"] == 0.0
+    assert result["annual"][0]["net_margin_pct"] is None
 
 
 def test_revenue_positive():

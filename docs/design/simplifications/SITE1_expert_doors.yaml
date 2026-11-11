@@ -67,14 +67,18 @@ map_records:
     (2016-2025); company.json arrears.in_arrears 705 of n 1293 on clock billed_minus_banked.'
   - 2026-11-11 BLOCKER-1 net margin 18-55pct in eight of ten years (2023 54.91pct) against a -5 to +3pct prior and
     the site's own price-cap page ("low single digits"); company.json names GBP 966,312 non-commodity cost absorbed
-    with no revenue recognition. VERIFIED.
+    with no revenue recognition. VERIFIED. DONE 2026-11-11 (withheld) -- every net_margin_pct on dashboard.json is
+    null beside financial.net_margin_pct_status (definition + "We cannot tell" reason -- two books, and the full-cost
+    rate rests on the open standing-charge findings); GBP lines unchanged. Control is tests/tools/test_the_published_margin_rate_and_arrears_count_are_defined_or_withheld.py.
   - '2026-11-11 BLOCKER-2 book size irreconcilable: front 750 served / 267 in 2025; /explore/ 752; book_growth.json
     settled 898, commercial 1,290; dashboard book_annual 0 acquisitions 2021-25 while book_growth records 20/8/23/22/11
     wins. SITE_EH3 closed at target, so this stays on SITE1.'
   - 2026-11-11 BLOCKER-3 /harness/ says publishing is failing (76 attempts) and the figures differ from the committed
     record; no other door says so, the front still says published every Monday.
   - 2026-11-11 MAJOR-4 in_arrears 705/1,293 (54.5pct) is billed minus banked, so the GBP 400 EBSS credit counts as
-    debt; a 150-account sample has 12pct with a positive ledger balance. VERIFIED (field and clock).
+    debt; a 150-account sample has 12pct with a positive ledger balance. VERIFIED (field and clock). DONE 2026-11-11
+    (defined) -- clock owed_past_due, Ofgem's 91-day definition, owed = each bill's outstanding (EBSS never owed); 50
+    of 1,293 at the 0a6391d18 ledger. Same control.
   - 2026-11-11 MAJOR-5 ledger bad debt is a seeded 2pct of every bill; behavioural write-off 0.04pct in 2022; company.json
     says margin is net of bad debt in one note and excludes it in another.
   - 2026-11-11 MAJOR-6 build-state labels disagree across doors (Survive LIVE on front, PLANNED on /model/score/;

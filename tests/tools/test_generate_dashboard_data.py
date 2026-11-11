@@ -132,15 +132,23 @@ def test_extract_financial_annual_has_total_revenue_field():
     assert r["annual"][0]["total_revenue_gbp"] == 1000.0
 
 
-def test_extract_financial_net_margin_pct_uses_total_revenue():
+def test_the_net_margin_rate_is_withheld_with_its_definition_and_reason():
+    """SITE1 Expert Hour, 2026-11-11: the published rate ran to 54.91%, the settlement net over
+    the ledger's revenue -- two books. Withheld until the standing-charge seam is fixed. A rate
+    returning here must come back with the definition it measures, not by deleting this."""
     r = extract_financial(_financial_data_with_mgmt_accounts())
-    assert r["annual"][0]["net_margin_pct"] == 15.0
+    assert r["annual"][0]["net_margin_pct"] is None
+    assert r["annual"][0]["net_gbp"] == 150.0  # the GBP line stays published
+    status = r["net_margin_pct_status"]
+    assert status["withheld"] is True
+    assert "every cost the supplier bears" in status["definition"]
+    assert status["reason"].startswith("We cannot tell")
 
 
 def test_extract_financial_total_revenue_none_when_no_management_accounts():
     r = extract_financial(_financial_data())
     assert r["annual"][0]["total_revenue_gbp"] is None
-    assert r["annual"][0]["net_margin_pct"] == 0.0
+    assert r["annual"][0]["net_margin_pct"] is None
 
 
 # --- segment_annual revenue + net_margin_pct (2026-07-10, PRIORITIES.md
@@ -167,16 +175,17 @@ def test_extract_financial_segment_annual_has_revenue_field():
     assert row["resi_electricity"]["revenue_gbp"] == 500_000.0
 
 
-def test_extract_financial_segment_annual_net_margin_pct():
+def test_extract_financial_segment_annual_net_margin_pct_is_withheld():
     r = extract_financial(_financial_data_with_segments())
     row = r["segment_annual"][0]
-    assert row["resi_electricity"]["net_margin_pct"] == 20.0
+    assert row["resi_electricity"]["net_margin_pct"] is None
+    assert row["resi_electricity"]["net_gbp"] == 100_000.0
 
 
 def test_extract_financial_segment_annual_zero_revenue_no_division_error():
     r = extract_financial(_financial_data_with_segments())
     row = r["segment_annual"][0]
-    assert row["sme electricity".replace(" ", "_")]["net_margin_pct"] == 0.0
+    assert row["sme electricity".replace(" ", "_")]["net_margin_pct"] is None
 
 
 def test_extract_financial_segments_list_sorted():

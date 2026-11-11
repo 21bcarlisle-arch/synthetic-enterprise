@@ -121,11 +121,13 @@ def test_risk_insight_crisis_interventions():
     assert risk.key_metrics["crisis_year_interventions"] == 5
 
 
-def test_financial_insight_above_benchmark():
+def test_financial_insight_withholds_the_margin_rate():
+    # SITE1 Expert Hour 2026-11-11: settlement net over ledger revenue is two books.
     ins = generate_insights(_MINIMAL)
     fin = next(i for i in ins.insights if i.area == InsightArea.FINANCIAL)
-    assert fin.key_metrics["net_margin_pct"] == pytest.approx(20.0, abs=0.1)
-    assert "above" in fin.headline
+    assert fin.key_metrics["net_margin_pct"] is None
+    assert fin.key_metrics["net_margin_gbp"] != 0
+    assert "withheld" in fin.headline and "%" not in fin.headline
 
 
 def test_financial_insight_ic_concentration():
@@ -133,26 +135,6 @@ def test_financial_insight_ic_concentration():
     fin = next(i for i in ins.insights if i.area == InsightArea.FINANCIAL)
     assert fin.key_metrics["ic_net_pct_of_total"] > 79
     assert "WARNING" in fin.narrative
-
-
-def test_financial_insight_uses_total_revenue_when_management_accounts_present():
-    """2026-07-10, MARGIN_REALISM Step 1/E2: the commodity-only revenue
-    (_ledger_headline/total_revenue_gbp, ~5M here) understates the real
-    total revenue (management_accounts' double-entry revenue, net of VAT,
-    ~10M here) -- net_pct must be computed against the LARGER, total
-    figure, not the smaller commodity-only one, matching the Financial
-    tab's own Step 1 fix."""
-    data = dict(_MINIMAL)
-    data["management_accounts"] = {
-        "2021": {"income_statement": {"revenue_gbp": 6_000_000.0}},
-        "2022": {"income_statement": {"revenue_gbp": 4_000_000.0}},
-    }
-    ins = generate_insights(data)
-    fin = next(i for i in ins.insights if i.area == InsightArea.FINANCIAL)
-    # net=1,000,000 / total_revenue=10,000,000 = 10% -- NOT 20% (the
-    # commodity-only-revenue result the old code would have produced).
-    assert fin.key_metrics["net_margin_pct"] == pytest.approx(10.0, abs=0.1)
-    assert "total revenue" in fin.headline
 
 
 def test_operations_insight_bills_and_quality():
@@ -166,7 +148,7 @@ def test_executive_summary_contains_key_facts():
     ins = generate_insights(_MINIMAL)
     assert len(ins.executive_summary) > 50
     assert "survived" in ins.executive_summary.lower()
-    assert "above" in ins.executive_summary.lower()
+    assert "rate withheld" in ins.executive_summary.lower()
 
 
 def test_save_and_load_insights(tmp_path):

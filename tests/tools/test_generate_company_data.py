@@ -157,41 +157,47 @@ def test_no_goal_seek_reads_only_cost_to_serve_r12():
     assert with_pnl["median_gbp"] == plain["median_gbp"]
 
 
-# --- SITE_MODEL_SPINE §C remainder: the arrears-£ balance distribution ---
+# --- SITE_MODEL_SPINE §C remainder: arrears, under Ofgem's definition ---
 #
-# Through-the-wall observable: arrears = total_billed - total_paid per customer,
-# from the company's OWN ledger (billing_ledger.json). R15: the distribution must
-# FOLLOW those per-customer balances (a baked figure fails); the gross floor is
-# positive-balances-only; FAIL-CLOSED on a ledger with no billed/paid pair.
+# An account is in arrears when a bill is still owed more than 91 days after its due date;
+# owed is the bill's own outstanding_gbp, so a scheme credit is never counted as owed. R15: the
+# distribution FOLLOWS the per-bill amounts; FAIL-CLOSED on a ledger with no dated bills.
 
 
 def _ledger(billed_paid_by_id):
+    """One bill per account, due 2020-01-01 and owing max(billed - paid, 0), plus a later paid
+    bill that puts the ledger's as-of date at 2021-01-01 (far past 91 days)."""
     return {
         "customers": {
-            cid: {"total_billed_gbp": b, "total_paid_gbp": p, "segment": seg}
+            cid: {
+                "segment": seg,
+                "invoices": [
+                    {"issue_date": "2019-12-15", "due_date": "2020-01-01",
+                     "total_amount_gbp": b, "outstanding_gbp": round(max(b - p, 0.0), 2)},
+                    {"issue_date": "2021-01-01", "due_date": "2021-01-15",
+                     "total_amount_gbp": 10.0, "outstanding_gbp": 0.0},
+                ],
+            }
             for cid, (b, p, seg) in billed_paid_by_id.items()
         }
     }
 
 
-def test_arrears_follows_billed_minus_banked_r15():
-    # arrears per customer = billed - paid; the distribution is derived from THEM.
+def test_arrears_follows_each_bills_outstanding_r15():
     out = _arrears_distribution(
         {},
         _ledger({"C1": (1000.0, 900.0, "resi"), "C2": (500.0, 700.0, "resi"),
                  "C3": (2000.0, 1500.0, "resi")}),
     )
     assert out["available"] is True and out["n"] == 3
-    assert out["clock"] == "billed_minus_banked"
-    # balances: C1=+100, C2=-200 (credit), C3=+500 -> sorted [-200, 100, 500]
-    assert out["values_gbp"] == [-200.0, 100.0, 500.0]
-    assert out["min_gbp"] == -200.0 and out["max_gbp"] == 500.0
+    assert out["clock"] == "owed_past_due" and out["as_of"] == "2021-01-01"
+    # owed: C1=100, C2=0 (overpaid: a credit is not arrears), C3=500
+    assert out["values_gbp"] == [0.0, 100.0, 500.0]
     assert out["median_gbp"] == 100.0
+    assert out["in_arrears"] == 2 and out["not_overdue"] == 1
 
 
-def test_arrears_mutation_of_one_balance_moves_distribution_r15():
-    # Killer mutation: change ONE customer's paid amount -> its balance, and the
-    # max + gross floor, must move.
+def test_arrears_distribution_is_mutation_sensitive_r15():
     base = _arrears_distribution({}, _ledger({"C1": (1000.0, 900.0, "resi"),
                                               "C2": (1000.0, 950.0, "resi")}))
     mutated = _arrears_distribution({}, _ledger({"C1": (1000.0, 900.0, "resi"),
@@ -200,17 +206,38 @@ def test_arrears_mutation_of_one_balance_moves_distribution_r15():
     assert mutated["gross_exposure_gbp"] != base["gross_exposure_gbp"]
 
 
-def test_arrears_gross_exposure_is_positive_only_floor():
-    # RC7 floor-not-figure: gross exposure sums ONLY positive balances -- a credit
-    # balance must NOT net it down (a bad-debt base is not reduced by prepayers).
+def test_a_scheme_credit_is_never_counted_as_owed_and_every_band_can_be_reached():
+    """The 2026-11-11 Expert Hour defect: billed-minus-banked counted the GBP 400 EBSS credit,
+    which the government paid, as the household's debt. A bill settled by the credit owes
+    nothing. One fixture reaches all three bands (in arrears, overdue under 91 days, not
+    overdue), so a rule that refuses or admits everything cannot pass."""
+    def acct(*bills):
+        return {"segment": "resi", "invoices": [
+            {"issue_date": i, "due_date": d, "total_amount_gbp": t, "outstanding_gbp": o,
+             **({"scheme_credit_gbp": sc} if sc else {})}
+            for i, d, t, o, sc in bills]}
+    ledger = {"customers": {
+        # EBSS bill: 400 billed, 400 scheme credit, household paid nothing, owes nothing.
+        "EBSS": acct(("2023-01-01", "2023-01-15", 400.0, 0.0, 400.0)),
+        "OLD": acct(("2023-01-01", "2023-01-15", 80.0, 80.0, None)),     # 165 days late
+        "RECENT": acct(("2023-05-01", "2023-05-15", 60.0, 60.0, None)),  # 46 days late
+        "NOTDUE": acct(("2023-06-30", "2023-07-14", 70.0, 70.0, None)),  # sets as-of 2023-06-30
+    }}
+    out = _arrears_distribution({}, ledger)
+    assert out["as_of"] == "2023-06-30"
+    assert out["in_arrears"] == 1 and out["overdue_under_91_days"] == 1 and out["not_overdue"] == 2
+    assert out["gross_exposure_gbp"] == 140.0  # 80 + 60; the EBSS bill adds nothing
+
+
+def test_arrears_gross_exposure_is_a_positive_floor():
     out = _arrears_distribution(
         {},
-        _ledger({"C1": (1000.0, 900.0, "resi"),   # +100 (owes)
-                 "C2": (1000.0, 2000.0, "resi")}),  # -1000 (in credit)
+        _ledger({"C1": (1000.0, 900.0, "resi"),     # owes 100
+                 "C2": (1000.0, 2000.0, "resi")}),  # overpaid
     )
-    assert out["gross_exposure_gbp"] == 100.0  # NOT 100 - 1000
+    assert out["gross_exposure_gbp"] == 100.0
     assert out["gross_exposure_is_floor"] is True
-    assert out["in_arrears"] == 1 and out["in_credit"] == 1
+    assert out["in_arrears"] == 1 and out["not_overdue"] == 1
 
 
 def test_arrears_segment_split_is_the_coverage_cell_distribution():
