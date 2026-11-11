@@ -597,13 +597,28 @@ _ARTEFACT_ROOTS = ("/var/tmp/", "/tmp/", "/home/")
 # `launch_long_job` names a job by `--job <name>` and prose says `job <name>`. Only a name carrying
 # a hyphen or a digit is taken: "the job is" must not become a question to systemd about `is`.
 _NAMED_JOB = re.compile(r"(?:--job|\bjob)[\s=:]+`?([A-Za-z0-9][\w.-]*[A-Za-z0-9])")
+# A path the item tells the tick to REMOVE is the opposite of an artefact: its absence is the done
+# state. `the-seats-direction-record-reaches-origin-again` said "unlock and remove
+# /var/tmp/se-direction-seat", the tick removed it, and the release was held on that very path
+# "not existing yet" -- a hold that could only clear by undoing the work. A removal verb earlier in
+# the same sentence as any mention marks the path as a target to remove, and it is not read.
+_REMOVAL_VERB = re.compile(r"\b(?:remove|delete|rm|prune|tear down|clean up)\b", re.I)
+
+
+def _is_removal_target(text: str, path: str) -> bool:
+    for m in re.finditer(re.escape(path), text):
+        sentence_start = max(text.rfind(". ", 0, m.start()), text.rfind("\n", 0, m.start())) + 1
+        if _REMOVAL_VERB.search(text, sentence_start, m.start()):
+            return True
+    return False
 
 
 def named_artefacts(item: Mapping) -> tuple[list[str], list[str]]:
     """The absolute paths and `launch_long_job` job names a continuation's `what`/`done_means` name."""
     text = " ".join(str(item.get(k) or "") for k in ("what", "done_means"))
     paths = list(dict.fromkeys(m.rstrip(".") for m in _ARTEFACT_PATH.findall(text)
-                               if m.startswith(_ARTEFACT_ROOTS)))
+                               if m.startswith(_ARTEFACT_ROOTS)
+                               and not _is_removal_target(text, m.rstrip("."))))
     jobs = list(dict.fromkeys(j for j in _NAMED_JOB.findall(text)
                               if re.search(r"[-\d]", j)))
     return paths, jobs
