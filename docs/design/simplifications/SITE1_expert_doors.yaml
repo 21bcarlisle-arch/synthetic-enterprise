@@ -49,3 +49,57 @@ map_records:
   - MINOR-11 (reviewer-labelled INFERRED, not observed) the time-expiring honesty claims in proof.json not_proven carry fixed prose with no numeric binding, unlike neighbouring blocks which carry counters/sources -- so if authored rather than computed they go silently false the first time a contact is recorded. SITE_CONSTITUTION rule 7 requires exactly these to be data-driven. Needs a source-side check, not a fetch.
   - 'MINOR-12 (interpretation INFERRED) company.json trading_risk.wholesale: collateral_held_gbp 0.0 against margin_outstanding_gbp 1,392,351.10, margin_calls 7, bilateral_count 58, distinct_counterparties 12. Direction of margin_outstanding is unstated; if owed BY the company, no counterparty runs 58 bilaterals with a 19-customer supplier without CSAs/parent guarantees/LCs/prepayment. Either model credit support or register its absence as a named simplification.'
   - 'CREDITED AS GENUINELY STRONG (so the verdict is calibrated, not reflexive): R14 is really implemented -- every KPI tile carries its clock at render time. A real settled-vs-billed bridge exists (gap 4,903,163.73, gap_ratio 4.22x, dominant_item named, unexplained_remainder 0.0, VAT excluded from both sides and said so, evidence link live 200) -- most real suppliers cannot produce this internally. The N=19 book-size caveat is already published verbatim INCLUDING the director''s own objection against itself. fidelity.json publishes its own model''s worst failures as critical (negative-price frequency 0.013pct model vs 2.241pct real = 172x, n=157,106, with a technically correct structural cause) -- the most credible artefact on the site. Three dated retractions with was/now. not_proven includes ''Any real tonne of CO2 has been abated -- not proven''. /director/ is honest that it is NOT auth-gated (noindex + off-nav, and it says a client-side PIN would be theatre) -- the brief''s premise that it is gated was WRONG and the page itself says so. Units checked and cleared (0.1451 renders as 14.5pct).'
+  - '2026-07-29 VERDICT (the 13 findings above): 2026-07-29 cold-eyes skeptic-veteran pass (25-yr UK energy retail
+    persona: settlement, credit & collections, regulatory reporting), priors-committed-before-pixels, run against
+    the LIVE site not the source. VERDICT: FAIL -- does NOT pass a genuine expert inspection. Reviewer summary: fails
+    on PRESENTATION, not substance -- the machinery underneath is better than the shop window, and it is ~2 days from
+    passing. Single most damaging finding = BLOCKER-1 (see findings). Level HELD at 2; no L3 self-certification, because
+    the atom''s own DoD is a genuine Expert Hour across all doors and that Hour returned FAIL. A second cold-eyes
+    pass (forensic numbers auditor, cross-surface reconciliation) was dispatched in the same tick.'
+  - '2026-11-11 HOUR: Fresh general-purpose fork, hard blindfold: the live https://poesys.net/ only (rendered via
+    a playwright text dump, plus curl of the published /data/ feeds), no repo, no build context, no earlier verdict.
+    Persona: 25-year UK domestic retail veteran (settlement, credit and collections, billing, Ofgem reporting). Priors
+    written before pixels. independence: false (same model family). Doors: /, /capabilities/, /harness/, /code/, /knowledge/
+    (index + topics), /explore/ (two levels into one household), /model/company/, /model/world/, /model/wall/, /model/score/,
+    /model/governance/. SITE_CONSTITUTION''s doors 3-8 (/company/, /proof/, /world/, /method/, /director/) were folded
+    into the current tabs by the 19 Aug and 22 Oct rulings and now 404; ''all doors'' is read as the live nav. VERDICT
+    FAIL. Findings 1 and 4 re-read from the live feeds: dashboard.json financial.annual net_margin_pct 25.59/19.82/18.46/29.81/35.01/2.01/-15.45/54.91/29.09/18.7
+    (2016-2025); company.json arrears.in_arrears 705 of n 1293 on clock billed_minus_banked.'
+  - 2026-11-11 BLOCKER-1 net margin 18-55pct in eight of ten years (2023 54.91pct) against a -5 to +3pct prior and
+    the site's own price-cap page ("low single digits"); company.json names GBP 966,312 non-commodity cost absorbed
+    with no revenue recognition. VERIFIED.
+  - '2026-11-11 BLOCKER-2 book size irreconcilable: front 750 served / 267 in 2025; /explore/ 752; book_growth.json
+    settled 898, commercial 1,290; dashboard book_annual 0 acquisitions 2021-25 while book_growth records 20/8/23/22/11
+    wins. SITE_EH3 closed at target, so this stays on SITE1.'
+  - 2026-11-11 BLOCKER-3 /harness/ says publishing is failing (76 attempts) and the figures differ from the committed
+    record; no other door says so, the front still says published every Monday.
+  - 2026-11-11 MAJOR-4 in_arrears 705/1,293 (54.5pct) is billed minus banked, so the GBP 400 EBSS credit counts as
+    debt; a 150-account sample has 12pct with a positive ledger balance. VERIFIED (field and clock).
+  - 2026-11-11 MAJOR-5 ledger bad debt is a seeded 2pct of every bill; behavioural write-off 0.04pct in 2022; company.json
+    says margin is net of bad debt in one note and excludes it in another.
+  - 2026-11-11 MAJOR-6 build-state labels disagree across doors (Survive LIVE on front, PLANNED on /model/score/;
+    price cap Live on /model/world/, BUILDING on /capabilities/).
+  - '2026-11-11 MAJOR-7 no page renders the supplier accounts: /capabilities/ points at The Company, /company/ 404s,
+    data/company.json is loaded by no page.'
+  - 2026-11-11 MAJOR-8 knowledge topic pages carry no primary-source hyperlinks (0 external links on seven pages;
+    debt-and-collections says see the page own sources and lists none).
+  - 2026-11-11 MAJOR-9 /code/ shows simulation.customer_events -> company.crm.churn_model going round the wall while
+    /model/wall/ says ground truth stays behind (Live). INFERRED circularity.
+  - 2026-11-11 MAJOR-10 SYN-2016-434 labelled Standard Variable while its invoices say term_tariff_type fixed; 2017
+    dual-fuel bill GBP 715 at 2,589/9,327 kWh against a ~GBP 1,000 prior.
+  - '2026-11-11 MAJOR-11 2025 (to 7 Jun) shown as a full year: profit for year, corporation tax, revenue per customer
+    over 1,291 ever-held accounts.'
+  - 2026-11-11 MINOR-12 counts drift between doors (commits, Python files, 750 vs 752 households, repo start 7 Jun
+    vs chart 1 Jun).
+  - 2026-11-11 MINOR-13 /explore/ debt journey opens at 17 Dec 2022 while its decision log shows a plan offered on
+    20 Nov 2022.
+  - 2026-11-11 MINOR-14 household carbon promised per half hour but 3 of 1,293 accounts are MEASURED; 2022 gas factor
+    missing for 166 households.
+  - 2026-11-11 MINOR-15 compliance register labels SLC 14 as credit refund and SLC 21B as account closure (reviewer
+    from memory; to check against the licence).
+  - 2026-11-11 MINOR-16 account JSON annual_pnl.revenue_gbp 0 every year against lifetime GBP 5,877.82; /knowledge/non-commodity-costs/
+    renders raw markdown and internal paths.
+  - '2026-11-11 CREDITED AS STRONG: Grid carbon by year inside prior (252 -> 132 g/kWh, 2017-2024) with basis notes;
+    crisis-year cap rates, EPG and EBSS instalments right; bills and ledgers reconcile, refunds equal the credit held
+    in a 150-file sample; DD/standard credit/prepay mix 65/19/16; knowledge pages expert-grade; failures published
+    rather than hidden.'
