@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-03T02:20:36Z",
+  "generated_at": "2026-11-11T20:10:12Z",
   "available": true,
   "source": "sim/hh_data/<account>.csv -- the world's half-hourly record, one dated day per panel, no averaging",
   "accounts": {
@@ -528,12 +528,6 @@
       "why": "no_hh_record"
     },
     {
-      "customer_group": "OCC-23ee23cb44e4",
-      "account_id": "OCC-23ee23cb44e4",
-      "meter_type": "Traditional",
-      "why": "no_hh_record"
-    },
-    {
       "customer_group": "OCC-2408f14f28a2",
       "account_id": "OCC-2408f14f28a2",
       "meter_type": "Smart",
@@ -632,6 +626,12 @@
     {
       "customer_group": "OCC-451a78ee1a06",
       "account_id": "OCC-451a78ee1a06",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "OCC-4596105f2006",
+      "account_id": "OCC-4596105f2006",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -858,6 +858,12 @@
       "why": "no_hh_record"
     },
     {
+      "customer_group": "OCC-899ff35ac38c",
+      "account_id": "OCC-899ff35ac38c",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
       "customer_group": "OCC-8bd9f5bbfa68",
       "account_id": "OCC-8bd9f5bbfa68",
       "meter_type": "Traditional",
@@ -957,6 +963,12 @@
       "customer_group": "OCC-9c0e9f25531a",
       "account_id": "OCC-9c0e9f25531a",
       "meter_type": "Smart",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "OCC-9ed8087ad075",
+      "account_id": "OCC-9ed8087ad075",
+      "meter_type": "Traditional",
       "why": "no_hh_record"
     },
     {
@@ -1104,6 +1116,12 @@
       "why": "no_hh_record"
     },
     {
+      "customer_group": "OCC-caee88f5fe53",
+      "account_id": "OCC-caee88f5fe53",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
       "customer_group": "OCC-cb5a3446f416",
       "account_id": "OCC-cb5a3446f416",
       "meter_type": "Smart",
@@ -1152,6 +1170,12 @@
       "why": "no_hh_record"
     },
     {
+      "customer_group": "OCC-d8a70e2df686",
+      "account_id": "OCC-d8a70e2df686",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
       "customer_group": "OCC-d8e674fa38de",
       "account_id": "OCC-d8e674fa38de",
       "meter_type": "Smart",
@@ -1160,6 +1184,12 @@
     {
       "customer_group": "OCC-d8eede6baeb5",
       "account_id": "OCC-d8eede6baeb5",
+      "meter_type": "Traditional",
+      "why": "no_hh_record"
+    },
+    {
+      "customer_group": "OCC-da79d3238e02",
+      "account_id": "OCC-da79d3238e02",
       "meter_type": "Traditional",
       "why": "no_hh_record"
     },
@@ -5501,12 +5531,12 @@
   "counts": {
     "with_hh_reads": 3,
     "smart_without_hh_reads": 148,
-    "without_smart_meter": 556,
-    "households": 707
+    "without_smart_meter": 561,
+    "households": 712
   },
   "meter_types_seen": [
     "Smart",
     "Traditional"
   ],
-  "coverage_statement": "3 of 707 households on this book have a half-hourly read record, so a real day can be drawn for them. The rest report a handful of readings a year -- the curve for those homes is inferred from a profile, not measured. 148 of them have a SMART METER and still no half-hourly reads: the meter can measure every half-hour, and monthly reads need no consent, daily reads are taken unless the customer opts out, and only half-hourly reads wait for the customer to opt in. This supplier collects the monthly read alone, so it holds monthly figures from a meter capable of 17,520 a year."
+  "coverage_statement": "3 of 712 households on this book have a half-hourly read record, so a real day can be drawn for them. The rest report a handful of readings a year -- the curve for those homes is inferred from a profile, not measured. 148 of them have a SMART METER and still no half-hourly reads: the meter can measure every half-hour, and monthly reads need no consent, daily reads are taken unless the customer opts out, and only half-hourly reads wait for the customer to opt in. This supplier collects the monthly read alone, so it holds monthly figures from a meter capable of 17,520 a year."
 }

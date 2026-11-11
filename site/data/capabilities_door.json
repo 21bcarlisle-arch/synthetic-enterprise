@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-03T02:19:37Z",
- "git_commit": "247eebe517b30f05ff77fb3a4cadd1f0e66ed055",
+ "generated_at": "2026-11-11T20:09:07Z",
+ "git_commit": "40a48b5d8414f5a4a29389d400ef103590fdb108",
  "published_from": {
-  "commit": "247eebe517b30f05ff77fb3a4cadd1f0e66ed055",
+  "commit": "40a48b5d8414f5a4a29389d400ef103590fdb108",
   "tree_was_clean": true,
   "inputs_are_the_committed_bytes": true,
   "inputs": [
@@ -220,7 +220,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 94,
+     "checks": 89,
      "covered": 1,
      "of": 2
     }
@@ -234,7 +234,7 @@
     ],
     "evidence": null,
     "checks": {
-     "checks": 94,
+     "checks": 89,
      "covered": 1,
      "of": 1
     }
@@ -1512,10 +1512,10 @@
     "value": 752,
     "basis": "accounts in the live customer feed",
     "source": "site/data/customers.json",
-    "as_of": "2026-10-26T12:06:36Z"
+    "as_of": "2026-11-03T02:20:11Z"
    },
    {
-    "value": 1289,
+    "value": 1291,
     "basis": "book size used by the break-even analysis",
     "source": "site/data/dashboard.json",
     "as_of": "2016-2025"
@@ -1523,7 +1523,7 @@
   ],
   "agree": false,
   "low": 752,
-  "high": 1289,
+  "high": 1291,
   "real_world": "A real GB supplier serves hundreds of thousands to millions of homes."
  },
  "gaps": [
@@ -1536,8 +1536,8 @@
     "when": "being worked on now",
     "waiting_on_count": 0
    },
-   "title": "The book is 752\u20131289 customers",
-   "what": "Everything on this page is true of a supplier with 752\u20131289 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 752 (accounts in the live customer feed), 1289 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
+   "title": "The book is 752\u20131291 customers",
+   "what": "Everything on this page is true of a supplier with 752\u20131291 accounts. A real GB supplier serves hundreds of thousands to millions of homes. Scale is the largest single gap between this and a real energy retailer, and nothing above will tell you that, because every item can be genuinely built at this size. The project's own feeds do not currently agree on the exact figure \u2014 752 (accounts in the live customer feed), 1291 (book size used by the break-even analysis) \u2014 and that disagreement is itself unreconciled."
   },
   {
    "plan": {
@@ -1590,8 +1590,8 @@
  ],
  "fixed_this_week": {
   "window_days": 7,
-  "as_of": "03 Nov 2026",
-  "published_run": "4ae8da9b0f",
+  "as_of": "11 Nov 2026",
+  "published_run": "0a6391d186",
   "items": []
  }
 }

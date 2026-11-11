@@ -13,14 +13,14 @@
     "bottom_line": "1329934276164"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 1.39,
-  "lifetime_gross_gbp": 0.91,
+  "lifetime_revenue_gbp": 1.4,
+  "lifetime_gross_gbp": 0.92,
   "lifetime_net_gbp": 0.1,
-  "lifetime_net_after_cts_gbp": -0.05,
-  "cost_to_serve_gbp": 0.15,
+  "lifetime_net_after_cts_gbp": -0.13,
+  "cost_to_serve_gbp": 0.23,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 3.6
+    "recommended_uplift_pct": 9.3
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -33,7 +33,7 @@
   "commodity_split": {
     "electricity": {
       "net_gbp": 0.1,
-      "revenue_gbp": 1.39
+      "revenue_gbp": 1.4
     },
     "gas": null
   },
@@ -41,11 +41,11 @@
   "annual_pnl": [
     {
       "year": 2018,
-      "revenue_gbp": 0,
-      "gross_gbp": 0.91,
+      "revenue_gbp": 1.4,
+      "gross_gbp": 0.92,
       "net_gbp": 0.1,
-      "tariff_min": 141.41,
-      "tariff_max": 141.41
+      "tariff_min": 141.76,
+      "tariff_max": 141.76
     }
   ],
   "timeline": [
@@ -54,7 +54,7 @@
       "date": "2018-08-11",
       "detail": "Final bill",
       "commodity": "electricity",
-      "effect": "Closing read estimated; billed \u00a31.00"
+      "effect": "Closing read estimated; billed \u00a31.01"
     },
     {
       "type": "moved_out",
@@ -74,20 +74,20 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2018-0244-INV14734",
+      "id": "PROS-2018-0244-INV14963",
       "date": "2018-08-11",
       "period_start": "2018-08-11",
       "period_end": "2018-08-11",
       "commodity": "electricity",
       "consumption_kwh": 5.4,
-      "unit_rate_p_per_kwh": 8.7,
-      "commodity_amount_gbp": 0.47,
+      "unit_rate_p_per_kwh": 8.89,
+      "commodity_amount_gbp": 0.48,
       "standing_charge_gbp": 0.2,
       "days_in_period": 1,
       "standing_charge_gbp_per_day": 0.2,
       "non_commodity_amount_gbp": 0.28,
       "vat_gbp": 0.05,
-      "amount_gbp": 1.0,
+      "amount_gbp": 1.01,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -113,13 +113,14 @@
         {
           "label": "Anytime",
           "consumption_kwh": 5.4,
-          "amount_gbp": 0.47,
-          "unit_rate_p_per_kwh": 8.7,
+          "amount_gbp": 0.48,
+          "unit_rate_p_per_kwh": 8.89,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -129,7 +130,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 14734,
+      "invoice_number": 14963,
       "due_date": "2018-08-29",
       "document_type": "bill"
     }
@@ -140,18 +141,18 @@
       {
         "date": "2018-08-15",
         "type": "invoice_raised",
-        "invoice_number": 14734,
-        "amount_gbp": 1.0,
+        "invoice_number": 14963,
+        "amount_gbp": 1.01,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV14734 raised",
-        "running_balance_gbp": 1.0
+        "description": "Invoice INV14963 raised",
+        "running_balance_gbp": 1.01
       },
       {
         "date": "2018-08-29",
         "type": "payment_received",
-        "invoice_number": 14734,
-        "amount_gbp": -1.0,
+        "invoice_number": 14963,
+        "amount_gbp": -1.01,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -159,14 +160,22 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 1.0,
-    "total_collected_gbp": 1.0,
+    "total_billed_gbp": 1.01,
+    "total_collected_gbp": 1.01,
     "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
     "total_deemed_gbp": 0,
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 1,
+    "payments": 1,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2018-08-30"
   },
   "consumption": {
     "unit": "kWh",

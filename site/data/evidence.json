@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-03T02:19:42Z",
-  "git_hash": "247eebe51",
+  "generated_at": "2026-11-11T20:09:12Z",
+  "git_hash": "40a48b5d8",
   "published_from": {
-    "commit": "247eebe517b30f05ff77fb3a4cadd1f0e66ed055",
+    "commit": "40a48b5d8414f5a4a29389d400ef103590fdb108",
     "tree_was_clean": true,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
@@ -1765,22 +1765,22 @@
             },
             {
               "path": "company/crm/home_registry.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/crm/home_registry.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/crm/home_registry.py::register_from_signup/record_epc_lookup/record_tariff_registration/record_engineer_visit/belief_confidence",
               "is_test": false
             },
             {
               "path": "company/crm/onboarding_journey.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/crm/onboarding_journey.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/crm/onboarding_journey.py::OnboardingJourneyTracker.start_journey (real caller)",
               "is_test": false
             },
             {
               "path": "company/crm/decarb_recommender.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/crm/decarb_recommender.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/crm/decarb_recommender.py::recommend_from_registry (real consumer)",
               "is_test": false
             },
@@ -1798,7 +1798,7 @@
               "resolved_path": "tests/company/crm/test_c2_discovery_wired.py",
               "raw": "tests/company/crm/test_c2_discovery_wired.py",
               "is_test": true,
-              "test_functions": 13
+              "test_functions": 3
             },
             {
               "path": "tests/company/crm/test_property_model.py",
@@ -1814,14 +1814,15 @@
               "resolved_path": "tests/company/crm/test_home_registry.py",
               "raw": "tests/company/crm/test_home_registry.py (belief-layer tests)",
               "is_test": true,
-              "test_functions": 29
+              "test_functions": 9
             }
           ],
           "test_files": 4,
-          "test_functions": 84,
+          "test_functions": 54,
           "ledger": [],
           "missing": [
-            "NO_LEDGER_RECORD"
+            "NO_LEDGER_RECORD",
+            "UNRESOLVED_CITATION"
           ]
         }
       ],
@@ -1903,22 +1904,22 @@
             },
             {
               "path": "company/crm/home_registry.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/crm/home_registry.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/crm/home_registry.py::register_from_signup/record_epc_lookup/record_tariff_registration/record_engineer_visit/belief_confidence",
               "is_test": false
             },
             {
               "path": "company/crm/onboarding_journey.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/crm/onboarding_journey.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/crm/onboarding_journey.py::OnboardingJourneyTracker.start_journey (real caller)",
               "is_test": false
             },
             {
               "path": "company/crm/decarb_recommender.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/crm/decarb_recommender.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/crm/decarb_recommender.py::recommend_from_registry (real consumer)",
               "is_test": false
             },
@@ -1936,7 +1937,7 @@
               "resolved_path": "tests/company/crm/test_c2_discovery_wired.py",
               "raw": "tests/company/crm/test_c2_discovery_wired.py",
               "is_test": true,
-              "test_functions": 13
+              "test_functions": 3
             },
             {
               "path": "tests/company/crm/test_property_model.py",
@@ -1952,14 +1953,15 @@
               "resolved_path": "tests/company/crm/test_home_registry.py",
               "raw": "tests/company/crm/test_home_registry.py (belief-layer tests)",
               "is_test": true,
-              "test_functions": 29
+              "test_functions": 9
             }
           ],
           "test_files": 4,
-          "test_functions": 84,
+          "test_functions": 54,
           "ledger": [],
           "missing": [
-            "NO_LEDGER_RECORD"
+            "NO_LEDGER_RECORD",
+            "UNRESOLVED_CITATION"
           ]
         },
         {
@@ -2140,11 +2142,11 @@
               "resolved_path": "tests/controls/test_control_mutation.py",
               "raw": "2026-07-16 H17 HARDEN (R15): red-team of check_back_billing_cap_respected found its OWN named defect -- docstring finding (a), existence-check-instead-of-magnitude fail-open (a \u00a30.01 token write-off against a ~\u00a33,860 four-year breach) -- had NO mutation test that fires on it. The sibling zero-write-off test cannot distinguish the two: the old `written_off_gbp > 0` existence check and the current magnitude check BOTH return False at exactly 0.0, so a regression to the exact old bug left the whole suite green. Added tests/controls/test_control_mutation.py::test_back_billing_cap_fires_on_token_write_off_against_large_breach, proven to FAIL on the mutated existence-check control and PASS on the current magnitude check. Test-file-only change; domain_invariants.py unchanged; D3 exit tests (29) + control mutation suite (85) + epistemic verifier all green. Level stays 3->3.",
               "is_test": true,
-              "test_functions": 94
+              "test_functions": 89
             }
           ],
           "test_files": 1,
-          "test_functions": 94,
+          "test_functions": 89,
           "ledger": [],
           "missing": [
             "NO_LEDGER_RECORD"
@@ -2455,15 +2457,15 @@
           "citations": [
             {
               "path": "company/market/tariff_benchmarking.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/market/tariff_benchmarking.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/market/tariff_benchmarking.py (real, built, orphaned -- zero non-test callers)",
               "is_test": false
             },
             {
               "path": "company/pricing/renewal_pricing_engine.py",
-              "status": "RESOLVED",
-              "resolved_path": "company/pricing/renewal_pricing_engine.py",
+              "status": "MISSING",
+              "resolved_path": null,
               "raw": "company/pricing/renewal_pricing_engine.py (real, built, orphaned -- zero non-test callers)",
               "is_test": false
             },
@@ -2502,6 +2504,7 @@
             }
           ],
           "missing": [
+            "UNRESOLVED_CITATION",
             "NO_TEST_CITED"
           ]
         }
@@ -2767,9 +2770,9 @@
     "nodes": 6,
     "atoms": 46,
     "citations": 217,
-    "citations_resolved": 208,
+    "citations_resolved": 200,
     "citations_relocated": 5,
-    "citations_missing": 4,
+    "citations_missing": 12,
     "atoms_with_missing": 42,
     "nodes_fully_evidenced": 0
   }

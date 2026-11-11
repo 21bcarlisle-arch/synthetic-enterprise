@@ -16,10 +16,10 @@
   "lifetime_revenue_gbp": 60.06,
   "lifetime_gross_gbp": 46.79,
   "lifetime_net_gbp": 25.03,
-  "lifetime_net_after_cts_gbp": 8.31,
-  "cost_to_serve_gbp": 16.72,
+  "lifetime_net_after_cts_gbp": 0.95,
+  "cost_to_serve_gbp": 24.08,
   "pricing_action": {
-    "flag": "OK",
+    "flag": "MARGIN_SQUEEZE",
     "recommended_uplift_pct": null
   },
   "avg_hedge_fraction": 0.85,
@@ -47,7 +47,7 @@
   "annual_pnl": [
     {
       "year": 2016,
-      "revenue_gbp": 0,
+      "revenue_gbp": 60.06,
       "gross_gbp": 46.79,
       "net_gbp": 25.03,
       "tariff_min": 94.01,
@@ -129,6 +129,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -200,6 +201,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -271,6 +273,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -342,6 +345,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -430,7 +434,7 @@
         "running_balance_gbp": 11.39
       },
       {
-        "date": "2016-05-08",
+        "date": "2016-05-09",
         "type": "payment_received",
         "invoice_number": 4,
         "amount_gbp": -11.39,
@@ -449,6 +453,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 4,
+    "payments": 4,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2016-05-10"
   },
   "consumption": {
     "unit": "kWh",

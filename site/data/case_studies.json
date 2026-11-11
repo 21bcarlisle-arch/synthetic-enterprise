@@ -1,14 +1,14 @@
 {
   "meta": {
-    "generated_at": "2026-11-03T02:14:32Z",
-    "git_commit": "0a6391d186",
-    "household_count": 752,
+    "generated_at": "2026-11-11T20:04:04Z",
+    "git_commit": "6fe7827ab2",
+    "household_count": 757,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "518 timeline + reaction-chain entries on record",
+      "headline": "360 timeline + reaction-chain entries on record",
       "wall_side": "sim",
       "account_id": "SYN-2016-206",
       "base_account_id": "SYN-2016-206",
@@ -23,12 +23,12 @@
       "category": "Largest company-vs-SIM churn divergence",
       "headline": "100.0 percentage points apart at the 2018 renewal (sim 0.0% vs company 100.0%)",
       "wall_side": "sim",
-      "account_id": "SYN-2016-225",
-      "base_account_id": "SYN-2016-225",
+      "account_id": "SYN-2016-042",
+      "base_account_id": "SYN-2016-042",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-225",
+        "acc": "SYN-2016-042",
         "tab": "timeline",
         "year": 2018
       }

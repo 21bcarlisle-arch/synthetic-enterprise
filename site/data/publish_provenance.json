@@ -13,33 +13,33 @@
   },
   "figures_caveat": null,
   "last_verified": {
-    "generated_at": "2026-11-03T02:24:29Z",
-    "git_commit": "0a6391d186",
+    "generated_at": "2026-11-11T20:13:59Z",
+    "git_commit": "6fe7827ab2",
     "population": {
-      "accounts": 1293,
-      "bills": 52837,
-      "total_revenue_gbp": 2855820.88
+      "accounts": 1302,
+      "bills": 53921,
+      "total_revenue_gbp": 3172699.38
     },
-    "run_id": "run_output_0a6391d186_20261102T212232Z.json",
+    "run_id": "run_output_6fe7827ab2_20261111T140730Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-03T02:24:29Z"
+    "verified_at": "2026-11-11T20:13:59Z"
   },
-  "paused_gate": "Refused by the domain-invariant check: 3 of its rules are broken and no dated exception covers them. Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 22 of 6,400 checked (unit: household collections step printing an overdue figure); When supply on a fuel leg ends, the account has one balance, the one the final bill states [INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO]: broken on 3 of 1,688 checked (unit: closed account (one fuel leg) and each write-off on one); A refund pays back a credit the customer holds [INV_REFUND_WITHIN_THE_PAGE_CREDIT]: broken on 205 of 238 checked (unit: refund line on one fuel leg's page ledger).",
-  "paused_reason": "domain-invariant breaches at git=068b5e3cc8 that no exception covers: INV_OVERDUE_WITHIN_PAGE_BALANCE 22 (no exception); INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO 3 (3 breaches exceed the exception's max_breached 2); INV_REFUND_WITHIN_THE_PAGE_CREDIT 205 (no exception)",
-  "paused_since": "2026-11-08T20:48:26Z",
+  "paused_gate": null,
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-11-03T02:24:29Z",
-    "git_commit": "0a6391d186",
+    "generated_at": "2026-11-11T20:13:59Z",
+    "git_commit": "6fe7827ab2",
     "population": {
-      "accounts": 1293,
-      "bills": 52837,
-      "total_revenue_gbp": 2855820.88
+      "accounts": 1302,
+      "bills": 53921,
+      "total_revenue_gbp": 3172699.38
     },
-    "run_id": "run_output_0a6391d186_20261102T212232Z.json",
+    "run_id": "run_output_6fe7827ab2_20261111T140730Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-03T02:24:29Z"
+    "verified_at": "2026-11-11T20:13:59Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-11-11T11:13:58Z"
+  "verification_state": "verified",
+  "written_at": "2026-11-11T20:13:59Z"
 }

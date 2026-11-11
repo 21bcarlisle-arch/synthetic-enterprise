@@ -13,14 +13,14 @@
     "bottom_line": "1954391663218"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 132.75,
-  "lifetime_gross_gbp": 93.64,
-  "lifetime_net_gbp": -32.96,
-  "lifetime_net_after_cts_gbp": -57.83,
-  "cost_to_serve_gbp": 24.86,
+  "lifetime_revenue_gbp": 138.22,
+  "lifetime_gross_gbp": 98.08,
+  "lifetime_net_gbp": -30.56,
+  "lifetime_net_after_cts_gbp": -69.3,
+  "cost_to_serve_gbp": 38.74,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 43.6
+    "recommended_uplift_pct": 50.1
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -32,26 +32,26 @@
   "forward_looking_account_id": "OCC-17113b3d3c1d",
   "commodity_split": {
     "electricity": {
-      "net_gbp": -32.96,
-      "revenue_gbp": 132.75
+      "net_gbp": -30.56,
+      "revenue_gbp": 138.22
     },
     "gas": null
   },
   "dual_fuel_combined": {
     "gas_account_id": "OCC-17113b3d3c1dg",
-    "gas_lifetime_net_gbp": -10.36,
-    "gas_lifetime_revenue_gbp": 87.21,
-    "combined_net_gbp": -43.32,
-    "combined_revenue_gbp": 219.96
+    "gas_lifetime_net_gbp": -2.7,
+    "gas_lifetime_revenue_gbp": 87.29,
+    "combined_net_gbp": -33.26,
+    "combined_revenue_gbp": 225.51
   },
   "annual_pnl": [
     {
       "year": 2018,
-      "revenue_gbp": 0,
-      "gross_gbp": 93.64,
-      "net_gbp": -32.96,
-      "tariff_min": 145.24,
-      "tariff_max": 145.24
+      "revenue_gbp": 138.22,
+      "gross_gbp": 98.08,
+      "net_gbp": -30.56,
+      "tariff_min": 155.24,
+      "tariff_max": 155.24
     }
   ],
   "timeline": [
@@ -60,7 +60,7 @@
       "date": "2018-10-04",
       "detail": "Final bill",
       "commodity": "electricity",
-      "effect": "Closing read prepayment_meter; billed \u00a33.62"
+      "effect": "Closing read prepayment_meter; billed \u00a33.81"
     },
     {
       "type": "moved_out",
@@ -77,15 +77,15 @@
       "period_start": "2018-04-23",
       "period_end": "2018-04-30",
       "commodity": "electricity",
-      "consumption_kwh": 35.7,
-      "unit_rate_p_per_kwh": 9.22,
-      "commodity_amount_gbp": 3.29,
+      "consumption_kwh": 35.2,
+      "unit_rate_p_per_kwh": 10.2,
+      "commodity_amount_gbp": 3.59,
       "standing_charge_gbp": 1.57,
       "days_in_period": 8,
       "standing_charge_gbp_per_day": 0.196,
-      "non_commodity_amount_gbp": 1.89,
-      "vat_gbp": 0.34,
-      "amount_gbp": 7.09,
+      "non_commodity_amount_gbp": 1.86,
+      "vat_gbp": 0.35,
+      "amount_gbp": 7.37,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -98,7 +98,7 @@
       "mprn": null,
       "read_type": "M",
       "opening_read_kwh": 0.0,
-      "closing_read_kwh": 35.7,
+      "closing_read_kwh": 35.2,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -110,14 +110,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 35.7,
-          "amount_gbp": 3.29,
-          "unit_rate_p_per_kwh": 9.22,
+          "consumption_kwh": 35.2,
+          "amount_gbp": 3.59,
+          "unit_rate_p_per_kwh": 10.2,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -137,15 +138,15 @@
       "period_start": "2018-05-01",
       "period_end": "2018-05-31",
       "commodity": "electricity",
-      "consumption_kwh": 130.1,
-      "unit_rate_p_per_kwh": 9.22,
-      "commodity_amount_gbp": 12.0,
+      "consumption_kwh": 127.4,
+      "unit_rate_p_per_kwh": 10.23,
+      "commodity_amount_gbp": 13.03,
       "standing_charge_gbp": 6.09,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.1965,
-      "non_commodity_amount_gbp": 6.89,
-      "vat_gbp": 1.25,
-      "amount_gbp": 26.23,
+      "non_commodity_amount_gbp": 6.75,
+      "vat_gbp": 1.29,
+      "amount_gbp": 27.16,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -157,8 +158,8 @@
       "mpan": "1954391663218",
       "mprn": null,
       "read_type": "M",
-      "opening_read_kwh": 35.7,
-      "closing_read_kwh": 165.8,
+      "opening_read_kwh": 35.2,
+      "closing_read_kwh": 162.6,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -170,14 +171,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 130.1,
-          "amount_gbp": 12.0,
-          "unit_rate_p_per_kwh": 9.22,
+          "consumption_kwh": 127.4,
+          "amount_gbp": 13.03,
+          "unit_rate_p_per_kwh": 10.23,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -197,15 +199,15 @@
       "period_start": "2018-06-01",
       "period_end": "2018-06-30",
       "commodity": "electricity",
-      "consumption_kwh": 121.8,
-      "unit_rate_p_per_kwh": 9.22,
-      "commodity_amount_gbp": 11.23,
+      "consumption_kwh": 118.8,
+      "unit_rate_p_per_kwh": 10.23,
+      "commodity_amount_gbp": 12.15,
       "standing_charge_gbp": 5.89,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.1963,
-      "non_commodity_amount_gbp": 6.46,
-      "vat_gbp": 1.18,
-      "amount_gbp": 24.76,
+      "non_commodity_amount_gbp": 6.3,
+      "vat_gbp": 1.22,
+      "amount_gbp": 25.56,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -217,8 +219,8 @@
       "mpan": "1954391663218",
       "mprn": null,
       "read_type": "M",
-      "opening_read_kwh": 165.8,
-      "closing_read_kwh": 287.6,
+      "opening_read_kwh": 162.6,
+      "closing_read_kwh": 281.4,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -230,14 +232,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 121.8,
-          "amount_gbp": 11.23,
-          "unit_rate_p_per_kwh": 9.22,
+          "consumption_kwh": 118.8,
+          "amount_gbp": 12.15,
+          "unit_rate_p_per_kwh": 10.23,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -257,15 +260,15 @@
       "period_start": "2018-07-01",
       "period_end": "2018-07-31",
       "commodity": "electricity",
-      "consumption_kwh": 125.5,
-      "unit_rate_p_per_kwh": 9.23,
-      "commodity_amount_gbp": 11.58,
+      "consumption_kwh": 126.0,
+      "unit_rate_p_per_kwh": 10.22,
+      "commodity_amount_gbp": 12.88,
       "standing_charge_gbp": 6.09,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.1965,
-      "non_commodity_amount_gbp": 6.66,
-      "vat_gbp": 1.22,
-      "amount_gbp": 25.55,
+      "non_commodity_amount_gbp": 6.68,
+      "vat_gbp": 1.28,
+      "amount_gbp": 26.93,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -277,8 +280,8 @@
       "mpan": "1954391663218",
       "mprn": null,
       "read_type": "M",
-      "opening_read_kwh": 287.6,
-      "closing_read_kwh": 413.1,
+      "opening_read_kwh": 281.4,
+      "closing_read_kwh": 407.4,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -290,14 +293,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 125.5,
-          "amount_gbp": 11.58,
-          "unit_rate_p_per_kwh": 9.23,
+          "consumption_kwh": 126.0,
+          "amount_gbp": 12.88,
+          "unit_rate_p_per_kwh": 10.22,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -317,15 +321,15 @@
       "period_start": "2018-08-01",
       "period_end": "2018-08-31",
       "commodity": "electricity",
-      "consumption_kwh": 124.8,
-      "unit_rate_p_per_kwh": 9.22,
-      "commodity_amount_gbp": 11.51,
+      "consumption_kwh": 122.2,
+      "unit_rate_p_per_kwh": 10.23,
+      "commodity_amount_gbp": 12.5,
       "standing_charge_gbp": 6.09,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.1965,
-      "non_commodity_amount_gbp": 6.61,
-      "vat_gbp": 1.21,
-      "amount_gbp": 25.42,
+      "non_commodity_amount_gbp": 6.48,
+      "vat_gbp": 1.25,
+      "amount_gbp": 26.32,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -337,8 +341,8 @@
       "mpan": "1954391663218",
       "mprn": null,
       "read_type": "M",
-      "opening_read_kwh": 413.1,
-      "closing_read_kwh": 537.9,
+      "opening_read_kwh": 407.4,
+      "closing_read_kwh": 529.6,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -350,14 +354,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 124.8,
-          "amount_gbp": 11.51,
-          "unit_rate_p_per_kwh": 9.22,
+          "consumption_kwh": 122.2,
+          "amount_gbp": 12.5,
+          "unit_rate_p_per_kwh": 10.23,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -377,15 +382,15 @@
       "period_start": "2018-09-01",
       "period_end": "2018-09-30",
       "commodity": "electricity",
-      "consumption_kwh": 134.7,
-      "unit_rate_p_per_kwh": 9.23,
-      "commodity_amount_gbp": 12.43,
+      "consumption_kwh": 133.8,
+      "unit_rate_p_per_kwh": 10.224,
+      "commodity_amount_gbp": 13.68,
       "standing_charge_gbp": 5.89,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.1963,
-      "non_commodity_amount_gbp": 7.14,
-      "vat_gbp": 1.27,
-      "amount_gbp": 26.73,
+      "non_commodity_amount_gbp": 7.09,
+      "vat_gbp": 1.33,
+      "amount_gbp": 27.99,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -397,8 +402,8 @@
       "mpan": "1954391663218",
       "mprn": null,
       "read_type": "M",
-      "opening_read_kwh": 537.9,
-      "closing_read_kwh": 672.6,
+      "opening_read_kwh": 529.6,
+      "closing_read_kwh": 663.4,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -410,14 +415,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 134.7,
-          "amount_gbp": 12.43,
-          "unit_rate_p_per_kwh": 9.23,
+          "consumption_kwh": 133.8,
+          "amount_gbp": 13.68,
+          "unit_rate_p_per_kwh": 10.224,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -438,14 +444,14 @@
       "period_end": "2018-10-04",
       "commodity": "electricity",
       "consumption_kwh": 17.8,
-      "unit_rate_p_per_kwh": 9.21,
-      "commodity_amount_gbp": 1.64,
+      "unit_rate_p_per_kwh": 10.22,
+      "commodity_amount_gbp": 1.82,
       "standing_charge_gbp": 0.86,
       "days_in_period": 4,
       "standing_charge_gbp_per_day": 0.215,
       "non_commodity_amount_gbp": 0.94,
-      "vat_gbp": 0.17,
-      "amount_gbp": 3.61,
+      "vat_gbp": 0.18,
+      "amount_gbp": 3.8,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -457,8 +463,8 @@
       "mpan": "1954391663218",
       "mprn": null,
       "read_type": "M",
-      "opening_read_kwh": 672.6,
-      "closing_read_kwh": 690.4,
+      "opening_read_kwh": 663.4,
+      "closing_read_kwh": 681.2,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -471,13 +477,14 @@
         {
           "label": "Anytime",
           "consumption_kwh": 17.8,
-          "amount_gbp": 1.64,
-          "unit_rate_p_per_kwh": 9.21,
+          "amount_gbp": 1.82,
+          "unit_rate_p_per_kwh": 10.22,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -499,17 +506,17 @@
         "date": "2018-05-02",
         "type": "invoice_raised",
         "invoice_number": 600,
-        "amount_gbp": 7.09,
+        "amount_gbp": 7.37,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV600 raised",
-        "running_balance_gbp": 7.09
+        "running_balance_gbp": 7.37
       },
       {
         "date": "2018-05-02",
         "type": "deemed_account",
         "invoice_number": 600,
-        "amount_gbp": -7.09,
+        "amount_gbp": -7.37,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -519,17 +526,17 @@
         "date": "2018-06-01",
         "type": "invoice_raised",
         "invoice_number": 601,
-        "amount_gbp": 26.23,
+        "amount_gbp": 27.16,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV601 raised",
-        "running_balance_gbp": 26.23
+        "running_balance_gbp": 27.16
       },
       {
         "date": "2018-06-01",
         "type": "deemed_account",
         "invoice_number": 601,
-        "amount_gbp": -26.23,
+        "amount_gbp": -27.16,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -539,17 +546,17 @@
         "date": "2018-07-07",
         "type": "invoice_raised",
         "invoice_number": 602,
-        "amount_gbp": 24.76,
+        "amount_gbp": 25.56,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV602 raised",
-        "running_balance_gbp": 24.76
+        "running_balance_gbp": 25.56
       },
       {
         "date": "2018-07-07",
         "type": "deemed_account",
         "invoice_number": 602,
-        "amount_gbp": -24.76,
+        "amount_gbp": -25.56,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -559,27 +566,27 @@
         "date": "2018-08-01",
         "type": "invoice_raised",
         "invoice_number": 603,
-        "amount_gbp": 25.55,
+        "amount_gbp": 26.93,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV603 raised",
-        "running_balance_gbp": 25.55
+        "running_balance_gbp": 26.93
       },
       {
         "date": "2018-08-01",
         "type": "deemed_account",
         "invoice_number": 603,
-        "amount_gbp": -18.18,
+        "amount_gbp": -18.75,
         "info_amount_gbp": null,
         "method": null,
         "description": "Days billed to the occupier's deemed account",
-        "running_balance_gbp": 7.37
+        "running_balance_gbp": 8.18
       },
       {
         "date": "2018-08-15",
         "type": "payment_received",
         "invoice_number": 603,
-        "amount_gbp": -7.37,
+        "amount_gbp": -8.18,
         "info_amount_gbp": null,
         "method": "prepayment",
         "description": "Payment received",
@@ -589,17 +596,17 @@
         "date": "2018-08-31",
         "type": "invoice_raised",
         "invoice_number": 604,
-        "amount_gbp": 25.42,
+        "amount_gbp": 26.32,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV604 raised",
-        "running_balance_gbp": 25.42
+        "running_balance_gbp": 26.32
       },
       {
         "date": "2018-09-14",
         "type": "payment_received",
         "invoice_number": 604,
-        "amount_gbp": -25.42,
+        "amount_gbp": -26.32,
         "info_amount_gbp": null,
         "method": "prepayment",
         "description": "Payment received",
@@ -609,37 +616,37 @@
         "date": "2018-10-05",
         "type": "invoice_raised",
         "invoice_number": 605,
-        "amount_gbp": 26.73,
+        "amount_gbp": 27.99,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV605 raised",
-        "running_balance_gbp": 26.73
+        "running_balance_gbp": 27.99
       },
       {
         "date": "2018-10-10",
         "type": "invoice_raised",
         "invoice_number": 606,
-        "amount_gbp": 3.61,
+        "amount_gbp": 3.8,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV606 raised",
-        "running_balance_gbp": 30.34
+        "running_balance_gbp": 31.79
       },
       {
         "date": "2018-10-19",
         "type": "payment_received",
         "invoice_number": 605,
-        "amount_gbp": -26.73,
+        "amount_gbp": -27.99,
         "info_amount_gbp": null,
         "method": "prepayment",
         "description": "Payment received",
-        "running_balance_gbp": 3.61
+        "running_balance_gbp": 3.8
       },
       {
         "date": "2018-10-24",
         "type": "payment_received",
         "invoice_number": 606,
-        "amount_gbp": -3.61,
+        "amount_gbp": -3.8,
         "info_amount_gbp": null,
         "method": "prepayment",
         "description": "Payment received",
@@ -647,41 +654,49 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 139.39,
-    "total_collected_gbp": 63.13,
+    "total_billed_gbp": 145.13,
+    "total_collected_gbp": 66.29,
     "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
-    "total_deemed_gbp": 76.26,
+    "total_deemed_gbp": 78.84,
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 0,
+    "payments": 0,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": null
   },
   "consumption": {
     "unit": "kWh",
     "monthly": [
       {
         "month": "2018-04",
-        "kwh": 35.7
+        "kwh": 35.2
       },
       {
         "month": "2018-05",
-        "kwh": 130.1
+        "kwh": 127.4
       },
       {
         "month": "2018-06",
-        "kwh": 121.8
+        "kwh": 118.8
       },
       {
         "month": "2018-07",
-        "kwh": 125.6
+        "kwh": 126.0
       },
       {
         "month": "2018-08",
-        "kwh": 124.7
+        "kwh": 122.2
       },
       {
         "month": "2018-09",
-        "kwh": 134.8
+        "kwh": 133.8
       },
       {
         "month": "2018-10",

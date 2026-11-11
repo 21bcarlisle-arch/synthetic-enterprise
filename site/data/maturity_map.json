@@ -173,8 +173,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -237,8 +237,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1748,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -257,8 +257,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 13,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -283,33 +283,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 36,
-      "forward_attachments": []
-    },
-    {
-      "id": "D9_worse_than_blind_chip_is_metric_blind",
-      "name": "The Proof-door coupled-gap panel renders ANY gap>1 as the red chip 'worse_than_blind' (tools/generate_proof_data.py::_coupled_gaps, mirrored in background/sanity_daemon.py and the site panel). For detection_gap that reading is valid; for misapplication_gap the D6 DISCOVER refuted it -- >1 there means the minority-class share is small, not that the company is worse than blind. The renderer must read the METRIC, not just the number, before printing a red verdict on a public surface.",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 3,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "D6_payment_ageing_gap_validity"
-      ],
-      "couples_with": [
-        "W2_9_segment_debt_tnc",
-        "W2_11_payment_behaviour_source"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -374,8 +349,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -502,8 +477,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 906,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -544,8 +519,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 140,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -564,8 +539,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 265,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -606,8 +581,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -630,8 +605,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1725,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -650,8 +625,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 519,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": [
         {
           "source": "docs/staging/done/PLANNER_MINTED_population_and_book_growth_2026-08-11.md",
@@ -699,8 +674,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 12,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -748,8 +723,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2253,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -792,8 +767,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2310,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -814,8 +789,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -860,8 +835,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6619,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -904,8 +879,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2477,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -926,8 +901,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2321,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -968,8 +943,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1295,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1009,8 +984,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1296,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1065,8 +1040,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2261,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1087,8 +1062,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6619,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1107,32 +1082,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
-      "forward_attachments": []
-    },
-    {
-      "id": "OPS6_scoped_publish_path_suite",
-      "name": "MINTED FROM deliverable 1 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 ('THE SITE BREATHES'). NOT the same scope as H23_publish_gate_scope_marker: H23 deselects @pytest.mark.operational, which still leaves EVERY non-operational red (allowlist rows, map ratchets, lint ratchets) able to wedge the live site. This atom narrows the BLOCKING set to the publish path proper -- the code that produces and renders the published numbers -- and makes reds outside it ANNOTATE the page rather than block it. EXIT: (1) the publish-path suite is a single inspectable surface (an argv/marker factory beside publish_gate_pytest_argv, per R15 'a control's scope must be inspectable'); (2) an R15 mutation test proves a publish-path defect BLOCKS and a non-publish-path red DOES NOT; (3) the annotate path carries the open-findings count onto the page (couples to OPS7); (4) the scoping is measured against the wedge episodes on record -- state, per episode, whether this scope would have blocked or annotated.",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 1,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "OPS2_publish_gate_head_worktree"
-      ],
-      "couples_with": [
-        "H23_publish_gate_scope_marker"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1155,32 +1106,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
-      "forward_attachments": []
-    },
-    {
-      "id": "OPS8_last_known_good_staleness_banner",
-      "name": "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10. Ruling property 3: if even the scoped gate is red the site keeps serving the last verified snapshot under a dated banner ('verification paused since T; showing run R'). EXIT: (1) a red scoped gate leaves the last verified snapshot SERVED, not blanked; (2) the banner renders T and R on the live page, R11-verified by fetch; (3) R11 'no orphan transitions' -- the banner's RELEASE is tested too: a subsequent green must actually clear it, a banner that never clears is the same defect inverted; (4) an R15 mutation proves the banner CANNOT be shown while the snapshot is in fact current, and cannot be hidden while it is stale (both directions, per the fail-open doctrine).",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 2,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 1,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "OPS6_scoped_publish_path_suite"
-      ],
-      "couples_with": [
-        "OPS7_provenance_stamps_on_live_pages"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1027,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1202,8 +1129,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 49119,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1224,8 +1151,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6619,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1246,8 +1173,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2251,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1268,8 +1195,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2252,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1290,8 +1217,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6620,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1314,8 +1241,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1334,8 +1261,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6619,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1357,8 +1284,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2943,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1379,8 +1306,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1403,8 +1330,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2837,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1428,8 +1355,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 742,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1452,8 +1379,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 742,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1472,8 +1399,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1495,8 +1422,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1944,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1517,8 +1444,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1540,8 +1467,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1560,8 +1487,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 679,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1580,8 +1507,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1629,8 +1556,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1649,8 +1576,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1671,8 +1598,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 197,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1694,8 +1621,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1883,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1720,31 +1647,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1686,
-      "forward_attachments": []
-    },
-    {
-      "id": "SITE14_the_front_door_schematic_carries_the_corrected_model",
-      "name": "",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 1,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "A45_the_canon_is_a_standing_subject",
-        "SITE13_the_baseline_comparison_carries_its_bound"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1027,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1768,8 +1672,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6619,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1793,8 +1697,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 22,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1815,8 +1719,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1837,8 +1741,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 17,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1861,8 +1765,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1884,8 +1788,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 24,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1908,8 +1812,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 31,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1933,8 +1837,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 18,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1957,8 +1861,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 128,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -1981,8 +1885,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 158,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2003,8 +1907,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 16229,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2049,8 +1953,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3087,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2073,8 +1977,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2260,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2097,8 +2001,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 15,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2119,8 +2023,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 15,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2135,15 +2039,17 @@
       "loop_stage": "build",
       "dial_inherited": 90,
       "expert_hour_status": "not_attempted",
-      "depends_on": [],
+      "depends_on": [
+        "W3_3_the_network_charge_splits_per_unit_and_per_day"
+      ],
       "couples_with": [
         "B8_discovered_price_sensitivity_holdout",
         "W3_3_the_network_charge_splits_per_unit_and_per_day"
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 14,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2164,8 +2070,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 73,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2186,8 +2092,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 22,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2210,8 +2116,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2702,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2232,8 +2138,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 174,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2254,8 +2160,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 131,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2278,8 +2184,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 374,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2303,8 +2209,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 587,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2328,8 +2234,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 686,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2350,8 +2256,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1028,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -2534,8 +2440,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 63,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -3134,8 +3040,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 62,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4321,8 +4227,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4591,8 +4497,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 418,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4856,8 +4762,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4882,8 +4788,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4908,8 +4814,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4934,8 +4840,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4960,8 +4866,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -4986,8 +4892,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -5012,8 +4918,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -5038,8 +4944,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 346,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -5064,8 +4970,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -5676,8 +5582,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 5,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -6379,8 +6285,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 39,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -6401,8 +6307,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 143,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -6421,8 +6327,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 25,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -6634,8 +6540,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 286,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -6888,8 +6794,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7291,8 +7197,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2532,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7313,8 +7219,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7338,8 +7244,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2678,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7358,8 +7264,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7378,8 +7284,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 6,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7424,8 +7330,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 23,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7632,8 +7538,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7703,8 +7609,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 219,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7725,8 +7631,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 236,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7747,8 +7653,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 4,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7767,8 +7673,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 65,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7787,8 +7693,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1928,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7807,8 +7713,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1942,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7850,8 +7756,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 821,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7870,8 +7776,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7912,8 +7818,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1887,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7932,8 +7838,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1615,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7996,8 +7902,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1884,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8060,8 +7966,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 605,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8082,8 +7988,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1920,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8105,8 +8011,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 1886,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8127,8 +8033,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 25,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8147,8 +8053,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 33,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8169,8 +8075,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 33,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8191,8 +8097,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 39,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8213,8 +8119,8 @@
       "couples_with": [],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 55,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8235,8 +8141,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 196,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8257,8 +8163,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 170,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8327,8 +8233,8 @@
       ],
       "chain": null,
       "at_target": true,
-      "stalled": true,
-      "stall_consecutive_unchanged": 836,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -8347,6 +8253,102 @@
       "couples_with": [
         "B7_customer_state_layer_moves_and_shocks",
         "EP12_adapter_css_rec_switching"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS6_scoped_publish_path_suite",
+      "name": "MINTED FROM deliverable 1 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 ('THE SITE BREATHES'). NOT the same scope as H23_publish_gate_scope_marker: H23 deselects @pytest.mark.operational, which still leaves EVERY non-operational red (allowlist rows, map ratchets, lint ratchets) able to wedge the live site. This atom narrows the BLOCKING set to the publish path proper -- the code that produces and renders the published numbers -- and makes reds outside it ANNOTATE the page rather than block it. EXIT: (1) the publish-path suite is a single inspectable surface (an argv/marker factory beside publish_gate_pytest_argv, per R15 'a control's scope must be inspectable'); (2) an R15 mutation test proves a publish-path defect BLOCKS and a non-publish-path red DOES NOT; (3) the annotate path carries the open-findings count onto the page (couples to OPS7); (4) the scoping is measured against the wedge episodes on record -- state, per episode, whether this scope would have blocked or annotated.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS2_publish_gate_head_worktree"
+      ],
+      "couples_with": [
+        "H23_publish_gate_scope_marker"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "D9_worse_than_blind_chip_is_metric_blind",
+      "name": "The Proof-door coupled-gap panel renders ANY gap>1 as the red chip 'worse_than_blind' (tools/generate_proof_data.py::_coupled_gaps, mirrored in background/sanity_daemon.py and the site panel). For detection_gap that reading is valid; for misapplication_gap the D6 DISCOVER refuted it -- >1 there means the minority-class share is small, not that the company is worse than blind. The renderer must read the METRIC, not just the number, before printing a red verdict on a public surface.",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 3,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "D6_payment_ageing_gap_validity"
+      ],
+      "couples_with": [
+        "W2_9_segment_debt_tnc",
+        "W2_11_payment_behaviour_source"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "SITE14_the_front_door_schematic_carries_the_corrected_model",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "A45_the_canon_is_a_standing_subject",
+        "SITE13_the_baseline_comparison_carries_its_bound"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "OPS8_last_known_good_staleness_banner",
+      "name": "MINTED FROM deliverable 3 of the WORK THIS CREATES block in DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10. Ruling property 3: if even the scoped gate is red the site keeps serving the last verified snapshot under a dated banner ('verification paused since T; showing run R'). EXIT: (1) a red scoped gate leaves the last verified snapshot SERVED, not blanked; (2) the banner renders T and R on the live page, R11-verified by fetch; (3) R11 'no orphan transitions' -- the banner's RELEASE is tested too: a subsequent green must actually clear it, a banner that never clears is the same defect inverted; (4) an R15 mutation proves the banner CANNOT be shown while the snapshot is in fact current, and cannot be hidden while it is stale (both directions, per the fail-open doctrine).",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 2,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "OPS6_scoped_publish_path_suite"
+      ],
+      "couples_with": [
+        "OPS7_provenance_stamps_on_live_pages"
       ],
       "chain": null,
       "at_target": true,

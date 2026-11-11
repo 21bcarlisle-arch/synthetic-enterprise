@@ -16,8 +16,8 @@
   "lifetime_revenue_gbp": 28.94,
   "lifetime_gross_gbp": 19.57,
   "lifetime_net_gbp": 5.33,
-  "lifetime_net_after_cts_gbp": 2.62,
-  "cost_to_serve_gbp": 2.71,
+  "lifetime_net_after_cts_gbp": 1.43,
+  "cost_to_serve_gbp": 3.91,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
@@ -47,7 +47,7 @@
   "annual_pnl": [
     {
       "year": 2016,
-      "revenue_gbp": 0,
+      "revenue_gbp": 28.94,
       "gross_gbp": 19.57,
       "net_gbp": 5.33,
       "tariff_min": 93.48,
@@ -108,7 +108,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-013-INV22156",
+      "id": "SYN-2016-013-INV22415",
       "date": "2016-01-28",
       "period_start": "2016-01-11",
       "period_end": "2016-01-28",
@@ -165,6 +165,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -174,7 +175,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 22156,
+      "invoice_number": 22415,
       "due_date": "2016-02-15",
       "document_type": "bill"
     }
@@ -185,17 +186,17 @@
       {
         "date": "2016-02-01",
         "type": "invoice_raised",
-        "invoice_number": 22156,
+        "invoice_number": 22415,
         "amount_gbp": 30.38,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV22156 raised",
+        "description": "Invoice INV22415 raised",
         "running_balance_gbp": 30.38
       },
       {
         "date": "2016-02-15",
         "type": "payment_received",
-        "invoice_number": 22156,
+        "invoice_number": 22415,
         "amount_gbp": -30.38,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -212,6 +213,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 1,
+    "payments": 1,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2016-02-16"
   },
   "consumption": {
     "unit": "kWh",

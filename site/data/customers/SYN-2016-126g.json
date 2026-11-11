@@ -10,11 +10,11 @@
   "profile_class": null,
   "mpan": null,
   "mprn": "1421871990",
-  "lifetime_revenue_gbp": 26.41,
-  "lifetime_gross_gbp": 16.27,
-  "lifetime_net_gbp": 8.5,
-  "lifetime_net_after_cts_gbp": 5.49,
-  "cost_to_serve_gbp": 3.01,
+  "lifetime_revenue_gbp": 24.44,
+  "lifetime_gross_gbp": 15.2,
+  "lifetime_net_gbp": 8.1,
+  "lifetime_net_after_cts_gbp": 3.17,
+  "cost_to_serve_gbp": 4.93,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
@@ -30,17 +30,17 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 8.5,
-      "revenue_gbp": 26.41
+      "net_gbp": 8.1,
+      "revenue_gbp": 24.44
     }
   },
   "dual_fuel_combined": null,
   "annual_pnl": [
     {
       "year": 2016,
-      "revenue_gbp": 0,
-      "gross_gbp": 16.27,
-      "net_gbp": 8.5,
+      "revenue_gbp": 24.44,
+      "gross_gbp": 15.2,
+      "net_gbp": 8.1,
       "tariff_min": 29.0,
       "tariff_max": 29.0
     }
@@ -57,7 +57,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "SYN-2016-126g-INV28843",
+      "id": "SYN-2016-126g-INV29140",
       "date": "2016-03-31",
       "period_start": "2016-03-12",
       "period_end": "2016-03-31",
@@ -103,6 +103,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -112,7 +113,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 28843,
+      "invoice_number": 29140,
       "due_date": "2016-04-14",
       "document_type": "bill"
     }
@@ -123,17 +124,17 @@
       {
         "date": "2016-03-31",
         "type": "invoice_raised",
-        "invoice_number": 28843,
+        "invoice_number": 29140,
         "amount_gbp": 35.84,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV28843 raised",
+        "description": "Invoice INV29140 raised",
         "running_balance_gbp": 35.84
       },
       {
         "date": "2016-04-14",
         "type": "payment_received",
-        "invoice_number": 28843,
+        "invoice_number": 29140,
         "amount_gbp": -35.84,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -150,6 +151,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 1,
+    "payments": 1,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2016-04-15"
   },
   "consumption": {
     "unit": "kWh",

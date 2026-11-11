@@ -6,12 +6,12 @@
         "as_of": "2016-12",
         "by_fuel": {
           "electricity": {
-            "accounts": 1,
+            "accounts": 0,
             "closed_account_kwh": 0.0,
-            "gbp": 224.38,
+            "gbp": 0.0,
             "held_actuals": 0,
-            "held_estimates": 1,
-            "kwh": 1868.91,
+            "held_estimates": 0,
+            "kwh": 0.0,
             "older_than_12_months_kwh": 0.0
           },
           "gas": {
@@ -29,12 +29,12 @@
         "as_of": "2017-12",
         "by_fuel": {
           "electricity": {
-            "accounts": 1,
+            "accounts": 0,
             "closed_account_kwh": 0.0,
-            "gbp": 228.25,
+            "gbp": 0.0,
             "held_actuals": 0,
-            "held_estimates": 1,
-            "kwh": 2494.53,
+            "held_estimates": 0,
+            "kwh": 0.0,
             "older_than_12_months_kwh": 0.0
           },
           "gas": {
@@ -190,12 +190,12 @@
         "as_of": "2024-12",
         "by_fuel": {
           "electricity": {
-            "accounts": 1,
+            "accounts": 0,
             "closed_account_kwh": 0.0,
-            "gbp": 890.72,
+            "gbp": 0.0,
             "held_actuals": 0,
-            "held_estimates": 2,
-            "kwh": 4937.28,
+            "held_estimates": 0,
+            "kwh": 0.0,
             "older_than_12_months_kwh": 0.0
           },
           "gas": {
@@ -241,445 +241,445 @@
     "by_fuel": {
       "electricity": [
         {
-          "accounts": 417,
-          "billed_kwh": 656563.0612529498,
+          "accounts": 418,
+          "billed_kwh": 744996.4660480061,
           "by_meter_type": {
             "smart": {
               "bill_count": 386,
-              "billed_kwh": 97710.27404131084,
-              "estimated_kwh": 4850.67,
-              "estimated_share": 0.04964339776540991
+              "billed_kwh": 108681.52985542957,
+              "estimated_kwh": 5402.749999999999,
+              "estimated_share": 0.04971175881667151
             },
             "traditional": {
-              "bill_count": 2239,
-              "billed_kwh": 558852.7872116389,
-              "estimated_kwh": 391741.39239789965,
-              "estimated_share": 0.700974212462049
+              "bill_count": 2240,
+              "billed_kwh": 636314.9361925765,
+              "estimated_kwh": 466223.56321216555,
+              "estimated_share": 0.7326931000580286
             }
           },
-          "estimated_kwh": 396592.06239789963,
-          "estimated_share": 0.6040426058101176,
-          "traditional_share_of_accounts": 0.8513189448441247,
+          "estimated_kwh": 471626.31321216555,
+          "estimated_share": 0.63305845692666,
+          "traditional_share_of_accounts": 0.8516746411483254,
           "year": "2016"
         },
         {
           "accounts": 435,
-          "billed_kwh": 1190937.0989581007,
+          "billed_kwh": 1333488.210446298,
           "by_meter_type": {
             "smart": {
               "bill_count": 652,
-              "billed_kwh": 176556.40938376146,
-              "estimated_kwh": 7601.52,
-              "estimated_share": 0.04305434181931851
+              "billed_kwh": 192698.51556689132,
+              "estimated_kwh": 8073.72,
+              "estimated_share": 0.041898195096357005
             },
             "traditional": {
-              "bill_count": 3796,
-              "billed_kwh": 1014380.6895743393,
-              "estimated_kwh": 718473.0619750167,
-              "estimated_share": 0.708287400735622
+              "bill_count": 3826,
+              "billed_kwh": 1140789.6948794066,
+              "estimated_kwh": 834468.6522006441,
+              "estimated_share": 0.7314833364521725
             }
           },
-          "estimated_kwh": 726074.5819750167,
-          "estimated_share": 0.6096666084298054,
+          "estimated_kwh": 842542.3722006441,
+          "estimated_share": 0.631833386752372,
           "traditional_share_of_accounts": 0.8413793103448276,
           "year": "2017"
         },
         {
-          "accounts": 364,
-          "billed_kwh": 972366.1489274513,
+          "accounts": 369,
+          "billed_kwh": 1131355.5647741014,
           "by_meter_type": {
             "smart": {
-              "bill_count": 514,
-              "billed_kwh": 142164.06468114446,
-              "estimated_kwh": 3491.6799999999994,
-              "estimated_share": 0.024560918455950063
+              "bill_count": 529,
+              "billed_kwh": 164941.33987891738,
+              "estimated_kwh": 4187.65,
+              "estimated_share": 0.02538872306405497
             },
             "traditional": {
-              "bill_count": 3243,
-              "billed_kwh": 830202.0842463069,
-              "estimated_kwh": 598200.79148662,
-              "estimated_share": 0.7205484096437704
+              "bill_count": 3295,
+              "billed_kwh": 966414.224895184,
+              "estimated_kwh": 721651.9654090761,
+              "estimated_share": 0.746731522383526
             }
           },
-          "estimated_kwh": 601692.47148662,
-          "estimated_share": 0.6187920796608404,
-          "traditional_share_of_accounts": 0.8653846153846154,
+          "estimated_kwh": 725839.6154090761,
+          "estimated_share": 0.6415663103703433,
+          "traditional_share_of_accounts": 0.8672086720867209,
           "year": "2018"
         },
         {
-          "accounts": 317,
-          "billed_kwh": 820525.0345599855,
+          "accounts": 328,
+          "billed_kwh": 972895.5282367173,
           "by_meter_type": {
             "smart": {
-              "bill_count": 483,
-              "billed_kwh": 127067.991555816,
-              "estimated_kwh": 2452.35,
-              "estimated_share": 0.019299510206886198
+              "bill_count": 501,
+              "billed_kwh": 149737.31783226147,
+              "estimated_kwh": 2571.49,
+              "estimated_share": 0.017173340869379206
             },
             "traditional": {
-              "bill_count": 2729,
-              "billed_kwh": 693457.0430041695,
-              "estimated_kwh": 495339.1969290519,
-              "estimated_share": 0.7143040826049749
+              "bill_count": 2784,
+              "billed_kwh": 823158.2104044559,
+              "estimated_kwh": 599730.8664830235,
+              "estimated_share": 0.7285730238763553
             }
           },
-          "estimated_kwh": 497791.54692905187,
-          "estimated_share": 0.6066744169432897,
-          "traditional_share_of_accounts": 0.8454258675078864,
+          "estimated_kwh": 602302.3564830235,
+          "estimated_share": 0.6190822539544821,
+          "traditional_share_of_accounts": 0.8445121951219512,
           "year": "2019"
         },
         {
-          "accounts": 282,
-          "billed_kwh": 750834.7278696564,
+          "accounts": 286,
+          "billed_kwh": 881249.3805045274,
           "by_meter_type": {
             "smart": {
-              "bill_count": 462,
-              "billed_kwh": 126166.95640823936,
-              "estimated_kwh": 6034.55,
-              "estimated_share": 0.047829876948715176
+              "bill_count": 474,
+              "billed_kwh": 137496.974650108,
+              "estimated_kwh": 5202.75,
+              "estimated_share": 0.03783901437278579
             },
             "traditional": {
-              "bill_count": 2423,
-              "billed_kwh": 624667.7714614171,
-              "estimated_kwh": 453073.78600226704,
-              "estimated_share": 0.7253036040938945
+              "bill_count": 2472,
+              "billed_kwh": 743752.4058544193,
+              "estimated_kwh": 542875.3613967883,
+              "estimated_share": 0.7299140911996588
             }
           },
-          "estimated_kwh": 459108.336002267,
-          "estimated_share": 0.611463906717388,
-          "traditional_share_of_accounts": 0.8333333333333334,
+          "estimated_kwh": 548078.1113967883,
+          "estimated_share": 0.62193304587971,
+          "traditional_share_of_accounts": 0.8321678321678322,
           "year": "2020"
         },
         {
-          "accounts": 253,
-          "billed_kwh": 699268.0631455649,
+          "accounts": 258,
+          "billed_kwh": 819342.4728094685,
           "by_meter_type": {
             "smart": {
-              "bill_count": 399,
-              "billed_kwh": 118901.41295248049,
-              "estimated_kwh": 5556.6100000000015,
-              "estimated_share": 0.04673291815481391
+              "bill_count": 411,
+              "billed_kwh": 124583.05401958975,
+              "estimated_kwh": 4864.470000000001,
+              "estimated_share": 0.039046000583956623
             },
             "traditional": {
-              "bill_count": 2254,
-              "billed_kwh": 580366.6501930844,
-              "estimated_kwh": 400428.383185583,
-              "estimated_share": 0.6899576036155126
+              "bill_count": 2316,
+              "billed_kwh": 694759.4187898787,
+              "estimated_kwh": 496083.7706211113,
+              "estimated_share": 0.7140367689943411
             }
           },
-          "estimated_kwh": 405984.993185583,
-          "estimated_share": 0.5805856360139103,
-          "traditional_share_of_accounts": 0.841897233201581,
+          "estimated_kwh": 500948.24062111136,
+          "estimated_share": 0.6114027494551754,
+          "traditional_share_of_accounts": 0.8410852713178295,
           "year": "2021"
         },
         {
-          "accounts": 232,
-          "billed_kwh": 684919.8382815972,
+          "accounts": 238,
+          "billed_kwh": 800079.4263400442,
           "by_meter_type": {
             "smart": {
-              "bill_count": 425,
-              "billed_kwh": 121519.70861906014,
-              "estimated_kwh": 3326.1099999999997,
-              "estimated_share": 0.02737095108108501
+              "bill_count": 437,
+              "billed_kwh": 131477.1996353872,
+              "estimated_kwh": 2188.13,
+              "estimated_share": 0.016642657480294122
             },
             "traditional": {
-              "bill_count": 2192,
-              "billed_kwh": 563400.1296625371,
-              "estimated_kwh": 406466.44951667887,
-              "estimated_share": 0.7214525310104957
+              "bill_count": 2241,
+              "billed_kwh": 668602.2267046571,
+              "estimated_kwh": 495240.01758253505,
+              "estimated_share": 0.7407094948268821
             }
           },
-          "estimated_kwh": 409792.55951667886,
-          "estimated_share": 0.5983073297231568,
-          "traditional_share_of_accounts": 0.8189655172413793,
+          "estimated_kwh": 497428.14758253505,
+          "estimated_share": 0.6217234579546875,
+          "traditional_share_of_accounts": 0.819327731092437,
           "year": "2022"
         },
         {
-          "accounts": 247,
-          "billed_kwh": 710957.8085385648,
+          "accounts": 252,
+          "billed_kwh": 809434.3349504073,
           "by_meter_type": {
             "smart": {
-              "bill_count": 516,
-              "billed_kwh": 162453.70160921512,
-              "estimated_kwh": 10423.252774933064,
-              "estimated_share": 0.06416137442042631
+              "bill_count": 528,
+              "billed_kwh": 162714.2456764588,
+              "estimated_kwh": 8417.139203119112,
+              "estimated_share": 0.0517295776293353
             },
             "traditional": {
-              "bill_count": 2187,
-              "billed_kwh": 548504.1069293497,
-              "estimated_kwh": 394998.7807834896,
-              "estimated_share": 0.7201382374232023
+              "bill_count": 2244,
+              "billed_kwh": 646720.0892739485,
+              "estimated_kwh": 471987.76364012575,
+              "estimated_share": 0.7298176931074014
             }
           },
-          "estimated_kwh": 405422.03355842264,
-          "estimated_share": 0.5702476696778992,
-          "traditional_share_of_accounts": 0.7854251012145749,
+          "estimated_kwh": 480404.90284324484,
+          "estimated_share": 0.5935069493594912,
+          "traditional_share_of_accounts": 0.7857142857142857,
           "year": "2023"
         },
         {
-          "accounts": 264,
-          "billed_kwh": 743348.5255233374,
+          "accounts": 272,
+          "billed_kwh": 849549.8570045634,
           "by_meter_type": {
             "smart": {
-              "bill_count": 635,
-              "billed_kwh": 191496.7655764106,
-              "estimated_kwh": 7133.42,
-              "estimated_share": 0.037250864151821085
+              "bill_count": 647,
+              "billed_kwh": 190187.61361003958,
+              "estimated_kwh": 7110.56,
+              "estimated_share": 0.037387082497283355
             },
             "traditional": {
-              "bill_count": 2140,
-              "billed_kwh": 551851.7599469268,
-              "estimated_kwh": 398800.22242328146,
-              "estimated_share": 0.7226582415205764
+              "bill_count": 2206,
+              "billed_kwh": 659362.2433945239,
+              "estimated_kwh": 478295.8032384342,
+              "estimated_share": 0.7253915552945149
             }
           },
-          "estimated_kwh": 405933.64242328145,
-          "estimated_share": 0.5460879096215241,
-          "traditional_share_of_accounts": 0.7537878787878788,
+          "estimated_kwh": 485406.3632384342,
+          "estimated_share": 0.5713688952287432,
+          "traditional_share_of_accounts": 0.7573529411764706,
           "year": "2024"
         },
         {
-          "accounts": 249,
-          "billed_kwh": 339889.31759295723,
+          "accounts": 257,
+          "billed_kwh": 401799.3852463744,
           "by_meter_type": {
             "smart": {
-              "bill_count": 367,
-              "billed_kwh": 87457.1205676099,
-              "estimated_kwh": 3487.7399999999993,
-              "estimated_share": 0.039879428654454215
+              "bill_count": 379,
+              "billed_kwh": 103223.10481846539,
+              "estimated_kwh": 3252.99,
+              "estimated_share": 0.03151416541597844
             },
             "traditional": {
-              "bill_count": 1041,
-              "billed_kwh": 252432.19702534733,
-              "estimated_kwh": 175480.88719799469,
-              "estimated_share": 0.6951604797876644
+              "bill_count": 1079,
+              "billed_kwh": 298576.28042790905,
+              "estimated_kwh": 206671.08210596826,
+              "estimated_share": 0.6921885482991968
             }
           },
-          "estimated_kwh": 178968.62719799468,
-          "estimated_share": 0.5265497264386606,
-          "traditional_share_of_accounts": 0.7349397590361446,
+          "estimated_kwh": 209924.07210596825,
+          "estimated_share": 0.522459913613973,
+          "traditional_share_of_accounts": 0.7354085603112841,
           "year": "2025"
         }
       ],
       "gas": [
         {
           "accounts": 347,
-          "billed_kwh": 1556990.9536999995,
+          "billed_kwh": 1559478.1577999992,
           "by_meter_type": {
             "smart": {
               "bill_count": 314,
-              "billed_kwh": 245911.82319999998,
+              "billed_kwh": 246678.5556999999,
               "estimated_kwh": 27763.109999999997,
-              "estimated_share": 0.11289863837665207
+              "estimated_share": 0.11254772398523495
             },
             "traditional": {
               "bill_count": 1829,
-              "billed_kwh": 1311079.1304999995,
-              "estimated_kwh": 872332.6799999996,
-              "estimated_share": 0.6653547140723097
+              "billed_kwh": 1312799.6020999993,
+              "estimated_kwh": 874933.2899999995,
+              "estimated_share": 0.6664637074846962
             }
           },
-          "estimated_kwh": 900095.7899999996,
-          "estimated_share": 0.57809956304565,
+          "estimated_kwh": 902696.3999999994,
+          "estimated_share": 0.5788451704084521,
           "traditional_share_of_accounts": 0.8472622478386167,
           "year": "2016"
         },
         {
           "accounts": 356,
-          "billed_kwh": 3121359.1208999977,
+          "billed_kwh": 3085557.3242000015,
           "by_meter_type": {
             "smart": {
               "bill_count": 562,
-              "billed_kwh": 504241.05349999946,
-              "estimated_kwh": 48796.119999999995,
-              "estimated_share": 0.09677141450760524
+              "billed_kwh": 495246.6762999999,
+              "estimated_kwh": 48940.01999999999,
+              "estimated_share": 0.0988194819713523
             },
             "traditional": {
-              "bill_count": 3093,
-              "billed_kwh": 2617118.067399998,
-              "estimated_kwh": 1870816.9900000026,
-              "estimated_share": 0.7148385903195358
+              "bill_count": 3116,
+              "billed_kwh": 2590310.6479000016,
+              "estimated_kwh": 1866729.5399999998,
+              "estimated_share": 0.7206585594331636
             }
           },
-          "estimated_kwh": 1919613.1100000027,
-          "estimated_share": 0.6149927117154371,
+          "estimated_kwh": 1915669.5599999998,
+          "estimated_share": 0.6208504197849182,
           "traditional_share_of_accounts": 0.8342696629213483,
           "year": "2017"
         },
         {
-          "accounts": 299,
-          "billed_kwh": 2661121.0624999986,
+          "accounts": 303,
+          "billed_kwh": 2665721.1423000097,
           "by_meter_type": {
             "smart": {
-              "bill_count": 433,
-              "billed_kwh": 405150.17339999985,
-              "estimated_kwh": 40901.74,
-              "estimated_share": 0.10095451683200492
+              "bill_count": 448,
+              "billed_kwh": 414509.36779999995,
+              "estimated_kwh": 40115.45999999999,
+              "estimated_share": 0.09677817467168952
             },
             "traditional": {
-              "bill_count": 2623,
-              "billed_kwh": 2255970.889099999,
-              "estimated_kwh": 1595315.5399999998,
-              "estimated_share": 0.7071525380526688
+              "bill_count": 2671,
+              "billed_kwh": 2251211.7745000096,
+              "estimated_kwh": 1596618.3299999994,
+              "estimated_share": 0.7092261812439239
             }
           },
-          "estimated_kwh": 1636217.2799999998,
-          "estimated_share": 0.6148601441164238,
-          "traditional_share_of_accounts": 0.8595317725752508,
+          "estimated_kwh": 1636733.7899999993,
+          "estimated_share": 0.6139928757093511,
+          "traditional_share_of_accounts": 0.8613861386138614,
           "year": "2018"
         },
         {
-          "accounts": 255,
-          "billed_kwh": 2286665.8945,
+          "accounts": 265,
+          "billed_kwh": 2310152.186300001,
           "by_meter_type": {
             "smart": {
-              "bill_count": 411,
-              "billed_kwh": 370057.2422000001,
-              "estimated_kwh": 27632.66,
-              "estimated_share": 0.07467131256700478
+              "bill_count": 429,
+              "billed_kwh": 389377.42990000034,
+              "estimated_kwh": 26741.07,
+              "estimated_share": 0.0686764767204602
             },
             "traditional": {
-              "bill_count": 2218,
-              "billed_kwh": 1916608.6523,
-              "estimated_kwh": 1338969.9199999992,
-              "estimated_share": 0.6986141476472971
+              "bill_count": 2277,
+              "billed_kwh": 1920774.7564000005,
+              "estimated_kwh": 1349345.4600000004,
+              "estimated_share": 0.7025006214310117
             }
           },
-          "estimated_kwh": 1366602.5799999991,
-          "estimated_share": 0.5976398140572342,
-          "traditional_share_of_accounts": 0.8431372549019608,
+          "estimated_kwh": 1376086.5300000005,
+          "estimated_share": 0.5956692109553077,
+          "traditional_share_of_accounts": 0.8415094339622642,
           "year": "2019"
         },
         {
-          "accounts": 229,
-          "billed_kwh": 2025287.349299999,
+          "accounts": 233,
+          "billed_kwh": 2002997.3625999978,
           "by_meter_type": {
             "smart": {
-              "bill_count": 363,
-              "billed_kwh": 313677.1590000001,
-              "estimated_kwh": 16267.630000000001,
-              "estimated_share": 0.051861060116270674
+              "bill_count": 375,
+              "billed_kwh": 316896.02410000004,
+              "estimated_kwh": 17194.13,
+              "estimated_share": 0.054257954320607704
             },
             "traditional": {
-              "bill_count": 1962,
-              "billed_kwh": 1711610.190299999,
-              "estimated_kwh": 1207627.9899999984,
-              "estimated_share": 0.7055508297647689
+              "bill_count": 2012,
+              "billed_kwh": 1686101.3384999977,
+              "estimated_kwh": 1197550.8999999983,
+              "estimated_share": 0.7102484724111379
             }
           },
-          "estimated_kwh": 1223895.6199999982,
-          "estimated_share": 0.604307147044104,
-          "traditional_share_of_accounts": 0.8296943231441049,
+          "estimated_kwh": 1214745.0299999982,
+          "estimated_share": 0.6064636193146027,
+          "traditional_share_of_accounts": 0.8283261802575107,
           "year": "2020"
         },
         {
-          "accounts": 204,
-          "billed_kwh": 1885287.8355999999,
+          "accounts": 209,
+          "billed_kwh": 1894581.879600002,
           "by_meter_type": {
             "smart": {
-              "bill_count": 315,
-              "billed_kwh": 282870.01210000005,
-              "estimated_kwh": 29393.849999999995,
-              "estimated_share": 0.10391292375527136
+              "bill_count": 327,
+              "billed_kwh": 293968.24589999986,
+              "estimated_kwh": 29299.309999999994,
+              "estimated_share": 0.09966828189316351
             },
             "traditional": {
-              "bill_count": 1817,
-              "billed_kwh": 1602417.8235,
-              "estimated_kwh": 1101308.3799999997,
-              "estimated_share": 0.687279162680881
+              "bill_count": 1863,
+              "billed_kwh": 1600613.6337000022,
+              "estimated_kwh": 1096958.679999999,
+              "estimated_share": 0.6853363340809818
             }
           },
-          "estimated_kwh": 1130702.2299999997,
-          "estimated_share": 0.5997504511772068,
-          "traditional_share_of_accounts": 0.8382352941176471,
+          "estimated_kwh": 1126257.989999999,
+          "estimated_share": 0.5944625577427052,
+          "traditional_share_of_accounts": 0.8373205741626795,
           "year": "2021"
         },
         {
-          "accounts": 192,
-          "billed_kwh": 1857895.9298000047,
+          "accounts": 197,
+          "billed_kwh": 1827624.289100001,
           "by_meter_type": {
             "smart": {
-              "bill_count": 340,
-              "billed_kwh": 305018.2422000002,
-              "estimated_kwh": 38847.69000000001,
-              "estimated_share": 0.12736185783448195
+              "bill_count": 352,
+              "billed_kwh": 306976.87020000006,
+              "estimated_kwh": 39530.44000000002,
+              "estimated_share": 0.1287733501688428
             },
             "traditional": {
-              "bill_count": 1797,
-              "billed_kwh": 1552877.6876000045,
-              "estimated_kwh": 1038871.3400000003,
-              "estimated_share": 0.6689975316765555
+              "bill_count": 1845,
+              "billed_kwh": 1520647.418900001,
+              "estimated_kwh": 1029374.3500000015,
+              "estimated_share": 0.6769316392518034
             }
           },
-          "estimated_kwh": 1077719.0300000003,
-          "estimated_share": 0.5800750261162435,
-          "traditional_share_of_accounts": 0.8229166666666666,
+          "estimated_kwh": 1068904.7900000014,
+          "estimated_share": 0.5848602452785168,
+          "traditional_share_of_accounts": 0.8223350253807107,
           "year": "2022"
         },
         {
-          "accounts": 205,
-          "billed_kwh": 1924090.796200001,
+          "accounts": 210,
+          "billed_kwh": 1860898.236099999,
           "by_meter_type": {
             "smart": {
-              "bill_count": 416,
-              "billed_kwh": 375863.0160000005,
-              "estimated_kwh": 48752.64000000001,
-              "estimated_share": 0.12970853189769524
+              "bill_count": 428,
+              "billed_kwh": 370664.3706000001,
+              "estimated_kwh": 48170.93000000001,
+              "estimated_share": 0.12995834998121072
             },
             "traditional": {
-              "bill_count": 1801,
-              "billed_kwh": 1548227.7802000004,
-              "estimated_kwh": 1099751.5900000017,
-              "estimated_share": 0.7103293223804159
+              "bill_count": 1858,
+              "billed_kwh": 1490233.865499999,
+              "estimated_kwh": 1063782.8800000004,
+              "estimated_share": 0.7138362002282662
             }
           },
-          "estimated_kwh": 1148504.2300000016,
-          "estimated_share": 0.5969075015941293,
-          "traditional_share_of_accounts": 0.7902439024390244,
+          "estimated_kwh": 1111953.8100000003,
+          "estimated_share": 0.5975360653414298,
+          "traditional_share_of_accounts": 0.7904761904761904,
           "year": "2023"
         },
         {
-          "accounts": 219,
-          "billed_kwh": 1943982.0463000014,
+          "accounts": 227,
+          "billed_kwh": 1875425.7449999992,
           "by_meter_type": {
             "smart": {
-              "bill_count": 518,
-              "billed_kwh": 443989.3790000001,
-              "estimated_kwh": 66405.54,
-              "estimated_share": 0.149565604811461
+              "bill_count": 530,
+              "billed_kwh": 430560.7681999998,
+              "estimated_kwh": 68123.99000000002,
+              "estimated_share": 0.15822154509060088
             },
             "traditional": {
-              "bill_count": 1764,
-              "billed_kwh": 1499992.6673000013,
-              "estimated_kwh": 1042646.8900000007,
-              "estimated_share": 0.695101324646322
+              "bill_count": 1827,
+              "billed_kwh": 1444864.9767999994,
+              "estimated_kwh": 1016193.6000000003,
+              "estimated_share": 0.7033138849075055
             }
           },
-          "estimated_kwh": 1109052.4300000006,
-          "estimated_share": 0.5705054900640004,
-          "traditional_share_of_accounts": 0.7488584474885844,
+          "estimated_kwh": 1084317.5900000003,
+          "estimated_share": 0.5781714327484615,
+          "traditional_share_of_accounts": 0.7533039647577092,
           "year": "2024"
         },
         {
-          "accounts": 204,
-          "billed_kwh": 1092576.0587999988,
+          "accounts": 211,
+          "billed_kwh": 1065559.188700001,
           "by_meter_type": {
             "smart": {
-              "bill_count": 310,
-              "billed_kwh": 272633.9526999998,
-              "estimated_kwh": 27638.829999999998,
-              "estimated_share": 0.10137706520512924
+              "bill_count": 316,
+              "billed_kwh": 264651.5649999999,
+              "estimated_kwh": 28263.890000000007,
+              "estimated_share": 0.10679661010128551
             },
             "traditional": {
-              "bill_count": 859,
-              "billed_kwh": 819942.1060999992,
-              "estimated_kwh": 570417.9800000004,
-              "estimated_share": 0.6956807996032258
+              "bill_count": 895,
+              "billed_kwh": 800907.623700001,
+              "estimated_kwh": 562474.6600000003,
+              "estimated_share": 0.7022965487598961
             }
           },
-          "estimated_kwh": 598056.8100000004,
-          "estimated_share": 0.5473823128221021,
-          "traditional_share_of_accounts": 0.7254901960784313,
+          "estimated_kwh": 590738.5500000003,
+          "estimated_share": 0.5543929950251855,
+          "traditional_share_of_accounts": 0.7298578199052133,
           "year": "2025"
         }
       ]
@@ -695,326 +695,326 @@
       "K1_year_end_grades": [
         {
           "as_of": "2016-12",
-          "closed_on_estimated_final_gbp": 1380.4210772789988,
+          "closed_on_estimated_final_gbp": 1467.1333456065083,
           "closed_on_estimated_final_runs": 12,
-          "graded_gross_true_up_share": 0.10170846020228208,
+          "graded_gross_true_up_share": 0.05967739855222279,
           "graded_largest_run_account": "SYN-2016-042",
-          "graded_largest_run_share_of_net": 0.1944202437598331,
-          "graded_net_true_up_share": 0.04972647609977756,
-          "graded_net_true_up_share_without_largest_run": 0.041081540431805195,
-          "graded_runs": 211,
+          "graded_largest_run_share_of_net": 0.3381698756268817,
+          "graded_net_true_up_share": 0.022425584598681252,
+          "graded_net_true_up_share_without_largest_run": 0.015137586887856463,
+          "graded_runs": 212,
           "never_read_runs": 26,
-          "outstanding_bills": 811,
-          "outstanding_gbp": 30981.650087131886
+          "outstanding_bills": 812,
+          "outstanding_gbp": 37405.93118850822
         },
         {
           "as_of": "2017-12",
-          "closed_on_estimated_final_gbp": 17373.159701272285,
-          "closed_on_estimated_final_runs": 77,
-          "graded_gross_true_up_share": 0.07192914055839393,
-          "graded_largest_run_account": "PROS-2017-0233",
-          "graded_largest_run_share_of_net": 0.6193459800045654,
-          "graded_net_true_up_share": 0.027097199805017427,
-          "graded_net_true_up_share_without_largest_run": 0.010522699628129614,
-          "graded_runs": 177,
-          "never_read_runs": 23,
-          "outstanding_bills": 921,
-          "outstanding_gbp": 36996.93831208177
+          "closed_on_estimated_final_gbp": 17158.227734479347,
+          "closed_on_estimated_final_runs": 74,
+          "graded_gross_true_up_share": 0.06979734799068223,
+          "graded_largest_run_account": "SYN-2016-255",
+          "graded_largest_run_share_of_net": 0.19351590971206797,
+          "graded_net_true_up_share": 0.041530968744225086,
+          "graded_net_true_up_share_without_largest_run": 0.03368375682771542,
+          "graded_runs": 181,
+          "never_read_runs": 24,
+          "outstanding_bills": 937,
+          "outstanding_gbp": 46530.65616343213
         },
         {
           "as_of": "2018-12",
-          "closed_on_estimated_final_gbp": 29309.410384249262,
-          "closed_on_estimated_final_runs": 127,
-          "graded_gross_true_up_share": 0.06197275688934065,
-          "graded_largest_run_account": "PROS-2017-0233",
-          "graded_largest_run_share_of_net": 1.0448379986146876,
-          "graded_net_true_up_share": 0.017249133442512807,
-          "graded_net_true_up_share_without_largest_run": -0.0007901936495533223,
-          "graded_runs": 161,
-          "never_read_runs": 16,
-          "outstanding_bills": 959,
-          "outstanding_gbp": 38763.66762500503
+          "closed_on_estimated_final_gbp": 29131.838326464007,
+          "closed_on_estimated_final_runs": 124,
+          "graded_gross_true_up_share": 0.06395261456777171,
+          "graded_largest_run_account": "SYN-2016-355",
+          "graded_largest_run_share_of_net": 0.26560053255758315,
+          "graded_net_true_up_share": 0.022794161629036577,
+          "graded_net_true_up_share_without_largest_run": 0.017072141979401486,
+          "graded_runs": 162,
+          "never_read_runs": 18,
+          "outstanding_bills": 986,
+          "outstanding_gbp": 51806.13971079391
         },
         {
           "as_of": "2019-12",
-          "closed_on_estimated_final_gbp": 39696.41460297022,
-          "closed_on_estimated_final_runs": 177,
-          "graded_gross_true_up_share": 0.04016871959382657,
-          "graded_largest_run_account": "SYN-2016-565",
-          "graded_largest_run_share_of_net": 0.553621003454501,
-          "graded_net_true_up_share": 0.007121855988552957,
-          "graded_net_true_up_share_without_largest_run": 0.0032450360380440837,
-          "graded_runs": 140,
-          "never_read_runs": 11,
-          "outstanding_bills": 763,
-          "outstanding_gbp": 37568.35452585427
+          "closed_on_estimated_final_gbp": 41071.525504118275,
+          "closed_on_estimated_final_runs": 178,
+          "graded_gross_true_up_share": 0.04785429910640992,
+          "graded_largest_run_account": "PROS-2019-0063",
+          "graded_largest_run_share_of_net": 35.47224113960436,
+          "graded_net_true_up_share": -0.00014001304769164694,
+          "graded_net_true_up_share_without_largest_run": 0.0049501878229012055,
+          "graded_runs": 143,
+          "never_read_runs": 10,
+          "outstanding_bills": 782,
+          "outstanding_gbp": 47905.307873801015
         },
         {
           "as_of": "2020-12",
-          "closed_on_estimated_final_gbp": 49834.59411304549,
-          "closed_on_estimated_final_runs": 209,
-          "graded_gross_true_up_share": 0.06590367134455903,
-          "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.6438411305256213,
-          "graded_net_true_up_share": 0.02257137819649998,
-          "graded_net_true_up_share_without_largest_run": 0.008632373678903023,
-          "graded_runs": 122,
-          "never_read_runs": 8,
-          "outstanding_bills": 705,
-          "outstanding_gbp": 35858.796788999105
+          "closed_on_estimated_final_gbp": 52022.431639343515,
+          "closed_on_estimated_final_runs": 210,
+          "graded_gross_true_up_share": 0.09443459828884797,
+          "graded_largest_run_account": "OCC-c2c2a33d47d7",
+          "graded_largest_run_share_of_net": 0.2550742746825077,
+          "graded_net_true_up_share": 0.05693772432470879,
+          "graded_net_true_up_share_without_largest_run": 0.04318703194305117,
+          "graded_runs": 127,
+          "never_read_runs": 7,
+          "outstanding_bills": 743,
+          "outstanding_gbp": 44455.80060765745
         },
         {
           "as_of": "2021-12",
-          "closed_on_estimated_final_gbp": 55359.835609900736,
-          "closed_on_estimated_final_runs": 229,
-          "graded_gross_true_up_share": 0.06703959244539381,
+          "closed_on_estimated_final_gbp": 57589.16437363803,
+          "closed_on_estimated_final_runs": 230,
+          "graded_gross_true_up_share": 0.07933514241690087,
           "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.8063455749405002,
-          "graded_net_true_up_share": -0.028388242702985938,
-          "graded_net_true_up_share_without_largest_run": -0.006477207066950998,
-          "graded_runs": 128,
+          "graded_largest_run_share_of_net": 0.5048542260483,
+          "graded_net_true_up_share": -0.02939840050117039,
+          "graded_net_true_up_share_without_largest_run": -0.016160973570317837,
+          "graded_runs": 133,
           "never_read_runs": 1,
-          "outstanding_bills": 646,
-          "outstanding_gbp": 36069.34850830589
+          "outstanding_bills": 689,
+          "outstanding_gbp": 50838.16870784602
         },
         {
           "as_of": "2022-12",
-          "closed_on_estimated_final_gbp": 56694.42956190074,
-          "closed_on_estimated_final_runs": 235,
-          "graded_gross_true_up_share": 0.08516173113970672,
+          "closed_on_estimated_final_gbp": 59677.11427876303,
+          "closed_on_estimated_final_runs": 237,
+          "graded_gross_true_up_share": 0.08715237237128855,
           "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.41597079089163597,
-          "graded_net_true_up_share": -0.053389565303020116,
-          "graded_net_true_up_share_without_largest_run": -0.03654367658000701,
-          "graded_runs": 131,
+          "graded_largest_run_share_of_net": 0.9954494396649077,
+          "graded_net_true_up_share": -0.015994013867244836,
+          "graded_net_true_up_share_without_largest_run": -8.145697488618964e-05,
+          "graded_runs": 135,
           "never_read_runs": 1,
-          "outstanding_bills": 643,
-          "outstanding_gbp": 61787.55546265903
+          "outstanding_bills": 649,
+          "outstanding_gbp": 75581.84571914154
         },
         {
           "as_of": "2023-12",
-          "closed_on_estimated_final_gbp": 59807.54920733824,
-          "closed_on_estimated_final_runs": 245,
-          "graded_gross_true_up_share": 0.0727746186415428,
+          "closed_on_estimated_final_gbp": 63045.347139325524,
+          "closed_on_estimated_final_runs": 246,
+          "graded_gross_true_up_share": 0.07348285962297994,
           "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": -1.7017017811162791,
-          "graded_net_true_up_share": -0.010488078443053989,
-          "graded_net_true_up_share_without_largest_run": -0.02939719980500408,
-          "graded_runs": 126,
+          "graded_largest_run_share_of_net": 0.9925599637200947,
+          "graded_net_true_up_share": 0.012016952104741359,
+          "graded_net_true_up_share_without_largest_run": 9.181485599137034e-05,
+          "graded_runs": 130,
           "never_read_runs": 5,
-          "outstanding_bills": 633,
-          "outstanding_gbp": 60631.31913898715
+          "outstanding_bills": 645,
+          "outstanding_gbp": 71809.71244156972
         },
         {
           "as_of": "2024-12",
-          "closed_on_estimated_final_gbp": 63280.6030904217,
-          "closed_on_estimated_final_runs": 260,
-          "graded_gross_true_up_share": 0.09213105035599461,
-          "graded_largest_run_account": "PROS-2017-0336",
-          "graded_largest_run_share_of_net": 0.8610928909408988,
-          "graded_net_true_up_share": 0.028432757279399718,
-          "graded_net_true_up_share_without_largest_run": 0.004428767279130374,
-          "graded_runs": 90,
-          "never_read_runs": 42,
-          "outstanding_bills": 582,
-          "outstanding_gbp": 44642.307264886076
+          "closed_on_estimated_final_gbp": 66886.17866848795,
+          "closed_on_estimated_final_runs": 262,
+          "graded_gross_true_up_share": 0.08971670932667278,
+          "graded_largest_run_account": "OCC-14d60fd5bb78",
+          "graded_largest_run_share_of_net": 0.4054548791898466,
+          "graded_net_true_up_share": 0.038705925183303735,
+          "graded_net_true_up_share_without_largest_run": 0.023401878750331895,
+          "graded_runs": 96,
+          "never_read_runs": 39,
+          "outstanding_bills": 601,
+          "outstanding_gbp": 52742.972668873226
         }
       ],
-      "K2_estimated_share_of_billed_kwh": 0.592812717852699,
-      "K3_barred_share_of_undercharge_kwh": 0.004581242263187854,
-      "accounts": 707,
-      "barred_kwh": 915.530355144173,
-      "barred_true_ups": 21,
-      "billed_kwh": 7569609.624650164,
-      "closed_on_estimated_final_kwh": 371740.24875151674,
-      "estimated_kwh": 4487360.854672812,
-      "open_estimated_kwh": 127343.876540494,
-      "overcharge_kwh": 140402.5601083608,
+      "K2_estimated_share_of_billed_kwh": 0.6134930863607897,
+      "K3_barred_share_of_undercharge_kwh": 0.007202975029203807,
+      "accounts": 712,
+      "barred_kwh": 1590.8109545996724,
+      "barred_true_ups": 34,
+      "billed_kwh": 8744190.626360497,
+      "closed_on_estimated_final_kwh": 375796.7413587907,
+      "estimated_kwh": 5364500.495092988,
+      "open_estimated_kwh": 128466.8700550455,
+      "overcharge_kwh": 238547.97980622883,
       "snapshot": {
-        "accounts": 199,
+        "accounts": 205,
         "against_published": "cannot_be_told_apart_from_the_median_supplier",
         "ci95": [
-          0.03482802460273924,
-          0.10242921578019934
+          0.030222961253833683,
+          0.0935142460024329
         ],
-        "no_read_bill_in_12": 12,
-        "share": 0.06030150753768844
+        "no_read_bill_in_12": 11,
+        "share": 0.05365853658536585
       },
-      "true_ups": 3497,
-      "undercharge_kwh": 199843.25266987778
+      "true_ups": 3581,
+      "undercharge_kwh": 220854.70908199376
     },
     "gas": {
       "K1_year_end_grades": [
         {
           "as_of": "2016-12",
-          "closed_on_estimated_final_gbp": 753.4376751216671,
+          "closed_on_estimated_final_gbp": 755.0157291854325,
           "closed_on_estimated_final_runs": 13,
-          "graded_gross_true_up_share": 0.174848250229785,
+          "graded_gross_true_up_share": 0.16962606248359785,
           "graded_largest_run_account": "SYN-2016-469g",
-          "graded_largest_run_share_of_net": 0.24890489484130549,
-          "graded_net_true_up_share": 0.07662567362038755,
-          "graded_net_true_up_share_without_largest_run": 0.05889097532917103,
-          "graded_runs": 175,
-          "never_read_runs": 14,
+          "graded_largest_run_share_of_net": 0.7637386061237857,
+          "graded_net_true_up_share": 0.02689973489626608,
+          "graded_net_true_up_share_without_largest_run": 0.006499884039062039,
+          "graded_runs": 176,
+          "never_read_runs": 13,
           "outstanding_bills": 644,
-          "outstanding_gbp": 20038.96690077491
+          "outstanding_gbp": 20071.687091750853
         },
         {
           "as_of": "2017-12",
-          "closed_on_estimated_final_gbp": 7082.966368165036,
-          "closed_on_estimated_final_runs": 61,
-          "graded_gross_true_up_share": 0.0891609817691931,
+          "closed_on_estimated_final_gbp": 6770.174294596623,
+          "closed_on_estimated_final_runs": 58,
+          "graded_gross_true_up_share": 0.09261606692035133,
           "graded_largest_run_account": "SYN-2016-469g",
-          "graded_largest_run_share_of_net": 0.8115752720782717,
-          "graded_net_true_up_share": 0.024012946716230558,
-          "graded_net_true_up_share_without_largest_run": 0.00463215418204041,
-          "graded_runs": 153,
-          "never_read_runs": 17,
-          "outstanding_bills": 730,
-          "outstanding_gbp": 22996.763875716566
+          "graded_largest_run_share_of_net": 0.6790329616003175,
+          "graded_net_true_up_share": 0.030712188580735322,
+          "graded_net_true_up_share_without_largest_run": 0.010085215759134195,
+          "graded_runs": 157,
+          "never_read_runs": 15,
+          "outstanding_bills": 752,
+          "outstanding_gbp": 28311.006583680854
         },
         {
           "as_of": "2018-12",
-          "closed_on_estimated_final_gbp": 15813.633498437293,
-          "closed_on_estimated_final_runs": 106,
-          "graded_gross_true_up_share": 0.06563977388324885,
-          "graded_largest_run_account": "PROS-2018-0288",
-          "graded_largest_run_share_of_net": -0.08577712398006906,
-          "graded_net_true_up_share": -0.033192667867361,
-          "graded_net_true_up_share_without_largest_run": -0.03646411902475956,
-          "graded_runs": 135,
-          "never_read_runs": 10,
-          "outstanding_bills": 726,
-          "outstanding_gbp": 28986.45730222388
+          "closed_on_estimated_final_gbp": 15420.062080809414,
+          "closed_on_estimated_final_runs": 102,
+          "graded_gross_true_up_share": 0.08688855894005496,
+          "graded_largest_run_account": "SYN-2016-444g",
+          "graded_largest_run_share_of_net": 0.05105284959070835,
+          "graded_net_true_up_share": -0.060356149346826496,
+          "graded_net_true_up_share_without_largest_run": -0.058450571122934926,
+          "graded_runs": 139,
+          "never_read_runs": 11,
+          "outstanding_bills": 775,
+          "outstanding_gbp": 32329.10470565111
         },
         {
           "as_of": "2019-12",
-          "closed_on_estimated_final_gbp": 21655.69678205689,
-          "closed_on_estimated_final_runs": 144,
-          "graded_gross_true_up_share": 0.06979506722980636,
+          "closed_on_estimated_final_gbp": 21700.868014010146,
+          "closed_on_estimated_final_runs": 143,
+          "graded_gross_true_up_share": 0.09713802390788684,
           "graded_largest_run_account": "PROS-2016-0263g",
-          "graded_largest_run_share_of_net": 0.21532439985480034,
-          "graded_net_true_up_share": -0.05032867966204528,
-          "graded_net_true_up_share_without_largest_run": -0.0402070467755582,
-          "graded_runs": 102,
+          "graded_largest_run_share_of_net": 0.12392364976152359,
+          "graded_net_true_up_share": -0.07919408470806852,
+          "graded_net_true_up_share_without_largest_run": -0.07057015896668775,
+          "graded_runs": 106,
           "never_read_runs": 9,
-          "outstanding_bills": 503,
-          "outstanding_gbp": 21056.745904116106
+          "outstanding_bills": 510,
+          "outstanding_gbp": 21445.272254456864
         },
         {
           "as_of": "2020-12",
-          "closed_on_estimated_final_gbp": 27285.971893968097,
-          "closed_on_estimated_final_runs": 175,
-          "graded_gross_true_up_share": 0.07381156668636084,
-          "graded_largest_run_account": "SYN-2016-444g",
-          "graded_largest_run_share_of_net": 0.6315639411953566,
-          "graded_net_true_up_share": -0.012910419844027065,
-          "graded_net_true_up_share_without_largest_run": -0.004832648879348129,
-          "graded_runs": 107,
+          "closed_on_estimated_final_gbp": 27611.195420888598,
+          "closed_on_estimated_final_runs": 174,
+          "graded_gross_true_up_share": 0.07043842664876228,
+          "graded_largest_run_account": "OCC-564700946c93g",
+          "graded_largest_run_share_of_net": -0.3944256673864625,
+          "graded_net_true_up_share": 0.016588590830540203,
+          "graded_net_true_up_share_without_largest_run": 0.023663903089980638,
+          "graded_runs": 110,
           "never_read_runs": 5,
-          "outstanding_bills": 466,
-          "outstanding_gbp": 16908.56578494952
+          "outstanding_bills": 471,
+          "outstanding_gbp": 16524.889876390014
         },
         {
           "as_of": "2021-12",
-          "closed_on_estimated_final_gbp": 29019.260955766553,
-          "closed_on_estimated_final_runs": 191,
-          "graded_gross_true_up_share": 0.07539194267168298,
-          "graded_largest_run_account": "PROS-2020-0223g",
-          "graded_largest_run_share_of_net": 0.05864685599065822,
-          "graded_net_true_up_share": -0.056398196411038146,
-          "graded_net_true_up_share_without_largest_run": -0.05391884495636137,
-          "graded_runs": 105,
+          "closed_on_estimated_final_gbp": 29302.338157431263,
+          "closed_on_estimated_final_runs": 189,
+          "graded_gross_true_up_share": 0.12966013475588256,
+          "graded_largest_run_account": "SYN-2016-082g",
+          "graded_largest_run_share_of_net": 0.04699711524866329,
+          "graded_net_true_up_share": -0.1074479540541212,
+          "graded_net_true_up_share_without_largest_run": -0.10419896760815217,
+          "graded_runs": 107,
           "never_read_runs": 1,
-          "outstanding_bills": 452,
-          "outstanding_gbp": 19370.314094801543
+          "outstanding_bills": 445,
+          "outstanding_gbp": 19191.54387176625
         },
         {
           "as_of": "2022-12",
-          "closed_on_estimated_final_gbp": 29817.090035567486,
-          "closed_on_estimated_final_runs": 198,
-          "graded_gross_true_up_share": 0.06527504786264914,
-          "graded_largest_run_account": "PROS-2016-0264g",
-          "graded_largest_run_share_of_net": 0.19147138569268446,
-          "graded_net_true_up_share": -0.020867858214734417,
-          "graded_net_true_up_share_without_largest_run": -0.016999927178756737,
-          "graded_runs": 94,
+          "closed_on_estimated_final_gbp": 30100.15834169511,
+          "closed_on_estimated_final_runs": 196,
+          "graded_gross_true_up_share": 0.06607502340340386,
+          "graded_largest_run_account": "PROS-2018-0016g",
+          "graded_largest_run_share_of_net": 0.1990290056528754,
+          "graded_net_true_up_share": -0.022659070035712273,
+          "graded_net_true_up_share_without_largest_run": -0.018831227019132424,
+          "graded_runs": 96,
           "never_read_runs": 2,
-          "outstanding_bills": 467,
-          "outstanding_gbp": 39859.942911142
+          "outstanding_bills": 457,
+          "outstanding_gbp": 38294.14959443699
         },
         {
           "as_of": "2023-12",
-          "closed_on_estimated_final_gbp": 32309.071360238126,
-          "closed_on_estimated_final_runs": 204,
-          "graded_gross_true_up_share": 0.06517206820080668,
-          "graded_largest_run_account": "PROS-2021-0236g",
-          "graded_largest_run_share_of_net": 0.06221533215027919,
-          "graded_net_true_up_share": -0.048015843846924124,
-          "graded_net_true_up_share_without_largest_run": -0.045538430131140395,
-          "graded_runs": 104,
-          "never_read_runs": 8,
-          "outstanding_bills": 540,
-          "outstanding_gbp": 40289.520415428415
+          "closed_on_estimated_final_gbp": 32204.746887827998,
+          "closed_on_estimated_final_runs": 202,
+          "graded_gross_true_up_share": 0.0972683814107272,
+          "graded_largest_run_account": "OCC-cc0c78690877g",
+          "graded_largest_run_share_of_net": 0.04854710605076758,
+          "graded_net_true_up_share": -0.0894586005052135,
+          "graded_net_true_up_share_without_largest_run": -0.08642116938322675,
+          "graded_runs": 106,
+          "never_read_runs": 9,
+          "outstanding_bills": 525,
+          "outstanding_gbp": 37532.71166926666
         },
         {
           "as_of": "2024-12",
-          "closed_on_estimated_final_gbp": 39525.04520601157,
-          "closed_on_estimated_final_runs": 218,
-          "graded_gross_true_up_share": 0.07919051304274792,
-          "graded_largest_run_account": "PROS-2024-0200g",
-          "graded_largest_run_share_of_net": 0.16080977640059668,
-          "graded_net_true_up_share": -0.030890894336465566,
-          "graded_net_true_up_share_without_largest_run": -0.026609735722239684,
-          "graded_runs": 80,
+          "closed_on_estimated_final_gbp": 39422.24759098411,
+          "closed_on_estimated_final_runs": 219,
+          "graded_gross_true_up_share": 0.08461799250176756,
+          "graded_largest_run_account": "PROS-2020-0126g",
+          "graded_largest_run_share_of_net": 0.2669606802387992,
+          "graded_net_true_up_share": -0.02213733037497366,
+          "graded_net_true_up_share_without_largest_run": -0.016829148345761435,
+          "graded_runs": 85,
           "never_read_runs": 29,
-          "outstanding_bills": 516,
-          "outstanding_gbp": 32165.919514868176
+          "outstanding_bills": 546,
+          "outstanding_gbp": 32212.585192523413
         }
       ],
-      "K2_estimated_share_of_billed_kwh": 0.5949548601464545,
-      "K3_barred_share_of_undercharge_kwh": 0.0006647298542083971,
-      "accounts": 586,
-      "barred_kwh": 428.0770760545049,
-      "barred_true_ups": 5,
-      "billed_kwh": 20355257.047600005,
-      "closed_on_estimated_final_kwh": 834989.3600000003,
-      "estimated_kwh": 12110459.109999994,
-      "open_estimated_kwh": 392352.5500000001,
-      "overcharge_kwh": 525527.0832999999,
+      "K2_estimated_share_of_billed_kwh": 0.5969876275292619,
+      "K3_barred_share_of_undercharge_kwh": 0.005488440913243602,
+      "accounts": 590,
+      "barred_kwh": 3633.816891052842,
+      "barred_true_ups": 14,
+      "billed_kwh": 20147995.511700004,
+      "closed_on_estimated_final_kwh": 794377.6500000001,
+      "estimated_kwh": 12028104.040000003,
+      "open_estimated_kwh": 389239.1100000002,
+      "overcharge_kwh": 659249.4778000008,
       "snapshot": {
-        "accounts": 165,
+        "accounts": 170,
         "against_published": "cannot_be_told_apart_from_the_median_supplier",
         "ci95": [
-          0.0332497529355638,
-          0.10795643563484968
+          0.03651154004158368,
+          0.11213803439014783
         ],
-        "no_read_bill_in_12": 10,
-        "share": 0.06060606060606061
+        "no_read_bill_in_12": 11,
+        "share": 0.06470588235294118
       },
-      "true_ups": 2940,
-      "undercharge_kwh": 643986.5358000003
+      "true_ups": 3017,
+      "undercharge_kwh": 662085.4534999996
     }
   },
   "direct_debit_money_line": {
-    "accounts_barred": 272,
-    "accounts_met_recovery_action": 852,
+    "accounts_barred": 229,
+    "accounts_met_recovery_action": 832,
     "available": true,
-    "barred_gbp": 23422.99,
-    "dd_accounts": 934,
-    "mean_barred_gbp": 27.491772300469485,
+    "barred_gbp": 18748.72,
+    "dd_accounts": 941,
+    "mean_barred_gbp": 22.53451923076923,
     "mean_barred_gbp_ci95": [
-      22.738585619825667,
-      32.2449589811133
+      17.744610212807792,
+      27.32442824873067
     ],
     "mean_ci_method": "normal_approximation",
-    "open_accounts": 316,
-    "open_exposure_gbp": 53.7,
+    "open_accounts": 327,
+    "open_exposure_gbp": 332.53,
     "seek_balance_at_review": true,
-    "share_barred": 0.3192488262910798,
+    "share_barred": 0.27524038461538464,
     "share_barred_ci95": [
-      0.28881684097305,
-      0.3513034210172969
+      0.24597690782192594,
+      0.3065698149733662
     ],
     "unit": "gbp_gross_of_vat",
     "unmeasured_accounts": 29
@@ -1022,49 +1022,49 @@
   "direct_debit_review_arms": {
     "arms": {
       "never_seeks": {
-        "accounts_barred": 201,
-        "accounts_met_recovery_action": 618,
+        "accounts_barred": 191,
+        "accounts_met_recovery_action": 614,
         "available": true,
-        "barred_gbp": 28912.93,
-        "barred_plus_open_exposure_gbp": 84123.51,
-        "dd_accounts": 934,
-        "mean_barred_gbp": 46.78467637540453,
+        "barred_gbp": 25308.84,
+        "barred_plus_open_exposure_gbp": 72095.32,
+        "dd_accounts": 941,
+        "mean_barred_gbp": 41.21960912052117,
         "mean_barred_gbp_ci95": [
-          37.23256765710052,
-          56.33678509370854
+          32.87477692231004,
+          49.5644413187323
         ],
         "mean_ci_method": "normal_approximation",
-        "open_accounts": 316,
-        "open_exposure_gbp": 55210.58,
+        "open_accounts": 327,
+        "open_exposure_gbp": 46786.48,
         "seek_balance_at_review": false,
-        "share_barred": 0.32524271844660196,
+        "share_barred": 0.31107491856677527,
         "share_barred_ci95": [
-          0.289486293506847,
-          0.36315828829928104
+          0.27572771561582227,
+          0.34877142301421676
         ],
         "unit": "gbp_gross_of_vat",
         "unmeasured_accounts": 0
       },
       "seeks": {
-        "accounts_barred": 284,
-        "accounts_met_recovery_action": 850,
+        "accounts_barred": 239,
+        "accounts_met_recovery_action": 831,
         "available": true,
-        "barred_gbp": 24331.52,
-        "barred_plus_open_exposure_gbp": 24385.22,
-        "dd_accounts": 934,
-        "mean_barred_gbp": 28.625317647058825,
+        "barred_gbp": 19906.48,
+        "barred_plus_open_exposure_gbp": 20266.51,
+        "dd_accounts": 941,
+        "mean_barred_gbp": 23.954849578820696,
         "mean_barred_gbp_ci95": [
-          23.794981481152597,
-          33.45565381296505
+          19.088253155032717,
+          28.821446002608674
         ],
         "mean_ci_method": "normal_approximation",
-        "open_accounts": 316,
-        "open_exposure_gbp": 53.7,
+        "open_accounts": 327,
+        "open_exposure_gbp": 360.03,
         "seek_balance_at_review": true,
-        "share_barred": 0.3341176470588235,
+        "share_barred": 0.28760529482551145,
         "share_barred_ci95": [
-          0.30321723484354723,
-          0.36651067884961464
+          0.2578623620416467,
+          0.31930286346952164
         ],
         "unit": "gbp_gross_of_vat",
         "unmeasured_accounts": 0
@@ -1075,123 +1075,123 @@
       {
         "never_seeks_accounts_barred": 0,
         "never_seeks_barred_gbp": 0.0,
-        "reviews_stepped_up": 199,
+        "reviews_stepped_up": 166,
         "seeks_accounts_barred": 0,
         "seeks_barred_gbp": 0.0,
-        "step_up_mean_gbp": 4.198944723618091,
-        "step_up_median_gbp": 3.65,
-        "step_up_p90_gbp": 8.16,
+        "step_up_mean_gbp": 2.832710843373494,
+        "step_up_median_gbp": 1.865,
+        "step_up_p90_gbp": 6.99,
         "year": "2017"
       },
       {
         "never_seeks_accounts_barred": 16,
-        "never_seeks_barred_gbp": 886.85,
-        "reviews_stepped_up": 296,
-        "seeks_accounts_barred": 50,
-        "seeks_barred_gbp": 1863.07,
-        "step_up_mean_gbp": 6.11847972972973,
-        "step_up_median_gbp": 4.9,
-        "step_up_p90_gbp": 11.98,
+        "never_seeks_barred_gbp": 674.59,
+        "reviews_stepped_up": 315,
+        "seeks_accounts_barred": 16,
+        "seeks_barred_gbp": 517.26,
+        "step_up_mean_gbp": 8.723174603174604,
+        "step_up_median_gbp": 6.21,
+        "step_up_p90_gbp": 18.06,
         "year": "2018"
       },
       {
-        "never_seeks_accounts_barred": 53,
-        "never_seeks_barred_gbp": 3168.77,
-        "reviews_stepped_up": 273,
-        "seeks_accounts_barred": 119,
-        "seeks_barred_gbp": 3408.3,
-        "step_up_mean_gbp": 4.096227106227106,
-        "step_up_median_gbp": 3.36,
-        "step_up_p90_gbp": 7.52,
+        "never_seeks_accounts_barred": 58,
+        "never_seeks_barred_gbp": 3687.61,
+        "reviews_stepped_up": 217,
+        "seeks_accounts_barred": 116,
+        "seeks_barred_gbp": 3842.04,
+        "step_up_mean_gbp": 5.019861751152074,
+        "step_up_median_gbp": 2.76,
+        "step_up_p90_gbp": 11.88,
         "year": "2019"
       },
       {
-        "never_seeks_accounts_barred": 48,
-        "never_seeks_barred_gbp": 4152.32,
-        "reviews_stepped_up": 124,
-        "seeks_accounts_barred": 68,
-        "seeks_barred_gbp": 2231.03,
-        "step_up_mean_gbp": 3.8528225806451615,
-        "step_up_median_gbp": 2.7,
-        "step_up_p90_gbp": 8.65,
+        "never_seeks_accounts_barred": 39,
+        "never_seeks_barred_gbp": 4691.35,
+        "reviews_stepped_up": 92,
+        "seeks_accounts_barred": 41,
+        "seeks_barred_gbp": 1680.16,
+        "step_up_mean_gbp": 3.9029347826086958,
+        "step_up_median_gbp": 2.8,
+        "step_up_p90_gbp": 8.01,
         "year": "2020"
       },
       {
-        "never_seeks_accounts_barred": 19,
-        "never_seeks_barred_gbp": 1455.92,
-        "reviews_stepped_up": 65,
-        "seeks_accounts_barred": 10,
-        "seeks_barred_gbp": 304.86,
-        "step_up_mean_gbp": 5.300307692307692,
-        "step_up_median_gbp": 2.29,
-        "step_up_p90_gbp": 14.72,
+        "never_seeks_accounts_barred": 16,
+        "never_seeks_barred_gbp": 1139.77,
+        "reviews_stepped_up": 59,
+        "seeks_accounts_barred": 2,
+        "seeks_barred_gbp": 68.18,
+        "step_up_mean_gbp": 6.946271186440677,
+        "step_up_median_gbp": 2.17,
+        "step_up_p90_gbp": 18.03,
         "year": "2021"
       },
       {
         "never_seeks_accounts_barred": 8,
-        "never_seeks_barred_gbp": 366.65,
-        "reviews_stepped_up": 201,
-        "seeks_accounts_barred": 39,
-        "seeks_barred_gbp": 1502.78,
-        "step_up_mean_gbp": 10.217114427860697,
-        "step_up_median_gbp": 7.96,
-        "step_up_p90_gbp": 21.44,
+        "never_seeks_barred_gbp": 495.93,
+        "reviews_stepped_up": 174,
+        "seeks_accounts_barred": 34,
+        "seeks_barred_gbp": 1803.82,
+        "step_up_mean_gbp": 9.649080459770115,
+        "step_up_median_gbp": 6.245,
+        "step_up_p90_gbp": 19.46,
         "year": "2022"
       },
       {
-        "never_seeks_accounts_barred": 19,
-        "never_seeks_barred_gbp": 5144.61,
-        "reviews_stepped_up": 255,
-        "seeks_accounts_barred": 145,
-        "seeks_barred_gbp": 11798.85,
-        "step_up_mean_gbp": 31.79392156862745,
-        "step_up_median_gbp": 29.55,
-        "step_up_p90_gbp": 57.12,
+        "never_seeks_accounts_barred": 18,
+        "never_seeks_barred_gbp": 4078.29,
+        "reviews_stepped_up": 230,
+        "seeks_accounts_barred": 108,
+        "seeks_barred_gbp": 9192.08,
+        "step_up_mean_gbp": 32.24191304347826,
+        "step_up_median_gbp": 26.674999999999997,
+        "step_up_p90_gbp": 62.25,
         "year": "2023"
       },
       {
-        "never_seeks_accounts_barred": 25,
-        "never_seeks_barred_gbp": 9375.62,
-        "reviews_stepped_up": 59,
-        "seeks_accounts_barred": 43,
-        "seeks_barred_gbp": 3208.58,
-        "step_up_mean_gbp": 5.969322033898305,
-        "step_up_median_gbp": 3.23,
-        "step_up_p90_gbp": 17.99,
+        "never_seeks_accounts_barred": 26,
+        "never_seeks_barred_gbp": 8087.25,
+        "reviews_stepped_up": 35,
+        "seeks_accounts_barred": 39,
+        "seeks_barred_gbp": 2802.94,
+        "step_up_mean_gbp": 9.180571428571428,
+        "step_up_median_gbp": 4.11,
+        "step_up_p90_gbp": 20.7,
         "year": "2024"
       },
       {
-        "never_seeks_accounts_barred": 13,
-        "never_seeks_barred_gbp": 4362.19,
-        "reviews_stepped_up": 8,
-        "seeks_accounts_barred": 1,
-        "seeks_barred_gbp": 14.05,
-        "step_up_mean_gbp": 25.93875,
-        "step_up_median_gbp": 2.515,
-        "step_up_p90_gbp": 102.92,
+        "never_seeks_accounts_barred": 10,
+        "never_seeks_barred_gbp": 2454.05,
+        "reviews_stepped_up": 4,
+        "seeks_accounts_barred": 0,
+        "seeks_barred_gbp": 0.0,
+        "step_up_mean_gbp": 1.345,
+        "step_up_median_gbp": 1.1,
+        "step_up_p90_gbp": 2.89,
         "year": "2025"
       }
     ],
     "unit": "gbp_gross_of_vat"
   },
   "example_account": {
-    "account_id": "SYN-2016-541",
-    "barred_kwh": 694.1870083073518,
-    "barred_true_ups": 1,
-    "billed_kwh": 21910.021187426875,
-    "bills": 104,
+    "account_id": "OCC-75d17c23c1dag",
+    "barred_kwh": 1612.2909594810183,
+    "barred_true_ups": 2,
+    "billed_kwh": 86740.17060000001,
+    "bills": 72,
     "closed_on_estimated_final_kwh": 0.0,
-    "estimated_bills": 86,
-    "estimated_kwh": 17977.826264450083,
-    "fuel": "electricity",
+    "estimated_bills": 65,
+    "estimated_kwh": 79294.40000000002,
+    "fuel": "gas",
     "last_period_end": "2025-06-07",
-    "longest_run_without_read_bill": 15,
+    "longest_run_without_read_bill": 27,
     "no_read_bill_in_last_12": false,
-    "open_estimated_kwh": 2252.3202704353434,
-    "overcharge_kwh": 499.34025744803523,
-    "true_up_kwh": 2784.271741127009,
-    "true_ups": 17,
-    "undercharge_kwh": 3283.611998575044
+    "open_estimated_kwh": 13118.33,
+    "overcharge_kwh": 1557.3263999999983,
+    "true_up_kwh": 1393.4103000000014,
+    "true_ups": 6,
+    "undercharge_kwh": 2950.7366999999995
   },
   "kinds": {
     "K1": "billed on estimate and not yet trued up at a month end, graded by the later read",
@@ -1206,15 +1206,15 @@
   "read_duty_register": {
     "by_fuel": {
       "electricity": {
-        "accounts": 186,
+        "accounts": 192,
         "prepayment_rows": 30,
-        "rows": 250,
+        "rows": 258,
         "rows_without_step": 0
       },
       "gas": {
-        "accounts": 135,
+        "accounts": 136,
         "prepayment_rows": 25,
-        "rows": 183,
+        "rows": 184,
         "rows_without_step": 0
       }
     },
@@ -1223,12 +1223,12 @@
       "clean": true,
       "fuels": {
         "electricity": {
-          "rows": 250,
+          "rows": 258,
           "rows_without_step": 0,
           "status": "met"
         },
         "gas": {
-          "rows": 183,
+          "rows": 184,
           "rows_without_step": 0,
           "status": "met"
         }
@@ -1236,15 +1236,15 @@
     },
     "visit_cost": {
       "basis": "an area round per visit, charged; an appointment per visit, the bound (read_access_and_theft_duties.md s.2.9: which a supplier sends is a GAP)",
-      "charged_gbp": 1491.0,
-      "instructions": 612,
+      "charged_gbp": 1515.0,
+      "instructions": 625,
       "price_gbp_per_visit": 3.0,
-      "upper_bound_gbp": 8697.5,
+      "upper_bound_gbp": 8837.5,
       "upper_price_gbp_per_visit": 17.5,
-      "visits": 497
+      "visits": 505
     },
     "year_bills": 12
   },
   "snapshot_month": "2025-06",
-  "source": "run_output_0a6391d186_20261102T212232Z.json"
+  "source": "run_output_6fe7827ab2_20261111T140730Z.json"
 }

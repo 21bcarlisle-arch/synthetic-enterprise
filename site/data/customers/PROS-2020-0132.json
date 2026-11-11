@@ -16,8 +16,8 @@
   "lifetime_revenue_gbp": 687.25,
   "lifetime_gross_gbp": 574.14,
   "lifetime_net_gbp": 242.41,
-  "lifetime_net_after_cts_gbp": 217.25,
-  "cost_to_serve_gbp": 25.16,
+  "lifetime_net_after_cts_gbp": 195.55,
+  "cost_to_serve_gbp": 46.86,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
@@ -39,15 +39,15 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2020-0132g",
-    "gas_lifetime_net_gbp": 51.31,
-    "gas_lifetime_revenue_gbp": 78.77,
-    "combined_net_gbp": 293.72,
-    "combined_revenue_gbp": 766.02
+    "gas_lifetime_net_gbp": 51.87,
+    "gas_lifetime_revenue_gbp": 79.34,
+    "combined_net_gbp": 294.28,
+    "combined_revenue_gbp": 766.58
   },
   "annual_pnl": [
     {
       "year": 2020,
-      "revenue_gbp": 0,
+      "revenue_gbp": 687.25,
       "gross_gbp": 574.14,
       "net_gbp": 242.41,
       "tariff_min": 169.62,
@@ -72,7 +72,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "PROS-2020-0132-INV17404",
+      "id": "PROS-2020-0132-INV17650",
       "date": "2020-04-30",
       "period_start": "2020-04-17",
       "period_end": "2020-04-30",
@@ -118,6 +118,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -127,12 +128,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 17404,
+      "invoice_number": 17650,
       "due_date": "2020-05-19",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2020-0132-INV17405",
+      "id": "PROS-2020-0132-INV17651",
       "date": "2020-05-31",
       "period_start": "2020-05-01",
       "period_end": "2020-05-31",
@@ -178,6 +179,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -187,12 +189,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 17405,
+      "invoice_number": 17651,
       "due_date": "2020-06-15",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2020-0132-INV17406",
+      "id": "PROS-2020-0132-INV17652",
       "date": "2020-06-30",
       "period_start": "2020-06-01",
       "period_end": "2020-06-30",
@@ -238,6 +240,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -247,12 +250,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 17406,
+      "invoice_number": 17652,
       "due_date": "2020-07-14",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2020-0132-INV17407",
+      "id": "PROS-2020-0132-INV17653",
       "date": "2020-07-31",
       "period_start": "2020-07-01",
       "period_end": "2020-07-31",
@@ -298,6 +301,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -307,12 +311,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 17407,
+      "invoice_number": 17653,
       "due_date": "2020-08-14",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2020-0132-INV17408",
+      "id": "PROS-2020-0132-INV17654",
       "date": "2020-08-31",
       "period_start": "2020-08-01",
       "period_end": "2020-08-31",
@@ -358,6 +362,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -367,12 +372,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 17408,
+      "invoice_number": 17654,
       "due_date": "2020-09-14",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2020-0132-INV17409",
+      "id": "PROS-2020-0132-INV17655",
       "date": "2020-09-30",
       "period_start": "2020-09-01",
       "period_end": "2020-09-30",
@@ -386,9 +391,9 @@
       "non_commodity_amount_gbp": 35.51,
       "vat_gbp": 5.63,
       "amount_gbp": 118.26,
-      "status": "PAID",
+      "status": "SETTLED_BY_CREDIT",
       "outstanding_gbp": 0.0,
-      "credit_applied_gbp": null,
+      "credit_applied_gbp": 118.26,
       "scheme_credit_gbp": null,
       "scheme_credit_applied_gbp": null,
       "epg_discount_gbp": null,
@@ -418,6 +423,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -427,7 +433,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 17409,
+      "invoice_number": 17655,
       "due_date": "2020-10-14",
       "document_type": "bill"
     }
@@ -436,123 +442,128 @@
     "as_of_date": "2025-07-04",
     "entries": [
       {
-        "date": "2020-05-05",
-        "type": "invoice_raised",
-        "invoice_number": 17404,
-        "amount_gbp": 61.15,
-        "info_amount_gbp": null,
-        "method": null,
-        "description": "Invoice INV17404 raised",
-        "running_balance_gbp": 61.15
-      },
-      {
-        "date": "2020-05-19",
+        "date": "2020-04-17",
         "type": "payment_received",
-        "invoice_number": 17404,
-        "amount_gbp": -61.15,
+        "invoice_number": 17650,
+        "amount_gbp": -134.07,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "level_dd": true,
+        "running_balance_gbp": -134.07
+      },
+      {
+        "date": "2020-05-05",
+        "type": "invoice_raised",
+        "invoice_number": 17650,
+        "amount_gbp": 61.15,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV17650 raised",
+        "running_balance_gbp": -72.92
+      },
+      {
+        "date": "2020-05-11",
+        "type": "payment_received",
+        "invoice_number": 17651,
+        "amount_gbp": -134.07,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "level_dd": true,
+        "running_balance_gbp": -206.99
       },
       {
         "date": "2020-06-01",
         "type": "invoice_raised",
-        "invoice_number": 17405,
+        "invoice_number": 17651,
         "amount_gbp": 117.75,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV17405 raised",
-        "running_balance_gbp": 117.75
+        "description": "Invoice INV17651 raised",
+        "running_balance_gbp": -89.24
       },
       {
-        "date": "2020-06-15",
+        "date": "2020-06-10",
         "type": "payment_received",
-        "invoice_number": 17405,
-        "amount_gbp": -117.75,
+        "invoice_number": 17652,
+        "amount_gbp": -134.07,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "level_dd": true,
+        "running_balance_gbp": -223.31
       },
       {
         "date": "2020-06-30",
         "type": "invoice_raised",
-        "invoice_number": 17406,
+        "invoice_number": 17652,
         "amount_gbp": 109.6,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV17406 raised",
-        "running_balance_gbp": 109.6
+        "description": "Invoice INV17652 raised",
+        "running_balance_gbp": -113.71
       },
       {
-        "date": "2020-07-14",
+        "date": "2020-07-10",
         "type": "payment_received",
-        "invoice_number": 17406,
-        "amount_gbp": -109.6,
+        "invoice_number": 17653,
+        "amount_gbp": -134.07,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "level_dd": true,
+        "running_balance_gbp": -247.78
       },
       {
         "date": "2020-07-31",
         "type": "invoice_raised",
-        "invoice_number": 17407,
+        "invoice_number": 17653,
         "amount_gbp": 110.6,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV17407 raised",
-        "running_balance_gbp": 110.6
+        "description": "Invoice INV17653 raised",
+        "running_balance_gbp": -137.18
       },
       {
-        "date": "2020-08-14",
+        "date": "2020-08-10",
         "type": "payment_received",
-        "invoice_number": 17407,
-        "amount_gbp": -110.6,
+        "invoice_number": 17654,
+        "amount_gbp": -134.07,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "level_dd": true,
+        "running_balance_gbp": -271.25
       },
       {
         "date": "2020-08-31",
         "type": "invoice_raised",
-        "invoice_number": 17408,
+        "invoice_number": 17654,
         "amount_gbp": 113.33,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV17408 raised",
-        "running_balance_gbp": 113.33
-      },
-      {
-        "date": "2020-09-14",
-        "type": "payment_received",
-        "invoice_number": 17408,
-        "amount_gbp": -113.33,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "Invoice INV17654 raised",
+        "running_balance_gbp": -157.92
       },
       {
         "date": "2020-09-30",
         "type": "invoice_raised",
-        "invoice_number": 17409,
+        "invoice_number": 17655,
         "amount_gbp": 118.26,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV17409 raised",
-        "running_balance_gbp": 118.26
+        "description": "Invoice INV17655 raised",
+        "running_balance_gbp": -39.66
       },
       {
         "date": "2020-10-14",
-        "type": "payment_received",
-        "invoice_number": 17409,
-        "amount_gbp": -118.26,
+        "type": "refund_debit",
+        "invoice_number": 0,
+        "amount_gbp": 39.66,
         "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
+        "method": null,
+        "description": "Credit balance refunded on closing the account",
         "running_balance_gbp": 0.0
       }
     ],
@@ -562,9 +573,17 @@
     "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
     "total_deemed_gbp": 0,
-    "total_refunded_gbp": 0,
+    "total_refunded_gbp": 39.66,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 6,
+    "payments": 6,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2020-10-15"
   },
   "consumption": {
     "unit": "kWh",

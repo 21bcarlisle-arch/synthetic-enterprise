@@ -13,8 +13,8 @@
   "lifetime_revenue_gbp": 217.43,
   "lifetime_gross_gbp": 116.69,
   "lifetime_net_gbp": 53.84,
-  "lifetime_net_after_cts_gbp": 37.11,
-  "cost_to_serve_gbp": 16.73,
+  "lifetime_net_after_cts_gbp": 26.44,
+  "cost_to_serve_gbp": 27.4,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
@@ -38,7 +38,7 @@
   "annual_pnl": [
     {
       "year": 2016,
-      "revenue_gbp": 0,
+      "revenue_gbp": 217.43,
       "gross_gbp": 116.69,
       "net_gbp": 53.84,
       "tariff_min": 31.0,
@@ -109,6 +109,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -169,6 +170,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -229,6 +231,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -289,6 +292,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -317,7 +321,7 @@
         "running_balance_gbp": 69.85
       },
       {
-        "date": "2016-02-14",
+        "date": "2016-02-15",
         "type": "payment_received",
         "invoice_number": 5,
         "amount_gbp": -69.85,
@@ -377,7 +381,7 @@
         "running_balance_gbp": 29.02
       },
       {
-        "date": "2016-05-08",
+        "date": "2016-05-09",
         "type": "payment_received",
         "invoice_number": 8,
         "amount_gbp": -29.02,
@@ -396,6 +400,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 4,
+    "payments": 4,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2016-05-10"
   },
   "consumption": {
     "unit": "kWh",

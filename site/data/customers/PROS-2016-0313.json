@@ -16,11 +16,11 @@
   "lifetime_revenue_gbp": 67.16,
   "lifetime_gross_gbp": 43.99,
   "lifetime_net_gbp": 9.38,
-  "lifetime_net_after_cts_gbp": -0.11,
-  "cost_to_serve_gbp": 9.49,
+  "lifetime_net_after_cts_gbp": -4.41,
+  "cost_to_serve_gbp": 13.79,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 0.2
+    "recommended_uplift_pct": 6.6
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -41,7 +41,7 @@
   "annual_pnl": [
     {
       "year": 2016,
-      "revenue_gbp": 0,
+      "revenue_gbp": 67.16,
       "gross_gbp": 43.99,
       "net_gbp": 9.38,
       "tariff_min": 102.61,
@@ -66,7 +66,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "PROS-2016-0313-INV11633",
+      "id": "PROS-2016-0313-INV11668",
       "date": "2016-10-31",
       "period_start": "2016-10-22",
       "period_end": "2016-10-31",
@@ -112,6 +112,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -121,12 +122,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11633,
+      "invoice_number": 11668,
       "due_date": "2016-11-18",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2016-0313-INV11634",
+      "id": "PROS-2016-0313-INV11669",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -172,6 +173,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -181,12 +183,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11634,
+      "invoice_number": 11669,
       "due_date": "2016-12-17",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2016-0313-INV11635",
+      "id": "PROS-2016-0313-INV11670",
       "date": "2016-12-23",
       "period_start": "2016-12-01",
       "period_end": "2016-12-23",
@@ -202,7 +204,7 @@
       "amount_gbp": 28.06,
       "status": "PAID",
       "outstanding_gbp": 0.0,
-      "credit_applied_gbp": null,
+      "credit_applied_gbp": 17.76,
       "scheme_credit_gbp": null,
       "scheme_credit_applied_gbp": null,
       "epg_discount_gbp": null,
@@ -232,6 +234,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -241,7 +244,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11635,
+      "invoice_number": 11670,
       "due_date": "2017-01-09",
       "document_type": "bill"
     }
@@ -250,60 +253,62 @@
     "as_of_date": "2025-07-04",
     "entries": [
       {
-        "date": "2016-11-04",
-        "type": "invoice_raised",
-        "invoice_number": 11633,
-        "amount_gbp": 10.16,
-        "info_amount_gbp": null,
-        "method": null,
-        "description": "Invoice INV11633 raised",
-        "running_balance_gbp": 10.16
-      },
-      {
-        "date": "2016-11-18",
+        "date": "2016-10-24",
         "type": "payment_received",
-        "invoice_number": 11633,
-        "amount_gbp": -10.16,
+        "invoice_number": 11668,
+        "amount_gbp": -31.89,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "level_dd": true,
+        "running_balance_gbp": -31.89
+      },
+      {
+        "date": "2016-11-04",
+        "type": "invoice_raised",
+        "invoice_number": 11668,
+        "amount_gbp": 10.16,
+        "info_amount_gbp": null,
+        "method": null,
+        "description": "Invoice INV11668 raised",
+        "running_balance_gbp": -21.73
+      },
+      {
+        "date": "2016-11-14",
+        "type": "payment_received",
+        "invoice_number": 11669,
+        "amount_gbp": -31.89,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "level_dd": true,
+        "running_balance_gbp": -53.62
       },
       {
         "date": "2016-12-03",
         "type": "invoice_raised",
-        "invoice_number": 11634,
+        "invoice_number": 11669,
         "amount_gbp": 35.86,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11634 raised",
-        "running_balance_gbp": 35.86
-      },
-      {
-        "date": "2016-12-17",
-        "type": "payment_received",
-        "invoice_number": 11634,
-        "amount_gbp": -35.86,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "Invoice INV11669 raised",
+        "running_balance_gbp": -17.76
       },
       {
         "date": "2016-12-26",
         "type": "invoice_raised",
-        "invoice_number": 11635,
+        "invoice_number": 11670,
         "amount_gbp": 28.06,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11635 raised",
-        "running_balance_gbp": 28.06
+        "description": "Invoice INV11670 raised",
+        "running_balance_gbp": 10.3
       },
       {
         "date": "2017-01-09",
         "type": "payment_received",
-        "invoice_number": 11635,
-        "amount_gbp": -28.06,
+        "invoice_number": 11670,
+        "amount_gbp": -10.3,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -319,6 +324,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 3,
+    "payments": 3,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2017-01-10"
   },
   "consumption": {
     "unit": "kWh",

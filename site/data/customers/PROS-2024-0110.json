@@ -13,14 +13,14 @@
     "bottom_line": "2318972573980"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 9.3,
-  "lifetime_gross_gbp": 7.77,
-  "lifetime_net_gbp": -2.52,
-  "lifetime_net_after_cts_gbp": -3.43,
-  "cost_to_serve_gbp": 0.9,
+  "lifetime_revenue_gbp": 7.46,
+  "lifetime_gross_gbp": 6.41,
+  "lifetime_net_gbp": -1.41,
+  "lifetime_net_after_cts_gbp": -3.37,
+  "cost_to_serve_gbp": 1.96,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 36.8
+    "recommended_uplift_pct": 45.2
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -32,24 +32,24 @@
   "forward_looking_account_id": "PROS-2024-0110",
   "commodity_split": {
     "electricity": {
-      "net_gbp": -2.52,
-      "revenue_gbp": 9.3
+      "net_gbp": -1.41,
+      "revenue_gbp": 7.46
     },
     "gas": null
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2024-0110g",
-    "gas_lifetime_net_gbp": 1.48,
-    "gas_lifetime_revenue_gbp": 5.15,
-    "combined_net_gbp": -1.04,
-    "combined_revenue_gbp": 14.45
+    "gas_lifetime_net_gbp": 1.44,
+    "gas_lifetime_revenue_gbp": 4.44,
+    "combined_net_gbp": 0.02,
+    "combined_revenue_gbp": 11.9
   },
   "annual_pnl": [
     {
       "year": 2024,
-      "revenue_gbp": 0,
-      "gross_gbp": 7.77,
-      "net_gbp": -2.52,
+      "revenue_gbp": 7.46,
+      "gross_gbp": 6.41,
+      "net_gbp": -1.41,
       "tariff_min": 233.33,
       "tariff_max": 233.33
     }
@@ -60,7 +60,7 @@
       "date": "2024-05-08",
       "detail": "Final bill",
       "commodity": "electricity",
-      "effect": "Closing read actual; billed \u00a39.77"
+      "effect": "Closing read actual; billed \u00a37.83"
     },
     {
       "type": "moved_out",
@@ -87,23 +87,23 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2024-0110-INV21048",
+      "id": "PROS-2024-0110-INV21305",
       "date": "2024-05-08",
       "period_start": "2024-05-03",
       "period_end": "2024-05-08",
       "commodity": "electricity",
-      "consumption_kwh": 24.8,
-      "unit_rate_p_per_kwh": 15.93,
-      "commodity_amount_gbp": 3.95,
+      "consumption_kwh": 16.9,
+      "unit_rate_p_per_kwh": 15.92,
+      "commodity_amount_gbp": 2.69,
       "standing_charge_gbp": 3.51,
       "days_in_period": 6,
       "standing_charge_gbp_per_day": 0.585,
-      "non_commodity_amount_gbp": 1.84,
-      "vat_gbp": 0.47,
-      "amount_gbp": 9.77,
+      "non_commodity_amount_gbp": 1.25,
+      "vat_gbp": 0.37,
+      "amount_gbp": 7.82,
       "status": "WRITTEN_OFF",
       "outstanding_gbp": 0.0,
-      "credit_applied_gbp": -0.0,
+      "credit_applied_gbp": 0.0,
       "scheme_credit_gbp": null,
       "scheme_credit_applied_gbp": null,
       "epg_discount_gbp": null,
@@ -113,7 +113,7 @@
       "mprn": null,
       "read_type": "A",
       "opening_read_kwh": 0.0,
-      "closing_read_kwh": 24.8,
+      "closing_read_kwh": 16.9,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -125,14 +125,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 24.8,
-          "amount_gbp": 3.95,
-          "unit_rate_p_per_kwh": 15.93,
+          "consumption_kwh": 16.9,
+          "amount_gbp": 2.69,
+          "unit_rate_p_per_kwh": 15.92,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -142,7 +143,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 21048,
+      "invoice_number": 21305,
       "due_date": "2024-05-23",
       "document_type": "bill"
     }
@@ -153,58 +154,58 @@
       {
         "date": "2024-05-09",
         "type": "invoice_raised",
-        "invoice_number": 21048,
-        "amount_gbp": 9.77,
+        "invoice_number": 21305,
+        "amount_gbp": 7.82,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21048 raised",
-        "running_balance_gbp": 9.77
+        "description": "Invoice INV21305 raised",
+        "running_balance_gbp": 7.82
       },
       {
         "date": "2024-05-23",
         "type": "payment_received",
-        "invoice_number": 21048,
-        "amount_gbp": -1.99,
+        "invoice_number": 21305,
+        "amount_gbp": -1.6,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Part payment received",
-        "running_balance_gbp": 7.78
+        "running_balance_gbp": 6.22
       },
       {
         "date": "2024-05-23",
         "type": "payment_failed",
-        "invoice_number": 21048,
+        "invoice_number": 21305,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Direct debit returned",
-        "running_balance_gbp": 7.78
+        "running_balance_gbp": 6.22
       },
       {
         "date": "2024-05-30",
         "type": "notice",
-        "invoice_number": 21048,
+        "invoice_number": 21305,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
-        "description": "First overdue notice -- GBP7.78 outstanding",
-        "running_balance_gbp": 7.78
+        "description": "First overdue notice -- GBP6.22 outstanding",
+        "running_balance_gbp": 6.22
       },
       {
         "date": "2024-06-20",
         "type": "notice",
-        "invoice_number": 21048,
+        "invoice_number": 21305,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 7.78
+        "running_balance_gbp": 6.22
       },
       {
         "date": "2025-05-09",
         "type": "write_off",
-        "invoice_number": 21048,
-        "amount_gbp": -7.78,
+        "invoice_number": 21305,
+        "amount_gbp": -6.22,
         "info_amount_gbp": null,
         "method": null,
         "description": "Debt written off -- bad debt provision raised",
@@ -212,21 +213,29 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 9.77,
-    "total_collected_gbp": 1.99,
-    "total_written_off_gross_gbp": 7.78,
+    "total_billed_gbp": 7.82,
+    "total_collected_gbp": 1.6,
+    "total_written_off_gross_gbp": 6.22,
     "total_scheme_credit_gbp": 0,
     "total_deemed_gbp": 0,
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
   },
+  "payment_record": {
+    "due": 1,
+    "payments": 1,
+    "returned": 1,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2024-05-24"
+  },
   "consumption": {
     "unit": "kWh",
     "monthly": [
       {
         "month": "2024-05",
-        "kwh": 24.8
+        "kwh": 16.9
       }
     ],
     "has_hh_data": false
@@ -239,7 +248,7 @@
       "description": "Direct debit returned",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "DD_FAILED",
       "framing_type": null
     },
@@ -247,10 +256,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-05-24",
       "event_type": "collections_missed_payment",
-      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP7.78 overdue",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -258,10 +267,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-05-30",
       "event_type": "collections_reminder",
-      "description": "Reminder sent -- GBP7.78 overdue",
+      "description": "Reminder sent -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -269,10 +278,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-06-06",
       "event_type": "collections_reminder_2",
-      "description": "Second reminder sent -- GBP7.78 overdue",
+      "description": "Second reminder sent -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -280,10 +289,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-06-20",
       "event_type": "collections_repayment_plan_offer",
-      "description": "Payment plan offered (SLC 27.8) -- GBP7.78 overdue",
+      "description": "Payment plan offered (SLC 27.8) -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -291,10 +300,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-06-20",
       "event_type": "collections_arrangement_offered",
-      "description": "Affordable arrangement put to the household -- GBP7.78 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
+      "description": "Affordable arrangement put to the household -- GBP6.22 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -302,10 +311,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-07-18",
       "event_type": "collections_final_notice",
-      "description": "Final notice sent -- GBP7.78 overdue",
+      "description": "Final notice sent -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -313,10 +322,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-08-21",
       "event_type": "collections_prepayment_or_debt_agency",
-      "description": "Top rung: prepayment by Consent or a debt agency -- GBP7.78 overdue",
+      "description": "Top rung: prepayment by Consent or a debt agency -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -324,10 +333,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2024-08-21",
       "event_type": "collections_prepayment_offered",
-      "description": "Prepayment meter offered by Consent (SLC 28.22) -- GBP7.78 overdue",
+      "description": "Prepayment meter offered by Consent (SLC 28.22) -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -338,7 +347,7 @@
       "description": "Debt written off -- bad debt provision raised",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "WRITTEN_OFF",
       "framing_type": null
     },
@@ -346,10 +355,10 @@
       "customer_id": "PROS-2024-0110",
       "date": "2025-05-09",
       "event_type": "collections_write_off",
-      "description": "Written off: the closed account's balance, a year after its final bill -- GBP7.78",
+      "description": "Written off: the closed account's balance, a year after its final bill -- GBP6.22",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "write_off",
       "framing_type": null
     },
@@ -360,7 +369,7 @@
       "description": "Debt placed with third-party debt collection agency",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 7.78,
+      "amount_gbp": 6.22,
       "outcome": "PLACED_WITH_DCA",
       "framing_type": null
     }

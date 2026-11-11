@@ -10,14 +10,14 @@
   "profile_class": null,
   "mpan": null,
   "mprn": "7490081148",
-  "lifetime_revenue_gbp": 0.8,
-  "lifetime_gross_gbp": 0.62,
-  "lifetime_net_gbp": 0.36,
-  "lifetime_net_after_cts_gbp": 0.06,
-  "cost_to_serve_gbp": 0.3,
+  "lifetime_revenue_gbp": 0.89,
+  "lifetime_gross_gbp": 0.67,
+  "lifetime_net_gbp": 0.37,
+  "lifetime_net_after_cts_gbp": -0.12,
+  "cost_to_serve_gbp": 0.49,
   "pricing_action": {
-    "flag": "OK",
-    "recommended_uplift_pct": null
+    "flag": "NET_NEGATIVE",
+    "recommended_uplift_pct": 13.8
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -30,17 +30,17 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 0.36,
-      "revenue_gbp": 0.8
+      "net_gbp": 0.37,
+      "revenue_gbp": 0.89
     }
   },
   "dual_fuel_combined": null,
   "annual_pnl": [
     {
       "year": 2016,
-      "revenue_gbp": 0,
-      "gross_gbp": 0.62,
-      "net_gbp": 0.36,
+      "revenue_gbp": 0.89,
+      "gross_gbp": 0.67,
+      "net_gbp": 0.37,
       "tariff_min": 24.88,
       "tariff_max": 24.88
     }
@@ -57,7 +57,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "SYN-2016-438g-INV44095",
+      "id": "SYN-2016-438g-INV44934",
       "date": "2016-09-30",
       "period_start": "2016-09-29",
       "period_end": "2016-09-30",
@@ -103,6 +103,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -112,7 +113,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44095,
+      "invoice_number": 44934,
       "due_date": "2016-10-14",
       "document_type": "bill"
     }
@@ -123,17 +124,17 @@
       {
         "date": "2016-09-30",
         "type": "invoice_raised",
-        "invoice_number": 44095,
+        "invoice_number": 44934,
         "amount_gbp": 1.02,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44095 raised",
+        "description": "Invoice INV44934 raised",
         "running_balance_gbp": 1.02
       },
       {
         "date": "2016-10-14",
         "type": "payment_received",
-        "invoice_number": 44095,
+        "invoice_number": 44934,
         "amount_gbp": -1.02,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -150,6 +151,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 1,
+    "payments": 1,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2016-10-15"
   },
   "consumption": {
     "unit": "kWh",

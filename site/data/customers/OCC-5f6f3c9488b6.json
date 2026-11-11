@@ -16,11 +16,11 @@
   "lifetime_revenue_gbp": 448.2,
   "lifetime_gross_gbp": 241.29,
   "lifetime_net_gbp": -439.66,
-  "lifetime_net_after_cts_gbp": -451.56,
-  "cost_to_serve_gbp": 11.9,
+  "lifetime_net_after_cts_gbp": -466.66,
+  "cost_to_serve_gbp": 27.0,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 100.7
+    "recommended_uplift_pct": 104.1
   },
   "avg_hedge_fraction": 0.8729,
   "clv_gbp": null,
@@ -41,7 +41,7 @@
   "annual_pnl": [
     {
       "year": 2025,
-      "revenue_gbp": 0,
+      "revenue_gbp": 448.2,
       "gross_gbp": 241.29,
       "net_gbp": -439.66,
       "tariff_min": 228.89,
@@ -66,7 +66,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-5f6f3c9488b6-INV2896",
+      "id": "OCC-5f6f3c9488b6-INV2858",
       "date": "2025-01-31",
       "period_start": "2025-01-25",
       "period_end": "2025-01-31",
@@ -112,6 +112,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -121,12 +122,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 2896,
+      "invoice_number": 2858,
       "due_date": "2025-02-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-5f6f3c9488b6-INV2897",
+      "id": "OCC-5f6f3c9488b6-INV2859",
       "date": "2025-02-28",
       "period_start": "2025-02-01",
       "period_end": "2025-02-28",
@@ -172,6 +173,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -181,12 +183,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 2897,
+      "invoice_number": 2859,
       "due_date": "2025-03-30",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-5f6f3c9488b6-INV2898",
+      "id": "OCC-5f6f3c9488b6-INV2860",
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
@@ -232,6 +234,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -241,12 +244,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 2898,
+      "invoice_number": 2860,
       "due_date": "2025-04-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-5f6f3c9488b6-INV2899",
+      "id": "OCC-5f6f3c9488b6-INV2861",
       "date": "2025-04-13",
       "period_start": "2025-04-01",
       "period_end": "2025-04-13",
@@ -292,6 +295,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -301,7 +305,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 2899,
+      "invoice_number": 2861,
       "due_date": "2025-04-28",
       "document_type": "prepayment_statement"
     }
@@ -312,17 +316,17 @@
       {
         "date": "2025-01-31",
         "type": "invoice_raised",
-        "invoice_number": 2896,
+        "invoice_number": 2858,
         "amount_gbp": 43.25,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2896 raised",
+        "description": "Invoice INV2858 raised",
         "running_balance_gbp": 43.25
       },
       {
         "date": "2025-01-31",
         "type": "deemed_account",
-        "invoice_number": 2896,
+        "invoice_number": 2858,
         "amount_gbp": -43.25,
         "info_amount_gbp": null,
         "method": null,
@@ -332,17 +336,17 @@
       {
         "date": "2025-03-16",
         "type": "invoice_raised",
-        "invoice_number": 2897,
+        "invoice_number": 2859,
         "amount_gbp": 164.28,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2897 raised",
+        "description": "Invoice INV2859 raised",
         "running_balance_gbp": 164.28
       },
       {
         "date": "2025-03-16",
         "type": "deemed_account",
-        "invoice_number": 2897,
+        "invoice_number": 2859,
         "amount_gbp": -164.28,
         "info_amount_gbp": null,
         "method": null,
@@ -352,17 +356,17 @@
       {
         "date": "2025-03-31",
         "type": "invoice_raised",
-        "invoice_number": 2898,
+        "invoice_number": 2860,
         "amount_gbp": 183.76,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2898 raised",
+        "description": "Invoice INV2860 raised",
         "running_balance_gbp": 183.76
       },
       {
         "date": "2025-03-31",
         "type": "deemed_account",
-        "invoice_number": 2898,
+        "invoice_number": 2860,
         "amount_gbp": -183.76,
         "info_amount_gbp": null,
         "method": null,
@@ -372,17 +376,17 @@
       {
         "date": "2025-04-14",
         "type": "invoice_raised",
-        "invoice_number": 2899,
+        "invoice_number": 2861,
         "amount_gbp": 79.32,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2899 raised",
+        "description": "Invoice INV2861 raised",
         "running_balance_gbp": 79.32
       },
       {
         "date": "2025-04-14",
         "type": "deemed_account",
-        "invoice_number": 2899,
+        "invoice_number": 2861,
         "amount_gbp": -79.32,
         "info_amount_gbp": null,
         "method": null,
@@ -399,6 +403,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 0,
+    "payments": 0,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": null
   },
   "consumption": {
     "unit": "kWh",

@@ -1,6 +1,6 @@
 {
- "git": "0a6391d186",
- "accounts": 1293,
+ "git": "6fe7827ab2",
+ "accounts": 1302,
  "verdict": {
   "enforce": true,
   "refuse": false,
@@ -8,7 +8,7 @@
   "excepted": [
    {
     "id": "INV_UNIT_RATE_EPG_HOUSEHOLD",
-    "breached": 350,
+    "breached": 337,
     "retired_by": "the printed energy line priced on the printed kWh (the same volume the Treasury's share is computed on), graded 0 on a fresh run"
    },
    {
@@ -18,29 +18,35 @@
    },
    {
     "id": "INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23",
-    "breached": 6,
+    "breached": 7,
     "retired_by": "the raw export carrying each account's void and occupier window, and the row exempting a month the payer did not hold on its 1st"
    },
    {
     "id": "INV_EBSS_CREDIT_ON_THE_BILL",
-    "breached": 6,
+    "breached": 7,
     "retired_by": "the raw export carrying each account's void and occupier window, as for INV_EBSS_CREDIT_EACH_MONTH_OCT22_MAR23"
    },
    {
-    "id": "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL",
-    "breached": 6,
-    "retired_by": "the carbon panel counting energy used as the row says (true-up kWh in the months they reconcile; knowledge page first)"
+    "id": "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER",
+    "breached": 7,
+    "retired_by": "(a) an electrically heated home's estimate following its own seasonal shape from its reads, not the class average (whether a GB supplier does so is a GAP; knowledge page first). (b) and (c) are the row's lawful tail and stay excepted"
    },
    {
-    "id": "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER",
-    "breached": 3,
-    "retired_by": "the three storage homes' bills printing the two-rate settlement they hold, under ruling step 3 (a; their heating type was read 2026-10-30). (b) and (c) are the row's lawful tail and stay excepted"
+    "id": "INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR",
+    "breached": 1,
+    "retired_by": "the gas half of W2_30 (a fitted seasonal split for the premises now refused it, or a hot-water term that moves year to year), graded on a fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file."
+   },
+   {
+    "id": "INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD",
+    "breached": 2,
+    "retired_by": "the W2_30 slice n17_year_on_year_slice_note (docs/design/simplifications/W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape.yaml), with the premises' weather cells from the ERA5 pull (W1_14_weather_cells_for_household_heat_load), graded on a fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file this with the newest counts."
    }
   ],
   "invalid_exceptions": [],
   "report_only_because": null,
   "refusal": null
  },
+ "plain_refusal": null,
  "results": [
   {
    "id": "INV_UNIT_RATE_SVT_ELEC",
@@ -48,7 +54,7 @@
    "source": "docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (by_payment_method.*.periods); docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json (cross-check, EPG); docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md",
    "status": "CLEAN",
    "unit": "SVT term x cap window it overlaps (single-register electricity)",
-   "checked": 5522,
+   "checked": 5699,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -62,7 +68,7 @@
    "source": "docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json; docs/market_research/svt_rates_active_passive_2016_2025.md",
    "status": "CLEAN",
    "unit": "SVT term x pre-cap half-year it overlaps (single-register electricity)",
-   "checked": 2348,
+   "checked": 2208,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -76,7 +82,7 @@
    "source": "docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#windows[].gas, basis.vat; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json#gas_by_payment_method",
    "status": "CLEAN",
    "unit": "SVT term x cap window it overlaps (gas)",
-   "checked": 4740,
+   "checked": 4832,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -90,7 +96,7 @@
    "source": "docs/market_research/svt_rates_active_passive_2016_2025.md",
    "status": "CLEAN",
    "unit": "SVT term x pre-cap half-year it overlaps (gas)",
-   "checked": 1785,
+   "checked": 1438,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -104,7 +110,7 @@
    "source": "docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json; docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md",
    "status": "CLEAN",
    "unit": "SVT term x cap window it overlaps (multi-register electricity)",
-   "checked": 387,
+   "checked": 373,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -118,7 +124,7 @@
    "source": "docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json",
    "status": "FLAGGED",
    "unit": "fixed term, graded once at the window it was struck in",
-   "checked": 1337,
+   "checked": 1477,
    "breached": 0,
    "flagged": 8,
    "unbounded": 0,
@@ -132,25 +138,25 @@
     },
     {
      "where": "PROS-2022-0400 electricity fixed from 2022-12-21",
-     "value": 29.3742,
+     "value": 29.431,
      "bound": 32.381,
      "side": "below"
     },
     {
      "where": "PROS-2023-0001 electricity fixed from 2023-01-01",
-     "value": 28.3366,
+     "value": 28.3914,
      "bound": 32.381,
      "side": "below"
     },
     {
      "where": "PROS-2023-0013 electricity fixed from 2023-01-18",
-     "value": 31.3836,
+     "value": 31.4443,
      "bound": 32.381,
      "side": "below"
     },
     {
      "where": "PROS-2023-0014 electricity fixed from 2023-01-19",
-     "value": 31.5269,
+     "value": 31.5879,
      "bound": 32.381,
      "side": "below"
     }
@@ -163,31 +169,19 @@
    "source": "docs/domain_artefact_library/regulatory/ofgem_default_tariff_cap_windows.json#epg_note, windows[].elec_epg/gas_epg; docs/market_research/ofgem_cap_windows.md \u00a74",
    "status": "BREACHED",
    "unit": "domestic SVT bill period inside an EPG window (household all-in rate, ex-VAT)",
-   "checked": 3163,
-   "breached": 350,
+   "checked": 3261,
+   "breached": 337,
    "flagged": 0,
-   "unbounded": 127,
+   "unbounded": 119,
    "breach_examples": [
     {
-     "where": "OCC-101208fa8e36 electricity 2022-11-01",
-     "value": 32.39,
-     "bound": 32.381,
-     "side": "above"
-    },
-    {
      "where": "OCC-101208fa8e36 electricity 2023-01-01",
-     "value": 32.387,
+     "value": 32.384,
      "bound": 32.381,
      "side": "above"
     },
     {
-     "where": "OCC-101208fa8e36 electricity 2023-04-01",
-     "value": 32.39,
-     "bound": 32.381,
-     "side": "above"
-    },
-    {
-     "where": "OCC-14d60fd5bb78 electricity 2023-03-01",
+     "where": "OCC-14d60fd5bb78 electricity 2022-10-01",
      "value": 32.382999999999996,
      "bound": 32.381,
      "side": "above"
@@ -195,6 +189,18 @@
     {
      "where": "OCC-17ff099218d5 electricity 2023-04-01",
      "value": 32.41,
+     "bound": 32.381,
+     "side": "above"
+    },
+    {
+     "where": "OCC-19925716ecd2 electricity 2022-10-01",
+     "value": 32.385999999999996,
+     "bound": 32.381,
+     "side": "above"
+    },
+    {
+     "where": "OCC-19925716ecd2 electricity 2023-02-01",
+     "value": 32.387,
      "bound": 32.381,
      "side": "above"
     }
@@ -208,7 +214,7 @@
    "source": "docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json; docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json (standard credit, prepayment SC)",
    "status": "CLEAN",
    "unit": "SVT bill period (electricity)",
-   "checked": 21263,
+   "checked": 21327,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -222,7 +228,7 @@
    "source": "docs/domain_artefact_library/regulatory/ofgem_cap_standing_charges.json#periods.gas",
    "status": "CLEAN",
    "unit": "SVT bill period (gas; ceiling in DD-only windows)",
-   "checked": 16577,
+   "checked": 15980,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -236,7 +242,7 @@
    "source": "docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md",
    "status": "CLEAN",
    "unit": "fixed bill period",
-   "checked": 16085,
+   "checked": 17767,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -250,47 +256,47 @@
    "source": "docs/market_research/need_domestic_electricity_high_tail.md",
    "status": "FLAGGED",
    "unit": "complete calendar account-year (electricity)",
-   "checked": 1752,
+   "checked": 1794,
    "breached": 0,
-   "flagged": 8,
+   "flagged": 15,
    "unbounded": 0,
    "breach_examples": [],
    "flag_examples": [
     {
-     "where": "PROS-2017-0336 2018 27587 kWh",
-     "value": 27586.9,
+     "where": "OCC-c2c2a33d47d7 2021 21770 kWh",
+     "value": 21769.600000000006,
      "bound": 18200.0,
      "side": "above the class p99"
     },
     {
-     "where": "PROS-2017-0336 2019 25383 kWh",
-     "value": 25383.0,
+     "where": "OCC-c2c2a33d47d7 2022 22482 kWh",
+     "value": 22482.099999999995,
      "bound": 18200.0,
      "side": "above the class p99"
     },
     {
-     "where": "PROS-2017-0336 2020 23632 kWh",
-     "value": 23632.299999999996,
+     "where": "OCC-c2c2a33d47d7 2023 20954 kWh",
+     "value": 20953.900000000005,
      "bound": 18200.0,
      "side": "above the class p99"
     },
     {
-     "where": "PROS-2017-0336 2021 25804 kWh",
-     "value": 25804.2,
+     "where": "OCC-c2c2a33d47d7 2024 19831 kWh",
+     "value": 19830.800000000003,
      "bound": 18200.0,
      "side": "above the class p99"
     },
     {
-     "where": "PROS-2017-0336 2022 28244 kWh",
-     "value": 28244.4,
+     "where": "PROS-2017-0233 2018 23100 kWh",
+     "value": 23100.300000000003,
      "bound": 18200.0,
      "side": "above the class p99"
     }
    ],
    "book": {
-    "above_p99": 8,
-    "of": 1752,
-    "share": 0.0046,
+    "above_p99": 15,
+    "of": 1794,
+    "share": 0.0084,
     "upper_999": 0.0173,
     "flag": false
    }
@@ -301,7 +307,7 @@
    "source": "docs/market_research/need_domestic_gas_high_tail.md",
    "status": "CLEAN",
    "unit": "complete calendar account-year (gas)",
-   "checked": 1423,
+   "checked": 1464,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -309,9 +315,9 @@
    "flag_examples": [],
    "book": {
     "above_p99": 0,
-    "of": 1423,
+    "of": 1464,
     "share": 0.0,
-    "upper_999": 0.0182,
+    "upper_999": 0.018,
     "flag": false
    }
   },
@@ -335,9 +341,9 @@
    "source": "docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md",
    "status": "FLAGGED",
    "unit": "credit account (prepayment excluded): longest run without an actual read",
-   "checked": 1130,
+   "checked": 1139,
    "breached": 0,
-   "flagged": 311,
+   "flagged": 320,
    "unbounded": 0,
    "breach_examples": [],
    "flag_examples": [
@@ -387,8 +393,8 @@
    "breach_examples": [],
    "flag_examples": [
     {
-     "where": "book share 0.8308 of 6702724 kWh",
-     "value": 0.8308087726721267,
+     "where": "book share 0.8556 of 7747607 kWh",
+     "value": 0.8556483827845136,
      "bound": 0.97,
      "side": "below"
     }
@@ -401,7 +407,7 @@
    "source": "docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md",
    "status": "CLEAN",
    "unit": "bill period of a domestic credit account",
-   "checked": 46456,
+   "checked": 47535,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -415,9 +421,9 @@
    "source": "docs/market_research/unbilled_energy_and_revenue_assurance.md",
    "status": "FLAGGED",
    "unit": "account: days from first period_start to its typed opening read",
-   "checked": 1293,
+   "checked": 1302,
    "breached": 0,
-   "flagged": 1293,
+   "flagged": 1302,
    "unbounded": 0,
    "breach_examples": [],
    "flag_examples": [
@@ -460,7 +466,7 @@
    "source": "docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md (SLC 27.1 payment methods incl. 'payment in advance through a Prepayment Meter'); docs/market_research/payments_and_direct_debit_2026-10-25.md",
    "status": "CLEAN",
    "unit": "account",
-   "checked": 1293,
+   "checked": 1302,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -474,7 +480,7 @@
    "source": "docs/market_research/payments_and_direct_debit_2026-10-25.md",
    "status": "CLEAN",
    "unit": "DD or prepayment payment",
-   "checked": 41768,
+   "checked": 42543,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -488,7 +494,7 @@
    "source": "docs/market_research/payments_and_direct_debit_2026-10-25.md",
    "status": "FLAGGED",
    "unit": "account-month with a DD payment",
-   "checked": 35081,
+   "checked": 36167,
    "breached": 0,
    "flagged": 1,
    "unbounded": 0,
@@ -509,39 +515,39 @@
    "source": "docs/market_research/payments_and_direct_debit_2026-10-25.md",
    "status": "FLAGGED",
    "unit": "successive pair of positive DD collections",
-   "checked": 34615,
+   "checked": 35355,
    "breached": 0,
-   "flagged": 1400,
+   "flagged": 496,
    "unbounded": 0,
    "breach_examples": [],
    "flag_examples": [
     {
-     "where": "C2g 2016-10-21->2016-11-22",
-     "value": 6.911,
+     "where": "OCC-01f752dc9316g 2023-03-10->2023-04-11",
+     "value": 2.881,
      "bound": 2.0,
      "side": "above"
     },
     {
-     "where": "C2g 2017-09-14->2017-10-16",
-     "value": 4.047,
+     "where": "OCC-17ff099218d5 2020-03-16->2020-04-16",
+     "value": 5.873,
      "bound": 2.0,
      "side": "above"
     },
     {
-     "where": "C3g 2016-12-15->2017-01-18",
-     "value": 2.439,
+     "where": "OCC-17ff099218d5 2020-11-18->2020-12-15",
+     "value": 2.519,
      "bound": 2.0,
      "side": "above"
     },
     {
-     "where": "OCC-00909e50a521 2020-04-18->2020-05-19",
-     "value": 5.103,
+     "where": "OCC-17ff099218d5 2023-07-17->2023-08-16",
+     "value": 3.298,
      "bound": 2.0,
      "side": "above"
     },
     {
-     "where": "OCC-01e79fcf2d4fg 2021-10-25->2021-11-17",
-     "value": 2.049,
+     "where": "OCC-17ff099218d5 2023-10-18->2023-11-21",
+     "value": 2.132,
      "bound": 2.0,
      "side": "above"
     }
@@ -554,7 +560,7 @@
    "source": "docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md (21B.4, 21B.5 carve-outs)",
    "status": "BREACHED",
    "unit": "period on a prepayment account",
-   "checked": 6263,
+   "checked": 6291,
    "breached": 12,
    "flagged": 0,
    "unbounded": 0,
@@ -599,7 +605,7 @@
    "source": "logic of GB meter-point identifiers (MPAN electricity, MPRN gas)",
    "status": "CLEAN",
    "unit": "bill period",
-   "checked": 52828,
+   "checked": 53921,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -613,7 +619,7 @@
    "source": "belief (strong logic): SLC 28AD's Multi-Register definitions are electricity-licence text (docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md); no domestic gas multi-register arrangement appears in any allowed source",
    "status": "CLEAN",
    "unit": "gas meter (account x meter_serial)",
-   "checked": 586,
+   "checked": 590,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -627,7 +633,7 @@
    "source": "docs/market_research/a_storage_heated_homes_default_tariff_is_two_rate.md R1 (class follows the meter; the supplier allocates it), R2 (SLC 1: the default follows meter type), R5 (SLC 22A.3: each rate is identified on the bill), \"The choice a build should make\" 2 and 4; docs/data-sources/profile-class-2.md \"Who was registered on it\" (PC1 is unrestricted, PC2 is Economy 7, the class follows the switched load); slc_28ad_multi_register_cap_test.md definition of Economy 7 Tariff (two separate Unit Rates, 17 day hours and 7 night hours)",
    "status": "CLEAN",
    "unit": "electricity period on profile class 1 or 2",
-   "checked": 27558,
+   "checked": 28051,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -641,7 +647,7 @@
    "source": "derived from INV_UNIT_RATE_SVT_ELEC and INV_UNIT_RATE_SVT_GAS rows; e.g. 2019-04 elec floor 8.024 > gas cap 3.943",
    "status": "CLEAN",
    "unit": "SVT term x cap window it overlaps (both fuels)",
-   "checked": 9870,
+   "checked": 10107,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -662,7 +668,7 @@
    "source": "logic of a meter-point account ledger",
    "status": "CLEAN",
    "unit": "bill period (day count) and successive pair (contiguity)",
-   "checked": 104372,
+   "checked": 106540,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -676,41 +682,41 @@
    "source": "docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md; docs/market_research/back_billing_and_liability.md",
    "status": "FLAGGED",
    "unit": "bill period of a domestic account from 2018-05-01",
-   "checked": 37579,
+   "checked": 38580,
    "breached": 0,
-   "flagged": 144,
+   "flagged": 148,
    "unbounded": 0,
    "breach_examples": [],
    "flag_examples": [
     {
-     "where": "OCC-01f752dc9316g gas 2023-10-01",
-     "value": 738.6,
-     "bound": 642.1,
-     "side": "catch-up after 396 days unread"
-    },
-    {
      "where": "OCC-19925716ecd2 electricity 2024-02-01",
-     "value": 236.4,
-     "bound": 198.6,
+     "value": 195.7,
+     "bound": 176.7,
      "side": "catch-up after 486 days unread"
     },
     {
      "where": "OCC-288aa561d534 electricity 2023-02-01",
-     "value": 139.3,
-     "bound": 114.9,
+     "value": 136.3,
+     "bound": 111.9,
      "side": "catch-up after 881 days unread"
     },
     {
      "where": "OCC-394fe32e206f electricity 2021-02-01",
-     "value": 240.9,
-     "bound": 192.2,
+     "value": 162.4,
+     "bound": 128.5,
      "side": "catch-up after 517 days unread"
     },
     {
      "where": "OCC-4a57fd8f66fc electricity 2025-01-01",
-     "value": 160.1,
-     "bound": 141.4,
+     "value": 108.5,
+     "bound": 94.9,
      "side": "catch-up after 397 days unread"
+    },
+    {
+     "where": "OCC-4a57fd8f66fcg gas 2024-03-01",
+     "value": 713.6,
+     "bound": 687.7,
+     "side": "catch-up after 366 days unread"
     }
    ],
    "book": null
@@ -721,7 +727,7 @@
    "source": "physics",
    "status": "CLEAN",
    "unit": "register-period",
-   "checked": 55998,
+   "checked": 57117,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -735,7 +741,7 @@
    "source": "physics",
    "status": "CLEAN",
    "unit": "successive pair of actual reads on one register",
-   "checked": 15168,
+   "checked": 15605,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -749,7 +755,7 @@
    "source": "logic",
    "status": "CLEAN",
    "unit": "period billed on reads",
-   "checked": 52828,
+   "checked": 53921,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -763,7 +769,7 @@
    "source": "docs/market_research/back_billing_and_liability.md",
    "status": "CLEAN",
    "unit": "successive pair of periods on one meter register",
-   "checked": 54459,
+   "checked": 55563,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -777,7 +783,7 @@
    "source": "docs/market_research/a_multi_register_meters_bands_add_up_to_its_total.md",
    "status": "CLEAN",
    "unit": "change of printed register set between contiguous periods on one serial",
-   "checked": 94,
+   "checked": 99,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -791,7 +797,7 @@
    "source": "docs/domain_artefact_library/regulatory/uk_vat_rates.json; docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json",
    "status": "CLEAN",
    "unit": "period",
-   "checked": 52828,
+   "checked": 53921,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -805,7 +811,7 @@
    "source": "logic",
    "status": "CLEAN",
    "unit": "period",
-   "checked": 52828,
+   "checked": 53921,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -819,7 +825,7 @@
    "source": "Elexon, Issue 79 Workgroup 1 slide pack v2.0, 20 May 2019, \"SSC/TPR to Meter Register mapping conventions (DTC)\" (slide 17): \"Register 1: Single rate; or peak for multi-rate SSCs; or heating load for secondary MPAN; 2: off-peak for multi-rate SSCs; 3: Evening/weekend ...; 4: Seasonal ...\". Example mappings (slides 18-19): SSC 0393 TPR 00001 register 1 Unrestricted; SSC 0151 TPR 00043 register 1 peak and TPR 00210 register 2 off-peak. Slide 20 (P302): \"All 48 ToU register readings plus Total Cumulative register reading\", \"Register readings for old SSC\" and \"Register readings for new SSC\". Slide 22: \"the new Supplier adopts a new SSC with fewer Time Pattern Regimes than losing Supplier's SSC\". https://assets.elexon.co.uk/wp-content/uploads/sites/11/2019/05/28155716/Issue-79-WG1-Slidestack-v2.0.pdf. Ofgem, BSC P302 decision, 18 Jun 2015, p.2: the new supplier collects \"the total cumulative and time of use meter register readings retrieved from the meter at the point that it is reconfigured\"; p.3: \"the ease with which the new supplier will be able to reconfigure the meter on CoS\". https://www.ofgem.gov.uk/sites/default/files/docs/2015/06/p302d.pdf",
    "status": "CLEAN",
    "unit": "register id on one period, and each relabel between periods on one serial",
-   "checked": 55998,
+   "checked": 57117,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -833,7 +839,7 @@
    "source": "Elexon, Issue 79 WG1 slide pack v2.0, 20 May 2019, slide 22 \"Summary of Issue\": \"Will occur where the new Supplier adopts a new SSC with fewer Time Pattern Regimes than losing Supplier's SSC\"; slide 20 (P302): register readings \"for old SSC\" and \"for new SSC\" on one meter; slides 6-8: a Utilita SMETS single-rate tariff \"Creates separate blocks within the SMETS configuration for each rate\" (2 blocks single-rate, 3 E7), https://assets.elexon.co.uk/wp-content/uploads/sites/11/2019/05/28155716/Issue-79-WG1-Slidestack-v2.0.pdf. Ofgem BSC P302 decision, 18 Jun 2015, pp.2-3 (reconfiguration at CoS, no exchange), https://www.ofgem.gov.uk/sites/default/files/docs/2015/06/p302d.pdf. Elexon BSCP40/04 Issue 67 form \"Meter Timeswitch Code for Smart Meters\", 16 Jan 2017, Issue Description and Justification, https://assets.elexon.co.uk/wp-content/uploads/sites/11/2017/01/28161831/BSCP40_04-Issue-Meter-Timeswitch-Code-for-Smart-Meters_v1.0.pdf. SLC 1 definition of Multi-Register Metering Arrangement, docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (Definitions, S1 verbatim). Traditional-meter half: belief (strong logic), no quoted rule.",
    "status": "FLAGGED",
    "unit": "period, and each successive pair of periods on one serial",
-   "checked": 104363,
+   "checked": 106540,
    "breached": 0,
    "flagged": 2,
    "unbounded": 0,
@@ -853,8 +859,8 @@
     }
    ],
    "book": {
-    "count_changes_at_a_tariff_change": 94,
-    "serials": 63
+    "count_changes_at_a_tariff_change": 99,
+    "serials": 65
    }
   },
   {
@@ -863,10 +869,10 @@
    "source": "SLC 27.2A (a price difference between payment methods must reflect cost: docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md A1), which presumes one price per method. Cold-read objections O1 and O2: OCC-f6813bf9f05e (13.30 p/kWh) and SYN-2016-395 (10.16 p/kWh), both \"Standard Variable (Electricity)\" in autumn 2016 with the same \u00a30.1922/day standing charge.",
    "status": "CLEAN",
    "unit": "domestic account on an SVT term on the 1st of a month (unit rate; standing charge)",
-   "checked": 33495,
+   "checked": 32959,
    "breached": 0,
    "flagged": 0,
-   "unbounded": 3120,
+   "unbounded": 3091,
    "breach_examples": [],
    "flag_examples": [],
    "book": null
@@ -877,10 +883,10 @@
    "source": "docs/market_research/energy_bills_support_scheme_delivery.md (\"An occupier's deemed account\": BEIS EBSS guidance for electricity suppliers 5.4, a customer with a domestic supply contract \"or a deemed contract at 00:00 hours on the qualifying date\" is eligible for that month, and 5.8 makes the qualifying date the 1st of each month Oct 2022 to Mar 2023; \"What the scheme required\": per domestic electricity account, \u00a3400 in six instalments of \u00a366/\u00a367; secondary source ii.co.uk, BEIS guidance itself a GAP there). Cold-read objection O22: PROS-2019-0246's December 2022 bill of \u00a3596.06 shows no credit. On the 4ae8da9b0f book the credit reaches no named household.",
    "status": "BREACHED",
    "unit": "account-month on supply, Oct 2022 to Mar 2023",
-   "checked": 2273,
-   "breached": 6,
+   "checked": 2321,
+   "breached": 7,
    "flagged": 0,
-   "unbounded": 126,
+   "unbounded": 138,
    "breach_examples": [
     {
      "where": "OCC-25ff8966357a electricity 2023-02",
@@ -907,9 +913,9 @@
      "side": "below"
     },
     {
-     "where": "OCC-e3e94f81161b electricity 2023-03",
+     "where": "OCC-da79d3238e02 electricity 2022-10",
      "value": 0.0,
-     "bound": 66.0,
+     "bound": 65.0,
      "side": "below"
     }
    ],
@@ -922,7 +928,7 @@
    "source": "SLC 22C.4(a), Ofgem notice of modifications, default tariffs at the end of fixed-term tariffs (2017), https://www.ofgem.gov.uk/system/files/docs/2017/10/notice_of_modifications_and_reasons_-_default_tariffs_for_domestic_customers_at_the_end_of_fixed-term_tariffs_electricity.pdf, quoted in docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md. Cold-read objection O6: SYN-2016-031, \"24 Jan 2024 \u00b7 The renewal decision\" and \"24 Jan 2024 \u00b7 Renewed\", on the day a fix from 25 Jan 2019 ends.",
    "status": "CLEAN",
    "unit": "domestic fixed term owed a statement",
-   "checked": 1171,
+   "checked": 1304,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -933,10 +939,10 @@
   {
    "id": "INV_OVERDUE_WITHIN_BALANCE",
    "family": "account_arithmetic",
-   "source": "Logic of an account ledger (an overdue sum is a subset of the balance). Cold-read objections O10, O16 and O18: SYN-2016-356 shows \"\u00a323.88 owed\" beside \"GBP71.73 overdue\", and \"\u00a359.77 owed\" beside \"GBP147.56 overdue\". PROS-2017-0264 shows \"Debt stage: Overdue balance cleared\" with \"0 returned, 0 missed\".",
+   "source": "Logic of an account ledger (an overdue sum is a subset of the balance). Cold-read objections O10, O16 and O18: SYN-2016-356 shows \"\u00a323.88 owed\" beside \"GBP71.73 overdue\", and \"\u00a359.77 owed\" beside \"GBP147.56 overdue\". PROS-2017-0264 shows \"Debt stage: Overdue balance cleared\" with \"0 returned, 0 missed\". For a level direct debit leg, docs/market_research/payments_and_direct_debit_2026-10-25.md, \"What is owed\": a DD customer is in debt only \"where they have fallen into debt while on direct debit by defaulting on one or more payments\" (Ofgem, letter of 20 Sep 2011, App. 2 para 2.8); and \"Leaving level direct debit with a debit\" on the same page for an ended scheme.",
    "status": "CLEAN",
    "unit": "collections journey opening",
-   "checked": 1076,
+   "checked": 1013,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -964,7 +970,7 @@
    "source": "docs/market_research/debt_and_collections.md (the GB collections sequence); SLC 27 ability-to-pay duty. Cold-read objection O17: SYN-2016-356, \"Decision log. 25 Nov 2016: Payment plan offered (SLC 27.8) -- \u00a3124.99 overdue\" before \"29 Nov 2016 \u00b7 Missed a payment\".",
    "status": "CLEAN",
    "unit": "collections journey",
-   "checked": 1076,
+   "checked": 1013,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -992,7 +998,7 @@
    "source": "Structure of the GB MPAN core under the MRA, now the REC (Elexon / Retail Energy Code). The reader cited it with high confidence, and it is NOT in the commons: a GAP until a commons page carries it. Cold-read objection O31: OCC-f6813bf9f05e prints \"Supply point 19494047720\" (11 digits), and the record's mpan bottom_line is 19494047720.",
    "status": "CLEAN",
    "unit": "electricity supply point (account, MPAN core)",
-   "checked": 707,
+   "checked": 712,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -1006,10 +1012,10 @@
    "source": "docs/market_research/energy_bills_support_scheme_delivery.md: \"How it reached the account, by payment route\", pay on receipt \"credited to the account, shown on the bill\" (ii.co.uk summary of the consumer guidance, a secondary source); \"A bill the credit covered in part\", pay on receipt, \"The bill that followed showed it. The household paid the balance, so it paid the bill less the credit\"; \"An occupier's deemed account\", BEIS guidance 5.4 and 5.8 for who is owed which month, and Annex C, the supplier credits the Owner/Occupier account \"on the bill\". Second cold read N1 (2026-10-28): PROS-2019-0246's ledger holds all six credits, GBP 400, and the page printed \"The electricity bill for December 2022 was \u00a3598.04\" with no credit line.",
    "status": "BREACHED",
    "unit": "bill covering a qualifying 1st, Oct 2022 to Mar 2023",
-   "checked": 2273,
-   "breached": 6,
+   "checked": 2321,
+   "breached": 7,
    "flagged": 0,
-   "unbounded": 126,
+   "unbounded": 138,
    "breach_examples": [
     {
      "where": "OCC-25ff8966357a electricity bill 2023-01-01 to 2023-01-31",
@@ -1036,9 +1042,9 @@
      "side": "below"
     },
     {
-     "where": "OCC-e3e94f81161b electricity bill 2023-03-01 to 2023-03-31",
+     "where": "OCC-da79d3238e02 electricity bill 2022-10-01 to 2022-10-31",
      "value": 0.0,
-     "bound": 66.0,
+     "bound": 65.0,
      "side": "below"
     }
    ],
@@ -1051,7 +1057,7 @@
    "source": "Logic of an account ledger: an overdue sum is a subset of the balance (INV_OVERDUE_WITHIN_BALANCE's source). Cold-read objections O10, O16 and O18: SYN-2016-356 shows \"\u00a323.88 owed\" beside \"GBP71.73 overdue\", and \"\u00a359.77 owed\" beside \"GBP147.56 overdue\". The second cold read, N1: the same shape behind O4 and O14.",
    "status": "CLEAN",
    "unit": "household collections step printing an overdue figure",
-   "checked": 17149,
+   "checked": 6385,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -1071,7 +1077,7 @@
    ],
    "status": "CLEAN",
    "unit": "account (page revenue against page bills before VAT)",
-   "checked": 1293,
+   "checked": 1302,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -1088,8 +1094,15 @@
     "docs/market_research/gb_domestic_bill_payment_failure_and_arrears_prevalence.md",
     "Cold read N3: \"34 payments, 4 returned, 42 missed\" on a 50-bill account (34 + 42 = 76 > 50); \"6 payments, 4 returned, 0 missed\"; a DD kept after 4 of 6 collections returned."
    ],
-   "status": "NOT_IN_EXPORT",
-   "reason": "needs `payment_record`, which no period of this export carries"
+   "status": "CLEAN",
+   "unit": "account (printed payment counter against collections due)",
+   "checked": 1139,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
   },
   {
    "id": "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL",
@@ -1099,44 +1112,13 @@
     "docs/market_research/household_carbon_and_the_measures_that_save_it.md (DESNZ gas factor about 0.184 kgCO2e/kWh gross CV; 7,303 x 0.184 = 1,344 kg, so the panel's co2e follows its own kWh and the fault is the kWh)",
     "Cold read N5: SYN-2016-371, 2017, carbon panel \"Gas 1,345 kg 7,303 kWh billed over 8 month(s)\" against a usage panel summing to 6,180 kWh for 2017; a part-year figure published."
    ],
-   "status": "BREACHED",
+   "status": "CLEAN",
    "unit": "account-year on both panels",
-   "checked": 8657,
-   "breached": 6,
+   "checked": 8836,
+   "breached": 0,
    "flagged": 0,
    "unbounded": 0,
-   "breach_examples": [
-    {
-     "where": "PROS-2024-0010 electricity 2024",
-     "value": 13296.8,
-     "bound": 19512.6,
-     "side": "below"
-    },
-    {
-     "where": "PROS-2024-0010 electricity 2024 months",
-     "value": 9,
-     "bound": 12,
-     "side": "months"
-    },
-    {
-     "where": "PROS-2025-0106 electricity 2025",
-     "value": 303.6,
-     "bound": 3721.2,
-     "side": "below"
-    },
-    {
-     "where": "PROS-2025-0106 electricity 2025 months",
-     "value": 1,
-     "bound": 3,
-     "side": "months"
-    },
-    {
-     "where": "SYN-2016-582 electricity 2017",
-     "value": 12919.0,
-     "bound": 20278.1,
-     "side": "below"
-    }
-   ],
+   "breach_examples": [],
    "flag_examples": [],
    "book": null
   },
@@ -1203,40 +1185,40 @@
    ],
    "status": "FLAGGED",
    "unit": "estimated bill on a rung its declared policy grades",
-   "checked": 30708,
+   "checked": 31375,
    "breached": 0,
-   "flagged": 136,
+   "flagged": 232,
    "unbounded": 0,
    "breach_examples": [],
    "flag_examples": [
     {
-     "where": "OCC-00909e50a521 electricity M7248394467 bill 2020-10-01 to 2020-10-31",
-     "value": 3.661,
-     "bound": 4.075,
-     "side": "wrong direction"
-    },
-    {
-     "where": "OCC-00909e50a521 electricity M7248394467 bill 2020-11-01 to 2020-11-30",
-     "value": 4.463,
-     "bound": 4.968,
-     "side": "wrong direction"
-    },
-    {
-     "where": "OCC-00909e50a521 electricity M7248394467 bill 2020-12-01 to 2020-12-31",
-     "value": 4.577,
-     "bound": 5.092,
-     "side": "wrong direction"
-    },
-    {
      "where": "OCC-17ff099218d5g gas M9550063864 bill 2020-07-01 to 2020-07-31",
-     "value": 4.206,
-     "bound": 4.916,
+     "value": 3.761,
+     "bound": 4.378,
      "side": "wrong direction"
     },
     {
      "where": "OCC-17ff099218d5g gas M9550063864 bill 2020-08-01 to 2020-08-31",
-     "value": 4.135,
-     "bound": 4.832,
+     "value": 3.7,
+     "bound": 4.303,
+     "side": "wrong direction"
+    },
+    {
+     "where": "OCC-17ff099218d5g gas M9550063864 bill 2020-11-01 to 2020-11-30",
+     "value": 22.02,
+     "bound": 25.052,
+     "side": "wrong direction"
+    },
+    {
+     "where": "OCC-17ff099218d5g gas M9550063864 bill 2020-12-01 to 2020-12-31",
+     "value": 26.497,
+     "bound": 30.147,
+     "side": "wrong direction"
+    },
+    {
+     "where": "OCC-17ff099218d5g gas M9550063864 bill 2021-01-01 to 2021-01-31",
+     "value": 29.684,
+     "bound": 33.772,
      "side": "wrong direction"
     }
    ],
@@ -1253,14 +1235,14 @@
    ],
    "status": "BREACHED",
    "unit": "run of estimated bills bounded by actual reads",
-   "checked": 4309,
-   "breached": 3,
-   "flagged": 14,
+   "checked": 4425,
+   "breached": 7,
+   "flagged": 25,
    "unbounded": 0,
    "breach_examples": [
     {
      "where": "PROS-2016-0263g gas M0572089269 run 2020-06-01 to 2020-10-31 (5 bills)",
-     "value": 3.895,
+     "value": 3.951,
      "bound": [
       0.333,
       3.0
@@ -1268,8 +1250,8 @@
      "side": "above"
     },
     {
-     "where": "PROS-2017-0336 electricity M0526591891 run 2023-06-01 to 2023-08-31 (3 bills)",
-     "value": 3.281,
+     "where": "PROS-2017-0351 electricity M6105244782 run 2020-06-01 to 2020-07-31 (2 bills)",
+     "value": 4.318,
      "bound": [
       0.333,
       3.0
@@ -1277,8 +1259,26 @@
      "side": "above"
     },
     {
-     "where": "SYN-2016-396g gas M6817507716 run 2019-07-01 to 2019-08-31 (2 bills)",
-     "value": 3.306,
+     "where": "PROS-2017-0364 electricity M9719659592 run 2022-06-01 to 2022-07-31 (2 bills)",
+     "value": 3.646,
+     "bound": [
+      0.333,
+      3.0
+     ],
+     "side": "above"
+    },
+    {
+     "where": "SYN-2016-215 electricity M0367537551 run 2021-06-01 to 2021-07-31 (2 bills)",
+     "value": 4.272,
+     "bound": [
+      0.333,
+      3.0
+     ],
+     "side": "above"
+    },
+    {
+     "where": "SYN-2016-215 electricity M0367537551 run 2023-07-01 to 2023-08-31 (2 bills)",
+     "value": 4.146,
      "bound": [
       0.333,
       3.0
@@ -1298,7 +1298,7 @@
     },
     {
      "where": "PROS-2016-0263g gas M0572089269 run 2019-02-01 to 2020-04-30 (15 bills)",
-     "value": 2.605,
+     "value": 2.441,
      "bound": [
       0.5,
       2.0
@@ -1306,8 +1306,8 @@
      "side": "above"
     },
     {
-     "where": "PROS-2016-0264g gas M7880882060 run 2022-10-01 to 2023-02-28 (5 bills)",
-     "value": 2.104,
+     "where": "PROS-2017-0336 electricity M0526591891 run 2023-06-01 to 2023-08-31 (3 bills)",
+     "value": 2.556,
      "bound": [
       0.5,
       2.0
@@ -1315,8 +1315,8 @@
      "side": "above"
     },
     {
-     "where": "PROS-2017-0336 electricity M0526591891 run 2025-04-01 to 2025-05-31 (2 bills)",
-     "value": 2.525,
+     "where": "PROS-2017-0364 electricity M9719659592 run 2021-05-01 to 2021-07-31 (3 bills)",
+     "value": 2.575,
      "bound": [
       0.5,
       2.0
@@ -1324,13 +1324,13 @@
      "side": "above"
     },
     {
-     "where": "PROS-2019-0063g gas M4318788179 run 2021-06-01 to 2021-08-31 (3 bills)",
-     "value": 2.335,
+     "where": "PROS-2019-0121g gas M4479251373 run 2019-08-01 to 2019-09-30 (2 bills)",
+     "value": 0.5,
      "bound": [
       0.5,
       2.0
      ],
-     "side": "above"
+     "side": "below"
     }
    ],
    "book": null
@@ -1350,7 +1350,7 @@
    ],
    "status": "CLEAN",
    "unit": "supply points printing a meter type",
-   "checked": 1293,
+   "checked": 1302,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -1389,7 +1389,7 @@
    "source": "physics (one object, one place) plus belief (strong logic) on the identifiers: docs/market_research/home_moves.md, \"What a gas supply is, at a move\": \"A supply belongs to a meter point, not to a household: an MPAN for electricity, an MPRN for gas ... Nothing 'moves' with a household\", and design choice 6 \"The incoming occupier's account names the account it succeeded at the same meter point\" (successive occupiers share the supply point); docs/market_research/unbilled_energy_and_revenue_assurance.md K5 \"two premises' MPANs/MPRNs swapped ('crossed')\" and the Ofgem SPAA CP10/190 definition \"a customer billed for a meter point (MPRN) that is not measuring consumption at their premises\" (the defect the flag leg catches); same file, smart roll-out section: \"A meter exchange is a fact the supplier holds about its own supply point. The meter's details are on the national metering record and arrive in the industry flows\" (so an exchange is recordable and its absence is gradable); docs/domain_artefact_library/regulatory/mpan_core_structure_and_check_digit.md, \"Distributor ID\": the core \"consists of a two-digit Distributor ID\" with the fourteen DNO areas 10 to 23 and IDNOs from 24 upward [S] (the electricity region key); docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md Item 7: a tariff change \"is not a meter exchange, and it issues no new serial\" and \"one register is one register for the life of the serial\"",
    "status": "CLEAN",
    "unit": "bill period (commodity, meter_serial, supply point)",
-   "checked": 52828,
+   "checked": 53921,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -1403,7 +1403,7 @@
    "source": "physics for the unit identity (1 kWh = 3,600,000 J = 3.6 MJ) and belief (strong logic) for the record shape. What the files read establish: docs/market_research/household_carbon_and_the_measures_that_save_it.md, \"Gas factor\" paragraph: \"GB gas meters are billed in kWh converted at the gross calorific value\"; docs/domain_artefact_library/regulatory/desnz_natural_gas_conversion_factor.json, basis.units: \"GB gas is billed in kWh converted at gross CV\" (this artefact is the DESNZ CARBON factor, kgCO2e per kWh gross CV, NOT the volume-to-energy conversion; it confirms only that the billed kWh is on a gross-CV basis); docs/market_research/unbilled_energy_and_revenue_assurance.md K5: \"a wrong multiplier or correction factor\" listed as a meter-fault class, and the Xoserve/AUG finding \"incorrect correction factors 40\" (a correction factor exists per supply point and can be wrong, so it is a field the record carries); docs/domain_artefact_library/scope_briefs/ADVISOR_SCOPE_BRIEF_GAS_2026-08-04.md: gas traded \"in pence per therm, roughly 29.3 kWh, which is a real conversion the model must get right rather than assume\" (the commons' stance on gas unit conversion); docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md Item 6: SLC 31H.1 bills \"sufficient to enable that Domestic Customer to understand and manage the costs\", 31H.12(b) \"how any charges ... are calculated\" (electricity licence text, quoted there; its gas mirror was not read)",
    "status": "CLEAN",
    "unit": "gas read/bill record (one period's register advance)",
-   "checked": 23745,
+   "checked": 24274,
    "breached": 0,
    "flagged": 0,
    "unbounded": 0,
@@ -1422,8 +1422,575 @@
    "id": "INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR",
    "family": "weather_driven_demand",
    "source": "Belief derived from the knowledge layer; no file read gives a repeat count. Physics of the driver: site/data/knowledge_topics.json, fabric topic \"How it works\": \"A home's space-heating demand is, to a good approximation, its heat-loss coefficient ... multiplied by how cold it has been over the season, less the heat the sun and the occupants supply for free\"; docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md \"Controls and end-use split\": \"Domestic gas end use is roughly 75% space heating (DESNZ 2024), with hot water 12-25% and cooking 5-10%\"; docs/market_research/gas_demand_cumulative_hdd_cwv.md, National Grid Gas Demand Forecasting Methodology 2020: \"Effective temperature takes into account the previous day's temperature due to consumer behaviour\" (demand is regressed on weather). Year-to-year variation in the driver: docs/market_research/other_market_germany_2026-10-25.md (and other_market_japan): \"UK HDD 2,710-2,961 over 2018-2025 (2024: 2,812)\" (Eurostat nrg_chdd_a) - an annual spread of about 9%, and a single month averages fewer days than a year so its HDD varies at least as much (strong logic); docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 4: \"January 2025 ran markedly colder than January 2023-2024, visible in the per-year shares\", and January carries \"17.05%\" of domestic gas against July \"2.33%\" (DESNZ Energy Trends 4.2). Weather plus price in the record: docs/market_research/how_much_a_same_households_use_moves_year_on_year_and_in_2022.md section 2B, DESNZ ECUK Table C9, domestic gas 2021 to 2022 \"-11.6%\" temperature-corrected and \"-19.2%\" unadjusted (weather alone about 7.6 points of annual use in one year); section 2A SERL: gas \"10.8% lower than the previous winter (accounting for weather)\", IQR \"(1.19%, 22.44%)\"; section 1: \"some households continued to use up to around 1 kWh of electricity per day or 15-20% more than predicted throughout 2021/22, others decreased by similar levels\" (individual households swing by much more than the sample median). Why a repeat signals a shape, not a meter: how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 3, Xoserve: AQ is \"An estimate of the amount of gas (in kWh) that a supply meter point will use in the coming year under 'seasonal normal' weather conditions\", spread monthly by the Annual Load Profile; a fixed AQ times a fixed seasonal-normal profile repeats month for month. Reasoning for the bounds (belief): on a ~1,400 kWh January, weather alone (annual ~5-9%, monthly more) and behaviour put the same-month year-on-year difference at a spread of tens of kWh; the chance that a difference with that spread lands inside a 0.1 kWh window is of order 0.1/50, about 0.2% per winter pair; summer months (~2-3% of annual use, smaller spread) perhaps nearer 1%. A leg of 2016-2025 has at most ~108 pairs, so the expected count is below 1, and 3 or more (or a winter run across 2022) is not credible. Leg B: weather alone moved national annual gas ~7.6 points in 2021-22 and individual households swing 15-20%, so a median winter year-on-year change below 1% across a leg is not a weather-driven home; the 1% floor is the lenient end of a 1-3% belief range (F11, erring against the thesis that the record is defective).",
+   "status": "BREACHED",
+   "unit": "gas leg with a measured month a year after another",
+   "checked": 140,
+   "breached": 1,
+   "flagged": 2,
+   "unbounded": 0,
+   "breach_examples": [
+    {
+     "where": "SYN-2016-206g M7836503741",
+     "value": 3,
+     "bound": 1,
+     "side": "repeats"
+    }
+   ],
+   "flag_examples": [
+    {
+     "where": "PROS-2017-0183g M8035966046",
+     "value": 2,
+     "bound": 1,
+     "side": "exactly two repeats"
+    },
+    {
+     "where": "SYN-2016-258g M5595226873",
+     "value": 2,
+     "bound": 1,
+     "side": "exactly two repeats"
+    }
+   ],
+   "book": {
+    "repeats": 10,
+    "pairs": 3743,
+    "share": 0.0027,
+    "upper": 0.01,
+    "breach": false
+   }
+  },
+  {
+   "id": "INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD",
+   "family": "weather_driven_demand",
+   "source": "NEED (how_far_a_settled_eac_sits_from_next_years_use.md section 1) and SERL (how_much_a_same_households_use_moves_year_on_year_and_in_2022.md section 2A). Written for the eighth cold read's N17 (docs/staging/done/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_METERED_ELECTRICITY_USE_BARELY_MOVES_FROM_ONE_YEAR_TO_THE_NEXT_2026-11-04.md), from those pages, before the book was graded.",
+   "status": "BREACHED",
+   "unit": "electricity book (measured month-pairs)",
+   "checked": 1,
+   "breached": 2,
+   "flagged": 58,
+   "unbounded": 0,
+   "breach_examples": [
+    {
+     "where": "book median |r-1| n=4851",
+     "value": 0.0075,
+     "bound": 0.05,
+     "side": "below"
+    },
+    {
+     "where": "book within 0.1 kWh of 1743 within 1 kWh",
+     "value": 0.2932,
+     "bound": 0.1688,
+     "side": "above chance"
+    }
+   ],
+   "flag_examples": [
+    {
+     "where": "OCC-2974d725d75a M8958906872",
+     "value": 5,
+     "bound": 2,
+     "side": "leg repeats within 0.1 kWh"
+    },
+    {
+     "where": "OCC-3380e6a81b83 M6101478648",
+     "value": 12,
+     "bound": 2,
+     "side": "leg repeats within 0.1 kWh"
+    },
+    {
+     "where": "OCC-6387bf64272a M4016799841",
+     "value": 4,
+     "bound": 2,
+     "side": "leg repeats within 0.1 kWh"
+    },
+    {
+     "where": "OCC-924f5fe3f622 M6268348901",
+     "value": 9,
+     "bound": 2,
+     "side": "leg repeats within 0.1 kWh"
+    },
+    {
+     "where": "OCC-987fa5aa0bf5 M4494924797",
+     "value": 5,
+     "bound": 2,
+     "side": "leg repeats within 0.1 kWh"
+    }
+   ],
+   "book": {
+    "pairs": 4851,
+    "median_abs_r_minus_1": 0.0075,
+    "band": [
+     0.05,
+     0.3
+    ],
+    "within_1_kwh": 1743,
+    "within_0_1_kwh": 511,
+    "share": 0.2932,
+    "chance": 0.1429,
+    "upper_999": 0.1688
+   }
+  },
+  {
+   "id": "INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE",
+   "family": "back_billing",
+   "source": "docs/market_research/back_billing_and_liability.md \u00a71: the supplier \"must only do so in respect of units \u2026 which could reasonably be considered to have been consumed within the 12 months preceding the date the charge recovery action was taken\" (SLC 21BA.1); \"The 12 months run back from the date of the demand, not from the read and not from when the error was found\"; \"For a customer who pays each bill on receipt, that comes to the same thing as the under-estimate.\" \u00a716: \"for an account that pays each bill on receipt, the bill is the demand and 21BA.1 bars energy more than 12 months before it. So the question is not 'how did the account first pay us' but how it pays the catch-up bill itself.\" \u00a72: \"From 1 May 2018 for domestic customers, and 1 November 2018 for microbusinesses\". Commons: docs/domain_artefact_library/regulatory/slc_21b_21ba_reads_and_back_billing.md.",
+   "status": "CLEAN",
+   "unit": "undercharge catch-up on a credit bill paid on receipt, issued with 21BA in force",
+   "checked": 560,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 13,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL",
+   "family": "collections_sequence",
+   "source": "docs/market_research/company_debt_management.md, \"A further bill missed means the bill was not paid, not that a balance stood (2026-11-03)\": \"A bill counts as newly missed for the re-offer only when the cash that landed on the account between its issue and its due date, both inclusive, is short of the bill.\" \"Telling a household that paid a bill in full on its due date that it missed that bill is not accurate.\" \"What triggers a fresh 27.6 offer is fresh evidence of difficulty ... A newly missed bill is such a reason. A bill paid in full and on time is not.\" Accuracy: SLC 0, \"complete, accurate and not misleading\". The same page, \"Paid means what the bill asked (2026-11-04)\": \"The export's `credit_applied_gbp` on a failed bill is that later credit, not money that landed in the window\"; \"the window held a late payment for the previous bill, with its \u00a367 EBSS ... and the bill itself was paid 37 days late.\" The same page, \"A returned level instalment is a missed scheduled payment, and the bill it pays is not (2026-11-11)\": \"27.5B counts scheduled payments, not bills.\" \"Each instalment is a monthly scheduled payment. So a returned instalment is a missed scheduled payment.\" \"So it is fresh reason to believe, as a newly missed bill is (27.5 ...). The 27.6 offer is owed again.\" \"A re-presentation is the same payment. Under Bacs, a returned DD may be re-presented up to twice within 30 days, for the same amount ... If a re-presentation fails, the same scheduled payment has failed again. That is not a further miss.\" \"Each instalment counts once, whatever its re-presentations do.\" Part-paid: \"Paid means what the bill asked\" applied to the instalment (short by more than half a penny of what it asked). Attribution: account_hierarchy_payment_allocation.md s.1, a payment allocates to the invoices its remittance names, else oldest-first.",
+   "status": "CLEAN",
+   "unit": "re-offer of the repayment plan (a further bill missed)",
+   "checked": 1248,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM",
+   "family": "tariff_terms",
+   "source": "site/knowledge/tariffs-and-the-default-tariff (site/data/knowledge_topics.json): \"A fixed deal locks the unit rate and standing charge for 12, 18 or 24 months ... and ends with a renewal letter 42-49 days before it expires.\" \"A GB household that does nothing at the end of a fixed deal moves to its supplier's default tariff\". So a household's tariff on a date is one term, fixed or default, and the bill records it. Accuracy of what the household is shown: docs/market_research/back_billing_and_liability.md \u00a712, SLC 0, communications must be \"complete, accurate and not misleading\".",
+   "status": "FLAGGED",
+   "unit": "Explore cast moment x fuel leg it prints a tariff for",
+   "checked": 42,
+   "breached": 0,
+   "flagged": 21,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [
+    {
+     "where": "PROS-2016-0054 electricity 2017-07-29 debt",
+     "value": "2017-03-01",
+     "bound": "2017-02-20",
+     "side": "svt since"
+    },
+    {
+     "where": "PROS-2016-0054 electricity 2017-08-04 debt",
+     "value": "2017-03-01",
+     "bound": "2017-02-20",
+     "side": "svt since"
+    },
+    {
+     "where": "PROS-2016-0054 electricity 2017-08-11 debt",
+     "value": "2017-03-01",
+     "bound": "2017-02-20",
+     "side": "svt since"
+    },
+    {
+     "where": "PROS-2016-0054 electricity 2017-08-25 debt",
+     "value": "2017-03-01",
+     "bound": "2017-02-20",
+     "side": "svt since"
+    },
+    {
+     "where": "PROS-2016-0054 electricity 2018-07-06 debt",
+     "value": "2017-03-01",
+     "bound": "2017-02-20",
+     "side": "svt since"
+    }
+   ],
+   "book": null
+  },
+  {
+   "id": "INV_UNIT_RATE_SVT_GAS_PRE_CAP_ALL_IN_FLOOR",
+   "family": "unit_rate",
+   "source": "docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json; docs/market_research/svt_rates_active_passive_2016_2025.md \u00a71a, \u00a71b",
+   "status": "CLEAN",
+   "unit": "SVT term x pre-cap half-year it overlaps (gas)",
+   "checked": 1438,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_UNIT_RATE_SVT_ELEC_PRE_CAP_ALL_IN_FLOOR",
+   "family": "unit_rate",
+   "source": "docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json; docs/market_research/svt_rates_active_passive_2016_2025.md \u00a71a",
+   "status": "CLEAN",
+   "unit": "SVT term x pre-cap half-year it overlaps (single-register electricity)",
+   "checked": 2208,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_DEFAULT_DUAL_FUEL_COST_FOLLOWS_THE_PUBLISHED_DEFAULT_BILL",
+   "family": "bill_level",
+   "source": "docs/market_research/cheapest_fix_against_the_default_tariff_gb_2016_2025.md; docs/market_research/svt_rates_active_passive_2016_2025.md \u00a71a, \u00a71b; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md \u00a74",
+   "status": "CLEAN",
+   "unit": "year on year, DD default dual fuel at 3100/12000 kWh (months priced: 2016 9, 2017 12, 2018 12, 2019 12, 2020 12, 2021 12, 2022 12, 2023 12, 2024 12, 2025 6)",
+   "checked": 3,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_DEFAULT_TARIFF_TWO_REGISTER_INVOICE_WITHIN_MULTI_REGISTER_CAP",
+   "family": "unit_rate",
+   "source": "docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (SLC 28AD.4, .34, .36(a)); docs/domain_artefact_library/regulatory/ofgem_cap_multi_register_unit_rates.json",
+   "status": "CLEAN",
+   "unit": "printed Day/Night bill on a default term (not graded: 592 not a default term, 246 pre-cap, 78 spans a term change)",
+   "checked": 842,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 916,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_PAGE_CAP_BREACH_NOTE_AGREES_WITH_THE_MULTI_REGISTER_GRADE",
+   "family": "unit_rate",
+   "source": "docs/domain_artefact_library/regulatory/slc_28ad_multi_register_cap_test.md (SLC 28AD.4); the twin row's sources",
+   "status": "CLEAN",
+   "unit": "printed Day/Night bill (g 916, no note, within 842)",
+   "checked": 842,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 916,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE",
+   "family": "payment",
+   "source": "docs/market_research/payments_and_direct_debit_2026-10-25.md ('What a level direct debit must be, and how many households pay one'); docs/market_research/what_bill_shock_is.md ('The populations', 'What is not settled' 1)",
+   "status": "FLAGGED",
+   "unit": "book: its successful DD collections, graded on Leg A",
+   "checked": 1,
+   "breached": 0,
+   "flagged": 1,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [
+    {
+     "where": "book: 7494 of 34768 graded DD collections track the bill (0.216), 929 accounts",
+     "value": 0.216,
+     "bound": 0.3,
+     "side": "Legs B and C not built"
+    }
+   ],
+   "book": null
+  },
+  {
+   "id": "INV_HOUSEHOLD_PAGE_TARIFF_IS_THE_BILLED_TERM",
+   "family": "tariff_terms",
+   "source": "docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md: \"If the customer does nothing, they move to a default tariff.\" and \"In practice the rollover lands on the SVT\" (SLC 22C.7); \"SLC 31H.12(d) [H]: \\\"if the Domestic Supply Contract or Deemed Contract provides for a further change of the product or price this must be indicated on the bill together with the date on which the change takes place.\\\"\"; \"SLC 31H.1 and 31H.12(b) [H]: the bill must let the household \\\"understand and manage the costs associated with their Tariff\\\"\"; \"A period that crosses a term change prints one usage line per contracted rate\"; \"GAP, the line layout.\" | docs/market_research/company_debt_management.md: SLC 0, information to a domestic customer must be \"complete, accurate and not misleading\". Cold read eight, O33 and O34 (PROS-2016-0187, SYN-2016-185).",
+   "status": "FLAGGED",
+   "unit": "printed bill with a tariff label",
+   "checked": 47552,
+   "breached": 0,
+   "flagged": 1051,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [
+    {
+     "where": "C7 2016-12-31 Fixed (Electricity)",
+     "value": "fixed",
+     "bound": [
+      "fixed",
+      "svt"
+     ],
+     "side": "term changed mid-bill"
+    },
+    {
+     "where": "C7 2017-12-31 Standard Variable (Electricity)",
+     "value": "svt",
+     "bound": [
+      "fixed",
+      "svt"
+     ],
+     "side": "term changed mid-bill"
+    },
+    {
+     "where": "C7 2018-12-31 Fixed (Electricity)",
+     "value": "fixed",
+     "bound": [
+      "fixed",
+      "svt"
+     ],
+     "side": "term changed mid-bill"
+    },
+    {
+     "where": "PROS-2016-0003 2017-01-31 Fixed (Electricity)",
+     "value": "fixed",
+     "bound": [
+      "fixed",
+      "svt"
+     ],
+     "side": "term changed mid-bill"
+    },
+    {
+     "where": "PROS-2016-0003g 2017-01-31 Fixed (Gas)",
+     "value": "fixed",
+     "bound": [
+      "fixed",
+      "svt"
+     ],
+     "side": "term changed mid-bill"
+    }
+   ],
+   "book": null
+  },
+  {
+   "id": "INV_HOUSEHOLD_PAGE_MISSED_BILL_WAS_NOT_SETTLED",
+   "family": "collections_sequence",
+   "source": "docs/market_research/debt_and_collections.md \u00a77.5: \"A bill is missed from the day after its due date if no payment landed on it by that date. A later payment does not un-miss it, though it cures the journey.\"; \"No licence condition defines a \\\"missed payment\\\".\" (GAP); \"How a part-paid bill should count ... Not published.\" | docs/market_research/company_debt_management.md: \"A bill counts as newly missed for the re-offer only when the cash that landed on the account between its issue and its due date, both inclusive, is short of the bill.\"; \"A bill that asked \u00a30 cannot be missed.\"; \"The export's `credit_applied_gbp` on a failed bill is that later credit, not money that landed in the window\"; \"Telling a household that paid a bill in full on its due date that it missed that bill is not accurate.\" | docs/market_research/energy_bills_support_scheme_delivery.md: \"What changes is what the household owes.\" | docs/market_research/payments_and_direct_debit_2026-10-25.md: \"a DD has two outcomes on its date: collected, or returned.\" Cold read eight, O4 (SYN-2016-592).",
+   "status": "FLAGGED",
+   "unit": "Explore cast moment printing a household payment tally",
+   "checked": 28,
+   "breached": 0,
+   "flagged": 19,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [
+    {
+     "where": "PROS-2016-0054 2017-07-29",
+     "value": 1,
+     "bound": 31,
+     "side": "fewer missed than unsettled"
+    },
+    {
+     "where": "PROS-2016-0054 2017-08-04",
+     "value": 1,
+     "bound": 31,
+     "side": "fewer missed than unsettled"
+    },
+    {
+     "where": "PROS-2016-0054 2017-08-11",
+     "value": 1,
+     "bound": 31,
+     "side": "fewer missed than unsettled"
+    },
+    {
+     "where": "PROS-2016-0054 2017-08-25",
+     "value": 1,
+     "bound": 31,
+     "side": "fewer missed than unsettled"
+    },
+    {
+     "where": "PROS-2016-0054 2018-07-06",
+     "value": 1,
+     "bound": 31,
+     "side": "fewer missed than unsettled"
+    }
+   ],
+   "book": null
+  },
+  {
+   "id": "INV_DD_COLLECTION_IS_DATED_ON_A_BACS_PROCESSING_DAY",
+   "family": "payment_rails",
+   "source": "docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md, \"1. The collection cycle: ESTABLISHED [G]\" (Bacs glossary, https://www.bacs.co.uk/resources/glossary/): \"Day 1 (input) ... Day 2 (processing) ... Day 3 (entry): the payer is debited and the supplier credited on the same day. Days are English bank working days, which exclude weekends and public holidays.\" docs/market_research/payments_and_direct_debit_2026-10-25.md, section 3 \"Bacs direct debit mechanics\": \"Day 2: the payer is debited and the merchant credited\"; and \"A DD is never late\": \"A Bacs collection is taken on its processing day or returned through ARUDD.\" Bacs via CIPP, \"Tips for the bank holiday period from Bacs.co.uk\" (5 Apr 2023, https://www.cipp.org.uk/resources/news/tips-for-the-bank-holiday-period-from-bacs-co-uk.html): \"As bank holidays are Bacs non-processing days\"; \"ensure your software reflects Bacs non-processing days\". Pay.UK press release \"Payments and bank holiday processing\" (https://newseventsinsights.wearepay.uk/media-centre/press-releases/payments-and-bank-holiday-processing): \"bank holidays are non-payment processing days\".",
+   "status": "CLEAN",
+   "unit": "direct debit collection",
+   "checked": 36305,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_DD_DUE_ON_A_NON_PROCESSING_DAY_IS_COLLECTED_ON_THE_NEXT_PROCESSING_DAY",
+   "family": "payment_rails",
+   "source": "Bacs via CIPP, 5 Apr 2023 (https://www.cipp.org.uk/resources/news/tips-for-the-bank-holiday-period-from-bacs-co-uk.html): \"Remember that Direct Debits due on bank holidays should be collected on the next working day.\" Pay.UK, \"Payments and bank holiday processing\" (August 2022 bank holiday): \"Direct Debits due on bank holiday Monday should be collected on the Tuesday (30 August) instead.\" GoCardless, \"Direct Debit timings\" (https://gocardless.com/guides/recurring-payments/timings, vendor): \"If the scheduled date falls on a weekend or public holiday, the payment will be taken on the next working day\" and \"If a payment date falls on a Saturday or Sunday, it will be processed on the next working day.\" docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md, section 2, ARUDD code 9 \"Presentation overdue\": \"More than 3 working days after the advance-notice date\" (so the roll must not go past 3 working days); and section 1, \"Advance notice: the default is 10 working days plus postal time before the first collection or any change to amount, date or frequency\".",
    "status": "UNCHECKABLE",
-   "reason": "NOT YET GRADED (2026-11-03): no evaluator in tools/domain_invariant_runner. Written blind, from docs/market_research and site/data/knowledge_topics.json only, for the sixth cold read's N13 (docs/staging/records/SEAT_READING_THE_SIXTH_COLD_READ_ON_THE_85B044BE54_BOOK_2026-11-03.md). On the 85b044be54 pages the seat counts 1,635 of 4,413 gas month-pairs read A or M at both ends repeating to 0.1 kWh, 114 of 383 legs repeating on 10% or more of their pairs. GAP (1): no file read gives monthly GB heating-degree-day series or their year-to-year spread by calendar month; the Eurostat figure is annual UK (2,710-2,961, 2018-2025), and the monthly spread is inferred as at least the annual one (strong logic, not a number read). The 0.2%/1% per-pair coincidence figures, the R_g thresholds 1/2/3, the book share 1%, and the dispersion floor f (1-3%) are stated beliefs with the reasoning above, not sourced constants. GAP (2): no GB study publishes a same-household, weather-corrected, ordinary-year distribution of year-on-year change (how_much_a_same_households_use_moves_year_on_year_and_in_2022.md section 1, \"That is a GAP\"); individual-household monthly spread is therefore bounded from the SERL 15-20% remark and the 2022/23 IQR, not measured. GAP (3): whether a supplier's record holds a CALENDAR-month kWh on actual reads at all depends on read frequency: a quarterly- or annually-read credit meter has no actual read at month ends, so its monthly kWh is apportioned; the row excludes apportioned months, and if the record cannot distinguish apportioned from read-bounded months the row is ungradable for that leg (reported as such, not passed). Smart gas meters (daily/monthly reads) and prepayment meters are where read-bounded calendar months exist; no file read establishes the read frequency of either in 2016-2025. GAP (4): prepayment gas months are included as measured per the brief, but no file read establishes how a prepayment record's monthly kWh is formed (meter vend/credit data versus reads); if it is derived from vends or an AQ, leg A grades the derivation, not the meter. GAP (5): an AQ-driven ESTIMATE that repeats last year is lawful and expected (Xoserve seasonal-normal AQ); the defect graded here is a repeat carried on months labelled actual, and the row cannot by itself tell a mislabelled estimate from a mis-sourced measured value."
+   "reason": "GAP (1): the \"next working day\" rule is quoted from Bacs bank-holiday guidance (via CIPP) and Pay.UK for bank holidays, and from a vendor (GoCardless) for weekends. No Bacs scheme rulebook clause was read that states the weekend case in the scheme's own words. GAP (2): whether \"next working day\" means the payer's debit (entry) day or the input day is not stated in the quotes. The row reads it as the debit day, which is the date a household's statement and a supplier's receipt show. GAP (3): some service users may move a due date back to the PRECEDING working day under their own DDI terms. No source read says energy suppliers do, so d < s is graded a breach (an early collection is one the advance notice did not tell the payer about). GAP (4): if the ledger does not carry the scheduled date, s is reconstructed from the chosen day-of-month, which needs that field exported."
+  },
+  {
+   "id": "INV_DD_COLLECTIONS_PILE_ONTO_MONDAYS_AS_THE_WEEKEND_ROLL_PREDICTS",
+   "family": "payment_rails",
+   "source": "Logic built on the roll rule cited in INV_DD_DUE_ON_A_NON_PROCESSING_DAY_IS_COLLECTED_ON_THE_NEXT_PROCESSING_DAY (Bacs/CIPP \"collected on the next working day\"; GoCardless \"If a payment date falls on a Saturday or Sunday, it will be processed on the next working day\"). docs/market_research/payments_and_direct_debit_2026-10-25.md, \"A returned level direct debit\": \"A level direct debit is a set amount collected monthly\"; and docs/market_research/a_new_accounts_first_months_2026-10-30.md section 3: OVO, Octopus etc. take a level DD \"monthly from then on, on the day you've chosen\" (Octopus help page, fetched 2026-11-08).",
+   "status": "UNCHECKABLE",
+   "reason": "GAP: no source publishes the distribution of GB energy customers' chosen collection days, or the weekday distribution of energy DD collections. The band is a stated belief from the roll rule and calendar arithmetic, not an observed figure. Variable (pay-as-you-use) DDs scheduled from a bill date are excluded because their scheduling rule is not established."
+  },
+  {
+   "id": "INV_FIRST_LEVEL_DD_IS_NOT_COLLECTED_BEFORE_SUPPLY_START",
+   "family": "account_opening",
+   "source": "docs/market_research/a_new_accounts_first_months_2026-10-30.md, section 3: \"Since about 21 October 2022, SLC 27.15 requires a fixed DD on the 'best and most current information available'\", \"General practice [P]: annual cost / 12 ... notice of a change between 5 working days and a month, 14 days common\", and the Octopus row \"Smart history / the losing supplier's data after the switch completes | Octopus estimates first, then refines 'once the switch completes'\". docs/market_research/payments_and_direct_debit_2026-10-25.md, section 3: \"Advance notice. The default is '10 working days', which can be reduced by agreement with the payer\"; \"AUDDIS (setting up the instruction). Responses arrive about 3 working days after a Direct Debit Instruction (DDI) is submitted.\" docs/market_research/dd_failure_basis_and_live_arrears_provision_rates.md, section 1: \"Advance notice: the default is 10 working days plus postal time before the first collection or any change to amount, date or frequency [G][F][DDG]\"; \"First collection on a new AUDDIS mandate: possible 2 working days after the DDI is lodged. Bacs recommends 5\"; section 2 ARUDD code 8 \"amount not yet due\". docs/market_research/switching_mechanics_2026-10-25.md: \"a 'Cooling off period (14 days)' follows\"; \"SLC 14A.1 (as drafted): the gaining supplier completes a transfer 'within five Working Days'\"; \"Cooling-off cancellation: 'It is for the Gaining Supplier to withdraw the switch'\". Supplier help pages, fetched or searched 2026-11-08: Octopus (quoted above); So Energy \"we will take your first Direct Debit payment on or around the date that your energy supply starts (Supply Start Date)\" (search summary; the page redirected and was not re-fetched); E.ON Next and ScottishPower as above.",
+   "status": "FLAGGED",
+   "unit": "account paying by direct debit from its first payment",
+   "checked": 950,
+   "breached": 0,
+   "flagged": 192,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [
+    {
+     "where": "C1 first DD 2016-02-19 supply 2016-01-01",
+     "value": 49,
+     "bound": 45.0,
+     "side": "late first collection"
+    },
+    {
+     "where": "OCC-00909e50a521 first DD 2020-03-11 supply 2019-12-05",
+     "value": 97,
+     "bound": 45.0,
+     "side": "late first collection"
+    },
+    {
+     "where": "OCC-01e79fcf2d4f first DD 2021-07-26 supply 2021-03-21",
+     "value": 127,
+     "bound": 45.0,
+     "side": "late first collection"
+    },
+    {
+     "where": "OCC-01e79fcf2d4fg first DD 2021-07-08 supply 2021-03-21",
+     "value": 109,
+     "bound": 45.0,
+     "side": "late first collection"
+    },
+    {
+     "where": "OCC-01f752dc9316 first DD 2019-08-27 supply 2019-04-23",
+     "value": 126,
+     "bound": 45.0,
+     "side": "late first collection"
+    }
+   ],
+   "book": null
+  },
+  {
+   "id": "INV_OPENING_DAY_CREDIT_IS_ONLY_WHAT_WAS_COLLECTED_ON_OR_AFTER_SUPPLY_START",
+   "family": "account_opening",
+   "source": "Octopus help page (https://octopus.energy/help-and-faqs/articles/when-will-my-first-direct-debit-go-out/, fetched 2026-11-08): \"Octopus Energy will take your first Direct Debit on the date we start supplying your energy\", and \"having some credit when your account opens can help\". docs/market_research/payments_and_direct_debit_2026-10-25.md, \"A returned level direct debit\": \"Bills post to the account, and the collections pay into its balance\"; \"On a level account the household's arrears are the account's debit balance: bills less collections and other credit.\" docs/market_research/a_new_accounts_first_months_2026-10-30.md section 1: the opening rung \"arrives after the first DD is set\".",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): only Octopus was found publishing a collection ON the supply start date. Suppliers that collect after it would show \u00a30 on the welcome page, which also passes. GAP (2): a credit carried from the losing supplier does not move to the gainer (the losing supplier refunds it), but no source read states that in terms, so such a line is graded only if printed separately. GAP (3): Bacs cash is not final until about Day 4 (payments_and_direct_debit_2026-10-25.md section 3, \"In about 1% of cases they arrive on day 4\"). Whether a page may show a same-day collection as credit before it clears is not established."
+  },
+  {
+   "id": "INV_GAS_AGAINST_WEATHER_IS_COMPUTED_OVER_FULL_SUPPLIED_YEARS_ONLY",
+   "family": "weather_driven_demand",
+   "source": "docs/market_research/proving_and_showing_household_savings_2026-10-25.md, \"CalTRACK\" (fetched 2026-10-25, https://caltrack-technical-documentation.readthedocs.io/en/latest/methods.html): \"Daily and billing methods: a 365-day baseline ending at the intervention, with no more than 37 missing days (10%)\"; summary table: \"CalTRACK ~90% coverage | corrected - <=37 missing days (10%) for daily/billing\". docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md line 83: domestic gas \"end use is roughly 75% space heating (DESNZ 2024), with hot water 12-25% and cooking 5-10%\" (so weather should dominate a full year's gas). docs/market_research/gas_boilers_and_heating_controls_2026-10-25.md: \"Space heating | ~77%\". Logic: a correlation compares like with like, and a part year is not like a full year.",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): CalTRACK's 365-day/37-missing-day rule is for a savings baseline, not a year-on-year weather correlation. It is borrowed as the nearest published data-sufficiency rule. No source sets a sufficiency rule for a household-facing weather panel. GAP (2): whether \"billed gas\" in a year counts estimated bills is not settled here. A year whose gas rests on estimates spread by a profile is not measured weather response (see INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR), but this row grades only the period."
+  },
+  {
+   "id": "INV_GAS_WEATHER_R_IS_PRINTED_ONLY_WITH_THE_BOUND_ITS_YEARS_EARN",
+   "family": "weather_driven_demand",
+   "source": "docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md line 83: \"roughly 75% space heating (DESNZ 2024)\". docs/market_research/gas_boilers_and_heating_controls_2026-10-25.md line 357: Living Lab (Energy Systems Catapult, 2022), \"36 homes cut weather-normalised gas by about 30% in Sep-Oct 2022 vs 2021\". docs/market_research/proving_and_showing_household_savings_2026-10-25.md (EVO M&V Focus #5, \"why R2 doesn't matter\"; CalTRACK fractional savings uncertainty) for weather-model fits being judged on their uncertainty, not their goodness of fit. Statistics: Fisher z-transform, SE = 1/sqrt(n-3) (standard; Fisher 1915/1921). Project rule, CLAUDE.md: \"a figure published without the bound its sample size earns is worse than no figure\".",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): no knowledge page read here gives the published year-to-year spread of GB annual HDD 2016-2025, or the published distribution of a household's year-on-year r(HDD, gas). \"Roughly a tenth\" is a stated belief to be replaced by the HDD feed's own figures. The n >= 4 floor is arithmetic, not a sourced threshold. GAP (2): what r a well-behaved household should show over full years is not established. It is only signed positive, so no tighter two-sided band is offered. GAP (3): the size of the 2022 price effect on annual (not Sep-Oct) gas for the general population is not read here. The Living Lab is 36 homes over two months."
+  },
+  {
+   "id": "INV_WINTER_SUMMER_RATIO_NEEDS_A_FULL_WINTER_AND_A_FULL_SUMMER",
+   "family": "weather_driven_demand",
+   "source": "docs/market_research/proving_and_showing_household_savings_2026-10-25.md, CalTRACK: \"Hourly methods need no minimum baseline length, but over 90% of hours must be present in the same calendar month and the neighbouring months of the previous year\"; \"no more than 37 missing days (10%)\". docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md: SERL's seasonal measures are Dec-Feb against Jun-Aug (\"Component | Dec-Feb kWh/day | Jun-Aug kWh/day | Ratio\"), and \"The exit test should not be a ratio for one home. It should be the median across a set of gas-heated fabric premises\".",
+   "status": "UNCHECKABLE",
+   "reason": "GAP: CalTRACK's 90% is a savings-baseline coverage rule, borrowed as the nearest published sufficiency rule. No source sets one for a household-facing seasonal ratio. Whether a single winter and a single summer suffice, or two of each are needed, is not established."
+  },
+  {
+   "id": "INV_ELECTRIC_HEATING_VERDICT_AGREES_WITH_THE_HOMES_GAS_SUPPLY",
+   "family": "weather_driven_demand",
+   "source": "docs/market_research/the_seasonal_swing_of_a_gas_heated_homes_electricity.md: SERL table \"2021 ... 1.47 | 2022 ... 1.42 | 2023 ... 1.36\" (gas-heated homes without PV); \"electricity in these homes rises 30-50% from days of 20-25 C to days of -5-0 C\"; SERL's attribution \"electric supplementary heating, increased lighting, increased preparation of hot meals and hot drinks\"; \"What is not established: The per-household distribution of the ratio for gas-heated homes. SERL publishes the monthly median ... not the distribution of each home's own winter/summer ratio.\" docs/market_research/gas_demand_what_drives_it_and_the_term_the_model_is_missing.md line 83: gas end use \"roughly 75% space heating (DESNZ 2024)\". docs/market_research/heating_behaviour_comfort_and_health_floors_2026-10-25.md line 226: \"Summer space heating still appears: median 16% of summer heat demand in combi homes\" (DHW24).",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): SERL's 1.36-1.47 is the MEDIAN gas-heated home's monthly max/min, not a per-household band, and not the Dec-Feb/Jun-Aug ratio the page prints. No per-household distribution is published, so the row uses it only as the floor below which electric heating is never inferred, not as a two-sided test. GAP (2): no source read gives the winter/summer electricity ratio that does indicate primary electric heating, or the gas winter/summer ratio of a home with gas only for hot water and cooking. The \"< 2\" gas threshold is a stated belief, from 75% space-heating share and a mostly-flat hot-water and cooking base. It should be replaced from published monthly gas profiles (e.g. Xoserve non-daily-metered profiles) when read."
+  },
+  {
+   "id": "INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO",
+   "family": "account_arithmetic",
+   "source": "docs/market_research/home_moves.md \u00a78.8 (GSoP 2015 reg 6D, inserted by SI 2019/218 reg 3, in force 1 May 2019: \"within 10 working days of issuing a customer's final bill ... refund any outstanding credit balance\"; SLC 27.17, the final bill is a statement of account), \u00a78.8a (one balance per fuel contract, SLC 27.16) and \u00a78.8b (one balance at close: refund, final collection or write-off). Working days from the commons' docs/domain_artefact_library/regulatory/england_and_wales_bank_holidays.json. Ninth cold read O7 and O20: SYN-2016-250 holds a credit four years after its 2021 final bill; SYN-2016-428 owes GBP 111.93 from 2019; SYN-2016-035 holds a credit on electricity and a debt on gas.",
+   "status": "FLAGGED",
+   "unit": "closed account (one fuel leg) and each write-off on one",
+   "checked": 1687,
+   "breached": 0,
+   "flagged": 87,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [
+    {
+     "where": "OCC-01e79fcf2d4fg debt standing on 2025-07-04 (final bill 2022-04-05)",
+     "value": 113.98,
+     "bound": 0.0,
+     "side": "above"
+    },
+    {
+     "where": "OCC-098fe5fa8b46 debt standing on 2025-07-04 (final bill 2022-11-20)",
+     "value": 106.58,
+     "bound": 0.0,
+     "side": "above"
+    },
+    {
+     "where": "OCC-098fe5fa8b46g debt standing on 2025-07-04 (final bill 2022-11-20)",
+     "value": 75.61,
+     "bound": 0.0,
+     "side": "above"
+    },
+    {
+     "where": "OCC-3c914ee8cef5 debt standing on 2025-07-04 (final bill 2017-03-31)",
+     "value": 20.4,
+     "bound": 0.0,
+     "side": "above"
+    },
+    {
+     "where": "OCC-654d4bb148da debt standing on 2025-07-04 (final bill 2017-12-31)",
+     "value": 1.96,
+     "bound": 0.0,
+     "side": "above"
+    }
+   ],
+   "book": null
+  },
+  {
+   "id": "INV_REFUND_WITHIN_THE_PAGE_CREDIT",
+   "family": "account_arithmetic",
+   "source": "docs/market_research/home_moves.md \u00a78.8 (GSoP 2015 reg 6D, SI 2019/218: \"refund any outstanding credit balance\"), \u00a78.8a (\"a credit is payments in excess of that contract's charges (SLC 27.16). So the refund and the closing balance are the same figure\"; SLC 27.17, the final bill is a statement of account). The class was found on the 068b5e3cc8 book by e6c1c11b4: six legs pushed into page debit by a final refund, and filed for a blind writer.",
+   "status": "CLEAN",
+   "unit": "refund line on one fuel leg's page ledger",
+   "checked": 176,
+   "breached": 0,
+   "flagged": 0,
+   "unbounded": 0,
+   "breach_examples": [],
+   "flag_examples": [],
+   "book": null
+  },
+  {
+   "id": "INV_FIXED_TERM_RATES_HOLD_FOR_THE_TERM",
+   "family": "tariff_terms",
+   "source": "docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md, section 1a, CIM wave 6 question A13 (verified at primary in that page): \"A fixed term tariff is one where your unit rates and standing charge stay the same for the length of the contract you agree with your energy supplier.\" docs/market_research/communications_sentiment_and_nps.md, section 4 \"The rules\": \"Price-rise notice, SLC 23 | At least 30 calendar days' notice before a price increase or a disadvantageous unilateral variation takes effect.\" docs/market_research/company_customer_comms.md, notice table: \"Tariff change on variable rate | 30 days (SLC 23 ...)\" (the notice duty is stated for a VARIABLE rate). docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md, section 4e: \"The rise is part of the fixed offer in the renewal notice (SLC 22C, 31I). The notice states the price before the household accepts it, so this is not a mid-term variation.\" docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md, 22C.3(c)(i) \"the date the fixed term period of the existing Fixed Term Supply Contract is due to end\", and 22C.3(v) \"the Principal Terms that currently apply\" (the term has one set of current terms until its end). Exceptions: docs/market_research/default_tariff_cap_and_epg_on_the_bill.md, GAPs: \"The EPG reached every domestic tariff, fixed terms included\"; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md section 4: EPG standing charges \"will stay as set by Ofgem for October 2022\" and \"The reductions will come on unit rates rather than standing charges\"; docs/domain_artefact_library/regulatory/uk_vat_rates.json: reduced 5% band \"home energy\", dated exception \"Domestic electricity in Great Britain is zero-rated\" from 2026-10-01.",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): the knowledge layer holds no licence text that forbids a supplier varying the price of a domestic Fixed Term Supply Contract during its term, and no Ofgem definition of \"Fixed Term Supply Contract\". SLC 23 is held only as a 30-day notice rule (communications_sentiment_and_nps.md), not its text, and no page says whether a fixed term may carry a notified rise at all. The zero bound rests on the CIM survey's definition (what households are told a fix is), on the knowledge layer's own reading that a re-priced fix is \"not a mid-term variation\" only because it is agreed first, and on logic. The licence conditions on unilateral variation of fixed-term contracts should be read into the commons. GAP (2): whether a fixed tariff's terms may index the price to something (a tracker sold as a fixed term) is not established; such a term would be graded against its published formula, not a constant. GAP (3): how the EPG was applied to a fixed term's rate (a reduction of the same pence per kWh as the default, or a cap at the EPG rate) is not in the commons (default_tariff_cap_and_epg_on_the_bill.md: \"GAP: the EPG scheme's own text\"), so the EPG exception is one-sided only. GAP (4): \"all-in unit rate\" on the brief may include a spread standing charge; the row grades the printed unit rate and standing charge separately (SLC 22A.3 requires them separately identified, tariffs_and_the_default_tariff_2026-10-25.md), so an all-in figure is graded only through its parts."
+  },
+  {
+   "id": "INV_HOUSEHOLD_PAGE_LEDGER_SUMMARY_RECONCILES_TO_ITS_BALANCE",
+   "family": "household_page",
+   "source": "Logic: a printed account summary whose terms do not sum to its printed balance is internally inconsistent on its face. Rules that make the balance a sum of charges and payments: docs/market_research/home_moves.md, section on \"A credit in the middle of an account's life\": \"What a credit is | 'the amount by which the payments made by a Domestic Customer ... exceeds the total amount of Charges which is due and payable ... under that Domestic Supply Contract'. It is a running account: payments against all charges due, not bill by bill | SLC 27.16\"; and \"What the bill tells the household | 'what is owed to or by the licensee' ... | SLC 31H.12(a), (c), applied through 31H.1\". home_moves.md section 8.8a: \"the closing balance on the statement. It is the supplier's own ledger (charges less payments and credits)\". docs/market_research/payments_and_direct_debit_2026-10-25.md: \"the account's debit balance (bills less collections and other credit)\". docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md: \"SLC 31H.1 and 31H.12(b) [H]: the bill must let the household 'understand and manage the costs associated with their Tariff'. Relevant Billing Information includes 'how any charges, fees or payments are calculated'.\" docs/market_research/bad_debt_provisioning.md: \"A write-off is a derecognition (5.4.4), not a cash recovery\" (a write-off moves the balance without cash, so it is a term the sentence must carry).",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): the knowledge layer does not hold the SLC 31A / 31H text on what a statement of account must itemise (31A is read only through Ofgem decisions, what_a_prepayment_customer_is_sent_2026-10-26.md: \"GAP: the licence text of SLC 31A\"). No rule read says a household page must list every ledger term; the row rests on logic (a printed sum must add up) and on 31H.12(a)'s \"what is owed\". GAP (2): whether a write-off should appear on a household-facing statement at all (a supplier may keep pursuing a written-off debt) is not established; the row requires only that the printed sum and printed balance agree, however that is achieved. GAP (3): whether \"government bill credit\" covers EBSS only or the EPG as well is not stated on the brief; if the EPG is already inside \"billed\", counting it again in Z is itself a breach of (a)."
+  },
+  {
+   "id": "INV_HOUSEHOLD_PAGE_PAID_STAGE_COVERS_EVERY_FUEL_ACCOUNT",
+   "family": "household_page",
+   "source": "docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md, the dual-fuel table: \"One bill? | Allowed. SLC 31H lets a Dual Fuel Account carry one optical label holding both fuels' data items. Each fuel's consumption, charges and comparison must still be shown.\"; \"One collections journey? | SLC 27.8 sets ability to pay as a fact about the payer, not about a fuel. Each fuel is still its own contract, so a credit is refunded on its own fuel (SLC 27.16), and from 22 Jan 2021 a credit on one may be set off against debt on the other.\" Practice column: \"One account in arrears gets one reminder ladder and one statement of what is owed across both fuels.\" (marked GAP for a published statement; practitioner-obvious). \"Collections | ... SLC 27.8D gives the customer a contractual right to offset one contract's credit against debt on any other supply contract\". The page's own SLC 1 reading: a \"Same Domestic Customer\" is one \"supplied with both electricity and gas from the licensee ... at the same Domestic Premises\". docs/market_research/home_moves.md: \"What the bill tells the household | 'what is owed to or by the licensee' | SLC 31H.12(a), (c)\". Logic: a figure labelled as the household's is a sum over the household's accounts.",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): no licence text read requires a combined two-fuel balance on a household statement. The knowledge page marks the one-statement practice \"GAP for a published statement of it. Practitioner-obvious\". The row therefore rests on logic (a household figure covers the household) and allows a one-fuel figure if it is labelled. GAP (2): on this book each fuel is its own account; in practice suppliers hold \"one customer account with two supply points\" (same page, marked GAP for a share). Which is the \"account\" a household sees is a design choice the page must state. GAP (3): where the household has used the SLC 27.8D set-off, the combined balance is net of the transfer and the per-fuel balances carry it; the row grades sums, so a set-off posted on one side only shows as a breach of (c), which is the right reading."
+  },
+  {
+   "id": "INV_HOUSEHOLD_PAGE_NARRATED_FACT_IS_TRUE_OF_THE_ACCOUNT",
+   "family": "household_page",
+   "source": "Standards of Conduct: docs/market_research/f2_explaining_what_we_do_simply.md, section 2b (\"[VALIDATED \u2014 Ofgem OFG1163 'Licence guide: Standards of Conduct', 5 April 2024]\"): information to domestic customers must be \"complete, accurate and not misleading\" and \"communicated in plain and intelligible language, with more important information being given appropriate prominence.\" docs/market_research/back_billing_and_liability.md: \"Fairness. Communications must be 'complete, accurate and not misleading'. [H] SLC 0 (Standards of Conduct).\" docs/market_research/how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md: \"the information given about it (SLC 0.3(b): must be complete, accurate, ...)\". docs/market_research/communications_sentiment_and_nps.md, section 4: \"Standards of Conduct, SLC 0 / 0A | ... Information complete, accurate, not misleading.\" For (b), the cause split: docs/market_research/what_bill_shock_is.md, \"What follows for measurement\": \"For population B, the quantity is the bill, and the existing cause split (catch-up / price / consumption) applies to it\", and its three published triggers \"Cold weather ... A usage change ... An actual read replacing a long-standing estimate\". The bill's own year-on-year comparison: docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md: \"31H.4 lists the fixed items: supply number, year-on-year comparison, optical label, 'About Your Tariff' label, disputes.\" For (a): logic (a \"first\" bill has no earlier bill on that fuel's account).",
+   "status": "UNCHECKABLE",
+   "reason": "GAP (1): the 0.25 share (and the 0.5 breach line) is a stated belief chosen by the row, not a published threshold. No source in the knowledge layer defines when a supplier may say use \"did not explain\" a bill change, or prescribes a price/use split; the midpoint split is chosen because it sums exactly and is symmetric in the two periods, unlike a Laspeyres split that leaves a residual. GAP (2): the SLC 0 / 0A text itself is held only as quoted through Ofgem's guidance (f2 page) and next_best_action_and_cross_sell.md notes \"the domestic SLC 0.3(b) mirror of that sub-paragraph was not read verbatim this pass\"; the \"complete, accurate and not misleading\" wording is quoted from OFG1163, not the licence. GAP (3): whether \"wholesale prices rose\" is itself true of the window needs the wholesale series and is not graded here beyond the sign of the price part. GAP (4): which two periods the claim compares (month against the same month a year earlier, or against the previous bill) must be exported with the claim; the row grades whichever the page names."
   }
  ]
 }

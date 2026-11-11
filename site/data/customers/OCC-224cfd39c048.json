@@ -13,14 +13,14 @@
     "bottom_line": "1120216309511"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 183.02,
-  "lifetime_gross_gbp": 139.13,
-  "lifetime_net_gbp": -130.56,
-  "lifetime_net_after_cts_gbp": -143.51,
-  "cost_to_serve_gbp": 12.96,
+  "lifetime_revenue_gbp": 250.76,
+  "lifetime_gross_gbp": 188.63,
+  "lifetime_net_gbp": -184.77,
+  "lifetime_net_after_cts_gbp": -209.02,
+  "cost_to_serve_gbp": 24.25,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 78.4
+    "recommended_uplift_pct": 83.4
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -32,8 +32,8 @@
   "forward_looking_account_id": "OCC-224cfd39c048",
   "commodity_split": {
     "electricity": {
-      "net_gbp": -130.56,
-      "revenue_gbp": 183.02
+      "net_gbp": -184.77,
+      "revenue_gbp": 250.76
     },
     "gas": null
   },
@@ -41,9 +41,9 @@
   "annual_pnl": [
     {
       "year": 2020,
-      "revenue_gbp": 0,
-      "gross_gbp": 139.13,
-      "net_gbp": -130.56,
+      "revenue_gbp": 250.76,
+      "gross_gbp": 188.63,
+      "net_gbp": -184.77,
       "tariff_min": 163.71,
       "tariff_max": 163.71
     }
@@ -54,7 +54,7 @@
       "date": "2020-12-31",
       "detail": "Final bill",
       "commodity": "electricity",
-      "effect": "Closing read estimated; billed \u00a374.36"
+      "effect": "Closing read estimated; billed \u00a3101.17"
     }
   ],
   "world_life_events_outside_supply": [],
@@ -65,15 +65,15 @@
       "period_start": "2020-10-07",
       "period_end": "2020-10-31",
       "commodity": "electricity",
-      "consumption_kwh": 259.1,
-      "unit_rate_p_per_kwh": 10.668,
-      "commodity_amount_gbp": 27.64,
+      "consumption_kwh": 378.8,
+      "unit_rate_p_per_kwh": 10.673,
+      "commodity_amount_gbp": 40.43,
       "standing_charge_gbp": 5.8,
       "days_in_period": 25,
       "standing_charge_gbp_per_day": 0.232,
-      "non_commodity_amount_gbp": 14.77,
-      "vat_gbp": 2.41,
-      "amount_gbp": 50.62,
+      "non_commodity_amount_gbp": 21.59,
+      "vat_gbp": 3.39,
+      "amount_gbp": 71.21,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -86,7 +86,7 @@
       "mprn": null,
       "read_type": "A",
       "opening_read_kwh": 0.0,
-      "closing_read_kwh": 259.1,
+      "closing_read_kwh": 378.8,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -98,14 +98,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 259.1,
-          "amount_gbp": 27.64,
-          "unit_rate_p_per_kwh": 10.668,
+          "consumption_kwh": 378.8,
+          "amount_gbp": 40.43,
+          "unit_rate_p_per_kwh": 10.673,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -125,15 +126,15 @@
       "period_start": "2020-11-01",
       "period_end": "2020-11-30",
       "commodity": "electricity",
-      "consumption_kwh": 366.9,
-      "unit_rate_p_per_kwh": 10.673,
-      "commodity_amount_gbp": 39.16,
+      "consumption_kwh": 514.3,
+      "unit_rate_p_per_kwh": 10.67,
+      "commodity_amount_gbp": 54.88,
       "standing_charge_gbp": 6.96,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.232,
-      "non_commodity_amount_gbp": 20.92,
-      "vat_gbp": 3.35,
-      "amount_gbp": 70.39,
+      "non_commodity_amount_gbp": 29.31,
+      "vat_gbp": 4.56,
+      "amount_gbp": 95.71,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -145,8 +146,8 @@
       "mpan": "1120216309511",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 259.1,
-      "closing_read_kwh": 626.0,
+      "opening_read_kwh": 378.8,
+      "closing_read_kwh": 893.1,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -158,14 +159,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 366.9,
-          "amount_gbp": 39.16,
-          "unit_rate_p_per_kwh": 10.673,
+          "consumption_kwh": 514.3,
+          "amount_gbp": 54.88,
+          "unit_rate_p_per_kwh": 10.67,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -185,15 +187,15 @@
       "period_start": "2020-12-01",
       "period_end": "2020-12-31",
       "commodity": "electricity",
-      "consumption_kwh": 388.7,
-      "unit_rate_p_per_kwh": 10.67,
-      "commodity_amount_gbp": 41.47,
+      "consumption_kwh": 544.6,
+      "unit_rate_p_per_kwh": 10.672,
+      "commodity_amount_gbp": 58.12,
       "standing_charge_gbp": 7.19,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.232,
-      "non_commodity_amount_gbp": 22.15,
-      "vat_gbp": 3.54,
-      "amount_gbp": 74.35,
+      "non_commodity_amount_gbp": 31.04,
+      "vat_gbp": 4.82,
+      "amount_gbp": 101.17,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -205,8 +207,8 @@
       "mpan": "1120216309511",
       "mprn": null,
       "read_type": "E",
-      "opening_read_kwh": 626.0,
-      "closing_read_kwh": 1014.7,
+      "opening_read_kwh": 893.1,
+      "closing_read_kwh": 1437.7,
       "read_unit": null,
       "opening_read_volume": null,
       "closing_read_volume": null,
@@ -218,14 +220,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 388.7,
-          "amount_gbp": 41.47,
-          "unit_rate_p_per_kwh": 10.67,
+          "consumption_kwh": 544.6,
+          "amount_gbp": 58.12,
+          "unit_rate_p_per_kwh": 10.672,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -247,17 +250,17 @@
         "date": "2020-11-03",
         "type": "invoice_raised",
         "invoice_number": 1209,
-        "amount_gbp": 50.62,
+        "amount_gbp": 71.21,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1209 raised",
-        "running_balance_gbp": 50.62
+        "running_balance_gbp": 71.21
       },
       {
         "date": "2020-11-03",
         "type": "deemed_account",
         "invoice_number": 1209,
-        "amount_gbp": -50.62,
+        "amount_gbp": -71.21,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -267,17 +270,17 @@
         "date": "2020-12-07",
         "type": "invoice_raised",
         "invoice_number": 1210,
-        "amount_gbp": 70.39,
+        "amount_gbp": 95.71,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1210 raised",
-        "running_balance_gbp": 70.39
+        "running_balance_gbp": 95.71
       },
       {
         "date": "2020-12-07",
         "type": "deemed_account",
         "invoice_number": 1210,
-        "amount_gbp": -70.39,
+        "amount_gbp": -95.71,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -287,17 +290,17 @@
         "date": "2021-01-02",
         "type": "invoice_raised",
         "invoice_number": 1211,
-        "amount_gbp": 74.35,
+        "amount_gbp": 101.17,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV1211 raised",
-        "running_balance_gbp": 74.35
+        "running_balance_gbp": 101.17
       },
       {
         "date": "2021-01-02",
         "type": "deemed_account",
         "invoice_number": 1211,
-        "amount_gbp": -74.35,
+        "amount_gbp": -101.17,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -305,29 +308,37 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 195.36,
+    "total_billed_gbp": 268.09,
     "total_collected_gbp": 0,
     "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
-    "total_deemed_gbp": 195.36,
+    "total_deemed_gbp": 268.09,
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 3,
+    "payments": 0,
+    "returned": 0,
+    "missed": 3,
+    "missed_dd": 0,
+    "as_of": "2021-01-17"
   },
   "consumption": {
     "unit": "kWh",
     "monthly": [
       {
         "month": "2020-10",
-        "kwh": 259.1
+        "kwh": 378.8
       },
       {
         "month": "2020-11",
-        "kwh": 367.0
+        "kwh": 514.2
       },
       {
         "month": "2020-12",
-        "kwh": 388.7
+        "kwh": 544.6
       }
     ],
     "has_hh_data": false

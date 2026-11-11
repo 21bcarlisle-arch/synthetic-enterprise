@@ -10,14 +10,14 @@
   "profile_class": null,
   "mpan": null,
   "mprn": "1463118831",
-  "lifetime_revenue_gbp": 381.38,
-  "lifetime_gross_gbp": 227.03,
-  "lifetime_net_gbp": -56.2,
-  "lifetime_net_after_cts_gbp": -86.04,
-  "cost_to_serve_gbp": 29.84,
+  "lifetime_revenue_gbp": 336.53,
+  "lifetime_gross_gbp": 203.33,
+  "lifetime_net_gbp": -45.65,
+  "lifetime_net_after_cts_gbp": -109.39,
+  "cost_to_serve_gbp": 63.74,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 22.6
+    "recommended_uplift_pct": 32.5
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -30,25 +30,25 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": -56.2,
-      "revenue_gbp": 381.38
+      "net_gbp": -45.65,
+      "revenue_gbp": 336.53
     }
   },
   "dual_fuel_combined": null,
   "annual_pnl": [
     {
       "year": 2023,
-      "revenue_gbp": 0,
-      "gross_gbp": 182.19,
-      "net_gbp": -38.43,
+      "revenue_gbp": 257.24,
+      "gross_gbp": 158.78,
+      "net_gbp": -27.72,
       "tariff_min": 65.62,
       "tariff_max": 71.52
     },
     {
       "year": 2024,
-      "revenue_gbp": 0,
-      "gross_gbp": 44.84,
-      "net_gbp": -17.78,
+      "revenue_gbp": 79.29,
+      "gross_gbp": 44.54,
+      "net_gbp": -17.93,
       "tariff_min": 70.67,
       "tariff_max": 70.67
     }
@@ -71,7 +71,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-cede70b10116g-INV7205",
+      "id": "OCC-cede70b10116g-INV7337",
       "date": "2023-07-31",
       "period_start": "2023-07-09",
       "period_end": "2023-07-31",
@@ -117,6 +117,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -126,12 +127,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7205,
+      "invoice_number": 7337,
       "due_date": "2023-08-18",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116g-INV7206",
+      "id": "OCC-cede70b10116g-INV7338",
       "date": "2023-08-31",
       "period_start": "2023-08-01",
       "period_end": "2023-08-31",
@@ -177,6 +178,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -186,12 +188,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7206,
+      "invoice_number": 7338,
       "due_date": "2023-09-20",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116g-INV7207",
+      "id": "OCC-cede70b10116g-INV7339",
       "date": "2023-09-30",
       "period_start": "2023-09-01",
       "period_end": "2023-09-30",
@@ -237,6 +239,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -246,12 +249,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7207,
+      "invoice_number": 7339,
       "due_date": "2023-10-14",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116g-INV7208",
+      "id": "OCC-cede70b10116g-INV7340",
       "date": "2023-10-31",
       "period_start": "2023-10-01",
       "period_end": "2023-10-31",
@@ -297,6 +300,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -306,12 +310,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7208,
+      "invoice_number": 7340,
       "due_date": "2023-11-15",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116g-INV7209",
+      "id": "OCC-cede70b10116g-INV7341",
       "date": "2023-11-30",
       "period_start": "2023-11-01",
       "period_end": "2023-11-30",
@@ -357,6 +361,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -366,12 +371,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7209,
+      "invoice_number": 7341,
       "due_date": "2023-12-24",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116g-INV7210",
+      "id": "OCC-cede70b10116g-INV7342",
       "date": "2023-12-31",
       "period_start": "2023-12-01",
       "period_end": "2023-12-31",
@@ -417,6 +422,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -426,12 +432,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7210,
+      "invoice_number": 7342,
       "due_date": "2024-01-15",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116g-INV7211",
+      "id": "OCC-cede70b10116g-INV7343",
       "date": "2024-01-22",
       "period_start": "2024-01-01",
       "period_end": "2024-01-22",
@@ -477,6 +483,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -486,7 +493,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7211,
+      "invoice_number": 7343,
       "due_date": "2024-02-07",
       "document_type": "bill"
     }
@@ -497,17 +504,17 @@
       {
         "date": "2023-08-04",
         "type": "invoice_raised",
-        "invoice_number": 7205,
+        "invoice_number": 7337,
         "amount_gbp": 19.57,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7205 raised",
+        "description": "Invoice INV7337 raised",
         "running_balance_gbp": 19.57
       },
       {
         "date": "2023-08-04",
         "type": "deemed_account",
-        "invoice_number": 7205,
+        "invoice_number": 7337,
         "amount_gbp": -19.57,
         "info_amount_gbp": null,
         "method": null,
@@ -517,17 +524,17 @@
       {
         "date": "2023-09-06",
         "type": "invoice_raised",
-        "invoice_number": 7206,
+        "invoice_number": 7338,
         "amount_gbp": 26.09,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7206 raised",
+        "description": "Invoice INV7338 raised",
         "running_balance_gbp": 26.09
       },
       {
         "date": "2023-09-06",
         "type": "deemed_account",
-        "invoice_number": 7206,
+        "invoice_number": 7338,
         "amount_gbp": -26.09,
         "info_amount_gbp": null,
         "method": null,
@@ -537,17 +544,17 @@
       {
         "date": "2023-09-30",
         "type": "invoice_raised",
-        "invoice_number": 7207,
+        "invoice_number": 7339,
         "amount_gbp": 34.3,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7207 raised",
+        "description": "Invoice INV7339 raised",
         "running_balance_gbp": 34.3
       },
       {
         "date": "2023-09-30",
         "type": "deemed_account",
-        "invoice_number": 7207,
+        "invoice_number": 7339,
         "amount_gbp": -34.3,
         "info_amount_gbp": null,
         "method": null,
@@ -557,17 +564,17 @@
       {
         "date": "2023-11-01",
         "type": "invoice_raised",
-        "invoice_number": 7208,
+        "invoice_number": 7340,
         "amount_gbp": 57.93,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7208 raised",
+        "description": "Invoice INV7340 raised",
         "running_balance_gbp": 57.93
       },
       {
         "date": "2023-11-01",
         "type": "deemed_account",
-        "invoice_number": 7208,
+        "invoice_number": 7340,
         "amount_gbp": -57.93,
         "info_amount_gbp": null,
         "method": null,
@@ -575,125 +582,135 @@
         "running_balance_gbp": 0.0
       },
       {
+        "date": "2023-11-23",
+        "type": "payment_received",
+        "invoice_number": 7341,
+        "amount_gbp": -70.95,
+        "info_amount_gbp": null,
+        "method": "direct_debit",
+        "description": "Payment received",
+        "level_dd": true,
+        "running_balance_gbp": -70.95
+      },
+      {
         "date": "2023-12-10",
         "type": "invoice_raised",
-        "invoice_number": 7209,
+        "invoice_number": 7341,
         "amount_gbp": 92.57,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7209 raised",
-        "running_balance_gbp": 92.57
+        "description": "Invoice INV7341 raised",
+        "running_balance_gbp": 21.62
       },
       {
         "date": "2023-12-10",
         "type": "deemed_account",
-        "invoice_number": 7209,
-        "amount_gbp": -33.94,
+        "invoice_number": 7341,
+        "amount_gbp": -30.24,
         "info_amount_gbp": null,
         "method": null,
         "description": "Days billed to the occupier's deemed account",
-        "running_balance_gbp": 58.63
+        "running_balance_gbp": -8.62
       },
       {
-        "date": "2023-12-24",
+        "date": "2023-12-27",
         "type": "payment_received",
-        "invoice_number": 7209,
-        "amount_gbp": -58.63,
+        "invoice_number": 7342,
+        "amount_gbp": -70.95,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "level_dd": true,
+        "running_balance_gbp": -79.57
       },
       {
         "date": "2024-01-01",
         "type": "invoice_raised",
-        "invoice_number": 7210,
+        "invoice_number": 7342,
         "amount_gbp": 113.23,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7210 raised",
-        "running_balance_gbp": 113.23
-      },
-      {
-        "date": "2024-01-15",
-        "type": "payment_received",
-        "invoice_number": 7210,
-        "amount_gbp": -113.23,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Payment received",
-        "running_balance_gbp": 0.0
+        "description": "Invoice INV7342 raised",
+        "running_balance_gbp": 33.66
       },
       {
         "date": "2024-01-24",
         "type": "invoice_raised",
-        "invoice_number": 7211,
+        "invoice_number": 7343,
         "amount_gbp": 95.6,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7211 raised",
-        "running_balance_gbp": 95.6
+        "description": "Invoice INV7343 raised",
+        "running_balance_gbp": 129.26
       },
       {
         "date": "2024-02-07",
         "type": "payment_received",
-        "invoice_number": 7211,
+        "invoice_number": 7343,
         "amount_gbp": -46.42,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Part payment received",
-        "running_balance_gbp": 49.18
+        "running_balance_gbp": 82.84
       },
       {
         "date": "2024-02-07",
         "type": "payment_failed",
-        "invoice_number": 7211,
+        "invoice_number": 7343,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Direct debit returned",
-        "running_balance_gbp": 49.18
+        "running_balance_gbp": 82.84
       },
       {
         "date": "2024-02-14",
         "type": "notice",
-        "invoice_number": 7211,
+        "invoice_number": 7343,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "First overdue notice -- GBP49.18 outstanding",
-        "running_balance_gbp": 49.18
+        "running_balance_gbp": 82.84
       },
       {
         "date": "2024-03-06",
         "type": "notice",
-        "invoice_number": 7211,
+        "invoice_number": 7343,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 49.18
+        "running_balance_gbp": 82.84
       },
       {
         "date": "2025-01-23",
         "type": "write_off",
-        "invoice_number": 7211,
+        "invoice_number": 7343,
         "amount_gbp": -49.18,
         "info_amount_gbp": null,
         "method": null,
         "description": "Debt written off -- bad debt provision raised",
-        "running_balance_gbp": 0.0
+        "running_balance_gbp": 33.66
       }
     ],
-    "current_balance_gbp": 0.0,
+    "current_balance_gbp": 33.66,
     "total_billed_gbp": 439.29,
-    "total_collected_gbp": 218.28,
+    "total_collected_gbp": 188.32,
     "total_written_off_gross_gbp": 49.18,
     "total_scheme_credit_gbp": 0,
-    "total_deemed_gbp": 171.83,
+    "total_deemed_gbp": 168.13,
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 7,
+    "payments": 3,
+    "returned": 1,
+    "missed": 4,
+    "missed_dd": 0,
+    "as_of": "2024-02-08"
   },
   "consumption": {
     "unit": "kWh",
@@ -741,6 +758,28 @@
       "sim_truth": null,
       "amount_gbp": 49.18,
       "outcome": "DD_FAILED",
+      "framing_type": null
+    },
+    {
+      "customer_id": "OCC-cede70b10116",
+      "date": "2024-02-14",
+      "event_type": "arrears_first_notice",
+      "description": "First overdue notice -- GBP49.18 outstanding",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 49.18,
+      "outcome": "FIRST_NOTICE",
+      "framing_type": null
+    },
+    {
+      "customer_id": "OCC-cede70b10116",
+      "date": "2024-03-06",
+      "event_type": "arrears_second_notice",
+      "description": "Second notice -- payment plan offered",
+      "company_belief": null,
+      "sim_truth": null,
+      "amount_gbp": 49.18,
+      "outcome": "SECOND_NOTICE",
       "framing_type": null
     },
     {

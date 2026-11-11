@@ -10,14 +10,14 @@
   "profile_class": null,
   "mpan": null,
   "mprn": "1398135082",
-  "lifetime_revenue_gbp": 88.34,
-  "lifetime_gross_gbp": 49.81,
-  "lifetime_net_gbp": -57.97,
-  "lifetime_net_after_cts_gbp": -69.28,
-  "cost_to_serve_gbp": 11.3,
+  "lifetime_revenue_gbp": 84.79,
+  "lifetime_gross_gbp": 48.86,
+  "lifetime_net_gbp": -54.35,
+  "lifetime_net_after_cts_gbp": -76.61,
+  "cost_to_serve_gbp": 22.26,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 78.4
+    "recommended_uplift_pct": 90.4
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -30,17 +30,17 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": -57.97,
-      "revenue_gbp": 88.34
+      "net_gbp": -54.35,
+      "revenue_gbp": 84.79
     }
   },
   "dual_fuel_combined": null,
   "annual_pnl": [
     {
       "year": 2019,
-      "revenue_gbp": 0,
-      "gross_gbp": 49.81,
-      "net_gbp": -57.97,
+      "revenue_gbp": 84.79,
+      "gross_gbp": 48.86,
+      "net_gbp": -54.35,
       "tariff_min": 35.52,
       "tariff_max": 39.43
     }
@@ -63,7 +63,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-2e29bf263cb4g-INV1727",
+      "id": "OCC-2e29bf263cb4g-INV1685",
       "date": "2019-01-31",
       "period_start": "2019-01-26",
       "period_end": "2019-01-31",
@@ -109,6 +109,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -118,25 +119,25 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1727,
+      "invoice_number": 1685,
       "due_date": "2019-02-15",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2e29bf263cb4g-INV1728",
+      "id": "OCC-2e29bf263cb4g-INV1686",
       "date": "2019-02-28",
       "period_start": "2019-02-01",
       "period_end": "2019-02-28",
       "commodity": "gas",
-      "consumption_kwh": 525.7,
+      "consumption_kwh": 387.5,
       "unit_rate_p_per_kwh": 2.452,
-      "commodity_amount_gbp": 12.89,
+      "commodity_amount_gbp": 9.5,
       "standing_charge_gbp": 6.89,
       "days_in_period": 28,
       "standing_charge_gbp_per_day": 0.246,
-      "non_commodity_amount_gbp": 5.78,
-      "vat_gbp": 0.74,
-      "amount_gbp": 15.47,
+      "non_commodity_amount_gbp": 4.26,
+      "vat_gbp": 0.49,
+      "amount_gbp": 10.31,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -149,11 +150,11 @@
       "mprn": "1398135082",
       "read_type": "A",
       "opening_read_kwh": 304.8,
-      "closing_read_kwh": 525.7,
+      "closing_read_kwh": 387.5,
       "read_unit": "m3",
       "opening_read_volume": 27.162,
-      "closing_read_volume": 46.854,
-      "volume_advance": 19.692,
+      "closing_read_volume": 34.535,
+      "volume_advance": 7.373,
       "calorific_value_mj_per_m3": 39.5,
       "calorific_value_basis": "fixed_stand_in",
       "correction_factor": 1.02264,
@@ -161,14 +162,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 525.7,
-          "amount_gbp": 12.89,
+          "consumption_kwh": 387.5,
+          "amount_gbp": 9.5,
           "unit_rate_p_per_kwh": 2.452,
           "register_id": "1"
         }
       ],
       "catchup_applied": true,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": null,
       "catchup_period_start": "2019-01-26",
       "catchup_period_end": "2019-01-31",
@@ -178,25 +180,25 @@
       "catchup_adjustment_gbp": -10.83,
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 1728,
+      "invoice_number": 1686,
       "due_date": "2019-03-16",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2e29bf263cb4g-INV1729",
+      "id": "OCC-2e29bf263cb4g-INV1687",
       "date": "2019-03-31",
       "period_start": "2019-03-01",
       "period_end": "2019-03-31",
       "commodity": "gas",
-      "consumption_kwh": 1124.4,
+      "consumption_kwh": 1080.4,
       "unit_rate_p_per_kwh": 2.452,
-      "commodity_amount_gbp": 27.57,
+      "commodity_amount_gbp": 26.49,
       "standing_charge_gbp": 7.62,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.2458,
-      "non_commodity_amount_gbp": 12.37,
-      "vat_gbp": 2.38,
-      "amount_gbp": 49.94,
+      "non_commodity_amount_gbp": 11.88,
+      "vat_gbp": 2.3,
+      "amount_gbp": 48.29,
       "status": "PAID",
       "outstanding_gbp": 0.0,
       "credit_applied_gbp": null,
@@ -208,12 +210,12 @@
       "mpan": null,
       "mprn": "1398135082",
       "read_type": "A",
-      "opening_read_kwh": 525.7,
-      "closing_read_kwh": 1650.1,
+      "opening_read_kwh": 387.5,
+      "closing_read_kwh": 1467.9,
       "read_unit": "m3",
-      "opening_read_volume": 46.854,
-      "closing_read_volume": 147.056,
-      "volume_advance": 100.202,
+      "opening_read_volume": 34.535,
+      "closing_read_volume": 130.818,
+      "volume_advance": 96.283,
       "calorific_value_mj_per_m3": 39.5,
       "calorific_value_basis": "fixed_stand_in",
       "correction_factor": 1.02264,
@@ -221,14 +223,15 @@
       "registers": [
         {
           "label": "Anytime",
-          "consumption_kwh": 1124.4,
-          "amount_gbp": 27.57,
+          "consumption_kwh": 1080.4,
+          "amount_gbp": 26.49,
           "unit_rate_p_per_kwh": 2.452,
           "register_id": "1"
         }
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -238,12 +241,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1729,
+      "invoice_number": 1687,
       "due_date": "2019-04-14",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2e29bf263cb4g-INV1730",
+      "id": "OCC-2e29bf263cb4g-INV1688",
       "date": "2019-04-10",
       "period_start": "2019-04-01",
       "period_end": "2019-04-10",
@@ -268,11 +271,11 @@
       "mpan": null,
       "mprn": "1398135082",
       "read_type": "E",
-      "opening_read_kwh": 1650.1,
-      "closing_read_kwh": 1892.3,
+      "opening_read_kwh": 1467.9,
+      "closing_read_kwh": 1710.1,
       "read_unit": "m3",
-      "opening_read_volume": 147.056,
-      "closing_read_volume": 168.648,
+      "opening_read_volume": 130.818,
+      "closing_read_volume": 152.41,
       "volume_advance": 21.592,
       "calorific_value_mj_per_m3": 39.5,
       "calorific_value_basis": "fixed_stand_in",
@@ -289,6 +292,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -298,7 +302,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1730,
+      "invoice_number": 1688,
       "due_date": "2019-04-25",
       "document_type": "bill"
     }
@@ -309,17 +313,17 @@
       {
         "date": "2019-02-01",
         "type": "invoice_raised",
-        "invoice_number": 1727,
+        "invoice_number": 1685,
         "amount_gbp": 12.92,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1727 raised",
+        "description": "Invoice INV1685 raised",
         "running_balance_gbp": 12.92
       },
       {
         "date": "2019-02-01",
         "type": "deemed_account",
-        "invoice_number": 1727,
+        "invoice_number": 1685,
         "amount_gbp": -12.92,
         "info_amount_gbp": null,
         "method": null,
@@ -329,18 +333,18 @@
       {
         "date": "2019-03-02",
         "type": "invoice_raised",
-        "invoice_number": 1728,
-        "amount_gbp": 15.47,
+        "invoice_number": 1686,
+        "amount_gbp": 10.31,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1728 raised",
-        "running_balance_gbp": 15.47
+        "description": "Invoice INV1686 raised",
+        "running_balance_gbp": 10.31
       },
       {
         "date": "2019-03-02",
         "type": "deemed_account",
-        "invoice_number": 1728,
-        "amount_gbp": -15.47,
+        "invoice_number": 1686,
+        "amount_gbp": -10.31,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -349,18 +353,18 @@
       {
         "date": "2019-03-31",
         "type": "invoice_raised",
-        "invoice_number": 1729,
-        "amount_gbp": 49.94,
+        "invoice_number": 1687,
+        "amount_gbp": 48.29,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1729 raised",
-        "running_balance_gbp": 49.94
+        "description": "Invoice INV1687 raised",
+        "running_balance_gbp": 48.29
       },
       {
         "date": "2019-03-31",
         "type": "deemed_account",
-        "invoice_number": 1729,
-        "amount_gbp": -49.94,
+        "invoice_number": 1687,
+        "amount_gbp": -48.29,
         "info_amount_gbp": null,
         "method": null,
         "description": "Billed to the occupier's deemed account",
@@ -369,17 +373,17 @@
       {
         "date": "2019-04-11",
         "type": "invoice_raised",
-        "invoice_number": 1730,
+        "invoice_number": 1688,
         "amount_gbp": 12.69,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1730 raised",
+        "description": "Invoice INV1688 raised",
         "running_balance_gbp": 12.69
       },
       {
         "date": "2019-04-11",
         "type": "deemed_account",
-        "invoice_number": 1730,
+        "invoice_number": 1688,
         "amount_gbp": -12.69,
         "info_amount_gbp": null,
         "method": null,
@@ -388,14 +392,22 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 91.02,
+    "total_billed_gbp": 84.21,
     "total_collected_gbp": 0,
     "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
-    "total_deemed_gbp": 91.02,
+    "total_deemed_gbp": 84.21,
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 4,
+    "payments": 0,
+    "returned": 0,
+    "missed": 4,
+    "missed_dd": 0,
+    "as_of": "2019-04-26"
   },
   "consumption": {
     "unit": "kWh",
@@ -406,11 +418,11 @@
       },
       {
         "month": "2019-02",
-        "kwh": 525.7
+        "kwh": 387.5
       },
       {
         "month": "2019-03",
-        "kwh": 1124.3
+        "kwh": 1080.4
       },
       {
         "month": "2019-04",

@@ -13,8 +13,8 @@
   "lifetime_revenue_gbp": 33.77,
   "lifetime_gross_gbp": 18.24,
   "lifetime_net_gbp": 8.36,
-  "lifetime_net_after_cts_gbp": 5.65,
-  "cost_to_serve_gbp": 2.71,
+  "lifetime_net_after_cts_gbp": 3.92,
+  "cost_to_serve_gbp": 4.44,
   "pricing_action": {
     "flag": "OK",
     "recommended_uplift_pct": null
@@ -38,7 +38,7 @@
   "annual_pnl": [
     {
       "year": 2016,
-      "revenue_gbp": 0,
+      "revenue_gbp": 33.77,
       "gross_gbp": 18.24,
       "net_gbp": 8.36,
       "tariff_min": 30.59,
@@ -99,7 +99,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-013g-INV22157",
+      "id": "SYN-2016-013g-INV22416",
       "date": "2016-01-28",
       "period_start": "2016-01-11",
       "period_end": "2016-01-28",
@@ -145,6 +145,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "fixed",
+      "tariff_name": "Fixed (Gas)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -154,7 +155,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 22157,
+      "invoice_number": 22416,
       "due_date": "2016-02-12",
       "document_type": "bill"
     }
@@ -165,17 +166,17 @@
       {
         "date": "2016-01-29",
         "type": "invoice_raised",
-        "invoice_number": 22157,
+        "invoice_number": 22416,
         "amount_gbp": 35.46,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV22157 raised",
+        "description": "Invoice INV22416 raised",
         "running_balance_gbp": 35.46
       },
       {
         "date": "2016-02-12",
         "type": "payment_received",
-        "invoice_number": 22157,
+        "invoice_number": 22416,
         "amount_gbp": -35.46,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -192,6 +193,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 1,
+    "payments": 1,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": "2016-02-13"
   },
   "consumption": {
     "unit": "kWh",

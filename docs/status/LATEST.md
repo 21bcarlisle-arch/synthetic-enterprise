@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-11-03T02:11:28Z
+Last updated: 2026-11-11T20:00:42Z
 
 **H_harness — THE BY-CONSTRUCTION GATE'S ESCAPE HATCH NOW NAMES ITS SUBJECT, AND THE `0` IT
 PUBLISHED WAS NOT ONE (this commit).** Rung-1c blocker discharged out of
@@ -2477,11 +2477,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (5584s / 93 min) // run 0a6391d186, 2026-11-03:
-- Net margin: £610,278.85 | Gross: £881,712.64 | Capital: £27,482
-- Treasury: £250,000 → £860,279 | 0 committee interventions | 52837 bills issued
-- Enterprise value: £383,820.14 | Net after CTS: £373,270
-- Retention: 119 offers, 78/119 retained | 61 no-offer churns | 360 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (0s / 0 min) // run 6fe7827ab2, 2026-11-11:
+- Net margin: £747,410.22 | Gross: £1,057,629.18 | Capital: £29,791
+- Treasury: £250,000 → £997,410 | 0 committee interventions | 53921 bills issued
+- Enterprise value: £281,327.59 | Net after CTS: £297,645
+- Retention: 37 offers, 20/37 retained | 81 no-offer churns | 352 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
@@ -2589,10 +2589,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 - (T3_inherence) [unanswered >24h] What actually enforces the "by design" part — is there a mechanism that would fail loudly if this component wrote a key the draw reads, or is the guarantee only that nobody has done so yet, such that the boundary silently breaks the first time the draw's read set expands?
 - (T3_inherence) [unanswered >24h] Which boolean is standing in for which continuous physical quantity — and at what values of that quantity do the two actually diverge, i.e. can you name a concrete case where the band says one thing and the physics says another and show it moves money or survival risk, rather than being a labelling mismatch that never changes an outcome?
 - (T3_inherence) [unanswered >24h] What concrete, testable difference does re-filing "simulated world" items as "entry points" make to the supplier's modelled cash, margin, or insolvency risk — or is this purely a renaming of documentation, and if so, what independent evidence shows B1's "three behavioural-physics" are actual mechanisms in the simulation rather than labels asserted to mirror each other?
+- (T3_inherence) What does "a sourced mix" actually mean for running an asset, meaning which sources decide the mix and who weights them? And what physical limit or survival constraint would stop that mix from running an asset in a way that pushes the supplier toward administration?
 <!-- /NAIVE_ORGAN_ASKS -->
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1787.8h across 88 sized atom(s) (15 of 103 below-target atoms still unsized).
+- Remaining effort: ~1604.9h across 84 sized atom(s) (15 of 99 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); D_billing_metering: est 10.5h vs actual 11.6h (+1.1h, underestimated); H_harness: est 8.6h vs actual 45.7h (+37.1h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

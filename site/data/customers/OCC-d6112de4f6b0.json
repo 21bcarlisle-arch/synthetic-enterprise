@@ -16,11 +16,11 @@
   "lifetime_revenue_gbp": 341.08,
   "lifetime_gross_gbp": 240.8,
   "lifetime_net_gbp": -40.02,
-  "lifetime_net_after_cts_gbp": -76.02,
-  "cost_to_serve_gbp": 36.0,
+  "lifetime_net_after_cts_gbp": -107.42,
+  "cost_to_serve_gbp": 67.4,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
-    "recommended_uplift_pct": 22.3
+    "recommended_uplift_pct": 31.5
   },
   "avg_hedge_fraction": 0.85,
   "clv_gbp": null,
@@ -39,15 +39,15 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "OCC-d6112de4f6b0g",
-    "gas_lifetime_net_gbp": -74.48,
-    "gas_lifetime_revenue_gbp": 367.39,
-    "combined_net_gbp": -114.5,
-    "combined_revenue_gbp": 708.46
+    "gas_lifetime_net_gbp": -61.54,
+    "gas_lifetime_revenue_gbp": 340.36,
+    "combined_net_gbp": -101.56,
+    "combined_revenue_gbp": 681.44
   },
   "annual_pnl": [
     {
       "year": 2020,
-      "revenue_gbp": 0,
+      "revenue_gbp": 82.24,
       "gross_gbp": 62.55,
       "net_gbp": -57.59,
       "tariff_min": 158.1,
@@ -55,7 +55,7 @@
     },
     {
       "year": 2021,
-      "revenue_gbp": 0,
+      "revenue_gbp": 258.83,
       "gross_gbp": 178.26,
       "net_gbp": 17.57,
       "tariff_min": 158.1,
@@ -74,7 +74,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-d6112de4f6b0-INV7412",
+      "id": "OCC-d6112de4f6b0-INV7544",
       "date": "2020-11-30",
       "period_start": "2020-11-04",
       "period_end": "2020-11-30",
@@ -120,6 +120,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -129,12 +130,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7412,
+      "invoice_number": 7544,
       "due_date": "2020-12-15",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-d6112de4f6b0-INV7413",
+      "id": "OCC-d6112de4f6b0-INV7545",
       "date": "2020-12-31",
       "period_start": "2020-12-01",
       "period_end": "2020-12-31",
@@ -180,6 +181,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -189,12 +191,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7413,
+      "invoice_number": 7545,
       "due_date": "2021-01-17",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-d6112de4f6b0-INV7414",
+      "id": "OCC-d6112de4f6b0-INV7546",
       "date": "2021-01-31",
       "period_start": "2021-01-01",
       "period_end": "2021-01-31",
@@ -240,6 +242,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -249,12 +252,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7414,
+      "invoice_number": 7546,
       "due_date": "2021-02-18",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-d6112de4f6b0-INV7415",
+      "id": "OCC-d6112de4f6b0-INV7547",
       "date": "2021-02-28",
       "period_start": "2021-02-01",
       "period_end": "2021-02-28",
@@ -300,6 +303,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -309,12 +313,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7415,
+      "invoice_number": 7547,
       "due_date": "2021-03-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-d6112de4f6b0-INV7416",
+      "id": "OCC-d6112de4f6b0-INV7548",
       "date": "2021-03-31",
       "period_start": "2021-03-01",
       "period_end": "2021-03-31",
@@ -360,6 +364,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -369,12 +374,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7416,
+      "invoice_number": 7548,
       "due_date": "2021-04-15",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-d6112de4f6b0-INV7417",
+      "id": "OCC-d6112de4f6b0-INV7549",
       "date": "2021-04-30",
       "period_start": "2021-04-01",
       "period_end": "2021-04-30",
@@ -420,6 +425,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -429,12 +435,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7417,
+      "invoice_number": 7549,
       "due_date": "2021-05-19",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-d6112de4f6b0-INV7418",
+      "id": "OCC-d6112de4f6b0-INV7550",
       "date": "2021-05-31",
       "period_start": "2021-05-01",
       "period_end": "2021-05-31",
@@ -480,6 +486,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -489,12 +496,12 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7418,
+      "invoice_number": 7550,
       "due_date": "2021-06-15",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "OCC-d6112de4f6b0-INV7419",
+      "id": "OCC-d6112de4f6b0-INV7551",
       "date": "2021-06-30",
       "period_start": "2021-06-01",
       "period_end": "2021-06-30",
@@ -540,6 +547,7 @@
       ],
       "catchup_applied": false,
       "term_tariff_type": "svt",
+      "tariff_name": "Standard Variable (Electricity)",
       "default_tariff_excess_p_per_kwh": 0.0,
       "catchup_period_start": null,
       "catchup_period_end": null,
@@ -549,7 +557,7 @@
       "catchup_adjustment_gbp": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7419,
+      "invoice_number": 7551,
       "due_date": "2021-07-15",
       "document_type": "prepayment_statement"
     }
@@ -560,17 +568,17 @@
       {
         "date": "2020-12-01",
         "type": "invoice_raised",
-        "invoice_number": 7412,
+        "invoice_number": 7544,
         "amount_gbp": 38.97,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7412 raised",
+        "description": "Invoice INV7544 raised",
         "running_balance_gbp": 38.97
       },
       {
         "date": "2020-12-01",
         "type": "deemed_account",
-        "invoice_number": 7412,
+        "invoice_number": 7544,
         "amount_gbp": -38.97,
         "info_amount_gbp": null,
         "method": null,
@@ -580,17 +588,17 @@
       {
         "date": "2021-01-03",
         "type": "invoice_raised",
-        "invoice_number": 7413,
+        "invoice_number": 7545,
         "amount_gbp": 47.39,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7413 raised",
+        "description": "Invoice INV7545 raised",
         "running_balance_gbp": 47.39
       },
       {
         "date": "2021-01-03",
         "type": "deemed_account",
-        "invoice_number": 7413,
+        "invoice_number": 7545,
         "amount_gbp": -47.39,
         "info_amount_gbp": null,
         "method": null,
@@ -600,17 +608,17 @@
       {
         "date": "2021-02-04",
         "type": "invoice_raised",
-        "invoice_number": 7414,
+        "invoice_number": 7546,
         "amount_gbp": 41.62,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7414 raised",
+        "description": "Invoice INV7546 raised",
         "running_balance_gbp": 41.62
       },
       {
         "date": "2021-02-04",
         "type": "deemed_account",
-        "invoice_number": 7414,
+        "invoice_number": 7546,
         "amount_gbp": -41.62,
         "info_amount_gbp": null,
         "method": null,
@@ -620,17 +628,17 @@
       {
         "date": "2021-02-28",
         "type": "invoice_raised",
-        "invoice_number": 7415,
+        "invoice_number": 7547,
         "amount_gbp": 42.07,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7415 raised",
+        "description": "Invoice INV7547 raised",
         "running_balance_gbp": 42.07
       },
       {
         "date": "2021-02-28",
         "type": "deemed_account",
-        "invoice_number": 7415,
+        "invoice_number": 7547,
         "amount_gbp": -2.84,
         "info_amount_gbp": null,
         "method": null,
@@ -640,7 +648,7 @@
       {
         "date": "2021-03-14",
         "type": "payment_received",
-        "invoice_number": 7415,
+        "invoice_number": 7547,
         "amount_gbp": -39.23,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -650,17 +658,17 @@
       {
         "date": "2021-04-01",
         "type": "invoice_raised",
-        "invoice_number": 7416,
+        "invoice_number": 7548,
         "amount_gbp": 44.33,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7416 raised",
+        "description": "Invoice INV7548 raised",
         "running_balance_gbp": 44.33
       },
       {
         "date": "2021-04-15",
         "type": "payment_received",
-        "invoice_number": 7416,
+        "invoice_number": 7548,
         "amount_gbp": -44.33,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -670,17 +678,17 @@
       {
         "date": "2021-05-05",
         "type": "invoice_raised",
-        "invoice_number": 7417,
+        "invoice_number": 7549,
         "amount_gbp": 48.15,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7417 raised",
+        "description": "Invoice INV7549 raised",
         "running_balance_gbp": 48.15
       },
       {
         "date": "2021-05-19",
         "type": "payment_received",
-        "invoice_number": 7417,
+        "invoice_number": 7549,
         "amount_gbp": -48.15,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -690,17 +698,17 @@
       {
         "date": "2021-06-01",
         "type": "invoice_raised",
-        "invoice_number": 7418,
+        "invoice_number": 7550,
         "amount_gbp": 49.34,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7418 raised",
+        "description": "Invoice INV7550 raised",
         "running_balance_gbp": 49.34
       },
       {
         "date": "2021-06-15",
         "type": "payment_received",
-        "invoice_number": 7418,
+        "invoice_number": 7550,
         "amount_gbp": -49.34,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -710,17 +718,17 @@
       {
         "date": "2021-07-01",
         "type": "invoice_raised",
-        "invoice_number": 7419,
+        "invoice_number": 7551,
         "amount_gbp": 46.26,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7419 raised",
+        "description": "Invoice INV7551 raised",
         "running_balance_gbp": 46.26
       },
       {
         "date": "2021-07-15",
         "type": "payment_received",
-        "invoice_number": 7419,
+        "invoice_number": 7551,
         "amount_gbp": -46.26,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -737,6 +745,14 @@
     "total_refunded_gbp": 0,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
+  },
+  "payment_record": {
+    "due": 0,
+    "payments": 0,
+    "returned": 0,
+    "missed": 0,
+    "missed_dd": 0,
+    "as_of": null
   },
   "consumption": {
     "unit": "kWh",

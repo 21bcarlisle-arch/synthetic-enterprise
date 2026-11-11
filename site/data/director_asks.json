@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-03",
+ "as_of": "2026-11-11",
  "no_movement_days": 21,
  "counts": {
   "declined": 2,
@@ -7,12 +7,12 @@
   "shipped": 255,
   "partly": 47,
   "not_started": 6,
-  "closed_with_evidence": 95,
+  "closed_with_evidence": 125,
   "open": 1
  },
  "record_not_asks": {
-  "DIRECTOR_READING": 16,
-  "DIRECTOR_CONSOLE": 63,
+  "DIRECTOR_READING": 23,
+  "DIRECTOR_CONSOLE": 37,
   "DIRECTOR_CANON": 11
  },
  "stale": [],
@@ -5713,12 +5713,12 @@
   },
   {
    "id": "DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26",
-   "source": "docs/staging/advisor/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_CORRECTNESS_BEFORE_THE_NEXT_FEATURE_2026-10-26.md",
    "asked": "2026-10-26",
    "ask": "Correctness before the next feature: the domain-invariant suite and its fixes come before forward years (2026-10-26)",
-   "state": "open",
-   "last_commit": "2026-10-26",
-   "status": "open"
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
   },
   {
    "id": "DIRECTOR_RULING_THE_FOUR_RESERVED_QUESTIONS_2026-10-26",
@@ -5925,6 +5925,276 @@
    "ask": "The site must be current, and the value test must be redesigned so it can return an answer (2026-11-02)",
    "state": "closed_with_evidence",
    "last_commit": "2026-11-02",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_YES_TO_THE_THREE_2_NOV_QUESTIONS_AND_THE_ADVISORS_OPEN_RECOMMENDATIONS_2026-11-03",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_THREE_2_NOV_QUESTIONS_AND_THE_ADVISORS_OPEN_RECOMMENDATIONS_2026-11-03.md",
+   "asked": "2026-11-03",
+   "ask": "Yes to the three questions raised on 2 Nov, and to the advisor's open recommendations (2026-11-03)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-04",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_WATCHDOG_ALERTS_GO_BY_NTFY_AND_MUST_NOT_BE_SPAM_2026-11-04",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_WATCHDOG_ALERTS_GO_BY_NTFY_AND_MUST_NOT_BE_SPAM_2026-11-04.md",
+   "asked": "2026-11-04",
+   "ask": "Watchdog alerts reach the director by NTFY, and they must not be spam (2026-11-04)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-04",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_KNOWLEDGE_AND_INSIGHT_ARE_DIFFERENT_LAYERS_AND_EVERY_CLAIM_CARRIES_A_TRUST_GRADE_2026-11-04",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_KNOWLEDGE_AND_INSIGHT_ARE_DIFFERENT_LAYERS_AND_EVERY_CLAIM_CARRIES_A_TRUST_GRADE_2026-11-04.md",
+   "asked": "2026-11-04",
+   "ask": "Knowledge and insight are different layers, and every claim carries a trust assessment (2026-11-04)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-04",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_ONE_LIGHT_TAXONOMY_FIVE_FACETS_ON_EVERY_PAGE_AND_CLAIM_2026-11-04",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_ONE_LIGHT_TAXONOMY_FIVE_FACETS_ON_EVERY_PAGE_AND_CLAIM_2026-11-04.md",
+   "asked": "2026-11-04",
+   "ask": "One light taxonomy: five facets on every page and every claim, built on your existing structure (2026-11-04)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-04",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_USE_THE_LONG_LIVED_TOKEN_AND_NEVER_STALL_SILENTLY_AGAIN_2026-11-04",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_USE_THE_LONG_LIVED_TOKEN_AND_NEVER_STALL_SILENTLY_AGAIN_2026-11-04.md",
+   "asked": "2026-11-04",
+   "ask": "Use the long-lived token, and never stall silently again (2026-11-04)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-04",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_STANDING_EXTERNAL_READING_HABIT_AND_THE_KNOWLEDGE_TAB_TAKES_THE_MAPS_SHAPE_2026-11-05",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_A_STANDING_EXTERNAL_READING_HABIT_AND_THE_KNOWLEDGE_TAB_TAKES_THE_MAPS_SHAPE_2026-11-05.md",
+   "asked": "2026-11-05",
+   "ask": "A standing external reading habit, and the Knowledge tab takes the map's shape (2026-11-05)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-07",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_CALIBRATE_THE_READERS_ON_OUR_HISTORY_AND_SAY_WHAT_EACH_GATE_HAS_CAUGHT_2026-11-05",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_CALIBRATE_THE_READERS_ON_OUR_HISTORY_AND_SAY_WHAT_EACH_GATE_HAS_CAUGHT_2026-11-05.md",
+   "asked": "2026-11-05",
+   "ask": "For the 11 Nov reader review: calibrate the selector on our own history, and say what each commit gate has caught (2026-11-05)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-07",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_WHAT_HAPPENS_TO_UNPAID_DOMESTIC_ENERGY_DEBT_2026-11-07",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_WHAT_HAPPENS_TO_UNPAID_DOMESTIC_ENERGY_DEBT_2026-11-07.md",
+   "asked": "2026-11-07",
+   "ask": "What happens to unpaid GB domestic energy debt: provisioning, final-account recovery, debt sale, write-off (2026-11-07)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-07",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_EVIDENCE_WHAT_HOUSEHOLDS_DO_AFTER_A_PAIN_POINT_2026-11-07",
+   "source": "docs/staging/advisor/done/DIRECTOR_EVIDENCE_WHAT_HOUSEHOLDS_DO_AFTER_A_PAIN_POINT_2026-11-07.md",
+   "asked": "2026-11-07",
+   "ask": "What GB households do after a billing or supply pain point: contact, complaint, Ombudsman, switch, DD change, arrears, rationing, inaction (2026-11-07)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-07",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_ABSTRACTION_IS_ONE_RESEARCH_FAMILY_AND_A_CENSUS_OF_OUR_DESCRIPTIONS_2026-11-07",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_ABSTRACTION_IS_ONE_RESEARCH_FAMILY_AND_A_CENSUS_OF_OUR_DESCRIPTIONS_2026-11-07.md",
+   "asked": "2026-11-07",
+   "ask": "Abstraction is one research family, and a census of our descriptions (2026-11-07)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-07",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_MEASURE_WHERE_READING_TOKENS_GO_BEFORE_SPLITTING_ANY_FILE_2026-11-07",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_MEASURE_WHERE_READING_TOKENS_GO_BEFORE_SPLITTING_ANY_FILE_2026-11-07.md",
+   "asked": "2026-11-07",
+   "ask": "Measure where reading tokens go before splitting any file (2026-11-07)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-07",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_OFFICIAL_PLUGINS_EARN_THEIR_PLACE_AGAINST_OUR_OWN_NUMBERS_2026-11-07",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_OFFICIAL_PLUGINS_EARN_THEIR_PLACE_AGAINST_OUR_OWN_NUMBERS_2026-11-07.md",
+   "asked": "2026-11-07",
+   "ask": "Official plugins earn their place against our own numbers (2026-11-07)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-07",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_OFF_BOX_LIVENESS_YES_EARLY_PUBLISH_YES_SPARE_TOKENS_TO_THE_SITE_AND_DDD_FIRST_2026-11-08.md",
+   "asked": "2026-11-08",
+   "ask": "Off-box liveness yes, early publish yes, spare tokens to the site this week, and DDD first (2026-11-08)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-08",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_NOTICE_THE_UKDS_MICRODATA_IS_IN_UKDS_AND_YOURS_TO_READ_2026-11-09",
+   "source": "docs/staging/advisor/done/DIRECTOR_NOTICE_THE_UKDS_MICRODATA_IS_IN_UKDS_AND_YOURS_TO_READ_2026-11-09.md",
+   "asked": "2026-11-09",
+   "ask": "The UK Data Service microdata is in ~/ukds/: read it under W11 and the registration pack",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-09",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_MEASURE_WHAT_COMMITTED_GENERATED_DATA_COSTS_US_2026-11-09",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_MEASURE_WHAT_COMMITTED_GENERATED_DATA_COSTS_US_2026-11-09.md",
+   "asked": "2026-11-09",
+   "ask": "Measure what committed generated data costs us (2026-11-09)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-09",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_REAL_RANGE_OF_PV_BATTERY_EV_AND_LOAD_IN_THE_WORLD_INSPIRED_BY_PREDBAT_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_A_REAL_RANGE_OF_PV_BATTERY_EV_AND_LOAD_IN_THE_WORLD_INSPIRED_BY_PREDBAT_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "A real range of PV, battery, EV and load in the world, with Predbat as inspiration (2026-11-10)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_THIRD_ARM_OPUS_WITH_A_FABLE_ADVISOR_AFTER_CHECKING_THE_MAX_PLAN_ALLOWS_IT_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_A_THIRD_ARM_OPUS_WITH_A_FABLE_ADVISOR_AFTER_CHECKING_THE_MAX_PLAN_ALLOWS_IT_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "A third arm, Opus with a Fable advisor, after checking the Max plan allows it (2026-11-10)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-10",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_EVERY_FAILURE_FEEDS_A_LEARNING_LOOP_THAT_CHANGES_HOW_WE_WORK_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_EVERY_FAILURE_FEEDS_A_LEARNING_LOOP_THAT_CHANGES_HOW_WE_WORK_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "Every failure feeds a learning loop that changes how we work, not a report",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-10",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_HOW_EACH_ASSET_IS_RUN_IS_A_SOURCED_MIX_BUILT_ON_THE_EXISTING_PHYSICS_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_HOW_EACH_ASSET_IS_RUN_IS_A_SOURCED_MIX_BUILT_ON_THE_EXISTING_PHYSICS_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "How each asset is run is a sourced mix, built on the existing physics (2026-11-10)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_KNOWLEDGE_FIRST_FRONT_LINE_GAPS_2026-11-10",
+   "source": "docs/staging/DIRECTOR_STEER_KNOWLEDGE_FIRST_FRONT_LINE_GAPS_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "Front-line gaps: knowledge first, then build (2026-11-10)",
+   "state": "open",
+   "last_commit": "2026-11-11",
+   "status": "open"
+  },
+  {
+   "id": "DIRECTOR_STEER_PROVE_FABLE_SERVED_EVERY_FABLE_READING_AND_USAGE_AT_21_PERCENT_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_PROVE_FABLE_SERVED_EVERY_FABLE_READING_AND_USAGE_AT_21_PERCENT_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "Prove Fable served every Fable reading, and his usage reading is 21% (2026-11-10)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-10",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_TEST_FABLE_5_2_AGAINST_OPUS_5_5_ON_OUR_OWN_WORK_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_TEST_FABLE_5_2_AGAINST_OPUS_5_5_ON_OUR_OWN_WORK_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "Test Fable 5.2 against Opus 5.5 on our own work, and say how models are picked (2026-11-10)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-10",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_SUPPLIER_CAN_PERSUADE_AND_SUPPORT_GOOD_CANDIDATE_HOMES_TO_CHANGE_AND_INVEST_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_SUPPLIER_CAN_PERSUADE_AND_SUPPORT_GOOD_CANDIDATE_HOMES_TO_CHANGE_AND_INVEST_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "The supplier can persuade and support good candidate homes to change and to invest (2026-11-10)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_WEEKLY_SWEEP_GAINS_A_FILTERED_GITHUB_SCAN_2026-11-10",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_WEEKLY_SWEEP_GAINS_A_FILTERED_GITHUB_SCAN_2026-11-10.md",
+   "asked": "2026-11-10",
+   "ask": "The weekly sweep gains a filtered GitHub scan (2026-11-10)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-10",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_CO1_BOUND_AFTER_THE_BOOK_AND_HOLD_THE_BURN_2026-11-11",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_CO1_BOUND_AFTER_THE_BOOK_AND_HOLD_THE_BURN_2026-11-11.md",
+   "asked": "2026-11-11",
+   "ask": "CO1 bound line approved but queued behind the close-refund book; the burn did not fall, so knowledge passes stop this week",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_END_THE_FEATURE_FREEZE_A_THIRD_TO_FEATURES_AND_A_WEEKLY_BALANCE_REVIEW_2026-11-11",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_END_THE_FEATURE_FREEZE_A_THIRD_TO_FEATURES_AND_A_WEEKLY_BALANCE_REVIEW_2026-11-11.md",
+   "asked": "2026-11-11",
+   "ask": "End the feature freeze: about a third to features, correctness first, and a balance review before each week",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_FORWARD_WEATHER_AND_PRICES_MUST_MOVE_TOGETHER_AND_SPELLS_MUST_LAST_2026-11-11",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_FORWARD_WEATHER_AND_PRICES_MUST_MOVE_TOGETHER_AND_SPELLS_MUST_LAST_2026-11-11.md",
+   "asked": "2026-11-11",
+   "ask": "Forward weather and prices must move together, and spells must last as long as real ones (2026-11-11)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_GAP_DRIVEN_LITERATURE_SEARCH_AT_TWO_DEPTHS_2026-11-11",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_GAP_DRIVEN_LITERATURE_SEARCH_AT_TWO_DEPTHS_2026-11-11.md",
+   "asked": "2026-11-11",
+   "ask": "Gap-driven literature search, at two depths (2026-11-11)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_RECORD_WHERE_RESEARCH_IS_ABSENT_AND_SEARCH_BEYOND_THE_UK_2026-11-11",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_RECORD_WHERE_RESEARCH_IS_ABSENT_AND_SEARCH_BEYOND_THE_UK_2026-11-11.md",
+   "asked": "2026-11-11",
+   "ask": "Record where research is absent, and search beyond the UK (2026-11-11)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_STATE_OUR_CARBON_DEFINITIONS_AND_ADD_A_SECOND_INDEPENDENT_CHECK_2026-11-11",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_STATE_OUR_CARBON_DEFINITIONS_AND_ADD_A_SECOND_INDEPENDENT_CHECK_2026-11-11.md",
+   "asked": "2026-11-11",
+   "ask": "State our carbon definitions, and add a second independent check (2026-11-11)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-11",
    "status": "closed_with_evidence"
   }
  ]
