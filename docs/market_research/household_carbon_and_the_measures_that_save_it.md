@@ -41,6 +41,38 @@ Two consequences carry through the rest of this page:
 2. **A supplier sees fuels, not end uses.** It sees gas kWh, not "heating"; electricity kWh, not "EV".
    Everything a supplier says about a *measure* is an inference from a change in a meter.
 
+### 1a. The electricity figure customers see: its definitions, stated (2026-11-11)
+
+*On the director's 11 Nov steer (`docs/staging/advisor/DIRECTOR_STEER_STATE_OUR_CARBON_DEFINITIONS_AND_ADD_A_SECOND_INDEPENDENT_CHECK_2026-11-11.md`, item 1).*
+The household's electricity carbon (`company/billing/carbon_footprint.py`,
+`company/carbon/half_hourly_footprint.py`) multiplies its kWh by NESO's published national intensity
+(`sim/grid_carbon_history.py` in the world, `docs/market_data/grid_intensity_feed.json` at the seam). That figure is:
+
+| Choice | Ours | Why, and what it leaves out |
+|---|---|---|
+| **Average or marginal** | **Average**: every GB generator's emissions over every kWh generated, per half hour | GHG Protocol *Scope 2 Guidance* (2015) §6.10: location-based scope 2 is "based on average energy generation emission factors", and "Companies shall not use marginal emission factors … for a location-based scope 2 calculation" [sourced, PDF read 11 Nov]. The same paragraph says marginal factors "can be more useful for avoided emissions analyses". That is the open side, below |
+| **Direct or lifecycle** | **Operational, at the generator**, on NESO's Table 1 factors: gas CCGT 394, coal 937 g/kWh; nuclear, wind, solar and hydro **zero**, so no lifecycle for them | Biomass sits at 120 g/kWh. That is neither its stack CO2 nor zero, so it carries some convention. **GAP:** what NESO's 120 counts is not established here. Electricity Maps defaults to the IPCC AR5 factors and offers both a lifecycle and a direct set [sourced, electricitymaps.com/methodology, 11 Nov]. Their figures are not ours to compare until the basis is matched |
+| **Losses** | **Generation basis, losses NOT included** (measured 2026-10-05, §2) | DESNZ advises adding T&D (0.01853 kg/kWh in 2025). A figure that adds them says so |
+| **Imports** | Inside NESO's historic mix, as NESO counts them. In our fill for the half hours NESO left blank: **one fixed factor per market**, NESO Table 1 (France 53, Netherlands 474, Belgium 179, Ireland 458 g/kWh), Norway from its annual SSB mix with thermal at 394. None of them varies by hour, and none is flow-traced. **ElecLink and Viking are left out** because NESO's mix leaves them out (`OUTSIDE_NESO_MIX`, `sim/elexon_fuel_outturn.py`) | *Corrected beside the claim:* the steer's "imports are counted at `import_factor` (one factor …)" is one factor **per market**, not one in total. Whether hourly or flow-traced import factors would move GB's average materially is item 3 and is **not yet answered**: GAP |
+| **Consumption-based** | **No.** Generation in GB, imports added at their factor. No flow tracing of what GB re-exports | Electricity Maps is "attributional, location-based, and consumption-based", with flow tracing [sourced, their methodology page]. That difference has to be named before any figure of theirs is set beside ours |
+
+**"Carbon saved by shifting" on average intensity is a stated choice, not a fact.** Moving a kWh
+from 18:00 to 03:00 changes which plant runs at the margin, not the average. Our timing figures (§5)
+are average-basis, and §4(b)'s caveat gives the marginal bound (up to 3.7× for solar, *if* the margin
+were always CCGT, which is not established). The published GB side of that debate has been listed and
+not yet read. These candidates are at **abstract level**, and none sets anything:
+Thomson, Harrison & Chick (2016), "Marginal greenhouse gas emissions displacement of wind power in Great
+Britain", *Energy Policy* (doi:10.1016/j.enpol.2016.11.012); Hawkes (2014), "Long-run marginal CO2
+emissions factors in national electricity systems", *Applied Energy* (doi:10.1016/j.apenergy.2014.03.060);
+Beltrami et al. (2020), "Where did the time (series) go? Estimation of marginal emission factors with
+autoregressive components", *Energy Economics* (doi:10.1016/j.eneco.2020.104905).
+
+*Corrected beside the claim:* the steer says Electricity Maps "withdrew" its marginal signal, citing
+"major limitations" and "the incompatibility with regulation". Their marginal explainer (2019, updated
+14 Jan 2025) and methodology page do not say that. What they do say is that "marginal and average
+emissions should never be mixed together". The withdrawal may be published elsewhere. Until its page is
+found, it is not cited here as a reason. The reason that does stand is the GHG Protocol's.
+
 ---
 
 ## 2. The ratio: gas against all electricity, 2016–2025
