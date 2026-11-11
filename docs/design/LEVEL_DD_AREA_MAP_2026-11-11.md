@@ -184,6 +184,25 @@ wiring, grading s.8.8d code the run never calls. The re-armed launcher also requ
 13:40 without the wiring, that book is unwired and its cure row reads nothing about s.8.8d. The verdict goes here,
 beside this table, when the TSV exists.
 
+**Verdict (graded 11 Nov, 15:59 GMT): all five rows HELD.** The first launcher ended without launching (deadline
+13:41); the re-armed one launched `6fe7827ab2` at 14:07, which carries the `money_in` wiring (`cab13bbd18` is an
+ancestor, and `money_in` is in that commit's `run_phase4c_on_phase2b.py`). So this grades s.8.8d code the run calls.
+Source: `/var/tmp/crbook/arm/cure_row.tsv`.
+
+| Row | Control | Predicted | Read | Verdict |
+|---|---:|---|---:|---|
+| Cures held over a debt | 116 on 70 | 112 to 120 | **113 on 69** | HELD |
+| Pre-registration row 11 (same reader) | 116 | 106 to 126 | **113** | HELD |
+| …of which level at the cure | 93 | 89 to 97 | **90** | HELD |
+| Holds on or after first refund or last invoice | 0 | 0 | **0** (every hold found its ledger leg) | HELD |
+| Desk cures in total | 807 | 800 to 814 | **807** | HELD |
+
+The map's row held, so there is no close-refund line to trace. The fix did reach the refunds: 176 refund lines on
+176 legs (£21,380.64), and no refunded leg closes in page debit. The total of desk cures did not move. The held
+count fell by 3 (one account), which is the treasury coupling's measured spread, and nothing on any line in section
+1. This is one book. It does not establish that refund or close fixes "never" move the count; it fails to refute it.
+The next level-DD fix that touches cures still has to name its shape from section 3 and its ledger.
+
 ## 5. What this changes
 
 - **Before a level-DD prediction is filed, name the ledger it is read from (T, E, K or P) and the ledger the fix
