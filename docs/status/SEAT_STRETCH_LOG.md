@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-11 — orientation: Still sideways against the thesis, but the machine has caught up with itself
+
+<!-- head: 04a3323d1a97 -->
+
+*Written by the orientation seat from its own record (2026-11-11T09:22:42.986419+00:00; 14 commits, 4 substantive, since 2026-11-11T06:20:22.549512+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 13 other.
+
+## What the stretch meant
+
+Still sideways against the thesis, but the machine has caught up with itself. No book passes the gate, no per-customer decision has met the flat baseline, and the renewal belief is still off. What changed is that the close-refund work is now really landing, and the cause of the failed landings has been measured rather than guessed. surgical_land pid 4134999 runs under launch_long_job (crfix-land-A, 08:40Z). It lands the close-refund fix (s.8.8c) and the residual-12 money-in clock (s.8.8d) together. The scratch grade on 068b5e3cc8 reads INV_REFUND_WITHIN_THE_PAGE_CREDIT 205 of 238, then 0 of 176. The gate's timeouts have a measured cause: 129 selected tests take about 33 min serially on an unloaded box, and 18 of those minutes are one test, which is selected only by the 6 wiring lines in run_phase4c_on_phase2b.py. So the wiring was split off to land next, on its own. That split creates a new hazard, which item 1 addresses. longjob-launcher-crbook fires as soon as the fix's test file is on origin. It will therefore launch a book whose run does not pass money_in, and on that book s.8.8d is dead code. Previous focus: all 3 items were drawn. Items 1 and 2 merged into one landing that is in flight, so they leave focus under a new id that covers the remaining wiring. Item 3 waits on that landing. The draw-ledger row the-seats-direction-record-reaches-origin-again is spent: the 06:20 record reached origin at a12d5e706. The commit_split (1 supplier, 0 world, 13 other) is literally true. The stretch carried advisor records, a ruling, carbon knowledge and harness work, and its supplier code is still in a gate. The director's 11 Nov ruling ends the feature freeze and gives features about a third (feature_share 0.33, bb69c250d). This direction therefore spends one slot on W3_3, which blocks B12's true unit cost and owns the standing-charge error, and it may land only after the exit-test book has pinned its SHA, so attribution is safe. The learning loop says STOP on level-DD: 8 code-or-reader misses in 34 graded predictions. The level-DD area is mapped before any further fix there. Both 11 Nov literature steers are being landed now (surgical_land pid 252738) as knowledge only.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:22 11 Nov: Unchanged. The comparison that switches it on is pre-registered (c65c4cb8b) and waits on the first passing book.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 09:22 11 Nov: Unchanged. The eleventh read waits on a passing book (not before 16:00 today).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 09:22 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 09:22 11 Nov: Unread. The learning loop says STOP on level-DD, so the area is mapped first (item 3).
+- NOT corrected: THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 09:22 11 Nov: Missed by a day. The fix is in the gate now (crfix-land-A), and the publisher has refused 69 times over 60 h.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 09:22 11 Nov: Now in focus as W3_3 (item 4), to land after the exit-test book pins its SHA.
+- NOT corrected: THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 09:22 11 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 09:22 11 Nov: Not re-read. Item 2's pre-registered table re-reads it.
+- NOT corrected: THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 09:22 11 Nov: Unchanged. No stop this stretch.
+- NOT corrected: THE COMPANY'S, NEW. Class L's run half refunds past the credit the page prints. On 068b5e3cc8, 6 legs are pushed GBP 833.30 into page debit (two of them were already in debit), and no invariant compares a refund with the page's credit, so the gate passed them silently. Its filed P2 (no closing balance rises) was about the world walk and missed this (items 3 and 4). 03:22 11 Nov: Much larger than filed. The blind row (3cb902dc8) reads 205 of 238 refund lines, GBP 5,061.85, 2016 to 2025. 09:22 11 Nov: The scratch grade reads 0 of 176 with both fixes. Still 205 on origin, because crfix-land-A is in the gate and the run wiring is not yet written to land (item 1).
+- NOT corrected: THE MACHINE'S, NEW. The close-refund fix was reported as "being landed" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing. Landing 1 was refused when its pre-commit gate timed out at 3,600 s. Landing 2 (pid 1920905) died without a log line, and its source worktree is gone. The only copy of the residual work was in an unlocked worktree with no owner (/var/tmp/crfix2/mut), which the seat locked at 06:20. A book launcher has been waiting on the fix since 05:40. 09:22 11 Nov: Landing 3 timed out as well, and its cause is now measured. Landing 4 (crfix-land-A) runs under launch_long_job, so a death will leave a line. It stays open until the fix is on origin.
+- NOT corrected: THE MACHINE'S, NEW. The book launcher fires on the fix's test file alone, but crfix-land-A split the money_in wiring off to land later. The first "close-refund book" would therefore run s.8.8d as dead code, and a 0 read on the refund row would not be the fix's doing. Item 2 adds the condition or labels that book as 8.8c and D1 only.
+
+## Chosen against
+
+- Launching a second book now, from origin head without the fix, so the publish is not idle while the landing runs.
+- Letting the launcher fire on the fix's test alone and calling that book the exit test.
+- Raising the pre-commit gate's 3,600 s timeout, or excluding test_run_phase4c_on_phase2b.py from the selection.
+- W2_18 and W2_19 (the UKDS precarity joint) as the feature third.
+- The remaining literature lists and the reading of the carbon steer's items 2 to 4, put into focus.
+- Reaping the 7 old locked worktrees with unpushed commits, the 20 repeating alarms, and the mute worker-seat-manager heartbeat.
+- Any model-comparison arm this week.
+
+## Focus for the next stretch
+
+- `the-close-refund-fix-and-its-run-wiring-reach-origin`
+- `the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate`
+- `the-level-dd-area-is-mapped-before-another-fix`
+- `W3_3_the_network_charge_splits_per_unit_and_per_day`
+
+---
+
 ## 2026-11-11 — orientation: Sideways, and the reason is a fault in the machine, not the code
 
 <!-- head: 038bdef0ea19 -->
