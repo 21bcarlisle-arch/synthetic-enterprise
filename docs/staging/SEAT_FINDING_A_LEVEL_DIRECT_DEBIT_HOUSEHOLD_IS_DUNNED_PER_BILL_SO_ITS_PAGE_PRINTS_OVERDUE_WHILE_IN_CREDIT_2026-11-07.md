@@ -1043,3 +1043,26 @@ rules disagreeing. It is not the page disagreeing with the desk.
 **So the stop condition's done-means holds:** the map is written, and every open prediction names its state. Level-DD
 fixes may be drawn again, in the map's order: D1, then the traces of D2 and D3, then D5 on the knowledge page.
 Each new prediction names its S-number.
+
+## The rows are met on 6fe7827ab2, and the finding stays open (2026-11-11, worker tick)
+
+"What done means" asked three things of the next book after the fix. The published 6fe7827ab2 book (cab13bbd18,
+published at e816040ce8) reads as follows in its committed `docs/reports/domain_invariants.json` (git 6fe7827ab2):
+
+| Done-means leg | Filed | 6fe7827ab2 |
+|---|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE on level-DD households | 1,724 of 6,695 | **CLEAN, 0 of 6,385** |
+| INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE | 45 of 1,139 | **CLEAN, 0 of 1,139** |
+| N20 Leg A at or below 0.30 | | **0.216** (7,494 of 34,768, 929 accounts), FLAGGED and not breached |
+| INV_OVERDUE_WITHIN_BALANCE (the account-level reading) | | CLEAN, 0 of 1,013 |
+
+The share leg ("must not move") is **not re-measured here**. No published row carries it.
+
+**Why this is not a retirement.** The eleventh cold read ran on this same book
+(`records/SEAT_READING_THE_ELEVENTH_COLD_READ_ON_THE_6FE7827AB2_BOOK_2026-11-11.md`). It attributes O16 and O21
+("standing arrears with GBP 0 notices; overdue rising with no bill") to this finding's per-bill dunning family,
+"not traced to the penny". So the rows read 0 while a reader still sees the family on the page. Either the rows do
+not reach that shape, or the attribution is wrong. That is the next step here: trace O16 and O21 on the 6fe7827ab2
+pages, and either name the row that misses them or move them to the finding they belong to. The finding retires when
+that trace is done and the share leg is read. D2 to D6 live in `docs/design/LEVEL_DD_AREA_MAP.md` and the sister
+finding, and are not this file's done-means.
