@@ -141,7 +141,9 @@ def test_the_publish_commit_carries_the_run_output_the_customer_book_is_made_fro
     first git-touching seam (`_provenance_is_publishable`), refused there so nothing runs.
 
     CAN-FAIL ARM FIRST: with the generator's input absent the path must NOT be named (an
-    unmatched pathspec rejects the whole commit), so the leg that names it is not unconditional."""
+    unmatched pathspec rejects the whole commit), so the leg that names it is not unconditional.
+    Since 2026-11-11 that arm REFUSES the publish by name rather than shipping the book without
+    its input, so it is asserted as a refusal that never reached the pathspec."""
     import tools.generate_customers_json as gen
 
     def _captured(input_exists):
@@ -161,18 +163,65 @@ def test_the_publish_commit_carries_the_run_output_the_customer_book_is_made_fro
             return False
         monkeypatch.setattr(prc, "_provenance_is_publishable", _refuse)
         monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", tmp_path / "cause.json")
-        prc.git_commit_push("abc1234", 0.0)
+        outcome = {}
+        prc.git_commit_push("abc1234", 0.0, outcome=outcome)
         # COMMITTED GZIPPED since 2026-10-10 (`tools.run_output_store`): the plain run passed
         # GitHub's 100 MiB limit, so what travels is its `.gz` twin, never the plain file.
-        return seen["files"], str(run_output) + ".gz", str(run_output)
+        return seen.get("files"), str(run_output) + ".gz", str(run_output), outcome
 
-    files, run_output, plain = _captured(input_exists=False)
-    assert str(tmp_path / "without" / "site" / "data" / "customers.json") in files
-    assert run_output not in files
-    files, run_output, plain = _captured(input_exists=True)
+    files, run_output, plain, outcome = _captured(input_exists=False)
+    assert files is None and outcome.get("reason") == prc.PROVENANCE_REFUSED, (
+        "with customers.json on the list and no run output anywhere, the publish went on to the "
+        "pathspec; it must refuse by name, or HEAD's previous gz is shipped as this book's input")
+    files, run_output, plain, _ = _captured(input_exists=True)
     assert run_output in files, (
         "git_commit_push names site/data/customers.json but not the run output it is generated "
         "from, so the published book is again underivable from the commit that publishes it.")
     assert plain not in files, (
         "the publish names the PLAIN run output again; it is over GitHub's 100 MiB limit and is "
         "refused at push. Only its gz twin may travel.")
+
+
+def test_a_publish_from_a_checkout_without_the_plain_run_commits_the_markers_own_run(
+        tmp_path, monkeypatch):
+    """THE DEFECT (e816040ce, 2026-11-11): a publish from a worktree shipped the previous run's gz.
+
+    The gz was written from `RUN_OUTPUT`, the untracked plain file only the shared tree holds. A
+    worktree has none, so no gz was written and HEAD's -- the run before -- went out beside the
+    new book. Here the checkout has NO plain run, the marker's dated run lives in a different
+    directory (the shared tree's `docs/reports/`), and HEAD's gz holds an older run. The committed
+    gz must decompress to the marker's run, at this checkout's PUBLISHED_REL, and nothing may be
+    written beside the dated file."""
+    import gzip
+
+    import tools.generate_customers_json as gen
+    from tools import run_output_store
+
+    checkout = tmp_path / "worktree"
+    (checkout / "site" / "data").mkdir(parents=True)
+    (checkout / "site" / "data" / "customers.json").write_text("{}")
+    committed = checkout / run_output_store.PUBLISHED_REL
+    committed.parent.mkdir(parents=True)
+    committed.write_bytes(gzip.compress(b'{"run": "previous"}', mtime=0))
+    shared_reports = tmp_path / "shared" / "docs" / "reports"
+    shared_reports.mkdir(parents=True)
+    marker_run = shared_reports / "run_output_6fe7827ab2_20261111.json"
+    marker_run.write_text('{"run": "this one"}')
+
+    monkeypatch.setattr(prc, "PROJECT_DIR", checkout)
+    monkeypatch.setattr(gen, "RUN_OUTPUT", checkout / run_output_store.LATEST_REL)
+    monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", tmp_path / "cause.json")
+    seen = {}
+
+    def _refuse(files, label=None):
+        seen["files"] = list(files)
+        return False
+    monkeypatch.setattr(prc, "_provenance_is_publishable", _refuse)
+    prc.git_commit_push("abc1234", 0.0, json_path=marker_run)
+
+    assert str(committed) in seen["files"]
+    assert gzip.decompress(committed.read_bytes()) == b'{"run": "this one"}', (
+        "the committed gz is not the marker's run: a publish from a checkout without the plain "
+        "run file ships the previous run's input beside the new book")
+    assert not run_output_store.gz_twin(marker_run).exists(), (
+        "the gz was written beside the dated run in the shared tree, not into this checkout")

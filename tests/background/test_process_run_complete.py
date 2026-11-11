@@ -2463,7 +2463,7 @@ def test_a_failed_publish_does_not_write_the_fingerprint(tmp_path, monkeypatch):
     _full_isolation_setup(tmp_path, monkeypatch)
     marker, _ = make_marker(tmp_path)
 
-    def failed_publish(git_hash, net_margin, outcome=None):
+    def failed_publish(git_hash, net_margin, outcome=None, json_path=None):
         if outcome is not None:
             outcome["reason"] = prc.COMMIT_TIMEOUT
         return False
@@ -2487,7 +2487,7 @@ def test_a_successful_publish_still_writes_the_fingerprint(tmp_path, monkeypatch
     _full_isolation_setup(tmp_path, monkeypatch)
     marker, _ = make_marker(tmp_path)
 
-    def ok(git_hash, net_margin, outcome=None):
+    def ok(git_hash, net_margin, outcome=None, json_path=None):
         if outcome is not None:
             outcome["reason"] = prc.PUBLISHED
         return True

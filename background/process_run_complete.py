@@ -3586,6 +3586,10 @@ _REFUSING_GATE_BANNERS = (
     # Second in the chain, before the test gate. The pass path prints nothing at all.
     ("ukds-microdata guard",
      ("[ukds-microdata] COMMIT REFUSED: ",), "tools/ukds_microdata_refusal.py"),
+    # Third (2026-11-11, 1d63f43e3). Its fail-open line says `not blocking`, so this needle
+    # cannot name it as the refuser of a commit it let through.
+    ("direction-seat-window gate",
+     ("[direction-seat-window] COMMIT REFUSED.",), "tools/direction_seat_window.py"),
     ("finding-class consolidation",
      ("❌ FINDING-CLASS CONSOLIDATION BROKEN",), "tools/pre_commit_test_gate.py"),
     ("finding-severity gate",
@@ -7270,7 +7274,7 @@ def _publish_insights_artefacts(files):
         log("Insights artefact paths not added to the commit (non-fatal): {}".format(_exc))
 
 
-def git_commit_push(git_hash, net_margin, outcome=None):
+def git_commit_push(git_hash, net_margin, outcome=None, json_path=None):
     """Commit and push the publish surface. Returns True iff the content is committed.
 
     `outcome`, when given, is a dict this fills with {"reason": <one of the constants above>} so
@@ -7363,10 +7367,28 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         # COMMITTED GZIPPED (2026-10-10): the plain run passed GitHub's 100 MiB limit, so the
         # publish commits `<run>.json.gz` and retires the plain file from HEAD inside
         # `_land_publish_commit`. See `tools.run_output_store`.
+        #
+        # FROM THE MARKER'S OWN RUN (2026-11-11). `RUN_OUTPUT` is the untracked plain file only
+        # the shared tree holds, so a publish from a worktree found none, wrote no gz, and
+        # committed the PREVIOUS run's gz beside the new book without a word (e816040ce). The
+        # input is the run this cycle was handed; its home is this checkout's PUBLISHED_REL.
+        # Neither present is a refusal by name: a book whose input cannot travel with it is not
+        # publishable, and the stale gz already in HEAD would be read as its input.
+        from tools import run_output_store
         from tools.generate_customers_json import RUN_OUTPUT as _customers_input
-        if _customers_input.exists():
-            from tools.run_output_store import write_published
-            files.append(str(write_published(_customers_input)))
+        from tools.run_output_store import write_published
+        _input = next((Path(p) for p in (json_path, _customers_input)
+                       if p is not None and Path(p).is_file()), None)
+        if _input is None:
+            return _outcome(PROVENANCE_REFUSED, False,
+                            evidence="site/data/customers.json is on the publish list but its "
+                                     "input is not on disk: neither the marker's run {} nor {} "
+                                     "exists, so the committed {} would be a previous run's "
+                                     "and the book unreproducible -- nothing was staged".format(
+                                         json_path, _customers_input,
+                                         run_output_store.PUBLISHED_REL))
+        files.append(str(write_published(
+            _input, target=PROJECT_DIR / run_output_store.PUBLISHED_REL)))
     site_data_supplier = PROJECT_DIR / "site" / "data" / "supplier.json"
     if site_data_supplier.exists():
         files.append(str(site_data_supplier))
@@ -11514,7 +11536,7 @@ def _process(marker_path_str):
 
     log("Committing and pushing (net=\xa3{:,.0f})".format(net_margin))
     publish_outcome = {}
-    if not git_commit_push(git_hash, net_margin, outcome=publish_outcome):
+    if not git_commit_push(git_hash, net_margin, outcome=publish_outcome, json_path=json_path):
         log("Commit/push failed ({})".format(
             publish_outcome.get("reason", "reason not recorded")))
 

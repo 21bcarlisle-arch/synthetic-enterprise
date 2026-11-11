@@ -89,13 +89,18 @@ def as_plain_file(path: Path | str, scratch_dir: Path | str) -> Path:
     return out
 
 
-def write_published(plain: Path | str) -> Path:
-    """Gzip `plain` to `<plain>.gz` deterministically, atomically. Returns the gz path.
+def write_published(plain: Path | str, target: Path | str | None = None) -> Path:
+    """Gzip `plain` to `target` (default `<plain>.gz`) deterministically, atomically. Returns it.
 
     Rewrites only when the content changed, so an unchanged run leaves the committed blob alone.
+
+    `target` exists because the publish's input is the marker's DATED run file, and its committed
+    home is `PUBLISHED_REL` in the publishing checkout -- not beside the dated file, which lives
+    in the shared tree's `docs/reports/` whichever checkout publishes. See
+    docs/staging/done/WORKER_FINDING_A_PUBLISH_FROM_A_WORKTREE_SHIPS_THE_PREVIOUS_RUNS_COMMITTED_INPUT_BESIDE_THE_NEW_PAGES_2026-11-11.md.
     """
     plain = Path(plain)
-    twin = gz_twin(plain)
+    twin = gz_twin(plain) if target is None else Path(target)
     data = plain.read_bytes()
     if twin.is_file():
         try:

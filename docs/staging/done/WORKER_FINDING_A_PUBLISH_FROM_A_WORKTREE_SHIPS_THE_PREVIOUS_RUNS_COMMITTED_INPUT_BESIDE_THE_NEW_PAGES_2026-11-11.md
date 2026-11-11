@@ -41,3 +41,13 @@ wrote `run_output_6fe7827ab2_….json.gz` into the shared tree's `docs/reports/`
 - The `.gitignore` patterns `sim/cache/` and `node_modules/` end in a slash, so they do not match the symlinks
   `_overlay_untracked_data` makes in a worktree. A salvage commit (`fork_salvage`, 19:42, ef1070dae8, local only,
   now dropped from HEAD) staged both. Any `git add -A` in an overlaid worktree will do the same.
+
+## Resolution (2026-11-11, built)
+
+Built as proposed. `git_commit_push` takes the marker's `json_path` (passed by `_process`) and gzips it to
+`PROJECT_DIR / run_output_store.PUBLISHED_REL`, falling back to the plain `RUN_OUTPUT` only when no marker run is
+given. `write_published` has a `target` argument. When `site/data/customers.json` is listed and neither input is on
+disk, the publish refuses as `PROVENANCE_REFUSED`, and the evidence names both paths. Control:
+`test_a_publish_from_a_checkout_without_the_plain_run_commits_the_markers_own_run`. It reds under both mutations:
+source reverted to `RUN_OUTPUT`, and target reverted to beside-the-input. The refusal arm is asserted in
+`test_the_publish_commit_carries_the_run_output_the_customer_book_is_made_from`.
