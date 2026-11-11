@@ -444,3 +444,19 @@ def test_the_directors_one_early_publish_opens_once_and_cannot_open_again():
     assert window(at(2026, 11, 8, 14, 30), tuesday)          # after it: the one early publish
     assert not window(at(2026, 11, 8, 21, 0), at(2026, 11, 8, 20, 0))  # once landed, closed again
     assert not window(at(2026, 11, 12, 9, 0), at(2026, 11, 10, 4, 5))  # a later week: never reopens
+
+
+def test_a_re_emission_of_last_weeks_run_does_not_spend_the_week_but_a_new_run_does():
+    """601929ce0 re-emitted the 3 Nov run's figures on 11 Nov and the window read it as the week's
+    publish, holding the gate-passing 6fe7827ab2 book. Defect it names: a window keyed to a content
+    path moving rather than to a different run reaching origin -- or one that never closes."""
+    now = datetime(2026, 11, 11, 19, 0, tzinfo=timezone.utc).timestamp()
+    moved = datetime(2026, 11, 11, 16, 32, tzinfo=timezone.utc).timestamp()
+
+    def window(runs):
+        return pf.content_publish_window(now, published_ts_fn=lambda: moved,
+                                         shown_runs_fn=lambda _start: runs)["open"]
+
+    assert window(("0a6391d186", "0a6391d186")), "a re-emission of last week's run spent the week"
+    assert not window(("0a6391d186", "6fe7827ab2")), "a new run on origin left the window open"
+    assert not window(None), "an unreadable dashboard must keep the content-path rule"
