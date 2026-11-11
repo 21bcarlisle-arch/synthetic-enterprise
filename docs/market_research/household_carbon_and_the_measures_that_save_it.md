@@ -125,13 +125,89 @@ the national figure does not see grows as the transmission system decarbonises. 
 excess thermal to ours, at operational factors, lifts 2024 from 128 to 145–167. **I cannot yet say** how much
 of it is Northern Ireland, which is a different system, and how much is GB embedded and captive thermal,
 which a GB household's kWh does meet. DESNZ *Energy Trends* 5.1 and *DUKES* 5.6, by region and producer type, would split it.
-**GAP.**
+**GAP.** *(Closed the same day: the split is read below. About 15% is Northern Ireland. Of the GB part, about half is
+consumed on site and never reaches the public supply a household meets.)*
 
 **What it means for the customer figure (F11, erring against our thesis).** If most of the excess is GB embedded
 thermal, our customer figure **understates** GB average intensity by roughly 10–25% in 2023–2025, and by less
-earlier. A low grid figure flatters every electrification measure in §4 and §5. The series is NOT changed: the
+earlier. *(Corrected the same day, from the split below: that range assumed all of the excess was GB thermal reaching
+the grid. Read from DESNZ, it is about 5–8% in 2024, within +3% to +15%.)* A low grid figure flatters every electrification measure in §4 and §5. The series is NOT changed: the
 steer asks for what and why first, and the GB/NI split is not established. Finding:
 `docs/staging/SEAT_FINDING_THE_NATIONAL_CARBON_FIGURE_DOES_NOT_COUNT_EMBEDDED_THERMAL_2026-11-11.md`.
+
+**The GB/NI split, read (2026-11-11, follow-on).** *Pre-registered before the tables were opened:
+`docs/staging/records/SEAT_PREREG_HOW_MUCH_OF_THE_UNCOUNTED_THERMAL_IS_NORTHERN_IRELAND_2026-11-11.md`.* The source is
+DESNZ, *Regional electricity generation and supply timeseries, 2004–2025*, published 29 Sep 2026
+(`Regional_Electricity_Generation_and_Supply_Timeseries_2026.xlsx`, from the Energy Trends September 2026 special
+article). It splits the DUKES 5.6 / ET 5.1 figures by nation and by producer type: major power producers (MPPs) and
+"other generators". Its bioenergy and "other fuels" definitions are those of ET 5.1 and DUKES 5.6 (its Notes 2 and 4).
+Thermal here means coal, oil, gas, bioenergy and other fuels. DESNZ generation is gross, so it is divided by 1.06 to
+match the net excess above. The excess is recomputed here on that basis: Ember's UK thermal ÷1.06 minus NESO's
+GAS+COAL+BIOMASS+OTHER. Knowledge only (W6). Nothing in `sim/`, `company/` or `saas/` reads the file.
+
+| Year | Excess, net (TWh) | Northern Ireland thermal, all producers | NI share of the excess | GB "other generators" thermal | Left over |
+|---|---|---|---|---|---|
+| 2016 | 32.9 | 6.9 | 21% | 27.7 | −1.7 |
+| 2017 | 35.2 | 6.6 | 19% | 29.1 | −0.5 |
+| 2018 | 35.3 | 5.7 | 16% | 30.3 | −0.8 |
+| 2019 | 39.7 | 5.6 | 14% | 35.8 | −1.7 |
+| 2020 | 36.7 | 5.8 | 16% | 32.5 | −1.6 |
+| 2021 | 36.1 | 6.3 | 17% | 32.0 | −2.2 |
+| 2022 | 34.9 | 6.3 | 18% | 32.5 | −4.0 |
+| 2023 | 36.4 | 4.8 | 13% | 33.0 | −1.4 |
+| 2024 | 35.5 | 5.2 | 15% | 33.8 | −3.5 |
+| 2025 | 35.9 | 4.7 | 13% | 33.6 | −2.5 |
+
+*(The "about 43 TWh" above is the GROSS excess, 43–50 TWh. The net figure is 33–40 TWh.)* NI thermal plus GB
+other-generator thermal accounts for the whole excess, with 0.5–4 TWh to spare. The small negative remainder says some
+other-generator output (transmission-connected CHP or energy-from-waste) is already in NESO's GAS or BIOMASS, so
+the GB column is an upper bound by up to that much. NI is 13–21% of the excess. The GB part is embedded and captive
+thermal: 2024 is 11.7 TWh gas, 18.2 bioenergy, 4.6 other fuels and 1.3 oil, gross.
+
+**What a household meets is less than all of that.** About half of GB other-generator output is used on site:
+24 TWh a year of "consumption by autogenerators" against 20–26 TWh "transferred to public supply" (same workbook,
+Table 1). A household's kWh meets only the transferred part. DESNZ does not split the transfer by fuel. **GAP.** So
+the GB thermal reaching public supply is stated as three cases. The floor is the transfer minus ALL non-thermal
+other-generator output. Proportional is thermal at the all-fuel transfer rate. All is every GB other-generator
+thermal TWh. Each case is priced at NESO's operational factors: gas 394, coal 937, bioenergy 120, and oil and other
+fuels from 300 (NESO OTHER) to 700 (Ember's other fossil). Each is added to NESO's mix in both numerator and
+denominator.
+
+| Year | Ours | Uplift: floor | Proportional | All |
+|---|---|---|---|---|
+| 2016 | 282 | 0% | 0% to +1% | −1% to +2% |
+| 2018 | 222 | 0% to +1% | +1% to +2% | +1% to +4% |
+| 2020 | 173 | +1% to +2% | +2% to +4% | +5% to +8% |
+| 2022 | 183 | +1% to +2% | +2% to +4% | +3% to +7% |
+| 2023 | 151 | +2% to +3% | +4% to +6% | +7% to +12% |
+| 2024 | 128 | +3% to +4% | +5% to +8% | +9% to +15% |
+| 2025 | 130 | +1% | +4% to +7% | +9% to +14% |
+
+**So the bound is real, and smaller than §1b's first reading.** For a GB household in 2024, the uncounted thermal adds
+about 5–8% (proportional), within +3% to +15%. Before 2019 it adds 0–4%. The direction is the one §1b found: the
+figure is low, it flatters electrification, and the gap grows as the transmission system decarbonises. The "Ember
+rebased ÷ ours" gap of +13% to +25% in 2024–25 splits about three ways. Part is Northern Ireland, which the household
+does not meet. Part is captive use, which never reaches the grid. The rest, about a third of the gap, is GB embedded
+thermal that the household does meet. Pre-registration: P1 held in 2023–25 and was slightly exceeded in 2016–17.
+P2 held. P3 was slightly low. P4 is below.
+
+**NESO's historic-mix IMPORTS column counts ElecLink and Viking.** The dataset metadata (NESO Data Portal,
+`historic-generation-mix`, field `IMPORTS`) says only "Interconnector Imports" and lists no cables, so the definition
+does not settle it. The data does. On every half hour of 2023–2025 where both exist (about 17,500 a year),
+NESO's IMPORTS was compared with the sum of Elexon FUELHH interconnector flows (imports only, from the shared
+`sim/cache/elexon_fuelhh_carbon_relevant.json`):
+
+| Year | Without ElecLink and Viking: mean gap, MW | With them: mean gap, MW | Exact to 1 MW, with / without | Slope of the without-gap on their flow |
+|---|---|---|---|---|
+| 2023 | +535 | −3 | 88% / 21% | 0.97 |
+| 2024 | +1,193 | +13 | 88% / 7% | 0.98 |
+| 2025 | +1,261 | +36 | 78% / 5% | 0.97 |
+
+So `OUTSIDE_NESO_MIX` (`sim/elexon_fuel_outturn.py`) is right for the target it was measured on, the Carbon Intensity
+API's mix (EP13 s33). It is **wrong for the historic-mix file**, where `sim/grid_carbon_history.py`'s fill reuses it.
+**Effect today: none.** The fill fills 0 half hours. Correcting it needs a Viking (Denmark) import factor, which
+NESO's published table does not have (`import_factor("Denmark", …)` is None). Without one, the corrected fill would
+refuse every half hour from December 2023. That is a sim build, handed on, not done here.
 
 **The "few percent ABOVE" fill bias.** Ember cannot apportion it, because Ember has no half-hours. But the
 check led to the term. On the half hours where both exist:

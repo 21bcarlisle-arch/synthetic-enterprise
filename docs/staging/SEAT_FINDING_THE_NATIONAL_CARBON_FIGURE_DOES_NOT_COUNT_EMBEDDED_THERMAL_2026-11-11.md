@@ -47,3 +47,18 @@ already is (§2). Do not rescale the series until that split is established.
    are added back. `OUTSIDE_NESO_MIX` (`sim/elexon_fuel_outturn.py`) says they are left out. That may be right for
    the Carbon Intensity API's mix and wrong for the historic-mix file. Not yet checked against NESO's column
    definition.
+
+## Follow-on, the same day: the split is read
+
+**The GB/NI split** (`household_carbon` §1b, "The GB/NI split, read"; source: DESNZ regional generation timeseries).
+On a net basis the excess is 33–40 TWh, and the "about 43" is the gross figure. Northern Ireland is 13–21% of it.
+GB other-generator thermal is the rest, 28–36 TWh. But about half of GB other-generator output is used on site and
+never reaches public supply. So for a GB household, 2024 is **+5–8%** (thermal reaching the grid at the all-fuel
+rate), within +3% to +15%. Before 2019 it is 0–4%. The "10–25%" above assumed all of it was GB grid thermal and
+is corrected beside the claim on the page. The direction holds: low, it flatters electrification, and it is growing.
+
+**Smaller finding 2 is confirmed.** NESO's historic-mix IMPORTS includes ElecLink and Viking: it is exact to 1 MW on
+78–88% of 2023–25 half hours with them, and on 5–21% without. `OUTSIDE_NESO_MIX` is right for the Carbon Intensity
+API (EP13) and wrong for the historic-mix fill in `sim/grid_carbon_history.py`. The effect today is nil, because the
+fill fills 0 half hours. Fixing it needs a Viking import factor that NESO does not publish. That is handed on as a
+sim build.
