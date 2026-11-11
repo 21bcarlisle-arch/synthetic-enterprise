@@ -19,3 +19,13 @@
 2. **Correctness keeps its claim.** Next in the queue is N29 (a closing dual-fuel household refunded on one fuel while it owes on the other, 48 households), knowledge first and then build, as ab2700c1 set out. After that comes N28. Publishing the book the gate permitted (6fe7827ab2) is part of correctness and is not paused.
 3. **Other world-feature work not yet drawn also waits for the review.** That includes W2_21's flag fix, unless it is already in flight. The 12:00 limits stand: no knowledge passes beyond what a correctness fix needs (K8), no model arms, one book at a time.
 4. **The next director reading decides whether to accelerate.** If the burn falls to 0.55 or below, the accelerate list can be drawn from Saturday, as the 11 Nov ruling allows.
+
+## Done
+
+(worker tick, 11 Nov.) Item 1: `docs/direction/DIRECTION.yaml` marks the W3_3 focus row PAUSED until the Mon 16 Nov
+03:00 reset, and `not_now` carries the pause with this reading as its reason; it returns to the 16 Nov balance review.
+The stretch entry is the next seat orientation's to write; this record is what it reads. Item 2: correctness keeps its
+claim. The exit-test book (6fe7827ab2) was already graded on origin at 2e401fe1f (15 of 15 held, gate permits, promoted
+16:05), so that claim was disposed as premise-spent and released this tick; N29 is next. Item 3: this tick's drawn
+site-lane atom W2_19 is undrawn world-feature work, so it was not started and waits for the review. Item 4 stands for
+the next reading.
