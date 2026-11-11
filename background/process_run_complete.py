@@ -7034,6 +7034,39 @@ def _gate_was_killed(refusal: str) -> bool:
     return "could not be executed" in text and "timed out" in text
 
 
+#: The subject every publish commit carries (the `msg` built in `git_commit_push`).
+PUBLISH_SUBJECT_PREFIX = "Auto-process run complete"
+
+
+def publisher_superseded_paths(root, relative, *, _run=None) -> frozenset:
+    """Paths whose last commit is the previous publish, which this publish regenerates.
+
+    The stale-copy guard reads the lines a path's last landing added and refuses a copy lacking
+    them. When that landing is the last publish, those lines are its own generated output (a
+    "Generated <date> at commit <sha>" stamp, a weekly brief) and this regeneration replaces them
+    by design: on 11 Nov the 6fe7827ab2 publish was refused on site/capabilities and site/code for
+    lacking 19aa987bc's 3 Nov stamps. A path any other commit touched after that publish is left
+    to the guard. Empty when git cannot answer, which keeps the guard whole."""
+    run = _run or subprocess.run
+
+    def git(*args):
+        r = run(["git", *args], cwd=str(root), capture_output=True, text=True, timeout=60)
+        if getattr(r, "returncode", 1) != 0:
+            raise RuntimeError(r.stderr)
+        return r.stdout
+
+    try:
+        last = git("log", "-1", "--format=%H", "--grep=^" + PUBLISH_SUBJECT_PREFIX, "HEAD").strip()
+        if not last:
+            return frozenset()
+        published = set(git("show", "--format=", "--name-only", last).split())
+        since = set(git("log", "--format=", "--name-only", "{}..HEAD".format(last)).split())
+        changed = set(git("diff", "--name-only", "HEAD", "--", *relative).split())
+    except Exception:  # noqa: BLE001 -- an unanswerable history declares nothing
+        return frozenset()
+    return frozenset((published - since) & changed)
+
+
 def _land_publish_commit(pathspec, msg, git_hash):
     """Land the publish commit through `tools.surgical_land`. Never raises.
 
@@ -7095,6 +7128,11 @@ def _land_publish_commit(pathspec, msg, git_hash):
             relative.append(plain_rel)
             retire.setdefault("content", {})[plain_rel] = None
             retire["drops"] = retire.get("drops", frozenset()) | {plain_rel}
+    own = publisher_superseded_paths(root, relative)
+    if own:
+        retire["drops"] = retire.get("drops", frozenset()) | own
+        log("Publish landing: {} path(s) were last written by the previous publish and nothing "
+            "since, so this regeneration supersedes them -- declared as drops".format(len(own)))
     lost = []
 
     def _chains_run(exhausted: bool) -> int:
@@ -7701,7 +7739,7 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                         evidence="{} -- and the mechanical advance was attempted before this "
                                  "refusal: {}".format(_behind, _why_not))
 
-    msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
+    msg = PUBLISH_SUBJECT_PREFIX + ": report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
     # THE PUBLISH COMMIT IS A SURGICAL LANDING, NOT A PATHSPEC `git commit` (2026-09-08, closing
