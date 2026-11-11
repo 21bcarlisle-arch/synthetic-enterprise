@@ -4847,3 +4847,426 @@ invariants:
   - printed ledger.as_of_date
   checkable: true
   gap: 'Written 2026-11-08 by the delivery seat from home_moves.md §8.8-8.8b, NOT blind: the writer had read the page files and the runner, not the billing code. Graded by tools/domain_invariant_runner.ev_closed_account_balance on a book read with --printed. Leg (3) is a flag because no rule sets a window for collecting a departed customer''s debt (GAP G8.10-G8.12); what the rules do fix is that the debt stays the departing customer''s and that a write-off is of a debt. The export carries no jurisdiction, so the E&W calendar is applied to every leg. Non-domestic legs are outside reg 6D and graded on legs (2) and (3) only.'
+
+# Written blind for the tenth cold read's N25/N26/N27/N28, 2026-11-11, from the knowledge layer only.
+# No file under company/, saas/, simulation/, sim/, tools/, background/, tests/ or site/ was opened, and
+# no .py/.js/.html file anywhere. site/knowledge/ was listed; it holds no .md or .json page content
+# (each topic is an index.html), so nothing there was read.
+#
+# Files opened (read in part or whole):
+#   /var/tmp/ninth-read/blind_rows_N22_N24.yaml (format example)
+#   /home/rich/synthetic-enterprise/docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md
+#   /home/rich/synthetic-enterprise/docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md
+#   /home/rich/synthetic-enterprise/docs/market_research/default_tariff_cap_and_epg_on_the_bill.md
+#   /home/rich/synthetic-enterprise/docs/market_research/communications_sentiment_and_nps.md
+#   /home/rich/synthetic-enterprise/docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md
+#   /home/rich/synthetic-enterprise/docs/market_research/home_moves.md
+#   /home/rich/synthetic-enterprise/docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md
+#   /home/rich/synthetic-enterprise/docs/market_research/company_debt_management.md
+#   /home/rich/synthetic-enterprise/docs/market_research/payments_and_direct_debit_2026-10-25.md
+#   /home/rich/synthetic-enterprise/docs/market_research/bad_debt_provisioning.md
+#   /home/rich/synthetic-enterprise/docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md
+#   /home/rich/synthetic-enterprise/docs/market_research/f2_explaining_what_we_do_simply.md
+#   /home/rich/synthetic-enterprise/docs/market_research/back_billing_and_liability.md
+#   /home/rich/synthetic-enterprise/docs/market_research/how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md
+#   /home/rich/synthetic-enterprise/docs/market_research/what_bill_shock_is.md
+#   /home/rich/synthetic-enterprise/docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md
+#   /home/rich/synthetic-enterprise/docs/domain_artefact_library/regulatory/uk_vat_rates.json
+# Searched by grep only (matching lines seen, file not otherwise read):
+#   docs/market_research/ (all), docs/domain_artefact_library/ (all), docs/institutional/knowledge_map.md,
+#   notably company_customer_comms.md, what_a_renewal_decision_is_for_a_gb_domestic_customer.md,
+#   final_account_debt_recovery_primary_check_2026-11-07.md, account_hierarchy_payment_allocation.md,
+#   next_best_action_and_cross_sell.md.
+
+# ---------------------------------------------------------------------------------------------
+# N25. Standing charge and unit rate move inside one fixed term
+# ---------------------------------------------------------------------------------------------
+- id: INV_FIXED_TERM_RATES_HOLD_FOR_THE_TERM
+  family: tariff_terms
+  grades: bill
+  counts:
+    numerator: >-
+      fixed terms (one term on one fuel leg) in which any full-month bill dated inside the term prints a
+      standing charge (p/day) or a unit rate (p/kWh, each rate of a multi-rate tariff separately) that
+      differs from the term's own committed rate by more than the printing tolerance (see predicate),
+      other than a change the law makes to every tariff (see the EPG and VAT exceptions). The cold read
+      found 711 of 862 single-term fixed runs with the standing charge moving by more than 1%
+    denominator: >-
+      every fixed term on one fuel leg with at least one full-month bill wholly inside the term (the cold
+      read's frame is 862 single-term fixed runs)
+    unit graded: one fixed term on one fuel leg (each full-month bill's rates against the term's committed rates)
+  statement: >-
+    A fixed-term tariff fixes the price for the term. The definition the GB survey record puts to
+    households is that "your unit rates and standing charge stay the same for the length of the
+    contract you agree with your energy supplier". A change in price inside the term is a variation of
+    the contract. The licence treats a variation the household did not agree as a unilateral variation,
+    with 30 days' notice before a price rise takes effect (SLC 23), and the knowledge layer treats the
+    price of a further fix as part of the renewal offer "so this is not a mid-term variation". So on a
+    correct book, a full-month bill inside a fixed term prints the same standing charge and the same unit
+    rate(s) as the term's first full month. A standing charge that steps 18.60p, 19.37p, 19.45p a day
+    inside one 12-month fix moves like a default tariff at cap windows, not like a fix. Two dated changes
+    in law reach every tariff, fixed terms included, and are not variations by the supplier: the Energy
+    Price Guarantee lowered unit rates (not standing charges) from 1 Oct 2022 to 30 Jun 2023, and a VAT
+    change moves a VAT-inclusive rate. Domestic fuel VAT is 5% throughout 2016-2025 (the GB electricity
+    zero rate starts 1 Oct 2026, outside the record), so only the EPG applies in the record.
+  predicate: >-
+    For each fixed term T on fuel leg f with committed standing charge sc(T) and committed unit rate(s)
+    u_k(T), taken from the term's acceptance record or, if not exported, from the term's first
+    full-month bill: for every full-month bill b with period wholly inside T, require
+    |sc(b) - sc(T)| <= 0.005 p/day and |u_k(b) - u_k(T)| <= 0.005 p/kWh for every rate k (the half-unit
+    of the printed second decimal; compare like with like, both inclusive or both exclusive of VAT).
+    Exception: for b inside 2022-10-01..2023-06-30, u_k(b) may be lower than u_k(T) by the EPG
+    reduction for that window; sc(b) has no exception. A part-month bill straddling the term's start or
+    end is not graded here. Count T in the numerator when any b fails. Breach when the share > 0.
+  lower: 0
+  upper: 0
+  lower_source: >-
+    the CIM wave 6 definition of a fixed term ("unit rates and standing charge stay the same for the
+    length of the contract"), so the share of terms whose rates move inside the term is 0
+  upper_source: >-
+    the same definition; SLC 23 makes a price rise without agreement a notified unilateral variation,
+    and nothing read lets a fixed term carry one, so 0 (see gap)
+  source: >-
+    docs/market_research/switching_gradient_by_tariff_and_payment_what_the_record_can_grade.md, section
+    1a, CIM wave 6 question A13 (verified at primary in that page): "A fixed term tariff is one where
+    your unit rates and standing charge stay the same for the length of the contract you agree with your
+    energy supplier."
+    docs/market_research/communications_sentiment_and_nps.md, section 4 "The rules": "Price-rise notice,
+    SLC 23 | At least 30 calendar days' notice before a price increase or a disadvantageous unilateral
+    variation takes effect." docs/market_research/company_customer_comms.md, notice table: "Tariff
+    change on variable rate | 30 days (SLC 23 ...)" (the notice duty is stated for a VARIABLE rate).
+    docs/market_research/a_retention_price_that_shares_the_value_an_action_creates.md, section 4e: "The
+    rise is part of the fixed offer in the renewal notice (SLC 22C, 31I). The notice states the price
+    before the household accepts it, so this is not a mid-term variation."
+    docs/domain_artefact_library/regulatory/slc_22c_end_of_fixed_term_statement.md, 22C.3(c)(i) "the
+    date the fixed term period of the existing Fixed Term Supply Contract is due to end", and 22C.3(v)
+    "the Principal Terms that currently apply" (the term has one set of current terms until its end).
+    Exceptions: docs/market_research/default_tariff_cap_and_epg_on_the_bill.md, GAPs: "The EPG reached
+    every domestic tariff, fixed terms included"; docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md
+    section 4: EPG standing charges "will stay as set by Ofgem for October 2022" and "The reductions will
+    come on unit rates rather than standing charges"; docs/domain_artefact_library/regulatory/uk_vat_rates.json:
+    reduced 5% band "home energy", dated exception "Domestic electricity in Great Britain is zero-rated"
+    from 2026-10-01.
+  severity:
+    standing_charge_moves_inside_term: breach
+    unit_rate_rises_inside_term: breach
+    unit_rate_falls_inside_term_outside_epg_window: flag
+    epg_window_unit_rate_not_reduced_on_fixed_term: flag
+  export_fields:
+  - account_id
+  - fuel
+  - term_id
+  - term_start_date
+  - term_end_date
+  - committed_standing_charge_p_per_day
+  - committed_unit_rates_p_per_kwh
+  - bill_id
+  - bill_period_start
+  - bill_period_end
+  - printed_standing_charge_p_per_day
+  - printed_unit_rates_p_per_kwh
+  - rates_include_vat
+  checkable: false
+  evaluator_owed: "written blind for the tenth cold read's N25-N28; no evaluator yet"
+  written_blind: "tenth cold read (2026-11-11), from the knowledge pages only; records/SEAT_READING_THE_TENTH_COLD_READ_ON_THE_068B5E3CC8_BOOK_2026-11-11.md"
+  gap: >-
+    GAP (1): the knowledge layer holds no licence text that forbids a supplier varying the price of a
+    domestic Fixed Term Supply Contract during its term, and no Ofgem definition of "Fixed Term Supply
+    Contract". SLC 23 is held only as a 30-day notice rule (communications_sentiment_and_nps.md), not
+    its text, and no page says whether a fixed term may carry a notified rise at all. The zero bound
+    rests on the CIM survey's definition (what households are told a fix is), on the knowledge layer's
+    own reading that a re-priced fix is "not a mid-term variation" only because it is agreed first, and
+    on logic. The licence conditions on unilateral variation of fixed-term contracts should be read into
+    the commons. GAP (2): whether a fixed tariff's terms may index the price to something (a tracker
+    sold as a fixed term) is not established; such a term would be graded against its published formula,
+    not a constant. GAP (3): how the EPG was applied to a fixed term's rate (a reduction of the same pence
+    per kWh as the default, or a cap at the EPG rate) is not in the commons
+    (default_tariff_cap_and_epg_on_the_bill.md: "GAP: the EPG scheme's own text"), so the EPG exception
+    is one-sided only. GAP (4): "all-in unit rate" on the brief may include a spread standing charge; the
+    row grades the printed unit rate and standing charge separately (SLC 22A.3 requires them separately
+    identified, tariffs_and_the_default_tariff_2026-10-25.md), so an all-in figure is graded only through
+    its parts.
+
+# ---------------------------------------------------------------------------------------------
+# N26. The printed ledger sentence does not add up to its printed balance
+# ---------------------------------------------------------------------------------------------
+- id: INV_HOUSEHOLD_PAGE_LEDGER_SUMMARY_RECONCILES_TO_ITS_BALANCE
+  family: household_page
+  grades: page
+  counts:
+    numerator: >-
+      printed ledger summaries ("Billed GBP X, collected GBP Y, government bill credit GBP Z, balance
+      GBP B") where the printed terms, with their printed signs, do not sum to the printed balance within
+      GBP 0.01. The cold read found 494 of 1,302 accounts with X - Y - Z != B
+    denominator: every printed ledger summary sentence on a household page (one per account; the cold read's frame is 1,302)
+    unit graded: one account's printed ledger summary
+  statement: >-
+    A sentence that lists the terms of an account and then states its balance tells the household the
+    balance is those terms combined. A credit is "the amount by which the payments made ... exceeds the
+    total amount of Charges which is due and payable" (SLC 27.16), and a statement of account states
+    what is owed "to or by the licensee" (SLC 31H.12(a)): charges less payments and credits. If the
+    ledger holds other terms that move the balance (deemed charges, refunds paid out, write-offs,
+    recoveries, goodwill credits, transfers between fuels), a summary that omits them prints a balance
+    the household cannot rebuild from what it is shown. The page must either print every term that moves
+    the balance, or print an explicit "other adjustments GBP W" term, so that the printed sum equals the
+    printed balance. This is arithmetic on the page's own figures, and it does not need the ledger to
+    grade it. A second leg checks the printed balance against the ledger's own closing balance at the
+    page date.
+  predicate: >-
+    Let the printed terms be t_1..t_n, each with the sign the sentence gives it (billed and deemed
+    charges and refunds paid out increase what is owed; collections, government bill credits, write-offs
+    and goodwill credits reduce it), and the printed balance B (owed positive). (a) Require
+    |sum(t_i) - B| <= 0.01 GBP. (b) Require |B - ledger_balance(account, page_date)| <= 0.01 GBP,
+    where ledger_balance is charges less payments and credits over every ledger entry on or before the
+    page date. (c) If (a) passes only because a residual term is printed, that term must be labelled with
+    what it holds. Breach on (a) or (b). Flag on (c) when the residual is unlabelled. A printed sign
+    convention (whether B is shown as "in credit" or "owed") must agree with sign(B).
+  lower: 0
+  upper: 0.01
+  lower_source: 'logic: a printed sum and its printed total differ by zero'
+  upper_source: 'logic plus rounding: the page prints to the penny, so a reconciling summary differs from its balance by at most GBP 0.01'
+  source: >-
+    Logic: a printed account summary whose terms do not sum to its printed balance is internally
+    inconsistent on its face. Rules that make the balance a sum of charges and payments:
+    docs/market_research/home_moves.md, section on "A credit in the middle of an account's life": "What a
+    credit is | 'the amount by which the payments made by a Domestic Customer ... exceeds the total
+    amount of Charges which is due and payable ... under that Domestic Supply Contract'. It is a running
+    account: payments against all charges due, not bill by bill | SLC 27.16"; and "What the bill tells
+    the household | 'what is owed to or by the licensee' ... | SLC 31H.12(a), (c), applied through
+    31H.1". home_moves.md section 8.8a: "the closing balance on the statement. It is the supplier's own
+    ledger (charges less payments and credits)".
+    docs/market_research/payments_and_direct_debit_2026-10-25.md: "the account's debit balance (bills
+    less collections and other credit)".
+    docs/market_research/tariffs_and_the_default_tariff_2026-10-25.md: "SLC 31H.1 and 31H.12(b) [H]: the
+    bill must let the household 'understand and manage the costs associated with their Tariff'. Relevant
+    Billing Information includes 'how any charges, fees or payments are calculated'."
+    docs/market_research/bad_debt_provisioning.md: "A write-off is a derecognition (5.4.4), not a cash
+    recovery" (a write-off moves the balance without cash, so it is a term the sentence must carry).
+  severity:
+    printed_terms_do_not_sum_to_printed_balance: breach
+    printed_balance_differs_from_ledger_balance: breach
+    residual_term_unlabelled: flag
+    balance_sign_wording_contradicts_value: breach
+  export_fields:
+  - account_id
+  - page_date
+  - printed_billed_gbp
+  - printed_collected_gbp
+  - printed_government_credit_gbp
+  - printed_other_terms
+  - printed_balance_gbp
+  - ledger_balance_gbp_at_page_date
+  - ledger_deemed_gbp
+  - ledger_refunds_paid_gbp
+  - ledger_write_offs_gbp
+  - ledger_recoveries_gbp
+  checkable: false
+  evaluator_owed: "written blind for the tenth cold read's N25-N28; no evaluator yet"
+  written_blind: "tenth cold read (2026-11-11), from the knowledge pages only; records/SEAT_READING_THE_TENTH_COLD_READ_ON_THE_068B5E3CC8_BOOK_2026-11-11.md"
+  gap: >-
+    GAP (1): the knowledge layer does not hold the SLC 31A / 31H text on what a statement of account
+    must itemise (31A is read only through Ofgem decisions, what_a_prepayment_customer_is_sent_2026-10-26.md:
+    "GAP: the licence text of SLC 31A"). No rule read says a household page must list every ledger term;
+    the row rests on logic (a printed sum must add up) and on 31H.12(a)'s "what is owed". GAP (2): whether
+    a write-off should appear on a household-facing statement at all (a supplier may keep pursuing a
+    written-off debt) is not established; the row requires only that the printed sum and printed balance
+    agree, however that is achieved. GAP (3): whether "government bill credit" covers EBSS only or the
+    EPG as well is not stated on the brief; if the EPG is already inside "billed", counting it again in
+    Z is itself a breach of (a).
+
+# ---------------------------------------------------------------------------------------------
+# N27. A dual-fuel household's Paid stage shows one fuel as the household's
+# ---------------------------------------------------------------------------------------------
+- id: INV_HOUSEHOLD_PAGE_PAID_STAGE_COVERS_EVERY_FUEL_ACCOUNT
+  family: household_page
+  grades: page
+  counts:
+    numerator: >-
+      Paid stages of dual-fuel households (electricity and gas, one account per fuel) whose ledger or
+      balance is presented as the household's but covers fewer than all the household's fuel accounts
+      without naming the fuel it covers, or whose balance disagrees with the household-level balance
+      printed elsewhere on the same page
+    denominator: every Paid stage on the page of a household that holds both an electricity and a gas account with the supplier
+    unit graded: one dual-fuel household's Paid stage
+  statement: >-
+    A two-fuel household is one customer with two supply contracts. The licence keeps the contract, the
+    rate and the final bill per fuel. It treats the customer's own position as one: ability to pay is a
+    fact about the payer, a credit on one fuel may be set off against debt on the other (SLC 27.8D, from
+    22 Jan 2021), and a supplier may send one combined bill for a Dual Fuel Account provided "each fuel's
+    consumption, charges and comparison must still be shown". So a figure the page presents as what the
+    household has paid, or what it owes, is either the sum over both fuel accounts, or it says which fuel
+    it is. One fuel's ledger shown under a household heading misstates what the household owes, by the
+    other fuel's balance. When the same page also prints a combined billed amount and balance, the two
+    panels contradict each other. This is the definition question first: "the household's balance" means
+    both fuels; "the electricity balance" means one. The page may print either, but must say which.
+  predicate: >-
+    For a household h with fuel accounts A(h) = {a_elec, a_gas}: let P be the Paid stage's printed
+    ledger and balance B_P, with fuel label L_P (none, "electricity", "gas" or "both"). (a) If L_P is
+    none or "both", require B_P == sum over a in A(h) of balance(a, page_date) within GBP 0.01, and the
+    printed ledger lines come from every a in A(h). (b) If L_P names one fuel, require B_P ==
+    balance(a_L, page_date) within GBP 0.01, and the stage must show or link the other fuel's balance.
+    (c) If the page prints a household-level balance B_H elsewhere, require B_H == sum of
+    balance(a, page_date) over A(h) within GBP 0.01, and if L_P is none, B_P == B_H. Breach on any
+    failure. Control: the evaluator first asserts that the book holds at least one dual-fuel household
+    and at least one single-fuel one, so the dual branch can be taken.
+  lower: 0
+  upper: 0.01
+  lower_source: 'logic: an unlabelled household balance equals the sum of its fuel accounts exactly'
+  upper_source: 'logic plus rounding to the penny'
+  source: >-
+    docs/market_research/how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md, the
+    dual-fuel table: "One bill? | Allowed. SLC 31H lets a Dual Fuel Account carry one optical label
+    holding both fuels' data items. Each fuel's consumption, charges and comparison must still be
+    shown."; "One collections journey? | SLC 27.8 sets ability to pay as a fact about the payer, not
+    about a fuel. Each fuel is still its own contract, so a credit is refunded on its own fuel (SLC
+    27.16), and from 22 Jan 2021 a credit on one may be set off against debt on the other." Practice
+    column: "One account in arrears gets one reminder ladder and one statement of what is owed across
+    both fuels." (marked GAP for a published statement; practitioner-obvious). "Collections | ... SLC
+    27.8D gives the customer a contractual right to offset one contract's credit against debt on any
+    other supply contract". The page's own SLC 1 reading: a "Same Domestic Customer" is one "supplied
+    with both electricity and gas from the licensee ... at the same Domestic Premises".
+    docs/market_research/home_moves.md: "What the bill tells the household | 'what is owed to or by the
+    licensee' | SLC 31H.12(a), (c)".
+    Logic: a figure labelled as the household's is a sum over the household's accounts.
+  severity:
+    unlabelled_balance_covers_one_fuel_only: breach
+    labelled_fuel_balance_wrong_for_that_fuel: breach
+    paid_stage_disagrees_with_household_panel: breach
+    other_fuel_balance_not_shown_or_linked: flag
+  export_fields:
+  - household_id
+  - account_ids
+  - fuels
+  - page_date
+  - paid_stage_fuel_label
+  - paid_stage_ledger_account_ids
+  - paid_stage_printed_balance_gbp
+  - household_panel_printed_balance_gbp
+  - household_panel_printed_billed_gbp
+  - ledger_balance_gbp_by_account
+  checkable: false
+  evaluator_owed: "written blind for the tenth cold read's N25-N28; no evaluator yet"
+  written_blind: "tenth cold read (2026-11-11), from the knowledge pages only; records/SEAT_READING_THE_TENTH_COLD_READ_ON_THE_068B5E3CC8_BOOK_2026-11-11.md"
+  gap: >-
+    GAP (1): no licence text read requires a combined two-fuel balance on a household statement. The
+    knowledge page marks the one-statement practice "GAP for a published statement of it.
+    Practitioner-obvious". The row therefore rests on logic (a household figure covers the household)
+    and allows a one-fuel figure if it is labelled. GAP (2): on this book each fuel is its own account;
+    in practice suppliers hold "one customer account with two supply points" (same page, marked GAP
+    for a share). Which is the "account" a household sees is a design choice the page must state.
+    GAP (3): where the household has used the SLC 27.8D set-off, the combined balance is net of the
+    transfer and the per-fuel balances carry it; the row grades sums, so a set-off posted on one side
+    only shows as a breach of (c), which is the right reading.
+
+# ---------------------------------------------------------------------------------------------
+# N28. Narrated customer messages assert facts that are not true of the account
+# ---------------------------------------------------------------------------------------------
+- id: INV_HOUSEHOLD_PAGE_NARRATED_FACT_IS_TRUE_OF_THE_ACCOUNT
+  family: household_page
+  grades: page
+  counts:
+    numerator: >-
+      (a) printed "first bill" messages ("Your first electricity bill is ready", or the gas equivalent)
+      attached to a bill that is not the earliest bill on that fuel's account; (b) printed claims that
+      the household's use did not explain a bill change ("Wholesale prices rose; the household's use did
+      not explain the change", or equivalent) where the use effect is at least 25% of the bill change by
+      the split in the predicate. Counted separately; the cold read's instances are a first-bill message
+      six years into supply, and the claim on a household whose use in the compared month rose 29% year
+      on year
+    denominator: >-
+      (a) every printed "first bill" message; (b) every printed claim that use did or did not explain a
+      bill change. Each part is graded and reported on its own denominator
+    unit graded: one printed narrated message on a household page
+  statement: >-
+    Information given to a domestic customer must be "complete, accurate and not misleading" (SLC 0,
+    the Standards of Conduct). A narrated message is information. It states a fact about the account at
+    a date, and that fact can be checked against the account's own records. (a) "Your first electricity
+    bill is ready" says no electricity bill came before it. Printed on the first bill after some later
+    event (a tariff change, a re-read, a resumed supply), it is false; the message must name the event
+    ("your first bill since ..."). (b) "The household's use did not explain the change" says the change
+    in the bill came from price, not from use. Before measuring, say what it is: the bill change is
+    split into a price part and a use part, and the claim is true only when the use part is small.
+    A household whose use rose 29% year on year had its use explain a large part of any change: with a
+    20% price rise, the use part is about 58% of the bill change by the split below, so the claim is
+    false. The bill itself carries the year-on-year comparison the claim must agree with (SLC 31H.4).
+  predicate: >-
+    (a) For each printed first-bill message m on bill b of fuel f on account a: require b ==
+    earliest bill (by period start) on a's fuel-f leg, i.e. b.period_start == supply_start(a, f) and no
+    bill on a's fuel-f leg has an earlier period. Otherwise breach, unless m names a later event that b is
+    the first bill after and that event exists in a's record on that date.
+    (b) For each printed claim c comparing bill b1 (period 1: use q1, unit rate p1, standing charge s1,
+    days d1) with bill b0 (period 0: q0, p0, s0, d0), with energy charge E = p*q and dB = B1 - B0: split
+    the energy change by the midpoint (Marshall-Edgeworth) rule, which sums exactly with no residual:
+    use_part = (q1 - q0) * (p0 + p1) / 2, price_part = (p1 - p0) * (q0 + q1) / 2 + (s1*d1 - s0*d0).
+    Let share = use_part / dB when dB != 0. A claim that use did NOT explain the change prints only if
+    share < 0.25 (pass); 0.25 <= share < 0.5 is a flag; share >= 0.5, or use_part and dB of the same
+    sign with |q1 - q0| / q0 >= 0.25, is a breach. A claim that "wholesale prices rose" prints only if
+    price_part > 0. Use q from the same kind of reading in both periods; an estimated q in either period
+    makes the claim ungradable and the page must say "we cannot tell".
+  lower: 0
+  upper: 0.25
+  lower_source: 'definition: the use share of a bill change is a share; a claim that use did not explain the change is truest at 0'
+  upper_source: >-
+    stated belief, not a sourced figure (see gap): "did not explain" is read as "explained less than a
+    quarter". At 0.5 use is the larger cause and the claim is false, so the breach line is 0.5 and the
+    band 0.25-0.5 is flagged
+  source: >-
+    Standards of Conduct: docs/market_research/f2_explaining_what_we_do_simply.md, section 2b
+    ("[VALIDATED — Ofgem OFG1163 'Licence guide: Standards of Conduct', 5 April 2024]"): information to
+    domestic customers must be "complete, accurate and not misleading" and "communicated in plain and
+    intelligible language, with more important information being given appropriate prominence."
+    docs/market_research/back_billing_and_liability.md: "Fairness. Communications must be 'complete,
+    accurate and not misleading'. [H] SLC 0 (Standards of Conduct)." docs/market_research/how_a_supplier_prices_a_share_of_value_it_creates_for_a_household_2026-10-14.md:
+    "the information given about it (SLC 0.3(b): must be complete, accurate, ...)".
+    docs/market_research/communications_sentiment_and_nps.md, section 4: "Standards of Conduct, SLC 0 /
+    0A | ... Information complete, accurate, not misleading."
+    For (b), the cause split: docs/market_research/what_bill_shock_is.md, "What follows for measurement":
+    "For population B, the quantity is the bill, and the existing cause split (catch-up / price /
+    consumption) applies to it", and its three published triggers "Cold weather ... A usage change ...
+    An actual read replacing a long-standing estimate". The bill's own year-on-year comparison:
+    docs/market_research/a_tou_tariff_needs_the_households_choice_not_its_meter.md: "31H.4 lists the
+    fixed items: supply number, year-on-year comparison, optical label, 'About Your Tariff' label,
+    disputes." For (a): logic (a "first" bill has no earlier bill on that fuel's account).
+  severity:
+    first_bill_message_on_a_later_bill: breach
+    first_bill_message_names_an_event_not_in_the_record: breach
+    use_did_not_explain_claim_with_use_share_at_least_half: breach
+    use_did_not_explain_claim_with_use_change_at_least_25pct_same_sign: breach
+    use_did_not_explain_claim_with_use_share_quarter_to_half: flag
+    wholesale_rose_claim_with_price_part_not_positive: breach
+    claim_printed_on_estimated_use: flag
+  export_fields:
+  - account_id
+  - fuel
+  - page_date
+  - message_text
+  - message_kind
+  - bill_id
+  - bill_period_start
+  - supply_start_date
+  - earliest_bill_id_on_fuel_leg
+  - compared_bill_id
+  - q0_kwh
+  - q1_kwh
+  - p0_p_per_kwh
+  - p1_p_per_kwh
+  - standing_charge_gbp_0
+  - standing_charge_gbp_1
+  - bill_gbp_0
+  - bill_gbp_1
+  - read_types
+  checkable: false
+  evaluator_owed: "written blind for the tenth cold read's N25-N28; no evaluator yet"
+  written_blind: "tenth cold read (2026-11-11), from the knowledge pages only; records/SEAT_READING_THE_TENTH_COLD_READ_ON_THE_068B5E3CC8_BOOK_2026-11-11.md"
+  gap: >-
+    GAP (1): the 0.25 share (and the 0.5 breach line) is a stated belief chosen by the row, not a
+    published threshold. No source in the knowledge layer defines when a supplier may say use "did not
+    explain" a bill change, or prescribes a price/use split; the midpoint split is chosen because it
+    sums exactly and is symmetric in the two periods, unlike a Laspeyres split that leaves a residual.
+    GAP (2): the SLC 0 / 0A text itself is held only as quoted through Ofgem's guidance (f2 page) and
+    next_best_action_and_cross_sell.md notes "the domestic SLC 0.3(b) mirror of that sub-paragraph was
+    not read verbatim this pass"; the "complete, accurate and not misleading" wording is quoted from
+    OFG1163, not the licence. GAP (3): whether "wholesale prices rose" is itself true of the window
+    needs the wholesale series and is not graded here beyond the sign of the price part. GAP (4): which
+    two periods the claim compares (month against the same month a year earlier, or against the previous
+    bill) must be exported with the claim; the row grades whichever the page names.
