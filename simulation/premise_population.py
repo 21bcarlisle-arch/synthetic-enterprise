@@ -699,6 +699,10 @@ def raked_joint() -> dict[Cell, float]:
 # said a tenth of the country had NOTHING left to insulate, because an A/B rating mapped to FULL
 # insulation by construction. That is the mission's own quantity -- what a household could still
 # be sold -- and it was understated by a third.
+# CORRECTION (2026-11-11, worker, W2_21): that +48% is overstated. NEED's LI_FLAG/CWI_FLAG mean
+# "installed UNDER A GOVERNMENT SCHEME from 2000" (DESNZ metadata), so a home with no flag is read
+# as POOR: 72% of fitted-joint homes, against HEE's 67% of lofts >=125 mm and 71% of cavities filled.
+# See docs/market_research/need_insulation_flags_count_scheme_installs_not_insulated_homes_2026-11-11.md.
 #
 # AND WHAT IT DOES NOT BUY, stated because a change that moved no number is worth knowing about:
 # the SPREAD is comparable (cv 0.73 -> 0.74 on fabric W/K), the company's net margin moves -0.37%,
@@ -1067,6 +1071,8 @@ def draw_premise_from_joint(
     has_loft = loft == "1"
     has_cavity = cavity == "1"
     has_solar = pv == "1"
+    # KNOWN DEFECT (2026-11-11): a flag is a SCHEME install, not insulation present, so "neither" is
+    # over-read as POOR (72% of homes). Note: need_insulation_flags_count_scheme_installs_...md.
     # The `_fabric_for` rule, unchanged: both cheap measures taken is FULL, one is PARTIAL, neither
     # is POOR. It replaces a lookup on the EPC letter, which gave the whole country six values.
     installed = int(has_loft) + int(has_cavity)

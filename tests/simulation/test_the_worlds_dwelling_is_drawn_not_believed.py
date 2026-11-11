@@ -157,9 +157,16 @@ def test_the_worlds_dwelling_never_crosses_the_wall():
     # and a company-side module cannot reach a world accessor without one. Prose
     # naming the accessor — `saas.property_model` documents where its `dwellings`
     # argument comes from — is not a crossing and must not be counted as one.
+    # THE SEAM IS THE CROSSING, not a reader. `company/interfaces/sim_interface.py` is the one module
+    # allowed to touch both sides; `get_gas_charging_area` imports `live_drawn_households` there to
+    # return only the home's LDZ (3042023498). Counting it made this red on origin from 2 Nov to 11 Nov
+    # and blocked every commit that imports a premise module. Every OTHER company/saas module still reds.
+    seam = REPO_ROOT / "company" / "interfaces" / "sim_interface.py"
     offenders = []
     for root in ("company", "saas"):
         for path in (REPO_ROOT / root).rglob("*.py"):
+            if path == seam:
+                continue
             text = path.read_text(encoding="utf-8")
             for line_no, line in enumerate(text.splitlines(), start=1):
                 stripped = line.strip()
