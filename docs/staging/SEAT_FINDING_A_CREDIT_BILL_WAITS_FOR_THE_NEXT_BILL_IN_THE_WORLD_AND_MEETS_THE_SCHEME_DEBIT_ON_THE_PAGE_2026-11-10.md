@@ -219,3 +219,24 @@ D1's evidence is the first row and the two payment-difference rows. If the D1 bo
 not yet published, it supersedes that offer (markers are a stack, newest first). The grader promotes it the same way,
 retires the 549 exception, and carries `Graded: level-dd held= missed= code= reader= regressed= width=` on the grade
 commit.
+
+## Step 2, built: the world's credit-wait rule reads the leg's debt (worker, 11 Nov 2026 ~01:20 GMT)
+
+`background/live_payment_triad.py` `_leg_owed_on`: a credit bill waits for the leg's next bill only for what exceeds the
+leg's owed balance on the supplier's ledger, on bills already due. That balance is the leg's bills at face, less the
+cash and credit notes on that leg. Two corrections made before landing:
+
+- **The reader forces the account's held settlement lumps through the issue date.** Unforced, CRED-42's settled bill
+  read as owed, and the existing partition test reddened.
+- **Leg cash is matched on the leg's reference prefix**, not through `arrears_engine.cash_leg`. That import was the
+  4 architecture reds the section above saw at 00:42: it is a new wall edge.
+
+Test: one leg leaves level owing 80. A credit of 30 waits for nothing, and a credit of 100 waits for exactly 20. Each of
+three removals reddens a test: the rule, the force, and the cash match. Two reds in
+`tests/simulation/test_the_company_ledger_bills_the_months_revenue.py` also fail on clean origin ef64912ee, so they are
+not this change.
+
+The table above is the pre-registration. No offline instrument can size it first: the book exports no per-bill ask, and
+a page-ledger reader tried here failed its own control (it read 549g at 846.64 owed, not 53.98).
+
+NEXT: the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher
