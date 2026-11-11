@@ -3205,10 +3205,8 @@ def orient(now: datetime | None = None, dry_run: bool = False) -> dict:
     except Exception as exc:  # the page is downstream of the record, never a reason to lose it
         _log(f"delivery page not regenerated: {exc!r}")
     ok, commit_detail = commit_direction()
-    row["committed"] = ok
     _log(f"oriented: focus={row['focus']} ({commit_detail})")
-    if not ok:
-        record_landing_refused(row, commit_detail)
+    settle_landing(row, ok, commit_detail)
     for concern in row["path_concerns"]:
         # LOGGED ONE PER LINE AND NOT COUNTED. A count tells the next reader a number; the class
         # and the id tell them which item to go and look at, which is the whole point of asking
@@ -3297,6 +3295,19 @@ def record_session_did_not_run(row: dict, why: str, detail: str, before) -> dict
     return row
 
 
+def settle_landing(row: dict, ok: bool, detail: str) -> dict:
+    """Write the landing's outcome onto the row `orient` returns.
+
+    ON THE RETURNED ROW TOO (2026-11-11): `main` prints this row and keys its exit code to it.
+    Until now only the appended copy carried the reason, so the journal's last word on the 12:24
+    and 15:20 records was a bare `"committed": false` under `Result=success`."""
+    row["committed"] = ok
+    if not ok:
+        record_landing_refused(row, detail)
+        row["landing_refused"] = detail
+    return row
+
+
 def record_landing_refused(row: dict, detail: str) -> dict:
     """The record did not reach origin: say so in the record and to the director.
 
@@ -3354,7 +3365,28 @@ def main(argv=None) -> int:
         return 0
     row = orient(dry_run=args.dry_run)
     print(json.dumps({k: v for k, v in row.items() if k != "map_levels"}, indent=1))
-    return 0
+    return exit_code(row)
+
+
+def exit_code(row: dict) -> int:
+    """1 when this orientation wrote a record that did NOT reach origin, with the reason on stderr.
+
+    THE UNIT READ SUCCESS WHILE ORIGIN KEPT A STALE RECORD (2026-11-11). The 12:24 record was
+    refused because origin's DIRECTION.yaml moved under the gate; the 15:20 one because a site
+    test was red on the tree the commit would create. Both were appended as refused and paged
+    (to a mirror nobody reads since NTFY was mothballed), and `main` returned 0 both times, so
+    systemd, the journal and every reader of unit state saw two clean orientations while the
+    advisor relayed the 09:22 steer. A record that is not on origin is not direction the
+    director can see, so it is a failed run.
+
+    Keyed to `landing_refused`, the property, not to `committed is False`: a skipped stretch and
+    a session that never ran write no record, so there is nothing that failed to arrive."""
+    reason = row.get("landing_refused")
+    if not reason:
+        return 0
+    print(f"DIRECTION RECORD NOT ON ORIGIN (oriented {row.get('at')}): {reason}",
+          file=sys.stderr)
+    return 1
 
 
 if __name__ == "__main__":
