@@ -40,3 +40,21 @@ Probable failure mode: foreign figures entering a GB constant without adjustment
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 11 Nov 2026, his words above; the drafting is the advisor's.
+
+## Done
+
+(Worker tick, 11 Nov.) Written into part two of the reading log (`docs/institutional/reading_log_against_the_gaps.md`):
+
+- **Absence is a finding.** Each absence records what was searched, where, what came closest and why that falls short.
+- **Transferability is graded apart from evidence:** P for physics, B for behaviour, R for rules. A non-UK source never
+  sets a GB value without its note and a stated adjustment.
+- **Three provisional absences** are recorded, each against its gap:
+  - no measured GB operating-mode shares for home batteries;
+  - no GB randomised evidence that supplier advice changes what a household adopts;
+  - no published measure of hassle as a quantity, which M3's household minutes might be the first to supply.
+
+  They stay provisional until the UK grey-literature seeds are searched.
+- **Searched internationally:** each query ran unrestricted as well as UK-only. The first lists include DE, US, NL, IE,
+  BE and CH sources, each with its transferability note.
+- **Owed:** the short, visible "no published evidence" list on the Knowledge tab, linked to each gap. The site pages are
+  being edited in place by another lane in the shared tree, so it was not added this tick.

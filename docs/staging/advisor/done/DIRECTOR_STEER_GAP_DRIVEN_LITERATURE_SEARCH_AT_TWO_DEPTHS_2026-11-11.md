@@ -38,3 +38,25 @@ Probable failure modes:
 Proportionality: reversible and narrow — just do it.
 
 — Director steer, 11 Nov 2026, his words above; the design and drafting are the advisor's.
+
+## Done
+
+(Worker tick, 11 Nov.) **The method and the first-in-line lists are in place. Listing for the other gaps is still owed.**
+
+- **One home.** A second part of the reading log, `docs/institutional/reading_log_against_the_gaps.md`. It sets out the
+  two depths, grades evidence by study type (never by citations), works just in time, and seeds from UK sources first.
+  Part one's header now points to it.
+- **Candidates listed with OpenAlex**, which needs no key. Each query was run twice: UK-affiliated authors only, then
+  unrestricted. Semantic Scholar returned 429 to unkeyed requests, so it is not used yet. The lists cover all four
+  first-in-line gaps: operating modes, adoption, hassle and the carbon definitions. The strongest candidates were read at
+  abstract level and graded from what the abstract says.
+- **Z.ai** has a row in part one: "already have; nothing to adopt".
+- **The GLM check** has a first pass in part two. The answer is mixed. The grid-carbon future and the price residual axis
+  are chosen on a held-out year. The departure level is graded against the same published band it was fitted to, which is
+  calibration and not validation. A census of every fitted world quantity is listed as owed, not built.
+- **Owed:**
+  - candidate lists for the queued gaps, which part two names;
+  - the UK grey-literature seeds (SERL, CREDS, UKERC, Catapult, BIT, Ofgem, Citizens Advice), which OpenAlex does not index;
+  - full reads when each gap's build comes up. G1 to G3 are held behind the exit test with the 10 Nov asset steers.
+- **Budget:** about 15 OpenAlex queries out of its free shared daily allowance. No money was spent and no key was
+  registered.
