@@ -90,6 +90,14 @@ item `a-scheme-credit-month-keeps-its-level-collection`, to be pre-registered on
 (`level_collection_difference`) has to be checked for the same gap first. The commit that grades it carries `Graded: class-l held= missed= code= reader= regressed= width=`,
 classed by `LEVEL_DD_AREA_MAP.md` §5. Class L's first grade is carried in the desk write-off finding.
 
+## Step 1, the knowledge: written (worker, 10 Nov 2026 ~00:00 GMT)
+
+`payments_and_direct_debit_2026-10-25.md` "A credit bill after leaving with the debit still owed" answers the step's two
+questions from SLC 27.16 and 31H.12 (already read in `home_moves.md` §8.8a). The credit meets the leg's unpaid charges
+first, and only the excess waits for the next bill. The household is told one figure owed, by or to it. There are two
+GAPs, both on the document, not the amount. The build's choice and its prediction are filed there before any code:
+549g 22 -> 0, at most 3 of the 102 waiting credits' asks move, and the 5 mirror legs do not move.
+
 NEXT: a-credit-bill-meets-the-scheme-debit-before-the-next-bill
 
 ## Class L′ built and graded (2026-11-11, item `a-scheme-credit-month-keeps-its-level-collection`)
