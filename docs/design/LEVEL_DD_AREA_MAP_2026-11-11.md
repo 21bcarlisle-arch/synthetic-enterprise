@@ -174,8 +174,15 @@ dir>` reads all four rows and row 11 from the publisher chain's own `split.txt`,
 if compose and split disagree on the count. On the control it reads 116 on 70 / 93 / 0 / 807, all held. The refund leg
 can fire: dating every refund to 2000 reads 37, so a 0 is a measurement. The unit `longjob-crbook-cure-row` waits for
 `/var/tmp/crbook/arm/DONE` and writes `/var/tmp/crbook/arm/cure_row.tsv`. At 12:30 the fix was not on origin, and the
-first launcher's 8 h deadline falls at about 13:02. If that launcher ends without launching, the unit re-arms it
-once, unchanged. The verdict goes here, beside this table, when the TSV exists.
+first launcher's 8 h deadline falls at 13:40 *(corrected 12:40: "about 13:02" was wrong; it started at 05:40)*. If
+that launcher ends without launching, the unit re-arms it once. **Two arming defects, fixed at 12:40 before the unit
+started.** (1) The unit gave the first launcher only 3,600 s, so a start before 12:40 would have re-armed a second
+launcher beside a live first. It now waits 9 h and refuses to re-arm while the first is alive. (2) The launcher
+checked only for the fix's test file, so the engine could launch the book before the 6-line `money_in` run
+wiring, grading s.8.8d code the run never calls. The re-armed launcher also requires `money_in` in origin's
+`run_phase4c_on_phase2b.py`. The first launcher still runs its old bytes, so if the engine reaches origin before
+13:40 without the wiring, that book is unwired and its cure row reads nothing about s.8.8d. The verdict goes here,
+beside this table, when the TSV exists.
 
 ## 5. What this changes
 
