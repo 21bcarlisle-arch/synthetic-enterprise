@@ -475,3 +475,31 @@ def test_a_shared_copy_another_writer_appended_to_after_the_read_is_left_alone(w
                _on_origin(world["origin"], ROWS) + '\n{"at": "elsewhere"}\n')
     assert seat.settle_shared_copies(world["shared"], {ROWS: read}) == []
     assert (world["shared"] / ROWS).read_bytes() == later
+
+
+def test_a_record_that_does_not_reach_origin_FAILS_THE_RUN_and_says_why(monkeypatch, capsys):
+    """The 12:24 and 15:20 records of 2026-11-11 were refused at the landing and the unit still
+    read success. Both legs of the partition: a refused landing exits 1 with its reason, and an
+    orientation that landed (or wrote nothing) exits 0 -- so a check that fails every run fails."""
+    rows = iter([
+        {"at": "t1", "outcome": "oriented", "committed": False,
+         "landing_refused": "landing refused (LandingRefused): GATE RED -- site tests"},
+        {"at": "t2", "outcome": "oriented", "committed": True},
+        {"at": "t3", "outcome": "skipped"},
+    ])
+    monkeypatch.setattr(seat, "orient", lambda dry_run=False: next(rows))
+    codes = [seat.main([]) for _ in range(3)]
+    assert codes == [1, 0, 0]
+    err = capsys.readouterr().err
+    assert "NOT ON ORIGIN" in err and "site tests" in err
+
+
+def test_a_refused_landing_reaches_the_ROW_MAIN_READS(monkeypatch):
+    """`exit_code` reads the row `orient` returns, so the refusal must be on it, not only on the
+    appended copy -- which is where it lived alone until 2026-11-11."""
+    told = []
+    monkeypatch.setattr(seat, "record_landing_refused", lambda row, d: told.append(d))
+    refused = seat.settle_landing({"at": "t"}, False, "landing refused: GATE RED")
+    landed = seat.settle_landing({"at": "t"}, True, "commit rc=0; landed abc")
+    assert (seat.exit_code(refused), seat.exit_code(landed)) == (1, 0)
+    assert told == ["landing refused: GATE RED"] and landed["committed"] is True
