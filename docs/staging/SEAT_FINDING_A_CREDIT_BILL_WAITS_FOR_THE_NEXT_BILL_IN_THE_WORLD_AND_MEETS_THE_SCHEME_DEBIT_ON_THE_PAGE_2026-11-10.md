@@ -126,3 +126,96 @@ and without the change at this tree:
 median 0). The page's balances fall by the cash it now shows; the walk, and so refunds and bad debt,
 do not move. Remaining 449 unshown rows are returned collections and classes not traced here; PROS-2019-0318's
 25 Jul 2022 return and its 22 Nov 2022 settlement is the open question named above.
+
+## The 068b5e3cc8 book through origin's page passes the gate, class L′ spends the over-refund item, and the D1 book's table (seat executor, 11 Nov 2026 ~01:05 GMT)
+
+*Drawn as `the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher`.*
+
+**Premise, re-measured at draw.** "D1 on origin" was not true. c5f52ed3d is D1's K8 page, not its build. The build is
+claimed (`a-credit-bill-meets-the-scheme-debit-before-the-next-bill`) and in progress in `/var/tmp/wt-d1-build`. At
+00:42 its selection had 4 architecture reds (`test_live_payment_triad_is_the_only_bridge::test_the_edge_count_did_not_move`
+and three in `test_epistemic_wall_indirect_ratchet`), and a run that timed out (rc 124). So no D1 book can start yet.
+No `longjob-*` unit and no book process was live at 00:47.
+
+**A control, measured.** `/var/tmp/grade-d1/control-068-at-3f74/` is the 068b5e3cc8 run
+(`run_output_068b5e3cc8_20261110T190254Z.json`) through origin 3f74b93289's page: class L′ 7cf859beff plus the dated
+549 exception. It used the same readers (`/var/tmp/grade-dca2-scripts/after_run.sh`) and was launched as
+`longjob-control-068-at-3f74`. Against the 068b5e3cc8 arm (its own page):
+
+| Row | 068b5e3cc8 arm (own page) | control (origin 3f74 page) |
+|---|---:|---:|
+| Unexcepted breaches | 22 on 1 row | **0**. The 549 row's 22 now meet their dated exception |
+| Excepted rows | 8 | 9 (337, 12, 7, 7, 22, 7, 1, 2, 19) |
+| INV_OVERDUE_WITHIN_BALANCE | 0 | 0 |
+| Gate verdict | refused | **`refuse: False`**: "nothing unexcepted, so the publish stands" |
+| Written-off accounts printing owed | 29, GBP 1,374.58 | 29, **GBP 1,249.62** (PROS-2019-0318 -124.96) |
+| Legs refunded yet closing in page debit (`/var/tmp/grade-d1-scripts/over_refund.py`) | **6, GBP 833.30** | **0** |
+| Left-level closed / still-level closed unasked | 72 / 4,110.76; 12 / 1,014.29 | 70 / 3,748.17; 8 / 474.40 |
+| Live leaver legs with unasked debit | 3, GBP 385.85 | 3, GBP 385.85 |
+| Holds: mixed / all | 11 / 119 | 10 / 116 (SYN-2016-048 6 to 5) |
+| Bad debt (run figure, not the page) | GBP 9,477.56 | the same run |
+
+**Class L′ spends item 3 (`class-l-over-refunds-six-legs-past-the-page-credit`).** The over-refund reader reproduces
+the head grade's 6 legs and GBP 833.30 to the penny on the 068b5e3cc8 arm, and reads 0 on the cross arm (b). Through
+origin's page, all six close out of debit. The page now shows the EBSS-month level collections it used to drop. Five
+legs close at exactly 0.00, and the added rows sum to the old debit:
+
+- OCC-caee88f5fe53: 5 rows, 197.15
+- PROS-2019-0318: 2 rows, 124.96
+- PROS-2020-0012: 1 row, 93.61
+- PROS-2020-0191: 6 rows, 283.14
+- SYN-2016-369: 6 rows, 268.98
+
+PROS-2017-0351 gains 100.00 against 78.14 and closes at +21.86. That is the `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO`
+residue already excepted at 2. **So the head grade's explanation (i) was right:** the run's refund was correct
+throughout, and the run and page keyed on different predicates. The page took a level collection only on a
+`direct_debit` bill, so an EBSS `scheme_credit` month dropped it. The refunds did not change. **Corrected beside the
+claim:** the head grade classed the class-L run-half miss as a *regression* by the run. The run did not regress. The page
+was missing class L′. It stays a code miss on the prediction as filed. No fix is owed for item 3, and its premise is spent
+by 7cf859beff.
+
+**The gate passes, so the book is offered to the publisher.** Under the director's 8 Nov yes ("One early publish as soon
+as a book passes the full gate"), I promoted the 068b5e3cc8 run with `python3 -m background.sim_runner --promote` at
+00:59Z. The marker is `docs/staging/run_complete_20261111T005928Z.md` (Git: 068b5e3cc8). The window reads open anyway:
+"this week's figures are owed (last on origin 2026-11-03T02:48Z)". The publisher, not this record, decides whether it
+publishes. **What may stop it.** At 00:56 the shared tree was at e57bda6891, 80 commits behind origin, with no class L,
+no class L′ and no 549 exception. The publish gate materialises the shared tree's HEAD. On that code the 22 steps on 549
+are unexcepted, so the offer is refused until the shared tree catches up. It fails closed, never open: the stale code
+can only refuse. The shared tree's catching-up is the tree-divergence alarm's, not this item's. The 549 page's GBP
+53.98 that never crossed, and PROS-2017-0351's 21.86, are named, dated exceptions. Ruling step 4 allows a publish with
+them.
+
+### The first book carrying D1: pre-registration, filed before it starts
+
+It launches through `/var/tmp/grade-d1-scripts/launch_d1_book.sh <origin sha carrying D1>`. That runs the book and its
+grade chain through `launch_long_job` and refuses if any book or grade chain is live. The chain writes:
+
+- a cross arm `/var/tmp/grade-d1/cross-068/`: the 068b5e3cc8 run through the D1 page;
+- the arm `/var/tmp/grade-d1/arm/`: the same readers plus `over_refund.py` and `payments_diff.py`;
+- `ALLDONE` or `NO_DONE`.
+
+Control (c) is the cross arm. Against (c), the D1 book differs only in D1's run half. The control above, origin 3f74's
+page, carries everything else.
+
+| Row | Control (origin 3f74 page on 068b5e3cc8) | Prediction for the D1 book | Refuted if |
+|---|---:|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, SYN-2016-549g | 22 (excepted) | **0**. D1's filed prediction; the exception retires | any |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, all other legs | 0 | **0 to 3** | above 3 |
+| INV_OVERDUE_WITHIN_BALANCE | 0 | **0 to 2** | above 2 |
+| Unexcepted total | 0 | **0** | any unexcepted row |
+| The 8 other excepted rows | 337, 12, 7, 7, 7, 1, 2, 19 | **each within ±2, every exception still holding** | a row moves by more than 2, or loses its exception |
+| Legs whose page payments differ from (c) (`payments_diff.py`) | n/a | **1 to 3, SYN-2016-549g among them**. D1 filed "more than 3 legs' asks move" as refuting. This row also asserts the branch can be taken | 0, more than 3, or 549g absent |
+| The 5 mirror legs (PROS-2020-0126g, PROS-2021-0152g, SYN-2016-016, SYN-2016-380, SYN-2016-382) | n/a | **no page payment differs from (c)** | any of them moves |
+| Legs refunded yet closing in page debit | 0 | **0** | any |
+| Written-off accounts printing owed | 29, GBP 1,249.62 | **27 to 31, GBP at most 1,310**. 549 is live, so D1 should barely touch this | outside either bound |
+| Live leaver legs with unasked debit | 3, GBP 385.85 | **at most 3, GBP at most 400**. 549g's 6.90 may move | above either |
+| Left-level closed unasked | 70, GBP 3,748.17 | **68 to 72 legs, GBP within ±150** | outside |
+| Holds: mixed / all | 10 / 116 | **mixed at most 10; all 106 to 120** | outside |
+| Bad debt, `total_bad_debt_gbp` | GBP 9,477.56 (068b5e3cc8 run) | **within ±GBP 100** | outside |
+| The gate | passes (with the 549 exception) | **passes, with the 549 exception retired** | refused |
+
+**What this book can and cannot show.** The gate already passes on the control, so a pass here is not D1's evidence.
+D1's evidence is the first row and the two payment-difference rows. If the D1 book passes and the 068b5e3cc8 offer has
+not yet published, it supersedes that offer (markers are a stack, newest first). The grader promotes it the same way,
+retires the 549 exception, and carries `Graded: level-dd held= missed= code= reader= regressed= width=` on the grade
+commit.
