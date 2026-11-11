@@ -2759,12 +2759,47 @@ def _bills_missed(accts) -> list[tuple[date, bool]]:
     return out
 
 
+#: A returned direct debit may be re-presented up to twice within 30 days, for the same amount (Bacs;
+#: how_a_gb_supplier_decides_to_write_off_a_failed_payment.md (a)). A failure of the same instalment
+#: within this many days of its first failure is a re-presentation: the same scheduled payment.
+REPRESENTATION_DAYS = 30
+
+
+def _instalments_missed(accts) -> list[tuple[date, bool]]:
+    """(collection date, missed) for every level-DD instalment of the household, both legs
+    (company_debt_management.md, "A returned level instalment is a missed scheduled payment, and the bill
+    it pays is not (2026-11-11)"). An instalment is one leg's level collections against one invoice
+    number: its failures within `REPRESENTATION_DAYS` of the first are its re-presentations and count
+    once, on the first failure's date. It is missed when that first failure's paid part is short of
+    what it asked (`amount_gbp`) by more than half a penny; a failure that asked nothing is not missed.
+    A failed level record naming no invoice cannot be matched to a first failure, so each is its own
+    instalment. A level collection that went through is an instalment paid, read only so a breach can say
+    that something fell due."""
+    out = []
+    for a in accts:
+        firsts: dict = {}
+        for p in sorted((p for p in (a.bill_record or {}).get("payments") or ()
+                         if p.get("level_dd") and p.get("payment_date")), key=lambda p: p["payment_date"]):
+            on, n = _d(p["payment_date"]), p.get("invoice_number")
+            if p.get("outcome") != "failed":
+                out.append((on, False))
+                continue
+            first = firsts.get(n) if n is not None else None
+            if first is not None and on <= first + timedelta(days=REPRESENTATION_DAYS):
+                continue                                        # a re-presentation of the same payment
+            firsts[n] = on
+            asked = _num(p.get("amount_gbp"))
+            out.append((on, asked is None or (_num(p.get("part_paid_gbp")) or 0.0) < asked - 0.005))
+    return out
+
+
 def ev_reoffer_follows_a_missed_bill(inv, book):
     """Each re-offer of the repayment plan, the desk's "a further bill missed", once per household
-    journey. A FURTHER bill is one the previous plan offer did not answer, so the re-offer needs a
-    bill of the household falling due on or after the journey's previous plan offer or re-offer and
-    on or before the re-offer itself that was missed. No such bill, or every such bill paid in its
-    window, breaches. A household whose legs carry no bill record is unbounded."""
+    journey. A FURTHER missed payment is one the previous plan offer did not answer, so the re-offer
+    needs, on or after the journey's previous plan offer or re-offer and on or before the re-offer
+    itself, either a bill of the household falling due that was missed, or a level-DD instalment of
+    the household whose collection was returned (its first failure, not a re-presentation). Nothing
+    due, or everything due paid, breaches. A household whose legs carry no bill record is unbounded."""
     tally = Tally("re-offer of the repayment plan (a further bill missed)")
     for ba, accts in _households(book).items():
         journeys = _journeys(accts)
@@ -2773,7 +2808,7 @@ def ev_reoffer_follows_a_missed_bill(inv, book):
         if not any(a.bill_record for a in accts):
             tally.unbounded += sum(k == PLAN_REOFFER for j in journeys for k, _ in _events(j))
             continue
-        bills = _bills_missed(accts)
+        due = _bills_missed(accts) + _instalments_missed(accts)
         for i, j in enumerate(journeys):
             previous = None
             for kind, on in _events(j):
@@ -2781,13 +2816,14 @@ def ev_reoffer_follows_a_missed_bill(inv, book):
                     continue
                 if kind == PLAN_REOFFER:
                     tally.checked += 1
-                    window = [missed for due, missed in bills
-                              if (previous is None or previous <= due) and due <= on]
+                    window = [missed for d, missed in due
+                              if (previous is None or previous <= d) and d <= on]
                     if not any(window):
                         tally.hit("breach", "{} journey {} re-offer {} (previous offer {})".format(
-                            ba, i, on, previous), len(window), "a bill due since the previous offer, missed",
-                            "every bill due since the previous offer paid in its window" if window
-                            else "no bill due since the previous offer")
+                            ba, i, on, previous), len(window),
+                            "a bill or level instalment due since the previous offer, missed",
+                            "every bill and level instalment due since the previous offer paid" if window
+                            else "no bill or level instalment due since the previous offer")
                 previous = on
     return tally
 

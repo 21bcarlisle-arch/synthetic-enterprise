@@ -92,6 +92,12 @@
 # INV_BACK_BILLING_ON_RECEIPT_FROM_ISSUE (16; 0 of 560, 13 unbounded), INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM (42;
 # 0 of 47, 25 flags, which never refuse). A breach on any of them now refuses the publish. Reverse: restore the
 # blocks from git history. INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL is re-based from 4,610 to 19, a new class.
+#
+# 2026-11-11: INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL's exception (19) is retired. All 19 were the row's error, not
+# the desk's: each re-offer fell the day after a fresh level-DD instalment of the household was returned, a missed
+# monthly scheduled payment under SLC 27.5B, which the row did not read (company_debt_management.md, "A returned
+# level instalment is a missed scheduled payment", 2026-11-11). The row, amended blind, reads 0 of 1,248 on both
+# books. Reverse: restore the block from git history.
 enforce: true
 exceptions:
   - invariant: INV_PPM_NOT_CREDIT_BILLED
@@ -209,21 +215,6 @@ exceptions:
   # 2026-11-04: three rows written blind for the seventh cold read's N14, N15 and N16 grade the published 0a6391d186
   # book (and its published cast) for the first time. Each ceiling is that book's count. The fresh b3ce2a4e73 book,
   # graded by the same evaluators, reads 4, 11 and 0.
-  - invariant: INV_PLAN_REOFFER_FOLLOWS_A_MISSED_BILL
-    scope: >-
-      19 of 1,248 repayment-plan re-offers on 16 households, the same 19 on the 068b5e3cc8 and e1587ec5b books. Every
-      one is a re-offer 1 to 9 days after the journey's previous offer with no bill of the household falling due in
-      between (e.g. PROS-2016-0092 re-offered 2018-04-25 after an offer on 2018-04-23; SYN-2016-549 three times,
-      2018-10-05, 2018-12-25 and 2019-01-25). Re-based 2026-11-11 from 4,610 on 0a6391d186.
-    reason: >-
-      N15's class is gone: none of the 19 follows a bill paid in its window, the class the 4,610 were. What is left
-      is a defect, not an explanation, and its cause is not traced. The desk re-offers on a day in its own `missed`
-      set, which also holds returned level-DD collections and missed closing or leg statements
-      (company/billing/collections_journey.py, advance), while the row counts only bills. Either such a day is the
-      trigger and the row should read it, or the desk re-offers on a day it should not. Which, per re-offer, is open.
-    filed: 2026-11-04
-    retired_by: the 19 traced to their trigger day, and the desk's re-offer or the row's window corrected to the one rule, graded 0 on a fresh run
-    max_breached: 19
   # 2026-11-07: the two month-on-last-year rows are red on the world's side, not the company's. Both are graded on
   # the 8c7489e0d9 book (970d701b0a), and both have the same cause: a premise refused its fabric trace settles on a
   # population shape that has no year-to-year term. Each is a dated decision. It is not a widened bound: both rows

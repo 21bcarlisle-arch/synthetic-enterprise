@@ -8,7 +8,11 @@ collected in full on 15 Nov). Mutations, each reds this file: the window opened 
 credit netted on the bill's payment not counted; the gas leg's bills not joined to the household's journey;
 the bill's own `credit_applied_gbp` read as landed (b3ce2a4e73: SYN-2016-066's returned DD, settled by a
 credit bill four months later); cash posted against an older bill counted (PROS-2020-0016); a payment
-naming no bill not counted.
+naming no bill not counted. From 2026-11-11 (068b5e3cc8 / e1587ec5b, 19 re-offers the day after a
+returned level instalment, e.g. SYN-2016-549 gas re-offered 25 Dec 2018 after its 24 Dec instalment was
+returned): a returned level instalment in the window is a further missed scheduled payment (SLC 27.5B);
+a successful one is not; a re-presentation of an instalment first returned before the previous offer
+is the same payment, not a further miss.
 """
 from __future__ import annotations
 
@@ -50,7 +54,8 @@ def _grade(*a, **kw):
     return t.checked, [b["side"] for b in t.breaches]
 
 
-PAID = "every bill due since the previous offer paid in its window"
+PAID = "every bill and level instalment due since the previous offer paid"
+NOTHING_DUE = "no bill or level instalment due since the previous offer"
 
 
 def test_every_leg_of_the_row_can_be_taken():
@@ -59,8 +64,7 @@ def test_every_leg_of_the_row_can_be_taken():
     assert _grade([_pay(2, "2020-03-20")]) == (1, [])                    # paid after its due date
     assert _grade([_pay(2, "2020-03-15", outcome="failed")]) == (1, [])  # a returned collection
     assert _grade([_pay(2, "2020-03-15", amount=30.0)]) == (1, [])       # paid short
-    assert _grade([], gas_bill=_bill(2, "2020-02-01", "2020-02-15")) == (1, [
-        "no bill due since the previous offer"])
+    assert _grade([], gas_bill=_bill(2, "2020-02-01", "2020-02-15")) == (1, [NOTHING_DUE])
 
 
 def test_a_miss_before_the_previous_offer_does_not_make_the_reoffer_true():
@@ -105,3 +109,56 @@ def test_a_book_read_without_the_bill_record_is_unbounded_and_never_clean():
     assert runner.run([{"id": ROW}], raw)[0]["status"] == "NOT_IN_EXPORT"
     t = runner.ev_reoffer_follows_a_missed_bill(None, [runner.Account(c, r) for c, r in raw.items()])
     assert (t.checked, t.unbounded) == (0, 1)
+
+
+# ── A returned level instalment is a missed scheduled payment (2026-11-11) ──────────────────────
+
+def _instalment(n, on, outcome="failed", amount=40.0, **kw):
+    return dict(_pay(n, on, amount=amount, outcome=outcome), level_dd=True, **kw)
+
+
+#: The gas bill fell due before the 1 Mar offer, so no bill falls in the window: only the instalment can.
+_EARLY = _bill(2, "2020-02-01", "2020-02-15")
+
+
+def test_a_reoffer_the_day_after_a_returned_level_instalment_passes():
+    """Defect: the row read only bills by due date, so the 19 re-offers that followed a returned level
+    instalment (SYN-2016-549 gas, 24 Dec 2018 returned, re-offered 25 Dec) read as breaches."""
+    paid_bill = [_pay(2, "2020-02-15")]
+    assert _grade(paid_bill + [_instalment(5, "2020-03-15")], gas_bill=_EARLY) == (1, [])
+    assert _grade(paid_bill + [_instalment(5, "2020-03-01")], gas_bill=_EARLY) == (1, [])   # on P: inclusive
+    assert _grade(paid_bill + [_instalment(5, "2020-03-16")], gas_bill=_EARLY) == (1, [])   # on E: inclusive
+    assert _grade(paid_bill + [_instalment(5, "2020-02-28")], gas_bill=_EARLY) == (1, [NOTHING_DUE])
+
+
+def test_a_level_instalment_that_was_collected_does_not_save_the_reoffer():
+    """Defect: any level record in the window read as a miss, the outcome not tested."""
+    assert _grade([_pay(2, "2020-02-15"), _instalment(5, "2020-03-15", outcome="success")],
+                  gas_bill=_EARLY) == (1, [PAID])
+
+
+def test_a_failed_representation_of_an_instalment_first_returned_before_the_offer_does_not_save_it():
+    """Defect: a re-presentation counted as a further miss. The 20 Feb instalment was returned before the
+    1 Mar offer, which answered it; its re-presentation on 5 Mar failing is the same scheduled payment."""
+    pays = [_pay(2, "2020-02-15"), _instalment(5, "2020-02-20"), _instalment(5, "2020-03-05")]
+    assert _grade(pays, gas_bill=_EARLY) == (1, [NOTHING_DUE])        # it fell due on 20 Feb, before P
+    fresh = pays + [_instalment(6, "2020-03-10")]                     # a different instalment: a further miss
+    assert _grade(fresh, gas_bill=_EARLY) == (1, [])
+    later = [_pay(2, "2020-02-15"), _instalment(5, "2020-01-20"), _instalment(5, "2020-03-05")]
+    assert _grade(later, gas_bill=_EARLY) == (1, [])                  # past 30 days: not a re-presentation
+
+
+def test_a_failed_instalment_paid_in_full_is_not_missed_and_one_paid_short_is():
+    """A failed collection's paid part: what the instalment asked, short by more than half a penny."""
+    whole = [_pay(2, "2020-02-15"), _instalment(5, "2020-03-15", part_paid_gbp=40.0)]
+    assert _grade(whole, gas_bill=_EARLY) == (1, [PAID])
+    short = [_pay(2, "2020-02-15"), _instalment(5, "2020-03-15", part_paid_gbp=20.0)]
+    assert _grade(short, gas_bill=_EARLY) == (1, [])
+
+
+def test_the_instalment_clause_leaves_the_breach_branch_reachable():
+    """Control over the whole partition: pass, every-paid breach and nothing-due breach all still fire
+    with the instalment clause in place."""
+    assert _grade([_pay(2, "2020-02-15"), _instalment(5, "2020-03-15")], gas_bill=_EARLY)[1] == []
+    assert _grade([_pay(2, "2020-03-15"), _instalment(5, "2020-03-10", outcome="success")])[1] == [PAID]
+    assert _grade([_pay(2, "2020-02-15")], gas_bill=_EARLY)[1] == [NOTHING_DUE]

@@ -927,6 +927,55 @@ above said 0. Traced (`docs/staging/SEAT_FINDING_THE_N15_ROW_FINDS_ELEVEN_RE_OFF
   held a late payment for the previous bill, with its £67 EBSS. The row counts that payment, as the desk
   does, and the bill itself was paid 37 days late. These are filed to the row's blind writer.
 
+### A returned level instalment is a missed scheduled payment, and the bill it pays is not (2026-11-11)
+*Raised by the re-offer row's 19 of 1,248 on the 068b5e3cc8 and e1587ec5b books
+(`docs/staging/records/SEAT_RECORD_THE_SLACK_DOMAIN_INVARIANT_CEILINGS_ARE_RETIRED_OR_REBASED_2026-11-11.md`).
+In all 19, the desk re-offered the plan 1 to 9 days after its previous offer, and no bill of the household fell
+due in between.*
+
+**What the rules and published practice say.**
+- **27.5B counts scheduled payments, not bills.** The licensee must contact the household "no later than after: (a)
+  two consecutively missed monthly scheduled payments; or (b) one missed quarterly scheduled payment" (licence
+  text follow-up, above). A household on a level direct debit is asked for a fixed monthly instalment on a
+  schedule. Each instalment is a monthly scheduled payment. So a returned instalment is a missed scheduled
+  payment. **ESTABLISHED** from the 27.5B text.
+- **So it is fresh reason to believe, as a newly missed bill is** (27.5; the section on what the rules require
+  after the plan offer, above). The 27.6 offer is owed again. **DERIVED**, on the same reasoning as for bills.
+- **On a level account the bill's due date asks for nothing.** The schedule collects the bill's money, so the
+  bill cannot be missed on its due date. Only the instalment can be missed, on its collection date.
+  **DERIVED.**
+- **A re-presentation is the same payment.** Under Bacs, a returned DD may be re-presented up to twice within
+  30 days, for the same amount (`how_a_gb_supplier_decides_to_write_off_a_failed_payment.md` (a)). If a
+  re-presentation fails, the same scheduled payment has failed again. That is not a further miss.
+  **DERIVED.**
+- **GAP A1 still holds.** No published text gives a re-contact cadence. Nothing published rules out a re-offer
+  one day after an offer, when a fresh instalment has just returned. Whether a supplier would make a second
+  contact that close together is a practitioner question. It is not answered here.
+
+**Measured** on the 068b5e3cc8 and e1587ec5b books, which read identically, by joining each re-offer to the
+payment records of both of the household's fuel legs:
+- **All 19 fell the day after one of the household's level-DD instalments was returned unpaid.**
+  - Each was a different instalment, with its own invoice number, collected 1 to 9 days after the previous
+    offer.
+  - None was a re-presentation.
+  - The bills those instalments paid had fallen due before the previous offer.
+  - Example: SYN-2016-549 gas. The instalments of 24 Dec 2018 and 24 Jan 2019 were returned. The desk
+    re-offered on 25 Dec and 25 Jan.
+- **So the desk was right in all 19, and the row was too narrow.** The desk treats a returned level
+  collection as missed the day after its date, just as it treats a bill the day after its due date
+  (`collections_journey.advance`, `returns`). The row read only bills, by due date.
+
+**Design choice.** The row now counts two kinds of further missed payment:
+- a bill missed in its window, as before;
+- a level-DD instalment of the household whose collection failed, dated between the previous offer and the
+  re-offer. Each instalment counts once, whatever its re-presentations do.
+
+**Prediction, written before the amended row is graded.** On e1587ec5b the row reads 0 of 1,248. The checked
+count is unchanged, and no other row moves.
+
+**Result.** The prediction held: 0 of 1,248 on e1587ec5b, and 0 of 1,248 on 068b5e3cc8. The amended row was written
+blind, from this section. The exception is retired.
+
 ## One ladder for one act: the ledger's per-bill notices take their days from the desk (2026-10-24)
 
 *K8 page for `the-published-household-record-shows-the-desks-collections-journey`. There are two
