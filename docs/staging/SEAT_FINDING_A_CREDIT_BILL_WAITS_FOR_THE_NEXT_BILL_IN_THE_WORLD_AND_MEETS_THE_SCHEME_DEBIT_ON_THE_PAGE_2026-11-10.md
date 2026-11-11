@@ -276,3 +276,76 @@ Four mutations each turn it red:
 
 **Pre-registered for the next book:** the D1 table's row above (refunded legs closing in page debit: 0) is this
 item's count. The six named legs are among them.
+
+## The D1 book's table, graded (seat executor, 11 Nov 2026 ~04:40 GMT)
+
+*Drawn as `launch-and-grade-the-d1-book-once-d1s-build-is-on-origin`. Premise at draw: D1's build b47832f7e1 is on
+origin, and the book had already run. `run_output_e1587ec5b_20261111T012324Z.json` finished 03:11, and its chain wrote
+`/var/tmp/grade-d1/arm/ALLDONE` at 03:18. So nothing was launched. dc3e7dfeb4 graded a different preregistration, the
+eleventh read's, off the same book and the publisher's gate. It did not grade this table.*
+
+The arm's page and the cross arm's page are both built at e1587ec5b, D1's own page. The run half differs by exactly one
+world commit: `git log 068b5e3cc8..e1587ec5b -- simulation/ sim/ company/ background/live_payment_triad.py` lists only
+b47832f7e1. So arm against cross is D1's run half alone.
+
+| Row | Prediction | Measured (arm) | |
+|---|---|---|---|
+| INV_OVERDUE_WITHIN_PAGE_BALANCE, SYN-2016-549g | 0 | **0**. The cross arm, the 068b5e3cc8 run through the same D1 page, reads 22, so the run half cleared it | **held** |
+| The same row, all other legs | 0 to 3 | 0 of 6,385 | **held** |
+| INV_OVERDUE_WITHIN_BALANCE | 0 to 2 | 0 | **held** |
+| Unexcepted total | 0 | 0 on the arm's runner. **208 on the publisher's gate** at 3cb902dc8f (dc3e7dfeb4): INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO 3 over a ceiling of 2, and INV_REFUND_WITHIN_THE_PAGE_CREDIT 205 | **fell** (reader) |
+| The 8 other excepted rows | each within ±2 | 337, 12, 7, 7, 7, 1, 2, 19. All unchanged, every exception holding | **held** |
+| Legs whose page payments differ from (c) | 1 to 3, 549g among them | **30, and 549g is not among them** | **fell** (reader) |
+| The 5 mirror legs do not move | none | **SYN-2016-380 moves**, by -0.44 over 2024-25 bill faces | **fell** (model) |
+| Legs refunded yet closing in page debit | 0 | 0 | **held** |
+| Written-off accounts printing owed | 27 to 31, at most GBP 1,310 | 29, GBP 1,249.62 | **held** |
+| Live leaver legs with unasked debit | at most 3, at most GBP 400 | 3, GBP 385.73. 549g's 6.90 did not move | **held** |
+| Left-level closed unasked | 68 to 72 legs, GBP within ±150 | 70, GBP 3,748.17 (unchanged) | **held** |
+| Holds: mixed / all | mixed at most 10; all 106 to 120 | 10 / 116 | **held** |
+| Bad debt, `total_bad_debt_gbp` | within ±GBP 100 | GBP 9,477.58 (+0.02) | **held** |
+| The gate | passes, with the 549 exception retired | The arm's runner passes, with 8 excepted and the 549 exception gone. **The publisher's gate refuses** (row 4) | **fell** (reader) |
+
+**10 held, 4 fell. 3 of the 4 falls are reader misses, and none is a code miss in D1.**
+
+**Rows 4 and 14: the prereg named the wrong gate.** The control column and the arm both use
+`tools/domain_invariant_runner` on the raw export. That runner reports INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO as
+`NOT_IN_EXPORT` (it needs `final_bills`), and it predates the refund row. The publisher's gate reads the built pages
+and carries both rows. They are graded against the gate the publisher uses, which is the less flattering reading. D1 does
+not size the close's refund. Both rows belong to `the-close-refund-is-sized-from-the-balance-after-the-final-bill`, which
+was not on origin at b4ddeade03.
+
+**Row 6: the instrument could not see D1 on 549g.** D1 changes what a bill *asks*, not what is *paid*. 549g's overdue
+steps fell from 22 to 0 with its page payments byte-identical. So the row's job, asserting that the branch was taken, is
+done by row 1's cross-against-arm difference instead.
+
+**Rows 6 and 7: D1 reaches further than the prediction allowed.** The 30 legs move in two ways:
+
+- **SYN-2016-541**: three never-level collections journeys (2022-08, 2024-06, 2025-05) exist only in the cross arm, so D1
+  cured them. Its paid total is unchanged.
+- **Every other leg**: the bills behind the payments moved, not the payments. 341 invoices on 35 legs carry a unit rate
+  that differs by 0.001p to 0.01p. 318 of them are fixed terms, and the first is 2021-01. The first payment difference
+  anywhere is 2021-02-16 (SYN-2016-023), and the deltas are -0.47 to +0.44. SYN-2016-380 is one of these. Its move is a
+  renewal rate, not the credit-bill branch the mirror row was guarding.
+
+**I cannot yet say** whether D1 moves those renewal rates or the run did. Two explanations fit:
+
+- **(a) D1's collections change reaches renewal pricing.** `company/pricing/value_based_renewal.py` and
+  `default_belief.py` read the book's payment experience.
+- **(b) Run-to-run nondeterminism at one commit**, open since `WORKER_FINDING_TWO_RUNS_AT_ONE_COMMIT_DRAW_DIFFERENT_BOOKS_FROM_FEBRUARY_2016_2026-10-15.md`.
+
+The customer sets are identical and the moves start in 2021, not at acquisition. That leans to (a) without settling it.
+The one-variable test is a placebo book at e1587ec5b with b47832f7e1 reverted. Prediction: (a) gives 0 rate-moved
+invoices against the cross arm's run; (b) gives a comparable count. It does not change any decision here. Every move is
+pennies, and no invariant row moved, so it is not run now (R5).
+
+**What follows from the grade.**
+
+- **The 549 exception** was already retired in dc3e7dfeb4 on this same book's 0.
+- **Nothing is promoted.** The publisher's gate refuses e1587ec5b on 208. It also refuses 068b5e3cc8 on 25 under
+  b4ddeade03's register.
+- **Classes and owners:**
+  - INV_REFUND_WITHIN_THE_PAGE_CREDIT, 205 of 238: owned by `the-close-refund-is-sized-from-the-balance-after-the-final-bill`.
+  - INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO, 3 against a ceiling of 2 (PROS-2016-0263g, PROS-2017-0351, SYN-2016-493): the same owner.
+- **D1's own target is met.** The finding's fix is built and graded, and the remaining classes belong to the close-refund item.
+
+Graded: level-dd held=10 missed=4 code=0 reader=3 regressed=0
