@@ -184,4 +184,21 @@ wrong:
       wiring off to land later. The first "close-refund book" would therefore run s.8.8d as dead code, and a 0 read on the
       refund row would not be the fix''s doing. Item 2 adds the condition or labels that book as 8.8c and D1 only.'
     corrected: false
-for_the_director: []
+for_the_director:
+- id: the-customer-carbon-figure-co1-inherits-neso
+  raised: '2026-11-11'
+  kind: strategy
+  what: The customer carbon figure (CO1) inherits NESO's national intensity, which does not count about
+    43 TWh a year of embedded and captive thermal generation (Ember UK against NESO GB, 2016-2025). If
+    most of that is GB rather than Northern Ireland, our figure runs 10-25% low in 2023-25, which flatters
+    every electrification measure.
+  proposal: Read the GB/NI split from DESNZ Energy Trends 5.1 and DUKES 5.6 (knowledge work, no build).
+    Then show an annual 'embedded thermal not counted' bound on the customer-facing carbon figure, as
+    the T&D losses line already is. Keep NESO's half-hourly series unchanged as the shape.
+  recommendation: I recommend the bound line on the customer figure once the DESNZ split is read, and
+    no rescaling of the world series. Silence means the seat reads the split next and brings the bound
+    back before it is shown.
+  status: open
+  resolution: ''
+  evidence: docs/staging/SEAT_FINDING_THE_NATIONAL_CARBON_FIGURE_DOES_NOT_COUNT_EMBEDDED_THERMAL_2026-11-11.md;
+    docs/market_research/household_carbon_and_the_measures_that_save_it.md s1b
