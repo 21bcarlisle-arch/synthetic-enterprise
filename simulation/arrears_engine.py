@@ -782,13 +782,20 @@ def with_credits_applied(stages: list[dict], face_gbp: float, credits: list[dict
     opened = stages[0]["date"]
     owed = round(face_gbp, 2)
     credit_stages = []
-    for c in sorted(credits, key=lambda c: c["date"]):
+    def _on(c: dict) -> str:
+        # Money in is dated the day it arrived (a repayment's `credit_period_end` is the cash's own
+        # day), not the day the walk met it with the bill: a level household repays a returned
+        # collection before the bill it paid for falls due, so the walk holds the cash until then and
+        # the page booked PROS-2016-0098's 75.33 of 29 Nov 2018 on 16 Dec, owing it on the cure day.
+        return c["credit_period_end"] if c.get("kind") == "repayment" else c["date"].isoformat()
+
+    for c in sorted(credits, key=_on):
         owed = round(owed - c["amount_gbp"], 2)
         # A credit already on the account meets the bill the day the case opens. The ledger's case
         # opens at the issued bill's due date, which can be a day or two after the engine's clock.
         if c.get("kind") == "repayment":
             credit_stages.append({
-                "stage": ARREARS_REPAID, "date": max(c["date"].isoformat(), opened),
+                "stage": ARREARS_REPAID, "date": max(_on(c), opened),
                 "amount_gbp": c["amount_gbp"],
                 "note": "Payment of GBP%.2f received %s towards this bill -- GBP%.2f left owed"
                         % (c["amount_gbp"], c["credit_period_end"], max(owed, 0.0))})

@@ -134,6 +134,7 @@ control, counted (`/var/tmp/crbook/control/tree`, read today):
 | Level, a level collection or payment succeeded that day | 37 | The next instalment's cash lands on K and meets the oldest request first (`level_shortfall`), and the cap at the K balance reads ≤ 0, while P still carries the returned month. The 10 Nov D3. |
 | Level, no cash on the page that day | 37 | K moved without P: cash K observed that P never prints, or the K balance (bills at face, credit notes) is lower than P's balance (E's walk with `difference`). Unresolved which, per account. |
 | Level, a return part-repaid that day | 19 | `_cross_settlement` sizes the repayment on **T** (`open_on_contract_gbp` over level rows at the collection amount). PROS-2016-0098: £75.33 returned on 15 Nov 2018, T sized the repayment at **£0.22**, K cured that day, P owed £29.29. T's walk and P's balance are two walks, and nothing ties them on a level leg (D6). |
+| *Corrected 11 Nov (s.6): the row above is wrong about T.* | | The world crossed PROS-2016-0098's **whole £75.33** on 29 Nov (`world_payment_truth.repayments`); £0.22 is what the page put on the level row. On 6fe7827ab2 no hold's settlement was cut below its collection (0 of 56). The ledger that dated the cash wrong is **P**: the case's ARREARS_REPAID was dated when E's face walk met the cash with the bill (16 Dec), not the day it arrived. |
 | Off level (left), a payment that day | 21 | `left_level_asks`/`unpaid_asks` on K against `fifo` on P. |
 | Off level, no cash | 2 | as above |
 
@@ -210,7 +211,56 @@ The next level-DD fix that touches cures still has to name its shape from sectio
 - **Grade on P through the publisher's chain only** (`/var/tmp/crbook-scripts/grade_one.sh`). Misses 6 and 7.
 - **Any change to when cash crosses predicts a ±3-hold drift and a pennies-level rate drift on untouched legs**
   (the treasury line). Write that row into the table, or the row is a miss when it moves.
-- **The next level-DD fix, by evidence:** the 19 part-repaid holds (T sizes the repayment on a walk P does not use)
+- *(Corrected 11 Nov, s.6: T cut none of them; the defect was P's dating, and is fixed there.)* **The next level-DD fix, by evidence:** the 19 part-repaid holds (T sizes the repayment on a walk P does not use)
   are the one shape with a single named line (`_cross_settlement` `:1096` reading `open_on_contract_gbp` without the
   level schedule). It is not drawn now. The 11 Nov ruling puts everything on the close-refund book first.
 - The 10 Nov map's §5 trailer rule stands. This map adds no new trailer.
+
+## 6. The "part-repaid" holds: T was not the cause, P's dating was (worker, 11 Nov 2026)
+
+**Measured before any change, on the close-refund book 6fe7827ab2** (`/var/tmp/ldpr/census.py`, which reads the
+world's own crossings, `per_customer_behavioral[*].world_payment_truth.repayments`, against `split.txt`'s holds).
+Of 113 holds, 56 are on a day the world crossed a settlement of a returned level collection, and **every one of the
+56 crossed the whole collection**. 0 were cut below it. So `_cross_settlement`'s `open_on_contract_gbp` cut
+(`background/live_payment_triad.py:1096`) reaches no hold, and the fix s.5 drew (give T the level schedule) would
+move nothing, or would start cutting cash that now crosses whole. It is not built.
+
+**What happened on PROS-2016-0098.** The £75.33 collection was returned on 15 Nov 2018, and the household repaid it
+whole on 29 Nov. The bill that collection paid for (INV 10033, face £89.15) falls due on 16 Dec. E opens a bill on
+its due date, so it held the cash as waiting credit and met it with the bill on 16 Dec. `with_credits_applied`
+dated the ARREARS_REPAID stage on that netting day. The account page posts that stage as `payment_received` on its
+date. So on the 29 Nov cure day the page held only the £0.22 of `rest` (the same cash, posted on the right day), and
+owed £29.29. K saw the cash on 29 Nov and was right to cure.
+
+**The fix (P only).** `simulation/arrears_engine.with_credits_applied` dates a repayment on the day its cash
+arrived (`credit_period_end`), never before the case opened, and orders the running "left owed" notes the same way.
+Credit bills are not money in, so they keep the day they were netted. Control:
+`tests/simulation/test_a_repayment_is_dated_the_day_its_cash_arrived.py`. The partition is asserted in one test:
+cash dated on its day, cash before the case held at the opening, credit bill unmoved. Two mutations:
+- the stage dated at the netting day again: red, on 2 tests;
+- credit bills sorted by their period: did not fire at first. That was a **missing test**, not an equivalence: it
+  reorders the notes when a credit and a repayment net on one day. The third test now covers it, and it fires.
+
+**Graded on the 6fe7827ab2 book.** The page was regenerated in a copy of the arm's own tree with only this patch,
+so the arm's grade is the one-variable control (`/var/tmp/ldpr/arm/`). Prediction filed before the run:
+`/var/tmp/ldpr/PREDICTION.txt`.
+
+| Row | Control | Predicted | Read | Verdict |
+|---|---:|---|---:|---|
+| P1 holds on a day a whole level collection crossed | 56 | 0 to 15 | **17** | **FELL** |
+| P2 holds with no settlement that day | 55 | 52 to 58 | **52** | held |
+| P3 cures held over a debt (`split.py` first line) | 113 on 69 | 55 to 75 | **71 on 38** | held |
+| …level at the cure | 90 | (not predicted) | 48 | |
+| P4 desk cures in total | 807 | 807 | **807** | held |
+| P5 customers whose `balance_gbp` or `total_paid_gbp` moved | 0 | 0 | **0 of 1,302** | held |
+
+**Why P1 fell, as far as it is known.** Most of the 17 fell partway: SYN-2016-525 went from 115.10 to 23.84, and
+SYN-2016-037 from 61.93 to 13.47. There the crossed cash is now on the right day, and what is left is an older debt
+the cash met first. SYN-2016-380 (102.00, unchanged) and SYN-2016-499 (25.27, a July collection settled in
+November) are not traced. I cannot yet say which shape each of the 17 is in.
+
+**Not changed.** The desk (K), the world's cash (T) and E's walk are untouched, so the run's figures do not move.
+This is a page-and-reader fix. It moves the publisher's rows on the next regeneration of any book, and the chain
+reads those rows.
+
+NEXT: trace SYN-2016-380's 102.00 on 1 Apr 2019, the one hold the dating fix did not move at all.
