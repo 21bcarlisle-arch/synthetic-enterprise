@@ -8,6 +8,54 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-11 — orientation: Forward on the precondition, and still nowhere on the thesis itself
+
+<!-- head: 1d63f43e3abe -->
+
+*Written by the orientation seat from its own record (2026-11-11T21:24:44.112942+00:00; 12 commits, 5 substantive, since 2026-11-11T18:22:57.873945+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 12 other.
+
+## What the stretch meant
+
+Forward on the precondition, and still nowhere on the thesis itself. The gate-passing 6fe7827ab2 book is now PUBLISHED: e816040ce, at 20:31, carries 1,440 paths including site/data. That is about a day and a half after the early-publish commitment, and the reason the sweep skipped it is named and fixed. The weekly window read a re-emission of last week's run as this week's publish (8d271594d), and the stale-copy guard refused a regeneration for lacking last week's page stamps (40a48b5d8). The publish exposed one new defect, filed at 4f68a644f. A publish run from a worktree ships the previous run's committed run_output gz beside the new pages. That was caught by the reproducibility reader and fixed by hand for this book (07111cd8b), but nothing fixes it for the next one. The direction-record failure is fixed in three parts. A non-landing record now fails the seat's run (56b6a626b). A second writer can no longer commit DIRECTION.yaml while the seat orients (1d63f43e3). The 18:22 record reached origin (7b501db35), and /var/tmp/se-direction-seat is gone. So three machine rows close below. This record landing on its own is the live test of the fix. Previous focus: 4 named, 3 drawn. The publish and direction-record items are finished and leave focus. N29 was drawn and nothing has landed yet. A seat executor holds it right now (it started at about 21:15), so it stays first and must not be drawn twice. N28 was never drawn, so it carries on as named. The commit_split reads 0 supplier and 12 other. That is accurate for this stretch: every commit was about publishing or the seat's own plumbing, and no supplier capability moved. Two items deserve the director's plain view. First, level-DD hit the learning loop's STOP (25 held of 34, 8 code-or-reader misses). By the loop's own rule, the next level-DD item is a map of the 71 remaining holds by cause, not another fix. Second, sim_runner started its own book on 87e00e1458 at 19:45. It carries ccdfb652d but no N28 or N29 fix. It is not a breach of the ruling to spend the week on the fix and its book: it is the first book carrying the repayment-dating fix, and its 71 is the map's input. It is left to finish. The flat-baseline comparison (c65c4cb8b) is still the thesis test, and it is still held by this week's ban on model arms. It is first for the 16 Nov review.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 11 Nov: A passing book now exists (6fe7827ab2), but the comparison that would switch the corrected belief on (c65c4cb8b) is held by the ban on model arms until 16 Nov. 21:24 11 Nov: Unchanged. The comparison is first for the 16 Nov review.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:22 11 Nov: The eleventh read ran (an Ombudsman investigator) and found N28 and N29. It was not a read of this class, so the class is unchanged. 21:24 11 Nov: Unchanged. No read this stretch.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 18:22 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 21:24 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 18:22 11 Nov: 113 on 6fe7827ab2, held against the map's 112 to 120 (6073fee79). ccdfb652d dates a repayment on its cash day: 113 to 71 holds. That is still far above 0 to 3. 21:24 11 Nov: Still 71 after ccdfb652d, and the learning loop says STOP. Item 3 maps the 71 by cause, on the first book carrying ccdfb652d (87e00e1458, running), before any further fix.
+- corrected: THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 18:22 11 Nov: A book has now passed (2e401fe1f), but nothing is published. The site's run figures are still 3 Nov's (item 1). 21:24 11 Nov: Corrected late. The 6fe7827ab2 book was published at e816040ce (20:31 11 Nov), about a day and a half after the due date.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 18:22 11 Nov: W3_3 is paused to the 16 Nov reset by the 18:10 reading. The margin rate it distorts is withheld from the site (601929ce0) until it is fixed. 21:24 11 Nov: Unchanged. W3_3 is paused to the 16 Nov reset.
+- NOT corrected: THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 18:22 11 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin. 21:24 11 Nov: Unchanged (fix, under a-continuation-retires-without-its-work-on-origin).
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 18:22 11 Nov: On 6fe7827ab2, 28 written-off accounts print owed (GBP 1,195.85), inside the filed 30. The repayment shortfall was not read on its own, and rows 8 and 12 reproduce 068b5e3cc8's deltas, so this stays open. 21:24 11 Nov: Unchanged. The repayment shortfall is still unread on its own, and the 6fe7827ab2 pages it would show are now live.
+- NOT corrected: THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 18:22 11 Nov: Unchanged. No stop this stretch. 21:24 11 Nov: Unchanged. No stop this stretch.
+- NOT corrected: THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success status=0". A long job that wraps a landing must exit with the landing's own status. 18:22 11 Nov: Unchanged in launch_long_job. 21:24 11 Nov: Unchanged in launch_long_job (not_now).
+- corrected: THE MACHINE'S, NEW. The 12:24 direction record never reached origin. The seat's journal at 12:50:21 reads "committed": false, commit 204e12734 sits only in /var/tmp/se-direction-seat, and origin still shows the 09:22 record. Nothing failed the unit. 18:22 11 Nov: Worse. The 15:20 record did not reach origin either ("committed": false at 15:45:52), and the item was not drawn (item 3). 21:24 11 Nov: Corrected. 56b6a626b fails the seat's run when a record does not land, and 1d63f43e3 stops a second writer committing DIRECTION.yaml while the seat orients. The 18:22 record reached origin (7b501db35), and /var/tmp/se-direction-seat is gone. This record landing is the live check.
+- NOT corrected: THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. 18:22 11 Nov: No new breach this stretch, but nothing in the draw reads a ruling's scope yet. 21:24 11 Nov: No new breach. sim_runner's 87e00e1458 book is the scheduled runner, not a draw, and it serves the fix. Nothing in the draw reads a ruling's scope yet.
+- NOT corrected: THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder step is held (e5e0cdcae). 18:22 11 Nov: Held for the 16 Nov review by the 18:10 reading. 21:24 11 Nov: Held for the 16 Nov review.
+- corrected: THE MACHINE'S, NEW. A gate-permitted book was graded, "offered" and its run_complete marker archived to done/ (16:05), and the grade commit (2e401fe1f) set NEXT to none, saying "the publisher's sweep owns the publish". No sweep published it, so promoted was read as published (item 1). 21:24 11 Nov: Corrected. The sweep's skip was named and fixed (8d271594d: the weekly window read a re-emission as this week's publish; 40a48b5d8: the stale-copy guard), and the book is published (e816040ce).
+
+## Chosen against
+
+- The flat-baseline comparison pre-registered at c65c4cb8b, now with a published, gate-passing book to run on.
+- Stopping sim_runner's 87e00e1458 book (4.4 GB, started 19:45) to save burn.
+- W3_3 (the standing charge in settlement), the root that would let the withheld margin rate return.
+- The CO1 embedded-thermal bound line, which the director approved and which is now unblocked because the book is graded and published.
+- launch_long_job exiting with the wrapped landing's own status (the refused-landing-as-success row).
+- The W2_21 insulation flag fix, and N17's year-to-year electricity variance.
+- Reaping the 7 locked worktrees with unlanded commits, and fast-forwarding the shared checkout (4 behind).
+
+## Focus for the next stretch
+
+- `n29-closing-dual-fuel-set-off`
+- `n28-narrated-facts-the-data-contradict`
+- `level-dd-the-71-remaining-holds-are-mapped-by-cause-before-another-fix`
+- `a-publish-from-a-worktree-writes-the-markers-own-run-output`
+
+---
+
 ## 2026-11-11 — orientation: Forward against the thesis for the first time in about two weeks, though only on the precondition
 
 <!-- head: 78ab5ed4cd4a -->
