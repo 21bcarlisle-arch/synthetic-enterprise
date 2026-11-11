@@ -1,9 +1,105 @@
 {
- "generated_at": "2026-11-11T09:26:40.334302+00:00",
+ "generated_at": "2026-11-11T18:27:33.144262+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "318d97fb7",
+    "at": "2026-11-11T12:00:55Z",
+    "subject": "advisor: ruling - CO1 bound line approved after the close-refund book; burn rose to 0.88/h, so knowledge passes stop this week, 18:00 re-read",
+    "substantive": false
+   },
+   {
+    "sha": "a910da1a2",
+    "at": "2026-11-11T11:57:29Z",
+    "subject": "[ADVISOR-STAGED] Steer: forward weather and prices must move together, and spells must last as long as real ones",
+    "substantive": false
+   },
+   {
+    "sha": "940b6e242",
+    "at": "2026-11-11T11:56:50Z",
+    "subject": "Historic-mix fill counts ElecLink and Viking: Viking priced at NESO Table 1 over Denmark's published output mix (115/93/68 g in 2023-25); the fill's 2024 bias falls from +7.1% to +5.4%",
+    "substantive": true
+   },
+   {
+    "sha": "637766721",
+    "at": "2026-11-11T11:40:10Z",
+    "subject": "delivery seat: merge origin/main into the GB/NI uncounted-thermal landing (upstream touches none of its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "4ed850586",
+    "at": "2026-11-11T11:39:05Z",
+    "subject": "Uncounted thermal, split: Northern Ireland is 13-21%, half the GB part never reaches the grid, so a GB household's figure runs about 5-8% low in 2024, not 10-25%; NESO's historic-mix imports do count ElecLink and Viking",
+    "substantive": true
+   },
+   {
+    "sha": "76cebc142",
+    "at": "2026-11-11T11:28:29Z",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "f69c1fe43",
+    "at": "2026-11-11T11:26:02Z",
+    "subject": "chore(provenance): verification paused banner (git=068b5e3cc8) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "51db00681",
+    "at": "2026-11-11T11:20:21Z",
+    "subject": "delivery seat: merge origin/main into the carbon-steer landing (upstream touches none of its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "73bffb218",
+    "at": "2026-11-11T11:18:08Z",
+    "subject": "Carbon steer items 2-4: Ember checks our 2016-2025 history; flow-traced imports are small; the reading log has Electricity Maps; the national figure leaves out embedded thermal",
+    "substantive": true
+   },
+   {
+    "sha": "0ab059561",
+    "at": "2026-11-11T11:06:46Z",
+    "subject": "The commit gate's data surface stops counting a citation as a read: a module that names a document only in a docstring or comment no longer pulls its tests into the commit",
+    "substantive": true
+   },
+   {
+    "sha": "a9c4e1dfc",
+    "at": "2026-11-11T10:43:35Z",
+    "subject": "The close-refund book is armed and waiting on the fix's landing; the record names where the fix sits and the launcher's 13:40 deadline",
+    "substantive": false
+   },
+   {
+    "sha": "a8a417de3",
+    "at": "2026-11-11T10:42:17Z",
+    "subject": "chore(provenance): verification paused banner (git=068b5e3cc8) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
+   {
+    "sha": "eafe70af1",
+    "at": "2026-11-11T10:29:41Z",
+    "subject": "Gap-driven literature search: part two of the reading log lists candidates against the four first-in-line gaps, records three provisional absences, and answers the held-out question in a first pass",
+    "substantive": false
+   },
+   {
+    "sha": "142e4d439",
+    "at": "2026-11-11T09:51:10Z",
+    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "a82f0f0bb",
+    "at": "2026-11-11T09:50:17Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "1c868daac",
+    "at": "2026-11-11T09:46:24Z",
+    "subject": "chore(provenance): verification paused banner (git=068b5e3cc8) -- the site keeps serving the last VERIFIED run and now says so; no unverified figure published (DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)",
+    "substantive": false
+   },
    {
     "sha": "04a3323d1",
     "at": "2026-11-11T09:18:33Z",
@@ -147,191 +243,112 @@
     "at": "2026-11-11T01:33:36Z",
     "subject": "Preregistration: the eleventh cold read, on the first D1 book, with the publisher's gate graded first",
     "substantive": false
-   },
-   {
-    "sha": "45e531f23",
-    "at": "2026-11-11T01:29:57Z",
-    "subject": "Merge origin/main (D1 build b47832f7e, direction) into the tenth cold read landing 5fdf9c106: no path in common",
-    "substantive": false
-   },
-   {
-    "sha": "5fdf9c106",
-    "at": "2026-11-11T01:27:58Z",
-    "subject": "The tenth cold read, on the 068b5e3cc8 book: the book does not pass the publisher's gate after all, and a meter data-quality analyst finds four new classes",
-    "substantive": true
-   },
-   {
-    "sha": "e1587ec5b",
-    "at": "2026-11-11T01:22:55Z",
-    "subject": "merge origin/main into the D1 build landing b47832f7e: no path in common",
-    "substantive": false
-   },
-   {
-    "sha": "b47832f7e",
-    "at": "2026-11-11T01:21:41Z",
-    "subject": "D1 built: a credit bill on a leg that owes meets the leg's debt first, and only the excess waits for the next bill (SLC 27.16), so 549g's scheme debit is no longer asked of nobody",
-    "substantive": true
-   },
-   {
-    "sha": "acd93bd98",
-    "at": "2026-11-11T01:08:46Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "029f57157",
-    "at": "2026-11-11T01:07:39Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "807811584",
-    "at": "2026-11-11T01:06:27Z",
-    "subject": "Pre-register the tenth cold read on the 068b5e3cc8 book, the first that passes the gate: a meter data-quality analyst's trade, ten households, four seat-named checks by eye, eleven predictions filed before the packet renders",
-    "substantive": false
-   },
-   {
-    "sha": "2d7f1d2cd",
-    "at": "2026-11-11T01:05:41Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "6fff2c257",
-    "at": "2026-11-11T01:02:05Z",
-    "subject": "The 068b5e3cc8 book passes the gate through origin's page and is offered to the publisher; class L' spends the over-refund item; the D1 book's table is filed before it starts",
-    "substantive": false
-   },
-   {
-    "sha": "3f74b9328",
-    "at": "2026-11-11T00:41:26Z",
-    "subject": "Merge origin/main (D1 K8, c5f52ed3d) into the class L' landing: no conflicting path",
-    "substantive": false
-   },
-   {
-    "sha": "7cf859bef",
-    "at": "2026-11-11T00:36:01Z",
-    "subject": "Class L': a scheme-credit month keeps its level collection on the page: PROS-2019-0318's two 62.48s post, and 99 unshown collections (GBP 4,474.09) reach the page on 78f82e4242",
-    "substantive": true
-   },
-   {
-    "sha": "71a1242cb",
-    "at": "2026-11-11T00:02:21Z",
-    "subject": "merge origin/main (ef64912eee) into the D1 K8 landing c5f52ed3d: no path in common",
-    "substantive": false
-   },
-   {
-    "sha": "ef64912ee",
-    "at": "2026-11-10T23:56:23Z",
-    "subject": "Class L's grade reaches the learning loop: 6fb708f3a's four predictions carry their Graded: trailer, 3 held and 1 reader miss",
-    "substantive": false
-   },
-   {
-    "sha": "c5f52ed3d",
-    "at": "2026-11-10T23:51:10Z",
-    "subject": "K8 before D1: a credit bill on a leg that left level DD owing its scheme debit meets that debit first, and only the excess waits for the next bill (SLC 27.16, 31H.12)",
-    "substantive": true
-   },
-   {
-    "sha": "c8382169f",
-    "at": "2026-11-10T23:47:27Z",
-    "subject": "The learning loop is fed: the two level-DD book grades of 10 Nov carry their Graded: trailers, and the area map tells the next grader to carry one",
-    "substantive": true
-   },
-   {
-    "sha": "76afcf8ea",
-    "at": "2026-11-10T23:43:54Z",
-    "subject": "Merge origin/main into the learning-loop landing",
-    "substantive": false
    }
   ],
-  "substantive": 14,
-  "mechanical": 26,
+  "substantive": 13,
+  "mechanical": 27,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-11T09:22:42.986419+00:00",
+  "oriented_at": "2026-11-11T18:22:57.873945+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Still sideways against the thesis, but the machine has caught up with itself. No book passes the gate, no per-customer decision has met the flat baseline, and the renewal belief is still off. What changed is that the close-refund work is now really landing, and the cause of the failed landings has been measured rather than guessed. surgical_land pid 4134999 runs under launch_long_job (crfix-land-A, 08:40Z). It lands the close-refund fix (s.8.8c) and the residual-12 money-in clock (s.8.8d) together. The scratch grade on 068b5e3cc8 reads INV_REFUND_WITHIN_THE_PAGE_CREDIT 205 of 238, then 0 of 176. The gate's timeouts have a measured cause: 129 selected tests take about 33 min serially on an unloaded box, and 18 of those minutes are one test, which is selected only by the 6 wiring lines in run_phase4c_on_phase2b.py. So the wiring was split off to land next, on its own. That split creates a new hazard, which item 1 addresses. longjob-launcher-crbook fires as soon as the fix's test file is on origin. It will therefore launch a book whose run does not pass money_in, and on that book s.8.8d is dead code. Previous focus: all 3 items were drawn. Items 1 and 2 merged into one landing that is in flight, so they leave focus under a new id that covers the remaining wiring. Item 3 waits on that landing. The draw-ledger row the-seats-direction-record-reaches-origin-again is spent: the 06:20 record reached origin at a12d5e706. The commit_split (1 supplier, 0 world, 13 other) is literally true. The stretch carried advisor records, a ruling, carbon knowledge and harness work, and its supplier code is still in a gate. The director's 11 Nov ruling ends the feature freeze and gives features about a third (feature_share 0.33, bb69c250d). This direction therefore spends one slot on W3_3, which blocks B12's true unit cost and owns the standing-charge error, and it may land only after the exit-test book has pinned its SHA, so attribution is safe. The learning loop says STOP on level-DD: 8 code-or-reader misses in 34 graded predictions. The level-DD area is mapped before any further fix there. Both 11 Nov literature steers are being landed now (surgical_land pid 252738) as knowledge only.",
+  "thesis_read": "Forward against the thesis for the first time in about two weeks, though only on the precondition. A book has passed the publisher's gate. 6fe7827ab2 carries the close-refund fix (s.8.8c, s.8.8d) and D1, and it was graded through grade_one.sh alone (2e401fe1f). All 15 pre-registered rows held. INV_REFUND_WITHIN_THE_PAGE_CREDIT went from 205 to 0 over 176 lines, closed-account breaches are 0, D1 is 0 of 6,385, and the level-DD cures read 113 against the map's pre-registered 112 to 120 (6073fee79). So the Class L refund row is corrected. The eleventh cold read ran on that book (ab2700c1e). Exit leg one is met for the first time. Legs two and three are not: N28 (narrated facts the data contradict, such as \"your first electricity bill is ready\" sent to a 2017 account) and a new serious class, N29 (a closing dual-fuel household refunded on one fuel while it owes on the other: 48 households, GBP 3,786.62 refunded against GBP 5,662.78 owed). The published net margin and arrears count are corrected on the producers (601929ce0). The rate is withheld with a \"We cannot tell\" reason, and arrears moved to Ofgem's 91-day definition (705 to 50 of 1,293), with a control keyed to the property. Two things have not moved. First, NOTHING HAS BEEN PUBLISHED. The book was \"offered\" and its marker archived at 16:05, but the site's run figures are still 0a6391d186's from 3 Nov (\"figures last moved 207.6h ago\"), and the grade commit's NEXT handed the publish to a sweep that has not done it. The early-publish commitment is now about two days late. Second, the 15:20 direction record did not reach origin either (the seat journal at 15:45:52 reads \"committed\": false). That is two records in a row, and origin still shows 09:22, so the advisor is relaying a stale steer. Previous focus: 3 named, 2 drawn. The book item and the margin item both finished and leave focus. The direction-record item was never drawn (it was promoted to a continuation at 18:25), so the steer itself is drifting and it moves up. The commit_split (0 supplier, 1 world, 9 other) is literally true, but it misfiles the stretch: 601929ce0 is the supplier's published accounts, and ccdfb652d is billing correctness that lives in simulation/. ccdfb652d (repayments dated on their cash day) took the level-DD holds from 113 to 71, and it measured the queued level-dd-part-repaid-holds premise as false before building. The cross-arm question is answered (80f4d4ff): the 23 breaches are an older run's refund sizes read against a newer walk, and the pages at ccdfb652d7 over this book read 0 and 0. The 18:10 reading (44%, 0.65/h since noon) pauses W3_3 until the Mon 16 Nov reset, and that is recorded here. Correctness keeps its claim: publish, then N29, then N28. The flat-baseline comparison (c65c4cb8b) finally has a passing book to run on. It stays out of focus only because the ban on model arms holds this week. It is the first thing the 16 Nov review should take, because that comparison is the thesis.",
   "focus": [
    {
-    "id": "the-close-refund-fix-and-its-run-wiring-reach-origin",
+    "id": "the-gate-permitted-6fe7827ab2-book-is-actually-published",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "Do NOT relaunch crfix-land-A (surgical_land pid 4134999, log /var/tmp/crland-exec.log). It is landing the close-refund fix and the residual-12 clock. Wait on it with tools/wait_for. If it lands, run the 6-line money_in wiring in simulation/run_phase4c_on_phase2b.py as its own surgical_land under launch_long_job, in a window where no other pytest is running (the gate measured 18 min for test_run_phase4c_on_phase2b.py alone). Prove first that a control fails without the wiring: the run must pass money_in through, so 068b5e3cc8 reads INV_REFUND_WITHIN_THE_PAGE_CREDIT 0 of 176 through the real run path and not only through the scratch path. If crfix-land-A is refused, read the refusal, split again by what the gate measured, and land it in a quiet window. Never use --no-verify and never raise the timeout. Once both are on origin, unlock and remove /var/tmp/crfix2/mut.",
-    "why": "The book that the 26 Oct exit test waits for must carry s.8.8d live, or the 12 residual refunds are graded against code the run never calls. Done means both commits are on origin/main, the wiring commit names this id, and /var/tmp/crfix2/mut is gone. Otherwise a refusal with its measured cause is on origin and the next split is named.",
-    "written_at": 1794389200.121
+    "what": "The 6fe7827ab2 book passed the gate and was promoted at 16:05 (docs/staging/done/run_complete_20261111T160541Z.md), but no figure has moved. site/data's run figures are still 0a6391d186's (19aa987bc5, 3 Nov). Read process_run_complete's journal for that marker and name why the sweep did not publish it: archived by another publisher, held for the Monday window despite the director's 8 Nov yes to an early publish, or refused. Then publish it under the 8 Nov yes, with the pages built at a commit whose refund and closed-account rows were measured 0 and 0 over this book (ccdfb652d7 is measured in 80f4d4ff). If HEAD's arrears_engine differs from the measured commit, re-run the gate's two rows at HEAD first. Do not publish blind. The producers must emit the withheld margin rate and the 91-day arrears count from 601929ce0. Do not start another book.",
+    "why": "A book that passes and is never published has not changed what anyone can see, and the early-publish commitment to the director is about two days late. Done means site/data carries git=6fe7827ab2 figures on origin, the live page shows them, and the reason the sweep skipped the marker is named in the commit. Otherwise a named refusal with its cause is on origin.",
+    "written_at": 1794421652.944
    },
    {
-    "id": "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+    "id": "n29-closing-dual-fuel-set-off",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "longjob-launcher-crbook (/var/tmp/crbook-scripts/waitlaunch.sh) launches as soon as tests/simulation/test_a_level_leavers_final_bill_meets_its_credit_before_the_refund.py is on origin. That happens before the run wiring lands. If it has NOT fired by the time crfix-land-A lands, add a fifth condition: the wiring commit is an ancestor of origin/main. Then re-arm it through launch_long_job, with its deadline 8 h past the wiring landing. If it HAS fired, let that book run, and grade it as the 8.8c and D1 book, with the 8.8d row predicted at about 12 and written down before the read. The next head book then carries the wiring. Run one book at a time. Grade ONLY through /var/tmp/crbook-scripts/grade_one.sh, against docs/staging/records/SEAT_PREREGISTRATION_THE_FIRST_BOOK_CARRYING_THE_CLOSE_REFUND_FIX_2026-11-11.md. Read every row held or fell, including the 347 level-DD cures over a debt, the written-off accounts that print owed, bad debt at close and INV_OVERDUE_WITHIN_PAGE_BALANCE (D1, b47832f7e). If the gate permits the book, offer it to the publisher under the director's 8 Nov yes, and leave the eleventh cold read and the c65c4cb8b comparison to run on it.",
-    "why": "This book is the exit test of the 26 Oct ruling, as narrowed on 11 Nov to serious classes, and the early publish is now a day late. Done means a book carrying s.8.8c, s.8.8d and D1 is graded on origin, with held or fell beside every pre-registered row and a Graded trailer, and it has been offered to the publisher if the gate permitted it. The book does not have to pass.",
-    "written_at": 1794389200.121
+    "what": "N29: a closing dual-fuel household is refunded on one fuel while it owes on the other (48 households, GBP 3,786.62 refunded against GBP 5,662.78 owed, GBP 2,254.02 later written off, on 6fe7827ab2; docs/staging/SEAT_FINDING_A_CLOSING_DUAL_FUEL_HOUSEHOLD_IS_REFUNDED_ON_ONE_FUEL_WHILE_IT_OWES_ON_THE_OTHER_2026-11-11.md). K8 first, and only as far as this fix needs: amend docs/market_research/home_moves.md with what the licence (SLC 27 and the final-bill and refund rules) and published practice say about setting off one fuel's credit against the other fuel's debt on closing, with anything unpublished labelled GAP. Then write the blind row, red on 6fe7827ab2 (48 households). Build the set-off at the close refund. Mutation-prove the control, and pre-register the count on the next book before reading it.",
+    "why": "It is the only new serious class the eleventh read found, it moves money, and leg three of the exit test cannot be met while it stands. The 18:10 reading names it next. Done means the knowledge amendment, the blind row and the fix are on origin, and the row reads 0 against the page code on the 6fe7827ab2 run JSON.",
+    "written_at": 1794421652.944
    },
    {
-    "id": "the-level-dd-area-is-mapped-before-another-fix",
+    "id": "the-seats-direction-record-reaches-origin-again",
+    "lane": "H_harness",
+    "side": "other",
+    "what": "Two direction records in a row never reached origin: 12:24 (204e12734 left in /var/tmp/se-direction-seat) and 15:20 (the delivery-seat journal reads \"committed\": false at 15:45:52). Origin still shows the 09:22 record. Read background/direction.py and background/delivery_seat.py from where the record is written to where it is landed. Name the step that returns without landing. Make a non-landing exit the unit nonzero with the reason. Then confirm that THIS record (oriented 18:22) is on origin/main. Do not land 204e127 or the 15:20 bytes, because this record supersedes both. Then unlock and remove /var/tmp/se-direction-seat as disposable, and say so in the commit.",
+    "why": "The advisor relays the director's view from origin. A steer that never lands is a steer he never sees, and the item was named last stretch and not drawn. Done means the cause is named in the commit, a non-landing exits nonzero, this record is on origin/main, and the stale worktree is gone.",
+    "written_at": 1794421652.944
+   },
+   {
+    "id": "n28-narrated-facts-the-data-contradict",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "The learning loop says STOP on level-DD: 8 code-or-reader misses in 34 graded predictions over 7 days, and the 347 cures over a debt are unexplained. Before any further level-DD fix, write docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md, and write it from the code, not from memory. Cover every function in simulation/ and company/ that sets, collects, misses, cures, re-levels, leaves or refunds a level direct debit, with the file:line and the money each one moves. Cover which ledger each one reads (page, world truth, desk). Grade each of the 8 misses (git log --grep \"Graded: level-dd\") as the model of the code being wrong or the reader being wrong, and point to the map line that would have predicted it. Then pre-register, from the map alone, what the cure count should be on the next book.",
-    "why": "Three misses means the map, not another fix (ways_of_working). Every level-DD fix this week regressed or missed, and the cure row is in item 2's table. Done means the map is on origin with all 8 misses placed on it, and a prediction of the cure count filed before item 2's book is read.",
-    "written_at": 1794389200.121
-   },
-   {
-    "id": "W3_3_the_network_charge_splits_per_unit_and_per_day",
-    "side": "world",
-    "unblocks": "B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost (the renewal floor at true unit cost), and the settlement P&L agreeing with the bill on the standing charge",
-    "what": "Spend the feature third (11 Nov ruling, feature_share 0.33) here. K8 first: amend the network-charges knowledge page with what the DUoS and TNUoS charging statements say about the fixed (p/day) and unit (p/kWh) split by year, with every unsourced year marked GAP. Then make the deemed and flex settlement writers book the standing charge the bill charges, and make void rows keep the fixed network share. Add a control that fails on the current code: for a domestic electricity account-day, the settlement standing charge equals the billed one. Repair the rotted file_scope path on the atom row. Land it ONLY after item 2's book has launched and pinned its SHA.",
-    "why": "It is the one world item that blocks a supplier result (B12 is held on it), and it owns a listed error of about GBP 0.47 to 0.60 a day per account. Landing it after the exit-test book's SHA is fixed keeps that book attributable. Done means W3_3's row moves a level with the control on origin, and the standing-charge row in wrong closes.",
-    "written_at": 1794389200.121
+    "what": "N28: account-page narration states facts that the account's own data contradicts. On the 6fe7827ab2 book, \"the household's use did not explain the change\" sits over a 29% rise (O6). \"Your first electricity bill is ready\" goes to a 2017 account in 2023 (O23). GBP 916.14 is an ex-VAT catch-up printed inside a VAT-inclusive total, from generate_explore_cast.py:383, on 4 slots (O28). See the eleventh read, docs/staging/records/SEAT_READING_THE_ELEVENTH_COLD_READ_ON_THE_6FE7827AB2_BOOK_2026-11-11.md. Fix it as a class, not as three instances. Each narrated sentence is derived from the same fields the page prints, or it is withheld. Add one invariant in company/compliance/domain_invariants.py that reds on all three slots, and keep the VAT basis with the figure.",
+    "why": "Leg two of the exit test is not met while N28 stands. The twelfth read waits for a book carrying both the N28 and N29 fixes, and N28 belongs to the same template class as the tenth read's EBSS sentence, so it will recur until it is fixed as a class. Done means the invariant is on origin, red on 6fe7827ab2 and green after the fix, and the three named slots read true.",
+    "written_at": 1794421652.944
    }
   ],
   "not_now": [
    {
-    "what": "Launching a second book now, from origin head without the fix, so the publish is not idle while the landing runs.",
-    "why": "The director's 36% reading asks for a trim, and books run one at a time. A book without the fix re-reads the 205 refunds we already know about and buys nothing."
+    "what": "The flat-baseline comparison pre-registered at c65c4cb8b, which now has a passing book to run on.",
+    "why": "This is the thesis test itself, and it is the most important thing now unblocked. But the director's ban on model-comparison arms stands this week, and the burn (0.65/h at 18:10, against the 0.53/h that lasts to the reset) cannot carry a two-arm run. The renewal belief fix waits on it too. It goes to the 16 Nov balance review as the first candidate, on the 6fe7827ab2 book (or the N28/N29 book if one exists by then)."
    },
    {
-    "what": "Letting the launcher fire on the fix's test alone and calling that book the exit test.",
-    "why": "The landing deliberately split the money_in wiring off. On that book s.8.8d would be built but never called by the run, so a pass or a fail on the refund row would grade code the run does not execute. Item 2 either adds the wiring condition or labels that book honestly as 8.8c and D1."
+    "what": "W3_3 (the standing charge in settlement), which is also the root that would let the withheld margin rate return.",
+    "why": "Paused until the Mon 16 Nov 03:00 reset by the 18:10 reading under clause 4 of the 12:00 ruling. It goes back into the weekly balance review with B12's true unit cost and the margin rate added to what it unblocks."
    },
    {
-    "what": "Raising the pre-commit gate's 3,600 s timeout, or excluding test_run_phase4c_on_phase2b.py from the selection.",
-    "why": "The cause is measured: 129 tests take about 33 min unloaded, and that one test takes 18 of them, at load 6 beside a 4-hour full-suite pytest. Splitting the commit and landing in a quiet window fixes it without bending the gate. Whether that one test should be so slow is a fair finding for later, not a reason to skip it now."
+    "what": "The CO1 embedded-thermal bound line, unblocked now that the book is graded on origin.",
+    "why": "The director approved it as a presentation item queued behind the book, and correctness keeps its claim while the burn is above 0.6/h. Its due date (20 Nov) leaves room to build it after N29 and N28 without breaking that commitment."
    },
    {
-    "what": "W2_18 and W2_19 (the UKDS precarity joint) as the feature third.",
-    "why": "Neither blocks a supplier result this week (D46 waits on both, but D46 is not on the supplier priority path). W3_3 blocks B12's true unit cost and closes a listed money error, so it wins the single feature slot."
+    "what": "Drawing the continuations level-dd-part-repaid-holds and the-close-refund-page-half-cannot-ship-without-its-run-half.",
+    "why": "Both premises are spent. ccdfb652d measured that giving open_on_contract_gbp the level schedule moves 0 of the 56 holds, and fixed the real cause (repayment dating, 113 to 71). 80f4d4ff explains the 23 cross-arm breaches to the penny. A tick that draws either should retire it with --premise-spent and that commit, not rebuild it. The single residual level-DD hold (SYN-2016-380's GBP 102.00 on 1 Apr 2019) is small and stays behind N29."
    },
    {
-    "what": "The remaining literature lists and the reading of the carbon steer's items 2 to 4, put into focus.",
-    "why": "Both steers are being landed as knowledge now (pid 252738), and the carbon continuation is queued. They are cheap and reversible and the draw will reach them. Focus slots go to the book and its fixes."
+    "what": "A publisher refusal for a walk-commit and run-commit mismatch, as a standing control (offered in 80f4d4ff).",
+    "why": "It is a real hazard, but this week's one publish is protected by item 1's re-measure at the page commit, which is the one-leg check. A standing guard is worth its cost only if the walk keeps moving under books, and that is a question for the 16 Nov review."
    },
    {
-    "what": "Reaping the 7 old locked worktrees with unpushed commits, the 20 repeating alarms, and the mute worker-seat-manager heartbeat.",
-    "why": "Reaping cannot be undone. Each is locked with a reason, and none of them holds supplier work that the book needs. The alarms are read and left by choice. The heartbeat is a behaviour change with its own evidence owed, and it is not a defect while wchan reads hrtimer_nanosleep."
+    "what": "The W2_21 insulation flag fix (72% POOR against HEE's 67% lofts and 71% cavities insulated).",
+    "why": "The 18:10 reading holds undrawn world-feature work for the review. The founder step is already held, so nothing builds on the wrong stock in the meantime."
    },
    {
-    "what": "Any model-comparison arm this week.",
-    "why": "They are answered, and the 36% reading (Wed 11 Nov 07:23) trims everything outside correctness and the publish path. This lifts at Mon 16 Nov 03:00Z or on his ask. The Friday 13 Nov balance review proposes next week's split."
+    "what": "Reaping the 7 locked worktrees with unlanded commits, the 20 live repeating alarms, and fast-forwarding the shared checkout.",
+    "why": "Reaping cannot be undone, and none of those worktrees holds work this week's items need. The checkout lag does not touch pinned-SHA books. Advancing a tree that three writers share risks sweeping their work, and the divergence alarm owns that."
    }
   ],
-  "for_the_director": [],
-  "orientations_recorded": 11,
+  "for_the_director": [
+   {
+    "id": "the-customer-carbon-figure-co1-inherits-neso",
+    "raised": "2026-11-11",
+    "kind": "strategy",
+    "what": "The customer carbon figure (CO1) inherits NESO's national intensity, which does not count 33-40 TWh a year (net) of embedded and captive thermal. The DESNZ split is now read. Northern Ireland is 13-21%. About half of the GB part is used on site and never reaches the grid. So a GB household's figure runs about 5-8% low in 2024 (within 3-15%), and 0-4% before 2019. That still flatters electrification, and the gap grows each year.",
+    "proposal": "Show an annual 'embedded thermal not counted' bound beside the customer-facing carbon figure, as the T&D losses line already is. Take it from household_carbon s1b, which gives a floor, a proportional case and an all case per year. Keep NESO's half-hourly series unchanged as the shape.",
+    "recommendation": "I recommend the bound line using the proportional case (2024 +5-8%) with its range, and no rescaling of the world series. The split DESNZ does not publish (thermal reaching public supply, by fuel) stays a named GAP on the line. Silence means the seat builds the line next.",
+    "status": "answered",
+    "resolution": "Director ruling 11 Nov 12:00 GMT ('Do it'): approved as recommended -- proportional case (2024 +5-8%) with its range beside the customer carbon figure like the T&D losses line, no rescaling of NESO's half-hourly series, the unpublished DESNZ split a named GAP. Queued behind the close-refund book: not built until that book is graded on origin. docs/staging/advisor/done/DIRECTOR_RULING_CO1_BOUND_AFTER_THE_BOOK_AND_HOLD_THE_BURN_2026-11-11.md",
+    "resolved": "2026-11-11",
+    "commitment": {
+     "work_id": "the-customer-carbon-figure-co1-inherits-neso",
+     "done_means": "the annual embedded-thermal-not-counted bound line (proportional case with range, DESNZ split GAP) renders beside the customer carbon figure, landed after the close-refund book is graded on origin",
+     "due": "2026-11-20"
+    }
+   }
+  ],
+  "orientations_recorded": 12,
   "skips_recorded": 0,
-  "refusals_recorded": 9
+  "refusals_recorded": 8
  },
  "what_it_got_wrong": {
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:22 11 Nov: Unchanged. The comparison that switches it on is pre-registered (c65c4cb8b) and waits on the first passing book.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 11 Nov: A passing book now exists (6fe7827ab2), but the comparison that would switch the corrected belief on (c65c4cb8b) is held by the ban on model arms until 16 Nov.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -342,9 +359,9 @@
    },
    {
     "key": "triage:a-cold-reader-sees-only-what-its-trade-looks-for",
-    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 09:22 11 Nov: Unchanged. The eleventh read waits on a passing book (not before 16:00 today).",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:22 11 Nov: The eleventh read ran (an Ombudsman investigator) and found N28 and N29. It was not a read of this class, so the class is unchanged.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -355,9 +372,9 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 09:22 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 18:22 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -368,10 +385,10 @@
    },
    {
     "key": "text:a level-dd journey cures on the next instalment while the missed one is never made good",
-    "what": "THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 09:22 11 Nov: Unread. The learning loop says STOP on level-DD, so the area is mapped first (item 3).",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
+    "what": "THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 18:22 11 Nov: 113 on 6fe7827ab2, held against the map's 112 to 120 (6073fee79). ccdfb652d dates a repayment on its cash day: 113 to 71 holds. That is still far above 0 to 3.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
     "first_at": "2026-11-09T09:22:34.424419+00:00",
-    "times_listed": 23,
+    "times_listed": 28,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -381,10 +398,10 @@
    },
    {
     "key": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed",
-    "what": "THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 09:22 11 Nov: Missed by a day. The fix is in the gate now (crfix-land-A), and the publisher has refused 69 times over 60 h.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
+    "what": "THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 18:22 11 Nov: A book has now passed (2e401fe1f), but nothing is published. The site's run figures are still 3 Nov's (item 1).",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
     "first_at": "2026-11-09T09:22:34.424419+00:00",
-    "times_listed": 23,
+    "times_listed": 28,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -394,10 +411,10 @@
    },
    {
     "key": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 09:22 11 Nov: Now in focus as W3_3 (item 4), to land after the exit-test book pins its SHA.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 18:22 11 Nov: W3_3 is paused to the 16 Nov reset by the 18:10 reading. The margin rate it distorts is withheld from the site (601929ce0) until it is fixed.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
     "first_at": "2026-11-09T15:20:17.459238+00:00",
-    "times_listed": 19,
+    "times_listed": 24,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -407,10 +424,10 @@
    },
    {
     "key": "triage:a-continuation-retires-without-its-work-on-origin",
-    "what": "THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 09:22 11 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
+    "what": "THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 18:22 11 Nov: Unchanged, triaged as a fix under a-continuation-retires-without-its-work-on-origin.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
     "first_at": "2026-11-10T00:20:14.811382+00:00",
-    "times_listed": 13,
+    "times_listed": 18,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -420,10 +437,10 @@
    },
    {
     "key": "text:the account page drops cash the household repaid",
-    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 09:22 11 Nov: Not re-read. Item 2's pre-registered table re-reads it.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
+    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 18:22 11 Nov: On 6fe7827ab2, 28 written-off accounts print owed (GBP 1,195.85), inside the filed 30. The repayment shortfall was not read on its own, and rows 8 and 12 reproduce 068b5e3cc8's deltas, so this stays open.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
     "first_at": "2026-11-10T03:20:12.810361+00:00",
-    "times_listed": 11,
+    "times_listed": 16,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -433,10 +450,10 @@
    },
    {
     "key": "text:a guest poweroff leaves its dead jobs listed as live",
-    "what": "THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 09:22 11 Nov: Unchanged. No stop this stretch.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
+    "what": "THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 18:22 11 Nov: Unchanged. No stop this stretch.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
     "first_at": "2026-11-10T18:35:54.288304+00:00",
-    "times_listed": 7,
+    "times_listed": 12,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -446,9 +463,22 @@
    },
    {
     "key": "text:class l's run half refunds past the credit the page prints",
-    "what": "THE COMPANY'S, NEW. Class L's run half refunds past the credit the page prints. On 068b5e3cc8, 6 legs are pushed GBP 833.30 into page debit (two of them were already in debit), and no invariant compares a refund with the page's credit, so the gate passed them silently. Its filed P2 (no closing balance rises) was about the world walk and missed this (items 3 and 4). 03:22 11 Nov: Much larger than filed. The blind row (3cb902dc8) reads 205 of 238 refund lines, GBP 5,061.85, 2016 to 2025. 09:22 11 Nov: The scratch grade reads 0 of 176 with both fixes. Still 205 on origin, because crfix-land-A is in the gate and the run wiring is not yet written to land (item 1).",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
+    "what": "THE COMPANY'S, NEW. Class L's run half refunds past the credit the page prints. On 068b5e3cc8, 6 legs are pushed GBP 833.30 into page debit, and no invariant compared a refund with the page's credit. The blind row (3cb902dc8) read 205 of 238 refund lines, GBP 5,061.85. 18:22 11 Nov: Corrected. It reads 0 of 176 on the 6fe7827ab2 book, the first book carrying the fix, and the gate permits (2e401fe1f).",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
     "first_at": "2026-11-11T00:21:33.255852+00:00",
+    "times_listed": 10,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the launch register records a refused landing as a success",
+    "what": "THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read \"Result=success status=0\". A long job that wraps a landing must exit with the landing's own status. 18:22 11 Nov: Unchanged in launch_long_job.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-11T12:24:44.238648+00:00",
     "times_listed": 5,
     "corrected": false,
     "fate": null,
@@ -458,11 +488,11 @@
     "reason": null
    },
    {
-    "key": "text:the close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing",
-    "what": "THE MACHINE'S, NEW. The close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing. Landing 1 was refused when its pre-commit gate timed out at 3,600 s. Landing 2 (pid 1920905) died without a log line, and its source worktree is gone. The only copy of the residual work was in an unlocked worktree with no owner (/var/tmp/crfix2/mut), which the seat locked at 06:20. A book launcher has been waiting on the fix since 05:40. 09:22 11 Nov: Landing 3 timed out as well, and its cause is now measured. Landing 4 (crfix-land-A) runs under launch_long_job, so a death will leave a line. It stays open until the fix is on origin.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
-    "first_at": "2026-11-11T06:20:22.549512+00:00",
-    "times_listed": 2,
+    "key": "text:the 12:24 direction record never reached origin",
+    "what": "THE MACHINE'S, NEW. The 12:24 direction record never reached origin. The seat's journal at 12:50:21 reads \"committed\": false, commit 204e12734 sits only in /var/tmp/se-direction-seat, and origin still shows the 09:22 record. Nothing failed the unit. 18:22 11 Nov: Worse. The 15:20 record did not reach origin either (\"committed\": false at 15:45:52), and the item was not drawn (item 3).",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-11T15:20:09.947924+00:00",
+    "times_listed": 3,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -471,12 +501,90 @@
     "reason": null
    },
    {
-    "key": "text:the book launcher fires on the fix's test file alone, but crfix-land-a split the money_in wiring off to land later",
-    "what": "THE MACHINE'S, NEW. The book launcher fires on the fix's test file alone, but crfix-land-A split the money_in wiring off to land later. The first \"close-refund book\" would therefore run s.8.8d as dead code, and a 0 read on the refund row would not be the fix's doing. Item 2 adds the condition or labels that book as 8.8c and D1 only.",
-    "last_at": "2026-11-11T09:22:42.986419+00:00",
-    "first_at": "2026-11-11T09:22:42.986419+00:00",
+    "key": "text:the live site publishes a supply net margin of up to 54.91% (2023, against a sector ebit in low single digits), and an arrears count (705 of 1,293) on a clock that reads the ebss credit as debt",
+    "what": "THE COMPANY'S, NEW. The live site publishes a supply net margin of up to 54.91% (2023, against a sector EBIT in low single digits), and an arrears count (705 of 1,293) on a clock that reads the EBSS credit as debt. Neither figure had a stated definition. 18:22 11 Nov: Corrected on the producers (601929ce0). The rate is withheld with its reason, arrears are on Ofgem's 91-day definition (50 of 1,293), and a control keyed to the property reds on the old feeds.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-11T15:20:09.947924+00:00",
+    "times_listed": 3,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\")",
+    "what": "THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. 18:22 11 Nov: No new breach this stretch, but nothing in the draw reads a ruling's scope yet.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-11T15:20:09.947924+00:00",
+    "times_listed": 3,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the world's housing stock draws 72% of homes as poor insulation, because it reads need's scheme-install flag as the home's insulation",
+    "what": "THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder step is held (e5e0cdcae). 18:22 11 Nov: Held for the 16 Nov review by the 18:10 reading.",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-11T15:20:09.947924+00:00",
+    "times_listed": 3,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:a gate-permitted book was graded, \"offered\" and its run_complete marker archived to done/ (16:05), and the grade commit (2e401fe1f) set next to none, saying \"the publisher's sweep owns the publish\"",
+    "what": "THE MACHINE'S, NEW. A gate-permitted book was graded, \"offered\" and its run_complete marker archived to done/ (16:05), and the grade commit (2e401fe1f) set NEXT to none, saying \"the publisher's sweep owns the publish\". No sweep published it, so promoted was read as published (item 1).",
+    "last_at": "2026-11-11T18:22:57.873945+00:00",
+    "first_at": "2026-11-11T18:22:57.873945+00:00",
     "times_listed": 1,
     "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing",
+    "what": "THE MACHINE'S, NEW. The close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing. Landing 1 was refused when its pre-commit gate timed out at 3,600 s. Landing 2 (pid 1920905) died without a log line, and its source worktree is gone. The only copy of the residual work was in an unlocked worktree with no owner (/var/tmp/crfix2/mut), which the seat locked at 06:20. A book launcher has been waiting on the fix since 05:40. 15:20 11 Nov: Corrected. The fix reached origin as cf399ab43 and cab13bbd18, and the mut worktree was removed clean (f4e1ec977).",
+    "last_at": "2026-11-11T15:20:09.947924+00:00",
+    "first_at": "2026-11-11T06:20:22.549512+00:00",
+    "times_listed": 6,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the book launcher fires on the fix's test file alone, but crfix-land-a split the money_in wiring off to land later",
+    "what": "THE MACHINE'S, NEW. The book launcher fires on the fix's test file alone, but crfix-land-A split the money_in wiring off to land later. The first \"close-refund book\" would therefore run s.8.8d as dead code, and a 0 read on the refund row would not be the fix's doing. 15:20 11 Nov: Corrected. cab13bbd18 carries the run wiring with the engine, and the book running is on 6fe7827ab2, which descends from it.",
+    "last_at": "2026-11-11T15:20:09.947924+00:00",
+    "first_at": "2026-11-11T09:22:42.986419+00:00",
+    "times_listed": 5,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the 14:01 close-refund book died in argparse on an empty imports-off reading, and its grade chain and the cure-row arm died with it (exit 2, 1 and 4)",
+    "what": "THE MACHINE'S, NEW. The 14:01 close-refund book died in argparse on an empty imports-off reading, and its grade chain and the cure-row arm died with it (exit 2, 1 and 4). The launch was not dry-run first.",
+    "last_at": "2026-11-11T15:20:09.947924+00:00",
+    "first_at": "2026-11-11T15:20:09.947924+00:00",
+    "times_listed": 2,
+    "corrected": true,
     "fate": null,
     "status": null,
     "retired": false,
@@ -487,8 +595,8 @@
     "key": "text:a level direct-debit household is dunned bill by bill",
     "what": "THE COMPANY'S, NEW. A level direct-debit household is dunned bill by bill. On fa915ac0d7, the collections journey prints a bill's face as overdue on 1,724 steps across 176 of 454 level-DD households (852 of them while the household is in credit or at zero; GBP 113,865 of excess), and 45 payment records read \"missed DD, no return\". 03:22 11 Nov: Corrected. On the D1 book e1587ec5b, INV_OVERDUE_WITHIN_PAGE_BALANCE reads 0 of 6,385, and its exception is retired (dc3e7dfeb), so a regression now refuses the publish.",
     "last_at": "2026-11-11T03:22:09.504239+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 38,
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
+    "times_listed": 33,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -539,8 +647,8 @@
     "key": "triage:the-billing-ledger-outgrows-githubs-file-limit",
     "what": "THE MACHINE'S, NEW. The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap. [Earlier tails are in decisions.jsonl.] 06:24 10 Nov: Still 91.2 MB on origin. It was drawn last stretch and nothing landed. It is item 4.",
     "last_at": "2026-11-10T06:23:52.584636+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 33,
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
+    "times_listed": 28,
     "corrected": false,
     "fate": "fix",
     "status": "already_fixed",
@@ -552,8 +660,8 @@
     "key": "triage:a-desk-cure-over-a-bill-the-world-still-holds",
     "what": "THE COMPANY'S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 03:20 10 Nov: Graded on book 78f82e4242 (7f69f7882): shape A at 0 level cases above their remainder, as predicted. The cures still held over a leaver's debt are the level-DD cure row's.",
     "last_at": "2026-11-10T03:20:12.810361+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 31,
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
+    "times_listed": 26,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -656,8 +764,8 @@
     "key": "text:closed accounts keep balances years after their last bill",
     "what": "THE COMPANY'S, NEW. Closed accounts keep balances years after their last bill. On af31e73fa7, of 806 accounts with no bill for a year or more, 213 hold a credit (GBP 15,694, with no refund, against GSoP reg 6D) and 208 hold a debt (GBP 21,554), neither collected nor written off on the page. This is the 25 Oct two-books class, recurring. 15:20 9 Nov: Corrected on a book. The row reads 2 on 505df564e3 against 184 (control 131). The two short refunds are under a narrowed exception, with a recheck on 23 Nov (60f8d4b85).",
     "last_at": "2026-11-09T15:20:17.459238+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 23,
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
+    "times_listed": 18,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -812,8 +920,8 @@
     "key": "text:the arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops at a leg's last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7, paid 1-15 days late",
     "what": "THE COMPANY'S, NEW. The arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops at a leg's last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7, paid 1-15 days late. 21:21 8 Nov: Measured in 381c925d2. Running to max(event) over the 83 legs leaves write-offs 280=280 and closing balances 857=857, an equivalence with no wrong figure, and the finding is in done/.",
     "last_at": "2026-11-08T21:21:12.907168+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 11,
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
+    "times_listed": 6,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -825,8 +933,8 @@
     "key": "text:a focus item that is a pure measurement (the arrears walk, item 2 at 09:24) was never drawn in 3h, while the path door annotated it \"nothing to land\"",
     "what": "THE MACHINE'S, NEW. A focus item that is a pure measurement (the arrears walk, item 2 at 09:24) was never drawn in 3h, while the path door annotated it \"nothing to land\". 21:21 8 Nov: It was drawn this stretch and landed (381c925d2). The draw can reach a measurement. Only the binding missed, because the claim was released before the commit.",
     "last_at": "2026-11-08T21:21:12.907168+00:00",
-    "first_at": "2026-11-08T12:21:33.527486+00:00",
-    "times_listed": 8,
+    "first_at": "2026-11-08T15:20:15.026277+00:00",
+    "times_listed": 6,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -859,98 +967,410 @@
     "retired": false,
     "owner": null,
     "reason": null
-   },
-   {
-    "key": "triage:a-triad-settlement-prediction-waits-on-its-book",
-    "what": "THE MACHINE'S, NEW. 26c891276's pre-registration filed \"(2) falls to 0\", and it read 19 settlements (GBP 682.47). The prediction stands beside its refutation in the finding. 09:24 8 Nov: Read on 84f7fc8fe0, the first book carrying 12a470de7 (b16a73340): 0 of 1,426 settlements carry more cash than the engine's walk holds open, as the replacement prediction filed.",
-    "last_at": "2026-11-08T09:24:02.767219+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 3,
-    "corrected": true,
-    "fate": "fix",
-    "status": "open",
-    "retired": false,
-    "owner": "focus item read-the-triad-settlement-count-on-84f7fc8fe0 (background/live_payment_triad.py against docs/reports/run_output_84f7fc8fe0_20261108T021850Z.json, which carries 12a470de7)",
-    "reason": "Triaged 2026-11-08 by the delivery seat. The book that settles it finished at 03:59Z 8 Nov, and the grade continuation that was to read it retired at 04:08Z having read only its level-DD leg. Reading it is one run, so it is focus item 2."
-   },
-   {
-    "key": "text:direct debits are collected with no banking calendar: 10,546 of 36,096 collections (29.2%) fall on a weekend or bank holiday, and a level dd is collected before the supply starts on 336 accounts (af31e73fa7)",
-    "what": "THE COMPANY'S, NEW (N22, N23). Direct debits are collected with no banking calendar: 10,546 of 36,096 collections (29.2%) fall on a weekend or bank holiday, and a level DD is collected before the supply starts on 336 accounts (af31e73fa7). 09:24 8 Nov: Fixed on origin (75f66f652). Re-measured at landing as 11,067 of 36,098 and 336, and both rows now grade and replay to 0.",
-    "last_at": "2026-11-08T09:24:02.767219+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 3,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the grade continuation for the first book after the level-dd fix retired at 04:08 on its level-dd leg alone (no book carried step 2a), and the triad settlement read it also carried was dropped with it, though 84f7fc8fe0 carries 12a470de7",
-    "what": "THE MACHINE'S, NEW. The grade continuation for the first book after the level-DD fix retired at 04:08 on its level-DD leg alone (no book carried step 2a), and the triad settlement read it also carried was dropped with it, though 84f7fc8fe0 carries 12a470de7. A two-leg item retired on one leg. 09:24 8 Nov: The dropped leg was read (b16a73340), and the class is held by the a-continuation-retires-without-its-work-on-origin triage fix.",
-    "last_at": "2026-11-08T09:24:02.767219+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 3,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:a grade hand-off written as \"do not draw until <landing> and <book>\" was drawn at 06:45z with neither condition met, because the draw cannot read \"until\"",
-    "what": "THE MACHINE'S, NEW. A grade hand-off written as \"DO NOT DRAW until <landing> AND <book>\" was drawn at 06:45Z with neither condition met, because the draw cannot read \"until\". 09:24 8 Nov: Fixed on origin (ec8ad6d67): the hand-off now refuses an embargo the draw cannot read.",
-    "last_at": "2026-11-08T09:24:02.767219+00:00",
-    "first_at": "2026-11-08T09:24:02.767219+00:00",
-    "times_listed": 2,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the publisher's own gate cannot grade inv_payment_record_reconciles_to_collections_due (not_in_export), so the level-dd payment-record defect was invisible to it, and its 45-to-0 fix is proven only by a replay",
-    "what": "THE MACHINE'S, NEW. The publisher's own gate cannot grade INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE (NOT_IN_EXPORT), so the level-DD payment-record defect was invisible to it, and its 45-to-0 fix is proven only by a replay. Item 3 makes the row reachable. 06:24 8 Nov: Fixed on origin (386073e96): the row reads 1,139 checked and 0 breached on af31e73fa7, and 45 with fc45c2c45's flag stripped, so the gate now sees the defect.",
-    "last_at": "2026-11-08T06:23:45.265994+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the balance-seeking dd review sizes a step-up partly from a catch-up that a later read bills (simulation/dd_balance_book._true_charges): 8 of 367 prefix months differ, by -gbp 0.67 to +gbp 0.28",
-    "what": "THE COMPANY'S, NEW. The balance-seeking DD review sizes a step-up partly from a catch-up that a later read bills (simulation/dd_balance_book._true_charges): 8 of 367 prefix months differ, by -GBP 0.67 to +GBP 0.28. That is hindsight inside the supplier's own decision. Item 1 fixes it. 06:24 8 Nov: Fixed on origin (ee0982734): on fa915ac0d7, 322 of 31,379 level months had collected an amount sized from a read not yet taken, and now 0.",
-    "last_at": "2026-11-08T06:23:45.265994+00:00",
-    "first_at": "2026-11-08T06:23:45.265994+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
    }
   ],
-  "distinct": 47,
-  "triaged": 8,
+  "distinct": 48,
+  "triaged": 7,
   "triaged_by_fate": {
-   "fix": 7,
+   "fix": 6,
    "fold": 1,
    "accept": 0
   },
-  "untriaged": 39,
-  "distinct_open": 16,
-  "rows": 465,
+  "untriaged": 41,
+  "distinct_open": 17,
+  "rows": 488,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:the account page drops cash the household repaid"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:a guest poweroff leaves its dead jobs listed as live"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": true,
+    "problem": "text:class l's run half refunds past the credit the page prints"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:the launch register records a refused landing as a success"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:the 12:24 direction record never reached origin"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": true,
+    "problem": "text:the live site publishes a supply net margin of up to 54.91% (2023, against a sector ebit in low single digits), and an arrears count (705 of 1,293) on a clock that reads the ebss credit as debt"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:the draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\")"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:the world's housing stock draws 72% of homes as poor insulation, because it reads need's scheme-install flag as the home's insulation"
+   },
+   {
+    "at": "2026-11-11T18:22:57.873945+00:00",
+    "corrected": false,
+    "problem": "text:a gate-permitted book was graded, \"offered\" and its run_complete marker archived to done/ (16:05), and the grade commit (2e401fe1f) set next to none, saying \"the publisher's sweep owns the publish\""
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the account page drops cash the household repaid"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:a guest poweroff leaves its dead jobs listed as live"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:class l's run half refunds past the credit the page prints"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": true,
+    "problem": "text:the close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": true,
+    "problem": "text:the book launcher fires on the fix's test file alone, but crfix-land-a split the money_in wiring off to land later"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the launch register records a refused landing as a success"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the 12:24 direction record never reached origin"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": true,
+    "problem": "text:the 14:01 close-refund book died in argparse on an empty imports-off reading, and its grade chain and the cure-row arm died with it (exit 2, 1 and 4)"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the live site publishes a supply net margin of up to 54.91% (2023, against a sector ebit in low single digits), and an arrears count (705 of 1,293) on a clock that reads the ebss credit as debt"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\")"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the world's housing stock draws 72% of homes as poor insulation, because it reads need's scheme-install flag as the home's insulation"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the account page drops cash the household repaid"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:a guest poweroff leaves its dead jobs listed as live"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:class l's run half refunds past the credit the page prints"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": true,
+    "problem": "text:the close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": true,
+    "problem": "text:the book launcher fires on the fix's test file alone, but crfix-land-a split the money_in wiring off to land later"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the launch register records a refused landing as a success"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the 12:24 direction record never reached origin"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": true,
+    "problem": "text:the 14:01 close-refund book died in argparse on an empty imports-off reading, and its grade chain and the cure-row arm died with it (exit 2, 1 and 4)"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the live site publishes a supply net margin of up to 54.91% (2023, against a sector ebit in low single digits), and an arrears count (705 of 1,293) on a clock that reads the ebss credit as debt"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\")"
+   },
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "corrected": false,
+    "problem": "text:the world's housing stock draws 72% of homes as poor insulation, because it reads need's scheme-install flag as the home's insulation"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the account page drops cash the household repaid"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:a guest poweroff leaves its dead jobs listed as live"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:class l's run half refunds past the credit the page prints"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the book launcher fires on the fix's test file alone, but crfix-land-a split the money_in wiring off to land later"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the launch register records a refused landing as a success"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement p&l and the bill disagree by about gbp 0.47 to 0.60 a day per domestic electricity account"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "triage:a-continuation-retires-without-its-work-on-origin"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the account page drops cash the household repaid"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:a guest poweroff leaves its dead jobs listed as live"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:class l's run half refunds past the credit the page prints"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the close-refund fix was reported as \"being landed\" for three hours, by the last direction and by the 05:30 pre-registration, while nothing was landing"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the book launcher fires on the fix's test file alone, but crfix-land-a split the money_in wiring off to land later"
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "corrected": false,
+    "problem": "text:the launch register records a refused landing as a success"
+   },
    {
     "at": "2026-11-11T09:22:42.986419+00:00",
     "corrected": false,
@@ -3000,284 +3420,17 @@
     "at": "2026-11-08T15:20:15.026277+00:00",
     "corrected": true,
     "problem": "text:the 12:21 record wrote as fact that the closed-account diagnosis was \"in a landing that is running now\" (420 of 421 level-dd legs, home_moves \u00a78.8a, an inv_a_closed_accounts row with evaluator_owed)"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:closed accounts keep balances years after their last bill"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:the arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops at a leg's last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7, paid 1-15 days late"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:a focus item that is a pure measurement (the arrears walk, item 2 at 09:24) was never drawn in 3h, while the path door annotated it \"nothing to land\""
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:closed accounts keep balances years after their last bill"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:the arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops at a leg's last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7, paid 1-15 days late"
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "corrected": false,
-    "problem": "text:a focus item that is a pure measurement (the arrears walk, item 2 at 09:24) was never drawn in 3h, while the path door annotated it \"nothing to land\""
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "triage:a-triad-settlement-prediction-waits-on-its-book"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "text:direct debits are collected with no banking calendar: 10,546 of 36,096 collections (29.2%) fall on a weekend or bank holiday, and a level dd is collected before the supply starts on 336 accounts (af31e73fa7)"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "text:the grade continuation for the first book after the level-dd fix retired at 04:08 on its level-dd leg alone (no book carried step 2a), and the triad settlement read it also carried was dropped with it, though 84f7fc8fe0 carries 12a470de7"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "text:a grade hand-off written as \"do not draw until <landing> and <book>\" was drawn at 06:45z with neither condition met, because the draw cannot read \"until\""
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "text:closed accounts keep balances years after their last bill"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "text:the arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops at a leg's last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7, paid 1-15 days late"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "triage:a-triad-settlement-prediction-waits-on-its-book"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "text:direct debits are collected with no banking calendar: 10,546 of 36,096 collections (29.2%) fall on a weekend or bank holiday, and a level dd is collected before the supply starts on 336 accounts (af31e73fa7)"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "text:the grade continuation for the first book after the level-dd fix retired at 04:08 on its level-dd leg alone (no book carried step 2a), and the triad settlement read it also carried was dropped with it, though 84f7fc8fe0 carries 12a470de7"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": true,
-    "problem": "text:a grade hand-off written as \"do not draw until <landing> and <book>\" was drawn at 06:45z with neither condition met, because the draw cannot read \"until\""
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "text:closed accounts keep balances years after their last bill"
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "corrected": false,
-    "problem": "text:the arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops at a leg's last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7, paid 1-15 days late"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "triage:a-triad-settlement-prediction-waits-on-its-book"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": true,
-    "problem": "text:the publisher's own gate cannot grade inv_payment_record_reconciles_to_collections_due (not_in_export), so the level-dd payment-record defect was invisible to it, and its 45-to-0 fix is proven only by a replay"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "text:direct debits are collected with no banking calendar: 10,546 of 36,096 collections (29.2%) fall on a weekend or bank holiday, and a level dd is collected before the supply starts on 336 accounts (af31e73fa7)"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": true,
-    "problem": "text:the balance-seeking dd review sizes a step-up partly from a catch-up that a later read bills (simulation/dd_balance_book._true_charges): 8 of 367 prefix months differ, by -gbp 0.67 to +gbp 0.28"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "text:the grade continuation for the first book after the level-dd fix retired at 04:08 on its level-dd leg alone (no book carried step 2a), and the triad settlement read it also carried was dropped with it, though 84f7fc8fe0 carries 12a470de7"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "text:closed accounts keep balances years after their last bill"
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "corrected": false,
-    "problem": "text:the arrears walk (simulation/arrears_engine.balance_settlement_from_outcomes) stops at a leg's last due date, so a later payment never enters it: 84 standard-credit final-bill payments on af31e73fa7, paid 1-15 days late"
    }
   ],
   "refused_own_records": [
+   {
+    "at": "2026-11-11T15:20:09.947924+00:00",
+    "problems": []
+   },
+   {
+    "at": "2026-11-11T12:24:44.238648+00:00",
+    "problems": []
+   },
    {
     "at": "2026-11-11T03:22:09.504239+00:00",
     "problems": []
@@ -3341,198 +3494,190 @@
    {
     "at": "2026-11-08T15:20:15.026277+00:00",
     "problems": []
-   },
-   {
-    "at": "2026-11-08T12:21:33.527486+00:00",
-    "problems": []
-   },
-   {
-    "at": "2026-11-08T09:24:02.767219+00:00",
-    "problems": []
-   },
-   {
-    "at": "2026-11-08T06:23:45.265994+00:00",
-    "problems": []
    }
   ],
-  "outstanding": 407,
-  "corrected": 58,
+  "outstanding": 432,
+  "corrected": 56,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-close-refund-fix-and-its-run-wiring-reach-origin",
-   "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
-   "the-level-dd-area-is-mapped-before-another-fix",
-   "W3_3_the_network_charge_splits_per_unit_and_per_day"
+   "the-gate-permitted-6fe7827ab2-book-is-actually-published",
+   "n29-closing-dual-fuel-set-off",
+   "the-seats-direction-record-reaches-origin-again",
+   "n28-narrated-facts-the-data-contradict"
   ],
   "steer_checks": [
    {
     "by_class": {
      "lane_0": {
       "drawn": [
-       "a-close-refund-waits-for-the-money-it-pays-out"
-      ],
-      "focus": [
-       "the-close-refund-fix-reaches-origin",
-       "a-close-refund-waits-for-the-money-it-pays-out",
-       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "a-close-refund-waits-for-the-money-it-pays-out"
-    ],
-    "focus": [
-     "the-close-refund-fix-reaches-origin",
-     "a-close-refund-waits-for-the-money-it-pays-out",
-     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-11T06:20:22.549512+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-11T06:20:22.549512+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "a-close-refund-waits-for-the-money-it-pays-out",
        "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
-       "the-slack-domain-invariant-ceilings-are-retired-or-rebased",
-       "the-first-baseline-comparison-is-pre-registered-before-a-book-passes"
+       "the-published-net-margin-and-arrears-count-are-defined-or-withheld-before-the-book-publishes"
       ],
       "focus": [
-       "a-close-refund-waits-for-the-money-it-pays-out",
        "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
-       "the-slack-domain-invariant-ceilings-are-retired-or-rebased",
-       "the-first-baseline-comparison-is-pre-registered-before-a-book-passes"
+       "the-published-net-margin-and-arrears-count-are-defined-or-withheld-before-the-book-publishes",
+       "the-seats-direction-record-reaches-origin-again"
       ],
       "steered": true
      }
     },
     "drawn": [
-     "a-close-refund-waits-for-the-money-it-pays-out",
      "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
-     "the-slack-domain-invariant-ceilings-are-retired-or-rebased",
-     "the-first-baseline-comparison-is-pre-registered-before-a-book-passes"
+     "the-published-net-margin-and-arrears-count-are-defined-or-withheld-before-the-book-publishes"
     ],
     "focus": [
-     "a-close-refund-waits-for-the-money-it-pays-out",
      "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
-     "the-slack-domain-invariant-ceilings-are-retired-or-rebased",
-     "the-first-baseline-comparison-is-pre-registered-before-a-book-passes"
+     "the-published-net-margin-and-arrears-count-are-defined-or-withheld-before-the-book-publishes",
+     "the-seats-direction-record-reaches-origin-again"
     ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-11T03:22:09.504239+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-11T15:20:09.947924+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-11T03:22:09.504239+00:00"
+    "window": "this stretch only -- the 3.0h since 2026-11-11T15:20:09.947924+00:00"
    },
    {
     "by_class": {
      "lane_0": {
       "drawn": [
-       "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-       "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-       "class-l-over-refunds-six-legs-past-the-page-credit",
-       "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
       ],
       "focus": [
-       "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-       "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-       "class-l-over-refunds-six-legs-past-the-page-credit",
-       "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
       ],
       "steered": true
      }
     },
     "drawn": [
-     "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-     "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-     "class-l-over-refunds-six-legs-past-the-page-credit",
-     "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix"
     ],
     "focus": [
-     "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-     "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-     "class-l-over-refunds-six-legs-past-the-page-credit",
-     "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix"
     ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-11T00:21:33.255852+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.9h since 2026-11-11T12:24:44.238648+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-11T00:21:33.255852+00:00"
+    "window": "this stretch only -- the 2.9h since 2026-11-11T12:24:44.238648+00:00"
    },
    {
     "by_class": {
      "lane_0": {
       "drawn": [
-       "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-       "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-       "class-l-over-refunds-six-legs-past-the-page-credit",
-       "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
       ],
       "focus": [
-       "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-       "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-       "class-l-over-refunds-six-legs-past-the-page-credit",
-       "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
       ],
       "steered": true
      }
     },
     "drawn": [
-     "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-     "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-     "class-l-over-refunds-six-legs-past-the-page-credit",
-     "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix"
     ],
     "focus": [
-     "a-credit-bill-meets-the-scheme-debit-before-the-next-bill",
-     "the-first-book-carrying-d1-is-run-graded-and-offered-to-the-publisher",
-     "class-l-over-refunds-six-legs-past-the-page-credit",
-     "a-refund-never-exceeds-the-credit-the-page-shows-written-blind"
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix"
     ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-11T00:21:33.255852+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 2.9h since 2026-11-11T12:24:44.238648+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-11T00:21:33.255852+00:00"
+    "window": "this stretch only -- the 2.9h since 2026-11-11T12:24:44.238648+00:00"
    },
    {
     "by_class": {
-     "lane_0": {
+     "atom": {
       "drawn": [
-       "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
-       "syn-2016-549-page-balance-breach-is-named-and-fixed",
-       "the-seats-direction-record-reaches-origin-again",
-       "off-box-liveness-workflow",
-       "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+       "W3_3_the_network_charge_splits_per_unit_and_per_day"
       ],
       "focus": [
-       "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
-       "syn-2016-549-page-balance-breach-is-named-and-fixed",
-       "the-seats-direction-record-reaches-origin-again",
-       "off-box-liveness-workflow",
-       "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+       "W3_3_the_network_charge_splits_per_unit_and_per_day"
+      ],
+      "steered": true
+     },
+     "lane_0": {
+      "drawn": [
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
+      ],
+      "focus": [
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
       ],
       "steered": true
      }
     },
     "drawn": [
-     "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
-     "syn-2016-549-page-balance-breach-is-named-and-fixed",
-     "the-seats-direction-record-reaches-origin-again",
-     "off-box-liveness-workflow",
-     "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix",
+     "W3_3_the_network_charge_splits_per_unit_and_per_day"
     ],
     "focus": [
-     "the-books-killed-by-the-10-nov-poweroff-are-relaunched-and-graded",
-     "syn-2016-549-page-balance-breach-is-named-and-fixed",
-     "the-seats-direction-record-reaches-origin-again",
-     "off-box-liveness-workflow",
-     "the-learning-loop-starts-on-the-level-dd-prediction-misses"
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix",
+     "W3_3_the_network_charge_splits_per_unit_and_per_day"
     ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 5.8h since 2026-11-10T18:35:54.288304+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-11T09:22:42.986419+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
-    "window": "this stretch only -- the 5.8h since 2026-11-10T18:35:54.288304+00:00"
+    "window": "this stretch only -- the 3.0h since 2026-11-11T09:22:42.986419+00:00"
+   },
+   {
+    "by_class": {
+     "atom": {
+      "drawn": [
+       "W3_3_the_network_charge_splits_per_unit_and_per_day"
+      ],
+      "focus": [
+       "W3_3_the_network_charge_splits_per_unit_and_per_day"
+      ],
+      "steered": true
+     },
+     "lane_0": {
+      "drawn": [
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
+      ],
+      "focus": [
+       "the-close-refund-fix-and-its-run-wiring-reach-origin",
+       "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+       "the-level-dd-area-is-mapped-before-another-fix"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix",
+     "W3_3_the_network_charge_splits_per_unit_and_per_day"
+    ],
+    "focus": [
+     "the-close-refund-fix-and-its-run-wiring-reach-origin",
+     "the-first-book-carrying-the-close-refund-fix-is-run-and-graded-through-the-publishers-gate",
+     "the-level-dd-area-is-mapped-before-another-fix",
+     "W3_3_the_network_charge_splits_per_unit_and_per_day"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-11T09:22:42.986419+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-11T09:22:42.986419+00:00"
    }
   ],
   "steered_recently": true,
@@ -3540,14 +3685,14 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 40,
-  "chained": 40,
-  "minted": 2,
-  "unminted": 38,
+  "population": 45,
+  "chained": 45,
+  "minted": 5,
+  "unminted": 40,
   "unminted_by_kind": {
    "alarm": 20,
    "directive": 1,
-   "finding": 15,
+   "finding": 17,
    "reference": 2
   },
   "unresolved": [],
@@ -3559,6 +3704,8 @@
   ],
   "lane_contradicted": [],
   "by_epoch": {
+   "2": 2,
+   "3": 1,
    "4": 2
   },
   "unchained": [],
@@ -3568,8 +3715,11 @@
    "last_read": "2026-10-04",
    "read": 0,
    "not_yet_read": [
+    "SEAT_FINDING_A_CLOSING_DUAL_FUEL_HOUSEHOLD_IS_REFUNDED_ON_ONE_FUEL_WHILE_IT_OWES_ON_THE_OTHER_2026-11-11.md",
     "SEAT_FINDING_RENEWALS_SIT_AT_THEIR_COST_FLOOR_BECAUSE_THE_FLOOR_CARRIES_THE_STANDING_CHARGES_NETWORK_AND_THE_PREMIUM_READS_THE_STANDING_CHARGE_AS_MARGIN_2026-10-14.md",
-    "SEAT_FINDING_W3_3_IS_HELD_ON_A_PUSHED_BRANCH_UNTIL_THE_FIRST_GATE_PASSING_BOOK_IS_GRADED_2026-11-09.md"
+    "SEAT_FINDING_W3_3_IS_HELD_ON_A_PUSHED_BRANCH_UNTIL_THE_FIRST_GATE_PASSING_BOOK_IS_GRADED_2026-11-09.md",
+    "WORKER_FINDING_THE_EXPERT_HOUR_ON_THE_LIVE_DOORS_FAILS_ON_A_NET_MARGIN_OF_UP_TO_55_PCT_AND_AN_ARREARS_COUNT_THAT_READS_EBSS_AS_DEBT_2026-11-11.md",
+    "WORKER_FINDING_THE_WORLDS_STOCK_READS_A_SCHEME_INSTALL_FLAG_AS_THE_HOMES_INSULATION_SO_72_PERCENT_ARE_POOR_2026-11-11.md"
    ],
    "questioned": [],
    "settled": []
@@ -3644,11 +3794,11 @@
     },
     {
      "date": "2026-11-11",
-     "commit": "04a3323d1",
-     "population": 164,
-     "chained": 164,
+     "commit": "318d97fb7",
+     "population": 165,
+     "chained": 165,
      "minted": 74,
-     "unminted": 90,
+     "unminted": 91,
      "unread": 72
     }
    ]
