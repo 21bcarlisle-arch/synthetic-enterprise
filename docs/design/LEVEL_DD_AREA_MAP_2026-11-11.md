@@ -642,3 +642,37 @@ named there plus SYN-2016-217g) and **6 months with no bill row**. The finding c
 Graded: level-dd held=2 missed=1 code=0 reader=1 regressed=0 width=1.0
 
 NEXT: kind-3 credit months: let `world_payment_truth.repayment_rows` count a credit-bill month whose level collection was returned, then grade SYN-2016-217's 3 holds and the 6 credit-month settlements
+
+### 9.5 Kind 3 credit months reach the engine (seat, 12 Nov 2026)
+
+`simulation/world_payment_truth.repayment_rows` now counts a credit-bill month as issued, so it knows the month's
+commodity. Its negative face stays out of `amount_by_month`: a plan instalment is a share of what was asked, and a
+settlement carries its own cash. Baseline is s.9.4's ledger (`/var/tmp/t5h/fix2.json`). The fix ledger is
+`/var/tmp/k3c/fix.json`, from the same 6fe7827ab2 run. Pre-registered in `/var/tmp/k3c/PREDICTION.txt` before the
+change was run.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| P1/P3 settlements reaching the page; legs moved | the 6 credit months; those 6 legs | **6 legs**, exactly the 6 | held |
+| P2 page money-in | +446.13 | 94,633.76 → **95,079.89** (+446.13) | held |
+| P4 cure holds | 4 → 1, SYN-2016-217's 3 leave, -142g stays | **4 → 1** (cured 807) | held |
+| P5 records changed | ≤ 12 | **6** | held |
+
+**Not predicted.** Every changed balance moves by exactly its settlement's cash. SYN-2016-217g's case on bill 33999
+falls 23.98 → 1.98. Three SYN-2016-256g bills move `paid_late` → `settled_by_credit` (its 46.00 now meets them). Two
+leavers, PROS-2019-0318 and SYN-2016-047, close on the rebuilt page holding 65.17 and 106.30 of credit. That is an
+artefact of the rebuild. The refund log comes from the old run, and the engine's closing balance on this code is
+-176.50 (111.33 + 65.17) and -417.44 (311.14 + 106.30), with `money_in` on the settlement day. So a fresh run refunds
+the credit (`/var/tmp/k3c/closing.py`).
+
+**Still open.** All 6 settle a month whose bill the company owed the household. On SYN-2016-217g and -256g a returned
+level collection explains the cash. On the other 4 nothing yet does: SYN-2016-215 paid 156.87 against a -56.37 credit. The cash crossed and the desk counted it, so the page must carry it
+(F11). Whether the world should send it at all is the shortfall finding's item 2, untraced. The 6 no-bill-row
+settlements (GBP 583.78) are still dropped.
+
+Test: `tests/simulation/test_a_settlement_of_a_credit_month_reaches_the_engine.py`. Three mutations kill it: the
+old guard, the credit face added to the asked amounts, and a guard that passes every settlement.
+
+Graded: level-dd held=4 missed=0 code=0 reader=0 regressed=0 width=1.0
+
+NEXT: SYN-2016-142g, the walk's draw of level surplus credit against a paid bill (s.9.4, the last hold)

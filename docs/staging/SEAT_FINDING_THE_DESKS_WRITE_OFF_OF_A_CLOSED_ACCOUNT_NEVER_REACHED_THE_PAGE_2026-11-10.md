@@ -461,6 +461,9 @@ for a bill the supplier never issued". It counts a month as issued only if the l
   returned (`outcome: credit`, `collection_result: failed`); SYN-2016-217g's is GBP 22.00 for 2022-03 (bill -6.68),
   crossed 15 May 2022. Re-measured on the same run: 6 credit months, 6 with no bill row. The desk counted 217g's
   cash, and that GBP 22.00 is all three of SYN-2016-217's remaining cure holds.
+  **Built 12 Nov 2026 (LEVEL_DD map s.9.5):** `repayment_rows` now counts a credit-bill month as issued. The 6
+  credit-month settlements (GBP 446.13) reach the page, and SYN-2016-217's 3 holds leave. The 6 no-bill-row months
+  (GBP 583.78) are still dropped.
 
 This answers the open line above: **PROS-2019-0318's 22 Nov 2022 settlement (GBP 65.17) does not reach the page.**
 It settles month 2022-07, whose bill is the −10.02 credit, while the returned collection belongs to another month.

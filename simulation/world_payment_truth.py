@@ -149,15 +149,22 @@ def build(triad, through: dt.date) -> dict[str, dict]:
 
 def repayment_rows(truth: dict, cid: str, bill_rows: list[dict]) -> list[dict]:
     """The leg's repayments as engine rows (`outcome: "repayment"`): a settlement at the cash that
-    crossed, a plan instalment at its share of the issued amounts of the bills it covers. A repayment for a bill the supplier never issued is dropped.
+    crossed, a plan instalment at its share of the issued amounts of the bills it covers. A repayment for a bill the supplier never issued is dropped;
+    a credit bill counts as issued.
     A settlement carries `settles_month`, so the engine can price it at what is left on that bill."""
     amount_by_month: dict[str, float] = {}
     commodity_by_month: dict[str, str] = {}
     for b in bill_rows:
+        m = b["period_end"][:7]
         if b["outcome"] in ("failed", "dispute", "success"):
-            m = b["period_end"][:7]
             amount_by_month[m] = amount_by_month.get(m, 0.0) + b["amount_gbp"]
             commodity_by_month[m] = b["commodity"]
+        elif b["outcome"] == "credit":
+            # A credit bill was issued too. Its level collection can still be returned, and the
+            # household then settles the month in cash (SYN-2016-217g's GBP 22.00 of 15 May 2022 for
+            # a -6.68 bill), which the desk counts. Its face stays out of `amount_by_month`: a
+            # negative face would shrink a plan instalment, and a settlement carries its own cash.
+            commodity_by_month.setdefault(m, b["commodity"])
     rows = []
     for rp in truth.get("repayments", ()):
         if rp["kind"] == "settlement":
