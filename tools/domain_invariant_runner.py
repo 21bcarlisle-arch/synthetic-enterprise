@@ -1887,6 +1887,66 @@ def ev_refund_within_page_credit(inv, book):
     return tally
 
 
+
+def _household_legs(book) -> dict:
+    """household -> its fuel legs that print a page. The page names the household
+    (`base_account_id`, printed as `household`); a book read with the export also carries the
+    billing account, and a leg naming neither is its own household."""
+    out = defaultdict(list)
+    for a in book:
+        if a.printed is not None:
+            out[a.printed.get("household") or a.billing_account or a.cid].append(a)
+    return out
+
+
+def ev_closing_refund_within_household_credit(inv, book):
+    """A refund on one fuel leg pays at most the household's credit across its closing fuel legs on
+    the refund day (home_moves.md §8.8e choices 21-24): this leg's credit before the refund less
+    what the household's other closing legs owe at the end of that day, floored at nil.
+
+    This leg's credit is the lesser of the balance printed immediately before the refund and its
+    end-of-day balance with the day's refunds from this line on taken back out, so a set-off or
+    charge printed after the refund the same day still counts against it and a payment printed
+    after it does not raise it. The other leg's debt is its end-of-day balance, so the set-off
+    choice 23 posts on both legs on the refund day is counted once, whichever order the legs print
+    it. A leg in credit lends nothing to this one. An other leg still on supply on the refund day
+    (no final bill on or before it, or a bill raised after it) is not set against (choice 24): the
+    refund line is counted unbounded, never clean."""
+    tally = Tally("refund line on a fuel leg whose household prints another fuel leg")
+    for legs in _household_legs(book).values():
+        if len(legs) < 2:
+            continue
+        ledgers = {a.cid: sorted((e for e in a.printed.get("page_ledger") or () if e.get("date")),
+                                 key=lambda e: e["date"]) for a in legs}
+        for a in legs:
+            entries = ledgers[a.cid]
+            for i, e in enumerate(entries):
+                if e.get("type") != REFUND_LEDGER_TYPE:
+                    continue
+                on, refunded = e["date"], round(float(e.get("amount_gbp") or 0.0), 2)
+                where = "{} refund on {}".format(a.cid, on)
+                others = [o for o in legs if o is not a]
+                closing = [o for o in others
+                           if any(f <= on for f in o.printed.get("final_bills") or ())
+                           and not any(x.get("type") == "invoice_raised" and x["date"] > on
+                                       for x in ledgers[o.cid])]
+                if len(closing) < len(others):
+                    tally.band(where, refunded, None, None)
+                    continue
+                if e.get("running_balance_gbp") is None:
+                    tally.band(where, None, None, 0.0)
+                    continue
+                before = float(e["running_balance_gbp"]) - refunded
+                later = [x for x in entries[i:] if x["date"] == on]
+                end_of_day = next((float(x["running_balance_gbp"]) for x in reversed(later)
+                                   if x.get("running_balance_gbp") is not None), before + refunded)
+                day_refunds = sum(float(x.get("amount_gbp") or 0.0) for x in later
+                                  if x.get("type") == REFUND_LEDGER_TYPE)
+                credit = max(0.0, min(-before, -(end_of_day - day_refunds)))
+                owed = sum(max(0.0, _balance_at(ledgers[o.cid], on)) for o in closing)
+                tally.band(where, refunded, None, round(max(0.0, credit - owed), 2), tol_abs=0.005)
+    return tally
+
 def _years_before(d: date, n: int) -> date:
     try:
         return d.replace(year=d.year - n)
@@ -3257,6 +3317,8 @@ EVALUATORS = {
     "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": (ev_payment_record, "payment_record"),
     "INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO": (ev_closed_account_balance, "final_bills"),
     "INV_REFUND_WITHIN_THE_PAGE_CREDIT": (ev_refund_within_page_credit, "page_ledger"),
+    "INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT": (
+        ev_closing_refund_within_household_credit, "page_ledger"),
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": (ev_carbon_matches_usage, "carbon_years"),
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": (ev_smart_billed_on_reads, "meter_type"),
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": (ev_meter_type_one_value, "panel_meters"),

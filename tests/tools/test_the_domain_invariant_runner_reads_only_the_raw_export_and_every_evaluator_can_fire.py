@@ -85,6 +85,7 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": "reads the printed page; every leg tested on its own below",
     "INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO": "reads the printed page; every leg tested in tests/tools/test_a_closed_accounts_balance_reaches_zero.py",
     "INV_REFUND_WITHIN_THE_PAGE_CREDIT": "reads the printed page; every leg tested in tests/tools/test_a_refund_never_exceeds_the_credit_the_page_shows.py",
+    "INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT": "reads two fuel legs' printed pages; every leg tested in tests/tools/test_a_closing_refund_is_within_the_household_credit.py",
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": "reads the printed page; every leg tested on its own below",
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": "reads the printed page; every leg tested on its own below",
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": "reads the printed page; every leg tested on its own below",

@@ -255,3 +255,20 @@ exceptions:
       the gas half of W2_30 (a fitted seasonal split for the premises now refused it, or a hot-water term that moves
       year to year), graded on a fresh run. If neither has landed by recheck_by, re-grade the newest book and re-file.
     max_breached: 1
+  - invariant: INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT
+    scope: >-
+      Closing refunds on a dual-fuel household's leg while its other fuel closes owing: 60 of the 149 graded on the
+      6fe7827ab2 book (N29), every one at closure, 41 of them before 22 Jan 2021.
+    reason: >-
+      Not explained: it is the open N29 defect, filed so the row can land red without stopping the weekly publish.
+      The close refund reads each fuel alone (home_moves.md s.8.8e). The set-off build in hand, replayed over the
+      6fe7827ab2 run JSON, takes the row from 60 to 31. Every one of the 31 is a household whose page balance on
+      the other leg differs from the world's closing balance on it. The build also pushes 4 debt-leg case write-offs
+      past the page's balance, because it posts the set-off beside the case instead of netting the case.
+      docs/staging/records/SEAT_RESULT_THE_CLOSING_DUAL_FUEL_SET_OFF_REPLAYED_OVER_6FE7827AB2_2026-11-12.md.
+    filed: 2026-11-12
+    recheck_by: 2026-11-19
+    retired_by: >-
+      the N29 set-off build, netted into the debt leg's own walk so its case and its write-off fall with it, graded on
+      a fresh run. If it has not landed by recheck_by, re-grade the newest book and re-file with the newest count.
+    max_breached: 60
