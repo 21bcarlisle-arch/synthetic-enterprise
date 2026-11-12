@@ -601,6 +601,9 @@ cause is untraced.
 696 → 751. The 16 own-late that remain are all closed by an on-day case stage or catch-up row on ANOTHER cash
 day: one leg settling twice, where the walk gave one day's cash to the other. That is the walk's assignment
 problem, not a dating problem.
+*(Corrected 12 Nov, s.9.7: it was not the walk. All 16 were on SYN-2016-217g (11) and -256g (5), the two
+credit-month legs whose settlement the seam dropped. The reader counted the dropped cash in the world's running
+total, so every later settlement on those legs read late. When s.9.5 let that cash through, they fell 16 → 0.)*
 
 `tests/simulation/test_a_collections_journey_opens_on_the_bill_the_ledger_made_due.py` fails on clean HEAD
 (3 stray journey openings in 2016), with or without this fix.
@@ -709,3 +712,62 @@ Two mutations kill it: removing the final-bill filter, and a filter that matches
 Graded: level-dd held=4 missed=1 code=0 reader=0 regressed=0 width=1.0
 
 NEXT: none -- the level-dd cure row reads 0 holds; the final-bill netting against the world's face collection is the filed finding's, a payment-truth change
+
+### 9.7 Repayment-posting graded at origin, and each shape left traced to a line (seat, 12 Nov 2026)
+
+**Why.** Repayment-posting's last grade is s.9's (held 3, missed 5). Fix 1, fix 1b, fix 2, the credit-month seam
+fix (s.9.5) and the final-bill netting (s.9.6) have all landed on its paths since. Design only: nothing is built
+here. **Book:** run 6fe7827ab2 (`07111cd8b4:docs/reports/run_output_latest.json.gz`). **Ledger:** rebuilt with
+origin/main 1c66aceab6's code (`/var/tmp/rpg/ledger.json`). **Readers:** `/var/tmp/rda/shapes.py` (the blind row,
+using the cumulative rule), `/var/tmp/repay-truth/desk.py` and `/var/tmp/desk29/s/{trace,classify,resid}.py`
+(desk-written-off accounts), plus the engine probes in this section. Pre-registered in `/var/tmp/rpg/PREDICTION.txt`
+before the ledger was built.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| R0 the ledger reproduces s.9.6's | 0 records differ | **0 of 1,302** | held |
+| R1 settlements the seam drops (`world_payment_truth.repayment_rows`) | 12 → 6, GBP 583.78, all on months with no bill row | **6, GBP 583.78**, all six | held |
+| R2 blind row `INV_A_REPAYMENT_IS_ON_THE_PAGE_BY_ITS_OWN_DAY`: own-late | 16 → 14 to 18 | **0** | **missed** (reader, below) |
+| R2 inherited-late | 0 to 2 | 0 | held |
+| R2 never on the page by the book date | the 6 dropped (5 to 7) | **6**, exactly the dropped | held |
+| R3 off-day N rows; stages dated after their cash day | 0; 0 | 0; 0 | held |
+| R4 own-late closed on another cash day of the same leg | ≥ 12 | **0** | **missed** (reader, the same cause as R2) |
+| R5 desk-written-off accounts still printing owed (was 37, GBP 2,281.34 on 78f82e4242) | 12 to 24, GBP 300 to 1,200 | **28, GBP 1,130.68** | count **missed** (code), amount held |
+| R5 classes: R (a refund the desk never sees) the majority; L 0 to 3 | | R on **18**; L on **0** | held |
+| R6 the dropped legs among the owing accounts | 0 to 3 | 0 | held |
+
+**The R2/R4 miss.** s.9.3 said the 16 own-late left after fix 2 were the walk's assignment problem. I copied
+that into the prediction. Running the same reader on each intermediate ledger shows that fix 1b, fix 2 and the
+reader fix (s.9.4) all read 16, and that s.9.5's seam fix took them to **0**. All 16 sat on SYN-2016-217g (11)
+and -256g (5). The blind row's own definition leaves out "settlements the seam drops". `shapes.py` did not, so
+the 22.00 and 46.00 that the seam dropped stayed in each leg's cumulative world cash, and every later settlement
+on those legs read late. That is the reader, not the walk. It is corrected beside s.9.3. The blind row now reads
+**0 late** except the 6 the seam drops. Dating and assignment are clean on this book.
+
+**What is left: three shapes, each traced to one account and one line.**
+
+| Shape | Size | Traced on | Writer line | Side | Who is right |
+|---|---|---|---|---|---|
+| **F. A leaver's final bill is netted on the page and collected at face by the world** | 25 nettings on 24 of the 28 owing accounts, **GBP 633.16**. This is the whole desk-below-page residual, to the penny. **All 25 are on a leaver's final bill.** 19 (GBP 317.61) draw the level surplus (the s.9.6 branch). **6 (GBP 315.55, on 5 accounts) draw credit-bill credit** | SYN-2016-225: the final bill 34430 (159.55, Sep 2018). The walk netted two credit-bill credits against it, 96.52 (2017-10) and 62.68 (2018-07), so the page prints 0.35 cash and still owes 159.20 after marking it `paid`. The world's month 2018-09 is `success`, and the DD book took **159.55** on 31 Oct 2018. The desk's write-off (510.78, `company/billing/collections_journey.py:640`, `closed_balance_due_for_write_off` on the company's own ledger) is the page's 669.98 less exactly that 159.20 | `simulation/arrears_engine.balance_settlement_from_outcomes`. The level-surplus nettings come from the leaver branch (`:1391-1420`). The credit-bill nettings come from the paid-bill draw (`:1330-1341`, "the bill asks for what is owed", SLC 31H.12). The world collects the final month at its face (`background/live_payment_triad`, `final_month`) | world/tools | the desk, on the cash that crossed |
+| **R. One leg's credit is refunded while the account's other leg owes** | 18 accounts, **GBP 497.52**. Every one is per-leg. The stale part is 0 on this book, as the class-R note predicted | SYN-2016-037g: 73.20 refunded at close while the electricity leg owes | `simulation/credit_refund_events.py`, which runs after the run, so the desk never sees it | world/tools | neither yet: SLC 27.16 treats the account as one balance. This is N29's subject (claim `the-n29-netted-set-off-reaches-origin-from-its-salvage`), so it is not this item's |
+| **S. A settlement for a month before the supplier's first issued bill** | the 6 dropped, **GBP 583.78**, all on occupier legs | OCC-c2c2a33d47d7: the world's records start at 2020-04 and the level schedule at 358.47. The world recorded May as `failed` and a settlement of 358.47 on 4 Jun 2020. The supplier's first issued bill is 2020-07. The same holds on all 6: the world's month is 1 to 3 months before the first issued bill | the seam (`world_payment_truth.repayment_rows`) refuses it correctly: there is no bill to settle. The world presents and records on its own bill rows (`background/live_payment_triad.record_period`, `:1261`), not the issued ones. I have not traced which input sets its first month | world | the company side: a supplier cannot be paid for a bill it did not issue. The world should not present that collection |
+
+R and F overlap on 14 accounts: 18 + 24 − 28. GBP 497.52 + 633.16 = 1,130.68, so no account is unexplained. 37 →
+28 is not a fix count: 37 was on book 78f82e4242, and this is a later run.
+
+**What the F census changes for the claim that holds the fix.** `level-dd-final-bill-world-nets-level-surplus`
+makes the world net a level leaver's surplus on its final bill. On this book that clears 19 of the 25 nettings. The
+other 6, GBP 315.55 on 5 accounts (SYN-2016-037, -225 twice, -333, -444, -482), are **credit-bill credit** that
+the page nets on the same final bill. The world collected them at face too. A world fix that nets only the level
+surplus leaves those 5 accounts printing owed after the desk wrote them off. **GAP:** the DD book
+(`dd_collection_book.attempts`) records credit bills as negative collections (255 of them, GBP -17,497.90). It
+also records level months at the bill's face where `level_dd_collections` has the level amount (SYN-2016-225,
+Oct 2017: 128.33 against 108.00). So it is not a clean witness for whether a credit bill's credit was paid out or
+left waiting. Its final-bill rows agree with the world's outcome, and that is all this section relies on.
+
+**Not on the list.** The 4 cure holds that s.9.4 handed to repayment-posting have left (s.9.5, s.9.6). The cure
+row reads 0.
+
+Graded: repayment-posting held=8 missed=3 code=1 reader=2 regressed=0 width=0.5
+
+NEXT: the final bill nets every waiting credit in the world as on the page, the credit-bill credit as well as the level surplus (24 accounts, GBP 633.16), under the claim already holding it, `level-dd-final-bill-world-nets-level-surplus`
