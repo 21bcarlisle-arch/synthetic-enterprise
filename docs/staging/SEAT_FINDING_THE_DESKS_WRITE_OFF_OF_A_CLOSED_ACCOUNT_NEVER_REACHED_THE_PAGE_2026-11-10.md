@@ -398,3 +398,79 @@ gives it `method = "scheme_credit"`, and the level collection is taken only for 
 65.17) was returned, so nothing posts. Whether its 22 Nov 2022 settlement reaches the page is not yet established. Detail and next item:
 `SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md`.
 SYN-2016-549's 22 page-balance breaches are **not** class L: the control regenerated at d867f5a98e still grades 22.
+
+## The repayment shortfall read on its own, on the published 6fe7827ab2 book (2026-11-12, item `the-repayment-shortfall-is-read-on-its-own-on-the-published-book`)
+
+**Read, not fixed.** Published ledger `e816040ce8:docs/state/billing_ledger.json.gz`, run output
+`07111cd8b4:docs/reports/run_output_latest.json.gz` (book 6fe7827ab2, as of 2025-07-04). Both c5d99ba357 (the page
+posts every repayment's cash) and ccdfb652d (a stage dated the day its cash arrived) are in the code that wrote it.
+**Unit:** one settlement in `per_customer_behavioral[*].world_payment_truth.repayments`, dated on or before the book
+date. 1,423 of them, GBP 95,163.69. All 1,423 are of kind `settlement`. **Page:** the money-in rows the page prints
+for repayments, ARREARS_REPAID stages plus `payments[*].repayments`. 2,308 rows, GBP 94,133.78. Readers:
+`/var/tmp/rsf6/read.py` (each settlement matched to page rows, one entry before parts), `cum.py` and `own.py`
+(on time or late by cumulative cash per leg, so the reading does not depend on how the page splits its rows).
+
+**Pre-registered** at `/var/tmp/rsf6/PREDICTION.txt`, before any figure on this ledger was read. Graded:
+
+| Row | Predicted | Read | Verdict |
+|---|---|---|---|
+| S0 legs where the page posts less than the cash (the 249/194 measure) | 0 to 10, under GBP 500 | **12, GBP 1,029.91** | **missed** |
+| S0 legs where the page posts more | 0 to 10 | 0 | held |
+| S1 posted on the cash day as one entry | 60% to 90% | **40.2%** (572, GBP 38,674.97); plus 16 matched to an earlier row of the same amount (GBP 844.75); by cash, no leg's page ever runs ahead of its cash | **missed** |
+| S2 posted later as one entry (cause B's shape) | 5% to 30%, median lag 5 to 20 days | **2.7%** (38, GBP 2,232.84), median **26.5** days | **missed** |
+| S3 never one entry; the leg's other page rows cover it | 2% to 15% | **55.3%** (787, GBP 52,381.22) | **missed** |
+| S4 missing: cash the page never posts | 0 to 2% of events, under GBP 500 | 0.8% (12) but **GBP 1,029.91** | count held, money **missed** |
+
+**What the misses say.** I read "one settlement, one page row" as the normal case, and it is not. The page splits a
+settlement into the walk's per-bill shares plus a `rest` row, so most cash posts in parts. The parts are mostly on
+the right day. Matching by entry is the wrong frame for dating. So the split below is by cash, per leg, and was
+**not** pre-registered. It is the reading this result needs, filed after the result.
+
+**The three kinds, by cash** (a settlement is on time if, by the end of its day, the page has posted all the cash
+the leg has received so far):
+
+| Kind | Settlements | Cash | What the page does |
+|---|---:|---:|---|
+| On time (whether in one row or in parts) | 1,193 (83.8%) | GBP 80,821.59 | posts it all by the end of the cash day |
+| **1. Posted late** | **193** on 113 legs, plus 14 that inherit an older gap on the same leg | GBP 11,326.94 (+1,131.19) of settlements whose cash is not all posted on their day | 31 late as one entry (cause B's shape), 157 late in parts, 5 other. Lag median **122 days**, quartiles 24 and 427. 12 within a week, 58 within 8 to 31 days, 25 within 32 to 92 days, 98 later than that. Longest: SYN-2016-488g, GBP 24.79 crossed 23 Feb 2017, of which GBP 20.47 is posted 17 May 2025. |
+| **2. Never posted as one entry** | 787 (55.3%), of which 157 are also late | GBP 52,381.22 | the walk's shares plus `rest`. Harmless when they all fall on the cash day, which most do. |
+| **3. Missing altogether** | **12** (10 whole, 2 partial) on 12 legs | **GBP 1,029.91** | never on the page by the book date. Exactly the S0 shortfall. The page posts no more than the cash on any leg. |
+
+**Kind 1 has a named writer.** 201 page rows (GBP 6,407.12) are dated on a day no cash crossed on their leg.
+**145** of them (GBP 4,963.08) are `payments[*].repayments` dated on a **later bill's due day**. That row is written at
+`tools/generate_billing_ledger.py:1118` (still at that line on origin/main), the no-case level-return branch:
+`repaid.append({"date": c["date"].isoformat(), ...})`. `c["date"]` is the day the walk netted the credit against a bill.
+The day the cash arrived is `c["credit_period_end"]`, and the same loop already keys `repaid_posted` by it. ccdfb652d
+moved stages to the cash day in `simulation/arrears_engine.with_credits_applied`, and this branch was left. This is
+what s.7's cause B named as "**I cannot yet say which line writes that date**". It is the leading candidate, and it is
+**not yet traced** against SYN-2016-380 itself. The other 55 off-day rows (GBP 1,444.04) are ARREARS_REPAID stages: 25
+on a bill's payment day and 30 on no bill event. These are consistent with ccdfb652d's "never before the case
+opened" hold, and not traced.
+
+**Kind 3 is lost at the seam, not on the page.** `simulation/world_payment_truth.repayment_rows` drops "a repayment
+for a bill the supplier never issued". It counts a month as issued only if the leg has a `failed`, `dispute` or
+`success` collection for it. So the cash never reaches the engine or the page. The 12:
+
+- 9 settle a month whose bill has **no collection row** (OCC-c2c2a33d47d7 GBP 358.47, 2020-05; SYN-2016-215 156.87;
+  SYN-2016-047 106.30; PROS-2019-0318 65.17; OCC-9c0e9f25531a 61.48; OCC-e3e94f81161bg 59.17; OCC-2d75f1f88c1d 44.10;
+  OCC-a8be607b0f0d 33.14; OCC-731d3b63ba00g 27.42). Three of those months are **credit bills** (SYN-2016-215 −56.37,
+  SYN-2016-047 −43.67, PROS-2019-0318 −10.02). So the world has a household settling a bill the company owed *it*.
+- 1 settles a month whose bill was a credit (OCC-f6813bf9f05e, outcome `credit`, GBP 49.79).
+- 2 are partial on a failed month (SYN-2016-256g GBP 46.00 of 134.99; SYN-2016-217g 22.00 of 102.67).
+
+This answers the open line above: **PROS-2019-0318's 22 Nov 2022 settlement (GBP 65.17) does not reach the page.**
+It settles month 2022-07, whose bill is the −10.02 credit, while the returned collection belongs to another month.
+I cannot yet say which side is wrong for the other 11: the world settling a month with no failed collection, or the
+seam keying the settlement to the wrong month. Under F11 it is counted as the household's cash missing.
+
+**What this does to the carried row.** On this book, as of the book date, the page is short of the world's repayment
+cash by **GBP 1,029.91 on 12 legs**, against 249 / GBP 17,828.49 (78f82e4242, before) and 194 / GBP 6,399.16 (after).
+So the shortfall in **cash** is nearly closed. The larger harm left is **dating**: GBP 6,407.12 of repayment cash sits
+on the page on a day it did not arrive, mostly months late, so on 113 legs the page understates what the household had paid for
+that time. Those are two different harms, as the item expected, and the dating one is about 6 times the larger.
+
+**Next pieces (each its own item, none built here):**
+1. Date the no-case level-return repayment by `credit_period_end` at `generate_billing_ledger.py:1118`. Prediction
+   to grade: off-day `rep` rows 145 → 0 to 5, and late settlements 193 → under 60.
+2. Trace one kind-3 settlement (OCC-c2c2a33d47d7, GBP 358.47) to the world's reason for settling a month with no
+   failed collection.
