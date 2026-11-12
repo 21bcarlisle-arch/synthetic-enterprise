@@ -8,6 +8,53 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-12 — orientation: A good stretch for the precondition, and the thesis test still has not run
+
+<!-- head: 1dfc816d423f -->
+
+*Written by the orientation seat from its own record (2026-11-12T00:22:36.623954+00:00; 11 commits, 6 substantive, since 2026-11-11T21:24:44.112942+00:00).*
+
+Commit split (product code by path): 2 supplier, 0 world, 0 both, 9 other.
+
+## What the stretch meant
+
+A good stretch for the precondition, and the thesis test still has not run. The previous focus named four items and all four were drawn. Three landed and leave focus. First, N28 (7d43952ff): the cast's narrated sentences are now derived from the bills the page prints, with an invariant behind them. Second, the level-DD map of the 71 holds (72c936d31). Third, the worktree-publish fix (cbd8ace4f): a publish commits the marker's own run and refuses by name when there is none. N29 is in flight. A seat executor claimed it at about 00:05 on 12 Nov, with pytest running over the closing and dual-fuel tests, so it stays first and must not be drawn twice. The CO1 embedded-thermal line the director approved also landed (0849f1427). It does not render yet: it waits for a publish, and the commitment (due 20 Nov) is met only when it renders. The most important result of the stretch is the level-DD map. 35 of the 71 "holds" were our own reader netting each fuel separately, while the desk works the billing account as the 25 Oct design and SLC 27.8D say it should. The real code defect count is 36 (B 10, C 10, D 14, E 2). That is a correction of the machine's instrument, not of the company. Three fixes in a row missed their predictions partly because they were graded by a reader that held two rules for one account. The map names the next step: the reader first (71 to 36 predicted exactly), then cause B by trace. That is item 2, and the loop's STOP is honoured because the map now exists. One new defect reached the live site. The published carbon page was built from an uncommitted grid intensity feed (f61212726), so it cannot be reproduced from the repository. It is the third publish-input defect in two days (with 4f68a644f and cbd8ace4f). It also blocks the CO1 line from rendering through a clean regeneration, so it is item 3. The commit_split reads 2 supplier, 0 world and 9 other. That is thin on supplier work, but honest: the "other" commits include the level-DD map and two finding retirements that grade supplier pages. Against the thesis itself nothing moved. The flat-baseline comparison (c65c4cb8b) remains the only test of "beats average by inference", and it stays held by the director's ban on model arms until 16 Nov. It is first for that review, on a book carrying N28 and N29. The shared checkout is 15 behind origin and every daemon lacks 2 to 4 commits. That is left as before: three writers share the tree, and no item this stretch depends on a daemon running the new code.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:24 11 Nov: Unchanged. The comparison is first for the 16 Nov review. 00:22 12 Nov: Unchanged. The ban on model arms holds to 16 Nov.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 21:24 11 Nov: Unchanged. No read this stretch. 00:22 12 Nov: Unchanged. No read this stretch.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 21:24 11 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 00:22 12 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 21:24 11 Nov: Still 71 after ccdfb652d, and the learning loop says STOP. 00:22 12 Nov: Mapped (72c936d31). 35 of the 71 are our reader netting each fuel separately, so they are not company defects. 36 are code: B 10, C 10, D 14 and E 2, with D3 proper only 2. The real count is 36, still far above 0 to 3. Item 2 commits the reader, then traces cause B.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 21:24 11 Nov: Unchanged. W3_3 is paused to the 16 Nov reset. 00:22 12 Nov: Unchanged.
+- NOT corrected: THE MACHINE'S, NEW. A finished build was retired as done with nothing on origin, again: a-true-level-dd-leaver-cures-over-a-level-era-remainder-its-ledger-does-not-see has a landing bound in the draw ledger, and no commit on origin binds it. 21:24 11 Nov: Unchanged (fix, under a-continuation-retires-without-its-work-on-origin). 00:22 12 Nov: Unchanged. This stretch, three Lane 0 items retired with no landing bound (a-publish-from-a-worktree..., the-first-baseline-comparison..., a-refund-never-exceeds...), but each has its premise-spent commit on origin, so no work is missing.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 21:24 11 Nov: Unchanged. The repayment shortfall is still unread on its own. 00:22 12 Nov: Unchanged, and now item 4. Level-DD s.7's cause B (a crossed repayment posted 3 to 19 days late, and 4 of 17 never posted as one entry) may be part of it.
+- NOT corrected: THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 21:24 11 Nov: Unchanged. 00:22 12 Nov: Unchanged. No stop this stretch.
+- NOT corrected: THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success status=0". A long job that wraps a landing must exit with the landing's own status. 21:24 11 Nov: Unchanged in launch_long_job (not_now). 00:22 12 Nov: Unchanged (not_now).
+- NOT corrected: THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. 21:24 11 Nov: No new breach. 00:22 12 Nov: No new breach. The CO1 line (0849f1427) was director-approved and queued behind the book, so it is inside the ruling. Nothing in the draw reads a ruling's scope yet.
+- NOT corrected: THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder step is held (e5e0cdcae). 21:24 11 Nov: Held for the 16 Nov review. 00:22 12 Nov: Held for the 16 Nov review.
+- NOT corrected: THE MACHINE'S, NEW. The level-DD cure row was graded for three fixes running by a scratch reader that clamps each level fuel leg at zero before summing, while the desk and the design net the billing account. So 35 of the 71 "holds" were the reader, not the company (72c936d31), and earlier misses were partly graded against the wrong count. The reader is still uncommitted, in /var/tmp/ld71 (item 2).
+- NOT corrected: THE MACHINE'S, NEW. The page published at e816040ce rests on an uncommitted docs/market_data/grid_intensity_feed.json (written 16:34 on 11 Nov). A clean checkout rebuilds the carbon counts as 0 measured where the site says 3 (f61212726). This recurs a 4 Sep finding, and the 6fe7827ab2 publish shipped it (item 3).
+
+## Chosen against
+
+- The flat-baseline comparison pre-registered at c65c4cb8b, the only test of the thesis itself.
+- Building fixes for level-DD causes B, C, D and E (36 holds) now.
+- Running and publishing a new book before 16 Nov to show N28 and the CO1 line live.
+- W3_3 (the standing charge in settlement), the root that would let the withheld margin rate return.
+- launch_long_job exiting with the wrapped landing's own status.
+- The W2_21 insulation flag fix, and N17's year-to-year electricity variance.
+- Reaping the 7 locked worktrees with unlanded commits, and fast-forwarding the shared checkout (15 behind).
+
+## Focus for the next stretch
+
+- `n29-closing-dual-fuel-set-off`
+- `level-dd-the-cure-reader-reads-the-billing-account-then-cause-b-is-traced`
+- `the-published-carbon-page-reproduces-from-the-repository`
+- `the-repayment-shortfall-is-read-on-its-own-on-the-published-book`
+
+---
+
 ## 2026-11-11 — orientation: Forward on the precondition, and still nowhere on the thesis itself
 
 <!-- head: 1d63f43e3abe -->
