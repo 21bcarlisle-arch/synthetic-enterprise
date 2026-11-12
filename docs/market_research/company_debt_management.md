@@ -1130,6 +1130,68 @@ no desk journey was open:*
   got two ledger letters, and the desk never opened a journey on the account. Why is not established
   here. Filed: `docs/staging/SEAT_FINDING_THE_DESK_NEVER_RAN_ON_FIVE_ACCOUNTS_THE_LEDGER_DUNNED_INCLUDING_475_GBP_OWED_2026-11-03.md`.
 
+### The statement's notice lines yield too (2026-11-12)
+*K8 page for `a-level-dd-household-in-credit-is-not-sent-a-notice`. It closes the GAP the section above left open:
+"The ledger's own `notice` rows on the account statement are untouched." Raised by
+`SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md`,
+12 Nov section.*
+
+**The case.** On the 6fe7827ab2 book, 42 of 1,106 statement notices on level-DD legs (16 households) were dated
+while the household was in credit or at zero. SYN-2016-253 was GBP 155.55 in credit on 24 Jun 2024 and its statement
+printed "First overdue notice -- GBP52.89 outstanding". The ledger dates FIRST/SECOND_NOTICE from each failed bill
+(`arrears_engine.ledger_notices`), whatever the account holds that day. The desk's journey reads the account, and
+had already been moved off the per-bill ladder.
+
+**What the rules and published record say.**
+- **A debt communication must not mislead.** Ofgem's open letter of 19 Sep 2014, *Using alternative branding to
+  communicate with indebted customers*: "Customers must not be misled, pressured or scared into making payments they
+  cannot afford". Every communication about debt must pass three tests: who it is from; "whether or not a new stage
+  has been reached in the debt collection process ... communicated in a way that does not promote fear"; and Ability
+  to Pay. The letter also cites the Consumer Protection from Unfair Trading Regulations and the Standards of Conduct
+  (SLC 25C then, SLC 0 now). ESTABLISHED.
+- **Accounts must be reconciled by the supplier, not the customer.** Ofgem's 17 Dec 2020 open letter on charge
+  recovery: "it is the responsibility of suppliers to bill consumers correctly ... and to ensure consumer accounts are
+  correctly reconciled. Consumers must not be held responsible for failing to identify errors in their billing or that
+  a debt balance is accruing." It sets the Standards of Conduct (SLC 0, 0A) beside the back-billing condition:
+  processes "complete, thorough, fit for purpose and transparent". ESTABLISHED.
+- **The Administration of Justice Act 1970 s.40 does not reach this.** Its only "falsely represents, in relation to
+  the money claimed" limb is about criminal proceedings (s.40(1)(b)). And s.40(3A) takes a commercial practice towards
+  a consumer under the DMCC Act 2024 outside s.40(1). ESTABLISHED, read on legislation.gov.uk on 12 Nov 2026.
+- **GAP:** no licence condition, Ofgem decision or guidance read here names the case of an arrears letter sent to a
+  household whose account is in credit. It is "too obvious to be written down": a letter that says a household owes
+  while the supplier's own account says it does not is the misleading communication the 2014 letter forbids. DERIVED.
+- **GAP:** whether one fuel's missed bill may be chased while the other fuel's credit exceeds it is not settled (the
+  cross-fuel GAP in `debt_and_collections.md` §7.6). The design and the row both take the household view.
+
+**Two designs were open.** In the first, the world's per-bill case asks the desk before each notice. In the second,
+the notice reads the account's balance itself. **Neither is taken as written.** The second makes the statement a third
+reader of the balance, beside the desk and the page: the two-ladder shape again. The first is the rule above, already
+built for the reaction chain (`yield_to_the_desk`). It is extended to the statement, in
+`tools/generate_payment_ledger_data.build_account_ledger`:
+- **On an account the desk runs, the statement prints no ledger FIRST/SECOND_NOTICE.** The desk's own letters, on
+  the reaction chain, are the household's.
+- **The carve-out is keyed to the book, not the account.** In a book that carries desk journeys on any leg
+  (`book_carries_the_desk`), the desk walked every account. An account with no journey is one where the desk found
+  nothing to chase, and on 6fe7827ab2 all 19 ledger letters left on such accounts were there; 11 of them went to a
+  household in credit or at zero (SYN-2016-310, GBP 0.00, 6 Aug 2017). A book from before the desk keeps every
+  ledger letter, because there the ledger is the only record.
+- **The I&C DISPUTE_NOTICE stays**, as above (GAP B1). **No money moves**: a notice line is GBP 0.00.
+- **What this leaves to another finding.** 8 of those 19 letters were on accounts that owed when the desk opened
+  nothing. A desk that is silent on a real debt is
+  `SEAT_FINDING_THE_DESK_NEVER_RAN_ON_FIVE_ACCOUNTS_..._2026-11-03.md`. The balance still prints. Only the second
+  narrator is gone.
+
+**Measured** on the 6fe7827ab2 ledger, replaying the statement builder with the rule off and then on:
+
+| | off | on |
+|---|---|---|
+| statement notice lines | 2,886 | 0 |
+| `INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT` | BREACHED, 47 of 2,886 | UNREACHED, 0 graded |
+| non-notice entries changed | | 0 |
+
+The desk's letters already face the same page balance in `INV_OVERDUE_WITHIN_PAGE_BALANCE`, which read 0 of 6,385
+on this book.
+
 ## One case, one climb: the ladder does not walk back down while an arrears case is open (2026-10-24)
 
 *K8 page for `is-a-collections-ladder-monotone-within-an-open-case`. Raised by

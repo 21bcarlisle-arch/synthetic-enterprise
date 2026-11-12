@@ -1114,3 +1114,101 @@ send each notice, or the notice reads the account. That choice goes on the knowl
 
 **Prediction, filed before any fix:** a blind row over ledger notices on this same book reads between 30 and 60
 in-credit notices on level households. If it reads 0, either this trace's level rule or its two-page sum is wrong.
+
+## The statement's notice lines yield to the desk: pre-registration (seat executor, 12 Nov 2026, filed before the row or the fix is run)
+
+**The K8 choice is already made, and this closes a GAP it left.** `company_debt_management.md`, "Where the desk
+runs, its silence is a decision" (3 Nov), chose "ask the desk": on an account the desk runs, none of the ledger's
+FIRST/SECOND_NOTICE letters go on the record (`decision_event_ledger.yield_to_the_desk`). It applied the rule to the
+reaction chain only, and said so: "The ledger's own `notice` rows on the account statement are untouched. They are a
+second narrator on the statement, a GAP not addressed here." The 42 notices the 12 Nov trace found are those rows.
+The amendment there (12 Nov) extends the same rule to the statement, in
+`tools/generate_payment_ledger_data.build_account_ledger`. "Read the account" is rejected: it would make the
+statement a third reader of the balance beside the desk's and the page's, which is the two-ladder shape again.
+
+**The row.** A fresh agent writes a page row, blind to the fix: every `notice` line on a household's statement is
+dated on a day the household's pages (both fuels, summed) owe more than zero.
+
+**Predictions, all on the 6fe7827ab2 pages (`/var/tmp/crbook/arm/tree`):**
+1. Before the fix, the row reads **30 to 60** violations on level legs (the 12 Nov prediction, kept), and 34 to 64
+   over all legs. If it reads 0, the trace's two-page sum or its level rule is wrong.
+2. After the fix, replayed by re-running the statement builder over the same `billing_ledger.json`: the row reads
+   **0 on level households and at most 4 over all legs**. Any residual is on an account the desk never ran, where the
+   ledger stays the only narrator by design.
+3. Statement notice lines fall from about 2,886 to **at most 150**: the 3 Nov measurement left 6 ledger letters on
+   the reaction chains, but the statement also carries the I&C DISPUTE_NOTICE, which the rule does not touch.
+4. **No running balance moves.** A notice line is GBP 0.00, so every page's `running_balance_gbp` sequence, less its
+   notice lines, is unchanged byte for byte.
+
+### First measurement, per-account rule (12 Nov, after the predictions above)
+
+The statement builder was replayed twice over the 6fe7827ab2 `billing_ledger.json` at this tree's HEAD, once with the
+rule and once with it switched off. Only that one variable moved. Census: the 12 Nov trace's own method (summed fuel
+pages, "level" = 3 or more equal DD payments). Scripts: `/var/tmp/n12credit/`.
+
+| | rule off | rule on, per account |
+|---|---|---|
+| statement notice lines | 2,886 | 19 |
+| in credit or at zero, level legs | 42 (16 households) | 10 (5) |
+| in credit or at zero, other legs | 4 (3) | 1 (1) |
+| non-notice entries changed, on any page | | 0 |
+
+- Rule off reproduces the trace exactly (42 on 16 households, 4 on 3). So prediction 1's census holds; the row's own
+  count is still to come from the blind row.
+- Prediction 3 (at most 150 left) **held**. Prediction 4 (no balance moves) **held**.
+- Prediction 2 (**0 on level households, at most 4 overall**) is **refuted**: 11 are left, on 6 households.
+- **Why.** All 19 surviving lines are on 10 residential accounts that carry **no desk journey at all**, for example
+  SYN-2016-310 at GBP 0.00 on 6 Aug 2017. The 3 Nov carve-out keeps the ledger as narrator wherever the desk "never
+  ran". That carve-out was written for a book published before the run carried journeys. This book carries them on
+  659 of 1,302 legs, so the desk walked every account, and opening nothing was its decision. I did not predict that
+  every residual would sit in the carve-out.
+
+### Second step, the carve-out keyed to the book: pre-registration (12 Nov, filed before the change)
+
+**Change.** The statement builder asks whether the BOOK carries desk journeys on any leg. If it does, no ledger
+FIRST/SECOND_NOTICE goes on any statement. A book without them keeps every ledger letter, as before. The I&C
+DISPUTE_NOTICE is untouched.
+
+**Predictions on the same replay:**
+- statement notice lines go from 19 to **0**;
+- the in-credit census goes from 11 to **0**;
+- non-notice entries are unchanged on every page.
+
+8 of the 19 lines are on accounts that owe on the day, where the desk opened nothing. A desk silent on a real debt is
+`SEAT_FINDING_THE_DESK_NEVER_RAN_ON_FIVE_ACCOUNTS_..._2026-11-03.md`. Removing the ledger's letter does not hide that
+debt: the balance still prints, and the miss is the desk's to fix. A pointer goes on that finding.
+
+### Measured: the second step held, and the blind row (12 Nov)
+
+**The blind row.** A fresh agent wrote `INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT` without seeing the fix
+or this section. It lives in `tools/domain_invariant_runner.ev_no_arrears_notice_while_in_credit`, and its test is
+`tests/tools/test_an_arrears_notice_is_never_sent_while_the_household_is_in_credit.py`. Mutation-proven: grading
+each page on its own, passing an exact zero, and never breaching each turn tests red.
+
+On the published 6fe7827ab2 pages it is **BREACHED, 47 of 2,886 notice lines, 20 households**:
+- 43 of 1,106 are on level legs (17 households). Prediction 1 (30 to 60) **held**.
+- 12 of the 47 are at exactly GBP 0.00. 18 are on a page that owes while the household's other fuel holds more
+  credit.
+
+The row's 47 against my census's 46 is a one-line difference in how a same-day balance is read. It is not traced.
+
+**The second step, replayed on the same ledger.** Statement notice lines go from 19 to **0** (predicted 0, **held**).
+The census goes from 11 to **0** (**held**). Non-notice entries are unchanged on all 1,302 pages (**held**). The row
+reads **UNREACHED, 0 graded, 0 breached**. That is honest: with the desk in the book, the statement carries no
+ledger letter. The row still fires on a pre-desk book, or if the letters come back. The desk's letters already face
+the same page balance in `INV_OVERDUE_WITHIN_PAGE_BALANCE` (0 of 6,385 on this book).
+
+**The build.** `tools/generate_payment_ledger_data.build_account_ledger(..., desk_in_book=)` and
+`book_carries_the_desk`, test `tests/tools/test_a_statement_sends_no_ledger_letter_where_the_desk_dunned.py`. The
+design is on `company_debt_management.md`, "The statement's notice lines yield too". Bullet 3 of the 12 Nov
+done-means (the notice's amount is the account's arrears) is moot: no ledger notice is printed where the desk runs.
+
+**Why this file stays open.** The live pages are 6fe7827ab2's, and they still print the 47 until the next publish
+rebuilds them. The 11 Nov share leg is also still unread. This change moves no money, so it cannot move the share
+leg, but the earlier steps could have. **Done means now:** the next published book reads this row as not BREACHED,
+and N20's share leg is read on it. Then this file goes to done/.
+
+**Unrelated, seen while testing:** `tests/tools/test_billing_and_payments_ledger.py::test_reconciliation_identity_holds_across_full_live_book`
+fails on the committed site JSON for OCC-00909e50a521. Billed 567.45, collected 481.48, balance 0.00: GBP 85.97
+unaccounted. That reading is of the committed pages, which this change does not regenerate, so it predates this
+change. The cause is not traced.

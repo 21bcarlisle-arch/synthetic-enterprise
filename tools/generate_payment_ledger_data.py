@@ -34,6 +34,8 @@ Output: patches "ledger" onto each existing site/data/customers/{cid}.json
 import json
 from pathlib import Path
 
+from company.analytics.decision_event_ledger import desk_runs
+
 PROJECT = Path(__file__).resolve().parent.parent
 LEDGER_PATH = PROJECT / "docs" / "state" / "billing_ledger.json"
 CUSTOMERS_DIR = PROJECT / "site" / "data" / "customers"
@@ -43,6 +45,9 @@ _NOTE_STAGES = {"DD_FAILED": "payment_failed", "INVOICE_DISPUTED": "invoice_disp
                 # The credit invoice already reduced the balance; this says which arrears it met.
                 "CREDIT_APPLIED": "credit_applied"}
 _RESOLVED_STAGES = {"RESOLVED", "PAYMENT_PLAN_AGREED"}
+#: The ledger's per-bill letters that yield to the desk where it runs on the account. The I&C
+#: DISPUTE_NOTICE is no desk rung (GAP B1) and stays.
+_DESK_LETTERS = {"FIRST_NOTICE", "SECOND_NOTICE"}
 _TYPE_ORDER = {"invoice_raised": 0, "payment_failed": 1, "invoice_disputed": 1,
                "payment_received": 1, "deemed_account": 1, "refund_debit": 3, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
                "arrears_resolved": 3, "write_off": 3, "recovery_note": 4}
@@ -53,12 +58,22 @@ def _book_as_of_date(ledger_customers):
     return max(dates) if dates else None
 
 
-def build_account_ledger(cust, as_of):
+def build_account_ledger(cust, as_of, *, desk_in_book=False):
     """Build the chronological entries + summary totals for one account
-    (one entry per docs/state/billing_ledger.json customer record)."""
+    (one entry per docs/state/billing_ledger.json customer record).
+
+    `desk_in_book`: the book carries the desk's journeys on some account, so the desk walked every
+    account and its letters are the only ones sent (`book_carries_the_desk`)."""
     invoices = {inv["invoice_number"]: inv for inv in cust.get("invoices", [])}
     payments = {p["invoice_number"]: p for p in cust.get("payments", [])}
     arrears = {a["invoice_number"]: a for a in cust.get("arrears_history", [])}
+    # One supplier has one dunning run per account. Where the desk runs, its letters are the
+    # household's, and a per-bill letter here is one the company never sent: SYN-2016-253 was
+    # GBP 155.55 in credit on 24 Jun 2024 and the statement printed "First overdue notice --
+    # GBP52.89 outstanding" (42 such on level legs, 6fe7827ab2 book). An account with no journey in
+    # a book that has them is one the desk walked and found nothing to chase (SYN-2016-310 at
+    # GBP 0.00). company_debt_management.md, "The statement's notice lines yield too".
+    desk_letters_only = desk_in_book or desk_runs(cust.get("collections_desk_journeys"))
 
     entries = []
     for num, inv in invoices.items():
@@ -142,6 +157,8 @@ def build_account_ledger(cust, as_of):
             if stage["date"] > as_of:
                 break
             name = stage["stage"]
+            if name in _DESK_LETTERS and desk_letters_only:
+                continue
             if name in _NOTE_STAGES:
                 entries.append({
                     "date": stage["date"], "type": _NOTE_STAGES[name], "invoice_number": num,
@@ -296,6 +313,12 @@ def desk_write_off_postings(legs, as_of):
     return postings, unposted
 
 
+def book_carries_the_desk(ledger_customers) -> bool:
+    """Whether the run behind this ledger ran the collections desk: a journey on any leg. A book
+    published before the desk carried none, and there the ledger's letters are the only record."""
+    return any(desk_runs(c.get("collections_desk_journeys")) for c in ledger_customers.values())
+
+
 def generate(customers_dir=None, ledger_path=None):
     customers_dir = Path(customers_dir) if customers_dir else CUSTOMERS_DIR
     ledger_path = Path(ledger_path) if ledger_path else LEDGER_PATH
@@ -314,13 +337,15 @@ def generate(customers_dir=None, ledger_path=None):
     # Lazy: the cast module imports the collections journey, which only this patch needs.
     from tools.generate_explore_cast import payment_record
 
+    desk_in_book = book_carries_the_desk(ledger_customers)
+
     count = 0
     for cid, cust in ledger_customers.items():
         cust_file = customers_dir / (cid + ".json")
         if not cust_file.exists():
             continue
         existing = json.loads(cust_file.read_text())
-        existing["ledger"] = build_account_ledger(cust, as_of)
+        existing["ledger"] = build_account_ledger(cust, as_of, desk_in_book=desk_in_book)
         # The account's "N of D bills paid, R returned, M missed" at the ledger's as-of date, by the
         # function the Explore cast prints it with, over this file's own bills (patched in earlier by
         # generate_invoice_data) and ledger. The publisher's invariant gate reads it from here; the

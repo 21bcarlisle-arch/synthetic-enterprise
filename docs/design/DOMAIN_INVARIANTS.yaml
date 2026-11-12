@@ -2677,6 +2677,23 @@ invariants:
   - printed reaction_chain.collections_*.amount_gbp
   checkable: true
   gap: 'Written 2026-10-28: the ledger row''s first leg, which the raw export cannot carry (two sums the company worked out), graded where the page prints both. Graded by tools/domain_invariant_runner.ev_overdue_within_page_balance on a book read with --printed. A cure and a write-off print no overdue figure and are not graded. The desk''s journey is the billing account''s, both fuels, so owed is the sum of the household''s fuel pages'' balances on that day and a step both pages print is graded once.'
+- id: INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT
+  family: account_arithmetic
+  grades: page
+  statement: Every arrears notice a customer page's statement prints is dated on a day when the household owes more than nothing, so a household in credit or at nil is never told it owes.
+  predicate: for each ledger entry of type notice on a fuel page dated d, the household's owed sum on d is > 0.005, where owed is the sum over the billing account's fuel pages of each page's last running balance dated on or before d (nothing before its first entry; owed positive, credit negative). Every notice line is graded, all payment methods and segments, each on its own page.
+  lower: 0.005
+  upper: null
+  source: 'Ofgem open letter on debt communications, 19 Sep 2014: "Customers must not be misled, pressured or scared into making payments they cannot afford"; the Standards of Conduct (SLC 0): a statement that a household owes while its account is in credit is not accurate. Logic of an account ledger: an arrears notice asserts a debt, and a debt is a balance owed above nil. A level direct-debit household dunned per bill printed "overdue" while in credit on the 6fe7827ab2 book.'
+  severity:
+    violation: breach
+  export_fields:
+  - printed ledger.entries.type (notice)
+  - printed ledger.entries.date
+  - printed ledger.entries.running_balance_gbp
+  - printed base_account_id (the household both fuel pages print)
+  checkable: true
+  gap: 'Written 2026-11-12, blind to the notice, dunning and ledger-building code. Graded by tools/domain_invariant_runner.ev_no_arrears_notice_while_in_credit on a book read with --printed. The household is the billing account, both fuels, as INV_OVERDUE_WITHIN_PAGE_BALANCE reads it: one fuel in debit is not owed by a household whose other fuel holds a larger credit. GAP: no source read fixes whether a supplier may dun one fuel''s missed bill while the other fuel''s credit exceeds it before the two are set off; the row takes the household view (the 2014 letter speaks of the customer, not the meter). The row grades the notice''s date, not its wording: a notice whose text names a sum is not compared with the balance. The half-penny floor absorbs only the rounding of printed two-decimal balances.'
 - id: INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE
   family: account_arithmetic
   grades: page

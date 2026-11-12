@@ -36,3 +36,10 @@ print `_owed_past_due(ev, date)`.
 **Done means:** each of the 6 is traced to the desk's own walk, and either the desk opens where it
 should (with a test that reds today) or the account is shown not to be the desk's, with the cause
 recorded on the knowledge page.
+
+**Pointer (12 Nov 2026).** In a book that carries the desk, the account statement no longer prints the ledger's
+FIRST/SECOND_NOTICE on any account, including those the desk never opened
+(`company_debt_management.md`, "The statement's notice lines yield too"). On 6fe7827ab2, 19 such letters were on 10
+accounts with no desk journey, and 8 of them were on accounts that owed that day. Those 8 households now see a debt
+with no letter on either record. That is this finding's shape, made plainer, not hidden: the desk's silence on a real
+debt is still the defect to trace.

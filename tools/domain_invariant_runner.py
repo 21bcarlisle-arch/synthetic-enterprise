@@ -1780,6 +1780,31 @@ def ev_overdue_within_page_balance(inv, book):
     return tally
 
 
+def ev_no_arrears_notice_while_in_credit(inv, book):
+    """Every arrears notice line a page's statement prints (a ledger entry of type `notice`) is dated
+    on a day the household owes. Owed is the billing account's, both fuels: the sum over the
+    household's fuel pages of each one's last `running_balance_gbp` dated on or before the notice
+    (nothing before its first entry). A notice dated while that sum is nil or a credit tells a
+    household in credit that it owes. Each page's notice is its own letter, so a notice both pages
+    print is graded on each."""
+    severity = (inv.get("severity") or {}).get("violation", "breach")
+    tally = Tally("arrears notice line a fuel page prints")
+    for ba, accts in _households(book).items():
+        legs = [(a.cid, sorted((e for e in a.printed.get("page_ledger") or () if e.get("date")),
+                               key=lambda e: e["date"]))
+                for a in accts if a.printed is not None]
+        for cid, entries in legs:
+            for e in entries:
+                if e.get("type") != "notice":
+                    continue
+                on = str(e["date"])[:10]
+                owed = round(sum(_balance_at(es, on) for _c, es in legs), 2)
+                tally.checked += 1
+                if owed <= 0.005:
+                    tally.hit(severity, "{} {} {}".format(ba, cid, on), owed, 0.005, "household_not_owing")
+    return tally
+
+
 #: England and Wales bank holidays, from the commons (GOV.UK's published calendar). Reg 6D counts
 #: working days; the export carries no jurisdiction, so the E&W calendar is the one applied.
 _BANK_HOLIDAYS_FILE = PROJECT / "docs/domain_artefact_library/regulatory/england_and_wales_bank_holidays.json"
@@ -3312,6 +3337,8 @@ EVALUATORS = {
     "INV_COLLECTIONS_EVENTS_ORDERED": (ev_collections_ordered, "collections_journeys"),
     "INV_OVERDUE_WITHIN_BALANCE": (ev_overdue_within_balance, "bills"),
     "INV_OVERDUE_WITHIN_PAGE_BALANCE": (ev_overdue_within_page_balance, "page_steps"),
+    "INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT": (
+        ev_no_arrears_notice_while_in_credit, "page_ledger"),
     "INV_STATUTE_BARRED_WRITE_OFF_AGE": (ev_statute_barred_write_off, "bills"),
     "INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE": (ev_billed_ex_vat_reconciles, "lifetime_revenue_gbp"),
     "INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE": (ev_payment_record, "payment_record"),

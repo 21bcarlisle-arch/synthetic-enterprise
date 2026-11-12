@@ -73,6 +73,8 @@ INVARIANTS = [
 ]
 #: Evaluators this fixture does not reach, each with why. Neither may grow without a reason.
 NOT_REACHED_BY_THE_FIXTURE = {
+    "INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT": "reads two fuel legs' printed pages; every leg "
+    "tested in tests/tools/test_an_arrears_notice_is_never_sent_while_the_household_is_in_credit.py",
     "INV_ANNUAL_USE_BOOK_MEDIAN": "a book median needs ten account-years per TDCV row",
     "INV_CROSS_FUEL_PRICE_SCALE": "it takes its rows from the two SVT invariants; tested on its own below",
     "INV_RENEWAL_NOTICE_42_TO_49_DAYS": "reads the company's statements; every leg tested on its own below",
