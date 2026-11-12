@@ -69,6 +69,21 @@ All five mutations fire:
   `--release <this id>`. That release now leaves the offer standing instead of retiring it. That is
   the intended direction: the item is redrawn until the work is on origin.
 * A disposition record that is not named `*_DISPOSITION_*` (for example a `SEAT_RESULT_` saying
-  "not built twice") still binds. The 26 disposition records on origin all use the
-  `SEAT_DISPOSITION_` name, but nothing enforces it. If this shape comes back under another name,
+  "not built twice") still binds. The 26 `SEAT_DISPOSITION_` records on origin, and the
+  `WORKER_DISPOSITION_` ones the replay below found, use that name by convention only. Nothing
+  enforces it. (Corrected after the replay: this line first said they all used `SEAT_DISPOSITION_`.) If this shape comes back under another name,
   the next step is for the release to carry an explicit "disposed, not done" flag.
+
+## Replay over the live store (after landing 9fd94625f)
+
+I read all 1,687 retired rows against origin. 12 are bound to a disposition-only commit. 4 of
+those also have a work commit or a `--premise-spent` record, so they still retire. The new rule
+would have held 8:
+* n29, the case that cost a build;
+* 7 from 28–29 Sept, where the work had landed elsewhere but neither `--premise-spent` nor
+  `--landed-under` was run.
+
+For those 7, the hold costs one redraw, which ends in the formal disposition. That is the safe
+direction (F11). There are none between October and 11 Nov, so this does not hold a live pattern.
+Landed in 9fd94625f. Triage row `a-continuation-retires-without-its-work-on-origin` is
+`already_fixed` by 9fd94625f.
