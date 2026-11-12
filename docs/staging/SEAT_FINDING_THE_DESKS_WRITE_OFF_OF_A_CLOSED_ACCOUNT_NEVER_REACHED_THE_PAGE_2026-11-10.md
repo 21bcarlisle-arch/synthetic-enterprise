@@ -457,6 +457,10 @@ for a bill the supplier never issued". It counts a month as issued only if the l
   SYN-2016-047 −43.67, PROS-2019-0318 −10.02). So the world has a household settling a bill the company owed *it*.
 - 1 settles a month whose bill was a credit (OCC-f6813bf9f05e, outcome `credit`, GBP 49.79).
 - 2 are partial on a failed month (SYN-2016-256g GBP 46.00 of 134.99; SYN-2016-217g 22.00 of 102.67).
+  **Corrected 12 Nov 2026 (LEVEL_DD map s.9.4):** both settle a **credit-bill** month whose level collection was
+  returned (`outcome: credit`, `collection_result: failed`); SYN-2016-217g's is GBP 22.00 for 2022-03 (bill -6.68),
+  crossed 15 May 2022. Re-measured on the same run: 6 credit months, 6 with no bill row. The desk counted 217g's
+  cash, and that GBP 22.00 is all three of SYN-2016-217's remaining cure holds.
 
 This answers the open line above: **PROS-2019-0318's 22 Nov 2022 settlement (GBP 65.17) does not reach the page.**
 It settles month 2022-07, whose bill is the −10.02 credit, while the returned collection belongs to another month.

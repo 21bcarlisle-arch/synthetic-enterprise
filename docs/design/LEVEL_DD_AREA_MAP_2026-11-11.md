@@ -611,3 +611,34 @@ refuse-nothing, refuse-everything at the ledger, and the ledger half alone (the 
 Graded: level-dd held=6 missed=1 code=0 reader=1 regressed=0 width=1.0
 
 NEXT: trace the 5 holds left (SYN-2016-015g, -142g, -217) from code, one cause each
+
+### 9.4 The 5 holds left after fix 2, one cause each (seat, 12 Nov 2026)
+
+Ledger rebuilt at 50b8feea61 from the 6fe7827ab2 run (`/var/tmp/t5h/fix2.json`); it reproduces s.9.3's 5 holds on 3
+accounts byte for byte. Pre-registered in `/var/tmp/t5h/PREDICTION.txt` before any hold was traced. The desk's own
+figure at each stage is on the journey record (`overdue_gbp`), so the desk and the page can be set side by side
+without rerunning the world.
+
+| Hold | Cause | Who is right | Line |
+|---|---|---|---|
+| SYN-2016-015g, 15 Apr 2018, 71.37 | **reader.** Gas bill 22482 due Sat 14 Apr, its DD collected, on time, Mon 16 Apr. The desk's view reads it on time (`overdue_gbp` 0, `days_overdue` -1) through `last_day_to_pay`'s Bacs-day roll. The reader read the due date alone. No failure on the leg at all. | the desk | `tools/level_dd_cure_reader.leg_position` (fixed here) |
+| SYN-2016-142g, 30 Apr 2020, 44.52 | **the page's walk spends a credit the world did not.** The gas leg left level DD about GBP 127 in credit (level 50.17 against bills of 17 to 24). The engine's walk draws that surplus as kind `credit` (`credit_period_end` 2019-08-19) against the next three **paid** pay-on-receipt bills: 50.63, 61.28 and 8.58, GBP 120.49. The page prints them `settled_by_credit` with 0, 0 and 71.56 cash. The world asked and collected each bill's full face (`background/live_payment_triad.record_period`: `_leg_credit` holds credit-bill notes only, never a level surplus), on the page's own dates. The desk counted that cash, so on 30 Apr its account is in credit and bill 29866 (47.11, due 19 Apr, paid 13 Jun) is covered. On the page's figures the schedule reads short 45.00. | the desk, on the cash that crossed | the walk's draw of waiting credit against a paid bill, `simulation/arrears_engine.balance_settlement_from_outcomes` (the hypothesis the shortfall finding left "seen and not built", now traced on the book) |
+| SYN-2016-217 x3, 17 Feb, 2 Jul, 26 Jul 2024 | **kind 3 at the seam.** The world settled GBP 22.00 on 15 May 2022 for gas month 2022-03, a -6.68 credit bill whose level collection was returned (`collection_result: failed`). `simulation/world_payment_truth.repayment_rows` counts a month as issued only if its row is failed, dispute or success; this row's outcome is `credit`, so the cash is dropped and never reaches the engine or the page. The desk counted it. The desk's account then sits exactly GBP 22.00 below the page's from 2022 on: 18.00 against 40.00 on 22 Jun 2024, 36.63 against 58.63 on 17 Jul. On 17 Feb the page's 12.12 is the desk's -9.88. | the desk | `world_payment_truth.repayment_rows`'s issued-month test |
+
+**The reader fix, graded** (R1, pre-registered): holds 5 → **4**, SYN-2016-015g leaves, no hold joins, cured 807.
+Held. On s.9.2's ledger the same change reads 29 → 28. Test:
+`tests/tools/test_a_dd_bill_due_on_a_weekend_is_not_past_due_before_its_bacs_day.py`. Both mutations kill it:
+no roll at all, and a roll for every method.
+
+**What this closes.** Every hold left on the cure row is now the page holding money the household paid and the desk
+counted. None is a premature desk cure. The level-dd cure read is therefore clean of desk defects on this book; the
+4 are repayment-posting's, and they move only when the seam and the walk post the cash that crossed.
+
+**Seam census, re-measured.** The engine drops **12 world settlements, GBP 1,029.91** (`/var/tmp/t5h/dropped.json`),
+exactly the shortfall finding's kind 3. By the outcome of the month each settles: **6 credit-bill months** (the five
+named there plus SYN-2016-217g) and **6 months with no bill row**. The finding called SYN-2016-217g and SYN-2016-256g
+"partial on a failed month"; both settle a credit month. Corrected there.
+
+Graded: level-dd held=2 missed=1 code=0 reader=1 regressed=0 width=1.0
+
+NEXT: kind-3 credit months: let `world_payment_truth.repayment_rows` count a credit-bill month whose level collection was returned, then grade SYN-2016-217's 3 holds and the 6 credit-month settlements

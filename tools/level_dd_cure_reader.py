@@ -9,6 +9,7 @@ account itself does not owe (docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md s.7, ca
 
 One rule for every leg, at the cure date d:
   past_due(leg) = page running balance at d, less bills issued but not yet due at d (signed: credit < 0).
+  A bill paid by direct debit is due on its next Bacs day when its due date is not one.
   A leg paying by level DD at d cannot owe more than its schedule shortfall (Ofgem 20 Sep 2011
   App. 2 para 2.8): leg = min(past_due, max(0, requested_to_d - received_to_d)). A level leg ahead of
   its schedule therefore owes 0 but its CREDIT still counts.
@@ -30,17 +31,33 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import datetime as dt  # noqa: E402
+
+from company.billing.collections_journey import last_day_to_pay  # noqa: E402
 from company.interfaces.dd_review_outcome import billing_account_of  # noqa: E402
 from tools.generate_payment_ledger_data import _book_as_of_date, build_account_ledger  # noqa: E402
+
+
+def _last_day(invoice: dict, by_dd: set) -> str:
+    """The last day `invoice` can be paid on time, as the desk reads it: a direct debit due on a
+    weekend or bank holiday is collected, on time, the next Bacs day (`last_day_to_pay`). Read from
+    the due date alone, SYN-2016-015g's gas bill due Saturday 14 Apr 2018 and collected Monday 16
+    Apr held the desk's Sunday cure at GBP 71.37 (LEVEL_DD map s.9.4)."""
+    due = invoice.get("due_date")
+    if not due:
+        return ""
+    return last_day_to_pay(dt.date.fromisoformat(due),
+                           by_direct_debit=invoice["invoice_number"] in by_dd).isoformat()
 
 
 def leg_position(entries: list[dict], customer: dict, d: str) -> tuple[float, bool]:
     """(what this leg contributes to the account at d, whether it pays by level DD at d)."""
     rows = [e for e in entries if e["date"] <= d]
+    by_dd = {p["invoice_number"] for p in customer["payments"] if p.get("method") == "direct_debit"}
     not_yet_due = sum(
         max(i["total_amount_gbp"], 0.0)
         for i in customer["invoices"]
-        if not i.get("billed_to") and i["issue_date"] <= d and (i.get("due_date") or "") > d
+        if not i.get("billed_to") and i["issue_date"] <= d and _last_day(i, by_dd) > d
     )
     past_due = (rows[-1]["running_balance_gbp"] if rows else 0.0) - not_yet_due
     known = [p for p in customer["payments"] if p["payment_date"] <= d]
