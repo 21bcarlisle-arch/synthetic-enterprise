@@ -1109,13 +1109,15 @@ def generate(run_json_path=None, out_path=None):
                 # No more than the return left owed: the engine matches a settlement to the bill's
                 # face, but the household paid the level amount it was asked (the world's payment
                 # truth: PROS-2016-0054g settled 31.21, the engine's walk says 46.10).
+                # Dated the day the cash arrived, not the day the walk netted it against a bill: the
+                # netting-day date put 146 rows on days no cash crossed (6fe7827ab2 book, LEVEL_DD map s.9).
                 room, repaid = round(pay["amount_gbp"] - part_paid, 2), []
                 for c in sorted((c for c in credits if c.get("kind") == "repayment"),
                                 key=lambda c: c["date"]):
                     take = round(min(c["amount_gbp"], room), 2)
                     if take < 0.005:
                         break
-                    repaid.append({"date": c["date"].isoformat(), "amount_gbp": take})
+                    repaid.append({"date": c["credit_period_end"], "amount_gbp": take})
                     key = (cid, c["credit_period_end"])
                     repaid_posted[key] = round(repaid_posted.get(key, 0.0) + take, 2)
                     room = round(room - take, 2)

@@ -502,3 +502,38 @@ Graded: level-dd held=3 missed=0 code=0 reader=0 regressed=0 width=1.2
 Graded: repayment-posting held=3 missed=5 code=0 reader=1 regressed=0 width=0.32
 
 NEXT: date the `:1118` share by `credit_period_end` (fix 1), and grade it against off-day N 146 → 0 to 5 and own-late 193 → 70 to 85 on the 6fe7827ab2 ledger
+
+### 9.1 Fix 1 built and graded (seat, 12 Nov 2026)
+
+`tools/generate_billing_ledger.py:1120` (was `:1118`) now dates the no-case share `c["credit_period_end"]`, the
+key `repaid_posted` already used. One variable; `:798` and the walk are untouched. Both ledgers were built at
+0367c57375 from the 6fe7827ab2 run (`07111cd8b4:docs/reports/run_output_latest.json.gz`), baseline and fix, in
+`/var/tmp/f1118`. The baseline reproduces s.9's every count, so the page code had not moved under the grade.
+Pre-registered in `/var/tmp/f1118/PREDICTION.txt` before either ledger was built.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| F1 off-day N rows | 146 → 0 to 5 | **0** | held |
+| F1 off-day W stages | 55 → 55 | 55 | held |
+| F2 own-late settlements | 193 → 70 to 85 | **84** (68 W only, 16 closed on another cash day) | held |
+| F3 inherited-late | 14 → 6 to 8 | **6** (all W) | held |
+| F4 `:1118` rows dated before their own returned payment | 0 to 36 | **58** (GBP in `f45.txt`) | **missed** (reader) |
+| F5 balances moved at the book date | 0 to 3 | **0** (91 records change, dates only) | held |
+| F6 cure holds (`level_dd_cure_reader`) | -031, -253g, -525 leave; -037, -380, -528 stay; PROS-2019-0246 to its W half | all as predicted: 33 → **29**, PROS-2019-0246 269.94 → 74.83 | held |
+
+**Not predicted.** SYN-2016-488 also leaves the holds. Its gas leg's 2017-02-23 cash (20.47) had been netted against
+a bill of April 2025 and was dated 2025-05-17, so the page showed it owed from 2019. On its cash day, it no longer is.
+
+**The F4 miss.** All 58 rows are dated before the receiving bill was even **issued**: the walk netted older cash
+against a later return, and the date fix exposes the assignment. s.9 priced this as "36 N rows, an upper bound" by
+amount match. Both halves of that were the reader: 38 of the 58 were off-day on the baseline (above the "upper
+bound"), and 20 were tagged on-day because the netting day happened to be another cash day on the leg. So the
+off-day tag undercounts misdated rows wherever a leg settles often.
+
+**What the page now shows for those 58.** "Payment received towards a returned collection" on the true cash day,
+under the later bill's invoice number. Money in is now on its day, which is what F2, F3 and F6 measure, but the line
+names a bill that does not yet exist. That is the assignment half, and it takes fix 2's route: cash whose day
+predates the receiving bill stays out of `repaid_posted`, so the catch-up posts it against `settles_month`
+(`docs/staging/SEAT_FINDING_A_LEVEL_RETURNS_REPAYMENT_NAMES_A_BILL_NOT_YET_ISSUED_2026-11-12.md`).
+
+NEXT: fix 1b, the 58 rows that predate their receiving bill go through the catch-up against `settles_month`, graded 58 → 0 with F1 to F6 unmoved, then fix 2

@@ -80,9 +80,9 @@ def publish(tmp_path, monkeypatch):
     monkeypatch.setattr(notify_mod, "notify",
                         lambda msg, **kw: alarms.append(msg) if "TOO LARGE" in msg else None)
 
-    def run():
+    def run(json_path=None):
         outcome: dict = {}
-        prc.git_commit_push("abc1234", 1000.0, outcome=outcome)
+        prc.git_commit_push("abc1234", 1000.0, outcome=outcome, json_path=json_path)
         return outcome
 
     return run, landed, alarms
@@ -107,10 +107,14 @@ def test_a_file_inside_a_staged_directory_is_seen(publish, tmp_path):
     run, landed, alarms = publish
     (tmp_path / "site" / "data" / "customers.json").write_text("{}")
     _sparse(tmp_path / "site" / "data" / "customers" / "c1.json", OVER)
+    # customers.json is refused without the run it was built from (cbd8ace4ff), and that earlier
+    # refusal landed nothing and raised no alarm, so this test read IndexError rather than its cause.
+    (tmp_path / "run.json").write_text("{}")
 
-    run()
+    outcome = run(json_path=tmp_path / "run.json")
 
-    assert landed == [] and "site/data/customers/c1.json" in alarms[0]
+    assert outcome["reason"] == prc.COMMIT_REFUSED, outcome
+    assert landed == [] and alarms and "site/data/customers/c1.json" in alarms[0], alarms
 
 
 def test_the_partition_is_reachable(publish, tmp_path):
