@@ -605,11 +605,29 @@ def identical_tracked_twins(project: Path | None = None,
             # archive moves held ten byte-identical twins and two superseded copies behind a
             # refusal that named none of them, and no later class was ever asked.
             continue
+        if here is not None and theirs is None:
+            # A LANE'S EDIT to a path origin DELETES: answered, and not a twin. Read as "git would
+            # not answer", two such paths voided 1,314 hash-proven twins on 2026-11-12 and the
+            # shared tree sat 56 commits behind origin. Absence on origin is asked, not inferred.
+            if _origin_has_entry(project, path) is not False:
+                return None
+            continue
         if here is None or theirs is None:
             return None
         if here == theirs:
             twins.append(path)
     return sorted(twins)
+
+
+def _origin_has_entry(project: Path, path: str) -> bool | None:
+    """Whether origin's tree holds an entry at `path`. `None` when git would not answer."""
+    try:
+        res = _git(project, "ls-tree", "--name-only", "{}/{}".format(REMOTE, BRANCH), "--", path)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if res.returncode != 0:
+        return None
+    return bool((res.stdout or "").strip())
 
 
 def _absent_here_and_on_origin(project: Path, path: str) -> bool | None:
@@ -621,13 +639,8 @@ def _absent_here_and_on_origin(project: Path, path: str) -> bool | None:
     full = project / path
     if full.exists() or full.is_symlink() or _blob_in_head(project, path) is None:
         return False
-    try:
-        res = _git(project, "ls-tree", "--name-only", "{}/{}".format(REMOTE, BRANCH), "--", path)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if res.returncode != 0:
-        return None
-    return not (res.stdout or "").strip()
+    on_origin = _origin_has_entry(project, path)
+    return None if on_origin is None else not on_origin
 
 
 def restore_tracked_twin(project: Path | None = None, path: str = "") -> str | None:
