@@ -19,7 +19,7 @@ because each holds rows origin lacks:
 `docs/observability/naive_organ_log.jsonl` has 2 rows and `site/state/live_decisions_log.jsonl` has 4
 (the 8 to 11 Nov decision runs). Neither copy deletes a row that HEAD has.
 
-**B. A publish of run 6fe7827ab2 that did not land (77 paths).** It covers 72 `site/data/customers/*.json`
+**B. A publish of run 6fe7827ab2 that did not land (77 paths; corrected below to 75).** It covers 72 (corrected: 71) `site/data/customers/*.json`
 pages, `docs/state/{customer_sample,sim_data}.json`, `site/code/galaxy.png` and `site/data/director_delta.json`.
 All of them were written between 16:26 and 16:34 on 11 Nov. `docs/staging/done/run_complete_20261111T160541Z.md`
 records `Publish outcome: did not land`. Origin then published the same run from a worktree at 20:31
@@ -69,6 +69,14 @@ prove. The isolated seat cannot write the shared tree, so this item cannot finis
 - **C: recommended build.** Add a class for a tracked root edit that origin deletes and re-adds elsewhere
   with every line of the copy. Preserve, then restore.
 
-## Result
+## Result (23:19Z, origin at 6937b6089, the same no-write dry run)
 
-*(pending: the post-landing dry run)*
+**76 held, not 78.** All five A paths cleared, as predicted, and nothing in them was rewritten during the
+build. The miss is in my count, not in the class prediction. Group B holds **71** customer pages, not 72,
+so B is **75** and the prediction should have read 75 + 1 = 76. That is the number measured. The 81 was
+5 (A) + 75 (B) + 1 (C), and I counted it wrong when I wrote B up. The correction stands beside the
+original claim above, and the original number is left as written.
+
+The 1,401 lossless paths and the 76 held now cover the whole partition. The tree still cannot advance,
+and it will not advance until B and C each have a class. That build is handed on as
+`the-refused-publish-render-and-the-moved-retired-finding-get-reconciler-classes`.
