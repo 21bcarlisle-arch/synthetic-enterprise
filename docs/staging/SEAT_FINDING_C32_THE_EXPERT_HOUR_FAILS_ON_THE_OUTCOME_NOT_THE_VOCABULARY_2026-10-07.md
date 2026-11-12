@@ -74,3 +74,33 @@ EH-2 first. Before any code goes near involuntary prepayment, the post-2023 invo
 
 EH-3 and EH-5 are knowledge-layer items. A re-take of the expert hour follows once the commons
 holds them.
+
+## EH-2 closed: the second decider is archived, not routed (worker tick, 12 Nov 2026)
+
+**What changed in the evidence since 7 Oct.** The knowledge this finding asked for is now in the commons.
+`company_debt_management.md`, "Involuntary prepayment since 2023" (11 Oct), holds SLC 28.7-28.22 and the
+guidance's do-not-install list. Its "What reaches it" section (16 Oct) records the design: **the company asks by
+explicit Consent only, and the involuntary route is the director's reserved shape, never automated.** The same
+page forbids "an engine that *decides* an involuntary PPM … on a score".
+
+**The choice.** The options were to route `ppm_warrant_register.VulnerabilityCheck` through
+`disconnection_protection`, or to delete it. Routing would give a lawful-looking decider to an act the company
+may not take, and that act would have no caller. So the module and its one whole test move to
+`archive/unhooked_supplier/` as increment 5 of the archive. This is reversible: a later ruling that opens the
+involuntary route restores both. It would also need a decider built on 28.7's order and the 3.7 list, not on
+five booleans.
+
+**What moved:**
+- the `archive/MANIFEST.txt` row;
+- the ORPHAN-DISPOSITIONS row, removed;
+- `orphan_baseline.json`, one entry fewer;
+- C32's `file_scope` and `expert_hour` on the map;
+- a superseded marker on `debt_and_collections.md`'s old note about the module.
+
+**What is still open before a re-take:**
+- **EH-3, the code side.** The needs-code list is in the commons (`psr_eligibility_and_disconnection_protection.md`
+  §1a, 8 Oct). `PSRCategory` has no home for code 32, "Temporary – Life changes", so an agent's `bereavement` flag
+  has no PSR category.
+- **EH-5.** Pensionable age is still categorical. Nothing computes state pension age at the decision date. The
+  prior question stands: whether the company holds a date of birth.
+- **EH-6.** Minor: the Safety Net is named only in a reason string.
