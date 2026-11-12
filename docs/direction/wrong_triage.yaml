@@ -655,9 +655,10 @@ items:
     match: ["A finished build was retired as done with nothing on origin"]
     first_seen: "2026-10-30"
     fate: fix
-    status: open
+    status: already_fixed
     owner: "background/seat_continuation.py (retire asks for a commit on origin/main that names the id, or a named successor holding the rest, as delivery_lane.focus_tombstone_refusal already does for focus rows)"
-    reason: "Triaged 2026-11-04 by the delivery seat. Focus-row tombstones already require a binding commit on origin (a-tombstone-retires-a-row-without-checking-its-done). Continuation retirement does not, and two instances (the gas build, the 0a6391d186 publish) retired with nothing on origin. Both were recovered, so no work was lost, but the next SIGTERMed landing can retire the same way."
+    fixed_by: "9fd94625f"
+    reason: "2026-11-12: 617a2181ea (8 Nov) already required an origin commit bound to the id. The 12 Nov n29 instance passed it on 0367c57375, a commit holding only a SEAT_DISPOSITION record saying the build was in flight elsewhere. 9fd94625f stops a disposition-only commit counting as the landing; its control holds the n29 shape and retires a bound work landing, and 5 of 5 mutations fire. Triaged 2026-11-04 by the delivery seat. Focus-row tombstones already require a binding commit on origin (a-tombstone-retires-a-row-without-checking-its-done). Continuation retirement does not, and two instances (the gas build, the 0a6391d186 publish) retired with nothing on origin. Both were recovered, so no work was lost, but the next SIGTERMed landing can retire the same way."
   # 2026-11-07 15:27Z orientation: five rows first listed 2-3 Nov, triaged ahead of the 7-day line.
   - id: the-naive-organ-asks-nothing
     problem: "The naive organ has asked no question since 2026-08-10T07:48Z."
