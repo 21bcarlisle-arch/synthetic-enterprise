@@ -1135,6 +1135,67 @@ clock ran from the final bill's issue (reg 6D) whatever the balance was that day
 
     Both are now visible as late refunds of money the household paid, not as refunds of money not yet received.
 
+
+#### 8.8e A closing dual-fuel household: one fuel's credit and the other fuel's debt (added 2026-11-12, before the build)
+
+**What the evidence shows.** The eleventh cold read (O14) found that on the 6fe7827ab2 book, 48 dual-fuel households
+are refunded a closing credit on one fuel while the other fuel owes at least GBP 5 on the refund day:
+GBP 3,786.62 refunded against GBP 5,662.78 owed, and GBP 2,254.02 of that debt is later written off
+(`docs/staging/SEAT_FINDING_A_CLOSING_DUAL_FUEL_HOUSEHOLD_IS_REFUNDED_ON_ONE_FUEL_WHILE_IT_OWES_ON_THE_OTHER_2026-11-11.md`).
+The reader's case is PROS-2019-0318. Its electricity is refunded GBP 111.33 on 26 Jun 2023, while its gas owes
+GBP 1,047.61. *What our code does (discovery, not evidence):* in that run's own closing balances, 42 billing
+accounts close with one fuel in credit and the other owing. 31 of them close before 22 Jan 2021, and 11 after.
+The set-off the company already makes at a final bill (fuel page §8b) acts only on a level direct debit leg's
+balance. The close refund reads each fuel alone.
+
+**What the rules and published practice say.** This applies the reading in
+`how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §8b. It is not repeated here.
+- **SLC 27.8D (from 22 Jan 2021).** Each contract must give the customer the right to set off any amount owed to
+  it against any amount it owes under another supply contract, gas included. It is the customer's right. The
+  licence neither grants nor forbids the supplier doing it unprompted.
+- **SLC 27.16.** Credit is per contract. The supplier must refund it, "save where it is fair and reasonable in
+  all the circumstances" not to, and must give its reasons. No Ofgem text read says whether the same household's
+  debt on another fuel is such a reason.
+- **GSoP reg 6D (from 1 May 2019).** Refund "any outstanding credit balance" within 10 working days of the final
+  bill. It is written per account. It says nothing about the customer's other account.
+- **Supplier terms.** EDF's residential terms, cl. 17.e (June 2024): "Either of us can use any credit you have
+  on any energy account with us to pay off debt you owe us ..., including in relation to other energy
+  accounts." SSE Energy Solutions' refunds page offers a customer with several accounts a transfer of the final
+  credit to another account instead of a refund. That page is for business customers and is not domestic
+  evidence. It shows only that a cross-account transfer at closure is an ordinary supplier operation.
+- **The Energy Ombudsman.** Its individual case decisions are not published. A search on 12 Nov 2026 found no
+  published Ombudsman or Ofgem text on set-off at a dual-fuel closure.
+
+**GAP G8.17.**
+- Do GB suppliers set a closing credit on one fuel against the other fuel's closing debt before refunding, and
+  did they before SLC 27.8D? Nothing published says. It is practitioner-obvious either way, so it is a K4 question.
+- What did domestic contract terms before 2021 say about cross-account set-off? Not read.
+- Does SLC 21BA's back-billing bar reach a set-off? Still unanswered (fuel page §8b).
+
+*Choices.*
+21. *At closure, the company sets one fuel's closing credit against the same household's closing debt on its
+    other fuel before it refunds. Only the remainder is refunded.* The set-off is the smaller of the two. The
+    credit leg is then refunded `credit - set-off`. The debt leg owes `debt - set-off`, and only that is left to
+    chase or write off. "Household" means the billing account both fuels bill under: it is already the company's
+    collections ledger (fuel page §8, "One collections journey?").
+22. *It applies across the whole window, not only from 22 Jan 2021.* The review set-off starts on that date
+    because there the company is collecting. Here the company would otherwise be paying out money to a customer
+    who owes it more. Before 2021:
+    - SLC 27.16's "fair and reasonable" ground gives a lawful reason to keep the credit;
+    - paying out and then writing off the same household's debt is a transfer to the household, not value
+      created (M2).
+
+    The pre-2021 legal basis is GAP G8.17. This choice errs towards the company, so its size is reported: on the
+    6fe7827ab2 run's closing balances, 31 households and GBP 599.68 are set off before 2021, against 11 and
+    GBP 740.01 after.
+23. *The set-off happens on the credit leg's refund day, and both legs show it.* The credit leg posts it as a
+    debit, and the debt leg as a credit. Each fuel keeps its own balance (SLC 27.16). The money only moves
+    between them.
+24. *Only closing balances are set against each other.* Both legs must close. If one fuel stays on supply, its
+    debt is not set against the leaving fuel's credit here: the review set-off in §8b and the live account's
+    own collections handle it. *Named limit:* a household whose surviving fuel owes is still refunded on the fuel
+    that leaves.
+
 ---
 
 ## Sources
@@ -1178,3 +1239,4 @@ clock ran from the final bill's issue (reg 6D) whatever the balance was that day
 - Citizens Advice, *Moving home and dealing with your energy supply*, https://www.citizensadvice.org.uk/consumer/energy/energy-supply/moving-home-your-energy-supply/moving-home-dealing-with-your-energy-supply/; *Check if you're responsible for paying an energy bill*, https://www.citizensadvice.org.uk/consumer/energy/energy-supply/problems-with-your-energy-bill/check-if-youre-responsible-for-paying-an-energy-bill/; *Response to Ofgem's CfI*, 20 Jan 2026, https://www.citizensadvice.org.uk/policy/publications/citizens-advice-response-to-ofgems-call-for-input-on-tackling-debt-in-the/.
 - Money Advice Trust, *Response to Ofgem: Tackling energy debt in the supplier home moves process*, 20 Jan 2026, https://moneyadvicetrust.org/wp-content/uploads/2026/01/Money-Advice-Trust-response-to-Ofgem-Tackling-energy-debt-in-home-moves-consultation-paper.pdf.
 - CMA, *Energy Market Investigation Final Report*, 2016, Tables 8.5–8.6, §8.160–8.161 (via `docs/market_research/continuous_behavioural_engagement_w2_14.md` §2c).
+- SSE Energy Solutions (business), *Refunds and credits*, https://www.sseenergysolutions.co.uk/customer-help-centre/help-and-advice/refunds-and-credits (a closing credit transferred to another account instead of refunded; §8.8e). EDF residential terms cl. 17.e and Ofgem's Supplier Licensing Review decision (17 Nov 2020) on SLC 27.8D are cited from `how_a_gb_domestic_book_splits_by_fuel_and_how_a_two_fuel_home_switches.md` §8b.
