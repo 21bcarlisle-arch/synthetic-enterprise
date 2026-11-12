@@ -1197,11 +1197,16 @@ def generate(run_json_path=None, out_path=None):
         if outcome_case in ("failed", "dispute"):
             # Credit bills and the household's own repayments both net the case, but only a
             # repayment is money in, so the two are kept apart.
-            repaid = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "repayment"), 2)
-            for c in credits:
-                if c.get("kind") == "repayment":
-                    key = (cid, c["credit_period_end"])
-                    repaid_posted[key] = round(repaid_posted.get(key, 0.0) + c["amount_gbp"], 2)
+            # Cash that crossed before the case opened is credit already on the account, not this
+            # case's repayment (`with_credits_applied` notes it as CREDIT_APPLIED), so it stays out of
+            # `repaid_posted` and the catch-up posts it on its own day under the bill it settled.
+            opened = arr["stages"][0]["date"]
+            in_case = [c for c in credits
+                       if c.get("kind") == "repayment" and c["credit_period_end"] >= opened]
+            repaid = round(sum(c["amount_gbp"] for c in in_case), 2)
+            for c in in_case:
+                key = (cid, c["credit_period_end"])
+                repaid_posted[key] = round(repaid_posted.get(key, 0.0) + c["amount_gbp"], 2)
             owed_before = asked - part_paid
             credit_applied = owed_before - amount - repaid
             if level_gross is not None:
