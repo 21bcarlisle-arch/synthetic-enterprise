@@ -399,3 +399,106 @@ in the walk.
 Graded: level-dd held=4 missed=3 code=0 reader=3 regressed=0 width=0
 
 NEXT: count the 7 cause-B holds by shape (cash matched to a later bill's case vs. dated late on its own bill), then fix the shape that holds most.
+
+## 9. How a repayment is dated and assigned (seat, 12 Nov 2026)
+
+**Why this section exists.** Two learning-loop areas are on STOP: level-dd (s.7, s.8) and repayment-posting (the
+shortfall read in `docs/staging/SEAT_FINDING_THE_DESKS_WRITE_OFF_OF_A_CLOSED_ACCOUNT_NEVER_REACHED_THE_PAGE_2026-11-10.md`,
+804e627de). Each area's last read named a writer line. Here both lines are mapped as one area. Nothing is fixed.
+
+**The two writer lines.**
+
+- **N, `tools/generate_billing_ledger.py:1118`.** A level return that opens no case. Its repayment share goes on the
+  returned payment's `repayments` row and is dated `c["date"]`, the day the walk netted the credit against a bill.
+  The cash's own day is `c["credit_period_end"]`, and the loop already keys `repaid_posted` by that day.
+- **W, `tools/generate_billing_ledger.py:1192-1196` with `simulation/arrears_engine.py:798`.** The walk
+  (`resolved_settlement`) gives the cash to the case of a failed bill. The page books it to that case's
+  ARREARS_REPAID stage and marks it posted. `with_credits_applied` then dates the stage `max(_on(c), opened)`, so
+  cash that arrived before the case opened is moved forward to the opening day. The stage note keeps the true day
+  ("received …"). `generate_payment_ledger_data.py:151-157` posts the stage as `payment_received` on its date.
+
+**Books and readers.** Rows and settlements: the published ledger of the 6fe7827ab2 book (`/var/tmp/rsf6/ledger.json`,
+as in 804e627de). Holds: the 87e00e1458 ledger that s.8 graded (`/var/tmp/ldcr/ledger.json`). Both read the same
+world payment truth (s.7 R0). Every count below is identical on both ledgers (`/var/tmp/rda/check87e.txt`). Readers:
+`/var/tmp/rda/shapes.py`, `ownbill.py` and `holds.py`. Each row is tagged by its **writer**, which is fixed by where
+the row sits, not by its date. A `repayments` row on a failed level payment whose invoice has no case is written at
+`:1118`. Any other `repayments` row comes from the catch-up loop at `:1249-1263`, which dates it on the cash day. An
+ARREARS_REPAID stage is written at `:798`. A row is **off-day** when no cash crossed on its leg that day. A stage
+counts as W when it is dated after the "received" day in its own note, and at its case's opening. A settlement is
+**late** under the shortfall read's own rule (`own.py`): by the end of its cash day, the page has not posted all the
+cash the leg has received. It is **inherited** when an older gap on the same leg is still open. A late settlement is
+attributed to the writers of the rows that close its gap.
+
+**Pre-registered before any reader in `/var/tmp/rda` ran** (`/var/tmp/rda/PREDICTION.txt`):
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| P1 the 7 cause-B holds (87e): N | 2 to 5 | **3** (+1 both) | held |
+| P1 W (SYN-2016-380 is W) | 1 to 4 | **3** (+1 both) | held |
+| P1 other | 0 to 1 | 0 | held |
+| P2 the off-day `repayments` rows written at `:1118` | 140 to 145 | **146** (GBP 4,973.88), every one from `:1118`, none from the catch-up | **missed** (reader: the range copied 804e627de's 145, which counted rows "on a later bill's due day". One `:1118` row, GBP 10.80, is off-day but not on a due day) |
+| P3 the 55 off-day stages are W | 45 to 55 | **55** (GBP 1,433.24) | held |
+| P4 the 193 late settlements: N carries late cash | 110 to 150 | **121** (113 N only, 8 both) | held |
+| P4 W carries late cash | 30 to 60 | **80** (70 W only, 8 both, 2 W plus a catch-up row) | **missed** |
+| P4 neither line | 0 to 15 | **0** | held |
+| P5 the 787 never-one-entry: a part on an N row | 100 to 140 | **92** of the 157 own-late (84 N only, 8 both) | **missed** |
+| P5 a part on a W stage | 15 to 45 | **73** (64 W only, 8 both, 1 W plus catch-up) | **missed** |
+| P5 all parts on the cash day (neither line) | 620 to 660 | **607** | **missed** |
+
+**What the misses say.** P4 and P5 under-predicted W. I priced W by its 55 rows and its GBP 1,433. But one W stage
+closes the gap of every partly posted settlement before it on the leg, so 55 stages close 80 late settlements. P5's
+third row also left out two groups that are inside the 787 and that neither line explains: **11 inherit** an older
+gap, and **12 are partly missing** at the seam (`world_payment_truth.repayment_rows`, the finding's kind 3). The
+partition reconciles: 607 + 157 + 11 + 12 = 787. No row read was code that the map did not already name, and the
+reader miss is P2's.
+
+**Each count, attributed to one line:**
+
+| Population | N (`:1118`) only | W (`:1192`/`:798`) only | Both | Unexplained |
+|---|---:|---:|---:|---:|
+| 201 off-day page rows (GBP 6,407.12) | 146 | 55 | | 0 |
+| 7 cause-B holds | 3: SYN-2016-031, -253g, -525 | 3: SYN-2016-037, -380, -528 | 1: PROS-2019-0246 (74.83 W and 195.11 N, which sum to its 269.94) | 0 |
+| 193 own-late settlements | 113 | 72 (2 of them also closed by a catch-up row) | 8 | 0 |
+| 14 inherited-late | 6 | 6 | 2 | 0 |
+| 787 never-one-entry | 84 of the 157 late | 65 of the 157 late | 8 | none. 607 are a harmless split, every part on the cash day. 11 inherit. 12 partly missing at the seam |
+
+**The assignment is the deeper half.** `ownbill.py` sets each off-day row's cash beside the bill month its settlement
+was for:
+- **All 55 W stages** sit on a **later** bill's case. The walk met the returned bill with older credit, or capped
+  that bill's case at the desk's shortfall. It then held the excess as waiting credit for the next failed bill.
+- **110 of the 146 N rows** are on the **bill the cash settled**. The household repaid before that bill's netting
+  day, so for these the defect is the date alone.
+- **36 N rows** match cash for an earlier month, which is the walk's choice again. The match is on amount, so 36 is
+  an upper bound.
+- **All 7 cause-B holds** have this one shape. The cash day posts the returned bill's own case share. The **excess
+  above that share** (6.21, 13.47, 26.92, 23.84, 1.06, 102.00, and 74.83 + 195.11) goes to a later bill. N or W then
+  dates it at that bill's netting or opening day. So a date fix alone would put cash on its true day, but against a
+  bill not yet issued.
+
+**The fix each line needs (not built here):**
+1. **`:1118`:** date the share `c["credit_period_end"]`, the key `repaid_posted` already uses. That covers the 110
+   own-bill rows. For cash whose settled month is earlier than the receiving bill's, take the same route as fix 2.
+   Prediction: off-day N rows 146 → 0 to 5. Holds SYN-2016-031, -253g and -525 leave. Own-late settlements
+   193 → 70 to 85, which leaves W's share.
+2. **`:1192-1196` / `:798`:** dropping the `max` alone would date a stage before its case opened, which the clamp
+   exists to refuse. The coherent shape: a repayment whose cash predates the case it was walked to is **not** that
+   case's money in. Leave it out of `repaid_posted`, so the catch-up at `:1249-1263` posts it once, on its cash day,
+   against the month it settled (`settles_month`). Then record it at `:798` as CREDIT_APPLIED, the zero-amount note
+   (`_NOTE_STAGES`), dated at the opening. Credit already on the account meets the new case; it is not new cash. The
+   case's `arrears_gbp` does not move, because it already nets the credit. Prediction: off-day stages 55 → 0. Holds
+   SYN-2016-037, -380 and -528 leave. With fix 1, PROS-2019-0246 leaves too, and cause B goes 7 → 0.
+3. Build them **one at a time**, fix 1 first: it is the larger count and a one-variable change. Then fix 2. Then
+   grade the cure row against s.8's 33. s.8 predicts 33 → 26, cause B gone.
+
+**The blind row that grades both:** `INV_A_REPAYMENT_IS_ON_THE_PAGE_BY_ITS_OWN_DAY`. For each leg and each world
+settlement dated on or before the book date, the page's cumulative repayment money-in by the end of that day is at
+least the leg's cumulative world settlement cash, less settlements the seam drops (kind 3, a separate defect with its
+own row). It is keyed to the property, not to either line. On the 6fe7827ab2 ledger it reads **193 own-late + 14
+inherited** today. Its control is a synthetic leg whose excess is walked to a later case: the row must fire on the
+current code and pass when the cash is posted on its day. A second leg checks that the row **can** pass: a level
+return repaid on the cash day, through its own case, must read clean.
+
+Graded: level-dd held=3 missed=0 code=0 reader=0 regressed=0 width=1.2
+Graded: repayment-posting held=3 missed=5 code=0 reader=1 regressed=0 width=0.32
+
+NEXT: date the `:1118` share by `credit_period_end` (fix 1), and grade it against off-day N 146 → 0 to 5 and own-late 193 → 70 to 85 on the 6fe7827ab2 ledger
