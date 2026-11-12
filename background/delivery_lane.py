@@ -3367,8 +3367,8 @@ def release_refusal_reason(focus_id: str, *, path: Path | None = None) -> str:
         return f"the reason could not be derived ({exc.__class__.__name__}: {exc})"
 
 
-def _origin_binding_commit(focus_id: str, ledger: dict) -> str:
-    """The sha of a commit ON ORIGIN/MAIN that binds `focus_id`, or "" when none does.
+def _origin_bound_commits(focus_id: str, ledger: dict) -> list[str]:
+    """Every commit ON ORIGIN/MAIN that `_binds_item` credits to `focus_id`, oldest candidate first.
 
     `_binds_item` decides what binds (a `--landed` bind to this id, or the id in the message); this
     asks it only of commits already published, so a landing bound from a worktree whose promotion
@@ -3387,10 +3387,51 @@ def _origin_binding_commit(focus_id: str, ledger: dict) -> str:
                             f"--until=@{stamp}") or "").splitlines()
     candidates += (_git("log", PUBLISHED_REF, "--format=%H %ct", "-F", f"--grep={focus_id}")
                    or "").splitlines()
+    out = []
     for line in candidates:
         sha, _, ct = line.strip().partition(" ")
-        if sha and ct and _binds_item(focus_id, sha, float(ct), bound_by):
-            return sha
+        if sha and ct and sha not in out and _binds_item(focus_id, sha, float(ct), bound_by):
+            out.append(sha)
+    return out
+
+
+def _origin_binding_commit(focus_id: str, ledger: dict) -> str:
+    """The sha of a commit on origin/main that binds `focus_id` AND carries work, or "" when none
+    does. A bound commit carrying only disposition records is not the work -- see below."""
+    return next((s for s in _origin_bound_commits(focus_id, ledger) if not _disposition_only(s)), "")
+
+
+# A DISPOSITION RECORD SAYS WHERE THE WORK IS; IT IS NOT THE WORK (12 Nov 2026). A second tick drew
+# `n29-set-off-netted-in-the-debt-legs-walk` while a worker held the build, landed
+# `SEAT_DISPOSITION_N29_WALK_BUILD_IS_IN_FLIGHT_UNDER_A_WORKER...` as 0367c57375 bound to the id, and
+# released. That commit was on origin and bound the id, so the continuation retired. The worker died,
+# and the finished build survived only in salvage 696aa94034. A commit binds as the work only when it
+# touches some path that is not a disposition record. An empty commit is not a disposition record,
+# so it is not refused here.
+_DISPOSITION_RECORD = re.compile(r"^docs/staging/(?:[^/]+/)*[A-Z]+_DISPOSITION_[^/]*$")
+
+
+def _commit_paths(sha: str) -> list[str] | None:
+    """The paths `sha` touches against its first parent, or None when git will not say."""
+    out = _git("diff-tree", "-r", "--root", "--no-commit-id", "--name-only", "-m",
+               "--first-parent", sha)
+    return None if out is None else [p for p in out.splitlines() if p.strip()]
+
+
+def _disposition_only(sha: str) -> bool:
+    """Whether `sha` touches paths and every one is a disposition record. A commit whose paths git
+    cannot list reads as disposition-only, because a probe that cannot answer holds."""
+    paths = _commit_paths(sha)
+    if paths is None:
+        return True
+    return bool(paths) and all(_DISPOSITION_RECORD.match(p) for p in paths)
+
+
+def _disposition_only_binding(focus_id: str, ledger: dict) -> str:
+    """`sha (paths)` of a bound commit on origin that carries only disposition records, or ""."""
+    for sha in _origin_bound_commits(focus_id, ledger):
+        if _disposition_only(sha):
+            return f"{sha[:10]} ({', '.join(_commit_paths(sha) or ['paths unreadable'])})"
     return ""
 
 
@@ -3414,6 +3455,12 @@ def focus_tombstone_refusal(focus_id: str, path: Path | None = None) -> str | No
     row = ledger.get(focus_id) or {}
     if row.get(PREMISE_SPENT) or _origin_binding_commit(focus_id, ledger):
         return None
+    record = _disposition_only_binding(focus_id, ledger)
+    if record:
+        return (f"the only commit on origin/main that binds {focus_id} is {record}, which carries "
+                f"only a disposition record: it says where the work is, not the work, so its DONE "
+                f"is not shown met. Land the work under the id, or record --premise-spent "
+                f"{focus_id} <commit> <reason> if nothing is left to do, then release")
     if row.get("last_landing_at"):
         return ("a landing is bound to it in the ledger but no commit on origin/main binds it, so "
                 f"its DONE is not shown met. Promote the landing (promote_worktree_landing "
