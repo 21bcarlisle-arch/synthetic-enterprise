@@ -1,50 +1,64 @@
 version: 1
-oriented_at: "2026-11-12T12:21:46.028993+00:00"
-thesis_read: >-
-  Billing accuracy moved this stretch. The thesis did not. N29 is on origin (3af02a2dd). A closing dual-fuel household's
-  credit on one fuel is now set against its debt on the other before anything is refunded, and the change is in
-  company/billing/credit_refund.py and its seam, so it is the supplier's own work. Over the 6fe7827ab2 run,
-  INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO falls from 33 to 5 breached against clean origin, and the blind row reads 29 of
-  124 refunds past the household credit (the published ceiling is 60). A landing that names a cause for each of the 5
-  breaches is in flight (surgical_land pid 1919862). Repayment-posting was graded at origin (eb89cfd46). Dating and
-  assignment read clean: own-late is 0, and the 16 left were our reader keeping cash the seam had dropped. The 28
-  desk-written-off accounts that still print owed (GBP 1,130.68) are two traced shapes. F is a leaver's final bill that
-  the page nets and the world collects at face (24 accounts, GBP 633.16). R is a per-leg refund made while the other
-  leg owes (18, GBP 497.52), and that is N29's shape. The world's final-bill net is landing now (pid 1688796). The steer
-  bit completely: 3 items named, 3 drawn, 3 done. The N29 port landed, the repayment grade landed, and the retire guard
-  landed (9fd94625f) with its triage row closed already_fixed (f84e362ed). All three leave focus. There is a catch the
-  brief makes plain. The retire guard is on origin but running nowhere. The shared checkout is 51 behind, and every
-  daemon lacks 4 to 16 commits, delivery_lane.py among them. origin_reconcile has read NOT_ADVANCED every five minutes,
-  refused by 1,470 paths, and 1,314 of the 1,540 paths origin changed already hold origin's bytes in the tree. So the
-  machine is landing fixes it does not execute. That is item 3. The commit_split (0 supplier, 0 world, 1 both, 6 other)
-  is machine-heavy, and the one 'both' commit was the stretch's real product. Against the thesis, the flat-baseline
-  comparison (pre-registered at c65c4cb8b, B11) is still the only test, and it stays held to 16 Nov. Its launch condition
-  needs the 26 Oct ruling's exit test on origin, which includes one cold read that finds no new class. No cold read has
-  run in the learning loop's window, and the meter-serial row says why that matters. Item 2 runs it now, against the
-  current pages, so whatever it finds can be fixed before the 16 Nov book, rather than discovered on it.
+oriented_at: '2026-11-12T15:21:20.776996+00:00'
+thesis_read: 'A quiet stretch, and the thesis did not move. One commit carried work: e4d06e2a1 names a cause for each of the
+  5 INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO breaches left after N29. Four are the older-run/newer-walk cross arm, to the penny,
+  and SYN-2016-139 is the refund clock starting on old credit netted at close, excepted by name at a ceiling of 1 so the 16
+  Nov publish is not refused for a traced defect. That defect is now two queued continuations, and the seat executor is landing
+  the issue-day half (surgical_land pid 3287303). The steer did not bite: 4 named, 0 drawn. That is not a draw defect this
+  time. Both lane slots were held by claims already in flight on the same billing row: the seat executor on final-bill-issue-day-has-two-homes,
+  and the worker tick (claimed 14:39Z) on level-dd-final-bill-world-nets-level-surplus. That second claim is the world''s
+  F net, whose first landing (pid 1688796) died with nothing on origin and left 18 lines of background/live_payment_triad.py
+  uncommitted in the shared tree. So item 1''s premise is still unspent, and it now waits on that worker rather than on a
+  dead pid. The commit_split is 0 supplier, 0 world, 3 other. That is machine-heavy on its face, but the in-flight work is
+  all on the supplier''s account page. The shared checkout is now 54 behind origin (51 last stretch), the brief still counts
+  the retired refund finding as BLOCKING, and reconcile has drawn nothing in two orientations. The flat-baseline comparison
+  (c65c4cb8b, B11) is still the only test of the thesis, and it stays held to 16 Nov. No cold read has run in seven days,
+  so the exit test it launches on is not yet met. Items 3 and 4 are what make 16 Nov reachable. The focus is unchanged in
+  content. Item 1 is re-pointed at the live claim, and reconcile moves up to second, because it has gone undrawn twice while
+  its cost grows with every commit that lands.'
 stretch_reviewed:
-  since: "2026-11-12T09:22:42.613155+00:00"
-  commits: 7
-  substantive: 5
+  since: '2026-11-12T12:21:46.028993+00:00'
+  commits: 3
+  substantive: 1
 focus:
 - id: the-written-off-accounts-printing-owed-are-read-after-n29-and-the-final-bill-net
   lane: D_billing_metering
   side: supplier
-  what: 'First check whether the world final-bill-net landing (surgical_land pid 1688796, claim level-dd-final-bill-world-nets-level-surplus)
-    reached origin. If it is still live, wait on it with tools.wait_for. If it died, finish it under that
-    claim id. Then, on the 6fe7827ab2 run with a ledger rebuilt at origin/main (which carries 3af02a2dd
-    and the net), pre-register predictions and re-read LEVEL_DD map s.9.7''s R5 row: the desk-written-off
-    accounts still printing owed (28, GBP 1,130.68), split F (24, GBP 633.16) and R (18, GBP 497.52).
-    Read specifically whether the 5 credit-bill-credit accounts (SYN-2016-037, -225, -333, -444, -482;
-    GBP 315.55) cleared. If the net only covers the level surplus, build the credit-bill half under the
-    same claim, as s.9.7''s NEXT line says. Write the result as s.9.8, with a Graded: repayment-posting
-    trailer.'
+  what: 'The world''s final-bill net is in flight under claim level-dd-final-bill-world-nets-level-surplus
+    (worker tick, claimed 14:39Z). Its first landing (pid 1688796) died, and its bytes sit uncommitted
+    in the shared tree''s background/live_payment_triad.py. If that claim is still live, wait on it with
+    tools.wait_for and do not write a second copy. If it releases without a landing, land the tree''s
+    bytes under that claim id (isolate_hunks, then surgical_land --content). Then, on the 6fe7827ab2 run
+    with a ledger rebuilt at origin/main (which carries 3af02a2dd and the net), pre-register predictions
+    and re-read LEVEL_DD map s.9.7''s R5 row: the desk-written-off accounts still printing owed (28, GBP
+    1,130.68), split F (24, GBP 633.16) and R (18, GBP 497.52). Read specifically whether the 5 credit-bill-credit
+    accounts (SYN-2016-037, -225, -333, -444, -482; GBP 315.55) cleared. If the net only covers the level
+    surplus, build the credit-bill half under the same claim, as s.9.7''s NEXT line says. Write the result
+    as s.9.8, with a Graded: repayment-posting trailer.'
   why: A household whose debt the desk wrote off but whose page still says it owes is the harm this whole
     row exists for. Both fixes that should clear it have landed or are landing, so this is the read that
     says whether they did. Done means s.9.8 is on origin with its predictions written before its counts,
     and either R5 reads 0 to 3 (and the account-page wrong row moves to corrected) or each account left
     is named with its writer line.
-  written_at: 1794486386.623
+  written_at: 1794497091.404
+- id: the-shared-checkout-advances-past-paths-that-already-hold-origins-bytes
+  lane: H_harness
+  side: other
+  what: 'Nothing is built yet: background/origin_reconcile.py is byte-identical to origin, so the whole
+    change is still to write. In background/origin_reconcile.py, stop a tracked path from blocking the
+    fast-forward when its working-tree bytes already equal origin/main''s. That is a landed copy, not
+    another lane''s work, so restore it to HEAD before the --ff-only, as the code already does for untracked
+    twins. Write the control first, from today''s case: 1,314 of the 1,540 paths origin changed match
+    origin byte for byte, and the reconciler is refused by 1,470. It must read red at origin/main and
+    green with the fix, and it must be mutation-proven. Also assert that a path whose bytes differ from
+    origin''s still refuses. Do not touch the 226 paths that genuinely differ (120 are site/data), and
+    do not run it while a surgical_land is live.'
+  why: Every daemon runs code 4 to 16 commits behind origin. That includes delivery_lane.py, so 9fd94625f's
+    retire guard is landed and inert, and the orientation brief still counts a retired finding as BLOCKING.
+    A fix the machine does not execute is not fixed. Done means the control is on origin, the next reconcile-watch
+    pass reads ADVANCED or names only paths whose bytes differ, and the brief's divergence block shows
+    the daemons' delivery_lane.py at origin's commit.
+  written_at: 1794497091.404
 - id: a-cold-read-ahead-of-the-16-nov-book
   lane: D_billing_metering
   side: supplier
@@ -61,23 +75,6 @@ focus:
     Done means the read's record and its findings are on origin with the trailer, and the learning loop
     shows a cold read in its window.
   written_at: 1794486386.623
-- id: the-shared-checkout-advances-past-paths-that-already-hold-origins-bytes
-  lane: H_harness
-  side: other
-  what: 'In background/origin_reconcile.py, stop a tracked path from blocking the fast-forward when its
-    working-tree bytes already equal origin/main''s. That is a landed copy, not another lane''s work,
-    so restore it to HEAD before the --ff-only, as the code already does for untracked twins. Write the
-    control first, from today''s case: 1,314 of the 1,540 paths origin changed match origin byte for byte,
-    and the reconciler is refused by 1,470. It must read red at origin/main and green with the fix, and
-    it must be mutation-proven. Also assert that a path whose bytes differ from origin''s still refuses.
-    Do not touch the 226 paths that genuinely differ (120 are site/data), and do not run it while a surgical_land
-    is live.'
-  why: Every daemon runs code 4 to 16 commits behind origin. That includes delivery_lane.py, so 9fd94625f's
-    retire guard is landed and inert, and the orientation brief still counts a retired finding as BLOCKING.
-    A fix the machine does not execute is not fixed. Done means the control is on origin, the next reconcile-watch
-    pass reads ADVANCED or names only paths whose bytes differ, and the brief's divergence block shows
-    the daemons' delivery_lane.py at origin's commit.
-  written_at: 1794486386.623
 - id: the-baseline-comparison-pre-registration-is-checked-against-this-weeks-fixes
   lane: B_commercial
   side: supplier
@@ -85,165 +82,145 @@ focus:
     B11) against origin/main. List every commit since 1b69ca1270 that changes a path its arms, its book
     or its decision rule read (N29 3af02a2dd, the s.9 fixes, the final-bill net, the publisher's supersede
     change 40a48b5d84). Where a prediction or a launch leg depends on one, add a dated amendment below
-    the original, keeping the original text. Confirm the arms run through tools/per_customer_switch_arms.py
-    on a sha the 16 Nov book will descend from. Launch nothing, arm nothing, flip no switch.
+    the original, keeping the original text. Read, do not change, tools/per_customer_switch_arms.py to
+    confirm the arms run through it on a sha the 16 Nov book will descend from. Launch nothing, arm nothing,
+    flip no switch. The one file this item writes is the pre-registration record that c65c4cb8b added,
+    as a dated amendment.
   why: The comparison is the thesis's only test, and the director's ban on model arms lifts on 16 Nov.
     A pre-registration written before this week's billing fixes may now predict against a book it will
     not run on. Done means a dated amendment (or a dated 'no change needed', with the commit list) is
     on origin before 06:00 on 16 Nov, so the comparison can launch the morning the gate passes.
-  written_at: 1794486386.623
+  written_at: 1794497091.404
 not_now:
-  - what: Putting level-dd-final-bill-world-nets-level-surplus itself in focus.
-    why: >-
-      Its landing is live (pid 1688796, 28 minutes into its gate). A focus row would add a second writer. Item 1 waits on
-      it and grades what it did.
-  - what: n29-setoff-ceiling-graded-on-fresh-book (lowering INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT's ceiling
-      from 60).
-    why: >-
-      It is queued as a continuation, and a ceiling is lowered on a fresh book's count. The next fresh book is 16 Nov
-      04:00. The cause-per-breach half is already landing (pid 1919862).
-  - what: Repayment shape S (the 6 settlements, GBP 583.78, for months before the supplier's first issued bill).
-    why: >-
-      s.9.7 judges the seam's refusal right. It is the world presenting a collection the supplier never billed, it blocks
-      no supplier result, and F and R are the household harm.
-  - what: Running a book before 16 Nov.
-    why: >-
-      The burn hold stands. The 16 Nov window takes one book carrying N29, the s.9 fixes and the final-bill net.
-  - what: Reaping the 7 worktrees with unlanded October salvages (b12-*, se-budgetpay-land, se-om2, simsuite-2cf3201c5c).
-    why: >-
-      A reap cannot be undone, and nothing is lost by leaving them a few more days. Item 3 fixes the checkout first, which
-      is costing work now.
-  - what: launch_long_job exiting with the wrapped landing's status, and the launch register reading the boot id.
-    why: >-
-      Both are real, but no long job launched or ended and the guest did not stop this stretch. The stale checkout is the
-      machine defect with a live cost.
-  - what: More canon drift bindings (the other three unwatched model-page sections after 129ebcf70).
-    why: >-
-      It is harness work outside the 12:00 ruling ("everything goes to the fix and its book"), and the four items above
-      are inside it.
-  - what: W3_3 (standing charge in settlement), B12's true unit cost, the W2_21 insulation flag and N17's year-to-year
-      variance.
-    why: >-
-      All are held for the 16 Nov reset and review, and none blocks a supplier result before then. N17 keeps its 23 Nov
-      recheck under W2_30.
+- what: Drawing level-dd-final-bill-world-nets-level-surplus or final-bill-issue-day-has-two-homes as their own focus rows.
+  why: Both are live claims, held by the worker tick and the seat executor (surgical_land pid 3287303). A focus row would
+    make a second writer. Item 1 waits on the first and grades it.
+- what: The refund-clock continuations old-credit-netted-at-close-starts-the-refund-clock-late and refund-clock-reads-the-issued-final-bill.
+  why: They are queued already, and the seat executor's landing is on the same file. SYN-2016-139 is excepted by name at a
+    ceiling of 1, so the 16 Nov publish does not wait on them.
+- what: n29-ceiling-graded-on-the-16-nov-book and the c915067a8 grade.
+  why: Both are stamped DO NOT DRAW BEFORE 16 Nov 06:00, and they grade the book that publishes that morning.
+- what: Repayment shape S (the 6 settlements, GBP 583.78, for months before the supplier's first issued bill).
+  why: s.9.7 judges the seam's refusal right. It blocks no supplier result, and F and R are the household harm.
+- what: Running a book before 16 Nov.
+  why: The burn hold stands. The 16 Nov window takes one book carrying N29, the s.9 fixes, the final-bill net and the refund-clock
+    exception.
+- what: Reaping the 8 worktrees with unlanded commits (the 7 October salvages, and wt-fbn-land2's salvage from 14:39 today).
+  why: A reap cannot be undone. wt-fbn-land2 is very likely the dead F-net landing's own salvage, so item 1 may need it. The
+    October ones lose nothing by waiting a few more days.
+- what: launch_long_job exiting with the wrapped landing's status, and the launch register reading the boot id.
+  why: Both are real, but no long job launched or ended and the guest did not stop. The stale checkout (item 2) is the machine
+    defect with a live cost.
+- what: W3_3 (standing charge in settlement), B12's true unit cost, the W2_21 insulation flag and N17's year-to-year variance.
+  why: All are held for the 16 Nov reset and review, and none blocks a supplier result before then. N17 keeps its 23 Nov recheck
+    under W2_30.
 wrong:
-  - what: >-
-      THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on
-      268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:24 12 Nov: Unchanged. 06:24 12 Nov:
-      Unchanged. 09:22 12 Nov: Unchanged. The comparison is first for the 16 Nov review. 12:21 12 Nov: Unchanged. Item 4
-      checks the comparison's pre-registration against this week's fixes, so it can launch on 16 Nov.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply
-      points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 06:24 12 Nov: Unchanged. No read this
-      stretch. 09:22 12 Nov: Unchanged. No read this stretch. 12:21 12 Nov: Unchanged. No read in seven days. Item 2 runs
-      the next read, carrying the named checks.
-    corrected: false
-  - what: >-
-      THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-      same-month change of 1.1%, against NEED's 14.7%). 06:24 12 Nov: Unchanged. 09:22 12 Nov: Unchanged (fix, owner
-      W2_30, recheck by 23 Nov). 12:21 12 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
-    corrected: false
-  - what: >-
-      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the
-      settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows
-      also drop the fixed network share. 06:24 12 Nov: Unchanged. 09:22 12 Nov: Unchanged. W3_3 is paused to the 16 Nov
-      reset. 12:21 12 Nov: Unchanged. W3_3 is paused to the 16 Nov reset.
-    corrected: false
-  - what: >-
-      THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's
-      payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37
-      desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 06:24 12 Nov: The dating
-      half is moving. 09:22 12 Nov: The dating half moved further (bd58577a2, 1c66aceab). 12:21 12 Nov: Graded at origin
-      (eb89cfd46, s.9.7). Dating and assignment read clean (own-late 0). The seam drop is 6 settlements (GBP 583.78), for
-      months before the supplier's first issued bill, and the seam is right to refuse them. 28 written-off accounts
-      still print owed (GBP 1,130.68): F, the final-bill netting (24, GBP 633.16), and R, the per-leg refunds (18, GBP
-      497.52). R's fix is on origin (3af02a2dd), and F's world net is landing. Not corrected until item 1 reads them.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the
-      launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone
-      waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 06:24 12 Nov:
-      Unchanged. No stop this stretch. 09:22 12 Nov: Unchanged. No stop this stretch. 12:21 12 Nov: Unchanged. No stop
-      this stretch.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed
-      REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success
-      status=0". A long job that wraps a landing must exit with the landing's own status. 06:24 12 Nov: Unchanged
-      (not_now). 09:22 12 Nov: Unchanged (not_now). 12:21 12 Nov: Unchanged (not_now). No long job this stretch.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its
-      book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change
-      while the book waited. The draw has no reading of a standing ruling's scope. 06:24 12 Nov: No new breach. 09:22 12
-      Nov: No new breach. 12:21 12 Nov: One tick at the edge. 129ebcf70 (A45, canon drift bindings) is not a knowledge
-      pass, but it is not the fix or its book either. Nothing in the draw reads a ruling's scope yet.
-    corrected: false
-  - what: >-
-      THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's
-      scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's
-      founder step is held (e5e0cdcae). 06:24 12 Nov: Held for the 16 Nov review. 09:22 12 Nov: Held for the 16 Nov
-      review. 12:21 12 Nov: Held for the 16 Nov review.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was
-      retired on origin by 63ede2e3b, but the shared tree, 24 commits behind, still holds it in docs/staging/, so the
-      brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin.
-      06:24 12 Nov: Unchanged. The tree is now 36 behind. 09:22 12 Nov: Unchanged. The tree is now 44 behind. 12:21 12
-      Nov: Unchanged at 51 behind. The cause under it is the reconciler refusing to advance the tree (new row below), and
-      item 3 fixes that.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The first N29 set-off design posted the set-off beside the debt case instead of netting it.
-      Replayed over 6fe7827ab2, it would have pushed 4 case write-offs past the page balance and refused the publish. The
-      replay caught it before landing (c933ba6c1), and prediction 1 is recorded as wrong beside it. 09:22 12 Nov:
-      Unchanged. The port was staged but not on origin. 12:21 12 Nov: Corrected. The netted design is on origin
-      (3af02a2dd). INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO goes from 33 to 5 breached, and the blind row reads 29 of 124.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. The level-DD cure row was filed as the company's defect, but no company/ or saas/ file changed in
-      any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab). The fixes were the
-      reader, the world's payment truth, and the page writers in simulation/ and tools/. The supplier's desk was largely
-      right, and our instruments and the world were not. 09:22 12 Nov: Recorded. 12:21 12 Nov: Unchanged, and the shape
-      recurs. The account-page row is also filed as the company's, and its shape F fix is world-side
-      (live_payment_triad). Only its shape R (3af02a2dd) touched company/. It is checked before the 16 Nov review.
-    corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. Fixes land on origin, and nothing runs them. The shared checkout is 51 commits behind, and every
-      daemon lacks 4 to 16 commits to code it imports, delivery_lane.py among them, so the retire guard 9fd94625f is
-      inert. origin_reconcile has read NOT_ADVANCED on every pass, refused by 1,470 paths. 1,314 of the 1,540 paths origin
-      changed already hold origin's bytes, so they are landed copies, not another lane's work. Item 3 fixes it.
-    corrected: false
+- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on
+    268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:24 12 Nov: Unchanged. 06:24 12 Nov: Unchanged.
+    09:22 12 Nov: Unchanged. The comparison is first for the 16 Nov review. 12:21 12 Nov: Unchanged. Item 4 checks the comparison''s
+    pre-registration against this week''s fixes, so it can launch on 16 Nov. 15:21 12 Nov: Unchanged. Item 4 checks the pre-registration
+    before 16 Nov.'
+  corrected: false
+- what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply
+    points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 06:24 12 Nov: Unchanged. No read this stretch.
+    09:22 12 Nov: Unchanged. No read this stretch. 12:21 12 Nov: Unchanged. No read in seven days. Item 2 runs the next read,
+    carrying the named checks. 15:21 12 Nov: Unchanged. No read in seven days. Item 3 runs it.'
+  corrected: false
+- what: 'THE WORLD''S OR THE COMPANY''S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month
+    change of 1.1%, against NEED''s 14.7%). 06:24 12 Nov: Unchanged. 09:22 12 Nov: Unchanged (fix, owner W2_30, recheck by
+    23 Nov). 12:21 12 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 15:21 12 Nov: Unchanged (fix, owner W2_30, recheck
+    by 23 Nov).'
+  corrected: false
+- what: 'THE WORLD''S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so
+    the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also
+    drop the fixed network share. 06:24 12 Nov: Unchanged. 09:22 12 Nov: Unchanged. W3_3 is paused to the 16 Nov reset. 12:21
+    12 Nov: Unchanged. W3_3 is paused to the 16 Nov reset. 15:21 12 Nov: Unchanged. W3_3 is paused to the 16 Nov reset.'
+  corrected: false
+- what: 'THE COMPANY''S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world''s
+    payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off
+    accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. 06:24 12 Nov: The dating half is moving. 09:22
+    12 Nov: The dating half moved further (bd58577a2, 1c66aceab). 12:21 12 Nov: Graded at origin (eb89cfd46, s.9.7). Dating
+    and assignment read clean (own-late 0). The seam drop is 6 settlements (GBP 583.78), for months before the supplier''s
+    first issued bill, and the seam is right to refuse them. 28 written-off accounts still print owed (GBP 1,130.68): F, the
+    final-bill netting (24, GBP 633.16), and R, the per-leg refunds (18, GBP 497.52). R''s fix is on origin (3af02a2dd), and
+    F''s world net is landing. Not corrected until item 1 reads them. 15:21 12 Nov: Unchanged. F''s world net died in its
+    first landing (pid 1688796) and is being re-landed under its claim. R''s fix is on origin. SYN-2016-139''s refund clock
+    is traced and excepted by name (e4d06e2a1). Not corrected until item 1 reads s.9.8.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. A guest poweroff leaves its dead jobs listed as live. After the 10 Nov 08:26:45 poweroff, the
+    launch register still lists book-dca2ea1e7f as live, and the continuation grade-b8da-book-when-its-chain-writes-alldone
+    waits on a file that no surviving unit can write. Nothing compares the register with the boot id. 06:24 12 Nov: Unchanged.
+    No stop this stretch. 09:22 12 Nov: Unchanged. No stop this stretch. 12:21 12 Nov: Unchanged. No stop this stretch. 15:21
+    12 Nov: Unchanged. No stop this stretch.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The launch register records a refused landing as a success. crfix-land-A''s surgical_land printed
+    REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success status=0".
+    A long job that wraps a landing must exit with the landing''s own status. 06:24 12 Nov: Unchanged (not_now). 09:22 12
+    Nov: Unchanged (not_now). 12:21 12 Nov: Unchanged (not_now). No long job this stretch. 15:21 12 Nov: Unchanged (not_now).
+    No long job this stretch.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The draw spent a tick outside the director''s 12:00 ruling ("everything goes to the fix and
+    its book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change
+    while the book waited. The draw has no reading of a standing ruling''s scope. 06:24 12 Nov: No new breach. 09:22 12 Nov:
+    No new breach. 12:21 12 Nov: One tick at the edge. 129ebcf70 (A45, canon drift bindings) is not a knowledge pass, but
+    it is not the fix or its book either. Nothing in the draw reads a ruling''s scope yet. 15:21 12 Nov: No new breach. Every
+    tick this stretch was on the fix and its book.'
+  corrected: false
+- what: 'THE WORLD''S, NEW. The world''s housing stock draws 72% of homes as POOR insulation, because it reads NEED''s scheme-install
+    flag as the home''s insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21''s founder step is held
+    (e5e0cdcae). 06:24 12 Nov: Held for the 16 Nov review. 09:22 12 Nov: Held for the 16 Nov review. 12:21 12 Nov: Held for
+    the 16 Nov review. 15:21 12 Nov: Held for the 16 Nov review.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was
+    retired on origin by 63ede2e3b, but the shared tree, 24 commits behind, still holds it in docs/staging/, so the brief
+    lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. 06:24 12
+    Nov: Unchanged. The tree is now 36 behind. 09:22 12 Nov: Unchanged. The tree is now 44 behind. 12:21 12 Nov: Unchanged
+    at 51 behind. The cause under it is the reconciler refusing to advance the tree (new row below), and item 3 fixes that.
+    15:21 12 Nov: Unchanged at 54 behind. Item 2 fixes the cause.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The level-DD cure row was filed as the company''s defect, but no company/ or saas/ file changed
+    in any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab). The fixes were the reader,
+    the world''s payment truth, and the page writers in simulation/ and tools/. The supplier''s desk was largely right, and
+    our instruments and the world were not. 09:22 12 Nov: Recorded. 12:21 12 Nov: Unchanged, and the shape recurs. The account-page
+    row is also filed as the company''s, and its shape F fix is world-side (live_payment_triad). Only its shape R (3af02a2dd)
+    touched company/. It is checked before the 16 Nov review. 15:21 12 Nov: Unchanged. The refund-clock half (e4d06e2a1) is
+    world-side again (simulation/credit_refund_events.py).'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. Fixes land on origin, and nothing runs them. The shared checkout is 51 commits behind, and every
+    daemon lacks 4 to 16 commits to code it imports, delivery_lane.py among them, so the retire guard 9fd94625f is inert.
+    origin_reconcile has read NOT_ADVANCED on every pass, refused by 1,470 paths. 1,314 of the 1,540 paths origin changed
+    already hold origin''s bytes, so they are landed copies, not another lane''s work. Item 3 fixes it. 15:21 12 Nov: Unchanged,
+    and worse: 54 behind. Item 2 was named and not drawn, because both lane slots held billing claims.'
+  corrected: false
+- what: 'THE MACHINE''S, NEW. The world''s final-bill net landing (surgical_land pid 1688796, claim level-dd-final-bill-world-nets-level-surplus)
+    died with nothing on origin. Its 18 lines of background/live_payment_triad.py were left uncommitted in the shared tree,
+    and the claim was drawn again at 14:39Z. The delivery-lane-stranded alarm saw the dead claim, but it named docs/context-handshake-latest.md
+    as the stranded bytes, not the triad file. 15:21 12 Nov: Item 1 lands it, or waits on the live claim.'
+  corrected: false
 for_the_director:
-  - id: the-customer-carbon-figure-co1-inherits-neso
-    raised: "2026-11-11"
-    kind: strategy
-    what: >-
-      The customer carbon figure (CO1) inherits NESO's national intensity, which does not count 33-40 TWh a year (net) of
-      embedded and captive thermal. The DESNZ split is now read. Northern Ireland is 13-21%. About half of the GB part is
-      used on site and never reaches the grid. So a GB household's figure runs about 5-8% low in 2024 (within 3-15%), and
-      0-4% before 2019. That still flatters electrification, and the gap grows each year.
-    proposal: >-
-      Show an annual 'embedded thermal not counted' bound beside the customer-facing carbon figure, as the T&D losses line
-      already is. Take it from household_carbon s1b, which gives a floor, a proportional case and an all case per year.
-      Keep NESO's half-hourly series unchanged as the shape.
-    recommendation: >-
-      I recommend the bound line using the proportional case (2024 +5-8%) with its range, and no rescaling of the world
-      series. The split DESNZ does not publish (thermal reaching public supply, by fuel) stays a named GAP on the line.
-      Silence means the seat builds the line next.
-    status: answered
-    resolution: >-
-      Director ruling 11 Nov 12:00 GMT ('Do it'): approved as recommended -- proportional case (2024 +5-8%) with its range
-      beside the customer carbon figure like the T&D losses line, no rescaling of NESO's half-hourly series, the
-      unpublished DESNZ split a named GAP. Queued behind the close-refund book: not built until that book is graded on
-      origin. docs/staging/advisor/done/DIRECTOR_RULING_CO1_BOUND_AFTER_THE_BOOK_AND_HOLD_THE_BURN_2026-11-11.md. 12 Nov:
-      the line is built and on origin (0849f1427e). 12 Nov 03:24: the carbon page now reproduces from the repository
-      (3a26ca9fa), so the line renders at the next publish (16 Nov 04:00).
-    resolved: "2026-11-11"
-    commitment:
-      work_id: the-customer-carbon-figure-co1-inherits-neso
-      done_means: >-
-        the annual embedded-thermal-not-counted bound line (proportional case with range, DESNZ split GAP) renders beside
-        the customer carbon figure, landed after the close-refund book is graded on origin
-      due: "2026-11-20"
+- id: the-customer-carbon-figure-co1-inherits-neso
+  raised: '2026-11-11'
+  kind: strategy
+  what: The customer carbon figure (CO1) inherits NESO's national intensity, which does not count 33-40 TWh a year (net) of
+    embedded and captive thermal. The DESNZ split is now read. Northern Ireland is 13-21%. About half of the GB part is used
+    on site and never reaches the grid. So a GB household's figure runs about 5-8% low in 2024 (within 3-15%), and 0-4% before
+    2019. That still flatters electrification, and the gap grows each year.
+  proposal: Show an annual 'embedded thermal not counted' bound beside the customer-facing carbon figure, as the T&D losses
+    line already is. Take it from household_carbon s1b, which gives a floor, a proportional case and an all case per year.
+    Keep NESO's half-hourly series unchanged as the shape.
+  recommendation: I recommend the bound line using the proportional case (2024 +5-8%) with its range, and no rescaling of
+    the world series. The split DESNZ does not publish (thermal reaching public supply, by fuel) stays a named GAP on the
+    line. Silence means the seat builds the line next.
+  status: answered
+  resolution: 'Director ruling 11 Nov 12:00 GMT (''Do it''): approved as recommended -- proportional case (2024 +5-8%) with
+    its range beside the customer carbon figure like the T&D losses line, no rescaling of NESO''s half-hourly series, the
+    unpublished DESNZ split a named GAP. Queued behind the close-refund book: not built until that book is graded on origin.
+    docs/staging/advisor/done/DIRECTOR_RULING_CO1_BOUND_AFTER_THE_BOOK_AND_HOLD_THE_BURN_2026-11-11.md. 12 Nov: the line is
+    built and on origin (0849f1427e). 12 Nov 03:24: the carbon page now reproduces from the repository (3a26ca9fa), so the
+    line renders at the next publish (16 Nov 04:00).'
+  resolved: '2026-11-11'
+  commitment:
+    work_id: the-customer-carbon-figure-co1-inherits-neso
+    done_means: the annual embedded-thermal-not-counted bound line (proportional case with range, DESNZ split GAP) renders
+      beside the customer carbon figure, landed after the close-refund book is graded on origin
+    due: '2026-11-20'
