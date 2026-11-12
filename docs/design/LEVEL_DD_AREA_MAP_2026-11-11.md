@@ -771,3 +771,61 @@ row reads 0.
 Graded: repayment-posting held=8 missed=3 code=1 reader=2 regressed=0 width=0.5
 
 NEXT: the final bill nets every waiting credit in the world as on the page, the credit-bill credit as well as the level surplus (24 accounts, GBP 633.16), under the claim already holding it, `level-dd-final-bill-world-nets-level-surplus`
+
+
+### 9.8 The written-off accounts still printing owed, after N29, and the world's final-bill net (seat, 12 Nov 2026)
+
+**Why.** s.9.7 left 28 desk-written-off accounts printing owed (GBP 1,130.68): F (24, 633.16) and R (18, 497.52).
+N29's set-off (3af02a2dd) is on origin for R. The world's final-bill net (claim
+`level-dd-final-bill-world-nets-level-surplus`) is for F. Its first landing died; three holders were swept back
+with its 18 lines uncommitted in the shared tree. Those bytes are landed unchanged, just before this section, under
+claim `the-written-off-accounts-printing-owed-are-read-after-n29-and-the-final-bill-net`. **Book:** run 6fe7827ab2 (`/var/tmp/rpg/run.json`). **Code:** origin/main 282510e8d8. The refunds are
+replayed with origin's `generate_credit_refund_log` (`/var/tmp/n29/scripts/replay.py`) and the ledger is rebuilt
+(`/var/tmp/r98/ledger.json`). **Reader:** `/var/tmp/repay-truth/desk.py`, unchanged from s.9.7. Pre-registered in
+`/var/tmp/r98/PREDICTION.txt` (18:52Z) by the holder swept back at 21:21Z, before its ledger was built (18:53Z).
+I re-ran the reader at origin bb10c3a5d5 (no change to `simulation/`, `company/billing`, `company/interfaces` or the
+two ledger generators since 282510e8d8) and it reads the same: 24, GBP 633.16. The owing set against s.9.7's
+(`/var/tmp/rpg/ledger.json.desk.json`): 4 left, none joined. **This book cannot grade the world net.** The world's
+collections are fixed in the run, so F is read here as it stands, and the net is graded on the next fresh book.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| P0 replay: refund set and days unchanged | asserts hold | 176 refunds, 42 with a set-off, GBP 1,339.69 set off | held |
+| P1 R5 accounts still printing owed | 12 to 24, GBP 450 to 800 | **24, GBP 633.16** | held (at the edge) |
+| P2 class R (a leg refunded cash while another leg owes) | 18 → 0 to 3 | **0** | held |
+| P3 class F unchanged where N29 does not reach | 24, GBP 633.16 | **24, GBP 633.16**, to the penny: the owing set is s.9.7's F set exactly | held |
+| P4 the 5 credit-bill-credit accounts | 3 to 5 still owed | **5 of 5** (SYN-2016-037 44.49, -225 159.20, -333 7.18, -444 71.45, -482 33.23) | held |
+
+**Who left** (read against s.9.7's owing set). The 4 accounts that were R and not F leave: PROS-2017-0056, PROS-2019-0318, SYN-2016-182 and
+SYN-2016-368. None joins. On the 14 that were both R and F, the set-off takes the whole credit (refund 0.00 on each).
+The debt leg still prints owed by the F netting. So the residual is now one shape, on one writer line.
+
+**R5 does not read 0 to 3 on this book, so each account left is named, with its writer line.** All 24 are F. On each, the page nets a level leaver's final bill
+against credit (`simulation/arrears_engine.balance_settlement_from_outcomes`, s.8.8c choice 14). The world
+collected that bill at its face (`background/live_payment_triad.record_period`, `final_month`). The desk counted
+the cash and wrote off the rest. Owed on the page: PROS-2016-0067 16.60, PROS-2016-0349g 9.26, PROS-2017-0038g
+12.38, PROS-2017-0199 7.92, PROS-2017-0249 12.90, PROS-2018-0359 24.93, SYN-2016-007g 9.20, -037 44.49, -080g 11.24,
+-091 23.55, -151 35.71, -155g 5.09, -225 159.20, -333 7.18, -342 22.49, -418g 21.55, -444 71.45, -455 7.15, -482
+33.23, -507g 4.99, -552g 61.49, -557g 2.89, -563 4.25, -584 24.02.
+
+**The world net, built.** On a final month, a leg that has presented a level collection now waits the larger of
+its credit-bill excess and the credit on its own ledger (`_leg_balance_on`: bills at face, cash, credit notes).
+A credit bill posts a GBP 0 face and a credit note (`run_phase2b`, `credit_gbp=max(0, -ask)`), so that ledger
+credit already holds the credit-bill half. That makes s.9.7's NEXT one build, not two: the 5 credit-bill accounts
+are covered by the same line. Test: `tests/background/test_a_level_leavers_final_bill_asks_its_face_less_the_schedules_surplus.py`,
+4 cases, including the credit-bill case. Removing the branch fails 3 of them. The never-level control passes
+either way. Dropping the `_legs_ever_level` guard is equivalent on that fixture: a leg paid at face holds no
+ledger credit. It is kept to scope the change to the legs the page nets.
+
+**For the next fresh book** (pre-registered, same file): W1 world final-bill nettings on level legs 170 to 215
+legs, GBP 4,200 to 5,200. W2 class F 24 → 0 to 3, with all 5 credit-bill accounts clear. W3 R5 0 to 3. A
+consequence to watch: s.8.8d choice 20's SYN-2016-244 (a level leg whose last level collection is years old) is
+on `_legs_ever_level` too, so its final bill now nets in the world. Where the page does not net it, that
+appears as a new F-shaped disagreement in the other direction.
+
+The account-page wrong row is **not** moved to corrected: its 24 accounts clear only on a book whose world
+carries the net. That is the 16 Nov 04:00 book. New books are held until then.
+
+Graded: repayment-posting held=5 missed=0 code=0 reader=0 regressed=0 width=0.5
+
+NEXT: none -- W1 to W3 are graded on the first fresh book that carries the net (the 16 Nov publish)
