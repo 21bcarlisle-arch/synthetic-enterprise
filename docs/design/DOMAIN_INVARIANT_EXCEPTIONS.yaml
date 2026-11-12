@@ -269,6 +269,23 @@ exceptions:
     filed: 2026-11-12
     recheck_by: 2026-11-19
     retired_by: >-
-      the first fresh run with the netted set-off, graded: lower the ceiling to its count (31 predicted), then the
-      page/world two-walk residue on the other leg, traced to a cause per household.
+      the first fresh run with the netted set-off, graded: lower the ceiling to its count (29 predicted; corrected
+      12 Nov from 31, which was read on 123dd6d525 -- origin 90279e5318 re-reads 29 on the same run JSON,
+      docs/staging/records/SEAT_PREREG_THE_16_NOV_BOOK_ON_THE_N29_ROWS_2026-11-12.md), then the page/world two-walk
+      residue on the other leg, traced to a cause per household.
     max_breached: 60
+  - invariant: INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO
+    scope: >-
+      SYN-2016-139 only: GBP 32.04 of credit unrefunded on 29 Apr 2022 (final bill raised 13 Apr), refunded 12 May.
+    reason: >-
+      Traced, not explained away: the walk's money_in_out dates the household's May 2021 cash, netted against the
+      final bill on 27 Apr, as money arriving that day, so the world starts reg 6D's clock 10 working days late; the
+      page (fix 2, 9392920e60) prints it as credit already held. The other 4 breaches on the replay are the
+      older-run/newer-walk cross arm and are not excepted: a fresh run should read them 0, and if it does not, the
+      gate refuses. docs/staging/SEAT_FINDING_OLD_CREDIT_NETTED_AT_CLOSE_STARTS_THE_REFUND_CLOCK_LATE_2026-11-12.md.
+    filed: 2026-11-12
+    recheck_by: 2026-11-19
+    retired_by: >-
+      money_in_out skipping a repayment credit whose cash predates the bill it settles (s.8.8d amended first),
+      graded 0 on a fresh run.
+    max_breached: 1
