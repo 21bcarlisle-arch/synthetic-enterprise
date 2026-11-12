@@ -497,6 +497,31 @@ def evaluate(claim: Claim, root: Path) -> Verdict:
     return Verdict(claim, verdict, evidence=evidence, detail=detail)
 
 
+def unwatched_sections(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
+    """Per markdown page in the register: the `##`/`###` sections that carry no bound claim.
+
+    The denominator "N claims checked, 0 drifting" was printed without. On 2026-11-11 the model
+    page had 10 sections and 6 of them -- including the 217-line picture -- held no anchor at all,
+    so "all HOLD" was true of 17 sentences and silent on the rest. This names what nothing checks;
+    it is coverage, not drift, so it never moves the exit status. A section of director quotes
+    makes no code claim and is listed anyway: the reader, not this function, decides that.
+    """
+    out: dict[str, list[str]] = {}
+    for page_rel in sorted({c.page for c in claims if c.page.endswith(".md")}):
+        page = root / page_rel
+        if not page.exists():
+            continue
+        anchors = [_normalise(c.anchor) for c in claims if c.page == page_rel]
+        sections = re.split(r"(?m)^(?=#{2,3} )", page.read_text(encoding="utf-8", errors="replace"))
+        out[page_rel] = [
+            section.splitlines()[0].lstrip("#").strip()
+            for section in sections
+            if section.startswith("#") and section.lstrip("#").startswith(" ")
+            and not any(a in _normalise(section) for a in anchors)
+        ]
+    return out
+
+
 def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
     claims = load_register(register)
     verdicts = [evaluate(claim, root) for claim in claims]
@@ -514,11 +539,13 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
         # see a row that left. Carried in the report rather than as a verdict because it is not a
         # claim's verdict -- there is no claim left to give one to.
         "removed": removed_claims(register, current={c.id for c in claims}),
+        "unwatched_sections": unwatched_sections(root, claims),
     }
     return verdicts, report
 
 
-def _render(verdicts: list[Verdict], removed: list[str] | None = None) -> str:
+def _render(verdicts: list[Verdict], removed: list[str] | None = None,
+            unwatched: dict[str, list[str]] | None = None) -> str:
     lines = ["CANON DRIFT CHECK -- what the page claims that the code no longer supports", ""]
     for verdict in verdicts:
         lines.append(f"  [{verdict.verdict:<10}] {verdict.claim.id}")
@@ -531,6 +558,10 @@ def _render(verdicts: list[Verdict], removed: list[str] | None = None) -> str:
         lines.append("")
     drift = [v for v in verdicts if v.verdict in DRIFT_VERDICTS]
     lines.append(f"{len(verdicts)} claims checked · {len(drift)} drifting")
+    for page, heads in (unwatched or {}).items():
+        if heads:
+            lines.append(f"UNWATCHED on {page} -- {len(heads)} section(s) no claim is bound to:")
+            lines.extend(f"  - {head}" for head in heads)
     if removed:
         lines.append("")
         lines.append("CLAIMS THAT LEFT THE REGISTER -- a row nothing checks any more:")
@@ -582,11 +613,18 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
                 f"Full report: `{DEFAULT_REPORT}`.")
     if not drift:
         return (f"canon drift: {checked} registered claim(s) checked against the code, all HOLD "
-                f"(register `{DEFAULT_REGISTER}`).")
+                f"(register `{DEFAULT_REGISTER}`).{_unwatched_clause(report)}")
     named = "; ".join(f"{d['id']} → {d['verdict']}" for d in drift[:5])
     more = "" if len(drift) <= 5 else f" (+{len(drift) - 5} more)"
     return (f"canon drift: {len(drift)} of {checked} registered claim(s) no longer match the code — "
-            f"{named}{more}{'' if not more else ''}. Full report: `{DEFAULT_REPORT}`.")
+            f"{named}{more}. Full report: `{DEFAULT_REPORT}`.{_unwatched_clause(report)}")
+
+
+def _unwatched_clause(report: dict[str, Any]) -> str:
+    """The denominator beside the verdict: which page sections no claim watches."""
+    parts = [f"{Path(page).name}: {len(heads)} section(s) carry no bound claim ({'; '.join(heads)})"
+             for page, heads in report.get("unwatched_sections", {}).items() if heads]
+    return f" Unwatched — {' · '.join(parts)}." if parts else ""
 
 
 # --------------------------------------------------------------------------------------
@@ -758,7 +796,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2  # an unavailable check is a FAILED check (R15 fail-silent)
 
     print(json.dumps(report, indent=2) if args.json
-          else _render(verdicts, report["removed"]) + _render_site(report["site"]))
+          else _render(verdicts, report["removed"], report.get("unwatched_sections"))
+          + _render_site(report["site"]))
     if args.write_report:
         out = root / DEFAULT_REPORT
         out.parent.mkdir(parents=True, exist_ok=True)

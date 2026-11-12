@@ -372,3 +372,32 @@ def test_the_shipped_entrypoint_runs_as_a_module():
                           cwd=REPO_ROOT, capture_output=True, text=True, timeout=180)
     assert proc.returncode in (0, 1), proc.stderr
     assert json.loads(proc.stdout)["claims_checked"] == len(EXPECTED_CLAIM_IDS)
+
+
+# ---------------------------------------------------------------- the denominator beside "all HOLD"
+
+SECTIONED_PAGE = """# A PAGE
+
+## Watched
+The world expresses one trait: `price_sensitivity` reaches the churn decision.
+
+## Unwatched
+A sentence nothing in the register is bound to.
+"""
+
+
+def test_a_section_with_no_bound_claim_is_named_and_a_bound_one_is_not(tmp_path):
+    """'17 checked, 0 drifting' was printed with no denominator while six of ten sections of the
+    model page carried no anchor. Both legs: the bare section is named, the bound one is not --
+    so a leg that names everything, or nothing, fails one of them."""
+    root, register = _mini_repo(tmp_path, page=SECTIONED_PAGE)
+    unwatched = run(root, register)[1]["unwatched_sections"]["docs/page.md"]
+    assert "Unwatched" in unwatched
+    assert "Watched" not in unwatched
+
+
+def test_coverage_never_moves_the_exit_status(tmp_path, capsys):
+    """Coverage is not drift: an unwatched section must be printed, never turn the check red."""
+    root, register = _mini_repo(tmp_path, page=SECTIONED_PAGE)
+    assert main(["--root", str(root), "--register", str(register)]) == 0
+    assert "UNWATCHED on docs/page.md" in capsys.readouterr().out
