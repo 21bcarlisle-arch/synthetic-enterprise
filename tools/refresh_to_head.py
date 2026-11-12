@@ -114,6 +114,14 @@ ROOT = Path(__file__).resolve().parent.parent
 
 PRESERVED_PREFIX = "refs/preserved/refresh-to-head/"
 
+#: AN OPERATIONAL BUDGET, NOT A DOMAIN CONSTANT: above it `_diff_held_by_base` abstains. `diff_held`
+#: is quadratic (`SequenceMatcher(autojunk=False)`, and `_occurrences` scans the base once per
+#: block). Measured 2026-11-12 on the shared tree's 140 stale candidates: every one up to 27,776
+#: lines judged in under 2 s. `docs/state/customer_sample.json` (355,758 lines, ~37k changed) had
+#: not finished after 5 min and held the reconcile-watch pass for 20+ min. GAP: the true knee
+#: between those two sizes is unmeasured; 50,000 sits above every source file (largest 18,431).
+DIFF_HELD_LINE_BUDGET = 50_000
+
 #: The verdicts. Only REFRESHABLE may be written; everything else is a refusal or a no-op, and each
 #: says which because a refusal that does not name its reason is how you never discover it was wrong.
 REFRESHABLE = "refreshable"
@@ -360,6 +368,9 @@ def _diff_held_by_base(root: Path, path: str, work_text: str, base: str) -> int 
     """
     head_text, base_text = blob_at(root, "HEAD", path), blob_at(root, base, path)
     if head_text is None or base_text is None:
+        return None
+    if max(text.count("\n") for text in (head_text, work_text, base_text)) > DIFF_HELD_LINE_BUDGET:
+        # Unread, so nothing established: the name rules below still judge the copy.
         return None
     read, missing = diff_held(head_text, work_text, base_text)
     return read if read and not missing else None
