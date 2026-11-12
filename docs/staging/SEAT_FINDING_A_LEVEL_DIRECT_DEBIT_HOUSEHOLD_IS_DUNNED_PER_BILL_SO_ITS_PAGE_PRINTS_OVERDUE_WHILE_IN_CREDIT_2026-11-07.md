@@ -1212,3 +1212,24 @@ and N20's share leg is read on it. Then this file goes to done/.
 fails on the committed site JSON for OCC-00909e50a521. Billed 567.45, collected 481.48, balance 0.00: GBP 85.97
 unaccounted. That reading is of the committed pages, which this change does not regenerate, so it predates this
 change. The cause is not traced.
+
+### The share leg read; the row's half waits for the 16 Nov publish (worker, 12 Nov 2026 ~05:00 GMT)
+
+**N20's share leg, read at origin 0367c57375** with the test's own `share_equal_to_the_bill` over `generate()`'s ledger
+(script `/var/tmp/grade-nocredit-0454/share.py`, clean `git archive` of origin):
+
+| book | successful DD collections equal to their bill | share | ceiling |
+|---|---|---|---|
+| 6fe7827ab2 (published) | 7,886 of 36,474 | **0.216** | 0.30 |
+| 87e00e1458 (built 11 Nov 19:45, not published) | 7,886 of 36,474 | **0.216** | 0.30 |
+
+So the 11 Nov share-leg condition holds on the live book. It agrees with the runner's Leg A (0.216, 7,494 of 34,768)
+to three places, on a slightly different denominator: the test counts every successful DD, the row only graded ones.
+0d2576c48 moves no money, so it cannot move this figure; the next book in line reads the same.
+
+**The row's half cannot be graded yet.** No book has been published since 0d2576c48: origin's pages are still
+6fe7827ab2's and still print the 47. That week's publish is spent, so the weekly window next opens **Mon 16 Nov
+04:00**. **Done means, unchanged:** on that publish, `INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT` reads
+UNREACHED or CLEAN, and the share leg stays at or below 0.30. Prediction for it: UNREACHED, 0 graded (the
+replay's reading); share 0.216 if the published book is 87e00e1458, and within 0.17 to 0.27 on any later book.
+Then this file goes to done/. The delivery-lane claim is released until then rather than re-drawn each tick.
