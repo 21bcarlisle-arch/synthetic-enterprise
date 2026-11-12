@@ -775,6 +775,8 @@ class LivePaymentTriad:
         #: leg -> the last day of the last month it presented a level collection for. Its next
         #: collection can land any day after, so the account's ledger is complete only to here.
         self._leg_level_floor: dict = {}
+        #: Legs that have presented a level collection: their final bill nets the schedule's surplus.
+        self._legs_ever_level: set = set()
         # The level row the last `record_period` presented, or None if it settled the bill's face.
         self.last_level_presented: Optional[dict] = None
         # Asks of nothing (a credit bill, or a bill a waiting credit paid): no collection presented.
@@ -1217,6 +1219,9 @@ class LivePaymentTriad:
         }
 
     def _leg_owed_on(self, account_id: str, customer_id: str, on: date) -> float:
+        return max(0.0, self._leg_balance_on(account_id, customer_id, on))
+
+    def _leg_balance_on(self, account_id: str, customer_id: str, on: date) -> float:
         """What the supplier's own ledger says this leg owes on `on`, on bills already due: the
         leg's bills at their face, less the cash paid to the leg and the credit notes issued on it.
 
@@ -1244,7 +1249,7 @@ class LivePaymentTriad:
                     owed += e.amount_gbp
             elif (e.remittance[:1] and e.remittance[0].startswith(leg)) or e.event_id.startswith(own):
                 owed -= e.amount_gbp
-        return max(0.0, round(owed, 2))
+        return round(owed, 2)
 
     def _method_for(self, customer_id: str, fuel: str = "electricity") -> str:
         """The supply point's method, from the world's one channel draw -- the one
@@ -1355,6 +1360,16 @@ class LivePaymentTriad:
         # amount, so no outcome moves.
         # A level collection takes the level amount whatever the bill: credit stays on the balance.
         waiting = 0.0 if level is not None else self._leg_credit.pop(customer_id, 0.0)
+        if final_month and customer_id in self._legs_ever_level:
+            # A LEVEL LEAVER'S FINAL BILL NETS THE SCHEDULE'S SURPLUS. The final bill states the one
+            # balance (SLC 27.17) and asks its charges less the credit on the account (SLC 31H.12);
+            # the page nets it (`arrears_engine.balance_settlement_from_outcomes`, home_moves.md
+            # s.8.8c choice 14). The waiting credit above holds credit-bill excess only, so the world
+            # asked the face: 195 legs, GBP 4,715.67 of final bills on 6fe7827ab2 that the page said
+            # the credit covered and the desk counted as cash (s.8.8c choice 25). The ledger's own
+            # balance on this leg (bills at face, level cash, credit notes) already holds that
+            # credit-bill excess, so it is the larger of the two, never their sum.
+            waiting = max(waiting, -self._leg_balance_on(account_id, customer_id, issue_date))
         credit_taken = round(min(amount_gbp, waiting), 2)
         if waiting - credit_taken > 0.005:
             self._leg_credit[customer_id] = round(waiting - credit_taken, 2)
@@ -1784,6 +1799,7 @@ class LivePaymentTriad:
         # call delivered every one up to THIS due date before anything else.
         previous_due = self._leg_last_due.get(customer_id)
         if level is not None:
+            self._legs_ever_level.add(customer_id)
             y, m = int(bill_month[:4]), int(bill_month[5:7])
             self._leg_level_floor[customer_id] = date(y + m // 12, m % 12 + 1, 1) - timedelta(days=1)
         else:
