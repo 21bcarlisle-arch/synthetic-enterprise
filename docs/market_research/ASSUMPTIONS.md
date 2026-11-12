@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last updated: 2026-10-10. (Originally seeded 2026-08-10 from the codebase; rows have been added since, most recently the cheapest-fix-vs-default-tariff save-offer-market-gap rows. This line is checked against git by `tools/startup_anchor_freshness.py` -- if you change this file, change this date.)
+Last updated: 2026-11-12. (Originally seeded 2026-08-10 from the codebase; rows have been added since, most recently the wrong-meter-read rows (front-line gap 1). This line is checked against git by `tools/startup_anchor_freshness.py` -- if you change this file, change this date.)
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill
@@ -246,6 +246,10 @@ source document itself.
 | Contact-centre email first-response SLA target | `simulation/contact_centre.py::EMAIL_FIRST_RESPONSE_SLA_HOURS = 24.0` | Not independently benchmarked this round | — | 2026-07-08 | ⚠ Provisional — industry customer-service convention, no specific Ofgem complaint-handling-standards figure cited |
 | Acquisition-funnel stage-to-stage day spacing (quote→application, application→credit_check, credit_check→onboarding) | `simulation/acquisition_funnel.py::_QUOTE_TO_APPLICATION_DAYS/_APPLICATION_TO_CREDIT_CHECK_DAYS/_CREDIT_CHECK_TO_ONBOARDING_DAYS` | Not independently benchmarked this round | — | 2026-07-08 | ⚠ Provisional — short seed distributions, not discovery-agent-verified |
 | Cooling-off statutory period | `simulation/acquisition_funnel.py::COOLING_OFF_PERIOD_DAYS = 14` | 14 calendar days — Consumer Contracts (Information, Cancellation and Additional Charges) Regulations 2013, off-premises/distance contract cancellation window | Statutory instrument (general UK consumer law knowledge, not this session's discovery-agent fetch) | 2026-07-08 | ✓ OK — well-established regulatory constant |
+| Share of customer self-reads that are wrong (transposed, wrong register, tenths appended, dial rounded) | None: `simulation/meter_reads.py` emits every actual read exactly | **GAP**: BSCP504 s.4.6 names each error type, and no source gives a frequency | `what_a_wrong_meter_read_is_and_how_often_the_record_says_it_happens_2026-11-12.md` s.1, s.6 | 2026-11-12 | GAP: world build held until sourced |
+| Electricity read validation upper limit | `company/billing/meter_read_validation.py` rejects at 3x expected daily (unwired) | Fails above 2x the expected advance (EAC x profile coefficient), except seasonal registers | BSCP504 v53.0 s.4.2(5) | 2026-11-12 | Mismatch, latent: the validator runs nowhere |
+| Gas read tolerance (Class 3/4, domestic AQ) | Not modelled | Outer (rejected) above 2,000% of AQ/365 x days for AQ 5,001-10,000, and above 1,100% for 10,001-20,000; Inner override above 200%/150% | UNC Validation Rules v9.0 s.8.2 | 2026-11-12 | Reference for the validation build |
+| Meter accuracy disputes tested | Not modelled | About 1,000 (2022/23), 1,286 (2023/24), 782 (2024/25) GB tests a year, "overwhelming majority" accurate; about 2 per 100k meters a year | OPSS Delivery Reports | 2026-11-12 | No build: about 0.2 expected disputes per decade on our book |
 
 See `docs/market_research/meter_read_latency_estimation_2026.md` for full findings, direct
 quotes, and sourcing detail on the meter-read rows. The bill-generation-lag, contact-centre,
