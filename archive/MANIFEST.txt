@@ -714,3 +714,5 @@ tests/company/crm/test_decarb_recommender.py | 4b whole
 tests/company/crm/test_onboarding_journey.py | 4b whole
 tests/company/crm/test_home_registry.py | 4b archived legs only; the live legs stay at this path
 tests/company/crm/test_c2_discovery_wired.py | 4b archived legs only; the live legs stay at this path
+company/billing/ppm_warrant_register.py | 5 company.billing (C32 EH-2: the company is Consent-only, so an involuntary-PPM vulnerability check has no lawful caller)
+tests/company/billing/test_phase_fx_ppm_warrant_register.py | 5 whole

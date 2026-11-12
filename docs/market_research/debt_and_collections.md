@@ -529,7 +529,9 @@ Further unwired modules:
   `payment_plan_adequacy.py`.
 
 **One of these contradicts the published rules, and one is uncited where a figure now exists.**
-- `ppm_warrant_register.py` says involuntary installs were "banned"/"suspended" after April 2023,
+- *(Superseded 2026-11-12: the docstring was corrected 6 Oct, and the module is now archived under C32 EH-2, because
+  the company asks by Consent only and has no lawful caller for an involuntary-PPM check.)*
+  `ppm_warrant_register.py` said involuntary installs were "banned"/"suspended" after April 2023,
   and that suppliers "may only install voluntarily". **That is wrong.** Installs resumed under
   SLC 28B from 8 Nov 2023, and suppliers were re-permitted one by one from Jan 2024. The register
   also misses the rule's own terms: 3 months outstanding, 10 attempts, a welfare visit with
