@@ -42,6 +42,7 @@ from __future__ import annotations
 import datetime as dt
 
 from company.interfaces.credit_refund_requests import refund_on_account_closure
+from company.interfaces.dd_review_outcome import billing_account_of
 from simulation.segment_vocabulary import RESIDENTIAL, normalise_segment
 
 
@@ -66,7 +67,17 @@ def generate_credit_refund_log(
     ``money_in`` is the day the last money a leaver's closing credit counts reached the account
     (`balance_settlement_from_outcomes`). A credit exists once its money does (SLC 27.16), so the
     clock runs from that day too when it is later (s.8.8d choice 18).
+
+    A dual-fuel household whose other fuel closes owing hands that debt to the company with the
+    credit. The company sets the credit against it first and refunds the rest (s.8.8e). Each event
+    then carries ``set_off_gbp`` and ``set_off_against``, the debt leg. ``credit_amount_gbp`` is what
+    is refunded, and it is 0.0 where the debt took the whole credit. Two credit legs on one
+    household draw on its debt in leg order, so the debt is never set off twice.
     """
+    debt_left: dict[str, dict[str, float]] = {}
+    for cid, owed in closing_balances.items():
+        if owed > 0:
+            debt_left.setdefault(billing_account_of(cid), {})[cid] = owed
     last_bill: dict[str, dict] = {}
     for bill in bills:
         held = last_bill.get(bill["customer_id"])
@@ -83,12 +94,41 @@ def generate_credit_refund_log(
         final = dt.date.fromisoformat(last_bill[cid]["period_end"])
         later = [d for d in ((last_collection or {}).get(cid), (money_in or {}).get(cid)) if d]
         collected = max(later) if later else None
-        log.append({
+        others = {leg: owed for leg, owed in debt_left.get(billing_account_of(cid), {}).items()
+                  if leg != cid and owed > 0.005}
+        against = max(others, key=lambda leg: (others[leg], leg)) if others else None
+        event = {
             "customer_id": cid,
             **refund_on_account_closure(
                 account_id=cid,
                 final_bill_issued=max(final, collected) if collected else final,
                 credit_amount_gbp=round(-balance, 2),
+                other_fuel_closing_debt=round(others[against], 2) if against else 0.0,
             ),
-        })
+        }
+        # The run's logs label money in pounds; the seam names its currency once.
+        event["set_off_gbp"] = event.pop("set_off")
+        if event["set_off_gbp"] > 0:
+            event["set_off_against"] = against
+            debt_left[billing_account_of(cid)][against] = round(
+                others[against] - event["set_off_gbp"], 2)
+        log.append(event)
     return log
+
+
+def set_offs_from_refund_log(refund_log: list[dict]) -> dict[str, list[dict]]:
+    """Each set-off the close refund made (home_moves.md s.8.8e), keyed by the leg it paid, in the
+    shape `balance_settlement_from_outcomes(set_offs=)` nets against that leg's outstanding bills:
+    ``{debt_leg: [{"date", "amount_gbp", "other_leg"}]}``, dated the refund's paid day.
+
+    The run and the page both read the debt leg's write-off from that walk, so a set-off fed to it
+    lowers the case, the page's write-off and the P&L together. Posted beside the case, as the first
+    build did, the case still wrote off its whole amount and the page closed below zero."""
+    out: dict[str, list[dict]] = {}
+    for event in refund_log:
+        amount, debt_leg = event.get("set_off_gbp") or 0.0, event.get("set_off_against")
+        if amount > 0 and debt_leg:
+            out.setdefault(debt_leg, []).append({
+                "date": dt.date.fromisoformat(event["paid_date"]), "amount_gbp": round(amount, 2),
+                "other_leg": event["customer_id"]})
+    return out

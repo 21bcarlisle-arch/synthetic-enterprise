@@ -59,6 +59,20 @@ def scheduled_refund_date(final_bill_issued: dt.date) -> dt.date:
     return refund_due_date(final_bill_issued)
 
 
+def closing_set_off(credit_gbp: float, other_fuel_debt_gbp: float) -> float:
+    """What this company sets against a closing household's debt on its other fuel, out of the
+    credit one fuel closes in, before it refunds (home_moves.md s.8.8e, choice 21).
+
+    The smaller of the two. Only the rest of the credit is refunded. It applies across the whole
+    window (choice 22). Before SLC 27.8D (22 Jan 2021), the ground is SLC 27.16's "fair and
+    reasonable" refusal, and the pre-2021 contract terms are GAP G8.17. Paying the credit out and
+    then writing off the same household's debt moves value to the household. It does not create any.
+    """
+    if credit_gbp <= 0.0 or other_fuel_debt_gbp <= 0.0:
+        return 0.0
+    return round(min(credit_gbp, other_fuel_debt_gbp), 2)
+
+
 @dataclass(frozen=True)
 class CreditRefundRecord:
     account_id: str

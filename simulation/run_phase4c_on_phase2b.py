@@ -95,7 +95,10 @@ from simulation.arrears_engine import (
     emergent_bad_debt_lines,
 )
 from simulation.contact_centre import generate_contact_centre_log
-from simulation.credit_refund_events import generate_credit_refund_log
+from simulation.credit_refund_events import (
+    generate_credit_refund_log,
+    set_offs_from_refund_log,
+)
 from simulation.dd_balance_book import (
     build_dd_balance_book,
     dd_spells_from_run,
@@ -717,6 +720,19 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     credit_refund_log = generate_credit_refund_log(bills, customer_segments, closing_balances,
                                                    last_collection=last_level_collection,
                                                    money_in=money_in)
+    # A closing household's credit on one fuel paid its debt on the other before the refund
+    # (home_moves.md s.8.8e). The set-off is netted inside the debt leg's own walk, so the walk is
+    # run again with it: the close write-off, the debt recovery and the page's case all fall by it.
+    # `closing_balances` stays the first walk's, the balance at close before the set-off.
+    closing_set_offs = set_offs_from_refund_log(credit_refund_log)
+    if closing_set_offs:
+        emergent_bad_debt_by_line = emergent_bad_debt_lines(
+            bills,
+            phase2b_result.get("per_customer_behavioral", {}),
+            churned_ids,
+            level_dd_collections=level_dd_schedule,
+            set_offs=closing_set_offs,
+        )
 
     # Phase [debt-branch, docs/design/PROCESS_MODEL.md Section 4]: real
     # post-write-off DCA recovery / debt-sale proceeds, applied as a
@@ -728,6 +744,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         phase2b_result.get("per_customer_behavioral", {}),
         churned_ids,
         level_dd_collections=level_dd_schedule,
+        set_offs=closing_set_offs,
     )
     # Both applied here, by one call that also returns each customer's lines -- write-off at
     # close, statute-barred, leg 4b provision, placeholder released, DCA recovery -- so a

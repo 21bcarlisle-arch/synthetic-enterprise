@@ -155,7 +155,10 @@ def test_the_door_does_not_accept_a_trigger_argument():
     would hand the world the supplier's payment speed again, the draw that made 10 of
     100 refunds late at b2bc3d8da5."""
     params = set(inspect.signature(refund_on_account_closure).parameters)
-    assert params == {"account_id", "final_bill_issued", "credit_amount_gbp"}, (
+    # The household's closing debt on its other fuel is a fact on the bills it holds, like the
+    # credit; what to do with it stays the company's (home_moves.md s.8.8e).
+    assert params == {"account_id", "final_bill_issued", "credit_amount_gbp",
+                      "other_fuel_closing_debt"}, (
         f"the door's signature changed: {sorted(params)}. Anything naming a trigger, a "
         "deadline, a status, a payment date or a record type moves a company decision back "
         "across the wall."
@@ -164,7 +167,7 @@ def test_the_door_does_not_accept_a_trigger_argument():
     assert out["trigger"] == "account_closure"
     assert set(out) == {
         "trigger", "request_date", "credit_amount_gbp", "paid_date",
-        "working_days_to_pay", "breached_reg_6d_deadline", "reg_6d_payment_owed",
+        "working_days_to_pay", "breached_reg_6d_deadline", "reg_6d_payment_owed", "set_off",
     }
     assert all(isinstance(v, (str, float, int, bool)) for v in out.values()), (
         "the door returned a live object, not plain JSON-serialisable facts"

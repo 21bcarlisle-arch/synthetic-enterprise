@@ -49,7 +49,7 @@ _RESOLVED_STAGES = {"RESOLVED", "PAYMENT_PLAN_AGREED"}
 #: DISPUTE_NOTICE is no desk rung (GAP B1) and stays.
 _DESK_LETTERS = {"FIRST_NOTICE", "SECOND_NOTICE"}
 _TYPE_ORDER = {"invoice_raised": 0, "payment_failed": 1, "invoice_disputed": 1,
-               "payment_received": 1, "deemed_account": 1, "refund_debit": 3, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
+               "payment_received": 1, "deemed_account": 1, "set_off": 2, "refund_debit": 3, "scheme_credit": 1, "notice": 2, "credit_applied": 2,
                "arrears_resolved": 3, "write_off": 3, "recovery_note": 4}
 
 
@@ -208,6 +208,19 @@ def build_account_ledger(cust, as_of, *, desk_in_book=False):
                                % wo["account_write_off_gbp"],
             })
 
+    # A closing household's credit on one fuel paid its other fuel's closing debt (home_moves.md
+    # s.8.8e): owed positive on the leg whose credit left, negative on the leg it paid. It posts
+    # before the same day's refund, which pays only what is left.
+    for so in cust.get("set_offs", []):
+        if so["date"] <= as_of:
+            entries.append({
+                "date": so["date"], "type": "set_off", "invoice_number": 0,
+                "amount_gbp": round(so["amount_gbp"], 2), "info_amount_gbp": None,
+                "method": None,
+                "description": ("Credit used to pay the closing balance on %s" if so["amount_gbp"] > 0
+                                else "Paid from the closing credit on %s") % so["other_leg"],
+            })
+
     # Reg 6D: the credit a leaver's final bill closed in, paid back on the day the company pays it.
     for ref in cust.get("refunds", []):
         if ref["paid_date"] <= as_of:
@@ -226,11 +239,12 @@ def build_account_ledger(cust, as_of, *, desk_in_book=False):
 
     total_billed = round(sum(inv["total_amount_gbp"] for inv in invoices.values()), 2)
     # Collected is what the supplier kept: a refunded credit was paid in and paid back, so it nets
-    # off and billed = collected + scheme credit + balance + written off still foots.
+    # off and billed = collected + scheme credit + balance + written off still foots. A set-off is
+    # money one leg collected for the other, so it moves between the legs' collected figures.
     total_refunded = round(sum(e["amount_gbp"] for e in entries if e["type"] == "refund_debit"), 2)
     total_collected = round(sum(-e["amount_gbp"] for e in entries
                                  if e["type"] in ("payment_received", "arrears_resolved",
-                                                  "refund_debit")), 2)
+                                                  "refund_debit", "set_off")), 2)
     total_written_off = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "write_off"), 2)
     total_scheme_credit = round(sum(-e["amount_gbp"] for e in entries if e["type"] == "scheme_credit"),
                                 2)

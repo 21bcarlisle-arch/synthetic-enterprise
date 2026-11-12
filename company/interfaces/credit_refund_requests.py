@@ -26,8 +26,10 @@ returns the record the company made of them.
 
 WHAT CROSSES, PRECISELY
 -----------------------
-In: account id, the final bill's issue date, and the credit amount. Out: the date the company
-pays, and its reg 6D verdict and any guaranteed-standard payment owed on it.
+In: account id, the final bill's issue date, the credit amount, and the household's closing debt on
+its other fuel. Out: the date the company
+pays, what it set off against the other fuel, and its reg 6D verdict and any
+guaranteed-standard payment owed on it.
 
 Out: a plain JSON-serialisable dict — no `CreditRefundBook`, no `CreditRefundRecord`,
 no `RefundTrigger`, no status enum, and deliberately no re-export of any of them.
@@ -77,6 +79,7 @@ def refund_on_account_closure(
     account_id: str,
     final_bill_issued: dt.date,
     credit_amount_gbp: float,
+    other_fuel_closing_debt: float = 0.0,
 ) -> dict:
     """Record, and answer for, one credit refund owed because an account closed in
     credit.
@@ -86,9 +89,16 @@ def refund_on_account_closure(
     the trigger, pays on its own schedule, grades it against GSoP reg 6D and returns:
 
         trigger, request_date, credit_amount_gbp, paid_date,
-        working_days_to_pay, breached_reg_6d_deadline, reg_6d_payment_owed (in £)
+        working_days_to_pay, breached_reg_6d_deadline, reg_6d_payment_owed (in £),
+        set_off
 
     all as plain JSON-serialisable values. The book itself does not leave this module.
+
+    ``other_fuel_closing_debt`` (in £) is what the same household owes on its other fuel, which
+    closes too. The household holds both bills, so it is a fact the world can state. The company
+    sets its credit against that debt first (home_moves.md s.8.8e). ``credit_amount_gbp`` in the
+    answer is what is refunded after that, and it may be 0.0. ``set_off`` (in £) is what moved to the
+    other fuel on ``paid_date``.
     """
     # Imported INSIDE the function, for the reason the sibling DD-review door records:
     # at module level these names land in THIS module's namespace, so
@@ -101,8 +111,13 @@ def refund_on_account_closure(
         CreditRefundBook,
         CreditRefundRecord,
         RefundTrigger,
+        closing_set_off,
         scheduled_refund_date,
     )
+
+    # One name for the credit, so the seam names its currency once (test_market_at_the_seams).
+    credit = credit_amount_gbp
+    set_off = closing_set_off(credit, other_fuel_closing_debt)
 
     book = CreditRefundBook()
     book.raise_refund(CreditRefundRecord(
@@ -111,7 +126,7 @@ def refund_on_account_closure(
         # The company's own reading of reg 6D: a balance left over at closure is the
         # account-closure trigger, not a customer request or an annual review.
         trigger=RefundTrigger.ACCOUNT_CLOSURE,
-        credit_amount_gbp=credit_amount_gbp,
+        credit_amount_gbp=round(credit - set_off, 2),
     ))
     record = book.pay(account_id, scheduled_refund_date(final_bill_issued))
     return {
@@ -122,4 +137,5 @@ def refund_on_account_closure(
         "working_days_to_pay": record.working_days_to_pay(),
         "breached_reg_6d_deadline": record.breached_deadline(),
         "reg_6d_payment_owed": record.reg_6d_payment(),
+        "set_off": set_off,
     }

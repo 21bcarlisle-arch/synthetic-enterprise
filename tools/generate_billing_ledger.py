@@ -86,6 +86,7 @@ from simulation.arrears_engine import (
 from simulation.arrears_engine import (
     with_credits_applied as _with_credits_applied,
 )
+from simulation.credit_refund_events import set_offs_from_refund_log
 from simulation.household import households_whose_account_closed, supply_points_that_left
 from tools.generate_payment_ledger_data import build_account_ledger, desk_write_off_postings
 from tools.grade_svt_invoices_over_ceiling import bill_excess, term_of_bill, terms_by_customer
@@ -424,6 +425,27 @@ def _level_collection_payment(invoice_number: str, level: dict, stress) -> dict:
     }
 
 
+def post_refunds_and_set_offs(customers: dict, refund_log: list[dict]) -> None:
+    """Put each closure refund, and each set-off made before it, on the legs that print them.
+
+    A closing household's credit on one fuel is set against its debt on the other before the rest
+    is refunded (home_moves.md s.8.8e). The money moves between the two legs on the refund day,
+    and each leg prints its side of it (choice 23). A credit the set-off took whole refunds
+    nothing, so no refund line prints.
+    """
+    for refund in refund_log:
+        if refund["customer_id"] in customers and refund["credit_amount_gbp"] > 0:
+            customers[refund["customer_id"]].setdefault("refunds", []).append({
+                "paid_date": refund["paid_date"], "amount_gbp": refund["credit_amount_gbp"]})
+        set_off, debt_leg = refund.get("set_off_gbp") or 0.0, refund.get("set_off_against")
+        if set_off > 0 and refund["customer_id"] in customers and debt_leg in customers:
+            customers[refund["customer_id"]].setdefault("set_offs", []).append({
+                "date": refund["paid_date"], "amount_gbp": set_off, "other_leg": debt_leg})
+            customers[debt_leg].setdefault("set_offs", []).append({
+                "date": refund["paid_date"], "amount_gbp": -set_off,
+                "other_leg": refund["customer_id"]})
+
+
 def generate(run_json_path=None, out_path=None):
     if run_json_path is None:
         run_json_path = RUN_JSON
@@ -447,7 +469,9 @@ def generate(run_json_path=None, out_path=None):
     truth_repayments: list[dict] = []
     resolved, write_offs, credits_applied = _resolved_settlement(
         bills, behavioral, churned, seed=42,
-        level_dd_collections=data.get("level_dd_collections"), repayments_out=truth_repayments)
+        level_dd_collections=data.get("level_dd_collections"), repayments_out=truth_repayments,
+        # The close refund's set-offs (home_moves.md s.8.8e) net the debt leg's case in the walk.
+        set_offs=set_offs_from_refund_log(data.get("credit_refund_log", [])))
     # (leg, day received) -> what the page already posts of that repayment, from cases and returns.
     repaid_posted: dict[tuple[str, str], float] = {}
 
@@ -1326,10 +1350,7 @@ def generate(run_json_path=None, out_path=None):
     # Reg 6D: the credit a leaver's final bill closed in is paid back. The run logs the refund; the
     # ledger carries it so the page ledger can post the money leaving (cold read O27, 33 accounts
     # that stood in credit for ever).
-    for refund in data.get("credit_refund_log", []):
-        if refund["customer_id"] in customers:
-            customers[refund["customer_id"]].setdefault("refunds", []).append({
-                "paid_date": refund["paid_date"], "amount_gbp": refund["credit_amount_gbp"]})
+    post_refunds_and_set_offs(customers, data.get("credit_refund_log", []))
 
     # The desk's account-level write-off of a closed account, split across its legs once, here, where
     # both legs are in hand. The page and the statement walk post each leg's stored share.

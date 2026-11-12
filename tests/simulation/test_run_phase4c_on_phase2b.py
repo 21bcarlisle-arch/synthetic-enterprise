@@ -384,7 +384,10 @@ def test_main_produces_credit_refund_log(main_result):
     result = main_result
     assert result["credit_refund_log"], "no refunds in the window: the legs below would pass vacuously"
     for entry in result["credit_refund_log"]:
-        assert entry["credit_amount_gbp"] > 0
+        # A credit the other fuel's closing debt took whole refunds 0 (home_moves.md s.8.8e), but
+        # the leg still closed in credit: what it returns is the refund plus the set-off.
+        assert entry["credit_amount_gbp"] >= 0
+        assert entry["credit_amount_gbp"] + entry["set_off_gbp"] > 0
         assert entry["working_days_to_pay"] is not None
         assert isinstance(entry["breached_reg_6d_deadline"], bool)
         assert (entry["reg_6d_payment_owed"] > 0) is entry["breached_reg_6d_deadline"]

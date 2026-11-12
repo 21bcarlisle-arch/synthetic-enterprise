@@ -240,12 +240,16 @@ def test_a_mid_life_credit_comes_off_its_own_fuels_next_bill(walked):
 def test_the_accounts_closing_balance_is_the_sum_of_its_two_fuels(walked):
     """Defect: a closing credit on one fuel netted into the other fuel's balance, so the household is
     refunded the net and not the credit its own contract holds. Each leg closes on its own balance,
-    a leg in credit is refunded exactly that credit, and the account owes the sum of the two."""
+    a leg in credit returns exactly that credit, and the account owes the sum of the two.
+
+    "Returns" is the refund plus what the company set against the other fuel's closing debt first
+    (home_moves.md s.8.8e): the set-off moves money between the legs on the refund day, after the
+    close, so it never enters either leg's closing balance."""
     dual = _dual_households(walked)
     closing = walked["closing_balances"]
     refunds = collections.defaultdict(float)
     for r in walked["credit_refund_log"]:
-        refunds[r["customer_id"]] += r["credit_amount_gbp"]
+        refunds[r["customer_id"]] += r["credit_amount_gbp"] + (r.get("set_off_gbp") or 0.0)
     account = collections.defaultdict(dict)
     for leg, balance in closing.items():
         if household_of(leg) in dual:
