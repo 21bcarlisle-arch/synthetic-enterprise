@@ -331,3 +331,71 @@ this as GAP ("how often suppliers net unprompted").
 Graded: level-dd held=4 missed=3 code=1 reader=2 regressed=0 width=0.86
 
 NEXT: rebuild split.py to read the billing account, and grade it against 71 → 36 on the 87e00e1458 book.
+
+## 8. The cure reader on the billing account, graded; cause B traced on SYN-2016-380 (seat, 12 Nov 2026)
+
+**The reader is committed:** `tools/level_dd_cure_reader.py` (test:
+`tests/tools/test_the_cure_reader_nets_the_billing_account.py`). It groups legs by
+`billing_account_of` and applies one rule to every leg at the cure date. A leg contributes its signed
+past-due balance. A leg on level DD contributes no more than its schedule shortfall,
+`min(past_due, max(0, requested − received))`. The account owes the sum. `--legacy` reproduces the
+scratch `split.py` (level legs clamped at zero per leg), so the two can be printed side by side.
+
+**Graded on `87e00e1458`** (ledger rebuilt in an origin/main worktree at 39744630a1; `--legacy` reads
+**71 on 38, 48 level, 807 cures**, exactly s.7's, so the page code has not moved under the grade):
+
+| s.7's prediction | Predicted | Read | Verdict |
+|---|---|---:|---|
+| Holds on the billing account | 36 on 18 | **33 on 15** (10 level at cure) | **missed** (reader, below) |
+| Cause A leaves | 35 → 0 | 0 | held |
+| Cause B unchanged | 10 | **7** | **missed** (reader, below) |
+| Cause C unchanged | 10 (PROS-2018-0016) | 10 | held |
+| Cause D unchanged | 14 | 14 | held |
+| Cause E unchanged | 2 (SYN-2016-488, -536) | 2 | held |
+
+**Why 36 became 33.** The prediction was computed with `acct.py`. That script sums each leg's RAW
+past-due balance, and it is not the rule `split.py` itself applied to a level leg (the schedule-shortfall
+cap). The three that leave are all s.7 cause B: SYN-2016-094 (31 Oct 2022), SYN-2016-191 (3 Apr 2023)
+and SYN-2016-404 (31 Jul 2017). On each, the level leg's debit balance is far above its shortfall:
+£0.63, £18.59 and £12.30 against balances of £204, £455 and £50. The sibling's credit (£87.34, £100.98,
+£49.92) covers that shortfall. So each is a cause-A hold that the prediction's arithmetic hid. The
+committed reader is the consistent one. Under Ofgem's level-DD rule, a debit balance on a level plan is
+not past due, and only the shortfall is. The miss is the prediction's, kept here beside it. Cause B is
+now **7 holds on 7 accounts**: PROS-2019-0246, SYN-2016-031, -037, -253, -380, -525, -528.
+
+**Cause B on SYN-2016-380, from code.** The world record (`world_payment_truth.repayments`): a
+settlement of **£102 on 1 Apr 2019 for bill month 2019-03**. That is the March level collection (bill
+42056), returned on 18 Mar 2019. The desk saw the cash and cured on 1 Apr. **s.7's reading is
+corrected here:** the £102 `payment_received` on 18 Apr is NOT this cash posted late. It is the April
+level instalment (bill 42057, collected on schedule). `lag.py` matched it on amount alone. The page
+posts the 1 Apr cash on **19 Sep 2019, 171 days late, against a different bill**:
+
+1. **Which bill: the engine's walk** (`simulation.arrears_engine.resolved_settlement`, called at
+   `tools/generate_billing_ledger.py:448`). Bill 42056 had already been met by the 2017-10-31 credit
+   bill (its case: `CREDIT_APPLIED`, £102 credit, `repaid_gbp` 0). So the walk held the 1 Apr cash as
+   waiting credit and met the next failed bill with it: 42062, whose level collection was returned on
+   18 Sep 2019.
+2. **The page books it to that case:** `tools/generate_billing_ledger.py:1192-1196` counts the
+   repayment against case `ARR-SYN-2016-380-2019-09-30` and marks `(SYN-2016-380, 2019-04-01)` as
+   posted. So the catch-up loop at `:1249-1263` ("every household repayment reaches the page …
+   once") finds nothing left and puts nothing on 42056's payment row.
+3. **The line that dates it:** `simulation/arrears_engine.py:798`, in `with_credits_applied`:
+   `"date": max(_on(c), opened)`. `_on(c)` is the cash's own day (2019-04-01, ccdfb652d's fix), but
+   `opened` is the case's DD_FAILED day (2019-09-19). The `max` clamps the cash forward to the day
+   the case it was matched to opened. The stage's own note still says "received 2019-04-01".
+4. **The posting:** `tools/generate_payment_ledger_data.py:151-157` turns ARREARS_REPAID into a
+   `payment_received` at the stage date, on the page's (P) ledger for that leg.
+
+**The ledger it dates against** is P: the page's per-leg ledger, inside the case of a LATER bill. K
+(the desk) counted the cash on its day. So on 1 Apr P still holds the March return as £102 short,
+and the desk was right to cure. ccdfb652d dated the stage by the cash. It left the clamp to the
+case's opening and the walk's choice of bill, and those are what carry this account's hold. Cause B
+is therefore "P posts the cash against the bill the walk chose, from the day that bill's case
+opened", not "the payment row is dated late". **Not built here.** Whether the other six cause-B holds
+share this shape (an older credit met the returned bill, so the cash waited for a later one) is
+unmeasured. The next item should count it on the 7 before choosing between a fix at `:798` and a fix
+in the walk.
+
+Graded: level-dd held=4 missed=3 code=0 reader=3 regressed=0 width=0
+
+NEXT: count the 7 cause-B holds by shape (cash matched to a later bill's case vs. dated late on its own bill), then fix the shape that holds most.
