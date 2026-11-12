@@ -691,3 +691,20 @@ def test_the_replay_counts_a_row_retired_BEFORE_its_artefact_was_written_and_not
     replay = seat_continuation.replay_retired(store)
     assert [r["id"] for r in replay["late"]] == ["early"]
     assert [r["id"] for r in replay["gone"]] == ["gone"]
+
+
+def test_a_path_that_EXISTED_at_hand_off_does_not_hold_retirement_once_gone_but_an_output_still_does(
+        tmp_path):
+    # Defect: the N29 salvage item named its worktree as an input and asked for "the worktree" to be
+    # removed a sentence later; once removed, the hold read "does not exist yet" for ever. Both legs
+    # in one assertion, so dropping every missing path (which passes the input leg) reds here.
+    store = tmp_path / "store.json"
+    salvage = tmp_path / "salvage"
+    salvage.mkdir()
+    out = tmp_path / "run" / "DONE.json"
+    seat_continuation.hand_off("x", f"Port the salvage at {salvage}, then read {out}. Remove the "
+                               "worktree.", "w", "landed", path=store)
+    salvage.rmdir()
+    item = json.loads(store.read_text())[0]
+    hold = seat_continuation.retirement_hold(item, job_running=lambda job: False)
+    assert hold is not None and str(out) in hold and str(salvage) not in hold

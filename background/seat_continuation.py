@@ -367,6 +367,13 @@ def hand_off(
     ]
     retires = [d for d in dict.fromkeys([*inherited, *retires]) if d != work_id]
     entry = {**fields, "written_at": stamped}
+    # A PATH THAT EXISTED AT HAND-OFF IS AN INPUT, NOT THE ITEM'S OUTPUT (2026-11-12). The N29 salvage
+    # item named /var/tmp/se-n29-walk as where the work sat and asked, a sentence later, for "the
+    # worktree" to be removed; the work landed, the worktree went, and the hold read the absence as
+    # "does not exist yet" forever. Recorded here because existence at write time is unrecoverable.
+    present = [p for p in named_artefacts(entry)[0] if os.path.exists(p)]
+    if present:
+        entry["present_at_hand_off"] = present
     # WHO WROTE THIS, stamped at WRITE TIME because it cannot be recovered afterwards. A tick holds
     # a delivery-lane claim while it works; the interactive seat claims in a different store and
     # holds none. So "a delivery-lane item was in hand when this was written" IS the operational
@@ -644,7 +651,8 @@ def retirement_hold(item: Mapping, *, exists=os.path.exists, job_running=None) -
     """
     job_running = job_running or _job_running
     paths, jobs = named_artefacts(item)
-    missing = [p for p in paths if not exists(p)]
+    inputs = set(item.get("present_at_hand_off") or ())
+    missing = [p for p in paths if p not in inputs and not exists(p)]
     live_jobs = []
     for job in jobs:
         try:
