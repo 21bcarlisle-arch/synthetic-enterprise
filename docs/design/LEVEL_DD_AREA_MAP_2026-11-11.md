@@ -823,6 +823,14 @@ consequence to watch: s.8.8d choice 20's SYN-2016-244 (a level leg whose last le
 on `_legs_ever_level` too, so its final bill now nets in the world. Where the page does not net it, that
 appears as a new F-shaped disagreement in the other direction.
 
+**W4, pre-registered 12 Nov 23:30Z, before the book exists** (drawn early: the item had no not-before guard, unlike
+its sibling `n29-ceiling-graded-on-the-16-nov-book`). The page's close nets every paid non-level bill after the last
+level collection, so the final bill of a leg long off its schedule is in the page's net too. The world now waits the
+leg's ledger credit on the same bill. Prediction: reverse-F accounts (the world asks less than the page nets to, so
+the page prints a credit the world never left) **0 to 3**; SYN-2016-244's final bill is asked **GBP 30 to 45**
+(choice 20's 35.68), not 77.82, and its late refund of the repayment credit is gone. A reverse-F count above 3 means
+the world's ledger credit and the page's close credit are different quantities, and that is the next item.
+
 The account-page wrong row is **not** moved to corrected: its 24 accounts clear only on a book whose world
 carries the net. That is the 16 Nov 04:00 book. New books are held until then.
 
