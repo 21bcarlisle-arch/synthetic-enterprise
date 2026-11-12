@@ -566,3 +566,48 @@ and refuse-everything. The later cash's `settles_month` names a different month 
 names the returned bill's own month, the catch-up files it under the same bill and refuse-all is an equivalence.
 
 NEXT: fix 2 (`:1192-1196` / `arrears_engine.py:798`), the 55 W stages dated after their cash day
+
+### 9.3 Fix 2 built and graded (seat, 12 Nov 2026)
+
+A repayment whose cash day is before its case's opening (`stages[0].date`) is no longer that case's money in.
+`with_credits_applied` notes it as a zero-money CREDIT_APPLIED at the opening ("the household's payment of …"),
+and the case branch of `generate_billing_ledger` leaves it out of `repaid_posted` and `repaid_gbp`. So the
+catch-up posts it once, on its cash day, under its `settles_month` bill, and the case's `credit_applied_gbp`
+takes it. `arrears_gbp` is untouched. Baseline is s.9.2's ledger (`/var/tmp/f1118/fix1b.json`, code 18148e6b6);
+the fix ledger is `/var/tmp/f2w/fix2.json` from the same run. Pre-registered in `/var/tmp/f2w/PREDICTION.txt`
+before the code was written; readers `q.py`, `rda/shapes.py`, `level_dd_cure_reader`.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| Q1 ARREARS_REPAID dated after its own cash day | 55 → 0 | **60 → 0** | held (reader: 55 counted only off-day stages; 5 more sat on a day other cash crossed) |
+| Q2 CREDIT_APPLIED notes naming a household payment | 0 → 55 | **60** | held on the same reading |
+| Q3 page money-in GBP; legs moved | unchanged; 0 to 3 | 94,633.76 unchanged; **0** | held |
+| Q4 balances, `arrears_gbp` moved | 0, 0 | **0, 0** (40 records change) | held |
+| Q5 off-day W; own-late; inherit | 55 → 0; 84 → 12 to 20; 6 → 0 to 2 | **0; 16; 0** | held |
+| Q6 cure holds | 29 → 25 | **29 → 5 on 3 accounts** | **missed** |
+| Q7 status moves | paid_late → settled_by_credit 1 to 55, other 0 | **11**, other 0 | held |
+
+**The Q6 miss is this shape, under-counted.** Cause B's four left as predicted (SYN-2016-037, -380, -528,
+PROS-2019-0246). So did **cause C** (PROS-2018-0016, all 11 holds), **cause D** (SYN-2016-206's 7), **cause E**
+(SYN-2016-536), and SYN-2016-487. Each of those was the same defect on a leg s.9 did not count. PROS-2018-0016's
+GBP 85.88 of 17 May 2020 was posted on 22 Oct, the opening of the September bill's case, and the hold sat on
+17 May. SYN-2016-206's GBP 63.49 of 15 Mar 2021 was posted on 16 Jan 2024. s.9's census tagged W by "off-day",
+and s.7/s.8 had given these accounts other causes from their symptoms, so they were never traced to `:798`. The
+prediction trusted those cause labels. **Left: 5 holds on 3 accounts**: SYN-2016-015g (71.37, 15 Apr 2018),
+SYN-2016-142g (47.11 → 44.52, 30 Apr 2020), SYN-2016-217 (3). None of them changed shape under this fix, so their
+cause is untraced.
+
+**Not predicted.** Late settlements under the cumulative rule fall 113 → 39, and "on time in parts" rises
+696 → 751. The 16 own-late that remain are all closed by an on-day case stage or catch-up row on ANOTHER cash
+day: one leg settling twice, where the walk gave one day's cash to the other. That is the walk's assignment
+problem, not a dating problem.
+
+`tests/simulation/test_a_collections_journey_opens_on_the_bill_the_ledger_made_due.py` fails on clean HEAD
+(3 stray journey openings in 2016), with or without this fix.
+
+Test: `tests/tools/test_cash_before_a_case_opened_is_credit_not_its_repayment.py`. All three mutations kill it:
+refuse-nothing, refuse-everything at the ledger, and the ledger half alone (the engine still clamping).
+
+Graded: level-dd held=6 missed=1 code=0 reader=1 regressed=0 width=1.0
+
+NEXT: trace the 5 holds left (SYN-2016-015g, -142g, -217) from code, one cause each

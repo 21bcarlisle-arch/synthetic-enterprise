@@ -21,7 +21,7 @@ def _repaid(stages):
     return [(s["date"], s["amount_gbp"]) for s in stages if s["stage"] == ARREARS_REPAID]
 
 
-def test_cash_that_arrived_before_the_walk_met_it_is_dated_on_its_own_day_and_cash_before_the_case_is_not():
+def test_cash_that_arrived_before_the_walk_met_it_is_dated_on_its_own_day_and_cash_before_the_case_is_credit():
     credits = [
         # Arrived 29 Nov, after the case opened; the walk met it with the bill on 16 Dec.
         {"date": dt.date(2018, 12, 16), "amount_gbp": 75.11, "credit_period_end": "2018-11-29",
@@ -35,13 +35,16 @@ def test_cash_that_arrived_before_the_walk_met_it_is_dated_on_its_own_day_and_ca
     credit_bill = [{"date": dt.date(2018, 12, 16), "amount_gbp": 5.0, "credit_period_end": "2018-11-30",
                     "kind": "credit"}]
     on_its_day = _repaid(with_credits_applied(STAGES, 89.15, credits))
-    before_the_case = _repaid(with_credits_applied(STAGES, 89.15, early))
+    early_stages = with_credits_applied(STAGES, 89.15, early)
+    before_the_case = [(s["date"], s["amount_gbp"]) for s in early_stages if s["stage"] == CREDIT_APPLIED]
     credit_stage = [s["date"] for s in with_credits_applied(STAGES, 89.15, credit_bill)
                     if s["stage"] == CREDIT_APPLIED]
-    # The partition: one repayment dated on its own day, one held at the case's opening, and a credit bill
-    # (not money in) left on the day it was netted.
+    # The partition: repayments dated on their own day; cash from before the case opened is credit already
+    # on the account, noted at the opening and not this case's money in (LEVEL_DD map s.9 fix 2); and a
+    # credit bill (not money in) left on the day it was netted.
     assert on_its_day == [("2018-11-29", 75.11), ("2018-12-31", 14.04)]
-    assert before_the_case == [(OPENED, 10.0)]
+    assert before_the_case == [(OPENED, 10.0)] and not _repaid(early_stages)
+    assert "payment of 2018-10-02" in next(s["note"] for s in early_stages if s["stage"] == CREDIT_APPLIED)
     assert credit_stage == ["2018-12-16"]
 
 

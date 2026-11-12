@@ -793,6 +793,18 @@ def with_credits_applied(stages: list[dict], face_gbp: float, credits: list[dict
         owed = round(owed - c["amount_gbp"], 2)
         # A credit already on the account meets the bill the day the case opens. The ledger's case
         # opens at the issued bill's due date, which can be a day or two after the engine's clock.
+        if c.get("kind") == "repayment" and _on(c) < opened:
+            # Cash that arrived before this case opened is credit already on the account, not this
+            # case's money in: the walk met an earlier bill with older credit and held the cash for
+            # the next return (SYN-2016-380's 1 Apr 2019 cash, posted 19 Sep on a later bill's case,
+            # LEVEL_DD map s.9). The page posts it on its own day under the bill it settled; here it
+            # only says where it went.
+            credit_stages.append({
+                "stage": CREDIT_APPLIED, "date": opened, "amount_gbp": c["amount_gbp"],
+                "note": "Account credit of GBP%.2f (the household's payment of %s) netted against "
+                        "this bill -- GBP%.2f left owed"
+                        % (c["amount_gbp"], c["credit_period_end"], max(owed, 0.0))})
+            continue
         if c.get("kind") == "repayment":
             credit_stages.append({
                 "stage": ARREARS_REPAID, "date": max(_on(c), opened),
