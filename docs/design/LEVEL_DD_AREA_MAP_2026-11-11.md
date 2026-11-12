@@ -676,3 +676,36 @@ old guard, the credit face added to the asked amounts, and a guard that passes e
 Graded: level-dd held=4 missed=0 code=0 reader=0 regressed=0 width=1.0
 
 NEXT: SYN-2016-142g, the walk's draw of level surplus credit against a paid bill (s.9.4, the last hold)
+
+### 9.6 The last hold: the close's credit meets the final bill only (seat, 12 Nov 2026)
+
+SYN-2016-142g's 2019-08-19 "credit" is not a credit bill. It comes from the level-leaver close
+(`balance_settlement_from_outcomes`, home_moves.md s.8.8c choice 14). That rule nets the closing credit against
+every paid non-level bill after the last level collection. 142g's collections were returned in Sep and Oct
+2019, and the leg then paid on receipt for a year before it closed in Oct 2020. The world asked each of those
+bills at its face. The rule now nets the leg's final bill only, and choice 14 is corrected beside the claim.
+Pre-registered in `/var/tmp/l142/PREDICTION.txt`. Baseline is s.9.5's ledger (`/var/tmp/k3c/fix.json`); the fix
+ledger is `/var/tmp/l142/fix.json`, from the same 6fe7827ab2 run.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| P0 non-final nettings on the base engine | 142g's 3 among them, on 5-40 legs | **5 bills, GBP 297.64, 3 legs** (142g, PROS-2021-0117, PROS-2023-0013g) | missed (fewer legs) |
+| P1 cure holds | 1 → 0, no joiner | **1 → 0** (cured 807) | held |
+| P2 page money-in | rises by the removed nettings less what moves onto final bills, ≥ 0 | **+253.63** (297.64 − 44.01, which moves onto 2 final bills) | held |
+| P3 write-offs; closings | write-offs unchanged; closing grows on the moved legs | write-offs identical. Closing grows on 2 legs: 142g by 120.49, PROS-2021-0117 by 133.14. PROS-2023-0013g's 19.73 moves onto its final bill, so its closing does not move | held, except PROS-2023-0013g |
+| P4 records changed | only the census legs | **3**, exactly those | held |
+
+The rebuilt page ends 142g and PROS-2021-0117 holding 120.49 and 133.14. As in s.9.5, the refund log is from
+the old run. The engine's closing on this code is −120.49 and −133.14, so a fresh run refunds them.
+
+**Still open.** The world settles a mover's final month at the bill's face (`live_payment_triad`,
+`final_month`), so choice 14's netting of the final bill is also the page's alone: 195 legs, GBP 4,715.67. That
+is G8.15 and a payment-truth change, filed as
+`docs/staging/SEAT_FINDING_A_LEVEL_LEAVERS_FINAL_BILL_IS_NETTED_ON_THE_PAGE_AND_COLLECTED_AT_FACE_BY_THE_WORLD_2026-11-12.md`.
+
+Test: `tests/simulation/test_a_level_leavers_final_bill_meets_its_credit_before_the_refund.py::test_a_bill_paid_on_receipt_before_the_final_bill_keeps_its_cash`.
+Two mutations kill it: removing the final-bill filter, and a filter that matches nothing.
+
+Graded: level-dd held=4 missed=1 code=0 reader=0 regressed=0 width=1.0
+
+NEXT: none -- the level-dd cure row reads 0 holds; the final-bill netting against the world's face collection is the filed finding's, a payment-truth change

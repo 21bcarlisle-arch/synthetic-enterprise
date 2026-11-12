@@ -63,3 +63,20 @@ def test_a_stayer_is_not_netted_by_the_close():
     closing = {}
     _, credited = balance_settlement_from_outcomes(_ROWS, set(), closing, level_dd_collections=_LEVEL)
     assert not credited.get(("COVERED", "2020-04-05", "electricity"))
+
+
+def test_a_bill_paid_on_receipt_before_the_final_bill_keeps_its_cash():
+    """C. A leg that left level DD while still supplied paid its next bills on receipt at their face,
+    which the world collected (SYN-2016-142g: 50.63, 61.28 and 8.58 printed as settled by a 2019-08-19
+    credit, map s.9.6). Only the final bill meets the credit; the rest of it is refunded (choice 17).
+    The final bill here is 10, so a walk that nets every bill after the last collection takes 30."""
+    rows = ([_row("OFFLEVEL", f"2020-{m:02d}-28", 50.0) for m in (1, 2, 3)]
+            + [_row("OFFLEVEL", "2020-05-28", 12.0), _row("OFFLEVEL", "2020-06-28", 8.0),
+               _row("OFFLEVEL", "2020-07-05", 10.0)])
+    closing = {}
+    _, credited = balance_settlement_from_outcomes(
+        rows, {"OFFLEVEL"}, closing, level_dd_collections=_level("OFFLEVEL", 60.0, (1, 2, 3)))
+    took = {pe: sum(c["amount_gbp"] for c in credited.get(("OFFLEVEL", pe, "electricity"), ()))
+            for pe in ("2020-05-28", "2020-06-28", "2020-07-05")}
+    assert took == {"2020-05-28": 0, "2020-06-28": 0, "2020-07-05": 10.0}, took
+    assert closing["OFFLEVEL"] == -20.0

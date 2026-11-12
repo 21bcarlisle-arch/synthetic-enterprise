@@ -1396,8 +1396,16 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             # on the account (SLC 31H.12), and the final bill states the one balance (SLC 27.17), so
             # the credit meets those bills first, oldest first, and only the rest is refunded
             # (home_moves.md s.8.8c, A). Listed as "credit", so the page prints the smaller payment.
+            # The final bill only (s.8.8c choice 14): a bill raised while the leg was still supplied
+            # asked its face, which the world collected, and the credit waits (choice 17).
+            # SYN-2016-142g left level DD on supply in Oct 2019, paid on receipt for a year, and the
+            # walk spent its surplus on three bills the household paid in cash (LEVEL_DD map s.9.6).
+            final_bill = max((r["period_end"] for r in rows
+                              if r["outcome"] in ("success", "failed", "dispute", "credit")),
+                             default=None)
             for r in sorted((r for r in rows if r["outcome"] == "success" and id(r) not in level_paid
-                             and r["due_date"] > last_collection),
+                             and r["due_date"] > last_collection
+                             and r["period_end"] == final_bill),
                             key=lambda r: r["period_end"]):
                 if closing >= -0.005:
                     break

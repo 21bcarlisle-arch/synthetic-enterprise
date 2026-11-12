@@ -1068,6 +1068,12 @@ the final bill states. (A level DD "collects its amount whatever the month's bil
     The walk lists the netting as `credits_applied` kind "credit" against those bills. The billing
     ledger already prints a paid bill's payment less that credit (choice 11), so the final DD
     collects only what the credit does not cover, and the refund is the rest.
+    *Correction, 12 Nov:* **the final bill only**, the leg's last bill row (SLC 27.17's statement of
+    account). As written, the choice netted every paid bill after the last level collection. A leg that
+    left level DD while still supplied pays its next bills on receipt at their face. The world collected
+    them, and the walk printed them as settled by credit: SYN-2016-142g's 50.63, 61.28 and 8.58, plus
+    PROS-2021-0117 and PROS-2023-0013g. That was 5 bills, GBP 297.64, on 3 legs of the 6fe7827ab2 book.
+    Those bills fall under choice 17: the credit waits, and the close refunds it.
 15. *A level-paid month draws no credit* (B). Its collection is cash of the level amount, and
     `level_collection_difference` already reconciles that cash to the face. A credit bill on a level
     leg waits on the account. It meets an arrears debt (as before), a bill paid off the schedule, or
@@ -1081,7 +1087,10 @@ the final bill states. (A level DD "collects its amount whatever the month's bil
     next review (G8.13, DD3). No refund exposes it, so it is not in this step.
 
 **GAP G8.15.** (G8.14 is the salvaged s.8.8b's.) Whether a supplier presents a final DD at all when the account's credit covers the
-final bill. The rules above imply it does not; no published practice confirms it.
+final bill. The rules above imply it does not; no published practice confirms it. *Open (12 Nov):* the
+world presents a mover's final month at the bill's face (`background/live_payment_triad.py`, `final_month`,
+whose `_leg_credit` holds credit notes only), so choice 14's netting of the final bill is still the page's
+alone: 195 legs, GBP 4,715.67, on the 6fe7827ab2 book (`SEAT_FINDING_A_LEVEL_LEAVERS_FINAL_BILL_IS_NETTED_ON_THE_PAGE_AND_COLLECTED_AT_FACE_BY_THE_WORLD_2026-11-12.md`).
 
 #### 8.8d A refund pays only the credit the account holds (added 2026-11-11, before the build)
 
