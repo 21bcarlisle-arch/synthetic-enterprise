@@ -7274,6 +7274,29 @@ def _publish_insights_artefacts(files):
         log("Insights artefact paths not added to the commit (non-fatal): {}".format(_exc))
 
 
+#: Directories whose TRACKED files this cycle regenerates and the publish therefore commits, by
+#: census rather than by hand-listed path. `docs/market_data` joined on 2026-11-12: the cycle
+#: rewrites all three feeds there, and `site/data/explore_carbon.json` is computed from one of
+#: them, but nothing ever staged them -- so e816040ce8 published a carbon page whose counts only
+#: an uncommitted `grid_intensity_feed.json` could reproduce (docs/staging/done/
+#: WORKER_FINDING_THE_PUBLISHED_CARBON_PAGE_IS_BUILT_FROM_A_GRID_INTENSITY_FEED_THAT_IS_NOT_
+#: COMMITTED_2026-11-11.md). Untracked files are never swept: a file is added to git once, by
+#: whoever built it, and from then on its refresh rides every publish.
+TRACKED_PUBLISH_DIRS = ("site/state", "docs/market_data")
+
+
+def tracked_publish_files(project_dir):
+    """Absolute paths of every tracked file under `TRACKED_PUBLISH_DIRS`. Raises when git cannot
+    say, so the caller logs a named failure rather than committing a silently shorter list."""
+    result = subprocess.run(
+        ["git", "ls-files", "-z", "--", *TRACKED_PUBLISH_DIRS], cwd=str(project_dir),
+        capture_output=True, text=True, timeout=60,  # H30: stderr captured, not discarded
+    )
+    if result.returncode != 0:
+        raise RuntimeError("git ls-files rc={}: {}".format(result.returncode, result.stderr.strip()))
+    return [str(Path(project_dir) / rel) for rel in result.stdout.split("\0") if rel]
+
+
 def git_commit_push(git_hash, net_margin, outcome=None, json_path=None):
     """Commit and push the publish surface. Returns True iff the content is committed.
 
@@ -7519,22 +7542,11 @@ def git_commit_push(git_hash, net_margin, outcome=None, json_path=None):
     # `live_decisions_YYYYMMDD.json` dailies, and a bare glob would sweep every one of them into
     # a content publish. A file has to be added to git once, by whoever built it; from then on
     # its refresh is committed automatically and cannot silently freeze on the live site.
-    site_state_dir = PROJECT_DIR / "site" / "state"
-    if site_state_dir.is_dir():
-        try:
-            _tracked = subprocess.run(
-                ["git", "ls-files", "-z", "--", "site/state"], cwd=str(PROJECT_DIR),
-                capture_output=True, text=True, timeout=60,  # H30: stderr captured, not discarded
-            )
-            if _tracked.returncode == 0:
-                for _rel in _tracked.stdout.split("\0"):
-                    if _rel:
-                        files.append(str(PROJECT_DIR / _rel))
-            else:
-                log("site/state tracked-file census failed (rc={}): {} -- falling back to the "
-                    "explicit appends above".format(_tracked.returncode, _tracked.stderr.strip()))
-        except Exception as _exc:  # noqa: BLE001 -- never take the publish down over a path list
-            log("site/state paths not added to the commit (non-fatal): {}".format(_exc))
+    try:
+        files.extend(tracked_publish_files(PROJECT_DIR))
+    except Exception as _exc:  # noqa: BLE001 -- never take the publish down over a path list
+        log("{} tracked-file census failed (non-fatal): {} -- falling back to the explicit "
+            "appends above".format(" + ".join(TRACKED_PUBLISH_DIRS), _exc))
     # GitHub Pages mirror (docs/staging/ADVISOR_GITHUBIO_MIRROR.md): the advisor's
     # fetch path to poesys.net proved persistently stale independent of any CD
     # incident, so the state JSONs also ship from docs/ (GitHub Pages), same as
@@ -11430,7 +11442,9 @@ def _process(marker_path_str):
     log("Generating explore carbon layer")
     try:
         from tools.generate_explore_carbon import generate as gen_carbon
-        _carbon = gen_carbon()
+        # It reads the intensity feed regenerated a few lines up, which the publish commits
+        # with the page (TRACKED_PUBLISH_DIRS) -- that is what makes this declaration true.
+        _carbon = gen_carbon(inputs_ride_with_the_page=True)
         log("Generated site/data/explore_carbon.json ({} measured account-day(s); {} of {} "
             "accounts have a half-hourly-capable meter)".format(
                 len([a for a in _carbon.get("accounts") or [] if "co2e_kg_timed" in a]),

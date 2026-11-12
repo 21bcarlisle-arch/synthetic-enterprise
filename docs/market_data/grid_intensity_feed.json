@@ -1,5 +1,5 @@
 {
- "published_at": "2026-10-05T10:43:07.237367+00:00",
+ "published_at": "2026-11-12T00:29:06.465232+00:00",
  "basis": "dimensionless: each half hour's gCO2/kWh from sim/grid_carbon_history.py divided by its calendar year's DEMAND-WEIGHTED mean (Elexon INDO demand), so each year averages 1.0. The gCO2/kWh is NESO's Historic GB Generation Mix CARBON_INTENSITY, national outturn, on a GENERATION basis: CO2 at the generator per kWh generated, the generation counted including embedded wind and solar and imports at NESO's import factors. Transmission and distribution losses are NOT included. Where that series has no usable value it is NESO's own methodology applied to Elexon's published half-hourly fuel mix (FUELHH) plus NESO's embedded wind and solar estimate, at NESO's published factors. Every record carries its `source`.",
  "how_to_use": "Multiply `shape` by `annual_level.by_year[<the record's calendar year>].mean_g_co2_per_kwh` to get the published gCO2/kWh for that half hour. The annual level is published here, beside the shape it was normalised with; the company reads it in exactly one place, company/regulatory/carbon_emissions.py, and a year with `complete: false` is a mean of the dates it covers, never the year's.",
  "annual_level": {
@@ -256,38 +256,38 @@
    "2021": {
     "half_hours": 17502,
     "correlation": 0.9976,
-    "mean_bias_g_co2_per_kwh": 4.45,
-    "rmse_g_co2_per_kwh": 6.1
+    "mean_bias_g_co2_per_kwh": 4.44,
+    "rmse_g_co2_per_kwh": 6.09
    },
    "2022": {
     "half_hours": 17495,
-    "correlation": 0.9977,
-    "mean_bias_g_co2_per_kwh": 3.18,
-    "rmse_g_co2_per_kwh": 5.76
+    "correlation": 0.9978,
+    "mean_bias_g_co2_per_kwh": 3.05,
+    "rmse_g_co2_per_kwh": 5.62
    },
    "2023": {
     "half_hours": 17507,
-    "correlation": 0.9951,
-    "mean_bias_g_co2_per_kwh": 7.43,
-    "rmse_g_co2_per_kwh": 9.69
+    "correlation": 0.9962,
+    "mean_bias_g_co2_per_kwh": 5.77,
+    "rmse_g_co2_per_kwh": 8.05
    },
    "2024": {
     "half_hours": 17559,
-    "correlation": 0.9941,
-    "mean_bias_g_co2_per_kwh": 8.83,
-    "rmse_g_co2_per_kwh": 10.92
+    "correlation": 0.9958,
+    "mean_bias_g_co2_per_kwh": 6.67,
+    "rmse_g_co2_per_kwh": 8.69
    },
    "2025": {
     "half_hours": 17517,
-    "correlation": 0.9912,
-    "mean_bias_g_co2_per_kwh": 4.91,
-    "rmse_g_co2_per_kwh": 9.18
+    "correlation": 0.9926,
+    "mean_bias_g_co2_per_kwh": 2.32,
+    "rmse_g_co2_per_kwh": 7.55
    },
    "ALL": {
     "half_hours": 175178,
-    "correlation": 0.9953,
-    "mean_bias_g_co2_per_kwh": 1.72,
-    "rmse_g_co2_per_kwh": 8.19
+    "correlation": 0.996,
+    "mean_bias_g_co2_per_kwh": 1.07,
+    "rmse_g_co2_per_kwh": 7.55
    }
   },
   "api_versus_historic_mix": {
@@ -412,16 +412,15 @@
  },
  "records_window_days": 14,
  "records_cover": {
-  "from": "2016-07-24",
+  "from": "2018-02-28",
   "to": "2025-06-07",
   "trailing_window_from": "2025-05-24",
   "extra_days_carried_for_meter_reads": [
-   "2016-07-24",
-   "2021-02-11",
-   "2021-06-07",
-   "2022-06-24",
-   "2022-12-15",
-   "2025-01-10"
+   "2018-02-28",
+   "2021-07-02",
+   "2022-07-06",
+   "2022-08-14",
+   "2022-12-13"
   ]
  },
  "series_covers": {
@@ -1467,2020 +1466,1684 @@
  },
  "records": [
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 1,
-   "shape": 0.8669,
+   "shape": 1.63947,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 2,
-   "shape": 0.85593,
+   "shape": 1.64393,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 3,
-   "shape": 0.86324,
+   "shape": 1.63947,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 4,
-   "shape": 0.85959,
+   "shape": 1.64393,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 5,
-   "shape": 0.85227,
+   "shape": 1.62611,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 6,
-   "shape": 0.84496,
+   "shape": 1.62165,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 7,
-   "shape": 0.85593,
+   "shape": 1.61274,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 8,
-   "shape": 0.85593,
+   "shape": 1.58601,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 9,
-   "shape": 0.88519,
+   "shape": 1.56373,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 10,
-   "shape": 0.88153,
+   "shape": 1.55928,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 11,
-   "shape": 0.88153,
+   "shape": 1.51473,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 12,
-   "shape": 0.88519,
+   "shape": 1.51027,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 13,
-   "shape": 0.88885,
+   "shape": 1.52809,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 14,
-   "shape": 0.88153,
+   "shape": 1.53255,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 15,
-   "shape": 0.87788,
+   "shape": 1.53255,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 16,
-   "shape": 0.87056,
+   "shape": 1.52364,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 17,
-   "shape": 0.82667,
+   "shape": 1.488,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 18,
-   "shape": 0.80838,
+   "shape": 1.46127,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 19,
-   "shape": 0.7974,
+   "shape": 1.44345,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 20,
-   "shape": 0.80472,
+   "shape": 1.43008,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 21,
-   "shape": 0.80472,
+   "shape": 1.42563,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 22,
-   "shape": 0.7974,
+   "shape": 1.40781,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 23,
-   "shape": 0.79009,
+   "shape": 1.42563,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 24,
-   "shape": 0.7974,
+   "shape": 1.43008,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 25,
-   "shape": 0.78643,
+   "shape": 1.43454,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 26,
-   "shape": 0.79009,
+   "shape": 1.42563,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 27,
-   "shape": 0.78277,
+   "shape": 1.44345,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 28,
-   "shape": 0.77546,
+   "shape": 1.4479,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 29,
-   "shape": 0.77911,
+   "shape": 1.46127,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 30,
-   "shape": 0.78643,
+   "shape": 1.47463,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 31,
-   "shape": 0.7974,
+   "shape": 1.47909,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 32,
-   "shape": 0.80472,
+   "shape": 1.50582,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 33,
-   "shape": 0.83398,
+   "shape": 1.51918,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 34,
-   "shape": 0.85959,
+   "shape": 1.54591,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 35,
-   "shape": 0.8413,
+   "shape": 1.55928,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 36,
-   "shape": 0.81935,
+   "shape": 1.54146,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 37,
-   "shape": 0.84496,
+   "shape": 1.52364,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 38,
-   "shape": 0.85593,
+   "shape": 1.54591,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 39,
-   "shape": 0.85959,
+   "shape": 1.55928,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 40,
-   "shape": 0.87788,
+   "shape": 1.56373,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 41,
-   "shape": 0.89251,
+   "shape": 1.55482,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 42,
-   "shape": 0.88519,
+   "shape": 1.56373,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 43,
-   "shape": 0.89251,
+   "shape": 1.55037,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 44,
-   "shape": 0.89617,
+   "shape": 1.52809,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 45,
-   "shape": 0.89251,
+   "shape": 1.53255,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 46,
-   "shape": 0.84496,
+   "shape": 1.50582,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 47,
-   "shape": 0.81935,
+   "shape": 1.3588,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2016-07-24",
+   "date": "2018-02-28",
    "period": 48,
-   "shape": 0.79009,
+   "shape": 1.3588,
    "source": "neso_historic_mix",
    "published": null
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 1,
-   "shape": 1.19101,
+   "shape": 1.32276,
    "source": "neso_historic_mix",
-   "published": 1.21928
+   "published": 1.2913
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 2,
-   "shape": 1.20155,
+   "shape": 1.30695,
    "source": "neso_historic_mix",
-   "published": 1.1987
+   "published": 1.27587
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 3,
-   "shape": 1.18047,
+   "shape": 1.29641,
    "source": "neso_historic_mix",
-   "published": 1.18327
+   "published": 1.26044
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 4,
-   "shape": 1.15939,
+   "shape": 1.29114,
    "source": "neso_historic_mix",
-   "published": 1.18841
+   "published": 1.25529
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 5,
-   "shape": 1.16466,
+   "shape": 1.29114,
    "source": "neso_historic_mix",
-   "published": 1.18841
+   "published": 1.26044
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 6,
-   "shape": 1.16993,
+   "shape": 1.29641,
    "source": "neso_historic_mix",
-   "published": 1.18841
+   "published": 1.26044
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 7,
-   "shape": 1.18574,
+   "shape": 1.29641,
    "source": "neso_historic_mix",
-   "published": 1.18327
+   "published": 1.26044
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 8,
-   "shape": 1.18047,
+   "shape": 1.29641,
    "source": "neso_historic_mix",
-   "published": 1.22442
+   "published": 1.26044
   },
   {
-   "date": "2021-02-11",
+   "date": "2021-07-02",
    "period": 9,
-   "shape": 1.21209,
-   "source": "neso_historic_mix",
-   "published": 1.29645
-  },
-  {
-   "date": "2021-02-11",
-   "period": 10,
-   "shape": 1.24898,
-   "source": "neso_historic_mix",
-   "published": 1.35304
-  },
-  {
-   "date": "2021-02-11",
-   "period": 11,
-   "shape": 1.32276,
-   "source": "neso_historic_mix",
-   "published": 1.38905
-  },
-  {
-   "date": "2021-02-11",
-   "period": 12,
-   "shape": 1.35438,
-   "source": "neso_historic_mix",
-   "published": 1.46108
-  },
-  {
-   "date": "2021-02-11",
-   "period": 13,
-   "shape": 1.43343,
-   "source": "neso_historic_mix",
-   "published": 1.50223
-  },
-  {
-   "date": "2021-02-11",
-   "period": 14,
-   "shape": 1.48613,
-   "source": "neso_historic_mix",
-   "published": 1.46622
-  },
-  {
-   "date": "2021-02-11",
-   "period": 15,
-   "shape": 1.42816,
-   "source": "neso_historic_mix",
-   "published": 1.48165
-  },
-  {
-   "date": "2021-02-11",
-   "period": 16,
-   "shape": 1.42289,
-   "source": "neso_historic_mix",
-   "published": 1.43535
-  },
-  {
-   "date": "2021-02-11",
-   "period": 17,
-   "shape": 1.40181,
-   "source": "neso_historic_mix",
-   "published": 1.41477
-  },
-  {
-   "date": "2021-02-11",
-   "period": 18,
-   "shape": 1.38073,
-   "source": "neso_historic_mix",
-   "published": 1.43021
-  },
-  {
-   "date": "2021-02-11",
-   "period": 19,
-   "shape": 1.39654,
-   "source": "neso_historic_mix",
-   "published": 1.41477
-  },
-  {
-   "date": "2021-02-11",
-   "period": 20,
-   "shape": 1.386,
-   "source": "neso_historic_mix",
-   "published": 1.38905
-  },
-  {
-   "date": "2021-02-11",
-   "period": 21,
-   "shape": 1.35438,
-   "source": "neso_historic_mix",
-   "published": 1.37362
-  },
-  {
-   "date": "2021-02-11",
-   "period": 22,
-   "shape": 1.3333,
-   "source": "neso_historic_mix",
-   "published": 1.35818
-  },
-  {
-   "date": "2021-02-11",
-   "period": 23,
-   "shape": 1.34384,
-   "source": "neso_historic_mix",
-   "published": 1.35304
-  },
-  {
-   "date": "2021-02-11",
-   "period": 24,
-   "shape": 1.3333,
-   "source": "neso_historic_mix",
-   "published": 1.31188
-  },
-  {
-   "date": "2021-02-11",
-   "period": 25,
-   "shape": 1.29114,
-   "source": "neso_historic_mix",
-   "published": 1.31703
-  },
-  {
-   "date": "2021-02-11",
-   "period": 26,
-   "shape": 1.29114,
-   "source": "neso_historic_mix",
-   "published": 1.33761
-  },
-  {
-   "date": "2021-02-11",
-   "period": 27,
-   "shape": 1.31222,
-   "source": "neso_historic_mix",
-   "published": 1.33761
-  },
-  {
-   "date": "2021-02-11",
-   "period": 28,
-   "shape": 1.31222,
-   "source": "neso_historic_mix",
-   "published": 1.36847
-  },
-  {
-   "date": "2021-02-11",
-   "period": 29,
-   "shape": 1.34911,
-   "source": "neso_historic_mix",
-   "published": 1.38391
-  },
-  {
-   "date": "2021-02-11",
-   "period": 30,
-   "shape": 1.35965,
-   "source": "neso_historic_mix",
-   "published": 1.39934
-  },
-  {
-   "date": "2021-02-11",
-   "period": 31,
-   "shape": 1.37019,
-   "source": "neso_historic_mix",
-   "published": 1.4405
-  },
-  {
-   "date": "2021-02-11",
-   "period": 32,
-   "shape": 1.40181,
-   "source": "neso_historic_mix",
-   "published": 1.4405
-  },
-  {
-   "date": "2021-02-11",
-   "period": 33,
-   "shape": 1.41762,
-   "source": "neso_historic_mix",
-   "published": 1.41477
-  },
-  {
-   "date": "2021-02-11",
-   "period": 34,
-   "shape": 1.40708,
-   "source": "neso_historic_mix",
-   "published": 1.37876
-  },
-  {
-   "date": "2021-02-11",
-   "period": 35,
-   "shape": 1.36492,
-   "source": "neso_historic_mix",
-   "published": 1.37362
-  },
-  {
-   "date": "2021-02-11",
-   "period": 36,
-   "shape": 1.35965,
-   "source": "neso_historic_mix",
-   "published": 1.35818
-  },
-  {
-   "date": "2021-02-11",
-   "period": 37,
-   "shape": 1.34384,
-   "source": "neso_historic_mix",
-   "published": 1.35304
-  },
-  {
-   "date": "2021-02-11",
-   "period": 38,
-   "shape": 1.3333,
-   "source": "neso_historic_mix",
-   "published": 1.38905
-  },
-  {
-   "date": "2021-02-11",
-   "period": 39,
-   "shape": 1.35438,
-   "source": "neso_historic_mix",
-   "published": 1.34789
-  },
-  {
-   "date": "2021-02-11",
-   "period": 40,
-   "shape": 1.32276,
+   "shape": 1.30695,
    "source": "neso_historic_mix",
    "published": 1.27072
   },
   {
-   "date": "2021-02-11",
-   "period": 41,
+   "date": "2021-07-02",
+   "period": 10,
+   "shape": 1.30695,
+   "source": "neso_historic_mix",
+   "published": 1.27072
+  },
+  {
+   "date": "2021-07-02",
+   "period": 11,
+   "shape": 1.31222,
+   "source": "neso_historic_mix",
+   "published": 1.28101
+  },
+  {
+   "date": "2021-07-02",
+   "period": 12,
+   "shape": 1.30695,
+   "source": "neso_historic_mix",
+   "published": 1.27587
+  },
+  {
+   "date": "2021-07-02",
+   "period": 13,
+   "shape": 1.29641,
+   "source": "neso_historic_mix",
+   "published": 1.26044
+  },
+  {
+   "date": "2021-07-02",
+   "period": 14,
+   "shape": 1.31749,
+   "source": "neso_historic_mix",
+   "published": 1.2913
+  },
+  {
+   "date": "2021-07-02",
+   "period": 15,
+   "shape": 1.34384,
+   "source": "neso_historic_mix",
+   "published": 1.31188
+  },
+  {
+   "date": "2021-07-02",
+   "period": 16,
+   "shape": 1.32276,
+   "source": "neso_historic_mix",
+   "published": 1.29645
+  },
+  {
+   "date": "2021-07-02",
+   "period": 17,
+   "shape": 1.28587,
+   "source": "neso_historic_mix",
+   "published": 1.26044
+  },
+  {
+   "date": "2021-07-02",
+   "period": 18,
    "shape": 1.25425,
+   "source": "neso_historic_mix",
+   "published": 1.23471
+  },
+  {
+   "date": "2021-07-02",
+   "period": 19,
+   "shape": 1.21209,
+   "source": "neso_historic_mix",
+   "published": 1.20899
+  },
+  {
+   "date": "2021-07-02",
+   "period": 20,
+   "shape": 1.19628,
+   "source": "neso_historic_mix",
+   "published": 1.20384
+  },
+  {
+   "date": "2021-07-02",
+   "period": 21,
+   "shape": 1.18574,
    "source": "neso_historic_mix",
    "published": 1.1987
   },
   {
-   "date": "2021-02-11",
-   "period": 42,
-   "shape": 1.1752,
+   "date": "2021-07-02",
+   "period": 22,
+   "shape": 1.15939,
    "source": "neso_historic_mix",
-   "published": 1.09581
+   "published": 1.18327
   },
   {
-   "date": "2021-02-11",
-   "period": 43,
-   "shape": 1.08034,
+   "date": "2021-07-02",
+   "period": 23,
+   "shape": 1.14358,
    "source": "neso_historic_mix",
-   "published": 1.01864
+   "published": 1.14211
   },
   {
-   "date": "2021-02-11",
-   "period": 44,
-   "shape": 1.00129,
+   "date": "2021-07-02",
+   "period": 24,
+   "shape": 1.13304,
    "source": "neso_historic_mix",
-   "published": 0.9569
+   "published": 1.13182
   },
   {
-   "date": "2021-02-11",
-   "period": 45,
-   "shape": 0.94332,
-   "source": "neso_historic_mix",
-   "published": 0.88488
-  },
-  {
-   "date": "2021-02-11",
-   "period": 46,
-   "shape": 0.87481,
-   "source": "neso_historic_mix",
-   "published": 0.80256
-  },
-  {
-   "date": "2021-02-11",
-   "period": 47,
-   "shape": 0.80103,
-   "source": "neso_historic_mix",
-   "published": 0.72539
-  },
-  {
-   "date": "2021-02-11",
-   "period": 48,
-   "shape": 0.72725,
-   "source": "neso_historic_mix",
-   "published": 0.70482
-  },
-  {
-   "date": "2021-06-07",
-   "period": 1,
-   "shape": 1.02764,
-   "source": "neso_historic_mix",
-   "published": 1.01864
-  },
-  {
-   "date": "2021-06-07",
-   "period": 2,
-   "shape": 1.00656,
-   "source": "neso_historic_mix",
-   "published": 1.0032
-  },
-  {
-   "date": "2021-06-07",
-   "period": 3,
-   "shape": 1.01183,
-   "source": "neso_historic_mix",
-   "published": 0.99291
-  },
-  {
-   "date": "2021-06-07",
-   "period": 4,
-   "shape": 1.01183,
-   "source": "neso_historic_mix",
-   "published": 0.99291
-  },
-  {
-   "date": "2021-06-07",
-   "period": 5,
-   "shape": 1.00656,
-   "source": "neso_historic_mix",
-   "published": 0.98263
-  },
-  {
-   "date": "2021-06-07",
-   "period": 6,
-   "shape": 1.00129,
-   "source": "neso_historic_mix",
-   "published": 0.98263
-  },
-  {
-   "date": "2021-06-07",
-   "period": 7,
-   "shape": 0.99602,
-   "source": "neso_historic_mix",
-   "published": 0.96719
-  },
-  {
-   "date": "2021-06-07",
-   "period": 8,
-   "shape": 0.99075,
-   "source": "neso_historic_mix",
-   "published": 0.96719
-  },
-  {
-   "date": "2021-06-07",
-   "period": 9,
-   "shape": 1.00129,
-   "source": "neso_historic_mix",
-   "published": 0.96719
-  },
-  {
-   "date": "2021-06-07",
-   "period": 10,
-   "shape": 0.99075,
-   "source": "neso_historic_mix",
-   "published": 0.96205
-  },
-  {
-   "date": "2021-06-07",
-   "period": 11,
-   "shape": 1.04345,
-   "source": "neso_historic_mix",
-   "published": 1.01864
-  },
-  {
-   "date": "2021-06-07",
-   "period": 12,
-   "shape": 1.06453,
-   "source": "neso_historic_mix",
-   "published": 1.03922
-  },
-  {
-   "date": "2021-06-07",
-   "period": 13,
+   "date": "2021-07-02",
+   "period": 25,
    "shape": 1.1225,
    "source": "neso_historic_mix",
-   "published": 1.09581
+   "published": 1.12153
   },
   {
-   "date": "2021-06-07",
-   "period": 14,
-   "shape": 1.15412,
+   "date": "2021-07-02",
+   "period": 26,
+   "shape": 1.10669,
    "source": "neso_historic_mix",
-   "published": 1.12668
+   "published": 1.11124
   },
   {
-   "date": "2021-06-07",
-   "period": 15,
-   "shape": 1.11196,
+   "date": "2021-07-02",
+   "period": 27,
+   "shape": 1.11723,
+   "source": "neso_historic_mix",
+   "published": 1.11639
+  },
+  {
+   "date": "2021-07-02",
+   "period": 28,
+   "shape": 1.10142,
    "source": "neso_historic_mix",
    "published": 1.10095
   },
   {
-   "date": "2021-06-07",
-   "period": 16,
-   "shape": 1.10669,
+   "date": "2021-07-02",
+   "period": 29,
+   "shape": 1.08034,
+   "source": "neso_historic_mix",
+   "published": 1.08037
+  },
+  {
+   "date": "2021-07-02",
+   "period": 30,
+   "shape": 1.09088,
+   "source": "neso_historic_mix",
+   "published": 1.09066
+  },
+  {
+   "date": "2021-07-02",
+   "period": 31,
+   "shape": 1.14358,
+   "source": "neso_historic_mix",
+   "published": 1.12668
+  },
+  {
+   "date": "2021-07-02",
+   "period": 32,
+   "shape": 1.15939,
+   "source": "neso_historic_mix",
+   "published": 1.13696
+  },
+  {
+   "date": "2021-07-02",
+   "period": 33,
+   "shape": 1.16993,
+   "source": "neso_historic_mix",
+   "published": 1.14725
+  },
+  {
+   "date": "2021-07-02",
+   "period": 34,
+   "shape": 1.19628,
+   "source": "neso_historic_mix",
+   "published": 1.17298
+  },
+  {
+   "date": "2021-07-02",
+   "period": 35,
+   "shape": 1.21736,
+   "source": "neso_historic_mix",
+   "published": 1.19356
+  },
+  {
+   "date": "2021-07-02",
+   "period": 36,
+   "shape": 1.23844,
+   "source": "neso_historic_mix",
+   "published": 1.20899
+  },
+  {
+   "date": "2021-07-02",
+   "period": 37,
+   "shape": 1.24898,
+   "source": "neso_historic_mix",
+   "published": 1.21928
+  },
+  {
+   "date": "2021-07-02",
+   "period": 38,
+   "shape": 1.26479,
+   "source": "neso_historic_mix",
+   "published": 1.23471
+  },
+  {
+   "date": "2021-07-02",
+   "period": 39,
+   "shape": 1.28587,
+   "source": "neso_historic_mix",
+   "published": 1.25529
+  },
+  {
+   "date": "2021-07-02",
+   "period": 40,
+   "shape": 1.31222,
+   "source": "neso_historic_mix",
+   "published": 1.28101
+  },
+  {
+   "date": "2021-07-02",
+   "period": 41,
+   "shape": 1.33857,
+   "source": "neso_historic_mix",
+   "published": 1.30159
+  },
+  {
+   "date": "2021-07-02",
+   "period": 42,
+   "shape": 1.33857,
+   "source": "neso_historic_mix",
+   "published": 1.30159
+  },
+  {
+   "date": "2021-07-02",
+   "period": 43,
+   "shape": 1.32276,
+   "source": "neso_historic_mix",
+   "published": 1.28616
+  },
+  {
+   "date": "2021-07-02",
+   "period": 44,
+   "shape": 1.30695,
+   "source": "neso_historic_mix",
+   "published": 1.27072
+  },
+  {
+   "date": "2021-07-02",
+   "period": 45,
+   "shape": 1.27533,
+   "source": "neso_historic_mix",
+   "published": 1.23986
+  },
+  {
+   "date": "2021-07-02",
+   "period": 46,
+   "shape": 1.23317,
+   "source": "neso_historic_mix",
+   "published": 1.1987
+  },
+  {
+   "date": "2021-07-02",
+   "period": 47,
+   "shape": 1.20155,
+   "source": "neso_historic_mix",
+   "published": 1.16269
+  },
+  {
+   "date": "2021-07-02",
+   "period": 48,
+   "shape": 1.14885,
    "source": "neso_historic_mix",
    "published": 1.1061
   },
   {
-   "date": "2021-06-07",
-   "period": 17,
-   "shape": 1.09088,
-   "source": "neso_historic_mix",
-   "published": 1.08552
-  },
-  {
-   "date": "2021-06-07",
-   "period": 18,
-   "shape": 1.08561,
-   "source": "neso_historic_mix",
-   "published": 1.07523
-  },
-  {
-   "date": "2021-06-07",
-   "period": 19,
-   "shape": 1.0698,
-   "source": "neso_historic_mix",
-   "published": 1.07008
-  },
-  {
-   "date": "2021-06-07",
-   "period": 20,
-   "shape": 1.05399,
-   "source": "neso_historic_mix",
-   "published": 1.04951
-  },
-  {
-   "date": "2021-06-07",
-   "period": 21,
-   "shape": 1.0171,
-   "source": "neso_historic_mix",
-   "published": 1.01864
-  },
-  {
-   "date": "2021-06-07",
-   "period": 22,
-   "shape": 0.99602,
-   "source": "neso_historic_mix",
-   "published": 0.99806
-  },
-  {
-   "date": "2021-06-07",
-   "period": 23,
-   "shape": 0.97494,
-   "source": "neso_historic_mix",
-   "published": 0.96205
-  },
-  {
-   "date": "2021-06-07",
-   "period": 24,
-   "shape": 0.95913,
-   "source": "neso_historic_mix",
-   "published": 0.94661
-  },
-  {
-   "date": "2021-06-07",
-   "period": 25,
-   "shape": 0.92751,
-   "source": "neso_historic_mix",
-   "published": 0.9106
-  },
-  {
-   "date": "2021-06-07",
-   "period": 26,
-   "shape": 0.90643,
-   "source": "neso_historic_mix",
-   "published": 0.89517
-  },
-  {
-   "date": "2021-06-07",
-   "period": 27,
-   "shape": 0.89062,
-   "source": "neso_historic_mix",
-   "published": 0.87973
-  },
-  {
-   "date": "2021-06-07",
-   "period": 28,
-   "shape": 0.90643,
-   "source": "neso_historic_mix",
-   "published": 0.88488
-  },
-  {
-   "date": "2021-06-07",
-   "period": 29,
-   "shape": 0.89062,
-   "source": "neso_historic_mix",
-   "published": 0.87459
-  },
-  {
-   "date": "2021-06-07",
-   "period": 30,
-   "shape": 0.87481,
-   "source": "neso_historic_mix",
-   "published": 0.85915
-  },
-  {
-   "date": "2021-06-07",
-   "period": 31,
-   "shape": 0.84846,
-   "source": "neso_historic_mix",
-   "published": 0.82829
-  },
-  {
-   "date": "2021-06-07",
-   "period": 32,
-   "shape": 0.859,
-   "source": "neso_historic_mix",
-   "published": 0.83858
-  },
-  {
-   "date": "2021-06-07",
-   "period": 33,
-   "shape": 0.9117,
-   "source": "neso_historic_mix",
-   "published": 0.89002
-  },
-  {
-   "date": "2021-06-07",
-   "period": 34,
-   "shape": 0.94332,
-   "source": "neso_historic_mix",
-   "published": 0.91575
-  },
-  {
-   "date": "2021-06-07",
-   "period": 35,
-   "shape": 0.94332,
-   "source": "neso_historic_mix",
-   "published": 0.92089
-  },
-  {
-   "date": "2021-06-07",
-   "period": 36,
-   "shape": 0.95386,
-   "source": "neso_historic_mix",
-   "published": 0.93118
-  },
-  {
-   "date": "2021-06-07",
-   "period": 37,
-   "shape": 0.97494,
-   "source": "neso_historic_mix",
-   "published": 0.94661
-  },
-  {
-   "date": "2021-06-07",
-   "period": 38,
-   "shape": 0.97494,
-   "source": "neso_historic_mix",
-   "published": 0.94661
-  },
-  {
-   "date": "2021-06-07",
-   "period": 39,
-   "shape": 0.97494,
-   "source": "neso_historic_mix",
-   "published": 0.94661
-  },
-  {
-   "date": "2021-06-07",
-   "period": 40,
-   "shape": 1.00129,
-   "source": "neso_historic_mix",
-   "published": 0.97234
-  },
-  {
-   "date": "2021-06-07",
-   "period": 41,
-   "shape": 1.02764,
-   "source": "neso_historic_mix",
-   "published": 0.99806
-  },
-  {
-   "date": "2021-06-07",
-   "period": 42,
-   "shape": 1.05399,
-   "source": "neso_historic_mix",
-   "published": 1.02378
-  },
-  {
-   "date": "2021-06-07",
-   "period": 43,
-   "shape": 1.04345,
-   "source": "neso_historic_mix",
-   "published": 1.01349
-  },
-  {
-   "date": "2021-06-07",
-   "period": 44,
-   "shape": 1.01183,
-   "source": "neso_historic_mix",
-   "published": 0.98263
-  },
-  {
-   "date": "2021-06-07",
-   "period": 45,
-   "shape": 1.00129,
-   "source": "neso_historic_mix",
-   "published": 0.96719
-  },
-  {
-   "date": "2021-06-07",
-   "period": 46,
-   "shape": 0.92751,
-   "source": "neso_historic_mix",
-   "published": 0.90031
-  },
-  {
-   "date": "2021-06-07",
-   "period": 47,
-   "shape": 0.82211,
-   "source": "neso_historic_mix",
-   "published": 0.80256
-  },
-  {
-   "date": "2021-06-07",
-   "period": 48,
-   "shape": 0.75887,
-   "source": "neso_historic_mix",
-   "published": 0.74597
-  },
-  {
-   "date": "2022-06-24",
+   "date": "2022-07-06",
    "period": 1,
-   "shape": 1.30045,
-   "source": "neso_historic_mix",
-   "published": 1.28534
-  },
-  {
-   "date": "2022-06-24",
-   "period": 2,
-   "shape": 1.30584,
-   "source": "neso_historic_mix",
-   "published": 1.30677
-  },
-  {
-   "date": "2022-06-24",
-   "period": 3,
-   "shape": 1.3652,
-   "source": "neso_historic_mix",
-   "published": 1.36032
-  },
-  {
-   "date": "2022-06-24",
-   "period": 4,
-   "shape": 1.3652,
-   "source": "neso_historic_mix",
-   "published": 1.34961
-  },
-  {
-   "date": "2022-06-24",
-   "period": 5,
-   "shape": 1.35441,
-   "source": "neso_historic_mix",
-   "published": 1.3389
-  },
-  {
-   "date": "2022-06-24",
-   "period": 6,
-   "shape": 1.33282,
-   "source": "neso_historic_mix",
-   "published": 1.31748
-  },
-  {
-   "date": "2022-06-24",
-   "period": 7,
-   "shape": 1.34362,
-   "source": "neso_historic_mix",
-   "published": 1.33354
-  },
-  {
-   "date": "2022-06-24",
-   "period": 8,
-   "shape": 1.3652,
-   "source": "neso_historic_mix",
-   "published": 1.34961
-  },
-  {
-   "date": "2022-06-24",
-   "period": 9,
-   "shape": 1.35441,
-   "source": "neso_historic_mix",
-   "published": 1.34425
-  },
-  {
-   "date": "2022-06-24",
-   "period": 10,
-   "shape": 1.34901,
-   "source": "neso_historic_mix",
-   "published": 1.33354
-  },
-  {
-   "date": "2022-06-24",
-   "period": 11,
-   "shape": 1.31664,
-   "source": "neso_historic_mix",
-   "published": 1.30141
-  },
-  {
-   "date": "2022-06-24",
-   "period": 12,
-   "shape": 1.31664,
-   "source": "neso_historic_mix",
-   "published": 1.30141
-  },
-  {
-   "date": "2022-06-24",
-   "period": 13,
-   "shape": 1.30584,
-   "source": "neso_historic_mix",
-   "published": 1.29605
-  },
-  {
-   "date": "2022-06-24",
-   "period": 14,
-   "shape": 1.29505,
-   "source": "neso_historic_mix",
-   "published": 1.2907
-  },
-  {
-   "date": "2022-06-24",
-   "period": 15,
-   "shape": 1.24109,
-   "source": "neso_historic_mix",
-   "published": 1.23179
-  },
-  {
-   "date": "2022-06-24",
-   "period": 16,
-   "shape": 1.20871,
-   "source": "neso_historic_mix",
-   "published": 1.19965
-  },
-  {
-   "date": "2022-06-24",
-   "period": 17,
-   "shape": 1.20871,
-   "source": "neso_historic_mix",
-   "published": 1.20501
-  },
-  {
-   "date": "2022-06-24",
-   "period": 18,
-   "shape": 1.18173,
-   "source": "neso_historic_mix",
-   "published": 1.18359
-  },
-  {
-   "date": "2022-06-24",
-   "period": 19,
    "shape": 1.17634,
-   "source": "neso_historic_mix",
-   "published": 1.16752
-  },
-  {
-   "date": "2022-06-24",
-   "period": 20,
-   "shape": 1.14936,
-   "source": "neso_historic_mix",
-   "published": 1.14074
-  },
-  {
-   "date": "2022-06-24",
-   "period": 21,
-   "shape": 1.14396,
-   "source": "neso_historic_mix",
-   "published": 1.14074
-  },
-  {
-   "date": "2022-06-24",
-   "period": 22,
-   "shape": 1.12777,
-   "source": "neso_historic_mix",
-   "published": 1.13539
-  },
-  {
-   "date": "2022-06-24",
-   "period": 23,
-   "shape": 1.13317,
-   "source": "neso_historic_mix",
-   "published": 1.13539
-  },
-  {
-   "date": "2022-06-24",
-   "period": 24,
-   "shape": 1.11698,
-   "source": "neso_historic_mix",
-   "published": 1.11932
-  },
-  {
-   "date": "2022-06-24",
-   "period": 25,
-   "shape": 1.11159,
-   "source": "neso_historic_mix",
-   "published": 1.0979
-  },
-  {
-   "date": "2022-06-24",
-   "period": 26,
-   "shape": 1.06302,
-   "source": "neso_historic_mix",
-   "published": 1.0497
-  },
-  {
-   "date": "2022-06-24",
-   "period": 27,
-   "shape": 1.01985,
-   "source": "neso_historic_mix",
-   "published": 1.0015
-  },
-  {
-   "date": "2022-06-24",
-   "period": 28,
-   "shape": 0.99287,
-   "source": "neso_historic_mix",
-   "published": 0.97472
-  },
-  {
-   "date": "2022-06-24",
-   "period": 29,
-   "shape": 1.02525,
-   "source": "neso_historic_mix",
-   "published": 1.01756
-  },
-  {
-   "date": "2022-06-24",
-   "period": 30,
-   "shape": 1.05223,
-   "source": "neso_historic_mix",
-   "published": 1.03899
-  },
-  {
-   "date": "2022-06-24",
-   "period": 31,
-   "shape": 1.0954,
-   "source": "neso_historic_mix",
-   "published": 1.08719
-  },
-  {
-   "date": "2022-06-24",
-   "period": 32,
-   "shape": 1.0954,
    "source": "neso_historic_mix",
    "published": 1.08183
   },
   {
-   "date": "2022-06-24",
-   "period": 33,
-   "shape": 1.13857,
+   "date": "2022-07-06",
+   "period": 2,
+   "shape": 1.10079,
    "source": "neso_historic_mix",
-   "published": 1.13003
+   "published": 1.02827
   },
   {
-   "date": "2022-06-24",
-   "period": 34,
-   "shape": 1.14396,
+   "date": "2022-07-06",
+   "period": 3,
+   "shape": 1.02525,
    "source": "neso_historic_mix",
-   "published": 1.13539
+   "published": 0.98007
   },
   {
-   "date": "2022-06-24",
-   "period": 35,
-   "shape": 1.13317,
+   "date": "2022-07-06",
+   "period": 4,
+   "shape": 0.98748,
    "source": "neso_historic_mix",
-   "published": 1.12468
+   "published": 0.93723
   },
   {
-   "date": "2022-06-24",
-   "period": 36,
-   "shape": 1.13317,
+   "date": "2022-07-06",
+   "period": 5,
+   "shape": 0.93352,
    "source": "neso_historic_mix",
-   "published": 1.12468
+   "published": 0.89974
   },
   {
-   "date": "2022-06-24",
-   "period": 37,
-   "shape": 1.16555,
+   "date": "2022-07-06",
+   "period": 6,
+   "shape": 0.89574,
    "source": "neso_historic_mix",
-   "published": 1.14074
+   "published": 0.89974
   },
   {
-   "date": "2022-06-24",
-   "period": 38,
-   "shape": 1.15475,
+   "date": "2022-07-06",
+   "period": 7,
+   "shape": 0.89035,
    "source": "neso_historic_mix",
-   "published": 1.13539
+   "published": 0.89438
   },
   {
-   "date": "2022-06-24",
-   "period": 39,
-   "shape": 1.14936,
+   "date": "2022-07-06",
+   "period": 8,
+   "shape": 0.88495,
    "source": "neso_historic_mix",
-   "published": 1.12468
+   "published": 0.93187
   },
   {
-   "date": "2022-06-24",
-   "period": 40,
-   "shape": 1.12777,
+   "date": "2022-07-06",
+   "period": 9,
+   "shape": 0.91733,
    "source": "neso_historic_mix",
-   "published": 1.10861
+   "published": 0.94794
   },
   {
-   "date": "2022-06-24",
-   "period": 41,
-   "shape": 1.11698,
+   "date": "2022-07-06",
+   "period": 10,
+   "shape": 0.93352,
    "source": "neso_historic_mix",
-   "published": 1.08719
+   "published": 0.96401
   },
   {
-   "date": "2022-06-24",
-   "period": 42,
-   "shape": 1.05762,
+   "date": "2022-07-06",
+   "period": 11,
+   "shape": 0.9551,
    "source": "neso_historic_mix",
-   "published": 1.03363
+   "published": 0.96936
   },
   {
-   "date": "2022-06-24",
-   "period": 43,
-   "shape": 1.01446,
+   "date": "2022-07-06",
+   "period": 12,
+   "shape": 0.9605,
    "source": "neso_historic_mix",
-   "published": 0.99079
+   "published": 0.9533
   },
   {
-   "date": "2022-06-24",
-   "period": 44,
+   "date": "2022-07-06",
+   "period": 13,
+   "shape": 0.93352,
+   "source": "neso_historic_mix",
+   "published": 0.96401
+  },
+  {
+   "date": "2022-07-06",
+   "period": 14,
+   "shape": 0.93352,
+   "source": "neso_historic_mix",
+   "published": 0.97472
+  },
+  {
+   "date": "2022-07-06",
+   "period": 15,
    "shape": 0.94431,
    "source": "neso_historic_mix",
-   "published": 0.91581
+   "published": 1.00685
   },
   {
-   "date": "2022-06-24",
-   "period": 45,
-   "shape": 0.91733,
+   "date": "2022-07-06",
+   "period": 16,
+   "shape": 0.98208,
+   "source": "neso_historic_mix",
+   "published": 1.01221
+  },
+  {
+   "date": "2022-07-06",
+   "period": 17,
+   "shape": 0.98748,
+   "source": "neso_historic_mix",
+   "published": 0.97472
+  },
+  {
+   "date": "2022-07-06",
+   "period": 18,
+   "shape": 0.9551,
+   "source": "neso_historic_mix",
+   "published": 0.93723
+  },
+  {
+   "date": "2022-07-06",
+   "period": 19,
+   "shape": 0.91193,
+   "source": "neso_historic_mix",
+   "published": 0.91045
+  },
+  {
+   "date": "2022-07-06",
+   "period": 20,
+   "shape": 0.89035,
+   "source": "neso_historic_mix",
+   "published": 0.91045
+  },
+  {
+   "date": "2022-07-06",
+   "period": 21,
+   "shape": 0.88495,
+   "source": "neso_historic_mix",
+   "published": 0.89974
+  },
+  {
+   "date": "2022-07-06",
+   "period": 22,
+   "shape": 0.87956,
+   "source": "neso_historic_mix",
+   "published": 0.91045
+  },
+  {
+   "date": "2022-07-06",
+   "period": 23,
+   "shape": 0.88495,
    "source": "neso_historic_mix",
    "published": 0.88367
   },
   {
-   "date": "2022-06-24",
-   "period": 46,
-   "shape": 0.83099,
+   "date": "2022-07-06",
+   "period": 24,
+   "shape": 0.86876,
    "source": "neso_historic_mix",
-   "published": 0.80334
+   "published": 0.87832
   },
   {
-   "date": "2022-06-24",
-   "period": 47,
-   "shape": 0.75545,
+   "date": "2022-07-06",
+   "period": 25,
+   "shape": 0.86337,
    "source": "neso_historic_mix",
-   "published": 0.72301
+   "published": 0.8569
   },
   {
-   "date": "2022-06-24",
-   "period": 48,
-   "shape": 0.69069,
+   "date": "2022-07-06",
+   "period": 26,
+   "shape": 0.84718,
+   "source": "neso_historic_mix",
+   "published": 0.84618
+  },
+  {
+   "date": "2022-07-06",
+   "period": 27,
+   "shape": 0.83639,
+   "source": "neso_historic_mix",
+   "published": 0.79798
+  },
+  {
+   "date": "2022-07-06",
+   "period": 28,
+   "shape": 0.79322,
+   "source": "neso_historic_mix",
+   "published": 0.78727
+  },
+  {
+   "date": "2022-07-06",
+   "period": 29,
+   "shape": 0.77703,
+   "source": "neso_historic_mix",
+   "published": 0.73907
+  },
+  {
+   "date": "2022-07-06",
+   "period": 30,
+   "shape": 0.73386,
+   "source": "neso_historic_mix",
+   "published": 0.73372
+  },
+  {
+   "date": "2022-07-06",
+   "period": 31,
+   "shape": 0.72307,
+   "source": "neso_historic_mix",
+   "published": 0.72836
+  },
+  {
+   "date": "2022-07-06",
+   "period": 32,
+   "shape": 0.72307,
+   "source": "neso_historic_mix",
+   "published": 0.70694
+  },
+  {
+   "date": "2022-07-06",
+   "period": 33,
+   "shape": 0.69609,
+   "source": "neso_historic_mix",
+   "published": 0.69623
+  },
+  {
+   "date": "2022-07-06",
+   "period": 34,
+   "shape": 0.69609,
+   "source": "neso_historic_mix",
+   "published": 0.68016
+  },
+  {
+   "date": "2022-07-06",
+   "period": 35,
+   "shape": 0.6799,
    "source": "neso_historic_mix",
    "published": 0.64803
   },
   {
-   "date": "2022-12-15",
-   "period": 1,
-   "shape": 1.2303,
+   "date": "2022-07-06",
+   "period": 36,
+   "shape": 0.65832,
    "source": "neso_historic_mix",
-   "published": 1.21572
+   "published": 0.64803
   },
   {
-   "date": "2022-12-15",
+   "date": "2022-07-06",
+   "period": 37,
+   "shape": 0.64753,
+   "source": "neso_historic_mix",
+   "published": 0.69087
+  },
+  {
+   "date": "2022-07-06",
+   "period": 38,
+   "shape": 0.6799,
+   "source": "neso_historic_mix",
+   "published": 0.71765
+  },
+  {
+   "date": "2022-07-06",
+   "period": 39,
+   "shape": 0.71767,
+   "source": "neso_historic_mix",
+   "published": 0.70694
+  },
+  {
+   "date": "2022-07-06",
+   "period": 40,
+   "shape": 0.71228,
+   "source": "neso_historic_mix",
+   "published": 0.70694
+  },
+  {
+   "date": "2022-07-06",
+   "period": 41,
+   "shape": 0.71767,
+   "source": "neso_historic_mix",
+   "published": 0.69087
+  },
+  {
+   "date": "2022-07-06",
+   "period": 42,
+   "shape": 0.70149,
+   "source": "neso_historic_mix",
+   "published": 0.69087
+  },
+  {
+   "date": "2022-07-06",
+   "period": 43,
+   "shape": 0.69609,
+   "source": "neso_historic_mix",
+   "published": 0.66409
+  },
+  {
+   "date": "2022-07-06",
+   "period": 44,
+   "shape": 0.66371,
+   "source": "neso_historic_mix",
+   "published": 0.66945
+  },
+  {
+   "date": "2022-07-06",
+   "period": 45,
+   "shape": 0.6799,
+   "source": "neso_historic_mix",
+   "published": 0.60518
+  },
+  {
+   "date": "2022-07-06",
+   "period": 46,
+   "shape": 0.62594,
+   "source": "neso_historic_mix",
+   "published": 0.5784
+  },
+  {
+   "date": "2022-07-06",
+   "period": 47,
+   "shape": 0.59357,
+   "source": "neso_historic_mix",
+   "published": 0.5302
+  },
+  {
+   "date": "2022-07-06",
+   "period": 48,
+   "shape": 0.53421,
+   "source": "neso_historic_mix",
+   "published": 0.55163
+  },
+  {
+   "date": "2022-08-14",
+   "period": 1,
+   "shape": 1.21411,
+   "source": "neso_historic_mix",
+   "published": 1.22108
+  },
+  {
+   "date": "2022-08-14",
    "period": 2,
+   "shape": 1.2303,
+   "source": "neso_historic_mix",
+   "published": 1.24785
+  },
+  {
+   "date": "2022-08-14",
+   "period": 3,
+   "shape": 1.26267,
+   "source": "neso_historic_mix",
+   "published": 1.23714
+  },
+  {
+   "date": "2022-08-14",
+   "period": 4,
+   "shape": 1.26267,
+   "source": "neso_historic_mix",
+   "published": 1.24785
+  },
+  {
+   "date": "2022-08-14",
+   "period": 5,
+   "shape": 1.25728,
+   "source": "neso_historic_mix",
+   "published": 1.25321
+  },
+  {
+   "date": "2022-08-14",
+   "period": 6,
+   "shape": 1.26807,
+   "source": "neso_historic_mix",
+   "published": 1.25857
+  },
+  {
+   "date": "2022-08-14",
+   "period": 7,
+   "shape": 1.27886,
+   "source": "neso_historic_mix",
+   "published": 1.25321
+  },
+  {
+   "date": "2022-08-14",
+   "period": 8,
+   "shape": 1.27347,
+   "source": "neso_historic_mix",
+   "published": 1.22643
+  },
+  {
+   "date": "2022-08-14",
+   "period": 9,
+   "shape": 1.24109,
+   "source": "neso_historic_mix",
+   "published": 1.22108
+  },
+  {
+   "date": "2022-08-14",
+   "period": 10,
    "shape": 1.24109,
    "source": "neso_historic_mix",
    "published": 1.22643
   },
   {
-   "date": "2022-12-15",
-   "period": 3,
-   "shape": 1.21951,
-   "source": "neso_historic_mix",
-   "published": 1.19965
-  },
-  {
-   "date": "2022-12-15",
-   "period": 4,
-   "shape": 1.18713,
-   "source": "neso_historic_mix",
-   "published": 1.17288
-  },
-  {
-   "date": "2022-12-15",
-   "period": 5,
-   "shape": 1.18173,
-   "source": "neso_historic_mix",
-   "published": 1.17288
-  },
-  {
-   "date": "2022-12-15",
-   "period": 6,
-   "shape": 1.19253,
-   "source": "neso_historic_mix",
-   "published": 1.18894
-  },
-  {
-   "date": "2022-12-15",
-   "period": 7,
-   "shape": 1.20871,
-   "source": "neso_historic_mix",
-   "published": 1.19965
-  },
-  {
-   "date": "2022-12-15",
-   "period": 8,
-   "shape": 1.23569,
-   "source": "neso_historic_mix",
-   "published": 1.23179
-  },
-  {
-   "date": "2022-12-15",
-   "period": 9,
-   "shape": 1.28426,
-   "source": "neso_historic_mix",
-   "published": 1.27463
-  },
-  {
-   "date": "2022-12-15",
-   "period": 10,
-   "shape": 1.30045,
-   "source": "neso_historic_mix",
-   "published": 1.28534
-  },
-  {
-   "date": "2022-12-15",
+   "date": "2022-08-14",
    "period": 11,
-   "shape": 1.32203,
-   "source": "neso_historic_mix",
-   "published": 1.31212
-  },
-  {
-   "date": "2022-12-15",
-   "period": 12,
-   "shape": 1.33822,
-   "source": "neso_historic_mix",
-   "published": 1.33354
-  },
-  {
-   "date": "2022-12-15",
-   "period": 13,
-   "shape": 1.3652,
-   "source": "neso_historic_mix",
-   "published": 1.36568
-  },
-  {
-   "date": "2022-12-15",
-   "period": 14,
-   "shape": 1.38678,
-   "source": "neso_historic_mix",
-   "published": 1.40317
-  },
-  {
-   "date": "2022-12-15",
-   "period": 15,
-   "shape": 1.40837,
-   "source": "neso_historic_mix",
-   "published": 1.42459
-  },
-  {
-   "date": "2022-12-15",
-   "period": 16,
-   "shape": 1.39218,
-   "source": "neso_historic_mix",
-   "published": 1.40317
-  },
-  {
-   "date": "2022-12-15",
-   "period": 17,
-   "shape": 1.40297,
-   "source": "neso_historic_mix",
-   "published": 1.42459
-  },
-  {
-   "date": "2022-12-15",
-   "period": 18,
-   "shape": 1.39758,
-   "source": "neso_historic_mix",
-   "published": 1.41388
-  },
-  {
-   "date": "2022-12-15",
-   "period": 19,
-   "shape": 1.34901,
-   "source": "neso_historic_mix",
-   "published": 1.37103
-  },
-  {
-   "date": "2022-12-15",
-   "period": 20,
-   "shape": 1.32203,
-   "source": "neso_historic_mix",
-   "published": 1.34961
-  },
-  {
-   "date": "2022-12-15",
-   "period": 21,
-   "shape": 1.28965,
-   "source": "neso_historic_mix",
-   "published": 1.31212
-  },
-  {
-   "date": "2022-12-15",
-   "period": 22,
-   "shape": 1.23569,
-   "source": "neso_historic_mix",
-   "published": 1.04434
-  },
-  {
-   "date": "2022-12-15",
-   "period": 23,
-   "shape": 1.26267,
-   "source": "neso_historic_mix",
-   "published": 1.27463
-  },
-  {
-   "date": "2022-12-15",
-   "period": 24,
-   "shape": 1.25188,
-   "source": "neso_historic_mix",
-   "published": 1.26392
-  },
-  {
-   "date": "2022-12-15",
-   "period": 25,
-   "shape": 1.23569,
-   "source": "neso_historic_mix",
-   "published": 1.25857
-  },
-  {
-   "date": "2022-12-15",
-   "period": 26,
    "shape": 1.24109,
    "source": "neso_historic_mix",
+   "published": 1.21572
+  },
+  {
+   "date": "2022-08-14",
+   "period": 12,
+   "shape": 1.2303,
+   "source": "neso_historic_mix",
+   "published": 1.2425
+  },
+  {
+   "date": "2022-08-14",
+   "period": 13,
+   "shape": 1.24649,
+   "source": "neso_historic_mix",
    "published": 1.25321
   },
   {
-   "date": "2022-12-15",
-   "period": 27,
-   "shape": 1.25188,
+   "date": "2022-08-14",
+   "period": 14,
+   "shape": 1.23569,
    "source": "neso_historic_mix",
-   "published": 1.24785
+   "published": 1.1943
   },
   {
-   "date": "2022-12-15",
+   "date": "2022-08-14",
+   "period": 15,
+   "shape": 1.16555,
+   "source": "neso_historic_mix",
+   "published": 1.16752
+  },
+  {
+   "date": "2022-08-14",
+   "period": 16,
+   "shape": 1.12777,
+   "source": "neso_historic_mix",
+   "published": 1.1461
+  },
+  {
+   "date": "2022-08-14",
+   "period": 17,
+   "shape": 1.08461,
+   "source": "neso_historic_mix",
+   "published": 1.11396
+  },
+  {
+   "date": "2022-08-14",
+   "period": 18,
+   "shape": 1.05762,
+   "source": "neso_historic_mix",
+   "published": 1.02827
+  },
+  {
+   "date": "2022-08-14",
+   "period": 19,
+   "shape": 0.96589,
+   "source": "neso_historic_mix",
+   "published": 0.99614
+  },
+  {
+   "date": "2022-08-14",
+   "period": 20,
+   "shape": 0.93352,
+   "source": "neso_historic_mix",
+   "published": 0.96936
+  },
+  {
+   "date": "2022-08-14",
+   "period": 21,
+   "shape": 0.90654,
+   "source": "neso_historic_mix",
+   "published": 0.94794
+  },
+  {
+   "date": "2022-08-14",
+   "period": 22,
+   "shape": 0.89035,
+   "source": "neso_historic_mix",
+   "published": 0.93187
+  },
+  {
+   "date": "2022-08-14",
+   "period": 23,
+   "shape": 0.87956,
+   "source": "neso_historic_mix",
+   "published": 0.91045
+  },
+  {
+   "date": "2022-08-14",
+   "period": 24,
+   "shape": 0.86876,
+   "source": "neso_historic_mix",
+   "published": 0.87832
+  },
+  {
+   "date": "2022-08-14",
+   "period": 25,
+   "shape": 0.83099,
+   "source": "neso_historic_mix",
+   "published": 0.86761
+  },
+  {
+   "date": "2022-08-14",
+   "period": 26,
+   "shape": 0.83099,
+   "source": "neso_historic_mix",
+   "published": 0.84618
+  },
+  {
+   "date": "2022-08-14",
+   "period": 27,
+   "shape": 0.80941,
+   "source": "neso_historic_mix",
+   "published": 0.83547
+  },
+  {
+   "date": "2022-08-14",
    "period": 28,
+   "shape": 0.80941,
+   "source": "neso_historic_mix",
+   "published": 0.81941
+  },
+  {
+   "date": "2022-08-14",
+   "period": 29,
+   "shape": 0.80401,
+   "source": "neso_historic_mix",
+   "published": 0.83012
+  },
+  {
+   "date": "2022-08-14",
+   "period": 30,
+   "shape": 0.8148,
+   "source": "neso_historic_mix",
+   "published": 0.88367
+  },
+  {
+   "date": "2022-08-14",
+   "period": 31,
+   "shape": 0.87956,
+   "source": "neso_historic_mix",
+   "published": 0.92652
+  },
+  {
+   "date": "2022-08-14",
+   "period": 32,
+   "shape": 0.92272,
+   "source": "neso_historic_mix",
+   "published": 1.06041
+  },
+  {
+   "date": "2022-08-14",
+   "period": 33,
+   "shape": 1.06302,
+   "source": "neso_historic_mix",
+   "published": 1.12468
+  },
+  {
+   "date": "2022-08-14",
+   "period": 34,
+   "shape": 1.14396,
+   "source": "neso_historic_mix",
+   "published": 1.15145
+  },
+  {
+   "date": "2022-08-14",
+   "period": 35,
+   "shape": 1.16555,
+   "source": "neso_historic_mix",
+   "published": 1.21572
+  },
+  {
+   "date": "2022-08-14",
+   "period": 36,
+   "shape": 1.2249,
+   "source": "neso_historic_mix",
+   "published": 1.22643
+  },
+  {
+   "date": "2022-08-14",
+   "period": 37,
+   "shape": 1.25728,
+   "source": "neso_historic_mix",
+   "published": 1.23714
+  },
+  {
+   "date": "2022-08-14",
+   "period": 38,
    "shape": 1.26807,
    "source": "neso_historic_mix",
-   "published": 1.25321
+   "published": 1.26928
   },
   {
-   "date": "2022-12-15",
-   "period": 29,
-   "shape": 1.29505,
-   "source": "neso_historic_mix",
-   "published": 1.27999
-  },
-  {
-   "date": "2022-12-15",
-   "period": 30,
-   "shape": 1.32743,
+   "date": "2022-08-14",
+   "period": 39,
+   "shape": 1.30584,
    "source": "neso_historic_mix",
    "published": 1.30141
   },
   {
-   "date": "2022-12-15",
-   "period": 31,
-   "shape": 1.35441,
-   "source": "neso_historic_mix",
-   "published": 1.35497
-  },
-  {
-   "date": "2022-12-15",
-   "period": 32,
-   "shape": 1.35441,
-   "source": "neso_historic_mix",
-   "published": 1.3389
-  },
-  {
-   "date": "2022-12-15",
-   "period": 33,
-   "shape": 1.34901,
-   "source": "neso_historic_mix",
-   "published": 1.31748
-  },
-  {
-   "date": "2022-12-15",
-   "period": 34,
-   "shape": 1.35441,
-   "source": "neso_historic_mix",
-   "published": 1.32819
-  },
-  {
-   "date": "2022-12-15",
-   "period": 35,
-   "shape": 1.34901,
-   "source": "neso_historic_mix",
-   "published": 1.32819
-  },
-  {
-   "date": "2022-12-15",
-   "period": 36,
-   "shape": 1.34901,
-   "source": "neso_historic_mix",
-   "published": 1.32819
-  },
-  {
-   "date": "2022-12-15",
-   "period": 37,
-   "shape": 1.34901,
-   "source": "neso_historic_mix",
-   "published": 1.32283
-  },
-  {
-   "date": "2022-12-15",
-   "period": 38,
-   "shape": 1.3598,
-   "source": "neso_historic_mix",
-   "published": 1.33354
-  },
-  {
-   "date": "2022-12-15",
-   "period": 39,
-   "shape": 1.3706,
-   "source": "neso_historic_mix",
-   "published": 1.34425
-  },
-  {
-   "date": "2022-12-15",
+   "date": "2022-08-14",
    "period": 40,
-   "shape": 1.37599,
+   "shape": 1.33282,
+   "source": "neso_historic_mix",
+   "published": 1.32819
+  },
+  {
+   "date": "2022-08-14",
+   "period": 41,
+   "shape": 1.35441,
    "source": "neso_historic_mix",
    "published": 1.34961
   },
   {
-   "date": "2022-12-15",
-   "period": 41,
-   "shape": 1.39218,
-   "source": "neso_historic_mix",
-   "published": 1.36032
-  },
-  {
-   "date": "2022-12-15",
+   "date": "2022-08-14",
    "period": 42,
-   "shape": 1.39218,
+   "shape": 1.3652,
    "source": "neso_historic_mix",
-   "published": 1.36032
+   "published": 1.39246
   },
   {
-   "date": "2022-12-15",
+   "date": "2022-08-14",
    "period": 43,
-   "shape": 1.42456,
+   "shape": 1.39758,
    "source": "neso_historic_mix",
-   "published": 1.40317
+   "published": 1.42459
   },
   {
-   "date": "2022-12-15",
+   "date": "2022-08-14",
    "period": 44,
+   "shape": 1.42995,
+   "source": "neso_historic_mix",
+   "published": 1.44066
+  },
+  {
+   "date": "2022-08-14",
+   "period": 45,
+   "shape": 1.45154,
+   "source": "neso_historic_mix",
+   "published": 1.44066
+  },
+  {
+   "date": "2022-08-14",
+   "period": 46,
+   "shape": 1.45154,
+   "source": "neso_historic_mix",
+   "published": 1.39246
+  },
+  {
+   "date": "2022-08-14",
+   "period": 47,
    "shape": 1.41376,
    "source": "neso_historic_mix",
    "published": 1.3871
   },
   {
-   "date": "2022-12-15",
-   "period": 45,
-   "shape": 1.44614,
+   "date": "2022-08-14",
+   "period": 48,
+   "shape": 1.39218,
+   "source": "neso_historic_mix",
+   "published": 1.4353
+  },
+  {
+   "date": "2022-12-13",
+   "period": 1,
+   "shape": 1.59183,
+   "source": "neso_historic_mix",
+   "published": 1.60668
+  },
+  {
+   "date": "2022-12-13",
+   "period": 2,
+   "shape": 1.60263,
+   "source": "neso_historic_mix",
+   "published": 1.61739
+  },
+  {
+   "date": "2022-12-13",
+   "period": 3,
+   "shape": 1.61342,
+   "source": "neso_historic_mix",
+   "published": 1.6281
+  },
+  {
+   "date": "2022-12-13",
+   "period": 4,
+   "shape": 1.61342,
+   "source": "neso_historic_mix",
+   "published": 1.6281
+  },
+  {
+   "date": "2022-12-13",
+   "period": 5,
+   "shape": 1.61881,
+   "source": "neso_historic_mix",
+   "published": 1.61739
+  },
+  {
+   "date": "2022-12-13",
+   "period": 6,
+   "shape": 1.62421,
+   "source": "neso_historic_mix",
+   "published": 1.62275
+  },
+  {
+   "date": "2022-12-13",
+   "period": 7,
+   "shape": 1.61881,
+   "source": "neso_historic_mix",
+   "published": 1.61739
+  },
+  {
+   "date": "2022-12-13",
+   "period": 8,
+   "shape": 1.61881,
+   "source": "neso_historic_mix",
+   "published": 1.60668
+  },
+  {
+   "date": "2022-12-13",
+   "period": 9,
+   "shape": 1.61342,
+   "source": "neso_historic_mix",
+   "published": 1.60132
+  },
+  {
+   "date": "2022-12-13",
+   "period": 10,
+   "shape": 1.60263,
+   "source": "neso_historic_mix",
+   "published": 1.59061
+  },
+  {
+   "date": "2022-12-13",
+   "period": 11,
+   "shape": 1.59723,
+   "source": "neso_historic_mix",
+   "published": 1.58526
+  },
+  {
+   "date": "2022-12-13",
+   "period": 12,
+   "shape": 1.55406,
+   "source": "neso_historic_mix",
+   "published": 1.54241
+  },
+  {
+   "date": "2022-12-13",
+   "period": 13,
+   "shape": 1.52708,
+   "source": "neso_historic_mix",
+   "published": 1.52634
+  },
+  {
+   "date": "2022-12-13",
+   "period": 14,
+   "shape": 1.51629,
+   "source": "neso_historic_mix",
+   "published": 1.52634
+  },
+  {
+   "date": "2022-12-13",
+   "period": 15,
+   "shape": 1.51629,
+   "source": "neso_historic_mix",
+   "published": 1.51028
+  },
+  {
+   "date": "2022-12-13",
+   "period": 16,
+   "shape": 1.5055,
+   "source": "neso_historic_mix",
+   "published": 1.48886
+  },
+  {
+   "date": "2022-12-13",
+   "period": 17,
+   "shape": 1.4947,
+   "source": "neso_historic_mix",
+   "published": 1.4835
+  },
+  {
+   "date": "2022-12-13",
+   "period": 18,
+   "shape": 1.48931,
+   "source": "neso_historic_mix",
+   "published": 1.47814
+  },
+  {
+   "date": "2022-12-13",
+   "period": 19,
+   "shape": 1.47312,
+   "source": "neso_historic_mix",
+   "published": 1.46743
+  },
+  {
+   "date": "2022-12-13",
+   "period": 20,
+   "shape": 1.46772,
+   "source": "neso_historic_mix",
+   "published": 1.45672
+  },
+  {
+   "date": "2022-12-13",
+   "period": 21,
+   "shape": 1.46233,
+   "source": "neso_historic_mix",
+   "published": 1.46208
+  },
+  {
+   "date": "2022-12-13",
+   "period": 22,
+   "shape": 1.45693,
+   "source": "neso_historic_mix",
+   "published": 1.45137
+  },
+  {
+   "date": "2022-12-13",
+   "period": 23,
+   "shape": 1.45693,
+   "source": "neso_historic_mix",
+   "published": 1.45137
+  },
+  {
+   "date": "2022-12-13",
+   "period": 24,
+   "shape": 1.45693,
+   "source": "neso_historic_mix",
+   "published": 1.45137
+  },
+  {
+   "date": "2022-12-13",
+   "period": 25,
+   "shape": 1.47312,
+   "source": "neso_historic_mix",
+   "published": 1.47279
+  },
+  {
+   "date": "2022-12-13",
+   "period": 26,
+   "shape": 1.47312,
+   "source": "neso_historic_mix",
+   "published": 1.46743
+  },
+  {
+   "date": "2022-12-13",
+   "period": 27,
+   "shape": 1.47312,
+   "source": "neso_historic_mix",
+   "published": 1.46743
+  },
+  {
+   "date": "2022-12-13",
+   "period": 28,
+   "shape": 1.47852,
+   "source": "neso_historic_mix",
+   "published": 1.46743
+  },
+  {
+   "date": "2022-12-13",
+   "period": 29,
+   "shape": 1.4947,
+   "source": "neso_historic_mix",
+   "published": 1.4835
+  },
+  {
+   "date": "2022-12-13",
+   "period": 30,
+   "shape": 1.51089,
+   "source": "neso_historic_mix",
+   "published": 1.49957
+  },
+  {
+   "date": "2022-12-13",
+   "period": 31,
+   "shape": 1.51089,
+   "source": "neso_historic_mix",
+   "published": 1.49957
+  },
+  {
+   "date": "2022-12-13",
+   "period": 32,
+   "shape": 1.4947,
+   "source": "neso_historic_mix",
+   "published": 1.47279
+  },
+  {
+   "date": "2022-12-13",
+   "period": 33,
+   "shape": 1.46772,
+   "source": "neso_historic_mix",
+   "published": 1.45137
+  },
+  {
+   "date": "2022-12-13",
+   "period": 34,
+   "shape": 1.47312,
+   "source": "neso_historic_mix",
+   "published": 1.45672
+  },
+  {
+   "date": "2022-12-13",
+   "period": 35,
+   "shape": 1.46233,
+   "source": "neso_historic_mix",
+   "published": 1.44066
+  },
+  {
+   "date": "2022-12-13",
+   "period": 36,
+   "shape": 1.45154,
    "source": "neso_historic_mix",
    "published": 1.42994
   },
   {
-   "date": "2022-12-15",
-   "period": 46,
-   "shape": 1.43535,
+   "date": "2022-12-13",
+   "period": 37,
+   "shape": 1.44074,
+   "source": "neso_historic_mix",
+   "published": 1.42459
+  },
+  {
+   "date": "2022-12-13",
+   "period": 38,
+   "shape": 1.44074,
+   "source": "neso_historic_mix",
+   "published": 1.42459
+  },
+  {
+   "date": "2022-12-13",
+   "period": 39,
+   "shape": 1.42995,
+   "source": "neso_historic_mix",
+   "published": 1.40852
+  },
+  {
+   "date": "2022-12-13",
+   "period": 40,
+   "shape": 1.42456,
+   "source": "neso_historic_mix",
+   "published": 1.40852
+  },
+  {
+   "date": "2022-12-13",
+   "period": 41,
+   "shape": 1.42995,
+   "source": "neso_historic_mix",
+   "published": 1.42459
+  },
+  {
+   "date": "2022-12-13",
+   "period": 42,
+   "shape": 1.44614,
    "source": "neso_historic_mix",
    "published": 1.41923
   },
   {
-   "date": "2022-12-15",
+   "date": "2022-12-13",
+   "period": 43,
+   "shape": 1.48391,
+   "source": "neso_historic_mix",
+   "published": 1.4835
+  },
+  {
+   "date": "2022-12-13",
+   "period": 44,
+   "shape": 1.46772,
+   "source": "neso_historic_mix",
+   "published": 1.46208
+  },
+  {
+   "date": "2022-12-13",
+   "period": 45,
+   "shape": 1.46772,
+   "source": "neso_historic_mix",
+   "published": 1.47279
+  },
+  {
+   "date": "2022-12-13",
+   "period": 46,
+   "shape": 1.45154,
+   "source": "neso_historic_mix",
+   "published": 1.45137
+  },
+  {
+   "date": "2022-12-13",
    "period": 47,
    "shape": 1.45154,
    "source": "neso_historic_mix",
    "published": 1.44601
   },
   {
-   "date": "2022-12-15",
+   "date": "2022-12-13",
    "period": 48,
-   "shape": 1.45154,
+   "shape": 1.43535,
    "source": "neso_historic_mix",
-   "published": 1.44066
-  },
-  {
-   "date": "2025-01-10",
-   "period": 1,
-   "shape": 1.11609,
-   "source": "neso_historic_mix",
-   "published": 1.14223
-  },
-  {
-   "date": "2025-01-10",
-   "period": 2,
-   "shape": 1.17155,
-   "source": "neso_historic_mix",
-   "published": 1.16263
-  },
-  {
-   "date": "2025-01-10",
-   "period": 3,
-   "shape": 1.19234,
-   "source": "neso_historic_mix",
-   "published": 1.13543
-  },
-  {
-   "date": "2025-01-10",
-   "period": 4,
-   "shape": 1.17848,
-   "source": "neso_historic_mix",
-   "published": 1.10823
-  },
-  {
-   "date": "2025-01-10",
-   "period": 5,
-   "shape": 1.15075,
-   "source": "neso_historic_mix",
-   "published": 1.13543
-  },
-  {
-   "date": "2025-01-10",
-   "period": 6,
-   "shape": 1.17848,
-   "source": "neso_historic_mix",
-   "published": 1.11503
-  },
-  {
-   "date": "2025-01-10",
-   "period": 7,
-   "shape": 1.15768,
-   "source": "neso_historic_mix",
-   "published": 1.13543
-  },
-  {
-   "date": "2025-01-10",
-   "period": 8,
-   "shape": 1.17155,
-   "source": "neso_historic_mix",
-   "published": 1.18982
-  },
-  {
-   "date": "2025-01-10",
-   "period": 9,
-   "shape": 1.22007,
-   "source": "neso_historic_mix",
-   "published": 1.27821
-  },
-  {
-   "date": "2025-01-10",
-   "period": 10,
-   "shape": 1.31019,
-   "source": "neso_historic_mix",
-   "published": 1.48898
-  },
-  {
-   "date": "2025-01-10",
-   "period": 11,
-   "shape": 1.49043,
-   "source": "neso_historic_mix",
-   "published": 1.53657
-  },
-  {
-   "date": "2025-01-10",
-   "period": 12,
-   "shape": 1.54589,
-   "source": "neso_historic_mix",
-   "published": 1.63855
-  },
-  {
-   "date": "2025-01-10",
-   "period": 13,
-   "shape": 1.62907,
-   "source": "neso_historic_mix",
-   "published": 1.65895
-  },
-  {
-   "date": "2025-01-10",
-   "period": 14,
-   "shape": 1.66373,
-   "source": "neso_historic_mix",
-   "published": 1.59096
-  },
-  {
-   "date": "2025-01-10",
-   "period": 15,
-   "shape": 1.62214,
-   "source": "neso_historic_mix",
-   "published": 1.65215
-  },
-  {
-   "date": "2025-01-10",
-   "period": 16,
-   "shape": 1.68453,
-   "source": "neso_historic_mix",
-   "published": 1.67255
-  },
-  {
-   "date": "2025-01-10",
-   "period": 17,
-   "shape": 1.71226,
-   "source": "neso_historic_mix",
-   "published": 1.68615
-  },
-  {
-   "date": "2025-01-10",
-   "period": 18,
-   "shape": 1.71226,
-   "source": "neso_historic_mix",
-   "published": 1.67935
-  },
-  {
-   "date": "2025-01-10",
-   "period": 19,
-   "shape": 1.6984,
-   "source": "neso_historic_mix",
-   "published": 1.65895
-  },
-  {
-   "date": "2025-01-10",
-   "period": 20,
-   "shape": 1.6776,
-   "source": "neso_historic_mix",
-   "published": 1.64535
-  },
-  {
-   "date": "2025-01-10",
-   "period": 21,
-   "shape": 1.66373,
-   "source": "neso_historic_mix",
-   "published": 1.61136
-  },
-  {
-   "date": "2025-01-10",
-   "period": 22,
-   "shape": 1.62907,
-   "source": "neso_historic_mix",
-   "published": 1.57736
-  },
-  {
-   "date": "2025-01-10",
-   "period": 23,
-   "shape": 1.60134,
-   "source": "neso_historic_mix",
-   "published": 1.58416
-  },
-  {
-   "date": "2025-01-10",
-   "period": 24,
-   "shape": 1.61521,
-   "source": "neso_historic_mix",
-   "published": 1.57736
-  },
-  {
-   "date": "2025-01-10",
-   "period": 25,
-   "shape": 1.61521,
-   "source": "neso_historic_mix",
-   "published": 1.57056
-  },
-  {
-   "date": "2025-01-10",
-   "period": 26,
-   "shape": 1.61521,
-   "source": "neso_historic_mix",
-   "published": 1.57056
-  },
-  {
-   "date": "2025-01-10",
-   "period": 27,
-   "shape": 1.63601,
-   "source": "neso_historic_mix",
-   "published": 1.55697
-  },
-  {
-   "date": "2025-01-10",
-   "period": 28,
-   "shape": 1.62907,
-   "source": "neso_historic_mix",
-   "published": 1.57736
-  },
-  {
-   "date": "2025-01-10",
-   "period": 29,
-   "shape": 1.64294,
-   "source": "neso_historic_mix",
-   "published": 1.60456
-  },
-  {
-   "date": "2025-01-10",
-   "period": 30,
-   "shape": 1.67067,
-   "source": "neso_historic_mix",
-   "published": 1.61136
-  },
-  {
-   "date": "2025-01-10",
-   "period": 31,
-   "shape": 1.68453,
-   "source": "neso_historic_mix",
-   "published": 1.63855
-  },
-  {
-   "date": "2025-01-10",
-   "period": 32,
-   "shape": 1.70533,
-   "source": "neso_historic_mix",
-   "published": 1.69295
-  },
-  {
-   "date": "2025-01-10",
-   "period": 33,
-   "shape": 1.73306,
-   "source": "neso_historic_mix",
-   "published": 1.72014
-  },
-  {
-   "date": "2025-01-10",
-   "period": 34,
-   "shape": 1.75385,
-   "source": "neso_historic_mix",
-   "published": 1.72014
-  },
-  {
-   "date": "2025-01-10",
-   "period": 35,
-   "shape": 1.75385,
-   "source": "neso_historic_mix",
-   "published": 1.69295
-  },
-  {
-   "date": "2025-01-10",
-   "period": 36,
-   "shape": 1.72612,
-   "source": "neso_historic_mix",
-   "published": 1.69295
-  },
-  {
-   "date": "2025-01-10",
-   "period": 37,
-   "shape": 1.72612,
-   "source": "neso_historic_mix",
-   "published": 1.69974
-  },
-  {
-   "date": "2025-01-10",
-   "period": 38,
-   "shape": 1.72612,
-   "source": "neso_historic_mix",
-   "published": 1.69974
-  },
-  {
-   "date": "2025-01-10",
-   "period": 39,
-   "shape": 1.72612,
-   "source": "neso_historic_mix",
-   "published": 1.67935
-  },
-  {
-   "date": "2025-01-10",
-   "period": 40,
-   "shape": 1.71226,
-   "source": "neso_historic_mix",
-   "published": 1.67255
-  },
-  {
-   "date": "2025-01-10",
-   "period": 41,
-   "shape": 1.6984,
-   "source": "neso_historic_mix",
-   "published": 1.66575
-  },
-  {
-   "date": "2025-01-10",
-   "period": 42,
-   "shape": 1.69146,
-   "source": "neso_historic_mix",
-   "published": 1.64535
-  },
-  {
-   "date": "2025-01-10",
-   "period": 43,
-   "shape": 1.68453,
-   "source": "neso_historic_mix",
-   "published": 1.63175
-  },
-  {
-   "date": "2025-01-10",
-   "period": 44,
-   "shape": 1.67067,
-   "source": "neso_historic_mix",
-   "published": 1.61136
-  },
-  {
-   "date": "2025-01-10",
-   "period": 45,
-   "shape": 1.64294,
-   "source": "neso_historic_mix",
-   "published": 1.55697
-  },
-  {
-   "date": "2025-01-10",
-   "period": 46,
-   "shape": 1.59441,
-   "source": "neso_historic_mix",
-   "published": 1.49578
-  },
-  {
-   "date": "2025-01-10",
-   "period": 47,
-   "shape": 1.53202,
-   "source": "neso_historic_mix",
-   "published": 1.46178
-  },
-  {
-   "date": "2025-01-10",
-   "period": 48,
-   "shape": 1.49736,
-   "source": "neso_historic_mix",
-   "published": 1.45498
+   "published": 1.42994
   },
   {
    "date": "2025-05-24",

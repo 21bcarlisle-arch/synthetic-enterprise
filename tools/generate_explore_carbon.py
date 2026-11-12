@@ -31,6 +31,7 @@ Run:  python3 -m tools.generate_explore_carbon
 from __future__ import annotations
 
 import json
+import subprocess
 from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
@@ -66,6 +67,27 @@ CUSTOMER_DETAIL = PROJECT / "site" / "data" / "customers"
 CUSTOMER_INDEX = PROJECT / "site" / "data" / "customers.json"
 INTENSITY_FEED = PROJECT / "docs" / "market_data" / "grid_intensity_feed.json"
 OUT_PATH = PROJECT / "site" / "data" / "explore_carbon.json"
+
+#: Every tracked file the page is computed from. A page built from a working copy that differs
+#: from HEAD cannot be rebuilt from the repository: e816040ce8 published counts that only an
+#: uncommitted grid_intensity_feed.json reproduced, and a clean regeneration read 0 measured.
+INPUTS = (INTENSITY_FEED, HH_DAYS, CUSTOMER_INDEX, CUSTOMER_DETAIL)
+
+
+class UncommittedInput(RuntimeError):
+    """A tracked input differs from HEAD, so the page would not be reproducible."""
+
+
+def uncommitted_inputs(paths=INPUTS, repo: Path = PROJECT) -> list[str]:
+    """Repo-relative tracked inputs whose working copy differs from HEAD. Untracked files are
+    not asked about. Raises when git cannot answer: "cannot tell" is not "clean"."""
+    rel = [str(Path(p).resolve().relative_to(Path(repo).resolve())) for p in paths]
+    out = subprocess.run(["git", "diff", "--name-only", "HEAD", "--", *rel], cwd=str(repo),
+                         capture_output=True, text=True, timeout=120)
+    if out.returncode != 0:
+        raise UncommittedInput("cannot tell whether the inputs match HEAD (git rc={}): {}".format(
+            out.returncode, out.stderr.strip()))
+    return sorted(line for line in out.stdout.splitlines() if line)
 
 PERIODS = 48
 
@@ -654,7 +676,19 @@ def build(hh_days: dict, shape: dict, feed: dict, meter: dict,
     }
 
 
-def generate(out_path: Path | None = None) -> dict:
+def generate(out_path: Path | None = None, *, inputs_ride_with_the_page: bool = False) -> dict:
+    """Build the page. Refuses, naming the paths, when a tracked input differs from HEAD --
+    unless the caller commits those inputs in the same commit as the page, which the publisher
+    does (`process_run_complete.TRACKED_PUBLISH_DIRS`) and says so."""
+    if not inputs_ride_with_the_page:
+        dirty = uncommitted_inputs()
+        if dirty:
+            raise UncommittedInput(
+                "refusing to build {} from {} tracked input(s) that differ from HEAD, because the "
+                "page could not be rebuilt from the repository: {}{}. Commit them, or regenerate "
+                "from a clean checkout.".format(
+                    OUT_PATH.name, len(dirty), ", ".join(dirty[:5]),
+                    " and {} more".format(len(dirty) - 5) if len(dirty) > 5 else ""))
     shape, _typical = load_shape(INTENSITY_FEED)
     feed = _load(INTENSITY_FEED) or {}
     data = build(_load(HH_DAYS) or {}, shape, feed, _meter_counts(CUSTOMER_DETAIL),
