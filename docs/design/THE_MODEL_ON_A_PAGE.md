@@ -254,6 +254,8 @@ a director IA decision**, not on build capacity:
   need a home in (or a reopening of a door within) an IA the director just deliberately narrowed to
   five surfaces.
 
+*Corrected 2026-11-12 (A45 canon drift check): neither half of the first bullet holds now. No /simplified redirect remains (the 2026-08-20 redirect ruling in `site/_redirects` cut the file to the favicon rule) and the site has no `/proof` door. The lay-page question below still stands; only its picture of the IA has moved.*
+
 Choosing the host — resurrect `/simplified` as a lay page, host the lay explainer inside an existing
 surface (Front door / Proof), or defer — is a **category-6 IA / values call reserved to the director**
 (the same authority that set the five-surface IA). The agent does not unilaterally reopen a door the

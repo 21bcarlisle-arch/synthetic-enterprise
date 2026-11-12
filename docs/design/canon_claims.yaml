@@ -316,6 +316,49 @@ claims:
       The page said "120-day trailing"; `get_forward_price` defaults to an adaptive window and an
       EWMA mean. Reports OVER_CLAIM the day the adaptation is switched off.
 
+  - id: OPEN_FINDINGS_no_simplified_redirect_survives
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "No /simplified redirect remains"
+    claim: "the served site carries no /simplified -> /proof redirect rule"
+    expects: absent
+    probe:
+      kind: text_in_file
+      file: site/_redirects
+      phrase: "/simplified /proof"
+    note: >-
+      F-MOAP-1 said `/simplified` was 301'd to `/proof`; on 2026-11-12 the redirect file held
+      the favicon rule only and there was no `/proof` door. Binds the correction, not the old
+      sentence, so a restored rule reports SUPERSEDED.
+
+  - id: TF2_the_worlds_cant_pay_wont_pay_key_drives_nothing
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "cannot-pay/will-not-pay collections physics"
+    claim: "the world's hidden ability x willingness key is read by nothing in the run loop"
+    expects: absent
+    probe:
+      kind: import_edge
+      target: simulation.willingness_classification
+      roots: [simulation]
+      exclude: [simulation/willingness_classification.py]
+    note: >-
+      Timeframe 2 lists this as not yet true. The answer key exists and only an offline
+      coupling tool (`tools/couple_w2_7_c9.py`) imports it. The day a world module reads it,
+      this reports SUPERSEDED and the line belongs in Timeframe 1.
+
+  - id: PICTURE_the_svg_is_generated_at_publish
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "is generated at publish by `tools/model_on_a_page_picture.py` from the block below"
+    claim: "the publisher calls the picture generator, so the SVG cannot drift from the YAML by hand"
+    expects: present
+    probe:
+      kind: import_edge
+      target: tools.model_on_a_page_picture
+      roots: [tools]
+      exclude: [tools/model_on_a_page_picture.py, tools/model_on_a_page_sheets.py]
+    note: >-
+      The sheets generator imports the picture's helpers and is not a publisher, hence the
+      exclusion. Evidence today: `tools/generate_dashboard_data.py` imports `write`.
+
 _retired:
   SITE_the_schematic_says_only_one_trait_expresses: >-
     Retired 2026-10-24 with the director's diagram steer. The picture and its alt text no longer

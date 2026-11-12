@@ -84,6 +84,11 @@ EXPECTED_CLAIM_IDS = frozenset({
     # which is a claim about a constant and therefore registerable. It reports SUPERSEDED the day
     # the arm widens -- the moment the coverage figures beside it stop being true.
     "MISSION_the_pricing_arm_prices_both_fuels",  # re-pointed 2026-10-04, see _retired
+    # 2026-11-12: three of the six sections the coverage leg named unwatched gained a claim;
+    # the first is the factual correction that pass found (no /simplified redirect survives).
+    "OPEN_FINDINGS_no_simplified_redirect_survives",
+    "TF2_the_worlds_cant_pay_wont_pay_key_drives_nothing",
+    "PICTURE_the_svg_is_generated_at_publish",
 })
 
 PAGE_TEXT = """# A PAGE
