@@ -1117,10 +1117,16 @@ def generate(run_json_path=None, out_path=None):
                     take = round(min(c["amount_gbp"], room), 2)
                     if take < 0.005:
                         break
+                    room = round(room - take, 2)
+                    # Cash that crossed before this collection was returned is not its repayment:
+                    # the walk netted older cash against a later return (OCC-6387bf64272ag, 2017
+                    # cash on a 2019 return, printed under a 2019 bill: 58 rows on 6fe7827ab2).
+                    # Left unposted here, the catch-up below files it under its settles_month bill.
+                    if c["credit_period_end"] < pay["payment_date"]:
+                        continue
                     repaid.append({"date": c["credit_period_end"], "amount_gbp": take})
                     key = (cid, c["credit_period_end"])
                     repaid_posted[key] = round(repaid_posted.get(key, 0.0) + take, 2)
-                    room = round(room - take, 2)
                 if repaid:
                     pay["repayments"] = repaid
             else:

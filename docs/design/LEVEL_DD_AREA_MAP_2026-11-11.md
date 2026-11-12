@@ -534,6 +534,35 @@ off-day tag undercounts misdated rows wherever a leg settles often.
 under the later bill's invoice number. Money in is now on its day, which is what F2, F3 and F6 measure, but the line
 names a bill that does not yet exist. That is the assignment half, and it takes fix 2's route: cash whose day
 predates the receiving bill stays out of `repaid_posted`, so the catch-up posts it against `settles_month`
-(`docs/staging/SEAT_FINDING_A_LEVEL_RETURNS_REPAYMENT_NAMES_A_BILL_NOT_YET_ISSUED_2026-11-12.md`).
+(`docs/staging/done/SEAT_FINDING_A_LEVEL_RETURNS_REPAYMENT_NAMES_A_BILL_NOT_YET_ISSUED_2026-11-12.md`).
 
-NEXT: fix 1b, the 58 rows that predate their receiving bill go through the catch-up against `settles_month`, graded 58 → 0 with F1 to F6 unmoved, then fix 2
+### 9.2 Fix 1b built and graded (seat, 12 Nov 2026)
+
+At the no-case branch, a repayment whose cash day (`credit_period_end`) is before the returned collection's
+`payment_date` is neither appended nor added to `repaid_posted`. It still uses up `room`, so no other row's amount
+moves. The catch-up then posts it once, on its cash day, under its `settles_month` bill. Baseline is s.9.1's fix
+ledger (code = f5d1203024); the fix ledger is `/var/tmp/f1118/fix1b.json`, from the same run. Pre-registered in
+`/var/tmp/f1118/PREDICTION_1b.txt` before the build; reader `f1b.py`.
+
+**The cut is the return day, not the issue day as the finding worded it.** A level DD can be collected before
+its month's bill is issued (28 no-case rows did so even before fix 1, with 0 before their return). An issue-date
+cut would also move those legitimate rows. All 58 predate both dates, so the two cuts agree on the defect.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---:|---|
+| P1 no-case rows dated before their return | 58 → 0 | **0** | held |
+| P2 rows on no-case payments | 464 → 406 | **431** | **missed** (reader): 25 moved rows land on a `settles_month` bill that is itself a no-case return, dated after it |
+| P3 all repayment rows | 548 → 490 to 548 | **527** (37 new catch-up rows, 21 merged into same-day rows) | held |
+| P4 repayment GBP, customers whose total moved | 17,554.69, 0 | 17,554.69, **0** | held |
+| P5 balances moved | 0 | **0** (40 records change) | held |
+| P6 any page repayment dated before its own payment | 58 → 0 to 5 | **0** | held |
+| P7 off-day W 55, late 113, own-late 84, inherit 6, never posted 23 | unchanged | all unchanged | held |
+
+**Not predicted.** Settlements "on time in parts" fall 696 → 691, and never-one-entry 797 → 792: the 21 merges
+make five settlements print as one entry. The cure reader is byte-identical to s.9.1 (29 holds on 11 accounts).
+
+Test: `tests/tools/test_cash_before_a_level_return_is_not_its_repayment.py`. Both mutations kill it: refuse-nothing,
+and refuse-everything. The later cash's `settles_month` names a different month on purpose, because where it
+names the returned bill's own month, the catch-up files it under the same bill and refuse-all is an equivalence.
+
+NEXT: fix 2 (`:1192-1196` / `arrears_engine.py:798`), the 55 W stages dated after their cash day
