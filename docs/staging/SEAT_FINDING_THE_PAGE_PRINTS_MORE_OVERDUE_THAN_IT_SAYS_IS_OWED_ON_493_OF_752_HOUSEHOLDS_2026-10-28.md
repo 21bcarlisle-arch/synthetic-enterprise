@@ -328,3 +328,12 @@ period gate replaces the month gate.
   Jan 2019 part of 71.28 exactly). Two tests that compared the triad against a due-date-keyed draw now key
   the expected draw by the period end, the property they assert.
 - Prediction filed before the run: `records/SEAT_PREREGISTRATION_THE_MOVERS_EXIT_DRAW_KEYED_BY_THE_BILLS_PERIOD_END_2026-10-29.md`.
+
+## The row's bound is owed, not owed and past due: the eleventh read's O21 passes it (2026-11-12, worker tick)
+
+On the 6fe7827ab2 pages, 170 of 1,388 collections steps on single-fuel accounts (31 accounts) print an overdue figure
+that the page balance covers, but that includes a bill the same page prints as not yet due. Example: PROS-2019-0246's
+final notice on 13 Dec 2022 says GBP 595.68 overdue. That is 114.39 past due plus INV16180's 481.29 net, and the
+page dates INV16180 due on 17 Dec. This row reads it as clean. The trace, and which due date is wrong (not yet traced),
+are in the level-DD dunning finding's 12 Nov section. Script: `/var/tmp/o16o21/o21_shape.py`. A tighter leg would
+bound overdue by the balance less the bills the page prints as not yet due. That leg is not written here.

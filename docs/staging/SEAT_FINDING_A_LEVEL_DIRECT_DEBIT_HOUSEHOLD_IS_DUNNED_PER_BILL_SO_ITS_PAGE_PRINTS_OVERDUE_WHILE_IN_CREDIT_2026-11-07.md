@@ -1066,3 +1066,51 @@ not reach that shape, or the attribution is wrong. That is the next step here: t
 pages, and either name the row that misses them or move them to the finding they belong to. The finding retires when
 that trace is done and the share leg is read. D2 to D6 live in `docs/design/LEVEL_DD_AREA_MAP.md` and the sister
 finding, and are not this file's done-means.
+
+## O16 and O21 traced on the 6fe7827ab2 pages: one is this finding, still live; one belongs elsewhere (2026-11-12, worker tick)
+
+**What was read.** The eleventh read's own pages (`/var/tmp/crbook/arm/tree/site/data/customers`, built at 6fe7827ab2),
+and the brief the reader saw (`/var/tmp/eleventh-read/blind/BRIEF.md`). The reader's raw objections were not kept, so
+O16 and O21 are mapped from the record's one-line summary and the lines of the brief that match it. Scripts:
+`/var/tmp/o16o21/`. A leg is called "level" here if three or more of its DD collections carry the same amount. That
+rule is this trace's own, not a published one.
+
+**O16 ("standing arrears with GBP 0 notices") is not this finding.** In the brief, PROS-2020-0016's ledger prints
+`notice £0.00 £139.12`. Every notice line on every page carries an amount of 0.00, because a notice moves no money. The
+standing arrear behind it is GBP 62.06 left on INV17134 (Apr 2024) after a GBP 1.91 part payment. It stands for 14
+months, while every later bill is paid in full on its own and the notices on INV17134 stop after the second one. The
+household pays by **standard credit** (61 of 65 payments), not level DD. It belongs to the per-bill collections family
+(split 1 of the dual-fuel collections finding), not here.
+
+**O21 ("overdue rising with no bill") is not this finding either. It is a due-date disagreement between the desk and the page.**
+PROS-2019-0246 (level, GBP 310.47 a month) opens a journey on 19 Nov 2022 at GBP 114.39 overdue. The desk's final
+notice on **13 Dec 2022** says GBP 595.68 overdue. That is 114.39 plus INV16180 net of its EBSS credit (547.29 − 66.00 =
+481.29). The page prints INV16180's due date as **17 Dec 2022**. The desk sums only items it holds as overdue
+(`company/billing/arrears_engine.py`, `undisputed_overdue_gbp`), so the desk's due date for that bill is earlier than
+the page's. On single-fuel pages, **170 of 1,388 collections steps (31 accounts)** print an overdue figure that the
+page balance covers but that includes a bill the page prints as not yet due. `INV_OVERDUE_WITHIN_PAGE_BALANCE` cannot
+see this, because its upper bound is what is owed, not what is owed and past due. A pointer is filed on that row's
+finding. Which due date is wrong is not traced.
+
+**What the trace found that does belong here: the ledger's notices still dun level households per bill, while they are in credit.**
+The rows that read 0 grade the desk's collections steps and the payment record. Neither reads the ledger's own notice
+lines, and those are the lines the reader sees under "MOST RECENT MOVEMENTS".
+- Summed over both fuel pages as `INV_OVERDUE_WITHIN_PAGE_BALANCE` sums them, **42 of 1,106 notices on level legs (16
+  households) are sent while the account is in credit or at zero**. On other legs it is 4 of 1,780. Example:
+  SYN-2016-253 is GBP 155.55 in credit on 24 Jun 2024 and is sent "First overdue notice -- GBP52.89 outstanding".
+- 434 of the 1,106 name one bill's face, differing from the leg's balance by more than GBP 1. That fails done-means
+  bullet 3 ("the printed overdue figure is the account's arrears … not a bill's face") on the ledger's lines.
+- **The cause:** `simulation/arrears_engine.arrears_stages` (line 746) opens a case for each failed bill, at that
+  bill's arrears. It dates `ledger_notices(due_date, arrears_gbp)` (`company/billing/arrears_engine.py:731`, "for a
+  bill missed on `due_date`") at due + 21 and due + 28, whatever the account's balance is on those days. The desk's
+  journey was moved to the account. This second ladder was not.
+
+**So the finding stays open, now with a named shape instead of an untraced objection.** Done means, on the next book:
+no ledger notice on a level-DD household is dated on a day its account is in credit or at zero, and the notice's
+amount is the account's arrears. That needs a row that reads ledger notices, written blind to the fix (the 26 Oct
+ruling, step 4). The fix is a design choice between two options: the world's per-bill case asks the desk whether to
+send each notice, or the notice reads the account. That choice goes on the knowledge page first (K8,
+`debt_and_collections.md`). The share leg is still not read.
+
+**Prediction, filed before any fix:** a blind row over ledger notices on this same book reads between 30 and 60
+in-credit notices on level households. If it reads 0, either this trace's level rule or its two-page sum is wrong.
