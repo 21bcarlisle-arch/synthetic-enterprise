@@ -203,3 +203,62 @@ def test_the_guard_is_stronger_than_the_copies_the_callers_hand_rolled(monkeypat
     assert ops_repo.in_test_process() is True, (
         "with PYTEST_CURRENT_TEST unset the shared guard fell back to the callers' weaker signal"
     )
+
+
+def _foreign_commit_on_the_remote(ops_clone, tmp_path, relpath, text):
+    """A second clone pushes one commit straight to the remote, as the director's off-box-deadman
+    schedule change did on 10 Nov 21:10 (199bf3f32). The ops checkout never pulls, so from then on
+    its own `git push origin main` is a non-fast-forward."""
+    other = tmp_path / "other"
+    remote = subprocess.run(["git", "-C", str(ops_clone), "remote", "get-url", "origin"],
+                            capture_output=True, text=True, check=True).stdout.strip()
+    subprocess.run(["git", "clone", remote, str(other)], check=True, capture_output=True)
+    _git(other, "config", "user.email", "director@example.invalid")
+    _git(other, "config", "user.name", "director")
+    (other / relpath).parent.mkdir(parents=True, exist_ok=True)
+    (other / relpath).write_text(text)
+    _git(other, "add", relpath)
+    _git(other, "commit", "-m", "foreign commit pushed to the remote directly")
+    _git(other, "push", "origin", "HEAD:main")
+
+
+def test_one_foreign_commit_on_the_remote_cannot_stop_the_writer(ops_clone, tmp_path, monkeypatch):
+    """THE DEFECT (2026-11-13): one commit pushed to the ops remote from elsewhere made every
+    later `push origin main` a non-fast-forward. Every heartbeat for ~57h logged "ops repo write
+    failed", the checkout drifted 442 commits ahead, and nothing reached the advisor's mirror.
+
+    Both sides in one control: the foreign commit must survive on the remote (the writer may not
+    force over it), and the writer's own commit must land on top of it."""
+    monkeypatch.setattr(ops_repo, "in_test_process", lambda: False)
+    (ops_clone / "note.md").write_text("first\n")
+    ops_repo.commit_and_push(["note.md"], "the writer's first commit")
+    _foreign_commit_on_the_remote(ops_clone, tmp_path, ".github/workflows/x.yml", "on: push\n")
+
+    (ops_clone / "note.md").write_text("second\n")
+    ops_repo.commit_and_push(["note.md"], "the writer's commit after the foreign one")
+
+    remote_log = subprocess.run(
+        ["git", "-C", str(ops_clone), "log", "--format=%s", "origin/main"],
+        capture_output=True, text=True, check=True,
+    ).stdout.splitlines()
+    assert remote_log[0] == "the writer's commit after the foreign one", remote_log
+    assert "foreign commit pushed to the remote directly" in remote_log, (
+        "the writer reached the remote by discarding the foreign commit")
+
+
+def test_a_conflicting_foreign_commit_is_refused_by_name_and_leaves_no_rebase_open(
+        ops_clone, tmp_path, monkeypatch):
+    """The rebase must be able to fail, and when it does the checkout must be left usable: a
+    rebase left half-done would wedge every later write the same way the push did."""
+    monkeypatch.setattr(ops_repo, "in_test_process", lambda: False)
+    (ops_clone / "note.md").write_text("first\n")
+    ops_repo.commit_and_push(["note.md"], "first")
+    _foreign_commit_on_the_remote(ops_clone, tmp_path, "note.md", "theirs\n")
+
+    (ops_clone / "note.md").write_text("ours\n")
+    with pytest.raises(RuntimeError) as caught:
+        ops_repo.commit_and_push(["note.md"], "conflicts with the foreign commit")
+
+    assert "rebase" in str(caught.value), str(caught.value)
+    assert not (ops_clone / ".git" / "rebase-merge").exists(), "a rebase was left open"
+    assert not (ops_clone / ".git" / "rebase-apply").exists(), "a rebase was left open"

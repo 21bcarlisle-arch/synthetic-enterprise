@@ -89,8 +89,8 @@ def ops_tree_lock(timeout: float = DEFAULT_TIMEOUT_SECONDS):
 
 
 def commit_and_push(relpaths: list[str], message: str) -> None:
-    """Stage `relpaths` (relative to OPS_REPO_DIR), commit, and push to
-    origin/main. No-ops cleanly if there's nothing to commit (repeated
+    """Stage `relpaths` (relative to OPS_REPO_DIR), commit, rebase onto the
+    remote, and push to origin/main. No-ops cleanly if there's nothing to commit (repeated
     identical writes, e.g. in tests that don't mutate content). Caller must
     hold ops_tree_lock() -- this function does not acquire it itself, so
     a caller doing multiple related writes can batch them under one lock.
@@ -119,6 +119,29 @@ def commit_and_push(relpaths: list[str], message: str) -> None:
         raise RuntimeError(
             f"ops repo commit failed: stdout={result.stdout!r} stderr={result.stderr!r}"
         )
+    _rebase_onto_origin()
     subprocess.run(
         ["git", "-C", str(OPS_REPO_DIR), "push", "origin", "main"], check=True,
     )
+
+
+def _rebase_onto_origin() -> None:
+    """Fetch, and replay the local commits on top of whatever the remote holds.
+
+    The ops remote is not ours alone: the director's off-box-deadman workflow lives there, and one
+    commit pushed to it directly (199bf3f32, 10 Nov 21:10) made every later push a non-fast-forward
+    for ~57 hours. Never force: the foreign commit is kept. A conflict aborts the rebase, so the
+    checkout is left as it was, and raises with the reason rather than wedging the next write."""
+    d = str(OPS_REPO_DIR)
+    subprocess.run(["git", "-C", d, "fetch", "--quiet", "origin"], check=True)
+    if subprocess.run(["git", "-C", d, "rev-parse", "--verify", "--quiet", "refs/remotes/origin/main"],
+                      capture_output=True).returncode != 0:
+        return  # an empty remote: the first push creates main, there is nothing to replay onto
+    r = subprocess.run(["git", "-C", d, "rebase", "--quiet", "origin/main"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        subprocess.run(["git", "-C", d, "rebase", "--abort"], capture_output=True)
+        raise RuntimeError(
+            "ops repo rebase onto origin/main failed and was aborted; the remote holds a commit "
+            f"that conflicts with the local ones: stdout={r.stdout!r} stderr={r.stderr!r}"
+        )
