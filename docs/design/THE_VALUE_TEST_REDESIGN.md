@@ -39,6 +39,14 @@ each household's paired difference between two arms of the same run as the unit.
 | Its spread across households (sd of the paired difference, per household over the run) | £522, so the mean is **0.6 standard errors** from zero | £394, **0.4 standard errors** from zero |
 | Choosing alone, per-customer arm over the level-matched flat arm | **+£6.20 per household-year** (£11,345), 2.0 standard errors | **+£2.38** (£9,886), 1.2 standard errors |
 
+*From the feed, 13 Nov.* The 8 Oct column is now computed at publish, not by hand:
+`site/data/value_arms.json` → `current_world.per_household_year`
+(`tools/generate_value_arms_data._per_household_year`). Capabilities' lead and its
+per-household table are rendered from it. Every figure above reproduces. The one exception is the
+AUC interval. The feed gives **0.40 to 0.64** (seed 20261113, stated in the feed), where the hand
+computation gave 0.41 to 0.65 at an unrecorded seed. That is resampling noise, and the reading does
+not change. The 13 Oct column is not published and stays hand-computed.
+
 **What this says, plainly.** The belief cannot yet tell who leaves: both AUCs sit on a coin, and the
 8 Oct interval runs from worse than a coin to modest skill. It expects far more households to leave
 than do. The money advantage is a few pounds per household-year. **Across households it is not

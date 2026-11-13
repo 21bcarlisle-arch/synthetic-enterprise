@@ -137,6 +137,7 @@ from tools.decisions_that_existed import decisions_that_existed
 # a folded block, because no published floor has been re-folded to carry one and re-folding a
 # watched family would make its promotion owed in the same commit.
 from tools.fold_noise_floor_family import _priced_decision_draws, regrade_over_distinct_draws
+from tools.grade_renewal_churn_belief import rank_auc
 
 # THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
 # one place this file derives instead of reading, and it derives by calling the same function the
@@ -17438,6 +17439,128 @@ def _size_term_paired_floor(path: Path | None = None) -> dict:
     }
 
 
+#: The clustered interval on the belief's skill. Resampling is by HOUSEHOLD, not by decision: one
+#: account renews several times and its renewals are not independent draws, so resampling decisions
+#: would narrow the interval by counting one household several times. The seed is fixed so the
+#: published interval is reproducible from the artefact alone.
+PER_HOUSEHOLD_YEAR_RESAMPLES = 2000
+PER_HOUSEHOLD_YEAR_SEED = 20261113
+
+
+def _per_household_year(run: dict | None) -> dict:
+    """The value test's figures in the units the director reads them in, per household per year.
+
+    Director, 13 Nov: "£5k to £8k means nothing to me." An arm total is a sum over a book, so its
+    size says as much about the book as about the method. Every figure here is divided by the
+    same denominator, and the denominator is published beside it.
+
+    WHAT IS COUNTED. A household is one billing account, with dual-fuel legs counted once
+    (`book_identity.control_arm.billing_accounts_settled_in_window`). A household-year is one
+    (account, calendar year) with settled supply in the CONTROL arm
+    (`household_side.control_arm.customer_years`). A part year counts as a whole one, so the
+    per-year figures are, if anything, low. The control arm's household-years are the denominator
+    for every contrast, because a contrast is a difference against the control.
+
+    THE TWO SPREADS ARE DIFFERENT QUANTITIES. `households_spread` is the spread of each
+    household's paired difference between two arms of this ONE run: a different book would show
+    this spread. It is not `distance_to_a_sign`, which is the spread of the same households across
+    the world's re-draws. A thesis test has to clear this one.
+
+    THE BELIEF'S SKILL COMES FIRST because a margin a belief earns while it cannot tell who leaves
+    is not evidence the belief did anything. It is the run's own
+    `belief_against_control_outcomes`: the value arm's believed chance of staying, scored against
+    who actually stayed under the FLAT price, which the belief did not set.
+    """
+    run = run or {}
+    side = ((run.get("household_side") or {}).get("control_arm") or {})
+    years = side.get("customer_years")
+    households = ((run.get("book_identity") or {}).get("control_arm") or {}).get(
+        "billing_accounts_settled_in_window")
+    if not isinstance(years, int) or years <= 0 or not isinstance(households, int) or households <= 0:
+        return {"available": False,
+                "why_not": ("the run names no control-arm household-years or no book size, so there "
+                            "is no denominator to state a figure per household per year against")}
+    nets = {arm: (run.get(arm) or {}).get("net_by_billing_account_gbp") or {}
+            for arm in ("control_arm", "value_arm", "level_arm")}
+
+    def contrast(arm, against, what):
+        a, b = nets[arm], nets[against]
+        if not a or not b:
+            return {"available": False, "what_it_is": what,
+                    "why_not": "the run carries no per-household net for {} or {}".format(arm, against)}
+        accounts = sorted(set(a) | set(b))
+        # An account absent from one arm's ledger earned nothing there; zero is the measured value.
+        diffs = [float(a.get(k, 0.0)) - float(b.get(k, 0.0)) for k in accounts]
+        total = sum(diffs)
+        sd = statistics.stdev(diffs) if len(diffs) > 1 else None
+        se = sd / math.sqrt(len(diffs)) if sd else None
+        return {"available": True, "what_it_is": what,
+                "total_gbp": round(total, 2),
+                "gbp_per_household_year": round(total / years, 2),
+                "households_spread": {
+                    "households": len(diffs),
+                    "sd_gbp_per_household_over_the_run": round(sd, 2) if sd is not None else None,
+                    "standard_errors_from_zero": (round((total / len(diffs)) / se, 2)
+                                                  if se else None)}}
+
+    belief = run.get("belief_against_control_outcomes") or {}
+    rows = belief.get("scored_decisions") or []
+    skill = {"available": False,
+             "why_not": "the run scored no belief against the control arm's outcomes"}
+    if belief.get("available") and rows:
+        def auc(sample):
+            return rank_auc([r["believed_p_retain"] for r in sample if r["retained_under_the_control_arm"]],
+                            [r["believed_p_retain"] for r in sample if not r["retained_under_the_control_arm"]])
+        by_account: dict = {}
+        for r in rows:
+            by_account.setdefault(r["account"], []).append(r)
+        accounts = sorted(by_account)
+        rng = random.Random(PER_HOUSEHOLD_YEAR_SEED)
+        draws = []
+        for _ in range(PER_HOUSEHOLD_YEAR_RESAMPLES):
+            v = auc([r for k in (rng.choice(accounts) for _ in accounts) for r in by_account[k]])
+            if v is not None:
+                draws.append(v)
+        draws.sort()
+        point = auc(rows)
+        skill = {
+            "available": point is not None,
+            "what_it_is": ("AUC of the value arm's believed chance of staying against who stayed "
+                           "under the flat price. 0.5 is a coin; 1.0 orders every stayer above "
+                           "every leaver."),
+            "auc": round(point, 3) if point is not None else None,
+            "auc_95_interval": ([round(draws[int(0.025 * len(draws))], 3),
+                                 round(draws[int(0.975 * len(draws)) - 1], 3)] if draws else None),
+            "interval_method": ("percentile bootstrap, {:,} resamples clustered on {} households at "
+                                "seed {}").format(PER_HOUSEHOLD_YEAR_RESAMPLES, len(accounts),
+                                                  PER_HOUSEHOLD_YEAR_SEED),
+            "renewals_scored": len(rows),
+            "households_scored": len(accounts),
+            "believed_retention": belief.get("mean_believed_p_retain"),
+            "realised_retention": belief.get("realised_retention_rate"),
+            "calibration_error": belief.get("calibration_error"),
+            "interval_includes_a_coin": bool(draws) and draws[int(0.025 * len(draws))] <= 0.5,
+        }
+    return {
+        "available": True,
+        "households": households,
+        "household_years": years,
+        "mean_years_per_household": round(years / households, 1),
+        "what_is_counted": (
+            "A household is one billing account, dual-fuel legs counted once. A household-year is "
+            "one (account, calendar year) with settled supply in the control arm; a part year "
+            "counts as a whole one, so per-year figures are if anything low. Every figure is an "
+            "arm total divided by the control arm's household-years."),
+        "belief_skill": skill,
+        "whole_advantage": contrast("value_arm", "control_arm",
+                                    "per-customer arm over the flat margin"),
+        "choosing": contrast("value_arm", "level_arm",
+                             "per-customer arm over one flat margin at the level it charged"),
+        "price_level": contrast("level_arm", "control_arm",
+                                "that level-matched flat margin over the flat margin"),
+    }
+
+
 def _w2_20_own_effect(published: dict | None, reverted: dict | None) -> dict:
     """W2_20's own effect on the published control arm: the published run minus the same code with
     `81732ffe2` reverted. Every figure is differenced here from the two artefacts, none is typed.
@@ -17700,7 +17823,8 @@ def build(three_arm: dict | None, floor: dict | None,
     if current_world.get("available"):
         current_world = dict(current_world, changed_since_the_last_reading=(
             CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING),
-            w2_20_own_effect=_w2_20_own_effect(current_three_arm, w2_20_reverted))
+            w2_20_own_effect=_w2_20_own_effect(current_three_arm, w2_20_reverted),
+            per_household_year=_per_household_year(current_three_arm))
     return dict(
         base,
         available=True,

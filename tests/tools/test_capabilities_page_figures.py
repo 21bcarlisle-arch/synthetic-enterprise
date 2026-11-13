@@ -225,3 +225,61 @@ def test_every_section_below_the_table_and_the_value_test_is_one_tap_down():
     assert inside.index('<details class="fold"') > inside.index("<h2") if "<details class" in inside \
         else True
     assert page.index('id="value-lead"') < page.index('id="world"')
+
+
+def _phy(auc=0.524, interval=(0.405, 0.641), coin=True, sems=0.61, available=True):
+    def c(v, t, s):
+        return {"available": True, "gbp_per_household_year": v, "total_gbp": t,
+                "households_spread": {"standard_errors_from_zero": s}}
+    return {"available": available, "households": 272, "household_years": 1831,
+            "mean_years_per_household": 6.7, "what_is_counted": "counted thus",
+            "belief_skill": {"available": auc is not None, "auc": auc, "auc_95_interval": list(interval),
+                             "households_scored": 122, "believed_retention": 0.64,
+                             "realised_retention": 0.87, "interval_includes_a_coin": coin},
+            "whole_advantage": c(2.86, 5244.0, sems), "choosing": c(6.2, 11344.76, 2.0),
+            "price_level": c(-3.33, -6100.76, -0.63)}
+
+
+def test_the_value_test_leads_with_the_beliefs_skill_then_money_per_household_year():
+    """Director's addendum, 13 Nov: "£5k to £8k means nothing to me" -- every value-test figure per
+    household per year first, with the book size and years beside it, and the belief's skill
+    BEFORE the margin. KEYED TO THE PROPERTY: the skill sentence precedes the first pound sign, the
+    book size precedes both, and the book total comes after the per-household-year figure in its
+    row. EVERY BRANCH: skill that cannot tell / can tell / not measured; spread under and over two
+    standard errors; no per-household block at all (the old lead, and a note that says so).
+    MUTATION: put the money sentence before the skill -> the ordering assert reds; drop the book
+    clause -> the book assert reds; key `cannot yet tell` to a constant -> the coin=False assert
+    reds; drop the block's unavailable branch -> the last assert reds."""
+    arms = _arms(1234.4, -567.8)
+    arms["current_world"]["per_household_year"] = _phy()
+    lead = cpf.render_lead(arms)
+    assert lead.index("272 households over 1,831 household-years") < lead.index("0.52") \
+        < lead.index("&pound;")
+    assert "+&pound;2.86</strong> per household per year" in lead and "&pound;5,244" not in lead
+    # The draws clause counts the WHOLE advantage's draws, never the choosing leg's (whose draws
+    # in `_arms` are all positive): no whole-advantage draws -> no clause; one negative -> no clause.
+    assert "draws of the world" not in lead
+    arms["current_world"].update(value_advantage_gbp=5244.0,
+                                 verdict_stability={"redraw_values_gbp": [9375.0, 11766.0]})
+    assert "every one of its 3 draws of the world" in cpf.render_lead(arms)
+    arms["current_world"]["verdict_stability"] = {"redraw_values_gbp": [-1.0, 11766.0]}
+    assert "draws of the world" not in cpf.render_lead(arms)
+    assert "cannot yet tell who leaves" in lead and "0.6 standard errors" in lead
+    assert "no verdict is given" in lead
+    arms["current_world"]["per_household_year"] = _phy(auc=0.71, interval=(0.6, 0.8), coin=False,
+                                                       sems=3.2)
+    lead = cpf.render_lead(arms)
+    assert "better than a coin" in lead and "3.2 standard errors from zero across households" in lead
+    arms["current_world"]["per_household_year"] = _phy(auc=None)
+    assert "was not measured in this run" in cpf.render_lead(arms)
+
+    arms["current_world"]["per_household_year"] = _phy()
+    table = cpf.render_per_household(arms)
+    assert table.index("tell who will leave") < table.index("&pound;")
+    row = table[table.index("Per-customer pricing"):]
+    assert row.index("+&pound;2.86") < row.index("+&pound;5,244")
+    assert "&minus;&pound;3.33" in table and "counted thus" in table
+
+    arms["current_world"]["per_household_year"] = _phy(available=False)
+    assert "not in the feed" in cpf.render_per_household(arms)
+    assert "per household per year more" not in cpf.render_lead(arms)

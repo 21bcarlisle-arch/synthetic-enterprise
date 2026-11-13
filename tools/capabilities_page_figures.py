@@ -27,7 +27,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-BLOCKS = ("LEAD", "FIXED", "WORLD", "SUPPLIER", "ACCESS", "GOLIVE", "UCTALLY", "USECASES", "STAMP")
+BLOCKS = ("LEAD", "PERHOUSEHOLD", "FIXED", "WORLD", "SUPPLIER", "ACCESS", "GOLIVE", "UCTALLY", "USECASES", "STAMP")
 START = ("<!-- CAPABILITIES-{}:START (written at publish by "
          "tools/capabilities_page_figures.py -- do not hand-edit) -->")
 END = "<!-- CAPABILITIES-{}:END -->"
@@ -218,6 +218,81 @@ def _leg_sentence(leg, what):
         "; every draw the same sign" if same else "; so even its sign is not settled")
 
 
+def _pence(v, signed=True):
+    """Pounds and pence, for per-household-year figures, where a rounded pound hides the size."""
+    sign = ("+" if v > 0 else "&minus;" if v < 0 else "") if signed else ("&minus;" if v < 0 else "")
+    return "{}&pound;{:,.2f}".format(sign, abs(v))
+
+
+def _book(phy):
+    """The book a per-household-year figure is a share of, said beside it (addendum of 13 Nov,
+    item 1: "with the book size and the years beside it")."""
+    return "{:,} households over {:,} household-years (about {} years each)".format(
+        phy["households"], phy["household_years"], phy["mean_years_per_household"])
+
+
+def _per_household_year(arms):
+    """The feed's `current_world.per_household_year`, or None when it is absent or unavailable."""
+    phy = ((arms or {}).get("current_world") or {}).get("per_household_year") or {}
+    return phy if phy.get("available") else None
+
+
+def _skill_sentence(skill):
+    """The belief's skill, in words, BEFORE any margin (addendum of 13 Nov, item 2)."""
+    if not (skill or {}).get("available"):
+        return "Whether the company can tell who will leave was not measured in this run."
+    lo, hi = skill.get("auc_95_interval") or (None, None)
+    interval = (" (95% interval {:.2f} to {:.2f})".format(lo, hi)
+                if isinstance(lo, (int, float)) and isinstance(hi, (int, float)) else "")
+    cal = ""
+    if isinstance(skill.get("believed_retention"), (int, float)) \
+            and isinstance(skill.get("realised_retention"), (int, float)):
+        cal = "; it expected {:.0%} of households to stay, and {:.0%} did".format(
+            skill["believed_retention"], skill["realised_retention"])
+    verdict = ("so it cannot yet tell who leaves" if skill.get("interval_includes_a_coin")
+               else "so it tells who leaves better than a coin")
+    return ("First, whether the company can tell who will leave: its belief scores <strong>{:.2f}"
+            "</strong>, where 0.5 is a coin toss{}{}, {}.").format(skill["auc"], interval, cal, verdict)
+
+
+def render_per_household(arms):
+    """Every value-test figure per household per year first, the belief's skill on the first row,
+    the book total last (director's addendum of 13 Nov, items 1 and 2). Every figure is the feed's
+    `current_world.per_household_year`; nothing is computed or typed here beyond formatting."""
+    phy = _per_household_year(arms)
+    if phy is None:
+        return ('<p class="note">The value test\'s figures per household per year are not in the '
+                'feed for this run, so none is stated here.</p>')
+    skill = phy.get("belief_skill") or {}
+    rows = []
+    if skill.get("available"):
+        lo, hi = skill.get("auc_95_interval") or (None, None)
+        rows.append("<tr><td>Can the company tell who will leave? (0.5 is a coin toss)</td>"
+                    "<td><strong>{:.2f}</strong></td><td>95% interval {}, over {} households</td>"
+                    "<td>&mdash;</td></tr>".format(
+                        skill["auc"], ("{:.2f} to {:.2f}".format(lo, hi) if lo is not None else "none"),
+                        skill.get("households_scored")))
+    for key, label in (("whole_advantage", "Per-customer pricing, over flat rules"),
+                       ("choosing", "Choosing alone, over one flat price at the same level"),
+                       ("price_level", "That price level alone, over flat rules")):
+        c = phy.get(key) or {}
+        if not c.get("available"):
+            continue
+        sems = (c.get("households_spread") or {}).get("standard_errors_from_zero")
+        rows.append("<tr><td>{}</td><td><strong>{}</strong> per household per year</td>"
+                    "<td>{} standard errors from zero across households</td><td>{}</td></tr>".format(
+                        label, _pence(c["gbp_per_household_year"]),
+                        "{:.1f}".format(abs(sems)) if isinstance(sems, (int, float)) else "no",
+                        _money(c["total_gbp"], True)))
+    return ('<div class="per-household"><p class="brief-h">The value test per household per year: '
+            '{}</p><div class="table-scroll"><table class="phy"><thead><tr><th></th><th>Per household per year</th>'
+            '<th>Can it be told from nothing?</th><th>Book total</th></tr></thead><tbody>{}</tbody>'
+            '</table></div><p class="note">A margin gain from a belief that cannot tell who leaves is not '
+            'evidence that deciding customer by customer works. Standard errors here are the spread '
+            'between households, which is what a different book would show. {}</p></div>').format(
+                _book(phy), "".join(rows), E(phy.get("what_is_counted") or ""))
+
+
 def render_lead(arms):
     """The opening paragraph (steer of 26 Oct, section 3: "Lead Capabilities with its best
     result ... Use the published figures from the live data, not these numbers typed in"). Every
@@ -252,9 +327,35 @@ def render_lead(arms):
                  "per household per year, is next.")
     else:
         concl = "The value test below gives the verdict and the spread behind it."
-    return ('<p class="lead-p">{} On the same book of households, run once with per-customer prices '
-            'and once with flat rules{}, {}. {} <a href="#value-arms">The value test, with its '
-            'figures &darr;</a></p>').format(q, when, found, concl)
+    phy = _per_household_year(arms)
+    if phy is None:
+        return ('<p class="lead-p">{} On the same book of households, run once with per-customer '
+                'prices and once with flat rules{}, {}. {} <a href="#value-arms">The value test, '
+                'with its figures &darr;</a></p>').format(q, when, found, concl)
+    # Addendum of 13 Nov: per household per year first, book size and years beside it, and the
+    # belief's skill BEFORE the margin.
+    whole = phy.get("whole_advantage") or {}
+    # THE WHOLE ADVANTAGE'S OWN DRAWS, not the choosing leg's `draws` above: this sentence is about
+    # per-customer pricing over flat rules, and that contrast is `value_advantage_gbp`.
+    whole_draws = [v for v in [cw.get("value_advantage_gbp")] + list(
+        (cw.get("verdict_stability") or {}).get("redraw_values_gbp") or [])
+        if isinstance(v, (int, float))]
+    money = ""
+    if whole.get("available"):
+        sems = (whole.get("households_spread") or {}).get("standard_errors_from_zero")
+        told = ("" if not isinstance(sems, (int, float)) else
+                ", but across households that is only {:.1f} standard errors from zero, so a "
+                "different book could show nothing".format(abs(sems)) if abs(sems) < 2 else
+                ", {:.1f} standard errors from zero across households".format(abs(sems)))
+        money = (" Per-customer pricing earned <strong>{}</strong> per household per year more "
+                 "than flat rules{}{}.").format(
+                     _pence(whole["gbp_per_household_year"]),
+                     " (more in every one of its {} draws of the world)".format(len(whole_draws))
+                     if whole_draws and all(v > 0 for v in whole_draws) else "", told)
+    return ('<p class="lead-p">{} It was tested on {}, run once with per-customer prices and once '
+            'with flat rules{}. {}{} {} <a href="#value-arms">The value test, with its figures '
+            '&darr;</a></p>').format(q, _book(phy), when, _skill_sentence(phy.get("belief_skill")),
+                                      money, concl)
 
 
 def render_uc_tally(feed):
@@ -304,6 +405,7 @@ def render_stamp(feed):
 def render_blocks(feed, arms=None):
     go_live = feed.get("go_live") or {}
     return {"LEAD": render_lead(arms),
+            "PERHOUSEHOLD": render_per_household(arms),
             "FIXED": render_fixed(feed),
             "WORLD": render_side(feed.get("world") or {}),
             "SUPPLIER": render_side(feed.get("supplier") or {}),

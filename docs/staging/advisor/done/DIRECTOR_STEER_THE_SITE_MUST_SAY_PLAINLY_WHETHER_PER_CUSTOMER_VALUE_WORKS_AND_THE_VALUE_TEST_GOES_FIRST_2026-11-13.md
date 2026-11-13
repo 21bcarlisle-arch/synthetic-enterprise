@@ -80,3 +80,15 @@ The ruling itself is unchanged. It was read from bd9875ade's bytes and acted on 
   - "Done means" (a verdict, or "cannot tell yet, because X", from a run no older than the page):
     `value-test-step-1-grade-the-twelve-draw-family-once-it-exits`. That step waits for
     `longjob-value-test-12-draw-family-pairs`, which was still active at 15:44Z. It reads on 14 Nov.
+
+## Done (13 Nov, delivery seat; the evidence for the archive above, under the heading the done-folder gate reads)
+
+- Item 1 (the lead, the appendix ranges, "Nothing recorded"): f4f825b8b.
+- Item 2 and addendum 3 (the redesign goes first, sized from the household noise split): 16d90c311f.
+- Addendum items 1 and 2 (per household per year first, with the belief's skill leading): landed for
+  the lead and a new per-household table. Both are rendered from `current_world.per_household_year`
+  in site/data/value_arms.json, which tools/generate_value_arms_data.py computes from the 8 Oct run.
+  The technical appendix's panels still state book totals, and
+  `value-test-appendix-figures-per-household-year` carries them.
+- "Done means" (a verdict from a run no older than the page) is still carried by
+  `value-test-step-1-grade-the-twelve-draw-family-once-it-exits`.
