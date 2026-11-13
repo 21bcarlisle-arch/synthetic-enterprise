@@ -115,3 +115,9 @@ test_execution_log) dropped.
   was promoted.
 - **Attempt 9, part 3 (simulation fix, its control and this note; 52 files, about 1,661 s predicted):**
   outcome follows.
+  **Landed ceeefa596** (unit `longjob-final-bill-land-3-sim`, 22:12 GMT, gate-rc 0). Its receipt
+  reads `tests: 7 passed in 0.18s`, far below the 52 files predicted. That gap is not explained here:
+  read the receipt's selection before trusting the per-file sums for the next sizing. The turn that
+  landed it ended before promotion. Origin had moved by 2 commits that touch none of its paths. A
+  gated merge, 99c8e05dd (unit `longjob-final-bill-land-4-merge-1`, about 60 s), was promoted at about
+  22:58 GMT and bound to the claim. **The fix is on origin ahead of the 16 Nov 04:00 book.**
