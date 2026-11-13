@@ -6940,6 +6940,14 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             # Not a pairing key -- see `floor_book_identity.how_a_consumer_should_pair_this`.
             "billing_accounts_settled_in_window": (
                 (seed_books[-1] or {}).get("billing_accounts_settled_in_window")),
+            # EACH ARM'S OWN HOUSEHOLD-YEARS, PER SEED (2026-11-13). A re-draw moves who stays, so
+            # the count moves with the seed; without it the family's pounds could only be divided
+            # by another run's count (generate_value_arms_data `_per_household_year_redraw_band`).
+            # None, never 0, where the run published no household side.
+            "household_years_by_arm": {
+                arm: side.get("customer_years")
+                for arm, side in (result.get("household_side") or {}).items()
+                if isinstance(side, dict)} or None,
             # THE CUT, MEASURED PER SEED RATHER THAN ASSERTED ONCE. `redrawn + held == draws` is
             # what makes the two legs a partition of one call stream; a reader can check it on
             # every row, and `accounts_redrawn` says how much of the roster the run actually met.
