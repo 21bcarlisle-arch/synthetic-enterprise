@@ -2290,6 +2290,34 @@ def ev_smart_billed_on_reads(inv, book):
     return tally
 
 
+def ev_dual_fuel_reads_together(inv, book):
+    """Book leg: over every bill period a household's two Traditional legs both bill, the share of
+    periods with an actual read on either that have it on one fuel only, within [lower, upper]
+    widened by the book's own sampling bound. Above breaches (the meters read apart); below flags."""
+    tally = Tally("book of traditional dual-fuel bill periods")
+    read = {"A", "M", "C"}
+    both = one = 0
+    for legs in _household_legs(book).values():
+        fuel = {a.printed.get("commodity"): a for a in legs if a.printed.get("meter_type") == "Traditional"}
+        if set(fuel) != {"electricity", "gas"} or len(legs) != 2:
+            continue
+        by_end = [{i["period_end"]: i.get("read_type") in read for i in _printed_bills(fuel[f])
+                   if i.get("document_type", "bill") == "bill"} for f in ("electricity", "gas")]
+        for end in by_end[0].keys() & by_end[1].keys():
+            e, g = by_end[0][end], by_end[1][end]
+            both += e and g
+            one += e != g
+    n = both + one
+    if not n:
+        tally.unbounded += 1
+        return tally
+    lower, upper = float(inv.get("lower") or 0.0), float(inv["upper"])
+    # Each side widened by its own sampling bound: at the floor the spread is the floor's, not the ceiling's.
+    tally.band("one fuel read of {} periods with a read".format(n), round(one / n, 4),
+               max(0.0, 2 * lower - _binomial_upper(n, lower)), _binomial_upper(n, upper), below="flag")
+    return tally
+
+
 def _meter_word(panel: str, v):
     """One printed meter-type rendering as a word: smart / traditional / hh / none (not recorded)."""
     if panel == "header":
@@ -3348,6 +3376,7 @@ EVALUATORS = {
         ev_closing_refund_within_household_credit, "page_ledger"),
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": (ev_carbon_matches_usage, "carbon_years"),
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": (ev_smart_billed_on_reads, "meter_type"),
+    "INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER": (ev_dual_fuel_reads_together, "meter_type"),
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": (ev_meter_type_one_value, "panel_meters"),
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": (ev_estimate_follows_reads, "printed_invoices"),
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": (ev_estimated_run_vs_meter, "printed_invoices"),

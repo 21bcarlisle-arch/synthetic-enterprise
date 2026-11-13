@@ -1108,6 +1108,45 @@ toggles:
         movers and switchers give a read the supplier accepts?
     verdict: MATTERS_AND_RESOLVABLE
 
+  - id: q6_dual_fuel_read_together_share
+    question: Q6 read access and theft
+    meaning: >-
+      P(a dual-fuel home's gas read rides on the same read occasion as its electricity read | a
+      month in which both meters are read-exposed). A meter reader's visit reads every meter at the
+      premises it can get to, and a customer's own submission is asked for on both fuels at once,
+      so the two reads mostly fall on one day. The remainder is a gas read on its own occasion: one
+      fuel submitted, a read rejected for one fuel, separate schedules. Each fuel's monthly read
+      rate is unchanged at every setting; only which months coincide moves.
+      simulation/meter_reads.read_occasion_id reads this row
+      (unbilled_energy_and_revenue_assurance.md K2, "a traditional dual home's two meters are read
+      on one occasion").
+    default: 0.8
+    low: 0.6
+    high: 0.95
+    basis_default: >-
+      BELIEF, not published (searched 2026-11-13: Ofgem's meter-inspection and SLC 21B reading
+      papers set a read duty per customer, not a joint share). Practitioner fact: a visit reads
+      both meters and a self-read form asks for both (cold read N30, a billing-systems test
+      analyst: "a visit or customer read usually takes both meters"). Set between the edges.
+    basis_low: >-
+      A dual-fuel customer submits one fuel only, or one read fails validation and is rejected,
+      in up to two read occasions in five. No source; the edge a sceptic would argue.
+    basis_high: >-
+      Every visit and every submission takes both meters, short of a read rejected on one fuel.
+      Not 1.0, because each fuel's read is validated on its own rule (BSCP504 s.4.2 twice the
+      expected advance; UNC Validation Rules s.8.2 tolerances by AQ band), so one fuel's read can
+      fail while the other's stands
+      (what_a_wrong_meter_read_is_and_how_often_the_record_says_it_happens_2026-11-12.md s.2).
+    feeds: [W2_36_unbilled_energy_arises_the_way_it_does_in_reality]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Moves no fuel's estimated-bill count in expectation (each leg's read rate is solved
+        separately); moves how often a dual home's two catch-ups land together, which decides the
+        size of a combined catch-up and whether one fuel's estimate sits beside the other's actual
+        read on one bill (cold read N30, 89% one-only before the coupling).
+    verdict: DOESNT_MATTER for pricing (argued); MATTERS_AND_RESOLVABLE for the bill's shape (practitioner)
+
   - id: q6_switch_read_dispute_share
     question: Q6 read access and theft
     meaning: >-

@@ -2870,6 +2870,45 @@ invariants:
     docs/domain_artefact_library/regulatory/ (23 files, none on smart data access) and scope_briefs/ (only ADVISOR_SCOPE_BRIEF_INDUSTRY_BOUNDARY mentions the DCC). Both are read here only through
     market_research summaries; the licence text is owed to the commons. The gas condition number is the brief's belief, not verified. Bounds are beliefs: DESNZ publishes a year-end stock, not the flow
     of estimated smart bills, and no split of estimated bills by meter type is published (smart_meters... named gap 7). Whether M means a smart-transmitted read is not on the page.
+- id: INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER
+  family: read_duty
+  grades: invoice
+  counts: >-
+    Per book: over every bill period (matched on period_end) that both fuel legs of one household bill, where both legs print meter_type Traditional, the periods with an actual read (A, M or C) on
+    exactly one fuel, over the periods with an actual read on either. Unit graded: the book.
+  statement: >-
+    A meter reader's visit reads every meter at the premises it can reach, and a supplier asks for a customer's own read on both fuels at once, so a traditional dual-fuel home's two actual reads
+    mostly fall in the same bill period. A book where one fuel is estimated whenever the other is read has drawn the two meters' reads apart.
+  applies_to:
+    segment: resi
+    commodity: electricity and gas, one household
+    meter_type: Traditional on both legs
+  evaluation: >-
+    Book leg: s = one-fuel-only periods / periods with any actual read. Breach if s exceeds upper by more than the one-sided 99.9% sampling bound at the book's n; flag if s falls below lower by more
+    than the same.
+  lower: 0.09
+  upper: 0.5
+  upper_source: >-
+    BELIEF, the low edge of register row q6_dual_fuel_read_together_share (0.6): the world's read process at that edge gives 0.489 on 20,000 drawn dual homes over 24 months
+    (docs/market_research/unbilled_energy_and_revenue_assurance.md K2, 'a traditional dual home's two meters are read on one occasion'). Independent draws give 0.886; the 6fe7827ab2 book showed 0.89.
+  lower_source: >-
+    BELIEF, the high edge of the same row (0.95), which gives 0.093 on the same draw. A book below it couples the two reads more tightly than any setting the belief admits.
+  severity:
+    above_upper: breach
+    below_lower: flag
+  export_fields:
+  - meter_type
+  - read_type
+  - period_end
+  - commodity
+  checkable: true
+  source:
+  - docs/market_research/unbilled_energy_and_revenue_assurance.md (K2)
+  - docs/market_research/assumption_toggles.yaml (q6_dual_fuel_read_together_share)
+  - 'Cold read N30, 2026-11-13: one fuel estimated beside the other''s actual read in 89% of traditional dual-fuel periods with any read (5,364 of 6,043, 359 households).'
+  gap: >-
+    No published source gives the share of a dual-fuel home's reads taken on one occasion; both bounds come from a practitioner belief and its range. A household whose two legs bill on different
+    period ends is not graded; a household with a meter exchange mid-life is graded on its page header.
 - id: INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS
   family: read_history
   grades: invoice

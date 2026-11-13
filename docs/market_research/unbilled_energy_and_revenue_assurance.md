@@ -254,6 +254,53 @@ large ones move to accounts whose use has changed since the advance year. An unw
 advance lags the household, just as a three-read window lags the season. Built default off. The arm
 pair is pre-registered in the record above.
 
+#### World build: a traditional dual home's two meters are read on one occasion (2026-11-13, K8 for W2_36, cold read N30)
+
+- **What was wrong.** The twelfth cold read found that on a dual-fuel home with two traditional
+  meters, one fuel is estimated when the other is read in **89%** of the bill periods where either
+  is read (5,364 of 6,043 pairs, 359 households; `docs/staging/` seat finding of 2026-11-13). At a
+  monthly actual-read rate near 0.21 per fuel, independent draws give p²/(2p − p²) ≈ 11% both-read
+  given any, so 89% one-only: the world drew each leg's read from its own id.
+- **What the record says.** Every rule we hold sets a read duty **per customer and per fuel**: SLC
+  21B (a read at least once a year), the two-yearly inspection that Ofgem's 2015 reform paper
+  addressed, BSCP504 s.4.2 and UNC Validation Rules s.8.2 (each fuel's read validated on its own
+  test, `what_a_wrong_meter_read_is_and_how_often_the_record_says_it_happens_2026-11-12.md` §2).
+  None of them, and no supplier or Citizens Advice publication found on 2026-11-13, gives the share
+  of a dual home's reads that fall on one occasion. **GAP.**
+- **What the trade knows.** A meter reader's visit reads every meter at the premises it can get to;
+  a supplier's self-read form and app ask for both fuels at once (the cold reader, a billing-systems
+  test analyst: "a visit or customer read usually takes both meters"). [Practitioner, K4: a
+  starting point, not the answer.] What separates them: a customer who submits one fuel, a read
+  that fails one fuel's validation, a meter the visit cannot reach (a gas meter in a locked cellar,
+  an electricity meter behind a landlord's door).
+- **The belief, as a range.** P(the gas read rides on the electricity read's occasion | both
+  read-exposed) = **0.8**, range **0.6–0.95**: register row `q6_dual_fuel_read_together_share`, its
+  basis per edge there. At the easy class's monthly rate (0.206), the share of pairs with any read
+  that have one fuel only is 2(p − J)/(2p − J) with J = ρp + (1 − ρ)p²: **0.48** at 0.6, **0.27**
+  at 0.8, **0.08** at 0.95, and 0.885 at independence.
+- **The design choice.** `simulation/meter_reads.read_occasion_id`: with the register's share, a gas
+  leg draws its read on its household's seed, which is the electricity leg's own, so the arrival
+  draw and the delay are the electricity leg's and the two reads coincide; otherwise it draws on its
+  own. Each leg's read rate is unchanged at every setting, because a uniform draw is uniform from
+  either seed. Electricity reads are byte-identical (an electricity point is its own household).
+  The read class stays per leg, as §K7's hub build left it: a hard-to-read gas leg is read only when
+  the visit's draw clears its smaller threshold, which is a visit that reaches one meter and not the
+  other. The gas must-read (UNC M5.10) and an instructed read stay per leg, since each is a visit
+  the supplier orders for one meter.
+- **Prediction, written before the measurement.** Over 20,000 drawn dual homes, both meters
+  traditional, 24 months, read classes as drawn: one-only share of pairs with any actual read
+  **0.27–0.29** at 0.8 (the 1% hard class nudges it above 0.27), **0.88–0.89** at 0; each leg's
+  actual-read share within ±0.005 of the same figure at both settings; electricity events
+  identical at both.
+- **Result (2026-11-13, 480,000 pairs per setting).** One-only share **0.886** at 0, **0.489** at
+  0.6, **0.286** at 0.8, **0.093** at 0.95. Electricity actual share 0.2042 at every setting, gas
+  0.2041–0.2047. Electricity events identical. The prediction holds on every count. The blind row's
+  ceiling (0.5) and floor (0.09) are the 0.6 and 0.95 results.
+- **What it moves.** No fuel's estimated-bill count in expectation. Which periods carry them: an
+  unread dual home is now mostly unread on both fuels at once, and its two catch-ups land together.
+- **The check.** A blind row, `INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER`, grades the one-only
+  share over a book's traditional pairs against the ceiling the low edge gives.
+
 ### K3 Back-billing and the 12-month limit
 
 - **The rule.** Standard Licence Condition 21BA (electricity and gas supply licences) prevents

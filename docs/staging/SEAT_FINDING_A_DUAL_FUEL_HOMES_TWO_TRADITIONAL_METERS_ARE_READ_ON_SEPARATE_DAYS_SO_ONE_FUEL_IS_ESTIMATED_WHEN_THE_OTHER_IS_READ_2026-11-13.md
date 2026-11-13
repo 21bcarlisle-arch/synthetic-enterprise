@@ -57,3 +57,16 @@ A blind row (`checkable: true`) grades the one-only share on traditional pairs. 
 page's range, and it is graded on a book built after the fix.
 
 **Reverse.** Delete this file.
+
+## Status, 2026-11-13 (the build)
+
+- Knowledge (K8): `docs/market_research/unbilled_energy_and_revenue_assurance.md` K2, "a traditional dual home's two
+  meters are read on one occasion". The GAP is carried as register row `q6_dual_fuel_read_together_share`, 0.8 in
+  0.6–0.95.
+- World: `simulation/meter_reads.read_occasion_id`. A gas leg draws its read on its household's occasion at that share.
+  Each fuel's read rate is unchanged and electricity reads are byte-identical. On 480,000 drawn pairs the one-only
+  share is 0.886 → 0.286, as predicted on the page before it was measured.
+- Blind row: `INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER`, `checkable: true`, with a ceiling of 0.5 (the low edge)
+  and a floor of 0.09 (the high edge).
+- **Open:** grading that row on a book built after this commit. The 6fe7827ab2 book would breach it at 0.89. This
+  file closes when a post-fix book grades CLEAN.

@@ -70,8 +70,9 @@ stays so for the account's life, at the register's share
 classes above. Drawn afresh each month, as
 before, a smart home could never go a year unread.
 
-Deterministic dispatch: `random.Random(f"meterread_{customer_id}_{period_end}")`,
-matching simulation/feedback_survey.py's convention.
+Deterministic dispatch: `random.Random(f"meterread_{occasion}_{period_end}")`, where the
+occasion is the leg's own id, or for a dual home's gas leg usually its household's
+(`read_occasion_id`, 2026-11-13), matching simulation/feedback_survey.py's convention.
 """
 from __future__ import annotations
 
@@ -254,6 +255,39 @@ def is_communicating(customer_id: str, meter_type: str, half_hourly: bool = Fals
     (metering "HH") drew traditional mode and billed 42 estimates out of 42 while the world
     settled it on every half hour (read_access_and_theft_duties.md s.2.3)."""
     return meter_type == "smart" and (half_hourly or not is_not_in_smart_mode(customer_id, commodity))
+
+
+# P(a dual home's gas read rides on its electricity read's occasion), register
+# q6_dual_fuel_read_together_share. A BELIEF with a range: nothing published gives it
+# (unbilled_energy_and_revenue_assurance.md K2, "a traditional dual home's two meters are read on
+# one occasion").
+DUAL_FUEL_READ_TOGETHER_SHARE = assumption_toggle("q6_dual_fuel_read_together_share")
+
+
+def read_occasion_id(customer_id: str, period_end: str,
+                     together_share: Optional[float] = None) -> str:
+    """The id whose read occasion this leg's read is drawn on this period.
+
+    A meter reader's visit reads every meter it can reach, and a customer's submission is asked
+    for on both fuels, so a dual home's two reads mostly fall on one day. Until 2026-11-13 each
+    leg drew from its own id, and 89% of traditional dual-fuel bill periods with any actual read
+    had one fuel estimated (cold read N30), which is what independence gives.
+
+    So a gas leg draws, with `together_share`, on its household's occasion: the electricity leg's
+    own seed, so its arrival draw and delay are the electricity leg's, and the reads coincide
+    whenever both legs' read classes admit the draw. Otherwise it draws on its own. Each leg's
+    read rate is unchanged either way: a uniform draw is uniform whichever seed it comes from.
+    An electricity point is its own household, so electricity reads are byte-identical; a leg
+    whose read class is hard-to-read is read only when the visit's draw clears its smaller
+    threshold, which is a visit that reaches the one meter and not the other.
+    """
+    home = household_of(customer_id)
+    share = DUAL_FUEL_READ_TOGETHER_SHARE if together_share is None else together_share
+    if home == customer_id:
+        return customer_id
+    if random.Random(f"readtogether_{home}_{period_end}").random() < share:
+        return home
+    return customer_id
 
 # --- Theft at a premise (W2_36, 2026-10-16) ---------------------------------
 # The director's ruling of 2026-10-08: theft is "a premise-level study in the minutes tier", not
@@ -520,7 +554,7 @@ def simulate_read(
     for one decision is the shape the VAT rule took, so this one is gone and
     an estimated event carries no figure.
     """
-    rng = random.Random(f"meterread_{customer_id}_{period_end}")
+    rng = random.Random(f"meterread_{read_occasion_id(customer_id, period_end)}_{period_end}")
 
     communicating = is_communicating(customer_id, meter_type, half_hourly, commodity)
 

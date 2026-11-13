@@ -90,6 +90,7 @@ NOT_REACHED_BY_THE_FIXTURE = {
     "INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT": "reads two fuel legs' printed pages; every leg tested in tests/tools/test_a_closing_refund_is_within_the_household_credit.py",
     "INV_CARBON_PANEL_KWH_MATCHES_USAGE_PANEL": "reads the printed page; every leg tested on its own below",
     "INV_SMART_METER_BILLED_ON_ITS_OWN_READS": "reads the printed page; every leg tested on its own below",
+    "INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER": "reads two fuel legs' printed pages; every leg tested on its own below",
     "INV_METER_TYPE_ONE_VALUE_PER_SUPPLY_POINT": "reads the printed page; every leg tested on its own below",
     "INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS": "reads the printed page; every leg tested on its own below",
     "INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER": "reads the printed page; every leg tested on its own below",
@@ -945,6 +946,29 @@ def test_every_leg_of_the_smart_meter_row_is_reachable():
     assert _grade_one(i, acct("AEEEAAAAAA"), inv=inv)[:2] == ("BREACHED", ["above"])
     assert _grade_one(i, acct("AAAAAAAAAA"), inv=inv)[0] == "FLAGGED"
     assert _grade_one(i, acct("EEEEEEEEEE", meter="Traditional"), inv=inv)[0] == "UNREACHED"
+
+
+def test_every_leg_of_the_dual_fuel_reads_together_row_is_reachable():
+    """Cold read N30. Two Traditional legs read in the same periods pass; read in alternate
+    periods breach above; read together every time flag below; a Smart leg, or a household with
+    one fuel, is not graded. A control on the share must be able to say each of the three."""
+    def home(e_reads, g_reads, g_meter="Traditional", fuels=("electricity", "gas")):
+        def leg(cid, fuel, reads, meter):
+            bills = [_bill("2020-%02d-01" % m, "2020-%02d-28" % m, read=r) for m, r in enumerate(reads, 1)]
+            return _printed_account(cid, fuel, {"meter_type": meter, "household": "H",
+                                                "commodity": fuel, "invoices": bills})
+        legs = [leg("H", fuels[0], e_reads, "Traditional")]
+        if len(fuels) > 1:
+            legs.append(leg("Hg", fuels[1], g_reads, g_meter))
+        return legs
+    i, inv = "INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER", {"lower": 0.09, "upper": 0.5}
+    together = "AEAEAEAEAEAA"
+    # Both read in 5 periods, the electricity alone in 2: 2 of 7 (0.29) sits inside the band.
+    assert _grade_one(i, *home(together, "AEAEAEAEAEEE"), inv=inv)[:2] == ("CLEAN", [])
+    assert _grade_one(i, *home("AEAEAEAEAEAE", "EAEAEAEAEAEA"), inv=inv)[:2] == ("BREACHED", ["above"])
+    assert _grade_one(i, *home(together * 20, together * 20), inv=inv)[0] == "FLAGGED"
+    assert _grade_one(i, *home(together, "EAEAEAEAEAEA", g_meter="Smart"), inv=inv)[0] == "UNREACHED"
+    assert _grade_one(i, *home(together, "", fuels=("electricity",)), inv=inv)[0] == "UNREACHED"
 
 
 def test_every_leg_of_the_meter_type_row_is_reachable():
