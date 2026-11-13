@@ -98,6 +98,51 @@ quarterly meter readings; free annual gas safety check; password scheme; nominee
   household's welfare due to age, health, disability or severe financial insecurity. It is a
   commitment, not a licence condition, and a supplier that has not signed it is not bound by it.
 
+## 2a. What "pensionable age" is, and what it means at a given date (C32 EH-5, added 2026-11-13)
+
+**Read on 2026-11-13. Each line below is marked with how it was read.**
+
+- **The licence defers to statute (S9, from a search snippet; not read in the instrument).** The
+  supply SLC definitions give "Pensionable Age" as, in relation to any person, pensionable age within the meaning
+  given by **section 48(2B) of the Gas Act 1986**. This wording appears in Ofgem's consolidated
+  electricity and gas supply conditions (2020 and 2024 copies, found via search). The §4 caveat
+  still applies: no clause text was read in the instrument.
+- **The statute (S8, fetched verbatim from legislation.gov.uk/ukpga/1986/44/section/48,
+  revised to 13 Nov 2026).** s.48(2B): *"A person is of pensionable age for the purposes of this
+  Part if— (a) he has attained pensionable age (within the meaning given by the rules in paragraph 1
+  of Schedule 4 to the Pensions Act 1995); or (b) in the case of a man born before [6th December
+  1953], he is the same age as a woman who has attained pensionable age (within the meaning so
+  given)."* The bracketed date was substituted by the Pensions Act 2011 (in force 3.1.2012).
+- **What follows from that text, as strong logic and not as a published reading:**
+  1. **It is a date-of-birth rule, judged on the decision date.** No fixed age number is
+     correct across 2016–2025. The commons already refuted 75; any constant 65 or 66 is refuted
+     the same way.
+  2. **Limb (b) makes the licence age lower than a man's own State Pension age** for older
+     cohorts. A man born before 6 Dec 1953 qualifies when he reaches the age at which a woman of
+     his birth date would. Under that rule a man born in 1953 became protected somewhere between
+     about 63 and 65, depending on his birth month, while his own State Pension age was 65. (The
+     exact months need the Schedule 4 tables, which were not transcribed.) A rule written as "the customer's State Pension
+     age" therefore **under-protects** him, in the direction that removes protection.
+  3. **It is monotone.** Once a person is of pensionable age they stay so: a later Act moves the
+     age only for cohorts that have not reached it yet. So a code-14 flag that was correct when
+     set never expires. Age only matters for a household not yet flagged.
+- **The timetable across the run window (S10, from the Pensions Act 2011 explanatory notes and
+  a gov.uk policy paper, reached by search; the Schedule 4 cohort tables themselves were not
+  transcribed):** women's State Pension age rose from 60 to 65 by **November 2018**. Men's and
+  women's then rose together to **66 by October 2020**. The Pensions Act 2014 rise to 67 runs
+  2026–2028, outside the window. So in 2016–2018 the youngest person of pensionable age was a
+  woman (or, by limb (b), a man born before 6 Dec 1953) in her early-to-mid sixties. From
+  October 2020 to the end of 2025 the threshold is 66 for everyone.
+- `GAP` **Whether a supplier holds date of birth.** Nothing in the published record read here
+  says a supplier must or does hold DOB for every domestic customer. The industry carrier for
+  this circumstance is **needs code 14, "Pensionable age"** (S7), which is a flag on disclosure,
+  not a birth date. The one internal mention
+  (`which_supplier_observable_recovers_precarity_understanding_society_2026-11-09.md`, O5) says
+  "held where the customer gave a date of birth", which is a design assumption, not a source.
+  **Design consequence for `company/`:** the decider reads the code-14 flag (point 3 makes that
+  sound). Where a DOB is held, a computed flag must use the s.48(2B) rule *including limb (b)*.
+  Where neither is held, the answer is CANNOT_DETERMINE, never "not pensionable".
+
 ## 3. What the published record does NOT establish — and this is the load-bearing part
 
 **No published source read here assigns a numeric severity weight, score, or ranking to any of
