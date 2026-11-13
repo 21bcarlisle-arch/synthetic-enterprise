@@ -515,6 +515,26 @@ at this commit took 5 h 28 min for 3 seeds (8 Oct, 11:20 to 16:48Z), so 12 seeds
 **22 hours**. A floor leg's 11.2 GB peak also leaves room for only one leg at a time. The result
 reads around midday on 14 Nov, still before the 16 Nov review.
 
+*Household-years per seed, added mid-run (13 Nov 19:40Z).* The floor row carried no household-year
+count, so the error bar could not be stated per household per year (the page's `#arms-errorbar`
+names that absence), and the re-draw band divided every re-draw by the published run's 1,831.
+`driver.py` now keeps `household_years_by_arm` in each pair's sidecar, read off that seed's own
+`household_side`. A child process reads the driver when it starts, so **pairs 4 to 6 (seeds 77777
+to 30303) carry the count and pairs 1 to 3 do not**. Pair 3 had started at 19:29Z. The arms, the
+world and the floor row are unchanged; the pre-edit driver is kept beside it as
+`driver.py.before_household_years_20261113`. From the same commit, `noise_floor` writes the same
+field on every row, so later families carry it without a wrapper. **The grade should do three things.**
+It states the six counted seeds per household per year, each over its own count. It reports how much
+the count moves between those seeds. Only if that spread is small does it divide the other six by
+the counted mean, and then it says that it did so.
+
+*The price-level leg, a question for the same grade.* The published draw is −£6,100.76 (−£3.33 per
+household-year over 1,831), and all three earlier re-draws are positive (reading 1b). Twelve
+re-draws of the level leg say whether the published draw is a tail of one distribution or a
+different instrument. **Prediction, filed before the grade:** at most 1 of the 12 is negative, so the
+published draw sits in the lowest tail, and the per-household-year spread of the level leg is wider
+than its mean.
+
 So the redesign takes about half of one week's feature third (33 points), with room left for the
 world steers. Steps 1 to 4 fit the week of 16 Nov. Step 6 starts when steps 1, 2, 4 and 5 have
 landed, and with the 72-hour run it probably reads in the week of 23 Nov. Acquisition pricing comes

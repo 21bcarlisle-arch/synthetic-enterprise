@@ -170,6 +170,28 @@ def test_re_drawing_the_elasticity_moves_the_selection_figure():
     assert result["level_share_spread"]["n"] == 3
 
 
+def test_each_seed_row_carries_each_arms_own_household_years_and_none_when_unpublished():
+    """The error bar is stated per household per year only if each seed carries its OWN count.
+
+    A re-draw moves who stays, so a shared denominator would put one seed's pounds over another
+    seed's households. Keyed to the property: the row carries what that seed's run published.
+    """
+    counts = iter([1_830, 1_844])
+
+    def runner():
+        r = _fake_runner()
+        n = next(counts)
+        r["household_side"] = {"control_arm": {"customer_years": n},
+                               "value_arm": {"customer_years": n - 7}}
+        return r
+
+    rows = noise_floor([11111, 22222], runner=runner)["seeds"]
+    assert [r["household_years_by_arm"] for r in rows] == [
+        {"control_arm": 1_830, "value_arm": 1_823}, {"control_arm": 1_844, "value_arm": 1_837}]
+    unpublished = noise_floor([11111, 22222], runner=_fake_runner)["seeds"]
+    assert all(r["household_years_by_arm"] is None for r in unpublished)
+
+
 def test_the_module_attribute_is_restored_after_the_sweep():
     """A tool that leaves the world patched would poison every later run in the process."""
     import simulation.population_draw as draw
