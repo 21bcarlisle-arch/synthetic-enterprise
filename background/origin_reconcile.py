@@ -2897,15 +2897,20 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         # tree throughout -- and the sentence being rendered is a claim about NOW. The old text
         # ended "the tree advances when the lane holding those paths lands or reverts them", which
         # is false of a fork and is the instruction the 2026-09-24 seat was handed.
+        # THE ADVANCE'S REASON GOES FIRST. It names what the classes could NOT prove (76 held on
+        # 2026-11-12), while the blocking clause counts everything git refused on (1,478) and runs
+        # to ~2,500 characters of per-kind remedy. Behind it, `reconcile_watch` cut the line at
+        # FORK_DETAIL_CHARS before the held set, so every pass read 1,478 for hours after 1,402 of
+        # them were proven lossless, and a drawn item was written to clear classes that were
+        # never the ones holding the tree.
         return {"status": NOT_ADVANCED, "behind": behind, "pushed": False,
                 "blocking_paths": blocking, "cleared_paths": adv["cleared"],
                 "detail": "origin is {} commit(s) ahead, this machine has NOTHING to land, and the "
-                          "shared tree will not fast-forward. {} Nothing was committed and "
-                          "nothing was pushed -- a merge with no work of ours in it would only "
-                          "widen the fork it claims to close. advance: {}".format(
-                              behind,
-                              _blocking_clause(blocking, (ahead_fn or commits_ahead)(project)),
-                              adv["reason"])}
+                          "shared tree will not fast-forward. advance: {} -- {} Nothing was "
+                          "committed and nothing was pushed -- a merge with no work of ours in it "
+                          "would only widen the fork it claims to close.".format(
+                              behind, adv["reason"],
+                              _blocking_clause(blocking, (ahead_fn or commits_ahead)(project)))}
 
     ok, why = (make_worktree or _fresh_worktree)(project, worktree)
     if not ok:
