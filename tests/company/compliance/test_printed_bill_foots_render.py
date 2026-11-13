@@ -565,9 +565,9 @@ def test_mutation_printing_the_uncapped_delta_kills_a_named_test(scratch, page_s
     difference exists to observe.)
     """
     mutated = page_source.replace(
-        '"</span><span>"+billGbp(i[c.key])+"</span></div>";',
-        '"</span><span>"+billGbp(c.key==="catchup_adjustment_gbp"&&i.catchup_raw_delta_gbp!=null'
-        '?i.catchup_raw_delta_gbp:i[c.key])+"</span></div>";',
+        '"</span><span>"+(c.detail?c.detail(i):"")+billGbp(i[c.key])+"</span></div>";',
+        '"</span><span>"+(c.detail?c.detail(i):"")+billGbp(c.key==="catchup_adjustment_gbp"'
+        '&&i.catchup_raw_delta_gbp!=null?i.catchup_raw_delta_gbp:i[c.key])+"</span></div>";',
     )
     assert mutated != page_source, "the re-derivation mutation did not apply"
 

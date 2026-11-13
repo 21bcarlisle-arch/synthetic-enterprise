@@ -915,6 +915,18 @@ plus the catch-up are the true supply, and their VAT lies between the reduced an
 (exact at the reduced rate for a domestic run). That check is
 `tools/independent_bill_validator.catchup_vat_breach`.
 
+*Added 2026-11-13.* The same bill was reported again from the page
+(`SEAT_FINDING_AN_SME_CATCH_UP_BILLS_VAT_FITS_NO_RATE_2026-11-13`, now closed): Explore printed
+one VAT figure, -£20.02, and no rate fits it. The ledger was right, as above. The page now prints
+the VAT line's two parts when a bill carries `catchup_vat_gbp`: "£5.86 on this month + -£25.88 on
+the catch-up = -£20.02". Each part can then be checked against its own base. The control is
+`site/explore/test_a_catch_up_bills_vat_is_the_vat_of_the_lines_above_it.py`. The page files
+published on 11 Nov came out before the exporter carried `catchup_vat_gbp` (7d43952ff7), so the
+split appears from the next publish. **GAP:** whether a business VAT invoice must show its VAT
+analysed by rate (VAT Notice 700, the section on what a full VAT invoice shows). If it must, a
+re-rated catch-up needs a line at each rate, not a part per period. This has not been read in the
+primary source.
+
 ## 16. How an account pays on the day of the catch-up (2026-11-03)
 
 **Why it matters.** The comparator in section 5 follows the payment method: for a direct-debit

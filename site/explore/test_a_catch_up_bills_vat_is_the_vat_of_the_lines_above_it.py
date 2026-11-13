@@ -82,10 +82,53 @@ def test_every_catch_up_bills_vat_line_is_the_vat_on_the_lines_above_it():
         vat, above, below = _vat_and_lines_above(rows)
         # Domestic fuel is VAT at 5% (VATA 1994 Sch 7A). Business accounts are left out on purpose:
         # an SME bill can carry 5% de minimis on this period and 20% on the period its catch-up
-        # corrects, so one rate times the lines above it is not the identity there.
+        # corrects, so one rate times the lines above it is not the identity there. The page
+        # prints that VAT in its two parts instead (the C5-INV113 test below).
         rate = Decimal("0.05")
         # Each line is rounded to the penny before it prints, so a few pence of drift is rounding;
         # the defect is the whole catch-up's VAT (5% of a catch-up of £1 or more) missing.
         if abs((above * rate) - vat) > Decimal("0.03") or below != ["= Total"]:
             wrong.append((inv_id, str(vat), str(above), below))
     assert not wrong, f"{len(wrong)} of {len(caught)} catch-up bills: VAT not the VAT on the lines above it, e.g. {wrong[:5]}"
+
+
+def test_c5_inv113_prints_its_vat_as_this_months_and_the_catch_ups_each_at_its_own_rate(tmp_path):
+    """C5-INV113 (SME, September 2016) printed VAT -£20.02, which is no rate of anything above it
+    (a seat finding of 2026-11-13, closed by this test). The ledger is right: August
+    was estimated at 40.8 kWh/day, over the 33 kWh/day business de minimis, and billed 20%; read at
+    28.5 kWh/day it is 5%, so the catch-up reverses £31.50 and charges £5.62 (back_billing_and_
+    liability.md section 15). The page's defect was one VAT figure with no split.
+
+    The committed C5.json predates `catchup_vat_gbp` in the page file (exporter 7d43952ff7, after
+    the 11 Nov publish), so the record is given the ledger's figure here. Fails if the VAT cell
+    stops naming its two parts, or if either part stops fitting its own base."""
+    page_file = json.loads((CUSTOMERS / "C5.json").read_text())
+    record = next(i for i in page_file["invoices"] if i["id"] == "C5-INV113")
+    assert record.get("catchup_vat_gbp") in (None, -25.88), record.get("catchup_vat_gbp")
+    record["catchup_vat_gbp"] = -25.88
+    page_file["invoices"] = [record]
+    scratch = tmp_path / "C5.json"
+    scratch.write_text(json.dumps(page_file))
+
+    proc = subprocess.run([NODE, str(HARNESS), str(PAGE), str(scratch)],
+                          capture_output=True, text=True, timeout=120)
+    assert proc.returncode == 0, proc.stderr[-2000:]
+    screen = json.loads(proc.stdout)["accounts"][0]["invoices"][0]["screen"]
+    cell = dict(ROW.findall(screen))["+ VAT"]
+    assert "£5.86 on this month + -£25.88 on the catch-up = -£20.02" in cell, cell
+
+    month_lines = Decimal("71.47") + Decimal("8.72") + Decimal("37.04")
+    assert (month_lines * Decimal("0.05")).quantize(PENNY) == Decimal("5.86")
+    # The catch-up's VAT is August's true VAT (5% of £112.49) less its billed VAT (20% of £157.51).
+    assert (Decimal("112.49") * Decimal("0.05")).quantize(PENNY) - Decimal("31.50") == Decimal("-25.88")
+    assert Decimal("112.49") - Decimal("157.51") == Decimal(str(record["catchup_adjustment_gbp"]))
+
+
+def test_a_bill_without_a_catch_up_vat_prints_its_vat_line_alone():
+    """The split is taken only when there is something to split: the plain VAT row must still be
+    one figure, or every ordinary bill grows a '£0.00 on the catch-up' clause."""
+    bills = _render([CUSTOMERS / "C5.json"])
+    record, rows = bills["C5-INV111"]
+    assert not record.get("catchup_applied")
+    screen_vat = [amount for label, amount in rows if label == "+ VAT"]
+    assert screen_vat == [Decimal("5.66")]
