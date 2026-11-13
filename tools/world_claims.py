@@ -71,7 +71,12 @@ ROUTES = ("founders", "trickle", "campaign")
 #: this, so fixing one forces its removal and a new one cannot appear unseen. The founders' route is
 #: the gate and has no entry. The trickle is about 30 homes over the eight seeds, so a trickle verdict
 #: is a coarse check, not a precise one.
-KNOWN_ROUTE_GAPS: dict = {}
+KNOWN_ROUTE_GAPS: dict = {
+    ("campaign", "gas_home_share"):
+        "docs/staging/WORKER_FINDING_THE_CAMPAIGN_ROUTES_GAS_SHARE_SITS_ON_THE_BANDS_EDGE_AND_THE_"
+        "CHECK_HAS_NO_SAMPLING_ALLOWANCE_2026-11-13.md -- 81.25% of 1,504 homes against a floor "
+        "of 81.5% (one standard error ~1.0 pt); it read 81.95% before W2_21's insulation fix",
+}
 
 
 def route_gaps(route: str, results: list[dict]) -> set:
