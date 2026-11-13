@@ -922,10 +922,49 @@ the VAT line's two parts when a bill carries `catchup_vat_gbp`: "£5.86 on this 
 the catch-up = -£20.02". Each part can then be checked against its own base. The control is
 `site/explore/test_a_catch_up_bills_vat_is_the_vat_of_the_lines_above_it.py`. The page files
 published on 11 Nov came out before the exporter carried `catchup_vat_gbp` (7d43952ff7), so the
-split appears from the next publish. **GAP:** whether a business VAT invoice must show its VAT
-analysed by rate (VAT Notice 700, the section on what a full VAT invoice shows). If it must, a
-re-rated catch-up needs a line at each rate, not a part per period. This has not been read in the
-primary source.
+split appears from the next publish. ~~**GAP:** whether a business VAT invoice must show its VAT
+analysed by rate.~~ Closed the same day, below.
+
+**What a business VAT invoice must show (2026-11-13, read in the primary).** **[H]** VAT Notice 700
+(gov.uk/guidance/vat-guide-notice-700, updated 25 June 2026):
+- §16.3.1: a VAT invoice shows, "for each description, the quantity of the goods or the extent of
+  the services," "the rate of VAT, and the amount payable excluding VAT". It shows one total, "the
+  total amount of VAT chargeable — this must be expressed in sterling". **A full invoice needs a rate
+  on every line. It does not need a VAT total per rate.** Totals per rate are required only on
+  simplified invoices (£250 or less, §16.6.1) and retailers' invoices (§16.6.2). Zero-rated and
+  exempt items need a separate total (§16.5).
+- §18.2.3 and §18.2.4: a credit note or debit note shows "the rate and amount of VAT credited" (or
+  debited), "the total amount credited, excluding VAT", and "the number and date of the original
+  VAT invoice or invoices relating to the supply".
+- §18.2.5: "The rate of VAT to be used for a credit or debit note is the one which was in force" "at
+  the time of the tax point of the original supply." This replaces the [M] reading above with [H]:
+  a catch-up keeps each month's own rate.
+- §14.3 and §15.6: gas and electricity are continuous supplies, with "a tax point each time you,
+  issue a VAT invoice or receive a payment, whichever happens first". Notice 701/19 §1.2 says power
+  is a supply of goods. **No tax point specific to a utility catch-up was found**, so the credit or
+  debit note rules govern it.
+- Notice 701/19 §4.2 and §5.2: the de minimis "applies whether the bill is based on a meter reading
+  … or on an estimate". So an estimate over the line really was billed at 20%. The correction
+  reverses that 20% and charges the true rate. It does not adjust a 5% supply.
+
+**So:** a catch-up whose months all sit at one rate meets the rule as one line, provided the line
+shows that rate. A catch-up that crosses the de minimis is a credit at one rate and a debit at the
+other. It needs **a line per rate**, each with its own net, rate and VAT. The c158fe03c split, this
+month's VAT plus the catch-up's, is a split by period. It lets a reader check the footing, but it
+does not meet §16.3.1 for C5-INV113. A domestic bill does not have to be a full VAT invoice, because
+the duty is to VAT-registered customers (§16.2, not re-read this session, **[M]**). So the rule
+binds SME bills only.
+
+**Measured on the committed ledger (e816040ce8 twin):** 6,589 domestic and 4 SME catch-up bills. One
+SME bill, C5-INV113, has catch-up VAT at no single rate. The build (`catchup_lines_by_rate`, one
+printed row per rate, plus the original invoice references) is filed as
+`docs/staging/SEAT_FINDING_A_RE_RATED_SME_CATCH_UP_PRINTS_ONE_LINE_AT_NO_RATE_WHERE_A_VAT_INVOICE_NEEDS_A_RATE_PER_LINE_2026-11-13.md`.
+**GAP (practitioner):** whether a supplier prints a re-rated month as reverse-and-rebill or as a
+net line per rate. Both meet §16.3.1. The design takes the net line per rate as the smaller change.
+
+*Outside the simulated window, noted only:* Notice 701/19 (updated 28 Oct 2026) states a temporary
+0% rate for qualifying electricity in Great Britain from 1 October 2026 to 30 June 2027. It does not
+apply to gas. It is after 2025, so nothing in the world or the company reads it.
 
 ## 16. How an account pays on the day of the catch-up (2026-11-03)
 
