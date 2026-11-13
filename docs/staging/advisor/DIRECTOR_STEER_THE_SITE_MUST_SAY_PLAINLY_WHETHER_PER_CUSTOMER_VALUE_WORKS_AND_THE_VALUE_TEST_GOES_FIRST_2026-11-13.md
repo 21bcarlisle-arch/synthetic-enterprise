@@ -26,3 +26,22 @@
    - the write-off rule settled against the 7 Nov debt evidence;
    - scoring on money, time and carbon apart.
 3. **Done means** the page states a verdict, or "we cannot tell yet, because X", from a run no older than the page itself.
+
+## Addendum, Fri 13 Nov 06:13 GMT: state it per household per year, and lead with the belief's skill
+
+The director's words: "£5k to £8k means nothing to me. Is this per customer or on a random size sample?"
+
+The advisor answered him from `docs/observability/value_cycle_ab_s1_three_arm_20261008r.json`:
+
+- The figures are **book totals**: about 120 households, 2016-2025, about 270 renewal decisions.
+- **+£5,244 is about 2.2% of net margin**, roughly £45 per household over the run, or about **£5 per household per year**. The selection figure (+£11,345) is about £10 per household per year. Both are derived from the counts, since the artefact does not state them.
+- He was also told what the artefact itself says matters more:
+  - The control's margin is £2/MWh, far under the regulated allowance.
+  - The belief expected 65% retention against 90% realised.
+  - Graded against outcomes it did not cause, its AUC is **0.52**. The artefact reads that as "the thesis failing however the P&L reads".
+
+What is asked, adding to the steer above:
+
+1. **Every value-test figure on the site is stated per household per year first**, with the book size and the years beside it. The book total goes second, if at all.
+2. **The belief's skill leads with the margin, not after it.** That means AUC against control outcomes, and calibration. A margin gain from a belief that cannot tell who leaves is not evidence for the thesis, and the page must say so in plain words.
+3. **The redesign sizes its book from the floor decomposition**, so a per-household effect of the size it predicts can be told from noise. State that size and its cost in tokens in Sunday's proposal.
