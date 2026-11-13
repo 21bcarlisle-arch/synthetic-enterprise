@@ -56,4 +56,19 @@ Workflow on the ops repo: yes. Its stale-heartbeat test green: yes, 6 passed, an
 
 Still open: the send leg has never run live (the 8 Nov note recommends no test push), and the cadence prediction above is still to be checked.
 
+## Result of the pre-registration (checked 13 Nov 22:05Z): REFUTED on both legs
+
+The `"7,37 * * * *"` cron reached the ops remote at 10 Nov 21:10:49Z as 199bf3f32, so the 72h window is 10 Nov 21:10 to 13 Nov 21:10. The ops-push outage of 10 to 13 Nov did not delay it: that outage was *caused* by this commit sitting on the remote.
+
+| | runs | hours | rate | gaps between delivered runs (h) | longest |
+|---|---|---|---|---|---|
+| before, `23 * * * *` (8 Nov 18:53 to the push) | 8 | 50.3 | 0.159/h | 4.1, 3.8, 9.1, 10.7, 6.2, 8.9, 7.3 | 10.7 |
+| after, `7,37 * * * *` (72h window) | 10 | 72.0 | **0.139/h** | 4.6, 6.9, 8.2, 6.4, 4.8, 8.8, 7.8, 5.0, 7.3, 8.4 | **8.8** |
+
+The prediction was at least 0.3 runs/h with every gap under 6h. Measured: 0.139/h, and 7 of 10 gaps were 6h or longer. Twice as many cron entries bought no extra delivery: GitHub ran this workflow about every 4 to 9 hours under either schedule. All 18 runs concluded `success`. So the scheduler, not the workflow, is what limits it.
+
+**What this means for the dead-man.** A stop is detected after the 6h staleness threshold plus the wait for the next delivered run. At the measured worst gap, that is about 15h. The guarantee is "about 15h", not "about 7h".
+
+**Next move, as pre-registered:** a trigger that does not depend on GitHub's scheduler, for example the advisor's cloud routine calling `workflow_dispatch`. Creating a Routine is console-only, so this goes to the director as a proposal in `for_the_director`. Until he rules, the 30-minute cron stays: it costs nothing over the hourly one and is no worse.
+
 **Reverse.** Delete this file, revert the `HOST_AUTOSTART_TOPOLOGY.md` paragraph, and set the ops cron back to `"23 * * * *"`.
