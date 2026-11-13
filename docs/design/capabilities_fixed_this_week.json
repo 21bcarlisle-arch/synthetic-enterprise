@@ -3,28 +3,16 @@
  "window_days": 7,
  "fixes": [
   {
-   "commit": "4ef70aba9258f1f7a7a07d510ba2c4c9bcc3196c",
-   "what": "Standard-variable bills above the price cap: the Energy Price Guarantee now reaches the household's bill from October 2022 to June 2023, and with a household moving into an empty home no longer priced as a business, the fall was graded on a fresh run in d909b6933. Not closed: the fix for an empty home's estimated stub over-credits five bills, and that is open (140b5ff7b)."
+   "commit": "cab13bbd18adc499a0e033ca46863c3bc4058a37",
+   "what": "A household on a level direct debit that leaves: its final bill now meets its credit before any refund, and a refund waits for the money that credit counts."
   },
   {
-   "commit": "4bc21e92095bf2369d4ebdc7bd3cdad4e97929f2",
-   "what": "A household moving into an empty home is billed as a home, not as a business."
+   "commit": "601929ce0b9459eefcdb0b39cde47df0e35b9d08",
+   "what": "Net margin now withheld with its reason; arrears count moved to Ofgem's 91-day definition, so the EBSS credit is no longer read as debt."
   },
   {
-   "commit": "1e358809beb335756c28108e6a4477426fc3803a",
-   "what": "A household on the default tariff pays one unit rate; a time-of-use pair now needs the household's choice, not just a smart meter."
-  },
-  {
-   "commit": "50001b0b7b6f88d54ff54520f86873bb2463f14c",
-   "what": "A time-of-use bill prints its peak and off-peak registers, each with its own units, rate and charge."
-  },
-  {
-   "commit": "d8129f3f6afcc6f0e7229fe05e881fda3f7ecd5f",
-   "what": "The Energy Bills Support Scheme's monthly credit reduces what a household owes for electricity in winter 2022-23."
-  },
-  {
-   "commit": "746df31c8905e5bfe205657f062b393f041d6c75",
-   "what": "On this page, a function with no linked test can no longer read Live."
+   "commit": "ccdfb652d79d568a45fe663978874d2fd1526de1",
+   "what": "A household's repayment is now dated the day its cash arrived, so a level return repaid before its bill falls due no longer reads as owed on the cure day."
   }
  ]
 }

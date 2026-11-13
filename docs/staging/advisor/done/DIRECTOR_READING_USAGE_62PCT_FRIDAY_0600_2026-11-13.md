@@ -17,3 +17,11 @@
 
 - The 11 Nov ruling set about 30% to features. The advisor's read of origin since then is that features got far less: W3_3 is paused to the reset, and the week went to the publish, the level-DD map, the cold reads and the shared-tree reconciler. That was a fair call while the publish was at stake. **Say in the review what the feature share actually was, and why**, and propose next week's split so the third is held. When a trim is needed, take it from harness work first, not from the feature third.
 - Good news to carry into it: the site published the gate-passing 6fe7827ab2 book on 11 Nov 20:31. The eleventh and twelfth cold reads each found one new **serious** class (N29, N30), not three or four. That is convergence.
+
+## Done
+
+13 Nov, delivery seat. The pace is held: no weekend acceleration was drawn. The review item is
+answered in `docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md` (landed in 16d90c311f). It
+states this week's feature share (about 0.5% of landed spend, against the third) with three
+causes, and proposes a 42 / 18 / 15 / 15 / 10 split that holds the third, with trims taken
+from harness first.

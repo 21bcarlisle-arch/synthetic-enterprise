@@ -159,6 +159,14 @@ def render_fixed(feed):
         E(_plural(fixed["window_days"], "day")), E(fixed["as_of"]))
     items = fixed.get("items") or []
     if not items:
+        # An empty record is not an empty week (director, 13 Nov): when git counted commits to the
+        # world or the supplier in the window, the strip says the list was not written, not that
+        # nothing was fixed.
+        n = fixed.get("commits_to_the_model")
+        if n:
+            return ('<div class="fixed">{}<p class="note">{} changed the simulated world or the '
+                    'supplier in this window, and none was written to this list, so it cannot say '
+                    'which were fixes.</p></div>').format(head, E(_plural(n, "commit")))
         return '<div class="fixed">{}<p class="note">Nothing recorded.</p></div>'.format(head)
     rows, evidence = [], []
     for it in items:
@@ -228,15 +236,25 @@ def render_lead(arms):
     except ValueError:
         when = ""
     withheld = sel.get("verdict_withheld_because") or lvl.get("verdict_withheld_because")
-    return ('<p class="lead-p">{} On the same book, run three ways{}, per-customer choosing over '
-            'flat rules {}. In money terms, the price level alone is value moved, not made: one flat '
-            'margin at the level the per-customer arm charged {}. {}Both are shown, with the spread '
-            'across draws, <a href="#value-arms">in the value test below</a>. Money is not the whole '
-            'of value: a supplier can also save a household time, and this world does not measure '
-            'time yet. Measuring it is open work.</p>').format(
-                q, when, _leg_sentence(sel, "").strip(), _leg_sentence(lvl, "").strip(),
-                "This page states no settled direction for either yet; the test says why. "
-                if withheld else "")
+    # Director, 13 Nov: "I don't get the numbers and explanation as to whether bespoke value
+    # optimisation works." Three sentences: what was tested, what it found, what can and cannot be
+    # concluded. The re-draw ranges stay in the value test below, never in the lead.
+    draws = [sel["figure_gbp"]] + [v for v in ((sel.get("verdict_stability") or {})
+                                       .get("redraw_values_gbp") or [])
+                                   if isinstance(v, (int, float))]
+    found = ("per-customer pricing earned more than flat rules in every one of its {} draws"
+             .format(len(draws)) if all(v > 0 for v in draws) else
+             "per-customer pricing did not earn more than flat rules in every draw")
+    if withheld:
+        concl = ("We cannot yet say whether that came from better choices or from charging more: "
+                 "the part of the test that separates the two has no settled sign, and the run is "
+                 "on older code than this page, so no verdict is given. A redesigned test, sized "
+                 "per household per year, is next.")
+    else:
+        concl = "The value test below gives the verdict and the spread behind it."
+    return ('<p class="lead-p">{} On the same book of households, run once with per-customer prices '
+            'and once with flat rules{}, {}. {} <a href="#value-arms">The value test, with its '
+            'figures &darr;</a></p>').format(q, when, found, concl)
 
 
 def render_uc_tally(feed):

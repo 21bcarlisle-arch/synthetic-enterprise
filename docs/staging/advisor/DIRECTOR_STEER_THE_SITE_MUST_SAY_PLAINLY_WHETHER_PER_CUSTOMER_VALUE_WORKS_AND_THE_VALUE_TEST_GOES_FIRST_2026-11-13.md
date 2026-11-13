@@ -45,3 +45,23 @@ What is asked, adding to the steer above:
 1. **Every value-test figure on the site is stated per household per year first**, with the book size and the years beside it. The book total goes second, if at all.
 2. **The belief's skill leads with the margin, not after it.** That means AUC against control outcomes, and calibration. A margin gain from a belief that cannot tell who leaves is not evidence for the thesis, and the page must say so in plain words.
 3. **The redesign sizes its book from the floor decomposition**, so a per-household effect of the size it predicts can be told from noise. State that size and its cost in tokens in Sunday's proposal.
+
+## Progress, 13 Nov (delivery seat). This file stays open until "done means" holds.
+
+- **Item 1, the lead.** The lead is rewritten in `tools/capabilities_page_figures.render_lead`. It
+  is three plain sentences with the run date, and no pound figure. The verdict is withheld in
+  plain words, and the re-draw ranges stay in the value test's appendix. The lead still describes
+  the 8 Oct run, because no newer run exists. The 12-draw family (77bf74f880) reads on 14 Nov.
+- **Item 1, "Nothing recorded".** Both causes were real. The reader is sound. The source is a
+  hand-written record (`docs/design/capabilities_fixed_this_week.json`) that nobody wrote to in
+  the week. The instance is fixed: three of the week's money fixes were added. The class is
+  closed: `generate_capabilities_door.fixed_this_week` now counts the window's commits to
+  `company/`, `saas/`, `simulation/` and `sim/` from git. When the record is empty over a busy
+  week, the strip says so ("N commits ... none was written to this list") rather than "Nothing
+  recorded".
+- **Item 2, and addendum 3.** Done in 16d90c311f: the redesign is sized from the household noise
+  split, and the 16 Nov review opens with it.
+- **Still open: addendum items 1 and 2.** Every value-test figure should be per household per
+  year, with the belief's skill first. The feed does not carry household-years or the redesign's
+  clustered AUC (0.52), so the page cannot compute them yet. Typing them in is the defect the
+  26 Oct steer forbade. Handed on as `value-test-figures-per-household-year-from-the-feed`.

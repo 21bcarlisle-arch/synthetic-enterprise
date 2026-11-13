@@ -1095,8 +1095,15 @@ def fixed_this_week(now: float | None = None, record: Path = FIXED_RECORD,
         items.append({"commit": fix["commit"], "what": fix["what"], "at": at,
                       "date": time.strftime("%a %d %b", time.gmtime(at)),
                       "in_published_run": carried})
+    # Director, 13 Nov: "Nothing recorded" was printed over a week that fixed dozens of money
+    # classes, because this record is hand-written and nobody wrote to it. The strip may not read an
+    # unwritten record as an empty week, so the window's own commits to the world and the supplier
+    # are counted from git beside it.
+    changed = _git("rev-list", "--count", "--no-merges", f"--since={int(now) - days * 86400}",
+                   f"--until={int(now)}", "HEAD", "--", "company", "saas", "simulation", "sim")
     return {"window_days": days, "as_of": time.strftime("%d %b %Y", time.gmtime(now)),
-            "published_run": run, "items": items}
+            "published_run": run, "items": items,
+            "commits_to_the_model": int(changed) if changed and changed.isdigit() else None}
 
 
 def build(feed: Path = MAP_FEED) -> dict:

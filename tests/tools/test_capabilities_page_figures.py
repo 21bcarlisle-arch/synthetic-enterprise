@@ -131,6 +131,11 @@ def test_the_fixed_strip_takes_every_branch():
     assert out.count("in the published figures") == 1
     assert out.count("reaches the figures at the next published run") == 1
     assert "Nothing recorded" in cpf.render_fixed(_fixed())
+    # 13 Nov: an unwritten record over a week git saw commits in is not "Nothing recorded".
+    # MUTATION: drop the commits_to_the_model branch -> this reds.
+    busy = _fixed()
+    busy["fixed_this_week"]["commits_to_the_model"] = 31
+    assert "31 commits" in cpf.render_fixed(busy) and "Nothing" not in cpf.render_fixed(busy)
     assert cpf.render_fixed({}) == ""
 
 
@@ -181,20 +186,20 @@ def _arms(sel, lvl, withheld=True, redraws=(1.0, 2.0)):
                               "selection_leg": leg(sel), "level_leg": leg(lvl)}}
 
 
-def test_the_lead_states_both_legs_from_the_feed_with_their_spread_and_the_verdict_it_withholds():
-    """Steer of 26 Oct: lead with the value test, from the live figures, not typed in. KEYED TO
-    THE FEED: two different feeds give two different paragraphs. Every branch: both legs and a
-    withheld verdict; a sign the re-draws do not share; no withholding; no current figure."""
+def test_the_lead_answers_in_plain_words_from_the_feed_and_says_what_it_withholds():
+    """Director, 13 Nov: "I don't get the numbers and explanation as to whether bespoke value
+    optimisation works." The lead says what was tested, what it found and what cannot be concluded,
+    with the run date; the re-draw ranges stay in the value test below. KEYED TO THE FEED: every
+    branch -- all draws positive; a draw that is not; withheld; not withheld; no current figure.
+    MUTATION: hard-code "every one of its" -> the second assert reds; drop the withheld clause ->
+    the third reds; put a figure back in the lead -> the first reds."""
     out = cpf.render_lead(_arms(1234.4, -567.8))
-    assert "+&pound;1,234" in out and "&minus;&pound;568" in out and "value moved, not made" in out
-    assert "+&pound;1 to +&pound;2</strong> across its 2 re-draws" in out and "run of 8 Oct 2026" in out
-    assert "every draw the same sign" in out and "so even its sign is not settled" in out
-    # The advisor chase of 26 Oct: a run's own draw is placed against its family, never alone.
-    assert "above every one of them" in out and "below every one of them" in out
-    assert "inside their range" in cpf.render_lead(_arms(1.5, 1.2))
-    assert "states no settled direction" in out
-    assert "states no settled direction" not in cpf.render_lead(_arms(1.0, 2.0, withheld=False))
-    assert cpf.render_lead(_arms(99.0, 5.0)) != out
+    assert "&pound;" not in out and "run of 8 Oct 2026" in out and 'href="#value-arms"' in out
+    assert "every one of its 3 draws" in out
+    assert "did not earn more than flat rules in every draw" in cpf.render_lead(
+        _arms(1234.4, 5.0, redraws=(-1.0, 2.0)))
+    assert "cannot yet say" in out and "no verdict is given" in out
+    assert "cannot yet say" not in cpf.render_lead(_arms(1.0, 2.0, withheld=False))
     empty = cpf.render_lead(None)
     assert "no current figure" in empty and "&pound;" not in empty
 
@@ -212,5 +217,11 @@ def test_every_section_below_the_table_and_the_value_test_is_one_tap_down():
         head = f[f.index("<summary>"):f.index("</summary>")]
         assert '<h2 class="sec">' in head and 'class="fold-line"' in head, head[:120]
     arms = page.index('<section id="value-arms"')
-    assert '<details class="fold"' not in page[arms:page.index("</section>", arms)]
+    # The value test itself is not folded; its technical appendix (the re-draws and floors the
+    # director asked to move out of the headline, 13 Nov) is the one fold allowed inside it.
+    inside = page[arms:page.index("</section>", arms)]
+    assert inside.count('<details class="fold"') == inside.count(
+        '<details class="fold" id="value-test-appendix"')
+    assert inside.index('<details class="fold"') > inside.index("<h2") if "<details class" in inside \
+        else True
     assert page.index('id="value-lead"') < page.index('id="world"')
