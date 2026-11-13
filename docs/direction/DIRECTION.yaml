@@ -1,196 +1,230 @@
 version: 1
-oriented_at: "2026-11-13T15:23:12.774853+00:00"
+oriented_at: "2026-11-13T18:21:30.257418+00:00"
 thesis_read: >-
-  Nothing this stretch changed what the supplier can do. Against the thesis, the project is where it
-  was at 12:23: no evidence yet that per-customer inference beats the flat baseline, because the
-  belief's AUC is 0.52 (0.41 to 0.65). What did change is that the director will be able to read
-  that, and that the run which measures it is under way. 4 commits, 3 substantive, split 0 supplier,
-  0 world, 4 other. That is the third stretch running with no supplier commit. The cause is not world
-  work crowding it out. It is two landings and one long run, all aimed at the value test and the
-  account page. f4f825b8b put the Capabilities answer on origin: three sentences with the run date,
-  and a Fixed strip that no longer reads an empty list as an empty week. It renders at the 16 Nov 04:00
-  publish, so the live page still says "Nothing recorded" until then. I keep that row open until the
-  rendered page changes. 77bf74f88 launched the 12-draw family at 45122d156. I checked the pairs unit:
-  it is active and its log is at September 2020, so it reads on 14 Nov as filed. Item 1 of last focus
-  is therefore spent and leaves. Its grade is queued as a continuation, and the draw has refused it
-  twice only because surgical_land pid 763778 holds THE_VALUE_TEST_REDESIGN.md. That pid is landing
-  the per-household-year figures, which is the steer's addendum. Of the previous focus, 3 were named
-  and 2 were drawn. The capabilities item was drawn 9 times, refused each time while its own landing
-  held the generator, and then landed. The refund clock went backwards. Its fifth landing (pid
-  3077815) is gone, there is no commit on origin touching invoice.py or credit_refund_events.py since
-  12 Nov, and the finding file holds no record of whether it was refused or died. That record was the
-  one thing item 2 asked for before a retry. Five of the last six landings on these two rows died
-  silently, so the landing door is now the main thing standing between written supplier fixes and
-  origin. It goes into focus as its own item rather than as a clause in a retry. The learning loop
-  still reads STOP on level-dd and repayment-posting, so no new fix is drawn in either area before the
-  16 Nov book. The advisor's 13 Nov steer verifies in bd9875ade's bytes and I act on that text. It is
-  in done/ only in the shared tree; origin still holds it at the advisor root. Item 2 carries the
-  move.
+  Against the thesis nothing moved. There is still no evidence that per-customer inference beats the
+  flat baseline: the belief reads AUC 0.52 (0.41 to 0.65), and the 12-draw family that measures it is
+  still running. longjob-value-test-12-draw-family-pairs is active and its second member is at work, so
+  it reads after 08:00Z on 14 Nov, as its continuation says. 4 commits, 2 substantive, split 1 supplier,
+  0 world, 3 other. That ends three stretches with no supplier commit, but only just. The supplier
+  commit, 62dd19144, grades a vulnerability flag against the published needs-code list. That is real
+  capability, but it is not the fix or its book, so it sits at the edge of the director's 11 Nov scope.
+  227872c15 put the value test on origin per household per year, with the belief's skill first. It
+  renders at the 16 Nov 04:00 publish. The appendix half is landing now (surgical_land pid 2577577).
+  The refund clock did not land, but for the first time an attempt left its cause. The wrapper exited
+  with surgical_land's own status (exit-code 1), so the launch register read it right this time.
+  Attempt 1 was refused by the archive-question gate, because the steer still carried two open
+  questions. aab22df9d has since cleared that. Attempt 8 was refused because the pre-commit gate ran
+  past surgical_land's 3,600 s limit. final-bill-gate-selection-timing then timed the selection: 77
+  test files, 4,380 s serially. The big ones are test_run_phase4c_on_phase2b (1,061 s), test_run_phase2b
+  (994 s), two dual-fuel files (508 s and 503 s), the phase2b event log (499 s) and test_weekly_rhythm
+  (330 s). One control in that selection is red: test_the_k8_page_no_longer_selects_the_full_simulation_run_through_its_citers.
+  That means home_moves.md selects test_run_phase4c again, even though 0ab0595612 is in the worktree's
+  base. The worktree's diff also carries three paths that are not this fix's (the context handshake,
+  the fidelity evidence ledger and the test execution log). So the landing is not dying mysteriously.
+  It is too large and partly polluted, and item 1 now acts on a measured cause instead of a guess.
+  Of the previous focus, 5 were named and 3 drawn. The two harness items, the landing-death class and
+  the Friday step, were never drawn. The steer on harness work is drifting behind supplier work, which
+  is the right order, but the Friday step is due today and the Monday step has been open since 9 Nov.
+  The learning loop still reads STOP on level-dd and repayment-posting. Level-dd has its map
+  (LEVEL_DD_AREA_MAP_2026-11-11.md). Repayment-posting has none, so per ways_of_working W1 its map is
+  the next item in that area, before the 16 Nov book grades W1-W4. One Cloudflare deploy, on the seat's
+  own 15:50 direction commit, went red at the deploy step. The next deploy, 227872c15, was green, so I
+  read it as transient. A claim on W2_21 opened at 18:22. Its founder step is held for 16 Nov, so if
+  that claim lands a world change before then, it is a breach of the ruling.
 stretch_reviewed:
-  since: "2026-11-13T12:23:13.777296+00:00"
+  since: "2026-11-13T15:23:12.774853+00:00"
   commits: 4
-  substantive: 3
+  substantive: 2
 focus:
 - id: the-final-bill-issue-day-has-one-home-beside-bill-due-date
   lane: D_billing_metering
   side: supplier
-  what: 'Land "Reg 6D''s refund clock starts on the day the final bill is issued" on origin. Start no
-    attempt until no surgical_land is live on the box (tools.wait_for on any that is). Build HEAD-plus-its-hunks
-    from salvage ce230b3926 (else e32ccc0f12) with tools/isolate_hunks.py, then run tools.surgical_land
-    --content under launch_long_job. The wrapper must exit with surgical_land''s own status, and its full
-    stdout and stderr go to a log under /var/tmp named for this id. Before and after, append to docs/staging/SEAT_FINDING_OLD_CREDIT_NETTED_AT_CLOSE_STARTS_THE_REFUND_CLOCK_LATE_2026-11-12.md
-    which attempt this is, its pid, and how it ended: landed <sha>, REFUSED with the refusal text, or
-    died with the log''s last lines and the exit code or signal. If it lands, run its control on origin
-    and bind the commit to this id. In the same landing, move docs/staging/advisor/DIRECTOR_STEER_THE_SITE_MUST_SAY_PLAINLY_WHETHER_PER_CUSTOMER_VALUE_WORKS_AND_THE_VALUE_TEST_GOES_FIRST_2026-11-13.md
-    to docs/staging/advisor/done/, with a line saying it was acted on from bd9875ade''s signed bytes.'
-  why: It is the last written fix on the account-page row that is not on origin, and the 16 Nov 04:00
-    book grades W1-W4 against it. Five attempts have died, and none left a cause. Done means the commit
-    is on origin before that book and bound to this id. A failed attempt that leaves its cause in the
-    finding is progress. A sixth silent death is not done.
-  written_at: 1794583617.616
-- id: value-test-step-1-grade-the-twelve-draw-family-once-it-exits
-  lane: B_commercial
+  what: 'Land "Reg 6D''s refund clock starts on the day the final bill is issued" on origin, sized so
+    its gate can finish. Start nothing while another surgical_land is live (tools.wait_for on it). From
+    the salvage in /var/tmp/wt-final-bill-issue-day (2d17086ee8, else d0025cb49f), build HEAD-plus-hunks
+    on origin/main with tools/isolate_hunks.py, taking ONLY simulation/arrears_engine.py, simulation/credit_refund_events.py,
+    simulation/run_phase4c_on_phase2b.py, docs/market_research/home_moves.md, the test_the_refund_clock_starts_on_the_day_the_final_bill_is_issued.py
+    control and docs/staging/SEAT_FINDING_OLD_CREDIT_NETTED_AT_CLOSE_STARTS_THE_REFUND_CLOCK_LATE_2026-11-12.md.
+    Drop the context handshake, fidelity_evidence_ledger.json and test_execution_log.jsonl. Then, before
+    any launch: (a) find out why tests/tools/test_pre_commit_test_gate.py::test_the_k8_page_no_longer_selects_the_full_simulation_run_through_its_citers
+    is red with home_moves.md changed, and fix that cause, whether it is the page edit or a regression
+    in data_surface_tests; (b) print the gate''s selection for the change set and sum its files from /var/tmp/final-bill-timing/per_file.tsv.
+    If the sum is over about 3,000 s, split it into two landings, the knowledge page and finding first,
+    then the simulation fix and its control. Launch with tools.surgical_land --content under launch_long_job,
+    exiting with its own status. Before and after each attempt, append the attempt''s pid, the selection''s
+    file count and seconds, and how it ended (landed <sha>, REFUSED with its text, or died with the log
+    tail) to the finding. Never reap /var/tmp/wt-final-bill-issue-day until this has landed.'
+  why: 'It is the last written fix on the account-page row that is not on origin, and the 16 Nov 04:00
+    book grades W1-W4 against it. The cause of the failures is now measured: a 4,380 s gate selection
+    against a 3,600 s limit, one red selection control, and three stray paths. So this attempt targets
+    the cause instead of being a seventh retry. Done means the commit is on origin before that book, bound
+    to this id. Or, if it cannot land, a commit on origin records the measured selection and the reason,
+    so the next attempt starts from that.'
+  written_at: 1794594427.708
+- id: repayment-posting-area-map
+  lane: D_billing_metering
   side: supplier
-  what: 'This is the queued continuation, put in focus so its order is fixed. Check systemctl --user is-active
-    longjob-value-test-12-draw-family-pairs. If it is active, release and do nothing: never relaunch it,
-    because it holds the seeds. Once it has exited, grade the family against 2 Nov prediction 1 and the
-    household noise split that rule 2 and P6 need, with 95% intervals clustered on households. Write the
-    result and the settled book size for step 6 into docs/design/THE_VALUE_TEST_REDESIGN.md beside rule
-    2, with a Graded trailer. Add a dated line to the Capabilities appendix, per household per year. Do
-    not start step 6.'
-  why: The director named the value test as the thesis and next week's first feature, and step 6 cannot
-    be sized without this. It reads on 14 Nov. Done means the graded result and the book size are on origin
-    before the 16 Nov balance review, or a commit there says why the family could not be read.
-  written_at: 1794583617.616
-- id: a-landing-that-dies-leaves-its-cause
-  lane: H_harness
-  side: other
-  what: Find out why surgical_land processes die with nothing on origin and no refusal recorded. The cases
-    are refund-clock pids 2714284, 1307691 and 3077815, and Capabilities pid 1430307. Read journalctl
-    --user for each pid's unit or session, dmesg for OOM kills around their last seen time, the wrapper
-    logs under /var/tmp/crfix-land*, and how each was launched (a bare Bash background, a session that
-    ended, or launch_long_job). Write down the cause per pid, ranked by evidence. Then make the smallest
-    change that makes the next such death leave a cause behind (a trap, a log, or launching under a unit),
-    and land it with a test that names its defect. Do not relaunch any landing as part of this item.
-  why: Five of the last six landings on the two supplier-blocking rows vanished silently, and the landing
-    register also records a refused landing as a success. Until a death names its cause, every retry is
-    a guess. Done means a commit is on origin that states the cause of each of the four deaths (or "cannot
-    tell" with the reason), plus the change that makes a future death leave a record.
-  written_at: 1794583617.616
-- id: value-test-figures-per-household-year-from-the-feed
-  lane: B_commercial
-  side: other
-  what: 'surgical_land pid 763778 is landing "Capabilities states the value test per household per year,
-    the belief''s skill first, from the feed". Run tools.wait_for on it and start no second copy. If it
-    lands, run tools/generate_capabilities_door.py against origin and check four things: every value-test
-    figure is per household per year, with the book size and years beside it; the AUC and calibration
-    come before the margin; site/data/value_arms.json carries household-years and the clustered AUC; and
-    the opening still states no verdict. If it is refused or dies, record which in that commit''s staging
-    finding before any retry, under item 3''s rule.'
-  why: This is the director's 06:13 addendum ("£5k to £8k means nothing to me"), and the steer's done-test
-    is a page he can read. Done means the commit is on origin and the generator prints the per-household-year
-    figures, so the 16 Nov publish renders them.
-  written_at: 1794583617.616
+  what: 'Write docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md in the shape of docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md,
+    following ways_of_working W1. List every state a household''s cash can be in between the world''s
+    payment truth and the account page: paid, allocated to a bill, held as credit, netted at close, refunded,
+    written off, and any state the code shows that this list misses. For each state, name the function
+    that decides it (start from simulation/arrears_engine.balance_settlement_from_outcomes''s money_in_out
+    loop and the account page''s repayment writer) and every reader that reads it, and trace each state
+    on one real household from the 249-leg and 194-leg shortfalls (SYN-2016-139 among them). Close by
+    listing which of the 15 missed repayment-posting predictions this week each state explains, and which
+    it does not. Write no fix. Land it with a "Graded: repayment-posting" trailer only if it re-grades
+    a prediction.'
+  why: 'The learning loop reads STOP on repayment-posting: 24 held of 39, with 11 misses from our own
+    model of the code or the reader. W1''s rule is that the area''s map comes before the next fix, and
+    the 16 Nov book grades W1-W4 in exactly this area. It is the second area to fire, so W1 also says
+    the stop condition should be built into the draw after this. Done means the map is on origin before
+    the 16 Nov 06:00 grade continuations open, each state traced on a named household, and every W1-W4
+    prediction graded on that book can name the state it is about.'
+  written_at: 1794594427.708
 - id: weekly-rhythm-friday-step-files-the-learning-loop
   lane: A_strategy_governance
   side: other
-  what: 'File this week''s Friday step through background/weekly_rhythm.py with the learning loop''s numbers
-    as the brief reads them on origin. Repayment-posting: 24 held of 39, STOP. Level-dd: 41 of 57, STOP.
-    Class-l: 11 of 12. Regressions per fix: 0.167 over 18. Repair the two unparsed Graded trailers (a481c9ab96
-    and ef64912eee) by naming held= and missed= in the step, not by rewriting history. Also close or explain
-    the Monday step the rhythm''s state still shows open.'
-  why: Today is the Friday. The 16 Nov balance review reads this step, and the wrong row on it is open.
-    Done means the rhythm's state shows the Friday step filed for this week, and the wrong row can be
-    marked corrected.
-  written_at: 1794583617.616
+  what: 'The baton in docs/observability/.weekly_rhythm.json has held monday_ranking (opened 9 Nov) open
+    for five days. Close it with python3 -m background.weekly_rhythm --close, writing the document that
+    step requires with its "## End-to-end check" section (canon, logic, work and findings read together,
+    including the refund-clock cause in this record''s thesis_read). Then file the friday_review step
+    the close arms, with the learning loop on origin: repayment-posting 24 of 39 (STOP), level-dd 41 of
+    57 (STOP), class-l 11 of 12, close-refund-book 15 of 15, 0.167 regressions per fix over 18 graded
+    fixes, and cold-read escapes [2]. Name held= and missed= in that step for the two unparsed trailers
+    (a481c9ab96 and ef64912eee), without rewriting history. Print --status after each step.'
+  why: Today is the Friday. The 16 Nov balance review reads this step, and a Monday step left open for
+    five days means the rhythm has not run at all this week. Done means --status shows the baton past
+    friday_review for this week, with both documents on origin. The wrong row on it can then be marked
+    corrected.
+  written_at: 1794594427.708
+- id: a-landing-that-dies-leaves-its-cause
+  lane: H_harness
+  side: other
+  what: 'The sixth refund-clock attempt now shows what a landing failure with a cause looks like (/var/tmp/the-final-bill-issue-day-has-one-home-beside-bill-due-date.log:
+    two REFUSED lines, exit-code 1). For each of the four earlier deaths (refund-clock pids 2714284, 1307691
+    and 3077815, and Capabilities pid 1430307), establish by journalctl --user, dmesg and how it was launched
+    whether it was the same gate timeout, an OOM kill, or a bare-shell session ending, or write "cannot
+    tell" with the reason. Then make one change in tools/surgical_land.py: before it starts the gate,
+    print the selection''s file count and its expected seconds from test_execution_log.jsonl, and refuse
+    up front, naming both numbers, when the expected seconds exceed GATE_TIMEOUT_SECONDS. Land it with
+    a test that holds the 4,380 s selection shape and names its defect. Relaunch no landing as part of
+    this item.'
+  why: Six attempts cost a day because the gate's limit was found only after an hour of running it. A
+    refusal that names its reason at launch turns that hour into a second. Done means the per-pid causes
+    are on origin, plus the up-front refusal and its control. That retires the "refund-clock landing died"
+    and "refused landing recorded as success" wrong rows to a cause and a mechanism.
+  written_at: 1794594427.708
 not_now:
-  - what: Re-landing the refund clock at once from salvage, as last stretch's fallback said, before anyone knows why five attempts died.
+  - what: Putting the 12-draw family's grade back in focus.
     why: >-
-      A sixth blind retry has the same odds as the last five. Item 1 still lands it, but each attempt
-      must leave its cause behind, and item 3 runs alongside to find the class. The book that grades it
-      is 16 Nov 04:00, so there is room for one attempt that leaves a record.
-  - what: Retraining or replacing the renewal belief now (AUC 0.52), which is the lever that would actually move the thesis.
+      The unit is active and its continuation (value-test-step-1-grade-the-twelve-draw-family-after-0800z-14-nov)
+      already carries the grade, with the never-relaunch rule. A focus row would only be drawn and
+      released against a live run several times overnight.
+  - what: A second copy of the value-test appendix landing (value-test-appendix-figures-per-household-year).
+    why: surgical_land pid 2577577 is landing it now, with a waiter on it. A second writer would only contend for the same paths.
+  - what: Retraining or replacing the renewal belief (AUC 0.52), which is the lever that would actually move the thesis.
     why: >-
-      The 12-draw family is running against the belief as it stands. Changing the belief now would put
-      two changes into one result, and the result could not be attributed. The retrain follows the
-      sized run, with its own prediction filed first.
-  - what: Steps 3 and 4 of the redesign (the single-invocation runner, and the efficient-supplier baseline arm with its knowledge page).
+      The 12-draw family measures the belief as it stands, and that result reads on 14 Nov. Changing
+      the belief first would put two changes into one result that could not be attributed. The
+      retrain follows, with its own prediction filed first.
+  - what: Steps 3 and 4 of the value-test redesign (the single-invocation runner, and the efficient-supplier baseline arm with its knowledge page).
+    why: The director's "no more knowledge passes this week" holds until the 16 Nov reset, and Sunday's review sequences both.
+  - what: Raising surgical_land's GATE_TIMEOUT_SECONDS so the refund clock's 4,380 s selection fits.
     why: >-
-      The director's "no more knowledge passes this week" holds until the 16 Nov reset, and Sunday's
-      balance review sequences both. Starting them on Friday afternoon gains less than a day.
-  - what: Restarting the daemons so they import origin's code (every unit lacks a84639ed4 and f4f825b8b).
+      That would accept a selection that a red control says is wrong (home_moves.md should not pull in
+      phase4c), and it would make every future landing slower. Fixing the selection and splitting the
+      landing is the smaller and more honest move. Item 4 makes the limit refuse at launch rather than
+      after an hour.
+  - what: Advancing the shared checkout and restarting the daemons so they run origin's code.
     why: >-
-      Two landings (763778 and the coming refund clock) and a 4.7 GB value run are live. A restart only
-      helps once the checkout advances, and advancing the shared checkout under three live writers is
-      the move most likely to sweep their work. It costs one more stretch to wait.
-  - what: Reaping the 7 worktrees that hold commits no remote ref keeps (b12-*, se-budgetpay-land, se-om2, simsuite-*).
-    why: A reap cannot be undone, and none of them blocks anything. They wait for a quiet tree and a per-worktree disposition.
-  - what: Drawing a fix for level-dd or repayment-posting (for example level-dd-final-bill-world-nets-level-surplus).
-    why: Both areas read STOP in the learning loop. The 16 Nov book grades W1-W4 first, and the area map comes before any new fix.
-  - what: The eight items stamped DO NOT DRAW BEFORE 16 Nov 06:00 (n29, n30, c915067a8, W1-W4, the catch-up VAT rows and the baseline launch addendum).
-    why: They grade the book that publishes that morning, so there is nothing to read before then.
-  - what: W3_3 (standing charge in settlement), B12's true unit cost, the W2_21 insulation flag and N17's year-to-year variance.
-    why: Each has an owner in wrong_triage and is held for the 16 Nov reset under the director's scope for this week.
+      Two landings and a 4.2 GB value run are live. Advancing the shared checkout under live writers is
+      the move most likely to sweep their work. It waits for a quiet tree.
+  - what: Reaping the 8 worktrees holding commits that no remote ref keeps.
+    why: >-
+      A reap cannot be undone. One of them, /var/tmp/wt-final-bill-issue-day, is item 1's source, and
+      the rest block nothing.
+  - what: Drawing any new fix for level-dd or repayment-posting.
+    why: Both read STOP. Level-dd has its map, and repayment-posting's map is item 2. The 16 Nov book grades W1-W4 first.
+  - what: The eight items stamped DO NOT DRAW BEFORE 16 Nov 06:00, plus W3_3, B12, the W2_21 insulation flag and N17.
+    why: >-
+      The first eight grade a book that does not exist yet. The rest each have an owner in wrong_triage
+      and are held to the 16 Nov reset by the director's scope.
+  - what: Chasing the red Cloudflare deploy on 7e8a48b07.
+    why: >-
+      It failed at the deploy step only, and the next push (227872c15) deployed green. One transient
+      failure on a direction-only commit is not worth a tick. A second red in a row would be.
+  - what: Following up 62dd19144's vulnerability grading (bereavement asked about, mental health registered) with more PSR work this week.
+    why: It is outside "the fix and its book". C32 owns it after the 16 Nov reset.
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on
       268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:23 13 Nov: Unchanged. 16d90c311 measures the
       value test's belief at AUC 0.52 (0.41 to 0.65), and its P1 predicts no skill in the sized run. 15:23 13 Nov:
-      Unchanged. The 12-draw family measures it, and the result reads on 14 Nov.
+      Unchanged. The 12-draw family measures it, and the result reads on 14 Nov. 18:21 13 Nov: Unchanged. The family is
+      still running.
     corrected: false
   - what: >-
       THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points
       and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 12:23 13 Nov: Unchanged. The next read belongs
-      on the 16 Nov book. 15:23 13 Nov: Unchanged.
+      on the 16 Nov book. 15:23 13 Nov: Unchanged. 18:21 13 Nov: Unchanged.
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
       same-month change of 1.1%, against NEED's 14.7%). 12:23 13 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
-      15:23 13 Nov: Unchanged.
+      15:23 13 Nov: Unchanged. 18:21 13 Nov: Unchanged.
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the
       settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also
       drop the fixed network share. 12:23 13 Nov: Unchanged (fix, owner W3_3, at the 16 Nov reset). 15:23 13 Nov: Unchanged.
+      18:21 13 Nov: Unchanged.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's
       payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails
       are in decisions.jsonl.] 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged. The fifth refund-clock landing (pid
-      3077815) is gone too, with nothing on origin. Item 1 is the sixth attempt.
+      3077815) is gone too, with nothing on origin. Item 1 is the sixth attempt. 18:21 13 Nov: Unchanged on origin. The
+      sixth attempt was refused twice, with its causes recorded. Item 2 maps the area before the 16 Nov grade.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed
       REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success
       status=0". A long job that wraps a landing must exit with the landing's own status. 12:23 13 Nov: Unchanged. 15:23 13
-      Nov: Unchanged. Item 3 takes the class, and item 1 must exit with the landing's own status.
+      Nov: Unchanged. Item 3 takes the class, and item 1 must exit with the landing's own status. 18:21 13 Nov: This
+      instance is right. The sixth attempt's job exited with surgical_land's status, and the register reads "died,
+      exit-code 1". The class is not closed, because nothing enforces it for the next hand-built wrapper. Item 4.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its
       book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change
       while the book waited. The draw has no reading of a standing ruling's scope. 12:23 13 Nov: No new breach. 15:23 13
-      Nov: No new breach. All three commits were inside the ruling.
+      Nov: No new breach. All three commits were inside the ruling. 18:21 13 Nov: 62dd19144 (PSR vulnerability grading) is
+      supplier work outside "the fix and its book", though it is not a knowledge pass. A claim on W2_21, whose founder step
+      is held for 16 Nov, opened at 18:22.
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's
       scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder
-      step is held (e5e0cdcae). 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged, held for the 16 Nov review.
+      step is held (e5e0cdcae). 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged, held for the 16 Nov review. 18:21 13 Nov:
+      Unchanged.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was
       retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING
       findings where origin has 2. The brief reads findings from the working copy, not from origin. 12:23 13 Nov: Unchanged
-      at 4, with 182 uncommitted dispositions in the shared tree. 15:23 13 Nov: Unchanged at 4.
+      at 4, with 182 uncommitted dispositions in the shared tree. 15:23 13 Nov: Unchanged at 4. 18:21 13 Nov: Unchanged at 4.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The level-DD cure row was filed as the company's defect, but no company/ or saas/ file changed in
       any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab). The supplier's desk was
-      largely right, and our instruments and the world were not. 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged.
+      largely right, and our instruments and the world were not. 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged. 18:21 13
+      Nov: Unchanged.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. Fixes land on origin, and nothing runs them. The shared checkout is behind, and every daemon lacks
       commits to code it imports, delivery_lane.py among them, so the retire guard 9fd94625f is inert. 12:23 13 Nov:
-      Unchanged, up 26h49m. 15:23 13 Nov: Unchanged. Every unit now lacks a84639ed4 and f4f825b8b.
+      Unchanged, up 26h49m. 15:23 13 Nov: Unchanged. Every unit now lacks a84639ed4 and f4f825b8b. 18:21 13 Nov: Worse.
+      Every unit now lacks four commits (62dd19144, 227872c15, a84639ed4, f4f825b8b), and the checkout is 6 behind.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The refund-clock landing (surgical_land pid 2714284) died with nothing on origin, the second dead
@@ -198,6 +232,9 @@ wrong:
       rows. 15:23 13 Nov: Worse on one row and better on the other. The second Capabilities attempt landed (f4f825b8b). The
       fifth refund-clock attempt (pid 3077815) died with nothing on origin, and the finding holds no record of refused or
       died, though item 2 asked for exactly that. So that is five silent deaths in six attempts. Item 3 takes the class.
+      18:21 13 Nov: Better. The sixth attempt left its cause. The archive-question gate refused it (cleared since by
+      aab22df9d), and then the gate ran past 3,600 s. Its selection measures 77 files and 4,380 s, with one selection control
+      red and three stray paths in the hunk set. The finding itself still holds no attempt record. Items 1 and 4.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026: Nothing
@@ -205,12 +242,15 @@ wrong:
       book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json,
       is a hand record last written 24 Oct, and nothing the week does writes to it. 12:23 13 Nov: Unchanged on origin. 15:23
       13 Nov: On origin in f4f825b8b. The live page changes only at the 16 Nov 04:00 publish, so this stays open until the
-      rendered value changes. The per-household-year figures are item 4 (pid 763778).
+      rendered value changes. The per-household-year figures are item 4 (pid 763778). 18:21 13 Nov: The per-household-year
+      figures are on origin in 227872c15, and the appendix half is landing (pid 2577577). This stays open until the 16 Nov
+      page renders.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The weekly rhythm's Friday step, which owes the learning loop's hit rates and the week's
       regression count, has not been filed. The rhythm's state still shows Monday's step open (WEEKLY_BALANCE_REVIEW_2026-11-16
-      section 3). 12:23 13 Nov: Open. 15:23 13 Nov: Open. It is item 5.
+      section 3). 12:23 13 Nov: Open. 15:23 13 Nov: Open. It is item 5. 18:21 13 Nov: Open. It was never drawn, and the
+      baton has held monday_ranking since 9 Nov. Item 3.
     corrected: false
 for_the_director:
   - id: value-test-baseline-and-axis-weighting
