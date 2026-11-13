@@ -1,9 +1,21 @@
 {
- "generated_at": "2026-11-13T09:26:43.026626+00:00",
+ "generated_at": "2026-11-13T12:27:06.820543+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "16d90c311",
+    "at": "2026-11-13T10:48:23Z",
+    "subject": "The value test redesign is sized and predicted per household per year, and the 16 Nov balance review opens with it",
+    "substantive": true
+   },
+   {
+    "sha": "31abe0ee5",
+    "at": "2026-11-13T09:49:03Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "f0bca8e35",
     "at": "2026-11-13T08:39:56Z",
@@ -231,18 +243,6 @@
     "at": "2026-11-12T10:37:13Z",
     "subject": "worker tick: merge origin/main into the A45 canon-coverage landing (upstream touches none of its paths)",
     "substantive": false
-   },
-   {
-    "sha": "129ebcf70",
-    "at": "2026-11-12T10:22:06Z",
-    "subject": "The canon drift check binds three of the six unwatched model-page sections, and the first pass finds the page saying /simplified is 301'd to a /proof door that no longer exists",
-    "substantive": true
-   },
-   {
-    "sha": "f84e362ed",
-    "at": "2026-11-12T10:10:20Z",
-    "subject": "Triage row a-continuation-retires-without-its-work-on-origin is already_fixed by 9fd94625f, and the replay over the 1,687 retired rows is recorded",
-    "substantive": false
    }
   ],
   "substantive": 19,
@@ -251,57 +251,57 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-13T09:22:38.531472+00:00",
+  "oriented_at": "2026-11-13T12:23:13.777296+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The thesis did not move this stretch, and the reason the value test did not move is my fault. 3 commits, 2 substantive, split 1 supplier, 0 world, 2 other. f0bca8e35 prints a re-rated SME catch-up as one line per VAT rate, a bill-correctness fix. 7ec8f651e makes the ops writer rebase onto its remote before it pushes. The ops mirror is CORRECTED: the ops repo is level with its origin, and the sim-runner log shows heartbeats published to it at 08:10, 08:40 and 09:20, so that item leaves focus. Two items are mid-landing, and neither is on origin yet. The Capabilities answer is surgical_land pid 1430307, 13 minutes into its gate, and it carries both advisor files to done/. The refund clock is pid 1307691, 24 minutes in. That is its FOURTH landing: the third (pid 3584048) is gone with nothing on origin. The value-test proposal was not drawn, and that was built into my own steer. I named the item B11_forward_clv_backtested_on_held_back_history, an atom whose draw reason is \"director_gate\". A focus item that names an atom only biases the ordinary draw, and the ordinary draw never takes a gated atom. So the director's first feature for next week could not be reached by anything. It goes back in as a Lane 0 key with lane B_commercial. Its subject already exists: docs/design/THE_VALUE_TEST_REDESIGN.md was written and read cold on 2 Nov. The work is to bring its sizing, skill predictions and cost up to the 13 Nov steer before Sunday's review, not to start fresh. Against the thesis the honest position is unchanged. We have no current evidence that per-customer inference beats the flat baseline. The only three-arm run is 8 Oct, its belief scores AUC 0.52 against control outcomes, and the live renewal belief scores 0.333. The site still says otherwise in book totals until pid 1430307 lands. The learning loop says STOP on level-dd (15 code-or-reader misses) and repayment-posting (11), so no new fix is drawn in either area before the 16 Nov book, and the not_done level-dd-final-bill item waits with them. Pace is held at the advisor's 62% Friday reading.",
+  "thesis_read": "The thesis test now has a written design that can return an answer, and that design predicts no advantage yet. 2 commits, 1 substantive, split 0 supplier, 0 world, 2 other, so no supplier capability changed this stretch. 16d90c311 brought THE_VALUE_TEST_REDESIGN.md up to the 13 Nov steer and opens the 16 Nov balance review with it. It computes the existing runs per household per year without re-running anything. The belief's AUC against who left under the flat price is 0.52 (0.41 to 0.65), and its calibration is -0.22. The per-customer arm's advantage is +GBP 2.86 per household-year, 0.6 standard errors from zero. It also corrects the page's 13.7 SEMs, which were the re-draw spread and not the spread between households, beside the claim. Its own pre-registered P1 and P3 predict the sized run will find no skill and an advantage whose interval includes zero. So the honest position is unchanged and is now stated in a form the director can read: we have no evidence that per-customer inference beats the flat baseline, because the belief does not yet infer anything. The run will measure that, but it will not fix it. That item leaves focus as done. Its next step is the 12-draw family (step 1, about 0.9 points and 9 machine-hours at 45122d156), which settles the book size for the sized run. I am putting it first now rather than on Monday, so that it runs on idle weekend compute. Both landings in last stretch's focus died again with nothing on origin. The refund clock's fourth attempt (pid 1307691) is gone, and its fifth (pid 3077815) is 23 minutes into its gate. The Capabilities attempt (pid 1430307) is gone, and its second (pid 3058669) is 25 minutes in. It carries both 13 Nov advisor files to done/, and they are staged now. Five dead landings on two rows in two days is now the machine's main drag on supplier work. The STOP readings on level-dd and repayment-posting still hold every new fix in those areas until the 16 Nov book. One error of record is the redesign's own: it says the two questions that wait for the director are in a for_the_director row, and no such row existed. I raise it in this record.",
   "focus": [
    {
-    "id": "the-value-test-redesign-is-sized-and-predicted-before-the-16-nov-review",
+    "id": "value-test-step-1-the-twelve-draw-family",
     "lane": "B_commercial",
     "side": "supplier",
-    "what": "Amend docs/design/THE_VALUE_TEST_REDESIGN.md (written and read cold 2 Nov, approved by the director the same day in docs/staging/advisor/done/DIRECTOR_RULING_YES_TO_THE_VALUE_TEST_REDESIGN_AND_REGISTER_WITH_UKDS_NON_COMMERCIAL_2026-11-02.md) to meet docs/staging/advisor/done/DIRECTOR_STEER_THE_SITE_MUST_SAY_PLAINLY_WHETHER_PER_CUSTOMER_VALUE_WORKS_AND_THE_VALUE_TEST_GOES_FIRST_2026-11-13.md section 2 and addendum point 3. Section 5 states every predicted effect per household per year, with the belief's skill first: AUC on control outcomes and calibration, each with a range, and then the per-household margin difference. Rule 2 sizes the book from the floor decomposition so that an effect of the predicted size can be told from noise, and states that size, its compute and its token cost. Rule 4 sets the flat baseline at the efficient-supplier margin, not GBP 2/MWh. Add an arm for standard-variable households, and settle Rule 5 against the 7 Nov debt evidence. In the same commit, state this week's actual feature share and propose next week's split with the third held, any trim taken from harness first. Write it as the first section of the 16 Nov balance review. Do not run any arm.",
-    "why": "This is the thesis test, per-customer inference against a flat baseline, and the director has named it next week's first feature. It has waited eleven days, and last stretch my steer named a director-gated atom that no draw could reach. A run without its predictions filed first proves nothing (F11). Done means the amended design, with sized predictions and their cost, is on origin before 16 Nov 03:00 and the balance review opens with it.",
-    "written_at": 1794562002.699
+    "what": "Run step 1 of docs/design/THE_VALUE_TEST_REDESIGN.md section 6: the 12-draw family at commit 45122d156, 36 arm-runs on its 272 households, about 9 machine-hours. Run it in its own worktree under launch_long_job, and make the job's exit status the run's own. Change no arm, baseline or world. From the outputs, compute 2 Nov prediction 1 and the household noise split that rule 2 and P6 need, with 95% intervals clustered on households. Write the result into the redesign beside rule 2 (the book size step 6 will use) and grade it against the predictions as filed, with a Graded trailer. Add the result to the Capabilities appendix with its own date, keeping the page's lead as it is. Do not start step 6.",
+    "why": "The director named the value test as next week's first feature. Step 6, the sized run that answers the thesis, cannot be sized until this family reads. It costs about 0.9 points and mostly idle weekend compute. Done means the graded result and the settled book size are on origin before the 16 Nov review, or a commit names why it could not be read.",
+    "written_at": 1794572826.405
    },
    {
     "id": "the-final-bill-issue-day-has-one-home-beside-bill-due-date",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "what": "surgical_land pid 1307691 is landing the issue-day and refund-clock work now (\"Reg 6D's refund clock starts on the day the final bill is issued\"). It is the fourth attempt, and the third (pid 3584048) died with nothing on origin. Do not start a second copy: tools.wait_for on that pid. If it prints landed <sha>, run its control on origin, bind the commit to this id and release it. If it is refused or dies, read the refusal and write it into docs/staging/SEAT_FINDING_OLD_CREDIT_NETTED_AT_CLOSE_STARTS_THE_REFUND_CLOCK_LATE_2026-11-12.md. Then fix it from salvage ce230b3926 (/tmp/issue-day-wt) or e32ccc0f12 (/tmp/issue-day-base) and re-land with tools.surgical_land --content, under one job whose exit status is the landing's own.",
-    "why": "This is the last written fix on the account-page row that is not on origin, and the 16 Nov 04:00 book grades W1-W4 against it. Done means the change is on origin before that book and bound to this id. The old-credit half is then landed, or LEVEL_DD s.9.8 says in one line that it has no holder and what it would change.",
-    "written_at": 1794562002.699
+    "what": "surgical_land pid 3077815 is the fifth attempt to land \"Reg 6D's refund clock starts on the day the final bill is issued\". The fourth (pid 1307691) is gone with nothing on origin. Do not start a second copy; run tools.wait_for on that pid. If it prints landed <sha>, run its control on origin, bind the commit to this id and release it. If it is refused or dies, first write down which it was, with the refusal text or the absence of one, in docs/staging/SEAT_FINDING_OLD_CREDIT_NETTED_AT_CLOSE_STARTS_THE_REFUND_CLOCK_LATE_2026-11-12.md. Then re-land from salvage ce230b3926 or e32ccc0f12 with tools.surgical_land --content, in one job whose exit status is the landing's own.",
+    "why": "It is the last written fix on the account-page row that is not on origin, and the 16 Nov 04:00 book grades W1-W4 against it. Done means it is on origin before that book and bound to this id. A sixth unexplained death is not done: it is a finding about the landing door.",
+    "written_at": 1794572826.405
    },
    {
     "id": "capabilities-says-plainly-whether-per-customer-value-works",
     "lane": "H_harness",
     "side": "other",
-    "what": "surgical_land pid 1430307 is landing the Capabilities answer, the derived Fixed strip and both 13 Nov advisor files moving to done/. tools.wait_for on that pid, and start no second copy. If it lands, regenerate the page from origin with tools/generate_capabilities_door.py. Confirm that the opening is three sentences with the 8 Oct run date, that the belief's skill comes before the margin, that every figure is per household per year, and that the Fixed strip lists this week's done-moved findings. Confirm the door test that is red on \"Nothing recorded\" ran in its gate. If it is refused, fix the refusal in its own worktree and re-land.",
-    "why": "The director read this page this morning and could not tell whether the thesis works. Done means the commit is on origin with both advisor files in done/, and the generator run against origin prints the three-sentence answer and a non-empty Fixed strip. The live page renders it at the 16 Nov 04:00 publish.",
-    "written_at": 1794562002.699
+    "what": "surgical_land pid 3058669 is the second attempt to land the Capabilities answer, the derived Fixed strip and both 13 Nov advisor files moving to done/. The first (pid 1430307) is gone with nothing on origin. Run tools.wait_for on that pid and start no second copy. If it lands, run tools/generate_capabilities_door.py against origin. Confirm that the opening is three sentences with the 8 Oct run date, that the belief's skill comes before the margin, that every figure is per household per year, and that the Fixed strip is non-empty. If it is refused or dies, record which it was, then fix the refusal in its own worktree and re-land under one job whose exit status is the landing's.",
+    "why": "The director read this page and could not tell whether the thesis works. Done means the commit is on origin with both advisor files in done/, and the generator run against origin prints the three-sentence answer, so the 16 Nov 04:00 publish renders it.",
+    "written_at": 1794572826.405
    }
   ],
   "not_now": [
    {
-    "what": "Keeping the ops mirror in focus.",
-    "why": "It is corrected (7ec8f651e). The ops repo is level with its origin, and three heartbeats since 08:10 reached it. The follow-on, a leg that fails every cycle reaches a reader, is already claimed as a continuation, and a focus row would draw a second worker onto it."
+    "what": "Waiting until Monday to run value-test step 1, as the balance review's accelerate rule would have it.",
+    "why": "That rule is a proposal for next week, not a ruling. Step 1 is the first step of a design the director said yes to on 2 Nov. It costs about 0.9 of the 3 to 4 points left this week (the 62% Friday reading ends the week at about 96-97%), and its 9 hours are compute that would otherwise sit idle over the weekend. Waiting moves the sized run, and so the thesis answer, a further three days back."
    },
    {
-    "what": "Drawing level-dd-final-bill-world-nets-level-surplus (not_done, 18.7h since its draw).",
-    "why": "The learning loop reads STOP on level-dd (15 code-or-reader misses in 7 days). A further fix there before the 16 Nov book grades W1-W4 would be another guess from a model that keeps missing. It waits for that book and for the area map."
+    "what": "Steps 3 and 4 of the redesign (the single-invocation runner, and the efficient-supplier baseline arm with its knowledge page).",
+    "why": "Step 4 starts with a knowledge page, and the director's 12 Nov ruling (\"no more knowledge passes this week\") still holds until the reset. Step 3 is harness work, which the review trims first. Both are in the proposed split for the week of 16 Nov, and Sunday's review is where they get sequenced."
    },
    {
-    "what": "Fixing the orientation brief so it reads findings from origin, not the shared tree (4 BLOCKING shown where origin has fewer).",
-    "why": "It misleads only this seat, and I read origin directly. The 181 uncommitted dispositions in the shared tree are the larger cause, and landing them belongs to the stranded-archival work, not to a focus slot ahead of the thesis test."
+    "what": "Retraining or replacing the renewal belief now, because P1 predicts it has no skill.",
+    "why": "This is the lever that would actually move the thesis. But changing the belief before the sized run is filed would put two changes into one result, which then cannot be attributed. The run measures the belief as it stands, and the retrain follows with its own prediction."
    },
    {
-    "what": "Running a fresh three-arm value test this weekend.",
-    "why": "The redesign changes the baseline, the arms and the book size, so a re-run of the 8 Oct design spends a day of compute on an answer the redesign replaces. The predictions must be filed first, and the 16 Nov book is the base."
+    "what": "Drawing level-dd-final-bill-world-nets-level-surplus (not_done, 21.7h since its draw).",
+    "why": "The learning loop still reads STOP on level-dd (15 code-or-reader misses in 7 days). Another fix before the 16 Nov book grades W1-W4 would be a guess from a model that keeps missing."
    },
    {
-    "what": "Restarting the long-running daemons so they import origin's code.",
-    "why": "Two landings are mid-gate. A hand restart of eight daemons now risks more than one more stale stretch costs, and the ops fix that mattered runs in process_run, which starts fresh each run."
+    "what": "Making the landing door explain its own deaths (why four of the last five landings vanished without a recorded refusal).",
+    "why": "Items 2 and 3 now have to record refused-or-died on each attempt, which is the smallest leg that can tell the two apart. A door-wide investigation waits until those two records show a pattern."
    },
    {
     "what": "n29, c915067a8, W1-W4, the N30 grade, the catch-up VAT rows and the baseline launch addendum.",
@@ -309,14 +309,25 @@
    },
    {
     "what": "W3_3 (standing charge in settlement), B12's true unit cost, the W2_21 insulation flag and N17's year-to-year variance.",
-    "why": "Each is held to the 16 Nov reset with its owner in wrong_triage. They compete with the value test for next week's feature third, and Sunday's review makes that choice."
+    "why": "Each is held for the 16 Nov reset with its owner in wrong_triage. The proposed split gives them the world third after the write-off rule."
    },
    {
-    "what": "Reaping the worktrees holding commits no remote keeps.",
-    "why": "/tmp/issue-day-wt and /tmp/issue-day-base are item 2's fallback copies until its landing succeeds, and a reap cannot be undone. The October salvages lose nothing by waiting until after the 16 Nov review."
+    "what": "Restarting the long-running daemons so they import origin's code, and reaping the worktrees holding unlanded commits.",
+    "why": "Two landings are mid-gate, and a reap cannot be undone. Neither costs more than one more stretch by waiting."
    }
   ],
-  "for_the_director": [],
+  "for_the_director": [
+   {
+    "id": "value-test-baseline-and-axis-weighting",
+    "raised": "2026-11-13",
+    "kind": "strategy",
+    "what": "The redesigned value test (docs/design/THE_VALUE_TEST_REDESIGN.md, 16d90c311) leaves two choices that define what \"beating a flat supplier\" means. First, for the standard-variable pair, whether the flat baseline charges the price cap. Second, whether the result is ever reduced to one number by weighing money against time, carbon and peace of mind, or is reported only as the vector.",
+    "proposal": "The standard-variable pair's flat arm charges the cap, and the efficient-supplier allowance arm (rule 4) stays the primary baseline. The result is reported as the M3 vector, with no weighting between axes. Where one arm wins on one axis and loses on another, the page says so in words and declares no winner.",
+    "recommendation": "I recommend this. Evidence: an average GB supplier puts its standard-variable households on the cap. So a cap baseline is the \"average player\" the thesis names, while the efficient allowance tests whether the gain is more than a margin transfer (M2: \"charging someone the cap transfers value rather than creating any\"). M3 says each need is \"measured in its own unit and never converted to pounds\", which rules out a weighting I could choose. The trade-off is that a vector with mixed signs gives no headline verdict, and that is the honest reading. Holding position until he rules: steps 1 to 5 go ahead, both baselines are built, and nothing is weighted. What would change it: his ruling that a different flat supplier is the comparator, or a weighting he sets.",
+    "status": "open",
+    "resolution": ""
+   }
+  ],
   "orientations_recorded": 16,
   "skips_recorded": 0,
   "refusals_recorded": 4
@@ -325,9 +336,9 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 06:21 13 Nov: Unchanged. The value test's own belief scores AUC 0.52 against control outcomes. 09:22 13 Nov: Unchanged. The redesign's skill prediction was not drawn, because my steer named a gated atom. It is item 1 under a drawable key.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:22 13 Nov: Unchanged. 12:23 13 Nov: Unchanged. 16d90c311 measures the value test's belief at AUC 0.52 (0.41 to 0.65), and its P1 predicts no skill in the sized run.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -338,9 +349,9 @@
    },
    {
     "key": "triage:a-cold-reader-sees-only-what-its-trade-looks-for",
-    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 06:21 13 Nov: Unchanged. No read ran. The next read belongs on the 16 Nov book. 09:22 13 Nov: Unchanged.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 09:22 13 Nov: Unchanged. 12:23 13 Nov: Unchanged. The next read belongs on the 16 Nov book.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -351,9 +362,9 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 06:21 13 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 09:22 13 Nov: Unchanged.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 09:22 13 Nov: Unchanged. 12:23 13 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
     "times_listed": 40,
     "corrected": false,
     "fate": "fix",
@@ -364,10 +375,10 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 06:21 13 Nov: Unchanged (fix, owner W3_3, at the 16 Nov reset). 09:22 13 Nov: Unchanged.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 09:22 13 Nov: Unchanged. 12:23 13 Nov: Unchanged (fix, owner W3_3, at the 16 Nov reset).",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-09T15:20:17.459238+00:00",
-    "times_listed": 39,
+    "times_listed": 40,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -377,10 +388,10 @@
    },
    {
     "key": "triage:the-account-page-drops-cash-the-household-repaid",
-    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 00:24 13 Nov: After N29, s.9.8 reads 24 accounts printing owed (GBP 633.16), all shape F. 09:22 13 Nov: Unchanged. The third refund-clock landing (pid 3584048) is gone and a fourth is in its gate (pid 1307691, item 2).",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 09:22 13 Nov: Unchanged. 12:23 13 Nov: Unchanged. The fourth refund-clock landing (pid 1307691) is gone, and a fifth is in its gate (pid 3077815, item 2).",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-10T03:20:12.810361+00:00",
-    "times_listed": 31,
+    "times_listed": 32,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -390,10 +401,10 @@
    },
    {
     "key": "text:the launch register records a refused landing as a success",
-    "what": "THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read \"Result=success status=0\". A long job that wraps a landing must exit with the landing's own status. 09:22 13 Nov: Unchanged. No long job this stretch. Item 2 requires any re-land to exit with the landing's own status.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read \"Result=success status=0\". A long job that wraps a landing must exit with the landing's own status. 09:22 13 Nov: Unchanged. 12:23 13 Nov: Unchanged. No long job this stretch. Items 1 to 3 each require the job's exit status to be its own.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-11T12:24:44.238648+00:00",
-    "times_listed": 20,
+    "times_listed": 21,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -403,10 +414,10 @@
    },
    {
     "key": "text:the draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\")",
-    "what": "THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. 09:22 13 Nov: No new breach. f0bca8e35's knowledge edit is the K8 step of its own billing fix.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. 09:22 13 Nov: No new breach. 12:23 13 Nov: No new breach. 16d90c311 is the director's own named item.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-11T15:20:09.947924+00:00",
-    "times_listed": 18,
+    "times_listed": 19,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -416,10 +427,10 @@
    },
    {
     "key": "text:the world's housing stock draws 72% of homes as poor insulation, because it reads need's scheme-install flag as the home's insulation",
-    "what": "THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder step is held (e5e0cdcae). 09:22 13 Nov: Held for the 16 Nov review.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder step is held (e5e0cdcae). 09:22 13 Nov: Held for the 16 Nov review. 12:23 13 Nov: Unchanged.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-11T15:20:09.947924+00:00",
-    "times_listed": 18,
+    "times_listed": 19,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -429,10 +440,10 @@
    },
    {
     "key": "text:the orientation brief counts a retired finding as blocking",
-    "what": "THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. 06:21 13 Nov: The brief counts 4 BLOCKING. 09:22 13 Nov: Unchanged at 4, and the shared tree holds 181 uncommitted dispositions (not_now).",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. 09:22 13 Nov: Unchanged at 4. 12:23 13 Nov: Unchanged at 4, with 182 uncommitted dispositions in the shared tree.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-12T03:24:39.872990+00:00",
-    "times_listed": 12,
+    "times_listed": 13,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -442,10 +453,10 @@
    },
    {
     "key": "text:the level-dd cure row was filed as the company's defect, but no company/ or saas/ file changed in any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab)",
-    "what": "THE MACHINE'S, NEW. The level-DD cure row was filed as the company's defect, but no company/ or saas/ file changed in any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab). The supplier's desk was largely right, and our instruments and the world were not. 09:22 13 Nov: Unchanged.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE MACHINE'S, NEW. The level-DD cure row was filed as the company's defect, but no company/ or saas/ file changed in any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab). The supplier's desk was largely right, and our instruments and the world were not. 09:22 13 Nov: Unchanged. 12:23 13 Nov: Unchanged.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-12T09:22:42.613155+00:00",
-    "times_listed": 10,
+    "times_listed": 11,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -455,10 +466,10 @@
    },
    {
     "key": "text:fixes land on origin, and nothing runs them",
-    "what": "THE MACHINE'S, NEW. Fixes land on origin, and nothing runs them. The shared checkout is behind, and every daemon lacks commits to code it imports, delivery_lane.py among them, so the retire guard 9fd94625f is inert. 06:21 13 Nov: The checkout is level, and the daemons are up 20h48m on pre-fix code. 09:22 13 Nov: Unchanged, up 23h49m.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE MACHINE'S, NEW. Fixes land on origin, and nothing runs them. The shared checkout is behind, and every daemon lacks commits to code it imports, delivery_lane.py among them, so the retire guard 9fd94625f is inert. 09:22 13 Nov: Unchanged, up 23h49m. 12:23 13 Nov: Unchanged, up 26h49m.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-12T12:21:46.028993+00:00",
-    "times_listed": 9,
+    "times_listed": 10,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -468,10 +479,49 @@
    },
    {
     "key": "text:the refund-clock landing (surgical_land pid 2714284) died with nothing on origin, the second dead landing on this row in a day",
-    "what": "THE MACHINE'S, NEW. The refund-clock landing (surgical_land pid 2714284) died with nothing on origin, the second dead landing on this row in a day. [Earlier tails are in decisions.jsonl.] 06:21 13 Nov: A third landing (pid 3584048) was 40 minutes into its gate. 09:22 13 Nov: Worse. pid 3584048 is gone with nothing on origin, the third dead landing. A fourth (pid 1307691) is in its gate, and the fallback copies are salvages ce230b3926 and e32ccc0f12.",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
+    "what": "THE MACHINE'S, NEW. The refund-clock landing (surgical_land pid 2714284) died with nothing on origin, the second dead landing on this row in a day. [Earlier tails are in decisions.jsonl.] 09:22 13 Nov: Worse, a third dead landing. 12:23 13 Nov: Worse. The fourth (pid 1307691) and the first Capabilities landing (pid 1430307) are both gone with nothing on origin and no refusal on record, so that is five dead landings on two rows. The fifth refund-clock attempt is pid 3077815, and the second Capabilities attempt is pid 3058669.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
     "first_at": "2026-11-13T00:24:47.494658+00:00",
-    "times_listed": 4,
+    "times_listed": 5,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the live capabilities page told the director \"fixed in the 7 days to 11 nov 2026: nothing recorded\" after a week that fixed dozens of money classes",
+    "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026: Nothing recorded\" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. 09:22 13 Nov: Unchanged on origin. 12:23 13 Nov: Unchanged on origin. Its first landing died, and the second is in its gate (pid 3058669, item 3).",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
+    "first_at": "2026-11-13T06:21:44.766579+00:00",
+    "times_listed": 3,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:16d90c311's redesign (section 6) and balance review both say the two questions waiting for the director, how to weigh trades between axes and whether the cap is the right baseline for the tariff-placement arm, are \"in the one for_the_director row raised for this note\"",
+    "what": "THE MACHINE'S, NEW. 16d90c311's redesign (section 6) and balance review both say the two questions waiting for the director, how to weigh trades between axes and whether the cap is the right baseline for the tariff-placement arm, are \"in the one for_the_director row raised for this note\". No such row existed: the record's for_the_director was empty. A claim about the director's queue was made and never checked. 12:23 13 Nov: Corrected in this record. The row is value-test-baseline-and-axis-weighting.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
+    "first_at": "2026-11-13T12:23:13.777296+00:00",
+    "times_listed": 1,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the weekly rhythm's friday step, which owes the learning loop's hit rates and the week's regression count, has not been filed",
+    "what": "THE MACHINE'S, NEW. The weekly rhythm's Friday step, which owes the learning loop's hit rates and the week's regression count, has not been filed. The rhythm's state still shows Monday's step open (WEEKLY_BALANCE_REVIEW_2026-11-16 section 3). 12:23 13 Nov: Open. The brief carries the learning loop's numbers, but the rhythm has not recorded them.",
+    "last_at": "2026-11-13T12:23:13.777296+00:00",
+    "first_at": "2026-11-13T12:23:13.777296+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -486,19 +536,6 @@
     "first_at": "2026-11-13T03:21:32.538559+00:00",
     "times_listed": 3,
     "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the live capabilities page told the director \"fixed in the 7 days to 11 nov 2026: nothing recorded\" after a week that fixed dozens of money classes",
-    "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026: Nothing recorded\" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. 09:22 13 Nov: Unchanged on origin. The fix is in its gate (pid 1430307, item 3).",
-    "last_at": "2026-11-13T09:22:38.531472+00:00",
-    "first_at": "2026-11-13T06:21:44.766579+00:00",
-    "times_listed": 2,
-    "corrected": false,
     "fate": null,
     "status": null,
     "retired": false,
@@ -587,8 +624,8 @@
     "key": "text:a level-dd journey cures on the next instalment while the missed one is never made good",
     "what": "THE COMPANY'S, NEW. A level-DD journey cures on the next instalment while the missed one is never made good. On 298149a1fc there are 347 cures over a debt against a filed 0 to 3: 88 level at the cure, and 151 on 19 accounts that later left level DD. 21:24 11 Nov: Still 71 after ccdfb652d, and the learning loop says STOP. 00:22 12 Nov: Mapped (72c936d31). 35 of the 71 are our reader netting each fuel separately, so they are not company defects. 36 are code: B 10, C 10, D 14 and E 2, with D3 proper only 2. 03:24 12 Nov: The billing-account reader reads 33 on 15 (landing in flight). Cause B falls to 7, and is traced to the walk assigning cash to the next failed bill's case. Still far above 0 to 3. Item 2 maps the dating shapes. 06:24 12 Nov: Mapped (b2f8e23fc). Fixes 1 and 1b are on origin (f5d120302, 18148e6b6), and fix 2 is landing. The cure count has not been re-read since, so this is not yet corrected. Item 2 grades it. 09:22 12 Nov: Corrected on the 6fe7827ab2 run at origin. After fix 2 (9392920e6) the reader read 5 holds. Then c7e706580 (reader: a weekend DD due date, 5 -> 4), bd58577a2 (credit-month settlements reach the engine, 4 -> 1) and 1c66aceab (a leaver's closing credit meets its final bill only, 1 -> 0) took it to 0, inside the filed 0 to 3. Map s.9.3 to s.9.6 is on origin. The 16 Nov book confirms it on a fresh run.",
     "last_at": "2026-11-12T09:22:42.613155+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 31,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 30,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -639,8 +676,8 @@
     "key": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed",
     "what": "THE MACHINE'S, NEW. The early-publish commitment to the director (early-publish-this-week, due 10 Nov) will be missed. No book has passed the gate, and the Monday 04:00 anchor passed with nothing to publish. 18:22 11 Nov: A book has now passed (2e401fe1f), but nothing is published. The site's run figures are still 3 Nov's (item 1). 21:24 11 Nov: Corrected late. The 6fe7827ab2 book was published at e816040ce (20:31 11 Nov), about a day and a half after the due date.",
     "last_at": "2026-11-11T21:24:44.112942+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 27,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 26,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -743,8 +780,8 @@
     "key": "text:a level direct-debit household is dunned bill by bill",
     "what": "THE COMPANY'S, NEW. A level direct-debit household is dunned bill by bill. On fa915ac0d7, the collections journey prints a bill's face as overdue on 1,724 steps across 176 of 454 level-DD households (852 of them while the household is in credit or at zero; GBP 113,865 of excess), and 45 payment records read \"missed DD, no return\". 03:22 11 Nov: Corrected. On the D1 book e1587ec5b, INV_OVERDUE_WITHIN_PAGE_BALANCE reads 0 of 6,385, and its exception is retired (dc3e7dfeb), so a regression now refuses the publish.",
     "last_at": "2026-11-11T03:22:09.504239+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 18,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 17,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -795,8 +832,8 @@
     "key": "triage:the-billing-ledger-outgrows-githubs-file-limit",
     "what": "THE MACHINE'S, NEW. The billing ledger outgrew GitHub's 100 MiB file limit, and compact JSON is only a stopgap. [Earlier tails are in decisions.jsonl.] 06:24 10 Nov: Still 91.2 MB on origin. It was drawn last stretch and nothing landed. It is item 4.",
     "last_at": "2026-11-10T06:23:52.584636+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 13,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 12,
     "corrected": false,
     "fate": "fix",
     "status": "already_fixed",
@@ -808,8 +845,8 @@
     "key": "triage:a-desk-cure-over-a-bill-the-world-still-holds",
     "what": "THE COMPANY'S, THIS STRETCH. The collections desk closes a journey as cleared over bills the ledger still holds (SYN-2016-550). [Earlier tails are in decisions.jsonl.] 03:20 10 Nov: Graded on book 78f82e4242 (7f69f7882): shape A at 0 level cases above their remainder, as predicted. The cures still held over a leaver's debt are the level-DD cure row's.",
     "last_at": "2026-11-10T03:20:12.810361+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 11,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 10,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -834,8 +871,8 @@
     "key": "text:a world atom (w3_3) was drawn during the correctness stretch and built in the shared tree, and its uncommitted simulation/ bytes make sim-runner defer every cycle from 12:16",
     "what": "THE MACHINE'S, NEW. A world atom (W3_3) was drawn during the correctness stretch and built in the shared tree, and its uncommitted simulation/ bytes make sim-runner defer every cycle from 12:16. That holds the only book that can grade two supplier fixes. 00:20 10 Nov: Corrected by 52d751346: branch w3-3-network-split-held is on the remote at e52c7955f, the finding names it, and both simulation files are origin's.",
     "last_at": "2026-11-10T00:20:14.811382+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 9,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 8,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -912,8 +949,8 @@
     "key": "text:closed accounts keep balances years after their last bill",
     "what": "THE COMPANY'S, NEW. Closed accounts keep balances years after their last bill. On af31e73fa7, of 806 accounts with no bill for a year or more, 213 hold a credit (GBP 15,694, with no refund, against GSoP reg 6D) and 208 hold a debt (GBP 21,554), neither collected nor written off on the page. This is the 25 Oct two-books class, recurring. 15:20 9 Nov: Corrected on a book. The row reads 2 on 505df564e3 against 184 (control 131). The two short refunds are under a narrowed exception, with a recheck on 23 Nov (60f8d4b85).",
     "last_at": "2026-11-09T15:20:17.459238+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 3,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -925,41 +962,103 @@
     "key": "triage:a-stale-land-holder-blocks-the-draw-unrechecked",
     "what": "THE MACHINE'S, NEW. The draw refused the closed-account item 24 times because /var/tmp/se-seat-executor held a surgical_land diff unrelated to it, and nothing re-checked the stale holder while it was blocking. 15:20 9 Nov: Unchanged. Nothing re-checks a stale holder yet.",
     "last_at": "2026-11-09T15:20:17.459238+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 3,
+    "first_at": "2026-11-09T15:20:17.459238+00:00",
+    "times_listed": 2,
     "corrected": false,
     "fate": "fold",
     "status": null,
     "retired": true,
     "owner": "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md",
     "reason": "Triaged 2026-11-09 by the delivery seat. It is the same shape as a-held-work-refusal-never-re-asks-its-diff-digest, already folded there: a dead or unrelated holder's state outliving its relevance. The closed-account item it blocked landed and was graded on a book (60f8d4b85), so the cost was hours, not work. Reopen as fix if a held refusal costs a focus item a whole stretch again."
-   },
-   {
-    "key": "text:the pre-commit gate cannot finish within its own 3600s limit on a change to simulation/run_phase4c_on_phase2b.py and the arrears engine, so a finished supplier fix (the closed-account close, ready since 21:09 8 nov) has been refused twice with no red",
-    "what": "THE MACHINE'S, NEW. The pre-commit gate cannot finish within its own 3600s limit on a change to simulation/run_phase4c_on_phase2b.py and the arrears engine, so a finished supplier fix (the closed-account close, ready since 21:09 8 Nov) has been refused twice with no red. 12:23 9 Nov: The attribution was wrong. The close landed with its gate green in 634s (e0aeece0d, 1883 passed). The earlier attempts died at the worker's 5400s turn limit while re-verifying, not at the gate.",
-    "last_at": "2026-11-09T12:23:12.157998+00:00",
-    "first_at": "2026-11-09T12:23:12.157998+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
    }
   ],
-  "distinct": 48,
+  "distinct": 49,
   "triaged": 10,
   "triaged_by_fate": {
    "fix": 8,
    "fold": 2,
    "accept": 0
   },
-  "untriaged": 38,
-  "distinct_open": 16,
-  "rows": 531,
+  "untriaged": 39,
+  "distinct_open": 17,
+  "rows": 534,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "triage:the-account-page-drops-cash-the-household-repaid"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the launch register records a refused landing as a success"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\")"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the world's housing stock draws 72% of homes as poor insulation, because it reads need's scheme-install flag as the home's insulation"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the orientation brief counts a retired finding as blocking"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the level-dd cure row was filed as the company's defect, but no company/ or saas/ file changed in any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab)"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:fixes land on origin, and nothing runs them"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the refund-clock landing (surgical_land pid 2714284) died with nothing on origin, the second dead landing on this row in a day"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the live capabilities page told the director \"fixed in the 7 days to 11 nov 2026: nothing recorded\" after a week that fixed dozens of money classes"
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": true,
+    "problem": "text:16d90c311's redesign (section 6) and balance review both say the two questions waiting for the director, how to weigh trades between axes and whether the cap is the right baseline for the tariff-placement arm, are \"in the one for_the_director row raised for this note\""
+   },
+   {
+    "at": "2026-11-13T12:23:13.777296+00:00",
+    "corrected": false,
+    "problem": "text:the weekly rhythm's friday step, which owes the learning loop's hit rates and the week's regression count, has not been filed"
+   },
    {
     "at": "2026-11-13T09:22:38.531472+00:00",
     "corrected": false,
@@ -3554,66 +3653,6 @@
     "at": "2026-11-09T15:20:17.459238+00:00",
     "corrected": false,
     "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "triage:a-desk-cure-over-a-bill-the-world-still-holds"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "triage:the-billing-ledger-outgrows-githubs-file-limit"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "text:a level direct-debit household is dunned bill by bill"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "text:closed accounts keep balances years after their last bill"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": true,
-    "problem": "text:the pre-commit gate cannot finish within its own 3600s limit on a change to simulation/run_phase4c_on_phase2b.py and the arrears engine, so a finished supplier fix (the closed-account close, ready since 21:09 8 nov) has been refused twice with no red"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "triage:a-stale-land-holder-blocks-the-draw-unrechecked"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "text:a level-dd journey cures on the next instalment while the missed one is never made good"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "text:the early-publish commitment to the director (early-publish-this-week, due 10 nov) will be missed"
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "corrected": false,
-    "problem": "text:a world atom (w3_3) was drawn during the correctness stretch and built in the shared tree, and its uncommitted simulation/ bytes make sim-runner defer every cycle from 12:16"
    }
   ],
   "refused_own_records": [
@@ -3664,24 +3703,48 @@
    {
     "at": "2026-11-09T15:20:17.459238+00:00",
     "problems": []
-   },
-   {
-    "at": "2026-11-09T12:23:12.157998+00:00",
-    "problems": []
    }
   ],
-  "outstanding": 487,
+  "outstanding": 490,
   "corrected": 44,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-value-test-redesign-is-sized-and-predicted-before-the-16-nov-review",
+   "value-test-step-1-the-twelve-draw-family",
    "the-final-bill-issue-day-has-one-home-beside-bill-due-date",
    "capabilities-says-plainly-whether-per-customer-value-works"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-value-test-redesign-is-sized-and-predicted-before-the-16-nov-review",
+       "the-final-bill-issue-day-has-one-home-beside-bill-due-date"
+      ],
+      "focus": [
+       "the-value-test-redesign-is-sized-and-predicted-before-the-16-nov-review",
+       "the-final-bill-issue-day-has-one-home-beside-bill-due-date",
+       "capabilities-says-plainly-whether-per-customer-value-works"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-value-test-redesign-is-sized-and-predicted-before-the-16-nov-review",
+     "the-final-bill-issue-day-has-one-home-beside-bill-due-date"
+    ],
+    "focus": [
+     "the-value-test-redesign-is-sized-and-predicted-before-the-16-nov-review",
+     "the-final-bill-issue-day-has-one-home-beside-bill-due-date",
+     "capabilities-says-plainly-whether-per-customer-value-works"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-13T09:22:38.531472+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-13T09:22:38.531472+00:00"
+   },
    {
     "by_class": {
      "atom": {
@@ -3809,36 +3872,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-11-12T21:21:34.784218+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.1h since 2026-11-12T21:21:34.784218+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-written-off-accounts-printing-owed-are-read-after-n29-and-the-final-bill-net",
-       "the-shared-checkout-advances-past-paths-that-already-hold-origins-bytes"
-      ],
-      "focus": [
-       "the-written-off-accounts-printing-owed-are-read-after-n29-and-the-final-bill-net",
-       "the-shared-checkout-advances-past-paths-that-already-hold-origins-bytes",
-       "a-cold-read-ahead-of-the-16-nov-book",
-       "the-baseline-comparison-pre-registration-is-checked-against-this-weeks-fixes"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-written-off-accounts-printing-owed-are-read-after-n29-and-the-final-bill-net",
-     "the-shared-checkout-advances-past-paths-that-already-hold-origins-bytes"
-    ],
-    "focus": [
-     "the-written-off-accounts-printing-owed-are-read-after-n29-and-the-final-bill-net",
-     "the-shared-checkout-advances-past-paths-that-already-hold-origins-bytes",
-     "a-cold-read-ahead-of-the-16-nov-book",
-     "the-baseline-comparison-pre-registration-is-checked-against-this-weeks-fixes"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-12T18:22:55.025067+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-12T18:22:55.025067+00:00"
    }
   ],
   "steered_recently": true,
@@ -3846,13 +3879,13 @@
  },
  "the_queues_link_to_the_map": {
   "available": true,
-  "population": 38,
-  "chained": 38,
+  "population": 37,
+  "chained": 37,
   "minted": 6,
-  "unminted": 32,
+  "unminted": 31,
   "unminted_by_kind": {
    "alarm": 21,
-   "finding": 9,
+   "finding": 8,
    "reference": 2
   },
   "unresolved": [],
@@ -3950,7 +3983,7 @@
     },
     {
      "date": "2026-11-13",
-     "commit": "f0bca8e35",
+     "commit": "16d90c311",
      "population": 172,
      "chained": 172,
      "minted": 79,
