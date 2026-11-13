@@ -2017,3 +2017,17 @@ and the published run passes the IFRS 9 floor and step-up. What is left is the s
 late (2023, not 2022). The matrix books loss in the year debt forms, so that leg belongs to E6's
 build, not to a blocking world defect. Next: E6 at level 1 takes the 2022 leg as its build
 question. No run is launched for it from here.
+
+## 2026-11-13: E6's 2022 leg, graded on the 6fe7827ab2 book. The cap term cannot carry it, and the leg waits on the world
+
+On the published book (`docs/reports/run_output_latest.json.gz`, 6fe7827ab2), the matrix charges
+0.489% of revenue in 2022, against a 2016-19 base of 1.762%. The cap term at its published high
+lifts 2022 to 0.583%, about 7% of the gap, and lowers the pooled 2022-23 window (0.689% to
+0.685%). The cause is in the book: the end-2022 stock is GBP 2,926, against GBP 9,783 at
+end-2018. Table and reasoning: `bad_debt_provisioning.md`, "The 2022 leg on the 6fe7827ab2
+book". E6's map row now depends on W2_38, the world's payment draw reading price, so the draw
+stops offering a company build that cannot answer this. The live crisis leg still xfails under the
+named exception (0.689% is above its 0.32% ceiling).
+
+**Status:** OPEN, not BLOCKING. The remaining gap is the world's (W2_38). E6 resumes when a book
+drawn with a price-reading payment draw is published.

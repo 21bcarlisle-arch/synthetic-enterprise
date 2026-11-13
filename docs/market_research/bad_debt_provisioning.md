@@ -1894,3 +1894,29 @@ for any later build:
   re-drawing the cast. GAP: no figure is established, and the two casts are not enough to set one.
 - **Choice 4's release is moot while the term is off.** It is still a GAP. On the default cast the
   whole overlay was released in 2024, because the term reads growth and the level held at GBP 302.
+
+### The 2022 leg on the 6fe7827ab2 book: no provision method at published sizes can carry it (2026-11-13)
+
+The crisis finding (2026-10-28) handed E6 one build question: the charge steps up in 2023, not in
+2022 itself (`test_live_run_output_ifrs9_charge_steps_up_in_2022_itself`, strict xfail). The cap
+term is a reading after the run, so both arms were graded on the published book without a run. The
+charge is the validator's own `_ifrs9_charge_series`, as a % of revenue:
+
+| Arm | 2016-19 pooled | 2018 | 2021 | **2022** | 2023 | 2022-23 pooled |
+|---|---|---|---|---|---|---|
+| Matrix alone (published) | 1.762 | 2.855 | 0.179 | **0.489** | 0.830 | 0.689 |
+| Matrix + cap term (share 0.035 end-2021, 0.134 end-2022, 0 end-2023) | 1.762 | 2.855 | 0.198 | **0.583** | 0.756 | 0.685 |
+
+The cap term at the published high (Centrica's 13.4%) lifts 2022 by 0.09 points against a 1.27-point
+gap to the 2016-19 base. That closes about 7%, and it lowers the pooled crisis window. The gap is in
+the book, not the method. The end-2022 matrix stock is GBP 2,926, against GBP 9,783 at end-2018. The
+world's book carries less 2022 debt than its 2018 debt, so any provision that reads the book reads
+that. An overlay large enough to pass would be a number chosen to pass, which is the shape K2 forbids.
+
+**Disposition.** E6's 2022 leg now depends on the world's payment draw reading price
+(`W2_38_the_worlds_debt_is_graded_against_ofgems_quarterly_series`;
+`WORKER_FINDING_THE_WORLDS_PAYMENT_DRAW_HAS_NO_PRICE_INPUT_*`). The cap term stays off, because
+switching it on moves 2022 without passing and makes the pooled window worse. The 2016-19 base
+also moved since the 10-28 reading: it was 0.69% on 4ae8da9b0 and is 1.76% here, with 2018 at 2.86%.
+Whether that is a cast or a world change is not established here (GAP). It is the first thing to
+read when W2_38 moves.
