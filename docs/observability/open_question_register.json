@@ -1227,6 +1227,36 @@
       "question": "Is this per customer or on a random size sample?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-13, advisor in chat, relayed in this steer's addendum): they are book totals. The book is about 120 households over 2016-2025, about 270 renewals. +£5,244 is about £5 per household per year, and the selection figure is about £10. Putting this on the page is carried by continuation value-test-figures-per-household-year-from-the-feed."
+    },
+    "d5e3a94eb2fc": {
+      "ruling": "DIRECTOR_RULING_CAP_BASELINE_YES_AND_A_HIDDEN_WEIGHTED_UTILITY_THE_SUPPLIER_MUST_DISCOVER_2026-11-13.md",
+      "question": "The supplier must discover it ?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-13, delivery seat): yes. The weights are world-side ground truth and never cross the seam (W7, epistemic wall). The supplier infers them only from observables: choices, switching, payment behaviour, contacts, feedback. How well it infers is scored as a measure of the method (M4). Design route: docs/staging/SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md; knowledge page committed under value-test-hidden-weighted-utility-knowledge-page-first."
+    },
+    "f0d818e13b0d": {
+      "ruling": "DIRECTOR_STEER_A_STEER_WITH_MORE_THAN_TWO_OUTCOMES_GETS_A_DECISION_MAP_BEFORE_ANY_BUILD_2026-11-13.md",
+      "question": "Should we use this skill?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-13, advisor in chat, accepted by him at 18:40 'Ok, stage it'): no install. Adapt one idea, a decision map before build, trialled on the forward-weather steer after the 16 Nov reset."
+    },
+    "41181ca585cb": {
+      "ruling": "DIRECTOR_STEER_A_STEER_WITH_MORE_THAN_TWO_OUTCOMES_GETS_A_DECISION_MAP_BEFORE_ANY_BUILD_2026-11-13.md",
+      "question": "Did we look at it in the knowledge section?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-13, advisor in chat): no. It was named in the 28 Jul skills pilot and never read; nothing in site/knowledge/ covers it. The reading-log row is now in docs/institutional/reading_log.md, and the narrow read of wayfinder and handoff is queued."
+    },
+    "3e903999175a": {
+      "ruling": "DIRECTOR_STEER_BENCHMARK_ONE_COMPANY_FORECAST_AGAINST_A_FREE_TIME_SERIES_FOUNDATION_MODEL_2026-11-13.md",
+      "question": "What are time series foundation models and can they help us?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-13, advisor in chat, in this steer's 'What the advisor found'): they are pretrained forecasters that forecast a new series zero-shot with quantiles (TimesFM, Chronos, Moirai, Timestral). Whether they help is the measurement this steer queues: forward years primary, leakage measured."
+    },
+    "10895c399f3a": {
+      "ruling": "DIRECTOR_STEER_BENCHMARK_ONE_COMPANY_FORECAST_AGAINST_A_FREE_TIME_SERIES_FOUNDATION_MODEL_2026-11-13.md",
+      "question": "If timestral?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-13, advisor in chat): Timestral (Mistral, 15 Oct 2026) is the arm chosen for the benchmark. It is free, runs on CPU and accepts covariates, but its lead is vendor-reported and narrow, with no independent evaluation. There is no Claude equivalent."
     }
   }
 }

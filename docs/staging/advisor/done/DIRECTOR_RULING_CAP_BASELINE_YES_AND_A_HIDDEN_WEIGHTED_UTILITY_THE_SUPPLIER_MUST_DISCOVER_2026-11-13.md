@@ -35,3 +35,17 @@ The advisor had put the row's two choices to him with the machine's recommendati
 - **The household's responses must follow from its weights.** Acceptance, switching, grievance and payment choice should all follow from the same hidden utility. Otherwise the supplier is learning a number that drives nothing. Build on the existing activation-energy and resentment mechanics. Do not start a parallel one.
 - **Fit it to the value test plan.** Steps 1-5 go ahead as filed. Add the utility as the world-side scorer and the household response in the plan's order, with predictions filed first. Say in Sunday's balance proposal what it costs and where it sits in the queue. It may be that the first redesigned run reports the vector and the utility follows a run later. That is the machine's call, with its reason.
 - Close the `for_the_director` row with this resolution.
+
+## Done
+
+13 Nov, delivery seat (19:45Z).
+- The `for_the_director` row `value-test-baseline-and-axis-weighting` is closed with his words. It
+  commits to `value-test-hidden-weighted-utility-knowledge-page-first`, due 23 Nov.
+- The M3 draft is staged for the advisor and has not landed in canon:
+  `docs/staging/SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md`. It also argues
+  that a plain pound unit is still a risk (it reads as a bill saving and weights affluent households). It
+  proposes a household-valued money scale (compensating variation by the household's own hidden weights),
+  shown beside the vector, the transfer component and an equal-band reweighting.
+- The sequencing call: the first redesigned run reports the vector, and the utility follows a run later,
+  so the step in flight does not change two things at once. Its cost and queue position go into Sunday's
+  balance proposal.

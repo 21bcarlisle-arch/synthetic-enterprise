@@ -253,25 +253,35 @@ wrong:
       baton has held monday_ranking since 9 Nov. Item 3.
     corrected: false
 for_the_director:
-  - id: value-test-baseline-and-axis-weighting
-    raised: "2026-11-13"
-    kind: strategy
-    what: >-
-      The redesigned value test (docs/design/THE_VALUE_TEST_REDESIGN.md, 16d90c311) leaves two choices that define what
-      "beating a flat supplier" means. First, for the standard-variable pair, whether the flat baseline charges the
-      price cap. Second, whether the result is ever reduced to one number by weighing money against time, carbon and
-      peace of mind, or is reported only as the vector.
-    proposal: >-
-      The standard-variable pair's flat arm charges the cap, and the efficient-supplier allowance arm (rule 4) stays the
-      primary baseline. The result is reported as the M3 vector, with no weighting between axes. Where one arm wins on one
-      axis and loses on another, the page says so in words and declares no winner.
-    recommendation: >-
-      I recommend this. Evidence: an average GB supplier puts its standard-variable households on the cap. So a cap
-      baseline is the "average player" the thesis names, while the efficient allowance tests whether the gain is more
-      than a margin transfer (M2: "charging someone the cap transfers value rather than creating any"). M3 says each need
-      is "measured in its own unit and never converted to pounds", which rules out a weighting I could choose. The
-      trade-off is that a vector with mixed signs gives no headline verdict, and that is the honest reading. Holding
-      position until he rules: steps 1 to 5 go ahead, both baselines are built, and nothing is weighted. What would change
-      it: his ruling that a different flat supplier is the comparator, or a weighting he sets.
-    status: open
-    resolution: ""
+- id: value-test-baseline-and-axis-weighting
+  raised: '2026-11-13'
+  kind: strategy
+  what: The redesigned value test (docs/design/THE_VALUE_TEST_REDESIGN.md, 16d90c311) leaves two choices
+    that define what "beating a flat supplier" means. First, for the standard-variable pair, whether the
+    flat baseline charges the price cap. Second, whether the result is ever reduced to one number by weighing
+    money against time, carbon and peace of mind, or is reported only as the vector.
+  proposal: The standard-variable pair's flat arm charges the cap, and the efficient-supplier allowance
+    arm (rule 4) stays the primary baseline. The result is reported as the M3 vector, with no weighting
+    between axes. Where one arm wins on one axis and loses on another, the page says so in words and declares
+    no winner.
+  recommendation: 'I recommend this. Evidence: an average GB supplier puts its standard-variable households
+    on the cap. So a cap baseline is the "average player" the thesis names, while the efficient allowance
+    tests whether the gain is more than a margin transfer (M2: "charging someone the cap transfers value
+    rather than creating any"). M3 says each need is "measured in its own unit and never converted to
+    pounds", which rules out a weighting I could choose. The trade-off is that a vector with mixed signs
+    gives no headline verdict, and that is the honest reading. Holding position until he rules: steps
+    1 to 5 go ahead, both baselines are built, and nothing is weighted. What would change it: his ruling
+    that a different flat supplier is the comparator, or a weighting he sets.'
+  status: answered
+  resolution: 'Ruled 13 Nov 18:59 GMT: ''Yes. No. I think a weighted utility score is a good idea and
+    a way to capture enterprise customer value creation. NB this needs to be hidden in the SIM and underlying.
+    The supplier must discover it ?'' The cap baseline stands as proposed. Instead of an unweighted vector,
+    a per-household weighted utility is hidden in the world and the supplier must discover it. The vector
+    is still published beside it. M3 draft for the advisor: docs/staging/SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md.
+    The first redesigned run reports the vector and the utility follows a run later.'
+  resolved: '2026-11-13'
+  commitment:
+    work_id: value-test-hidden-weighted-utility-knowledge-page-first
+    done_means: M3 amended after the advisor reads the draft; a K8 knowledge page on household need weights
+      (GAPs labelled) published; Sunday's 16 Nov balance proposal names the utility's cost and queue position
+    due: '2026-11-23'

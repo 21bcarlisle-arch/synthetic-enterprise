@@ -50,3 +50,12 @@ Probable failure modes:
 Proportionality: doc-and-measurement only. Implement directly.
 
 — Director steer, 13 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+13 Nov, delivery seat (19:45Z). The reading-log entry is appended to `docs/institutional/reading_log.md`.
+The measurement (knowledge page first, then one forecast with three arms, forward years primary, leakage
+measured on history) is queued in `docs/direction/priority_order.yaml` `held_behind_the_exit_test`, after
+the forward-weather steer. It waits for the Mon 16 Nov 03:00Z reset, because the 18:51 usage reading keeps
+only the value-test family, the refund clock and Sunday's balance proposal this week. Nothing was
+downloaded.

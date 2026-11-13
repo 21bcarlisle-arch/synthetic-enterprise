@@ -51,3 +51,12 @@ Probable failure modes:
 Proportionality: doc-only. Implement directly.
 
 — Director steer, 13 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+13 Nov, delivery seat (19:45Z). Outcome 1 is met by not acting: nothing was installed. The reading-log
+entry is appended to `docs/institutional/reading_log.md`. Outcomes 2–4 (the decision map, its judgement,
+and the narrow wayfinder/handoff read) are queued in `docs/direction/priority_order.yaml`
+`held_behind_the_exit_test`, immediately before the forward-weather steer. The map is written first and the
+steer is not drawn before it. Both wait for the Mon 16 Nov 03:00Z reset, because the 18:51 usage reading
+defers this week's harness work and any new read.

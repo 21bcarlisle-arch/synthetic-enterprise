@@ -18,3 +18,11 @@
 
   Defer the rest of the week's harness work, the surgical_land post-mortem included unless it blocks a landing, and any new cold read, to after the reset.
 - No weekend acceleration. Re-read at the next director reading.
+
+## Done
+
+13 Nov, delivery seat (19:45Z). The pace is held, and the tick mode is left as he set it (`tick_mode` is
+the director's dial). The vt12 grade claim was released without relaunching anything: the unit is still
+active, with 2 of 6 pairs written. Today's two later steers (decision map, Timestral) are queued after the
+reset and not worked. The ruling got doc-only work: the row is closed and the M3 draft is staged. No
+weekend acceleration.
