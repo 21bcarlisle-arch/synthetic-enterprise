@@ -39,3 +39,25 @@ The catch-up line prints above VAT, or the catch-up prints VAT-inclusive with it
 equals 5% of the lines above it, and a door test reads that from the rendered bill.
 
 **Reverse.** Delete this file.
+
+## Done (2026-11-13)
+
+`site/explore/index.html` `BILL_COMPONENTS` now prints the catch-up adjustment above VAT; VAT is the
+last line before the total. No figure changed: only the order of the lines.
+
+Door test `site/explore/test_a_catch_up_bills_vat_is_the_vat_of_the_lines_above_it.py` drives the
+page's own `billEquationHtml()` over the committed per-customer ledger extract (`site/data/customers/`):
+- OCC-a097d0031a9f-INV5940 (the id is lower-case hex on the book; the cold read printed it upper-case)
+  reads VAT £5.96 = 5% of £97.58 + £21.57, with nothing between VAT and the total;
+- every domestic catch-up bill with VAT (6,581) prints VAT within 3p of 5% of the lines above it.
+
+Red before the change: both tests, 6,585 of 6,585 catch-up bills failing. Green after.
+
+The population test covers domestic accounts only. Four SME catch-up bills fail a single-rate
+identity. Two of them (C5-INV110 and C5-INV113) do not fit 20% on the whole net:
+- C5-INV110 fits mixed-rate VAT (5% de minimis this month, 20% on the corrected period);
+- C5-INV113 (VAT −£20.02) fits no rate.
+Filed separately as `SEAT_FINDING_AN_SME_CATCH_UP_BILLS_VAT_FITS_NO_RATE_2026-11-13.md`.
+
+Not changed: `company/billing/invoice.py`'s text invoice prints no catch-up line at all. It has no
+caller on a published surface, so it is out of this item's scope.

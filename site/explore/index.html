@@ -651,13 +651,16 @@ function catchupLabel(i){
    tests/company/compliance/test_printed_bill_foots_render.py pins the two against each other in
    BOTH directions so a component added to the invariant can never quietly go unprinted here.
    Why a list and not four hand-written rows: a hand-kept line-up is what produced the defect
-   twice -- once on /customers/ in 2026-08 and again on this page when it inherited the bill. */
+   twice -- once on /customers/ in 2026-08 and again on this page when it inherited the bill.
+   VAT prints LAST because the ledger charges it on the whole net, catch-up included: with the
+   catch-up below it, the VAT line read as wrong against the lines above it on every catch-up bill
+   (N31; site/explore/test_a_catch_up_bills_vat_is_the_vat_of_the_lines_above_it.py). */
 var BILL_COMPONENTS=[
   {key:"commodity_amount_gbp",always:true,label:function(){return "Usage";}},
   {key:"standing_charge_gbp",always:true,label:standingChargeLabel},
   {key:"non_commodity_amount_gbp",label:function(){return "Network &amp; environmental";}},
-  {key:"vat_gbp",label:function(){return "VAT";}},
-  {key:"catchup_adjustment_gbp",label:catchupLabel}
+  {key:"catchup_adjustment_gbp",label:catchupLabel},
+  {key:"vat_gbp",label:function(){return "VAT";}}
 ];
 /* A component prints when it is non-zero (or is always-printed). Zero is the only value that may
    be omitted, because omitting it cannot change the sum -- any other omission breaks the footing
