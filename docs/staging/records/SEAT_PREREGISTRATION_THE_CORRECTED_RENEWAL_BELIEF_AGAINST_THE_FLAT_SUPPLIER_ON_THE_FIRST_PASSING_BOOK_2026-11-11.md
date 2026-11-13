@@ -179,3 +179,97 @@ footnote.
 ## Reverse
 
 Delete this file. Nothing outside `docs/staging/records/` is touched.
+
+---
+
+## Amendment, 2026-11-13: checked against this week's fixes, before any arm is read
+
+Read at origin `363aebbd95`. **Still nothing has run.** No arm has been launched or read, so §6 may still be
+amended (it says "once any arm is read"). This amendment keeps every line above unchanged. It adds the
+following. Written by the delivery seat under claim
+`the-baseline-comparison-pre-registration-is-checked-against-this-weeks-fixes`.
+
+### A1. The runner: no change
+
+`tools/per_customer_switch_arms.py` has not changed since `94b281af7e` (24 Oct). `git diff 1b69ca1270 origin/main`
+is empty for it, and also for `tools/grade_per_customer_switch_seeds.py`, `company/policy/`,
+`simulation/run_phase2b.py`, `simulation/customer_events.py` (the renewal roll) and
+`tools/grade_world_debt_against_ofgem.py` (the payment dice). `arm_policy` still builds P (`all_on_ending_term`),
+A (`all_on`) and F (`flat`) from `ENDING_TERM_FIELDS` / `ALL_ON_FIELDS` / `FLAT_SUPPLIER_POLICY`. `run_arm` calls
+`simulation.run_phase4c_on_phase2b.main(policy=...)` at the worktree's own sha. So **every world and page fix
+below reaches every arm with no flag and no runner change, provided the arms run at the book's sha** (§1's one
+worktree). The 16 Nov book, built from origin after these commits, descends from all of them. The arms therefore
+run through this runner on a sha that book descends from.
+
+### A2. Commits since `1b69ca1270` on a path the arms, the book or the decision rule read
+
+| commit | path read | what reads it | effect on this record |
+|---|---|---|---|
+| `cab13bbd18` close-refund fix (s.8.8c/d) | `simulation/arrears_engine.py`, run wiring | every arm, the book | §1's `crfix` book was refused (068b5e3cc8 finding). See A3 |
+| `ccdfb652d7`, `9392920e60`, `1c66aceab6` | `simulation/arrears_engine.py` | every arm, the book | close/cure walk. Level shift, shared by every arm (A5) |
+| `bd58577a2c` | `simulation/world_payment_truth.py` | every arm | as above |
+| **`3af02a2dd1` N29 set-off** | `simulation/arrears_engine.py`, `credit_refund_events.py`, `run_phase4c_on_phase2b.py`, `company/billing/credit_refund.py`, seam | every arm (`main` re-walks with `set_offs=`), the book | O1 levels (A5). Its ceiling falls on the fresh book: **O0b** (A4) |
+| **`e4d06e2a10`** | `docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml` | the gate (launch leg 1, O0b) | `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO` excepted at `max_breached: 1` (A4) |
+| **`37d9342869` final-bill net** | `background/live_payment_triad.py` (imported by `run_phase2b`) | every arm | leaver cash: 195 legs, £4,715.67 on 6fe7827ab2 (A5) |
+| **`40a48b5d84` publisher supersede** | `background/process_run_complete.py` | launch leg 1 | `_domain_invariant_gate_permits_publish` is **unchanged**. Only the landing of a regenerated publish changed. The leg's meaning stands, and a passing book can now actually publish |
+| `7d43952ff7` | `company/compliance/domain_invariants.py` | the gate, O0b | N28 narrated sentences are now derived from bills. Fewer false breaches. Shared |
+| `0849f1427e`, `940b6e2423` | carbon page, grid-mix history | not O5 | O5 is settled kWh × the DESNZ factor per fuel. Neither is read |
+| `e5e0cdcae7` | `simulation/premise_population.py` | — | comment only. "No world behaviour changed" |
+| `6e994b119f`, `038bdef0ea`, `3a26ca9fa9`, `cbd8ace4ff` | archive, docstring, publisher inputs | — | no arm, book or rule effect |
+
+**Item 1's refund clock** (`refund-clock-issued-final-bill`, and the old-credit-netted-at-close half): **not on
+origin** at `363aebbd95`. No commit since `e4d06e2a10` touches `simulation/arrears_engine.py` or
+`simulation/credit_refund_events.py`. If it lands before the book, A4's reasoning applies to it too: its own
+finding predicts reg 6D request days move and breaches appear.
+
+### A3. §1, the book: amended
+
+The candidate is now **the 16 Nov 04:00 book** (DIRECTION: "one book carrying N29, the s.9 fixes, the final-bill net
+and the refund clock"), not `longjob-book-crfix-<sha>`. The added launch requirement: the book's `producing_commit`
+**descends from `3af02a2dd1` and `37d9342869`**, and from the refund-clock commit if one has landed. A book that
+does not is not this test's book. The rest of §1 stands: one worktree at exactly the book's sha, and a stamp that
+disagrees is refused.
+
+### A4. O0b, and how it meets §6 leg 1: amended prediction, and one reading fixed now
+
+The gate's exception ceilings were set by name on **one** draw of the dice. `max_breached` counts breaches, and the
+`scope` text names households. The arms re-draw every payment and renewal roll, so a different household can fall
+into the same traced class:
+
+- `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO` is at ceiling 1 (SYN-2016-139, refund clock). A seed that puts two
+  households into the old-credit-netted-at-close class refuses.
+- `INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT` is at 60 now. Its `retired_by` lowers it to the fresh
+  book's count (29 ± 3 predicted, `SEAT_PREREG_THE_16_NOV_BOOK_ON_THE_N29_ROWS_2026-11-12.md`). With the ceiling
+  at the book's own count, about half of the re-drawn members would sit above it on dice alone.
+
+**Amended O0b: 24 of 24 pass, confidence 0.70 → 0.30.** The 0.70 line is kept above as the original.
+
+**Fixed now, before any arm is read:** an O0b failure **is** an O0 failure. It voids that seed's triple under §6
+leg 1. The other reading (excepting a closing-refund overshoot because it "is the world's, not the arm's") is the
+except-to-fit that O0b forbids. The F11 direction also says to take the stricter reading. So:
+
+- **New prediction (0.55):** if §6 fails, it fails at leg 1. It fails through the two closing-refund rows, not
+  through an arm-specific breach.
+- **If leg 1 fails only through rows whose every breach is a closing household's refund or set-off**, the result
+  is reported as **"cannot tell: the world's account close is not yet sound enough to grade this comparison"**.
+  It is not a refutation of the belief, and the switch stays off (§6). Any re-run on a book where those rows read
+  0 is a **new** pre-registration, as §6 requires.
+- A per-arm difference in those rows' breach counts is still graded under O6 as a finding against that arm.
+
+### A5. O1: predictions unchanged, attribution note added
+
+N29 and the final-bill net move a **leaver's** money in opposite directions. The set-off lowers a dual-fuel
+closer's write-off, which makes leaving look cheaper. The final-bill net stops the world collecting a final bill's
+face that the page said credit covered, which takes cash off leavers that the desk had counted. Only the P − F
+difference matters here, and O2a predicts the arms' departures differ by −6 to +3 households per seed. At
+£4,715.67 / 195 ≈ £24 per affected leg, the differential is of order £10²: an order below O1b's ±£1,500
+half-width. **O1a–O1d and §6 legs 2–4 stand.** I cannot yet say the sign of the net differential, and no
+prediction is filed on it. The seeds 2–5 spread that §3's eight-seed sizing uses was measured on a book without
+these fixes, so the sizing is an estimate carried across books. That was already true on 11 Nov.
+
+O0c (the belief's AUC), O2, O3, O4 and O5 read nothing these commits changed (A1, A2). **No change.**
+
+### A6. What this amendment does not do
+
+It launches nothing, arms nothing and flips no switch. `renewal_belief_by_ending_term` stays `False`. §8 stays empty
+until launch.
