@@ -66,6 +66,7 @@ from company.billing.back_billing import (
     RecoveryPeriod,
     barred_unrecovered_gbp,
 )
+from company.billing.dual_fuel_bill import vat_rate_for_supply
 from company.billing.gas_volume_conversion import conversion_terms, kwh_from_volume
 from company.billing.pre_bill_validation import release_on_measured_rate, validate_bill
 from company.billing.read_duty_register import read_instruction_due
@@ -564,6 +565,13 @@ def _resolve_catchup(
         else round(vat_delta_gbp * chargeable_gbp / raw_delta_gbp, 2) + 0.0
     )
 
+    lines_by_rate = (
+        None if chargeable_vat_gbp is None or not all(
+            "true_vat_rate" in p and "vat_rate" in p for p in pending_run)
+        else _catchup_lines_by_rate(
+            pending_run, 0.0 if raw_delta_gbp == 0 else chargeable_gbp / raw_delta_gbp,
+            round(round(chargeable_gbp, 2) - chargeable_vat_gbp, 2), chargeable_vat_gbp))
+
     result = {
         "period_start": period_start,
         "period_end": period_end,
@@ -579,6 +587,7 @@ def _resolve_catchup(
         "true_up_kwh": true_up_kwh,
         "barred_kwh": barred_kwh,
         "back_billing_basis": basis,
+        "lines_by_rate": lines_by_rate,
     }
     if recovery_periods is not None:
         result["recovery_periods"] = recovery_periods
@@ -587,6 +596,45 @@ def _resolve_catchup(
         result["write_off_adjustment_reason"] = write_off_adjustment.reason
         result["write_off_adjustment_status"] = write_off_adjustment.status.value
     return result
+
+
+def _vat_rate_of(bill: dict, segment: str, commodity: str) -> float:
+    """The VAT rate a priced period bore, by the biller's own function on the bill's own kWh and days."""
+    return vat_rate_for_supply(segment, commodity, bill.get("total_consumption_kwh") or 0.0,
+                               bill.get("days_in_period") or 0)
+
+
+def _catchup_lines_by_rate(
+    pending_run: list[dict], chargeable_share: float, net_gbp: float, vat_gbp: float,
+) -> list[dict]:
+    """The catch-up as one line per VAT rate: each month's billed side reversed at the rate it was
+    billed at, its true side charged at the rate it truly bore, summed by rate and scaled by the
+    share the bar left chargeable.
+
+    VAT Notice 700 s16.3.1 asks a VAT invoice for "the rate of VAT, and the amount payable excluding
+    VAT" on each description, and s18.2.3-18.2.5 a credit or debit note for the rate and VAT at the
+    original supply's rate. A business month estimated over its de minimis and read under it is a
+    20% credit and a 5% debit, so one line was at no rate (C5-INV113; back_billing_and_liability.md
+    section 15). The lines sum to `net_gbp` and `vat_gbp` exactly, the catch-up's printed line and
+    its VAT: a rounding penny goes to the largest line, so every current reader is unchanged."""
+    by_rate: dict[float, list[float]] = {}
+    for p in pending_run:
+        billed = by_rate.setdefault(p["vat_rate"], [0.0, 0.0])
+        billed[0] -= p["total_amount_gbp"] - p["vat_gbp"]
+        billed[1] -= p["vat_gbp"]
+        true = by_rate.setdefault(p["true_vat_rate"], [0.0, 0.0])
+        true[0] += p["true_total_amount_gbp"] - p["true_vat_gbp"]
+        true[1] += p["true_vat_gbp"]
+    lines = [{"rate": rate, "net_gbp": round(n * chargeable_share, 2) + 0.0,
+              "vat_gbp": round(v * chargeable_share, 2) + 0.0}
+             for rate, (n, v) in sorted(by_rate.items(), reverse=True)]
+    lines = [ln for ln in lines if ln["net_gbp"] or ln["vat_gbp"]] or lines[:1]
+    for key, target in (("net_gbp", net_gbp), ("vat_gbp", vat_gbp)):
+        residual = round(target - sum(ln[key] for ln in lines), 2)
+        if residual:
+            largest = max(lines, key=lambda ln: abs(ln[key]))
+            largest[key] = round(largest[key] + residual, 2) + 0.0
+    return lines
 
 
 def _dd_barred_gbp(recovery_periods: list[dict], demand_date: date, is_domestic: bool) -> float:
@@ -907,7 +955,8 @@ def build_monthly_bills(
                                 contract_type, None, segment, commodity, payment_channel)
                             period.update(used_kwh=repriced["total_consumption_kwh"],
                                      true_total_amount_gbp=repriced["total_amount_gbp"],
-                                     true_vat_gbp=repriced["vat_gbp"])
+                                     true_vat_gbp=repriced["vat_gbp"],
+                                     true_vat_rate=_vat_rate_of(repriced, segment, commodity))
                     month_kwh = max(month_kwh, 0.0)
                     if abs(month_kwh - true_bill["total_consumption_kwh"]) > 0.005:
                         # A month that settled nothing has no energy rows to scale, so the meter's
@@ -981,6 +1030,8 @@ def build_monthly_bills(
                     bill["catchup_adjustment_gbp"] = round(
                         catchup["chargeable_gbp"] - catchup_vat, 2) + 0.0
                     bill["catchup_vat_gbp"] = catchup_vat
+                    if catchup["lines_by_rate"] is not None:
+                        bill["catchup_lines_by_rate"] = catchup["lines_by_rate"]
                     bill["vat_gbp"] = bill["vat_gbp"] + catchup_vat
                     bill["catchup_written_off_gbp"] = catchup["written_off_gbp"]
                     bill["catchup_back_billing_cap_applied"] = catchup["back_billing_cap_applied"]
@@ -1195,6 +1246,9 @@ def build_monthly_bills(
                                           or _economy_7_register_kwh(months[month])),
                     "true_vat_gbp": bill["true_vat_gbp"],
                     "vat_gbp": 0.0 if held else bill["vat_gbp"],
+                    # The rate each side was charged at, so the catch-up can print a line per rate.
+                    "true_vat_rate": _vat_rate_of(true_bill, segment, commodity),
+                    "vat_rate": _vat_rate_of(estimated_bill, segment, commodity),
                     "held": held,
                 })
             # What the Treasury paid for this month's Energy Price Guarantee: its share on the

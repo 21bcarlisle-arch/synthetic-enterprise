@@ -124,6 +124,59 @@ def test_c5_inv113_prints_its_vat_as_this_months_and_the_catch_ups_each_at_its_o
     assert Decimal("112.49") - Decimal("157.51") == Decimal(str(record["catchup_adjustment_gbp"]))
 
 
+def _render_c5_inv113(tmp_path, **fields):
+    page_file = json.loads((CUSTOMERS / "C5.json").read_text())
+    record = next(i for i in page_file["invoices"] if i["id"] == "C5-INV113")
+    record.update(catchup_vat_gbp=-25.88, **fields)
+    page_file["invoices"] = [record]
+    scratch = tmp_path / "C5.json"
+    scratch.write_text(json.dumps(page_file))
+    proc = subprocess.run([NODE, str(HARNESS), str(PAGE), str(scratch)],
+                          capture_output=True, text=True, timeout=120)
+    assert proc.returncode == 0, proc.stderr[-2000:]
+    screen = json.loads(proc.stdout)["accounts"][0]["invoices"][0]["screen"]
+    return record, ROW.findall(screen), _rows(screen)
+
+
+# What the assembly writes for C5-INV113 (`_catchup_lines_by_rate`, pinned at these figures in
+# tests/company/billing/test_a_catch_up_is_one_line_per_vat_rate.py). The committed C5.json predates
+# the field, so it is given here, as `catchup_vat_gbp` is above.
+C5_INV113_LINES = [{"rate": 0.2, "net_gbp": -157.51, "vat_gbp": -31.5},
+                   {"rate": 0.05, "net_gbp": 112.49, "vat_gbp": 5.62}]
+
+
+def test_c5_inv113_prints_its_catch_up_as_one_row_per_vat_rate_naming_the_invoice_it_corrects(tmp_path):
+    """VAT Notice 700 s16.3.1 asks for a rate on every line; s18.2.3-18.2.5 a rate and VAT on a credit
+    or debit note, at the original supply's rate, and the original invoice's number. C5-INV113's
+    catch-up is a 20% credit and a 5% debit, which printed as one line at no rate. Fails if the rows
+    stop being one per rate, stop naming the rate or C5-INV112, or stop adding to the catch-up."""
+    record, raw, rows = _render_c5_inv113(
+        tmp_path, catchup_lines_by_rate=C5_INV113_LINES, catchup_corrects_invoices=["C5-INV112"])
+    catch_up = [(label, amount) for label, amount in rows if "Catch-up adjustment" in label]
+    assert [amount for _, amount in catch_up] == [Decimal("-157.51"), Decimal("112.49")], catch_up
+    assert "VAT at 20%" in catch_up[0][0] and "-£31.50" in catch_up[0][0], catch_up[0][0]
+    assert "VAT at 5%" in catch_up[1][0] and "£5.62" in catch_up[1][0], catch_up[1][0]
+    assert all("corrects C5-INV112" in label for label, _ in catch_up), catch_up
+    assert sum(amount for _, amount in catch_up) == Decimal(str(record["catchup_adjustment_gbp"]))
+    # Each row's VAT is its rate of its own line: the identity one line at no rate could not meet.
+    for line in C5_INV113_LINES:
+        assert abs(Decimal(str(line["net_gbp"])) * Decimal(str(line["rate"]))
+                   - Decimal(str(line["vat_gbp"]))) <= PENNY
+    vat, above, below = _vat_and_lines_above(rows)
+    assert vat == Decimal("-20.02") and below == ["= Total"]
+
+
+def test_a_one_rate_catch_up_keeps_one_row_and_names_its_rate(tmp_path):
+    """The split is taken only at more than one rate: a catch-up at one rate stays one row (the
+    ledger's own `catchup_adjustment_gbp`, which the footing controls read), with its rate."""
+    _, _, rows = _render_c5_inv113(
+        tmp_path, catchup_lines_by_rate=[{"rate": 0.05, "net_gbp": -45.02, "vat_gbp": -2.25}],
+        catchup_corrects_invoices=["C5-INV112"])
+    catch_up = [(label, amount) for label, amount in rows if "Catch-up adjustment" in label]
+    assert [amount for _, amount in catch_up] == [Decimal("-45.02")], catch_up
+    assert "VAT at 5%;" in catch_up[0][0] and "corrects C5-INV112" in catch_up[0][0]
+
+
 def test_a_bill_without_a_catch_up_vat_prints_its_vat_line_alone():
     """The split is taken only when there is something to split: the plain VAT row must still be
     one figure, or every ordinary bill grows a '£0.00 on the catch-up' clause."""

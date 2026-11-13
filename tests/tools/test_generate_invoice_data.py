@@ -99,6 +99,19 @@ def test_real_invoice_carries_through_catchup_fields():
     assert inv["catchup_back_billing_cap_applied"] is False
 
 
+def test_real_invoice_carries_the_catch_ups_lines_by_rate_and_names_its_corrected_bills_by_page_id():
+    lines = [{"rate": 0.2, "net_gbp": -157.51, "vat_gbp": -31.5},
+             {"rate": 0.05, "net_gbp": 112.49, "vat_gbp": 5.62}]
+    inv = _real_invoice(_raw_invoice(
+        customer_id="C5", invoice_number=113, catchup_applied=True,
+        catchup_adjustment_gbp=-45.02, catchup_vat_gbp=-25.88, vat_gbp=4.81 - 25.88,
+        total_amount_gbp=101.0 - 45.02 - 25.88, catchup_lines_by_rate=lines,
+        catchup_corrects_invoice_numbers=[112]))
+    assert inv["catchup_lines_by_rate"] == lines
+    assert inv["catchup_corrects_invoices"] == ["C5-INV112"]
+    assert _real_invoice(_raw_invoice())["catchup_corrects_invoices"] is None
+
+
 def test_real_invoices_for_missing_customer_returns_empty_list():
     assert real_invoices_for("NOPE", {}) == []
 

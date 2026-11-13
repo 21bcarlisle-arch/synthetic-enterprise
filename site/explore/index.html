@@ -639,12 +639,34 @@ function standingChargeLabel(i){
 /* The catch-up line names the period it corrects and which way it corrects it. The FIGURE is
    carried straight through from the ledger's catchup_adjustment_gbp -- never re-derived here from
    the raw delta, the written-off part, or "total minus the other four". */
-function catchupLabel(i){
+function catchupLabel(i,line){
   var dir=i.catchup_direction==="overcharge"?"overcharge correction"
     :i.catchup_direction==="undercharge"?"undercharge correction":"correction";
   var per=(i.catchup_period_start&&i.catchup_period_end)
     ?(" for "+esc(i.catchup_period_start)+" to "+esc(i.catchup_period_end)):"";
-  return "Catch-up adjustment ("+dir+per+")";
+  var lines=catchupRateLines(i);
+  if(!line&&lines&&lines.length===1)line=lines[0];
+  var rate=line?(", VAT at "+(Math.round(Number(line.rate)*1000)/10)+"%"+
+    (lines.length>1?" ("+billGbp(line.vat_gbp)+")":"")):"";
+  var refs=(i.catchup_corrects_invoices&&i.catchup_corrects_invoices.length)
+    ?("; corrects "+i.catchup_corrects_invoices.map(esc).join(", ")):"";
+  return "Catch-up adjustment ("+dir+per+rate+refs+")";
+}
+/* A VAT invoice states the rate on every line, and a credit or debit note the rate and VAT at the
+   original supply's rate (VAT Notice 700 s16.3.1, s18.2.3-18.2.5). A business month estimated over
+   its de minimis and read under it is a 20% credit and a 5% debit (C5-INV113), so a catch-up at
+   more than one rate prints one row per rate, each the ledger's own `catchup_lines_by_rate` entry;
+   the entries sum to `catchup_adjustment_gbp`. A catch-up at one rate keeps its one row. */
+function catchupRateLines(i){
+  var l=i.catchup_lines_by_rate;
+  return (Array.isArray(l)&&l.length)?l:null;
+}
+function catchupRateRowsHtml(i){
+  var lines=catchupRateLines(i);
+  if(!lines||lines.length<2)return null;
+  return lines.map(function(line){
+    return "<div class=\"row\"><span class=\"rl\">+ "+catchupLabel(i,line)+"</span><span>"+billGbp(line.net_gbp)+"</span></div>";
+  }).join("");
 }
 /* THE BILL'S COMPONENT SET (D36). This is BILL_FOOTS's own footing set --
    _FOOTING_COMPONENT_KEYS in company/compliance/domain_invariants.py -- in printing order, and
@@ -659,7 +681,7 @@ var BILL_COMPONENTS=[
   {key:"commodity_amount_gbp",always:true,label:function(){return "Usage";}},
   {key:"standing_charge_gbp",always:true,label:standingChargeLabel},
   {key:"non_commodity_amount_gbp",label:function(){return "Network &amp; environmental";}},
-  {key:"catchup_adjustment_gbp",label:catchupLabel},
+  {key:"catchup_adjustment_gbp",label:catchupLabel,rows:catchupRateRowsHtml},
   {key:"vat_gbp",label:function(){return "VAT";},detail:vatSplitHtml}
 ];
 /* A catch-up's VAT is each corrected month's VAT, true less billed, at the rate that month's supply
@@ -683,6 +705,8 @@ function billComponentPrints(c,i){
 }
 function billComponentRowHtml(c,i){
   if(!billComponentPrints(c,i))return "";
+  var split=c.rows?c.rows(i):null;
+  if(split)return split;
   return "<div class=\"row\"><span class=\"rl\">+ "+c.label(i)+"</span><span>"+(c.detail?c.detail(i):"")+billGbp(i[c.key])+"</span></div>";
 }
 function billUsageLinesHtml(i){

@@ -957,10 +957,19 @@ binds SME bills only.
 
 **Measured on the committed ledger (e816040ce8 twin):** 6,589 domestic and 4 SME catch-up bills. One
 SME bill, C5-INV113, has catch-up VAT at no single rate. The build (`catchup_lines_by_rate`, one
-printed row per rate, plus the original invoice references) is filed as
-`docs/staging/SEAT_FINDING_A_RE_RATED_SME_CATCH_UP_PRINTS_ONE_LINE_AT_NO_RATE_WHERE_A_VAT_INVOICE_NEEDS_A_RATE_PER_LINE_2026-11-13.md`.
+printed row per rate, plus the original invoice references) was filed as a staging finding and is
+built below; the finding is retired.
 **GAP (practitioner):** whether a supplier prints a re-rated month as reverse-and-rebill or as a
 net line per rate. Both meet §16.3.1. The design takes the net line per rate as the smaller change.
+
+**Built (2026-11-13).** `monthly_bill_assembly._catchup_lines_by_rate` sums each corrected month's
+billed side at its billed rate and true side at its true rate, scales by the share the bar left
+chargeable, and puts a rounding penny on the largest line, so the lines sum to
+`catchup_adjustment_gbp` and `catchup_vat_gbp` exactly. C5-INV113 reads two lines: net -£157.51 at
+20% (VAT -£31.50) and net +£112.49 at 5% (VAT +£5.62). The ledger also names the invoices the
+catch-up corrects (`catchup_corrects_invoice_numbers`, §18.2.3). Explore prints one row per rate when
+there are two or more. A one-rate catch-up keeps its one row, with its rate and the invoices named.
+The published page shows this from the first book built after the change.
 
 *Outside the simulated window, noted only:* Notice 701/19 (updated 28 Oct 2026) states a temporary
 0% rate for qualifying electricity in Great Britain from 1 October 2026 to 30 June 2027. It does not

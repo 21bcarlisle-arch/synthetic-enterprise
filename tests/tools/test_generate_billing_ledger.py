@@ -334,6 +334,32 @@ def test_d3_catchup_fields_carried_through_to_invoice(tmp_path):
     assert inv["catchup_back_billing_cap_applied"] is True
 
 
+def test_a_catch_up_carries_its_lines_by_rate_and_names_the_invoices_it_corrects(tmp_path):
+    """VAT Notice 700 s18.2.3: a credit or debit note gives the number of the invoice it corrects,
+    and s16.3.1 a rate on each line. The ledger carries the assembly's per-rate lines as they are and
+    names the same account's same-fuel invoices inside the corrected period, and no others."""
+    before, first, second = (_bill("C_IC1", end, 8000.0) for end in ("2021-03-31", "2021-06-30", "2021-09-30"))
+    catch_up = _bill("C_IC1", "2021-12-31", 8000.0)
+    lines = [{"rate": 0.2, "net_gbp": -150.0, "vat_gbp": -30.0},
+             {"rate": 0.05, "net_gbp": 100.0, "vat_gbp": 5.0}]
+    catch_up.update({
+        "catchup_applied": True, "catchup_period_start": first["period_start"],
+        "catchup_period_end": second["period_end"], "catchup_periods_covered": 2,
+        "catchup_direction": "overcharge", "catchup_raw_delta_gbp": -75.0,
+        "catchup_adjustment_gbp": -50.0, "catchup_vat_gbp": -25.0,
+        "catchup_lines_by_rate": lines,
+        "vat_gbp": catch_up["vat_gbp"] - 25.0, "total_amount_gbp": 8000.0 - 75.0,
+    })
+    rj = tmp_path / "run.json"
+    rj.write_text(json.dumps(_run([before, first, second, catch_up])))
+    invoices = generate(rj, tmp_path / "l.json")["customers"]["C_IC1"]["invoices"]
+    by_end = {i["period_end"]: i for i in invoices}
+    inv = by_end["2021-12-31"]
+    assert inv["catchup_lines_by_rate"] == lines
+    assert inv["catchup_corrects_invoice_numbers"] == [
+        by_end["2021-06-30"]["invoice_number"], by_end["2021-09-30"]["invoice_number"]]
+
+
 # BILL_CORRECTNESS_ADDENDUM.md Defect 3 (2026-07-09): register/period-
 # structured bill lines (ToU-ready schema, not ToU itself).
 

@@ -844,6 +844,17 @@ def generate(run_json_path=None, out_path=None):
             inv["catchup_adjustment_gbp"] = printed_money.get("catchup_adjustment_gbp")
             # Inside the printed VAT line, not a line of its own (`catchup_adjustment_gbp` is before VAT).
             inv["catchup_vat_gbp"] = bill.get("catchup_vat_gbp")
+            # The catch-up per VAT rate (net, VAT, rate) and the invoices it corrects: a VAT credit or
+            # debit note names both (VAT Notice 700 s16.3.1, s18.2.3-18.2.5). The lines sum to the
+            # two figures above. Absent on a bill assembled before the split.
+            if bill.get("catchup_lines_by_rate") is not None:
+                inv["catchup_lines_by_rate"] = bill["catchup_lines_by_rate"]
+            # A catch-up handed over without its period cannot name what it corrects: None, not [].
+            first, last = inv["catchup_period_start"], inv["catchup_period_end"]
+            inv["catchup_corrects_invoice_numbers"] = None if not (first and last) else [
+                i["invoice_number"] for i in invoices_by_cid.get(cid, [])
+                if i.get("commodity") == commodity
+                and first <= i["period_start"] and i["period_end"] <= last]
             inv["catchup_written_off_gbp"] = bill.get("catchup_written_off_gbp")
             inv["catchup_back_billing_cap_applied"] = bill.get("catchup_back_billing_cap_applied")
             # A HELD BILL IS RELEASED HERE, at the next actual read: the assembly reconciles a held

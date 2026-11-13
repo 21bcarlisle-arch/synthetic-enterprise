@@ -331,7 +331,10 @@ def test_the_printed_catch_up_figure_is_the_ledgers_own(rendered):
     for inv_id, r in _catch_up_bills(rendered).items():
         expected = _dec(r["record"][CATCHUP_KEY])
         printed = [amt for label, amt in _rows(r["screen"]) if "Catch-up adjustment" in label]
-        if printed != [expected]:
+        # A catch-up at more than one VAT rate prints the ledger's own line per rate, which sum to it.
+        lines = r["record"].get("catchup_lines_by_rate") or []
+        carried = [_dec(ln["net_gbp"]) for ln in lines] if len(lines) > 1 else [expected]
+        if printed != carried or sum(carried) != expected:
             wrong.append((inv_id, printed, expected))
     assert not wrong, f"printed catch-up figures that are not the ledger's: {wrong[:5]}"
 
