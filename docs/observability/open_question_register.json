@@ -1215,6 +1215,18 @@
       "question": "Huh?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-11, advisor in chat, relayed in this steer's 'What the advisor found'): forward years do not simulate weather; they replay one real 2016-2025 year each (sim/weather_world.py::extended_by_analogue_years). A statistical generator exists (sim/weather_engine.py) but the forward world does not use it."
+    },
+    "715ff77c90d8": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_MUST_SAY_PLAINLY_WHETHER_PER_CUSTOMER_VALUE_WORKS_AND_THE_VALUE_TEST_GOES_FIRST_2026-11-13.md",
+      "question": "Has the website updated?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-13, in this steer's 'What he read'): yes, Capabilities was regenerated on 11 Nov at 40a48b5d8, but its lead still quoted the 8 Oct run. The lead was rewritten in plain words in f4f825b8b. A newer run exists only when the 12-draw family (77bf74f880) reads on 14 Nov."
+    },
+    "2d135721dd89": {
+      "ruling": "DIRECTOR_STEER_THE_SITE_MUST_SAY_PLAINLY_WHETHER_PER_CUSTOMER_VALUE_WORKS_AND_THE_VALUE_TEST_GOES_FIRST_2026-11-13.md",
+      "question": "Is this per customer or on a random size sample?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-13, advisor in chat, relayed in this steer's addendum): they are book totals. The book is about 120 households over 2016-2025, about 270 renewals. +£5,244 is about £5 per household per year, and the selection figure is about £10. Putting this on the page is carried by continuation value-test-figures-per-household-year-from-the-feed."
     }
   }
 }

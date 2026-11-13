@@ -65,3 +65,18 @@ What is asked, adding to the steer above:
   year, with the belief's skill first. The feed does not carry household-years or the redesign's
   clustered AUC (0.52), so the page cannot compute them yet. Typing them in is the defect the
   26 Oct steer forbade. Handed on as `value-test-figures-per-household-year-from-the-feed`.
+
+## Archived, 13 Nov 15:45Z (delivery seat)
+
+The advisor channel refused this file because f4f825b8b (the seat's progress note above) is unsigned.
+The signed text is bd9875ade's, and the diff between them is that progress section and nothing else.
+The ruling itself is unchanged. It was read from bd9875ade's bytes and acted on as the director's.
+
+- Item 1 (lead, appendix ranges, "Nothing recorded"): landed in f4f825b8b.
+- Item 2 and addendum 3 (redesign first, sized from the household noise split): landed in 16d90c311f.
+- Still open, and each is carried by a live continuation, so this file no longer has to hold it:
+  - Addendum items 1 and 2 (per household per year first; the belief's skill leads):
+    `value-test-figures-per-household-year-from-the-feed`.
+  - "Done means" (a verdict, or "cannot tell yet, because X", from a run no older than the page):
+    `value-test-step-1-grade-the-twelve-draw-family-once-it-exits`. That step waits for
+    `longjob-value-test-12-draw-family-pairs`, which was still active at 15:44Z. It reads on 14 Nov.
