@@ -291,3 +291,27 @@ def test_the_post_merge_refusal_names_them_too(monkeypatch):
     assert r["status"] == orc.NOT_ADVANCED and r["pushed"] is True
     assert "held.py" in r["detail"] and r["blocking_paths"]
     assert "did NOT advance" in r["detail"], "the loop-detection wording must survive the edit"
+
+
+def test_the_held_set_survives_the_watch_lines_cap(monkeypatch):
+    """The held set must still be there after the watch cuts the line. `advance_shared_tree` says
+    which blockers no class could prove, and `reconcile_watch` cuts the detail at
+    FORK_DETAIL_CHARS. On 2026-11-12 the reason came after about 2,500 characters of per-kind
+    remedy, so every pass logged 1,478 refusers while only 76 were held.
+
+    MUTATION: put `advance: {}` back after the blocking clause and the held count is cut off.
+    The first assertion checks that the blocking clause really is long enough to push the held
+    count past the cap if it came first. Without that, the main assertion would pass whatever the
+    order was."""
+    from background import reconcile_watch as rw
+    monkeypatch.setattr(orc, "_git", _refusing_git("refused"))
+    many = ([{"path": "docs/staging/SEAT_FINDING_A_LONG_ROOT_FINDING_NAME_OF_THE_KIND_THIS_TREE_WRITES_{:03d}_2026-11-12.md".format(i), "kind": orc.FF_MODIFIED}
+             for i in range(40)]
+            + [{"path": "docs/staging/ORPHAN_{}.md".format(i), "kind": orc.FF_UNTRACKED}
+               for i in range(10)])
+    held = "76 of 1478 blocking path(s) could NOT be proven lossless or carried"
+    r = _not_advanced(many, advance_fn=lambda _p=None: {"advanced": False, "cleared": [],
+                                                        "reason": held})
+    assert len(orc._blocking_clause(many, 0)) > rw.FORK_DETAIL_CHARS
+    line = " ".join(r["detail"].split())[:rw.FORK_DETAIL_CHARS]
+    assert held in line

@@ -80,6 +80,12 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_EVERY_RUN_SINCE_09_24_IMPORTED_AN_UNLANDED_SETTLEMENT_CHOICE_AXIS_EDIT_AND_THE_PUBLISHER_NOW_REFUSES_IT_2026-10-14.md`
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_FINDING_THE_81_PATHS_HOLDING_THE_SHARED_TREE_ARE_ONE_UNLANDED_ORIENTATION_AND_ONE_REFUSED_PUBLISH_2026-11-12.md` — lane `A_strategy_governance`
+
 ## Disposition
 
 **Decision:** OPEN
