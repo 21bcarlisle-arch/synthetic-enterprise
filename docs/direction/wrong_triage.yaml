@@ -729,3 +729,27 @@ items:
     fate: fold
     owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
     reason: "Triaged 2026-11-09 by the delivery seat. It is the same shape as a-held-work-refusal-never-re-asks-its-diff-digest, already folded there: a dead or unrelated holder's state outliving its relevance. The closed-account item it blocked landed and was graded on a book (60f8d4b85), so the cost was hours, not work. Reopen as fix if a held refusal costs a focus item a whole stretch again."
+  # 2026-11-13 00:25Z orientation: three carried rows triaged ahead of the 7-day line.
+  - id: settlement-books-no-standing-charge-the-bill-charges
+    problem: "The deemed and flex settlement writers book no standing charge while the bill charges one (about GBP 0.47-0.60 a day per domestic electricity account), and void rows drop the fixed network share."
+    match: ["The deemed and flex settlement writers book no standing charge"]
+    first_seen: "2026-11-09"
+    fate: fix
+    status: open
+    owner: "W3_3_the_network_charge_splits_per_unit_and_per_day (paused to the 16 Nov reset; B12's true unit cost waits on it)"
+    reason: "Triaged 2026-11-13 by the delivery seat. It is real and world-side, and it blocks a supplier result (B12's renewal floor reads its margin on the unit rate). It is held only by the director's 12:00 11 Nov scope (the fix and its book first), so it stays a fix with W3_3 as owner and enters focus at the 16 Nov reset."
+  - id: the-account-page-drops-cash-the-household-repaid
+    problem: "The account page drops repaid cash, and desk-written-off accounts still print owed."
+    match: ["The account page drops cash the household repaid"]
+    first_seen: "2026-11-10"
+    fate: fix
+    status: open
+    owner: "LEVEL_DD s.9.8 W1-W4 graded on the 16 Nov book (continuation the-final-bill-net-is-graded-on-the-16-nov-book-w1-w4); the F net is on origin (37d934286), the refund clock lands via the-final-bill-issue-day-has-one-home-beside-bill-due-date"
+    reason: "Triaged 2026-11-13 by the delivery seat. Every written fix is on origin or staged except the refund clock; what is left is a grade on a book, and the book is 16 Nov 04:00. Corrected when s.9.8 reads 0 to 3 written-off accounts printing owed on that book, or each is named with its writer line."
+  - id: a-guest-poweroff-leaves-dead-jobs-listed-live
+    problem: "After a guest poweroff the launch register lists dead jobs as live, and continuations wait on files no surviving unit can write."
+    match: ["A guest poweroff leaves its dead jobs listed as live"]
+    first_seen: "2026-11-10"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Triaged 2026-11-13 by the delivery seat. It is a dead holder's state outliving its process, the shape already folded there (a-stale-land-holder-blocks-the-draw-unrechecked). No stop has happened since 10 Nov, so there is no live instance to cost anything. Reopen as a fix if a stop strands a continuation for a whole stretch again."

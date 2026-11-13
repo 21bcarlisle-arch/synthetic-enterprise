@@ -8,6 +8,56 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-13 — orientation: The supplier's book moved forward this stretch, though the thesis did not
+
+<!-- head: 8db2c25cce2d -->
+
+*Written by the orientation seat from its own record (2026-11-13T00:24:47.494658+00:00; 7 commits, 4 substantive, since 2026-11-12T21:21:34.784218+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 7 other.
+
+## What the stretch meant
+
+The supplier's book moved forward this stretch, though the thesis did not. 7 commits, 4 substantive, split 0 supplier, 0 world, 7 other, because the classifier reads background/ and docs/ as other. In substance two of them are billing work on the account-page harm. The world's final-bill net, which three holders had walked away from, is on origin (37d934286). s.9.8 (778ae7ed7) reads the desk-written-off accounts still printing owed after N29 as 24 (GBP 633.16), all of them shape F, so shape R is cleared, and W4 is pre-registered for the 16 Nov book (8db2c25cc). The account-page row stays uncorrected until that book grades it. The refund-clock fix went the other way. Its landing (pid 2714284) died with nothing on origin. The issue-day work it rests on is finished and staged, 6 files, in /tmp/wt-issue-day (22:43), and in salvage branch refund-clock-issued-final-bill. Neither copy is on a remote ref, and /tmp is a tmpfs that a guest stop empties. It must land before the 16 Nov 04:00 book, so it is item 1. The thesis test itself, the c65c4cb8b flat-baseline comparison, has now gone undrawn for four stretches with 53 hours to its window. That is the steer drifting, not the work, so it moves to item 2. CORRECTION BESIDE THE CLAIM: for four stretches this record said there had been no cold read in seven days. That was wrong. The tenth read (5fdf9c106, 11 Nov 01:27) found four new classes, and the eleventh (ab2700c1e3, 11 Nov 16:27) found one new serious class. Neither carries a Cold-read: trailer, so the learning loop saw nothing and I repeated its blank without checking git. The 26 Oct exit test still has no clean read, so item 3 stands with its premise corrected. The shared tree is now 64 behind. Its residual refusers are named (76 held, b3b309f70), and their two reconciler classes are being built in /var/tmp/se-seat-executor. Item 4 only reads the effect.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 12 Nov: Unchanged. Item 4 was not drawn. 21:21 12 Nov: Unchanged. Item 4 not drawn for a third stretch. 00:24 13 Nov: Unchanged. Not drawn for a fourth stretch, so the pre-registration check is now item 2.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:22 12 Nov: Unchanged. Item 3 was not drawn. 21:21 12 Nov: Unchanged. Item 3 not drawn. 00:24 13 Nov: Unchanged. The "no read in seven days" tails were wrong (see the new row): the tenth and eleventh reads ran on 11 Nov, and each found a new class.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 18:22 12 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 21:21 12 Nov: Unchanged. 00:24 13 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 21:21 12 Nov: Unchanged. W3_3 is paused to the 16 Nov reset. 00:24 13 Nov: Unchanged. Triaged as a fix, owner W3_3, at the 16 Nov reset.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. 37 desk-written-off accounts still print owed (GBP 2,281.34), against a filed 30 or fewer. [12 Nov tails are in decisions.jsonl.] 00:24 13 Nov: Moved, not corrected. After N29, s.9.8 (778ae7ed7) reads 24 accounts printing owed (GBP 633.16), all shape F, so shape R is cleared. F's world net is on origin (37d934286). The refund clock is not on origin (item 1). Graded on the 16 Nov book, W1-W4 pre-registered (8db2c25cc).
+- NOT corrected: THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success status=0". A long job that wraps a landing must exit with the landing's own status. 21:21 12 Nov: Unchanged (not_now). 00:24 13 Nov: Unchanged (not_now). No long job this stretch.
+- NOT corrected: THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. 21:21 12 Nov: No new breach. 00:24 13 Nov: No new breach. Every substantive commit this stretch is the fix, its grade or the stale tree.
+- NOT corrected: THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder step is held (e5e0cdcae). 21:21 12 Nov: Held for the 16 Nov review. 00:24 13 Nov: Held for the 16 Nov review.
+- NOT corrected: THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. 21:21 12 Nov: Unchanged at 57 behind. 00:24 13 Nov: Unchanged at 64 behind. The moved retired finding is one of the two reconciler classes being built (item 4).
+- NOT corrected: THE MACHINE'S, NEW. The level-DD cure row was filed as the company's defect, but no company/ or saas/ file changed in any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab). The supplier's desk was largely right, and our instruments and the world were not. 21:21 12 Nov: Unchanged. 00:24 13 Nov: Unchanged, and again. The F net (37d934286) is in background/, and item 1's refund clock is in simulation/.
+- NOT corrected: THE MACHINE'S, NEW. Fixes land on origin, and nothing runs them. The shared checkout is behind, and every daemon lacks commits to code it imports, delivery_lane.py among them, so the retire guard 9fd94625f is inert. 21:21 12 Nov: Partly fixed and not corrected. bb10c3a5d makes the sweep find 1,315 twins. 00:24 13 Nov: Worse at 64 behind. The 76 held paths are named (b3b309f70), and their two classes are being built (item 4).
+- corrected: THE MACHINE'S, NEW. The world's final-bill net landing (surgical_land pid 1688796, claim level-dd-final-bill-world-nets-level-surplus) died with nothing on origin, and two more holders were swept back with the bytes in the tree. 00:24 13 Nov: Corrected. The net landed as 37d934286 (22:27 12 Nov) with its control, and the shared tree's copy is now origin's twin.
+- NOT corrected: THE MACHINE'S, NEW. The refund-clock landing (surgical_land pid 2714284) died with nothing on origin, the second dead landing on this row in a day. The finished issue-day and refund-clock work sits staged only in /tmp/wt-issue-day, which is on tmpfs, and on local branch refund-clock-issued-final-bill. Item 1 lands it.
+- corrected: THE SEAT'S, NEW. For four stretches this record said there had been no cold read in seven days, and built focus on that premise. The tenth read (5fdf9c106) and the eleventh (ab2700c1e3) both ran on 11 Nov. Neither carried a Cold-read: trailer, so the learning loop showed none, and I repeated its blank without checking git. Corrected beside the claim in thesis_read. Item 3 now names both reads and carries the trailer.
+
+## Chosen against
+
+- Rebuilding the issue-day or refund-clock change from the continuation's prose.
+- Reaping any worktree, above all /tmp/wt-issue-day, and the 8 worktrees holding commits no remote keeps.
+- Counting 37d934286 and s.9.8 as correcting the account-page row.
+- Making the learning loop recognise cold reads that carry no trailer.
+- Changing the draw so a Lane 0 item outranks a queued continuation, even though item 2 has gone undrawn four times.
+- n29-ceiling-graded-on-the-16-nov-book, the c915067a8 grade and the W1-W4 grade.
+- Running a book before 16 Nov.
+- launch_long_job exiting with the wrapped landing's status.
+- W3_3 (standing charge in settlement), B12's true unit cost, the W2_21 insulation flag and N17's year-to-year variance.
+
+## Focus for the next stretch
+
+- `the-final-bill-issue-day-has-one-home-beside-bill-due-date`
+- `the-baseline-comparison-pre-registration-is-checked-against-this-weeks-fixes`
+- `a-cold-read-ahead-of-the-16-nov-book`
+- `the-shared-trees-residual-refusers-are-cleared-or-named`
+
+---
+
 ## 2026-11-12 — orientation: The supplier did not move against the thesis this stretch
 
 <!-- head: bb10c3a5d5ac -->
