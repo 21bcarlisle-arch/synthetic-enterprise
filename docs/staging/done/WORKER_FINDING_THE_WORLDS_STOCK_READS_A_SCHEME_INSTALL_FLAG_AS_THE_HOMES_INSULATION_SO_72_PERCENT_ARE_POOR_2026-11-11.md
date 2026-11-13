@@ -35,3 +35,14 @@ U-values, so the demand is wrong either way.
 
 Delete this file, the market_research note, and the two comment blocks in
 `simulation/premise_population.py`. No code behaviour changed.
+
+## Retired (2026-11-13, worker, W2_21)
+
+A flag now marks a measure as present. An unflagged measure is drawn present at
+q = (P_pub − P_flag)/(1 − P_flag): lofts against HEE's 67%, walls against EHS 2023 AT2 by age
+group (21.7% / 68.0% / 89.2%). That closes the wall GAP. POOR moves from 72.1% to 15.2%, under the
+published 33% bound. Control: `tests/simulation/test_an_unflagged_home_is_not_an_uninsulated_home.py`.
+Its must-fail arm is the flag-only reading on the same draws, and mutating the reading back reds all
+three tests. Note: `docs/market_research/wall_insulation_by_dwelling_age_ehs_2023_2026-11-13.md`.
+Still open: `tools/demand_vector_coverage._fabric_for` reads flags as presence, and the +48% claim
+has not been re-measured.

@@ -1015,6 +1015,67 @@ def _band_from_need_epc(need_class: str, rng: random.Random) -> str:
     return _weighted_choice(rng, {b: PUBLISHED_EPC_BAND_SHARE[b] for b in bands})
 
 
+#: Walls insulated and all dwellings, THOUSANDS, by dwelling age. EHS 2023-24 Climate Resilient
+#: Homes fact sheet, Annex Table 2 (MHCLG), England 2023: insulated = "cavity with insulation" +
+#: "solid with insulation"; "other" walls count as not insulated. EHS counts a post-1995 cavity as
+#: insulated (RdSAP's in-built assumption). Note:
+#: docs/market_research/wall_insulation_by_dwelling_age_ehs_2023_2026-11-13.md.
+EHS_WALLS_INSULATED_000S: dict[str, tuple[int, int]] = {
+    "pre_1945": (1509 + 417, 8896),
+    "1945_2012": (9641 + 364, 14723),
+    "post_2012": (1499 + 87, 1778),
+}
+#: Which EHS column each era reads. POST_2000 reads post-2012, a SIMPLIFICATION: its 2001-12 homes
+#: sit in EHS's 1945-2012 column, but Part L and RdSAP's post-1995 rule make them insulated, so the
+#: post-2012 rate is the closer one. The error runs one way: the 1945-2000 eras inherit a column
+#: that includes 2001-12 homes, so they read slightly MORE insulated than they are, which shrinks
+#: what is left to sell (against our own thesis, the safe side, F11).
+EHS_WALL_GROUP_OF_ERA: dict[BuildEra, str] = {
+    BuildEra.PRE_1919: "pre_1945",
+    BuildEra.ERA_1919_1944: "pre_1945",
+    BuildEra.ERA_1945_1964: "1945_2012",
+    BuildEra.ERA_1965_1980: "1945_2012",
+    BuildEra.ERA_1981_2000: "1945_2012",
+    BuildEra.POST_2000: "post_2012",
+}
+#: Lofts insulated to >=125 mm, 67% of 26.3m lofts. DESNZ Household Energy Efficiency statistics
+#: (HEE), Dec 2025; docs/market_research/heat_pumps_and_fabric_measures_2026-10-25.md. Applied to
+#: every home alike: which flats have a loft of their own is a GAP (see the wall note).
+HEE_LOFT_INSULATED_SHARE = 0.67
+
+
+@functools.lru_cache(maxsize=1)
+def insulation_presence_rates() -> dict:
+    """P(measure present | no scheme flag), so flagged + drawn reproduces the published coverage.
+
+    q = (P_pub - P_flag) / (1 - P_flag), with P_flag measured on the fitted joint itself (walls per
+    EHS age group, through the era posterior; lofts over the whole stock). REFUSES a group whose
+    flags already exceed the published share: q < 0 would mean the two sources disagree, and a
+    clamp at zero would hide it.
+    """
+    fitted = fitted_stock_joint()
+    posterior = era_posterior_by_band()
+    weight: dict[str, float] = {}
+    flagged: dict[str, float] = {}
+    loft_flagged = total = 0.0
+    for (_pt, age_band, _area, _epc, loft, cavity, _pv, _fuel), w in fitted.items():
+        total += w
+        loft_flagged += w * (loft == "1")
+        for era, p in posterior[age_band].items():
+            group = EHS_WALL_GROUP_OF_ERA[era]
+            weight[group] = weight.get(group, 0.0) + w * p
+            flagged[group] = flagged.get(group, 0.0) + w * p * (cavity == "1")
+
+    def q(published: float, p_flag: float, what: str) -> float:
+        if p_flag > published:
+            raise ValueError(f"{what}: scheme flags {p_flag:.3f} exceed published {published:.3f}")
+        return (published - p_flag) / (1.0 - p_flag)
+
+    walls = {g: q(ins / allk, flagged[g] / weight[g], f"walls {g}")
+             for g, (ins, allk) in EHS_WALLS_INSULATED_000S.items()}
+    return {"loft": q(HEE_LOFT_INSULATED_SHARE, loft_flagged / total, "loft"), "wall": walls}
+
+
 def draw_premise_from_joint(
     premise_id: str,
     *,
@@ -1071,11 +1132,19 @@ def draw_premise_from_joint(
     has_loft = loft == "1"
     has_cavity = cavity == "1"
     has_solar = pv == "1"
-    # KNOWN DEFECT (2026-11-11): a flag is a SCHEME install, not insulation present, so "neither" is
-    # over-read as POOR (72% of homes). Note: need_insulation_flags_count_scheme_installs_...md.
-    # The `_fabric_for` rule, unchanged: both cheap measures taken is FULL, one is PARTIAL, neither
-    # is POOR. It replaces a lookup on the EPC letter, which gave the whole country six values.
-    installed = int(has_loft) + int(has_cavity)
+    # A FLAG IS A SCHEME INSTALL, NOT INSULATION PRESENT (fixed 2026-11-13; it read 72% POOR). A
+    # flagged measure is present; an unflagged one is present at the rate that makes the stock
+    # reproduce the published coverage (`insulation_presence_rates`). The household's
+    # `has_*_insulation` fields keep the flags' own meaning, the scheme record.
+    rates = insulation_presence_rates()
+    loft_present = has_loft or (
+        _substream(base_seed, f"{premise_id}:loft-present").random() < rates["loft"])
+    wall_present = has_cavity or (
+        _substream(base_seed, f"{premise_id}:wall-present").random()
+        < rates["wall"][EHS_WALL_GROUP_OF_ERA[era]])
+    # The `_fabric_for` count rule, over measures PRESENT: both is FULL, one is PARTIAL, neither is
+    # POOR. It replaces a lookup on the EPC letter, which gave the whole country six values.
+    installed = int(loft_present) + int(wall_present)
     insulation = (InsulationLevel.FULL if installed == 2
                   else InsulationLevel.PARTIAL if installed == 1
                   else InsulationLevel.POOR)

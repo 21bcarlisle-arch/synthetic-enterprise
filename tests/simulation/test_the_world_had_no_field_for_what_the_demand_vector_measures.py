@@ -297,12 +297,14 @@ def test_insulation_stopped_being_a_lookup_on_the_epc_letter(stock_new, stock_ol
                     p.household.has_cavity_wall_insulation) for p in stock_new}
     assert len(new_triples) > len(old_pairs)
 
+    # A flag is a SCHEME install (2026-11-13), so a flagged measure is present and an unflagged one
+    # may be: the level is never BELOW what the flags show. It equalled it while flags were misread
+    # as presence (72% POOR); test_an_unflagged_home_is_not_an_uninsulated_home holds the rest.
+    rank = {InsulationLevel.POOR: 0, InsulationLevel.PARTIAL: 1, InsulationLevel.FULL: 2}
     for premise in stock_new:
-        installed = (int(premise.household.has_loft_insulation)
-                     + int(premise.household.has_cavity_wall_insulation))
-        expected = (InsulationLevel.FULL if installed == 2
-                    else InsulationLevel.PARTIAL if installed == 1 else InsulationLevel.POOR)
-        assert premise.household.insulation is expected
+        flagged = (int(premise.household.has_loft_insulation)
+                   + int(premise.household.has_cavity_wall_insulation))
+        assert rank[premise.household.insulation] >= flagged
 
 
 def test_the_meter_fact_is_not_folded_into_the_heating_system(stock_new):
