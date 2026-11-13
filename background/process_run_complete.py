@@ -8466,6 +8466,26 @@ def _publish_liveness_to_ops(files, msg, *, ops_dir=None, commit=None):
         return "ops repo write failed ({}: {})".format(type(exc).__name__, exc)
 
 
+def _liveness_leg_reaches_a_reader(leg, why):
+    """Put one liveness leg's outcome through `notify`'s transition contract, every beat.
+
+    The ops leg failed on every 30-minute beat for 57 hours (10-13 Nov) and was written only to
+    the sim-runner log, which no reader opens. Keyed per leg with state "refused" or "landed",
+    an unchanged refusal is suppressed as a page but counted, and at
+    `alarm_repetition.ESCALATE_AFTER_REPEATS` it becomes a WORKER_FINDING_REPEATING_ALARM_* in
+    staging, which the draw reads. A landing is the transition that closes it. Never raises: a
+    liveness leg must not fail the publish path."""
+    try:
+        from background.notify import notify
+        notify("[LIVENESS] {} leg {}".format(
+                   leg, "refused on this beat: {}".format(why) if why else "landed"),
+               kind="real_alarm", transition_key="liveness_leg:{}".format(leg),
+               state="refused" if why else "landed", topic_class="publishing_down")
+    except Exception as exc:  # noqa: BLE001
+        log("liveness leg {} could not reach notify ({}: {})".format(
+            leg, type(exc).__name__, exc))
+
+
 def _publish_liveness_branch(heartbeat, msg, *, cwd=None, remote="origin"):
     """Force-push `heartbeat` as ONE parentless commit on `remote`'s `liveness` branch.
     Returns `(sha, None)` once the remote ref reads back at that commit, else `(None, why)`.
@@ -8551,6 +8571,7 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
     msg = "liveness: heartbeat while sim output unchanged (git={})".format(git_hash)
     refusals = []
     ops_why = _publish_liveness_to_ops(files, msg)
+    _liveness_leg_reaches_a_reader("ops_repo", ops_why)
     if ops_why:
         refusals.append("ops repo: " + ops_why)
     heartbeat = PROJECT_DIR / "site" / "data" / "tick_heartbeat.json"
@@ -8560,8 +8581,9 @@ def _refresh_published_liveness_on_skip(git_hash: str) -> bool:
         if branch_why:
             refusals.append("{} branch: {}".format(LIVENESS_BRANCH, branch_why))
     else:
-        refusals.append("{} branch: no site/data/tick_heartbeat.json on disk".format(
-            LIVENESS_BRANCH))
+        branch_why = "no site/data/tick_heartbeat.json on disk"
+        refusals.append("{} branch: {}".format(LIVENESS_BRANCH, branch_why))
+    _liveness_leg_reaches_a_reader(LIVENESS_BRANCH + "_branch", None if sha else branch_why)
     landed = (ops_why is None) + (sha is not None)
     if landed:
         _record_liveness_push_time()

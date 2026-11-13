@@ -150,3 +150,21 @@ def test_a_refused_branch_push_is_named_and_still_leaves_main_alone(world, monke
     assert kind == "refusal" and "liveness branch:" in evidence, world["records"]
     # The ops leg is independent of the public one and still landed.
     assert world["ops_commits"]
+
+
+def test_each_leg_reaches_the_notify_contract_keyed_so_a_repeat_escalates(world, monkeypatch):
+    """A leg refused on every beat was only logged for 57 hours (ops push, 10-13 Nov). Both legs
+    now go through notify's transition contract every beat, each under its own key, so repeats of
+    "refused" are counted and escalate into staging. One control over the partition: a refused
+    leg and a landed leg in the same beat. MUTATION: drop either call -> the key set reds; pass
+    the ops reason to the branch leg -> the state map reds."""
+    from background import notify as notify_mod
+    seen = []
+    monkeypatch.setattr(notify_mod, "notify", lambda message, **kw: seen.append(kw))
+    _git("remote", "set-url", "origin", str(world["clone"].parent / "no-such.git"),
+         cwd=world["clone"])
+    assert prc._refresh_published_liveness_on_skip("abc") is False
+    states = {kw["transition_key"]: kw["state"] for kw in seen}
+    assert states == {"liveness_leg:ops_repo": "landed",
+                      "liveness_leg:{}_branch".format(prc.LIVENESS_BRANCH): "refused"}, seen
+    assert all(kw["kind"] == "real_alarm" for kw in seen)

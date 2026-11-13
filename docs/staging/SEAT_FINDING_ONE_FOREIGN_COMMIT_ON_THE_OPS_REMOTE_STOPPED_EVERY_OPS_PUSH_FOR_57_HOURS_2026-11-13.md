@@ -33,3 +33,15 @@ to the director's surface. This is the same class as the launch register's "refu
 recorded as success" row: a logged failure nobody reads is no log. The daemons also still import
 pre-fix code until they restart. Until then the running writer has no rebase, and a second foreign
 commit would stop the mirror again.
+
+**The open class is closed, 13 Nov (claim `a-leg-that-fails-every-cycle-reaches-a-reader`).**
+`process_run_complete._liveness_leg_reaches_a_reader` now sends both liveness legs, the ops repo
+and the public `liveness` branch, through `notify`'s transition contract on every beat. Each leg
+has its own key (`liveness_leg:<leg>`) and a state of `refused` or `landed`. A repeated refusal
+is suppressed as a page but counted. At `alarm_repetition.ESCALATE_AFTER_REPEATS` (3) it becomes
+a `WORKER_FINDING_REPEATING_ALARM_*` in staging, which the draw reads, and the next landing
+closes it. Under this rule the 10 Nov failure would have reached staging at its third beat,
+about 90 minutes in, not 57 hours later. Control:
+`tests/background/test_the_idle_heartbeat_makes_no_commit_on_main.py::test_each_leg_reaches_the_notify_contract_keyed_so_a_repeat_escalates`.
+It was seen red with the ops call removed. Still open: the running daemons pick this up only
+when they restart, which is the same caveat as above.
