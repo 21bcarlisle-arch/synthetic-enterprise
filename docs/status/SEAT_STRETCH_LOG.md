@@ -8,6 +8,56 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-13 — orientation: Nothing this stretch changed what the supplier can do
+
+<!-- head: a84639ed4606 -->
+
+*Written by the orientation seat from its own record (2026-11-13T15:23:12.774853+00:00; 4 commits, 3 substantive, since 2026-11-13T12:23:13.777296+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 4 other.
+
+## What the stretch meant
+
+Nothing this stretch changed what the supplier can do. Against the thesis, the project is where it was at 12:23: no evidence yet that per-customer inference beats the flat baseline, because the belief's AUC is 0.52 (0.41 to 0.65). What did change is that the director will be able to read that, and that the run which measures it is under way. 4 commits, 3 substantive, split 0 supplier, 0 world, 4 other. That is the third stretch running with no supplier commit. The cause is not world work crowding it out. It is two landings and one long run, all aimed at the value test and the account page. f4f825b8b put the Capabilities answer on origin: three sentences with the run date, and a Fixed strip that no longer reads an empty list as an empty week. It renders at the 16 Nov 04:00 publish, so the live page still says "Nothing recorded" until then. I keep that row open until the rendered page changes. 77bf74f88 launched the 12-draw family at 45122d156. I checked the pairs unit: it is active and its log is at September 2020, so it reads on 14 Nov as filed. Item 1 of last focus is therefore spent and leaves. Its grade is queued as a continuation, and the draw has refused it twice only because surgical_land pid 763778 holds THE_VALUE_TEST_REDESIGN.md. That pid is landing the per-household-year figures, which is the steer's addendum. Of the previous focus, 3 were named and 2 were drawn. The capabilities item was drawn 9 times, refused each time while its own landing held the generator, and then landed. The refund clock went backwards. Its fifth landing (pid 3077815) is gone, there is no commit on origin touching invoice.py or credit_refund_events.py since 12 Nov, and the finding file holds no record of whether it was refused or died. That record was the one thing item 2 asked for before a retry. Five of the last six landings on these two rows died silently, so the landing door is now the main thing standing between written supplier fixes and origin. It goes into focus as its own item rather than as a clause in a retry. The learning loop still reads STOP on level-dd and repayment-posting, so no new fix is drawn in either area before the 16 Nov book. The advisor's 13 Nov steer verifies in bd9875ade's bytes and I act on that text. It is in done/ only in the shared tree; origin still holds it at the advisor root. Item 2 carries the move.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:23 13 Nov: Unchanged. 16d90c311 measures the value test's belief at AUC 0.52 (0.41 to 0.65), and its P1 predicts no skill in the sized run. 15:23 13 Nov: Unchanged. The 12-draw family measures it, and the result reads on 14 Nov.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 12:23 13 Nov: Unchanged. The next read belongs on the 16 Nov book. 15:23 13 Nov: Unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 12:23 13 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 15:23 13 Nov: Unchanged.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 12:23 13 Nov: Unchanged (fix, owner W3_3, at the 16 Nov reset). 15:23 13 Nov: Unchanged.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged. The fifth refund-clock landing (pid 3077815) is gone too, with nothing on origin. Item 1 is the sixth attempt.
+- NOT corrected: THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success status=0". A long job that wraps a landing must exit with the landing's own status. 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged. Item 3 takes the class, and item 1 must exit with the landing's own status.
+- NOT corrected: THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. 12:23 13 Nov: No new breach. 15:23 13 Nov: No new breach. All three commits were inside the ruling.
+- NOT corrected: THE WORLD'S, NEW. The world's housing stock draws 72% of homes as POOR insulation, because it reads NEED's scheme-install flag as the home's insulation. HEE puts 67% of lofts and 71% of cavities as insulated. W2_21's founder step is held (e5e0cdcae). 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged, held for the 16 Nov review.
+- NOT corrected: THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. 12:23 13 Nov: Unchanged at 4, with 182 uncommitted dispositions in the shared tree. 15:23 13 Nov: Unchanged at 4.
+- NOT corrected: THE MACHINE'S, NEW. The level-DD cure row was filed as the company's defect, but no company/ or saas/ file changed in any of the four fixes that took it from 29 to 0 (9392920e6, c7e706580, bd58577a2, 1c66aceab). The supplier's desk was largely right, and our instruments and the world were not. 12:23 13 Nov: Unchanged. 15:23 13 Nov: Unchanged.
+- NOT corrected: THE MACHINE'S, NEW. Fixes land on origin, and nothing runs them. The shared checkout is behind, and every daemon lacks commits to code it imports, delivery_lane.py among them, so the retire guard 9fd94625f is inert. 12:23 13 Nov: Unchanged, up 26h49m. 15:23 13 Nov: Unchanged. Every unit now lacks a84639ed4 and f4f825b8b.
+- NOT corrected: THE MACHINE'S, NEW. The refund-clock landing (surgical_land pid 2714284) died with nothing on origin, the second dead landing on this row in a day. [Earlier tails are in decisions.jsonl.] 12:23 13 Nov: Worse, five dead landings on two rows. 15:23 13 Nov: Worse on one row and better on the other. The second Capabilities attempt landed (f4f825b8b). The fifth refund-clock attempt (pid 3077815) died with nothing on origin, and the finding holds no record of refused or died, though item 2 asked for exactly that. So that is five silent deaths in six attempts. Item 3 takes the class.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026: Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. 12:23 13 Nov: Unchanged on origin. 15:23 13 Nov: On origin in f4f825b8b. The live page changes only at the 16 Nov 04:00 publish, so this stays open until the rendered value changes. The per-household-year figures are item 4 (pid 763778).
+- NOT corrected: THE MACHINE'S, NEW. The weekly rhythm's Friday step, which owes the learning loop's hit rates and the week's regression count, has not been filed. The rhythm's state still shows Monday's step open (WEEKLY_BALANCE_REVIEW_2026-11-16 section 3). 12:23 13 Nov: Open. 15:23 13 Nov: Open. It is item 5.
+
+## Chosen against
+
+- Re-landing the refund clock at once from salvage, as last stretch's fallback said, before anyone knows why five attempts died.
+- Retraining or replacing the renewal belief now (AUC 0.52), which is the lever that would actually move the thesis.
+- Steps 3 and 4 of the redesign (the single-invocation runner, and the efficient-supplier baseline arm with its knowledge page).
+- Restarting the daemons so they import origin's code (every unit lacks a84639ed4 and f4f825b8b).
+- Reaping the 7 worktrees that hold commits no remote ref keeps (b12-*, se-budgetpay-land, se-om2, simsuite-*).
+- Drawing a fix for level-dd or repayment-posting (for example level-dd-final-bill-world-nets-level-surplus).
+- The eight items stamped DO NOT DRAW BEFORE 16 Nov 06:00 (n29, n30, c915067a8, W1-W4, the catch-up VAT rows and the baseline launch addendum).
+- W3_3 (standing charge in settlement), B12's true unit cost, the W2_21 insulation flag and N17's year-to-year variance.
+
+## Focus for the next stretch
+
+- `the-final-bill-issue-day-has-one-home-beside-bill-due-date`
+- `value-test-step-1-grade-the-twelve-draw-family-once-it-exits`
+- `a-landing-that-dies-leaves-its-cause`
+- `value-test-figures-per-household-year-from-the-feed`
+- `weekly-rhythm-friday-step-files-the-learning-loop`
+
+---
+
 ## 2026-11-13 — orientation: The thesis test now has a written design that can return an answer, and that design predicts no advantage yet
 
 <!-- head: 16d90c311f33 -->
