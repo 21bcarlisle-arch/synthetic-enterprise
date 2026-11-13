@@ -886,6 +886,18 @@ closing read, is not published: **GAP** (G8.9).
    that rule. The late-final-bill branch cannot fire in this run. That is a property of the model,
    not a performance, and the measure says so beside the count. A test proves the branch fires on a
    bill issued late.
+   **Correction, 2026-11-12:** the premise no longer holds for the run. Since Phase 3 the billing
+   ledger issues each bill after a drawn generation delay (`arrears_engine.bill_issue_date`: the
+   period end plus `bill_generation_delay_days`, mean 3 days), and the page prints that day. Only
+   `invoice.py`, which no run path calls, still issues at the period end. Reg 6D's clock, though, still
+   ran from the period end (`credit_refund_events.py`). On the N29 replay (`/var/tmp/n29/run_setoff.json`)
+   134 of 176 refund clocks started early by the delay, and SYN-2016-096g was refunded on 14 Jul 2020,
+   before its final bill was issued on 16 Jul. No breach was hidden, because the company pays on its
+   own schedule from the day it is given. *Choice:* the refund clock starts on the issue day the ledger
+   prints, from the same function. `invoice.py` is left alone: it is off the run path, and giving it a
+   second copy of the delay would create the two homes this correction removes. The grading in
+   `move_out_final_bills` still reads the bill record's period end, because the published bill carries
+   no issue date. That half of choice 2 stands until it does.
 3. *The closing read is graded actual or estimated.* An estimated closing read is not a breach, but
    it is where a mover is most often billed wrongly (§2.5). It is counted, and nothing grades it
    against a rule.

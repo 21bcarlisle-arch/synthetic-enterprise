@@ -103,3 +103,8 @@ test_execution_log) dropped.
   (it still pulls `test_run_phase2b.py`, 994 s, through `simulation/run_phase2b.py`, which names
   the page in code); (3) the simulation fix and its control, 51 files, 1,645 s. Prediction: each
   part finishes inside 3,600 s. The attempt log follows.
+- **Attempt 9, part 1 (gate fix + finding; 47 files, 580 s predicted): landed 1778f1ce6.** Unit
+  `longjob-final-bill-land-1-gate`, pid 909320. It queued about 10 minutes behind another commit
+  gate, then ran from 20:29:16 to about 20:41 GMT (about 12 min) and exited 0. Promoted to origin from
+  db80910fa.
+- **Attempt 9, part 2 (home_moves.md + this note; 27 files, 2,682 s predicted):** pid and outcome follow.
