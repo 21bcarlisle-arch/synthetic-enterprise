@@ -1695,19 +1695,135 @@ def superseded_live_verdicts(project: Path | None = None,
     if os.environ.get("PYTEST_CURRENT_TEST") is not None and on_this_repo:
         return {p: (False, "under pytest the module's own repository is never cleared")
                 for p in paths}
-    return {path: _superseded_verdict(project, path) for path in sorted(set(paths))}
+    context = _supersession_context(project)
+    return {path: _superseded_verdict(project, path, context) for path in sorted(set(paths))}
 
 
-def _superseded_verdict(project: Path, path: str) -> tuple[bool, str]:
+#: The subject a publish commit carries, and where in it the run's own git id sits.
+_PUBLISH_SUBJECT = re.compile(r"^Auto-process run complete: .*\(git=([0-9a-f]{7,40})\b")
+_MARKER = re.compile(r"(?:^|/)run_complete_(\d{8}T\d{6})Z\.md$")
+_REFUSED_AT = re.compile(r"publish-outcome: did-not-land\b[^>]*?\bat=(\S+?)\s*-->")
+
+
+def _iso_ts(text: str) -> float | None:
+    try:
+        return datetime.fromisoformat(text.strip().replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
+def _marker_ts(name: str) -> float | None:
+    found = _MARKER.search(name)
+    return datetime.strptime(found.group(1) + "+0000", "%Y%m%dT%H%M%S%z").timestamp() \
+        if found else None
+
+
+def _supersession_context(project: Path) -> dict:
+    """What the moved and refused-publish legs ask of HEAD..origin, read ONCE per verdict pass.
+
+    `added`: basename -> paths origin adds. `publishes`: one row per `Auto-process run complete`
+    commit in the range, with its committer time, the paths it touched and its own marker's
+    Finished stamp and refusals. `markers`: every run_complete marker origin holds, by finish time.
+    Each key is empty when git would not answer, so a leg that needs it proves nothing."""
+    context: dict = {"added": {}, "publishes": [], "markers": []}
+    rng = "HEAD..{}/{}".format(REMOTE, BRANCH)
+    try:
+        added = _git(project, "diff", "--name-only", "-z", "--no-renames", "--diff-filter=A",
+                     "HEAD", "{}/{}".format(REMOTE, BRANCH))
+        if added.returncode == 0:
+            for path in filter(None, added.stdout.split("\0")):
+                context["added"].setdefault(path.rsplit("/", 1)[-1], []).append(path)
+        log = _git(project, "log", "--format=%H %ct %s", rng)
+        markers = _git(project, "ls-tree", "-r", "--name-only", "{}/{}".format(REMOTE, BRANCH),
+                       "--", "docs/staging/")
+    except (OSError, subprocess.SubprocessError):
+        return context
+    if markers.returncode == 0:
+        context["markers"] = sorted(t for t in (_marker_ts(n) for n in markers.stdout.splitlines())
+                                    if t is not None)
+    if log.returncode != 0:
+        return context
+    for line in log.stdout.splitlines():
+        sha, _, rest = line.partition(" ")
+        ct, _, subject = rest.partition(" ")
+        if not _PUBLISH_SUBJECT.match(subject):
+            continue
+        try:
+            touched = _git(project, "diff-tree", "--no-commit-id", "--name-only", "-r", "-z",
+                           "--no-renames", sha)
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if touched.returncode != 0:
+            continue
+        paths = set(filter(None, touched.stdout.split("\0")))
+        marker = next((p for p in sorted(paths) if _MARKER.search(p)), None)
+        text = (_origin_text(project, marker) or b"").decode("utf-8", "replace") if marker else ""
+        context["publishes"].append({
+            "sha": sha, "ct": float(ct), "paths": paths, "marker": marker,
+            "finished": _marker_ts(marker) if marker else None,
+            "refused": sorted(t for t in (_iso_ts(a) for a in _REFUSED_AT.findall(text))
+                              if t is not None)})
+    return context
+
+
+def _refused_publish_render(project: Path, path: str, context: dict) -> str:
+    """Why `path` is an EARLIER RENDER of a run origin has since published there, or `""`.
+
+    A publish renders the run's pages into the shared tree and then commits; when the commit is
+    refused the render stays behind, and a later publish of the same run from a worktree lands its
+    own render on origin (6fe7827ab2: refused 11 Nov 17:02Z, published at e816040ce 20:31Z, 75
+    copies held). The copy is not text a line count can prove -- a page re-rendered later differs
+    by keys -- so the proof is PROVENANCE: written after the run finished, at or before a recorded
+    refusal of that run's publish, with no other run finishing in between, and overtaken by an
+    origin publish of the same run that wrote this path later."""
+    try:
+        mtime = (project / path).stat().st_mtime
+    except OSError:
+        return ""
+    for pub in context.get("publishes", ()):
+        finished = pub["finished"]
+        if path not in pub["paths"] or finished is None or pub["ct"] <= mtime \
+                or not (finished <= mtime) \
+                or not any(at >= mtime for at in pub["refused"]):
+            continue
+        if any(finished < t <= mtime for t in context.get("markers", ())):
+            continue
+        return "a render of the run {} finished, written before its publish was refused and " \
+               "overtaken by origin's publish {}: preserved on a ref, then restored".format(
+                   pub["marker"].rsplit("/", 1)[-1], pub["sha"][:9])
+    return ""
+
+
+def _moved_target(project: Path, path: str, context: dict) -> str | None:
+    """The single path origin adds under this one's basename when it has NO entry here, else None."""
+    if _origin_has_entry(project, path) is not False:
+        return None
+    targets = context.get("added", {}).get(path.rsplit("/", 1)[-1], [])
+    return targets[0] if len(targets) == 1 else None
+
+
+def _superseded_verdict(project: Path, path: str,
+                        context: dict | None = None) -> tuple[bool, str]:
     """One path's `superseded_live_verdicts` answer. A function of its own so the loop above
-    never binds a line count to the path's name."""
+    never binds a line count to the path's name.
+
+    Two further legs, added 2026-11-13 after 76 copies held the fleet 65 commits stale: a path
+    origin DELETES and re-adds under another directory (a retired staging item moved to `done/`)
+    is judged line for line against that new home; and a producer's render of a run whose publish
+    was refused is judged by provenance (`_refused_publish_render`)."""
+    context = context if context is not None else _supersession_context(project)
+    if _index_holds_a_third_version(project, path) is False:
+        why = _refused_publish_render(project, path, context)
+        if why:
+            return True, why
+    moved = _moved_target(project, path, context)
     try:
         local_bytes = (project / path).read_bytes()
         head_res = subprocess.run(["git", "show", "HEAD:{}".format(path)], cwd=str(project),
                                   capture_output=True, check=False, timeout=60)
     except (OSError, subprocess.SubprocessError):
         return False, "the disk or HEAD could not be read at this path, so nothing is cleared"
-    origin_bytes = _origin_text(project, path)
+    origin_bytes = _origin_text(project, moved or path)
     local, theirs = _text_lines(local_bytes), _text_lines(origin_bytes)
     head = _text_lines(head_res.stdout) if head_res.returncode == 0 else None
     if local is None or theirs is None or head is None:
@@ -1733,8 +1849,9 @@ def _superseded_verdict(project: Path, path: str) -> tuple[bool, str]:
     if _index_holds_a_third_version(project, path) is not False:
         return False, "origin holds every line, but the index holds a THIRD version (or could " \
                       "not be read), and restoring HEAD would lose it"
-    return True, "every line is on origin and every line it deleted origin deleted too, so " \
-                 "origin SUPERSEDES it: preserved on a ref, then restored"
+    return True, "every line is on origin{} and every line it deleted origin deleted too, so " \
+                 "origin SUPERSEDES it: preserved on a ref, then restored".format(
+                     " at its new home {}".format(moved) if moved else "")
 
 
 def preserve_superseded_live_copies(project: Path | None = None, paths: list[str] | None = None,

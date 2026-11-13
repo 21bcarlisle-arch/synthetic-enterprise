@@ -80,3 +80,9 @@ original claim above, and the original number is left as written.
 The 1,401 lossless paths and the 76 held now cover the whole partition. The tree still cannot advance,
 and it will not advance until B and C each have a class. That build is handed on as
 `the-refused-publish-render-and-the-moved-retired-finding-get-reconciler-classes`.
+
+## Retired (2026-11-13)
+
+B and C now each have a leg in the ninth class. The build, its pre-registration and its result are in
+`SEAT_FINDING_THE_REFUSED_PUBLISH_RENDER_AND_THE_MOVED_RETIRED_FINDING_GET_RECONCILER_LEGS_2026-11-13.md`.
+The same no-write dry run holds none of the 76.
