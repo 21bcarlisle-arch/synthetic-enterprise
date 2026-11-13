@@ -286,11 +286,24 @@ class TestNeedsCodeMapping:
         assert "not a published PSR needs code" in m.reason
 
     def test_the_undetermined_cell_names_the_criterion_it_is_missing(self):
-        for term in ("elderly", "child_dependent", "serious_illness", "mental_health"):
+        for term in ("elderly", "child_dependent", "serious_illness", "bereavement"):
             m = needs_code_for(term)
             assert m.evidence is NeedsCodeEvidence.CANNOT_DETERMINE
             assert m.category is not None
             assert len(m.reason) > 40
+
+    def test_a_term_is_graded_against_the_published_code_list_not_a_remembered_one(self):
+        """C32 EH-3. S7 (commons s.1a) code 30 is "Mental health" with no qualifier, so the flag
+        is the same concept; code 32 "Temporary - Life changes" is the nearest code to a
+        bereavement, overlapping without being established. Mutation: drop either row and the
+        term falls to NOT_A_NEEDS_CODE."""
+        mh = needs_code_for("mental_health")
+        assert (mh.evidence, mh.category) == (NeedsCodeEvidence.EVIDENCED, PSRCategory.MENTAL_HEALTH)
+        b = needs_code_for("bereavement")
+        assert b.evidence is NeedsCodeEvidence.CANNOT_DETERMINE
+        assert b.category is PSRCategory.TEMPORARY_LIFE_CHANGES
+        assert "code 32" in b.reason
+        assert "code 29" in needs_code_for("child_dependent").reason
 
     def test_psr_summary_contains_key_fields(self, reg):
         reg.register(make_record("C1"))

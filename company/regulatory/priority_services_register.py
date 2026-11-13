@@ -56,6 +56,9 @@ class PSRCategory(str, Enum):
     VISUAL_IMPAIRMENT = "visual_impairment"
     HEARING_IMPAIRMENT = "hearing_impairment"
     LANGUAGE_SUPPORT = "language_support"
+    # Commons s.1a, S7 code 32 "Temporary - Life changes". Held so a term that overlaps it can
+    # say which code it overlaps; nothing here confers protection on it.
+    TEMPORARY_LIFE_CHANGES = "temporary_life_changes"
 
 
 class PSRService(str, Enum):
@@ -200,6 +203,9 @@ _TERM_EVIDENCES_NEEDS_CODE = {
     "medical_equipment": PSRCategory.MEDICAL_EQUIPMENT,
     "disabled": PSRCategory.DISABILITY,
     "language_barrier": PSRCategory.LANGUAGE_SUPPORT,
+    # S7 code 30 reads "Mental health", unqualified. The qualifier this term was once refused
+    # on ("difficulty understanding the bill") is not in the published list.
+    "mental_health": PSRCategory.MENTAL_HEALTH,
 }
 
 # Concept overlaps a needs code, but the published criterion is NOT established by the term.
@@ -212,18 +218,18 @@ _TERM_CANNOT_DETERMINE = {
     ),
     "child_dependent": (
         PSRCategory.CHILD_UNDER_5,
-        "the needs code is a child under five (S3) or under six (S2 — the sources disagree); "
-        "a dependent child is neither.",
+        "the needs code is S7 code 29, families with young children 5 or under; a dependent "
+        "child carries no age, so the flag does not establish it.",
     ),
     "serious_illness": (
         PSRCategory.CHRONIC_ILLNESS,
         "the needs code is chronic illness or a long-term medical condition; a serious acute "
         "illness is not established to be either.",
     ),
-    "mental_health": (
-        PSRCategory.MENTAL_HEALTH,
-        "the needs code is a mental health condition causing difficulty understanding the "
-        "bill; the flag is unqualified.",
+    "bereavement": (
+        PSRCategory.TEMPORARY_LIFE_CHANGES,
+        "the nearest needs code is S7 code 32, 'Temporary - Life changes'; the commons does not "
+        "say which life changes it covers, so a bereavement is not established to be one.",
     ),
 }
 
