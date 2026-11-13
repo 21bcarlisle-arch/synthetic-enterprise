@@ -996,6 +996,21 @@ def preserve(root: Path, paths: list[str], slug: str, message: str) -> tuple[str
     """
     if not paths:
         raise RefreshError("nothing to preserve")
+    ref = PRESERVED_PREFIX + slug
+    blobs = {path: _git_ok(root, "hash-object", "-w", "--", str(root / path)).strip()
+             for path in paths}
+    existing = _git(root, "rev-parse", "--verify", "--quiet", ref + "^{commit}").stdout.strip()
+    if existing:
+        # A RERUN UNDER A TAKEN SLUG MUST NOT MOVE THE REF. 2026-11-13: a second run under the
+        # 22:24Z slug repointed it at a commit holding HEAD's bytes, and the draft it named survived
+        # only because someone re-pinned it by hand before gc. The same bytes again is the one
+        # rerun that is harmless, so it reuses the commit; anything else is refused by name.
+        if _preserves_exactly(root, existing, blobs):
+            return ref, existing
+        raise RefreshError(
+            "{} already exists and preserves different bytes ({}); refusing to move it, because "
+            "the bytes it names would then be reachable from nothing. Re-run with a new --slug. "
+            "Nothing has been written.".format(ref, existing[:9]))
     with tempfile.TemporaryDirectory() as tmp:
         env = {"GIT_INDEX_FILE": str(Path(tmp) / "index")}
         _git_ok(root, "read-tree", "HEAD", env=env)
@@ -1003,16 +1018,27 @@ def preserve(root: Path, paths: list[str], slug: str, message: str) -> tuple[str
             entry = _git_ok(root, "ls-tree", "HEAD", "--", path).split()
             if not entry:
                 raise RefreshError("{} is not in HEAD; refusing to preserve".format(path))
-            mode = entry[0]
-            blob = _git_ok(root, "hash-object", "-w", "--", str(root / path)).strip()
             _git_ok(root, "update-index", "--add", "--cacheinfo",
-                    "{},{},{}".format(mode, blob, path), env=env)
+                    "{},{},{}".format(entry[0], blobs[path], path), env=env)
         tree = _git_ok(root, "write-tree", env=env).strip()
     head = _git_ok(root, "rev-parse", "HEAD").strip()
     commit = _git_ok(root, "commit-tree", tree, "-p", head, "-m", message).strip()
-    ref = PRESERVED_PREFIX + slug
-    _git_ok(root, "update-ref", ref, commit)
+    # The all-zero old value makes the write create-only, so a rival run that took the slug
+    # between the check above and here is refused by git rather than overwritten.
+    if _git(root, "update-ref", ref, commit, "0" * 40).returncode != 0:
+        raise RefreshError("{} was created by another run while this one preserved; refusing to "
+                           "move it. Re-run with a new --slug. Nothing has been written.".format(ref))
     return ref, commit
+
+
+def _preserves_exactly(root: Path, commit: str, blobs: dict[str, str]) -> bool:
+    """True when `commit` changes exactly `blobs`' paths against its parent, to exactly those blobs."""
+    changed = set(_git_ok(root, "diff-tree", "--no-commit-id", "-r", "--name-only",
+                          commit + "^", commit).split("\n")) - {""}
+    if changed != set(blobs):
+        return False
+    return all(_git(root, "rev-parse", "{}:{}".format(commit, path)).stdout.strip() == blob
+               for path, blob in blobs.items())
 
 
 def verify_recoverable(root: Path, commit: str, path: str, work_bytes: bytes,

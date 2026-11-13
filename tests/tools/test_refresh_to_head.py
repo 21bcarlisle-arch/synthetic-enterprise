@@ -1350,6 +1350,36 @@ def test_a_moved_line_is_not_a_probe_because_its_count_does_not_change(repo: Pat
     assert "git log --all -S" in rth.verify_recoverable(repo, commit, "m.py", work, probe)
 
 
+
+def test_a_taken_slug_is_reused_for_the_same_bytes_and_refused_for_different_ones(
+        repo: Path) -> None:
+    """THE DEFECT (2026-11-13, shared tree): a rerun under the 22:24Z slug moved its ref onto a
+    commit holding HEAD's bytes, leaving the draft reachable from nothing until it was re-pinned
+    by hand. The partition is three answers -- create, reuse, refuse -- and all three are taken
+    here before any is graded, so a preserve that refuses every existing slug cannot pass."""
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    ref, first = rth.preserve(repo, ["m.py"], "taken", "preserved")
+    _ref, again = rth.preserve(repo, ["m.py"], "taken", "preserved")
+    assert again == first, "the same bytes under the same slug must reuse the commit, not refuse"
+
+    (repo / "m.py").write_text(LANDED + "\n# a different draft\n")
+    with pytest.raises(rth.RefreshError, match="already exists and preserves different bytes"):
+        rth.preserve(repo, ["m.py"], "taken", "preserved")
+    assert _run(repo, "rev-parse", ref).strip() == first, "the refused run still moved the ref"
+    assert _run(repo, "show", "{}:m.py".format(ref)) == RIVAL_KIND_A
+
+
+def test_a_refused_slug_writes_nothing_to_disk_through_the_cli_path(repo: Path) -> None:
+    """The refusal must come from the SLUG: RIVAL_KIND_A is a copy this tool refreshes on a fresh
+    slug (the reachability test above), so a 1 here is the taken slug and nothing else."""
+    (repo / "m.py").write_text(LANDED + "\n# an earlier draft, already preserved\n")
+    rth.preserve(repo, ["m.py"], "taken", "an earlier, different preservation")
+    (repo / "m.py").write_text(RIVAL_KIND_A)
+    assert rth.main(["--root", str(repo), "--write", "--slug", "taken", "m.py"]) == 1
+    assert (repo / "m.py").read_text() == RIVAL_KIND_A, "HEAD's bytes landed over the draft"
+    assert rth.main(["--root", str(repo), "--write", "--slug", "fresh", "m.py"]) == 0
+
+
 # ------------------------------------- the STAGED state had no exit at all (`--staged-too`, 2026-09-22)
 #
 # The defect, measured live: `site/test_the_baseline_comparison_reaches_the_reader.py` and
