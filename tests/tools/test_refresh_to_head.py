@@ -1322,6 +1322,34 @@ def test_a_probe_line_head_already_carries_fails_a_sound_preservation(repo: Path
     assert "git log --all -S" in route and ref
 
 
+def test_a_moved_line_is_not_a_probe_because_its_count_does_not_change(repo: Path) -> None:
+    """THE DEFECT (2026-11-13, shared tree, background/origin_reconcile.py): the copy MOVED a long
+    line into a new helper. difflib calls it added, `-S` sees one occurrence on both sides of the
+    edge, so the longest-line probe found nothing and a sound preservation was refused. Leg 2 shows
+    the old pick fails; leg 3 shows the new pick is searchable and still not None (fail-open)."""
+    moved = "    result = compute_the_long_thing_from_the_original_place(argument)\n"
+    tail = "\n\ndef beta():\n    return 2\n"
+    (repo / "m.py").write_text("def alpha():\n    x = 1\n" + moved + "    return result\n" + tail)
+    _run(repo, "add", "m.py")
+    _run(repo, "commit", "-qm", "the line sits in alpha")
+    work = ("def alpha():\n    x = 1\n    return _helper(1)\n" + tail
+            + "\n\ndef _helper(argument):\n" + moved + "    return result\n").encode()
+    (repo / "m.py").write_bytes(work)
+
+    head_text = rth._blob_bytes(repo, "HEAD", "m.py").decode()
+    old_pick = max((ln for ln in rth._discarded_lines(head_text, work.decode())
+                    if not rth._trivial(ln)), key=len)
+    assert old_pick == moved.strip(), "fixture no longer makes the moved line the longest '+' line"
+
+    _ref, commit = rth.preserve(repo, ["m.py"], "moved-line", "preserved")
+    with pytest.raises(rth.RefreshError, match="PRESERVATION FAILED"):
+        rth.verify_recoverable(repo, commit, "m.py", work, old_pick)
+
+    probe = rth._probe(repo, "m.py", work)
+    assert probe is not None and probe != old_pick, probe
+    assert "git log --all -S" in rth.verify_recoverable(repo, commit, "m.py", work, probe)
+
+
 # ------------------------------------- the STAGED state had no exit at all (`--staged-too`, 2026-09-22)
 #
 # The defect, measured live: `site/test_the_baseline_comparison_reaches_the_reader.py` and

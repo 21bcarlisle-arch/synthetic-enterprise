@@ -1070,8 +1070,13 @@ def _probe(root: Path, path: str, work_bytes: bytes) -> str | None:
     about.
     """
     head_text = _blob_bytes(root, "HEAD", path).decode("utf-8", errors="strict")
-    against_parent = _discarded_lines(head_text, work_bytes.decode("utf-8", errors="strict"))
-    candidates = [ln for ln in against_parent if not _trivial(ln)]
+    work_text = work_bytes.decode("utf-8", errors="strict")
+    against_parent = _discarded_lines(head_text, work_text)
+    # A MOVED line is an added line to difflib and an unchanged COUNT to `-S`: the 22:24Z draft of
+    # origin_reconcile.py (2026-11-13) lifted an ls-tree call into a helper, the longest "+" line was
+    # that call, and the sound preservation was refused. Only a count change is searchable.
+    candidates = [ln for ln in against_parent
+                  if not _trivial(ln) and work_text.count(ln) != head_text.count(ln)]
     return max(candidates, key=len) if candidates else None
 
 
