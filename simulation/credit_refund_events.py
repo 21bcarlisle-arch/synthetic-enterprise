@@ -43,6 +43,7 @@ import datetime as dt
 
 from company.interfaces.credit_refund_requests import refund_on_account_closure
 from company.interfaces.dd_review_outcome import billing_account_of
+from simulation.arrears_engine import bill_issue_date
 from simulation.segment_vocabulary import RESIDENTIAL, normalise_segment
 
 
@@ -57,7 +58,9 @@ def generate_credit_refund_log(
 
     ``closing_balances`` is the run's, account -> GBP owed (+) or held in credit (-) at the final
     bill, for leavers only. An account it does not hold is not evaluated: no balance is not a credit.
-    The final bill is the account's last bill, issued at its period end. Returns plain
+    The final bill is the account's last bill. Reg 6D's clock starts on the day it is issued,
+    `bill_issue_date`, the day the ledger prints (s.8.8 choice 2, corrected 2026-11-12): from the
+    period end, 134 of 176 clocks on the N29 replay started before the bill existed. Returns plain
     JSON-serialisable dicts.
 
     ``last_collection`` is a level-DD leaver's last level collection. One taken after the final
@@ -91,7 +94,7 @@ def generate_credit_refund_log(
             continue
         if normalise_segment(customer_segments.get(cid, RESIDENTIAL)) != RESIDENTIAL:
             continue
-        final = dt.date.fromisoformat(last_bill[cid]["period_end"])
+        final = bill_issue_date(cid, last_bill[cid]["period_end"])
         later = [d for d in ((last_collection or {}).get(cid), (money_in or {}).get(cid)) if d]
         collected = max(later) if later else None
         others = {leg: owed for leg, owed in debt_left.get(billing_account_of(cid), {}).items()

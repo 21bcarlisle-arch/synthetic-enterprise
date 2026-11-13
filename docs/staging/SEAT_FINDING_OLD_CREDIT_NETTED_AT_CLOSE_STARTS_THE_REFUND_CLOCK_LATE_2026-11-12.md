@@ -108,3 +108,10 @@ test_execution_log) dropped.
   gate, then ran from 20:29:16 to about 20:41 GMT (about 12 min) and exited 0. Promoted to origin from
   db80910fa.
 - **Attempt 9, part 2 (home_moves.md + this note; 27 files, 2,682 s predicted):** pid and outcome follow.
+- **Attempt 9, part 2: landed ceed1aa38.** Unit `longjob-final-bill-land-2-page`, pid 1189083. It
+  queued about 5 min behind another lane's gate, then ran from 20:45:30 GMT for about 44 min (2,682 s
+  predicted) and exited 0. Promotion was refused twice because origin moved during the gate. Gated
+  merges 9879d3041 (pid 1776665, about 2 min) and 3f4a1f79f (about 1 min) followed, and 3f4a1f79f
+  was promoted.
+- **Attempt 9, part 3 (simulation fix, its control and this note; 52 files, about 1,661 s predicted):**
+  outcome follows.

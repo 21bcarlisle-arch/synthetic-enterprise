@@ -63,7 +63,6 @@ this docstring disagreeing with it is a defect in this docstring.
 """
 
 import functools
-from datetime import timedelta
 
 from company.interfaces.accounting_close import close_the_books
 from company.interfaces.bill_assembly import (
@@ -88,8 +87,7 @@ from company.interfaces.supply_book import (
 from simulation import policy_costs as _policy_costs
 from simulation.arrears_engine import (
     PAY_ON_RECEIPT_METHOD,
-    PAYMENT_TERMS_DAYS,
-    bill_due_date,
+    bill_issue_date,
     book_arrears_lines,
     compute_debt_recovery,
     emergent_bad_debt_lines,
@@ -244,7 +242,7 @@ def simulated_bill_issue_date(customer_id: str, period_end: str) -> str:
     (`tools/generate_billing_ledger.py`, its due date less the payment terms). Billing caps a
     catch-up at it, so the cap and the printed bill share one day (SLC 21BA.1 counts from the
     demand)."""
-    return (bill_due_date(customer_id, period_end) - timedelta(days=PAYMENT_TERMS_DAYS)).isoformat()
+    return bill_issue_date(customer_id, period_end).isoformat()
 
 
 def simulated_payment_channel(customer_data: dict) -> str | None:

@@ -131,6 +131,14 @@ def bill_generation_delay_days(customer_id: str, period_end: str) -> int:
     return max(0, round(delay_rng.expovariate(1.0 / BILL_GENERATION_DELAY_MEAN_DAYS)))
 
 
+def bill_issue_date(customer_id: str, period_end: str) -> date:
+    """The day this leg's bill for the period ending `period_end` is issued: after the period's
+    generation run. The ledger prints it, billing caps a catch-up at it (SLC 21BA.1), and GSoP reg 6D's
+    refund clock starts on it for a final bill (home_moves.md s.8.8 choice 2, corrected 2026-11-12)."""
+    return (date.fromisoformat(period_end[:10])
+            + timedelta(days=bill_generation_delay_days(customer_id, period_end[:10])))
+
+
 def bill_due_date(customer_id: str, period_end: str) -> date:
     """The day this leg's bill for the period ending `period_end` falls due: issued after the
     period's generation run, payable PAYMENT_TERMS_DAYS later. The one home for it. The billing
@@ -138,9 +146,7 @@ def bill_due_date(customer_id: str, period_end: str) -> date:
     desk walks) each kept their own: the run's said the 28th of the month being billed, before the
     period had even ended, so on the 2eeb3f0b3 book 1,987 of 7,151 journeys opened on a bill the
     billing ledger had not yet made due."""
-    return (date.fromisoformat(period_end[:10])
-            + timedelta(days=bill_generation_delay_days(customer_id, period_end[:10])
-                        + PAYMENT_TERMS_DAYS))
+    return bill_issue_date(customer_id, period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
 
 
 def paid_on(due_date: date, days_late: int, method: str | None) -> date:
