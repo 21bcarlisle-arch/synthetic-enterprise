@@ -285,3 +285,22 @@ for_the_director:
     done_means: M3 amended after the advisor reads the draft; a K8 knowledge page on household need weights
       (GAPs labelled) published; Sunday's 16 Nov balance proposal names the utility's cost and queue position
     due: '2026-11-23'
+- id: the-off-box-dead-man-misses-stops
+  raised: '2026-11-13'
+  kind: reserved
+  what: 'The off-box dead-man misses stops of up to ~15h. GitHub delivers its schedule every 4-9h whatever
+    the cron says: 0.139 runs/h at twice-hourly vs 0.159/h hourly, longest gap 8.8h. Pre-registration
+    refuted on both legs.'
+  proposal: Trigger the ops workflow off-box-deadman.yml by workflow_dispatch from the advisor's cloud
+    routine, hourly, with a fine-grained token scoped to actions:write on the ops repo only. Creating
+    the Routine and its token is console-only.
+  recommendation: 'I recommend the hourly workflow_dispatch from the advisor routine. It brings worst-case
+    detection from ~15h to ~7h. The trade-off is one more scoped credential held off the box. Holding
+    position: the twice-hourly cron stays and the 6h threshold is unchanged. What would change this: if
+    GitHub''s delivery improves to gaps under 2h over a week, the routine is not needed.'
+  status: open
+  resolution: ''
+  g5_class: live_credential_exposure
+  evidence: docs/staging/records/SEAT_RESULT_THE_THREE_STOPS_OF_3_TO_10_NOV_HAVE_THREE_DIFFERENT_CAUSES_2026-11-10.md,
+    section 'Result of the pre-registration'; gh run list -R 21bcarlisle-arch/synthetic-enterprise-ops
+    --workflow off-box-deadman.yml --event schedule
