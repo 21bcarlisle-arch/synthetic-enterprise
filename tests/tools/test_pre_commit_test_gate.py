@@ -1338,6 +1338,26 @@ def test_a_module_that_only_CITES_a_document_is_not_its_reader(monkeypatch, tmp_
                        "broken.py": True}, verdict
 
 
+def test_a_test_that_names_a_document_only_in_a_comment_is_not_its_guard(monkeypatch, tmp_path):
+    """One control over every branch of `_names_it_outside_comments`. A comment-only citer is
+    dropped; a docstring, a string literal and an unparseable file are kept. The drop leg is
+    asserted first, or a predicate that keeps everything would pass every keep-leg."""
+    doc = "docs/market_research/some_page.md"
+    files = {
+        "test_comment.py": f'# see {doc} s.1\ndef test_x():\n    assert 1  # {doc}\n',
+        "test_doc.py": f'"""Guards {doc}."""\n',
+        "test_reads.py": f'P = "{doc}"\n',
+        "test_broken.py": f'def (:\n    # {doc}\n',
+    }
+    for name, src in files.items():
+        (tmp_path / name).write_text(src)
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    verdict = {n: gate._names_it_outside_comments(n, (doc, "some_page.md")) for n in files}
+    assert verdict["test_comment.py"] is False
+    assert verdict == {"test_comment.py": False, "test_doc.py": True, "test_reads.py": True,
+                       "test_broken.py": True}, verdict
+
+
 def test_the_k8_page_no_longer_selects_the_full_simulation_run_through_its_citers():
     """The instance: home_moves.md alone selected tests/simulation/test_run_phase4c_on_phase2b.py
     (about 18 minutes) through modules that cite it in prose, and timed out the 3,600 s gate on

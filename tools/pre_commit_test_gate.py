@@ -1113,7 +1113,8 @@ def data_surface_tests(path: str) -> list[str]:
             continue
         if ref.startswith("tests/"):
             # a fixture/conftest that names the path is not itself a runnable guard
-            if Path(ref).name.startswith("test_"):
+            if Path(ref).name.startswith("test_") and _names_it_outside_comments(
+                    ref, (path, p.name)):
                 targets.add(ref)
         elif ref.startswith(CODE_PREFIXES) and _names_it_outside_prose(ref, (path, p.name)):
             targets.update(tests_for(ref))
@@ -1146,6 +1147,20 @@ def _names_it_outside_prose(module: str, needles: tuple[str, ...]) -> bool:
                 and id(node) not in prose and any(n in node.value for n in needles)):
             return True
     return False
+
+
+def _names_it_outside_comments(test: str, needles: tuple[str, ...]) -> bool:
+    """Does any string in this test name the document? A docstring counts (it can be the guard
+    relationship itself, test_simplifications_store and its README); a comment does not, because
+    nothing in a comment can read a file. One comment citing home_moves.md s.8.8e in
+    test_run_phase4c_on_phase2b.py (3af02a2dd1) put the 18-minute run back under the page and
+    timed out the 3,600 s gate again. Fails toward running: an unparseable file counts."""
+    try:
+        tree = ast.parse((ROOT / test).read_text(encoding="utf-8"))
+    except (OSError, SyntaxError, ValueError, UnicodeDecodeError):
+        return True
+    return any(isinstance(node, ast.Constant) and isinstance(node.value, str)
+               and any(n in node.value for n in needles) for node in ast.walk(tree))
 
 
 def _imports_module(source: str, dotted: str) -> bool:

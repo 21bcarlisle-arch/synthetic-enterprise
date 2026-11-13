@@ -50,3 +50,56 @@ Until the fix lands, `DOMAIN_INVARIANT_EXCEPTIONS.yaml` holds the row at a ceili
 account, so the 16 Nov publish is not refused for a traced defect. A second breach still refuses.
 
 **Reverse.** Delete this file and the SYN-2016-139 exception.
+
+## Landing "Reg 6D's refund clock starts on the day the final bill is issued" (item `the-final-bill-issue-day-has-one-home-beside-bill-due-date`)
+
+**Attempt 6, 13 Nov.** Salvage ce230b3926 (8 files) was cut to its 5 work paths and applied to a
+detached worktree at origin/main a84639ed46 (`/var/tmp/wt-final-bill-issue-day`). Origin had not
+touched those paths since the salvage's base, so it applied cleanly. Attempts 1-5 left no cause on
+record. One likely cause: the shared checkout sat 2 commits behind origin, and `surgical_land`
+refuses a commit on a primary that is behind. This attempt avoids that by landing from the
+worktree. The new control passes (2), and so do 29 neighbouring tests.
+`test_every_journey_opens_the_day_after_a_bill_the_ledger_made_due` fails identically on CLEAN
+origin a84639ed46 (4 journeys: PROS-2016-0020, SYN-2016-325, SYN-2016-005, SYN-2016-024), so it is
+not this change. It is the red recorded on 10 Nov in SEAT_FINDING_THE_DESKS_WRITE_OFF_... (3 then).
+If the gate selects it, this attempt is refused for that red, not for the fix. The attempt's pid
+and outcome follow.
+
+- **Attempt 6 ended: REFUSED, after 90 s, before any test ran.** Unit
+  `longjob-the-final-bill-issue-day-has-one-home-beside-bill-due-date`, ExecMainPID 1175646, exit 1.
+  `[surgical-land] REFUSED: MESSAGE GATE RED (rc=1)`. `[director-doc-gate]`: the move of the
+  `DIRECTOR_STEER_...` advisor file to done/ is a rename with an edit, and the message had no
+  `Director-doc:` trailer. The cause is the landing's own message, not the fix.
+- **Attempt 7:** the same tree, with `Director-doc: record` and `NEXT:` trailers added. Its pid
+  and outcome follow.
+- **Attempt 7 ended: REFUSED, after 30 s.** Unit pid 1192389, exit 1. The message gate passed.
+  The tree gate's targeted tests passed (14 passed, 2 skipped). `[archive-question-gate]` refused
+  the advisor steer's move to done/: it carries 2 open director questions in
+  `open_question_register.json` ("Has the website updated?", "Is this per customer or on a random
+  size sample?"). Again the cause is the bundled move, not the fix.
+- **Attempt 8:** the fix alone. The advisor steer stays in place until its questions are closed.
+- **Found before attempt 8:** `fork_salvage` committed this worktree's uncommitted fix as SALVAGE
+  10cde4711c (15:36Z, `--no-verify`, on the worktree's detached HEAD). Attempts 6 and 7 gated on
+  top of it. A landing there carries an ungated commit as a parent, so it must not reach origin.
+  The worktree was soft-reset to a84639ed46 before attempt 8, with the same bytes staged. Salvage
+  ce230b3926, which this fix comes from, was made the same way. Earlier attempts that started from
+  a salvaged worktree may have died on that parent.
+
+**Attempt 9, 13 Nov (worktree `/var/tmp/se-seat-executor` on origin/main db80910fa0).** The salvage
+worktree was gone; the hunks came from SALVAGE d0025cb49f, whose base a84639ed46 is on origin and
+whose six paths origin has not touched since. Stray paths (context handshake, fidelity ledger,
+test_execution_log) dropped.
+
+- **Why the selection control was red.** Not the page edit:
+  `test_the_k8_page_no_longer_selects_the_full_simulation_run_through_its_citers` is red on clean
+  origin. 3af02a2dd1 added a comment citing `home_moves.md s.8.8e` to
+  `tests/simulation/test_run_phase4c_on_phase2b.py`, and `data_surface_tests` selected any test naming
+  the page anywhere, comments included. Fix, as a class: a test that names a document only in a
+  comment is not its guard (`_names_it_outside_comments`; a docstring still counts). Its control
+  covers every branch, and mutating the filter to keep everything turns both controls red.
+- **Measured selection** (seconds summed from `/var/tmp/final-bill-timing/per_file.tsv`): all
+  paths together 77 files, 4,311 s. That is over the limit, so this attempt lands it in three parts,
+  serially: (1) the gate fix and this finding, 47 files, 580 s; (2) home_moves.md, 26 files, 2,666 s
+  (it still pulls `test_run_phase2b.py`, 994 s, through `simulation/run_phase2b.py`, which names
+  the page in code); (3) the simulation fix and its control, 51 files, 1,645 s. Prediction: each
+  part finishes inside 3,600 s. The attempt log follows.
