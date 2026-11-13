@@ -485,6 +485,28 @@ hours come from the settlement curve in rule 2.
 | 7 | The vector columns still missing: cash flow, then fairness, then time | 3 supplier | 2.2 (1.6–3.3) | none |
 | | **Total** | **27 sessions** | **about 16 points (11–24)** | **about 82 machine-hours** |
 
+**Step 1, launched 13 Nov 13:14Z (result not yet read).** The family runs at `45122d156` in its own
+worktree as unit `longjob-value-test-12-draw-family-pairs`, with seeds 11111 to 99999, 10101,
+20202 and 30303. The redraw key is `elasticity` and the mode is `all`, as on 8 Oct. Seeds run in
+pairs, each pair in a child process. Each pair is the commit's own `noise_floor`, with the default
+runner wrapped only to keep the control arm's net per household. The floor row drops that net, and
+the whole advantage per household needs it. No arm, baseline or world is changed. The family is
+then folded with `--fold`. Seed 11111 must reproduce 8 Oct's £11,766.20, or the world under the
+worktree has moved. Everything outside the repo lives in `/var/tmp/vt12-driver/`: `driver.py` runs
+the family and `grade.py` grades it. The outputs land in `/var/tmp/vt12-out/`. The grader was
+checked on a fixture with a known 50/50 split and returned 0.49 (0.44 to 0.55).
+
+*What this family's "roll noise" is.* It is the variance across re-draws of the elasticity
+assignment. Churn and payment rolls are held at the base seed, so they count in the between-household
+term. That makes the measured roll share a **lower bound**, and the heterogeneity term an upper
+bound. If P6 holds on it, it holds. If P6 fails on it, the honest reading is "not shown", and a
+`churn_roll` family is the next measurement.
+
+*Correction, beside the claim.* The table says step 1 takes about 9 machine-hours. The last family
+at this commit took 5 h 28 min for 3 seeds (8 Oct, 11:20 to 16:48Z), so 12 seeds take about
+**22 hours**. A floor leg's 11.2 GB peak also leaves room for only one leg at a time. The result
+reads around midday on 14 Nov, still before the 16 Nov review.
+
 So the redesign takes about half of one week's feature third (33 points), with room left for the
 world steers. Steps 1 to 4 fit the week of 16 Nov. Step 6 starts when steps 1, 2, 4 and 5 have
 landed, and with the 72-hour run it probably reads in the week of 23 Nov. Acquisition pricing comes
