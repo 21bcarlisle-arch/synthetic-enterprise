@@ -17439,6 +17439,113 @@ def _size_term_paired_floor(path: Path | None = None) -> dict:
     }
 
 
+def _per_household_year_redraw_band(cw: dict) -> dict:
+    """Each contrast's re-draw band in the same units as its published draw, per household-year.
+
+    The re-draws are the same book (each floor seed settles the same billing accounts as the
+    published run) with only the price-sensitivity draw moved. Each re-draw's own control-arm
+    household-years are NOT on disk, so the published run's are the denominator for all of them.
+    A re-draw whose control households stayed longer would read slightly lower here than on its own
+    count; the field says so beside the figures rather than leaving it for a reader to infer.
+    """
+    phy = dict(cw.get("per_household_year") or {})
+    years = phy.get("household_years")
+    if not phy.get("available") or not isinstance(years, int) or years <= 0:
+        return phy
+    for key, stability in (("whole_advantage", cw.get("verdict_stability")),
+                           ("choosing", (cw.get("selection_leg") or {}).get("verdict_stability")),
+                           ("price_level", (cw.get("level_leg") or {}).get("verdict_stability"))):
+        row = phy.get(key)
+        if not isinstance(row, dict) or not row.get("available"):
+            continue
+        st = stability or {}
+        if not st.get("checked") or _f(st.get("redraw_mean_gbp")) is None:
+            band = {"available": False,
+                    "why_not": st.get("why_not") or "this contrast carries no re-draw family"}
+        else:
+            band = {"available": True, "n": st.get("n"),
+                    **{k + "_per_household_year": round(_f(st.get(k + "_gbp")) / years, 2)
+                       for k in ("redraw_min", "redraw_mean", "redraw_max")}}
+        phy[key] = dict(row, redraw_band=band)
+    phy["redraw_denominator"] = (
+        "Each re-draw is the same book with only the price-sensitivity draw moved; its own "
+        "household-years are not on disk, so every re-draw is divided by this run's {:,}."
+    ).format(years)
+    return phy
+
+
+def _run_per_household_year(run: dict | None, realised: dict | None,
+                            provisioned: dict | None) -> dict:
+    """The headline run's figures per household per year, over THAT run's own household-years.
+
+    Director, 13 Nov: every value-test figure is stated per household per year first. The headline
+    and the "where the advantage came from" table are over the run on `THREE_ARM_PATH`, a different
+    book from `current_world`, so they are divided by this run's own control-arm household-years
+    and never by the current world's. That run carries no per-account nets, so no spread between
+    households is stated here; only the division.
+    """
+    run = run or {}
+    years = ((run.get("household_side") or {}).get("control_arm") or {}).get("customer_years")
+    households = ((run.get("book_identity") or {}).get("control_arm") or {}).get(
+        "billing_accounts_settled_in_window")
+    if not isinstance(years, int) or years <= 0 or not isinstance(households, int) or households <= 0:
+        return {"available": False,
+                "why_not": ("the headline run names no control-arm household-years or no book "
+                            "size, so its figures cannot be stated per household per year")}
+
+    def per(v):
+        v = _f(v)
+        return None if v is None else round(v / years, 2)
+
+    split = (realised or {}).get("split") or {}
+    arms = ((provisioned or {}).get("arms") or []) if (provisioned or {}).get("available") else []
+    return {
+        "available": True,
+        "run_generated_at": run.get("generated_at"),
+        "households": households,
+        "household_years": years,
+        "what_is_counted": (
+            "A household is one billing account, dual-fuel legs counted once. A household-year is "
+            "one (account, calendar year) with settled supply in this run's control arm; a part "
+            "year counts as a whole one. Every figure is this run's total divided by its own "
+            "control arm's household-years."),
+        # SIZES, NOT SIGNS: the headline sentence decides whether a direction may be stated, and
+        # a signed per-year figure above it would state one the sentence withholds.
+        "realised": ({"clock": split.get("clock"),
+                      "value_advantage_size": per(abs(_f(split.get("value_advantage_gbp")) or 0)),
+                      "selection_size": per(abs(_f(split.get("selection_gbp")) or 0)),
+                      "level_advantage_size": per(abs(_f(split.get("level_advantage_gbp")) or 0))}
+                     if split.get("available") and None not in (
+                         _f(split.get("value_advantage_gbp")), _f(split.get("selection_gbp")),
+                         _f(split.get("level_advantage_gbp"))) else None),
+        "provisioned": ({"clock": (provisioned or {}).get("clock"),
+                         "net_by_arm": {a.get("key"): per(a.get("net_gbp")) for a in arms},
+                         "advantage_by_arm": {a.get("key"): per(a.get("advantage_gbp"))
+                                              for a in arms},
+                         "selection_magnitude": per((provisioned or {}).get(
+                             "selection_magnitude_gbp"))}
+                        if arms else None),
+    }
+
+
+def _error_bar_per_household_year(floor: dict | None) -> dict:
+    """Why the seed family's pounds cannot be stated per household per year, read off the floor.
+
+    The family's seeds name their book size but not their control-arm household-years, so there is
+    no denominator; dividing by another run's would put a bound from one book over a count from
+    another. A named absence until a floor's seeds carry a household-year count; whoever adds one
+    adds the available branch here.
+    """
+    seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
+    books = sorted({s.get("billing_accounts_settled_in_window") for s in seeds
+                    if isinstance(s.get("billing_accounts_settled_in_window"), int)})
+    return {"available": False, "why_not": (
+        "this family's re-draws settled {} households, a different book from the headline run and from the current-world run, and "
+        "carry no count of household-years, so the pounds below are totals over that book and no "
+        "per-household-year figure is stated for them").format(
+            " or ".join(str(b) for b in books) if books else "an uncounted number of")}
+
+
 #: The clustered interval on the belief's skill. Resampling is by HOUSEHOLD, not by decision: one
 #: account renews several times and its renewals are not independent draws, so resampling decisions
 #: would narrow the interval by counting one household several times. The seed is fixed so the
@@ -17825,6 +17932,7 @@ def build(three_arm: dict | None, floor: dict | None,
             CURRENT_WORLD_CHANGED_SINCE_THE_LAST_READING),
             w2_20_own_effect=_w2_20_own_effect(current_three_arm, w2_20_reverted),
             per_household_year=_per_household_year(current_three_arm))
+        current_world["per_household_year"] = _per_household_year_redraw_band(current_world)
     return dict(
         base,
         available=True,
@@ -17884,10 +17992,14 @@ def build(three_arm: dict | None, floor: dict | None,
         book=_book(three_arm, provenance),
         realised=realised,
         provisioned=provisioned,
+        # THE HEADLINE'S AND THE SPLIT'S OWN BOOK, PER HOUSEHOLD PER YEAR. Not the current
+        # world's denominator: that is another run over another book. See `_run_per_household_year`.
+        run_per_household_year=_run_per_household_year(three_arm, realised, provisioned),
         # THE WHOLE SPLIT IS HANDED OVER, NOT JUST THE SELECTION FIGURE. Each leg's own published
         # run is what its reading names as a member of its own family; three legs sharing one
         # run's number would be the mispairing every other block in this file refuses.
         error_bar=_error_bar(floor, point, three_arm, point_clock, split, auc_family),
+        error_bar_per_household_year=_error_bar_per_household_year(floor),
         # THE SECOND DRAW OF THE FIGURE THE BAR ABOVE IS A BAR ON, in the same payload as both, so
         # the surface cannot render the move without the bar it moved inside of. Passed the SAME
         # floor `_error_bar` gets -- not re-read -- because a move placed against a different

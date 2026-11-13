@@ -1025,6 +1025,40 @@ details.evidence > summary { cursor: pointer; }
     var s = gbp(v);
     return s === null ? null : (Number(v) > 0 ? "+" + s : s);
   };
+  /* PER HOUSEHOLD PER YEAR, TO THE PENNY, signed. Director, 13 Nov: every value-test figure is
+     stated per household per year first. The division is the producer's
+     (`current_world.per_household_year`); this only formats it. */
+  var perHy = function (v) {
+    if (v === null || v === undefined || isNaN(v)) return null;
+    var n = Number(v);
+    return (n > 0 ? "+" : (n < 0 ? "−" : "")) + "£" + Math.abs(n).toFixed(2);
+  };
+  /* A per-year figure for running prose: unsigned unless `signedToo`, and a named gap rather than
+     a throw when the producer could not divide. */
+  var plainHy = function (v, signedToo) {
+    var t = perHy(v);
+    return t === null ? "an unstated figure" : (signedToo ? t : t.replace("+", ""));
+  };
+  /* THE PER-YEAR LEAD FOR A PANEL OVER THE HEADLINE RUN'S BOOK (`d.run_per_household_year`), which
+     is not the current world's book and never borrows its denominator. `body` is called only
+     when the block is available; otherwise the absence is named in the per-year place. The
+     definition renders in ONE panel only (the headline's): a feed string with two homes is what
+     `site/test_a_producers_here_relative_pointer_has_one_home.py` refuses. */
+  var runPerYearLead = function (rp, body, withDefinition) {
+    var label = "<strong>PER HOUSEHOLD PER YEAR, FIRST:</strong> ";
+    if (!rp || !rp.available) {
+      return '<p style="margin:0 0 8px;font-size:13px;color:var(--amber);">' + label
+        + "no per-household-year figure is stated for this run &mdash; "
+        + prose((rp && rp.why_not) || "this publish carries no household-years count for it")
+        + ". The pounds below are book totals.</p>";
+    }
+    return '<p style="margin:0 0 8px;font-size:13px;">' + label + body(rp)
+      + ' <span style="font-size:11.5px;color:var(--muted);">Over this run&rsquo;s '
+      + esc(rp.households) + " households and "
+      + Number(rp.household_years).toLocaleString("en-GB") + " household-years. "
+      + (withDefinition ? prose(rp.what_is_counted || "") + " " : "")
+      + "The pounds below are the book totals.</span></p>";
+  };
   /* A unit rate is quoted to the penny, never rounded: £44.50/MWh against £2.00/MWh is the
      whole point of the level arm, and "£45 against £2" quietly restates the number the arm
      actually charged. */
@@ -1911,9 +1945,22 @@ details.evidence > summary { cursor: pointer; }
         + prose(cw && cw.why_not ? cw.why_not : "") + "</p>";
     }
     var specs = [
-      ["selection_leg", "The choosing", "This is the thesis's own quantity"],
-      ["level_leg", "The price level", "This is the other leg, and it is value moved"]
+      ["selection_leg", "The choosing", "This is the thesis's own quantity", "choosing"],
+      ["level_leg", "The price level", "This is the other leg, and it is value moved",
+       "price_level"]
     ];
+    /* PER HOUSEHOLD PER YEAR FIRST, THE BOOK TOTAL SECOND. A leg the producer could not divide
+       says so in place of the per-year figure rather than promoting the total to first. */
+    var phy = cw.per_household_year || {};
+    var perYear = function (key, total) {
+      var row = phy.available ? (phy[key] || {}) : {};
+      var v = row.available ? perHy(row.gbp_per_household_year) : null;
+      return (v === null
+        ? "no per-household-year figure (" + esc(phy.why_not || row.why_not
+            || "this publish carries none") + ")"
+        : esc(v) + " per household per year")
+        + " (" + esc(total) + " over the whole book)";
+    };
     var present = [];
     var blocks = specs.map(function (spec) {
       var leg = cw[spec[0]];
@@ -1927,7 +1974,7 @@ details.evidence > summary { cursor: pointer; }
       present.push(leg);
       return '<div style="margin:0 0 10px;">'
         + '<p style="margin:0;font-size:13px;"><strong>' + esc(spec[1]) + " &mdash; "
-        + esc(signed(leg.figure_gbp)) + ".</strong> " + esc(spec[2]) + ". "
+        + perYear(spec[3], signed(leg.figure_gbp)) + ".</strong> " + esc(spec[2]) + ". "
         + prose(leg.what_this_leg_is || "") + "</p>"
         + rootCause(leg) + legVerdict(leg) + "</div>";
     }).join("");
@@ -1937,7 +1984,7 @@ details.evidence > summary { cursor: pointer; }
     if (present.length === specs.length && gbp(cw.value_advantage_gbp) !== null) {
       sum = '<p style="margin:0;font-size:13px;">'
         + "<strong>Only then, the sum.</strong> In this published draw the two legs together are "
-        + esc(gbp(cw.value_advantage_gbp))
+        + perYear("whole_advantage", gbp(cw.value_advantage_gbp))
         + ", and that total is what the sentence below states. The bound on each leg is the band "
         + "table under it; what the total is made of is the composition panel further down. "
         + "Whether the price-level leg is an advantage a flat-rule supplier could have taken too "
@@ -1953,7 +2000,12 @@ details.evidence > summary { cursor: pointer; }
     return lead + whichPopulation({
       run: cw.generated_at, commit: cw.producing_commit, clock: cw.clock,
       priced: cw.priced_decisions, offered: cw.renewals_offered
-    }) + blocks + sum;
+    }) + (phy.available
+      ? '<p style="margin:0 0 8px;font-size:11.5px;color:var(--muted);">'
+        + "<strong>PER HOUSEHOLD PER YEAR:</strong> over " + esc(phy.households) + " households and "
+        + Number(phy.household_years).toLocaleString("en-GB") + " household-years. "
+        + prose(phy.what_is_counted || "") + "</p>"
+      : "") + blocks + sum;
   }
 
   /* EVERY LEG OF THE ADVANTAGE, EACH AT THE BAR ITS OWN FAMILY EARNS. One row per leg, in the
@@ -2608,7 +2660,8 @@ details.evidence > summary { cursor: pointer; }
       what: "what deciding household by household earned over flat rules, both legs together",
       figure: cw.value_advantage_gbp,
       stability: cw.verdict_stability,
-      withheld: cw.verdict_withheld_because
+      withheld: cw.verdict_withheld_because,
+      phyKey: "whole_advantage"
     }];
     [["selection_leg", "… of which, the choosing",
       "the leg that could be value CREATED — what per-customer choosing was worth once a flat "
@@ -2619,6 +2672,7 @@ details.evidence > summary { cursor: pointer; }
       var leg = cw[spec[0]];
       if (!leg) return;
       legs.push({ label: spec[1], what: spec[2], figure: leg.figure_gbp,
+                  phyKey: spec[0] === "selection_leg" ? "choosing" : "price_level",
                   stability: leg.verdict_stability, withheld: leg.verdict_withheld_because,
                   /* TWO DIFFERENT COMPLAINTS ABOUT THE SAME NUMBER, AND A READER NEEDS BOTH, so
                      they are a LIST and each keeps its own sentence. Concatenating them into one
@@ -2647,13 +2701,30 @@ details.evidence > summary { cursor: pointer; }
                   ].filter(function (c) { return c; }) });
     });
 
+    /* PER HOUSEHOLD PER YEAR FIRST, THE BOOK TOTAL UNDER IT, in every money cell. Both figures
+       are the producer's; a cell it could not divide shows the total alone under a named "no
+       per-year figure", never the total promoted into the per-year place. */
+    var phy = cw.per_household_year || {};
+    var cell = function (perYear, total, bold) {
+      var top = perYear === null
+        ? '<span style="color:var(--amber);">no per-year figure</span>'
+        : esc(perYear) + "/yr";
+      return "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;"
+        + (bold ? "font-weight:600;" : "") + "\">" + top
+        + '<br><span style="font-size:10.5px;font-weight:400;">'
+        + esc(total === null ? "—" : total) + " book</span></td>";
+    };
     var anyChecked = false;
     var rows = legs.map(function (leg) {
       var st = leg.stability || {};
-      var head = "<tr><td style=\"padding:3px 10px 3px 0;\">" + esc(leg.label)
-        + "</td><td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;"
-        + "font-weight:600;\">" + esc(gbp(leg.figure) === null ? "—" : gbp(leg.figure))
-        + "</td>";
+      var row = phy.available ? (phy[leg.phyKey] || {}) : {};
+      var band = row.available ? (row.redraw_band || {}) : {};
+      var bandCell = function (k) {
+        return cell(band.available ? perHy(band[k + "_per_household_year"]) : null,
+                    gbp(st[k + "_gbp"]), false);
+      };
+      var head = "<tr><td style=\"padding:3px 10px 3px 0;\">" + esc(leg.label) + "</td>"
+        + cell(row.available ? perHy(row.gbp_per_household_year) : null, gbp(leg.figure), true);
       if (!st.checked || gbp(st.redraw_mean_gbp) === null) {
         return head + '<td colspan="4" style="padding:3px 0;color:var(--amber);">'
           + "<strong>NOT RE-DRAWN.</strong> "
@@ -2672,12 +2743,7 @@ details.evidence > summary { cursor: pointer; }
       return head
         + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
         + esc(st.n) + "</td>"
-        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
-        + esc(gbp(st.redraw_min_gbp)) + "</td>"
-        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
-        + esc(gbp(st.redraw_mean_gbp)) + "</td>"
-        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
-        + esc(gbp(st.redraw_max_gbp)) + "</td>"
+        + bandCell("redraw_min") + bandCell("redraw_mean") + bandCell("redraw_max")
         + "<td style=\"padding:3px 0;white-space:nowrap;color:var(--amber);font-weight:600;\">"
         + esc(where) + "</td></tr>";
     }).join("");
@@ -2700,6 +2766,15 @@ details.evidence > summary { cursor: pointer; }
       + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Highest</th>"
       + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">This draw sat</th></tr>"
       + rows + "</table></div>"
+      + '<p style="margin:4px 0 0;font-size:11.5px;color:var(--muted);">'
+      + (phy.available
+          ? "Each cell is per household per year over " + esc(phy.households) + " households and "
+            + Number(phy.household_years).toLocaleString("en-GB")
+            + " household-years, with the whole book's total under it. "
+            + prose(phy.redraw_denominator || "")
+          : '<span style="color:var(--amber);">No per-household-year figure is stated: '
+            + prose(phy.why_not || "this publish carries no household-years count") + "</span>")
+      + "</p>"
       + '<ul style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
       + legs.map(function (leg) {
           return "<li><strong>" + esc(leg.label) + "</strong> &mdash; " + prose(leg.what)
@@ -2715,8 +2790,8 @@ details.evidence > summary { cursor: pointer; }
       + "</ul>"
       + (anyChecked
           ? '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
-            + "Every number in this table is read from `current_world.verdict_stability` in the "
-            + "feed. None is authored on this page, and the two legs sum to the whole advantage "
+            + "Every number in this table is read from `current_world.verdict_stability` and "
+            + "`current_world.per_household_year` in the feed. None is authored on this page, and the two legs sum to the whole advantage "
             + "only in the published draw &mdash; a mean of a difference is not the difference of "
             + "the means, so the rows below the first do not add up to it and are not meant to."
             + "</p>"
@@ -2847,6 +2922,16 @@ details.evidence > summary { cursor: pointer; }
           clock: ((d.realised || {}).split || {}).clock,
           priced: hd.value_arm_priced, offered: hd.renewals_the_world_offered
         })
+        + runPerYearLead(d.run_per_household_year, function (rp) {
+            var r = rp.realised;
+            if (!r) { return "this run states no realised split to divide."; }
+            /* SIZES, NOT SIGNS: the sentence below decides whether a direction may be stated. */
+            return "the per-customer arm came out " + esc(plainHy(r.value_advantage_size))
+              + " per household per year from flat rules, and once a flat margin at the same "
+              + "level is credited, the choosing is " + esc(plainHy(r.selection_size))
+              + " per household per year. Sizes, not directions: the sentence below says whether a "
+              + "direction can be stated.";
+          }, true)
         + prose(d.headline)
         + (d.provisional ? ' <span class="pill pill-building">Provisional</span>' : "");
 
@@ -3150,7 +3235,19 @@ details.evidence > summary { cursor: pointer; }
            `site/test_a_producers_here_relative_pointer_has_one_home.py` refuses. The producer
            publishes the block's own population; this renders it. */
         var pp = sp.population || {};
-        $("arms-split").innerHTML = table(sp, "Where the advantage came from")
+        $("arms-split").innerHTML = runPerYearLead(d.run_per_household_year, function (rp) {
+            var pv = rp.provisioned;
+            if (!pv) { return "this run states no arm on the provisioned clock to divide."; }
+            var net = pv.net_by_arm || {}, adv = pv.advantage_by_arm || {};
+            return "on the " + esc(pv.clock) + " clock the baseline kept "
+              + esc(plainHy(net.control)) + ", the per-customer arm "
+              + esc(plainHy(net.value)) + " (" + esc(plainHy(adv.value, true))
+              + ") and one flat margin at the per-customer arm's level "
+              + esc(plainHy(net.level)) + " (" + esc(plainHy(adv.level, true))
+              + "), each per household per year; the size of the choosing on this clock is "
+              + esc(plainHy(pv.selection_magnitude)) + ".";
+          })
+          + table(sp, "Where the advantage came from")
           + whichPopulation({
               run: pp.run_generated_at, commit: pp.producing_commit, clock: pp.clock,
               priced: pp.priced_decisions, offered: pp.renewals_offered
@@ -3292,8 +3389,13 @@ details.evidence > summary { cursor: pointer; }
       }
 
       var eb = d.error_bar || {};
+      var ebPhy = d.error_bar_per_household_year || {};
       $("arms-errorbar").innerHTML = eb.available
         ? '<span style="color:var(--amber);font-weight:600;">Read the error bar before the number.</span> '
+          + (ebPhy.available ? ""
+              : '<span style="color:var(--amber);">No per-household-year figure: '
+                + prose(ebPhy.why_not || "this publish carries no household-years count for this "
+                        + "family") + ".</span> ")
           + "Re-running the whole comparison on " + esc(eb.seeds)
           + " further seeds put the value of the choosing anywhere between "
           + esc(gbp(eb.min_gbp)) + " and " + esc(gbp(eb.max_gbp))
