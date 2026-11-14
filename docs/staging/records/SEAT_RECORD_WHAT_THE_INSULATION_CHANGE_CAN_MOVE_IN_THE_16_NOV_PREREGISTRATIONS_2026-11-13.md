@@ -79,17 +79,37 @@ and `catchup_corrects_invoices` is [C5-INV112].
 **Amendment (2026-11-13, about e17ebc596 only):** C5 has no drawn home, so fabric cannot move its consumption
 through route 2 or 3. Whether route 1 moves its bill is settled by the book A/B. The result goes in the table below.
 
-## The A/B table (filled when both books finish)
+## The A/B table
 
-| pre-registration | figure | e17ebc596^ | e17ebc596 | fabric moves it? |
+**Old arm read 14 Nov 01:25Z.** Book `run_old.json`, producing commit f3e7962e82 (= e17ebc596^). Neither arm carries
+ceeefa5960 (the refund clock) or 69866925b (S6b). Both arms carry 3af02a2dd, 37d934286, b3ff041f0, c915067a8 and
+f0bca8e35, so every grade's own change is on both sides. The 01:15Z auto-SALVAGE commits on both arm worktrees hold
+observability JSON only, and no code.
+
+**Correction to step 2's instrument, beside it.** `/var/tmp/n29/scripts/chain.py` omits
+`generate_customer_reaction_chain`. That step is the publisher's last page step (`process_run_complete`, after the
+payment ledger), and it writes the timeline's final bills. Without it, `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO`
+reads NOT_IN_EXPORT and the closing-refund row reads UNREACHED, 0 checked. The first old-arm grade read exactly that.
+Both arms are graded with `/var/tmp/fab-ab2/chain_full.py` (the five steps in the publisher's order) and
+`/var/tmp/fab-ab2/grade_arm.sh`, then read with `/var/tmp/fab-ab2/read_arm.py` (outputs `/var/tmp/fab-ab2/`).
+
+| pre-registration | figure (its predicted value) | e17ebc596^ | e17ebc596 | fabric moves it? |
 |---|---|---:|---:|---|
-| C5-INV113 | lines by rate | pending | pending | pending |
-| n29 | INV_A_CLOSING_REFUND… breached | pending | pending | pending |
-| n29 | INV_CLOSED_ACCOUNT_BALANCE… breached | pending | pending | pending |
-| n29 | refunds with a set-off | pending | pending | pending |
-| §9.8 W1–W4 | see §9.8 | pending | pending | pending |
-| n30 | s, pairs, pairs with a read | pending | pending | pending |
-| c915067a8 | off-day openers in window, re-offers | pending | pending | pending |
-| baseline comparison | gate verdict | pending | pending | pending |
+| C5-INV113 | 20% net / VAT (−157.51 / −31.50) | −157.51 / −31.50 | pending | pending |
+| C5-INV113 | 5% net / VAT (+112.49 / +5.62) | +112.49 / +5.62 | pending | pending |
+| n29 P1 | `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO` breached (only SYN-2016-139) | 0 of 1,668 (FLAGGED, 76) | pending | pending |
+| n29 P2 | `INV_A_CLOSING_REFUND…` breached (29 ± 3) | 30 of 129 | pending | pending |
+| n29 P3 | refunds with a set-off (42 ± 5) | 45 of 184, GBP 1,400.40 | pending | pending |
+| §9.8 W1 | level leavers' final bills netted (170–215, GBP 4,200–5,200); proxy: an ever-level closed leg whose last bill carries `credit_applied_gbp` | 246 of 485, GBP 6,579.51 | pending | pending |
+| §9.8 W2/W3 | R5 desk-written-off accounts printing owed (W3 0–3; W2 F 0–3) | 30, GBP 699.65 | pending | pending |
+| §9.8 W4 | SYN-2016-244 final bill asked (GBP 30–45) | 77.82 (face 77.82) | pending | pending |
+| n30 P1/P2 | s (0.22–0.36), row CLEAN | 0.2706, CLEAN | pending | pending |
+| n30 P3/P4 | traditional pairs billed both (16,271 ± 15%); pairs with a read (3,000–5,000) | 16,244; 3,873 | pending | pending |
+| n30 P5 | smart/smart one-only (near 12%, 5–20%) | 6.9% (214 of 3,098) | pending | pending |
+| c915067a8 | off-day openers in window (→ 0); off-day re-offers in window (→ 0) | 2; 0 | pending | pending |
+| baseline | publisher gate verdict line | 27 unexcepted breaches across 5 rows, 7 excepted: refused | pending | pending |
+
+These old-arm readings are the comparator only. They are not grades: the 16 Nov book also carries ceeefa5960 and
+69866925b, which neither arm has.
 
 **Reverse.** Delete this file and the six amendments that cite it.
