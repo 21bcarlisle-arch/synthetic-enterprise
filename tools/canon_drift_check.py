@@ -75,8 +75,8 @@ hand, mechanised.
 DELIBERATELY NOT WIRED INTO THE COMMIT GATE. This check is expected to be RED whenever a
 published surface has drifted, and a red pre-commit gate wedges every commit in the tree
 (precedent: the CLAUDE.md ceiling, four days red, publishing wedged). It is an ORIENTATION
-instrument: run it, read it, mint the drift as work. Its report lands at
-`docs/observability/canon_drift.json` for the daily self-note to pick up.
+instrument. Its report lands at `docs/observability/canon_drift.json` for the daily self-note to
+pick up, and a red register mints its own staging item (`mint_drift_item`), once per drift set.
 
     python3 -m tools.canon_drift_check              # human-readable, exit 1 on drift
     python3 -m tools.canon_drift_check --json       # machine-readable report on stdout
@@ -696,6 +696,95 @@ def _render(verdicts: list[Verdict], removed: list[str] | None = None,
     return "\n".join(lines)
 
 
+#: The work item a red register mints. A45's Expert Hour (14 Nov, MAJOR 2): "a red result changes
+#: one line in the daily note and mints no work item" -- the docstring's "mint the drift as work"
+#: was done by nothing, so drift reached the queue only if someone read the note.
+DRIFT_ITEM_STEM = "WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_"
+DRIFT_ITEM_LANE = "A_strategy_governance"
+DRIFT_ITEM_ATOM = "A45_the_canon_is_a_standing_subject"
+
+
+def _drift_key(report: dict[str, Any]) -> str:
+    """The same drift is one item: keyed on which claims are red and how, not on the day."""
+    import hashlib
+    parts = sorted(f"{d['id']}:{d['verdict']}" for d in report["drift"])
+    parts += sorted(f"removed:{item.split(' -- ')[0]}" for item in report["removed"])
+    return hashlib.sha1("\n".join(parts).encode("utf-8")).hexdigest()[:10].upper()
+
+
+def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) -> Path | None:
+    """File the register's red as a staging finding, once per distinct drift. Returns the path, or None.
+
+    None when the register is green, or when an item for the same drift already exists anywhere
+    under `staging_dir` (root, in_progress/, done/): a daily note re-reading an unchanged red must
+    not mint one item a day, and an item closed as done must not be re-minted for a drift a later
+    run still sees -- that is the closer's call, recorded in the closed item.
+
+    Severity follows the 12 Aug ruling's own definitions: an OVER_CLAIM is the page publishing a
+    capability the code does not have, which is "a published figure may be wrong" -- BLOCKING.
+    Every other red (SUPERSEDED, UNBOUND, ERROR, a removed row) leaves no false sentence in front of
+    a reader -- LATENT.
+    """
+    if not report["drift"] and not report["removed"]:
+        return None
+    key = _drift_key(report)
+    if any(staging_dir.rglob(f"{DRIFT_ITEM_STEM}{key}_*.md")):
+        return None
+    over = [d for d in report["drift"] if d["verdict"] == OVER_CLAIM]
+    severity = "BLOCKING" if over else "LATENT"
+    rows = [f"| `{d['id']}` | {d['verdict']} | {d.get('page', '')} | {d.get('detail') or ''} |"
+            for d in report["drift"]]
+    rows += [f"| `{item.split(' -- ')[0]}` | REMOVED | | {item} |" for item in report["removed"]]
+    text = "\n".join([
+        f"**Severity:** {severity} · **Lane:** {DRIFT_ITEM_LANE} · **Epoch:** 2 · "
+        f"**Atom:** `{DRIFT_ITEM_ATOM}`",
+        "",
+        f"# The canon page and the code disagree on {len(rows)} registered claim(s) ({today})",
+        "",
+        "**Found by.** `tools/canon_drift_check.note_line`, run by the daily self-note. Minted "
+        f"by the check itself, keyed `{key}` on the set of red claims, so the same drift is filed "
+        "once.",
+        "",
+        "| Claim | Verdict | Page | Detail |",
+        "|---|---|---|---|",
+        *rows,
+        "",
+        "**What each verdict asks.** OVER_CLAIM: the page says more than the code does -- correct "
+        "the page (a director document takes a `Director-doc: correction` trailer) or restore the "
+        "code. SUPERSEDED: the code moved past the page -- the page under-claims. UNBOUND: the "
+        "register's anchor sentence left the page -- rebind the row. ERROR: the probe could not "
+        "run, so nothing is known. REMOVED: a row left the register without a `retired` reason.",
+        "",
+        f"**Done means.** `python3 tools/canon_drift_check.py` reads none of the rows above as red. "
+        f"Full report: `{DEFAULT_REPORT}`.",
+        "",
+    ])
+    path = staging_dir / f"{DRIFT_ITEM_STEM}{key}_{today}.md"
+    from background.live_ledger_guard import guard_live_ledger_write
+    guard_live_ledger_write(path, writer="canon_drift_check minting its drift")
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def _mint_for_the_note(root: Path, report: dict[str, Any]) -> str:
+    """Mint the red as work and say so in the note. Never raises: a failed mint must not cost the
+    note its drift line, so the failure is printed IN the line instead (fail-silent, R15).
+
+    Under a test process the repo's own staging is never written -- a test reading the live tree
+    would otherwise file a real work item. A fixture root under tmp is minted as normal.
+    """
+    from background.live_ledger_guard import in_test_process
+    if in_test_process() and root.resolve() == REPO_ROOT.resolve():
+        return ""
+    try:
+        from datetime import date
+        path = mint_drift_item(report, root / "docs" / "staging", today=date.today().isoformat())
+    except Exception as exc:  # noqa: BLE001 - reported in the line, never swallowed
+        return f" Minting its work item FAILED ({type(exc).__name__}: {exc})."
+    return f" Minted `{path.name}`." if path else ""
+
+
 def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
     """One line for the daily self-note — the TRIGGER half of this atom.
 
@@ -725,6 +814,7 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
             # A refusal swallowed by one caller's `except` re-surfaces as an unrelated assertion in
             # another, so the narrow `except` cost more than it saved.
             pass
+    minted = _mint_for_the_note(root, report) if write_report else ""
     drift = report["drift"]
     checked = report["claims_checked"]
     removed = report["removed"]
@@ -737,14 +827,14 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
         return (f"canon drift: {len(removed)} claim(s) LEFT the register since HEAD with no "
                 f"`{RETIRED_SECTION}` reason — {named}{more}. A removed claim is not a claim that "
                 f"holds; it is a page sentence nothing checks. The other {checked} were checked. "
-                f"Full report: `{DEFAULT_REPORT}`.")
+                f"Full report: `{DEFAULT_REPORT}`.{minted}")
     if not drift:
         return (f"canon drift: {checked} registered claim(s) checked against the code, all HOLD "
                 f"(register `{DEFAULT_REGISTER}`).{_unwatched_clause(report)}")
     named = "; ".join(f"{d['id']} → {d['verdict']}" for d in drift[:5])
     more = "" if len(drift) <= 5 else f" (+{len(drift) - 5} more)"
     return (f"canon drift: {len(drift)} of {checked} registered claim(s) no longer match the code — "
-            f"{named}{more}. Full report: `{DEFAULT_REPORT}`.{_unwatched_clause(report)}")
+            f"{named}{more}. Full report: `{DEFAULT_REPORT}`.{minted}{_unwatched_clause(report)}")
 
 
 def _unwatched_clause(report: dict[str, Any]) -> str:

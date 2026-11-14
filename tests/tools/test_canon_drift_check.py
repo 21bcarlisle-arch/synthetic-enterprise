@@ -489,3 +489,69 @@ def test_coverage_never_moves_the_exit_status(tmp_path, capsys):
     root, register = _mini_repo(tmp_path, page=SECTIONED_PAGE)
     assert main(["--root", str(root), "--register", str(register)]) == 0
     assert "UNWATCHED on docs/page.md" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- a red mints work (Expert Hour MAJOR 2)
+
+def _note_repo(tmp_path: Path, *, channel: bool) -> Path:
+    """`note_line` reads the default register path, so the fixture register goes there."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    root, register = _mini_repo(tmp_path, channel=channel, claims=[CHANNEL_CLAIM])
+    target = root / "docs/design/canon_claims.yaml"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(register.read_text(encoding="utf-8"), encoding="utf-8")
+    return root
+
+
+def _minted(root: Path) -> list[Path]:
+    from tools.canon_drift_check import DRIFT_ITEM_STEM
+    return sorted((root / "docs/staging").rglob(f"{DRIFT_ITEM_STEM}*.md"))
+
+
+def test_a_red_register_mints_one_classified_work_item_and_a_green_one_mints_none(tmp_path):
+    """MAJOR 2: before this, a red changed one line of the daily note and filed nothing.
+
+    Both legs of the partition in one test: a green register must mint nothing (a mint that fires
+    unconditionally passes every red-only test), and a red one must mint exactly one item, read by
+    the same severity parser the draw uses, and not a second one when the next note sees the same
+    drift.
+    """
+    from background.finding_severity import parse_severity_text
+    from tools.canon_drift_check import note_line
+
+    green = _note_repo(tmp_path / "green", channel=True)
+    assert "all HOLD" in note_line(green)
+    assert _minted(green) == []
+
+    red = _note_repo(tmp_path / "red", channel=False)
+    line = note_line(red)
+    items = _minted(red)
+    assert len(items) == 1, items
+    assert f"Minted `{items[0].name}`" in line
+    text = items[0].read_text(encoding="utf-8")
+    parsed = parse_severity_text(text, items[0])
+    assert (parsed.severity, parsed.lane) == ("BLOCKING", "A_strategy_governance")  # an OVER_CLAIM
+    assert "`channel_exists` | OVER_CLAIM" in text
+
+    note_line(red)  # the next morning, same drift
+    assert _minted(red) == items
+
+
+def test_a_closed_item_is_not_reminted_and_a_different_drift_is(tmp_path):
+    """The dedup reads every room, so a drift item moved to done/ stays closed; a NEW drift set
+    is a new item, and a non-OVER_CLAIM red is LATENT."""
+    from tools.canon_drift_check import mint_drift_item
+
+    root, register = _mini_repo(tmp_path, channel=False, claims=[CHANNEL_CLAIM])
+    staging = root / "docs/staging"
+    first = mint_drift_item(run(root, register)[1], staging, today="2026-11-14")
+    done = staging / "done"
+    done.mkdir()
+    first.rename(done / first.name)
+    assert mint_drift_item(run(root, register)[1], staging, today="2026-11-15") is None
+
+    (tmp_path / "b").mkdir()
+    root2, register2 = _mini_repo(tmp_path / "b", green_channel=True, claims=[NO_CHANNEL_CLAIM])
+    second = mint_drift_item(run(root2, register2)[1], staging, today="2026-11-15")
+    assert second is not None and second.name != first.name
+    assert second.read_text(encoding="utf-8").startswith("**Severity:** LATENT")
