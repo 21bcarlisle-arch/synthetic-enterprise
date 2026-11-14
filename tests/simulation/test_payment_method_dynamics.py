@@ -7,7 +7,8 @@ What each control names as its own defect:
     (cancels, does not), then: a stretched household cancels more; a household not paying by DD,
     or already off it, never does.
   * `test_a_cancellation_returns_its_month_and_moves_every_later_bill_to_pay_on_receipt` -- the
-    record is drawn and reaches no collection, or reaches the wrong month.
+    record is drawn and reaches no collection, or reaches the wrong month (W2_41: its own month is
+    told by ADDACS and not presented).
   * `test_the_shock_summary_does_not_count_an_own_reasons_cancellation` -- one act counted twice.
   * `test_a_prepayment_offer_is_answered_only_when_switched_on_and_both_ways` -- an answer invented
     while off, or one that only goes one way.
@@ -54,9 +55,12 @@ def test_every_cancellation_branch_is_reachable_and_money_scales_it():
 
 
 def test_a_cancellation_returns_its_month_and_moves_every_later_bill_to_pay_on_receipt():
+    # W2_41 (2026-11-14): the act is told by ADDACS before its month's collection, so that month is
+    # never presented and nothing comes back; the ARUDD 1 return is DD4b's overtaking route only.
     row = next(r for i in range(20000) if (r := _cancel(f"H{i}", "high")))
     assert bill_effect([row], "2020-03").cancel_return is False
-    assert bill_effect([row], "2020-04").cancel_return is True
+    april = bill_effect([row], "2020-04")
+    assert april.cancelled and not april.cancel_return and april.addacs_available >= row["act_date"]
     assert bill_effect([row], "2021-01").cancelled is True
 
 

@@ -137,6 +137,9 @@ class BillEffect:
     cancel_return: bool = False      # this month's collection comes back "instruction cancelled"
     cancelled: bool = False          # the mandate is gone: this month is payable on receipt
     failure_multiplier: float = 1.0  # on the tier's failure probability, while still on DD
+    # The day ADDACS 1 reaches the supplier, set only in the month of an act made before that
+    # month's collection (a household's own-reasons cancel, W2_41): nothing is presented that month.
+    addacs_available: Optional[str] = None
 
 
 NO_EFFECT = BillEffect()
@@ -150,11 +153,15 @@ def bill_effect(responses: Optional[list], month: str) -> BillEffect:
     lasts from its month on and multiplies whatever else is in force."""
     if not responses:
         return NO_EFFECT
-    cancels = [r["cancelled_month"] for r in responses if r.get("cancelled_month")]
-    first_cancel = min(cancels) if cancels else None
+    cancels = [r for r in responses if r.get("cancelled_month")]
+    first = min(cancels, key=lambda r: r["cancelled_month"]) if cancels else None
+    first_cancel = first["cancelled_month"] if first else None
     if first_cancel is not None and month > first_cancel:
         return BillEffect(cancelled=True)
     if first_cancel is not None and month == first_cancel:
+        # An act with its ADDACS day was told to the supplier before the collection: never presented.
+        if first.get("addacs_available"):
+            return BillEffect(cancelled=True, addacs_available=first["addacs_available"])
         return BillEffect(cancel_return=True)
     mult = max((r["failure_multiplier"] for r in responses
                 if r.get("cause") != CAUSE_DATE_CHANGE

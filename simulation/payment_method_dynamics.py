@@ -13,9 +13,11 @@ reassessment) are company decisions and are not here. What is here is what a HOU
     stretched household cancels more readily (budgeting, control), by the world's own stress
     relativity, capped at 1 -- the same scaling DD4b uses, so one relativity serves both.
   * IT THEN PAYS BY HAND. A cancelled mandate is recorded on the run's one mandate-cancellation book
-    (`DDShockResponseBook`), so the month it cancels its collection comes back "instruction
-    cancelled" and every later bill is paid on receipt -- in the triad, the rails and the arrears
-    engine alike, exactly as after a shock. "Stopping paying" is not a separate act: a household
+    (`DDShockResponseBook`). The act falls on a day inside the billed month, so the supplier reads
+    ADDACS 1 the next working day, before that month's collection is due after period end: the
+    collection is never presented, and that bill and every later one is paid on receipt -- in the
+    triad, the rails and the arrears engine alike (W2_41, 2026-11-14). Only DD4b's shock cancel,
+    lodged as the told amount meets the collection, overtakes it and comes back ARUDD 1. "Stopping paying" is not a separate act: a household
     paying on receipt fails at its own tier's rate, which is where its money already shows.
   * ITS ANSWER TO THE PREPAYMENT ROUTE. When a supplier offers a prepayment meter to recover a debt
     the household agrees or not (`answer_prepayment_offer`; a labelled range, shipped at 0). When
@@ -51,10 +53,12 @@ Pure world code: never imports `company.*` or `saas.*`. Each draw has its own na
 """
 from __future__ import annotations
 
+import calendar
 import datetime as dt
 from dataclasses import asdict, dataclass
 from typing import Optional
 
+from simulation.bacs_rails import draw_payer_cancellation
 from simulation.dd_shock_response import stress_relativity
 from simulation.meter_reads import assumption_toggle
 from simulation.rng_substream import substream
@@ -134,8 +138,15 @@ def own_reasons_cancellation(*, household: str, month: str, stress: Optional[str
     if not strengths.own_cancel_share or not pays_by_direct_debit or already_cancelled:
         return None
     u = substream(STREAM_NAMESPACE, f"cancel::{household}::{month}", 0).random()
-    if u >= monthly_hazard(strengths.own_cancel_share * stress_relativity(stress)):
+    p = monthly_hazard(strengths.own_cancel_share * stress_relativity(stress))
+    if u >= p:
         return None
+    # The act day reuses the draw: given u < p, u / p is uniform, so no second uniform is taken and
+    # no other stream moves. The rails turn the act into the ADDACS 1 the supplier reads.
+    year, mon = (int(x) for x in month.split("-"))
+    days = calendar.monthrange(year, mon)[1]
+    act = dt.date(year, mon, 1 + min(days - 1, int(u / p * days)))
+    addacs = draw_payer_cancellation(household, household, act, u, probability=p)
     return {
         "household": household,
         "review_month": month,
@@ -145,6 +156,8 @@ def own_reasons_cancellation(*, household: str, month: str, stress: Optional[str
         "failure_multiplier": 1.0,
         "complained": False,
         "cause": CAUSE_OWN_REASONS,
+        "act_date": act.isoformat(),
+        "addacs_available": addacs.available_date.isoformat(),
     }
 
 

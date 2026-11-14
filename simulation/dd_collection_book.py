@@ -469,6 +469,13 @@ def _run_rails(
         # triad's truth is put on the rails by the channel it actually paid by that month, and its
         # outcome is the household's, not a second draw. Absent while the switch is off.
         told = wpt.truth_outcome((behavioral.get(cid) or {}).get(wpt.RECORD_KEY), period_end)
+        shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
+        # W2_41: the household cancelled at its bank before this month's collection, so the
+        # supplier reads ADDACS 1 the next working day and presents nothing. Told here, ahead of
+        # the channel switch: under one payment truth the triad already bills this month on receipt.
+        if (shock.addacs_available and method == "direct_debit"
+                and desk.record_payer_cancellation(cid, shock.addacs_available)):
+            spells.setdefault(cid, []).append([period_end, shock.addacs_available, None, None])
         if told is not None:
             method = told["method"]
         # A non-DD bill can now be skipped BEFORE drawing its outcome: the
@@ -495,7 +502,6 @@ def _run_rails(
         # DD4b (`simulation/dd_shock_response.py`): a household that cancelled its own mandate
         # after a DD shock has nothing on the rails from the month after; that month's collection
         # comes back unpaid. NO_EFFECT on every record while the toggles are at zero.
-        shock = bill_effect((behavioral.get(cid) or {}).get(SHOCK_RECORD_KEY), period_end[:7])
         if shock.cancelled and told is None and cid not in re_signed:
             continue
         stress = stress_for_year(behavioral.get(cid) or {}, year)

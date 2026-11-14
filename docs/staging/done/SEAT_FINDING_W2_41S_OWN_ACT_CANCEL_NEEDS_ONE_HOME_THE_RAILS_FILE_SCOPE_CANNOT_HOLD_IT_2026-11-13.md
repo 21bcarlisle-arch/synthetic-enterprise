@@ -43,3 +43,35 @@ two homes for one fact, the shape the one-payment-truth work removed.
 on one home, with that control. It is not a shipped rate.
 
 The build stays on W2_41 itself, re-scoped as above; this finding mints no new atom.
+
+## Done (2026-11-14, delivery worker)
+
+**The premise was half stale, and the build is smaller than proposed.** Steps 1 and 2 already existed:
+PB8's own-reasons cancel (`simulation/payment_method_dynamics.py`, 12 Oct, shipped at 0) writes to the
+same mandate book as DD4b, read through the same `bill_effect`. What was wrong was the route. It was
+found out only through that month's collection coming back ARUDD 1, so the ADDACS-first route never
+happened.
+
+- `own_reasons_cancellation` now draws its act day inside the billed month through
+  `bacs_rails.draw_payer_cancellation`, with the caller supplying the probability. It reuses the
+  draw's own uniform (u/p), so no stream moves. The record carries `act_date` and
+  `addacs_available`.
+- In the act month, `bill_effect` returns `cancelled` together with the ADDACS day, so the triad,
+  the arrears engine and the rails all bill it on receipt and present nothing. DD4b rows carry no
+  ADDACS day and still overtake their collection (ARUDD 1).
+- `dd_collection_book` tells the desk ADDACS 1 on that day. It does so ahead of the channel
+  switch, because under one payment truth the triad has already moved that month off DD.
+- The control (`test_both_routes_occur_and_...`) covers the whole partition: both routes on one
+  book, and the rails and the money side agreeing household by household on what was presented.
+  Mutating either leg reds it.
+- Knowledge: `dd_failure_basis_and_live_arrears_provision_rates.md` s.4a, with a correction beside
+  the earlier "still open" claim. Map row: L2, with the file_scope re-scoped.
+
+**Incident, recorded beside the work.** While editing the shared tree's map in place, I wrote
+`open(p, 'w').write(edit(open(p).read()))`. Python opens (and truncates) the file before it reads
+it, so the edit read an empty file, raised, and left `docs/design/maturity_map.yaml` at 0 bytes.
+The index still held HEAD. The 04:05 reconcile record (e263f56cd9) had found the tree copy
+byte-equal to origin's 98ba0292e, so the tree held no unique bytes then. I restored the tree from
+origin/main (ebe786128a, a superset of that), plus this row. **What cannot be shown:** any in-place
+map edit another lane made between 05:01 and 05:11 and had not landed. If a lane finds a map hunk of
+its own missing, that is the cause. Reverse: none needed. Origin holds every landed byte.

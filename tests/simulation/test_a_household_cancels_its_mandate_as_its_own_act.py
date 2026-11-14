@@ -11,7 +11,12 @@ from datetime import date
 
 import pytest
 
+import simulation.arrears_engine as ae
+import simulation.dd_collection_book as dcb
+import simulation.dd_shock_response as d
 from simulation import bacs_rails as br
+from simulation.payment_method_dynamics import MethodStrengths, own_reasons_cancellation
+from tests.simulation.test_dd_shock_response import _book, _dd_ids
 
 FRIDAY = date(2022, 10, 7)
 MONDAY = date(2022, 10, 10)
@@ -63,3 +68,55 @@ def test_a_collection_overtaken_by_a_cancel_returns_arudd_1_and_no_other_does():
     assert br.ARUDD_REASON_CODES[1] == "Instruction Cancelled"
     assert code(collection, "failed", False) == 0
     assert code(collection, "success", True) is None
+
+
+def _own_act(cid):
+    return own_reasons_cancellation(household=cid, month="2022-04", stress="low",
+                                    pays_by_direct_debit=True, already_cancelled=False,
+                                    strengths=MethodStrengths(own_cancel_share=1.0))
+
+
+def test_both_routes_occur_and_the_money_side_and_the_rails_agree_on_every_presented_collection(
+        monkeypatch):
+    """Defect caught: an own-act cancel found out only through a returned collection (the ARUDD
+    route), or the rails and the money side disagreeing on which collections were presented -- two
+    homes for one fact. The partition first: the own-act route (ADDACS 1, no failed collection
+    before it) AND DD4b's overtaking route (ARUDD 1 then ADDACS 1) both happen on one book."""
+    monkeypatch.setattr(br, "REMANDATE_ACCEPTANCE_PROBABILITY", None)
+    ids = _dd_ids(12)
+    own_ids, shock_ids = ids[:6], ids[6:]
+    shock = {"review_month": "2022-04", "cancelled_month": "2022-04", "failure_multiplier": 1.0}
+    bills, behavioral = _book(ids, stress="low")
+    for cid in ids:
+        row = _own_act(cid) if cid in own_ids else dict(shock, household=cid)
+        assert row is not None
+        behavioral[cid][d.RECORD_KEY] = [row]
+
+    attempts = dcb.build_dd_collection_book(bills, behavioral).all_attempts()
+    notices = dcb.supplier_dd_spell_notices(bills, behavioral)
+    money = ae._resolve_bills(bills, behavioral, 42)
+
+    # An attempt carries no bill id, so agreement is per household: the rails present exactly the
+    # bills the money side resolves on DD, and the bills before the cancel month are those.
+    rails = {cid: sorted((a for a in attempts if a.customer_id == cid), key=lambda a: a.attempt_date)
+             for cid in ids}
+    on_dd = {cid: [r for r in money if r["customer_id"] == cid and r["method"] == "direct_debit"]
+             for cid in ids}
+    for cid in ids:
+        assert len(rails[cid]) == len(on_dd[cid]), cid
+        assert all(r["period_end"][:7] <= "2022-04" for r in on_dd[cid]), cid
+
+    for cid in own_ids:
+        row = behavioral[cid][d.RECORD_KEY][0]
+        assert len(rails[cid]) == 3, "own act: April's collection was presented"
+        assert all(a.outcome == "collected" for a in rails[cid]), "own act found out by a return"
+        act = date.fromisoformat(row["act_date"])
+        assert act.strftime("%Y-%m") == "2022-04"
+        assert row["addacs_available"] == br.payer_cancellation("r", cid, act).available_date.isoformat()
+        assert notices[cid][0][0] == row["addacs_available"]
+        assert row["addacs_available"] < "2022-05-12", "ADDACS lands after April's bill is due"
+    for cid in shock_ids:
+        assert len(rails[cid]) == 4
+        returned = rails[cid][-1]
+        assert returned.outcome == "failed" and returned.failure_reason == br.ARUDD_REASON_CODES[1]
+        assert notices[cid][0][0] > returned.attempt_date

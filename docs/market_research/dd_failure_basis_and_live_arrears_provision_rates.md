@@ -418,9 +418,25 @@ claim) [S]. **A late failure is therefore possible, and it comes through a diffe
   `PAYER_CANCELLATION_PROBABILITY = None`, with this GAP as its reason. The draw refuses unless the
   caller supplies a probability from its own sourced or registered model (today, DD4b's toggled
   cancel share). When DD4b's cancel overtakes that month's collection, the collection returns as
-  ARUDD 1 "Instruction Cancelled" (section 4), not "Refer to Payer" (2026-11-03). The world still
-  draws the cancel and that failed collection together. A cancel drawn as its own dated act,
-  noticed before the next collection, is still W2_41's open defect.
+  ARUDD 1 "Instruction Cancelled" (section 4), not "Refer to Payer" (2026-11-03).
+- **The household's own act, told before the collection (2026-11-14, W2_41).** *Correction beside
+  the claim above: "still W2_41's open defect" was true until this date.* PB8's own-reasons cancel
+  (`simulation/payment_method_dynamics.py`, share a labelled range shipped at 0) now draws its act
+  on a day inside the billed month through `draw_payer_cancellation`, the caller supplying the
+  probability. The supplier reads ADDACS 1 the next working day, which is before that month's
+  collection falls due (period end plus 14 days), so the collection is **never presented** and the
+  bill is paid on receipt. The fact has one home: the run's mandate-cancellation book, read through
+  `bill_effect` by the triad, the arrears engine and the rails alike. **Design choices, not
+  evidence:** the act day is uniform over the month (nothing published says when in the cycle
+  households cancel: GAP); only DD4b's shock cancel, lodged as the told amount meets the collection,
+  overtakes it and returns ARUDD 1. A real cancel made in the last two or three working days before
+  a collection would also overtake it; the world does not draw that case for an own-reasons cancel,
+  which understates ARUDD 1 returns by an unknown share.
+  The converse is open for DD4b: a household told a new amount gets the advance notice (at least 10
+  working days under the Direct Debit Guarantee) before the collection is submitted, so its cancel is
+  probably told by ADDACS first as well. The world still returns that collection ARUDD 1, which
+  probably overstates DD4b's returns (GAP: nothing published says when, inside the notice period,
+  households cancel).
 
 ### 5. Indemnity claims (DDIC / DDICA) under the Direct Debit Guarantee
 
