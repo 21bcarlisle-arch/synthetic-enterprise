@@ -129,7 +129,7 @@ that "priced_decisions" there counts the same thing as "value_arm_priced", so I 
 `producing_commit` answers it.)*
 
 
-**The second test, (a) against (c): predictions filed 14 Nov 09:50Z, before launch.** §7 refuted
+**The second test, (a) against (c): predictions filed 14 Nov 09:41Z, before launch.** *(Committed as `2b45da063` saying 09:50Z; the clock read 09:42Z when the next note was written, so 09:41Z is the honest time.)* §7 refuted
 (b). This run puts the published configuration through the re-draw harness itself. It uses the same
 worktree at `45122d156`, world `cdba75ebb9197b33`, the 272-household book, `noise_floor` and sidecar,
 as one pair in one fresh process (`/var/tmp/vt12-driver/published.py`, out to `/var/tmp/vt-pub-out/`).
@@ -158,6 +158,24 @@ behind (staged 14 Nov, `WORKER_FINDING_A_BOOK_RELOAD_LEAVES_THE_SUPPLY_BOOK_HOLD
 would make a run depend on what ran before it in the same process.
 **If member 2 does not reproduce £11,766.20, the place in the process matters.** In that case
 neither (a) nor (c) can be read cleanly from member 1, and I will say so rather than pick one.
+
+**Observed at 09:42Z, before the pair had started (it was queued behind sim-runner), from the 12-draw
+files and the 8 Oct artefact, with no new run.** Each arm's book net, published against the 12 re-draws:
+
+| Arm | Re-draws: min to max (mean, sd) | Published | Distance from the family mean |
+|---|---|---|---|
+| Control | £229,503 to £233,781 (£231,506, £1,179) | **£235,588** | **+3.46 sd** |
+| Level | £230,778 to £236,586 (£233,566, £1,687) | £229,488 | −2.42 sd |
+| Value | £238,348 to £243,167 (£241,097, £1,302) | £240,832 | −0.20 sd |
+
+**The published value arm is not unusual.** Its net, £240,832.431409, is identical to the sixth
+decimal to seed 99999's value arm. 11111 and 77777 also share one value arm and one priced
+fingerprint, so a value-arm net is a coarse function of the draw. **What sets the published run
+apart is its control arm,** which is £1,807 above the highest re-draw. The level arm is also low. So
+the low £5,244 comes from a high control, not a low value arm. I did not know this when I wrote the
+prediction above, and **I revise my prior on (a) from about 60% to about 45%**. A control 3.5 sd out
+on its own is as hard to get from an ordinary seed as the whole figure was. The table above is
+unchanged, and the run will grade it.
 
 ## 3. The redesign
 
