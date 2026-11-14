@@ -26,6 +26,7 @@ and carries no citation rather than a plausible one.
 | S4 | Citizens Advice / adviser guidance and UK Parliament written answers reached via search (citizensadvice.org.uk; questions-statements.parliament.uk/written-questions/detail/2022-03-23/145819) | winter months are October–March; the pensionable-age winter prohibition is cited to SLC 27.10 |
 | S5 | Energy UK, *Vulnerability Commitment* / "Safety Net" as described by S4 and Changeworks (changeworks.org.uk) | a **voluntary** supplier pledge, not a licence condition: never knowingly disconnect where welfare cannot be safeguarded due to age, health, disability or severe financial insecurity |
 | S6 | Ofgem press release, *More customers in vulnerable situations to receive help under the Priority Services Register*, **25 October 2016** (ofgem.gov.uk/press-release/more-customers-vulnerable-situations-receive-help-under-priority-services-register) | **fetched 2026-09-06**, closing the `UK_PSR_RATE_PCT` gap opened in §4. Verbatim: *"Around 3.6 million electricity and 3 million gas customers (13% of customers for both fuels) are signed up to suppliers' Priority Services Register."* Ofgem's *Consumer impacts of market conditions* survey (Jan–Feb 2024, reported in the Consumer Vulnerability Strategy Refresh consultation, Sept 2024) separately finds **~40% of households could access PSR support but have not signed up**. The 2025 Consumer Vulnerability Strategy decision PDF defeated automated extraction, as the licence conditions did — no current registered rate is sourced here. |
+| S8 | Ofgem, *Modification direction for the insertion of standard licence condition 27.11(A) in the gas and electricity supply licences*, 15 Sep 2010, effective 1 Oct 2010 (ofgem.gov.uk/sites/default/files/docs/2010/09/modification-direction-for-insertion-of-standard-licence-condition-27.11%28a%29-in-the-gas-and-electricity-supply-licences.pdf) | **fetched and read in the instrument 2026-11-14.** Its Schedule 1 prints SLC 27.10, 27.11 and 27.11(A) as modified, for gas (p. 3) and electricity (p. 4). Verbatim, electricity: *"27.11 The licensee must take all reasonable steps to avoid Disconnecting, in Winter, a Domestic Premises at which the Domestic Customer has not paid Charges for the Supply of Electricity if the occupants of the premises include a person who is of Pensionable Age, disabled or chronically sick and to whom paragraph 27.10 does not apply."* 27.11(A): before exercising any right to disconnect, *"take all reasonable steps to ascertain whether"* 27.10 or 27.11 applies. The 15 Jul 2010 notice records Ofgem declining to require reconnection before Winter of a vulnerable household disconnected at another time of year. |
 
 ---
 
@@ -115,8 +116,15 @@ quarterly meter readings; free annual gas safety check; password scheme; nominee
   months where that customer lives alone, or lives only with others of pensionable age or under 18
   (S4, cited there to **SLC 27.10**).
 - Outside that prohibition the duty is weaker in kind: **all reasonable steps** to avoid
-  disconnecting premises whose occupants include a person who is disabled, chronically sick, or of
-  pensionable age (S4).
+  disconnecting, **in Winter**, premises whose occupants include a person who is disabled,
+  chronically sick, or of pensionable age (SLC 27.11, read in the instrument, S8). **Both licence
+  limbs are winter duties.** From April to September the licence sets no disconnection protection
+  on these grounds; what protects such a household then is the voluntary Safety Net below.
+  *(Corrected 2026-11-14: this bullet, from S4, gave the limb no season, and the code applied it
+  all year.)*
+- Before any disconnection the supplier must take all reasonable steps to find out whether 27.10 or
+  27.11 applies (SLC 27.11(A), S8, in force from 1 Oct 2010). That is the licence ground for the
+  code's rule that "cannot determine" blocks disconnection: an unasked question is an unmet duty.
 - Disconnection for unpaid charges is in any case only available once repayment options have been
   offered and the available means of recovering the debt exhausted (S4).
 - **Energy UK Vulnerability Commitment / "Safety Net"** (S5): a **voluntary** pledge, all year
@@ -203,8 +211,11 @@ Three consequences, each of which decides a live question in the code:
 
 ## 4. Named gaps — questions this artefact opened and did not close
 
-- `UNSOURCED`: the SLC 26 and SLC 27 condition text itself. Numbering here rests on secondary
-  sources (S2, S4). The consolidated PDF is 600+ pages and defeated automated extraction; reading
+- `UNSOURCED`: the SLC 26 and SLC 27 condition text itself, **except 27.10, 27.11 and 27.11(A),
+  read 2026-11-14 in the 2010 modification direction (S8)**. Whether that wording was amended
+  between 2016 and 2025 is not read: the 2022 written answer (S4) still cites 27.10 for the winter
+  prohibition, which is consistent with no change, and is not proof of it. Other numbering rests
+  on secondary sources (S2, S4). The consolidated PDF is 600+ pages and defeated automated extraction; reading
   it is real work and is not done. **Nothing should quote a clause number from this file as if it
   had been read in the instrument.**
 - ~~`UNSOURCED`: whether the child needs code is "under 5" or "under 6"~~ — **CLOSED 2026-10-08.**
@@ -229,10 +240,16 @@ Three consequences, each of which decides a live question in the code:
   (24%) and 5,646,740 gas (24%) (Ofgem, *Vulnerable consumers in the energy market: 2019*, p. 16).
   Ofgem's 2024 survey has 16% self-reporting registration. Post-2018 admin counts are still a GAP;
   see `debt_and_collections.md` §10.2.
-- `UNSOURCED`, opened 2026-11-14: **whether the all-reasonable-steps limb is winter-only.** A
-  blind practitioner placed it in SLC 27.11 and read it as winter-only. S4 states the limb with no
-  season. The code applies it all year, which is the direction that keeps protection. Reading the
-  instrument closes this question, and that reading is the first gap above.
+- ~~`UNSOURCED`, opened 2026-11-14: whether the all-reasonable-steps limb is winter-only.~~
+  **CLOSED the same day: it is.** SLC 27.11 reads "in Winter" in the instrument (S8). Two blind
+  practitioners read it that way, on 14 Nov and on the third pass. The code had applied it all year
+  and called that "the published rule". **Design choice:** the decider returns the licence's
+  answer. Outside winter, disabled, chronically sick and pensionable age establish no licence
+  protection, and the reason string names the voluntary Safety Net (S5) as not modelled. Medical
+  equipment alone follows the same counterfactual: its "cannot determine" asked whether the
+  household is also disabled or chronically sick, which outside winter changes nothing. Whether
+  this supplier should adopt the Safety Net is a policy question for the company, not a reading of
+  the licence. It is not decided here.
 - `UNSOURCED`, opened here: **the current registered rate.** The register has grown since 2016 and
   Ofgem broadened eligibility again from January; the 2025 strategy PDF would answer it and did not
   extract. Nothing in `company/` may quote a present-day PSR rate until it does.

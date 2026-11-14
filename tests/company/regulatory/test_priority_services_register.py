@@ -191,7 +191,7 @@ class TestDisconnectionProtection:
                 household=HouseholdComposition.UNKNOWN,
             ).protection,
             disconnection_protection(
-                (PSRCategory.DISABILITY,), as_of=self.SUMMER,
+                (PSRCategory.DISABILITY,), as_of=self.WINTER,
                 household=HouseholdComposition.OTHER_ADULTS_PRESENT,
             ).protection,
             disconnection_protection(
@@ -214,7 +214,7 @@ class TestDisconnectionProtection:
             (PSRCategory.PENSIONABLE_AGE,), as_of=dt.date(2024, 9, 30),
             household=HouseholdComposition.LIVES_ALONE,
         )
-        assert outside.protection is DisconnectionProtection.REASONABLE_STEPS
+        assert outside.protection is DisconnectionProtection.NOT_ESTABLISHED
         assert 10 in WINTER_MONTHS and 4 not in WINTER_MONTHS
 
     def test_the_composition_limb_is_load_bearing_in_winter(self):
@@ -250,13 +250,38 @@ class TestDisconnectionProtection:
 
     def test_medical_equipment_alone_confers_neither_protection_nor_permission(self):
         """It matched neither published limb, and the deleted `no_disconnect_required` made it
-        absolute year-round from a table with no date in it."""
+        absolute year-round from a table with no date in it. In winter its open question (also
+        disabled or chronically sick?) would change the answer; out of winter it would not."""
         d = disconnection_protection(
-            (PSRCategory.MEDICAL_EQUIPMENT,), as_of=self.SUMMER,
+            (PSRCategory.MEDICAL_EQUIPMENT,), as_of=self.WINTER,
             household=HouseholdComposition.LIVES_ALONE,
         )
         assert d.protection is DisconnectionProtection.CANNOT_DETERMINE
         assert d.may_disconnect is False
+        summer = disconnection_protection(
+            (PSRCategory.MEDICAL_EQUIPMENT,), as_of=self.SUMMER,
+            household=HouseholdComposition.LIVES_ALONE,
+        )
+        assert summer.protection is DisconnectionProtection.NOT_ESTABLISHED
+
+    def test_both_licence_limbs_are_winter_duties(self):
+        """C32 third Expert Hour. SLC 27.11 reads "in Winter" in the instrument (commons S8); the
+        decider applied it all year and called that the published rule. One control over the
+        whole partition: every category that protects in some winter household protects in no
+        April-September household, and the summer answer names the voluntary commitment it is
+        not modelling. Keyed to the property, so a limb that loses its season reds here."""
+        protecting_in_winter = set()
+        for c in PSRCategory:
+            for h in HouseholdComposition:
+                for day in (dt.date(2024, 10, 1), self.WINTER, dt.date(2025, 3, 31)):
+                    if not disconnection_protection((c,), as_of=day, household=h).may_disconnect:
+                        protecting_in_winter.add(c)
+                for month in range(4, 10):
+                    d = disconnection_protection((c,), as_of=dt.date(2024, month, 15), household=h)
+                    assert d.protection is DisconnectionProtection.NOT_ESTABLISHED, (c, h, month)
+                    assert "voluntary" in d.reason
+        assert {PSRCategory.PENSIONABLE_AGE, PSRCategory.DISABILITY,
+                PSRCategory.CHRONIC_ILLNESS, PSRCategory.MEDICAL_EQUIPMENT} <= protecting_in_winter
 
     def test_every_refusal_names_its_reason(self):
         """A refusal that says why is how the refusal itself gets found wrong."""
