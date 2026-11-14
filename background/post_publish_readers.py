@@ -63,6 +63,11 @@ PAGE_READERS = ("site/test_no_published_page_scrolls_sideways_on_a_phone.py",)
 #: Untracked machine state (see `.gitignore`), dot-prefixed like its neighbours.
 OBSERVED_PATH = PROJECT_DIR / "docs" / "observability" / ".post_publish_reader_reds.json"
 
+#: Which book the site is serving now. A publish can land by a route that never reaches
+#: `run_post_publish_readers_step` (the 6fe7827ab2 book: refused in the publish path at 17:02 on
+#: 11 Nov, landed by a surgical_land salvage at 20:31), so the store can hold an old book's grade.
+LIVE_PROVENANCE_PATH = PROJECT_DIR / "site" / "data" / "publish_provenance.json"
+
 #: The run's own ceiling. Measured 2026-10-16 at badd57e8e: the 38 derived files run in 153s as one
 #: pytest (the two controls that went red take ~4s between them). Before docstrings were
 #: ignored the derivation admitted 57 and the run took 899.5s, half a second under this ceiling --
@@ -247,17 +252,40 @@ def load(path: Path | None = None) -> dict | None:
         return None
 
 
-def doorbell_clause(state: dict | None = None, *, path: Path | None = None) -> str | None:
-    """One line when the last post-publish reader run went red or could not run; else None.
+def live_run_git(path: Path | None = None) -> str | None:
+    """The run git hash of the book the site serves now, or None if that cannot be read."""
+    try:
+        live = json.loads((path or LIVE_PROVENANCE_PATH).read_text())["showing_run"]["git_commit"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    return str(live) if live else None
 
-    Silent only on a run that RAN and found nothing. No store at all is also silent: on a box that
-    has never published since this landed there is nothing yet to report, and the publish path is
-    what writes it."""
+
+def _same_run(a: str, b: str) -> bool:
+    n = min(len(a), len(b))
+    return n >= 7 and a[:n] == b[:n]
+
+
+def doorbell_clause(state: dict | None = None, *, path: Path | None = None,
+                    live: str | None = None) -> str | None:
+    """One line when the last post-publish reader run went red or could not run, or graded a
+    book the site no longer serves; else None.
+
+    Silent only on a run that RAN on the live book and found nothing. No store at all is also
+    silent: on a box that has never published since this landed there is nothing yet to report,
+    and the publish path is what writes it. `live` defaults to the site's provenance; when that
+    cannot be read, no staleness is claimed (the provenance's own reader fails closed)."""
     state = load(path) if state is None else state
     if not state:
         return None
     sha = str(state.get("git_hash") or "?")[:9]
     when = str(state.get("checked_at") or "?")[:16]
+    live = live_run_git() if live is None else live
+    if live and not _same_run(str(state.get("git_hash") or ""), live):
+        return ("POST-PUBLISH READERS have not run on the live book {}: the store's last run "
+                "graded {} ({}, {}, {} red), which the site no longer serves -- the live book is "
+                "UNGRADED, not green (run `python3 -m background.post_publish_readers --run`)".format(
+                    live[:10], sha, when, state.get("outcome"), len(state.get("reds") or [])))
     if state.get("outcome") != RAN:
         return ("POST-PUBLISH READERS did not run on publish {} ({}): {} -- the published book "
                 "is UNGRADED, not green".format(sha, when, state.get("reason") or state.get("outcome")))
@@ -288,9 +316,9 @@ def main(argv=None) -> int:
         # supervisor's import of this module stay off it (see `run`).
         import importlib
         parse = importlib.import_module("background.process_run_complete")._parse_failed_node_ids
-        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),
-                              capture_output=True, text=True).stdout.strip() or None
-        state = run(head, parse)
+        # The subject is the published book, so the store records ITS run hash -- the same
+        # key the publish path writes -- never HEAD, which would read as a different book.
+        state = run(live_run_git(), parse)
         print(json.dumps({k: v for k, v in state.items() if k != "reds"}, indent=2))
         for r in state.get("reds") or []:
             print(r)
