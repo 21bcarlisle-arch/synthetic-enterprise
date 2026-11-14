@@ -128,6 +128,31 @@ class TestWinterMoratoriumRegister:
             "B1", dt.date(2023, 10, 15), categories=(PSRCategory.PENSIONABLE_AGE,),
             household=HouseholdComposition.LIVES_ALONE) is False
 
+    def test_the_safety_net_holds_all_year_and_nothing_else_is_swept_in(self):
+        """The company's own Safety Net (commons S5, adopted on canon M3's floor, 2026-11-14).
+
+        The licence decider says a July household on home oxygen, disabled, chronically sick or
+        of pensionable age has no licence protection; this supplier still does not disconnect it.
+        One control over the partition: each Safety Net category blocks in July and in January,
+        while no category, and a category outside the net, still may be disconnected in July --
+        so a version that refused everything reds as surely as one that dropped the net.
+        """
+        from company.billing.winter_moratorium import SAFETY_NET_CATEGORIES
+        from company.regulatory.priority_services_register import disconnection_protection
+
+        reg = WinterMoratoriumRegister()
+        jul, jan = dt.date(2024, 7, 15), dt.date(2024, 1, 15)
+        assert SAFETY_NET_CATEGORIES
+        for category in SAFETY_NET_CATEGORIES:
+            # The licence alone would permit it in July: the net is what blocks.
+            assert disconnection_protection((category,), as_of=jul).may_disconnect
+            assert reg.can_disconnect("S1", jul, categories=(category,)) is False
+            assert reg.can_disconnect("S1", jan, categories=(category,)) is False
+        assert reg.can_disconnect("S1", jul, categories=()) is True
+        outside = [c for c in PSRCategory if c not in SAFETY_NET_CATEGORIES]
+        assert outside
+        assert reg.can_disconnect("S1", jul, categories=(outside[0],)) is True
+
     def test_categories_must_be_stated(self):
         reg = WinterMoratoriumRegister()
         with pytest.raises(TypeError):

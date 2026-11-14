@@ -29,6 +29,17 @@ from company.regulatory.priority_services_register import (
     disconnection_protection,
 )
 
+# The supplier's own policy, not the licence: the Energy UK Vulnerability Commitment ("Safety
+# Net", commons S5), adopted 2026-11-14 on canon M3's health floor. SLC 27.10/27.11 are winter
+# duties; this keeps the same households from disconnection all year. S5's "severe financial
+# insecurity" ground has no category and is not modelled (commons section 4 GAP).
+SAFETY_NET_CATEGORIES = frozenset({
+    PSRCategory.DISABILITY,
+    PSRCategory.CHRONIC_ILLNESS,
+    PSRCategory.PENSIONABLE_AGE,
+    PSRCategory.MEDICAL_EQUIPMENT,
+})
+
 
 class MoratoriumType(str, Enum):
     WINTER_DOMESTIC = "winter_domestic"    # a winter hold the supplier chose to place
@@ -108,13 +119,18 @@ class WinterMoratoriumRegister:
         categories: Iterable[PSRCategory],
         household: HouseholdComposition = HouseholdComposition.UNKNOWN,
     ) -> bool:
-        """False if one of our own holds is active, or the licence rule does not clear it.
+        """False if one of our own holds is active, the Safety Net covers the household, or the
+        licence rule does not clear it. The net is this supplier's policy, read here so the
+        licence decider keeps returning the licence's own answer.
 
         `categories` has no default on purpose: a caller that does not know the household's
         needs categories must say `()` out loud, rather than inherit an empty set that reads
         as "nobody here is protected".
         """
         if self.is_protected(account_id, as_of):
+            return False
+        categories = tuple(categories)
+        if SAFETY_NET_CATEGORIES.intersection(categories):
             return False
         return disconnection_protection(
             categories, as_of=as_of, household=household
