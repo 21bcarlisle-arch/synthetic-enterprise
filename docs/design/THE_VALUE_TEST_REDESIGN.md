@@ -665,9 +665,74 @@ runs could be trusted. Under (a) nothing waits on it. Every candidate's family i
 One reading for the grade, not a ruling: B's pre-registration says to stop if "the value arm's
 level leg is set by something other than the belief's offers". §2 shows the published level leg's
 extreme came from a high **control** arm at that draw. Whether that meets the clause depends on
-which arms carry the belief, which this page has not established. So B's R4 should also be read on
+which arms carry the belief. That is now established from the code (read 14 Nov, nothing run), below.
+So B's R4 should also be read on
 the choosing leg (value minus level), where the value arm's belief acts, and not only on the whole
 advantage, which carries the control arm's draw.
+
+**Which arms carry the renewal belief (read 14 Nov from the code; nothing run).** The company
+has two renewal beliefs, and they are not the same one. The *pricing belief* is
+`enriched_churn_estimate` inside `decide_margin`'s `_score`. It is what an offer is chosen on, and
+it is what `value_arm_log.believed_p_retain` and so the 0.549 AUC read. The *desk belief* is
+`churn_desk.estimate_renewal_churn`. The run loop asks it once per renewal, and it decides the
+retention offer.
+
+*At the `churn_roll` family's commit* (`45122d156`, the tree `/var/tmp/vtcr-driver/driver.py` runs
+from `/var/tmp/value-test-12-draw`, 3 arms per seed through `run_value_cycle_ab(level_arm=True)`,
+which `noise_floor` (`tools/run_value_cycle_ab.py:6759`) calls as its runner):
+
+| Arm | Policy (`tools/run_value_cycle_ab.py`) | Pricing belief | Desk belief |
+|---|---|---|---|
+| control | `CURRENT_POLICY`, `flat_rules` (:5540) | **Never called.** `renewal_margin_uplift` returns 0 before any scoring (`company/pricing/value_based_renewal.py:1503`) | Called on every renewal (`simulation/run_phase2b.py:2927`). It gates the retention offer (:2950–2954) |
+| value | `VALUE_ARM_POLICY`, `value_based` (:5551) | Called on every candidate margin, and the offer is the argmax (`value_based_renewal.py:1167`, belief at :977) | The same as control |
+| level | `replace(CURRENT_POLICY, flat_at_level)` at the value arm's realised median (:5569–5580) | Called once, at the fixed level, only to report `p_retain` (`value_based_renewal.py:1119`). The **price** does not read it per renewal. The level itself is the value arm's median, so the belief sets it in aggregate | The same as control |
+
+`renewal_belief_by_ending_term` reaches **none of them at that commit**. `7a7ad95dc` (21 Oct) is
+not an ancestor of `45122d156` (8 Oct; `git merge-base --is-ancestor` exits 1), and the name
+appears nowhere in that tree.
+
+*Where the flag acts on `origin/main`.* It is a `DecisionPolicy` field
+(`company/policy/decision_policy.py:280`). The run loop derives the ending-term type only when the
+flag is on (`simulation/run_phase2b.py:4226–4230`) and hands it to the **desk belief** (:4266,
+:4287). The desk scales its estimate there (`company/crm/churn_desk.py:179–183`), and the retention
+guard reads the scaled number (`run_phase2b.py:4329`). The **pricing belief** never receives it: the
+`enriched_churn_estimate` call in `_score` (`value_based_renewal.py:981`) has no ending-term
+argument, and nothing in `company/pricing/renewal_rate_chain.py` names it. All three arms are built
+from `CURRENT_POLICY` (`VALUE_ARM_POLICY` and the level policy are `replace`s of it). A driver that
+switches the flag there therefore switches it on all three arms, and it moves the retention offers
+on all three.
+
+**What this does to the three candidates.**
+1. **A, as written, cannot move its own bar.** The bar is `belief_against_control_outcomes`
+   (`tools/run_value_cycle_ab.py:1815`, reading `value_arm_log` at :1847). That log is the pricing
+   belief (`renewal_rate_chain.py:707`, `believed_p_retain = decision.p_retain`), and the flag does
+   not reach the pricing belief. Switching the flag on moves the desk belief and the retention
+   offers on every arm. The value arm's offers move only second-hand, through who stays.
+   *Correction beside the claim:* row A's "the value arm's belief: the policy flag goes from off to
+   on" is wrong on both counts. The flag changes the desk belief, and it changes it on every arm.
+2. **A also cannot hold "world, book, arms unchanged" against the `churn_roll` family**, because
+   the flag needs a tree at or after `7a7ad95dc`. Under rule 1, A's comparator is an off-flag family
+   at A's own commit. It is not §7's or §8's 0.549.
+3. **The only leg A could attribute is the choosing leg (value minus level)**, and only if the flag
+   is on in both of those arms. The control arm's retention offers move too, so the whole advantage
+   carries the flag on both sides.
+4. **To test what A's prediction claims** (that the type split improves the belief the price is
+   chosen on), the ending-term type has to be passed through the rate chain into `_score`. That is a
+   supplier build. Under K8 the knowledge page comes first, and the change is B-sized, not 0.9
+   points. The alternative is to restate A's bar on the desk belief's own AUC against outcomes.
+   **Recommendation:** restate the bar on the desk belief. That is what the flag was graded on
+   (0.819 out of sample from 2019), it needs no code, and B can then make the pricing belief carry
+   the type as one variable.
+
+**Does §2's high-control level leg meet B's stop clause?** On the code, yes, as far as the
+clause's own words go. The level leg is level minus control. The control arm never calls the
+pricing belief and makes no belief-chosen offer. So an extreme that came from a high control arm
+was "set by something other than the belief's offers": the control arm's draw, plus desk-belief
+retention offers that run under the same rule on every arm. The clause should therefore be read
+as firing on the level leg and the whole advantage. It does not fire on the choosing leg, where
+the only thing that differs between the two arms is the pricing belief's per-renewal selection
+around a common level. This is a reading for the grade, not a ruling. It supports reading B's R4 on
+the choosing leg.
 
 **The order under each `churn_roll` outcome.** Kill condition 1 is the roll share **< 0.25**. Kill
 condition 2 is the flat-arm AUC half-range **< 0.03** (§8). §8's C4 predicts that 1 fires and 2
