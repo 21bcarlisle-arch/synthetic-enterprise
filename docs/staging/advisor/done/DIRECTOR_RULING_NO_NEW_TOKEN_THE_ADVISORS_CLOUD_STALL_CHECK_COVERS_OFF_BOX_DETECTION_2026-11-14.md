@@ -19,3 +19,21 @@
 2. **Keep the on-box watchdog and the GitHub off-box dead-man as they are.** They catch what a commit-gap check cannot, for example a unit that has failed while commits still land. Do not spend more on improving GitHub's schedule delivery.
 3. **Mind one interaction.** A long quiet period with nothing to commit, such as a 22-hour value-test family, will look like a stall to the cloud check. While a long job runs, keep at least one machine commit landing every 6 hours, for example the seat's direction record, so the director is not alerted for a healthy machine. If that is not practical, say so in the next commit, and the advisor will adjust the check.
 4. Record the cloud check in the control stack on the "Building it" side as an advisor-run control. Name the owner (the advisor), the schedule, the threshold and its blind spot (commit-gap only).
+
+## Done
+
+14 Nov, worker tick. Each of the four points:
+
+1. The orienting seat answered the row `the-off-box-dead-man-misses-stops` with his 05:56-05:57 words in
+   `a23001d35d`. No Routine or token is created. This commit meets that row's commitment
+   (`the-advisors-14-nov-steers-are-actioned`): the control stack lists the check, and this file is in done/.
+2. The on-box watchdog and the GitHub off-box dead-man are unchanged. Nothing more is spent on GitHub's
+   schedule delivery.
+3. The interaction: the orienting seat lands its direction record every 3 hours (`delivery-seat.timer`),
+   so a machine commit lands inside each 6-hour window during a long job, unless the seat's landing is
+   refused. That is practical, so the advisor's check needs no change. If the seat's landing stops, the
+   alert is a true positive about the seat.
+4. The cloud check is recorded as an advisor-run control. In `docs/operations/MAINTENANCE.md` it is
+   listed beside the host settings, with owner, schedule, threshold, blind spot and the 6-hour
+   interaction. On How it's built (`site/harness/index.html`), "Two-way doors" names it beside the
+   dead-man's switch.

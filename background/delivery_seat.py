@@ -2999,9 +2999,19 @@ def commit_direction(lander=None) -> tuple[bool, str]:
     if not _git("diff", "--name-only", "origin/main", "--", *present).strip():
         return True, "nothing changed in the write scope"
     content = {p: (PROJECT_DIR / p).read_bytes() for p in present}
+    title = "delivery seat: direction for the next stretch"
+    try:
+        # A row this record opens goes in the title, or the commit-msg hook refuses it (14 Nov).
+        import yaml
+        landing = content.get(direction_mod.DIRECTION_PATH.relative_to(direction_mod.PROJECT_DIR).as_posix())
+        title = director_concerns.marked_title(
+            title, director_concerns.read_origin_raw(PROJECT_DIR),
+            yaml.safe_load(landing) if landing else None)
+    except Exception:  # noqa: BLE001 -- unmarked, the hook names the reason on the refusal
+        pass
     try:
         sha = (lander or land_direction_on_origin)(
-            PROJECT_DIR, present, "delivery seat: direction for the next stretch", content,
+            PROJECT_DIR, present, title, content,
             deadline_s=direction_land_deadline_s())
     except Exception as exc:  # noqa: BLE001 -- a refusal is a value; the record is already on disk
         # The refusal's own words are the diagnosis (2026-09-30: a bare rc classified nothing).

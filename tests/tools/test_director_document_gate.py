@@ -311,3 +311,45 @@ def test_the_reconciler_NAMES_this_gate_when_it_refuses_a_merge():
     out = "MESSAGE GATE RED (rc=1). boilerplate\n[director-doc-gate] COMMIT REFUSED.\nThis commit..."
     _, said = orc._classify_merge_failure(out)
     assert "tools/director_document_gate.py" in said
+
+
+DIRECTION = "docs/direction/DIRECTION.yaml"
+
+
+def _direction(*rows: tuple[str, str]) -> str:
+    body = "".join(f"- id: {rid}\n  status: {status}\n  what: w\n  proposal: p\n" for rid, status in rows)
+    return "focus: f\nfor_the_director:\n" + (body or "  []\n")
+
+
+def test_a_commit_that_OPENS_a_for_the_director_row_untitled_as_one_is_refused(repo):
+    """Defect (14 Nov): a question raised for the director under a title that read as a finding,
+    so the advisor, scanning titles, told him "Nothing is waiting on you". Covers the partition:
+    a raise and a reopen are refused unmarked, pass marked with the id, a close needs no marker,
+    and a marker without the id is refused."""
+    r, env = repo
+    _write(r, env, DIRECTION, _direction(("old-row", "answered")))
+    _git(r, env, "commit", "-q", "-m", "seed")
+    _write(r, env, DIRECTION, _direction(("old-row", "answered"), ("new-row", "open")))
+    refused = _run(r, env, "The off-box dead-man misses stops\n")
+    assert refused.returncode == 1 and "new-row" in refused.stderr, refused.stderr
+    assert _run(r, env, "[FOR-THE-DIRECTOR] other-id: x\n").returncode == 1
+    assert _run(r, env, "[FOR-THE-DIRECTOR] new-row: the dead-man misses stops\n").returncode == 0
+    _write(r, env, DIRECTION, _direction(("old-row", "open")))
+    assert _run(r, env, "reopen it\n").returncode == 1
+    assert _run(r, env, "[FOR-THE-DIRECTOR] old-row: reopened\n").returncode == 0
+    _git(r, env, "commit", "-q", "-m", "[FOR-THE-DIRECTOR] old-row: reopened")
+    _write(r, env, DIRECTION, _direction(("old-row", "answered")))
+    assert _run(r, env, "closes old-row\n").returncode == 0
+
+
+def test_the_seats_direction_title_carries_the_marker_it_would_be_refused_without():
+    """Defect: the seat raises most rows, and its fixed title would be refused by the leg above."""
+    import yaml
+
+    from background import director_concerns as dc
+    before = yaml.safe_load(_direction(("a", "open")))
+    after = yaml.safe_load(_direction(("a", "open"), ("b", "open")))
+    plain = "delivery seat: direction for the next stretch"
+    assert dc.title_refusal(plain, before, after)
+    assert dc.title_refusal(dc.marked_title(plain, before, after), before, after) is None
+    assert dc.marked_title(plain, before, before) == plain

@@ -42,3 +42,13 @@ The on-box dead-man's switch shares fate with the host, so these settings, and t
 origin, are what keep the machine up and its silence noticed. Confirm each at every monthly run:
 Windows never sleeps on mains power; `.wslconfig` carries `vmIdleTimeout=-1` and `memory=24GB`; the scheduled task
 "Keep WSL running" exists and runs at log-on; Tailscale key expiry is disabled and Tailscale starts with Windows.
+
+**The advisor's cloud stall check (advisor-run control; director's ruling, 14 Nov 2026).** Owner: the advisor.
+A scheduled task in Anthropic's cloud named "Poesys stall check", running since 7 Nov at 08:17, 12:17, 16:17 and
+20:17 UK time, off this box and off GitHub's scheduler. It reads origin's commits on `main`, ignoring `advisor:`,
+`[ADVISOR-STAGED]` and banner-only commits, and pushes one alert to the director's phone when the last machine commit
+is **6 hours or more** old, then one reminder a day at 08:00 while the stall lasts. Blind spot: it sees the
+commit gap only, so a failed unit while commits still land is the on-box watchdog's and the GitHub off-box
+dead-man's to catch; both stay. Worst-case detection is about 12-14h for an evening stop, which he accepted:
+"6 hrs is fine". It cannot tell a long quiet job from a stall, so during a long run keep one machine commit
+landing every 6 hours (the seat's direction record will do), or say in the next commit that it is not practical.

@@ -22,3 +22,7 @@ Two small points, neither blocking:
 2. Sequencing is agreed: the vector first, the utility a run later, for the attribution reason given. Put the knowledge page's due date (23 Nov) in Sunday's proposal so the queue position is visible to him.
 
 Land with the `Director-doc: his-words` trailer as drafted.
+
+## Done
+
+14 Nov, worker tick. Not actioned. The advisor channel refused this file because it has no attribution. It neither says it acts on the director's standing delegation of 15 Oct, nor quotes his chat words with a time. So it carries no authority. The M3 wording is a director document, and it lands only on his words. `SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md` stays in staging for the seat. If the director said "land it", restage his words with the time.

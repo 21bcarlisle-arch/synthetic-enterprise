@@ -151,6 +151,42 @@ def new_open_ids(previous_ids, after) -> list[str]:
     return [str(r["id"]) for r in open_rows(after) if r.get("id") and str(r["id"]) not in seen]
 
 
+# ── A RAISED QUESTION IS VISIBLE IN THE COMMIT STREAM ────────────────────────────────────────
+#
+# Director, 14 Nov 05:59 GMT, after the advisor told him "Nothing is waiting on you" with a row
+# open since the evening before: *"Why did you miss this decsion for me? How do we fix that ?"* The
+# advisor scans commit titles, and the title that raised the row read as a finding. So a commit that
+# opens (or reopens) a row says so at the START of its title, with the id; the commit-msg hook
+# refuses one that does not (`tools/director_document_gate.py`), and the seat's direction commit
+# builds its title with `marked_title`, so the one writer that raises most rows cannot be refused.
+
+FOR_THE_DIRECTOR_MARKER = "[FOR-THE-DIRECTOR]"
+
+
+def opened_ids(before, after) -> list[str]:
+    """Ids open in `after` that were not open in `before`: raised, or reopened."""
+    return new_open_ids([r.get("id") for r in open_rows(before)], after)
+
+
+def title_refusal(title: str, before, after) -> str | None:
+    """Why `title` may not land a record that opens rows, or None when it may."""
+    ids = opened_ids(before, after)
+    missing = [i for i in ids if i not in title]
+    if not ids or (title.startswith(FOR_THE_DIRECTOR_MARKER) and not missing):
+        return None
+    return (f"this commit opens for_the_director row(s) {', '.join(ids)}, so its title must start "
+            f"with {FOR_THE_DIRECTOR_MARKER} and name each id"
+            + (f" (missing: {', '.join(missing)})" if title.startswith(FOR_THE_DIRECTOR_MARKER)
+               else "")
+            + ". The advisor reads commit titles; a question titled as a finding is missed.")
+
+
+def marked_title(title: str, before, after) -> str:
+    """`title`, prefixed with the marker and the ids when the record opens a row."""
+    ids = opened_ids(before, after)
+    return f"{FOR_THE_DIRECTOR_MARKER} {', '.join(ids)}: {title}" if ids else title
+
+
 # ── THE END-TO-END CHECK, which is where most concerns should come from ──────────────────────
 #
 # Director, 2026-10-04: *"Own the end-to-end check: canon, logic, work and findings read together,

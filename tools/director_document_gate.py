@@ -358,7 +358,43 @@ def main(argv: list[str]) -> int:
     if not ok:
         print("[director-doc-gate] COMMIT REFUSED.\n" + why, file=sys.stderr)
         return 1
+    try:
+        asks = for_the_director_refusal(message)
+    except Exception as exc:  # noqa: BLE001 -- same fail-open-loudly as the leg above
+        print(f"[director-doc-gate] for_the_director unreadable, not blocking: {exc}", file=sys.stderr)
+        return 0
+    if asks:
+        print("[director-doc-gate] COMMIT REFUSED.\n" + asks, file=sys.stderr)
+        return 1
     return 0
+
+
+DIRECTION_FILE = "docs/direction/DIRECTION.yaml"
+
+
+def for_the_director_refusal(message: str) -> str | None:
+    """A commit whose index OPENS a `for_the_director` row must say so in its title (director,
+    14 Nov: "Why did you miss this decsion for me? How do we fix that ?"). The rule and its
+    wording live in `background.director_concerns.title_refusal`; this only reads the index.
+    A row a merging parent already holds open was marked by that parent's own commit."""
+    if _git("diff", "--cached", "--quiet", "HEAD", "--", DIRECTION_FILE).returncode == 0:
+        return None
+    import yaml
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from background import director_concerns as dc
+
+    def rec(spec):
+        text = _show(spec)
+        return yaml.safe_load(text) if text else None
+
+    before = rec(f"HEAD:{DIRECTION_FILE}")
+    after = rec(f":{DIRECTION_FILE}")
+    held = {i for p in merging_parents() for i in
+            (str(r.get("id")) for r in dc.open_rows(rec(f"{p}:{DIRECTION_FILE}")))}
+    title = (message.strip().splitlines() or [""])[0]
+    if held:
+        after = {**after, dc.KEY: [r for r in dc.rows_of(after) if str(r.get("id")) not in held]}
+    return dc.title_refusal(title, before, after)
 
 
 if __name__ == "__main__":

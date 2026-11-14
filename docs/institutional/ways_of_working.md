@@ -120,3 +120,28 @@ predicted). A grade-chain step would grade each change's prediction on a replay 
 before the next book runs, and let the book grade only the combined count. Not adopted yet: W1's map
 may remove most of the reason fixes arrive faster than books. Retired on 24 Nov if W1 holds and no
 unattributable miss recurs.
+
+## W3. "Nothing is waiting on you" was said from a stale read (14 Nov 2026)
+
+**Status:** hypothesis, change landed with it. **Review by:** 14 Dec 2026.
+
+**The claim.** A claim about what is waiting on the director is only as fresh as the read behind it.
+At 05:53 on 14 Nov the advisor told him "Nothing is waiting on you" while `for_the_director` row
+`the-off-box-dead-man-misses-stops` had been open since the evening before. Its last full read of
+the rows was 18:51 the day before; at 05:53 it scanned commit titles, and the title that raised the
+row read as a finding. He asked: "Why did you miss this decsion for me? How do we fix that ?" A
+second cause: the question was one the advisor could have answered, because its own cloud stall
+check was recorded nowhere the machine reads.
+
+**What it rests on.** `docs/staging/advisor/done/DIRECTOR_STEER_A_QUESTION_FOR_THE_DIRECTOR_MUST_BE_IMPOSSIBLE_TO_MISS_2026-11-14.md`.
+
+**The change.** Three legs, one each. The advisor reads `for_the_director` from origin in the same
+turn before saying what is or is not waiting (the advisor's own practice). A commit that opens or
+reopens a row must start its title with `[FOR-THE-DIRECTOR]` and name the id; the commit-msg hook
+refuses one that does not (`tools/director_document_gate.py`), and the seat's direction commit builds
+the marked title itself (`director_concerns.marked_title`). Before raising, the seat checks whether
+an advisor-run control already answers it (`docs/operations/MAINTENANCE.md` lists the cloud check);
+if one could, the question goes to the advisor as a staged note first.
+
+**The measure.** Director questions the advisor missed: open rows on origin at the moment the
+advisor said nothing was waiting. Prediction: zero by the review date. One miss refutes it.

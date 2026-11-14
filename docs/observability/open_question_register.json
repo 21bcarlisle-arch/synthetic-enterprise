@@ -1257,6 +1257,24 @@
       "question": "If timestral?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-13, advisor in chat): Timestral (Mistral, 15 Oct 2026) is the arm chosen for the benchmark. It is free, runs on CPU and accepts covariates, but its lead is vendor-reported and narrow, with no independent evaluation. There is no Claude equivalent."
+    },
+    "eda6a73e88b4": {
+      "ruling": "DIRECTOR_RULING_NO_NEW_TOKEN_THE_ADVISORS_CLOUD_STALL_CHECK_COVERS_OFF_BOX_DETECTION_2026-11-14.md",
+      "question": "We already have a check don't we here?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14, advisor in chat, recorded in the ruling): yes. The advisor's cloud 'Poesys stall check' has run since 7 Nov and alerts at a 6h machine-commit gap. It is now listed in docs/operations/MAINTENANCE.md and on How it's built."
+    },
+    "f5b688b2c511": {
+      "ruling": "DIRECTOR_STEER_A_QUESTION_FOR_THE_DIRECTOR_MUST_BE_IMPOSSIBLE_TO_MISS_2026-11-14.md",
+      "question": "Why did you miss this decsion for me?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14, in the steer): the advisor said nothing was waiting from a stale read. It scanned commit titles, and the title that raised the row read as a finding. Recorded as W3 in docs/institutional/ways_of_working.md."
+    },
+    "3521b267939d": {
+      "ruling": "DIRECTOR_STEER_A_QUESTION_FOR_THE_DIRECTOR_MUST_BE_IMPOSSIBLE_TO_MISS_2026-11-14.md",
+      "question": "How do we fix that ?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14): the advisor reads for_the_director from origin before saying what is waiting. A commit that opens or reopens a row must start its title with [FOR-THE-DIRECTOR] and name the id; tools/director_document_gate.py refuses one that does not, and the seat's direction commit marks its own title."
     }
   }
 }

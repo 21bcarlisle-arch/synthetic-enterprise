@@ -1135,7 +1135,10 @@ details.more summary, .timeline summary { cursor: pointer; color: var(--teal); f
       does stop it is held in <code>background/one_way_door.py</code>: real money, real people,
       real-world commitments, public claims that cannot be retracted, live credentials and the
       safety controls, and destroying evidence. Over all of it sit a director-only kill switch and
-      a dead-man's switch that watches for real commits.</p>
+      a dead-man's switch that watches for real commits. A second watch runs off the machine
+      altogether: the advisor's own scheduled check in the cloud reads the published commits four
+      times a day and alerts the director when none has landed for six hours. It sees only that
+      gap, so a part that fails while commits still land is the on-machine watch's to catch.</p>
     <p><b>Effort and pace.</b> What spends was measured before anything was designed to limit it:
       only three unattended routes start a model session (<code>background/tick_mode.py</code>),
       so nothing else needs throttling. The model is matched to the work, not to the process
