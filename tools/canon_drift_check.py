@@ -282,7 +282,9 @@ def probe_import_edge(root: Path, spec: dict[str, Any]) -> list[str]:
             if isinstance(node, ast.Import):
                 names = [alias.name for alias in node.names]
             elif isinstance(node, ast.ImportFrom) and node.module:
-                names = [node.module]
+                # `from company.carbon import carbon_ledger` imports the module by its leaf name;
+                # reading only `node.module` let an absent claim on it hold while the edge existed.
+                names = [node.module] + [f"{node.module}.{alias.name}" for alias in node.names]
             for name in names:
                 if name == target or name.startswith(target + "."):
                     hits.append(f"{path.relative_to(root).as_posix()}:{node.lineno} imports {name}")
@@ -402,6 +404,14 @@ class Claim:
     expects: str          # "present" | "absent" -- what the CODE must show for the page to hold
     probe: dict[str, Any]
     note: str = ""
+    #: Further page sentences asserting the SAME predicate. The page repeats itself (a TIMEFRAME
+    #: line and its later correction both say the carbon ledger is called by nothing); each copy
+    #: binds to the one probe and each must stay on the page, or the claim is UNBOUND.
+    also_anchors: tuple[str, ...] = ()
+
+    @property
+    def anchors(self) -> tuple[str, ...]:
+        return (self.anchor, *self.also_anchors)
 
 
 @dataclass
@@ -581,9 +591,13 @@ def load_register(path: Path) -> list[Claim]:
             raise ProbeError(f"claim {entry['id']}: expects must be present|absent")
         if entry["probe"].get("kind") not in PROBES:
             raise ProbeError(f"claim {entry['id']}: unknown probe kind {entry['probe'].get('kind')!r}")
+        also = entry.get("also_anchors", [])
+        if not isinstance(also, list) or not all(isinstance(a, str) and a.strip() for a in also):
+            raise ProbeError(f"claim {entry['id']}: also_anchors must be a list of sentences")
         claims.append(Claim(
             id=entry["id"], page=entry["page"], anchor=entry["anchor"], claim=entry["claim"],
             expects=entry["expects"], probe=entry["probe"], note=entry.get("note", ""),
+            also_anchors=tuple(also),
         ))
     ids = [c.id for c in claims]
     if len(set(ids)) != len(ids):
@@ -595,9 +609,11 @@ def evaluate(claim: Claim, root: Path) -> Verdict:
     page = root / claim.page
     if not page.exists():
         return Verdict(claim, ERROR, detail=f"page missing: {claim.page}")
-    if _normalise(claim.anchor) not in _normalise(page.read_text(encoding="utf-8", errors="replace")):
-        return Verdict(claim, UNBOUND,
-                       detail=f"anchor no longer on {claim.page}: {claim.anchor!r}")
+    page_text = _normalise(page.read_text(encoding="utf-8", errors="replace"))
+    for anchor in claim.anchors:
+        if _normalise(anchor) not in page_text:
+            return Verdict(claim, UNBOUND,
+                           detail=f"anchor no longer on {claim.page}: {anchor!r}")
     kind = claim.probe["kind"]
     try:
         evidence = PROBES[kind](root, claim.probe)
@@ -638,7 +654,7 @@ def unwatched_sections(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
         page = root / page_rel
         if not page.exists():
             continue
-        anchors = [_normalise(c.anchor) for c in claims if c.page == page_rel]
+        anchors = [_normalise(a) for c in claims if c.page == page_rel for a in c.anchors]
         sections = re.split(r"(?m)^(?=#{2,3} )", page.read_text(encoding="utf-8", errors="replace"))
         out[page_rel] = [
             section.splitlines()[0].lstrip("#").strip()
@@ -682,11 +698,11 @@ def unbound_negatives(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
         for claim in claims:
             if claim.page != page_rel:
                 continue
-            anchor = _normalise(claim.anchor)
-            at = text.find(anchor)
-            while at >= 0:
-                spans.append((at, at + len(anchor)))
-                at = text.find(anchor, at + 1)
+            for anchor in map(_normalise, claim.anchors):
+                at = text.find(anchor)
+                while at >= 0:
+                    spans.append((at, at + len(anchor)))
+                    at = text.find(anchor, at + 1)
         named: list[str] = []
         for sentence in _SENTENCE.finditer(text):
             for phrase in UNDER_CLAIM_FORMS.finditer(sentence.group()):

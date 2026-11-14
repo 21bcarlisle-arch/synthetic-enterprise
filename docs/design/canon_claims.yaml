@@ -270,6 +270,7 @@ claims:
   - id: CARBON_the_three_ledger_is_called_by_nothing
     page: docs/design/THE_MODEL_ON_A_PAGE.md
     anchor: "designed ledger (SAVED/SPENT/NET), honestly *not yet instrumented*"
+    also_anchors: ["The ledger is still called by nothing"]
     claim: "no production module imports the SAVED/SPENT/NET carbon ledger"
     expects: absent
     probe:
@@ -295,6 +296,27 @@ claims:
       The page said carbon was "not yet instrumented" while `tools/generate_explore_carbon.py`
       published measured emissions on Explore. The ledger half of that sentence was still true,
       which is why the two halves are two claims.
+
+  - id: PRICING_the_renewal_desk_clamps_at_the_competitive_ceiling
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "the company still cannot price above the cap at all"
+    also_anchors: ["though the company still cannot price above the cap"]
+    claim: "the renewal desk passes every struck rate through the competitive-ceiling clamp"
+    expects: present
+    probe:
+      kind: call_site
+      function: _apply_competitive_ceiling
+      roots: [company]
+      keyword: segment
+      value: __no_name_is_this__
+    note: >-
+      Registered 2026-11-14 from the check's own unbound-negatives list (A45 MAJOR 3). The
+      keyword/value pair matches no call, so every call to the clamp is evidence; the day the
+      desk stops calling it, this reports OVER_CLAIM and the page's "cannot price above the cap"
+      has to go. Imprecise on the page, not in the code: the clamp is min(rate, max(ceiling,
+      cost floor)), so where the cost floor exceeds the ceiling (2022) a resi rate does sit
+      above it, and the ceiling is the published SVT times the switching multiplier, not the
+      cap itself. The over-pricing point the page makes ("nothing above it") still holds.
 
   - id: PRICING_the_forward_belief_window_adapts
     page: docs/design/THE_MODEL_ON_A_PAGE.md

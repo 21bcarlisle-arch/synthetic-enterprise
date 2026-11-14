@@ -34,3 +34,16 @@ map_records:
     append, a lexicon widened by `never`, `blocked` dropped and the list unprinted were all red.
     Phrase-overlap against phrase-containment is an equivalence except where a phrase straddles
     an anchor edge.
+  - >-
+    MAJOR 3, 2026-11-14, worked from its own list. The 18 named sentences were read against the
+    code. Two were judged and bound: the cap sentence (said twice; the renewal desk calls the
+    clamp, now PRICING_the_renewal_desk_clamps_at_the_competitive_ceiling, present) and the
+    carbon correction's "The ledger is still called by nothing" (the same predicate as
+    CARBON_the_three_ledger_is_called_by_nothing). A claim may now carry `also_anchors`, so a
+    page that repeats a claim binds every copy to one probe and each copy going reads UNBOUND.
+    Found doing it: import_edge read only `node.module`, so `from company.carbon import
+    carbon_ledger` was no edge and an absent claim on a module (this one, TF2's) could hold
+    while the import existed. Fixed. 18 -> 16 named; the carbon sentence stays named for its
+    unchecked "abatement is still unmeasured". Left: "nobody yet targets the company's book"
+    needs a probe for a mechanism that does not exist yet (no witness, so it would be VACUOUS);
+    the picture-YAML and links lines are the lexicon's false positives. Level held at 2.

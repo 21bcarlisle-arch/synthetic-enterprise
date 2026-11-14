@@ -66,6 +66,8 @@ EXPECTED_CLAIM_IDS = frozenset({
     "CARBON_the_three_ledger_is_called_by_nothing",
     "CARBON_a_households_emissions_are_measured_and_published",
     "PRICING_the_forward_belief_window_adapts",
+    # 2026-11-14, from the unbound-negatives list: the cap sentence, said twice on the page.
+    "PRICING_the_renewal_desk_clamps_at_the_competitive_ceiling",
     # 2026-08-28, the director's mission rewrite. The mission names three channels through which
     # value reaches a household -- modelling, tariffs, advice -- and THE MODEL ON A PAGE now states
     # that advice has modules on disk and no recipient. That is a CHANNEL claim of C1's exact shape
@@ -302,6 +304,19 @@ def test_the_import_probe_catches_a_submodule_import(tmp_path):
     assert evaluate(claim, root).verdict == SUPERSEDED
 
 
+def test_the_import_probe_catches_a_module_imported_by_its_leaf_name(tmp_path):
+    """`from package import module` names the module only in the alias, never in `node.module`."""
+    root, _ = _mini_repo(tmp_path)
+    claim = Claim(id="i", page="docs/page.md", anchor="`price_sensitivity` reaches the churn decision",
+                  claim="nothing calls the carbon ledger", expects="absent",
+                  probe={"kind": "import_edge", "roots": ["simulation"], "target": "company.carbon.ledger"})
+    (root / "company/carbon").mkdir(parents=True)
+    (root / "company/carbon/ledger.py").write_text("X = 1\n", encoding="utf-8")
+    assert evaluate(claim, root).verdict == HOLDS
+    (root / "simulation/tally.py").write_text("from company.carbon import ledger\n", encoding="utf-8")
+    assert evaluate(claim, root).verdict == SUPERSEDED
+
+
 # ---------------------------------------------------------------- an absent claim must be able to flip
 # Expert Hour, 2026-11-14: 5 of 20 live claims HELD by finding nothing, and could never have found
 # anything -- a token no file held, a renamed constant, an archived module.
@@ -519,6 +534,23 @@ def test_a_negative_outside_every_anchor_is_named_even_in_a_bound_sentence(tmp_p
     named = run(root, register)[1]["unbound_negatives"]["docs/page.md"]
     assert len(named) == 1 and "a rival is blocked" in named[0], named
     assert not any("green_stance" in s or "never converted" in s for s in named)
+
+
+def test_an_also_anchor_binds_its_sentence_and_its_removal_is_unbound(tmp_path):
+    """One predicate the page states twice. The second copy is bound by `also_anchors`, so its
+    negative is no longer named -- and if that copy leaves the page the claim is UNBOUND, exactly
+    as for the first anchor. Without the second anchor the negative IS named (the leg can fail)."""
+    green = dict(NO_CHANNEL_CLAIM, anchor="`green_stance` is read by no response function")
+    root, register = _mini_repo(tmp_path, page=NEGATIVES_PAGE, claims=[CHANNEL_CLAIM, green])
+    assert run(root, register)[1]["unbound_negatives"]["docs/page.md"]  # "blocked" named
+    green["also_anchors"] = ["a rival is blocked"]
+    register.write_text(yaml.safe_dump({"claims": [CHANNEL_CLAIM, green]}), encoding="utf-8")
+    verdicts, report = run(root, register)
+    assert report["unbound_negatives"]["docs/page.md"] == []
+    assert {v.claim.id: v.verdict for v in verdicts}[green["id"]] == HOLDS
+    (root / "docs/page.md").write_text(NEGATIVES_PAGE.replace("a rival is blocked", "a rival moves"),
+                                       encoding="utf-8")
+    assert {v.claim.id: v.verdict for v in run(root, register)[0]}[green["id"]] == UNBOUND
 
 
 def test_an_unbound_negative_is_printed_and_never_moves_the_exit_status(tmp_path, capsys):
