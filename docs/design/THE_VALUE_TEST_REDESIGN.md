@@ -633,6 +633,64 @@ whether the cap is the right baseline for the tariff-placement arm (it is a choi
 "beating a flat supplier" means). Both are in the one `for_the_director` row raised for this note,
 in `docs/direction/DIRECTION.yaml`, with a recommendation.
 
+### 6a. After the 16 Nov reset: the order of the three belief-and-book candidates
+
+*Written 14 Nov, after §2 graded (a) and before the `churn_roll` family (§8) reads. It changes no
+code and launches nothing. It does not guess the family's answer. It writes down, for each answer,
+what the Monday ranking should take first, so the order comes from this page rather than from
+memory.*
+
+**The three candidates, and what each costs.** Points use the `tools.work_cost_estimate` medians
+read on 14 Nov, with quartile ranges: supplier 0.72, knowledge 0.62, grading 0.46, harness 0.45.
+Machine time comes from this page's own runs. One seed of the three arms on the 272-household book
+takes about 1.5 h: the published pair ran 10,616 s for two members. Twelve seeds took 18 h 46 min
+in §7. One arm at the settlement budget holds about 1,200 households (rule 2).
+
+| | Candidate | The one variable it changes | Sessions and points | Machine time | The prediction it must beat |
+|---|---|---|---|---|---|
+| **A** | **Switch on the corrected belief** `renewal_belief_by_ending_term` (`7a7ad95dc`, default off, never yet run inside the value test) | The value arm's belief: the policy flag goes from off to on. World, book, arms and draws are unchanged | 2 grading: **0.9 (0.6 to 1.5)**. The code exists, and the driver sets the flag outside the repo | One draw: about 1.5 h. Twelve draws: about 19 h | The flat-arm AUC with the flag off: **0.549** (0.530 to 0.572 across §7's 12 draws), with its interval clear of 0.50, by more than the `churn_roll` family's AUC half-range. Calibration: believed minus realised retention must move from **−0.21** towards zero. Money cannot be read at 272: the switch moved about £1 to £1.50 per household-year in §14 and the clean-book re-take, and 272 households resolve about £10 |
+| **B** | **The renewal retrain** (pre-registered at `22b06c6c2`, `docs/staging/records/SEAT_PREREGISTRATION_THE_RENEWAL_BELIEF_RETRAIN_2026-11-14.md`) | On top of A: a learned level plus a price-position slope, fit on the company's own closed renewals. The belief is otherwise A's | 3 supplier, the knowledge page amended first (K8), and 1 grading: **3.2 (2.2 to 4.9)** | 2019 scoring takes minutes. The value-test read takes the same time as A | Its pre-registration's R1 to R4. R1, 2019: 0.82 (0.79 to 0.86), where the switch alone already scores 0.819. R2, value test: 0.68 (0.60 to 0.78), clear of 0.50. R3, calibration within ±0.06. R4, +£3 to +£9 per household-year. **Once A has read, B must beat A's own value-test AUC**, not today's 0.549, because the type split is A's |
+| **C** | **A book of about 4,860 households** (§7: £3 told from zero, at 80% power, on one draw) | Book size only: households 272 → about 4,860. Belief, arms and world are whatever is current when it runs | Sharding one book across several runs under one world does not exist yet: 3 harness and 2 grading, **2.3 (1.6 to 3.6)**. **Rule 2 sends this to the director with its cost**, because it is beyond one run on this machine | About 4 runs of ~1,200 households, so about 12 arm-hours per draw for three arms, or about 24 h with rule 3's and rule 4's six arms | "Not distinguishable from zero". The family's +£5.24 per household-year has an interval of −£3.34 to +£14.35. At 4,860 households the 95% half-width should be about **£2.1** (1.96 × £75 / √4,860). A true +£3 then reads clear of zero four times in five |
+
+**Why A comes before B whatever the family says.** B is defined in its own pre-registration as two
+changes on top of A's type split. If B runs before A, a value-test result moves with both the type
+split and the refit, and it cannot be attributed. Running A first makes B a one-variable step.
+
+**What §2's result does to the order.** §2 graded **(a)**: the harness reproduces the published run
+to the penny at seed 20260724, so no process or tree state sets that run apart. Had it graded (c),
+all three candidates would have waited until that state was found, because no comparison between
+runs could be trusted. Under (a) nothing waits on it. Every candidate's family includes seed
+20260724, as the rule 1 fix requires.
+
+One reading for the grade, not a ruling: B's pre-registration says to stop if "the value arm's
+level leg is set by something other than the belief's offers". §2 shows the published level leg's
+extreme came from a high **control** arm at that draw. Whether that meets the clause depends on
+which arms carry the belief, which this page has not established. So B's R4 should also be read on
+the choosing leg (value minus level), where the value arm's belief acts, and not only on the whole
+advantage, which carries the control arm's draw.
+
+**The order under each `churn_roll` outcome.** Kill condition 1 is the roll share **< 0.25**. Kill
+condition 2 is the flat-arm AUC half-range **< 0.03** (§8). §8's C4 predicts that 1 fires and 2
+does not. The ranking takes the row set that matches the grade.
+
+| `churn_roll` outcome | Position | Candidate | What to run, and why in this place |
+|---|---|---|---|
+| **Both fire** (B's §4: do not build the retrain) | 1 | A | **One draw (about 1.5 h).** The AUC barely moves between draws, so one seed reads it. This tests whether the 2019 type split carries into the value-test years |
+| | 2 | C | Goes to the director with its cost (rule 2): the book must be in the thousands, and only households narrow the interval. Re-draws do not |
+| | — | B | **Not built.** Its own pre-registration says it can only return "not distinguishable from zero" at this book size. It is revisited only once C exists |
+| **1 fires, 2 does not** (§8 C4, the predicted case) | 1 | A | **Twelve `churn_roll` draws (about 19 h).** The AUC moves with who leaves, so A is read against the off-flag's spread across draws, not a single figure |
+| | 2 | B | Built only if A's AUC clears the off-flag family by more than the half-range. Otherwise the type split does not carry into these years and B has nothing to build on. R1 to R3 are graded at 272. R4 waits for C |
+| | 3 | C | Goes to the director in the same week as B's build (rule 2), because R4 and the thesis both need the thousands. It runs after A, so it carries the belief A settled |
+| **2 fires, 1 does not** (roll share ≥ 0.25) | 1 | A | **One draw (about 1.5 h)**, for the same reason as the first case |
+| | 2 | B | Built if the roll share is above 0.5 (B's §4 "build it"). Between 0.25 and 0.5 it is built only if A has cleared 0.549 |
+| | 3 | C | **Becomes the step 6 sized run, not 4,860 households.** Re-draws now buy precision, so rule 2's 1,200 households at 12 draws (about 72 h with six arms) resolves £3. It needs no director call, and it fits after A and B |
+| **Neither fires** | 1 | A | **Twelve draws (about 19 h)**, as in the second case |
+| | 2 | B | As in the third case: built if the roll share is above 0.5, or if A has cleared its bar |
+| | 3 | C | As in the third case: the 1,200-household sized run at 12 draws, not 4,860 |
+
+In every case, each candidate's prediction is filed before it launches, against the bar in the cost
+table. The value is written into the commit that launches it.
+
 ## 7. Step 1 graded: the 12-draw family at `45122d156` (read 14 Nov 08:54Z)
 
 All six pairs and their control sidecars are in `/var/tmp/vt12-out/`. The fold is `family_12.json`
