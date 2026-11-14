@@ -72,7 +72,8 @@ EXPECTED_CLAIM_IDS = frozenset({
     # (the thing exists; does the WORLD call it?), so it is registerable and is registered.
     # Two claims rather than one on purpose: the recommenders can gain a recipient independently.
     "MISSION_switching_advice_has_no_recipient",
-    "MISSION_decarb_advice_has_no_recipient",
+    # MISSION_decarb_advice_has_no_recipient retired 2026-11-14: the recommender is archived,
+    # so its token is in no live code and the claim could not go red (see `_retired`).
     # 2026-08-28, atom A47, registered the day the figure landed. The page now claims the
     # household side of MONEY is instrumented; the probe asks for a READER outside the
     # defining module, because a module wired to nothing is the C2 defect in miniature.
@@ -292,10 +293,92 @@ def test_the_import_probe_catches_a_submodule_import(tmp_path):
     claim = Claim(id="i", page="docs/page.md", anchor="`price_sensitivity` reaches the churn decision",
                   claim="the world cannot reach the company's risk organs", expects="absent",
                   probe={"kind": "import_edge", "roots": ["simulation"], "target": "company.risk"})
+    assert evaluate(claim, root).verdict == ERROR  # the organ does not exist: nothing to watch
+    (root / "company/risk").mkdir(parents=True)
+    (root / "company/risk/__init__.py").write_text("", encoding="utf-8")
     assert evaluate(claim, root).verdict == HOLDS
     (root / "simulation/squeeze.py").write_text(
         "from company.risk.liquidity_stress_test import run\n", encoding="utf-8")
     assert evaluate(claim, root).verdict == SUPERSEDED
+
+
+# ---------------------------------------------------------------- an absent claim must be able to flip
+# Expert Hour, 2026-11-14: 5 of 20 live claims HELD by finding nothing, and could never have found
+# anything -- a token no file held, a renamed constant, an archived module.
+
+def _absent_token_claim(token: str) -> Claim:
+    return Claim(id="v", page="docs/page.md", anchor="`price_sensitivity` reaches the churn decision",
+                 claim="the world never reads it", expects="absent",
+                 probe={"kind": "token_live", "token": token, "roots": ["simulation"]})
+
+
+def test_an_absent_claim_on_a_name_no_code_holds_is_an_error_not_a_hold(tmp_path):
+    root, _ = _mini_repo(tmp_path)
+    assert evaluate(_absent_token_claim("collateral_call"), root).verdict == ERROR
+    # Partition control: the same claim on a name that IS real somewhere outside its roots holds.
+    (root / "company").mkdir()
+    (root / "company/desk.py").write_text("def collateral_call():\n    return 0\n", encoding="utf-8")
+    assert evaluate(_absent_token_claim("collateral_call"), root).verdict == HOLDS
+
+
+def test_a_name_held_only_in_prose_is_no_witness(tmp_path):
+    root, _ = _mini_repo(tmp_path)
+    (root / "company").mkdir()
+    (root / "company/desk.py").write_text('"""collateral_call is not built."""\n', encoding="utf-8")
+    assert evaluate(_absent_token_claim("collateral_call"), root).verdict == ERROR
+
+
+def _literal_claim(spec: dict, expects: str = "present") -> Claim:
+    return Claim(id="k", page="docs/page.md", anchor="`price_sensitivity` reaches the churn decision",
+                 claim="a constant", expects=expects,
+                 probe={"kind": "literal_assign", "file": "simulation/consts.py", **spec})
+
+
+def test_a_literal_probe_on_a_renamed_constant_is_an_error_not_a_hold(tmp_path):
+    root, _ = _mini_repo(tmp_path)
+    (root / "simulation/consts.py").write_text("UPLIFTABLE_COMMODITIES = frozenset({'electricity'})\n",
+                                               encoding="utf-8")
+    claim = _literal_claim({"name": "UPLIFTABLE_COMMODITY", "value": "electricity"}, expects="absent")
+    assert evaluate(claim, root).verdict == ERROR
+
+
+def test_a_value_the_literal_probe_cannot_read_is_an_error_not_skipped(tmp_path):
+    root, _ = _mini_repo(tmp_path)
+    (root / "simulation/consts.py").write_text("ARM = build_arm()\n", encoding="utf-8")
+    assert evaluate(_literal_claim({"name": "ARM", "value": 1}, expects="absent"), root).verdict == ERROR
+
+
+def test_a_membership_guard_is_read_through_its_frozenset(tmp_path):
+    root, _ = _mini_repo(tmp_path)
+    consts = root / "simulation/consts.py"
+    claim = _literal_claim({"name": "UPLIFTABLE_COMMODITIES", "contains": "gas"})
+    consts.write_text("UPLIFTABLE_COMMODITIES: frozenset[str] = frozenset({'electricity', 'gas'})\n",
+                      encoding="utf-8")
+    assert evaluate(claim, root).verdict == HOLDS
+    consts.write_text("UPLIFTABLE_COMMODITIES: frozenset[str] = frozenset({'electricity'})\n",
+                      encoding="utf-8")
+    assert evaluate(claim, root).verdict == OVER_CLAIM
+
+
+def _call_claim() -> Claim:
+    return Claim(id="c", page="docs/page.md", anchor="`price_sensitivity` reaches the churn decision",
+                 claim="the margin-call book is marked once, at the run's end", expects="absent",
+                 probe={"kind": "call_site", "function": "build_counterparty_collateral",
+                        "roots": ["simulation"], "keyword": "mark_date", "value": "effective_end"})
+
+
+@pytest.mark.parametrize("mark, verdict", [
+    ("effective_end", HOLDS),        # today's world: one mark, after the loop
+    ("month_end", SUPERSEDED),       # a mark inside the loop is a call the world can press with
+    (None, ERROR),                   # no call at all: the probe watches nothing
+])
+def test_the_collateral_call_probe_can_hold_flip_and_refuse(tmp_path, mark, verdict):
+    root, _ = _mini_repo(tmp_path)
+    body = "def run(book, effective_end, month_end):\n"
+    body += (f"    return seam.build_counterparty_collateral(book, mark_date={mark})\n"
+             if mark else "    return book\n")
+    (root / "simulation/run_loop.py").write_text(body, encoding="utf-8")
+    assert evaluate(_call_claim(), root).verdict == verdict
 
 
 # ---------------------------------------------------------------- the instrument as shipped

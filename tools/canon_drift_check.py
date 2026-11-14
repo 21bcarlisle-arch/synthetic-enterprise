@@ -44,7 +44,8 @@ EXPECTED state and the report names which way it moved:
     OVER_CLAIM  the page claims a capability the code no longer supports
     SUPERSEDED  the code has moved past the page -- the page under-claims
     UNBOUND     the register's anchor sentence is no longer ON the page (register is stale)
-    ERROR       the probe could not run at all -- FAIL CLOSED, never a pass
+    ERROR       the probe could not run at all -- FAIL CLOSED, never a pass. Includes VACUOUS: an
+                absent-claim whose subject exists in no live code, so finding nothing proves nothing
 
 WHY A REGISTER AND NOT AN LLM READ OF THE PAGE. A claim is bound to a PREDICATE OVER THE CODE,
 written down, in `docs/design/canon_claims.yaml`. The binding is the artefact: it survives a
@@ -107,6 +108,7 @@ if str(REPO_ROOT) not in sys.path:
 # or-empty-string null treatment and the None-is-never-empty refusal, which is the shape that lets
 # a defect be repaired in one and stay live in another for a month.
 from background import register_low_water  # noqa: E402
+from tools.python_code_text import code_text  # noqa: E402
 
 DEFAULT_REGISTER = "docs/design/canon_claims.yaml"
 DEFAULT_REPORT = "docs/observability/canon_drift.json"
@@ -205,26 +207,64 @@ def probe_module_name(root: Path, spec: dict[str, Any]) -> list[str]:
     ]
 
 
+def _literal_value(node: ast.expr) -> Any:
+    """The literal a module-level assignment holds, or raise ProbeError.
+
+    `frozenset({...})`, `set(...)`, `tuple(...)` and `list(...)` over one literal are unwrapped,
+    because that is how the code spells a membership guard. Anything else is refused rather than
+    skipped: until 2026-11-14 a value `literal_eval` could not read was `continue`d past, so a
+    probe on `UPLIFTABLE_COMMODITIES = frozenset({...})` found nothing and an absent-claim HELD.
+    """
+    try:
+        return ast.literal_eval(node)
+    except (ValueError, SyntaxError):
+        pass
+    wrappers = {"frozenset": frozenset, "set": frozenset, "tuple": tuple, "list": list}
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in wrappers \
+            and len(node.args) <= 1 and not node.keywords:
+        try:
+            inner = ast.literal_eval(node.args[0]) if node.args else ()
+        except (ValueError, SyntaxError):
+            inner = None
+        if inner is not None:
+            return wrappers[node.func.id](inner)
+    raise ProbeError(f"line {node.lineno}: value is not a literal this probe can read "
+                     f"({ast.unparse(node)[:60]})")
+
+
 def probe_literal_assign(root: Path, spec: dict[str, Any]) -> list[str]:
-    """Is `name` assigned the literal `value` at module level in `file`?"""
+    """Is `name` assigned the literal `value` (or, with `contains`, a collection holding it)?
+
+    A name that is never assigned in `file` is an ERROR, not an empty result: an absent-claim
+    on a constant that was renamed would otherwise hold forever (MISSION_the_pricing_arm, whose
+    `UPLIFTABLE_COMMODITY` was renamed on 2026-09-07 and held vacuously until 2026-11-14).
+    """
     path = _resolve(root, spec["file"])
-    wanted = spec["value"]
     try:
         tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
     except SyntaxError as exc:
         raise ProbeError(f"{spec['file']}: will not parse ({exc})") from exc
     hits: list[str] = []
+    assigned = False
     for node in tree.body:
         targets = node.targets if isinstance(node, ast.Assign) else \
-            ([node.target] if isinstance(node, ast.AnnAssign) else [])
+            ([node.target] if isinstance(node, ast.AnnAssign) and node.value is not None else [])
         for target in targets:
             if isinstance(target, ast.Name) and target.id == spec["name"]:
+                assigned = True
                 try:
-                    actual = ast.literal_eval(node.value)
-                except (ValueError, SyntaxError):
-                    continue
-                if actual == wanted:
+                    actual = _literal_value(node.value)
+                except ProbeError as exc:
+                    raise ProbeError(f"{spec['file']}:{spec['name']} {exc}") from exc
+                if "contains" in spec:
+                    matched = isinstance(actual, (frozenset, set, tuple, list)) and spec["contains"] in actual
+                else:
+                    matched = actual == spec["value"]
+                if matched:
                     hits.append(f"{spec['file']}:{node.lineno} {spec['name']} = {actual!r}")
+    if not assigned:
+        raise ProbeError(f"{spec['file']}: {spec['name']} is not assigned at module level "
+                         f"(renamed or removed -- the probe can no longer flip)")
     return hits
 
 
@@ -249,6 +289,39 @@ def probe_import_edge(root: Path, spec: dict[str, Any]) -> list[str]:
     return hits
 
 
+def probe_call_site(root: Path, spec: dict[str, Any]) -> list[str]:
+    """Calls to `function` under `roots` whose `keyword` argument is NOT the bare name `value`.
+
+    C3's shape: the world marks its margin-call book once, at the run's end (`mark_date=
+    effective_end`), and nothing reads it back into cash. A call marked at any other date -- a
+    monthly mark inside the loop -- is evidence the call has become something the world can
+    press with.
+    """
+    hits: list[str] = []
+    for path in _iter_py(root, spec["roots"], spec.get("exclude", [])):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except SyntaxError as exc:
+            raise ProbeError(f"{path}: will not parse ({exc})") from exc
+        for node in ast.walk(tree):
+            if not (isinstance(node, ast.Call) and _called_name(node) == spec["function"]):
+                continue
+            kw = next((k for k in node.keywords if k.arg == spec["keyword"]), None)
+            if kw is None or not (isinstance(kw.value, ast.Name) and kw.value.id == spec["value"]):
+                shown = ast.unparse(kw.value) if kw is not None else "(not passed)"
+                hits.append(f"{path.relative_to(root).as_posix()}:{node.lineno} "
+                            f"{spec['function']}({spec['keyword']}={shown})")
+    return hits
+
+
+def _called_name(node: ast.Call) -> str | None:
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    return None
+
+
 def probe_text_in_file(root: Path, spec: dict[str, Any]) -> list[str]:
     """Does `phrase` appear in `file`? (For claims whose subject is a rendered artefact.)"""
     path = _resolve(root, spec["file"])
@@ -263,7 +336,52 @@ PROBES: dict[str, Callable[[Path, dict[str, Any]], list[str]]] = {
     "literal_assign": probe_literal_assign,
     "import_edge": probe_import_edge,
     "text_in_file": probe_text_in_file,
+    "call_site": probe_call_site,
 }
+
+
+# --------------------------------------------------------------------------------------
+# Witnesses. An "absent" claim HOLDS by finding nothing, and finding nothing is also what a
+# probe on a name nobody ever wrote does. Expert Hour, 2026-11-14: 5 of 20 live claims could
+# not go red -- three searched for `collateral_call`, a token in no source file anywhere; one
+# for a constant renamed two months earlier; one for an archived module. So an absent claim
+# must show the thing it watches is REAL somewhere in live code, or it is an ERROR.
+# --------------------------------------------------------------------------------------
+
+#: Where a watched name may be shown to exist. Wider than any probe's roots on purpose: the
+#: question is "does this name exist", not "does the world read it".
+WITNESS_ROOTS = ("company", "saas", "simulation", "sim", "tools", "background")
+
+
+def _witness(root: Path, spec: dict[str, Any]) -> str | None:
+    """Evidence that an absent-probe's subject is real, or None when the probe is vacuous."""
+    kind = spec["kind"]
+    if kind == "token_live":
+        pattern = re.compile(rf"\b{re.escape(spec['token'])}\b")
+        roots = [r for r in WITNESS_ROOTS if (root / r).is_dir()]
+        for path in _iter_py(root, roots, []):
+            # A file that will not parse is no witness (`code_text` is None): a false witness
+            # would make a vacuous claim hold, so the closed direction here is "not shown".
+            code = code_text(path.read_text(encoding="utf-8", errors="replace"))
+            if code is not None and pattern.search(code):
+                return path.relative_to(root).as_posix()
+        return None
+    if kind == "import_edge":
+        rel = spec["target"].replace(".", "/")
+        for cand in (root / f"{rel}.py", root / rel):
+            if cand.exists():
+                return cand.relative_to(root).as_posix()
+        return None
+    if kind == "call_site":
+        spec_all = {**spec, "keyword": "\0never", "value": ""}
+        calls = probe_call_site(root, spec_all)  # every call reports, since no keyword matches
+        return calls[0] if calls else None
+    if kind == "literal_assign":
+        return spec["file"]  # the probe itself refuses a name that is not assigned
+    if kind == "text_in_file":
+        return spec["file"]  # a rendered artefact: the file is real (`_resolve`), the phrase is a rule
+    return None  # module_name and any new kind: no witness defined, so an absent claim is refused
+
 
 
 def _normalise(text: str) -> str:
@@ -492,6 +610,15 @@ def evaluate(claim: Claim, root: Path) -> Verdict:
         verdict = HOLDS if found else OVER_CLAIM
         detail = "" if found else "the page claims this and the code does not show it"
     else:
+        if not found:
+            try:
+                witness = _witness(root, claim.probe)
+            except ProbeError as exc:
+                return Verdict(claim, ERROR, detail=f"witness: {exc}")
+            if witness is None:
+                return Verdict(claim, ERROR, detail=(
+                    f"VACUOUS: the {kind} probe finds nothing, and what it watches exists nowhere in "
+                    f"live code ({', '.join(WITNESS_ROOTS)}), so it could never go red"))
         verdict = HOLDS if not found else SUPERSEDED
         detail = "" if not found else "the code has moved past the page -- the page under-claims"
     return Verdict(claim, verdict, evidence=evidence, detail=detail)
