@@ -8,21 +8,29 @@ and he can change it at any time.*
 
 ## 1. The value test's 12-draw grade
 
-**PENDING. The grade is not on origin yet, and this section will open with it when it is.**
+**Graded 14 Nov 08:54Z** (`docs/design/THE_VALUE_TEST_REDESIGN.md` §7; §2's re-run graded (a) at
+12:53Z). *Rewritten 14 Nov 14:30Z: the bullets this replaces said the grade was pending.*
 
-- At 07:45 GMT Sat 14 Nov, five of the six pairs were written to `/var/tmp/vt12-out` (the fifth,
-  99999_10101, at 04:55). The sixth, 20202_30303, is running under
-  `longjob-value-test-12-draw-family-pairs`. Each pair has taken about 3h10m, so it should finish
-  around 08:05 GMT.
-- **What it answers.** Is the published £5,244 whole advantage inside the range of 12 draws that
-  vary only the elasticity seed? If it is, the published draw was an ordinary but extreme member.
-  If it is not, something other than too few draws explains it. The filed prediction is that it
-  stays **outside** (`docs/design/THE_VALUE_TEST_REDESIGN.md` §2), and P6 predicts that roll noise
-  is at least half of the spread between households.
-- **What we know today, per household per year.** The belief cannot tell who leaves: AUC 0.52
-  (0.41 to 0.65), against 0.50 for a coin. The per-customer arm earns about £3 more per
-  household-year than a £2/MWh flat rule, 0.6 standard errors from zero. **There is no evidence
-  yet that per-customer value works, and none that it does not.**
+- **2 Nov prediction 1 held, by £311.** The published £5,244 is below all 12 elasticity re-draws
+  (£5,556 to £12,462). What sets it apart is its price-level leg (−£6,101, 3.5 sd below the
+  family), not its total. §2 then showed the harness reproduces the published run to the penny, so
+  no process or tree state explains it.
+- **P6 missed, read as "not shown".** Roll noise is 4.6% (1.5% to 10.0%) of the per-household
+  variance, a lower bound because only the elasticity was re-drawn. The `churn_roll` family (§8)
+  measures the rest. It is running in `/var/tmp/vtcr-out/`, 12 members in pairs, and should read
+  about 09:00Z Sun 15 Nov.
+- **What we know, per household per year.** The family mean is +£5.24 (−£3.34 to +£14.35), not
+  distinguishable from zero. The belief's AUC against who left under the flat price is 0.549
+  (0.530 to 0.572 across draws), and believed minus realised retention is −0.21. **Still no
+  evidence that per-customer value works, and none that it does not.**
+- **What runs first after the reset is already decided, whatever `churn_roll` says.** §6a's order
+  table puts **candidate A, switching on the corrected belief `renewal_belief_by_ending_term`
+  (`7a7ad95dc`)**, first under all four outcomes. The grade decides only how A is run and what
+  follows. If kill condition 2 fires (AUC half-range < 0.03), A is one draw, about 1.5 h. If it does
+  not, A is twelve `churn_roll` draws, about 19 h. B (the retrain) and C (about 4,860 households, or
+  the 1,200-household sized run if the roll share is ≥ 0.25) follow in the matching row of §6a.
+  A's bar: AUC clear of 0.549 by more than the family's half-range, and calibration moving from
+  −0.21 towards zero. Its prediction is filed in the launch commit.
 
 ## 2. What the week did
 
@@ -137,6 +145,10 @@ has been measured on this kind of work before.
     is one line of the K8 page.
   - **Queue position:** the page is supplier-feature item 3 below, after value-test steps 3 and
     4. That puts it on origin before 23 Nov if the week runs at the proposed split.
+- **One writer per shared file** (14 Nov; measure where the lanes collide first). **Measured,
+  closed, no trial, no cost next week.** No file dominates: DIRECTION.yaml leads with 3.7% of
+  transcript mentions, and 69% of collision lines are the trunk moving (a61ee3b25,
+  `docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md`).
 
 ## 4. The split proposed for the week from Mon 16 Nov
 
@@ -165,7 +177,10 @@ Nothing below is built by this review.
 2. **The triage: the 10 BLOCKING findings**, then the supplier money findings (92 in the B, C, D
    and E lanes). Each gets fixed, real (ranked), parked (with a reason and a revisit date) or
    obsolete. For each still real, I ask whether a knowledge gap or an insight sits behind it.
-3. **Value test steps 3 and 4** (supplier feature, about 8 points with step 2).
+3. **Value test candidate A, then steps 3 and 4** (supplier feature, about 8 points with step 2,
+   plus A's 0.9). A is first because §6a of the redesign puts it first under every `churn_roll`
+   outcome. That outcome sets A's draw count (one or twelve) and where B and C come after it. The
+   §8 grade is read against §6a's rows before A launches.
 4. **Value test step 2: the world's write-off rule** at an 86% final-account loss (world
    feature), after the `debt_and_collections.md` P5 amendment (K8).
 5. **The linking-findings measurement** (harness, about 1.6 points). Its prediction is
@@ -188,7 +203,10 @@ numbers order work inside a lane; they are not a single queue.
 **The accelerate list** (drawn from Saturday, only when more than the roughly 10-point reserve is
 unspent):
 
-1. Value test step 1's sized follow-up, if the 12-draw grade calls for it.
+1. Value test candidate C as §6a's matching row places it. If the roll share is < 0.25, it is a book
+   of about 4,860 households, which needs the director's call under rule 2 and goes to him with
+   its cost (2.3 points, about 24 h). If the share is ≥ 0.25, it is step 6's 1,200-household run
+   at 12 draws, which needs no call.
 2. The `debt_and_collections.md` P5 amendment for the write-off rule (about 0.6 points).
 3. A second gate-passing book on the current tree.
 
