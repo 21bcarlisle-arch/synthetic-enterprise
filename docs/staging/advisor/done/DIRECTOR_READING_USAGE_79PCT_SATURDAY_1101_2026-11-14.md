@@ -19,3 +19,9 @@
   - the one-work-system design itself (decision map and knowledge page) to the week of 16 Nov, as the balance proposal already plans;
   - any new cold read.
 - The advisor will hold its own spend to replies until the reset.
+
+## Done
+
+(seat executor, Sat 14 Nov.) Taken as pacing. This turn runs the first of the three kept items,
+the value test's pre-registered second test (one member+control pair, mostly compute, few tokens),
+and starts nothing on the deferred list. No new cold read is opened.

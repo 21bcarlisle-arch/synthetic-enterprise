@@ -65,3 +65,15 @@ Real metering data is messy, and much of a supplier's billing pain starts there.
 5. **The publish gate's money invariants must still pass.** A world that produces faults must not turn a correct supplier response into a gate breach. Where a fault should reach a bill, the invariant judges the supplier's response, not the fault's existence.
 
 Rank this against the other world-lane items in Sunday's balance proposal. It is not for this weekend under the usage pace.
+
+## Done
+
+(seat executor, Sat 14 Nov.) Filed as world work in `docs/direction/priority_order.yaml`
+under a new `world_lane_candidates:` list (id
+`the-world-produces-real-meter-data-faults-for-the-supplier-to-find`), citing this file. It is
+to be ranked against the other world-lane items in the 16 Nov balance review
+(`docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md`), and nothing is built this weekend under
+the usage pace. The path it names is K8 first (the metering data quality page with GAPs
+labelled), then build on `simulation/meter_reads.py`, starting from the tenth cold read's four
+classes. Supplier-side validation and estimation are raised as their own supplier items. This
+steer is complete when the world lane draws it, not now.
