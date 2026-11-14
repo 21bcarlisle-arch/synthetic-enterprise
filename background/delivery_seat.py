@@ -2127,10 +2127,18 @@ def _render_learning_loop(loop: dict | None) -> str:
         head += " NOTHING GRADED in the window -- no `Graded:` trailer on origin. {}".format(
             loop.get("how_to_feed", ""))
     for name, a in sorted(areas.items()):
+        # W1's stop holds until the map exists; after that the line carries what the map has to
+        # earn -- the code-or-reader misses graded since it landed -- and never a spent STOP.
+        mapped = a.get("map")
+        tail = "; map landed {}; misses since: {} of {} graded".format(
+            mapped["sha"], a.get("misses_since_map"), a.get("graded_since_map")) if mapped else ""
+        if a["stop_condition_met"]:
+            tail += " -- STOP: map the area first"
+        if a.get("map_unreadable"):
+            tail += " (map unreadable: {})".format(a["map_unreadable"])
         head += "\n- {}: {} held of {} (hit rate {}, median range width {}); {} code-or-reader " \
                 "misses{}".format(name, a["held"], a["held"] + a["missed"], a["hit_rate"],
-                                  a["median_width"], a["code_or_reader"],
-                                  " -- STOP: map the area first" if a["stop_condition_met"] else "")
+                                  a["median_width"], a["code_or_reader"], tail)
     head += "\n- regressions per fix: {} over {} graded fixes; escapes per cold read: {}".format(
         loop.get("regressions_per_fix"), loop.get("fixes_graded"),
         loop.get("escapes_per_cold_read") or "no cold read in the window")

@@ -74,9 +74,40 @@ def _log(rev: str, days: int) -> str:
     return r.stdout
 
 
-def measures(rev: str = "origin/main", days: int = WINDOW_DAYS, log_text: str | None = None) -> dict:
+def area_map(area: str, rev: str = "origin/main") -> dict | None:
+    """The area's map on `rev` -- {"path", "sha", "after"} -- or None. The convention is the one
+    both landed maps follow (`delivery_lane._map_on_origin` reads the same stem):
+    `docs/design/<AREA>_AREA_MAP*.md`. Where an area has several, the newest to be ADDED is the
+    map; later edits to it do not re-land it. `after` is every commit on `rev` that descends from
+    the landing (`%h`, as `_log` spells them): the only grades a map has not already answered."""
+    stem = "docs/design/" + re.sub(r"[-_ ]+", "_", area).upper() + "_AREA_MAP"
+    r = subprocess.run(["git", "log", rev, "--diff-filter=A", "-1", "--format=%h", "--",
+                        stem + "*.md"], cwd=str(PROJECT_DIR), capture_output=True, text=True,
+                       timeout=60)
+    sha = r.stdout.strip() if r.returncode == 0 else ""
+    if not sha:
+        return None
+    path = subprocess.run(["git", "show", "--format=", "--name-only", "--diff-filter=A", sha, "--",
+                           stem + "*.md"], cwd=str(PROJECT_DIR), capture_output=True, text=True,
+                          timeout=60).stdout.split()
+    after = subprocess.run(["git", "log", "--format=%h", f"{sha}..{rev}"], cwd=str(PROJECT_DIR),
+                           capture_output=True, text=True, timeout=60)
+    if after.returncode != 0:
+        raise RuntimeError(f"git log {sha}..{rev} failed: {after.stderr.strip()[:200]}")
+    return {"path": path[0] if path else stem + "*.md", "sha": sha,
+            "after": set(after.stdout.split())}
+
+
+def measures(rev: str = "origin/main", days: int = WINDOW_DAYS, log_text: str | None = None,
+             maps=None) -> dict:
     """Per-area hit rate with widths and the stop condition's count, regressions per fix,
-    escapes per cold read. Raises nothing: an unreadable log is reported as such."""
+    escapes per cold read. Raises nothing: an unreadable log is reported as such.
+
+    W1 stops fixes in an area "until its map exists": once the area's map has landed on `rev`,
+    the stop is spent, and the grades after the landing commit are counted apart
+    (`misses_since_map` of `graded_since_map`) -- the numbers W1's own measure is judged on. `maps(area) -> area_map(...) | None` is
+    injectable so the partition can be tested without git."""
+    maps = maps or (lambda area: area_map(area, rev))
     try:
         text = _log(rev, days) if log_text is None else log_text
     except Exception as exc:  # noqa: BLE001 - the brief must still be written; say why it is blank
@@ -100,14 +131,31 @@ def measures(rev: str = "origin/main", days: int = WINDOW_DAYS, log_text: str | 
             if g["width"] is not None:
                 a["widths"].append(g["width"])
             a["grades"].append(sha)
+            a.setdefault("by_grade", []).append((sha, g["code"] + g["reader"],
+                                                 g["held"] + g["missed"]))
             fixes += 1
             regressed += g["regressed"]
-    for a in areas.values():
+    for name, a in areas.items():
         n = a["held"] + a["missed"]
         a["hit_rate"] = round(a["held"] / n, 3) if n else None
         widths = a.pop("widths")
         a["median_width"] = median(widths) if widths else None
-        a["stop_condition_met"] = a["code_or_reader"] >= STOP_MISSES
+        by_grade = a.pop("by_grade")
+        try:
+            m = maps(name)
+        except Exception as exc:  # noqa: BLE001 - an unread map is said, and the stop stays armed
+            m, a["map_unreadable"] = None, str(exc)[:200]
+        if m:
+            a["map"] = {"path": m["path"], "sha": m["sha"]}
+            since = [(n, k) for sha, n, k in by_grade if sha in m["after"]]
+            a["misses_since_map"] = sum(n for n, _ in since)
+            a["graded_since_map"] = sum(k for _, k in since)
+            # W1: the stop holds "until its map exists". What the map then has to earn is W1's
+            # own filed measure on the grades after it, printed beside the line, not a new STOP.
+            a["stop_condition_met"] = False
+        else:
+            a["map"] = None
+            a["stop_condition_met"] = a["code_or_reader"] >= STOP_MISSES
     return {
         "window_days": days,
         "rev": rev,
