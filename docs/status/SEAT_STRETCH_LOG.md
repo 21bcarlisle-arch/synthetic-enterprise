@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-14 — orientation: The thesis has not moved this stretch, and it was not meant to
+
+<!-- head: e77a6cc0e8ee -->
+
+*Written by the orientation seat from its own record (2026-11-14T18:24:30.948469+00:00; 13 commits, 9 substantive, since 2026-11-14T15:23:19.067465+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 0 both, 12 other.
+
+## What the stretch meant
+
+The thesis has not moved this stretch, and it was not meant to. There is still no evidence that per-customer inference beats the flat baseline (family mean GBP 5.24 per household-year, -3.34 to +14.35; the live renewal belief ranks leavers at AUC 0.53 to 0.57). What changed is that the next supplier result can no longer be shaped by its answer. b060dd719 pre-registered candidate A (the corrected ending-term belief, 7a7ad95dc) in s.9 for both shapes the churn_roll grade allows, before that grade: both shapes predict a null against A's off-flag twin, and /var/tmp/vta-driver differs from the churn_roll driver by one flag. 67fac7f61 settled which arms read which belief: the ending-term flag reaches the desk belief on every arm and never the pricing belief that A's 0.549 AUC reads. All three previous focus items were drawn and met (67fac7f61, b060dd719, 01e597d65), so they leave focus. churn_roll (pid 1162351, pair 33333/44444 at 2h29m) is still running, and its grade is a queued continuation stamped not before 15 Nov 09:30. 13 commits, 9 substantive, split 1 supplier, 0 world, 12 other. The value-test commits are the supplier's thesis work, written in docs. One supplier commit touched company/ while the book is frozen: e6134becd, the C32 decider fix. It is the fix the Expert Hour asked for, so it sits inside the ruling's "the fix", but it rides into the 16 Nov book. I cannot yet say whether it moves any graded continuation, because PSR disconnection does not enter the refund, VAT or final-bill reads by any route I know, and nobody has checked that. G14 reached L3 under G16, a world-side level move that unblocks no supplier result this weekend. W2_21's founder step was measured and held, which is world fidelity with no supplier result named. The next 15 hours wait on two events (the 09:30 grade and the 16 Nov 04:00 book), and nine continuations already own those reads. So the focus is supplier work that neither event can inform. First, C32 is one blind pass from L3 now that its decider and crosswalk are fixed. Second, B11, the forward-CLV atom the thesis rests on, has been parked since 16 Oct on a director question (ep17-s-flat-against-per-customer-comparison) that left the record after 26 Oct. That is a park blocked on something that no longer exists. Brief readings I checked and do not act on: the 16:34 "director input" is the phase-close skill's text captured as his words, not his words (listed in wrong). The draw's refusal of candidate A was its own landing's surgical_land holding the file. staging-watcher at 1h49m is quiet, not mute, and the other seven daemons are speaking. Nothing went backwards.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: Unchanged in the live book. The churn_roll family is running, and its grade is not before 15 Nov 09:30. 18:24 14 Nov: Unchanged in the live book. b060dd719 pre-registered candidate A before the grade.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 12:24 14 Nov: Unchanged. The next read belongs on the 16 Nov book. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 12:23 13 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 12:23 13 Nov: Unchanged (fix, owner W3_3, at the 16 Nov reset). 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 14 Nov: It is corrected only when the 16 Nov book grades W1-W4. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged.
+- NOT corrected: THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success status=0". A long job that wraps a landing must exit with the landing's own status. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: Right on all four this stretch, because each script happened to pass the status through. 18:24 14 Nov: No long job launched or ended this stretch. The class is still unenforced.
+- NOT corrected: THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: No breach. 18:24 14 Nov: Borderline. e6134becd changed company/ during the freeze, but it is the C32 fix its Expert Hour asked for. de67bec58 is world measurement, held and written in docs. The class is still unenforced.
+- NOT corrected: THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: The count is right by accident. 18:24 14 Nov: 2 BLOCKING, both real. The reader still reads the working copy.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026: Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 12:24 14 Nov: It is open until the 16 Nov page renders. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged. f4f825b8b, on SITE12's scope, is the change to read on the 16 Nov render.
+- NOT corrected: THE MACHINE'S, NEW. The brief's learning loop prints 'STOP: map the area first' for level-dd and repayment-posting, but both maps are on origin (docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md; docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md, cc27c048e). The loop counts the 7-day misses and does not ask whether the map has landed since, so the steer it prints is already spent and tells a draw to redo finished work. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Still printed in this brief. It is now focus item 3.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits ("The gate is longer than the gap between commits", attempts 39f59e0d1 to cfd82d868 to 485d48a0c). It landed only when split (collision-census-land-split, 14:14Z), after about an hour of gate CPU. It is the same open number as surgical_land's 103h of re-runs, which goes to the Monday ranking. 18:24 14 Nov: No recurrence this stretch, and it still goes to Monday.
+- NOT corrected: THE MACHINE'S, NEW. The console capture filed the phase-close skill's own text as the director's verbatim words. docs/staging/console/DIRECTOR_CONSOLE_2026-11-14.md's 16:34:37Z turn begins "Base directory for this skill: .claude/skills/phase-close", and the orientation brief lists it under director_inputs. CLAUDE.md says the machine's own prompts are never quoted as his words. tools/console_instruction_record.py does not tell a skill expansion from a typed turn, so a reader that trusts the record would take a checklist as a ruling.
+
+## Chosen against
+
+- Grading churn_roll early, or launching candidate A before its grade.
+- Switching the corrected belief on in the published book, or building the retrain (B).
+- The hidden-utility K8 knowledge page (commitment due 23 Nov).
+- The other harness classes: the landing-wrapper exit status, the gate-cost race, the ruling-scope reader, the brief's working-copy finding reader.
+- World items W2_30 (N17), W3_3 (settlement standing charge) and more W2_21 founder work.
+- Checking now whether e6134becd moves any 16 Nov graded continuation.
+- Reaping or landing the seven at-risk October worktrees.
+- The nine continuations stamped for 15 Nov 09:30 and 16 Nov 06:00.
+
+## Focus for the next stretch
+
+- `C32_one_obligation_one_vulnerability_scorer`
+- `b11-the-park-reason-is-re-read-against-the-value-test`
+- `the-learning-loop-stop-reads-whether-the-map-landed`
+
+---
+
 ## 2026-11-14 — orientation: One doubt is gone this stretch, and the thesis has not moved
 
 <!-- head: bb1606b53592 -->
