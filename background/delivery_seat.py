@@ -3041,13 +3041,20 @@ def refusal_verdict(text: str, limit: int = 1500) -> str:
     reasons -- the record was 460 characters, well inside the cut, and still could not name the
     file; a faithful replay passed, so that record was the only route to the cause. The gate
     chain is `cmd || exit 1`, so whatever follows the LAST verdict line is the refusing gate's
-    own account: it is kept whole, ahead of the earlier selection lines when the budget binds."""
+    own account: it is kept whole, ahead of the earlier selection lines when the budget binds.
+
+    THE RED TEST'S NAME PRINTS BEFORE THE ❌ (2026-11-14 03:54). The site lane's banner follows
+    pytest's run, so cutting at the ❌ kept "SITE TESTS FAILED" and dropped every `FAILED
+    site/...::test_x` node above it: the record was refused and the journal could not say by
+    which test. The nodes go first, because they are what the next session acts on."""
     lines = [line.strip() for line in text.strip().splitlines() if line.strip()]
     if not lines:
         return ""
     if "❌" in text:
+        nodes = [line.strip() for line in text[:text.index("❌")].splitlines()
+                 if line.strip().startswith(("FAILED ", "ERROR "))][:10]
         said = [line.strip() for line in text[text.index("❌"):].splitlines() if line.strip()]
-        return " | ".join([lines[0], *said])[:limit]
+        return " | ".join([lines[0], *nodes, *said])[:limit]
     marks = [i for i, line in enumerate(lines[1:], 1)
              if child_diagnostics.is_verdict_line(line) and "✓" not in line]
     if not marks:

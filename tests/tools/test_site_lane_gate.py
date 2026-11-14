@@ -320,3 +320,15 @@ def test_committed_hook_invokes_the_site_lane_gate_and_aborts_on_failure():
     assert "tools/site_lane_gate.py" in hook, "the pre-commit hook must invoke the site-lane gate"
     # it must abort the commit on a non-zero gate result
     assert "site_lane_gate.py || exit 1" in hook
+
+
+def test_an_edit_to_the_reading_log_runs_the_door_that_rebuilds_its_feed():
+    """db80910fa edited docs/institutional/reading_log.md, the site lane selected nothing, and the
+    stale feed reddened the seat's next landing instead. Every mapped door test must still exist:
+    a renamed one would make the mapping select nothing again, silently."""
+    from tools import site_lane_gate as g
+    assert g.plan(["docs/institutional/reading_log.md"]) == (
+        "targeted", ["site/knowledge/test_the_reading_log_door.py"])
+    for tests in g.SOURCE_DOOR_TESTS.values():
+        for t in tests:
+            assert (g.ROOT / t).is_file(), f"{t} is mapped but gone"

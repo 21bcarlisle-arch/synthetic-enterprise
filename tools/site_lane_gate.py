@@ -66,6 +66,14 @@ SITE_CONSUMED_LEDGERS = frozenset({
     "docs/observability/fidelity_evidence_ledger.json",
 })
 
+# A source OUTSIDE site/ whose feed one door re-derives and compares (a staleness test). Targeted,
+# not broad: one door reads it, so one test file guards it. Without this, the commit that edits the
+# source passes and the NEXT full-suite run -- anyone's -- inherits the red: db80910fa (13 Nov
+# 20:00) edited the reading log, and the seat's direction record was refused for it at 03:54 14 Nov.
+SOURCE_DOOR_TESTS = {
+    "docs/institutional/reading_log.md": ("site/knowledge/test_the_reading_log_door.py",),
+}
+
 
 def staged_files() -> list[str]:
     out = subprocess.run(
@@ -95,6 +103,8 @@ def site_tests_for(path: str) -> list[str]:
     A `site/data/*.json` change is NOT a direct source edit (it goes through the broad trigger); a
     changed test file maps to itself.
     """
+    if path in SOURCE_DOOR_TESTS:
+        return [t for t in SOURCE_DOOR_TESTS[path] if (ROOT / t).exists()]
     if not path.startswith(SITE_PREFIX) or path.startswith(SITE_DATA_PREFIX):
         return []
     p = Path(path)

@@ -1155,3 +1155,20 @@ def test_a_focus_row_is_dated_when_written_and_keeps_its_date_while_unchanged(tm
     assert dl.held_by(focus["reworded"], [holder("reworded")]) is None
     assert dl.held_by(focus["kept"], [holder("kept")]) is not None
     assert dl.held_by(focus["undated"], [holder("undated")]) is not None
+
+
+def test_a_site_lane_refusal_names_its_red_test_in_the_journal():
+    """The 03:54 14 Nov refusal journalled 'SITE TESTS FAILED' and no test: the pytest node
+    lines print BEFORE the site lane's ❌ banner, and the verdict was cut at the ❌."""
+    from background.delivery_seat import refusal_verdict
+    text = ("GATE RED on the resulting tree (rc=1). This is the tree the commit WOULD create.\n"
+            "  gate stdout (the verdict, and the tail the refusing gate wrote):\n"
+            "[site-lane] running whole site/ suite\n"
+            "FAILED site/tests/test_example_door.py::test_the_door_renders - AssertionError\n"
+            "1 failed, 900 passed in 150.00s\n"
+            "\n[site-lane] ❌ SITE TESTS FAILED -- COMMIT REFUSED.\n"
+            "[site-lane] Fix the site test, then commit.\n")
+    said = refusal_verdict(text)
+    assert "site/tests/test_example_door.py::test_the_door_renders" in said
+    assert "SITE TESTS FAILED" in said
+    assert said.startswith("GATE RED")
