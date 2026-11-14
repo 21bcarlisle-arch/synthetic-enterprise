@@ -78,11 +78,13 @@ def test_a_wire_carrying_a_latent_state_or_from_another_sender_is_refused():
     open_priority_services_register().receive_registration_wire(_wire("C1g"))
 
 
-def test_a_registration_that_records_no_need_never_reads_as_unprotected():
+def test_a_registration_that_records_no_need_never_reads_as_unprotected_in_winter():
     """Defect: a household on the register with no code read NOT_ESTABLISHED, so the register
     and the decider disagreed about exactly the people the register exists for (C32 Expert
     Hour re-take, 2026-11-14). The same categories still give the same answer however the
-    record arrived, and a registrant with a code that confers nothing CAN be permitted."""
+    record arrived, and a registrant with a code that confers nothing CAN be permitted. Out of
+    winter no need confers a licence protection (SLC 27.10/27.11 read "in Winter", commons S8),
+    so there the empty registration reads as the licence does, naming the voluntary commitment."""
     register = open_priority_services_register()
     register.register(PSRRecord("D-1", (PSRCategory.PENSIONABLE_AGE,), (), _ON, _ON))
     register.receive_registration_wire(_wire("C1", (14,)))
@@ -99,9 +101,13 @@ def test_a_registration_that_records_no_need_never_reads_as_unprotected():
     assert nothing_conferred.disconnection_protection(dt.date(2016, 7, 1), alone).may_disconnect
     # A code that overlaps a protecting category without establishing it waits to be asked.
     overlapping = PSRRecord("D-3", (), (), _ON, _ON, needs_codes=(22,))
-    asked = overlapping.disconnection_protection(dt.date(2016, 7, 1), alone)
+    others = HouseholdComposition.OTHER_ADULTS_PRESENT
+    asked = overlapping.disconnection_protection(winter, others)
     assert asked.protection is DisconnectionProtection.CANNOT_DETERMINE
     assert "needs code 22" in asked.reason
+    summer = register.get_record("C2").disconnection_protection(dt.date(2016, 7, 1), alone)
+    assert summer.protection is DisconnectionProtection.NOT_ESTABLISHED
+    assert "voluntary" in summer.reason
 
 
 _LATENT_NAMES = {"psr_type_vulnerable", "financially_vulnerable", "discloses_psr",

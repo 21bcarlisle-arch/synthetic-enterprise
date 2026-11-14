@@ -248,14 +248,17 @@ def _disconnection_protection(
                 "age and a winter month are established, so the prohibition may apply.",
             )
 
-    if held & _REASONABLE_STEPS_CATEGORIES:
+    # SLC 27.11 reads "in Winter" in the instrument (commons S8); until 2026-11-14 this limb ran
+    # all year and called that the published rule. Out of winter, medical equipment's question
+    # (is this person also disabled or chronically sick?) changes nothing, so it is gated too.
+    if held & _REASONABLE_STEPS_CATEGORIES and in_winter:
         return DisconnectionDetermination(
             DisconnectionProtection.REASONABLE_STEPS,
-            "All reasonable steps to avoid disconnection: the household includes a person "
-            "disabled, chronically sick, or of pensionable age.",
+            "SLC 27.11: all reasonable steps to avoid disconnection in a winter month: the "
+            "household includes a person disabled, chronically sick, or of pensionable age.",
         )
 
-    if PSRCategory.MEDICAL_EQUIPMENT in held:
+    if PSRCategory.MEDICAL_EQUIPMENT in held and in_winter:
         return DisconnectionDetermination(
             DisconnectionProtection.CANNOT_DETERMINE,
             "Dependency on electrically-powered medical equipment is a needs code but is not "
@@ -263,6 +266,14 @@ def _disconnection_protection(
             "also disabled or chronically sick is not established by the category.",
         )
 
+    if held & (_REASONABLE_STEPS_CATEGORIES | {PSRCategory.MEDICAL_EQUIPMENT}):
+        return DisconnectionDetermination(
+            DisconnectionProtection.NOT_ESTABLISHED,
+            "Outside October to March: SLC 27.10 and 27.11 are winter duties, so the licence "
+            "sets no disconnection protection for this household now. The Energy UK "
+            "Vulnerability Commitment would protect it all year; it is voluntary and is not "
+            "modelled here.",
+        )
     return DisconnectionDetermination(
         DisconnectionProtection.NOT_ESTABLISHED,
         "No category held establishes a disconnection protection in the published record. "
@@ -494,6 +505,13 @@ class PSRRecord:
         the register with no code read as unprotected (C32 Expert Hour re-take, item 4).
         """
         if not self.categories and not self.needs_codes:
+            # Which need is unknown, so every category is asked the counterfactual: in winter
+            # some would protect; out of winter none does (SLC 27.10/27.11 are winter duties).
+            if all(disconnection_protection((c,), as_of=as_of, household=household,
+                                            date_of_birth=date_of_birth).may_disconnect
+                   for c in PSRCategory):
+                return disconnection_protection((), as_of=as_of, household=household,
+                                                date_of_birth=date_of_birth)
             return DisconnectionDetermination(
                 DisconnectionProtection.CANNOT_DETERMINE,
                 "on the Priority Services Register with no need recorded: registration is "
