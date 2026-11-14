@@ -337,12 +337,40 @@
     "label": null,
     "anchor": null
    }
+  },
+  {
+   "read": "13 Nov",
+   "source": "Matt Pocock, Wayfinder skill (mattpocock/skills, MIT), via vibehackers.io/claude-code/skills/wayfinder-mattpocock and pasqualepillitteri.it/en/news/12137; shared by the director",
+   "claim": "Before building, write a decision map (destination, decided, not yet specified, out of scope), and size each decision to one session",
+   "evidence": "Practitioner skill, read second-hand; the skill's own text is not yet read",
+   "verdict": "ADAPT (no install)",
+   "done": "Grilling-by-default rejected because it conflicts with the non-blocking `for_the_director` rule. Trial: a decision map for the forward-weather steer before it is drawn, after the 16 Nov reset (the 70% usage reading defers it)",
+   "concept": "Plan before build",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "13 Nov",
+   "source": "Mistral, Timestral (mistral.ai/news/timestral; docs.mistral.ai/models/timestral-1-0-209m.md; letsdatascience.com on the licence and benchmarks); shared by the director",
+   "claim": "Free zero-shot time-series foundation models are now the bar a real supplier could clear at no cost",
+   "evidence": "Vendor benchmarks, narrow lead, no technical report or independent evaluation",
+   "verdict": "MEASURE (no adoption)",
+   "done": "Benchmark the hedge-sizing demand estimate against Timestral and seasonal-naive, forward years primary, leakage measured on history. Queued after the 16 Nov reset",
+   "concept": "Forecast skill",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 14,
   "step": 6,
-  "unplaced": 0,
+  "unplaced": 2,
   "none": 4
  },
  "rejected": 3
