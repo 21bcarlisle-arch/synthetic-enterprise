@@ -332,3 +332,20 @@ def test_an_edit_to_the_reading_log_runs_the_door_that_rebuilds_its_feed():
     for tests in g.SOURCE_DOOR_TESTS.values():
         for t in tests:
             assert (g.ROOT / t).is_file(), f"{t} is mapped but gone"
+
+
+def test_a_whole_suite_run_names_the_path_that_tripped_it(monkeypatch, capsys):
+    """14 Nov 03:54: the seat's direction record ran the whole site suite and nothing said why. The
+    record's write scope carries `site/data/delivery.json`, a broad trigger; the line must name it."""
+    from background import direction
+    monkeypatch.setattr(gate, "staged_files", lambda: list(direction.WRITE_SCOPE))
+    monkeypatch.setattr(gate, "selection_paths", lambda staged, *a, **k: (staged, ""))
+    monkeypatch.setattr(gate.shutil, "which", lambda _name: "/usr/bin/node")
+
+    class _R:
+        returncode = 0
+
+    monkeypatch.setattr(gate.subprocess, "run", lambda *a, **k: _R())
+    assert gate.main() == 0
+    running = [ln for ln in capsys.readouterr().out.splitlines() if "[site-lane] running" in ln]
+    assert running and "site/data/delivery.json" in running[0]

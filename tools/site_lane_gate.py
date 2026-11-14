@@ -166,8 +166,12 @@ def main() -> int:
 
     if mode == "full":
         run_args = [str(ROOT / "site")]
-        scope = "whole site/ suite (broad trigger: site/data, a generate_*_data producer, or a "
-        scope += "site-consumed ledger changed)"
+        # NAME THE PATH, not the class (14 Nov): the 03:54 refusal of the seat's record could not
+        # say what made a direction landing run the whole suite. It was `site/data/delivery.json`,
+        # which the seat regenerates every stretch.
+        tripped = [f for f in selected if _is_broad_trigger(f)]
+        scope = f"whole site/ suite (broad trigger: {', '.join(tripped[:3])}"
+        scope += f" and {len(tripped) - 3} more)" if len(tripped) > 3 else ")"
     else:
         run_args = list(targets or [])
         scope = f"{len(run_args)} sibling site test file(s): {', '.join(run_args)}"

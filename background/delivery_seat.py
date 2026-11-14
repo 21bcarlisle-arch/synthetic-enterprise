@@ -3051,8 +3051,11 @@ def refusal_verdict(text: str, limit: int = 1500) -> str:
     if not lines:
         return ""
     if "❌" in text:
+        # The site lane's own selection lines go too: without them the 03:54 record could not say
+        # WHY a direction landing ran the whole suite (it was the seat's `site/data/delivery.json`).
         nodes = [line.strip() for line in text[:text.index("❌")].splitlines()
-                 if line.strip().startswith(("FAILED ", "ERROR "))][:10]
+                 if line.strip().startswith(("FAILED ", "ERROR ", "[site-lane] running",
+                                             "[site-lane] merge"))][:12]
         said = [line.strip() for line in text[text.index("❌"):].splitlines() if line.strip()]
         return " | ".join([lines[0], *nodes, *said])[:limit]
     marks = [i for i, line in enumerate(lines[1:], 1)

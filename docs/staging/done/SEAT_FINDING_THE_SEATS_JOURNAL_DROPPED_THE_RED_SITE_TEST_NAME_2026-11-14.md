@@ -37,3 +37,22 @@ One candidate is the merge fallback in `pre_commit_test_gate.selection_paths`: i
 staged path when the merge parent cannot be diffed. Another is a base-advance merge whose combined
 diff carried `site/data`. With (b) in place, the next refusal will name its test. Its selection
 line is still not kept.
+
+**Correction, same day (item `why-a-record-ran-the-whole-site-suite`).** The paragraph above is
+wrong about the record's paths. A direction landing carries **five** paths, not four. The fifth is
+`site/data/delivery.json`, which `direction.WRITE_SCOPE` names and `tools/generate_delivery_page`
+regenerates before every `commit_direction`. Every seat landing since 13 Nov touches it (9dabdf2d9,
+7e8a48b07, 389f8f5f1, a23001d35, f0cf90fe9). `plan()` over the scope returns `("full", None)`. A
+`site/data/**` change is a broad trigger by design. So the whole suite ran because of the record's
+own feed. It was neither the merge fallback nor a base advance. The paragraph listed
+STARTUP_ANCHORS.md, which is not in the scope. It left out the one site-facing file, which is.
+
+The record does author something site-facing. A changed `delivery.json` can break the harness
+door, so running the site suite on it is the gate working. Narrowing `delivery.json` to its
+consumers would weaken a fail-closed control to spare the seat about 150 s. **Not done.** The
+reading-log mapping already fixes the class that actually let the red in. Two changes keep the
+reason on the record: the site lane's `running` line now names the paths that tripped the broad
+trigger, and `refusal_verdict` keeps that line in the journal next to the red node. Controls:
+`test_a_whole_suite_run_names_the_path_that_tripped_it` and
+`test_a_site_lane_refusal_keeps_the_line_that_says_why_the_suite_ran`. Each turns red when its
+fix is reverted.

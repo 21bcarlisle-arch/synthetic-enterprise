@@ -1172,3 +1172,14 @@ def test_a_site_lane_refusal_names_its_red_test_in_the_journal():
     assert "site/tests/test_example_door.py::test_the_door_renders" in said
     assert "SITE TESTS FAILED" in said
     assert said.startswith("GATE RED")
+
+
+def test_a_site_lane_refusal_keeps_the_line_that_says_why_the_suite_ran():
+    """The 03:54 14 Nov record could not say why a direction landing ran the whole site suite: the
+    selection line prints before the ❌ and was cut. It was the seat's own `site/data/delivery.json`."""
+    from background.delivery_seat import refusal_verdict
+    text = ("GATE RED on the resulting tree (rc=1).\n"
+            "[site-lane] running whole site/ suite (broad trigger: site/data/delivery.json)\n"
+            "FAILED site/x/test_door.py::test_it - AssertionError\n"
+            "\n[site-lane] ❌ SITE TESTS FAILED -- COMMIT REFUSED.\n")
+    assert "broad trigger: site/data/delivery.json" in refusal_verdict(text)
