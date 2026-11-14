@@ -20,6 +20,15 @@ Every guard row also carries the account's payment behaviour score as the churn 
 arm, the bad-debt charge netted -- so `offered_unweighted` against `offered` is exactly the offers
 the netting withdrew.
 
+(2026-11-14, SEAT_PREREG_THE_RETENTION_GUARD_NETS_BAD_DEBT_2026-11-14.md, Instrument.) The guard
+returns `None` where the term has no contribution; that row records `unweighted` None and
+`offered_unweighted` False rather than crashing, which is why the 21 Oct pair ran from an
+out-of-tree probe. Every row also carries the probe's fields (`margin`, `acq`, `billed`,
+`belief_rate`) and the renewal's keys: `customer_id` (supply point), `billing_account` (the key
+`retention_log` uses) and `event_date`, read from the company's own `arrears_state` call for the
+leg, together with that call's answer, `arrears_state`, the cell the bad-debt belief is keyed on.
+It is the company's receivable state, read through the triad door, never the world's arrears.
+
 Usage: python3 -m tools._c29_retention_engagement_arm <off|on|net> <out.json> [report_end]
 """
 from __future__ import annotations
@@ -45,8 +54,19 @@ def _observe_guard(rp2b, record_estimate: bool) -> list[dict]:
 
     guard: list[dict] = []
     pending: dict = {}
+    renewal: dict = {}
     desk_value = rp2b.retention_value_protected
     desk_score = CustomerExperienceDesk.account_payment_behaviour_score
+    desk_arrears = rp2b.LivePaymentTriad.arrears_state
+
+    def observed_arrears(self, customer_id, as_of, segment="resi"):
+        """The company's own arrears cell for the leg, and the renewal's keys. The renewal chain
+        and the guard both ask it for the same leg and term start just before the guard reads its
+        value, so the latest call is the guard's leg; rows keep `event_date` to check that."""
+        state = desk_arrears(self, customer_id, as_of, segment=segment)
+        renewal.update(customer_id=customer_id, billing_account=rp2b.household_of(customer_id),
+                       event_date=as_of.isoformat(), arrears_state=state, segment=segment)
+        return state
 
     def observed_score(self, supply_points):
         """Every renewal the churn belief reads, so `scores_read` is the denominator per score."""
@@ -67,23 +87,43 @@ def _observe_guard(rp2b, record_estimate: bool) -> list[dict]:
 
     class _Seen(float):
         def __gt__(self, other):
+            # The run can compare one value twice (the gate's log re-asks it): one row per value.
+            if getattr(self, "recorded", False):
+                return float(self) > other
+            self.recorded = True
             row = dict(pending) if record_estimate else {
                 k: pending.get(k) for k in ("behaviour_score", "supply_points")}
             pending.clear()
-            row.update(unweighted=self.unweighted, weighted=float(self), cost=float(other),
-                       bad_debt_charge=self.charge,
-                       offered=float(self) > other, offered_unweighted=self.unweighted > other)
+            row.update(self.keys, unweighted=self.unweighted, weighted=float(self),
+                       cost=float(other), bad_debt_charge=self.charge,
+                       offered=float(self) > other,
+                       offered_unweighted=(self.unweighted is not None
+                                           and self.unweighted > other))
             guard.append(row)
             return float(self) > other
 
     def observed_value(expected_margin, acq_cost_saved, engagement, **kw):
-        seen = _Seen(desk_value(expected_margin, acq_cost_saved, engagement, **kw))
+        keys = dict(renewal, margin=expected_margin, acq=acq_cost_saved,
+                    billed=kw.get("billed"), belief_rate=kw.get("default_belief_rate"))
+        value = desk_value(expected_margin, acq_cost_saved, engagement, **kw)
+        if value is None:
+            # No contribution on the term: the guard weighs nothing and offers nothing. The
+            # run's own `is not None` test decides; the row records that it was asked.
+            row = dict(pending) if record_estimate else {
+                k: pending.get(k) for k in ("behaviour_score", "supply_points")}
+            pending.clear()
+            guard.append(dict(row, **keys, unweighted=None, weighted=None, cost=None,
+                              bad_debt_charge=None, offered=False, offered_unweighted=False))
+            return None
+        seen = _Seen(value)
+        seen.keys = keys
         seen.unweighted = expected_margin + acq_cost_saved
         seen.charge = retention_bad_debt_charge(kw.get("default_belief_rate"),
                                                 kw.get("billed", 0.0))
         return seen
 
     CustomerExperienceDesk.account_payment_behaviour_score = observed_score
+    rp2b.LivePaymentTriad.arrears_state = observed_arrears
     rp2b.retention_engagement = observed_engagement
     rp2b.retention_value_protected = observed_value
     return guard
@@ -116,6 +156,9 @@ def main() -> int:
         "retention_nets_bad_debt": policy.retention_nets_bad_debt,
         "scores_read": SCORES_READ,
         "guard": guard,
+        "policy": dataclasses.asdict(policy),
+        "retention_log": result.get("retention_log"),
+        "total_bad_debt": result.get("total_bad_debt"),
         "retention_offers": len(result.get("retention_log") or []),
         "retention_cost_gbp": round(sum(r.get("retention_cost_gbp") or 0.0 for r in
                                         result.get("retention_log") or []), 2),
