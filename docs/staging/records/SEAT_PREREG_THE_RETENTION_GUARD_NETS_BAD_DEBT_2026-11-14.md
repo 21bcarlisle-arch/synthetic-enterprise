@@ -190,3 +190,12 @@ book's 2017 guard rows have thinner headroom than 22 Oct's did.
 and `driver.sh <origin sha>`. The driver pins a locked worktree, goes through
 `background.launch_long_job --asserted-live-by` this file, and files the grade continuation. The
 seed-61113 replication pair is not in it: it needs M7's book switch, which does not exist yet.
+
+## 14 Nov, 22:37Z: re-read, and the gate is still unmet
+
+Nothing has changed since 22:10Z. `churn_roll`: the same three pairs are on disk, and `77777_88888`
+is still running (pid 541133, under the driver at pid 2790906). The family is not graded, so P5
+stays at −£300 to +£500. Candidate A: `/var/tmp/vta-driver/` still holds only the driver and grade
+scripts, with no output and no process. B11 M7: `/var/tmp/b11m7` does not exist. The launch is
+handed on again. One side note for whoever grades `churn_roll`: `/var/tmp/vtcr-out/run.log` is
+already 335 MB, with one pair left to run.
