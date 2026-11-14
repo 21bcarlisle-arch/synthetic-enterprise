@@ -71,3 +71,11 @@ The legs act on the next `reconcile-watch` tick after they land, with no bootstr
 (`background/reconcile_watch.py:345`), so it does not use the shared tree's stale copy. The handed-on
 work is the 22:24Z draft of `origin_reconcile.py` on the shared tree. Its lane should land it or drop it
 before 14 Nov 22:24Z, when it would otherwise be aged out.
+
+## Retired (2026-11-14)
+
+The build is on origin (04ce326626) and its result holds: none of the 76 is held. The handed-on draft
+of `background/origin_reconcile.py` is no longer on the shared tree (`git status` shows the path clean),
+so nothing this item named is left open. The 12 Nov finding it continued was retired to `done/` in the
+same commit. The shared tree's remaining lag behind origin (39 commits at 14 Nov) is the ordinary
+advance, not this item's.
