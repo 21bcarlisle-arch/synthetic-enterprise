@@ -145,6 +145,10 @@ has been measured on this kind of work before.
     is one line of the K8 page.
   - **Queue position:** the page is supplier-feature item 3 below, after value-test steps 3 and
     4. That puts it on origin before 23 Nov if the week runs at the proposed split.
+- **One writer per shared file** (14 Nov; measure where the lanes collide first). **Measured,
+  closed, no trial, no cost next week.** No file dominates: DIRECTION.yaml leads with 3.7% of
+  transcript mentions, and 69% of collision lines are the trunk moving (a61ee3b25,
+  `docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md`).
 
 ## 4. The split proposed for the week from Mon 16 Nov
 
