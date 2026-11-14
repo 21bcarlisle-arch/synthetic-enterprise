@@ -67,6 +67,8 @@ and in 2022-H2 it priced persistence ahead of spot.
 
 With the delivery year known, each published week can be held against the mean of the world's own
 spot over that delivery year (Elexon SSP daily means; NBP SAP, at 10/29.3071 £/MWh per p/therm).
+*Correction (14 Nov): the gas column is not NBP SAP. `sim/gas_data/nbp_sap.csv` is the IMF's monthly Europe gas
+price at a fixed GBPUSD 1.28, one price per month (`docs/data-sources/gas-nbp.md`).*
 Weeks whose delivery year the cache covers on ≥330 days only, which ends at trade week 2024-05-13.
 
 | Fuel | Trade year | Weeks | Published forward | Realised over its delivery year | Median ratio | Range |
@@ -104,3 +106,6 @@ not the outcome.
   a re-run that moves only the delivery start is a no-op today. Any change there is a world
   (fidelity) change, owned by `sim/`, and is not made here.
 - 2016–2020 stays uncovered by any free dated forward source found.
+- **The demand-shaped step (2026-11-14):** `what_a_baseload_hedge_at_the_published_forward_leaves_open_for_domestic_demand_2026-11-14.md`.
+  The PC1 shape premium over baseload is 2 to 11% on electricity in every delivery year; the demand shape does not
+  enter the hedge's gain against floating.
