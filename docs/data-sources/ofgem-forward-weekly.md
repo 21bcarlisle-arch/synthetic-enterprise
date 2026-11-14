@@ -35,5 +35,11 @@ LEVEL index, not a curve: it cannot price a specific delivery period and so cann
 backtest a hedge shape. It starts 2021-02, so 2016–2020 is not covered. ICE settlement curves,
 which would be the full bitemporal record, are paywalled (`gas-nbp.md`: "Do NOT use: ICE").
 
+**The delivery START is recoverable from the cap's indexation rule (2026-10-10):** a week's basket
+is the 12 months from the start of the cap period whose observation window contains it (Ofgem,
+August 2022 final indexation guidance). 274 of 283 weeks per fuel are assigned; 9 a window boundary
+falls inside are left unassigned. The quarter-by-quarter split inside the 12 months stays
+unpublished. `docs/market_research/the_published_forward_gets_its_delivery_axis_from_the_cap_indexation_rule_2026-10-10.md`.
+
 Finding and first comparison against the world's synthetic forward:
 `docs/market_research/the_published_forward_has_an_as_of_axis_and_no_delivery_axis_2026-10-07.md`.

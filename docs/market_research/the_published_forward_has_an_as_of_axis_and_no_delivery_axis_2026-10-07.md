@@ -58,6 +58,13 @@ once the basket is established; prediction filed now: the 2021 over-pricing (syn
 crisis spot, published reaching further out) shrinks most, and the 2022-H2 under-pricing
 (synthetic EWMA lagging a forward that ran ahead of spot) survives.
 
+**Corrected 2026-10-10, beside the claim: that prediction is refuted by construction.** The basket
+is now established (12 months from the start of the cap period whose observation window holds the
+week; lead 47–242 days). But the synthetic's 12-month seasonal mean is the same for any start
+month (difference printed: 0.0 over all 274 assigned weeks), and the function has no as-of date
+separate from its delivery start, so the re-run cannot move. The whole band is the model's: it has
+no delivery-distance axis. `the_published_forward_gets_its_delivery_axis_from_the_cap_indexation_rule_2026-10-10.md`.
+
 ## What this changes
 
 - The world's forward has never been checked against a traded forward; now it can be, from 2021.
