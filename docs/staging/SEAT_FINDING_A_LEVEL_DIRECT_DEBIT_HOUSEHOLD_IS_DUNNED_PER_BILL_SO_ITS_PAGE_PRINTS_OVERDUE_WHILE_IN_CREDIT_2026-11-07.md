@@ -554,6 +554,16 @@ comparator, not e50e7b8f68: b9ad453df0 changes the level-DD schedule the world c
 commit lands between b9ad453df0 and the graded book (the closed-account close is in flight), that leg cannot be
 attributed to c915067a8 and is reported as such. The 10 -> 0 leg reads this mechanism alone.
 
+**Amendment, 2026-11-14: what the insulation change (e17ebc596) moves in the c915067a8 grade, before the book
+exists.** This amendment is about e17ebc596 only. The first book carrying c915067a8 that is still ungraded (16 Nov) also
+carries e17ebc596. The one-variable book A/B, e17ebc596^ against e17ebc596, same seed, neither arm carrying ceeefa5960 or 69866925b (`docs/staging/records/SEAT_RECORD_WHAT_THE_INSULATION_CHANGE_CAN_MOVE_IN_THE_16_NOV_PREREGISTRATIONS_2026-11-13.md`). Both arms carry c915067a8. The prediction above is kept as filed.
+- **The 10 → 0 leg, off-day openers in window: fabric cannot move it on this run.** It reads 2 at both commits, and
+  off-day re-offers read 0 at both. Its "→ 0" stands. A read, not a grade: both arms already read 2, not 0, so a
+  miss on 16 Nov is not fabric.
+- **"No other journey count moves by more than 9": fabric moves it, so this leg cannot be attributed on the 16 Nov
+  book.** Fabric alone moves `arrangement_offered` 3,014 → 2,888 (−126), `repayment_plan_reoffer` 2,247 → 2,155 (−92),
+  `missed_payment` 1,798 → 1,752 (−46) and `write_off` 280 → 266 (−14). Report that leg as unattributable.
+
 ## The b9ad453df0 book, the first carrying "one schedule", graded: refuted, and the main cause is a new defect (worker, 9 Nov 2026 ~05:00 GMT)
 
 `run_output_b9ad453df0_20261109T015606Z.json` (finished 03:39Z). Graded at origin 0f074c607c, whose commits after

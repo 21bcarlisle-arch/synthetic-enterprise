@@ -46,4 +46,19 @@ The runner has graded this row on the 16 Nov book. The result is written beside 
 marked held or refuted. If the row is CLEAN, the N30 staging finding closes as its own status section says.
 Leg three of the twelfth cold read is then free to proceed.
 
+## Amendment, 2026-11-14: what the insulation change (e17ebc596) moves, before the book exists
+
+This amendment is about e17ebc596 only. It changes the world's insulation draw after P1–P5 were filed. The one-variable book A/B, e17ebc596^ against e17ebc596, same seed, neither arm carrying ceeefa5960 or 69866925b (`docs/staging/records/SEAT_RECORD_WHAT_THE_INSULATION_CHANGE_CAN_MOVE_IN_THE_16_NOV_PREREGISTRATIONS_2026-11-13.md`).
+P1–P5 are kept as filed. **Fabric can move these figures, and on the run it moves each by well inside its band.**
+
+| | e17ebc596^ | e17ebc596 | now predicts |
+|---|---:|---:|---|
+| P1 s | 0.2706 | 0.2740 | 0.22–0.36, unchanged (shift +0.003) |
+| P2 row | CLEAN | CLEAN | CLEAN, unchanged |
+| P3 traditional pairs billed both | 16,244 | 16,195 | ±15% of **16,222** (the shift is −49, and the band is unchanged in practice) |
+| P4 pairs with a read | 3,873 | 3,843 | 3,000–5,000, unchanged (shift −30) |
+| P5 smart/smart one-only | 6.9% (214 of 3,098) | 6.2% (165 of 2,655) | 5–20%, unchanged. Note that the smart pair count falls 12%, because the campaign's replaced homes change who is smart dual fuel |
+
+Neither arm has ever read P5's "near 12%": 6.9% and 6.2%. That is a read, not a grade.
+
 **Reverse.** Delete this file.

@@ -269,6 +269,18 @@ these fixes, so the sizing is an estimate carried across books. That was already
 
 O0c (the belief's AUC), O2, O3, O4 and O5 read nothing these commits changed (A1, A2). **No change.**
 
+### A7. The insulation change (e17ebc596), 2026-11-14, before any arm or the 16 Nov book exists
+
+This amendment is about e17ebc596 only. It changes the world's insulation draw (72.1% POOR → 15.2%). The one-variable book A/B, e17ebc596^ against e17ebc596, same seed, neither arm carrying ceeefa5960 or 69866925b (`docs/staging/records/SEAT_RECORD_WHAT_THE_INSULATION_CHANGE_CAN_MOVE_IN_THE_16_NOV_PREREGISTRATIONS_2026-11-13.md`).
+- **§8's gate-verdict leg, fabric can move it:** 27 unexcepted breaches across 5 rows (7 excepted) → 19 across 5
+  (7 excepted). The publish is refused at both commits. Fabric moves the count and not the verdict. Whether the 16 Nov
+  book passes is decided by the other changes it carries, not by fabric.
+- **The arms, fabric cannot bias the P − F difference:** both arms run on one book and one world, so the fabric
+  draw is shared, a §7 confound. It does change the level the arms are read from: 166 of 358 campaign accounts are
+  replaced, and 246 of 673 founders' P&L moves. The §3 sizing was taken on pre-e17ebc596 books and is now one more
+  book removed. That is the same caveat as A5.
+- If the book passes, the §8 addendum names e17ebc596 among the book's ancestors, beside 3af02a2dd1 and 37d9342869.
+
 ### A6. What this amendment does not do
 
 It launches nothing, arms nothing and flips no switch. `renewal_belief_by_ending_term` stays `False`. §8 stays empty

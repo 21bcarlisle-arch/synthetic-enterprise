@@ -831,6 +831,22 @@ the page prints a credit the world never left) **0 to 3**; SYN-2016-244's final 
 (choice 20's 35.68), not 77.82, and its late refund of the repayment credit is gone. A reverse-F count above 3 means
 the world's ledger credit and the page's close credit are different quantities, and that is the next item.
 
+**Amendment, 2026-11-14: what the insulation change (e17ebc596) moves in W1–W4, before the book exists.** This
+amendment is about e17ebc596 only. It changes the world's insulation draw after W1–W4 were filed. The one-variable book A/B, e17ebc596^ against e17ebc596, same seed, neither arm carrying ceeefa5960 or 69866925b (`docs/staging/records/SEAT_RECORD_WHAT_THE_INSULATION_CHANGE_CAN_MOVE_IN_THE_16_NOV_PREREGISTRATIONS_2026-11-13.md`). W1–W4 are
+kept as filed above.
+- **W1, fabric can move it:** proxy (an ever-level closed leg whose last bill carries `credit_applied_gbp`) 246 of 485,
+  GBP 6,579.51 → 244 of 481, GBP 6,317.04. Now predicts **168 to 213 legs, GBP 4,030 to 4,990** (shifts of −2 legs
+  and −4.0%).
+- **W2/W3, fabric can move it:** R5 30, GBP 699.65 → 27, GBP 674.59. PROS-2016-0067, PROS-2017-0038g and
+  PROS-2017-0249 leave s.9.8's F list because they are not on the new book. PROS-2019-0318 leaves (POOR → PARTIAL).
+  PROS-2019-0125 joins. Now predicts W2 F and W3 R5 **0 to 3, unchanged**: the band is a floor that fabric
+  shifts by −3, so the bound stays. The 5 credit-bill accounts are SYN founders whose homes do not change.
+- **W4, fabric cannot move it:** SYN-2016-244 is a founder whose home does not change, and its final bill reads
+  77.82 asked at both commits. GBP 30 to 45 stands.
+
+A read, not a grade: both arms carry 37d934286 and still read R5 27 to 30 and SYN-2016-244 at 77.82, against
+W3's 0 to 3 and W4's GBP 30 to 45. So if W3 or W4 misses on 16 Nov, the cause is not fabric.
+
 The account-page wrong row is **not** moved to corrected: its 24 accounts clear only on a book whose world
 carries the net. That is the 16 Nov 04:00 book. New books are held until then.
 
