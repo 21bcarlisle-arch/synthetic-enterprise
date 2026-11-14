@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-14 — orientation: The thesis has not moved, and this stretch could not move it: the churn_roll family is on its second of twelve draws and the 16 Nov book does not exist yet
+
+<!-- head: cec629ab6006 -->
+
+*Written by the orientation seat from its own record (2026-11-14T21:25:09.755253+00:00; 14 commits, 10 substantive, since 2026-11-14T18:24:30.948469+00:00).*
+
+Commit split (product code by path): 2 supplier, 0 world, 0 both, 12 other.
+
+## What the stretch meant
+
+The thesis has not moved, and this stretch could not move it: the churn_roll family is on its second of twelve draws and the 16 Nov book does not exist yet. There is still no evidence that per-customer inference beats the flat baseline (family mean GBP 5.24 per household-year, -3.34 to +14.35). What moved is the ground the next result stands on. B11's park now names a blocker that exists today (d7b9f0d32): L3 is prereg M7 alone, six fresh value_arm books on seeds 61113-61118 (7036dcbd5), and it waits on churn_roll and then candidate A, which is the machine and not the director. C32's fourth blind pass failed honestly. From April to September the company would have disconnected a household on home oxygen, and ce8179c1d makes it operate the Safety Net all year on the M3 health floor. That is the most important supplier fix of the stretch, but it was graded by the hand that wrote it, so a fifth blind pass is owed before C32 can reach 3. The learning loop's spent STOP is fixed (4b4ff1158), so that wrong row closes. All three previous focus items were drawn and met, and they leave focus. 14 commits, 10 substantive, split 2 supplier, 0 world, 12 other. Three of the 'other' commits were A45 canon-check tidying and one was a G15 hedge backtest written as research, while the supplier's two commits were both C32. The balance is honest only because the book is frozen until 16 Nov 04:00. The steer for the next fifteen hours is to keep supplier work in the queue that does not need a book: a blind pass, and a pre-registration for the next per-customer lever.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: Unchanged in the live book. The churn_roll family is running, and its grade is not before 15 Nov 09:30. 18:24 14 Nov: Unchanged in the live book. b060dd719 pre-registered candidate A before the grade. 21:25 14 Nov: Unchanged in the live book. churn_roll is still on its second pair (pid 2894923, 2h33m, 5.6 GB); its grade is stamped not before 15 Nov 09:30 and candidate A follows it.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 12:24 14 Nov: Unchanged. The next read belongs on the 16 Nov book. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged. 21:25 14 Nov: Unchanged. The next read belongs on the 16 Nov book.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). 12:23 13 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov). 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged. 21:25 14 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. 12:23 13 Nov: Unchanged (fix, owner W3_3, at the 16 Nov reset). 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged. 21:25 14 Nov: Unchanged (fix, owner W3_3, at the 16 Nov reset).
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 14 Nov: It is corrected only when the 16 Nov book grades W1-W4. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged. 21:25 14 Nov: Unchanged. It is corrected only when the 16 Nov book grades W1-W4.
+- NOT corrected: THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read "Result=success status=0". A long job that wraps a landing must exit with the landing's own status. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: Right on all four this stretch, because each script happened to pass the status through. 18:24 14 Nov: No long job launched or ended this stretch. The class is still unenforced. 21:25 14 Nov: No long job launched or ended this stretch. The class is still unenforced.
+- NOT corrected: THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling ("everything goes to the fix and its book"; "no more knowledge passes this week"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: No breach. 18:24 14 Nov: Borderline. e6134becd changed company/ during the freeze, but it is the C32 fix its Expert Hour asked for. de67bec58 is world measurement, held and written in docs. The class is still unenforced. 21:25 14 Nov: Borderline again. cec629ab6 (G15) adds two docs/market_research pages, a knowledge pass in all but name, the day before the 11 Nov bar on knowledge passes ends. It touches no book. The class is still unenforced.
+- NOT corrected: THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: The count is right by accident. 18:24 14 Nov: 2 BLOCKING, both real. The reader still reads the working copy. 21:25 14 Nov: 2 BLOCKING, both real. The reader still reads the working copy.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026: Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 12:24 14 Nov: It is open until the 16 Nov page renders. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Unchanged. f4f825b8b, on SITE12's scope, is the change to read on the 16 Nov render. 21:25 14 Nov: Unchanged. f4f825b8b is the change to read on the 16 Nov render.
+- corrected: THE MACHINE'S, NEW. The brief's learning loop prints 'STOP: map the area first' for level-dd and repayment-posting, but both maps are on origin (docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md; docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md, cc27c048e). The loop counts the 7-day misses and does not ask whether the map has landed since, so the steer it prints is already spent and tells a draw to redo finished work. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Still printed in this brief. It is now focus item 3. 21:25 14 Nov: Corrected by 4b4ff1158. This brief prints "map landed 18285bfa11; misses since: 7 of 23 graded" for level-dd and "map landed ad48737415; misses since: 3 of 8" for repayment-posting, with no STOP.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits ("The gate is longer than the gap between commits", attempts 39f59e0d1 to cfd82d868 to 485d48a0c). It landed only when split (collision-census-land-split, 14:14Z), after about an hour of gate CPU. It is the same open number as surgical_land's 103h of re-runs, which goes to the Monday ranking. 18:24 14 Nov: No recurrence this stretch, and it still goes to Monday. 21:25 14 Nov: No recurrence this stretch, and it still goes to Monday.
+- NOT corrected: THE MACHINE'S, NEW. The console capture filed the phase-close skill's own text as the director's verbatim words. docs/staging/console/DIRECTOR_CONSOLE_2026-11-14.md's 16:34:37Z turn begins "Base directory for this skill: .claude/skills/phase-close", and the orientation brief lists it under director_inputs. CLAUDE.md says the machine's own prompts are never quoted as his words. tools/console_instruction_record.py does not tell a skill expansion from a typed turn, so a reader that trusts the record would take a checklist as a ruling. 21:25 14 Nov: Recurred. This brief's only director_inputs entry, console/DIRECTOR_CONSOLE_2026-11-14.md@19:16:00Z, is a machine resume prompt ("Check /tmp/c32_land.log for the C32 surgical_land result ..."), not his words. It is now focus item 3.
+
+## Chosen against
+
+- Sequencing D48's SMART_METER_EXCHANGE flip (simulation/meter_reads.py:441), which D48's L3 park waits on.
+- Grading churn_roll early, or launching candidate A or B11 M7 before their stamps.
+- Switching retention_nets_bad_debt on now, rather than pre-registering it.
+- More A45 canon-check work (three commits this stretch).
+- Level-DD step 2 (the world draws a return per scheduled collection) and the SITE1 Expert Hour BLOCKERs.
+- The other harness classes: landing-wrapper exit status, gate-cost race, ruling-scope reader, working-copy findings reader.
+- World items W2_30 (N17), W3_3 and W2_21 founder work.
+- Reaping or landing the seven at-risk October worktrees.
+
+## Focus for the next stretch
+
+- `C32_one_obligation_one_vulnerability_scorer`
+- `retention-netting-arm-is-preregistered`
+- `console-record-tells-a-typed-turn-from-a-machine-prompt`
+
+---
+
 ## 2026-11-14 — orientation: The thesis has not moved this stretch, and it was not meant to
 
 <!-- head: e77a6cc0e8ee -->
