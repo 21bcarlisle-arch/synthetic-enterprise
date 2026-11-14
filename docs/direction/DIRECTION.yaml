@@ -174,8 +174,11 @@ wrong:
     a skill expansion from a typed turn, so a reader that trusts the record would take a checklist as a ruling.
     21:25 14 Nov: Recurred. This brief''s only director_inputs entry, console/DIRECTOR_CONSOLE_2026-11-14.md@19:16:00Z,
     is a machine resume prompt ("Check /tmp/c32_land.log for the C32 surgical_land result ..."), not his words.
-    It is now focus item 3.'
-  corrected: false
+    It is now focus item 3. 23:26 14 Nov: Corrected. 98a1f7728 labels machine turns; the shared tree''s
+    untracked record was rewritten with origin''s code and now heads 04:12:52Z, 16:34:37Z and 19:16:00Z
+    ''NOT HIS''. director_inputs since 13 Nov 00:00Z reads [] under both origin''s and the shared tree''s
+    delivery_seat.py (13 Nov''s one turn is a scheduled wakeup, also labelled).'
+  corrected: true
 for_the_director:
 - id: value-test-baseline-and-axis-weighting
   raised: '2026-11-13'
