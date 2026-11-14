@@ -149,7 +149,11 @@ guaranteed to live** — *corrected 2026-08-28 (C3, director): the company does 
 has to be genuinely at risk on a path the world can actually produce.* Three mechanisms carry that risk
 in reality and **none of them presses yet**: **hedging** (collateral is a cost line sized once at term
 start and fixed for the term — never a CALL), **competition** (blocked entirely by C2), and **debt**
-(arrears do not yet arrive coupled to wholesale peaks). All three are cash-and-timing problems, not
+(arrears do not yet arrive coupled to wholesale peaks). *(Corrected 14 Nov 2026: "none of them presses
+yet" is no longer true of competition, and this page says so itself under Company organs below. A
+rival now moves and presses on price (`simulation/competitor_reference.py`), though the company still
+cannot price above the cap. The front door was narrowed to "collateral does not press yet" on 24 Oct.
+This line was not. Found by A45's Expert Hour.)* All three are cash-and-timing problems, not
 profit problems, and there is no mechanism converting a bad quarter into a liquidity constraint — which
 is why EARN has been the only leg the world can press on. Atoms `B6_collateral_cash_death_loop`,
 `B7_customer_state_layer_moves_and_shocks`, `SPINE_1_scenario_world_state`.
