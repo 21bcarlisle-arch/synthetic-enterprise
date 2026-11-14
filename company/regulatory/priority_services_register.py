@@ -271,13 +271,15 @@ def _disconnection_protection(
             DisconnectionProtection.NOT_ESTABLISHED,
             "Outside October to March: SLC 27.10 and 27.11 are winter duties, so the licence "
             "sets no disconnection protection for this household now. The Energy UK "
-            "Vulnerability Commitment would protect it all year; it is voluntary and is not "
-            "modelled here.",
+            "Vulnerability Commitment protects it all year; that is voluntary, and this "
+            "supplier applies it as its own policy in winter_moratorium.can_disconnect, not "
+            "in this licence answer.",
         )
     return DisconnectionDetermination(
         DisconnectionProtection.NOT_ESTABLISHED,
         "No category held establishes a disconnection protection in the published record. "
-        "The Energy UK Vulnerability Commitment is voluntary and is not modelled here.",
+        "The Energy UK Vulnerability Commitment is voluntary; this supplier applies its own "
+        "reading of it in winter_moratorium.can_disconnect, not in this licence answer.",
     )
 
 
@@ -288,8 +290,13 @@ def protection_weighing_undetermined(
     as_of: date,
     household: HouseholdComposition = HouseholdComposition.UNKNOWN,
     date_of_birth: date | None = None,
+    decider=None,
 ) -> DisconnectionDetermination:
     """The decider, with each undetermined term asked the counterfactual.
+
+    `decider` defaults to the licence (`disconnection_protection`). The supplier's own policy
+    passes its decider here so the SAME counterfactual runs against it: a July code 26 is
+    nothing to the licence and everything to the Safety Net (C32 fifth Expert Hour).
 
     `held` are the categories established; `undetermined` is (label, category) pairs, each a
     term that overlaps a category without establishing it -- an agent's flag, or a needs code
@@ -297,8 +304,9 @@ def protection_weighing_undetermined(
     answer is CANNOT_DETERMINE, naming it: "we have not asked" never reads "not protected".
     One copy, for the agents' flags and the register's codes alike.
     """
+    decider = decider or disconnection_protection
     held = tuple(held)
-    determination = disconnection_protection(
+    determination = decider(
         held, as_of=as_of, household=household, date_of_birth=date_of_birth
     )
     if not determination.may_disconnect:
@@ -306,7 +314,7 @@ def protection_weighing_undetermined(
     blocking = [
         label
         for label, category in undetermined
-        if not disconnection_protection(
+        if not decider(
             (*held, category), as_of=as_of, household=household, date_of_birth=date_of_birth,
         ).may_disconnect
     ]
@@ -495,6 +503,7 @@ class PSRRecord:
         as_of: date,
         household: HouseholdComposition = HouseholdComposition.UNKNOWN,
         date_of_birth: date | None = None,
+        decider=None,
     ) -> DisconnectionDetermination:
         """What a registration means for disconnection (commons s.1b).
 
@@ -504,14 +513,15 @@ class PSRRecord:
         Until 2026-11-14 the record's bare categories were the only input, so a household on
         the register with no code read as unprotected (C32 Expert Hour re-take, item 4).
         """
+        decider = decider or disconnection_protection
         if not self.categories and not self.needs_codes:
             # Which need is unknown, so every category is asked the counterfactual: in winter
             # some would protect; out of winter none does (SLC 27.10/27.11 are winter duties).
-            if all(disconnection_protection((c,), as_of=as_of, household=household,
-                                            date_of_birth=date_of_birth).may_disconnect
+            if all(decider((c,), as_of=as_of, household=household,
+                           date_of_birth=date_of_birth).may_disconnect
                    for c in PSRCategory):
-                return disconnection_protection((), as_of=as_of, household=household,
-                                                date_of_birth=date_of_birth)
+                return decider((), as_of=as_of, household=household,
+                               date_of_birth=date_of_birth)
             return DisconnectionDetermination(
                 DisconnectionProtection.CANNOT_DETERMINE,
                 "on the Priority Services Register with no need recorded: registration is "
@@ -525,7 +535,7 @@ class PSRRecord:
         ]
         return protection_weighing_undetermined(
             self.categories, undetermined, as_of=as_of, household=household,
-            date_of_birth=date_of_birth,
+            date_of_birth=date_of_birth, decider=decider,
         )
 
 

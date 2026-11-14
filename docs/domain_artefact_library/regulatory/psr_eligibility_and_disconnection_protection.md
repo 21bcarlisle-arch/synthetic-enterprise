@@ -245,7 +245,7 @@ Three consequences, each of which decides a live question in the code:
   practitioners read it that way, on 14 Nov and on the third pass. The code had applied it all year
   and called that "the published rule". **Design choice:** the decider returns the licence's
   answer. Outside winter, disabled, chronically sick and pensionable age establish no licence
-  protection, and the reason string names the voluntary Safety Net (S5) as not modelled. Medical
+  protection, and the reason string names the voluntary Safety Net (S5) as ~~not modelled~~ applied by the company in its own layer (corrected 2026-11-14). Medical
   equipment alone follows the same counterfactual: its "cannot determine" asked whether the
   household is also disabled or chronically sick, which outside winter changes nothing. Whether
   this supplier should adopt the Safety Net is a policy question for the company, not a reading of
@@ -258,6 +258,33 @@ Three consequences, each of which decides a live question in the code:
   pensionable age or medical-equipment dependence is not disconnected. S5's wider ground, "severe
   financial insecurity", is a welfare judgement with no category; it is **not modelled** (GAP).
   The licence decider still returns the licence's answer, so the two stay separately readable.
+  **Amended 2026-11-14, before C32's fifth pass:** as first built, the net read established
+  categories only. The counterfactuals that make a hint block (an undetermined needs code or agent
+  flag, a registration naming no need, a birth date) ran against the licence alone. So in July a
+  household whose only evidence was code 26 "oxygen use", code 22, a no-need registration, a
+  `serious_illness` or `elderly` flag, or a birth date making it 80 was permitted. **Design
+  choice:** the company's decider (`winter_moratorium.safety_net_protection`, licence then net)
+  runs the same counterfactuals. A hint that would fall under the net, if established, reads
+  "cannot determine" all year and blocks. A birth date that establishes pensionable age falls
+  under the net, and one in the untranscribed band reads "cannot determine". `can_disconnect`
+  takes the household's record. This is strong logic from the §2 rule that "cannot determine"
+  blocks, applied to the company's own policy; no source sets it.
+  **Amended again 2026-11-14, C32's fifth pass, item 5.** S5 is a *welfare test* ("cannot
+  safeguard ... due to age, health, disability or severe financial insecurity"), not membership of
+  a category. Any categorical reading diverges from it in both directions. The divergence, named:
+  - **Over-protection.** Every household holding a net category is refused, with no assessment of
+    whether it can safeguard its welfare. A fit 67-year-old is refused.
+  - **Under-protection.** A household on none of those categories, but unable to safeguard its
+    welfare, is not caught. Sensory impairment, language, temporary life changes and the eight
+    uncategorised needs (for example post-hospital recovery) are outside the net. So is severe
+    financial insecurity (GAP).
+  - **The design choice.** Mental health joins the net on the "health" ground, which is the plain
+    reading of S5's words. A child five or under joins on the "age" ground, as a stated belief that
+    errs toward protection on canon M3's floor. No source maps S5 to needs codes.
+  - **What it costs.** It is reversible by deleting the two categories from
+    `SAFETY_NET_CATEGORIES`.
+  - **Not built.** A welfare assessment, which is what S5 actually asks for, is not built. It is the
+    practitioner question for the collections atom.
 - `UNSOURCED`, opened 2026-11-14 (fourth pass, item 1): whether Ofgem treats a summer disconnection
   of a known-vulnerable household as a breach of the Standards of Conduct (SLC 0). SLC 0 has not
   been read in the instrument here; nothing in the code cites it.

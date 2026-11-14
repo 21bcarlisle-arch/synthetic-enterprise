@@ -24,21 +24,74 @@ from typing import Iterable, List, Optional
 
 from company.regulatory.priority_services_register import (
     WINTER_MONTHS,
+    DisconnectionDetermination,
+    DisconnectionProtection,
     HouseholdComposition,
+    PensionableAge,
     PSRCategory,
     disconnection_protection,
+    pensionable_age_from_birth_date,
 )
 
 # The supplier's own policy, not the licence: the Energy UK Vulnerability Commitment ("Safety
 # Net", commons S5), adopted 2026-11-14 on canon M3's health floor. SLC 27.10/27.11 are winter
-# duties; this keeps the same households from disconnection all year. S5's "severe financial
-# insecurity" ground has no category and is not modelled (commons section 4 GAP).
+# duties; this keeps households from disconnection all year. S5 is a welfare test on "age,
+# health, disability or severe financial insecurity", not category membership; this is its
+# categorical reading, erring toward protection. Mental health is on the "health" ground and a
+# child five or under on "age" (added after C32's fifth pass, item 5). Sensory impairment,
+# language and temporary life changes stay outside; "severe financial insecurity" has no
+# category and is not modelled (commons section 4 GAP).
 SAFETY_NET_CATEGORIES = frozenset({
     PSRCategory.DISABILITY,
     PSRCategory.CHRONIC_ILLNESS,
     PSRCategory.PENSIONABLE_AGE,
     PSRCategory.MEDICAL_EQUIPMENT,
+    PSRCategory.MENTAL_HEALTH,
+    PSRCategory.CHILD_UNDER_5,
 })
+
+
+def safety_net_protection(
+    categories,
+    *,
+    as_of: dt.date,
+    household: HouseholdComposition = HouseholdComposition.UNKNOWN,
+    date_of_birth: Optional[dt.date] = None,
+) -> DisconnectionDetermination:
+    """The supplier's own disconnection answer: the licence, then the Safety Net on top.
+
+    Same signature as the licence decider, so a record can run its counterfactuals (an
+    undetermined needs code or flag, a registration naming no need, a birth date in the
+    untranscribed band) against THIS, not only against the licence. Before 2026-11-14 the net
+    was read on established categories alone, so a July household whose only evidence was
+    code 26 "oxygen use", an agent's `serious_illness` flag or a birth date making it 80 was
+    permitted (C32 fifth Expert Hour, found before the pass ran).
+    """
+    licence = disconnection_protection(
+        categories, as_of=as_of, household=household, date_of_birth=date_of_birth
+    )
+    if not licence.may_disconnect:
+        return licence
+    held = SAFETY_NET_CATEGORIES.intersection(categories)
+    age = (pensionable_age_from_birth_date(date_of_birth, as_of)
+           if date_of_birth is not None else PensionableAge.NOT_ESTABLISHED)
+    if age is PensionableAge.ESTABLISHED:
+        held = held | {PSRCategory.PENSIONABLE_AGE}
+    if held:
+        return DisconnectionDetermination(
+            DisconnectionProtection.PROHIBITED,
+            "Supplier policy, not the licence: this supplier operates the Energy UK Safety "
+            "Net all year and does not disconnect a household holding "
+            f"{', '.join(sorted(c.value for c in held))}. The licence alone would permit it.",
+        )
+    if age is PensionableAge.CANNOT_DETERMINE:
+        return DisconnectionDetermination(
+            DisconnectionProtection.CANNOT_DETERMINE,
+            f"born {date_of_birth.isoformat()}: whether this is pensionable age turns on the "
+            "untranscribed cohort tables, and the Safety Net would protect it all year. Ask "
+            "before any disconnection.",
+        )
+    return licence
 
 
 class MoratoriumType(str, Enum):
@@ -116,24 +169,31 @@ class WinterMoratoriumRegister:
         account_id: str,
         as_of: dt.date,
         *,
-        categories: Iterable[PSRCategory],
+        categories: Optional[Iterable[PSRCategory]] = None,
+        record=None,
         household: HouseholdComposition = HouseholdComposition.UNKNOWN,
+        date_of_birth: Optional[dt.date] = None,
     ) -> bool:
-        """False if one of our own holds is active, the Safety Net covers the household, or the
-        licence rule does not clear it. The net is this supplier's policy, read here so the
-        licence decider keeps returning the licence's own answer.
+        """False if one of our own holds is active, or the supplier's decider does not clear
+        it: the licence with the Safety Net on top (`safety_net_protection`).
 
-        `categories` has no default on purpose: a caller that does not know the household's
-        needs categories must say `()` out loud, rather than inherit an empty set that reads
-        as "nobody here is protected".
+        Pass the household's `record` (a `PSRRecord` or a `VulnerabilityRecord`) where one is
+        held: its undetermined codes and flags, and a registration naming no need, are then
+        weighed against the net as well as the licence. `categories` alone sees only what is
+        established. One of the two is required on purpose: a caller that does not know the
+        household's needs must say `categories=()` out loud, rather than inherit an empty set
+        that reads as "nobody here is protected".
         """
+        if (categories is None) == (record is None):
+            raise TypeError("can_disconnect needs exactly one of categories= or record=")
         if self.is_protected(account_id, as_of):
             return False
-        categories = tuple(categories)
-        if SAFETY_NET_CATEGORIES.intersection(categories):
-            return False
-        return disconnection_protection(
-            categories, as_of=as_of, household=household
+        if record is not None:
+            return record.disconnection_protection(
+                as_of, household, date_of_birth, decider=safety_net_protection
+            ).may_disconnect
+        return safety_net_protection(
+            tuple(categories), as_of=as_of, household=household, date_of_birth=date_of_birth
         ).may_disconnect
 
     def vulnerable_protections(self, as_of: dt.date) -> List[MoratoriumRecord]:

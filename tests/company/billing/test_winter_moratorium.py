@@ -1,8 +1,13 @@
 import datetime as dt
+
 import pytest
+
 from company.billing.winter_moratorium import (
-    MoratoriumRecord, MoratoriumType, DisconnectionRisk,
-    WinterMoratoriumRegister, is_winter_period,
+    DisconnectionRisk,
+    MoratoriumRecord,
+    MoratoriumType,
+    WinterMoratoriumRegister,
+    is_winter_period,
 )
 from company.regulatory.priority_services_register import HouseholdComposition, PSRCategory
 
@@ -182,3 +187,57 @@ class TestWinterMoratoriumRegister:
         reg = WinterMoratoriumRegister()
         assert reg.moratorium_summary(dt.date(2024, 1, 1))["in_winter_period"] is True
         assert reg.moratorium_summary(dt.date(2024, 7, 1))["in_winter_period"] is False
+
+
+def test_the_safety_net_reaches_what_the_record_only_suggests():
+    """The net was read on ESTABLISHED categories only, so in July a household whose only
+    evidence was a code 26 ("oxygen use"), a code 22, a PSR registration naming no need, an
+    agent's `serious_illness` or `elderly` flag, or a birth date making it 80 was permitted:
+    the licence permits all six then, and the counterfactual that weighs them ran against the
+    licence alone (C32 fifth Expert Hour, 2026-11-14).
+
+    One control over the partition: each of those is refused in July by the company while the
+    licence still permits it (so the licence answer stays readable), and the evidence outside
+    the net -- language support, job loss, bereavement, a birth date making it 39 -- is
+    still permitted in July. A decider that refused everything reds on the second half.
+    """
+    from company.crm.vulnerability_register import VulnerabilityFlag, VulnerabilityRecord
+    from company.regulatory.priority_services_register import PSRRecord
+
+    def psr(categories=(), codes=()):
+        return PSRRecord(account_id="N1", categories=tuple(categories), services_enrolled=(),
+                         registration_date=dt.date(2020, 1, 1),
+                         review_due_date=dt.date(2030, 1, 1), needs_codes=tuple(codes))
+
+    def flagged(*flags):
+        return VulnerabilityRecord("N1", tuple(flags), dt.date(2020, 1, 1))
+
+    reg = WinterMoratoriumRegister()
+    jul = dt.date(2024, 7, 15)
+    refused = [
+        (psr(codes=(26,)), None), (psr(codes=(22,)), None), (psr(), None),
+        (flagged(VulnerabilityFlag.SERIOUS_ILLNESS), None),
+        (flagged(VulnerabilityFlag.ELDERLY), None),
+        (flagged(), dt.date(1944, 5, 1)),
+        # The commitment's "health" and "age" grounds (fifth pass, item 5).
+        (psr(categories=(PSRCategory.MENTAL_HEALTH,), codes=(30,)), None),
+        (psr(categories=(PSRCategory.CHILD_UNDER_5,), codes=(29,)), None),
+    ]
+    permitted = [
+        (psr(categories=(PSRCategory.LANGUAGE_SUPPORT,), codes=(17,)), None),
+        (flagged(VulnerabilityFlag.JOB_LOSS), None),
+        (flagged(VulnerabilityFlag.BEREAVEMENT), None),
+        (flagged(), dt.date(1985, 5, 1)),
+    ]
+    for record, born in refused + permitted:
+        assert record.disconnection_protection(jul, date_of_birth=born).may_disconnect
+    assert [reg.can_disconnect("N1", jul, record=r, date_of_birth=b) for r, b in refused] \
+        == [False] * len(refused)
+    assert [reg.can_disconnect("N1", jul, record=r, date_of_birth=b) for r, b in permitted] \
+        == [True] * len(permitted)
+
+
+def test_exactly_one_of_categories_or_record():
+    reg = WinterMoratoriumRegister()
+    with pytest.raises(TypeError):
+        reg.can_disconnect("B1", dt.date(2024, 7, 1), categories=(), record=object())
