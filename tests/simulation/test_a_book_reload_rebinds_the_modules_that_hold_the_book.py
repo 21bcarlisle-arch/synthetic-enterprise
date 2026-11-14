@@ -27,3 +27,22 @@ def test_a_module_that_bound_the_book_reads_the_new_book_after_the_reload():
     # reload the whole session; the binders of a run's book are a handful.
     assert "simulation.run_phase4c_on_phase2b" in reloaded
     assert len(reloaded) < 20, reloaded
+
+
+def test_a_kept_book_holds_the_reloaded_records_after_the_reload():
+    """The supply book is KEPT across the reload, so only its elements can go stale.
+
+    Defect this catches (2026-11-14, H40 L2): `register_drawn_points` is idempotent by
+    `customer_id`, so the re-import left `supply_book.DRAWN_CUSTOMERS` on the old dicts and 9 of
+    576 electricity legs answered `get_customer` with their roster dict. The split book hid one
+    stray journey of a real red. Drop `_swap_old_records_in_kept_books` from `reload_with_binders`
+    and this reds.
+    """
+    p2b = importlib.import_module("simulation.run_phase2b")
+    old = list(p2b.ELEC_CUSTOMERS)
+    reload_with_binders(p2b)
+    # Records must have been replaced, or identity below holds without any swap. (Some legs come
+    # from the static roster and survive the reload as the same object, so not all of them.)
+    assert any(a is not b for a, b in zip(old, p2b.ELEC_CUSTOMERS))
+    split = [c["customer_id"] for c in p2b.ELEC_CUSTOMERS if p2b.get_customer(c["customer_id"]) is not c]
+    assert not split, f"{len(split)} of {len(p2b.ELEC_CUSTOMERS)} legs read an old record: {split[:5]}"

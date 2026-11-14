@@ -18,6 +18,13 @@ waits. **To move it** once that finding is discharged, set `level_current: 2` on
 `record_level_up_self_certified('H40_full_suite_pollution_bisect', 2, ...)`. Its provenance must carry this
 record's End-to-end clause (section 8).
 
+*14 Nov, a later tick.* The class fix in section 6 has landed: `reload_with_binders` now swaps reloaded
+records into kept books, and the ordered pair reports 4 strays, as predicted. The level is still held, and
+correctly so. The SITE1 finding had been moved to `done/` in the working tree on 11 Nov, uncommitted and
+unchanged. Its own criterion ("a fresh blind Hour on the live doors returns no BLOCKER") is unmet, with
+BLOCKER-2 and BLOCKER-3 open. That move let `record_level_up_self_certified` pass on disk, and the commit
+gate then refused the tree. The move was undone and the finding is back in the queue.
+
 ## 1. What held H40 at L1, and what closed it
 
 The L1 record ended "Not L2: the two `test_the_registry_eac_rewrite_reaches_the_dd_opening` nodes are

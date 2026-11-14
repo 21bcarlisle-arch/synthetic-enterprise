@@ -57,7 +57,63 @@ def reload_with_binders(module) -> list:
         if any(id(v) in replaced_ids for v in values):
             importlib.reload(other)
             reloaded.append(name)
+    _swap_old_records_in_kept_books(before, after)
     return reloaded
+
+
+def _swap_old_records_in_kept_books(before: dict, after) -> int:
+    """Point every KEPT book at the reloaded records, in place. Returns how many slots moved.
+
+    The scan above finds a module holding a container the reload replaced. It cannot find a book
+    that was kept while its ELEMENTS were replaced: the re-import calls `register_drawn_points`,
+    which is idempotent by `customer_id`, so `supply_book.DRAWN_CUSTOMERS` refused the new dicts
+    and kept the old ones. After a reload 9 of 576 electricity legs answered `get_customer` with
+    their roster dict, against 576 on a fresh import, and every later test read a split book; it
+    hid one stray journey of a real red (H40 L2 record, 2026-11-14).
+
+    Records are paired by `customer_id` in lists (a list where an id repeats is left unpaired) and by
+    key in dicts, and only dict records swap:
+    a scalar's id is shared by every module (small ints are interned), so pairing scalars would
+    rewrite tables that never held the book. `before` keeps the old records alive, so no id is
+    reused while the map is in use.
+    """
+    swap: dict[int, dict] = {}
+    for k, old in before.items():
+        new = after.get(k)
+        if new is old:
+            continue
+        if isinstance(old, dict) and isinstance(new, dict):
+            for key, rec in old.items():
+                if isinstance(rec, dict) and isinstance(new.get(key), dict) and new[key] is not rec:
+                    swap[id(rec)] = new[key]
+        elif isinstance(old, list) and isinstance(new, list):
+            recs = [r for r in new if isinstance(r, dict) and "customer_id" in r]
+            by_cid = {r["customer_id"]: r for r in recs}
+            if len(by_cid) != len(recs):
+                continue  # two legs share an id here, so the id cannot say which twin is which
+            for rec in old:
+                twin = by_cid.get(rec.get("customer_id")) if isinstance(rec, dict) else None
+                if twin is not None and twin is not rec:  # identity: a reloaded twin is `==` its old self
+                    swap[id(rec)] = twin
+    if not swap:
+        return 0
+    seen = {id(v) for k, v in before.items() if after.get(k) is not v}  # a kept book may sit in `before`
+    moved = 0
+    for other in list(sys.modules.values()):
+        try:
+            values = [v for k, v in vars(other).items() if not k.startswith("__")]
+        except TypeError:
+            continue
+        for book in values:
+            if id(book) in seen or not isinstance(book, (list, dict)):
+                continue
+            seen.add(id(book))
+            slots = enumerate(book) if isinstance(book, list) else list(book.items())
+            for slot, rec in slots:
+                if id(rec) in swap:
+                    book[slot] = swap[id(rec)]
+                    moved += 1
+    return moved
 
 
 @pytest.fixture(scope="module")

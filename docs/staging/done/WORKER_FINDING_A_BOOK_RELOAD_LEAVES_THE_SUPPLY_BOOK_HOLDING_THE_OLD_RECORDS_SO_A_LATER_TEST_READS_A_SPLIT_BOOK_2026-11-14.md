@@ -1,4 +1,5 @@
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** 2 · **Atom:** `unminted`
+**Discharged:** `tests/simulation/test_a_book_reload_rebinds_the_modules_that_hold_the_book.py::test_a_kept_book_holds_the_reloaded_records_after_the_reload` -- the reload helper now swaps old records for their reloaded twins inside every kept book
 
 # A book reload leaves the supply book holding the old records, so a later test reads a split book (2026-11-14)
 
@@ -34,3 +35,28 @@ red again.
 **Not established.** Whether any other kept registry (for example `ACQUIRED_CUSTOMERS`, or the
 successor or incoming-occupant books) splits the same way after a reload. The fix's own scan would find
 out.
+
+## Done
+
+14 Nov, worker tick. The narrow form was built in `tests/simulation/conftest.py`:
+`_swap_old_records_in_kept_books`, called at the end of `reload_with_binders`. It pairs old and new
+records by `customer_id` in lists and by key in dicts. A list where an id repeats is left unpaired.
+Only dict records swap, because a scalar's id is shared by every module. Then it rewrites any kept
+list or dict in any loaded module, in place.
+
+- **Control.** `test_a_kept_book_holds_the_reloaded_records_after_the_reload` is green. Mutation:
+  with the call replaced by `pass`, it reds at "567 of 576 legs read an old record", the record's 9 of
+  576 seen from the other side. Its precondition is "some records were replaced", not "all": 9 legs
+  come from the static roster and survive the reload as the same object.
+- **A bug caught on the way.** The first draft paired with `twin not in (None, rec)`. That compares
+  dicts by `==`, and a reloaded record equals its old self, so nothing was paired and the swap moved
+  nothing. It now uses identity.
+- **The hidden red, predicted first.** Prediction: the ordered pair (reload test, then
+  `test_a_collections_journey_opens_on_the_bill_the_ledger_made_due.py`) would report 4 strays, not 3.
+  Result: 4, in 168 s. The pollution no longer hides part of that red. The red itself stays with the
+  collections findings.
+- **Not established, still.** Whether `ACQUIRED_CUSTOMERS` or the successor and incoming-occupant
+  books split the same way. The swap covers them if they do, because it scans every kept list.
+- **H40's level stays at 1.** Lane H still holds SITE1's BLOCKING Expert Hour finding. An uncommitted
+  move to `done/` had hidden it from the writer-side check, so the move was undone. See the H40 L2
+  record, section 0.
