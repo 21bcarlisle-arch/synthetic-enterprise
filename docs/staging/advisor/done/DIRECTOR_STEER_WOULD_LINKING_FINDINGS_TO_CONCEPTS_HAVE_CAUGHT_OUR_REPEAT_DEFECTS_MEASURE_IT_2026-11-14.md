@@ -51,11 +51,15 @@ Proportionality: doc-and-measurement only. Implement directly.
 
 ## Done
 
-(worker tick, Sat 14 Nov.) Queued, not yet measured. The 16 Nov balance proposal
-(`docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md` §3 and §5) costs it at about 1.6 points
-and ranks it item 5 after the reset. It is the first harness item, ahead of the one-work-system
-decision map, because its answer decides whether that design's item shape carries a concept link.
-The usage reading of 05:53 (76%, 0.54 an hour against 0.45) defers it to after the Mon 16 Nov
-reset, and the seat's 06:23 record had already put it there. The Monday ranking step reads the
-proposal. The prediction is pre-registered before the tagger runs, and the reading-log row above
-is appended in the commit that reports the measurement.
+Measured on 14 Nov (delivery seat). The prediction was filed first, in
+`docs/staging/records/SEAT_PREREGISTRATION_WOULD_A_CONCEPT_LINK_HAVE_SURFACED_THE_EARLIER_FINDING_2026-11-14.md`.
+The result is in
+`docs/staging/records/SEAT_RESULT_A_CONCEPT_LINK_WOULD_HAVE_SURFACED_NONE_OF_THE_THREE_REPEAT_DEFECT_FAMILIES_2026-11-14.md`.
+
+**0 of 3 families would have been caught,** on the register as of each date and on today's, with
+title-only and body-head tagging. So, by the steer's rule, it is **dropped**: no link field, no
+orientation line, no store and no gate. The reason: none of VAT, bill shock or the first direct
+debit's period is a concept in the register at all. The tagger's precision is 25 of 30 and its
+coverage 8.0% (titles). The register holds 71 concepts, not 76. The 4% Knowledge-line count holds
+(200 of 4,730). The Netflix original returned 403 and is unread, and the vendor post carries no
+outcome figure. The reading-log row is appended and its feed regenerated.
