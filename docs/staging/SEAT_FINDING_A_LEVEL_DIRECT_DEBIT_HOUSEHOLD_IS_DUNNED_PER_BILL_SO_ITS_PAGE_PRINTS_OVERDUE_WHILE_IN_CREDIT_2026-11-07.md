@@ -564,6 +564,8 @@ carries e17ebc596. The one-variable book A/B, e17ebc596^ against e17ebc596, same
   book.** Fabric alone moves `arrangement_offered` 3,014 → 2,888 (−126), `repayment_plan_reoffer` 2,247 → 2,155 (−92),
   `missed_payment` 1,798 → 1,752 (−46) and `write_off` 280 → 266 (−14). Report that leg as unattributable.
 
+**Amendment, 2026-11-14 (later, still before the 16 Nov book): can S6b or the statement walk move it too?** **Not directly, for both legs.** The off-day opener and re-offer counts and the journey counts come from the desk's collection journeys. They do not read the close refund log's paid days, which are the only thing S6b re-dates (`docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.8). Nor do they read `statement_export`, the only thing 84a44b51c changes. One indirect route exists: a set-off is dated by its refund's paid day (`set_offs_from_refund_log`, read by the ledger walk at `tools/generate_billing_ledger.py:474`), so S6b re-dates the debt leg's walk if it moves a refund that carries a set-off. On r98 it moved 3 refunds and none carried a set-off. So the unattributable leg stays unattributable because of fabric alone. These two changes are not expected to add to it.
+
 ## The b9ad453df0 book, the first carrying "one schedule", graded: refuted, and the main cause is a new defect (worker, 9 Nov 2026 ~05:00 GMT)
 
 `run_output_b9ad453df0_20261109T015606Z.json` (finished 03:39Z). Graded at origin 0f074c607c, whose commits after

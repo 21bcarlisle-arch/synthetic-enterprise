@@ -182,6 +182,7 @@ for that book: request days set by a netting day, **3 to 6** (4 here, and the po
 after that commit, the prediction is **0** request days set by a netting day alone. A leg may still be flagged by the
 census where a real arrival falls on the netting day, like PROS-2019-0318; count those apart. If the book predates
 the commit, the original 3 to 6 stands. Read the book's code commit first, and grade only the branch it is on.*
+*Amended 2026-11-14, before the 16 Nov book: what fabric (e17ebc596) moves in this line. The prediction above stands. Fabric cannot move the post-S6b 0: no population can set a request day by a netting day once the money-in day ignores it. Fabric can move the coincident-arrival count kept apart. The census on the fabric A/B arms (pre-S6b code at both) reads 22 of 66 → 22 of 69 netting-dated money-in days, and 0 → 0 request days set by one. So the pre-S6b 3 to 6 branch would already have missed on those arms. The 16 Nov book also carries ceeefa5960 (refund clock), so read the census at the book's own code root. The statement walk (84a44b51c) cannot move this line: the census reads the walk, not the statement. Detail: `docs/staging/records/SEAT_RECORD_WHAT_THE_INSULATION_CHANGE_CAN_MOVE_IN_THE_16_NOV_PREREGISTRATIONS_2026-11-13.md`.*
 
 ## 7. What this changes
 

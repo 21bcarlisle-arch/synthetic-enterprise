@@ -847,6 +847,8 @@ kept as filed above.
 A read, not a grade: both arms carry 37d934286 and still read R5 27 to 30 and SYN-2016-244 at 77.82, against
 W3's 0 to 3 and W4's GBP 30 to 45. So if W3 or W4 misses on 16 Nov, the cause is not fabric.
 
+**Amendment, 2026-11-14 (later, still before the 16 Nov book): can S6b or the statement walk move it too?** **No for W1–W4, on both counts.** `REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.6: "None of W1–W4 is about S1, S4 or S6b". W1–W4 are S6a/S9/S7–S8 figures. S6b (69866925b) changes one thing: a leaver's money-in day, which only `generate_credit_refund_log` reads, to date the refund's paid day. The set-offs take that date too. On the r98 replay (`docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.8, P4/P5) the closing balance is identical on all 850 legs and the refund amount is identical on all 178 refunds. 3 paid days move, every one earlier. None of the 3 carries a set-off. W1–W4 read amounts and balances, never a refund's paid day. The statement walk (84a44b51c) changes only `statement_export.account_events`. Its own measurement found `tools/domain_invariant_runner.py --ledger` byte-identical, because the runner reads `raw_account_export.account_events`. It also found `statement_digest` moving on the 84 set-off legs only. No W1–W4 figure reads the statement walk.
+
 The account-page wrong row is **not** moved to corrected: its 24 accounts clear only on a book whose world
 carries the net. That is the 16 Nov 04:00 book. New books are held until then.
 

@@ -281,6 +281,10 @@ This amendment is about e17ebc596 only. It changes the world's insulation draw (
   book removed. That is the same caveat as A5.
 - If the book passes, the §8 addendum names e17ebc596 among the book's ancestors, beside 3af02a2dd1 and 37d9342869.
 
+**Amendment, 2026-11-14 (later, still before the 16 Nov book): can S6b or the statement walk move it too?** 
+- **The gate count, S6b can move it, and only downward.** S6b (69866925b) changes one thing: a leaver's money-in day, which only `generate_credit_refund_log` reads, to date the refund's paid day. The set-offs take that date too. On the r98 replay (`docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.8, P4/P5) the closing balance is identical on all 850 legs and the refund amount is identical on all 178 refunds. 3 paid days move, every one earlier. None of the 3 carries a set-off. The only rows it can reach are the ones that read a refund's paid day. The one named row is `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO`'s SYN-2016-139 exception, `max_breached: 1`, and S6b exists to clear it. Paid days only move earlier, so S6b cannot add a breach. The verdict changes only if S6b and the other changes together bring the unexcepted count to 0.
+- **The statement walk cannot move it.** The statement walk (84a44b51c) changes only `statement_export.account_events`. Its own measurement found `tools/domain_invariant_runner.py --ledger` byte-identical, because the runner reads `raw_account_export.account_events`. It also found `statement_digest` moving on the 84 set-off legs only. The gate is the runner's verdict.
+
 ### A6. What this amendment does not do
 
 It launches nothing, arms nothing and flips no switch. `renewal_belief_by_ending_term` stays `False`. §8 stays empty

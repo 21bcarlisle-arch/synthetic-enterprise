@@ -65,4 +65,9 @@ before grading the 16 Nov book, which carries this change as well as the ones th
 
 PROS-2019-0318 stays on the book and moves from POOR to PARTIAL. No household with a changed fabric is named in P1.
 
+**Amendment, 2026-11-14 (later, still before the 16 Nov book): can S6b or the statement walk move it too?** S6b (69866925b) changes one thing: a leaver's money-in day, which only `generate_credit_refund_log` reads, to date the refund's paid day. The set-offs take that date too. On the r98 replay (`docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.8, P4/P5) the closing balance is identical on all 850 legs and the refund amount is identical on all 178 refunds. 3 paid days move, every one earlier. None of the 3 carries a set-off. The statement walk (84a44b51c) changes only `statement_export.account_events`. Its own measurement found `tools/domain_invariant_runner.py --ledger` byte-identical, because the runner reads `raw_account_export.account_events`. It also found `statement_digest` moving on the 84 set-off legs only.
+- **P1, S6b can move it, and only downward.** SYN-2016-139's refund moves from 12 May to 29 Apr 2022, inside reg 6D. That is the breach this row's exception holds. Both fabric arms already read 0, so S6b cannot raise P1.
+- **P2 and P3, S6b cannot move them.** Both read refund and set-off amounts, and S6b leaves amounts and balances identical. Fabric alone moved P3's set-offs 45 → 43 (census `S8` line, `docs/staging/records/SEAT_RECORD_WHAT_THE_INSULATION_CHANGE_CAN_MOVE_IN_THE_16_NOV_PREREGISTRATIONS_2026-11-13.md`).
+- **P1–P3, the statement walk cannot move them.** The runner's output is byte-identical with and without it (`docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.6 names neither change for these rows).
+
 **Reverse.** Delete this file.

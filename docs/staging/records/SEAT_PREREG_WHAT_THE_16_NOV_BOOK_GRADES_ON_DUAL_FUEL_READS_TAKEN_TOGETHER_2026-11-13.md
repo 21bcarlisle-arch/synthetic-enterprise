@@ -61,4 +61,6 @@ P1–P5 are kept as filed. **Fabric can move these figures, and on the run it mo
 
 Neither arm has ever read P5's "near 12%": 6.9% and 6.2%. That is a read, not a grade.
 
+**Amendment, 2026-11-14 (later, still before the 16 Nov book): can S6b or the statement walk move it too?** **No, for P1–P5, on both counts.** These rows count meter reads and bills on dual-fuel pairs. S6b re-dates only a close refund's paid day (`docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.8). The statement walk's own measurement (84a44b51c) names n30 and finds the runner byte-identical.
+
 **Reverse.** Delete this file.

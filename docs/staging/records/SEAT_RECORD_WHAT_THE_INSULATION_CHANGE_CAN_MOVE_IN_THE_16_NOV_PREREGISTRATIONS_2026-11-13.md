@@ -145,4 +145,47 @@ of `SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_…_2026-11-0
 amendment A7. C5-INV113's amendment is the section above. Fabric cannot move it: C5's lines are identical on both
 arms, so the original figures stand.
 
-**Reverse.** Delete this file and the six amendments that cite it.
+## The seventh grade, and S6b and the statement walk on all seven (2026-11-14, before the 16 Nov book)
+
+The six amendments above are about fabric only. Direction listed a seventh grade,
+`s6b-graded-on-the-first-book-that-carries-it-and-the-139-exception-dropped`. It also asked whether S6b (69866925b)
+or the statement walk (84a44b51c) can move each figure. Neither fabric arm carries either change, so this section
+is reasoned from what each change touches. The S6b line also has a measurement.
+
+**S6b's own prediction** (`REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.6 amendment: 0 request days set by a
+netting day alone on a book at or after 69866925b, with coincident real arrivals counted apart). It is measured on
+both arms by `/var/tmp/rpam/s/census.py`, with code root `/var/tmp/fab-new`. Its walk code is identical at
+e17ebc596^ and e17ebc596: only `premise_population.py` differs. Outputs: `/var/tmp/fab-ab2/census_{old,new}.txt`.
+
+| census line | e17ebc596^ | e17ebc596 |
+|---|---:|---:|
+| S6 money-in dated by a netting day after the cash (pre-S6b code) | 22 of 66 | 22 of 69 (2 leave, 2 join: SYN-2016-031 and PROS-2016-0117 in, OCC-9c0e9f25531ag and PROS-2017-0283 out) |
+| S6 refund request day == the netting day | 0 | 0 |
+| S8 refunds; set-offs | 155, GBP 20,242.43; 45, GBP 1,400.40 | 159, GBP 18,433.99; 43, GBP 1,469.38 |
+
+**Fabric cannot move S6b's predicted 0.** S6b removes the netting day from the money-in day, so no population can
+set a request day by one. Fabric **can** move the coincident-arrival count kept apart: it changes which legs exist
+and who has a part payment (PROS-2019-0318, r98's one coincident leg, goes POOR → PARTIAL). And it moves the
+pre-S6b population the 0 is read against: 66 → 69 legs. A read, not a grade: neither pre-S6b arm sets a request
+day by a netting day. r98 read 3, so the 3-to-6 branch would already have missed on these arms. These arms also
+lack ceeefa5960, the refund clock. The 16 Nov book carries it, so the 0 there cannot be credited to S6b alone
+unless the census is read at its own code root. The SYN-2016-139 exception reads 0 breaches on both arms, so
+fabric does not keep it alive.
+
+| grade | S6b (69866925b) can move it? | statement walk (84a44b51c) can move it? |
+|---|---|---|
+| C5-INV113 catch-up lines | no: an SME catch-up invoice, not a close refund | no: C5 has no set-off leg |
+| n29 P1 | yes, downward only (SYN-2016-139 paid 29 Apr 2022) | no: runner byte-identical |
+| n29 P2, P3 | no: amounts and balances identical (map s.8 P4/P5) | no |
+| s.9.8 W1–W4 | no: map s.6, "None of W1–W4 is about S1, S4 or S6b" | no |
+| n30 P1–P5 | no | no: 84a44b51c's measurement names n30 |
+| c915067a8 | not directly; only through a set-off re-dated by its refund (none on r98) | no |
+| baseline gate count | yes, downward only, through refund-day rows | no |
+| S6b's own s.6 line | it is the change | no: the census reads the walk, not the statement |
+
+One mechanism to check on the book. Set-offs are dated by the refund's paid day
+(`set_offs_from_refund_log`), so if S6b moves a refund that carries a set-off, the debt leg's second walk is
+re-dated. On r98 none of the 3 moved refunds carries one (`set_off_gbp` 0.0 on all 3, `/var/tmp/s6b/after.json`).
+On the 16 Nov book, count those before crediting any journey or balance move to S6b.
+
+**Reverse.** Delete this file and the amendments that cite it.
