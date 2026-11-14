@@ -53,3 +53,14 @@ Each grew its own lifecycle. The draw reads only some of them.
 - Put the design in Sunday's balance proposal with its cost. It is harness work. It may take part of next week's harness share, since it should make the rest of the harness smaller.
 
 **Done means** there is one place work waits and one rule that picks it. The director can see the whole backlog's health from one view, and the number of lists that must be kept in step goes down.
+
+## Addendum, Sat 14 Nov 06:58 GMT: separate lanes for the world and the supplier, on one mechanism
+
+The director's words: "One for SIM, one for supplier?"
+
+The advisor's answer to him: yes, kept separate, and a third for the method. All three share one mechanism. The reason is canon, not tidiness:
+
+- **The world's work must be ranked blind to the supplier's results.** The baseline/curriculum split says the world "changes only for fidelity reasons, decided blind to company results". If one ranking rule weighed a world fix against a supplier feature, how much a world item seemed to help or hurt the supplier would leak into its priority. So the world lane ranks on fidelity and correctness alone. The supplier lane ranks on value to households and the company. The **building it** lane (harness and method) ranks on flow and risk to the work.
+- **Shared:** one item shape, one lifecycle, the same flow measures and the same views. It is one system with three ranked lanes. It is not three systems.
+- **Between lanes:** the weekly balance review sets each lane's share of capacity. That is the director's 11 Nov ruling, now with a natural home. The draw takes from each lane by its share and its own rank.
+- **Items that span the seam,** such as the value test or a new observable, have one owning lane. They are named in the item and decided by the interface steward's rule: what crosses the seam is the supplier's question, and what the world must model is the world's.
