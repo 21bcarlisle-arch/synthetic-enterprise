@@ -649,6 +649,56 @@ def unwatched_sections(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
     return out
 
 
+#: The forms the model page uses to say the CODE lacks something. An under-claim can only be one
+#: of these sentences, and an `absent` claim is the only thing that can show one false.
+#: A45's Expert Hour (14 Nov, MAJOR 3): "an under-claim is seen only where an absent-claim was
+#: pre-registered". The spine said "none of them presses yet ... competition (blocked entirely by
+#: C2)" while its own organs line said a rival moves. The sentence counted as watched because its
+#: collateral clause carried an anchor. So the unit here is the PHRASE, not the sentence or the
+#: section: a phrase outside every anchor is named, even inside a sentence that is otherwise bound.
+#: The lexicon is a judgement. A broader one (never|cannot|does not ...) named 50 sentences on
+#: 14 Nov, mostly rules and mission prose that make no claim about code. This one names 18.
+UNDER_CLAIM_FORMS = re.compile(
+    r"\b(not yet|none of them|no module|by nothing|read by no|blocked|absent|still cannot|"
+    r"cannot yet|no mechanism|unmeasured|unbuilt|nobody yet|"
+    r"nothing (?:yet )?(?:supplies|reads|calls|offers|targets))\b",
+    re.IGNORECASE)
+_SENTENCE = re.compile(r"[^.!?]+(?:[.!?]+|$)")
+
+
+def unbound_negatives(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
+    """Per markdown page: each sentence holding a "the code lacks X" phrase no anchor covers.
+
+    Those are the under-claims nothing can catch. Each needs an `absent` claim, or nothing checks
+    it. Coverage, like `unwatched_sections`, so it never moves the exit status.
+    """
+    out: dict[str, list[str]] = {}
+    for page_rel in sorted({c.page for c in claims if c.page.endswith(".md")}):
+        page = root / page_rel
+        if not page.exists():
+            continue
+        text = _normalise(page.read_text(encoding="utf-8", errors="replace"))
+        spans: list[tuple[int, int]] = []
+        for claim in claims:
+            if claim.page != page_rel:
+                continue
+            anchor = _normalise(claim.anchor)
+            at = text.find(anchor)
+            while at >= 0:
+                spans.append((at, at + len(anchor)))
+                at = text.find(anchor, at + 1)
+        named: list[str] = []
+        for sentence in _SENTENCE.finditer(text):
+            for phrase in UNDER_CLAIM_FORMS.finditer(sentence.group()):
+                start = sentence.start() + phrase.start()
+                end = sentence.start() + phrase.end()
+                if not any(lo <= start and end <= hi for lo, hi in spans):
+                    named.append(sentence.group().strip()[:240])
+                    break
+        out[page_rel] = named
+    return out
+
+
 def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
     claims = load_register(register)
     verdicts = [evaluate(claim, root) for claim in claims]
@@ -667,12 +717,14 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
         # claim's verdict -- there is no claim left to give one to.
         "removed": removed_claims(register, current={c.id for c in claims}),
         "unwatched_sections": unwatched_sections(root, claims),
+        "unbound_negatives": unbound_negatives(root, claims),
     }
     return verdicts, report
 
 
 def _render(verdicts: list[Verdict], removed: list[str] | None = None,
-            unwatched: dict[str, list[str]] | None = None) -> str:
+            unwatched: dict[str, list[str]] | None = None,
+            negatives: dict[str, list[str]] | None = None) -> str:
     lines = ["CANON DRIFT CHECK -- what the page claims that the code no longer supports", ""]
     for verdict in verdicts:
         lines.append(f"  [{verdict.verdict:<10}] {verdict.claim.id}")
@@ -689,6 +741,11 @@ def _render(verdicts: list[Verdict], removed: list[str] | None = None,
         if heads:
             lines.append(f"UNWATCHED on {page} -- {len(heads)} section(s) no claim is bound to:")
             lines.extend(f"  - {head}" for head in heads)
+    for page, sentences in (negatives or {}).items():
+        if sentences:
+            lines.append(f"UNBOUND NEGATIVES on {page} -- {len(sentences)} \"the code lacks X\" "
+                         f"sentence(s) no absent claim checks, so an under-claim there is unseen:")
+            lines.extend(f"  - {sentence}" for sentence in sentences)
     if removed:
         lines.append("")
         lines.append("CLAIMS THAT LEFT THE REGISTER -- a row nothing checks any more:")
@@ -841,6 +898,8 @@ def _unwatched_clause(report: dict[str, Any]) -> str:
     """The denominator beside the verdict: which page sections no claim watches."""
     parts = [f"{Path(page).name}: {len(heads)} section(s) carry no bound claim ({'; '.join(heads)})"
              for page, heads in report.get("unwatched_sections", {}).items() if heads]
+    parts += [f"{Path(page).name}: {len(sentences)} \"not yet\"-type sentence(s) no absent claim "
+              f"checks" for page, sentences in report.get("unbound_negatives", {}).items() if sentences]
     return f" Unwatched — {' · '.join(parts)}." if parts else ""
 
 
@@ -1013,7 +1072,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2  # an unavailable check is a FAILED check (R15 fail-silent)
 
     print(json.dumps(report, indent=2) if args.json
-          else _render(verdicts, report["removed"], report.get("unwatched_sections"))
+          else _render(verdicts, report["removed"], report.get("unwatched_sections"),
+                       report.get("unbound_negatives"))
           + _render_site(report["site"]))
     if args.write_report:
         out = root / DEFAULT_REPORT

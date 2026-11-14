@@ -491,6 +491,45 @@ def test_coverage_never_moves_the_exit_status(tmp_path, capsys):
     assert "UNWATCHED on docs/page.md" in capsys.readouterr().out
 
 
+# ---------------------------------------------------------------- unbound negatives (Expert Hour MAJOR 3)
+
+#: The 14 Nov shape in miniature. One sentence, an anchored clause, and a "not yet" outside it.
+#: The anchor made the sentence (and its section) read watched while its negative went unchecked.
+NEGATIVES_PAGE = """# A PAGE
+
+## Spine
+`price_sensitivity` reaches the churn decision, and competition does not press yet: a rival is blocked.
+
+## Bound
+`green_stance` is read by no response function.
+
+## Prose
+The household is never converted to pounds.
+"""
+
+
+def test_a_negative_outside_every_anchor_is_named_even_in_a_bound_sentence(tmp_path):
+    """Three legs over the whole partition, so a leg that names everything or nothing fails one.
+
+    Named: "blocked", outside the anchor in an otherwise-bound sentence (the MAJOR 3 case).
+    Not named: "read by no", inside an anchor. Not named: "never", outside the lexicon (rule prose).
+    """
+    green = dict(NO_CHANNEL_CLAIM, anchor="`green_stance` is read by no response function")
+    root, register = _mini_repo(tmp_path, page=NEGATIVES_PAGE, claims=[CHANNEL_CLAIM, green])
+    named = run(root, register)[1]["unbound_negatives"]["docs/page.md"]
+    assert len(named) == 1 and "a rival is blocked" in named[0], named
+    assert not any("green_stance" in s or "never converted" in s for s in named)
+
+
+def test_an_unbound_negative_is_printed_and_never_moves_the_exit_status(tmp_path, capsys):
+    green = dict(NO_CHANNEL_CLAIM, anchor="`green_stance` is read by no response function")
+    root, register = _mini_repo(tmp_path, page=NEGATIVES_PAGE, claims=[CHANNEL_CLAIM, green])
+    assert main(["--root", str(root), "--register", str(register)]) == 0
+    out = capsys.readouterr().out
+    assert "UNBOUND NEGATIVES on docs/page.md -- 1" in out
+    assert "a rival is blocked" in out  # the sentence itself, not only its count
+
+
 # ---------------------------------------------------------------- a red mints work (Expert Hour MAJOR 2)
 
 def _note_repo(tmp_path: Path, *, channel: bool) -> Path:
