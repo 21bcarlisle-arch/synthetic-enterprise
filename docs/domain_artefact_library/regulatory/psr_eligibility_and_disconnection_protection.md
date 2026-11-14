@@ -285,6 +285,43 @@ Three consequences, each of which decides a live question in the code:
     `SAFETY_NET_CATEGORIES`.
   - **Not built.** A welfare assessment, which is what S5 actually asks for, is not built. It is the
     practitioner question for the collections atom.
+  **Amended again 2026-11-14, C32's sixth pass, items 1 to 3.** The fifth pass's widening still
+  read S5 as a list, so the under-protection it named was real harm, not just a disclosed gap.
+  Measured on 15 Jul 2024, before this change, the company permitted disconnection for:
+  - blind or partially sighted (codes 8, 9), hearing impairment (35), language (17) and
+    temporary life change (32);
+  - every uncategorised need, including post-hospital recovery;
+  - agent flags bereavement, job loss, payment difficulty, fuel poverty and PPM
+    self-disconnection.
+
+  The reviewer's ground: a supplier that names an S5 gap and still disconnects on it "has written
+  down a Safety Net breach in advance". Job loss, payment difficulty and fuel poverty are S5's own
+  fourth ground, financial insecurity, as the supplier's own agents recorded it.
+
+  **Design choice.** S5 is a welfare test, and the company has no welfare assessment. So any
+  vulnerability evidence the company holds is reason to believe that test is live, and it cannot
+  answer it. That means any Priority Services registration at all (any category, any needs code,
+  or none named) and any agent flag. The company's answer for such a household is
+  "cannot determine", in every month, and that blocks disconnection.
+
+  This is the §2 rule that "cannot determine" blocks, applied to the company's own commitment.
+  It is strong logic, not a source.
+
+  The six categories above stay "prohibited", not "cannot determine". A future welfare
+  assessment may clear the second answer and never the first.
+
+  - **The permit branch is still reachable.** It applies only where the company holds no
+    vulnerability evidence: no registration, no flag, and a birth date that is absent or
+    establishes non-pensionable age.
+  - **What it costs.** Nearly every debt household an agent has spoken to becomes
+    undisconnectable until a welfare assessment is built. That agrees with the published record:
+    debt disconnections have been in single digits since 2017 and zero since Q1 2023
+    (`docs/market_research/debt_and_collections.md`, Ofgem's debt data).
+  - **Still under-protected.** A household the company holds nothing on, but which cannot
+    safeguard its welfare, is not caught. That includes financial insecurity no agent recorded,
+    which is the debt itself. Closing that needs the welfare assessment or an ability-to-pay step
+    before any disconnection (S4's "means exhausted"), and that belongs to the collections atom.
+  - **Reversible.** Delete `_held_evidence` from `winter_moratorium.safety_net_on_record`.
 - `UNSOURCED`, opened 2026-11-14 (fourth pass, item 1): whether Ofgem treats a summer disconnection
   of a known-vulnerable household as a breach of the Standards of Conduct (SLC 0). SLC 0 has not
   been read in the instrument here; nothing in the code cites it.

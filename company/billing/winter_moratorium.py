@@ -38,9 +38,11 @@ from company.regulatory.priority_services_register import (
 # duties; this keeps households from disconnection all year. S5 is a welfare test on "age,
 # health, disability or severe financial insecurity", not category membership; this is its
 # categorical reading, erring toward protection. Mental health is on the "health" ground and a
-# child five or under on "age" (added after C32's fifth pass, item 5). Sensory impairment,
-# language and temporary life changes stay outside; "severe financial insecurity" has no
-# category and is not modelled (commons section 4 GAP).
+# child five or under on "age" (added after C32's fifth pass, item 5). These six PROHIBIT. Any
+# other vulnerability evidence the company holds reads CANNOT_DETERMINE, because the welfare
+# test is live and the company has no welfare assessment (C32's sixth pass, commons s.4). So
+# sensory impairment, language, temporary life changes, the uncategorised needs and every
+# agent flag block as well, and a future assessment may clear those but never the six.
 SAFETY_NET_CATEGORIES = frozenset({
     PSRCategory.DISABILITY,
     PSRCategory.CHRONIC_ILLNESS,
@@ -91,7 +93,53 @@ def safety_net_protection(
             "untranscribed cohort tables, and the Safety Net would protect it all year. Ask "
             "before any disconnection.",
         )
+    other = sorted(PSRCategory(c).value for c in categories)
+    if other:
+        return _welfare_unassessed(other)
     return licence
+
+
+def _welfare_unassessed(evidence) -> DisconnectionDetermination:
+    return DisconnectionDetermination(
+        DisconnectionProtection.CANNOT_DETERMINE,
+        f"{', '.join(evidence)}: the Safety Net is a welfare test and this supplier holds no "
+        "welfare assessment, so whether this household can safeguard its welfare is not "
+        "known. Assess before any disconnection.",
+    )
+
+
+def _held_evidence(record) -> tuple:
+    """Every piece of vulnerability evidence a record holds, as labels. A flag record holds
+    its flags; a register record is a registration, whatever its codes name."""
+    flags = getattr(record, "flags", None)
+    if flags is not None:
+        return tuple(f"flagged {getattr(f, 'value', f)}" for f in flags)
+    codes = tuple(f"needs code {c}" for c in record.needs_codes)
+    return codes or ("on the Priority Services Register",)
+
+
+def safety_net_on_record(
+    record,
+    as_of: dt.date,
+    household: HouseholdComposition = HouseholdComposition.UNKNOWN,
+    date_of_birth: Optional[dt.date] = None,
+) -> DisconnectionDetermination:
+    """The company's answer for a household it holds a record on (`PSRRecord` or
+    `VulnerabilityRecord`).
+
+    The record's own counterfactuals run against `safety_net_protection` first. Some evidence
+    never reaches a category, so no counterfactual can see it: an uncategorised needs code
+    such as post-hospital recovery, and the operational flags (bereavement, job loss, payment
+    difficulty, fuel poverty, PPM self-disconnection). Until C32's sixth pass, each of those was
+    permitted in July. Any evidence held now reads CANNOT_DETERMINE when nothing else blocks.
+    """
+    answer = record.disconnection_protection(
+        as_of, household, date_of_birth, decider=safety_net_protection
+    )
+    if not answer.may_disconnect:
+        return answer
+    evidence = _held_evidence(record)
+    return _welfare_unassessed(evidence) if evidence else answer
 
 
 class MoratoriumType(str, Enum):
@@ -179,8 +227,8 @@ class WinterMoratoriumRegister:
 
         Pass the household's `record` (a `PSRRecord` or a `VulnerabilityRecord`) where one is
         held: its undetermined codes and flags, and a registration naming no need, are then
-        weighed against the net as well as the licence. `categories` alone sees only what is
-        established. One of the two is required on purpose: a caller that does not know the
+        weighed against the net as well as the licence, and any evidence the record holds
+        blocks (`safety_net_on_record`). `categories` alone sees only what is established. One of the two is required on purpose: a caller that does not know the
         household's needs must say `categories=()` out loud, rather than inherit an empty set
         that reads as "nobody here is protected".
         """
@@ -189,9 +237,7 @@ class WinterMoratoriumRegister:
         if self.is_protected(account_id, as_of):
             return False
         if record is not None:
-            return record.disconnection_protection(
-                as_of, household, date_of_birth, decider=safety_net_protection
-            ).may_disconnect
+            return safety_net_on_record(record, as_of, household, date_of_birth).may_disconnect
         return safety_net_protection(
             tuple(categories), as_of=as_of, household=household, date_of_birth=date_of_birth
         ).may_disconnect

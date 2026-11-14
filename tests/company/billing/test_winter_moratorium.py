@@ -139,8 +139,9 @@ class TestWinterMoratoriumRegister:
         The licence decider says a July household on home oxygen, disabled, chronically sick or
         of pensionable age has no licence protection; this supplier still does not disconnect it.
         One control over the partition: each Safety Net category blocks in July and in January,
-        while no category, and a category outside the net, still may be disconnected in July --
-        so a version that refused everything reds as surely as one that dropped the net.
+        while no category still may be disconnected in July -- so a version that refused
+        everything reds as surely as one that dropped the net. (A category outside the six was
+        the permitted leg until C32's sixth pass; it now blocks, see the test below.)
         """
         from company.billing.winter_moratorium import SAFETY_NET_CATEGORIES
         from company.regulatory.priority_services_register import disconnection_protection
@@ -154,9 +155,6 @@ class TestWinterMoratoriumRegister:
             assert reg.can_disconnect("S1", jul, categories=(category,)) is False
             assert reg.can_disconnect("S1", jan, categories=(category,)) is False
         assert reg.can_disconnect("S1", jul, categories=()) is True
-        outside = [c for c in PSRCategory if c not in SAFETY_NET_CATEGORIES]
-        assert outside
-        assert reg.can_disconnect("S1", jul, categories=(outside[0],)) is True
 
     def test_categories_must_be_stated(self):
         reg = WinterMoratoriumRegister()
@@ -197,9 +195,10 @@ def test_the_safety_net_reaches_what_the_record_only_suggests():
     licence alone (C32 fifth Expert Hour, 2026-11-14).
 
     One control over the partition: each of those is refused in July by the company while the
-    licence still permits it (so the licence answer stays readable), and the evidence outside
-    the net -- language support, job loss, bereavement, a birth date making it 39 -- is
-    still permitted in July. A decider that refused everything reds on the second half.
+    licence still permits it (so the licence answer stays readable), and a household with no
+    evidence, or a birth date making it 39, is still permitted in July. A decider that refused
+    everything reds on the second half. Language support, job loss and bereavement were on the
+    permitted side until C32's sixth pass found each was a Safety Net breach.
     """
     from company.crm.vulnerability_register import VulnerabilityFlag, VulnerabilityRecord
     from company.regulatory.priority_services_register import PSRRecord
@@ -222,11 +221,13 @@ def test_the_safety_net_reaches_what_the_record_only_suggests():
         # The commitment's "health" and "age" grounds (fifth pass, item 5).
         (psr(categories=(PSRCategory.MENTAL_HEALTH,), codes=(30,)), None),
         (psr(categories=(PSRCategory.CHILD_UNDER_5,), codes=(29,)), None),
-    ]
-    permitted = [
+        # C32's sixth pass, items 1 to 3: the welfare test is live and unassessed.
         (psr(categories=(PSRCategory.LANGUAGE_SUPPORT,), codes=(17,)), None),
         (flagged(VulnerabilityFlag.JOB_LOSS), None),
         (flagged(VulnerabilityFlag.BEREAVEMENT), None),
+    ]
+    permitted = [
+        (flagged(), None),
         (flagged(), dt.date(1985, 5, 1)),
     ]
     for record, born in refused + permitted:
@@ -235,6 +236,70 @@ def test_the_safety_net_reaches_what_the_record_only_suggests():
         == [False] * len(refused)
     assert [reg.can_disconnect("N1", jul, record=r, date_of_birth=b) for r, b in permitted] \
         == [True] * len(permitted)
+
+
+def test_any_vulnerability_evidence_held_blocks_a_summer_disconnection():
+    """C32's sixth blind pass, items 1 to 3. The net applied S5's welfare test as six
+    categories, so on 15 Jul 2024 the company permitted disconnecting a blind household
+    (codes 8, 9), a deaf one (35), one on post-hospital recovery or any other uncategorised
+    need, and one an agent had flagged bereaved, out of work, in payment difficulty or in fuel
+    poverty. The company holds no welfare assessment, so any evidence it holds now reads
+    CANNOT_DETERMINE (commons s.4).
+
+    One control over the whole partition, in July and January: every needs code on the
+    published list, every register category and every agent flag is refused, and a household
+    holding no evidence at all is permitted, so a refuse-everything decider reds. The six net
+    categories stay PROHIBITED and the rest are CANNOT_DETERMINE, because a future welfare
+    assessment may clear the second and never the first.
+    """
+    from company.billing.winter_moratorium import (
+        SAFETY_NET_CATEGORIES,
+        safety_net_on_record,
+        safety_net_protection,
+    )
+    from company.crm.vulnerability_register import VulnerabilityFlag, VulnerabilityRecord
+    from company.regulatory.priority_services_register import (
+        DisconnectionProtection,
+        NeedsCodeEvidence,
+        PSRRecord,
+        needs_code_grade,
+    )
+
+    def graded(code):
+        try:
+            return needs_code_grade(code)
+        except ValueError:
+            return None
+
+    codes = [c for c in range(1, 100) if graded(c) is not None]
+    uncategorised = [c for c in codes if graded(c).category is None]
+    assert len(codes) > 20 and uncategorised
+
+    def psr(code):
+        m = graded(code)
+        held = (m.category,) if m.evidence is NeedsCodeEvidence.EVIDENCED else ()
+        return PSRRecord(account_id="E1", categories=held, services_enrolled=(),
+                         registration_date=dt.date(2020, 1, 1),
+                         review_due_date=dt.date(2030, 1, 1), needs_codes=(code,))
+
+    reg = WinterMoratoriumRegister()
+    nobody = VulnerabilityRecord("E1", (), dt.date(2020, 1, 1))
+    for day in (dt.date(2024, 7, 15), dt.date(2024, 1, 15)):
+        permitted = [c for c in codes if reg.can_disconnect("E1", day, record=psr(c))]
+        permitted += [c.value for c in PSRCategory
+                      if reg.can_disconnect("E1", day, categories=(c,))]
+        permitted += [f.value for f in VulnerabilityFlag if reg.can_disconnect(
+            "E1", day, record=VulnerabilityRecord("E1", (f,), dt.date(2020, 1, 1)))]
+        assert permitted == [], (day, permitted)
+        assert reg.can_disconnect("E1", day, categories=()) is True
+        assert reg.can_disconnect("E1", day, record=nobody) is True
+    jul = dt.date(2024, 7, 15)
+    assert {c for c in PSRCategory
+            if safety_net_protection((c,), as_of=jul).protection
+            is DisconnectionProtection.PROHIBITED} == SAFETY_NET_CATEGORIES
+    assert safety_net_on_record(
+        VulnerabilityRecord("E1", (VulnerabilityFlag.JOB_LOSS,), jul), jul
+    ).protection is DisconnectionProtection.CANNOT_DETERMINE
 
 
 def test_exactly_one_of_categories_or_record():
