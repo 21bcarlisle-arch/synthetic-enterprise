@@ -125,7 +125,96 @@ _REASONABLE_STEPS_CATEGORIES = frozenset(
 )
 
 
+class PensionableAge(str, Enum):
+    ESTABLISHED = "established"
+    NOT_ESTABLISHED = "not_established"
+    CANNOT_DETERMINE = "cannot_determine"
+
+
+# CITED: docs/domain_artefact_library/regulatory/psr_eligibility_and_disconnection_protection.md
+# §2a. The licence's "Pensionable Age" is Gas Act 1986 s.48(2B), a date-of-birth rule judged on
+# the decision date. The Schedule 4 cohort tables were NOT transcribed, so only the bounds the
+# commons does establish are encoded: across 2016-2025 no one was of pensionable age below 60
+# (women's SPA rose from 60; limb (b) gives men born before 6 Dec 1953 the women's age, never a
+# lower one), and no one aged 66 or over was not (no cohort's age exceeded 66 inside the window).
+_PENSIONABLE_AGE_FLOOR_YEARS = 60
+_PENSIONABLE_AGE_CEILING_YEARS = 66
+# CITED: commons §2a (S10): women's SPA reached 65 "by November 2018", and men's and women's
+# reached 66 together "by October 2020". From the month after each, the lower bound of the
+# undetermined band rises to that age. Taking the month after widens the band, which is the
+# direction that keeps protection.
+_PENSIONABLE_AGE_FLOOR_RISES = ((date(2018, 12, 1), 65), (date(2020, 11, 1), 66))
+
+
+def _age_in_years(born: date, as_of: date) -> int:
+    return as_of.year - born.year - ((as_of.month, as_of.day) < (born.month, born.day))
+
+
+def pensionable_age_from_birth_date(born: date | None, as_of: date) -> PensionableAge:
+    """Gas Act s.48(2B) at `as_of`, to the extent the commons establishes it (C32 EH-5).
+
+    Inside the band (60 to 66 until Dec 2018, 65 to 66 until Nov 2020) the answer turns
+    on the Schedule 4 cohort tables (and on limb (b), which LOWERS a man's age to a woman's),
+    and those were not transcribed: the answer there is CANNOT_DETERMINE, never NOT_ESTABLISHED. Writing the customer's own
+    State Pension age instead would under-protect exactly the men limb (b) exists for.
+    No birth date held is CANNOT_DETERMINE too: not knowing an age is not knowing it is low.
+    """
+    if born is None:
+        return PensionableAge.CANNOT_DETERMINE
+    age = _age_in_years(born, as_of)
+    if age >= _PENSIONABLE_AGE_CEILING_YEARS:
+        return PensionableAge.ESTABLISHED
+    floor = _PENSIONABLE_AGE_FLOOR_YEARS
+    for from_date, risen_to in _PENSIONABLE_AGE_FLOOR_RISES:
+        if as_of >= from_date:
+            floor = risen_to
+    if age < floor:
+        return PensionableAge.NOT_ESTABLISHED
+    return PensionableAge.CANNOT_DETERMINE
+
+
 def disconnection_protection(
+    categories,
+    *,
+    as_of: date,
+    household: HouseholdComposition = HouseholdComposition.UNKNOWN,
+    date_of_birth: date | None = None,
+) -> DisconnectionDetermination:
+    """The decider, with a birth date read through s.48(2B) when one is held.
+
+    A held code-14 flag is never overridden by a birth date: pensionable age is monotone
+    (commons §2a.3), so a flag that was right when set is right now. Without the flag, an
+    established age is the category; an undetermined one is asked the counterfactual (would
+    the category change the answer?) and, if it would, the answer is CANNOT_DETERMINE. When
+    no birth date is passed, the flag alone decides, as it did before EH-5.
+    """
+    held = set(categories)
+    if date_of_birth is None:
+        return _disconnection_protection(held, as_of=as_of, household=household)
+    status = pensionable_age_from_birth_date(date_of_birth, as_of)
+    if status is PensionableAge.ESTABLISHED:
+        return _disconnection_protection(
+            held | {PSRCategory.PENSIONABLE_AGE}, as_of=as_of, household=household
+        )
+    without = _disconnection_protection(held, as_of=as_of, household=household)
+    if status is PensionableAge.NOT_ESTABLISHED:
+        return without
+    with_it = _disconnection_protection(
+        held | {PSRCategory.PENSIONABLE_AGE}, as_of=as_of, household=household
+    )
+    if with_it.protection is without.protection:
+        return without
+    return DisconnectionDetermination(
+        DisconnectionProtection.CANNOT_DETERMINE,
+        f"born {date_of_birth.isoformat()}: at this age and date, pensionable age under Gas "
+        "Act s.48(2B) turns on the Pensions Act 1995 Schedule 4 cohort tables, which the "
+        "commons has not transcribed, and the answer would change "
+        f"the determination ({without.protection.value} without it, "
+        f"{with_it.protection.value} with it).",
+    )
+
+
+def _disconnection_protection(
     categories,
     *,
     as_of: date,

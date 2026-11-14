@@ -142,6 +142,14 @@ quarterly meter readings; free annual gas safety check; password scheme; nominee
   **Design consequence for `company/`:** the decider reads the code-14 flag (point 3 makes that
   sound). Where a DOB is held, a computed flag must use the s.48(2B) rule *including limb (b)*.
   Where neither is held, the answer is CANNOT_DETERMINE, never "not pensionable".
+  *Code, 2026-11-14 (C32 EH-5):* `priority_services_register.pensionable_age_from_birth_date`
+  encodes only the bounds this section establishes (never below 60; always from 66; the floor
+  rises to 65 from Dec 2018 and 66 from Nov 2020) and answers CANNOT_DETERMINE inside the band,
+  which holds a disconnection wherever the answer would change it. **The last sentence above is
+  NOT yet what the decider does:** a customer with no flag and no DOB still reads "not
+  established", as before EH-5, because applying it would hold every winter disconnection in the
+  book. Whether that is right turns on whether the SLC 27 prohibition is limited to customers the
+  supplier knows (or should know) are of pensionable age, which is the clause-text gap in §4.
 
 ## 3. What the published record does NOT establish — and this is the load-bearing part
 
