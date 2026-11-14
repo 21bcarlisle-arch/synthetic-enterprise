@@ -1548,8 +1548,8 @@ def director_inputs(since: datetime, now: datetime | None = None) -> list[str]:
     spoke. For five stretches this returned [] while he was steering from the console, because
     the capture lives in `console/`, which the glob never read.
 
-    Every director turn in a `DIRECTOR_CONSOLE_*` file is his: the seat's answers go to the
-    `SEAT_REPLY_*` sibling precisely so they cannot be read as his voice, and are not read here.
+    The seat's answers go to the `SEAT_REPLY_*` sibling precisely so they cannot be read as his
+    voice, and are not read here. Turns the capture labelled NOT HIS are skipped.
     """
     names = []
     for folder in (STAGING_DIR, STAGING_DIR / "done", STAGING_DIR / "in_progress"):
@@ -1570,7 +1570,7 @@ def director_inputs(since: datetime, now: datetime | None = None) -> list[str]:
 def console_turns_since(since: datetime, now: datetime | None = None) -> list[str]:
     """`<room>/DIRECTOR_CONSOLE_<day>.md@<stamp>` for each console turn stamped at or after
     `since`. Days are the capture's own: `by_day` files a turn under its UTC stamp's date."""
-    from tools.console_instruction_record import is_director_prompt, record_path, turns_in_record
+    from tools.console_instruction_record import is_his, record_path, split_heading, turns_in_record
 
     now = now or datetime.now(timezone.utc)
     out = []
@@ -1583,9 +1583,12 @@ def console_turns_since(since: datetime, now: datetime | None = None) -> list[st
             turns = []
         for stamp, text in turns:
             # A record written before the capture refused peer sessions still holds their
-            # messages (22 Oct); the brief listed them as his inputs twice.
-            if not is_director_prompt(text):
+            # messages (22 Oct); the brief listed them as his inputs twice. A heading labelled
+            # NOT HIS (a skill expansion, a scheduled wakeup) is kept in the record, never here:
+            # on 14 Nov a wakeup prompt was the brief's only "director input".
+            if not is_his(stamp, text):
                 continue
+            stamp = split_heading(stamp)[0]
             try:
                 when = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
             except ValueError:

@@ -118,7 +118,7 @@ def test_THE_BACKSTOP_MERGES_AND_CANNOT_SHRINK_A_RECORD(tmp_path, monkeypatch):
     staging = tmp_path / "staging"
     _record(staging, "2026-09-05", "An instruction only the old record holds.")
     monkeypatch.setattr(record, "STAGING_DIR", staging)
-    monkeypatch.setattr(record, "director_turns_across", lambda paths: ([], []))
+    monkeypatch.setattr(record, "director_turns_across", lambda paths, include_machine=False: ([], []))
     monkeypatch.setattr(record, "recent_transcripts", lambda directory=None, days=3.0: [])
 
     record.write(staging=staging)

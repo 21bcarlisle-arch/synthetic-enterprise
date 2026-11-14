@@ -167,6 +167,9 @@ _NOT_THE_DIRECTOR = (
 #: differs, and matching text is the enumeration this module already warns about elsewhere.
 #: Kept as a floor for the scanning path, never as the mechanism -- the mechanism is the
 #: UserPromptSubmit hook, which classifies at the one moment the answer is actually known.
+#: CORRECTED 14 Nov: true of the 2026-09 harness, no longer -- `user` records now carry
+#: `turnOrigin`/`isMeta`, and `machine_origin` reads them. These markers stay as the floor for
+#: an `enqueue` with no twin and for older transcripts.
 DAEMON_PROMPT_MARKERS = (
     "[SUPERVISOR:",
     "[AUTONOMOUS",
@@ -178,6 +181,57 @@ DAEMON_PROMPT_MARKERS = (
 )
 
 _REMINDER_RE = re.compile(r"<system-reminder>.*?</system-reminder>", re.S)
+
+#: A skill's body, which the harness expands into the user role when a skill is invoked. It is
+#: a checklist the machine loaded, not something he typed, and on 14 Nov the whole phase-close
+#: checklist was filed here as his words. Matched as a PREFIX: a turn he types that quotes the
+#: phrase mid-sentence is still his.
+SKILL_EXPANSION_PREFIX = "Base directory for this skill:"
+
+#: How a turn the machine wrote is marked in the record. It is KEPT, not dropped -- a reader
+#: tracing what the session was told needs it -- but its heading says it is not his, so nothing
+#: that reads this record for his authority can mistake it.
+NOT_HIS = " · NOT HIS: "
+
+
+def machine_origin(rec: dict) -> str | None:
+    """Why the HARNESS says this transcript record was not typed by a person, or None.
+
+    STRUCTURAL, and it supersedes the 2026-09-07 finding quoted on `DAEMON_PROMPT_MARKERS`. From
+    2.1.3xx a `user` record carries `turnOrigin` (`human` for a typed or queued turn; `scheduled`,
+    `sdk`, `task_notification`, `peer` otherwise) and `isMeta: true` on a turn the harness
+    injected -- a skill expansion, an image caption, a ScheduleWakeup prompt. Measured 14 Nov:
+    all three turns that day's record filed as his carried `isMeta`. A record with neither field
+    (older versions) is not judged here; the text markers remain its floor.
+    """
+    origin = rec.get("turnOrigin")
+    if origin and origin != "human":
+        return f"turnOrigin={origin}"
+    if rec.get("isMeta") is True:
+        return "isMeta (harness-injected)"
+    return None
+
+
+def text_says_not_his(text: str) -> str | None:
+    """Why the TEXT alone shows a turn is machine-written but worth keeping, or None."""
+    if (text or "").lstrip().startswith(SKILL_EXPANSION_PREFIX):
+        return "a skill expansion"
+    return None
+
+
+def labelled(stamp: str, reason: str | None) -> str:
+    return f"{stamp}{NOT_HIS}{reason}" if reason else stamp
+
+
+def split_heading(heading: str) -> tuple[str, str | None]:
+    """`### ` heading -> (iso stamp, not-his reason or None)."""
+    stamp, sep, reason = (heading or "").partition(NOT_HIS)
+    return stamp.strip(), (reason.strip() or "unstated") if sep else None
+
+
+def is_his(stamp: str, text: str) -> bool:
+    """A recorded turn is his only if its heading carries no NOT-HIS label AND its text passes."""
+    return split_heading(stamp)[1] is None and is_director_prompt(text)
 
 
 #: Credential shapes redacted before anything is written. GitHub push protection caught a live
@@ -243,7 +297,26 @@ def is_director_prompt(text: str) -> bool:
     stripped = (text or "").lstrip()
     if not stripped:
         return False
-    return not stripped.startswith(_NOT_THE_DIRECTOR + DAEMON_PROMPT_MARKERS)
+    return not _dropped(stripped) and text_says_not_his(stripped) is None
+
+
+def _dropped(text: str) -> bool:
+    """Scaffolding and daemon prompts: not his, and not worth a line in his record either."""
+    stripped = (text or "").lstrip()
+    return not stripped or stripped.startswith(_NOT_THE_DIRECTOR + DAEMON_PROMPT_MARKERS)
+
+
+def _user_text(rec: dict) -> str | None:
+    """The text of a `user` record, or None for a tool result or a shape with no text."""
+    content = (rec.get("message") or {}).get("content")
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in content):
+            return None
+        return " ".join(b.get("text", "") for b in content
+                        if isinstance(b, dict) and b.get("type") == "text")
+    return None
 
 
 class TranscriptUnavailable(RuntimeError):
@@ -264,8 +337,13 @@ def newest_transcript(directory: Path | None = None) -> Path:
     return files[0]
 
 
-def director_turns(transcript: Path) -> list[tuple[str, str]]:
+def director_turns(transcript: Path, include_machine: bool = False) -> list[tuple[str, str]]:
     """[(iso_timestamp, verbatim_text)] for every turn the DIRECTOR typed, in order.
+
+    `include_machine=True` also returns turns the harness marks as machine-written (see
+    `machine_origin`) or that are skill expansions, each with its stamp LABELLED NOT-HIS
+    (`labelled`). `write()` keeps them in the record that way; every other caller wants his
+    turns only and gets them by default.
 
     Tool results and harness-injected user-role turns are excluded by shape, never by guessing
     at content: a turn carrying a `tool_result` block is machine output, and the prefixes in
@@ -278,8 +356,30 @@ def director_turns(transcript: Path) -> list[tuple[str, str]]:
 
     turns: list[tuple[str, str]] = []
     seen: set[str] = set()
+    records = []
+    for line in raw.splitlines():
+        try:
+            records.append(json.loads(line))
+        except Exception:  # noqa: BLE001 - one bad line is not a blind transcript
+            continue
+
+    def _key(text: str) -> str:
+        return " ".join(_REMINDER_RE.sub("", (text or "").strip()).split())
+
+    # THE ENQUEUE TWIN (14 Nov). A ScheduleWakeup prompt is written twice: a `queue-operation`
+    # enqueue with no origin field, then the `user` record carrying `isMeta` and
+    # `turnOrigin: scheduled`. The enqueue comes first and won the dedup below, so the 19:16
+    # wakeup "Check /tmp/c32_land.log ..." was filed as his and became the brief's only director
+    # input. The verdict is read from the user record and carried to its twin by text.
+    machine: dict[str, str] = {}
+    for rec in records:
+        if rec.get("type") == "user" and (why := machine_origin(rec)):
+            machine.setdefault(_key(_user_text(rec) or ""), why)
+
+    his_count = 0
 
     def _keep(stamp, text: str) -> None:
+        nonlocal his_count
         text = _REMINDER_RE.sub("", (text or "").strip()).strip()
         # ONE JUDGEMENT, SHARED WITH THE HOOK. This used to test `_NOT_THE_DIRECTOR` only --
         # harness scaffolding -- and let DAEMON-INJECTED turns through, because until 2026-09-03
@@ -287,20 +387,20 @@ def director_turns(transcript: Path) -> list[tuple[str, str]]:
         # real folder on 2026-09-07 it swept them in: 67% of that day's "director turns" and 84%
         # of the next were "You are the autonomous worker...", quoted as his words in a file the
         # release door reads as his authority. Worse than the silence it replaced.
-        if not is_director_prompt(text):
+        if _dropped(text):
+            return
+        why = machine.get(_key(text)) or text_says_not_his(text)
+        if why and not include_machine:
             return
         text = redact(text)
         key = " ".join(text.split())
         if key in seen:
             return
         seen.add(key)
-        turns.append((str(stamp or ""), text))
+        his_count += why is None
+        turns.append((labelled(str(stamp or ""), why), text))
 
-    for line in raw.splitlines():
-        try:
-            rec = json.loads(line)
-        except Exception:  # noqa: BLE001 - one bad line is not a blind transcript
-            continue
+    for rec in records:
         kind = rec.get("type")
         # THE TURN HE TYPED BETWEEN TURNS (2026-08-25). A message sent while a turn is already
         # running is not written as a `user` record at all -- it is QUEUED, and the transcript
@@ -320,18 +420,12 @@ def director_turns(transcript: Path) -> list[tuple[str, str]]:
             continue
         if kind != "user":
             continue
-        content = (rec.get("message") or {}).get("content")
-        if isinstance(content, str):
-            text = content
-        elif isinstance(content, list):
-            if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in content):
-                continue
-            text = " ".join(b.get("text", "") for b in content
-                            if isinstance(b, dict) and b.get("type") == "text")
-        else:
+        text = _user_text(rec)
+        if text is None:
             continue
         _keep(rec.get("timestamp"), text)
-    if not turns:
+    # Machine turns alone are not a director turn: a session he never spoke in still fails here.
+    if not his_count and not (include_machine and turns):
         raise TranscriptUnavailable(
             f"{transcript.name} holds no director turn at all -- that is a broken read or the "
             "wrong file, not a silent director, and writing it as a record would erase the "
@@ -403,7 +497,8 @@ def recent_transcripts(directory: Path | None = None,
     return keep or [newest]
 
 
-def director_turns_across(paths: list[Path]) -> tuple[list[tuple[str, str]], list[str]]:
+def director_turns_across(paths: list[Path], include_machine: bool = False
+                          ) -> tuple[list[tuple[str, str]], list[str]]:
     """([(ts, text)] merged across transcripts in timestamp order, [transcript names used]).
 
     DEDUPED BY TEXT, exactly as within one transcript: the same instruction can appear in two
@@ -414,7 +509,7 @@ def director_turns_across(paths: list[Path]) -> tuple[list[tuple[str, str]], lis
     used: list[str] = []
     for path in paths:
         try:
-            turns = director_turns(path)
+            turns = director_turns(path, include_machine=include_machine)
         except TranscriptUnavailable:
             # A transcript with no director turn is not a failure HERE -- it is a session he
             # never spoke in. It only fails when NOTHING readable holds a turn (below).
@@ -422,8 +517,15 @@ def director_turns_across(paths: list[Path]) -> tuple[list[tuple[str, str]], lis
         used.append(path.name)
         for ts, text in turns:
             key = " ".join(text.split())
-            if key not in merged or (ts and ts < merged[key][0]):
+            if key not in merged:
                 merged[key] = (ts, text)
+                continue
+            # Earliest stamp wins; a NOT-HIS label from ANY transcript wins over none, because a
+            # resumed session can replay a wakeup as a bare enqueue with no user record beside it.
+            old_ts = merged[key][0]
+            (o_iso, o_why), (n_iso, n_why) = split_heading(old_ts), split_heading(ts)
+            iso = n_iso if (n_iso and n_iso < o_iso) else o_iso
+            merged[key] = (labelled(iso, o_why or n_why), merged[key][1])
     if not merged:
         raise TranscriptUnavailable(
             "no transcript in the recent window holds a director turn -- that is a broken read, "
@@ -458,7 +560,13 @@ def render(day: str, turns: list[tuple[str, str]], transcript_name: str) -> str:
         "> shorthand to an atom is a judgement, and it belongs in a separate record that cites",
         "> this one, not in an automatic capture that would be putting words in his mouth.",
         "",
-        f"Source: `{transcript_name}` · {len(turns)} turn(s).",
+        "> **A heading marked `NOT HIS` is a turn the machine wrote** (a skill expansion, a",
+        "> scheduled wakeup, a harness injection). It is kept so the session's inputs can be traced,",
+        "> and it carries no authority.",
+        "",
+        f"Source: `{transcript_name}` · {len(turns)} turn(s)"
+        + (f", {not_his} of them NOT HIS." if (not_his := sum(
+            split_heading(ts)[1] is not None for ts, _ in turns)) else "."),
         "",
     ]
     for ts, text in turns:
@@ -485,23 +593,35 @@ def write(directory: Path | None = None, staging: Path | None = None,
     So the union wins: turns already on disk are kept, new ones are added, and dedup is by text
     exactly as within a transcript. A turn can only leave this record by a human deleting it.
     """
-    all_turns, used = director_turns_across(recent_transcripts(directory, days))
+    all_turns, used = director_turns_across(recent_transcripts(directory, days),
+                                            include_machine=True)
     out_dir = Path(staging) if staging is not None else STAGING_DIR
     out_dir.mkdir(parents=True, exist_ok=True)
     written = []
     for day, turns in by_day(all_turns).items():
         path = record_path(day, staging)
-        merged, seen = [], set()
+        # A day the director never spoke in gets no record: a file of machine turns alone in the
+        # staging root would ring the doorbell for nothing he said.
+        if not path.exists() and not any(is_his(s, t) for s, t in turns):
+            continue
+        merged: dict[str, tuple[str, str]] = {}
         for stamp, text in turns_in_record(path) + turns:
             key = " ".join(text.split())
             # Keep an EXISTING daemon misattribution out on the way back in: a record written
             # before the filter was wired holds turns that were never his, and merging must not
             # preserve them just because they are already on disk.
-            if key in seen or not is_director_prompt(text):
+            if _dropped(text):
                 continue
-            seen.add(key)
-            merged.append((stamp, text))
-        merged.sort(key=lambda pair: pair[0])
+            iso, why = split_heading(stamp)
+            why = why or text_says_not_his(text)
+            if key in merged:
+                # The on-disk copy keeps its stamp; a NOT-HIS verdict from the transcript is
+                # what relabels a turn filed before this classification existed.
+                old_iso, old_why = split_heading(merged[key][0])
+                merged[key] = (labelled(old_iso, old_why or why), merged[key][1])
+            else:
+                merged[key] = (labelled(iso, why), text)
+        merged = sorted(merged.values(), key=lambda pair: pair[0])
         body = render(day, merged, ", ".join(used))
         # WRITE INTO THE ROOM THAT ALREADY HOLDS IT (2026-08-25). Reaching back across several
         # days means most of them have already been read and archived, and re-creating their
@@ -567,9 +687,10 @@ def append_turn(stamp: str, text: str, staging: Path | None = None) -> Path | No
     Idempotent on an exact repeat, so a retried hook cannot double-write. Returns the path when
     it wrote, None when the turn was already there or was not the director's.
     """
-    if not is_director_prompt(text):
+    if _dropped(text):
         return None
     text = redact(text)
+    stamp = labelled(stamp, text_says_not_his(text))
     day = (stamp or "")[:10]
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
         raise ValueError(f"refusing to file a turn under {day!r}; a record needs its real day")
@@ -732,7 +853,8 @@ def check(staging: Path | None = None, now: float | None = None) -> tuple[int, s
     # director named. Checked against the RECORD rather than against a clock, because a reply is
     # owed per day of conversation and not per elapsed hour.
     out_dir = Path(staging) if staging is not None else STAGING_DIR
-    if turns_in_record(record_path(captured, staging)) and not turns_in_record(
+    if any(is_his(s, t) for s, t in turns_in_record(record_path(captured, staging))) \
+            and not turns_in_record(
             reply_path(captured, staging)):
         return 1, (
             f"THE SEAT'S SIDE IS MISSING for {captured}: that day's DIRECTOR_CONSOLE record holds "
