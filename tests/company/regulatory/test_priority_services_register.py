@@ -9,12 +9,14 @@ from company.regulatory.priority_services_register import (
     DisconnectionProtection,
     HouseholdComposition,
     NeedsCodeEvidence,
+    PensionableAge,
     PriorityServicesRegister,
     PSRCategory,
     PSRRecord,
     PSRService,
     disconnection_protection,
     needs_code_for,
+    pensionable_age_from_birth_date,
 )
 
 TODAY = dt.date(2024, 6, 1)
@@ -310,3 +312,86 @@ class TestNeedsCodeMapping:
         s = reg.psr_summary(TODAY)
         assert "Priority Services Register" in s
         assert "Active" in s
+
+
+class TestPensionableAgeFromABirthDate:
+    """C32 EH-5: Gas Act s.48(2B), judged on the decision date (commons §2a)."""
+
+    WINTER_2017 = dt.date(2017, 1, 15)
+
+    def test_every_answer_is_reachable_and_the_band_closes_in_2020(self):
+        """One control over the partition: a rule that answers CANNOT_DETERMINE to everyone
+        passes every 'it refuses correctly' leg. And the undetermined band must be empty by
+        November 2020, when the commons says 66 became the age for everyone."""
+        seen = {
+            pensionable_age_from_birth_date(born, self.WINTER_2017)
+            for born in (dt.date(1949, 1, 1), dt.date(1953, 6, 1), dt.date(1960, 1, 1), None)
+        }
+        assert seen == set(PensionableAge)
+        for year in range(1950, 1966):
+            assert pensionable_age_from_birth_date(
+                dt.date(year, 6, 1), dt.date(2021, 1, 15)
+            ) is not PensionableAge.CANNOT_DETERMINE
+
+    def test_no_fixed_age_answers_every_date_in_the_window(self):
+        """The defect EH-5 named: a constant 65 or 66 is refuted the same way 75 was. A
+        63-year-old woman was inside the band in 2017 and is not of pensionable age in 2022."""
+        assert pensionable_age_from_birth_date(
+            dt.date(1953, 6, 1), dt.date(2017, 1, 15)
+        ) is PensionableAge.CANNOT_DETERMINE
+        assert pensionable_age_from_birth_date(
+            dt.date(1958, 6, 1), dt.date(2022, 1, 15)
+        ) is PensionableAge.NOT_ESTABLISHED
+
+    def test_it_is_monotone_in_the_decision_date(self):
+        """Once of pensionable age, always (commons §2a.3): no later date may answer lower."""
+        rank = {PensionableAge.NOT_ESTABLISHED: 0, PensionableAge.CANNOT_DETERMINE: 1,
+                PensionableAge.ESTABLISHED: 2}
+        for year in range(1948, 1962):
+            born = dt.date(year, 3, 10)
+            seq = [rank[pensionable_age_from_birth_date(born, dt.date(y, m, 1))]
+                   for y in range(2016, 2026) for m in range(1, 13)]
+            established_from = seq.index(2) if 2 in seq else len(seq)
+            assert all(r == 2 for r in seq[established_from:]), year
+
+    def test_an_undetermined_age_holds_a_winter_disconnection(self):
+        """The fail-open shape: an age we cannot place read as 'not pensionable'. Limb (b)
+        lowers a man's age to a woman's, so the band is where under-protection would live."""
+        d = disconnection_protection(
+            (), as_of=self.WINTER_2017, household=HouseholdComposition.LIVES_ALONE,
+            date_of_birth=dt.date(1953, 6, 1),
+        )
+        assert d.protection is DisconnectionProtection.CANNOT_DETERMINE
+        assert d.may_disconnect is False and "Schedule 4" in d.reason
+
+    def test_an_established_age_protects_and_a_young_one_does_not(self):
+        lives_alone = HouseholdComposition.LIVES_ALONE
+        assert disconnection_protection(
+            (), as_of=self.WINTER_2017, household=lives_alone,
+            date_of_birth=dt.date(1949, 1, 1),
+        ).protection is DisconnectionProtection.PROHIBITED
+        assert disconnection_protection(
+            (), as_of=self.WINTER_2017, household=lives_alone,
+            date_of_birth=dt.date(1970, 1, 1),
+        ).may_disconnect is True
+
+    def test_a_held_code_14_flag_is_never_overridden_by_a_birth_date(self):
+        """A flag right when set is right now; a young-looking DOB must not remove it. Holds by
+        construction today (the DOB path only ever adds the category), so a guard clause for it
+        was an equivalent mutation and was removed; this pins it against a rewrite that
+        subtracts."""
+        d = disconnection_protection(
+            (PSRCategory.PENSIONABLE_AGE,), as_of=self.WINTER_2017,
+            household=HouseholdComposition.LIVES_ALONE, date_of_birth=dt.date(1980, 1, 1),
+        )
+        assert d.protection is DisconnectionProtection.PROHIBITED
+
+    def test_the_band_holds_only_where_it_would_change_the_answer(self):
+        """Disabled, other adults present: reasonable steps with or without pensionable age,
+        so an undetermined age must not degrade a known answer to CANNOT_DETERMINE."""
+        d = disconnection_protection(
+            (PSRCategory.DISABILITY,), as_of=self.WINTER_2017,
+            household=HouseholdComposition.OTHER_ADULTS_PRESENT,
+            date_of_birth=dt.date(1953, 6, 1),
+        )
+        assert d.protection is DisconnectionProtection.REASONABLE_STEPS
