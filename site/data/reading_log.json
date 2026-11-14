@@ -365,13 +365,55 @@
     "label": null,
     "anchor": null
    }
+  },
+  {
+   "read": "14 Nov",
+   "source": "Anthropic, \"Building always-on agents\" (William Hu, 13 Nov; claude.com/resources/articles/building-always-on-agents); shared by the director",
+   "claim": "Five primitives: a durable inbox, timers, memory outside the worker, permissions and an outbox. \"An inbox should only have one active worker at a time\", or runs compete and events are lost",
+   "evidence": "Vendor practice article, no measurement",
+   "verdict": "MEASURE, then no trial",
+   "done": "We match the inbox, timers, memory by pointer, deferred approval and start-quiet, and break one worker per inbox. Measured: no file dominates the collisions (top file 3.7%, top three 10%), and 69% of collision lines are \"behind origin\", the trunk moving. So no one-writer trial (`docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md`)",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "14 Nov",
+   "source": "AgriciDaniel/claude-obsidian (MIT, about 16k stars): Claude Code plus an Obsidian vault as a self-organising, cited wiki; shared by the director",
+   "claim": "A source becomes linked, cited notes, and the notes organise themselves",
+   "evidence": "Open-source project, popularity only",
+   "verdict": "ALREADY HAVE",
+   "done": "We already turn sources into linked, cited notes, rule on orphans and write without clobbering (`isolate_hunks`, `surgical_land`). Its one idea, hanging notes on what they are about, is the 14 Nov concept-link measurement, which found 0 of 3 repeat-defect families",
+   "concept": "Learning",
+   "placed": {
+    "kind": "concept",
+    "label": "Learning",
+    "anchor": "c-build.learning"
+   }
+  },
+  {
+   "read": "14 Nov",
+   "source": "Samsung Research, LittleBit (NeurIPS 2025) and LittleBit-2 (ICML 2026): LLM compression below 1 bit per weight; shared by the director",
+   "claim": "Very large memory savings at sub-1-bit precision",
+   "evidence": "Peer-reviewed. Speed is shown only on an A100",
+   "verdict": "NOT FOR US",
+   "done": "It shrinks memory but leaves the quality gap: Llama-2-7B perplexity 15.9 at 0.1 bits per weight, against 5.5 at FP16. It needs quantization-aware training, which a 3060 cannot do. Qwen was retired for quality as well as memory, and this fixes only memory. The 12 GB card also cannot hold a seat-sized context",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
   }
  ],
  "placed": {
-  "concept": 14,
-  "step": 6,
+  "concept": 15,
+  "step": 7,
   "unplaced": 2,
-  "none": 4
+  "none": 5
  },
  "rejected": 3
 }
