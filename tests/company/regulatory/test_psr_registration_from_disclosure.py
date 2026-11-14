@@ -14,7 +14,6 @@ from company.regulatory.priority_services_register import (
     HouseholdComposition,
     PSRCategory,
     PSRRecord,
-    disconnection_protection,
 )
 from interface.contracts.registration_loss_seam import CSS_SENDER
 from simulation.registration_loss_feed import CSS_PROVIDER_CREDENTIAL
@@ -52,10 +51,15 @@ def test_a_disclosure_for_a_point_the_book_does_not_hold_registers_nothing_and_s
         "reason": NOT_ON_THIS_BOOK}]
 
 
-def test_a_registration_naming_codes_with_no_mapping_is_refused_with_its_reason():
-    """Defect: a needs code silently registered as no category, so a protection owed is lost."""
-    with pytest.raises(ValueError, match="no needs-code -> PSRCategory mapping"):
-        open_priority_services_register().receive_registration_wire(_wire("C1", (14,)))
+def test_a_registration_reads_its_codes_through_the_commons_and_refuses_an_unpublished_one():
+    """Defect: a needs code dropped, so a pensionable-age registrant carries no category -- or a
+    code nobody publishes registered as if it were a need. Commons s.1b."""
+    register = open_priority_services_register()
+    record = register.receive_registration_wire(_wire("C1", (14, 22, 19)))
+    assert record.categories == (PSRCategory.PENSIONABLE_AGE,)
+    assert record.needs_codes == (14, 22, 19)
+    with pytest.raises(ValueError, match="needs code 10 is not on the published list"):
+        open_priority_services_register().receive_registration_wire(_wire("C2", (10,)))
 
 
 def test_a_wire_carrying_a_latent_state_or_from_another_sender_is_refused():
@@ -74,21 +78,30 @@ def test_a_wire_carrying_a_latent_state_or_from_another_sender_is_refused():
     open_priority_services_register().receive_registration_wire(_wire("C1g"))
 
 
-def test_protection_for_a_registered_customer_is_still_decided_by_its_categories_alone():
-    """Defect: the knowledge-source change moving the protection a REGISTERED customer gets. The
-    published rule is asked of the record's categories, so the same categories give the same
-    answer whether the record came from a disclosure or was registered directly."""
+def test_a_registration_that_records_no_need_never_reads_as_unprotected():
+    """Defect: a household on the register with no code read NOT_ESTABLISHED, so the register
+    and the decider disagreed about exactly the people the register exists for (C32 Expert
+    Hour re-take, 2026-11-14). The same categories still give the same answer however the
+    record arrived, and a registrant with a code that confers nothing CAN be permitted."""
     register = open_priority_services_register()
     register.register(PSRRecord("D-1", (PSRCategory.PENSIONABLE_AGE,), (), _ON, _ON))
+    register.receive_registration_wire(_wire("C1", (14,)))
     register.receive_registration_wire(_wire("C2"))
     winter = dt.date(2016, 12, 1)
     alone = HouseholdComposition.LIVES_ALONE
-    direct = disconnection_protection(register.get_record("D-1").categories, as_of=winter,
-                                      household=alone)
-    disclosed = disconnection_protection(register.get_record("C2").categories, as_of=winter,
-                                         household=alone)
-    assert direct.protection is DisconnectionProtection.PROHIBITED
-    assert disclosed.protection is DisconnectionProtection.NOT_ESTABLISHED
+    assert register.get_record("D-1").disconnection_protection(winter, alone).protection \
+        is DisconnectionProtection.PROHIBITED
+    assert register.get_record("C1").disconnection_protection(winter, alone).protection \
+        is DisconnectionProtection.PROHIBITED
+    assert register.get_record("C2").disconnection_protection(winter, alone).protection \
+        is DisconnectionProtection.CANNOT_DETERMINE
+    nothing_conferred = PSRRecord("D-2", (), (), _ON, _ON, needs_codes=(19,))
+    assert nothing_conferred.disconnection_protection(dt.date(2016, 7, 1), alone).may_disconnect
+    # A code that overlaps a protecting category without establishing it waits to be asked.
+    overlapping = PSRRecord("D-3", (), (), _ON, _ON, needs_codes=(22,))
+    asked = overlapping.disconnection_protection(dt.date(2016, 7, 1), alone)
+    assert asked.protection is DisconnectionProtection.CANNOT_DETERMINE
+    assert "needs code 22" in asked.reason
 
 
 _LATENT_NAMES = {"psr_type_vulnerable", "financially_vulnerable", "discloses_psr",

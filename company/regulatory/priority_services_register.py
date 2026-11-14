@@ -270,6 +270,44 @@ def _disconnection_protection(
     )
 
 
+def protection_weighing_undetermined(
+    held,
+    undetermined,
+    *,
+    as_of: date,
+    household: HouseholdComposition = HouseholdComposition.UNKNOWN,
+    date_of_birth: date | None = None,
+) -> DisconnectionDetermination:
+    """The decider, with each undetermined term asked the counterfactual.
+
+    `held` are the categories established; `undetermined` is (label, category) pairs, each a
+    term that overlaps a category without establishing it -- an agent's flag, or a needs code
+    graded so in commons s.1b. Had it been the category, would the answer block? If so the
+    answer is CANNOT_DETERMINE, naming it: "we have not asked" never reads "not protected".
+    One copy, for the agents' flags and the register's codes alike.
+    """
+    held = tuple(held)
+    determination = disconnection_protection(
+        held, as_of=as_of, household=household, date_of_birth=date_of_birth
+    )
+    if not determination.may_disconnect:
+        return determination
+    blocking = [
+        label
+        for label, category in undetermined
+        if not disconnection_protection(
+            (*held, category), as_of=as_of, household=household, date_of_birth=date_of_birth,
+        ).may_disconnect
+    ]
+    if not blocking:
+        return determination
+    return DisconnectionDetermination(
+        DisconnectionProtection.CANNOT_DETERMINE,
+        f"{', '.join(blocking)}: each overlaps a needs category that would protect this "
+        "household and none is established either way. Ask before any disconnection.",
+    )
+
+
 class NeedsCodeEvidence(str, Enum):
     EVIDENCED = "evidenced"
     CANNOT_DETERMINE = "cannot_determine"
@@ -348,6 +386,64 @@ def needs_code_for(term: str) -> NeedsCodeMatch:
     )
 
 
+# CITED: commons s.1b (a reading of S7's code names by the rule above, not published text).
+# A code establishes a category only where its published name IS the category's concept.
+_CODE_ESTABLISHES = {
+    14: PSRCategory.PENSIONABLE_AGE,
+    29: PSRCategory.CHILD_UNDER_5,
+    30: PSRCategory.MENTAL_HEALTH,
+    35: PSRCategory.HEARING_IMPAIRMENT,
+    8: PSRCategory.VISUAL_IMPAIRMENT,
+    9: PSRCategory.VISUAL_IMPAIRMENT,
+    17: PSRCategory.LANGUAGE_SUPPORT,
+    32: PSRCategory.TEMPORARY_LIFE_CHANGES,
+    1: PSRCategory.MEDICAL_EQUIPMENT,
+    2: PSRCategory.MEDICAL_EQUIPMENT,
+    3: PSRCategory.MEDICAL_EQUIPMENT,
+    4: PSRCategory.MEDICAL_EQUIPMENT,
+}
+# Overlaps a category without establishing its criterion; each reason names what is missing.
+_CODE_CANNOT_DETERMINE = {
+    22: (PSRCategory.CHRONIC_ILLNESS, "'Chronic/serious illness': serious is not established "
+         "to be chronic"),
+    15: (PSRCategory.DISABILITY, "physical impairment is not established to be 'disabled'"),
+    18: (PSRCategory.DISABILITY, "a developmental condition is not established to be 'disabled'"),
+    20: (PSRCategory.DISABILITY, "dementia/cognitive impairment is not established to be "
+         "'disabled'"),
+    12: (PSRCategory.MEDICAL_EQUIPMENT, "mobility equipment is not medical equipment"),
+    23: (PSRCategory.MEDICAL_EQUIPMENT, "a showering/bathing dependency names no electrical "
+         "medical device"),
+    24: (PSRCategory.MEDICAL_EQUIPMENT, "telecare is not established to be medical equipment"),
+    25: (PSRCategory.MEDICAL_EQUIPMENT, "medicine refrigeration is not established to be "
+         "medical equipment"),
+    26: (PSRCategory.MEDICAL_EQUIPMENT, "oxygen use is not an electrically-powered "
+         "concentrator"),
+}
+# A live PSR need with no category among the ten: registered, carrying no category term.
+_CODE_NO_CATEGORY = frozenset({19, 27, 28, 31, 33, 34, 36, 37})
+
+
+def needs_code_grade(code: int) -> NeedsCodeMatch:
+    """Grade one industry needs code against the categories (commons s.1b), or refuse it.
+
+    Code 10 ("Do Not Use") and the codes S7 does not list are refused by name: a code
+    nobody publishes is a malformed disclosure, not a need with no category.
+    """
+    term = f"needs code {code}"
+    if code in _CODE_ESTABLISHES:
+        return NeedsCodeMatch(term, NeedsCodeEvidence.EVIDENCED, _CODE_ESTABLISHES[code],
+                              "the published code name is the category's concept.")
+    if code in _CODE_CANNOT_DETERMINE:
+        category, reason = _CODE_CANNOT_DETERMINE[code]
+        return NeedsCodeMatch(term, NeedsCodeEvidence.CANNOT_DETERMINE, category, reason)
+    if code in _CODE_NO_CATEGORY:
+        return NeedsCodeMatch(term, NeedsCodeEvidence.NOT_A_NEEDS_CODE, None,
+                              "a PSR need with no category among the ten; it registers and "
+                              "carries no category term.")
+    raise ValueError(f"needs code {code} is not on the published list (commons s.1a, S7): "
+                     "10 is 'Do Not Use' and 5-7, 11, 13, 16 and 21 are absent")
+
+
 @dataclass(frozen=True)
 class PSRRecord:
     account_id: str
@@ -357,6 +453,9 @@ class PSRRecord:
     review_due_date: date
     shared_with_network: bool = False
     is_active: bool = True
+    #: The industry needs codes the household named, as disclosed. `categories` holds what
+    #: they establish; the rest are read from here by `disconnection_protection`.
+    needs_codes: tuple[int, ...] = ()
 
     @property
     def is_electricity_dependent(self) -> bool:
@@ -379,6 +478,37 @@ class PSRRecord:
     @property
     def is_compliant(self) -> bool:
         return self.has_at_least_one_service
+
+    def disconnection_protection(
+        self,
+        as_of: date,
+        household: HouseholdComposition = HouseholdComposition.UNKNOWN,
+        date_of_birth: date | None = None,
+    ) -> DisconnectionDetermination:
+        """What a registration means for disconnection (commons s.1b).
+
+        A registration that records no need is CANNOT_DETERMINE, never NOT_ESTABLISHED:
+        registration is reason to believe a need, and which need is unknown. Otherwise the
+        established categories decide, and each undetermined code is asked the counterfactual.
+        Until 2026-11-14 the record's bare categories were the only input, so a household on
+        the register with no code read as unprotected (C32 Expert Hour re-take, item 4).
+        """
+        if not self.categories and not self.needs_codes:
+            return DisconnectionDetermination(
+                DisconnectionProtection.CANNOT_DETERMINE,
+                "on the Priority Services Register with no need recorded: registration is "
+                "reason to believe a need, and which need is not known. Ask before any "
+                "disconnection.",
+            )
+        undetermined = [
+            (m.term, m.category)
+            for m in map(needs_code_grade, self.needs_codes)
+            if m.evidence is NeedsCodeEvidence.CANNOT_DETERMINE
+        ]
+        return protection_weighing_undetermined(
+            self.categories, undetermined, as_of=as_of, household=household,
+            date_of_birth=date_of_birth,
+        )
 
 
 def decode_registration_payload(raw: Any) -> PriorityServicesRegistrationNotice:
@@ -482,8 +612,11 @@ class PriorityServicesRegister:
         """Register an account from a household's disclosure, as it crossed the seam
         (`interface.contracts.psr_registration_seam`). This is the register's ONLY knowledge
         source: the company knows a household is on the PSR because it said so, never because a
-        rule over world state decided it. Protections are unchanged -- they are decided from the
-        record's categories by `disconnection_protection`, as for any registered customer.
+        rule over world state decided it. Codes are read through commons s.1b
+        (`needs_code_grade`): established ones become categories, all are kept on the record,
+        and a code nobody publishes refuses the disclosure by name. Protection is the record's
+        own `disconnection_protection`, which never reads a code-less registration as
+        unprotected.
 
         `review_due_date` is the registration date: no published review interval is in the
         commons, so a review is owed from the first day rather than a picked interval reading
@@ -491,18 +624,16 @@ class PriorityServicesRegister:
         and the record reads non-compliant until it does.
         """
         notice = notification.payload
-        if notice.needs_codes:
-            raise ValueError(
-                f"registration for {notice.supply_point_id} names needs codes {notice.needs_codes}, "
-                "and no needs-code -> PSRCategory mapping has been written: the world draws no "
-                "code while the code mix is a GAP. Write the mapping from the commons s.1a list "
-                "before the world draws codes.")
+        grades = [needs_code_grade(code) for code in notice.needs_codes]
+        established = tuple(dict.fromkeys(
+            m.category for m in grades if m.evidence is NeedsCodeEvidence.EVIDENCED))
         return self.register(PSRRecord(
             account_id=notice.supply_point_id,
-            categories=(),
+            categories=established,
             services_enrolled=(),
             registration_date=notice.registered_on,
             review_due_date=notice.registered_on,
+            needs_codes=tuple(notice.needs_codes),
         ))
 
     def get_record(self, account_id: str) -> PSRRecord | None:

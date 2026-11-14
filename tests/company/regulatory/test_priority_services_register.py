@@ -16,6 +16,7 @@ from company.regulatory.priority_services_register import (
     PSRService,
     disconnection_protection,
     needs_code_for,
+    needs_code_grade,
     pensionable_age_from_birth_date,
 )
 
@@ -306,6 +307,25 @@ class TestNeedsCodeMapping:
         assert b.category is PSRCategory.TEMPORARY_LIFE_CHANGES
         assert "code 32" in b.reason
         assert "code 29" in needs_code_for("child_dependent").reason
+
+    def test_every_published_needs_code_is_graded_and_every_grade_is_reachable(self):
+        """Commons s.1b. Defect: a published code that refuses a real disclosure, or an
+        unpublished one that registers. Keyed to the commons' own s.1a table, so a code added
+        there without a grade here reds. One control over the whole partition."""
+        import re
+        from pathlib import Path
+
+        commons = (Path(__file__).resolve().parents[3] / "docs/domain_artefact_library/"
+                   "regulatory/psr_eligibility_and_disconnection_protection.md").read_text()
+        section = commons.split("### 1a.")[1].split("### 1b.")[0]
+        rows = re.findall(r"\|\s*(\d+)\s*\|\s*([^|]+?)\s*(?=\|)", section)
+        published = {int(c) for c, need in rows if need != "Do Not Use"}
+        assert {14, 30, 32, 37} <= published and 10 not in published
+        grades = {c: needs_code_grade(c).evidence for c in published}
+        assert set(grades.values()) == set(NeedsCodeEvidence)
+        for unpublished in {10} | (set(range(1, 38)) - published):
+            with pytest.raises(ValueError, match="not on the published list"):
+                needs_code_grade(unpublished)
 
     def test_psr_summary_contains_key_fields(self, reg):
         reg.register(make_record("C1"))
