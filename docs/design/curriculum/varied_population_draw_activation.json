@@ -4,6 +4,7 @@
     "version": 1,
     "status": "ON -- 2026-10-10, director's ruling",
     "authority": "Director, 2026-10-10, verbatim: \"Yes to the seed-family runner: 40-founder books settling every win, four side by side on distinct seeds under the box budget, with debt read as the share of homes behind (or a trimmed mean) and customer value at home level. The 400-founder book stays the production shape and the periodic end-to-end check. ... This also answers my open request on independent books (EP17, seeds 61101-61112): authorised under this runner. Close that concern with this ruling.\"",
+    "authority_61113_61118": "Listed 2026-11-14 by the delivery seat, under the director's 2026-10-15 ruling (\"a fresh draw per run, as canon F13 says\", as quoted in docs/staging/records/PREREG_B11_PER_CUSTOMER_AGAINST_FLAT_ON_VARIED_DRAWS_2026-10-16.md) and the 26 Oct advisor steer, carried under G8 (docs/staging/advisor/done/DIRECTOR_STEER_THE_SITE_IS_READ_BY_EXTERNALS_TOMORROW_2026-10-26.md, s.1), verbatim: \"Not reserved. Close them yourself on your own recommendation, record how to reverse each one, and report it in the next reading: ... 5. EP17 seeds 61113–61118 under the 15 Oct ruling\". That steer closed for_the_director row ep17-s-flat-against-per-customer-comparison at 2026-10-26T15:24Z; the listing it licensed was not written until now (B11 simplification record, 2026-11-14 park re-read). REVERSE: remove 61113-61118 from base_seeds.value and delete this field.",
     "r13_discipline": "A non-default book seed draws a different cast of households: EP17_varied_population_draw, R13 curriculum, the director's alone. This record lists exactly the seeds he authorised; a seed not listed is still refused by tools/book_seed_authorisation.py. The production book stays the default seed (simulation.live_population._DEFAULT_BASE_SEED).",
     "conditions": "Every result is reported for founders and campaign wins separately, or shown not to depend on the founder/win mix: a 40-founder book is mostly selected new shoppers, not a mature back book (director, 2026-10-10, condition 1).",
     "consumed_by": "tools/book_seed_authorisation.book_seed_authorisation_refusal, asked by tools/seed_family.py and tools/run_value_cycle_ab.py before any non-default seed runs"
@@ -26,8 +27,14 @@
       61109,
       61110,
       61111,
-      61112
+      61112,
+      61113,
+      61114,
+      61115,
+      61116,
+      61117,
+      61118
     ],
-    "basis": "The twelve seeds of the open request whether-per-customer-pricing-beats-a-flat (raised 2026-10-04), authorised under the seed-family runner."
+    "basis": "61101-61112: the twelve seeds of the open request whether-per-customer-pricing-beats-a-flat (raised 2026-10-04), authorised under the seed-family runner. 61113-61118: six fresh seeds, never read under any arm, named by the B11 prereg of 2026-10-16 and listed under _meta.authority_61113_61118. Their first use is the M7-only grade (docs/staging/records/SEAT_PREREG_B11_M7_HELD_BACK_GRADE_ON_SIX_FRESH_BOOKS_2026-11-14.md)."
   }
 }
