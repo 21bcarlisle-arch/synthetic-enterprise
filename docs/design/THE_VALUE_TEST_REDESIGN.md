@@ -493,7 +493,7 @@ hours come from the settlement curve in rule 2.
 | 7 | The vector columns still missing: cash flow, then fairness, then time | 3 supplier | 2.2 (1.6–3.3) | none |
 | | **Total** | **27 sessions** | **about 16 points (11–24)** | **about 82 machine-hours** |
 
-**Step 1, launched 13 Nov 13:14Z (result not yet read).** The family runs at `45122d156` in its own
+**Step 1, launched 13 Nov 13:14Z (read 14 Nov 08:54Z; the grade is §7).** The family runs at `45122d156` in its own
 worktree as unit `longjob-value-test-12-draw-family-pairs`, with seeds 11111 to 99999, 10101,
 20202 and 30303. The redraw key is `elasticity` and the mode is `all`, as on 8 Oct. Seeds run in
 pairs, each pair in a child process. Each pair is the commit's own `noise_floor`, with the default
@@ -548,3 +548,79 @@ condition). Step 1's result goes to the page's appendix with its own date as soo
 whether the cap is the right baseline for the tariff-placement arm (it is a choice about what
 "beating a flat supplier" means). Both are in the one `for_the_director` row raised for this note,
 in `docs/direction/DIRECTION.yaml`, with a recommendation.
+
+## 7. Step 1 graded: the 12-draw family at `45122d156` (read 14 Nov 08:54Z)
+
+All six pairs and their control sidecars are in `/var/tmp/vt12-out/`. The fold is `family_12.json`
+(08:00Z). Every member names `45122d156` and world `cdba75ebb9197b33`. The book is 272 households
+on every seed. Seed 11111 reproduces 8 Oct's £11,766.20 to the penny, so the world under the
+worktree has not moved. Each seed's per-account columns sum to its seed-level advantage
+(reconciliation £0.00 on all 12). The grader is `/var/tmp/vt12-driver/grade.py`, run unchanged. The
+per-seed legs, household-year counts and belief scores come from a read-only pass over the same files.
+
+**The per-household-year divisor.** Pairs 4 to 6 carry their own control-arm count: 1,808 to 1,815
+household-years (mean 1,811, a spread of 7, or 0.4%). That spread is small, so the six uncounted
+seeds are divided by the counted mean of 1,811, and I say so here. The published run's own count is
+1,831, which is 1.1% more. The grader's household-level figures use 1,831 / 272, as rule 2 does.
+
+| | Published (8 Oct) | 12-draw family: min to max | Family mean (sd) |
+|---|---|---|---|
+| Whole advantage, book | **£5,244** | **£5,556 to £12,462** | £9,591 (£1,769) |
+| per household-year | **£2.86** | £3.06 to £6.88 | £5.30 (£0.98) |
+| Choosing (selection), book | £11,345 | £3,274 to £12,388 | £7,531 |
+| per household-year | £6.20 | £1.80 to £6.84 | £4.16 |
+| Price level, book | **−£6,101** | **−£3,003 to +£5,560** | £2,060 (£2,355) |
+| per household-year | −£3.33 | −£1.66 to +£3.07 | £1.14 (£1.30) |
+| Belief's skill: AUC against who left under the flat price | 0.52 (0.40 to 0.64) | 0.530 to 0.572 | 0.549 |
+| Believed minus realised retention | −0.22 | −0.21 to −0.22 (believed 0.641 to 0.650; realised 0.848 to 0.862) | −0.21 |
+
+**Which candidate held.** The published £5,244 is **outside** the 12-draw range, **£311 below its
+lowest member** (seed 88888, £5,556), or £0.17 per household-year. **2 Nov prediction 1 held: (b),
+"too few re-draws", is refuted as the test was written.** The published run therefore differs from
+its re-draws in something other than the elasticity seed, so (a) or (c) holds. The margin is narrow
+and I say so beside the verdict. The published figure sits 2.46 family standard deviations below the
+family mean, and the family's own minimum sits at 2.28. If the family were normal, a draw that low
+would come about once in 140. So the whole-advantage figure alone does not refute (b) strongly.
+
+**The split does.** The published choosing leg (£11,345) is inside its 12-draw range. **The published
+price-level leg (−£6,101) is not**: it is 3.47 standard deviations below the family mean, and twice as
+far below zero as the family's only negative member (−£3,003, seed 44444). The published run is set
+apart by how it splits the same households between choosing and level, chiefly the level leg. It is
+not set apart by its total. This is what the second test in §2 is for: re-run the published
+configuration with the re-draw harness itself, so that (a) and (c) can be told apart.
+
+**The level-leg prediction (filed 13 Nov) held on both parts.** 1 of 12 re-draws is negative
+(predicted at most 1). The leg's spread per household-year (£1.30) is wider than its mean (£1.14),
+though only just.
+
+**The belief's skill, per seed.** Against who left under the flat price, the AUC is 0.53 to 0.57
+across all 12 seeds. On each seed it rests on about 250 scored renewals, of which 35 to 38 left. The
+re-draw barely moves it. The households are the same on every seed, so the 12 seeds do not narrow
+8 Oct's sampling interval (0.40 to 0.64), and the reading in §3a stands: the belief sits on a coin.
+The run's own `belief_vs_outcome.discrimination_auc` is 0.64 to 0.68. It scores the belief against
+outcomes that the value arm's own prices shaped, so it is not evidence of skill on its own, and I do
+not use it here.
+
+**Across households, the family says what §3a said.** The mean whole advantage is **£5.24 per
+household-year** on the 1,831 divisor (£5.30 on 1,811), with a 95% interval of **−£3.34 to +£14.35** (2,000 resamples of households, each
+keeping its 12 draws). It is not distinguishable from zero. The family mean is about twice the
+published £2.86. **I do not offer it as the better figure.** Neither figure is distinguishable from
+zero, and the published run is the one the page names.
+
+**P6 missed.** Roll noise (within-household variance across the 12 re-draws) is **4.6% of the
+per-household variance** of the whole advantage, with an interval of 1.5% to 10.0%. P6 needed at
+least half. The re-draw sd is £16.0 per household-year. The between-household sd is £72.9. This
+family re-draws only the elasticity assignment, so the measured roll share is a lower bound and the
+heterogeneity is an upper bound. As §6 set out, the honest reading is **"not shown"**, not "false".
+The next measurement is a `churn_roll` family. Until it reads, rule 2's heterogeneity column governs.
+To tell £3 per household-year from zero, a book needs **about 4,860 households on one draw, and
+about 4,650 on 12 draws**. Re-draws buy almost nothing. Only households do. A £10 effect needs about
+440 households. On this family's numbers, a £3 effect is beyond one run on this machine. Step 6's
+book size waits for the `churn_roll` family before it is fixed.
+
+| Prediction | Held? |
+|---|---|
+| 2 Nov 1: £5,244 stays outside the 12-draw range | **Held**, by £311 |
+| 13 Nov, level leg: at most 1 of 12 negative | **Held** (1) |
+| 13 Nov, level leg: spread per household-year wider than its mean | **Held** (£1.30 against £1.14) |
+| P6: roll noise is at least half the per-household variance | **Missed** (4.6%; a lower bound, so "not shown") |
