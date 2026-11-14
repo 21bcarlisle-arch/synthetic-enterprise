@@ -78,6 +78,32 @@ situations, many circumstances or characteristics are not captured by the PSR"*.
 vulnerability has no code. Prevalence, registration and the arrears overlap are in
 `docs/market_research/debt_and_collections.md` §10.
 
+### 1b. From a needs code to a needs category (added 2026-11-14, C32 Expert Hour re-take)
+
+**This is a reading, not published text.** S7 publishes code names. It does not publish a mapping
+to the nine categories in §1, and none was found. The rule applied here is the one
+`needs_code_for` already applies to agents' flags. A code establishes a category only where its
+published name is that category's concept. Where the concept overlaps but the name does not
+establish the criterion, the grade is "cannot determine", with the missing criterion named. Codes
+that match no category stay PSR needs: the household is still on the register, but the code
+carries no category term.
+
+| grade | codes → category | why |
+|---|---|---|
+| establishes | 14 → pensionable age; 29 → child 5 or under; 30 → mental health; 35 → hearing impairment; 8, 9 → visual impairment; 17 → language support; 32 → temporary life changes; 1, 2, 3, 4 → electrically-powered medical equipment | The code name is the concept. Codes 1 to 4 each name a device that runs on mains power. |
+| cannot determine | 22 → chronic illness | "Chronic/serious": a serious acute illness is not established to be chronic, which is the same grade as the `serious_illness` flag. |
+| cannot determine | 15, 18, 20 → disability | Physical impairment, developmental condition and dementia/cognitive impairment overlap disability. The code does not establish that the licence's term "disabled" applies. |
+| cannot determine | 12, 23, 24, 25, 26 → medical equipment | Each names a dependency. None establishes electrically-powered *medical* equipment: 12 is mobility equipment and 26 is oxygen use, not a concentrator. |
+| no category | 19, 27, 28, 31, 33, 34, 36, 37 | A PSR need with no category term. 36 (speech) is covered by §1's "other communication needs", which the supplier's ten categories do not hold. |
+| refused | 10 ("Do Not Use"), and 5–7, 11, 13, 16, 21 (absent from S7) | Not a live published code. |
+
+**A registration that names no code** establishes registration, not a need. S7's note that PSR
+codes concern "safety and off supply situations" makes registration itself a reason to believe
+the household has some need. Which need cannot be read from it. **Design choice, not published:**
+the supplier treats a registered household with no recorded need as "cannot determine" for
+disconnection, never as "not established". A blind practitioner (2026-11-14) would map bereavement
+to code 32 as routine. That is K4's starting point, not a source, so the grade stays.
+
 Core services conferred by registration (S3): alternative billing formats (large print, Braille,
 audio); advance notice of supply interruption; priority reconnection after an interruption;
 quarterly meter readings; free annual gas safety check; password scheme; nominee arrangements.
@@ -203,6 +229,10 @@ Three consequences, each of which decides a live question in the code:
   (24%) and 5,646,740 gas (24%) (Ofgem, *Vulnerable consumers in the energy market: 2019*, p. 16).
   Ofgem's 2024 survey has 16% self-reporting registration. Post-2018 admin counts are still a GAP;
   see `debt_and_collections.md` §10.2.
+- `UNSOURCED`, opened 2026-11-14: **whether the all-reasonable-steps limb is winter-only.** A
+  blind practitioner placed it in SLC 27.11 and read it as winter-only. S4 states the limb with no
+  season. The code applies it all year, which is the direction that keeps protection. Reading the
+  instrument closes this question, and that reading is the first gap above.
 - `UNSOURCED`, opened here: **the current registered rate.** The register has grown since 2016 and
   Ofgem broadened eligibility again from January; the 2025 strategy PDF would answer it and did not
   extract. Nothing in `company/` may quote a present-day PSR rate until it does.
