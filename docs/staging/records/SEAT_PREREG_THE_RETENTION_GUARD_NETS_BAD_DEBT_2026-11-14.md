@@ -148,3 +148,54 @@ It runs **after** three things, in this order. It does not compete with any of t
 Launch: `background.launch_long_job` with `--asserted-live-by` naming this file. Peak ~7,000 MB per
 arm (the 21 Oct job's declaration), each arm in its own process, serial. Two primary arms take about 4 h
 each. The 61113 pair is smaller. The grade continuation is filed by the launch driver, as on 21 Oct.
+
+## 14 Nov, about 22:10Z: the instrument is fixed, and the launch gate is unmet
+
+**Instrument (this commit).** `tools/_c29_retention_engagement_arm.py` now does what §Instrument asks.
+(1) A `None` value from the guard records a row with `unweighted` None and `offered_unweighted`
+False instead of crashing. (2) Every guard row carries `margin`, `acq`, `billed`, `belief_rate`, and
+the renewal's `customer_id` (supply point), `billing_account` (the `retention_log` key, so the readout
+matches on `(billing_account, event_date)`) and `event_date`. It also carries `arrears_state`: the
+company's answer from `LivePaymentTriad.arrears_state` for the leg, observed on the class, which is
+the same door the guard's belief reads. One row per value: the run's second comparison of the same
+value is not recorded twice, as in the 21 Oct probe. The output also carries `policy`
+(`dataclasses.asdict`), `retention_log` and `total_bad_debt`. A 2017 smoke run of the `net` arm
+checked the instrument; its result is below.
+
+**Gate state, read at 22:10Z. None of the three has cleared:**
+1. The `churn_roll` family is **not graded**. `/var/tmp/vtcr-out/` holds three member/control
+   pairs (`11111_22222`, `33333_44444`, `55555_66666`), and `77777_88888` is running under
+   `/var/tmp/vtcr-driver/driver.py`. So the half-range bar for P5 **cannot be read
+   yet**, and P5 stays at −£300 to +£500 until it can.
+2. Candidate A has **not launched**: `/var/tmp/vta-driver/` holds the driver but no output. At
+   `a2ed86cf7`, `renewal_belief_by_ending_term` is **False** in `CURRENT_POLICY`. Re-read it at launch.
+3. B11 M7 has **not launched**: there is no `/var/tmp/b11m7`, and its own record says it waits on 1 and 2.
+
+So the pair launches after M7 exits, which is at least a day out. The launch is handed on, not
+started here.
+
+**Smoke run, `net` arm only, through 2017-12-31, at `a2ed86cf7`** (`/var/tmp/retnet1114/smoke_net.json`).
+It produced 69 guard rows and 9 offers. Each offered row's `(billing_account, event_date)` matches
+`retention_log` 9 of 9, and no row is missing its keys. The arrears cells are `no_debt` 60,
+`worsening` 6 and `in_arrears_steady` 3. **The `None` branch did not fire in 2017** (0 rows), so fix (1)
+is in the code but not yet exercised. The full arm will exercise it or show it is never reached.
+**One reading that bears on P1, recorded before any pair runs and not used to revise it:** in this
+single arm, 15 rows have `offered_unweighted` true and `offered` false, all in 2017, where the belief
+is the 2% prior. That is already above P1's 3–12 for the whole book. It is not a matched withdrawal
+count: it compares within one arm, with no `off` twin and no path divergence. P1 stands as written.
+If the graded pair lands far above 12, the reason is visible here, before the run: at `a2ed86cf7` the
+book's 2017 guard rows have thinner headroom than 22 Oct's did.
+
+**Launch scripts drafted, not started:** `/var/tmp/retnet1114/run_both.sh` (off, then net, serial)
+and `driver.sh <origin sha>`. The driver pins a locked worktree, goes through
+`background.launch_long_job --asserted-live-by` this file, and files the grade continuation. The
+seed-61113 replication pair is not in it: it needs M7's book switch, which does not exist yet.
+
+## 14 Nov, 22:37Z: re-read, and the gate is still unmet
+
+Nothing has changed since 22:10Z. `churn_roll`: the same three pairs are on disk, and `77777_88888`
+is still running (pid 541133, under the driver at pid 2790906). The family is not graded, so P5
+stays at −£300 to +£500. Candidate A: `/var/tmp/vta-driver/` still holds only the driver and grade
+scripts, with no output and no process. B11 M7: `/var/tmp/b11m7` does not exist. The launch is
+handed on again. One side note for whoever grades `churn_roll`: `/var/tmp/vtcr-out/run.log` is
+already 335 MB, with one pair left to run.
