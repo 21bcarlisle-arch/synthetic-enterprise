@@ -673,3 +673,50 @@ book size waits for the `churn_roll` family before it is fixed.
 | 13 Nov, level leg: at most 1 of 12 negative | **Held** (1) |
 | 13 Nov, level leg: spread per household-year wider than its mean | **Held** (£1.30 against £1.14) |
 | P6: roll noise is at least half the per-household variance | **Missed** (4.6%; a lower bound, so "not shown") |
+
+## 8. The `churn_roll` family: pre-registered 14 Nov 11:45Z, before launch
+
+**What it re-draws, and what it holds.** At `45122d156`, on the same world and the same 272-household
+book, the floor is keyed `redraw_key="churn_roll"`: every household's renewal dice
+(`customer_events.churn_roll_for_renewal`) are re-rolled from the namespaced stream `floor{seed}_…`,
+in all three arms alike. The elasticity draw is **not patched**, so every household keeps the run's own
+base seed (20260724), which is the published 8 Oct assignment. Seeds, mode (`all`), pairs per child
+process and sidecar fields are §6's. The only code difference is the key. The sidecar also records
+`run_base_seed()` after each run, so the grade can show the elasticity was held. Driver and grader are
+`/var/tmp/vtcr-driver/`; outputs go to `/var/tmp/vtcr-out/`. The grader is §6's `grade.py` with
+the output path changed and kill-condition lines appended. On §7's own files it returns 4.6% and 1
+negative level leg, so it reproduces §7. Its "reproduction vs 8 Oct seed 11111" line means nothing
+for this family, because seed 11111 here is a churn-roll seed.
+
+**Why 12 members.** Kill condition 1 compares a roll share with §7's 4.6%. The within-household
+estimate is only like for like at the same K. Kill condition 2 is a spread of AUCs across draws, and
+a half-range from fewer than about 10 draws understates it. Fewer members would not answer the
+question, so the family has 12.
+
+**What "the AUC moves" means here, defined before the result.** It is half the min-to-max range of
+`belief_against_control_outcomes.discrimination_auc` across the 12 members. The standard deviation is
+reported beside it. The elasticity family's own figures are a half-range of **0.021** and an sd of
+**0.011**. Kill condition 2 (from the retrain pre-registration, §4) fires if the half-range is
+**below 0.03**. Kill condition 1 fires if the roll share is **below 0.25**. The retrain is not worth
+building only if **both** fire.
+
+**Predictions** (each a point and a range for the point estimate):
+
+| # | Quantity | Prediction | Reasoning, in one line |
+|---|---|---|---|
+| C1 | Roll share of per-household variance of the whole advantage | **0.20 (0.08 to 0.45)** | A re-rolled leaver changes tenure, and the advantage scales with tenure. But both arms take the same dice, so most re-rolls move both arms together, and the households that never reach a renewal carry no roll noise. |
+| C2 | Flat-arm AUC half-range across the 12 | **0.08 (0.04 to 0.14)**; sd 0.04 (0.02 to 0.07) | With 35 to 38 leavers in about 250 renewals, a re-drawn leaver set moves a weak classifier's AUC by about 0.04 sd. The elasticity family barely changed who left. |
+| C3 | Flat-arm AUC mean across the 12 | **0.50 to 0.60** | The belief is the same; only the dice move. |
+| C4 | Which kill conditions fire | **1 fires and 2 does not**, so the retrain is **not** ruled out by this family, and the book stays in the thousands | Follows from C1 and C2. |
+| C5 | The published £5,244 is **inside** this family's whole-advantage range | inside | The elasticity is the published draw. If (a) of §7 holds, re-rolling the dice spreads around it. |
+| C6 | Level legs negative | **at least 6 of 12** (published −£6,101) | Low confidence. §7 found the published run apart in its level leg; if that is the elasticity draw's doing, it survives a re-roll. If fewer than 6 are negative, the level leg is not the published elasticity draw's. |
+
+C1 is the one that decides most. I lean towards kill condition 1 firing, which goes against the
+thesis (F11). Refutations: C1 is refuted outside 0.08 to 0.45; C2 is refuted if the half-range is
+below 0.04 or above 0.14; C5 and C6 are refuted as written.
+
+**When it runs.** One leg at a time, after §2's published-configuration re-run
+(`longjob-vt-published-config-redraw`, pid 1875257, ETA about 13:30Z) has exited. The launch waits
+on that pid (`launch_long_job --wait-for-pid`). §7's family took 18 h 46 min for 12 seeds, so this one
+should read about **09:00Z on 15 Nov**, before the 16 Nov reset. Its grade is a separate
+continuation. It does not build the retrain.
