@@ -70,3 +70,5 @@ proposal costs the findings triage at about 6 points (3–38), as correctness an
 ranks it item 2 after the reset: the 10 BLOCKING first, then the 92 supplier-lane findings. The
 cause-finding (addendum item 1) is one input to the work system's decision map. Nothing here was
 triaged this tick.
+
+Evidence: landed in 35078209df, `docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md` §3 *(record added 14 Nov by a worker tick: the section above named the proposal but no commit or path, which reds `tests/design` for every lane)*.

@@ -153,3 +153,46 @@ def test_spend_is_split_by_route_with_forks_under_their_parent_and_advisor_draws
     assert routes["seat_executor (advisor item)"]["landed"] == 0
     total = B.weighted_usd_between("2026-10-20T00:00", "2026-10-21T00:00", tmp_path)
     assert sum(r["usd"] for r in routes.values()) == total == 50.0
+
+
+def _reading_session(path, ctx_by_call, results, ts="2026-11-10T10:00:00Z"):
+    """Calls with given context sizes; `results[k]` = (tool, input, chars) arriving after call k."""
+    rows = [{"type": "user", "timestamp": ts, "message": {"content": "You are the autonomous worker, woken by a scheduled tick"}}]
+    for k, ctx in enumerate(ctx_by_call, start=1):
+        tid = f"t{k}"
+        content = [{"type": "tool_use", "id": tid, "name": results[k][0], "input": results[k][1]}] if k in results else []
+        rows.append({"type": "assistant", "timestamp": ts, "message": {
+            "id": f"m{k}", "model": "claude-opus-5-5", "content": content,
+            "usage": {"input_tokens": 0, "output_tokens": 0, "cache_read_input_tokens": ctx, "cache_creation_input_tokens": 0}}})
+        if k in results:
+            rows.append({"type": "user", "timestamp": ts, "message": {"content": [
+                {"type": "tool_result", "tool_use_id": tid, "content": "x" * results[k][2]}]}})
+    path.write_text("\n".join(json.dumps(r) for r in rows))
+
+
+def test_a_read_costs_its_measured_size_times_the_calls_that_carry_it_until_compaction(tmp_path):
+    d = tmp_path / "proj"
+    d.mkdir()
+    # Four calibration gaps: 40k chars in, the context grows 16k tokens -> 0.4 tokens per char, measured.
+    cat = ("Bash", {"command": "cd /x && cat docs/a.md"}, 40_000)
+    _reading_session(d / "a.jsonl", [10_000, 26_000, 42_000, 58_000, 74_000, 74_000, 1_000, 1_000],
+                     {1: cat, 2: cat, 3: cat, 4: cat})
+    m = B.reading_tokens("2026-11-10T00:00", "2026-11-11T00:00", root=tmp_path)
+    assert m["tokens_per_char"] == 0.4, m["fit"]
+    cls = {n: v for (_r, n), v in m["classes"].items()}
+    # The read after call 1 is written once (call 2) and read by calls 3-6; call 7's context dropped
+    # below 80% of call 6's, so calls 7-8 do not carry it. Four reads: 1+2+3+4 carries, minus a write each.
+    tok = 40_000 * 0.4
+    assert cls["Bash: file read (cat/head/tail/sed/awk)"] == {"write": 4 * tok, "read": (4 + 3 + 2 + 1) * tok}
+    # Reads 2-4 are of a file this context already read; the first is not.
+    assert cls["repeat read of a file already read in this context"]["write"] == 3 * tok
+    assert m["compactions"] == 1
+    assert "nothing measured" in B.render_reading("2020-01-01T00:00", "2020-01-02T00:00", root=tmp_path)
+
+
+def test_a_shell_call_has_one_kind_from_its_first_verb():
+    assert B.bash_kind("cd /r && python3 -m pytest tests/x.py -q 2>&1 | grep -c passed") == "test run (pytest)"
+    assert B.bash_kind("cd /r && grep -rn foo tools | head") .startswith("search/census")
+    assert B.bash_kind("sed -n 1,80p tools/a.py").startswith("file read")
+    assert B.bash_read_path("cd /r && cat tools/a.py") == "tools/a.py"
+    assert B.bash_read_path("cat a.py b.py") == ""   # two files: not attributed to either

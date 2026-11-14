@@ -408,6 +408,377 @@ def render_routes(t0: str, t1: str, root: Path = PROJECTS) -> str:
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------------------------------------------
+# WHERE READING TOKENS GO (director steer 7 Nov, released 14 Nov: "Measure it"). Measurement only.
+#
+# WHAT A READ COSTS. A tool result enters the context once and is then resent with every later call
+# of that context: it is CACHE-WRITTEN on the first call after it and CACHE-READ on each call after
+# that, until the context is compacted. So a read's cost is its size times the calls that carry it,
+# and a 20k-token read early in a 150-call session is 3m tokens of cache read. Fresh input and
+# output are not where a read lands; they are reported as the measured totals they are.
+#
+# ITS SIZE IN TOKENS is chars x a ratio MEASURED here from the same transcripts: across pairs of
+# consecutive calls whose only addition is a large tool result, how much the measured context grew
+# per character added. No ratio is typed in.
+#
+# THE CLASSES OVERLAP (a whole-file re-read of a generated JSON file is in three), so they are
+# ranked by their own measured share of the window's context tokens and never summed.
+# ---------------------------------------------------------------------------------------------------
+
+#: Bytes a program writes rather than a person: the observability stores, the site's data feeds, the
+#: market feeds and any JSON/JSONL file. A path, not a judgement about whether the read was useful.
+_GENERATED = re.compile(r"(?:^|/)(?:docs/observability|site/data|docs/market_data)/|\.jsonl?(?::|$)")
+#: A shell command's KIND is its first verb after any `cd`: one kind per call, so a test run piped
+#: through grep is a test run, not a search.
+_BASH_KINDS = (
+    ("file read (cat/head/tail/sed/awk)", re.compile(r"^(?:cat|head|tail|sed|awk|less|nl|jq)\b")),
+    ("search/census (grep/find/ls/wc/git log...)", re.compile(
+        r"^(?:grep|rg|egrep|find|ls|wc|du|tree|git (?:log|grep|ls-files|status|show|diff|blame))\b")),
+    ("test run (pytest)", re.compile(r"^(?:python3? -m pytest|pytest|timeout \S+ python3? -m pytest)\b")),
+    ("python run (a tool, daemon or inline script)", re.compile(r"^(?:timeout \S+ )?python3?\b")),
+    ("git write/sync (commit/fetch/merge/push...)", re.compile(r"^git\b")),
+)
+_FILE_ARGS = re.compile(r"^(?:cat|head|tail|sed -n '[^']*'|sed -n \S+|nl|less)\s+(?:-\S+\s+)*([^\s|;&<>]+)")
+
+
+def bash_kind(cmd: str) -> str:
+    for seg in re.split(r"&&|;|\|\||\n", cmd or ""):
+        seg = seg.strip().lstrip("(").strip()
+        if not seg or seg.startswith(("cd ", "export ", "#", "set ", "echo ", "for ", "do ", "done")):
+            continue
+        for kind, rx in _BASH_KINDS:
+            if rx.search(seg):
+                return kind
+        return "other shell"
+    return "other shell"
+
+
+def bash_read_path(cmd: str) -> str:
+    """The one file a shell read prints, when its first verb is a reader with exactly one file."""
+    for seg in re.split(r"&&|;|\n", cmd or ""):
+        seg = seg.strip()
+        if not seg or seg.startswith("cd "):
+            continue
+        first = seg.split("|")[0].strip()
+        m = _FILE_ARGS.match(first)
+        rest = first[m.end():].strip() if m else ""
+        return m.group(1) if m and not rest else ""
+    return ""
+#: The opening reminder names CLAUDE.md by its checkout's path, which differs per worktree.
+_CLAUDE_MD = re.compile(r"Contents of \S+/CLAUDE\.md \(project instructions")
+_MEMORY_MD = "memory/MEMORY.md (user's auto-memory"
+#: A context that shrinks by more than this between consecutive calls was compacted or cleared; what
+#: was in it before stops being carried. The count of such drops is printed beside the figures.
+_COMPACTED = 0.8
+
+
+def _block_text(content) -> tuple[str, int]:
+    """(text, image blocks) of a tool result; an image is counted, never measured as base64 chars."""
+    if isinstance(content, str):
+        return content, 0
+    texts, images = [], 0
+    for b in content or ():
+        if isinstance(b, dict) and b.get("type") == "image":
+            images += 1
+        elif isinstance(b, dict):
+            texts.append(str(b.get("text") or b.get("content") or ""))
+    return "\n".join(texts), images
+
+
+def _strings(node):
+    """Every string inside a parsed transcript row, depth first."""
+    if isinstance(node, str):
+        yield node
+    elif isinstance(node, dict):
+        for v in node.values():
+            yield from _strings(v)
+    elif isinstance(node, list):
+        for v in node:
+            yield from _strings(v)
+
+
+def _lead_path(line: str) -> str:
+    """The path a grep/ls/find output line starts with (`path:12:...`, `./path`), or ''."""
+    words = line.split(":", 1)[0].split()
+    return words[0] if words else ""
+
+
+def _slice(text: str, marker: str) -> int:
+    """Characters of one always-loaded file inside the opening reminder, from its marker to the next."""
+    i = text.find(marker)
+    if i < 0:
+        return 0
+    ends = [j for j in (text.find("\nContents of ", i + 1), text.find("</system-reminder>", i)) if j > i]
+    return (min(ends) if ends else len(text)) - i
+
+
+def _read_context(path: Path) -> dict:
+    """One transcript -> its calls (timestamp, context tokens, usage, model) and what entered it."""
+    calls, uses, pieces, seen = [], {}, [], set()
+    loaded = {"claude_md": 0, "memory_md": 0, "opening": None}
+    for line in path.open(errors="replace"):
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        t = row.get("type")
+        if not loaded["claude_md"] and "/CLAUDE.md (project instructions" in line:
+            text = next((x for x in _strings(row) if _CLAUDE_MD.search(x)), "")
+            m = _CLAUDE_MD.search(text)
+            loaded["claude_md"] = _slice(text, m.group(0)) if m else 0
+            loaded["memory_md"] = _slice(text, _MEMORY_MD)
+        if t == "attachment":
+            att = row.get("attachment") or {}
+            if att.get("type") == "nested_memory":   # a path-scoped rule, loaded on an edit
+                body = (att.get("content") or {}).get("content", "")
+                pieces.append({"after": len(calls), "chars": len(body), "tool": "rule",
+                               "path": att.get("path", ""), "input": {}, "lines": []})
+            continue
+        msg = row.get("message") or {}
+        if t == "user" and loaded["opening"] is None:
+            loaded["opening"] = len(_text(msg.get("content")))
+        if t == "assistant":
+            u = msg.get("usage") or {}
+            if u and msg.get("model") != "<synthetic>" and msg.get("id") not in seen:
+                seen.add(msg.get("id"))
+                cw = int(u.get("cache_creation_input_tokens", 0) or 0)
+                if not cw:
+                    cc = u.get("cache_creation") or {}
+                    cw = int(cc.get("ephemeral_5m_input_tokens", 0) or 0) + int(cc.get("ephemeral_1h_input_tokens", 0) or 0)
+                parts = {"input": int(u.get("input_tokens", 0) or 0), "cache_write": cw,
+                         "cache_read": int(u.get("cache_read_input_tokens", 0) or 0),
+                         "output": int(u.get("output_tokens", 0) or 0)}
+                calls.append({"ts": row.get("timestamp") or "", "model": msg.get("model") or "",
+                              "ctx": parts["input"] + cw + parts["cache_read"], **parts})
+            for b in msg.get("content") or ():
+                if isinstance(b, dict) and b.get("type") == "tool_use":
+                    uses[b.get("id")] = (b.get("name") or "", b.get("input") or {}, len(calls))
+        elif t == "user" and isinstance(msg.get("content"), list):
+            for b in msg["content"]:
+                if not (isinstance(b, dict) and b.get("type") == "tool_result"):
+                    continue
+                text, _images = _block_text(b.get("content"))
+                name, inp, after = uses.get(b.get("tool_use_id"), ("?", {}, len(calls)))
+                pieces.append({"after": after, "chars": len(text), "tool": name, "input": inp,
+                               "path": str(inp.get("file_path") or inp.get("path") or ""),
+                               "lines": text.splitlines() if name in ("Grep", "Glob", "Bash") else []})
+    return {"calls": calls, "pieces": pieces, "loaded": loaded}
+
+
+def tokens_per_char(contexts: list[dict], min_chars: int = 20_000) -> tuple[float, float, float, int] | None:
+    """Measured: across consecutive calls whose gap carries at least `min_chars` of tool result (so a
+    call's own output is small beside it), context growth less the call's output, per char added.
+    (median, lower quartile, upper quartile, pairs); the median, so one gap that also carried a large
+    attachment does not move it."""
+    ratios = []
+    for c in contexts:
+        calls, added = c["calls"], defaultdict(int)
+        for p in c["pieces"]:
+            added[p["after"]] += p["chars"]
+        for k in range(1, len(calls)):
+            n = added.get(k, 0)
+            d = calls[k]["ctx"] - calls[k - 1]["ctx"] - calls[k - 1]["output"]
+            if n >= min_chars and d > 0:
+                ratios.append(d / n)
+    if len(ratios) < 4:
+        return None
+    q = statistics.quantiles(ratios, n=4)
+    return statistics.median(ratios), q[0], q[2], len(ratios)
+
+
+#: One file has one name whatever checkout read it: the shared tree, a seat's worktree, a trial tree.
+_REPO_ROOT = re.compile(r"^(?:/home/rich/synthetic-enterprise|/var/tmp/fable-trial/x/[^/]+/tree|/var/tmp/se-[^/]+"
+                        r"|/var/tmp/third-arm/[^/]+|/tmp/naive-organ-scratch-[^/]+)/")
+
+
+def _classes_of(piece: dict, read_before: set, model: str) -> list[str]:
+    tool, inp = piece["tool"], piece["input"]
+    path = _REPO_ROOT.sub("", piece["path"])
+    out = []
+    if tool == "rule":
+        return ["always-loaded: path-scoped rules (.claude/rules)"]
+    cmd = str(inp.get("command") or "")
+    kind = bash_kind(cmd) if tool == "Bash" else ""
+    if tool == "Bash":
+        out.append("Bash: " + kind)
+        bp = bash_read_path(cmd)
+        if bp and bp in read_before:
+            out.append("repeat read of a file already read in this context")
+        if kind.startswith("file read") and bp and not re.search(r"\|\s*(?:head|tail|sed|grep)|sed -n", cmd):
+            out.append("whole-file read (Read without offset/limit, or a bare cat)")
+        if _GENERATED.search(bp):
+            out.append("generated data: a generated file read whole or in part")
+    if tool == "Read":
+        out.append("all Read results")
+        if path in read_before:
+            out.append("repeat read of a file already read in this context")
+        if not (inp.get("offset") or inp.get("limit")):
+            out.append("whole-file read (Read without offset/limit, or a bare cat)")
+        if _GENERATED.search(path):
+            out.append("generated data: a generated file read whole or in part")
+    is_search = tool in ("Grep", "Glob") or kind.startswith("search")
+    if is_search:
+        out.append("search/census in an Opus context" if "opus" in model or "fable" in model
+                   else "search/census in a Haiku/Sonnet context")
+    if tool in ("Grep", "Glob", "Bash"):
+        out.append(f"all {tool} results" if tool != "Glob" else "all Grep results")
+    elif tool not in ("Read", "rule"):
+        out.append("other tool results (Agent, Edit, Write, Skill...)")
+    return out
+
+
+def reading_tokens(t0: str, t1: str, root: Path = PROJECTS) -> dict:
+    """Context tokens by reading class between two UTC instants, over every session and subagent
+    transcript, per seat kind. Each class: tokens cache-written and cache-read, and its share of the
+    window's measured context tokens (fresh input + cache write + cache read)."""
+    paths = [(p, False) for p in root.glob("*/*.jsonl")] + [(p, True) for p in root.glob("*/*/subagents/*.jsonl")]
+    lo = time.mktime(time.strptime(t0[:16], "%Y-%m-%dT%H:%M")) - 86400
+    paths = [(p, s) for p, s in paths if p.stat().st_mtime >= lo]
+    kinds = {}
+    for p, sub in paths:
+        if not sub:
+            t = read_turn(p)
+            kinds[p.stem] = t["kind"] if t else "other"
+    ctxs = []
+    for p, sub in paths:
+        c = _read_context(p)
+        c["route"] = kinds.get(p.parent.parent.name if sub else p.stem, "other") + (" / subagent" if sub else "")
+        c["session"] = p.parent.parent.name if sub else p.stem
+        ctxs.append(c)
+    fit = tokens_per_char(ctxs)
+    ratio = fit[0] if fit else None
+    totals = defaultdict(lambda: defaultdict(int))     # route -> token class -> tokens
+    cls = defaultdict(lambda: defaultdict(float))      # (route, class) -> write/read tokens
+    files = defaultdict(lambda: {"read": 0.0, "write": 0.0, "reads": 0, "sessions": set()})
+    drops = calls_in = 0
+    for c in ctxs:
+        calls, route = c["calls"], c["route"]
+        inw = [t0 <= x["ts"] < t1 for x in calls]
+        if not any(inw):
+            continue
+        seg, s = [], 0
+        for k, x in enumerate(calls):
+            if k and x["ctx"] < _COMPACTED * calls[k - 1]["ctx"]:
+                s += 1
+                drops += inw[k]
+            seg.append(s)
+        for k, x in enumerate(calls):
+            if inw[k]:
+                calls_in += 1
+                for tc in ("input", "cache_write", "cache_read", "output"):
+                    totals[route][tc] += x[tc]
+        model = next((x["model"] for x in calls if x["model"]), "")
+
+        def carry(after: int) -> tuple[int, int]:
+            if after >= len(calls):
+                return 0, 0
+            home = seg[after]
+            n = sum(1 for j in range(after, len(calls)) if seg[j] == home and inw[j])
+            return (1 if inw[after] else 0), max(n - (1 if inw[after] else 0), 0)
+
+        # The first call's whole context, and the always-loaded files inside it, ride every call of
+        # the context's first segment and are reloaded after each compaction: carried by every call.
+        n_in = sum(inw)
+        segs_in = len({seg[j] for j in range(len(calls)) if inw[j]})
+        base = calls[0]["ctx"]
+        cls[(route, "always-loaded: the first call's whole context (system, tools, CLAUDE.md, memory, prompt)")]["write"] += base * segs_in
+        cls[(route, "always-loaded: the first call's whole context (system, tools, CLAUDE.md, memory, prompt)")]["read"] += base * (n_in - segs_in)
+        if ratio:
+            for key, name in (("claude_md", "always-loaded: CLAUDE.md"), ("memory_md", "always-loaded: MEMORY.md index"),
+                              ("opening", "always-loaded: the opening prompt (a tick's drawn work, a seat's charter)")):
+                tok = (c["loaded"][key] or 0) * ratio
+                cls[(route, name)]["write"] += tok * segs_in
+                cls[(route, name)]["read"] += tok * (n_in - segs_in)
+        read_before: set = set()
+        for p in c["pieces"]:
+            if not ratio:
+                break
+            w, r = carry(p["after"])
+            tok = p["chars"] * ratio
+            for name in _classes_of(p, read_before, model):
+                cls[(route, name)]["write"] += tok * w
+                cls[(route, name)]["read"] += tok * r
+            if p["lines"]:
+                gen = sum(len(ln) for ln in p["lines"] if _GENERATED.search(_lead_path(ln)))
+                if gen:
+                    name = f"generated data: lines naming a generated path in {p['tool']} output"
+                    cls[(route, name)]["write"] += gen * ratio * w
+                    cls[(route, name)]["read"] += gen * ratio * r
+            fp = p["path"] if p["tool"] == "Read" else (
+                bash_read_path(str(p["input"].get("command") or "")) if p["tool"] == "Bash" else "")
+            if fp:
+                fp = _REPO_ROOT.sub("", fp)
+                read_before.add(fp)
+                f = files[fp]
+                f["write"] += tok * w
+                f["read"] += tok * r
+                f["reads"] += 1
+                f["sessions"].add(c["session"])
+    return {"tokens_per_char": ratio, "fit": fit, "calls": calls_in, "compactions": drops,
+            "totals": {k: dict(v) for k, v in totals.items()},
+            "classes": {k: dict(v) for k, v in cls.items()},
+            "files": files}
+
+
+def render_reading(t0: str, t1: str, root: Path = PROJECTS, top: int = 15) -> str:
+    m = reading_tokens(t0, t1, root)
+    if not m["totals"]:
+        return f"No calls between {t0} and {t1} under `{root}` -- nothing measured, which is not zero."
+    tot = defaultdict(int)
+    for v in m["totals"].values():
+        for k, n in v.items():
+            tot[k] += n
+    ctx = tot["input"] + tot["cache_write"] + tot["cache_read"] or 1
+    ratio, fit = m["tokens_per_char"], m["fit"]
+    lines = [f"Reading tokens, {t0} to {t1} UTC: {m['calls']:,} calls over every session and subagent; "
+             f"{m['compactions']} compaction drops; tokens per char of tool result measured at "
+             + (f"{fit[0]:.3f} (quartiles {fit[1]:.3f}-{fit[2]:.3f}, {fit[3]} gaps of 20k+ chars)."
+                if ratio else "NOTHING (fewer than 4 calibration gaps) -- the classes below are not measured."), "",
+             "**Measured totals, by token class** (every call in the window):", "",
+             "| route | calls' fresh input | cache write | cache read | output |", "|---|---|---|---|---|"]
+    for route, v in sorted(m["totals"].items(), key=lambda kv: -kv[1].get("cache_read", 0)):
+        lines.append(f"| {route} | {v.get('input', 0):,} | {v.get('cache_write', 0):,} | {v.get('cache_read', 0):,} | {v.get('output', 0):,} |")
+    lines.append(f"| **all** | {tot['input']:,} | {tot['cache_write']:,} | {tot['cache_read']:,} | {tot['output']:,} |")
+    by = defaultdict(lambda: {"write": 0.0, "read": 0.0})
+    for (route, name), v in m["classes"].items():
+        by[name]["write"] += v.get("write", 0)
+        by[name]["read"] += v.get("read", 0)
+    lines += ["", "**By reading class, ranked by share of the window's context tokens** (fresh input + cache "
+              "write + cache read; classes OVERLAP and do not sum; a read adds no output and ~no fresh input):", "",
+              "| class | cache write | cache read | share of context tokens | share of cache write |", "|---|---|---|---|---|"]
+    for name, v in sorted(by.items(), key=lambda kv: -(kv[1]["write"] + kv[1]["read"])):
+        lines.append(f"| {name} | {int(v['write']):,} | {int(v['read']):,} | "
+                     f"{100 * (v['write'] + v['read']) / ctx:.1f}% | {100 * v['write'] / (tot['cache_write'] or 1):.1f}% |")
+    # Every tool result and the first call's context are disjoint; what they leave is the model's own
+    # output carried forward (thinking, tool calls, text) and harness attachments. Printed so a class
+    # that silently over-attributes shows as a remainder below zero.
+    disjoint = ("all Bash results", "all Read results", "all Grep results", "other tool results (Agent, Edit, Write, Skill...)",
+                "always-loaded: path-scoped rules (.claude/rules)",
+                "always-loaded: the first call's whole context (system, tools, CLAUDE.md, memory, prompt)")
+    covered = sum(by[n]["write"] + by[n]["read"] for n in disjoint if n in by)
+    lines.append(f"| *remainder: the model's own output carried forward, and attachments (disjoint check)* | | | "
+                 f"{100 * (1 - covered / ctx):.1f}% | |")
+    many = [f for f in m["files"].values() if len(f["sessions"]) >= 10]
+    lines.append(f"| repeat across sessions: every read of a file read in 10+ sessions ({len(many)} files) | "
+                 f"{int(sum(f['write'] for f in many)):,} | {int(sum(f['read'] for f in many)):,} | "
+                 f"{100 * sum(f['write'] + f['read'] for f in many) / ctx:.1f}% | |")
+    routes = sorted(m["totals"], key=lambda r: -m["totals"][r].get("cache_read", 0))
+    keyc = [n for n, _ in sorted(by.items(), key=lambda kv: -(kv[1]["write"] + kv[1]["read"]))][:8]
+    lines += ["", "**Per seat kind: each class's share of that route's own context tokens:**", "",
+              "| route | " + " | ".join(keyc) + " |", "|---" * (len(keyc) + 1) + "|"]
+    for route in routes:
+        v = m["totals"][route]
+        rc = v.get("input", 0) + v.get("cache_write", 0) + v.get("cache_read", 0) or 1
+        cells = [f"{100 * sum(m['classes'].get((route, n), {}).get(x, 0) for x in ('write', 'read')) / rc:.0f}%" for n in keyc]
+        lines.append(f"| {route} | " + " | ".join(cells) + " |")
+    lines += ["", f"**The {top} files whose Read results cost most** (write + read tokens carried; reads; sessions):", "",
+              "| file | cache write | cache read | reads | sessions |", "|---|---|---|---|---|"]
+    for path, f in sorted(m["files"].items(), key=lambda kv: -(kv[1]["write"] + kv[1]["read"]))[:top]:
+        lines.append(f"| `{path.replace('/home/rich/synthetic-enterprise/', '')}` | {int(f['write']):,} | "
+                     f"{int(f['read']):,} | {f['reads']} | {len(f['sessions'])} |")
+    return "\n".join(lines)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--days", type=float, default=7.0)
@@ -416,7 +787,12 @@ def main(argv=None) -> int:
                     help="the USD-per-point conversion from the director's last two readings")
     ap.add_argument("--routes", nargs=2, metavar=("FROM", "TO"),
                     help="spend by route between two UTC instants, e.g. 2026-10-16T05:55 2026-10-23T05:55")
+    ap.add_argument("--reading", nargs=2, metavar=("FROM", "TO"),
+                    help="where reading tokens go between two UTC instants, by class and seat kind")
     a = ap.parse_args(argv)
+    if a.reading:
+        print(render_reading(*a.reading))
+        return 0
     if a.routes:
         print(render_routes(*a.routes))
         return 0
