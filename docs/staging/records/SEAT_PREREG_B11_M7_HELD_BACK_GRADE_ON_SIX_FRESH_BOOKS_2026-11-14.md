@@ -100,3 +100,14 @@ counts (graded, departed) with "too few to tell". The result is not extrapolated
 ## Grade
 
 *Appended after the reading. No line above is to be edited.*
+
+## Not launched, 14 Nov 19:46Z: the launch gate is unmet
+
+Drawn as `b11-m7-six-fresh-value-arm-members-are-run-and-graded`. The item's own gate says "do not
+launch before the `churn_roll` family (THE_VALUE_TEST_REDESIGN §8) is graded and candidate A (§9)
+has released the memory budget". At 19:46Z neither holds: `/var/tmp/vtcr-out/` holds 2 of 12
+member/control pairs, the third (`55555_66666`) is running under `/var/tmp/vtcr-driver/driver.py`,
+and §8 puts the read at about 09:00Z on 15 Nov. Candidate A has not launched (§9: one draw about
+1.5 h, twelve about 19 h). No member on 61113–61118 exists, so the predictions above remain filed
+blind. **Earliest launch:** after candidate A's driver exits, on one pinned origin commit,
+`tools.seed_family launch --policy value_arm` over the six seeds in waves within `--parallel`.
