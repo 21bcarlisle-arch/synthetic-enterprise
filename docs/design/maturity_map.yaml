@@ -1226,6 +1226,8 @@
   depends_on: []
   couples_with: []
   file_scope: ['tools/generate_dashboard_data.py', 'tools/generate_insights.py']
+  blocked_on: [SITE1_expert_doors]
+  block_reason: "Next build is a cross-door count leg; it needs SITE1 BLOCKER-2 (book size, 2026-11-11) defined first. Clear when it is (f1a074be92)."
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose regulatory return and whose board pack quote different customer counts. Nobody notices until someone reads both, and then nobody can say which was ever right."
 - id: W1_14_weather_cells_for_household_heat_load
