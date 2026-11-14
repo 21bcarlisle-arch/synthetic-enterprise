@@ -105,7 +105,7 @@ is the engine-versus-desk write-off reconciliation (`desk_write_off_postings`). 
 
 1. **S6b is wider than the one breach.** The refund-clock finding counted 1 breach and said it had "not counted the
    legs where the same rule moves the request day". 24 of 66 leavers with a money-in day have it set by a netting
-   day after the cash. On 4 it **is** the refund request day. SYN-2016-139 is the one that breaches. On the other 3
+   day after the cash. On 4 it **is** the refund request day. *(Corrected 2026-11-14, s.8: **3**, not 4. PROS-2019-0318's 12 Jun 2023 is also the day its returned final bill was part-paid, so a real arrival sets it as well; the census flagged the netting day without checking whether another arrival shared it. The 24 is 23 for the same reason.)* SYN-2016-139 is the one that breaches. On the other 3
    (PROS-2019-0318: cash 22 Nov 2022, request 12 Jun 2023; SYN-2016-093: cash 13 Sep 2016, request 1 Sep 2017;
    SYN-2016-360: cash 16 Feb 2017, request 19 Oct 2017) the refund lands inside a clock that started too late. Each
    reads clean, with no row able to see it, exactly as the finding said. The refund log here is the replay's, written
@@ -192,4 +192,35 @@ for that book: request days set by a netting day, **3 to 6** (4 here, and the po
 
 Graded: repayment-posting held=1 missed=1 code=0 reader=1 regressed=0 width=0
 
-NEXT: none -- the next pieces (the stop condition built into the draw, S6b money_in_out read by the cash day) are handed on by seat_continuation, not minted as atoms here
+## 8. S6b built: `money_in_out` reads the cash day (2026-11-14)
+
+`arrears_engine.py`'s `arrived` loop now takes a repayment credit's `credit_period_end`, its cash day, where it
+took the netting `date`. `home_moves.md` s.8.8d choice 18 was amended first (K8). The control is
+`tests/simulation/test_a_close_refund_waits_for_the_money_it_pays_out.py`. EARLY_REPAID's money-in day is 16 Feb,
+its cash day, and its refund no longer moves. Reverting the line turns it red.
+
+**Pre-registration** (`/var/tmp/s6b/PREDICTION.txt`, written before the build). State **S6b**; the reader's T is
+**after** the seam (`money_in_out` reads `repayment_rows` output, so an S1 drop never reaches it). Measured by
+re-walking the r98 replay with the code before and after (`/var/tmp/s6b/diff.py`) and the census's S6 lines.
+
+| Row | Predicted | Read | Verdict |
+|---|---|---|---|
+| P1 census: money-in days set by a netting day after the cash | 24 of 66 → 0 of 66 | **1 of 66** (PROS-2019-0318) | **missed**, reader: its day is also its part payment's day, which the census flag never checked |
+| P2 money-in days that move | exactly the 24, each earlier | **23**, each earlier, none later, none vanish | **missed**, reader, the same cause as P1 |
+| P3 the 4 named legs' new money-in day | at or before each cash day | SYN-2016-139 → 7 May 2021 and SYN-2016-093 → 13 Sep 2016 held. SYN-2016-360 → **14 Oct 2017**, a later real arrival, not its 16 Feb cash. PROS-2019-0318 did not move | **missed**, reader: I took the cash day to become the latest arrival |
+| P4 recomputed refund log | amounts unchanged; paid days earlier or unmoved; at most 24 move | 178 refunds, amounts identical, **3** paid days earlier: SYN-2016-139 12 May → 29 Apr 2022, SYN-2016-093 15 Sep → 4 Sep 2017, SYN-2016-360 2 Nov → 27 Oct 2017 | held |
+| P5 closing balances | identical | identical on all 850 legs | held |
+| P6 EARLY_REPAID control | goes red, rewritten to the cash day | red. Its fixture repayment row also had `due_date` 14 days after its cash day, which the world never builds (`repayment_rows` sets both to the cash day), so the row was corrected to the world's shape | held |
+
+**W1's first test.** The map's sentence held: the prediction named the state and the side of the seam, and
+neither was the miss. All three misses are one reader slip on the census's own flag, which s.3 published. A
+map row that counts by a filter needs the filter's partition checked: a coincident real arrival is the leg it
+did not see.
+
+SYN-2016-139's refund is now paid 29 Apr 2022, inside reg 6D's ten working days from 13 Apr. The
+`DOMAIN_INVARIANT_EXCEPTIONS.yaml` row for it stays at its ceiling until a fresh book carries this change: the
+16 Nov 04:00 run is built from an earlier commit.
+
+Graded: repayment-posting held=3 missed=3 code=0 reader=3 regressed=0 width=0
+
+NEXT: none -- S6b is built (s.8). The 16 Nov book's census reads it; the SYN-2016-139 exception is dropped once a fresh book shows the refund on time

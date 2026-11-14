@@ -46,6 +46,8 @@ row able to see it.
 3. Pre-register the count of request days that move, and the reg 6D breaches that appear, on a replay before a
    run.
 
+**Built 2026-11-14** (REPAYMENT_POSTING_AREA_MAP s.8). Steps 1 and 3 were done as written. Step 2 was done more simply: `money_in_out` dates every repayment credit by its cash day. On the r98 replay, 23 money-in days move earlier and 3 refunds are paid earlier, SYN-2016-139's on 29 Apr 2022.
+
 Until the fix lands, `DOMAIN_INVARIANT_EXCEPTIONS.yaml` holds the row at a ceiling of 1, scoped by name to this
 account, so the 16 Nov publish is not refused for a traced defect. A second breach still refuses.
 

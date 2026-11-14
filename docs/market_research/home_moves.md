@@ -1144,6 +1144,12 @@ clock ran from the final bill's issue (reg 6D) whatever the balance was that day
 
     This extends choice 2, which already runs the clock from a level collection taken after the final bill.
     The amount does not move. Only the day does.
+
+    *Amended 2026-11-14:* a household repayment counts on the day its cash arrived, not on the later day
+    the walk nets it, as held credit, against a returned bill. Under SLC 27.16 the credit existed from the
+    cash day, and applying credit the account already held is not money in. The page has dated that cash
+    this way since fix 2. On the r98 replay, dating it by the netting day had moved 23 money-in days later
+    and held 3 refunds late (SYN-2016-139 by 9 working days). REPAYMENT_POSTING_AREA_MAP s.1 S6b; s.8 there.
 19. *No clearing period is modelled* (G8.16). Money counts on the day it posts. The rule only stops a refund
     paying money the account has not yet been sent.
 20. *Named limit, unchanged:*

@@ -27,9 +27,10 @@ def _row(cid, period_end, amount, outcome="success", method="direct_debit", days
 #:   move: counting it at its due date put 9 closed legs past reg 6D's clock on the page (PROS-2017-0351).
 #: LEVEL_REPAID: a level leaver 30 in credit at its last level collection (19 Mar 2020), whose returned
 #:   20 final bill the household repays on 10 May. The refund waits for the later of the two days.
-#: EARLY_REPAID: the same, but the repayment row is dated before the return it settles (SYN-2016-139's
-#:   11.52 is dated May 2021 and settles an Apr 2022 return). It reaches the account, and the page, when
-#:   the walk sets it against the return on 30 Apr.
+#: EARLY_REPAID: the same, but the household's 20 arrived on 16 Feb, before the return the walk later nets
+#:   it against on 30 Apr (SYN-2016-139's 11.52 arrived May 2021 and was netted against an Apr 2022 return).
+#:   The money was in on 16 Feb, before the last level collection, so the refund must not wait for the
+#:   netting day (REPAYMENT_POSTING_AREA_MAP s.1 S6b). Waiting for it held 3 of 178 refunds late.
 #: OVERPAID: off level, pays its final bill on time, then sends 25 nothing is owed against on 1 Mar 2021.
 #:   That 25 is the whole credit, and it exists from 1 Mar.
 #: PART_PAID: a level leaver 30 in credit whose 25 final bill comes back returned on 5 May, 15 of it
@@ -48,7 +49,8 @@ _ROWS = ([_row("PAID_LATE", f"2017-{m:02d}-30", 50.0, method="standard_credit") 
             {**_row("LEVEL_REPAID", "2020-04-26", 20.0, "repayment"), "settles_month": "2020-04"}]
          + [_row("EARLY_REPAID", f"2020-{m:02d}-28", 50.0) for m in (1, 2, 3)]
          + [{**_row("EARLY_REPAID", "2020-04-05", 20.0, "failed"), "due_date": date(2020, 4, 30)},
-            {**_row("EARLY_REPAID", "2020-02-16", 20.0, "repayment"), "settles_month": "2020-02"}]
+            {**_row("EARLY_REPAID", "2020-02-16", 20.0, "repayment"), "settles_month": "2020-02",
+             "due_date": date(2020, 2, 16)}]
          + [_row("PART_PAID", f"2020-{m:02d}-28", 50.0) for m in (1, 2, 3)]
          + [{**_row("PART_PAID", "2020-04-05", 10.0, "failed"), "due_date": date(2020, 5, 5), "part_paid_gbp": 15.0}]
          + [_row("OVERPAID", f"2020-{m:02d}-31", 40.0, method="standard_credit") for m in (10, 12)]
@@ -59,7 +61,7 @@ _LEVEL = {"PAID_LATE": [{"month": "2016-05", "collection_date": "2016-05-31", "a
 _LEAVERS = {"PAID_LATE", "CREDIT_ROW", "COVERED", "LEVEL_REPAID", "EARLY_REPAID", "OVERPAID", "PART_PAID"}
 #: The day the money each leg's credit counts reaches the account.
 _MONEY_IN = {"PAID_LATE": date(2018, 1, 14) + timedelta(days=20), "LEVEL_REPAID": date(2020, 5, 10),
-             "EARLY_REPAID": date(2020, 4, 30), "OVERPAID": date(2021, 3, 1),
+             "OVERPAID": date(2021, 3, 1),
              "PART_PAID": date(2020, 5, 5)}
 
 
@@ -79,9 +81,11 @@ def test_every_refund_waits_for_its_money_and_only_a_late_one_moves():
     _, _, unmoved = _refunds(False)
     assert closing == {"PAID_LATE": -40.0, "CREDIT_ROW": -60.0, "COVERED": -22.0, "LEVEL_REPAID": -30.0,
                        "EARLY_REPAID": -30.0, "OVERPAID": -25.0, "PART_PAID": -20.0}
-    # Both sides of the partition are taken: five refunds move, two do not.
+    # Both sides of the partition are taken: four refunds move, three do not.
     moved = {cid for cid in log if log[cid]["paid_date"] != unmoved[cid]["paid_date"]}
-    assert moved == {"PAID_LATE", "LEVEL_REPAID", "EARLY_REPAID", "OVERPAID", "PART_PAID"}, (log, unmoved)
+    assert moved == {"PAID_LATE", "LEVEL_REPAID", "OVERPAID", "PART_PAID"}, (log, unmoved)
+    # A repayment is money in on its cash day, not the day the walk nets it.
+    assert money_in["EARLY_REPAID"] == date(2020, 2, 16)
     for cid, arrived in _MONEY_IN.items():
         assert money_in[cid] == arrived
         assert unmoved[cid]["paid_date"] < arrived.isoformat() <= log[cid]["paid_date"]

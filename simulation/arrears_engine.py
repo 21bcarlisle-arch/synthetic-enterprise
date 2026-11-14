@@ -1452,9 +1452,12 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             # row falls due later (PROS-2017-0351's -827.68 of 22 Nov 2024 is due 7 Dec).
             arrived = []
             for r in rows:
-                # A repayment reaches the page on the day the walk sets it against a bill, which can be
-                # later than its own row: SYN-2016-139's 11.52, dated May 2021, settles an Apr 2022 return.
-                arrived.extend(x["date"] for x in credited.get(_key(r), ()) if x["kind"] == "repayment")
+                # A repayment is money in on its cash day (`credit_period_end`), not the later day the
+                # walk nets it against a bill: SYN-2016-139's 11.52 arrived 7 May 2021 and was netted
+                # against its Apr 2022 return, and the netting day started its reg 6D clock a year late
+                # (REPAYMENT_POSTING_AREA_MAP s.1 S6b; 24 of 66 money-in days). The page dates it so too.
+                arrived.extend(date.fromisoformat(x["credit_period_end"])
+                               for x in credited.get(_key(r), ()) if x["kind"] == "repayment")
                 if r["outcome"] == "success" and id(r) not in level_paid:
                     # A level-paid bill's cash is its level collection, which `last_collection`
                     # already dates: SYN-2016-369's July bill falls due 15 Aug, the bank paid 12 Jul.
