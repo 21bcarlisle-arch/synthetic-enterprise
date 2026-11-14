@@ -125,6 +125,13 @@ quarterly meter readings; free annual gas safety check; password scheme; nominee
 - Before any disconnection the supplier must take all reasonable steps to find out whether 27.10 or
   27.11 applies (SLC 27.11(A), S8, in force from 1 Oct 2010). That is the licence ground for the
   code's rule that "cannot determine" blocks disconnection: an unasked question is an unmet duty.
+  **Holding no evidence is not having asked** *(corrected 2026-11-15, C32 seventh pass)*. The
+  code had read this duty only where something was on record. On 15 Jan 2024 it permitted
+  disconnecting a household it held nothing on: no registration, no flag, no birth date. Such a
+  household may be an 80-year-old living alone, whom 27.10 prohibits disconnecting. The company
+  has no ascertainment step and keeps no record of one. So in a winter month, any household not
+  already protected reads "cannot determine" under 27.11(A). From April to September, 27.10 and
+  27.11 do not apply, so 27.11(A) has nothing to ascertain and the licence sets no bar.
 - Disconnection for unpaid charges is in any case only available once repayment options have been
   offered and the available means of recovering the debt exhausted (S4).
 - **Energy UK Vulnerability Commitment / "Safety Net"** (S5): a **voluntary** pledge, all year
@@ -322,6 +329,23 @@ Three consequences, each of which decides a live question in the code:
     which is the debt itself. Closing that needs the welfare assessment or an ability-to-pay step
     before any disconnection (S4's "means exhausted"), and that belongs to the collections atom.
   - **Reversible.** Delete `_held_evidence` from `winter_moratorium.safety_net_on_record`.
+  **Amended again 2026-11-15, C32's seventh pass, items 2 and 4.** The reviewer asked whether "no
+  evidence" means "asked and found none" or "never asked". In winter the licence answers this, and
+  the code did not. 27.11(A) requires reasonable steps to ascertain before disconnecting (§2). No
+  company path holds a birth date or an ascertainment record. So every household the company held
+  nothing on was permitted in January, including any 27.10 household it had never asked.
+  - **Design choice.** In a winter month, the licence decider's "no protection established" now
+    reads "cannot determine", naming 27.11(A). This follows from the instrument's text (S8): it is
+    not a policy choice, and it applies whatever the supplier's own Safety Net reading.
+  - **The permit branch is still reachable,** but only from April to September, and only for a
+    household on which the company holds no evidence.
+  - **What it costs.** No winter disconnection at all until an ascertainment step (contact, a visit)
+    is built. That step belongs to the collections atom, which owns the pre-disconnection sequence.
+    This agrees with the published record of near-zero debt disconnections.
+  - **Still open, and summer only.** The Safety Net's "knowingly" sets no duty to ask, so a summer
+    household the company never asked stays permitted. The fifth and sixth passes named this gap.
+  - **Reversible.** Remove the winter leg at the end of
+    `priority_services_register._disconnection_protection`.
 - `UNSOURCED`, opened 2026-11-14 (fourth pass, item 1): whether Ofgem treats a summer disconnection
   of a known-vulnerable household as a breach of the Standards of Conduct (SLC 0). SLC 0 has not
   been read in the instrument here; nothing in the code cites it.
