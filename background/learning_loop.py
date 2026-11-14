@@ -27,7 +27,8 @@ from statistics import median
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 #: W1's stop condition (ways_of_working.md): three code-or-reader misses in one area in seven days
-#: stop fixes in that area until its map exists. A diagnostic here, applied by hand (design §9).
+#: stop fixes in that area until its map exists. Lane 0's draw applies it
+#: (`delivery_lane._area_stops`).
 STOP_MISSES = 3
 WINDOW_DAYS = 7
 

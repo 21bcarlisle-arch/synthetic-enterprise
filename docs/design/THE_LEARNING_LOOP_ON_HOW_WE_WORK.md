@@ -121,6 +121,10 @@ with no change yet, because W1's map may remove its cause.
 
 - The published side: the "Building it" part reads the reading log through `tools/reading_log_feed.py`;
   the same feed should read this file. Minted as the next step.
-- The draw rule as a refusal: the measures now reach the draw and print `STOP` per area (§6), but nothing
-  refuses a fix. If the trigger fires a second time on another area, the draw refuses that area's fixes
-  from the same `Graded:` trailers.
+- ~~The draw rule as a refusal~~ **built 14 Nov**, when repayment-posting fired second. Lane 0's draw
+  (`delivery_lane._area_stops`) refuses a fix in an area whose stop condition is met until
+  `docs/design/<AREA>_AREA_MAP*.md` is on origin, and offers the area's map item in that fix's place:
+  the queued one if either store holds it, else one worded from §7. An item belongs to an area when its
+  text names the area slug or it carries `area:`; a fix that names neither is not refused. That leak is
+  the known gap. Control: `test_a_fix_in_a_stopped_area_waits_for_its_map_...` in
+  `tests/background/test_delivery_lane.py`.

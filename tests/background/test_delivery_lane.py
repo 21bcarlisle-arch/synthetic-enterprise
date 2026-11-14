@@ -96,6 +96,9 @@ def tree(tmp_path, monkeypatch):
     # The correctness stretch is read from the live priority order unless a test writes its own.
     from background import supervisor
     monkeypatch.setattr(supervisor, "PRIORITY_ORDER_PATH", tmp_path / "priority_order.yaml")
+    # W1's stop condition reads the live commit record unless a test writes its own reading.
+    from background import learning_loop
+    monkeypatch.setattr(learning_loop, "measures", lambda *a, **k: {"by_area": {}})
 
     def _write(focus):
         direction_path.write_text(yaml.safe_dump(_record(focus)), encoding="utf-8")
@@ -189,6 +192,67 @@ def test_a_focus_atom_in_a_held_step_is_refused_naming_the_ruling_and_lifts_at_t
     # MUTATION (must fire): drop the share check in `_stretch_refusals` -> PB8 is refused here.
     order.write_text(stretch % ", feature_share: 0.33", encoding="utf-8")
     assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "PB8_idle_atom"
+
+
+def test_a_fix_in_a_stopped_area_waits_for_its_map_and_is_drawn_once_the_map_is_on_origin(
+        tree, monkeypatch):
+    """W1's stop condition built into the draw (THE_LEARNING_LOOP_ON_HOW_WE_WORK.md §7, §9).
+
+    The partition first, in one control: the same fix is refused (stop met, no map), drawn (stop
+    met, map on origin) and drawn (stop not met). A stop that always or never refuses fails here.
+
+    MUTATION (must fire): drop `_stop_filtered` from the source loop -> drawn while stopped.
+    MUTATION (must fire): drop the `_map_on_origin` check in `_area_stops` -> never drawn.
+    MUTATION (must fire): ignore `stop_condition_met` -> refused when the stop is not met.
+    MUTATION (must fire): skip-only (return False instead of the map item) -> `unrelated` is drawn.
+    """
+    from background import learning_loop
+    maps: dict[str, str] = {}
+    monkeypatch.setattr(dl, "_map_on_origin", lambda area, rev="origin/main": maps.get(area))
+
+    def reading(met: bool):
+        monkeypatch.setattr(learning_loop, "measures", lambda *a, **k: {
+            "rev": "origin/main", "window_days": 7, "by_area": {
+                "repayment-posting": {"code_or_reader": 3 if met else 2,
+                                      "stop_condition_met": met}}})
+
+    fix = _item("s6b-money-in-out-by-cash-day", "read money_in_out by the cash day",
+                "the Repayment Posting map's s.7 names it")
+    tree["write"]([fix, _item("unrelated")])
+
+    reading(True)
+    taken = {"stopped": dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"]}
+    note = dl.area_stop_note(list(dl.LAST_AREA_STOP_SKIPS))
+    maps["repayment-posting"] = "docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md"
+    taken["mapped"] = dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"]
+    maps.clear()
+    reading(False)
+    taken["not_met"] = dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"]
+
+    assert taken == {"stopped": "repayment-posting-area-map", "mapped": fix["id"],
+                     "not_met": fix["id"]}
+    assert "AREA STOP" in note and fix["id"] in note and "AREA_MAP" in note
+
+
+def test_a_queued_map_item_is_offered_in_the_fixs_place_and_never_ahead_of_other_areas(tree,
+                                                                                       monkeypatch):
+    """The map takes the first refused fix's slot: a queued map item is preferred to the one the
+    draw would word itself, and an item ahead of the fix in another area stays ahead.
+
+    MUTATION (must fire): drop `_queued_map` -> the synthesized id is offered, not the queued one.
+    MUTATION (must fire): `is_map_item` false for every item -> the queued map is refused as a fix.
+    """
+    from background import learning_loop
+    monkeypatch.setattr(dl, "_map_on_origin", lambda area, rev="origin/main": None)
+    monkeypatch.setattr(learning_loop, "measures", lambda *a, **k: {"by_area": {
+        "level-dd": {"code_or_reader": 15, "stop_condition_met": True}}})
+    queued = _item("map-it", "Write docs/design/LEVEL_DD_AREA_MAP.md: the area map")
+    fix = _item("level-dd-fix", "fix the level DD walk")
+    tree["write"]([_item("other-area-first"), fix, _item("tail"), queued])
+
+    assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "other-area-first"
+    claims_mod.claim("other-area-first", note="", paths=[], path=tree["claims"], now=NOW_EPOCH)
+    assert dl.next_item(now=NOW_EPOCH, path=tree["claims"])["id"] == "map-it"
 
 
 def test_THE_SEATS_ORDER_IS_THE_DRAW_ORDER(tree):

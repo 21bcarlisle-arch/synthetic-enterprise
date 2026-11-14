@@ -5178,6 +5178,100 @@ def stretch_note(skipped: list[tuple[dict, str]]) -> str:
 LAST_STRETCH_SKIPS: list[tuple[dict, str]] = []
 
 
+# W1'S STOP CONDITION, BUILT IN (THE_LEARNING_LOOP_ON_HOW_WE_WORK.md §7 and §9). Applied by hand for
+# level-dd; built in when repayment-posting fired second. An area whose last seven days carry three
+# misses from our model of our own code or of the reader (`learning_loop.measures`) has its fixes
+# refused until `docs/design/<AREA>_AREA_MAP*.md` is on origin, and the area's map item takes the
+# first refused fix's place in the walk -- ahead of that area's fixes, never ahead of other work.
+#
+# MEMBERSHIP IS READ FROM THE ITEM'S OWN WORDS, so it is only as good as the item's naming: an item
+# belongs to an area when its id/what/why/done_means names the area slug (any of `-`, `_` or space
+# between its words) or it carries `area: <slug>`. A fix that never names its area is not refused;
+# that leak is stated here rather than hidden behind a fuzzier match that would refuse strangers.
+_AREA_MAP_ITEM = re.compile(r"area[ _-]?map", re.I)
+
+
+def _area_pattern(area: str) -> re.Pattern:
+    words = [re.escape(w) for w in re.split(r"[-_ ]+", area) if w]
+    return re.compile(r"(?<![a-z0-9])" + r"[-_ ]".join(words) + r"(?![a-z0-9])", re.I)
+
+
+def _map_on_origin(area: str, rev: str = "origin/main") -> str | None:
+    """The area map's path on `rev`, or None. Spelled as both landed maps are:
+    `docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md`, `REPAYMENT_POSTING_AREA_MAP_2026-11-14.md`."""
+    stem = "docs/design/" + re.sub(r"[-_ ]+", "_", area).upper() + "_AREA_MAP"
+    listing = _git("ls-tree", "--name-only", rev, "docs/design/") or ""
+    for name in listing.splitlines():
+        if name.startswith(stem) and name.endswith(".md"):
+            return name
+    return None
+
+
+def _area_stops() -> dict[str, str]:
+    """{area: reason} for every area whose stop condition is met and whose map is not on origin.
+    {} on any error: this runs inside `draw`, which never raises -- and an unreadable loop is
+    said in the seat's brief (`_render_learning_loop`), not here."""
+    try:
+        from background import learning_loop
+        reading = learning_loop.measures()
+        rev = reading.get("rev") or "origin/main"
+        stops = {}
+        for area, a in (reading.get("by_area") or {}).items():
+            if a.get("stop_condition_met") and _map_on_origin(area, rev) is None:
+                stops[area] = (f"W1 stop condition: {a.get('code_or_reader')} code-or-reader "
+                               f"misses in {area} over {reading.get('window_days')} days and no "
+                               f"docs/design/{re.sub(r'[-_ ]+', '_', area).upper()}_AREA_MAP*.md "
+                               f"on {rev}, so the area's map comes before its next fix")
+        return stops
+    except Exception:
+        return {}
+
+
+def item_area(item: dict, areas) -> str | None:
+    """The first of `areas` this item names (its `area` field first), or None."""
+    declared = str(item.get("area") or "").strip().lower()
+    if declared in areas:
+        return declared
+    text = " ".join(str(item.get(k) or "") for k in ("id", "what", "why", "done_means"))
+    for area in sorted(areas):
+        if _area_pattern(area).search(text):
+            return area
+    return None
+
+
+def is_map_item(item: dict, area: str) -> bool:
+    head = " ".join(str(item.get(k) or "") for k in ("id", "what"))
+    return bool(_AREA_MAP_ITEM.search(head)) and item_area(item, [area]) == area
+
+
+def area_map_item(area: str, reason: str) -> dict:
+    """The map item the draw offers when no queued item maps the area. W1's wording of the map."""
+    upper = re.sub(r"[-_ ]+", "_", area).upper()
+    return {
+        "id": f"{area}-area-map",
+        "area": area,
+        "what": (f"Write docs/design/{upper}_AREA_MAP_<date>.md in the shape of "
+                 f"docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md: the {area} area's states, and the "
+                 f"code and every reader that decides each, traced on a real household"),
+        "why": reason,
+        "done_means": (f"docs/design/{upper}_AREA_MAP_*.md is on origin/main; the draw then "
+                       f"offers {area} fixes again"),
+    }
+
+
+def area_stop_note(skipped: list[tuple[dict, str]]) -> str:
+    """The doorbell line naming every fix the draw refused under W1's stop condition."""
+    if not skipped:
+        return ""
+    named = "; ".join(f"`{item.get('id')}`" for item, _why in skipped)
+    return (f"AREA STOP: the draw REFUSED {len(skipped)} fix item(s) -- {named} -- "
+            f"{skipped[0][1]}. ")
+
+
+#: The (item, reason) pairs the last `next_item` walk refused under W1's stop condition.
+LAST_AREA_STOP_SKIPS: list[tuple[dict, str]] = []
+
+
 #: A code identifier in an item's prose: lower snake case with at least one underscore, eight
 #: characters or more. The underscore is what separates a symbol from an English word, and the
 #: floor drops `to_dict`-sized names that half the diffs on the machine touch.
@@ -5837,6 +5931,7 @@ def next_item(now: float | None = None, path: Path | None = None, *,
     LAST_HELD_CONTEXT.clear()
     LAST_FINISHED_SKIPS.clear()
     LAST_STRETCH_SKIPS.clear()
+    LAST_AREA_STOP_SKIPS.clear()
     probed: list[list[dict]] = []
     vocabulary: list[tuple[dict[str, int], int]] = []
 
@@ -5907,9 +6002,49 @@ def next_item(now: float | None = None, path: Path | None = None, *,
                 return item
         return None
 
+    # W1's stop condition: a fix in a stopped area is refused and its area's map item is offered
+    # in its place -- the queued one if either store has it, else the one W1 words.
+    stops = _area_stops()
+
+    def _queued_map(area: str):
+        try:
+            pool = list(seat_continuation.live(now=now))
+        except Exception:
+            pool = []
+        pool += list(direction_mod.unreachable_focus(_atom_ids()))
+        return next((c for c in pool if c.get("id") and is_map_item(c, area)), None)
+
+    def _area_stopped(item):
+        """None to take `item`; a map item to take instead; False to skip it."""
+        if not stops:
+            return None
+        area = item_area(item, stops)
+        if area is None or is_map_item(item, area):
+            return None
+        LAST_AREA_STOP_SKIPS.append((item, stops[area]))
+        sub = _queued_map(area) or area_map_item(area, stops[area])
+        if (sub["id"] in taken or sub["id"] in retired or _embargoed(sub, now)
+                or _finished(sub) or _held(sub)):
+            return False
+        return sub
+
+    def _stop_filtered(source):
+        def walk():
+            item = source()
+            while item is not None:
+                verdict = _area_stopped(item)
+                if verdict is None:
+                    return item
+                if verdict:
+                    return verdict
+                taken.add(item["id"])  # this walk only: skip it and ask the source again
+                item = source()
+            return None
+        return walk
+
     chained = _self_issued_chain(store) >= SELF_HANDOFF_CHAIN_LIMIT
     for source in (_focus, _continuation) if chained else (_continuation, _focus):
-        item = source()
+        item = _stop_filtered(source)()
         if item is not None:
             return item
     return None
@@ -5952,7 +6087,8 @@ def draw(now: float | None = None, path: Path | None = None, *, claim: bool = Tr
         record_held_refusals(list(LAST_HELD_SKIPS), now=now, path=path)
         held = (held_note(list(LAST_HELD_SKIPS), list(LAST_HELD_CONTEXT))
                 + finished_note(list(LAST_FINISHED_SKIPS))
-                + stretch_note(list(LAST_STRETCH_SKIPS)))
+                + stretch_note(list(LAST_STRETCH_SKIPS))
+                + area_stop_note(list(LAST_AREA_STOP_SKIPS)))
         if item is None:
             return None
         if not claim:
