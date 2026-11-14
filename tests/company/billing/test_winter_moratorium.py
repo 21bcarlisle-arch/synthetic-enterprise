@@ -113,14 +113,16 @@ class TestWinterMoratoriumRegister:
         assert reg.can_disconnect("A1", dt.date(2024, 1, 1), categories=()) is False
 
     def test_the_licence_rule_is_asked_and_every_answer_is_reachable(self):
-        """One control over the partition: a household with no needs category in winter MAY
-        be disconnected (the blanket winter rule this module used to hold is in no licence
-        condition), a pensionable-age household of unknown composition may NOT, and one
-        living alone may not either. A version that refused everything passes the last two.
+        """One control over the partition: a household with no needs category MAY be
+        disconnected in July (no blanket rule is in any licence condition), but not in January,
+        where SLC 27.11(A) requires asking first and no ascertainment is recorded (C32 seventh
+        pass); a pensionable-age household of unknown composition may NOT, and one living alone
+        may not either. A version that refused everything fails the July leg.
         """
         reg = WinterMoratoriumRegister()
         jan = dt.date(2024, 1, 15)
-        assert reg.can_disconnect("B1", jan, categories=()) is True
+        assert reg.can_disconnect("B1", dt.date(2024, 7, 15), categories=()) is True
+        assert reg.can_disconnect("B1", jan, categories=()) is False
         assert reg.can_disconnect(
             "B1", jan, categories=(PSRCategory.PENSIONABLE_AGE,)) is False
         assert reg.can_disconnect(
@@ -291,8 +293,10 @@ def test_any_vulnerability_evidence_held_blocks_a_summer_disconnection():
         permitted += [f.value for f in VulnerabilityFlag if reg.can_disconnect(
             "E1", day, record=VulnerabilityRecord("E1", (f,), dt.date(2020, 1, 1)))]
         assert permitted == [], (day, permitted)
-        assert reg.can_disconnect("E1", day, categories=()) is True
-        assert reg.can_disconnect("E1", day, record=nobody) is True
+        # No evidence held: permitted in July; in January 27.11(A) has not been met (seventh pass).
+        summer = day.month == 7
+        assert reg.can_disconnect("E1", day, categories=()) is summer
+        assert reg.can_disconnect("E1", day, record=nobody) is summer
     jul = dt.date(2024, 7, 15)
     assert {c for c in PSRCategory
             if safety_net_protection((c,), as_of=jul).protection
@@ -306,3 +310,40 @@ def test_exactly_one_of_categories_or_record():
     reg = WinterMoratoriumRegister()
     with pytest.raises(TypeError):
         reg.can_disconnect("B1", dt.date(2024, 7, 1), categories=(), record=object())
+
+
+def test_a_winter_household_held_nothing_on_has_not_been_asked():
+    """C32's seventh blind pass, items 2 and 4. On 15 Jan 2024 a household the company held no
+    evidence on (no registration, no flag, no birth date) was permitted. It may be an
+    80-year-old living alone, whom SLC 27.10 protects, and 27.11(A) requires reasonable steps
+    to ascertain that before disconnecting; nothing records that it was asked (commons s.2).
+
+    One control over the partition of no-evidence households: every composition, with no
+    birth date, a young one, one in the untranscribed band and an old one. In every winter
+    month none is permitted. In July the absent and young birth dates ARE permitted, so a
+    decider that refuses everything reds here.
+    """
+    from company.billing.winter_moratorium import safety_net_on_record
+    from company.crm.vulnerability_register import VulnerabilityRecord
+    from company.regulatory.priority_services_register import (
+        HouseholdComposition,
+        disconnection_protection,
+    )
+
+    nobody = VulnerabilityRecord("E1", (), dt.date(2020, 1, 1))
+    births = (None, dt.date(1985, 1, 1), dt.date(1961, 1, 1), dt.date(1944, 1, 1))
+    winter = [dt.date(2024, m, 15) for m in (10, 11, 12)] + [
+        dt.date(2024, m, 15) for m in (1, 2, 3)]
+    permitted = [
+        (day, h.value, born)
+        for day in winter for h in HouseholdComposition for born in births
+        if disconnection_protection((), as_of=day, household=h, date_of_birth=born).may_disconnect
+        or safety_net_on_record(nobody, day, h, born).may_disconnect
+    ]
+    assert permitted == []
+    jul = dt.date(2024, 7, 15)
+    for h in HouseholdComposition:
+        for born in (None, dt.date(1985, 1, 1)):
+            assert safety_net_on_record(nobody, jul, h, born).may_disconnect, (h, born)
+    reason = disconnection_protection((), as_of=dt.date(2024, 1, 15)).reason
+    assert "27.11(A)" in reason

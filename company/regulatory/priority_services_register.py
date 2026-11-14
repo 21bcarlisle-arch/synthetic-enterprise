@@ -275,6 +275,16 @@ def _disconnection_protection(
             "supplier applies it as its own policy in winter_moratorium.can_disconnect, not "
             "in this licence answer.",
         )
+    # Holding nothing is not having asked. In winter, 27.11(A) requires reasonable steps to find
+    # out whether 27.10 or 27.11 applies, and no company path records that it did, so a household
+    # we hold nothing on may be an 80-year-old living alone (C32 seventh pass, commons §2).
+    if in_winter:
+        return DisconnectionDetermination(
+            DisconnectionProtection.CANNOT_DETERMINE,
+            "SLC 27.11(A): in a winter month the supplier must take all reasonable steps to "
+            "ascertain whether 27.10 or 27.11 applies before disconnecting, and no "
+            "ascertainment is recorded. Holding no evidence is not having asked.",
+        )
     return DisconnectionDetermination(
         DisconnectionProtection.NOT_ESTABLISHED,
         "No category held establishes a disconnection protection in the published record. "
@@ -309,22 +319,26 @@ def protection_weighing_undetermined(
     determination = decider(
         held, as_of=as_of, household=household, date_of_birth=date_of_birth
     )
-    if not determination.may_disconnect:
+    undecided = determination.protection is DisconnectionProtection.CANNOT_DETERMINE
+    if not (determination.may_disconnect or undecided):
         return determination
-    blocking = [
-        label
-        for label, category in undetermined
-        if not decider(
+    # A term is named when assuming it would change the answer. Against a base that already
+    # cannot determine (a winter household not yet asked, SLC 27.11(A)), that still tells the
+    # agent WHAT to ask: elderly turns it into the 27.10 composition question.
+    blocking = []
+    for label, category in undetermined:
+        answer = decider(
             (*held, category), as_of=as_of, household=household, date_of_birth=date_of_birth,
-        ).may_disconnect
-    ]
+        )
+        if not answer.may_disconnect and answer != determination:
+            blocking.append(label)
     if not blocking:
         return determination
-    return DisconnectionDetermination(
-        DisconnectionProtection.CANNOT_DETERMINE,
-        f"{', '.join(blocking)}: each overlaps a needs category that would protect this "
-        "household and none is established either way. Ask before any disconnection.",
-    )
+    reason = (f"{', '.join(blocking)}: each overlaps a needs category that would protect this "
+              "household and none is established either way. Ask before any disconnection.")
+    if undecided:
+        reason = f"{reason} Also: {determination.reason}"
+    return DisconnectionDetermination(DisconnectionProtection.CANNOT_DETERMINE, reason)
 
 
 class NeedsCodeEvidence(str, Enum):

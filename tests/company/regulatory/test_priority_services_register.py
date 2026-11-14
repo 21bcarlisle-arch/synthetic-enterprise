@@ -416,9 +416,15 @@ class TestPensionableAgeFromABirthDate:
             date_of_birth=dt.date(1949, 1, 1),
         ).protection is DisconnectionProtection.PROHIBITED
         assert disconnection_protection(
-            (), as_of=self.WINTER_2017, household=lives_alone,
+            (), as_of=dt.date(2017, 7, 15), household=lives_alone,
             date_of_birth=dt.date(1970, 1, 1),
         ).may_disconnect is True
+        # In winter a young birth date is not an ascertainment of 27.11's disability or chronic
+        # sickness, so SLC 27.11(A) is unmet (C32 seventh pass).
+        assert disconnection_protection(
+            (), as_of=self.WINTER_2017, household=lives_alone,
+            date_of_birth=dt.date(1970, 1, 1),
+        ).protection is DisconnectionProtection.CANNOT_DETERMINE
 
     def test_a_held_code_14_flag_is_never_overridden_by_a_birth_date(self):
         """A flag right when set is right now; a young-looking DOB must not remove it. Holds by
