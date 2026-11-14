@@ -34,3 +34,19 @@ Predicted: the disagreement goes from 84 to 0, and no leg without a set-off move
 whose credit leg is set off against its debt leg, checked on both legs.
 
 **Reverse.** Delete this file.
+
+## Resolved (2026-11-14, delivery item `the-statement-walk-reads-the-closing-set-off`)
+
+Built as recommended. `account_events` now reads `set_offs`: −amount on the leg whose credit left, +amount on the
+leg it paid, posted before that day's refund. Control:
+`tests/company/billing/test_the_statement_walk_carries_the_closing_set_off.py`. It checks both legs against the
+page, and it goes red with the fix removed.
+
+Measured on `/var/tmp/rpam/ledger.json` (6fe7827ab2 run, N29 replay), origin ee2866b3b8, before and after:
+
+- Statement walk against the page: **84 → 0** of 1,302. The prediction held: every leg that moved carries a set-off.
+- `tools/domain_invariant_runner.py --ledger`: text and JSON **byte-identical**. **Correction to "Who reads it"
+  above:** the runner does not read this function. It reads `raw_account_export.account_events`, which has the
+  same name but is a different function, so no 16 Nov grade (n30 included) moves and no amendment is owed.
+- `tools/bill_validation_comparison.compare_all`: `statement_digest` changes on **exactly the 84 set-off legs**.
+  No count, difference or verdict moves.

@@ -1217,7 +1217,9 @@ balance. The close refund reads each fuel alone.
     GBP 740.01 after.
 23. *The set-off happens on the credit leg's refund day, and both legs show it.* The credit leg posts it as a
     debit, and the debt leg as a credit. Each fuel keeps its own balance (SLC 27.16). The money only moves
-    between them.
+    between them. Both legs print it in both places a household reads its balance: the account page and the
+    statement's transaction history (`company/billing/statement_export.account_events`). Until 14 Nov 2026 the
+    statement left it out, so on the 6fe7827ab2 run it closed away from the page on all 84 set-off legs.
 24. *Only closing balances are set against each other.* Both legs must close. If one fuel stays on supply, its
     debt is not set against the leaving fuel's credit here: the review set-off in §8b and the live account's
     own collections handle it. *Named limit:* a household whose surviving fuel owes is still refunded on the fuel

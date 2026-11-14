@@ -321,6 +321,17 @@ def account_events(record: dict) -> list[dict]:
             "amount_gbp": wo.get("amount_gbp"), "moves_balance_gbp": wo.get("amount_gbp") or 0.0,
             "detail": "closed-account balance written off",
         })
+    # A closing credit on one fuel set against the other fuel's closing debt (home_moves.md s.8.8e).
+    # The ledger's amount is owed-positive, so it moves this walk's balance the other way: down on
+    # the leg whose credit left, up on the leg it paid. Appended before the refund so the stable sort
+    # posts it first on their shared day, as the page does.
+    for so in record.get("set_offs") or []:
+        events.append({
+            "date": so.get("date"), "kind": "adjustment", "reference": 0,
+            "amount_gbp": so.get("amount_gbp"), "moves_balance_gbp": -(so.get("amount_gbp") or 0.0),
+            "detail": ("credit used to pay the closing balance on {}" if (so.get("amount_gbp") or 0) > 0
+                       else "paid from the closing credit on {}").format(so.get("other_leg")),
+        })
     for ref in record.get("refunds") or []:
         events.append({
             "date": ref.get("paid_date"), "kind": "adjustment", "reference": 0,
