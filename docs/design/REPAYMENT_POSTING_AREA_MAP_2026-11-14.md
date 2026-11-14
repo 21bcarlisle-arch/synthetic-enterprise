@@ -178,6 +178,10 @@ s.9.8's W1–W4:
 
 None of W1–W4 is about S1, S4 or S6b. **S6b will still be on the 16 Nov book.** No change touches `:1457`. Predicted
 for that book: request days set by a netting day, **3 to 6** (4 here, and the population moves with the run).
+*Amended 2026-11-14, before the 16 Nov book (s.8). The S6b change now touches `:1457`. If the book's code is at or
+after that commit, the prediction is **0** request days set by a netting day alone. A leg may still be flagged by the
+census where a real arrival falls on the netting day, like PROS-2019-0318; count those apart. If the book predates
+the commit, the original 3 to 6 stands. Read the book's code commit first, and grade only the branch it is on.*
 
 ## 7. What this changes
 
