@@ -249,7 +249,18 @@ Three consequences, each of which decides a live question in the code:
   equipment alone follows the same counterfactual: its "cannot determine" asked whether the
   household is also disabled or chronically sick, which outside winter changes nothing. Whether
   this supplier should adopt the Safety Net is a policy question for the company, not a reading of
-  the licence. It is not decided here.
+  the licence. ~~It is not decided here.~~ **Decided 2026-11-14, C32's fourth blind pass:** the
+  company adopts it, in its own layer (`WinterMoratoriumRegister.can_disconnect`), not in the
+  licence decider. Grounds: canon M3, "Comfort and health are a floor, not a weight: no gain ...
+  justifies a breach", and the fourth reviewer's practitioner prior that every large supplier
+  operates the Safety Net (S5), so a supplier without it is less protective than the market it is
+  modelled on. Operationalised as: outside winter, a household holding disability, chronic illness,
+  pensionable age or medical-equipment dependence is not disconnected. S5's wider ground, "severe
+  financial insecurity", is a welfare judgement with no category; it is **not modelled** (GAP).
+  The licence decider still returns the licence's answer, so the two stay separately readable.
+- `UNSOURCED`, opened 2026-11-14 (fourth pass, item 1): whether Ofgem treats a summer disconnection
+  of a known-vulnerable household as a breach of the Standards of Conduct (SLC 0). SLC 0 has not
+  been read in the instrument here; nothing in the code cites it.
 - `UNSOURCED`, opened here: **the current registered rate.** The register has grown since 2016 and
   Ofgem broadened eligibility again from January; the 2025 strategy PDF would answer it and did not
   extract. Nothing in `company/` may quote a present-day PSR rate until it does.
