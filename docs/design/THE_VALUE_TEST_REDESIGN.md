@@ -879,3 +879,67 @@ below 0.04 or above 0.14; C5 and C6 are refuted as written.
 on that pid (`launch_long_job --wait-for-pid`). §7's family took 18 h 46 min for 12 seeds, so this one
 should read about **09:00Z on 15 Nov**, before the 16 Nov reset. Its grade is a separate
 continuation. It does not build the retrain.
+
+## 9. Candidate A: pre-registered before the `churn_roll` grade (filed 14 Nov 15:55Z)
+
+Filed while `/var/tmp/vtcr-out/` holds no member file, so the `churn_roll` grade cannot have informed
+it. The grade picks the shape (§6a's table). Both shapes are filed here, and the launch commit
+names which one runs. Nothing is launched: the `churn_roll` family holds the memory.
+
+**What A is, after §6a.** A switches `renewal_belief_by_ending_term` on, on all three arms, because
+all three are built from `CURRENT_POLICY`. The flag needs a tree at or after `7a7ad95dc`, and
+`45122d156` is not one. So A's comparator is **its off-flag twin at A's own commit** (rule 1), on
+the same seeds and the same `churn_roll` key. It is not §7's or §8's family. §6a established that the
+flag reaches only the desk belief, which gates retention offers on every arm. It never reaches the
+pricing belief that `belief_against_control_outcomes` scores (the bar's AUC, `renewal_rate_chain.py:707`).
+**So these predictions are for A as written, and they predict a null.** That goes against the
+thesis, and §6a's code reading is what the grade tests (F11). The leg named in item 1 is the **choosing
+leg** (value minus level), the only one A can attribute.
+
+**The driver.** `/var/tmp/vta-driver/` is a copy of `/var/tmp/vtcr-driver/`. `VTA_FLAG=1` runs A and
+`VTA_FLAG=0` runs the twin, into `/var/tmp/vta-out-flag{0,1}/`. `VTA_SEEDS=1` runs the one-draw shape
+(seed 11111), and leaving it unset runs the twelve. The shape is the same on both sides, so it is not a
+variable between A and its twin. The key, the seeds, the mode, the pairs per child process and the
+sidecar fields are §8's. The diff in the run path is the two `replace` lines:
+
+```diff
++    from dataclasses import replace
++    m.CURRENT_POLICY = replace(m.CURRENT_POLICY, renewal_belief_by_ending_term=FLAG)
++    m.VALUE_ARM_POLICY = replace(m.VALUE_ARM_POLICY, renewal_belief_by_ending_term=FLAG)
+```
+
+The level arm is `replace(CURRENT_POLICY, …)` inside `run_value_cycle_ab` (`:5580`). It reads the
+module global at call time, so it carries the flag too. Everything else in the diff is bookkeeping:
+the docstring, the `FLAG`/`OUT`/`SEEDS` lines, `mkdir`, the fold file name, and two sidecar fields
+(`renewal_belief_by_ending_term` and the run's own `arm_identity`). `grade.py` changes only its `OUT`
+line. Both diffs are on disk as `driver.diff` and `grade.diff`. **It is one variable, and this was
+measured, not argued.** At origin/main, the flagged `CURRENT_POLICY` and the flagged `VALUE_ARM_POLICY`
+differ in `name` and `renewal_margin_arm` only, which is the arm identity the run already publishes. The
+flagged and unflagged `CURRENT_POLICY` differ in `renewal_belief_by_ending_term` only. The sidecar
+records `arm_identity` and the flag for every member, so the grade can show both held on each one.
+
+**The bar, two ways.** As §6a writes it, the bar is 0.549 plus the family half-range: **0.570** on §7's
+half-range (0.021), or 0.549 plus §8's measured half-range once that is graded. Under rule 1, the bar
+A is graded against is **the twin's mean AUC plus the twin's half-range**. For the one-draw shape it is
+the twin's AUC at seed 11111 plus §8's half-range. Both are reported.
+
+| # | Quantity (A minus twin, paired by seed) | One draw (seed 11111) | Twelve `churn_roll` draws | Kill condition |
+|---|---|---|---|---|
+| A1 | Pricing-belief AUC against who left under the flat price | **0.00 (−0.03 to +0.03)**. A does **not** clear either bar | Mean paired difference **0.00 (−0.015 to +0.015)**; sd of the paired differences ≤ 0.02. A clears **neither** bar | The difference is more than 0.05 on one draw, or the mean is more than the twin's half-range on twelve: the flag reaches the pricing belief, or moves the control arm's leavers more than second-hand. §6a's reading is then wrong and is re-read before B is built |
+| A2 | Calibration, believed minus realised (twin about −0.21) | **0.00 (−0.03 to +0.03)**; A at −0.24 to −0.18 | Mean **0.00 (−0.02 to +0.02)** | Outside the range: the flag moved the pricing belief's level, or the desk's retention offers moved realised retention by more than 3 points |
+| A3 | Choosing leg (value minus level), £ per household-year | **£0 (−£1.50 to +£1.50)** | Mean paired **£0 (−£1.00 to +£1.00)**. The 95% household-resample interval (§7's method) **contains zero** | More than £3 on one draw, or an interval that excludes zero on twelve: the flag acts on the selection by more than who stays. The prediction is refuted, and the mechanism is found before anyone reads it as the belief improving |
+
+Low confidence on A3's width. §7's choosing leg spans £1.80 to £6.84 across elasticity draws. A
+changes the retention offers on tens of renewals, not everyone's elasticity, so I expect a narrower
+range, but nothing has measured it.
+
+**What a held null means, and what it does not.** If A1 to A3 hold, A as written says nothing about
+the 2019 type split. It says only that the flag does not reach the bar, which §6a predicted from the
+code. That is the case for §6a's recommendation: restate A's bar on the **desk belief's** AUC against
+outcomes. **GAP:** no run output carries the desk belief per renewal, so this driver cannot read that
+bar. Restating the bar needs one sidecar field from the run, which is a run-output change, not a flag.
+It is a separate commit with its own pre-registration. I did not add it here, because then the
+driver would differ by more than one variable.
+
+**Cost.** Each shape runs twice (A and its twin): about 3 h for one draw, and about 38 h for twelve.
+§6a's table priced A once, so its hours double under rule 1.
