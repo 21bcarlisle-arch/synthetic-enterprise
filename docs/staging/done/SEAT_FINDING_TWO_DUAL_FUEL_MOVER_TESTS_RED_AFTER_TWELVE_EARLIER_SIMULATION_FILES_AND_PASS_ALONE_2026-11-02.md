@@ -50,3 +50,14 @@ directory was not a gate.
 - Which earlier file pollutes. The cheapest bisection pairs each of the twelve with the movers file, and each pair
   costs at least the movers fixture's 8 minutes.
 - Whether more of `tests/simulation` reds on order. Positions 49 to about 216 were green in the whole read.
+
+## Retired 2026-11-14 (H40): it does not reproduce at origin 0b96265f69
+
+The movers file has 19 predecessors in collection order now. Run with all of them before it
+(`-p no:randomly`), it reads **3 of 3 passed**, and alone it reads 3 passed. Which earlier file polluted it
+on 2 Nov is not established: a change to the movers path, the changed predecessor set, and a masked form
+of the supply-book split the H40 bisect did name are all still open. The bisect found that split, in which
+a book reload leaves `supply_book` holding the old records. Its class fix is filed as
+`WORKER_FINDING_A_BOOK_RELOAD_LEAVES_THE_SUPPLY_BOOK_HOLDING_THE_OLD_RECORDS_SO_A_LATER_TEST_READS_A_SPLIT_BOOK_2026-11-14.md`.
+If these reds come back, start from that finding's control. The full readings are in
+`docs/staging/records/WORKER_RESULT_H40_L2_A_BOOK_RELOAD_LEAVES_THE_SUPPLY_BOOK_ON_THE_OLD_RECORDS_AND_HIDES_A_RED_2026-11-14.md`.
