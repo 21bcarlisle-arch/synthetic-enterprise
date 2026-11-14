@@ -58,3 +58,15 @@ Probable failure modes:
 Proportionality: doc-and-measurement only. Implement directly.
 
 — Director steer, 14 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Measured on 14 Nov by a worker tick, with the prediction filed before any count was run. The report is `docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md`, and its scripts are in `docs/staging/records/collision_census_2026-11-14/`.
+
+- **No file dominates.** The top file, `DIRECTION.yaml`, has 3.7% of the collision mentions in session transcripts, and the top three have 10%. In landed history there are 37 to 103 hours, over two weeks, in which two writers committed to the same file. Only 12 of 141 merges had a file changed on both sides.
+- **The contention is the trunk moving.** 69% of collision lines say "behind origin".
+- **The advisor's guess is refuted.** `site/data` is churn from two writers: 102 commits, one collision hour.
+- **Following outcome 3, no trial is proposed and nothing is built.** The cost is known: about 9.3 hours of contention-only tool time in two weeks. No guard can be deleted.
+- **The 9 Nov generated-data steer is not released.** Its question is size and reading cost, which this census did not measure.
+- **The open number**, filed and not built: what share of `surgical_land`'s 103 hours is re-runs after origin moved.
+- **Reading log.** The three rows are appended to `docs/institutional/reading_log.md`, and the feed is rebuilt.

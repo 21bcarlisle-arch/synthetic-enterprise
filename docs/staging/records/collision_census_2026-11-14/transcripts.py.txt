@@ -1,0 +1,39 @@
+import json, glob, os, re, collections, datetime as dt
+root=os.path.expanduser('~/.claude/projects/-home-rich-synthetic-enterprise')
+files=[f for f in glob.glob(root+'/**/*.jsonl',recursive=True) if os.path.getmtime(f)>1761868800]
+MECH=re.compile(r'surgical_land|isolate_hunks|refresh_to_head|git merge|origin_reconcile|promote_worktree_landing|git pull|git rebase')
+PATHRE=re.compile(r'((?:site/data|docs|company|simulation|sim|saas|tools|background|tests|site|archive)/[\w./-]+\.(?:json|jsonl|yaml|yml|md|py|html|js|csv))')
+REFUSE=re.compile(r'CONFLICT|refus|contested|predates landing|would be overwritten|not possible to fast-forward|non-fast-forward|rejected')
+secs=0.0; calls=0; sess=set(); paths=collections.Counter(); pathsess=collections.defaultdict(set); refusals=0
+total_session_secs=0.0
+def ts(x): return dt.datetime.fromisoformat(x.replace('Z','+00:00'))
+for f in files:
+    pending={}; first=last=None
+    for line in open(f,errors='replace'):
+        try: r=json.loads(line)
+        except Exception: continue
+        t=r.get('timestamp')
+        if t:
+            T=ts(t); first=first or T; last=T
+        m=r.get('message') or {}
+        c=m.get('content') if isinstance(m,dict) else None
+        if not isinstance(c,list): continue
+        for b in c:
+            if not isinstance(b,dict): continue
+            if b.get('type')=='tool_use' and b.get('name')=='Bash':
+                cmd=b.get('input',{}).get('command','')
+                if MECH.search(cmd) and t: pending[b['id']]=ts(t)
+            elif b.get('type')=='tool_result' and b.get('tool_use_id') in pending and t:
+                d=(ts(t)-pending.pop(b['tool_use_id'])).total_seconds()
+                if 0<=d<4*3600: secs+=d; calls+=1; sess.add(f)
+                out=b.get('content'); out=out if isinstance(out,str) else ' '.join(x.get('text','') for x in (out or []) if isinstance(x,dict))
+                if REFUSE.search(out):
+                    refusals+=1
+                    for p in set(PATHRE.findall(out)):
+                        paths[p]+=1; pathsess[p].add(os.path.basename(f)[:8])
+    if first and last: total_session_secs+=(last-first).total_seconds()
+print(f'transcripts {len(files)}; landing-machinery calls {calls} in {len(sess)} sessions; wall time inside them {secs/3600:.1f} h; total session span {total_session_secs/3600:.0f} h')
+print('refusal/conflict outputs', refusals)
+tp=sum(paths.values())
+for p,n in paths.most_common(25): print(f'{n:4d} sessions={len(pathsess[p]):3d} {p}')
+json.dump({'calls':calls,'hours':secs/3600,'span_h':total_session_secs/3600,'refusals':refusals,'paths':paths.most_common(60),'pathsess':{p:len(s) for p,s in pathsess.items()}},open('/var/tmp/collide/transcripts.json','w'))

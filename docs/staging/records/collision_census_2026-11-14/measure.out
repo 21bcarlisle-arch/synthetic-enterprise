@@ -1,0 +1,64 @@
+commits 753 merges 141 contention-subject 163
+writer classes Counter({'unattributed': 304, 'worker-tick': 244, 'delivery-seat': 83, 'advisor': 64, 'daemon': 58})
+
+== same-hour multi-writer file-hours: lower 37 upper 103
+   4  10.8%  hi=   6  docs/staging/WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md   {'unattributed + worker-tick': 3, 'worker-tick': 1}
+   4  10.8%  hi=   5  tools/generate_billing_ledger.py   {'unattributed + worker-tick': 4}
+   4  10.8%  hi=   6  docs/staging/SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md   {'worker-tick': 3, 'unattributed + worker-tick': 1}
+   3   8.1%  hi=   3  docs/design/maturity_map.yaml   {'worker-tick': 2, 'unattributed + worker-tick': 1}
+   2   5.4%  hi=   2  docs/staging/SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md   {'unattributed + worker-tick': 2}
+   2   5.4%  hi=   2  docs/observability/gate_authorizations.jsonl   {'worker-tick': 1, 'unattributed + worker-tick': 1}
+   2   5.4%  hi=   4  docs/direction/DIRECTION.yaml   {'unattributed + worker-tick': 1, 'delivery-seat + worker-tick': 1}
+   1   2.7%  hi=   1  docs/staging/advisor/done/DIRECTOR_STEER_NOTHING_LOGGED_IS_LEFT_TO_MALINGER_TRIAGE_EVERY_OPEN_LIST_AND_MINE_IT_FOR_KNOWLEDGE_2026-11-14.md   {'unattributed + worker-tick': 1}
+   1   2.7%  hi=   1  docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md   {'unattributed + worker-tick': 1}
+   1   2.7%  hi=   1  docs/staging/SEAT_FINDING_OLD_CREDIT_NETTED_AT_CLOSE_STARTS_THE_REFUND_CLOCK_LATE_2026-11-12.md   {'delivery-seat + unattributed': 1}
+   1   2.7%  hi=   1  docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml   {'unattributed + worker-tick': 1}
+   1   2.7%  hi=   1  docs/design/maturity_map_closed.yaml   {'worker-tick': 1}
+   1   2.7%  hi=   3  docs/staging/SEAT_FINDING_THE_DESKS_WRITE_OFF_OF_A_CLOSED_ACCOUNT_NEVER_REACHED_THE_PAGE_2026-11-10.md   {'unattributed + worker-tick': 1}
+   1   2.7%  hi=   1  company/billing/collections_journey.py   {'unattributed + worker-tick': 1}
+   1   2.7%  hi=   3  docs/status/SEAT_STRETCH_LOG.md   {'worker-tick': 1}
+   1   2.7%  hi=   1  simulation/run_phase4c_on_phase2b.py   {'unattributed + worker-tick': 1}
+   1   2.7%  hi=   1  docs/staging/advisor/DIRECTOR_READING_USAGE_49PCT_SATURDAY_1615_AND_NO_WORK_SINCE_THE_REBOOT_2026-11-07.md   {'advisor + unattributed': 1}
+   1   2.7%  hi=   1  docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_THE_PAGES_PUBLISH_A_FOURTEEN_PERCENT_MARGIN_AFTER_COST_TO_SERVE_AGAINST_THE_LIBRARYS_TWO_TO_FIVE_2026-11-04.md   {'worker-tick': 1}
+   1   2.7%  hi=   1  docs/staging/records/SEAT_PREREGISTRATION_N21_MARGIN_UNDER_THE_CAPS_SOURCED_COST_TO_SERVE_2026-11-04.md   {'worker-tick': 1}
+   1   2.7%  hi=   5  docs/staging/SEAT_FINDING_THE_B3CE2A4E73_BOOK_FAILS_THE_DOMAIN_INVARIANT_GATE_ON_SEVEN_ROWS_2026-11-04.md   {'unattributed + worker-tick': 1}
+   1   2.7%  hi=   1  docs/staging/SEAT_FINDING_THE_EIGHTH_COLD_READ_FINDS_THE_2017_GAS_STANDARD_VARIABLE_RATE_THIRTY_PERCENT_UNDER_2016_AND_2018_2026-11-04.md   {'worker-tick': 1}
+   1   2.7%  hi=   3  docs/design/THE_KNOWLEDGE_BASE_STRUCTURE.md   {'worker-tick': 1}
+   1   2.7%  hi=   1  site/data/knowledge_topics.json   {'worker-tick': 1}
+by area (lower): [('docs/staging/', 18, 48.6), ('docs/', 8, 21.6), ('tools/', 4, 10.8), ('docs/observability/', 2, 5.4), ('docs/direction/', 2, 5.4), ('company/', 1, 2.7), ('simulation/', 1, 2.7), ('site/data/', 1, 2.7)]
+
+== merges 141; with >=1 file changed on both sides 12; contested file-merges 31
+   3   9.7%  tools/generate_billing_ledger.py
+   2   6.5%  docs/staging/SEAT_FINDING_A_CREDIT_BILL_WAITS_FOR_THE_NEXT_BILL_IN_THE_WORLD_AND_MEETS_THE_SCHEME_DEBIT_ON_THE_PAGE_2026-11-10.md
+   2   6.5%  docs/staging/SEAT_FINDING_A_LEVEL_DIRECT_DEBIT_HOUSEHOLD_IS_DUNNED_PER_BILL_SO_ITS_PAGE_PRINTS_OVERDUE_WHILE_IN_CREDIT_2026-11-07.md
+   1   3.2%  docs/staging/WORKER_FINDING_A_LEVEL_DD_JOURNEY_CURES_ON_THE_NEXT_INSTALMENT_WHILE_THE_MISSED_ONE_IS_NEVER_MADE_GOOD_2026-11-09.md
+   1   3.2%  docs/staging/SEAT_FINDING_THE_B3CE2A4E73_BOOK_FAILS_THE_DOMAIN_INVARIANT_GATE_ON_SEVEN_ROWS_2026-11-04.md
+   1   3.2%  docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml
+   1   3.2%  docs/staging/SEAT_FINDING_THE_N15_ROW_FINDS_ELEVEN_RE_OFFERS_AFTER_PAID_BILLS_ON_THE_B3CE2A4E73_BOOK_2026-11-04.md
+   1   3.2%  tests/tools/test_a_printed_explore_tariff_is_the_term_the_bill_records.py
+   1   3.2%  tests/tools/test_a_catch_up_paid_on_receipt_is_barred_from_its_issue_date.py
+   1   3.2%  tools/domain_invariant_runner.py
+   1   3.2%  docs/design/DOMAIN_INVARIANTS.yaml
+   1   3.2%  tests/tools/test_the_domain_invariant_runner_reads_only_the_raw_export_and_every_evaluator_can_fire.py
+   1   3.2%  tests/tools/test_a_plan_reoffer_follows_a_bill_not_paid_in_its_window.py
+   1   3.2%  docs/direction/DIRECTION.yaml
+   1   3.2%  docs/institutional/knowledge_map.md
+   1   3.2%  data/lake/ofgem_cim_wave3_2022/needs_crosstabs_by_column.csv
+   1   3.2%  data/lake/ofgem_cim_waves4_6_2023_2025/a15_and_switching_intent_across_waves_3_to_6.csv
+   1   3.2%  site/data/knowledge_topics.json
+   1   3.2%  site/knowledge/index.html
+   1   3.2%  docs/design/the_map/concepts.yaml
+
+== non-merge contention-subject commits 22; files they touch:
+   3 tools/refresh_to_head.py
+   3 docs/staging/done/SEAT_FINDING_THE_PAUSED_BANNER_WAS_REFUSED_BY_THE_BOOK_IT_REPORTS_2026-11-09.md
+   2 tests/tools/test_refresh_to_head.py
+   2 background/origin_reconcile.py
+   1 background/delivery_seat.py
+   1 docs/staging/done/SEAT_FINDING_THE_SEATS_JOURNAL_DROPPED_THE_RED_SITE_TEST_NAME_2026-11-14.md
+   1 tests/background/test_delivery_seat.py
+   1 tests/tools/test_site_lane_gate.py
+   1 tools/site_lane_gate.py
+   1 docs/staging/records/WORKER_RECORD_THE_SHARED_TREE_IS_HELD_BEHIND_ORIGIN_ONLY_BY_THE_SEATS_UNLANDED_ORIENTATION_RECORD_2026-11-14.md
+   1 docs/staging/done/SEAT_FINDING_THE_REFUSED_PUBLISH_RENDER_AND_THE_MOVED_RETIRED_FINDING_GET_RECONCILER_LEGS_2026-11-13.md
+   1 docs/staging/SEAT_FINDING_W2_41S_OWN_ACT_CANCEL_NEEDS_ONE_HOME_THE_RAILS_FILE_SCOPE_CANNOT_HOLD_IT_2026-11-13.md
