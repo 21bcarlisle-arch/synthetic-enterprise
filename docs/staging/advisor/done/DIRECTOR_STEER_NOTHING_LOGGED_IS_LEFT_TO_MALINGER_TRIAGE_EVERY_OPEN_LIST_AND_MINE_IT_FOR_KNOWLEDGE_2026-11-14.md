@@ -57,3 +57,16 @@ The advisor's answer to him was "partly". The triage clears the pile and the age
    - the count fixed;
    - the count past three weeks.
 5. **The advisor's side.** The advisor reads these three numbers in every weekly review and raises it with the director if parking grows faster than fixing.
+
+## Done
+
+(worker tick, Sat 14 Nov.) Items 3 to 5 and addendum items 2 to 4 are superseded by the 06:57
+one-work-system steer, which says so. Items 1 and 2 (the triage and the two questions) and
+addendum item 1 (find the cause) become that design's migration and its evidence. The 16 Nov
+balance proposal (§3) reports how far the triage got: **not started**. The census on origin at
+07:40 Sat confirms the table above: 184 findings, 145 older than 14 days, 56 older than 28. Two
+corrections: there are 10 BLOCKING by severity line, not 11, and the oldest is 43 days old. The
+proposal costs the findings triage at about 6 points (3–38), as correctness and backlog work. It
+ranks it item 2 after the reset: the 10 BLOCKING first, then the 92 supplier-lane findings. The
+cause-finding (addendum item 1) is one input to the work system's decision map. Nothing here was
+triaged this tick.

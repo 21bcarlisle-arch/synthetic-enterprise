@@ -48,3 +48,14 @@ Probable failure modes:
 Proportionality: doc-and-measurement only. Implement directly.
 
 — Director steer, 14 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+(worker tick, Sat 14 Nov.) Queued, not yet measured. The 16 Nov balance proposal
+(`docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md` §3 and §5) costs it at about 1.6 points
+and ranks it item 5 after the reset. It is the first harness item, ahead of the one-work-system
+decision map, because its answer decides whether that design's item shape carries a concept link.
+The usage reading of 05:53 (76%, 0.54 an hour against 0.45) defers it to after the Mon 16 Nov
+reset, and the seat's 06:23 record had already put it there. The Monday ranking step reads the
+proposal. The prediction is pre-registered before the tagger runs, and the reading-log row above
+is appended in the commit that reports the measurement.

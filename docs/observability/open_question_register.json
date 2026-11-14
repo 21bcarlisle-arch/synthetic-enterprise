@@ -1275,6 +1275,42 @@
       "question": "How do we fix that ?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-14): the advisor reads for_the_director from origin before saying what is waiting. A commit that opens or reopens a row must start its title with [FOR-THE-DIRECTOR] and name the id; tools/director_document_gate.py refuses one that does not, and the seat's direction commit marks its own title."
+    },
+    "48479e8489a1": {
+      "ruling": "DIRECTOR_RULING_RELEASE_THE_READING_TOKEN_MEASUREMENT_FROM_BEHIND_THE_EXIT_TEST_2026-11-14.md",
+      "question": "the information to reduce the token cost of reading irrelevant things?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14). The advisor answered him in chat, and he approved it at 06:42 ('Yes'): measure where reading tokens go before cutting anything. The measurement is released from held_behind_the_exit_test and ranked in WEEKLY_BALANCE_REVIEW_2026-11-16.md s.5 item 10. Which cut saves most is the measurement's result, not this answer."
+    },
+    "345cdead383f": {
+      "ruling": "DIRECTOR_STEER_DESIGN_ONE_WORK_SYSTEM_INTO_THE_HARNESS_NOT_MORE_RULES_ON_MANY_LISTS_2026-11-14.md",
+      "question": "One for SIM, one for supplier?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14 06:58). The advisor's addendum in this file answers it: yes, separate lanes for the world, the supplier and building it, on one mechanism. The reason is canon: the world is ranked blind to company results. It is carried into WEEKLY_BALANCE_REVIEW_2026-11-16.md s.3."
+    },
+    "0bd40510c3d4": {
+      "ruling": "DIRECTOR_STEER_NOTHING_LOGGED_IS_LEFT_TO_MALINGER_TRIAGE_EVERY_OPEN_LIST_AND_MINE_IT_FOR_KNOWLEDGE_2026-11-14.md",
+      "question": "Do we log issues with the world and simulation that are outstanding?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14). Yes. On origin at 07:40 Sat, 184 findings sit in the staging root, and 49 of them are in world lanes W1-W4. The advisor's census in this file says the same (WEEKLY_BALANCE_REVIEW_2026-11-16.md s.3)."
+    },
+    "7037760d98e9": {
+      "ruling": "DIRECTOR_STEER_NOTHING_LOGGED_IS_LEFT_TO_MALINGER_TRIAGE_EVERY_OPEN_LIST_AND_MINE_IT_FOR_KNOWLEDGE_2026-11-14.md",
+      "question": "Is it prioritising fixing these and not just listing and forgetting?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14). No. Only 9 of 184 findings are named in priority_order.yaml, DIRECTION.yaml or the map (the advisor's count), and 145 are older than 14 days (the census at 07:40). The remedy is the one-work-system steer: a finding enters the draw when it is written. That is ranked in WEEKLY_BALANCE_REVIEW_2026-11-16.md s.5."
+    },
+    "2792753c5658": {
+      "ruling": "DIRECTOR_STEER_NOTHING_LOGGED_IS_LEFT_TO_MALINGER_TRIAGE_EVERY_OPEN_LIST_AND_MINE_IT_FOR_KNOWLEDGE_2026-11-14.md",
+      "question": "Will this prevent reoccurrance?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14 06:55). 'Partly', as the advisor told him and as this file's addendum records. The triage clears the pile and an age rule catches the next one late; neither removes the cause. His 06:57 one-work-system steer is the answer to the cause."
+    },
+    "a8c8cb3ad54d": {
+      "ruling": "DIRECTOR_STEER_WOULD_LINKING_FINDINGS_TO_CONCEPTS_HAVE_CAUGHT_OUR_REPEAT_DEFECTS_MEASURE_IT_2026-11-14.md",
+      "question": "what else assumes it?",
+      "status": "not_measurable",
+      "disposition": "NOT A QUESTION TO US (2026-11-14). This is CLAUDE.md's interconnection question, quoted by the advisor as a reason for the steer. It is not a question the director asked. The steer's own measurement (the three replayed families) is the test of whether concept links answer it, ranked in WEEKLY_BALANCE_REVIEW_2026-11-16.md s.5 item 5."
     }
   }
 }

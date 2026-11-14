@@ -64,3 +64,16 @@ The advisor's answer to him: yes, kept separate, and a third for the method. All
 - **Shared:** one item shape, one lifecycle, the same flow measures and the same views. It is one system with three ranked lanes. It is not three systems.
 - **Between lanes:** the weekly balance review sets each lane's share of capacity. That is the director's 11 Nov ruling, now with a natural home. The draw takes from each lane by its share and its own rank.
 - **Items that span the seam,** such as the value test or a new observable, have one owning lane. They are named in the item and decided by the interface steward's rule: what crosses the seam is the supplier's question, and what the world must model is the world's.
+
+## Done
+
+(worker tick, Sat 14 Nov.) The design is put in Sunday's balance proposal with its cost, as asked
+(`docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md` §3, §4 and §5). The cost is about 5.6
+points (3–15): a K8 page on single-backlog practice and flow metrics (1.3), a decision map (0.7),
+and the build with the old stores deleted (about 3.6). The proposal raises next week's harness
+share from 10% to 15%, for that week only, and takes the 5 points from knowledge. The K8 page
+and the decision map are item 6 after the reset. They come behind the linking measurement (item
+5), whose answer decides whether the item shape carries a concept link. The build is item 11. The
+three ranked lanes (world, supplier and building it), the one item shape, the one lifecycle and
+deletion as part of done are carried into the proposal as the design's terms. Nothing is built
+yet, and this steer is done only when one place holds the work and one rule picks it.

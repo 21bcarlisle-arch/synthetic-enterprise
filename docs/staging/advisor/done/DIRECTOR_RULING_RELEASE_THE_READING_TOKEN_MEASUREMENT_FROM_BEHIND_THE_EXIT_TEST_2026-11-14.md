@@ -38,3 +38,14 @@ Probable failure mode: a measurement keyed to one heavy day. Cover a full week, 
 Proportionality: doc-and-measurement only. Implement directly.
 
 — Director ruling, 14 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+(worker tick, Sat 14 Nov.) Item 1: `DIRECTOR_STEER_MEASURE_WHERE_READING_TOKENS_GO_BEFORE_SPLITTING_ANY_FILE_2026-11-07.md`
+is removed from `held_behind_the_exit_test` in `docs/direction/priority_order.yaml`, with this
+ruling cited beside the list. Nothing in code reads that list, so the release is the edit itself.
+The measurement is ranked as harness work in the 16 Nov balance proposal (§5 item 10, about 0.9
+points). It is measurement only and extends `tools/tick_burn_rate.py`. Item 2: the generated-data
+and abstraction steers stay held. Items 3 and 4 are the measurement's own done-criteria, and the
+proposal restates them: rank the five cuts by measured share, report tokens by class, cover a
+full week and every seat kind, and never estimate the allowance.
