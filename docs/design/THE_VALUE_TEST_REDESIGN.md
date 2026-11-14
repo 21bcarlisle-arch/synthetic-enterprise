@@ -177,6 +177,41 @@ prediction above, and **I revise my prior on (a) from about 60% to about 45%**. 
 on its own is as hard to get from an ordinary seed as the whole figure was. The table above is
 unchanged, and the run will grade it.
 
+**Graded 14 Nov 12:53Z: (a) held.** The pair finished at 12:52Z (`pair [20260724, 11111] done`,
+10,616 s). I graded it with `/var/tmp/vt12-driver/grade_published.py`, run unchanged over
+`/var/tmp/vt-pub-out/`. It ran at commit `45122d1565`, on world `cdba75ebb9197b33` and the 272-account
+book. The sidecar reads `run_base_seed()` = 20260724 after each member.
+
+| Member 1, seed 20260724 | Published (8 Oct) | Harness (14 Nov) | Difference | Per household-year (1,831) |
+|---|---|---|---|---|
+| Whole advantage | £5,244.00 | £5,244.004943 | £0.000000 | £2.86 |
+| Level leg | −£6,100.76 | −£6,100.759561 | £0.000000 | −£3.33 |
+| Choosing leg | £11,344.76 | £11,344.764504 | £0.000000 | £6.20 |
+| Control arm net | £235,588.43 | £235,588.426466 | £0.000000 | £128.67 |
+| Value arm net | £240,832.43 | £240,832.431409 | £0.000000 | £131.53 |
+| Level arm net | £229,487.67 | £229,487.666905 | £0.000000 | £125.33 |
+
+These are book totals over 272 accounts. Each per-household-year column divides that book total by
+the control arm's 1,831 household-years, as rule 2 does. The arms' own household-years differ:
+control 1,831, value 1,779, level 1,724. Every control-arm account net also matches the 8 Oct
+artefact: the largest per-account difference is £0.00.
+
+Member 2, seed 11111, ran second and reproduced **£11,766.198097**, which matches the known figure
+to £0.000000. Running second in the process did not change it, so I can read member 1 cleanly
+(see the caveat above). Its control net, £229,503.37, is the lowest control in the 12-draw family.
+
+**What this settles.** The published £5,244 is the published configuration's own elasticity draw,
+seed 20260724. When the re-draw harness runs that seed, it reproduces every figure to the penny.
+That rules out (c): no process state or tree state sets the 8 Oct run apart. The published figure
+sat outside the 12 re-draws because the family never contained its seed, and at that seed the
+control arm happens to be high. I first put (a) at 60%. **My 09:42Z revision to 45% moved the wrong
+way.** I treated a control 3.5 sd out as evidence against an ordinary seed. One draw in 13 at
++3.46 sd is unusual, but nothing beyond the draw is needed to explain it. The rule-1 bullet below
+("the re-draw family includes the published draw's own seed") is the fix that this grade supports.
+Across the 13 draws, seed 20260724 is the lowest whole advantage. The published figure is a real
+member of its family, at that family's bottom, and the page should say so rather than present it as
+typical.
+
 ## 3. The redesign
 
 ### Rule 1. One world, one code tree, one book, one date, for every figure on the page
@@ -637,6 +672,7 @@ far below zero as the family's only negative member (−£3,003, seed 44444). Th
 apart by how it splits the same households between choosing and level, chiefly the level leg. It is
 not set apart by its total. This is what the second test in §2 is for: re-run the published
 configuration with the re-draw harness itself, so that (a) and (c) can be told apart.
+*(Graded 14 Nov 12:53Z in §2: (a) held. The harness reproduces every arm at seed 20260724 to the penny.)*
 
 **The level-leg prediction (filed 13 Nov) held on both parts.** 1 of 12 re-draws is negative
 (predicted at most 1). The leg's spread per household-year (£1.30) is wider than its mean (£1.14),
