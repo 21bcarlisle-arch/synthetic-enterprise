@@ -39,7 +39,10 @@ could save in CO2, so those motivated by it can enjoy it. That clarifies the mis
 rather than changing it". Time (M3) "means household effort, measured in its own unit (household
 minutes per kind of activity) and never converted to pounds." M3 was amended on 31 Oct, on his word:
 money is cost and cash flow, peace of mind is certainty and control, each in its own unit, never
-pounds, above a floor of comfort and health; canon §1 holds the wording. Phases: canon §2.
+pounds, above a floor of comfort and health. On 14 Nov, on his 13 Nov words, it gained a weighted
+utility: each household weighs the needs by its own weights, hidden in the world, which the supplier
+must discover; the utility is published beside the vector, never instead of it, and the floor is not a
+weight. Canon §1 holds the wording. Phases: canon §2.
 
 ### What follows from it, that no document said before
 

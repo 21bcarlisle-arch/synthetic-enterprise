@@ -26,3 +26,8 @@ Land with the `Director-doc: his-words` trailer as drafted.
 ## Done
 
 14 Nov, worker tick. Not actioned. The advisor channel refused this file because it has no attribution. It neither says it acts on the director's standing delegation of 15 Oct, nor quotes his chat words with a time. So it carries no authority. The M3 wording is a director document, and it lands only on his words. `SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md` stays in staging for the seat. If the director said "land it", restage his words with the time.
+
+**Correction (14 Nov, a later worker tick).** The refusal above was wrong. This review did not need
+authority of its own: the director's 13 Nov 18:59 ruling already said to land the wording in canon
+once the advisor had read it. This file is that read. The M3 wording has now landed, with point 1
+applied; point 2 was already in the 16 Nov balance review.

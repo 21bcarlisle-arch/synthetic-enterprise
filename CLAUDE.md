@@ -18,13 +18,17 @@ Canon lives in `docs/design/DIRECTOR_CANON.md`; this file quotes it and never re
 
 - **M2.** "Value is created and THEN shared, so every decision has two sides. Transfer is not
   creation." "Charging someone the cap transfers value rather than creating any."
-- **M3** (amended 31 Oct). "Money, time and carbon, above a floor. Money, time and carbon, and the
+- **M3** (amended 31 Oct, 14 Nov). "Money, time and carbon, above a floor. Money, time and carbon, and the
   ways money is shaped. Money is two things, measured apart: cost (what is paid) and cash flow (when,
   and how much at once). Peace of mind is two things, measured apart: certainty (not being surprised)
   and control (deciding when money leaves). Time means household effort, in household minutes per
   kind of activity. Carbon is what customers have saved and could save in CO2. Each is measured in
-  its own unit and never converted to pounds. Comfort and health are a floor, not a currency: no
-  gain in any need justifies a breach."
+  its own unit and never converted to pounds at a rate the company or the scorer chooses. Each
+  household also weighs these needs by its own weights, hidden in the world as part of its life: the
+  value created for it is its gain in that weighted utility, which the supplier never sees and must
+  discover from what a real supplier could observe. The utility is always published beside the
+  vector, never instead of it. Comfort and health are a floor, not a weight: no gain in any need, and
+  no gain in utility, justifies a breach."
 - **M4.** "The enterprise value is the automated METHOD of finding those customers, not the book."
   The book is the evidence that the method works.
 

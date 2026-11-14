@@ -59,3 +59,13 @@ parsimony factors, and household responses that follow from it, built on the act
 resentment mechanics. Fitting all that into the step in flight would change two things in one run, and
 the result could not be attributed. Sunday's balance proposal (`docs/operations/`, 16 Nov review) carries
 the cost and the queue position, and is held to the 70% usage reading's 0.45-points-an-hour pace.
+
+## Done
+
+14 Nov, worker tick. Landed in `docs/design/DIRECTOR_CANON.md` M3 as drafted, with the
+`Director-doc: his-words` trailer citing his 13 Nov 18:59 words. The authority is that ruling, which
+said "land it as a marked change to his canon" once the advisor had read it; the advisor's read
+(`docs/staging/advisor/done/ADVISOR_REVIEW_THE_M3_UTILITY_DRAFT_MAY_LAND_AS_WRITTEN_2026-11-14.md`)
+is the condition, and it said land. Its point 1 is applied: he is quoted through the question mark.
+Its point 2 was already met: `docs/operations/WEEKLY_BALANCE_REVIEW_2026-11-16.md` names the K8 page
+due 23 Nov. CLAUDE.md's verbatim M3 quote and the on-a-page summary follow the new wording.
