@@ -27,6 +27,20 @@ def _runner(rc, out):
     return lambda argv, timeout: SimpleNamespace(returncode=rc, stdout=out)
 
 
+def _live(tmp_path, git_commit):
+    """A provenance file serving `git_commit`'s book."""
+    f = tmp_path / "publish_provenance.json"
+    f.write_text('{"showing_run": {"git_commit": "%s"}}' % git_commit)
+    return f
+
+
+@pytest.fixture(autouse=True)
+def _the_live_book_is_the_graded_one(tmp_path, monkeypatch):
+    """Every test below grades `abc123def`; the site's real provenance names another book, and
+    reading it would make every clause a staleness clause."""
+    monkeypatch.setattr(ppr, "LIVE_PROVENANCE_PATH", _live(tmp_path, "abc123def0"))
+
+
 def test_the_derived_set_holds_both_controls_the_2248e3baf_publish_turned_red():
     """Keyed to the property -- the two named readers are found -- not to today's count. The
     statement control is the one hop 2 exists for: it never spells the ledger's path, only
@@ -132,3 +146,23 @@ def test_every_page_reader_exists_and_a_publish_runs_it(tmp_path, monkeypatch):
     ppr.run("abc", PARSE, runner=runner, path=tmp_path / "s.json")
     assert seen and all(rel in seen[0] for rel in ppr.PAGE_READERS), seen
     assert "tests/x/test_book.py" in seen[0]
+
+
+def test_a_grade_of_a_book_the_site_no_longer_serves_reads_as_ungraded(tmp_path):
+    """The 6fe7827ab2 book went live on 11 Nov by a salvage landing that never ran the readers,
+    and the doorbell kept reporting the 3 Nov book's 7 reds as the live book's for three days.
+    One control over the partition: stale-and-red, stale-and-clean, live-and-clean, live unknown."""
+    p = tmp_path / "obs.json"
+    red = ppr.run("0a6391d186", PARSE, runner=_runner(1, RED_OUT), files=["t.py"], path=p)
+    clean = ppr.run("0a6391d186", PARSE, runner=_runner(0, GREEN_OUT), files=["t.py"], path=p)
+
+    for old in (red, clean):
+        line = ppr.doorbell_clause(old, live="6fe7827ab2")
+        assert line and "UNGRADED" in line and "6fe7827ab2" in line and "0a6391d18" in line
+    assert ppr.doorbell_clause(clean, live="0a6391d186") is None
+    assert "1 red on publish" in ppr.doorbell_clause(red, live="0a6391d18")  # prefixes agree
+
+    ppr.LIVE_PROVENANCE_PATH = tmp_path / "missing.json"  # restored by the autouse fixture
+    assert ppr.live_run_git() is None and ppr.doorbell_clause(clean) is None
+    ppr.LIVE_PROVENANCE_PATH = _live(tmp_path, "6fe7827ab2")
+    assert "UNGRADED" in ppr.doorbell_clause(clean), "the default reads the site's provenance"
