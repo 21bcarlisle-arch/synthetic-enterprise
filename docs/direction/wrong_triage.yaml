@@ -753,3 +753,9 @@ items:
     fate: fold
     owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
     reason: "Triaged 2026-11-13 by the delivery seat. It is a dead holder's state outliving its process, the shape already folded there (a-stale-land-holder-blocks-the-draw-unrechecked). No stop has happened since 10 Nov, so there is no live instance to cost anything. Reopen as a fix if a stop strands a continuation for a whole stretch again."
+  - id: the-level-dd-cure-row-was-filed-as-the-companys-defect
+    problem: "The level-DD cure row was filed as the company's defect, but the four fixes that took it from 29 to 0 changed no company/ or saas/ file."
+    match: ["The level-DD cure row was filed as the company's defect"]
+    first_seen: "2026-11-10"
+    fate: accept
+    reason: "Triaged 2026-11-14 by the delivery seat. The misattribution is a closed historical fact: the four fixes (9392920e6, c7e706580, bd58577a2, 1c66aceab) are on origin with their sides named, and there is nothing left to fix. The lesson is the learning loop's code-or-reader count, which already separates instrument and world misses from the desk's. Listing it every stretch adds 'Unchanged' and nothing else."
