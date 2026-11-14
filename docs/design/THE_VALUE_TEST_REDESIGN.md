@@ -128,6 +128,37 @@ that "priced_decisions" there counts the same thing as "value_arm_priced", so I 
 *(My first draft said I had not established which run each block came from; the top-level
 `producing_commit` answers it.)*
 
+
+**The second test, (a) against (c): predictions filed 14 Nov 09:50Z, before launch.** §7 refuted
+(b). This run puts the published configuration through the re-draw harness itself. It uses the same
+worktree at `45122d156`, world `cdba75ebb9197b33`, the 272-household book, `noise_floor` and sidecar,
+as one pair in one fresh process (`/var/tmp/vt12-driver/published.py`, out to `/var/tmp/vt-pub-out/`).
+- **Member 1, seed 20260724.** This is the run's own base seed (`live_population._DEFAULT_BASE_SEED`).
+  At this seed the elasticity patch hands every household `real(id, 20260724)`, which is what the
+  unpatched 8 Oct run computed. So this member is the published draw, run by the harness. It runs
+  first in the process, as every 12-draw pair's first seed did. The sidecar records
+  `run_base_seed()` after the run, so the grade can confirm that 20260724 really was the base seed.
+- **Member 2, seed 11111.** It is a known control: £11,766.20 on both 8 Oct and 13 Nov, each time run
+  first. Here it runs second, so it also tests whether a figure depends on its place in the process.
+
+| | Under (a): the published draw is an ordinary seed the family was not centred on | Under (c): something other than the seed sets the published run apart |
+|---|---|---|
+| Member 1, whole advantage | **£5,244.00 to the penny** (£2.86 per household-year on 1,831) | **Inside £5,556 to £12,462.** I expect £7,200 to £12,000 (about the family mean ± 1.4 sd), or £3.9 to £6.6 per household-year |
+| Member 1, level leg | **−£6,100.76** to the penny | Inside −£3,003 to +£5,560; I expect −£1,000 to +£4,500 |
+| Member 1, choosing leg | £11,344.76 | Inside £3,274 to £12,388 |
+| Member 2, seed 11111 | £11,766.20 | £11,766.20 |
+
+**My prior, written before the answer: (a) at about 60%.** At the base seed the patch is a
+passthrough by construction, and seed 11111 already reproduced 8 Oct to the penny, so the world under
+the worktree has not moved. If the 13 draws are exchangeable, the chance that the published one falls
+outside the other 12 is 2/13, about 15%, so an extreme seed is not unlikely. Two things could
+nevertheless make it (c). The 8 Oct three-arm run was a separate process from 8 Oct's own noise
+floor (05:24Z against 11:20Z), so process or tree state may differ. And a reload that leaves state
+behind (staged 14 Nov, `WORKER_FINDING_A_BOOK_RELOAD_LEAVES_THE_SUPPLY_BOOK_HOLDING_THE_OLD_RECORDS…`)
+would make a run depend on what ran before it in the same process.
+**If member 2 does not reproduce £11,766.20, the place in the process matters.** In that case
+neither (a) nor (c) can be read cleanly from member 1, and I will say so rather than pick one.
+
 ## 3. The redesign
 
 ### Rule 1. One world, one code tree, one book, one date, for every figure on the page
