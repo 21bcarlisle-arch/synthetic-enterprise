@@ -199,3 +199,20 @@ stays at −£300 to +£500. Candidate A: `/var/tmp/vta-driver/` still holds onl
 scripts, with no output and no process. B11 M7: `/var/tmp/b11m7` does not exist. The launch is
 handed on again. One side note for whoever grades `churn_roll`: `/var/tmp/vtcr-out/run.log` is
 already 335 MB, with one pair left to run.
+
+## 14 Nov, 22:46Z: still unmet; the re-draw is now held on M7's output directory
+
+Unchanged since 22:37Z. `churn_roll`: three pairs are on disk, and `77777_88888` is still running
+(pid 541133, 59 min in, under the driver at pid 2790906). The three finished pairs landed at 15:54,
+18:51 and 21:46, about 2 h 55 min apart. The family's own grade continuation is stamped not before
+15 Nov 09:30. Candidate A: `/var/tmp/vta-driver/` still holds only `driver.py`, `grade.py` and
+their diffs, with no output and no process. B11 M7: `/var/tmp/b11m7` does not exist. P5 stays at
+−£300 to +£500.
+
+**Why the hand-on changes form.** This item was drawn at 22:10Z, 22:37Z and 22:46Z, and each draw
+could only say "unmet". The chain is serial: the `churn_roll` grade (not before 15 Nov 09:30), then
+candidate A (§9: about 1.5 h for one draw, about 19 h for twelve), then M7's six members. The
+re-offer is therefore held with the delivery lane's path embargo on `/var/tmp/b11m7`, not handed on
+untimed. That directory can only appear after the first two gates have cleared (M7's own launch
+condition). Its existence does not mean M7 has exited. The next draw still re-reads gate 3 and
+launches only after M7's last member is done.
