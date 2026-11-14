@@ -1,0 +1,29 @@
+import json, re, glob, os, sys, subprocess
+root = os.path.expanduser('~/.claude/projects/-home-rich-synthetic-enterprise')
+shas = subprocess.run(['git','log','origin/main','--since=2026-10-31','--format=%H'],capture_output=True,text=True).stdout.split()
+pre = {}
+for h in shas:
+    pre.setdefault(h[:7], []).append(h)
+pat = re.compile(r'(?:\[(?:main|detached HEAD|[\w./-]+) ([0-9a-f]{7,40})\]|landed ([0-9a-f]{7,40}))')
+out = {}; kinds = {}
+files = [f for f in glob.glob(root+'/**/*.jsonl', recursive=True) if os.path.getmtime(f) > 1761868800]
+for f in files:
+    sid = os.path.basename(f)[:-6]
+    if '/subagents/' in f or os.path.dirname(f) != root: sid = 'sub:'+sid
+    kind = None
+    with open(f, errors='replace') as fh:
+        for line in fh:
+            if kind is None and '"type":"user"' in line:
+                try:
+                    m = json.loads(line)['message']['content']
+                    t = m if isinstance(m,str) else ' '.join(c.get('text','') for c in m if isinstance(c,dict))
+                    if t.strip(): kind = t[:160].replace('\n',' ')
+                except Exception: pass
+            if '[' in line or 'landed' in line:
+                for a,b in pat.findall(line):
+                    s = a or b
+                    for h in pre.get(s[:7], []):
+                        if h.startswith(s): out.setdefault(h, set()).add(sid)
+    kinds[sid] = kind or ''
+json.dump({'map':{k:sorted(v) for k,v in out.items()}, 'kinds':kinds}, open('/var/tmp/collide/sessions.json','w'))
+print(len(shas), 'commits;', len(out), 'mapped;', len(files), 'transcripts')

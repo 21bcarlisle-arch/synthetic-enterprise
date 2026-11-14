@@ -1,0 +1,82 @@
+import json, subprocess, collections, re
+def git(*a): return subprocess.run(['git',*a],capture_output=True,text=True).stdout
+d = json.load(open('/var/tmp/collide/sessions.json'))
+smap, kinds = d['map'], d['kinds']
+def klass(sid):
+    k = kinds.get(sid,'')
+    if k.startswith('You are the autonomous worker'): return 'worker-tick'
+    if k.startswith('You hold the DELIVERY SEAT'): return 'delivery-seat'
+    return 'other-session'
+raw = git('log','origin/main','--since=2026-10-31','--format=@@%H%x09%P%x09%an%x09%cI%x09%s','--name-only')
+commits=[]
+for blk in raw.split('@@')[1:]:
+    head, *files = blk.strip('\n').split('\n')
+    h,p,an,t,s = head.split('\t',4)
+    commits.append(dict(h=h,parents=p.split(),an=an,t=t,s=s,files=[f for f in files if f]))
+def writer(c):
+    s=c['s']
+    if c['h'] in smap:
+        sids=smap[c['h']]; return (klass(sids[0]), sids[0][:8])
+    if s.startswith(('delivery seat:','delivery lane:')): return ('delivery-seat','?')
+    if s.startswith(('advisor:','[ADVISOR-STAGED]')) or c['an']=='Advisor': return ('advisor','cloud')
+    if s.startswith('chore(provenance)') or s.startswith('merge origin/main: automatic'): return ('daemon',s.split(':')[0])
+    if s.startswith('worker tick:'): return ('worker-tick','?')
+    return ('unattributed','?')
+CONT = re.compile(r'merge|reconcil|surgical|held behind|behind origin|sweep|fork|unlanded|stranded|isolate_hunks|refresh_to_head', re.I)
+for c in commits: c['w']=writer(c); c['merge']=len(c['parents'])>1; c['cont']=bool(CONT.search(c['s']))
+print('commits',len(commits),'merges',sum(c['merge'] for c in commits),'contention-subject',sum(c['cont'] for c in commits))
+print('writer classes', collections.Counter(c['w'][0] for c in commits))
+# 1. same-hour multi-writer, non-merge commits only
+def group(f):
+    if f.startswith('site/data/'): return f
+    return f
+hours=collections.defaultdict(list)
+for c in commits:
+    if c['merge']: continue
+    hr=c['t'][:13]
+    for f in c['files']: hours[(f,hr)].append(c['w'])
+def coll(ws, lower):
+    # lower bound: unattributed sessions as one writer; upper: each unattributed/'?' commit its own writer
+    if lower: ids=set(w if w[1]!='?' else (w[0],'?') for w in ws)
+    else: ids=set((w[0],w[1] if w[1]!='?' else i) for i,w in enumerate(ws))
+    return len(ids)>=2
+lo=collections.Counter(); hi=collections.Counter(); pairs=collections.defaultdict(collections.Counter)
+for (f,hr),ws in hours.items():
+    if coll(ws,True):
+        lo[f]+=1
+        pairs[f][' + '.join(sorted(set(w[0] for w in ws)))]+=1
+    if coll(ws,False): hi[f]+=1
+tl=sum(lo.values()); th=sum(hi.values())
+print('\n== same-hour multi-writer file-hours: lower',tl,'upper',th)
+for f,n in lo.most_common(25): print(f'{n:4d} {100*n/tl:5.1f}%  hi={hi[f]:4d}  {f}   {dict(pairs[f].most_common(2))}')
+def area(f):
+    for a in ('site/data/','company/','simulation/','sim/','saas/','docs/direction/','docs/staging/','docs/observability/','archive/','tests/','site/knowledge/','docs/','background/','tools/'):
+        if f.startswith(a): return a
+    return 'other'
+A=collections.Counter(); 
+for f,n in lo.items(): A[area(f)]+=n
+print('by area (lower):', [(a,n,round(100*n/tl,1)) for a,n in A.most_common()])
+# 2. merges: files changed on both sides
+both=collections.Counter(); nm=0; contested_merges=0
+for c in commits:
+    if not c['merge']: continue
+    nm+=1
+    p1,p2=c['parents'][:2]
+    base=git('merge-base',p1,p2).strip()
+    if not base: continue
+    a=set(git('diff','--name-only',base,p1).split()); b=set(git('diff','--name-only',base,p2).split())
+    x=a&b
+    if x: contested_merges+=1
+    for f in x: both[f]+=1
+tb=sum(both.values())
+print(f'\n== merges {nm}; with >=1 file changed on both sides {contested_merges}; contested file-merges {tb}')
+for f,n in both.most_common(20): print(f'{n:4d} {100*n/max(tb,1):5.1f}%  {f}')
+# 3. contention-subject non-merge commits: which files
+cf=collections.Counter(); ncs=0
+for c in commits:
+    if c['cont'] and not c['merge']:
+        ncs+=1
+        for f in c['files']: cf[f]+=1
+print(f'\n== non-merge contention-subject commits {ncs}; files they touch:')
+for f,n in cf.most_common(12): print(f'{n:4d} {f}')
+json.dump(dict(lo=lo,hi=hi,both=both,cf=cf,area=A),open('/var/tmp/collide/result.json','w'))

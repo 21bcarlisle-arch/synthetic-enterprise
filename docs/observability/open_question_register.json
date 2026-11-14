@@ -1311,6 +1311,24 @@
       "question": "what else assumes it?",
       "status": "not_measurable",
       "disposition": "NOT A QUESTION TO US (2026-11-14). This is CLAUDE.md's interconnection question, quoted by the advisor as a reason for the steer. It is not a question the director asked. The steer's own measurement (the three replayed families) is the test of whether concept links answer it, ranked in WEEKLY_BALANCE_REVIEW_2026-11-16.md s.5 item 5."
+    },
+    "292b9fa47dfd": {
+      "ruling": "DIRECTOR_STEER_ONE_WRITER_PER_SHARED_FILE_MEASURE_WHERE_LANES_COLLIDE_FIRST_2026-11-14.md",
+      "question": "Per lane?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14, measured). Per file was measured, which is finer than per lane. Worker ticks take part in 35 of the 37 same-hour collisions, mostly with each other, so separating the lanes would not separate the writers. No file dominates: the top file has 3.7% of the transcript mentions and the top three have 10%. One writer per file is therefore not worth a trial, and per lane would be coarser still. Report: docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md"
+    },
+    "98cc7e853c8a": {
+      "ruling": "DIRECTOR_STEER_ONE_WRITER_PER_SHARED_FILE_MEASURE_WHERE_LANES_COLLIDE_FIRST_2026-11-14.md",
+      "question": "Or per code base?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14, measured). Not per codebase. company/ and simulation/ together hold 17.6% of the working-tree collision mentions and 5.4% of the landed collision hours, and the sim/supplier split already exists as the wall and the engineers' file scopes. 69% of collision lines are 'behind origin', which is the shared trunk moving, and a codebase split does not change that. Report: docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md"
+    },
+    "2c99a667a54e": {
+      "ruling": "DIRECTOR_STEER_ONE_WRITER_PER_SHARED_FILE_MEASURE_WHERE_LANES_COLLIDE_FIRST_2026-11-14.md",
+      "question": "Eg SIM Vs supplier?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-14, measured). The SIM/supplier split would barely help. The advisor's recommendation said so and the census confirms it: the cost is not in either codebase. No file dominates, and contention-only tool time is about 9.3 hours in two weeks. Report: docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md"
     }
   }
 }
