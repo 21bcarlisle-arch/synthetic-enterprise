@@ -42,3 +42,18 @@ These are counts, not verdicts. Many findings may already be fixed and simply no
 5. **Do not build a new register.** Build on the staging rooms, `priority_order.yaml`, the map, the question register and the insight layer. If two lists hold the same kind of thing, propose merging them.
 
 **Budget.** The triage is correctness and backlog work, not the feature third. Keep within the 0.45 points an hour pace until the Monday reset. Say in Sunday's balance proposal how far it got, what it found, and what is left. The page and the age rule can follow in the week of 16 Nov.
+
+## Addendum, Sat 14 Nov 06:55 GMT: prevent the recurrence, not only clear the pile
+
+The director's words: "Will this prevent reoccurrance?"
+
+The advisor's answer to him was "partly". The triage clears the pile and the age rule catches the next one late. Neither removes the cause. What is asked in addition:
+
+1. **Find the cause first, as the learning loop's next worked case.** The advisor's reading is that findings are not an input to the work draw. The draw follows gates and cold reads, which are fresh, ranked signals. A finding is a cheap "done" output that lands in a pile the draw never reads. Confirm or refute that against origin's history, and state the cause plainly.
+2. **Raising a finding is entering the queue.** A finding enters the draw when it is written, with a rank, and is not filed somewhere for later. That is one mechanism, not a second list.
+3. **Cap the backlog against capacity.** When open real items exceed what the machine can fix in about three weeks at its measured rate, it must choose: park with a reason, or ask for a rebalance in the weekly review. It must not accumulate.
+4. **Guard against gaming the measure.** "Zero items past three weeks" can be met by parking everything. Every parked item carries a reason and a revisit date. The weekly balance review shows these each week, and the advisor spot-checks a sample:
+   - the count parked;
+   - the count fixed;
+   - the count past three weeks.
+5. **The advisor's side.** The advisor reads these three numbers in every weekly review and raises it with the director if parking grows faster than fixing.
