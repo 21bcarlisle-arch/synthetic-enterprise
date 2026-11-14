@@ -1369,34 +1369,6 @@
   file_scope: ['simulation/population_draw.py', 'simulation/premise_population.py', 'docs/market_research/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a stock model that draws a 40 square metre detached house because nothing told it those two facts travel together."
-- id: G14_half_hourly_grid_carbon_intensity_aligned_to_settlement
-  title: "historical half-hourly grid carbon intensity, aligned to the settlement periods the world already runs on"
-  notes_rehomed: [gain]
-  lane: G_data_learning
-  # price_to_bill, not close_to_learn. The default was wrong and the hygiene control
-  # said so: this asset exists so a household's CARBON can sit beside its money bill
-  # (use case 4.6 -- "a carbon budget beside the money one"), which is the same value
-  # stream as the bill it accompanies. close_to_learn is what you pick when you have
-  # not decided -- and the first attempt at this edit hit G3's identical two lines
-  # instead, which the stale-id control caught in the same run.
-  value_stream: price_to_bill
-  epoch: 3
-  level_current: 2   # 2026-10-05: Expert Hour passed (2nd re-take); L3 held on the open independence ruling, as H45
-  level_target: 3
-  loop_stage: harden
-  dial_inherited: 45    # 2026-10-05 restored: the dial is a draw WEIGHT (higher = more likely), and the earlier 3 lowered it by mistake; in flight, step 5 value-add
-  #   use case this feeds is stage 3. Ranked so it is drawable without displacing W2_18/19/21/22.
-  provenance: director_ruling
-  depends_on: []
-  couples_with: []
-  # 2026-10-05 the director moved carbon here from EP13: history = NESO's published series aligned
-  # to settlement, gap before 2018-05-11 filled from Elexon's fuel mix at NESO's own factors;
-  # futures = a statistical fit on wind, solar and demand, which the world generates from weather.
-  file_scope: ['docs/market_research/', 'sim/grid_carbon_history.py',
-    'tests/sim/test_grid_carbon_history.py', 'sim/grid_carbon_future.py',
-    'tests/sim/test_grid_carbon_future.py']
-  expert_hour: {status: passed, last: '2026-10-05 second re-take, cold-eyes, veteran GB grid-carbon persona, priors first: no MAJOR on the regenerated feed + Explore (first re-take FAILED: page lagged the code)', findings: ['MAJOR-1 (loss-corrected label) and MAJOR-2 (2020-04-27 step) closed; shipped strings now held to their constants by a control', 'MINOR partial-year day panels labelled the year (2025 = Jan..Jun 7); proof/simplified quote an archived EP13 loss-corrected note; fill named but reaches no value; INDO-hole half hours unnamed', 'MINOR non-blocking: feed ends 2025-06-07; futures level_error in-sample; CO2 named co2e; import factors fixed; second API regime ~2021-04', 'detail: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md']}
-  real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
 - id: G15_forward_curve_series_to_backtest_hedging_by_physics
   title: "a published forward-curve or hedge-cost series good enough to backtest hedging by physics"
   notes_rehomed: [gain]
