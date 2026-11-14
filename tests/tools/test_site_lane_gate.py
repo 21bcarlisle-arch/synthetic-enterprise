@@ -349,3 +349,41 @@ def test_a_whole_suite_run_names_the_path_that_tripped_it(monkeypatch, capsys):
     assert gate.main() == 0
     running = [ln for ln in capsys.readouterr().out.splitlines() if "[site-lane] running" in ln]
     assert running and "site/data/delivery.json" in running[0]
+
+
+# --- D: a site feed's INPUT selects the door tests that import the feed's tool -----------------
+def _feed_tree(root: Path, *, writes_site_data: bool = True) -> None:
+    (root / "tools").mkdir()
+    (root / "docs").mkdir()
+    (root / "docs" / "log.md").write_text("x\n")
+    out = "site/data/log.json" if writes_site_data else "docs/out.json"
+    (root / "tools" / "log_feed.py").write_text(
+        f'ROOT = None\nLOG = "docs/log.md"\nOUT = "{out}"\nMISSING = "docs/gone.md"\n')
+    (root / "site" / "door").mkdir(parents=True)
+    (root / "site" / "door" / "test_log_door.py").write_text("from tools import log_feed\n")
+    (root / "site" / "door" / "test_other_door.py").write_text("import json\n")
+
+
+def test_a_feed_input_selects_the_door_test_that_imports_its_tool(tmp_path):
+    """Defect named: db80910fa0 (13 Nov) edited docs/institutional/reading_log.md, left
+    site/data/reading_log.json stale, and the site lane ran nothing -- so the red surfaced 8.5h
+    later on the delivery seat's direction record. Mutation: drop mechanism D's lookup and the
+    input maps to nothing."""
+    _feed_tree(tmp_path)
+    got = gate.feed_source_tests(tmp_path)
+    assert got == {"docs/log.md": {"site/door/test_log_door.py"}}
+
+
+def test_a_tool_that_writes_no_site_feed_selects_nothing(tmp_path):
+    _feed_tree(tmp_path, writes_site_data=False)
+    assert gate.feed_source_tests(tmp_path) == {}
+
+
+def test_mechanism_d_has_a_live_subject_and_plan_uses_it():
+    """The branch CAN be taken on today's tree, and plan() takes it. Fail-closed if no feed tool
+    with a door test remains: then D has nothing to guard and this says so."""
+    feeds = gate.feed_source_tests()
+    assert feeds, "no tools/*.py site feed is imported by a site test: mechanism D has no subject"
+    src, tests = sorted(feeds.items())[0]
+    mode, targets = gate.plan([src])
+    assert mode == "targeted" and set(tests) <= set(targets)

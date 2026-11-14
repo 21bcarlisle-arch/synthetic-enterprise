@@ -38,6 +38,7 @@ missing this gate FAILS LOUD -- an unavailable check is a FAILED check, never a 
 """
 from __future__ import annotations
 
+import ast
 import os
 import shutil
 import subprocess
@@ -116,6 +117,67 @@ def site_tests_for(path: str) -> list[str]:
     return sorted(str(t.relative_to(ROOT)) for t in sibling_dir.glob("test_*.py"))
 
 
+def _tool_imports(tree: ast.AST) -> set[str]:
+    """The `tools.<x>` modules a file imports, read from its syntax tree (a comment naming one is
+    not an import)."""
+    out: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            out.update(a.name.split(".")[1] for a in node.names if a.name.startswith("tools."))
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            if node.module == "tools":
+                out.update(a.name for a in node.names)
+            elif node.module.startswith("tools."):
+                out.add(node.module.split(".")[1])
+    return out
+
+
+def _feed_inputs(tool: Path, root: Path) -> list[str]:
+    """The repo files a site-feed tool reads, from its module-level path constants -- or [] when
+    the tool writes no `site/data/` feed. Inputs under `site/` are left to mechanisms B and C."""
+    try:
+        tree = ast.parse(tool.read_bytes())
+    except (OSError, SyntaxError, ValueError):
+        return []
+    consts = []
+    for n in tree.body:
+        value = n.value if isinstance(n, (ast.Assign, ast.AnnAssign)) else None
+        if isinstance(value, ast.BinOp) and isinstance(value.op, ast.Div):
+            value = value.right  # `ROOT / "docs/x.md"`
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            consts.append(value.value)
+    if not any(c.startswith(SITE_DATA_PREFIX) for c in consts):
+        return []
+    return [c for c in consts if not c.startswith(SITE_PREFIX) and "/" in c
+            and (root / c).is_file()]
+
+
+def feed_source_tests(root: Path = ROOT) -> dict[str, set[str]]:
+    """Mechanism D: a feed tool's INPUT -> the site tests that import that tool.
+
+    14 Nov 2026: db80910fa0 edited `docs/institutional/reading_log.md` and left
+    `site/data/reading_log.json` stale. Neither B nor C selects anything for a doc, so the door
+    test that says so (`test_the_committed_feed_is_what_the_log_builds_today`) stayed red for 8.5
+    hours and refused the next commit that happened to run the whole suite -- the delivery seat's
+    direction record, which touched no input of that feed. A feed's door test now runs on the
+    commit that edits the feed's input, so the red lands on the writer who caused it."""
+    out: dict[str, set[str]] = {}
+    inputs_of: dict[str, list[str]] = {}
+    for test in sorted((root / "site").rglob("test_*.py")):
+        try:
+            tree = ast.parse(test.read_bytes())
+        except (OSError, SyntaxError, ValueError):
+            continue
+        rel = str(test.relative_to(root))
+        for mod in _tool_imports(tree):
+            if mod not in inputs_of:
+                tool = root / "tools" / f"{mod}.py"
+                inputs_of[mod] = _feed_inputs(tool, root) if tool.is_file() else []
+            for src in inputs_of[mod]:
+                out.setdefault(src, set()).add(rel)
+    return out
+
+
 def plan(files: list[str]) -> tuple[str | None, list[str] | None]:
     """What the site lane runs for this change set:
       ("full", None)          -- run the whole `pytest site/` (broad trigger, mechanism B)
@@ -125,8 +187,10 @@ def plan(files: list[str]) -> tuple[str | None, list[str] | None]:
     if any(_is_broad_trigger(f) for f in files):
         return ("full", None)
     targeted: set[str] = set()
+    feeds = feed_source_tests()
     for f in files:
         targeted.update(site_tests_for(f))
+        targeted.update(feeds.get(f, ()))
     if targeted:
         return ("targeted", sorted(targeted))
     return (None, None)
