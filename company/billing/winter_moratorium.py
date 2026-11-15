@@ -259,3 +259,210 @@ class WinterMoratoriumRegister:
             "winter_domestic": len(self.winter_protections(as_of)),
             "in_winter_period": is_winter_period(as_of),
         }
+
+
+# ---------------------------------------------------------------------------
+# THE ENFORCEMENT GATE: every action the company can take on a domestic debt, against every
+# protection ground, in one table (C32, 2026-11-15; commons
+# psr_eligibility_and_disconnection_protection.md s.5, which publishes the same table with each
+# cell's clause and file:line). Passes three to eight each found one more limb of one obligation
+# missing; the table lists every cell so the next one is not found by a reviewer first.
+# `may_take` applies exactly the cells the table marks COVERED, and the control
+# (tests/company/billing/test_the_enforcement_table.py) engages each one and asserts refusal.
+# ---------------------------------------------------------------------------
+
+class EnforcementAction(str, Enum):
+    DISCONNECTION = "disconnection"
+    WARRANT_PPM_INSTALL = "warrant_ppm_install"
+    REMOTE_SWITCH_TO_PREPAY = "remote_switch_to_prepay_mode"
+    CONSENT_PPM_OFFER = "consent_ppm_offer"
+    AGENCY_HANDOFF = "debt_path_referral_and_agency_handoff"
+    SELF_DISCONNECTION_SUPPORT = "self_disconnection_support"
+
+
+#: The actions no company path takes today. Listed so a route built later meets the gate's
+#: answer, not an empty one; `may_take` answers them on the same table as the rest.
+UNROUTED_ACTIONS = frozenset({EnforcementAction.DISCONNECTION, EnforcementAction.WARRANT_PPM_INSTALL,
+                              EnforcementAction.REMOTE_SWITCH_TO_PREPAY,
+                              EnforcementAction.AGENCY_HANDOFF})
+
+
+@dataclass(frozen=True)
+class EnforcementCase:
+    """What the company holds about one household on one day, as far as enforcement turns on it.
+
+    Every precondition defaults to the answer that refuses: an unrecorded step is an untaken one.
+    `record` / `categories` follow `can_disconnect`: exactly one, where an action's table reads them.
+    """
+    account_id: str
+    as_of: dt.date
+    record: object = None
+    categories: Optional[tuple] = None
+    household: HouseholdComposition = HouseholdComposition.UNKNOWN
+    date_of_birth: Optional[dt.date] = None
+    own_hold: bool = False
+    breathing_space: bool = False
+    arrangement_offered: bool = False
+    suitability: Optional[bool] = None
+    self_disconnection_watched: bool = False
+    ppm_route_exhausted: bool = False
+    involuntary_preconditions_recorded: bool = False
+
+
+@dataclass(frozen=True)
+class EnforcementDetermination:
+    action: EnforcementAction
+    refusals: tuple  # every ground that refuses, as (column, reason); empty means permitted
+
+    @property
+    def permitted(self) -> bool:
+        return not self.refusals
+
+    @property
+    def reason(self) -> str:
+        return "; ".join(r for _c, r in self.refusals)
+
+
+NO_SUITABILITY_FINDING = ("no safe-and-reasonably-practicable finding is recorded for this household, "
+                          "so no prepayment meter is offered (SLC 27.6(a)(iii); PPM guidance via 28.4)")
+NOT_SUITABLE = "the household's safe-and-reasonably-practicable finding is negative (SLC 27.6(a)(iii))"
+NO_SELF_DISCONNECTION_WATCH = (
+    "no self-disconnection watch would cover this household on a prepayment meter, and SLC 27A.1 "
+    "requires all reasonable steps to identify self-disconnection from the day it is on one")
+NO_ARRANGEMENT_OFFERED = ("no affordable arrangement has been offered on this debt, and SLC 27.6/27.8 "
+                          "order that offer before any recovery step (27.8C: charges not recoverable "
+                          "until 27.5-27.8 are met)")
+NOT_PPM_FIRST = ("SLC 27.9: no disconnection for unpaid charges until all reasonable steps to recover "
+                 "them through a prepayment meter are taken, and none is recorded")
+IN_BREATHING_SPACE = ("a Debt Respite moratorium is active: SI 2020/1311 reg 7(7)(a) forbids any step "
+                      "to collect the moratorium debt")
+OWN_HOLD = "this supplier has placed its own hold on the account (WinterMoratoriumRegister)"
+NO_INVOLUNTARY_PRECONDITIONS = (
+    "SLC 28B: an involuntary prepayment meter needs the Debt Trigger, at least 10 contact attempts, a "
+    "Site Welfare Visit and a do-not-install check (75+ without support, a child under 2), and no "
+    "company path records them")
+
+
+def _decider_answers(case: EnforcementCase):
+    if (case.categories is None) == (case.record is None):
+        raise TypeError("this action reads the household's needs: pass exactly one of categories= "
+                        "or record= (categories=() out loud when none are held)")
+    cats = tuple(case.categories) if case.categories is not None else tuple(case.record.categories)
+    licence = disconnection_protection(cats, as_of=case.as_of, household=case.household,
+                                       date_of_birth=case.date_of_birth)
+    if case.record is not None:
+        company = safety_net_on_record(case.record, case.as_of, case.household, case.date_of_birth)
+    else:
+        company = safety_net_protection(cats, as_of=case.as_of, household=case.household,
+                                        date_of_birth=case.date_of_birth)
+    return licence, company
+
+
+def _licence_check(case, _action):
+    licence, _ = _decider_answers(case)
+    return None if licence.may_disconnect else licence.reason
+
+
+def _company_layer_check(case, action):
+    """For disconnection, the supplier's decider (licence, then the Safety Net). For any other
+    action the licence's winter clauses do not govern it, so what bars it is the evidence alone:
+    any vulnerability evidence held, or a birth date that is or may be pensionable age, means the
+    welfare test is live and unassessed. Design choice (commons s.5), erring toward protection."""
+    if action is EnforcementAction.DISCONNECTION:
+        _, company = _decider_answers(case)
+        return None if company.may_disconnect else company.reason
+    if (case.categories is None) == (case.record is None):
+        raise TypeError("this action reads the household's needs: pass exactly one of categories= "
+                        "or record= (categories=() out loud when none are held)")
+    evidence = (list(_held_evidence(case.record)) if case.record is not None
+                else sorted(PSRCategory(c).value for c in case.categories))
+    if case.date_of_birth is not None and pensionable_age_from_birth_date(
+            case.date_of_birth, case.as_of) is not PensionableAge.NOT_ESTABLISHED:
+        evidence.append(f"born {case.date_of_birth.isoformat()}")
+    return _welfare_unassessed(evidence).reason if evidence else None
+
+
+def _suitability_check(case, _action):
+    if case.suitability is True:
+        return None
+    return NO_SUITABILITY_FINDING if case.suitability is None else NOT_SUITABLE
+
+
+_CHECKS = {
+    "arrangement": lambda c, _a: None if c.arrangement_offered else NO_ARRANGEMENT_OFFERED,
+    "suitability": _suitability_check,
+    "ppm_first": lambda c, _a: None if c.ppm_route_exhausted else NOT_PPM_FIRST,
+    "licence": _licence_check,
+    "company_layer": _company_layer_check,
+    "self_disconnection": lambda c, _a: None if c.self_disconnection_watched else NO_SELF_DISCONNECTION_WATCH,
+    "involuntary": lambda c, _a: None if c.involuntary_preconditions_recorded else NO_INVOLUNTARY_PRECONDITIONS,
+    "own_hold": lambda c, _a: OWN_HOLD if c.own_hold else None,
+    "breathing_space": lambda c, _a: IN_BREATHING_SPACE if c.breathing_space else None,
+}
+
+#: The columns: every protection ground, the clause it rests on, and the check that reads it. Three
+#: licence columns share one decider; each is engaged separately by the control.
+PROTECTION_GROUNDS = {
+    "slc_27_5_to_27_8_ability_to_pay": ("SLC 27.5, 27.5B, 27.6, 27.8, 27.8A, 27.8C", "arrangement"),
+    "slc_27_6_a_iii_safe_and_practicable": ("SLC 27.6(a)(iii); S&RP guidance via 28.4", "suitability"),
+    "slc_27_9_ppm_before_disconnection": ("SLC 27.9, 27.9A", "ppm_first"),
+    "slc_27_10_winter_pensionable": ("SLC 27.10", "licence"),
+    "slc_27_11_winter_reasonable_steps": ("SLC 27.11", "licence"),
+    "slc_27_11a_ascertain": ("SLC 27.11(A)", "licence"),
+    "slc_27a_self_disconnection": ("SLC 27A.1", "self_disconnection"),
+    "slc_28_15_proportionate": ("SLC 28.15", None),
+    "slc_28b_involuntary_ppm": ("SLC 28B; PPM guidance s.5.2, s.5.6", "involuntary"),
+    "own_hold_winter_moratorium": ("supplier policy: WinterMoratoriumRegister", "own_hold"),
+    "energy_uk_safety_net": ("Energy UK Vulnerability Commitment (voluntary; adopted)", "company_layer"),
+    "psr_needs_codes": ("SLC 26; needs codes (CVS 2025 App. 6)", "company_layer"),
+    "breathing_space": ("SI 2020/1311 reg 7", "breathing_space"),
+}
+
+COVERED, GAP, NOT_APPLICABLE = "covered", "GAP", "n/a"
+_D, _W, _R, _C, _A, _S = (EnforcementAction.DISCONNECTION, EnforcementAction.WARRANT_PPM_INSTALL,
+                          EnforcementAction.REMOTE_SWITCH_TO_PREPAY,
+                          EnforcementAction.CONSENT_PPM_OFFER, EnforcementAction.AGENCY_HANDOFF,
+                          EnforcementAction.SELF_DISCONNECTION_SUPPORT)
+
+
+def _row(covered=(), gap=()):
+    return {g: (COVERED if g in covered else GAP if g in gap else NOT_APPLICABLE)
+            for g in PROTECTION_GROUNDS}
+
+
+_LICENCE = ("slc_27_10_winter_pensionable", "slc_27_11_winter_reasonable_steps", "slc_27_11a_ascertain")
+_ALWAYS = ("slc_27_5_to_27_8_ability_to_pay", "own_hold_winter_moratorium", "breathing_space")
+_PPM = ("slc_27_6_a_iii_safe_and_practicable", "slc_27a_self_disconnection")
+
+#: THE TABLE. A cell is COVERED (the gate refuses when the ground is engaged), GAP (the ground
+#: may bar the action and the published record read here does not say how; named in the commons)
+#: or n/a (the clause does not govern this action). No cell is "absent": that state is what this
+#: table exists to remove. The support row is never barred: support is not a step to collect.
+ENFORCEMENT_TABLE = {
+    _D: _row(_ALWAYS + _LICENCE + ("slc_27_9_ppm_before_disconnection", "energy_uk_safety_net",
+                                   "psr_needs_codes"),
+             gap=("slc_28_15_proportionate",)),
+    _W: _row(_ALWAYS + _PPM + ("slc_28b_involuntary_ppm", "energy_uk_safety_net", "psr_needs_codes"),
+             gap=("slc_28_15_proportionate",)),
+    _R: _row(_ALWAYS + _PPM + ("slc_28b_involuntary_ppm", "energy_uk_safety_net", "psr_needs_codes"),
+             gap=("slc_28_15_proportionate",)),
+    _C: _row(_ALWAYS + _PPM, gap=("psr_needs_codes",)),
+    _A: _row(_ALWAYS + ("energy_uk_safety_net", "psr_needs_codes"), gap=("slc_28_15_proportionate",)),
+    _S: _row(),
+}
+
+
+def may_take(action: EnforcementAction, case: EnforcementCase) -> EnforcementDetermination:
+    """Whether the company may take `action` on this household now: every COVERED cell of its row
+    is asked, and each that refuses is named. One call per action; no route may skip it."""
+    refusals, asked, said = [], set(), set()
+    for ground, state in ENFORCEMENT_TABLE[action].items():
+        check = PROTECTION_GROUNDS[ground][1]
+        if state != COVERED or check in asked:
+            continue
+        asked.add(check)
+        reason = _CHECKS[check](case, action)
+        if reason is not None and reason not in said:  # the net repeats a licence refusal
+            said.add(reason)
+            refusals.append((ground, reason))
+    return EnforcementDetermination(action, tuple(refusals))

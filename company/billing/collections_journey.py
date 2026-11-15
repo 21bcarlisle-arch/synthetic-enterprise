@@ -71,6 +71,7 @@ import datetime as dt
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+from company.billing import winter_moratorium as _gate
 from company.billing.account_ledger import AccountLedger, LedgerEvent, LedgerEventType
 from company.billing.arrears_engine import (
     CLOSED_ACCOUNT_RULE,
@@ -157,9 +158,11 @@ PREPAYMENT = "prepayment"
 #: finding is held for the account: SLC 27.6(a)(iii) offers a PPM only where it is, and the household's
 #: Consent is not that finding (`company_debt_management.md`, amendment 2026-11-15).
 PREPAYMENT_WITHHELD = "prepayment_withheld"
-NO_SUITABILITY_FINDING = ("no safe-and-reasonably-practicable finding is recorded for this household, "
-                          "so no prepayment meter is offered (SLC 27.6(a)(iii); PPM guidance via 28.4)")
-NOT_SUITABLE = "the household's safe-and-reasonably-practicable finding is negative (SLC 27.6(a)(iii))"
+#: The gate's own reasons, re-exported: the offer is withheld for every ground the enforcement table
+#: (`winter_moratorium.ENFORCEMENT_TABLE`, Consent row) finds refusing, each named.
+NO_SUITABILITY_FINDING = _gate.NO_SUITABILITY_FINDING
+NOT_SUITABLE = _gate.NOT_SUITABLE
+NO_SELF_DISCONNECTION_WATCH = _gate.NO_SELF_DISCONNECTION_WATCH
 #: Why a prepayment offer is recorded unanswered when the desk has no seam to ask.
 PREPAYMENT_ANSWER_GAP = "this desk was built with no seam to ask, so no meter change can be requested"
 #: The arrangement stage in the only state the company can reach alone: OFFERED. Entered on the
@@ -449,6 +452,12 @@ class CollectionsJourneyDesk:
         #: finding for that household on that day, True / False, or None where none is held. None
         #: as a whole (the shipped desk): no finding exists, so every Consent offer is withheld.
         self.prepayment_suitability = prepayment_suitability
+        #: `self_disconnection_watch(account_id, on)`: whether a household moved to a prepayment meter
+        #: would be watched for self-disconnection from that day (SLC 27A.1). None (the shipped desk):
+        #: no run calls `company/crm/self_rationing_detector.py`, so no Consent offer is made.
+        self.self_disconnection_watch: Optional[Callable[[str, dt.date], bool]] = None
+        #: This supplier's own holds (`WinterMoratoriumRegister`). None: no company path places one.
+        self.own_holds: Optional[Any] = None
         #: Every arrangement this desk has offered, and what became of each.
         self.arrangements = PaymentPlanBook()
         self._instalments_read: Dict[int, int] = {}
@@ -762,9 +771,16 @@ class CollectionsJourneyDesk:
         recovered from the weekly deductions `_read_meter_recoveries` posts."""
         finding = (None if self.prepayment_suitability is None
                    else self.prepayment_suitability(journey.account_id, on))
-        if finding is not True:
-            journey.enter(PREPAYMENT_WITHHELD, on,
-                          NO_SUITABILITY_FINDING if finding is None else NOT_SUITABLE, view)
+        gate = _gate.may_take(_gate.EnforcementAction.CONSENT_PPM_OFFER, _gate.EnforcementCase(
+            account_id=journey.account_id, as_of=on, suitability=finding,
+            own_hold=(self.own_holds is not None
+                      and self.own_holds.is_protected(journey.account_id, on)),
+            breathing_space=bool(view.get("moratorium_active")),
+            arrangement_offered=any(s["stage"] == ARRANGEMENT_OFFERED for s in journey.stages),
+            self_disconnection_watched=(self.self_disconnection_watch is not None
+                                        and self.self_disconnection_watch(journey.account_id, on))))
+        if not gate.permitted:
+            journey.enter(PREPAYMENT_WITHHELD, on, gate.reason, view)
             return
         debt = view.get("undisputed_overdue_gbp") or 0.0
         days = view.get("max_days_overdue") or 0

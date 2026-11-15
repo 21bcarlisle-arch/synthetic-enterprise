@@ -360,3 +360,117 @@ Three consequences, each of which decides a live question in the code:
 - `UNSOURCED`, opened here: **the current registered rate.** The register has grown since 2016 and
   Ofgem broadened eligibility again from January; the 2025 strategy PDF would answer it and did not
   extract. Nothing in `company/` may quote a present-day PSR rate until it does.
+
+## 5. Every enforcement action against every protection ground (added 2026-11-15, C32)
+
+**Why this exists.** Blind passes three to eight each failed on one more limb of one obligation:
+the reasonable-steps season, home oxygen in summer, the Safety Net as a list, held evidence, the
+unasked household, the Consent offer. The pass was doing the design one limb at a time. This
+table lists every cell, so that the next harm is found here and not by a reviewer.
+
+**Rows** are the six actions the director named. ~~These are every action the company can take on a domestic debt.~~ *(Corrected 2026-11-15, ninth pass, item 12. They are not. The company also decides a **debt objection** when a household asks to switch away (SLC 14). It takes that action live in every run, through `company/interfaces/transfer_objection.py:33` from `simulation/run_phase2b.py`, and no row here reads it. Which protections bar it (Breathing Space, holds, PSR) is not researched: GAP, and the next row owed.)* **Columns** are every
+protection ground in SLC 27, 27A, 28 and 28B, plus the supplier's own holds (the "winter
+moratorium" register), the Safety Net, the PSR needs codes and Breathing Space.
+
+**Cell states:**
+- **covered:** the gate refuses the action when the ground is engaged.
+- **GAP:** the ground may bar the action, but the published record read here does not say how.
+- **n/a:** the clause does not govern this action.
+
+No cell is **absent**. Removing that state is the change.
+
+**One gate, one control.** The table is `ENFORCEMENT_TABLE` in `company/billing/winter_moratorium.py`.
+`may_take(action, case)` asks every covered cell in the action's row and names each one that
+refuses. `tests/company/billing/test_the_enforcement_table.py` checks four things:
+- it engages each ground alone and asserts that exactly the covered cells refuse;
+- the permit leg: every action is permitted on a case that meets every precondition;
+- support is never refused;
+- this table and the code's agree, cell by cell.
+
+**Location key:** `W` is `company/billing/winter_moratorium.py`; `J` is
+`company/billing/collections_journey.py`; `P` is `company/regulatory/priority_services_register.py`;
+`A` is `company/billing/arrears_engine.py`. Clause sources are §2, §4 and
+`docs/market_research/company_debt_management.md` (27.5 to 27.9A and 28.15 read in the electricity
+instrument) and `docs/market_research/debt_and_collections.md` §3 (28B).
+
+**Which actions have a route.** The only action any company path takes is the **Consent PPM
+offer**: J:765, gated at J:774. The other actions have no caller, and the gate answers them on the
+same table, so a route built later meets a refusal, not an empty rule. The 90-day rung (A:668) is
+labelled `prepayment_or_debt_agency` on the channel `field/agency`. It records that label and makes
+the Consent offer. No agency hand-off is made.
+
+| action | `slc_27_5_to_27_8_ability_to_pay` | `slc_27_6_a_iii_safe_and_practicable` | `slc_27_9_ppm_before_disconnection` | `slc_27_10_winter_pensionable` | `slc_27_11_winter_reasonable_steps` | `slc_27_11a_ascertain` | `slc_27a_self_disconnection` | `slc_28_15_proportionate` | `slc_28b_involuntary_ppm` | `own_hold_winter_moratorium` | `energy_uk_safety_net` | `psr_needs_codes` | `breathing_space` |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `disconnection` | covered: 27.8, 27.8C; W:392 **(was absent)** | n/a | covered: 27.9, 27.9A; W:394 **(was absent)** | covered: P:241 via W:361 | covered: P:257 via W:361 | covered: P:284 via W:361 | n/a | GAP: no published test of "proportionate" | n/a | covered: W:399; W:215 | covered: S5, adopted; W:56 via W:366 | covered: W:121, W:111 via W:366 | covered: SI 2020/1311 reg 7; W:400 **(was absent)** |
+| `warrant_ppm_install` | covered: W:392 **(was absent)** | covered: 27.6(a)(iii); W:385 **(was absent)** | n/a | n/a: a PPM is not a disconnection (27.9A) | n/a | n/a | covered: 27A.1; W:397 **(was absent)** | GAP: warrant costs capped at £150; proportionality of the act not published | covered: one recorded flag; W:398 **(was absent)** | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
+| `remote_switch_to_prepay_mode` | covered: W:392 **(was absent)** | covered: W:385 **(was absent)** | n/a | n/a | n/a | n/a | covered: W:397 **(was absent)** | GAP | covered: 28B treats a remote switch as involuntary; W:398 **(was absent)** | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
+| `consent_ppm_offer` | covered: 27.6 menu after 27.8; W:392 at J:774 **(was ladder order only)** | covered: W:385 at J:774 (eighth pass) | n/a | n/a | n/a | n/a | covered: W:397 at J:774 **(was absent)** | n/a: an offer is not a recovery step | n/a: Consent, not involuntary | covered: W:399 at J:774 **(was absent)** | n/a: S5 is a disconnection pledge | GAP: which needs make a PPM unsafe is the S&RP guidance's, not transcribed; read through the 27.6 finding | covered: W:400, J:778; A:697 never reaches the rung |
+| `debt_path_referral_and_agency_handoff` | covered: W:392 **(was absent)** | n/a | n/a | n/a | n/a | n/a | n/a | GAP | n/a | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
+| `self_disconnection_support` | n/a: support is never barred | n/a | n/a | n/a | n/a | n/a | n/a: a duty, not a bar. The watch is `company/crm/self_rationing_detector.py`, with no run caller; no household reaches a PPM by a company route unwatched (row 4) | n/a | n/a | n/a | n/a | n/a | n/a: support is not a step to collect |
+
+**What the absent cells were, and the one change that fixed them.**
+- **Consent PPM offer.** The offer read the S&RP finding and nothing else.
+  - **27A.** A household moved by Consent would have had no self-disconnection watch from its first
+    day. That breaches 27A.1, which requires "all reasonable steps to identify" self-disconnection
+    "on an ongoing and continuous basis". The detector exists, but no run calls it.
+  - **The supplier's own holds.** A hardship or winter hold placed on the account did not stop the
+    offer.
+  - **27.8.** Arrangement-first was held only by the ladder's order, never at the offer.
+  - **The fix.** The offer is now asked through `may_take`. The desk takes
+    `self_disconnection_watch` and `own_holds`. Both are None in the shipped desk, so live, every
+    withheld offer names two grounds: no finding, and no watch.
+- **Disconnection.** `can_disconnect` read the licence, the Safety Net and the supplier's own holds,
+  but not three other grounds:
+  - 27.9: recovery through a PPM tried first;
+  - 27.8: an arrangement offered first;
+  - Breathing Space.
+  `may_take(DISCONNECTION)` reads all of them. `can_disconnect` stays for its existing callers,
+  which are tests only.
+- **Warrant, remote switch and agency hand-off.** No gate existed, because no route exists. Every
+  cell now refuses unless the case records the precondition. 28B's four preconditions (the Debt
+  Trigger, 10 contact attempts, a Site Welfare Visit, the do-not-install list) are **one recorded
+  flag**, not four separate checks. Splitting the flag is owed when a route is built.
+
+**Design choices, not sources.**
+- **Agency hand-off, warrant and remote switch, on the Safety Net and PSR columns.** Any
+  vulnerability evidence held, or a birth date that is or may be pensionable age, refuses. This is
+  the sixth pass's reasoning: the welfare test is live and the company has no welfare assessment.
+  It applies the canon M3 floor. No source maps S5 to these actions.
+  - **What it costs:** nothing live, because none of these actions has a route.
+  - **Reversible:** delete the two columns from the three rows in `ENFORCEMENT_TABLE`.
+- **The Consent offer, on the self-disconnection watch.** The offer is refused without a watch.
+  - **What it costs:** nothing live; the S&RP finding already withheld every offer.
+  - **Reversible:** remove `slc_27a_self_disconnection` from `_PPM`.
+
+**Still GAP.**
+- **28.15 proportionality.** No published threshold.
+- **Which PSR needs make a Consent PPM unsafe.** These are in the S&RP guidance, not transcribed
+  here.
+- **Whether 28B sets a winter bar on involuntary installs.** Not read. It is not a column.
+
+**The ninth blind pass, over this whole table (2026-11-15).** A fresh reviewer with no tools, the same persona as before,
+asked 18 questions, 8 of them disqualifying. The ledger row is 2026-11-15T00:45Z in
+`docs/observability/blind_review_ledger.jsonl`. **C32 stays at 2.**
+
+- **Fails on item 12: a live action is missing.** The debt objection on switching is a row this
+  table did not have (correction above). The reviewer's other missing actions: assigning debt when
+  a prepayment customer switches (the Debt Assignment Protocol, DAP); court action and credit-file
+  reporting, which have no company route; recovery through the meter, which happens only after a
+  move by Consent and so never; and back-billing, which is a billing rule and not enforcement.
+- **Fails on item 1: no live decision is ever permitted.** The only routed action is withheld every
+  time, so the gate is proven by its control and never in operation. Closing this needs three
+  things: a safe-and-practicable assessment, a run caller for the self-disconnection detector, and
+  prepayment households in the world.
+- **Fails on item 6: 28B's preconditions are one flag.** No route uses it. Splitting it into four
+  dated records is owed before a route exists.
+- **Fails on item 3, in the protective direction: nothing is dated.** 28B (from 8 Nov 2023) and 27A
+  are applied in every year. That over-refuses before those dates and never permits where a
+  protection bars.
+- **Fixed in this tick: item 16.** A structural control now refuses any company or saas function
+  that takes a table action without calling `may_take`. Removing the desk's gate call reds it.
+- **Pass:**
+  - item 10, on its core: Consent does not replace the safe-and-practicable assessment;
+  - item 4, on the reviewer's own alternative: the description states that no household is on
+    prepayment.
+- **Partly passes: item 2.** The arrangement record is made live, at day 28, but no affordability
+  input lies behind it. That belongs to the collections atom.
