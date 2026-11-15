@@ -96,6 +96,8 @@ def read_duty_register(bills: Iterable[dict]) -> list[dict]:
             "account_id": bill["customer_id"],
             "fuel": bill.get("commodity", "electricity"),
             "date": bill["period_end"],
+            # The meter in force on that date, as the bill printed it (an exchange changes it).
+            "meter_type": bill.get("meter_type"),
             "estimates_in_a_row": READ_DUTY_YEAR_BILLS,
             "payment_channel": channel,
             "duty_applies": channel not in _OUTSIDE_THE_DUTY,

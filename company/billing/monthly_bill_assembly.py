@@ -136,6 +136,12 @@ class ReadArrivalFeed(Protocol):
     def meter_type_for(self, customer: dict | None) -> str:
         """The customer's meter type ('traditional' | 'smart' | ...)."""
 
+    # Optional, and so not a Protocol member (a feed without it still satisfies the isinstance
+    # check): `meter_in_force(customer_id, period_end, meter_type) -> str`, the meter on the supply
+    # point at `period_end`. A supplier that exchanged a meter holds the date it did so in its own
+    # metering record (unbilled_energy_and_revenue_assurance.md s.4e), so each bill prints the meter
+    # in force on its read date. A feed without it means no exchange: the account's one type stands.
+
     def read_for(
         self,
         customer_id: str,
@@ -851,6 +857,7 @@ def build_monthly_bills(
         # place the decision is made: the events are handed back through
         # `read_events_out` and the published log is projected from them.
         meter_type = read_feed.meter_type_for(customer_data)
+        meter_in_force = getattr(read_feed, "meter_in_force", None) or (lambda _c, _p, m: m)
         # `previous_bill_total_gbp` is threaded on the TRUE bill total exactly
         # as before this change, so the actual-read path is byte-identical in
         # every run (mixed or not), not just an all-actual one.
@@ -1301,7 +1308,10 @@ def build_monthly_bills(
             bill["account_held_from"] = account_held_from
             # The meter type the supplier holds for the supply point, which the bill prints and the
             # raw export carries, so a page's printed type can be graded against the bills.
-            bill["meter_type"] = meter_type
+            # The meter in force on this bill's read date, not the type the account opened on: an
+            # exchanged meter bills as smart from the exchange (D48 P0), and the raw export and the
+            # read-duty register inherit it from here.
+            bill["meter_type"] = meter_in_force(customer_id, bill["period_end"], meter_type)
             # The profile class the supply point is registered on (the MPAN top line), which the
             # supplier allocates; a PC2 meter is billed on its Day and Night registers.
             if customer_data.get("registered_profile_class") is not None:
