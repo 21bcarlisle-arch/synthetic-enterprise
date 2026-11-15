@@ -51,6 +51,13 @@ origin-cut landing worktree, which `land_direction_on_origin` already does for t
 `regenerate`. Not built in this turn. Only the fast-forward reaches the 18:22 tick, and the seat's
 own code also runs from the shared tree, so a code fix landed now would not be running at 18:22.
 
+**Class fix landed (17:55Z, the commit that carries this line):** `land_direction_on_origin` now runs
+the worktree's own `tools/generate_delivery_page.py` after writing the record files into it, lands
+that output, and sets the shared copy to it. A failed run lands the shared tree's page as before.
+Control: `test_the_delivery_page_is_written_by_ORIGINS_generator_when_the_shared_tree_lags`; dropping
+the regeneration block reds it. The seat runs it only once the shared tree has fast-forwarded past
+that commit, since the seat's own code is the shared tree's.
+
 ## Result
 
 *(appended after the 18:22 tick)*

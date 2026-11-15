@@ -2720,7 +2720,8 @@ def _merge_origin_into(worktree: Path, lander) -> str:
 def land_direction_on_origin(root: Path, paths: list[str], message: str,
                              content: dict[str, bytes], *, worktree: Path | None = None,
                              lander=None, promoter=None, regenerate=None,
-                             deadline_s: float = 0.0, clock=None) -> str:
+                             regenerate_delivery=None, deadline_s: float = 0.0,
+                             clock=None) -> str:
     """Land `content` onto `origin/main` itself, never onto the shared HEAD, and return the sha.
 
     WHY NOT THE SHARED HEAD (2026-10-04). The shared tree sits behind AND diverged from origin as
@@ -2774,6 +2775,16 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
             (worktree / rel).parent.mkdir(parents=True, exist_ok=True)
             (worktree / rel).write_bytes(data)
         landing, landed_content = list(paths), dict(carried)
+        # THE DELIVERY PAGE TOO, BY ORIGIN'S GENERATOR (15 Nov). `orient` wrote it with the shared
+        # tree's code, which lags origin whenever the fast-forward is held: 8503daa89's generator fix
+        # sat unused 16:50-17:21Z while origin's tests, which the gate runs, expected its output.
+        # Regenerated here from the record files just written, it is origin's code over origin's
+        # history; a run that fails keeps the shared tree's copy, as it landed before.
+        if DELIVERY_PAGE in landed_content:
+            fresh = (regenerate_delivery or regenerate_delivery_page)(worktree)
+            if fresh is not None:
+                landed_content[DELIVERY_PAGE] = fresh
+                (worktree / DELIVERY_PAGE).write_bytes(fresh)
         page = (regenerate or regenerate_startup_anchors)(worktree)
         if page is not None:
             landed_content[STARTUP_ANCHORS_PAGE] = page
@@ -2792,6 +2803,7 @@ def land_direction_on_origin(root: Path, paths: list[str], message: str,
         while True:
             try:
                 promoter(worktree)
+                _settle_delivery_page(root, content, landed_content)
                 return sha
             except promote_mod.PromotionRefused as exc:
                 _git_in(worktree, "fetch", "--quiet", "origin")
@@ -2836,6 +2848,38 @@ def regenerate_startup_anchors(worktree: Path) -> bytes | None:
     except (OSError, subprocess.SubprocessError):
         return None
     return after if after is not None and after != before else None
+
+
+#: The delivery record's published feed, in `direction.WRITE_SCOPE`.
+DELIVERY_PAGE = "site/data/delivery.json"
+
+
+def regenerate_delivery_page(worktree: Path) -> bytes | None:
+    """`site/data/delivery.json` as the landing worktree's OWN generator writes it, or None when the
+    tool is absent or the run fails -- the caller then lands the shared tree's copy unchanged."""
+    tool = worktree / "tools" / "generate_delivery_page.py"
+    out = worktree / DELIVERY_PAGE
+    if not tool.is_file():
+        return None
+    try:
+        done = subprocess.run([sys.executable, str(tool)], cwd=str(worktree), capture_output=True,
+                              timeout=300, env=dict(os.environ, PYTHONPATH=str(worktree)))
+        return out.read_bytes() if done.returncode == 0 and out.is_file() else None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def _settle_delivery_page(root: Path, read: dict[str, bytes], landed: dict[str, bytes]) -> None:
+    """Put the landed page over the shared copy while that copy is still the bytes the seat read, so
+    the shared tree is origin's twin on that path and its fast-forward is not held by it."""
+    here, mine = root / DELIVERY_PAGE, landed.get(DELIVERY_PAGE)
+    if mine is None or mine == read.get(DELIVERY_PAGE):
+        return
+    try:
+        if here.is_file() and here.read_bytes() == read.get(DELIVERY_PAGE):
+            here.write_bytes(mine)
+    except OSError:
+        pass  # the page is on origin either way
 
 
 #: WHAT THE SEAT ITSELF WRITES AND COMMITS BESIDE THE DIRECTION RECORD -- written by this module's own
