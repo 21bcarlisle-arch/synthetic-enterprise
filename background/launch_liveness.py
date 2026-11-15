@@ -362,8 +362,12 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
            rc_path: str | None = None, asserted_live_by: list | None = None,
            launched_at: str | None = None, path: Path | None = None,
            peak_mb=None, workdir: str | None = None, expect_minutes=None,
-           run_case: dict | None = None) -> dict:
+           run_case: dict | None = None, holds=()) -> dict:
     """Write the launch record for `job`. Always writes the claim `live`.
+
+    `holds` names the worktrees this job will act ON though no process of it is inside them yet
+    (a chain waiting on another pid, then landing scratch trees). `seat_executor.worktree_is_live`
+    reads it, so salvage and the reaper leave those trees alone while the unit is active.
 
     `peak_mb` is the job's declared size, kept so the NEXT launch counts this one at its peak
     rather than at whatever it has grown to so far (`launch_long_job.declared_peaks`).
@@ -427,6 +431,8 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
     if workdir:
         # What a relative `artefact` is relative to -- see `artefact_path()`.
         entry["workdir"] = str(workdir)
+    if holds:
+        entry["holds"] = [str(Path(h).resolve()) for h in holds]
     if expect_minutes is not None:
         entry["expect_minutes"] = float(expect_minutes)
     if run_case:

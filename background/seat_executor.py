@@ -447,13 +447,40 @@ def worktree_is_live(path) -> bool:
     except (OSError, ValueError, subprocess.SubprocessError):
         pass
 
-    # 3. THIS EXECUTOR'S OWN WORKTREE, via the pid file it already keeps. Kept so the executor is
+    # 3. A LONG JOB THAT WILL ACT ON THIS TREE. A chain waiting on another pid has no process in
+    #    its scratch trees, so legs 1-2 read them as abandoned; on 2026-11-14 salvage committed two
+    #    of them and the chain's `checkout --detach origin/main` would then have landed nothing.
+    #    The job declares them (`launch_long_job --holds`); the claim lasts as long as its unit.
+    if _held_by_a_live_long_job(resolved):
+        return True
+
+    # 4. THIS EXECUTOR'S OWN WORKTREE, via the pid file it already keeps. Kept so the executor is
     #    covered even on a turn where the marker could not be written.
     try:
         if resolved != WORKTREE.resolve():
             return False
         return pid_is_alive(int(PID_FILE.read_text().strip()))
     except (OSError, ValueError):
+        return False
+
+
+def _held_by_a_live_long_job(resolved: Path, *, records=None, unit_is_held=None) -> bool:
+    """True if a `live` launch record names `resolved` in its `holds` and its unit is still held.
+
+    Keyed to the UNIT, not the record: a record reads `live` until the deadman settles it, often
+    days after the unit ended (see the October rows still `live`), and a claim that outlives its
+    job is the permanent exemption leg 1's lease exists to prevent. Unreadable register: no claim."""
+    try:
+        if records is None:
+            from background import launch_liveness
+            records = launch_liveness.load()
+        if unit_is_held is None:
+            from background.launch_long_job import name_is_held as unit_is_held
+        mine = str(resolved)
+        return any(r.get("claim") == "live" and mine in (r.get("holds") or [])
+                   and unit_is_held(r.get("unit") or "")
+                   for r in records if isinstance(r, dict))
+    except Exception:  # noqa: BLE001 - a liveness reader must never take the sweep down
         return False
 
 

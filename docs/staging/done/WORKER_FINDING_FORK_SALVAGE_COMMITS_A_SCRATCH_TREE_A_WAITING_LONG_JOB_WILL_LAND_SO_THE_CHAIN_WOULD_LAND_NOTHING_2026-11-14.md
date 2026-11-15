@@ -21,3 +21,19 @@ pending job going to act ON this tree". Candidate one-leg fix: `launch_long_job`
 command names, and `worktree_is_live` treats them as live while the unit is active. Alternative: salvage
 leaves `/var/tmp/se-*` scratch trees that a longjob unit references. Not built: commit gates are refused
 until the vt run ends (WORKER_FINDING_A_LONG_JOB_WAITING_ON_ANOTHER_PID_..._2026-11-14.md).
+
+## Class fixed: the first candidate, built (worker tick, 15 Nov 2026)
+
+The one-leg fix landed, as written above. `launch_long_job --holds WORKTREE` (repeatable) writes `holds` on the
+launch record. `seat_executor.worktree_is_live` now has a leg 3, `_held_by_a_live_long_job`. It reads a tree as live
+while a `live` record names it in `holds` **and that record's unit is still held**. The claim is keyed to the unit,
+not to the record, because records still read `live` weeks after their unit ended (the October rows). Salvage and the
+reaper both come through this door, so both now respect the claim.
+
+**Not automatic.** A job's command does not reveal the trees it touches: here they were named inside `run.sh`. So the
+launcher has to declare them. A chain that forgets `--holds` is exposed exactly as before. Its own
+cherry-pick carry-forward (the instance fix) is still its backstop.
+
+Test: `tests/background/test_a_tree_a_waiting_long_job_will_land_is_not_salvaged.py`, covering both sides of the
+partition on one tree. Two mutations were run: dropping the unit-held clause and removing the leg. Each one turns the
+tests red.
