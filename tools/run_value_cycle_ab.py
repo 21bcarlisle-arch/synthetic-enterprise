@@ -5637,6 +5637,12 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         "renewal_decisions_by_arm": renewal_decisions,
         "decided_differently_by_account": decided_differently_by_account(
             renewal_decisions["value_arm"], renewal_decisions["level_arm"]),
+        # THE DESK'S CHURN BELIEF PER RENEWAL, per arm, beside who then left: the bar candidate A
+        # is graded on (THE_VALUE_TEST_REDESIGN.md s.9). An arm that did not run is absent.
+        "desk_belief_by_arm": {
+            arm: (res.get("phase2b") or {}).get("desk_belief_log")
+            for arm, res in (("control_arm", control), ("value_arm", value),
+                             ("level_arm", level_result)) if res is not None},
         # WHICH CODE MADE THIS, above every figure it made, because `generated_at` is the one
         # timestamp on this artefact that is guaranteed NOT to be when the numbers were decided.
         "producing_commit": producing_commit(),

@@ -2661,6 +2661,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     churn_journey_log: list[dict] = []
     # One row per decision the journey records at a renewal (SIM-side ground truth).
     renewal_decisions_log: list[dict] = []
+    # THE DESK'S CHURN BELIEF AT EACH RENEWAL, beside who then left (value test s.9, candidate A).
+    # An instrument row for the grade, written after the roll and read by nothing in the run, so
+    # every other output is unchanged. `desk_asked` is False where the desk was never asked and
+    # the belief is the no-rate-history base rate, so a grade can leave those rows out.
+    desk_belief_log: list[dict] = []
     # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
     feedback_survey_log: list[dict] = []
     reputation_events_log: list[dict] = []
@@ -4548,6 +4553,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                         _no_offer_reason = (
                             "held_out" if _holdout_arm == "holdout" and _would_offer
                             else _save_rate_refusal or "uneconomical")
+            _desk_asked = company_est_pre is not None
             # Phase NQ: industry base rate floor when no prior rate exists
             if company_est_pre is None:
                 company_est_pre = estimate_churn_without_rate_history()
@@ -4911,6 +4917,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                 _journey, renewal_decisions_log, customer_id=billing_account,
                 event_date=term_start_str, commodity=commodity, rolled=_rolled, event=event,
             )
+            desk_belief_log.append({
+                "account_id": billing_account, "term_start": term_start_str, "fuel": commodity,
+                "desk_churn_belief": company_est_pre, "desk_asked": _desk_asked,
+                "left": event is not None and event["event_type"] == "churned"})
             # B8 L3: a row on either arm exactly where the company would have offered.
             if _holdout_would_offer:
                 _retention_holdout.record(
@@ -6652,6 +6662,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         **({"home_move_outs": home_move_outs, "home_move_ins": home_move_ins}
            if _home_moves_on else {}),
         "renewal_decisions_log": renewal_decisions_log,
+        "desk_belief_log": desk_belief_log,
         # Phase RU: solicited feedback survey engine (FEEDBACK_AND_REPUTATION.md Layer 1)
         "feedback_survey_log": feedback_survey_log,
         "reputation_events_log": reputation_events_log,

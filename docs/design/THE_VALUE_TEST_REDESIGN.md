@@ -946,6 +946,74 @@ driver would differ by more than one variable.
 **Cost.** Each shape runs twice (A and its twin): about 3 h for one draw, and about 38 h for twelve.
 §6a's table priced A once, so its hours double under rule 1.
 
+### 9a. Candidate A on the desk belief: the GAP closed and the bar restated (filed 15 Nov 10:45Z, before any run)
+
+Filed while `/var/tmp/vta-out-flag0/` and `/var/tmp/vta-out-flag1/` are empty. Nothing below has
+been run.
+
+**The GAP above is closed by one sidecar field.** `simulation/run_phase2b.py` keeps
+`desk_belief_log`: one row per renewal on the decision leg, with `account_id`, `term_start`, `fuel`,
+`desk_churn_belief` (the `company_est_pre` that gates the retention offer), `desk_asked` and `left`
+(whether the household left at that renewal). It is appended after the roll, beside
+`_record_renewal_decision`. `desk_asked` is False where the desk was never asked and the value is
+the no-rate-history base rate (`estimate_churn_without_rate_history`). `run_value_cycle_ab` copies
+it per arm as `desk_belief_by_arm`. The driver adds it to the sidecar and refuses a tree that does
+not emit it (rc 4).
+
+**Pre-registration 1: the sidecar changes nothing else.** With the flag off, a run on the new tree
+is byte-identical to the tree before it, apart from the new `desk_belief_log` and
+`desk_belief_by_arm` keys and the clocks every run stamps (`generated_at`, `producing_commit`). The
+log is written after the roll, draws no random number and is read by nothing in the run.
+`tests/simulation/test_desk_belief_log_is_never_read_by_the_run.py` holds the last part: the name
+appears at its definition, its one append and the results dict, and nowhere else. A mutation that
+reads it (`len(desk_belief_log)`) turns the test red. **Not run: a byte comparison.** The run that
+would show it costs about 3 h, and the twin below is that run's flag-off side, so it is not run
+separately. The cheaper evidence is the construction plus the test. *If a later grade finds the
+twin's money columns differ from a flag-off run on the parent tree, this prediction is refuted, and
+the sidecar is the first suspect.*
+
+**The shape: a pair, not one draw.** §9's one-draw shape (`VTA_SEEDS=1`) cannot run. `noise_floor`
+refuses fewer than two seeds (`tools/run_value_cycle_ab.py`, "a noise floor needs at least two
+seeds"), and the driver's pairing loop would have failed on `pair[1]` first. *Correction beside §9's
+claim:* the one-draw shape and its "about 3 h" cost were never runnable. The smallest runnable shape
+is the first pair, `VTA_SEEDS=2` (11111 and 22222), in one child process per side. **Seed 11111 is
+the graded draw**, as directed. Seed 22222 is read as a second paired draw and does not change the
+verdict on 11111. Cost: about 3.2 h per side (1,140 min over six pairs), so about 6.3 h for A and its
+twin back to back.
+
+**The twelve-draw launch at 09:44Z was stopped at 10:20Z.** It was 36 minutes in, with no member on
+disk. Its driver could not read the desk belief, so as §9 says, it could only return A's predicted
+null. The delivery seat's direction (`candidate-a-reads-the-desk-belief-per-renewal`, written 09:25Z)
+asks for the small run first. To reverse: re-run the two `launch_long_job` lines recorded in §10, at a
+tree carrying `desk_belief_log`.
+
+**Pre-registration 2: A's bar, restated on the desk belief.** The quantity is the AUC of the desk
+belief against who left. It is read on the **control arm** (flat price, where the desk belief is
+the only belief acting), over renewals with `desk_asked` true, in the primary window `term_start` from
+2019-01-01 on. That is the window in which the flag's type split was graded (0.819 out of sample) and
+the desk belief measured backwards (0.333 on 268 desk states). The secondary window is all years.
+The value and level arms are printed and not graded. Grader: `/var/tmp/vta-driver/grade_desk.py`,
+written before launch. AUC is P(a leaver's belief > a stayer's), with ties at 0.5.
+
+| # | Quantity, seed 11111, control arm, 2019 on | Predicted | Kill condition |
+|---|---|---|---|
+| D1 | Twin's desk-belief AUC | **0.42 (0.30 to 0.55)**: at or below chance, as the 0.333 reading says | Above 0.60: the desk belief already ranks leavers on this book, so the 0.333 reading does not carry to the run. The case for A falls, and A is re-read before anything else |
+| D2 | A's desk-belief AUC | **0.62 (0.48 to 0.80)** | — |
+| D3 | A minus twin, paired | **+0.20 (+0.05 to +0.40)** | Under +0.05: the type split does not make the belief rank leavers in the run, whatever it did out of sample |
+| D4 | Leavers among the graded rows | **25 to 60** per side | Under 20: the AUC carries a half-width over about 0.12, and the grade reads "I cannot yet say" whatever D3 shows |
+
+**The bar.** A clears it on seed 11111 when D3 > **0.112** (§8's AUC half-range, which is the
+conservative allowance; a paired difference should be far tighter) **and** A's AUC is above 0.5. §9's
+A1 to A3 are graded too, as filed, on the pricing belief and the choosing leg. They still predict a
+null.
+
+**The twelve-draw decision, written before the run.**
+- A clears on 11111 and 22222 has the same sign: **the twelve-draw A family is earned**, to size the
+  paired effect. It is launched at the same tree, behind the headroom check.
+- D3 under +0.05 on both seeds: A is closed with no rank gain in the run, and **no twelve-draw**.
+- Anything between: "I cannot yet say". There is no twelve-draw on that alone. The grade records what
+  would separate the readings.
+
 ## 10. The `churn_roll` family graded against §8 (read 15 Nov 09:40Z)
 
 All six pairs and their control sidecars are in `/var/tmp/vtcr-out/`. The fold
@@ -1039,3 +1107,6 @@ behind A's pid, because each peaks at about 11.5 GB and the two do not fit toget
 19 h each, so the twin should read about **Tue 17 Nov 05:00Z**. The driver and grader are §9's,
 unchanged. The grader inherits §10's household fold, because re-rolled dice create the same
 second accounts. A1 is read paired by seed, not against the 0.661 bar.
+
+*Stopped 15 Nov 10:20Z, 36 minutes in, with no member written. The pair-shaped run on the desk belief
+goes first (§9a).*
