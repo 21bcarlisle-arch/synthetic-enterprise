@@ -27,6 +27,12 @@ Ten accounts left level DD in 2016, each once. **P2 holds**: none came back.
 **P1 is refuted as worded.** Five accounts are asked something on their account-statement day with no
 leg statement that day, so the account branch IS their only opener for that day:
 
+*Corrected 2026-11-15 (SEAT_FINDING_A_CLOSING_STATEMENT_DUE_ON_AN_OPEN_JOURNEY_2026-11-15.md):
+the probe called `left_level_asks` without the desk's `dunned_at`, so this column is what the
+statement would ask with no case open. The desk keeps the shortfall of a case open on the day of
+leaving owed from its missed request, where it was already overdue. Read that way, only SYN-2016-012
+had anything left on its statement (GBP 10.57).*
+
 | account | left | statement due | asked that day (GBP) | leg statement | journeys opened in 2016 |
 |---|---|---|---|---|---|
 | SYN-2016-206 | 5 Jul | 2 Aug | 64.81 | none | 7 May |
