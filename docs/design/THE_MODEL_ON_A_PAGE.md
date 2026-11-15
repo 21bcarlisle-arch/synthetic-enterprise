@@ -151,8 +151,8 @@ in reality and **none of them presses yet**: **hedging** (collateral is a cost l
 start and fixed for the term — never a CALL), **competition** (blocked entirely by C2), and **debt**
 (arrears do not yet arrive coupled to wholesale peaks). *(Corrected 14 Nov 2026: "none of them presses
 yet" is no longer true of competition, and this page says so itself under Company organs below. A
-rival now moves and presses on price (`simulation/competitor_reference.py`), though the company still
-cannot price above the cap. The front door was narrowed to "collateral does not press yet" on 24 Oct.
+rival now moves and presses on price (`simulation/competitor_reference.py`), though a residential
+renewal is still clamped near the cap. The front door was narrowed to "collateral does not press yet" on 24 Oct.
 This line was not. Found by A45's Expert Hour.)* All three are cash-and-timing problems, not
 profit problems, and there is no mechanism converting a bad quarter into a liquidity constraint — which
 is why EARN has been the only leg the world can press on. Atoms `B6_collateral_cash_death_loop`,
@@ -186,8 +186,11 @@ history, and there is now **a rival that moves: `simulation/competitor_reference
 company that undercuts it, over quarters, on a lag the company does not control, and never below its
 own cost stack, so a price advantage now DECAYS instead of persisting (measured: −10.0% position at
 CHASE=0, −5.0% one quarter later at CHASE=0.5). What has NOT changed: market position is a run-level
-constant where no offered rate is to hand, and the company still cannot price above the cap at all
-(`renewal_desk._apply_competitive_ceiling` clamps it), so **over-pricing still carries no competitive
+constant where no offered rate is to hand, and a residential renewal still cannot be priced more than 2%
+above the cap (`renewal_desk._apply_competitive_ceiling` clamps it at 102% of the published SVT,
+tightening to 97% as the published switching signal rises, unless the company's own cost floor is
+higher, as in 2022; business renewals are not clamped) *(corrected 15 Nov 2026: this said "cannot
+price above the cap at all"; found by A45's Expert Hour)*, so **over-pricing still carries no competitive
 consequence** — the maximiser's discovery that charging the cap is close to free is the discovery that
 the cap is a hard ceiling with nothing above it. Nobody yet targets the company's book. **Consequence,
 stated where the capability is:** every measurement of the company's pricing decisions taken BEFORE

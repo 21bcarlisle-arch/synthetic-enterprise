@@ -99,3 +99,25 @@ map_records:
     as watched. The three sections left unwatched (the preamble, the mission quote, fidelity) are
     purpose prose and make no claim about the code. 23 claims checked, 0 drifting. Level held at 2;
     next is a fresh Expert Hour pass.
+  - >-
+    Blind pass, 2026-11-15, fresh read-only reviewer (requirements-traceability auditor, DO-178C
+    trade; shown none of the earlier findings). NEEDS_WORK, held at 2. Mutations on a scratch copy:
+    cutting the clamp call and the tariff call each went red; a clamp returning its input, and the
+    engagement mix 0.45 -> 0.70, stayed green. MAJOR 1: positive claims are counted per section, so
+    one anchor makes a section watched; it estimates 20-25% of the page's statements about the code
+    are bound (unbound examples: engagement mix 0.45/0.35/0.20, the 30-180 day window,
+    enterprise_value as the book's CLV, customer_value_view's three readers, the named household-
+    share test, the rival "never below its own cost stack"). MAJOR 2: UNDER_CLAIM_FORMS misses
+    negatives phrased without "not yet" ("Nothing optimises the household figure", "no household-
+    side term in any currency", "Nothing it computes is ever offered", "over-pricing still carries
+    no competitive consequence"). MAJOR 3: the clamp claim held a false sentence. FIXED here: the
+    ceiling is 1.02x SVT, floored at 0.97x, overridden by the cost floor and absent for business,
+    so "cannot price above the cap at all" was never true; the page is corrected and marked, and
+    the two percentages are bound as literal_assign rows (each mutation reds its own row only).
+    The call probe still cannot see a no-op clamp. MAJOR 4: the nine no_witness rows could watch
+    the named atom's level (C31, E5, W2_3/B10) and go red when the mechanism lands, which is C2's
+    shape. MINOR: the site leg runs from main() only, so the scheduled note never reports it; four
+    claims watch a stand-in (an import, or any tools/ importer); token_live counts a bare mention as
+    a read; same-day drift waits for the next note; the run loop's **_roll_kwargs link is unread.
+    Next, in order: M4 (atom-level probes for the no_witness rows), then the site leg in the note,
+    then M2's lexicon, then M1, whose fix is a per-sentence denominator, not more anchors.

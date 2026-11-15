@@ -352,8 +352,8 @@ claims:
 
   - id: PRICING_the_renewal_desk_clamps_at_the_competitive_ceiling
     page: docs/design/THE_MODEL_ON_A_PAGE.md
-    anchor: "the company still cannot price above the cap at all"
-    also_anchors: ["though the company still cannot price above the cap"]
+    anchor: "a residential renewal still cannot be priced more than 2% above the cap"
+    also_anchors: ["though a residential renewal is still clamped near the cap"]
     claim: "the renewal desk passes every struck rate through the competitive-ceiling clamp"
     expects: present
     probe:
@@ -366,10 +366,33 @@ claims:
       Registered 2026-11-14 from the check's own unbound-negatives list (A45 MAJOR 3). The
       keyword/value pair matches no call, so every call to the clamp is evidence; the day the
       desk stops calling it, this reports OVER_CLAIM and the page's "cannot price above the cap"
-      has to go. Imprecise on the page, not in the code: the clamp is min(rate, max(ceiling,
-      cost floor)), so where the cost floor exceeds the ceiling (2022) a resi rate does sit
-      above it, and the ceiling is the published SVT times the switching multiplier, not the
-      cap itself. The over-pricing point the page makes ("nothing above it") still holds.
+      has to go. RE-ANCHORED 2026-11-15 (Expert Hour): the page said "cannot price above the cap
+      at all", which the code never did -- the ceiling is 1.02x SVT, the cost floor overrides it
+      and business renewals are unclamped; the page now says so. This probe sees the CALL only: a
+      clamp that returns its input unchanged keeps it green. The two percentages the page now
+      states are the next two rows.
+
+  - id: PRICING_the_ceiling_is_102_pct_of_the_published_svt
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "clamps it at 102% of the published SVT"
+    claim: "the competitive ceiling starts at 1.02 times the published SVT"
+    expects: present
+    probe:
+      kind: literal_assign
+      file: company/pricing/renewal_desk.py
+      name: _SVT_CEILING_PCT
+      value: 1.02
+
+  - id: PRICING_the_ceiling_tightens_to_97_pct
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "tightening to 97% as the published switching signal rises"
+    claim: "the competitive ceiling never tightens below 0.97 times the published SVT"
+    expects: present
+    probe:
+      kind: literal_assign
+      file: company/pricing/renewal_desk.py
+      name: _MIN_CEILING_PCT
+      value: 0.97
 
   - id: PRICING_the_forward_belief_window_adapts
     page: docs/design/THE_MODEL_ON_A_PAGE.md

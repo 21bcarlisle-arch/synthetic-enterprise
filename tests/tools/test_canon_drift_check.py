@@ -69,6 +69,8 @@ EXPECTED_CLAIM_IDS = frozenset({
     "PRICING_the_forward_belief_window_adapts",
     # 2026-11-14, from the unbound-negatives list: the cap sentence, said twice on the page.
     "PRICING_the_renewal_desk_clamps_at_the_competitive_ceiling",
+    "PRICING_the_ceiling_is_102_pct_of_the_published_svt",
+    "PRICING_the_ceiling_tightens_to_97_pct",
     # 2026-08-28, the director's mission rewrite. The mission names three channels through which
     # value reaches a household -- modelling, tariffs, advice -- and THE MODEL ON A PAGE now states
     # that advice has modules on disk and no recipient. That is a CHANNEL claim of C1's exact shape
