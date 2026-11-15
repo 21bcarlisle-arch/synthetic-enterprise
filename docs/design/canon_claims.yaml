@@ -461,10 +461,17 @@ claims:
 # `_price_differential_vs_market`), so whether a "moneyness trigger" is that, or a mid-term exit
 # from a fix the market has undercut, is unsaid. "Abate ... not yet instrumented" was judged
 # 2026-11-15, below.
+# Every no_witness row watches the atom that would build its mechanism (`watch`, A45's Expert
+# Hour M4, 15 Nov), at that atom's level and target the day it was judged. Abate -> E5 (the
+# counterfactual the score term needs); time -> C31; the channels sentence -> C30 (its advice
+# half; the modelling half has no atom of its own); the rival's four copies -> W2_3, the world's
+# competitor field, where a rival acting on the company's book would be built; moneyness -> B10,
+# the switching response to a relative-price gap. A moved atom reds the check until re-judged.
 _judged_negatives:
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "is designed as our £/tCO₂e and is not yet instrumented at all"
     kind: no_witness
+    watch: {atom: E5_carbon_three_ledger, level: 1, target: 3}
     why: >-
       The score's Abate leg. Checked 2026-11-15: no module in company/, saas/, simulation/ or tools/
       computes a score term for it, and the household tonnes it would price are measured
@@ -473,6 +480,7 @@ _judged_negatives:
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "it is **absent**, and it is the only cell in the table that is"
     kind: no_witness
+    watch: {atom: C31_time_is_the_currency_that_does_not_exist, level: 0, target: 3}
     why: >-
       The household time currency. Checked 2026-11-15: the only `effort_minutes` symbols are the
       company's own decision-rights rate card (staff minutes), not household minutes. With no
@@ -480,14 +488,17 @@ _judged_negatives:
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "never converted to pounds (M3); not yet instrumented | not yet instrumented"
     kind: no_witness
+    watch: {atom: C31_time_is_the_currency_that_does_not_exist, level: 0, target: 3}
     why: The table's time row, both sides; the cell the sentence above calls absent.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "Time, household minutes: not yet instrumented"
     kind: no_witness
+    watch: {atom: C31_time_is_the_currency_that_does_not_exist, level: 0, target: 3}
     why: The picture's copy of the time cell above; same reason.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "Two of the three channels therefore cannot yet create the value"
     kind: no_witness
+    watch: {atom: C30_advice_reaches_a_household, level: 0, target: 3}
     why: >-
       Advice's half is MISSION_switching_advice_has_no_recipient. Modelling's half ("nothing it
       computes is ever offered to the household") has no probe: the run loop already hosts
@@ -497,20 +508,24 @@ _judged_negatives:
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "Nobody yet targets the company's book."
     kind: no_witness
+    watch: {atom: W2_3_competitor_field, level: 1, target: 1}
     why: >-
       competitor_reference defends prices; no mechanism exists by which a rival acts on the
       company's customers, so there is no name to probe. The C2 rival claim is what moves first.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "Going after the company’s book: not yet."
     kind: no_witness
+    watch: {atom: W2_3_competitor_field, level: 1, target: 1}
     why: The picture's copy of "Nobody yet targets the company's book"; same reason.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: 'not_yet: ["contests:", "not yet"]'
     kind: no_witness
+    watch: {atom: W2_3_competitor_field, level: 1, target: 1}
     why: The picture block's rival node, the same claim a third time.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "the market DEFENDS but does not yet CONTEST"
     kind: no_witness
+    watch: {atom: W2_3_competitor_field, level: 1, target: 1}
     why: The organs line's copy of "Nobody yet targets the company's book", the same claim a fourth time.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "and abatement is still unmeasured, because nothing supplies the counterfactual it needs"
@@ -553,6 +568,7 @@ _judged_negatives:
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "moneyness trigger absent"
     kind: no_witness
+    watch: {atom: B10_competitor_switching_response, level: 3, target: 3}
     why: >-
       Defined 2026-11-15 as a household leaving a fix BEFORE its end because the market now beats
       it (the reading at renewal is the "market-coupled swell" beside it, which churn does read).

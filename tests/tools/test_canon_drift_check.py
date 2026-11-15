@@ -37,9 +37,12 @@ from tools.canon_drift_check import (  # noqa: E402
     Claim,
     ProbeError,
     evaluate,
+    lapsed_watches,
     live_source,
+    load_judgements,
     load_register,
     main,
+    mint_drift_item,
     run,
 )
 
@@ -580,7 +583,7 @@ def _judged_repo(tmp_path: Path, judged: list[dict]) -> tuple[Path, Path]:
 
 
 RIVAL_JUDGED = {"page": "docs/page.md", "excerpt": "a rival is blocked", "kind": "no_witness",
-                "why": "no rival module exists to watch"}
+                "why": "no rival module exists to watch", "watch_none": "the fixture has no map"}
 
 
 def test_a_judged_negative_is_settled_and_an_edited_sentence_is_named_again(tmp_path):
@@ -630,6 +633,61 @@ def test_a_judged_negative_is_counted_on_the_surface_and_never_moves_the_exit_st
     root, register = _judged_repo(tmp_path, [RIVAL_JUDGED])
     assert main(["--root", str(root), "--register", str(register)]) == 0
     assert "JUDGED NEGATIVES -- 1 named sentence(s)" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------- a no_witness row watches its atom (M4)
+
+def _watched_repo(tmp_path: Path, level: int) -> tuple[Path, Path]:
+    root, register = _judged_repo(tmp_path, [dict(
+        {k: v for k, v in RIVAL_JUDGED.items() if k != "watch_none"},
+        watch={"atom": "W9_rival", "level": 1, "target": 2})])
+    (root / "docs/design").mkdir(parents=True, exist_ok=True)
+    (root / "docs/design/maturity_map.yaml").write_text(yaml.safe_dump(
+        [{"id": "W9_rival", "level_current": level, "level_target": 2}]), encoding="utf-8")
+    return root, register
+
+
+def test_a_watched_judgement_holds_until_its_atom_moves_and_then_reds_and_mints(tmp_path, capsys):
+    """The partition: at the judged level the sentence is settled and the check is green; once the
+    atom that would build the rival moves, the sentence is named again, the check exits 1, and the
+    lapse mints a work item. C2's shape: the mechanism landed while the page said it had not."""
+    root, register = _watched_repo(tmp_path, level=1)
+    report = run(root, register)[1]
+    assert report["lapsed_watches"] == [] and report["unbound_negatives"]["docs/page.md"] == []
+    assert main(["--root", str(root), "--register", str(register)]) == 0
+    root, register = _watched_repo(tmp_path, level=2)
+    report = run(root, register)[1]
+    assert len(report["lapsed_watches"]) == 1 and "W9_rival was L1/T2" in report["lapsed_watches"][0]
+    assert any("a rival is blocked" in s for s in report["unbound_negatives"]["docs/page.md"])
+    assert main(["--root", str(root), "--register", str(register)]) == 1
+    assert "[LAPSED WATCH]" in capsys.readouterr().out
+    minted = mint_drift_item(report, tmp_path / "staging", today="2026-11-15")
+    assert minted is not None and "LAPSED" in minted.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("row", [
+    {k: v for k, v in RIVAL_JUDGED.items() if k != "watch_none"},
+    dict(RIVAL_JUDGED, watch_none=" "),
+    dict(RIVAL_JUDGED, kind="not_about_code", watch_none="x"),
+    dict({k: v for k, v in RIVAL_JUDGED.items() if k != "watch_none"}, watch={"atom": "W9_rival", "level": 1}),
+    dict({k: v for k, v in RIVAL_JUDGED.items() if k != "watch_none"},
+         watch={"atom": "NO_such_atom", "level": 1, "target": 2}),
+], ids=["no_witness_unwatched", "empty_watch_none", "watch_on_other_kind", "watch_without_target",
+        "watch_on_unknown_atom"])
+def test_a_watch_that_could_never_fire_refuses(tmp_path, row):
+    root, register = _watched_repo(tmp_path, level=1)
+    register.write_text(yaml.safe_dump({**yaml.safe_load(register.read_text(encoding="utf-8")),
+                                        "_judged_negatives": [row]}), encoding="utf-8")
+    with pytest.raises(ProbeError):
+        run(root, register)
+
+
+def test_every_live_no_witness_row_watches_an_atom_the_map_holds():
+    """Live: no no_witness judgement is unwatched without a reason, and each watched atom exists
+    (run() refuses otherwise). Lapses are left to the check's exit status, not pinned here."""
+    judgements = load_judgements(LIVE_REGISTER, {c.id for c in load_register(LIVE_REGISTER)})
+    assert [j for j in judgements if j.kind == "no_witness" and j.watch] , "no live row watches an atom"
+    lapsed_watches(REPO_ROOT, judgements)   # raises on an atom no map holds
 
 
 def test_no_live_judgement_is_stale():

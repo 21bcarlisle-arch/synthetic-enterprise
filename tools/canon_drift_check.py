@@ -724,8 +724,17 @@ _SENTENCE = re.compile(r"[^.!?]+(?:[.!?]+|$)")
 #:                   being corrected, a decision awaited);
 #:   summary         it restates claims that are bound (`of:`); it LAPSES -- is named again --
 #:                   the moment any of them stops holding.
+#:
+#: A `no_witness` row has nothing in the CODE to watch, so it watches the WORK instead (A45's blind
+#: Expert Hour, 15 Nov, MAJOR 4): `watch: {atom, level, target}` names the map atom that would build
+#: the missing mechanism, at its level and target on the day of the judgement. When either moves,
+#: the mechanism may have landed while the page still says it has not -- C2's shape, a rival built
+#: and the page saying competition was blocked -- so the judgement LAPSES: the sentence is named
+#: again and the lapse is red (exit 1, minted). A row with no atom to watch says why in
+#: `watch_none`; a watch naming an atom no map holds is malformed, since it could never fire.
 JUDGED_SECTION = "_judged_negatives"
 JUDGED_KINDS = ("no_witness", "not_about_code", "summary")
+MAP_REL = "docs/design/maturity_map.yaml"
 
 
 @dataclass(frozen=True)
@@ -735,6 +744,24 @@ class Judgement:
     kind: str
     why: str
     of: tuple[str, ...] = ()
+    watch: tuple[str, int, int] | None = None   # (atom, level, target) when judged
+
+
+def _parse_watch(row: dict[str, Any]) -> tuple[str, int, int] | None:
+    watch, none = row.get("watch"), row.get("watch_none")
+    if row["kind"] != "no_witness":
+        if watch is not None or none is not None:
+            raise ProbeError(f"{JUDGED_SECTION}: only a no_witness row watches an atom ({row['excerpt']!r:.60})")
+        return None
+    if watch is None:
+        if isinstance(none, str) and none.strip():
+            return None
+        raise ProbeError(f"{JUDGED_SECTION}: a no_witness row names the atom that would build its mechanism "
+                         f"(`watch`) or says why none can (`watch_none`) ({row['excerpt']!r:.60})")
+    if (not isinstance(watch, dict) or not isinstance(watch.get("atom"), str)
+            or not all(type(watch.get(k)) is int for k in ("level", "target"))):
+        raise ProbeError(f"{JUDGED_SECTION}: `watch` needs atom, level and target ({row['excerpt']!r:.60})")
+    return (watch["atom"], watch["level"], watch["target"])
 
 
 def load_judgements(path: Path, claim_ids: set[str]) -> list[Judgement]:
@@ -756,8 +783,33 @@ def load_judgements(path: Path, claim_ids: set[str]) -> list[Judgement]:
         unknown = [c for c in of if c not in claim_ids]
         if unknown:
             raise ProbeError(f"{JUDGED_SECTION}: {row['excerpt']!r:.60} summarises unknown claim(s) {unknown}")
-        out.append(Judgement(row["page"], row["excerpt"], row["kind"], row["why"].strip(), of))
+        out.append(Judgement(row["page"], row["excerpt"], row["kind"], row["why"].strip(), of,
+                             _parse_watch(row)))
     return out
+
+
+def lapsed_watches(root: Path, judgements: list[Judgement]) -> list[str]:
+    """Each watched judgement whose atom has moved since it was judged. Raises ProbeError when a
+    watched atom is in no map, or the map cannot be read: a watch that cannot fire is not a watch."""
+    watched = [j for j in judgements if j.watch]
+    if not watched:
+        return []
+    from tools import maturity_map_store
+    try:
+        atoms = {a.get("id"): a for a in maturity_map_store.load_atoms(root / MAP_REL)}
+    except Exception as exc:  # noqa: BLE001 - re-raised as the check's own refusal
+        raise ProbeError(f"{JUDGED_SECTION}: the map cannot be read to check a watch ({exc})") from exc
+    lapsed: list[str] = []
+    for j in watched:
+        atom_id, level, target = j.watch
+        atom = atoms.get(atom_id)
+        if atom is None:
+            raise ProbeError(f"{JUDGED_SECTION}: watches {atom_id!r}, which no map holds ({j.excerpt!r:.60})")
+        now = (atom.get("level_current"), atom.get("level_target"))
+        if now != (level, target):
+            lapsed.append(f"{j.page}: {j.excerpt} -- {atom_id} was L{level}/T{target} when judged, "
+                          f"now L{now[0]}/T{now[1]}; re-read the sentence against the code")
+    return lapsed
 
 
 def _stale_judgements(root: Path, judgements: list[Judgement]) -> list[str]:
@@ -774,7 +826,8 @@ def _stale_judgements(root: Path, judgements: list[Judgement]) -> list[str]:
 
 
 def unbound_negatives(root: Path, claims: list[Claim], judgements: list[Judgement] = (),
-                      holding: set[str] | None = None) -> dict[str, list[str]]:
+                      holding: set[str] | None = None,
+                      lapsed: tuple[str, ...] | list[str] = ()) -> dict[str, list[str]]:
     """Per markdown page: each sentence holding a "the code lacks X" phrase no anchor covers.
 
     Those are the under-claims nothing can catch. Each needs an `absent` claim, or nothing checks
@@ -789,7 +842,9 @@ def unbound_negatives(root: Path, claims: list[Claim], judgements: list[Judgemen
             continue
         text = _normalise(page.read_text(encoding="utf-8", errors="replace"))
         spans: list[tuple[int, int]] = []
+        gone = {item.split(" -- ")[0] for item in lapsed}
         covering = [_normalise(j.excerpt) for j in judgements if j.page == page_rel
+                    and f"{j.page}: {j.excerpt}" not in gone
                     and (j.kind != "summary" or (holding is not None and set(j.of) <= holding))]
         for excerpt in covering:
             at = text.find(excerpt)
@@ -821,6 +876,7 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
     judgements = load_judgements(register, {c.id for c in claims})
     verdicts = [evaluate(claim, root) for claim in claims]
     holding = {v.claim.id for v in verdicts if v.verdict == HOLDS}
+    lapsed = lapsed_watches(root, judgements)
     counts: dict[str, int] = {}
     for verdict in verdicts:
         counts[verdict.verdict] = counts.get(verdict.verdict, 0) + 1
@@ -836,8 +892,10 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
         # claim's verdict -- there is no claim left to give one to.
         "removed": removed_claims(register, current={c.id for c in claims}),
         "unwatched_sections": unwatched_sections(root, claims),
-        "unbound_negatives": unbound_negatives(root, claims, judgements, holding),
+        "unbound_negatives": unbound_negatives(root, claims, judgements, holding, lapsed),
         "judged_negatives": len(judgements),
+        # Red: the atom that would build a "does not exist" mechanism moved after the judgement.
+        "lapsed_watches": lapsed,
         # A judgement whose excerpt left its page hides nothing; it is printed so the row is cleared.
         "stale_judgements": _stale_judgements(root, judgements),
     }
@@ -847,7 +905,8 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
 def _render(verdicts: list[Verdict], removed: list[str] | None = None,
             unwatched: dict[str, list[str]] | None = None,
             negatives: dict[str, list[str]] | None = None,
-            judged: int = 0, stale: list[str] | None = None) -> str:
+            judged: int = 0, stale: list[str] | None = None,
+            lapsed: list[str] | None = None) -> str:
     lines = ["CANON DRIFT CHECK -- what the page claims that the code no longer supports", ""]
     for verdict in verdicts:
         lines.append(f"  [{verdict.verdict:<10}] {verdict.claim.id}")
@@ -872,6 +931,8 @@ def _render(verdicts: list[Verdict], removed: list[str] | None = None,
     if judged:
         lines.append(f"JUDGED NEGATIVES -- {judged} named sentence(s) settled in `{JUDGED_SECTION}` as "
                      "unregisterable, each with its reason")
+    for item in lapsed or []:
+        lines.append(f"  [LAPSED WATCH] {item}")
     for item in stale or []:
         lines.append(f"  [STALE JUDGEMENT] excerpt no longer on its page, clear the row: {item}")
     if removed:
@@ -894,6 +955,7 @@ def _drift_key(report: dict[str, Any]) -> str:
     import hashlib
     parts = sorted(f"{d['id']}:{d['verdict']}" for d in report["drift"])
     parts += sorted(f"removed:{item.split(' -- ')[0]}" for item in report["removed"])
+    parts += sorted(f"lapsed:{item.split(' -- ')[0]}" for item in report.get("lapsed_watches", []))
     return hashlib.sha1("\n".join(parts).encode("utf-8")).hexdigest()[:10].upper()
 
 
@@ -910,7 +972,8 @@ def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) ->
     Every other red (SUPERSEDED, UNBOUND, ERROR, a removed row) leaves no false sentence in front of
     a reader -- LATENT.
     """
-    if not report["drift"] and not report["removed"]:
+    lapsed = report.get("lapsed_watches", [])
+    if not report["drift"] and not report["removed"] and not lapsed:
         return None
     key = _drift_key(report)
     if any(staging_dir.rglob(f"{DRIFT_ITEM_STEM}{key}_*.md")):
@@ -920,6 +983,8 @@ def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) ->
     rows = [f"| `{d['id']}` | {d['verdict']} | {d.get('page', '')} | {d.get('detail') or ''} |"
             for d in report["drift"]]
     rows += [f"| `{item.split(' -- ')[0]}` | REMOVED | | {item} |" for item in report["removed"]]
+    rows += [f"| judged negative | LAPSED | {item.split(': ')[0]} | {item.split(': ', 1)[1]} |"
+             for item in lapsed]
     text = "\n".join([
         f"**Severity:** {severity} · **Lane:** {DRIFT_ITEM_LANE} · **Epoch:** 2 · "
         f"**Atom:** `{DRIFT_ITEM_ATOM}`",
@@ -938,7 +1003,9 @@ def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) ->
         "the page (a director document takes a `Director-doc: correction` trailer) or restore the "
         "code. SUPERSEDED: the code moved past the page -- the page under-claims. UNBOUND: the "
         "register's anchor sentence left the page -- rebind the row. ERROR: the probe could not "
-        "run, so nothing is known. REMOVED: a row left the register without a `retired` reason.",
+        "run, so nothing is known. REMOVED: a row left the register without a `retired` reason. "
+        "LAPSED: the atom that would build a mechanism the page says is missing has moved -- re-read "
+        "the sentence, then bind it with an absent claim, correct it, or re-judge at the new level.",
         "",
         f"**Done means.** `python3 tools/canon_drift_check.py` reads none of the rows above as red. "
         f"Full report: `{DEFAULT_REPORT}`.",
@@ -1013,6 +1080,13 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
                 f"`{RETIRED_SECTION}` reason — {named}{more}. A removed claim is not a claim that "
                 f"holds; it is a page sentence nothing checks. The other {checked} were checked. "
                 f"Full report: `{DEFAULT_REPORT}`.{minted}")
+    lapsed = report.get("lapsed_watches", [])
+    if lapsed:
+        named = "; ".join(item.split(" -- ")[1].split(" was ")[0] for item in lapsed[:5])
+        return (f"canon drift: {len(lapsed)} judged \"does not exist\" sentence(s) LAPSED — the atom "
+                f"that would build each has moved ({named}), so the page may now under-claim. "
+                f"{len(drift)} of {checked} registered claim(s) drift. Full report: "
+                f"`{DEFAULT_REPORT}`.{minted}{_unwatched_clause(report)}")
     if not drift:
         return (f"canon drift: {checked} registered claim(s) checked against the code, all HOLD "
                 f"(register `{DEFAULT_REGISTER}`).{_unwatched_clause(report)}")
@@ -1202,7 +1276,7 @@ def main(argv: list[str] | None = None) -> int:
     print(json.dumps(report, indent=2) if args.json
           else _render(verdicts, report["removed"], report.get("unwatched_sections"),
                        report.get("unbound_negatives"), report.get("judged_negatives", 0),
-                       report.get("stale_judgements"))
+                       report.get("stale_judgements"), report.get("lapsed_watches"))
           + _render_site(report["site"]))
     if args.write_report:
         out = root / DEFAULT_REPORT
@@ -1212,7 +1286,7 @@ def main(argv: list[str] | None = None) -> int:
     # the rung is that deleting the row must not be cheaper than fixing the page.
     site_drifted = report["site"]["superseded"] or report["site"]["misquoted"]
     return 1 if (any(v.verdict in DRIFT_VERDICTS for v in verdicts) or report["removed"]
-                 or site_drifted) else 0
+                 or report.get("lapsed_watches") or site_drifted) else 0
 
 
 if __name__ == "__main__":

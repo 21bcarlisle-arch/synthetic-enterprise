@@ -121,3 +121,16 @@ map_records:
     a read; same-day drift waits for the next note; the run loop's **_roll_kwargs link is unread.
     Next, in order: M4 (atom-level probes for the no_witness rows), then the site leg in the note,
     then M2's lexicon, then M1, whose fix is a per-sentence denominator, not more anchors.
+  - >-
+    M4, 2026-11-15: a no_witness row watches the atom that would build its mechanism. Each such row
+    now carries `watch: {atom, level, target}` at the day it was judged, or `watch_none` with a
+    reason; a missing watch, or one on an atom no map holds, is malformed (exit 2), since it could
+    never fire. When the atom's level or target moves, the judgement lapses: the sentence is named
+    again, the check exits 1 and mints a LATENT item ("re-read the sentence against the code").
+    Ten rows watched: Abate -> E5 (L1/T3); the three time rows -> C31 (L0/T3); the channels
+    sentence -> C30 (L0/T3; its modelling half has no atom of its own, said in the register);
+    the rival's four copies -> W2_3 (L1/T1); moneyness -> B10 (L3/T3). Two of those atoms sit at
+    target, so for them only a raised target or a fall fires: a rival built under an atom that
+    is not W2_3 is still unseen, and that is the residual. Partition control in
+    tests/tools/test_canon_drift_check.py: green at the judged level, red and minted at the next.
+    Next, in order: the site leg in the scheduled note, M2's lexicon, then M1.
