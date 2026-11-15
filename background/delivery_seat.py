@@ -3067,8 +3067,13 @@ def refusal_verdict(text: str, limit: int = 1500) -> str:
         nodes = [line.strip() for line in text[:text.index("❌")].splitlines()
                  if line.strip().startswith(("FAILED ", "ERROR ", "[site-lane] running",
                                              "[site-lane] merge"))][:12]
+        # pytest's `E ` lines are the assertion's own words, and only they name WHICH page and
+        # WHICH hole: six 15 Nov records named the empty-field sweep and nothing it found. Capped
+        # so the ❌ banner after them still fits.
+        detail = [" ".join(line.split())[:160] for line in text[:text.index("❌")].splitlines()
+                  if line.startswith("E ")][:8]
         said = [line.strip() for line in text[text.index("❌"):].splitlines() if line.strip()]
-        return " | ".join([lines[0], *nodes, *said])[:limit]
+        return " | ".join([lines[0], *nodes, *detail, *said])[:limit]
     marks = [i for i, line in enumerate(lines[1:], 1)
              if child_diagnostics.is_verdict_line(line) and "✓" not in line]
     if not marks:

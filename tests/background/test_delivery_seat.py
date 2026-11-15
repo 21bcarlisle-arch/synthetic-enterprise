@@ -1183,3 +1183,21 @@ def test_a_site_lane_refusal_keeps_the_line_that_says_why_the_suite_ran():
             "FAILED site/x/test_door.py::test_it - AssertionError\n"
             "\n[site-lane] ❌ SITE TESTS FAILED -- COMMIT REFUSED.\n")
     assert "broad trigger: site/data/delivery.json" in refusal_verdict(text)
+
+
+def test_a_site_lane_refusal_names_the_page_and_the_hole_the_sweep_found():
+    """Six direction records on 15 Nov said the empty-field sweep went red and never which page or
+    text: those are only in pytest's `E ` lines, above the ❌, and the verdict kept FAILED nodes only."""
+    from background.delivery_seat import refusal_verdict
+    text = ("GATE RED on the resulting tree (rc=1).\n"
+            "[site-lane] running whole site/ suite (broad trigger: site/data/delivery.json)\n"
+            "E       AssertionError: 1 published page(s) show a reader an empty field:\n"
+            "E           http://127.0.0.1:8000/harness/index.html\n"
+            "E             director_inputs since 13 Nov 00:00Z reads []\n"
+            "FAILED site/test_no_published_page_renders_an_empty_field.py::test_x - A...\n"
+            "1 failed, 900 passed in 150.00s\n"
+            "\n[site-lane] ❌ SITE TESTS FAILED -- COMMIT REFUSED.\n"
+            "[site-lane] " + "boilerplate " * 40 + "\n")
+    said = refusal_verdict(text)
+    assert "harness/index.html" in said and "reads []" in said
+    assert "SITE TESTS FAILED" in said
