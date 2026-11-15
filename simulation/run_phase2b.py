@@ -6425,12 +6425,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
     _grade_demand_estimates_against_the_year_ahead(demand_estimation_log, settled_fold)
     _psr_registrations = (
-        {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed()),
-         # World truth beside the register (C36): Consent offers made to PSR-type households
-         # that concealed. Never crosses; the company is never handed it.
-         "consent_offers_to_concealing_households": (
-             _method_dynamics.consent_offers_to_concealing_households(
-                 _payment_triad._household_plans.consent_offers, run_base_seed()))}
+        {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed())}
         if _vulnerability_hidden_state_on else {})
     _result = {
         **_psr_registrations,
@@ -6526,6 +6521,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # plan, or crossed for a bill a plan covers (the arrears paid twice). AFTER the journeys,
         # whose end-of-run forced crossing is the last that can move these counts.
         "later_settlements": _payment_triad.later_settlements(),
+        # World truth beside the register (C36): Consent offers made to PSR-type households that
+        # concealed. Never crosses. AFTER the journeys too: their end-of-run advance can make the
+        # last offer, which a count taken before it missed (C32 tenth pass: 4 counted, 5 made).
+        **({"consent_offers_to_concealing_households": (
+            _method_dynamics.consent_offers_to_concealing_households(
+                _payment_triad._household_plans.consent_offers, run_base_seed()))}
+           if _vulnerability_hidden_state_on else {}),
         # The COMPANY's bad-debt provision: a stock over its own receivables on the payment-seam
         # ledger, by footing and age, at each 31 December and at the end. Unlike
         # `total_bad_debt`'s provisioned reading, which is the world's incidence on revenue.

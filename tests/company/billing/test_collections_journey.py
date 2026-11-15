@@ -420,6 +420,16 @@ def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_j
             assert NO_SELF_DISCONNECTION_WATCH not in s["decision"], s["decision"]
 
 
+def test_the_world_counts_every_consent_offer_the_company_made(live_run):
+    """The world-side concealing count is over every offer the desk made, the end-of-run advance's
+    included: taken before the journeys' last advance it counted 4 of 5 (C32 tenth pass). Defect:
+    the count is read before the desk's last action, so a harm the company made goes uncounted."""
+    made = sum(s["stage"] == PREPAYMENT_OFFERED
+               for j in live_run["collections_journeys"] for s in j["stages"])
+    assert made, "no live Consent offer -- the count's agreement is untested"
+    assert live_run["consent_offers_to_concealing_households"]["offers"] == made
+
+
 class _World:
     """A stand-in household behind the seam: it answers every offer `accepted` at `instalment`,
     and pays (or misses) every instalment, one each 30 days after the plan was agreed. Asked for a
