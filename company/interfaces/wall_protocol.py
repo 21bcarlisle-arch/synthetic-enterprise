@@ -451,6 +451,11 @@ PSR_DISCLOSURE_SENDER = "HOUSEHOLD-DISCLOSURE-01"
 #: on that it stops occupying its premises (SLC 24.1(a); home_moves.md s.8.1).
 MOVE_OUT_CONTACT_SENDER = "HOUSEHOLD-MOVE-CONTACT-01"
 
+#: The company's counterparty on the DEBT RESPITE seam -- the Breathing Space register the
+#: Insolvency Service runs for the Secretary of State, which sends a creditor the start of a
+#: moratorium (SI 2020/1311 reg 25(2)(b); `interface/contracts/debt_respite_seam.py`).
+BREATHING_SPACE_REGISTER_SENDER = "BREATHING-SPACE-REGISTER-01"
+
 #: Every counterparty this build will accept a message from. A sender absent
 #: from this mapping is REFUSED -- there is deliberately no default record and
 #: no wildcard, because a registry with a fallback is a registry that cannot
@@ -536,6 +541,14 @@ COUNTERPARTY_REGISTRY: Mapping[str, CounterpartyRecord] = MappingProxyType(
         MOVE_OUT_CONTACT_SENDER: CounterpartyRecord(
             credential_sha256=(
                 "ca3b9cb51f29947a7e35bc47434017fbbd48f7bbc1801eac7d1e7a72d5ee47b2"
+            ),
+            speaks_schema_versions=frozenset({2}),
+            nature=CounterpartyNature.STAND_IN,
+        ),
+        # `simulation/debt_respite_draw.py::REGISTER_CREDENTIAL`. First release v2 (W2_44).
+        BREATHING_SPACE_REGISTER_SENDER: CounterpartyRecord(
+            credential_sha256=(
+                "a80015bd153fd0d6d2c26b6e35f95831caa9e1116b0b07f15fb40d56f4f7c7b2"
             ),
             speaks_schema_versions=frozenset({2}),
             nature=CounterpartyNature.STAND_IN,

@@ -70,7 +70,7 @@
     "still_permitted": "contact with the debt advice provider; with the debtor about ongoing liabilities, at the debtor's request, or in response to a query or complaint (reg 11(2))"
   },
   "NOT_ESTABLISHED_declared_rather_than_assumed": [
-    "How often a GB energy customer enters a moratorium. The Insolvency Service publishes monthly registration counts across all creditors; no source here splits them by creditor type, so nothing in this repository can yet say how many of a supplier's debtors would be in one.",
+    "How often a GB energy customer enters a moratorium. The Insolvency Service publishes monthly registration counts across all creditors; no source here splits them by creditor type. The world draws at a DERIVED rate (registrations x StepChange's energy-arrears share of clients / Ofgem indebted accounts), a stated belief with its range in docs/market_research/debt_and_collections.md, 'The entry rate (E9, 2026-11-15)'. A count of moratoria naming an energy creditor would replace it.",
     "Scotland. Scottish debtors fall under a different scheme (the Debt Arrangement Scheme / Scottish moratorium under the Bankruptcy (Scotland) Act 2016); this artefact covers England and Wales only and says nothing about it."
   ],
   "r13_wall": "BASELINE. Published statute, not a curriculum value.",

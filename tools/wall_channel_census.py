@@ -2128,6 +2128,11 @@ SURFACE_PINS: dict[str, tuple[int, str]] = {
     # (`company/crm/move_out_register.py`). Its three fields are what our household's move-out
     # notice tells its supplier (SLC 24.1(a)); the judgement is at the dataclass in the seam.
     "interface.contracts.move_out_notice_seam": (2, "4ca1172d7db56ae5"),
+    # v2, W2_44, 2026-11-15: the seam's FIRST live release, numbered 2 because dialect 1 has no
+    # notification (written at v1 on 2026-10-03 with no producer). Pinned with its producer (`simulation/debt_respite_draw.py`) and its consumer
+    # (`company/billing/payment_observation_consumer.py::observe_moratorium_start`). Its fields are
+    # what a Secretary of State start notice carries (reg 25, reg 36); the judgement is in the seam.
+    "interface.contracts.debt_respite_seam": (2, "94c45bdd6ddd8c36"),
 }
 
 

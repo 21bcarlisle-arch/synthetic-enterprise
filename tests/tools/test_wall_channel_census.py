@@ -2558,7 +2558,7 @@ def test_the_REAL_seams_are_pinned_and_still_mean_what_their_versions_say():
     verdict = wcc.surface_pin_conformance(str(wcc.PROJECT_DIR))
 
     assert verdict.ok, verdict.report()
-    assert len(verdict.pinned) == 6, verdict.report()  # +move_out_notice_seam, 2026-10-10
+    assert len(verdict.pinned) == 7, verdict.report()  # +move_out_notice_seam, 2026-10-10; +debt_respite_seam, 2026-11-15 (W2_44)
     assert not verdict.unpinned, (
         "a channel C seam has landed with no pin, so its observable surface can widen "
         "silently: " + verdict.report()
@@ -2931,7 +2931,7 @@ def test_the_REAL_seams_all_carry_a_belt_BOTH_LEGS_refuse_on():
     verdict = wcc.second_belt_conformance(str(wcc.PROJECT_DIR))
 
     assert verdict.ok, verdict.report()
-    assert len(verdict.belted) == 6, verdict.report()  # +move_out_notice_seam, 2026-10-10
+    assert len(verdict.belted) == 7, verdict.report()  # +move_out_notice_seam, 2026-10-10; +debt_respite_seam, 2026-11-15 (W2_44)
     assert not verdict.unbelted, (
         "a channel C seam has landed with no truth-field denylist, so its closed set is its "
         "only belt: " + verdict.report()
@@ -3886,9 +3886,12 @@ def test_THE_LIVE_WALL_IS_UNSOLICITED_ON_EXACTLY_THE_TWO_SEAMS_THE_WALK_NAMED():
     # The second (2026-10-08, director's vulnerability ruling): a household TELLS its supplier it
     # has a needs-code circumstance; the supplier does not ask each household and get an answer.
     # The third (2026-10-10, home-mover retention): our household TELLS us it is moving out.
+    # The fourth (2026-11-15, W2_44): the Breathing Space register TELLS a creditor a moratorium
+    # has started (SI 2020/1311 reg 25(2)(b)); the creditor never asks.
     assert set(verdict.notified) == {"interface.contracts.registration_loss_seam",
                                      "interface.contracts.psr_registration_seam",
-                                     "interface.contracts.move_out_notice_seam"}, (
+                                     "interface.contracts.move_out_notice_seam",
+                                     "interface.contracts.debt_respite_seam"}, (
         verdict.report()
     )
 
@@ -5091,7 +5094,8 @@ def test_THE_LIVE_TREE_authenticates_every_business_side_decode():
     v = wcc.authenticated_decode_conformance(str(Path(wcc.__file__).parent.parent))
     assert v.ok, v.report()
     assert not v.unauthenticated, v.unauthenticated
-    assert len(v.authenticated) == 10, v.authenticated
+    # 11 since W2_44 (2026-11-15): `observe_moratorium_start_wire`, framed.
+    assert len(v.authenticated) == 11, v.authenticated
     assert {e.split(":")[0] for e in v.authenticated} == {
         "company/billing/payment_observation_consumer.py",
         "company/comms/susceptibility_estimator.py",

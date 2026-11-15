@@ -1451,8 +1451,52 @@ reg 38; and deemed receipt. **Mismatches:**
 The register also has no route for the PPM limb or the Fuel Direct (legacy stop, UC continue) limb. This
 was flagged, not checked in code.
 
+### The entry rate (E9, 2026-11-15): a stated belief, derived, with its range
+The world now draws moratoria (`simulation/debt_respite_draw.py`, W2_44), so it needs a rate per
+indebted household. No source counts moratoria naming an energy creditor. The rate is built from
+three published figures:
+- **Registrations** (standard only): the table above.
+- **Indebted accounts**: Ofgem's Q4 domestic electricity accounts in arrears plus those repaying
+  (the table near the top of this page).
+- **Energy share**: *StepChange Statistics Yearbook 2025* (Mar 2026), "% of clients in arrears",
+  row "SUM: energy". It is **40% in 2024 and 37% in 2025** of new clients. StepChange registers
+  56-59% of all breathing spaces (Insolvency Service commentary, Dec 2024 and Dec 2025).
+  - Low end: 44,519 "StepChange clients behind on energy in 2025" (*Plugging the gap*, Apr 2026),
+    over the yearbook's 163,916 new clients, is 27%. The two bases may differ (GB clients against
+    UK new clients). [DERIVED]
+
+**rate = registrations x share / indebted accounts**, per year [DERIVED]:
+
+| share | 2021 (annualised from 4 May) | 2022 | 2023 | 2024 | 2025 |
+|---|---|---|---|---|---|
+| 0.27 | 0.95% | 1.15% | 1.36% | 1.30% | 1.22% |
+| **0.37 (used)** | **1.31%** | **1.58%** | **1.86%** | **1.77%** | **1.67%** |
+| 0.40 | 1.41% | 1.71% | 2.01% | 1.92% | 1.80% |
+| 1.00 (upper bound) | 3.53% | 4.27% | 5.02% | 4.80% | 4.51% |
+
+**What the derivation assumes, each one a way it is wrong:**
+- StepChange's client mix stands for all registrants.
+- Every registrant in energy arrears has the energy debt named on the notice. Energy arrears are
+  priority debt and qualify (reg 6), but an adviser may leave one out.
+- The share holds for 2021-23, where no yearbook was read.
+- The registrations are E&W and the accounts are GB. Spread across a GB world, the expected total
+  is the E&W total. Scottish households, under a different scheme, are drawn too. The world holds
+  no nation, so this is not fixed.
+- The world's "in arrears" is a household whose bill this month went unpaid (`PaymentEvent.is_unresolved`).
+  A household repaying on a plan that pays its instalment is in Ofgem's denominator but is not
+  drawn, so the realised count runs below rate x Ofgem's stock.
+
+**Not drawn, each named in the module:**
+- **Mental health crisis moratoria** (1.5-1.7%). Their end is a treatment date nothing sizes, so a
+  drawn one would never end.
+- **Midway cancellations.** These are uncounted. Leaving them out over-protects, and that can only
+  constrain the company.
+- **Added-debt notices.**
+- **End notices.** The register ends day 60 itself.
+
 ### GAPs
-- E9: the energy share of breathing spaces.
+- E9: the energy share of breathing spaces. *Partly closed 2026-11-15 as the stated belief above;
+  a count of moratoria naming an energy creditor would replace it.*
 - E10: whether notices print balances in practice.
 - E11: Scottish mental-health moratorium regulations; the s. 198 amending instrument.
 - E12: any Ofgem-specific breathing-space rule (none found; the Oct 2020 decision §1.25 points suppliers

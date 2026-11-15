@@ -153,7 +153,7 @@ from company.billing.arrears_engine import (
     observed_cash_event_id,
     on_level_dd,
 )
-from company.billing.breathing_space_register import BreathingSpaceRegister
+from company.billing.breathing_space_register import BreathingSpaceRegister, BreathingSpaceType
 from company.billing.collections_journey import CollectionsJourneyDesk
 from company.billing.prepayment_suitability import (
     FINDING_LAPSE_DAYS,
@@ -183,6 +183,19 @@ from company.interfaces.wall_protocol import (
     decode_framed_interim,
     decode_framed_notification,
     decode_framed_response,
+)
+from interface.contracts.debt_respite_seam import (
+    BREATHING_SPACE_REGISTER_SENDER,
+    MORATORIUM_START_NOTIFICATION_TYPE,
+    MoratoriumStartNotice,
+    MoratoriumType,
+    NotifiedDebt,
+)
+from interface.contracts.debt_respite_seam import (
+    FORBIDDEN_TRUTH_FIELDS as MORATORIUM_TRUTH_FIELDS,
+)
+from interface.contracts.debt_respite_seam import (
+    OBSERVABLE_PAYLOAD_FIELDS as MORATORIUM_PAYLOAD_FIELDS,
 )
 from interface.contracts.payment_observable_seam import (
     FORBIDDEN_TRUTH_FIELDS,
@@ -848,6 +861,31 @@ class HandOverAssessment:
             )
 
 
+def decode_moratorium_start_payload(raw: Any) -> MoratoriumStartNotice:
+    """A Breathing Space start notice off the wire, or a refusal that says why (W2_44). THE
+    COMPANY'S BELT: a world-truth field is refused as a leak BEFORE the closed-set check."""
+    if not isinstance(raw, Mapping):
+        raise ValueError(f"moratorium payload must be a mapping, got {type(raw).__name__}")
+    leaking = sorted(set(raw) & set(MORATORIUM_TRUTH_FIELDS))
+    if leaking:
+        raise ValueError(f"a moratorium start notice carried world truth: {leaking}")
+    expected = set(MORATORIUM_PAYLOAD_FIELDS["MoratoriumStartNotice"])
+    if set(raw) != expected:
+        raise ValueError(f"moratorium payload fields {sorted(raw)} are not the contract's "
+                         f"{sorted(expected)}")
+    dob = raw["debtor_date_of_birth"]
+    return MoratoriumStartNotice(
+        register_entry_ref=str(raw["register_entry_ref"]),
+        moratorium_type=MoratoriumType(raw["moratorium_type"]),
+        start_date=dt.date.fromisoformat(raw["start_date"]),
+        debtor_full_name=raw["debtor_full_name"],
+        debtor_date_of_birth=None if dob is None else dt.date.fromisoformat(dob),
+        debtor_address=raw["debtor_address"],
+        debts=tuple(NotifiedDebt(creditor_account_ref=str(d["creditor_account_ref"]))
+                    for d in raw["debts"]),
+    )
+
+
 class PaymentObservationConsumer:
     """Consumes a stream of `WallResponse`-wrapped payment observables one at
     a time (any order, any lateness, possibly never for a given payment) and
@@ -882,12 +920,13 @@ class PaymentObservationConsumer:
         self.ledger_book: LedgerBook = ledger_book if ledger_book is not None else LedgerBook()
         # THE DEBT RESPITE REGISTER (atom C33). Every collections view this consumer takes asks it
         # whether the account is inside a moratorium, because the dunning selector will not pick a
-        # step without the answer. EMPTY BY DEFAULT, AND THAT IS A STATEMENT ABOUT THE WORLD: no
-        # Secretary of State moratorium notification crosses the seam yet, so no account here can
-        # be in one -- not that the company declined to look.
+        # step without the answer. It is filled by the Secretary of State's start
+        # notices (`observe_moratorium_start`, W2_44), which the world draws
+        # (`simulation/debt_respite_draw.py`).
         self.breathing_space: BreathingSpaceRegister = (
             breathing_space if breathing_space is not None else BreathingSpaceRegister()
         )
+        self._moratorium_notices_seen: set = set()
         # THE COLLECTIONS JOURNEY (atom EP4). It reads the SAME collections view the arrears state
         # reads, so the step a journey records is the step this company would have selected, and it
         # refuses any step the ledger says is taken against a cleared debt.
@@ -1383,6 +1422,40 @@ class PaymentObservationConsumer:
             wire, decode_payload=decode_unsolicited_payload
         )
         return self.observe_unsolicited(notification)
+
+    def observe_moratorium_start_wire(self, wire: Any) -> Tuple[str, ...]:
+        """Enter a Debt Respite moratorium the Secretary of State notified (SI 2020/1311 reg
+        25(2)(b), W2_44) on this company's register, once per named account. Returns the record ids
+        entered; a redelivered notice (same `notification_id`) enters nothing (C-S2).
+
+        TRANSPORT: framed, authenticated against the Breathing Space register's fingerprint and
+        version-checked (`decode_framed_notification`), from that sender only.
+
+        THE FROZEN DEBT IS THIS COMPANY'S READING, not the notice's: the contract carries no amount,
+        and moratorium debt is what was owed when the application was made (reg 6), so it is the
+        account's own ledger balance on the day before the start. An account this company has never
+        billed is still entered, at nothing owed: reg 14 makes the creditor search, and the hold
+        has to be in place whatever the search finds."""
+        sender, notification = decode_framed_notification(
+            wire, decode_payload=decode_moratorium_start_payload)
+        if (sender != BREATHING_SPACE_REGISTER_SENDER
+                or notification.notification_type != MORATORIUM_START_NOTIFICATION_TYPE):
+            raise ValueError(f"{sender!r}/{notification.notification_type!r} is not the Breathing "
+                             "Space register's start notice, so it cannot open a moratorium")
+        if notification.notification_id in self._moratorium_notices_seen:
+            return ()
+        self._moratorium_notices_seen.add(notification.notification_id)
+        notice = notification.payload
+        bs_type = BreathingSpaceType(notice.moratorium_type.value)
+        applied_on = notice.start_date - dt.timedelta(days=1)
+        entered = []
+        for debt in notice.debts:
+            account = debt.creditor_account_ref
+            owed = (max(0.0, self.ledger_book.ledger(account).balance(applied_on))
+                    if account in self.ledger_book.accounts() else 0.0)
+            entered.append(self.breathing_space.register_entry(
+                account, bs_type, notice.start_date, debt_frozen_gbp=round(owed, 2)).record_id)
+        return tuple(entered)
 
     def conversation(self, correlation_id: str) -> Optional[CrossingConversation]:
         """The exchange behind one correlation id, or `None` where this company

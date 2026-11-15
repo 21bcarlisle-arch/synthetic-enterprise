@@ -758,6 +758,13 @@ de-minimis) would raise one, and before anything goes on the register.
   `background/`, so no run ever holds a moratorium and the register always answers no. The world
   never notifies the company of one. That is the same gap for every Breathing Space cell in this
   table, and it is a world build (a moratorium drawn and notified under reg 25), not a gate fix.
+  *(Corrected 2026-11-15, W2_44. The world build has landed. `simulation/debt_respite_draw.py`
+  draws standard moratoria for households whose bill went unpaid, at about 1.3-1.9% a year per
+  indebted account. The rate is derived in `docs/market_research/debt_and_collections.md`, "The
+  entry rate (E9)". The triad hands each start notice to
+  `PaymentObservationConsumer.observe_moratorium_start`, which calls `register_entry`. Every
+  Breathing Space cell in this table can now engage live. Not yet drawn: mental health crisis
+  moratoria, midway cancellations and added debts.)*
 - **Still GAP on this row:** 27.8's order, the PSR column and 28.15. The ninth reviewer's other
   missing actions (DAP assignment, court action, credit-file reporting) have no company route and
   no row yet.

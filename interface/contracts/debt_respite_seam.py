@@ -40,15 +40,16 @@ receives, or held on the register entry the notice concerns. None of these
 types may carry the household's true financial position, why it sought debt
 advice, or anything about a moratorium the creditor was not notified of.
 
-NO PRODUCER YET, AND THAT IS THE FINDING, not an omission. The world
-(`simulation/`) has no moratorium events: no household ever applies for one,
-and the commons
-(`docs/domain_artefact_library/regulatory/debt_respite_breathing_space_moratorium.json`,
-NOT_ESTABLISHED) records that no source splits the Insolvency Service's monthly
-registration counts by creditor type, so no sourced entry rate exists to draw
-one from. This module is the shape a producer must fill when one exists; the
-company's register (`company/billing/breathing_space_register.py`) stays empty
-until then.
+THE PRODUCER AND THE CONSUMER (W2_44, 2026-11-15). The world draws standard
+moratoria for households in arrears (`simulation/debt_respite_draw.py`), at a
+DERIVED rate whose sources and range are in
+`docs/market_research/debt_and_collections.md`, "The entry rate (E9)". The
+company enters each start notice on its register
+(`PaymentObservationConsumer.observe_moratorium_start`). Only the start notice
+has a producer: no end, cancellation or mental health crisis notice is drawn
+yet, and the module says why for each. Framed and authenticated like every
+other notification seam: the world holds a stand-in credential and the company
+holds its fingerprint.
 
 NO SIM/GENERATOR/COMPANY SYMBOL: pure contract, checked by
 `tests/interface/test_debt_respite_seam.py`.
@@ -61,10 +62,16 @@ from enum import Enum
 
 from interface.contracts.wall_envelope import WallNotification
 
-# v1: the seam's first release. Not yet in `tools/wall_channel_census.py::SURFACE_PINS`:
-# the census scores a seam once a module outside `interface/` imports it, and
-# nothing does yet. The first producer or consumer to import it must pin it.
-SCHEMA_VERSION = 1
+# v2, W2_44, 2026-11-15: the seam's first LIVE release, numbered 2 because dialect 1 has no
+# notification (`company/interfaces/wall_protocol.py`), as the registration-loss, PSR and move-out
+# seams were. The fields are unchanged from the v1 written on 2026-10-03 with no producer. Pinned
+# in `tools/wall_channel_census.py::SURFACE_PINS` with its first producer and consumer.
+SCHEMA_VERSION = 2
+
+#: The register's name on its notification stream. The Insolvency Service runs the register for
+#: the Secretary of State (reg 25(2)); the frame is authenticated against
+#: `company/interfaces/wall_protocol.py::COUNTERPARTY_REGISTRY`.
+BREATHING_SPACE_REGISTER_SENDER = "BREATHING-SPACE-REGISTER-01"
 
 
 class MoratoriumType(str, Enum):

@@ -123,6 +123,7 @@ from simulation.arrears_engine import (
     open_on_contract_gbp,
 )
 from simulation.dd_shock_response import failure_table as dd_failure_table
+from simulation.debt_respite_draw import MoratoriumDrawer
 from simulation.household import household_of
 from simulation.payment_behaviour_source import (
     ARREARS_REPAYMENT,
@@ -785,6 +786,7 @@ class LivePaymentTriad:
         self._n_settlements_already_cleared = 0
         self._n_settlements_cut_to_balance = 0
         self._outcomes_by_customer: dict = {}
+        self._moratoria = MoratoriumDrawer()
         self._early_checks: dict = {}
         self._early_cured: set = set()
         # THE BUDGET'S UNPAID BILLS (`household_budget.BudgetPaymentBook`), while its switch is on:
@@ -1196,6 +1198,11 @@ class LivePaymentTriad:
         decides stops from returns, and a repayment returns nothing."""
         return {"outcomes": dict(self._outcomes_by_customer.get(customer_id, {})),
                 "repayments": []}
+
+    @property
+    def moratoria_notified(self) -> int:
+        """How many Breathing Space start notices the world sent this run (W2_44)."""
+        return self._moratoria.notices_sent
 
     def early_contact_summary(self) -> dict:
         """What contacts early in difficulty did, as the world knows it (never crosses)."""
@@ -1664,6 +1671,17 @@ class LivePaymentTriad:
             advice_wire = emit_wire_notification(advice)
             self._consumer.observe_wire_unsolicited(advice_wire)
             self._cf_consumer.observe_wire_unsolicited(advice_wire)
+
+        # A DEBT RESPITE MORATORIUM (W2_44). The world asks, on its own truth, whether this
+        # household's adviser registers one for the arrears this bill adds to; the Secretary of
+        # State's start notice then reaches both books, as an ADDACS advice does. The draw reads the
+        # world's payment event, never either ledger.
+        moratorium = self._moratoria.draw(
+            account_id, account_id, period_index, due_date,
+            in_arrears=not nothing_due and event.is_unresolved)
+        if moratorium is not None:
+            self._consumer.observe_moratorium_start_wire(moratorium)
+            self._cf_consumer.observe_moratorium_start_wire(moratorium)
 
         # ---- D8 counterfactual: the SAME event, remittance-complete --------
         # `correlation_id` is what the adapter puts in `RemittanceAdvice.
