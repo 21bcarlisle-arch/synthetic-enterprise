@@ -760,7 +760,9 @@ table. The value is written into the commit that launches it.
 
 All six pairs and their control sidecars are in `/var/tmp/vt12-out/`. The fold is `family_12.json`
 (08:00Z). Every member names `45122d156` and world `cdba75ebb9197b33`. The book is 272 households
-on every seed. Seed 11111 reproduces 8 Oct's £11,766.20 to the penny, so the world under the
+on every seed *(corrected 15 Nov, §10: 272 billing accounts across 270 households, because two households hold a
+second account; folding accounts into households moves this section's figures by at most £0.04 per
+household-year and leaves the 4.6% roll share unchanged)*. Seed 11111 reproduces 8 Oct's £11,766.20 to the penny, so the world under the
 worktree has not moved. Each seed's per-account columns sum to its seed-level advantage
 (reconciliation £0.00 on all 12). The grader is `/var/tmp/vt12-driver/grade.py`, run unchanged. The
 per-seed legs, household-year counts and belief scores come from a read-only pass over the same files.
@@ -943,3 +945,78 @@ driver would differ by more than one variable.
 
 **Cost.** Each shape runs twice (A and its twin): about 3 h for one draw, and about 38 h for twelve.
 §6a's table priced A once, so its hours double under rule 1.
+
+## 10. The `churn_roll` family graded against §8 (read 15 Nov 09:40Z)
+
+All six pairs and their control sidecars are in `/var/tmp/vtcr-out/`. The fold
+(`family_12_churn_roll.json`, 06:45Z) returned rc 0 and names `45122d156` on every member. **The
+elasticity was held:** `run_base_seed_after_run` is 20260724 on all 12 controls. **The dice moved:**
+`draws_redrawn` is 209 to 232 on every seed, under `redraw_key="churn_roll"`.
+
+**The grader did not run unchanged, and why.** `/var/tmp/vtcr-driver/grade.py` stops with
+`KeyError: 'C5_2'`. Once the dice are re-rolled, a household can leave and rejoin as a second
+account in one arm and not the other. `C5_2` appears in seed 20202's and 55555's value arms only,
+`C3_2` in 11111's and 99999's control arms only, and `C6_2` in 11111's control arm only. §7's files
+never showed this, because its dice were held. The grader's unit is the household, so
+`grade_hh.py` (beside it, one hunk) folds each account into its household (`C5_2` into `C5`), and an
+account absent from an arm counts as £0 in that arm. Nothing else changes. Two checks show that
+the fold neither drops nor invents money:
+- each seed's household columns still sum to its seed-level advantage, with a reconciliation of
+  **£0.00 on all 12**;
+- on §7's own files the fold returns the same **4.6%** (1.5% to 10.1%) and £5.28 per household-year,
+  against £5.24. So §7 is not moved by it, and the two families compare like for like.
+
+The fold finds 270 households, not 272: §7's "272" was billing accounts, and it is corrected beside
+the claim. The per-household-year divisor stays at rule 2's 1,831 / 272 so the families stay
+comparable.
+
+| | Published (8 Oct) | `churn_roll` family: min to max | Mean (sd) |
+|---|---|---|---|
+| Whole advantage, book | **£5,244** | **£4,299 to £22,868** | £14,136 (£5,592) |
+| Choosing (selection), book | £11,345 | £2,960 to £17,036 | £9,418 (£4,774) |
+| Price level, book | **−£6,101** | −£3,192 to +£16,393 | £4,718 (£5,560) |
+| Flat-arm AUC (the belief against who left under the flat price) | 0.52 | **0.494 to 0.719** | 0.574 (0.063) |
+
+**Across households,** roll noise (the within-household variance across the 12 re-rolls) is
+**42.7% of the per-household variance** of the whole advantage, with an interval of 30.0% to 53.6%
+(2,000 household resamples). That is 0.39 without the three households that rejoin, so the fold
+does not carry it. The roll sd is £49.6 per household-year and the between-household sd is £57.5.
+The mean is **£7.78 per household-year (£0.69 to £14.95)**. **I do not read the interval clearing
+zero as established**, because this family holds the elasticity at one assignment, just as §7 held
+the dice. Each family's interval leaves out the other family's source of noise, and no run has
+re-drawn both together.
+
+| Prediction (§8) | Predicted | Measured | Held? |
+|---|---|---|---|
+| C1 roll share | 0.20 (0.08 to 0.45) | **0.427** (0.30 to 0.54) | **Held**, at the top of its range. The point missed high, by more than twice. |
+| C2 AUC half-range; sd | 0.08 (0.04 to 0.14); 0.04 (0.02 to 0.07) | **0.112; 0.063** | **Held** on both |
+| C3 AUC mean | 0.50 to 0.60 | **0.574** | **Held** |
+| C4 kill conditions | 1 fires, 2 does not | **Neither fires** | **Refuted** on kill 1. The consequence C4 named still stands: the retrain is not ruled out, and the book stays in the thousands |
+| C5 £5,244 inside the range | inside | inside, £945 above the minimum | **Held** |
+| C6 level legs negative | at least 6 of 12 | **2** (11111, 33333) | **Refuted**. As C6 was written, the published run's negative level leg is **not the published elasticity draw's**. |
+
+**What follows, and what does not.**
+- **The retrain (pre-registration §4) is not stopped by this family.** Neither stop condition holds.
+  Its build condition is "roll noise above half, or the book resized to the thousands". Roll noise
+  is not above half (0.43; the interval reaches 0.54). So the build rests on the book.
+- **Step 6's book size.** Telling a £3 effect per household-year from zero takes **about 5,030
+  households on one draw, or 3,060 on twelve**. §7's figures were 4,895 and 4,688. Re-draws now buy
+  about 40% fewer households, where under §7 they bought almost nothing. A +£6 effect, R4's middle,
+  takes about **1,260 households on one draw, or 770 on twelve**. The book is in the thousands for £3
+  and in the high hundreds for £6, on twelve draws. Neither is the 272 book.
+- **The published level leg (−£6,101) sits outside both families.** It is below this family's
+  minimum (−£3,192) and 1.95 sd under its mean. It is also outside §7's range. One family re-draws
+  the dice and the other the elasticity, and neither produces it. The published run is the only
+  configuration with **both** at their base draws. **I cannot yet say** whether that is an
+  interaction between the base dice and the base elasticity or a tail draw. A family that
+  re-draws both together is the test, and §7's mean (£9,591) against this family's (£14,136) says
+  the base dice are the unfavourable ones.
+- **The AUC reading.** Re-rolling who leaves moves the belief's flat-arm AUC by an sd of 0.063, about
+  what 35 to 38 leavers in 250 renewals allow. So the published 0.52 is one draw from a spread
+  centred on 0.574. It is above chance across the dice on this book, but the households are the
+  same on every seed, so that is not an interval for the population.
+- **Candidate A's bar (§9).** On §8's measured half-range, §6a's bar becomes 0.549 + 0.112 =
+  **0.661**. On the one-draw shape, the bar is the twin's seed-11111 AUC plus 0.112. A one-draw
+  comparison cannot see a difference smaller than about 0.1. A and its twin share the dice, so the
+  paired difference should be far tighter than the half-range. That is §9's A1 prediction, and it
+  should be read paired, not against the bar.
