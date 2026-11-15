@@ -221,3 +221,47 @@ def test_a_deferred_item_still_obeys_transition_only(store, monkeypatch):
         notify_mod.notify("drift 3%", kind="real_alarm", topic_class=nd.DRIFT,
                           transition_key="drift", state="3%")
     assert len(nd.pending()) == 1
+
+
+# ── the guard judges each relayed item, not the digest's excerpts (2026-11-15) ────────────────
+
+_RECOMMENDS_PAST_THE_EXCERPT = (
+    "PB6 parked at L2. Its last question (does the retention gate withhold offers from "
+    "prepayment?) is the two-sided-objective call, held by a test, and it costs ten decisions. "
+    "My recommendation: leave it parked."
+)
+
+
+@pytest.mark.real_ntfy
+def test_a_digest_quoting_an_item_with_a_question_mark_still_flushes(store, monkeypatch):
+    """THE NAMED DEFECT: from 4 Nov the guard read the whole digest as one ask. The excerpt kept
+    the item's "?" and cut its recommendation, so every flush raised and the queue never moved.
+    Run through the real notify -> send_ntfy path, whose pytest guard sits after the check."""
+    from background import notify as notify_mod
+    monkeypatch.setattr(notify_mod, "TRANSITIONS_FILE", store / ".transitions.json")
+    monkeypatch.setattr(notify_mod.ntfy_utils.subprocess, "run", _no_curl)
+    nd.defer(_RECOMMENDS_PAST_THE_EXCERPT, kind="work_done", topic_class=nd.FINDING_ANNOUNCEMENT)
+    assert "?" in nd.compose(nd.pending()) and "recommendation" not in nd.compose(nd.pending())
+
+    assert nd.flush() == "pytest-suppressed", "the guard refused a relay of an item that recommends"
+
+
+def _no_curl(*a, **k):
+    raise AssertionError("a test reached curl")
+
+
+@pytest.mark.real_ntfy
+def test_a_bare_ask_is_withheld_from_the_digest_and_refused_on_the_wire(store, monkeypatch):
+    """The guard can still fire. An item that asks bare is withheld by name, so it neither reaches
+    the wire nor holds every later item back; and a bare ask handed over as a relay item raises."""
+    from background import ntfy_utils
+    from background.recommendation_guard import RecommendationRequired
+    monkeypatch.setattr(ntfy_utils.subprocess, "run", _no_curl)
+    nd.defer("Which baseline do you prefer?", kind="work_done", topic_class=nd.DRIFT)
+    nd.defer(_RECOMMENDS_PAST_THE_EXCERPT, kind="work_done", topic_class=nd.DRIFT)
+
+    text = nd.compose(nd.pending())
+    assert "baseline" not in text and "withheld: it asks without recommending" in text
+    assert nd.relayed_items(nd.pending()) == [_RECOMMENDS_PAST_THE_EXCERPT]
+    with pytest.raises(RecommendationRequired):
+        ntfy_utils.send_ntfy("[DIGEST] 1", _relay_items=["Which baseline do you prefer?"])
