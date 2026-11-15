@@ -157,10 +157,12 @@ pre-registration records both.
 
 These are the figures above, stated as claims the drawn book must bear. `tools/world_claims.py`
 reads this block and measures each route into the book (founders, trickle, campaign) as the
-production draw makes it, pooled over eight seeds (about 1,700 homes for the founders and for the
-campaign, about 30 for the trickle). A claim outside its band fails
+production draw makes it, pooled over eight seeds (about 3,100 homes for the founders, 1,500 for the
+campaign and 30 for the trickle; *corrected 15 Nov 2026: this read "about 1,700 homes for the founders
+and for the campaign", and the founders' pool had grown*). A claim outside its band fails
 `tests/tools/test_world_claims.py`, and it is printed in the Monday step. Each band is the published
-range, widened by 3 sd of sampling noise at that pool size (about 2 to 2.5 points). Change a figure
+range, widened by 3 sd of sampling noise at that pool size (about 2 to 2.5 points;
+the widening is fixed, so for the 30-home trickle it is far narrower than its 3 sd). Change a figure
 here and the check moves with it. This block is the only place the band is written.
 
 ```world-claims

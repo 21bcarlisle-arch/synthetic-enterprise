@@ -97,7 +97,8 @@ def _write_transitions(d: dict) -> None:
 def notify(message: str, *, kind: str, transition_key: str | None = None,
            state: object | None = None, re_escalate_after: float | None = None,
            headers: dict[str, str] | None = None, topic_class: str | None = None,
-           _allow_real_send: bool = False, _phone: bool = False) -> str | None:
+           _allow_real_send: bool = False, _phone: bool = False,
+           _relay_items: list[str] | None = None) -> str | None:
     """Send a notification through the one contract.
 
     kind: one of KINDS (G-N2, required — an untyped page is forbidden).
@@ -264,6 +265,8 @@ def notify(message: str, *, kind: str, transition_key: str | None = None,
     # that patch ntfy_utils.send_ntfy are honoured, and the real send's own PYTEST guard applies.
     # `_phone` is passed only when True, so a caller-test mock that predates it keeps its signature.
     extra = {"_phone": True} if _phone else {}
+    if _relay_items is not None:   # the digest: the guard reads its items, not their excerpts
+        extra["_relay_items"] = list(_relay_items)
     return _commit(ntfy_utils.send_ntfy(message, headers=h, _allow_real_send=_allow_real_send,
                                         **extra))
 

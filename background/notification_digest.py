@@ -233,6 +233,26 @@ def _line_budget(by_class: dict, total: int) -> dict:
     return alloc
 
 
+def _asks_bare(entry: dict) -> bool:
+    """Would this item, as written in full, be refused by the recommendation guard?"""
+    from background.recommendation_guard import RecommendationRequired, check_message
+    try:
+        check_message(str(entry.get("message", "")))
+    except RecommendationRequired:
+        return True
+    return False
+
+
+def relayed_items(entries: list[dict]) -> list[str]:
+    """The full text of every item the digest relays, which is what the guard judges.
+
+    A bare-ask item is withheld rather than relayed. Raising on it would hold every later item
+    back for good, which is the 4 Nov stall in another form. Its line in the digest says why it
+    was withheld, and the queue still holds it in full (G-N4).
+    """
+    return [str(e.get("message", "")) for e in entries if not _asks_bare(e)]
+
+
 def compose(entries: list[dict]) -> str:
     """The digest text. Groups by class, leads with what was DONE, gives every class a floor of the
     line budget, and when it elides it SAYS SO and names the file that still holds every line
@@ -250,8 +270,11 @@ def compose(entries: list[dict]) -> str:
         rows = by_class[cls]
         lines.append(f"— {cls} ({len(rows)}):")
         for e in rows[:alloc.get(cls, 0)]:
-            first = str(e.get("message", "")).strip().splitlines()
-            lines.append(f"   #{e.get('seq')} {(first[0] if first else '')[:120]}")
+            if _asks_bare(e):
+                lines.append(f"   #{e.get('seq')} withheld: it asks without recommending")
+            else:
+                first = str(e.get("message", "")).strip().splitlines()
+                lines.append(f"   #{e.get('seq')} {(first[0] if first else '')[:120]}")
             shown += 1
     if shown < len(entries):
         lines.append(
@@ -277,12 +300,13 @@ def flush(*, _send=None) -> str | None:
 
     if _send is None:                      # imported lazily: notify imports this module
         from background.notify import notify as _notify
+        items = relayed_items(entries)
 
         def _send(msg):
             # kind="digest" is instant BY CONSTRUCTION in notify() -- the digest is the
             # batch, so routing it back through the queue would be the obvious infinite
             # regress. Asserted there, not assumed here.
-            return _notify(msg, kind="digest")
+            return _notify(msg, kind="digest", _relay_items=items)
 
     result = _send(text)
     if _was_delivered(result):

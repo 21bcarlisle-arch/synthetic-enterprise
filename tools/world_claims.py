@@ -74,8 +74,11 @@ ROUTES = ("founders", "trickle", "campaign")
 KNOWN_ROUTE_GAPS: dict = {
     ("campaign", "gas_home_share"):
         "docs/staging/WORKER_FINDING_THE_CAMPAIGN_ROUTES_GAS_SHARE_SITS_ON_THE_BANDS_EDGE_AND_THE_"
-        "CHECK_HAS_NO_SAMPLING_ALLOWANCE_2026-11-13.md -- 81.25% of 1,504 homes against a floor "
-        "of 81.5% (one standard error ~1.0 pt); it read 81.95% before W2_21's insulation fix",
+        "CHECK_HAS_NO_SAMPLING_ALLOWANCE_2026-11-13.md -- a real selection, not noise: 81.25% of "
+        "1,504 homes on these seeds, 79.8% of 4,354 over 24 seeds, against the founders' 84.9%; "
+        "off-gas homes switch at about half the rate (Ofgem CES 2017: 10% vs 18%), and the entry "
+        "weight never reads the meter, so the campaign's tilt toward them is a world defect "
+        "(docs/market_research/do_homes_without_gas_switch_less_2026-11-15.md)",
 }
 
 

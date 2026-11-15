@@ -302,7 +302,8 @@ def _log_mothballed(message: str) -> None:
 
 
 def send_ntfy(message: str, headers: dict[str, str] | None = None,
-              *, _allow_real_send: bool = False, _phone: bool = False) -> str | None:
+              *, _allow_real_send: bool = False, _phone: bool = False,
+              _relay_items: list[str] | None = None) -> str | None:
     """POST `message` to the shared ntfy topic, mirror it
     (secret-scrubbed) for the advisor (ADVISOR_VISIBILITY.md), and return
     the id (or None if the request or id-parsing failed).
@@ -332,7 +333,12 @@ def send_ntfy(message: str, headers: dict[str, str] | None = None,
     # call site, never vanish. See background/recommendation_guard.py for why the
     # blocking form is safe here (blast radius measured, not assumed).
     from background.recommendation_guard import check_message
-    check_message(message)
+    # A RELAY IS JUDGED PER ITEM (2026-11-15). The digest quotes each queued item's first 120
+    # characters, which cuts the recommendation off and keeps its "?", so one quoted item refused
+    # every digest from 4 Nov onward. The guard asks whether the machine is asking bare, and that
+    # is a property of each item as written, so `_relay_items` carries the full items.
+    for _judged in (_relay_items if _relay_items is not None else [message]):
+        check_message(_judged)
 
     # INTERNAL WORK-ORDER TEXT NEVER REACHES THE DIRECTOR CHANNEL (2026-08-13 director; see
     # background/doorbell_redaction.py). Placed AFTER the recommendation guard so the ask/
