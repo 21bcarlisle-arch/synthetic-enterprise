@@ -508,13 +508,14 @@
   loop_stage: idle   # 2026-11-14 superseded: no leg's acquisition_date predates its first bill; see simplifications
   dial_inherited: 3
   provenance: proposal
+  block_reason: "PARKED by the worker 2026-11-15: nothing to route. 1,306 of 1,306 legs' acquisition_date equals their first bill's period_start and won_successor_activations is empty (run_output_latest, 14 Nov). Unpark if either stops holding."
   # 2026-09-25: the two site/ pages were deleted by 03dd8c49e. Repointed by CONSUMPTION, not name:
   # generate_customers_json (already scoped) writes site/data/customers.json and site/explore/ is the
   # door that reads it -- the DOOR is named here and the generated json deliberately is not.
   file_scope: [saas/reporting/annual_report.py, simulation/customer_events.py, simulation/run_phase2b.py, company/crm/lifecycle_tracker.py, company/crm/acquisition_cohort.py, tools/generate_customers_json.py, site/explore/index.html]
   depends_on: [C_supply_start_semantic_separation]
   blocked_on: null
-  simplifications_count: 3
+  simplifications_count: 4
   records_rehomed: [evidence]
 - id: KNIFE3_wall_crossing_paydown
   title: "Pay down the remaining wall crossings"
