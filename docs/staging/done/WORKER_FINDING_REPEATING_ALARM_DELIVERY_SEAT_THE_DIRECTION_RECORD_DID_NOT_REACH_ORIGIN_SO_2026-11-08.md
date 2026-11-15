@@ -90,3 +90,33 @@ Nothing here is for the director: it was a page format, fixed as a class.
 - **2026-11-08** — re-asked: **still_holds**. observed 2026-11-08, within the 3-day bar.
 - **2026-11-09** — re-asked: **still_holds**. observed 2026-11-08, within the 3-day bar.
 - **2026-11-10** — re-asked: **still_holds**. observed 2026-11-08, within the 3-day bar.
+
+## Done (2026-11-15, delivery seat, claim `the-direction-record-reaches-origin-past-the-empty-field-sweep`)
+
+**The page and the field.** `site/harness/index.html`, the "what it got wrong" panel, field
+`what_it_got_wrong.problems[].what` in `site/data/delivery.json`. The text was the seat's own prose:
+"director_inputs since 13 Nov 00:00Z reads [] under both origin's and the shared tree's ..." and
+"This brief's director_inputs is [], and 98a1f7728 is on origin." The sweep's **empty brackets**
+shape fired on the literal `[]`. That is the cause of the five refusals on 15 Nov (00:54 to 15:51Z).
+It is a second cause, not the em-dash one above, which still holds.
+
+**How it was reproduced, and why the first three runs passed.** The sweep reads the **git index**
+(`published_site` lists `git ls-files`), not the working tree. Unstaged copies of the seat's files
+read as origin's bytes and passed 3/3. Staged in an isolated worktree, the exact candidate files
+(origin + the shared tree's DIRECTION.yaml, decisions.jsonl, SEAT_STRETCH_LOG.md, delivery.json)
+failed with the text above. A replay of a site-lane refusal must stage its candidate files.
+
+**The fix is in the renderer.** `tools/generate_delivery_page.reader_text` writes a bare `[]` as
+"an empty list" where a problem's prose is published. The rows are append-only on origin, so the
+words cannot be changed at the source. `( )` and `[ ]` are left alone, because they are what an
+emptied slot leaves. **The control:**
+`tests/tools/test_the_seats_prose_reaches_the_harness_page_without_an_empty_field.py` runs the
+sweep's own `empty_fields` over the real 15 Nov sentence after it is published. Its first leg
+asserts that the raw sentence fires, so the fixture can fail. Removing the `reader_text` call turns
+the control red (mutation run). With the fix staged, the sweep and the harness tests passed 52/52.
+
+**Not covered.** Any other prose shape the sweep refuses, such as "( )" in the seat's own words,
+still refuses a landing. That is correct, and the refusal now names the test node. The refusal
+record (`refusal_verdict`) keeps the FAILED node but not the assertion's page and text, which is
+why this took a replay to name. If this alarm comes back, adding the sweep's `E ` detail lines to
+`refusal_verdict` is the next fix.

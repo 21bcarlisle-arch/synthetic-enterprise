@@ -30,6 +30,7 @@ Run:  python3 -m tools.generate_delivery_page
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -136,6 +137,21 @@ def what_it_decided() -> dict:
     }
 
 
+# A bare `[]` in the seat's prose is a value it read (an empty list), never a slot a template
+# left empty -- these rows are written whole, not filled in. A reader sees "reads []" as a hole,
+# and so does the published-page sweep: it refused five direction landings on 15 Nov over
+# "director_inputs ... reads []" on the Harness page. The rows are append-only on origin, so the
+# words are said in English here. `( )` and `[ ]` are left alone: those ARE what a hole looks like.
+_BARE_EMPTY_LIST = re.compile(r"(?<![\w\[])\[\](?![\w\]])")
+
+
+def reader_text(text):
+    """The seat's prose as a reader meets it: a bare empty list `[]` is written as words."""
+    if not isinstance(text, str):
+        return text
+    return _BARE_EMPTY_LIST.sub("an empty list", text)
+
+
 def _distinct_problems(wrong: list[dict]) -> dict:
     """The headline: DISTINCT problems, not rows (director, 2026-10-07: *"987 open, 82 corrected
     ... counts rows, not problems: each orientation copies every unfixed item forward"*).
@@ -155,7 +171,7 @@ def _distinct_problems(wrong: list[dict]) -> dict:
         if p is None:
             hit = direction_mod.triage_match(w["what"], triage)
             p = by_key[key] = {
-                "key": key, "what": w["what"], "last_at": w["at"], "first_at": w["at"],
+                "key": key, "what": reader_text(w["what"]), "last_at": w["at"], "first_at": w["at"],
                 "times_listed": 0, "corrected": w["corrected"],
                 "fate": hit.get("fate") if hit else None,
                 "status": hit.get("status") if hit else None,
