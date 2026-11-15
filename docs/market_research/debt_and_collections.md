@@ -1502,6 +1502,32 @@ beginning with the day on which the debtor stops receiving mental health crisis 
 also an earlier no-reply limb. The register sends the creditor an end notice. Its length is treatment
 still to run, plus 30 days.
 
+**When the creditor is told (ESTABLISHED for the rules; the timing is DERIVED).** Source: SI 2020/1311
+as made, read 2026-11-15 at legislation.gov.uk. The creditor is told *before* the end it is told of:
+- The nominated point of contact tells the debt adviser that treatment has stopped (reg 32(3)).
+  - The adviser asks between day 20 and day 30, and then every 20-30 days (reg 33).
+- The adviser notifies the Secretary of State "by the end of the following business day" (reg 32(4)).
+- The Secretary of State then, by the end of the next business day, makes a register entry and
+  sends "a notification to each creditor" (reg 32(6)(b)).
+- The world takes the checks at day 25, 50 and so on, and the two business days as two days
+  (`mhcm_end_notice_day`). A 25-day check gap plus 2 days is always less than the 30 post-treatment
+  days, so the notice always arrives before its end date.
+- **The supplier's consequence:** an end notice records a FUTURE end. The register
+  (`company/billing/breathing_space_register.py`) holds a completed record in force through its end
+  date. Until this was found, completion cut protection the day it was recorded.
+- *Corrected the same day:* this section's first version had the notice sent on the end day.
+
+Two further reg 28 facts:
+- **Reg 28(2)** counts as crisis treatment: detention under MHA ss. 2, 3 or 4; removal to a place of
+  safety (ss. 135-136); and "any other crisis, emergency or acute care or treatment in hospital or in
+  the community from a specialist mental health service".
+- **Reg 28(3)** names crisis home treatment, liaison and community mental health teams among those
+  services.
+- So CRHT episodes and inpatient stays are both in scope.
+- More recent NHS Benchmarking figures, both reported by the Centre for Mental Health (Dec 2025):
+  - adult acute: 42 days on average in 2024/25;
+  - older adult: 84 days.
+
 **How long it runs: NOT ESTABLISHED.** No Insolvency Service table, evaluation or commentary found
 (15 Nov) gives MHCM durations; the long-run CSV counts entries only. The treatment proxies found:
 - A UK crisis resolution home treatment (CRHT) service audit gives a **median episode of 13 days**

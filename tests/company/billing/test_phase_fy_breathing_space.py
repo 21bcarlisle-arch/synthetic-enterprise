@@ -151,11 +151,25 @@ class TestBreathingSpaceRegister:
     def test_active_records_as_of(self):
         r1 = self.reg.register_entry("ACC001", BreathingSpaceType.STANDARD, dt.date(2023, 6, 1), 400.0)
         r2 = self.reg.register_entry("ACC002", BreathingSpaceType.STANDARD, dt.date(2023, 6, 1), 300.0)
-        # complete r1
-        self.reg.complete(r1.record_id, dt.date(2023, 7, 31))
+        # r1 ended on Jun 10 (W2_45: a completion is in force THROUGH its end date, so the
+        # end must be before the day asked about; it was dated Jul 31 here until then).
+        self.reg.complete(r1.record_id, dt.date(2023, 6, 10))
         # Jun 15: r2 still active (not completed, within 60d)
         active = self.reg.active_records(dt.date(2023, 6, 15))
-        assert len(active) == 1  # only r2 (r1 is COMPLETED)
+        assert [r.record_id for r in active] == [r2.record_id]
+
+    def test_an_end_notice_dated_ahead_holds_the_moratorium_to_that_day(self):
+        """W2_45: a mental health crisis end notice arrives before the day it names (reg 32(2)(a)
+        runs 30 days past the treatment end; the adviser learns at a reg 33 check). The defect
+        this catches: completion cutting protection the day it is recorded."""
+        r = self.reg.register_entry(
+            "ACC001", BreathingSpaceType.MENTAL_HEALTH_CRISIS, dt.date(2023, 1, 1), 400.0)
+        assert self.reg.moratorium_active("ACC001", dt.date(2023, 3, 1))
+        self.reg.complete(r.record_id, dt.date(2023, 2, 20))
+        assert self.reg.moratorium_active("ACC001", dt.date(2023, 2, 20))
+        assert not self.reg.moratorium_active("ACC001", dt.date(2023, 2, 21))
+        done = self.reg.records_for_account("ACC001")[0]
+        assert done.days_remaining(dt.date(2023, 2, 20)) == 1
 
     def test_mental_health_crisis_records(self):
         self.reg.register_entry("ACC001", BreathingSpaceType.MENTAL_HEALTH_CRISIS, dt.date(2023, 3, 1), 600.0)
@@ -181,7 +195,7 @@ class TestBreathingSpaceRegister:
     def test_active_debt_frozen_excludes_completed(self):
         r1 = self.reg.register_entry("ACC001", BreathingSpaceType.STANDARD, dt.date(2023, 6, 1), 400.0)
         self.reg.register_entry("ACC002", BreathingSpaceType.STANDARD, dt.date(2023, 6, 1), 300.0)
-        self.reg.complete(r1.record_id, dt.date(2023, 7, 31))
+        self.reg.complete(r1.record_id, dt.date(2023, 6, 10))  # ended before the day asked
         # as_of Jun 15: r2 still active
         active_debt = self.reg.active_debt_frozen_gbp(dt.date(2023, 6, 15))
         assert abs(active_debt - 300.0) < 1e-9

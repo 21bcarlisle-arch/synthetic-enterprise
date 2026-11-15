@@ -21,6 +21,7 @@ from simulation.debt_respite_draw import (
     annual_rate,
     mhcm_annual_rate,
     mhcm_end_date,
+    mhcm_end_notice_day,
 )
 from simulation.rng_substream import substream
 
@@ -94,12 +95,19 @@ def test_the_register_holds_an_mhcm_until_its_end_notice_and_then_releases_it(mo
     end = d._in_force_until["ACC1"]
     lo, hi = MHCM_TREATMENT_DAYS_RANGE
     assert lo + 30 <= (end - start).days + 1 <= hi + 30
-    assert d.end_notices_due(end - dt.timedelta(days=1)) == []
-    (end_wire,) = d.end_notices_due(end)
+    # The notice is sent BEFORE the end it names (regs 32(4), 32(6), 33), and handed over once.
+    sent_on = d._pending_ends[0][0]
+    assert sent_on < end
+    assert d.end_notices_due(sent_on - dt.timedelta(days=1)) == []
+    (end_wire,) = d.end_notices_due(sent_on)
     assert d.end_notices_due(end + dt.timedelta(days=5)) == []
     assert end_wire["envelope"]["payload"]["end_date"] == end.isoformat()
+    assert end_wire["envelope"]["observed_at"].startswith(sent_on.isoformat())
     closed = consumer.observe_moratorium_end_wire(end_wire)
     assert len(closed) == 1
+    # Completed early, held through the end it names, released the day after.
+    assert reg.moratorium_active("ACC1", sent_on)
+    assert reg.moratorium_active("ACC1", end)
     assert not reg.moratorium_active("ACC1", end + dt.timedelta(days=1))
     assert reg.records_for_account("ACC1")[0].end_date == end
     # A redelivered end notice completes nothing.
@@ -126,3 +134,14 @@ def test_an_end_notice_carrying_world_truth_is_refused(monkeypatch):
     end_wire["envelope"]["payload"]["true_debt"] = 12.0
     with pytest.raises(ValueError, match="world truth"):
         consumer.observe_moratorium_end_wire(end_wire)
+
+
+def test_the_end_notice_comes_after_the_treatment_stops_and_before_the_end_it_names():
+    """Regs 32(2)(a), 32(4), 32(6) and 33, at every treatment length the belief can draw and well
+    past it: the adviser cannot know before the treatment stops, and the 25-day check plus two
+    business days always lands inside the 30 post-treatment days."""
+    start = dt.date(2023, 1, 1)
+    for t in range(0, 400):
+        stopped = start + dt.timedelta(days=t)
+        sent = mhcm_end_notice_day(start, t)
+        assert stopped <= sent < mhcm_end_date(start, t), (t, sent)

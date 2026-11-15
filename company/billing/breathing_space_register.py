@@ -32,6 +32,14 @@ quotes SI 2020/1311 regs 1(2), 26(2) and 32(2). They were module literals until
 which it started" counts the start date as day 1, so the last protected day is
 start + 59, not start + 60. `moratorium_active` is the one question the dunning
 selector asks (`arrears_engine.select_dunning_step`, atom C33).
+
+A COMPLETED RECORD IS IN FORCE THROUGH ITS END DATE (W2_45, 2026-11-15). The
+Secretary of State's mental health crisis end notice (reg 32(6)(b)) names the day
+the moratorium ends, and it arrives BEFORE that day: the adviser learns of the
+treatment end at a reg 33 check, while reg 32(2)(a) runs 30 days past it. So
+`complete(record, end_date)` records an end, and the moratorium holds until the
+end of `end_date`. Until W2_45 completion cut protection on the day it was
+recorded, which is wrong for any end notice dated ahead.
 """
 from __future__ import annotations
 
@@ -107,22 +115,27 @@ class BreathingSpaceRecord:
         return None  # MH: no fixed expected end
 
     def is_active_as_of(self, as_of: dt.date) -> bool:
-        if self.status != BreathingSpaceStatus.ACTIVE:
-            return False
         if as_of < self.start_date:
+            return False
+        if self.status == BreathingSpaceStatus.COMPLETED:
+            if self.end_date is None or as_of > self.end_date:
+                return False
+        elif self.status != BreathingSpaceStatus.ACTIVE:
             return False
         if self.bs_type == BreathingSpaceType.STANDARD:
             return as_of < self.start_date + dt.timedelta(days=_STANDARD_DURATION_DAYS)
-        return True  # MH: active until adviser closes
+        return True  # MH: active until its end notice's date (reg 32(6)(b))
 
     def days_elapsed(self, as_of: dt.date) -> int:
         return max(0, (as_of - self.start_date).days)
 
     def days_remaining(self, as_of: dt.date) -> Optional[int]:
-        if self.bs_type == BreathingSpaceType.MENTAL_HEALTH_CRISIS:
-            return None  # indefinite
         if not self.is_active_as_of(as_of):
             return 0
+        if self.bs_type == BreathingSpaceType.MENTAL_HEALTH_CRISIS:
+            if self.end_date is None:
+                return None  # in force until an end notice names its day
+            return (self.end_date - as_of).days + 1
         end = self.start_date + dt.timedelta(days=_STANDARD_DURATION_DAYS)
         return max(0, (end - as_of).days)
 

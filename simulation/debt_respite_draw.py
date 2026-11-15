@@ -56,8 +56,10 @@ type is drawn while one is in force.
   Taking the start as the start of the treatment over-states what is left of it. The error runs
   toward a longer hold, which only constrains the company. Sources and gap:
   `docs/market_research/debt_and_collections.md`, "The mental health crisis moratorium's length".
-  The register sends the end notice (`MoratoriumEndNotice`, reason "crisis treatment ended") on the
-  end day. `end_notices_due` hands it over once the world's clock reaches that day.
+  The register sends the end notice (`MoratoriumEndNotice`, reason "crisis treatment ended") BEFORE
+  the end day: the adviser learns at a reg 33 check, and regs 32(4) and 32(6) add two business days
+  (`mhcm_end_notice_day`; corrected the same day from "on the end day"). `end_notices_due` hands
+  it over once the world's clock reaches that day.
 
 WHAT IS NOT DRAWN, each named:
   * The MHCM's other end, reg 32(2)(b)-(c): 30 days after the nominated contact fails to answer the
@@ -187,6 +189,25 @@ def mhcm_end_date(start: dt.date, treatment_days: int) -> dt.date:
     return stops + dt.timedelta(days=MHCM_POST_TREATMENT_DAYS - 1)
 
 
+#: Reg 33: the adviser asks the nominated contact between day 20 and day 30 of the moratorium, then
+#: every 20-30 days. Taken at the middle of each window.
+MHCM_CONTACT_CHECK_EVERY_DAYS = 25
+
+#: Reg 32(4) then 32(6): the adviser tells the Secretary of State by the end of the next business
+#: day, and the Secretary of State tells the creditor by the end of the one after. Taken as 2 days.
+MHCM_END_NOTICE_LAG_DAYS = 2
+
+
+def mhcm_end_notice_day(start: dt.date, treatment_days: int) -> dt.date:
+    """The day the creditor is sent the end notice (reg 32(4), 32(6)(b), 33). The adviser learns
+    the treatment has stopped at the first reg 33 check on or after the day it stops, then two
+    business days pass. Checks are 25 days apart and the moratorium runs 29 days past the stop, so
+    the notice always comes BEFORE the end it names."""
+    checks = -(-max(treatment_days, 1) // MHCM_CONTACT_CHECK_EVERY_DAYS)
+    learned = start + dt.timedelta(days=checks * MHCM_CONTACT_CHECK_EVERY_DAYS)
+    return learned + dt.timedelta(days=MHCM_END_NOTICE_LAG_DAYS)
+
+
 def _encode_payload(notice: MoratoriumStartNotice) -> dict:
     """The notice as wire values. The seam's second belt on the world side: a payload carrying a
     world-truth field is refused before it is sent."""
@@ -218,7 +239,8 @@ class MoratoriumDrawer:
     #: customer -> last protected day of the moratorium in force (either type).
     _in_force_until: Dict[str, dt.date] = field(default_factory=dict)
     #: MHCM end notices not yet handed over: (end_date, customer_id, register_entry_ref).
-    _pending_ends: List[Tuple[dt.date, str, str]] = field(default_factory=list)
+    # (the day the notice is sent, the end it names, customer, register entry ref)
+    _pending_ends: List[Tuple[dt.date, dt.date, str, str]] = field(default_factory=list)
     mhcm_started: int = 0
     mhcm_ended: int = 0
     _asked: Set[Tuple[str, int]] = field(default_factory=set)
@@ -260,7 +282,8 @@ class MoratoriumDrawer:
                                   0).randint(lo, hi)
             end = mhcm_end_date(start, treatment)
             self._in_force_until[customer_id] = end
-            self._pending_ends.append((end, customer_id, ref))
+            self._pending_ends.append(
+                (mhcm_end_notice_day(start, treatment), end, customer_id, ref))
             self.mhcm_started += 1
         else:
             return None
@@ -277,14 +300,15 @@ class MoratoriumDrawer:
                            _encode_payload(notice))
 
     def end_notices_due(self, on: dt.date) -> List[dict]:
-        """Every MHCM end notice whose end day has come by `on`, each handed over once, oldest
-        first. Sent on the end day (deemed received that day, reg 37(4)(a)), so a caller whose
-        clock passes the day late delivers it late: the company holds the moratorium longer, the
-        safe direction."""
+        """Every MHCM end notice whose sending day has come by `on`, each handed over once, oldest
+        first. It is sent BEFORE the end it names (`mhcm_end_notice_day`, regs 32(4), 32(6), 33)
+        and deemed received that day (reg 37(4)(a)). A caller whose clock passes the day late
+        delivers it late. The company's register holds a completed record in force through its end
+        date, so an early notice does not cut protection short."""
         due = sorted(e for e in self._pending_ends if e[0] <= on)
         self._pending_ends = [e for e in self._pending_ends if e[0] > on]
         out = []
-        for end, _customer, ref in due:
+        for sent_on, end, _customer, ref in due:
             notice = MoratoriumEndNotice(register_entry_ref=ref, end_date=end,
                                          reason_text=MHCM_END_REASON)
             body = {"register_entry_ref": notice.register_entry_ref,
@@ -293,7 +317,7 @@ class MoratoriumDrawer:
             if leaking:
                 raise ValueError(f"moratorium end notice would carry world truth: {leaking}")
             self.mhcm_ended += 1
-            out.append(self._frame(MORATORIUM_END_NOTIFICATION_TYPE, end, end, body))
+            out.append(self._frame(MORATORIUM_END_NOTIFICATION_TYPE, sent_on, end, body))
         return out
 
     def _frame(self, notification_type: str, sent_on: dt.date, valid_on: dt.date,
