@@ -37,6 +37,7 @@ from company.billing.collections_journey import (
     ARRANGEMENT_OFFERED,
     CURED,
     MISSED_PAYMENT,
+    NO_SELF_DISCONNECTION_WATCH,
     NO_SUITABILITY_FINDING,
     NOT_SUITABLE,
     PLAN_OFFER_STEP,
@@ -411,7 +412,8 @@ def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_j
              if s["stage"] in (PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD)]
     assert after, "no live journey reached the 90-day rung -- the prepayment route is unreached"
     assert {s["stage"] for s in after} == {PREPAYMENT_WITHHELD}
-    assert {s["decision"] for s in after} == {NO_SUITABILITY_FINDING}
+    for s in after:  # each live withhold names both grounds no company path can meet yet
+        assert NO_SUITABILITY_FINDING in s["decision"] and NO_SELF_DISCONNECTION_WATCH in s["decision"]
 
 
 class _World:
@@ -532,6 +534,7 @@ def test_a_paid_instalment_posts_to_the_ledger_as_cash_and_a_repaid_plan_frees_t
 
 def _suitable(consumer, finding=True):
     consumer.collections_journeys.prepayment_suitability = lambda _account, _on: finding
+    consumer.collections_journeys.self_disconnection_watch = lambda _account, _on: True
     return consumer
 
 
@@ -568,9 +571,7 @@ def test_the_consent_offer_is_made_only_on_a_positive_suitability_finding():
     walks = {}
     for finding in (None, False, True):
         world = _World(None, moves=False)
-        consumer = _answered("ACC-S", world)
-        if finding is not None:
-            _suitable(consumer, finding)
+        consumer = _suitable(_answered("ACC-S", world), finding)  # None: no finding held
         consumer.advance_collections_journey("ACC-S", dt.date(2024, 6, 30))
         (journey,) = consumer.collections_journeys.journeys()
         assert_journey_order_lawful(journey, Segment.RESIDENTIAL)
@@ -581,7 +582,7 @@ def test_the_consent_offer_is_made_only_on_a_positive_suitability_finding():
         assert asks == [] and PREPAYMENT_OFFERED not in stages
         assert stages[stages.index(PREPAYMENT_STEP) + 1] == PREPAYMENT_WITHHELD
         assert next(s for s in journey["stages"]
-                    if s["stage"] == PREPAYMENT_WITHHELD)["decision"] == reason
+                    if s["stage"] == PREPAYMENT_WITHHELD)["decision"] == reason, finding
     stages, _, asks = walks[True]
     assert len(asks) == 1 and PREPAYMENT_WITHHELD not in stages
     assert stages[stages.index(PREPAYMENT_STEP) + 1] == PREPAYMENT_OFFERED
