@@ -5090,3 +5090,19 @@
     'tests/sim/test_grid_carbon_future.py']
   expert_hour: {status: passed, last: '2026-10-05 second re-take, cold-eyes, veteran GB grid-carbon persona, priors first: no MAJOR on the regenerated feed + Explore (first re-take FAILED: page lagged the code)', findings: ['MAJOR-1 (loss-corrected label) and MAJOR-2 (2020-04-27 step) closed; shipped strings now held to their constants by a control', 'MINOR partial-year day panels labelled the year (2025 = Jan..Jun 7); proof/simplified quote an archived EP13 loss-corrected note; fill named but reaches no value; INDO-hole half hours unnamed', 'MINOR non-blocking: feed ends 2025-06-07; futures level_error in-sample; CO2 named co2e; import factors fixed; second API regime ~2021-04', 'detail: docs/staging/SEAT_FINDING_G14_EXPERT_HOUR_RETAKE_ON_THE_HISTORIC_MIX_2026-10-05.md']}
   real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
+
+- id: W2_43_a_prepayment_household_answers_suitability_and_its_meter_reports_supply_events
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/interfaces/sim_interface.py, simulation/payment_method_dynamics.py, tests/company/billing/test_the_household_answers_the_suitability_conversation.py, tests/company/billing/test_the_27a_watch_reads_the_meters_reports.py]
+  depends_on: []
+  # Two seam doors C32 item 1 waits on: the S&RP conversation (answers from hidden state, as
+  # disclosed) and a moved meter's credit-exhausted interruptions, the 27A watch's input (top-ups not drawn).
+  # SEAT_FINDING_THE_SELF_RATIONING_DETECTOR_CANNOT_BE_THE_27A_WATCH_2026-11-15.md.
+  real_world_twin: "the suitability call before a prepayment offer, and a smart PPM's top-up and off-supply log"
