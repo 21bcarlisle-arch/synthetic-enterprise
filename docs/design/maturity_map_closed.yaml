@@ -5122,3 +5122,17 @@
   # re-check; plus a world-side count of offers to concealing households. Finding:
   # SEAT_FINDING_THE_CONSENT_GATE_NOW_PERMITS_LIVE_AND_A_CONCEALING_HOUSEHOLD_IS_FOUND_SAFE_2026-11-15.md.
   real_world_twin: "the call and support credit after a smart PPM reports a customer off supply"
+
+- id: C37_recovery_through_the_meter_reads_the_27a_watch
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 2   # pause is real and mutation-proven; take-up 0, so no live meter moves (L3)
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/billing/collections_journey.py, company/billing/winter_moratorium.py, company/interfaces/sim_interface.py, simulation/payment_method_dynamics.py, simulation/plan_offer_response.py, tests/company/billing/test_recovery_through_the_meter_reads_the_27a_watch.py]
+  depends_on: [C36_a_self_disconnection_the_watch_sees_is_answered_with_support]
+  # Commons s.5 "Recovery through the meter, on the 27A watch": 27A.1(b) via 27.8A(d)(iv), pause.
+  real_world_twin: "pausing or lowering a PPM debt deduction while the customer keeps going off supply"
