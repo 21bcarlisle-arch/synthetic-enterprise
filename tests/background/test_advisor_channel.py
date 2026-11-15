@@ -259,3 +259,15 @@ def test_his_words_quoted_under_a_timed_lead_in_line_are_his_quoted_voice(repo):
     verdicts = {i.path.name: i for i in ac.scan(repo)}
     assert verdicts["A_lead.md"].attribution == "quoted"
     assert not verdicts["C_lead_only.md"].drawable
+
+
+def test_his_words_in_a_blockquote_under_a_timed_lead_in_are_his_quoted_voice(repo):
+    """Defect (15 Nov): the usage-efficiency steer gave `The director's words, from chat on Sun 15
+    Nov, 06:45 GMT:` and quoted him in a `> "..."` blockquote. It was refused as having no
+    attribution, because only `-`/`*` bullets counted. An unquoted blockquote stays refused."""
+    _write(repo, "A_quote.md", "The director's words, from chat on Sun 15 Nov, 06:45 GMT:\n\n"
+                               '> "I think trialing and testing some potential quick wins"\n')
+    _write(repo, "C_unquoted.md", "Discussed at 06:45 GMT:\n\n> quick wins, paraphrased\n")
+    verdicts = {i.path.name: i for i in ac.scan(repo)}
+    assert verdicts["A_quote.md"].attribution == "quoted"
+    assert not verdicts["C_unquoted.md"].drawable
