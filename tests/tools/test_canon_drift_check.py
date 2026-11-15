@@ -56,6 +56,7 @@ EXPECTED_CLAIM_IDS = frozenset({
     "C2_market_position_is_a_run_level_constant",
     "C3_collateral_is_a_cost_line_never_a_call",
     "C3_the_world_cannot_reach_the_liquidity_organs",
+    "C3_arrears_do_not_meet_the_bill",
     # Renamed 2026-08-29 when the correction they were waiting for landed on both rendered
     # surfaces. The old ids named today's verdict ("still says"); these name the property.
     # 2026-10-24: ..._only_one_trait_expresses retired (see `_retired`); the diagram steer took

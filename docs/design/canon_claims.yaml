@@ -133,6 +133,30 @@ claims:
       roots: [simulation]
       target: company.risk
 
+  - id: C3_arrears_do_not_meet_the_bill
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "arrears do not yet arrive coupled to wholesale peaks"
+    claim: "no world module on the run path reads the household's budget, so a bill raised by a wholesale peak does not raise the chance it is missed"
+    expects: absent
+    probe:
+      kind: import_edge
+      target: simulation.household_budget
+      roots: [simulation]
+      exclude: [simulation/household_budget.py, simulation/dd_attribution.py,
+                simulation/willingness_classification.py, simulation/self_rationing.py]
+    note: >-
+      What "coupled" means, defined 2026-11-15 before binding (A45 MAJOR 3 residual): a missed
+      payment is coupled to a wholesale peak when the world's per-bill outcome depends on the bill
+      meeting the household's budget, so a bigger bill is likelier to fail. Today it does not:
+      `arrears_engine.payment_outcome` draws from an income-stress tier set by life events
+      (`household_demand.income_stress_trajectory`), never from the bill or W2_4's budget, which
+      only three answer keys and the offline `tools/couple_*` scripts import. Those three are
+      excluded; TF2 watches willingness_classification, and a run-path import of dd_attribution or
+      self_rationing would bypass this probe (not transitive). Not counted as coupling:
+      `bad_debt_incidence`'s scripted 2021-22 year uplift, which a full run overwrites with the
+      arrears engine's outcome. The day a run-path module imports the budget, this reports
+      SUPERSEDED and the page's debt clause is what has to change.
+
   # ---------------------------------------------------------------- the RENDERED surface
   # The two below are the same predicates as C1/C3 above, pointed at the published schematic
   # rather than the design page. They are separate claims on purpose: correcting the canon file
@@ -449,6 +473,10 @@ _judged_negatives:
     kind: no_witness
     why: The picture block's rival node, the same claim a third time.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "the market DEFENDS but does not yet CONTEST"
+    kind: no_witness
+    why: The organs line's copy of "Nobody yet targets the company's book", the same claim a fourth time.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "and abatement is still unmeasured, because nothing supplies the counterfactual it needs"
     kind: summary
     of: [CARBON_the_three_ledger_is_called_by_nothing]
@@ -473,6 +501,28 @@ _judged_negatives:
     excerpt: "and what is not yet measured."
     kind: not_about_code
     why: A link label describing the capabilities page.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "**none of them presses yet**"
+    kind: summary
+    of: [C3_collateral_is_a_cost_line_never_a_call, C3_arrears_do_not_meet_the_bill]
+    why: >-
+      Restates the hedging and debt clauses, each bound. It was false of competition, and the 14 Nov
+      correction beside it says so.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "**competition** (blocked entirely by C2)"
+    kind: not_about_code
+    why: >-
+      The superseded clause the 14 Nov correction beside it withdraws, kept as the record. The live
+      claim is C2_a_rival_supplier_is_modelled (present), which goes red if the rival goes.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "moneyness trigger absent"
+    kind: no_witness
+    why: >-
+      Defined 2026-11-15 as a household leaving a fix BEFORE its end because the market now beats
+      it (the reading at renewal is the "market-coupled swell" beside it, which churn does read).
+      No such mechanism exists: the departure roll runs once per renewal
+      (`customer_events.roll_lifecycle_event`), so there is no symbol to watch. If the director
+      meant the renewal reading, the phrase is false and the page needs a correction.
 
 _retired:
   MISSION_decarb_advice_has_no_recipient: >-
