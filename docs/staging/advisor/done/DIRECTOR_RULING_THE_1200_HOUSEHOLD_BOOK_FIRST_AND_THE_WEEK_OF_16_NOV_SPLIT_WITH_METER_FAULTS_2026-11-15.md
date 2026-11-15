@@ -29,3 +29,11 @@
 - **The remedy in §2 is approved.** A pause in a ruling is applied to `feature_share` in the same commit that records it.
 - **Addition:** rank `the-world-produces-real-meter-data-faults-for-the-supplier-to-find` (in `priority_order.yaml`, his 14 Nov 11:05 steer) in the world lane **directly after the write-off rule** (§5 item 4). Its first step is the K8 metering data quality page.
 - Usage: the week ends at the 03:00 reset. Land nothing new tonight beyond this ruling's records.
+
+## Done
+
+Worker tick, Sun 15 Nov ~18:30 GMT, the only landing made under the 98% reading's "land nothing new tonight beyond this ruling's records".
+
+- **Row 1:** `the-value-test-s-sized-book-candidate` in `docs/direction/DIRECTION.yaml` is now `answered`, with his words and the resolution. Its commitment is `value-test-step-6-the-1200-household-twelve-draw-book`: one unsharded 1,200-household book on 12 `churn_roll` draws after the A/B grades, due 22 Nov. No sharding is built.
+- **Row 2, split:** already in force. `priority_order.yaml` carries `feature_share: 0.33`, and the §2 remedy is written in the balance review. No edit was needed.
+- **Row 2, addition:** already true on origin. `the-world-produces-real-meter-data-faults-for-the-supplier-to-find` is the first world-lane candidate, directly after `the-worlds-write-off-rule-meets-gb-evidence`, the last world item. No edit was needed.

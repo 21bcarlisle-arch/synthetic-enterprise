@@ -401,8 +401,16 @@ for_the_director:
     it cannot resolve the predicted GBP 3, only about GBP 5, so a true GBP 3 would read ''not distinguishable from
     zero''. Holding position until you rule: A runs on 12 draws, then B if A clears its bar; C is not built. What
     would change it: you ask for the GBP 3 resolution now, which means building the sharding.'
-  status: open
-  resolution: ''
+  status: answered
+  resolution: 'Director, Sun 15 Nov 17:53 GMT: ''Yes to your recommendations''. Run step 6 as one 1,200-household
+    book on 12 churn_roll draws, unsharded (resolves about GBP 4.80 per household-year). Build sharding only if
+    A or B shows an effect the 1,200 book cannot separate from zero. Record: docs/staging/advisor/done/DIRECTOR_RULING_THE_1200_HOUSEHOLD_BOOK_FIRST_AND_THE_WEEK_OF_16_NOV_SPLIT_WITH_METER_FAULTS_2026-11-15.md'
   evidence: 'THE_VALUE_TEST_REDESIGN.md s.10: roll share 0.427 (0.30 to 0.54); households needed for GBP 3 are 5,032
     on K1 and 3,063 on K12; s.6a''s ''neither fires'' row assumed 1,200 at 12 draws resolves GBP 3, and the measurement
     refutes that.'
+  resolved: '2026-11-15'
+  commitment:
+    work_id: value-test-step-6-the-1200-household-twelve-draw-book
+    done_means: Step 6 runs as one unsharded 1,200-household book on 12 churn_roll draws once the candidate A/B grades
+      are in, and its graded result is on origin with its GBP-per-household-year resolution stated
+    due: '2026-11-22'
