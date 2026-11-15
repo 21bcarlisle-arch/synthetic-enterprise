@@ -133,6 +133,24 @@ def test_live_process_unit_names_cover_the_daemon_set():
     assert "sim-runner.service" in names
     assert "worker-seat-manager.service" in names
 
+def test_a_retired_process_row_declares_its_lingering_unit():
+    """A retired daemon's stopped unit file is declared by its retired row, not drift.
+    Defect it names: only owner=systemd rows counted, so token-proxy (retired 27 Sep, unit left
+    installed and disabled) alarmed UNDECLARED_UNIT on every reconcile from 14 Nov."""
+    names = S._process_manifest_unit_names()
+    assert "token-proxy.service" in names
+    # the partition still has both sides: a tmux/none-owned live row is not swept in
+    from background import process_reconciler as _proc
+    rows = _proc.load_manifest()
+    assert any(r.get("owner") != "systemd" and r.get("state") != "retired"
+               and f"{r['session']}.service" not in names for r in rows)
+
+
+def test_the_phone_watchdog_units_are_declared():
+    names = [u["name"] for u in S.load_manifest()["systemd_units"]]
+    assert "phone-watchdog.service" in names and "phone-watchdog.timer" in names
+
+
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,
 # reconciliation), never a published business surface -- so it must never wedge the live

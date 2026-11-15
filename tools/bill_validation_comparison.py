@@ -392,8 +392,11 @@ def compare_all(ledger_path: Path | None = None, *, limit: int | None = None) ->
     tests and is reported in the output when set, so a truncated run cannot be read as a full one.
     """
     from company.billing import raw_account_export as raw_export_mod
+    from company.billing.ledger_store import load_ledger
 
-    ledger = json.loads((ledger_path or raw_export_mod.LEDGER_PATH).read_text())
+    # load_ledger, not read_text: since 10 Nov (d7c214a392) the publish retires the plain file and
+    # commits only the gz, so a plain read found nothing and the hourly validator could not run.
+    ledger = load_ledger(ledger_path or raw_export_mod.LEDGER_PATH)
     customers = ledger.get("customers") or {}
     ids = sorted(customers)
     if limit is not None:

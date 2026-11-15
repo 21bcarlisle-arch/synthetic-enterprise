@@ -93,8 +93,11 @@ def _process_manifest_unit_names() -> set[str]:
     the design governs rather than discovering by breakage)."""
     try:
         from background import process_reconciler as _proc
+        # A RETIRED row declares its unit too: the stopped, disabled file left installed is the
+        # retirement's record, and process_reconciler alarms RETIRED_RUNNING if it ever runs.
+        # Counting only owner=systemd flagged token-proxy UNDECLARED for weeks (2026-11-15).
         return {f"{e['session']}.service" for e in _proc.load_manifest()
-                if e.get("owner") == "systemd"}
+                if e.get("owner") == "systemd" or e.get("state") == "retired"}
     except Exception:
         return set()
 
