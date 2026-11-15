@@ -775,6 +775,11 @@ class LiveSimInterface(SimInterface):
             PrepaymentForDebtRequest(account_id, "account", str(requested_on), ROUTE_CONSENT,
                                      debt, months_outstanding, explicit_consent_recorded=True),
             psr_type_vulnerable=False)
+        if self._household_plans is not None:
+            # World-side: the offer is counted against the household's hidden state at run end
+            # (`consent_offers_to_concealing_households`). Nothing of it returns to the company.
+            self._household_plans.record_consent_offer(
+                account_id, dt.date.fromisoformat(str(requested_on)), move.moved)
         if move.moved and self._household_plans is not None:
             self._household_plans.record_meter(
                 account_id, dt.date.fromisoformat(str(requested_on)), debt)

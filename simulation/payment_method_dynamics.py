@@ -133,6 +133,30 @@ def answer_suitability_questions(supply_point_id: str, asked_on: dt.date, base_s
     return {"answers": {q: False for q in SUITABILITY_QUESTIONS}, "reason": SUITABILITY_ALL_NO}
 
 
+def consent_offers_to_concealing_households(offers, base_seed: int) -> dict:
+    """World truth, never crossing: how many of the supplier's Consent prepayment offers went to a
+    PSR-type household that did not disclose (C36, commons s.5 "The harm the company cannot see").
+
+    Such a household answers every S&RP question "no", so the company finds it safe and offers it a
+    meter; no control in `company/` can see that. `offers` is `HouseholdPlanBook.consent_offers`.
+    Counted per offer and per household, with the moved meters among them, beside every offer made,
+    so the share carries its own denominator. Each figure counts offers or households, never both."""
+    offers = list(offers)
+    concealing = set()
+    for a in {a for a, _on, _m in offers}:
+        state = vulnerability_state(household_of(a), base_seed)
+        if state.psr_type_vulnerable and not state.discloses_psr:
+            concealing.add(a)
+    to_them = [(a, on, moved) for a, on, moved in offers if a in concealing]
+    return {"offers": len(offers),
+            "households_offered": len({a for a, _on, _m in offers}),
+            "offers_to_concealing_psr_type": len(to_them),
+            "concealing_psr_type_households_offered": len(concealing),
+            "meters_moved_on_concealing_psr_type": len({a for a, _on, m in to_them if m}),
+            "reading": ("world truth: offers the S&RP conversation could not stop, because the "
+                        "household held its circumstance back; never read by the company")}
+
+
 TOGGLE_SELF_DISCONNECTION = "ppm_debt_self_disconnection_weekly_share"
 SUPPLY_EVENT_STREAM = "W2_43_ppm_supply_events"
 #: Why no top-up rows cross: their amounts and timing are not published (commons s.5).

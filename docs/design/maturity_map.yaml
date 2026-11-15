@@ -464,6 +464,20 @@
   # re-check; plus a world-side count of offers to concealing households. Finding:
   # SEAT_FINDING_THE_CONSENT_GATE_NOW_PERMITS_LIVE_AND_A_CONCEALING_HOUSEHOLD_IS_FOUND_SAFE_2026-11-15.md.
   real_world_twin: "the call and support credit after a smart PPM reports a customer off supply"
+- id: C37_recovery_through_the_meter_reads_the_27a_watch
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [tests/company/billing/test_recovery_through_the_meter_reads_the_27a_watch.py]
+  depends_on: [C36_a_self_disconnection_the_watch_sees_is_answered_with_support]
+  # Knowledge first: does 27.8 or 27A bar or size the weekly deduction from a household the watch
+  # sees self-disconnecting? Commons s.5 table, recovery_through_the_meter x 27A cell (GAP).
+  real_world_twin: "pausing or lowering a PPM debt deduction while the customer keeps going off supply"
 - id: W2_40_voids_tied_to_move_outs
   lane: W2_customer_generator
   value_stream: meter_to_cash

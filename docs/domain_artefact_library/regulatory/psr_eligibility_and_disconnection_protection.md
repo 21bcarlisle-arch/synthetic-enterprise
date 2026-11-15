@@ -408,7 +408,7 @@ the Consent offer. No agency hand-off is made.
 | `debt_path_referral_and_agency_handoff` | covered: W:392 **(was absent)** | n/a | n/a | n/a | n/a | n/a | n/a | GAP | n/a | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
 | `debt_objection_on_switching` | GAP: SLC 14 read at 14.4, 14.6, 14.9 only; whether 27.8's arrangement-first governs an objection is not established | n/a | n/a | n/a: the household stays supplied | n/a | n/a | n/a | GAP | n/a | covered: design choice; W:465 via `company/market/transfer_objection_register.py` **(row added 2026-11-15)** | n/a: S5 is a disconnection pledge | GAP: no published rule found that bars an objection for a PSR household | covered: reg 7(7)(a), read as below; W:465 **(row added 2026-11-15)** |
 | `recovery_through_the_meter` | GAP: whether 27.8's ability-to-pay governs the deduction rate is not read here | n/a | n/a | n/a: the household stays supplied | n/a | n/a | GAP: a deduction from a household that is self-disconnecting; 27A is a duty to watch, and whether it bars recovery is not read | GAP | n/a | covered: design choice; W `METER_RECOVERY` row **(row added 2026-11-15, census)** | GAP: S5 is a disconnection pledge; not read for recovery | GAP | covered: reg 7(7)(a), a deduction to recover moratorium debt is a step to collect **(row added 2026-11-15, census)** |
-| `self_disconnection_support` | n/a: support is never barred | n/a | n/a | n/a | n/a | n/a | n/a: a duty, not a bar. The watch is `company/crm/self_rationing_detector.py`, with no run caller; no household reaches a PPM by a company route unwatched (row 4) | n/a | n/a | n/a | n/a | n/a | n/a: support is not a step to collect |
+| `self_disconnection_support` | n/a: support is never barred | n/a | n/a | n/a | n/a | n/a | n/a: a duty, not a bar. The watch is the desk's own on the meter's reports (W2_43; the self-rationing detector is not it), and each interruption it sees is answered (C36, "The 27A.5 response") | n/a | n/a | n/a | n/a | n/a | n/a: support is not a step to collect |
 
 **The census (added 2026-11-15, the ninth pass's item 12, step 2).** The missing objection row came
 from a hand-listed row set. The rows are now checked against a census read off the code:
@@ -622,7 +622,51 @@ and `CollectionsJourneyDesk.watch_self_disconnection`. Rules: `docs/market_resea
     `self_disconnections(account)` for the response.
   - **The response is not built:** emergency credit, ASC (27A.5), multi-channel contact, and the
     §9.1(b) S&RP re-assessment. They are the next work. A watch that sees an event and does nothing
-    meets 27A.1's "identify" and not 27A.5's "offer".
+    meets 27A.1's "identify" and not 27A.5's "offer". *(Superseded 2026-11-15, C36: the response is
+    built, "The 27A.5 response" below.)*
+
+**The 27A.5 response, and the harm the company cannot see (added 2026-11-15, C36).**
+*K8 page for `CollectionsJourneyDesk._answer_self_disconnection` / `_note_meter_fitted` and
+`simulation/payment_method_dynamics.consent_offers_to_concealing_households`. Rules:
+`docs/market_research/company_debt_management.md`, "Self-disconnection and self-rationing"
+(27A.2-27A.8 and PPM guidance §9.1, transcribed there).*
+- **What the rules require.**
+  - 27A.2: emergency and friendly-hours credit offered to every PPM customer. Ofgem refused to set
+    amounts or hours (decision §3.11). 27A.4: repaid under 27.8 where the household is in difficulty.
+  - 27A.5-6: Additional Support Credit "on each and every occasion" a PPM customer in a Vulnerable
+    Situation self-disconnects, "in a timely manner", amount and repayment assessed under SLC 27.
+    27A.7: decline only where, acting reasonably, it is not in the customer's best interest.
+  - 27A.8 / 28.1(bb): tell the customer what each credit facility is and how it is repaid.
+  - Guidance §9.1: "multiple attempts to contact the customer using various contact channels";
+    §9.1(b): on "frequent or prolonged" self-disconnection, re-assess whether a PPM is still S&RP.
+- **What is not published (GAP, carried, never filled).** ASC amounts and frequencies (E6). Any
+  emergency or friendly credit amount (refused by Ofgem). How many contact attempts. What
+  "frequent" or "prolonged" means. Which share of self-disconnections credit ends (E8).
+- **What the desk does (design choices, each named).**
+  - **At the move** it records 27A.2 credit as available and 27A.8 as told, amounts None with the
+    §3.11 reason.
+  - **On each interruption the watch sees on a meter the desk fitted**, answered on the day it is
+    read (the response's date and its lag, `days_to_answer`, are on the record): ASC offered, amount
+    and 27.8 instalment None with the E6 reason; one contact attempt on each residential channel
+    the ladder already uses (email, SMS, phone, letter), its outcome GAP because no world door
+    answers this contact.
+  - **ASC on every occasion, never declined.** 27A.5 binds for a Vulnerable Situation, which the
+    company cannot see; a household on a meter fitted for 90-day debt that runs out of credit is
+    plausibly in one. Erring toward protection costs only the offer. The 27A.7 decline is a human
+    judgement and is not automated.
+  - **§9.1(b): referred on the second interruption seen** (`REASSESS_ON_INTERRUPTION_COUNT`), the
+    earliest reading of "frequent". "Prolonged" cannot be read: the feed carries no duration. The
+    re-assessment stays human; the company has no assessor, so the referral stays open and no meter
+    is moved back (28.2(c) not built).
+  - **Not used:** `company/billing/ppm_emergency_credit_register.py`. Its £5 and £10 amounts and its
+    28-day welfare check carry no source, and Ofgem refused to set amounts. It has no run caller.
+- **The harm the company cannot see, counted world-side.** A PSR-type household that conceals
+  answers every S&RP question "no", is found S&RP, and is offered a meter. The world's plan book
+  records every Consent offer, and the run's result carries
+  `consent_offers_to_concealing_households` beside `psr_registrations`: offers, households offered,
+  offers and households that were PSR-type and concealing, and meters moved on them. Truth: it never
+  crosses, and no `company/` path reads it. While take-up is 0 no meter moves, but the offers are
+  counted, so the harm's exposure is measured before the harm is switched on.
 
 **The debt-objection row (added 2026-11-15, the ninth pass's item 12).** The company decides a
 debt objection live in every run (`decide_debt_objection`, from `simulation/run_phase2b.py`). It

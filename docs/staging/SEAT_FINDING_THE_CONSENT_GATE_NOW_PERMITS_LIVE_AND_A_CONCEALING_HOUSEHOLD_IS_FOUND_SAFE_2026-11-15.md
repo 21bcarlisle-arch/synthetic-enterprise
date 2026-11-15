@@ -32,7 +32,13 @@ s.5, "The S&RP conversation" and "The PPM's supply events, and the 27A watch on 
 
 ## Still not built (GAP, in order)
 
-1. **The 27A.5 response.** The watch keeps every interruption it sees
+1. **The 27A.5 response.** *(Built 2026-11-15, C36: commons s.5 "The 27A.5 response". Each
+   interruption seen on a meter the desk fitted gets ASC (amount None, GAP E6), one contact attempt per
+   residential channel, and a §9.1(b) referral from the second; the world-side count
+   `consent_offers_to_concealing_households` sits beside `psr_registrations`. The world-side count
+   item under "What is owed" is met by the same commit. Not built: what the household does with the
+   contact or the credit; no world door answers either. `ppm_emergency_credit_register.py`'s £5/£10/
+   28-day constants are unsourced and are not reached by this path.)* The watch keeps every interruption it sees
    (`CollectionsJourneyDesk.self_disconnections`). Nothing acts on them. Not built: emergency or
    friendly credit, Additional Support Credit, multi-channel contact, and the §9.1(b) S&RP
    re-assessment after frequent or prolonged self-disconnection.

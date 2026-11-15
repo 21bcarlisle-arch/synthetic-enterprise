@@ -170,6 +170,30 @@ NO_SELF_DISCONNECTION_WATCH = _gate.NO_SELF_DISCONNECTION_WATCH
 #: PPM's supply events"). The watch's own cadence, a design choice; no period is published.
 WATCH_READ_INTERVAL_DAYS = 1
 PREPAYMENT_ANSWER_GAP = "this desk was built with no seam to ask, so no meter change can be requested"
+#: The 27A.5 response to an interruption the watch sees (C36; commons s.5, "The 27A.5 response").
+#: Amounts are not published: Ofgem refused to set emergency or friendly credit (decision s.3.11),
+#: and what suppliers offer as ASC is E6 (`company_debt_management.md`, "Self-disconnection and
+#: self-rationing"). The offer is made and recorded; its amount is None, with these reasons.
+EMERGENCY_CREDIT_AMOUNT_GAP = ("no amount or hours are prescribed: Ofgem refused to set them "
+                               "(Self-disconnection decision 2020, s.3.11)")
+ASC_AMOUNT_GAP = ("GAP E6: ASC amounts and frequencies suppliers offer are not published, so no "
+                  "amount is offered and no 27.8 repayment instalment can be sized")
+#: Guidance 9.1: "multiple attempts to contact the customer using various contact channels". No
+#: number is published. Design choice: one attempt on each channel this desk's residential
+#: ladder already uses (`arrears_engine` dunning path), so "multiple" and "various" both hold.
+SELF_DISCONNECTION_CONTACT_CHANNELS = ("email", "sms", "phone", "letter")
+CONTACT_RESPONSE_GAP = ("what the household does when contacted about a self-disconnection is not "
+                        "modelled: no world door answers this contact")
+#: Guidance 9.1(b): self-disconnection "frequent or prolonged" makes the supplier re-assess S&RP.
+#: No frequency is published. Design choice, erring toward protection: the earliest reading of
+#: "frequent", a second interruption seen on the meter. "Prolonged" cannot be read: the meter's
+#: feed carries no duration (commons s.5, "The PPM's supply events").
+REASSESS_ON_INTERRUPTION_COUNT = 2
+REASSESSMENT_FOR_A_PERSON = ("the S&RP re-assessment after repeated self-disconnection stays human "
+                             "(company_debt_management.md, 'Must stay human'); this company has no "
+                             "assessor, so the referral stays open and no meter is moved back "
+                             "(28.2(c) is not built)")
+PROLONGED_NOT_OBSERVED = "the meter's feed carries no interruption duration, so 'prolonged' is not read"
 #: The arrangement stage in the only state the company can reach alone: OFFERED. Entered on the
 #: same date as `PLAN_OFFER_STEP` and only straight after it, with the offer kept in the desk's
 #: `PaymentPlanBook`. The household's acceptance is not observed -- see ARRANGEMENT_ACCEPTANCE_GAP.
@@ -468,6 +492,9 @@ class CollectionsJourneyDesk:
             None if plan_offers is None else self.watch_self_disconnection)
         #: account -> [the last day the meter's reports were read through, interruption dates seen]
         self._watched: Dict[str, List] = {}
+        #: account -> the 27A response this desk made, one row per interruption answered, in order
+        #: (`_answer_self_disconnection`). The meter's move adds the 27A.2/27A.8 row first.
+        self.self_disconnection_support: Dict[str, List[dict]] = {}
         #: This supplier's own holds (`WinterMoratoriumRegister`). None: no company path places one.
         self.own_holds: Optional[Any] = None
         #: Every arrangement this desk has offered, and what became of each.
@@ -729,8 +756,54 @@ class CollectionsJourneyDesk:
         seen = sorted({dt.date.fromisoformat(e["on"]) for e in feed["interruptions"]})
         watched = self._watched.setdefault(account_id, [through, []])
         watched[0] = max(watched[0], through)
+        new = sorted(set(seen) - set(watched[1]))
         watched[1] = sorted(set(watched[1]) | set(seen))
+        if account_id in self._meters:
+            for on in new:
+                self._answer_self_disconnection(account_id, on, through)
         return True
+
+    def _answer_self_disconnection(self, account_id: str, interrupted_on: dt.date,
+                                   seen_on: dt.date) -> None:
+        """SLC 27A.5-6 and guidance 9.1, on each interruption the watch sees on a meter this desk
+        fitted, answered the day it is read. ASC is offered on every occasion: 27A.5 binds for a
+        household "in a Vulnerable Situation", which the company cannot see on a meter it fitted for
+        90-day debt, so it errs toward protection and never declines (the 27A.7 decline is a human
+        judgement). Amounts are GAP (`ASC_AMOUNT_GAP`), so the offer carries None, not a number."""
+        rows = self.self_disconnection_support.setdefault(account_id, [])
+        count = sum(1 for r in rows if r["kind"] == "interruption_answered") + 1
+        reassess = None
+        if count >= REASSESS_ON_INTERRUPTION_COUNT:
+            reassess = {"referred": True, "decided": None, "reason": REASSESSMENT_FOR_A_PERSON,
+                        "interruptions_seen": count, "prolonged": None,
+                        "prolonged_reason": PROLONGED_NOT_OBSERVED,
+                        "rule": "PPM guidance 9.1(b)"}
+        rows.append({
+            "kind": "interruption_answered", "interrupted_on": interrupted_on.isoformat(),
+            "answered_on": seen_on.isoformat(), "days_to_answer": (seen_on - interrupted_on).days,
+            "additional_support_credit": {
+                "offered": True, "amount_gbp": None, "amount_gap": ASC_AMOUNT_GAP,
+                "repayment": "assessed under SLC 27.8 (27A.6)", "instalment_gbp": None,
+                "rule": "SLC 27A.5"},
+            "contact": {"channels": list(SELF_DISCONNECTION_CONTACT_CHANNELS),
+                        "outcome": None, "outcome_gap": CONTACT_RESPONSE_GAP,
+                        "rule": "PPM guidance 9.1"},
+            "suitability_reassessment": reassess,
+        })
+
+    def _note_meter_fitted(self, account_id: str, on: dt.date) -> None:
+        """27A.2 and 27A.8 at the move: emergency and friendly-hours credit are available on the
+        meter, and the household is told what each is and how it is repaid (28.1(bb))."""
+        self.self_disconnection_support.setdefault(account_id, []).insert(0, {
+            "kind": "credit_facilities_on_meter", "on": on.isoformat(),
+            "emergency_credit": {"available": True, "amount_gbp": None,
+                                 "amount_gap": EMERGENCY_CREDIT_AMOUNT_GAP, "rule": "SLC 27A.2"},
+            "friendly_hours_credit": {"available": True, "amount_gbp": None,
+                                      "amount_gap": EMERGENCY_CREDIT_AMOUNT_GAP,
+                                      "rule": "SLC 27A.2"},
+            "repayment": "assessed under SLC 27.8 where the household is in difficulty (27A.4)",
+            "told": {"what_each_is_and_how_repaid": True, "rule": "SLC 27A.8, 28.1(bb)"},
+        })
 
     def watch_self_disconnection(self, account_id: str, on: dt.date):
         """The 27A watch's dated record on `on`: read through `on` now, learned on the last day it
@@ -745,8 +818,8 @@ class CollectionsJourneyDesk:
                                 met=True, evidence=tuple(watched[1]))
 
     def self_disconnections(self, account_id: str) -> List[dt.date]:
-        """Every credit-exhausted interruption this desk's watch has seen on the account. The
-        27A.5 response (emergency credit, ASC, contact) is not built: GAP, commons s.5."""
+        """Every credit-exhausted interruption this desk's watch has seen on the account. Each one
+        seen on a meter this desk fitted is answered (`self_disconnection_support`, C36)."""
         watched = self._watched.get(account_id)
         return [] if watched is None else list(watched[1])
 
@@ -847,6 +920,7 @@ class CollectionsJourneyDesk:
                       view, meter_moved=answer["moved"], move_reason=answer["reason"])
         if answer["moved"]:
             self._meters[journey.account_id] = [on, debt, 0]
+            self._note_meter_fitted(journey.account_id, on)
             journey.enter(PREPAYMENT, on, answer["reason"], view)
             journey.exit = PREPAYMENT
 

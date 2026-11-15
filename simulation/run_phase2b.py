@@ -6415,7 +6415,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
     _grade_demand_estimates_against_the_year_ahead(demand_estimation_log, settled_fold)
     _psr_registrations = (
-        {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed())}
+        {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed()),
+         # World truth beside the register (C36): Consent offers made to PSR-type households
+         # that concealed. Never crosses; the company is never handed it.
+         "consent_offers_to_concealing_households": (
+             _method_dynamics.consent_offers_to_concealing_households(
+                 _payment_triad._household_plans.consent_offers, run_base_seed()))}
         if _vulnerability_hidden_state_on else {})
     _result = {
         **_psr_registrations,

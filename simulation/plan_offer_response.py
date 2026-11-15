@@ -202,10 +202,17 @@ class HouseholdPlanBook:
         #: account -> (date the meter was changed for debt, debt carried onto it). First move only.
         self._meters: dict[str, tuple[dt.date, float]] = {}
         self._fuel: dict[str, str] = {}
+        #: Every Consent prepayment offer the supplier made, as (account, offered on, moved), in the
+        #: order made. World truth for the concealment count (C36); never read company-side.
+        self.consent_offers: list[tuple[str, dt.date, bool]] = []
 
     def record_meter(self, account_id: str, moved_on: dt.date, debt_gbp: float) -> None:
         """The household's meter was changed to prepayment for debt (payment_method_dynamics)."""
         self._meters.setdefault(account_id, (moved_on, debt_gbp))
+
+    def record_consent_offer(self, account_id: str, offered_on: dt.date, moved: bool) -> None:
+        """The supplier offered this household a prepayment meter by Consent, and whether it moved."""
+        self.consent_offers.append((account_id, offered_on, bool(moved)))
 
     def meter_of(self, account_id: str) -> Optional[tuple[dt.date, float]]:
         return self._meters.get(account_id)
