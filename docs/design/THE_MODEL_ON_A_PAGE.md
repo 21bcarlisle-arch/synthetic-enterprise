@@ -161,8 +161,9 @@ is why EARN has been the only leg the world can press on. Atoms `B6_collateral_c
 **THE SCORE:** Survive (hard constraint, judged worst-case). Earn (EV, probability-weighted). Abate
 (tCO₂e per customer from grid-intensity × half-hourly use, priced in £/tonne). *Corrected 2026-08-28
 by the mission above: all three legs are scored on the COMPANY. Survive and Earn are ours by
-construction, and Abate — though it counts a household's tonnes — is instrumented as our £/tCO₂e and
-is not yet instrumented at all. **The score has no household-side term in any currency**, which is the
+construction, and Abate — though it counts a household's tonnes — is designed as our £/tCO₂e and
+is not yet instrumented at all. *(Corrected 15 Nov 2026: this said "is instrumented as", which the same
+sentence then denied; the table in §The mission has it as designed, not instrumented.)* **The score has no household-side term in any currency**, which is the
 structural reason a maximiser can win it by transferring value rather than creating any. Making it
 two-sided is a mission-level change to the objective, not a tuning of it; the six cells and what fills
 them are in §The mission.*

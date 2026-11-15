@@ -395,9 +395,21 @@ claims:
 # reason (`tools/canon_drift_check.JUDGED_SECTION`). Keyed to a verbatim excerpt holding the
 # phrase, so an edited sentence is named again. A `summary` lapses when a claim it restates stops
 # holding. Judged 2026-11-15; left NAMED on purpose because they need a judgement this pass could
-# not settle: the spine's debt clause ("arrears do not yet arrive coupled to wholesale peaks"), the
-# organs line's "moneyness trigger absent", and "Abate ... is not yet instrumented at all".
+# not settle: the spine's debt clause ("arrears do not yet arrive coupled to wholesale peaks") and
+# the organs line's "moneyness trigger absent". The second needs a definition before a probe: churn
+# already reads each renewal's own rate against the market (`customer_events`,
+# `_price_differential_vs_market`), so whether a "moneyness trigger" is that, or a mid-term exit
+# from a fix the market has undercut, is unsaid. "Abate ... not yet instrumented" was judged
+# 2026-11-15, below.
 _judged_negatives:
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "is designed as our £/tCO₂e and is not yet instrumented at all"
+    kind: no_witness
+    why: >-
+      The score's Abate leg. Checked 2026-11-15: no module in company/, saas/, simulation/ or tools/
+      computes a score term for it, and the household tonnes it would price are measured
+      (half_hourly_footprint) but priced per tonne nowhere. With no symbol to watch, an absent probe
+      would be VACUOUS; the counterfactual half is CARBON_the_three_ledger_is_called_by_nothing.
   - page: docs/design/THE_MODEL_ON_A_PAGE.md
     excerpt: "it is **absent**, and it is the only cell in the table that is"
     kind: no_witness
