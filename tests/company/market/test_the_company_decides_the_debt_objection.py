@@ -74,3 +74,23 @@ def test_the_door_hands_back_plain_values_only():
     assert all(isinstance(v, (bool, str, float)) for v in answer.values())
     assert request_debt_objection(register, "C9", "2023-03-02", ((400.0, 10),),
                                   prepayment=False, fuels=1)["objection_id"] is None
+
+
+def test_a_moratorium_or_an_own_hold_refuses_an_objection_the_policy_would_raise():
+    """C32 ninth pass, item 12: the objection is an action in the enforcement table. Over the
+    whole partition in one control: neither held objects, each held alone refuses and names its
+    ground, and nothing is put on the register for a refused one."""
+    register = TransferObjectionRegister()
+
+    def at(**held):
+        return decide_debt_objection(register, "C1", "SW-1", _DAY, ((900.0, 60),),
+                                     prepayment=False, fuels=1, **held)
+
+    free, paused, held = at(), at(moratorium_active=True), at(own_hold=True)
+    assert free.objected and not paused.objected and not held.objected
+    assert "SI 2020/1311" in paused.reason and "own hold" in held.reason
+    assert paused.objectionable_debt == held.objectionable_debt == 900.0
+    assert register.by_ground(ObjectionGround.UNPAID_DEBT) == [free.record]
+    door = request_debt_objection(open_transfer_objection_register(), "C9", "2023-03-02",
+                                  ((900.0, 60),), prepayment=False, fuels=1, moratorium_active=True)
+    assert not door["objected"] and door["objection_id"] is None

@@ -368,7 +368,7 @@ the reasonable-steps season, home oxygen in summer, the Safety Net as a list, he
 unasked household, the Consent offer. The pass was doing the design one limb at a time. This
 table lists every cell, so that the next harm is found here and not by a reviewer.
 
-**Rows** are the six actions the director named. ~~These are every action the company can take on a domestic debt.~~ *(Corrected 2026-11-15, ninth pass, item 12. They are not. The company also decides a **debt objection** when a household asks to switch away (SLC 14). It takes that action live in every run, through `company/interfaces/transfer_objection.py:33` from `simulation/run_phase2b.py`, and no row here reads it. Which protections bar it (Breathing Space, holds, PSR) is not researched: GAP, and the next row owed.)* **Columns** are every
+**Rows** are the six actions the director named. ~~These are every action the company can take on a domestic debt.~~ *(Corrected 2026-11-15, ninth pass, item 12. They are not. The company also decides a **debt objection** when a household asks to switch away (SLC 14). It takes that action live in every run, through `company/interfaces/transfer_objection.py:33` from `simulation/run_phase2b.py`, and no row here reads it. Which protections bar it (Breathing Space, holds, PSR) is not researched: GAP, and the next row owed. Row added the same day, researched and read in "The debt-objection row" below.)* **Columns** are every
 protection ground in SLC 27, 27A, 28 and 28B, plus the supplier's own holds (the "winter
 moratorium" register), the Safety Net, the PSR needs codes and Breathing Space.
 
@@ -406,7 +406,42 @@ the Consent offer. No agency hand-off is made.
 | `remote_switch_to_prepay_mode` | covered: W:392 **(was absent)** | covered: W:385 **(was absent)** | n/a | n/a | n/a | n/a | covered: W:397 **(was absent)** | GAP | covered: 28B treats a remote switch as involuntary; W:398 **(was absent)** | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
 | `consent_ppm_offer` | covered: 27.6 menu after 27.8; W:392 at J:774 **(was ladder order only)** | covered: W:385 at J:774 (eighth pass) | n/a | n/a | n/a | n/a | covered: W:397 at J:774 **(was absent)** | n/a: an offer is not a recovery step | n/a: Consent, not involuntary | covered: W:399 at J:774 **(was absent)** | n/a: S5 is a disconnection pledge | GAP: which needs make a PPM unsafe is the S&RP guidance's, not transcribed; read through the 27.6 finding | covered: W:400, J:778; A:697 never reaches the rung |
 | `debt_path_referral_and_agency_handoff` | covered: W:392 **(was absent)** | n/a | n/a | n/a | n/a | n/a | n/a | GAP | n/a | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
+| `debt_objection_on_switching` | GAP: SLC 14 read at 14.4, 14.6, 14.9 only; whether 27.8's arrangement-first governs an objection is not established | n/a | n/a | n/a: the household stays supplied | n/a | n/a | n/a | GAP | n/a | covered: design choice; W:465 via `company/market/transfer_objection_register.py` **(row added 2026-11-15)** | n/a: S5 is a disconnection pledge | GAP: no published rule found that bars an objection for a PSR household | covered: reg 7(7)(a), read as below; W:465 **(row added 2026-11-15)** |
 | `self_disconnection_support` | n/a: support is never barred | n/a | n/a | n/a | n/a | n/a | n/a: a duty, not a bar. The watch is `company/crm/self_rationing_detector.py`, with no run caller; no household reaches a PPM by a company route unwatched (row 4) | n/a | n/a | n/a | n/a | n/a | n/a: support is not a step to collect |
+
+**The debt-objection row (added 2026-11-15, the ninth pass's item 12).** The company decides a
+debt objection live in every run (`decide_debt_objection`, from `simulation/run_phase2b.py`). It
+now asks `may_take(DEBT_OBJECTION)` after its own policy (the SLC 14 clock, the DAP let-go, the
+de-minimis) would raise one, and before anything goes on the register.
+- **What was searched (15 Nov).** Ofgem's licence text in the tree (SLC 14.4(a), 14.6, 14.9,
+  quoted in `docs/market_research/final_account_debt_recovery_primary_check_2026-11-07.md` row 4);
+  the Insolvency Service's *Breathing Space guidance for creditors* (gov.uk, updated 9 Jun 2023,
+  read in full); CPAG and National Debtline pages on switching with arrears (one moved, one
+  paywalled, one partly read). **None names a debt objection, a switch or a transfer** as
+  barred or permitted during a moratorium, or for a vulnerable or PSR household.
+- **Breathing Space: covered, as a reading.** Reg 7(7)(a) makes "a step to collect a moratorium
+  debt" enforcement. The guidance (s.3.1) says a creditor taking "other actions that affect the
+  debtor or a service that you offer the debtor, because you are concerned whether they can make
+  payments in future" may do so only where consistent with the regulations; s.3.9 says the contact
+  rules stop contact "that reinforces the message ... that they need to make payment". An
+  objection holds the household until it pays, and its notice tells it how to resolve the block.
+  This page reads that as a step to collect. **No source says so in terms**; if the
+  practitioner reading is the other way, the cell goes to GAP. *Cost:* the refusal covers all debt
+  on the account while a moratorium is held, though only debt owed at the application is
+  moratorium debt (reg 6), so it over-refuses on debt run up during the moratorium. *Reversible:*
+  drop `breathing_space` from the `_O` row.
+- **The supplier's own hold: covered, design choice.** A hold the supplier placed on recovery
+  covers the block too. *Cost:* nothing live; no company path places a hold. *Reversible:* drop
+  `own_hold_winter_moratorium` from the row.
+- **What it changes live.** The run now hands the company's own Breathing Space register to the
+  objection (`LivePaymentTriad.receivable` carries `moratorium_active`). **Nothing live moves:**
+  `BreathingSpaceRegister.register_entry` has no caller in `company/`, `simulation/` or
+  `background/`, so no run ever holds a moratorium and the register always answers no. The world
+  never notifies the company of one. That is the same gap for every Breathing Space cell in this
+  table, and it is a world build (a moratorium drawn and notified under reg 25), not a gate fix.
+- **Still GAP on this row:** 27.8's order, the PSR column and 28.15. The ninth reviewer's other
+  missing actions (DAP assignment, court action, credit-file reporting) have no company route and
+  no row yet.
 
 **What the absent cells were, and the one change that fixed them.**
 - **Consent PPM offer.** The offer read the S&RP finding and nothing else.

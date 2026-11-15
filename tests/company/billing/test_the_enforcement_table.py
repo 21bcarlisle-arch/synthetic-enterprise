@@ -1,6 +1,7 @@
 """ONE control over the whole enforcement table (C32, 2026-11-15).
 
-Rows: every action the company can take on a domestic debt. Columns: every protection ground.
+Rows: every action the company can take on a domestic debt, the debt objection on switching
+included (ninth pass, item 12). Columns: every protection ground.
 `winter_moratorium.ENFORCEMENT_TABLE` says which cells bar the action (COVERED); this engages each
 ground on a case the gate otherwise permits and asserts that exactly the COVERED cells refuse,
 naming their ground. It fails if a cell is listed and not enforced, enforced where the table says
@@ -125,7 +126,7 @@ def test_the_published_table_is_the_codes_table():
 
 #: Names of calls that take an enforcement action (or ask the world to), and names a route that
 #: would. A function in company/ or saas/ calling one must also call `may_take` (ninth pass, item 16).
-_ACTS = re.compile(r"request_prepayment_move|disconnect_supply|de_?energi[sz]e\w*|\w*warrant_install\w*|"
+_ACTS = re.compile(r"request_prepayment_move|raise_objection|disconnect_supply|de_?energi[sz]e\w*|\w*warrant_install\w*|"
                    r"\w*remote_switch\w*|\w*switch_to_prepay\w*|\w*(?:hand_?off|assign)_to_agency\w*")
 
 
@@ -174,3 +175,9 @@ def test_no_company_route_takes_an_enforcement_action_without_the_gate():
         if isinstance(node, ast.Attribute) and node.attr == "may_take":
             node.attr = "ungated"
     assert _bypasses(desk), "the bypass check cannot fire"
+    objector = ast.parse((root / "company/market/transfer_objection_register.py").read_text(
+        encoding="utf-8"))
+    for node in ast.walk(objector):
+        if isinstance(node, ast.Name) and node.id == "may_take":
+            node.id = "ungated"
+    assert _bypasses(objector), "the objection route's gate call is not what the check reads"

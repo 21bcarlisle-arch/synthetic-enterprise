@@ -4760,7 +4760,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _transfer_objection_register, billing_account, _request_day.isoformat(),
                     None if _owed is None else _owed["unpaid_bills_by_age"],
                     prepayment=_book_method_of(billing_account, _request_day) == "prepayment",
-                    fuels=len(_fuels_of_household.get(household_of(cid), ())) or 1)
+                    fuels=len(_fuels_of_household.get(household_of(cid), ())) or 1,
+                    moratorium_active=bool(_owed and _owed["moratorium_active"]))
                 event = apply_objection(event, _objection["objected"])
             _pending_notice_sent = False
             # THE RIVAL NEVER SEES A SAVE (2026-10-14). A save is a reactive price offered only to a

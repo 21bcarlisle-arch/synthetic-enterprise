@@ -47,6 +47,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
+from company.billing.winter_moratorium import EnforcementAction, EnforcementCase, may_take
 from company.compliance.working_days import add_working_days
 
 #: REC Schedule 23 v2.2 para 6.2(a)/(b): the window ends on the Nth working day after the day
@@ -260,7 +261,8 @@ class DebtObjectionDecision:
 def decide_debt_objection(
     register: TransferObjectionRegister, supply_point_id: str, switch_ref: str,
     request_day: dt.date, unpaid_bills_by_age, *, prepayment: bool, fuels: int,
-    policy: DebtObjectionPolicy = DebtObjectionPolicy(),
+    policy: DebtObjectionPolicy = DebtObjectionPolicy(), moratorium_active: bool = False,
+    own_hold: bool = False,
 ) -> DebtObjectionDecision:
     """Answer one domestic switch request on the debt ground, from this company's own ledger.
 
@@ -288,6 +290,11 @@ def decide_debt_objection(
             and owed <= policy.de_minimis_gbp_per_fuel * max(fuels, 1)):
         return DebtObjectionDecision(False, f"GBP {owed:.2f} is within the de-minimis of GBP "
                                      f"{policy.de_minimis_gbp_per_fuel:.0f} per fuel", owed)
+    gate = may_take(EnforcementAction.DEBT_OBJECTION, EnforcementCase(
+        account_id=supply_point_id, as_of=request_day, breathing_space=moratorium_active,
+        own_hold=own_hold))
+    if not gate.permitted:
+        return DebtObjectionDecision(False, gate.reason, owed)
     record = register.raise_objection(
         supply_point_id, switch_ref, request_day, ObjectionGround.UNPAID_DEBT,
         notes=f"GBP {owed:.2f} outstanding more than {SLC14_MIN_DAYS_SINCE_NOTICE} days",

@@ -902,7 +902,8 @@ class LivePaymentTriad:
         never billed.
 
         `unpaid_bills_by_age` is `(unpaid GBP, days since the bill)` per bill still owed;
-        `billed_last_year_gbp` is everything billed in the 365 days to `as_of`. Read at the
+        `billed_last_year_gbp` is everything billed in the 365 days to `as_of`;
+        `moratorium_active` is the company's own Breathing Space register on `as_of`. Read at the
         renewal, before this term's bills post -- the no-look-ahead bound `arrears_state` keeps.
         """
         account = account_of(customer_id)
@@ -914,6 +915,7 @@ class LivePaymentTriad:
             "unpaid_bills_by_age": unpaid,
             "billed_last_year_gbp": self._consumer.billed_gbp_between(
                 account, as_of - timedelta(days=365), as_of),
+            "moratorium_active": self._consumer.breathing_space.moratorium_active(account, as_of),
         }
 
     def default_belief_rate(self, as_of: date, arrears_state: str, *, payment_method_of) -> float:

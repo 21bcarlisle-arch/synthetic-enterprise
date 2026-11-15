@@ -278,6 +278,9 @@ class EnforcementAction(str, Enum):
     CONSENT_PPM_OFFER = "consent_ppm_offer"
     AGENCY_HANDOFF = "debt_path_referral_and_agency_handoff"
     SELF_DISCONNECTION_SUPPORT = "self_disconnection_support"
+    #: SLC 14.4(a): blocking a domestic household's switch away for Outstanding Charges. Live in
+    #: every run (`company/market/transfer_objection_register.decide_debt_objection`).
+    DEBT_OBJECTION = "debt_objection_on_switching"
 
 
 #: The actions no company path takes today. Listed so a route built later meets the gate's
@@ -419,10 +422,11 @@ PROTECTION_GROUNDS = {
 }
 
 COVERED, GAP, NOT_APPLICABLE = "covered", "GAP", "n/a"
-_D, _W, _R, _C, _A, _S = (EnforcementAction.DISCONNECTION, EnforcementAction.WARRANT_PPM_INSTALL,
-                          EnforcementAction.REMOTE_SWITCH_TO_PREPAY,
-                          EnforcementAction.CONSENT_PPM_OFFER, EnforcementAction.AGENCY_HANDOFF,
-                          EnforcementAction.SELF_DISCONNECTION_SUPPORT)
+_D, _W, _R, _C, _A, _S, _O = (EnforcementAction.DISCONNECTION, EnforcementAction.WARRANT_PPM_INSTALL,
+                              EnforcementAction.REMOTE_SWITCH_TO_PREPAY,
+                              EnforcementAction.CONSENT_PPM_OFFER, EnforcementAction.AGENCY_HANDOFF,
+                              EnforcementAction.SELF_DISCONNECTION_SUPPORT,
+                              EnforcementAction.DEBT_OBJECTION)
 
 
 def _row(covered=(), gap=()):
@@ -449,6 +453,12 @@ ENFORCEMENT_TABLE = {
     _C: _row(_ALWAYS + _PPM, gap=("psr_needs_codes",)),
     _A: _row(_ALWAYS + ("energy_uk_safety_net", "psr_needs_codes"), gap=("slc_28_15_proportionate",)),
     _S: _row(),
+    # The objection keeps the household supplied, so the winter, PPM and Safety Net cells do not
+    # govern it. Breathing Space: reg 7(7)(a) "a step to collect", read as covering a block whose
+    # notice tells the household to pay to leave (a reading, commons s.5). Own hold: design choice.
+    # 27.8 order, PSR needs and 28.15: no published text read says how they bear on an objection.
+    _O: _row(("own_hold_winter_moratorium", "breathing_space"),
+             gap=("slc_27_5_to_27_8_ability_to_pay", "psr_needs_codes", "slc_28_15_proportionate")),
 }
 
 
