@@ -82,3 +82,26 @@ standard error about 0.6 points.
 **Done means now:** the W2 lane establishes from published switching evidence whether off-gas homes over- or
 under-switch, then fixes the world's campaign selection or the claim's band for campaign winners. Either way
 the `("campaign", "gas_home_share")` entry leaves `KNOWN_ROUTE_GAPS`.
+
+## The open question answered: off-gas homes switch LESS, so the campaign's selection runs the wrong way (worker, 15 Nov 2026)
+
+The knowledge page is `docs/market_research/do_homes_without_gas_switch_less_2026-11-15.md` (K8).
+
+- **Ofgem CES 2017, p.14.** 10% of electricity-only homes switched in the past 12 months. Among homes
+  with both fuels it was 18%: "almost half the proportion". n = 4,001; the no-gas base is about 440, derived.
+- **CMA 2016, App. 9.5, para 62.** The incumbent holds 79% of restricted meters, against 33% of all
+  electricity and 37% of gas.
+- **On raw rates, a switching-built book holds 90 to 94% gas homes** (page §2), not fewer than the stock.
+  The campaign's 79.8% is wrong in direction. Octopus FY25's G/E of 0.80 is the only reading the other way,
+  and it is confounded by acquired books and EV/heat-pump tariffs (page §3).
+- **Why the world does it.** The entry weight `active_renewal_probability_for_customer` is archetype ×
+  channel. Both are per-id draws that never read the premise, so the world's no-gas to gas ratio is 1.0
+  by construction. Selecting on modelled saving then favours off-gas homes.
+- **The remedy is a W2 world build.** A gas-connection factor goes in the entry weight, inside the stated
+  belief range [0.56, 1.0] (the conditional ratio is a GAP). It needs a prediction filed first. The
+  route's gas share should rise above the founders' 84.9%. Then `("campaign", "gas_home_share")` leaves
+  `KNOWN_ROUTE_GAPS`. Not built this tick. The build is world fidelity, decided blind to company results,
+  and its file scope (`simulation/net_new_acquisition.py`) is separate from this note.
+
+**Done means now:** the campaign's entry weight carries the gas-connection gap, the route reads
+`gas_home_share` within the band (prediction: above 84.9%), and the gap entry is removed.
