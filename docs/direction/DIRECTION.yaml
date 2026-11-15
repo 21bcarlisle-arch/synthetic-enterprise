@@ -183,58 +183,82 @@ for_the_director:
 - id: value-test-baseline-and-axis-weighting
   raised: '2026-11-13'
   kind: strategy
-  what: The redesigned value test (docs/design/THE_VALUE_TEST_REDESIGN.md, 16d90c311) leaves two choices that define
-    what "beating a flat supplier" means. First, for the standard-variable pair, whether the flat baseline charges
-    the price cap. Second, whether the result is ever reduced to one number by weighing money against time, carbon
-    and peace of mind, or is reported only as the vector.
-  proposal: The standard-variable pair's flat arm charges the cap, and the efficient-supplier allowance arm (rule
-    4) stays the primary baseline. The result is reported as the M3 vector, with no weighting between axes. Where
-    one arm wins on one axis and loses on another, the page says so in words and declares no winner.
-  recommendation: 'I recommend this. Evidence: an average GB supplier puts its standard-variable households on the
-    cap. So a cap baseline is the "average player" the thesis names, while the efficient allowance tests whether
-    the gain is more than a margin transfer (M2: "charging someone the cap transfers value rather than creating
-    any"). M3 says each need is "measured in its own unit and never converted to pounds", which rules out a weighting
-    I could choose. The trade-off is that a vector with mixed signs gives no headline verdict, and that is the honest
-    reading. Holding position until he rules: steps 1 to 5 go ahead, both baselines are built, and nothing is weighted.
-    What would change it: his ruling that a different flat supplier is the comparator, or a weighting he sets.'
+  what: The redesigned value test (docs/design/THE_VALUE_TEST_REDESIGN.md, 16d90c311) leaves two choices
+    that define what "beating a flat supplier" means. First, for the standard-variable pair, whether the
+    flat baseline charges the price cap. Second, whether the result is ever reduced to one number by weighing
+    money against time, carbon and peace of mind, or is reported only as the vector.
+  proposal: The standard-variable pair's flat arm charges the cap, and the efficient-supplier allowance
+    arm (rule 4) stays the primary baseline. The result is reported as the M3 vector, with no weighting
+    between axes. Where one arm wins on one axis and loses on another, the page says so in words and declares
+    no winner.
+  recommendation: 'I recommend this. Evidence: an average GB supplier puts its standard-variable households
+    on the cap. So a cap baseline is the "average player" the thesis names, while the efficient allowance
+    tests whether the gain is more than a margin transfer (M2: "charging someone the cap transfers value
+    rather than creating any"). M3 says each need is "measured in its own unit and never converted to
+    pounds", which rules out a weighting I could choose. The trade-off is that a vector with mixed signs
+    gives no headline verdict, and that is the honest reading. Holding position until he rules: steps
+    1 to 5 go ahead, both baselines are built, and nothing is weighted. What would change it: his ruling
+    that a different flat supplier is the comparator, or a weighting he sets.'
   status: answered
-  resolution: 'Ruled 13 Nov 18:59 GMT: ''Yes. No. I think a weighted utility score is a good idea and a way to capture
-    enterprise customer value creation. NB this needs to be hidden in the SIM and underlying. The supplier must
-    discover it ?'' The cap baseline stands as proposed. Instead of an unweighted vector, a per-household weighted
-    utility is hidden in the world and the supplier must discover it. The vector is still published beside it. M3
-    draft for the advisor: docs/staging/SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md.
+  resolution: 'Ruled 13 Nov 18:59 GMT: ''Yes. No. I think a weighted utility score is a good idea and
+    a way to capture enterprise customer value creation. NB this needs to be hidden in the SIM and underlying.
+    The supplier must discover it ?'' The cap baseline stands as proposed. Instead of an unweighted vector,
+    a per-household weighted utility is hidden in the world and the supplier must discover it. The vector
+    is still published beside it. M3 draft for the advisor: docs/staging/SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md.
     The first redesigned run reports the vector and the utility follows a run later.'
   resolved: '2026-11-13'
   commitment:
     work_id: value-test-hidden-weighted-utility-knowledge-page-first
-    done_means: M3 amended after the advisor reads the draft; a K8 knowledge page on household need weights (GAPs
-      labelled) published; Sunday's 16 Nov balance proposal names the utility's cost and queue position
+    done_means: M3 amended after the advisor reads the draft; a K8 knowledge page on household need weights
+      (GAPs labelled) published; Sunday's 16 Nov balance proposal names the utility's cost and queue position
     due: '2026-11-23'
 - id: the-off-box-dead-man-misses-stops
   raised: '2026-11-13'
   kind: reserved
-  what: 'The off-box dead-man misses stops of up to ~15h. GitHub delivers its schedule every 4-9h whatever the cron
-    says: 0.139 runs/h at twice-hourly vs 0.159/h hourly, longest gap 8.8h. Pre-registration refuted on both legs.'
-  proposal: Trigger the ops workflow off-box-deadman.yml by workflow_dispatch from the advisor's cloud routine,
-    hourly, with a fine-grained token scoped to actions:write on the ops repo only. Creating the Routine and its
-    token is console-only.
-  recommendation: 'I recommend the hourly workflow_dispatch from the advisor routine. It brings worst-case detection
-    from ~15h to ~7h. The trade-off is one more scoped credential held off the box. Holding position: the twice-hourly
-    cron stays and the 6h threshold is unchanged. What would change this: if GitHub''s delivery improves to gaps
-    under 2h over a week, the routine is not needed.'
+  what: 'The off-box dead-man misses stops of up to ~15h. GitHub delivers its schedule every 4-9h whatever
+    the cron says: 0.139 runs/h at twice-hourly vs 0.159/h hourly, longest gap 8.8h. Pre-registration
+    refuted on both legs.'
+  proposal: Trigger the ops workflow off-box-deadman.yml by workflow_dispatch from the advisor's cloud
+    routine, hourly, with a fine-grained token scoped to actions:write on the ops repo only. Creating
+    the Routine and its token is console-only.
+  recommendation: 'I recommend the hourly workflow_dispatch from the advisor routine. It brings worst-case
+    detection from ~15h to ~7h. The trade-off is one more scoped credential held off the box. Holding
+    position: the twice-hourly cron stays and the 6h threshold is unchanged. What would change this: if
+    GitHub''s delivery improves to gaps under 2h over a week, the routine is not needed.'
   status: answered
-  resolution: 'Ruled 14 Nov 05:56-05:57 GMT through the advisor channel: ''We already have a check don''t we here?''
-    and ''6 hrs is fine. Tell it we have this.'' No routine and no scoped token are created. The advisor''s cloud
-    ''Poesys stall check'' (08:17, 12:17, 16:17, 20:17 UK; alerts on a 6h machine-commit gap) covers off-box detection.
-    The on-box watchdog and the GitHub dead-man stay as they are. While a long job runs, a machine commit lands
-    at least every 6h.'
+  resolution: 'Ruled 14 Nov 05:56-05:57 GMT through the advisor channel: ''We already have a check don''t
+    we here?'' and ''6 hrs is fine. Tell it we have this.'' No routine and no scoped token are created.
+    The advisor''s cloud ''Poesys stall check'' (08:17, 12:17, 16:17, 20:17 UK; alerts on a 6h machine-commit
+    gap) covers off-box detection. The on-box watchdog and the GitHub dead-man stay as they are. While
+    a long job runs, a machine commit lands at least every 6h.'
   evidence: docs/staging/records/SEAT_RESULT_THE_THREE_STOPS_OF_3_TO_10_NOV_HAVE_THREE_DIFFERENT_CAUSES_2026-11-10.md,
-    section 'Result of the pre-registration'; gh run list -R 21bcarlisle-arch/synthetic-enterprise-ops --workflow
-    off-box-deadman.yml --event schedule
+    section 'Result of the pre-registration'; gh run list -R 21bcarlisle-arch/synthetic-enterprise-ops
+    --workflow off-box-deadman.yml --event schedule
   resolved: '2026-11-14'
   commitment:
     work_id: the-advisors-14-nov-steers-are-actioned
-    done_means: The control stack on the Building-it side lists the advisor's cloud stall check with its owner,
-      schedule, 6h threshold and commit-gap-only blind spot, and the ruling file is in advisor/done with a Done
-      section
+    done_means: The control stack on the Building-it side lists the advisor's cloud stall check with its
+      owner, schedule, 6h threshold and commit-gap-only blind spot, and the ruling file is in advisor/done
+      with a Done section
     due: '2026-11-17'
+- id: the-value-test-s-sized-book-candidate
+  raised: '2026-11-15'
+  kind: strategy
+  what: The value test's sized book (candidate C) is beyond one run on this machine. The churn_roll family
+    (THE_VALUE_TEST_REDESIGN.md s.10, ed371fa35) measured roll noise at 43% of per-household variance.
+    So telling GBP 3 per household-year from zero needs about 3,060 households on 12 draws, or 5,030 on
+    one. One run holds about 1,200. Rule 2 sends that to you with its cost.
+  proposal: Run step 6 as one 1,200-household book on 12 churn_roll draws (no sharding; about 72 h of
+    machine time, no sessions beyond grading). It resolves about GBP 4.80 per household-year. Build the
+    sharding for a 3,060-household book (about 2.3 sessions, then 2.5x the machine time) only if A or
+    B shows an effect that the 1,200 book cannot separate from zero.
+  recommendation: 'I recommend the 1,200-household, 12-draw book first. Evidence: s.10''s variances. The
+    trade-off: it cannot resolve the predicted GBP 3, only about GBP 5, so a true GBP 3 would read ''not
+    distinguishable from zero''. Holding position until you rule: A runs on 12 draws, then B if A clears
+    its bar; C is not built. What would change it: you ask for the GBP 3 resolution now, which means building
+    the sharding.'
+  status: open
+  resolution: ''
+  evidence: 'THE_VALUE_TEST_REDESIGN.md s.10: roll share 0.427 (0.30 to 0.54); households needed for GBP
+    3 are 5,032 on K1 and 3,063 on K12; s.6a''s ''neither fires'' row assumed 1,200 at 12 draws resolves
+    GBP 3, and the measurement refutes that.'
