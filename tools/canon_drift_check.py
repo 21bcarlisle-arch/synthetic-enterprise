@@ -682,11 +682,73 @@ UNDER_CLAIM_FORMS = re.compile(
 _SENTENCE = re.compile(r"[^.!?]+(?:[.!?]+|$)")
 
 
-def unbound_negatives(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
+#: Naming a negative is not judging it (A45's Expert Hour, MAJOR 3 residual, 14 Nov). A named
+#: sentence is settled one of two ways: an `absent` claim binds it, or a row here says why no
+#: predicate can be written for it. A judgement is keyed to its verbatim excerpt, so an edited
+#: sentence is named again. Kinds:
+#:   no_witness      it asserts a mechanism does not exist, and nothing exists for a probe to watch
+#:                   (an absent probe on it would be VACUOUS);
+#:   not_about_code  the phrase makes no claim about the code (a heading, a link label, a quote
+#:                   being corrected, a decision awaited);
+#:   summary         it restates claims that are bound (`of:`); it LAPSES -- is named again --
+#:                   the moment any of them stops holding.
+JUDGED_SECTION = "_judged_negatives"
+JUDGED_KINDS = ("no_witness", "not_about_code", "summary")
+
+
+@dataclass(frozen=True)
+class Judgement:
+    page: str
+    excerpt: str
+    kind: str
+    why: str
+    of: tuple[str, ...] = ()
+
+
+def load_judgements(path: Path, claim_ids: set[str]) -> list[Judgement]:
+    """The `_judged_negatives` rows. A malformed row is an ERROR, never a silently hidden sentence."""
+    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    rows = raw.get(JUDGED_SECTION, []) if isinstance(raw, dict) else []
+    if not isinstance(rows, list):
+        raise ProbeError(f"{JUDGED_SECTION} must be a list")
+    out: list[Judgement] = []
+    for row in rows:
+        if not isinstance(row, dict) or not all(
+                isinstance(row.get(k), str) and row[k].strip() for k in ("page", "excerpt", "kind", "why")):
+            raise ProbeError(f"{JUDGED_SECTION}: every row needs page, excerpt, kind and why ({row!r:.80})")
+        if row["kind"] not in JUDGED_KINDS:
+            raise ProbeError(f"{JUDGED_SECTION}: unknown kind {row['kind']!r} ({row['excerpt']!r:.60})")
+        of = tuple(row.get("of") or ())
+        if row["kind"] == "summary" and not of:
+            raise ProbeError(f"{JUDGED_SECTION}: a summary names the claims it restates ({row['excerpt']!r:.60})")
+        unknown = [c for c in of if c not in claim_ids]
+        if unknown:
+            raise ProbeError(f"{JUDGED_SECTION}: {row['excerpt']!r:.60} summarises unknown claim(s) {unknown}")
+        out.append(Judgement(row["page"], row["excerpt"], row["kind"], row["why"].strip(), of))
+    return out
+
+
+def _stale_judgements(root: Path, judgements: list[Judgement]) -> list[str]:
+    """Judgements whose excerpt left its markdown page (or whose page is not markdown): they hide
+    nothing, and are printed so the row is cleared."""
+    stale: list[str] = []
+    for j in judgements:
+        page = root / j.page
+        text = (_normalise(page.read_text(encoding="utf-8", errors="replace"))
+                if j.page.endswith(".md") and page.exists() else "")
+        if text.find(_normalise(j.excerpt)) < 0:
+            stale.append(f"{j.page}: {j.excerpt}")
+    return stale
+
+
+def unbound_negatives(root: Path, claims: list[Claim], judgements: list[Judgement] = (),
+                      holding: set[str] | None = None) -> dict[str, list[str]]:
     """Per markdown page: each sentence holding a "the code lacks X" phrase no anchor covers.
 
     Those are the under-claims nothing can catch. Each needs an `absent` claim, or nothing checks
-    it. Coverage, like `unwatched_sections`, so it never moves the exit status.
+    it, or a written judgement (`JUDGED_SECTION`) saying why nothing can. A `summary` judgement
+    covers only while every claim it restates is in `holding`. Coverage, like `unwatched_sections`,
+    so it never moves the exit status.
     """
     out: dict[str, list[str]] = {}
     for page_rel in sorted({c.page for c in claims if c.page.endswith(".md")}):
@@ -695,6 +757,13 @@ def unbound_negatives(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
             continue
         text = _normalise(page.read_text(encoding="utf-8", errors="replace"))
         spans: list[tuple[int, int]] = []
+        covering = [_normalise(j.excerpt) for j in judgements if j.page == page_rel
+                    and (j.kind != "summary" or (holding is not None and set(j.of) <= holding))]
+        for excerpt in covering:
+            at = text.find(excerpt)
+            while at >= 0:
+                spans.append((at, at + len(excerpt)))
+                at = text.find(excerpt, at + 1)
         for claim in claims:
             if claim.page != page_rel:
                 continue
@@ -717,7 +786,9 @@ def unbound_negatives(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
 
 def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
     claims = load_register(register)
+    judgements = load_judgements(register, {c.id for c in claims})
     verdicts = [evaluate(claim, root) for claim in claims]
+    holding = {v.claim.id for v in verdicts if v.verdict == HOLDS}
     counts: dict[str, int] = {}
     for verdict in verdicts:
         counts[verdict.verdict] = counts.get(verdict.verdict, 0) + 1
@@ -733,14 +804,18 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
         # claim's verdict -- there is no claim left to give one to.
         "removed": removed_claims(register, current={c.id for c in claims}),
         "unwatched_sections": unwatched_sections(root, claims),
-        "unbound_negatives": unbound_negatives(root, claims),
+        "unbound_negatives": unbound_negatives(root, claims, judgements, holding),
+        "judged_negatives": len(judgements),
+        # A judgement whose excerpt left its page hides nothing; it is printed so the row is cleared.
+        "stale_judgements": _stale_judgements(root, judgements),
     }
     return verdicts, report
 
 
 def _render(verdicts: list[Verdict], removed: list[str] | None = None,
             unwatched: dict[str, list[str]] | None = None,
-            negatives: dict[str, list[str]] | None = None) -> str:
+            negatives: dict[str, list[str]] | None = None,
+            judged: int = 0, stale: list[str] | None = None) -> str:
     lines = ["CANON DRIFT CHECK -- what the page claims that the code no longer supports", ""]
     for verdict in verdicts:
         lines.append(f"  [{verdict.verdict:<10}] {verdict.claim.id}")
@@ -762,6 +837,11 @@ def _render(verdicts: list[Verdict], removed: list[str] | None = None,
             lines.append(f"UNBOUND NEGATIVES on {page} -- {len(sentences)} \"the code lacks X\" "
                          f"sentence(s) no absent claim checks, so an under-claim there is unseen:")
             lines.extend(f"  - {sentence}" for sentence in sentences)
+    if judged:
+        lines.append(f"JUDGED NEGATIVES -- {judged} named sentence(s) settled in `{JUDGED_SECTION}` as "
+                     "unregisterable, each with its reason")
+    for item in stale or []:
+        lines.append(f"  [STALE JUDGEMENT] excerpt no longer on its page, clear the row: {item}")
     if removed:
         lines.append("")
         lines.append("CLAIMS THAT LEFT THE REGISTER -- a row nothing checks any more:")
@@ -1089,7 +1169,8 @@ def main(argv: list[str] | None = None) -> int:
 
     print(json.dumps(report, indent=2) if args.json
           else _render(verdicts, report["removed"], report.get("unwatched_sections"),
-                       report.get("unbound_negatives"))
+                       report.get("unbound_negatives"), report.get("judged_negatives", 0),
+                       report.get("stale_judgements"))
           + _render_site(report["site"]))
     if args.write_report:
         out = root / DEFAULT_REPORT

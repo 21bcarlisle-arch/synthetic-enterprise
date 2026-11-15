@@ -223,6 +223,22 @@ claims:
       and be wired to nothing. It deliberately does NOT accept `simulation/` as a reader -- a world
       module reading this figure would be the epistemic defect, not the evidence.
 
+  - id: MISSION_the_household_share_is_read_by_no_decision_surface
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "read by no decision surface"
+    claim: "no supplier decision module calls the household money-share builder; only measuring tools do"
+    expects: absent
+    probe:
+      kind: token_live
+      token: build_household_value_share
+      roots: [company, saas]
+      exclude: [company/analytics/household_value_share.py]   # the definer is not a reader
+    note: >-
+      Bound 2026-11-15 from the check's own list of unbound negatives. The witness is the three
+      tools that do call it (price ladder, value-cycle A/B, seed_family), so the probe is not
+      vacuous. A `company/` or `saas/` caller makes it SUPERSEDED: the page would under-claim, and
+      `tests/company/test_household_share_is_not_yet_a_target.py` would want reading beside it.
+
   - id: SITE_the_front_door_says_the_household_saving_is_measured
     page: site/capabilities/index.html
     anchor: "its own metered volumes"
@@ -374,6 +390,77 @@ claims:
     note: >-
       The sheets generator imports the picture's helpers and is not a publisher, hence the
       exclusion. Evidence today: `tools/generate_dashboard_data.py` imports `write`.
+
+# THE JUDGED NEGATIVES -- named "not yet" sentences that no predicate can bind, each with its
+# reason (`tools/canon_drift_check.JUDGED_SECTION`). Keyed to a verbatim excerpt holding the
+# phrase, so an edited sentence is named again. A `summary` lapses when a claim it restates stops
+# holding. Judged 2026-11-15; left NAMED on purpose because they need a judgement this pass could
+# not settle: the spine's debt clause ("arrears do not yet arrive coupled to wholesale peaks"), the
+# organs line's "moneyness trigger absent", and "Abate ... is not yet instrumented at all".
+_judged_negatives:
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "it is **absent**, and it is the only cell in the table that is"
+    kind: no_witness
+    why: >-
+      The household time currency. Checked 2026-11-15: the only `effort_minutes` symbols are the
+      company's own decision-rights rate card (staff minutes), not household minutes. With no
+      symbol, an absent probe would be VACUOUS.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "never converted to pounds (M3); not yet instrumented | not yet instrumented"
+    kind: no_witness
+    why: The table's time row, both sides; the cell the sentence above calls absent.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "Time, household minutes: not yet instrumented"
+    kind: no_witness
+    why: The picture's copy of the time cell above; same reason.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "Two of the three channels therefore cannot yet create the value"
+    kind: no_witness
+    why: >-
+      Advice's half is MISSION_switching_advice_has_no_recipient. Modelling's half ("nothing it
+      computes is ever offered to the household") has no probe: the run loop already hosts
+      customer_value_view as the company, and a household module could never import company code,
+      so the route by which modelling would reach a household (an observable across the seam) does
+      not exist to be watched.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "Nobody yet targets the company's book."
+    kind: no_witness
+    why: >-
+      competitor_reference defends prices; no mechanism exists by which a rival acts on the
+      company's customers, so there is no name to probe. The C2 rival claim is what moves first.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "Going after the company’s book: not yet."
+    kind: no_witness
+    why: The picture's copy of "Nobody yet targets the company's book"; same reason.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: 'not_yet: ["contests:", "not yet"]'
+    kind: no_witness
+    why: The picture block's rival node, the same claim a third time.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "and abatement is still unmeasured, because nothing supplies the counterfactual it needs"
+    kind: summary
+    of: [CARBON_the_three_ledger_is_called_by_nothing]
+    why: Abatement is what the three-ledger would measure; the ledger is bound as called by nothing.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: 'Corrected 14 Nov 2026: "none of them presses yet" is no longer true of competition'
+    kind: not_about_code
+    why: Quotes the negative in order to correct it.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "(registered, sequenced, not yet true)"
+    kind: not_about_code
+    why: Timeframe 2's heading; not yet true by definition.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "is **blocked on a director IA decision**"
+    kind: not_about_code
+    why: Awaits a decision, not code.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "with its test and what it cannot yet do."
+    kind: not_about_code
+    why: A link label describing the capabilities page.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "and what is not yet measured."
+    kind: not_about_code
+    why: A link label describing the capabilities page.
 
 _retired:
   MISSION_decarb_advice_has_no_recipient: >-
