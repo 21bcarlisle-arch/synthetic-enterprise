@@ -1029,3 +1029,13 @@ half of that is refuted by this family's own variances.** At 12 draws a £3 effe
 household-year, and about £6.10 on one draw. So C is still beyond one run on this machine. Under
 rule 2 it goes to the director with its cost, as in §6a's first two rows, and it is raised in
 `for_the_director` (`the-value-test-s-sized-book-candidate`) with a recommendation. A and B do not wait on that.
+
+**Candidate A launched, 15 Nov 09:44Z: the twelve-draw shape.** §10 lands in §6a's "neither fires" row, so
+twelve draws run, not one. A and its twin both run in the worktree `/var/tmp/value-test-candidate-a`,
+pinned at `ed371fa35`, which has `7a7ad95dc` as an ancestor. A (`VTA_FLAG=1`) runs as
+`longjob-value-test-candidate-a-flag1` into `/var/tmp/vta-out-flag1/`. Its twin (`VTA_FLAG=0`)
+runs as `longjob-value-test-candidate-a-flag0` into `/var/tmp/vta-out-flag0/`. The twin is queued
+behind A's pid, because each peaks at about 11.5 GB and the two do not fit together. They take about
+19 h each, so the twin should read about **Tue 17 Nov 05:00Z**. The driver and grader are §9's,
+unchanged. The grader inherits §10's household fold, because re-rolled dice create the same
+second accounts. A1 is read paired by seed, not against the 0.661 bar.
