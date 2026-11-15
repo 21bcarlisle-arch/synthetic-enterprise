@@ -95,6 +95,8 @@ EXPECTED_CLAIM_IDS = frozenset({
     "PICTURE_the_svg_is_generated_at_publish",
     # 2026-11-15, bound from the unbound-negatives list: the share is read by no decision surface.
     "MISSION_the_household_share_is_read_by_no_decision_surface",
+    # 2026-11-15, the per-section MINOR: the tariffs channel, the one the page calls LIVE.
+    "MISSION_the_offered_rate_reaches_the_churn_decision",
 })
 
 PAGE_TEXT = """# A PAGE
@@ -697,3 +699,27 @@ def test_a_closed_item_is_not_reminted_and_a_different_drift_is(tmp_path):
     second = mint_drift_item(run(root2, register2)[1], staging, today="2026-11-15")
     assert second is not None and second.name != first.name
     assert second.read_text(encoding="utf-8").startswith("**Severity:** LATENT")
+
+
+# ---------------------------------------------------------------- the `called` probe
+
+def _called_claim(expects: str) -> Claim:
+    return Claim(id="c", page="docs/page.md", anchor="`price_sensitivity` reaches the churn decision",
+                 claim="the roll reads the offered rate", expects=expects,
+                 probe={"kind": "called", "function": "_differential", "roots": ["simulation"]})
+
+
+@pytest.mark.parametrize("body, expects, verdict", [
+    # The live shape: defined and called. Present holds; absent is superseded.
+    ("def _differential(r):\n    return r\n\ndef roll(r):\n    return _differential(r)\n", "present", HOLDS),
+    ("def _differential(r):\n    return r\n\ndef roll(r):\n    return _differential(r)\n", "absent", SUPERSEDED),
+    # The defect it was written for: the call cut, the def left. A token probe stayed green here.
+    ("def _differential(r):\n    return r\n\ndef roll(r):\n    return 1.0\n", "present", OVER_CLAIM),
+    ("def _differential(r):\n    return r\n\ndef roll(r):\n    return 1.0\n", "absent", HOLDS),
+    # No such function anywhere: an absent claim watches a name, so it refuses.
+    ("def roll(r):\n    return 1.0\n", "absent", ERROR),
+])
+def test_the_called_probe_ignores_the_def_and_can_hold_flip_and_refuse(tmp_path, body, expects, verdict):
+    root, _ = _mini_repo(tmp_path)
+    (root / "simulation/customer_events.py").write_text(body, encoding="utf-8")
+    assert evaluate(_called_claim(expects), root).verdict == verdict

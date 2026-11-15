@@ -316,6 +316,25 @@ def probe_call_site(root: Path, spec: dict[str, Any]) -> list[str]:
     return hits
 
 
+def probe_called(root: Path, spec: dict[str, Any]) -> list[str]:
+    """Every CALL to `function` under `roots`. The definition is not a call, so it is no hit.
+
+    The tariff channel's shape: the churn decision reads the offered rate only through
+    `_price_differential_vs_market`. A `token_live` probe on that name would still match its
+    `def` after the call was cut, so it could not go red on the defect it was written for.
+    """
+    hits: list[str] = []
+    for path in _iter_py(root, spec["roots"], spec.get("exclude", [])):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+        except SyntaxError as exc:
+            raise ProbeError(f"{path}: will not parse ({exc})") from exc
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and _called_name(node) == spec["function"]:
+                hits.append(f"{path.relative_to(root).as_posix()}:{node.lineno} calls {spec['function']}")
+    return hits
+
+
 def _called_name(node: ast.Call) -> str | None:
     if isinstance(node.func, ast.Name):
         return node.func.id
@@ -339,6 +358,7 @@ PROBES: dict[str, Callable[[Path, dict[str, Any]], list[str]]] = {
     "import_edge": probe_import_edge,
     "text_in_file": probe_text_in_file,
     "call_site": probe_call_site,
+    "called": probe_called,
 }
 
 
@@ -378,6 +398,18 @@ def _witness(root: Path, spec: dict[str, Any]) -> str | None:
         spec_all = {**spec, "keyword": "\0never", "value": ""}
         calls = probe_call_site(root, spec_all)  # every call reports, since no keyword matches
         return calls[0] if calls else None
+    if kind == "called":
+        # The function must be DEFINED somewhere live, or "nothing calls it" watches a name.
+        roots = [r for r in WITNESS_ROOTS if (root / r).is_dir()]
+        for path in _iter_py(root, roots, []):
+            try:
+                tree = ast.parse(path.read_text(encoding="utf-8", errors="replace"))
+            except SyntaxError:
+                continue  # an unparseable file is no witness: the closed direction
+            if any(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == spec["function"]
+                   for n in ast.walk(tree)):
+                return path.relative_to(root).as_posix()
+        return None
     if kind == "literal_assign":
         return spec["file"]  # the probe itself refuses a name that is not assigned
     if kind == "text_in_file":

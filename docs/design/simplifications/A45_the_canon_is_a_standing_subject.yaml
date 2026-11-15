@@ -85,3 +85,17 @@ map_records:
     fourth copy of "Nobody yet targets the company's book". Named 2 -> 0. No prediction was filed
     before this pass, so the count is a reading, not a test. Open: the per-section MINOR (three
     sections unwatched) and a fresh Expert Hour pass. Level held at 2.
+  - >-
+    Per-section MINOR, 2026-11-15. Its three named examples of claims sitting unbound in a "watched"
+    section are now all settled: the renewal ceiling was bound on 14 Nov; the tariffs channel ("the
+    rate reaches the customer's churn decision") is bound as
+    MISSION_the_offered_rate_reaches_the_churn_decision, using a new `called` probe, because a
+    `token_live` probe on `_price_differential_vs_market` matches its own def and stays green after
+    the call is cut (mutation: count the def as a call, and 2 of 5 cases go red); modelling's "never
+    offered" is judged no_witness. The register's "NOT REGISTERED" comment, which the MINOR called
+    overtaken, is corrected. The probe watches the second link only, the roll reading the rate it is
+    given; the run loop hands the rate over through `**_roll_kwargs`, which no AST probe here reads.
+    Still open, and structural: coverage is counted per section, so a section with one anchor reads
+    as watched. The three sections left unwatched (the preamble, the mission quote, fidelity) are
+    purpose prose and make no claim about the code. 23 claims checked, 0 drifting. Level held at 2;
+    next is a fresh Expert Hour pass.

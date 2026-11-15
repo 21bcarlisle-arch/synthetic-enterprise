@@ -205,14 +205,10 @@ claims:
   # anything in the world calls it -- so it is registerable, and it must report SUPERSEDED the day
   # advice reaches a household rather than waiting for someone to re-read the page.
   #
-  # NOT REGISTERED, AND WHY (this register's own rule: a claim needing a judgement call does not
-  # belong here). Two of the mission's claims cannot be bound to a predicate today:
-  #   * "time has never appeared in this project at all" -- absence of a FAMILY of names, not a
-  #     token. Any single token would pass trivially and prove nothing (a tautology probe).
-  #   * "the score has no household side" -- the token that would falsify it does not exist yet,
-  #     so binding to a name I invent would go FAIL-SILENT if the build chose another name.
-  # Both are stated on the page with their evidence and carry atoms (C31, A47) instead. When A47
-  # lands its household-side figure, the name it introduces becomes registerable and belongs here.
+  # The two mission claims once held back here as unregisterable are overtaken (2026-11-15):
+  # "the score has no household side" was registered the day A47 landed its figure
+  # (MISSION_the_household_side_of_money_is_instrumented, and ..._read_by_no_decision_surface);
+  # the page's time sentences are settled in `_judged_negatives` as no_witness.
   - id: MISSION_switching_advice_has_no_recipient
     page: docs/design/THE_MODEL_ON_A_PAGE.md
     anchor: "nothing in `simulation/` consumes a recommendation"
@@ -227,6 +223,23 @@ claims:
       they are not under `simulation/` at all -- the probe asks only whether the WORLD reads it.
       That is the difference between a channel and a feature, and it is the same test C1 applies
       to `green_stance`.
+
+  # The tariffs channel, the one the page calls LIVE. Bound 2026-11-15 from the Expert Hour's
+  # per-section MINOR: its section was "watched" by the advice anchor alone.
+  - id: MISSION_the_offered_rate_reaches_the_churn_decision
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "the rate reaches the customer's churn decision (`simulation/customer_events.py`)"
+    claim: "the world's departure roll reads THIS customer's offered rate against the market reference"
+    expects: present
+    probe:
+      kind: called
+      function: _price_differential_vs_market
+      roots: [simulation/customer_events.py]
+    note: >-
+      `called`, not `token_live`: the name's own `def` would hold a token probe green after the
+      call was cut. Watches the second link only (the roll reads the rate it is given). The first
+      link, the run loop handing over `unit_rate`, goes through `**_roll_kwargs` in run_phase2b,
+      which no AST probe here can read; the per-customer price ladder is what would show it cut.
 
   # ---------------------------------------------------------------- A47: the household side
   # Registered the same day the figure landed, which is the point of the register: the canon
