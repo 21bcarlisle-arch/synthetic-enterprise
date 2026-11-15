@@ -177,6 +177,16 @@ from tools import simplifications_store as _atom_store  # noqa: E402 (H41 record
 
 SESSION_NAME = "claude"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "supervisor-log.md"
+# THE LOG IS CAPPED (2026-11-15): nothing trimmed it, and at 694 MB, growing ~7 MB a day, every
+# `grep -r docs/` and tree scan read it. Past the cap the whole file moves to a dated archive
+# OUTSIDE the repository and the newest tail, cut at an entry boundary, stays as the live file.
+# The archive is not truncated afterwards: an entry a concurrent writer appends during the move
+# lands in the archive rather than being lost, at the price of the tail appearing in both.
+# Sizes are operator housekeeping, not domain constants: big enough that a day's draws stay in
+# the tree, small enough that a scan of it costs nothing.
+LOG_CAP_BYTES = 32 * 1024 * 1024
+LOG_KEEP_BYTES = 8 * 1024 * 1024
+LOG_ARCHIVE_DIR = Path.home() / "synthetic-enterprise-log-archive"
 STAGING_DIR = PROJECT_DIR / "docs" / "staging"
 USAGE_PAUSE_FILE = PROJECT_DIR / "docs" / "observability" / ".usage_pause.json"
 
@@ -531,6 +541,38 @@ def log(msg: str) -> None:
     with open(LOG_FILE, "a") as f:
         f.write(entry)
     print(entry)
+    _cap_log_file()
+
+
+def _cap_log_file() -> Path | None:
+    """Move an over-cap `LOG_FILE` to `LOG_ARCHIVE_DIR` and keep its newest entries in place.
+
+    Returns the archive path when it rotated, else None. Never raises: a log that cannot be
+    rotated is still a log, and the supervisor's tick must not die on housekeeping."""
+    try:
+        if LOG_FILE.stat().st_size <= LOG_CAP_BYTES:
+            return None
+        LOG_ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        archive = LOG_ARCHIVE_DIR / f"supervisor-log_{stamp}.md"
+        n = 1
+        while archive.exists():  # two rotations in one second must not overwrite each other
+            archive = LOG_ARCHIVE_DIR / f"supervisor-log_{stamp}_{n}.md"
+            n += 1
+        LOG_FILE.rename(archive)
+        with open(archive, "rb") as f:
+            f.seek(max(0, archive.stat().st_size - LOG_KEEP_BYTES))
+            tail = f.read()
+        cut = tail.find(b"\n- [")
+        tail = tail[cut:] if cut >= 0 else b""
+        moved = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        header = f"- [{moved}] Log capped: older entries are in {archive}".encode()
+        with open(LOG_FILE, "ab") as f:
+            f.write(header + tail)
+        return archive
+    except OSError as exc:
+        print(f"supervisor log cap: could not rotate {LOG_FILE}: {exc}")
+        return None
 
 
 def ntfy(msg: str) -> None:

@@ -21,3 +21,25 @@ once per change rather than once per tick. Then test that a write past the cap l
 ## Reverse
 
 Delete this file.
+
+## Done (worker tick, 15 Nov 2026 ~13:30 GMT)
+
+`supervisor.log()` now calls `_cap_log_file()` after each append. Past `LOG_CAP_BYTES` (32 MB), the
+whole file moves to `~/synthetic-enterprise-log-archive/supervisor-log_<UTC stamp>.md`, outside the
+repository. The newest `LOG_KEEP_BYTES` (8 MB), cut at an entry boundary, stays as the live file under
+a `Log capped: older entries are in <path>` entry. The archive is not truncated, so an entry a
+concurrent writer appends during the move is kept and not lost. Rotation failures print and never
+raise.
+
+Test: `tests/background/test_the_supervisor_log_is_capped_and_its_head_moves_out_of_the_repository.py`
+covers the rotation actually firing, the live file staying under the cap, every kept line being whole,
+nothing being lost, and nothing moving under the cap. Three mutations each turn it red: the call
+removed, the cut at byte 0, and the same-second archive name collision. The collision was a real
+defect, found by the test before landing.
+
+The live daemon picks this up at its next restart. The first rotation of the ~700 MB file is a rename
+plus an 8 MB read. The other append-only `*-log.md` files are not capped here.
+
+## Reverse
+
+Revert the commit. Archived logs stay in `~/synthetic-enterprise-log-archive/`.
