@@ -40,16 +40,16 @@ receives, or held on the register entry the notice concerns. None of these
 types may carry the household's true financial position, why it sought debt
 advice, or anything about a moratorium the creditor was not notified of.
 
-THE PRODUCER AND THE CONSUMER (W2_44, 2026-11-15). The world draws standard
-moratoria for households in arrears (`simulation/debt_respite_draw.py`), at a
-DERIVED rate whose sources and range are in
-`docs/market_research/debt_and_collections.md`, "The entry rate (E9)". The
-company enters each start notice on its register
-(`PaymentObservationConsumer.observe_moratorium_start`). Only the start notice
-has a producer: no end, cancellation or mental health crisis notice is drawn
-yet, and the module says why for each. Framed and authenticated like every
-other notification seam: the world holds a stand-in credential and the company
-holds its fingerprint.
+THE PRODUCER AND THE CONSUMER (W2_44, W2_45, 2026-11-15). The world draws
+standard and mental health crisis moratoria for households in arrears
+(`simulation/debt_respite_draw.py`), at a DERIVED rate whose sources and range
+are in `docs/market_research/debt_and_collections.md`, "The entry rate (E9)".
+The company enters each start notice on its register
+(`PaymentObservationConsumer.observe_moratorium_start`). An MHCM's end notice
+(reg 32(2)(a)) closes it (`observe_moratorium_end_wire`). The standard end and
+every cancellation notice have no producer yet; the module says why. Framed
+and authenticated like every other notification seam: the world holds a
+stand-in credential and the company holds its fingerprint.
 
 NO SIM/GENERATOR/COMPANY SYMBOL: pure contract, checked by
 `tests/interface/test_debt_respite_seam.py`.

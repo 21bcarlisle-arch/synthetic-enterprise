@@ -5095,7 +5095,8 @@ def test_THE_LIVE_TREE_authenticates_every_business_side_decode():
     assert v.ok, v.report()
     assert not v.unauthenticated, v.unauthenticated
     # 11 since W2_44 (2026-11-15): `observe_moratorium_start_wire`, framed.
-    assert len(v.authenticated) == 11, v.authenticated
+    # 12 since W2_45 (2026-11-15): `observe_moratorium_end_wire`, framed.
+    assert len(v.authenticated) == 12, v.authenticated
     assert {e.split(":")[0] for e in v.authenticated} == {
         "company/billing/payment_observation_consumer.py",
         "company/comms/susceptibility_estimator.py",

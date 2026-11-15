@@ -24,11 +24,17 @@ went unpaid). It is published as `LivePaymentTriad.moratoria_notified`. The coun
 (tens, not hundreds, on a book of a few thousand), and debt objections should fall by about that
 count at most. If a run shows more than 2x the formula, the 12-month bar or the household-month
 dedupe is not holding.
+*Amended by W2_45, before any run:* `moratoria_notified` now counts MHCM starts too. That adds
+about 1.5% of the standard count. `LivePaymentTriad.mental_health_crisis_moratoria` gives MHCMs
+started and ended. Predicted: started is about 0.015 x the standard count, and every MHCM that
+starts more than 72 days before the run's last bill has ended.
 
 ## Not drawn, each a way the world is still wrong
-1. **Mental health crisis moratoria** (1.5-1.7% of registrations). They have no end a source sizes,
-   and a register with no end notice holds one forever. *Next:* an end notice keyed to a treatment
-   length, once one is sourced.
+1. ~~**Mental health crisis moratoria** (1.5-1.7% of registrations). They have no end a source sizes,
+   and a register with no end notice holds one forever.~~ **Drawn since W2_45 (2026-11-15).** The
+   treatment length is a stated belief, 13-42 days (CRHT median 13; RCPsych "three to six weeks").
+   No duration count was found (GAP E11). The register's end notice closes the record through
+   `observe_moratorium_end_wire`. The no-reply limb, reg 32(2)(b)-(c), is still undrawn.
 2. **Midway cancellation** (day 25-35). No source counts it. Omitting it over-protects.
 3. **Added-debt notices** (reg 15). They matter only once the world has a second debt.
 4. **Nation.** The world holds none, so Scottish households, who fall under the moratorium on

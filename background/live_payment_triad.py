@@ -1201,8 +1201,13 @@ class LivePaymentTriad:
 
     @property
     def moratoria_notified(self) -> int:
-        """How many Breathing Space start notices the world sent this run (W2_44)."""
+        """How many Breathing Space start notices the world sent this run (W2_44), either type."""
         return self._moratoria.notices_sent
+
+    @property
+    def mental_health_crisis_moratoria(self) -> dict:
+        """MHCMs the world started and ended this run (W2_45). An unended one is still in force."""
+        return {"started": self._moratoria.mhcm_started, "ended": self._moratoria.mhcm_ended}
 
     def early_contact_summary(self) -> dict:
         """What contacts early in difficulty did, as the world knows it (never crosses)."""
@@ -1682,6 +1687,11 @@ class LivePaymentTriad:
         if moratorium is not None:
             self._consumer.observe_moratorium_start_wire(moratorium)
             self._cf_consumer.observe_moratorium_start_wire(moratorium)
+        # A mental health crisis moratorium has no fixed end; the register's end notice is the only
+        # thing that ends it (W2_45). Handed over once the world's clock reaches its end day.
+        for ended in self._moratoria.end_notices_due(due_date):
+            self._consumer.observe_moratorium_end_wire(ended)
+            self._cf_consumer.observe_moratorium_end_wire(ended)
 
         # ---- D8 counterfactual: the SAME event, remittance-complete --------
         # `correlation_id` is what the adapter puts in `RemittanceAdvice.

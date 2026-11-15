@@ -186,7 +186,9 @@ from company.interfaces.wall_protocol import (
 )
 from interface.contracts.debt_respite_seam import (
     BREATHING_SPACE_REGISTER_SENDER,
+    MORATORIUM_END_NOTIFICATION_TYPE,
     MORATORIUM_START_NOTIFICATION_TYPE,
+    MoratoriumEndNotice,
     MoratoriumStartNotice,
     MoratoriumType,
     NotifiedDebt,
@@ -886,6 +888,26 @@ def decode_moratorium_start_payload(raw: Any) -> MoratoriumStartNotice:
     )
 
 
+def decode_moratorium_end_payload(raw: Any) -> MoratoriumEndNotice:
+    """A register end notice off the wire (reg 32(2)(a) for an MHCM, W2_45), or a refusal that
+    says why. The same two belts as the start notice."""
+    if not isinstance(raw, Mapping):
+        raise ValueError(f"moratorium payload must be a mapping, got {type(raw).__name__}")
+    leaking = sorted(set(raw) & set(MORATORIUM_TRUTH_FIELDS))
+    if leaking:
+        raise ValueError(f"a moratorium end notice carried world truth: {leaking}")
+    expected = set(MORATORIUM_PAYLOAD_FIELDS["MoratoriumEndNotice"])
+    if set(raw) != expected:
+        raise ValueError(f"moratorium end payload fields {sorted(raw)} are not the contract's "
+                         f"{sorted(expected)}")
+    reason = raw["reason_text"]
+    return MoratoriumEndNotice(
+        register_entry_ref=str(raw["register_entry_ref"]),
+        end_date=dt.date.fromisoformat(raw["end_date"]),
+        reason_text=None if reason is None else str(reason),
+    )
+
+
 class PaymentObservationConsumer:
     """Consumes a stream of `WallResponse`-wrapped payment observables one at
     a time (any order, any lateness, possibly never for a given payment) and
@@ -927,6 +949,8 @@ class PaymentObservationConsumer:
             breathing_space if breathing_space is not None else BreathingSpaceRegister()
         )
         self._moratorium_notices_seen: set = set()
+        # register_entry_ref -> this register's record ids, so an end notice finds what it ends.
+        self._moratorium_records_by_ref: dict = {}
         # THE COLLECTIONS JOURNEY (atom EP4). It reads the SAME collections view the arrears state
         # reads, so the step a journey records is the step this company would have selected, and it
         # refuses any step the ledger says is taken against a cleared debt.
@@ -1455,7 +1479,34 @@ class PaymentObservationConsumer:
                     if account in self.ledger_book.accounts() else 0.0)
             entered.append(self.breathing_space.register_entry(
                 account, bs_type, notice.start_date, debt_frozen_gbp=round(owed, 2)).record_id)
+        self._moratorium_records_by_ref[notice.register_entry_ref] = tuple(entered)
         return tuple(entered)
+
+    def observe_moratorium_end_wire(self, wire: Any) -> Tuple[str, ...]:
+        """Close the register records a Secretary of State end notice names (W2_45): the only way
+        a mental health crisis moratorium, which has no fixed end, stops holding collections.
+        Returns the record ids completed; a redelivered notice completes nothing.
+
+        REFUSES an end notice for an entry this company never received a start for, naming it:
+        an end with nothing to end is a broken stream, and guessing the account would close a
+        moratorium the register never told us about."""
+        sender, notification = decode_framed_notification(
+            wire, decode_payload=decode_moratorium_end_payload)
+        if (sender != BREATHING_SPACE_REGISTER_SENDER
+                or notification.notification_type != MORATORIUM_END_NOTIFICATION_TYPE):
+            raise ValueError(f"{sender!r}/{notification.notification_type!r} is not the Breathing "
+                             "Space register's end notice, so it cannot end a moratorium")
+        if notification.notification_id in self._moratorium_notices_seen:
+            return ()
+        notice = notification.payload
+        records = self._moratorium_records_by_ref.get(notice.register_entry_ref)
+        if records is None:
+            raise ValueError(f"end notice for register entry {notice.register_entry_ref!r}, "
+                             "which no start notice opened on this register")
+        self._moratorium_notices_seen.add(notification.notification_id)
+        for record_id in records:
+            self.breathing_space.complete(record_id, notice.end_date)
+        return records
 
     def conversation(self, correlation_id: str) -> Optional[CrossingConversation]:
         """The exchange behind one correlation id, or `None` where this company

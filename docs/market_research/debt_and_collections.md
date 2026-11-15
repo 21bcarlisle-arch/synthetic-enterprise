@@ -1487,12 +1487,53 @@ three published figures:
   drawn, so the realised count runs below rate x Ofgem's stock.
 
 **Not drawn, each named in the module:**
-- **Mental health crisis moratoria** (1.5-1.7%). Their end is a treatment date nothing sizes, so a
-  drawn one would never end.
+- ~~**Mental health crisis moratoria** (1.5-1.7%). Their end is a treatment date nothing sizes, so a
+  drawn one would never end.~~ *Drawn since W2_45 (2026-11-15), with an end notice; see the next
+  section.*
+- **The MHCM's no-reply end** (reg 32(2)(b)-(c)). It is uncounted, and it can only end one earlier.
 - **Midway cancellations.** These are uncounted. Leaving them out over-protects, and that can only
   constrain the company.
 - **Added-debt notices.**
 - **End notices.** The register ends day 60 itself.
+
+### The mental health crisis moratorium's length (W2_45, 2026-11-15): a stated belief, with its range
+**The rule (ESTABLISHED, SI 2020/1311 reg 32(2)(a)).** It ends at "the end of the period of 30 days
+beginning with the day on which the debtor stops receiving mental health crisis treatment". There is
+also an earlier no-reply limb. The register sends the creditor an end notice. Its length is treatment
+still to run, plus 30 days.
+
+**How long it runs: NOT ESTABLISHED.** No Insolvency Service table, evaluation or commentary found
+(15 Nov) gives MHCM durations; the long-run CSV counts entries only. The treatment proxies found:
+- A UK crisis resolution home treatment (CRHT) service audit gives a **median episode of 13 days**
+  (mean 14.6). It cites the 2017 national survey's typical episode as **about 21 days**.
+  ([Titheradge, *Continuity of care in a CRHT team*](https://wileymicrositebuilder.com/progress/wp-content/uploads/sites/28/2019/02/OR-Titheradge-crisis-resolution-002-lsw.pdf))
+- RCPsych's CRHTT practice guidelines (2022) say patients are under crisis home treatment for **"an
+  average of three to six weeks"**.
+  ([RCPsych HTAS guidelines](https://www.rcpsych.ac.uk/docs/default-source/improving-care/ccqi/quality-networks/htas/practice-guidelines-for-crisis-line-response-and-crhtt's-2022.pdf))
+- A home-treatment RCT (BJPsych): **11.9 days** mean with the home team, **28.0** without.
+  ([BJPsych](https://www.cambridge.org/core/journals/the-british-journal-of-psychiatry/article/home-treatment-for-acute-mental-healthcare-randomised-controlled-trial/5652EC9C0BB44EC9C2D4AB59F93FC9C6))
+- NHS Benchmarking (2016, secondary citation): **33.4 days** mean adult acute inpatient stay, the
+  case for a detained debtor.
+
+**The belief the world uses** (`simulation/debt_respite_draw.py`, `MHCM_TREATMENT_DAYS_RANGE`):
+treatment still to run at the start is uniform on **13-42 days**. The total moratorium is then
+**43-72 days** (mid 57). [DERIVED]
+
+**What it assumes, each a way it is wrong:**
+- **The start is the start of treatment.** Registration needs an AMHP's evidence, so some treatment
+  has already run, and this over-states what is left. That is the safe direction: a longer hold only
+  constrains the company.
+- **Detained debtors are under-weighted.** The share of MHCMs from detention rather than CRHT is not
+  published. Detentions run longer, and a stay past 42 days is cut short here.
+- **The no-reply limb is not drawn** (over-protects).
+
+**The rate.** MHCM registrations (the volumes table) x the same energy share / the same indebted
+accounts. That is about 1.5% of the standard rate: 1,317 / 87,813 in 2025. One uniform per
+household-month decides both types, so the standard draws are unchanged from W2_44. There is no
+12-month bar, and neither type is drawn while one is in force.
+
+- **E11 (GAP).** How long MHCMs run. An Insolvency Service duration table or an FOI would replace the
+  13-42 belief.
 
 ### GAPs
 - E9: the energy share of breathing spaces. *Partly closed 2026-11-15 as the stated belief above;

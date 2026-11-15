@@ -38,15 +38,36 @@ calendar year:
 A registration is per person, and one debtor's notice names every qualifying debt. A household
 with two fuels is drawn once (the electricity count is the denominator).
 
+THE MENTAL HEALTH CRISIS MORATORIUM (W2_45, Part 3). Drawn at its own published count, through
+the same energy share and denominator: E&W registrations of that type per year, read from the same
+CSV (1.5-1.7% of all registrations). One uniform per household-month decides both types: below the
+standard hazard is a standard moratorium, as it was before W2_45, so no standard draw moved; the
+next band, of the MHCM hazard's width, is an MHCM. No 12-month bar applies to it (G2.3). Neither
+type is drawn while one is in force.
+  ITS END. Reg 32(2)(a): it ends at "the end of the period of 30 days beginning with the day on
+  which the debtor stops receiving mental health crisis treatment", so its last protected day is
+  the treatment's last day plus 30. No source counts how long an MHCM runs. The treatment still to
+  run when the moratorium starts is a STATED BELIEF, drawn uniformly on 13-42 days:
+    * 13 days: the median crisis resolution home treatment (CRHT) episode in a UK service audit,
+      which put the 2017 national survey's typical episode at about 21 days;
+    * 42 days: the top of the RCPsych CRHTT practice guidelines' "three to six weeks" (2022);
+    * inside the range: NHS Benchmarking's 33.4-day mean adult acute inpatient stay (2016), for a
+      detained debtor.
+  Taking the start as the start of the treatment over-states what is left of it. The error runs
+  toward a longer hold, which only constrains the company. Sources and gap:
+  `docs/market_research/debt_and_collections.md`, "The mental health crisis moratorium's length".
+  The register sends the end notice (`MoratoriumEndNotice`, reason "crisis treatment ended") on the
+  end day. `end_notices_due` hands it over once the world's clock reaches that day.
+
 WHAT IS NOT DRAWN, each named:
-  * The mental health crisis moratorium (1.5-1.7% of registrations). Its end is keyed to a
-    treatment end no source sizes, and a register with no end notice must treat it as in force, so
-    a drawn one would never end. An under-draw of about 1 in 60 moratoria.
+  * The MHCM's other end, reg 32(2)(b)-(c): 30 days after the nominated contact fails to answer the
+    adviser's check. No source counts it, and it can only end one earlier, so leaving it out
+    over-protects.
   * Cancellation at the midway review (day 25-35). No source counts cancellations. Omitting them
     holds every moratorium the full 60 days, which over-protects: it can only constrain the company.
   * Added-debt notices (reg 15). The start notice names the one energy account.
-  * The end notice (reg 26(3)(b)). The company's register ends a standard moratorium on day 60
-    itself; nothing the world would say changes that.
+  * The standard end notice (reg 26(3)(b)). The company's register ends a standard moratorium on
+    day 60 itself; nothing the world would say changes that.
 
 THE 12-MONTH BAR (Insolvency Service guidance s.2.3): a debtor who had a standard moratorium in the
 previous 12 months cannot have another. The drawer holds each household's last start.
@@ -56,13 +77,15 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass, field
 from datetime import datetime, time
-from typing import Dict, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from interface.contracts.debt_respite_seam import (
     BREATHING_SPACE_REGISTER_SENDER,
     FORBIDDEN_TRUTH_FIELDS,
+    MORATORIUM_END_NOTIFICATION_TYPE,
     MORATORIUM_START_NOTIFICATION_TYPE,
     SCHEMA_VERSION,
+    MoratoriumEndNotice,
     MoratoriumStartNotice,
     MoratoriumType,
     NotifiedDebt,
@@ -87,6 +110,27 @@ _STANDARD_REGISTRATIONS_PER_YEAR: Dict[int, float] = {
     2025: 87_813,
     2026: 39_240 * 12 / 8,
 }
+
+#: Mental health crisis registrations, E&W, same CSV and the same annualising (W2_45).
+_MHCM_REGISTRATIONS_PER_YEAR: Dict[int, float] = {
+    2021: 624 * 365 / 242,
+    2022: 1_216,
+    2023: 1_464,
+    2024: 1_288,
+    2025: 1_317,
+    2026: 1_030 * 12 / 8,
+}
+
+#: Reg 32(2)(a): the MHCM ends at the end of 30 days beginning with the day treatment stops.
+MHCM_POST_TREATMENT_DAYS = 30
+
+#: STATED BELIEF, not a sourced count: crisis treatment still to run at the MHCM's start, in days,
+#: drawn uniformly on this range (CRHT median episode 13; RCPsych's "three to six weeks" top, 42).
+MHCM_TREATMENT_DAYS_RANGE = (13, 42)
+
+#: What the end notice says. Reg 32(2)(a) is the limb the world draws; the reg 26(3)/21(5) reason
+#: wording the Insolvency Service prints is not published, so this is the limb's own phrase.
+MHCM_END_REASON = "crisis treatment ended"
 
 #: Ofgem, domestic electricity accounts in arrears (no plan) plus repaying (plan), Q4 (Q2 2026).
 _INDEBTED_ELECTRICITY_ACCOUNTS: Dict[int, int] = {
@@ -122,6 +166,27 @@ def monthly_hazard(year: int, energy_share: float = ENERGY_SHARE) -> float:
     return 1.0 - (1.0 - annual_rate(year, energy_share)) ** (1.0 / 12.0)
 
 
+def mhcm_annual_rate(year: int, energy_share: float = ENERGY_SHARE) -> float:
+    """P(a mental health crisis moratorium naming this supplier starts) per indebted
+    account-year: the same derivation as `annual_rate`, over the MHCM count."""
+    if year < SCHEME_IN_FORCE_FROM.year:
+        return 0.0
+    y = min(year, max(_MHCM_REGISTRATIONS_PER_YEAR))
+    return _MHCM_REGISTRATIONS_PER_YEAR[y] * energy_share / _INDEBTED_ELECTRICITY_ACCOUNTS[y]
+
+
+def mhcm_monthly_hazard(year: int, energy_share: float = ENERGY_SHARE) -> float:
+    return 1.0 - (1.0 - mhcm_annual_rate(year, energy_share)) ** (1.0 / 12.0)
+
+
+def mhcm_end_date(start: dt.date, treatment_days: int) -> dt.date:
+    """The MHCM's last protected day (reg 32(2)(a)). Treatment runs `treatment_days` from the start,
+    so its last day is `start + treatment_days - 1`; the 30 days begin with the day after that,
+    the day it "stops"."""
+    stops = start + dt.timedelta(days=treatment_days)
+    return stops + dt.timedelta(days=MHCM_POST_TREATMENT_DAYS - 1)
+
+
 def _encode_payload(notice: MoratoriumStartNotice) -> dict:
     """The notice as wire values. The seam's second belt on the world side: a payload carrying a
     world-truth field is refused before it is sent."""
@@ -150,6 +215,12 @@ class MoratoriumDrawer:
 
     energy_share: float = ENERGY_SHARE
     _last_start: Dict[str, dt.date] = field(default_factory=dict)
+    #: customer -> last protected day of the moratorium in force (either type).
+    _in_force_until: Dict[str, dt.date] = field(default_factory=dict)
+    #: MHCM end notices not yet handed over: (end_date, customer_id, register_entry_ref).
+    _pending_ends: List[Tuple[dt.date, str, str]] = field(default_factory=list)
+    mhcm_started: int = 0
+    mhcm_ended: int = 0
     _asked: Set[Tuple[str, int]] = field(default_factory=set)
     _sequence: int = 0
 
@@ -167,42 +238,86 @@ class MoratoriumDrawer:
         if (customer_id, period_index) in self._asked:
             return None
         self._asked.add((customer_id, period_index))
-        last = self._last_start.get(customer_id)
-        if last is not None and (on - last).days < _REPEAT_BAR_DAYS:
+        in_force = self._in_force_until.get(customer_id)
+        if in_force is not None and on <= in_force:
             return None
         rng = substream(STREAM_NAMESPACE, f"{customer_id}::{period_index}", 0)
-        if rng.random() >= monthly_hazard(on.year, self.energy_share):
-            return None
+        u = rng.random()
+        h_std = monthly_hazard(on.year, self.energy_share)
+        last = self._last_start.get(customer_id)
+        barred = last is not None and (on - last).days < _REPEAT_BAR_DAYS
         start = on + dt.timedelta(days=1)
-        self._last_start[customer_id] = start
-        sequence = self._sequence
-        self._sequence += 1
+        ref = f"BS-{customer_id}-{start.isoformat()}"
+        if u < h_std and not barred:
+            kind = MoratoriumType.STANDARD
+            self._last_start[customer_id] = start
+            self._in_force_until[customer_id] = start + dt.timedelta(days=59)
+        elif h_std <= u < h_std + mhcm_monthly_hazard(on.year, self.energy_share):
+            kind = MoratoriumType.MENTAL_HEALTH_CRISIS
+            ref = f"MHCM-{customer_id}-{start.isoformat()}"
+            lo, hi = MHCM_TREATMENT_DAYS_RANGE
+            treatment = substream(STREAM_NAMESPACE, f"{customer_id}::{period_index}::mhcm_treatment",
+                                  0).randint(lo, hi)
+            end = mhcm_end_date(start, treatment)
+            self._in_force_until[customer_id] = end
+            self._pending_ends.append((end, customer_id, ref))
+            self.mhcm_started += 1
+        else:
+            return None
         notice = MoratoriumStartNotice(
-            register_entry_ref=f"BS-{customer_id}-{start.isoformat()}",
-            moratorium_type=MoratoriumType.STANDARD,
+            register_entry_ref=ref,
+            moratorium_type=kind,
             start_date=start,
             debtor_full_name=None,
             debtor_date_of_birth=None,
             debtor_address=None,
             debts=(NotifiedDebt(creditor_account_ref=account_ref),),
         )
-        observed_at = datetime.combine(on, time(12, 0)).isoformat()
+        return self._frame(MORATORIUM_START_NOTIFICATION_TYPE, on, start,
+                           _encode_payload(notice))
+
+    def end_notices_due(self, on: dt.date) -> List[dict]:
+        """Every MHCM end notice whose end day has come by `on`, each handed over once, oldest
+        first. Sent on the end day (deemed received that day, reg 37(4)(a)), so a caller whose
+        clock passes the day late delivers it late: the company holds the moratorium longer, the
+        safe direction."""
+        due = sorted(e for e in self._pending_ends if e[0] <= on)
+        self._pending_ends = [e for e in self._pending_ends if e[0] > on]
+        out = []
+        for end, _customer, ref in due:
+            notice = MoratoriumEndNotice(register_entry_ref=ref, end_date=end,
+                                         reason_text=MHCM_END_REASON)
+            body = {"register_entry_ref": notice.register_entry_ref,
+                    "end_date": notice.end_date.isoformat(), "reason_text": notice.reason_text}
+            leaking = sorted(set(body) & set(FORBIDDEN_TRUTH_FIELDS))
+            if leaking:
+                raise ValueError(f"moratorium end notice would carry world truth: {leaking}")
+            self.mhcm_ended += 1
+            out.append(self._frame(MORATORIUM_END_NOTIFICATION_TYPE, end, end, body))
+        return out
+
+    def _frame(self, notification_type: str, sent_on: dt.date, valid_on: dt.date,
+               payload: dict) -> dict:
+        sequence = self._sequence
+        self._sequence += 1
+        observed_at = datetime.combine(sent_on, time(12, 0)).isoformat()
         return {
             "sender": BREATHING_SPACE_REGISTER_SENDER,
             "credential": REGISTER_CREDENTIAL,
             "handed_over_at": observed_at,
             "envelope": {
                 "notification_id": f"{BREATHING_SPACE_REGISTER_SENDER}-{sequence}",
-                "notification_type": MORATORIUM_START_NOTIFICATION_TYPE,
+                "notification_type": notification_type,
                 "schema_version": SCHEMA_VERSION,
                 "sender": BREATHING_SPACE_REGISTER_SENDER,
                 "sequence": sequence,
                 "observed_at": observed_at,
-                "valid_time": start.isoformat(),
-                "payload": _encode_payload(notice),
+                "valid_time": valid_on.isoformat(),
+                "payload": payload,
             },
         }
 
     @property
     def notices_sent(self) -> int:
-        return self._sequence
+        """Start notices sent (either type). End notices share the sequence and are not counted."""
+        return self._sequence - self.mhcm_ended
