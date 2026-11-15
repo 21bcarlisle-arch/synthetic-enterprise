@@ -55,6 +55,7 @@ from company.billing.collections_journey import (
 )
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
+from company.billing.prepayment_suitability import SuitabilityAnswers
 from company.billing.winter_moratorium import SELF_DISCONNECTION_WATCH
 from company.compliance import obligations_register as orr
 from company.compliance.domain_invariants import (
@@ -534,8 +535,26 @@ def test_a_paid_instalment_posts_to_the_ledger_as_cash_and_a_repaid_plan_frees_t
     assert missed_journeys[1]["stages"][0]["overdue_gbp"] == 200.0
 
 
+#: An S&RP conversation on which the household answered every question "no".
+_CLEAR = {f: False for f in SuitabilityAnswers.__dataclass_fields__ if f != "asked_on"}
+
+
+class _EveryAccount(dict):
+    """The same conversation on record for every account."""
+    def __init__(self, answers):
+        super().__init__()
+        self._answers = answers
+
+    def get(self, _account, _default=None):
+        return self._answers
+
+
 def _suitable(consumer, finding=True):
-    consumer.collections_journeys.prepayment_suitability = lambda _account, _on: finding
+    """finding True: a clear conversation; False: one naming a further-assessment ground
+    (pregnancy); None: never asked. The consumer's own assessment reads it: the real S&RP path."""
+    if finding is not None:
+        consumer.suitability_answers = _EveryAccount(SuitabilityAnswers(
+            dt.date(2024, 1, 2), **dict(_CLEAR, pregnancy_or_bereavement=not finding)))
     consumer.collections_journeys.self_disconnection_watch = lambda _account, on: ProtectionRecord(
         SELF_DISCONNECTION_WATCH, on, on + dt.timedelta(days=1))
     return consumer
@@ -585,7 +604,7 @@ def test_the_consent_offer_is_made_only_on_a_positive_suitability_finding():
         assert asks == [] and PREPAYMENT_OFFERED not in stages
         assert stages[stages.index(PREPAYMENT_STEP) + 1] == PREPAYMENT_WITHHELD
         assert next(s for s in journey["stages"]
-                    if s["stage"] == PREPAYMENT_WITHHELD)["decision"] == reason, finding
+                    if s["stage"] == PREPAYMENT_WITHHELD)["decision"].startswith(reason), finding
     stages, _, asks = walks[True]
     assert len(asks) == 1 and PREPAYMENT_WITHHELD not in stages
     assert stages[stages.index(PREPAYMENT_STEP) + 1] == PREPAYMENT_OFFERED

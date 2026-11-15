@@ -155,6 +155,7 @@ from company.billing.arrears_engine import (
 )
 from company.billing.breathing_space_register import BreathingSpaceRegister
 from company.billing.collections_journey import CollectionsJourneyDesk
+from company.billing.prepayment_suitability import assess_prepayment_suitability
 from company.compliance.domain_invariants import refuse_dunning_of_a_cleared_debt
 from company.crm.account_hierarchy import Segment
 from company.crm.churn_model import (
@@ -904,7 +905,15 @@ class PaymentObservationConsumer:
             level_of=lambda account_id: (
                 None if account_id not in self._level_requests
                 else (self.level_schedule_of(account_id), self.level_returns_of(account_id))),
+            # SLC 27.6(a)(iii): the company's S&RP finding, from the dated suitability conversations
+            # it holds. No seam door brings a household's answers back yet, so live this is always
+            # "never asked" and every Consent offer is withheld (commons s.5, "The S&RP assessment").
+            # GAP: the PSR register is not handed to this consumer, so held needs are not read here.
+            prepayment_suitability=lambda account_id, on: assess_prepayment_suitability(
+                on, answers=self.suitability_answers.get(account_id)),
         )
+        #: account -> the household's answers on its latest S&RP conversation (`SuitabilityAnswers`).
+        self.suitability_answers: Dict[str, Any] = {}
         self._dd_failures: Dict[str, List[DDFailureObservation]] = {}
         #: account -> the level collections this company submitted, `(date, GBP, invoice ref)`.
         #: Its own act: it set the amount (`note_level_collection_request`).

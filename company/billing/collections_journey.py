@@ -430,7 +430,7 @@ class CollectionsJourneyDesk:
                  post_write_off: Optional[Callable[[str, float, dt.date, str], None]] = None,
                  level_of: Optional[Callable[[str], Optional[tuple]]] = None,
                  prepayment_suitability: Optional[
-                     Callable[[str, dt.date], Optional[bool]]] = None,
+                     Callable[[str, dt.date], Optional[Any]]] = None,
                  ) -> None:
         if plan_offers is not None and post_cash is None:
             raise ValueError(
@@ -448,15 +448,17 @@ class CollectionsJourneyDesk:
         #: under `rule` (`STATUTE_BAR_RULE` or `CLOSED_ACCOUNT_RULE`). None: a barred debt is still
         #: recorded as a `write_off` stage, unposted, and a closed account is left to the sweep.
         self._post_write_off = post_write_off
-        #: `prepayment_suitability(account_id, on)`: the company's safe-and-reasonably-practicable
-        #: finding for that household on that day, True / False, or None where none is held. None
-        #: as a whole (the shipped desk): no finding exists, so every Consent offer is withheld.
+        #: `prepayment_suitability(account_id, on)`: the company's dated safe-and-reasonably-practicable
+        #: finding (`ProtectionRecord`, `company/billing/prepayment_suitability.py`), or None where
+        #: none is held. None as a whole: no finding exists, so every Consent offer is withheld.
         self.prepayment_suitability = prepayment_suitability
         #: `self_disconnection_watch(account_id, on)`: the dated `ProtectionRecord` of the watch that
         #: would cover a household moved to a prepayment meter, or None where none is held. A bare
         #: True carries no date, so the gate cannot say whether it was in effect (ninth pass, item 3;
-        #: SLC 27A.1 watches from the day the household is on a meter). None (the shipped desk):
-        #: no run calls `company/crm/self_rationing_detector.py`, so no Consent offer is made.
+        #: SLC 27A.1 watches from the day the household is on a meter). None (the shipped desk): no
+        #: seam door carries a meter's top-ups or credit-exhausted interruptions, so no watch exists
+        #: and no Consent offer is made. `company/crm/self_rationing_detector.py` is NOT this watch: it
+        #: reads credit customers' annual reads and stands aside on open arrears (commons s.5).
         self.self_disconnection_watch: Optional[Callable[[str, dt.date], Any]] = None
         #: This supplier's own holds (`WinterMoratoriumRegister`). None: no company path places one.
         self.own_holds: Optional[Any] = None

@@ -17,6 +17,7 @@ read. None of it had a production caller, which is why it was still wrong.
 """
 from __future__ import annotations
 
+import dataclasses
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
@@ -312,7 +313,9 @@ class EnforcementCase:
     own_hold: bool = False
     breathing_space: bool = False
     arrangement_offered: bool = False
-    suitability: Optional[bool] = None
+    #: SLC 27.6(a)(iii): the dated S&RP finding (`company/billing/prepayment_suitability.py`). A
+    #: bare True carries no date, so the gate cannot say it was in effect, and refuses it.
+    suitability: Optional[ProtectionRecord] = None
     #: SLC 27A: the dated record of the self-disconnection watch that would cover this household.
     self_disconnection_watch: Optional[ProtectionRecord] = None
     ppm_route_exhausted: bool = False
@@ -361,6 +364,7 @@ CLAUSE_IN_FORCE = {"slc_27a_self_disconnection": dt.date(2020, 12, 15),
                    "slc_28b_involuntary_ppm": dt.date(2023, 11, 8)}
 
 SELF_DISCONNECTION_WATCH = "slc_27a_self_disconnection_watch"
+SAFE_AND_PRACTICABLE = "slc_27_6_a_iii_safe_and_practicable"
 DEBT_TRIGGER = "slc_28b_debt_trigger"
 CONTACT_ATTEMPTS = "slc_28b_contact_attempts"
 SITE_WELFARE_VISIT = "slc_28b_site_welfare_visit"
@@ -453,9 +457,17 @@ def _company_layer_check(case, action):
 
 
 def _suitability_check(case, _action):
-    if case.suitability is True:
+    record = case.suitability
+    if record is None:
+        return NO_SUITABILITY_FINDING
+    if not isinstance(record, ProtectionRecord) or record.kind != SAFE_AND_PRACTICABLE:
+        return f"{NO_SUITABILITY_FINDING}; {record!r} is not a dated S&RP finding"
+    why = record.unusable_on(case.as_of)
+    if why is None:
         return None
-    return NO_SUITABILITY_FINDING if case.suitability is None else NOT_SUITABLE
+    if dataclasses.replace(record, met=True).unusable_on(case.as_of) is None:
+        return f"{NOT_SUITABLE}: " + "; ".join(record.evidence)  # in effect, and it found the bar
+    return f"{why} (SLC 27.6(a)(iii))"
 
 
 _CHECKS = {

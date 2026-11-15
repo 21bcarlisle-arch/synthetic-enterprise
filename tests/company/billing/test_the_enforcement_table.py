@@ -26,6 +26,7 @@ from company.billing.winter_moratorium import (
     GAP,
     NOT_APPLICABLE,
     PROTECTION_GROUNDS,
+    SAFE_AND_PRACTICABLE,
     SELF_DISCONNECTION_WATCH,
     SLC28B_PRECONDITIONS,
     UNROUTED_ACTIONS,
@@ -58,6 +59,7 @@ def _record(kind, learned=LEARNED, lapses=LAPSES, **kw):
 
 _28B = tuple(_record(k) for k in SLC28B_PRECONDITIONS)
 _WATCH = _record(SELF_DISCONNECTION_WATCH)
+_SRP = _record(SAFE_AND_PRACTICABLE)
 
 
 def _28b_with(kind, record):
@@ -67,7 +69,7 @@ def _28b_with(kind, record):
 
 #: A case on which every precondition is met and nothing protective is held, in a summer month.
 BASE = EnforcementCase(account_id="H", as_of=JULY, categories=(), arrangement_offered=True,
-                       suitability=True, self_disconnection_watch=_WATCH, ppm_route_exhausted=True,
+                       suitability=_SRP, self_disconnection_watch=_WATCH, ppm_route_exhausted=True,
                        involuntary_preconditions=_28B)
 
 _POST_HOSPITAL = PSRRecord(account_id="H", categories=(), services_enrolled=(),

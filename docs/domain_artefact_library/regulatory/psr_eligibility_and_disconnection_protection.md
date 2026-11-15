@@ -480,6 +480,66 @@ What the census found, against the table's rows:
     standings.
   Nine mutations, each applied and reverted, all went red.
 
+**The S&RP assessment, and why the self-rationing detector is not the 27A watch (added 2026-11-15, the ninth pass's item 1).**
+*K8 page for `company/billing/prepayment_suitability.py`. Rules: `docs/market_research/company_debt_management.md`
+(the PPM guidance's §§3.7-3.12, §9.1, SLC 28.3 and 27A, all transcribed there).*
+
+- **What the rules require.**
+  - 27.6(a)(iii) offers a PPM only "where safe and reasonably practicable". The S&RP guidance binds
+    every PPM through 28.4, so a Consent offer needs the supplier's own finding. The household's yes
+    is not that finding (eighth pass).
+  - **Do not install (3.7):** no one can access, operate or top up the meter; a continuous-supply
+    health need (powered medical equipment, carelines, a medical dependency on a warm home); 75+
+    without support in the house; a child under 2; a chronic, severe or terminal health condition.
+  - **Further assessment needed (3.8), with the Precautionary Principle:** a child 5 or under; other
+    serious medical conditions; serious mental or developmental conditions; pregnancy or
+    bereavement. 3.9 "encourages" a check where an adult is over 65 or a child under 16. 3.12: a
+    further-assessment household whose ability to pay shows it will self-disconnect frequently or
+    for long is **not** S&RP.
+  - **Who decides:** the S&RP judgement for a further-assessment household stays human. Screening on
+    the do-not-install list may be automated as a hard exclusion (same file, "What may be automated").
+  - **How long a finding stands:** 28.3 makes the supplier re-check, at least once a year, that a PPM
+    is still S&RP. That is the longest the licence lets a finding stand. It is the only published
+    period, so it is the lapse here.
+- **What the assessment does (design choices, each named).**
+  - It returns a dated `ProtectionRecord` (kind `slc_27_6_a_iii_safe_and_practicable`). The gate reads
+    it like the 27A and 28B records: refused when not yet learned, when lapsed, when undated, or when
+    it found the bar. A bare True carries no date, so the gate now refuses it.
+  - **Negative (met False):** any 3.7 ground held, as PSR evidence or as an answer. MEDICAL_EQUIPMENT
+    and CHRONIC_ILLNESS are read as do-not-install. *Categorical reading, erring toward protection:
+    a PSR "chronic illness" is not always "severe".*
+  - **Further assessment (met False, named "for a person to decide"):** any other evidence held. That
+    means any other PSR category, any needs code, an over-65 birth date, or a further-assessment
+    answer. The company has no welfare officer, so it never finds these positive. *Cost:* it under-offers
+    against a supplier with assessors. *Reversible:* add a human finding as a record kind.
+  - **Positive (met True):** only where the household was **asked**: every 3.7, 3.8 and 3.9 question
+    answered "no", on a dated conversation, and no evidence held against those answers. Holding no
+    evidence is not having asked (§4). A question left unanswered counts as the bar, as in 28B's
+    do-not-install check.
+  - **Lapse:** 365 days from the day it was asked (28.3), or the day evidence that changes the
+    answer is learned, whichever is first. A later PSR registration supersedes it through the
+    evidence leg.
+- **What reaches it live.** The run's desk now asks this assessment for every Consent offer. **Nothing
+  live moves:** no seam door brings back a household's answers to the suitability questions, so
+  every live assessment returns "not asked" and every offer is still withheld. The door is a world
+  build: the household answers the S&RP conversation from its own hidden state, disclosing what it
+  chooses. That is the same disclosure gap as the PSR's (§3).
+- **Correction, beside the claim in row `self_disconnection_support` and the desk's docstring:**
+  "The watch is `company/crm/self_rationing_detector.py`, with no run caller". **It is not the
+  watch, and a run caller would not make it one.** The detector watches *credit* customers on two
+  annual meter reads. It stands aside wherever arrears are open ("the collections path owns it"),
+  and every household offered a Consent PPM is 90 days in arrears. 27A.1 and guidance §9.1 watch
+  **top-up and disconnection patterns on the meter**. The company sees neither: no seam door
+  carries a PPM's top-ups or a credit-exhausted interruption. Wiring the detector to return a 27A
+  record would publish a watch that cannot see what it watches. That is a control that cannot
+  fail, so it is not built. The 27A cell stays covered by refusal: no watch, no offer. The
+  door owed is a world build, a smart PPM's supply-interruption and top-up events for a moved
+  account. Finding:
+  `docs/staging/SEAT_FINDING_THE_SELF_RATIONING_DETECTOR_CANNOT_BE_THE_27A_WATCH_2026-11-15.md`.
+- **What closes item 1, then:** two world doors, the S&RP conversation and the PPM's supply events.
+  Then a watch built on the second, with a lapse set by how often it reads, and prepayment
+  households in the world. Not one more gate.
+
 **The debt-objection row (added 2026-11-15, the ninth pass's item 12).** The company decides a
 debt objection live in every run (`decide_debt_objection`, from `simulation/run_phase2b.py`). It
 now asks `may_take(DEBT_OBJECTION)` after its own policy (the SLC 14 clock, the DAP let-go, the

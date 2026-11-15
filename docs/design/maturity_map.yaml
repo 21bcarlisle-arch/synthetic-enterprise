@@ -434,6 +434,21 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the churn a real supplier''s book actually experiences: roughly one in ten households moves home each year, each move closing one account into a final bill and opening two deemed-contract accounts at either end -- plus income shocks that show up as arrears months before anyone tells the supplier anything"
   records_rehomed: [evidence]
+- id: W2_43_a_prepayment_household_answers_suitability_and_its_meter_reports_supply_events
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/interfaces/sim_interface.py, simulation/payment_method_dynamics.py, tests/simulation/test_a_prepayment_household_answers_suitability_and_reports_supply_events.py]
+  depends_on: []
+  # Two seam doors C32 item 1 waits on: the S&RP conversation (answers from hidden state, as
+  # disclosed) and a moved meter's top-ups and credit-exhausted interruptions (the 27A watch's input).
+  # SEAT_FINDING_THE_SELF_RATIONING_DETECTOR_CANNOT_BE_THE_27A_WATCH_2026-11-15.md.
+  real_world_twin: "the suitability call before a prepayment offer, and a smart PPM's top-up and off-supply log"
 - id: W2_40_voids_tied_to_move_outs
   lane: W2_customer_generator
   value_stream: meter_to_cash
