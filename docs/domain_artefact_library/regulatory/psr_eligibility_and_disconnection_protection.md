@@ -713,6 +713,16 @@ debt deduction pause or be resized while the 27A watch sees the household self-d
     the lag is the read interval. Every ground and the door's answer go on
     `meter_recovery_paused`. A door that cannot pause is recorded as such, and the cash the meter
     took is still posted.
+  - **A moratorium pauses from the day before it is first seen** (added 2026-11-15, the delivery
+    seat). A Breathing Space moratorium "starts on the day following the day on which the
+    Secretary of State causes an entry to be made on the register" (SI 2020/1311 reg 26(1)), and the
+    supplier is notified of the entry (reg 25(2)(b); commons
+    `debt_respite_breathing_space_moratorium.json`). So a deduction due on the start day is a step
+    to collect inside it (reg 7(7)(a)) that the supplier held the notice to stop. When
+    `breathing_space` or the own hold refuses, the pause runs from the day before the read; a desk
+    reading daily takes nothing from the start. The 27A pause keeps the read day: an interruption
+    is known only once the meter reports it. *Still taken:* deductions between the start and a
+    later read, when reads lag; whether those are owed back is not read here (GAP).
   - **On the first interruption, not the second.** 27A.1(b) bites on identification; "frequent"
     governs only 9.1(b). Erring toward protection (F11). *Cost:* recovery forgone on an account
     that went off supply once.

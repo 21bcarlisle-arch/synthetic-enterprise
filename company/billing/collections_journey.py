@@ -208,6 +208,8 @@ ARRANGEMENT_ACCEPTANCE_GAP = (
 #: Why a refused recovery could not be paused: the desk's world door has no pause (C37).
 NO_PAUSE_DOOR = ("this desk's world door has no way to pause the meter's deduction, so the refusal is "
                  "recorded and the deductions the meter takes are still posted")
+#: The METER_RECOVERY grounds that are moratoria, held from their first day (_pause_recovery).
+_MORATORIUM_GROUNDS = frozenset({"breathing_space", "own_hold_winter_moratorium"})
 
 
 #: THE STEP AFTER THE OFFER (2026-10-24). Once a journey stands on the plan-offer rung or above it
@@ -865,12 +867,18 @@ class CollectionsJourneyDesk:
                                       else self.self_disconnection_watch(account_id, on))))
         if gate.permitted:
             return
+        grounds = [g for g, _r in gate.refusals]
+        # A moratorium is held from its first day (BS reg 26(1); the notice comes the day before,
+        # reg 25(2)(b)), so the deduction due on the day it is first seen is a step to collect
+        # (reg 7(7)(a)): pause from the day before. 27A is seen only once the meter reports.
+        after = on - dt.timedelta(days=1) if set(grounds) & _MORATORIUM_GROUNDS else on
         if hasattr(self._plan_offers, "suspend_deduction"):
-            answer = self._plan_offers.suspend_deduction(account_id, on.isoformat(), gate.reason)
+            answer = self._plan_offers.suspend_deduction(account_id, after.isoformat(), gate.reason)
         else:
             answer = {"suspended": False, "reason": NO_PAUSE_DOOR}
         self.meter_recovery_paused[account_id] = {
-            "on": on.isoformat(), "grounds": [g for g, _r in gate.refusals], "reason": gate.reason,
+            "on": on.isoformat(), "after": after.isoformat(), "grounds": grounds,
+            "reason": gate.reason,
             "suspended": answer["suspended"], "door_reason": answer["reason"],
             "rule": "SLC 27A.1(b), 27.8A(d)(iv)"}
 

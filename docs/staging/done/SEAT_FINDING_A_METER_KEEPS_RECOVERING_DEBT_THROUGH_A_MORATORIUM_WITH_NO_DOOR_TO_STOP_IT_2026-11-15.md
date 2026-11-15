@@ -50,3 +50,19 @@ Breathing Space and own-hold cells are now asked on the live path, and 27A is co
 s.5, "Recovery through the meter, on the 27A watch"). Still not live: no run holds a moratorium
 (`BreathingSpaceRegister.register_entry` has no caller), and no run moves a meter at take-up 0.
 
+
+## Done, addendum (2026-11-15, delivery seat, drawn as `the-company-can-stop-recovery-through-the-meter`)
+
+C37 (4f68e139c) landed the door, the routed row and the 27A leg under its own id, so this draw
+took the disposition for those and built only the leg C37 had not proved: **a moratorium takes no
+deduction from its first day.** C37 paused from the read day, so the deduction due on a Breathing
+Space moratorium's start day was still taken, and that is a step to collect inside it (reg 7(7)(a);
+the moratorium starts the day after the register entry the supplier is notified of, reg 26(1),
+25(2)(b)). When `breathing_space` or the own hold refuses, `_pause_recovery` now pauses from the day
+before the read; 27A keeps the read day. Controls in
+`tests/company/billing/test_recovery_through_the_meter_reads_the_27a_watch.py`: zero deductions
+from the start under either moratorium, the quiet partition, and 27A unchanged. Mutation: restoring
+the read-day pause reds 1; skipping the gate reds 5. With no moved meter the desk returns before
+the changed line, so a bill run is unchanged (no run moves a meter while take-up is 0). Ability to
+pay stays GAP on this row (no world door gives the figure; never picked). Not built: refunding the
+deductions taken between a start and a lagging read (GAP on the K8 page).

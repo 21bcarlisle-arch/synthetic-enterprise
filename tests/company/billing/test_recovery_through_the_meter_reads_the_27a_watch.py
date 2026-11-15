@@ -140,3 +140,54 @@ def test_the_world_honours_the_pause_and_refuses_one_with_no_meter():
     assert after == before[:len(after)] and [r["due"] for r in after][-1] == "2024-02-05"
     assert len(after) == 5 < len(before), "the first pause did not stand"
     assert StubSimInterface().suspend_deduction("C1", "2024-02-10", "x")["suspended"] is False
+
+
+# --- A moratorium is held from its first day (SI 2020/1311 reg 26(1), 7(7)(a)) ---------------------
+# Defect each leg names: the deduction due on a moratorium's first day is still taken because the
+# pause starts on the read day (the C37 shape, right for 27A, wrong for a notified moratorium); a
+# gate that pauses for a 27A finding but not for a moratorium; the read-day pause kept for 27A.
+
+START = dt.date(2024, 3, 4)  # a Monday: MOVED + 9 weeks, so a deduction falls due on it
+
+
+class _Hold:
+    def is_protected(self, account_id, on):
+        return on >= START
+
+
+def _moratorium_desk(kind):
+    desk, cash = _desk(_Meter([]))
+    if kind == "breathing_space":
+        desk._view_at = lambda _a, _s, on: {"moratorium_active": on >= START}
+    elif kind == "own_hold":
+        desk.own_holds = _Hold()
+    return desk, cash
+
+
+def _daily(desk, last):
+    d = MOVED + dt.timedelta(days=1)
+    while d <= last:
+        _read(desk, d)
+        d += dt.timedelta(days=1)
+
+
+def test_a_moratorium_takes_no_deduction_from_its_first_day():
+    for kind in ("breathing_space", "own_hold"):
+        desk, cash = _moratorium_desk(kind)
+        _daily(desk, dt.date(2024, 6, 30))
+        paused = desk.meter_recovery_paused["C1"]
+        assert paused["on"] == START.isoformat() and paused["after"] == "2024-03-03", kind
+        days = [d for _a, _amt, d, _ref in cash]
+        assert days and max(days) < START, f"{kind}: a deduction was taken inside the moratorium"
+        assert len(days) == 8, kind  # 8 Jan .. 26 Feb, all before the start
+
+
+def test_the_moratorium_pause_can_be_withheld_and_27a_keeps_the_read_day():
+    quiet, quiet_cash = _moratorium_desk(None)
+    _daily(quiet, dt.date(2024, 6, 30))
+    assert "C1" not in quiet.meter_recovery_paused and len(quiet_cash) == 25
+    seam = _Meter([START])
+    off, _cash = _desk(seam)
+    _daily(off, dt.date(2024, 3, 10))
+    assert off.meter_recovery_paused["C1"]["after"] == START.isoformat()
+    assert seam.pause_asks[0][1] == START.isoformat()
