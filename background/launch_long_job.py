@@ -533,7 +533,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
            launched_at: str | None = None, out=None, peak_mb=None,
            wait_for_pid: int | None = None, residents=resident_census,
            guest_total_mb=None, expect_minutes=None, run_case: dict | None = None,
-           landing_deadline_seconds: float | None = None) -> dict:
+           landing_deadline_seconds: float | None = None, holds=()) -> dict:
     """Start `command` in a transient user unit AND write its liveness record. One call, both.
 
     THE ORDER IS THE ARGUMENT, and it is the opposite of the obvious one. The record is written
@@ -671,7 +671,7 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
         entry = launch_liveness.record(
             job, unit, artefact, log=log, asserted_live_by=list(asserted_live_by),
             launched_at=launched_at, path=records_path, peak_mb=peak_mb, workdir=workdir,
-            expect_minutes=expect_minutes, run_case=run_case)
+            expect_minutes=expect_minutes, run_case=run_case, holds=holds)
     except Exception as exc:  # noqa: BLE001 -- see the docstring: unrecorded must not stay running
         stop(unit, runner=runner)
         raise LaunchRefused(
@@ -813,6 +813,10 @@ def main(argv: list | None = None) -> int:
                         help="the path the job writes on success -- a record without one cannot "
                              "be re-asked")
     parser.add_argument("--workdir", help="working directory for the unit (default: this repo)")
+    parser.add_argument("--holds", action="append", default=[], metavar="WORKTREE",
+                        help="a worktree this job will act on without a process inside it "
+                             "(repeatable); salvage and the reaper treat it as live while the "
+                             "unit is active")
     parser.add_argument("--log", help="one file for BOTH streams (default: /var/tmp/<unit>.log)")
     parser.add_argument("--description")
     parser.add_argument("--setenv", action="append", default=[], metavar="K=V")
@@ -887,7 +891,7 @@ def main(argv: list | None = None) -> int:
                    description=args.description, asserted_live_by=args.asserted_live_by, env=env,
                    peak_mb=args.peak_mb, wait_for_pid=args.wait_for_pid,
                    expect_minutes=args.expect_minutes, run_case=run_case,
-                   landing_deadline_seconds=0 if hands_off else None)
+                   landing_deadline_seconds=0 if hands_off else None, holds=args.holds)
             break
         except NoRoom as exc:
             if args.no_queue:
