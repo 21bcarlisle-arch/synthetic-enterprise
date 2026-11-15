@@ -284,9 +284,9 @@ class EnforcementAction(str, Enum):
     #: SLC 14.4(a): blocking a domestic household's switch away for Outstanding Charges. Live in
     #: every run (`company/market/transfer_objection_register.decide_debt_objection`).
     DEBT_OBJECTION = "debt_objection_on_switching"
-    #: Debt recovered from a prepayment meter's top-ups after a move. The deduction is the world's;
-    #: the company reads it (`collections_journey._read_meter_recoveries`) and has no door to set or
-    #: suspend one, so this row has no company route (census, ninth pass item 12).
+    #: Debt recovered from a prepayment meter's top-ups after a move. The world takes the weekly
+    #: deduction; the company asks this row at every read (`_read_meter_recoveries`) and, refused,
+    #: pauses it through `suspend_deduction` (C37).
     METER_RECOVERY = "recovery_through_the_meter"
 
 
@@ -294,7 +294,7 @@ class EnforcementAction(str, Enum):
 #: answer, not an empty one; `may_take` answers them on the same table as the rest.
 UNROUTED_ACTIONS = frozenset({EnforcementAction.DISCONNECTION, EnforcementAction.WARRANT_PPM_INSTALL,
                               EnforcementAction.REMOTE_SWITCH_TO_PREPAY,
-                              EnforcementAction.AGENCY_HANDOFF, EnforcementAction.METER_RECOVERY})
+                              EnforcementAction.AGENCY_HANDOFF})
 
 
 @dataclass(frozen=True)
@@ -343,6 +343,10 @@ NOT_SUITABLE = "the household's safe-and-reasonably-practicable finding is negat
 NO_SELF_DISCONNECTION_WATCH = (
     "no self-disconnection watch would cover this household on a prepayment meter, and SLC 27A.1 "
     "requires all reasonable steps to identify self-disconnection from the day it is on one")
+SELF_DISCONNECTING = (
+    "the watch has seen this household's meter run out of credit, and SLC 27A.1(b) answers that with "
+    "support under 27.8: the weekly deduction is paused (27.8A(d)(iv)) until a review of its ability "
+    "to pay re-instates it, and no such review is built, so the pause holds")
 NO_ARRANGEMENT_OFFERED = ("no affordable arrangement has been offered on this debt, and SLC 27.6/27.8 "
                           "order that offer before any recovery step (27.8C: charges not recoverable "
                           "until 27.5-27.8 are met)")
@@ -387,9 +391,16 @@ def _in_force(ground: str, on: dt.date) -> str:
             "a design choice")
 
 
-def _self_disconnection_check(case, _action):
+def _self_disconnection_check(case, action):
+    """No usable watch refuses every row. On recovery through the meter, a watch that has SEEN
+    an interruption refuses too: 27A.1(b) answers it with support under 27.8, and recovery at a
+    rate the household is going off supply under is not one set on its ability to pay (C37)."""
     record = case.self_disconnection_watch
     why = NO_SELF_DISCONNECTION_WATCH if record is None else record.unusable_on(case.as_of)
+    if why is None and action is EnforcementAction.METER_RECOVERY:
+        seen = sorted(d for d in record.evidence if d <= case.as_of)
+        if seen:
+            why = f"{SELF_DISCONNECTING} (interruptions seen: {', '.join(map(str, seen))})"
     if why is None:
         return None
     return f"{why} (SLC 27A: {_in_force('slc_27a_self_disconnection', case.as_of)})"
@@ -539,12 +550,13 @@ ENFORCEMENT_TABLE = {
     _O: _row(("own_hold_winter_moratorium", "breathing_space"),
              gap=("slc_27_5_to_27_8_ability_to_pay", "psr_needs_codes", "slc_28_15_proportionate")),
     # A deduction from top-ups to recover moratorium debt is plainly "a step to collect" (reg
-    # 7(7)(a)). Own hold: design choice. Ability to pay on the deduction rate, 27A on a household
-    # that is self-disconnecting, the welfare columns and 28.15: not read for recovery (commons s.5).
+    # 7(7)(a)). Own hold: design choice. 27A: a watch that has seen an interruption pauses it
+    # (27A.1(b) via 27.8A(d)(iv); C37, commons s.5). Ability to pay on the rate, the welfare
+    # columns and 28.15: not read for recovery.
     EnforcementAction.METER_RECOVERY: _row(
-        ("own_hold_winter_moratorium", "breathing_space"),
-        gap=("slc_27_5_to_27_8_ability_to_pay", "slc_27a_self_disconnection", "energy_uk_safety_net",
-             "psr_needs_codes", "slc_28_15_proportionate")),
+        ("own_hold_winter_moratorium", "breathing_space", "slc_27a_self_disconnection"),
+        gap=("slc_27_5_to_27_8_ability_to_pay", "energy_uk_safety_net", "psr_needs_codes",
+             "slc_28_15_proportionate")),
 }
 
 _CONTACT = ("dunning contact: a step to collect in Breathing Space, held by the one selector "
@@ -572,8 +584,9 @@ DEBT_STEP_CENSUS = {
     "cured": "the debt is paid: an outcome",
     "write_off": "relief: the company gives the debt up",
     "get_plan_instalments": "a read of what the household paid on a plan it agreed",
-    "get_meter_recoveries": ("a read of what the meter took; the deduction is the world's step, the "
-                             "recovery_through_the_meter row, which has no company door"),
+    "get_meter_recoveries": EnforcementAction.METER_RECOVERY,
+    "suspend_deduction": ("the pause the desk lodges when the recovery_through_the_meter row "
+                          "refuses: it stops a step, it takes none"),
     "get_meter_supply_events": ("the 27A watch's read of what the meter reported (SLC 27A.1): a duty "
                                 "to watch, the self_disconnection_support row, not a step to collect"),
     "ask_prepayment_suitability": ("a question the household answers at the Consent rung; its "

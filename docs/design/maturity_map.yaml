@@ -468,15 +468,14 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 1   # 27A watch pauses the deduction via suspend_deduction; no live run moves a meter
   level_target: 2
   loop_stage: build
   dial_inherited: 3
   provenance: proposal
-  file_scope: [tests/company/billing/test_recovery_through_the_meter_reads_the_27a_watch.py]
+  file_scope: [company/billing/collections_journey.py, company/billing/winter_moratorium.py, simulation/payment_method_dynamics.py, tests/company/billing/test_recovery_through_the_meter_reads_the_27a_watch.py]
   depends_on: [C36_a_self_disconnection_the_watch_sees_is_answered_with_support]
-  # Knowledge first: does 27.8 or 27A bar or size the weekly deduction from a household the watch
-  # sees self-disconnecting? Commons s.5 table, recovery_through_the_meter x 27A cell (GAP).
+  # Commons s.5 "Recovery through the meter, on the 27A watch": 27A.1(b) via 27.8A(d)(iv), pause.
   real_world_twin: "pausing or lowering a PPM debt deduction while the customer keeps going off supply"
 - id: W2_40_voids_tied_to_move_outs
   lane: W2_customer_generator

@@ -205,6 +205,9 @@ ARRANGEMENT = "arrangement"
 ARRANGEMENT_ACCEPTANCE_GAP = (
     "this desk was built with no seam to ask, so no household answer to the offer reaches the "
     "company: neither the instalment it can afford (SLC 27.8) nor whether it agrees")
+#: Why a refused recovery could not be paused: the desk's world door has no pause (C37).
+NO_PAUSE_DOOR = ("this desk's world door has no way to pause the meter's deduction, so the refusal is "
+                 "recorded and the deductions the meter takes are still posted")
 
 
 #: THE STEP AFTER THE OFFER (2026-10-24). Once a journey stands on the plan-offer rung or above it
@@ -495,6 +498,9 @@ class CollectionsJourneyDesk:
         #: account -> the 27A response this desk made, one row per interruption answered, in order
         #: (`_answer_self_disconnection`). The meter's move adds the 27A.2/27A.8 row first.
         self.self_disconnection_support: Dict[str, List[dict]] = {}
+        #: account -> the pause this desk lodged on its meter's debt deduction, with the gate's
+        #: grounds and the world door's answer (`_pause_recovery`, C37). One per account.
+        self.meter_recovery_paused: Dict[str, dict] = {}
         #: This supplier's own holds (`WinterMoratoriumRegister`). None: no company path places one.
         self.own_holds: Optional[Any] = None
         #: Every arrangement this desk has offered, and what became of each.
@@ -550,7 +556,7 @@ class CollectionsJourneyDesk:
         after = self._through.get(account_id)
         if after is not None and through <= after:
             return
-        self._read_meter_recoveries(account_id, through)
+        self._read_meter_recoveries(account_id, through, segment)
         triggers = sorted({max(s.trigger_days_overdue, 1) for s in dunning_path(segment)})
         events = ledger.events()
         bill_dues = [e.valid_time + dt.timedelta(days=payment_terms_days)
@@ -629,7 +635,7 @@ class CollectionsJourneyDesk:
                        left_level=(left_level_asks(ledger, level[0], on, payment_terms_days,
                                                    self.dunning_at_leaving(account_id))
                                    if level is not None and not on_level else None))
-        self._read_meter_recoveries(account_id, through)  # a meter changed inside this walk
+        self._read_meter_recoveries(account_id, through, segment)  # a meter changed in this walk
         self._through[account_id] = through
 
     def _step(self, account_id: str, segment: Segment, on: dt.date, *,
@@ -823,21 +829,50 @@ class CollectionsJourneyDesk:
         watched = self._watched.get(account_id)
         return [] if watched is None else list(watched[1])
 
-    def _read_meter_recoveries(self, account_id: str, through: dt.date) -> None:
+    def _read_meter_recoveries(self, account_id: str, through: dt.date,
+                               segment: Optional[Segment] = None) -> None:
         """Post each weekly deduction the account's meter took by `through` to the ledger as cash,
         each once. Read at every advance, not only at a missed bill: a household on a meter misses
-        none, so nothing else would bring this desk back to the account."""
+        none, so nothing else would bring this desk back to the account. Before reading, the
+        recovery row is asked; refused, the deduction is paused first (`_pause_recovery`, C37)."""
         meter = self._meters.get(account_id)
         if meter is None or self._plan_offers is None:
             return
         moved_on, debt, read = meter
         self._read_supply_events(account_id, through)  # 27A.1: read at every advance on the meter
+        if account_id not in self.meter_recovery_paused:
+            self._pause_recovery(account_id, through, segment)
         rows = self._plan_offers.get_meter_recoveries(
             account_id, moved_on.isoformat(), debt, through.isoformat())
         for n, row in enumerate(rows[read:], read + 1):
             self._post_cash(account_id, row["amount_gbp"], dt.date.fromisoformat(row["due"]),
                             f"meter:{account_id}:{n}")
         meter[2] = len(rows)
+
+    def _pause_recovery(self, account_id: str, on: dt.date, segment: Optional[Segment]) -> None:
+        """Ask `may_take(METER_RECOVERY)` on `on`; refused, lodge a pause through the world door
+        so no deduction falls due after `on`, and record it with every ground. Deductions due by
+        `on` were taken before the desk could act (the lag is the read interval). One pause per
+        account, never lifted: the 27.8A(d)(iv) review that re-instates is a person's and not built.
+        Without a segment the arrears view cannot be read, so Breathing Space is read as held
+        (erring toward the pause, F11)."""
+        view = {} if segment is None else self._view_at(account_id, segment, on)
+        gate = _gate.may_take(_gate.EnforcementAction.METER_RECOVERY, _gate.EnforcementCase(
+            account_id=account_id, as_of=on,
+            own_hold=(self.own_holds is not None and self.own_holds.is_protected(account_id, on)),
+            breathing_space=True if segment is None else bool(view.get("moratorium_active")),
+            self_disconnection_watch=(None if self.self_disconnection_watch is None
+                                      else self.self_disconnection_watch(account_id, on))))
+        if gate.permitted:
+            return
+        if hasattr(self._plan_offers, "suspend_deduction"):
+            answer = self._plan_offers.suspend_deduction(account_id, on.isoformat(), gate.reason)
+        else:
+            answer = {"suspended": False, "reason": NO_PAUSE_DOOR}
+        self.meter_recovery_paused[account_id] = {
+            "on": on.isoformat(), "grounds": [g for g, _r in gate.refusals], "reason": gate.reason,
+            "suspended": answer["suspended"], "door_reason": answer["reason"],
+            "rule": "SLC 27A.1(b), 27.8A(d)(iv)"}
 
     def _read_instalments(self, account_id: str, on: dt.date) -> bool:
         """Post every instalment of this account's ACTIVE plans that fell due by `on` to the plan

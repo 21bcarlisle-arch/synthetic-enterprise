@@ -407,7 +407,7 @@ the Consent offer. No agency hand-off is made.
 | `consent_ppm_offer` | covered: 27.6 menu after 27.8; W:392 at J:774 **(was ladder order only)** | covered: W:385 at J:774 (eighth pass) | n/a | n/a | n/a | n/a | covered: W:397 at J:774 **(was absent)** | n/a: an offer is not a recovery step | n/a: Consent, not involuntary | covered: W:399 at J:774 **(was absent)** | n/a: S5 is a disconnection pledge | GAP: which needs make a PPM unsafe is the S&RP guidance's, not transcribed; read through the 27.6 finding | covered: W:400, J:778; A:697 never reaches the rung |
 | `debt_path_referral_and_agency_handoff` | covered: W:392 **(was absent)** | n/a | n/a | n/a | n/a | n/a | n/a | GAP | n/a | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
 | `debt_objection_on_switching` | GAP: SLC 14 read at 14.4, 14.6, 14.9 only; whether 27.8's arrangement-first governs an objection is not established | n/a | n/a | n/a: the household stays supplied | n/a | n/a | n/a | GAP | n/a | covered: design choice; W:465 via `company/market/transfer_objection_register.py` **(row added 2026-11-15)** | n/a: S5 is a disconnection pledge | GAP: no published rule found that bars an objection for a PSR household | covered: reg 7(7)(a), read as below; W:465 **(row added 2026-11-15)** |
-| `recovery_through_the_meter` | GAP: whether 27.8's ability-to-pay governs the deduction rate is not read here | n/a | n/a | n/a: the household stays supplied | n/a | n/a | GAP: a deduction from a household that is self-disconnecting; 27A is a duty to watch, and whether it bars recovery is not read | GAP | n/a | covered: design choice; W `METER_RECOVERY` row **(row added 2026-11-15, census)** | GAP: S5 is a disconnection pledge; not read for recovery | GAP | covered: reg 7(7)(a), a deduction to recover moratorium debt is a step to collect **(row added 2026-11-15, census)** |
+| `recovery_through_the_meter` | GAP: whether 27.8's ability-to-pay governs the deduction rate is not read here | n/a | n/a | n/a: the household stays supplied | n/a | n/a | covered: 27A.1(b) routes support through 27.8, and 27.8A(d)(iv) names a pause; a watch that has seen an interruption pauses the deduction (C37, "Recovery through the meter, on the 27A watch") **(was GAP)** | GAP | n/a | covered: design choice; W `METER_RECOVERY` row **(row added 2026-11-15, census)** | GAP: S5 is a disconnection pledge; not read for recovery | GAP | covered: reg 7(7)(a), a deduction to recover moratorium debt is a step to collect **(row added 2026-11-15, census)** |
 | `self_disconnection_support` | n/a: support is never barred | n/a | n/a | n/a | n/a | n/a | n/a: a duty, not a bar. The watch is the desk's own on the meter's reports (W2_43; the self-rationing detector is not it), and each interruption it sees is answered (C36, "The 27A.5 response") | n/a | n/a | n/a | n/a | n/a | n/a: support is not a step to collect |
 
 **The census (added 2026-11-15, the ninth pass's item 12, step 2).** The missing objection row came
@@ -427,6 +427,8 @@ What the census found, against the table's rows:
   suspend one**. In a Breathing Space moratorium those deductions would go on collecting
   moratorium debt. Row added above, unrouted. Nothing live moves: no meter is changed in any run,
   and no run holds a moratorium. The door (a seam to suspend a deduction) is a world build.
+  *(Superseded 2026-11-15, C37: the door is built and the row is routed; see "Recovery through the
+  meter, on the 27A watch" below.)*
 - **Dunning contact (reminders, final notice, arrangement offers and re-offers) has no row, by
   design.** Its one bar is Breathing Space, and that is already held by one implementation, the
   selector (`arrears_engine.select_dunning_step` returns `MORATORIUM_HOLD`). A row would be a
@@ -667,6 +669,64 @@ and `CollectionsJourneyDesk.watch_self_disconnection`. Rules: `docs/market_resea
   offers and households that were PSR-type and concealing, and meters moved on them. Truth: it never
   crosses, and no `company/` path reads it. While take-up is 0 no meter moves, but the offers are
   counted, so the harm's exposure is measured before the harm is switched on.
+
+**Recovery through the meter, on the 27A watch (added 2026-11-15, C37).**
+*K8 page for `CollectionsJourneyDesk._pause_recovery`, `SimInterface.suspend_deduction` and
+`simulation/payment_method_dynamics.meter_recoveries(suspended_after=)`. Question: must the weekly
+debt deduction pause or be resized while the 27A watch sees the household self-disconnecting?*
+- **What was read (15 Nov).** Ofgem, *Self-disconnection and self-rationing: decision* (Oct 2020),
+  full text extracted from the PDF; Ofgem, *PPM Guidance (Safe and Reasonably Practicable)*
+  (13 Sep 2023, OFG1163), §§3.10-3.12, 6 and 9; the SLC 27 and 27A text already transcribed in
+  `docs/market_research/company_debt_management.md` (Aug 2025 consolidation).
+- **No published text says "pause" or "reduce the deduction" on self-disconnection, in terms.**
+  ESTABLISHED as an absence. The 2020 decision contains no "pause"; guidance §9.1 lists monitoring,
+  multi-channel contact, sufficient ASC and (9.1(b)) the S&RP re-assessment, and nothing on the rate.
+- **What the rules do say (ESTABLISHED, verbatim):**
+  - 27A.1(b): on identifying self-disconnection, "offer that Domestic Customer appropriate support,
+    in accordance with this condition, SLC 27A, SLC 27.8, and all other obligations relating to
+    Prepayment Meter customers". So the 27.8 ability-to-pay duty is part of the 27A response.
+  - Decision §2.9: spotting self-disconnection puts suppliers "better placed to help get customers
+    back on supply and offer sustainable solutions, including putting them on affordable repayment
+    plans where this is needed".
+  - 27.8(b): for PPM recovery, consider "the value of all of the charges that are to be recovered
+    through that meter": debt, use and standing charge together.
+  - 27.8A(d)(iv) (from the Dec 2023 Consumer Standards notice, DERIVED date): "Pausing scheduled
+    repayments for an appropriate period of time ... and reviewing the customer's repayment plan in
+    accordance with their ability to pay at regular intervals before re-instating".
+  - 27.8C: charges "may not be demanded or recovered unless and until" 27.5-27.8 are met.
+  - Guidance 6.3 (involuntary PPM only): where the household can afford ongoing use but not the
+    debt, consider "delaying repayment start". 3.11's Precautionary Principle (involuntary only).
+- **The reading (DERIVED).** A meter running out of credit is the observable sign that the total
+  weekly charge through it exceeds what the household can pay that week. The deduction it is under
+  was never set on this household's ability to pay: the world takes the published mean (GBP 6.01 /
+  4.40). Continuing it unchanged is not "support in accordance with 27.8", and 27.8C reads against
+  recovering it. Of the two answers, resizing needs an ability-to-pay figure no world door gives
+  the company (the I&E is E6-adjacent, not drawn); pausing is the instrument the licence names. So
+  **pause**. Whether a practitioner would pause on the first interruption or resize after an I&E
+  call is not published: the question for him, if it matters, is that one.
+- **What the desk does (design choices, each named).**
+  - At every read of the meter, the desk asks `may_take(METER_RECOVERY)`. The row now covers 27A
+    beside Breathing Space and the own hold. On recovery, 27A refuses when the watch has seen any
+    interruption by that day, or when there is no usable watch (we cannot tell; fail closed).
+  - **Refused, the desk lodges a pause through `suspend_deduction`** on the day it reads: no
+    deduction falls due after it. Deductions due by that day were taken before the desk could act;
+    the lag is the read interval. Every ground and the door's answer go on
+    `meter_recovery_paused`. A door that cannot pause is recorded as such, and the cash the meter
+    took is still posted.
+  - **On the first interruption, not the second.** 27A.1(b) bites on identification; "frequent"
+    governs only 9.1(b). Erring toward protection (F11). *Cost:* recovery forgone on an account
+    that went off supply once.
+  - **Never re-instated.** "An appropriate period" is not published (GAP), and the review "in
+    accordance with their ability to pay" is case-by-case (27.8A(a)(i)), so a person's. No reviewer
+    is built, so the pause holds for the rest of the run, and the debt stays owed on the ledger.
+    *Cost:* the company's recovery is understated for every paused account. *Reversible:* drop
+    `slc_27a_self_disconnection` from the `METER_RECOVERY` row.
+- **Still GAP on this row:** the rate itself under 27.8 (the world's mean, not the household's);
+  the Safety Net and PSR columns; 28.15.
+- **Live effect: none today.** No run changes a meter while `method_prepayment_offer_take_up_share`
+  is 0. With take-up on and the self-disconnection share at its 0.019 default, a meter's chance of
+  at least one interruption within a year is about 1 - 0.981^52, roughly 63%, so most fitted meters
+  would be paused within the year.
 
 **The debt-objection row (added 2026-11-15, the ninth pass's item 12).** The company decides a
 debt objection live in every run (`decide_debt_objection`, from `simulation/run_phase2b.py`). It

@@ -369,6 +369,13 @@ class SimInterface:
         a supplier sees the money its meter collects. Empty while no meter was changed."""
         raise NotImplementedError
 
+    def suspend_deduction(self, account_id: str, after, reason: str) -> dict:
+        """COMPANY -> WORLD (C37): the supplier pauses the debt deduction its meter takes, so none
+        falls due after `after` (SLC 27.8A(d)(iv)); the debt stays owed. ``{"suspended": bool,
+        "reason": str}``. The supplier's own act on its own meter; nothing about the household
+        crosses back."""
+        raise NotImplementedError
+
     def get_plan_instalments(self, account_id: str, agreed_on, through) -> list[dict]:
         """Each instalment of an agreed plan that fell due after `agreed_on` and by `through`, as
         ``{"due": iso date, "paid": bool}`` -- what the supplier's own collection records show.
@@ -493,6 +500,9 @@ class StubSimInterface(SimInterface):
 
     def get_meter_recoveries(self, account_id, moved_on, debt, through) -> list[dict]:
         return []
+
+    def suspend_deduction(self, account_id, after, reason) -> dict:
+        return {"suspended": False, "reason": "stub seam: no meter behind it to pause"}
 
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         return []
@@ -815,8 +825,17 @@ class LiveSimInterface(SimInterface):
         from simulation.payment_method_dynamics import meter_recoveries
         fuel = (self._household_plans.fuel_of(account_id) if self._household_plans is not None
                 else "electricity")
+        paused = (None if self._household_plans is None
+                  else self._household_plans.recovery_suspended_after(account_id))
         return meter_recoveries(debt, dt.date.fromisoformat(str(moved_on)),
-                                dt.date.fromisoformat(str(through)), fuel)
+                                dt.date.fromisoformat(str(through)), fuel, suspended_after=paused)
+
+    def suspend_deduction(self, account_id, after, reason) -> dict:
+        if self._household_plans is None:
+            return {"suspended": False, "reason": "no world behind this seam holds a meter"}
+        if not self._household_plans.suspend_recovery(account_id, dt.date.fromisoformat(str(after))):
+            return {"suspended": False, "reason": "no meter was changed on this account by then"}
+        return {"suspended": True, "reason": reason}
 
     def get_plan_instalments(self, account_id, agreed_on, through) -> list[dict]:
         from simulation.plan_offer_response import plan_instalments

@@ -39,3 +39,14 @@ a refusal. The bypass pattern already names `suspend_deduction*`, so a door adde
 must ask the gate.
 
 NEXT: C32_one_obligation_one_vulnerability_scorer
+
+## Done
+
+2026-11-15, C37: the door is built. `SimInterface.suspend_deduction(account, after, reason)` pauses
+the world's deduction (`HouseholdPlanBook.suspend_recovery`; `meter_recoveries(suspended_after=)`).
+`_read_meter_recoveries` now asks `may_take(METER_RECOVERY)` at every read and pauses on a refusal,
+so the row is routed (out of `UNROUTED_ACTIONS`; census `get_meter_recoveries` maps to it). The
+Breathing Space and own-hold cells are now asked on the live path, and 27A is covered (commons
+s.5, "Recovery through the meter, on the 27A watch"). Still not live: no run holds a moratorium
+(`BreathingSpaceRegister.register_entry` has no caller), and no run moves a meter at take-up 0.
+

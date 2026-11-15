@@ -205,6 +205,8 @@ class HouseholdPlanBook:
         #: Every Consent prepayment offer the supplier made, as (account, offered on, moved), in the
         #: order made. World truth for the concealment count (C36); never read company-side.
         self.consent_offers: list[tuple[str, dt.date, bool]] = []
+        #: account -> the day the supplier paused its meter's debt deduction (C37).
+        self._recovery_suspended: dict[str, dt.date] = {}
 
     def record_meter(self, account_id: str, moved_on: dt.date, debt_gbp: float) -> None:
         """The household's meter was changed to prepayment for debt (payment_method_dynamics)."""
@@ -213,6 +215,17 @@ class HouseholdPlanBook:
     def record_consent_offer(self, account_id: str, offered_on: dt.date, moved: bool) -> None:
         """The supplier offered this household a prepayment meter by Consent, and whether it moved."""
         self.consent_offers.append((account_id, offered_on, bool(moved)))
+
+    def suspend_recovery(self, account_id: str, after: dt.date) -> bool:
+        """The supplier paused the debt deduction on this account's meter: none falls due after
+        `after` (C37). The first pause stands. False where no meter was changed by `after`."""
+        if not self.on_meter(account_id, after):
+            return False
+        self._recovery_suspended.setdefault(account_id, after)
+        return True
+
+    def recovery_suspended_after(self, account_id: str) -> Optional[dt.date]:
+        return self._recovery_suspended.get(account_id)
 
     def meter_of(self, account_id: str) -> Optional[tuple[dt.date, float]]:
         return self._meters.get(account_id)

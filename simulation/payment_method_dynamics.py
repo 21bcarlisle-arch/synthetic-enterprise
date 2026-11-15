@@ -48,6 +48,8 @@ NAMED SIMPLIFICATIONS:
      means (SLC 27.8 sets a per-household figure; the 2025 range ran GBP 2.69-17.17 a week), and a
      household that has not topped up that week still pays it. Understates how slowly a stretched
      household repays and how often it goes off supply instead (simplification 4).
+  5a. A supplier's pause (C37) stops every deduction due after the day it was lodged, for the rest
+     of the run: the 27.8A(d)(iv) review that would re-instate it is not built.
   6. Bills after the move are paid before use (the meter's own method) for the rest of the run; a
      meter is never moved back (SLC 28.1A reassessment is not built).
 
@@ -86,11 +88,17 @@ PPM_DEBT_WEEKLY_GBP = {"electricity": 6.01, "gas": 4.40}
 
 
 def meter_recoveries(debt_gbp: float, moved_on: "dt.date", through: "dt.date",
-                     fuel: str = "electricity") -> list[dict]:
+                     fuel: str = "electricity",
+                     suspended_after: Optional["dt.date"] = None) -> list[dict]:
     """Each weekly deduction at top-up falling after the meter was changed and no later than
     `through`, as `{"due": iso, "amount_gbp": x}`. The sum never exceeds the debt carried onto the
-    meter, so the last is the remainder. Asking cannot see the future."""
+    meter, so the last is the remainder. Asking cannot see the future.
+
+    `suspended_after`: the day the supplier paused recovery (C37, SLC 27.8A(d)(iv)); no deduction
+    falls due after it, and the debt not taken stays owed. A pause is never lifted (no review)."""
     weekly = PPM_DEBT_WEEKLY_GBP.get(fuel, PPM_DEBT_WEEKLY_GBP["electricity"])
+    if suspended_after is not None:
+        through = min(through, suspended_after)
     out, remaining, n = [], round(debt_gbp, 2), 1
     while remaining > 0 and (due := moved_on + dt.timedelta(days=7 * n)) <= through:
         paid = round(min(weekly, remaining), 2)
