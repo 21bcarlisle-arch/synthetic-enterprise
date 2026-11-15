@@ -1020,3 +1020,12 @@ re-drawn both together.
   comparison cannot see a difference smaller than about 0.1. A and its twin share the dice, so the
   paired difference should be far tighter than the half-range. That is §9's A1 prediction, and it
   should be read paired, not against the bar.
+
+**What this grade does to §6a's "neither fires" row (read 15 Nov, after the grade).** That row sends
+A first, on twelve draws. B is built only if A clears its bar, because the roll share (0.43) is not
+above 0.5. For C the row says "the 1,200-household sized run at 12 draws, not 4,860". **The second
+half of that is refuted by this family's own variances.** At 12 draws a £3 effect needs about
+**3,060 households**, not 1,200. A 1,200-household book at 12 draws resolves about **£4.80** per
+household-year, and about £6.10 on one draw. So C is still beyond one run on this machine. Under
+rule 2 it goes to the director with its cost, as in §6a's first two rows, and it is raised in
+`for_the_director` (`the-value-test-s-sized-book-candidate`) with a recommendation. A and B do not wait on that.
