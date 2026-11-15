@@ -23,11 +23,13 @@ from enum import Enum
 from typing import Iterable, List, Optional
 
 from company.regulatory.priority_services_register import (
+    DO_NOT_INSTALL_CHECK,
     WINTER_MONTHS,
     DisconnectionDetermination,
     DisconnectionProtection,
     HouseholdComposition,
     PensionableAge,
+    ProtectionRecord,
     PSRCategory,
     disconnection_protection,
     pensionable_age_from_birth_date,
@@ -281,13 +283,17 @@ class EnforcementAction(str, Enum):
     #: SLC 14.4(a): blocking a domestic household's switch away for Outstanding Charges. Live in
     #: every run (`company/market/transfer_objection_register.decide_debt_objection`).
     DEBT_OBJECTION = "debt_objection_on_switching"
+    #: Debt recovered from a prepayment meter's top-ups after a move. The deduction is the world's;
+    #: the company reads it (`collections_journey._read_meter_recoveries`) and has no door to set or
+    #: suspend one, so this row has no company route (census, ninth pass item 12).
+    METER_RECOVERY = "recovery_through_the_meter"
 
 
 #: The actions no company path takes today. Listed so a route built later meets the gate's
 #: answer, not an empty one; `may_take` answers them on the same table as the rest.
 UNROUTED_ACTIONS = frozenset({EnforcementAction.DISCONNECTION, EnforcementAction.WARRANT_PPM_INSTALL,
                               EnforcementAction.REMOTE_SWITCH_TO_PREPAY,
-                              EnforcementAction.AGENCY_HANDOFF})
+                              EnforcementAction.AGENCY_HANDOFF, EnforcementAction.METER_RECOVERY})
 
 
 @dataclass(frozen=True)
@@ -307,9 +313,11 @@ class EnforcementCase:
     breathing_space: bool = False
     arrangement_offered: bool = False
     suitability: Optional[bool] = None
-    self_disconnection_watched: bool = False
+    #: SLC 27A: the dated record of the self-disconnection watch that would cover this household.
+    self_disconnection_watch: Optional[ProtectionRecord] = None
     ppm_route_exhausted: bool = False
-    involuntary_preconditions_recorded: bool = False
+    #: SLC 28B: the four dated precondition records (`SLC28B_PRECONDITIONS`), each its own record.
+    involuntary_preconditions: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -342,8 +350,67 @@ IN_BREATHING_SPACE = ("a Debt Respite moratorium is active: SI 2020/1311 reg 7(7
 OWN_HOLD = "this supplier has placed its own hold on the account (WinterMoratoriumRegister)"
 NO_INVOLUNTARY_PRECONDITIONS = (
     "SLC 28B: an involuntary prepayment meter needs the Debt Trigger, at least 10 contact attempts, a "
-    "Site Welfare Visit and a do-not-install check (75+ without support, a child under 2), and no "
-    "company path records them")
+    "Site Welfare Visit and a do-not-install check (75+ without support, a child under 2), each a "
+    "dated record in effect on the day")
+
+#: The day each dated clause came into force. 27A: Ofgem's self-disconnection decision of Oct
+#: 2020, in force 15 Dec 2020 (`docs/market_research/company_debt_management.md`, 27A note).
+#: 28B: Ofgem's PPM licence decision of Sep 2023, licence from 8 Nov 2023 after the Code of
+#: Practice of 18 Apr 2023 (`docs/market_research/debt_and_collections.md` s.3).
+CLAUSE_IN_FORCE = {"slc_27a_self_disconnection": dt.date(2020, 12, 15),
+                   "slc_28b_involuntary_ppm": dt.date(2023, 11, 8)}
+
+SELF_DISCONNECTION_WATCH = "slc_27a_self_disconnection_watch"
+DEBT_TRIGGER = "slc_28b_debt_trigger"
+CONTACT_ATTEMPTS = "slc_28b_contact_attempts"
+SITE_WELFARE_VISIT = "slc_28b_site_welfare_visit"
+#: 28B's four preconditions, each its own dated record (ninth pass, item 6). The do-not-install
+#: check is a household fact and is made in the PSR module.
+SLC28B_PRECONDITIONS = (DEBT_TRIGGER, CONTACT_ATTEMPTS, SITE_WELFARE_VISIT, DO_NOT_INSTALL_CHECK)
+#: "At least 10 attempts to contact, through several channels" (SLC 28B / Code of Practice 2023;
+#: `docs/market_research/debt_and_collections.md` s.3). The channel mix is not checked: GAP.
+SLC28B_MIN_CONTACT_ATTEMPTS = 10
+
+
+def _in_force(ground: str, on: dt.date) -> str:
+    """The clause's standing on `on`. Before it is in force this supplier applies it as its own
+    policy (design choice, erring toward protection, F11): the refusal stands and says so, rather
+    than an anachronistic licence citation or a permission the floor would not give."""
+    start = CLAUSE_IN_FORCE[ground]
+    if on >= start:
+        return f"in force from {start}"
+    return (f"not in force until {start}; applied before then as this supplier's own policy, "
+            "a design choice")
+
+
+def _self_disconnection_check(case, _action):
+    record = case.self_disconnection_watch
+    why = NO_SELF_DISCONNECTION_WATCH if record is None else record.unusable_on(case.as_of)
+    if why is None:
+        return None
+    return f"{why} (SLC 27A: {_in_force('slc_27a_self_disconnection', case.as_of)})"
+
+
+def _involuntary_check(case, _action):
+    held = {r.kind: r for r in case.involuntary_preconditions}
+    why = []
+    for kind in SLC28B_PRECONDITIONS:
+        record = held.get(kind)
+        if record is None:
+            why.append(f"no {kind} is recorded")
+            continue
+        bad = record.unusable_on(case.as_of)
+        if bad is None and kind == CONTACT_ATTEMPTS:
+            n = sum(1 for d in record.evidence if d <= case.as_of)
+            if n < SLC28B_MIN_CONTACT_ATTEMPTS:
+                bad = (f"{kind}: {n} attempts recorded by {case.as_of}; 28B needs at least "
+                       f"{SLC28B_MIN_CONTACT_ATTEMPTS}")
+        if bad is not None:
+            why.append(bad)
+    if not why:
+        return None
+    return (f"{NO_INVOLUNTARY_PRECONDITIONS} (SLC 28B: "
+            f"{_in_force('slc_28b_involuntary_ppm', case.as_of)}): " + "; ".join(why))
 
 
 def _decider_answers(case: EnforcementCase):
@@ -397,8 +464,8 @@ _CHECKS = {
     "ppm_first": lambda c, _a: None if c.ppm_route_exhausted else NOT_PPM_FIRST,
     "licence": _licence_check,
     "company_layer": _company_layer_check,
-    "self_disconnection": lambda c, _a: None if c.self_disconnection_watched else NO_SELF_DISCONNECTION_WATCH,
-    "involuntary": lambda c, _a: None if c.involuntary_preconditions_recorded else NO_INVOLUNTARY_PRECONDITIONS,
+    "self_disconnection": _self_disconnection_check,
+    "involuntary": _involuntary_check,
     "own_hold": lambda c, _a: OWN_HOLD if c.own_hold else None,
     "breathing_space": lambda c, _a: IN_BREATHING_SPACE if c.breathing_space else None,
 }
@@ -459,6 +526,44 @@ ENFORCEMENT_TABLE = {
     # 27.8 order, PSR needs and 28.15: no published text read says how they bear on an objection.
     _O: _row(("own_hold_winter_moratorium", "breathing_space"),
              gap=("slc_27_5_to_27_8_ability_to_pay", "psr_needs_codes", "slc_28_15_proportionate")),
+    # A deduction from top-ups to recover moratorium debt is plainly "a step to collect" (reg
+    # 7(7)(a)). Own hold: design choice. Ability to pay on the deduction rate, 27A on a household
+    # that is self-disconnecting, the welfare columns and 28.15: not read for recovery (commons s.5).
+    EnforcementAction.METER_RECOVERY: _row(
+        ("own_hold_winter_moratorium", "breathing_space"),
+        gap=("slc_27_5_to_27_8_ability_to_pay", "slc_27a_self_disconnection", "energy_uk_safety_net",
+             "psr_needs_codes", "slc_28_15_proportionate")),
+}
+
+_CONTACT = ("dunning contact: a step to collect in Breathing Space, held by the one selector "
+            "(arrears_engine.select_dunning_step returns MORATORIUM_HOLD). No row, so the ground has "
+            "one implementation; no other column bars a contact")
+
+#: THE CENSUS (ninth pass, item 12): every name under which the company acts on a domestic debt,
+#: and the row that governs it or why it has none. The names are every stage the domestic
+#: collections desk can enter (`collections_journey.lawful_successors`), every call the desk makes
+#: through its world door (`self._plan_offers`), the world-asked objection door
+#: (`company/interfaces/transfer_objection.__all__`) and the objection register's write. The control
+#: derives that set from the code and reds on a name missing here or here and gone from the code.
+DEBT_STEP_CENSUS = {
+    "missed_payment": "a record that a bill went unpaid; nothing is done to the household",
+    "reminder": _CONTACT, "reminder_2": _CONTACT, "final_notice": _CONTACT,
+    "repayment_plan_offer": _CONTACT, "arrangement_offered": _CONTACT,
+    "repayment_plan_reoffer": _CONTACT, "answer_plan_offer": _CONTACT,
+    "moratorium_hold": "the hold itself: no step is taken",
+    "prepayment_or_debt_agency": EnforcementAction.CONSENT_PPM_OFFER,
+    "prepayment_offered": EnforcementAction.CONSENT_PPM_OFFER,
+    "request_prepayment_move": EnforcementAction.CONSENT_PPM_OFFER,
+    "prepayment_withheld": "the gate's refusal of the Consent offer, recorded",
+    "prepayment": "the world changed the meter on a Consent offer: the offer's outcome",
+    "arrangement": "the household agreed a plan: an outcome",
+    "cured": "the debt is paid: an outcome",
+    "write_off": "relief: the company gives the debt up",
+    "get_plan_instalments": "a read of what the household paid on a plan it agreed",
+    "get_meter_recoveries": ("a read of what the meter took; the deduction is the world's step, the "
+                             "recovery_through_the_meter row, which has no company door"),
+    "request_debt_objection": EnforcementAction.DEBT_OBJECTION,
+    "raise_objection": EnforcementAction.DEBT_OBJECTION,
 }
 
 

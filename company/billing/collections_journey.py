@@ -452,10 +452,12 @@ class CollectionsJourneyDesk:
         #: finding for that household on that day, True / False, or None where none is held. None
         #: as a whole (the shipped desk): no finding exists, so every Consent offer is withheld.
         self.prepayment_suitability = prepayment_suitability
-        #: `self_disconnection_watch(account_id, on)`: whether a household moved to a prepayment meter
-        #: would be watched for self-disconnection from that day (SLC 27A.1). None (the shipped desk):
+        #: `self_disconnection_watch(account_id, on)`: the dated `ProtectionRecord` of the watch that
+        #: would cover a household moved to a prepayment meter, or None where none is held. A bare
+        #: True carries no date, so the gate cannot say whether it was in effect (ninth pass, item 3;
+        #: SLC 27A.1 watches from the day the household is on a meter). None (the shipped desk):
         #: no run calls `company/crm/self_rationing_detector.py`, so no Consent offer is made.
-        self.self_disconnection_watch: Optional[Callable[[str, dt.date], bool]] = None
+        self.self_disconnection_watch: Optional[Callable[[str, dt.date], Any]] = None
         #: This supplier's own holds (`WinterMoratoriumRegister`). None: no company path places one.
         self.own_holds: Optional[Any] = None
         #: Every arrangement this desk has offered, and what became of each.
@@ -777,8 +779,8 @@ class CollectionsJourneyDesk:
                       and self.own_holds.is_protected(journey.account_id, on)),
             breathing_space=bool(view.get("moratorium_active")),
             arrangement_offered=any(s["stage"] == ARRANGEMENT_OFFERED for s in journey.stages),
-            self_disconnection_watched=(self.self_disconnection_watch is not None
-                                        and self.self_disconnection_watch(journey.account_id, on))))
+            self_disconnection_watch=(None if self.self_disconnection_watch is None
+                                      else self.self_disconnection_watch(journey.account_id, on))))
         if not gate.permitted:
             journey.enter(PREPAYMENT_WITHHELD, on, gate.reason, view)
             return

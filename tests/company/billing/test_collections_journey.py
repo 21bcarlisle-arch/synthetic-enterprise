@@ -55,6 +55,7 @@ from company.billing.collections_journey import (
 )
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
+from company.billing.winter_moratorium import SELF_DISCONNECTION_WATCH
 from company.compliance import obligations_register as orr
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
@@ -64,6 +65,7 @@ from company.compliance.domain_invariants import (
     refuse_dunning_of_a_cleared_debt,
 )
 from company.crm.account_hierarchy import Segment
+from company.regulatory.priority_services_register import ProtectionRecord
 
 ISSUE = dt.date(2024, 1, 1)  # due 2024-01-15 on the 14-day terms
 
@@ -534,7 +536,8 @@ def test_a_paid_instalment_posts_to_the_ledger_as_cash_and_a_repaid_plan_frees_t
 
 def _suitable(consumer, finding=True):
     consumer.collections_journeys.prepayment_suitability = lambda _account, _on: finding
-    consumer.collections_journeys.self_disconnection_watch = lambda _account, _on: True
+    consumer.collections_journeys.self_disconnection_watch = lambda _account, on: ProtectionRecord(
+        SELF_DISCONNECTION_WATCH, on, on + dt.timedelta(days=1))
     return consumer
 
 

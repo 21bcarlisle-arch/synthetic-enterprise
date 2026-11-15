@@ -754,3 +754,57 @@ class PriorityServicesRegister:
             ),
         ]
         return chr(10).join(lines)
+
+
+# ---------------------------------------------------------------------------
+# DATED PROTECTION RECORDS (C32 ninth pass, items 3 and 6, 2026-11-15). A protection the
+# enforcement gate reads is a fact the company recorded on a day, and it stops counting on a day.
+# Before this, 28B's four preconditions were one boolean and 27A's watch another, with no date of
+# either: the gate could not say when a precondition was learned or whether it still held.
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class ProtectionRecord:
+    """One dated fact a protection turns on.
+
+    `learned_on` is the day the company recorded it: asked about an earlier day, it is not yet
+    known. `lapses_on` is the first day it no longer counts. None means no lapse is established,
+    and NONE IS PUBLISHED for any 28B precondition or a 27A watch (commons s.5, GAP), so a record
+    with no lapse cannot be relied on: the gate refuses rather than read it as lasting for ever.
+    Whoever records one states when it lapses. `met` is the record's finding: False is a check
+    done that found the bar (a do-not-install check that found a child under 2). `evidence` holds
+    what a count rests on (the dates of contact attempts)."""
+    kind: str
+    learned_on: date
+    lapses_on: date | None
+    met: bool = True
+    evidence: tuple = ()
+
+    def unusable_on(self, on: date) -> str | None:
+        """Why this record cannot be relied on, on `on`; None when it can."""
+        if self.learned_on > on:
+            return f"{self.kind} is recorded on {self.learned_on}, after {on}: not yet known"
+        if self.lapses_on is None:
+            return (f"{self.kind} recorded on {self.learned_on} carries no lapse date and none is "
+                    "published, so it cannot be relied on")
+        if on >= self.lapses_on:
+            return f"{self.kind} recorded on {self.learned_on} lapsed on {self.lapses_on}"
+        if not self.met:
+            return (f"{self.kind} recorded on {self.learned_on} found the bar, or left a question "
+                    "it turns on unanswered")
+        return None
+
+
+#: SLC 28B's do-not-install check: no involuntary prepayment meter where a person aged 75 or over
+#: lives without support in the house, or a child under 2 (Ofgem PPM licence decision Sep 2023;
+#: `docs/market_research/debt_and_collections.md` s.3). A household fact, so it lives with the PSR.
+DO_NOT_INSTALL_CHECK = "slc_28b_do_not_install_check"
+
+
+def do_not_install_check(learned_on: date, lapses_on: date | None, *,
+                         over_75_without_support: bool | None,
+                         child_under_2: bool | None) -> ProtectionRecord:
+    """The dated record of the check. An answer the company does not hold (None) is not a clear
+    check: it records the check as finding the bar, so an unasked household is never installed."""
+    clear = over_75_without_support is False and child_under_2 is False
+    return ProtectionRecord(DO_NOT_INSTALL_CHECK, learned_on, lapses_on, met=clear)

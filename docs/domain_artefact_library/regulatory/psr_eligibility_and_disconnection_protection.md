@@ -402,12 +402,83 @@ the Consent offer. No agency hand-off is made.
 | action | `slc_27_5_to_27_8_ability_to_pay` | `slc_27_6_a_iii_safe_and_practicable` | `slc_27_9_ppm_before_disconnection` | `slc_27_10_winter_pensionable` | `slc_27_11_winter_reasonable_steps` | `slc_27_11a_ascertain` | `slc_27a_self_disconnection` | `slc_28_15_proportionate` | `slc_28b_involuntary_ppm` | `own_hold_winter_moratorium` | `energy_uk_safety_net` | `psr_needs_codes` | `breathing_space` |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | `disconnection` | covered: 27.8, 27.8C; W:392 **(was absent)** | n/a | covered: 27.9, 27.9A; W:394 **(was absent)** | covered: P:241 via W:361 | covered: P:257 via W:361 | covered: P:284 via W:361 | n/a | GAP: no published test of "proportionate" | n/a | covered: W:399; W:215 | covered: S5, adopted; W:56 via W:366 | covered: W:121, W:111 via W:366 | covered: SI 2020/1311 reg 7; W:400 **(was absent)** |
-| `warrant_ppm_install` | covered: W:392 **(was absent)** | covered: 27.6(a)(iii); W:385 **(was absent)** | n/a | n/a: a PPM is not a disconnection (27.9A) | n/a | n/a | covered: 27A.1; W:397 **(was absent)** | GAP: warrant costs capped at £150; proportionality of the act not published | covered: one recorded flag; W:398 **(was absent)** | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
+| `warrant_ppm_install` | covered: W:392 **(was absent)** | covered: 27.6(a)(iii); W:385 **(was absent)** | n/a | n/a: a PPM is not a disconnection (27.9A) | n/a | n/a | covered: 27A.1; W:397 **(was absent)** | GAP: warrant costs capped at £150; proportionality of the act not published | covered: four dated records, `SLC28B_PRECONDITIONS` **(was one flag; split 2026-11-15)** | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
 | `remote_switch_to_prepay_mode` | covered: W:392 **(was absent)** | covered: W:385 **(was absent)** | n/a | n/a | n/a | n/a | covered: W:397 **(was absent)** | GAP | covered: 28B treats a remote switch as involuntary; W:398 **(was absent)** | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
 | `consent_ppm_offer` | covered: 27.6 menu after 27.8; W:392 at J:774 **(was ladder order only)** | covered: W:385 at J:774 (eighth pass) | n/a | n/a | n/a | n/a | covered: W:397 at J:774 **(was absent)** | n/a: an offer is not a recovery step | n/a: Consent, not involuntary | covered: W:399 at J:774 **(was absent)** | n/a: S5 is a disconnection pledge | GAP: which needs make a PPM unsafe is the S&RP guidance's, not transcribed; read through the 27.6 finding | covered: W:400, J:778; A:697 never reaches the rung |
 | `debt_path_referral_and_agency_handoff` | covered: W:392 **(was absent)** | n/a | n/a | n/a | n/a | n/a | n/a | GAP | n/a | covered: W:399 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: design choice; W:366 **(was absent)** | covered: W:400 **(was absent)** |
 | `debt_objection_on_switching` | GAP: SLC 14 read at 14.4, 14.6, 14.9 only; whether 27.8's arrangement-first governs an objection is not established | n/a | n/a | n/a: the household stays supplied | n/a | n/a | n/a | GAP | n/a | covered: design choice; W:465 via `company/market/transfer_objection_register.py` **(row added 2026-11-15)** | n/a: S5 is a disconnection pledge | GAP: no published rule found that bars an objection for a PSR household | covered: reg 7(7)(a), read as below; W:465 **(row added 2026-11-15)** |
+| `recovery_through_the_meter` | GAP: whether 27.8's ability-to-pay governs the deduction rate is not read here | n/a | n/a | n/a: the household stays supplied | n/a | n/a | GAP: a deduction from a household that is self-disconnecting; 27A is a duty to watch, and whether it bars recovery is not read | GAP | n/a | covered: design choice; W `METER_RECOVERY` row **(row added 2026-11-15, census)** | GAP: S5 is a disconnection pledge; not read for recovery | GAP | covered: reg 7(7)(a), a deduction to recover moratorium debt is a step to collect **(row added 2026-11-15, census)** |
 | `self_disconnection_support` | n/a: support is never barred | n/a | n/a | n/a | n/a | n/a | n/a: a duty, not a bar. The watch is `company/crm/self_rationing_detector.py`, with no run caller; no household reaches a PPM by a company route unwatched (row 4) | n/a | n/a | n/a | n/a | n/a | n/a: support is not a step to collect |
+
+**The census (added 2026-11-15, the ninth pass's item 12, step 2).** The missing objection row came
+from a hand-listed row set. The rows are now checked against a census read off the code:
+`DEBT_STEP_CENSUS` in `company/billing/winter_moratorium.py`, which the control
+(`test_the_census_is_the_code_and_every_step_to_collect_has_a_row_or_a_named_home`) derives from
+four places and compares name for name: every stage the domestic collections desk can enter
+(`collections_journey.lawful_successors`), every call the desk makes through its world door
+(`self._plan_offers`), the world-asked objection door (`company/interfaces/transfer_objection.__all__`)
+and every write to the objection register in `company/` or `saas/`. A stage, door call or register
+write added later that the census does not place reds the control; so does a name the code has
+dropped. The bypass control's action names are read from the census too, not listed.
+
+What the census found, against the table's rows:
+- **Recovery through the meter had no row.** After a Consent move the meter takes weekly
+  deductions; the company reads them (`_read_meter_recoveries`) and has **no door to set or
+  suspend one**. In a Breathing Space moratorium those deductions would go on collecting
+  moratorium debt. Row added above, unrouted. Nothing live moves: no meter is changed in any run,
+  and no run holds a moratorium. The door (a seam to suspend a deduction) is a world build.
+- **Dunning contact (reminders, final notice, arrangement offers and re-offers) has no row, by
+  design.** Its one bar is Breathing Space, and that is already held by one implementation, the
+  selector (`arrears_engine.select_dunning_step` returns `MORATORIUM_HOLD`). A row would be a
+  second implementation of the same ground, which is the VAT shape. The census names that home.
+  *Open:* whether the supplier's own holds should pause contact turns on the hold's kind (a
+  disconnection hold should not stop an arrangement offer); not designed.
+- **Everything else the desk enters is an outcome, a record or relief** (missed payment, cured,
+  arrangement agreed, meter changed, withheld, write-off), each named in the census.
+- **Not in the census, because no company code takes them:** DAP assignment, court action,
+  credit-file reporting. A route built for any of them enters the census by its door or stage.
+
+**28B and 27A, dated (added 2026-11-15, the ninth pass's items 3 and 6, step 3).**
+- **Each protection is a dated record.** `ProtectionRecord` (`company/regulatory/priority_services_register.py`)
+  carries the day the company learned it (`learned_on`) and the first day it no longer counts
+  (`lapses_on`). The gate refuses when a record:
+  - is learned after the day asked (not yet known);
+  - has lapsed;
+  - carries no lapse date;
+  - holds a finding of the bar.
+- **No validity period is published** for a Debt Trigger finding, a run of contact attempts, a Site
+  Welfare Visit, a do-not-install check or a 27A watch. **GAP.** A record without a lapse date is
+  not read as lasting for ever. The recorder must state when it lapses, and the code invents no
+  period.
+- **28B is four records, not one flag** (`SLC28B_PRECONDITIONS` in `winter_moratorium.py`):
+  - the Debt Trigger;
+  - the contact attempts, which must be at least 10 dated attempts on or before the day. Whether
+    they used "several channels" is not checked: GAP;
+  - the Site Welfare Visit;
+  - the do-not-install check (`do_not_install_check`, in the PSR module, because it is a household
+    fact). An unanswered question (75+ without support, a child under 2) counts as the bar.
+  Each refusal names every record that fails. No route uses them yet: warrant and remote switch
+  are unrouted.
+- **27A's watch is a dated record.** The desk's `self_disconnection_watch(account, day)` now returns
+  the record, or None. A bare True carries no date and fails at the gate.
+- **The clauses are dated** (`CLAUSE_IN_FORCE`):
+  - 27A in force from 15 Dec 2020 (Ofgem's Oct 2020 self-disconnection decision);
+  - 28B from 8 Nov 2023 (Ofgem's Sep 2023 PPM licence decision, after the Code of Practice of
+    18 Apr 2023).
+- **Before those dates the gate still refuses**, and says it is applying the clause as this
+  supplier's own policy. It cites no licence condition that did not yet exist. *Design choice,
+  erring toward protection (F11, canon M3's floor). Cost:* before those dates, a 2016–2023 supplier
+  could lawfully have done what this one refuses, so the run under-states what an ordinary
+  supplier would have taken. Nothing moves live: no route takes a warrant or a remote switch,
+  and every Consent offer is already withheld on the S&RP finding. *Reversible:* make `_in_force`
+  return None before the start date, and have the two checks permit on that.
+- **Controls:**
+  - `test_each_dated_record_alone_refuses_and_the_permit_leg_is_taken` is one control over the
+    partition. It takes the permit leg, then fails each record alone in each way it can fail
+    (absent, not yet learned, lapsed, no lapse date, its own finding, nine attempts);
+  - `test_a_dated_clause_names_its_standing_and_still_refuses_before_it_was_in_force` reaches both
+    standings.
+  Nine mutations, each applied and reverted, all went red.
 
 **The debt-objection row (added 2026-11-15, the ninth pass's item 12).** The company decides a
 debt objection live in every run (`decide_debt_objection`, from `simulation/run_phase2b.py`). It
@@ -496,9 +567,9 @@ asked 18 questions, 8 of them disqualifying. The ledger row is 2026-11-15T00:45Z
   time, so the gate is proven by its control and never in operation. Closing this needs three
   things: a safe-and-practicable assessment, a run caller for the self-disconnection detector, and
   prepayment households in the world.
-- **Fails on item 6: 28B's preconditions are one flag.** No route uses it. Splitting it into four
+- **Fails on item 6: 28B's preconditions are one flag.** *(Done 2026-11-15: four dated records; see "28B and 27A, dated".)* No route uses it. Splitting it into four
   dated records is owed before a route exists.
-- **Fails on item 3, in the protective direction: nothing is dated.** 28B (from 8 Nov 2023) and 27A
+- **Fails on item 3, in the protective direction: nothing is dated.** *(Done 2026-11-15 for 27A and 28B; see "28B and 27A, dated".)* 28B (from 8 Nov 2023) and 27A
   are applied in every year. That over-refuses before those dates and never permits where a
   protection bars.
 - **Fixed in this tick: item 16.** A structural control now refuses any company or saas function

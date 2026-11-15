@@ -24,6 +24,8 @@ import pytest
 
 import simulation.payment_method_dynamics as pmd
 from background.live_payment_triad import LivePaymentTriad
+from company.billing.winter_moratorium import SELF_DISCONNECTION_WATCH
+from company.regulatory.priority_services_register import ProtectionRecord
 from simulation.plan_offer_response import HouseholdPlanBook
 
 
@@ -33,7 +35,8 @@ def _run(take_up: float) -> LivePaymentTriad:
     # Both runs hold a positive safe-and-reasonably-practicable finding, so take-up is the one
     # variable: without one the desk withholds every Consent offer (27.6(a)(iii), C32 eighth pass).
     triad._consumer.collections_journeys.prepayment_suitability = lambda _account, _on: True
-    triad._consumer.collections_journeys.self_disconnection_watch = lambda _account, _on: True
+    triad._consumer.collections_journeys.self_disconnection_watch = lambda _account, on: ProtectionRecord(
+        SELF_DISCONNECTION_WATCH, on, on + dt.timedelta(days=1))
     for i in range(40):
         for m in range(1, 13):
             triad.record_period(customer_id=f"RESI{i:05d}", due_date=date(2020, m, 28),
