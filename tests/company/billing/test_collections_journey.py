@@ -43,7 +43,6 @@ from company.billing.collections_journey import (
     PLAN_OFFER_STEP,
     PLAN_REOFFER_STEP,
     PREPAYMENT,
-    PREPAYMENT_ANSWER_GAP,
     PREPAYMENT_OFFERED,
     PREPAYMENT_STEP,
     PREPAYMENT_WITHHELD,
@@ -56,7 +55,7 @@ from company.billing.collections_journey import (
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.billing.prepayment_suitability import SuitabilityAnswers
-from company.billing.winter_moratorium import SELF_DISCONNECTION_WATCH
+from company.billing.winter_moratorium import NO_ARRANGEMENT_OFFERED, SELF_DISCONNECTION_WATCH
 from company.compliance import obligations_register as orr
 from company.compliance.domain_invariants import (
     ALL_INVARIANTS,
@@ -354,6 +353,23 @@ def live_journeys(live_run):
     return live_run["collections_journeys"]
 
 
+@pytest.fixture(scope="module")
+def answered_live_run():
+    """The same window with the world's plan answers switched on in-process at the register's
+    `high` row (`plan_take_up_share` 0.53). The shipped curriculum value is unchanged: on it no
+    plan offer is answered, so the Consent rung's 27.8 column refuses every live offer, and only a
+    world that answers can show the gate permitting one (C32 tenth pass, items 1 and 5)."""
+    import simulation.plan_offer_response as por
+    from simulation.run_phase2b import main
+
+    shipped = por.BASIS
+    por.BASIS = por.basis_at("high")
+    try:
+        return main(report_end=LIVE_WINDOW_END)
+    finally:
+        por.BASIS = shipped
+
+
 def test_a_live_run_publishes_what_became_of_the_later_lump_settlements(live_run):
     """The run summary carries the lump counters, so a lump paid twice is seen on the surface and
     not only in a triad test. Published basis: no plan is agreed, so none can be paid twice."""
@@ -406,28 +422,39 @@ def test_a_live_run_offers_arrangements_only_straight_after_the_plan_offer_step(
         "an exit other than cured/written-off/open was recorded with no world answer behind it")
 
 
-def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_journeys):
-    """W2_42's rung is reached by the run, and the gate is proven in operation (W2_43): the live
-    desk asks every household the S&RP questions and holds a 27A watch on the meter's door, so no
-    live withhold says "never asked" or "no watch", and some household found S&RP is offered."""
-    after = [s for j in live_journeys for s in j["stages"]
-             if s["stage"] in (PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD)]
-    assert after, "no live journey reached the 90-day rung -- the prepayment route is unreached"
-    assert PREPAYMENT_OFFERED in {s["stage"] for s in after}, "the gate refuses every live offer"
-    for s in after:
+def _consent_rung(journeys):
+    return [s for j in journeys for s in j["stages"]
+            if s["stage"] in (PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD)]
+
+
+def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_journeys,
+                                                                         answered_live_run):
+    """W2_42's rung is reached by the run, and the gate decides it both ways in operation. On the
+    shipped basis no plan offer is answered, so every live withhold names the 27.8 ground (C32
+    tenth pass, item 5: before, 5 of 6 were permitted on unanswered offers). With the world's
+    answers on, some household is offered, and no withhold says "never asked" or "no watch"
+    (W2_43): the desk asks the S&RP questions and holds its own 27A watch."""
+    shipped = _consent_rung(live_journeys)
+    assert shipped, "no live journey reached the 90-day rung -- the prepayment route is unreached"
+    assert all(s["stage"] == PREPAYMENT_WITHHELD and NO_ARRANGEMENT_OFFERED in s["decision"]
+               for s in shipped), [s["decision"][:80] for s in shipped]
+    answered = _consent_rung(answered_live_run["collections_journeys"])
+    assert {s["stage"] for s in answered} == {PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD}, (
+        "the gate does not decide the live Consent offer both ways")
+    for s in answered:
         if s["stage"] == PREPAYMENT_WITHHELD:
             assert NO_SUITABILITY_FINDING not in s["decision"], s["decision"]
             assert NO_SELF_DISCONNECTION_WATCH not in s["decision"], s["decision"]
 
 
-def test_the_world_counts_every_consent_offer_the_company_made(live_run):
+def test_the_world_counts_every_consent_offer_the_company_made(answered_live_run):
     """The world-side concealing count is over every offer the desk made, the end-of-run advance's
     included: taken before the journeys' last advance it counted 4 of 5 (C32 tenth pass). Defect:
     the count is read before the desk's last action, so a harm the company made goes uncounted."""
     made = sum(s["stage"] == PREPAYMENT_OFFERED
-               for j in live_run["collections_journeys"] for s in j["stages"])
+               for j in answered_live_run["collections_journeys"] for s in j["stages"])
     assert made, "no live Consent offer -- the count's agreement is untested"
-    assert live_run["consent_offers_to_concealing_households"]["offers"] == made
+    assert answered_live_run["consent_offers_to_concealing_households"]["offers"] == made
 
 
 class _World:
@@ -578,7 +605,7 @@ def test_the_ninety_day_rung_asks_for_a_prepayment_meter_by_consent_and_takes_bo
     refusal leaves it open."""
     walks = {}
     for moves in (True, False):
-        world = _World(None, moves=moves)
+        world = _World(False, moves=moves)  # a declined plan: 27.8's offer answered
         consumer = _suitable(_answered("ACC-P", world))
         consumer.advance_collections_journey("ACC-P", dt.date(2024, 6, 30))
         (journey,) = consumer.collections_journeys.journeys()
@@ -603,7 +630,7 @@ def test_the_consent_offer_is_made_only_on_a_positive_suitability_finding():
     finding fails the other two."""
     walks = {}
     for finding in (None, False, True):
-        world = _World(None, moves=False)
+        world = _World(False, moves=False)
         consumer = _suitable(_answered("ACC-S", world), finding)  # None: no finding held
         consumer.advance_collections_journey("ACC-S", dt.date(2024, 6, 30))
         (journey,) = consumer.collections_journeys.journeys()
@@ -621,14 +648,34 @@ def test_the_consent_offer_is_made_only_on_a_positive_suitability_finding():
     assert stages[stages.index(PREPAYMENT_STEP) + 1] == PREPAYMENT_OFFERED
 
 
-def test_a_desk_with_no_seam_records_the_prepayment_offer_unanswered_and_says_why():
+def test_the_consent_offer_waits_on_an_arrangement_offer_the_household_answered():
+    """C32 tenth pass, item 5: 27.6(a)(ii) instalments are "calculated in accordance with 27.8", so
+    an arrangement offer nobody answered put no sum and is not one. The whole partition in one
+    control, before what any leg does: a declined offer reaches the Consent offer; an unanswered
+    offer, and a desk with no seam to ask, withhold it on the 27.8 ground and ask the
+    world nothing. A gate that withholds everything fails the answered legs; the old boolean (any
+    offer at all) fails the unanswered one."""
+    walks = {}
+    for label, world in (("declined", _World(False)), ("unanswered", _World(None))):
+        consumer = _suitable(_answered("ACC-Q", world))
+        consumer.advance_collections_journey("ACC-Q", dt.date(2024, 6, 30))
+        (journey,) = consumer.collections_journeys.journeys()
+        assert_journey_order_lawful(journey, Segment.RESIDENTIAL)
+        walks[label] = [s["stage"] for s in journey["stages"]], journey, world.prepayment_asks
     consumer = _suitable(PaymentObservationConsumer(ledger_book=LedgerBook()))
-    consumer.ledger_book.post(_event(LedgerEventType.BILL_DEBIT, "ACC-N", 100.0, ISSUE, 1))
-    consumer.advance_collections_journey("ACC-N", dt.date(2024, 6, 30))
+    consumer.ledger_book.post(_event(LedgerEventType.BILL_DEBIT, "ACC-Q", 100.0, ISSUE, 1))
+    consumer.advance_collections_journey("ACC-Q", dt.date(2024, 6, 30))
     (journey,) = consumer.collections_journeys.journeys()
-    offer = next(s for s in journey["stages"] if s["stage"] == PREPAYMENT_OFFERED)
-    assert offer["meter_moved"] is False and offer["move_reason"] == PREPAYMENT_ANSWER_GAP
-    assert journey["exit"] is None
+    walks["no seam"] = [s["stage"] for s in journey["stages"]], journey, []
+    assert all(PREPAYMENT_STEP in stages for stages, _, _ in walks.values()), {
+        k: v[0] for k, v in walks.items()}
+    stages, _, asks = walks["declined"]
+    assert len(asks) == 1 and PREPAYMENT_OFFERED in stages, stages
+    for label in ("unanswered", "no seam"):
+        stages, journey, asks = walks[label]
+        assert asks == [] and PREPAYMENT_OFFERED not in stages, (label, stages)
+        withheld = next(s for s in journey["stages"] if s["stage"] == PREPAYMENT_WITHHELD)
+        assert withheld["decision"].startswith(NO_ARRANGEMENT_OFFERED), withheld["decision"]
 
 
 def test_a_prepayment_step_with_no_offer_after_it_is_unlawful():

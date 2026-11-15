@@ -67,7 +67,8 @@ def _desk(seam):
 
 def _fit(desk, account_id="C1"):
     journey = _Journey(account_id, Segment.RESIDENTIAL)
-    journey.stages.append({"stage": ARRANGEMENT_OFFERED, "on": MOVED.isoformat()})
+    journey.stages.append({"stage": ARRANGEMENT_OFFERED, "on": MOVED.isoformat(),
+                           "household_acceptance": False})  # declined: 27.8 answered
     desk._offer_prepayment(journey, MOVED, {"undisputed_overdue_gbp": 300.0, "max_days_overdue": 95})
     assert journey.exit == PREPAYMENT, journey.stages
     return journey

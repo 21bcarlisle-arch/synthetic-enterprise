@@ -410,6 +410,29 @@ the Consent offer. No agency hand-off is made.
 | `recovery_through_the_meter` | GAP: whether 27.8's ability-to-pay governs the deduction rate is not read here | n/a | n/a | n/a: the household stays supplied | n/a | n/a | covered: 27A.1(b) routes support through 27.8, and 27.8A(d)(iv) names a pause; a watch that has seen an interruption pauses the deduction (C37, "Recovery through the meter, on the 27A watch") **(was GAP)** | GAP | n/a | covered: design choice; W `METER_RECOVERY` row **(row added 2026-11-15, census)** | GAP: S5 is a disconnection pledge; not read for recovery | GAP | covered: reg 7(7)(a), a deduction to recover moratorium debt is a step to collect **(row added 2026-11-15, census)** |
 | `self_disconnection_support` | n/a: support is never barred | n/a | n/a | n/a | n/a | n/a | n/a: a duty, not a bar. The watch is the desk's own on the meter's reports (W2_43; the self-rationing detector is not it), and each interruption it sees is answered (C36, "The 27A.5 response") | n/a | n/a | n/a | n/a | n/a | n/a: support is not a step to collect |
 
+**The 27.8 column reads an ANSWERED offer (C32 tenth pass, item 5; 2026-11-15).** The column
+read "an arrangement offer is on the journey" as a boolean. On the shipped world every plan offer
+goes unanswered (`plan_take_up_share` is 0, so the world names no instalment and no answer), and
+all 69 live offers on the 2016 run satisfied it, so 5 of the 6 live Consent offers were permitted
+on an offer that put no sum to the household.
+- **What the rules require.** 27.6(a)(ii): regular instalments "calculated in accordance with
+  27.8"; 27.8: the supplier must ascertain ability to pay "and must take this into account when
+  calculating instalments"; 27.8A(c): "proactively exploring payment amounts". The company's offer
+  leaves the instalment to the household (the 27.8 conversation, `answer_plan_offer(offer=None)`),
+  so until the household answers, no instalment has been calculated on anything.
+- **The design choice.** The column is met by an offer the household answered: agreed at an
+  instalment (then kept or broken), or declined. An unanswered offer, and a desk with no seam to
+  ask, refuse the Consent offer and say why (`NO_ARRANGEMENT_OFFERED`). Erring toward protection
+  (F11): a supplier that wrote once and heard nothing has not shown it explored an amount.
+- **GAP.** Whether a real supplier may proceed after an offer that goes unanswered after
+  reasonable attempts is not read here; no published text found says how many attempts make
+  an offer "made". 27.8A(d)(ii) allows a "reasonable" default rate where information is
+  insufficient. The company names no default rate, and none is sourced here.
+- **What moves live.** On the shipped world the Consent rung now withholds every offer on this
+  ground, and no meter is asked for. With the world's answers on in-process (the register's
+  `high` row), the gate decides it both ways
+  (`test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung`).
+
 **The census (added 2026-11-15, the ninth pass's item 12, step 2).** The missing objection row came
 from a hand-listed row set. The rows are now checked against a census read off the code:
 `DEBT_STEP_CENSUS` in `company/billing/winter_moratorium.py`, which the control

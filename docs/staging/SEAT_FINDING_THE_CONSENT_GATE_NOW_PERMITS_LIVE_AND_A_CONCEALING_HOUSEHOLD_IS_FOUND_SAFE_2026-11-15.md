@@ -15,6 +15,10 @@ s.5, "The S&RP conversation" and "The PPM's supply events, and the 27A watch on 
 - **After:** no live withhold names either ground. A household found S&RP is offered
   (`test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung`, re-keyed to that
   property).
+- *Superseded later on 15 Nov (C32 tenth pass, item 5):* on the shipped world every live Consent
+  offer is withheld again, on one ground: no arrangement offer was answered (27.8). The S&RP and
+  watch grounds stay clear. With the world's plan answers on in-process, households found S&RP are
+  offered, and the concealing count is checked on that run. On a shipped run it reads 0.
 - **No meter moves yet.** `method_prepayment_offer_take_up_share` is still 0, so the world refuses
   every offer.
 

@@ -169,7 +169,6 @@ NO_SELF_DISCONNECTION_WATCH = _gate.NO_SELF_DISCONNECTION_WATCH
 #: day, so a watch that has not read through a day cannot say it watched it (commons s.5, "The
 #: PPM's supply events"). The watch's own cadence, a design choice; no period is published.
 WATCH_READ_INTERVAL_DAYS = 1
-PREPAYMENT_ANSWER_GAP = "this desk was built with no seam to ask, so no meter change can be requested"
 #: The 27A.5 response to an interruption the watch sees (C36; commons s.5, "The 27A.5 response").
 #: Amounts are not published: Ofgem refused to set emergency or friendly credit (decision s.3.11),
 #: and what suppliers offer as ASC is E6 (`company_debt_management.md`, "Self-disconnection and
@@ -442,6 +441,13 @@ class _Journey:
     def as_record(self) -> dict:
         return {"account_id": self.account_id, "segment": self.segment.value,
                 "stages": list(self.stages), "exit": self.exit}
+
+
+def _arrangement_answered(journey) -> bool:
+    """Whether the household answered an arrangement offer on this journey: agreed or declined.
+    An unanswered offer carries no instalment, so no ability-to-pay sum was ever put (27.8)."""
+    return any(s["stage"] == ARRANGEMENT_OFFERED and s.get("household_acceptance") is not None
+               for s in journey.stages)
 
 
 class CollectionsJourneyDesk:
@@ -946,7 +952,7 @@ class CollectionsJourneyDesk:
             own_hold=(self.own_holds is not None
                       and self.own_holds.is_protected(journey.account_id, on)),
             breathing_space=bool(view.get("moratorium_active")),
-            arrangement_offered=any(s["stage"] == ARRANGEMENT_OFFERED for s in journey.stages),
+            arrangement_offered=_arrangement_answered(journey),
             self_disconnection_watch=(None if self.self_disconnection_watch is None
                                       else self.self_disconnection_watch(journey.account_id, on))))
         if not gate.permitted:
@@ -954,11 +960,10 @@ class CollectionsJourneyDesk:
             return
         debt = view.get("undisputed_overdue_gbp") or 0.0
         days = view.get("max_days_overdue") or 0
-        if self._plan_offers is None:
-            answer = {"moved": False, "reason": PREPAYMENT_ANSWER_GAP}
-        else:
-            answer = self._plan_offers.request_prepayment_move(
-                journey.account_id, on.isoformat(), debt, days // 30)
+        # A desk with no seam cannot reach here: the gate's 27.8 column needs an answered
+        # arrangement offer, and only the seam answers one (C32 tenth pass, item 5).
+        answer = self._plan_offers.request_prepayment_move(
+            journey.account_id, on.isoformat(), debt, days // 30)
         journey.enter(PREPAYMENT_OFFERED, on, "prepayment meter offered by Consent (SLC 28.22)",
                       view, meter_moved=answer["moved"], move_reason=answer["reason"])
         if answer["moved"]:

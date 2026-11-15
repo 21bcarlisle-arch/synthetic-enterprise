@@ -40,6 +40,13 @@ the 28-day filter. Meter recovery was never asked, because no meter moves while
 5. **An offer of nothing satisfies 27.8** (owner C32).
    - The CONSENT_PPM_OFFER check reads `arrangement_offered` as a boolean.
    - All 69 live offers carry `instalment_gbp: null` while the world's take-up is off.
+   - *Fixed 2026-11-15 (worker tick):* the column now needs an offer the household answered
+     (agreed or declined). An unanswered offer, or a desk with no seam, withholds the Consent offer
+     on `NO_ARRANGEMENT_OFFERED`, which now names the reason (27.6(a)(ii), 27.8). Live on the
+     shipped world, every Consent offer is withheld on this ground. The both-ways live control runs
+     a second 2016 run with plan answers on in-process (`high` row; curriculum unchanged). This
+     partly meets item 1 for the Consent action only. Commons s.5, "The 27.8 column reads an
+     ANSWERED offer". GAP: how many unanswered attempts make an offer "made" is not read.
 6. **No payment method on `EnforcementCase`** (owner C32). A Consent PPM offer cannot be refused
    because the account is already on prepayment.
 7. **"Negative" printed over unanswered evidence** (owner C32). In `_suitability_check`, the refusal

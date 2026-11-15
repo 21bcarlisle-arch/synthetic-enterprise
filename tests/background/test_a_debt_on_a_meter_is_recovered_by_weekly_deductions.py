@@ -23,6 +23,7 @@ from datetime import date
 import pytest
 
 import simulation.payment_method_dynamics as pmd
+import simulation.plan_offer_response as por
 from background.live_payment_triad import LivePaymentTriad
 from company.billing.winter_moratorium import SAFE_AND_PRACTICABLE, SELF_DISCONNECTION_WATCH
 from company.regulatory.priority_services_register import ProtectionRecord
@@ -31,6 +32,10 @@ from simulation.plan_offer_response import HouseholdPlanBook
 
 def _run(take_up: float) -> LivePaymentTriad:
     pmd.STRENGTHS = pmd.MethodStrengths(0.0, take_up)
+    # Both runs answer plan offers (the register's `high` row, in-process): the Consent offer waits
+    # on an arrangement offer the household answered (27.8; C32 tenth pass, item 5), and on the
+    # shipped basis none is answered, so no meter could move whatever the take-up.
+    por.BASIS = por.basis_at("high")
     triad = LivePaymentTriad()
     # Both runs hold a positive safe-and-reasonably-practicable finding, so take-up is the one
     # variable: without one the desk withholds every Consent offer (27.6(a)(iii), C32 eighth pass).
@@ -48,18 +53,18 @@ def _run(take_up: float) -> LivePaymentTriad:
 
 @pytest.fixture(autouse=True)
 def _restore():
-    saved = pmd.STRENGTHS
+    saved, basis = pmd.STRENGTHS, por.BASIS
     yield
-    pmd.STRENGTHS = saved
+    pmd.STRENGTHS, por.BASIS = saved, basis
 
 
 @pytest.fixture(scope="module")
 def on_run():
-    saved = pmd.STRENGTHS
+    saved, basis = pmd.STRENGTHS, por.BASIS
     try:
         yield _run(1.0)
     finally:
-        pmd.STRENGTHS = saved
+        pmd.STRENGTHS, por.BASIS = saved, basis
 
 
 def test_meter_moves_happen_and_do_not_happen(on_run):

@@ -312,6 +312,9 @@ class EnforcementCase:
     date_of_birth: Optional[dt.date] = None
     own_hold: bool = False
     breathing_space: bool = False
+    #: SLC 27.6(a)(ii)/27.8: an arrangement offer the household ANSWERED (agreed at an instalment,
+    #: or declined). An offer with no answer named no instalment, so it is not a 27.8 offer (C32
+    #: tenth pass, item 5: 69 of 69 live offers were unanswered and each satisfied this column).
     arrangement_offered: bool = False
     #: SLC 27.6(a)(iii): the dated S&RP finding (`company/billing/prepayment_suitability.py`). A
     #: bare True carries no date, so the gate cannot say it was in effect, and refuses it.
@@ -347,9 +350,10 @@ SELF_DISCONNECTING = (
     "the watch has seen this household's meter run out of credit, and SLC 27A.1(b) answers that with "
     "support under 27.8: the weekly deduction is paused (27.8A(d)(iv)) until a review of its ability "
     "to pay re-instates it, and no such review is built, so the pause holds")
-NO_ARRANGEMENT_OFFERED = ("no affordable arrangement has been offered on this debt, and SLC 27.6/27.8 "
-                          "order that offer before any recovery step (27.8C: charges not recoverable "
-                          "until 27.5-27.8 are met)")
+NO_ARRANGEMENT_OFFERED = ("no affordable arrangement has been offered and answered on this debt, and SLC "
+                          "27.6/27.8 order that offer before any recovery step (27.8C: charges not "
+                          "recoverable until 27.5-27.8 are met); an offer the household has not "
+                          "answered calculated no instalment under 27.8, so it is not one (27.6(a)(ii))")
 NOT_PPM_FIRST = ("SLC 27.9: no disconnection for unpaid charges until all reasonable steps to recover "
                  "them through a prepayment meter are taken, and none is recorded")
 IN_BREATHING_SPACE = ("a Debt Respite moratorium is active: SI 2020/1311 reg 7(7)(a) forbids any step "
