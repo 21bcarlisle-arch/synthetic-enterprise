@@ -92,6 +92,8 @@ EXPECTED_CLAIM_IDS = frozenset({
     "OPEN_FINDINGS_no_simplified_redirect_survives",
     "TF2_the_worlds_cant_pay_wont_pay_key_drives_nothing",
     "PICTURE_the_svg_is_generated_at_publish",
+    # 2026-11-15, bound from the unbound-negatives list: the share is read by no decision surface.
+    "MISSION_the_household_share_is_read_by_no_decision_surface",
 })
 
 PAGE_TEXT = """# A PAGE
@@ -560,6 +562,74 @@ def test_an_unbound_negative_is_printed_and_never_moves_the_exit_status(tmp_path
     out = capsys.readouterr().out
     assert "UNBOUND NEGATIVES on docs/page.md -- 1" in out
     assert "a rival is blocked" in out  # the sentence itself, not only its count
+
+
+# ---------------------------------------------------------------- judged negatives (MAJOR 3 residual)
+
+def _judged_repo(tmp_path: Path, judged: list[dict]) -> tuple[Path, Path]:
+    green = dict(NO_CHANNEL_CLAIM, anchor="`green_stance` is read by no response function")
+    root, register = _mini_repo(tmp_path, page=NEGATIVES_PAGE, claims=[CHANNEL_CLAIM, green])
+    register.write_text(yaml.safe_dump({"claims": [CHANNEL_CLAIM, green], "_judged_negatives": judged}),
+                        encoding="utf-8")
+    return root, register
+
+
+RIVAL_JUDGED = {"page": "docs/page.md", "excerpt": "a rival is blocked", "kind": "no_witness",
+                "why": "no rival module exists to watch"}
+
+
+def test_a_judged_negative_is_settled_and_an_edited_sentence_is_named_again(tmp_path):
+    """Three legs: unjudged it is named; judged it is not; its sentence edited, it is named again
+    (and the stale row is reported), so a judgement can never outlive the words it judged."""
+    root, register = _judged_repo(tmp_path, [])
+    assert run(root, register)[1]["unbound_negatives"]["docs/page.md"]
+    root, register = _judged_repo(tmp_path, [RIVAL_JUDGED])
+    report = run(root, register)[1]
+    assert report["unbound_negatives"]["docs/page.md"] == [] and report["judged_negatives"] == 1
+    assert report["stale_judgements"] == []
+    (root / "docs/page.md").write_text(
+        NEGATIVES_PAGE.replace("a rival is blocked", "a rival is not yet blocking"), encoding="utf-8")
+    report = run(root, register)[1]
+    assert any("not yet blocking" in s for s in report["unbound_negatives"]["docs/page.md"])
+    assert report["stale_judgements"] == ["docs/page.md: a rival is blocked"]
+
+
+def test_a_summary_judgement_lapses_when_its_claim_stops_holding(tmp_path):
+    summary = {"page": "docs/page.md", "excerpt": "a rival is blocked", "kind": "summary",
+               "of": ["no_channel"], "why": "restates the green claim"}
+    root, register = _judged_repo(tmp_path, [summary])
+    assert run(root, register)[1]["unbound_negatives"]["docs/page.md"] == []
+    root, register = _mini_repo(tmp_path, page=NEGATIVES_PAGE, green_channel=True)  # green now read
+    green = dict(NO_CHANNEL_CLAIM, anchor="`green_stance` is read by no response function")
+    register.write_text(yaml.safe_dump({"claims": [CHANNEL_CLAIM, green], "_judged_negatives": [summary]}),
+                        encoding="utf-8")
+    verdicts, report = run(root, register)
+    assert {v.claim.id: v.verdict for v in verdicts}["no_channel"] == SUPERSEDED
+    assert any("a rival is blocked" in s for s in report["unbound_negatives"]["docs/page.md"])
+
+
+@pytest.mark.parametrize("row", [
+    dict(RIVAL_JUDGED, why=" "),
+    dict(RIVAL_JUDGED, kind="seems_fine"),
+    dict(RIVAL_JUDGED, kind="summary"),
+    dict(RIVAL_JUDGED, kind="summary", of=["no_such_claim"]),
+], ids=["empty_why", "unknown_kind", "summary_without_of", "summary_of_unknown_claim"])
+def test_a_malformed_judgement_refuses_rather_than_hides(tmp_path, capsys, row):
+    root, register = _judged_repo(tmp_path, [row])
+    with pytest.raises(ProbeError):
+        run(root, register)
+    assert main(["--root", str(root), "--register", str(register)]) == 2
+
+
+def test_a_judged_negative_is_counted_on_the_surface_and_never_moves_the_exit_status(tmp_path, capsys):
+    root, register = _judged_repo(tmp_path, [RIVAL_JUDGED])
+    assert main(["--root", str(root), "--register", str(register)]) == 0
+    assert "JUDGED NEGATIVES -- 1 named sentence(s)" in capsys.readouterr().out
+
+
+def test_no_live_judgement_is_stale():
+    """A live judgement whose excerpt left the page judges nothing; clear or rebind it."""
+    assert run(REPO_ROOT, LIVE_REGISTER)[1]["stale_judgements"] == []
 
 
 # ---------------------------------------------------------------- a red mints work (Expert Hour MAJOR 2)
