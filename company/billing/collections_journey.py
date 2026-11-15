@@ -91,6 +91,7 @@ from company.billing.arrears_engine import (
 from company.billing.payment_plan import PaymentPlanBook, PaymentPlanStatus
 from company.compliance.working_days import is_working_day
 from company.crm.account_hierarchy import AccountingModel, Segment, default_accounting_model
+from company.regulatory.priority_services_register import ProtectionRecord
 
 MISSED_PAYMENT = "missed_payment"
 
@@ -164,6 +165,10 @@ NO_SUITABILITY_FINDING = _gate.NO_SUITABILITY_FINDING
 NOT_SUITABLE = _gate.NOT_SUITABLE
 NO_SELF_DISCONNECTION_WATCH = _gate.NO_SELF_DISCONNECTION_WATCH
 #: Why a prepayment offer is recorded unanswered when the desk has no seam to ask.
+#: The 27A watch's record lapses the day after its last read: the meter's reports are dated to the
+#: day, so a watch that has not read through a day cannot say it watched it (commons s.5, "The
+#: PPM's supply events"). The watch's own cadence, a design choice; no period is published.
+WATCH_READ_INTERVAL_DAYS = 1
 PREPAYMENT_ANSWER_GAP = "this desk was built with no seam to ask, so no meter change can be requested"
 #: The arrangement stage in the only state the company can reach alone: OFFERED. Entered on the
 #: same date as `PLAN_OFFER_STEP` and only straight after it, with the offer kept in the desk's
@@ -455,11 +460,14 @@ class CollectionsJourneyDesk:
         #: `self_disconnection_watch(account_id, on)`: the dated `ProtectionRecord` of the watch that
         #: would cover a household moved to a prepayment meter, or None where none is held. A bare
         #: True carries no date, so the gate cannot say whether it was in effect (ninth pass, item 3;
-        #: SLC 27A.1 watches from the day the household is on a meter). None (the shipped desk): no
-        #: seam door carries a meter's top-ups or credit-exhausted interruptions, so no watch exists
-        #: and no Consent offer is made. `company/crm/self_rationing_detector.py` is NOT this watch: it
-        #: reads credit customers' annual reads and stands aside on open arrears (commons s.5).
-        self.self_disconnection_watch: Optional[Callable[[str, dt.date], Any]] = None
+        #: SLC 27A.1 watches from the day the household is on a meter). With a world door it is this
+        #: desk's own watch on the meter's reports (`watch_self_disconnection`, W2_43); with none, no
+        #: watch exists and no Consent offer is made. `company/crm/self_rationing_detector.py` is NOT
+        #: this watch: it reads credit customers' annual reads and stands aside on open arrears.
+        self.self_disconnection_watch: Optional[Callable[[str, dt.date], Any]] = (
+            None if plan_offers is None else self.watch_self_disconnection)
+        #: account -> [the last day the meter's reports were read through, interruption dates seen]
+        self._watched: Dict[str, List] = {}
         #: This supplier's own holds (`WinterMoratoriumRegister`). None: no company path places one.
         self.own_holds: Optional[Any] = None
         #: Every arrangement this desk has offered, and what became of each.
@@ -701,6 +709,47 @@ class CollectionsJourneyDesk:
         self._closed.append(self._open.pop(journey.account_id))
         return True
 
+    def ask_prepayment_suitability(self, account_id: str, on: dt.date) -> dict:
+        """The household's answers to the S&RP questions, asked through this desk's world door
+        (W2_43). No door: no conversation, said so."""
+        if self._plan_offers is None or not hasattr(self._plan_offers, "ask_prepayment_suitability"):
+            return {"answers": None,
+                    "reason": "this desk was built with no seam to ask, so no household was asked"}
+        return self._plan_offers.ask_prepayment_suitability(account_id, on.isoformat())
+
+    def _read_supply_events(self, account_id: str, through: dt.date) -> bool:
+        """Read what the account's meter reported by `through` (SLC 27A.1), keeping every
+        credit-exhausted interruption seen. False where the door cannot report: nothing is read,
+        and the watch's last read stands, to lapse."""
+        if self._plan_offers is None or not hasattr(self._plan_offers, "get_meter_supply_events"):
+            return False
+        feed = self._plan_offers.get_meter_supply_events(account_id, through.isoformat())
+        if feed.get("interruptions") is None:
+            return False
+        seen = sorted({dt.date.fromisoformat(e["on"]) for e in feed["interruptions"]})
+        watched = self._watched.setdefault(account_id, [through, []])
+        watched[0] = max(watched[0], through)
+        watched[1] = sorted(set(watched[1]) | set(seen))
+        return True
+
+    def watch_self_disconnection(self, account_id: str, on: dt.date):
+        """The 27A watch's dated record on `on`: read through `on` now, learned on the last day it
+        read through, lapsing the day after (`WATCH_READ_INTERVAL_DAYS`). Evidence: every
+        interruption seen. None where the meter's door has never answered for this account."""
+        self._read_supply_events(account_id, on)
+        watched = self._watched.get(account_id)
+        if watched is None:
+            return None
+        return ProtectionRecord(_gate.SELF_DISCONNECTION_WATCH, watched[0],
+                                watched[0] + dt.timedelta(days=WATCH_READ_INTERVAL_DAYS),
+                                met=True, evidence=tuple(watched[1]))
+
+    def self_disconnections(self, account_id: str) -> List[dt.date]:
+        """Every credit-exhausted interruption this desk's watch has seen on the account. The
+        27A.5 response (emergency credit, ASC, contact) is not built: GAP, commons s.5."""
+        watched = self._watched.get(account_id)
+        return [] if watched is None else list(watched[1])
+
     def _read_meter_recoveries(self, account_id: str, through: dt.date) -> None:
         """Post each weekly deduction the account's meter took by `through` to the ledger as cash,
         each once. Read at every advance, not only at a missed bill: a household on a meter misses
@@ -709,6 +758,7 @@ class CollectionsJourneyDesk:
         if meter is None or self._plan_offers is None:
             return
         moved_on, debt, read = meter
+        self._read_supply_events(account_id, through)  # 27A.1: read at every advance on the meter
         rows = self._plan_offers.get_meter_recoveries(
             account_id, moved_on.isoformat(), debt, through.isoformat())
         for n, row in enumerate(rows[read:], read + 1):

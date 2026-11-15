@@ -449,6 +449,21 @@
   # disclosed) and a moved meter's top-ups and credit-exhausted interruptions (the 27A watch's input).
   # SEAT_FINDING_THE_SELF_RATIONING_DETECTOR_CANNOT_BE_THE_27A_WATCH_2026-11-15.md.
   real_world_twin: "the suitability call before a prepayment offer, and a smart PPM's top-up and off-supply log"
+- id: C36_a_self_disconnection_the_watch_sees_is_answered_with_support
+  lane: C_customer_ops
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 3
+  provenance: proposal
+  file_scope: [company/billing/collections_journey.py, tests/company/billing/test_a_self_disconnection_the_watch_sees_is_answered_with_support.py]
+  depends_on: [W2_43_a_prepayment_household_answers_suitability_and_its_meter_reports_supply_events]
+  # 27A.5/9.1: the watch's interruptions get emergency credit, ASC, contact and the 9.1(b) S&RP
+  # re-check; plus a world-side count of offers to concealing households. Finding:
+  # SEAT_FINDING_THE_CONSENT_GATE_NOW_PERMITS_LIVE_AND_A_CONCEALING_HOUSEHOLD_IS_FOUND_SAFE_2026-11-15.md.
+  real_world_twin: "the call and support credit after a smart PPM reports a customer off supply"
 - id: W2_40_voids_tied_to_move_outs
   lane: W2_customer_generator
   value_stream: meter_to_cash

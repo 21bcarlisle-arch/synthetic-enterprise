@@ -155,7 +155,11 @@ from company.billing.arrears_engine import (
 )
 from company.billing.breathing_space_register import BreathingSpaceRegister
 from company.billing.collections_journey import CollectionsJourneyDesk
-from company.billing.prepayment_suitability import assess_prepayment_suitability
+from company.billing.prepayment_suitability import (
+    FINDING_LAPSE_DAYS,
+    SuitabilityAnswers,
+    assess_prepayment_suitability,
+)
 from company.compliance.domain_invariants import refuse_dunning_of_a_cleared_debt
 from company.crm.account_hierarchy import Segment
 from company.crm.churn_model import (
@@ -905,12 +909,11 @@ class PaymentObservationConsumer:
             level_of=lambda account_id: (
                 None if account_id not in self._level_requests
                 else (self.level_schedule_of(account_id), self.level_returns_of(account_id))),
-            # SLC 27.6(a)(iii): the company's S&RP finding, from the dated suitability conversations
-            # it holds. No seam door brings a household's answers back yet, so live this is always
-            # "never asked" and every Consent offer is withheld (commons s.5, "The S&RP assessment").
+            # SLC 27.6(a)(iii): the company's S&RP finding, from the dated suitability conversation
+            # it holds, asked through the seam at the Consent rung when none is current (W2_43;
+            # commons s.5, "The S&RP conversation").
             # GAP: the PSR register is not handed to this consumer, so held needs are not read here.
-            prepayment_suitability=lambda account_id, on: assess_prepayment_suitability(
-                on, answers=self.suitability_answers.get(account_id)),
+            prepayment_suitability=self._prepayment_suitability,
         )
         #: account -> the household's answers on its latest S&RP conversation (`SuitabilityAnswers`).
         self.suitability_answers: Dict[str, Any] = {}
@@ -1631,6 +1634,20 @@ class PaymentObservationConsumer:
         self.ledger_book.post(event)
         if remittance_ref:
             self._recognised_cash_refs.add(remittance_ref)
+
+    def _prepayment_suitability(self, account_id: str, on: dt.date):
+        """The S&RP finding on `on`. Asks the household first (`ask_prepayment_suitability`)
+        unless answers from the last year are held (SLC 28.3), and records what it says. A seam
+        that cannot answer records nothing, so the finding is "never asked"."""
+        held = self.suitability_answers.get(account_id)
+        current = (held is not None and held.asked_on <= on
+                   and on < held.asked_on + dt.timedelta(days=FINDING_LAPSE_DAYS))
+        if not current:
+            said = self.collections_journeys.ask_prepayment_suitability(account_id, on)
+            if said.get("answers") is not None:
+                self.suitability_answers[account_id] = SuitabilityAnswers(
+                    asked_on=on, **said["answers"])
+        return assess_prepayment_suitability(on, answers=self.suitability_answers.get(account_id))
 
     def _post_plan_instalment(self, account_id: str, amount_gbp: float, value_date: dt.date,
                               reference: str) -> None:

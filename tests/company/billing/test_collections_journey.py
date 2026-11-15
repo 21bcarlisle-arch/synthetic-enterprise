@@ -407,16 +407,17 @@ def test_a_live_run_offers_arrangements_only_straight_after_the_plan_offer_step(
 
 
 def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_journeys):
-    """W2_42's rung is reached by the run, and every one is followed by `prepayment_withheld` naming
-    the missing safe-and-reasonably-practicable finding: no company path records one, so a Consent
-    offer would be made without the finding 27.6(a)(iii) requires (C32 eighth Expert Hour, item 1).
-    Keyed to the property: an offer made live is only lawful with a finding behind it, and none is."""
+    """W2_42's rung is reached by the run, and the gate is proven in operation (W2_43): the live
+    desk asks every household the S&RP questions and holds a 27A watch on the meter's door, so no
+    live withhold says "never asked" or "no watch", and some household found S&RP is offered."""
     after = [s for j in live_journeys for s in j["stages"]
              if s["stage"] in (PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD)]
     assert after, "no live journey reached the 90-day rung -- the prepayment route is unreached"
-    assert {s["stage"] for s in after} == {PREPAYMENT_WITHHELD}
-    for s in after:  # each live withhold names both grounds no company path can meet yet
-        assert NO_SUITABILITY_FINDING in s["decision"] and NO_SELF_DISCONNECTION_WATCH in s["decision"]
+    assert PREPAYMENT_OFFERED in {s["stage"] for s in after}, "the gate refuses every live offer"
+    for s in after:
+        if s["stage"] == PREPAYMENT_WITHHELD:
+            assert NO_SUITABILITY_FINDING not in s["decision"], s["decision"]
+            assert NO_SELF_DISCONNECTION_WATCH not in s["decision"], s["decision"]
 
 
 class _World:

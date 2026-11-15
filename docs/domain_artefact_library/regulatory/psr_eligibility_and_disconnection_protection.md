@@ -523,7 +523,9 @@ What the census found, against the table's rows:
   live moves:** no seam door brings back a household's answers to the suitability questions, so
   every live assessment returns "not asked" and every offer is still withheld. The door is a world
   build: the household answers the S&RP conversation from its own hidden state, disclosing what it
-  chooses. That is the same disclosure gap as the PSR's (§3).
+  chooses. That is the same disclosure gap as the PSR's (§3). *(Superseded 2026-11-15, W2_43: the door is
+  built, "The S&RP conversation" below. Every live household reached is now asked, and with
+  door 2's watch a household found S&RP is offered.)*
 - **Correction, beside the claim in row `self_disconnection_support` and the desk's docstring:**
   "The watch is `company/crm/self_rationing_detector.py`, with no run caller". **It is not the
   watch, and a run caller would not make it one.** The detector watches *credit* customers on two
@@ -535,10 +537,92 @@ What the census found, against the table's rows:
   fail, so it is not built. The 27A cell stays covered by refusal: no watch, no offer. The
   door owed is a world build, a smart PPM's supply-interruption and top-up events for a moved
   account. Finding:
-  `docs/staging/SEAT_FINDING_THE_SELF_RATIONING_DETECTOR_CANNOT_BE_THE_27A_WATCH_2026-11-15.md`.
+  `docs/staging/done/SEAT_FINDING_THE_SELF_RATIONING_DETECTOR_CANNOT_BE_THE_27A_WATCH_2026-11-15.md`.
 - **What closes item 1, then:** two world doors, the S&RP conversation and the PPM's supply events.
   Then a watch built on the second, with a lapse set by how often it reads, and prepayment
   households in the world. Not one more gate.
+
+**The S&RP conversation: what the household tells the supplier (added 2026-11-15, W2_43, door 1).**
+*K8 page for `SimInterface.ask_prepayment_suitability` and
+`simulation/payment_method_dynamics.answer_suitability_questions`.*
+- **What the rules require.** The supplier must make the finding, and it can do that only by
+  asking (guidance §§3.7-3.9). What it learns is what the household says. Nothing in the licence
+  or guidance makes the household's answers complete or true, and the guidance's Precautionary
+  Principle exists because they often are not.
+- **What the published record says about disclosure.** A household with a PSR-type circumstance is
+  known to its supplier in `vuln_known_to_supplier_share` of cases (the CIM stock share, §3,
+  `debt_and_collections.md` s.10). **No source publishes how often a household discloses when
+  asked directly at a PPM conversation.** GAP.
+- **What the world does (design choices, each named).**
+  - **Who answers.** A household that has no PSR-type circumstance answers every question "no".
+  - **Who conceals.** A PSR-type household that does not disclose also answers every question "no".
+    The disclosure draw is the same one that decides PSR registration (`discloses_psr`), so one
+    household is one discloser. *Choice:* asking directly is read as no likelier to bring
+    disclosure than the stock share. *Cost:* if a direct question discloses more, the world
+    over-states false positive findings. That errs against the company: a concealed circumstance
+    is a harm the gate cannot see.
+  - **What a discloser says.** A PSR-type household that discloses says a circumstance applies.
+    The world draws no needs code (§3, the needs-code mix is a GAP), so it cannot say which
+    question it applies to. Every question comes back unanswered, with that reason. The company
+    reads an unanswered question as the bar, so the finding is negative. A real discloser would
+    name its circumstance. Some would name a further-assessment ground, not a do-not-install one.
+    Either way the company finds no S&RP, so nothing is lost by not drawing which.
+  - **Meter access (3.7, "cannot access, operate or top up").** This is read as a PSR-type
+    circumstance (disability, age). **Physical meter location is not drawn: GAP.** *Cost:* this
+    errs FOR the company. A household with an inaccessible meter answers "no" here.
+  - **Off.** With the hidden state switched off, the world draws no circumstances. Every answer is
+    None, with that reason, and the company records nothing.
+- **What the company does with it.** At the Consent rung, and only there, the desk asks unless it
+  holds answers less than a year old (28.3). It records them in
+  `PaymentObservationConsumer.suitability_answers`, then makes the finding as before. A stub seam
+  answers None, and nothing is recorded.
+- **What crosses.** Only the answers: nine booleans or None, and a reason. Never the latent state,
+  and never whether the household concealed.
+
+**The PPM's supply events, and the 27A watch on them (added 2026-11-15, W2_43, door 2).**
+*K8 page for `SimInterface.get_meter_supply_events`, `simulation/payment_method_dynamics.meter_supply_events`
+and `CollectionsJourneyDesk.watch_self_disconnection`. Rules: `docs/market_research/company_debt_management.md`,
+"Self-disconnection and self-rationing".*
+- **What the rules require.** 27A.1: identify self-disconnection "on an ongoing and continuous
+  basis", for every PPM customer. 27A.9 defines it as an interruption "because the credit on the
+  meter has been exhausted". Guidance §9.1: monitor top-up and disconnection patterns.
+- **What a supplier can observe.** A smart PPM reports each credit-exhausted interruption. For a
+  traditional PPM the supplier sees only gaps between top-ups [DERIVED, same page]. This door is
+  the smart case.
+- **What the published record gives for a rate.** It gives no per-household rate, and none for a
+  meter fitted for debt. The toggle `ppm_debt_self_disconnection_weekly_share` is a derived range,
+  and each number in it counts something different, as follows.
+  - *Numerator.* Smart-PPM electricity customers who self-disconnected at least once in a quarter:
+    564,191 (Q2 2026) and 946,400 (Q3 2023, the peak). Events: 2,038,289 (Q2 2026).
+  - *Denominator.* Smart-PPM electricity customers. **Not published in what is read here.** It is
+    estimated as 60% smart (Sep 2023) × 4.3m electricity PPM customers (2019), about 2.58m. Both
+    dates differ from the numerator's, so this is an estimate, not a ratio of one population.
+  - *Low, 0.019 a week.* 564,191 / 2.58m is 0.219 a quarter, read as a constant weekly chance over
+    13 weeks.
+  - *High, 0.061 a week.* 2,038,289 events / 2.58m / 13 weeks, as if each event fell in a different
+    week.
+  - *Default: the low end.* K2: zero is the one value known wrong. *Cost:* debt-fitted meters very
+    likely self-disconnect more than the whole smart-PPM stock, so this understates.
+  - No meter moves in the shipped world, because take-up is 0, so the default is unreached until
+    take-up is switched on.
+- **What is drawn.** One draw per household per week on the meter. An interruption on a week is
+  dated to that week's day. Duration is not drawn: GAP (368,659 of the 564,191 went
+  over 3 hours). **Top-ups are not drawn:** their amounts and timing are not
+  published. The feed says so, and carries no top-up rows. The deduction is still taken weekly
+  (simplification 5).
+- **What the company's watch does (design choices).**
+  - **It reads the feed at every advance of the desk**, like the meter's deductions. The record's
+    `learned_on` is the last day it read through, and it **lapses the day after**. The feed is
+    dated to the day, so a watch that has not read through today cannot say it watched today. That
+    is the watch's own read cadence, not a published period.
+  - **Before a move,** the watch asks the door for the account. A door that answers, with no meter
+    and no events, is a watch armed from day one (27A.1). A seam that cannot answer gives no
+    record, so the Consent offer is withheld.
+  - **What it holds:** the dates of every interruption it has seen, as the record's evidence, and
+    `self_disconnections(account)` for the response.
+  - **The response is not built:** emergency credit, ASC (27A.5), multi-channel contact, and the
+    §9.1(b) S&RP re-assessment. They are the next work. A watch that sees an event and does nothing
+    meets 27A.1's "identify" and not 27A.5's "offer".
 
 **The debt-objection row (added 2026-11-15, the ninth pass's item 12).** The company decides a
 debt objection live in every run (`decide_debt_objection`, from `simulation/run_phase2b.py`). It
@@ -584,7 +668,8 @@ de-minimis) would raise one, and before anything goes on the register.
   - **27.8.** Arrangement-first was held only by the ladder's order, never at the offer.
   - **The fix.** The offer is now asked through `may_take`. The desk takes
     `self_disconnection_watch` and `own_holds`. Both are None in the shipped desk, so live, every
-    withheld offer names two grounds: no finding, and no watch.
+    withheld offer names two grounds: no finding, and no watch. *(Superseded 2026-11-15, W2_43:
+    live, the household is asked and the desk holds its own watch, so neither ground is named.)*
 - **Disconnection.** `can_disconnect` read the licence, the Safety Net and the supplier's own holds,
   but not three other grounds:
   - 27.9: recovery through a PPM tried first;

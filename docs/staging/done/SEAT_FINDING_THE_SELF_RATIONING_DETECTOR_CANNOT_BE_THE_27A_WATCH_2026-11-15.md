@@ -52,3 +52,6 @@ Two world doors, then one company build:
 Then prepayment households exist in the world.
 
 NEXT: C32_one_obligation_one_vulnerability_scorer
+
+**Actioned 2026-11-15 (W2_43):** doors 1 and 2 and the watch are built; what remains is in
+`docs/staging/SEAT_FINDING_THE_CONSENT_GATE_NOW_PERMITS_LIVE_AND_A_CONCEALING_HOUSEHOLD_IS_FOUND_SAFE_2026-11-15.md`.

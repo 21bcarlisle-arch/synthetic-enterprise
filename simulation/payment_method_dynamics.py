@@ -40,8 +40,10 @@ NAMED SIMPLIFICATIONS:
      share has risen), but no flow is published either way; the error overstates manual payers.
   3. Payment channel is still drawn once and uncoupled from income or tenure: the crosstab that
      would couple it is not reachable (the gap in the research section), so no coupling is built.
-  4. Self-disconnection on a debt PPM is not drawn: the published counts are a stock over all smart
-     PPM customers per quarter, not a per-household rate for one fitted for debt.
+  4. Self-disconnection on a debt PPM is drawn weekly at `ppm_debt_self_disconnection_weekly_share`
+     (W2_43, 2026-11-15): derived from the whole smart-PPM stock's quarterly counts, not a
+     per-household rate for one fitted for debt, so it very likely understates. Its duration, and the
+     household's top-ups, are not drawn (`meter_supply_events`).
   5. Recovery is the published MEAN weekly sum for every household: not scaled to the debt or the
      means (SLC 27.8 sets a per-household figure; the 2025 range ran GBP 2.69-17.17 a week), and a
      household that has not topped up that week still pays it. Understates how slowly a stretched
@@ -60,8 +62,14 @@ from typing import Optional
 
 from simulation.bacs_rails import draw_payer_cancellation
 from simulation.dd_shock_response import stress_relativity
+from simulation.household import household_of
 from simulation.meter_reads import assumption_toggle
 from simulation.rng_substream import substream
+from simulation.vulnerability_state import (
+    NEEDS_CODE_MIX_GAP,
+    hidden_state_active,
+    vulnerability_state,
+)
 
 STREAM_NAMESPACE = "PB8_household_method_acts"
 
@@ -90,6 +98,65 @@ def meter_recoveries(debt_gbp: float, moved_on: "dt.date", through: "dt.date",
         remaining = round(remaining - paid, 2)
         n += 1
     return out
+
+
+#: The S&RP guidance's questions (3.7 do-not-install, 3.8/3.9 further assessment), in the names the
+#: supplier asks them by (`company/billing/prepayment_suitability.SuitabilityAnswers`). Each is a
+#: PSR-type circumstance; meter location (3.7 "cannot access") is not drawn: GAP, commons s.5.
+SUITABILITY_QUESTIONS = (
+    "cannot_access_operate_or_top_up", "continuous_supply_health_need", "over_75_without_support",
+    "child_under_2", "severe_or_terminal_condition", "child_5_or_under",
+    "serious_medical_or_mental_condition", "pregnancy_or_bereavement",
+    "adult_over_65_or_child_under_16",
+)
+
+SUITABILITY_OFF = "the world draws no household circumstances (vulnerability hidden state is off)"
+SUITABILITY_ALL_NO = "the household answered every question no"
+SUITABILITY_DISCLOSED = ("the household said a circumstance applies; which one is not drawn, so no "
+                         "question is answered. " + NEEDS_CODE_MIX_GAP)
+
+
+def answer_suitability_questions(supply_point_id: str, asked_on: dt.date, base_seed: int, *,
+                                 active: Optional[bool] = None) -> dict:
+    """What the household says at a safe-and-reasonably-practicable conversation (W2_43, commons
+    s.5 "The S&RP conversation"). `{"answers": {question: bool | None} | None, "reason": str}`.
+
+    No circumstance, or one it does not disclose (the same `discloses_psr` draw as registration):
+    every question "no". A discloser: every question unanswered, since no needs code is drawn.
+    `asked_on` is carried for the record; the state is fixed for the household's life."""
+    del asked_on
+    if not (hidden_state_active() if active is None else active):
+        return {"answers": None, "reason": SUITABILITY_OFF}
+    state = vulnerability_state(household_of(supply_point_id), base_seed)
+    if state.discloses_psr:
+        return {"answers": {q: None for q in SUITABILITY_QUESTIONS}, "reason": SUITABILITY_DISCLOSED}
+    return {"answers": {q: False for q in SUITABILITY_QUESTIONS}, "reason": SUITABILITY_ALL_NO}
+
+
+TOGGLE_SELF_DISCONNECTION = "ppm_debt_self_disconnection_weekly_share"
+SUPPLY_EVENT_STREAM = "W2_43_ppm_supply_events"
+#: Why no top-up rows cross: their amounts and timing are not published (commons s.5).
+TOP_UPS_NOT_DRAWN = "top-ups are not drawn: no published amount or timing for a debt-fitted meter"
+
+
+def meter_supply_events(account_id: str, moved_on: Optional["dt.date"], through: "dt.date", *,
+                        base_seed: int, weekly_share: Optional[float] = None) -> dict:
+    """What a smart prepayment meter reports for one account by `through` (W2_43): each
+    credit-exhausted interruption (SLC 27A.9) as `{"on": iso}`, one chance per week on the meter at
+    `weekly_share`, each week its own substream. `moved_on` None: no meter, so nothing to report.
+    Top-ups are not drawn, and the feed says so. Asking cannot see the future."""
+    share = (assumption_toggle(TOGGLE_SELF_DISCONNECTION) if weekly_share is None
+             else weekly_share)
+    out = []
+    if moved_on is not None:
+        n = 1
+        while (week := moved_on + dt.timedelta(days=7 * n)) <= through:
+            u = substream(SUPPLY_EVENT_STREAM, f"{account_id}::{moved_on}::{n}", base_seed).random()
+            if u < share:
+                out.append({"on": week.isoformat()})
+            n += 1
+    return {"interruptions": out, "top_ups": None, "top_ups_reason": TOP_UPS_NOT_DRAWN,
+            "on_meter": moved_on is not None}
 
 
 @dataclass(frozen=True)

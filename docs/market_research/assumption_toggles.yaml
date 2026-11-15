@@ -43,6 +43,8 @@
 #   off by default; gb_payment_method_migration_rates.md, "The household's own payment-method acts".
 # 2026-10-12 (DD4c world): dd_date_alignment_failure_reduction, off by default; what_bill_shock_is.md,
 #   "A changed amount or date: the world's answer".
+# 2026-11-15 (W2_43 world): ppm_debt_self_disconnection_weekly_share, at its low end; commons
+#   psr_eligibility_and_disconnection_protection.md s.5, "The PPM's supply events".
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -2014,6 +2016,35 @@ toggles:
       kind: argued
       detail: Reached only when a supplier offers a date change; no live supplier does yet.
     verdict: MATTERS_AND_UNRESOLVABLE (no GB trial; Pay.UK returns by date alignment unpublished)
+
+  - id: ppm_debt_self_disconnection_weekly_share
+    question: W2_43 a prepayment meter's supply events (world)
+    meaning: >-
+      For a household whose meter was changed to prepayment for debt, the chance in any one week on
+      the meter of at least one interruption because the meter's credit ran out (SLC 27A.9). ESTIMATE
+      range, derived across populations and dates; reached only after a meter moves, and none does
+      while method_prepayment_offer_take_up_share is 0.
+    default: 0.019
+    low: 0.019
+    high: 0.061
+    unit: probability_per_household_week
+    basis_default: >-
+      The low end (K2: zero is the one value known wrong). 564,191 smart-PPM electricity customers
+      self-disconnected at least once in Q2 2026 (Ofgem debt and arrears indicators, 24 Sep 2026),
+      over an ESTIMATED 2.58m smart-PPM electricity customers (60% smart, Sep 2023, Commons Library
+      citing Ofgem, x 4.3m electricity PPM customers, Ofgem 2019): 0.219 a quarter, taken as a
+      constant weekly chance over 13 weeks. The two counts are from different dates.
+    basis_low: Same as the default.
+    basis_high: >-
+      2,038,289 Q2 2026 events over the same 2.58m and 13 weeks, as if each event fell in its own
+      week. The Q3 2023 peak (946,400 customers) gives 0.035 on the low reading, inside the range.
+    feeds: [W2_43, simulation/payment_method_dynamics.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Reached only when a meter moves for debt; none does while take-up is 0. Whole smart-PPM
+        stock, not debt-fitted meters, which very likely self-disconnect more: understates.
+    verdict: MATTERS_AND_UNRESOLVABLE (no per-household or debt-PPM self-disconnection rate is published)
 
 no_toggle:
   - question: Q5 carbon

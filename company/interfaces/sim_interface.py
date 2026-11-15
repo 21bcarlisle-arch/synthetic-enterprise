@@ -344,6 +344,25 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def ask_prepayment_suitability(self, account_id: str, asked_on) -> dict:
+        """Ask the household the safe-and-reasonably-practicable questions (WORLD -> COMPANY, W2_43).
+
+        OBSERVABLE: a supplier that asks learns what the household SAYS, question by question, as
+        ``{"answers": {question: bool | None} | None, "reason": str}``: True a ground applies, None
+        not answered. ``answers`` None means no conversation took place. Never the household's
+        circumstances themselves, nor whether it held one back (commons s.5, "The S&RP conversation").
+        """
+        raise NotImplementedError
+
+    def get_meter_supply_events(self, account_id: str, through) -> dict:
+        """What this account's smart prepayment meter has reported by `through` (WORLD -> COMPANY,
+        W2_43): ``{"interruptions": [{"on": iso date}] | None, "top_ups": list | None,
+        "top_ups_reason": str, "on_meter": bool, "reason": str}``. Each interruption is one the
+        meter logged because its credit ran out (SLC 27A.9). OBSERVABLE: a smart PPM reports these
+        to its supplier. ``interruptions`` None means the seam cannot report; an empty list on an
+        account with no meter is a door that answers. Never why, nor the household's state."""
+        raise NotImplementedError
+
     def get_meter_recoveries(self, account_id: str, moved_on, debt: float, through) -> list[dict]:
         """Each weekly deduction from top-ups that fell due after the meter was changed for debt
         and by `through`, as ``{"due": iso date, "amount_gbp": x}`` (WORLD -> COMPANY). OBSERVABLE:
@@ -464,6 +483,13 @@ class StubSimInterface(SimInterface):
 
     def request_prepayment_move(self, account_id, requested_on, debt, months_outstanding) -> dict:
         return {"moved": False, "reason": "stub seam: no household behind it to answer"}
+
+    def ask_prepayment_suitability(self, account_id, asked_on) -> dict:
+        return {"answers": None, "reason": "stub seam: no household behind it to answer"}
+
+    def get_meter_supply_events(self, account_id, through) -> dict:
+        return {"interruptions": None, "top_ups": None, "top_ups_reason": "stub seam",
+                "on_meter": False, "reason": "stub seam: no meter behind it to report"}
 
     def get_meter_recoveries(self, account_id, moved_on, debt, through) -> list[dict]:
         return []
@@ -753,6 +779,32 @@ class LiveSimInterface(SimInterface):
             self._household_plans.record_meter(
                 account_id, dt.date.fromisoformat(str(requested_on)), debt)
         return {"moved": move.moved, "reason": move.reason}
+
+    def ask_prepayment_suitability(self, account_id, asked_on) -> dict:
+        """The household's answers, from its own hidden state at the run's seed. Only the answers
+        and the reason cross; the latent state stays in the world."""
+        from simulation.live_population import run_base_seed
+        from simulation.payment_method_dynamics import answer_suitability_questions
+        said = answer_suitability_questions(account_id, dt.date.fromisoformat(str(asked_on)),
+                                            run_base_seed())
+        return {"answers": None if said["answers"] is None else dict(said["answers"]),
+                "reason": said["reason"]}
+
+    def get_meter_supply_events(self, account_id, through) -> dict:
+        """The world's meter book says whether and when the meter changed; the company does not
+        tell it. No book: this seam cannot report, said so."""
+        if self._household_plans is None:
+            return {"interruptions": None, "top_ups": None, "top_ups_reason": "no meter book",
+                    "on_meter": False, "reason": "no world book of meters behind this seam"}
+        from simulation.live_population import run_base_seed
+        from simulation.payment_method_dynamics import meter_supply_events
+        through_day = dt.date.fromisoformat(str(through))
+        meter = self._household_plans.meter_of(account_id)
+        if meter is not None and meter[0] > through_day:
+            meter = None  # a meter changed after `through` is not yet a fact
+        events = meter_supply_events(account_id, None if meter is None else meter[0],
+                                     through_day, base_seed=run_base_seed())
+        return {**events, "reason": "the meter's own reports" if meter else "no meter on this account"}
 
     def get_meter_recoveries(self, account_id, moved_on, debt, through) -> list[dict]:
         from simulation.payment_method_dynamics import meter_recoveries

@@ -12,8 +12,8 @@ evidence held (3.8, 3.9): the company has no welfare officer, so it never finds 
 It is positive only where the household was ASKED and answered every question "no". Holding no
 evidence is not having asked, so with no conversation on record there is no finding at all.
 
-Live, no seam door brings back a household's answers, so every assessment in a run returns None.
-That is a statement about the world, not a choice here.
+Live, the household's answers come back through `SimInterface.ask_prepayment_suitability` (W2_43),
+asked at the Consent rung (`PaymentObservationConsumer._prepayment_suitability`).
 """
 from __future__ import annotations
 

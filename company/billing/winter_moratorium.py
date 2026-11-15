@@ -574,6 +574,10 @@ DEBT_STEP_CENSUS = {
     "get_plan_instalments": "a read of what the household paid on a plan it agreed",
     "get_meter_recoveries": ("a read of what the meter took; the deduction is the world's step, the "
                              "recovery_through_the_meter row, which has no company door"),
+    "get_meter_supply_events": ("the 27A watch's read of what the meter reported (SLC 27A.1): a duty "
+                                "to watch, the self_disconnection_support row, not a step to collect"),
+    "ask_prepayment_suitability": ("a question the household answers at the Consent rung; its "
+                                   "answers make the S&RP finding the offer's gate reads"),
     "request_debt_objection": EnforcementAction.DEBT_OBJECTION,
     "raise_objection": EnforcementAction.DEBT_OBJECTION,
 }
