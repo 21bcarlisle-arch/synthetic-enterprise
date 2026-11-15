@@ -153,6 +153,13 @@ PLAN_OFFER_STEP = "repayment_plan_offer"
 PREPAYMENT_STEP = "prepayment_or_debt_agency"
 PREPAYMENT_OFFERED = "prepayment_offered"
 PREPAYMENT = "prepayment"
+#: Recorded after the rung instead of the offer when no positive safe-and-reasonably-practicable
+#: finding is held for the account: SLC 27.6(a)(iii) offers a PPM only where it is, and the household's
+#: Consent is not that finding (`company_debt_management.md`, amendment 2026-11-15).
+PREPAYMENT_WITHHELD = "prepayment_withheld"
+NO_SUITABILITY_FINDING = ("no safe-and-reasonably-practicable finding is recorded for this household, "
+                          "so no prepayment meter is offered (SLC 27.6(a)(iii); PPM guidance via 28.4)")
+NOT_SUITABLE = "the household's safe-and-reasonably-practicable finding is negative (SLC 27.6(a)(iii))"
 #: Why a prepayment offer is recorded unanswered when the desk has no seam to ask.
 PREPAYMENT_ANSWER_GAP = "this desk was built with no seam to ask, so no meter change can be requested"
 #: The arrangement stage in the only state the company can reach alone: OFFERED. Entered on the
@@ -230,9 +237,9 @@ UNREACHED_EXITS = {
                     "plan_offer_response.py)"),
     "disconnection_equivalent": ("no prepayment-under-warrant or agency hand-over is taken live; a "
                                  "meter changed by Consent is the separate `prepayment` exit"),
-    "prepayment": ("reachable when the world changes the meter on a Consent offer, and unreached "
-                   "live: the take-up share ships at 0, so the household cannot answer "
-                   "(simulation/payment_method_dynamics.py)"),
+    "prepayment": ("reachable when a safe-and-reasonably-practicable finding is held and the world "
+                   "changes the meter on a Consent offer; unreached live: no company path records "
+                   "that finding, so every offer is withheld (and the take-up share ships at 0)"),
 }
 
 
@@ -280,15 +287,17 @@ def lawful_successors(segment: Segment) -> Dict[Optional[str], frozenset]:
         table[ARRANGEMENT_OFFERED] = (working - {PLAN_OFFER_STEP}) | {ARRANGEMENT}
         table[ARRANGEMENT] = frozenset()
     if PREPAYMENT_STEP in ladder:
-        table[PREPAYMENT_STEP] = table[PREPAYMENT_STEP] | {PREPAYMENT_OFFERED}
+        table[PREPAYMENT_STEP] = table[PREPAYMENT_STEP] | {PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD}
         table[PREPAYMENT_OFFERED] = (working - {PREPAYMENT_STEP}) | {PREPAYMENT}
+        table[PREPAYMENT_WITHHELD] = working - {PREPAYMENT_STEP}
         table[PREPAYMENT] = frozenset()
     if PLAN_OFFER_STEP in ladder:
         # The re-offer follows any rung from the plan offer up, the offer such a rung made, or an
         # earlier re-offer's offer, and is followed by the offer it made.
         rungs = _reoffer_rungs(segment)
         for before in rungs | {ARRANGEMENT_OFFERED} | (
-                {PREPAYMENT_OFFERED} if PREPAYMENT_STEP in rungs else frozenset()):
+                {PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD} if PREPAYMENT_STEP in rungs
+                else frozenset()):
             table[before] = table[before] | {PLAN_REOFFER_STEP}
         table[PLAN_REOFFER_STEP] = frozenset({ARRANGEMENT_OFFERED})
     # A write-off may follow any open stage. When debt younger than the bar is still owed, the
@@ -328,10 +337,11 @@ def assert_journey_order_lawful(journey: dict, segment: Segment) -> None:
                 f"{journey.get('account_id')}: {PLAN_REOFFER_STEP} on {s['on']} with no "
                 f"{ARRANGEMENT_OFFERED} recorded after it")
         if s["stage"] == PREPAYMENT_STEP and (
-                following is None or following["stage"] != PREPAYMENT_OFFERED):
+                following is None
+                or following["stage"] not in (PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD)):
             raise UnlawfulJourneyOrderError(
                 f"{journey.get('account_id')}: {PREPAYMENT_STEP} on {s['on']} with no "
-                f"{PREPAYMENT_OFFERED} recorded after it")
+                f"{PREPAYMENT_OFFERED} or {PREPAYMENT_WITHHELD} recorded after it")
     previous, previous_on = None, None
     for s in stages:
         if s["stage"] not in table.get(previous, frozenset()):
@@ -370,7 +380,8 @@ class _Journey:
         beside its plan-offer step, not instead of it, so it is skipped: reading it as the current
         step would make the next read of the same step look like a new one, and re-offer daily."""
         steps = [s["stage"] for s in self.stages
-                 if s["stage"] not in (ARRANGEMENT_OFFERED, PREPAYMENT_OFFERED, PLAN_REOFFER_STEP,
+                 if s["stage"] not in (ARRANGEMENT_OFFERED, PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD,
+                                       PLAN_REOFFER_STEP,
                                        WRITE_OFF)]
         return steps[-1] if steps else None
 
@@ -415,6 +426,8 @@ class CollectionsJourneyDesk:
                  post_cash: Optional[Callable[[str, float, dt.date, str], None]] = None,
                  post_write_off: Optional[Callable[[str, float, dt.date, str], None]] = None,
                  level_of: Optional[Callable[[str], Optional[tuple]]] = None,
+                 prepayment_suitability: Optional[
+                     Callable[[str, dt.date], Optional[bool]]] = None,
                  ) -> None:
         if plan_offers is not None and post_cash is None:
             raise ValueError(
@@ -432,6 +445,10 @@ class CollectionsJourneyDesk:
         #: under `rule` (`STATUTE_BAR_RULE` or `CLOSED_ACCOUNT_RULE`). None: a barred debt is still
         #: recorded as a `write_off` stage, unposted, and a closed account is left to the sweep.
         self._post_write_off = post_write_off
+        #: `prepayment_suitability(account_id, on)`: the company's safe-and-reasonably-practicable
+        #: finding for that household on that day, True / False, or None where none is held. None
+        #: as a whole (the shipped desk): no finding exists, so every Consent offer is withheld.
+        self.prepayment_suitability = prepayment_suitability
         #: Every arrangement this desk has offered, and what became of each.
         self.arrangements = PaymentPlanBook()
         self._instalments_read: Dict[int, int] = {}
@@ -738,9 +755,17 @@ class CollectionsJourneyDesk:
 
     def _offer_prepayment(self, journey: _Journey, on: dt.date, view: dict) -> None:
         """W2_42: the 90-day rung asks for a prepayment meter by the household's explicit Consent
-        (SLC 28.22), never involuntarily, and records the world's answer. A changed meter ends the
+        (SLC 28.22), never involuntarily, and records the world's answer -- but only where the
+        company holds a positive safe-and-reasonably-practicable finding (27.6(a)(iii)); otherwise
+        it records `prepayment_withheld` and asks nothing (C32 eighth Expert Hour, item 1). A changed meter ends the
         journey on the `prepayment` exit. Life on the meter (debt recovered from top-ups) is not
         recovered from the weekly deductions `_read_meter_recoveries` posts."""
+        finding = (None if self.prepayment_suitability is None
+                   else self.prepayment_suitability(journey.account_id, on))
+        if finding is not True:
+            journey.enter(PREPAYMENT_WITHHELD, on,
+                          NO_SUITABILITY_FINDING if finding is None else NOT_SUITABLE, view)
+            return
         debt = view.get("undisputed_overdue_gbp") or 0.0
         days = view.get("max_days_overdue") or 0
         if self._plan_offers is None:

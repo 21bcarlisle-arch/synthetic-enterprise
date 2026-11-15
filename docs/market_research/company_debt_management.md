@@ -746,6 +746,28 @@ DESIGN CHOICES, each named:
   from top-ups at £6.01 / £4.40 a week, §2) is still not built, so the debt stays on the ledger and a
   later overdue read can open a new journey. This can only happen in an injected world today.
 
+### Amendment (2026-11-15): the Consent offer waits on a safe-and-reasonably-practicable finding
+*Raised by C32's eighth blind Expert Hour (`blind_review_ledger.jsonl`, 2026-11-15T01:30Z), item 1: "a
+zero take-up rate is not a control".*
+- **Correction, beside the claim above.** "The Consent route is not barred by V1" is right about the
+  do-not-install list, which governs involuntary moves (3.7). It is not the whole rule. 27.6(a)(iii)
+  puts a PPM on the menu only "where safe and reasonably practicable", and the S&RP guidance (binding
+  through 28.4) applies to every PPM (§9.1, and the 28.3 annual re-check). So a Consent offer for debt
+  needs the supplier's own finding that the meter is safe and reasonably practicable for that household.
+  The household's agreement does not supply that finding.
+- **Design choice.** The desk asks the world for a Consent move only when a positive S&RP finding is
+  recorded for the account on that day. Otherwise it records `prepayment_withheld` after the 90-day
+  rung, with the reason: no finding is recorded, or the finding was negative. **No company path records
+  a finding yet, so live, every offer is withheld.** This follows the same rule as C32's winter duty,
+  where holding no evidence is not having asked (`psr_eligibility_and_disconnection_protection.md` §4).
+- **What it costs.** Nothing measurable today: the take-up share ships at 0, so no meter had moved by
+  this route. The household no longer reads "we can fit a prepayment meter" at the 90-day rung. The
+  `prepayment` exit stays reachable through an injected finding and an injected world.
+- **GAP.** The S&RP assessment itself (a conversation against 3.7 and 3.8, the PSR check, the
+  Precautionary Principle) is not built. Nor are the after-install duties (28.3, §9.1 self-disconnection
+  monitoring).
+- **Reversible** by making the desk's `prepayment_suitability` answer True for every account.
+
 ## After the last rung: what a supplier must and may do once the notices have gone, and when it stops (2026-10-24)
 
 *K8 page for `the-collections-ladder-has-a-step-after-the-second-notice`. Raised by the 19 Oct run: a

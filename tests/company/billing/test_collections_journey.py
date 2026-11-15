@@ -37,12 +37,15 @@ from company.billing.collections_journey import (
     ARRANGEMENT_OFFERED,
     CURED,
     MISSED_PAYMENT,
+    NO_SUITABILITY_FINDING,
+    NOT_SUITABLE,
     PLAN_OFFER_STEP,
     PLAN_REOFFER_STEP,
     PREPAYMENT,
     PREPAYMENT_ANSWER_GAP,
     PREPAYMENT_OFFERED,
     PREPAYMENT_STEP,
+    PREPAYMENT_WITHHELD,
     UNREACHED_EXITS,
     WRITE_OFF,
     CollectionsJourneyDesk,
@@ -399,15 +402,16 @@ def test_a_live_run_offers_arrangements_only_straight_after_the_plan_offer_step(
         "an exit other than cured/written-off/open was recorded with no world answer behind it")
 
 
-def test_a_live_run_asks_the_world_for_a_prepayment_meter_at_the_ninety_day_rung(live_journeys):
-    """W2_42's route is reached by the run, through the live seam: every 90-day rung is followed by
-    its offer, and the answer is the WORLD's (the take-up share ships at 0), not the desk's no-seam
-    text. No meter is changed on the shipped world."""
-    offered = [s for j in live_journeys for s in j["stages"] if s["stage"] == PREPAYMENT_OFFERED]
-    assert offered, "no live journey reached the 90-day rung -- the prepayment route is unreached"
-    assert {s["move_reason"] for s in offered} == {
-        "the household cannot answer: take-up share is off"}
-    assert not any(s["meter_moved"] for s in offered)
+def test_a_live_run_withholds_the_prepayment_offer_at_the_ninety_day_rung(live_journeys):
+    """W2_42's rung is reached by the run, and every one is followed by `prepayment_withheld` naming
+    the missing safe-and-reasonably-practicable finding: no company path records one, so a Consent
+    offer would be made without the finding 27.6(a)(iii) requires (C32 eighth Expert Hour, item 1).
+    Keyed to the property: an offer made live is only lawful with a finding behind it, and none is."""
+    after = [s for j in live_journeys for s in j["stages"]
+             if s["stage"] in (PREPAYMENT_OFFERED, PREPAYMENT_WITHHELD)]
+    assert after, "no live journey reached the 90-day rung -- the prepayment route is unreached"
+    assert {s["stage"] for s in after} == {PREPAYMENT_WITHHELD}
+    assert {s["decision"] for s in after} == {NO_SUITABILITY_FINDING}
 
 
 class _World:
@@ -526,14 +530,20 @@ def test_a_paid_instalment_posts_to_the_ledger_as_cash_and_a_repaid_plan_frees_t
     assert missed_journeys[1]["stages"][0]["overdue_gbp"] == 200.0
 
 
+def _suitable(consumer, finding=True):
+    consumer.collections_journeys.prepayment_suitability = lambda _account, _on: finding
+    return consumer
+
+
 def test_the_ninety_day_rung_asks_for_a_prepayment_meter_by_consent_and_takes_both_answers():
-    """W2_42. An unpaid GBP 100 bill, no plan agreed. At the 90-day rung the desk asks the world once
-    and records the answer straight after the step. Both answers in one control before what either
-    does: a changed meter ends the journey on `prepayment`; a refusal leaves it open."""
+    """W2_42. An unpaid GBP 100 bill, no plan agreed, a positive S&RP finding held. At the 90-day
+    rung the desk asks the world once and records the answer straight after the step. Both answers
+    in one control before what either does: a changed meter ends the journey on `prepayment`; a
+    refusal leaves it open."""
     walks = {}
     for moves in (True, False):
         world = _World(None, moves=moves)
-        consumer = _answered("ACC-P", world)
+        consumer = _suitable(_answered("ACC-P", world))
         consumer.advance_collections_journey("ACC-P", dt.date(2024, 6, 30))
         (journey,) = consumer.collections_journeys.journeys()
         assert_journey_order_lawful(journey, Segment.RESIDENTIAL)
@@ -549,8 +559,36 @@ def test_the_ninety_day_rung_asks_for_a_prepayment_meter_by_consent_and_takes_bo
     assert kept["exit"] is None and PREPAYMENT not in [s["stage"] for s in kept["stages"]]
 
 
+def test_the_consent_offer_is_made_only_on_a_positive_suitability_finding():
+    """C32's eighth blind Expert Hour, item 1: 27.6(a)(iii) offers a PPM only where safe and
+    reasonably practicable, and Consent is not that finding. The whole partition in one control,
+    before what any leg does: no finding and a negative one withhold and ask the world nothing; a
+    positive one asks. A desk that withholds everything fails the True leg; one that ignores the
+    finding fails the other two."""
+    walks = {}
+    for finding in (None, False, True):
+        world = _World(None, moves=False)
+        consumer = _answered("ACC-S", world)
+        if finding is not None:
+            _suitable(consumer, finding)
+        consumer.advance_collections_journey("ACC-S", dt.date(2024, 6, 30))
+        (journey,) = consumer.collections_journeys.journeys()
+        assert_journey_order_lawful(journey, Segment.RESIDENTIAL)
+        walks[finding] = [s["stage"] for s in journey["stages"]], journey, world.prepayment_asks
+    assert all(PREPAYMENT_STEP in stages for stages, _, _ in walks.values())
+    for finding, reason in ((None, NO_SUITABILITY_FINDING), (False, NOT_SUITABLE)):
+        stages, journey, asks = walks[finding]
+        assert asks == [] and PREPAYMENT_OFFERED not in stages
+        assert stages[stages.index(PREPAYMENT_STEP) + 1] == PREPAYMENT_WITHHELD
+        assert next(s for s in journey["stages"]
+                    if s["stage"] == PREPAYMENT_WITHHELD)["decision"] == reason
+    stages, _, asks = walks[True]
+    assert len(asks) == 1 and PREPAYMENT_WITHHELD not in stages
+    assert stages[stages.index(PREPAYMENT_STEP) + 1] == PREPAYMENT_OFFERED
+
+
 def test_a_desk_with_no_seam_records_the_prepayment_offer_unanswered_and_says_why():
-    consumer = PaymentObservationConsumer(ledger_book=LedgerBook())
+    consumer = _suitable(PaymentObservationConsumer(ledger_book=LedgerBook()))
     consumer.ledger_book.post(_event(LedgerEventType.BILL_DEBIT, "ACC-N", 100.0, ISSUE, 1))
     consumer.advance_collections_journey("ACC-N", dt.date(2024, 6, 30))
     (journey,) = consumer.collections_journeys.journeys()

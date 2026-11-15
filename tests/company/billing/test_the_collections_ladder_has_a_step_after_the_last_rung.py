@@ -87,7 +87,7 @@ def test_an_unpaid_live_debt_reaches_a_further_step_or_a_named_write_off_and_a_p
     # climb"), a re-offer stands past the top rung too, and each one makes an offer.
     first = names.index(PLAN_REOFFER_STEP)
     assert names.index(PLAN_OFFER_STEP) < names.index(ARRANGEMENT_OFFERED) < first
-    assert PLAN_REOFFER_STEP in names[names.index(PREPAYMENT_OFFERED):]
+    assert PLAN_REOFFER_STEP in names[names.index(PREPAYMENT_STEP):]
     assert names[first + 1] == ARRANGEMENT_OFFERED
     # The write-off names its rule, falls six years after the first bill's due date, and posts that
     # bill to the ledger as STATUTE_BARRED, not the whole balance.

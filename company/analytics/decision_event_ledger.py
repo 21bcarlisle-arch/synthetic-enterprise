@@ -147,6 +147,8 @@ _COLLECTIONS_STAGE_WORDS = {
     "prepayment_or_debt_agency": "Top rung: prepayment by Consent or a debt agency",
     "disconnection_warning_or_agency": "Top rung: disconnection warning or a debt agency",
     "prepayment_offered": "Prepayment meter offered by Consent (SLC 28.22)",
+    "prepayment_withheld": ("Prepayment meter not offered: no safe-and-reasonably-practicable "
+                            "finding (SLC 27.6(a)(iii))"),
     "repayment_plan_reoffer": "A further bill missed past the top rung: payment plan offered again",
     "write_off": "Written off: the debt is statute-barred (Limitation Act 1980 s.5)",
     "statement_of_account": "Statement of account sent",

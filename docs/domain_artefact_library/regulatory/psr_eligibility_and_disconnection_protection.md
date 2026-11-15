@@ -346,6 +346,14 @@ Three consequences, each of which decides a live question in the code:
     household the company never asked stays permitted. The fifth and sixth passes named this gap.
   - **Reversible.** Remove the winter leg at the end of
     `priority_services_register._disconnection_protection`.
+- **Amended 2026-11-15 (eighth pass, item 1): a Consent prepayment offer is a route to loss of supply,
+  and it read nothing.** At the 90-day rung the desk asked every household to take a prepayment meter
+  by Consent, without the safe-and-reasonably-practicable finding that 27.6(a)(iii) requires. The
+  reviewer's point was that a take-up share of 0 is not a control. Now the offer is made only where a
+  positive finding is held. No company path records a finding yet, so live, every offer is withheld
+  with that reason. Rules, design choice and reversal: `docs/market_research/company_debt_management.md`,
+  "Amendment (2026-11-15)". Self-disconnection monitoring on prepayment (27A, guidance §9.1) is still
+  not built. It belongs to the self-rationing atom, not this decider.
 - `UNSOURCED`, opened 2026-11-14 (fourth pass, item 1): whether Ofgem treats a summer disconnection
   of a known-vulnerable household as a breach of the Standards of Conduct (SLC 0). SLC 0 has not
   been read in the instrument here; nothing in the code cites it.

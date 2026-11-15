@@ -969,6 +969,7 @@ _DESK_DEPTH = {"collections_missed_payment": 1, "collections_moratorium_hold": 2
                "collections_repayment_plan_offer": 4, "collections_arrangement_offered": 4,
                "collections_final_notice": 5, "collections_prepayment_or_debt_agency": 6,
                "collections_disconnection_warning_or_agency": 6, "collections_prepayment_offered": 6,
+               "collections_prepayment_withheld": 6,
                "collections_statement_of_account": 2, "collections_interest_notice": 3,
                "collections_final_demand": 5, "collections_debt_recovery": 6,
                "collections_commercial_recovery": 6,
@@ -982,6 +983,7 @@ _DESK_TITLES = {"collections_missed_payment": "Missed a payment", "collections_r
                 "collections_prepayment_or_debt_agency": "Prepayment or agency",
                 "collections_disconnection_warning_or_agency": "Disconnection warning or agency",
                 "collections_prepayment_offered": "Prepayment offered",
+                "collections_prepayment_withheld": "Prepayment not offered",
                 "collections_repayment_plan_reoffer": "Payment plan offered again",
                 "collections_statement_of_account": "Statement of account",
                 "collections_interest_notice": "Interest notice", "collections_final_demand": "Final demand",
@@ -1008,6 +1010,7 @@ _DESK_MESSAGES = {
 #: The desk's stages that are a decision the company took, for the record's last-decision line.
 _DESK_DECISIONS = ("collections_repayment_plan_offer", "collections_final_notice",
                    "collections_prepayment_or_debt_agency", "collections_prepayment_offered",
+                   "collections_prepayment_withheld",
                    "collections_repayment_plan_reoffer", "collections_write_off")
 
 
