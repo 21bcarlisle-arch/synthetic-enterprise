@@ -152,6 +152,18 @@ def reader_text(text):
     return _BARE_EMPTY_LIST.sub("an empty list", text)
 
 
+def reader_feed(value):
+    """Every string the feed publishes, as a reader meets it. Commit subjects are the seat's prose
+    too: 8503daa89's subject quoted "reads []", and while it sat in the Harness page's twelve
+    newest commits every site commit was refused (15 Nov 18:22 to 16 Nov ~06:50). Walking the whole
+    feed, not naming fields, is what keeps the next field that carries prose from re-opening it."""
+    if isinstance(value, dict):
+        return {k: reader_feed(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [reader_feed(v) for v in value]
+    return reader_text(value)
+
+
 def _distinct_problems(wrong: list[dict]) -> dict:
     """The headline: DISTINCT problems, not rows (director, 2026-10-07: *"987 open, 82 corrected
     ... counts rows, not problems: each orientation copies every unfixed item forward"*).
@@ -171,7 +183,7 @@ def _distinct_problems(wrong: list[dict]) -> dict:
         if p is None:
             hit = direction_mod.triage_match(w["what"], triage)
             p = by_key[key] = {
-                "key": key, "what": reader_text(w["what"]), "last_at": w["at"], "first_at": w["at"],
+                "key": key, "what": w["what"], "last_at": w["at"], "first_at": w["at"],
                 "times_listed": 0, "corrected": w["corrected"],
                 "fate": hit.get("fate") if hit else None,
                 "status": hit.get("status") if hit else None,
@@ -652,7 +664,7 @@ def the_most_the_products_beyond_price_could_be_worth() -> dict:
 
 
 def build() -> dict:
-    return {
+    return reader_feed({
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "seat": "delivery",
         "what_it_did": what_it_did(),
@@ -670,7 +682,7 @@ def build() -> dict:
             "any of it. Everything on this page is read from a committed record; nothing here is "
             "computed a second time."
         ),
-    }
+    })
 
 
 def generate(out_path: Path | None = None) -> dict:
