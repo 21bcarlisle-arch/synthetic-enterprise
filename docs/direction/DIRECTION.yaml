@@ -414,3 +414,18 @@ for_the_director:
     done_means: Step 6 runs as one unsharded 1,200-household book on 12 churn_roll draws once the candidate A/B grades
       are in, and its graded result is on origin with its GBP-per-household-year resolution stated
     due: '2026-11-22'
+- id: ep11-is-titled-direct-debit-against-a
+  raised: '2026-11-16'
+  kind: reserved
+  what: EP11 is titled 'Direct Debit against a real sandbox' (director_ruling), but a live GoCardless
+    sandbox needs gocardless.com on the egress allowlist (console-only) and a sandbox account under Poesys's
+    name (a G5 contractual commitment); company/ may never open a socket either.
+  proposal: 'Keep the real sandbox as a later director-only rung (level 4). Define EP11 level 3 as a GoCardless-shaped
+    bureau counterparty over the existing EP6 wire: all four Bacs reports as world events (AWACS is absent
+    today), confirmed only after the ARUDD window, webhook-style duplicates and reordering.'
+  recommendation: 'I recommend approving the reframe: the unhappy-path value the atom''s origin_note names
+    is all reachable inside the walls, and the sandbox would only test transport, which EP6 already owns.'
+  status: open
+  resolution: ''
+  g5_class: real_world_commitment
+  evidence: docs/design/EP11_GOCARDLESS_BACS_DISCOVER_FRAME.md
