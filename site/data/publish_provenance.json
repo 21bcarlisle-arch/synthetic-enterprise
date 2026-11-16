@@ -24,9 +24,9 @@
     "run_retained": true,
     "verified_at": "2026-11-11T20:13:59Z"
   },
-  "paused_gate": null,
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_gate": "Refused by the domain-invariant check: 5 of its rules are broken and no dated exception covers them. [INV_OVERDUE_WITHIN_BALANCE]: broken on 4 of 989 checked (unit: collections journey opening); [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 7 of 6,212 checked (unit: household collections step printing an overdue figure); [INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE]: broken on 2 of 1,306 checked (unit: account (page revenue against page bills before VAT)); [INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR]: broken on 5 of 124 checked (unit: gas leg with a measured month a year after another); [INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM]: broken on 1 of 40 checked (unit: Explore cast moment x fuel leg it prints a tariff for).",
+  "paused_reason": "domain-invariant breaches at git=f85dea4965 that no exception covers: INV_OVERDUE_WITHIN_BALANCE 4 (no exception); INV_OVERDUE_WITHIN_PAGE_BALANCE 7 (no exception); INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE 2 (no exception); INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 5 (5 breaches exceed the exception's max_breached 1); INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM 1 (no exception)",
+  "paused_since": "2026-11-16T04:26:22Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-11-11T20:13:59Z",
@@ -40,6 +40,6 @@
     "run_retained": true,
     "verified_at": "2026-11-11T20:13:59Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-11-11T20:13:59Z"
+  "verification_state": "paused",
+  "written_at": "2026-11-16T04:26:22Z"
 }
