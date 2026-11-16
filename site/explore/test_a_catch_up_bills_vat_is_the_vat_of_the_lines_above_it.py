@@ -124,10 +124,14 @@ def test_c5_inv113_prints_its_vat_as_this_months_and_the_catch_ups_each_at_its_o
     assert Decimal("112.49") - Decimal("157.51") == Decimal(str(record["catchup_adjustment_gbp"]))
 
 
-def _render_c5_inv113(tmp_path, **fields):
+def _render_c5_inv113(tmp_path, hypothetical=False, **fields):
     page_file = json.loads((CUSTOMERS / "C5.json").read_text())
     record = next(i for i in page_file["invoices"] if i["id"] == "C5-INV113")
-    record.update(catchup_vat_gbp=-25.88, **fields)
+    # The 11 Nov book predates these fields; the 16 Nov export carries them at exactly these values
+    # (rendered 2026-11-16, publish paused). A book that carries them is read, never overwritten.
+    for key, value in dict(catchup_vat_gbp=-25.88, **fields).items():
+        assert hypothetical or record.get(key) in (None, value), (key, record.get(key))
+        record[key] = value
     page_file["invoices"] = [record]
     scratch = tmp_path / "C5.json"
     scratch.write_text(json.dumps(page_file))
@@ -170,7 +174,8 @@ def test_a_one_rate_catch_up_keeps_one_row_and_names_its_rate(tmp_path):
     """The split is taken only at more than one rate: a catch-up at one rate stays one row (the
     ledger's own `catchup_adjustment_gbp`, which the footing controls read), with its rate."""
     _, _, rows = _render_c5_inv113(
-        tmp_path, catchup_lines_by_rate=[{"rate": 0.05, "net_gbp": -45.02, "vat_gbp": -2.25}],
+        tmp_path, hypothetical=True,
+        catchup_lines_by_rate=[{"rate": 0.05, "net_gbp": -45.02, "vat_gbp": -2.25}],
         catchup_corrects_invoices=["C5-INV112"])
     catch_up = [(label, amount) for label, amount in rows if "Catch-up adjustment" in label]
     assert [amount for _, amount in catch_up] == [Decimal("-45.02")], catch_up
