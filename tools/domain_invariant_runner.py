@@ -2172,10 +2172,26 @@ def ev_billed_ex_vat_reconciles(inv, book):
         u = sum(ex[last_a + 1:])
         e = sum(float(i.get("epg_support_gbp") or 0.0) for i in bills)
         b = round(sum(ex) + e, 2)
+        w = sum(_barred_before_vat(i) for i in bills)
         written_off = float((pr.get("page_totals") or {}).get("total_written_off_gross_gbp") or 0.0)
-        tally.band("{} {} R {:.2f}".format(a.cid, a.fuel, r), b, round(r - u - tol * r, 2),
+        tally.band("{} {} R {:.2f}".format(a.cid, a.fuel, r), b, round(r - u - w - tol * r, 2),
                    round(r + u + tol * r, 2), below="flag" if written_off > 0 else "breach")
     return tally
+
+
+def _barred_before_vat(bill) -> float:
+    """W's share on one bill: what SLC 21BA barred from its catch-up, before VAT. The page prints the
+    bar (`catchup_written_off_gbp`) gross, as the assembly takes it from the gross raw delta; the
+    ledger's `total_written_off_gross_gbp` never holds it, so before this the row read W as 0 and a
+    capped catch-up breached below (OCC-cc0c78690877g, f7e17b1316: 28.26 barred, 30.20 short). It is
+    taken to before-VAT at the catch-up's own net share, or the bill's where the catch-up has none."""
+    barred = _num(bill.get("catchup_written_off_gbp")) or 0.0
+    if barred <= 0:
+        return 0.0
+    net, vat = _num(bill.get("catchup_adjustment_gbp")), _num(bill.get("catchup_vat_gbp"))
+    if not net or vat is None:
+        net, vat = float(bill.get("amount_gbp") or 0.0) - float(bill.get("vat_gbp") or 0.0), _num(bill.get("vat_gbp"))
+    return barred * net / (net + vat) if net and vat is not None and net + vat else barred
 
 
 #: The row's MISSED: a collection not paid by its due date counts from the day after it. (It read the
