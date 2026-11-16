@@ -1165,3 +1165,29 @@ not a reason to change the ruled order.
 `docs/staging/` before launch, with the difference expected per household-year and the resolution
 this book earns. The §10 figure is £4.80 at 1,200 households on twelve draws, measured on the
 270-household book's variances; it is restated on A's 767-account variances if they differ.
+
+*Correction beside §10a's step-6 cost, read 16 Nov 05:00Z from the published book and A's sidecar; nothing run.*
+**Step 6's book is A's book, not a larger one.** The published run commits **7,699.3 of the 7,700**
+customer-year budget (`site/data/book_growth.json` `settlement`, generated 16 Nov 04:21Z) and refuses
+387 of 597 funnel wins to stay inside it. So the default run is already the budget-bound book that the
+ruling calls "the 1,200-household book". The 7,700 counts customer-years committed from each win to the
+horizon. A's 5,673 and 5,814 control-arm household-years are what was realised after leavers exit.
+They are the same book measured two ways, and §10a's scaling from 5,700 up to 7,700 counts the budget
+twice. Three things follow:
+- **Cost.** A step-6 arm-run takes about 1.77 h, as A's did, not 2.4 h. Twelve draws are 36 arm-runs,
+  so about **64 h, not 86 h**.
+- **The run.** Step 6 needs no book knob and no new driver. It is the twelve-draw `churn_roll` family
+  at A's tree on whichever belief A's grade leaves current. That is exactly one side of A's own
+  twelve-draw family: `/var/tmp/vta-driver/driver.py` with `VTA_FLAG` set and `VTA_SEEDS` unset.
+  The driver keeps any pair already on disk, and pair 11111/22222 is written on both sides once the
+  twin ends. So **five pairs, 30 arm-runs, about 53 h** remain on either side. If A earns its family
+  (§9a), its flag-on half *is* step 6 on A's belief. The ruled order holds, and step 6 reads when that
+  half folds, not after the whole family. The flag-off half, which sizes A's paired effect, runs after it.
+  From the twin's end, step 6 reads in about 2.5 days either way, which is inside the 22 Nov commitment.
+  §10a's "slips by about 3 days" is withdrawn.
+- **Resolution.** "1,200 households" was rule 2's estimate of how many households the budget holds.
+  A's book settles **767 to 776 billing accounts** in the window. Per-household variance as in §10
+  gives a 12-draw resolution of about £4.80 × √(1,200 / 767) ≈ **£6.00** per household-year, not £4.80.
+  This is a prediction. The step-6 pre-registration restates it on A's own per-household variances
+  before launch. The ruling's choice (one unsharded book at the budget, no sharding) is unchanged. Only
+  the figure it was quoted with moves.
