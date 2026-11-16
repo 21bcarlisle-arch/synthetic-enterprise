@@ -421,12 +421,68 @@
     "label": null,
     "anchor": null
    }
+  },
+  {
+   "read": "14 Nov",
+   "source": "iulio/RoCast (MIT, 0 stars): Romanian solar and wind 15-minute probabilistic forecasting (SEVIRI, Earth-2, pvlib, quantile regression), one two-day test window; shared by the director",
+   "claim": "Probabilistic renewables forecasting from satellite and weather-model inputs",
+   "evidence": "One repo, two-day test window; its 80% band covered 90%",
+   "verdict": "NOT FOR US",
+   "done": "The world replays GB outturn, and the company needs only customer-scale PV. Two touch points: pvlib clear-sky for the PV knowledge page, and range scoring (CRPS, pinball loss, coverage) for the Timestral benchmark",
+   "concept": "Forecast skill",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "15 Nov",
+   "source": "Graphify-Labs/graphify (Apache/MIT, ~145k stars): a code and docs knowledge graph via tree-sitter, run as a skill; shared by the director",
+   "claim": "\"Cut token spend by 80%\"",
+   "evidence": "Marketing for the paid cloud product; its benchmarks measure memory recall, not code navigation",
+   "verdict": "NOT FOR US",
+   "done": "It targets file reading by file, and no file is over 0.89% of our context tokens (14 Nov record)",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "15 Nov",
+   "source": "Claude Code Code Mode (2.1.323, experimental), via clauding.de, developersdigest.tech and dev.classmethod.jp; the official page could not be fetched; shared by the director",
+   "claim": "Claude writes scripts that call its tools and return only the output it needs",
+   "evidence": "Vendor feature, read second-hand",
+   "verdict": "BACKLOG (revisit when headless)",
+   "done": "Aimed at our shell output (37% of context, 16 Nov), but interactive only, and every seat is `claude -p`. Backlog row E-cm in `docs/operations/EFFICIENCY_BACKLOG.md`, re-checked each Friday",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
+  },
+  {
+   "read": "15 Nov",
+   "source": "Boris Cherny on cutting the system prompt (YC podcast, 27 Jul), via bestagent.dev and news.ainauten.com; arXiv 2602.11988 (ETH Zurich); arXiv 2607.27250; shared by the director",
+   "claim": "Delete the prompt and add lines back one at a time, measuring each. Context files change behaviour more than they change correctness",
+   "evidence": "Practitioner, second-hand, with no primary transcript; two papers on ordinary coding tasks, so transfer to this project is unproven",
+   "verdict": "TRIAL (trial e)",
+   "done": "Backlog rows E-f (the load audit, first) and E-e (minimal CLAUDE.md in a worktree against the full file, pre-registered)",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 16,
-  "step": 7,
-  "unplaced": 2,
+  "step": 10,
+  "unplaced": 3,
   "none": 5
  },
  "rejected": 4

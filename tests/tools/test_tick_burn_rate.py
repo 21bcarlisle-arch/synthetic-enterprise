@@ -196,3 +196,13 @@ def test_a_shell_call_has_one_kind_from_its_first_verb():
     assert B.bash_kind("sed -n 1,80p tools/a.py").startswith("file read")
     assert B.bash_read_path("cd /r && cat tools/a.py") == "tools/a.py"
     assert B.bash_read_path("cat a.py b.py") == ""   # two files: not attributed to either
+
+
+def test_a_commit_or_landing_is_a_gate_run_not_a_python_or_git_run():
+    """Trial a (16 Nov): the gates print inside commits and landings, which fell under python and git."""
+    gate = "gate run (commit/land/promote/pre-run gate)"
+    assert B.bash_kind("cd /r && python3 -m tools.surgical_land -m x a.py") == gate
+    assert B.bash_kind("git commit -F msg") == gate
+    assert B.bash_kind("python3 -m background.finding_classes --check") == gate
+    assert B.bash_kind("python3 -m tools.maturity_map_store").startswith("python run")
+    assert B.bash_kind("git fetch origin").startswith("git write")
