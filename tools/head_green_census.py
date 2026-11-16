@@ -50,6 +50,7 @@ import tempfile
 from pathlib import Path
 
 from background.head_red_baseline import BASELINE_PATH, load_baseline
+from tools.head_census_progress import FIRST_ENV, PROGRESS_ENV
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
@@ -232,9 +233,47 @@ _DURATIONS_BLOCK_RE = re.compile(r"^=+ slowest \d+ durations =+\n(.*?)(?=^=|\Z)"
 _DURATION_ROW_RE = re.compile(r"^\d+(?:\.\d+)?s[ \t]+\w+[ \t]+\S+$", re.MULTILINE)
 
 
+#: THE PROGRESS STREAM (2026-11-16): `tools/head_census_progress.py`, loaded with `-p`. A
+#: separate module because pytest refuses this one as a plugin -- it validates every `pytest_*`
+#: name as a hook and `pytest_argv` is not one. `FIRST_ENV`/`PROGRESS_ENV` are imported from it.
+
+
+def parse_progress(text: str) -> dict:
+    """{"failures", "passed", "reached"} from a progress stream -- what a killed run DID observe.
+
+    A test is red if ANY of its phases failed (setup and teardown errors are what `FAILED`/`ERROR`
+    lines report too), green only if its call phase passed and nothing failed.
+    """
+    outcome: dict[str, str] = {}
+    for line in text.splitlines():
+        parts = line.split("\t", 2)
+        if len(parts) != 3:
+            continue
+        when, result, node = parts
+        if result == "failed":
+            outcome[node] = "failed"
+        elif when == "call" and outcome.get(node) != "failed":
+            outcome[node] = result
+        else:
+            outcome.setdefault(node, result)
+    return {"failures": sorted(n for n, o in outcome.items() if o == "failed"),
+            "passed": sum(1 for o in outcome.values() if o == "passed"),
+            "reached": sorted(outcome)}
+
+
+def first_modules() -> list[str]:
+    """Modules of every test the register currently holds red, to run first."""
+    try:
+        from background import head_red_register as reg
+        tests = reg.load_observed().get("tests") or {}
+        return sorted({n.split("::", 1)[0] for n, r in tests.items() if r.get("currently_red")})
+    except Exception:  # noqa: BLE001 -- an ordering hint must never stop the census
+        return []
+
+
 def pytest_argv() -> list:
     argv = [sys.executable, "-m", "pytest", "tests/", "-q", "--tb=line", "-m", MARKER_EXPR,
-            "--durations={}".format(DURATIONS_SHOWN)]
+            "--durations={}".format(DURATIONS_SHOWN), "-p", "tools.head_census_progress"]
     argv += ["--ignore=" + i for i in HEAVY_IGNORES]
     return argv
 
@@ -505,29 +544,45 @@ def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS, observed: dict | None = None
                                  "run -- UNPROVEN. {}\n".format(admission["reason"]))
                 sys.stderr.flush()
                 return ""
-            return _run_admitted_suite(subject, env, timeout)
+            return _run_admitted_suite(subject, env, timeout, observed)
 
 
-def _run_admitted_suite(subject, env, timeout) -> str:
+def _run_admitted_suite(subject, env, timeout, observed: dict | None = None) -> str:
+    progress = Path(tempfile.mkstemp(prefix="head_census_progress_", suffix=".tsv",
+                                     dir=env.get("TMPDIR") or None)[1])
+    env = dict(env)
+    env[PROGRESS_ENV] = str(progress)
+    env[FIRST_ENV] = "\n".join(first_modules())
     try:
         proc = subprocess.run(pytest_argv(), cwd=str(subject), env=env,
                               capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
-        # "" CARRIES NO PYTEST SUMMARY, so `verdict()` reads it as UNPROVEN through the
-        # fail-safe that already exists, and `_record_observation` writes nothing — an
-        # incomplete run must never mark standing reds as fixed.
+        # "" CARRIES NO PYTEST SUMMARY, so `verdict()` still reads the run as UNPROVEN: the
+        # suite as a whole was not measured and the verdict, the page and the exit code say so.
         #
-        # THE PARTIAL OUTPUT IS DELIBERATELY DISCARDED. `TimeoutExpired` carries whatever
-        # pytest had printed, and it contains real `FAILED` lines; returning it would publish
-        # a PARTIAL red list as if it were the complete one, which is a worse answer than
-        # "could not measure".
+        # THE STDOUT IS STILL DISCARDED -- a FAILED-line list with no "reached" set beside it
+        # would be read as complete. What survives is the progress stream, which names every
+        # test the run executed, so `record(reached=...)` can clear only those.
+        partial = parse_progress(_read(progress))
+        if observed is not None and partial["reached"]:
+            observed["partial"] = partial
         sys.stderr.write(
-            "[head-green-census] the suite did not finish inside {}s -- UNPROVEN. Partial "
-            "output discarded: an incomplete failure list reported as complete would mark "
-            "every unreached red as fixed.\n".format(timeout))
+            "[head-green-census] the suite did not finish inside {}s -- UNPROVEN. Reached {} "
+            "test(s) ({} red); recorded as a PARTIAL run, unreached reds keep their state.\n"
+            .format(timeout, len(partial["reached"]), len(partial["failures"])))
         sys.stderr.flush()
         return ""
+    finally:
+        with contextlib.suppress(OSError):
+            progress.unlink()
     return (proc.stdout or "") + (proc.stderr or "")
+
+
+def _read(path: Path) -> str:
+    try:
+        return path.read_text(errors="replace")
+    except OSError:
+        return ""
 
 
 def evaluate(output: str, baseline_path: Path = BASELINE_PATH) -> dict:
@@ -556,8 +611,33 @@ def _record_observation(result: dict) -> str:
     control absorbing its own outage as progress, which is precisely the shape the acceptance
     list is kept human to prevent.
     """
-    if result.get("status") == "UNPROVEN":
-        return "register not updated: the run proved nothing, so it observed nothing"
+    partial = result.get("partial")
+    if result.get("status") == "UNPROVEN" and not partial:
+        # NO TEST IS RECORDED -- but the ATTEMPT is, so the register can say it is stale and the
+        # draw stops offering a count no fix can move (`head_red_register.stale_attempts`).
+        try:
+            from background import head_red_register as reg
+            store = reg.record_attempt(reg.load_observed(), reason=result.get("reason") or "",
+                                       head_sha=result.get("subject_head"))
+            reg.save_observed(store)
+            reg.write_register(store, load_baseline())
+            return ("register not updated: the run proved nothing, so it observed nothing "
+                    "(attempt recorded; the register reads STALE and is not drawn)")
+        except Exception as exc:  # noqa: BLE001 -- see NEVER RAISES above
+            return ("register not updated: the run proved nothing, so it observed nothing (and "
+                    "the attempt could not be recorded: {}: {})".format(type(exc).__name__, str(exc).strip()[:160]))
+    if partial:
+        try:
+            from background import head_red_register as reg
+            store = reg.record(partial["failures"], head_sha=result.get("subject_head"),
+                               passed=partial["passed"], reached=partial["reached"])
+            reg.save_observed(store)
+            path = reg.write_register(store, load_baseline())
+            return "register: PARTIAL run, {} reached, {} owed, written to {}".format(
+                len(partial["reached"]), len(reg.owed(store, load_baseline())), path)
+        except Exception as exc:  # noqa: BLE001 -- see NEVER RAISES above
+            return "register NOT updated ({}: {}) -- the verdict below still stands".format(
+                type(exc).__name__, str(exc).strip()[:160])
     try:
         from background import head_red_register as reg
         # THE SUBJECT'S SHA, NOT TODAY'S HEAD. Re-reading `prc._head_sha()` here labelled the row
@@ -603,6 +683,8 @@ def main(argv=None) -> int:
         result["reason"] = (
             "the subject checkout could not see the machine's untracked data, so it was not a "
             "checkout of HEAD and the suite was not run -- {}".format("; ".join(shortfall)))
+    if observed.get("partial"):
+        result["partial"] = observed["partial"]
     if observed.get("deferred"):
         result["deferred"] = observed["deferred"]
         result["reason"] = ("the memory governor deferred the census, so the suite was not run -- "

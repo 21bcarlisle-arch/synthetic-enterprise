@@ -138,7 +138,7 @@ class UnobservedRunRefused(ValueError):
 
 
 def record(failures, *, head_sha: str | None, passed: int | None, causes: dict | None = None,
-           now: datetime | None = None, store: dict | None = None) -> dict:
+           now: datetime | None = None, store: dict | None = None, reached=None) -> dict:
     """Fold one census run into the observation store and return the new store.
 
     PURE apart from its default argument — the caller saves it. That is what lets the whole
@@ -166,6 +166,14 @@ def record(failures, *, head_sha: str | None, passed: int | None, causes: dict |
 
     The refusal is unreachable from the nightly path on purpose. Its subject is the OTHER way a
     row can arrive, which is the way the only row here did arrive.
+
+    `reached`, when given, makes this a PARTIAL run: the set of node ids the suite actually ran
+    before its bound killed it. Only a test in `reached` can be marked no-longer-red; a red the
+    run never reached keeps the state the last run that DID reach it left. That is the property
+    the old discard-everything rule protected ("an incomplete failure list reported as complete
+    would mark every unreached red as fixed"), kept by construction instead of by throwing away
+    four hours of observation. Without it no census completed from 2026-11-04 to 2026-11-16, and
+    a fixed test could not leave this register however it was fixed.
     """
     if passed is None:
         raise UnobservedRunRefused(
@@ -183,13 +191,18 @@ def record(failures, *, head_sha: str | None, passed: int | None, causes: dict |
         row["runs_red"] = int(row.get("runs_red") or 0) + 1
         row["currently_red"] = True
         row.setdefault("first_seen", stamp)
+    seen = None if reached is None else set(reached) | failing
     for node, row in tests.items():
-        if node not in failing:
+        if node not in failing and (seen is None or node in seen):
             row["currently_red"] = False
 
     runs = store.setdefault("runs", [])
-    runs.append({"at": stamp, "head": head_sha, "red": len(failing), "passed": passed,
-                 "causes": dict(causes or {})})
+    row = {"at": stamp, "head": head_sha, "red": len(failing), "passed": passed,
+           "causes": dict(causes or {})}
+    if seen is not None:
+        row["partial"] = True
+        row["reached"] = len(seen)
+    runs.append(row)
     del runs[:-MAX_RUNS_KEPT]
     store["_doc"] = (
         "OBSERVATION, machine-written by background/head_red_register.record on every "
@@ -215,6 +228,44 @@ def save_observed(store: dict, path: Path | None = None) -> None:
     p = path or OBSERVED_PATH
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(store, indent=2, sort_keys=True) + "\n")
+
+
+# ── ATTEMPTS: census runs that observed nothing, kept so the register can say it is stale ────
+#: WHY (2026-11-16). From 2026-11-04 to 2026-11-16 the nightly census never completed: five nights
+#: the suite hit its 17400s bound, four the memory governor deferred it. Each UNPROVEN run
+#: correctly recorded no test -- and recorded nothing ELSE either, so the register still read
+#: "17 owed, observed 2026-11-04" and `drawable()` kept offering it. The worker tick drew it three
+#: times a day for twelve days (~300 Opus invocations) against a count no fix could move, because
+#: nothing would observe the fix. An attempt is not a run: it touches no test's state and no age.
+#: It exists only so that "the census has tried since this was observed, and proved nothing" is a
+#: readable fact rather than an absence.
+MAX_ATTEMPTS_KEPT = 30
+
+
+def record_attempt(store: dict, *, reason: str, head_sha: str | None = None,
+                   now: datetime | None = None) -> dict:
+    """Append one UNPROVEN census attempt. Never touches `tests` or `runs`."""
+    attempts = store.setdefault("attempts", [])
+    attempts.append({"at": _now_iso(now), "head": head_sha, "reason": str(reason or "")[:300]})
+    del attempts[:-MAX_ATTEMPTS_KEPT]
+    return store
+
+
+def stale_attempts(store: dict) -> list[dict]:
+    """The census attempts NEWER than the newest recorded run -- empty when the register is current.
+
+    Non-empty means the census has run since this register was observed and observed nothing, so
+    no fix made since then can show here. The draw reads that as "not work" (see `drawable`): the
+    work it implies is the CENSUS, not the owed tests.
+
+    Stamps are compared as strings: both are written by `_now_iso` (UTC, seconds, `+00:00`), so
+    lexical order is time order.
+    """
+    runs = store.get("runs") or []
+    if not runs:
+        return []
+    last_run = str(runs[-1].get("at") or "")
+    return [a for a in (store.get("attempts") or []) if str(a.get("at") or "") > last_run]
 
 
 # ── what is OWED: observed red, minus what a person has accepted ─────────────────────────────
@@ -307,6 +358,31 @@ def render(store: dict, accepted, *, now: datetime | None = None) -> str:
                   "STOPPED, and that is a real alarm.", ""]
         return "\n".join(lines)
 
+    stale = stale_attempts(store)
+    if stale:
+        lines += [
+            "## STALE — the census has not completed a run since {}".format(
+                str(last.get("at", "?"))[:10]),
+            "",
+            "{} census attempt(s) since the run below proved nothing, so **no fix made since then "
+            "can show here, and this register is not drawn while this heading stands** — the "
+            "work it implies is the census itself (`tools/head_green_census.py`), not the tests "
+            "listed below.".format(len(stale)),
+            "",
+            "| attempt | why it observed nothing |",
+            "|---|---|",
+        ]
+        lines += ["| {} | {} |".format(a.get("at", "?"), str(a.get("reason") or "?")
+                                       .replace("|", "/")[:200]) for a in stale[-14:]]
+        lines.append("")
+    if last.get("partial"):
+        lines += [
+            "**The last run was PARTIAL**: the suite reached {} test(s) before its bound. A red "
+            "it did not reach keeps the state the last run that reached it recorded; only a test "
+            "the run actually executed can leave this register.".format(last.get("reached", "?")),
+            "",
+        ]
+
     lines += [
         "## The count, with each number's population named",
         "",
@@ -379,10 +455,11 @@ def _passed_cell(run: dict) -> str:
 
 
 def _history(runs) -> str:
-    rows = ["", "## Run history", "", "| run | red | passed |", "|---|---:|---:|"]
+    rows = ["", "## Run history", "", "| run | red | passed | coverage |", "|---|---:|---:|---|"]
     for r in runs[-14:]:
-        rows.append("| {} | {} | {} |".format(
-            r.get("at", "?"), r.get("red", "?"), _passed_cell(r)))
+        rows.append("| {} | {} | {} | {} |".format(
+            r.get("at", "?"), r.get("red", "?"), _passed_cell(r),
+            "partial, reached {}".format(r.get("reached", "?")) if r.get("partial") else "complete"))
     return "\n".join(rows)
 
 
@@ -409,7 +486,14 @@ def drawable(root: Path | str | None = None) -> list[str]:
     except Exception:  # noqa: BLE001
         accepted = set()
     try:
-        return owed(load_observed(), accepted)
+        store = load_observed()
+        if stale_attempts(store):
+            # NOT DRAWN WHILE STALE (2026-11-16). The owed set is unchanged and still shown on
+            # the document; what changes is whether drawing it can achieve anything. A worker
+            # handed a count that no census will re-observe cannot move it, and twelve days of
+            # three draws a day proved that. The doorbell still names the staleness.
+            return []
+        return owed(store, accepted)
     except Exception:  # noqa: BLE001
         return []
 
@@ -439,8 +523,11 @@ def summary(store: dict | None = None, accepted=None) -> dict:
         ranked = oldest_first(store, owed_nodes)
         runs = store.get("runs") or []
         last = runs[-1] if runs else {}
+        stale = stale_attempts(store)
         return {
             "state": state,
+            "stale_attempts": len(stale),
+            "stale_reason": str(stale[-1].get("reason") or "") if stale else None,
             "owed": len(owed_nodes),
             "accepted": len(set(accepted or ())),
             "worst_runs": int(ranked[0][1].get("runs_red") or 0) if ranked else 0,
@@ -473,6 +560,12 @@ def doorbell_clause(info: dict | None = None) -> str | None:
         return ("{}: NO CENSUS HAS RUN AGAINST THIS TREE -- this is NOT a claim that HEAD is "
                 "green, it is the absence of the observation that could tell you".format(
                     REGISTER_NAME))
+    if info.get("stale_attempts"):
+        return ("{}: STALE -- the census has not completed a run since {}; {} attempt(s) since "
+                "observed nothing (latest: {}). Its {} owed are not drawn: no fix can show until "
+                "the census completes".format(
+                    REGISTER_NAME, info.get("last_at") or "?", info["stale_attempts"],
+                    (info.get("stale_reason") or "?")[:120], info["owed"]))
     if not info["owed"]:
         return None
     clause = "{}: {} owed".format(REGISTER_NAME, info["owed"])

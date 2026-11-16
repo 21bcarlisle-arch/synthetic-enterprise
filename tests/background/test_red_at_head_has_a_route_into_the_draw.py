@@ -170,15 +170,26 @@ def test_recording_an_observation_never_reduces_what_is_owed():
     assert writers == {"save_observed", "write_register"}, writers
 
 
-def test_an_unproven_run_is_not_allowed_to_mark_every_red_as_fixed():
+def test_an_unproven_run_is_not_allowed_to_mark_every_red_as_fixed(tmp_path, monkeypatch):
     """A run whose suite did not execute has observed no test to be green. Folding its empty
     failure list in would clear the whole register on an OUTAGE — a control booking its own
-    downtime as progress.
+    downtime as progress. Since 2026-11-16 it records its ATTEMPT (so the register reads stale),
+    and the attempt must leave every red standing.
 
     MUTATION: drop the UNPROVEN guard in `_record_observation` and this fails.
     """
-    note = census._record_observation({"status": "UNPROVEN", "failures": [], "passed": None})
+    store_path = tmp_path / "observed.json"
+    monkeypatch.setattr(reg, "OBSERVED_PATH", store_path)
+    monkeypatch.setattr(reg, "REGISTER_PATH", tmp_path / "REGISTER.md")
+    reg.save_observed(reg.record(["tests/a.py::red"], head_sha="aaa", passed=5,
+                                 store={"runs": [], "tests": {}},
+                                 now=datetime(2026, 11, 4, tzinfo=timezone.utc)), store_path)
+    note = census._record_observation({"status": "UNPROVEN", "failures": [], "passed": None,
+                                       "reason": "deferred"})
     assert "observed nothing" in note
+    store = reg.load_observed(store_path)
+    assert reg.owed(store, set()) == ["tests/a.py::red"], "an outage cleared a standing red"
+    assert reg.stale_attempts(store), note
 
 
 def test_a_run_row_with_no_pass_count_is_refused_because_no_completed_census_can_produce_one():
