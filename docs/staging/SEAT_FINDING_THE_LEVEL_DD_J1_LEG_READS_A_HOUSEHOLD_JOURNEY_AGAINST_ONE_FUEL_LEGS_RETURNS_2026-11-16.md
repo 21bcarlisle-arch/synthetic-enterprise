@@ -86,3 +86,45 @@ reproduced exactly first (159 of 655 on e50e7b8f68), so the two readings run on 
 - **The class, for the next grader.** The desk's journey is the billing account's, and the ledger has no household key.
   A leg `X` and its sibling `Xg` are one household, so strip the `g` and deduplicate before you count. The runner's
   `_households` is the reference reading. A new grader should import it rather than re-derive it.
+
+## Pre-registration: reading the 13 (seat executor, 16 Nov 2026, before any of the 13 is opened)
+
+Each opening carries `days_overdue`, so the date its debt fell overdue is `on − days_overdue`. J1 calls an opening
+"on a return" only if a failed level collection sits on the day before the opening.
+
+- **Q1.** At least 7 of the 13 have a failed level collection on the household within 5 days of `on − days_overdue`:
+  the desk opened on a return's debt, at a later step, and the error is J1's one-day window, not the desk.
+- **Q2.** At most 3 of the 13 open on a bill whose household had no failed level collection in the 60 days before
+  the opening: those are the desk opening a level household on a bill's due date, which the knowledge page forbids.
+- **Refuted if** Q1 finds fewer than 4: then most of the 13 are not return-driven and the desk itself is the cause.
+
+## The 13, read (seat executor, 16 Nov 2026, after the pre-registration above)
+
+Reader: `/var/tmp/grade-j1hh/read13.py` on 8a300fa561's ledger. It prints each household's payments by method and its
+bills' due dates in the 75 days before each opening.
+
+- **Q1 refuted, Q2 held.** None of the 13 has a failed level collection within 5 days of `on − days_overdue`, so J1's
+  one-day window is not the cause. But they are not the desk opening a level household on a level bill either.
+- **12 of 13: J1's population is wrong, and the desk is right.** At the opening, one fuel leg of each household paid
+  **by standard credit, not by level DD.** PROS-2016-0374g has been on standard credit since 2017-04-14 (7 openings;
+  the first, on 2017-03-22, sits after that leg's last DD was returned on 2017-01-17 and none followed).
+  SYN-2016-525g has been on standard credit since 2021-01-23 (3). SYN-2016-048's electricity leg has been on standard
+  credit since 2023-10-29 (2). A standard-credit bill unpaid past its due date is the right opener. `residual.py`
+  and `j1_household.py` both called these households "all-level". Their test asks whether every *direct debit* is
+  level and whether every leg has *any* level DD ever. A leg that left DD for cash, and a leg that left in 2017, both
+  pass. The household-level fix to J1 from earlier in this finding inherited that test, so its 82 of 95 counts these 12
+  as failures. **Rightly scoped, J1 inside the level span on 8a300fa561 is 82 of 83.**
+- **1 of 13: the desk opened on a return that the page does not print.** SYN-2016-215 is single-fuel and on level DD
+  throughout. Its 2020-07-15 instalment of £162.80 has **no payment row** in the ledger. The desk opened on 2020-07-16
+  with £144.07 overdue at 1 day, and the household repaid £162.80 on 2020-07-29, which the page hangs on the *June*
+  collection as "repayment of a returned collection". That month's bill (33407) is a credit bill (−£56.33).
+  `tools/generate_billing_ledger.py` (credit-bill branch, "returned, nothing crossed and the bill owes nothing, so no
+  case opens") prints a level collection on a credit bill only when it succeeded. The desk and the household both
+  acted on a return that the page dropped. Filed as its own finding:
+  `SEAT_FINDING_A_LEVEL_RETURN_ON_A_CREDIT_BILL_MONTH_IS_DROPPED_FROM_THE_PAGE_THE_DESK_OPENED_ON_2026-11-16.md`.
+
+**Done.** The J1 residual is spent. After both instrument corrections (household unit; a household is level only
+while every leg it has is paying by level DD), the desk opened on a level bill's due date **zero** times on
+8a300fa561. The one opening left is return-driven and invisible to J1 because the page dropped the return. No desk
+change is indicated. The next grader should take "level" from the leg's payment method at the opening date, not
+from whether the leg has ever had a level DD.
