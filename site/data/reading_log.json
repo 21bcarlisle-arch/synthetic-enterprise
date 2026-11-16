@@ -519,11 +519,25 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "16 Nov",
+   "source": "GitHub, \"Inside GitHub's new Git storage architecture\" (Project Rubicon, Raman & Celenza, 5 Nov); shared by the director",
+   "claim": "Only ref updates need agreement. Objects are immutable, so writers never collide on them; refs take compare-and-swap, and maintenance runs off the hot path",
+   "evidence": "Engineering blog, one company's production system",
+   "verdict": "NOTED",
+   "done": "Our lanes share one working tree and index, which is the opposite. Relevant to the 14 Nov collision finding (69% of collision lines are \"behind origin\") and to the unmeasured cost of re-gating when origin moves; it informs the gate re-run measurement. The \"GitHub Rubicon\" entry owed since 10 Nov",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 11,
+  "step": 12,
   "unplaced": 4,
   "none": 5
  },

@@ -58,3 +58,29 @@ Probable failure mode: **a lifecycle drawn after the defects are known, so it "c
 Proportionality: ruling plus doc-and-measurement. Implement directly.
 
 — Director ruling and steer, 16 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+16 Nov, delivery seat.
+
+**1. EP11.** The reframe was already on origin when this file was read. The director's earlier 09:27
+"Yes and yes" had closed `for_the_director` row `ep11-is-titled-direct-debit-against-a` (980c242ddf),
+and EP11's title was already "Direct Debit against a bureau counterparty in the world" (209f1b93f).
+His 10:10 "Yes" confirms the same ruling, and both of the advisor's questions are closed as answered in
+`docs/observability/open_question_register.json`. Nothing else changed.
+
+**2. The declared lifecycle: measured, and dropped.**
+- K8 first: a lifecycle section on `docs/market_research/payments_and_direct_debit_2026-10-25.md`
+  (rules per stage, GAPs, design choices, and the drafter's contamination stated).
+- The diagram was drawn from the rules: `company/compliance/payment_lifecycle.yaml`, 14 states, 32
+  moves, 6 invariants, 9 obligations. It was landed with the pre-registration (sample by name rule,
+  grades, decision rule, prediction) before the replay.
+- Result: **10 of 34 past DD defects exposed (29%)** in the deciding reading, against a prediction of
+  about 36%, so drop. It is 14 of 34 with the two contaminated invariants, and 8 of 34 without two
+  further defects contaminated by origin. No defect sat in an undefined state.
+- Record: `docs/staging/records/SEAT_RESULT_A_DECLARED_PAYMENT_LIFECYCLE_WOULD_HAVE_EXPOSED_10_OF_34_PAST_DD_DEFECTS_SO_IT_IS_DROPPED_2026-11-16.md`.
+- The yaml leaves `company/` in the commit that records the result. One class (four repeats of DD
+  activity after the mandate ended) is noted as the lead for a single domain invariant, should it
+  recur.
+
+**Reading log.** The GitHub Rubicon row is appended, in the log's own columns.

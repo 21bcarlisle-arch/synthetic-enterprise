@@ -924,7 +924,7 @@ obligations). Both were written before any past DD finding was opened for the re
 | First DD set | One fixed regular amount from the consumption the supplier reasonably estimates; 10 working days' advance notice unless agreed shorter | SLC 27.15; Bacs; DD Guarantee | **GAP:** no published rule found that the first collection may not precede supply start. Carried as practice: a DD pays for energy supplied |
 | Collections | Taken on a Bacs processing day or returned via ARUDD within about four days. A DD is never late. ARUDD 0 may be re-presented within a month | §3; "A DD is never late" | — |
 | Bills | Each bill states one balance, what is owed to or by the household; back-billing barred beyond 12 months where the supplier caused the delay | SLC 31H.12; SLC 21BA | — |
-| DD review and change | The amount is re-based on best and most current information, absolute since 21 Oct 2022; a credit lowers the DD; a rise beyond tolerance triggers a further review; every change is notified in advance | SLC 27.15; Ofgem progress update 2 Feb 2023; DD Guarantee | **GAP:** no review frequency is prescribed; the tolerance is each supplier's own |
+| DD review and change | The amount is re-based on best and most current information, absolute since 21 Oct 2022; a credit lowers the DD; a debit is commonly added to it; a rise beyond tolerance triggers a further review; every change is notified in advance | SLC 27.15; Ofgem progress update 2 Feb 2023; DD Guarantee | **GAP:** no review frequency is prescribed; the tolerance is each supplier's own |
 | Credit and debit balances | Credit is net of what is owed; refunded on request "in a timely manner" unless fair and reasonable not to, with reasons | SLC 27.16 | **GAP:** no day count while on supply |
 | Returns and mandate loss | Payer cancellation arrives via ADDACS; a supplier may stop the DD after repeated returns (British Gas: the second failure) | §3; "Off direct debit and back on" | The stop rule is practice, not a rule |
 | Arrears | Repayment by ability to pay, offered before escalation; an arrangement instalment fails when not received within 10 working days | SLC 27.8; Ofgem SOR | — |
@@ -941,3 +941,11 @@ processing days only.
 bill shock, the journey's end with two homes), and had seen the file names of the DD findings while
 looking for the knowledge. The invariants `one_regular_amount` and `collections_on_processing_days`
 were written with those in mind, even though each cites a rule. The replay grades with and without them.
+
+**Result (16 Nov, same day).** Replayed against 34 past DD defects, the diagram exposed 10 (29%) in the
+deciding reading, under the half the ruling asked for, so it is dropped. The yaml is in git at 5bf7e7c87.
+Most repeat DD defects are about quantity and reading (instruments, pages, prices, the back-billing
+basis), not illegal moves. One gap in the table above is real, though: Ofgem's 2 Feb 2023 update says
+suppliers commonly add a **debit** balance to the DD at review, and the review row names only the
+credit side. Record:
+`docs/staging/records/SEAT_RESULT_A_DECLARED_PAYMENT_LIFECYCLE_WOULD_HAVE_EXPOSED_10_OF_34_PAST_DD_DEFECTS_SO_IT_IS_DROPPED_2026-11-16.md`.
