@@ -67,3 +67,11 @@ Probable failure modes:
 Proportionality: harness, reversible. Implement within the efficiency track after the reset.
 
 — Director steer, 15 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Seat executor, Mon 16 Nov 2026, 06:50 GMT. All three items and the reading log had already landed in e390e0da71 and 9554dcf49f; this commit only files the steer.
+- **1. Trial (e) is delete-and-add-back:** pre-registered in `docs/staging/records/SEAT_PREREG_TRIAL_E_E_MINIMAL_CLAUDE_MD_AGAINST_THE_FULL_ONE_2026-11-16.md` (minimal draft 9,052 of 23,803 characters; 25 Opus seat-executor turns per arm, 21–28 Nov; the bound 25 turns earns is stated). The live `CLAUDE.md` and its cap are unchanged. Backlog row E-e.
+- **2. Load audit (E-f):** run 16 Nov; ten unused plugins switched off for headless seats (-3,911 opening tokens, reversible in `background/model_tier.py::HEADLESS_FLAGS`); 11 never-called tools queued as E-f2, after E-e, one variable at a time.
+- **3. Code Mode:** backlog row E-cm, "revisit when it supports `-p` or headless sessions; re-check each Friday". Nothing built.
+- **Reading log:** the four rows are in `docs/institutional/reading_log.md`.
