@@ -380,7 +380,10 @@ def test_the_green_cycle_publish_refuses_a_false_provenance(tmp_path, monkeypatc
     monkeypatch.setattr(prc, "log", lambda m: said.append(str(m)))
 
     assert prc.git_commit_push("3abd6e1df", 1000.0) is False
-    assert not calls, "git was reached despite a false provenance: {}".format(calls)
+    # KEYED TO THE PROPERTY, nothing written, not to "git never ran": the publisher lists its
+    # tracked publish files and its git dir (read-only) before the guard, since 11 Nov.
+    written = [c for c in calls if c[:1] == ["git"] and c[1:2] not in (["ls-files"], ["rev-parse"])]
+    assert not written, "git wrote despite a false provenance: {}".format(written)
     assert any("REFUS" in s.upper() for s in said), said
     assert any("run_verified.json" in s for s in said), \
         "the refusal does not name the offending value, so it cannot name the cycle"
