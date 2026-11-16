@@ -715,8 +715,8 @@
   records_rehomed: [evidence]
   file_scope: []
 - id: EP11_adapter_gocardless_bacs
-  title: "Direct Debit against a real sandbox"
-  notes_rehomed: [gain, name, origin_note]
+  title: "Direct Debit against a bureau counterparty in the world"
+  notes_rehomed: [gain, level_note, name, origin_note]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3

@@ -19,3 +19,15 @@
 - **Mitigation, inline:** the money invariants judge the desk's handling, not the event's existence. Land behind a default-off switch, and read one book before turning it on.
 
 **Proportionality:** contract-touching. Implement with the named mitigations. It is feature work under the correctness stretch, so it queues within the feature share.
+
+## Done
+
+Actioned 16 Nov by the delivery seat. The `for_the_director` row `ep11-is-titled-direct-debit-against-a`
+is answered with his 09:27 words in a follow-up commit, committing `EP11_adapter_gocardless_bacs` to carry the reframe (the direction-seat window refused the row while the 09:23 orientation was writing that file). The
+map row is retitled "Direct Debit against a bureau counterparty in the world" (it was "against a real
+sandbox"). Its `level_note` in `docs/design/simplifications/EP11_adapter_gocardless_bacs.yaml` states
+level 3 as ruled: the four Bacs reports including AWACS as world events, confirmation only after the
+ARUDD window, duplicates and reordering, a default-off switch and one book read before it goes on. It
+also states level 4, the live sandbox, as director-only. Nothing touched the egress allowlist, any
+account, or `company/` sockets. The build itself is feature work under the correctness stretch and
+queues in EP11's lane. It was not started in this turn.

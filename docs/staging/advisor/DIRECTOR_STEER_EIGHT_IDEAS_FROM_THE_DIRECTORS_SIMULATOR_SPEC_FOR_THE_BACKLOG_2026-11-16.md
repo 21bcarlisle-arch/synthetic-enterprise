@@ -84,3 +84,12 @@ The spec carries testable hypotheses. Those in scope here, to pre-register where
 - **Mitigation, inline:** each world item clears the ladder's four rungs, with published figures used as tests and never as targets. Unpublished rates are stated beliefs with ranges. Item 8's guardrails ship with tests that show them refusing.
 
 **Proportionality:** item 1 is reversible and narrow, a knowledge page, so just do it. Items 2 to 8 are ranked in Friday's balance review under the correctness stretch and its feature share. None of them is for this week.
+
+## Seat note, 16 Nov
+
+Not drawn. At draw time the seat executor refused it for missing attribution. The chat words carry
+a day ("Mon 16 Nov") but no time, and nothing else gives the file authority. It was not moved to
+done/, because the open-question gate holds the director's quoted question open, and archiving an
+unactioned steer would close it silently. **To make it drawable,** re-stage it with the time of his
+words, as the sibling EP11 ruling does ("09:27 GMT"). Nothing in it was judged on its merits. Item 1
+is due 23 Nov.
