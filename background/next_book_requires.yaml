@@ -21,6 +21,10 @@ requires:
   what: revenue row reads the SLC 21BA bar (INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE, OCC-cc0c78690877g)
 - commit: 586e304ce
   what: revenue row grades an open estimated run as a flag (PROS-2025-0095g)
+# The D5 row wants the commit that turns FINAL_BILL_ASKS_THE_LEVEL_DEBIT on (with the page's
+# balance_settlement_from_outcomes and the runner's choice 27 beside it), NOT the switched-off world
+# build landing at 18:21Z on 16 Nov: by its own message "no ask, draw or row value moves" while the
+# switch is off, so its sha here would admit a book refused again on rows 4 and 7.
 - commit: null
-  what: D5's debit half (INV_OVERDUE_WITHIN_BALANCE 4, INV_OVERDUE_WITHIN_PAGE_BALANCE 7)
+  what: D5's debit half switched ON (INV_OVERDUE_WITHIN_BALANCE 4, INV_OVERDUE_WITHIN_PAGE_BALANCE 7)
   owner: DD_seasonal_cashflow_physics
