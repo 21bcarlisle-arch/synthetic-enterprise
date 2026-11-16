@@ -110,3 +110,16 @@ are INV_OVERDUE_WITHIN_BALANCE (4) and INV_OVERDUE_WITHIN_PAGE_BALANCE (7). Both
   the working-tree hunks (`tools/isolate_hunks.py` + `surgical_land --content`) at a moment when
   the publisher is not mid-cycle. The next banner commit comes about 13 minutes into each
   publisher cycle.
+
+## 6. ~19:30Z, worker tick (RUNG-1 wedge draw): the D5 world half is now on origin (ddde5880c, merge 43dfd323e)
+
+- **The seat's own relaunch died too.** The 18:21Z land (pid 1613918) left an empty `/var/tmp/d5land.rfeo/land.log`
+  and no process. Its saved bytes still matched the shared tree, so this tick landed them unchanged.
+- **The primary checkout refused it** (HEAD one behind origin). It was landed from a worktree on origin/main.
+  It lost the race once more, to banner 96458df0b, and was re-gated by merge and promoted.
+- **It moves no row value: the switch is off.** The 19:07Z re-grade was refused on the same three rows,
+  so this does not unwedge the publish. Rows 4 and 7 wait for the switch-on row in
+  `background/next_book_requires.yaml` (`commit: null`): the page's `balance_settlement_from_outcomes`,
+  the runner's choice 27, and SYN-2016-471's desk misdating.
+- **`DD_seasonal_cashflow_physics` is no longer claimed** (the promotion's binding says it was swept).
+  Nobody holds the switch-on now. It is handed on via `seat_continuation`.
