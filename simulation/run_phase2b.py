@@ -6521,6 +6521,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # plan, or crossed for a bill a plan covers (the arrears paid twice). AFTER the journeys,
         # whose end-of-run forced crossing is the last that can move these counts.
         "later_settlements": _payment_triad.later_settlements(),
+        # World truth (LEVEL_DD s.9.8 W1/W4): what the world asked on each mover's final bill,
+        # and whether a level leaver's ledger credit came off it. Never crosses.
+        "final_month_nets": _payment_triad.final_month_nets(),
         # World truth beside the register (C36): Consent offers made to PSR-type households that
         # concealed. Never crosses. AFTER the journeys too: their end-of-run advance can make the
         # last offer, which a count taken before it missed (C32 tenth pass: 4 counted, 5 made).

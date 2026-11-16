@@ -778,6 +778,8 @@ class LivePaymentTriad:
         self._leg_level_floor: dict = {}
         #: Legs that have presented a level collection: their final bill nets the schedule's surplus.
         self._legs_ever_level: set = set()
+        #: Every mover's final month as the world asked it, one row per leg (`final_month_nets`).
+        self._final_month_nets: list = []
         # The level row the last `record_period` presented, or None if it settled the bill's face.
         self.last_level_presented: Optional[dict] = None
         # Asks of nothing (a credit bill, or a bill a waiting credit paid): no collection presented.
@@ -1232,6 +1234,24 @@ class LivePaymentTriad:
             "crossed_after_close": self.settlements_crossed_after_close,
         }
 
+    def final_month_nets(self) -> dict:
+        """Every mover's final month as the world asked it, for the run summary: the face, the
+        credit-bill credit waiting, the leg's ledger balance (ever-level legs only; negative is
+        credit), the credit taken, the ask, and the outcome. World truth for the harness's
+        readers; nothing here crosses the seam. `netted_ledger_credit` is the 37d934286 branch
+        moving the ask beyond the waiting credit."""
+        rows = [dict(r) for r in self._final_month_nets]
+        fired = [r for r in rows if r["netted_ledger_credit"]]
+        return {
+            "legs": len(rows),
+            "ever_level_legs": sum(r["ever_level"] for r in rows),
+            "netted_ledger_credit_legs": len(fired),
+            "netted_ledger_credit_gbp": round(sum(
+                r["credit_taken_gbp"] - min(r["credit_taken_gbp"], r["waiting_credit_gbp"])
+                for r in fired), 2),
+            "rows": rows,
+        }
+
     def _leg_owed_on(self, account_id: str, customer_id: str, on: date) -> float:
         return max(0.0, self._leg_balance_on(account_id, customer_id, on))
 
@@ -1374,7 +1394,10 @@ class LivePaymentTriad:
         # amount, so no outcome moves.
         # A level collection takes the level amount whatever the bill: credit stays on the balance.
         waiting = 0.0 if level is not None else self._leg_credit.pop(customer_id, 0.0)
+        waiting_before = waiting
+        ledger_balance = None
         if final_month and customer_id in self._legs_ever_level:
+            ledger_balance = self._leg_balance_on(account_id, customer_id, issue_date)
             # A LEVEL LEAVER'S FINAL BILL NETS THE SCHEDULE'S SURPLUS. The final bill states the one
             # balance (SLC 27.17) and asks its charges less the credit on the account (SLC 31H.12);
             # the page nets it (`arrears_engine.balance_settlement_from_outcomes`, home_moves.md
@@ -1383,12 +1406,28 @@ class LivePaymentTriad:
             # the credit covered and the desk counted as cash (s.8.8c choice 25). The ledger's own
             # balance on this leg (bills at face, level cash, credit notes) already holds that
             # credit-bill excess, so it is the larger of the two, never their sum.
-            waiting = max(waiting, -self._leg_balance_on(account_id, customer_id, issue_date))
+            waiting = max(waiting, -ledger_balance)
         credit_taken = round(min(amount_gbp, waiting), 2)
         if waiting - credit_taken > 0.005:
             self._leg_credit[customer_id] = round(waiting - credit_taken, 2)
         ask_gbp = (round(level["amount_gbp"], 2) if level is not None
                    else round(amount_gbp - credit_taken, 2))
+        final_row = None
+        if final_month:
+            # WORLD-SIDE OBSERVABILITY of the net above (home_moves.md s.8.8c, "What the run
+            # records"). The page builds a paid bill's payment from its face, so no book could tell
+            # whether the world netted a leaver's final bill; this row is what it asked.
+            final_row = {
+                "leg": customer_id, "account_id": account_id, "bill_month": bill_month,
+                "method": method, "ever_level": customer_id in self._legs_ever_level,
+                "face_gbp": round(amount_gbp, 2), "waiting_credit_gbp": round(waiting_before, 2),
+                "ledger_balance_gbp": ledger_balance,
+                "credit_taken_gbp": credit_taken, "ask_gbp": ask_gbp,
+                "netted_ledger_credit": (ledger_balance is not None
+                                         and -ledger_balance > waiting_before + 0.005
+                                         and credit_taken > waiting_before + 0.005),
+            }
+            self._final_month_nets.append(final_row)
         # NOTHING DUE, NOTHING PRESENTED. A credit bill, or a bill a waiting credit paid in full,
         # asks GBP 0: no collection is submitted, so there is nothing for a bank to return and
         # nothing to settle later. The bill is settled by the credit on its due date. Drawing an
@@ -1466,6 +1505,9 @@ class LivePaymentTriad:
                                             dd_failure_reason=event.dd_failure_reason
                                             or INSUFFICIENT_FUNDS)
 
+        if final_row is not None:
+            final_row["result"] = event.result
+            final_row["part_paid_gbp"] = final_part_gbp
         # Post the bill into the COMPANY's own belief ledger so unpaid invoices
         # age (the ageing gap) exactly as the offline scenario does. This is the
         # company's isolated ledger, never the run's main treasury ledger.

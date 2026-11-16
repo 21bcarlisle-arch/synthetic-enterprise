@@ -1103,6 +1103,20 @@ final bill. The rules above imply it does not; no published practice confirms it
 world presents a mover's final month at the bill's face (`background/live_payment_triad.py`, `final_month`,
 whose `_leg_credit` holds credit notes only), so choice 14's netting of the final bill is still the page's
 alone: 195 legs, GBP 4,715.67, on the 6fe7827ab2 book (`SEAT_FINDING_A_LEVEL_LEAVERS_FINAL_BILL_IS_NETTED_ON_THE_PAGE_AND_COLLECTED_AT_FACE_BY_THE_WORLD_2026-11-12.md`).
+*Correction, 16 Nov:* that open note is out of date in the code. Since 37d934286 (12 Nov), an ever-level
+leg's final month takes the larger of its waiting credit and its own ledger credit off the face. The
+G8.15 question about practice stays open.
+
+**What the run records (added 16 Nov, before the build).** The 16 Nov book could not tell whether that
+net fired. The page builds a paid bill's payment from its face (`tools/generate_billing_ledger.py`), and
+no run field held the world's ask. So LEVEL_DD s.9.8 W1 and W4 were ungraded, and its two hypotheses
+could not be separated: H1, the page balance cannot see the ask; H2, the branch does not fire on a book
+(`SEAT_RESULT_THE_16_NOV_BOOK_ON_LEVEL_DD_W1_W4_2026-11-16.md`). The run summary now carries
+`final_month_nets`, one row per mover's final month: the face; the credit-bill credit waiting; the
+leg's ledger balance (ever-level legs only, negative is credit); the credit taken; the ask; the outcome;
+and `netted_ledger_credit`, true when the ledger credit took more off the face than the waiting credit
+would have. This is world truth for the harness's readers. It does not cross the seam, and no supplier
+decision reads it.
 
 #### 8.8d A refund pays only the credit the account holds (added 2026-11-11, before the build)
 
