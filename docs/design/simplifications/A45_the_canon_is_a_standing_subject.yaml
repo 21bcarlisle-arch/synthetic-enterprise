@@ -145,3 +145,17 @@ map_records:
     tests/tools/test_canon_drift_check.py: one green register, a holding site mints nothing and
     prints its denominator, a drifting one goes red and mints once. Next, in order: M2's lexicon,
     then M1 (a per-sentence denominator). Level held at 2.
+  - >-
+    M2's lexicon, 2026-11-16. UNDER_CLAIM_FORMS now names negatives with no "not yet" in them:
+    "nothing (it X is ever) optimises/computes/...", "has no", and "no X (Y) consequence/module/
+    reader/caller/mechanism/feedback". Predicted before the change: 7 new sentences on the model
+    page; read 7. A wider draft with bare "never" and "nothing" named 29, and 22 of those were rule
+    prose ("ground truth never crosses"), so both stay out. Of the 7: one joined the household-share
+    claim as an also_anchor, two are summaries of bound claims (the score's household-side term,
+    over-pricing's competitive consequence), two are no_witness (C30's watch, and the /proof door
+    with watch_none), and two are not_about_code. After: 24 judged, 0 unbound, 25 claims, 0
+    drifting. Control: test_a_negative_with_no_not_yet_in_it_is_named, which goes red on removing
+    "has no", the "nothing ... computes" form, or the "consequence" noun, or on adding bare "never".
+    Two alternatives in the draft ("carries no", "no X-side") never fired alone: the others already
+    caught their sentences, an equivalence on the page and in the test, so they were removed.
+    Next: M1, a per-sentence denominator. Level held at 2.

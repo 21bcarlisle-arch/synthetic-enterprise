@@ -263,6 +263,7 @@ claims:
   - id: MISSION_the_household_share_is_read_by_no_decision_surface
     page: docs/design/THE_MODEL_ON_A_PAGE.md
     anchor: "read by no decision surface"
+    also_anchors: ["Nothing optimises the household figure"]
     claim: "no supplier decision module calls the household money-share builder; only measuring tools do"
     expects: absent
     probe:
@@ -575,6 +576,53 @@ _judged_negatives:
       No such mechanism exists: the departure roll runs once per renewal
       (`customer_events.roll_lifecycle_event`), so there is no symbol to watch. If the director
       meant the renewal reading, the phrase is false and the page needs a correction.
+
+  # A45 MAJOR 2 (16 Nov): the lexicon now names negatives with no "not yet" in them. These six
+  # are the sentences it named on the page that no claim binds; the seventh joined
+  # MISSION_the_household_share_is_read_by_no_decision_surface as an also_anchor.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "That is the director's C2 correction (no competitor module)"
+    kind: not_about_code
+    why: >-
+      Names what the director's C2 correction said at the time, as the reason fidelity outranks new
+      capability. The live state is C2_a_rival_supplier_is_modelled (present).
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "Nothing it computes is ever offered to the household it is about."
+    kind: no_witness
+    watch: {atom: C30_advice_reaches_a_household, level: 0, target: 3}
+    why: >-
+      Modelling's half of "two of the three channels cannot yet create the value", judged there:
+      customer_value_view is company code, and the route by which it would reach a household (an
+      observable across the seam) does not exist to be watched.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "**The score has no household-side term in any currency**"
+    kind: summary
+    of: [MISSION_the_household_share_is_read_by_no_decision_surface, CARBON_the_three_ledger_is_called_by_nothing]
+    why: >-
+      Money's half is the share no company or saas module reads, and carbon's is the household
+      ledger nothing calls; either going red lapses this. Time's half is the C31 judgement above,
+      which lapses on its own watch. The score has no module of its own to probe.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "**over-pricing still carries no competitive consequence**"
+    kind: summary
+    of: [PRICING_the_renewal_desk_clamps_at_the_competitive_ceiling, PRICING_the_ceiling_is_102_pct_of_the_published_svt]
+    why: >-
+      Holds while the clamp holds: a residential renewal cannot go above 1.02x SVT, and the rival
+      (competitor_reference) responds to undercutting only. Under the ceiling the churn roll does
+      read the offered rate (MISSION_the_offered_rate_reaches_the_churn_decision), so
+      "competitive" means the rival, not the household.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "429 carry no product label the arm prices"
+    kind: not_about_code
+    why: A census of one book's 1,209 renewals on its dated run, not a claim about a mechanism.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "and the site has no `/proof` door"
+    kind: no_witness
+    why: The cut-to-five IA removed the door; nothing in code serves or builds one.
+    watch_none: >-
+      A door is a served directory (site/proof/, absent on 16 Nov), and no probe kind reads
+      whether a directory exists. The redirect half of the sentence is
+      OPEN_FINDINGS_no_simplified_redirect_survives.
 
 _retired:
   MISSION_decarb_advice_has_no_recipient: >-
