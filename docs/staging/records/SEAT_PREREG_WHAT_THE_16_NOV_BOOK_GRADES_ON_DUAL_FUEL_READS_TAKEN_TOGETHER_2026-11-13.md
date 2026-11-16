@@ -63,4 +63,29 @@ Neither arm has ever read P5's "near 12%": 6.9% and 6.2%. That is a read, not a 
 
 **Amendment, 2026-11-14 (later, still before the 16 Nov book): can S6b or the statement walk move it too?** **No, for P1–P5, on both counts.** These rows count meter reads and bills on dual-fuel pairs. S6b re-dates only a close refund's paid day (`docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md` s.8). The statement walk's own measurement (84a44b51c) names n30 and finds the runner byte-identical.
 
+## Result, 2026-11-16: graded on the 16 Nov book
+
+**The row grades CLEAN, and all five predictions hold.** The book is `run_output_8a300fa561_20261116T031305Z`: 1,306
+accounts, 53,595 invoices. Its build commit 8a300fa561 descends from b3ff041f0, so refutation check 1 does not apply.
+The publisher's own grade (`docs/reports/domain_invariants.json`, git 8a300fa561, 08:36) reads
+`INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER` CLEAN, 0 breached and 0 flagged. That JSON does not carry the share.
+The counts below were re-read with the runner's own `_household_legs` and `_printed_bills`, using the evaluator's
+pairing, on the same ledger and page files. Re-running `ev_dual_fuel_reads_together` there also returns 0 breaches
+and 0 flags.
+
+| # | read | verdict |
+|---|---|---|
+| P1 | s = **0.274** (1,053 one-only of 3,843 pairs with a read) | **held** (0.22–0.36) |
+| P2 | CLEAN, with no BREACH above 0.5 and no FLAG below 0.09 | **held** |
+| P3 | 16,195 traditional pairs billed on both legs, on 427 households. That is −0.5% against 16,271 and −0.2% against the amended 16,222 | **held** (±15%) |
+| P4 | 3,843 pairs with a read, 0.64× the old 6,043 | **held** (3,000–5,000) |
+| P5 | smart/smart one-only 6.2% (165 of 2,655 with a read; 2,884 pairs, 113 households) | **held** in the 5–20% band; the "near 12%" wording is missed, as the amendment had already read |
+
+All four counts equal the amendment's e17ebc596 arm exactly: 0.2740, 16,195, 3,843 and 165 of 2,655. The book adds the
+refund clock (ceeefa5960) and later commits on top of that arm, and none of them moves a read or a bill period. The
+fix's world-draw figure (0.286 on 480,000 drawn pairs) and the book's 0.274 agree within the book's sampling spread.
+
+**What follows.** The N30 finding closes as its status section says. It is moved to `docs/staging/done/` in this
+commit. Leg three of the twelfth cold read no longer waits on N30.
+
 **Reverse.** Delete this file.
