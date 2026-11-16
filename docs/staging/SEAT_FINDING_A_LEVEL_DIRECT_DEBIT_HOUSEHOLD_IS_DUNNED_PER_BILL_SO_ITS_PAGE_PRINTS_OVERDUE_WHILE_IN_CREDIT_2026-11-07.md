@@ -1245,3 +1245,73 @@ to three places, on a slightly different denominator: the test counts every succ
 UNREACHED or CLEAN, and the share leg stays at or below 0.30. Prediction for it: UNREACHED, 0 graded (the
 replay's reading); share 0.216 if the published book is 87e00e1458, and within 0.17 to 0.27 on any later book.
 Then this file goes to done/. The delivery-lane claim is released until then rather than re-drawn each tick.
+
+## The 16 Nov publish was refused, and this finding's two rows are D5 (worker tick, 16 Nov 2026 ~05:40 GMT)
+
+**What happened.** The weekly window opened at 04:00. The publisher graded the f85dea4965 book (run 20261116T001418Z)
+and refused it at 04:26 on five rows that no exception covers (`site/data/publish_provenance.json`, `paused_since`).
+The site still serves 6fe7827ab2 and says so. Two of the five rows are this finding's:
+- `INV_OVERDUE_WITHIN_BALANCE`: 4 of 989 journey openings, all "nothing overdue" (0 on 6fe7827ab2).
+- `INV_OVERDUE_WITHIN_PAGE_BALANCE`: 7 of 6,212 steps (0 of 6,385 on 6fe7827ab2).
+
+The other three are not this finding's: `INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE` (2, gas),
+`INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR` (5 against an exception of 1), and `INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM` (1).
+
+**The done-means half that could be read did hold.** `INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT` reads
+**UNREACHED, 0 graded** on f85dea4965, as predicted on 12 Nov. The share leg was not read, because no book was published.
+
+**The four openings are one state, S9 ("leaving on the final bill only"), and one disagreement, D5.** Each is a
+household that left level direct debit at a move-out, read with `tools.domain_invariant_runner` helpers on the ledger
+of the 8a300fa561 run (script `/tmp/lddun-pXSR/probe.py`):
+
+| household | final bill(s): issued, due, face, collected | page owes after | desk opens (overdue) | desk's largest | write-off: desk / page |
+|---|---|---|---|---|---|
+| SYN-2016-471 | 13 Mar, due 27 Mar, 14.10; collected 29 Mar, 14.10 | 28.77 | 30 Mar (9.36) | **38.13** | 38.13 / 28.77 |
+| SYN-2016-024 | elec 6 Nov, due 20 Nov, collected 5.23 after carried credit; gas 30 Oct, due 13 Nov, collected 24.83 | 5.87 (gas) | 22 Nov (5.87) | 5.87 | 5.87 / 5.87 |
+| SYN-2016-075 | elec 22 Feb, due 8 Mar; gas 23 Feb, due 9 Mar | 53.41 (elec) | 10 Mar (11.16) | 53.41 | 53.41 / 53.41 |
+| PROS-2021-0315 | elec 3 Aug, due 17 Aug; gas 31 Jul, due 14 Aug | 13.15 (gas) | 18 Aug (2.63) | 13.15 | 13.15 / 13.15 |
+
+- **The shape.** In each, the final bill asked only for its own short period, and it was collected in full or net of
+  carried credit. **No bill asked for the scheme's shortfall.** The desk opens the day after the final bill falls due,
+  or after its one-day Bacs roll. The runner's `_left_level_owed` reads the debit as owed only 28 days
+  (`LEFT_LEVEL_TERM_DAYS`) after the first bill that is not met by a level collection. So it reads these openings as
+  having nothing overdue.
+- **This is D5 in `docs/design/LEVEL_DD_AREA_MAP.md`.** The map said "not yet measured: whether any journey opens on
+  that ask." It is now measured: 4 do, on two books in a row, and they hold the gate.
+- **SYN-2016-471 is worse than an early opening.** The desk asks GBP 38.13 when the household owes GBP 28.77. 38.13
+  is exactly the face of bill 45883 (issued 1 Mar, due 15 Mar). The page counts that bill as met by the level
+  collection of 19 Feb. The opening's GBP 9.36 is exactly 38.13 minus 28.77. So the desk dates the leaving at 45883,
+  the first bill it does not see as level-paid. The page and the runner date it at 45884. The desk then writes off
+  38.13 against a page debt of 28.77. The three page steps on SYN-2016-471 (24 Apr, 22 May, at 38.13 against 28.77)
+  are 3 of the 7 `INV_OVERDUE_WITHIN_PAGE_BALANCE` breaches.
+- **Not this finding's.** 2 of the 7 are SYN-2016-001's 15 Aug 2023 steps, `prepayment_or_debt_agency` and
+  `prepayment_withheld`, at 386.23 against a page balance of 329.71. That household was never on level. The
+  `prepayment_withheld` stage is new since 6fe7827ab2 (the C32 commits d72805429e and 4fc19c3e9f). It is not traced
+  here. The remaining 2 of 7 are not in the table's five examples, so they are not named yet.
+
+**Why the books moved, not yet attributed.** No commit in 6fe7827ab2..f85dea4965 changes the desk's opener or
+`_left_level_owed`. The world's insulation draw changed in that range (e17ebc596a: 15% POOR, not 72%), which moves
+every household's consumption and so which leavers end with a shortfall. I cannot yet say whether that is the cause.
+It is the leading explanation, because the four households are new and the mechanism is unchanged.
+
+**Prediction, filed before the publisher's grade of the 8a300fa561 run (in progress, pid 1290460).**
+- No `company/` or `simulation/` commit lies between f85dea4965 and 8a300fa561. So that book is refused on the same five
+  rows, with the same counts: 4, 7, 2, 5, 1.
+- The same four journeys breach. This already holds on the ledger graded here: `INV_OVERDUE_WITHIN_BALANCE` 4 of 989,
+  with the same four ids.
+
+**Recommended next, in the area map's own order.**
+1. **Answer D5's definition question first.** Is a final bill a leaving, and does it state the scheme's debit?
+   `home_moves.md` ("Debt prevention at move-out") says a final bill states the closing balance. If so:
+   - the final bill must ask for the shortfall, and the desk's `level_leave_dates` should not read the bill before it
+     as the leaving;
+   - the desk, the page and `_left_level_owed` then read one due date: the final bill's.
+   This is a fix on three sides (K desk, P page, the runner). Under the map's section 5 it names all three before any
+   code is written.
+2. **The publish this week needs either that fix and a new run, or a dated exception for D5's 4 + 3.** An exception is
+   honest only if it names D5 and expires on the fix. Raising one is the gate owner's call, not this tick's.
+
+**Process note.** While reading the generator's options I ran `python3 -m tools.generate_billing_ledger --help`. It
+takes no arguments and regenerated `docs/state/billing_ledger.json` at 05:16 from `run_output_latest.json`. That is
+the 8a300fa561 run the publisher was processing, read by the same code, so the bytes should match what it wrote. It
+is recorded here in case the publisher's grade disagrees with this table.
