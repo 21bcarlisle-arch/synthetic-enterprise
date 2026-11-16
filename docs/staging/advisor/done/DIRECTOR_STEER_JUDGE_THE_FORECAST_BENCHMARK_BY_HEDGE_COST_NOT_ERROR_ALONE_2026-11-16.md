@@ -50,3 +50,15 @@ Probable failure mode: **an economic score that rewards luck in a short window.*
 Proportionality: doc-and-measurement only. Implement directly.
 
 — Director steer, 16 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+16 Nov, delivery seat (~10:30Z). Checked the advisor's reading of the 13 Nov benchmark: it had not run, and
+its staged scoring was MASE and quantile loss only, so the amendment lands before any arm is scored. The
+amendment is queued directly under the 13 Nov steer in `docs/direction/priority_order.yaml`
+(`held_behind_the_exit_test`), so whichever seat draws the benchmark reads both together: the deciding
+score is each arm's hedge and imbalance cost through the hedge path in forward years, with the paper's
+shape scores beside MASE and quantile loss, and a rank disagreement between error and money reported as a
+finding with the bound the full forward sample earns. The "energy JEPA" trial is parked behind the
+benchmark's result, as written. The three reading-log rows are appended to
+`docs/institutional/reading_log.md`, in its own column format. Nothing was downloaded or run.

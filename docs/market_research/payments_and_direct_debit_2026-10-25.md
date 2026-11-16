@@ -909,3 +909,35 @@ each leg's statement from that leg's own leaving.
   until that date. For example, a statement paid early cures a missed instalment on the other leg for the days between.
   Whether a desk treats a prepayment as account credit (which nets it) or as the bill's (which does not) is the netting
   question this section answered for cash paid before leaving. It is open for the schedule.
+
+## The payment lifecycle, stage by stage (seat, 16 Nov 2026, K8 for the declared lifecycle test)
+
+The director's 16 Nov ruling asks whether one declared lifecycle would have exposed our past
+direct-debit defects. This section is its knowledge page: what each stage requires, drawn only from the
+rules and practice already on this page and its sister notes. The lifecycle itself is data in
+`company/compliance/payment_lifecycle.yaml` (14 states, 32 moves, 6 invariants; 9 moves are
+obligations). Both were written before any past DD finding was opened for the replay.
+
+| Stage | What the rules require | Source | Unknown |
+|---|---|---|---|
+| Sign-up and mandate | DDI lodged via AUDDIS; rejection codes 5, B, F, G, L leave no DD | §3 | — |
+| First DD set | One fixed regular amount from the consumption the supplier reasonably estimates; 10 working days' advance notice unless agreed shorter | SLC 27.15; Bacs; DD Guarantee | **GAP:** no published rule found that the first collection may not precede supply start. Carried as practice: a DD pays for energy supplied |
+| Collections | Taken on a Bacs processing day or returned via ARUDD within about four days. A DD is never late. ARUDD 0 may be re-presented within a month | §3; "A DD is never late" | — |
+| Bills | Each bill states one balance, what is owed to or by the household; back-billing barred beyond 12 months where the supplier caused the delay | SLC 31H.12; SLC 21BA | — |
+| DD review and change | The amount is re-based on best and most current information, absolute since 21 Oct 2022; a credit lowers the DD; a rise beyond tolerance triggers a further review; every change is notified in advance | SLC 27.15; Ofgem progress update 2 Feb 2023; DD Guarantee | **GAP:** no review frequency is prescribed; the tolerance is each supplier's own |
+| Credit and debit balances | Credit is net of what is owed; refunded on request "in a timely manner" unless fair and reasonable not to, with reasons | SLC 27.16 | **GAP:** no day count while on supply |
+| Returns and mandate loss | Payer cancellation arrives via ADDACS; a supplier may stop the DD after repeated returns (British Gas: the second failure) | §3; "Off direct debit and back on" | The stop rule is practice, not a rule |
+| Arrears | Repayment by ability to pay, offered before escalation; an arrangement instalment fails when not received within 10 working days | SLC 27.8; Ofgem SOR | — |
+| Switch away | The losing supplier may object on the debt ground; regular collections stop at the transfer date; no DD review at the final bill | SLC 14.4; `a_supplier_does_not_review_the_direct_debit_at_an_accounts_final_bill_2026-10-13.md` | — |
+| Final bill and refund | All reasonable steps to bill within 6 weeks; credit refunded within 10 working days of the final bill; a last collection only for a residual the credit does not cover | SLC 27.17; GSOP via Which? (secondary) | Ofgem's own GSOP page refused the fetch (403) |
+
+**Design choices.** It is one diagram for one account on fixed DD, with pay-on-receipt as the off-DD
+state, not a second diagram. Prepayment is out of scope. It is a closed world: a move not listed is
+illegal. Six invariants carry what a transition table cannot: one regular amount, no collection outside
+supply except a residual, amount and date as notified, two outcomes per collection, one balance, and
+processing days only.
+
+**Contamination, stated.** The drafter knew three defect families from CLAUDE.md (half-month first DD,
+bill shock, the journey's end with two homes), and had seen the file names of the DD findings while
+looking for the knowledge. The invariants `one_regular_amount` and `collections_on_processing_days`
+were written with those in mind, even though each cites a rule. The replay grades with and without them.

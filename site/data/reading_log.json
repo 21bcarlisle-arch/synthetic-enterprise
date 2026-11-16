@@ -477,12 +477,54 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "16 Nov",
+   "source": "Maciejowska, Lipiecki & Uniejewski, \"Statistical and economic evaluation of forecasts in electricity markets: beyond RMSE and MAE\", arXiv 2511.13616v2 (*Energy Conversion and Management*); shared by the director",
+   "claim": "RMSE and MAE are weakly related to the money a forecast earns; error dispersion, correlation with outturn and peak/trough timing relate strongly. Two forecasts with RMSE 10 and MAE 9 earned €24.68 and €0.16",
+   "evidence": "Peer-reviewed; 192 day-ahead forecasts, DE-LU 2016-2024, two stylised batteries; one market, point forecasts only",
+   "verdict": "ADOPT (amends the 13 Nov benchmark)",
+   "done": "The Timestral benchmark keeps MASE and quantile loss, but its deciding score becomes the hedge and imbalance cost each arm would have caused through `company/trading/hedge_desk.py`, plus the paper's shape scores; a rank disagreement between error and money is a finding. Record: `docs/staging/advisor/done/DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16.md`",
+   "concept": "Forecast skill",
+   "placed": {
+    "kind": "unplaced",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "16 Nov",
+   "source": "Pavlyshyn, \"Your agent doesn't need an ontology. It needs a conceptual model\" (Substack, 15 Nov); shared by the director",
+   "claim": "An agent's model needs facts, processes and rules; a process is a state diagram of every legal move; ontology only at organisational boundaries",
+   "evidence": "Practitioner essay, no measurement",
+   "verdict": "MEASURE",
+   "done": "We have the facts (`docs/design/the_map/concepts.yaml`) and rules (`domain_invariants.py`) but no declared supplier-side payment lifecycle. The 16 Nov EP11 ruling stages the test: draw it from the rules first, then replay the past DD defects against it",
+   "concept": "Learning",
+   "placed": {
+    "kind": "concept",
+    "label": "Learning",
+    "anchor": "c-build.learning"
+   }
+  },
+  {
+   "read": "16 Nov",
+   "source": "jingyaogong/minimind (Apache-2.0; 64M-parameter model, full pipeline on one consumer GPU) and karpathy/nanoGPT (superseded by nanochat); shared by the director, with \"There's no value in a energy gpt? Or energy JEV?\"",
+   "claim": "A small language model can be trained end to end on one consumer card",
+   "evidence": "Open-source teaching repos",
+   "verdict": "LEARNING ONLY",
+   "done": "Too small for any machine work. The \"energy JEPA\" question (a learned household representation from supplier observables) is parked behind the forecast benchmark's result, with its named risks, in the 16 Nov hedge-cost steer",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
   }
  ],
  "placed": {
-  "concept": 16,
-  "step": 10,
-  "unplaced": 3,
+  "concept": 17,
+  "step": 11,
+  "unplaced": 4,
   "none": 5
  },
  "rejected": 4

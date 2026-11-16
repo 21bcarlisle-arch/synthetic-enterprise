@@ -146,6 +146,9 @@ held_behind_the_exit_test:
   - docs/staging/advisor/done/DIRECTOR_STEER_FORWARD_WEATHER_AND_PRICES_MUST_MOVE_TOGETHER_AND_SPELLS_MUST_LAST_2026-11-11.md
   # 2026-11-13 (18:47 "Yes"): one forecast, three arms, forward years primary. Measurement only; after the 16 Nov reset.
   - docs/staging/advisor/done/DIRECTOR_STEER_BENCHMARK_ONE_COMPANY_FORECAST_AGAINST_A_FREE_TIME_SERIES_FOUNDATION_MODEL_2026-11-13.md
+  # 2026-11-16 (10:07 "Yes"): amends the line above before it runs. MASE and quantile loss stay; the deciding
+  # score is each arm's hedge and imbalance cost through hedge_desk, plus dispersion, correlation and peak timing.
+  - docs/staging/advisor/done/DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16.md
 steps:
   1:
     name: knowledge, now and wide

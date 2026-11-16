@@ -1354,6 +1354,41 @@
       "question": "Anything new and worth adding to our thesis and road map?",
       "disposition": "Answered in the steer itself: the advisor proposed eight items and the director replied 'Yes and yes'. Item 1 rides the need-weights K8 page (due 23 Nov); items 2-8 are in priority_order.yaml simulator_spec_candidates for the 20 Nov balance review.",
       "recorded": "2026-11-16"
+    },
+    "50f6c899297d": {
+      "status": "answered",
+      "ruling": "DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16.md",
+      "question": "Same here ?",
+      "disposition": "Answered in the steer: minimind and nanoGPT are logged LEARNING ONLY in reading_log.md (16 Nov): good for understanding how models are made, too small for any machine work.",
+      "recorded": "2026-11-16"
+    },
+    "a57edbde25d9": {
+      "status": "answered",
+      "ruling": "DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16.md",
+      "question": "There's no value in a energy gpt?",
+      "disposition": "Answered in the steer, and the director said 'Yes' (10:07) to it: an energy GPT is not the shape; the candidate is a learned household representation, parked behind the forecast benchmark's result (queued in priority_order.yaml under the 13 Nov benchmark).",
+      "recorded": "2026-11-16"
+    },
+    "cb5e928c9765": {
+      "status": "answered",
+      "ruling": "DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16.md",
+      "question": "Or energy JEV?",
+      "disposition": "Answered in the steer ('energy JEPA'): a household-representation trial from supplier observables is a candidate for discovering hidden household weights (M3/M4); it starts only if the benchmark shows a generic model beats the company's own, with its three named risks.",
+      "recorded": "2026-11-16"
+    },
+    "38ae99127cf1": {
+      "status": "answered",
+      "ruling": "DIRECTOR_RULING_EP11_REFRAME_APPROVED_AND_TEST_A_DECLARED_PAYMENT_LIFECYCLE_AGAINST_PAST_DD_DEFECTS_2026-11-16.md",
+      "question": "Do you approve reframing EP11 ('Direct Debit against a real sandbox') so it tests failed-payment paths inside the simulation, without a live GoCardless sandbox?",
+      "disposition": "The advisor's question; the director answered 'Yes' (16 Nov 10:10). Already recorded in DIRECTION.yaml row ep11-is-titled-direct-debit-against-a (980c242ddf) and EP11's title (209f1b93f).",
+      "recorded": "2026-11-16"
+    },
+    "5c73c04ff2eb": {
+      "status": "answered",
+      "ruling": "DIRECTOR_RULING_EP11_REFRAME_APPROVED_AND_TEST_A_DECLARED_PAYMENT_LIFECYCLE_AGAINST_PAST_DD_DEFECTS_2026-11-16.md",
+      "question": "Shall I stage a test where the machine writes the customer payment lifecycle as one state diagram and checks whether it would have caught our past direct-debit defects?",
+      "disposition": "The advisor's question; the director answered 'Yes'. Done: 10 of 34 past DD defects exposed (29%), under half, so dropped (records/SEAT_RESULT_A_DECLARED_PAYMENT_LIFECYCLE_WOULD_HAVE_EXPOSED_10_OF_34_PAST_DD_DEFECTS_SO_IT_IS_DROPPED_2026-11-16.md).",
+      "recorded": "2026-11-16"
     }
   }
 }
