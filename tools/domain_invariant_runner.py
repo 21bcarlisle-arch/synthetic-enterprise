@@ -2154,7 +2154,8 @@ def ev_billed_ex_vat_reconciles(inv, book):
     bill after the last bill on an actual read. T, the unbilled tail, is zero here: the account's
     end is its last billed day on this record, so no tail can be measured. W, the back-billing write-off,
     is not identifiable on the page (the row's GAP), so a shortfall below the lower side on an
-    account with any write-off is a flag, never a breach. E, the Energy Price Guarantee support the
+    account with any write-off is a flag, never a breach; so is one on an account whose estimated run
+    is still open at the record's end (`_estimated_run_open`). E, the Energy Price Guarantee support the
     government paid on the settled volume (each bill's `epg_support_gbp`), is revenue the household
     was never billed, so B + E is graded; a book whose page predates the field reads E as 0."""
     tally = Tally("account (page revenue against page bills before VAT)")
@@ -2175,8 +2176,23 @@ def ev_billed_ex_vat_reconciles(inv, book):
         w = sum(_barred_before_vat(i) for i in bills)
         written_off = float((pr.get("page_totals") or {}).get("total_written_off_gross_gbp") or 0.0)
         tally.band("{} {} R {:.2f}".format(a.cid, a.fuel, r), b, round(r - u - w - tol * r, 2),
-                   round(r + u + tol * r, 2), below="flag" if written_off > 0 else "breach")
+                   round(r + u + tol * r, 2),
+                   below="flag" if written_off > 0 or _estimated_run_open(bills, last_a, pr) else "breach")
     return tally
+
+
+def _estimated_run_open(bills, last_a: int, pr) -> bool:
+    """True when the account's estimated run is still unread at the record's end: a bill after its
+    last actual read, and no final bill closing the account on or after the last bill. U bounds such
+    a run's error by its own size, which nothing establishes: the knowledge page's K2 says billed
+    differs from consumed "until the next actual read", either sign, with no magnitude. So a shortfall
+    there is evidence, not an error the record can show (PROS-2025-0095g, f7e17b1316: a 1-7 Jun
+    estimate 178% short of the settled week). A closed account's estimated final bill closed its run,
+    and keeps its breach."""
+    if last_a >= len(bills) - 1:
+        return False
+    last = str(bills[-1].get("date") or bills[-1].get("period_end") or "")
+    return not any(f >= last for f in pr.get("final_bills") or ())
 
 
 def _barred_before_vat(bill) -> float:

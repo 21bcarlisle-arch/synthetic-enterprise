@@ -904,6 +904,26 @@ def test_every_leg_of_the_revenue_row_is_reachable():
     assert _grade_one(i, crisis)[:2] == ("CLEAN", [])
 
 
+def test_a_shortfall_in_an_open_estimated_run_flags_and_a_closed_one_still_breaches():
+    """U bounds an estimated run by its own size, which nothing establishes (K2: billed differs from
+    consumed "until the next actual read", no magnitude). On an account still supplied at the
+    record's end, a shortfall inside that unread run is a flag (PROS-2025-0095g, f7e17b1316: a 1-7
+    Jun estimate 178% short). A final bill closes the run, and an actual last bill leaves no run, so
+    both still breach. One control over the partition: the flag, the closed breach and the read
+    breach are all reachable from the same shortfall."""
+    def acct(last_read, final_bills=()):
+        return _printed_account("P", "gas", {
+            "lifetime_revenue_gbp": 100.0, "page_totals": {"total_written_off_gross_gbp": 0.0},
+            "final_bills": list(final_bills),
+            "invoices": [_bill("2020-01-01", "2020-01-31", amount=73.5, vat=3.5),
+                         _bill("2020-02-01", "2020-02-07", read=last_read, amount=10.5, vat=0.5)]})
+    i = "INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE"
+    graded = {"open": _grade_one(i, acct("E")), "closed": _grade_one(i, acct("E", ["2020-02-07"])),
+              "read": _grade_one(i, acct("A"))}
+    assert graded == {"open": ("FLAGGED", [], 1), "closed": ("BREACHED", ["below"], 0),
+                      "read": ("BREACHED", ["below"], 0)}
+
+
 def test_every_leg_of_the_payment_record_row_is_reachable():
     """Paid plus missed equal to the bills due passes. A counter of rows, or a missed direct debit
     with no return, breaches."""

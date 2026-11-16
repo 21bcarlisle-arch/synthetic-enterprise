@@ -34,3 +34,10 @@ This is a change to a gate's bound, and it is filed rather than made. The altern
 
 - Whether the June estimate (12.3/day against May's actual 27.5/day) is a poor estimate. `INV_ESTIMATE_FOLLOWS_THE_LATEST_ACTUAL_READS` grades that shape; I did not read its flag list for this account.
 - The YAML's T term. It reads `ledger.as_of_date` (4 Jul) as the end, but R stops at 7 Jun. The code's "T is zero" is the right reading on this book, and the YAML text overstates it. It is not changed here.
+
+## Resolved (delivery seat, 2026-11-16)
+
+The class fix is made, not a dated exception. While an account's estimated run is still open at the
+record's end, a shortfall below the lower side is graded a flag. A closed account keeps its breach.
+Re-graded on the same book: 1 breached becomes 0 breached and 1 flagged, and no other row moves.
+Record: `SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_IS_AN_OPEN_ESTIMATED_RUN_AND_THE_16_NOV_BOOK_IS_REFUSED_AS_PREDICTED_2026-11-16.md`.
