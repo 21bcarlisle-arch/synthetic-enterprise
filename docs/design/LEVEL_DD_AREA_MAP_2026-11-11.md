@@ -854,4 +854,14 @@ carries the net. That is the 16 Nov 04:00 book. New books are held until then.
 
 Graded: repayment-posting held=5 missed=0 code=0 reader=0 regressed=0 width=0.5
 
-NEXT: none -- W1 to W3 are graded on the first fresh book that carries the net (the 16 Nov publish)
+**Graded on the 16 Nov book (8a300fa561, carries 37d934286), 16 Nov.** W2 and W3 are refuted. R5 reads **27,
+GBP 674.59**, and F is all 27. That is the same 27 accounts the 14 Nov A/B's e17ebc596 arm read. Only 2 of the 5
+credit-bill accounts clear: SYN-2016-225 still owes 159.20 and -482 33.23, unchanged to the penny. W1 and W4 cannot
+be read: the book records no world ask per bill, and the page posts paid bills at face. So the A/B's "77.82 asked"
+was the page's face. Reconstructed from the book's inputs, SYN-2016-244's ask would be **GBP 35.70** if the branch
+fires, while the page still refunds it 42.14 after the bill. That would credit the household twice: reverse-F by
+construction. It is not a count. **Not yet attributed.** The leading hypothesis is that the page balance cannot see
+the world's ask, so the net could never clear F on the page. Its rival is that the branch does not fire on a book.
+`docs/staging/records/SEAT_RESULT_THE_16_NOV_BOOK_ON_LEVEL_DD_W1_W4_2026-11-16.md`.
+
+NEXT: none -- the triad's final-month net is serialised per leg (face, ledger credit, ask), so W1 and W4 can be read and the two hypotheses separated
