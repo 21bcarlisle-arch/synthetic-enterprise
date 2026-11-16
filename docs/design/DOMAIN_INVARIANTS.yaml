@@ -2714,7 +2714,7 @@ invariants:
   evaluation: >-
     Let T = R x max(0, end - last_period_end) / supply_days, where end = the account's supply end or ledger.as_of_date, last_period_end = the latest invoice period_end, and supply_days = days from the first
     period_start to end (the unbilled tail at the average daily value). Let U = the before-VAT amount of every bill after the account's last bill on an actual read (A): the open or closing estimated run.
-    Let W = the part of ledger.total_written_off_gross_gbp written off under the back-billing limit, before VAT (zero when none is identified). Breach unless
+    Let W = what SLC 21BA barred from the account's catch-ups, before VAT: each bill's catchup_written_off_gbp (printed gross) at that catch-up's net share (ledger.total_written_off_gross_gbp never holds a bar; read from it, W was 0 on every book to f7e17b1316). Breach unless
     R - T - U - W - 0.01 R <= B + E <= R + U + 0.01 R. Ex-VAT B is taken from vat_gbp, not by dividing by 1.05, so an sme bill at 20% grades on its own VAT. The VAT rate itself is INV_VAT_RATE's, not this row's.
     Not graded when R is 0 or absent.
   lower: R - T - U - W - 0.01 R

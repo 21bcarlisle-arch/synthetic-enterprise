@@ -872,7 +872,7 @@ def _bill(start, end, kwh=0.0, read="A", close=None, amount=0.0, vat=0.0, **kw):
 
 def test_every_leg_of_the_revenue_row_is_reachable():
     """Bills before VAT within 1% of the page's revenue pass. Short of it breaches, unless the
-    account carries a write-off, which flags (the back-billing write-off is the row's GAP)."""
+    account carries a write-off, which flags, or a catch-up's SLC 21BA bar (W) covers it."""
     def acct(billed, written_off=0.0):
         return _printed_account("R", "electricity", {
             "lifetime_revenue_gbp": 100.0, "page_totals": {"total_written_off_gross_gbp": written_off},
@@ -882,6 +882,20 @@ def test_every_leg_of_the_revenue_row_is_reachable():
     assert _grade_one(i, acct(80.0))[:2] == ("BREACHED", ["below"])
     assert _grade_one(i, acct(120.0))[:2] == ("BREACHED", ["above"])
     assert _grade_one(i, acct(80.0, written_off=20.0))[0] == "FLAGGED"
+    # W: a catch-up SLC 21BA capped. The page prints the bar gross on the bill; 21.00 gross at the
+    # catch-up's 5% is 20 before VAT, so bills of 80 reconcile to revenue of 100. The ledger's
+    # write-off total never holds a bar, so without W this breached (OCC-cc0c78690877g, f7e17b1316).
+    capped = _printed_account("R", "gas", {
+        "lifetime_revenue_gbp": 100.0, "page_totals": {"total_written_off_gross_gbp": 0.0},
+        "invoices": [_bill("2020-01-01", "2020-01-31", amount=84.0, vat=4.0, catchup_written_off_gbp=21.0,
+                           catchup_adjustment_gbp=10.0, catchup_vat_gbp=0.5)]})
+    assert _grade_one(i, capped)[:2] == ("CLEAN", [])
+    # ...and W is before VAT: the same bar read gross would hide a shortfall of 1 that is real.
+    short = _printed_account("R", "gas", {
+        "lifetime_revenue_gbp": 100.0, "page_totals": {"total_written_off_gross_gbp": 0.0},
+        "invoices": [_bill("2020-01-01", "2020-01-31", amount=81.9, vat=3.9, catchup_written_off_gbp=21.0,
+                           catchup_adjustment_gbp=10.0, catchup_vat_gbp=0.5)]})
+    assert _grade_one(i, short)[:2] == ("BREACHED", ["below"])
     # E: the Energy Price Guarantee support the government paid is revenue the household was not
     # billed, so bills of 60 with 40 of support reconcile to revenue of 100 (residual R2, 2026-10-28).
     crisis = _printed_account("R", "electricity", {
