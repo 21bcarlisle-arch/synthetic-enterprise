@@ -783,3 +783,43 @@ def test_the_called_probe_ignores_the_def_and_can_hold_flip_and_refuse(tmp_path,
     root, _ = _mini_repo(tmp_path)
     (root / "simulation/customer_events.py").write_text(body, encoding="utf-8")
     assert evaluate(_called_claim(expects), root).verdict == verdict
+
+
+def _with_site(root: Path, page: str) -> Path:
+    """A served page and a one-quote canon beside the fixture register."""
+    from tools.canon_drift_check import CANON_DOC
+    (root / "site").mkdir()
+    (root / "site" / "index.html").write_text(page, encoding="utf-8")
+    (root / CANON_DOC).parent.mkdir(parents=True, exist_ok=True)
+    (root / CANON_DOC).write_text('**M1.** "We are creating enterprise value by automating ways to '
+                                  'find individual customers we can create value for."\n', encoding="utf-8")
+    return root
+
+
+def test_the_scheduled_note_asks_the_site_leg_and_mints_its_red(tmp_path):
+    """A45 blind pass, 15 Nov, MINOR: the site leg ran from `main()` only, so the daily note -- the
+    trigger -- never asked it, and a withdrawn mission line on a served page reached no one.
+
+    Both legs on the SAME green register: a site that holds mints nothing and prints its own
+    denominator (a note that drops the leg would pass a red-only test), and a site carrying a
+    superseded framing goes red in the line and mints one BLOCKING item, once.
+    """
+    from background.finding_severity import parse_severity_text
+    from tools.canon_drift_check import note_line
+
+    holds = _with_site(_note_repo(tmp_path / "holds", channel=True), "<p>Saved CO2.</p>")
+    line = note_line(holds)
+    assert "all HOLD" in line and "Site leg: 1 served page(s) hold against 1 canon quote(s)" in line
+    assert _minted(holds) == []
+
+    red = _with_site(_note_repo(tmp_path / "red", channel=True), "<h1>The cheapest tonne of carbon</h1>")
+    line = note_line(red)
+    assert "SITE LEG RED: 1 line(s)" in line and "'cheapest tonne'" in line
+    assert "all HOLD against the code" in line
+    items = _minted(red)
+    assert len(items) == 1, items
+    text = items[0].read_text(encoding="utf-8")
+    assert parse_severity_text(text, items[0]).severity == "BLOCKING"
+    assert "| served page | SUPERSEDED | site/index.html |" in text
+    note_line(red)  # the next morning, same drift
+    assert _minted(red) == items

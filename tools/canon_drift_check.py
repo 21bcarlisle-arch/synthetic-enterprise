@@ -898,6 +898,10 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
         "lapsed_watches": lapsed,
         # A judgement whose excerpt left its page hides nothing; it is printed so the row is cleared.
         "stale_judgements": _stale_judgements(root, judgements),
+        # The served pages against the canon's words. In `run`, not `main`, because the daily note
+        # calls `run`: until 16 Nov the site leg ran from the command line only, so the scheduled
+        # trigger never asked it (A45 blind pass, 15 Nov, MINOR).
+        "site": site_drift(root),
     }
     return verdicts, report
 
@@ -956,6 +960,8 @@ def _drift_key(report: dict[str, Any]) -> str:
     parts = sorted(f"{d['id']}:{d['verdict']}" for d in report["drift"])
     parts += sorted(f"removed:{item.split(' -- ')[0]}" for item in report["removed"])
     parts += sorted(f"lapsed:{item.split(' -- ')[0]}" for item in report.get("lapsed_watches", []))
+    parts += sorted(f"site:{row['page']}:{row.get('phrase') or row.get('canon', '')[:60]}"
+                    for row in _site_rows(report))
     return hashlib.sha1("\n".join(parts).encode("utf-8")).hexdigest()[:10].upper()
 
 
@@ -970,21 +976,27 @@ def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) ->
     Severity follows the 12 Aug ruling's own definitions: an OVER_CLAIM is the page publishing a
     capability the code does not have, which is "a published figure may be wrong" -- BLOCKING.
     Every other red (SUPERSEDED, UNBOUND, ERROR, a removed row) leaves no false sentence in front of
-    a reader -- LATENT.
+    a reader -- LATENT. A served page carrying a superseded framing or a misquoted canon line IS a
+    false sentence in front of a reader, so the site leg's rows are BLOCKING too.
     """
     lapsed = report.get("lapsed_watches", [])
-    if not report["drift"] and not report["removed"] and not lapsed:
+    site_rows = _site_rows(report)
+    if not report["drift"] and not report["removed"] and not lapsed and not site_rows:
         return None
     key = _drift_key(report)
     if any(staging_dir.rglob(f"{DRIFT_ITEM_STEM}{key}_*.md")):
         return None
     over = [d for d in report["drift"] if d["verdict"] == OVER_CLAIM]
-    severity = "BLOCKING" if over else "LATENT"
+    severity = "BLOCKING" if over or site_rows else "LATENT"
     rows = [f"| `{d['id']}` | {d['verdict']} | {d.get('page', '')} | {d.get('detail') or ''} |"
             for d in report["drift"]]
     rows += [f"| `{item.split(' -- ')[0]}` | REMOVED | | {item} |" for item in report["removed"]]
     rows += [f"| judged negative | LAPSED | {item.split(': ')[0]} | {item.split(': ', 1)[1]} |"
              for item in lapsed]
+    rows += [f"| served page | {'SUPERSEDED' if 'phrase' in row else 'MISQUOTED'} | {row['page']} | "
+             + (f"{row['phrase']!r} -- {row['why']}" if 'phrase' in row
+                else f"canon {row['canon']!r}; page reads {row['page_reads']!r}") + " |"
+             for row in site_rows]
     text = "\n".join([
         f"**Severity:** {severity} · **Lane:** {DRIFT_ITEM_LANE} · **Epoch:** 2 · "
         f"**Atom:** `{DRIFT_ITEM_ATOM}`",
@@ -1005,7 +1017,10 @@ def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) ->
         "register's anchor sentence left the page -- rebind the row. ERROR: the probe could not "
         "run, so nothing is known. REMOVED: a row left the register without a `retired` reason. "
         "LAPSED: the atom that would build a mechanism the page says is missing has moved -- re-read "
-        "the sentence, then bind it with an absent claim, correct it, or re-judge at the new level.",
+        "the sentence, then bind it with an absent claim, correct it, or re-judge at the new level. "
+        "A served-page SUPERSEDED or MISQUOTED row: the site presents a withdrawn framing as current, "
+        "or a canon line in words the canon does not use -- correct the page, or mark told history "
+        "with `data-canon-history`.",
         "",
         f"**Done means.** `python3 tools/canon_drift_check.py` reads none of the rows above as red. "
         f"Full report: `{DEFAULT_REPORT}`.",
@@ -1017,6 +1032,26 @@ def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) ->
     staging_dir.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
     return path
+
+
+def _site_rows(report: dict[str, Any]) -> list[dict[str, Any]]:
+    site = report.get("site") or {}
+    return [*site.get("superseded", []), *site.get("misquoted", [])]
+
+
+def _site_clause(report: dict[str, Any]) -> str:
+    """The site leg's half of the note line: the denominator when it holds, the rows when not."""
+    site = report.get("site")
+    if not site:
+        return ""
+    rows = _site_rows(report)
+    if not rows:
+        return f" Site leg: {site['pages']} served page(s) hold against {site['quotes']} canon quote(s)."
+    named = "; ".join(f"{r['page']}: {r['phrase']!r}" if "phrase" in r else f"{r['page']}: misquotes "
+                      f"\"{' '.join(r['canon'].split()[:6])}...\"" for r in rows[:5])
+    more = "" if len(rows) <= 5 else f" (+{len(rows) - 5} more)"
+    return (f" SITE LEG RED: {len(rows)} line(s) on the {site['pages']} served page(s) contradict the "
+            f"canon — {named}{more}.")
 
 
 def _mint_for_the_note(root: Path, report: dict[str, Any]) -> str:
@@ -1079,21 +1114,26 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
         return (f"canon drift: {len(removed)} claim(s) LEFT the register since HEAD with no "
                 f"`{RETIRED_SECTION}` reason — {named}{more}. A removed claim is not a claim that "
                 f"holds; it is a page sentence nothing checks. The other {checked} were checked. "
-                f"Full report: `{DEFAULT_REPORT}`.{minted}")
+                f"Full report: `{DEFAULT_REPORT}`.{minted}{_site_clause(report)}")
     lapsed = report.get("lapsed_watches", [])
     if lapsed:
         named = "; ".join(item.split(" -- ")[1].split(" was ")[0] for item in lapsed[:5])
         return (f"canon drift: {len(lapsed)} judged \"does not exist\" sentence(s) LAPSED — the atom "
                 f"that would build each has moved ({named}), so the page may now under-claim. "
                 f"{len(drift)} of {checked} registered claim(s) drift. Full report: "
+                f"`{DEFAULT_REPORT}`.{minted}{_site_clause(report)}{_unwatched_clause(report)}")
+    if not drift and _site_rows(report):
+        return (f"canon drift: the served site contradicts the canon.{_site_clause(report)} The "
+                f"{checked} registered claim(s) all HOLD against the code. Full report: "
                 f"`{DEFAULT_REPORT}`.{minted}{_unwatched_clause(report)}")
     if not drift:
         return (f"canon drift: {checked} registered claim(s) checked against the code, all HOLD "
-                f"(register `{DEFAULT_REGISTER}`).{_unwatched_clause(report)}")
+                f"(register `{DEFAULT_REGISTER}`).{_site_clause(report)}{_unwatched_clause(report)}")
     named = "; ".join(f"{d['id']} → {d['verdict']}" for d in drift[:5])
     more = "" if len(drift) <= 5 else f" (+{len(drift) - 5} more)"
     return (f"canon drift: {len(drift)} of {checked} registered claim(s) no longer match the code — "
-            f"{named}{more}. Full report: `{DEFAULT_REPORT}`.{minted}{_unwatched_clause(report)}")
+            f"{named}{more}. Full report: `{DEFAULT_REPORT}`.{minted}{_site_clause(report)}"
+            f"{_unwatched_clause(report)}")
 
 
 def _unwatched_clause(report: dict[str, Any]) -> str:
@@ -1268,7 +1308,6 @@ def main(argv: list[str] | None = None) -> int:
     register = Path(args.register) if args.register else root / DEFAULT_REGISTER
     try:
         verdicts, report = run(root, register)
-        report["site"] = site_drift(root)
     except ProbeError as exc:
         print(f"CANON DRIFT CHECK UNAVAILABLE: {exc}", file=sys.stderr)
         return 2  # an unavailable check is a FAILED check (R15 fail-silent)

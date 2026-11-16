@@ -93,5 +93,5 @@ def test_an_unreadable_or_empty_canon_fails_closed(tmp_path):
 
 def test_main_exits_1_when_a_served_page_drifts(tmp_path, monkeypatch):
     root = _tree(tmp_path, "<p>grown toward go-live</p>")
-    monkeypatch.setattr(C, "run", lambda r, reg: ([], {"removed": [], "drift": []}))
+    monkeypatch.setattr(C, "run", lambda r, reg: ([], {"removed": [], "drift": [], "site": C.site_drift(r)}))
     assert C.main(["--root", str(root), "--register", str(root / "r.yaml")]) == 1
