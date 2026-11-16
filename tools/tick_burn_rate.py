@@ -431,6 +431,12 @@ _GENERATED = re.compile(r"(?:^|/)(?:docs/observability|site/data|docs/market_dat
 #: A shell command's KIND is its first verb after any `cd`: one kind per call, so a test run piped
 #: through grep is a test run, not a search.
 _BASH_KINDS = (
+    # A gate run is a commit or landing (its hooks print every gate's output) or one of the cheap gates
+    # pre-run by hand. Ahead of the python and git kinds it would otherwise fall into (trial a, 16 Nov).
+    ("gate run (commit/land/promote/pre-run gate)", re.compile(
+        r"^(?:timeout \S+ )?(?:git commit\b|ruff\b|pre-commit\b|python3? (?:-m )?(?:tools[./](?:surgical_land|"
+        r"promote_worktree_landing|write_time_gate|director_document_gate|level_promotion_gate)|"
+        r"background[./](?:finding_classes|finding_severity|staging_rooms|claude_md_integrity)))")),
     ("file read (cat/head/tail/sed/awk)", re.compile(r"^(?:cat|head|tail|sed|awk|less|nl|jq)\b")),
     ("search/census (grep/find/ls/wc/git log...)", re.compile(
         r"^(?:grep|rg|egrep|find|ls|wc|du|tree|git (?:log|grep|ls-files|status|show|diff|blame))\b")),
@@ -758,6 +764,13 @@ def render_reading(t0: str, t1: str, root: Path = PROJECTS, top: int = 15) -> st
     covered = sum(by[n]["write"] + by[n]["read"] for n in disjoint if n in by)
     lines.append(f"| *remainder: the model's own output carried forward, and attachments (disjoint check)* | | | "
                  f"{100 * (1 - covered / ctx):.1f}% | |")
+    # Shell output by command family (trial a): the kinds are disjoint, so these DO sum to all Bash.
+    fam = sorted(((n, v["write"] + v["read"]) for n, v in by.items() if n.startswith("Bash: ")), key=lambda kv: -kv[1])
+    bash_all = (by["all Bash results"]["write"] + by["all Bash results"]["read"]) if "all Bash results" in by else 0
+    lines += ["", "**Shell output by command family** (disjoint; sums to all Bash results):", "",
+              "| family | share of context tokens | share of shell output |", "|---|---|---|"]
+    lines += [f"| {n[6:]} | {100 * t / ctx:.1f}% | {100 * t / (bash_all or 1):.1f}% |" for n, t in fam]
+    lines += ["", "| class | cache write | cache read | share of context tokens | share of cache write |", "|---|---|---|---|---|"]
     many = [f for f in m["files"].values() if len(f["sessions"]) >= 10]
     lines.append(f"| repeat across sessions: every read of a file read in 10+ sessions ({len(many)} files) | "
                  f"{int(sum(f['write'] for f in many)):,} | {int(sum(f['read'] for f in many)):,} | "

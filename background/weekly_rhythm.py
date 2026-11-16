@@ -753,9 +753,13 @@ def _burn_section(days: float = 7.0) -> list[str]:
     return ["## Burn per kind of turn, this week", "", measured, "",
             "**Propose, then enact unless the director disagrees.** For each kind of turn, is its "
             "cadence, model tier or effort earning what it costs? Enact the reversible changes "
-            "(timer cadence, `model_tier`, effort), each with its reversal written down, and NTFY "
-            "the director what changed and how to reverse it. Anything the weighted figure cannot "
-            "judge -- whether the turns LANDED anything -- is read from the commits, not assumed.",
+            "(timer cadence, `model_tier`, effort), each with its reversal written down, and say "
+            "what changed and how to reverse it in the stretch log and `for_the_director`. Anything "
+            "the weighted figure cannot judge -- whether the turns LANDED anything -- is read from "
+            "the commits, not assumed.", "",
+            "**The efficiency backlog** (`docs/operations/EFFICIENCY_BACKLOG.md`): read its trials' "
+            "before and after, mark each keep, revert or drop, and propose next week's trials there. "
+            "Re-check the rows marked *re-check each Friday*.",
             ""]
 
 

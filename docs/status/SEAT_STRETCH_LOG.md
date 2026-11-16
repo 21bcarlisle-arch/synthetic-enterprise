@@ -20109,3 +20109,17 @@ builder (blind, not independent), filed 11 findings. 10 are fixed in this landin
   than its one guard (carbon) covers; it now says margin has no guard.
 - **Open:** the DD row cannot show the earlier 3 Sep claim that fell on 1 Oct. That reversal is not in
   `dd_opening_arms.json`, so the feed would have to type it in. It is owed to that feed's generator.
+
+**Efficiency track, first increment (seat executor, Mon 16 Nov, about 03:00–04:00 GMT).** The director's 15 Nov steer
+gives this track first claim on harness slots in the week of 16 Nov.
+- **Throttled to pay for it:** every other H_harness draw this week. The track holds the harness slots, and harness
+  work outside it waits unless it fixes something red. The supplier, world and knowledge shares in the balance
+  review are unchanged.
+- **The backlog is one file:** `docs/operations/EFFICIENCY_BACKLOG.md`. The Friday burn section now points at it.
+  Its stale "NTFY the director" line now says the stretch log and `for_the_director`.
+- **Trial (a), pre-registered, all four predictions held.** Shell output is file reads (16%) and search (12%).
+  Gates (0.3%) and pytest (0.1%) are too small for the quiet-output trial as drafted, so it is dropped pending
+  E-b0 (how much of the file reads is log tails).
+- **The plan's weekly usage percentage is machine-readable:** `rate_limit_event.seven_day.utilization` in headless
+  stream-json. The meter test needs no readings from the director. It is not read on any schedule and gates nothing.
+- **Next, one variable at a time:** E-f, the load audit, then E-e, the CLAUDE.md delete-and-add-back trial.

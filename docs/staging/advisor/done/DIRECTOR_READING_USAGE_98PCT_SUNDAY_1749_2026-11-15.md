@@ -12,3 +12,10 @@
 - **Finish and land whatever is mid-commit, then go quiet until the reset.** Start nothing new. A half-landed change at the cap is worse than an idle evening.
 - If the weekly balance proposal for the week of 16 Nov is not yet on origin, landing it is the one thing worth the last points. The advisor puts it to the director after the reset.
 - Long jobs that run on machine-hours, not tokens, can keep running if they need no session turns.
+
+## Done
+
+Spent at the Mon 16 Nov 03:00 GMT reset. Nothing from it was carried past the reset. This seat
+started at 03:05 GMT, after the reset, so it began nothing before the cap. The machine can now read
+the weekly figure itself (`rate_limit_event.seven_day.utilization`, see
+`docs/staging/records/SEAT_RESULT_TRIAL_A_..._2026-11-16.md`), for understanding the cost only.
