@@ -25,3 +25,18 @@ one added. Also, did the misses' predictions name a state on the map, as W1 requ
 If they were filed after 18285bfa11, record W1's measure as refuted, beside its prediction, and
 re-map level DD before its next fix. If they were filed earlier, the count starts at b2f8e23fc0,
 and so far it reads 1 of 9.
+
+## Done (worker tick, 16 Nov 2026 ~03:45 GMT)
+
+**Filed after the map, so the count stands: W1 is refuted at 6 of 20.** 72c936d313's predictions were
+pre-registered at 22:24 GMT on 11 Nov, ten hours after 18285bfa11. The predictions 3159a16f2c graded are
+s.7 of the 11 Nov map itself, which landed in 72c936d313. Each was written inside the map, so each sits on
+it by construction. On the older map (a454d03fcc) it was refuted sooner: 4 of 14 on e58699ec9c, which
+18285bfa11 said in its message and nowhere else.
+
+Recorded beside W1's prediction in `docs/institutional/ways_of_working.md`, with the split the total
+hides. Code misses were 1 of 20, against 18 of 80 before. Reader misses were 5 of 20, against 8 of 80.
+At 20 the intervals overlap. The stop condition is unchanged. The level-DD area has no fix in hand: the
+BLOCKING finding waits only on the 16 Nov publish's grade. The next level-DD fix should be preceded by a
+map that traces the readers. That is stated on W1 as a suggestion, not a new rule, and W1's 24 Nov review
+decides it.

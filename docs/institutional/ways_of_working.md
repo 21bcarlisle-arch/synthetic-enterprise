@@ -22,7 +22,8 @@ date passes with nothing changed.
 
 ## W1. When our predictions in one area keep missing, the area's map is wrong, and the next fix is not the cure (10 Nov 2026)
 
-**Status:** hypothesis. **Area of the first case:** level direct debit (lane D_billing_metering).
+**Status:** refuted on its measure (16 Nov 2026, see "Measured" under the prediction below). The stop
+condition stays in force. **Area of the first case:** level direct debit (lane D_billing_metering).
 **Review by:** 24 Nov 2026.
 
 **The claim.** Repeated prediction misses in one area say our model of that area is wrong. Fixing the
@@ -79,6 +80,22 @@ predictions after the map lands: misses whose cause is our model of the code or 
 26 of 80 (32.5%) to **at most 3 of 20**. Reported with the median width of the filed ranges before and
 after, because wider ranges would raise the hit rate without anyone understanding more.
 **Refuted if** 6 or more of the 20 miss for those causes, or if the ranges widen by more than half.
+
+**Measured (16 Nov 2026): refuted, at exactly the line.** Counted from the function-by-function map
+(`LEVEL_DD_AREA_MAP_2026-11-11.md`, 18285bfa11, 11 Nov 12:29Z), the first 20 graded level-DD
+predictions are 72c936d313 (7), 3159a16f2c (7), b2f8e23fc0 (3) and f5d1203024 (3). **6 of 20 missed
+for code or reader** (Wilson 95%: 15% to 52%, against 26 of 80 before). Every one was filed after
+that map: 72c936d313's were pre-registered at 22:24 GMT on 11 Nov, and the predictions 3159a16f2c graded
+are the map's own s.7, which landed in 72c936d313. Counted from the first map (a454d03fcc, 10 Nov),
+the measure was already refuted: e58699ec9c read 4 of 14, as 18285bfa11 recorded. That record was only
+in a commit message until now. The ranges did not widen: the post-map trailer widths are 0, 0, 0.86 and
+1.2, against 2.0 on the 10 Nov pre-map grades. **The split moved, which the total hides:** code misses
+were 1 of 20 (5%; 95%: 1% to 24%), against 18 of 80 before. Reader misses were 5 of 20 (25%; 95%: 11%
+to 47%), against 8 of 80. The map traced the code, and none of its sections traced the readers. At 20
+the intervals overlap, so this split is suggestive, not established. What it suggests: the next
+level-DD map traces each reader against the states before a fix's prediction is filed, and the 20 that
+follow it are counted again on this same line. Found by
+`SEAT_FINDING_W1S_LEVEL_DD_MEASURE_READS_6_OF_20_AFTER_THE_MAP_WHICH_IS_ITS_REFUTATION_LINE_2026-11-14.md`.
 
 **The named cases, each "the process let it", not "the code was wrong" (delivery seat, 10 Nov).**
 INV_OVERDUE on the 78f82e4242 book, filed at most 10, read 60: the row's reading of a leaver was never traced
