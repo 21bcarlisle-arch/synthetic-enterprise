@@ -75,6 +75,7 @@ from __future__ import annotations
 
 import argparse
 import calendar
+import hashlib
 import json
 import os
 import re
@@ -885,6 +886,50 @@ def build_prompt(item: dict, *, bell: str | None = None, rung_zero: bool = True)
             + (delivery_lane.doorbell(item) if bell is None else bell))
 
 
+#: EFFICIENCY TRIAL E-e (2026-11-16): a minimal CLAUDE.md against the full one on real executor turns.
+#: Pre-registered in docs/staging/records/SEAT_PREREG_TRIAL_E_E_MINIMAL_CLAUDE_MD_AGAINST_THE_FULL_ONE_
+#: 2026-11-16.md. The draft is written over CLAUDE.md in this worktree only, after the reset, and the
+#: base's bytes are put back after the turn; the live file never changes. A session that tries to land
+#: the draft as CLAUDE.md is refused by `claude_md_integrity` (the draft has no operating-model section).
+#: REVERSE by emptying the window.
+CLAUDE_MD_TRIAL_WINDOW = ("2026-11-21", "2026-11-28")   # [opens, closes), UTC; after E-f's Friday read
+CLAUDE_MD_TRIAL_DRAFT = "docs/operations/EFFICIENCY_E_E_MINIMAL_CLAUDE_MD_DRAFT.md"
+
+
+def claude_md_arm(work_id: str, model: str, *, today: str | None = None) -> str:
+    """'minimal', 'full', or 'off'. Opus turns only, so the P2 model pilot is not a second variable;
+    the hash is SALTED so its buckets are independent of that pilot's unsalted one, and keyed to the
+    work id so a re-drawn item keeps its arm."""
+    today = today or time.strftime("%Y-%m-%d", time.gmtime())
+    opens, closes = CLAUDE_MD_TRIAL_WINDOW or ("", "")
+    if not work_id or model != _OPUS_TIER or not (opens <= today < closes):
+        return "off"
+    bucket = int(hashlib.sha256(("E-e:" + work_id).encode("utf-8")).hexdigest(), 16) % 2
+    return "minimal" if bucket else "full"
+
+
+def _apply_claude_md_arm(worktree: Path, arm: str) -> bool:
+    """Write the draft over CLAUDE.md for the minimal arm. False, and the turn runs on the full file
+    as arm 'full', if the draft is missing."""
+    if arm != "minimal":
+        return False
+    draft = worktree / CLAUDE_MD_TRIAL_DRAFT
+    if not draft.is_file():
+        log(f"E-e: draft missing at {CLAUDE_MD_TRIAL_DRAFT}; this turn runs on the full file")
+        return False
+    (worktree / "CLAUDE.md").write_bytes(draft.read_bytes())
+    return True
+
+
+def _restore_claude_md(worktree: Path, base: str) -> None:
+    try:
+        blob = subprocess.run(["git", "show", f"{base}:CLAUDE.md"], cwd=str(worktree),
+                              capture_output=True, timeout=60, check=True).stdout
+        (worktree / "CLAUDE.md").write_bytes(blob)
+    except Exception as e:  # noqa: BLE001 - the next turn's reset --hard restores it anyway
+        log(f"E-e: could not restore CLAUDE.md after the turn: {e!r}")
+
+
 def choose_model(item: dict, bell: str) -> "tuple[str, object | None]":
     """The P2 executor pilot (`model_tier.executor_arm`), or MODEL with no decision. An operator's
     SE_EXECUTOR_MODEL wins outright, and any error is Opus: a tiering bug may cost tokens, never
@@ -1042,8 +1087,12 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             (worktree / OWNER_MARKER).write_text(str(os.getpid()) + "\n")
         except OSError:
             pass  # a marker that cannot be written costs the PID_FILE route below, not the turn
+        claude_md = claude_md_arm(work_id, model)
+        if claude_md == "minimal" and not _apply_claude_md_arm(worktree, claude_md):
+            claude_md = "full"
         log(f"RUNNING {work_id} in {worktree} on {base[:9]} -- model {model}"
-            + (f", pilot arm {decision.arm}" if decision is not None else ""))
+            + (f", pilot arm {decision.arm}" if decision is not None else "")
+            + (f", CLAUDE.md arm {claude_md}" if claude_md != "off" else ""))
 
         # THE INSTANT THE SUBJECT IS MEASURED FROM. Taken before the spawn, from the same clock
         # `record_landing` compares commit timestamps against, so "bound during this turn" is a
@@ -1067,6 +1116,8 @@ def run_once(*, dry_run: bool = False, now: float | None = None) -> tuple[bool, 
             how = f"did not finish inside {SESSION_TIMEOUT_SECONDS}s"
         finally:
             PID_FILE.unlink(missing_ok=True)
+            if claude_md == "minimal":
+                _restore_claude_md(worktree, base)
 
         # THE SESSION'S OWN OUTCOME IS NOW A FOOTNOTE, not the verdict. `how` is still logged
         # because it separates a crash from a clean no-op when reading back, but nothing branches

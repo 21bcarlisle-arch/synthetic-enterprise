@@ -1329,6 +1329,12 @@
       "question": "Eg SIM Vs supplier?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-14, measured). The SIM/supplier split would barely help. The advisor's recommendation said so and the census confirms it: the cost is not in either codebase. No file dominates, and contention-only tool time is about 9.3 hours in two weeks. Report: docs/staging/records/SEAT_MEASURE_WHERE_THE_LANES_COLLIDE_NO_FILE_DOMINATES_SO_NO_ONE_WRITER_TRIAL_2026-11-14.md"
+    },
+    "afcbd0202ae0": {
+      "ruling": "DIRECTOR_STEER_A_STANDING_TRACK_FOR_USAGE_EFFICIENCY_STARTING_WITH_QUICK_WIN_TRIALS_AFTER_THE_16_NOV_RESET_2026-11-15.md",
+      "question": "In general I wonder if we don't want a continuous track of weekly allowance usage optimisation and efficiency measures, ideas and backlog? (I'm guessing we have this to some degree )",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-16, built). Yes, and before 16 Nov we had it only to some degree (the Friday burn section, the balance review, tick_burn_rate --reading). The track is now one standing file, docs/operations/EFFICIENCY_BACKLOG.md, read and re-proposed by the Friday review's burn section, with no gate and no daemon. Landed in 8fa628acd (backlog, trial a) and 9554dcf49f (E-f, the first switch-off)."
     }
   }
 }
