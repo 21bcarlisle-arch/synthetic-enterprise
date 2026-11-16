@@ -176,6 +176,8 @@ footnote.
 - Exit-test reading on origin: —
 - Worktree, commit, units: —
 
+**2026-11-16 08:45 GMT: not launched; leg 1 fails.** The 16 Nov book (`producing_commit` 8a300fa561, which descends from 3af02a2dd1, 37d9342869, the refund clock ceeefa5960 and e17ebc596) is refused by the publisher's own grade (`docs/reports/domain_invariants.json`, git 8a300fa561, 1,306 accounts, re-graded 08:36): `refuse: true` on four unexcepted rows, none of them closing-refund rows: INV_OVERDUE_WITHIN_BALANCE 4, INV_OVERDUE_WITHIN_PAGE_BALANCE 7, INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE 2, INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 5 (exception max 1). Leg 2 is also unmet: no exit-test reading is on origin at 0c2bf2df14. The fields above stay empty, and the next book the gate passes is this test's book under §1 and A3.
+
 ## Reverse
 
 Delete this file. Nothing outside `docs/staging/records/` is touched.
