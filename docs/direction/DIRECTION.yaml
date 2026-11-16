@@ -1,259 +1,163 @@
 version: 1
-oriented_at: '2026-11-16T15:20:57.425256+00:00'
-thesis_read: 'Against the thesis this stretch went nowhere, and the supplier side went backwards on attention: 0 supplier commits, 1 world, 11 other. There is still
-  no graded evidence that per-customer inference beats the flat-rules supplier. The only read that could give it is candidate A''s flag-off twin. It has run 6h23m
-  and reached March 2022, so its grade is late tonight. What did land matters for the next book, not for the thesis. The revenue row is clear (586e304ce, as predicted).
-  The world now records its ask on each final bill (123df0734), which makes W1 and W4 readable. sim-runner will no longer build a book that cannot change a refusing
-  row (d20c70aec), and that corrects the 07:05 waste: my prediction that the 07:05 book would be refused on rows 4 and 7 held. So exactly one thing now stands between
-  the project and a published book newer than 9 Nov, which is D5. Its world half is landing as I write, but it is built switched OFF. The page still prints a level
-  leaver''s debit as owed, and the runner still dates it 28 days late, so turning the switch on alone would collect a debt the page also shows. The danger is that
-  the queued d5-lander writes this switched-off commit into next_book_requires.yaml, and sim-runner then spends about two hours on a book that is refused on the same
-  two rows again. Focus item 2 closes that. On the machine, my previous focus drew 1 of 5. Its item 1 asked for two one-command re-stamps, and neither was done, so
-  b11-m7 is still drawable while the twin needs the memory. The worker tick drew the stale head-red register three more times. This record splits the re-stamp out
-  as the first step, keeps D5 second and supplier-side, and keeps the head-red register and the seat-landing gate because both are the machine failing to carry direction
-  into work.'
+oriented_at: '2026-11-16T21:23:08.620182+00:00'
+thesis_read: 'Against the thesis, nothing is decided yet, but for the first time in two days the deciding run is on disk. Candidate A''s flag-off twin finished at
+  20:25 with success, after 11.5h, and /var/tmp/vta-out-flag0/member_11111_22222.json exists. Its paired grade against the flat-rules arm is now drawable, and no
+  tick has taken it. That grade is the only evidence on the box that per-customer inference beats the baseline, so it is focus item 1. The stretch itself was thin:
+  12 commits, 2 substantive, split 0 supplier, 0 world and 12 other. The brief files D5''s world half (ddde5880c) as other, but it is billing work. Three commits
+  were empty merges and three were written_at-only banners, so the race those banners cause is still costing landings. The publish is still blocked. The site serves
+  the 9 Nov book, and the publisher has failed 25 times in a row over 16.7h. D5 is moving, though. The world half landed switched off, the page half is landing now
+  (pid 2097121), and the switch-on is what remains. My previous steer drew 0 of 5, and it never reached origin at all: a site test read its own prose as an empty
+  field and refused its landing at 18:53. The draw spent its three hours on continuations, which is where the D5 work did reach a worker. So the atom-id error is
+  corrected through that route and not through my Lane 0 id. Two earlier asks were done by other hands. The D5 next-book row now waits for the switch-on (78a387afe,
+  and continuation d5-switch-on-fills-next-book-row). b11-m7''s wait was not added, and it is now folded into the grade it waits for. This record keeps the same shape,
+  the thesis grade and then the publish blocker, and adds the cause that kept the last record off origin.'
 stretch_reviewed:
-  since: '2026-11-16T12:20:26.166814+00:00'
+  since: '2026-11-16T18:24:27.397925+00:00'
   commits: 12
-  substantive: 3
+  substantive: 2
 focus:
-- id: value-test-step-6-the-1200-household-twelve-draw-book
-  what: 'FIRST, before anything else, re-hand-off two continuations with python3 -m background.seat_continuation
-    --hand-off (same id, same text, wait prepended). (a) value-test-candidate-a-graded-paired-against-its-twin:
-    replace ''DO NOT DRAW BEFORE 17:00 on 2026-11-16'' with ''DO NOT DRAW BEFORE /var/tmp/vta-out-flag0/member_11111_22222.json
-    EXISTS''. (b) b11-m7-launch-after-churn-roll-and-candidate-a: prepend the same artefact wait, and
-    say it launches only through launch_long_job after A''s paired grade is on origin. Confirm with --list
-    that both show waits_for. Do not touch the twin: unit longjob-value-test-candidate-a-flag0-twin, pid
-    2842964, which is in March 2022 at 6h23m. When the artefact exists, grade the pair against s.9a''s
-    D1-D4 in docs/design/THE_VALUE_TEST_REDESIGN.md. Then pre-register step 6 in docs/design/THE_VALUE_TEST_REDESIGN.md
-    and launch it as one unsharded 1,200-household book on 12 churn_roll draws, as the director ruled
-    on 15 Nov.'
-  why: 'This is the thesis test, and the twin is the only process on the box that can answer it. A drawable
-    b11-m7 launch could take the memory it needs. Done means: both rows show waits_for (this step alone
-    is done today); A''s paired grade is on origin against D1-D4; and step 6''s graded result is on origin
-    beside its pre-registration, as GBP per household-year with its bound, or ''we cannot tell'' if the
-    bound spans zero.'
+- id: value-test-candidate-a-graded-paired-against-its-twin
+  what: 'First, one command: re-hand-off b11-m7-launch-after-churn-roll-and-candidate-a with python3 -m
+    background.seat_continuation --hand-off, keeping its text and prepending ''DO NOT DRAW BEFORE candidate
+    A''s paired grade is on origin. DO NOT DRAW BEFORE 06:00 on 2026-11-17.'' Then grade candidate A''s
+    pair from /var/tmp/vta-out-flag0/member_11111_22222.json (and control_11111_22222.json) against s.9a''s
+    D1-D4 in docs/design/THE_VALUE_TEST_REDESIGN.md, exactly as pre-registered, and land the grade beside
+    the pre-registration with a Graded: value-test trailer. Then pre-register step 6 (the unsharded 1,200-household
+    book on 12 churn_roll draws, director 15 Nov) in the same document. Launch it through launch_long_job
+    only after the grade is on origin and no other long job holds the box.'
+  why: The twin finished at 20:25, so the thesis test is now one read away, and it is the only run that
+    says whether inference beats flat rules. Done means A's paired grade is on origin in GBP per household-year
+    with its bound, or 'we cannot tell' where the bound spans zero; step 6's pre-registration is on origin;
+    and --list shows b11-m7 waiting on that grade.
   lane: B_commercial
   side: supplier
-  written_at: 1794842751.715
-- id: DD_seasonal_cashflow_physics
-  what: 'D5''s world half is landing switched off (surgical_land pid 976146, FINAL_BILL_ASKS_THE_LEVEL_DEBIT=False
-    in background/live_payment_triad.py). Do not relaunch it; wait for it to land or refuse. Then build
-    the company half that its commit message lists as still owed, citing docs/market_research/home_moves.md
-    s.8.8f (K8). First, the page''s balance_settlement_from_outcomes stops holding a level leaver''s scheme
-    debit as a standing debt once the final bill asks it. Second, in tools/domain_invariant_runner.py,
-    _left_level_owed (choice 27) applies the 28-day closing statement to S7 only. Third, SYN-2016-471''s
-    desk misdating is fixed. Pre-register rows 4 and 7 on the f7e17b1316 data, then turn the switch on
-    in its own commit. ONLY THAT switch-on commit goes into background/next_book_requires.yaml''s commit:
-    null row, never the switched-off build. Re-word continuation d5-lander-fills-the-next-book-requirement
-    to say so before it is drawn.'
-  why: 'Billing accuracy is first in the director''s order, and D5 is the last fix between the project
-    and a published book. If the switched-off build is written in as the requirement, sim-runner spends
-    about two hours on a book that is refused on rows 4 and 7 again: the 07:05 waste a second time. Done
-    means the switch is on, on origin, with its control and a graded pre-registration; next_book_requires.yaml
-    names that commit; and sim-runner''s next cycle admits a book.'
+  written_at: 1794864433.066
+- id: d5-company-half-and-the-switch-on
+  what: The D5 page half is being landed now (surgical_land pid 2097121, watched by wait_for pid 2220936).
+    Do not relaunch it while that pid lives; if it exits refused, relaunch once from the same worktree
+    and record why it lost. Then build the rest of the company half, citing docs/market_research/home_moves.md
+    s.8.8f (K8). First, in tools/domain_invariant_runner.py, _left_level_owed (choice 27) applies the
+    28-day closing statement to S7 only. Second, fix SYN-2016-471's desk misdating. Pre-register rows
+    4 and 7 on the f7e17b1316 data. Then turn FINAL_BILL_ASKS_THE_LEVEL_DEBIT on in background/live_payment_triad.py
+    in its own commit, and let continuation d5-switch-on-fills-next-book-row write that commit into background/next_book_requires.yaml.
+  why: Billing accuracy comes first in the director's order, and D5 is the last fix between the project
+    and a book newer than 9 Nov (25 consecutive publisher failures). Done means the switch is on, on origin,
+    with a control and a graded pre-registration, next_book_requires.yaml names that commit, and sim-runner's
+    next cycle admits a book.
   lane: D_billing_metering
   side: supplier
-  written_at: 1794842751.715
-- id: the-head-red-register-is-re-rendered-or-not-drawn
-  what: 'docs/staging/reference/HEAD_RED_REGISTER.md and docs/observability/.head_red_observed.json are
-    still dated 4 Nov 07:54, and the worker tick drew ''HEAD_RED_REGISTER.md: 17 owed'' again at 10:13,
-    12:13 and 14:14 today. Read background/head_red_register.py, head_green_census''s launch path and
-    its journal to find why no census since 4 Nov has rendered the register, and fix the write. Then make
-    the staging draw that offers this item stop offering it while the register''s run is older than the
-    census''s last completed run, with a mutation-proven control keyed to that property.'
-  why: About 300 Opus worker invocations since 4 Nov have gone to a count that no fix can move, and that
-    is capacity the supplier order never got. Done means the register shows a run from this week at a
-    current HEAD, and a stale register can no longer be drawn.
+  written_at: 1794864433.066
+- id: the-seat-record-reaches-origin
+  what: Two causes have kept seat records off origin today, and they get one fix. (a) The 18:24 record
+    was refused because site/test_no_published_page_renders_an_empty_field.py read wrong-row prose with
+    a stamp and then a word, each followed by a colon, as two labels in a row on site/harness/index.html
+    via site/data/delivery.json. Decide whether the renderer or the detector is wrong. Then make the seat's
+    own write of docs/direction/DIRECTION.yaml run the same check on its draft before it lands, so a bad
+    record is refused at write time with the reason named. (b) Make tools/knowledge_layer_gate.py judge
+    only paths whose blob differs from origin/main. Give each a control that is mutated both ways.
+  why: Two of today's three seat records never reached origin (09:23 and 18:24), each refused on something
+    other than its own content, so the director reads a record that the draw may not be steering by. Done
+    means both controls are on origin and the next seat record lands by its own tick.
   lane: H_harness
   side: other
-  written_at: 1794842751.715
-- id: the-seat-record-lands-past-another-lanes-landed-file
-  what: The 09:23 record was refused at 09:53 by the knowledge gate on docs/staging/advisor/done/DIRECTOR_RULING_EP11_REFRAME_APPROVED_SANDBOX_STAYS_A_LATER_DIRECTOR_RUNG_2026-11-16.md.
-    209f1b93f had already landed that file, and the gate read the seat merge's combined diff. Make tools/knowledge_layer_gate.py
-    (the commit-msg knowledge gate) judge only paths whose blob differs from origin/main, with a control
-    showing that a path identical to origin cannot refuse a landing. Do not add Knowledge lines to the
-    DIRECTOR_* files.
-  why: Origin is the record the director reads, and three of the last seven seat records never reached
-    it. The 12:52 landing shows only that the race was not hit that time. Done means the control is on
-    origin and the next seat record lands by its own tick.
+  written_at: 1794864433.066
+- id: the-paused-banner-commits-only-on-a-change
+  what: background/process_run_complete.py (with background/publish_freshness.py) commits site/data/publish_provenance.json's
+    verification-paused banner about once an hour while verification is paused, and 569be7b20, 96458df0b
+    and f48557fa7 this stretch differ only in written_at. Make the banner commit only when a field other
+    than written_at changes, with a control showing that re-pausing in an identical state makes no commit
+    and that a changed state still does. Mutate it both ways.
+  why: Each banner moves origin, and the commit gate runs longer than the gap between origin commits.
+    Two of this stretch's three empty merges sit next to a banner, and D5's world half lost a race to
+    one earlier today. Done means the next stretch's commit list has no banner commit whose only change
+    is written_at, and the control is on origin.
   lane: H_harness
   side: other
-  written_at: 1794842751.715
+  written_at: 1794864433.066
 not_now:
-- what: The thirteenth cold read (continuation thirteenth-cold-read) and the Capabilities-strip check on f4f825b8b.
-  why: Both need a verified published book, and none can publish before D5 is switched on. Reading the 9 Nov page again would grade a book that two dozen fixes have
-    moved past.
-- what: Recording a dated exception for rows 4 and 7 so that a book publishes today.
-  why: 'The rows are a real billing defect: leavers are dunned for a debit no bill asked for. The fix is in flight, so an exception would publish a known wrong page
-    to save about a day.'
+- what: The thirteenth cold read and the Capabilities-strip check on f4f825b8b.
+  why: Both need a verified published book, and none can publish before D5 is switched on. Reading the 9 Nov page again grades a book that two dozen fixes have moved
+    past.
+- what: Recording a dated exception for rows 4 and 7 so that a book publishes tonight.
+  why: The rows are a real billing defect (leavers dunned for a debit no bill asked), and the fix is half on origin and half landing now. An exception would publish
+    a known-wrong page to save hours.
 - what: Landing W3_3 (settlement books the standing charge) from origin/w3-3-network-split-held.
-  why: One change per book. W3_3 moves settlement P&L, and stacked on D5 the next book could not attribute a moved row to either. It follows the first D5-fixed publish.
-- what: Launching B11 M7, or any other long job, before candidate A's twin finishes.
-  why: The twin is the thesis test and holds 7.2 GB on a guest whose binding figure moves. A second long job risks it, and M7's own id says it comes after A.
-- what: C32 class 1 (exercise DEBT_OBJECTION and METER_RECOVERY live) and the j1 residual openings as focus items.
-  why: Both are queued continuations with owners, and C32 is landing now (surgical_land pid 972530). Neither is a refusing row on the next book, so focus adds nothing
-    to them.
-- what: Fixing the canon-drift BLOCKING finding on the Harness page from focus.
-  why: It does not refuse a book or touch the supplier, and it has a worker finding the ordinary draw can take. Focus is spent on the thesis test and the publish
-    blocker.
-- what: Reaping or landing the seven at-risk October salvage worktrees.
-  why: They hold salvage from closed October work, and none blocks a supplier result. Reaping is irreversible, so they stay until a seat names each one disposable
-    with a reason.
+  why: One change per book. Stacked on D5, a moved row could not be attributed to either change. W3_3 follows the first D5-fixed publish.
+- what: Launching B11 M7, or step 6, now that the twin has freed the box.
+  why: Both are designed from A's grade. Launching before it is read would spend about 10h of box time on a design the grade may change.
+- what: The n29 residual-23, the n29 close set-off and the level-return-on-credit-bill-month print fix as focus items.
+  why: Each is a queued continuation with an owner, and the residual-23 one is landing now (pid 2186977). Focus would add a second route to work the draw already
+    reaches.
+- what: The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
+  why: It refuses no book and touches no supplier result, and it is not even in origin's staging root yet. The ordinary draw can take it.
+- what: A heartbeat line for the mute worker-seat-manager.
+  why: Its cause is on file and its wait channel reads hrtimer_nanosleep live. A behaviour change to the daemon that seeds the worker seat needs its own evidence,
+    and nothing this stretch asks for it.
+- what: Reaping the at-risk worktrees, including the new unlocked /var/tmp/n29r/B salvage (21:10Z).
+  why: n29r/B is the live n29 lane's own salvage, made while its landing runs. The October ones block no supplier result, and reaping cannot be undone.
 wrong:
-- what: 'THE COMPANY''S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails
-    are in decisions.jsonl.] 15:20 16 Nov: Unchanged in the live book. The flag-off twin (pid 2842964, 6h23m, 7.2 GB) has reached March 2022 with no artefact yet,
-    so its grade is late tonight at the earliest. Neither re-stamp the 12:20 record asked for happened: the grade row still says 17:00, and b11-m7 still has no wait,
-    so it is drawable while the twin needs the memory. Focus item 1.'
+- what: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails
+    are in decisions.jsonl.] 21:23 16 Nov -- unchanged in the live book, but the flag-off twin finished at 20:25 with success and member_11111_22222.json (4.5 MB)
+    is on disk. The grade is drawable and undrawn (focus item 1).
   corrected: false
-- what: 'THE MACHINE''S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier
-    tails are in decisions.jsonl.] 15:20 16 Nov: Unchanged. No book has published since 6fe7827ab2, so the thirteenth read (queued as thirteenth-cold-read) waits
-    in not_now until one does.'
+- what: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier
+    tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged. No book has published since 6fe7827ab2, so the thirteenth cold read stays in not_now.
   corrected: false
-- what: 'THE WORLD''S OR THE COMPANY''S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED''s
-    14.7%). [Earlier tails are in decisions.jsonl.] 15:20 16 Nov: Unchanged (fix, owner W2_30, recheck by 23 Nov).'
+- what: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%).
+    [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
   corrected: false
-- what: 'THE WORLD''S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree
-    by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 15:20 16
-    Nov: Unchanged. W3_3 stays in not_now until the D5-fixed book has published.'
+- what: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree
+    by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 21:23 16
+    Nov -- unchanged. W3_3 stays in not_now until the D5-fixed book has published.
   corrected: false
-- what: 'THE COMPANY''S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world''s payment truth on 249 legs (GBP 17,828.49)
-    on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 15:20 16 Nov: Unchanged. 123df0734 now records the world''s
-    ask on every final bill (per leg), so W1 and W4 become readable on the first book carrying it (continuation level-dd-w1-w4-graded-on-final-month-nets). No such
-    book exists, and none will be admitted before D5 is switched on.'
+- what: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on
+    78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged. No book carries final_month_nets yet,
+    so the pre-registered W1/W4 and H1/H2 grade cannot start.
   corrected: false
-- what: 'THE MACHINE''S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the
+- what: THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the
     shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from
-    origin. [Earlier tails are in decisions.jsonl.] 15:20 16 Nov: 3 BLOCKING, all real: the revenue row''s unread tail went to done/ with 586e304ce. This brief''s
-    previous record matched origin (efe016db3). The reader still reads the working copy.'
+    origin. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged in kind. The brief again lists 3 BLOCKING, and one of them (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB)
+    is not in origin's staging root, only the shared tree's.
   corrected: false
 - what: 'THE MACHINE''S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026: Nothing recorded" after a week that fixed dozens of
     money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip''s source,
     docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.]
-    15:20 16 Nov: Unchanged. No book has published, so f4f825b8b is still not served.'
+    21:23 16 Nov -- unchanged. No book has published, so f4f825b8b is still not served.'
   corrected: false
-- what: 'THE MACHINE''S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the
+- what: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the
     gap between origin commits ("The gate is longer than the gap between commits", attempts 39f59e0d1 to cfd82d868 to 485d48a0c). It landed only when split (collision-census-land-split,
-    14:14Z), after about an hour of gate CPU. It is the same open number as surgical_land''s 103h of re-runs, which goes to the Monday ranking. [Earlier tails are
-    in decisions.jsonl.] 15:20 16 Nov: No landing was lost. 2 of 12 commits were empty re-gate merges (09b6811cb, 93e721d86). It is on the Monday ranking.'
+    14:14Z), after about an hour of gate CPU. It is the same open number as surgical_land's 103h of re-runs, which goes to the Monday ranking. [Earlier tails are
+    in decisions.jsonl.] 21:23 16 Nov -- unchanged. The D5 world half did land (ddde5880c, 20:18) after a relaunch, but 3 of 12 commits were again empty merges (37eec74aa,
+    15a15b94c, 43dfd323e), and 3 more banner commits differ only in written_at (569be7b20, 96458df0b, f48557fa7). Focus item 4.
   corrected: false
 - what: 'THE COMPANY''S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on
     the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them: the desk reads a final bill as
     a leaving and opens a collection journey on a scheme debit that no bill asked for (4 of 4 openings). On SYN-2016-471 it dates the leaving one bill early and asks
-    GBP 38.13 against GBP 28.77 owed (5 of 7 page steps). Focus item 2 fixes it. [Earlier tails are in decisions.jsonl.] 15:20 16 Nov: Unchanged on the build. 586e304ce
-    took the revenue row from 1 to 0 (PROS-2025-0095g flagged, as predicted), so rows 4 and 7 (D5) and the gas row''s fix (fc3129a86, not yet in any book) are what
-    remain. D5''s world half is landing now (surgical_land pid 976146), built switched OFF: it cannot move rows 4 and 7 until the page and the runner take the same
-    debit and the switch is turned on. Focus item 2.'
+    GBP 38.13 against GBP 28.77 owed (5 of 7 page steps). Focus item 2 fixes it. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged. The publisher
+    has failed 25 times in a row over 16.7h. The world half is on origin, and the page half is being landed now (surgical_land pid 2097121). The switch-on is still
+    owed (focus item 2).'
   corrected: false
-- what: 'THE MACHINE''S, NEW. At 07:05 sim-runner built a weekly book on f7e17b1316, a commit that carries the fix for none of the five rows that refused 8a300fa561.
-    It ran for 6,728 s. The value-test twin queued on memory for that whole time and launched 39 s after the book finished. That book is now in the publisher. Prediction,
-    filed before its grade: it is refused on at least INV_OVERDUE_WITHIN_BALANCE and INV_OVERDUE_WITHIN_PAGE_BALANCE. A routine book went ahead of the thesis test,
-    and nothing asked whether it could change a refusing row. Focus item 3 owns the next book''s launch condition. [Earlier tails are in decisions.jsonl.] 15:20 16
-    Nov: Corrected. The prediction held: process_run_complete refused that book at 12:31Z on rows 4, 7, 1 and 5 (SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_..., s.1).
-    d20c70aec now admits a book only on a commit carrying every fix in background/next_book_requires.yaml, and never while a long job queues for room.'
-  corrected: true
-- what: 'THE SEAT''S, NEW. The 09:23 record never reached origin. Its landing was refused at 09:53 by the knowledge gate on docs/staging/advisor/done/DIRECTOR_RULING_EP11_REFRAME_APPROVED_SANDBOX_STAYS_A_LATER_DIRECTOR_RUNG_2026-11-16.md,
-    a file another lane had landed on origin four minutes earlier (209f1b93f). The gate read the merge''s combined diff, not the seat''s own paths. Four of today''s
-    advisor/done files on origin carry no Knowledge line, so this record can be refused the same way. The earlier ''corrected'' row fixed a different cause (the bracket
-    sweep). Focus item 5. [Earlier tails are in decisions.jsonl.] 15:20 16 Nov: Unchanged on the cause. The 12:20 record did land by its own tick (efe016db3), but
-    nothing changed in the gate, so a record can still be refused on another lane''s landed file. Focus item 4.'
-  corrected: false
-- what: 'THE MACHINE''S, NEW. The worker tick has drawn ''HEAD_RED_REGISTER.md: 17 owed'' 298 times since 4 Nov (17 times today), and the register has not been re-rendered
-    since its 4 Nov 07:54 run at b3ce2a4e7. docs/observability/.head_red_observed.json was last written then too, although head_green_census ran this morning holding
-    11,981 MB. So about 300 Opus invocations were dispatched against a twelve-day-old count that no fix can move. Focus item 4. [Earlier tails are in decisions.jsonl.]
-    15:20 16 Nov: Unchanged. The worker tick drew the same item at 10:13, 12:13 and 14:14 today, and both files are still dated 4 Nov 07:54. Focus item 3.'
+- what: THE SEAT'S, NEW. The 09:23 record never reached origin. Its landing was refused at 09:53 by the knowledge gate on docs/staging/advisor/done/DIRECTOR_RULING_EP11_REFRAME_APPROVED_SANDBOX_STAYS_A_LATER_DIRECTOR_RUNG_2026-11-16.md,
+    a file another lane had landed on origin four minutes earlier (209f1b93f). The gate read the merge's combined diff, not the seat's own paths. Four of today's
+    advisor/done files on origin carry no Knowledge line, so this record can be refused the same way. The earlier 'corrected' row fixed a different cause (the bracket
+    sweep). Focus item 5. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged on the cause, and the 18:24 record was also refused, for a different cause
+    (see the new row). Focus item 3.
   corrected: false
 - what: 'THE SEAT''S, NEW. The 12:20 record''s focus drew 1 of 5 in this stretch, and the supplier side landed nothing (commit split: 0 supplier, 1 world, 11 other).
     Item 1''s first instruction, re-stamping two continuations, was never done, and it took one command each. A long first item bundled a cheap safety step with a
-    grade that cannot start before tonight, and the cheap step was never taken. This record makes the re-stamp its own first step and names the command.'
+    grade that cannot start before tonight, and the cheap step was never taken. This record makes the re-stamp its own first step and names the command. [Earlier
+    tails are in decisions.jsonl.] 21:23 16 Nov -- repeated. The 18:24 record drew 0 of 5 in its 3.0h, and b11-m7 still carries no wait after four asks. Over that
+    stretch the one worker drew continuations (DD_seasonal_cashflow_physics, n29-blind-row-residual-23), and each holds a tick for about an hour. So the b11-m7 re-stamp
+    now rides on the grade it waits for (focus item 1), which is drawable.'
   corrected: false
-for_the_director:
-- id: value-test-baseline-and-axis-weighting
-  raised: '2026-11-13'
-  kind: strategy
-  what: The redesigned value test (docs/design/THE_VALUE_TEST_REDESIGN.md, 16d90c311) leaves two choices that define what "beating a flat supplier" means. First,
-    for the standard-variable pair, whether the flat baseline charges the price cap. Second, whether the result is ever reduced to one number by weighing money against
-    time, carbon and peace of mind, or is reported only as the vector.
-  proposal: The standard-variable pair's flat arm charges the cap, and the efficient-supplier allowance arm (rule 4) stays the primary baseline. The result is reported
-    as the M3 vector, with no weighting between axes. Where one arm wins on one axis and loses on another, the page says so in words and declares no winner.
-  recommendation: 'I recommend this. Evidence: an average GB supplier puts its standard-variable households on the cap. So a cap baseline is the "average player"
-    the thesis names, while the efficient allowance tests whether the gain is more than a margin transfer (M2: "charging someone the cap transfers value rather than
-    creating any"). M3 says each need is "measured in its own unit and never converted to pounds", which rules out a weighting I could choose. The trade-off is that
-    a vector with mixed signs gives no headline verdict, and that is the honest reading. Holding position until he rules: steps 1 to 5 go ahead, both baselines are
-    built, and nothing is weighted. What would change it: his ruling that a different flat supplier is the comparator, or a weighting he sets.'
-  status: answered
-  resolution: 'Ruled 13 Nov 18:59 GMT: ''Yes. No. I think a weighted utility score is a good idea and a way to capture enterprise customer value creation. NB this
-    needs to be hidden in the SIM and underlying. The supplier must discover it ?'' The cap baseline stands as proposed. Instead of an unweighted vector, a per-household
-    weighted utility is hidden in the world and the supplier must discover it. The vector is still published beside it. M3 draft for the advisor: docs/staging/SEAT_PROPOSAL_M3_WORDING_FOR_A_HIDDEN_PER_HOUSEHOLD_UTILITY_2026-11-13.md.
-    The first redesigned run reports the vector and the utility follows a run later.'
-  resolved: '2026-11-13'
-  commitment:
-    work_id: value-test-hidden-weighted-utility-knowledge-page-first
-    done_means: M3 amended after the advisor reads the draft; a K8 knowledge page on household need weights (GAPs labelled) published; Sunday's 16 Nov balance proposal
-      names the utility's cost and queue position
-    due: '2026-11-23'
-- id: the-off-box-dead-man-misses-stops
-  raised: '2026-11-13'
-  kind: reserved
-  what: 'The off-box dead-man misses stops of up to ~15h. GitHub delivers its schedule every 4-9h whatever the cron says: 0.139 runs/h at twice-hourly vs 0.159/h
-    hourly, longest gap 8.8h. Pre-registration refuted on both legs.'
-  proposal: Trigger the ops workflow off-box-deadman.yml by workflow_dispatch from the advisor's cloud routine, hourly, with a fine-grained token scoped to actions:write
-    on the ops repo only. Creating the Routine and its token is console-only.
-  recommendation: 'I recommend the hourly workflow_dispatch from the advisor routine. It brings worst-case detection from ~15h to ~7h. The trade-off is one more scoped
-    credential held off the box. Holding position: the twice-hourly cron stays and the 6h threshold is unchanged. What would change this: if GitHub''s delivery improves
-    to gaps under 2h over a week, the routine is not needed.'
-  status: answered
-  resolution: 'Ruled 14 Nov 05:56-05:57 GMT through the advisor channel: ''We already have a check don''t we here?'' and ''6 hrs is fine. Tell it we have this.''
-    No routine and no scoped token are created. The advisor''s cloud ''Poesys stall check'' (08:17, 12:17, 16:17, 20:17 UK; alerts on a 6h machine-commit gap) covers
-    off-box detection. The on-box watchdog and the GitHub dead-man stay as they are. While a long job runs, a machine commit lands at least every 6h.'
-  evidence: docs/staging/records/SEAT_RESULT_THE_THREE_STOPS_OF_3_TO_10_NOV_HAVE_THREE_DIFFERENT_CAUSES_2026-11-10.md, section 'Result of the pre-registration'; gh
-    run list -R 21bcarlisle-arch/synthetic-enterprise-ops --workflow off-box-deadman.yml --event schedule
-  resolved: '2026-11-14'
-  commitment:
-    work_id: the-advisors-14-nov-steers-are-actioned
-    done_means: The control stack on the Building-it side lists the advisor's cloud stall check with its owner, schedule, 6h threshold and commit-gap-only blind spot,
-      and the ruling file is in advisor/done with a Done section
-    due: '2026-11-17'
-- id: the-value-test-s-sized-book-candidate
-  raised: '2026-11-15'
-  kind: strategy
-  what: The value test's sized book (candidate C) is beyond one run on this machine. The churn_roll family (THE_VALUE_TEST_REDESIGN.md s.10, ed371fa35) measured roll
-    noise at 43% of per-household variance. So telling GBP 3 per household-year from zero needs about 3,060 households on 12 draws, or 5,030 on one. One run holds
-    about 1,200. Rule 2 sends that to you with its cost.
-  proposal: Run step 6 as one 1,200-household book on 12 churn_roll draws (no sharding; about 72 h of machine time, no sessions beyond grading). It resolves about
-    GBP 4.80 per household-year. Build the sharding for a 3,060-household book (about 2.3 sessions, then 2.5x the machine time) only if A or B shows an effect that
-    the 1,200 book cannot separate from zero.
-  recommendation: 'I recommend the 1,200-household, 12-draw book first. Evidence: s.10''s variances. The trade-off: it cannot resolve the predicted GBP 3, only about
-    GBP 5, so a true GBP 3 would read ''not distinguishable from zero''. Holding position until you rule: A runs on 12 draws, then B if A clears its bar; C is not
-    built. What would change it: you ask for the GBP 3 resolution now, which means building the sharding.'
-  status: answered
-  resolution: 'Director, Sun 15 Nov 17:53 GMT: ''Yes to your recommendations''. Run step 6 as one 1,200-household book on 12 churn_roll draws, unsharded (resolves
-    about GBP 4.80 per household-year). Build sharding only if A or B shows an effect the 1,200 book cannot separate from zero. Record: docs/staging/advisor/done/DIRECTOR_RULING_THE_1200_HOUSEHOLD_BOOK_FIRST_AND_THE_WEEK_OF_16_NOV_SPLIT_WITH_METER_FAULTS_2026-11-15.md'
-  evidence: 'THE_VALUE_TEST_REDESIGN.md s.10: roll share 0.427 (0.30 to 0.54); households needed for GBP 3 are 5,032 on K1 and 3,063 on K12; s.6a''s ''neither fires''
-    row assumed 1,200 at 12 draws resolves GBP 3, and the measurement refutes that.'
-  resolved: '2026-11-15'
-  commitment:
-    work_id: value-test-step-6-the-1200-household-twelve-draw-book
-    done_means: Step 6 runs as one unsharded 1,200-household book on 12 churn_roll draws once the candidate A/B grades are in, and its graded result is on origin
-      with its GBP-per-household-year resolution stated
-    due: '2026-11-22'
-- id: ep11-is-titled-direct-debit-against-a
-  raised: '2026-11-16'
-  kind: reserved
-  what: EP11 is titled 'Direct Debit against a real sandbox' (director_ruling), but a live GoCardless sandbox needs gocardless.com on the egress allowlist (console-only)
-    and a sandbox account under Poesys's name (a G5 contractual commitment); company/ may never open a socket either.
-  proposal: 'Keep the real sandbox as a later director-only rung (level 4). Define EP11 level 3 as a GoCardless-shaped bureau counterparty over the existing EP6 wire:
-    all four Bacs reports as world events (AWACS is absent today), confirmed only after the ARUDD window, webhook-style duplicates and reordering.'
-  recommendation: 'I recommend approving the reframe: the unhappy-path value the atom''s origin_note names is all reachable inside the walls, and the sandbox would
-    only test transport, which EP6 already owns.'
-  status: answered
-  resolution: 'Director, chat 16 Nov 09:27 GMT, "Yes and yes" to: "The machine wants to change its framing so the unhappy-path work happens inside the simulation,
-    not in a separate sandbox. I recommend approving that." Level 3 is the bureau counterparty in the world; the live sandbox is a later director-only level 4 (docs/staging/advisor/done/DIRECTOR_RULING_EP11_REFRAME_APPROVED_SANDBOX_STAYS_A_LATER_DIRECTOR_RUNG_2026-11-16.md).'
-  g5_class: real_world_commitment
-  evidence: docs/design/EP11_GOCARDLESS_BACS_DISCOVER_FRAME.md
-  resolved: '2026-11-16'
-  commitment:
-    work_id: EP11_adapter_gocardless_bacs
-    done_means: EP11's map title and level_note carry the reframe (landed 209f1b93f); the level-3 build lands behind a default-off switch and one book is read before
-      it is turned on
-    due: '2026-12-14'
+- what: THE SEAT'S, NEW. Two records named the publish blocker in focus by its atom id (DD_seasonal_cashflow_physics), which only biases a draw that has stopped taking
+    that atom (999 unchanged draws, 'not drawn this stretch'). So the one fix between the project and a published book had no route to a worker for about six hours.
+    21:23 16 Nov -- corrected. The work reached a worker through the continuation queue and not through the Lane 0 id. DD_seasonal_cashflow_physics was claimed at
+    20:22Z, and its page-side landing is running.
+  corrected: true
+- what: THE SEAT'S, NEW. The 18:24 record never reached origin either. The seat's landing was refused at 18:53 because site/test_no_published_page_renders_an_empty_field.py
+    read the record's own wrong-row tail, '16 Nov' followed by 'Repeated' with a colon after each, as two labels in a row on harness/index.html (rendered through
+    site/data/delivery.json). The seat's prose broke a site test, and nothing checks a draft against it before the seat lands it. This record writes no such stamp.
+    Focus item 3.
+  corrected: false
+for_the_director: []
