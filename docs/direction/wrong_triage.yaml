@@ -759,3 +759,17 @@ items:
     first_seen: "2026-11-10"
     fate: accept
     reason: "Triaged 2026-11-14 by the delivery seat. The misattribution is a closed historical fact: the four fixes (9392920e6, c7e706580, bd58577a2, 1c66aceab) are on origin with their sides named, and there is nothing left to fix. The lesson is the learning loop's code-or-reader count, which already separates instrument and world misses from the desk's. Listing it every stretch adds 'Unchanged' and nothing else."
+  # 2026-11-16 06:23Z orientation: two carried rows triaged ahead of their 18 Nov 7-day line.
+  - id: a-long-job-wrapping-a-landing-exits-zero-on-refusal
+    problem: "The launch register records a refused landing as a success, because a long job's script exited 0 after its surgical_land printed REFUSED."
+    match: ["The launch register records a refused landing as a success"]
+    first_seen: "2026-11-11"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md"
+    reason: "Triaged 2026-11-16 by the delivery seat. A wrapper that reports success whatever its inner step returns is a control that cannot fail, and that register is where the remedy belongs. One instance (crfix-land-A). Every long job that ended since 13 Nov read its own status correctly (churn_roll status 0 with fold rc 0; the desk pair status 1 with fold rc 1), so listing it each stretch added only 'unenforced'. Reopen as a fix if a refused landing is recorded as a success again."
+  - id: the-draw-cannot-read-a-standing-rulings-scope
+    problem: "The draw and a tick's NEXT can spend work outside a standing director ruling or a focus item's hold, because neither reads the ruling's scope or not_now."
+    match: ["The draw spent a tick outside the director's 12:00 ruling"]
+    first_seen: "2026-11-11"
+    fate: accept
+    reason: "Triaged 2026-11-16 by the delivery seat. The instances since 14 Nov are the not_now shape already accepted as not-now-is-prose-that-nothing-reads (A45 drawn against not_now, W2_44 queued by a NEXT). The costly one, A's twelve-draw family launched early, was stopped at 10:20Z with nothing written. His pace rulings are now held by tick mode, which kept the 15-16 Nov quiet exactly. A focus item's hold needs a stamp or a waits_for the queue reads, not prose, so this record writes them that way. Reopen as a fix if a breach changes a book that is graded under a ruling."
