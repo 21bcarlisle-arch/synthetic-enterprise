@@ -69,3 +69,20 @@ Probable failure modes:
 Proportionality: harness, reversible. Implement directly, after the reset.
 
 — Director steer, 15 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Seat executor, Mon 16 Nov 2026, after the 03:00 GMT reset. Nothing started before it.
+- **1. The backlog** is one file, `docs/operations/EFFICIENCY_BACKLOG.md`, seeded with trials a–e, the meter
+  test (E-3) and Code Mode ("revisit when it supports -p or headless sessions; re-check each Friday").
+  The Friday burn section points at it. No gate, no daemon. Landed in 8fa628acd.
+- **2a. Trial (a)** ran against its pre-registration: shell output is file reads (16%) and search (12%);
+  gates (0.3%) and pytest (0.1%). All four predictions held. Trial (b) as drafted is dropped (ceiling
+  about 0.5%) pending E-b0. Trials c, d and e are queued in the backlog, one variable at a time.
+- **3. The meter is machine-readable**: headless stream-json carries `rate_limit_event.seven_day.utilization`.
+  No readings are needed from the director. Nothing throttles on it. The weighting test (E-3) is queued
+  for a quiet window.
+- **4. The stale NTFY line** in `_burn_section` now says the stretch log and `for_the_director`.
+- **Throttled to pay for it** (stretch log): other H_harness draws this week.
+- The track continues as the backlog's standing rows, reviewed each Friday. The second steer's load audit
+  (E-f) is done: account plugins are off for headless seats (9554dcf49f), and trial E-e is wired from 21 Nov.

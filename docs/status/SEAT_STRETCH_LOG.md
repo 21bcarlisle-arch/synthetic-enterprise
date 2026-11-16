@@ -20131,3 +20131,12 @@ gives this track first claim on harness slots in the week of 16 Nov.
   to 34,224 opening-context tokens (-3,911). Wall hooks still fire. To reverse, delete the `--settings` pair.
 - **Read on Friday:** the first call's context share against the 39.1% baseline. Re-probe for newly synced plugins.
 - **Next:** E-e, the CLAUDE.md delete-and-add-back trial, once E-f's after-window is read (one variable at a time).
+
+**Efficiency track, the same audit from the seat executor, and E-e wired (Mon 16 Nov, about 05:00–06:30 GMT).**
+- **Two lanes ran E-f at once.** The worker's landing (9554dcf49f) switched the plugins off first. This lane's
+  identical change was dropped. Its census is kept, split per seat, and it adds one thing: 11 tools no seat called
+  in 447 turns, about 2,800 tokens per call. That is E-f2, queued.
+- **E-e is pre-registered and wired:** a 38% CLAUDE.md against the full one, on seat-executor Opus turns, from
+  21 Nov, after E-f's Friday read. The live CLAUDE.md and its cap are unchanged. The draft cannot land as
+  CLAUDE.md: the integrity gate refuses it.
+- **The first steer is in advisor/done/.** Its question ("a continuous track?") is answered in the register.
