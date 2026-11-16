@@ -1225,6 +1225,59 @@ balance. The close refund reads each fuel alone.
     own collections handle it. *Named limit:* a household whose surviving fuel owes is still refunded on the fuel
     that leaves.
 
+#### 8.8f A level leaver's debit and its final bill (added 2026-11-16, before the build; D5 of `LEVEL_DD_AREA_MAP.md`)
+
+**The question (D5).** Is a mover's final bill a "leaving" of level direct debit, after which the scheme's debit is
+demanded on a separate closing statement 28 days later? Or is it the closing demand itself? The desk, the page and the
+domain-invariant runner answer this differently, and the 16 Nov publish is refused on the result.
+
+**What the evidence shows (8a300fa561 book, discovery).** SYN-2016-024g's gas leg was billed 55.95 (a 42.42 catch-up
+included), 16.08 and 24.83 while its level debit collected 22.44 a month. The final bill (22907, issued 30 Oct 2016,
+due 13 Nov) asked its own period's face, 24.83, and the mandate collected exactly 24.83 on 14 Nov. The page still owes
+5.87 afterwards. **No document ever asked for that 5.87.** The desk opens a journey for it on 22 Nov. Its pre-leaving
+cash is spent oldest bill first (`arrears_engine.left_level_asks`), so the shortfall lands on the final bill, which is
+dated from its own due date. The runner (`_left_level_owed`) reads the same debit as owed only 28 days after leaving.
+SYN-2016-075 and PROS-2021-0315 have the same shape. SYN-2016-471 has it too, plus a separate desk misdating (it reads
+bill 45883 as off the schedule, so it asks 38.13 against 28.77 owed).
+
+**What the rules and published practice say.** These are all already on this page, read together:
+- SLC 27.17: the final bill is a statement of account, so it states the one balance (§8.8c).
+- SLC 31H.12: a bill states what is owed to or by the licensee, and how payment is to be made (§8.8c).
+- British Gas: if the account is in debit at the final bill, the customer makes a final payment. Ofgem and Energy UK:
+  keep the direct debit active until the final bill is settled (§8.8d).
+- Debt prevention at move-out includes "collecting the final bill by the existing direct debit" (§ above).
+
+**The answer.** A final bill is **not** a leaving into pay-on-receipt. It is the closing demand. It states the leg's
+whole balance, the scheme's unrecovered debit included. That balance is due on the final bill's own due date and is
+collected by the existing mandate. The 28-day closing statement (`payments_and_direct_debit_2026-10-25.md`, "Leaving
+level direct debit with a debit") is for a leg that leaves level DD **while still supplied** (S7), and only for that.
+The world already does the credit half of this (§8.8c choice 14 and the triad's "A LEVEL LEAVER'S FINAL BILL NETS THE
+SCHEDULE'S SURPLUS"). The debit half is missing, so 436 legs on the census leave on a final bill that asks only its face.
+
+**GAP G8.18.** The final collection is for a larger, one-off amount, so does the supplier give the advance notice the
+Direct Debit Guarantee requires for a changed amount? It is practitioner-obvious that the final bill itself is that
+notice, given its 14 days, but no published text was found. K4.
+
+*Choices (numbered from 26: 25 is cited in code comments but is not on this page).*
+26. *The world's final bill for a level leaver asks its face plus the leg's debit on the supplier's own ledger*
+    (`_leg_balance_on`, which already gives the credit side), less any part SLC 21BA bars at that bill (§ fuel page;
+    `dd_balance_book`'s bar at the final bill). The household's final-bill outcome draw is unchanged and keyed as
+    before. A failed final collection leaves the whole ask unpaid from the final bill's due date.
+27. *The desk, the page and the runner read one due date for that debit: the final bill's.* The desk reads what the
+    final bill asked (`note_bill_asked`), the page prints that ask on the final bill row, and the runner's
+    `_left_level_owed` takes the leg's last bill, when it is the first after the scheme, as the demand: owed from
+    its due date, not 28 days after.
+28. *Direction of error (F11).* This raises move-out collections and lowers bad debt on the book, which is in the
+    company's favour. It is fidelity: the rules above require the demand. The size moved is reported on the first book
+    that carries it, beside the 6fe7827ab2 figure.
+
+**Prediction, filed before any build (worker tick, 16 Nov 2026).** On the first book carrying choices 26 and 27, with
+no other company or world change between it and 8a300fa561: `INV_OVERDUE_WITHIN_BALANCE` reads 0 of the 4 S9 openings.
+It reads at most 1 overall, because a final collection that fails now opens on the debit from the final bill's due date,
+which the runner then reads as owed. `INV_OVERDUE_WITHIN_PAGE_BALANCE` loses SYN-2016-471's 5 steps only if the desk's
+misdating of bill 45883 is fixed in the same change. Otherwise it stays at 7. Write-offs at move-out on level legs fall.
+How far they fall: **I cannot yet say.**
+
 ---
 
 ## Sources

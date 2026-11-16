@@ -1377,3 +1377,35 @@ account) and differenced on another (the leg's bill).
   25 Jun 2021 `prepayment_or_debt_agency` and `prepayment_withheld` steps, at 38.13 against 28.77. The other 2 of the 7
   are SYN-2016-001's, as stated. So D5 holds 4 of 4 journey openings and 5 of 7 page steps. Fixing it leaves
   SYN-2016-001's 2 steps, which are not level DD.
+
+## D5's definition question answered: the final bill is the closing demand (worker tick, 16 Nov 2026 ~07:40 GMT)
+
+- **Answer (K8, `home_moves.md` §8.8f).** SLC 27.17 and 31H.12, British Gas's "final payment" and Ofgem's and Energy UK's
+  "keep the direct debit until the final bill is settled" are already on the page. Read together, they make the final bill
+  the closing demand. It states the leg's balance, the scheme debit included, due on its own due date, and the mandate
+  collects it. The 28-day statement belongs to S7 alone.
+- **Traced on SYN-2016-024g (8a300fa561).** Its final bill asked its 24.83 face, and the mandate took 24.83. The page still
+  owes 5.87 that no document asked for. The desk's pre-leaving cash runs oldest bill first, so the 5.87 lands on the
+  final bill and is dunned from its due date (22 Nov). The runner reads it as due 28 days after leaving. So the missing
+  side is the **world's final ask**: the triad nets a leaver's credit on the final bill but never asks its debit.
+- **The fix, named on every side (map §5), not yet built:** the world's final ask (choice 26), the page's final-bill row,
+  the desk's `note_bill_asked`, and the runner's `_left_level_owed` (choice 27). SYN-2016-471's 45883 misdating is a
+  separate desk defect. The prediction is filed in §8.8f, before any build.
+- **The other three refusing rows and their owners**, as the direction item asks: `INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE`
+  (2, OCC-cc0c78690877g and PROS-2025-0095g gas, 1.9% and 0.6% below the bound) is untraced, and D_billing_metering owns
+  it. `INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR` (5 against a ceiling of 1) is the world's W2_30 gas half, and its
+  exception's `recheck_by` is 23 Nov. `INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM` (1, PROS-2019-0356g gas on 17 Nov 2023
+  prints "fixed" while billed SVT) is untraced, and the Explore cast owns it. With D5 fixed, the publish is still refused
+  on these three.
+
+### The build's one constraint, found before any code (worker tick, 16 Nov 2026 ~08:00 GMT)
+
+Choice 26 cannot be the triad's five-line twin of its credit netting (`waiting = max(waiting, -_leg_balance_on(...))`).
+The post-run DD book already takes an SLC 21BA bar at a closed leg's final bill and writes it off on the ledger
+(`simulation/dd_balance_book.py`: `barred_at_final_bills_gbp`, and the trace's `("final_bill", ..., max(0, -balance) - closing)`
+action, "what it seeks after the bar"). An in-loop ask of the leg's whole ledger debit would both **collect** the barred part
+and **write it off**, and the page would close in credit by the bar. So the world's final ask must equal that trace
+action's amount, computed by one function both read. It must not be a second reading of the balance. The in-loop side has no per-period
+`(start, end, charge, collected)` tuples today (`_leg_balance_on` reads bills at face, which carry no period), so the
+build starts by giving it those tuples or by moving the bar's input to a shape both can call. Scope for the next
+session: the triad ask, the DD book read, the page row, the desk note, the runner, and one book. That is more than one bounded tick.

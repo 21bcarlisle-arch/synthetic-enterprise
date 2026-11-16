@@ -96,7 +96,9 @@ Each is a fix candidate. Under the stop condition, a fix is drawn from this list
   journeys open on that ask on the f85dea4965 and 8a300fa561 books and hold the 16 Nov publish (`INV_OVERDUE_WITHIN_BALANCE`;
   SYN-2016-471 adds 5 of the 7 page steps). Traced in the level-DD dunning finding's 16 Nov section. The definition question comes first. **Is a final bill a leaving at all?** The
   knowledge page says the final bill states the balance (home_moves.md, "Debt prevention at move-out"). If so, the
-  desk's `level_leave_dates` should not read a final bill as a leaving.
+  desk's `level_leave_dates` should not read a final bill as a leaving. **Answered 16 Nov (`home_moves.md` §8.8f):** the final bill is the closing demand. It states the leg's balance, the
+  scheme debit included, due on its own due date, and the existing mandate collects it. The 28-day statement is S7's alone. The
+  missing side is the world's final ask (the credit half is built, the debit half is not). Once the final bill asks the debit, the desk's S9 opening dates are right as they stand. The world, the page and the runner change.
 - **D6 (S4): a repaid return is capped on one side only.** The desk caps what is owed at the debit balance. T's walk
   does not, so a household in credit can still "repay" a returned collection. The triad's own comment names this, and
   it is the K4 practitioner gap in "What is owed". It is not counted on any book.
