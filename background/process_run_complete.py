@@ -7622,7 +7622,7 @@ def git_commit_push(git_hash, net_margin, outcome=None, json_path=None):
     if not _provenance_is_publishable(files, label="Auto-process publish"):
         return _outcome(PROVENANCE_REFUSED, False,
                         evidence="the fail-closed provenance check refused the stamp for "
-                                 "git={} before any git command ran -- nothing was staged, "
+                                 "git={} before any git write -- nothing was staged, "
                                  "no hook chain started and no push was attempted".format(
                                      git_hash))
 

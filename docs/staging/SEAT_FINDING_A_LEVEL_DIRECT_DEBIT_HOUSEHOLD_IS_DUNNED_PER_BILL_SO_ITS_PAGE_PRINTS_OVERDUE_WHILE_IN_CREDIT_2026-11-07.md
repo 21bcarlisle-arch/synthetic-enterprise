@@ -521,6 +521,9 @@ the step it would open. `CollectionsDesk.advance` still dates `unpaid_on` from `
 `bill_paid_in_its_window` closing on the due date. That is the same misreading on a smaller scale, and changing it
 moves the company's in-run behaviour. It needs a fresh run to grade, so it is filed as the next item rather than
 folded in here. Prediction for that item: 9 -> 0 such openings, and no other journey count moves by more than 9.
+*Corrected 16 Nov, beside the claim: none of the 9 was this misreading. Each opener's `overdue_gbp` is another bill's
+debt, in 7 of the 10 the sibling fuel leg's bill, due the same day or the day before and paid late. The count was a rate and was never checked
+against whose debt each opener was. The grade is in the section "c915067a8 graded on four books" below.*
 
 **The desk, changed (2026-11-09).** The desk now reads a DD bill's `last_day_to_pay` too. The company knows which bills
 it asked the bank to collect, because it submitted them: a DD `CollectionRequest`'s correlation id is the invoice ref
@@ -1315,3 +1318,52 @@ It is the leading explanation, because the four households are new and the mecha
 takes no arguments and regenerated `docs/state/billing_ledger.json` at 05:16 from `run_output_latest.json`. That is
 the 8a300fa561 run the publisher was processing, read by the same code, so the bytes should match what it wrote. It
 is recorded here in case the publisher's grade disagrees with this table.
+
+## c915067a8 graded on four books: no opener was ever this misreading, so "10 -> 0" holds only trivially (seat executor, 16 Nov 2026 ~07:00 GMT)
+
+**Which book.** The item said the first book carrying c915067a8 would be the weekly one on 16 Nov. That was wrong.
+The first is `run_output_298149a1fc_20261109T050900Z.json` (9 Nov), and 17 books carry it, all of them ungraded on this
+leg. The 14 Nov amendment above already read the 16 Nov book as "first ungraded", which is right for that book alone.
+Graded here: 298149a1fc (the first, with the fewest commits in between), 8a300fa561 (the 16 Nov book the amendments
+pre-registered against), b9ad453df0 (the named comparator) and e50e7b8f68 (where the 9 was counted). The ledgers for
+the first three of those are the 9 Nov builds (`/var/tmp/grade-b9ad/`, `/var/tmp/grade-2981/`, `/var/tmp/grade-e50e/`).
+The 8a300fa561 ledger was built at this origin with `/var/tmp/b3ce-grade-scripts/ledger.py`. The instrument is
+`/var/tmp/grade-desk-bacs/grade.py`, unchanged. The new splitter, outputs and copies are in `/var/tmp/grade-c915/`.
+
+| | e50e7b8f68 (pre-fix) | b9ad453df0 (comparator, pre-fix) | **298149a1fc (first post-fix)** | 8a300fa561 (16 Nov) |
+|---|---|---|---|---|
+| off-day DD bills collected on the next Bacs day | 2,459 | 5,996 | 2,459 | 2,523 |
+| `missed_payment` openers in window (grade.py; predicted 10 -> 0) | 10 | 191 | **1** | 2 |
+| ...whose `overdue_gbp` equals the off-day bill's own amount | **0** | **0** | **0** | **0** |
+| ...with another bill on the account unpaid at the opener (split.py) | 10 | 186 | 1 | 2 |
+| off-day re-offers in window (predicted 0 -> 0) | 0 | 3 | **0** | 0 |
+
+**The mechanism count is 0 on every book, including the one where the 9 was counted.** `grade.py` matches each
+account-level journey against one fuel leg's bills. A dual household's opener on its gas leg's late bill therefore
+counts against its electricity leg's on-time DD bill, and the reverse. The one opener on 298149a1fc is SYN-2016-453,
+on 15 Oct 2018. The electricity DD bill was due on Sunday 14 Oct and collected on Monday the 15th. But the opener's
+£22.07 is the gas leg's standard-credit bill, whose payment failed on the 14th and which was later written off: the
+opener is correct. Both 16 Nov openers are the same shape. SYN-2016-055g's £62.41 is exactly its electricity leg's
+written-off bill. All 10 on e50e7b8f68 are too: in 7 of them the opener's amount equals a sibling bill due the same
+day or the day before and paid late or written off. The other 3 are the leg's own older owner, occupier or
+written-off bills.
+
+**Held?**
+- **10 -> 0 in window: not met as written (1), and met in substance.** The filed 10 were never this misreading, so the
+  leg could not grade c915067a8 in either direction. The prediction is kept as filed. Its premise was wrong, as
+  corrected beside the claim above.
+- **Re-offers 0 -> 0: held**, and also trivially.
+- **No other journey count moves by more than 9 against b9ad453df0: unattributable.** 1936f66251 (the dropped gas
+  legs) lies between b9ad453df0 and every book carrying c915067a8. It moves `missed_payment` from 3,046 to 1,958 and
+  `cured` from 2,844 to 1,766 on 298149a1fc. b9ad453df0's own 5 "own-bill" openers are all on gas legs, the leg kind
+  that defect dropped, and none has an overdue that equals its bill. They are that defect's, not this one's.
+
+**What it means.** c915067a8 is a correct guard. Its three legs are mutation-proven in
+`tests/company/billing/test_the_desk_reads_a_next_bacs_day_dd_as_on_time.py`. But no book shows a measured effect,
+because on these runs the desk reads the account's balance, and a Monday collection never left a desk-visible debt on
+the bill's own account. No further run is warranted: a one-variable A/B can only show 0 against 0 (R5).
+
+**The class, for the next count of this kind.** Before you count a desk opener as "on a bill", check that its
+`overdue_gbp` is that bill's money. The journey is the account's, and the ledger splits dual households into a leg
+per fuel. This is the same shape as the bill-shock lesson in CLAUDE.md: a quantity is defined on one object (the
+account) and differenced on another (the leg's bill).

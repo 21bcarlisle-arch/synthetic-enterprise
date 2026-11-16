@@ -1335,6 +1335,18 @@
       "question": "In general I wonder if we don't want a continuous track of weekly allowance usage optimisation and efficiency measures, ideas and backlog? (I'm guessing we have this to some degree )",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-16, built). Yes, and before 16 Nov we had it only to some degree (the Friday burn section, the balance review, tick_burn_rate --reading). The track is now one standing file, docs/operations/EFFICIENCY_BACKLOG.md, read and re-proposed by the Friday review's burn section, with no gate and no daemon. Landed in 8fa628acd (backlog, trial a) and 9554dcf49f (E-f, the first switch-off)."
+    },
+    "b0bf2db04f55": {
+      "ruling": "DIRECTOR_STEER_TEST_CLAUDE_MD_BY_DELETING_AND_ADDING_BACK_AND_AUDIT_WHAT_EACH_SEAT_LOADS_2026-11-15.md",
+      "question": "I thought Boris was now saying make it really small?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-16, second-hand). Broadly yes: Boris Cherny (YC podcast, 27 Jul 2026, no primary transcript found) describes cutting over 80% of Claude Code's own system prompt for Opus 5 by deleting it and adding lines back one at a time, measured. Two papers (arXiv 2602.11988, 2607.27250) find context files change cost more than correctness on ordinary coding tasks; transfer to this project is unproven, so it is trial E-e, not a cut (reading_log.md, 15 Nov)."
+    },
+    "0c52e0d4b9b1": {
+      "ruling": "DIRECTOR_STEER_TEST_CLAUDE_MD_BY_DELETING_AND_ADDING_BACK_AND_AUDIT_WHAT_EACH_SEAT_LOADS_2026-11-15.md",
+      "question": "Is ours small?",
+      "status": "answered",
+      "disposition": "ANSWERED (2026-11-16, measured). No: CLAUDE.md is 23,803 characters, about 9,900 tokens, up to 10% of context tokens in the 7-14 Nov week. A 9,052-character minimal draft (38%) runs against the full file on seat-executor Opus turns 21-28 Nov, pre-registered in docs/staging/records/SEAT_PREREG_TRIAL_E_E_MINIMAL_CLAUDE_MD_AGAINST_THE_FULL_ONE_2026-11-16.md; the live file is unchanged until the result."
     }
   }
 }
