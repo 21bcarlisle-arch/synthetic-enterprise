@@ -1385,7 +1385,7 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [G14_half_hourly_grid_carbon_intensity_aligned_to_settlement]
-  file_scope: ['docs/market_research/', 'simulation/forward_curve.py']
+  file_scope: ['docs/market_research/', 'sim/forward_curve.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a trading desk backtesting a strategy on prices that were only published after the trades it claims to have made."
 - id: PB5_pounds_or_percent_resolved
