@@ -263,15 +263,18 @@ def _arriving_paths(project: Path) -> list[str] | None:
     unreadable merge costs a false refusal a reader can clear by hand, where `None` would put the
     caller into "I could not look" and stop it naming any path at all.
     """
+    # `--no-renames`: git's default rename detection reports a MOVE by its new name only, so a
+    # dirty document origin archived to done/ was "NOTHING local collides" while git refused on
+    # it by name (2026-11-16; the class 759fac9831 and 06235c81f were each landed by hand to clear).
     merged = _git(project, "merge-tree", "--write-tree", "HEAD",
                   "{}/{}".format(REMOTE, BRANCH))
     # rc=1 IS A CONFLICT AND STILL WRITES A TREE -- only rc>1 is a failure to answer. The tree oid
     # is the first line; on conflict the lines after it are the conflicted entries and the messages.
     tree = merged.stdout.splitlines()[0].strip() if merged.stdout.strip() else ""
     if merged.returncode > 1 or not tree:
-        return _paths(project, "diff", "--name-only", "-z", "HEAD",
+        return _paths(project, "diff", "--name-only", "-z", "--no-renames", "HEAD",
                       "{}/{}".format(REMOTE, BRANCH))
-    return _paths(project, "diff", "--name-only", "-z", "HEAD", tree)
+    return _paths(project, "diff", "--name-only", "-z", "--no-renames", "HEAD", tree)
 
 
 def paths_blocking_fast_forward(project: Path | None = None) -> list[dict] | None:
@@ -1527,18 +1530,38 @@ def _text_lines(data: bytes | None) -> Counter | None:
         return None
 
 
-def _merge_onto_origin(project: Path, path: str) -> tuple[int, bytes] | None:
+def _origin_moved_to(project: Path, path: str) -> str | None:
+    """Where `origin/main` moved HEAD's `path` to, by git's own rename detection, or `None`.
+
+    `None` also when git would not answer: a move nobody established is never carried."""
+    try:
+        res = _git(project, "diff", "-M", "--name-status", "-z", "--diff-filter=R",
+                   "HEAD", "{}/{}".format(REMOTE, BRANCH))
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if res.returncode != 0:
+        return None
+    fields = (res.stdout or "").split("\0")
+    for i in range(0, len(fields) - 2, 3):
+        if fields[i].startswith("R") and fields[i + 1] == path:
+            return fields[i + 2]
+    return None
+
+
+def _merge_onto_origin(project: Path, path: str,
+                       origin_path: str | None = None) -> tuple[int, bytes] | None:
     """`(conflicts, bytes)`: this copy's change from HEAD, three-way merged onto origin's copy.
 
-    `git merge-file`, so "conflict" means exactly what git means by it. `None` when a side is
-    absent or unreadable, or git refused (binary content, an error exit)."""
+    `origin_path` is where origin keeps the document when it moved it; the base stays HEAD's
+    copy at `path`. `git merge-file`, so "conflict" means exactly what git means by it. `None`
+    when a side is absent or unreadable, or git refused (binary content, an error exit)."""
     try:
         local = (project / path).read_bytes()
         base = subprocess.run(["git", "show", "HEAD:{}".format(path)], cwd=str(project),
                               capture_output=True, check=False, timeout=60)
     except (OSError, subprocess.SubprocessError):
         return None
-    theirs = _origin_text(project, path)
+    theirs = _origin_text(project, origin_path or path)
     if base.returncode != 0 or theirs is None:
         return None
     try:
@@ -1558,12 +1581,25 @@ def _merge_onto_origin(project: Path, path: str) -> tuple[int, bytes] | None:
 def _carry_plan(project: Path, path: str) -> tuple[dict | None, str]:
     """How a held tracked edit crosses the fast-forward, or `(None, why it cannot)`.
 
-    A plan is `{"deleted", "staged", "local", "merged"}`. A deletion is carried as a deletion; an
-    edit as origin's copy with the lane's HEAD->disk change merged in. A conflict is never carried:
-    git cannot say what the lane meant there, and neither can this."""
+    A plan is `{"deleted", "staged", "local", "merged", "target"}`. A deletion is carried as a
+    deletion; an edit as origin's copy with the lane's HEAD->disk change merged in, written at
+    `target` -- the path itself, or where origin MOVED it. A conflict is never carried: git cannot
+    say what the lane meant there, and neither can this.
+
+    THE MOVE LEG (2026-11-16). `alarm_repetition` writes dated lines into a staging alarm document
+    in the shared tree and never commits them, so an archiver that moves that document to `done/`
+    on origin left a dirty path origin no longer holds, and `--ff-only` refused every five minutes
+    until a lane landed the shared tree's bytes first (759fac9831, then 06235c81f + 2f23ad063).
+    The lines now follow the document to where origin put it."""
     in_head, on_origin = _blob_in_head(project, path), _blob_on_origin(project, path)
+    target = path
+    if in_head is not None and on_origin is None and (project / path).exists():
+        moved = _origin_moved_to(project, path)
+        if moved is not None:
+            target, on_origin = moved, _blob_on_origin(project, moved)
     if in_head is None or on_origin is None:
-        return None, "HEAD and origin must both hold the path for its edit to be carried across"
+        return None, "HEAD and origin must both hold the path (or origin must have moved it) " \
+                     "for its edit to be carried across"
     try:
         staged_res = _git(project, "rev-parse", "-q", "--verify", ":{}".format(path))
     except (OSError, subprocess.SubprocessError):
@@ -1573,20 +1609,24 @@ def _carry_plan(project: Path, path: str) -> tuple[dict | None, str]:
     if not (full.exists() or full.is_symlink()):
         if staged not in (None, in_head):
             return None, "deleted here, but the index holds a third version"
-        return ({"deleted": True, "staged": staged is None, "local": None, "merged": None},
+        return ({"deleted": True, "staged": staged is None, "local": None, "merged": None,
+                 "target": path},
                 "deleted here and kept by origin: the deletion is carried across the advance")
     here = _blob_here(project, path)
     if here is None or staged not in (in_head, here):
         return None, "the index holds a third version (or the disk could not be hashed)"
-    merged = _merge_onto_origin(project, path)
+    if target != path and (project / target).exists():
+        return None, "origin moved it to {}, which already has a copy here".format(target)
+    merged = _merge_onto_origin(project, path, target)
     if merged is None:
         return None, "this copy could not be three-way merged onto origin's (binary, or unread)"
     if merged[0]:
         return None, "{} conflict(s) merging this copy's change onto origin's, so it is live work " \
                      "and holds the advance untouched".format(merged[0])
     return ({"deleted": False, "staged": staged == here != in_head,
-             "local": full.read_bytes(), "merged": merged[1]},
-            "its change from HEAD merges cleanly onto origin's copy and is carried across")
+             "local": full.read_bytes(), "merged": merged[1], "target": target},
+            "its change from HEAD merges cleanly onto origin's copy{} and is carried across".format(
+                "" if target == path else ", which origin moved to {},".format(target)))
 
 
 def carried_live_verdicts(project: Path | None = None,
@@ -1644,8 +1684,14 @@ def preserve_carried_live_copies(project: Path, paths: list[str],
     return ({}, None, failure) if failure else (plans, commit, "")
 
 
-def _apply_carry(project: Path, path: str, plan: dict, content: bytes | None) -> str:
-    """Put a carried path into its lane's state over whatever HEAD now holds. `""` or why not."""
+def _apply_carry(project: Path, path: str, plan: dict, content: bytes | None,
+                 *, advanced: bool = False) -> str:
+    """Put a carried path into its lane's state over whatever HEAD now holds. `""` or why not.
+
+    After an advance an edit is written where origin keeps the document (`plan["target"]`);
+    before one, or when it was refused, back at `path`."""
+    if advanced and not plan["deleted"]:
+        path = plan.get("target") or path
     full = project / path
     try:
         if plan["deleted"]:
@@ -2578,15 +2624,17 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
             append_failure = _write_back(second.returncode == 0)
             carry_failures = []
             for path, plan in sorted(carry_plans.items()):
+                dest = plan.get("target") or path
                 if second.returncode == 0 and not plan["deleted"] \
-                        and _blob_here(project, path) != _blob_on_origin(project, path):
+                        and _blob_here(project, dest) != _blob_on_origin(project, dest):
                     # Someone wrote the file between the restore and now: their bytes win, and
                     # the lane's are on the ref.
                     carry_failures.append("{}: changed during the advance, left as found".format(
-                        path))
+                        dest))
                     continue
                 failure = _apply_carry(project, path, plan, plan["merged"]
-                                       if second.returncode == 0 else plan["local"])
+                                       if second.returncode == 0 else plan["local"],
+                                       advanced=second.returncode == 0)
                 if failure:
                     carry_failures.append(failure)
             if carry_plans:
