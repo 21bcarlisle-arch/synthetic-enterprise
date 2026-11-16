@@ -33,6 +33,8 @@ and 84a44b51c3 changed what the page prints for the 84 set-off legs. **Predictio
 one-variable page rebuild of this run at 84a44b51c3^ against 84a44b51c3 moves the blind row by most of the 8. If it
 moves by 2 or fewer, the cause lies elsewhere in the window.
 
+*(Graded 16 Nov: it moves by **0**, every page byte-identical. 84a44b51c3 changed the statement, not the customer page the blind row reads, so the sentence above saying it changed what the page prints was wrong. The leading candidate is now ceeefa5960. See `SEAT_RESULT_THE_STATEMENT_WALK_DOES_NOT_MOVE_THE_N29_BLIND_ROW_2026-11-16.md`.)*
+
 ## What changed
 
 - `DOMAIN_INVARIANT_EXCEPTIONS.yaml`: the N29 blind row's ceiling went from 60 to **23**, the count the book reads
