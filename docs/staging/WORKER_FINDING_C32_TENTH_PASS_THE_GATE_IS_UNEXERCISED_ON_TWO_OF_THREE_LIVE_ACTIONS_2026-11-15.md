@@ -118,3 +118,37 @@ in-process). The probe script is at `/tmp/c32p2/probe.py`; it is not kept.
 | 7 | "negative" printed over unanswered evidence in `_suitability_check` | C32 |
 
 Closed: 2 (unrouted, above) and 5 (2026-11-15).
+
+## Class 1, pre-registered before the probe ran (delivery seat, 2026-11-16)
+
+The probe counts `may_take` per action, verdict and refusing ground on `main(report_end=E)`, with
+two world settings switched to the register's `high` row in-process: `plan_offer_response.BASIS`
+(plan take-up 0.53) and `payment_method_dynamics.STRENGTHS` (prepayment take-up 0.4). The
+curriculum value is not touched. Two windows: E = 2016-12-31, and E = 2021-12-31, the first year
+end after Breathing Space comes into force on 2021-05-04.
+
+| action | 2016-12-31, predicted | 2021-12-31, predicted |
+|---|---|---|
+| `consent_ppm_offer` | asked; both permitted and refused (as item 5's control) | both |
+| `recovery_through_the_meter` | asked at least once; all permitted (no Breathing Space before 2021, and I expect no 27A report this early) | asked; permitted at least once; refused at least once, on 27A or Breathing Space |
+| `debt_objection_on_switching` | asked 0 (on the shipped world its one request stops on the 28-day filter) | asked at least once; permitted at least once; refused 0 (Breathing Space × a switch × debt over the de-minimis is rare) |
+| `own_hold_winter_moratorium` | named in 0 refusals | named in 0 refusals |
+
+If a leg is still not taken at 2021-12-31, it is a finding about how far the world reaches. I do not
+lengthen the window until I find a leg.
+
+**Result for 2016-12-31, beside the prediction** (origin `57158c97c5`; wall clock 42 min, CPU 4.7 min):
+
+| action | predicted | printed |
+|---|---|---|
+| `consent_ppm_offer` | permitted and refused | asked 2: 1 permitted, 1 refused on `slc_27_5_to_27_8_ability_to_pay` |
+| `recovery_through_the_meter` | asked at least once, all permitted | asked 1 (ACC-SYN-2016-005, on 2016-12-31): permitted |
+| `debt_objection_on_switching` | asked 0 | asked 0 |
+| `own_hold_winter_moratorium` | named in 0 refusals | named in 0 |
+
+The prediction held. Meter recovery's PERMIT leg is now exercised in operation, on one account.
+Its refuse leg and both debt-objection legs wait for the 2021-12-31 window, which is running. The
+Consent rung is asked 2 times here, against 6 on the shipped world: once plans are answered, some
+accounts cure before day 90. The probe script is at `/tmp/c32c1/probe.py`. It wraps
+`winter_moratorium.may_take` and the name `transfer_objection_register` imported, and it is not
+kept.
