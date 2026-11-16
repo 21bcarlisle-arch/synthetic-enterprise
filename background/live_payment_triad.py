@@ -105,6 +105,7 @@ from company.billing.payment_observation_consumer import (
     PaymentObservationConsumer,
     observed_cash_event_id,
 )
+from company.interfaces.bill_assembly import barred_at_charge_recovery
 from company.interfaces.collection_submission import encode_collection_request
 from company.interfaces.dd_review_outcome import billing_account_of
 from company.interfaces.sim_interface import LiveSimInterface
@@ -158,6 +159,13 @@ from tools.couple_w2_11_d5 import (
     format_detection_latency_summary,
     score_triad,
 )
+
+# D5's debit half (home_moves.md s.8.8f choices 26-27; LEVEL_DD_AREA_MAP.md D5): a level leaver's
+# final bill is the closing demand, so it asks its face plus the leg's debit on the supplier's own
+# ledger, less what SLC 21BA bars at that bill, collected by the existing mandate. OFF until the page
+# (`simulation.arrears_engine.balance_settlement_from_outcomes`) and the runner's `_left_level_owed`
+# read the same ask: on alone, the world would collect a debit the page still prints as owed.
+FINAL_BILL_ASKS_THE_LEVEL_DEBIT = False
 
 # Run-spanning belief window (see module docstring RECENCY-WINDOW NOTE). A live
 # run covers ~2016-2025 (~3650 days); a comfortable ceiling keeps the belief
@@ -769,6 +777,9 @@ class LivePaymentTriad:
         # Credit bill money waiting on a leg (supply point) for that leg's next bill: see
         # `record_period`, where the bill's collection is asked net of it.
         self._leg_credit: dict = {}
+        # Per leg, each billed period as (start, end, face, collected): the SLC 21BA bar at a level
+        # leaver's final bill reads it (`_final_bill_debit`).
+        self._leg_periods: dict = {}
         # Each leg's bills, credits and crossed settlements in the engine's row shape, so a later
         # settlement is sized by the engine's own walk (`arrears_engine.open_on_contract_gbp`).
         # Plan instalments are not here: the plan book is off on every shipped world.
@@ -1252,6 +1263,16 @@ class LivePaymentTriad:
             "rows": rows,
         }
 
+    def _final_bill_debit(self, customer_id: str, ledger_balance: float,
+                          issue_date: date) -> tuple[float, float]:
+        """(asked, barred): the debit a level leaver's final bill asks beside its face, and the part
+        SLC 21BA bars at that bill, a charge recovery action (home_moves.md s.8.8f choice 26). The
+        bar is the company's own published rule (`barred_at_charge_recovery`) over the periods this
+        leg was billed before the final one, and never more than the debit."""
+        barred = round(min(ledger_balance, barred_at_charge_recovery(
+            self._leg_periods.get(customer_id, []), issue_date)), 2)
+        return round(ledger_balance - barred, 2), barred
+
     def _leg_owed_on(self, account_id: str, customer_id: str, on: date) -> float:
         return max(0.0, self._leg_balance_on(account_id, customer_id, on))
 
@@ -1396,6 +1417,7 @@ class LivePaymentTriad:
         waiting = 0.0 if level is not None else self._leg_credit.pop(customer_id, 0.0)
         waiting_before = waiting
         ledger_balance = None
+        debit_asked = debit_barred = 0.0
         if final_month and customer_id in self._legs_ever_level:
             ledger_balance = self._leg_balance_on(account_id, customer_id, issue_date)
             # A LEVEL LEAVER'S FINAL BILL NETS THE SCHEDULE'S SURPLUS. The final bill states the one
@@ -1407,11 +1429,17 @@ class LivePaymentTriad:
             # balance on this leg (bills at face, level cash, credit notes) already holds that
             # credit-bill excess, so it is the larger of the two, never their sum.
             waiting = max(waiting, -ledger_balance)
+            if FINAL_BILL_ASKS_THE_LEVEL_DEBIT and ledger_balance > 0.005:
+                # THE DEBIT HALF (s.8.8f choice 26). The ledger's balance already nets any credit
+                # note, so the waiting credit is inside it and is not taken again.
+                debit_asked, debit_barred = self._final_bill_debit(
+                    customer_id, ledger_balance, issue_date)
+                waiting = 0.0
         credit_taken = round(min(amount_gbp, waiting), 2)
         if waiting - credit_taken > 0.005:
             self._leg_credit[customer_id] = round(waiting - credit_taken, 2)
         ask_gbp = (round(level["amount_gbp"], 2) if level is not None
-                   else round(amount_gbp - credit_taken, 2))
+                   else round(amount_gbp - credit_taken + debit_asked, 2))
         final_row = None
         if final_month:
             # WORLD-SIDE OBSERVABILITY of the net above (home_moves.md s.8.8c, "What the run
@@ -1423,6 +1451,7 @@ class LivePaymentTriad:
                 "face_gbp": round(amount_gbp, 2), "waiting_credit_gbp": round(waiting_before, 2),
                 "ledger_balance_gbp": ledger_balance,
                 "credit_taken_gbp": credit_taken, "ask_gbp": ask_gbp,
+                "debit_asked_gbp": debit_asked, "debit_barred_gbp": debit_barred,
                 "netted_ledger_credit": (ledger_balance is not None
                                          and -ledger_balance > waiting_before + 0.005
                                          and credit_taken > waiting_before + 0.005),
@@ -1508,6 +1537,14 @@ class LivePaymentTriad:
         if final_row is not None:
             final_row["result"] = event.result
             final_row["part_paid_gbp"] = final_part_gbp
+        # What this period collected, for the bar above. A collection settled later than its draw is
+        # not counted, which can only over-state an old shortfall, so the bar errs to the household.
+        p_start = date(int(bill_month[:4]), int(bill_month[5:7]), 1)
+        p_end = date.fromisoformat(period_end[:10]) if period_end else issue_date
+        collected = ((level["amount_gbp"] if level is not None else ask_gbp)
+                     if event.result == "success" else final_part_gbp)
+        self._leg_periods.setdefault(customer_id, []).append(
+            (p_start, max(p_end, p_start), round(amount_gbp - credit_gbp, 2), round(collected, 2)))
         # Post the bill into the COMPANY's own belief ledger so unpaid invoices
         # age (the ageing gap) exactly as the offline scenario does. This is the
         # company's isolated ledger, never the run's main treasury ledger.
@@ -1525,7 +1562,7 @@ class LivePaymentTriad:
         # never the face the ledger keeps (N15 on b3ce2a4e73: 7 re-offers after bills a credit paid).
         # A bill that asked nothing is recorded as asking nothing, a level month of GBP 0 included: the
         # desk must not read it as a bill left unpaid, nor as the leg having left level DD.
-        if credit_taken > 0 or nothing_due:
+        if credit_taken > 0 or nothing_due or debit_asked > 0:
             self._consumer.collections_journeys.note_bill_asked(invoice_ref, ask_gbp)
             self._cf_consumer.collections_journeys.note_bill_asked(invoice_ref, ask_gbp)
         # A credit bill (the supplier issued a negative bill) is a credit on the account, which the

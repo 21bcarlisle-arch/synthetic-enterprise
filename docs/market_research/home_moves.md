@@ -1292,6 +1292,19 @@ which the runner then reads as owed. `INV_OVERDUE_WITHIN_PAGE_BALANCE` loses SYN
 misdating of bill 45883 is fixed in the same change. Otherwise it stays at 7. Write-offs at move-out on level legs fall.
 How far they fall: **I cannot yet say.**
 
+**Built so far (16 Nov 2026, world half only, switched off).** Choice 26 is in `background/live_payment_triad.py`
+behind `FINAL_BILL_ASKS_THE_LEVEL_DEBIT`, which is False. A level leaver's final bill asks its face plus the leg's
+ledger debit. It takes off the part SLC 21BA bars at that bill, read by the company's published rule
+(`barred_at_charge_recovery`) over the periods the leg was billed. The desk is told the ask (`note_bill_asked`). The
+run records `debit_asked_gbp` and `debit_barred_gbp` on each final-month row. The bar counts a collection settled after
+its draw as uncollected, so it can only over-bar, which errs toward the household (F11). Control:
+`tests/background/test_a_level_leavers_final_bill_asks_the_schemes_debit.py`. Three mutations each turn it red: the
+debit dropped from the ask, the bar zeroed, and the desk not told. **Owed before the switch can turn on:** the page
+(`simulation/arrears_engine.balance_settlement_from_outcomes`), where a level leaver's debit "stays a standing debt"
+under s.8.8b choice 3, so a successful final collection must clear it there. The runner's `_left_level_owed` must
+read the final bill as the demand (choice 27). SYN-2016-471's desk misdating needs its own trace. Turned on alone,
+the world would collect a debit that the page still prints as owed.
+
 ---
 
 ## Sources

@@ -1433,3 +1433,20 @@ session: the triad ask, the DD book read, the page row, the desk note, the runne
   (`e["fuel"] == "gas"`, lines ~318-320) takes it as the gas leg's. Not yet graded by any row.
 - **With this and D5 fixed, the publish is still refused** on INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE (2) and
   INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR (5 against 1). The cast fix takes effect at the next run's publish.
+
+## The world half relaunched; the 17:16Z refusal is D5 alone among unlanded fixes (worker tick, RUNG-1 wedge draw, 16 Nov 2026 ~17:20 GMT)
+
+- **The refusal.** The publisher's re-grade of the 07:05Z book (f7e17b1316) was refused at 17:16Z on rows 4, 7 and
+  the gas row (4, 7, 5 against 1). That is the eighth refusal of the same book. Every row except D5's two has a landed
+  fix in `background/next_book_requires.yaml`. No test is implicated.
+- **Relaunched.** The world half (`FINAL_BILL_ASKS_THE_LEVEL_DEBIT = False`, its control
+  `tests/background/test_a_level_leavers_final_bill_asks_the_schemes_debit.py`, and the `home_moves.md` s.8.8f
+  "Built so far" paragraph) was relaunched from the shared tree's bytes. They held only D5 hunks, and its 20 tests pass.
+  The original message was `/tmp/d5msg.Xfne`. Claim: `DD_seasonal_cashflow_physics`.
+- **Not written into `next_book_requires.yaml`**, as the focus item says: that row takes the switch-on commit only.
+- **One constraint for choice 27, found before any code.** The runner's `_left_level_owed` must read the final bill as
+  the demand **only where the run records that the bill asked the debit** (the final-month row's `debit_asked_gbp > 0`,
+  or the bill's own asked amount). Keyed on "this is the leg's final bill", it would grade the four S9 openings as owed
+  while the switch is still off. Rows 4 and 7 would then pass on a book in which no document asked the debit. That
+  passes the row by redefining it, which is the failure it exists to catch. The runner change and the switch-on
+  therefore land together, or the runner change lands first and stays inert while no row records an ask.
