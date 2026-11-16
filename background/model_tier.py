@@ -57,6 +57,7 @@ INDEX: searched "model tier", "model selection", "doorbell classify", "draw clas
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -83,7 +84,26 @@ SONNET = "claude-sonnet-5-5"
 #: context (measured with two `claude -p` probes, 16,923 against 14,384 tokens written), which each
 #: turn then re-reads on every message, and 0 unattended turns called an MCP tool in the week to
 #: 23 Oct. REVERSE by emptying this tuple; nothing else changes.
-HEADLESS_FLAGS: tuple[str, ...] = ("--strict-mcp-config",)
+#:
+#: `--settings` SWITCHES OFF THE TEN NON-BUILTIN PLUGINS (2026-11-16, efficiency trial E-f,
+#: docs/operations/EFFICIENCY_BACKLOG.md). The account syncs nine cowork plugins (sales, legal,
+#: finance and the like) plus cloudflare into every session: 84 skill listings, re-read on every
+#: message. Paired haiku probes in the repo, strict MCP both: 38,135 tokens of opening context with
+#: them, 34,224 without (-3,911; the 38,135 repeated exactly). In the week to 16 Nov 03:00 UTC, 574
+#: transcripts called 0 plugin skills and 0 MCP tools (the only skills were cold-eyes-walk and
+#: phase-close, which are project skills and stay). No plugin carries a hook; the project's
+#: PreToolUse hooks still fire (block_sudo refused a probe's `sudo -n true`). A plugin synced
+#: later is NOT in this list and loads again: the Friday review re-probes. REVERSE by deleting
+#: the two `--settings` entries.
+_PLUGINS_OFF = {"enabledPlugins": {p: False for p in (
+    "cloudflare@cloudflare", "agent-estimate@synced", "operations@synced", "design@synced",
+    "engineering@synced", "legal@synced", "product-management@synced", "finance@synced",
+    "data@synced", "cowork-plugin-management@synced",
+)}}
+HEADLESS_FLAGS: tuple[str, ...] = (
+    "--strict-mcp-config",
+    "--settings", json.dumps(_PLUGINS_OFF, separators=(",", ":")),
+)
 
 # ANTHROPIC'S DOCUMENTED FIX FOR OPUS 5.5 IN HEADLESS RUNS, adapted (2026-09-27). Opus 5.5 keeps the
 # user updated as it works, and some updates end the turn with text rather than a tool call; a

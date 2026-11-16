@@ -389,3 +389,16 @@ def test_an_unattended_spawn_loads_no_mcp_server():
     argv = wt.spawn_argv("claude", mt.OPUS, None, "P")
     assert "--strict-mcp-config" in mt.HEADLESS_FLAGS
     assert all(flag in argv for flag in mt.HEADLESS_FLAGS) and argv[-1] == "P"
+
+
+def test_an_unattended_spawn_switches_off_the_unused_plugins():
+    """Fires if the plugin switch-off is dropped or its JSON stops parsing (a malformed --settings
+    fails every spawn): ten unused plugins cost 3,911 opening-context tokens per turn (E-f)."""
+    import json
+
+    from background import model_tier as mt
+    argv = wt.spawn_argv("claude", mt.OPUS, None, "P")
+    settings = json.loads(argv[argv.index("--settings") + 1])
+    off = settings["enabledPlugins"]
+    assert off and not any(off.values())
+    assert {"cloudflare@cloudflare", "operations@synced", "legal@synced"} <= set(off)

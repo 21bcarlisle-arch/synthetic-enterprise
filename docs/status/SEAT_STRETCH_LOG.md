@@ -20123,3 +20123,11 @@ gives this track first claim on harness slots in the week of 16 Nov.
 - **The plan's weekly usage percentage is machine-readable:** `rate_limit_event.seven_day.utilization` in headless
   stream-json. The meter test needs no readings from the director. It is not read on any schedule and gates nothing.
 - **Next, one variable at a time:** E-f, the load audit, then E-e, the CLAUDE.md delete-and-add-back trial.
+
+**Efficiency track, E-f load audit (worker, Mon 16 Nov, about 04:45–05:30 GMT).**
+- **Each unattended turn loaded ten plugins nobody used.** That is 84 skill listings from the account's synced
+  cowork plugins plus cloudflare. In the week to 16 Nov, 574 transcripts called 0 plugin skills and 0 MCP tools.
+- **Switched off for the three live seats** in `background/model_tier.py::HEADLESS_FLAGS`. Paired probes: 38,135
+  to 34,224 opening-context tokens (-3,911). Wall hooks still fire. To reverse, delete the `--settings` pair.
+- **Read on Friday:** the first call's context share against the 39.1% baseline. Re-probe for newly synced plugins.
+- **Next:** E-e, the CLAUDE.md delete-and-add-back trial, once E-f's after-window is read (one variable at a time).
