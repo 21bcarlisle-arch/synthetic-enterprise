@@ -36,3 +36,42 @@ than in credit. Read SYN-2016-215's running balance on 2020-07-14 first, because
 Two other legs carry a repayment on a *successful* level collection with their monthly cadence intact:
 PROS-2019-0318 (2022-10-24, £65.11 repaid 2022-11-22) and SYN-2016-047 (2023-08-18, £106.30 repaid 2023-09-15).
 They have no journey and no gap, so they are a different orphan-repayment shape, and they have not been read.
+**Corrected below (seat executor, 16 Nov):** both *do* have a gap and a journey. They are this same class.
+
+## Ranked and counted (seat executor, 16 Nov 2026, on `/var/tmp/grade-c915/ledger_8a30.json`)
+
+**(1) wins: the page is wrong.** On SYN-2016-215 the balance before 15 Jul 2020 is **owed £144.07**. That is
+successful payments plus repayments minus bills issued, and it equals the desk's opening figure to the penny. The
+household was not in credit, so the desk's case was right and (2) is refuted. The credit bill that makes the
+branch drop the row is invoice 33407, a **catch-up** (`catchup_applied`) **issued 3 Aug, 19 days after the
+instalment date**. So the branch's premise "the bill owes nothing" reads a document that did not exist when the
+instalment was returned.
+
+**The class on 8a300fa561 (script `/var/tmp/grade-lrcb/count.py`).** The script takes every level-DD leg and every
+credit bill whose month falls strictly inside the leg's level schedule:
+
+| | legs |
+|---|---|
+| credit-bill months inside a level schedule | 206 |
+| with a level row printed | 203 |
+| **without one** | **3** (3 households) |
+| … of which a desk journey opened 0–5 days after the instalment date | 3 |
+| … balance owed the day before the instalment date | 3 |
+| … the credit bill was a catch-up issued after the instalment date | 3 |
+
+| leg | month | credit bill | issued | journey opened | owed before | repayment hung on |
+|---|---|---|---|---|---|---|
+| SYN-2016-215 | 2020-07 | 33407, −56.33 | 2020-08-03 | 2020-07-16, 144.07 | 144.07 | Jun 2020 row (162.80, 29 Jul) |
+| PROS-2019-0318 | 2022-07 | 16445, −9.35 | 2022-08-01 | 2022-07-26, 65.11 | 191.24 | Oct 2022 row (65.11, 22 Nov; journey cured 22 Nov) |
+| SYN-2016-047 | 2023-05 | 24040, −43.67 | 2023-06-01 | 2023-05-19, 170.30 | 303.84 | Aug 2023 row (106.30, 15 Sep) |
+
+The control population: the book prints 496 returned level instalments (`outcome: failed`, `level_dd`) in months
+whose bill is not a credit. So only the credit-bill branch drops a return. The defect is small (3 of 28,526 level
+rows) and every instance mis-hangs a repayment on a successful collection. That makes the statement misread, so
+it is still LATENT: no gate row reads it.
+
+**What the fix is (not built here).** In the credit-bill branch of `tools/generate_billing_ledger.py`, a returned
+level collection should print as a `failed` level row, exactly as the non-credit branch does. Its case and
+repayment should come from the desk's figure through the existing `level_missed_on` path, so the catch-up stops
+hanging the repayment on the prior success. Done means the three legs above print a July/July/May failed row
+carrying its repayment, and no repayment on the book hangs on a successful level collection (on 8a300fa561 exactly these 3 do, and no others).
