@@ -1110,3 +1110,58 @@ second accounts. A1 is read paired by seed, not against the 0.661 bar.
 
 *Stopped 15 Nov 10:20Z, 36 minutes in, with no member written. The pair-shaped run on the desk belief
 goes first (§9a).*
+
+### 10a. The desk pair: the flag-on member was written, and the fold killed the unit before the twin ran (16 Nov 04:50Z)
+
+**What happened.** `longjob-value-test-candidate-a-desk-pair` launched 15 Nov 13:35Z as §9a's pair
+shape: `VTA_FLAG=1` then `VTA_FLAG=0`, back to back. The flag-on side wrote its member and sidecar
+(`/var/tmp/vta-out-flag1/member_11111_22222.json`, `control_11111_22222.json`, 16 Nov 00:11Z). Its
+driver then called `--fold` on one member, and `fold_floors` refused it ("a fold needs at least two
+floor runs; got 1"). The driver exited 1, so the `&&` never started the twin. **Nothing about A's
+own run is wrong**: both seeds were drawn (838 redrawn each), `renewal_belief_by_ending_term` is True,
+and `producing_commit` is `41734bbe71` on both. The defect was the driver's: it always folded, and a
+fold of one pair is a copy that the fold rightly refuses.
+
+**The fix, outside the repo.** `/var/tmp/vta-driver/driver.py` now returns 0 with "one pair, no
+fold" when it holds fewer than two members. The twelve-draw path is unchanged, and the pre-fix copy
+is kept beside it as `driver.pre-nofold.py`. The fixed driver run against the written flag-on member
+(`VTA_FLAG=1 VTA_SEEDS=2`, from the worktree) prints "pair [11111, 22222] already on disk, kept" and
+exits **0**, in 0.06 s.
+
+**The twin, relaunched 16 Nov 04:38Z.** `VTA_FLAG=0 VTA_SEEDS=2`, from the same worktree at the same
+`41734bbe71`, as `longjob-value-test-candidate-a-flag0-twin` through `launch_long_job` (its exit status
+is the run's own), writing `/var/tmp/vta-out-flag0/member_11111_22222.json`. It went to the
+launcher's queue (`longjob-value-test-candidate-a-flag0-twin-queued`). At launch, the head-green
+census (12.0 GB) and the sim runner (7.1 GB) were resident against an 11.5 GB peak, so it starts when
+they leave. The flag-on side is not rerun. Grading is `grade_desk.py` against D1 to D4 as filed.
+
+**Two corrections beside §9a's claims, read off the written sidecar:**
+- *The book.* §9a costs the pair on the 272-household book. At `41734bbe71` the book is **767
+  billing accounts and 5,673 control-arm household-years** on seed 11111 (5,814 on 22222). §7 and
+  §8 had 1,831. The book grew with the tree, so A and its twin share it, and the pairing holds. But
+  A is graded on a different book from §7, §8 and §10, and the 0.112 half-range allowance was
+  measured on the smaller one. Expect D4's leaver count to sit **above** its 25 to 60. That is a
+  bigger sample, not a kill.
+- *The cost.* §9a said about 3.2 h per side. The flag-on side took **38,144 s (10.6 h)**: six
+  arm-runs (two seeds, three arms) at about **1.77 h per arm-run** on about 5,700 household-years.
+  The unit also shared the box with cycles that deferred to it. So the twin should read about 11 h
+  after it starts.
+
+**What the cost does to step 6 (sequencing, read now, before A's grade).** The settlement budget
+(`SETTLEMENT_CUSTOMER_YEAR_BUDGET`, 7,700 household-years) is the "1,200-household" book. At 1.77 h
+per 5,700 household-years, an arm-run there takes about 2.4 h. `noise_floor` runs three arms per
+draw (`level_arm=True`), so the ruling's twelve-draw book is about **36 arm-runs, or 86 h**, run
+serially because each peaks near 11.5 GB. If A earns its twelve-draw family under §9a's rule, that
+family is about 64 h at this book (36 arm-runs at 1.77 h), and it runs first. **Together that is
+about 150 machine-hours from the twin's end. Step 6 then reads around 23 to 24 Nov, past its 22 Nov
+commitment.** If A does not earn the family, step 6 alone reads around 20 Nov. *Prediction, filed
+before A's grade:* A does not clear on both seeds (§9a's D3 predicts +0.20, but §9's A1 to A3 predict
+a null on the pricing belief, which is the belief step 6's value arm chooses with). So step 6 most
+likely goes straight after the twin and meets its date. If A does clear, the order stands as
+ruled and the date slips by about 3 days. That slip is the delivery seat's to say in the stretch log,
+not a reason to change the ruled order.
+
+**Step 6's pre-registration waits for A's grade, because the ruling makes A its prior.** It goes in
+`docs/staging/` before launch, with the difference expected per household-year and the resolution
+this book earns. The §10 figure is £4.80 at 1,200 households on twelve draws, measured on the
+270-household book's variances; it is restated on A's 767-account variances if they differ.
