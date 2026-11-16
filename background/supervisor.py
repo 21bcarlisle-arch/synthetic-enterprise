@@ -4179,7 +4179,44 @@ def _wedge_no_test_judged_clause(failures, payload_citable: bool) -> str:
         " `domain_invariant_refused` IS NOT A HOOK: the run's BOOK breached domain invariants "
         "(`docs/reports/DOMAIN_INVARIANTS.md`, and the `Domain-invariant gate REFUSED` log line). "
         "That book can never publish; fix the breaches' cause and offer a run made after the fix."
+        + _next_book_unlanded_clause()
         if "domain_invariant_refused" in kinds else ""
+    )
+
+
+#: sim_runner.book_admission's declaration of the fixes the next book must carry. Read here as TEXT
+#: only, so the draw can name a cause that is already owned.
+NEXT_BOOK_REQUIRES_FILE = PROJECT_DIR / "background" / "next_book_requires.yaml"
+
+
+def _next_book_unlanded_clause(path: Path | None = None, today: str | None = None) -> str:
+    """Name the refused book's fixes that are declared but not landed, with their owners.
+
+    16 Nov 2026: the publisher re-graded the same refused book (f7e17b1316) hourly, and each cycle
+    drew a worker to rediscover what the seat had already named in `next_book_requires.yaml`: rows
+    4 and 7 wait on D5's switch-on, owned by `DD_seasonal_cashflow_physics`, and sim-runner defers
+    every new book until it lands. The draw now says so. Text only, and silent on anything it
+    cannot read (absent file, lapsed, malformed, every row landed): silence leaves the old prose.
+    """
+    path = path or NEXT_BOOK_REQUIRES_FILE
+    today = today or datetime.now(timezone.utc).date().isoformat()
+    try:
+        import yaml
+        spec = yaml.safe_load(path.read_text())
+        if not isinstance(spec, dict) or str(spec.get("expires") or "") < today:
+            return ""
+        open_rows = [
+            f"{row['what']} (owner {row.get('owner') or 'UNNAMED'})"
+            for row in spec.get("requires") or () if isinstance(row, dict) and not row.get("commit")]
+    except Exception:  # noqa: BLE001 -- cannot read is heard as nothing
+        return ""
+    if not open_rows:
+        return ""
+    return (
+        f" THE FIX IS ALREADY NAMED AND OWNED: `background/{path.name}` holds every new book until "
+        + "; ".join(open_rows) + " lands, so a book built before then is refused again. Do not "
+        "rebuild the book or re-diagnose it. Check the owner's claim: if it is live, the owner holds "
+        "this wedge; if not, draw that atom."
     )
 
 

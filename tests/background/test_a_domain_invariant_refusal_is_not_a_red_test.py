@@ -86,3 +86,25 @@ def test_the_kind_is_heard_by_the_draw_and_a_red_still_silences_it():
     assert "DOMAIN_INVARIANTS.md" in clause
     assert sup._wedge_no_test_judged_clause(only_book + [{"kind": "test_regression"}], False) == ""
     assert prc._gate_failure_label(prc.DOMAIN_INVARIANT_REFUSED_KIND) != prc.DOMAIN_INVARIANT_REFUSED_KIND
+
+
+def test_an_owned_unlanded_fix_is_named_to_the_draw_and_a_landed_one_is_not(tmp_path, monkeypatch):
+    """The whole partition in one control. MUTATIONS: drop the `not row.get("commit")` filter and
+    the landed row is named (reds); drop the expiry check and the lapsed file speaks (reds); drop
+    the `+ _next_book_unlanded_clause()` wiring and the live clause loses the owner (reds)."""
+    spec = tmp_path / "next_book_requires.yaml"
+    spec.write_text(
+        "expires: '2026-11-24'\nrequires:\n- commit: 157e05c23\n  what: cast tariff row\n"
+        "- commit: null\n  what: D5 switched ON\n  owner: DD_seasonal_cashflow_physics\n")
+    clause = sup._next_book_unlanded_clause(spec, today="2026-11-16")
+    assert "D5 switched ON (owner DD_seasonal_cashflow_physics)" in clause
+    assert "cast tariff" not in clause
+    assert sup._next_book_unlanded_clause(spec, today="2026-11-25") == ""
+    assert sup._next_book_unlanded_clause(tmp_path / "absent.yaml", today="2026-11-16") == ""
+    spec.write_text("expires: '2026-11-24'\nrequires:\n- commit: 157e05c23\n  what: x\n")
+    assert sup._next_book_unlanded_clause(spec, today="2026-11-16") == ""
+    spec.write_text("expires: '2999-01-01'\nrequires:\n- commit: null\n  what: D5\n  owner: O\n")
+    monkeypatch.setattr(sup, "NEXT_BOOK_REQUIRES_FILE", spec)
+    only_book = [{"kind": prc.DOMAIN_INVARIANT_REFUSED_KIND}]
+    assert "D5 (owner O)" in sup._wedge_no_test_judged_clause(only_book, False)
+    assert "D5" not in sup._wedge_no_test_judged_clause([{"kind": "gate_timeout"}], False)
