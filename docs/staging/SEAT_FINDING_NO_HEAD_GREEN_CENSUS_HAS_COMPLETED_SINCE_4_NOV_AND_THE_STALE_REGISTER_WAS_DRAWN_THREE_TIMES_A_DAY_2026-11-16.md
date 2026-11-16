@@ -70,3 +70,20 @@ the register is still drawn.
 
 The memory-governor deferrals (5 of 9 nights) are a scheduling conflict between the census and the
 long value-test jobs. That is a pace decision over the shared box. I have not changed it.
+
+## 6. Grading §4: not yet possible (16 Nov 22:50 GMT)
+
+The grade was drawn about five hours before the census it grades. `head-green-census.timer` next
+fires at 17 Nov 03:30:33. Its bound is 17400s, and the 16 Nov run used 4h50m wall clock, so the
+earliest a verdict exists is about 08:25 on 17 Nov. Nothing here grades P1-P3.
+
+What was checked before the run, so the grader starts from it:
+- **The precondition holds.** The shared tree carries 7743cde68 (its HEAD is a60de79cda, 22:38),
+  including `tools/head_census_progress.py`, and `head_green_census.pytest_argv` loads it with `-p`.
+- **The register baseline at 22:50.** `docs/observability/.head_red_observed.json` has 30 runs.
+  The newest is 4 Nov (b3ce2a4e, 17 red). `stale_attempts` is `[]` and `drawable` is 17. The 16 Nov
+  UNPROVEN ran before the landing, so it recorded no attempt.
+- **The grader reads:** `journalctl --user -u head-green-census --since '2026-11-17 03:00'`. P1 needs
+  DEFERRED or a timeout line. P2 needs a `runs[-1]` dated 17 Nov that is marked partial or reached,
+  with all 17 owed modules reached. P3 needs `stale_attempts` to be non-empty and
+  `HEAD_RED_REGISTER.md` to be absent from `staging_rooms.work_queue`.
