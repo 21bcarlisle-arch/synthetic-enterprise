@@ -588,6 +588,11 @@ breach rather than five examples, `/var/tmp/grade-b9ad/all_breaches.py` and `spl
 | each `only_*` ≤ 1% | only_in_loop 176 (1.0%); only_post_loop **11,858 of 29,544 (40%)** | **no** |
 | INV_PAYMENT_RECORD 0 (0f9ebbad56, read at origin) | **0** | yes |
 
+*Corrected 16 Nov, beside the claim: the J1 rows here (122 of 945, 159 of 655) count per fuel leg. The same household
+journey is counted on both legs and set against one leg's returns. Read per household and inside the level span, J1 is
+146 of 188 on e50e7b8f68 and 82 of 95 on 8a300fa561. See
+`SEAT_FINDING_THE_LEVEL_DD_J1_LEG_READS_A_HOUSEHOLD_JOURNEY_AGAINST_ONE_FUEL_LEGS_RETURNS_2026-11-16.md`.*
+
 Verdict: **299 unexcepted breaches on 3 rows (57 + 241 + 1 INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL), so the publish is refused.**
 
 **Why: the loop's schedule lost the gas leg of almost every dual household.** The loop's schedule holds 459 legs. e50e7b8f68's
