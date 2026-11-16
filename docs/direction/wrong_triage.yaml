@@ -744,7 +744,7 @@ items:
     first_seen: "2026-11-10"
     fate: fix
     status: open
-    owner: "LEVEL_DD s.9.8 W1-W4 graded on the 16 Nov book (continuation the-final-bill-net-is-graded-on-the-16-nov-book-w1-w4); the F net is on origin (37d934286), the refund clock lands via the-final-bill-issue-day-has-one-home-beside-bill-due-date"
+    owner: "continuation level-dd-triad-final-month-net-serialised-per-leg, after focus DD_seasonal_cashflow_physics (D5 build). Re-owned 16 Nov 09:23: a43808134 graded s.9.8 on 8a300fa561, refuting W2 and W3, and W1 and W4 are unreadable because the book records no world ask per bill. The F net is on origin (37d934286)."
     reason: "Triaged 2026-11-13 by the delivery seat. Every written fix is on origin or staged except the refund clock; what is left is a grade on a book, and the book is 16 Nov 04:00. Corrected when s.9.8 reads 0 to 3 written-off accounts printing owed on that book, or each is named with its writer line."
   - id: a-guest-poweroff-leaves-dead-jobs-listed-live
     problem: "After a guest poweroff the launch register lists dead jobs as live, and continuations wait on files no surviving unit can write."
