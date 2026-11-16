@@ -70,3 +70,13 @@ page's range, and it is graded on a book built after the fix.
   and a floor of 0.09 (the high edge).
 - **Open:** grading that row on a book built after this commit. The 6fe7827ab2 book would breach it at 0.89. This
   file closes when a post-fix book grades CLEAN.
+
+## Status, 2026-11-16: closed
+
+The 16 Nov book (8a300fa561, which descends from b3ff041f0) is a post-fix book, and it grades the blind row
+`INV_DUAL_FUEL_TRADITIONAL_READS_TAKEN_TOGETHER` CLEAN. The one-only share on traditional pairs is 0.274 (1,053 of
+3,843), down from 0.89 on the 6fe7827ab2 book. Smart pairs read 6.2%. The result and all five predictions are in
+`records/SEAT_PREREG_WHAT_THE_16_NOV_BOOK_GRADES_ON_DUAL_FUEL_READS_TAKEN_TOGETHER_2026-11-13.md`.
+
+Still open, and not part of this finding's done-means: `is_hard_to_read` is still keyed per leg (the second cause above).
+On this book it is not large enough to move the share outside its band.
