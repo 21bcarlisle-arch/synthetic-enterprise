@@ -546,6 +546,33 @@ def test_a_negative_outside_every_anchor_is_named_even_in_a_bound_sentence(tmp_p
     assert not any("green_stance" in s or "never converted" in s for s in named)
 
 
+#: A45's blind pass, 15 Nov, MAJOR 2: four negatives from the model page with no "not yet" in them,
+#: and one rule sentence that asserts no missing mechanism.
+UNPHRASED_NEGATIVES_PAGE = """# A PAGE
+
+## Spine
+`price_sensitivity` reaches the churn decision.
+
+## Prose
+Nothing optimises the household figure.
+The score has no household-side term in any currency.
+Nothing it computes is ever offered to the household it is about.
+So over-pricing still carries no competitive consequence.
+Ground truth never crosses the wall.
+"""
+
+
+def test_a_negative_with_no_not_yet_in_it_is_named(tmp_path):
+    """Each of MAJOR 2's four phrasings is named on its own sentence, and the rule sentence is not:
+    a lexicon that names nothing fails the first leg, one that names everything fails the second."""
+    root, register = _mini_repo(tmp_path, page=UNPHRASED_NEGATIVES_PAGE, claims=[CHANNEL_CLAIM])
+    named = run(root, register)[1]["unbound_negatives"]["docs/page.md"]
+    for phrase in ("Nothing optimises", "no household-side term", "Nothing it computes",
+                   "carries no competitive"):
+        assert sum(phrase in s for s in named) == 1, (phrase, named)
+    assert len(named) == 4 and not any("never crosses" in s for s in named), named
+
+
 def test_an_also_anchor_binds_its_sentence_and_its_removal_is_unbound(tmp_path):
     """One predicate the page states twice. The second copy is bound by `also_anchors`, so its
     negative is no longer named -- and if that copy leaves the page the claim is UNBOUND, exactly

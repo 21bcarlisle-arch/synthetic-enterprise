@@ -706,10 +706,17 @@ def unwatched_sections(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
 #: section: a phrase outside every anchor is named, even inside a sentence that is otherwise bound.
 #: The lexicon is a judgement. A broader one (never|cannot|does not ...) named 50 sentences on
 #: 14 Nov, mostly rules and mission prose that make no claim about code. This one names 18.
+#: The last three lines are A45's blind pass of 15 Nov, MAJOR 2: negatives with no "not yet" in
+#: them ("Nothing optimises", "has no household-side term", "Nothing it computes is ever offered",
+#: "carries no competitive consequence"). Bare "never" and "nothing" stay out: on the model page
+#: they are rule prose ("ground truth never crosses"), 22 sentences asserting no missing mechanism.
 UNDER_CLAIM_FORMS = re.compile(
     r"\b(not yet|none of them|no module|by nothing|read by no|blocked|absent|still cannot|"
     r"cannot yet|no mechanism|unmeasured|unbuilt|nobody yet|"
-    r"nothing (?:yet )?(?:supplies|reads|calls|offers|targets))\b",
+    r"nothing (?:yet )?(?:supplies|reads|calls|offers|targets)|"
+    r"nothing (?:it \w+ (?:is )?(?:ever )?)?(?:optimi[sz]es|computes|prices|offered|uses|feeds)|"
+    r"has no|"
+    r"no [\w-]+(?:[ -][\w-]+)? (?:consequence|module|reader|caller|mechanism|feedback)s?)\b",
     re.IGNORECASE)
 _SENTENCE = re.compile(r"[^.!?]+(?:[.!?]+|$)")
 

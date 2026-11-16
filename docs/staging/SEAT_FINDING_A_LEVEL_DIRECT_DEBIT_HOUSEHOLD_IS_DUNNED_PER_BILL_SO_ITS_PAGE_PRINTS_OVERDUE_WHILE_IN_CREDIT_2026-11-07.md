@@ -1367,3 +1367,13 @@ the bill's own account. No further run is warranted: a one-variable A/B can only
 `overdue_gbp` is that bill's money. The journey is the account's, and the ledger splits dual households into a leg
 per fuel. This is the same shape as the bill-shock lesson in CLAUDE.md: a quantity is defined on one object (the
 account) and differenced on another (the leg's bill).
+
+### The prediction on 8a300fa561 held, and a count corrected (worker tick, 16 Nov 2026 ~06:40 GMT)
+
+- **Held.** The publisher refused 8a300fa561 on the same five rows at 4, 7, 2, 5 and 1, as filed in 8eba9ecf3
+  before its grade. The site still serves 6fe7827ab2.
+- **Corrected beside the claim.** The section above says 3 of the 7 page steps are SYN-2016-471's, and the other 2 are
+  "not named yet". Read on 8a300fa561's own pages, **5 of the 7 are SYN-2016-471's**. The other two are its
+  25 Jun 2021 `prepayment_or_debt_agency` and `prepayment_withheld` steps, at 38.13 against 28.77. The other 2 of the 7
+  are SYN-2016-001's, as stated. So D5 holds 4 of 4 journey openings and 5 of 7 page steps. Fixing it leaves
+  SYN-2016-001's 2 steps, which are not level DD.
