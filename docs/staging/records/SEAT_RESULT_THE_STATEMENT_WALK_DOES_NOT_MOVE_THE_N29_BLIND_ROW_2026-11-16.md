@@ -46,7 +46,7 @@ the published pages. **Movement: 0. The prediction on file is refuted. Mine held
   69866925b". It moved 134 of 176 refund clocks, which moves refund **days** but not amounts. That fits every
   fact: P3's amounts match the e17ebc596 arm to the penny, while the blind row grades credit **per day** (this
   leg's credit and the other leg's end-of-day debt on the refund day). This is a hypothesis, not yet measured. The
-  population change (130 → 132 households graded) is the other open explanation.
+  population change (130 → 132 households graded) is the other open explanation. *Measured 2026-11-16 (`SEAT_RESULT_THE_REFUND_CLOCK_MOVES_THE_N29_BLIND_ROW_31_TO_23_2026-11-16.md`): ceeefa5960 is the whole move, 31 of 130 → 23 of 132 on one run; the +2 is two refund lines leaving choice 24's unbounded set, not new households.*
 
 **Next, a one-variable test:** the world refund log and page at ceeefa5960^ against ceeefa5960 on one run, grading
 the blind row. Handed on as `n29-blind-row-ceeefa5960-one-variable`.
