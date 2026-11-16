@@ -428,6 +428,39 @@ on an offer that put no sum to the household.
   reasonable attempts is not read here; no published text found says how many attempts make
   an offer "made". 27.8A(d)(ii) allows a "reasonable" default rate where information is
   insufficient. The company names no default rate, and none is sourced here.
+
+**The own-hold column is unrouted (C32 tenth pass, class 2; 2026-11-16).** The column is
+`covered` on the Consent offer, the debt objection and recovery through the meter. On every one
+of them it refuses in a unit test and never live. The desk's `own_holds` is None. The objection
+door (`company/interfaces/transfer_objection.request_debt_objection`) passes no `own_hold`, so
+`decide_debt_objection` reads False. And no company path writes a `MoratoriumRecord`.
+- **Whether a real supplier keeps this register: yes.** A supplier's billing system holds a lock
+  on the contract account, with a reason and an optional validity period. A lock with no dates is
+  open-ended, and the dunning run skips a locked account. SAP IS-U / FI-CA documents this as the
+  contract account's dunning-lock field, with lock reasons kept in Customizing for Contract
+  Accounts Receivable and Payable
+  (https://help.sap.com/erp2005_ehp_07/helpdata/en/f0/fbc5536a51204be10000000a174cb4/content.htm).
+  This was read from a search summary of SAP's help pages, not from the page itself. That is the
+  shape of `WinterMoratoriumRegister`.
+- **What the company lacks is the policy that places a hold, not the register.** No hardship,
+  bereavement, complaint or dispute decision writes one. Disputed sums are already left out of
+  `undisputed_overdue_gbp`. Breathing Space has its own register, written live since W2_44.
+  Ofgem's payment-difficulty expectations (regulatory expectations letter, 27 Sep 2022) ask the
+  supplier to weigh ability to pay before escalating. They do not prescribe a hold register or
+  say when a hold is placed. **GAP:** when a real supplier places a discretionary collections
+  hold, and for how long, is practitioner knowledge that no published source read here states.
+- **The disposition.** The column is listed in `UNROUTED_GROUNDS` (`W`), with its reason, as
+  `UNROUTED_ACTIONS` lists actions. The cells stay `covered`, because the gate does refuse on a
+  hold it is handed. Live, it is handed none.
+  - Wiring an empty register to the desk was rejected. It would read as live and refuse nothing.
+  - The control (`tests/company/billing/test_an_unrouted_ground_has_no_writer.py`) reds if a
+    writer is built while the ground is still listed, and reds if the ground is unlisted with no
+    writer.
+  - The same file shows the desk's meter-recovery route and the objection decision each permit
+    with no hold and refuse with a real `MoratoriumRecord`. So a writer, once built, engages the
+    column in operation.
+  - Still owed when a writer is built: `request_debt_objection` must take and pass the hold.
+- **Nothing live moves.** No input to any live decision changed, so no book changes.
 - **What moves live.** On the shipped world the Consent rung now withholds every offer on this
   ground, and no meter is asked for. With the world's answers on in-process (the register's
   `high` row), the gate decides it both ways

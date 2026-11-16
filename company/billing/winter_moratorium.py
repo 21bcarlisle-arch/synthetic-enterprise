@@ -296,6 +296,20 @@ UNROUTED_ACTIONS = frozenset({EnforcementAction.DISCONNECTION, EnforcementAction
                               EnforcementAction.REMOTE_SWITCH_TO_PREPAY,
                               EnforcementAction.AGENCY_HANDOFF})
 
+#: The columns whose input no company path writes, so a COVERED cell in them refuses in a unit test
+#: and never live. A real supplier does keep this register: a dated or open-ended lock with a
+#: reason on the contract account, which the dunning run skips (SAP IS-U dunning lock; commons s.5,
+#: "The own-hold column is unrouted"). What this company lacks is the POLICY that places one: no
+#: hardship, bereavement or dispute decision writes a `MoratoriumRecord`. Wiring an empty register
+#: to the desk would read as live and refuse nothing. A writer built later must delete its row here
+#: (tests/company/billing/test_the_enforcement_table.py reds either way).
+UNROUTED_GROUNDS = {
+    "own_hold_winter_moratorium": (
+        "no company policy places a hold: the register exists and is read by the gate, and no "
+        "decision writes a MoratoriumRecord, so live the desk's own_holds is None and the "
+        "objection door passes own_hold=False (C32 tenth pass, class 2)"),
+}
+
 
 @dataclass(frozen=True)
 class EnforcementCase:
