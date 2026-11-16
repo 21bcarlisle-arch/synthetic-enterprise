@@ -62,3 +62,26 @@ Graded on f7e17b1316 at this commit's code:
 So no book can publish until D5's build lands. A book built before then reproduces rows 4 and 7.
 That is why the next book's launch condition (§4) names the D5 build as an unmet requirement and
 does not leave it out.
+
+## 4. The next book's launch condition
+
+`sim_runner.book_admission` runs after `code_admission` on every cycle. It reads
+`background/next_book_requires.yaml` and defers the book unless both of these hold:
+
+- HEAD carries 157e05c23, fc3129a86, 163bf831a and 586e304ce (the open-run fix);
+- D5's debit half has landed. Its row reads `commit: null` with owner `DD_seasonal_cashflow_physics`.
+  Whoever lands D5 writes its commit in.
+
+It also defers while any `longjob-*-queued` unit is active. A long job waits in that unit only while
+`resource_headroom` refuses it, so while one exists the box does not admit both. If systemd gives no
+answer, that is a deferral, not an empty queue. A running long job was already yielded to by
+`cycle_admission`.
+
+**Expiry.** The file lapses on 2026-11-24, and a log line says so. A row nobody fills in therefore
+cannot hold books past the next Monday window unseen.
+
+**Reverse.** Delete the file, or delete one row.
+
+**Done-means, honestly.** No book newer than 6fe7827ab2 is published. The rows still refusing any book
+are INV_OVERDUE_WITHIN_BALANCE (4) and INV_OVERDUE_WITHIN_PAGE_BALANCE (7). Both are owned by
+`DD_seasonal_cashflow_physics`, whose build has not started.

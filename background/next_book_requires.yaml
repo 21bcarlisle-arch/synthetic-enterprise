@@ -1,0 +1,26 @@
+# What the next weekly book must carry before sim-runner builds it (`sim_runner.book_admission`).
+#
+# Why: at 07:05Z on 16 Nov sim-runner built a book on f7e17b1316, which carried the fix for none of the
+# five rows that had refused the book before it. That build ran for 6,728 s. The value-test twin queued
+# for memory the whole time. The publisher then refused the book on the same rows (12:31Z). A book that
+# cannot change a refusing row costs the thesis test its place and changes nothing.
+#
+# A row with `commit: null` names a fix that has not landed. The runner defers until someone writes the
+# landed commit in. Past `expires` the whole file lapses, the runner logs that, and books build as before.
+# So a forgotten row cannot hold books indefinitely.
+#
+# REVERSE: delete this file, or delete a row. The runner then admits on code_admission and
+# cycle_admission alone, as it did before 2026-11-16.
+expires: '2026-11-24'
+requires:
+- commit: 157e05c23
+  what: cast tariff row fix (refusing row 1 on 8a300fa561)
+- commit: fc3129a86
+  what: weather store covers the redrawn book (INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR, 5)
+- commit: 163bf831a
+  what: revenue row reads the SLC 21BA bar (INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE, OCC-cc0c78690877g)
+- commit: 586e304ce
+  what: revenue row grades an open estimated run as a flag (PROS-2025-0095g)
+- commit: null
+  what: D5's debit half (INV_OVERDUE_WITHIN_BALANCE 4, INV_OVERDUE_WITHIN_PAGE_BALANCE 7)
+  owner: DD_seasonal_cashflow_physics

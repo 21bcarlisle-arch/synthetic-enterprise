@@ -417,6 +417,69 @@ def code_admission(head: str | None = None, *, off_commit: dict | None = None,
     return {"admitted": True, "reason": None}
 
 
+#: The fixes the next book must carry, declared as data so a row can be filled or deleted without a
+#: code change. Absent file: no requirement (the behaviour before 2026-11-16).
+NEXT_BOOK_REQUIRES = PROJECT_DIR / "background" / "next_book_requires.yaml"
+
+
+def queued_long_jobs(runner=subprocess.run) -> list[str] | None:
+    """The `longjob-*-queued` units still waiting for room, or None when systemd cannot say. A job
+    waits in that unit only while `resource_headroom` refuses it, so while one exists the box does
+    not admit both it and a book."""
+    try:
+        out = runner(["systemctl", "--user", "list-units", "--plain", "--no-legend",
+                      "--state=active,activating", "longjob-*-queued*"],
+                     capture_output=True, text=True, timeout=30)
+    except Exception:  # noqa: BLE001 -- cannot tell is its own answer
+        return None
+    if out.returncode != 0:
+        return None
+    return sorted(line.split()[0] for line in out.stdout.splitlines() if line.strip())
+
+
+def book_admission(head: str | None = None, *, spec_path: Path | None = None, today=None,
+                   carries=None, queued=...) -> dict:
+    """May the next book be built on this commit? Only if it carries every fix the declaration
+    names, and only if no long job is queued for room.
+
+    At 07:05Z on 16 Nov a book built on f7e17b1316 carried the fix for none of the rows that had
+    refused the last book, ran for 6,728 s, and held the value-test twin in its queue throughout.
+    Then it was refused on the same rows. `code_admission` asks whether the code is origin's. This
+    asks whether the book could change a refusing row, and whether a thesis run is waiting.
+    Past the declaration's `expires`, the requirement lapses, with a log line saying so.
+    """
+    import yaml
+
+    head = head or _git_head()
+    today = today or datetime.now(timezone.utc).date().isoformat()
+    carries = carries or (lambda c: subprocess.run(
+        ["git", "merge-base", "--is-ancestor", c, head], cwd=str(PROJECT_DIR),
+        capture_output=True, timeout=30).returncode == 0)
+    path = spec_path or NEXT_BOOK_REQUIRES
+    reasons = []
+    spec = yaml.safe_load(path.read_text()) if path.exists() else None
+    if spec and str(spec.get("expires") or "") < today:
+        log(f"next-book requirements in {path.name} lapsed on {spec.get('expires')}; not applied")
+    elif spec:
+        for row in spec.get("requires") or ():
+            owner = f", owner {row['owner']}" if row.get("owner") else ""
+            if not row.get("commit"):
+                reasons.append(f"{row['what']} has not landed{owner}")
+            elif not carries(str(row["commit"])):
+                reasons.append(f"{head} does not carry {row['commit']} ({row['what']}{owner})")
+    waiting = queued_long_jobs() if queued is ... else queued
+    if waiting is None:
+        reasons.append("cannot tell whether a long job is queued for room (systemctl gave no answer)")
+    elif waiting:
+        reasons.append("a long job is queued for room ({}), so the box does not admit it and a book "
+                       "together".format(", ".join(waiting)))
+    if reasons:
+        log("DEFERRED this cycle -- the next book could not change what refused the last one, or would "
+            "displace a waiting run: " + "; ".join(reasons))
+        return {"admitted": False, "reason": "; ".join(reasons)}
+    return {"admitted": True, "reason": None}
+
+
 def run_simulation() -> bool:
     """Run one full simulation. Returns True on success."""
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -937,6 +1000,9 @@ def main() -> None:
             time.sleep(DEFERRAL_RETRY_SECONDS)
             continue
         if not code_admission()["admitted"]:
+            time.sleep(DEFERRAL_RETRY_SECONDS)
+            continue
+        if not book_admission()["admitted"]:
             time.sleep(DEFERRAL_RETRY_SECONDS)
             continue
         try:
