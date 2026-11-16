@@ -39,7 +39,7 @@ preregistration landed before the checks ran, before the draw and before the bri
 |---|---|
 | 1. Suite on a fresh run's full book | **Not gradeable on this build.** The refusal is the four-leg cross arm plus the named refund-clock leg. The 16 Nov book grades it |
 | 2. All eight slots valid or honestly empty | **MET on the reader's verdict.** All eight are "yes", the debt journey "weakly". The N28 sentences no longer print against their bills. The EV slot's one stale debt-stage line (O30) is presentation |
-| 3. No new serious class | **NOT MET.** **N30**: a dual-fuel home's two traditional meters are read separately. When one fuel is read the other is estimated, in 89% of such pairs, on 359 households. It changes what each bill charges, so it is serious by the rule. See `SEAT_FINDING_A_DUAL_FUEL_HOMES_TWO_TRADITIONAL_METERS_ARE_READ_ON_SEPARATE_DAYS…_2026-11-13.md` (owner `W2_36`) |
+| 3. No new serious class | **NOT MET.** **N30**: a dual-fuel home's two traditional meters are read separately. When one fuel is read the other is estimated, in 89% of such pairs, on 359 households. It changes what each bill charges, so it is serious by the rule. See `SEAT_FINDING_A_DUAL_FUEL_HOMES_TWO_TRADITIONAL_METERS_ARE_READ_ON_SEPARATE_DAYS…_2026-11-13.md` (owner `W2_36`) **Re-graded 16 Nov: still NOT MET for this read.** N30 closed on the 16 Nov book (ee2fa6b7a: blind row CLEAN at 0.274, 1,053 of 3,843). But leg three asks whether a read *finds* a new serious class, and this one did. A fix closes the class. It does not change what the read found. N30 no longer blocks leg three. Only a new read can meet it |
 
 **One further new class, presentation only: N31.** A printed catch-up bill hides the catch-up's VAT in the VAT line above
 it. See `SEAT_FINDING_A_PRINTED_CATCH_UP_BILL_HIDES_THE_CATCH_UPS_VAT_IN_THE_VAT_LINE_ABOVE_IT_2026-11-13.md`.
@@ -118,3 +118,7 @@ These are the checks from triage row `a-cold-reader-sees-only-what-its-trade-loo
 - N31 goes to the household page's bill block.
 - The 16 Nov book grades leg one. A thirteenth read on that book, with a trade not yet used, is the next cold read. It
   cannot meet leg three until N30 is fixed on a book.
+  *16 Nov:* N30 is fixed on the 16 Nov book (ee2fa6b7a), and N31 is in done/. The twelfth read's leg three stays NOT MET,
+  because a fix after a read does not re-grade that read. Leg three can now be met only by the thirteenth read. It
+  runs on a book the publisher has verified. The 16 Nov book carries the fixes but is not yet published
+  (`SEAT_FINDING_THE_CATCH_UP_VAT_ROWS_ARE_IN_THE_16_NOV_BOOK_BUT_THE_BOOK_IS_NOT_PUBLISHED_2026-11-16.md`).
