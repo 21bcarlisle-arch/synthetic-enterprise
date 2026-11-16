@@ -93,3 +93,24 @@ done/, because the open-question gate holds the director's quoted question open,
 unactioned steer would close it silently. **To make it drawable,** re-stage it with the time of his
 words, as the sibling EP11 ruling does ("09:27 GMT"). Nothing in it was judged on its merits. Item 1
 is due 23 Nov.
+
+## Done (worker tick, 16 Nov 2026)
+
+**Authority.** The advisor channel refused the file because 209f1b93f, the seat note above, is unsigned. The
+advisor's own staging commit c6eee2b24 verifies, and the note adds nothing to the steer's text. So this was acted
+on as c6eee2b24's signed bytes. The note's concern was the open question. It is closed below as answered, not
+archived silently.
+
+- **The director's question** ("Anything new and worth adding to our thesis and road map?") is **answered**. The
+  advisor proposed eight items and he replied "Yes and yes". Its disposition is in
+  `docs/observability/open_question_register.json`.
+- **Item 1** rides the existing commitment `value-test-hidden-weighted-utility-knowledge-page-first`, the K8
+  need-weights page due 23 Nov. That page decides the utility's form (compensatory or not) as well as its weights.
+- **Items 2 to 8** are in `docs/direction/priority_order.yaml` under `simulator_spec_candidates`, for Friday's
+  20 Nov balance review. None of them is drawn this week.
+- **Coverage, from one grep pass (not a full read):**
+  - Item 4 is partly built. `company/analytics/forward_clv.py` already blends a segment by an empirical-Bayes
+    weight n/(n+k). The hierarchy and the blend-versus-flat test are what is new.
+  - Item 3's trigger is partly there as the activation-energy barrier (`simulation/activation_energy.py`,
+    `emotional_trigger`).
+  - Items 5 (adverse selection) and the non-compensatory form in item 1 have no trace.

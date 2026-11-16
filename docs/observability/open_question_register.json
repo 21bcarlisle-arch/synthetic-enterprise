@@ -1347,6 +1347,13 @@
       "question": "Is ours small?",
       "status": "answered",
       "disposition": "ANSWERED (2026-11-16, measured). No: CLAUDE.md is 23,803 characters, about 9,900 tokens, up to 10% of context tokens in the 7-14 Nov week. A 9,052-character minimal draft (38%) runs against the full file on seat-executor Opus turns 21-28 Nov, pre-registered in docs/staging/records/SEAT_PREREG_TRIAL_E_E_MINIMAL_CLAUDE_MD_AGAINST_THE_FULL_ONE_2026-11-16.md; the live file is unchanged until the result."
+    },
+    "f926ea7a57ef": {
+      "status": "answered",
+      "ruling": "DIRECTOR_STEER_EIGHT_IDEAS_FROM_THE_DIRECTORS_SIMULATOR_SPEC_FOR_THE_BACKLOG_2026-11-16.md",
+      "question": "Anything new and worth adding to our thesis and road map?",
+      "disposition": "Answered in the steer itself: the advisor proposed eight items and the director replied 'Yes and yes'. Item 1 rides the need-weights K8 page (due 23 Nov); items 2-8 are in priority_order.yaml simulator_spec_candidates for the 20 Nov balance review.",
+      "recorded": "2026-11-16"
     }
   }
 }

@@ -101,6 +101,21 @@ world_lane_candidates:
     world_first: a metering data quality K8 page (BSCP504, REC metering schedules, DESNZ comms rates,
       Ombudsman and back-billing evidence, GAPs labelled), then faults ranked by frequency times billing
       harm, built into simulation/meter_reads.py as hidden world truth; supplier responses are their own items
+# 2026-11-16 ("Yes and yes"): items 2-8 of the director's simulator-spec steer, for the 20 Nov Friday balance
+# review under the correctness stretch's feature share; none is for this week. Item 1 (hygiene needs do not trade
+# off) rides the value-test-hidden-weighted-utility-knowledge-page-first commitment in DIRECTION.yaml (due 23 Nov).
+# Each world item clears the validation ladder: published figures test it, never tune it; unpublished rates are
+# stated beliefs with ranges. Do not quote or name the spec's source (the steer's provenance note).
+simulator_spec_candidates:
+  source: docs/staging/advisor/done/DIRECTOR_STEER_EIGHT_IDEAS_FROM_THE_DIRECTORS_SIMULATOR_SPEC_FOR_THE_BACKLOG_2026-11-16.md
+  items:
+    - {item: 2, lane: world, id: each-need-a-decaying-stock, builds_on: simulation/activation_energy.py and the resentment mechanics, not a parallel module}
+    - {item: 3, lane: world, id: churn-needs-a-trigger, builds_on: "activation_energy.py's emotional_trigger term (partly there)", test: the record's year-to-year switching movement; step, linear and arctan gap responses}
+    - {item: 4, lane: supplier, id: hierarchical-credibility-blend-beats-flat, builds_on: "company/analytics/forward_clv.py already blends n/(n+k) at one segment level", open: the hierarchy and the blend-versus-flat test}
+    - {item: 5, lane: world and supplier, id: adverse-selection-from-drawn-traits, builds_on: "nothing found (one grep pass, 16 Nov)"}
+    - {item: 6, lane: supplier, id: cost-to-serve-rises-in-steps, builds_on: the epoch-2 cost-to-serve item}
+    - {item: 7, lane: supplier, id: clv-options-and-a-book-level-fixed-cost-check, builds_on: per-customer CLV on contribution; the fixed-cost check is book-level only}
+    - {item: 8, lane: supplier, id: optimiser-guardrails-that-show-themselves-refusing, before: any optimiser or tournament evolves the supplier}
 # 2026-11-07: three harness steers the director staged for after the exit test, ranked by the seat.
 # Item 3 of the plugins steer (code-review against our two readers) rides the 11 Nov review row in
 # DIRECTION.yaml; pyright is trialled inside the token measurement, not before it.
