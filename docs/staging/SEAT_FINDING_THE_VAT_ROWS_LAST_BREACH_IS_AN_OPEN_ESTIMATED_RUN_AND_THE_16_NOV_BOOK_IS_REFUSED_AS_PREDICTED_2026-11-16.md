@@ -85,3 +85,28 @@ cannot hold books past the next Monday window unseen.
 **Done-means, honestly.** No book newer than 6fe7827ab2 is published. The rows still refusing any book
 are INV_OVERDUE_WITHIN_BALANCE (4) and INV_OVERDUE_WITHIN_PAGE_BALANCE (7). Both are owned by
 `DD_seasonal_cashflow_physics`, whose build has not started.
+
+## 5. 16:30Z, worker tick (RUNG-1 wedge draw): the D5 world half is not landed, and nothing is landing it
+
+- **The publisher's 16:06Z re-gate, graded against a prediction written first.** It was predicted to be
+  refused on the same three rows. **Right**: at 16:19Z it was refused on INV_OVERDUE_WITHIN_BALANCE 4,
+  INV_OVERDUE_WITHIN_PAGE_BALANCE 7, and INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 5. That is
+  the seventh grade of this one 07:05Z book since 12:31Z, about one every 40 minutes. Each takes
+  about 15 minutes and 1.8 GB. No test ran, so there is no red test to find. Memory is not short
+  (12.4 GB free with the twin resident), so the retries cost CPU, not the twin's room.
+- **The D5 world half (`FINAL_BILL_ASKS_THE_LEVEL_DEBIT = False`, `background/live_payment_triad.py`)
+  is neither on HEAD nor on origin.** It exists only as an uncommitted edit in the shared working tree.
+  The landing (`surgical_land` pid 976146) is gone. Its only log line is `/tmp/d5land.log`:
+  `attempt 1/3 lost the race: HEAD 57158c97c -> 1d903a79f; re-gating the new base`. Nothing follows
+  it, `/tmp/d5land2.log` is empty, and at 16:20Z no surgical_land or launch_long_job process is alive.
+- **What it lost the race to was this wedge's own exhaust.** 1d903a79f is the publisher's
+  "verification paused banner" commit. Each refused re-grade of the 07:05Z book lands one
+  (ec2c57f18, 60e067ebe, 1d903a79f). So a retry that cannot pass moves HEAD under the one landing
+  that could make the next book pass. I cannot yet say whether a banner commit also killed the
+  re-gate, or something else ended the process. The log stops before saying why.
+- **Not acted on, and why.** `DD_seasonal_cashflow_physics` is claimed by the seat (claimed 15:42Z),
+  and a seat-executor turn started at 16:16Z. Re-launching the switched-off land from a worker tick
+  would collide with that claim. Whoever holds D5 next should relaunch the world-half land from
+  the working-tree hunks (`tools/isolate_hunks.py` + `surgical_land --content`) at a moment when
+  the publisher is not mid-cycle. The next banner commit comes about 13 minutes into each
+  publisher cycle.
