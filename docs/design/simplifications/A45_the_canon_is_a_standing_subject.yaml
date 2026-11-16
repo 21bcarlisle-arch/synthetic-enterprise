@@ -134,3 +134,14 @@ map_records:
     is not W2_3 is still unseen, and that is the residual. Partition control in
     tests/tools/test_canon_drift_check.py: green at the judged level, red and minted at the next.
     Next, in order: the site leg in the scheduled note, M2's lexicon, then M1.
+  - >-
+    Site leg in the note, 2026-11-16. The MINOR "the site leg runs from main() only, so the
+    scheduled note never reports it" is fixed by moving `site_drift` into `run()`, which the note
+    calls. The note line now ends with the site leg's denominator ("Site leg: 88 served page(s)
+    hold against 149 canon quote(s)") or, when it is red, names the rows; a red site leg mints a
+    BLOCKING item keyed on its rows, because a withdrawn framing on a served page is a false
+    sentence in front of a reader. Predicted before running: the live site reads 0 drifting, so the
+    note's verdict does not move today; read 0 of 88. Partition control in
+    tests/tools/test_canon_drift_check.py: one green register, a holding site mints nothing and
+    prints its denominator, a drifting one goes red and mints once. Next, in order: M2's lexicon,
+    then M1 (a per-sentence denominator). Level held at 2.
