@@ -94,7 +94,7 @@ Each is a fix candidate. Under the stop condition, a fix is drawn from this list
   the desk on the *ask* (`nil_refs`). 436 legs leave on their final bill only. There the desk asks a scheme debit due
   28 days after leaving, while the page states it on the final bill, due 14 days after issue. **Measured 16 Nov:** 4
   journeys open on that ask on the f85dea4965 and 8a300fa561 books and hold the 16 Nov publish (`INV_OVERDUE_WITHIN_BALANCE`;
-  SYN-2016-471 adds 3 page steps). Traced in the level-DD dunning finding's 16 Nov section. The definition question comes first. **Is a final bill a leaving at all?** The
+  SYN-2016-471 adds 5 of the 7 page steps). Traced in the level-DD dunning finding's 16 Nov section. The definition question comes first. **Is a final bill a leaving at all?** The
   knowledge page says the final bill states the balance (home_moves.md, "Debt prevention at move-out"). If so, the
   desk's `level_leave_dates` should not read a final bill as a leaving.
 - **D6 (S4): a repaid return is capped on one side only.** The desk caps what is owed at the debit balance. T's walk
