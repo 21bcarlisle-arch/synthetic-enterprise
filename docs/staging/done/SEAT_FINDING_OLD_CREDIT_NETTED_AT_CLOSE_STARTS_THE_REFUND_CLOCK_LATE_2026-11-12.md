@@ -123,3 +123,11 @@ test_execution_log) dropped.
   landed it ended before promotion. Origin had moved by 2 commits that touch none of its paths. A
   gated merge, 99c8e05dd (unit `longjob-final-bill-land-4-merge-1`, about 60 s), was promoted at about
   22:58 GMT and bound to the claim. **The fix is on origin ahead of the 16 Nov 04:00 book.**
+
+## Done (2026-11-16)
+
+Graded 0 on the first fresh run that carries the fix: `INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO` reads 0 of 1,679
+on the 8a300fa561 book (16 Nov), and SYN-2016-139 is on it. The fix is S6b (69866925bd: a repayment is money in on
+its cash day). The book also carries ceeefa5960 (the refund clock starts on the final bill's issue day), so the 0
+cannot be credited to S6b alone. The exception holding this breach (max 1) is retired in the same commit; if the
+breach returns, the gate refuses. `docs/staging/records/SEAT_RESULT_THE_16_NOV_BOOK_ON_THE_N29_ROWS_2026-11-16.md`.

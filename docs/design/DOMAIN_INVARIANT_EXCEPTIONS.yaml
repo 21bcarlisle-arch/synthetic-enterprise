@@ -257,35 +257,16 @@ exceptions:
     max_breached: 1
   - invariant: INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT
     scope: >-
-      Closing refunds on a dual-fuel household's leg while its other fuel closes owing: 60 of the 149 graded on the
-      6fe7827ab2 book (N29), every one at closure, 41 of them before 22 Jan 2021.
+      Closing refunds on a dual-fuel household's leg while its other fuel closes owing: 23 of the 132 graded on the
+      8a300fa561 book (16 Nov, the first fresh run with the netted set-off), every one at closure.
     reason: >-
-      Not explained: it is the open N29 defect, filed so the row can land red without stopping the weekly publish.
-      The set-off build has landed, netted into the debt leg's own walk (home_moves.md s.8.8e). Replayed over the
-      6fe7827ab2 run JSON it takes the row from 60 to 31 and INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO from 33 breached
-      to 5 on 1c66aceab6 (87 flags to 69); all 5 breach in the control too, and the build adds none. The ceiling stays 60 because the published pages were built before it. Every one
-      of the 31 is a household whose page balance on the other leg differs from the world's closing balance on it.
-      docs/staging/records/SEAT_RESULT_THE_SET_OFF_NETTED_IN_THE_DEBT_LEGS_WALK_ON_6FE7827AB2_2026-11-12.md.
+      Not explained: it is the open N29 residue, filed so the row can land red without stopping the weekly publish.
+      The ceiling moved 60 -> 23 on that book's own count (16 Nov). The prediction was 30 +/- 3 and it missed low;
+      the run's refund log is identical to the e17ebc596 arm (43 set-offs, GBP 1,469.38), so the drop is page-side
+      and not yet attributed.
+      docs/staging/records/SEAT_RESULT_THE_16_NOV_BOOK_ON_THE_N29_ROWS_2026-11-16.md.
     filed: 2026-11-12
-    recheck_by: 2026-11-19
+    recheck_by: 2026-11-26
     retired_by: >-
-      the first fresh run with the netted set-off, graded: lower the ceiling to its count (29 predicted; corrected
-      12 Nov from 31, which was read on 123dd6d525 -- origin 90279e5318 re-reads 29 on the same run JSON,
-      docs/staging/records/SEAT_PREREG_THE_16_NOV_BOOK_ON_THE_N29_ROWS_2026-11-12.md), then the page/world two-walk
-      residue on the other leg, traced to a cause per household.
-    max_breached: 60
-  - invariant: INV_CLOSED_ACCOUNT_BALANCE_REACHES_ZERO
-    scope: >-
-      SYN-2016-139 only: GBP 32.04 of credit unrefunded on 29 Apr 2022 (final bill raised 13 Apr), refunded 12 May.
-    reason: >-
-      Traced, not explained away: the walk's money_in_out dates the household's May 2021 cash, netted against the
-      final bill on 27 Apr, as money arriving that day, so the world starts reg 6D's clock 10 working days late; the
-      page (fix 2, 9392920e60) prints it as credit already held. The other 4 breaches on the replay are the
-      older-run/newer-walk cross arm and are not excepted: a fresh run should read them 0, and if it does not, the
-      gate refuses. docs/staging/SEAT_FINDING_OLD_CREDIT_NETTED_AT_CLOSE_STARTS_THE_REFUND_CLOCK_LATE_2026-11-12.md.
-    filed: 2026-11-12
-    recheck_by: 2026-11-19
-    retired_by: >-
-      money_in_out skipping a repayment credit whose cash predates the bill it settles (s.8.8d amended first),
-      graded 0 on a fresh run.
-    max_breached: 1
+      the page/world two-walk residue on the other leg, traced to a cause per household, graded 0 on a fresh run.
+    max_breached: 23
