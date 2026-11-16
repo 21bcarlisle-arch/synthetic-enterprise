@@ -4,13 +4,13 @@
 
 <!-- counts:begin -->
 **Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
-has been **observed to hold on 1 separate day(s)**, on **2026-11-08**, and **1 member(s)** of
-the family `auto:9cd1be5d90d8d339` have fired. Both counts are DERIVED from this document's own
-dated lines every time the alarm fires again, so they age with the document rather than with
-its first firing.
+has been **observed to hold on 2 separate day(s)**, between **2026-11-08** and **2026-11-15**,
+and **1 member(s)** of the family `auto:ebd74dda1f70d803` have fired. Both counts are DERIVED
+from this document's own dated lines every time the alarm fires again, so they age with the
+document rather than with its first firing.
 
-Separately, the observer that last filed reported **3 consecutive firing(s) without a state
-change**, over **6.0h**. That is `notify()`'s streak counter, which resets; it is not a total
+Separately, the observer that last filed reported **6 consecutive firing(s) without a state
+change**, over **15.0h**. That is `notify()`'s streak counter, which resets; it is not a total
 and does not combine with the two counts above.
 <!-- counts:end -->
 
@@ -90,3 +90,9 @@ Nothing here is for the director: it was a page format, fixed as a class.
 - **2026-11-08** — re-asked: **still_holds**. observed 2026-11-08, within the 3-day bar.
 - **2026-11-09** — re-asked: **still_holds**. observed 2026-11-08, within the 3-day bar.
 - **2026-11-10** — re-asked: **still_holds**. observed 2026-11-08, within the 3-day bar.
+- **2026-11-11** — re-asked: **still_holds**. document last annotated 2026-11-08, but `auto:9cd1be5d90d8d339` fired 12.3h ago in the notify transition store, which contradicts the silence.
+- **2026-11-12** — re-asked: **still_holds**. document last annotated 2026-11-08, but `auto:9cd1be5d90d8d339` fired 8.2h ago in the notify transition store, which contradicts the silence.
+- **2026-11-13** — re-asked: **still_holds**. document last annotated 2026-11-08, but `auto:9cd1be5d90d8d339` fired 32.2h ago in the notify transition store, which contradicts the silence.
+- **2026-11-14** — re-asked: **still_holds**. document last annotated 2026-11-08, but `auto:9cd1be5d90d8d339` fired 2.2h ago in the notify transition store, which contradicts the silence.
+- **2026-11-15** — re-asked: **still_holds**. document last annotated 2026-11-08, but `auto:9cd1be5d90d8d339` fired 20.1h ago in the notify transition store, which contradicts the silence.
+- **2026-11-16** — re-asked: **still_holds**. observed 2026-11-15, within the 3-day bar.
