@@ -96,3 +96,13 @@ Nothing here is for the director: it was a page format, fixed as a class.
 - **2026-11-14** — re-asked: **still_holds**. document last annotated 2026-11-08, but `auto:9cd1be5d90d8d339` fired 2.2h ago in the notify transition store, which contradicts the silence.
 - **2026-11-15** — re-asked: **still_holds**. document last annotated 2026-11-08, but `auto:9cd1be5d90d8d339` fired 20.1h ago in the notify transition store, which contradicts the silence.
 - **2026-11-16** — re-asked: **still_holds**. observed 2026-11-15, within the 3-day bar.
+
+## Resolution (2026-11-16)
+
+**Resolved by 0cf9406744**: a seat tick landed its own direction record on origin at 06:57Z 16 Nov,
+and the next one did the same at 12:52Z (efe016db3). The condition this alarm names no longer holds.
+The 16 Nov dated line above was written from an observation made on 15 Nov, before either landing.
+
+The shared tree's uncommitted annotations (11-16 Nov) went to origin first, byte for byte, in
+06235c81f. That let the shared tree fast-forward before this move, so the move did not hold its
+fast-forward the way 8503daa89's did (759fac9831).
