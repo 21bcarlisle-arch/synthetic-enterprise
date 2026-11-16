@@ -166,6 +166,26 @@ def test_the_cap_rule_grades_the_recorded_term_not_the_renewal_proxy():
     assert gen.coverage_breaches(*_hh([_inv("2022-11-30", *bill, **unrecorded)]), WINDOWS, "resi") == []
 
 
+def test_a_renewal_named_for_the_other_fuel_fixes_this_leg_only_when_its_own_next_bill_is_fixed():
+    """PROS-2019-0356g (8a300fa561): the household timeline put the electricity renewal of 17 Nov
+    2023 on the gas page, and the cast printed "Fixed from 17 Nov 2023" for a gas leg billed SVT.
+    Both outcomes must be reachable: gas that fixed with it, and gas that stayed on the default."""
+    ren = [{"date": "2023-11-17", "type": "renewed", "commodity": "electricity", "detail": "Tariff renewed at 249.0 £/MWh"}]
+    elec = [_inv("2023-11-30", 200, 40.0, term_tariff_type="svt"),
+            _inv("2023-12-31", 200, 40.0, term_tariff_type="fixed")]
+
+    def gas_term(next_gas_term):
+        gas = [_inv("2023-11-30", 900, 40.0, term_tariff_type="svt"),
+               _inv("2023-12-31", 900, 40.0, term_tariff_type=next_gas_term)]
+        hh, ev = _hh(elec, timeline=ren, gas=gas, gas_timeline=ren)
+        return dict(gen.term_in_force(hh, ev, "2023-11-17"))
+
+    stayed, fixed_too = gas_term("svt"), gas_term("fixed")
+    assert stayed["electricity"]["term"] == "fixed" and fixed_too["electricity"]["term"] == "fixed"
+    assert stayed["gas"]["term"] == "svt", "the electricity renewal was read as the gas leg's"
+    assert fixed_too["gas"]["term"] == "fixed" and fixed_too["gas"]["since"] == "2023-11-17"
+
+
 def test_the_cap_rule_trusts_an_svt_verdict_even_after_a_renewal_dated_earlier():
     """A default term after a renewal (a fix that lapsed to SVT) is capped; the proxy would skip it."""
     renewed = [{"date": "2022-06-01", "type": "renewed", "detail": "x"}]

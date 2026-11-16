@@ -165,6 +165,25 @@ def _known_by(records: list[dict], iso: str) -> list[dict]:
 _RENEWAL_LEAD_DAYS = 40
 
 
+def _renewal_is_this_legs(ev: dict, fuel: str, e: dict) -> bool:
+    """Whether a `renewed` record on this leg's page renewed THIS leg.
+
+    The page timeline is the household's (`generate_customer_data._timeline`), so a gas leg carries
+    its electricity leg's renewals, `commodity` naming the fuel that renewed. Its own renewal is
+    rarely recorded apart (23 against 323 on the 8a300fa561 pages). Read on that book's ledger, the
+    gas leg began a fixed term on the electricity renewal's date in 215 of 321 cases and stayed on
+    the default tariff in 106. So a renewal named for another fuel is this leg's only when the leg's
+    first bill to START on or after that date is fixed (the bill holding the date is still the old
+    term's: the electricity leg's own November bill is SVT). The supplier struck the term that day; the bill is where
+    the page writes it down. PROS-2019-0356g printed "Fixed from 17 Nov 2023" while billed SVT."""
+    if e.get("commodity") in (None, fuel):
+        return True
+    after = sorted((i for i in ev["invoice"] if i["fuel"] == fuel and (i.get("document_type") or "bill") == "bill"
+                    and (i.get("period_start") or i["date"]) >= e["date"]),
+                   key=lambda i: i.get("period_start") or i["date"])
+    return bool(after) and after[0].get("term_tariff_type") == "fixed"
+
+
 def _leg_term(ev: dict, fuel: str, iso: str) -> dict | None:
     """The term one leg was on at `iso`, as its bills record it (`term_tariff_type`), or None.
 
@@ -175,7 +194,8 @@ def _leg_term(ev: dict, fuel: str, iso: str) -> dict | None:
     2020 (seventh cold read, N16)."""
     bills = sorted((i for i in ev["invoice"] if i["fuel"] == fuel and (i.get("document_type") or "bill") == "bill"
                     and (i.get("period_start") or i["date"]) <= iso), key=lambda i: i.get("period_start") or i["date"])
-    renewals = [e for e in ev["timeline"] if e.get("type") == "renewed" and e.get("fuel") == fuel and e["date"] <= iso]
+    renewals = [e for e in ev["timeline"] if e.get("type") == "renewed" and e.get("fuel") == fuel and e["date"] <= iso
+                and _renewal_is_this_legs(ev, fuel, e)]
     if not bills:
         return None
     cur = bills[-1]

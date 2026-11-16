@@ -1409,3 +1409,22 @@ action's amount, computed by one function both read. It must not be a second rea
 `(start, end, charge, collected)` tuples today (`_leg_balance_on` reads bills at face, which carry no period), so the
 build starts by giving it those tuples or by moving the bar's input to a shape both can call. Scope for the next
 session: the triad ask, the DD book read, the page row, the desk note, the runner, and one book. That is more than one bounded tick.
+
+### INV_CAST_TARIFF_LABEL_IS_THE_BILLED_TERM traced and fixed in the cast (worker tick, 16 Nov 2026 ~08:40 GMT)
+
+- **Cause.** The page timeline is the household's (`generate_customer_data._timeline`), so PROS-2019-0356g's gas page
+  carries the electricity leg's 17 Nov 2023 renewal, `commodity: electricity`. `generate_explore_cast._events` tags every
+  record with the fuel of the page it came from, so `_leg_term` read that renewal as the gas leg's. It printed "Fixed
+  from 17 Nov 2023" for both fuels while gas stayed on SVT (ledger terms: gas `svt 2023-11-17..`).
+- **Measured before the rule (8a300fa561 pages and ledger).** Gas pages carry 323 electricity renewals and 23 of their
+  own. On an electricity renewal's date the gas leg began a fixed term in 215 of 321 cases and stayed on SVT in 106. So
+  neither "the household's renewal is every leg's" nor "only the named fuel's" is right on its own.
+- **Fix.** A renewal named for another fuel is this leg's only when the leg's first bill to start on or after that date
+  is fixed (`_renewal_is_this_legs`). Regraded on a fresh cast against the same book, the row reads 0 breaches of 40
+  (it was 1). One moment changes: PROS-2019-0356's outcome now prints "Electricity: Fixed ... from 17 Nov 2023; Gas:
+  Standard variable since 1 Dec 2020". The slots still fill 8 of 8. The control covers both outcomes, and it reds when
+  the guard is reverted.
+- **Same shape, not fixed here.** 74 gas pages carry an electricity `churned` record. The cast's gas-left reading
+  (`e["fuel"] == "gas"`, lines ~318-320) takes it as the gas leg's. Not yet graded by any row.
+- **With this and D5 fixed, the publish is still refused** on INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE (2) and
+  INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR (5 against 1). The cast fix takes effect at the next run's publish.
