@@ -123,3 +123,39 @@ are INV_OVERDUE_WITHIN_BALANCE (4) and INV_OVERDUE_WITHIN_PAGE_BALANCE (7). Both
   the runner's choice 27, and SYN-2016-471's desk misdating.
 - **`DD_seasonal_cashflow_physics` is no longer claimed** (the promotion's binding says it was swept).
   Nobody holds the switch-on now. It is handed on via `seat_continuation`.
+
+## 7. 17 Nov, 16:20Z, delivery seat: the D5-on book's grade, filed before the book runs
+
+*Claim `the-d5-book-is-graded-and-published-or-its-refusals-named`. At filing, step 6 is in pair 2's
+last run (simulated Sept 2020 at 16:15Z, about 90 min a run), and `d5book-pause-watch` has not fired. No book newer
+than f7e17b1316 exists. This file gathers the predictions already on record and adds the one that was not.*
+
+### What the book must carry, checked before it runs
+
+- `background/next_book_requires.yaml` names 341df4965 (D5 switched on), so `book_admission` defers any book
+  without it. The shared tree's `background/live_payment_triad.py:168` reads `FINAL_BILL_ASKS_THE_LEVEL_DEBIT = True`.
+- 317b1d56c (the walk-ordering counter, `settlements_behind_the_walk`) is not a row in that file. The grade checks
+  `run_complete`'s `Git:` line is a descendant of both commits, and says so if it is not.
+
+### Predictions (only the last one is new here)
+
+| row | 16 Nov (f7e17b1316) | predicted | filed in |
+|---|---|---|---|
+| INV_OVERDUE_WITHIN_BALANCE (4) | 4 | at most 1 | D5 pre-registration, prediction 1 |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE (7) | 7 | 2, SYN-2016-001's 15 Aug 2023 steps only; SYN-2016-471 gone | same, predictions 2 and 3 |
+| INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR | 5 | at most 1, within the exception (SYN-2016-206g at most) | fc3129a86's message |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 0 (1 flag) | 0 breached | 586e304ce |
+
+**New: the publish verdict.** The book is **refused on INV_OVERDUE_WITHIN_PAGE_BALANCE alone**, by SYN-2016-001.
+The book redraws nothing, so its 15 Aug 2023 gas lump crosses behind the walk again, and
+`settlements_behind_the_walk` names at least one walk. If the publish passes, prediction 2 is refuted: the lump moved
+or the walk order changed, and I cannot say which until the counter is read.
+
+**What this book cannot say.** It carries every commit since f7e17b1316, so it is not a one-variable run. A row
+that matches is consistent with its named fix and does not attribute the change to it. A row this table does not
+list that newly refuses is a finding in its own right, not a refutation of the table.
+
+### Owners if the prediction holds
+
+- Row 7 (SYN-2016-001): the walk-ordering class from the D5 pre-registration ("SYN-2016-001 traced to a class"). It
+  has no owner in `next_book_requires.yaml` yet. The grade names one.
