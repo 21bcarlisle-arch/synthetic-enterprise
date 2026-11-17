@@ -169,3 +169,74 @@ def test_a_session_that_ran_the_bind_is_credited_with_the_item_it_bound(tmp_path
         {"type": "tool_use", "name": "Bash",
          "input": {"command": "python3 -m background.delivery_lane --landed the-cost-steer-2.5 && x"}}]}}
     assert w._session_cost_and_landings(_session(tmp_path, [bind]))[2] == ["the-cost-steer-2.5"]
+
+
+# --- cost per result and rework rate (director steer, 17 Nov 2026) ---------------------------------
+
+import subprocess  # noqa: E402
+
+
+def _repo(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for args in (["init", "-q", "-b", "main"], ["config", "user.email", "t@t"], ["config", "user.name", "t"]):
+        subprocess.run(["git", "-C", str(repo), *args], check=True)
+    return repo
+
+
+def _git_commit(repo, files: dict, remove=(), message="c") -> str:
+    for name, body in files.items():
+        (repo / name).parent.mkdir(parents=True, exist_ok=True)
+        (repo / name).write_text(body)
+    for name in remove:
+        (repo / name).unlink()
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-q", "-m", message], check=True)
+    return subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+
+
+def test_a_result_is_a_move_to_done_a_level_row_or_a_steer_closed_and_a_copy_that_keeps_the_original_is_none(tmp_path):
+    """MUTATION: count any add under done/ and a copy that leaves the item open reads as a result."""
+    repo = _repo(tmp_path)
+    _git_commit(repo, {"docs/staging/A.md": "a", "docs/staging/B.md": "b", "docs/staging/advisor/S.md": "s",
+                   "docs/observability/gate_authorizations.jsonl": "{}\n"})
+    moved = _git_commit(repo, {"docs/staging/done/A.md": "a", "docs/staging/advisor/done/S.md": "s",
+                           "docs/observability/gate_authorizations.jsonl": "{}\n{}\n{}\n"},
+                    remove=["docs/staging/A.md", "docs/staging/advisor/S.md"])
+    assert w.results_of(moved, repo) == {"staging_closed": 1, "level_move": 2, "steer_done": 1}
+    copied = _git_commit(repo, {"docs/staging/done/B.md": "b"})
+    assert w.results_of(copied, repo) == {"staging_closed": 0, "level_move": 0, "steer_done": 0}
+
+
+def test_a_code_line_changed_later_is_rework_and_a_line_left_alone_is_not(tmp_path):
+    """Both partitions, so a reader that calls every line changed (or none) fails. MUTATION: compare the
+    blame sha to the commit itself rather than the tip and every surviving line reads as reworked."""
+    repo = _repo(tmp_path)
+    _git_commit(repo, {"tools/x.py": "a = 1\n"})
+    kept = _git_commit(repo, {"tools/x.py": "a = 1\nb = 2\n"})
+    hit = _git_commit(repo, {"tools/y.py": "c = 3\nd = 4\n", "tests/t.py": "e = 5\n"})
+    tip = _git_commit(repo, {"tools/y.py": "c = 3\nd = 40\n"})
+    assert w.rework_of_commit(kept, tip, repo)["changed"] == 0
+    r = w.rework_of_commit(hit, tip, repo)
+    assert (r["added"], r["changed"], r["paths"]) == (2, 1, ["tools/y.py"])
+
+
+def test_a_forks_copy_of_its_parents_message_is_spent_once_and_by_the_parent(tmp_path):
+    """MUTATION: dedupe within a session only (as `_session_cost_and_landings` does) and a fork doubles
+    the week -- 245 points read for a week the readings put at 87."""
+    root = tmp_path / "projects"
+    (root / "p").mkdir(parents=True)
+    msg = dict(_assistant("m1", 1_000_000), timestamp="2026-11-16T10:00:00Z")
+    (root / "p" / "parent.jsonl").write_text(json.dumps(msg))
+    fork = dict(_assistant("m2", 1_000_000), timestamp="2026-11-16T11:00:00Z")
+    (root / "p" / "fork.jsonl").write_text(json.dumps(dict(msg, timestamp="2026-11-16T10:30:00Z")) + "\n"
+                                           + json.dumps(fork))
+    usd, _, stamped = w._spend_once(_utc("2026-11-16T00:00"), root)
+    one = w.burn._priced({"output_tokens": 1_000_000}, "claude-opus-5-5")
+    assert len(stamped) == 2 and abs(usd["parent"] - one) < 1e-9 and abs(usd["fork"] - one) < 1e-9
+
+
+def test_a_rework_bound_is_wide_on_a_thin_sample_and_none_is_not_zero():
+    lo, hi = w.wilson(1, 2)
+    assert lo < 0.2 and hi > 0.8
+    assert all(x != x for x in w.wilson(0, 0))

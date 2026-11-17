@@ -56,3 +56,29 @@ Probable failure modes:
 Proportionality: harness measurement. Implement directly.
 
 — Director steer, 17 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Seat executor, Tue 17 Nov 2026. Harness measurement only; nothing raised to the director.
+
+- **1. "A result" is defined before the first figure**, and fixed:
+  `docs/staging/records/SEAT_PREREG_COST_PER_RESULT_AND_REWORK_RATE_2026-11-17.md`. It has three kinds
+  (staging item closed, level move recorded, steer moved to done), measured apart and never summed.
+  Spend by sessions that landed no result is published beside the figure, never spread over it.
+- **2. Two standing Friday lines**: `background/weekly_rhythm.py::_results_section`, rendered by
+  `python3 -m tools.work_cost_estimate --results`. This extends the existing module: no new
+  module, gate, daemon or dashboard. Each line shows four weeks with a bound. Cost per result uses
+  a 90% bootstrap bound on the mean. Rework rate uses `git blame --reverse` over 14 days, with a
+  Wilson 90% bound, by class.
+- **First reading** (record above):
+  - each result costs about 0.2 points;
+  - **86% of the week's spend is in sessions that landed no result**. That is an upper bound:
+    long-job landings are not yet joined back to the session that launched them;
+  - rework is 48% of code commits (40–55%) but only 6% of lines, flat for four weeks.
+- **One correction in the first pass:** forked transcripts double-counted spend (245 points against
+  the burn total's 87). It was fixed before publishing, and a test keeps it fixed.
+- **3. The machine acts on them itself.** The rule is in the section: where a class's rework rises for
+  two read weeks with non-overlapping bounds, add verification there before widening its autonomy.
+  The backlog gains E-r (KEEP, instrument) and E-r2 (attribute long-job landings, NEXT). Rework is flat,
+  so no autonomy changes this week.
+- **Reading log:** the entry above is appended to `docs/institutional/reading_log.md`.

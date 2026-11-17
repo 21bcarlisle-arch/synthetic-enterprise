@@ -33,6 +33,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import random
 import re
 import statistics
 import subprocess
@@ -163,7 +165,8 @@ def landed_sessions(days: float, now: float | None = None, root: Path = burn.PRO
         usd, shas, ids = _session_cost_and_landings(path)
         total += usd
         if shas or ids:
-            rows.append({"session": path.stem, "usd": usd, "shas": shas, "bound_ids": ids})
+            rows.append({"session": path.stem, "usd": usd, "shas": shas, "bound_ids": ids,
+                         "mtime": path.stat().st_mtime})
     known = _commits([s for r in rows for s in r["shas"]])
     for r in rows:
         r["shas"] = [s for s in r["shas"] if s in known]
@@ -536,11 +539,276 @@ def render(days: float = 30.0, now: float | None = None) -> str:
     return "\n".join(lines)
 
 
+# COST PER RESULT AND REWORK RATE (director, 17 Nov 2026, 06:24 GMT: "Yes. But ideally I don't want to
+# have to get involved in detailed results just steer strategy, direction and big goals."). Two standing
+# lines in the Friday review, for the machine to act on; the definitions are fixed by
+# docs/staging/records/SEAT_PREREG_COST_PER_RESULT_AND_REWORK_RATE_2026-11-17.md and change only by a
+# dated amendment there. A result is one of three distinct experiences, never summed.
+
+RESULT_KINDS = ("staging_closed", "level_move", "steer_done")
+REWORK_DAYS = 14
+_Z90 = 1.645
+
+
+def results_of(sha: str, repo: Path = PROJECT) -> dict[str, int]:
+    """The results one landed commit produced, by kind. A move is read as a delete in the source room
+    plus an add of the same name in its done/ room, so a copy that leaves the original is not one."""
+    out = dict.fromkeys(RESULT_KINDS, 0)
+    r = subprocess.run(["git", "-C", str(repo), "show", "--no-renames", "--diff-merges=first-parent",
+                        "--numstat", "--format=", sha], capture_output=True, text=True)
+    s = subprocess.run(["git", "-C", str(repo), "show", "--no-renames", "--diff-merges=first-parent",
+                        "--name-status", "--format=", sha], capture_output=True, text=True)
+    if r.returncode or s.returncode:
+        return out
+    added, deleted = set(), set()
+    for line in s.stdout.splitlines():
+        status, _, path = line.partition("\t")
+        (added if status == "A" else deleted if status == "D" else set()).add(path)
+    for path in added:
+        name = path.rsplit("/", 1)[-1]
+        if path == f"docs/staging/done/{name}" and f"docs/staging/{name}" in deleted:
+            out["staging_closed"] += 1
+        elif path == f"docs/staging/advisor/done/{name}" and f"docs/staging/advisor/{name}" in deleted:
+            out["steer_done"] += 1
+    for line in r.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) == 3 and parts[2] == "docs/observability/gate_authorizations.jsonl" and parts[0].isdigit():
+            out["level_move"] += int(parts[0])
+    return out
+
+
+def _mean_bound(xs: list[float], seed: int = 0) -> tuple[float, float]:
+    """A 90% percentile-bootstrap bound on the mean, seeded so a re-render prints the same figure."""
+    if len(xs) < 2:
+        return (float("nan"), float("nan"))
+    rng = random.Random(seed)
+    means = sorted(statistics.fmean(rng.choices(xs, k=len(xs))) for _ in range(2000))
+    return means[100], means[1899]
+
+
+def _spend_once(since: float, root: Path = burn.PROJECTS) -> tuple[dict[str, float], dict[str, float], list[tuple[float, float]]]:
+    """Every priced message since `since`, ONCE across all transcripts: a fork or a resumed session
+    carries its parent's messages under the same ids, so a per-session sum counts them again (it read
+    245 points for a week `tick_burn_rate.weighted_usd_between` puts at 87). A duplicated message goes
+    to the transcript that started first. Returns usd by session, last activity by session, and every
+    (timestamp, usd) so a week's whole spend is read by message time, as the point readings are."""
+    def started(path: Path) -> str:
+        with path.open(errors="replace") as fh:
+            for line in fh:
+                m = re.search(r'"timestamp":\s*"([^"]+)"', line)
+                if m:
+                    return m.group(1)
+        return "9"
+    cut = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(since))
+    mains = [p for p in root.glob("*/*.jsonl") if p.stat().st_mtime >= since]
+    files = [(p, p.stem) for p in mains] + [(q, p.stem) for p in mains for q in p.parent.glob(f"{p.stem}/subagents/*.jsonl")]
+    files.sort(key=lambda f: started(f[0]))
+    seen: set = set()
+    usd: dict[str, float] = defaultdict(float)
+    last: dict[str, float] = {}
+    stamped: list[tuple[float, float]] = []
+    for path, session in files:
+        for line in path.read_text(errors="replace").splitlines():
+            if '"assistant"' not in line:
+                continue
+            try:
+                row = json.loads(line)
+            except ValueError:
+                continue
+            msg, ts = row.get("message") or {}, row.get("timestamp") or ""
+            if row.get("type") != "assistant" or not msg.get("usage") or ts < cut:
+                continue
+            if msg.get("model") == "<synthetic>" or msg.get("id") in seen:
+                continue
+            seen.add(msg.get("id"))
+            x = burn._priced(msg["usage"], msg.get("model"))
+            t = time.mktime(time.strptime(ts[:19], "%Y-%m-%dT%H:%M:%S")) - time.timezone
+            usd[session] += x
+            last[session] = max(last.get(session, 0.0), t)
+            stamped.append((t, x))
+    return usd, last, stamped
+
+
+def cost_per_result(weeks: int = 4, now: float | None = None) -> dict:
+    """Per week (0 = the last seven days), per kind: results, points per result with its bound, and the
+    share of ALL spend in sessions that landed no result. A session landing several results splits its
+    cost equally across them; spend that produced nothing is published beside, never spread over. A
+    session belongs to the week of its last message."""
+    now = now or time.time()
+    per = burn.usd_per_point()
+    if per is None:
+        return {"refused": "no point conversion: fewer than two of the director's readings on this tier"}
+    since = now - 7 * 86400 * weeks
+    usd, last, stamped = _spend_once(since)
+    totals = [0.0] * weeks
+    for t, x in stamped:
+        w = int((now - t) // (7 * 86400))
+        if 0 <= w < weeks:
+            totals[w] += x
+    every, _ = landed_sessions(7.0 * weeks, now)
+    claimed: set[str] = set()
+    buckets = [{"costs": {k: [] for k in RESULT_KINDS}, "result_usd": 0.0} for _ in range(weeks)]
+    for row in sorted(every, key=lambda r: last.get(r["session"], 0.0)):
+        w = int((now - last.get(row["session"], now)) // (7 * 86400))
+        if not 0 <= w < weeks:
+            continue
+        got = dict.fromkeys(RESULT_KINDS, 0)
+        for sha in row["shas"]:
+            if sha not in claimed:
+                claimed.add(sha)
+                for k, n in results_of(sha).items():
+                    got[k] += n
+        n_all = sum(got.values())
+        if not n_all:
+            continue
+        cost = usd.get(row["session"], 0.0)
+        buckets[w]["result_usd"] += cost
+        for k, n in got.items():
+            buckets[w]["costs"][k] += [cost / n_all / per] * n
+    out = {"usd_per_point": per, "weeks": []}
+    for w, b in enumerate(buckets):
+        kinds = {}
+        for k, xs in b["costs"].items():
+            lo, hi = _mean_bound(xs)
+            kinds[k] = {"n": len(xs), "points": statistics.fmean(xs) if xs else None, "low": lo, "high": hi}
+        out["weeks"].append({"week": w, "total_points": totals[w] / per, "kinds": kinds,
+                             "no_result_share": max(0.0, 1 - b["result_usd"] / totals[w]) if totals[w] else None})
+    return out
+
+
+def wilson(k: int, n: int, z: float = _Z90) -> tuple[float, float]:
+    if not n:
+        return (float("nan"), float("nan"))
+    p = k / n
+    d = 1 + z * z / n
+    c = (p + z * z / (2 * n)) / d
+    h = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    return max(0.0, c - h), min(1.0, c + h)
+
+
+def _git(repo: Path, *args: str) -> str:
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True).stdout
+
+
+def _is_code(path: str) -> bool:
+    return path.endswith(".py") and not path.startswith("tests/")
+
+
+def rework_of_commit(sha: str, tip: str, repo: Path = PROJECT) -> dict:
+    """Of the code lines `sha` added, how many a later commit up to `tip` changed or deleted, read by
+    `git blame --reverse`: a line that survives is last seen at `tip`, any other line died earlier."""
+    added = changed = 0
+    paths = [ln.split("\t")[2] for ln in _git(repo, "show", "--no-renames", "--numstat", "--format=", sha).splitlines()
+             if ln.count("\t") == 2 and ln.split("\t")[0] not in ("0", "-") and _is_code(ln.split("\t")[2])]
+    tip_full = _git(repo, "rev-parse", tip).strip()
+    for path in paths:
+        ranges = []
+        for m in re.finditer(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@", _git(repo, "diff", "-U0", f"{sha}^", sha, "--", path), re.M):
+            start, count = int(m.group(1)), int(m.group(2) or 1)
+            if count:
+                ranges += ["-L", f"{start},{start + count - 1}"]
+        if not ranges:
+            continue
+        blame = _git(repo, "blame", "--reverse", "-s", "-l", *ranges, f"{sha}..{tip}", "--", path)
+        for line in blame.splitlines():
+            if not line:
+                continue
+            added += 1
+            changed += not line.lstrip("^").startswith(tip_full)
+    return {"paths": paths, "added": added, "changed": changed}
+
+
+def rework_rate(since: float, until: float, now: float | None = None, ref: str = "origin/main",
+                repo: Path = PROJECT) -> dict:
+    """Code commits landed on `ref` in [since, until), each read only once its 14 days have passed.
+    An UPPER bound on rework: it cannot tell a correction from a follow-up planned in the result's own
+    done-test, a reformat, or a sibling step of one planned chain."""
+    now = now or time.time()
+    until = min(until, now - REWORK_DAYS * 86400)
+    rows, by_class = [], defaultdict(lambda: [0, 0])
+    if until <= since:
+        return {"commits": 0, "reworked": 0, "rows": rows, "by_class": {}, "matured_until": until}
+    for line in _git(repo, "log", "--no-merges", "--format=%H %ct", f"--since={int(since)}",
+                     f"--until={int(until)}", ref).splitlines():
+        sha, ct = line.split()
+        tip = _git(repo, "rev-list", "-1", "--first-parent", f"--until={int(ct) + REWORK_DAYS * 86400}", ref).strip()
+        if not tip or subprocess.run(["git", "-C", str(repo), "merge-base", "--is-ancestor", sha, tip]).returncode:
+            continue
+        r = rework_of_commit(sha, tip, repo)
+        if not r["added"]:
+            continue
+        r.update(sha=sha[:10], cls=classify(r["paths"]))
+        rows.append(r)
+        by_class[r["cls"]][0] += 1
+        by_class[r["cls"]][1] += bool(r["changed"])
+    k = sum(bool(r["changed"]) for r in rows)
+    return {"commits": len(rows), "reworked": k, "bound": wilson(k, len(rows)),
+            "lines_added": sum(r["added"] for r in rows), "lines_changed": sum(r["changed"] for r in rows),
+            "by_class": {c: {"commits": n, "reworked": m, "bound": wilson(m, n)} for c, (n, m) in by_class.items()},
+            "rows": rows, "matured_until": until}
+
+
+def _pct(x: float | None) -> str:
+    return "n/a" if x is None or x != x else f"{100 * x:.0f}%"
+
+
+def render_results(weeks: int = 4, now: float | None = None) -> str:
+    """The Friday review's two standing lines. For the machine to act on; the director gets only a
+    strategic implication with a recommendation, never these numbers."""
+    now = now or time.time()
+    lines = ["**Cost per result** (points; a result is a staging item closed, a level move recorded, or a "
+             "director steer moved to done -- three experiences, never summed). Week 0 is the last 7 days.", ""]
+    c = cost_per_result(weeks, now)
+    if "refused" in c:
+        lines.append(f"NOT MEASURED -- {c['refused']}")
+    else:
+        lines += ["| week | spend | no-result share | " + " | ".join(RESULT_KINDS) + " |",
+                  "|---|---|---|" + "---|" * len(RESULT_KINDS)]
+        for w in c["weeks"]:
+            cells = []
+            for k in RESULT_KINDS:
+                x = w["kinds"][k]
+                if not x["n"]:
+                    cells.append("0 results")
+                elif x["low"] != x["low"]:
+                    cells.append(f"{x['points']:.2f} (n=1, no bound)")
+                else:
+                    cells.append(f"{x['points']:.2f} ({x['low']:.2f}-{x['high']:.2f}, n={x['n']})")
+            lines.append(f"| {w['week']} | {w['total_points']:.0f} | {_pct(w['no_result_share'])} | " + " | ".join(cells) + " |")
+    lines += ["", f"**Rework rate** (code commits with any added line changed or deleted on the trunk within "
+              f"{REWORK_DAYS} days; an upper bound -- planned follow-ups count). Each week is read once its "
+              f"{REWORK_DAYS} days have passed, so the latest is the week ending {REWORK_DAYS} days ago.", "",
+              "| week ending | code commits | reworked | 90% bound | lines changed | worst class |", "|---|---|---|---|---|---|"]
+    end = now - REWORK_DAYS * 86400
+    for w in range(weeks):
+        hi, lo = end - 7 * 86400 * w, end - 7 * 86400 * (w + 1)
+        r = rework_rate(lo, hi, now)
+        if not r["commits"]:
+            lines.append(f"| {time.strftime('%Y-%m-%d', time.gmtime(hi))} | 0 | | | | |")
+            continue
+        worst = max(((cl, v) for cl, v in r["by_class"].items() if v["commits"] >= 8),
+                    key=lambda cv: cv[1]["reworked"] / cv[1]["commits"], default=None)
+        lo_b, hi_b = r["bound"]
+        lines.append(f"| {time.strftime('%Y-%m-%d', time.gmtime(hi))} | {r['commits']} | {_pct(r['reworked'] / r['commits'])} | "
+                     f"{_pct(lo_b)}-{_pct(hi_b)} | {_pct(r['lines_changed'] / r['lines_added'] if r['lines_added'] else None)} | "
+                     + (f"{worst[0]} {worst[1]['reworked']}/{worst[1]['commits']}" if worst else "none with 8+") + " |")
+    lines += ["", "**Trust gates autonomy.** Where a class's rework rises for two read weeks with bounds that no "
+              "longer overlap, add verification to that kind of work before widening its autonomy. Where cost "
+              "per result moves, ask which kind moved and why before spending more there. Raise to the director "
+              "only a strategic implication, as one line with a recommendation; never these numbers."]
+    return "\n".join(lines)
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--days", type=float, default=30.0)
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--results", action="store_true",
+                    help="cost per result and rework rate, the Friday review's two standing lines")
     args = ap.parse_args(argv)
+    if args.results:
+        print(render_results())
+        return 0
     print(json.dumps(forecast(args.days), indent=2, default=list) if args.json else render(args.days))
     return 0
 
