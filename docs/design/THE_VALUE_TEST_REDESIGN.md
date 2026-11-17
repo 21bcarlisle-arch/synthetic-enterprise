@@ -1357,3 +1357,92 @@ tell, the dice" and step 6's S5 is the test. If (a) and (b) together are under 4
   next change is the **lever**, so that confidence in retention does not set a price that the elasticity
   then punishes.
 - (c) leads: **we cannot tell, the dice**. Step 6's S5 decides it.
+
+### 12a. Read against the prediction (17 Nov 15:30Z, after `da4cb352e` filed it)
+
+**The script.** `/var/tmp/vta-driver/attribute_value_loss.py`, written after §12 was committed and
+before it was run. It reproduces the total, **−£1.207**, and the count of **101** households whose
+money moved. 177 households had at least one decision move. Its per-household rows are in
+`value_loss_attribution_v2.json` beside it.
+
+**A defect in the first run of the script, corrected before grading.** v1 (kept as
+`attribute_value_loss.v1-mean-margin.py`) compared each run's average margin over the fuels *it*
+priced. A dual-fuel household that left at its electricity renewal never had its gas renewal priced in
+that run. So the twin's average included a thin gas margin that A's lacked, and v1 read that as "A
+dearer". On v1, (b) took 90%. v2 compares only the fuels both runs priced at the same renewal. The
+grade is v2's.
+
+| Bucket (§12's definitions) | Predicted | Measured (v2) | Households (seed-rows) | Held? |
+|---|---|---|---|---|
+| (a) price moved, no outcome moved | 40% (10 to 75) | **4.5%** (−£0.054) | 301, of which 42 moved money | **Missed low** |
+| (b) outcome flipped with the price | 35% (5 to 70) | **19%** (−£0.229) | **1** (PROS-2017-0371, +£0.25/MWh) | Held in range. But it is one household whose price moved by 0.3%, so this is (c)-shaped too |
+| (c) outcome flipped, not by the price | 15% (0 to 40) | **72%** (−£0.865) | 10 | **Missed high. The (c) kill fires as written** |
+| Unexplained | 10% (0 to 30) | **4.9%** (−£0.059) | 128 (one OCC account carries −£705) | Held |
+
+**Each flip, one row per household.** The roll is identical in A and the twin on every row. Δmargin is A
+minus twin over the fuels both priced, in £/MWh. The money difference is A minus twin, in £.
+
+| Seed | Household | Date | Δmargin | A | Twin | p (A / twin) | Roll | £ |
+|---|---|---|---|---|---|---|---|---|
+| 11111 | SYN-2016-557 | 2018-12-02 | 0 | churned | renewed | 0.527 / 0.581 | 0.945 | −3,892 |
+| 22222 | SYN-2016-604 | 2017-12-25 | 0 | churned | renewed | 0.275 / 0.279 | 0.222 | −2,674 |
+| 11111 | PROS-2017-0371 | 2018-11-29 | +0.25 | churned | renewed | 0.527 / 0.550 | 0.906 | −2,601 |
+| 22222 | SYN-2016-458 | 2018-10-09 | −4.50 | churned | renewed | 0.441 / 0.455 | 0.997 | −1,087 |
+| 22222 | PROS-2017-0318 | 2018-10-07 | −1.50 | churned | renewed | 0.513 / 0.543 | 0.669 | −976 |
+| 22222 | SYN-2016-498 | 2018-10-31 | 0 | churned | renewed | 0.529 / 0.547 | 0.967 | −629 |
+| 11111 | SYN-2016-581 | 2018-12-10 | 0 | churned | renewed | 0.288 / 0.388 | 0.797 | −571 |
+| 11111 | PROS-2016-0263 | 2018-09-16 | 0 | churned | renewed | 0.579 / 0.634 | 0.676 | −85 |
+| 11111 | SYN-2016-468 | 2018-10-17 | 0 | churned | renewed | 0.519 / 0.538 | 0.707 | −23 |
+| 11111 | SYN-2016-315 | 2018-07-10 | 0 | churned | renewed | 0.602 / 0.616 | 0.640 | 0 |
+| 11111 | SYN-2016-215 | 2020-05-01 | −3.75 | renewed | (no renewal) | 0.349 / — | 0.076 | −14 |
+
+The 42 bucket-(a) households whose money moved are price moves on households whose outcome did not
+change. In 567 of the 569 renewals priced differently, A was **cheaper** (by £2.94 to £6.37/MWh on
+average). Those cost £618 in all.
+
+**Why bucket (c) is not the dice, and the label is corrected here.** §12 named (c) "the dice" on the
+assumption that a flip the price does not explain is luck. In this pair the dice are **held**: every
+flip has the same roll in both runs. A flip at the same roll and the same price is a *decision* that
+the sidecar does not record, not a re-roll. The sign settles it. At identical rolls, A loses the
+household **10 times and keeps it 0 times** on the value arm. Across all three arms the count is
+**20 to 1**: control 4 to 1, value 10 to 0, level 6 to 0. Under luck the signs would split. A two-sided
+sign test on 20 of 21 gives p ≈ 2×10⁻⁵. So the (c) kill fires by its letter, and its consequence ("we
+cannot tell, the dice") **does not follow**. The prediction failed. The pre-registered partition had
+no bucket for "a retention decision the run does not log", which is what the evidence points to.
+
+**What the missing decision most likely is (inference, not read).** In nine of the ten twin rows the twin
+kept the household with its roll above its recorded stay probability: for example 0.945 at 0.581, 0.997 at 0.455,
+and 0.797 at 0.388. Only SYN-2016-604 (0.222 at 0.279) is a plain roll. Under `resolve_departure` a
+full-price event leaves on any of those. Something on the twin's side held those households at the
+same price and the same pricing belief (scored `believed_p_retain` 0.4515 against 0.453 on
+PROS-2017-0371, as A1 said). `simulation/retention_offer.answer_retention_offer` is that something: it
+re-asks the world at the offered rate on the same roll. A's flag feeds `ending_term_type` into the
+desk belief, and `run_phase2b.py`'s `_would_offer` gate reads that belief. In every flipped row the
+twin's recorded p is above A's, which is what an offer's `max(p_full, p_effective)` leaves behind.
+**GAP:** the member and control sidecars carry no `retention_offered`, discount, save rate or
+departure cause per renewal, so the offer itself cannot be read from them. That is why it could not be
+a bucket.
+
+**So the loss is §10b's candidate (b), "accidental offers to leavers worth keeping are lost". It is the
+retention offer, not the renewal price.** The twin's desk belief ranked leavers backwards (D1 0.36),
+so its offers fell on households that A's better ranking calls safe. Some of those were leaving, and
+the offer kept them. A stops making those offers. On the flat book the offers it saves roughly pay for
+the households it loses (+£0.14). On the value arm the households lost are the ones the value arm's
+pricing made most valuable (£570 to £3,900 each over the window), so the same withdrawal costs £1.21.
+That reading explains why the cost is arm-specific. It is an inference until the offer is logged.
+
+**The named next change: the lever.** The retention-offer gate (`_would_offer`: value protected above
+offer cost, under the desk belief) should be read against **what the arm will earn if the household
+stays**, not the flat book's margin. A better belief about *who leaves* has been spent on withdrawing
+offers from households the gate under-values. This is not the objective: the value arm's pricing
+moved its outcome on one household in 101. **Before building it**, the run must log the offer per
+renewal (`retention_offered`, discount, the save outcome) in the value-test sidecars. Without that,
+the next pair cannot see the lever either.
+
+**What step 6's read can confirm or refute with fields it already writes.** On each of the five new
+pairs, count value-arm flips at identical rolls and identical common-fuel margins, A against twin.
+- **Confirms:** at least 80% go against A, and they carry most of S5's value-arm cost.
+- **Refutes:** they split near evenly, or S5's interval spans zero.
+This is a one-variable read, because the dice are held within each pair.
+
+Graded value-test: §12 prediction — (a) MISSED low (4.5% vs 10–75%); (b) HELD in range (19%) on one household; (c) MISSED high (72% vs 0–40%) and its kill fires, but the bucket is mislabelled (held rolls, 20-to-1 signs), so its consequence is withdrawn; unexplained HELD (4.9%). Mechanism: retention offers withdrawn under A's desk belief (inferred; offer not logged, GAP). Next change: the retention-offer gate's value basis (lever), after the run logs the offer.
