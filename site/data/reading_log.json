@@ -575,11 +575,25 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "17 Nov",
+   "source": "A summary of Yu et al., \"Self-Improvement Memory Enables Continual Recursive Self-Improvement\" (Google Cloud AI, Google DeepMind, Penn State; arXiv 2611.18856, 13 Nov); shared by the director with no comment",
+   "claim": "A self-improved harness moved to a new model or task loses why each rule exists, unless a changelog carries per edit the problem, rationale, predicted against observed, and the model and conditions. Claimed: +2.36 on coding (p = 0.003); 68.41 → 84.75 with the changelog against 73.42 without, on a harness moved from Claude Opus to Gemini",
+   "evidence": "Unverified: the advisor could not fetch the arXiv page and search did not find it; the summary reads as AI-written, so its numbers are unconfirmed",
+   "verdict": "ADOPT (amends the CLAUDE.md trial)",
+   "done": "We held most of it: the efficiency backlog, pre-registered records, retros. Two gaps closed on 17 Nov: per-rule lineage for CLAUDE.md (`docs/operations/EFFICIENCY_E_E_CLAUDE_MD_LINEAGE.md`, 83 lines, ten GAP origins), and the model and CLI version on every trial (backlog column; each golden run row reads both from its transcript). Our own record already had the hazard: on 24 Sept a deleted rule's missing reason was how the 200-line limit outlived its deletion (`f325485b4f`)",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 15,
+  "step": 16,
   "unplaced": 4,
   "none": 5
  },

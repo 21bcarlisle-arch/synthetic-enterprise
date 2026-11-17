@@ -55,3 +55,25 @@ Probable failure modes:
 Proportionality: harness, reversible. Implement directly.
 
 — Director steer, 17 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+*Seat, 17 Nov 2026, the evening after his "Yes".*
+
+1. **Lineage per rule:** `docs/operations/EFFICIENCY_E_E_CLAUDE_MD_LINEAGE.md` has 83 lines, one per CLAUDE.md rule.
+   - Each line gives the rule, the problem, the introducing incident, finding or ruling with a commit and date, the model on that commit's `Co-Authored-By` trailer, what it was predicted to prevent, and whether the minimal arm keeps, condenses or drops it.
+   - Written from `git log -S` on CLAUDE.md, the pre-rewrite file's own dated stamps (`3d83edffb6^`), and the commits and retros those name.
+   - Ten lines carry **GAP: origin unknown**: nine habits the 28 Aug rewrite notes call "taught by hand in the console", W7's history in this file, and the REUSE gate. On 49 lines the cited commit has no model trailer. The file says so, and gives that day's other trailers only as labelled context.
+   - Finding from the history: on 24 Sept the prompt audit (`f325485b4f`) already recorded the paper's hazard. A rule deleted without its reason gets re-added, which is how the 200-line limit outlived its deletion.
+2. **Predicted against observed, per rule:** amendment to `docs/staging/records/SEAT_PREREG_TRIAL_E_E_MINIMAL_CLAUDE_MD_AGAINST_THE_FULL_ONE_2026-11-16.md`, written before any counted golden run (none has run).
+   - Each of the 34 dropped lines gets what its lineage predicts will break, and the golden task that can show it.
+   - Where a named incident has no case, the reason is given. Lineage predicts visible breaks on g05, g07, g08 and g09.
+   - Twenty dropped lines have no case, so a clean golden result licenses dropping them from the always-loaded file, not from the project.
+   - Two named incidents with feasible cases (`1b98c83609`, `7bb9daa465`) are listed as candidates and not added, since adding them would change the decider after its 17 Nov fix.
+3. **Model and CLI version:**
+   - `EFFICIENCY_BACKLOG.md` has the column, with a rule line. It is backfilled only where the row already said: E-e Opus with the golden set's `claude-opus-5-5`, E-f Haiku at CLI 2.1.319, E-f2 Haiku. Other rows say "not in the record".
+   - Every golden run row now records the model and CLI version **that ran**, read from the transcript's init event (`tools/claude_md_golden_set.py::run_identity`). A new test covers it, with both legs (present, absent).
+4. **Carry forward:** the lineage file ends with an "Appended lines" section, and its header says a rule added later carries its line in the same commit. No gate was added, as the steer says.
+5. **Reading log:** row appended to `docs/institutional/reading_log.md` (Agents and models), marked unverified as the advisor found it. `site/data/reading_log.json` regenerated.
+
+Decision: outside_source yes

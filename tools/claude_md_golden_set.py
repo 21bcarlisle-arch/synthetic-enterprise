@@ -118,6 +118,22 @@ def read_transcript(path: Path) -> tuple[list[str], str]:
     return calls, final
 
 
+def run_identity(path: Path) -> dict:
+    """The model and CLI version that RAN, from the transcript's init event; None where it is absent.
+
+    Read from what ran, not from what was asked for: a `--model` request the CLI resolves elsewhere,
+    or a CLI that updated itself between runs, would otherwise be recorded as the requested pair.
+    """
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if event.get("type") == "system" and event.get("subtype") == "init":
+            return {"model": event.get("model"), "cli": event.get("claude_code_version")}
+    return {"model": None, "cli": None}
+
+
 def clone_state(clone: Path, base: str) -> dict:
     """What the run changed: paths (committed or not), the added diff lines per path, commits."""
     bare = clone.parent / "origin.git"
@@ -212,7 +228,8 @@ def run_one(task_id: str, arm: str, rep: int, *, keep: bool = False) -> dict:
         if not keep:
             shutil.rmtree(where, ignore_errors=True)
     row = {"at": stamp, "task": task_id, "arm": arm, "rep": rep, "base": golden["base"],
-           "exit": code, "tool_calls": len(calls), "transcript": str(transcript), **result}
+           "exit": code, "tool_calls": len(calls), "transcript": str(transcript),
+           **run_identity(transcript), **result}
     with RESULTS.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(row) + "\n")
     return row

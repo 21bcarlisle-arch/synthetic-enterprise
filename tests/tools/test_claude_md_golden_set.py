@@ -67,3 +67,14 @@ def test_the_set_is_ten_tasks_of_known_kinds_and_its_seed_edits_apply_at_base():
             assert edit["old"] in body, (task["id"], edit["path"])
     subprocess.run(["git", "cat-file", "-e", f"{golden['base']}:{golden['minimal_draft']}"],
                    cwd=g.REPO, check=True)
+
+
+def test_a_run_row_carries_the_model_and_cli_that_ran_and_none_when_the_transcript_lacks_them(tmp_path):
+    """Defect: a row without its model and CLI cannot be read after a model change (steer, 17 Nov)."""
+    ran = tmp_path / "ran.jsonl"
+    ran.write_text('not json\n{"type":"system","subtype":"init","model":"claude-opus-5-5",'
+                   '"claude_code_version":"2.1.322"}\n{"type":"result","result":"ok"}\n')
+    silent = tmp_path / "silent.jsonl"
+    silent.write_text('{"type":"result","result":"ok"}\n')
+    assert g.run_identity(ran) == {"model": "claude-opus-5-5", "cli": "2.1.322"}
+    assert g.run_identity(silent) == {"model": None, "cli": None}
