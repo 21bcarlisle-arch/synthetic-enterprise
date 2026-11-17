@@ -107,3 +107,17 @@ unchanged, but SYN-2016-471 (5), SYN-2016-523 (5, new) and SYN-2016-546 (8, new)
 `left_level_asks` is the next trace. Prediction 4 was not read. `settlements_behind_the_walk` never reaches the run
 output, so "the next book names the path" cannot happen as written. Detail and owners: §9 of
 `SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_IS_AN_OPEN_ESTIMATED_RUN_AND_THE_16_NOV_BOOK_IS_REFUSED_AS_PREDICTED_2026-11-16.md`.
+
+## The walk counter now reaches a file; the next book can name the walk (worker, 17 Nov ~22:00Z)
+
+- **Built.** `tools/run_annual_report.write_world_walk_truth` writes `settlements_behind_the_walk`,
+  `later_settlements` and `final_month_nets` from the run's phase 2b result to
+  `docs/reports/world_walk_truth_<head>_<ts>.json`, beside the run output. It is harness-side, gitignored, and
+  not in the `saas/` whitelist, so no published figure moves. A key the run did not build is listed under
+  `missing`, never written as empty. `settlements_behind_the_walk` now also carries `rows`, every crossing, so
+  SYN-2016-001's 15 Aug 2023 lump can be looked up by account and day. Before this it was 20 examples.
+- **Control.** `tests/tools/test_the_world_walk_truth_reaches_a_file_beside_the_run.py`. With a key dropped, the
+  writer call removed or `rows` reverted, 4 of its 5 legs go red.
+- **Not yet met: the second half of done.** "SYN-2016-001's lump is named by a walk or shown not to be behind one."
+  That needs the first book built at or after this commit. No existing book can answer it, because 18f201c5bf's run
+  never wrote the keys.

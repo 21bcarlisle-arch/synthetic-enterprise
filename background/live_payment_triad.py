@@ -1104,7 +1104,11 @@ class LivePaymentTriad:
         by: dict = {}
         for r in rows:
             by[r["walked_by"]] = by.get(r["walked_by"], 0) + 1
-        return {"count": len(rows), "by_walk": by, "examples": rows[:20]}
+        # `rows` is every crossing, for the harness's world-truth companion of the run output
+        # (`tools/run_annual_report.write_world_walk_truth`): a named lump is found by
+        # account and day, which twenty examples cannot promise.
+        return {"count": len(rows), "by_walk": by, "examples": rows[:20],
+                "rows": [dict(r) for r in rows]}
 
     def _cross_settlement(self, item) -> None:
         """Withdraw one lump the household's plan replaced, or cross it to both companies."""

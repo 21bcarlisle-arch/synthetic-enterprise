@@ -96,6 +96,34 @@ RUN_OUTPUT_SEPARATORS = (",", ":")
 def dump_run_output(data: dict) -> str:
     """The run output as the bytes every run file on disk carries -- compact, see above."""
     return json.dumps(data, separators=RUN_OUTPUT_SEPARATORS)
+
+
+#: World truth the run builds and the run output never carries. `extract_report_data` keeps a
+#: whitelist of `saas/` keys, and these are the world's, so they are written here, beside the
+#: run, where only harness readers look. The D5 grade of 17 Nov found that none of the three
+#: reached any file, so no book could name the walk a lump crossed behind
+#: (SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md).
+WORLD_WALK_TRUTH_KEYS = ("settlements_behind_the_walk", "later_settlements", "final_month_nets")
+
+
+def world_walk_truth_path(run_output_path: Path) -> Path:
+    """`world_walk_truth_<head>_<ts>.json` beside `run_output_<head>_<ts>.json`. It must not
+    match `run_output_*.json`: about thirty readers glob that pattern for runs."""
+    name = Path(run_output_path).name
+    stem = name[len("run_output_"):] if name.startswith("run_output_") else name
+    return Path(run_output_path).with_name("world_walk_truth_" + stem)
+
+
+def write_world_walk_truth(raw_output: dict, run_output_path: Path) -> Path:
+    """Write the three keys from the run's phase 2b result. A key the run did not build is
+    named under `missing`, not written as an empty value."""
+    phase2b = raw_output.get("phase2b") or {}
+    truth = {key: phase2b[key] for key in WORLD_WALK_TRUTH_KEYS if key in phase2b}
+    truth["missing"] = [key for key in WORLD_WALK_TRUTH_KEYS if key not in phase2b]
+    truth["run_output"] = Path(run_output_path).name
+    path = world_walk_truth_path(run_output_path)
+    path.write_text(json.dumps(truth, separators=RUN_OUTPUT_SEPARATORS, default=str))
+    return path
 RUN_OUTPUT_VERSIONED_DIR = Path("docs/reports")
 
 
@@ -637,6 +665,8 @@ def main() -> None:
     )
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
     args.save_json.write_text(dump_run_output(data))
+    truth_path = write_world_walk_truth(raw_output, args.save_json)
+    print(f"Wrote {truth_path}")
 
     fresh_full_run = not args.fast and not report_end
     if fresh_full_run:
