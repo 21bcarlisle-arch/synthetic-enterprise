@@ -71,3 +71,4 @@ No concern is raised for the director: this is in-flight work with its mechanism
 - **2026-11-17** — re-asked: **still_holds**. observed 2026-11-17, within the 3-day bar.
 - **2026-11-17 12:50Z** — worker tick: cause is the pre-fix book, cure armed (d5book-pause-watch); see End-to-end check. Nothing to repair at HEAD.
 - **2026-11-17 13:58Z** — worker tick: still holds; pair 2 is mid seed 44444, run 2 of 3. Timing corrected above (D5-on book at about 20:00Z, not 18:30Z).
+- **2026-11-17 14:34Z** — worker tick: still holds; step-6 child pid 295849 alive (98% CPU, pair 2), d5book-pause-watch active; D5-on book still expected about 20:00Z.
