@@ -105,3 +105,27 @@ refusal names no gate**, because it was launched with the old `surgical_land` an
 old selection (the hook and `pre_commit_test_gate` run from the tree being landed). The next D5 attempt, cut from a
 base that holds this landing, should pass its gate inside the limit on the first attempt. That is this
 item's done-test, and it is not yet observed.
+
+## The done-test, observed (17 Nov, 06:00Z)
+
+The prediction above held. D5's next attempt (`/var/tmp/d5land9/run.sh`, step C1, the seven
+page-and-debit paths) was cut from a base holding 62eda765e, and **its gate passed inside the limit
+on the first run**:
+
+| Run | Gate start | Gate end | Seconds | Outcome |
+|---|---|---|---|---|
+| attempt 1 | 04:47:13Z (`C1 START`) | 05:23:29Z (the log line's mtime) | **2,176** | green, then `BaseMoved`: main went 62eda765e → 179c39a73 (a reconciliation merge at 04:56Z) |
+| attempt 2 | 05:23:29Z | 05:59:25Z (`C1 EXIT 0`) | **2,156** | green, landed `1bce17aa4` |
+
+So each gate took about 2,170 s, against the 2,034 s pytest plus ≤180 s of extras predicted above,
+and the margin under 3,600 s is about 1,430 s (40%). `surgical_land` raises `BaseMoved` only after
+the gate is green (the HEAD re-check in `_commit_and_swap`), so attempt 1 was a race loss, not a gate
+failure. The 72-minute wall clock is two green gates back to back. It is a separate cost and not this
+finding's: any gate that runs longer than main's gap between merges risks losing the race.
+
+62eda765e is on `origin/main`. `1bce17aa4` reached `origin/main` at about 06:02Z. C2 and C3 follow it in the same
+script.
+
+**Residue, unchanged:** the 954 s of simulation tests chosen because their docstrings cite
+`home_moves.md` are the next selection cut, as named above. They no longer threaten the limit, so
+they go into the ordinary queue as a margin item rather than a blocker.
