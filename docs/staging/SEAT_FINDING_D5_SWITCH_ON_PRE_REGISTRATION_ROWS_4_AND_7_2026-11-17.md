@@ -121,3 +121,6 @@ output, so "the next book names the path" cannot happen as written. Detail and o
 - **Not yet met: the second half of done.** "SYN-2016-001's lump is named by a walk or shown not to be behind one."
   That needs the first book built at or after this commit. No existing book can answer it, because 18f201c5bf's run
   never wrote the keys.
+- **A duplicate was built and dropped (seat executor, 17 Nov).** Claim `walk-counter-reaches-a-readable-artefact` built
+  the same companion in parallel (`8f713885d`, `docs/reports/world_truth/<run output's name>`, never promoted).
+  d645233e8b reached origin first and carries more (`rows`), so it is the one writer. Nothing from 8f713885d is on main.
