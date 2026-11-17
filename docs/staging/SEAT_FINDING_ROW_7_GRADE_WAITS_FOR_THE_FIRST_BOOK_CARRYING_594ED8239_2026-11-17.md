@@ -76,3 +76,29 @@ for b in captured: by[b["where"].split()[0]].append(b)
 for h, bs in sorted(by.items()):
     print(h, len(bs), sorted({(b["where"].split()[1], b["value"], b["bound"]) for b in bs}))
 ```
+
+## The next book does not end the wedge, and SYN-2016-001's walk is narrowed, not named (worker, 17 Nov 23:30Z)
+
+- **What the next book means for the wedge.** If P1 holds, row 7 reads 2, not 0. No exception covers row 7, so the
+  first book carrying 594ed8239 is **refused again** on `INV_OVERDUE_WITHIN_PAGE_BALANCE 2`. That book's value
+  is the walk file (d645233e8), which names the walk SYN-2016-001's lump crossed behind. It does not publish.
+  The wedge closes only on a book built after that walk is fixed.
+- **When.** sim-runner yields every cycle to `longjob-value-test-step-6-flag1`: 12 churn_roll draws, declared
+  3,200 min, about 190 min run at 23:10Z. Its earlier seeds took about 21,000 s each, so the yield can last a day or
+  more. It is held on purpose (`sim_runner.cycle_admission`: a cycle once OOM-killed a long job). I did not force a
+  cycle beside it, because the book it would buy is predicted not to publish. Whether to pause the value test so the
+  diagnostic book comes sooner is the seat's call. It is not a wall.
+- **001's 15 Aug, read from the 18f201c5bf pages.** Gas INV21608 (April, raised 3 May) is paid on 15 Aug, the due date
+  of gas INV21611 (raised 1 Aug). Electricity follows the same pattern: INV21494 is paid on 17 Jul, INV21496's due
+  date, and INV21495 on 16 Aug, INV21497's. So the 56.52 lump is pushed inside INV21611's `record_period`, after
+  that call's first delivery. Both desk steps (Consent rung and prepayment withheld) printed 386.23 = 251.89 elec + 134.34 gas, which is the
+  start-of-day balance. Code and grader share one convention (`_settle_held` walks to the day **before** a lump),
+  so this is a real lump behind a walk. It is not a grader artefact.
+- **Ruled out by reading:** (a) a journey advanced outside `_walk`: `advance_collections_journey` has one caller,
+  `LivePaymentTriad._walk`, so the counter sees every path. (b) The gas leg dropping out of `legs_still_posting`
+  while the electricity term posts: `_pending_starts` is seeded with every term at the start, and a term leaves it
+  only when it pops, so an unposted gas term still holds the bound to gas's last due (INV21610's, about 17 Jul).
+- **Not ruled out:** a walk whose bound already counts gas INV21611's 15 Aug due date, made before that call pushes
+  the INV21608 lump. Candidates are the reader `_deliver_settlements_through(.., force=..)` →
+  `_settle_held` for another held lump on the account dated after 15 Aug, and the `record_period` walk itself. Which
+  one: **I cannot yet say.** The walk file's `rows` for `ACC-SYN-2016-001`, `settled_on` 2023-08-15, names it.
