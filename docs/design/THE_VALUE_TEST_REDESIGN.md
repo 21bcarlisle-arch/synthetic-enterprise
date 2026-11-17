@@ -1452,3 +1452,55 @@ pairs, count value-arm flips at identical rolls and identical common-fuel margin
 This is a one-variable read, because the dice are held within each pair.
 
 Graded value-test: §12 prediction — (a) MISSED low (4.5% vs 10–75%); (b) HELD in range (19%) on one household; (c) MISSED high (72% vs 0–40%) and its kill fires, but the bucket is mislabelled (held rolls, 20-to-1 signs), so its consequence is withdrawn; unexplained HELD (4.9%). Mechanism: retention offers withdrawn under A's desk belief (inferred; offer not logged, GAP). Next change: the retention-offer gate's value basis (lever), after the run logs the offer.
+
+### 12b. The offer re-read: built and pre-registered 17 Nov 15:07Z, before the rerun exists
+
+**Why the rerun is not at `f318f1e48`.** That commit carries the offer logging, but between `41734bbe71`
+(the pair §12a read) and it, 198 commits change the world itself: `sim/weather_world/` regenerated,
+`simulation/arrears_engine.py`, `run_phase2b.py`, `world_payment_truth.py`, and two `company/billing`
+modules. A pair rerun there is a different world with different flips, and the 11 could not be re-read
+from it. So the rerun tree is `41734bbe71` plus `f318f1e48`'s one hunk in `tools/run_value_cycle_ab.py`
+and nothing else. The world event at `41734bbe71` already emits every field the hunk reads
+(`simulation/retention_offer.answer_retention_offer` sets them). `f318f1e48`'s five tests pass on that tree.
+The tree is `/var/tmp/value-test-offer-reread`, locked, and `fork_salvage` committed the hunk there as
+`870201d1e7`, so the run's `producing_commit` names the bytes it runs. Driver: `/var/tmp/vto-driver/driver.py`
+(`/var/tmp/vta-driver/driver.py` with only `OUT` moved to `/var/tmp/vto-out-flag{0,1}`). Reader:
+`/var/tmp/vto-driver/read_offers.py`, written now.
+
+**When it runs.** Not while step 6 or the D5 book holds the box. A pair takes about 10.5 h per flag at an
+11.4 GB peak (the desk pair's unit, 15–16 Nov), so it cannot run beside step 6. The transient unit
+`vto-offer-reread-watch` (`/var/tmp/vto-driver/watch.sh`) waits until both step 6 families
+(`vta-out-flag{1,0}/family_12_churn_roll.json`) are on disk and no `longjob-value-test*` unit or
+`d5book-pause-watch` is active. It refuses if the tree has moved off `870201d1e7`. Then it launches
+`longjob-value-test-offer-reread` through `launch_long_job`: flag 1, then flag 0, then the reader, which
+writes `/var/tmp/vto-driver/read_offers.out`. It gives up after 10 days and says so. Reverse:
+`systemctl --user stop vto-offer-reread-watch`.
+
+**Step 1, a control, read first.** The rerun must reproduce §12a's pair: every renewal's outcome, roll and
+`p_retain` on all three arms, and every account's value-arm net to the penny. The hunk only adds keys to a
+row, so I predict **0 mismatches**. If there is any mismatch, step 2 is not read (the reader exits 2), and
+the finding is that the logging moved the world. The reader was dry-run on the §12a pair against itself:
+0 mismatches, and it recounts §12a's flips at held rolls exactly (control 4 to 1, value 10 to 0, level 6 to 0).
+
+**Step 2, the prediction (the 10 value-arm flips at the same account and date; §12a's 11th row,
+SYN-2016-215, has no twin renewal and is not a flip).**
+
+| Claim | Prediction | Refuted if |
+|---|---|---|
+| The twin made an offer on the flipped renewal | **9 of 10** (range 7–10) `retention_offered` True | 5 or fewer |
+| The twin's offer held the household (`offer_held`: renewed on a roll above `p_stay_without_offer`) | **9 of 10** (range 7–10). Not SYN-2016-604, whose roll 0.222 sits under the twin's 0.279, so it stays at the full rate | 5 or fewer: §12a's mechanism is refuted, and the lever is not the next change |
+| A made no offer on those renewals | **8 of 10** (range 6–10) `retention_offered` False | 4 or fewer: A offers too, and the question becomes the offer's *size*, not whether it is made |
+| All three arms: the twin's offer held on the flips A lost | **17 of 20** (range 14–20) | 10 or fewer |
+
+**The row I cannot call: SYN-2016-604 (22222, 2017-12-25).** A left it on roll 0.222 with its logged
+`p_retain` at 0.275. A departure is the upper tail (`resolve_departure`), so a full-rate event with those
+numbers stays. Two readings. (i) A made an offer and the event kept is the offered one, which churned
+(`answer_retention_offer`'s third branch), with `p_retain` logged as `max(p_full, p_effective)`. (ii) The
+logged p is not the one rolled against, which is a logging defect. I put **60% on (i)**. Under (ii),
+`departure_cause` and `p_stay_without_offer` will show it.
+
+**What each reading makes the next change.** If held: build the retention-offer gate's value basis, i.e.
+`_would_offer` reads what the arm earns if the household stays (§12a's lever). It is written knowledge page
+first (K8), and the value test's next pair grades it. If refuted: §12a's attribution is withdrawn beside
+its claim, and the value arm's £1.21 goes back to "a decision the sidecar does not record", with the offer
+ruled out.
