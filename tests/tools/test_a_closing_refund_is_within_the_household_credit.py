@@ -113,3 +113,39 @@ def test_a_book_read_without_the_page_is_not_in_export_never_clean():
     inv = next(i for i in yaml.safe_load(FILE.read_text())["invariants"] if i["id"] == ROW)
     row = runner.run([inv], {"X": {"segment": "resi", "periods": []}})[0]
     assert row["status"] == "NOT_IN_EXPORT", row
+
+
+# ── the N29 class: the other leg's debt is collected days after the refund ─────────────────────
+# The exception is keyed to this class, not to one book's count, so the gate must still refuse a breach
+# outside it. Collected: gas pays its whole GBP 40 three days after the refund. Not collected: the same
+# refund while gas never pays (ALONE). A part payment is not the class either.
+
+COLLECTED = (HOUSEHOLDS["ALONE"][0], GAS + [_e("2023-06-29", "payment_received", -40.00, 0.0)])
+PART_PAID = (HOUSEHOLDS["ALONE"][0], GAS + [_e("2023-06-29", "payment_received", -25.00, 15.0)])
+
+
+def _gate(tmp_path, households):
+    for hh, (elec, gas) in households.items():
+        _write(tmp_path, hh, elec, gas)
+    inv, book, _ = _grade(tmp_path)
+    row = runner.run([inv], book)[0]
+    register = yaml.safe_load((FILE.parent / "DOMAIN_INVARIANT_EXCEPTIONS.yaml").read_text())
+    register["exceptions"] = [e for e in register["exceptions"] if e["invariant"] == ROW]
+    return row, runner.gate([row], register)
+
+
+def test_the_class_partition_is_reachable_on_both_sides(tmp_path):
+    row, verdict = _gate(tmp_path, {"COLLECTED": COLLECTED, "ALONE": HOUSEHOLDS["ALONE"], "PART": PART_PAID})
+    assert row["breached"] == 3 and row["breached_by_class"] == {runner.COLLECTED_AFTER_THE_REFUND: 1}, row
+    assert verdict["refuse"] and "2 of 3 breaches are outside" in verdict["refusal"], verdict
+
+
+def test_the_exception_lifts_the_class_and_names_it(tmp_path):
+    row, verdict = _gate(tmp_path, {"COLLECTED": COLLECTED})
+    assert row["breached"] == 1 and not verdict["refuse"], verdict
+    assert verdict["excepted"][0]["id"] == ROW
+
+
+def test_one_breach_outside_the_class_refuses_even_beside_the_class(tmp_path):
+    row, verdict = _gate(tmp_path, {"COLLECTED": COLLECTED, "ALONE": HOUSEHOLDS["ALONE"]})
+    assert verdict["refuse"] and verdict["unexcepted"][0]["why"].startswith("1 of 2"), verdict

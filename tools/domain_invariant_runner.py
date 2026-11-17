@@ -53,7 +53,7 @@ import math
 import re
 import statistics
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -1981,8 +1981,38 @@ def ev_closing_refund_within_household_credit(inv, book):
                                   if x.get("type") == REFUND_LEDGER_TYPE)
                 credit = max(0.0, min(-before, -(end_of_day - day_refunds)))
                 owed = sum(max(0.0, _balance_at(ledgers[o.cid], on)) for o in closing)
-                tally.band(where, refunded, None, round(max(0.0, credit - owed), 2), tol_abs=0.005)
+                bound = round(max(0.0, credit - owed), 2)
+                n = len(tally.breaches)
+                tally.band(where, refunded, None, bound, tol_abs=0.005)
+                hit = tally.breaches[-1] if len(tally.breaches) > n else None
+                if hit and hit["side"] == "above" and _owed_is_collected_after(closing, ledgers, on,
+                                                                               refunded - bound):
+                    hit["cls"] = COLLECTED_AFTER_THE_REFUND
     return tally
+
+
+#: A closing-refund breach whose whole excess is debt the other closing leg owed at the end of the
+#: refund day and paid in full with its next payment: the world's set-off read that leg's later
+#: collection as already made (the N29 class,
+#: docs/staging/SEAT_FINDING_THE_N29_BLIND_ROWS_23_ARE_ONE_CLASS_THE_SET_OFF_NETS_ONLY_DEBT_THE_HOUSEHOLD_NEVER_PAYS_2026-11-16.md).
+#: The household is refunded and debited days later: a money-order defect, not lost money.
+COLLECTED_AFTER_THE_REFUND = "other_leg_debt_collected_after_the_refund"
+
+
+def _owed_is_collected_after(closing, ledgers, on: str, excess: float) -> bool:
+    """The other legs' end-of-day debt covers `excess`, and each leg that owes clears exactly that
+    debt with its first payment after the refund day. A debt written off, still open, or paid in a
+    different sum is outside the class."""
+    owed = 0.0
+    for o in closing:
+        debt = _balance_at(ledgers[o.cid], on)
+        if debt <= 0.005:
+            continue
+        nxt = next((x for x in ledgers[o.cid] if x["date"] > on and x.get("type") == "payment_received"), None)
+        if nxt is None or abs(-float(nxt.get("amount_gbp") or 0.0) - debt) >= 0.01:
+            return False
+        owed += debt
+    return owed > 0.0 and excess <= owed + 0.005
 
 def _years_before(d: date, n: int) -> date:
     try:
@@ -3477,6 +3507,9 @@ def run(invariants: list[dict], raw_book: dict[str, dict]) -> list[dict]:
                        flagged=len(t.flags), unbounded=t.unbounded,
                        breach_examples=t.breaches[:5], flag_examples=t.flags[:5],
                        book=getattr(t, "book", None))
+            classes = Counter(b["cls"] for b in t.breaches if b.get("cls"))
+            if classes:
+                row["breached_by_class"] = dict(classes)
         out.append(row)
     return out
 
@@ -3508,7 +3541,11 @@ def gate(results: list[dict], register: dict) -> dict:
 
     An exception lifts one invariant's breaches when it carries every `EXCEPTION_FIELDS` entry and,
     if it names `max_breached`, the count is within it: a ceiling, so an excepted defect that grows
-    comes back as a refusal rather than hiding behind the exception filed for its smaller self."""
+    comes back as a refusal rather than hiding behind the exception filed for its smaller self.
+
+    An exception naming `class` lifts only the breaches its evaluator labelled with that class
+    (`breached_by_class`); one breach outside it refuses, so the exception is keyed to the cause it
+    explains rather than to one book's count, and `max_breached`, if also named, caps the class."""
     valid, invalid = {}, []
     for e in register.get("exceptions") or ():
         missing = [f for f in EXCEPTION_FIELDS if not e.get(f)]
@@ -3523,7 +3560,12 @@ def gate(results: list[dict], register: dict) -> dict:
             continue
         e = valid.get(r["id"])
         cap = e.get("max_breached") if e else None
-        if e and (cap is None or n <= cap):
+        cls = e.get("class") if e else None
+        outside = n - (r.get("breached_by_class") or {}).get(cls, 0) if cls else 0
+        if outside:
+            unexcepted.append({"id": r["id"], "breached": n, "why": "{} of {} breaches are outside the exception's "
+                               "class {}".format(outside, n, cls)})
+        elif e and (cap is None or n <= cap):
             excepted.append({"id": r["id"], "breached": n, "retired_by": e["retired_by"]})
         else:
             why = ("no exception" if e is None else
