@@ -343,9 +343,10 @@ def based_on_snapshot(path: Path | None = None) -> str:
 
 def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = None, *,
                   recommendation: str = "", g5_class: str | None = None, path: Path | None = None,
-                  now: datetime | None = None) -> dict:
+                  now: datetime | None = None, decision_kind: str | None = None) -> dict:
     """Append an OPEN concern. Refuses one with no proposal, no recommendation, an unknown kind, a
-    bare ask, or a `reserved` one that names no G5 class (and a G5 class on any other kind)."""
+    bare ask, or a `reserved` one that names no G5 class (and a G5 class on any other kind), and
+    one with no decision kind (`direction.DECISION_KINDS`; a `reserved` row is `g5` and only it)."""
     from background.recommendation_guard import RecommendationRequired, check_message
 
     path = path or direction_mod.DIRECTION_PATH
@@ -379,13 +380,22 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
         {"id": "the new concern", "status": "open", "recommendation": recommendation})
     if lacks:
         raise ConcernRefused(lacks)
+    decision_kind = decision_kind or ("g5" if kind == "reserved" else None)
+    if decision_kind not in direction_mod.DECISION_KINDS or (
+            (decision_kind == "g5") != (kind == "reserved")):
+        raise ConcernRefused(
+            f"a concern records its decision kind, one of {', '.join(direction_mod.DECISION_KINDS)}"
+            f" (got {decision_kind!r}), and g5 exactly when it is reserved. The edges, measurement "
+            f"against harness first, are in {direction_mod.DECISION_KINDS_PAGE}: without one, his "
+            "acceptance rate by kind depends on a coder reading the row weeks later")
     text = path.read_text(encoding="utf-8")
     record = read_raw(path)
     if record is None:
         raise ConcernRefused(f"{path} is not a readable direction record")
     rows = [dict(r) for r in rows_of(record)]
     row = {"id": _unique_id(_slug(what), {str(r.get("id")) for r in rows}),
-           "raised": _today(now), "kind": kind, "what": what, "proposal": proposal,
+           "raised": _today(now), "kind": kind, "decision_kind": decision_kind, "what": what,
+           "proposal": proposal,
            "recommendation": recommendation, "based_on": based_on_snapshot(path),
            "status": "open", "resolution": ""}
     if g5_class:
@@ -618,10 +628,9 @@ def machine_debts(today: str | None = None) -> list[dict]:
 # Director's steer, 17 Nov ("Do it"): let the machine decide the kinds where his answer almost
 # always matches the recommendation. The bar the pre-registration set: Wilson 95% lower bound on
 # plain `yes` of at least 0.80, `changed` counting against it and `silence` never toward it. Kind is
-# the row's own `kind` field -- coarser than the seven kinds the two coders used, whose boundaries
-# are not yet written down (the finding's point 2), so this recount cannot qualify a kind they
-# would split. A close with no code predates the code or was written round the CLI; it is counted
-# as `uncoded`, never guessed.
+# the row's `decision_kind`, recorded at raise time under the edges in DECISION_KINDS.md. A row
+# raised before 17 Nov has none and is grouped `unkinded (<routing kind>)`, never guessed; a close
+# with no code predates the code or was written round the CLI and is counted `uncoded`.
 
 # origin: the pre-registration of 17 Nov in the finding above, set before any answer was coded.
 NEAR_CERTAIN_LOWER_BOUND = 0.80
@@ -636,7 +645,8 @@ def acceptance_by_kind(closes: dict[str, dict]) -> dict[str, dict]:
     for row in closes.values():
         if row.get("status") != "answered":
             continue
-        tally = out.setdefault(str(row.get("kind") or "unstated"),
+        tally = out.setdefault(row.get("decision_kind")
+                               or f"unkinded ({row.get('kind') or 'unstated'})",
                                {c: 0 for c in (*direction_mod.ANSWER_CODES, "uncoded")})
         code = row.get("answer_code")
         tally[code if code in direction_mod.ANSWER_CODES else "uncoded"] += 1
@@ -759,6 +769,9 @@ def main(argv=None) -> int:
     ap.add_argument("--answer-code", choices=direction_mod.ANSWER_CODES,
                     help="answering: how he answered; silence for a close taken as yes unanswered")
     ap.add_argument("--kind", choices=direction_mod.CONCERN_KINDS)
+    ap.add_argument("--decision-kind", choices=direction_mod.DECISION_KINDS,
+                    help="for --raise: what it asks him to approve "
+                         f"({direction_mod.DECISION_KINDS_PAGE}); a reserved row is g5")
     ap.add_argument("--what")
     ap.add_argument("--proposal")
     ap.add_argument("--evidence")
@@ -785,8 +798,10 @@ def main(argv=None) -> int:
     try:
         if args.list:
             for r in rows_of(read_raw()):
-                print("[{}] {} ({}, raised {}): {}\n    proposal: {}\n    recommendation: {}{}".format(
-                    r.get("status"), r.get("id"), r.get("kind"), r.get("raised"), r.get("what"),
+                print("[{}] {} ({}/{}, raised {}): {}\n    proposal: {}\n    recommendation: {}{}".format(
+                    r.get("status"), r.get("id"), r.get("kind"),
+                    r.get("decision_kind") or "unkinded",
+                    r.get("raised"), r.get("what"),
                     r.get("proposal"), r.get("recommendation") or "(none)",
                     f"\n    resolution: {r['resolution']}"
                     + (f" [{r['answer_code']}]" if r.get("answer_code") else "")
@@ -797,7 +812,7 @@ def main(argv=None) -> int:
                 raise ConcernRefused("--raise needs --kind")
             row = raise_concern(args.kind, args.what or "", args.proposal or "", args.evidence,
                                 recommendation=args.recommendation or "",
-                                g5_class=args.g5_class)
+                                g5_class=args.g5_class, decision_kind=args.decision_kind)
         else:
             rid = args.answer or args.withdraw
             commitment = ({"work_id": args.work_id, "done_means": args.done_means,

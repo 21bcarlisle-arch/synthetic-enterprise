@@ -188,8 +188,9 @@ RULES ON THE CONTENT, and the record is refused if it breaks them:
     note (director, 28 Oct). A record that drops or rewrites an open row is
     REFUSED and the previous record is restored. A concern NEVER blocks the focus: keep working
     everything else, and never put "waiting on the director" in focus. Raising a new one outside
-    an orientation: `python3 -m background.director_concerns --raise --kind <k> --what ...
-    --proposal ...`. He is paged once, for a row whose id is new.
+    an orientation: `python3 -m background.director_concerns --raise --kind <k> --decision-kind <d>
+    --what ... --proposal ...`; a row you write here carries `decision_kind` too (edges in
+    docs/operations/DECISION_KINDS.md). He is paged once, for a row whose id is new.
   * SUPPLIER FIRST (director, 2026-10-10): *"My priority order is mostly supplier work."* The
     world was getting 15-17 commits a day and the supplier 1-3. Every focus carries AT LEAST TWO
     `side: supplier` items from the priority order: billing accuracy (unbilled, back-billing, home
