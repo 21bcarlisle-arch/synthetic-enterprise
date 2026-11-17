@@ -28,3 +28,11 @@ requires:
 - commit: 341df4965
   what: D5's debit half switched ON (INV_OVERDUE_WITHIN_BALANCE 4, INV_OVERDUE_WITHIN_PAGE_BALANCE 7)
   owner: DD_seasonal_cashflow_physics
+# Row 7 on the 18f201c5bf book is 20 steps: 18 are the three leavers whose final bill netted a credit
+# a not-yet-due bill had already spent; 594ed8239 fixes that read. The other 2 are SYN-2016-001's, which
+# only a book carrying d645233e8 (the walk file beside the run) can name.
+- commit: 594ed8239
+  what: final bill reads every issued bill, not only due ones (INV_OVERDUE_WITHIN_PAGE_BALANCE, 18 of 20)
+  owner: DD_seasonal_cashflow_physics
+- commit: d645233e8
+  what: walk truth reaches a file beside the run (names SYN-2016-001's 15 Aug 2023 lump, row 7's last 2)
