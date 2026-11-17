@@ -31,3 +31,19 @@ surgical-land receipt that origin/main does not contain. The second leg prevents
 only stops the misreading. I recommend the second.
 
 **Reverse:** archive this file.
+
+## A second instance, four hours later (worker, 17 Nov ~08:00Z)
+
+The executor landed `cffc748d4` at 07:36:57Z in `/var/tmp/se-seat-executor`: the director's
+cost-per-result steer, 9 paths, gate rc 0. Its later promote run (`/var/tmp/cpr/c3m.log`) promoted
+`7ef606c3e`, a different landing, with "0 path(s)". `cffc748d4` was on no ref by 07:57Z, and the
+worktree was back at `7ef606c3e2`. A worker draw at 07:56 still listed the steer as unactioned, and
+so did the executor's own draw. Both would have rebuilt it, and one parallel build had already been
+stood down earlier for it (c2f7b9a46).
+
+Repaired: merged unchanged as `db81ccba95` (`surgical_land --merge cffc748d41`; none of its paths
+had moved since its parent) and pushed.
+
+Two instances in one morning: it stays LATENT, because nothing published or gated is invalidated, but it is now a pattern, not a one-off. The second leg
+recommended above (refuse the reset, and promote, when HEAD carries a surgical-land receipt that
+origin/main lacks) would have kept both landings.

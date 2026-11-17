@@ -185,3 +185,12 @@ recommended. A-ids are the `closes_on_record` rows sorted by close date (A08 wit
 - (A) A00 2 AMENDED · A01 2 AMENDED · A02 4 YES · A03 4 AMENDED · A04 3 YES+ · A05 4 REDIRECT · A06 4 YES · A07 4 NO · A09 3 AMENDED · A10 3 YES · A11 3 REDIRECT · A12 4 AMENDED · A13 2 YES+ · A14 2 YES · A15 2 YES · A16 2 YES · A17 4 YES · A18 2 YES · A19 2 AMENDED · A20 7 YES · A21 4 YES · A22 3 NO · A23 3 YES · A24 2 NO · A25 4 YES · A26 2 YES · A27 3 YES+ · A28 2 YES · A29 4 REDIRECT · A30 2 YES · A31 2 YES · A32 2 YES · A33 1 YES · A34 6 YES · A35 2 YES · A36 2 YES · A37 6 YES · A38 7 YES · A39 7 YES · A40 4 YES · A41 2 AMENDED · A42 1 NO · A43 6 YES · A44 4 YES
 - (B) R_correctness_first 2 YES · R_end_freeze 2 YES+ · R_lifecycle_test 6 YES · R_two_reader 6 YES · R_ocf_terms 1 YES · R_release_reading 6 YES
 - (C) S_abstraction 5 YES · S_close_checked 7 YES · S_reading_habit 5 YES · S_decision_map 5 YES · S_third_arm 6 YES+ · S_benchmark_tsfm 5 YES · S_calibrate_readers 6 YES · S_cost_per_result 6 YES · S_estimate_cost 6 YES · S_fwd_weather 4 YES · S_frame_needs 2 YES · S_asset_mix 4 YES · S_judge_by_hedge 6 YES · S_measure_data 6 YES · S_measure_tokens 6 YES · S_nothing_logged 7 YES+ · S_plugins 5 YES · S_taxonomy 7 YES · S_one_writer 6 YES · S_prove_fable 6 YES · S_review_own_code 7 AMENDED · S_carbon_defs 4 YES · S_test_claude_md 6 YES · S_skos 5 YES · S_naive_organ 7 YES · S_value_test_answer 6 YES+ · S_weekly_sweep 5 YES · S_time_hassle 4 YES · S_linking_findings 6 YES · S_knowledge_checks 4 YES · S_own_loop 2 AMENDED · S_front_door 2 YES · S_copy_pack 2 YES · S_externals 1 REDIRECT · S_this_steer 6 YES
+
+## Answered
+
+*Worker, 17 Nov.* Closed together with the worker's count
+(`docs/staging/records/WORKER_RESULT_NO_KIND_OF_DECISION_IS_YET_SURE_ENOUGH_TO_BE_THE_MACHINES_MEASUREMENT_IS_NEAREST_2026-11-17.md`).
+It grades P1-P9 against that count: seven held, P5's YES share refuted narrowly (0.63), and P6 refuted
+(7 curriculum decisions). Both codings agree that no kind qualifies. The steer moves to advisor/done
+in the same commit, with `based_on` on new rows. The `based_on` change touches only `raise_concern`,
+not `--answer`, so it does not collide with `director-answer-code-at-answer-time`.
