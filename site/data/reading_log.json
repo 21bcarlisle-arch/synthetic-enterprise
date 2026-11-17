@@ -561,11 +561,25 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "17 Nov",
+   "source": "Anthropic, \"Building agents: when to fold subagents into your main agent loop\" (Sarkis, 22 Oct); shared by the director",
+   "claim": "Many multi-agent systems do better as one loop; build ~10 golden examples, fold one subagent at a time, keep it separate only if the folded version scores worse, and run each task more than once. Warns of an architecture that copies the org chart; tool choice degrades past 30–50 tools",
+   "evidence": "Vendor engineering article, one customer's 2x runtime figure",
+   "verdict": "ADAPT (amends the CLAUDE.md trial)",
+   "done": "Nested subagents are already rare here (0.1% of context tokens). The useful parts are the method and the org-chart warning. Information barriers (the wall, blind review) are a reason to stay separate that the article does not name. Second read: the October backfill row said \"Already have\"; we had the single loop, not the golden-set method. Golden set `docs/operations/EFFICIENCY_E_E_GOLDEN_SET.yaml`; every handoff marked and the tool count (24 per live seat, below the band) in `docs/staging/records/SEAT_RESULT_E_E_EVERY_HANDOFF_MARKED_AND_THE_TOOL_COUNT_2026-11-17.md`",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 14,
+  "step": 15,
   "unplaced": 4,
   "none": 5
  },

@@ -67,3 +67,25 @@ a named past incident moves to a pointed-at file, and the result names the evide
 - `tests/background/test_the_claude_md_trial_never_lands_its_draft.py`: both arms reachable and off
   outside the window or on Sonnet; the draft written and the base restored; and the draft fails
   `claude_md_integrity.check`, which is what keeps it off origin.
+
+## Amendment, 17 Nov, before any turn ran: a golden set decides; real turns are the secondary check
+
+*Director steer, 17 Nov ("Yes", 17:57 GMT):
+`docs/staging/advisor/done/DIRECTOR_STEER_THE_CLAUDE_MD_TRIAL_USES_A_GOLDEN_SET_RUN_TWICE_AND_EACH_HANDOFF_EARNS_ITS_PLACE_2026-11-17.md`.*
+
+- **The decider is now the golden set**, `docs/operations/EFFICIENCY_E_E_GOLDEN_SET.yaml`: ten seat
+  tasks with inputs and pass criteria fixed on 17 Nov (a staging draw, a fidelity change at the wall,
+  a commit through the gates, a knowledge-first build, an escalation to `for_the_director`, a G5
+  refusal, an interconnection review, and three of the dropped method habits). Each runs **twice on
+  each arm**, in a sealed clone of `18f201c5bf` with no remote, via `python3 -m tools.claude_md_golden_set`.
+- **The rule:** a dropped line is added back if its absence fails a task in **either** run. A task
+  that fails on the full file too is a finding about the task or the file, not evidence for the cut.
+  Every run is reported, not only the totals (`--report`).
+- **The real-turn split above stays**, 21–28 Nov, as the secondary check; it no longer decides.
+- **What the set cannot see**, said before it runs: 20 runs per arm bound a never-seen failure below
+  about 15% per run at 95% (rule of three), pooled across tasks; two runs per task catch a flaky failure, not a rare one. Several
+  checks read words (a refusal, an escalation), so a run whose grade looks wrong is re-read from its
+  kept transcript and corrected beside its row.
+- **My prediction**, written before any minimal-arm run: the minimal arm fails g08 (print the numbers
+  before the test) or g09 (two changes, one move) in at least one run, because those habits live
+  only in the dropped section; it passes g02, g03, g05 and g06, whose rules it keeps.

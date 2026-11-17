@@ -59,3 +59,13 @@ Probable failure modes:
 Proportionality: harness, reversible. Implement directly.
 
 — Director steer, 17 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Worker, Tue 17 Nov 2026, evening. Checked the advisor's figures first: 0.1% subagent context share and the six agent types stand; lanes are labels, not agents.
+- **1. Golden set:** `docs/operations/EFFICIENCY_E_E_GOLDEN_SET.yaml`, ten tasks with inputs and pass criteria fixed today, covering all seven named cases plus three dropped method habits (print the numbers first, two changes cannot be attributed, map headroom first). Runner and grader `tools/claude_md_golden_set.py`: a `git clone --shared` of `18f201c5bf` with its origin removed, the arm's CLAUDE.md held out of the diff, the seat executor's own flags, Opus. Every check kind is shown able to pass and to fail (`tests/tools/test_claude_md_golden_set.py`, mutation of `bash_none` reds it). The pre-registration is amended: the golden set decides, a line comes back if its absence fails a task in either run, real turns are secondary, every run is reported; my prediction is written before any minimal-arm run. A harness-proof run of g06 (not counted) refused correctly and exposed a sandbox that could not land; fixed before any counted run (the record's last section). The 40 counted runs are owed before 21 Nov.
+- **2. Inventory:** `docs/staging/records/SEAT_RESULT_E_E_EVERY_HANDOFF_MARKED_AND_THE_TOOL_COUNT_2026-11-17.md`. Barrier keeps: phase-close-evaluator, epistemic-verifier, two-reader review, naive organ, director twin, and the director/advisor channel (authority, G8). Fold candidates: saas-engineer (0 calls in 14 days), interface-steward (0), sim-engineer (1), discovery-agent (6), general-purpose subagents (E-d), and the worker/executor/delivery-seat split. The executors with no live unit are marked delete, not fold. Found: the world/supplier barrier is not held by sim-engineer or saas-engineer at all; `lane_wall_hook.py` keys on a lane marker they never set, so delisting them cannot weaken the wall. Nothing is folded yet: E-e, then E-f2, then folds one at a time.
+- **3. Tool count:** 24 tool definitions on every live seat (probe, 17 Nov). That is below the 30–50 band; the 16 Nov switch-off moved skills (107 to 36), not tools. The two inactive executors carry 34. E-f2 would take the live seats to 13.
+- **Reading log:** row added to `docs/institutional/reading_log.md`. Backlog row E-e amended.
+
+Decision: outside_source yes
