@@ -51,3 +51,14 @@ The ideas, as problems:
 - **Mitigation, inline:** knowledge first with GAPs labelled. Any change to cost-to-serve attribution is a serious class under the correctness rule and goes through the publish gate.
 
 **Proportionality:** reversible and narrow: log it and rank it. Building it is feature work, ranked on Friday within the feature share.
+
+## Done (delivery seat, 17 Nov 2026)
+
+- Logged as `contact_cause_candidates` in `docs/direction/priority_order.yaml`, directly below
+  `simulator_spec_candidates`, five items, each with what it builds on. Ranked in the Fri 20 Nov balance
+  review within the feature share. Nothing is built this week.
+- Existing work it must build on, found by one grep pass (not a full read): `simulation/contact_response.py`,
+  `company/comms/` (conversation generator, susceptibility estimator), `company/interfaces/crossing_silence.py`,
+  and atom `W2_37_complaints_arise_from_billing_failures_and_the_silent_unhappy_are_modelled` in step 2,
+  which already owns part of item 5. The K8 page comes before any of it.
+- Decision: fidelity yes

@@ -116,6 +116,17 @@ simulator_spec_candidates:
     - {item: 6, lane: supplier, id: cost-to-serve-rises-in-steps, builds_on: the epoch-2 cost-to-serve item}
     - {item: 7, lane: supplier, id: clv-options-and-a-book-level-fixed-cost-check, builds_on: per-customer CLV on contribution; the fixed-cost check is book-level only}
     - {item: 8, lane: supplier, id: optimiser-guardrails-that-show-themselves-refusing, before: any optimiser or tournament evolves the supplier}
+# 2026-11-17 (15:13 "Log as an idea or backlog"): contact cause, failure demand and quiet fails, for the same
+# 20 Nov review; nothing built this week. K8 page first (failure-demand share, Ofgem and Ombudsman complaint causes,
+# silent attrition, what call metadata can reveal; GAPs labelled). Inferred traits serve better, never ration.
+contact_cause_candidates:
+  source: docs/staging/advisor/done/DIRECTOR_STEER_CONTACT_CAUSE_FAILURE_DEMAND_AND_QUIET_FAILS_FOR_THE_BACKLOG_2026-11-17.md
+  items:
+    - {item: 1, lane: world and supplier, id: contact-reveals-hidden-traits, builds_on: "simulation/contact_response.py, company/comms/; channel_pref is drawn but read only by cohort discovery"}
+    - {item: 2, lane: supplier, id: failure-demand-never-counts-against-clv, builds_on: "simulator_spec item 6 (cost-to-serve-rises-in-steps); any attribution change goes through the publish gate"}
+    - {item: 3, lane: supplier, id: contacts-clustered-by-root-cause, builds_on: the spec hypothesis that most holds, disputes and complaints share a few bulk-fixable causes}
+    - {item: 4, lane: supplier, id: next-best-action-by-contact-cluster, builds_on: item 3; scored by first-contact resolution, no repeat and the hidden utility}
+    - {item: 5, lane: world and supplier, id: quiet-fails-and-silent-leavers-scored-against-truth, builds_on: "W2_37 (silent unhappy, step 2), simulator_spec item 2 (need stocks), company/interfaces/crossing_silence.py"}
 # 2026-11-07: three harness steers the director staged for after the exit test, ranked by the seat.
 # Item 3 of the plugins steer (code-review against our two readers) rides the 11 Nov review row in
 # DIRECTION.yaml; pyright is trialled inside the token measurement, not before it.
