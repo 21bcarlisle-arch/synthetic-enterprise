@@ -39,6 +39,8 @@ EXIT_LOCK_SKIPPED = 75
 # _record_marker_published(), PW4's one evidenced close of the zero-progress episode.
 EXIT_NOTHING_PUBLISHED = 76
 NOT_PUBLISHED_BY_THIS_SWEEP = (EXIT_LOCK_SKIPPED, EXIT_NOTHING_PUBLISHED)
+# Same mirror, same pin: the book breached domain invariants no exception covers.
+EXIT_DOMAIN_INVARIANT_REFUSED = 82
 LOG_FILE = Path("docs/observability/background-worker-log.md")
 def log(message: str):
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -256,6 +258,81 @@ def _stamp_rearmed(marker: Path) -> None:
         fh.write(f"\n{PUBLISH_REARMED_TAG} at={datetime.now(timezone.utc).isoformat()} -->\n"
                  "Re-attempted once by background_worker.process_leftover_run_markers, because "
                  "the red that refused it read dead at HEAD.\n")
+
+
+#: A REFUSED BOOK IS REGRADED ONLY WHEN SOMETHING ITS GRADE READS HAS CHANGED (2026-11-17,
+#: docs/staging/done/WORKER_FINDING_A_DOMAIN_INVARIANT_REFUSED_BOOK_IS_REGRADED_EVERY_CYCLE_...).
+#: The book's run output never changes; its grade can move only through the code that derives the
+#: ledger and customer pages from it, the runner, the invariants or the exceptions register. The
+#: f7e17b1316 book was regraded 40 times in a day on unchanged inputs, each a ~14-minute regen and
+#: each counted as a new wedge failure. A path missed here would hold a fixable book back, so the
+#: list is broad, and REGRADE_AT_LEAST_EVERY_SECONDS bounds what a miss can cost.
+DOMAIN_INVARIANT_REFUSED_TAG = "<!-- domain-invariant-refused:"
+GRADER_INPUT_PATHS = ("company", "saas", "simulation", "sim", "tools",
+                      "background/process_run_complete.py",
+                      "docs/design/DOMAIN_INVARIANTS.yaml",
+                      "docs/design/DOMAIN_INVARIANT_EXCEPTIONS.yaml")
+#: Ops cadence, not a domain value: four regrades a day at most on unchanged inputs.
+REGRADE_AT_LEAST_EVERY_SECONDS = 6 * 3600
+
+
+def grader_input_fingerprint(repo: Path | None = None) -> str | None:
+    """A hash of the committed trees, uncommitted edits and untracked names under
+    GRADER_INPUT_PATHS, or None when git cannot say (None never matches, so the book is regraded)."""
+    import hashlib
+    repo = repo or Path(__file__).resolve().parent.parent
+    digest = hashlib.sha256()
+    for argv in (["git", "rev-parse", *(f"HEAD:{p}" for p in GRADER_INPUT_PATHS)],
+                 ["git", "diff", "HEAD", "--", *GRADER_INPUT_PATHS],
+                 ["git", "ls-files", "--others", "--exclude-standard", "--", *GRADER_INPUT_PATHS]):
+        try:
+            out = subprocess.run(argv, cwd=str(repo), capture_output=True, timeout=120, check=True)
+            digest.update(out.stdout)
+        except Exception:  # noqa: BLE001 -- a fingerprint not taken only costs a regrade
+            return None
+    return digest.hexdigest()[:16]
+
+
+def _stamp_domain_invariant_refused(marker: Path, fingerprint: str | None) -> None:
+    if fingerprint is None:
+        return
+    try:
+        with open(marker, "a") as fh:
+            fh.write(f"\n{DOMAIN_INVARIANT_REFUSED_TAG} fingerprint={fingerprint} "
+                     f"at={datetime.now(timezone.utc).isoformat()} -->\n")
+    except OSError as exc:
+        log(f"Could not stamp the refusal on {marker.name} ({exc}); it will be regraded")
+
+
+def unchanged_refusal(marker: Path, fingerprint: str | None,
+                      now: datetime | None = None) -> str | None:
+    """Why this marker's book need not be regraded, or None when it must be."""
+    if fingerprint is None:
+        return None
+    try:
+        text = marker.read_text()
+    except OSError:
+        return None
+    at = text.rfind(DOMAIN_INVARIANT_REFUSED_TAG)
+    if at < 0:
+        return None
+    fields = {}
+    for token in text[at + len(DOMAIN_INVARIANT_REFUSED_TAG):].split("-->", 1)[0].split():
+        key, sep, value = token.partition("=")
+        if sep:
+            fields[key] = value
+    if fields.get("fingerprint") != fingerprint:
+        return None
+    try:
+        refused_at = datetime.fromisoformat(fields["at"])
+    except (KeyError, ValueError):
+        return None
+    age = ((now or datetime.now(timezone.utc)) - refused_at).total_seconds()
+    if age >= REGRADE_AT_LEAST_EVERY_SECONDS:
+        return None
+    return (f"its book was refused by the domain-invariant gate {age / 60:.0f} min ago and "
+            f"nothing the grade reads has changed since (grader inputs {fingerprint}); "
+            f"regraded when they change, or after {REGRADE_AT_LEAST_EVERY_SECONDS // 3600}h")
 
 
 def retire_superseded_marker(marker: Path, newest_published: str, done_dir: Path) -> bool:
@@ -579,6 +656,13 @@ def process_leftover_run_markers():
             _stamp_rearmed(marker)   # before the call: a re-attempt that fails is not re-queued
         elif marker == offer:
             _stamp_offered(marker)   # the same once-only rule
+        fingerprint = grader_input_fingerprint()
+        unchanged = unchanged_refusal(marker, fingerprint)
+        if unchanged is not None:
+            # Not attempted, so no gate outcome is recorded and the backlog stays as it is. The
+            # sweep stops as it does after a failed frontier: walking on publishes staler books.
+            log(f"Not regrading {marker.name}: {unchanged}")
+            return
         try:
             result = subprocess.run(
                 [sys.executable, str(processor), str(marker)],
@@ -640,6 +724,9 @@ def process_leftover_run_markers():
         # here (not in the alarm) because this is the only place that sees the return code.
         if position == 0:
             _remember_oldest_outcome(marker.name, result.returncode)
+        if result.returncode == EXIT_DOMAIN_INVARIANT_REFUSED:
+            # The inputs as they stood when this grade began: an edit landing mid-run differs.
+            _stamp_domain_invariant_refused(marker, fingerprint)
         if result.returncode == EXIT_LOCK_SKIPPED:
             # NOT processed -- another instance holds the run lock and the
             # marker is untouched. Saying "Processed" here was a false claim in

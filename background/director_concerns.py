@@ -657,6 +657,80 @@ def acceptance_by_kind(closes: dict[str, dict]) -> dict[str, dict]:
     return out
 
 
+# THE ADVISOR CHANNEL'S ANSWERS. 41 of the 85 decisions in the 17 Nov count, and 16 of the 19
+# measurement ones, were the advisor's recommendations answered in chat. They never become a
+# `for_the_director` row, so raise-time coding misses them. The lane that actions a
+# DIRECTOR_STEER_/DIRECTOR_RULING_ file codes it once, in its `## Done` section, when it moves the
+# file to done/: `Decision: <decision_kind> <answer_code>`, or `Decision: none -- <reason>` when
+# his words answer no recommendation (his own initiative). Arrivals before this day are not
+# re-coded: a reader weeks later is the defect, not the remedy.
+ADVISOR_DECISION_FROM = "2026-11-18"
+ADVISOR_DECISION_PREFIXES = ("DIRECTOR_STEER_", "DIRECTOR_RULING_")
+ADVISOR_DONE_REL = "docs/staging/advisor/done"
+_DECISION_LINE = re.compile(r"^[ \t>*-]*\**Decision:\**[ \t]*(.*)$", re.M)
+
+
+def advisor_decision(text: str) -> dict | str:
+    """`{"decision_kind", "answer_code"}`, `{"none": reason}`, or the reason it is not coded."""
+    from tools.director_asks_ledger import done_section
+
+    body = done_section(text)
+    if body is None:
+        return "no `## Done` section"
+    lines = [m.group(1).strip() for m in _DECISION_LINE.finditer(body)]
+    if len(lines) != 1:
+        return (f"{len(lines)} `Decision:` lines in its `## Done` section; it needs exactly one: "
+                "`Decision: <decision_kind> <answer_code>` or `Decision: none -- <reason>` "
+                f"({direction_mod.DECISION_KINDS_PAGE})")
+    line = lines[0].replace("`", "").strip()
+    if line.lower().startswith("none"):
+        reason = line[4:].strip(" -—–:")
+        return {"none": reason} if reason else "`Decision: none` names no reason"
+    words = line.replace(",", " ").replace("/", " ").split()
+    if (len(words) != 2 or words[0] not in direction_mod.DECISION_KINDS
+            or words[1] not in direction_mod.ANSWER_CODES):
+        return (f"`Decision: {line}` is not `<kind> <code>`: kind one of "
+                f"{', '.join(direction_mod.DECISION_KINDS)}; code one of "
+                f"{', '.join(direction_mod.ANSWER_CODES)}")
+    return {"decision_kind": words[0], "answer_code": words[1]}
+
+
+def advisor_closes(root: Path | None = None) -> dict[str, dict]:
+    """Every coded advisor-channel answer as an answered close `acceptance_by_kind` can count,
+    keyed `advisor:<file stem>`. A `none` or an uncoded file is not a decision and is skipped."""
+    folder = Path(root or PROJECT_DIR) / ADVISOR_DONE_REL
+    out: dict[str, dict] = {}
+    for path in sorted(folder.glob("DIRECTOR_*.md")) if folder.is_dir() else []:
+        if not path.name.startswith(ADVISOR_DECISION_PREFIXES):
+            continue
+        coded = advisor_decision(path.read_text(encoding="utf-8", errors="replace"))
+        if isinstance(coded, dict) and "decision_kind" in coded:
+            out[f"advisor:{path.stem}"] = {"status": "answered", "kind": "advisor", **coded}
+    return out
+
+
+def advisor_decisions_uncoded(root: Path | None = None,
+                              since: str = ADVISOR_DECISION_FROM) -> list[str]:
+    """`<path>: <why>` for each steer or ruling that reached advisor/done on or after `since`
+    without a valid `Decision:` line. A file not yet committed there arrives today."""
+    from datetime import date
+
+    from tools.director_asks_ledger import _done_arrivals
+
+    root = Path(root or PROJECT_DIR)
+    arrivals, today = _done_arrivals(root), date.today().isoformat()
+    folder = root / ADVISOR_DONE_REL
+    problems = []
+    for path in sorted(folder.glob("DIRECTOR_*.md")) if folder.is_dir() else []:
+        rel = f"{ADVISOR_DONE_REL}/{path.name}"
+        if not path.name.startswith(ADVISOR_DECISION_PREFIXES) or arrivals.get(rel, today) < since:
+            continue
+        coded = advisor_decision(path.read_text(encoding="utf-8", errors="replace"))
+        if isinstance(coded, str):
+            problems.append(f"{rel}: {coded}")
+    return problems
+
+
 def acceptance_lines(table: dict[str, dict]) -> list[str]:
     lines = []
     for kind, t in sorted(table.items()):
@@ -793,7 +867,13 @@ def main(argv=None) -> int:
         print(monday_note(), end="")
         return 0
     if args.acceptance:
-        print("\n".join(acceptance_lines(acceptance_by_kind(closes_on_record()))))
+        # Seat rows and advisor-channel answers are counted together: the kind, not the channel,
+        # is what may move to the machine. An advisor answer's routing kind reads `advisor`.
+        print("\n".join(acceptance_lines(acceptance_by_kind(
+            {**closes_on_record(), **advisor_closes()}))))
+        uncoded = advisor_decisions_uncoded()
+        if uncoded:
+            print("Advisor answers not coded (not counted):\n  " + "\n  ".join(uncoded))
         return 0
     try:
         if args.list:

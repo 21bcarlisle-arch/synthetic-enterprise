@@ -330,6 +330,18 @@ def _no_daemon_state_reaches_the_live_record(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _refused_book_fingerprint_untaken(monkeypatch):
+    """Default the sweep's grader-input fingerprint to None, so every marker is graded.
+
+    The live answer shells `git` over this repo, and the sweep's tests fake `subprocess.run` for
+    the publisher launch alone: a fingerprint call reaching a fake that "publishes" archived the
+    marker before the publisher saw it. `test_background_worker.py` sets its own to test the skip.
+    """
+    from background import background_worker
+    monkeypatch.setattr(background_worker, "grader_input_fingerprint", lambda: None)
+
+
+@pytest.fixture(autouse=True)
 def _publish_gate_admitted(monkeypatch):
     """Default the memory governor to ADMIT the publisher's gate for every test here.
 

@@ -66,6 +66,23 @@ splits. It is a ruling for codings from now on, not a blind re-coding.*
 7. **`harness`**: see the line above. It is a standing change to the machine's own process:
    gates, queues, seats, readers, efficiency, publishing, the site's upkeep.
 
+## Where the kind is recorded: two channels, one code
+
+- **A `for_the_director` row** records `decision_kind` when it is raised and `answer_code` when he
+  answers (`director_concerns --raise --decision-kind`, `--answer --answer-code`).
+- **An advisor-channel steer or ruling** never becomes a row, and 41 of the 85 decisions in the 17 Nov
+  count came this way, including 16 of the 19 measurement ones. The lane that actions a
+  `DIRECTOR_STEER_` or `DIRECTOR_RULING_` file codes it once, when it moves the file to
+  `docs/staging/advisor/done/`. It writes exactly one line in the file's `## Done` section:
+  `Decision: <decision_kind> <answer_code>`, for example `Decision: measurement yes`. When his words
+  answer no recommendation, because the steer is his own initiative, it writes
+  `Decision: none -- <reason>`. The kind is what the advisor's recommendation asked him to approve,
+  placed by the edges above. The code is how he answered it: `yes`, `changed`, `no` or `returned`.
+- `director_concerns --acceptance` counts both channels together. The kind, not the channel, is what
+  may move to the machine. It also names any coded-after-the-gate file that it could not read.
+  `tests/background/test_director_concerns.py` refuses a steer or ruling that reaches advisor/done
+  from 18 Nov without the line. Files that arrived earlier are not re-coded.
+
 ## What this page does not settle
 
 - **The other 14 splits** (strategy against fidelity or curriculum; g5 against harness, outside

@@ -936,3 +936,59 @@ def test_a_throttled_beat_is_not_a_failure(monkeypatch):
 
     assert background_worker.beat_liveness() is False
     assert not logged, "a throttled beat logged something, which makes quiet look like noise"
+
+
+def test_worker_domain_invariant_refused_code_matches_the_processors():
+    import background.process_run_complete as prc
+    assert background_worker.EXIT_DOMAIN_INVARIANT_REFUSED == prc.EXIT_DOMAIN_INVARIANT_REFUSED
+
+
+def test_a_refused_book_is_regraded_only_when_its_grader_inputs_change(monkeypatch):
+    """The whole partition at once (finding 2026-11-17, a refused book regraded every cycle):
+    unchanged inputs skip; changed inputs, an untaken fingerprint, an old refusal and a new
+    marker are all regraded. A skip that fired on everything would fail the regrade legs, and one
+    that never fired would fail the first."""
+    calls = []
+    fingerprint = {"value": "aaaa"}
+    monkeypatch.setattr(background_worker, "grader_input_fingerprint", lambda: fingerprint["value"])
+
+    def _refuse(*a, **k):
+        cmd = a[0] if a else k.get("args")
+        if _is_publisher_launch(cmd):
+            calls.append(Path(cmd[-1]).name)
+        return MagicMock(returncode=background_worker.EXIT_DOMAIN_INVARIANT_REFUSED,
+                         stdout="", stderr="")
+    monkeypatch.setattr(background_worker.subprocess, "run", _refuse)
+    import background.process_run_complete as prc
+    monkeypatch.setattr(prc, "record_publish_gate_failure", lambda *a, **k: None)
+    monkeypatch.setattr(background_worker, "_record_publish_gate_outcome", lambda *a, **k: None)
+
+    marker = background_worker.STAGING_DIR / "run_complete_20261116T070501Z.md"
+    marker.write_text("# Simulation Run Complete\n")
+    background_worker.process_leftover_run_markers()
+    assert calls == [marker.name] and "fingerprint=aaaa" in marker.read_text()
+
+    background_worker.process_leftover_run_markers()
+    assert calls == [marker.name], "unchanged grader inputs must not regrade the same book"
+    assert marker.exists(), "a skip retires nothing: the backlog is the wedge's evidence"
+
+    fingerprint["value"] = "bbbb"
+    background_worker.process_leftover_run_markers()
+    assert calls == [marker.name] * 2, "a changed grader input must regrade"
+
+    fingerprint["value"] = None
+    background_worker.process_leftover_run_markers()
+    assert calls == [marker.name] * 3, "a fingerprint not taken must regrade"
+
+    newer = background_worker.STAGING_DIR / "run_complete_20261117T090000Z.md"
+    newer.write_text("# Simulation Run Complete\n")
+    fingerprint["value"] = "bbbb"
+    background_worker.process_leftover_run_markers()
+    assert calls[-1] == newer.name, "a new book is graded"
+
+    from datetime import datetime, timedelta, timezone
+    later = datetime.now(timezone.utc) + timedelta(
+        seconds=background_worker.REGRADE_AT_LEAST_EVERY_SECONDS + 1)
+    assert background_worker.unchanged_refusal(newer, "bbbb") is not None
+    assert background_worker.unchanged_refusal(newer, "bbbb", now=later) is None, (
+        "an old refusal is regraded even on unchanged inputs, which bounds a missed input")
