@@ -1118,7 +1118,33 @@ def data_surface_tests(path: str) -> list[str]:
                 targets.add(ref)
         elif ref.startswith(CODE_PREFIXES) and _names_it_outside_prose(ref, (path, p.name)):
             targets.update(tests_for(ref))
+    # THE THIRD ROUTE: modules that name no file because they open `base / f"{world_id}.yaml"`.
+    # spine reads every curriculum world that way and had no route here; its test was selected
+    # only through a docstring (census: SEAT_PREREG_ASSEMBLED_PATH_READERS_CENSUS_2026-11-17.md).
+    # Named tests run here; the reader's importers join the capped run in `import_derived_extras`.
+    for reader in _assembled_path_readers(path):
+        targets.update(tests_for(reader))
     return sorted(t for t in targets if (ROOT / t).exists())
+
+
+# ONE DIRECTORY KEPT OFF THE ASSEMBLED ROUTE, with the number (2026-11-17). docs/observability/*.json
+# is daemon-written state (open_question_register.json: 17 commits in 7 days), and its one assembled
+# reader, tools/published_feed_regeneration_check.py, is imported by tests/tools/test_evidence_pages.py,
+# red at origin since archive increment 4b for a reason no observability file can change. On the
+# route, that red would refuse every one of those commits. Lift this when that test is green:
+# docs/staging/SEAT_FINDING_THE_EVIDENCE_PAGE_TEST_IS_RED_ON_FIVE_ARCHIVED_CITATIONS_2026-11-17.md.
+ASSEMBLED_ROUTE_EXCLUDED = ("docs/observability/",)
+
+
+def _assembled_path_readers(path: str) -> tuple[str, ...]:
+    """`tools.assembled_path_readers.readers_of`, imported here because the hook runs this file as
+    a script and `tools/` is then sys.path[0], not the repo root."""
+    if path.startswith(ASSEMBLED_ROUTE_EXCLUDED):
+        return ()
+    if str(ROOT) not in sys.path:
+        sys.path.insert(0, str(ROOT))
+    from tools.assembled_path_readers import readers_of
+    return readers_of(path, CODE_PREFIXES)
 
 
 def _names_it_outside_prose(module: str, needles: tuple[str, ...]) -> bool:
@@ -2532,6 +2558,9 @@ def import_derived_extras(files: list[str], already: list[str]) -> list[str]:
     extra: set[str] = set()
     for f in files:
         extra.update(t for t in importing_tests(f) if t not in have)
+        if not f.startswith(PUBLISHED_OUTPUT_ROOTS) and f not in CURATED_SURFACE_PATHS:
+            for reader in _assembled_path_readers(f):  # a data file's assembled-path readers -- see above
+                extra.update(t for t in importing_tests(reader) if t not in have)
     return sorted(t for t in extra if (ROOT / t).exists())
 
 

@@ -1,0 +1,28 @@
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 4 · **Atom:** `unminted`
+
+# The evidence-page test is red at origin because the maturity map still cites five modules that were archived (2026-11-17)
+
+`tests/tools/test_evidence_pages.py::test_unresolved_citations_are_the_known_set_and_no_more` fails at
+origin/main (a625b6aec0, checked from an isolated worktree). Five citations in the published evidence
+payload are MISSING and are not in its `KNOWN_UNRESOLVED_CITATIONS` ratchet:
+
+- `company/crm/decarb_recommender.py`, `company/crm/home_registry.py`, `company/crm/onboarding_journey.py`.
+  These were moved to `archive/unhooked_supplier/` by archive increment 4b (6b70382ded).
+- `company/market/tariff_benchmarking.py`, `company/pricing/renewal_pricing_engine.py`. These are also
+  under `archive/unhooked_supplier/` now.
+
+**Why this matters now.** The commit gate's new assembled-path route
+(`tools/assembled_path_readers.py`) found that `tools/published_feed_regeneration_check.py` reads
+`docs/observability/*.json` through `PROJECT / "docs" / "observability" / f"{name}.json"`. That module's
+importers include this test. With the route in force, every daemon commit of
+`docs/observability/open_question_register.json` (17 in the last 7 days) would be refused on this red.
+So `ASSEMBLED_ROUTE_EXCLUDED = ("docs/observability/",)` in `tools/pre_commit_test_gate.py` keeps that
+one directory off the route until this test is green.
+
+**What done means.** The map rows that cite the five paths either cite live evidence or the five paths
+are pinned in the ratchet with the reason, which is the precedent the test sets for deleted site doors.
+Re-pointing them at `archive/` would be a false citation, because archived code is not evidence of a live
+level. Then delete `ASSEMBLED_ROUTE_EXCLUDED` and its test leg.
+
+Not fixed here: the map rows belong to the level lane, and choosing between re-citing and pinning is a
+judgement about those atoms' levels.
