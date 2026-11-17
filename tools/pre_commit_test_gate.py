@@ -1176,7 +1176,11 @@ def _names_it_outside_comments(test: str, needles: tuple[str, ...]) -> bool:
     never opens the page cannot change verdict when the page's prose changes, and docstring
     citations of home_moves.md put 954 s of simulation tests under every edit to it (2026-11-17).
     The case that kept docstrings, test_simplifications_store and its README, never opened the
-    README either. For other suffixes a test's docstring still counts, as before."""
+    README either. For other suffixes a test's docstring still counts, and that is measured, not
+    inherited: a data file is often opened through an assembled path (`spine` reads
+    f"{world_id}.yaml"), which no route here can see, so the test's docstring can be the only trace
+    of a real read. test_scenario_spine reads history_replay.yaml that way and names it only in a
+    docstring (census: docs/staging/records/SEAT_PREREG_DATA_FILE_CITATION_CENSUS_2026-11-17.md)."""
     if all(n.endswith(".md") for n in needles):
         return _names_it_outside_prose(test, needles)
     try:
