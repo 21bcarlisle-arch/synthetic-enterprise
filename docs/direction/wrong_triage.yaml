@@ -803,3 +803,12 @@ items:
     status: open
     owner: "focus item the-paused-banner-commits-only-on-a-change (background/process_run_complete.py, background/publish_freshness.py)"
     reason: "Triaged 2026-11-17 by the delivery seat. The written_at-only banner is the one origin move that can be removed for nothing, and it has recurred in every record since 13 Nov (0ad9d831a, 6c025b3b9). Corrected when a stretch's commit list carries no written_at-only banner and no landing logs a lost race to one. The primary-checkout refusal that ended d5-land9 C2 and d5-land10 C3 is a separate, already-designed route to worktrees and is not this row."
+  # 2026-11-17 21:20Z orientation: the Capabilities-strip row given its one fate ahead of its 20 Nov line.
+  - id: the-capabilities-page-says-nothing-was-fixed
+    problem: "The live Capabilities page says nothing was fixed in a week that fixed dozens of money classes, and answers the thesis question from the 8 Oct run, because its strip reads a hand record last written 24 Oct."
+    match: ["The live Capabilities page told the director"]
+    first_seen: "2026-11-13"
+    fate: fix
+    status: open
+    owner: "SITE12_evidence_a_reader_can_use (f4f825b8b is built and on origin; it reaches the director with the next verified publish)"
+    reason: "Triaged 2026-11-17 by the delivery seat, ahead of the 7-day line. The page fix is built and landed. What keeps the row open is the publisher: no book has verified since 6fe7827ab2, and focus item the-next-book-carries-the-row-7-and-closing-refund-fixes owns that path. Corrected when a verified publish serves f4f825b8b carrying A's -GBP 1.35 and section 12a's cause, or the 12a refutation if pair 2 refutes it."

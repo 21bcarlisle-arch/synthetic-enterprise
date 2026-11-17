@@ -1,96 +1,73 @@
 version: 1
-oriented_at: "2026-11-17T18:22:29.604804+00:00"
+oriented_at: "2026-11-17T21:20:28.116726+00:00"
 thesis_read: >-
-  In money, the thesis stands where it stood three hours ago. The per-customer supplier still trails
-  its flat-rules baseline by GBP 1.35 per household-year on A's better belief, and the cause is still
-  an inference. What moved is that both tests that could settle it are now possible. First, the D5-on
-  book is running. d5book-pause-watch stopped step 6 at 17:41Z with pair 33333_44444 on disk. sim-runner
-  waited 35 minutes on another worker's uncommitted walk fix, which then landed as 18f201c5b, and launched
-  the book on 18f201c5bf at 18:19Z (pid 577704). Row 7's prediction was amended before that book started
-  (d659c1742), so the grade is still pre-registered. Second, pair 2 has been on disk since 17:41Z. That
-  makes section 12a's confirm-or-refute read on the offer gate possible now, with no box time, and nobody
-  has run it. The steer drifted here. Last record's offer-gate item was ready at 17:41Z and was not drawn.
-  Of five focus items, only the D5 book item was drawn, and only because its watcher did the work. The
-  continuation-ordering item and the banner item are now undrawn for a second record. The first focus
-  item, the contact-cause backlog, is finished (6f0b5eb1c, steer in done/) and leaves focus. The commit
-  split reads 0 supplier and 9 other. 18f201c5b is a billing fix to the live payment triad that the classifier
-  counts as other. One commit of nine was substantive, two merges carried nothing, and another written_at-only
-  paused banner landed (db8e59e47), which is the third record running in which that happened. The publisher
-  stands at 49 failures over 37.7h and the site serves the 9 Nov book. Nothing in the eleven carried
-  rows is corrected this stretch, because each correction waits on the book now running or on the pair-2
-  read nobody has drawn. The director sent one advisor steer, the golden-set amendment to the 21 Nov CLAUDE.md
-  trial, answered "Yes" at 17:57. It goes first by the advisor rule, and it has a date. Supplier work
-  follows it: the pair-2 read, which takes minutes, and the D5 book grade.
+  In money, the thesis has not moved. The per-customer supplier still trails its flat-rules baseline by
+  GBP 1.35 per household-year on A's better belief, and the mechanism blamed for it, a retention offer
+  that under-values the households the per-customer view finds, is still untested. The pair-2 read that
+  would test it has been possible since 17:41Z, takes minutes, and was not drawn for a third record. What
+  did move is billing. The D5-on book finished on 18f201c5bf and was graded (3bf458895). It refuses on two
+  named rows where the 16 Nov book refused on five. Row 4, gas and VAT held. Row 7 reads 20 against a
+  prediction of 2 or 0, so that prediction is refuted, and three of its four households are leavers. The
+  closing-refund row reads 24 against an exception of 23 that was keyed to one book's count. Each row has
+  an owner and a queued continuation. The same grade found that settlements_behind_the_walk and
+  final_month_nets never reach the run output, because annual_report whitelists its keys. So the
+  18:22 record's promise that this book would "name the walk" was never possible, and that is the seat's
+  error, listed below. Step 6 relaunched at 20:04:47Z with both finished pairs kept. That corrects the
+  06:21 seat row. Step 6 now holds the box again, and its remaining pairs would block the next book for
+  days, so this record decides the order: the next book goes ahead of step 6's later pairs. The steer is
+  still drifting. Focus drew 2 of 5: the golden-set steer (d69b99e4b, 4e260bf6b, now in done/) and the
+  D5 grade. Both leave focus as finished. The offer-gate item lost to continuations again, this time to
+  row7 and n29, which the D5 grader queued 0.4h before this record. The fix for that ordering is undrawn
+  for a third record. Another written_at-only banner landed (893a243d6). The commit split reads 0 supplier
+  and 9 other, but the classifier counts the D5 grade as other. Two of nine commits were substantive, and
+  both were harness. The publisher stands at 52 failures over 40.7h, and the site serves a 9 Nov book.
 stretch_reviewed:
-  since: "2026-11-17T15:22:04.166738+00:00"
+  since: "2026-11-17T18:22:29.604804+00:00"
   commits: 9
-  substantive: 1
+  substantive: 2
 focus:
-- id: the-claude-md-trial-takes-a-golden-set-run-twice
-  what: 'Action docs/staging/advisor/DIRECTOR_STEER_THE_CLAUDE_MD_TRIAL_USES_A_GOLDEN_SET_RUN_TWICE_AND_EACH_HANDOFF_EARNS_ITS_PLACE_2026-11-17.md
-    before the 21 Nov trial starts. (1) Amend docs/staging/records/SEAT_PREREG_TRIAL_E_E_MINIMAL_CLAUDE_MD_AGAINST_THE_FULL_ONE_2026-11-16.md
-    with a golden set of about 10 seat tasks. Cover at least the steer''s seven cases: a staging draw,
-    a fidelity change near the wall, a commit through the gates, a knowledge-first build, an escalation
-    to for_the_director with a recommendation, a G5 refusal, and an interconnection review after a landing.
-    Fix each task''s inputs and pass criteria in the file. Write down the run plan: two runs per task
-    on the full file and two on the minimal file, a line added back if its absence fails either run, every
-    run reported, and real-turn comparison as the secondary check. Do not run the trial. (2) Write a one-off
-    inventory at docs/operations/HANDOFF_AND_AGENT_INVENTORY_2026-11-17.md covering the six .claude/agents/
-    types, each seat and daemon kind, and each written handoff. Mark each one keep-barrier (name the barrier),
-    keep-measured (give the measurement), or candidate-to-fold. Anything that crosses the epistemic wall
-    or a blind review is never a candidate. Include (3), the tool-definition count each seat kind carries
-    after the 16 Nov switch-offs, against the 30 to 50 band. Append the steer''s row to docs/institutional/reading_log.md.
-    Move the steer to docs/staging/advisor/done/ with a ## Done section and the line "Decision: outside_source
-    yes". The recommendation he answered was to ADAPT a named outside source, which is kind 5 and comes
-    before harness in DECISION_KINDS.md''s precedence.'
-  why: The advisor channel goes ahead of everything, and his "Yes" at 17:57 is the steer. The trial is
-    pre-registered for 21 Nov, so a golden set added after it starts would be chosen after the trial's
-    answers are known. Done means the amended pre-registration, the inventory with its tool count, and
-    the reading-log row are on origin, and the steer is in done/ with its Decision line. No fold is tried
-    in this item.
-  lane: H_harness
-  side: other
-  written_at: 1794939987.73
 - id: the-retention-offer-gate-values-a-kept-household-at-what-the-arm-earns
-  what: 'Pair 2 has been on disk since 17:41Z: /var/tmp/vta-out-flag1/member_33333_44444.json and control_33333_44444.json.
-    STEP 1, no box time, now: run section 12a''s confirm-or-refute read in docs/design/THE_VALUE_TEST_REDESIGN.md
-    on that pair. Count value-arm flips at identical rolls and identical common-fuel margins, A against
-    twin. Grade the count against 12a''s stated confirm and refute conditions, write the result as a new
-    subsection after 12b, and land it with a "Graded: value-test" trailer. STEP 2, only if pair 2 does
-    not refute: write or amend the K8 knowledge page on retention offers and save rates, with published
+  what: 'Pair 2 is on disk: /var/tmp/vta-out-flag1/member_33333_44444.json and control_33333_44444.json
+    (written 17:40Z). STEP 1, no box time, now: run section 12a''s confirm-or-refute read in docs/design/THE_VALUE_TEST_REDESIGN.md
+    on that pair. Count the value-arm flips at identical rolls and identical common-fuel margins, A against
+    the twin, and grade the count against 12a''s own confirm and refute conditions. Write the result as
+    a new subsection after 12b and land it with a "Graded: value-test" trailer. STEP 2, only if pair 2
+    does not refute: write or amend the K8 knowledge page on retention offers and save rates, with published
     practice and GAPs labelled. Then find where _would_offer in simulation/run_phase2b.py computes the
-    value protected. If a supplier decision sits in simulation/ rather than company/, file that as a wall
-    finding. STEP 3: put the gate change behind a default-off switch, so that the value protected reads
+    value protected. If a supplier decision sits in simulation/ and not in company/, file that as a wall
+    finding. STEP 3: put the gate change behind a default-off switch so that the value protected reads
     the arm''s own expected margin for the household. Write one control asserting that both branches can
-    be taken, mutate it, and show it goes red. Launch nothing. The D5 book is running, and the offer re-read
-    (vto-offer-reread-watch) holds the box after it.'
-  why: This is the thesis in its sharpest form. The better inference about who leaves appears to be spent
-    by a lever that under-values the households the per-customer view makes valuable, so the flat baseline
-    wins. The read costs minutes, and the data has been waiting since 17:41Z. Done means the pair-2 grade
-    is on origin. Unless it refuted, the knowledge page and the switched, mutation-proven gate are on
-    origin too. If it refutes, the build stops and the refutation is the result.
+    be taken, mutate it, and show it goes red. Launch nothing: step 6 holds the box (pid 1051692), and
+    vto-offer-reread-watch orders the offer re-read after it.'
+  why: This is the thesis at its sharpest. The better inference about who leaves appears to be spent by
+    a lever that under-values exactly the households the per-customer view makes valuable, so the flat
+    baseline wins. The read costs minutes, and its data has waited since 17:41Z through three records.
+    Done means the pair-2 grade is on origin. Unless it refuted, the knowledge page and the switched,
+    mutation-proven gate are on origin too. If it refutes, the build stops and the refutation is the result.
   lane: B_commercial
   side: supplier
-  written_at: 1794939987.73
-- id: the-d5-book-is-graded-and-published-or-its-refusals-named
-  what: 'The D5-on book is running: tools.run_annual_report on 18f201c5bf, launched 18:19Z, pid 577704.
-    Do not launch a second one. When its docs/staging/run_complete_*.md lands, check two things. First,
-    d5book-pause-watch relaunched step 6 keeping pairs 11111_22222 and 33333_44444 (/var/tmp/longjob-value-test-step-6-flag1.log,
-    /var/tmp/d5book-pause/watch.log). Second, the background worker skipped the 16 Nov marker''s regrade
-    under 623b28e72. Grade rows 4 and 7 against docs/staging/SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md,
-    using row 7''s prediction as amended in d659c1742 (2 or 0, with 18f201c5b carried). Read settlements_behind_the_walk
-    for SYN-2016-001. Grade INV_OVERDUE_WITHIN_PAGE_BALANCE and INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR
-    against the 16 Nov refusal. Read the account page''s repayments against payment truth now that final_month_nets
-    can be carried. For each row or invariant still refusing, write its cause and owner in docs/staging/SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_IS_AN_OPEN_ESTIMATED_RUN_AND_THE_16_NOV_BOOK_IS_REFUSED_AS_PREDICTED_2026-11-16.md.
-    If no run_complete has landed by 03:00Z, read the run''s log and record why in that same finding.'
-  why: 'Billing accuracy is first in the director''s order. The site has served no new figure for 142h.
-    Four carried wrong rows wait on this book: the publish refusal, the account page''s dropped repayments,
-    the Capabilities strip, and the W3_3 standing charge. Done means rows 4 and 7 and both invariants
-    are graded on this book, and either a verified publish carries it or every refusing row has a named
-    cause and owner.'
+  written_at: 1794950705.177
+- id: the-next-book-carries-the-row-7-and-closing-refund-fixes
+  what: 'The 18f201c5bf book refuses on row 7 (INV_OVERDUE_WITHIN_PAGE_BALANCE, 20) and on the closing-refund
+    row (24 against an exception of 23). See s.9 of docs/staging/SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_IS_AN_OPEN_ESTIMATED_RUN_AND_THE_16_NOV_BOOK_IS_REFUSED_AS_PREDICTED_2026-11-16.md.
+    Three continuations own the causes: row7-three-leavers-desk-ask-traced, n29-exception-keyed-to-class-not-count
+    and walk-counter-reaches-a-readable-artefact. Do not redo them. Start only once all three have landed
+    on origin (git log --grep each id). Then decide one thing. If the rescoped exception and row 7''s
+    fix clear the 18f201c5bf marker without a new run, re-offer that marker and grade the publish. If
+    they do not, a new book is needed. If row 7''s trace named a cause but landed no fix, write the fix
+    (owner DD_seasonal_cashflow_physics) before any book. Write the new book''s predictions for row 7,
+    the closing-refund row and the walk counter into docs/staging/SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md
+    and land them before launch. Pause step 6 at its next pair boundary, the way d5book-pause-watch did,
+    keeping every finished pair, and do not trust a marker''s mtime to fire the pause. Launch tools.run_annual_report
+    on origin HEAD through launch_long_job, and queue step 6''s relaunch after it.'
+  why: Billing accuracy is first in the director's order, and the site has served no new figure for 145h.
+    Step 6's remaining pairs would hold the box for days, and the pair-2 read needs no more of them, so
+    the publish comes first (see not_now). Four carried wrong rows wait on a verified publish. Done means
+    either a verified publish on origin, or a new book running with its predictions landed before it and
+    step 6 paused with its finished pairs kept.
   lane: D_billing_metering
   side: supplier
-  written_at: 1794939987.73
+  written_at: 1794950705.177
 - id: focus-outranks-a-continuation-chain-of-any-author
   what: In background/delivery_lane.py, the continuation-before-focus swap (SELF_HANDOFF_CHAIN_LIMIT,
     _self_issued_chain) counts only continuations written by a tick that held a claim. Add a second leg.
@@ -99,53 +76,52 @@ focus:
     ahead of any continuation, whoever wrote it. Continuations that are date-gated or held on waits_for
     are unaffected. Write one control over the whole partition that asserts, in one statement, both that
     a continuation can still win the first draw and that focus wins after the limit. Mutate the leg off
-    and show the control goes red. Replay this stretch's draw ledger through it and record whether the
-    offer-gate item would have been taken after 17:41Z.
-  why: This is the second record running in which this item went undrawn, and the offer-gate item sat
-    ready and undrawn for 40 minutes. The steer is what is drifting. Done means the leg and its mutation-proven
-    control are on origin.
+    and show the control goes red. Replay the 15:22 to 21:20Z draw ledger through it and record whether
+    the offer-gate item would have been taken before row7-three-leavers-desk-ask-traced and n29-exception-keyed-to-class-not-count.
+  why: This is the third record running in which this item went undrawn, and the offer-gate item has lost
+    to continuations in each of them. Done means the leg and its mutation-proven control are on origin
+    with the replay's answer in the commit.
   lane: H_harness
   side: other
-  written_at: 1794939987.73
+  written_at: 1794950705.177
 - id: the-paused-banner-commits-only-on-a-change
   what: background/process_run_complete.py, with background/publish_freshness.py, commits the verification-paused
-    banner in site/data/publish_provenance.json while verification is paused (db8e59e47 this stretch;
-    3af982db4, da4e1b310 and 37dbb1c5e before it). Make the banner commit only when a field other than
-    written_at changes. Add a control showing that re-pausing in an identical state makes no commit and
-    that a changed state still does. Mutate it both ways.
+    banner in site/data/publish_provenance.json while verification is paused. Change it so the banner
+    commits only when a field other than written_at changes. 893a243d6 this stretch changed written_at
+    alone, as db8e59e47, 3af982db4, da4e1b310 and 37dbb1c5e did before it. 77e05a6ae changed the reason
+    too, and is the kind that must still land. Add a control showing that re-pausing in an identical state
+    makes no commit and that a changed state still does. Mutate it both ways.
   why: It owns the triaged fix a-landing-loses-its-race-to-origin. Every origin move lengthens a landing's
-    race, and this is the one that carries nothing. Done means the control is on origin, and the next
-    stretch's commits include no banner whose only change is written_at.
+    race, and this move carries nothing. Done means the control is on origin and the next stretch's commits
+    include no banner whose only change is written_at.
   lane: H_harness
   side: other
-  written_at: 1794939987.73
+  written_at: 1794950705.177
 not_now:
-  - what: Putting the D5 book grade or the offer-gate read ahead of the advisor steer.
+  - what: Letting step 6 run its remaining four pairs before the next book.
     why: >-
-      The advisor rule puts his file first. Both supplier items are queued behind it in the same lane rather
-      than blocked by it: the book cannot be graded before about 03:00Z, and the pair-2 read can be drawn by
-      any other tick in the meantime.
-  - what: Building the offer-gate lever before the pair-2 flips are read.
+      Step 6 is in its third pair and pairs have taken more than a day each. Pairs 1 and 2 already carry the
+      12a read, and the publish is billing, which comes first. Pausing at a pair boundary loses no finished
+      pair. Doing it the other way round cost about 53h last time, and that is the error this record corrects.
+  - what: Separate focus items for row 7's trace, the closing-refund exception and the walk counter.
     why: >-
-      The mechanism is an inference from ten flips on one pair, and section 12's own prediction missed. The
-      read is free and the data is on disk. A switch built on a story the next read might refute is code written
-      ahead of its evidence.
+      All three are queued continuations, and two are claimed right now. A second item on the same work would
+      race them. Focus item 2 starts where they finish.
+  - what: Putting the continuation-ordering fix first, so that it unblocks item 1.
+    why: >-
+      It loses to the same continuations wherever it sits. When they drain, the first focus item is drawn
+      first, and that should be the supplier read, not harness.
   - what: Launching the offer re-read, the renewal retrain B, or the flag-off half of step 6.
     why: >-
-      Each peaks near 11.5 GB, and the D5 book holds the box until it finishes. vto-offer-reread-watch already
-      orders the re-read after step 6. B's better ranking would lose money through the same gate until the
-      lever is fixed.
-  - what: Running any fold trial, or the CLAUDE.md trial itself, now.
-    why: >-
-      The steer asks for the golden set and the inventory before 21 Nov. Folds are tried one at a time after
-      that. Running a trial now would spend the box on harness during a book.
+      Each peaks near 11.5 GB, and step 6 then the next book hold the box. vto-offer-reread-watch already
+      orders the re-read. B's better ranking would lose money through the same gate until the lever is fixed.
   - what: Landing W3_3 (the settlement books the standing charge) from origin/w3-3-network-split-held.
     why: One change per book. W3_3 follows the first D5-fixed publish so that no moved row is left unclaimed.
   - what: The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
     why: It refuses no book and blocks no supplier result. The ordinary draw can take it.
   - what: Reaping the at-risk October worktrees (b12-*, se-budgetpay-land, se-om2, simsuite).
     why: >-
-      They block no supplier result and reaping cannot be undone. value-test-offer-reread is live and holds
+      They block no supplier result, and reaping cannot be undone. value-test-offer-reread is live and holds
       the logging salvage 870201d1e7, so it must not be touched.
   - what: Raising the value-arm loss to the director.
     why: >-
@@ -154,74 +130,84 @@ not_now:
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards
-      (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged.
-      Carrying A live still needs the offer-gate fix, and that waits on the pair-2 read (focus 2).
+      (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:20 17 Nov -- unchanged.
+      Carrying A live still needs the offer-gate fix, and the pair-2 read is undrawn (focus 1).
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year
       (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35
-      (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov --
-      explained, not fixed. Pair 2 is on disk since 17:41Z, so 12a's test can run now. It is focus 2, step 1.
+      (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 21:20 17 Nov --
+      explained, not fixed, and the explanation is still untested. Pair 2 has been on disk since 17:41Z, and the
+      read was not drawn this stretch (focus 1, step 1).
     corrected: false
   - what: >-
       THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34
-      supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged.
+      supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 21:20 17 Nov -- unchanged.
       No book has published since 6fe7827ab2.
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
-      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:22 17 Nov --
+      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 21:20 17 Nov --
       unchanged (fix, owner W2_30, recheck by 23 Nov).
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one,
       so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
-      Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged.
+      Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 21:20 17 Nov -- unchanged.
       W3_3 follows the first D5-fixed publish.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's
       payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier
-      tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged. The D5-on book running now on 18f201c5bf is the first
-      that can carry final_month_nets (focus 3).
+      tails are in decisions.jsonl.] 21:20 17 Nov -- unchanged. The D5 book could not carry final_month_nets, because
+      annual_report whitelists its keys. walk-counter-reaches-a-readable-artefact owns that, and focus 2 follows it.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing
       recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct
       run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json,
       is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.]
-      18:22 17 Nov -- unchanged. f4f825b8b is still not served. When it is, it must carry A's -GBP 1.35 and section 12a's cause.
+      21:20 17 Nov -- unchanged. f4f825b8b is still not served. It now has its one fate in wrong_triage.yaml: fix,
+      corrected at the next verified publish (focus 2).
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died
       because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to
-      485d48a0c). [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged. Two merges carried nothing this
-      stretch, and another written_at-only paused banner landed (db8e59e47). Focus 5 owns the fix and is undrawn.
+      485d48a0c). [Earlier tails are in decisions.jsonl.] 21:20 17 Nov -- unchanged. One merge carried nothing
+      (d2faff1e7), and a fourth record running saw a written_at-only banner (893a243d6). Focus 4 owns the fix and is undrawn.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers,
       and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov
-      book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov
-      -- unchanged in effect. The publisher is at 49 failures over 37.7h. The D5-on book launched at 18:19Z on 18f201c5bf
-      (focus 3).
+      book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 21:20 17 Nov
+      -- narrowed, not corrected. The D5-on book on 18f201c5bf refuses on two rows, not five: row 7 at 20 and the
+      closing refund at 24 against 23. Both have owners and continuations. The publisher is at 52 failures over 40.7h (focus 2).
     corrected: false
   - what: >-
       THE SEAT'S, NEW. The 06:21 record kept step 6 running on the claim that a landing gate and sim-runner "fit beside
       it". sim-runner yields to any resident long job by construction, and it deferred 23 cycles, so the D5 book that
       record's focus 2 waited on could not run for about 53h. The same record's focus drew 0 of 3, behind four continuations
-      and three draws of the stale HEAD_RED register. 18:22 17 Nov -- the pause fired at 17:41Z and the book launched
-      at 18:19Z, after 35 minutes deferred on another lane's uncommitted edit. It is corrected when the book completes
-      and step 6 is relaunched.
-    corrected: false
+      and three draws of the stale HEAD_RED register. 21:20 17 Nov -- corrected. The book completed on 18f201c5bf
+      and was graded (3bf458895), and step 6 relaunched at 20:04:47Z keeping both finished pairs. Focus 2 writes
+      the opposite order down for the next book, so the 53h does not recur.
+    corrected: true
   - what: >-
       THE SEAT'S, NEW. The 09:22 record saw its first item lose to continuations, and named the second such loss as
       the moment to change the order. It wrote no item to make the change, so when the loss came the record had nothing
-      ready. Five continuations were drawn and focus drew 0 of 3 again. 18:22 17 Nov -- the item (focus 4) is undrawn
-      for a second record. This stretch focus drew 1 of 5, and the offer-gate item sat ready and undrawn from 17:41Z.
+      ready. Five continuations were drawn and focus drew 0 of 3 again. 21:20 17 Nov -- unchanged. The item (focus 3)
+      is undrawn for a third record. This stretch, focus drew 2 of 5, and the offer-gate item lost again to row7 and n29,
+      continuations queued 0.4h before this record.
     corrected: false
   - what: >-
-      THE SEAT'S, THIS STRETCH. The 15:22 record's offer-gate item made step 1 wait on pair 2 with no stamp the
-      queue reads. When pair 2 landed at 17:41Z, nothing knew the item had become runnable, and no tick took it.
-      This record names the files as already present, so the item is runnable on its first draw.
-    corrected: true
+      THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to "read settlements_behind_the_walk for
+      SYN-2016-001" and hung the account-page row on the book carrying final_month_nets. Neither was readable. annual_report
+      whitelists its output keys, and nobody had checked that the counters reach a run output before the record promised
+      a read of them. The book is graded, but it cannot name the walk. walk-counter-reaches-a-readable-artefact owns
+      the carry. Corrected when a run output carries the three counters.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, THIS STRETCH. d5book-pause-watch relaunched step 6 on a run marker that was already refusal-stamped,
+      firing on its mtime. It was right only because the relaunch was queued anyway. Focus 2 tells the next pause not
+      to trust a marker's mtime.
+    corrected: false
 for_the_director: []
