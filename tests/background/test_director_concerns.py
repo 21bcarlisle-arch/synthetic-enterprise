@@ -698,3 +698,70 @@ def test_the_record_refuses_an_answer_code_it_cannot_count(row, refused):
     base = {"id": "c", "what": "w", "proposal": "p", "resolution": "r"}
     problems = d._concern_problems([{**base, **row}])
     assert bool([p for p in problems if "answer_code" in p]) is refused
+
+
+def _advisor_file(decision: str | None, done: bool = True) -> str:
+    text = '# [DIRECTOR-STEER] x\n\n- 06:24 GMT: "Yes."\n\n## Done means\n\nDecision: harness yes\n'
+    if done:
+        text += "\n## Done\n\nLanded in 3373f3523c.\n" + (f"{decision}\n" if decision else "")
+    return text
+
+
+@pytest.mark.parametrize("decision, coded", [
+    ("Decision: measurement yes", {"decision_kind": "measurement", "answer_code": "yes"}),
+    ("**Decision:** `harness changed`", {"decision_kind": "harness", "answer_code": "changed"}),
+    ("Decision: none -- his own initiative", {"none": "his own initiative"}),
+    ("Decision: none", None),
+    ("Decision: measurment yes", None),
+    ("Decision: harness maybe", None),
+    ("Decision: harness", None),
+    ("Decision: harness yes\nDecision: measurement yes", None),
+    (None, None),
+])
+def test_an_advisor_answer_is_coded_in_its_done_section_or_named_uncoded(decision, coded):
+    """Defect: 41 of 85 decisions came through the advisor channel and were coded by a reader
+    weeks later. The partition in one table: a valid line codes, every malformed one is a named
+    refusal (a string), and a `Decision:` line under `## Done means` is never read as the code.
+    MUTATION: accepting any kind word, or reading the first `Decision:` anywhere, fires."""
+    got = dc.advisor_decision(_advisor_file(decision))
+    if coded is None:
+        assert isinstance(got, str) and got
+    else:
+        assert got == coded
+    assert isinstance(dc.advisor_decision(_advisor_file(None, done=False)), str)
+
+
+def test_coded_advisor_answers_reach_the_acceptance_count_and_uncoded_ones_are_named(tmp_path):
+    """Both legs over one folder: a coded steer is counted under its decision kind, a `none` and a
+    non-decision document are not, and an uncoded ruling arriving after the gate is named.
+    MUTATION: `advisor_closes` returning {} or keeping `none` rows fires the first assert."""
+    done = tmp_path / dc.ADVISOR_DONE_REL
+    done.mkdir(parents=True)
+    (done / "DIRECTOR_STEER_A_2026-11-18.md").write_text(_advisor_file("Decision: measurement yes"))
+    (done / "DIRECTOR_STEER_B_2026-11-18.md").write_text(_advisor_file("Decision: none -- his own"))
+    (done / "DIRECTOR_READING_C_2026-11-18.md").write_text(_advisor_file(None))
+    (done / "DIRECTOR_RULING_D_2026-11-18.md").write_text(_advisor_file(None))
+    closes = dc.advisor_closes(tmp_path)
+    assert list(closes) == ["advisor:DIRECTOR_STEER_A_2026-11-18"]
+    assert dc.acceptance_by_kind(closes)["measurement"]["yes"] == 1
+    uncoded = dc.advisor_decisions_uncoded(tmp_path, since="2000-01-01")
+    assert [u.split(":")[0] for u in uncoded] == [
+        f"{dc.ADVISOR_DONE_REL}/DIRECTOR_RULING_D_2026-11-18.md"]
+    assert dc.advisor_decisions_uncoded(tmp_path, since="2999-01-01") == []
+
+
+def test_no_advisor_steer_or_ruling_reaches_done_uncoded_since_the_gate():
+    """The live tree, from ADVISOR_DECISION_FROM on. Earlier arrivals are not re-coded."""
+    late = dc.advisor_decisions_uncoded()
+    assert late == [], ("advisor steer(s)/ruling(s) moved to done/ without a `Decision:` line in "
+                        f"their `## Done` section ({d.DECISION_KINDS_PAGE}): {late}")
+
+
+def test_the_rung_zero_text_tells_the_lane_to_code_the_answer():
+    """The instruction lives where the lane that actions the file reads it."""
+    import inspect
+
+    from background import advisor_channel
+
+    assert "Decision: <decision_kind> <answer_code>" in inspect.getsource(
+        advisor_channel.rung_zero_text)

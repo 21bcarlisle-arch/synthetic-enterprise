@@ -245,7 +245,12 @@ def rung_zero_text(repo_root: Path | str | None = None, *, acknowledge: bool = T
             "intent, a curriculum value, a reserved action or a decision that is his, it is a "
             "PROPOSAL: raise it with `python3 -m background.director_concerns --raise` and do not "
             f"act on it. When a file is actioned, move it to {ADVISOR_DIR_REL}/{DONE_SUBDIR}/ with "
-            "a `## Done` section saying what was done, in the commit that does it.")
+            "a `## Done` section saying what was done, in the commit that does it. A "
+            "DIRECTOR_STEER_ or DIRECTOR_RULING_ file's Done section also carries exactly one line "
+            "`Decision: <decision_kind> <answer_code>` coding what the recommendation he answered "
+            "asked him to approve and how he answered (kinds and edges: "
+            "docs/operations/DECISION_KINDS.md; codes: yes, changed, no, returned), or `Decision: "
+            "none -- <reason>` when his words answer no recommendation.")
     for item in refused:
         lines.append(
             f"ADVISOR CHANNEL REFUSED {ADVISOR_DIR_REL}/{item.path.name}: {item.refusal}. It is not "
