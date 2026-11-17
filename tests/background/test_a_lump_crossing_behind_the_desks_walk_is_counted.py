@@ -50,3 +50,23 @@ def test_a_lump_crossing_after_the_walk_passed_its_day_is_counted_with_that_walk
     assert behind["by_walk"] == {"ahead": 1}
     [row] = behind["examples"]
     assert row["settled_on"] == "2018-03-28" and row["walked_through"] == "2018-04-30"
+
+
+def test_a_re_presented_level_collection_crosses_before_the_walk_passes_its_day():
+    # A level collection is presented inside its month (here the 2nd), and a returned one is
+    # re-presented 14 days on, before the previous bill's due date (the 20th). That lump is pushed in
+    # the same `record_period` call that walks to the previous due date, after the call's first
+    # delivery. "LVL-4" is a seeded draw whose March 2018 collection is returned and re-presented on
+    # 16 Mar. Before the fix, `record_period` walked through 20 Mar and the cash crossed after the walk.
+    triad = LivePaymentTriad()
+    for m in range(1, 13):
+        month = f"2018-{m:02d}"
+        triad.record_period(customer_id="LVL-4", due_date=dt.date(2018 + m // 12, m % 12 + 1, 20),
+                            bill_month=month, amount_gbp=100.0, credit_gbp=0.0,
+                            income_stress_value="high",
+                            level_collection={"amount_gbp": 100.0, "collection_date": f"{month}-02"})
+    triad.collections_journeys(dt.date(2019, 6, 30))
+    crossed = [c for c in triad._crossed_settlements if c[2] == dt.date(2018, 3, 16)]
+    # The re-presentation did cross, so "not behind the walk" is about it, not about its absence.
+    assert crossed, triad._crossed_settlements
+    assert triad.settlements_behind_the_walk()["count"] == 0, triad.settlements_behind_the_walk()

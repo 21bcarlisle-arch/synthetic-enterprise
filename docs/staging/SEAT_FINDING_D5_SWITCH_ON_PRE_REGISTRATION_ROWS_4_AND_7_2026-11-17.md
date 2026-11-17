@@ -74,3 +74,27 @@ that matches these predictions is consistent with D5 and does not attribute the 
   341df4965^). The same was true of its test. 341df4965 landed without writing either file.
   `sim_runner.code_admission` would have deferred every book on it once memory freed. Both now
   hold HEAD's bytes.
+
+## A second path behind the walk, found and fixed. It is not SYN-2016-001's (worker, 17 Nov 17:30Z)
+
+- **What was found.** `record_period` delivers pending lumps through the bill's due date, then
+  pushes this bill's own lumps, then walks the account to the previous due date. A level
+  collection is presented inside its month, on the payment day, and a returned one is re-presented
+  14 days later (`REPRESENTATION_DAYS_AFTER_DUE`). That re-presentation, or an early-contact check
+  dated `presented_on + EARLY_WINDOW_DAYS`, can fall on or before the previous due date. It sits
+  in the heap, undelivered, while the walk passes its day.
+- **Measured.** A synthetic level leg (collected on the 2nd, bills due on the 20th, 12 months, ids
+  `LVL-0..399`) puts 102 of 400 accounts behind the walk, all `walked_by: record_period`. After the
+  fix the same count is 0. The fix: the walk block delivers through `previous_due`
+  (`_deliver_settlements_through`) instead of only settling what is already held.
+- **Control.** `test_a_re_presented_level_collection_crosses_before_the_walk_passes_its_day` fails
+  with the fix reverted. It asserts the lump crossed before asserting that it is not behind.
+- **SYN-2016-001 is NOT this class.** On f7e17b1316 its gas leg pays `standard_credit`. Its payment
+  day would be the 12th, so a level re-presentation would land on 28 Aug, not 15 Aug. 15 Aug 2023
+  is also the due date of gas bill 21611. **Prediction 2 stands unchanged.** The D5-on book reads
+  2 on row 7 and names a walk for SYN-2016-001 in `settlements_behind_the_walk`. That book was
+  built before this fix, so any of its `record_period` rows on level legs may be this class and not
+  SYN-2016-001's. Tell them apart by `leg` and `settled_on`.
+- **What this does to row 7 on later books.** I cannot yet say. The f7e17b1316 grade printed no
+  level-leg case of this shape on row 7, so this fix may change no published row. What it changes
+  is that a returned level collection's cure is on the ledger the day the desk decides.

@@ -1948,7 +1948,10 @@ class LivePaymentTriad:
         self._legs_of_account.setdefault(account_id, set()).add(customer_id)
         if previous_due is not None:
             self._lived_through = max(self._lived_through or previous_due, previous_due)
-            self._settle_held(account_id)
+            # Delivered again, not only held: a level collection is presented inside its month, so
+            # a re-presented return (collection + 14 days) can fall before `previous_due`, and it
+            # was pushed above, after this call's first delivery. Held only, the walk passed it.
+            self._deliver_settlements_through(previous_due)
             bound = self._walk_bound(account_id)
             if bound is not None:
                 self._walk(account_id, min(previous_due, bound), segment, "record_period")
