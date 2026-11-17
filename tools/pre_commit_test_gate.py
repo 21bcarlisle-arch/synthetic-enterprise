@@ -1132,8 +1132,7 @@ def _names_it_outside_prose(module: str, needles: tuple[str, ...]) -> bool:
     opens has no whitespace in it (`_path_shaped`, 2026-11-17; until then every other literal
     counted). Fails toward running: an unreadable or unparseable file counts as a reader.
 
-    Only modules are filtered. A test that names a document stays selected, because a test's
-    docstring can be the guard relationship itself (test_simplifications_store and its README)."""
+    Tests that name a markdown page are asked the same question (`_names_it_outside_comments`)."""
     try:
         tree = ast.parse((ROOT / module).read_text(encoding="utf-8"))
     except (OSError, SyntaxError, ValueError, UnicodeDecodeError):
@@ -1167,11 +1166,19 @@ def _path_shaped(text: str, needles: tuple[str, ...]) -> bool:
 
 
 def _names_it_outside_comments(test: str, needles: tuple[str, ...]) -> bool:
-    """Does any string in this test name the document? A docstring counts (it can be the guard
-    relationship itself, test_simplifications_store and its README); a comment does not, because
-    nothing in a comment can read a file. One comment citing home_moves.md s.8.8e in
+    """Does any string in this test name the document? A comment never counts, because nothing in
+    a comment can read a file. One comment citing home_moves.md s.8.8e in
     test_run_phase4c_on_phase2b.py (3af02a2dd1) put the 18-minute run back under the page and
-    timed out the 3,600 s gate again. Fails toward running: an unparseable file counts."""
+    timed out the 3,600 s gate again. Fails toward running: an unparseable file counts.
+
+    For a markdown page a test is asked what a module is asked (`_names_it_outside_prose`): only a
+    path-shaped string its code evaluates counts, never a docstring or a sentence. A test that
+    never opens the page cannot change verdict when the page's prose changes, and docstring
+    citations of home_moves.md put 954 s of simulation tests under every edit to it (2026-11-17).
+    The case that kept docstrings, test_simplifications_store and its README, never opened the
+    README either. For other suffixes a test's docstring still counts, as before."""
+    if all(n.endswith(".md") for n in needles):
+        return _names_it_outside_prose(test, needles)
     try:
         tree = ast.parse((ROOT / test).read_text(encoding="utf-8"))
     except (OSError, SyntaxError, ValueError, UnicodeDecodeError):

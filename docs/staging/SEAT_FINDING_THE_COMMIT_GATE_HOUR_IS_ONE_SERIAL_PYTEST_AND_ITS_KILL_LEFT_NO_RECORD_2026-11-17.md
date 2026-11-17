@@ -129,3 +129,9 @@ script.
 **Residue, unchanged:** the 954 s of simulation tests chosen because their docstrings cite
 `home_moves.md` are the next selection cut, as named above. They no longer threaten the limit, so
 they go into the ordinary queue as a margin item rather than a blocker.
+
+**Residue, actioned (17 Nov, `gate-selection-docstring-citation-cut`):** for a markdown page, a test is now
+asked what a module is asked: only a path-shaped string that its code evaluates selects it. home_moves.md goes from
+21 directly selected tests to 1, including the 954 s. The README case was re-keyed to the property
+("every test it selects holds its path"); the test it named never opened it. Predictions and results:
+`docs/staging/records/SEAT_PREREG_A_TEST_THAT_ONLY_CITES_A_PAGE_IS_NOT_ITS_GUARD_2026-11-17.md`.

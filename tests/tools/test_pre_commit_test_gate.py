@@ -328,23 +328,16 @@ def test_a_non_store_design_doc_is_still_pure_data():
     # find it, and the selector would correctly select this very test -- a fixture refuting itself
     # rather than a defect in the selection.
     assert gate.select_targets(["docs/design/" + "THE_STANDARD" + ".md"]) == []
-    # The store README is no longer "pure data", and that is the data surface being RIGHT rather
-    # than this test being weakened: tests/design/test_simplifications_store.py opens by naming
-    # this file as the source of the invariants it enforces, so its content can red that test.
-    # The intent this test exists for is unchanged and still asserted -- the STORE prefix must not
-    # swallow docs/design at large, i.e. no contract SUITE, only what actually reads the file.
-    readme = gate.select_targets(["docs/design/simplifications/" + "README" + ".md"])
-    assert readme == ["tests/design/test_simplifications_store.py"]
-    # 2026-08-14: this line used to read `not set(STORE_CONTRACT_TESTS) & set(readme)` and had been
-    # RED at HEAD since `test_simplifications_store.py` was added to STORE_CONTRACT_TESTS the same
-    # day -- it contradicted the assertion directly above it, which requires exactly that file, and
-    # so refused every commit touching this gate. The intent the comment above states is that the
-    # README must not pull the whole contract SUITE, "only what actually reads the file". That is a
-    # STRICT SUBSET claim, not a disjointness one; disjointness became unsatisfiable the moment the
-    # file that reads the README joined the suite. Asserted as intended, and non-vacuously:
-    assert set(readme) < set(gate.STORE_CONTRACT_TESTS), (
-        "the README must select only the test that reads it, never the whole store suite"
-    )
+    # The store README: the intent this test exists for is that the STORE prefix must not swallow
+    # docs/design at large -- no contract SUITE, "only what actually reads the file". Keyed to that
+    # property, not to a list: every test the README selects holds the README's path in code it
+    # evaluates. Until 2026-11-17 this asserted `== [test_simplifications_store.py]` because "its
+    # content can red that test"; that test cites the README in docstrings and never opens it, so
+    # once a citation stopped counting as a read for a markdown page, it is selected by nothing.
+    name = "docs/design/simplifications/" + "README" + ".md"
+    readme = gate.select_targets([name])
+    assert set(readme) < set(gate.STORE_CONTRACT_TESTS), readme
+    assert all(gate._names_it_outside_prose(t, (name, "README.md")) for t in readme), readme
 
 
 def test_store_contract_test_files_all_exist():
@@ -1348,13 +1341,16 @@ def test_a_module_that_only_CITES_a_document_is_not_its_reader(monkeypatch, tmp_
 
 
 def test_a_test_that_names_a_document_only_in_a_comment_is_not_its_guard(monkeypatch, tmp_path):
-    """One control over every branch of `_names_it_outside_comments`. A comment-only citer is
-    dropped; a docstring, a string literal and an unparseable file are kept. The drop leg is
-    asserted first, or a predicate that keeps everything would pass every keep-leg."""
+    """One control over every branch of `_names_it_outside_comments`. For a markdown page a comment,
+    a docstring and a sentence are dropped; a path literal and an unparseable file are kept; for a
+    data file a docstring is still kept. The drop leg is asserted first, or a predicate that keeps
+    everything would pass every keep-leg. `test_doc.py` was a KEEP leg until 2026-11-17, when
+    docstring citers of home_moves.md were 954 s of the D5 gate."""
     doc = "docs/market_research/some_page.md"
     files = {
         "test_comment.py": f'# see {doc} s.1\ndef test_x():\n    assert 1  # {doc}\n',
         "test_doc.py": f'"""Guards {doc}."""\n',
+        "test_message.py": 'def test_x():\n    assert 1, "see some_page.md s.8.7"\n',
         "test_reads.py": f'P = "{doc}"\n',
         "test_broken.py": f'def (:\n    # {doc}\n',
     }
@@ -1363,15 +1359,23 @@ def test_a_test_that_names_a_document_only_in_a_comment_is_not_its_guard(monkeyp
     monkeypatch.setattr(gate, "ROOT", tmp_path)
     verdict = {n: gate._names_it_outside_comments(n, (doc, "some_page.md")) for n in files}
     assert verdict["test_comment.py"] is False
-    assert verdict == {"test_comment.py": False, "test_doc.py": True, "test_reads.py": True,
-                       "test_broken.py": True}, verdict
+    assert verdict == {"test_comment.py": False, "test_doc.py": False, "test_message.py": False,
+                       "test_reads.py": True, "test_broken.py": True}, verdict
+    # A data file is read through shell strings and named in fixtures' prose, so for any other
+    # suffix a test docstring still counts (2026-11-17: the markdown-only cut).
+    data = "docs/state/some_feed.json"
+    (tmp_path / "test_feed_doc.py").write_text(f'"""Guards {data}."""\n')
+    assert gate._names_it_outside_comments("test_feed_doc.py", (data, "some_feed.json"))
 
 
 def test_the_k8_page_no_longer_selects_the_full_simulation_run_through_its_citers():
     """The instance: home_moves.md alone selected tests/simulation/test_run_phase4c_on_phase2b.py
     (about 18 minutes) through modules that cite it in prose, and timed out the 3,600 s gate on
     2026-11-11. A data file a module really loads is still followed (process_manifest.yaml)."""
-    assert "tests/simulation/test_run_phase4c_on_phase2b.py" not in gate.data_surface_tests(
-        "docs/market_research/home_moves.md")
+    page = gate.data_surface_tests("docs/market_research/home_moves.md")
+    assert "tests/simulation/test_run_phase4c_on_phase2b.py" not in page
+    # 2026-11-17: the 954 s that were selected only by their own docstrings' citations.
+    assert "tests/simulation/test_a_dual_fuel_movers_gas_follows_it.py" not in page
+    assert "tests/simulation/test_a_dual_fuel_household_is_one_account_across_both_fuels.py" not in page
     assert "tests/background/test_process_reconciler.py" in gate.select_targets(
         ["background/process_manifest.yaml"])
