@@ -98,3 +98,12 @@ that matches these predictions is consistent with D5 and does not attribute the 
 - **What this does to row 7 on later books.** I cannot yet say. The f7e17b1316 grade printed no
   level-leg case of this shape on row 7, so this fix may change no published row. What it changes
   is that a returned level collection's cure is on the ledger the day the desk decides.
+
+## Graded on the D5-on book (18f201c5bf, 17 Nov 20:18Z)
+
+Prediction 1 **held** (row 4 reads 0). Prediction 2 **refuted** (row 7 reads 20, not 2). SYN-2016-001's two steps are
+unchanged, but SYN-2016-471 (5), SYN-2016-523 (5, new) and SYN-2016-546 (8, new) are also on the row. Prediction 3
+**refuted**: 471 still appears, and its journey opens on 24 Apr 2021. By this file's own words, the desk misdating in
+`left_level_asks` is the next trace. Prediction 4 was not read. `settlements_behind_the_walk` never reaches the run
+output, so "the next book names the path" cannot happen as written. Detail and owners: §9 of
+`SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_IS_AN_OPEN_ESTIMATED_RUN_AND_THE_16_NOV_BOOK_IS_REFUSED_AS_PREDICTED_2026-11-16.md`.

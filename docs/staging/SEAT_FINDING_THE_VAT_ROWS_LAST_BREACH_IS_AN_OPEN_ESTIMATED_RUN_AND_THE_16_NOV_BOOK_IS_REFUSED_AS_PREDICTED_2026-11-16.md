@@ -187,3 +187,75 @@ list that newly refuses is a finding in its own right, not a refutation of the t
   counter must read 0 for that account. Any other value, or a 0 with a non-zero counter, refutes this.
   If the book is built WITHOUT the fix, §7 stands as written. The grade reads `run_complete`'s `Git:` line to
   say which book it was.
+
+## 9. 17 Nov, ~20:55Z, seat executor: the D5-on book is graded, and refused on two rows
+
+*Claim `the-d5-book-is-graded-and-published-or-its-refusals-named`. The book: `run_complete_20261117T181948Z.md`,
+`Git: 18f201c5bf`, finished 20:04:47Z (6,299 s). 18f201c5bf descends from 341df4965 (D5 on) and 317b1d56c (the walk
+counter), and it IS the walk fix of §8. So §8's amended prediction is the one graded. Grade: the publisher's own
+`docs/reports/domain_invariants.json` (git 18f201c5bf, 20:18:58Z), with every breach re-listed by the seat from the
+same ledger and pages through `tools/domain_invariant_runner` evaluators, read-only.*
+
+### Predicted against observed
+
+| row | 16 Nov | predicted (§7, §8) | observed | |
+|---|---|---|---|---|
+| INV_OVERDUE_WITHIN_BALANCE (4) | 4 | at most 1 | **0** of 978 | held |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE (7) | 7 | 2 or 0 (§8) | **20** of 6,144, four households | **refuted** |
+| INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR | 5 | at most 1, SYN-2016-206g | **1**, SYN-2016-206g, within the exception | held |
+| INV_BILLED_EX_VAT_RECONCILES_TO_REVENUE | 0 (1 flag) | 0 breached | **0** (1 flag) | held |
+| INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT | not refusing | not on the table | **24** of 132, over the exception's max of 23 | new refusal |
+
+**Publish verdict: refused**, on row 7 and on the closing-refund row. §7's "refused on row 7 alone" is refuted, by a
+row the table did not list. The book carries every commit since f7e17b1316, so no row's move is attributed to D5.
+
+### Row 7: four households, three of them leavers
+
+- **SYN-2016-001, 2 steps** (15 Aug 2023, 386.23 against 329.71): unchanged from f7e17b1316, to the penny. That
+  means the walk fix in 18f201c5bf does not reach this standard-credit lump. It is §8's "2" branch.
+- **SYN-2016-471, 5 steps** (24 Apr to 25 Jun 2021, 38.13 against 28.78). **The D5 pre-registration's prediction 3
+  is refuted.** The household still appears with the switch on, and the journey now opens on 24 Apr, not 30 Mar. By
+  that prediction's own words the next trace is the desk misdating (`left_level_asks` reading bill 45883 as an
+  on-receipt bill).
+- **New on this book: SYN-2016-523** (5 steps, 20 Aug to 21 Oct 2023, 139.33 against 114.05) **and SYN-2016-546**
+  (8 steps, 8 Dec 2018 to 7 Mar 2019, 49.98 against 43.25). Each prints one figure over a whole journey, above the
+  page's balance. 471, 523 and 546 are all leavers: each page's `payment_record` ends at the move-out (`as_of`).
+  523's gas leg and 546's electricity leg each carry one returned debit before leaving.
+  **Hypothesis, not established:** all three are one class, the desk's ask for a leaver dated from a bill the final
+  bill already netted. That is 471's open trace. The D5 switch-on was predicted to stop this path being reached. On
+  this book it does not.
+- **Owner:** `DD_seasonal_cashflow_physics` (D5's owner, and 471's open trace).
+- **The walk counter cannot name a walk here, on any book.** `settlements_behind_the_walk`, `later_settlements` and
+  `final_month_nets` are built in `simulation/run_phase2b.py:6523-6529`. But the run output is assembled by a key
+  whitelist in `saas/reporting/annual_report.py` (`collections_journeys` is on it at line 1012; these three are not).
+  The 18f201c5bf run output's 133 keys hold none of them. Nothing in `tools/`, `background/` or `saas/` reads them.
+  So the D5 pre-registration's "the next book names the path" cannot happen, and neither can the "final_month_nets
+  grade" this item's WHY lists. They are world truth, so the remedy is a harness-side artefact written beside the run
+  output, not a `saas/` key. That is a seam decision (the interface steward's), filed here, not built.
+  **Owner:** `DD_seasonal_cashflow_physics`, with the interface steward on the seam.
+
+### The closing-refund row: 24 against a ceiling of 23
+
+- Against the N29 record's 23 (`/var/tmp/n29r/classified.json`, the 8a300fa561 book): 22 are the same households.
+  PROS-2020-0110g has left the row. **SYN-2016-037g** (refund 15 May 2020, 23.92 against 0) and **SYN-2016-368**
+  (10 Mar 2023, 54.41 against 0) are new. So 23 − 1 + 2 = 24.
+- **Class not established for the two new ones.** All 23 of N29's were `issued-not-yet-collected`. The two new ones
+  are the same shape by value against bound, but they are not classified.
+- **The exception's ceiling is a count of one book** (`max_breached: 23`, `DOMAIN_INVARIANT_EXCEPTIONS.yaml:258`).
+  A redraw that swaps households moves it by one either way. That is a control keyed to today's answer, so this
+  refusal says little about whether N29 got worse. **Owner:** `EP4_collections_journey` (the N29 finding,
+  `SEAT_FINDING_THE_N29_BLIND_ROWS_23_..._2026-11-16.md`). Its options: re-scope the exception to the class (every
+  breach `issued-not-yet-collected`) instead of a count, or land the N29 walk fix. The seat does not widen the
+  ceiling to publish.
+
+### Step 6 and the pause
+
+- `longjob-value-test-step-6-flag1` is running again (admitted 20:04:47Z). Its log shows
+  `pair [11111, 22222] already on disk, kept` and `pair [33333, 44444] already on disk, kept`, so it resumes at the
+  third pair.
+- **The watcher fired on the wrong marker.** At 19:21:15Z it named `run_complete_20261116T070501Z.md`, the refused
+  16 Nov book, not this one. Its `find -newer stopped.stamp` reads mtime, and the publisher's refusal stamp
+  (`<!-- domain-invariant-refused ... at=19:20:20 -->`) appends to that old marker. The relaunch then queued for
+  memory behind sim-runner's book (7,066 MB) and was admitted the second that book finished. **The outcome was right
+  by accident**: had memory allowed, step 6 would have restarted beside the book. One-line remedy for the next
+  pause: match a marker name not present at the stop, not mtime. No pause is armed now.
