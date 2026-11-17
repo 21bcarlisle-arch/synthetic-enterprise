@@ -102,3 +102,16 @@ for h, bs in sorted(by.items()):
   the INV21608 lump. Candidates are the reader `_deliver_settlements_through(.., force=..)` →
   `_settle_held` for another held lump on the account dated after 15 Aug, and the `record_period` walk itself. Which
   one: **I cannot yet say.** The walk file's `rows` for `ACC-SYN-2016-001`, `settled_on` 2023-08-15, names it.
+
+## Re-measured at 23:25Z: still no book, and the seat will not pause the value test for one (delivery seat, 17 Nov)
+
+- `docs/state/billing_ledger.json` on the shared tree still names `run_output_18f201c5bf_20261117T181948Z.json`, and it
+  is still the newest `run_output_*`. sim-runner logged `DEFERRED` at every 5-minute cycle from 23:00 to 23:20Z,
+  each time behind `longjob-value-test-step-6-flag1` (196 of 3,200 declared minutes). Nothing has been graded. The
+  probe was not re-run, because it would only print the 18f201c5bf numbers already in the table above.
+- **Decision: do not pause the value test to get this book sooner.** The book is predicted to be refused on row 7's 2,
+  so it cannot unwedge the publish. Its only value is the walk file that narrows SYN-2016-001's lump. Pausing would
+  throw away about 3 hours of a run that answers a step-6 question. That run is the scarcer thing. This is reversible
+  and is the seat's call, not the director's.
+- The grade is handed on with a dated draw embargo, so the pool stops re-offering it every turn before a book can
+  exist. The steps in "How the next draw grades it" are unchanged.
