@@ -794,3 +794,12 @@ items:
     fate: fold
     owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
     reason: "Triaged 2026-11-17 by the delivery seat. A guard that trusts a dead holder's pid is the dead-holder shape already folded there (a-stale-land-holder-blocks-the-draw-unrechecked, a-guest-poweroff-leaves-dead-jobs-listed-live). The instance cost no work: d5-land8 died at 04:20, and d5-land9 ran its steps one after another, landing the gate-hour fix (62eda765e) and then D5's page half (1bce17aa4) on gates of 2,176 s and 2,156 s. Whether two concurrent gates inflate the hour was never measured, and it matters less now that one gate fits the limit by about 24 minutes. Reopen as a fix if two surgical_land gates overlap again and one of them is refused on the timeout."
+  # 2026-11-17 09:22Z orientation: the landing-race row given its one fate ahead of its 21 Nov line.
+  - id: a-landing-loses-its-race-to-origin
+    problem: "A landing's commit gate runs longer than the gap between origin commits, so landings lose their race and re-gate (collision-census-land-2/-3, every d5-land9 step), and origin moves that carry no change (written_at-only banners) widen the gap."
+    match: ["A doc-only landing raced origin and lost three times"]
+    first_seen: "2026-11-14"
+    fate: fix
+    status: open
+    owner: "focus item the-paused-banner-commits-only-on-a-change (background/process_run_complete.py, background/publish_freshness.py)"
+    reason: "Triaged 2026-11-17 by the delivery seat. The written_at-only banner is the one origin move that can be removed for nothing, and it has recurred in every record since 13 Nov (0ad9d831a, 6c025b3b9). Corrected when a stretch's commit list carries no written_at-only banner and no landing logs a lost race to one. The primary-checkout refusal that ended d5-land9 C2 and d5-land10 C3 is a separate, already-designed route to worktrees and is not this row."

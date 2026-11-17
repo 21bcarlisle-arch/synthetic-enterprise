@@ -1,152 +1,163 @@
 version: 1
-oriented_at: "2026-11-17T06:21:02.651517+00:00"
+oriented_at: "2026-11-17T09:22:40.651784+00:00"
 thesis_read: >-
-  This stretch moved the thesis, and what it found is not in our favour. Candidate A's paired grade
-  is on origin (33a0fb04c). The better desk belief ranks leavers at 0.819 against the twin's 0.361,
-  so it now ranks them the right way round. But the money cannot tell it from zero on the flat book:
-  +GBP 0.14 per household-year (-1.15 to +1.37). On the value arm the same belief COSTS GBP 1.21
-  (-2.35 to -0.38). The whole advantage, the per-customer supplier minus the flat-rules book, reads
-  -GBP 1.35 (-3.03 to +0.13). So on two draws over 780 households, the per-customer supplier does not
-  beat its baseline, and it leans the wrong way. Better inference did not become value, and the grade
-  itself says "I cannot yet say why": the 101 households that moved on the value arm are unread. That
-  is now the most important open question in the project, and it needs no box time. Step 6 (A's twelve
-  draws, about 53h) launched at 06:11 and will size the effect, but it cannot explain it. The landing
-  throughput that blocked everything for two records was fixed and verified. The gate-hour fix landed
-  (62eda765e), and D5's page half landed (1bce17aa4) on gates of 2,176 s and 2,156 s, first time and
-  inside the hour. D5's switch-on (step C2 of d5-land9, surgical_land pid 240018) is in its gate now.
-  The site still serves the 9 Nov book after 36 publisher failures over 25.7h. The commit split reads
-  0 supplier, 1 world and 11 other, but that undercounts the supplier: the value grade and D5 are
-  supplier results filed under docs and simulation paths. 4 of 12 commits were substantive. The steer
-  drew 2 of 4. The banner fix went undrawn for a third record, and another written_at-only banner
-  landed (0ad9d831a). Corrections this stretch: the gate-timeout row is corrected, with the evidence
-  above. The seat's own row is corrected (the steer drew and landed both of the items it named first).
-  The d5-land8 guard row is folded into the orphaned-work register in wrong_triage.yaml, so it is not
-  listed again.
+  The thesis did not move this stretch, and the previous record's steer did not bite. Of its three
+  focus items, none was drawn. The seat executor took four continuations ahead of them (the
+  catch-up VAT check, the next-book row twice, the gate-selection cut and the census grade). The
+  worker tick drew the stale HEAD_RED register three times. So the most important open question in
+  the project is still unread. With the better desk belief (ranking 0.819 against 0.361), the
+  per-customer supplier loses GBP 1.35 per household-year against its flat-rules baseline (-3.03 to
+  +0.13). That is better inference failing to become value, and nobody has yet asked why. The one
+  supplier result that did land is D5's switch-on (341df4965). A level leaver's final bill now asks
+  the scheme's debit, and next_book_requires admits the next book on it (a27902df3). The brief
+  files it as "other", so the split of 0 supplier, 0 world and 17 other undercounts the supplier by
+  that one commit. 4 of 17 commits were substantive. 5 carried no work: four merges and a re-land
+  of a steer gated in the executor's worktree and never promoted. Reading the box changed my view of
+  the previous record. It said sim-runner "fits beside" step 6. That was wrong: sim-runner yields
+  to any resident long job by construction, and it has deferred 23 cycles since step 6 launched. So
+  no D5-on book can run, and the site cannot move off the 9 Nov book, until step 6 ends in about 50h.
+  The publisher has failed 41 times over 28.7h, still on the pre-D5 16 Nov book. Step 6 runs its
+  draws as pairs and skips a pair already on disk, and a book takes about 1.9h. So a pause at the
+  next pair boundary (about 16:45Z) buys the D5 book about a day and a half sooner for about two
+  hours of step 6. That is focus 2, and it is my call because it is reversible box scheduling. The
+  director's acceptance-rate steer is being landed now (surgical_land pid 1759038). Its verdict is
+  that no kind of decision is yet sure enough to be the machine's, so nothing reaches him. If that
+  landing is refused, the steer stays in docs/staging/advisor/ and the next orientation takes it
+  first. Corrections: none of last record's open rows is corrected this stretch. The seat's
+  "fits beside" error is added below.
 stretch_reviewed:
-  since: "2026-11-17T03:24:08.371897+00:00"
-  commits: 12
+  since: "2026-11-17T06:21:02.651517+00:00"
+  commits: 17
   substantive: 4
 focus:
 - id: the-value-arm-loses-money-on-the-better-belief
   what: 'Read why the value arm with A''s belief loses GBP 1.21 per household-year where the flat book
-    with the same belief gains GBP 0.14, using only the pair already on disk: /var/tmp/vta-out-flag0/member_11111_22222.json
-    and control_11111_22222.json, and the flag-on pair in /var/tmp/vta-out-flag1/ as step 6 writes it.
-    Launch nothing long. Step 6 holds the box for about 53h and peaks near 11.5 GB. FIRST file a new section
-    12 of docs/design/THE_VALUE_TEST_REDESIGN.md that pre-registers, before any read, a predicted share
-    of the loss for each of the three candidates section 10 names. (a) Retention offers move to households
-    the value arm''s pricing already kept. (b) Offers it used to make by accident to leavers worth keeping
-    are lost. (c) The dice. THEN, for the 101 households that moved, write each one''s decision difference
-    (offer or price, by date) and its money difference. Attribute the GBP 1.21 across (a), (b), (c) and
-    a residual named "unexplained", and grade the prediction with a Graded value-test trailer.'
-  why: It is the thesis question in its sharpest form. Inference improved (ranking 0.361 to 0.819), and
-    the per-customer supplier lost money with it, so either a lever spends good inference badly or the
-    value arm's objective is wrong. Step 6 sizes that loss and does not explain it, and the renewal retrain
-    (B) would stack on top of whatever it is. Done means section 12 is on origin with its prediction filed
-    before the read, the 101-household attribution, the grade trailer, and one named next change (a lever,
-    the objective, or "we cannot tell, the dice") that step 6's read can confirm or refute.
+    with the same belief gains GBP 0.14. Use only the pairs already on disk: /var/tmp/vta-out-flag0/member_11111_22222.json
+    and control_11111_22222.json (flag off), and /var/tmp/vta-out-flag1/member_11111_22222.json and control_11111_22222.json
+    (flag on). Launch nothing. Step 6 holds the box. FIRST, before any read, add a section 12 to docs/design/THE_VALUE_TEST_REDESIGN.md
+    that pre-registers a predicted share of the loss for each candidate section 10 names. (a) Retention
+    offers move to households the value arm''s pricing already kept. (b) Offers it used to make by accident
+    to leavers worth keeping are lost. (c) The dice. THEN, for the 101 households that moved, write each
+    one''s decision difference (offer or price, by date) and its money difference. Attribute the GBP 1.21
+    across (a), (b), (c) and a residual named "unexplained", and grade the prediction with a Graded value-test
+    trailer.'
+  why: This is the thesis question in its sharpest form, and it went undrawn last stretch behind harness
+    continuations. Inference improved, and the per-customer supplier lost money with it, so either a lever
+    spends good inference badly or the value arm's objective is wrong. Step 6 sizes the loss and cannot
+    explain it, and the renewal retrain (B) would stack on top of it. It needs no box time. Done means
+    section 12 is on origin with its prediction filed before the read, the 101-household attribution and
+    the grade trailer, and one named next change (a lever, the objective, or "we cannot tell, the dice")
+    that step 6's read can confirm or refute.
   lane: B_commercial
   side: supplier
-  written_at: 1794896709.83
-- id: d5-switch-on-lands-and-a-book-publishes
-  what: D5's switch-on is in its gate now (d5-land9 step C2, surgical_land pid 240018, log /var/tmp/d5land9/land.log,
-    which turns FINAL_BILL_ASKS_THE_LEVEL_DEBIT on in background/live_payment_triad.py). Do not relaunch
-    it while the unit lives. If C2 is refused, read the refusal and relaunch C2 alone exactly once, with
-    no other surgical_land running. Once C2 and C3 are on origin, let continuation d5-land9-verify-next-book-row
-    check background/next_book_requires.yaml. Then read sim-runner's next book against the publish gate.
-    Grade rows 4 and 7 against docs/staging/SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md.
-    For each other refused row (the 16 Nov refusal named 2, 5 and 1), name its cause and owner in the
-    BLOCKING VAT finding or a new one.
-  why: Billing accuracy is first in the director's order. Every published-book check (the cold read, the
-    Capabilities strip on f4f825b8b, the final_month_nets grade, then W3_3) waits on a book newer than
-    9 Nov. Done means the switch-on is on origin with its control, rows 4 and 7 are graded on a D5-on
-    book, and either a verified publish carries that book or every row still refusing it is named with
-    its cause and an owner.
+  written_at: 1794907658.034
+- id: the-d5-book-runs-at-step-6s-next-pair-boundary
+  what: Get one D5-on book run and graded without losing step 6's work. Step 6 (longjob-value-test-step-6-flag1.service,
+    driver /var/tmp/vta-driver/driver.py) runs its draws as pairs in child processes and skips any pair
+    whose member and sidecar files already exist. sim-runner yields to any resident long job, so it has
+    deferred every cycle since 06:11. Wait until both /var/tmp/vta-out-flag1/member_33333_44444.json and
+    control_33333_44444.json exist (expected near 16:45Z). Then stop the unit at once, so the next pair
+    is lost by minutes at most. Let sim-runner run its next cycle on origin (which carries 341df4965 and
+    a27902df3). When the book's run_complete lands, relaunch step 6 through background/launch_long_job.py
+    with the same unit, argv, VTA_FLAG=1 and commit 41734bbe71, and confirm in its log that it skipped
+    11111_22222 and 33333_44444. Read the book against the publish gate. Grade rows 4 and 7 against docs/staging/SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md.
+    For every row still refusing (the 16 Nov refusal named 2, 5 and 1), name its cause and owner in the
+    BLOCKING VAT finding or a new one. Record the pause and the relaunch in the step 6 continuation's
+    notes so its grade knows the family was split.
+  why: Billing accuracy is first in the director's order. Every published-book check waits on a book newer
+    than 9 Nov (the cold read, the Capabilities strip on f4f825b8b, the final_month_nets grade, the catch-up
+    VAT check, then W3_3). Without this the wait is about 50h. With it the cost is about two hours of
+    step 6, and step 6 keeps every pair it has finished. Done means a D5-on book has run, step 6 is running
+    again from its third pair, rows 4 and 7 are graded on that book, and either a verified publish carries
+    it or every refusing row is named with its cause and an owner.
   lane: D_billing_metering
   side: supplier
-  written_at: 1794896709.83
+  written_at: 1794907658.034
 - id: the-paused-banner-commits-only-on-a-change
   what: background/process_run_complete.py, together with background/publish_freshness.py, commits the
     verification-paused banner in site/data/publish_provenance.json about once an hour while verification
-    is paused. 0ad9d831a this stretch, like 3127e048b, d67d02a4b and 67ba0b694 before it, differs only
-    in written_at. Make the banner commit only when a field other than written_at changes. Add a control
-    showing that re-pausing in an identical state makes no commit and that a changed state still does,
-    and mutate it both ways.
-  why: Every step of d5-land9 lost its first race to an origin move ("attempt 1/3 lost the race" on GH,
-    C1 and C2), and each lost race costs about 36 minutes of re-gating. A banner that carries no change
+    is paused. 6c025b3b9 this stretch, like 0ad9d831a, 3127e048b, d67d02a4b and 67ba0b694 before it, differs
+    only in written_at. Make the banner commit only when a field other than written_at changes. Add a
+    control showing that re-pausing in an identical state makes no commit and that a changed state still
+    does, and mutate it both ways.
+  why: d5-land9's C2 lost two races to origin moves before it was refused as the primary checkout one
+    commit behind, and each lost race costs about 36 minutes of re-gating. A banner that carries no change
     is the one origin move we can remove for nothing. Done means the control is on origin, and the next
     stretch's commit list has no banner commit whose only change is written_at.
   lane: H_harness
   side: other
-  written_at: 1794896709.83
+  written_at: 1794907658.034
 not_now:
-  - what: Launching the flag-off half of step 6, or the renewal retrain B, alongside step 6.
+  - what: Letting step 6 run its full 53h and publishing the D5 book after it.
     why: >-
-      Each peaks near 11.5 GB, and step 6 holds the box for about 53h. B must beat A's value-test AUC,
-      and if the value arm turns good ranking into lost money, B's better ranking inherits that loss.
-      Read the loss (focus 1) before spending box time on more ranking.
-  - what: Stopping step 6 to give the box back to publishing and landings.
+      That holds every published-book check for about two more days to save about two hours of a run
+      that sizes an effect and cannot explain it. Step 6 skips finished pairs, so pausing at a boundary
+      loses no draw.
+  - what: Running the D5 book beside step 6 by overriding sim-runner's yield.
     why: >-
-      Step 6 is the only run that sizes A's effect over twelve draws, and it was pre-registered before
-      launch. A landing gate (about 230 MB plus pytest) and sim-runner fit beside it. If headroom
-      refuses the next book, that is the moment to choose, not before.
-  - what: Recording a dated exception for publish rows 4 and 7 so that a book publishes today.
+      There is 11.5 GB available now. Step 6's child is at 6.5 GB and declared to peak near 11.5 GB,
+      and a book needs about 7 GB. An OOM mid-pair would cost up to about ten hours of step 6, which
+      is more than the pause costs.
+  - what: Stopping step 6 now, mid-pair, to run the book this morning.
     why: >-
-      The switch-on that fixes them is in its gate now. An exception would publish a page known to be
-      wrong to save at most a few hours.
+      The pair in flight is 3.2h into about 10.6h, so it would throw away three hours to gain seven.
+      The boundary is the cheap moment.
+  - what: Launching the flag-off half of step 6, or the renewal retrain B.
+    why: >-
+      Each peaks near 11.5 GB. B must beat A's value-test AUC, and if the value arm turns good ranking
+      into lost money, B's better ranking inherits the loss. Read the loss (focus 1) first.
   - what: Landing W3_3 (settlement books the standing charge) from origin/w3-3-network-split-held.
     why: >-
       One change per book. W3_3 stacked on D5 would leave a moved row that cannot be attributed to
       either change. W3_3 follows the first D5-fixed publish.
-  - what: Measuring whether two concurrent surgical_land gates inflate the hour, and building a one-gate-at-a-time guard.
+  - what: Raising the acceptance-rate proposal to the director.
     why: >-
-      A single gate now fits the limit by about 24 minutes, and d5-land9 ran its steps serially
-      without one. The guard row is folded rather than fixed, and it reopens if an overlap is refused
-      again.
-  - what: The thirteenth cold read and the Capabilities-strip check on f4f825b8b.
-    why: Both need a verified published book, and that waits on focus 2.
+      Its own pre-registered rule and a second coder agree that no kind qualifies yet. Measurement is
+      15 of 16 with a bound of 0.76, and the advisor channel only stages his yeses. Answer codes at
+      answer time (continuation director-answer-code-at-answer-time) make the next count
+      coder-independent, and it is raised then if a kind clears.
+  - what: Re-ordering the continuation queue so focus outranks it.
+    why: >-
+      Today's continuations are the director's own steers and their grades, which rightly come first.
+      The cost was one stretch. If the next record's first item is also undrawn while continuations
+      hold the executor, that is the moment to change the order, not before.
   - what: The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
     why: It refuses no book and touches no supplier result. The ordinary draw can take it.
-  - what: Reverting the sonnet executor arm, which the pilot calls REVERT (landed 0.64 against 0.80, rework 0.53 against 0.39).
-    why: >-
-      The verdict is computed and belongs to the Monday ranking that owns the pilot. Nothing in this
-      stretch's work came from the executor arm.
   - what: Reaping the at-risk October worktrees (b12-*, se-budgetpay-land, se-om2, simsuite).
     why: They block no supplier result, and reaping cannot be undone.
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find
       backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.]
-      06:21 17 Nov -- partly better. A's graded pair ranks them at 0.819 in the run (33a0fb04c), but no
-      policy carries it live, and its money spans zero, so the live belief is unchanged.
+      09:22 17 Nov -- unchanged. A's 0.819 is still in the run only, and no policy carries it live.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per
       household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over
-      the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. Why is unread
-      (focus 1).
+      the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails
+      are in decisions.jsonl.] 09:22 17 Nov -- unchanged. The read went undrawn (focus 1 again).
     corrected: false
   - what: >-
       THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by
       up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.]
-      06:21 17 Nov -- unchanged. No book has published since 6fe7827ab2.
+      09:22 17 Nov -- unchanged. No book has published since 6fe7827ab2.
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the
       next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in
-      decisions.jsonl.] 06:21 17 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+      decisions.jsonl.] 09:22 17 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill
       charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per
       domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in
-      decisions.jsonl.] 06:21 17 Nov -- unchanged. W3_3 stays in not_now until the D5-fixed book has
-      published.
+      decisions.jsonl.] 09:22 17 Nov -- unchanged. W3_3 follows the first D5-fixed publish.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short
       of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs
-      (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov --
-      unchanged. No book carries final_month_nets yet.
+      (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 09:22 17 Nov --
+      unchanged. No book carries final_month_nets yet. Focus 2 runs the first that can.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov
@@ -154,35 +165,30 @@ wrong:
       thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per
       year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last
       written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.]
-      06:21 17 Nov -- unchanged. No book has published, so f4f825b8b is still not served. When it is,
+      09:22 17 Nov -- unchanged. No book has published, so f4f825b8b is still not served. When it is,
       it must carry A's -GBP 1.35, not the 8 Oct figure.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2
       and -3 died because the commit gate runs longer than the gap between origin commits (attempts
-      39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 06:21 17 Nov --
-      repeated. Every d5-land9 step lost its first race, and another written_at-only banner landed
-      (0ad9d831a). The banner fix went undrawn for a third record (focus 3).
+      39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 09:22 17 Nov --
+      repeated. d5-land9's C2 lost two races and was then refused as the primary checkout one commit
+      behind. d5-land10's C3 was refused the same way. Another written_at-only banner landed
+      (6c025b3b9). Triaged as a fix owned by focus 3.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no
       exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so
       the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them.
-      [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- partly better. D5's page half is on
-      origin (1bce17aa4), and the switch-on is in its gate (pid 240018). The publisher has failed 36
-      times over 25.7h (focus 2).
+      [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- partly better. The switch-on is on
+      origin (341df4965), and the next book is admitted on it (a27902df3). But no D5-on book can run
+      while step 6 holds the box, and the publisher has failed 41 times over 28.7h (focus 2).
     corrected: false
   - what: >-
-      THE SEAT'S, NEW. The 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side
-      landed nothing. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- corrected. The 03:24
-      record's first two drawn items both landed: the value grade (33a0fb04c) and the gate hour
-      (62eda765e), which carried D5's page half (1bce17aa4) through.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. D5's page landing (the third attempt, launched 21:39) was refused at 23:41
-      because sh tools/git-hooks/pre-commit ran past surgical_land's 3600-second limit, while
-      process_run_complete re-ran the publisher beside it. [Earlier tails are in decisions.jsonl.]
-      06:21 17 Nov -- corrected. The fix is on origin (62eda765e), and D5's C1 gate then passed first
-      time at 2,176 s and 2,156 s.
-    corrected: true
+      THE SEAT'S, NEW. The 06:21 record kept step 6 running on the claim that a landing gate and
+      sim-runner "fit beside it". sim-runner yields to any resident long job by construction, and it
+      deferred 23 cycles, so the D5 book that record's focus 2 waited on could not run for about 53h.
+      The same record's focus drew 0 of 3, behind four continuations and three draws of the stale
+      HEAD_RED register.
+    corrected: false
 for_the_director: []

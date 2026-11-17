@@ -8,6 +8,51 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-17 — orientation: The thesis did not move this stretch, and the previous record's steer did not bite
+
+<!-- head: a0f59166812d -->
+
+*Written by the orientation seat from its own record (2026-11-17T09:22:40.651784+00:00; 17 commits, 4 substantive, since 2026-11-17T06:21:02.651517+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 17 other.
+
+## What the stretch meant
+
+The thesis did not move this stretch, and the previous record's steer did not bite. Of its three focus items, none was drawn. The seat executor took four continuations ahead of them (the catch-up VAT check, the next-book row twice, the gate-selection cut and the census grade). The worker tick drew the stale HEAD_RED register three times. So the most important open question in the project is still unread. With the better desk belief (ranking 0.819 against 0.361), the per-customer supplier loses GBP 1.35 per household-year against its flat-rules baseline (-3.03 to +0.13). That is better inference failing to become value, and nobody has yet asked why. The one supplier result that did land is D5's switch-on (341df4965). A level leaver's final bill now asks the scheme's debit, and next_book_requires admits the next book on it (a27902df3). The brief files it as "other", so the split of 0 supplier, 0 world and 17 other undercounts the supplier by that one commit. 4 of 17 commits were substantive. 5 carried no work: four merges and a re-land of a steer gated in the executor's worktree and never promoted. Reading the box changed my view of the previous record. It said sim-runner "fits beside" step 6. That was wrong: sim-runner yields to any resident long job by construction, and it has deferred 23 cycles since step 6 launched. So no D5-on book can run, and the site cannot move off the 9 Nov book, until step 6 ends in about 50h. The publisher has failed 41 times over 28.7h, still on the pre-D5 16 Nov book. Step 6 runs its draws as pairs and skips a pair already on disk, and a book takes about 1.9h. So a pause at the next pair boundary (about 16:45Z) buys the D5 book about a day and a half sooner for about two hours of step 6. That is focus 2, and it is my call because it is reversible box scheduling. The director's acceptance-rate steer is being landed now (surgical_land pid 1759038). Its verdict is that no kind of decision is yet sure enough to be the machine's, so nothing reaches him. If that landing is refused, the steer stays in docs/staging/advisor/ and the next orientation takes it first. Corrections: none of last record's open rows is corrected this stretch. The seat's "fits beside" error is added below.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- unchanged. A's 0.819 is still in the run only, and no policy carries it live.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- unchanged. The read went undrawn (focus 1 again).
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- unchanged. No book has published since 6fe7827ab2.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- unchanged. W3_3 follows the first D5-fixed publish.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- unchanged. No book carries final_month_nets yet. Focus 2 runs the first that can.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- unchanged. No book has published, so f4f825b8b is still not served. When it is, it must carry A's -GBP 1.35, not the 8 Oct figure.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- repeated. d5-land9's C2 lost two races and was then refused as the primary checkout one commit behind. d5-land10's C3 was refused the same way. Another written_at-only banner landed (6c025b3b9). Triaged as a fix owned by focus 3.
+- NOT corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 09:22 17 Nov -- partly better. The switch-on is on origin (341df4965), and the next book is admitted on it (a27902df3). But no D5-on book can run while step 6 holds the box, and the publisher has failed 41 times over 28.7h (focus 2).
+- NOT corrected: THE SEAT'S, NEW. The 06:21 record kept step 6 running on the claim that a landing gate and sim-runner "fit beside it". sim-runner yields to any resident long job by construction, and it deferred 23 cycles, so the D5 book that record's focus 2 waited on could not run for about 53h. The same record's focus drew 0 of 3, behind four continuations and three draws of the stale HEAD_RED register.
+
+## Chosen against
+
+- Letting step 6 run its full 53h and publishing the D5 book after it.
+- Running the D5 book beside step 6 by overriding sim-runner's yield.
+- Stopping step 6 now, mid-pair, to run the book this morning.
+- Launching the flag-off half of step 6, or the renewal retrain B.
+- Landing W3_3 (settlement books the standing charge) from origin/w3-3-network-split-held.
+- Raising the acceptance-rate proposal to the director.
+- Re-ordering the continuation queue so focus outranks it.
+- The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
+- Reaping the at-risk October worktrees (b12-*, se-budgetpay-land, se-om2, simsuite).
+
+## Focus for the next stretch
+
+- `the-value-arm-loses-money-on-the-better-belief`
+- `the-d5-book-runs-at-step-6s-next-pair-boundary`
+- `the-paused-banner-commits-only-on-a-change`
+
+---
+
 ## 2026-11-17 — orientation: This stretch moved the thesis, and what it found is not in our favour
 
 <!-- head: 33bcf9f272b2 -->
