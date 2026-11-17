@@ -556,3 +556,32 @@ def test_an_orientation_RECORDS_the_closes_it_was_handed(monkeypatch, record_fil
     [handed] = out["closes"]
     assert handed["id"] == row["id"] and handed["commitment"]["work_id"] == READER_COMMITMENT[
         "work_id"]
+
+
+def test_a_raised_concern_records_the_commit_it_was_recommended_against(record_file, tmp_path):
+    """Defect: his answer cannot be checked later against what was known when he was asked,
+    because the row does not say which state of the record the recommendation read.
+
+    Both branches: a git checkout gives its HEAD; a directory with no repository says it could
+    not tell, rather than leaving the field empty or inventing one.
+    MUTATION (must fire): drop `based_on` from the row, or return "" on failure."""
+    import subprocess
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@t", "commit",
+                    "-q", "--allow-empty", "-m", "snapshot"], check=True)
+    head = subprocess.run(["git", "-C", str(repo), "rev-parse", "--short=10", "HEAD"],
+                          capture_output=True, text=True, check=True).stdout.strip()
+    inside = repo / "DIRECTION.yaml"
+    inside.write_text(record_file.read_text(encoding="utf-8"), encoding="utf-8")
+    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL,
+                           recommendation=GOOD_RECOMMENDATION, path=inside)
+    assert row["based_on"] == head
+    assert dc.read_raw(inside)["for_the_director"][-1]["based_on"] == head
+    assert d.validate(dc.read_raw(inside)) == []
+
+    outside = tmp_path / "no_repo" / "DIRECTION.yaml"
+    outside.parent.mkdir()
+    outside.write_text(record_file.read_text(encoding="utf-8"), encoding="utf-8")
+    assert dc.based_on_snapshot(outside).startswith("unknown -- ")

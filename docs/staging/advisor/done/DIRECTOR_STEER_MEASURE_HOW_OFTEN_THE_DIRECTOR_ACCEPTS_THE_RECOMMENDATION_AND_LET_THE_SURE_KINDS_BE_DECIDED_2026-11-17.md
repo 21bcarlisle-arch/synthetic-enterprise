@@ -68,3 +68,46 @@ Probable failure modes:
 Proportionality: measurement plus one proposal. Implement directly.
 
 — Director steer, 17 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+*Worker, 17 Nov 2026.*
+
+**1. Acceptance rate by kind.** The kinds, answer codes and predictions were written first. Then 77
+decisions were coded: 45 closed `for_the_director` rows and 32 advisor-channel replies. **No kind
+qualifies.** Measurement is nearest: 15 of 16 accepted as recommended, with a 90% lower bound of
+0.76 against the 0.80 the rule needs. Strategy is lowest at 0.63, and its other seven answers are all
+changes, not refusals. One recommendation in 77 was refused outright. Silence is never recorded
+in either source. The advisor channel only keeps what he said yes to, so its rates are upper
+bounds. Three of my four predictions were refuted, including the one that harness would qualify.
+Record:
+`docs/staging/records/WORKER_RESULT_NO_KIND_OF_DECISION_IS_YET_SURE_ENOUGH_TO_BE_THE_MACHINES_MEASUREMENT_IS_NEAREST_2026-11-17.md`.
+**No `for_the_director` line is raised**, because nothing qualifies. Per the 17 Nov cost-per-result
+steer, these figures do not go to him. The record says when to count again: when measurement has 20
+explicit answers.
+
+**Snapshot from now on.** `director_concerns.raise_concern` writes `based_on`, the commit the
+recommendation was written against, on every new row. There is a test for each branch, and the
+mutation that leaves the field empty fires.
+
+**Company side.** Partly. A bitemporal decision log exists
+(`company/governance/decision_rights.py`), but only the renewal desk and the write-offs write to it,
+and its `context` has no snapshot key. Noted in the record, not built.
+
+**2. The payment-lifecycle amendment.** There was nothing left to amend. The lifecycle test had
+already concluded on 16 Nov (381d3a153): 10 of 34 defects exposed, under the half the ruling set, so
+the lifecycle was dropped and the EP11 ruling moved to done. Checked against the two essays anyway:
+- **Chassaing:** the dropped diagram (5bf7e7c87, `company/compliance/payment_lifecycle.yaml`) already
+  named an event on each of its 32 transitions: AUDDIS, ARUDD and ADDACS codes, billing period end,
+  new information, the notified collection date. None is a bare clock time.
+- **Wlaschin:** this applied only where the test recommended the lifecycle as the declared home. It
+  did not, so no types are proposed. The half-month first DD was exposed only in the contaminated
+  reading (I*).
+
+The reading-log row is appended.
+
+**A second coder (0fadd2b9b, seat lane).** It coded 85 decisions on its own pre-registration (3d9dbe930,
+95% bound). Its answers agree with this count on 66 of 76 shared decisions, and its kinds on 57 of 76.
+Its measurement verdict turns on one call (19 of 19, bound 0.83, against 18 of 19, bound 0.75), so
+both coders say no kind qualifies yet. The next count wants the answer coded when he answers
+(continuation `director-answer-code-at-answer-time`), not by a reader afterwards.
