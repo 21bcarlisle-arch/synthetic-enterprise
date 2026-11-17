@@ -24,8 +24,8 @@
     "run_retained": true,
     "verified_at": "2026-11-11T20:13:59Z"
   },
-  "paused_gate": "Refused by the domain-invariant check: 2 of its rules are broken and no dated exception covers them. Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 7 of 6,212 checked (unit: household collections step printing an overdue figure); Domestic gas use is mostly space heating, and space heating follows outdoor temperature, so a home's measured gas use in a calendar month moves from one year to the next with that month's heating\u2026 [INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR]: broken on 5 of 124 checked (unit: gas leg with a measured month a year after another).",
-  "paused_reason": "domain-invariant breaches at git=f7e17b1316 that no exception covers: INV_OVERDUE_WITHIN_PAGE_BALANCE 7 (no exception); INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 5 (5 breaches exceed the exception's max_breached 1)",
+  "paused_gate": "Refused by the domain-invariant check: 2 of its rules are broken and no dated exception covers them. Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 20 of 6,144 checked (unit: household collections step printing an overdue figure); When a household's fuel leg is refunded on closing, the refund never exceeds the household's credit across all its closing fuel legs on the refund day [INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT]: broken on 24 of 132 checked (unit: refund line on a fuel leg whose household prints another fuel leg).",
+  "paused_reason": "domain-invariant breaches at git=18f201c5bf that no exception covers: INV_OVERDUE_WITHIN_PAGE_BALANCE 20 (no exception); INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT 24 (24 breaches exceed the exception's max_breached 23)",
   "paused_since": "2026-11-16T04:26:22Z",
   "schema": 1,
   "showing_run": {
@@ -41,5 +41,5 @@
     "verified_at": "2026-11-11T20:13:59Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-17T19:08:20Z"
+  "written_at": "2026-11-17T20:18:58Z"
 }
