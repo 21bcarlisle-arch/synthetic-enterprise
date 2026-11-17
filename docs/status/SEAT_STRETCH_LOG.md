@@ -8,6 +8,56 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-17 — orientation: This stretch moved the thesis question in substance, though not yet in money
+
+<!-- head: 1e37032d4e0c -->
+
+*Written by the orientation seat from its own record (2026-11-17T15:22:04.166738+00:00; 22 commits, 7 substantive, since 2026-11-17T12:20:25.405778+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 22 other.
+
+## What the stretch meant
+
+This stretch moved the thesis question in substance, though not yet in money. The per-customer supplier still loses GBP 1.35 per household-year against its flat-rules baseline on A's better belief. But for the first time we know why, with a reason the evidence supports and a test that can refute it. Section 12 of docs/design/THE_VALUE_TEST_REDESIGN.md was pre-registered before the read (da4cb352e) and read after it (9dd2b365a). The loss is not the value arm's pricing: price moved an outcome for one household in 101. Ten of the 101 flipped at an identical roll and an identical common-fuel price, and the sign test across all three arms runs 20 to 1 against A (p about 2e-5), so it is not the dice. The best-supported mechanism is the retention offer. The twin's backwards belief (AUC 0.36) made offers by accident to households that were leaving and worth keeping. A's better ranking calls those households safe and withdraws the offers, and on the value arm those households are the most valuable ones (GBP 570 to 3,900 each). That is still an inference, because the sidecars did not log the offer. f318f1e48 now logs it, and 1ce0f6549 pre-registers and arms a re-read of the same pair. For the thesis this is the useful kind of setback. Better inference was spent by a lever, the offer gate, that values a kept household at the flat book's margin, not at what the value arm earns from it. The fix is a lever change, and the objective does not need to move. It also means the advantage cannot show until the levers are in merit order, which is the director's own priority order. The commit split reads 0 supplier and 22 other. That is the classifier's reading: the four value-test commits are supplier work on tools/ and docs/, and the stretch was more supplier-heavy than any this week. 7 of 22 commits were substantive and 6 were merges carrying nothing. The steer bit: last record's first item was drawn and finished, so it leaves focus. Its other three items went undrawn in 3h. Two are harness items, and the D5 book item is waiting on the box anyway. The D5 book has still not run. d5book-pause-watch last logged at 11:00Z, waiting for pair 33333_44444, which step 6 is in now (seed 44444, run 2 of 3). 95ed31f26 corrected its expected time from 18:30Z to about 20:00Z. The publisher stands at 48 failures over 34.7h on the 16 Nov book. 623b28e72 stops the regrade unless an input changed, and the background worker restarted at 15:14Z and is re-processing that marker now, so the first post-fix cycle is the one to read. Corrections this stretch: e0e8a32df took C2 from L2 to L1, because the caller and consumer its level rested on were archived on 8 Nov. 95ed31f26 corrected the D5 book time. Section 12a corrected its own bucket label beside the claim. All three are listed below as corrected. None of the eleven carried rows is corrected. The value-arm row now has a cause, but no fix. The director sent one advisor steer (contact cause, failure demand, quiet fails). His words are "log as an idea or backlog", so it is focus 1: a short logging task, not a build.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged. A's 0.819 is still in the run only. Section 12a adds that the backwards belief was saving valuable leavers by accident through retention offers, so carrying A live needs the offer-gate fix (focus 3) first.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- explained, not fixed. Section 12a attributes 72% to ten flips at held rolls, 20 to 1 against A, inferred to be withdrawn retention offers. The offer is now logged (f318f1e48). Focus 3 tests the mechanism and builds the lever.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged. No book has published since 6fe7827ab2.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged. W3_3 follows the first D5-fixed publish.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged. No book carries final_month_nets yet. Focus 2's book is the first that can.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged. No book has published, so f4f825b8b is still not served. When it is, it must carry A's -GBP 1.35 and section 12a's cause, not the 8 Oct figure.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged. Six merges carried no work this stretch, and another paused banner landed (3af982db4). Triaged as a fix owned by focus 5.
+- NOT corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged in effect. The publisher is at 48 failures over 34.7h. 623b28e72 stops the regrade unless an input changed, and the D5-on book is expected about 20:00Z (focus 2).
+- NOT corrected: THE SEAT'S, NEW. The 06:21 record kept step 6 running on the claim that a landing gate and sim-runner "fit beside it". sim-runner yields to any resident long job by construction, and it deferred 23 cycles, so the D5 book that record's focus 2 waited on could not run for about 53h. The same record's focus drew 0 of 3, behind four continuations and three draws of the stale HEAD_RED register. 15:22 17 Nov -- half remedied: d5book-pause-watch is armed and waiting for pair 33333_44444 (watch.log 11:00Z), but no D5 book has run yet.
+- NOT corrected: THE SEAT'S, NEW. The 09:22 record saw its first item lose to continuations, and named the second such loss as the moment to change the order. It wrote no item to make the change, so when the loss came the record had nothing ready. Five continuations were drawn and focus drew 0 of 3 again. 15:22 17 Nov -- the item exists (focus 4) but is undrawn. The starvation did not recur this stretch, because the queue was mostly date-gated, not because anything changed.
+- corrected: THE MACHINE'S, THIS STRETCH. Section 12's pre-registered partition labelled bucket (c) "the dice", but the rolls are held within a pair, so a flip at the same roll and price is an unlogged decision and not luck. Its prediction missed (a) low and (c) high. 9dd2b365a corrected the label beside the claim and withdrew the kill's consequence on the 20-to-1 sign test.
+- corrected: THE MACHINE'S, THIS STRETCH. The D5-on book was predicted for about 18:30Z (0086713d9) by reading one run's progress as the seed's. Each seed is three full-window runs. 95ed31f26 corrected it to about 20:00Z.
+- corrected: THE MACHINE'S, THIS STRETCH. C2_discovery_through_interfaces stood at L2 for nine days after the live caller and consumer its level rested on were archived on 8 Nov. e0e8a32df corrected it to L1.
+
+## Chosen against
+
+- Building the offer-gate lever change before pair 33333_44444's flips are read.
+- Launching the offer re-read early, ahead of step 6 or beside it.
+- Building any part of the contact, failure-demand or quiet-fail model.
+- Launching the renewal retrain B or the flag-off half of step 6.
+- Landing W3_3 (settlement books the standing charge) from origin/w3-3-network-split-held.
+- Raising the value-arm loss to the director.
+- The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
+- Reaping the at-risk October worktrees (b12-*, se-budgetpay-land, se-om2, simsuite).
+
+## Focus for the next stretch
+
+- `the-contact-cause-steer-is-logged-for-the-backlog`
+- `the-d5-book-is-graded-and-published-or-its-refusals-named`
+- `the-retention-offer-gate-values-a-kept-household-at-what-the-arm-earns`
+- `focus-outranks-a-continuation-chain-of-any-author`
+- `the-paused-banner-commits-only-on-a-change`
+
+---
+
 ## 2026-11-17 — orientation: The thesis did not move this stretch, and for the second stretch running the record's first item was not drawn
 
 <!-- head: 482708b7650a -->
