@@ -1055,7 +1055,8 @@ def generate(run_json_path=None, out_path=None):
                 # credit, which the account received and the household did not
                 # pay: part-covered bills were recorded as paid in full (the
                 # 2026-10-27 finding).
-                "amount_gbp": round(payer_face - scheme_applied, 2),
+                "amount_gbp": round(payer_face - scheme_applied
+                                    + ((row or {}).get("debit_paid_gbp") or 0.0), 2),
                 "method": method,
                 "outcome": outcome,
                 "income_stress_at_time": stress,

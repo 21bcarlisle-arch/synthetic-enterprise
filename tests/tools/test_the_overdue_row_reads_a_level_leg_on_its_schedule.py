@@ -103,13 +103,16 @@ def test_each_leg_is_read_on_its_own_terms():
     assert _sides(_level_leg("H", returned=True), _bill_leg("Hx", feb_unpaid=False)) == []
 
 
-def _leaver(opened, *, jan_feb_face=60.0):
+def _leaver(opened, *, jan_feb_face=60.0, still_supplied=True):
     """GBP 40 level instalments meet January's and February's bills (GBP 60 each, so a GBP 40 debit when
     `jan_feb_face` is 60); March's bill, issued 1 Mar, is settled on its face on 14 Mar, off the schedule.
-    The leg left level on 1 Mar; its closing statement falls due on 29 Mar."""
+    The leg left level on 1 Mar. Still supplied (S7, billed again on 1 Apr), its closing statement falls
+    due on 29 Mar. Not, March's is its final bill, the debit's demand, due 15 Mar (home_moves.md s.8.8f
+    choice 27)."""
+    months = ((1, 1), (2, 2), (3, 3), (4, 4)) if still_supplied else ((1, 1), (2, 2), (3, 3))
     bills = [{"invoice_number": n, "issue_date": "2020-0{}-01".format(m), "due_date": "2020-0{}-15".format(m),
               "total_amount_gbp": jan_feb_face if m < 3 else 30.0, "document_type": "bill"}
-             for n, m in ((1, 1), (2, 2), (3, 3))]
+             for n, m in months]
     pays = [{"invoice_number": n, "payment_date": "2020-0{}-10".format(m), "amount_gbp": 40.0,
              "method": "direct_debit", "outcome": "success", "level_dd": True} for n, m in ((1, 1), (2, 2))]
     pays.append({"invoice_number": 3, "payment_date": "2020-03-14", "amount_gbp": 30.0,
@@ -123,3 +126,11 @@ def test_a_leaver_owes_its_schemes_debit_once_the_closing_statement_falls_due():
     assert _sides(_leaver("2020-03-30")) == []
     assert _sides(_leaver("2020-03-29")) == ["nothing overdue"]
     assert _sides(_leaver("2020-03-30", jan_feb_face=35.0)) == ["nothing overdue"]
+
+
+def test_a_leaver_on_its_final_bill_owes_the_debit_from_that_bills_due_date():
+    """Choice 27: the final bill is the demand, so the debit is owed the day after its due date and not
+    on it, while the same leg billed again waits for the closing statement. Both clocks are reached."""
+    assert _sides(_leaver("2020-03-16", still_supplied=False)) == []
+    assert _sides(_leaver("2020-03-15", still_supplied=False)) == ["nothing overdue"]
+    assert _sides(_leaver("2020-03-16")) == ["nothing overdue"]

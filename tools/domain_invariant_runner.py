@@ -1705,7 +1705,19 @@ def _left_level_owed(a, opened: date) -> bool:
     level_met = [_d(b["issue_date"]) for b in rec.get("invoices") or ()
                  if b.get("issue_date") and _d(b["issue_date"]) <= opened and b.get("invoice_number") in met]
     after = [d for d in asked if not level_met or d > max(level_met)]
-    if not after or opened <= min(after) + timedelta(days=LEFT_LEVEL_TERM_DAYS):
+    if not after:
+        return False
+    # A leg that leaves on its FINAL bill was demanded the debit by that bill, due on its own due date
+    # (home_moves.md s.8.8f choice 27); the 28-day closing statement is for a leg still supplied (S7).
+    # "Final" is the leg's last asking bill in the whole record, so a leg billed again is not read so.
+    asking = [b for b in rec.get("invoices") or ()
+              if b.get("issue_date") and (_num(b.get("total_amount_gbp")) or 0.0) > 0.005]
+    last = max(asking, key=lambda b: _d(b["issue_date"]))
+    if _d(last["issue_date"]) == min(after) and last.get("due_date"):
+        demanded_until = _d(last["due_date"])
+    else:
+        demanded_until = min(after) + timedelta(days=LEFT_LEVEL_TERM_DAYS)
+    if opened <= demanded_until:
         return False
     billed = sum(_num(b.get("total_amount_gbp")) or 0.0 for b in rec.get("invoices") or ()
                  if b.get("issue_date") and _d(b["issue_date"]) <= opened)

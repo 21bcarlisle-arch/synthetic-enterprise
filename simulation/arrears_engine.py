@@ -1085,6 +1085,7 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
                  mover_final_bill_outcome(behavioral.get(cid) or {}, cid, period_end, commodity,
                                           amount, method, stress, seed))
         asked = amount
+        debit_paid = 0.0
         if exit_ is not None:
             outcome, days_late, part_paid = exit_
             amount = round(amount - part_paid, 2)
@@ -1092,6 +1093,10 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
             outcome, days_late, method = told["result"], told["days_late"], told["method"]
             if told.get("part_share"):
                 amount = round(amount * (1.0 - told["part_share"]), 2)
+            elif outcome == "success":
+                # The scheme's debit the final bill asked beside its face, and the mandate took
+                # (home_moves.md s.8.8f choice 26). A part-paid or failed ask leaves it owed.
+                debit_paid = told.get("debit_asked_gbp") or 0.0
         elif method == "direct_debit" and shock.cancel_return:
             # The mandate was cancelled at the bank: the collection comes back unpaid.
             outcome, days_late = "failed", 0
@@ -1109,7 +1114,7 @@ def _resolve_bills(bills: list[dict], behavioral: dict, seed: int) -> list[dict]
         rows.append({"customer_id": cid, "period_end": period_end, "commodity": commodity,
                      "amount_gbp": amount, "due_date": due_date, "method": method,
                      "outcome": outcome, "days_late": days_late,
-                     "part_paid_gbp": round(asked - amount, 2)})
+                     "part_paid_gbp": round(asked - amount, 2), "debit_paid_gbp": debit_paid})
     for cid, start in truth_rows_from.items():
         own = [r for r in rows[start:] if r["customer_id"] == cid]
         repaid = wpt.repayment_rows(behavioral[cid][wpt.RECORD_KEY], cid, own)
@@ -1408,8 +1413,12 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                                                                     "repayment"])
         _bar(horizon)
         difference, last_collection = level.get(cid, (0.0, None))
+        # A level leaver's final bill that asked the scheme's debit and was collected paid it, so
+        # the debit is no longer a standing debt (home_moves.md s.8.8f choices 26-27).
+        debit_paid = (round(sum(r.get("debit_paid_gbp") or 0.0 for r in rows), 2)
+                      if leaver and on_level else 0.0)
         closing = round(sum(i["remaining"] for i in outstanding)
-                        - sum(_waiting(c) for c in pool) + difference, 2)
+                        - sum(_waiting(c) for c in pool) + difference - debit_paid, 2)
         if leaver and on_level and closing < 0 and last_collection is not None:
             # A level leaver's bills after its last level collection, the final bill among them, were
             # collected at their face beside the credit the schedule left, and the close then refunded

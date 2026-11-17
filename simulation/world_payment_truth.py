@@ -109,6 +109,14 @@ def build(triad, through: dt.date) -> dict[str, dict]:
         if part:
             rec["outcomes"][month]["part_share"] = part
         by_account.setdefault(r.account_id, []).append(r)
+    # A level leaver's final bill asks the scheme's debit beside its face when the world's switch is
+    # on (home_moves.md s.8.8f choice 26). A collection that succeeded took it, so the page's close
+    # and payment must count it; zero while `FINAL_BILL_ASKS_THE_LEVEL_DEBIT` is off.
+    for fr in getattr(triad, "_final_month_nets", ()):
+        debit = fr.get("debit_asked_gbp") or 0.0
+        told = out.get(fr.get("leg"), {}).get("outcomes", {}).get(fr.get("bill_month"))
+        if debit > 0.005 and told is not None:
+            told["debit_asked_gbp"] = round(debit, 2)
     # A billing account holds both fuels' legs, and each leg is its own contract (SLC 27.16). Until
     # 2026-10-28 every settlement went to the account's first leg, electricity: on 5e3e9966a5 no gas
     # leg held one, 523 sat on electricity, and the reg 6D refund paid out that phantom credit.

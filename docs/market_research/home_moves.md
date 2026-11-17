@@ -1305,6 +1305,37 @@ under s.8.8b choice 3, so a successful final collection must clear it there. The
 read the final bill as the demand (choice 27). SYN-2016-471's desk misdating needs its own trace. Turned on alone,
 the world would collect a debit that the page still prints as owed.
 
+**Built so far, the page (16 Nov 2026, still switched off).** The final-month row's `debit_asked_gbp` reaches the
+page through the one payment truth (`world_payment_truth.build`), and the resolved final bill carries
+`debit_paid_gbp` only when its collection succeeded whole. A part-paid or failed ask leaves the debit owed from the
+final bill's due date (choice 26). The leaver's close takes that paid debit off the scheme's standing debt
+(`balance_settlement_from_outcomes`), and the ledger prints it on the final bill's payment, so the page, the P&L and
+the desk read one figure. It is zero while the switch is off, so no book moves. Control:
+`tests/simulation/test_a_level_leavers_collected_final_debit_is_not_a_standing_debt.py`. **Still owed before the
+switch turns on:** the runner's `_left_level_owed` must read a failed final bill as the demand (choice 27), and
+SYN-2016-471's desk misdating needs its trace.
+
+**Built, the runner (choice 27, 16 Nov 2026).** `_left_level_owed` reads a leg that leaves level on its last asking
+bill in the whole record as demanded by that bill: owed on a day after its due date. A leg billed again after leaving
+is still supplied (S7) and keeps the `LEFT_LEVEL_TERM_DAYS` closing statement. Control:
+`tests/tools/test_the_overdue_row_reads_a_level_leg_on_its_schedule.py` (its leaver fixture is now billed again, S7,
+and a final-bill leg sits beside it); three mutations (the final-bill branch never taken; the demand dated from
+issue, not due; "final" read only up to the opening) each turn it red. **Graded on the f7e17b1316 book, runner the only
+change:** `INV_OVERDUE_WITHIN_BALANCE` 4 → 0, the four openings being exactly SYN-2016-024, SYN-2016-075,
+PROS-2021-0315 and SYN-2016-471 above, as predicted for row 4. `INV_OVERDUE_WITHIN_PAGE_BALANCE` stays 7 (SYN-2016-001
+on 15 Aug 2023, two steps; SYN-2016-471, five steps, its 38.13 against 28.77). On a book built with the switch off,
+the runner now reads a debit as demanded that the world's final bill did not ask; `background/next_book_requires.yaml`
+admits no such book, so the gap lasts only until the switch-on. Still owed: SYN-2016-471's desk misdating, then the
+switch-on in its own commit.
+
+**Landed with the switch-on (17 Nov 2026).** The page control also drives `_resolve_bills`: only a whole success
+pays the debit. Each of three mutations turns it red: the paid debit dropped from the close, the truth not carrying the
+ask, and the engine never paying it. The switch-on lands in the same push as the page and the runner. Rows 4 and 7
+for its first book are pre-registered in
+`docs/staging/SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md`. That file also holds the
+prediction that SYN-2016-471 leaves row 7 without the desk fix, because its final collection now takes the debit and
+no journey opens. SYN-2016-471's desk misdating stays untraced.
+
 ---
 
 ## Sources
