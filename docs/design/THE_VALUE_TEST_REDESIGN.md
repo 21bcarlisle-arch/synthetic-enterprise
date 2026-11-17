@@ -1504,3 +1504,78 @@ logged p is not the one rolled against, which is a logging defect. I put **60% o
 first (K8), and the value test's next pair grades it. If refuted: §12a's attribution is withdrawn beside
 its claim, and the value arm's £1.21 goes back to "a decision the sidecar does not record", with the offer
 ruled out.
+
+### 12c. Pair 2 cannot be graded yet, and pair 1's desk belief names the gate: the threshold, not the value test (17 Nov 23:30Z)
+
+**Pair 2: only A's half exists.** `/var/tmp/vta-out-flag1/{member,control}_33333_44444.json` (17:40Z) are
+step 6's flag-1 files. §12a's read compares A with its **twin**, which is flag 0 at the same seeds. There is no
+`/var/tmp/vta-out-flag0/*_33333_44444.json`, and nothing is armed to write it. DIRECTION.yaml's `not_now` holds
+the flag-off half of step 6, and no unit or watcher launches it. So the confirm/refute count cannot be taken on
+pair 2. It has not refuted, and it has not confirmed. **Knock-on:** `vto-offer-reread-watch` (§12b) waits for
+`vta-out-flag0/family_12_churn_roll.json`, and no scheduled job writes that file. As armed, it will give up after
+10 days without launching. The flag-off half has to be ordered (behind flag 1, through `launch_long_job`) before
+§12b's re-read can run. That is now a box-scheduling decision. Nothing was launched here.
+
+**What pair 1 already shows, read in minutes without box time.** The sidecars carry
+`desk_belief_by_arm` (§9a): the desk's churn belief at each renewal. This is the belief the offer gate reads
+(`company_est_pre` in `run_phase2b.py`). The offer gate is two tests in series:
+1. `company_est_pre > RETENTION_THRESHOLD` (0.30, `simulation/run_phase2b.py:528`). Below it, no offer is
+   considered.
+2. Only then `_would_offer`: `retention_value_protected(expected_margin, acq_cost_saved, …) > ret_cost`.
+
+On the value arm of both A and the twin, every save-odds, engagement and bad-debt switch is off. So test 2
+compares **`expected_margin + acq_cost_saved` against the cut's cost**, and no belief enters it.
+`expected_margin` is `term_contribution_per_year` at the arm's **own** `unit_rate` (`_chain.unit_rate`, the
+value arm's chosen price). §12a found that identical in A and the twin on every flip. So at a flip, test 2
+can differ only through the cut's risk tier. Test 1 is where the belief acts.
+
+| Seed | Household | Date | A's desk belief | Twin's desk belief | Over 0.30 (A / twin) |
+|---|---|---|---|---|---|
+| 11111 | SYN-2016-557 | 2018-12-02 | 0.137 | 0.362 | no / yes |
+| 22222 | SYN-2016-604 | 2017-12-25 | 0.424 | 0.371 | yes / yes |
+| 11111 | PROS-2017-0371 | 2018-11-29 | 0.126 | 0.335 | no / yes |
+| 22222 | SYN-2016-458 | 2018-10-09 | 0.122 | 0.340 | no / yes |
+| 22222 | PROS-2017-0318 | 2018-10-07 | 0.124 | 0.351 | no / yes |
+| 22222 | SYN-2016-498 | 2018-10-31 | 0.119 | 0.331 | no / yes |
+| 11111 | SYN-2016-581 | 2018-12-10 | 0.129 | 0.343 | no / yes |
+| 11111 | PROS-2016-0263 | 2018-09-16 | 0.123 | 0.329 | no / yes |
+| 11111 | SYN-2016-468 | 2018-10-17 | 0.112 | 0.304 | no / yes |
+| 11111 | SYN-2016-315 | 2018-07-10 | 0.111 | 0.301 | no / yes |
+
+**9 of 10 flips: A's belief is below the threshold and the twin's is above it.** The tenth, SYN-2016-604, is above
+it in both runs, and it stays §12b's open row. Across the whole value arm, at the renewals both runs reached, A
+moves **188 of 575** (11111) and **182 of 569** (22222) renewals from above 0.30 to below it, and **1** the other
+way. A does not move the cutoff's population at the margin. It moves a third of the book across it, because
+the ending-term belief sits on a lower **level** (0.11 to 0.14 on these households) while the threshold stayed
+where the twin's scale put it. AUC (§10b's 0.82) grades ranking, not level. All nine households A rated at
+0.11 to 0.14 **left**, so on this tail A's level is too low as well. A ranks better overall and still
+under-reads this tail.
+
+**Graded against §12a.**
+- §12a's mechanism, "offers withdrawn under A's desk belief, from households A calls safe": **HELD** on 9 of 10,
+  now read rather than inferred. The offer itself is still unlogged (§12b re-reads it). The belief that gates it
+  is logged, and it points the same way.
+- §12a's named lever, "`_would_offer` should value a kept household at what the arm earns": **MISSED.** At these
+  flips the value test is never reached, and where it is reached it already reads the arm's own rate. A
+  value-basis switch cannot change one of the nine. So step 3 of the direction item (the switched gate) is
+  **not built**: it would be a mutation-proven control on a branch the loss never passes through.
+
+**What the next change is instead (proposal, not built).** The loss is a **fixed belief threshold, applied to
+a belief whose level a policy switch moved.** Two candidates, in order:
+1. Drop the threshold as a test of its own, and let the value test carry the belief: offer where
+   `p_churn × save_rate × value_protected > cost`. `retention_weighs_save_odds` already builds the weighing.
+   It is off on both arms, and it sits **inside** the 0.30 test (`run_phase2b.py:4334`), so turning it on alone
+   removes nothing. The build is one default-off switch that skips the 0.30 test when the weighing is on.
+   A run with both on against A without them is the one-variable test of "the threshold costs the value arm
+   its saves".
+2. Calibrate the desk belief's level (observed-over-expected on its own closed renewals, as
+   `competitive_pressure` already does per ending term) before any fixed cutoff reads it.
+
+Both are G9-free (nothing he ruled), and both go to the K8 page first. 0.30 itself has **no declared origin**:
+`RETENTION_THRESHOLD` is a supplier decision constant that lives in `simulation/`. Filed as
+`SEAT_FINDING_THE_RETENTION_OFFER_IS_GATED_BY_AN_UNSOURCED_0_30_BELIEF_THRESHOLD_IN_SIMULATION_2026-11-17.md`.
+
+**Prediction for candidate 1, filed before any run.** On pair 11111/22222, value arm, A with the threshold
+skipped and the save-odds weighing on, against A as run: at least 6 of the 9 flips are re-offered, and the value arm's
+A-minus-twin money moves from −£1.21 toward zero by at least £0.40 per household-year. Refuted if 3 or fewer
+are re-offered. This cannot run until the box is free.

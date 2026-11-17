@@ -891,3 +891,65 @@ has almost nothing left to move.
   cent is right in size. That is the per-household elasticity and the pounds-scaled curve in
   `simulation/customer_events.py`, sourced on their own pages. The GAP in §9c (no published save
   rate for a discounted proactive offer at a fixed-term end) is still the binding one.
+
+## 11. Which renewals are considered for an offer: a churn-belief cutoff or the expected value of the offer (2026-11-17)
+
+*Written for `THE_VALUE_TEST_REDESIGN.md` §12c and
+`SEAT_FINDING_THE_RETENTION_OFFER_IS_GATED_BY_AN_UNSOURCED_0_30_BELIEF_THRESHOLD_IN_SIMULATION_2026-11-17.md`,
+before any change to the gate (K8).*
+
+### 11a. The quantity
+
+The question is *which renewals the company even weighs an offer on*. That is a selection rule, separate from
+the offer's size (§8, §9) and from whether the offer pays (`retention_value_protected` against its cost). The code
+runs two tests in series: a fixed cutoff on the churn belief (`RETENTION_THRESHOLD = 0.30`), and then the value
+test.
+
+### 11b. What the rules settle
+
+Nothing read sets which households a supplier may target for retention. §8a's reading stands: an offer may be
+made, and a switch may not be blocked by it. SLC 22B (the BAT, R7, to 31 March 2027) bounds what a tariff may be
+offered to new customers only, and it sets no selection rule for existing ones. **The selection rule is the
+supplier's own choice.**
+
+### 11c. What published practice says
+
+- **Targeting on churn probability alone is the known weak form.** The uplift literature already on this page
+  (§9e: Radcliffe & Surry 2011; Gutierrez & Gérardy 2017; Devriendt, Moldovan & Verbeke 2018) frames the target as
+  the *incremental* effect of the treatment per customer, times what that customer is worth, against the cost.
+  On that framing, a customer certain to leave whatever is offered, and one certain to stay, are both poor
+  targets. A churn cutoff selects the first group and cannot tell it from a persuadable one.
+- **Profit-based selection.** Verbraken, Verbeke & Baesens, "A novel profit maximizing metric for measuring
+  classification performance of customer churn prediction models", *IEEE TKDE* 25(5), 2013, sets the cutoff
+  where the expected profit of the campaign is highest, given the customer's value, the offer's cost and the
+  acceptance rate. It does not take a fixed probability. *Cited from the literature's standing; not re-read this turn.*
+- **A probability cutoff assumes a calibrated probability.** A fixed level on a score is only meaningful if the
+  score's level is calibrated. A model change that improves ranking (AUC) can still move the level. This is
+  standard classification practice, and §12c measures it here: candidate A moves about a third of the value
+  arm's renewals across 0.30.
+
+### 11d. GAPs, labelled
+
+- **GAP: 0.30's origin.** No source in the knowledge layer, the commons or `docs/market_research/` establishes it.
+  It predates the origin register, and it lives in `simulation/`, outside that register's reach.
+- **GAP: GB supplier practice.** How GB suppliers select households for retention contact (by score cutoff, by
+  value, by contact capacity) is not published in anything read. This is a practitioner question (K4), asked only
+  after this page.
+- **GAP (standing, §9c): the save rate** for a discounted proactive offer at a fixed-term end. Any value-based
+  selection rule depends on it, and the company learns it (§9d) with the uncertainty §9f describes.
+
+### 11e. What the design chooses, and why (proposal, not built)
+
+1. **Let the value test carry the belief, and make the fixed cutoff switchable.** With
+   `retention_weighs_save_odds`, the value weighed is belief × learned save rate × value protected. That is
+   §11c's profit form. One default-off switch skips the 0.30 cutoff when that weighing is on. The test is
+   one-variable on a held-roll pair (§12c's prediction).
+2. **Calibrate before any cutoff.** If a cutoff stays, it reads a belief whose level is corrected
+   observed-over-expected on the company's own closed renewals, as `competitive_pressure` already does per
+   ending term.
+3. **Move the selection into the growth desk.** It is a supplier decision, so it belongs in `company/`, behind
+   `company/interfaces/growth_desk`. This changes no number.
+
+**Not chosen: valuing a kept household over more than one term** (the earlier proposal for this gate). At the nine
+flips it decides nothing, because the cutoff stops them before the value test runs (§12c). It stays a separate
+question (`ASSUMED_DEFERRAL_MONTHS`, H1 against H2 in `company/analytics/retention_deferral_economics.py`).
