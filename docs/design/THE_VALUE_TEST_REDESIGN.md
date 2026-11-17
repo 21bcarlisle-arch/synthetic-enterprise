@@ -1302,3 +1302,58 @@ loses minutes and restarts from its first seed. The grade must read the relaunch
 `/var/tmp/longjob-value-test-step-6-flag1.log` ("pair [11111, 22222] already on disk, kept", and the same for
 33333_44444). Reverse: `systemctl --user stop d5book-pause-watch`; if step 6 is already stopped, run the
 relaunch block of `watch.sh` by hand.
+
+## 12. Why the value arm loses £1.21 on A's belief: pre-registered 17 Nov 14:40Z, before the read
+
+**What has been read so far.** Only the files' schema: the key names in the member and control
+sidecars, and one flag-on row (C5, 2016) to learn the shape. No A-versus-twin pairing of any decision
+or money field has been read. The inputs are the two pairs on disk and nothing else:
+`/var/tmp/vta-out-flag{0,1}/member_11111_22222.json` and `control_11111_22222.json`. Nothing is launched.
+
+**What a "decision" is here.** The value arm's decision for a household is its renewal price:
+`chosen_margin_gbp_per_mwh` in `renewal_decisions_by_arm["value_arm"]`, one row per account, commodity
+and `term_start`. A *retention offer* is a lower margin than the other run chose at the same renewal;
+a *withdrawn offer* is a higher one. The outcome at each renewal is `renewals[].outcome` in
+`value_arm_decisions_by_account`, with its `p_retain` and `roll`. Money is the household's value-arm net
+(accounts folded, absent = £0, as in §10). The divisor is the twin's control-arm household-years on each
+seed, as in §10b.
+
+**The partition, fixed before the read.** Each of the 101 households whose value-arm money moved goes
+into exactly one bucket, and its whole money difference (A minus twin) goes with it:
+- **(a) Offers move to households already kept.** No renewal outcome differs between A and the twin,
+  and at least one renewal price differs. The money is a price change on someone who stayed (or left)
+  either way. It has both signs: A cutting a stayer's price is a loss, and A raising it is a gain.
+- **(b) Accidental offers to leavers worth keeping are lost.** At least one renewal outcome differs, and
+  at the first renewal where it differs, the price moved in the direction that explains the flip (A
+  dearer and the household left in A only, or A cheaper and the household stayed in A only). The
+  mirror (A keeps someone the twin lost) is a gain and nets inside (b).
+- **(c) The dice.** An outcome differs, but at the first differing renewal the price did not move, or
+  moved against the flip, or the `roll` itself differs between the runs. That flip is not the price's
+  doing. Separately from the partition, for (b)'s flips I also report the expected part
+  (|Δ`p_retain`| × the household's money difference) against the realised part. The difference between
+  them is the dice *inside* (b), and it is printed beside the partition, not folded into it.
+- **Unexplained.** The money moved, but no renewal price and no outcome differs (arrears, bills,
+  successor accounts, or something not named here).
+
+**Prediction (shares of the −£1.21; they sum to 100%).**
+
+| Bucket | Point share | Range | Why I expect it |
+|---|---|---|---|
+| (a) | **40%** | 10% to 75% | A ranks leavers far better (D2 0.82), so its margin logic is more confident about who stays. I expect it to move prices on households that do not change their outcome, in both directions, with net loss |
+| (b) | **35%** | 5% to 70% | When the twin ranked badly (D1 0.36), its "offers" landed by accident on some households worth keeping. A withdraws them and some leave |
+| (c) | **15%** | 0% to 40% | Two draws, about 100 households: a handful of flips worth £100 to £300 each can carry a £1 per household-year mean |
+| Unexplained | **10%** | 0% to 30% | The value-arm net carries arrears and successor-account lines that a renewal price does not touch |
+
+**Kill conditions.** If unexplained is above 30%, the partition is the wrong frame, and the next change is
+to find what the arm moved other than price, not a lever. If (c) is above 50%, the reading is "we cannot
+tell, the dice" and step 6's S5 is the test. If (a) and (b) together are under 40%, neither candidate
+§10b named is the mechanism.
+
+**What each reading would make the next change.**
+- (a) leads: the value arm spends A's better belief on discounts to households it already keeps. The next
+  change is the **objective**, which treats a retained household as a margin to buy back rather than as
+  already kept.
+- (b) leads: the value arm prices up households its better belief now calls safe, and they leave. The
+  next change is the **lever**, so that confidence in retention does not set a price that the elasticity
+  then punishes.
+- (c) leads: **we cannot tell, the dice**. Step 6's S5 decides it.
