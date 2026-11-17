@@ -39,6 +39,7 @@ def rhythm(tmp_path, monkeypatch):
     # tests/tools/test_work_cost_estimate.py. Here only its place in the documents is under test.
     from tools import work_cost_estimate
     monkeypatch.setattr(work_cost_estimate, "render", lambda: "ESTIMATE-TABLE")
+    monkeypatch.setattr(work_cost_estimate, "render_results", lambda: "RESULTS-TABLE")
     # The orphan index walks the whole tree (~20 s); its own section test is below.
     from tools import capability_index
     monkeypatch.setattr(capability_index, "build_rows", lambda root=None: [])
@@ -749,3 +750,16 @@ def test_the_friday_step_proposes_the_weeks_balance_before_the_reset():
     body = wr._step_body(wr.FRIDAY_STEP, date(2026, 11, 13), [])
     assert "## The balance for the coming week" in body
     assert "feature_share" in body and "accelerate" in body
+
+
+def test_friday_carries_cost_per_result_and_rework_and_says_when_it_cannot(monkeypatch):
+    """Director steer, 17 Nov 2026: two standing Friday lines the machine acts on. MUTATION: drop the
+    section from Friday and the lines stop standing; swallow the error and a failure reads as a figure."""
+    import inspect
+
+    from tools import work_cost_estimate
+    monkeypatch.setattr(work_cost_estimate, "render_results", lambda: "RESULTS-TABLE")
+    assert "RESULTS-TABLE" in "\n".join(wr._results_section())
+    assert "lines += _results_section()" in inspect.getsource(wr)
+    monkeypatch.setattr(work_cost_estimate, "render_results", lambda: 1 / 0)
+    assert "NOT MEASURED" in "\n".join(wr._results_section())

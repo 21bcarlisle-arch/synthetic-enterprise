@@ -583,6 +583,7 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
                   "### Deliberately not this week, and why", "", "- ", ""]
     else:
         lines += _burn_section()
+        lines += _results_section()
         lines += _balance_review_section()
         lines += _cost_of_work_section()
         lines += ["## What actually happened", "",
@@ -761,6 +762,19 @@ def _burn_section(days: float = 7.0) -> list[str]:
             "before and after, mark each keep, revert or drop, and propose next week's trials there. "
             "Re-check the rows marked *re-check each Friday*.",
             ""]
+
+
+def _results_section() -> list[str]:
+    """COST PER RESULT AND REWORK RATE (director, 17 Nov 2026: "Yes. But ideally I don't want to have
+    to get involved in detailed results just steer strategy, direction and big goals."). For the
+    machine to act on: these numbers stay here and in the stretch log, and only a strategic
+    implication reaches `for_the_director`, as one line with a recommendation."""
+    try:
+        from tools.work_cost_estimate import render_results
+        measured = render_results()
+    except Exception as exc:  # noqa: BLE001 -- a review that cannot measure says so on its face
+        measured = f"NOT MEASURED -- `tools.work_cost_estimate.render_results` raised {type(exc).__name__}: {exc}"
+    return ["## Cost per result and rework rate", "", measured, ""]
 
 
 def _balance_review_section() -> list[str]:
