@@ -1336,6 +1336,24 @@ for its first book are pre-registered in
 prediction that SYN-2016-471 leaves row 7 without the desk fix, because its final collection now takes the debit and
 no journey opens. SYN-2016-471's desk misdating stays untraced.
 
+**Traced (17 Nov 2026, seat executor): it was not a desk misdating, and the cause was choice 26's own read.** The
+"desk misdating" named above for SYN-2016-471 is **wrong** and is corrected here. The desk read the cash that crossed;
+the world asked less than the page shows. `_leg_balance_on`, the read choice 26 cites, counted only bills already
+**due** on the final bill's issue date, while it counted **all** the cash. 471's last regular bill (45893, 38.13,
+issued 1 Mar 2021, due 15 Mar) was not due when the final bill was issued on 13 Mar. The level collection of 19 Feb
+that had met it was still counted. So the leg read as 9.35 in credit, not 28.78 in debit. The final bill netted 9.35
+off its 14.10 face and asked 4.75. No debit was asked. The page priced the payment at face (14.10), so its balance
+reads 28.78, and the desk's ledger reads 38.13. On the 18f201c5bf book the same arithmetic gives every leaver on
+`INV_OVERDUE_WITHIN_PAGE_BALANCE` exactly: SYN-2016-471 (9.35), -523 (25.28, the whole final bill netted, last bill
+107.27 not yet due) and -546 (6.73, likewise, last bill 23.16). In each case, the desk's overdue less the page's
+balance equals the amount netted.
+29. *The final bill reads every bill issued before it, due or not.* The final bill states the one balance (SLC 27.17),
+    and the page's close (`balance_settlement_from_outcomes`) already counts every issued bill. So `_leg_balance_on`
+    now counts every bill issued on or before the day, except the bill being issued. The same read serves the
+    credit-bill "waits" rule, where an issued-but-not-due bill is also owed under the contract (SLC 27.16).
+    Control: `tests/background/test_a_final_bill_reads_the_last_bill_issued_before_it_whether_or_not_it_is_due.py`.
+    With the due-only filter restored, it reads a credit of 50 where the ledger owes 10.
+
 ---
 
 ## Sources
