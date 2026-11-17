@@ -126,6 +126,17 @@ _TWO_HOME_FOCUS_FIELDS = ("what", "why")
 CONCERN_STATUSES = ("open", "answered", "withdrawn")
 CONCERN_KINDS = ("strategy", "vision", "canon_intent", "reserved")
 
+#: HOW HE ANSWERED, coded when the answer is recorded (`director_concerns --answer --answer-code`).
+#: Two coders reading his 76 answers weeks later split one time in ten on yes against not-yes, and
+#: the acceptance-by-kind verdict turned on one of those calls
+#: (docs/staging/done/SEAT_FINDING_HOW_OFTEN_THE_DIRECTOR_ACCEPTS_THE_RECOMMENDATION_BY_KIND_
+#: 2026-11-17.md).
+#: yes: as recommended (an addition that changes nothing recommended is still yes). changed:
+#: approved with a change of substance. no: rejected, or he chose otherwise. returned: sent back --
+#: research it, a different question, more first. silence: no answer, closed as yes under "silence
+#: is validation"; it never counts toward an acceptance rate. A withdrawn row carries no code.
+ANSWER_CODES = ("yes", "changed", "no", "returned", "silence")
+
 
 def _concern_problems(rows) -> list[str]:
     """Every reason `for_the_director` is not a usable concerns list. `None` and `[]` are both an
@@ -161,6 +172,10 @@ def _concern_problems(rows) -> list[str]:
         elif status != "open" and not str(row.get("resolution") or "").strip():
             problems.append(f"for_the_director[{i}] is {status} with no resolution -- a closed "
                             "concern must say how it closed")
+        code = row.get("answer_code")
+        if code is not None and (status != "answered" or code not in ANSWER_CODES):
+            problems.append(f"for_the_director[{i}].answer_code {code!r} -- only an answered row "
+                            f"carries one, and it is one of {', '.join(ANSWER_CODES)}")
         kind = row.get("kind")
         if kind is not None and kind not in CONCERN_KINDS:
             problems.append(f"for_the_director[{i}].kind must be one of "

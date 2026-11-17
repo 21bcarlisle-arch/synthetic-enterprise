@@ -398,15 +398,27 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
 
 def resolve(concern_id: str, status: str, resolution: str, *, path: Path | None = None,
             now: datetime | None = None, commitment: dict | None = None,
-            no_action: str | None = None) -> dict:
+            no_action: str | None = None, answer_code: str | None = None) -> dict:
     """Mark a concern answered or withdrawn. The resolution is required and is dated, and from
-    `CLOSE_COMMITMENT_FROM` the close names what it commits the machine to, or why nothing."""
+    `CLOSE_COMMITMENT_FROM` the close names what it commits the machine to, or why nothing. An
+    answer carries how he answered (`direction.ANSWER_CODES`), coded by whoever records it, which
+    is the one moment the answer is in front of them."""
     path = path or direction_mod.DIRECTION_PATH
     if status not in ("answered", "withdrawn"):
         raise ConcernRefused("a concern is resolved as answered or withdrawn")
     if not (resolution or "").strip():
         raise ConcernRefused(f"{status} needs a resolution -- his words, or why it was withdrawn")
+    codes = direction_mod.ANSWER_CODES
+    if status == "answered" and answer_code not in codes:
+        raise ConcernRefused(
+            f"an answer needs --answer-code, one of {', '.join(codes)} (got {answer_code!r}) -- "
+            "coded now, by the reader of his words, so the acceptance rate by kind never again "
+            "turns on a second coder weeks later; no answer at all is `silence`")
+    if status == "withdrawn" and answer_code is not None:
+        raise ConcernRefused("a withdrawn concern was never answered, so it carries no answer code")
     closing = {"status": status, "resolution": resolution.strip(), "resolved": _today(now)}
+    if answer_code:
+        closing["answer_code"] = answer_code
     if commitment:
         closing["commitment"] = {k: str(commitment.get(k) or "").strip() for k in COMMITMENT_KEYS}
     if (no_action or "").strip():
@@ -601,6 +613,51 @@ def machine_debts(today: str | None = None) -> list[dict]:
             if d["state"] in ("overdue", "unstated")]
 
 
+# ── HOW OFTEN HE TAKES THE RECOMMENDATION, BY KIND, FROM THE RECORD ──────────────────────────
+#
+# Director's steer, 17 Nov ("Do it"): let the machine decide the kinds where his answer almost
+# always matches the recommendation. The bar the pre-registration set: Wilson 95% lower bound on
+# plain `yes` of at least 0.80, `changed` counting against it and `silence` never toward it. Kind is
+# the row's own `kind` field -- coarser than the seven kinds the two coders used, whose boundaries
+# are not yet written down (the finding's point 2), so this recount cannot qualify a kind they
+# would split. A close with no code predates the code or was written round the CLI; it is counted
+# as `uncoded`, never guessed.
+
+# origin: the pre-registration of 17 Nov in the finding above, set before any answer was coded.
+NEAR_CERTAIN_LOWER_BOUND = 0.80
+
+
+def acceptance_by_kind(closes: dict[str, dict]) -> dict[str, dict]:
+    """`{kind: {code: count, ..., "uncoded": n, "explicit": n, "yes_lower": bound|None,
+    "near_certain": bool}}` over answered closes. `explicit` is yes+changed+no+returned."""
+    from tools.grade_world_debt_against_ofgem import wilson
+
+    out: dict[str, dict] = {}
+    for row in closes.values():
+        if row.get("status") != "answered":
+            continue
+        tally = out.setdefault(str(row.get("kind") or "unstated"),
+                               {c: 0 for c in (*direction_mod.ANSWER_CODES, "uncoded")})
+        code = row.get("answer_code")
+        tally[code if code in direction_mod.ANSWER_CODES else "uncoded"] += 1
+    for tally in out.values():
+        tally["explicit"] = sum(tally[c] for c in ("yes", "changed", "no", "returned"))
+        tally["yes_lower"] = wilson(tally["yes"], tally["explicit"])[0]
+        tally["near_certain"] = (tally["yes_lower"] or 0.0) >= NEAR_CERTAIN_LOWER_BOUND
+    return out
+
+
+def acceptance_lines(table: dict[str, dict]) -> list[str]:
+    lines = []
+    for kind, t in sorted(table.items()):
+        bound = "-" if t["yes_lower"] is None else f"{t['yes_lower']:.2f}"
+        lines.append(f"{kind}: yes {t['yes']}/{t['explicit']} explicit (lower bound {bound}, "
+                     f"{'near-certain' if t['near_certain'] else 'not near-certain'}); changed "
+                     f"{t['changed']}, no {t['no']}, returned {t['returned']}, silence "
+                     f"{t['silence']}, uncoded {t['uncoded']}")
+    return lines or ["No answered concern on record."]
+
+
 def _debt_line(d: dict) -> str:
     if d["state"] == "unstated":
         return (f"- **{d['id']}** (closed {d['closed_on']}): the close says neither what done is "
@@ -697,6 +754,10 @@ def main(argv=None) -> int:
     act.add_argument("--overdue", action="store_true",
                      help="print the closes the machine owes: overdue, or with no done-means")
     act.add_argument("--monday-note", action="store_true", help="print the director's Monday note")
+    act.add_argument("--acceptance", action="store_true",
+                     help="print how often he took the recommendation, by kind, from the codes")
+    ap.add_argument("--answer-code", choices=direction_mod.ANSWER_CODES,
+                    help="answering: how he answered; silence for a close taken as yes unanswered")
     ap.add_argument("--kind", choices=direction_mod.CONCERN_KINDS)
     ap.add_argument("--what")
     ap.add_argument("--proposal")
@@ -718,13 +779,18 @@ def main(argv=None) -> int:
     if args.monday_note:
         print(monday_note(), end="")
         return 0
+    if args.acceptance:
+        print("\n".join(acceptance_lines(acceptance_by_kind(closes_on_record()))))
+        return 0
     try:
         if args.list:
             for r in rows_of(read_raw()):
                 print("[{}] {} ({}, raised {}): {}\n    proposal: {}\n    recommendation: {}{}".format(
                     r.get("status"), r.get("id"), r.get("kind"), r.get("raised"), r.get("what"),
                     r.get("proposal"), r.get("recommendation") or "(none)",
-                    f"\n    resolution: {r['resolution']}" if r.get("resolution") else ""))
+                    f"\n    resolution: {r['resolution']}"
+                    + (f" [{r['answer_code']}]" if r.get("answer_code") else "")
+                    if r.get("resolution") else ""))
             return 0
         if args.raise_:
             if not args.kind:
@@ -738,7 +804,8 @@ def main(argv=None) -> int:
                            "due": args.due}
                           if args.work_id or args.done_means or args.due else None)
             row = resolve(rid, "answered" if args.answer else "withdrawn", args.resolution or "",
-                          commitment=commitment, no_action=args.no_action)
+                          commitment=commitment, no_action=args.no_action,
+                          answer_code=args.answer_code)
     except ConcernRefused as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 2

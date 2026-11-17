@@ -156,9 +156,10 @@ def test_answering_and_withdrawing_need_a_resolution(record_file):
     with pytest.raises(dc.ConcernRefused, match="needs a resolution"):
         dc.resolve(row["id"], "answered", " ")
     with pytest.raises(dc.ConcernRefused, match="no concern with id"):
-        dc.resolve("not-a-row", "answered", "his words", no_action="none owed")
+        dc.resolve("not-a-row", "answered", "his words", no_action="none owed",
+                   answer_code="yes")
     done = dc.resolve(row["id"], "answered", "Rich 2026-10-04: the split is learned, go on",
-                      no_action="the code already learns it")
+                      no_action="the code already learns it", answer_code="yes")
     assert done["status"] == "answered" and done["resolved"]
     assert dc.open_rows(dc.read_raw()) == [] and d.validate(dc.read_raw()) == []
 
@@ -468,10 +469,10 @@ def test_closing_from_the_rules_start_names_its_commitment_or_why_none(record_fi
     now = datetime(2026, 10, 28, 9, tzinfo=timezone.utc)
     if refused_for:
         with pytest.raises(dc.ConcernRefused, match=refused_for):
-            dc.resolve(row["id"], "answered", "his yes", now=now, **kw)
+            dc.resolve(row["id"], "answered", "his yes", now=now, answer_code="yes", **kw)
         assert dc.open_rows(dc.read_raw()), "a refused close still closed the row"
     else:
-        done = dc.resolve(row["id"], "answered", "his yes", now=now, **kw)
+        done = dc.resolve(row["id"], "answered", "his yes", now=now, answer_code="yes", **kw)
         assert done["status"] == "answered" and d.validate(dc.read_raw()) == []
 
 
@@ -549,8 +550,8 @@ def test_an_orientation_RECORDS_the_closes_it_was_handed(monkeypatch, record_fil
     MUTATION (must fire): drop the `closes` key from the decision row in `orient`."""
     monkeypatch.setattr(dc, "read_origin_raw", lambda root=None: None)
     row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
-    dc.resolve(row["id"], "answered", "his yes", commitment={**READER_COMMITMENT,
-                                                            "due": "2099-12-31"})
+    dc.resolve(row["id"], "answered", "his yes", answer_code="yes",
+               commitment={**READER_COMMITMENT, "due": "2099-12-31"})
     out = _drive_orient(monkeypatch, record_file, _record(), [])
     assert out["outcome"] == "oriented"
     [handed] = out["closes"]
@@ -585,3 +586,63 @@ def test_a_raised_concern_records_the_commit_it_was_recommended_against(record_f
     outside.parent.mkdir()
     outside.write_text(record_file.read_text(encoding="utf-8"), encoding="utf-8")
     assert dc.based_on_snapshot(outside).startswith("unknown -- ")
+
+
+def test_an_answer_carries_its_code_and_the_recount_reads_it_without_a_coder(record_file):
+    """Defect: the acceptance rate by kind was coded weeks later by two readers who split one time
+    in ten on yes against not-yes, and the verdict turned on one of those calls. The code is now
+    recorded with the answer, and the recount reads only the record.
+
+    MUTATION (must fire): drop `closing["answer_code"] = answer_code` in `resolve`; or let
+    `silence` count toward `explicit` in `acceptance_by_kind`."""
+    raised = [dc.raise_concern("strategy", f"{GOOD_WHAT} ({i})", GOOD_PROPOSAL,
+                               recommendation=GOOD_RECOMMENDATION) for i in range(6)]
+    with pytest.raises(dc.ConcernRefused, match="needs --answer-code"):
+        dc.resolve(raised[0]["id"], "answered", "his yes", no_action="none owed")
+    with pytest.raises(dc.ConcernRefused, match="needs --answer-code"):
+        dc.resolve(raised[0]["id"], "answered", "his yes", no_action="none owed",
+                   answer_code="probably")
+    with pytest.raises(dc.ConcernRefused, match="carries no answer code"):
+        dc.resolve(raised[0]["id"], "withdrawn", "superseded", answer_code="yes")
+    assert len(dc.open_rows(dc.read_raw())) == 6, "a refused close still closed a row"
+    # One control over the whole partition: every code is reachable through the CLI.
+    for row, code in zip(raised, (*d.ANSWER_CODES, None)):
+        argv = ["--answer", row["id"], "--resolution", f"his words ({code})",
+                "--no-action", "none owed", "--answer-code", code] if code else [
+                "--withdraw", row["id"], "--resolution", "superseded", "--no-action", "none owed"]
+        assert dc.main(argv) == 0
+    record = dc.read_raw()
+    assert d.validate(record) == []
+    assert sorted(r.get("answer_code") or "-" for r in dc.rows_of(record)) == sorted(
+        [*d.ANSWER_CODES, "-"])
+    closes = dc.closes_on_record(history=[], records=(record,), revisions=[])
+    t = dc.acceptance_by_kind(closes)["strategy"]
+    assert {c: t[c] for c in d.ANSWER_CODES} == {c: 1 for c in d.ANSWER_CODES}
+    assert t["uncoded"] == 0 and t["explicit"] == 4 and not t["near_certain"]
+
+
+def test_the_recount_names_uncoded_closes_and_can_reach_near_certain():
+    """The bar must be reachable (a recount that never qualifies a kind passes every refusal test),
+    and a close written round the CLI is counted as uncoded, never guessed as yes."""
+    def rows(n, code, kind="strategy"):
+        return {f"{kind}-{code}-{i}": {"status": "answered", "kind": kind, "answer_code": code}
+                for i in range(n)}
+    table = dc.acceptance_by_kind({**rows(20, "yes"), **rows(3, "silence"),
+                                   **rows(5, "yes", "canon_intent"),
+                                   "old": {"status": "answered", "kind": "canon_intent"},
+                                   "gone": {"status": "withdrawn", "kind": "canon_intent"}})
+    assert table["strategy"]["near_certain"] and table["strategy"]["explicit"] == 20
+    assert not table["canon_intent"]["near_certain"] and table["canon_intent"]["uncoded"] == 1
+    assert sum(table["canon_intent"][c] for c in (*d.ANSWER_CODES, "uncoded")) == 6
+
+
+@pytest.mark.parametrize("row, refused", [
+    ({"status": "answered", "answer_code": "yes"}, False),
+    ({"status": "answered"}, False),
+    ({"status": "answered", "answer_code": "maybe"}, True),
+    ({"status": "withdrawn", "answer_code": "yes"}, True),
+])
+def test_the_record_refuses_an_answer_code_it_cannot_count(row, refused):
+    base = {"id": "c", "what": "w", "proposal": "p", "resolution": "r"}
+    problems = d._concern_problems([{**base, **row}])
+    assert bool([p for p in problems if "answer_code" in p]) is refused
