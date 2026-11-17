@@ -1191,3 +1191,93 @@ twice. Three things follow:
   This is a prediction. The step-6 pre-registration restates it on A's own per-household variances
   before launch. The ruling's choice (one unsharded book at the budget, no sharding) is unchanged. Only
   the figure it was quoted with moves.
+
+### 10b. Candidate A graded against its twin: it clears §9a's bar, and the money cannot tell it from zero (17 Nov)
+
+**What was read.** The twin wrote `/var/tmp/vta-out-flag0/member_11111_22222.json` and its sidecar on
+16 Nov at 20:25Z. Both sides have `producing_commit` `41734bbe71`, and the flag is False on the twin and
+True on A for every seed. `arm_identity` differs in `name` and `renewal_margin_arm` only, on all four
+sidecars. `/var/tmp/vta-driver/grade_desk.py` ran unchanged, as filed. Seed 11111 is graded, and 22222
+is read beside it.
+
+| # | Seed 11111, control arm, 2019 on | Predicted | Measured (22222 beside it) | Held? |
+|---|---|---|---|---|
+| D1 | Twin's desk-belief AUC | 0.42 (0.30 to 0.55) | **0.361** (0.380) | **Held**. The kill (above 0.60) does not fire |
+| D2 | A's desk-belief AUC | 0.62 (0.48 to 0.80) | **0.819** (0.826) | **Missed high** |
+| D3 | A minus twin, paired | +0.20 (+0.05 to +0.40) | **+0.458** (+0.446) | **Missed high**. The kill does not fire, and the bar (> 0.112, A > 0.5) is cleared on both seeds |
+| D4 | Leavers among graded rows | 25 to 60 per side | **52 and 53** (48 and 48) | **Held**. §10a expected more on the bigger book. It did not come |
+| A1 | Pricing-belief AUC, A minus twin | 0.00 (−0.03 to +0.03) | **+0.0004** (+0.015) | **Held** |
+| A2 | Calibration, A minus twin; A at −0.24 to −0.18 | 0.00 (−0.03 to +0.03) | **−0.011** (−0.006); A at **−0.243** (−0.274) | **Missed** on its level clause: the twin itself sits at −0.232, not −0.21. The paired clause held |
+| A3 | Choosing leg, A minus twin, £ per household-year | £0 (−£1.50 to +£1.50) | **−£0.05** (−£0.39) | **Held** |
+
+Four held and four missed, with the fourth miss being §10a's *"A does not clear on both seeds"*,
+which is refuted. Both prediction misses on the desk belief are in A's favour. A's in-run AUC (0.819)
+matches the out-of-sample figure from the flag's build commit (`7a7ad95dc`, 0.819 [0.757, 0.877]) to
+three places. That is two independent windows agreeing, not the same rows twice. The flag's input is
+the previous tariff type (`ending_term_type`, `run_phase2b.py:4231`), which a supplier holds on its own
+books, so the ranking crosses no wall. On the value and level arms, A ranks at 0.84 to 0.88 and the
+twin at 0.17 to 0.26 (fewer leavers, 16 to 31). There the flat belief ranks stayers above
+leavers. That is printed, not graded.
+
+**The money, in £ per household-year, paired by household.** Written as
+`/var/tmp/vta-driver/grade_paired_gbp.py` after D1 to D4 had printed and before any money pairing was
+read. The unit is the household (accounts folded as in §10). The divisor is the twin's control-arm
+household-years on each seed (5,676 and 5,823). The interval is from 2,000 household resamples, each
+keeping both seeds. This is **supplier net margin**, the same quantity the value test's whole advantage
+has always been. It is not household value.
+
+| A minus twin | 11111 | 22222 | Mean (95%) | Households moved |
+|---|---|---|---|---|
+| **Control arm (the flat-rules book with A's desk belief)** | +£0.17 | +£0.10 | **+£0.14 (−£1.15 to +£1.37)** | 261 of 780 |
+| Value arm | −£1.32 | −£1.10 | **−£1.21 (−£2.35 to −£0.38)** | 101 |
+| Level arm | −£1.27 | −£0.71 | −£0.99 (−£2.49 to +£0.40) | 130 |
+| Whole advantage (value minus control) | −£1.49 | −£1.20 | −£1.35 (−£3.03 to +£0.13) | 284 |
+| Choosing leg (value minus level) | −£0.05 | −£0.39 | −£0.22 (−£1.78 to +£1.35) | 150 |
+
+**The grade, as asked: we cannot tell.** Better ranking of leavers by the desk is worth **+£0.14 per
+household-year on the flat book, with an interval of −£1.15 to +£1.37 that spans zero**. On the value
+arm the flag *costs* £1.21, and that interval excludes zero on two draws. **I cannot yet say why.**
+The candidates are these. The retention offers move to households the value arm's pricing was
+already keeping. Or the value arm loses the offers it used to make by accident to households that left
+and were worth keeping. Or it is the two draws' dice. The 101 households that moved on the value arm are where to look, and
+nothing here separates the three. Two draws hold the same 780 households, so the interval is over this
+book's households, not a population.
+
+**What §9a's rule does with this.** A clears on 11111, and 22222 has the same sign: **A's twelve-draw
+family is earned.** Under §10a's correction, its flag-on half *is* step 6 on A's belief. The rule was
+written on the ranking alone, and the money does not overturn a ranking that clearly moved. But the
+money says the twelve-draw family is now the test of whether the ranking is *worth* anything, not just
+a test of its size. Step 6 below is written that way.
+
+## 11. Step 6 pre-registered: A's belief on twelve `churn_roll` draws (filed 17 Nov, before launch)
+
+Filed with `/var/tmp/vta-out-flag1/` holding only pair 11111/22222. Nothing below has run.
+
+**The run.** `/var/tmp/vta-driver/driver.py` with `VTA_FLAG=1` and `VTA_SEEDS` unset, at
+`41734bbe71`, in the worktree `/var/tmp/value-test-candidate-a`, through `launch_long_job`. The driver
+keeps the pair on disk and runs **five pairs, 30 arm-runs, about 53 h** (1.77 h per arm-run, §10a),
+then folds twelve members. After it comes the flag-off half (`VTA_FLAG=0`), the same five pairs, which
+sizes A's paired effect. Each peaks near 11.5 GB, so it launches behind the headroom check and **not
+while `d5-land8` holds the box**. The continuation `value-test-step-6-pre-registered-and-launched-after-a-grade`
+does the launch.
+
+**Resolution, restated on A's own variances (§10a asked for this).** A's pair gives 784 households
+at 7.33 household-years each. Roll sd is £55.1 and between-household sd is £60.0 per household-year,
+and the roll share is 0.46 (twin 0.41). On twelve draws, the effect this book resolves at 80% power
+(2.8 standard errors) is **£6.21 per household-year** (twin's variances: £6.67), against §10a's
+predicted £6.00, which holds. A £3 effect needs about 3,360 households on twelve draws. Two draws
+estimate a variance poorly, so these are restated again on the twelve.
+
+| # | Quantity (A's family, twelve draws, £ per household-year on the control-arm divisor) | Predicted | Kill condition |
+|---|---|---|---|
+| S1 | Whole advantage, mean | **+£4 (−£2 to +£10)**. The pair gives £5.15 and £0.59. The twin's pair sits about £1.35 higher, and §10's family mean on the old book was £7.78 | — |
+| S2 | Its 95% household-resample interval | **Spans zero**, width about ±£6 | An interval that excludes zero is a claim, and goes to the page only with the twin half's paired figure beside it |
+| S3 | Desk-belief AUC on the control arm, 2019 on, across draws | Mean **0.80 to 0.84**, sd **under 0.04** | Mean under 0.70: the pair's 0.82 was its dice, and §10b's clearance is re-read |
+| S4 | Control arm, A minus twin (once the flag-off half folds) | **£0 (−£1 to +£1)**, interval spans zero | Above +£1 with an interval clear of zero: the ranking is worth money on the flat book, and that becomes the lead |
+| S5 | Value arm, A minus twin | **−£1 (−£2 to £0)**: the pair's cost survives | Interval spans zero: the pair's −£1.21 was two draws' dice |
+
+**What follows from each reading.** If S2 spans zero (as predicted), the page keeps its lead and
+says "we cannot tell" with the £6.21 resolution beside it. Per-customer inference is not shown to
+beat the flat book at this book size, and C's sized book (`the-value-test-s-sized-book-candidate`) stays
+the director's call. If S5 holds, the desk's better ranking costs money on the value arm. The
+mechanism is found before B is built, because B builds on the same belief.
