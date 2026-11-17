@@ -58,6 +58,8 @@ Explanations, ranked by evidence:
 
 **Prediction, filed before the answer.** Seed 33333 finished at 12:06Z after 21,313 s. Seed 44444 is about 62% through, by log lines (2022-05 of 2016-2025). Its pair lands at about 14:30-16:00Z, so the watcher stops step 6 by 16:00Z. sim-runner then starts a D5-on book within one cycle. That book took about 6,700 s last time, so its run_complete should land by about 18:30Z. Graded, it reads 0 on both rows. If either row is non-zero on that book, the fix did not reach the book, and that row is the next item.
 
+**Correction, 13:58Z (worker tick): the timing above is wrong; the mechanism is not.** Each seed is three full-window runs (`run_value_cycle_ab(level_arm=True)`; three `OUTCOME` lines, about 455k log lines each, before `[noise_floor] seed 1/2 done seed=33333`). "62%" was one run's progress through 2016-2025, read as the seed's. At 12:50Z, seed 44444 was about 13% through. Seed 44444's run 1 ended at 13:41Z and run 2 started at 13:52Z. At 33333's 21,313 s per seed, **pair 2 lands at about 17:40-18:10Z and the D5-on run_complete at about 20:00Z**. The watcher's pair-2 deadline is 23:00Z, so it still covers this. Stopping step 6 early would throw away the roughly 7.7 h of pair 2 the child holds in memory (noise_floor writes only at the end), so the watcher stays as armed. The refutation test is unchanged: the book grades 0 on both rows.
+
 No concern is raised for the director: this is in-flight work with its mechanism armed. If the watcher exits 2 or 3 (`/var/tmp/d5book-pause/watch.log`), the pause never happened, and that is the next draw.
 
 ## Still live
@@ -68,3 +70,4 @@ No concern is raised for the director: this is in-flight work with its mechanism
 ## Re-asked
 - **2026-11-17** — re-asked: **still_holds**. observed 2026-11-17, within the 3-day bar.
 - **2026-11-17 12:50Z** — worker tick: cause is the pre-fix book, cure armed (d5book-pause-watch); see End-to-end check. Nothing to repair at HEAD.
+- **2026-11-17 13:58Z** — worker tick: still holds; pair 2 is mid seed 44444, run 2 of 3. Timing corrected above (D5-on book at about 20:00Z, not 18:30Z).
