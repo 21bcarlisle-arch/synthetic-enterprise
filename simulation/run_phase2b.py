@@ -6521,6 +6521,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # plan, or crossed for a bill a plan covers (the arrears paid twice). AFTER the journeys,
         # whose end-of-run forced crossing is the last that can move these counts.
         "later_settlements": _payment_triad.later_settlements(),
+        # ...and the lumps that crossed behind their journey's walk, so a desk step that day read
+        # the balance without them. AFTER the journeys for the same reason.
+        "settlements_behind_the_walk": _payment_triad.settlements_behind_the_walk(),
         # World truth (LEVEL_DD s.9.8 W1/W4): what the world asked on each mover's final bill,
         # and whether a level leaver's ledger credit came off it. Never crosses.
         "final_month_nets": _payment_triad.final_month_nets(),

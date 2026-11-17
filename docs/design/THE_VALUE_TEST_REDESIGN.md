@@ -1289,3 +1289,16 @@ mechanism is found before B is built, because B builds on the same belief.
 experiments. It starts when that gate ends. Artefact: `/var/tmp/vta-out-flag1/family_12_churn_roll.json`;
 log `/var/tmp/longjob-value-test-step-6-flag1.log`. The flag-off half launches after it exits, not
 beside it. To reverse: `systemctl --user stop` the unit; the members already written are kept.
+
+**Paused at the pair-2 boundary for the D5-on book (armed 17 Nov 11:00Z; direction focus
+`the-d5-book-runs-at-step-6s-next-pair-boundary`).** sim-runner yields to any resident long job, so no
+book carrying D5 (341df4965) could run until step 6 ended, about 50h away. Transient unit
+`d5book-pause-watch` (`/var/tmp/d5book-pause/watch.sh`, log `watch.log` beside it) waits until
+`member_33333_44444.json` and `control_33333_44444.json` are both on disk, stops this unit, waits for the
+next `docs/staging/run_complete_*.md`, and relaunches the unit with the same argv, `VTA_FLAG=1`, cwd,
+peak and question. The driver skips pairs already on disk, so the family is split at a pair boundary
+(pairs 1 and 2 before the book, 3 to 6 after it) and nothing is redrawn. A pair-3 child killed at the stop
+loses minutes and restarts from its first seed. The grade must read the relaunch line in
+`/var/tmp/longjob-value-test-step-6-flag1.log` ("pair [11111, 22222] already on disk, kept", and the same for
+33333_44444). Reverse: `systemctl --user stop d5book-pause-watch`; if step 6 is already stopped, run the
+relaunch block of `watch.sh` by hand.

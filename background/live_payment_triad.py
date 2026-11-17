@@ -798,6 +798,11 @@ class LivePaymentTriad:
         # Later settlements other money had cleared in full (not sent), or in part (cut to the rest).
         self._n_settlements_already_cleared = 0
         self._n_settlements_cut_to_balance = 0
+        # account -> (furthest day its journey was walked to, which walk took it there), and every
+        # lump that crossed on or before that day: the desk had already decided that day without
+        # the cash (`settlements_behind_the_walk`).
+        self._walked: dict = {}
+        self._behind_the_walk: list = []
         self._outcomes_by_customer: dict = {}
         self._moratoria = MoratoriumDrawer()
         self._early_checks: dict = {}
@@ -1075,12 +1080,31 @@ class LivePaymentTriad:
         held = self._held_settlements.get(account_id, [])
         while held and bound is not None and held[0][0] - timedelta(days=1) <= bound:
             item = held.pop(0)
-            self._consumer.advance_collections_journey(
-                account_id, item[0] - timedelta(days=1),
-                segment=self._journey_segments[account_id])
+            self._walk(account_id, item[0] - timedelta(days=1),
+                       self._journey_segments[account_id], "settle_held")
             self._cross_settlement(item)
         if not held:
             self._held_settlements.pop(account_id, None)
+
+    def _walk(self, account_id: str, through: date, segment: str, by: str) -> None:
+        """Walk the account's collections journey to `through`, noting which walk went furthest."""
+        self._consumer.advance_collections_journey(account_id, through, segment=segment)
+        if account_id not in self._walked or through > self._walked[account_id][0]:
+            self._walked[account_id] = (through, by)
+
+    def settlements_behind_the_walk(self) -> dict:
+        """Lumps that crossed on or before a day the account's journey had already been walked
+        through. The desk stepped that day on a ledger without the cash, so the overdue it printed
+        is the balance before the payment: SYN-2016-001's 15 Aug 2023 Consent step printed GBP
+        386.23, the page's two-fuel balance 329.71, the gap that day's gas lump of 56.52, while its
+        other 40 steps agree with the page to the penny (f7e17b1316 book, row
+        INV_OVERDUE_WITHIN_PAGE_BALANCE). Which walk got there first is not yet established; `by`
+        names it on the next book."""
+        rows = self._behind_the_walk
+        by: dict = {}
+        for r in rows:
+            by[r["walked_by"]] = by.get(r["walked_by"], 0) + 1
+        return {"count": len(rows), "by_walk": by, "examples": rows[:20]}
 
     def _cross_settlement(self, item) -> None:
         """Withdraw one lump the household's plan replaced, or cross it to both companies."""
@@ -1143,6 +1167,12 @@ class LivePaymentTriad:
         self._n_ambiguous_records += 1
         self._n_ambiguous_credits += 1
         self._n_settlements_delivered += 1
+        walked = self._walked.get(account_id)
+        if walked is not None and walked[0] >= settled_on:
+            self._behind_the_walk.append({
+                "account_id": account_id, "leg": event.customer_id,
+                "settled_on": settled_on.isoformat(), "amount_gbp": cash,
+                "walked_through": walked[0].isoformat(), "walked_by": walked[1]})
 
     def close_accounts(self, departed_households) -> None:
         """Tell the queue which households' accounts closed in the run (the engine's own set,
@@ -1921,8 +1951,7 @@ class LivePaymentTriad:
             self._settle_held(account_id)
             bound = self._walk_bound(account_id)
             if bound is not None:
-                self._consumer.advance_collections_journey(
-                    account_id, min(previous_due, bound), segment=segment)
+                self._walk(account_id, min(previous_due, bound), segment, "record_period")
 
         return _derive_analytics_record(customer_id, due_date, amount_gbp, event)
 
@@ -1937,7 +1966,7 @@ class LivePaymentTriad:
             self._settle_held(account_id, through)
         self._deliver_settlements_through(through, force=True)
         for account_id, segment in self._journey_segments.items():
-            self._consumer.advance_collections_journey(account_id, through, segment=segment)
+            self._walk(account_id, through, segment, "run_end")
         return self._consumer.collections_journeys.journeys()
 
     def measure(self, as_of: Optional[date] = None) -> Optional[dict]:

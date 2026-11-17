@@ -47,3 +47,30 @@ that matches these predictions is consistent with D5 and does not attribute the 
   hypothesis. Prediction 3 says the switch-on stops this path being reached. Whether it fires anywhere else is
   unmeasured.
 - **SYN-2016-001** (row 7, 2 steps) has no owner in `next_book_requires.yaml`.
+
+## SYN-2016-001 traced to a class (worker, 17 Nov)
+
+- **What the desk read.** The household's 2022-25 journey (ACC-SYN-2016-001, `collections_journeys[966]`
+  on f7e17b1316) has 42 desk steps. 40 print an overdue figure equal to the page's two-fuel balance
+  that day, to the penny. The two that do not are both the 15 Aug 2023 steps, each 56.52 over. 56.52
+  is the gas lump the world settled on 15 Aug (bill 21608, `world_payment_truth.repayments`). Every
+  step after it agrees with the page again, so the cash did reach the company's ledger. It got
+  there after the desk had decided 15 Aug.
+- **So this is the walk's ordering, not D5 and not the grader.** A lump that crosses on or before a
+  day the journey has already been walked through leaves that day's step reading the balance
+  without it. Which walk passed 15 Aug first is **not established** from the code. `_settle_held`
+  sorts lumps by date and the bound read here looks sound, so I cannot yet say.
+- **The diagnostic is now in the run.** Every lump that crosses behind its walk is counted, with
+  the walk that went past its day: `settlements_behind_the_walk` in the run summary
+  (`LivePaymentTriad._walk`). The next book names the path.
+- **A fully clearing crossing behind the walk fails differently.** The desk's R10 check raises
+  (`DunningOfAClearedDebtError`), so the run stops. Only partial ones, like this one, get through
+  silently.
+- **Prediction 2 stands.** Row 7 reads 2 on the next book unless that book's draws move this lump.
+  If it does, the book is refused again. That refusal is this class, and the counter will name its
+  walk.
+- **Also fixed here: the shared tree's `background/live_payment_triad.py` held the pre-switch-on
+  bytes** (`FINAL_BILL_ASKS_THE_LEVEL_DEBIT = False`, mtime 16 Nov 20:22, identical to
+  341df4965^). The same was true of its test. 341df4965 landed without writing either file.
+  `sim_runner.code_admission` would have deferred every book on it once memory freed. Both now
+  hold HEAD's bytes.
