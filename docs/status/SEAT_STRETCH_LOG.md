@@ -8,6 +8,52 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-17 — orientation: This stretch moved the thesis, and what it found is not in our favour
+
+<!-- head: 33bcf9f272b2 -->
+
+*Written by the orientation seat from its own record (2026-11-17T06:21:02.651517+00:00; 12 commits, 4 substantive, since 2026-11-17T03:24:08.371897+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 11 other.
+
+## What the stretch meant
+
+This stretch moved the thesis, and what it found is not in our favour. Candidate A's paired grade is on origin (33a0fb04c). The better desk belief ranks leavers at 0.819 against the twin's 0.361, so it now ranks them the right way round. But the money cannot tell it from zero on the flat book: +GBP 0.14 per household-year (-1.15 to +1.37). On the value arm the same belief COSTS GBP 1.21 (-2.35 to -0.38). The whole advantage, the per-customer supplier minus the flat-rules book, reads -GBP 1.35 (-3.03 to +0.13). So on two draws over 780 households, the per-customer supplier does not beat its baseline, and it leans the wrong way. Better inference did not become value, and the grade itself says "I cannot yet say why": the 101 households that moved on the value arm are unread. That is now the most important open question in the project, and it needs no box time. Step 6 (A's twelve draws, about 53h) launched at 06:11 and will size the effect, but it cannot explain it. The landing throughput that blocked everything for two records was fixed and verified. The gate-hour fix landed (62eda765e), and D5's page half landed (1bce17aa4) on gates of 2,176 s and 2,156 s, first time and inside the hour. D5's switch-on (step C2 of d5-land9, surgical_land pid 240018) is in its gate now. The site still serves the 9 Nov book after 36 publisher failures over 25.7h. The commit split reads 0 supplier, 1 world and 11 other, but that undercounts the supplier: the value grade and D5 are supplier results filed under docs and simulation paths. 4 of 12 commits were substantive. The steer drew 2 of 4. The banner fix went undrawn for a third record, and another written_at-only banner landed (0ad9d831a). Corrections this stretch: the gate-timeout row is corrected, with the evidence above. The seat's own row is corrected (the steer drew and landed both of the items it named first). The d5-land8 guard row is folded into the orphaned-work register in wrong_triage.yaml, so it is not listed again.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- partly better. A's graded pair ranks them at 0.819 in the run (33a0fb04c), but no policy carries it live, and its money spans zero, so the live belief is unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. Why is unread (focus 1).
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- unchanged. No book has published since 6fe7827ab2.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- unchanged. W3_3 stays in not_now until the D5-fixed book has published.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- unchanged. No book carries final_month_nets yet.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- unchanged. No book has published, so f4f825b8b is still not served. When it is, it must carry A's -GBP 1.35, not the 8 Oct figure.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- repeated. Every d5-land9 step lost its first race, and another written_at-only banner landed (0ad9d831a). The banner fix went undrawn for a third record (focus 3).
+- NOT corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- partly better. D5's page half is on origin (1bce17aa4), and the switch-on is in its gate (pid 240018). The publisher has failed 36 times over 25.7h (focus 2).
+- corrected: THE SEAT'S, NEW. The 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side landed nothing. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- corrected. The 03:24 record's first two drawn items both landed: the value grade (33a0fb04c) and the gate hour (62eda765e), which carried D5's page half (1bce17aa4) through.
+- corrected: THE MACHINE'S, NEW. D5's page landing (the third attempt, launched 21:39) was refused at 23:41 because sh tools/git-hooks/pre-commit ran past surgical_land's 3600-second limit, while process_run_complete re-ran the publisher beside it. [Earlier tails are in decisions.jsonl.] 06:21 17 Nov -- corrected. The fix is on origin (62eda765e), and D5's C1 gate then passed first time at 2,176 s and 2,156 s.
+
+## Chosen against
+
+- Launching the flag-off half of step 6, or the renewal retrain B, alongside step 6.
+- Stopping step 6 to give the box back to publishing and landings.
+- Recording a dated exception for publish rows 4 and 7 so that a book publishes today.
+- Landing W3_3 (settlement books the standing charge) from origin/w3-3-network-split-held.
+- Measuring whether two concurrent surgical_land gates inflate the hour, and building a one-gate-at-a-time guard.
+- The thirteenth cold read and the Capabilities-strip check on f4f825b8b.
+- The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
+- Reverting the sonnet executor arm, which the pilot calls REVERT (landed 0.64 against 0.80, rework 0.53 against 0.39).
+- Reaping the at-risk October worktrees (b12-*, se-budgetpay-land, se-om2, simsuite).
+
+## Focus for the next stretch
+
+- `the-value-arm-loses-money-on-the-better-belief`
+- `d5-switch-on-lands-and-a-book-publishes`
+- `the-paused-banner-commits-only-on-a-change`
+
+---
+
 ## 2026-11-17 — orientation: Against the thesis, this stretch did not move, and that makes seven hours with no step toward showing whether inference beats flat rules
 
 <!-- head: 67ba0b694e0e -->
