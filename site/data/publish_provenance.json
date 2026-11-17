@@ -24,8 +24,8 @@
     "run_retained": true,
     "verified_at": "2026-11-11T20:13:59Z"
   },
-  "paused_gate": "Refused by the domain-invariant check: 2 of its rules are broken and no dated exception covers them. Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 20 of 6,144 checked (unit: household collections step printing an overdue figure); When a household's fuel leg is refunded on closing, the refund never exceeds the household's credit across all its closing fuel legs on the refund day [INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT]: broken on 24 of 132 checked (unit: refund line on a fuel leg whose household prints another fuel leg).",
-  "paused_reason": "domain-invariant breaches at git=18f201c5bf that no exception covers: INV_OVERDUE_WITHIN_PAGE_BALANCE 20 (no exception); INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT 24 (24 breaches exceed the exception's max_breached 23)",
+  "paused_gate": "Refused by the domain-invariant check: 1 of its rules is broken and no dated exception covers it. Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 20 of 6,144 checked (unit: household collections step printing an overdue figure).",
+  "paused_reason": "domain-invariant breaches at git=18f201c5bf that no exception covers: INV_OVERDUE_WITHIN_PAGE_BALANCE 20 (no exception)",
   "paused_since": "2026-11-16T04:26:22Z",
   "schema": 1,
   "showing_run": {
@@ -41,5 +41,5 @@
     "verified_at": "2026-11-11T20:13:59Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-11-17T20:18:58Z"
+  "written_at": "2026-11-17T21:30:17Z"
 }
