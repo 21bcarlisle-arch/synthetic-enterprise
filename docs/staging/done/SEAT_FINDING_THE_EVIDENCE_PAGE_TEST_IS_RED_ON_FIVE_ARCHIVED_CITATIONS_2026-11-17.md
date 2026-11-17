@@ -43,3 +43,11 @@ exclusion back makes that control fail (mutation checked).
 **Still open, for the level lane:** C2_discovery_through_interfaces sits at L2/L2, and the evidence
 for that L2 is code now archived as unhooked. Whether C2 holds L2 is a level judgement, and this
 change does not make it.
+
+## Closed (2026-11-17, worker)
+
+C2's L2 rested on a live caller and a live consumer, and both are in the archived trio. Nothing outside
+`archive/` calls `register_from_signup` or reads `belief_confidence` at HEAD, so C2 is corrected to L1
+(`LEVEL_CORRECTION_SELF_CERTIFIED` in `gate_authorizations.jsonl`, plus a dated entry in its
+simplifications record). The target stays 2, so C2 goes back to the drawn half of the map, with the same
+named next step as on 13 Jul. B4's pair is cited only as orphaned and does not support a level.
