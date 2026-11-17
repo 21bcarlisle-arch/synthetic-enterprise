@@ -1,0 +1,70 @@
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+
+# [ACTION NEEDED] publish_gate_wedged
+
+<!-- counts:begin -->
+**Filed automatically by `background/alarm_repetition.py`, not by a person.** This condition
+has been **observed to hold on 1 separate day(s)**, on **2026-11-17**, and **1 member(s)** of
+the family `auto:b2d82739052db5bf` have fired. Both counts are DERIVED from this document's own
+dated lines every time the alarm fires again, so they age with the document rather than with
+its first firing.
+
+Separately, the observer that last filed reported **3 consecutive firing(s) without a state
+change**, over **5.4h**. That is `notify()`'s streak counter, which resets; it is not a total
+and does not combine with the two counts above.
+<!-- counts:end -->
+
+## The alarm, verbatim
+
+```
+[ACTION NEEDED] publish_gate_wedged
+What: The run-complete PUBLISH GATE has failed 3 time(s) in a row within the last 60 min -- the site/report pipeline is WEDGED and run_complete markers are piling up unpublished. Latest cause: the domain-invariant gate refused the BOOK: it breaches invariants that no named, dated exception covers, so NO test was run. NOT a test failure. The breaches are in the cause evidence and in docs/reports/DOMAIN_INVARIANTS.md; fix their cause in the code, and the next run that grades clean publishes (rc=82, git=f7e17b1316). EPISODE: wedged since 2026-11-16T04:39 UTC -- 31h59m and 48 consecutive failures in THIS episode (not a fresh hour). Markers pending: 2.
+How: ATTRIBUTED CAUSE: `domain_invariant_refused` -- breaches no exception covers at git=f7e17b1316: INV_OVERDUE_WITHIN_PAGE_BALANCE 7 (no exception); INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 5 (5 breaches exceed the exception's max_breached 1). NO TEST WAS JUDGED -- the domain-invariant gate refused the book before the suite ran. Do NOT hunt a red and do NOT run the gate's pytest argv. Read the breaches in docs/reports/DOMAIN_INVARIANTS.md (the ATTRIBUTED CAUSE line names them), fix their cause, and offer a run made at or after the fix: this book will never grade clean. The alarm clears on the next clean publish.
+Why: A silently-wedged publish gate stops the live site and report updating with NO other signal -- this is the exact ~45-min silent stall of 2026-07-14 (H15).
+```
+
+## What is known without diagnosing anything
+
+- Signature: `auto:b2d82739052db5bf` — the alarm text with elapsed times, counters, hashes and timestamps
+  normalised away, so this is the same CONDITION recurring, not the same string.
+- First seen in this episode: 2026-11-17T07:17:29+00:00
+- Repeats before escalation: 3 (threshold `ESCALATE_AFTER_REPEATS` = 3, applied by `notify()`)
+- Paging for this signature is now SUPPRESSED. It resumes automatically the moment the
+  underlying state changes — including when it clears.
+
+## What this document is asking for
+
+The repetition is the finding. Something is failing the same way on a loop and nothing is
+converging on it, which is the shape the director named as "a symptom, not an event". Draw
+this, diagnose the condition named above, and either fix it or record why the alarm is wrong.
+
+Archive to `docs/staging/done/` when the condition is resolved. While this document is live
+-- here or in `in_progress/` -- a continuing condition APPENDS a dated line below rather than
+filing a second document (2026-08-24). A condition that returns AFTER this has been archived
+files a fresh document, because that is a new episode and an R3 two-strike signal.
+
+A REPEATING FAILURE IS ONE OF THE THREE TRIGGERS FOR THE END-TO-END CHECK (director,
+2026-10-04): before fixing the instance, write the section below -- the loop may be the world,
+the maths, the canon or the frame, not the code that is alarming.
+
+## End-to-end check
+
+Worker tick, 2026-11-17 12:50Z. **No test is red and no gate is wrong.** The cause is the book itself. All three failures in the window grade one book, `run_complete_20261116T070501Z` on f7e17b1316. That book was built before the fixes for its two refusing rows: INV_OVERDUE_WITHIN_PAGE_BALANCE 7 (D5, fixed by 341df4965) and INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR 5 (fixed by fc3129a86). It can never publish, and the gate is right to refuse it. A dated exception would print "overdue" to households that are in credit, so none is proposed.
+
+Explanations, ranked by evidence:
+1. **The world/code was wrong, and that is now fixed. Only a new book can show it (strong).** All five `background/next_book_requires.yaml` commits are ancestors of HEAD fca4fdc04e, and `sim_runner.book_admission()` returns `admitted` at HEAD. So the first cause has been removed.
+2. **Capacity: one memory slot, two long jobs (strong).** sim-runner defers every cycle to `longjob-value-test-step-6-flag1` (11.8 GB). The cure is armed: `d5book-pause-watch` (`/var/tmp/d5book-pause/watch.sh`, commit 870cfa8a4c) stops step 6 once pair 2 (`member/control_33333_44444.json`) is on disk, then relaunches it when the D5-on book's run_complete lands.
+3. **The alarm is wrong (weak).** The alarm is correct: nothing has published. But each regrade of the same refused book re-arms it, which is finding e2f6155891, fixed by 623b28e72e. The draw that sent this tick to "run the pytest gate" did not know that.
+
+**Prediction, filed before the answer.** Seed 33333 finished at 12:06Z after 21,313 s. Seed 44444 is about 62% through, by log lines (2022-05 of 2016-2025). Its pair lands at about 14:30-16:00Z, so the watcher stops step 6 by 16:00Z. sim-runner then starts a D5-on book within one cycle. That book took about 6,700 s last time, so its run_complete should land by about 18:30Z. Graded, it reads 0 on both rows. If either row is non-zero on that book, the fix did not reach the book, and that row is the next item.
+
+No concern is raised for the director: this is in-flight work with its mechanism armed. If the watcher exits 2 or 3 (`/var/tmp/d5book-pause/watch.log`), the pause never happened, and that is the next draw.
+
+## Still live
+
+## Instances seen
+- `publish_gate_wedged what: the run-complete publish gate has failed # time(s) in a row within the last # min -- the site/` (first seen 2026-11-17)
+
+## Re-asked
+- **2026-11-17** — re-asked: **still_holds**. observed 2026-11-17, within the 3-day bar.
+- **2026-11-17 12:50Z** — worker tick: cause is the pre-fix book, cure armed (d5book-pause-watch); see End-to-end check. Nothing to repair at HEAD.
