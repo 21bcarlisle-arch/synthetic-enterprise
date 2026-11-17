@@ -1,263 +1,227 @@
 version: 1
-oriented_at: "2026-11-17T15:22:04.166738+00:00"
+oriented_at: "2026-11-17T18:22:29.604804+00:00"
 thesis_read: >-
-  This stretch moved the thesis question in substance, though not yet in money. The per-customer
-  supplier still loses GBP 1.35 per household-year against its flat-rules baseline on A's better
-  belief. But for the first time we know why, with a reason the evidence supports and a test that can
-  refute it. Section 12 of docs/design/THE_VALUE_TEST_REDESIGN.md was pre-registered before the read
-  (da4cb352e) and read after it (9dd2b365a). The loss is not the value arm's pricing: price moved an
-  outcome for one household in 101. Ten of the 101 flipped at an identical roll and an identical
-  common-fuel price, and the sign test across all three arms runs 20 to 1 against A (p about 2e-5),
-  so it is not the dice. The best-supported mechanism is the retention offer. The twin's backwards
-  belief (AUC 0.36) made offers by accident to households that were leaving and worth keeping. A's
-  better ranking calls those households safe and withdraws the offers, and on the value arm those
-  households are the most valuable ones (GBP 570 to 3,900 each). That is still an inference, because
-  the sidecars did not log the offer. f318f1e48 now logs it, and 1ce0f6549 pre-registers and arms a
-  re-read of the same pair. For the thesis this is the useful kind of setback. Better inference was
-  spent by a lever, the offer gate, that values a kept household at the flat book's margin, not at
-  what the value arm earns from it. The fix is a lever change, and the objective does not need to
-  move. It also means the advantage cannot show until the levers are in merit order, which is the
-  director's own priority order. The commit split reads 0 supplier and 22 other. That is the
-  classifier's reading: the four value-test commits are supplier work on tools/ and docs/, and the
-  stretch was more supplier-heavy than any this week. 7 of 22 commits were substantive and 6 were
-  merges carrying nothing. The steer bit: last record's first item was drawn and finished, so it
-  leaves focus. Its other three items went undrawn in 3h. Two are harness items, and the D5 book item
-  is waiting on the box anyway. The D5 book has still not run. d5book-pause-watch last logged at
-  11:00Z, waiting for pair 33333_44444, which step 6 is in now (seed 44444, run 2 of 3). 95ed31f26
-  corrected its expected time from 18:30Z to about 20:00Z. The publisher stands at 48 failures over
-  34.7h on the 16 Nov book. 623b28e72 stops the regrade unless an input changed, and the background
-  worker restarted at 15:14Z and is re-processing that marker now, so the first post-fix cycle is the
-  one to read. Corrections this stretch: e0e8a32df took C2 from L2 to L1, because the caller and
-  consumer its level rested on were archived on 8 Nov. 95ed31f26 corrected the D5 book time. Section
-  12a corrected its own bucket label beside the claim. All three are listed below as corrected. None
-  of the eleven carried rows is corrected. The value-arm row now has a cause, but no fix. The director
-  sent one advisor steer (contact cause, failure demand, quiet fails). His words are "log as an idea
-  or backlog", so it is focus 1: a short logging task, not a build.
+  In money, the thesis stands where it stood three hours ago. The per-customer supplier still trails
+  its flat-rules baseline by GBP 1.35 per household-year on A's better belief, and the cause is still
+  an inference. What moved is that both tests that could settle it are now possible. First, the D5-on
+  book is running. d5book-pause-watch stopped step 6 at 17:41Z with pair 33333_44444 on disk. sim-runner
+  waited 35 minutes on another worker's uncommitted walk fix, which then landed as 18f201c5b, and launched
+  the book on 18f201c5bf at 18:19Z (pid 577704). Row 7's prediction was amended before that book started
+  (d659c1742), so the grade is still pre-registered. Second, pair 2 has been on disk since 17:41Z. That
+  makes section 12a's confirm-or-refute read on the offer gate possible now, with no box time, and nobody
+  has run it. The steer drifted here. Last record's offer-gate item was ready at 17:41Z and was not drawn.
+  Of five focus items, only the D5 book item was drawn, and only because its watcher did the work. The
+  continuation-ordering item and the banner item are now undrawn for a second record. The first focus
+  item, the contact-cause backlog, is finished (6f0b5eb1c, steer in done/) and leaves focus. The commit
+  split reads 0 supplier and 9 other. 18f201c5b is a billing fix to the live payment triad that the classifier
+  counts as other. One commit of nine was substantive, two merges carried nothing, and another written_at-only
+  paused banner landed (db8e59e47), which is the third record running in which that happened. The publisher
+  stands at 49 failures over 37.7h and the site serves the 9 Nov book. Nothing in the eleven carried
+  rows is corrected this stretch, because each correction waits on the book now running or on the pair-2
+  read nobody has drawn. The director sent one advisor steer, the golden-set amendment to the 21 Nov CLAUDE.md
+  trial, answered "Yes" at 17:57. It goes first by the advisor rule, and it has a date. Supplier work
+  follows it: the pair-2 read, which takes minutes, and the D5 book grade.
 stretch_reviewed:
-  since: "2026-11-17T12:20:25.405778+00:00"
-  commits: 22
-  substantive: 7
+  since: "2026-11-17T15:22:04.166738+00:00"
+  commits: 9
+  substantive: 1
 focus:
-- id: the-contact-cause-steer-is-logged-for-the-backlog
-  what: 'Action docs/staging/advisor/DIRECTOR_STEER_CONTACT_CAUSE_FAILURE_DEMAND_AND_QUIET_FAILS_FOR_THE_BACKLOG_2026-11-17.md
-    as the steer says: log it, build nothing. Add it to docs/direction/priority_order.yaml beside simulator_spec_candidates,
-    as a backlog entry with five rows. Row 1: contact as evidence of who a household is. Row 2: value
-    demand versus failure demand, where failure demand is the supplier''s cost and never the customer''s
-    CLV. Row 3: root cause by contact cluster. Row 4: handling by cluster, for NBA and coaching. Row 5:
-    silent unhappiness and quiet fails, scored against world truth. On each row put its lane and side,
-    and a builds_on naming the existing work it extends: the need stocks (item 2 of 16 Nov), step-shaped
-    cost to serve (item 6), and the existing contact-response modules. Copy the steer''s guardrails onto
-    the entry, unchanged: inferred traits serve and never ration, "expensive" never becomes a reason to
-    steer someone out, and the K8 knowledge comes first with GAPs labelled. Mark it for ranking at Friday''s
-    balance review. Then move the steer to docs/staging/advisor/done/ with a ## Done section that says
-    what was logged. Add exactly one Decision line coded under docs/operations/DECISION_KINDS.md. His
-    15:13 "Log as an idea or backlog" answers the advisor''s logging proposal, so code it as that kind''s
-    yes. If the advisor file carries no recommendation, write "Decision: none -- his words log an idea
-    and answer no recommendation".'
-  why: The advisor channel goes ahead of everything else, and this steer costs a few minutes. Failure
-    demand charged to the customer's CLV is the cap-pricing pattern built in quietly (M2), so it must
-    be on the backlog before anyone builds cost-to-serve attribution. Done means the backlog entry is
-    on origin with its guardrails, and the steer is in done/ with its Decision line.
-  lane: A_strategy_governance
+- id: the-claude-md-trial-takes-a-golden-set-run-twice
+  what: 'Action docs/staging/advisor/DIRECTOR_STEER_THE_CLAUDE_MD_TRIAL_USES_A_GOLDEN_SET_RUN_TWICE_AND_EACH_HANDOFF_EARNS_ITS_PLACE_2026-11-17.md
+    before the 21 Nov trial starts. (1) Amend docs/staging/records/SEAT_PREREG_TRIAL_E_E_MINIMAL_CLAUDE_MD_AGAINST_THE_FULL_ONE_2026-11-16.md
+    with a golden set of about 10 seat tasks. Cover at least the steer''s seven cases: a staging draw,
+    a fidelity change near the wall, a commit through the gates, a knowledge-first build, an escalation
+    to for_the_director with a recommendation, a G5 refusal, and an interconnection review after a landing.
+    Fix each task''s inputs and pass criteria in the file. Write down the run plan: two runs per task
+    on the full file and two on the minimal file, a line added back if its absence fails either run, every
+    run reported, and real-turn comparison as the secondary check. Do not run the trial. (2) Write a one-off
+    inventory at docs/operations/HANDOFF_AND_AGENT_INVENTORY_2026-11-17.md covering the six .claude/agents/
+    types, each seat and daemon kind, and each written handoff. Mark each one keep-barrier (name the barrier),
+    keep-measured (give the measurement), or candidate-to-fold. Anything that crosses the epistemic wall
+    or a blind review is never a candidate. Include (3), the tool-definition count each seat kind carries
+    after the 16 Nov switch-offs, against the 30 to 50 band. Append the steer''s row to docs/institutional/reading_log.md.
+    Move the steer to docs/staging/advisor/done/ with a ## Done section and the line "Decision: outside_source
+    yes". The recommendation he answered was to ADAPT a named outside source, which is kind 5 and comes
+    before harness in DECISION_KINDS.md''s precedence.'
+  why: The advisor channel goes ahead of everything, and his "Yes" at 17:57 is the steer. The trial is
+    pre-registered for 21 Nov, so a golden set added after it starts would be chosen after the trial's
+    answers are known. Done means the amended pre-registration, the inventory with its tool count, and
+    the reading-log row are on origin, and the steer is in done/ with its Decision line. No fold is tried
+    in this item.
+  lane: H_harness
   side: other
-  written_at: 1794929203.744
-- id: the-d5-book-is-graded-and-published-or-its-refusals-named
-  what: d5book-pause-watch (/var/tmp/d5book-pause/watch.sh, log watch.log) is armed. It stops step 6 once
-    /var/tmp/vta-out-flag1/member_33333_44444.json and control_33333_44444.json exist (expected about
-    20:00Z, per 95ed31f26), waits for the next docs/staging/run_complete_*.md, and relaunches step 6.
-    Do not re-arm it or launch a second book. When that book's run_complete lands, confirm three things.
-    First, the book ran at or after 341df4965 and 317b1d56c. Second, /var/tmp/longjob-value-test-step-6-flag1.log
-    shows the relaunch keeping 11111_22222 and 33333_44444. Third, the background worker skipped the regrade
-    of the 16 Nov marker under 623b28e72. Then read the book against the publish gate and the domain invariants.
-    Grade rows 4 and 7 against docs/staging/SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md.
-    Grade INV_OVERDUE_WITHIN_PAGE_BALANCE and INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR against the
-    16 Nov refusal. For each row or invariant still refusing, name its cause and an owner in docs/staging/SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_IS_AN_OPEN_ESTIMATED_RUN_AND_THE_16_NOV_BOOK_IS_REFUSED_AS_PREDICTED_2026-11-16.md
-    or in a new finding. If the watcher has not fired by 23:00Z, read watch.log and step 6's log, and
-    record why in THE_VALUE_TEST_REDESIGN.md's pause paragraph.
-  why: Billing accuracy is first in the director's order. Every published-book check waits on a book newer
-    than 9 Nov, and the site has served no new figure for 139h. The book also gates the final_month_nets
-    grade, the Capabilities strip and W3_3. Done means rows 4 and 7 and both invariants are graded on
-    a D5-on book, and either a verified publish carries that book or every refusing row has a named cause
-    and owner. Step 6 must also be running again.
-  lane: D_billing_metering
-  side: supplier
-  written_at: 1794929203.744
+  written_at: 1794939987.73
 - id: the-retention-offer-gate-values-a-kept-household-at-what-the-arm-earns
-  what: 'Section 12a of docs/design/THE_VALUE_TEST_REDESIGN.md names the next change as the lever. The
-    retention-offer gate (_would_offer, simulation/run_phase2b.py near line 4468: value protected above
-    offer cost, under the desk belief) values a kept household at the flat book''s margin. It should value
-    it at what the value arm will earn from that household. Do this in three steps, in order. STEP 1,
-    no box time: once /var/tmp/vta-out-flag1/member_33333_44444.json and control_33333_44444.json exist,
-    run section 12a''s confirm-or-refute read on that pair. Count value-arm flips at identical rolls and
-    identical common-fuel margins, A against twin, and grade the count against 12a''s stated confirm and
-    refute conditions with a Graded value-test trailer. STEP 2, only if it does not refute: write or amend
-    the K8 knowledge page on retention offers and save rates (published practice, GAPs labelled). Then
-    find where the value protected is computed, and check whether a supplier decision is sitting in simulation/
-    rather than in company/. If it is, file that as a wall finding. STEP 3: change the gate behind a default-off
-    switch so the value protected reads the arm''s own expected margin for the household, with a control
-    that asserts both branches can be taken and that names its defect. Mutate it, and show the control
-    goes red. Launch nothing. The offer re-read (vto-offer-reread-watch) and step 6 hold the order of
-    the box.'
-  why: This is the thesis in its sharpest form. Better inference about who leaves was spent by a lever
-    that under-values exactly the households the per-customer view makes valuable, so the baseline wins.
-    A lever fix behind a switch costs no box time, and it is ready for the first pair after the offer
-    re-read. If pair 2 refutes the mechanism, the build stops and the refutation is the result. Done means
-    the pair-2 grade is on origin and, unless it refuted, so are the knowledge page and the switched,
-    mutation-proven gate change.
+  what: 'Pair 2 has been on disk since 17:41Z: /var/tmp/vta-out-flag1/member_33333_44444.json and control_33333_44444.json.
+    STEP 1, no box time, now: run section 12a''s confirm-or-refute read in docs/design/THE_VALUE_TEST_REDESIGN.md
+    on that pair. Count value-arm flips at identical rolls and identical common-fuel margins, A against
+    twin. Grade the count against 12a''s stated confirm and refute conditions, write the result as a new
+    subsection after 12b, and land it with a "Graded: value-test" trailer. STEP 2, only if pair 2 does
+    not refute: write or amend the K8 knowledge page on retention offers and save rates, with published
+    practice and GAPs labelled. Then find where _would_offer in simulation/run_phase2b.py computes the
+    value protected. If a supplier decision sits in simulation/ rather than company/, file that as a wall
+    finding. STEP 3: put the gate change behind a default-off switch, so that the value protected reads
+    the arm''s own expected margin for the household. Write one control asserting that both branches can
+    be taken, mutate it, and show it goes red. Launch nothing. The D5 book is running, and the offer re-read
+    (vto-offer-reread-watch) holds the box after it.'
+  why: This is the thesis in its sharpest form. The better inference about who leaves appears to be spent
+    by a lever that under-values the households the per-customer view makes valuable, so the flat baseline
+    wins. The read costs minutes, and the data has been waiting since 17:41Z. Done means the pair-2 grade
+    is on origin. Unless it refuted, the knowledge page and the switched, mutation-proven gate are on
+    origin too. If it refutes, the build stops and the refutation is the result.
   lane: B_commercial
   side: supplier
-  written_at: 1794929203.744
+  written_at: 1794939987.73
+- id: the-d5-book-is-graded-and-published-or-its-refusals-named
+  what: 'The D5-on book is running: tools.run_annual_report on 18f201c5bf, launched 18:19Z, pid 577704.
+    Do not launch a second one. When its docs/staging/run_complete_*.md lands, check two things. First,
+    d5book-pause-watch relaunched step 6 keeping pairs 11111_22222 and 33333_44444 (/var/tmp/longjob-value-test-step-6-flag1.log,
+    /var/tmp/d5book-pause/watch.log). Second, the background worker skipped the 16 Nov marker''s regrade
+    under 623b28e72. Grade rows 4 and 7 against docs/staging/SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md,
+    using row 7''s prediction as amended in d659c1742 (2 or 0, with 18f201c5b carried). Read settlements_behind_the_walk
+    for SYN-2016-001. Grade INV_OVERDUE_WITHIN_PAGE_BALANCE and INV_GAS_MONTHLY_USE_DOES_NOT_REPEAT_LAST_YEAR
+    against the 16 Nov refusal. Read the account page''s repayments against payment truth now that final_month_nets
+    can be carried. For each row or invariant still refusing, write its cause and owner in docs/staging/SEAT_FINDING_THE_VAT_ROWS_LAST_BREACH_IS_AN_OPEN_ESTIMATED_RUN_AND_THE_16_NOV_BOOK_IS_REFUSED_AS_PREDICTED_2026-11-16.md.
+    If no run_complete has landed by 03:00Z, read the run''s log and record why in that same finding.'
+  why: 'Billing accuracy is first in the director''s order. The site has served no new figure for 142h.
+    Four carried wrong rows wait on this book: the publish refusal, the account page''s dropped repayments,
+    the Capabilities strip, and the W3_3 standing charge. Done means rows 4 and 7 and both invariants
+    are graded on this book, and either a verified publish carries it or every refusing row has a named
+    cause and owner.'
+  lane: D_billing_metering
+  side: supplier
+  written_at: 1794939987.73
 - id: focus-outranks-a-continuation-chain-of-any-author
-  what: In background/delivery_lane.py the continuation-before-focus swap (SELF_HANDOFF_CHAIN_LIMIT, _self_issued_chain)
-    counts only continuations written by a tick that held a claim. Continuations written by a session
-    with no claim never trip it, so on 17 Nov five were drawn in a row and focus 1 went undrawn for two
-    stretches. Add a second leg. Once the current DIRECTION.yaml's first focus item has gone undrawn through
-    SELF_HANDOFF_CHAIN_LIMIT or more consecutive continuation draws since the record's oriented_at, the
-    next draw takes that item before any continuation, whoever wrote it. Continuations gated by a "DO
-    NOT DRAW BEFORE" date, or held on waits_for, are unaffected. Write one control over the whole partition,
-    asserting in a single statement that a continuation can still win the first draw and that focus wins
-    after the limit. Mutate the new leg off and show the control goes red. Then replay the 17 Nov draw
-    ledger through it and record which draw would have taken focus 1.
-  why: The steer is the thing that drifts. This stretch the first item was drawn, but only because the
-    queue happened to be mostly date-gated. The mechanism that starved two records is unchanged, and the
-    queue refills every stretch. Done means the leg and its mutation-proven control are on origin.
+  what: In background/delivery_lane.py, the continuation-before-focus swap (SELF_HANDOFF_CHAIN_LIMIT,
+    _self_issued_chain) counts only continuations written by a tick that held a claim. Add a second leg.
+    When the current DIRECTION.yaml's first undrawn focus item has gone undrawn through SELF_HANDOFF_CHAIN_LIMIT
+    or more consecutive continuation draws since the record's oriented_at, the next draw takes that item
+    ahead of any continuation, whoever wrote it. Continuations that are date-gated or held on waits_for
+    are unaffected. Write one control over the whole partition that asserts, in one statement, both that
+    a continuation can still win the first draw and that focus wins after the limit. Mutate the leg off
+    and show the control goes red. Replay this stretch's draw ledger through it and record whether the
+    offer-gate item would have been taken after 17:41Z.
+  why: This is the second record running in which this item went undrawn, and the offer-gate item sat
+    ready and undrawn for 40 minutes. The steer is what is drifting. Done means the leg and its mutation-proven
+    control are on origin.
   lane: H_harness
   side: other
-  written_at: 1794929203.744
+  written_at: 1794939987.73
 - id: the-paused-banner-commits-only-on-a-change
-  what: background/process_run_complete.py, together with background/publish_freshness.py, commits the
-    verification-paused banner in site/data/publish_provenance.json while verification is paused (3af982db4
-    this stretch; da4e1b310 and 37dbb1c5e before it). Make the banner commit only when a field other than
+  what: background/process_run_complete.py, with background/publish_freshness.py, commits the verification-paused
+    banner in site/data/publish_provenance.json while verification is paused (db8e59e47 this stretch;
+    3af982db4, da4e1b310 and 37dbb1c5e before it). Make the banner commit only when a field other than
     written_at changes. Add a control showing that re-pausing in an identical state makes no commit and
-    that a changed state still does, and mutate it both ways.
-  why: Every origin move lengthens a landing's race, and six of this stretch's 22 commits were merges
-    after a race. A banner that carries no change is the one origin move we can remove at no cost. This
-    item owns the triaged fix a-landing-loses-its-race-to-origin. Done means the control is on origin
-    and the next stretch's commit list has no banner commit whose only change is written_at.
+    that a changed state still does. Mutate it both ways.
+  why: It owns the triaged fix a-landing-loses-its-race-to-origin. Every origin move lengthens a landing's
+    race, and this is the one that carries nothing. Done means the control is on origin, and the next
+    stretch's commits include no banner whose only change is written_at.
   lane: H_harness
   side: other
-  written_at: 1794929203.744
+  written_at: 1794939987.73
 not_now:
-  - what: Building the offer-gate lever change before pair 33333_44444's flips are read.
+  - what: Putting the D5 book grade or the offer-gate read ahead of the advisor steer.
     why: >-
-      The mechanism is an inference from ten flips on one pair, and section 12's own prediction failed.
-      Pair 2 costs nothing to read and lands tonight. Building first would put a switch in the code on
-      a story the next read might refute.
-  - what: Launching the offer re-read early, ahead of step 6 or beside it.
+      The advisor rule puts his file first. Both supplier items are queued behind it in the same lane rather
+      than blocked by it: the book cannot be graded before about 03:00Z, and the pair-2 read can be drawn by
+      any other tick in the meantime.
+  - what: Building the offer-gate lever before the pair-2 flips are read.
     why: >-
-      It peaks at 11.4 GB for about 10.5h per flag and cannot run beside step 6. Pair 2's flips give a
-      one-variable confirm or refute with no box time. The watcher already orders the re-read correctly.
-  - what: Building any part of the contact, failure-demand or quiet-fail model.
+      The mechanism is an inference from ten flips on one pair, and section 12's own prediction missed. The
+      read is free and the data is on disk. A switch built on a story the next read might refute is code written
+      ahead of its evidence.
+  - what: Launching the offer re-read, the renewal retrain B, or the flag-off half of step 6.
     why: >-
-      His words are "log as an idea or backlog", and the steer says nothing is built this week. It is
-      ranked on Friday within the feature share, and a contact rate written now would be a number
-      invented to fill a slot.
-  - what: Launching the renewal retrain B or the flag-off half of step 6.
+      Each peaks near 11.5 GB, and the D5 book holds the box until it finishes. vto-offer-reread-watch already
+      orders the re-read after step 6. B's better ranking would lose money through the same gate until the
+      lever is fixed.
+  - what: Running any fold trial, or the CLAUDE.md trial itself, now.
     why: >-
-      Each peaks near 11.5 GB, and section 12a shows a better belief loses money through the offer gate.
-      B's better ranking would lose it the same way until the lever is fixed.
-  - what: Landing W3_3 (settlement books the standing charge) from origin/w3-3-network-split-held.
-    why: One change per book. W3_3 follows the first D5-fixed publish, so that no moved row is unclaimed.
-  - what: Raising the value-arm loss to the director.
-    why: >-
-      It is a lever defect with a named, reversible fix behind a switch. It changes nothing he ruled. The
-      record and the thesis_read carry it to him.
+      The steer asks for the golden set and the inventory before 21 Nov. Folds are tried one at a time after
+      that. Running a trial now would spend the box on harness during a book.
+  - what: Landing W3_3 (the settlement books the standing charge) from origin/w3-3-network-split-held.
+    why: One change per book. W3_3 follows the first D5-fixed publish so that no moved row is left unclaimed.
   - what: The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
-    why: It refuses no book and touches no supplier result, so the ordinary draw can take it.
+    why: It refuses no book and blocks no supplier result. The ordinary draw can take it.
   - what: Reaping the at-risk October worktrees (b12-*, se-budgetpay-land, se-om2, simsuite).
     why: >-
-      They block no supplier result, and reaping cannot be undone. value-test-offer-reread is live and
-      must not be touched.
+      They block no supplier result and reaping cannot be undone. value-test-offer-reread is live and holds
+      the logging salvage 870201d1e7, so it must not be touched.
+  - what: Raising the value-arm loss to the director.
+    why: >-
+      It is a lever defect with a reversible fix behind a switch, and it changes nothing he ruled. This record
+      carries it to him.
 wrong:
   - what: >-
-      THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find
-      backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.]
-      15:22 17 Nov -- unchanged. A's 0.819 is still in the run only. Section 12a adds that the backwards
-      belief was saving valuable leavers by accident through retention offers, so carrying A live needs
-      the offer-gate fix (focus 3) first.
+      THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards
+      (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged.
+      Carrying A live still needs the offer-gate fix, and that waits on the pair-2 read (focus 2).
     corrected: false
   - what: >-
-      THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per
-      household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over
-      the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails
-      are in decisions.jsonl.] 15:22 17 Nov -- explained, not fixed. Section 12a attributes 72% to ten
-      flips at held rolls, 20 to 1 against A, inferred to be withdrawn retention offers. The offer is
-      now logged (f318f1e48). Focus 3 tests the mechanism and builds the lever.
+      THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year
+      (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35
+      (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov --
+      explained, not fixed. Pair 2 is on disk since 17:41Z, so 12a's test can run now. It is focus 2, step 1.
     corrected: false
   - what: >-
-      THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by
-      up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.]
-      15:22 17 Nov -- unchanged. No book has published since 6fe7827ab2.
+      THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34
+      supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged.
+      No book has published since 6fe7827ab2.
     corrected: false
   - what: >-
-      THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the
-      next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in
-      decisions.jsonl.] 15:22 17 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+      THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
+      same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:22 17 Nov --
+      unchanged (fix, owner W2_30, recheck by 23 Nov).
     corrected: false
   - what: >-
-      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill
-      charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per
-      domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in
-      decisions.jsonl.] 15:22 17 Nov -- unchanged. W3_3 follows the first D5-fixed publish.
+      THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one,
+      so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
+      Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged.
+      W3_3 follows the first D5-fixed publish.
     corrected: false
   - what: >-
-      THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short
-      of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs
-      (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 15:22 17 Nov --
-      unchanged. No book carries final_month_nets yet. Focus 2's book is the first that can.
+      THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's
+      payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier
+      tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged. The D5-on book running now on 18f201c5bf is the first
+      that can carry final_month_nets (focus 3).
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov
-      2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the
-      thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per
-      year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last
-      written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.]
-      15:22 17 Nov -- unchanged. No book has published, so f4f825b8b is still not served. When it is,
-      it must carry A's -GBP 1.35 and section 12a's cause, not the 8 Oct figure.
+      THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing
+      recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct
+      run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json,
+      is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.]
+      18:22 17 Nov -- unchanged. f4f825b8b is still not served. When it is, it must carry A's -GBP 1.35 and section 12a's cause.
     corrected: false
   - what: >-
-      THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2
-      and -3 died because the commit gate runs longer than the gap between origin commits (attempts
-      39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 15:22 17 Nov --
-      unchanged. Six merges carried no work this stretch, and another paused banner landed (3af982db4).
-      Triaged as a fix owned by focus 5.
+      THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died
+      because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to
+      485d48a0c). [Earlier tails are in decisions.jsonl.] 18:22 17 Nov -- unchanged. Two merges carried nothing this
+      stretch, and another written_at-only paused banner landed (db8e59e47). Focus 5 owns the fix and is undrawn.
     corrected: false
   - what: >-
-      THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no
-      exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so
-      the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them.
-      [Earlier tails are in decisions.jsonl.] 15:22 17 Nov -- unchanged in effect. The publisher is at
-      48 failures over 34.7h. 623b28e72 stops the regrade unless an input changed, and the D5-on book
-      is expected about 20:00Z (focus 2).
+      THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers,
+      and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov
+      book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 18:22 17 Nov
+      -- unchanged in effect. The publisher is at 49 failures over 37.7h. The D5-on book launched at 18:19Z on 18f201c5bf
+      (focus 3).
     corrected: false
   - what: >-
-      THE SEAT'S, NEW. The 06:21 record kept step 6 running on the claim that a landing gate and
-      sim-runner "fit beside it". sim-runner yields to any resident long job by construction, and it
-      deferred 23 cycles, so the D5 book that record's focus 2 waited on could not run for about 53h.
-      The same record's focus drew 0 of 3, behind four continuations and three draws of the stale
-      HEAD_RED register. 15:22 17 Nov -- half remedied: d5book-pause-watch is armed and waiting for pair
-      33333_44444 (watch.log 11:00Z), but no D5 book has run yet.
+      THE SEAT'S, NEW. The 06:21 record kept step 6 running on the claim that a landing gate and sim-runner "fit beside
+      it". sim-runner yields to any resident long job by construction, and it deferred 23 cycles, so the D5 book that
+      record's focus 2 waited on could not run for about 53h. The same record's focus drew 0 of 3, behind four continuations
+      and three draws of the stale HEAD_RED register. 18:22 17 Nov -- the pause fired at 17:41Z and the book launched
+      at 18:19Z, after 35 minutes deferred on another lane's uncommitted edit. It is corrected when the book completes
+      and step 6 is relaunched.
     corrected: false
   - what: >-
-      THE SEAT'S, NEW. The 09:22 record saw its first item lose to continuations, and named the
-      second such loss as the moment to change the order. It wrote no item to make the change, so
-      when the loss came the record had nothing ready. Five continuations were drawn and focus drew
-      0 of 3 again. 15:22 17 Nov -- the item exists (focus 4) but is undrawn. The starvation did not
-      recur this stretch, because the queue was mostly date-gated, not because anything changed.
+      THE SEAT'S, NEW. The 09:22 record saw its first item lose to continuations, and named the second such loss as
+      the moment to change the order. It wrote no item to make the change, so when the loss came the record had nothing
+      ready. Five continuations were drawn and focus drew 0 of 3 again. 18:22 17 Nov -- the item (focus 4) is undrawn
+      for a second record. This stretch focus drew 1 of 5, and the offer-gate item sat ready and undrawn from 17:41Z.
     corrected: false
   - what: >-
-      THE MACHINE'S, THIS STRETCH. Section 12's pre-registered partition labelled bucket (c) "the dice",
-      but the rolls are held within a pair, so a flip at the same roll and price is an unlogged decision
-      and not luck. Its prediction missed (a) low and (c) high. 9dd2b365a corrected the label beside the
-      claim and withdrew the kill's consequence on the 20-to-1 sign test.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, THIS STRETCH. The D5-on book was predicted for about 18:30Z (0086713d9) by reading
-      one run's progress as the seed's. Each seed is three full-window runs. 95ed31f26 corrected it to
-      about 20:00Z.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, THIS STRETCH. C2_discovery_through_interfaces stood at L2 for nine days after the
-      live caller and consumer its level rested on were archived on 8 Nov. e0e8a32df corrected it to L1.
+      THE SEAT'S, THIS STRETCH. The 15:22 record's offer-gate item made step 1 wait on pair 2 with no stamp the
+      queue reads. When pair 2 landed at 17:41Z, nothing knew the item had become runnable, and no tick took it.
+      This record names the files as already present, so the item is runnable on its first draw.
     corrected: true
 for_the_director: []
