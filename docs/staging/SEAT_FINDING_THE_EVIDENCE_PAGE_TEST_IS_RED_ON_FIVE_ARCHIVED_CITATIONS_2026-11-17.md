@@ -26,3 +26,20 @@ level. Then delete `ASSEMBLED_ROUTE_EXCLUDED` and its test leg.
 
 Not fixed here: the map rows belong to the level lane, and choosing between re-citing and pinning is a
 judgement about those atoms' levels.
+
+## Resolved (2026-11-17, delivery seat)
+
+The five are cited by the rehomed evidence records, not by the map rows themselves:
+`docs/design/simplifications/C2_discovery_through_interfaces.yaml` (the trio, as C2's L2 evidence) and
+`B4_competitor_field.yaml` (the pair, where the record itself calls them "orphaned"). C2's `file_scope`
+already names the archive paths. Regenerating `site/data/evidence.json` does not change the five
+MISSING, so the red does not come from a stale payload.
+
+Pinned in `KNOWN_UNRESOLVED_CITATIONS` with that reason, which follows the deleted-door precedent.
+`ASSEMBLED_ROUTE_EXCLUDED` is deleted. Its test leg is replaced by a positive control: a
+`docs/observability/` commit must select `tools/published_feed_regeneration_check.py`. Putting the
+exclusion back makes that control fail (mutation checked).
+
+**Still open, for the level lane:** C2_discovery_through_interfaces sits at L2/L2, and the evidence
+for that L2 is code now archived as unhooked. Whether C2 holds L2 is a level judgement, and this
+change does not make it.

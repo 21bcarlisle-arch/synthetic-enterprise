@@ -64,9 +64,9 @@ def test_a_weather_archive_selects_its_readers_named_tests():
         "sim/weather_data/C1.csv")
 
 
-def test_the_observability_exclusion_holds_and_is_the_only_one():
-    """The exclusion is keyed to a stated red, so it must not widen silently; and the route must
-    still fire for the directory beside it."""
-    assert gate.ASSEMBLED_ROUTE_EXCLUDED == ("docs/observability/",)
-    assert gate._assembled_path_readers("docs/observability/open_question_register.json") == ()
-    assert gate._assembled_path_readers("sim/scenario/curriculum/history_replay.yaml")
+def test_daemon_written_observability_state_reaches_its_assembled_reader():
+    """DEFECT: a directory is quietly kept off the assembled route again. docs/observability/ was
+    excluded until 2026-11-17 while its reader's test was red; a commit of daemon state must
+    select the tests of the module that opens it."""
+    assert "tools/published_feed_regeneration_check.py" in gate._assembled_path_readers(
+        "docs/observability/open_question_register.json")
