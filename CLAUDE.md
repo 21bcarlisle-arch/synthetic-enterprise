@@ -337,7 +337,7 @@ procedure nobody points at is a procedure nobody runs: closing a phase or an ato
 (`.claude/skills/staging-protocol/SKILL.md`), a cold-eyes review pass
 (`.claude/skills/cold-eyes-walk/SKILL.md`), and writing up an incident
 (`.claude/skills/incident-retro/SKILL.md`). Path-scoped wall reminders fire automatically from
-`.claude/rules/` when you edit `company/**`, `saas/**` or `simulation/**`.
+`.claude/rules/` when you edit Python under `company/`, `saas/`, `sim/` or `simulation/`.
 
 ---
 
