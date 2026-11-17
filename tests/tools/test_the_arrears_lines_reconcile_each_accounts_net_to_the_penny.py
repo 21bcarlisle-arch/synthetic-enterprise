@@ -24,6 +24,10 @@ from tools.run_value_cycle_ab import (
     arrears_reconciliation,
 )
 
+_NO_OFFER_FIELDS = {"departure_cause": None, "retention_offered": None,
+                    "retention_discount_pct": None, "p_stay_without_offer": None, "p_stay_at_offered_rate": None,
+                    "offer_held": None}
+
 
 def _records():
     """Two fuel legs of account A over 2017-2018, and account B in 2018 only."""
@@ -137,10 +141,14 @@ def test_the_decision_fields_name_when_an_account_left_and_its_first_roll(monkey
         "first_renewal": {"date": "2017-03-23", "p_retain": 0.6254, "roll": 0.3763,
                           "outcome": "renewed"},
         # Every renewal, in date order, both legs of the billing account folded together.
+        # The fixture's events predate the offer fields, so each is unknown, not "no offer".
         "renewals": [
-            {"date": "2017-03-23", "p_retain": 0.6254, "roll": 0.3763, "outcome": "renewed"},
-            {"date": "2020-03-22", "p_retain": 0.2, "roll": 0.3763, "outcome": "churned"},
-            {"date": "2021-01-05", "p_retain": 0.1, "roll": 0.5, "outcome": "churned"}]}
+            {"date": "2017-03-23", "p_retain": 0.6254, "roll": 0.3763, "outcome": "renewed",
+             **_NO_OFFER_FIELDS},
+            {"date": "2020-03-22", "p_retain": 0.2, "roll": 0.3763, "outcome": "churned",
+             **_NO_OFFER_FIELDS},
+            {"date": "2021-01-05", "p_retain": 0.1, "roll": 0.5, "outcome": "churned",
+             **_NO_OFFER_FIELDS}]}
     assert decisions["B"] == {"left_at": None, "first_renewal": None,
                               "renewal_decisions": 0, "bills_issued": 1, "successor_of": None,
                               "renewals": []}

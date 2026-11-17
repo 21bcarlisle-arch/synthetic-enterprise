@@ -535,6 +535,33 @@ def fold_by_successor(diff_by_account: dict[str, float], members: list[str],
     return sum(diff_by_account[a] for a in chosen if a in diff_by_account)
 
 
+def retention_offer_fields(event: dict) -> dict:
+    """What the retention offer did at one renewal, read off the world's own event (2026-11-17).
+
+    THE_VALUE_TEST_REDESIGN s.12a put the value arm's GBP 1.21 loss on A's belief down to offers the
+    twin made and A withdrew, by inference: at held rolls the twin kept households whose roll sat
+    above their logged `p_retain`, and the sidecar had no field saying an offer was made. An offered
+    event's `effective_retention_probability` is ALREADY the post-offer figure, so it cannot tell a
+    save from a plain stay; `p_stay_without_offer` can.
+
+    `offer_held` is True only where the household renewed on a roll it would have left on at the
+    full rate (`roll > p_stay_without_offer`, `retention_offer.stays_at_offer`'s own test). The
+    event's roll is the 4-dp copy, so a roll within 5e-5 of the boundary can grade either way.
+    Every field is None on an event that predates the offer fields: unknown, never "no offer"."""
+    offered = event.get("retention_offered")
+    p_full = event.get("p_stay_without_offer")
+    held = None
+    if offered is False:
+        held = False
+    elif offered and p_full is not None and event.get("random_roll") is not None:
+        held = event.get("event_type") == "renewed" and event["random_roll"] > p_full
+    return {"retention_offered": offered,
+            "retention_discount_pct": event.get("retention_discount_pct"),
+            "p_stay_without_offer": p_full,
+            "p_stay_at_offered_rate": event.get("p_stay_at_offered_rate"),
+            "offer_held": held}
+
+
 def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
     """The per-account facts `SEAT_RESULT_PROS_2016_0098S_4218_...` had to read out of a log:
     when the account left, its first renewal's `p_retain` against its roll, how many renewals
@@ -564,7 +591,9 @@ def _decisions_by_billing_account(result: dict) -> dict[str, dict]:
         # renewals could have split.
         r["renewals"].append({"date": event["event_date"],
                               "p_retain": event.get("effective_retention_probability"),
-                              "roll": event["random_roll"], "outcome": event["event_type"]})
+                              "roll": event["random_roll"], "outcome": event["event_type"],
+                              "departure_cause": event.get("departure_cause"),
+                              **retention_offer_fields(event)})
         if r["first_renewal"] is None:
             r["first_renewal"] = {"date": event["event_date"],
                                   "p_retain": event.get("effective_retention_probability"),

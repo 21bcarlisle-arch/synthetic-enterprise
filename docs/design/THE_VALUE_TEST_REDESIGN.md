@@ -1422,6 +1422,12 @@ twin's recorded p is above A's, which is what an offer's `max(p_full, p_effectiv
 **GAP:** the member and control sidecars carry no `retention_offered`, discount, save rate or
 departure cause per renewal, so the offer itself cannot be read from them. That is why it could not be
 a bucket.
+*Closed in code 17 Nov:* each `decisions_by_billing_account` renewal row now carries
+`retention_offered`, `retention_discount_pct`, `p_stay_without_offer`, `p_stay_at_offered_rate`,
+`offer_held` (renewed on a roll above `p_stay_without_offer`) and `departure_cause`
+(`tools/run_value_cycle_ab.retention_offer_fields`). Files written before that commit still lack
+them; the 11 flips are re-read from a rerun of pair 11111/22222 once step 6 and the D5 book release
+the box.
 
 **So the loss is §10b's candidate (b), "accidental offers to leavers worth keeping are lost". It is the
 retention offer, not the renewal price.** The twin's desk belief ranked leavers backwards (D1 0.36),
