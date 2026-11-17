@@ -143,6 +143,14 @@ FLOOR: dict[tuple[str, str], tuple[int, str]] = {
         "it rather than orphaning them onto the box. The parent reaps with `os.wait4` for the "
         "rusage. A launcher unit would defeat the measurement it exists to take.",
     ),
+    ("tools/surgical_land.py", DETACHED_SESSION): (
+        1,
+        "The same create-to-kill shape as the row above, and waited on in the foreground: "
+        "`_run_killing_the_tree` puts the pre-commit hook in its own group so the 3,600 s "
+        "deadline `killpg`s the gate's pytest with it, where `subprocess.run` killed `sh` alone "
+        "and left the grandchild running (2026-11-17). A launcher unit would detach the gate "
+        "from the landing that must read its verdict.",
+    ),
     ("tests/tools/test_scale_probe_10k.py", DETACHED_SESSION): (
         1,
         "The control over the row above — it asserts the stage child is put in its own group so "

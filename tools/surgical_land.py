@@ -915,13 +915,52 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
     if merge_parent:
         env[pre_commit_test_gate.MERGE_PARENT_ENV] = merge_parent
     try:
-        r = subprocess.run(["sh", hook_rel], cwd=str(checkout), env=env,
-                           capture_output=True, text=True, timeout=GATE_TIMEOUT_SECONDS)
+        r = _run_killing_the_tree(["sh", hook_rel], checkout, env, GATE_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as exc:
         raise LandingRefused(
-            "the gate could not be EXECUTED ({}) -- refusing rather than landing ungated.".format(
-                exc)) from exc
+            "the gate could not be EXECUTED ({}) -- refusing rather than landing ungated.{}".format(
+                exc, _what_the_gate_was_doing(exc))) from exc
     return r.returncode, (r.stdout or ""), (r.stderr or "")
+
+
+#: Lines of the killed hook's stdout quoted in the refusal. Not a domain constant: it bounds a message.
+KILLED_GATE_TAIL_LINES = 12
+
+
+def _run_killing_the_tree(argv: list[str], checkout: Path, env: dict,
+                          timeout: float) -> subprocess.CompletedProcess:
+    """`subprocess.run(..., timeout=)` with two differences, both from the 16 Nov D5 landing
+    (`docs/staging/SEAT_FINDING_THE_COMMIT_GATE_HOUR_IS_ONE_SERIAL_PYTEST_AND_ITS_KILL_LEFT_NO_RECORD_2026-11-17.md`).
+
+    `run` kills only `sh`; the gate's python and its pytest are grandchildren and live on, holding
+    their box reservation, until a write to the dead pipe happens to kill them. Here the hook gets
+    its own session and the WHOLE group is killed. And `run` raises with the captured bytes on the
+    exception, which the caller then dropped -- so the hour that timed out left no record of which
+    gate it was in. The partial output rides on the raised `TimeoutExpired` for the refusal."""
+    p = subprocess.Popen(argv, cwd=str(checkout), env=env, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, text=True, start_new_session=True)
+    try:
+        out, err = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(p.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        out, err = p.communicate()
+        raise subprocess.TimeoutExpired(argv, timeout, output=out, stderr=err) from None
+    return subprocess.CompletedProcess(argv, p.returncode, out, err)
+
+
+def _what_the_gate_was_doing(exc: BaseException) -> str:
+    """The tail of a killed hook's stdout, so a timeout names the gate that spent the deadline.
+    Empty when there is nothing to quote -- the refusal is the same refusal either way."""
+    out = getattr(exc, "output", None) or ""
+    if isinstance(out, bytes):
+        out = out.decode("utf-8", "replace")
+    lines = [ln for ln in out.splitlines() if ln.strip()][-KILLED_GATE_TAIL_LINES:]
+    if not lines:
+        return ""
+    return "\nThe hook's last output before it was killed:\n" + "\n".join(lines)
 
 
 #: The message chain is a handful of regex passes over one file. Generous against an import-heavy

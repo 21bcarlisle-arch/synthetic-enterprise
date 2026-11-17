@@ -1320,22 +1320,31 @@ def test_every_billing_trigger_runs_the_whole_billing_suite_and_nothing_else_doe
 
 def test_a_module_that_only_CITES_a_document_is_not_its_reader(monkeypatch, tmp_path):
     """One control over every branch of `_names_it_outside_prose`. A citer (docstring, bare string
-    statement, comment) is dropped; a code reader, an error-message holder and an unparseable file
-    are kept. Assert first that the drop branch CAN be taken, or a predicate that keeps everything
-    would pass every keep-leg."""
+    statement, comment, a sentence in an error message) is dropped; a code reader by full path, by
+    joined basename or by f-string, and an unparseable file are kept. Assert first that the drop
+    branch CAN be taken, or a predicate that keeps everything would pass every keep-leg.
+
+    `message.py` was a KEEP leg until 2026-11-17: `run_phase2b` cites "(home_moves.md s.8.7)" in a
+    raise, which put six full-simulation files under every edit to the page and timed out the D5
+    landing's gate. A non-markdown file named in a sentence stays a reader (`shell.py`)."""
     doc = "docs/market_research/some_page.md"
     files = {
         "citer.py": f'"""Rules in {doc}."""\n# see {doc}\n"""also {doc}"""\nX = 1\n',
+        "message.py": 'def f():\n    raise ValueError("leg must follow (some_page.md s.8.7)")\n',
         "reader.py": f'from pathlib import Path\nP = Path("{doc}")\n',
-        "message.py": f'def f():\n    raise ValueError("see {doc}")\n',
+        "joined.py": 'from pathlib import Path\nP = Path("docs") / "market_research" / "some_page.md"\n',
+        "fstring.py": 'R = "."\nP = f"{R}/docs/market_research/some_page.md"\n',
         "broken.py": f'def (:\n    "{doc}"\n',
     }
     for name, src in files.items():
         (tmp_path / name).write_text(src)
     monkeypatch.setattr(gate, "ROOT", tmp_path)
     verdict = {n: gate._names_it_outside_prose(n, (doc, "some_page.md")) for n in files}
-    assert verdict == {"citer.py": False, "reader.py": True, "message.py": True,
-                       "broken.py": True}, verdict
+    assert verdict == {"citer.py": False, "message.py": False, "reader.py": True,
+                       "joined.py": True, "fstring.py": True, "broken.py": True}, verdict
+    data = "docs/state/some_feed.json"
+    (tmp_path / "shell.py").write_text(f'CMD = "git show HEAD:{data}"\n')
+    assert gate._names_it_outside_prose("shell.py", (data, "some_feed.json"))
 
 
 def test_a_test_that_names_a_document_only_in_a_comment_is_not_its_guard(monkeypatch, tmp_path):

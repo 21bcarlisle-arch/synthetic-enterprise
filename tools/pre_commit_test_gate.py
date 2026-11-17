@@ -1128,8 +1128,9 @@ def _names_it_outside_prose(module: str, needles: tuple[str, ...]) -> bool:
     none, and counting each citation as a read selected 42 test files for the page alone, among
     them the 18-minute phase4c run, so the page could not pass the 3,600 s gate by itself
     (2026-11-11). Comments never reach the AST, and a docstring or a bare string statement is
-    prose. Every other string literal counts, because an error message cannot be told from a path
-    the code opens. Fails toward running: an unreadable or unparseable file counts as a reader.
+    prose. For a markdown page a sentence is prose too, error messages included: a path the code
+    opens has no whitespace in it (`_path_shaped`, 2026-11-17; until then every other literal
+    counted). Fails toward running: an unreadable or unparseable file counts as a reader.
 
     Only modules are filtered. A test that names a document stays selected, because a test's
     docstring can be the guard relationship itself (test_simplifications_store and its README)."""
@@ -1144,9 +1145,25 @@ def _names_it_outside_prose(module: str, needles: tuple[str, ...]) -> bool:
             prose.add(id(node.value))
     for node in ast.walk(tree):
         if (isinstance(node, ast.Constant) and isinstance(node.value, str)
-                and id(node) not in prose and any(n in node.value for n in needles)):
+                and id(node) not in prose and _path_shaped(node.value, needles)):
             return True
     return False
+
+
+def _path_shaped(text: str, needles: tuple[str, ...]) -> bool:
+    """Does this string hold the document's name AS A PATH -- a literal with no whitespace in it,
+    which is what `open`, `Path(...)`, `ROOT / "..."` and an f-string's constant part all are --
+    rather than inside a sentence? `simulation/run_phase2b.py` cites "(home_moves.md s.8.7)" in an error
+    message, and counting that as a read put six full-simulation test files under every edit to
+    the page: the D5 landing's 186-file selection, killed at 3,600 s on 16 Nov
+    (docs/staging/SEAT_FINDING_THE_COMMIT_GATE_HOUR_IS_ONE_SERIAL_PYTEST_AND_ITS_KILL_LEFT_NO_RECORD_2026-11-17.md).
+    Markdown only: a data file is read through shell strings too ("git show HEAD:docs/x.json"),
+    so for every other suffix any mention still counts, as before."""
+    if not any(n in text for n in needles):
+        return False
+    if not all(n.endswith(".md") for n in needles):
+        return True
+    return not any(c.isspace() for c in text)
 
 
 def _names_it_outside_comments(test: str, needles: tuple[str, ...]) -> bool:
