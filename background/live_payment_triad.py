@@ -162,10 +162,10 @@ from tools.couple_w2_11_d5 import (
 
 # D5's debit half (home_moves.md s.8.8f choices 26-27; LEVEL_DD_AREA_MAP.md D5): a level leaver's
 # final bill is the closing demand, so it asks its face plus the leg's debit on the supplier's own
-# ledger, less what SLC 21BA bars at that bill, collected by the existing mandate. OFF until the page
-# (`simulation.arrears_engine.balance_settlement_from_outcomes`) and the runner's `_left_level_owed`
-# read the same ask: on alone, the world would collect a debit the page still prints as owed.
-FINAL_BILL_ASKS_THE_LEVEL_DEBIT = False
+# ledger, less what SLC 21BA bars at that bill, collected by the existing mandate. ON since 17 Nov 2026,
+# once the page (`simulation.arrears_engine.balance_settlement_from_outcomes`) and the runner's
+# `_left_level_owed` read the same ask. REVERSE: False, and every final bill asks its face only.
+FINAL_BILL_ASKS_THE_LEVEL_DEBIT = True
 
 # Run-spanning belief window (see module docstring RECENCY-WINDOW NOTE). A live
 # run covers ~2016-2025 (~3650 days); a comfortable ceiling keeps the belief

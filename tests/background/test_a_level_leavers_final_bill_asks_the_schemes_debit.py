@@ -5,7 +5,8 @@ level leaver asked only its face, so a debit the schedule left was never asked b
 the desk opened a journey on it (SYN-2016-024g: 5.87 after a 24.83 final bill; INV_OVERDUE_WITHIN_
 BALANCE 4 and INV_OVERDUE_WITHIN_PAGE_BALANCE 7 on the f7e17b1316 book). SLC 27.17 and 31H.12: the
 final bill states the one balance and is the closing demand, collected by the existing mandate.
-The branch is behind `FINAL_BILL_ASKS_THE_LEVEL_DEBIT` until the page and runner read the same ask.
+The branch is behind `FINAL_BILL_ASKS_THE_LEVEL_DEBIT`, ON since the page and the runner read the same ask
+(17 Nov 2026); `test_the_shipped_world_asks_the_debit` reds if it is switched off again.
 """
 from __future__ import annotations
 
@@ -17,6 +18,9 @@ import background.live_payment_triad as lpt
 import simulation.household_budget as household_budget
 from background.live_payment_triad import LivePaymentTriad
 from simulation.payment_behaviour_source import DIRECT_DEBIT
+
+#: The switch as shipped, read before any fixture patches it.
+SHIPPED = lpt.FINAL_BILL_ASKS_THE_LEVEL_DEBIT
 
 
 @pytest.fixture
@@ -112,8 +116,17 @@ def test_a_leg_never_on_level_asks_its_face(asked):
     assert asked[("FACE-ONLY", final)] == pytest.approx(50.00)
 
 
+def test_the_shipped_world_asks_the_debit(asked, monkeypatch):
+    """The shipped switch, not the fixture's: a level leaver's final bill on the world as it runs asks
+    the scheme's debit (D5 switch-on). The page's close and the runner's choice 27 read this ask."""
+    monkeypatch.setattr(lpt, "FINAL_BILL_ASKS_THE_LEVEL_DEBIT", SHIPPED)
+    t, final = _leave("LVL-SHIP", RECENT, 50.00)
+    assert t.final_month_nets()["rows"][-1]["debit_asked_gbp"] == pytest.approx(90.00)
+    assert asked[("LVL-SHIP", final)] == pytest.approx(140.00)
+
+
 def test_switched_off_the_final_bill_asks_only_its_face(asked, monkeypatch):
-    """The state every book is in until the page and the runner read the same ask."""
+    """The state every book before the 17 Nov switch-on was in: the reverse, if the switch goes off."""
     monkeypatch.setattr(lpt, "FINAL_BILL_ASKS_THE_LEVEL_DEBIT", False)
     t, final = _leave("LVL-OFF", RECENT, 50.00)
     assert asked[("LVL-OFF", final)] == pytest.approx(50.00)
