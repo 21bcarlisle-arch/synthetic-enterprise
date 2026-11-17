@@ -1127,20 +1127,10 @@ def data_surface_tests(path: str) -> list[str]:
     return sorted(t for t in targets if (ROOT / t).exists())
 
 
-# ONE DIRECTORY KEPT OFF THE ASSEMBLED ROUTE, with the number (2026-11-17). docs/observability/*.json
-# is daemon-written state (open_question_register.json: 17 commits in 7 days), and its one assembled
-# reader, tools/published_feed_regeneration_check.py, is imported by tests/tools/test_evidence_pages.py,
-# red at origin since archive increment 4b for a reason no observability file can change. On the
-# route, that red would refuse every one of those commits. Lift this when that test is green:
-# docs/staging/SEAT_FINDING_THE_EVIDENCE_PAGE_TEST_IS_RED_ON_FIVE_ARCHIVED_CITATIONS_2026-11-17.md.
-ASSEMBLED_ROUTE_EXCLUDED = ("docs/observability/",)
-
 
 def _assembled_path_readers(path: str) -> tuple[str, ...]:
     """`tools.assembled_path_readers.readers_of`, imported here because the hook runs this file as
     a script and `tools/` is then sys.path[0], not the repo root."""
-    if path.startswith(ASSEMBLED_ROUTE_EXCLUDED):
-        return ()
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
     from tools.assembled_path_readers import readers_of

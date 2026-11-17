@@ -56,10 +56,23 @@ MAPPING = SITE / "data" / "moap_node_atoms.json"
 #   site/**/*.html. So the honest state is "E2's cited evidence no longer exists", which is
 #   what an entry here says and what the payload reports as MISSING; inventing a live-looking
 #   citation would be the FAIL-OPEN-AT-THE-CITATION defect this module exists to catch.
+#   The five company/ modules below -- the same shape, for code (2026-11-17). Archive
+#   increment 4b (6b70382ded) and its sibling moved them to archive/unhooked_supplier/ as
+#   having no live caller, and the rehomed evidence records still cite them:
+#   docs/design/simplifications/C2_discovery_through_interfaces.yaml (the trio, as C2's L2
+#   evidence) and B4_competitor_field.yaml (the pair, recorded there as "orphaned").
+#   PINNED, not re-pointed at archive/: archived unhooked code is not evidence of a live
+#   level, so whether C2 still holds L2 is the level lane's question, not this ratchet's
+#   (docs/staging/SEAT_FINDING_THE_EVIDENCE_PAGE_TEST_IS_RED_ON_FIVE_ARCHIVED_CITATIONS_2026-11-17.md).
 KNOWN_UNRESOLVED_CITATIONS = {
     "site/supplier/index.html",
     "site/project/index.html",
     "site/customers/index.html",
+    "company/crm/decarb_recommender.py",
+    "company/crm/home_registry.py",
+    "company/crm/onboarding_journey.py",
+    "company/market/tariff_benchmarking.py",
+    "company/pricing/renewal_pricing_engine.py",
 }
 
 
