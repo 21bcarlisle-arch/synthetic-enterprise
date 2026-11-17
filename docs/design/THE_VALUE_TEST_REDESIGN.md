@@ -1281,3 +1281,11 @@ says "we cannot tell" with the £6.21 resolution beside it. Per-customer inferen
 beat the flat book at this book size, and C's sized book (`the-value-test-s-sized-book-candidate`) stays
 the director's call. If S5 holds, the desk's better ranking costs money on the value arm. The
 mechanism is found before B is built, because B builds on the same belief.
+
+**Launched 17 Nov 06:10Z, as filed.** `longjob-value-test-step-6-flag1` through `launch_long_job`
+(`VTA_FLAG=1`, `VTA_SEEDS` unset, cwd `/var/tmp/value-test-candidate-a` at `41734bbe71`, declared peak
+11,800 MB, admitted at 18,593 of 23,010 MB). It went to the launcher's queue
+(`longjob-value-test-step-6-flag1-queued`) because a commit gate was pending: landings come before
+experiments. It starts when that gate ends. Artefact: `/var/tmp/vta-out-flag1/family_12_churn_roll.json`;
+log `/var/tmp/longjob-value-test-step-6-flag1.log`. The flag-off half launches after it exits, not
+beside it. To reverse: `systemctl --user stop` the unit; the members already written are kept.
