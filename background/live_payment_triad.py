@@ -1307,25 +1307,35 @@ class LivePaymentTriad:
             self._leg_periods.get(customer_id, []), issue_date)), 2)
         return round(ledger_balance - barred, 2), barred
 
-    def _leg_owed_on(self, account_id: str, customer_id: str, on: date) -> float:
-        return max(0.0, self._leg_balance_on(account_id, customer_id, on))
+    def _leg_owed_on(self, account_id: str, customer_id: str, on: date,
+                     excluding: str = "") -> float:
+        return max(0.0, self._leg_balance_on(account_id, customer_id, on, excluding))
 
-    def _leg_balance_on(self, account_id: str, customer_id: str, on: date) -> float:
+    def _leg_balance_on(self, account_id: str, customer_id: str, on: date,
+                        excluding: str = "") -> float:
         """What the supplier's own ledger says this leg owes on `on`, on bills already due: the
         leg's bills at their face, less the cash paid to the leg and the credit notes issued on it.
 
         The contract is per fuel (SLC 27.16), so the other leg's cash and credits are not counted.
         A credit note names no leg on the ledger; its event id does. Cash that names
         no leg (a plan instalment, a write-off) is not counted, so this can only overstate what is
-        owed where a plan or write-off has run. A bill not yet due is not counted, so cash paid
-        early on it can only understate, and a credit then waits whole, as before this read.
+        owed where a plan or write-off has run.
+
+        EVERY BILL ISSUED BEFORE `on` COUNTS, DUE OR NOT. The final bill states the one balance
+        (SLC 27.17), and the page's balance carries every bill from its issue. This read used to count
+        only bills already due, while counting all the cash. A leaver's last regular bill, issued days
+        before the final bill and not yet due, was left out, but the level cash that met it was not.
+        So the leg read in credit, and the final bill netted a credit that did not exist. The world
+        then asked less than the face, or nothing, and the page printed the face as paid. On the
+        18f201c5bf book that was every leaver on INV_OVERDUE_WITHIN_PAGE_BALANCE: SYN-2016-471
+        (9.35 netted), -523 (25.28) and -546 (6.73), each the desk's overdue less the page's balance.
+        `excluding` is the bill being issued, which a caller may already have posted.
 
         A READER CANNOT WAIT (`_deliver_settlements_through`): a lump the household paid before `on`
         may still be held for the journey walk, so the account's held lumps through `on` cross
         first. Unforced, CRED-42's 28 Mar settlement was not on the ledger on 31 Mar, and its
         settled bill read as owed."""
         self._deliver_settlements_through(on, force=account_id)
-        terms = timedelta(days=PAYMENT_TERMS_DAYS)
         leg = f"{customer_id}::"
         # The leg's cash is what `arrears_engine.cash_leg` names: a remittance or an observed
         # crossing whose reference starts with the leg. Matched here on the prefix, because importing
@@ -1334,7 +1344,8 @@ class LivePaymentTriad:
         owed = 0.0
         for e in self._ledger_book.ledger(account_id).events_through(on):
             if e.event_type == LedgerEventType.BILL_DEBIT:
-                if (e.invoice_ref or "").startswith(leg) and e.valid_time + terms <= on:
+                ref = e.invoice_ref or ""
+                if ref.startswith(leg) and ref != excluding and e.valid_time <= on:
                     owed += e.amount_gbp
             elif (e.remittance[:1] and e.remittance[0].startswith(leg)) or e.event_id.startswith(own):
                 owed -= e.amount_gbp
@@ -1453,7 +1464,8 @@ class LivePaymentTriad:
         ledger_balance = None
         debit_asked = debit_barred = 0.0
         if final_month and customer_id in self._legs_ever_level:
-            ledger_balance = self._leg_balance_on(account_id, customer_id, issue_date)
+            ledger_balance = self._leg_balance_on(account_id, customer_id, issue_date,
+                                                  excluding=invoice_ref)
             # A LEVEL LEAVER'S FINAL BILL NETS THE SCHEDULE'S SURPLUS. The final bill states the one
             # balance (SLC 27.17) and asks its charges less the credit on the account (SLC 31H.12);
             # the page nets it (`arrears_engine.balance_settlement_from_outcomes`, home_moves.md
@@ -1618,7 +1630,8 @@ class LivePaymentTriad:
                     and (r.settled_on is None or r.settled_on > issue_date)
                     for r in self._records):
                 waits = round(credit_gbp - min(
-                    credit_gbp, self._leg_owed_on(account_id, customer_id, issue_date)), 2)
+                    credit_gbp, self._leg_owed_on(account_id, customer_id, issue_date,
+                                                 excluding=invoice_ref)), 2)
                 if waits > 0.005:
                     self._leg_credit[customer_id] = round(
                         self._leg_credit.get(customer_id, 0.0) + waits, 2)
