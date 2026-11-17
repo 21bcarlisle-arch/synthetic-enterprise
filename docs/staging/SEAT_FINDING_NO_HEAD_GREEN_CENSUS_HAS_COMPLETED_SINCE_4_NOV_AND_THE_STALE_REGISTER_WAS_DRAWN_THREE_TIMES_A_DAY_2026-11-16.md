@@ -87,3 +87,43 @@ What was checked before the run, so the grader starts from it:
   DEFERRED or a timeout line. P2 needs a `runs[-1]` dated 17 Nov that is marked partial or reached,
   with all 17 owed modules reached. P3 needs `stale_attempts` to be non-empty and
   `HEAD_RED_REGISTER.md` to be absent from `staging_rooms.work_queue`.
+
+## 7. Grading §4 against the 17 Nov 03:30 census (17 Nov 09:20 GMT, claim `grade-17-nov-census-after-it-runs`)
+
+**What ran.** `head-green-census` started at 03:30:33. Admission passed, so the memory governor did
+not defer it. It ended at **04:52:11 after 1h21m37s of wall clock** (8.2G peak, 5.7M swap) with
+`UNPROVEN: no pytest summary line`, and **no timeout line**. Pytest exited by itself, about 3.5 hours
+inside its bound. The kernel log shows no OOM kill in the window. The only segfaults are weston's
+rdp-backend, every few minutes, and are unrelated. Subject HEAD `67ba0b694`.
+
+| | prediction | outcome |
+|---|---|---|
+| P1 | does not complete (≥ 80%), by DEFERRED (≥ 40%) or kill at bound | **Half right.** It did not complete, but by **neither named route**. A third outcome, exit without a summary, was not on my list. The part about the mechanism is refuted. |
+| P2 | if killed: a PARTIAL row dated 17 Nov, all 17 owed reached | **Not graded.** Its condition did not occur. No PARTIAL row was written (`runs[-1]` is still 4 Nov), because only the timeout path read the progress stream. |
+| P3 | if deferred: STALE, and not in `work_queue` | **Its condition did not occur, but its property held for this UNPROVEN.** `attempts[-1]` is 04:52:11 at `67ba0b694`, `stale_attempts` = 1, `drawable` = 0, and `HEAD_RED_REGISTER.md` is absent from `staging_rooms.work_queue`. The last "17 owed" draw was 04:46, before the attempt. 0 of the 109 worker draws since 04:53 offered it. |
+
+**The defect this exposed.** When pytest returned on its own without a summary, `_run_admitted_suite`
+returned its output to `evaluate` (UNPROVEN) and unlinked the progress stream unread. It wrote
+neither the returncode nor any of the output to the journal. So the night's evidence was destroyed
+three ways: the cause of the exit, the reds the run had re-observed, and how far it got (which
+would have answered §2). **Fixed here.** A suite that exits with no `N passed` summary is now handled
+as a kill by another route. The progress stream becomes a PARTIAL row, `observed["exited_early"]`
+carries the rc into the verdict's reason, and the last 40 lines of output go to the journal.
+Control: the `exits_early` leg of
+`test_a_killed_suite_reports_what_it_reached_and_a_finished_one_does_not`. The mutation that drops
+the branch fires on that leg only. The one-line wire in `main()` from `exited_early` to
+`result["reason"]` has no test of its own.
+
+**§2 (why the suite doubled) is still a GAP.** This run's progress was deleted, so it cannot say. The
+next census that does not complete will now leave a PARTIAL row, a reached count and the output tail.
+
+**Why pytest exited at 1h21m is unknown, and is not guessed here.** The candidates the evidence
+allows: a test or fixture calling `os._exit`/`sys.exit` outside pytest's catch; an INTERNALERROR
+(rc 3); a signal from another lane's process reaper (rc < 0); a crash of the interpreter. The next
+journal entry tells them apart by rc and tail.
+
+**Pre-registration for the 18 Nov 03:30 census (written before it runs).** Q1: it does not complete
+(≥ 75%). Q2: if it ends without a summary for any reason other than deferral, `runs[-1]` is a PARTIAL
+dated 18 Nov and the journal carries an `rc=` line. Q3: the 17 owed modules run first, so if it
+reaches ≥ 1000 tests, all 17 are reached. Refutation: an early exit or kill with no PARTIAL row, or
+a PARTIAL row with fewer than 17 of the owed modules in it once ≥ 1000 tests are reached.

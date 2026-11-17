@@ -135,31 +135,42 @@ def test_the_plugin_is_loaded_by_the_census_and_streams_every_test(tmp_path):
         "the register's own modules must run first so a bound cannot cut them off")
 
 
-@pytest.mark.parametrize("finishes", [False, True])
-def test_a_killed_suite_reports_what_it_reached_and_a_finished_one_does_not(tmp_path,
-                                                                            monkeypatch, finishes):
+@pytest.mark.parametrize("ends", ["killed", "finishes", "exits_early"])
+def test_a_killed_suite_reports_what_it_reached_and_a_finished_one_does_not(tmp_path, capsys,
+                                                                            monkeypatch, ends):
     """MUTATION: restore the discard (return "" without filling `observed["partial"]`) -- the
-    killed leg fires. The finished leg holds that partial is ONLY the timeout path."""
+    killed leg fires. The finished leg holds that partial is NOT taken from a run with a summary.
+
+    The exits_early leg is the 17 Nov 2026 census: pytest exited after 1h21m with no summary
+    line, and its output and progress stream were both discarded, so neither the cause nor the
+    reds it re-observed survived. MUTATION: drop the no-summary branch -- this leg fires."""
     script = textwrap.dedent("""
-        import os, time
+        import os, sys, time
         with open(os.environ[{env!r}], "a") as fh:
             fh.write("call\\tpassed\\ttests/a.py::ok\\n")
             fh.write("call\\tfailed\\ttests/a.py::red\\n")
-        if not {finishes}:
+        if {ends!r} == "killed":
             time.sleep(30)
+        if {ends!r} == "exits_early":
+            print("INTERNALERROR> the cause of the early exit")
+            sys.exit(3)
         print("1 failed, 1 passed in 0.1s")
-    """).format(env=hgc.PROGRESS_ENV, finishes=finishes)
+    """).format(env=hgc.PROGRESS_ENV, ends=ends)
     monkeypatch.setattr(hgc, "pytest_argv", lambda: [sys.executable, "-c", script])
     monkeypatch.setattr(hgc, "first_modules", lambda: [])
     observed: dict = {}
     out = hgc._run_admitted_suite(tmp_path, {"TMPDIR": str(tmp_path), "PATH": "/usr/bin:/bin"},
                                   5, observed)
-    if finishes:
-        assert "1 passed" in out and "partial" not in observed
+    if ends == "finishes":
+        assert "1 passed" in out and "partial" not in observed and "exited_early" not in observed
     else:
         assert out == "" and hgc.evaluate(out)["status"] == "UNPROVEN"
         assert observed["partial"] == {"failures": ["tests/a.py::red"], "passed": 1,
                                        "reached": ["tests/a.py::ok", "tests/a.py::red"]}
+    if ends == "exits_early":
+        assert observed["exited_early"] == "pytest exited rc=3 with no summary line"
+        assert "the cause of the early exit" in capsys.readouterr().err, \
+            "the output's tail must reach the journal, or the next early exit is undiagnosable"
     assert not list(tmp_path.glob("head_census_progress_*")), "the stream must be cleaned up"
 
 
