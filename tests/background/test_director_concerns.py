@@ -30,6 +30,13 @@ def _record(**over) -> dict:
     return base
 
 
+def _raise(kind, *args, **kw):
+    """`raise_concern` with a decision kind that fits the routing kind, for tests about something
+    else; the decision kind's own control calls `dc.raise_concern` directly."""
+    kw.setdefault("decision_kind", "g5" if kind == "reserved" else "strategy")
+    return dc.raise_concern(kind, *args, **kw)
+
+
 @pytest.fixture()
 def record_file(tmp_path, monkeypatch):
     path = tmp_path / "DIRECTION.yaml"
@@ -61,14 +68,14 @@ def test_raising_REFUSES_a_concern_with_no_proposal_or_a_bare_ask(record_file, k
     MUTATION (must fire): drop the `check_message` call, or the empty-proposal clause."""
     before = record_file.read_text(encoding="utf-8")
     if refused_for is None:
-        row = dc.raise_concern(kind, what, proposal, "docs/design/THE_MODEL_ON_A_PAGE.md",
-                               recommendation=GOOD_RECOMMENDATION)
+        row = _raise(kind, what, proposal, "docs/design/THE_MODEL_ON_A_PAGE.md",
+                     recommendation=GOOD_RECOMMENDATION)
         assert row["status"] == "open" and row["id"] and row["raised"]
         assert dc.open_rows(dc.read_raw()) == [row]
         assert d.validate(dc.read_raw()) == []
     else:
         with pytest.raises(dc.ConcernRefused, match=refused_for):
-            dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION)
+            _raise(kind, what, proposal, recommendation=GOOD_RECOMMENDATION)
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
 
 
@@ -100,11 +107,11 @@ def test_a_switch_on_the_23_oct_ruling_made_the_machines_is_REFUSED_at_raise(rec
     g5 = "real_money" if kind == "reserved" else None
     if refused:
         with pytest.raises(dc.ConcernRefused, match="ruling of 23 Oct"):
-            dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION, g5_class=g5)
+            _raise(kind, what, proposal, recommendation=GOOD_RECOMMENDATION, g5_class=g5)
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
     else:
-        row = dc.raise_concern(kind, what, proposal, recommendation=GOOD_RECOMMENDATION,
-                               g5_class=g5)
+        row = _raise(kind, what, proposal, recommendation=GOOD_RECOMMENDATION,
+                     g5_class=g5)
         assert dc.open_rows(dc.read_raw())[-1] == row
 
 
@@ -127,12 +134,12 @@ def test_a_reserved_concern_names_its_G5_class_or_is_not_raised(record_file, kin
     before = record_file.read_text(encoding="utf-8")
     if refused_for:
         with pytest.raises(dc.ConcernRefused, match=refused_for):
-            dc.raise_concern(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
-                             g5_class=g5_class)
+            _raise(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
+                   g5_class=g5_class)
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
     else:
-        row = dc.raise_concern(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
-                               g5_class=g5_class)
+        row = _raise(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
+                     g5_class=g5_class)
         assert row.get("g5_class") == g5_class and d.validate(dc.read_raw()) == []
     bare = {"id": "x", "what": "w", "proposal": "p", "status": "open", "kind": "reserved"}
     assert any("names no G5 class" in p for p in d._concern_problems([bare]))
@@ -144,15 +151,15 @@ def test_raising_edits_ONLY_the_concerns_block_and_ids_stay_unique(record_file):
     concurrent reader. Everything outside `for_the_director` must be byte-identical."""
     before = record_file.read_text(encoding="utf-8")
     head = before.split("for_the_director:")[0]
-    a = dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
-    b = dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    a = _raise("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    b = _raise("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     after = record_file.read_text(encoding="utf-8")
     assert after.startswith(head), "the edit touched the record outside its own block"
     assert a["id"] != b["id"] and b["id"].startswith(a["id"])
 
 
 def test_answering_and_withdrawing_need_a_resolution(record_file):
-    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    row = _raise("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     with pytest.raises(dc.ConcernRefused, match="needs a resolution"):
         dc.resolve(row["id"], "answered", " ")
     with pytest.raises(dc.ConcernRefused, match="no concern with id"):
@@ -168,7 +175,11 @@ def test_the_cli_refuses_with_a_named_reason_and_prints_the_pathspec(record_file
     assert dc.main(["--raise", "--kind", "strategy", "--what", GOOD_WHAT]) == 2
     assert "needs a proposal" in capsys.readouterr().err
     assert dc.main(["--raise", "--kind", "strategy", "--what", GOOD_WHAT,
-                    "--proposal", GOOD_PROPOSAL, "--recommendation", GOOD_RECOMMENDATION]) == 0
+                    "--proposal", GOOD_PROPOSAL, "--recommendation", GOOD_RECOMMENDATION]) == 2
+    assert "records its decision kind" in capsys.readouterr().err
+    assert dc.main(["--raise", "--kind", "strategy", "--what", GOOD_WHAT, "--decision-kind",
+                    "measurement", "--proposal", GOOD_PROPOSAL,
+                    "--recommendation", GOOD_RECOMMENDATION]) == 0
     out = capsys.readouterr().out
     assert "open:" in out and "surgical_land" in out and "DIRECTION.yaml" in out
     assert dc.main(["--list"]) == 0 and GOOD_PROPOSAL in capsys.readouterr().out
@@ -195,14 +206,14 @@ def test_a_concern_with_no_recommendation_is_REFUSED_at_raise_and_FLAGGED_by_the
     row = dict(_OPEN, recommendation=recommendation)
     flagged = sw.flag_concerns_without_recommendation(_record(for_the_director=[row]))
     if refused_for is None:
-        written = dc.raise_concern("reserved", GOOD_WHAT, GOOD_PROPOSAL,
-                                   recommendation=recommendation, g5_class="real_money")
+        written = _raise("reserved", GOOD_WHAT, GOOD_PROPOSAL,
+                         recommendation=recommendation, g5_class="real_money")
         assert dc.read_raw()["for_the_director"][-1]["recommendation"] == GOOD_RECOMMENDATION
         assert written["status"] == "open" and flagged == []
     else:
         with pytest.raises(dc.ConcernRefused, match=refused_for):
-            dc.raise_concern("reserved", GOOD_WHAT, GOOD_PROPOSAL, recommendation=recommendation,
-                             g5_class="real_money")
+            _raise("reserved", GOOD_WHAT, GOOD_PROPOSAL, recommendation=recommendation,
+                   g5_class="real_money")
         assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
         assert len(flagged) == 1 and refused_for in flagged[0] and "canon-split" in flagged[0]
     closed = dict(row, status="answered", resolution="Rich: yes")
@@ -294,7 +305,7 @@ def test_the_seat_REFUSES_and_RESTORES_a_record_that_drops_an_open_concern(monke
     carried row is not re-paged.
 
     MUTATION (must fire): drop `+ dropped` from the problems in `orient`, or the restore."""
-    dc.raise_concern("canon_intent", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    _raise("canon_intent", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     raised = record_file.read_bytes()
     pages: list = []
 
@@ -338,7 +349,7 @@ def test_a_record_that_did_not_reach_origin_ends_the_orientation_REFUSED_and_PAG
 def test_the_brief_and_prompt_hand_the_open_concerns_back(record_file):
     """Defect: the carry check refuses a dropped concern the session was never shown. The open
     rows reach the prompt as a sentence ABOVE the truncated JSON, as `previous_wrong` does."""
-    dc.raise_concern("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    _raise("vision", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     rows = dc.open_rows(dc.read_raw())
     text = seat._prompt({"previous_for_the_director": rows, "shape": {}, "running": {},
                          "ended": {}})
@@ -465,7 +476,7 @@ def test_a_close_made_BETWEEN_orientations_is_found_in_the_committed_revisions()
 ])
 def test_closing_from_the_rules_start_names_its_commitment_or_why_none(record_file, kw,
                                                                          refused_for):
-    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    row = _raise("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     now = datetime(2026, 10, 28, 9, tzinfo=timezone.utc)
     if refused_for:
         with pytest.raises(dc.ConcernRefused, match=refused_for):
@@ -549,7 +560,7 @@ def test_an_orientation_RECORDS_the_closes_it_was_handed(monkeypatch, record_fil
 
     MUTATION (must fire): drop the `closes` key from the decision row in `orient`."""
     monkeypatch.setattr(dc, "read_origin_raw", lambda root=None: None)
-    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
+    row = _raise("strategy", GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION)
     dc.resolve(row["id"], "answered", "his yes", answer_code="yes",
                commitment={**READER_COMMITMENT, "due": "2099-12-31"})
     out = _drive_orient(monkeypatch, record_file, _record(), [])
@@ -576,8 +587,8 @@ def test_a_raised_concern_records_the_commit_it_was_recommended_against(record_f
                           capture_output=True, text=True, check=True).stdout.strip()
     inside = repo / "DIRECTION.yaml"
     inside.write_text(record_file.read_text(encoding="utf-8"), encoding="utf-8")
-    row = dc.raise_concern("strategy", GOOD_WHAT, GOOD_PROPOSAL,
-                           recommendation=GOOD_RECOMMENDATION, path=inside)
+    row = _raise("strategy", GOOD_WHAT, GOOD_PROPOSAL,
+                 recommendation=GOOD_RECOMMENDATION, path=inside)
     assert row["based_on"] == head
     assert dc.read_raw(inside)["for_the_director"][-1]["based_on"] == head
     assert d.validate(dc.read_raw(inside)) == []
@@ -595,8 +606,8 @@ def test_an_answer_carries_its_code_and_the_recount_reads_it_without_a_coder(rec
 
     MUTATION (must fire): drop `closing["answer_code"] = answer_code` in `resolve`; or let
     `silence` count toward `explicit` in `acceptance_by_kind`."""
-    raised = [dc.raise_concern("strategy", f"{GOOD_WHAT} ({i})", GOOD_PROPOSAL,
-                               recommendation=GOOD_RECOMMENDATION) for i in range(6)]
+    raised = [_raise("strategy", f"{GOOD_WHAT} ({i})", GOOD_PROPOSAL,
+                     recommendation=GOOD_RECOMMENDATION) for i in range(6)]
     with pytest.raises(dc.ConcernRefused, match="needs --answer-code"):
         dc.resolve(raised[0]["id"], "answered", "his yes", no_action="none owed")
     with pytest.raises(dc.ConcernRefused, match="needs --answer-code"):
@@ -624,16 +635,57 @@ def test_an_answer_carries_its_code_and_the_recount_reads_it_without_a_coder(rec
 def test_the_recount_names_uncoded_closes_and_can_reach_near_certain():
     """The bar must be reachable (a recount that never qualifies a kind passes every refusal test),
     and a close written round the CLI is counted as uncoded, never guessed as yes."""
-    def rows(n, code, kind="strategy"):
-        return {f"{kind}-{code}-{i}": {"status": "answered", "kind": kind, "answer_code": code}
+    def rows(n, code, kind="strategy", dk="measurement"):
+        return {f"{kind}-{dk}-{code}-{i}": {"status": "answered", "kind": kind, "answer_code": code,
+                                            **({"decision_kind": dk} if dk else {})}
                 for i in range(n)}
     table = dc.acceptance_by_kind({**rows(20, "yes"), **rows(3, "silence"),
-                                   **rows(5, "yes", "canon_intent"),
+                                   **rows(5, "yes", "canon_intent", None),
                                    "old": {"status": "answered", "kind": "canon_intent"},
                                    "gone": {"status": "withdrawn", "kind": "canon_intent"}})
-    assert table["strategy"]["near_certain"] and table["strategy"]["explicit"] == 20
-    assert not table["canon_intent"]["near_certain"] and table["canon_intent"]["uncoded"] == 1
-    assert sum(table["canon_intent"][c] for c in (*d.ANSWER_CODES, "uncoded")) == 6
+    assert table["measurement"]["near_certain"] and table["measurement"]["explicit"] == 20
+    old = table["unkinded (canon_intent)"]
+    assert not old["near_certain"] and old["uncoded"] == 1, "a row with no decision kind was guessed"
+    assert sum(old[c] for c in (*d.ANSWER_CODES, "uncoded")) == 6
+    assert set(table) == {"measurement", "unkinded (canon_intent)"}
+
+
+@pytest.mark.parametrize("kind, decision_kind, refused", [
+    ("strategy", "measurement", False),                                # the passing branch
+    ("reserved", None, False),                                         # reserved implies g5
+    ("strategy", None, True),
+    ("strategy", "tactics", True),
+    ("strategy", "g5", True),                                          # g5 only on a reserved row
+    ("reserved", "harness", True),
+])
+def test_a_raised_concern_records_its_decision_kind_or_is_not_raised(record_file, kind,
+                                                                     decision_kind, refused):
+    """Defect: two coders reading his answers weeks later agreed on the kind only 57 times in 76,
+    so no kind could be counted toward the machine. The kind is now recorded at raise time, under
+    the edges in docs/operations/DECISION_KINDS.md, and the recount groups by it.
+
+    MUTATION (must fire): drop the decision-kind check in `raise_concern` (rows 3-6 go green); drop
+    the `"decision_kind"` key from the written row (row 1); drop the `decision_kind` clause in
+    `_concern_problems` (the validate leg); group the recount by routing `kind` when it is missing
+    (the recount test). Defaulting it to "g5" for every kind does not fire and is an equivalence:
+    g5 on a row that is not reserved is refused by the same check, so the outcome is identical."""
+    before = record_file.read_text(encoding="utf-8")
+    g5 = "real_money" if kind == "reserved" else None
+    if refused:
+        with pytest.raises(dc.ConcernRefused, match="records its decision kind"):
+            dc.raise_concern(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
+                             g5_class=g5, decision_kind=decision_kind)
+        assert record_file.read_text(encoding="utf-8") == before, "a refusal still wrote"
+    else:
+        row = dc.raise_concern(kind, GOOD_WHAT, GOOD_PROPOSAL, recommendation=GOOD_RECOMMENDATION,
+                               g5_class=g5, decision_kind=decision_kind)
+        written = dc.read_raw()["for_the_director"][-1]
+        assert written["decision_kind"] == row["decision_kind"] == (decision_kind or "g5")
+        assert d.validate(dc.read_raw()) == []
+    base = {"id": "x", "what": "w", "proposal": "p", "status": "open", "kind": kind,
+            "g5_class": g5}
+    problems = d._concern_problems([dict(base, decision_kind=decision_kind or "g5")])
+    assert bool([p for p in problems if "decision_kind" in p]) is refused or decision_kind is None
 
 
 @pytest.mark.parametrize("row, refused", [

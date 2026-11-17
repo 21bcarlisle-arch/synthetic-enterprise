@@ -137,6 +137,15 @@ CONCERN_KINDS = ("strategy", "vision", "canon_intent", "reserved")
 #: is validation"; it never counts toward an acceptance rate. A withdrawn row carries no code.
 ANSWER_CODES = ("yes", "changed", "no", "returned", "silence")
 
+#: WHAT KIND OF DECISION the recommendation asks him to approve, recorded at raise time beside the
+#: routing `kind` (where the row was sent) and the later `answer_code`. The two coders of his 76
+#: answers agreed on kind only 75% of the time; the edges, measurement against harness first, are
+#: written in docs/operations/DECISION_KINDS.md and a recount by kind means nothing without them.
+#: Precedence order: when two apply, the first wins. `g5` goes with a `reserved` row and only there.
+DECISION_KINDS = ("g5", "strategy", "curriculum", "fidelity", "outside_source", "measurement",
+                  "harness")
+DECISION_KINDS_PAGE = "docs/operations/DECISION_KINDS.md"
+
 
 def _concern_problems(rows) -> list[str]:
     """Every reason `for_the_director` is not a usable concerns list. `None` and `[]` are both an
@@ -180,6 +189,11 @@ def _concern_problems(rows) -> list[str]:
         if kind is not None and kind not in CONCERN_KINDS:
             problems.append(f"for_the_director[{i}].kind must be one of "
                             f"{', '.join(CONCERN_KINDS)}, got {kind!r}")
+        dk = row.get("decision_kind")
+        if dk is not None and (dk not in DECISION_KINDS or (dk == "g5") != (kind == "reserved")):
+            problems.append(f"for_the_director[{i}].decision_kind {dk!r} -- one of "
+                            f"{', '.join(DECISION_KINDS)}, and g5 exactly when the row is reserved "
+                            f"({DECISION_KINDS_PAGE})")
         g5 = row.get("g5_class")
         if status == "open" and kind == "reserved" and g5 not in g5_classes():
             problems.append(f"for_the_director[{i}] is reserved and names no G5 class ({g5!r}) -- "
