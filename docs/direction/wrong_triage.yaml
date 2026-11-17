@@ -773,3 +773,16 @@ items:
     first_seen: "2026-11-11"
     fate: accept
     reason: "Triaged 2026-11-16 by the delivery seat. The instances since 14 Nov are the not_now shape already accepted as not-now-is-prose-that-nothing-reads (A45 drawn against not_now, W2_44 queued by a NEXT). The costly one, A's twelve-draw family launched early, was stopped at 10:20Z with nothing written. His pace rulings are now held by tick mode, which kept the 15-16 Nov quiet exactly. A focus item's hold needs a stamp or a waits_for the queue reads, not prose, so this record writes them that way. Reopen as a fix if a breach changes a book that is graded under a ruling."
+  - id: a-seat-record-is-refused-on-something-other-than-its-content
+    problem: "Two seat records on 16 Nov (09:23, 18:24) never reached origin, one refused by the knowledge gate reading another lane's file in the merge's combined diff, one by a site test reading the record's own wrong-row prose as two labels in a row."
+    match: ["The 09:23 record never reached origin", "The 18:24 record never reached origin"]
+    first_seen: "2026-11-16"
+    fate: accept
+    reason: "Triaged 2026-11-17 by the delivery seat. The 21:23 record reached origin on its first attempt (7cda45478, merged by 52828f675), written around the label shape, and the knowledge-gate cause did not recur. A fix to either gate costs a worker tick, and the box has one worker, which has spent this whole stretch landing D5. Two instances in one day, each costing a record's steer for one stretch and no data. Reopen as a fix if another seat record is refused."
+  - id: the-brief-counts-a-finding-retired-on-origin-as-blocking
+    problem: "The orientation brief reads findings from the shared tree's working copy, so a finding retired on origin but still in the shared docs/staging/ root is counted as BLOCKING."
+    match: ["The orientation brief counts a retired finding as BLOCKING"]
+    first_seen: "2026-11-12"
+    fate: fold
+    owner: "docs/staging/reference/CLASS_UNCOMMITTED_AND_ORPHANED_WORK_2026-08-12.md"
+    reason: "Triaged 2026-11-17 by the delivery seat. The brief's own staging_flow says 189 dispositions have happened and are merely uncommitted, and the shared tree holding a different staging root from origin is that register's subject (work that never became part of the tree). The brief miscounting is one reader of that divergence. The seat reads each BLOCKING name against origin at orientation, which costs a minute and has caught every instance. Reopen as a fix if a miscounted BLOCKING finding changes a draw or a focus."
