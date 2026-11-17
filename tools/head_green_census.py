@@ -547,6 +547,11 @@ def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS, observed: dict | None = None
             return _run_admitted_suite(subject, env, timeout, observed)
 
 
+#: Lines of an early-exiting suite's output kept in the journal: enough for a traceback or an
+#: INTERNALERROR block, short enough not to flood it. A display length, not a domain value.
+EARLY_EXIT_TAIL_LINES = 40
+
+
 def _run_admitted_suite(subject, env, timeout, observed: dict | None = None) -> str:
     progress = Path(tempfile.mkstemp(prefix="head_census_progress_", suffix=".tsv",
                                      dir=env.get("TMPDIR") or None)[1])
@@ -572,10 +577,33 @@ def _run_admitted_suite(subject, env, timeout, observed: dict | None = None) -> 
             .format(timeout, len(partial["reached"]), len(partial["failures"])))
         sys.stderr.flush()
         return ""
+    else:
+        output = (proc.stdout or "") + (proc.stderr or "")
+        if parse_passed_count(output) is None:
+            # A SUITE THAT EXITED WITHOUT A SUMMARY IS A KILLED ONE BY ANOTHER ROUTE (2026-11-17:
+            # rc unknown, 1h21m, nothing reached the journal). Before this, its output and its
+            # progress stream were both thrown away, so the cause could not be found and the reds
+            # it had re-observed could not be recorded. Keep both, as the timeout path does.
+            partial = parse_progress(_read(progress))
+            if observed is not None:
+                if partial["reached"]:
+                    observed["partial"] = partial
+                observed["exited_early"] = "pytest exited rc={} with no summary line".format(
+                    proc.returncode)
+            tail = "\n".join(output.rstrip().splitlines()[-EARLY_EXIT_TAIL_LINES:])
+            sys.stderr.write(
+                "[head-green-census] pytest exited rc={} with no summary line -- UNPROVEN. "
+                "Reached {} test(s) ({} red); recorded as a PARTIAL run. Last {} line(s) of its "
+                "output:\n{}\n".format(proc.returncode, len(partial["reached"]),
+                                        len(partial["failures"]), EARLY_EXIT_TAIL_LINES, tail))
+            sys.stderr.flush()
+            # "" for the reason the timeout path gives: a FAILED-line list with no "reached"
+            # set beside it would be read as complete.
+            return ""
+        return output
     finally:
         with contextlib.suppress(OSError):
             progress.unlink()
-    return (proc.stdout or "") + (proc.stderr or "")
 
 
 def _read(path: Path) -> str:
@@ -685,6 +713,8 @@ def main(argv=None) -> int:
             "checkout of HEAD and the suite was not run -- {}".format("; ".join(shortfall)))
     if observed.get("partial"):
         result["partial"] = observed["partial"]
+    if observed.get("exited_early"):
+        result["reason"] = observed["exited_early"]
     if observed.get("deferred"):
         result["deferred"] = observed["deferred"]
         result["reason"] = ("the memory governor deferred the census, so the suite was not run -- "
