@@ -159,3 +159,31 @@ list that newly refuses is a finding in its own right, not a refutation of the t
 
 - Row 7 (SYN-2016-001): the walk-ordering class from the D5 pre-registration ("SYN-2016-001 traced to a class"). It
   has no owner in `next_book_requires.yaml` yet. The grade names one.
+
+## 8. 17 Nov, 18:05Z, delivery seat: the pause fired, the book is held by an uncommitted walk fix, and §7's row-7 prediction is amended before the book runs
+
+- **The pause fired cleanly.** `d5book-pause-watch` saw pair 2 on disk at 17:41:15Z and stopped step 6.
+  The child had already printed `pair [33333, 44444] done` (seed 44444: 833 draws, 20,030 s). Both
+  `member_33333_44444.json` and `control_33333_44444.json` were written at 17:40:48Z, and the sidecar
+  holds both seeds. Nothing was lost to the stop.
+- **sim-runner has not taken the book.** It deferred at 17:39Z on memory, before the stop. Since 17:44Z it
+  defers every cycle with `the code a run would import is not origin's: background/live_payment_triad.py`.
+  The shared tree holds an uncommitted edit made at 17:15Z by a scheduled-tick worker (pid 413423, started
+  17:01Z). In `record_period`, `_settle_held(account_id)` becomes `_deliver_settlements_through(previous_due)`.
+  There is a matching test, `test_a_re_presented_level_collection_crosses_before_the_walk_passes_its_day`,
+  in `tests/background/test_a_lump_crossing_behind_the_desks_walk_is_counted.py`. That is the walk-ordering
+  class that owns §7's row-7 refusal. The edit is that worker's, so the seat does not touch it.
+  `code_admission` is doing its job: a book on bytes origin does not hold would be unattributable.
+- **What the deferral costs.** The watcher relaunches step 6 at 01:41Z 18 Nov whether or not a book
+  lands (its 8 h deadline). The book takes about 1 h 52 min, so it must be admitted by about 23:45Z to finish
+  inside the pause.
+- **The amended prediction (filed before the book; §7's table is otherwise unchanged).** If the book
+  carries the worker's fix, it is a second change to row 7's cause. SYN-2016-001 pays both fuels by
+  **standard credit** (2023 payments 21496/21497 and 21610/21611 are `standard_credit`), so its lump is
+  not the re-presented level collection the fix's test names. The fix delivers every held settlement through
+  `previous_due`, though, not only level ones. So I cannot yet say whether it reaches SYN-2016-001.
+  Pre-registered: **row 7 reads 2 or 0, nothing else.** 2 means the fix does not reach a
+  standard-credit lump, and `settlements_behind_the_walk` must name a walk for it. 0 means it does, and the
+  counter must read 0 for that account. Any other value, or a 0 with a non-zero counter, refutes this.
+  If the book is built WITHOUT the fix, §7 stands as written. The grade reads `run_complete`'s `Git:` line to
+  say which book it was.
