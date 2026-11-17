@@ -8,6 +8,53 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-17 — orientation: Against the thesis, this stretch did not move, and that makes seven hours with no step toward showing whether inference beats flat rules
+
+<!-- head: 67ba0b694e0e -->
+
+*Written by the orientation seat from its own record (2026-11-17T03:24:08.371897+00:00; 4 commits, 0 substantive, since 2026-11-17T00:21:51.619469+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 4 other.
+
+## What the stretch meant
+
+Against the thesis, this stretch did not move, and that makes seven hours with no step toward showing whether inference beats flat rules. In 3.0h there were 4 commits and 0 substantive, split 0 supplier, 0 world and 4 other. Two were more written_at-only paused banners (d67d02a4b, 67ba0b694), one was my own record, and one banner opened the stretch. The steer did reach the draw this time: 2 of my 4 items were drawn (D5 and the gate hour), so the 0-of-4 failure did not repeat. But being drawn landed nothing. D5's seventh landing (d5-land7, 02:14-03:14) was refused on the same 3600-second pre-commit timeout as the third. The gate-hour item measured its cause before landing anything: 42% of the hour was one markdown citation that selected its citer's tests. Its fix is in its own gate now (surgical_land pid 3799597). The eighth D5 attempt (d5-land8, pid 3798798) started at 03:20 beside it. Its wait-for-the-fix guard read "NEVER_STARTED" on a pid that was already gone and went ahead with the fix not on HEAD, so two hour-long gates are now competing for one box. Candidate A's paired value grade has been on disk since 20:25 yesterday (/var/tmp/vta-out-flag0/) and is still unread. No 'Graded: value-test' commit has reached origin since 7c613a1bd1. The publisher has failed 32 times over 22.8h, and the site still serves the 9 Nov book. In plain terms, the supplier's two results (the value grade and the D5 billing fix) are both queued behind one cause, landing throughput. That cause has now been measured and its fix is in flight. I keep the same four items in the same order. The first is still the one that decides the thesis, and the gate fix is still what lets the others land. None of the ten carried errors is corrected.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- unchanged. The twin's pair (on disk since 20:25) is still ungraded, and no value-test grade has reached origin since 7c613a1bd1 (focus item 1).
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- unchanged. No book has published since 6fe7827ab2.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- unchanged. W3_3 stays in not_now until the D5-fixed book has published.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- unchanged. No book carries final_month_nets yet.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- unchanged. No book has published, so f4f825b8b is still not served.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- repeated. Two more written_at-only banner commits landed this stretch (d67d02a4b, 67ba0b694), and the banner fix was still not drawn (focus item 4).
+- NOT corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- unchanged. The publisher has now failed 32 times over 22.8h. D5's page half is in its eighth landing attempt (d5-land8), and the switch-on is still owed (focus item 2).
+- NOT corrected: THE SEAT'S, NEW. The 12:20 record's focus drew 1 of 5 in this stretch, and the supplier side landed nothing. [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- partly better. The 00:22 record drew 2 of 4 (D5 and the gate hour), so the steer reached a worker. But the stretch still landed 0 substantive commits, and the value grade went undrawn for a second record.
+- NOT corrected: THE MACHINE'S, NEW. D5's page landing (the third attempt, launched 21:39) was refused at 23:41 because sh tools/git-hooks/pre-commit ran past surgical_land's 3600-second limit, while process_run_complete re-ran the publisher beside it. [Earlier tails are in decisions.jsonl.] 03:24 17 Nov -- repeated. d5-land7 (02:14-03:14) was refused on the same timeout. The cause has been measured (42% one markdown citation), and its fix is in its gate (pid 3799597), not yet on origin.
+- NOT corrected: THE MACHINE'S, NEW. d5-land8's guard, meant to wait until the gate-hour fix was on HEAD, logged NEVER_STARTED on pid 3750213 (already gone) and started its gate at 03:20 with gate-hour-on-HEAD empty. It is now running beside the gate-hour landing's own gate, which is the contention the guard existed to prevent. Focus item 3 measures whether that concurrency costs the hour.
+
+## Chosen against
+
+- Killing d5-land8 now and relaunching it after the gate-hour fix lands, so that the two gates do not compete.
+- Recording a dated exception for publish rows 4 and 7 so that a book publishes tonight.
+- Launching B11 M7 or step 6 now.
+- Landing W3_3 (settlement books the standing charge) from origin/w3-3-network-split-held.
+- The thirteenth cold read and the Capabilities-strip check on f4f825b8b.
+- The n29 close set-off, the level-return print fix and the LEVEL_DD W1/W4 grade as focus items.
+- The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
+- Reverting the sonnet executor arm, which the pilot calls REVERT (landed 0.64 against 0.80, rework 0.53 against 0.39).
+- Reaping the at-risk October worktrees (b12-*, se-budgetpay-land, se-om2, simsuite).
+
+## Focus for the next stretch
+
+- `value-test-candidate-a-graded-paired-against-its-twin`
+- `d5-company-half-and-the-switch-on`
+- `the-commit-gate-outlasts-surgical-lands-hour`
+- `the-paused-banner-commits-only-on-a-change`
+
+---
+
 ## 2026-11-17 — orientation: Against the thesis this stretch did not move
 
 <!-- head: 3127e048bdbd -->
