@@ -326,6 +326,21 @@ def _today(now: datetime | None) -> str:
     return (now or datetime.now(timezone.utc)).date().isoformat()
 
 
+def based_on_snapshot(path: Path | None = None) -> str:
+    """The commit the recommendation was written against, so a later reader can check his answer
+    against what was known when it was asked (director steer 17 Nov, Claes's `BasedOnSnapshotId`).
+    Uncommitted work beside it is not in the snapshot; an unreadable HEAD says so rather than
+    leaving the field empty."""
+    root = (path or direction_mod.DIRECTION_PATH).resolve().parent
+    try:
+        out = subprocess.run(["git", "rev-parse", "--short=10", "HEAD"], cwd=str(root),
+                             capture_output=True, text=True, timeout=30)
+        sha = out.stdout.strip() if out.returncode == 0 else ""
+    except (OSError, subprocess.SubprocessError):
+        sha = ""
+    return sha or "unknown -- git rev-parse HEAD failed where the record lives"
+
+
 def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = None, *,
                   recommendation: str = "", g5_class: str | None = None, path: Path | None = None,
                   now: datetime | None = None) -> dict:
@@ -371,7 +386,8 @@ def raise_concern(kind: str, what: str, proposal: str, evidence: str | None = No
     rows = [dict(r) for r in rows_of(record)]
     row = {"id": _unique_id(_slug(what), {str(r.get("id")) for r in rows}),
            "raised": _today(now), "kind": kind, "what": what, "proposal": proposal,
-           "recommendation": recommendation, "status": "open", "resolution": ""}
+           "recommendation": recommendation, "based_on": based_on_snapshot(path),
+           "status": "open", "resolution": ""}
     if g5_class:
         row["g5_class"] = g5_class
     if evidence:

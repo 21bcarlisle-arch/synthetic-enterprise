@@ -547,11 +547,25 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "17 Nov",
+   "source": "*Domain-Driven Design: The First 15 Years*, essays from the DDD community (DDD Europe, Leanpub; 2024-01-11 version); shared by the director",
+   "claim": "Claes: decisions move from human, to machine suggestion, to machine decision, gated on measured agreement. Fowler: multiple canonical models (the utility \"meter\" polyseme). Chassaing: events, not clock times. Wlaschin: make illegal states unrepresentable",
+   "evidence": "Practitioner essays, no data",
+   "verdict": "ADOPT (two measurements)",
+   "done": "His acceptance rate by kind of decision, measured: no kind is yet sure enough (measurement nearest, 15 of 16, bound 0.76). Each new `for_the_director` row now records the commit it was recommended against. Fowler confirms the concept register; Chassaing and Wlaschin had nothing left to amend, because the lifecycle test had already dropped the lifecycle. Record: `docs/staging/advisor/done/DIRECTOR_STEER_MEASURE_HOW_OFTEN_THE_DIRECTOR_ACCEPTS_THE_RECOMMENDATION_AND_LET_THE_SURE_KINDS_BE_DECIDED_2026-11-17.md`",
+   "concept": "Agents and models",
+   "placed": {
+    "kind": "step",
+    "label": "Agents and models",
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 13,
+  "step": 14,
   "unplaced": 4,
   "none": 5
  },
