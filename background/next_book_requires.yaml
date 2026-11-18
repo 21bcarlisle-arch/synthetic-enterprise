@@ -41,3 +41,11 @@ requires:
 - commit: 20d4cbecc
   what: a delivery's walk stops at its own through (INV_OVERDUE_WITHIN_PAGE_BALANCE, SYN-2016-001's last 2; P5 reads 0)
   owner: DD_seasonal_cashflow_physics
+# W3_3: the domestic network split (per-kWh on volume, the cap's nil share per supply point per day).
+# A world change that moves every settled electricity figure, so its book must carry it ALONE: no
+# other world change between this commit and the build (the daily-SAP gas splice stays switched off
+# until skip0/skip1 read). Graded against
+# docs/staging/records/SEAT_PREREG_W3_3_WHAT_THE_SPLIT_MOVES_PER_DOMESTIC_ELECTRICITY_ACCOUNT_DAY_2026-11-18.md.
+- commit: c71d2521d
+  what: W3_3 network split per kWh and per supply point per day (years/<y>/network_cost_gbp falls 1-9% 2017-2025)
+  owner: W3_3_the_network_charge_splits_per_unit_and_per_day
