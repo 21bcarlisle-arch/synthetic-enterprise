@@ -121,7 +121,7 @@ def _add_working_days(start: dt.date, n: int) -> dt.date:
 
 
 def test_the_door_exposes_only_the_refund_request():
-    assert seam.__all__ == ["refund_on_account_closure"]
+    assert seam.__all__ == ["refund_on_account_closure", "refunds_on_account_closures"]
     reachable = [n for n in FORBIDDEN_AT_THE_DOOR if hasattr(seam, n)]
     assert reachable == [], (
         "the credit-refund door hands the world back the company's own compliance "
@@ -137,9 +137,9 @@ def test_mutation_a_widened_door_is_caught(leaked):
     level, which is all it takes to put the taxonomy back in the world's reach."""
     with _Mutant(
         SEAM_SOURCE,
-        '__all__ = ["refund_on_account_closure"]',
+        '__all__ = ["refund_on_account_closure", "refunds_on_account_closures"]',
         f'from company.billing.credit_refund import {leaked}\n\n'
-        '__all__ = ["refund_on_account_closure"]',
+        '__all__ = ["refund_on_account_closure", "refunds_on_account_closures"]',
         f"_mutant_refund_{leaked}",
     ) as mutant:
         assert hasattr(mutant, leaked), "vacuity: the mutation did not widen the door"

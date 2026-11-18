@@ -1246,10 +1246,13 @@ balance. The close refund reads each fuel alone.
     build read the balance after every payment the run would ever make. A final bill the other leg's direct debit
     collected 3-14 days after the refund counted as paid, so nothing was set against it. On run_output_8a300fa561,
     16 refunds had no set-off and 7 only a part one: GBP 483.51 refunded while the same household owed it
-    (`docs/staging/SEAT_FINDING_THE_N29_BLIND_ROWS_23_ARE_ONE_CLASS_THE_SET_OFF_NETS_ONLY_DEBT_THE_HOUSEHOLD_NEVER_PAYS_2026-11-16.md`).
+    (`docs/staging/done/SEAT_FINDING_THE_N29_BLIND_ROWS_23_ARE_ONE_CLASS_THE_SET_OFF_NETS_ONLY_DEBT_THE_HOUSEHOLD_NEVER_PAYS_2026-11-16.md`).
     The bill then asks its charges less the set-off (SLC 31H.12, as choice 11 does for a credit), so the later
     collection takes only the rest. The household is not refunded and then debited for the same money.
     Control: `tests/simulation/test_the_close_set_off_reads_debt_issued_but_not_yet_collected.py`.
+    *Where it is decided (18 Nov 2026):* choices 21, 22 and 30 are decided by the supplier, from its own issued bills
+    and collected payments (`company/billing/credit_refund.HouseholdCloseDebts`). The world states only the closure
+    and when it happened. The replay on run_output_8a300fa561 is byte-equal.
 
 #### 8.8f A level leaver's debit and its final bill (added 2026-11-16, before the build; D5 of `LEVEL_DD_AREA_MAP.md`)
 

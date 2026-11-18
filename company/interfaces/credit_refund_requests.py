@@ -72,7 +72,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-__all__ = ["refund_on_account_closure"]
+__all__ = ["refund_on_account_closure", "refunds_on_account_closures"]
 
 
 def refund_on_account_closure(
@@ -139,3 +139,38 @@ def refund_on_account_closure(
         "reg_6d_payment_owed": record.reg_6d_payment(),
         "set_off": set_off,
     }
+
+
+def refunds_on_account_closures(
+    closures: list[dict],
+    closing_balances: dict[str, float],
+    uncollected: dict[str, list[tuple[dt.date, dt.date, float]]] | None = None,
+) -> list[dict]:
+    """Answer for every closure refund of a run, in order, deciding each dual-fuel set-off from
+    the company's own ledger (home_moves.md s.8.8e choices 21, 22, 30).
+
+    ``closures`` is what the world states, one per account closing in credit: ``account_id``,
+    ``final_bill_issued`` and ``credit``, in pounds. ``closing_balances`` and ``uncollected`` are
+    the ledger: each leg's balance at its final bill, and its collected bills as
+    ``(issued, collected, cash)``. Which other leg the credit is set against, and how much that leg
+    owes on the refund day after earlier set-offs, is decided here, behind the wall. Each answer is
+    `refund_on_account_closure`'s, plus ``set_off_against`` where ``set_off`` is above zero.
+    """
+    from company.billing.credit_refund import HouseholdCloseDebts, scheduled_refund_date
+    from company.interfaces.dd_review_outcome import billing_account_of
+
+    debts = HouseholdCloseDebts(closing_balances, uncollected, billing_account_of)
+    answers: list[dict] = []
+    for closure in closures:
+        account, issued = closure["account_id"], closure["final_bill_issued"]
+        against, debt = None, 0.0
+        if debts.has_other_leg(account):
+            # The company pays on its own schedule, and the debt is the other leg's on that day.
+            against, debt = debts.debt_leg_on(account, scheduled_refund_date(issued))
+        answer = refund_on_account_closure(account, issued, closure["credit"],
+                                           other_fuel_closing_debt=debt)
+        if answer["set_off"] > 0:
+            answer["set_off_against"] = against
+            debts.record(against, answer["set_off"])
+        answers.append(answer)
+    return answers

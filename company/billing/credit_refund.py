@@ -11,7 +11,7 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from company.compliance.working_days import add_working_days, working_days_between
 from company.regulatory.gsop import standard_payment_gbp
@@ -71,6 +71,57 @@ def closing_set_off(credit_gbp: float, other_fuel_debt_gbp: float) -> float:
     if credit_gbp <= 0.0 or other_fuel_debt_gbp <= 0.0:
         return 0.0
     return round(min(credit_gbp, other_fuel_debt_gbp), 2)
+
+
+class HouseholdCloseDebts:
+    """What each leg of a closing household owes on a given day, read from this company's own
+    ledger, less what it has already set off: the debt a closing credit is set against
+    (home_moves.md s.8.8e choices 21, 22, 30).
+
+    ``closing_balances`` is the ledger's balance per leg at its final bill, owed positive, credit
+    negative. ``uncollected`` lists each leg's collected bills as ``(issued, collected, cash)``; on a
+    day, a bill issued by it and collected after it is still owed. Both are issued bills and
+    collected payments, the supplier's own books. A collection dated after the day is read only as
+    "not yet collected on the day", which the supplier knows on that day.
+
+    A leg already in credit is never a debt leg. Two credit legs on one household draw on its debt
+    in turn, so the debt is never set off twice. This was decided in
+    `simulation/credit_refund_events.py` until 2026-11-18, on the world's side of the wall.
+    """
+
+    def __init__(self, closing_balances: dict[str, float],
+                 uncollected: dict[str, list[tuple[dt.date, dt.date, float]]] | None,
+                 household_of: Callable[[str], str]) -> None:
+        self._closing = closing_balances
+        self._uncollected = uncollected or {}
+        self._household_of = household_of
+        self._set_off: dict[str, float] = {}
+        self._legs: dict[str, list[str]] = {}
+        for leg, owed in closing_balances.items():
+            if owed > -0.005:
+                self._legs.setdefault(household_of(leg), []).append(leg)
+
+    def _others(self, credit_leg: str) -> list[str]:
+        return [leg for leg in self._legs.get(self._household_of(credit_leg), ()) if leg != credit_leg]
+
+    def has_other_leg(self, credit_leg: str) -> bool:
+        return bool(self._others(credit_leg))
+
+    def owed_on(self, leg: str, day: dt.date) -> float:
+        later = sum(cash for issued, paid, cash in self._uncollected.get(leg, ()) if issued <= day < paid)
+        return round(self._closing[leg] + later - self._set_off.get(leg, 0.0), 2)
+
+    def debt_leg_on(self, credit_leg: str, day: dt.date) -> tuple[Optional[str], float]:
+        """The leg the credit is set against on ``day``, the one owing most, and what it owes."""
+        others = {leg: owed for leg in self._others(credit_leg)
+                  if (owed := self.owed_on(leg, day)) > 0.005}
+        if not others:
+            return None, 0.0
+        against = max(others, key=lambda leg: (others[leg], leg))
+        return against, round(others[against], 2)
+
+    def record(self, leg: str, amount_gbp: float) -> None:
+        self._set_off[leg] = round(self._set_off.get(leg, 0.0) + amount_gbp, 2)
 
 
 @dataclass(frozen=True)

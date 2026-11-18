@@ -1994,7 +1994,7 @@ def ev_closing_refund_within_household_credit(inv, book):
 #: A closing-refund breach whose whole excess is debt the other closing leg owed at the end of the
 #: refund day and paid in full with its next payment: the world's set-off read that leg's later
 #: collection as already made (the N29 class,
-#: docs/staging/SEAT_FINDING_THE_N29_BLIND_ROWS_23_ARE_ONE_CLASS_THE_SET_OFF_NETS_ONLY_DEBT_THE_HOUSEHOLD_NEVER_PAYS_2026-11-16.md).
+#: docs/staging/done/SEAT_FINDING_THE_N29_BLIND_ROWS_23_ARE_ONE_CLASS_THE_SET_OFF_NETS_ONLY_DEBT_THE_HOUSEHOLD_NEVER_PAYS_2026-11-16.md).
 #: The household is refunded and debited days later: a money-order defect, not lost money.
 COLLECTED_AFTER_THE_REFUND = "other_leg_debt_collected_after_the_refund"
 

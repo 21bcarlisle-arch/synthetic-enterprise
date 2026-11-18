@@ -41,8 +41,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from company.interfaces.credit_refund_requests import refund_on_account_closure
-from company.interfaces.dd_review_outcome import billing_account_of
+from company.interfaces.credit_refund_requests import refunds_on_account_closures
 from simulation.arrears_engine import bill_issue_date
 from simulation.segment_vocabulary import RESIDENTIAL, normalise_segment
 
@@ -78,29 +77,20 @@ def generate_credit_refund_log(
     is refunded, and it is 0.0 where the debt took the whole credit. Two credit legs on one
     household draw on its debt in leg order, so the debt is never set off twice.
 
-    The debt is the other leg's on the refund day (s.8.8e choice 30): its closing balance plus the
+    The company decides the set-off (`refunds_on_account_closures`); this module states the
+    closures and the ledger. The debt is the other leg's on the refund day (s.8.8e choice 30): its closing balance plus the
     cash of every bill issued by that day and collected after it (``later_cash``, the walk's
     `later_cash_out`). The closing balance alone counts a final bill the direct debit collects a
     few days after the refund as paid, so the set-off missed it: 23 refunds, GBP 483.51, on
     run_output_8a300fa561.
     """
-    legs: dict[str, list[str]] = {}
-    for cid, owed in closing_balances.items():
-        if owed > -0.005:
-            legs.setdefault(billing_account_of(cid), []).append(cid)
-    set_off_so_far: dict[str, float] = {}
-
-    def _owed_on(leg: str, day: dt.date) -> float:
-        later = sum(cash for issued, paid, cash in (later_cash or {}).get(leg, ())
-                    if issued <= day < paid)
-        return round(closing_balances[leg] + later - set_off_so_far.get(leg, 0.0), 2)
     last_bill: dict[str, dict] = {}
     for bill in bills:
         held = last_bill.get(bill["customer_id"])
         if held is None or bill["period_end"] > held["period_end"]:
             last_bill[bill["customer_id"]] = bill
 
-    log: list[dict] = []
+    closures: list[dict] = []
     for cid in sorted(closing_balances):
         balance = closing_balances[cid]
         if balance >= 0 or cid not in last_bill:
@@ -110,32 +100,20 @@ def generate_credit_refund_log(
         final = bill_issue_date(cid, last_bill[cid]["period_end"])
         later = [d for d in ((last_collection or {}).get(cid), (money_in or {}).get(cid)) if d]
         collected = max(later) if later else None
-        issued = max(final, collected) if collected else final
-        others: dict[str, float] = {}
-        if any(leg != cid for leg in legs.get(billing_account_of(cid), ())):
-            # The company pays on its own schedule, and the debt is the other leg's on that day,
-            # so the day is asked first. The answer's date does not depend on the debt stated.
-            refund_day = dt.date.fromisoformat(refund_on_account_closure(
-                account_id=cid, final_bill_issued=issued,
-                credit_amount_gbp=round(-balance, 2))["paid_date"])
-            others = {leg: owed for leg in legs[billing_account_of(cid)] if leg != cid
-                      and (owed := _owed_on(leg, refund_day)) > 0.005}
-        against = max(others, key=lambda leg: (others[leg], leg)) if others else None
-        event = {
-            "customer_id": cid,
-            **refund_on_account_closure(
-                account_id=cid,
-                final_bill_issued=issued,
-                credit_amount_gbp=round(-balance, 2),
-                other_fuel_closing_debt=round(others[against], 2) if against else 0.0,
-            ),
-        }
+        closures.append({"account_id": cid,
+                         "final_bill_issued": max(final, collected) if collected else final,
+                         "credit": round(-balance, 2)})
+    # Which debt leg a closing credit is set against, and how much, is the company's decision from
+    # its own ledger (s.8.8e); the world states the closures and the ledger and logs the answers.
+    answers = refunds_on_account_closures(closures, closing_balances, later_cash)
+    log: list[dict] = []
+    for closure, answer in zip(closures, answers):
+        against = answer.pop("set_off_against", None)
+        event = {"customer_id": closure["account_id"], **answer}
         # The run's logs label money in pounds; the seam names its currency once.
         event["set_off_gbp"] = event.pop("set_off")
-        if event["set_off_gbp"] > 0:
+        if against is not None:
             event["set_off_against"] = against
-            set_off_so_far[against] = round(
-                set_off_so_far.get(against, 0.0) + event["set_off_gbp"], 2)
         log.append(event)
     return log
 
