@@ -1,3 +1,26 @@
+**Severity:** LATENT · **Lane:** W2_customer_generator
+
+> **BUILD 2 OF 2 LANDED, 2026-11-18 (worker) -- §2a BUILT; severity BLOCKING -> LATENT.** An old
+> certificate now records the home ONE INSULATION STEP WORSE where it was upgraded after lodgement
+> (`simulation/premise_population.register_insulation`, called at the seam in
+> `tools/couple_fabric.py::_certificate_for`), with probability `1 - exp(-h x age)` on the same
+> clock that decides absence and age. `h` = 0.9%/yr, a stated belief with range 0.6-0.9%/yr (EHS
+> 2014-24 loft + wall insulation rise), upper end taken (F11). Never better than the home, POOR
+> never moves, band untouched. Mutation-proven three ways (inert channel, symmetric error, age-blind
+> coin) by `tests/simulation/test_an_old_certificate_records_the_home_before_its_upgrades.py`. The
+> gap is reported THREE WAYS (`couple_fabric.gap_by_certificate`, printed and in `--json`).
+> **Measured, one variable (h 0 -> 0.009, 400 drawn premises, seed 17):** signed register-prior error
+> old certs -10.6% -> -10.1%, fresh -9.6% -> -9.5%; 191 with no belief. PREDICTION (made before the
+> run, stated plainly: old moves toward pessimistic more than fresh) held; the size is small, as the
+> sourced rate implies (about 4.5% of old and 1.6% of fresh certificates change on 2,000 premises).
+> **Noticed, not diagnosed:** both groups' register prior sits ~10% BELOW truth (optimistic) before
+> any staleness; that is the prior's own level, not this channel, and is not this finding's to fix.
+> **Why LATENT:** what remains, §2b (absence correlated with fabric), rests on coverage by tenure and
+> by time since transaction, which MHCLG does not publish (GAP-4/5); the next step is a data task on
+> the register's bulk open data, not a build. No published figure or control verdict turns on it:
+> the no-certificate group is reported as its own population. Knowledge page corrected and extended:
+> `what-a-supplier-can-see-of-a-house` (60% -> 52% valid / 79% ever; the staleness CHOICE).
+
 > **BUILD 1 OF 2 LANDED, 2026-11-18 (worker).** `simulation/premise_population._draw_epc_lodgement`
 > is now ONE clock (years since the last sale, let or build, exponential) that decides both absence
 > and certificate age; valid coverage is MHCLG's 52% (`EPC_VALID_SHARE`, was 0.60); the register
@@ -32,7 +55,6 @@
 
 **Fate (2026-10-13, clear-the-decks):** ATOM -- n/a No banner. P3 -- EPC-certificate staleness/absence-correlation discovery needs a network-access session (§2a/§2b); the wall item (§1d/§2c) is already built and landed per its own status.
 
-**Severity:** BLOCKING · **Lane:** W2_customer_generator
 
 > **Status 2026-08-12 — PARTIALLY BUILT; parked in `in_progress/` with one genuinely open half.**
 >

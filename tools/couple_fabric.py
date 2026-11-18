@@ -348,12 +348,16 @@ def _certificate_for(trace, household, lodged, epc_band=None):
     """
     if lodged is None:
         return None
+    # THE FABRIC THE CERTIFICATE RECORDED, not the fabric the home has (advisor finding §2a,
+    # 2026-11-18): an upgrade after lodgement never reaches the register, so an old certificate is
+    # pessimistic. Drawn world-side, on the certificate's own clock.
+    recorded = ppop.register_insulation(household.customer_id, household.insulation, lodged, AS_OF)
     return ti.EpcCertificate(
         lodged_date=lodged,
         total_floor_area_m2=trace.fabric.floor_area_m2,
         property_type=_EPC_PROPERTY_TYPE[household.property_type],
         build_era_band=_ERA_BAND[household.build_era],
-        insulation=household.insulation.value,
+        insulation=recorded.value,
         main_heating_fuel=_register_fuel(household),
         efficiency_band=epc_band,
     )
@@ -591,6 +595,35 @@ def observe(panel, weather, *, unit_rate_p_per_kwh=DEFAULT_UNIT_RATE_P_PER_KWH):
     return observations, detail, no_belief
 
 
+def gap_by_certificate(detail, no_belief, *, as_of=AS_OF):
+    """The register prior's gap SPLIT THREE WAYS -- no certificate, old, fresh (advisor finding §5,
+    failure mode 2): a staleness channel is only visible as a difference BETWEEN groups, and one
+    average would bury it.
+
+    OLD means at least half the 10-year validity window (`ppop.EPC_VALIDITY_YEARS`), the one
+    published duration the register defines. `signed_relative_error` is the mean of
+    (register prior / truth - 1): POSITIVE is pessimistic, the register describing a leakier home
+    than the one that exists. A group with no premises reports `None`, never 0. The no-certificate
+    group also counts the premises the company holds nothing about, which no gap can describe.
+    """
+    groups = {"none": [], "old": [], "fresh": []}
+    for d in detail:
+        if d["certificate"] == "none":
+            key = "none"
+        else:
+            age = (as_of - dt.date.fromisoformat(d["certificate"])).days / 365.25
+            key = "old" if age >= ppop.EPC_VALIDITY_YEARS / 2 else "fresh"
+        groups[key].append(d["epc"] / d["actual"] - 1.0)
+    out = {}
+    for key, errors in groups.items():
+        out[key] = {
+            "premises": len(errors),
+            "signed_relative_error": sum(errors) / len(errors) if errors else None,
+        }
+    out["none"]["no_belief_at_all"] = sum(1 for n in no_belief if n["certificate"] == "none")
+    return out
+
+
 def two_level(panel, weather):
     """The realism of the traces the gap was measured ON, so the two are read
     together rather than in two places."""
@@ -758,6 +791,7 @@ def main() -> None:
             "headline_caveats": caveats,
             "money_epc": _money_json(money_epc),
             "money_inferred": _money_json(money_inferred),
+            "gap_by_certificate": gap_by_certificate(detail, no_belief),
             "two_level_is_red": result.is_red,
             "two_level_failed": [c.statistic for c in result.failed],
             "premises": detail,
@@ -781,6 +815,12 @@ def main() -> None:
             named = ", ".join(str(n["premise_id"]) for n in no_belief[:12])
             more = "" if len(no_belief) <= 12 else f", ... (+{len(no_belief) - 12} more)"
             print(f"                              {named}{more}")
+        # THE STALENESS CHANNEL, visible only as a difference between groups (§5).
+        for key, g in gap_by_certificate(detail, no_belief).items():
+            err = g["signed_relative_error"]
+            shown_err = "n/a" if err is None else f"{err:+.1%}"
+            extra = f", +{g['no_belief_at_all']} with no belief" if key == "none" else ""
+            print(f"  register gap, {key:<5} cert : {shown_err} signed (n={g['premises']}{extra})")
         print()
         # A 200-row table is not read; the whole point of a population is the
         # aggregate. The head is printed so a reader can still see individual

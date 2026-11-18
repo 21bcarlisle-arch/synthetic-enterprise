@@ -1020,3 +1020,18 @@ def test_population_and_premises_flags_are_mutually_exclusive():
     )
     assert result.returncode != 0
     assert "pick one" in result.stderr
+
+
+def test_the_register_gap_is_reported_three_ways_so_staleness_shows_between_groups():
+    """Advisor finding §5, failure mode 2: one average buries a staleness channel. The split must
+    put each certificate in its own age group, sign the error (positive = pessimistic), and report an
+    empty group as None -- a 0 there would read as a register with no error."""
+    detail = [
+        {"certificate": "2013-06-01", "epc": 1.2, "actual": 1.0},
+        {"certificate": "2020-06-01", "epc": 0.9, "actual": 1.0},
+    ]
+    no_belief = [{"certificate": "none"}]
+    split = cf.gap_by_certificate(detail, no_belief, as_of=dt.date(2022, 5, 1))
+    assert split["old"] == {"premises": 1, "signed_relative_error": pytest.approx(0.2)}
+    assert split["fresh"] == {"premises": 1, "signed_relative_error": pytest.approx(-0.1)}
+    assert split["none"] == {"premises": 0, "signed_relative_error": None, "no_belief_at_all": 1}

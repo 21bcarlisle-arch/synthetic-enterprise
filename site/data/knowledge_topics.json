@@ -375,10 +375,10 @@
         "wall_placement": "Public-reality commons and method. The few figures quoted are published facts held in this project's research files, labelled with their source. Nothing here is a measurement of this project's model; that work has not been done.",
         "no_current_level": "Not built. This page states the question and what blocks it; it carries no measurement.",
         "claim_freshness": {
-          "last_verified": "2026-10-02",
+          "last_verified": "2026-11-18",
           "written": "2026-10-02",
           "checked_by": "delivery seat",
-          "source": "Energy certificate coverage and its gap to metered use: docs/market_research/epc_open_data.md (MHCLG open data; about 60% of English stock covered, biased toward recently sold and let homes; certificate estimates 50–100% above metered consumption per a 2023 study). Share of NEED dwellings with no rating, 30.2%: docs/market_research/thirteen_cases_cover_demand_and_that_is_only_half_an_answer.md and simulation/premise_population.py. Design notes: docs/design/W2_23_HOUSING_PHASE2_FRAME.md.",
+          "source": "Energy certificate coverage and its gap to metered use: docs/market_research/epc_open_data.md (MHCLG open data; biased toward recently sold and let homes; certificate estimates 50–100% above metered consumption per a 2023 study). Share of NEED dwellings with no rating, 30.2%: docs/market_research/thirteen_cases_cover_demand_and_that_is_only_half_an_answer.md and simulation/premise_population.py. Design notes: docs/design/W2_23_HOUSING_PHASE2_FRAME.md. Coverage (52% valid, 79% ever) and staleness direction: docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md.",
           "note": "Stub. Claim classes as on the full pages: FACT published, CHOICE a decision with its date, WIRING how the code is today."
         }
       },
@@ -393,7 +393,7 @@
         },
         "theory": {
           "heading": "How it works",
-          "body": "To be written. It will treat the three signals separately because they fail differently. FACT (docs/market_research/epc_open_data.md): the energy certificate is MODELLED (certificate estimates of consumption run 50–100% above metered use), DATED (certificates last ten years and describe the house as it was when assessed), and PARTIAL (about 60% of English homes have one, biased toward homes recently sold or let). The postcode and address are free and say something about the house and little about the household. The meter reveals use over time, and how much that shows depends on how often it is read."
+          "body": "To be written. It will treat the three signals separately because they fail differently. FACT (docs/market_research/epc_open_data.md): the energy certificate is MODELLED (certificate estimates of consumption run 50–100% above metered use), DATED (certificates last ten years and describe the house as it was when assessed), and PARTIAL (MHCLG 2026: 52% of English homes hold a valid certificate and about 79% have ever had one; a certificate is lodged only on building, sale or letting). CORRECTED 2026-11-18: this page said about 60%, a figure that matched neither of MHCLG's pair. FACT (docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md): a certificate is never refreshed after an upgrade and the stock's fabric improves every year, so an OLD certificate is pessimistic, describing a leakier home than the one that exists; how much, by years since lodgement, is not published (GAP). The postcode and address are free and say something about the house and little about the household. The meter reveals use over time, and how much that shows depends on how often it is read."
         },
         "expected_shape": {
           "heading": "What you should expect to see",
@@ -401,7 +401,7 @@
         },
         "live_evidence": {
           "heading": "Live evidence",
-          "body": "None yet. The published facts above are the only evidence held. WIRING: this project's model of Britain's homes already records which homes have a certificate and when it was lodged, but lodgement dates are drawn evenly over ten years where the real ones cluster at recent sales (simulation/premise_population.py)."
+          "body": "None yet. The published facts above are the only evidence held. WIRING: this project's model of Britain's homes already records which homes have a certificate and when it was lodged, on one clock, years since the home was last built, sold or let, which decides both whether a certificate exists and how old it is (simulation/premise_population.py, 2026-11-18; this sentence previously said dates were drawn evenly, which stopped being true that day). CHOICE (2026-11-18): an old certificate records the home one insulation step worse than it is where the home was upgraded since, at a stated belief of 0.6 to 0.9% of homes a year (the English Housing Survey's 2014-2024 rise in loft and wall insulation), the upper end taken because a more pessimistic register makes the supplier's task harder, not easier. At those rates about 4.5% of certificates five or more years old and 1.6% of younger ones misstate fabric. The 2018 change in the certificate method, and assessor noise, are not modelled."
         },
         "residuals": {
           "heading": "Where our picture is still weak",

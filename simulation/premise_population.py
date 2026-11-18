@@ -98,10 +98,10 @@ HONEST SIMPLIFICATIONS (R10 — declared here, never discovered later)
   panel-vs-population difference is attributable to composition. Switching them on
   (both anchored: EHS 2023-24 solar 5.9%, EV 7.4%) is the next change, not this one.
 * **The EPC letter band reaches the company only through `insulation`.** The
-  certificate seam (`tools/couple_fabric.py::_certificate_for`) reports the SIM's own
-  insulation level, so the register misdescribes fabric through its U-value
-  assumptions rather than through a wrong band. Unchanged by this build; named
-  because a population makes the omission larger, not smaller.
+  certificate seam (`tools/couple_fabric.py::_certificate_for`) reports the insulation
+  level the certificate RECORDED (`register_insulation`: one step worse than today where
+  the home was upgraded after lodgement, 2026-11-18), so the register misdescribes fabric
+  through staleness and its U-value assumptions, never through a wrong band.
 
 C-S2 (RNG SUBSTREAM DISCIPLINE)
 -------------------------------
@@ -478,7 +478,7 @@ def smart_read_share(year: int) -> float:
 #
 # STILL GAP, declared: (a) the clock is drawn independently of the home -- whether long-held homes
 # are older or worse-fabric is unpublished (GAP-4/5 there), so absence still carries no information
-# about fabric; (b) the certificate is not yet WRONG with age (§2a's pessimistic offset); (c) an
+# about fabric; (b) the certificate's WRONGNESS with age is `register_insulation` below; (c) an
 # EXPIRED certificate stays on the real open-data register and a real supplier could read it -- here
 # it is withheld, which errs against the company (less than a real supplier has; F11).
 EPC_VALID_SHARE = 0.52
@@ -953,6 +953,53 @@ def _draw_epc_lodgement(premise_id: str, *, base_seed: int, as_of: dt.date) -> d
     if lodged < EPC_REGISTER_OPENS:
         return None
     return lodged
+
+
+# AN OLD CERTIFICATE DESCRIBES THE HOME BEFORE ITS UPGRADES (advisor finding §2a, director ruling
+# 2026-08-09: "the older a certificate is, the more wrong it is -- not merely the more uncertain").
+# Direction SUPPORTED, magnitude a STATED BELIEF WITH A RANGE, both from
+# docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md:
+#   * certificates are never refreshed after an improvement (MHCLG annual EPC release 2026 s.6), and
+#     the stock's fabric improves in every tenure (EHS 2024-25 ch.2), so an old certificate is
+#     PESSIMISTIC -- it records a worse home than the one that exists;
+#   * the rate: EHS 2014-2024, loft 200mm+ 39% -> 42% and wall insulation 48% -> 54% of stock, i.e.
+#     0.6-0.9 percentage points of stock gaining a fabric measure a year (wall alone .. both, no
+#     overlap). The upper end is taken (F11: erring against our own thesis -- a more pessimistic
+#     register makes the company worse). It is a STOCK rate applied to the homes that can have
+#     improved (today FULL or PARTIAL), which under-states the per-eligible-home hazard; also erring
+#     no further than the source.
+# GAP, declared: no source cuts certificate error by years since lodgement (GAP-1); the RdSAP 9.94
+# (2018) method step has the same sign but no published size (GAP-3) and is NOT modelled; assessor
+# noise (Crawley et al. 2019, rating-dependent, symmetric) is a separate channel and NOT modelled; the
+# EPC letter band is not moved (an unrecorded upgrade moves fabric; whether it crosses a band is GAP).
+EPC_UNRECORDED_UPGRADE_HAZARD_PER_YEAR = 0.009
+EPC_UNRECORDED_UPGRADE_HAZARD_RANGE = (0.006, 0.009)
+_ONE_STEP_WORSE = {InsulationLevel.FULL: InsulationLevel.PARTIAL,
+                   InsulationLevel.PARTIAL: InsulationLevel.POOR}
+
+
+def register_insulation(
+    premise_id: str, insulation: InsulationLevel, lodged: dt.date, as_of: dt.date,
+    *, hazard_per_year: float = EPC_UNRECORDED_UPGRADE_HAZARD_PER_YEAR,
+) -> InsulationLevel:
+    """The fabric the register's certificate RECORDS for a home whose fabric today is `insulation`.
+
+    One step worse than today where the home was upgraded after lodgement and the certificate never
+    learned of it; probability `1 - exp(-hazard x age)`, so it grows with the same clock that decides
+    absence and age (`_draw_epc_lodgement`) -- one cause, not a third knob. A POOR or NA home cannot
+    have been worse, so it is recorded as it is.
+
+    Keyed on the premise AND its lodgement date: the date is itself drawn from the population's
+    base seed, so a different population redraws this too, while the same certificate always says
+    the same thing.
+    """
+    worse = _ONE_STEP_WORSE.get(insulation)
+    if worse is None:
+        return insulation
+    age_years = max(0.0, (as_of - lodged).days / 365.25)
+    upgraded_since = 1.0 - math.exp(-hazard_per_year * age_years)
+    roll = _substream(0, f"{premise_id}:{lodged.isoformat()}:unrecorded-upgrade").random()
+    return worse if roll < upgraded_since else insulation
 
 
 def draw_premise(
