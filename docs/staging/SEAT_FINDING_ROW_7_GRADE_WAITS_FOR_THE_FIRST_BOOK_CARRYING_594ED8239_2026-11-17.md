@@ -169,3 +169,13 @@ is still working. `control_55555_66666.json` is not on disk yet. `flag1-stop-at-
 02:08Z. The owed book still needs pair 3, then about 6,700 s of sim-runner, then `process_run`, so a grade cannot come
 before about 05:00Z. The probe was not re-run, because it would only print the table above again. The grade is handed on
 with a dated embargo. The steps in "How the next draw grades it" and P1–P5 are unchanged.
+
+**18 Nov 03:56Z (claim `the-book-carrying-all-three-row-7-fixes-is-graded-and-published`, executor draw). Still no book, so nothing is graded.**
+The newest `run_output_*` is still `run_output_18f201c5bf_20261117T181948Z.json`, and so is the ledger's `source_json`. The newest
+marker is still `run_complete_20261117T181948Z.md`. `site/data/publish_provenance.json` on origin is still paused (`paused_since`
+2026-11-16T04:26:22Z, `last_verified` 6fe7827ab2). Pair 3's driver (pid 1051692) has run 7 h 44 min of CPU at 98% and 7.5 GB RSS.
+`control_55555_66666.json` is not written yet. Pair 2 (`33333_44444`) wrote at 17 Nov 17:40Z, so this pair is now about 2 h past the
+roughly 21,000 s pairs took before. It is still working, not hung. `flag1-stop-at-pair3-watch` has been waiting since 02:08Z, and sim-runner
+logged `DEFERRED` at 03:47Z and 03:52Z behind it. Following the item, I did not pause flag 1. The earliest possible grade is now pair 3,
+plus about 6,700 s of sim-runner, plus `process_run`. That is about 07:30Z at the soonest. The grade is handed on with a dated embargo.
+The steps above and P1–P5 are unchanged.
