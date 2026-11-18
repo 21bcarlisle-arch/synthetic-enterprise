@@ -142,6 +142,18 @@ def appeared(before: dict[str, dict], after: dict[str, dict]) -> list[str]:
     return sorted(out)
 
 
+def in_two_rooms(names: list[str], staging_dir: Path) -> list[str]:
+    """Of `names`, the ones `done/` already holds: the state the gate refuses.
+
+    A marker arriving with no `done/` twin is a run finishing while a gate ran. Recording those
+    put 97 rows in the log between 21 Aug and 18 Nov, 95 of them fresh runs, and the 18 Nov
+    parked-document audit read the count as 97 occurrences. The one real specimen in that log
+    (run_complete_20261102T173915Z, a hand re-offer by copy, f000ad71dc) had its twin.
+    """
+    done = Path(staging_dir) / "done"
+    return [n for n in names if (done / n).is_file()]
+
+
 def _git(root: Path, *args: str, stdin: bytes | None = None) -> tuple[int, str]:
     try:
         r = subprocess.run(["git", *args], cwd=str(root), input=stdin,
@@ -284,7 +296,7 @@ def bracket(root: Path, label: str, staging_dir: Path | None = None, out: Path |
     finally:
         if before is not None:
             try:
-                names = appeared(before, census(sdir))
+                names = in_two_rooms(appeared(before, census(sdir)), sdir)
                 if names:
                     record(build_event(names, label, Path(root), sdir, started, time.time()),
                            out=out)
@@ -311,7 +323,7 @@ def watch(duration: float, interval: float = 1.0, root: Path | None = None,
         _sleep(interval)
         started = time.time()
         now = census(sdir)
-        names = appeared(before, now)
+        names = in_two_rooms(appeared(before, now), sdir)
         if names:
             # Built BEFORE `before` is advanced, and the process table is taken inside it: the
             # gap between the write and the snapshot is what decides whether the writer is still

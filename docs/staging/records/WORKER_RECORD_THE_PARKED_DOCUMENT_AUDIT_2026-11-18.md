@@ -29,6 +29,10 @@ on 5 Sep, and it is the idle-hole class at scale.
 
 1. **Staging-root resurrection: name the writer.** The instrument has fired 97 times, the latest at
    03:47 today, and nobody has read its records.
+   *Corrected the same day, after reading them: 97 rows were not 97 occurrences. 95 were fresh
+   runs finishing while a gate ran (no `done/` twin). The one return with a twin, logged twice, was
+   a hand re-offer by copy (f000ad71dc). The finding is closed in `done/`, and the instrument now
+   records only twin-bearing arrivals.*
 2. **Memory: measure a gate phase's peak with `ru_maxrss`.** Unbuilt. It bears on today's stale
    census, which the memory governor deferred for budget. The class gate routes it to
    `reference/CLASS_PUBLISH_GATE_AND_WEDGE_2026-08-12.md` as an instance, not to the root.

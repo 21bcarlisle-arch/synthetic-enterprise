@@ -45,6 +45,12 @@ def _staging(repo: Path) -> Path:
     return repo / "docs" / "staging"
 
 
+def _twin(sdir: Path, *names: str) -> None:
+    """Archive `names` into done/ first: a root copy is only the gate-refusing state with a twin."""
+    for name in names:
+        (sdir / "done" / name).write_text("body\n\n## Superseded (not published)\n\nfooter\n")
+
+
 def _events(log: Path) -> list[dict]:
     if not log.is_file():
         return []
@@ -58,6 +64,7 @@ def _events(log: Path) -> list[dict]:
 def test_fires_when_a_marker_appears_during_the_bracket(repo, tmp_path):
     log = tmp_path / "out.jsonl"
     sdir = _staging(repo)
+    _twin(sdir, MARKER)
     with watch.bracket(repo, "test-landing", staging_dir=sdir, out=log):
         (sdir / MARKER).write_text("body\n")
 
@@ -75,6 +82,7 @@ def test_fires_when_the_bytes_are_rewritten_under_an_existing_name(repo, tmp_pat
     identically at the gate. Scoping to new names only would answer a narrower question."""
     log = tmp_path / "out.jsonl"
     sdir = _staging(repo)
+    _twin(sdir, MARKER)
     (sdir / MARKER).write_text("original\n")
     with watch.bracket(repo, "test-landing", staging_dir=sdir, out=log):
         (sdir / MARKER).write_text("restored to the pre-archive bytes\n")
@@ -86,6 +94,7 @@ def test_fires_even_when_the_bracketed_body_raises(repo, tmp_path):
     says refused attempts are where some of this happens. The record must survive the raise."""
     log = tmp_path / "out.jsonl"
     sdir = _staging(repo)
+    _twin(sdir, MARKER)
     with pytest.raises(RuntimeError):
         with watch.bracket(repo, "red-gate", staging_dir=sdir, out=log):
             (sdir / MARKER).write_text("body\n")
@@ -105,6 +114,7 @@ def test_the_record_separates_a_restore_from_a_producer(repo, tmp_path):
     known_bytes = b"these bytes are already an object\n"
     subprocess.run(["git", "hash-object", "-w", "--stdin"], cwd=repo,
                    input=known_bytes, check=True, capture_output=True)
+    _twin(sdir, MARKER, "run_complete_20260820T093000Z.md")
 
     with watch.bracket(repo, "restore-shape", staging_dir=sdir, out=log):
         (sdir / MARKER).write_bytes(known_bytes)
@@ -137,6 +147,7 @@ def test_a_simultaneous_batch_is_flagged_as_one_event(repo, tmp_path):
     log = tmp_path / "out.jsonl"
     sdir = _staging(repo)
     names = ["run_complete_2026082{}T070000Z.md".format(i) for i in range(3)]
+    _twin(sdir, *names)
     with watch.bracket(repo, "batch", staging_dir=sdir, out=log):
         for n in names:
             (sdir / n).write_text("body\n")
@@ -155,6 +166,7 @@ def test_watch_records_a_reappearance_while_polling(repo, tmp_path):
     log = tmp_path / "out.jsonl"
     sdir = _staging(repo)
     state = {"n": 0}
+    _twin(sdir, MARKER)
 
     def fake_sleep(_):
         state["n"] += 1
@@ -195,6 +207,17 @@ def test_silent_for_findings_and_director_docs_arriving_in_the_root(repo, tmp_pa
     assert _events(log) == []
 
 
+def test_silent_when_a_fresh_run_finishes_during_the_landing(repo, tmp_path):
+    """A new marker with no done/ twin is a run completing, not a return: the gate does not
+    refuse it. 95 of the 97 rows logged 21 Aug - 18 Nov were this, and were read as 97
+    occurrences. MUTATION: drop `in_two_rooms` from `bracket` and this records one event."""
+    log = tmp_path / "out.jsonl"
+    sdir = _staging(repo)
+    with watch.bracket(repo, "landing", staging_dir=sdir, out=log):
+        (sdir / MARKER).write_text("a run that just finished\n")
+    assert _events(log) == []
+
+
 def test_silent_when_a_marker_is_correctly_ARCHIVED_during_the_landing(repo, tmp_path):
     """Retirement is the healthy path: root -> done/. The instrument must not report the fix as
     the defect."""
@@ -215,6 +238,7 @@ def test_bracket_never_breaks_the_landing_when_forensics_raises(repo, tmp_path, 
     sdir = _staging(repo)
     monkeypatch.setattr(watch, "forensics",
                         lambda *a, **k: (_ for _ in ()).throw(OSError("instrument broke")))
+    _twin(sdir, MARKER)
     landed = []
     with watch.bracket(repo, "landing", staging_dir=sdir, out=log):
         (sdir / MARKER).write_text("body\n")
@@ -227,6 +251,7 @@ def test_bracket_never_breaks_the_landing_when_the_log_is_unwritable(repo, tmp_p
     sdir = _staging(repo)
     unwritable = tmp_path / "no-such-dir" / "x" / "out.jsonl"
     (tmp_path / "no-such-dir").write_text("this is a FILE, so mkdir under it fails")
+    _twin(sdir, MARKER)
     landed = []
     with watch.bracket(repo, "landing", staging_dir=sdir, out=unwritable):
         (sdir / MARKER).write_text("body\n")

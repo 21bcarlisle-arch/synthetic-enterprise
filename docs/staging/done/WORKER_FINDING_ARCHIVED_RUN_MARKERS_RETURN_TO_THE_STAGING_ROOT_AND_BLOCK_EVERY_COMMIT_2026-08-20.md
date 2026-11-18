@@ -1,3 +1,7 @@
+> **CLOSED, 2026-11-18 (worker tick), on the instrument's own records.** See "Steps 2 and 3, read
+> from the log" at the end. Correction to the audit line below: its 97 records are not 97
+> occurrences.
+
 > **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Its condition was 'the next occurrence'. `docs/observability/staging_root_resurrection.jsonl` holds 97 records, the latest at 2026-11-18 03:47. Steps 2 and 3, naming the writer from those records, are drawable now.
 
 **Severity:** BLOCKING · **Lane:** H_harness
@@ -244,3 +248,46 @@ The check that would have caught this in seconds, and the one worth keeping: a s
 whose path is still present on disk is `git status --porcelain docs/staging/ | grep -E '^D  '`
 alongside a `??` for the same name — the `AD`/`RD` question two sections up, asked of the room
 rather than the index.
+
+## Steps 2 and 3, read from the log (worker tick, 2026-11-18)
+
+`docs/observability/staging_root_resurrection.jsonl` held 97 rows covering 99 file entries, from
+21 Aug to 18 Nov. All of them are `run_complete_*`. Tabulated by the record's own discriminating
+fields:
+
+| `twin_in_done` | `blob_known_to_git` | `tracked_at_head` | files |
+|---|---|---|---|
+| False | False | False | 97 |
+| True | False | False | 2 |
+
+- **The 97 with no twin are not the condition.** Each is a run that finished while a gate was
+  running. The median gap from the run's own timestamp to the file's mtime is 13 minutes. The 4
+  rows that land later are one pending marker per run, rewritten as its publish attempts are
+  appended (820 → 1022 → 1224 bytes on run_complete_20261117T181948Z). No twin means
+  `finding_classes` has nothing to refuse.
+- **The 2 with a twin are one file, recorded by two landings.** That file is
+  run_complete_20261102T173915Z (the 08f267b666 book), mtime 2 Nov 21:43:47, with a strict-superset
+  twin. Its writer is named by its own commit: f000ad71dc says "the item's re-offer by copy cannot
+  work. The two-rooms repair deleted the staged copy within five minutes, because done/ held the
+  same name." A lane copied the marker back by hand to re-drive a publish. The bytes were never a
+  git object, because markers are untracked, so no checkout, reset or merge could have produced
+  this.
+- **Markers are untracked now** (`git log --all` has no history for this path), so the August
+  mechanism, a restore from a commit, cannot recur in that form. The August batch itself predates
+  the instrument. Its writer stays unmeasured, and this document does not guess it.
+- **The cost the finding describes is bounded.** `background/staging_two_rooms_repair.py` runs on
+  the worker cycle and removed the one specimen within five minutes. `finding_classes --check`
+  passes at the time of writing.
+
+**Changed:** the instrument recorded every marker that arrived during a gate. That logged 95 rows of
+noise, and today's audit read them as 97 occurrences. `bracket` and `watch` now record only
+arrivals that `done/` already holds (`in_two_rooms`).
+- Control: `test_silent_when_a_fresh_run_finishes_during_the_landing`. Dropping the filter from
+  `bracket` turns it red.
+- Every firing test now arranges its twin. A filter that refuses everything turns 7 of them red.
+- The two never-breaks tests also arrange twins. Without them they passed without reaching
+  forensics.
+
+**Reverse:** revert the commit.
+
+NEXT: none -- the writer is named from the records, and the instrument now records only the refusing state
