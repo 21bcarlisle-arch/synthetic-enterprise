@@ -1,211 +1,180 @@
 version: 1
-oriented_at: "2026-11-18T12:24:07.112567+00:00"
+oriented_at: "2026-11-18T15:21:49.370919+00:00"
 thesis_read: >-
-  The thesis test has not moved, and this stretch it lost ground for reasons that had nothing to do
-  with the test. The supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's
-  belief, and skip1, the run that decides whether that holds, has still not started. Its locked scratch
-  tree was deleted while its launch waited, so the 09:49Z launch was refused (97827d409 rebuilt it at
-  11:12Z). Then, at 11:04Z, sim-runner admitted a new book on 7f0723b46e the moment next_book_requires
-  was satisfied. The weekly window holds every publish until 23 Nov, and the book does not carry W3_3,
-  which landed 21 minutes later. So the box is spending about 2.3h on a book that can neither publish
-  nor grade anything new, while the one comparison the thesis rests on queues behind it. Nothing in
-  the tree stops the same thing happening again when that book ends, because c71d2521d now satisfies
-  the file. That ordering is focus 1. On billing, which comes first in the director's order, the
-  stretch delivered. The 6af7fd0bfd book is verified on origin: publish_provenance last_verified
-  6af7fd0bfd at 10:20:38Z, paused_since null, and the episode was closed at 11:03Z after 52.7h. On that
-  book, row 7 went from 20 to 0 as predicted. The account page's repayment shortfall went from 194 legs
-  (GBP 6,399.16) to 0. The walk file names ACC-SYN-2016-001's 15 Aug 2023 settlement as no longer behind
-  the walk (settle_held 0). The served Capabilities strip now lists the week's fixes to 18 Nov. The
-  census red is green: 24 passed at HEAD, which is level with origin, on 74915437a. Those are five
-  carried rows corrected on evidence, not on promises. W3_3 landed alone (c71d2521d), which unblocks B12
-  once a book grades it. The first live reader of the book found 3 of 53,605 bills charging off their
-  contract. The cause was a ledger term record, not the biller, and its fix is landing now (surgical_land
-  pid 1200350). The commit split reads 0 supplier, 3 world and 13 other. The substance was grading
-  supplier billing on a book, tagged other, so the supplier's numbers moved but its code did not. The
-  previous focus drew 4 of 4, so the steer bit. What drifted was the box order, not the steer.
+  The thesis test is finally running. That is the stretch's one result that matters, and it has no answer
+  yet. longjob-value-test-threshold-skip launched at 13:08Z (pid 1873447, 6.2 GB). After 2h13m, skip1's
+  member run had reached September 2021 of a 2016-2025 book. skip1's read should land around 00:30Z on 19 Nov,
+  and skip0's control file around 12:30Z on 19 Nov (the register expects 1,400 min). c18067646 put a null row in
+  next_book_requires, so no book can take the box first. That corrects the 11:04Z admission that cost about
+  3.5h. Until skip1 reads, the supplier still trails its flat-rules baseline by GBP 1.35 per household-year
+  (-3.03 to +0.13). The renewal belief still ranks leavers backwards (AUC 0.333). Nothing this stretch moved
+  either number, and nothing could have. The commit split reads 0 supplier, 0 world and 18 other. That is
+  honest: no supplier code changed. The billing work was grading. Four BLOCKING D-lane findings were graded on
+  the published 6af7fd0bfd book and retired (51c9cc571). The shared-serial and volumeless-gas read came back
+  clean, at 0 of 1,044 supply points and 0 of 23,799 gas bills (3727cdbb3). That closes a row carried since
+  30 Oct. The channel-F census now runs when a publish stages the artefact it reads (faef41bcd). The previous
+  focus drew 3 of 4. The fourth, skip1's grade, was correctly not ripe. So the steer held. What drifts now is
+  the supplier side: while the box is held, two billing defects already traced to the penny sit unbuilt. The
+  closing set-off nets only debt the household never pays: 23 lines, GBP 483.51, on 8a300fa561. A level
+  return on a credit-bill month is dropped from the page on 3 legs. Neither needs the box to build, and both
+  are billing, which comes first in the director's order. That is this record's focus 2 and 3.
 stretch_reviewed:
-  since: "2026-11-18T09:21:58.856225+00:00"
-  commits: 16
-  substantive: 9
+  since: "2026-11-18T12:24:07.112567+00:00"
+  commits: 18
+  substantive: 5
 focus:
-- id: the-box-runs-the-skip-pair-before-another-book
-  what: 'The book on 7f0723b46e (run_annual_report pid 484274, started 11:04Z) is the only thing between
-    the box and the skip pair. Let it finish; do not kill it. Before it exits, stop sim-runner admitting
-    another book until the skip pair has read. Use the mechanism background/next_book_requires.yaml already
-    documents: add one row with `commit: null`, `what: skip pair read (/var/tmp/vts-out-skip1/control_11111_22222.json
-    and /var/tmp/vts-out-skip0/control_11111_22222.json)` and `owner: B_commercial`, with a REVERSE comment
-    beside it. Then confirm that `python3 -m background.sim_runner`''s book_admission defers, and that
-    /var/tmp/box-plan/box_free.py would return 0 with 484274 gone. Confirm that /var/tmp/value-test-threshold-skip
-    still exists and is `git worktree lock`ed, and that vts-threshold-skip-watch is still armed. When
-    484274 exits, check that longjob-value-test-threshold-skip launches within one watch cycle (600 s).
-    If it does not, read vts-threshold-skip-watch.log and launch it per THE_VALUE_TEST_REDESIGN s.12d.
-    Never run a second copy. Make the step that grades skip1 also delete the null row once both control
-    files exist, so the W3_3 book builds next, alone. Land the YAML by pathspec.'
-  why: 'The per-customer-versus-flat comparison is the thesis''s only live test, and this stretch it lost
-    its turn twice: a deleted tree, then a book admitted 34 minutes before the row that would have held
-    it. Done means longjob-value-test-threshold-skip is running on the box, and next_book_requires holds
-    a null row that keeps every book behind the skip pair''s two control files.'
-  lane: B_commercial
-  side: supplier
-  written_at: 1795004974.471
 - id: skip1-is-graded-against-s12es-branches
-  what: 'DO NOT DRAW BEFORE /var/tmp/vts-driver/read_threshold_skip.skip1.out EXISTS. vts-branch-watch
-    is armed on that file (deadline 30 Nov). Once it exists, grade skip1 in docs/design/THE_VALUE_TEST_REDESIGN.md
-    s.12f against s.12e''s table exactly as pre-registered: k of the 9 flips re-offered, with every s.12e
-    row marked held or missed beside its prediction. Name the flags that differ between the arms compared.
-    Then check that the branch watch started the branch s.12e names: on HOLD or NEITHER, /var/tmp/vts-driver/launch_hold_pairs.sh;
-    on REFUTE, the candidate-2 calibration alone against its unswitched comparator. If it did not, start
-    it yourself. Leave skip0 running as the one-variable comparator. When skip0''s control file also exists,
-    delete the skip-pair null row from background/next_book_requires.yaml so that the W3_3 book builds.
-    Carry `Graded: value-test held=<n> missed=<n>`.'
+  what: 'DO NOT DRAW BEFORE /var/tmp/vts-driver/read_threshold_skip.skip1.out EXISTS. skip1 has been running
+    since 13:08Z (longjob-value-test-threshold-skip; skip0 follows in the same unit), and vts-branch-watch
+    is armed on that file. Once it exists, grade skip1 in docs/design/THE_VALUE_TEST_REDESIGN.md s.12f
+    against s.12e''s table exactly as pre-registered: k of the 9 flips re-offered, with every s.12e row
+    marked held or missed beside its prediction. Name the flags that differ between the arms compared.
+    Then check that the branch watch started the branch s.12e names: on HOLD or NEITHER, /var/tmp/vts-driver/launch_hold_pairs.sh,
+    but only after skip0''s control file exists; on REFUTE, the candidate-2 calibration alone against
+    its unswitched comparator. If it did not start, start it yourself. Never kill the running unit; skip0
+    is the one-variable comparator. When /var/tmp/vts-out-skip0/control_11111_22222.json also exists,
+    delete the skip-pair null row from background/next_book_requires.yaml so that the W3_3 book builds
+    next, alone. Carry `Graded: value-test held=<n> missed=<n>`.'
   why: This is the reading that decides whether the GBP 1.35 deficit is the method's or the belief's.
     The AUC 0.333 row and the -GBP 1.35 row cannot move until it exists. Done means s.12f is on origin
-    with skip1 graded against every s.12e row, and the named branch is launched or queued behind a named
-    box condition.
+    with skip1 graded against every s.12e row, the null row is gone once skip0 is on disk, and the named
+    branch is launched or queued behind a named box condition.
   lane: B_commercial
   side: supplier
-  written_at: 1795004974.471
-- id: the-live-book-is-read-for-shared-meter-serials-and-volumeless-gas-bills
-  what: The open cold-read row (a meter serial shared by up to 34 supply points; a gas bill with no volume)
-    was never read on the 6af7fd0bfd book, because its grade read row 7, the walk and the repayment shortfall
-    only. Against docs/reports/run_output_6af7fd0bfd_20261118T070221Z.json and the served account pages
-    (https://poesys.net/), count the meter serials that appear on more than one supply point, and the
-    gas bill lines that charge for energy with no kWh or m3. Report each as a count over its graded denominator
-    (supply points; gas bills), with three worked examples. If either count is nonzero, name the writer
-    line that produced it (company/billing/ or the meter-identity draw) and file a finding with a pre-registered
-    count for the fix. Do not fix anything in the same tick. Write the counts into docs/staging/SEAT_FINDING_ROW_7_GRADE_WAITS_FOR_THE_FIRST_BOOK_CARRYING_594ED8239_2026-11-17.md
-    as a dated section.
-  why: Billing accuracy is first in the director's order. This is the last billing row the verified book
-    can grade without a new run, and it has been listed since 30 Oct. Done means both counts are on origin
-    with their denominators, so the row can be marked corrected or carried with a named writer at the
-    next orientation.
+  written_at: 1795015608.637
+- id: n29-close-set-off-nets-issued-debt
+  what: 'Build the fix that docs/staging/SEAT_FINDING_THE_N29_BLIND_ROWS_23_ARE_ONE_CLASS_THE_SET_OFF_NETS_ONLY_DEBT_THE_HOUSEHOLD_NEVER_PAYS_2026-11-16.md
+    traced. When a dual-fuel household closes, the refund set-off in simulation/credit_refund_events.py
+    nets the other fuel''s balance only after its later DD collection. So a final bill that has been issued
+    but not yet collected on the refund day is never set off: 16 lines have no set-off and 7 a part set-off,
+    GBP 483.51. K8 first: write the choice into docs/market_research/home_moves.md s.8.8e under the next
+    free choice number (25 is cited in code but is not on the page, and 26-28 are D5''s; say so beside
+    it). The set-off reads the other leg''s issued-and-unpaid balance on the refund day. Pre-register
+    before the replay: 0 of 132 breached for ev_closing_refund_within_household_credit on run_output_8a300fa561,
+    rerun through the finding''s own instrument (/var/tmp/n29r/, chain_full.py then perline.py), with
+    the 23 lines named. Any surviving line refutes it. Add one control that fails when the set-off reads
+    only collected debt. Do not touch the keyed exception (153a675ad) in the same landing; retire it on
+    the first book that reads 0.'
+  why: A supplier that refunds a leaver's credit while the same household still owes on its other fuel
+    pays out money it is owed. That is a home-moves billing defect, and home moves are step 2 of the director's
+    order. It has been traced to the penny since 16 Nov and is held only by an exception. It needs no
+    box time. Done means the knowledge choice, the fix and its control are on origin, and the replay reads
+    0 of 132 or the surviving lines are named in the finding.
+  lane: C_customer_ops
+  side: supplier
+  written_at: 1795015608.637
+- id: a-level-return-on-a-credit-bill-month-prints-as-returned
+  what: 'In the credit-bill branch of tools/generate_billing_ledger.py (the comment that begins "A level
+    direct debit collects its amount whatever the month''s bill"), print a returned level collection as
+    a `failed` level row, exactly as the non-credit branch does. Take its case and repayment from the
+    desk''s figure through the existing level_missed_on path, so the catch-up stops hanging the repayment
+    on the previous successful collection. The premise "the bill owes nothing" reads a catch-up credit
+    bill that was issued after the instalment was returned. Pre-register: on 8a300fa561''s ledger (/var/tmp/grade-lrcb/count.py),
+    legs without a level row go from 3 to 0 (SYN-2016-215 2020-07, PROS-2019-0318 2022-07, SYN-2016-047
+    2023-05), and no repayment hangs on a successful level collection. Add a test holding SYN-2016-215''s
+    shape. Write the result into docs/staging/SEAT_FINDING_A_LEVEL_RETURN_ON_A_CREDIT_BILL_MONTH_IS_DROPPED_FROM_THE_PAGE_THE_DESK_OPENED_ON_2026-11-16.md
+    and archive it.'
+  why: The statement tells the household a collection succeeded and was "repaid" when it was returned.
+    That is a billing-accuracy defect on the page the household reads, and billing is first in the director's
+    order. It is small (3 of 28,526 level rows) and fully traced, so it is cheap to close. Done means
+    the fix and test are on origin, and the recount reads 0 of 206 credit-bill months without their level
+    row.
   lane: D_billing_metering
   side: supplier
-  written_at: 1795004974.471
-- id: the-channel-f-census-runs-when-a-publish-stages-what-it-reads
-  what: tools/pre_commit_test_gate.py's _wall_channel_census_check runs only when a .py file or the baseline
-    is staged, so the 43fa9534d publish widened channel F's surface by six names. That passed its own
-    gate, and the refusal fell on the innocent merge after it (see docs/staging/WORKER_FINDING_THE_6AF7FD0BFD_PUBLISH_HID_THREE_REFUSALS_BEHIND_ITS_SITE_REDS_2026-11-18.md
-    s.5). Make the check also run when a staged path is a published artefact the census reads (docs/reports/run_output_*.json*,
-    docs/state/billing_ledger.json.gz). Add one test that stages a widened artefact without a .py and
-    is refused, and one that stages an unwidened artefact and passes. Ship them in the same landing.
-  why: The census guards the epistemic wall, and a guard that runs only when something unrelated is staged
-    let a wall ruling be made under pressure on a merge that did not cause it. Done means a publish that
-    widens channel F is refused at its own commit, and both tests are on origin.
-  lane: H_harness
-  side: other
-  written_at: 1795004974.471
+  written_at: 1795015608.637
 not_now:
-- what: Killing the 7f0723b46e book (pid 484274) to give the skip pair the box about an hour sooner.
+- what: Moving the retention guard's orchestration (_would_offer) from simulation/run_phase2b.py into the growth
+    desk, the wall half of the 0.30-threshold finding.
   why: >-
-    The book is more than half done, and skip1 runs for roughly 14h, so an hour is about 7% of the wait.
-    Killing it would leave a dead run for the launch register, the publish-wedge detector and
-    process_run_complete to misread, and those readers have cost more than an hour each time this
-    stretch. Holding the NEXT book is the lever that matters. It returns if the book is still running at
-    15:00Z.
-- what: Building the W3_3 book next, ahead of the skip pair.
+    It changes no number, but it rewrites the run loop that skip1 and skip0 are being compared through. If
+    it landed before skip0 is on disk, any later pair would run on different code from the arms it is
+    compared with. It returns once skip0's control file exists.
+- what: Moving the closing set-off decision out of simulation/credit_refund_events.py into company/ as part of
+    focus 2.
   why: >-
-    W3_3 moves every settled electricity figure. If its book ran first, skip0 and skip1 would read a
-    different world from the arms they are compared against. Its grade waits until 23 Nov's publish
-    anyway (continuation deemed-and-flex-rows-book-the-standing-charge), so going second costs it nothing.
-- what: Fixing the 3 tariff-crossing contract bills (PROS-2016-0253, -2017-0286, -2021-0313) as a focus item.
-  why: The cause is found and the fix is already landing (surgical_land pid 1200350). A focus item would put a second writer on it.
-- what: Mechanising launch_long_job to carry SE_NTFY_TOPIC, the other proposal in the 6af7fd0bfd publish finding.
+    The set-off is the supplier's decision, so its home is the wall's business. But doing both in one landing
+    means the replay could not tell the number change from the move. Fix the number in place first. The move
+    is its own item, after.
+- what: B11, forward customer value backtested on held-back history.
   why: >-
-    It fails loudly at import and costs minutes. The channel-F gap fails silently at the wall, which is
-    why that one is in focus and this one is not.
-- what: Withdrawing the publish-wedge refill concern now that the episode closed at 11:03Z.
-  why: 'One closed episode does not retire the class: a refill re-asking while its cure waits on a named file. It stays open for his ruling.'
+    It is step 2 of the order, but every reading it needs takes the box, which the skip pair holds until
+    about 12:30Z on 19 Nov. Which desk belief survives (A or the twin) decides what B11 backtests, so drawing
+    it before skip1 reads would test a belief that may be withdrawn.
+- what: Building the W3_3 book ahead of skip0.
+  why: >-
+    W3_3 moves every settled electricity figure, so skip0 would read a different world from skip1. Its grade
+    waits for the 23 Nov publish anyway (continuation deemed-and-flex-rows-book-the-standing-charge).
+- what: A focus item for this stretch's 3 auto-reconciliation merges that changed nothing (f182b53fd, fe7cb4d8d,
+    e7ceb2a68).
+  why: >-
+    The written_at banner fix landed (f34f100d7), and the landing-race row is graded on its own pre-stated
+    criterion at the next orientation. Three empty merges in 18 commits is noise, not a stall. It returns
+    if a landing logs a lost race again.
 - what: Reaping the 9 at-risk worktrees.
   why: >-
-    Reaping cannot be undone. This stretch showed what deleting a waiting scratch tree costs:
-    /var/tmp/value-test-threshold-skip was deleted and skip1's launch was refused. 870201d1e7 is the
-    base of the live skip tree.
+    Reaping cannot be undone. 870201d1e7 is the base of the live skip tree, /var/tmp/value-test-threshold-skip,
+    which was deleted once this week and cost skip1 its launch.
 - what: The world gas switch to spliced daily SAP (continuation world-gas-baseline-switch-readers-to-spliced-sap).
-  why: It is held, correctly, on both skip control files. Switching the gas world mid-comparison would make skip and A read different worlds.
+  why: It is correctly held on both skip control files. Switching the gas world mid-comparison would make skip and A read different worlds.
 wrong:
 - what: >-
     THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards
-    (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov --
-    unchanged. skip1 has still not launched: its tree was deleted, then a book took the box (focus 1).
+    (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:21 18 Nov --
+    unchanged. skip1 is running (launched 13:08Z) and reads around 00:30Z on 19 Nov (focus 1).
   corrected: false
 - what: >-
     THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per
     household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the
     baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in
-    decisions.jsonl.] 12:24 18 Nov -- unrun. The skip pair waits behind the 7f0723b46e book (focus 1, 2).
+    decisions.jsonl.] 15:21 18 Nov -- running, not yet read. The money is attributed once skip0 is on disk,
+    around 12:30Z on 19 Nov (focus 1).
   corrected: false
 - what: >-
     THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up
-    to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 12:24 18
-    Nov -- the verified 6af7fd0bfd book is on origin, but its grade did not read either check. Focus 3
-    reads them.
-  corrected: false
+    to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:21 18
+    Nov -- corrected on the live book: 0 of 1,044 supply points share a serial, and 0 of 23,799 gas bills
+    charge with no volume, on 6af7fd0bfd (3727cdbb3).
+  corrected: true
 - what: >-
     THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next
     (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.]
-    12:24 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+    15:21 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
   corrected: false
 - what: >-
     THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill
     charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per
     domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in
-    decisions.jsonl.] 12:24 18 Nov -- the fix is on origin (c71d2521d) and is not yet graded on a book.
-    Its book builds after the skip pair, alone; the continuation deemed-and-flex-rows-book-the-standing-charge
-    grades it.
+    decisions.jsonl.] 15:21 18 Nov -- the fix is on origin (c71d2521d) and not yet graded. Its book builds
+    after skip0, alone, and the continuation deemed-and-flex-rows-book-the-standing-charge grades it.
   corrected: false
-- what: >-
-    THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of
-    the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16)
-    after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: 0 legs, GBP 0.00
-    on the verified 6af7fd0bfd book (49d41097b).
-  corrected: true
-- what: >-
-    THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov
-    2026 -- Nothing recorded" after a week that fixed dozens of money classes. [Earlier tails are in
-    decisions.jsonl.] 12:24 18 Nov -- corrected: https://poesys.net/capabilities/ serves "Fixed in the 7
-    days to 18 Nov 2026" with dated items, and its lead says the thesis question in words, not book totals.
-  corrected: true
 - what: >-
     THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2
     and -3 died because the commit gate runs longer than the gap between origin commits (attempts
-    39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- still
-    open: 2 of this stretch's 16 commits were merges that changed nothing (7f0723b46, 433a825ad).
+    39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- the
+    written_at banner fix is on origin (f34f100d7), and this stretch carries no banner commit. But 3 of its
+    18 commits were auto-reconciliation merges that changed nothing, and no landing log has been read for a
+    lost race, so it is not yet graded on its own criterion.
   corrected: false
-- what: >-
-    THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no
-    exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the
-    site still serves the 9 Nov book. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected:
-    origin's publish_provenance reads last_verified 6af7fd0bfd at 10:20:38Z with paused_since null, and
-    the episode closed at 11:03Z.
-  corrected: true
-- what: >-
-    THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to "read
-    settlements_behind_the_walk for SYN-2016-001" and hung the account-page row on the book carrying
-    final_month_nets. Neither was readable. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov --
-    corrected: world_walk_truth_6af7fd0bfd_20261118T070221Z.json was read. ACC-SYN-2016-001's 15 Aug 2023
-    settlement is not behind the walk, and settle_held is 0.
-  corrected: true
-- what: >-
-    THE MACHINE'S, NEW. f865b903f (the daily gas SAP landing) added year-keyed tables to
-    simulation/debt_respite_draw.py (_INDEBTED_ELECTRICITY_ACCOUNTS and its siblings), and
-    tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified
-    is now red on origin/main. 12:24 18 Nov -- corrected by 74915437a. The census passes (24 passed) at
-    HEAD, which is level with origin.
-  corrected: true
 - what: >-
     THE MACHINE'S, NEW. sim-runner admitted a book on 7f0723b46e at 11:04Z, the moment
     next_book_requires was satisfied. The weekly window holds every publish until 23 Nov, the book does
     not carry W3_3 (landed at 11:25Z, written into the file at 11:38Z), and the box had been promised to
     the skip pair. Earlier, skip1's locked scratch tree /var/tmp/value-test-threshold-skip was deleted
     while its launch waited, so the 09:49Z launch was refused. The thesis test lost about 3.5h to the
-    two together.
-  corrected: false
+    two together. 15:21 18 Nov -- corrected: c18067646 holds every book behind both skip control files, and
+    skip1 launched at 13:08Z from the recreated, locked tree.
+  corrected: true
 - what: >-
     THE MACHINE'S, NEW. The channel-F wall census runs only when a .py file or its baseline is staged,
     so the 43fa9534d publish widened the wall surface by six names under its own gate. The refusal
     landed on the merge after it, and the six fields were ruled admissible in 7a4af086a to let the book
-    through.
+    through. 15:21 18 Nov -- corrected by faef41bcd: the census runs when a publish stages the artefact it
+    reads, and both tests (a widened artefact is refused, an unwidened one passes) are on origin.
+  corrected: true
+- what: >-
+    THE MACHINE'S, NEW. The continuation the-box-runs-the-skip-pair-before-another-book is still offered by
+    seat_continuation.live() at 15:21Z, though 32349d382 recorded it premise-spent at 13:29Z and its work
+    (c18067646, skip1 running) is done. A spent item that stays drawable costs a tick that finds nothing.
   corrected: false
 for_the_director:
 - id: the-priority-zero-publish-wedge-refill-fires
