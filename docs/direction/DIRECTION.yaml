@@ -235,4 +235,23 @@ wrong:
       instance. 12d re-planned with skip0 as the one-variable comparator and sends the result to s.12e. A record
       that names a comparison must say which flags differ between its two arms.
     corrected: true
-for_the_director: []
+for_the_director:
+- id: the-priority-zero-publish-wedge-refill-fires
+  raised: '2026-11-18'
+  kind: strategy
+  decision_kind: harness
+  what: The priority-zero publish-wedge refill fires about every 30 min while its cure waits on one named
+    file, so each tick can only re-ask the same question.
+  proposal: When the open episode's cause is domain_invariant_refused and the owed book is held behind
+    an armed, declared watcher waiting on a named file, the refill names that file and stays quiet until
+    the file appears or the watcher dies. It still fires at once if the watcher is gone, the file appears
+    but no book follows within 1 hour, or the episode passes 72 hours.
+  recommendation: I recommend we add the named-wait exemption with its three fire-anyway legs, plus one
+    control showing the refill can still fire while a watcher is armed.
+  based_on: b415878e49
+  status: open
+  resolution: ''
+  evidence: 'Re-asks at 22:20Z, 02:12Z, 04:32Z, 05:05Z and 05:42Z on 17-18 Nov all found the same thing:
+    the refused book is 18f201c5bf''s, from before 20d4cbeccc, with INV_OVERDUE_WITHIN_PAGE_BALANCE at
+    20. flag1-stop-at-pair3-watch is active and waiting for /var/tmp/vta-out-flag1/control_55555_66666.json.
+    The draws cost a commit cycle each and repaired nothing.'
