@@ -1,9 +1,105 @@
 {
- "generated_at": "2026-11-18T09:28:13.433412+00:00",
+ "generated_at": "2026-11-18T12:29:52.311448+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "ee044e5ce",
+    "at": "2026-11-18T11:55:38Z",
+    "subject": "W3_3 parked behind its book: the build landed (c71d2521d), so the BUILD lane stops redrawing it",
+    "substantive": true
+   },
+   {
+    "sha": "d48132fae",
+    "at": "2026-11-18T11:51:45Z",
+    "subject": "Direction: skip1's grading item is embargoed on its own read file, so it is not redrawn before skip1 exists",
+    "substantive": false
+   },
+   {
+    "sha": "862fe25a7",
+    "at": "2026-11-18T11:38:27Z",
+    "subject": "next_book_requires: the book after the skip pair carries W3_3 (c71d2521d), alone",
+    "substantive": false
+   },
+   {
+    "sha": "433a825ad",
+    "at": "2026-11-18T11:26:31Z",
+    "subject": "Merge origin/main (two doc-only commits: 792c40c68, 97827d409) onto the W3_3 landing c71d2521d",
+    "substantive": false
+   },
+   {
+    "sha": "c71d2521d",
+    "at": "2026-11-18T11:25:19Z",
+    "subject": "W3_3 lands alone: domestic settlement charges network per kWh on volume and the cap's nil share per supply point per day",
+    "substantive": true
+   },
+   {
+    "sha": "97827d409",
+    "at": "2026-11-18T11:13:39Z",
+    "subject": "Value test s.12f: skip1 never launched (its scratch tree was deleted); tree recreated at the pin, watcher and branch re-armed",
+    "substantive": true
+   },
+   {
+    "sha": "792c40c68",
+    "at": "2026-11-18T11:10:33Z",
+    "subject": "The 6af7fd0bfd publish is live; the finding names the three refusals its site reds hid, and its first reader grade (1 red, 3 tariff-crossing bills)",
+    "substantive": false
+   },
+   {
+    "sha": "7f0723b46",
+    "at": "2026-11-18T10:56:17Z",
+    "subject": "Merge origin/main onto the 6af7fd0bfd publish (43fa9534d) and its channel-F re-freeze (7a4af086a)",
+    "substantive": false
+   },
+   {
+    "sha": "7a4af086a",
+    "at": "2026-11-18T10:54:31Z",
+    "subject": "Channel F re-frozen at publish 43fa9534d: six supplier-own fields are ruled admissible, so the 6af7fd0bfd book can reach origin",
+    "substantive": true
+   },
+   {
+    "sha": "43fa9534d",
+    "at": "2026-11-18T10:45:29Z",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=6af7fd0bfd, net=\u00a3750,225)",
+    "substantive": true
+   },
+   {
+    "sha": "74915437a",
+    "at": "2026-11-18T10:37:26Z",
+    "subject": "The world's moratorium-rate inputs are pinned to two re-fetched publications, which clears the census red without raising the ratchet",
+    "substantive": true
+   },
+   {
+    "sha": "e13af11f8",
+    "at": "2026-11-18T10:22:24Z",
+    "subject": "World gas baseline: K8 page, splice loader and measured before/after for daily SAP from 2018 (switch held for the skip pair)",
+    "substantive": true
+   },
+   {
+    "sha": "6cb6d687a",
+    "at": "2026-11-18T10:05:28Z",
+    "subject": "Row 7 grade: both site reds that refused book 6af7fd0bfd are answered on origin; the book is re-offered by hand after a race refusal",
+    "substantive": false
+   },
+   {
+    "sha": "22639d0ad",
+    "at": "2026-11-18T10:03:05Z",
+    "subject": "The empty-field sweep counts \"undefined\" as a leak only when a script made it, not when the page was given the word",
+    "substantive": true
+   },
+   {
+    "sha": "49d41097b",
+    "at": "2026-11-18T09:55:16Z",
+    "subject": "Row 7 graded on book 6af7fd0bfd: 20 -> 0 as predicted, the page's repayment shortfall is 0 legs; its publish was refused by a site test pinned to an invoice number, now keyed to the bill",
+    "substantive": true
+   },
+   {
+    "sha": "01cb052de",
+    "at": "2026-11-18T09:52:00Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "ffda9d413",
     "at": "2026-11-18T08:45:26Z",
@@ -147,174 +243,81 @@
     "at": "2026-11-18T03:57:31Z",
     "subject": "Row 7 grade: re-measured at 03:56Z, still no book carrying 20d4cbecc (pair 3 still running)",
     "substantive": false
-   },
-   {
-    "sha": "4672c7fc1",
-    "at": "2026-11-18T03:52:36Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "6fd9d4656",
-    "at": "2026-11-18T03:50:53Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "2f5881869",
-    "at": "2026-11-18T03:49:55Z",
-    "subject": "A tick hands off a step that waits on a long job instead of spending its turn waiting",
-    "substantive": true
-   },
-   {
-    "sha": "d3ff634ab",
-    "at": "2026-11-18T03:36:03Z",
-    "subject": "Focus outranks a continuation run of any author once it has waited through the limit",
-    "substantive": true
-   },
-   {
-    "sha": "f34f100d7",
-    "at": "2026-11-18T03:11:52Z",
-    "subject": "The paused banner commits only when a field other than written_at changes",
-    "substantive": true
-   },
-   {
-    "sha": "fe0993b5a",
-    "at": "2026-11-18T02:38:58Z",
-    "subject": "Row 7 grade, 02:40Z: still no book carrying both fixes; pair 3 is past its ETA but working",
-    "substantive": false
-   },
-   {
-    "sha": "b7c46e425",
-    "at": "2026-11-18T02:36:43Z",
-    "subject": "Row 7's last 2 are already fixed by 20d4cbecc; the next book is now required to carry it",
-    "substantive": false
-   },
-   {
-    "sha": "f6c53d85c",
-    "at": "2026-11-18T02:13:39Z",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "cbd1f8f35",
-    "at": "2026-11-18T02:11:02Z",
-    "subject": "Publish wedge, 02:12Z: the refused book predates both row-7 fixes, and the pair-3 stop watcher is waiting",
-    "substantive": false
-   },
-   {
-    "sha": "4f98206d9",
-    "at": "2026-11-18T02:10:31Z",
-    "subject": "The box is re-planned: step 6 flag 1 stops at pair 3, the owed book runs, then the threshold-skip pair",
-    "substantive": true
-   },
-   {
-    "sha": "1378c5d81",
-    "at": "2026-11-18T01:43:26Z",
-    "subject": "Step 6 pauses at its pair-3 boundary so the first book carrying both row-7 fixes can be built",
-    "substantive": false
-   },
-   {
-    "sha": "20d4cbecc",
-    "at": "2026-11-18T01:38:22Z",
-    "subject": "A delivery's walk stops at its own `through`, so SYN-2016-001's 15 Aug gas lump no longer crosses behind it",
-    "substantive": true
-   },
-   {
-    "sha": "5909e2e36",
-    "at": "2026-11-18T00:54:42Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "8f0dc407b",
-    "at": "2026-11-18T00:52:49Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "ddd55bfc5",
-    "at": "2026-11-18T00:46:27Z",
-    "subject": "The threshold-skip reader is written and dry-run before either run exists",
-    "substantive": true
-   },
-   {
-    "sha": "430d97af6",
-    "at": "2026-11-18T00:45:05Z",
-    "subject": "The box plan orders the threshold-skip pair, the offer re-read and step 6's flag-0 half behind flag 1 and the book",
-    "substantive": true
    }
   ],
-  "substantive": 14,
-  "mechanical": 26,
+  "substantive": 16,
+  "mechanical": 24,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-18T09:21:58.856225+00:00",
+  "oriented_at": "2026-11-18T12:24:07.112567+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "The thesis test has not moved: the supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief. What changed is that the box is finally clearing. Pair 3 of flag 1 is on disk (control_55555_66666.json). The owed book on 6af7fd0bfd, the first to carry every next_book_requires fix, passed the publish gate at 09:20:49Z after 59 refusals over 52.7h, and process_run_complete (pid 4139513) is committing it now. vts-threshold-skip-watch is armed to launch the skip pair next. So within a few hours the five billing rows that all hang on the publish can be graded, and skip1 decides s.12e's branch. I am not marking any of those rows corrected until the provenance is on origin. The stretch itself was the director's 18 Nov steer, and its answer is narrower than it sounds. A harness instrument (tools/strategy_cash_hole_2021_22.py) ranks the cap-tracking survivor S5 ahead of the four failed strategies, with a band of about GBP 45 to 284 per customer and no inversions, under three weathers and three gas prices, now including a real daily SAP. But that ranking comes from setting the real price path against the cap index, not from the world's own mechanics. Weather moves every strategy by about GBP 48, and daily shape by about GBP 16, identically across strategies, because every disclosed hedge is baseload. So the world passes the ranking test, but this instrument cannot tell a discriminating world from correct price arithmetic. It does not yet license reading the per-customer result as inference rather than artefact. I am recording that and leaving the world steer there, because the supplier test is now the thing the box can actually serve. The commit split reads 0 supplier, 1 world and 14 other. The substance was all world-steer work tagged other, plus 3 no-work merges and 5 publish-wedge re-asks, so this stretch went sideways for the supplier, not backwards. The previous focus drew 2 of 4. skip1 and W3_3 were correctly held on a named file and on the publish, so the steer did not drift. The steer item world-ranks-real-2021-22-supplier-strategies is done (page amended, strategies and orderings pre-registered, instrument built, three tests read) and leaves focus. The landing that brought the daily gas price also left a census test red on origin. That is the stretch's one new machine defect, and it goes in focus because a red trunk taxes every lane.",
+  "thesis_read": "The thesis test has not moved, and this stretch it lost ground for reasons that had nothing to do with the test. The supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief, and skip1, the run that decides whether that holds, has still not started. Its locked scratch tree was deleted while its launch waited, so the 09:49Z launch was refused (97827d409 rebuilt it at 11:12Z). Then, at 11:04Z, sim-runner admitted a new book on 7f0723b46e the moment next_book_requires was satisfied. The weekly window holds every publish until 23 Nov, and the book does not carry W3_3, which landed 21 minutes later. So the box is spending about 2.3h on a book that can neither publish nor grade anything new, while the one comparison the thesis rests on queues behind it. Nothing in the tree stops the same thing happening again when that book ends, because c71d2521d now satisfies the file. That ordering is focus 1. On billing, which comes first in the director's order, the stretch delivered. The 6af7fd0bfd book is verified on origin: publish_provenance last_verified 6af7fd0bfd at 10:20:38Z, paused_since null, and the episode was closed at 11:03Z after 52.7h. On that book, row 7 went from 20 to 0 as predicted. The account page's repayment shortfall went from 194 legs (GBP 6,399.16) to 0. The walk file names ACC-SYN-2016-001's 15 Aug 2023 settlement as no longer behind the walk (settle_held 0). The served Capabilities strip now lists the week's fixes to 18 Nov. The census red is green: 24 passed at HEAD, which is level with origin, on 74915437a. Those are five carried rows corrected on evidence, not on promises. W3_3 landed alone (c71d2521d), which unblocks B12 once a book grades it. The first live reader of the book found 3 of 53,605 bills charging off their contract. The cause was a ledger term record, not the biller, and its fix is landing now (surgical_land pid 1200350). The commit split reads 0 supplier, 3 world and 13 other. The substance was grading supplier billing on a book, tagged other, so the supplier's numbers moved but its code did not. The previous focus drew 4 of 4, so the steer bit. What drifted was the box order, not the steer.",
   "focus": [
    {
-    "id": "the-book-carrying-all-three-row-7-fixes-is-graded-and-published",
-    "what": "The 6af7fd0bfd book (run_output_6af7fd0bfd_20261118T070221Z.json) passed the publish gate at 09:20:49Z, and process_run_complete pid 4139513 is committing it. Do not touch that process; wait on it with tools/wait_for. First confirm on origin that site/data/publish_provenance.json has last_verified.git_commit 6af7fd0bfd and paused_since null, and that the served Capabilities page carries f4f825b8b's fixed-this-week strip. Then write three reads into docs/staging/SEAT_FINDING_ROW_7_GRADE_WAITS_FOR_THE_FIRST_BOOK_CARRYING_594ED8239_2026-11-17.md as its grade. (a) Read row 7 (INV_OVERDUE_WITHIN_PAGE_BALANCE) against the prediction of 20 to 0. (b) Read the walk file beside the run for ACC-SYN-2016-001, settled_on 2023-08-15. (c) Read final_month_nets against the account page's repayment shortfall, last at 194 legs (GBP 6,399.16). Also check whether the served account page still shows a meter serial shared across supply points, or a gas bill with no volume. Carry `Graded: level-dd held=<n> missed=<n> code=<n> reader=<n>`. Then empty background/next_book_requires.yaml of the rows this book satisfied, and disposition the publish-wedge alarm finding as closed by this book.",
-    "why": "Billing accuracy is first in the director's order, and five carried wrong rows wait on this one publish. Done means the publish is verified on origin, the three reads are graded in the finding, and each of the five rows can be marked corrected or not on that evidence at the next orientation.",
-    "lane": "D_billing_metering",
+    "id": "the-box-runs-the-skip-pair-before-another-book",
+    "what": "The book on 7f0723b46e (run_annual_report pid 484274, started 11:04Z) is the only thing between the box and the skip pair. Let it finish; do not kill it. Before it exits, stop sim-runner admitting another book until the skip pair has read. Use the mechanism background/next_book_requires.yaml already documents: add one row with `commit: null`, `what: skip pair read (/var/tmp/vts-out-skip1/control_11111_22222.json and /var/tmp/vts-out-skip0/control_11111_22222.json)` and `owner: B_commercial`, with a REVERSE comment beside it. Then confirm that `python3 -m background.sim_runner`'s book_admission defers, and that /var/tmp/box-plan/box_free.py would return 0 with 484274 gone. Confirm that /var/tmp/value-test-threshold-skip still exists and is `git worktree lock`ed, and that vts-threshold-skip-watch is still armed. When 484274 exits, check that longjob-value-test-threshold-skip launches within one watch cycle (600 s). If it does not, read vts-threshold-skip-watch.log and launch it per THE_VALUE_TEST_REDESIGN s.12d. Never run a second copy. Make the step that grades skip1 also delete the null row once both control files exist, so the W3_3 book builds next, alone. Land the YAML by pathspec.",
+    "why": "The per-customer-versus-flat comparison is the thesis's only live test, and this stretch it lost its turn twice: a deleted tree, then a book admitted 34 minutes before the row that would have held it. Done means longjob-value-test-threshold-skip is running on the box, and next_book_requires holds a null row that keeps every book behind the skip pair's two control files.",
+    "lane": "B_commercial",
     "side": "supplier",
-    "written_at": 1794994078.25
+    "written_at": 1795004974.471
    },
    {
     "id": "skip1-is-graded-against-s12es-branches",
-    "what": "vts-threshold-skip-watch launches longjob-value-test-threshold-skip once box_free.py reports no book owed. If it has not launched within 30 min of the 6af7fd0bfd publish landing on origin, find out why and launch it per s.12d. Do not run a second copy. When /var/tmp/vts-driver/read_threshold_skip.skip1.out exists, grade skip1 in docs/design/THE_VALUE_TEST_REDESIGN.md s.12f against s.12e's table exactly as pre-registered: k of the 9 flips re-offered, with every s.12e row marked held or missed beside its prediction. Name the flags that differ between the arms compared. Then start the branch s.12e names without asking: on HOLD or NEITHER, run /var/tmp/vts-driver/launch_hold_pairs.sh; on REFUTE, run the candidate-2 calibration alone against its unswitched comparator. Leave skip0 running as the one-variable comparator for the skip. Carry `Graded: value-test held=<n> missed=<n>`.",
-    "why": "This is the thesis's one live test of per-customer value against the flat baseline, which is second in the director's order, and the -GBP 1.35 row cannot move until it reads. Done means s.12f is on origin with skip1 graded against every s.12e row, and the named branch is launched or queued behind a named box condition.",
+    "what": "DO NOT DRAW BEFORE /var/tmp/vts-driver/read_threshold_skip.skip1.out EXISTS. vts-branch-watch is armed on that file (deadline 30 Nov). Once it exists, grade skip1 in docs/design/THE_VALUE_TEST_REDESIGN.md s.12f against s.12e's table exactly as pre-registered: k of the 9 flips re-offered, with every s.12e row marked held or missed beside its prediction. Name the flags that differ between the arms compared. Then check that the branch watch started the branch s.12e names: on HOLD or NEITHER, /var/tmp/vts-driver/launch_hold_pairs.sh; on REFUTE, the candidate-2 calibration alone against its unswitched comparator. If it did not, start it yourself. Leave skip0 running as the one-variable comparator. When skip0's control file also exists, delete the skip-pair null row from background/next_book_requires.yaml so that the W3_3 book builds. Carry `Graded: value-test held=<n> missed=<n>`.",
+    "why": "This is the reading that decides whether the GBP 1.35 deficit is the method's or the belief's. The AUC 0.333 row and the -GBP 1.35 row cannot move until it exists. Done means s.12f is on origin with skip1 graded against every s.12e row, and the named branch is launched or queued behind a named box condition.",
     "lane": "B_commercial",
     "side": "supplier",
-    "written_at": 1794994078.25
+    "written_at": 1795004974.471
    },
    {
-    "id": "w3-3-lands-alone-after-the-verified-publish",
-    "what": "Only once focus 1's publish is verified on origin (if not, release at once): unpark W3_3_the_network_charge_splits_per_unit_and_per_day. Rebase origin/w3-3-network-split-held onto origin/main, and resolve its hold (the year-basis control reads the per-MWh table as SME's) against the K8 page's cited Ofgem per-kWh and nil-consumption allowances. File the pre-registration: which settled figures move, and by how much per domestic electricity account-day, against the carried GBP 0.47 to 0.60 gap. Fix the map row's rotted path pointer in the same landing. Land it, and write its sha into background/next_book_requires.yaml so that the book after the skip pair carries it, alone.",
-    "why": "Settlement and the bill disagree on every domestic electricity account-day, so no renewal floor the supplier computes is its true unit cost. That blocks B12. Done means W3_3 is on origin with its pre-registration and is named in next_book_requires.yaml.",
-    "lane": "W3_industry_systems",
-    "side": "world",
-    "unblocks": "B12: a renewal floor at the true unit cost needs settlement and the bill to book the same standing charge",
-    "written_at": 1794994078.25
+    "id": "the-live-book-is-read-for-shared-meter-serials-and-volumeless-gas-bills",
+    "what": "The open cold-read row (a meter serial shared by up to 34 supply points; a gas bill with no volume) was never read on the 6af7fd0bfd book, because its grade read row 7, the walk and the repayment shortfall only. Against docs/reports/run_output_6af7fd0bfd_20261118T070221Z.json and the served account pages (https://poesys.net/), count the meter serials that appear on more than one supply point, and the gas bill lines that charge for energy with no kWh or m3. Report each as a count over its graded denominator (supply points; gas bills), with three worked examples. If either count is nonzero, name the writer line that produced it (company/billing/ or the meter-identity draw) and file a finding with a pre-registered count for the fix. Do not fix anything in the same tick. Write the counts into docs/staging/SEAT_FINDING_ROW_7_GRADE_WAITS_FOR_THE_FIRST_BOOK_CARRYING_594ED8239_2026-11-17.md as a dated section.",
+    "why": "Billing accuracy is first in the director's order. This is the last billing row the verified book can grade without a new run, and it has been listed since 30 Oct. Done means both counts are on origin with their denominators, so the row can be marked corrected or carried with a named writer at the next orientation.",
+    "lane": "D_billing_metering",
+    "side": "supplier",
+    "written_at": 1795004974.471
    },
    {
-    "id": "trunk-census-red-debt-respite-year-tables",
-    "what": "tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is red on origin/main since f865b903f, on simulation/debt_respite_draw.py's year-keyed tables. Classify each table in the census with its source, as the census's own schema asks, and say whether it is a rate table or a count. Do not change the tables' values. Land by pathspec, and confirm the test is green in an origin/main worktree.",
-    "why": "A red trunk test taxes every lane's landing and hides the next real red. Done means the test is green on origin/main, with each table classified by its source rather than exempted.",
+    "id": "the-channel-f-census-runs-when-a-publish-stages-what-it-reads",
+    "what": "tools/pre_commit_test_gate.py's _wall_channel_census_check runs only when a .py file or the baseline is staged, so the 43fa9534d publish widened channel F's surface by six names. That passed its own gate, and the refusal fell on the innocent merge after it (see docs/staging/WORKER_FINDING_THE_6AF7FD0BFD_PUBLISH_HID_THREE_REFUSALS_BEHIND_ITS_SITE_REDS_2026-11-18.md s.5). Make the check also run when a staged path is a published artefact the census reads (docs/reports/run_output_*.json*, docs/state/billing_ledger.json.gz). Add one test that stages a widened artefact without a .py and is refused, and one that stages an unwidened artefact and passes. Ship them in the same landing.",
+    "why": "The census guards the epistemic wall, and a guard that runs only when something unrelated is staged let a wall ruling be made under pressure on a merge that did not cause it. Done means a publish that widens channel F is refused at its own commit, and both tests are on origin.",
     "lane": "H_harness",
     "side": "other",
-    "written_at": 1794994078.25
+    "written_at": 1795004974.471
    }
   ],
   "not_now": [
    {
-    "what": "A fourth 2021-22 test, or running the ranking inside the coupled world rather than the harness instrument.",
-    "why": "The three tests answered the steer as far as published hedges allow. Every disclosed hedge is baseload, so no world mechanism we can source separates the strategies beyond the price arithmetic. A coupled-world version would cost box time the supplier test now has first claim on, to re-confirm a band the instrument already shows. It returns if skip1 or the hold pairs produce a per-customer result that needs attributing."
+    "what": "Killing the 7f0723b46e book (pid 484274) to give the skip pair the box about an hour sooner.",
+    "why": "The book is more than half done, and skip1 runs for roughly 14h, so an hour is about 7% of the wait. Killing it would leave a dead run for the launch register, the publish-wedge detector and process_run_complete to misread, and those readers have cost more than an hour each time this stretch. Holding the NEXT book is the lever that matters. It returns if the book is still running at 15:00Z."
    },
    {
-    "what": "world-gas-baseline-splice-daily-sap-from-2018 (replacing the monthly TTF proxy in the forward curve with daily SAP).",
-    "why": "It is a world fidelity change that would move every gas run's baseline in the middle of the skip pair's comparison, so A and skip would read different worlds. It stays queued as a continuation, decided blind to company results, and it should land only after skip1 and skip0 have read."
+    "what": "Building the W3_3 book next, ahead of the skip pair.",
+    "why": "W3_3 moves every settled electricity figure. If its book ran first, skip0 and skip1 would read a different world from the arms they are compared against. Its grade waits until 23 Nov's publish anyway (continuation deemed-and-flex-rows-book-the-standing-charge), so going second costs it nothing."
    },
    {
-    "what": "Withdrawing the publish-wedge refill concern now that the book has passed the gate.",
-    "why": "The proposal fixes a class: a refill re-asking while its cure waits on a named file. One episode ending does not retire that class. It stays open for his ruling."
+    "what": "Fixing the 3 tariff-crossing contract bills (PROS-2016-0253, -2017-0286, -2021-0313) as a focus item.",
+    "why": "The cause is found and the fix is already landing (surgical_land pid 1200350). A focus item would put a second writer on it."
    },
    {
-    "what": "Launching the hold pairs or the candidate-2 run before skip1 reads.",
-    "why": "Which branch runs is exactly what skip1 decides. Launching either first spends the box on a guess and leaves s.12e with nothing to grade."
+    "what": "Mechanising launch_long_job to carry SE_NTFY_TOPIC, the other proposal in the 6af7fd0bfd publish finding.",
+    "why": "It fails loudly at import and costs minutes. The channel-F gap fails silently at the wall, which is why that one is in focus and this one is not."
    },
    {
-    "what": "Reaping the 8 at-risk worktrees (b12-*, se-budgetpay-land, se-om2, simsuite, value-test-offer-reread).",
-    "why": "Reaping cannot be undone and none of them blocks a supplier result. 870201d1e7 is the base of the live skip tree until skip0 has read."
+    "what": "Withdrawing the publish-wedge refill concern now that the episode closed at 11:03Z.",
+    "why": "One closed episode does not retire the class: a refill re-asking while its cure waits on a named file. It stays open for his ruling."
    },
    {
-    "what": "Moving the stalled atoms' map rows (DD_seasonal_cashflow_physics, G15, W2_18 and the others whose work landed under other ids).",
-    "why": "Map writes cost ratchet bytes and change no money figure. The phase-close of whichever lane finishes its atom does it with evidence."
+    "what": "Reaping the 9 at-risk worktrees.",
+    "why": "Reaping cannot be undone. This stretch showed what deleting a waiting scratch tree costs: /var/tmp/value-test-threshold-skip was deleted and skip1's launch was refused. 870201d1e7 is the base of the live skip tree."
+   },
+   {
+    "what": "The world gas switch to spliced daily SAP (continuation world-gas-baseline-switch-readers-to-spliced-sap).",
+    "why": "It is held, correctly, on both skip control files. Switching the gas world mid-comparison would make skip and A read different worlds."
    }
   ],
   "for_the_director": [
@@ -340,9 +343,9 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged. skip1 has not read: vts-threshold-skip-watch launches the skip pair now that pair 3 is on disk and the owed book has run (focus 2).",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- unchanged. skip1 has still not launched: its tree was deleted, then a book took the box (focus 1).",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -353,10 +356,10 @@
    },
    {
     "key": "text:with the better desk belief, the per-customer value arm loses gbp 1.21 per household-year (-2.35 to -0.38), where the flat book gains gbp 0.14, so the whole advantage over the baseline reads -gbp 1.35 (-3.03 to +0.13) on two draws over 780 households",
-    "what": "THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unrun. The skip pair is next on the box, and skip1 picks the s.12e branch (focus 2).",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
+    "what": "THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- unrun. The skip pair waits behind the 7f0723b46e book (focus 1, 2).",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-17T06:21:02.651517+00:00",
-    "times_listed": 11,
+    "times_listed": 12,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -366,9 +369,9 @@
    },
    {
     "key": "triage:a-cold-reader-sees-only-what-its-trade-looks-for",
-    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged on the site. The 6af7fd0bfd book verified locally at 09:20:49Z and is being committed. This row is graded when that book is on origin (focus 1).",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
+    "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- the verified 6af7fd0bfd book is on origin, but its grade did not read either check. Focus 3 reads them.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -379,9 +382,9 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -392,9 +395,9 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged. W3_3 is now focus 3, and it is unblocked once the verified publish is on origin.",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- the fix is on origin (c71d2521d) and is not yet graded on a book. Its book builds after the skip pair, alone; the continuation deemed-and-flex-rows-book-the-standing-charge grades it.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -405,11 +408,11 @@
    },
    {
     "key": "triage:the-account-page-drops-cash-the-household-repaid",
-    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- not yet graded. The book that carries final_month_nets (6af7fd0bfd) has passed the gate, and focus 1 reads it.",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
+    "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: 0 legs, GBP 0.00 on the verified 6af7fd0bfd book (49d41097b).",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
     "times_listed": 38,
-    "corrected": false,
+    "corrected": true,
     "fate": "fix",
     "status": "open",
     "retired": false,
@@ -418,11 +421,11 @@
    },
    {
     "key": "triage:the-capabilities-page-says-nothing-was-fixed",
-    "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded\" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- f4f825b8b is in the 6af7fd0bfd publish, which is being committed. Corrected when the served page shows the strip.",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
+    "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded\" after a week that fixed dozens of money classes. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: https://poesys.net/capabilities/ serves \"Fixed in the 7 days to 18 Nov 2026\" with dated items, and its lead says the thesis question in words, not book totals.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
     "times_listed": 38,
-    "corrected": false,
+    "corrected": true,
     "fate": "fix",
     "status": "open",
     "retired": false,
@@ -431,9 +434,9 @@
    },
    {
     "key": "triage:a-landing-loses-its-race-to-origin",
-    "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- still open. This stretch had 3 merges that changed nothing (94c3363d4, a76a9bd3e, 392a13b77) out of 15 commits, so landings still meet a moving origin.",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
+    "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- still open: 2 of this stretch's 16 commits were merges that changed nothing (7f0723b46, 433a825ad).",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -444,11 +447,11 @@
    },
    {
     "key": "text:the 16 nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 nov book",
-    "what": "THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- the gate passed the 6af7fd0bfd book at 09:20:49Z (publish_provenance last_verified set, paused_since unset in the shared tree), and process_run_complete pid 4139513 is committing it. Corrected when that provenance is on origin, not before.",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
+    "what": "THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: origin's publish_provenance reads last_verified 6af7fd0bfd at 10:20:38Z with paused_since null, and the episode closed at 11:03Z.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-16T06:23:40.404960+00:00",
-    "times_listed": 21,
-    "corrected": false,
+    "times_listed": 22,
+    "corrected": true,
     "fate": null,
     "status": null,
     "retired": false,
@@ -457,10 +460,49 @@
    },
    {
     "key": "text:the 18:22 record told the d5-book grader to \"read settlements_behind_the_walk for syn-2016-001\" and hung the account-page row on the book carrying final_month_nets",
-    "what": "THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to \"read settlements_behind_the_walk for SYN-2016-001\" and hung the account-page row on the book carrying final_month_nets. Neither was readable. annual_report whitelists its output keys, and nobody had checked that the counters reach a run output before the record promised a read of them. The book is graded, but it cannot name the walk. walk-counter-reaches-a-readable-artefact owns the carry. Corrected when a run output carries the three counters. 09:22 18 Nov -- the 6af7fd0bfd book is the first to carry d645233e8 and has passed the gate. Corrected when focus 1 reads the walk file for ACC-SYN-2016-001.",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
+    "what": "THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to \"read settlements_behind_the_walk for SYN-2016-001\" and hung the account-page row on the book carrying final_month_nets. Neither was readable. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: world_walk_truth_6af7fd0bfd_20261118T070221Z.json was read. ACC-SYN-2016-001's 15 Aug 2023 settlement is not behind the walk, and settle_held is 0.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
     "first_at": "2026-11-17T21:20:28.116726+00:00",
-    "times_listed": 6,
+    "times_listed": 7,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:f865b903f (the daily gas sap landing) added year-keyed tables to simulation/debt_respite_draw.py (_indebted_electricity_accounts and its siblings), and tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is now red on origin/main",
+    "what": "THE MACHINE'S, NEW. f865b903f (the daily gas SAP landing) added year-keyed tables to simulation/debt_respite_draw.py (_INDEBTED_ELECTRICITY_ACCOUNTS and its siblings), and tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is now red on origin/main. 12:24 18 Nov -- corrected by 74915437a. The census passes (24 passed) at HEAD, which is level with origin.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-18T09:21:58.856225+00:00",
+    "times_listed": 2,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:sim-runner admitted a book on 7f0723b46e at 11:04z, the moment next_book_requires was satisfied",
+    "what": "THE MACHINE'S, NEW. sim-runner admitted a book on 7f0723b46e at 11:04Z, the moment next_book_requires was satisfied. The weekly window holds every publish until 23 Nov, the book does not carry W3_3 (landed at 11:25Z, written into the file at 11:38Z), and the box had been promised to the skip pair. Earlier, skip1's locked scratch tree /var/tmp/value-test-threshold-skip was deleted while its launch waited, so the 09:49Z launch was refused. The thesis test lost about 3.5h to the two together.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-18T12:24:07.112567+00:00",
+    "times_listed": 1,
+    "corrected": false,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "text:the channel-f wall census runs only when a .py file or its baseline is staged, so the 43fa9534d publish widened the wall surface by six names under its own gate",
+    "what": "THE MACHINE'S, NEW. The channel-F wall census runs only when a .py file or its baseline is staged, so the 43fa9534d publish widened the wall surface by six names under its own gate. The refusal landed on the merge after it, and the six fields were ruled admissible in 7a4af086a to let the book through.",
+    "last_at": "2026-11-18T12:24:07.112567+00:00",
+    "first_at": "2026-11-18T12:24:07.112567+00:00",
+    "times_listed": 1,
     "corrected": false,
     "fate": null,
     "status": null,
@@ -475,19 +517,6 @@
     "first_at": "2026-11-18T06:21:36.858652+00:00",
     "times_listed": 3,
     "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:f865b903f (the daily gas sap landing) added year-keyed tables to simulation/debt_respite_draw.py (_indebted_electricity_accounts and its siblings), and tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is now red on origin/main",
-    "what": "THE MACHINE'S, NEW. f865b903f (the daily gas SAP landing) added year-keyed tables to simulation/debt_respite_draw.py (_INDEBTED_ELECTRICITY_ACCOUNTS and its siblings), and tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is now red on origin/main. I re-ran it at 09:25Z and it is still red. The landing's own test selection did not include the census.",
-    "last_at": "2026-11-18T09:21:58.856225+00:00",
-    "first_at": "2026-11-18T09:21:58.856225+00:00",
-    "times_listed": 1,
-    "corrected": false,
     "fate": null,
     "status": null,
     "retired": false,
@@ -680,8 +709,8 @@
     "key": "triage:the-brief-counts-a-finding-retired-on-origin-as-blocking",
     "what": "THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged in kind. The brief again lists 3 BLOCKING, and one of them (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB) is not in origin's staging root, only the shared tree's.",
     "last_at": "2026-11-16T21:23:08.620182+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
-    "times_listed": 25,
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
+    "times_listed": 24,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -810,8 +839,8 @@
     "key": "triage:a-long-job-wrapping-a-landing-exits-zero-on-refusal",
     "what": "THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read \"Result=success status=0\". A long job that wraps a landing must exit with the landing's own status. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: Right on all four this stretch, because each script happened to pass the status through. 18:24 14 Nov: No long job launched or ended this stretch. The class is still unenforced. 21:25 14 Nov: No long job launched or ended this stretch. The class is still unenforced. 00:24 15 Nov: No long job launched or ended this stretch. The class is still unenforced. 03:23 15 Nov: No long job launched or ended this stretch. The class is still unenforced. It reaches the 7-day line on 18 Nov and gets a triage fate then if still open. 06:23 15 Nov: No long job launched or ended this stretch. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 09:20 15 Nov: churn_roll ended this stretch and read 'Result=success status=0' with 'fold rc=0' in its own log, so it was right this time. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 12:24 15 Nov: No long job ended. The queued desk pair chains its two sides with '&&', so its status passes through by construction of that one script. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 15:21 15 Nov: No long job ended. The desk pair chains its two sides with '&&', so its status passes through. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 18:22 15 Nov: No long job launched or ended. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 03:24 16 Nov: The desk pair ended 'Result=exit-code status=1', matching its own log's 'fold rc=1', so the register read it right. The class is still unenforced, and it reaches the 7-day line on 18 Nov.",
     "last_at": "2026-11-16T03:24:25.424017+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
-    "times_listed": 17,
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
+    "times_listed": 16,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -823,8 +852,8 @@
     "key": "triage:the-draw-cannot-read-a-standing-rulings-scope",
     "what": "THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: No breach. 18:24 14 Nov: Borderline. e6134becd changed company/ during the freeze, but it is the C32 fix its Expert Hour asked for. de67bec58 is world measurement, held and written in docs. The class is still unenforced. 21:25 14 Nov: Borderline again. cec629ab6 (G15) adds two docs/market_research pages, a knowledge pass in all but name, the day before the 11 Nov bar on knowledge passes ends. It touches no book. The class is still unenforced. 00:24 15 Nov: No breach. Every substantive commit this stretch was C32, the retention-netting instrument or the console record. 03:23 15 Nov: No breach. Every substantive commit was C32, the collections control, D48's prereg (doc only) or a map park. 06:23 15 Nov: Borderline. c3dd797c3 and the gas-switching page now landing (pid 1074841) are world knowledge on docs/market_research, on the last day of the bar. Neither touches a book. The class is still unenforced. 09:20 15 Nov: A breach in a new shape. Last record's not_now rejected a Breathing Space notification door from the world 'because it moves the world digest under the value-test queue'. C37's NEXT queued it as W2_44 anyway, and it is landing now (surgical_land pid 2769001). A tick's NEXT can overrule the seat's not_now, because nothing reads not_now at the queue. The B11 M7 launch pins one origin commit, so the queued tests stay readable. The class is still unenforced. 12:24 15 Nov: Two more instances. Candidate A's twelve-draw family launched at 09:44Z, nineteen minutes after a record that asked for the small run first. It was stopped at 10:20Z with nothing written (s.9a). W2_45 then followed W2_44 as a second world draw that no focus named. The class is still unenforced and reaches its 7-day line on 18 Nov. 15:21 15 Nov: One more instance, smaller. Last record's not_now gave A45 no steer, but A45 took three of this stretch's six commits (62ef957c8, 4988133be, cd7a1949e), because it is DRAWABLE and nothing reads not_now at the draw. None touches a book. The class is still unenforced and reaches its 7-day line on 18 Nov. 18:22 15 Nov: Two more instances. 4fc19c3e9 landed C32 class 5 at 16:12, although last record's item 3 said not to land before the 16 Nov 04:00 publish. So the 04:00 book carries a collections change the queued grades did not plan for (its own message counts 5 Consent offers on the shipped world). f0065e4ec took A45 again, against not_now. A focus item's hold is prose that no landing reads. The class is still unenforced and reaches its 7-day line on 18 Nov. 03:24 16 Nov: No breach. Tick mode held the machine quiet from 18:29Z to 03:00Z, as his 17:49 reading asked. 05fb3fdbb (G15, world knowledge) landed at 03:21, after the reset, with no focus naming it. It sits inside the week's 10% knowledge share. The class is still unenforced and reaches its 7-day line on 18 Nov.",
     "last_at": "2026-11-16T03:24:25.424017+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
-    "times_listed": 17,
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
+    "times_listed": 16,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -914,21 +943,8 @@
     "key": "text:the console capture filed the phase-close skill's own text as the director's verbatim words",
     "what": "THE MACHINE'S, NEW. The console capture filed the phase-close skill's own text as the director's verbatim words. docs/staging/console/DIRECTOR_CONSOLE_2026-11-14.md's 16:34:37Z turn begins \"Base directory for this skill: .claude/skills/phase-close\", and the orientation brief lists it under director_inputs. CLAUDE.md says the machine's own prompts are never quoted as his words. tools/console_instruction_record.py does not tell a skill expansion from a typed turn, so a reader that trusts the record would take a checklist as a ruling. 21:25 14 Nov: Recurred. This brief's only director_inputs entry, console/DIRECTOR_CONSOLE_2026-11-14.md@19:16:00Z, is a machine resume prompt (\"Check /tmp/c32_land.log for the C32 surgical_land result ...\"), not his words. It is now focus item 3. 23:26 14 Nov: Corrected. 98a1f7728 labels machine turns; the shared tree's untracked record was rewritten with origin's code and now heads 04:12:52Z, 16:34:37Z and 19:16:00Z 'NOT HIS'. director_inputs since 13 Nov 00:00Z reads an empty list under both origin's and the shared tree's delivery_seat.py (13 Nov's one turn is a scheduled wakeup, also labelled). 00:24 15 Nov: Holds. This brief's director_inputs is an empty list, and 98a1f7728 is on origin.",
     "last_at": "2026-11-15T00:23:57.693823+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
-    "times_listed": 3,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:the brief's learning loop prints 'stop: map the area first' for level-dd and repayment-posting, but both maps are on origin (docs/design/level_dd_area_map_2026-11-11.md; docs/design/repayment_posting_area_map_2026-11-14.md, cc27c048e)",
-    "what": "THE MACHINE'S, NEW. The brief's learning loop prints 'STOP: map the area first' for level-dd and repayment-posting, but both maps are on origin (docs/design/LEVEL_DD_AREA_MAP_2026-11-11.md; docs/design/REPAYMENT_POSTING_AREA_MAP_2026-11-14.md, cc27c048e). The loop counts the 7-day misses and does not ask whether the map has landed since, so the steer it prints is already spent and tells a draw to redo finished work. 15:23 14 Nov: Unchanged. 18:24 14 Nov: Still printed in this brief. It is now focus item 3. 21:25 14 Nov: Corrected by 4b4ff1158. This brief prints \"map landed 18285bfa11; misses since: 7 of 23 graded\" for level-dd and \"map landed ad48737415; misses since: 3 of 8\" for repayment-posting, with no STOP.",
-    "last_at": "2026-11-14T21:25:09.755253+00:00",
-    "first_at": "2026-11-14T21:25:09.755253+00:00",
-    "times_listed": 1,
+    "first_at": "2026-11-15T00:23:57.693823+00:00",
+    "times_listed": 2,
     "corrected": true,
     "fate": null,
     "status": null,
@@ -937,18 +953,83 @@
     "reason": null
    }
   ],
-  "distinct": 46,
+  "distinct": 47,
   "triaged": 12,
   "triaged_by_fate": {
    "fix": 7,
    "fold": 3,
    "accept": 2
   },
-  "untriaged": 34,
-  "distinct_open": 12,
-  "rows": 461,
+  "untriaged": 35,
+  "distinct_open": 11,
+  "rows": 462,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "text:with the better desk belief, the per-customer value arm loses gbp 1.21 per household-year (-2.35 to -0.38), where the flat book gains gbp 0.14, so the whole advantage over the baseline reads -gbp 1.35 (-3.03 to +0.13) on two draws over 780 households"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": true,
+    "problem": "triage:the-account-page-drops-cash-the-household-repaid"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": true,
+    "problem": "triage:the-capabilities-page-says-nothing-was-fixed"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "triage:a-landing-loses-its-race-to-origin"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": true,
+    "problem": "text:the 16 nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 nov book"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": true,
+    "problem": "text:the 18:22 record told the d5-book grader to \"read settlements_behind_the_walk for syn-2016-001\" and hung the account-page row on the book carrying final_month_nets"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": true,
+    "problem": "text:f865b903f (the daily gas sap landing) added year-keyed tables to simulation/debt_respite_draw.py (_indebted_electricity_accounts and its siblings), and tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is now red on origin/main"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "text:sim-runner admitted a book on 7f0723b46e at 11:04z, the moment next_book_requires was satisfied"
+   },
+   {
+    "at": "2026-11-18T12:24:07.112567+00:00",
+    "corrected": false,
+    "problem": "text:the channel-f wall census runs only when a .py file or its baseline is staged, so the 43fa9534d publish widened the wall surface by six names under its own gate"
+   },
    {
     "at": "2026-11-18T09:21:58.856225+00:00",
     "corrected": false,
@@ -3193,66 +3274,6 @@
     "at": "2026-11-15T00:23:57.693823+00:00",
     "corrected": false,
     "problem": "text:a collections journey opens on a day when none of the account's bills fell due"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:the-account-page-drops-cash-the-household-repaid"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:a-long-job-wrapping-a-landing-exits-zero-on-refusal"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:the-draw-cannot-read-a-standing-rulings-scope"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:the-brief-counts-a-finding-retired-on-origin-as-blocking"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:the-capabilities-page-says-nothing-was-fixed"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": true,
-    "problem": "text:the brief's learning loop prints 'stop: map the area first' for level-dd and repayment-posting, but both maps are on origin (docs/design/level_dd_area_map_2026-11-11.md; docs/design/repayment_posting_area_map_2026-11-14.md, cc27c048e)"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "triage:a-landing-loses-its-race-to-origin"
-   },
-   {
-    "at": "2026-11-14T21:25:09.755253+00:00",
-    "corrected": false,
-    "problem": "text:the console capture filed the phase-close skill's own text as the director's verbatim words"
    }
   ],
   "refused_own_records": [
@@ -3301,19 +3322,53 @@
     "problems": []
    }
   ],
-  "outstanding": 417,
-  "corrected": 44,
+  "outstanding": 414,
+  "corrected": 48,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "the-book-carrying-all-three-row-7-fixes-is-graded-and-published",
+   "the-box-runs-the-skip-pair-before-another-book",
    "skip1-is-graded-against-s12es-branches",
-   "w3-3-lands-alone-after-the-verified-publish",
-   "trunk-census-red-debt-respite-year-tables"
+   "the-live-book-is-read-for-shared-meter-serials-and-volumeless-gas-bills",
+   "the-channel-f-census-runs-when-a-publish-stages-what-it-reads"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "the-book-carrying-all-three-row-7-fixes-is-graded-and-published",
+       "skip1-is-graded-against-s12es-branches",
+       "w3-3-lands-alone-after-the-verified-publish",
+       "trunk-census-red-debt-respite-year-tables"
+      ],
+      "focus": [
+       "the-book-carrying-all-three-row-7-fixes-is-graded-and-published",
+       "skip1-is-graded-against-s12es-branches",
+       "w3-3-lands-alone-after-the-verified-publish",
+       "trunk-census-red-debt-respite-year-tables"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "the-book-carrying-all-three-row-7-fixes-is-graded-and-published",
+     "skip1-is-graded-against-s12es-branches",
+     "w3-3-lands-alone-after-the-verified-publish",
+     "trunk-census-red-debt-respite-year-tables"
+    ],
+    "focus": [
+     "the-book-carrying-all-three-row-7-fixes-is-graded-and-published",
+     "skip1-is-graded-against-s12es-branches",
+     "w3-3-lands-alone-after-the-verified-publish",
+     "trunk-census-red-debt-respite-year-tables"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-18T09:21:58.856225+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-18T09:21:58.856225+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3441,34 +3496,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-18T00:24:04.119120+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-11-18T00:24:04.119120+00:00"
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-retention-offer-gate-values-a-kept-household-at-what-the-arm-earns"
-      ],
-      "focus": [
-       "the-retention-offer-gate-values-a-kept-household-at-what-the-arm-earns",
-       "the-next-book-carries-the-row-7-and-closing-refund-fixes",
-       "focus-outranks-a-continuation-chain-of-any-author",
-       "the-paused-banner-commits-only-on-a-change"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-retention-offer-gate-values-a-kept-household-at-what-the-arm-earns"
-    ],
-    "focus": [
-     "the-retention-offer-gate-values-a-kept-household-at-what-the-arm-earns",
-     "the-next-book-carries-the-row-7-and-closing-refund-fixes",
-     "focus-outranks-a-continuation-chain-of-any-author",
-     "the-paused-banner-commits-only-on-a-change"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.1h since 2026-11-17T21:20:28.116726+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.1h since 2026-11-17T21:20:28.116726+00:00"
    }
   ],
   "steered_recently": true,
@@ -3478,12 +3505,12 @@
   "available": true,
   "population": 186,
   "chained": 186,
-  "minted": 82,
-  "unminted": 104,
+  "minted": 81,
+  "unminted": 105,
   "unminted_by_kind": {
    "alarm": 2,
    "directive": 2,
-   "finding": 97,
+   "finding": 98,
    "reference": 1,
    "unknown": 2
   },
@@ -3611,7 +3638,7 @@
   "by_epoch": {
    "2": 13,
    "3": 24,
-   "4": 45
+   "4": 44
   },
   "unchained": [],
   "unreadable": 0,
@@ -3667,7 +3694,6 @@
     "SEAT_FINDING_THE_WORLDS_PAYMENT_GRADIENT_IS_LOST_ON_THE_SVT_DRIFT_ROUTE_AND_ITS_TARIFF_GRADIENT_IS_AN_ERA_2026-10-17.md",
     "SEAT_FINDING_THE_WORLD_SETTLES_METERED_KWH_AND_NO_LOSSES_SO_THE_ENERGY_LINE_IS_9_TO_12_PCT_LIGHT_2026-10-25.md",
     "SEAT_FINDING_TWO_SMART_METER_SERIES_AND_A_DISPUTED_R2_DATE_2026-10-25.md",
-    "SEAT_FINDING_W3_3_IS_HELD_ON_A_PUSHED_BRANCH_UNTIL_THE_FIRST_GATE_PASSING_BOOK_IS_GRADED_2026-11-09.md",
     "SEAT_NOTE_FOR_THE_CONSOLE_SEAT_THE_OBJECTION_PROBES_GRADED_THE_PRE_FLIP_COMPANY_2026-10-04.md",
     "SEAT_NOTE_THE_DD_DESIGN_PILE_IS_IN_THE_CONSOLE_SEATS_LANDING_SEQUENCE_2026-10-13.md",
     "SEAT_PROPOSAL_A_PERSONAL_PAYMENT_PLAN_AND_DEBT_AS_A_NEXT_BEST_ACTION_DESIGNED_AS_ONE_2026-10-11.md",
@@ -3779,12 +3805,12 @@
     },
     {
      "date": "2026-11-18",
-     "commit": "ffda9d413",
+     "commit": "ee044e5ce",
      "population": 187,
      "chained": 187,
-     "minted": 83,
-     "unminted": 104,
-     "unread": 81
+     "minted": 82,
+     "unminted": 105,
+     "unread": 80
     }
    ]
   },
