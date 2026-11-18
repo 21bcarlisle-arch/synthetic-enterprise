@@ -869,6 +869,12 @@ HOW TO LAND, and there is no other way:
 IF IT IS BIGGER THAN ONE TURN, LAND THE PART YOU FINISHED. A landed increment proves the work is
 moving; an unlanded whole proves nothing and is lost when this turn ends.
 
+DO NOT SPEND THIS TURN WAITING ON A JOB. If the next step needs a run, a book or a publish that
+will not finish in about ten minutes, land what you have, hand that step on with
+`--hand-off` and put `DO NOT DRAW BEFORE <absolute path> EXISTS` in its WHAT, naming the file the
+job will write. Then release your claim and end. The draw holds the handoff until the file is
+there, and this turn's slot goes to the next item.
+
 WRITE DOWN WHAT YOU FOUND. A finding in docs/staging/ with its severity header, and a
 pre-registration BEFORE any measurement whose answer you do not already know.
 

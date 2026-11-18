@@ -21,8 +21,8 @@ was `focus[0]` in the 18:22 record and was promoted at 18:26. Records come from 
 
 | draw | record | run before the draw | leg armed? | drawn |
 |---|---|---|---|---|
-| 15:26, 16:56 | 15:22 | 0 | no | d5 book (focus) |
-| 18:37, 20:07 | 18:22 | 0 | no | d5 book (focus) |
+| 15:26, 16:56 | 15:22 | 0 | no | d5 book (focus; **corrected:** a continuation, see below) |
+| 18:37, 20:07 | 18:22 | 0 | no | d5 book (focus; **corrected:** a continuation, see below) |
 | 20:58 | 18:22 | 0 | no | claude-md trial (focus) |
 | 21:05 | 18:22 | 0 | no | row7-three-leavers (continuation) |
 | 22:26 | 21:20 | 0 | no | walk-counter (continuation) |
@@ -42,6 +42,10 @@ was `focus[0]` in the 18:22 record and was promoted at 18:26. Records come from 
 - **Filters, not order.** `the-contact-cause-steer-...` was `focus[0]` of the 15:22 record and was
   never drawn: `_focus` skipped it, and `d5` (`focus[1]`) won. That is a held, finished or stretch
   refusal, not the source order. Its skip note would name which one.
+  **Corrected 2026-11-18:** wrong on both counts. D5 was promoted to a continuation by the 15:17
+  stand-down, so `_continuation` won before `_focus` was asked, and the steer itself was landed by
+  the 15:26 D5 tick through the advisor rung-zero prefix (6f0b5eb1c). See
+  `SEAT_FINDING_THE_D5_ROW_TOOK_FOUR_TICKS_BECAUSE_TWO_OF_THEM_ONLY_WAITED_2026-11-18.md`.
 
 ## What follows
 
