@@ -1,3 +1,13 @@
+> **BUILD 1 OF 2 LANDED, 2026-11-18 (worker).** `simulation/premise_population._draw_epc_lodgement`
+> is now ONE clock (years since the last sale, let or build, exponential) that decides both absence
+> and certificate age; valid coverage is MHCLG's 52% (`EPC_VALID_SHARE`, was 0.60); the register
+> opens October 2008. `test_absence_and_certificate_age_are_one_clock` moves the one hazard and
+> requires both observables to follow (mutation: two independent coins fails it). **Still open,
+> severity stays BLOCKING:** §2a, the pessimistic offset with age (a stated belief with a range, at
+> the certificate seam in `tools/couple_fabric.py::_certificate_for`), and the gap reported three
+> ways (none / old / fresh). Absence is still uncorrelated with fabric, by declaration: coverage by
+> tenure is unpublished (GAP-4/5).
+
 > **DISCOVERY PASS DONE, 2026-11-18 (worker).** §3 open items 1, 3 and 5 answered in
 > `docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md`:
 > **(1) direction SUPPORTED, magnitude GAP** -- drift is improvement-dominated (EHS 2024-25 mean SAP

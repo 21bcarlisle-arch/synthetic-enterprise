@@ -147,7 +147,7 @@ not settle it):
   supplier learns from the industry systems on switching enquiry; EPC band and property type are on
   a **public register** in reality, which under the regulation-commons doctrine makes them readable
   text rather than a leak. `premise_population` already models EPC coverage as partial
-  (`EPC_COVERAGE_SHARE = 0.60`), which is the right shape: the company sees a certificate where one
+  (`EPC_VALID_SHARE = 0.52`, MHCLG 2026; it was 0.60 until 2026-11-18), which is the right shape: the company sees a certificate where one
   exists and nothing where one does not.
 - **Never observable** — `Household.nssec`, tenure, and the whole `Cohort` object (green stance,
   price sensitivity, channel preference). These are the segmentation ground truth the canonical wall

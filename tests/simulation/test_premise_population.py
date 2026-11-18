@@ -375,7 +375,43 @@ def test_some_premises_have_no_certificate_at_all(population):
     number still computed happily."""
     absent = sum(1 for p in population if p.epc_lodged is None)
     assert absent > 0
-    assert absent / len(population) == pytest.approx(1.0 - pp.EPC_COVERAGE_SHARE, abs=0.03)
+    assert absent / len(population) == pytest.approx(1.0 - pp.EPC_VALID_SHARE, abs=0.03)
+
+
+def test_absence_and_certificate_age_are_one_clock():
+    """The advisor finding's §2b: absence and age share one cause (time since the last sale,
+    let or build), so they must not be two independent coins. Moving the ONE hazard must move
+    BOTH observables together, in the directions the clock implies: a slower turnover leaves
+    more homes without a valid certificate AND older certificates on the homes that have one.
+    Two independent knobs would move one and leave the other where it was."""
+    import math as _m
+
+    def observe(hazard):
+        saved = pp.EPC_TRANSACTION_HAZARD_PER_YEAR
+        pp.EPC_TRANSACTION_HAZARD_PER_YEAR = hazard
+        try:
+            lodged = [pp._draw_epc_lodgement(f"P{i:05d}", base_seed=SEED, as_of=AS_OF)
+                      for i in range(3000)]
+        finally:
+            pp.EPC_TRANSACTION_HAZARD_PER_YEAR = saved
+        held = [d for d in lodged if d is not None]
+        absent = 1 - len(held) / len(lodged)
+        mean_age = sum((AS_OF - d).days for d in held) / len(held) / 365.25
+        return absent, mean_age
+
+    fast, slow = observe(-_m.log(1 - 0.70) / 10), observe(-_m.log(1 - 0.35) / 10)
+    assert slow[0] > fast[0] + 0.2, f"absence did not follow the clock: {fast} vs {slow}"
+    assert slow[1] > fast[1] + 0.5, f"certificate age did not follow the clock: {fast} vs {slow}"
+
+
+def test_no_certificate_predates_the_register():
+    """The open-data register starts October 2008; a 2016 home cannot carry a 2007 certificate,
+    so early as_of years have LOWER valid coverage than the 52% anchor, not the same."""
+    as_of = dt.date(2016, 1, 1)
+    lodged = [pp._draw_epc_lodgement(f"P{i:05d}", base_seed=SEED, as_of=as_of) for i in range(3000)]
+    held = [d for d in lodged if d is not None]
+    assert held and min(held) >= pp.EPC_REGISTER_OPENS
+    assert len(held) / len(lodged) < pp.EPC_VALID_SHARE - 0.05
 
 
 def test_certificates_span_the_full_validity_window(population):

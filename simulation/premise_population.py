@@ -88,9 +88,10 @@ HONEST SIMPLIFICATIONS (R10 — declared here, never discovered later)
   than it looks: bedrooms drive `fabric_physics.floor_area_m2`, which scales the
   heat-loss coefficient nearly linearly, so the LEVEL of every HLC here rests on an
   unpublished table. The RANKING between premises is far more robust to it.
-* **EPC lodgement dates are drawn UNIFORMLY over the ten years before `as_of`.**
-  Real lodgement is transaction-driven and skewed recent. Uniform overstates
-  staleness, which widens the company's prior — i.e. it is not a flattering choice.
+* **EPC absence and lodgement age are ONE clock** (time since the last sale, let or build),
+  exponential, anchored to MHCLG's 52% valid coverage. It is drawn independently of the
+  home: who the never-certificated homes are is unpublished (GAP), so absence still says
+  nothing about fabric, and an old certificate is not yet wrong, only old.
 * **Solar PV and EVs are OFF for every drawn premise**, exactly as they are in the
   authored panel. This is deliberate one-variable-at-a-time discipline: the point of
   this build is to change WHO composed the population and nothing else, so that a
@@ -460,12 +461,34 @@ def smart_read_share(year: int) -> float:
     return smart_meter_penetration(year) * _SMART_COMMUNICATING_RATE
 
 
-# EPC register coverage: ~60% of stock holds a certificate, transaction-biased
-# (docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md, observed-in-report).
-# Certificates are valid ten years, so a lodgement is drawn in [as_of-10y, as_of).
-EPC_COVERAGE_SHARE = 0.60
+# THE REGISTER'S ONE CLOCK (2026-11-18): years since this premise last had a lodgement-triggering
+# event (built, sold, let). A certificate exists only on such an event (MHCLG: required on
+# construction, conversion, sale or let), so ABSENCE and CERTIFICATE AGE are one draw, not two coins:
+# a home whose clock is past the validity window, or past the register's opening, has no valid
+# certificate; any other home's certificate is exactly that old. The advisor finding's §2b rule --
+# "the three defects ... must not be modelled as three knobs" -- is what this obeys.
+#
+# The clock is exponential, hazard `EPC_TRANSACTION_HAZARD_PER_YEAR`, solved so the share holding a
+# VALID certificate is 52% (MHCLG annual EPC release 2026 s.5, England to March 2026; the old 60%
+# matched neither of its pair). CROSS-CHECKS, not inputs: it implies ~72% ever-certificated at March
+# 2026 against MHCLG's 79% ("may be inflated", their words), and a 7.3%/yr hazard against D4B's
+# 1.62M lodgements a year over England's stock (~6.4%/yr). Both put the hazard in range; neither is
+# exact. Being memoryless it also skews lodgements recent, which the uniform draw it replaces did not.
+# docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md rows 7-8.
+#
+# STILL GAP, declared: (a) the clock is drawn independently of the home -- whether long-held homes
+# are older or worse-fabric is unpublished (GAP-4/5 there), so absence still carries no information
+# about fabric; (b) the certificate is not yet WRONG with age (§2a's pessimistic offset); (c) an
+# EXPIRED certificate stays on the real open-data register and a real supplier could read it -- here
+# it is withheld, which errs against the company (less than a real supplier has; F11).
+EPC_VALID_SHARE = 0.52
 EPC_VALIDITY_YEARS = 10
-EPC_COVERAGE_SOURCE = "docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md (EPC coverage ~60% of stock)"
+EPC_TRANSACTION_HAZARD_PER_YEAR = -math.log(1.0 - EPC_VALID_SHARE) / EPC_VALIDITY_YEARS
+#: The domestic register's open data starts October 2008 (docs/market_research/epc_open_data.md);
+#: before then this world's supplier could read no certificate, whatever the home's clock says.
+EPC_REGISTER_OPENS = dt.date(2008, 10, 1)
+EPC_COVERAGE_SOURCE = ("MHCLG Energy Performance of Buildings Certificates annual release 2026 s.5: "
+                       "52% of English dwellings hold a valid EPC, 79% ever")
 
 from tools.reduction_dimension import declare  # noqa: E402
 
@@ -914,15 +937,22 @@ def _draw_meter_cadence(premise_id: str, *, base_seed: int, as_of: dt.date) -> i
 
 
 def _draw_epc_lodgement(premise_id: str, *, base_seed: int, as_of: dt.date) -> dt.date | None:
-    """The register's certificate for this premise, or `None` where it has none.
+    """The register's VALID certificate for this premise, or `None` where it has none.
 
-    ABSENCE is one of the three EPC error sources C14 models, so it is drawn, not
-    assigned to a hand-picked premise.
+    ONE draw -- the years since the premise's last lodgement-triggering event -- decides both
+    whether a certificate exists and how old it is (see `EPC_TRANSACTION_HAZARD_PER_YEAR`).
+    The age does not depend on `as_of`, so the same home's certificate moves with the calendar;
+    only the register's opening date (`EPC_REGISTER_OPENS`) can cut it off early.
     """
     rng = _substream(base_seed, f"{premise_id}:epc")
-    if rng.random() >= EPC_COVERAGE_SHARE:
+    years = -math.log(1.0 - rng.random()) / EPC_TRANSACTION_HAZARD_PER_YEAR
+    days = max(1, int(years * 365.25))
+    if years >= EPC_VALIDITY_YEARS:
         return None
-    return as_of - dt.timedelta(days=rng.randrange(1, EPC_VALIDITY_YEARS * 365))
+    lodged = as_of - dt.timedelta(days=days)
+    if lodged < EPC_REGISTER_OPENS:
+        return None
+    return lodged
 
 
 def draw_premise(
