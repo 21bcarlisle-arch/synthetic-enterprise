@@ -127,3 +127,30 @@ journal entry tells them apart by rc and tail.
 dated 18 Nov and the journal carries an `rc=` line. Q3: the 17 owed modules run first, so if it
 reaches ≥ 1000 tests, all 17 are reached. Refutation: an early exit or kill with no PARTIAL row, or
 a PARTIAL row with fewer than 17 of the owed modules in it once ≥ 1000 tests are reached.
+
+## 8. Grading §7's Q1-Q3 against the 18 Nov 03:30 census (18 Nov 08:45 GMT, claim `grade-18-nov-census-q1-q3`)
+
+**What ran.** Nothing. The census started at 03:34:44, and `resource_headroom` **DEFERRED** it 4 seconds
+later. The budget was already exhausted: 16180 MB declared (4380 MB reserved, plus
+`longjob-value-test-step-6-flag1` at 11800 MB, 450 min into its 3200 declared). Adding the 11981 MB
+request would have gone over the 23010 MB budget. The shared tree carried a0f591668 at the time, so
+the instrument was in place. The suite never started.
+
+| | prediction | outcome |
+|---|---|---|
+| Q1 | does not complete (≥ 75%) | **Held**, by deferral. That is the route §4's P1 named and §7 did not see. |
+| Q2 | an early exit or kill leaves a PARTIAL row dated 18 Nov and an `rc=` line | **Not graded.** Its condition (ending without a summary for any reason other than deferral) did not occur. `runs[-1]` is still 4 Nov, and with no suite that is correct. |
+| Q3 | if ≥ 1000 tests are reached, all 17 owed are reached | **Not graded.** No test ran. |
+
+The STALE property from §3 held again. `attempts[-1]` is 03:34:48, `stale_attempts` = 2, `drawable` = 0,
+and `HEAD_RED_REGISTER.md` is absent from `staging_rooms.work_queue`.
+
+**Both GAPs stay open:** why the 17 Nov suite exited at 1h21m, and why the suite doubled (§2). Nothing
+in this night's evidence bears on either one. The scheduling conflict in §5 has now taken 6 of the
+last 10 nights.
+
+**For the 19 Nov 03:31 census.** `longjob-value-test-step-6-flag1` no longer exists as a unit at
+08:45, so the budget that deferred tonight's run has been freed, unless another long job declares
+memory before 03:31. The same Q1-Q3 carry over unchanged to that run, together with the grader's
+read list in §6. The earliest verdict is about 08:25 on 19 Nov if the run is killed at its bound,
+and about 03:31 plus its runtime if it exits early.
