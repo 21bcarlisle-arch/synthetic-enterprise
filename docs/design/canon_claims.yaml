@@ -452,6 +452,69 @@ claims:
       The sheets generator imports the picture's helpers and is not a publisher, hence the
       exclusion. Evidence today: `tools/generate_dashboard_data.py` imports `write`.
 
+  # ---------------------------------------------------------------- M1's 14 unbound sentences
+  # Bound 2026-11-18 from the per-sentence denominator's list (A45, after M1). Each probe was read
+  # against the tree the same day; the judged half of the 14 is at the end of _judged_negatives.
+  - id: MISSION_the_enterprise_value_module_still_values_the_book
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "the only module in the repo carrying the mission's own noun"
+    claim: "saas/enterprise_value.py defines enterprise value as the sum of per-account CLVs, the book"
+    expects: present
+    probe:
+      kind: text_in_file
+      file: saas/enterprise_value.py
+      phrase: "The portfolio-wide sum of the resulting per-account CLVs is the **enterprise value**"
+    note: >-
+      The day the module is redefined toward the method (M4), this reports SUPERSEDED and the
+      page's "precisely the definition this mission supersedes" needs re-reading.
+
+  - id: MISSION_the_value_view_is_the_suppliers_opinion
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "builds a per-account view"
+    claim: "customer_value_view.py describes itself as the supplier's opinion about value and retention"
+    expects: present
+    probe:
+      kind: text_in_file
+      file: company/analytics/customer_value_view.py
+      phrase: "the supplier's OPINION about value and retention"
+
+  - id: MISSION_the_switching_curve_is_calibrated_dual_fuel
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "the world's own switching response is calibrated **dual-fuel**"
+    claim: "MARKET_SAVINGS_BY_YEAR is a dual-fuel savings series"
+    expects: present
+    probe:
+      kind: text_in_file
+      file: simulation/market_switching_propensity.py
+      phrase: "# Annual savings (GBP/yr, dual-fuel) available to a typical household"
+    note: >-
+      Binds the world half only. The sentence's other half (the arm is electricity-only) is
+      corrected beside it and bound by MISSION_the_pricing_arm_prices_both_fuels.
+
+  - id: POPULATION_the_engagement_mix_is_the_ratified_one
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "engagement mix 0.45/0.35/0.20 (ratified)"
+    claim: "the world draws engagement at 0.45 active, 0.35 passive, 0.20 disengaged"
+    expects: present
+    probe:
+      kind: text_in_file
+      file: simulation/household_segments.py
+      phrase: "EngagementLevel.ACTIVE: 0.45, EngagementLevel.PASSIVE: 0.35, EngagementLevel.DISENGAGED: 0.20,"
+    note: >-
+      text_in_file, not literal_assign: the dict is keyed by enum members, which literal_eval
+      refuses. The phrase covers all three shares in order, so any one moving reds it.
+
+  - id: PICTURE_the_sheets_are_generated_at_publish
+    page: docs/design/THE_MODEL_ON_A_PAGE.md
+    anchor: "holds the words of the L2 sheet one tap down from each band"
+    claim: "the publisher calls the sheets generator"
+    expects: present
+    probe:
+      kind: import_edge
+      target: tools.model_on_a_page_sheets
+      roots: [tools]
+      exclude: [tools/model_on_a_page_sheets.py]
+
 # THE JUDGED NEGATIVES -- named "not yet" sentences that no predicate can bind, each with its
 # reason (`tools/canon_drift_check.JUDGED_SECTION`). Keyed to a verbatim excerpt holding the
 # phrase, so an edited sentence is named again. A `summary` lapses when a claim it restates stops
@@ -623,6 +686,56 @@ _judged_negatives:
       A door is a served directory (site/proof/, absent on 16 Nov), and no probe kind reads
       whether a directory exists. The redirect half of the sentence is
       OPEN_FINDINGS_no_simplified_redirect_survives.
+
+  # The judged half of M1's 14 unbound sentences, 2026-11-18.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "rendered inside the customer portal, and"
+    kind: not_about_code
+    why: >-
+      What the two advice modules did before 8 Nov, in the past tense, corrected beside it. The
+      live state is the archive judgement below.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "(Corrected 8 Nov 2026: this said the recommendation"
+    kind: not_about_code
+    why: A quote being corrected, kept beside the correction.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "THE PER-CUSTOMER PRICING ARM REACHES 2.07% OF THE RENEWALS THE WORLD OFFERS"
+    kind: not_about_code
+    why: A dated measurement on one book (2026-08-28), not a claim about a mechanism today.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "The 2.07% above is the 2026-08-28 measurement, not the arm today."
+    kind: not_about_code
+    why: Dates the measurement; the arm today is MISSION_the_pricing_arm_prices_both_fuels.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "Both moved to `archive/unhooked_supplier/` that day."
+    kind: no_witness
+    why: >-
+      "Both" is the portal and the decarbonisation recommender (83a213f854, 6b70382ded, 8 Nov).
+      Neither exists under any live root, so an absent probe is VACUOUS and the checker refuses
+      it. MISSION_decarb_advice_has_no_recipient was retired for the same reason.
+      company/pricing/switching_recommendation.py was not archived, and the page does not say it was.
+    watch_none: >-
+      A restore would put the name back under company/, and the retirement note says a claim
+      belongs back here then. No map atom builds a recommender.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "a household's emissions are now measured"
+    kind: summary
+    of: [CARBON_a_households_emissions_are_measured_and_published]
+    why: The correction's headline; the next sentence carries the bound claim.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "conflicts with the SITE_V5 five-surface IA (director call)"
+    kind: not_about_code
+    why: The title of an open finding awaiting a director decision.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "folded `site/simplified/` into Proof"
+    kind: not_about_code
+    why: >-
+      The 23 July ruling as recorded. The redirect it describes no longer exists, and that live
+      state is bound by OPEN_FINDINGS_no_simplified_redirect_survives.
+  - page: docs/design/THE_MODEL_ON_A_PAGE.md
+    excerpt: "Escalated via NTFY; default if no reply"
+    kind: not_about_code
+    why: An escalation and its default, a decision awaited.
 
 _retired:
   MISSION_decarb_advice_has_no_recipient: >-

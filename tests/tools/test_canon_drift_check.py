@@ -74,6 +74,12 @@ EXPECTED_CLAIM_IDS = frozenset({
     "PRICING_the_renewal_desk_clamps_at_the_competitive_ceiling",
     "PRICING_the_ceiling_is_102_pct_of_the_published_svt",
     "PRICING_the_ceiling_tightens_to_97_pct",
+    # 2026-11-18, from M1's per-sentence list: five of the 14 unbound sentences had a fact to probe.
+    "MISSION_the_enterprise_value_module_still_values_the_book",
+    "MISSION_the_value_view_is_the_suppliers_opinion",
+    "MISSION_the_switching_curve_is_calibrated_dual_fuel",
+    "POPULATION_the_engagement_mix_is_the_ratified_one",
+    "PICTURE_the_sheets_are_generated_at_publish",
     # 2026-08-28, the director's mission rewrite. The mission names three channels through which
     # value reaches a household -- modelling, tariffs, advice -- and THE MODEL ON A PAGE now states
     # that advice has modules on disk and no recipient. That is a CHANNEL claim of C1's exact shape
