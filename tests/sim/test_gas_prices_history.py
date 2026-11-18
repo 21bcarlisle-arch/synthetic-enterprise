@@ -152,3 +152,36 @@ def test_the_daily_gas_record_moves_within_a_month_and_stops_at_the_worlds_edge(
         by_month.setdefault((k.year, k.month), set()).add(v)
     flat = [m for m, vals in by_month.items() if len(vals) < 15]
     assert not flat, f"months with fewer than 15 distinct daily prices: {flat}"
+
+
+def test_the_spliced_gas_record_is_the_proxy_before_the_seam_and_sap_after_it(tmp_path):
+    """Defects caught: the splice taking the proxy after the seam (so it changes nothing), taking SAP
+    before it, changing the world's length rather than only its price source, and a gap in the daily
+    record silently shortening a lookback instead of refusing."""
+    from datetime import date
+
+    from sim.gas_prices_history import (
+        RECORD_END,
+        RECORD_START,
+        SAP_DAILY_PATH,
+        SAP_DAILY_START,
+        load_gas_baseline_spliced,
+        load_nbp_history,
+        load_sap_daily,
+    )
+
+    proxy, sap = load_nbp_history(), load_sap_daily()
+    spliced = load_gas_baseline_spliced()
+    assert [r["settlementDate"] for r in spliced] == [r["settlementDate"] for r in proxy]
+    assert spliced[0]["settlementDate"] == RECORD_START and spliced[-1]["settlementDate"] == RECORD_END
+    before = [r for r in spliced if r["settlementDate"] < SAP_DAILY_START]
+    after = [r for r in spliced if r["settlementDate"] >= SAP_DAILY_START]
+    assert before and after, "the splice must take BOTH branches over the world's record"
+    assert before == [r for r in proxy if r["settlementDate"] < SAP_DAILY_START]
+    assert all(r["systemSellPrice"] == sap[date.fromisoformat(r["settlementDate"])] for r in after)
+
+    rows = open(SAP_DAILY_PATH).read().splitlines()
+    holed = tmp_path / "sap.csv"
+    holed.write_text("\n".join(rows[:100] + rows[101:]) + "\n")
+    with pytest.raises(ValueError, match="gap"):
+        load_gas_baseline_spliced(sap_path=str(holed))

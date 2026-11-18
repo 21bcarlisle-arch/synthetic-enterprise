@@ -103,14 +103,15 @@ REGISTER_CREDENTIAL = "breathing-space-register-01::participant-credential::v2"
 #: Scheme in force from (reg 1(2)). No moratorium starts before it.
 SCHEME_IN_FORCE_FROM = dt.date(2021, 5, 4)
 
-#: Standard registrations, E&W, per calendar year, annualised where the year is partial.
+#: Standard registrations, E&W, per calendar year, annualised where the year is partial. Pinned by the
+#: year-keyed rate census to `insolvency_service_breathing_space_registrations.json` (Oct 2026 edition).
 _STANDARD_REGISTRATIONS_PER_YEAR: Dict[int, float] = {
     2021: 40_502 * 365 / 242,
     2022: 69_571,
     2023: 86_926,
     2024: 87_732,
     2025: 87_813,
-    2026: 39_240 * 12 / 8,
+    2026: 49_785 * 12 / 10,
 }
 
 #: Mental health crisis registrations, E&W, same CSV and the same annualising (W2_45).
@@ -120,7 +121,7 @@ _MHCM_REGISTRATIONS_PER_YEAR: Dict[int, float] = {
     2023: 1_464,
     2024: 1_288,
     2025: 1_317,
-    2026: 1_030 * 12 / 8,
+    2026: 1_321 * 12 / 10,
 }
 
 #: Reg 32(2)(a): the MHCM ends at the end of 30 days beginning with the day treatment stops.
@@ -135,6 +136,7 @@ MHCM_TREATMENT_DAYS_RANGE = (13, 42)
 MHCM_END_REASON = "crisis treatment ended"
 
 #: Ofgem, domestic electricity accounts in arrears (no plan) plus repaying (plan), Q4 (Q2 2026).
+#: Pinned to `ofgem_domestic_electricity_indebted_accounts.json` by the same census.
 _INDEBTED_ELECTRICITY_ACCOUNTS: Dict[int, int] = {
     2021: 775_721 + 979_224,
     2022: 778_598 + 877_337,

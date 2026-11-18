@@ -1,0 +1,86 @@
+{
+  "artefact": "insolvency_service_breathing_space_registrations",
+  "version": 1,
+  "published_by": "The Insolvency Service, 'Individual insolvencies' monthly official statistics, Long-Run Series in CSV Format",
+  "what_this_is": "THE PUBLISHED COUNT, NOT A READING OF IT. Breathing Space (Debt Respite Scheme) registrations in England and Wales, all creditors, summed here from the publisher's monthly NSA columns `EW_standard_breathing_space_NSA` and `EW_mental_health_breathing_space_NSA` into calendar years. A partial year is stored PARTIAL, with the period it covers; annualising it is a reading and is done by the reader (simulation/debt_respite_draw.py) and re-done independently by the year-keyed rate census, never here. Nothing here says how many registrations name an energy creditor: no publisher splits by creditor type (see debt_respite_breathing_space_moratorium.json, NOT_ESTABLISHED).",
+  "basis": {
+    "units": "registrations (moratoria entered on the register), a count per person, NSA",
+    "year_key": "calendar year of registration",
+    "territory": "England and Wales only (SI 2020/1311 reg 1(8)-(9)); the scheme does not run in Scotland or NI",
+    "partial_years": "2021 runs from the scheme's start on 2021-05-04; the latest year runs to the last month in the edition. `months_reported` and the period dates are the publisher's coverage, stated so the reader can annualise without guessing."
+  },
+  "provenance_legend": {
+    "primary": "summed on 2026-11-18 from the October 2026 edition's long-run CSV (sha256 36dd6e9a20a6d988387395ebf6681aac2c75312714faa5c6d99e18f8991fa105). The August 2026 edition (sha256 9ea95adde33ac10152e99ac1347b38d75a84055fe1f3045270e973c999f6954d), which docs/market_research/debt_and_collections.md and the first build of the world's draw read, was fetched the same day: its 2021-2025 sums are identical to October's, so the only movement between editions is the 2026 year-to-date running from 8 to 10 months."
+  },
+  "r13_wall": "Published counts, transcribed blind to company results. No value here may be moved because a moratorium rate in a run looks wrong.",
+  "portability": "One E&W scheme. Scotland's moratorium on diligence is a different instrument with its own (Accountant in Bankruptcy) statistics and would be its own artefact.",
+  "registrations": [
+    {
+      "year": 2021,
+      "period_from": "2021-05-04",
+      "period_to": "2021-12-31",
+      "months_reported": 8,
+      "standard": 40502,
+      "mental_health_crisis": 624,
+      "provenance": "primary"
+    },
+    {
+      "year": 2022,
+      "period_from": "2022-01-01",
+      "period_to": "2022-12-31",
+      "months_reported": 12,
+      "standard": 69571,
+      "mental_health_crisis": 1216,
+      "provenance": "primary"
+    },
+    {
+      "year": 2023,
+      "period_from": "2023-01-01",
+      "period_to": "2023-12-31",
+      "months_reported": 12,
+      "standard": 86926,
+      "mental_health_crisis": 1464,
+      "provenance": "primary"
+    },
+    {
+      "year": 2024,
+      "period_from": "2024-01-01",
+      "period_to": "2024-12-31",
+      "months_reported": 12,
+      "standard": 87732,
+      "mental_health_crisis": 1288,
+      "provenance": "primary"
+    },
+    {
+      "year": 2025,
+      "period_from": "2025-01-01",
+      "period_to": "2025-12-31",
+      "months_reported": 12,
+      "standard": 87813,
+      "mental_health_crisis": 1317,
+      "provenance": "primary"
+    },
+    {
+      "year": 2026,
+      "period_from": "2026-01-01",
+      "period_to": "2026-10-31",
+      "months_reported": 10,
+      "standard": 49785,
+      "mental_health_crisis": 1321,
+      "provenance": "primary"
+    }
+  ],
+  "source_check": {
+    "publication": "The Insolvency Service, Individual insolvencies, October 2026 (published 2026-11-17): 'Long-Run Series in CSV Format - Individual Insolvency Statistics October 2026'.",
+    "url": "https://www.gov.uk/government/statistics/individual-insolvencies-october-2026",
+    "fetched": "2026-11-18",
+    "version_token": "2026-11-17",
+    "version_token_is": "publisher_page_date",
+    "how_to_recheck": "A NEW EDITION IS A NEW PAGE, monthly, so the stored URL never moves: GET https://www.gov.uk/api/content/government/collections/individual-insolvency-statistics-releases and read `links.documents` -- a release whose `public_updated_at` is later than `version_token` is a newer edition. Take its long-run CSV from that release's `details.attachments` (content_type text/csv, title beginning 'Long-Run Series'); the asset URL is a hash and must not be stored as the key. Re-sum the two breathing-space NSA columns by `year` and compare: a revision to a closed year is a supersession, an extra month in the open year is expected.",
+    "checked_for_supersession": {
+      "on": "2026-11-18",
+      "found": "current",
+      "note": "October 2026 is the latest release in the collection on this date."
+    }
+  }
+}

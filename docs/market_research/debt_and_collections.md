@@ -1412,6 +1412,13 @@ already quotes regs 1, 2, 6, 7, 11, 16, 25, 26 and 32. This section adds what it
 | 2025 | 89,130 | 87,813 | 1,317 |
 | 2026 (Jan-Aug) | 40,270 | 39,240 | 1,030 |
 
+**Re-read 2026-11-18 from the October 2026 edition's long-run CSV:** 2021-2025 are unrevised; 2026
+now runs Jan-Oct, 49,785 standard and 1,321 mental-health crisis. The world reads these (annualised
+x12/10), and both series now sit raw in the commons:
+`docs/domain_artefact_library/regulatory/insolvency_service_breathing_space_registrations.json`, and
+`ofgem_domestic_electricity_indebted_accounts.json` for the §2.1 account counts. The year-keyed rate
+census asserts the world's tables equal them.
+
 - **A structural break, not a hardship signal.** August 2026 had 5,012, 32% down year on year. The
   commentary attributes this to StepChange, which made 56% of all registrations, tightening its
   suitability criteria in Nov 2025.

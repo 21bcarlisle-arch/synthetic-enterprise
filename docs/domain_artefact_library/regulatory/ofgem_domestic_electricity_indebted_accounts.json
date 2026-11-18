@@ -1,0 +1,111 @@
+{
+  "artefact": "ofgem_domestic_electricity_indebted_accounts",
+  "version": 1,
+  "published_by": "Ofgem, 'Debt and arrears indicators' (the chart data behind the page, served as Everviz embeds)",
+  "what_this_is": "THE PUBLISHED COUNT, NOT A READING OF IT. GB domestic ELECTRICITY accounts, at one quarter-end per year, in two separate Ofgem series: accounts in arrears with no arrangement to repay, and accounts with a consumer repaying an energy debt. Kept as the two published columns; their sum ('indebted accounts') is a reading, made by the reader and re-made independently by the year-keyed rate census. The counts are ACCOUNTS PER FUEL, not households: a dual-fuel household indebted on both fuels is one electricity account here. Gas is published beside it and not carried, because nothing reads it yet.",
+  "basis": {
+    "units": "domestic electricity accounts, GB, at the quarter-end named",
+    "year_key": "the year whose quarter-end is named in `quarter`: Q4 for every closed year; the open year carries the latest quarter published (Q2 2026 at this edition), not a Q4",
+    "series": {
+      "in_arrears_no_plan": "Everviz chart gvS7WsWVw, 'Number of accounts in arrears where there is no arrangement to repay the debt', column Electricity",
+      "repaying_on_plan": "Everviz chart QG6XVhNPt, 'Number of accounts with a consumer repaying an energy debt', column Electricity"
+    }
+  },
+  "provenance_legend": {
+    "primary": "read on 2026-11-18 from each chart's config at https://app.everviz.com/inject/<chart-id>/ (gvS7WsWVw sha256 2c937f1e95356379ff9d950f256e4c6a084c592aee134bab6d0bbc72aa0b945c; QG6XVhNPt sha256 cb8c144cf0127c1723e45c2e4370e9c6cb18f4842e1a6866adc970e061042921). Identical to the 2026-10-05 reading tabulated in docs/market_research/debt_and_collections.md section 2.1."
+  },
+  "r13_wall": "Published counts, transcribed blind to company results. No value here may be moved because an arrears or moratorium figure in a run looks wrong.",
+  "portability": "GB only. Another market supplies its own regulator's arrears series behind the same reader.",
+  "accounts": [
+    {
+      "year": 2016,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 508349,
+      "repaying_on_plan": 681195,
+      "provenance": "primary"
+    },
+    {
+      "year": 2017,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 601795,
+      "repaying_on_plan": 654923,
+      "provenance": "primary"
+    },
+    {
+      "year": 2018,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 648429,
+      "repaying_on_plan": 661339,
+      "provenance": "primary"
+    },
+    {
+      "year": 2019,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 694191,
+      "repaying_on_plan": 739947,
+      "provenance": "primary"
+    },
+    {
+      "year": 2020,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 701517,
+      "repaying_on_plan": 725814,
+      "provenance": "primary"
+    },
+    {
+      "year": 2021,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 775721,
+      "repaying_on_plan": 979224,
+      "provenance": "primary"
+    },
+    {
+      "year": 2022,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 778598,
+      "repaying_on_plan": 877337,
+      "provenance": "primary"
+    },
+    {
+      "year": 2023,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 1005350,
+      "repaying_on_plan": 753887,
+      "provenance": "primary"
+    },
+    {
+      "year": 2024,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 1045302,
+      "repaying_on_plan": 810544,
+      "provenance": "primary"
+    },
+    {
+      "year": 2025,
+      "quarter": "Q4",
+      "in_arrears_no_plan": 1146497,
+      "repaying_on_plan": 829275,
+      "provenance": "primary"
+    },
+    {
+      "year": 2026,
+      "quarter": "Q2",
+      "in_arrears_no_plan": 1187788,
+      "repaying_on_plan": 888824,
+      "provenance": "primary"
+    }
+  ],
+  "source_check": {
+    "publication": "Ofgem, Debt and arrears indicators (quarterly), chart data for 'accounts in arrears with no arrangement' and 'accounts repaying an energy debt'.",
+    "url": "https://www.ofgem.gov.uk/data/debt-and-arrears-indicators",
+    "fetched": "2026-11-18",
+    "version_token": null,
+    "version_token_is": "none_published",
+    "how_to_recheck": "The Everviz embeds carry no edition marker and are overwritten in place each quarter: GET https://app.everviz.com/inject/gvS7WsWVw/ and https://app.everviz.com/inject/QG6XVhNPt/, extract the inline `csv`, and compare the Electricity column at each year's Q4 (and the latest quarter) with `accounts`. A new latest quarter is expected; a moved closed-year Q4 is a supersession. If the chart ids stop resolving, the ids are in the debt and arrears page HTML as `highcharts-<id>`.",
+    "checked_for_supersession": {
+      "on": "2026-11-18",
+      "found": "current",
+      "note": "The series' latest quarter is Q2 2026 on this date, the same as on 2026-10-05."
+    }
+  }
+}
