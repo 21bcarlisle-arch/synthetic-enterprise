@@ -215,6 +215,31 @@ def load_sap_daily(path: str = SAP_DAILY_PATH) -> dict[date, float]:
                 for r in csv.DictReader(f)}
 
 
+def load_gas_baseline_spliced(proxy_path: str = OUTPUT_PATH, sap_path: str = SAP_DAILY_PATH,
+                              end: str = RECORD_END) -> list[dict]:
+    """The world's gas record with the real GB daily SAP from SAP_DAILY_START, the TTF proxy before it.
+
+    Same schema as `load_nbp_history` ({settlementDate, systemSellPrice}, £/MWh), so a reader can swap
+    one for the other. The proxy is TTF in USD at a fixed 1.28 $/£ and runs 29% above GB in 2022 (the
+    LNG-glut basis), so from 2018 SAP is the more faithful record. Clipped to `end` (default the proxy's
+    own RECORD_END) so the splice changes the price source alone, not the world's length.
+    NOT YET THE WORLD'S BASELINE: no run reads this until the skip pair has read (DIRECTION.yaml
+    not_now). K8 page: docs/market_research/the_worlds_gas_price_record_splices_daily_sap_from_2018_2026-11-18.md
+    """
+    seam = date.fromisoformat(SAP_DAILY_START)
+    last = date.fromisoformat(end)
+    head = [r for r in load_nbp_history(proxy_path) if date.fromisoformat(r["settlementDate"]) < seam]
+    sap = load_sap_daily(sap_path)
+    tail = [{"settlementDate": d.isoformat(), "systemSellPrice": p}
+            for d, p in sorted(sap.items()) if seam <= d <= last]
+    # A hole in the daily record must refuse, not silently shorten a lookback window.
+    expected = (min(last, max(sap)) - seam).days + 1
+    if len(tail) != expected:
+        raise ValueError(f"SAP daily record has {len(tail)} days from {seam} to {min(last, max(sap))}, "
+                         f"expected {expected}: a gap would shorten every lookback that touches it")
+    return head + tail
+
+
 def build_sap_daily(xlsx_path: str, out_path: str = SAP_DAILY_PATH) -> int:
     """Write the daily record from a downloaded ONS workbook; refuses an edition it was not pinned to."""
     import hashlib
