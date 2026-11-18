@@ -850,3 +850,41 @@ def test_the_scheduled_note_asks_the_site_leg_and_mints_its_red(tmp_path):
     assert "| served page | SUPERSEDED | site/index.html |" in text
     note_line(red)  # the next morning, same drift
     assert _minted(red) == items
+
+
+COVERAGE_PAGE = """# A PAGE
+
+The world expresses one trait: `price_sensitivity` reaches the churn decision.
+The engagement mix is 0.45/0.35/0.20 by ratification. `company/portal/app.py` renders the view.
+Ground truth never crosses the wall.
+
+- A bullet with no stop names `MARKET_SAVINGS_BY_YEAR`
+- A bullet filed as `WORKER_FINDING_X_2026-11-16` and nothing else
+
+```yaml
+title: `simulation/customer_events.py` in the picture
+```
+"""
+
+
+def test_the_per_sentence_denominator_counts_bound_unbound_and_plain_apart(tmp_path):
+    """A45 blind pass, 15 Nov, MAJOR 1. One fixture over the whole partition: a bound sentence, two
+    sentences naming code that nothing binds (one a stop-less bullet that must not run into the next),
+    a plain rule sentence and a staging-item name that are not counted, and a fenced line read apart.
+    `app.py` and 0.45 must not end a sentence. A denominator that counts nothing, or everything,
+    fails a leg."""
+    root, register = _mini_repo(tmp_path, page=COVERAGE_PAGE, claims=[CHANNEL_CLAIM])
+    cov = run(root, register)[1]["sentence_coverage"]["docs/page.md"]
+    assert cov["bound"] == 1 and cov["naming"] == 4, cov
+    assert cov["sentences"] == 7 and cov["fenced_lines"] == 3, cov
+    assert [s[:14] for s in cov["unbound"]] == ["The engagement", "`company/porta", "- A bullet wit"], \
+        cov["unbound"]
+    assert cov["unbound"][1].endswith("renders the view."), cov["unbound"]
+
+
+def test_the_sentence_denominator_is_printed_and_never_moves_the_exit_status(tmp_path, capsys):
+    from tools.canon_drift_check import main
+    root, register = _mini_repo(tmp_path, page=COVERAGE_PAGE, claims=[CHANNEL_CLAIM])
+    assert main(["--root", str(root), "--register", str(register)]) == 0
+    out = capsys.readouterr().out
+    assert "1 of 4 sentence(s) naming code or a figure are bound" in out, out

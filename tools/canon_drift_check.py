@@ -697,6 +697,69 @@ def unwatched_sections(root: Path, claims: list[Claim]) -> dict[str, list[str]]:
     return out
 
 
+#: A45's blind pass of 15 Nov, MAJOR 1: "positive claims are counted per section, so one anchor
+#: makes a section watched"; it estimated 20-25% of the page's statements about the code were
+#: bound, and said the fix was a per-sentence denominator, not more anchors. This is that
+#: denominator. What it counts, said before it is counted:
+#:   a SENTENCE is a run of text ending at . ! or ? (and any closing quote, bracket or emphasis)
+#:   followed by whitespace (so `app.py` and 0.45 do not end one), and never crossing a markdown block edge (blank line, heading, bullet,
+#:   numbered item, table row, quote). Fenced blocks are left out and their lines counted apart.
+#:   A sentence NAMES THE CODE OR A FIGURE when it holds a code path, a `.py` file, a snake_case
+#:   identifier, an UPPER_SNAKE constant (not a staging-item name), a decimal, a percentage or a
+#:   multiplier. That is a lower bound on "statements about the code": "the rival never prices
+#:   below its own cost stack" names nothing and is not counted.
+#:   It is BOUND when an anchor (or also_anchor) or a judgement excerpt overlaps it.
+#: Coverage, like `unwatched_sections`: it never moves the exit status.
+_BLOCK_EDGE = re.compile(r"\n(?=[ \t]*(?:\n|#|[-*+] |\d+\. |\||>))")
+_FENCE = re.compile(r"(?ms)^[ \t]*```.*?^[ \t]*```[^\n]*$")
+_UNIT = re.compile(r"[^\s\x00][^\x00]*?(?:[.!?]+[\"')*_\]]*(?=\s|\x00|$)|(?=\x00)|$)")
+NAMES_CODE = re.compile(
+    r"\b(?:company|saas|sim|simulation|tools|background|tests)/[\w./-]+|\b\w+\.py\b"
+    r"|\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b"
+    r"|\b(?!(?:WORKER|SEAT|DIRECTOR|ADVISOR|PLANNER)_)[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b"
+    r"|\b\d+\.\d+\b|\b\d+(?:\.\d+)?\s?%|\b\d+(?:\.\d+)?x\b")
+
+
+def sentence_coverage(root: Path, claims: list[Claim],
+                      judgements: list[Judgement] = ()) -> dict[str, dict[str, Any]]:
+    """Per markdown page: {sentences, naming, bound, fenced_lines, unbound: [...]}, as defined above."""
+    out: dict[str, dict[str, Any]] = {}
+    for page_rel in sorted({c.page for c in claims if c.page.endswith(".md")}):
+        page = root / page_rel
+        if not page.exists():
+            continue
+        raw = page.read_text(encoding="utf-8", errors="replace")
+        fenced = sum(m.group().count("\n") + 1 for m in _FENCE.finditer(raw))
+        raw = _FENCE.sub("\n", raw)
+        marked = re.sub(r"\s+", " ", re.sub(r"\s*\x00[\s\x00]*", "\x00", _BLOCK_EDGE.sub("\x00", raw)))
+        flat = marked.replace("\x00", " ")
+        spans: list[tuple[int, int]] = []
+        for excerpt in ([a for c in claims if c.page == page_rel for a in c.anchors]
+                        + [j.excerpt for j in judgements if j.page == page_rel]):
+            needle = _normalise(excerpt).strip()
+            at = flat.find(needle) if needle else -1
+            while at >= 0:
+                spans.append((at, at + len(needle)))
+                at = flat.find(needle, at + 1)
+        total = naming = bound = 0
+        unbound: list[str] = []
+        for unit in _UNIT.finditer(marked):
+            sentence = unit.group().strip()
+            if not sentence:
+                continue
+            total += 1
+            if not NAMES_CODE.search(sentence):
+                continue
+            naming += 1
+            if any(lo < unit.end() and unit.start() < hi for lo, hi in spans):
+                bound += 1
+            else:
+                unbound.append(sentence[:240])
+        out[page_rel] = {"sentences": total, "naming": naming, "bound": bound,
+                         "fenced_lines": fenced, "unbound": unbound}
+    return out
+
+
 #: The forms the model page uses to say the CODE lacks something. An under-claim can only be one
 #: of these sentences, and an `absent` claim is the only thing that can show one false.
 #: A45's Expert Hour (14 Nov, MAJOR 3): "an under-claim is seen only where an absent-claim was
@@ -900,6 +963,8 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
         "removed": removed_claims(register, current={c.id for c in claims}),
         "unwatched_sections": unwatched_sections(root, claims),
         "unbound_negatives": unbound_negatives(root, claims, judgements, holding, lapsed),
+        # The per-sentence denominator (A45 blind pass, 15 Nov, MAJOR 1): coverage, not drift.
+        "sentence_coverage": sentence_coverage(root, claims, judgements),
         "judged_negatives": len(judgements),
         # Red: the atom that would build a "does not exist" mechanism moved after the judgement.
         "lapsed_watches": lapsed,
@@ -917,7 +982,8 @@ def _render(verdicts: list[Verdict], removed: list[str] | None = None,
             unwatched: dict[str, list[str]] | None = None,
             negatives: dict[str, list[str]] | None = None,
             judged: int = 0, stale: list[str] | None = None,
-            lapsed: list[str] | None = None) -> str:
+            lapsed: list[str] | None = None,
+            coverage: dict[str, dict[str, Any]] | None = None) -> str:
     lines = ["CANON DRIFT CHECK -- what the page claims that the code no longer supports", ""]
     for verdict in verdicts:
         lines.append(f"  [{verdict.verdict:<10}] {verdict.claim.id}")
@@ -939,6 +1005,9 @@ def _render(verdicts: list[Verdict], removed: list[str] | None = None,
             lines.append(f"UNBOUND NEGATIVES on {page} -- {len(sentences)} \"the code lacks X\" "
                          f"sentence(s) no absent claim checks, so an under-claim there is unseen:")
             lines.extend(f"  - {sentence}" for sentence in sentences)
+    for page, cov in (coverage or {}).items():
+        lines.append(f"SENTENCE COVERAGE on {page} -- {_coverage_phrase(cov)}; unbound:")
+        lines.extend(f"  - {sentence}" for sentence in cov["unbound"])
     if judged:
         lines.append(f"JUDGED NEGATIVES -- {judged} named sentence(s) settled in `{JUDGED_SECTION}` as "
                      "unregisterable, each with its reason")
@@ -1149,7 +1218,15 @@ def _unwatched_clause(report: dict[str, Any]) -> str:
              for page, heads in report.get("unwatched_sections", {}).items() if heads]
     parts += [f"{Path(page).name}: {len(sentences)} \"not yet\"-type sentence(s) no absent claim "
               f"checks" for page, sentences in report.get("unbound_negatives", {}).items() if sentences]
+    parts += [f"{Path(page).name}: {_coverage_phrase(cov)}"
+              for page, cov in report.get("sentence_coverage", {}).items() if cov["naming"] > cov["bound"]]
     return f" Unwatched — {' · '.join(parts)}." if parts else ""
+
+
+def _coverage_phrase(cov: dict[str, Any]) -> str:
+    """The per-sentence denominator in words (A45 blind pass, 15 Nov, MAJOR 1)."""
+    return (f"{cov['bound']} of {cov['naming']} sentence(s) naming code or a figure are bound "
+            f"({cov['sentences']} sentences on the page; {cov['fenced_lines']} fenced line(s) not read)")
 
 
 # --------------------------------------------------------------------------------------
@@ -1322,7 +1399,8 @@ def main(argv: list[str] | None = None) -> int:
     print(json.dumps(report, indent=2) if args.json
           else _render(verdicts, report["removed"], report.get("unwatched_sections"),
                        report.get("unbound_negatives"), report.get("judged_negatives", 0),
-                       report.get("stale_judgements"), report.get("lapsed_watches"))
+                       report.get("stale_judgements"), report.get("lapsed_watches"),
+                       report.get("sentence_coverage"))
           + _render_site(report["site"]))
     if args.write_report:
         out = root / DEFAULT_REPORT

@@ -159,3 +159,20 @@ map_records:
     Two alternatives in the draft ("carries no", "no X-side") never fired alone: the others already
     caught their sentences, an equivalence on the page and in the test, so they were removed.
     Next: M1, a per-sentence denominator. Level held at 2.
+  - >-
+    M1, 2026-11-18: the per-sentence denominator. Defined before counting: a sentence ends at . ! ?
+    (plus any closing quote, bracket or emphasis) followed by whitespace, never across a markdown
+    block edge; it names code or a figure when it holds a code path, a .py file, a snake_case or
+    UPPER_SNAKE name (not a staging item), a decimal, a percentage or a multiplier; it is bound
+    when an anchor or a judgement excerpt overlaps it. A lower bound on "statements about the
+    code": a sentence naming nothing ("the rival never below its own cost stack") is not counted.
+    Prediction filed before the run: about 25% bound, per the blind pass's 20-25%. Read: 11 of 25,
+    i.e. 44% (164 sentences on the page; 205 fenced picture lines are not read, and a probe found 2
+    of their 146 prose lines name code). Refuted upward, but the narrow definition is most of the
+    reason. Printed in the report, the CLI and the daily note's Unwatched clause; never moves the
+    exit status. The 14 unbound sentences are listed in the report and are the next binding work.
+    Control: test_the_per_sentence_denominator_counts_bound_unbound_and_plain_apart. Six
+    mutations, each red: no block edge, a stop with no space after it, staging names counted,
+    nothing bound, fences read, figures dropped. The last one first survived because the fixture's
+    figure sentence also named a file: a missing test, now fixed. Level held at 2; next is binding
+    or judging the 14, then a fresh Expert Hour pass.
