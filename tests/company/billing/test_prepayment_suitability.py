@@ -17,6 +17,7 @@ from company.billing.winter_moratorium import (
     NO_SUITABILITY_FINDING,
     NOT_SUITABLE,
     SAFE_AND_PRACTICABLE,
+    SUITABILITY_UNANSWERED,
     EnforcementAction,
     EnforcementCase,
     may_take,
@@ -88,3 +89,26 @@ def test_the_gate_takes_the_dated_finding_and_names_why_it_refuses():
     lapsed = ProtectionRecord(SAFE_AND_PRACTICABLE, ASKED, ASKED + dt.timedelta(days=1))
     (stale,) = srp_refusal(gate(lapsed))
     assert "lapsed" in stale
+
+
+def test_an_unanswered_conversation_is_refused_as_unanswered_not_as_negative():
+    """C32 tenth pass, class 7. The refusal was right but its words were not: a conversation
+    whose only bar is unanswered questions printed "finding is negative". Defects: unanswered
+    evidence called negative; a real bar beside an unanswered one called merely unanswered."""
+    def srp(record):
+        det = may_take(EnforcementAction.CONSENT_PPM_OFFER, EnforcementCase(
+            account_id="H", as_of=ON, suitability=record))
+        return [r for c, r in det.refusals if c == "slc_27_6_a_iii_safe_and_practicable"]
+
+    all_unanswered = SuitabilityAnswers(ASKED)  # asked, every answer None
+    (only_unanswered,) = srp(assess_prepayment_suitability(ON, answers=all_unanswered))
+    assert only_unanswered.startswith(SUITABILITY_UNANSWERED), only_unanswered
+    assert "negative" not in only_unanswered and "over_75_without_support" in only_unanswered
+
+    (mixed,) = srp(assess_prepayment_suitability(
+        ON, answers=_with(child_under_2=True, over_75_without_support=None)))
+    assert mixed.startswith(NOT_SUITABLE) and "child_under_2" in mixed
+
+    (held,) = srp(assess_prepayment_suitability(
+        ON, categories=(PSRCategory.MEDICAL_EQUIPMENT,), answers=_with(over_75_without_support=None)))
+    assert held.startswith(NOT_SUITABLE)

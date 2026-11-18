@@ -573,7 +573,10 @@ What the census found, against the table's rows:
   - **Positive (met True):** only where the household was **asked**: every 3.7, 3.8 and 3.9 question
     answered "no", on a dated conversation, and no evidence held against those answers. Holding no
     evidence is not having asked (§4). A question left unanswered counts as the bar, as in 28B's
-    do-not-install check.
+    do-not-install check. That bars the offer, but it is not a negative finding. Where every bar
+    item is an unanswered question, the refusal says the conversation was left unanswered
+    (`SUITABILITY_UNANSWERED`). It says "negative" only where something held or answered found the
+    bar (C32 tenth pass, class 7; 2026-11-18).
   - **Lapse:** 365 days from the day it was asked (28.3), or the day evidence that changes the
     answer is learned, whichever is first. A later PSR registration supersedes it through the
     evidence leg.
@@ -622,7 +625,7 @@ What the census found, against the table's rows:
   - **What a discloser says.** A PSR-type household that discloses says a circumstance applies.
     The world draws no needs code (§3, the needs-code mix is a GAP), so it cannot say which
     question it applies to. Every question comes back unanswered, with that reason. The company
-    reads an unanswered question as the bar, so the finding is negative. A real discloser would
+    reads an unanswered question as the bar, so no positive finding is made (the refusal names it unanswered, not negative). A real discloser would
     name its circumstance. Some would name a further-assessment ground, not a do-not-install one.
     Either way the company finds no S&RP, so nothing is lost by not drawing which.
   - **Meter access (3.7, "cannot access, operate or top up").** This is read as a PSR-type

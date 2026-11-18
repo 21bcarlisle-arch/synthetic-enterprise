@@ -115,7 +115,7 @@ in-process). The probe script is at `/tmp/c32p2/probe.py`; it is not kept.
 | 3 | one debt meter per billing account, not on a knowledge page | W2 meter book, with C32 check (e) |
 | 4 | plan re-offers 2-5 days apart | collections desk, D lane |
 | 6 | no payment method on `EnforcementCase` | C32 |
-| 7 | "negative" printed over unanswered evidence in `_suitability_check` | C32 |
+| 7 | "negative" printed over unanswered evidence in `_suitability_check` | C32: **closed 2026-11-18**, below |
 
 Closed: 2 (unrouted, above) and 5 (2026-11-15).
 
@@ -152,3 +152,36 @@ Consent rung is asked 2 times here, against 6 on the shipped world: once plans a
 accounts cure before day 90. The probe script is at `/tmp/c32c1/probe.py`. It wraps
 `winter_moratorium.may_take` and the name `transfer_objection_register` imported, and it is not
 kept.
+
+## Back on the queue, 2026-11-18 (worker tick)
+
+This file was moved to `done/` in the working tree on 16 Nov 15:39 and never committed. Classes 1,
+3, 4 and 6 were still open, so it is back at the staging root.
+
+**The 2021-12-31 window did not finish.** `/tmp/c32c1/r2021.log` stops at simulated 2018-08-13,
+last written 16 Nov 16:05. It wrote no `r2021.json`, and no process is running it. The 2016
+window took 42 min wall clock for one year, so the 2021 window needs about four hours. It ran
+while the memory governor reports its budget exhausted, so the likeliest cause is the run being
+killed. That is not established: no record says what killed it. Class 1's refuse leg for meter
+recovery and both debt-objection legs are still unexercised in operation. The probe
+(`/tmp/c32c1/probe.py`) is intact. Relaunch it as a declared, waited-on run (`tools/wait_for.py`),
+not as an untracked background job.
+
+**Class 7, closed.** `_suitability_check` printed `NOT_SUITABLE` ("finding is negative") whenever
+the in-effect S&RP record found the bar, including where every bar item was an unanswered
+question. It now prints `SUITABILITY_UNANSWERED` in that case. It prints "negative" only where
+something held or answered found the bar. The refusal and its ground are unchanged, so the live
+gate refuses exactly what it refused before. Only the words differ. The evidence prefix
+`UNANSWERED_EVIDENCE` now lives in `winter_moratorium` and the S&RP builder writes it, so the
+gate and the builder cannot drift apart. The control is
+`test_an_unanswered_conversation_is_refused_as_unanswered_not_as_negative`, mutation-proven both
+ways: the gate always printing "negative" reds it, and the gate calling a real bar "unanswered"
+reds it. The commons §5 S&RP paragraph is amended (K8).
+
+| class | state |
+|---|---|
+| 1 | open: the 2021 window must be rerun |
+| 3 | open (W2 meter book, with C32's check (e)) |
+| 4 | open (D lane) |
+| 6 | open (C32) |
+| 7 | closed, 2026-11-18 |

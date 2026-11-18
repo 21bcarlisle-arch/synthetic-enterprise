@@ -21,7 +21,7 @@ import datetime as dt
 from dataclasses import dataclass, fields
 from typing import Iterable, Optional
 
-from company.billing.winter_moratorium import SAFE_AND_PRACTICABLE
+from company.billing.winter_moratorium import SAFE_AND_PRACTICABLE, UNANSWERED_EVIDENCE
 from company.regulatory.priority_services_register import ProtectionRecord, PSRCategory
 
 #: SLC 28.3: contact every PPM customer at least once a year to assess whether a PPM remains safe and
@@ -83,7 +83,7 @@ def assess_prepayment_suitability(on: dt.date, *, categories: Iterable = (), nee
                 continue
             value = getattr(answers, f.name)
             if value is None:
-                bar.append(f"unanswered: {f.name}")
+                bar.append(f"{UNANSWERED_EVIDENCE}{f.name}")
             elif value:
                 (bar if f.name in _DO_NOT_INSTALL_ANSWERS else person).append(
                     f"{'do-not-install (3.7)' if f.name in _DO_NOT_INSTALL_ANSWERS else 'further assessment (3.8/3.9), for a person to decide'}: {f.name}")
