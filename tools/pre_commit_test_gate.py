@@ -1682,6 +1682,15 @@ def _staging_chain_check(staged: list[str]) -> tuple[bool, str]:
 
 WALL_REGISTER_PATH = "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md"
 WALL_CENSUS_BASELINE = "docs/design/wall_channel_census_baseline.json"
+#: The published artefact channel F reads, in both of the forms `wall_channel_census.artefact_at`
+#: accepts. A publish stages these and no `.py`, so without them the census never ran on the commit
+#: that widened it and refused the next innocent merge instead (6af7fd0bfd publish, 2026-11-18).
+#: The billing ledger is NOT here: the census does not read it. Pinned to the census's own constants
+#: by `test_the_gate_triggers_on_exactly_the_artefacts_the_census_reads`.
+WALL_CENSUS_ARTEFACTS = (
+    "docs/reports/run_output_latest.json",
+    "docs/reports/run_output_latest.json.gz",
+)
 
 
 def _index_tree(root: Path = ROOT) -> str:
@@ -1826,7 +1835,11 @@ def _wall_channel_census_check(staged: list[str]) -> tuple[bool, str]:
     FAIL-CLOSED at every step (R15 FAIL-SILENT): unimportable module, unusable index, raising
     checker, unreadable baseline -> the commit is REFUSED with the reason.
     """
-    if not any(p.endswith(".py") for p in staged) and WALL_CENSUS_BASELINE not in staged:
+    if not (
+        any(p.endswith(".py") for p in staged)
+        or WALL_CENSUS_BASELINE in staged
+        or any(p in WALL_CENSUS_ARTEFACTS for p in staged)
+    ):
         return True, ""
     if str(ROOT) not in sys.path:
         sys.path.insert(0, str(ROOT))
