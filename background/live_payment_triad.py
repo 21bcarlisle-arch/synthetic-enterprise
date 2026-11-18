@@ -1034,7 +1034,13 @@ class LivePaymentTriad:
         while self._pending_settlements and self._pending_settlements[0][0] <= through:
             self._hold(heapq.heappop(self._pending_settlements))
         for account_id in list(self._held_settlements):
-            self._settle_held(account_id)
+            # No further than `through`: only lumps dated up to it have left the queue, so a walk past
+            # it can step a day whose cash is still queued. SYN-2016-001's gas lump of 15 Aug 2023 was
+            # pushed by the call that moved gas's last due to 15 Aug; that call's delivery through the
+            # previous due let the walk bound reach 15 Aug, and it walked there to cross electricity's
+            # 16 Aug lump with the gas cash still queued (row INV_OVERDUE_WITHIN_PAGE_BALANCE).
+            walk_bound = self._walk_bound(account_id)
+            self._settle_held(account_id, walk_bound and min(walk_bound, through))
             if force is True or force == account_id:
                 for item in self._held_settlements.pop(account_id, []):
                     if item[0] <= through:
@@ -1076,7 +1082,7 @@ class LivePaymentTriad:
     def _settle_held(self, account_id: str, bound: Optional[date] = None) -> None:
         """Walk the account to the day before each held lump, oldest first, and settle it, as far
         as `bound` (default `_walk_bound`) allows. A lump beyond the bound stays held."""
-        bound = bound or self._walk_bound(account_id)
+        bound = bound if bound is not None else self._walk_bound(account_id)
         held = self._held_settlements.get(account_id, [])
         while held and bound is not None and held[0][0] - timedelta(days=1) <= bound:
             item = held.pop(0)

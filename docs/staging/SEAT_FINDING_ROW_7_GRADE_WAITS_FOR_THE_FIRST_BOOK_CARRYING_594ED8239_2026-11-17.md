@@ -115,3 +115,24 @@ for h, bs in sorted(by.items()):
   and is the seat's call, not the director's.
 - The grade is handed on with a dated draw embargo, so the pool stops re-offering it every turn before a book can
   exist. The steps in "How the next draw grades it" are unchanged.
+
+## SYN-2016-001's walk is named by reading, and fixed: a delivery walked past its own `through` (worker, 17 Nov 23:50Z)
+
+- **The walk.** The candidate was `_settle_held` for another held lump on the account dated after 15 Aug, and that is
+  the one: electricity INV21495's lump, paid **16 Aug**. In gas INV21611's `record_period`, the 15 Aug gas lump is pushed
+  to the queue, then `_leg_last_due[gas]` moves to 15 Aug, then the call delivers through gas's **previous** due
+  (about 17 Jul). That delivery only moves lumps dated up to 17 Jul out of the queue, but `_settle_held` walked as far
+  as `_walk_bound`, which now reads 15 Aug. So it walked to 15 Aug to cross the held 16 Aug lump, with the gas cash
+  still queued. The desk stepped 15 Aug on 386.23, and the gas lump crossed behind the walk. This needs electricity's
+  term to post before gas's (whole terms post in turn), so electricity's 16 Aug lump is already held.
+- **Fix.** `_deliver_settlements_through` caps each `_settle_held` at its own `through`. Every queued lump dated up to
+  that day has left the queue, so no walk can step a day whose cash is still queued. Held lumps past `through` wait
+  for the next delivery, which is that leg's next `record_period`. The test that reproduces it is
+  `tests/background/test_a_lump_crossing_behind_the_desks_walk_is_counted.py::test_a_delivery_does_not_walk_past_a_lump_still_queued_for_its_own_day`.
+  It reds without the fix and is green with it.
+- **Prediction, filed before any book carries it (P5).** On the first book carrying this commit and 594ed8239, row 7
+  (`INV_OVERDUE_WITHIN_PAGE_BALANCE`) reads **0**, and the walk file's `count` for `settle_held` is 0. If 001's 15 Aug
+  still breaches, this reading is wrong. In that case the walk file's `walked_by` for `ACC-SYN-2016-001` on
+  2023-08-15 names the walk. A book built on 594ed8239 alone still reads 2, as P1 says.
+- **Not predicted:** other counts that read held-lump timing (`crossed_despite_a_plan`, the excepted closing-refund
+  row) may move. Forced reader crossings can now come before a walked one. Which way they move: **I cannot yet say.**
