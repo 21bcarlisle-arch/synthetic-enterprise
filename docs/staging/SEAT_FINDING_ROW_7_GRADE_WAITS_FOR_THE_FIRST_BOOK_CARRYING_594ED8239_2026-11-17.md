@@ -160,3 +160,12 @@ re-grade of the 18f201c5bf output can clear them. Only a new book can. 20d4cbecc
 `background/next_book_requires.yaml`, so a book built without it is deferred. Path to the publish: flag1-stop-at-pair3-watch
 frees the box → sim-runner builds the owed book → `process_run` → grade P1–P5 with the probe above (P5: row 7 = 0)
 → the publish gate verifies. Nothing on that path waits on the director.
+
+**18 Nov 02:40Z (claim `row7-graded-on-the-first-book-carrying-594ed8239`, executor draw). Still no book, so nothing is graded.**
+`docs/state/billing_ledger.json` on the shared tree still names `run_output_18f201c5bf_20261117T181948Z.json`, and that is
+still the newest dated `run_output_*`. Pair 3's driver (pid 1051692, `--child 55555,66666`) is 6 h 33 min in at 98% CPU
+and about 7.2 GB RSS. That is past the about 21,000 s a pair took before, so the 02:00Z ETA has slipped, but the driver
+is still working. `control_55555_66666.json` is not on disk yet. `flag1-stop-at-pair3-watch` has been waiting since
+02:08Z. The owed book still needs pair 3, then about 6,700 s of sim-runner, then `process_run`, so a grade cannot come
+before about 05:00Z. The probe was not re-run, because it would only print the table above again. The grade is handed on
+with a dated embargo. The steps in "How the next draw grades it" and P1–P5 are unchanged.
