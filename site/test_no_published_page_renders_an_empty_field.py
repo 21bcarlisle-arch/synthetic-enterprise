@@ -23,8 +23,10 @@ the end, so "'produced at ,'" -- the steer's own words, published on the Harness
 """
 from __future__ import annotations
 
+import json
 import re
 import sys
+from html import unescape
 from pathlib import Path
 
 import pytest
@@ -54,6 +56,51 @@ EMPTY_FIELD_SHAPES = {
     "a script value printed as text": re.compile(r"\bundefined\b|\bNaN\b|\[object Object\]"),
 }
 
+SCRIPT_VALUE = "a script value printed as text"
+_SCRIPT_TOKEN = EMPTY_FIELD_SHAPES[SCRIPT_VALUE]
+_NOT_TEXT = re.compile(r"<(script|style)\b.*?</\1\s*>|<!--.*?-->", re.S | re.I)
+
+
+_FETCHED_FEED = re.compile(r"""fetch\(\s*["']([^"'?#]+\.json)""")
+
+
+def _strings(value) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [s for v in value.values() for s in _strings(v)]
+    if isinstance(value, list):
+        return [s for v in value for s in _strings(v)]
+    return []
+
+
+def static_text(html: str, page: Path | None = None) -> str:
+    """The words a page is GIVEN: its own bytes with no script, style or comment, plus every string
+    in the JSON feeds it fetches. A script printing a string it was given is printing text."""
+    words = [unescape(re.sub(r"<[^>]+>", " ", _NOT_TEXT.sub(" ", html)))]
+    if page is not None:
+        for rel in _FETCHED_FEED.findall(html):
+            feed = (page.parent / rel).resolve()
+            try:
+                words += _strings(json.loads(feed.read_text()))
+            except (OSError, ValueError):
+                continue
+    return "\n".join(words)
+
+
+def script_values_printed(text: str, static: str) -> int:
+    """How many script-value tokens the rendered `text` carries beyond those in the page's bytes.
+
+    "undefined" is also an English word: a seat's decision baked into the Harness page's HTML reads
+    "the survivor tier is undefined" (18 Nov), carried to the Harness page from a decision record.
+    A leaked value is one a SCRIPT made, so it is a token the rendered text has beyond what the
+    page was given (`static_text`). A feed string carrying the word can mask one leak of it."""
+    excess = 0
+    for token in ("undefined", "NaN", "[object Object]"):
+        pattern = re.compile(r"\b" + re.escape(token) + r"\b" if token[0].isalpha() else re.escape(token))
+        excess += max(0, len(pattern.findall(text)) - len(pattern.findall(static)))
+    return excess
+
 
 def empty_fields(text: str) -> list[str]:
     """Every empty-field shape in `text`, each with the words either side of it."""
@@ -73,8 +120,10 @@ def readings():
         assert len(pages) >= 20, (
             f"only {len(pages)} published page(s) found under {docroot}: treated as a broken scan, "
             "since a short population makes the sweep below pass vacuously")
-        jobs = [(f"{base}/{p.relative_to(docroot).as_posix()}", [":body"]) for p in pages]
-        yield read_pages_in_browser(jobs, open_all_details=True)
+        urls = {f"{base}/{p.relative_to(docroot).as_posix()}": p for p in pages}
+        got = read_pages_in_browser([(u, [":body"]) for u in urls], open_all_details=True)
+        yield {u: dict(payload, static=static_text(urls[u].read_text(errors="replace"), urls[u]))
+               for u, payload in got.items()}
 
 
 def test_no_published_page_renders_an_empty_field(readings):
@@ -82,7 +131,9 @@ def test_no_published_page_renders_an_empty_field(readings):
     for url, payload in readings.items():
         text = ((payload.get("elements") or {}).get(":body") or {}).get("text") or ""
         assert text.strip(), f"{url} gave no body text, so nothing is claimed for it"
-        holes = empty_fields(text)
+        holes = [h for h in empty_fields(text) if not h.startswith(SCRIPT_VALUE)]
+        if script_values_printed(text, payload["static"]):
+            holes += [h for h in empty_fields(text) if h.startswith(SCRIPT_VALUE)]
         if holes:
             found[url] = holes
     assert not found, "{} published page(s) show a reader an empty field:\n{}".format(
@@ -107,6 +158,31 @@ def test_MUTATION_each_shape_fires_on_the_text_the_director_read():
               "Held by .claude/agents/x.md, queued on the .rc, from build_merit_stack(): the "
               "steer quoted ('produced at ,', 'Source: Open question:', 'measured on .').")
     assert empty_fields(filled) == [], empty_fields(filled)
+
+
+def test_MUTATION_a_script_value_is_one_the_page_bytes_did_not_carry():
+    """The word in the served prose is text; the same word put there by a script is a hole; and a
+    script's own `=== undefined` does not mask a leak."""
+    prose = "the survivor tier is undefined. A run with S5 undefined could not discriminate"
+    html = ("<html><head><script>if (x === undefined) {}</script></head><body><p>" + prose
+            + "</p><p id='n'></p></body></html>")
+    static = static_text(html)
+    assert "=== undefined" not in static
+    assert script_values_printed(prose, static) == 0
+    assert script_values_printed(prose + " the run executed undefined and NaN", static) == 2
+    assert script_values_printed("executed undefined", static_text("<script>undefined</script>")) == 1
+
+
+
+def test_MUTATION_a_feed_string_the_page_fetched_is_text(tmp_path):
+    """The 18 Nov case: the word reached the page in a fetched feed's string, then a script printed it."""
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "f.json").write_text(json.dumps({"rows": [{"why": "the tier is undefined"}]}))
+    page = tmp_path / "p" / "index.html"
+    page.parent.mkdir()
+    html = '<script>fetch("../data/f.json").then(r => r.json())</script><p></p>'
+    assert script_values_printed("the tier is undefined", static_text(html, page)) == 0
+    assert script_values_printed("the tier is undefined", static_text(html)) == 1
 
 
 def test_MUTATION_a_label_drawn_as_css_content_is_caught_in_a_browser():
