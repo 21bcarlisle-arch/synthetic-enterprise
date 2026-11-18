@@ -740,7 +740,7 @@ def replay_retired(path: Path | None = None, *, mtime=os.path.getmtime,
 
 
 def retire(work_id: str, *, orientation: str | None = None, now: float | None = None,
-           path: Path | None = None, **probes) -> bool:
+           path: Path | None = None, premise_spent: Mapping | None = None, **probes) -> bool:
     """Mark a continuation FINISHED so it stops being offered, and remember WHICH ORIENTATION.
 
     A MARK RATHER THAN A DELETION, AND THE ORIENTATION IS THE WHOLE POINT (2026-09-06).
@@ -779,6 +779,14 @@ def retire(work_id: str, *, orientation: str | None = None, now: float | None = 
     `retirement_hold`. The hold is written onto the row (`retire_held`) so the refusal is on disk
     with its reason, and `held_reason` lets a caller print it. So is a row whose work origin/main
     does not hold -- see `origin_refusal`.
+
+    `premise_spent` IS THE ONE THING THAT PASSES BOTH HOLDS, because it answers both questions
+    already: `delivery_lane.note_premise_spent` only records one after git says the spender is an
+    ancestor of origin/main (origin's question), and its claim is that nothing was left to
+    deliver -- so an artefact the prose names is some OTHER item's output, not this one's
+    (`the-box-runs-the-skip-pair-before-another-book`, 2026-11-18: held on the skip pair's control
+    files, which the separate grading item reads, and offered for its whole window after the
+    ledger had recorded it spent by c18067646). The disposition is written on the row.
     """
     origin_evidence = probes.pop("origin_evidence", None)
     items = _load(path)
@@ -787,8 +795,9 @@ def retire(work_id: str, *, orientation: str | None = None, now: float | None = 
     stamp = time.time() if now is None else now
     for item in items:
         if item.get("id") == work_id and not item.get("retired_at"):
-            hold = (retirement_hold(item, **probes)
-                    or origin_refusal(item, items, origin_evidence=origin_evidence))
+            hold = None if premise_spent else (
+                retirement_hold(item, **probes)
+                or origin_refusal(item, items, origin_evidence=origin_evidence))
             if hold:
                 item["retire_held"] = {"at": stamp, "reason": hold}
                 held = True
@@ -796,6 +805,8 @@ def retire(work_id: str, *, orientation: str | None = None, now: float | None = 
             item["retired_at"] = stamp
             if orientation:
                 item["retired_at_orientation"] = str(orientation)
+            if premise_spent:
+                item["retired_by_premise_spent"] = dict(premise_spent)
             hit = True
     if hit or held:
         _save(items, path)

@@ -3048,7 +3048,7 @@ def _disposition(row: dict, drawn: float, *, focus_id: str = "",
 
 
 def note_premise_spent(focus_id: str, commit: str, reason: str, *,
-                       path: Path | None = None) -> str:
+                       path: Path | None = None, continuation_path: Path | None = None) -> str:
     """Record that `focus_id`'s window closed because its premise was already spent. "" on success.
 
     THE THIRD DISPOSITION, and the one that had no route at all. `--landed` covers work that
@@ -3084,6 +3084,12 @@ def note_premise_spent(focus_id: str, commit: str, reason: str, *,
 
     Fails CLOSED on an unwritable store, for `note_landing_under`'s reason: the caller prints this
     and a silent success over a store that did not change trains the next seat to stop checking.
+
+    A RECORDED DISPOSITION ALSO RETIRES THE CONTINUATION WITH THE SAME ID. Without it the ledger
+    said "spent" while `seat_continuation.live()` went on offering the row to every worker tick
+    for the rest of its window (`the-box-runs-the-skip-pair-before-another-book`, 2026-11-18).
+    A caller passing its own claims `path` and no `continuation_path` retires nothing, so a test
+    store can never reach the shared offer.
     """
     try:
         if not (reason or "").strip():
@@ -3142,6 +3148,10 @@ def note_premise_spent(focus_id: str, commit: str, reason: str, *,
                                 "at": time.time()}
         ledger[focus_id] = row
         claims_mod._save(ledger, ledger_path)
+        if path is None or continuation_path is not None:
+            seat_continuation.retire(focus_id, orientation=current_orientation(),
+                                     path=continuation_path,
+                                     premise_spent=row["premise_spent"])
         return ""
     except Exception as exc:  # noqa: BLE001 - the caller prints this; a silent success is worse
         return f"the draw ledger could not be written: {exc}"
