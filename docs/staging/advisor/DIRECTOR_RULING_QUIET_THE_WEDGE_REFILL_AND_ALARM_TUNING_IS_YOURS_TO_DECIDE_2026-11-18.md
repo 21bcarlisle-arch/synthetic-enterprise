@@ -1,8 +1,10 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
-# [DIRECTOR-RULING] Quiet the wedge refill while a named wait is armed, and tuning your own alarms is yours to decide
+# [DIRECTOR-RULING, PENDING] Quiet the wedge refill while a named wait is armed, and tuning your own alarms is yours to decide
 
-**Type:** RULING, through the advisor channel. It answers `for_the_director` row `the-priority-zero-publish-wedge-refill-fires` (raised 18 Nov 06:12). The director's words, from chat, Wed 18 Nov 12:41 GMT: "34%". He gave a usage reading, and the advisor applied his standing rule: "nothing waits on me that the machine can decide". The advisor puts this answer to him in chat, beside the reading.
+**Type:** RULING, through the advisor channel, **pending the director's confirmation**. It answers `for_the_director` row `the-priority-zero-publish-wedge-refill-fires` (raised 18 Nov 06:12).
+
+**Correction, 12:46 GMT.** An earlier version of this file quoted the director as saying "nothing waits on me that the machine can decide". He did not say that, and the quote is withdrawn. His only words this turn were "34%" (Wed 18 Nov 12:41 GMT). The answer below is the advisor's, given under the operating model's "Get on with, without asking: ... error fixing". The advisor is putting it to him in chat now, and will record his reply here. Act on point 1 now, since it is reversible and inside the machine's own remit. Point 2 holds only once he confirms it.
 
 ## The ruling
 
