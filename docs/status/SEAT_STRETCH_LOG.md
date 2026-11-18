@@ -8,6 +8,99 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-18 — orientation: The thesis test has not moved: the supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief
+
+<!-- head: ffda9d413057 -->
+
+*Written by the orientation seat from its own record (2026-11-18T09:21:58.856225+00:00; 15 commits, 5 substantive, since 2026-11-18T06:21:36.858652+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 14 other.
+
+## What the stretch meant
+
+The thesis test has not moved: the supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief. What changed is that the box is finally clearing. Pair 3 of flag 1 is on disk (control_55555_66666.json). The owed book on 6af7fd0bfd, the first to carry every next_book_requires fix, passed the publish gate at 09:20:49Z after 59 refusals over 52.7h, and process_run_complete (pid 4139513) is committing it now. vts-threshold-skip-watch is armed to launch the skip pair next. So within a few hours the five billing rows that all hang on the publish can be graded, and skip1 decides s.12e's branch. I am not marking any of those rows corrected until the provenance is on origin. The stretch itself was the director's 18 Nov steer, and its answer is narrower than it sounds. A harness instrument (tools/strategy_cash_hole_2021_22.py) ranks the cap-tracking survivor S5 ahead of the four failed strategies, with a band of about GBP 45 to 284 per customer and no inversions, under three weathers and three gas prices, now including a real daily SAP. But that ranking comes from setting the real price path against the cap index, not from the world's own mechanics. Weather moves every strategy by about GBP 48, and daily shape by about GBP 16, identically across strategies, because every disclosed hedge is baseload. So the world passes the ranking test, but this instrument cannot tell a discriminating world from correct price arithmetic. It does not yet license reading the per-customer result as inference rather than artefact. I am recording that and leaving the world steer there, because the supplier test is now the thing the box can actually serve. The commit split reads 0 supplier, 1 world and 14 other. The substance was all world-steer work tagged other, plus 3 no-work merges and 5 publish-wedge re-asks, so this stretch went sideways for the supplier, not backwards. The previous focus drew 2 of 4. skip1 and W3_3 were correctly held on a named file and on the publish, so the steer did not drift. The steer item world-ranks-real-2021-22-supplier-strategies is done (page amended, strategies and orderings pre-registered, instrument built, three tests read) and leaves focus. The landing that brought the daily gas price also left a census test red on origin. That is the stretch's one new machine defect, and it goes in focus because a red trunk taxes every lane.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged. skip1 has not read: vts-threshold-skip-watch launches the skip pair now that pair 3 is on disk and the owed book has run (focus 2).
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unrun. The skip pair is next on the box, and skip1 picks the s.12e branch (focus 2).
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged on the site. The 6af7fd0bfd book verified locally at 09:20:49Z and is being committed. This row is graded when that book is on origin (focus 1).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- unchanged. W3_3 is now focus 3, and it is unblocked once the verified publish is on origin.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- not yet graded. The book that carries final_month_nets (6af7fd0bfd) has passed the gate, and focus 1 reads it.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- f4f825b8b is in the 6af7fd0bfd publish, which is being committed. Corrected when the served page shows the strip.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- still open. This stretch had 3 merges that changed nothing (94c3363d4, a76a9bd3e, 392a13b77) out of 15 commits, so landings still meet a moving origin.
+- NOT corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 09:22 18 Nov -- the gate passed the 6af7fd0bfd book at 09:20:49Z (publish_provenance last_verified set, paused_since unset in the shared tree), and process_run_complete pid 4139513 is committing it. Corrected when that provenance is on origin, not before.
+- NOT corrected: THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to "read settlements_behind_the_walk for SYN-2016-001" and hung the account-page row on the book carrying final_month_nets. Neither was readable. annual_report whitelists its output keys, and nobody had checked that the counters reach a run output before the record promised a read of them. The book is graded, but it cannot name the walk. walk-counter-reaches-a-readable-artefact owns the carry. Corrected when a run output carries the three counters. 09:22 18 Nov -- the 6af7fd0bfd book is the first to carry d645233e8 and has passed the gate. Corrected when focus 1 reads the walk file for ACC-SYN-2016-001.
+- corrected: THE MACHINE'S, NEW. The continuation the-next-lever-is-built-before-skip1-reads is still offered by seat_continuation.live() after b6198d908 (05:47Z) dispositioned it spent. So a tick can draw it and spend a turn re-deriving that s.12e and candidate 2 are on origin (7921e93a5, a391f32ca). The publish-wedge re-asks (9ea2b58e7, b479cd924) are the same shape, already under the open concern. The next tick that draws it should retire it. 09:22 18 Nov -- corrected. seat_continuation.live() no longer offers the-next-lever-is-built-before-skip1-reads: the 9 rows it offers at 09:21Z do not include it.
+- NOT corrected: THE MACHINE'S, NEW. f865b903f (the daily gas SAP landing) added year-keyed tables to simulation/debt_respite_draw.py (_INDEBTED_ELECTRICITY_ACCOUNTS and its siblings), and tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is now red on origin/main. I re-ran it at 09:25Z and it is still red. The landing's own test selection did not include the census.
+- corrected: THE SEAT'S, NEW. The first 2021-22 rank test was pre-registered with a rule that failed by construction. At fixed share 1.0 there is no default-tariff book, so S4 and S5 are the same book and tie exactly at -GBP 63.78, and the rule required a band at every sweep point (69812e6a1). The record said so beside the result and re-registered before the second test (8b0a939a2), which passed.
+
+## Chosen against
+
+- A fourth 2021-22 test, or running the ranking inside the coupled world rather than the harness instrument.
+- world-gas-baseline-splice-daily-sap-from-2018 (replacing the monthly TTF proxy in the forward curve with daily SAP).
+- Withdrawing the publish-wedge refill concern now that the book has passed the gate.
+- Launching the hold pairs or the candidate-2 run before skip1 reads.
+- Reaping the 8 at-risk worktrees (b12-*, se-budgetpay-land, se-om2, simsuite, value-test-offer-reread).
+- Moving the stalled atoms' map rows (DD_seasonal_cashflow_physics, G15, W2_18 and the others whose work landed under other ids).
+
+## Focus for the next stretch
+
+- `the-book-carrying-all-three-row-7-fixes-is-graded-and-published`
+- `skip1-is-graded-against-s12es-branches`
+- `w3-3-lands-alone-after-the-verified-publish`
+- `trunk-census-red-debt-respite-year-tables`
+
+---
+
+## 2026-11-18 — orientation: Nothing in this stretch moved a money figure, and the thesis test is no closer to a result than the box allows
+
+<!-- head: c3d8165215d1 -->
+
+*Written by the orientation seat from its own record (2026-11-18T06:21:36.858652+00:00; 13 commits, 4 substantive, since 2026-11-18T03:21:48.107587+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 12 other.
+
+## What the stretch meant
+
+Nothing in this stretch moved a money figure, and the thesis test is no closer to a result than the box allows. The supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief, the site's figures are 153.9h old, and the publisher has failed 58 times over 49.7h. Every supplier result still waits on one box. Step 6's flag-1 pair 3 (pid 1051692, 10h16m in, 10.5 GB) is still running and has not yet written control_55555_66666.json. After it comes the owed book, which must carry all seven next_book_requires fixes, and then the skip pair. That is not drift. Every fix the five refusing gate rows need is on origin, and next_book_requires.yaml names each one. What the stretch did was get the next step ready before the result. s.12e pre-registered both branches of skip1's read at 04:19Z, before skip1 exists (7921e93a5). Candidate 2, the belief calibration, is built default off, and the 0.30 cutoff has its declared origin (a391f32ca). launch_hold_pairs.sh is on disk, unlaunched. So when skip1 reads, either branch can start straight away, and the record that failed at 09:22 on 17 Nov does not fail again. The continuation-ordering leg landed (d3ff634ab), and the carried 09:22 seat row is corrected on that evidence. The previous focus drew 3 of 4. The undrawn one, W3_3, is gated by the verified publish, not by a continuation, so the steer did not drift. The commit split reads 0 supplier, 1 both and 12 other. a391f32ca is the stretch's only supplier substance, and the rest is grading, re-asks and harness. That is a box-bound stretch, not a world-heavy one: no world commit landed. The director's steer of 18 Nov is the strategic news. Nothing we have checks that the world ranks strategies in the order reality ranked them. Until something does, a per-customer advantage over the baseline, positive or negative, could be the world's artefact and not the supplier's inference. The K8 page for steps 1-2 is landing now (surgical_land pid 3461223). It already finds that the published record supports only a two-tier ranking, and that the survivor strategy S5 is all GAP. So the next work is closing that GAP from published sources, before any run is built. Otherwise the test cannot tell a discriminating world from one that kills every supplier.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- unchanged. A's 0.819 is in-run only. Carrying it live waits on skip1 (focus 2), which still has not read.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- unrun. Both of s.12e's branches are ready (a391f32ca, launch_hold_pairs.sh), and skip1 picks which (focus 2).
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- unchanged. No book has published since 6fe7827ab2.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- unchanged. Focus 4 lands W3_3 after the verified publish.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- unchanged in the book. Focus 1 grades the next book's final_month_nets.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- unchanged. f4f825b8b reaches the site with focus 1's verified publish.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- this stretch's 13 commits carry no written_at-only banner, but 2 are merges that changed nothing (4672c7fc1, b415878e4), so landings still meet a moving origin. One clean stretch is not enough to call it corrected, so it is read again next stretch.
+- NOT corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 06:21 18 Nov -- every row's fix is on origin and in next_book_requires.yaml. No book carries them yet, because pair 3 is still running. The publisher is at 58 failures over 49.7h (focus 1).
+- corrected: THE SEAT'S, NEW. The 09:22 record saw its first item lose to continuations, and named the second such loss as the moment to change the order. It wrote no item to make the change, so when the loss came the record had nothing ready. Five continuations were drawn and focus drew 0 of 3 again. 06:21 18 Nov -- corrected. d3ff634ab landed the leg with its control. This stretch's focus drew 3 of 4, and the undrawn one is gated by the publish, not by a continuation.
+- NOT corrected: THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to "read settlements_behind_the_walk for SYN-2016-001" and hung the account-page row on the book carrying final_month_nets. Neither was readable. annual_report whitelists its output keys, and nobody had checked that the counters reach a run output before the record promised a read of them. The book is graded, but it cannot name the walk. walk-counter-reaches-a-readable-artefact owns the carry. Corrected when a run output carries the three counters. 06:21 18 Nov -- the writer is on origin (d645233e8), and the next book is required to carry it. No run has carried it yet.
+- NOT corrected: THE MACHINE'S, NEW. The continuation the-next-lever-is-built-before-skip1-reads is still offered by seat_continuation.live() after b6198d908 (05:47Z) dispositioned it spent. So a tick can draw it and spend a turn re-deriving that s.12e and candidate 2 are on origin (7921e93a5, a391f32ca). The publish-wedge re-asks (9ea2b58e7, b479cd924) are the same shape, already under the open concern. The next tick that draws it should retire it.
+
+## Chosen against
+
+- Running the 2021-22 ranking instrument now, ahead of the owed book or the skip pair.
+- Treating the 2021-22 test as a full rank order of five strategies.
+- Letting the skip pair take the box ahead of the owed book.
+- Killing or pausing pair 3 (pid 1051692) to bring the book forward.
+- Launching the hold pairs or the candidate-2 run before skip1 reads.
+- Building the publish-wedge refill exemption before the director rules on it.
+- Reaping the at-risk worktrees (b12-*, se-budgetpay-land, se-om2, simsuite, value-test-offer-reread).
+- The canon-drift BLOCKING finding and the stalled atoms' map-row counters.
+
+## Focus for the next stretch
+
+- `the-book-carrying-all-three-row-7-fixes-is-graded-and-published`
+- `skip1-is-graded-against-s12es-branches`
+- `world-ranks-real-2021-22-supplier-strategies`
+- `w3-3-lands-alone-after-the-verified-publish`
+
+---
+
 ## 2026-11-18 — orientation: This stretch set up the thesis test and did not run it
 
 <!-- head: f34f100d7c86 -->
