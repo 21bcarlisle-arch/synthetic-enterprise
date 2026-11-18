@@ -1,0 +1,5160 @@
+{
+ "inputs": {
+  "electricity": {
+   "uplift": {
+    "index_gbp_per_mwh": 66.0154,
+    "allowance_gbp_per_mwh": 94.5873,
+    "k": 1.4328
+   },
+   "strike_jul21_raw": 80.38,
+   "svt_static_hedge_raw_feb_jun21": 62.56,
+   "months": [
+    {
+     "month": "2021-07",
+     "volume_mwh": 0.2214,
+     "spot_raw": 93.88,
+     "cap_commodity_allowance": 76.21,
+     "svt_survival": 0.9935
+    },
+    {
+     "month": "2021-08",
+     "volume_mwh": 0.2207,
+     "spot_raw": 106.24,
+     "cap_commodity_allowance": 76.21,
+     "svt_survival": 0.9793
+    },
+    {
+     "month": "2021-09",
+     "volume_mwh": 0.2346,
+     "spot_raw": 176.71,
+     "cap_commodity_allowance": 76.21,
+     "svt_survival": 0.9654
+    },
+    {
+     "month": "2021-10",
+     "volume_mwh": 0.2499,
+     "spot_raw": 164.24,
+     "cap_commodity_allowance": 94.59,
+     "svt_survival": 0.952
+    },
+    {
+     "month": "2021-11",
+     "volume_mwh": 0.2973,
+     "spot_raw": 183.4,
+     "cap_commodity_allowance": 94.59,
+     "svt_survival": 0.9384
+    },
+    {
+     "month": "2021-12",
+     "volume_mwh": 0.3071,
+     "spot_raw": 226.1,
+     "cap_commodity_allowance": 94.59,
+     "svt_survival": 0.9255
+    },
+    {
+     "month": "2022-01",
+     "volume_mwh": 0.3082,
+     "spot_raw": 185.45,
+     "cap_commodity_allowance": 94.59,
+     "svt_survival": 0.9171
+    },
+    {
+     "month": "2022-02",
+     "volume_mwh": 0.2778,
+     "spot_raw": 157.15,
+     "cap_commodity_allowance": 94.59,
+     "svt_survival": 0.9147
+    },
+    {
+     "month": "2022-03",
+     "volume_mwh": 0.2968,
+     "spot_raw": 236.77,
+     "cap_commodity_allowance": 94.59,
+     "svt_survival": 0.9125
+    }
+   ]
+  },
+  "gas": {
+   "uplift": {
+    "index_gbp_per_mwh": 20.5396,
+    "allowance_gbp_per_mwh": 23.0403,
+    "k": 1.1218
+   },
+   "strike_jul21_raw": 27.68,
+   "svt_static_hedge_raw_feb_jun21": 18.95,
+   "months": [
+    {
+     "month": "2021-07",
+     "volume_mwh": 0.3261,
+     "spot_raw": 33.39,
+     "cap_commodity_allowance": 15.59,
+     "svt_survival": 0.9935
+    },
+    {
+     "month": "2021-08",
+     "volume_mwh": 0.3261,
+     "spot_raw": 40.73,
+     "cap_commodity_allowance": 15.59,
+     "svt_survival": 0.9793
+    },
+    {
+     "month": "2021-09",
+     "volume_mwh": 0.4504,
+     "spot_raw": 59.27,
+     "cap_commodity_allowance": 15.59,
+     "svt_survival": 0.9654
+    },
+    {
+     "month": "2021-10",
+     "volume_mwh": 0.875,
+     "spot_raw": 79.48,
+     "cap_commodity_allowance": 23.04,
+     "svt_survival": 0.952
+    },
+    {
+     "month": "2021-11",
+     "volume_mwh": 1.3083,
+     "spot_raw": 73.0,
+     "cap_commodity_allowance": 23.04,
+     "svt_survival": 0.9384
+    },
+    {
+     "month": "2021-12",
+     "volume_mwh": 1.6922,
+     "spot_raw": 99.6,
+     "cap_commodity_allowance": 23.04,
+     "svt_survival": 0.9255
+    },
+    {
+     "month": "2022-01",
+     "volume_mwh": 1.7288,
+     "spot_raw": 74.35,
+     "cap_commodity_allowance": 23.04,
+     "svt_survival": 0.9171
+    },
+    {
+     "month": "2022-02",
+     "volume_mwh": 1.5569,
+     "spot_raw": 71.93,
+     "cap_commodity_allowance": 23.04,
+     "svt_survival": 0.9147
+    },
+    {
+     "month": "2022-03",
+     "volume_mwh": 1.4239,
+     "spot_raw": 111.24,
+     "cap_commodity_allowance": 23.04,
+     "svt_survival": 0.9125
+    }
+   ]
+  }
+ },
+ "credit_balance_paths": {
+  "65.0": {
+   "2021-04": -74.91320329312276,
+   "2021-05": -55.05670962509015,
+   "2021-06": -19.497907804776865,
+   "2021-07": 17.872960823096207,
+   "2021-08": 55.373239799299114,
+   "2021-09": 86.09199997450875,
+   "2021-10": 88.71767432860022,
+   "2021-11": 63.85447294072341,
+   "2021-12": 21.33585275616761,
+   "2022-01": -22.90744384092224,
+   "2022-02": -53.82960434405676,
+   "2022-03": -83.28272365108917
+  },
+  "80.0": {
+   "2021-04": -59.91320329312276,
+   "2021-05": -40.05670962509015,
+   "2021-06": -4.497907804776865,
+   "2021-07": 32.87296082309621,
+   "2021-08": 70.37323979929911,
+   "2021-09": 101.09199997450875,
+   "2021-10": 103.71767432860022,
+   "2021-11": 78.85447294072341,
+   "2021-12": 36.33585275616761,
+   "2022-01": -7.907443840922241,
+   "2022-02": -38.82960434405676,
+   "2022-03": -68.28272365108917
+  }
+ },
+ "static": {
+  "reading": "static",
+  "points": [
+   {
+    "strategy": "S1",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -1004.8,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -13.14,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 24.23
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -32.64,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 42.23
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -87.91,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 17.68
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -172.63,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -64.41
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -287.41,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -204.06
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -489.76,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -448.93
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -630.25,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -633.66
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -741.81,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -776.15
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -941.01,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -1004.8
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -1004.8,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -13.14,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 24.23
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -32.64,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 42.23
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -87.91,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 17.68
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -172.63,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -64.41
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -287.41,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -204.06
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -489.76,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -448.93
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -630.25,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -633.66
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -741.81,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -776.15
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -941.01,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -1004.8
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -986.42,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -9.75,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 27.62
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -25.98,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 48.89
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -77.79,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 27.8
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -160.58,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -52.36
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -273.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -189.81
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -474.66,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -433.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -613.36,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -616.77
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -723.06,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -757.39
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -922.64,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -986.42
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -986.42,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -9.75,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 27.62
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -25.98,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 48.89
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -77.79,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 27.8
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -160.58,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -52.36
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -273.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -189.81
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -474.66,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -433.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -613.36,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -616.77
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -723.06,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -757.39
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -922.64,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -986.42
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -968.05,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -6.37,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 31.0
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -19.32,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 55.55
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -67.66,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 37.93
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -148.53,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -40.32
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -258.93,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -175.57
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -459.56,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -418.73
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -596.46,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -599.87
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -704.31,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -738.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -904.26,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -968.05
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -968.05,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -6.37,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 31.0
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -19.32,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 55.55
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -67.66,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 37.93
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -148.53,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -40.32
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -258.93,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -175.57
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -459.56,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -418.73
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -596.46,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -599.87
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -704.31,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -738.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -904.26,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -968.05
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -829.33,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -10.98,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 26.39
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -27.01,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 47.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -71.57,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 34.02
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -138.62,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -30.4
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -230.29,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -146.93
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -393.62,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -352.79
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -507.98,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -511.39
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -599.71,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -634.04
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -765.54,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -829.33
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -829.33,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -10.98,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 26.39
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -27.01,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 47.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -71.57,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 34.02
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -138.62,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -30.4
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -230.29,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -146.93
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -393.62,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -352.79
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -507.98,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -511.39
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -599.71,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -634.04
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -765.54,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -829.33
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -818.07,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -8.04,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 29.33
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -21.23,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 53.64
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -62.85,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 42.74
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -128.72,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -20.51
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -219.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -135.82
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -382.77,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -341.93
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -496.42,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -499.83
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -587.22,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -621.55
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -754.28,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -818.07
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -818.07,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -8.04,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 29.33
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -21.23,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 53.64
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -62.85,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 42.74
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -128.72,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -20.51
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -219.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -135.82
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -382.77,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -341.93
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -496.42,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -499.83
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -587.22,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -621.55
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -754.28,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -818.07
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -806.81,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -5.1,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 32.27
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -15.46,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 59.41
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -54.13,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 51.46
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -118.83,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -10.61
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -208.06,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -124.71
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -371.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -331.08
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -484.86,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -488.27
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -574.73,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -609.06
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -743.02,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -806.81
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -806.81,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -5.1,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 32.27
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -15.46,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 59.41
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -54.13,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 51.46
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -118.83,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -10.61
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -208.06,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -124.71
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -371.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -331.08
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -484.86,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -488.27
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -574.73,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -609.06
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -743.02,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -806.81
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -475.52,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.63,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 34.74
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -7.09,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 67.78
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -20.4,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 85.19
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -43.4,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 64.81
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -86.35,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -2.99
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -181.93,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -141.1
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -251.14,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -254.55
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -308.17,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -342.5
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -411.74,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -475.52
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -475.52,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.63,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 34.74
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -7.09,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 67.78
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -20.4,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 85.19
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -43.4,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 64.81
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -86.35,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -2.99
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -181.93,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -141.1
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -251.14,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -254.55
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -308.17,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -342.5
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -411.74,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -475.52
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -351.53,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.6,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.77
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -4.41,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 70.46
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -13.24,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 92.35
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -28.39,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 79.83
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -56.76,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 26.6
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -120.6,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -79.77
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -168.55,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -171.96
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -209.47,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -243.8
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -287.75,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -351.53
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -351.53,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.6,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.77
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -4.41,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 70.46
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -13.24,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 92.35
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -28.39,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 79.83
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -56.76,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 26.6
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -120.6,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -79.77
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -168.55,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -171.96
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -209.47,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -243.8
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -287.75,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -351.53
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -227.54,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.57,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.8
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -1.74,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 73.13
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -6.09,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 99.5
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -13.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 94.85
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -27.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 56.19
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -59.27,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -18.43
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -85.96,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -89.37
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -110.77,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -145.1
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -163.76,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -227.54
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -227.54,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.57,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.8
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -1.74,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 73.13
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -6.09,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 99.5
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -13.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 94.85
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -27.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 56.19
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -59.27,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -18.43
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -85.96,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -89.37
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -110.77,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -145.1
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -163.76,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -227.54
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -436.73,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.76,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 34.61
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -7.47,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 67.4
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -21.75,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 83.84
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -46.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 61.84
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -88.86,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -5.5
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -178.76,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -137.92
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -240.78,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -244.19
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -289.54,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -323.87
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -372.94,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -436.73
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -436.73,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.76,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 34.61
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -7.47,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 67.4
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -21.75,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 83.84
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -46.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 61.84
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -88.86,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -5.5
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -178.76,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -137.92
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -240.78,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -244.19
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -289.54,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -323.87
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -372.94,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -436.73
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -293.34,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.79,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.58
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -4.99,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 69.88
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -15.27,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 90.32
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -32.84,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 75.37
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -60.52,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 22.83
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -115.84,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -75.0
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -153.01,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -156.42
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -181.52,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -215.86
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -229.56,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -293.34
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -293.34,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.79,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.58
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -4.99,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 69.88
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -15.27,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 90.32
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -32.84,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 75.37
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -60.52,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 22.83
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -115.84,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -75.0
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -153.01,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -156.42
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -181.52,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -215.86
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -229.56,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -293.34
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -149.96,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.83,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.54
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.51,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.36
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -8.8,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 96.79
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -19.31,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 88.91
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -32.19,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 51.16
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -52.92,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -12.09
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -65.24,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -68.65
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -73.51,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -107.84
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -86.17,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -149.96
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -149.96,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.83,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.54
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.51,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.36
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -8.8,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 96.79
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -19.31,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 88.91
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -32.19,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 51.16
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -52.92,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -12.09
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -65.24,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -68.65
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -73.51,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -107.84
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -86.17,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -149.96
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -504.8,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.35,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.03
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -4.48,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 70.39
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -6.21,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 99.38
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -50.49,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 57.72
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -110.08,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -26.72
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -212.11,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -171.28
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -284.15,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -287.56
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -341.79,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -376.12
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -441.01,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -504.8
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -504.8,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.35,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.03
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -4.48,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 70.39
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -6.21,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 99.38
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -50.49,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 57.72
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -110.08,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -26.72
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -212.11,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -171.28
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -284.15,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -287.56
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -341.79,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -376.12
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -441.01,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -504.8
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -284.29,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.17,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.2
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.24,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.63
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -3.11,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 102.48
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -25.25,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 82.97
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -55.04,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 28.31
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -106.06,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -65.22
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -142.08,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -145.49
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -170.9,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -205.23
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -220.51,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -284.29
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -284.29,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.17,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.2
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.24,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.63
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -3.11,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 102.48
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -25.25,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 82.97
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -55.04,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 28.31
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -106.06,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -65.22
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -142.08,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -145.49
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -170.9,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -205.23
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -220.51,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -284.29
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -26.58,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.06,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.44
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.34,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.21
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 1.46,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 107.05
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 3.69,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 111.9
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 7.59,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 90.95
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 15.81,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 56.64
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 22.32,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 18.91
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 27.7,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -6.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 37.21,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -26.58
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -26.58,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.06,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.44
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.34,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.21
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 1.46,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 107.05
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 3.69,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 111.9
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 7.59,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 90.95
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 15.81,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 56.64
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 22.32,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 18.91
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 27.7,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -6.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 37.21,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -26.58
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -45.18,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.03,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.4
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.17,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.04
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.73,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 106.32
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 1.84,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 110.06
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 3.8,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 87.15
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 7.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 48.74
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 11.16,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 7.75
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 13.85,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -20.48
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 18.6,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -45.18
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -45.18,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.03,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.4
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.17,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.04
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.73,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 106.32
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 1.84,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 110.06
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 3.8,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 87.15
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 7.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 48.74
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 11.16,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 7.75
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 13.85,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -20.48
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 18.6,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -45.18
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   }
+  ],
+  "verdict": {
+   "passes": false,
+   "band_gbp_per_customer": null,
+   "band_width_gbp": 0.0,
+   "F_grid_points_in_band": [],
+   "inversions": [],
+   "by_strategy": {
+    "S1": {
+     "deepest": -1004.8,
+     "shallowest": -968.05
+    },
+    "S2": {
+     "deepest": -829.33,
+     "shallowest": -806.81
+    },
+    "S3": {
+     "deepest": -475.52,
+     "shallowest": -149.96
+    },
+    "S4": {
+     "deepest": -504.8,
+     "shallowest": -63.78
+    },
+    "S5": {
+     "deepest": -63.78,
+     "shallowest": -26.58
+    }
+   }
+  },
+  "post_hoc_verdict_without_fixed_share_1": {
+   "passes": true,
+   "band_gbp_per_customer": [
+    45.18,
+    284.29
+   ],
+   "band_width_gbp": 239.11,
+   "F_grid_points_in_band": [
+    50,
+    75,
+    100,
+    125,
+    150,
+    175,
+    200,
+    225,
+    250,
+    275
+   ],
+   "inversions": [],
+   "by_strategy": {
+    "S1": {
+     "deepest": -1004.8,
+     "shallowest": -986.42
+    },
+    "S2": {
+     "deepest": -829.33,
+     "shallowest": -818.07
+    },
+    "S3": {
+     "deepest": -475.52,
+     "shallowest": -293.34
+    },
+    "S4": {
+     "deepest": -504.8,
+     "shallowest": -284.29
+    },
+    "S5": {
+     "deepest": -45.18,
+     "shallowest": -26.58
+    }
+   }
+  }
+ },
+ "rolling": {
+  "reading": "rolling",
+  "points": [
+   {
+    "strategy": "S1",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -1004.8,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -13.14,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 24.23
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -32.64,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 42.23
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -87.91,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 17.68
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -172.63,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -64.41
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -287.41,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -204.06
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -489.76,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -448.93
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -630.25,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -633.66
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -741.81,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -776.15
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -941.01,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -1004.8
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -1004.8,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -13.14,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 24.23
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -32.64,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 42.23
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -87.91,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 17.68
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -172.63,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -64.41
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -287.41,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -204.06
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -489.76,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -448.93
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -630.25,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -633.66
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -741.81,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -776.15
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -941.01,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -1004.8
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -986.42,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -9.75,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 27.62
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -25.98,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 48.89
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -77.79,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 27.8
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -160.58,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -52.36
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -273.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -189.81
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -474.66,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -433.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -613.36,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -616.77
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -723.06,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -757.39
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -922.64,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -986.42
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -986.42,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -9.75,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 27.62
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -25.98,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 48.89
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -77.79,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 27.8
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -160.58,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -52.36
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -273.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -189.81
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -474.66,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -433.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -613.36,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -616.77
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -723.06,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -757.39
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -922.64,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -986.42
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -968.05,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -6.37,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 31.0
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -19.32,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 55.55
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -67.66,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 37.93
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -148.53,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -40.32
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -258.93,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -175.57
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -459.56,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -418.73
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -596.46,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -599.87
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -704.31,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -738.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -904.26,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -968.05
+     }
+    ]
+   },
+   {
+    "strategy": "S1",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.0,
+     0.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -968.05,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -6.37,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 31.0
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -19.32,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 55.55
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -67.66,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 37.93
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -148.53,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -40.32
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -258.93,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -175.57
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -459.56,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -418.73
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -596.46,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -599.87
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -704.31,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -738.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -904.26,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -968.05
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -831.41,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -10.67,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 26.7
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -26.48,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 48.39
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -70.87,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 34.72
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -137.85,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -29.64
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -229.26,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -145.91
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -392.64,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -351.81
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -507.65,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -511.06
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -600.33,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -634.66
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -767.62,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -831.41
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -831.41,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -10.67,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 26.7
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -26.48,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 48.39
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -70.87,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 34.72
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -137.85,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -29.64
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -229.26,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -145.91
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -392.64,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -351.81
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -507.65,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -511.06
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -600.33,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -634.66
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -767.62,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -831.41
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -819.11,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -7.88,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 29.49
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -20.97,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 53.9
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -62.5,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 43.09
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -128.34,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -20.12
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -218.66,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -135.31
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -382.28,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -341.44
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -496.25,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -499.66
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -587.53,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -621.86
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -755.32,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -819.11
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -819.11,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -7.88,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 29.49
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -20.97,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 53.9
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -62.5,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 43.09
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -128.34,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -20.12
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -218.66,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -135.31
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -382.28,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -341.44
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -496.25,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -499.66
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -587.53,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -621.86
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -755.32,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -819.11
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -806.81,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -5.1,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 32.27
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -15.46,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 59.41
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -54.13,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 51.46
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -118.83,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -10.61
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -208.06,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -124.71
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -371.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -331.08
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -484.86,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -488.27
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -574.73,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -609.06
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -743.02,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -806.81
+     }
+    ]
+   },
+   {
+    "strategy": "S2",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.2,
+     0.15
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -806.81,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -5.1,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 32.27
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -15.46,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 59.41
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -54.13,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 51.46
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -118.83,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": -10.61
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -208.06,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -124.71
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -371.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -331.08
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -484.86,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -488.27
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -574.73,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -609.06
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -743.02,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -806.81
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -480.77,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.68,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.69
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -3.57,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 71.3
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -15.71,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 89.88
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -38.47,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 69.75
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -82.6,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 0.75
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -179.56,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -138.73
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -251.26,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -254.67
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -309.89,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -344.22
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -416.99,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -480.77
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -480.77,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.68,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.69
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -3.57,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 71.3
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -15.71,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 89.88
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -38.47,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 69.75
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -82.6,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 0.75
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -179.56,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -138.73
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -251.26,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -254.67
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -309.89,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -344.22
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -416.99,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -480.77
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -354.16,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.62,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.75
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.66,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.22
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -10.9,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 94.69
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -25.92,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 82.3
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -54.88,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 28.47
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -119.42,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -78.58
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -168.61,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -172.02
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -210.33,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -244.66
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -290.37,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -354.16
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -354.16,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.62,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.75
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.66,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.22
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -10.9,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 94.69
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -25.92,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 82.3
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -54.88,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 28.47
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -119.42,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -78.58
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -168.61,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -172.02
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -210.33,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -244.66
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -290.37,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -354.16
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -227.54,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.57,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.8
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -1.74,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 73.13
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -6.09,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 99.5
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -13.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 94.85
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -27.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 56.19
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -59.27,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -18.43
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -85.96,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -89.37
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -110.77,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -145.1
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -163.76,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -227.54
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.91,
+     0.7
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -227.54,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.57,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.8
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -1.74,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 73.13
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -6.09,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 99.5
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -13.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 94.85
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -27.17,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 56.19
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -59.27,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -18.43
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -85.96,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -89.37
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -110.77,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -145.1
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -163.76,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -227.54
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -441.98,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.8,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.57
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -3.96,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 70.91
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -17.06,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 88.53
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -41.44,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 66.78
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -85.11,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -1.76
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -176.39,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -135.55
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -240.9,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -244.3
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -291.26,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -325.59
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -378.2,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -441.98
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -441.98,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.8,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.57
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -3.96,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 70.91
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -17.06,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 88.53
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -41.44,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 66.78
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -85.11,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -1.76
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -176.39,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -135.55
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -240.9,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -244.3
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -291.26,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -325.59
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -378.2,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -441.98
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -295.97,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.82,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.55
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -3.24,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 71.64
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -12.93,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 92.66
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -30.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 77.84
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -58.65,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 24.7
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -114.65,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -73.82
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -153.07,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -156.48
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -182.38,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -216.71
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -232.18,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -295.97
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -295.97,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.82,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.55
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -3.24,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 71.64
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -12.93,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 92.66
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -30.37,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 77.84
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -58.65,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 24.7
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -114.65,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -73.82
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -153.07,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -156.48
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -182.38,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -216.71
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -232.18,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -295.97
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -149.96,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.83,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.54
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.51,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.36
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -8.8,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 96.79
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -19.31,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 88.91
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -32.19,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 51.16
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -52.92,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -12.09
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -65.24,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -68.65
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -73.51,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -107.84
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -86.17,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -149.96
+     }
+    ]
+   },
+   {
+    "strategy": "S3",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     0.87,
+     0.95
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -149.96,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -0.83,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.54
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.51,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 72.36
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -8.8,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 96.79
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -19.31,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 88.91
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -32.19,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 51.16
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -52.92,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -12.09
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -65.24,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -68.65
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -73.51,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -107.84
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -86.17,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -149.96
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -509.07,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.05,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.32
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -5.76,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 69.12
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -10.49,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 95.1
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -54.77,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 53.45
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -114.35,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -31.0
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -216.39,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -175.56
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -288.43,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -291.84
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -346.07,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -380.4
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -445.29,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -509.07
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -509.07,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -2.05,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 35.32
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -5.76,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 69.12
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -10.49,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 95.1
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -54.77,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 53.45
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -114.35,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": -31.0
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -216.39,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -175.56
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -288.43,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -291.84
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -346.07,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -380.4
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -445.29,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -509.07
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -286.43,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.03,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.34
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.88,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 71.99
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -5.24,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 100.35
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -27.38,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 80.83
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -57.18,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 26.18
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -108.2,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -67.36
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -144.21,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -147.62
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -173.03,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -207.37
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -222.65,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -286.43
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -286.43,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": -1.03,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 36.34
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": -2.88,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 71.99
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": -5.24,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 100.35
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": -27.38,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 80.83
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": -57.18,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 26.18
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": -108.2,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": -67.36
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": -144.21,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -147.62
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": -173.03,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -207.37
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": -222.65,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -286.43
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   },
+   {
+    "strategy": "S4",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -26.58,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.06,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.44
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.34,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.21
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 1.46,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 107.05
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 3.69,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 111.9
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 7.59,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 90.95
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 15.81,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 56.64
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 22.32,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 18.91
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 27.7,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -6.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 37.21,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -26.58
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.5,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -26.58,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.06,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.44
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.34,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.21
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 1.46,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 107.05
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 3.69,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 111.9
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 7.59,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 90.95
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 15.81,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 56.64
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 22.32,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 18.91
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 27.7,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -6.64
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 37.21,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -26.58
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -45.18,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.03,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.4
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.17,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.04
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.73,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 106.32
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 1.84,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 110.06
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 3.8,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 87.15
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 7.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 48.74
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 11.16,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 7.75
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 13.85,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -20.48
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 18.6,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -45.18
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 0.75,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -45.18,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.03,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.4
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.17,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 75.04
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.73,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 106.32
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 1.84,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 110.06
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 3.8,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 87.15
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 7.91,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 48.74
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 11.16,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": 7.75
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 13.85,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -20.48
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 18.6,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -45.18
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 65.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   },
+   {
+    "strategy": "S5",
+    "fixed_share": 1.0,
+    "cover_3m_9m": [
+     1.0,
+     1.0
+    ],
+    "credit_sep_dec_gbp": 80.0,
+    "H_gbp": -63.78,
+    "trough": "2022-03",
+    "series": [
+     {
+      "month": "2021-07",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 37.37,
+      "cash_gbp": 37.37
+     },
+     {
+      "month": "2021-08",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 74.87,
+      "cash_gbp": 74.87
+     },
+     {
+      "month": "2021-09",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 105.59,
+      "cash_gbp": 105.59
+     },
+     {
+      "month": "2021-10",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 108.22,
+      "cash_gbp": 108.22
+     },
+     {
+      "month": "2021-11",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 83.35,
+      "cash_gbp": 83.35
+     },
+     {
+      "month": "2021-12",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": 40.83,
+      "cash_gbp": 40.83
+     },
+     {
+      "month": "2022-01",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -3.41,
+      "cash_gbp": -3.41
+     },
+     {
+      "month": "2022-02",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -34.33,
+      "cash_gbp": -34.33
+     },
+     {
+      "month": "2022-03",
+      "wholesale_cum_gbp": 0.0,
+      "credit_change_gbp": -63.78,
+      "cash_gbp": -63.78
+     }
+    ]
+   }
+  ],
+  "verdict": {
+   "passes": false,
+   "band_gbp_per_customer": null,
+   "band_width_gbp": 0.0,
+   "F_grid_points_in_band": [],
+   "inversions": [],
+   "by_strategy": {
+    "S1": {
+     "deepest": -1004.8,
+     "shallowest": -968.05
+    },
+    "S2": {
+     "deepest": -831.41,
+     "shallowest": -806.81
+    },
+    "S3": {
+     "deepest": -480.77,
+     "shallowest": -149.96
+    },
+    "S4": {
+     "deepest": -509.07,
+     "shallowest": -63.78
+    },
+    "S5": {
+     "deepest": -63.78,
+     "shallowest": -26.58
+    }
+   }
+  },
+  "post_hoc_verdict_without_fixed_share_1": {
+   "passes": true,
+   "band_gbp_per_customer": [
+    45.18,
+    286.43
+   ],
+   "band_width_gbp": 241.25,
+   "F_grid_points_in_band": [
+    50,
+    75,
+    100,
+    125,
+    150,
+    175,
+    200,
+    225,
+    250,
+    275
+   ],
+   "inversions": [],
+   "by_strategy": {
+    "S1": {
+     "deepest": -1004.8,
+     "shallowest": -986.42
+    },
+    "S2": {
+     "deepest": -831.41,
+     "shallowest": -819.11
+    },
+    "S3": {
+     "deepest": -480.77,
+     "shallowest": -295.97
+    },
+    "S4": {
+     "deepest": -509.07,
+     "shallowest": -286.43
+    },
+    "S5": {
+     "deepest": -45.18,
+     "shallowest": -26.58
+    }
+   }
+  }
+ }
+}
