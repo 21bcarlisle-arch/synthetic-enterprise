@@ -72,7 +72,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-2e29bf263cb4-INV1681",
+      "id": "OCC-2e29bf263cb4-INV1807",
       "date": "2019-01-31",
       "period_start": "2019-01-26",
       "period_end": "2019-01-31",
@@ -126,14 +126,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1681,
+      "invoice_number": 1807,
       "due_date": "2019-02-20",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2e29bf263cb4-INV1682",
+      "id": "OCC-2e29bf263cb4-INV1808",
       "date": "2019-02-28",
       "period_start": "2019-02-01",
       "period_end": "2019-02-28",
@@ -187,14 +190,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1682,
+      "invoice_number": 1808,
       "due_date": "2019-03-16",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2e29bf263cb4-INV1683",
+      "id": "OCC-2e29bf263cb4-INV1809",
       "date": "2019-03-31",
       "period_start": "2019-03-01",
       "period_end": "2019-03-31",
@@ -248,14 +254,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1683,
+      "invoice_number": 1809,
       "due_date": "2019-04-16",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2e29bf263cb4-INV1684",
+      "id": "OCC-2e29bf263cb4-INV1810",
       "date": "2019-04-10",
       "period_start": "2019-04-01",
       "period_end": "2019-04-10",
@@ -309,9 +318,22 @@
       "catchup_direction": "overcharge",
       "catchup_raw_delta_gbp": -28.93,
       "catchup_adjustment_gbp": -27.55,
+      "catchup_vat_gbp": -1.38,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": -27.55,
+          "vat_gbp": -1.38
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "OCC-2e29bf263cb4-INV1807",
+        "OCC-2e29bf263cb4-INV1808",
+        "OCC-2e29bf263cb4-INV1809"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 1684,
+      "invoice_number": 1810,
       "due_date": "2019-04-25",
       "document_type": "bill"
     }
@@ -322,17 +344,17 @@
       {
         "date": "2019-02-06",
         "type": "invoice_raised",
-        "invoice_number": 1681,
+        "invoice_number": 1807,
         "amount_gbp": 9.13,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1681 raised",
+        "description": "Invoice INV1807 raised",
         "running_balance_gbp": 9.13
       },
       {
         "date": "2019-02-06",
         "type": "deemed_account",
-        "invoice_number": 1681,
+        "invoice_number": 1807,
         "amount_gbp": -9.13,
         "info_amount_gbp": null,
         "method": null,
@@ -342,17 +364,17 @@
       {
         "date": "2019-03-02",
         "type": "invoice_raised",
-        "invoice_number": 1682,
+        "invoice_number": 1808,
         "amount_gbp": 39.29,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1682 raised",
+        "description": "Invoice INV1808 raised",
         "running_balance_gbp": 39.29
       },
       {
         "date": "2019-03-02",
         "type": "deemed_account",
-        "invoice_number": 1682,
+        "invoice_number": 1808,
         "amount_gbp": -39.29,
         "info_amount_gbp": null,
         "method": null,
@@ -362,17 +384,17 @@
       {
         "date": "2019-04-02",
         "type": "invoice_raised",
-        "invoice_number": 1683,
+        "invoice_number": 1809,
         "amount_gbp": 40.89,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1683 raised",
+        "description": "Invoice INV1809 raised",
         "running_balance_gbp": 40.89
       },
       {
         "date": "2019-04-02",
         "type": "deemed_account",
-        "invoice_number": 1683,
+        "invoice_number": 1809,
         "amount_gbp": -40.89,
         "info_amount_gbp": null,
         "method": null,
@@ -382,17 +404,17 @@
       {
         "date": "2019-04-11",
         "type": "invoice_raised",
-        "invoice_number": 1684,
+        "invoice_number": 1810,
         "amount_gbp": -15.29,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1684 raised",
+        "description": "Invoice INV1810 raised",
         "running_balance_gbp": -15.29
       },
       {
         "date": "2019-04-11",
         "type": "deemed_account",
-        "invoice_number": 1684,
+        "invoice_number": 1810,
         "amount_gbp": 15.29,
         "info_amount_gbp": null,
         "method": null,

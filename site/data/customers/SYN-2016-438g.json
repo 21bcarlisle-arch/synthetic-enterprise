@@ -57,7 +57,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "SYN-2016-438g-INV44934",
+      "id": "SYN-2016-438g-INV44618",
       "date": "2016-09-30",
       "period_start": "2016-09-29",
       "period_end": "2016-09-30",
@@ -111,9 +111,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44934,
+      "invoice_number": 44618,
       "due_date": "2016-10-14",
       "document_type": "bill"
     }
@@ -124,17 +127,17 @@
       {
         "date": "2016-09-30",
         "type": "invoice_raised",
-        "invoice_number": 44934,
+        "invoice_number": 44618,
         "amount_gbp": 1.02,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44934 raised",
+        "description": "Invoice INV44618 raised",
         "running_balance_gbp": 1.02
       },
       {
         "date": "2016-10-14",
         "type": "payment_received",
-        "invoice_number": 44934,
+        "invoice_number": 44618,
         "amount_gbp": -1.02,
         "info_amount_gbp": null,
         "method": "direct_debit",

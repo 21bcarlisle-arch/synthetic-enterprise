@@ -57,7 +57,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "SYN-2016-283g-INV37481",
+      "id": "SYN-2016-283g-INV37165",
       "date": "2016-06-30",
       "period_start": "2016-06-21",
       "period_end": "2016-06-30",
@@ -111,9 +111,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 37481,
+      "invoice_number": 37165,
       "due_date": "2016-07-15",
       "document_type": "bill"
     }
@@ -124,17 +127,17 @@
       {
         "date": "2016-07-01",
         "type": "invoice_raised",
-        "invoice_number": 37481,
+        "invoice_number": 37165,
         "amount_gbp": 3.32,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV37481 raised",
+        "description": "Invoice INV37165 raised",
         "running_balance_gbp": 3.32
       },
       {
         "date": "2016-07-15",
         "type": "payment_received",
-        "invoice_number": 37481,
+        "invoice_number": 37165,
         "amount_gbp": -3.32,
         "info_amount_gbp": null,
         "method": "direct_debit",

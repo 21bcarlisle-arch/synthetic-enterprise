@@ -1,36 +1,36 @@
 {
   "meta": {
-    "generated_at": "2026-11-11T20:04:04Z",
-    "git_commit": "6fe7827ab2",
-    "household_count": 757,
+    "generated_at": "2026-11-18T10:11:04Z",
+    "git_commit": "6af7fd0bfd",
+    "household_count": 766,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "360 timeline + reaction-chain entries on record",
+      "headline": "371 timeline + reaction-chain entries on record",
       "wall_side": "sim",
-      "account_id": "SYN-2016-206",
-      "base_account_id": "SYN-2016-206",
+      "account_id": "PROS-2017-0064",
+      "base_account_id": "PROS-2017-0064",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-206",
+        "acc": "PROS-2017-0064",
         "tab": "timeline"
       }
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "100.0 percentage points apart at the 2018 renewal (sim 0.0% vs company 100.0%)",
+      "headline": "100.0 percentage points apart at the 2024 renewal (sim 0.0% vs company 100.0%)",
       "wall_side": "sim",
-      "account_id": "SYN-2016-042",
-      "base_account_id": "SYN-2016-042",
+      "account_id": "PROS-2019-0246",
+      "base_account_id": "PROS-2019-0246",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-042",
+        "acc": "PROS-2019-0246",
         "tab": "timeline",
-        "year": 2018
+        "year": 2024
       }
     },
     {
@@ -77,16 +77,16 @@
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 19.0 percentage points (64.1% in 2018 to 45.1% in 2023) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 25.0 percentage points (70.5% in 2017 to 45.5% in 2025) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "SYN-2016-329",
-      "base_account_id": "SYN-2016-329",
+      "account_id": "SYN-2016-201",
+      "base_account_id": "SYN-2016-201",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-329",
+        "acc": "SYN-2016-201",
         "tab": "timeline",
-        "year": 2023
+        "year": 2025
       }
     }
   ]

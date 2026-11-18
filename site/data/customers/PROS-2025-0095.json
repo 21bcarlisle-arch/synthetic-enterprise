@@ -80,7 +80,7 @@
   ],
   "invoices": [
     {
-      "id": "PROS-2025-0095-INV21652",
+      "id": "PROS-2025-0095-INV21384",
       "date": "2025-04-30",
       "period_start": "2025-04-08",
       "period_end": "2025-04-30",
@@ -134,14 +134,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 21652,
+      "invoice_number": 21384,
       "due_date": "2025-05-16",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2025-0095-INV21653",
+      "id": "PROS-2025-0095-INV21385",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -195,14 +198,25 @@
       "catchup_direction": "overcharge",
       "catchup_raw_delta_gbp": -0.06,
       "catchup_adjustment_gbp": -0.06,
+      "catchup_vat_gbp": 0.0,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": -0.06,
+          "vat_gbp": 0.0
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "PROS-2025-0095-INV21384"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 21653,
+      "invoice_number": 21385,
       "due_date": "2025-06-14",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2025-0095-INV21654",
+      "id": "PROS-2025-0095-INV21386",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -256,9 +270,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 21654,
+      "invoice_number": 21386,
       "due_date": "2025-06-24",
       "document_type": "bill"
     }
@@ -269,17 +286,17 @@
       {
         "date": "2025-05-02",
         "type": "invoice_raised",
-        "invoice_number": 21652,
+        "invoice_number": 21384,
         "amount_gbp": 58.12,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21652 raised",
+        "description": "Invoice INV21384 raised",
         "running_balance_gbp": 58.12
       },
       {
         "date": "2025-05-16",
         "type": "payment_received",
-        "invoice_number": 21652,
+        "invoice_number": 21384,
         "amount_gbp": -58.12,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -289,27 +306,27 @@
       {
         "date": "2025-05-31",
         "type": "invoice_raised",
-        "invoice_number": 21653,
+        "invoice_number": 21385,
         "amount_gbp": 78.28,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21653 raised",
+        "description": "Invoice INV21385 raised",
         "running_balance_gbp": 78.28
       },
       {
         "date": "2025-06-10",
         "type": "invoice_raised",
-        "invoice_number": 21654,
+        "invoice_number": 21386,
         "amount_gbp": 15.25,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21654 raised",
+        "description": "Invoice INV21386 raised",
         "running_balance_gbp": 93.53
       },
       {
         "date": "2025-06-14",
         "type": "payment_received",
-        "invoice_number": 21653,
+        "invoice_number": 21385,
         "amount_gbp": -78.28,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -319,7 +336,7 @@
       {
         "date": "2025-06-24",
         "type": "payment_received",
-        "invoice_number": 21654,
+        "invoice_number": 21386,
         "amount_gbp": -15.25,
         "info_amount_gbp": null,
         "method": "standard_credit",

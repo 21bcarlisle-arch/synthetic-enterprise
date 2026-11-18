@@ -63,7 +63,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-4596105f2006g-INV2287",
+      "id": "OCC-4596105f2006g-INV2400",
       "date": "2019-05-31",
       "period_start": "2019-05-01",
       "period_end": "2019-05-31",
@@ -117,14 +117,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 2287,
+      "invoice_number": 2400,
       "due_date": "2019-06-19",
       "document_type": "bill"
     },
     {
-      "id": "OCC-4596105f2006g-INV2288",
+      "id": "OCC-4596105f2006g-INV2401",
       "date": "2019-06-02",
       "period_start": "2019-06-01",
       "period_end": "2019-06-02",
@@ -178,9 +181,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 2288,
+      "invoice_number": 2401,
       "due_date": "2019-06-17",
       "document_type": "bill"
     }
@@ -191,17 +197,17 @@
       {
         "date": "2019-06-03",
         "type": "invoice_raised",
-        "invoice_number": 2288,
+        "invoice_number": 2401,
         "amount_gbp": 0.97,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2288 raised",
+        "description": "Invoice INV2401 raised",
         "running_balance_gbp": 0.97
       },
       {
         "date": "2019-06-03",
         "type": "deemed_account",
-        "invoice_number": 2288,
+        "invoice_number": 2401,
         "amount_gbp": -0.97,
         "info_amount_gbp": null,
         "method": null,
@@ -211,17 +217,17 @@
       {
         "date": "2019-06-05",
         "type": "invoice_raised",
-        "invoice_number": 2287,
+        "invoice_number": 2400,
         "amount_gbp": 18.35,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV2287 raised",
+        "description": "Invoice INV2400 raised",
         "running_balance_gbp": 18.35
       },
       {
         "date": "2019-06-05",
         "type": "deemed_account",
-        "invoice_number": 2287,
+        "invoice_number": 2400,
         "amount_gbp": -18.35,
         "info_amount_gbp": null,
         "method": null,

@@ -1,10 +1,10 @@
 {
- "generated_at": "2026-11-13T13:36:09Z",
- "git_commit": "77bf74f880fc167692045091edf2abe792edad22",
+ "generated_at": "2026-11-18T10:16:09Z",
+ "git_commit": "49d41097b215a6f432257eb6ddecba9337581d7d",
  "published_from": {
-  "commit": "77bf74f880fc167692045091edf2abe792edad22",
-  "tree_was_clean": false,
-  "inputs_are_the_committed_bytes": false,
+  "commit": "49d41097b215a6f432257eb6ddecba9337581d7d",
+  "tree_was_clean": true,
+  "inputs_are_the_committed_bytes": true,
   "inputs": [
    {
     "path": "site/data/maturity_map.json",
@@ -12,7 +12,7 @@
    },
    {
     "path": "docs/design/capabilities_fixed_this_week.json",
-    "state": "modified"
+    "state": "committed"
    },
    {
     "path": "site/data/moap_node_atoms.json",
@@ -35,7 +35,7 @@
     "state": "committed"
    }
   ],
-  "reason": "read off the working tree, not out of this commit: docs/design/capabilities_fixed_this_week.json \u2014 standing at this commit will not reproduce this feed"
+  "reason": "every input read here is byte-identical to what this commit holds, and nothing else in the tree differed from it either"
  },
  "sources": {
   "record": "site/data/maturity_map.json",
@@ -1590,7 +1590,7 @@
  ],
  "fixed_this_week": {
   "window_days": 7,
-  "as_of": "13 Nov 2026",
+  "as_of": "18 Nov 2026",
   "published_run": "6fe7827ab2",
   "items": [
    {
@@ -1615,6 +1615,6 @@
     "in_published_run": false
    }
   ],
-  "commits_to_the_model": 49
+  "commits_to_the_model": 52
  }
 }

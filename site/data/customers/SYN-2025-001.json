@@ -55,18 +55,10 @@
     }
   ],
   "timeline": [],
-  "world_life_events_outside_supply": [
-    {
-      "date": "2017-05-11",
-      "type": "life_event",
-      "commodity": null,
-      "detail": "Insulation upgraded",
-      "seen_by": "world"
-    }
-  ],
+  "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "SYN-2025-001-INV53916",
+      "id": "SYN-2025-001-INV53600",
       "date": "2025-04-30",
       "period_start": "2025-04-18",
       "period_end": "2025-04-30",
@@ -131,14 +123,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 53916,
+      "invoice_number": 53600,
       "due_date": "2025-05-16",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2025-001-INV53917",
+      "id": "SYN-2025-001-INV53601",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -203,14 +198,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 53917,
+      "invoice_number": 53601,
       "due_date": "2025-06-16",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2025-001-INV53918",
+      "id": "SYN-2025-001-INV53602",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -275,9 +273,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 53918,
+      "invoice_number": 53602,
       "due_date": "2025-06-23",
       "document_type": "bill"
     }
@@ -288,17 +289,17 @@
       {
         "date": "2025-05-02",
         "type": "invoice_raised",
-        "invoice_number": 53916,
+        "invoice_number": 53600,
         "amount_gbp": 31.6,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV53916 raised",
+        "description": "Invoice INV53600 raised",
         "running_balance_gbp": 31.6
       },
       {
         "date": "2025-05-16",
         "type": "payment_received",
-        "invoice_number": 53916,
+        "invoice_number": 53600,
         "amount_gbp": -31.6,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -308,27 +309,27 @@
       {
         "date": "2025-06-02",
         "type": "invoice_raised",
-        "invoice_number": 53917,
+        "invoice_number": 53601,
         "amount_gbp": 82.86,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV53917 raised",
+        "description": "Invoice INV53601 raised",
         "running_balance_gbp": 82.86
       },
       {
         "date": "2025-06-09",
         "type": "invoice_raised",
-        "invoice_number": 53918,
+        "invoice_number": 53602,
         "amount_gbp": 17.46,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV53918 raised",
+        "description": "Invoice INV53602 raised",
         "running_balance_gbp": 100.32
       },
       {
         "date": "2025-06-16",
         "type": "payment_received",
-        "invoice_number": 53917,
+        "invoice_number": 53601,
         "amount_gbp": -82.86,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -338,7 +339,7 @@
       {
         "date": "2025-06-23",
         "type": "payment_received",
-        "invoice_number": 53918,
+        "invoice_number": 53602,
         "amount_gbp": -17.46,
         "info_amount_gbp": null,
         "method": "direct_debit",

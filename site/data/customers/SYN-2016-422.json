@@ -80,7 +80,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-422-INV44125",
+      "id": "SYN-2016-422-INV43809",
       "date": "2016-09-30",
       "period_start": "2016-09-22",
       "period_end": "2016-09-30",
@@ -134,14 +134,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44125,
+      "invoice_number": 43809,
       "due_date": "2016-10-19",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-422-INV44126",
+      "id": "SYN-2016-422-INV43810",
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
@@ -195,14 +198,25 @@
       "catchup_direction": "undercharge",
       "catchup_raw_delta_gbp": 0.85,
       "catchup_adjustment_gbp": 0.81,
+      "catchup_vat_gbp": 0.04,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": 0.81,
+          "vat_gbp": 0.04
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "SYN-2016-422-INV43809"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 44126,
+      "invoice_number": 43810,
       "due_date": "2016-11-16",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-422-INV44127",
+      "id": "SYN-2016-422-INV43811",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -256,14 +270,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44127,
+      "invoice_number": 43811,
       "due_date": "2016-12-21",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-422-INV44128",
+      "id": "SYN-2016-422-INV43812",
       "date": "2016-12-10",
       "period_start": "2016-12-01",
       "period_end": "2016-12-10",
@@ -317,9 +334,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 44128,
+      "invoice_number": 43812,
       "due_date": "2016-12-26",
       "document_type": "bill"
     }
@@ -330,17 +350,17 @@
       {
         "date": "2016-10-05",
         "type": "invoice_raised",
-        "invoice_number": 44125,
+        "invoice_number": 43809,
         "amount_gbp": 16.65,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44125 raised",
+        "description": "Invoice INV43809 raised",
         "running_balance_gbp": 16.65
       },
       {
         "date": "2016-10-19",
         "type": "payment_received",
-        "invoice_number": 44125,
+        "invoice_number": 43809,
         "amount_gbp": -16.65,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -350,17 +370,17 @@
       {
         "date": "2016-11-02",
         "type": "invoice_raised",
-        "invoice_number": 44126,
+        "invoice_number": 43810,
         "amount_gbp": 62.26,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44126 raised",
+        "description": "Invoice INV43810 raised",
         "running_balance_gbp": 62.26
       },
       {
         "date": "2016-11-16",
         "type": "payment_received",
-        "invoice_number": 44126,
+        "invoice_number": 43810,
         "amount_gbp": -62.26,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -370,27 +390,27 @@
       {
         "date": "2016-12-07",
         "type": "invoice_raised",
-        "invoice_number": 44127,
+        "invoice_number": 43811,
         "amount_gbp": 71.68,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44127 raised",
+        "description": "Invoice INV43811 raised",
         "running_balance_gbp": 71.68
       },
       {
         "date": "2016-12-12",
         "type": "invoice_raised",
-        "invoice_number": 44128,
+        "invoice_number": 43812,
         "amount_gbp": 23.86,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV44128 raised",
+        "description": "Invoice INV43812 raised",
         "running_balance_gbp": 95.54
       },
       {
         "date": "2016-12-21",
         "type": "payment_received",
-        "invoice_number": 44127,
+        "invoice_number": 43811,
         "amount_gbp": -71.68,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -400,7 +420,7 @@
       {
         "date": "2016-12-28",
         "type": "payment_received",
-        "invoice_number": 44128,
+        "invoice_number": 43812,
         "amount_gbp": -23.86,
         "info_amount_gbp": null,
         "method": "direct_debit",

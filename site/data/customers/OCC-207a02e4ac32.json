@@ -66,7 +66,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-207a02e4ac32-INV1188",
+      "id": "OCC-207a02e4ac32-INV1479",
       "date": "2017-02-28",
       "period_start": "2017-02-17",
       "period_end": "2017-02-28",
@@ -120,14 +120,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1188,
+      "invoice_number": 1479,
       "due_date": "2017-03-18",
       "document_type": "bill"
     },
     {
-      "id": "OCC-207a02e4ac32-INV1189",
+      "id": "OCC-207a02e4ac32-INV1480",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
@@ -181,9 +184,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1189,
+      "invoice_number": 1480,
       "due_date": "2017-04-19",
       "document_type": "bill"
     }
@@ -194,17 +200,17 @@
       {
         "date": "2017-03-04",
         "type": "invoice_raised",
-        "invoice_number": 1188,
+        "invoice_number": 1479,
         "amount_gbp": 28.22,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1188 raised",
+        "description": "Invoice INV1479 raised",
         "running_balance_gbp": 28.22
       },
       {
         "date": "2017-03-04",
         "type": "deemed_account",
-        "invoice_number": 1188,
+        "invoice_number": 1479,
         "amount_gbp": -28.22,
         "info_amount_gbp": null,
         "method": null,
@@ -214,17 +220,17 @@
       {
         "date": "2017-04-05",
         "type": "invoice_raised",
-        "invoice_number": 1189,
+        "invoice_number": 1480,
         "amount_gbp": 68.16,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1189 raised",
+        "description": "Invoice INV1480 raised",
         "running_balance_gbp": 68.16
       },
       {
         "date": "2017-04-05",
         "type": "deemed_account",
-        "invoice_number": 1189,
+        "invoice_number": 1480,
         "amount_gbp": -68.16,
         "info_amount_gbp": null,
         "method": null,

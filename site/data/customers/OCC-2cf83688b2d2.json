@@ -60,7 +60,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-2cf83688b2d2-INV1602",
+      "id": "OCC-2cf83688b2d2-INV1728",
       "date": "2024-12-31",
       "period_start": "2024-12-11",
       "period_end": "2024-12-31",
@@ -125,14 +125,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1602,
+      "invoice_number": 1728,
       "due_date": "2025-01-14",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2cf83688b2d2-INV1603",
+      "id": "OCC-2cf83688b2d2-INV1729",
       "date": "2025-01-31",
       "period_start": "2025-01-01",
       "period_end": "2025-01-31",
@@ -197,14 +200,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1603,
+      "invoice_number": 1729,
       "due_date": "2025-02-18",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2cf83688b2d2-INV1604",
+      "id": "OCC-2cf83688b2d2-INV1730",
       "date": "2025-02-28",
       "period_start": "2025-02-01",
       "period_end": "2025-02-28",
@@ -269,14 +275,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1604,
+      "invoice_number": 1730,
       "due_date": "2025-03-22",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2cf83688b2d2-INV1605",
+      "id": "OCC-2cf83688b2d2-INV1731",
       "date": "2025-03-31",
       "period_start": "2025-03-01",
       "period_end": "2025-03-31",
@@ -343,14 +352,26 @@
       "catchup_direction": "undercharge",
       "catchup_raw_delta_gbp": 165.05,
       "catchup_adjustment_gbp": 157.19,
+      "catchup_vat_gbp": 7.86,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": 157.19,
+          "vat_gbp": 7.86
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "OCC-2cf83688b2d2-INV1729",
+        "OCC-2cf83688b2d2-INV1730"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 1605,
+      "invoice_number": 1731,
       "due_date": "2025-04-23",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2cf83688b2d2-INV1606",
+      "id": "OCC-2cf83688b2d2-INV1732",
       "date": "2025-04-30",
       "period_start": "2025-04-01",
       "period_end": "2025-04-30",
@@ -415,14 +436,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1606,
+      "invoice_number": 1732,
       "due_date": "2025-05-14",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2cf83688b2d2-INV1607",
+      "id": "OCC-2cf83688b2d2-INV1733",
       "date": "2025-05-31",
       "period_start": "2025-05-01",
       "period_end": "2025-05-31",
@@ -489,14 +513,25 @@
       "catchup_direction": "overcharge",
       "catchup_raw_delta_gbp": -27.16,
       "catchup_adjustment_gbp": -25.87,
+      "catchup_vat_gbp": -1.29,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": -25.87,
+          "vat_gbp": -1.29
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "OCC-2cf83688b2d2-INV1732"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 1607,
+      "invoice_number": 1733,
       "due_date": "2025-06-14",
       "document_type": "bill"
     },
     {
-      "id": "OCC-2cf83688b2d2-INV1608",
+      "id": "OCC-2cf83688b2d2-INV1734",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -561,9 +596,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 1608,
+      "invoice_number": 1734,
       "due_date": "2025-06-25",
       "document_type": "bill"
     }
@@ -574,17 +612,17 @@
       {
         "date": "2024-12-31",
         "type": "invoice_raised",
-        "invoice_number": 1602,
+        "invoice_number": 1728,
         "amount_gbp": 144.89,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1602 raised",
+        "description": "Invoice INV1728 raised",
         "running_balance_gbp": 144.89
       },
       {
         "date": "2024-12-31",
         "type": "deemed_account",
-        "invoice_number": 1602,
+        "invoice_number": 1728,
         "amount_gbp": -144.89,
         "info_amount_gbp": null,
         "method": null,
@@ -594,17 +632,17 @@
       {
         "date": "2025-02-04",
         "type": "invoice_raised",
-        "invoice_number": 1603,
+        "invoice_number": 1729,
         "amount_gbp": 176.46,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1603 raised",
+        "description": "Invoice INV1729 raised",
         "running_balance_gbp": 176.46
       },
       {
         "date": "2025-02-04",
         "type": "deemed_account",
-        "invoice_number": 1603,
+        "invoice_number": 1729,
         "amount_gbp": -176.46,
         "info_amount_gbp": null,
         "method": null,
@@ -614,7 +652,7 @@
       {
         "date": "2025-03-06",
         "type": "payment_received",
-        "invoice_number": 1605,
+        "invoice_number": 1731,
         "amount_gbp": -159.52,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -625,17 +663,17 @@
       {
         "date": "2025-03-08",
         "type": "invoice_raised",
-        "invoice_number": 1604,
+        "invoice_number": 1730,
         "amount_gbp": 160.85,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1604 raised",
+        "description": "Invoice INV1730 raised",
         "running_balance_gbp": 1.33
       },
       {
         "date": "2025-03-08",
         "type": "deemed_account",
-        "invoice_number": 1604,
+        "invoice_number": 1730,
         "amount_gbp": -160.85,
         "info_amount_gbp": null,
         "method": null,
@@ -645,7 +683,7 @@
       {
         "date": "2025-04-07",
         "type": "payment_received",
-        "invoice_number": 1606,
+        "invoice_number": 1732,
         "amount_gbp": -159.52,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -656,17 +694,17 @@
       {
         "date": "2025-04-09",
         "type": "invoice_raised",
-        "invoice_number": 1605,
+        "invoice_number": 1731,
         "amount_gbp": 343.13,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1605 raised",
+        "description": "Invoice INV1731 raised",
         "running_balance_gbp": 24.09
       },
       {
         "date": "2025-04-09",
         "type": "deemed_account",
-        "invoice_number": 1605,
+        "invoice_number": 1731,
         "amount_gbp": -129.57,
         "info_amount_gbp": null,
         "method": null,
@@ -676,17 +714,17 @@
       {
         "date": "2025-04-30",
         "type": "invoice_raised",
-        "invoice_number": 1606,
+        "invoice_number": 1732,
         "amount_gbp": 134.61,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1606 raised",
+        "description": "Invoice INV1732 raised",
         "running_balance_gbp": 29.13
       },
       {
         "date": "2025-05-06",
         "type": "payment_received",
-        "invoice_number": 1607,
+        "invoice_number": 1733,
         "amount_gbp": -159.52,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -697,17 +735,17 @@
       {
         "date": "2025-05-31",
         "type": "invoice_raised",
-        "invoice_number": 1607,
+        "invoice_number": 1733,
         "amount_gbp": 42.05,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1607 raised",
+        "description": "Invoice INV1733 raised",
         "running_balance_gbp": -88.34
       },
       {
         "date": "2025-06-06",
         "type": "payment_received",
-        "invoice_number": 1608,
+        "invoice_number": 1734,
         "amount_gbp": -159.52,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -718,11 +756,11 @@
       {
         "date": "2025-06-11",
         "type": "invoice_raised",
-        "invoice_number": 1608,
+        "invoice_number": 1734,
         "amount_gbp": 25.03,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV1608 raised",
+        "description": "Invoice INV1734 raised",
         "running_balance_gbp": -222.83
       }
     ],

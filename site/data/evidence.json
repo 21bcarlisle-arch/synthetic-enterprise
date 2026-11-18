@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-11-11T20:09:12Z",
-  "git_hash": "40a48b5d8",
+  "generated_at": "2026-11-18T10:16:14Z",
+  "git_hash": "49d41097b",
   "published_from": {
-    "commit": "40a48b5d8414f5a4a29389d400ef103590fdb108",
+    "commit": "49d41097b215a6f432257eb6ddecba9337581d7d",
     "tree_was_clean": true,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
@@ -1546,8 +1546,8 @@
     {
       "id": "the_wall",
       "name": "What the company can see",
-      "declared_stage": "Live",
-      "computed_stage": "Live",
+      "declared_stage": "Building",
+      "computed_stage": "Building",
       "stage_matches": true,
       "evidence_href": "./evidence/#the_wall",
       "atoms": [
@@ -1737,9 +1737,9 @@
           "name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
           "lane": "C_customer_ops",
           "loop_stage": "idle",
-          "level_current": 2,
+          "level_current": 1,
           "level_target": 2,
-          "at_target": true,
+          "at_target": false,
           "in_map": true,
           "citations": [
             {
@@ -1819,22 +1819,30 @@
           ],
           "test_files": 4,
           "test_functions": 54,
-          "ledger": [],
+          "ledger": [
+            {
+              "action": "LEVEL_CORRECTION_SELF_CERTIFIED",
+              "level": 1,
+              "ts": 1794920438.7023683,
+              "iso": "2026-11-17",
+              "authorized_by": "agent_self_certified",
+              "provenance": "C2's L2 evidence was a real caller (company/crm/onboarding_journey.py) and a real consumer (company/crm/decarb_recommender.py). Both were archived to archive/unhooked_supplier/ by 6b70382ded (8 Nov, no run reached them). At HEAD no live module calls register_from_signup or reads belief_confidence; tests/company/crm/test_c2_discovery_wired.py's own docstring says the caller and consumer legs are archived. What remains is the tested L1 mechanism. Surfaced by SEAT_FINDING_THE_EVIDENCE_PAGE_TEST_IS_RED_ON_FIVE_ARCHIVED_CITATIONS_2026-11-17."
+            }
+          ],
           "missing": [
-            "NO_LEDGER_RECORD",
             "UNRESOLVED_CITATION"
           ]
         }
       ],
-      "atoms_at_target": 4,
-      "atoms_with_ledger": 1,
+      "atoms_at_target": 3,
+      "atoms_with_ledger": 2,
       "atoms_with_missing": 4
     },
     {
       "id": "the_company",
       "name": "The company",
-      "declared_stage": "Live",
-      "computed_stage": "Live",
+      "declared_stage": "Building",
+      "computed_stage": "Building",
       "stage_matches": true,
       "evidence_href": "./evidence/#the_company",
       "atoms": [
@@ -1876,9 +1884,9 @@
           "name": "Portal discovers customer physical-property truth through observable interfaces, not a direct read",
           "lane": "C_customer_ops",
           "loop_stage": "idle",
-          "level_current": 2,
+          "level_current": 1,
           "level_target": 2,
-          "at_target": true,
+          "at_target": false,
           "in_map": true,
           "citations": [
             {
@@ -1958,9 +1966,17 @@
           ],
           "test_files": 4,
           "test_functions": 54,
-          "ledger": [],
+          "ledger": [
+            {
+              "action": "LEVEL_CORRECTION_SELF_CERTIFIED",
+              "level": 1,
+              "ts": 1794920438.7023683,
+              "iso": "2026-11-17",
+              "authorized_by": "agent_self_certified",
+              "provenance": "C2's L2 evidence was a real caller (company/crm/onboarding_journey.py) and a real consumer (company/crm/decarb_recommender.py). Both were archived to archive/unhooked_supplier/ by 6b70382ded (8 Nov, no run reached them). At HEAD no live module calls register_from_signup or reads belief_confidence; tests/company/crm/test_c2_discovery_wired.py's own docstring says the caller and consumer legs are archived. What remains is the tested L1 mechanism. Surfaced by SEAT_FINDING_THE_EVIDENCE_PAGE_TEST_IS_RED_ON_FIVE_ARCHIVED_CITATIONS_2026-11-17."
+            }
+          ],
           "missing": [
-            "NO_LEDGER_RECORD",
             "UNRESOLVED_CITATION"
           ]
         },
@@ -2509,8 +2525,8 @@
           ]
         }
       ],
-      "atoms_at_target": 12,
-      "atoms_with_ledger": 1,
+      "atoms_at_target": 11,
+      "atoms_with_ledger": 2,
       "atoms_with_missing": 12
     },
     {

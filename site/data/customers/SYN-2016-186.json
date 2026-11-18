@@ -72,7 +72,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "SYN-2016-186-INV32054",
+      "id": "SYN-2016-186-INV31738",
       "date": "2016-04-30",
       "period_start": "2016-04-14",
       "period_end": "2016-04-30",
@@ -126,14 +126,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 32054,
+      "invoice_number": 31738,
       "due_date": "2016-05-14",
       "document_type": "prepayment_statement"
     },
     {
-      "id": "SYN-2016-186-INV32055",
+      "id": "SYN-2016-186-INV31739",
       "date": "2016-05-30",
       "period_start": "2016-05-01",
       "period_end": "2016-05-30",
@@ -187,9 +190,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 32055,
+      "invoice_number": 31739,
       "due_date": "2016-06-18",
       "document_type": "prepayment_statement"
     }
@@ -200,17 +206,17 @@
       {
         "date": "2016-04-30",
         "type": "invoice_raised",
-        "invoice_number": 32054,
+        "invoice_number": 31738,
         "amount_gbp": 23.63,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV32054 raised",
+        "description": "Invoice INV31738 raised",
         "running_balance_gbp": 23.63
       },
       {
         "date": "2016-05-14",
         "type": "payment_received",
-        "invoice_number": 32054,
+        "invoice_number": 31738,
         "amount_gbp": -23.63,
         "info_amount_gbp": null,
         "method": "prepayment",
@@ -220,17 +226,17 @@
       {
         "date": "2016-06-04",
         "type": "invoice_raised",
-        "invoice_number": 32055,
+        "invoice_number": 31739,
         "amount_gbp": 39.74,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV32055 raised",
+        "description": "Invoice INV31739 raised",
         "running_balance_gbp": 39.74
       },
       {
         "date": "2016-06-18",
         "type": "payment_received",
-        "invoice_number": 32055,
+        "invoice_number": 31739,
         "amount_gbp": -39.74,
         "info_amount_gbp": null,
         "method": "prepayment",

@@ -95,7 +95,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-509-INV48409",
+      "id": "SYN-2016-509-INV48093",
       "date": "2016-11-30",
       "period_start": "2016-11-07",
       "period_end": "2016-11-30",
@@ -149,14 +149,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 48409,
+      "invoice_number": 48093,
       "due_date": "2016-12-25",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-509-INV48410",
+      "id": "SYN-2016-509-INV48094",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
@@ -210,14 +213,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 48410,
+      "invoice_number": 48094,
       "due_date": "2017-01-15",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-509-INV48411",
+      "id": "SYN-2016-509-INV48095",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
@@ -271,14 +277,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 48411,
+      "invoice_number": 48095,
       "due_date": "2017-02-16",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-509-INV48412",
+      "id": "SYN-2016-509-INV48096",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
@@ -332,14 +341,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 48412,
+      "invoice_number": 48096,
       "due_date": "2017-03-19",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-509-INV48413",
+      "id": "SYN-2016-509-INV48097",
       "date": "2017-03-21",
       "period_start": "2017-03-01",
       "period_end": "2017-03-21",
@@ -393,9 +405,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 48413,
+      "invoice_number": 48097,
       "due_date": "2017-04-09",
       "document_type": "bill"
     }
@@ -406,7 +421,7 @@
       {
         "date": "2016-11-07",
         "type": "payment_received",
-        "invoice_number": 48409,
+        "invoice_number": 48093,
         "amount_gbp": -47.95,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -417,7 +432,7 @@
       {
         "date": "2016-12-05",
         "type": "payment_received",
-        "invoice_number": 48410,
+        "invoice_number": 48094,
         "amount_gbp": -47.95,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -428,27 +443,27 @@
       {
         "date": "2016-12-11",
         "type": "invoice_raised",
-        "invoice_number": 48409,
+        "invoice_number": 48093,
         "amount_gbp": 43.56,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV48409 raised",
+        "description": "Invoice INV48093 raised",
         "running_balance_gbp": -52.34
       },
       {
         "date": "2017-01-01",
         "type": "invoice_raised",
-        "invoice_number": 48410,
+        "invoice_number": 48094,
         "amount_gbp": 57.51,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV48410 raised",
+        "description": "Invoice INV48094 raised",
         "running_balance_gbp": 5.17
       },
       {
         "date": "2017-01-05",
         "type": "payment_received",
-        "invoice_number": 48411,
+        "invoice_number": 48095,
         "amount_gbp": -47.95,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -459,17 +474,17 @@
       {
         "date": "2017-02-02",
         "type": "invoice_raised",
-        "invoice_number": 48411,
+        "invoice_number": 48095,
         "amount_gbp": 66.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV48411 raised",
+        "description": "Invoice INV48095 raised",
         "running_balance_gbp": 23.49
       },
       {
         "date": "2017-02-06",
         "type": "payment_received",
-        "invoice_number": 48412,
+        "invoice_number": 48096,
         "amount_gbp": -47.95,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -480,48 +495,38 @@
       {
         "date": "2017-03-05",
         "type": "invoice_raised",
-        "invoice_number": 48412,
+        "invoice_number": 48096,
         "amount_gbp": 54.89,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV48412 raised",
+        "description": "Invoice INV48096 raised",
         "running_balance_gbp": 30.43
       },
       {
         "date": "2017-03-26",
         "type": "invoice_raised",
-        "invoice_number": 48413,
+        "invoice_number": 48097,
         "amount_gbp": 38.54,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV48413 raised",
+        "description": "Invoice INV48097 raised",
         "running_balance_gbp": 68.97
       },
       {
         "date": "2017-04-10",
         "type": "payment_received",
-        "invoice_number": 48413,
-        "amount_gbp": -38.54,
+        "invoice_number": 48097,
+        "amount_gbp": -68.97,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
-        "running_balance_gbp": 30.43
-      },
-      {
-        "date": "2018-03-26",
-        "type": "write_off",
-        "invoice_number": 0,
-        "amount_gbp": -30.43,
-        "info_amount_gbp": null,
-        "method": null,
-        "description": "Closed-account balance written off (GBP 83.84 on the account)",
         "running_balance_gbp": 0.0
       }
     ],
     "current_balance_gbp": 0.0,
     "total_billed_gbp": 260.77,
-    "total_collected_gbp": 230.34,
-    "total_written_off_gross_gbp": 30.43,
+    "total_collected_gbp": 260.77,
+    "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
     "total_deemed_gbp": 0,
     "total_refunded_gbp": 0,
@@ -562,105 +567,5 @@
     ],
     "has_hh_data": false
   },
-  "reaction_chain": [
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-04-21",
-      "event_type": "collections_missed_payment",
-      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP53.41 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 53.41,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-04-27",
-      "event_type": "collections_reminder",
-      "description": "Reminder sent -- GBP83.84 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-05-04",
-      "event_type": "collections_reminder_2",
-      "description": "Second reminder sent -- GBP83.84 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-05-18",
-      "event_type": "collections_repayment_plan_offer",
-      "description": "Payment plan offered (SLC 27.8) -- GBP83.84 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-05-18",
-      "event_type": "collections_arrangement_offered",
-      "description": "Affordable arrangement put to the household -- GBP83.84 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-06-15",
-      "event_type": "collections_final_notice",
-      "description": "Final notice sent -- GBP83.84 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-07-19",
-      "event_type": "collections_prepayment_or_debt_agency",
-      "description": "Top rung: prepayment by Consent or a debt agency -- GBP83.84 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2017-07-19",
-      "event_type": "collections_prepayment_offered",
-      "description": "Prepayment meter offered by Consent (SLC 28.22) -- GBP83.84 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "SYN-2016-509",
-      "date": "2018-03-26",
-      "event_type": "collections_write_off",
-      "description": "Written off: the closed account's balance, a year after its final bill -- GBP83.84",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 83.84,
-      "outcome": "write_off",
-      "framing_type": null
-    }
-  ]
+  "reaction_chain": []
 }

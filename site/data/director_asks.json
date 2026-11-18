@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-11",
+ "as_of": "2026-11-18",
  "no_movement_days": 21,
  "counts": {
   "declined": 2,
@@ -7,15 +7,69 @@
   "shipped": 255,
   "partly": 47,
   "not_started": 6,
-  "closed_with_evidence": 125,
-  "open": 1
+  "closed_with_evidence": 150,
+  "closed_without_evidence": 1
  },
  "record_not_asks": {
-  "DIRECTOR_READING": 23,
-  "DIRECTOR_CONSOLE": 37,
+  "DIRECTOR_READING": 28,
+  "DIRECTOR_CONSOLE": 67,
   "DIRECTOR_CANON": 11
  },
- "stale": [],
+ "stale": [
+  "DIRECTOR_STEER_TEST_THROUGHPUT_2026-07-19",
+  "DIRECTOR_STEER_LEGIBILITY_AND_SEGMENTATION_2026-07-20",
+  "DIRECTOR_STEER_UNPARK_TEST_THROUGHPUT_2026-07-20",
+  "DIRECTOR_STEER_FORWARD_DISCOVERY_REGISTER_2026-07-21",
+  "DIRECTOR_STEER_SELF_MEASUREMENT_AND_AXES_2026-07-22",
+  "DIRECTOR_STEER_WHOLESALE_VALUE_CHAIN_2026-07-22",
+  "DIRECTOR_CAMPAIGN_SITE_MODEL_SPINE_2026-07-23",
+  "DIRECTOR_RULING_DECISION_LINKAGE_PRECEDENCE_2026-07-23",
+  "DIRECTOR_RULING_R17_BREACH_AND_CLASS_FIX_2026-07-23",
+  "DIRECTOR_SEGMENTS_REVIEW_VERDICTS_2026-07-23",
+  "DIRECTOR_STEER_SCENARIO_SPINE_AND_TRADING_FRICTION_2026-07-23",
+  "DIRECTOR_STEER_WEATHER_SIM_PURPOSE_2026-07-23",
+  "DIRECTOR_RULING_GENERATOR_ACTIVATION_AND_RUN_LEDGER_2026-07-25",
+  "DIRECTOR_RULING_POPULATION_ACTIVATION_AND_RUN_LEDGER_2026-07-25",
+  "DIRECTOR_STEER_DD_SEASONAL_CASHFLOW_2026-07-25",
+  "DIRECTOR_STEER_DUNNING_DEBT_PROVISIONING_2026-07-25",
+  "DIRECTOR_RULING_POOL_VS_BOOK_LAMBDA_STANDS_2026-07-27",
+  "DIRECTOR_RULING_SHARED_PRIMITIVES_AND_CODE_STANDARDS_2026-07-28",
+  "canon_s15_owed_8_float_against_decimal",
+  "DIRECTOR_RULING_CA_PROMOTION_BATCH_RATIFIED_2026-07-29",
+  "DIRECTOR_RULING_MOTHBALL_THE_APPARATUS_2026-07-29",
+  "DIRECTOR_RULING_H_LANE_CUT_AND_PLAIN_NAMING_2026-08-05",
+  "DIRECTOR_RULING_INFRASTRUCTURE_POSTURE_2026-08-07",
+  "DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07",
+  "DIRECTOR_INSTRUCTION_PROCEED_WITH_VETO_PAIR_2026-08-09",
+  "DIRECTOR_RULING_HOOK_BYPASS_AND_SURGICAL_LANDING_2026-08-09",
+  "console_2026-08-09_2",
+  "console_2026-08-12_5",
+  "DIRECTOR_BRIEF_WEBSITE_STRUCTURE_2026-08-17",
+  "DIRECTOR_RULING_SITE_STRUCTURE_PROGRAMME_ACCEPTED_2026-08-18",
+  "console_2026-08-21_2",
+  "console_2026-08-21_3",
+  "console_2026-08-24_5",
+  "DIRECTOR_BRIEF_CHOICE_AND_CHANNEL_2026-08-30",
+  "console_2026-08-31_3",
+  "console_2026-08-31_6",
+  "console_2026-08-31_7",
+  "DIRECTOR_RULING_AMENDMENT_MERIT_ORDER_PEOPLE_PHASES_AND_PRACTICE_BOOKS_2026-09-05",
+  "console_2026-09-05_2",
+  "console_2026-09-07_5",
+  "console_2026-09-07_9",
+  "console_2026-09-08_10",
+  "console_2026-09-08_3",
+  "console_2026-09-08_4",
+  "console_2026-09-09_1",
+  "console_2026-09-09_3",
+  "console_2026-09-10_2",
+  "console_2026-09-17_1",
+  "canon_s15_owed_7_knowledge_pages_and_headline_guard",
+  "DIRECTOR_STEER_KNOWLEDGE_AND_SCALE_2026-10-07",
+  "DIRECTOR_RULING_FRONT_DOOR_STAYS_SIMPLE_AND_EXPLORATION_GOES_DEEPER_2026-10-09",
+  "ask_2026-10_the_caps_published_levels_as_a_binding_series",
+  "ask_2026-10_the_pricing_engine_planned_against_c13"
+ ],
  "rows": [
   {
    "id": "DIRECTOR_OVERRIDE_SKIP_PERMISSIONS_QUARANTINED",
@@ -6100,12 +6154,12 @@
   },
   {
    "id": "DIRECTOR_STEER_KNOWLEDGE_FIRST_FRONT_LINE_GAPS_2026-11-10",
-   "source": "docs/staging/DIRECTOR_STEER_KNOWLEDGE_FIRST_FRONT_LINE_GAPS_2026-11-10.md",
+   "source": "docs/staging/done/DIRECTOR_STEER_KNOWLEDGE_FIRST_FRONT_LINE_GAPS_2026-11-10.md",
    "asked": "2026-11-10",
    "ask": "Front-line gaps: knowledge first, then build (2026-11-10)",
-   "state": "open",
+   "state": "closed_without_evidence",
    "last_commit": "2026-11-11",
-   "status": "open"
+   "status": "closed_without_evidence"
   },
   {
    "id": "DIRECTOR_STEER_PROVE_FABLE_SERVED_EVERY_FABLE_READING_AND_USAGE_AT_21_PERCENT_2026-11-10",
@@ -6195,6 +6249,231 @@
    "ask": "State our carbon definitions, and add a second independent check (2026-11-11)",
    "state": "closed_with_evidence",
    "last_commit": "2026-11-11",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_CAP_BASELINE_YES_AND_A_HIDDEN_WEIGHTED_UTILITY_THE_SUPPLIER_MUST_DISCOVER_2026-11-13",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_CAP_BASELINE_YES_AND_A_HIDDEN_WEIGHTED_UTILITY_THE_SUPPLIER_MUST_DISCOVER_2026-11-13.md",
+   "asked": "2026-11-13",
+   "ask": "The cap baseline: yes. One number: yes, as a weighted utility hidden in the world that the supplier must discover",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-13",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_STEER_WITH_MORE_THAN_TWO_OUTCOMES_GETS_A_DECISION_MAP_BEFORE_ANY_BUILD_2026-11-13",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_A_STEER_WITH_MORE_THAN_TWO_OUTCOMES_GETS_A_DECISION_MAP_BEFORE_ANY_BUILD_2026-11-13.md",
+   "asked": "2026-11-13",
+   "ask": "A steer with more than two outcomes gets a one-page decision map before any build (2026-11-13)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-13",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_BENCHMARK_ONE_COMPANY_FORECAST_AGAINST_A_FREE_TIME_SERIES_FOUNDATION_MODEL_2026-11-13",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_BENCHMARK_ONE_COMPANY_FORECAST_AGAINST_A_FREE_TIME_SERIES_FOUNDATION_MODEL_2026-11-13.md",
+   "asked": "2026-11-13",
+   "ask": "Benchmark one company forecast against a free time series foundation model (2026-11-13)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-13",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_SITE_MUST_SAY_PLAINLY_WHETHER_PER_CUSTOMER_VALUE_WORKS_AND_THE_VALUE_TEST_GOES_FIRST_2026-11-13",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_SITE_MUST_SAY_PLAINLY_WHETHER_PER_CUSTOMER_VALUE_WORKS_AND_THE_VALUE_TEST_GOES_FIRST_2026-11-13.md",
+   "asked": "2026-11-13",
+   "ask": "The site must say plainly whether per-customer value works, and the value test redesign is next week's first feature",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-13",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_NO_NEW_TOKEN_THE_ADVISORS_CLOUD_STALL_CHECK_COVERS_OFF_BOX_DETECTION_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_NO_NEW_TOKEN_THE_ADVISORS_CLOUD_STALL_CHECK_COVERS_OFF_BOX_DETECTION_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "No new token: the advisor's cloud stall check already covers off-box detection",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_RELEASE_THE_READING_TOKEN_MEASUREMENT_FROM_BEHIND_THE_EXIT_TEST_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_RELEASE_THE_READING_TOKEN_MEASUREMENT_FROM_BEHIND_THE_EXIT_TEST_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "Release the reading-token measurement from behind the exit test (2026-11-14)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_QUESTION_FOR_THE_DIRECTOR_MUST_BE_IMPOSSIBLE_TO_MISS_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_A_QUESTION_FOR_THE_DIRECTOR_MUST_BE_IMPOSSIBLE_TO_MISS_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "A question for the director must be impossible for the advisor to miss",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_DESIGN_ONE_WORK_SYSTEM_INTO_THE_HARNESS_NOT_MORE_RULES_ON_MANY_LISTS_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_DESIGN_ONE_WORK_SYSTEM_INTO_THE_HARNESS_NOT_MORE_RULES_ON_MANY_LISTS_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "Design one work system into the harness and the method, not more rules on many lists",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_NOTHING_LOGGED_IS_LEFT_TO_MALINGER_TRIAGE_EVERY_OPEN_LIST_AND_MINE_IT_FOR_KNOWLEDGE_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_NOTHING_LOGGED_IS_LEFT_TO_MALINGER_TRIAGE_EVERY_OPEN_LIST_AND_MINE_IT_FOR_KNOWLEDGE_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "Nothing logged is left to malinger: triage every open list, and mine it for knowledge and insight",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_ONE_WRITER_PER_SHARED_FILE_MEASURE_WHERE_LANES_COLLIDE_FIRST_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_ONE_WRITER_PER_SHARED_FILE_MEASURE_WHERE_LANES_COLLIDE_FIRST_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "One writer per shared file: measure where the lanes collide first (2026-11-14)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_WORLD_MUST_PRODUCE_REAL_METER_DATA_FAULTS_FOR_THE_SUPPLIER_TO_FIND_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_WORLD_MUST_PRODUCE_REAL_METER_DATA_FAULTS_FOR_THE_SUPPLIER_TO_FIND_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "The world must produce real meter-data faults, and the supplier must find them",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_WOULD_LINKING_FINDINGS_TO_CONCEPTS_HAVE_CAUGHT_OUR_REPEAT_DEFECTS_MEASURE_IT_2026-11-14",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_WOULD_LINKING_FINDINGS_TO_CONCEPTS_HAVE_CAUGHT_OUR_REPEAT_DEFECTS_MEASURE_IT_2026-11-14.md",
+   "asked": "2026-11-14",
+   "ask": "Would linking findings to concepts have caught our repeat defects? Measure it (2026-11-14)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-14",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_THE_1200_HOUSEHOLD_BOOK_FIRST_AND_THE_WEEK_OF_16_NOV_SPLIT_WITH_METER_FAULTS_2026-11-15",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_THE_1200_HOUSEHOLD_BOOK_FIRST_AND_THE_WEEK_OF_16_NOV_SPLIT_WITH_METER_FAULTS_2026-11-15.md",
+   "asked": "2026-11-15",
+   "ask": "The 1,200-household book first; the week of 16 Nov split as proposed, with meter faults ranked after the write-off rule",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-15",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_A_STANDING_TRACK_FOR_USAGE_EFFICIENCY_STARTING_WITH_QUICK_WIN_TRIALS_AFTER_THE_16_NOV_RESET_2026-11-15",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_A_STANDING_TRACK_FOR_USAGE_EFFICIENCY_STARTING_WITH_QUICK_WIN_TRIALS_AFTER_THE_16_NOV_RESET_2026-11-15.md",
+   "asked": "2026-11-15",
+   "ask": "A standing track for usage efficiency, starting with quick-win trials after the 16 Nov reset (2026-11-15)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-16",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_TEST_CLAUDE_MD_BY_DELETING_AND_ADDING_BACK_AND_AUDIT_WHAT_EACH_SEAT_LOADS_2026-11-15",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_TEST_CLAUDE_MD_BY_DELETING_AND_ADDING_BACK_AND_AUDIT_WHAT_EACH_SEAT_LOADS_2026-11-15.md",
+   "asked": "2026-11-15",
+   "ask": "Test CLAUDE.md by deleting and adding back, and audit what each seat loads (2026-11-15)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-16",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_EP11_REFRAME_APPROVED_AND_TEST_A_DECLARED_PAYMENT_LIFECYCLE_AGAINST_PAST_DD_DEFECTS_2026-11-16",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_EP11_REFRAME_APPROVED_AND_TEST_A_DECLARED_PAYMENT_LIFECYCLE_AGAINST_PAST_DD_DEFECTS_2026-11-16.md",
+   "asked": "2026-11-16",
+   "ask": "EP11 reframe approved; test a declared payment lifecycle against past DD defects (2026-11-16)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-16",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_RULING_EP11_REFRAME_APPROVED_SANDBOX_STAYS_A_LATER_DIRECTOR_RUNG_2026-11-16",
+   "source": "docs/staging/advisor/done/DIRECTOR_RULING_EP11_REFRAME_APPROVED_SANDBOX_STAYS_A_LATER_DIRECTOR_RUNG_2026-11-16.md",
+   "asked": "2026-11-16",
+   "ask": "EP11 reframe approved: the bureau counterparty inside the walls, the real sandbox stays a later director-only rung",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-16",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_EIGHT_IDEAS_FROM_THE_DIRECTORS_SIMULATOR_SPEC_FOR_THE_BACKLOG_2026-11-16",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_EIGHT_IDEAS_FROM_THE_DIRECTORS_SIMULATOR_SPEC_FOR_THE_BACKLOG_2026-11-16.md",
+   "asked": "2026-11-16",
+   "ask": "Eight ideas from the director's simulator spec: one for this week's need-weights page, seven for the backlog",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-16",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_JUDGE_THE_FORECAST_BENCHMARK_BY_HEDGE_COST_NOT_ERROR_ALONE_2026-11-16.md",
+   "asked": "2026-11-16",
+   "ask": "Judge the forecast benchmark by hedge cost, not error alone (2026-11-16)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-16",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_CONTACT_CAUSE_FAILURE_DEMAND_AND_QUIET_FAILS_FOR_THE_BACKLOG_2026-11-17",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_CONTACT_CAUSE_FAILURE_DEMAND_AND_QUIET_FAILS_FOR_THE_BACKLOG_2026-11-17.md",
+   "asked": "2026-11-17",
+   "ask": "Contact cause, failure demand and quiet fails: an idea for the backlog, not for build now",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-17",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_COST_PER_RESULT_AND_REWORK_RATE_FOR_THE_MACHINE_NOT_FOR_THE_DIRECTOR_2026-11-17",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_COST_PER_RESULT_AND_REWORK_RATE_FOR_THE_MACHINE_NOT_FOR_THE_DIRECTOR_2026-11-17.md",
+   "asked": "2026-11-17",
+   "ask": "Cost per result and rework rate: for the machine to act on, not for the director to read (2026-11-17)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-17",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_EVERY_CLAUDE_MD_RULE_CARRIES_ITS_LINEAGE_AND_EVERY_TRIAL_ITS_MODEL_2026-11-17",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_EVERY_CLAUDE_MD_RULE_CARRIES_ITS_LINEAGE_AND_EVERY_TRIAL_ITS_MODEL_2026-11-17.md",
+   "asked": "2026-11-17",
+   "ask": "Every CLAUDE.md rule carries its lineage, and every trial its model (2026-11-17)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-17",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_MEASURE_HOW_OFTEN_THE_DIRECTOR_ACCEPTS_THE_RECOMMENDATION_AND_LET_THE_SURE_KINDS_BE_DECIDED_2026-11-17",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_MEASURE_HOW_OFTEN_THE_DIRECTOR_ACCEPTS_THE_RECOMMENDATION_AND_LET_THE_SURE_KINDS_BE_DECIDED_2026-11-17.md",
+   "asked": "2026-11-17",
+   "ask": "Measure how often the director accepts the recommendation, and let the sure kinds be decided (2026-11-17)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-17",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_CLAUDE_MD_TRIAL_USES_A_GOLDEN_SET_RUN_TWICE_AND_EACH_HANDOFF_EARNS_ITS_PLACE_2026-11-17",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_CLAUDE_MD_TRIAL_USES_A_GOLDEN_SET_RUN_TWICE_AND_EACH_HANDOFF_EARNS_ITS_PLACE_2026-11-17.md",
+   "asked": "2026-11-17",
+   "ask": "The CLAUDE.md trial uses a golden set run twice, and each handoff earns its place (2026-11-17)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-17",
+   "status": "closed_with_evidence"
+  },
+  {
+   "id": "DIRECTOR_STEER_THE_WORLD_MUST_RANK_REAL_2021_22_SUPPLIER_STRATEGIES_IN_THE_ORDER_REALITY_DID_2026-11-18",
+   "source": "docs/staging/advisor/done/DIRECTOR_STEER_THE_WORLD_MUST_RANK_REAL_2021_22_SUPPLIER_STRATEGIES_IN_THE_ORDER_REALITY_DID_2026-11-18.md",
+   "asked": "2026-11-18",
+   "ask": "The world must rank real 2021\u201322 supplier strategies in the order reality did (2026-11-18)",
+   "state": "closed_with_evidence",
+   "last_commit": "2026-11-18",
    "status": "closed_with_evidence"
   }
  ]

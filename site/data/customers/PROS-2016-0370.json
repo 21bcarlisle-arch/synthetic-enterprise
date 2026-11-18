@@ -39,9 +39,9 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2016-0370g",
-    "gas_lifetime_net_gbp": 28.04,
+    "gas_lifetime_net_gbp": 44.39,
     "gas_lifetime_revenue_gbp": 167.27,
-    "combined_net_gbp": 83.93,
+    "combined_net_gbp": 100.28,
     "combined_revenue_gbp": 327.8
   },
   "annual_pnl": [
@@ -80,7 +80,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "PROS-2016-0370-INV11765",
+      "id": "PROS-2016-0370-INV11865",
       "date": "2016-12-31",
       "period_start": "2016-12-08",
       "period_end": "2016-12-31",
@@ -134,14 +134,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11765,
+      "invoice_number": 11865,
       "due_date": "2017-01-15",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2016-0370-INV11766",
+      "id": "PROS-2016-0370-INV11866",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
@@ -195,14 +198,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11766,
+      "invoice_number": 11866,
       "due_date": "2017-02-15",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2016-0370-INV11767",
+      "id": "PROS-2016-0370-INV11867",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
@@ -256,14 +262,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11767,
+      "invoice_number": 11867,
       "due_date": "2017-03-18",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2016-0370-INV11768",
+      "id": "PROS-2016-0370-INV11868",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
@@ -317,14 +326,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11768,
+      "invoice_number": 11868,
       "due_date": "2017-04-17",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2016-0370-INV11769",
+      "id": "PROS-2016-0370-INV11869",
       "date": "2017-04-30",
       "period_start": "2017-04-01",
       "period_end": "2017-04-30",
@@ -378,14 +390,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 11769,
+      "invoice_number": 11869,
       "due_date": "2017-05-16",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2016-0370-INV11770",
+      "id": "PROS-2016-0370-INV11870",
       "date": "2017-05-30",
       "period_start": "2017-05-01",
       "period_end": "2017-05-30",
@@ -439,9 +454,23 @@
       "catchup_direction": "overcharge",
       "catchup_raw_delta_gbp": -1.62,
       "catchup_adjustment_gbp": -1.54,
+      "catchup_vat_gbp": -0.08,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": -1.54,
+          "vat_gbp": -0.08
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "PROS-2016-0370-INV11866",
+        "PROS-2016-0370-INV11867",
+        "PROS-2016-0370-INV11868",
+        "PROS-2016-0370-INV11869"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 11770,
+      "invoice_number": 11870,
       "due_date": "2017-06-18",
       "document_type": "bill"
     }
@@ -452,17 +481,17 @@
       {
         "date": "2017-01-01",
         "type": "invoice_raised",
-        "invoice_number": 11765,
+        "invoice_number": 11865,
         "amount_gbp": 23.41,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11765 raised",
+        "description": "Invoice INV11865 raised",
         "running_balance_gbp": 23.41
       },
       {
         "date": "2017-01-15",
         "type": "payment_received",
-        "invoice_number": 11765,
+        "invoice_number": 11865,
         "amount_gbp": -23.41,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -472,17 +501,17 @@
       {
         "date": "2017-02-01",
         "type": "invoice_raised",
-        "invoice_number": 11766,
+        "invoice_number": 11866,
         "amount_gbp": 34.92,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11766 raised",
+        "description": "Invoice INV11866 raised",
         "running_balance_gbp": 34.92
       },
       {
         "date": "2017-02-15",
         "type": "payment_received",
-        "invoice_number": 11766,
+        "invoice_number": 11866,
         "amount_gbp": -34.92,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -492,17 +521,17 @@
       {
         "date": "2017-03-04",
         "type": "invoice_raised",
-        "invoice_number": 11767,
+        "invoice_number": 11867,
         "amount_gbp": 29.18,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11767 raised",
+        "description": "Invoice INV11867 raised",
         "running_balance_gbp": 29.18
       },
       {
         "date": "2017-03-18",
         "type": "payment_received",
-        "invoice_number": 11767,
+        "invoice_number": 11867,
         "amount_gbp": -29.18,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -512,17 +541,17 @@
       {
         "date": "2017-04-03",
         "type": "invoice_raised",
-        "invoice_number": 11768,
+        "invoice_number": 11868,
         "amount_gbp": 30.45,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11768 raised",
+        "description": "Invoice INV11868 raised",
         "running_balance_gbp": 30.45
       },
       {
         "date": "2017-04-17",
         "type": "payment_received",
-        "invoice_number": 11768,
+        "invoice_number": 11868,
         "amount_gbp": -30.45,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -532,17 +561,17 @@
       {
         "date": "2017-05-02",
         "type": "invoice_raised",
-        "invoice_number": 11769,
+        "invoice_number": 11869,
         "amount_gbp": 27.46,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11769 raised",
+        "description": "Invoice INV11869 raised",
         "running_balance_gbp": 27.46
       },
       {
         "date": "2017-05-16",
         "type": "payment_received",
-        "invoice_number": 11769,
+        "invoice_number": 11869,
         "amount_gbp": -27.46,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -552,17 +581,17 @@
       {
         "date": "2017-06-04",
         "type": "invoice_raised",
-        "invoice_number": 11770,
+        "invoice_number": 11870,
         "amount_gbp": 23.13,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV11770 raised",
+        "description": "Invoice INV11870 raised",
         "running_balance_gbp": 23.13
       },
       {
         "date": "2017-06-18",
         "type": "payment_received",
-        "invoice_number": 11770,
+        "invoice_number": 11870,
         "amount_gbp": -23.13,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -623,10 +652,10 @@
       "customer_id": "PROS-2016-0370",
       "date": "2017-01-16",
       "event_type": "collections_missed_payment",
-      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP6.91 overdue",
+      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP0.95 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 6.91,
+      "amount_gbp": 0.95,
       "outcome": "cured",
       "framing_type": null
     },
@@ -634,10 +663,10 @@
       "customer_id": "PROS-2016-0370",
       "date": "2017-01-17",
       "event_type": "collections_reminder",
-      "description": "Reminder sent -- GBP6.91 overdue",
+      "description": "Reminder sent -- GBP0.95 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 6.91,
+      "amount_gbp": 0.95,
       "outcome": "cured",
       "framing_type": null
     },
@@ -645,10 +674,10 @@
       "customer_id": "PROS-2016-0370",
       "date": "2017-01-24",
       "event_type": "collections_reminder_2",
-      "description": "Second reminder sent -- GBP6.91 overdue",
+      "description": "Second reminder sent -- GBP0.95 overdue",
       "company_belief": null,
       "sim_truth": null,
-      "amount_gbp": 6.91,
+      "amount_gbp": 0.95,
       "outcome": "cured",
       "framing_type": null
     },
@@ -683,105 +712,6 @@
       "sim_truth": null,
       "amount_gbp": 0,
       "outcome": "cured",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-06-14",
-      "event_type": "collections_missed_payment",
-      "description": "A bill is unpaid past its due date -- collections journey opened -- GBP11.80 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 11.8,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-06-25",
-      "event_type": "collections_reminder",
-      "description": "Reminder sent -- GBP11.80 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 11.8,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-07-02",
-      "event_type": "collections_reminder_2",
-      "description": "Second reminder sent -- GBP35.10 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 35.1,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-07-16",
-      "event_type": "collections_repayment_plan_offer",
-      "description": "Payment plan offered (SLC 27.8) -- GBP35.10 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 35.1,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-07-16",
-      "event_type": "collections_arrangement_offered",
-      "description": "Affordable arrangement put to the household -- GBP35.10 overdue; the household's answer is not known to the company: no published rate of plan take-up among domestic debtors offered one: no published source counts offers, and Ofgem's quarter-end stocks of accounts in arrears and in debt do not bound it (docs/market_research/domestic_repayment_plan_take_up_and_keep_rates.md)",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 35.1,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-08-13",
-      "event_type": "collections_final_notice",
-      "description": "Final notice sent -- GBP35.10 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 35.1,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-09-16",
-      "event_type": "collections_prepayment_or_debt_agency",
-      "description": "Top rung: prepayment by Consent or a debt agency -- GBP35.10 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 35.1,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2017-09-16",
-      "event_type": "collections_prepayment_offered",
-      "description": "Prepayment meter offered by Consent (SLC 28.22) -- GBP35.10 overdue",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 35.1,
-      "outcome": "write_off",
-      "framing_type": null
-    },
-    {
-      "customer_id": "PROS-2016-0370",
-      "date": "2018-06-04",
-      "event_type": "collections_write_off",
-      "description": "Written off: the closed account's balance, a year after its final bill -- GBP35.10",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 35.1,
-      "outcome": "write_off",
       "framing_type": null
     }
   ]

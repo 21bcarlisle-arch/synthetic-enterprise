@@ -65,7 +65,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-477g-INV46611",
+      "id": "SYN-2016-477g-INV46295",
       "date": "2016-10-31",
       "period_start": "2016-10-20",
       "period_end": "2016-10-31",
@@ -119,14 +119,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 46611,
+      "invoice_number": 46295,
       "due_date": "2016-11-20",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-477g-INV46612",
+      "id": "SYN-2016-477g-INV46296",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -180,14 +183,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 46612,
+      "invoice_number": 46296,
       "due_date": "2016-12-15",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-477g-INV46613",
+      "id": "SYN-2016-477g-INV46297",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
@@ -241,9 +247,20 @@
       "catchup_direction": "undercharge",
       "catchup_raw_delta_gbp": 1.03,
       "catchup_adjustment_gbp": 0.98,
+      "catchup_vat_gbp": 0.05,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": 0.98,
+          "vat_gbp": 0.05
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "SYN-2016-477g-INV46296"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 46613,
+      "invoice_number": 46297,
       "due_date": "2017-01-18",
       "document_type": "bill"
     }
@@ -254,17 +271,17 @@
       {
         "date": "2016-11-06",
         "type": "invoice_raised",
-        "invoice_number": 46611,
+        "invoice_number": 46295,
         "amount_gbp": 10.11,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV46611 raised",
+        "description": "Invoice INV46295 raised",
         "running_balance_gbp": 10.11
       },
       {
         "date": "2016-11-21",
         "type": "payment_received",
-        "invoice_number": 46611,
+        "invoice_number": 46295,
         "amount_gbp": -10.11,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -274,17 +291,17 @@
       {
         "date": "2016-12-01",
         "type": "invoice_raised",
-        "invoice_number": 46612,
+        "invoice_number": 46296,
         "amount_gbp": 36.29,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV46612 raised",
+        "description": "Invoice INV46296 raised",
         "running_balance_gbp": 36.29
       },
       {
         "date": "2016-12-15",
         "type": "payment_received",
-        "invoice_number": 46612,
+        "invoice_number": 46296,
         "amount_gbp": -36.29,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -294,17 +311,17 @@
       {
         "date": "2017-01-04",
         "type": "invoice_raised",
-        "invoice_number": 46613,
+        "invoice_number": 46297,
         "amount_gbp": 38.67,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV46613 raised",
+        "description": "Invoice INV46297 raised",
         "running_balance_gbp": 38.67
       },
       {
         "date": "2017-01-18",
         "type": "payment_received",
-        "invoice_number": 46613,
+        "invoice_number": 46297,
         "amount_gbp": -38.67,
         "info_amount_gbp": null,
         "method": "direct_debit",

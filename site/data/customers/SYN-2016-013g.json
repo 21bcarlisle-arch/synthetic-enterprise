@@ -99,7 +99,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-013g-INV22416",
+      "id": "SYN-2016-013g-INV22154",
       "date": "2016-01-28",
       "period_start": "2016-01-11",
       "period_end": "2016-01-28",
@@ -153,9 +153,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 22416,
+      "invoice_number": 22154,
       "due_date": "2016-02-12",
       "document_type": "bill"
     }
@@ -166,17 +169,17 @@
       {
         "date": "2016-01-29",
         "type": "invoice_raised",
-        "invoice_number": 22416,
+        "invoice_number": 22154,
         "amount_gbp": 35.46,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV22416 raised",
+        "description": "Invoice INV22154 raised",
         "running_balance_gbp": 35.46
       },
       {
         "date": "2016-02-12",
         "type": "payment_received",
-        "invoice_number": 22416,
+        "invoice_number": 22154,
         "amount_gbp": -35.46,
         "info_amount_gbp": null,
         "method": "direct_debit",

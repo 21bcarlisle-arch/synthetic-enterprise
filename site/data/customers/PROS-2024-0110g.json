@@ -41,8 +41,8 @@
       "revenue_gbp": 4.44,
       "gross_gbp": 2.82,
       "net_gbp": 1.44,
-      "tariff_min": 43.27,
-      "tariff_max": 43.27
+      "tariff_min": 43.28,
+      "tariff_max": 43.28
     }
   ],
   "timeline": [
@@ -67,18 +67,11 @@
       "commodity": null,
       "detail": "Solar install",
       "seen_by": "world"
-    },
-    {
-      "date": "2023-08-07",
-      "type": "life_event",
-      "commodity": null,
-      "detail": "Insulation upgraded",
-      "seen_by": "world"
     }
   ],
   "invoices": [
     {
-      "id": "PROS-2024-0110g-INV21306",
+      "id": "PROS-2024-0110g-INV20936",
       "date": "2024-05-08",
       "period_start": "2024-05-03",
       "period_end": "2024-05-08",
@@ -132,9 +125,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 21306,
+      "invoice_number": 20936,
       "due_date": "2024-05-23",
       "document_type": "bill"
     }
@@ -145,17 +141,17 @@
       {
         "date": "2024-05-09",
         "type": "invoice_raised",
-        "invoice_number": 21306,
+        "invoice_number": 20936,
         "amount_gbp": 4.66,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21306 raised",
+        "description": "Invoice INV20936 raised",
         "running_balance_gbp": 4.66
       },
       {
         "date": "2024-05-23",
         "type": "payment_received",
-        "invoice_number": 21306,
+        "invoice_number": 20936,
         "amount_gbp": -4.66,
         "info_amount_gbp": null,
         "method": "direct_debit",

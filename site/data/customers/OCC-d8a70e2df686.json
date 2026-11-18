@@ -58,7 +58,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-d8a70e2df686-INV7613",
+      "id": "OCC-d8a70e2df686-INV8137",
       "date": "2025-05-31",
       "period_start": "2025-05-20",
       "period_end": "2025-05-31",
@@ -112,14 +112,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7613,
+      "invoice_number": 8137,
       "due_date": "2025-06-15",
       "document_type": "bill"
     },
     {
-      "id": "OCC-d8a70e2df686-INV7614",
+      "id": "OCC-d8a70e2df686-INV8138",
       "date": "2025-06-07",
       "period_start": "2025-06-01",
       "period_end": "2025-06-07",
@@ -173,9 +176,20 @@
       "catchup_direction": "overcharge",
       "catchup_raw_delta_gbp": -0.64,
       "catchup_adjustment_gbp": -0.61,
+      "catchup_vat_gbp": -0.03,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": -0.61,
+          "vat_gbp": -0.03
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "OCC-d8a70e2df686-INV8137"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 7614,
+      "invoice_number": 8138,
       "due_date": "2025-06-23",
       "document_type": "bill"
     }
@@ -186,17 +200,17 @@
       {
         "date": "2025-06-01",
         "type": "invoice_raised",
-        "invoice_number": 7613,
+        "invoice_number": 8137,
         "amount_gbp": 25.53,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7613 raised",
+        "description": "Invoice INV8137 raised",
         "running_balance_gbp": 25.53
       },
       {
         "date": "2025-06-01",
         "type": "deemed_account",
-        "invoice_number": 7613,
+        "invoice_number": 8137,
         "amount_gbp": -25.53,
         "info_amount_gbp": null,
         "method": null,
@@ -206,17 +220,17 @@
       {
         "date": "2025-06-09",
         "type": "invoice_raised",
-        "invoice_number": 7614,
+        "invoice_number": 8138,
         "amount_gbp": 13.9,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7614 raised",
+        "description": "Invoice INV8138 raised",
         "running_balance_gbp": 13.9
       },
       {
         "date": "2025-06-09",
         "type": "deemed_account",
-        "invoice_number": 7614,
+        "invoice_number": 8138,
         "amount_gbp": -13.9,
         "info_amount_gbp": null,
         "method": null,

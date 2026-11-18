@@ -39,9 +39,9 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "OCC-cede70b10116g",
-    "gas_lifetime_net_gbp": -45.65,
+    "gas_lifetime_net_gbp": -2.47,
     "gas_lifetime_revenue_gbp": 336.53,
-    "combined_net_gbp": -131.81,
+    "combined_net_gbp": -88.63,
     "combined_revenue_gbp": 840.42
   },
   "annual_pnl": [
@@ -80,7 +80,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "OCC-cede70b10116-INV7330",
+      "id": "OCC-cede70b10116-INV7854",
       "date": "2023-07-31",
       "period_start": "2023-07-09",
       "period_end": "2023-07-31",
@@ -134,14 +134,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7330,
+      "invoice_number": 7854,
       "due_date": "2023-08-15",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116-INV7331",
+      "id": "OCC-cede70b10116-INV7855",
       "date": "2023-08-31",
       "period_start": "2023-08-01",
       "period_end": "2023-08-31",
@@ -195,14 +198,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7331,
+      "invoice_number": 7855,
       "due_date": "2023-09-15",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116-INV7332",
+      "id": "OCC-cede70b10116-INV7856",
       "date": "2023-09-30",
       "period_start": "2023-09-01",
       "period_end": "2023-09-30",
@@ -256,14 +262,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7332,
+      "invoice_number": 7856,
       "due_date": "2023-10-16",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116-INV7333",
+      "id": "OCC-cede70b10116-INV7857",
       "date": "2023-10-31",
       "period_start": "2023-10-01",
       "period_end": "2023-10-31",
@@ -317,14 +326,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7333,
+      "invoice_number": 7857,
       "due_date": "2023-11-28",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116-INV7334",
+      "id": "OCC-cede70b10116-INV7858",
       "date": "2023-11-30",
       "period_start": "2023-11-01",
       "period_end": "2023-11-30",
@@ -378,14 +390,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7334,
+      "invoice_number": 7858,
       "due_date": "2023-12-24",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116-INV7335",
+      "id": "OCC-cede70b10116-INV7859",
       "date": "2023-12-31",
       "period_start": "2023-12-01",
       "period_end": "2023-12-31",
@@ -439,14 +454,29 @@
       "catchup_direction": "overcharge",
       "catchup_raw_delta_gbp": -153.08,
       "catchup_adjustment_gbp": -145.79,
+      "catchup_vat_gbp": -7.29,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": -145.79,
+          "vat_gbp": -7.29
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "OCC-cede70b10116-INV7854",
+        "OCC-cede70b10116-INV7855",
+        "OCC-cede70b10116-INV7856",
+        "OCC-cede70b10116-INV7857",
+        "OCC-cede70b10116-INV7858"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 7335,
+      "invoice_number": 7859,
       "due_date": "2024-01-21",
       "document_type": "bill"
     },
     {
-      "id": "OCC-cede70b10116-INV7336",
+      "id": "OCC-cede70b10116-INV7860",
       "date": "2024-01-22",
       "period_start": "2024-01-01",
       "period_end": "2024-01-22",
@@ -462,7 +492,7 @@
       "amount_gbp": 99.0,
       "status": "SETTLED_BY_CREDIT",
       "outstanding_gbp": 0.0,
-      "credit_applied_gbp": 46.54,
+      "credit_applied_gbp": 99.0,
       "scheme_credit_gbp": null,
       "scheme_credit_applied_gbp": null,
       "epg_discount_gbp": null,
@@ -500,9 +530,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 7336,
+      "invoice_number": 7860,
       "due_date": "2024-02-07",
       "document_type": "bill"
     }
@@ -513,17 +546,17 @@
       {
         "date": "2023-08-01",
         "type": "invoice_raised",
-        "invoice_number": 7330,
+        "invoice_number": 7854,
         "amount_gbp": 72.45,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7330 raised",
+        "description": "Invoice INV7854 raised",
         "running_balance_gbp": 72.45
       },
       {
         "date": "2023-08-01",
         "type": "deemed_account",
-        "invoice_number": 7330,
+        "invoice_number": 7854,
         "amount_gbp": -72.45,
         "info_amount_gbp": null,
         "method": null,
@@ -533,17 +566,17 @@
       {
         "date": "2023-09-01",
         "type": "invoice_raised",
-        "invoice_number": 7331,
+        "invoice_number": 7855,
         "amount_gbp": 99.79,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7331 raised",
+        "description": "Invoice INV7855 raised",
         "running_balance_gbp": 99.79
       },
       {
         "date": "2023-09-01",
         "type": "deemed_account",
-        "invoice_number": 7331,
+        "invoice_number": 7855,
         "amount_gbp": -99.79,
         "info_amount_gbp": null,
         "method": null,
@@ -553,17 +586,17 @@
       {
         "date": "2023-10-02",
         "type": "invoice_raised",
-        "invoice_number": 7332,
+        "invoice_number": 7856,
         "amount_gbp": 103.32,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7332 raised",
+        "description": "Invoice INV7856 raised",
         "running_balance_gbp": 103.32
       },
       {
         "date": "2023-10-02",
         "type": "deemed_account",
-        "invoice_number": 7332,
+        "invoice_number": 7856,
         "amount_gbp": -103.32,
         "info_amount_gbp": null,
         "method": null,
@@ -573,7 +606,7 @@
       {
         "date": "2023-11-07",
         "type": "payment_received",
-        "invoice_number": 7334,
+        "invoice_number": 7858,
         "amount_gbp": -115.89,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -584,17 +617,17 @@
       {
         "date": "2023-11-14",
         "type": "invoice_raised",
-        "invoice_number": 7333,
+        "invoice_number": 7857,
         "amount_gbp": 105.54,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7333 raised",
+        "description": "Invoice INV7857 raised",
         "running_balance_gbp": -10.35
       },
       {
         "date": "2023-11-14",
         "type": "deemed_account",
-        "invoice_number": 7333,
+        "invoice_number": 7857,
         "amount_gbp": -105.54,
         "info_amount_gbp": null,
         "method": null,
@@ -604,7 +637,7 @@
       {
         "date": "2023-12-07",
         "type": "payment_received",
-        "invoice_number": 7335,
+        "invoice_number": 7859,
         "amount_gbp": -115.89,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -615,17 +648,17 @@
       {
         "date": "2023-12-10",
         "type": "invoice_raised",
-        "invoice_number": 7334,
+        "invoice_number": 7858,
         "amount_gbp": 120.94,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7334 raised",
+        "description": "Invoice INV7858 raised",
         "running_balance_gbp": -110.84
       },
       {
         "date": "2023-12-10",
         "type": "deemed_account",
-        "invoice_number": 7334,
+        "invoice_number": 7858,
         "amount_gbp": -44.25,
         "info_amount_gbp": null,
         "method": null,
@@ -635,58 +668,28 @@
       {
         "date": "2024-01-07",
         "type": "invoice_raised",
-        "invoice_number": 7335,
+        "invoice_number": 7859,
         "amount_gbp": -49.05,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7335 raised",
+        "description": "Invoice INV7859 raised",
         "running_balance_gbp": -204.14
       },
       {
         "date": "2024-01-24",
         "type": "invoice_raised",
-        "invoice_number": 7336,
+        "invoice_number": 7860,
         "amount_gbp": 99.0,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV7336 raised",
+        "description": "Invoice INV7860 raised",
         "running_balance_gbp": -105.14
       },
       {
         "date": "2024-02-07",
-        "type": "payment_received",
-        "invoice_number": 7336,
-        "amount_gbp": -52.46,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Part payment received",
-        "running_balance_gbp": -157.6
-      },
-      {
-        "date": "2024-02-07",
-        "type": "payment_failed",
-        "invoice_number": 7336,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Direct debit returned",
-        "running_balance_gbp": -157.6
-      },
-      {
-        "date": "2024-02-07",
-        "type": "credit_applied",
-        "invoice_number": 7336,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Account credit of GBP46.54 (the 2023-12-31 credit bill) netted against this bill -- GBP0.00 left owed",
-        "running_balance_gbp": -157.6
-      },
-      {
-        "date": "2024-02-21",
         "type": "refund_debit",
         "invoice_number": 0,
-        "amount_gbp": 157.6,
+        "amount_gbp": 105.14,
         "info_amount_gbp": null,
         "method": null,
         "description": "Credit balance refunded on closing the account",
@@ -699,14 +702,14 @@
     "total_written_off_gross_gbp": 0,
     "total_scheme_credit_gbp": 0,
     "total_deemed_gbp": 425.35,
-    "total_refunded_gbp": 157.6,
+    "total_refunded_gbp": 105.14,
     "total_recovered_gbp": 0,
     "total_epg_support_gbp": 0.0
   },
   "payment_record": {
     "due": 7,
     "payments": 3,
-    "returned": 1,
+    "returned": 0,
     "missed": 4,
     "missed_dd": 0,
     "as_of": "2024-02-08"
@@ -747,28 +750,5 @@
   },
   "predecessor_account_id": "SYN-2016-523",
   "predecessor_unavailable_because": null,
-  "reaction_chain": [
-    {
-      "customer_id": "OCC-cede70b10116",
-      "date": "2024-02-07",
-      "event_type": "arrears_dd_failed",
-      "description": "Direct debit returned",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 0.0,
-      "outcome": "DD_FAILED",
-      "framing_type": null
-    },
-    {
-      "customer_id": "OCC-cede70b10116",
-      "date": "2024-02-07",
-      "event_type": "arrears_credit_applied",
-      "description": "Account credit of GBP46.54 (the 2023-12-31 credit bill) netted against this bill -- GBP0.00 left owed",
-      "company_belief": null,
-      "sim_truth": null,
-      "amount_gbp": 0.0,
-      "outcome": "CREDIT_APPLIED",
-      "framing_type": null
-    }
-  ]
+  "reaction_chain": []
 }

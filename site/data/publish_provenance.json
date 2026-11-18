@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-11-03T02:57:47Z",
+    "checked_at": "2026-11-18T10:03:08Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,37 +9,37 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 27
+    "open_findings": 22
   },
   "figures_caveat": null,
   "last_verified": {
-    "generated_at": "2026-11-11T20:13:59Z",
-    "git_commit": "6fe7827ab2",
+    "generated_at": "2026-11-18T10:20:38Z",
+    "git_commit": "6af7fd0bfd",
     "population": {
-      "accounts": 1302,
-      "bills": 53921,
-      "total_revenue_gbp": 3172699.38
+      "accounts": 1306,
+      "bills": 53605,
+      "total_revenue_gbp": 3166717.09
     },
-    "run_id": "run_output_6fe7827ab2_20261111T140730Z.json",
+    "run_id": "run_output_6af7fd0bfd_20261118T070221Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-11T20:13:59Z"
+    "verified_at": "2026-11-18T10:20:38Z"
   },
-  "paused_gate": "Refused by the domain-invariant check: 1 of its rules is broken and no dated exception covers it. Every overdue amount the customer page prints on a collections step is part of what the same page says the account owes on that day, so 0 <= overdue <= balance owed [INV_OVERDUE_WITHIN_PAGE_BALANCE]: broken on 20 of 6,144 checked (unit: household collections step printing an overdue figure).",
-  "paused_reason": "domain-invariant breaches at git=18f201c5bf that no exception covers: INV_OVERDUE_WITHIN_PAGE_BALANCE 20 (no exception)",
-  "paused_since": "2026-11-16T04:26:22Z",
+  "paused_gate": null,
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-11-11T20:13:59Z",
-    "git_commit": "6fe7827ab2",
+    "generated_at": "2026-11-18T10:20:38Z",
+    "git_commit": "6af7fd0bfd",
     "population": {
-      "accounts": 1302,
-      "bills": 53921,
-      "total_revenue_gbp": 3172699.38
+      "accounts": 1306,
+      "bills": 53605,
+      "total_revenue_gbp": 3166717.09
     },
-    "run_id": "run_output_6fe7827ab2_20261111T140730Z.json",
+    "run_id": "run_output_6af7fd0bfd_20261118T070221Z.json",
     "run_retained": true,
-    "verified_at": "2026-11-11T20:13:59Z"
+    "verified_at": "2026-11-18T10:20:38Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-11-17T22:19:46Z"
+  "verification_state": "verified",
+  "written_at": "2026-11-18T10:20:38Z"
 }

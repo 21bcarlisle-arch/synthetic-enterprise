@@ -41,7 +41,7 @@
     "gas_account_id": "PROS-2024-0110g",
     "gas_lifetime_net_gbp": 1.44,
     "gas_lifetime_revenue_gbp": 4.44,
-    "combined_net_gbp": 0.02,
+    "combined_net_gbp": 0.03,
     "combined_revenue_gbp": 11.9
   },
   "annual_pnl": [
@@ -76,18 +76,11 @@
       "commodity": null,
       "detail": "Solar install",
       "seen_by": "world"
-    },
-    {
-      "date": "2023-08-07",
-      "type": "life_event",
-      "commodity": null,
-      "detail": "Insulation upgraded",
-      "seen_by": "world"
     }
   ],
   "invoices": [
     {
-      "id": "PROS-2024-0110-INV21305",
+      "id": "PROS-2024-0110-INV20935",
       "date": "2024-05-08",
       "period_start": "2024-05-03",
       "period_end": "2024-05-08",
@@ -141,9 +134,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 21305,
+      "invoice_number": 20935,
       "due_date": "2024-05-23",
       "document_type": "bill"
     }
@@ -154,17 +150,17 @@
       {
         "date": "2024-05-09",
         "type": "invoice_raised",
-        "invoice_number": 21305,
+        "invoice_number": 20935,
         "amount_gbp": 7.82,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV21305 raised",
+        "description": "Invoice INV20935 raised",
         "running_balance_gbp": 7.82
       },
       {
         "date": "2024-05-23",
         "type": "payment_received",
-        "invoice_number": 21305,
+        "invoice_number": 20935,
         "amount_gbp": -1.6,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -174,7 +170,7 @@
       {
         "date": "2024-05-23",
         "type": "payment_failed",
-        "invoice_number": 21305,
+        "invoice_number": 20935,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -182,29 +178,9 @@
         "running_balance_gbp": 6.22
       },
       {
-        "date": "2024-05-30",
-        "type": "notice",
-        "invoice_number": 21305,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "First overdue notice -- GBP6.22 outstanding",
-        "running_balance_gbp": 6.22
-      },
-      {
-        "date": "2024-06-20",
-        "type": "notice",
-        "invoice_number": 21305,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "direct_debit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 6.22
-      },
-      {
         "date": "2025-05-09",
         "type": "write_off",
-        "invoice_number": 21305,
+        "invoice_number": 20935,
         "amount_gbp": -6.22,
         "info_amount_gbp": null,
         "method": null,
@@ -332,8 +308,8 @@
     {
       "customer_id": "PROS-2024-0110",
       "date": "2024-08-21",
-      "event_type": "collections_prepayment_offered",
-      "description": "Prepayment meter offered by Consent (SLC 28.22) -- GBP6.22 overdue",
+      "event_type": "collections_prepayment_withheld",
+      "description": "Prepayment meter not offered: a protection bars it (no safe-and-reasonably-practicable finding, SLC 27.6(a)(iii); no self-disconnection watch, SLC 27A; or a hold) -- GBP6.22 overdue",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 6.22,

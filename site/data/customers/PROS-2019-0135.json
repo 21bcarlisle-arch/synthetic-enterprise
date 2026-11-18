@@ -66,7 +66,7 @@
   "world_life_events_outside_supply": [],
   "invoices": [
     {
-      "id": "PROS-2019-0135-INV15941",
+      "id": "PROS-2019-0135-INV15510",
       "date": "2019-05-31",
       "period_start": "2019-05-03",
       "period_end": "2019-05-31",
@@ -131,14 +131,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 15941,
+      "invoice_number": 15510,
       "due_date": "2019-06-19",
       "document_type": "bill"
     },
     {
-      "id": "PROS-2019-0135-INV15942",
+      "id": "PROS-2019-0135-INV15511",
       "date": "2019-06-30",
       "period_start": "2019-06-01",
       "period_end": "2019-06-30",
@@ -203,9 +206,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 15942,
+      "invoice_number": 15511,
       "due_date": "2019-07-25",
       "document_type": "bill"
     }
@@ -216,7 +222,7 @@
       {
         "date": "2019-05-28",
         "type": "payment_received",
-        "invoice_number": 15941,
+        "invoice_number": 15510,
         "amount_gbp": -251.52,
         "info_amount_gbp": null,
         "method": "direct_debit",
@@ -227,27 +233,27 @@
       {
         "date": "2019-06-05",
         "type": "invoice_raised",
-        "invoice_number": 15941,
+        "invoice_number": 15510,
         "amount_gbp": 217.92,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV15941 raised",
+        "description": "Invoice INV15510 raised",
         "running_balance_gbp": -33.6
       },
       {
         "date": "2019-07-11",
         "type": "invoice_raised",
-        "invoice_number": 15942,
+        "invoice_number": 15511,
         "amount_gbp": 123.54,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV15942 raised",
+        "description": "Invoice INV15511 raised",
         "running_balance_gbp": 89.94
       },
       {
         "date": "2019-07-25",
         "type": "payment_received",
-        "invoice_number": 15942,
+        "invoice_number": 15511,
         "amount_gbp": -89.94,
         "info_amount_gbp": null,
         "method": "direct_debit",

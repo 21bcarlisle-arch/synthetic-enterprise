@@ -1,8 +1,8 @@
 {
   "available": true,
-  "generated_at": "2026-11-11T20:04:06Z",
+  "generated_at": "2026-11-18T10:11:06Z",
   "published_from": {
-    "commit": "40a48b5d8414f5a4a29389d400ef103590fdb108",
+    "commit": "49d41097b215a6f432257eb6ddecba9337581d7d",
     "tree_was_clean": false,
     "inputs_are_the_committed_bytes": true,
     "inputs": [
@@ -29,7 +29,7 @@
     ],
     "reason": "every input named here matches this commit, but the tree carried other uncommitted changes, and this generator reads more than the paths it names \u2014 so standing at this commit may still not reproduce this feed"
   },
-  "headline": "Of the 115 disengaged households on the book -- the long-default tail, the least likely to choose at a renewal -- 42 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 603 households their rank correlation is +0.03, inside the -0.08 to +0.09 that shuffling the pairs produces.",
+  "headline": "Of the 111 disengaged households on the book -- the long-default tail, the least likely to choose at a renewal -- 42 are MORE price-sensitive than the book's average household. Whether a household shops and how far price moves it once it does are two different facts in this world: across 608 households their rank correlation is +0.03, inside the -0.08 to +0.08 that shuffling the pairs produces.",
   "definitions": {
     "engagement": "the probability a household enters a choice at a fixed-term renewal: its persistent disposition to shop, times how much more or less its payment method shops (Ofgem Consumer Impacts of Market Conditions survey, wave 6)",
     "elasticity": "how far a price gap moves a household once it is choosing, as a weight whose average over the book is 1.0"
@@ -44,76 +44,76 @@
   "emerged_by_saving": {
     "available": true,
     "captured_at_commit": "beb4f8533",
-    "renewal_decisions": 43,
+    "renewal_decisions": 41,
     "svt_decisions": 1764,
     "by_archetype": [
       {
         "archetype": "active",
-        "households": 270,
+        "households": 286,
         "renewal_roll": {
-          "n": 36,
-          "left": 10,
-          "world_probability_mean": 0.3303,
+          "n": 33,
+          "left": 9,
+          "world_probability_mean": 0.3148,
           "left_ci95": [
-            0.1585,
-            0.4399
+            0.1507,
+            0.4422
           ]
         },
-        "svt_years": 65.7,
+        "svt_years": 58.2,
         "svt_left": 11,
-        "svt_left_per_year": 0.1674,
-        "left_per_household": 0.078,
-        "svt_world_probability_mean": 0.0302,
-        "expected_left_per_household": 0.081
+        "svt_left_per_year": 0.189,
+        "left_per_household": 0.07,
+        "svt_world_probability_mean": 0.0312,
+        "expected_left_per_household": 0.068
       },
       {
         "archetype": "passive",
-        "households": 216,
+        "households": 209,
         "renewal_roll": {
-          "n": 6,
+          "n": 7,
           "left": 0,
           "world_probability_mean": null,
           "left_ci95": null
         },
-        "svt_years": 64.2,
+        "svt_years": 70.1,
         "svt_left": 15,
-        "svt_left_per_year": 0.2335,
-        "left_per_household": 0.069,
-        "svt_world_probability_mean": 0.0322,
-        "expected_left_per_household": 0.058
+        "svt_left_per_year": 0.2138,
+        "left_per_household": 0.072,
+        "svt_world_probability_mean": 0.0321,
+        "expected_left_per_household": 0.068
       },
       {
         "archetype": "disengaged",
-        "households": 115,
+        "households": 111,
         "renewal_roll": {
           "n": 1,
           "left": 0,
           "world_probability_mean": null,
           "left_ci95": null
         },
-        "svt_years": 51.6,
+        "svt_years": 48.0,
         "svt_left": 3,
-        "svt_left_per_year": 0.0581,
-        "left_per_household": 0.026,
-        "svt_world_probability_mean": 0.0134,
+        "svt_left_per_year": 0.0625,
+        "left_per_household": 0.027,
+        "svt_world_probability_mean": 0.0138,
         "expected_left_per_household": 0.033
       }
     ],
     "looked_by_saving": [
       {
         "band": "no saving",
-        "n": 30,
+        "n": 29,
         "left": 7,
-        "world_probability_mean": 0.3428,
+        "world_probability_mean": 0.338,
         "left_ci95": [
-          0.1179,
-          0.4093
+          0.1222,
+          0.4211
         ]
       },
       {
         "band": "up to 5%",
-        "n": 5,
-        "left": 2,
+        "n": 4,
+        "left": 1,
         "world_probability_mean": null,
         "left_ci95": null
       },
@@ -134,49 +134,49 @@
     ],
     "source": "docs/reports/pb4_departure_factors.json"
   },
-  "households": 603,
+  "households": 608,
   "run_base_seed": 20260724,
-  "book_mean_elasticity": 1.0041,
+  "book_mean_elasticity": 0.9936,
   "by_archetype": [
     {
       "archetype": "active",
-      "n": 272,
-      "engagement_mean": 0.501,
+      "n": 288,
+      "engagement_mean": 0.4995,
       "elasticity": {
-        "mean": 1.044,
+        "mean": 1.0151,
         "ci95": [
-          0.9667,
-          1.1213
+          0.9485,
+          1.0818
         ],
-        "n": 272
+        "n": 288
       },
-      "above_book_mean_elasticity": 109
+      "above_book_mean_elasticity": 117
     },
     {
       "archetype": "passive",
-      "n": 216,
-      "engagement_mean": 0.2379,
+      "n": 209,
+      "engagement_mean": 0.2368,
       "elasticity": {
-        "mean": 0.9731,
+        "mean": 0.984,
         "ci95": [
-          0.9001,
-          1.0461
+          0.9025,
+          1.0656
         ],
-        "n": 216
+        "n": 209
       },
-      "above_book_mean_elasticity": 88
+      "above_book_mean_elasticity": 84
     },
     {
       "archetype": "disengaged",
-      "n": 115,
-      "engagement_mean": 0.2018,
+      "n": 111,
+      "engagement_mean": 0.2014,
       "elasticity": {
-        "mean": 0.9678,
+        "mean": 0.9556,
         "ci95": [
-          0.8723,
-          1.0632
+          0.8646,
+          1.0466
         ],
-        "n": 115
+        "n": 111
       },
       "above_book_mean_elasticity": 42
     }
@@ -184,57 +184,57 @@
   "by_channel": [
     {
       "channel": "direct_debit",
-      "n": 436,
-      "engagement_mean": 0.3709,
+      "n": 433,
+      "engagement_mean": 0.3784,
       "elasticity": {
-        "mean": 1.0073,
+        "mean": 0.9917,
         "ci95": [
-          0.9502,
-          1.0643
+          0.9386,
+          1.0449
         ],
-        "n": 436
+        "n": 433
       },
       "above_book_mean_elasticity": 174
     },
     {
       "channel": "standard_credit",
-      "n": 82,
-      "engagement_mean": 0.3877,
-      "elasticity": {
-        "mean": 0.9774,
-        "ci95": [
-          0.8475,
-          1.1072
-        ],
-        "n": 82
-      },
-      "above_book_mean_elasticity": 32
-    },
-    {
-      "channel": "prepayment",
       "n": 85,
-      "engagement_mean": 0.2041,
+      "engagement_mean": 0.3903,
       "elasticity": {
-        "mean": 1.0133,
+        "mean": 1.0167,
         "ci95": [
-          0.9068,
-          1.1198
+          0.8689,
+          1.1644
         ],
         "n": 85
       },
-      "above_book_mean_elasticity": 33
+      "above_book_mean_elasticity": 35
+    },
+    {
+      "channel": "prepayment",
+      "n": 90,
+      "engagement_mean": 0.2074,
+      "elasticity": {
+        "mean": 0.9807,
+        "ci95": [
+          0.8839,
+          1.0774
+        ],
+        "n": 90
+      },
+      "above_book_mean_elasticity": 34
     }
   ],
   "association": {
-    "rho": 0.0253,
-    "n": 603,
-    "null_low": -0.0801,
-    "null_high": 0.0856,
+    "rho": 0.029,
+    "n": 608,
+    "null_low": -0.0844,
+    "null_high": 0.0831,
     "outside_the_null": false,
     "permutations": 2000
   },
   "disengaged_but_price_sensitive": {
-    "disengaged": 115,
+    "disengaged": 111,
     "above_book_mean_elasticity": 42,
     "max_elasticity": 2.8852
   }

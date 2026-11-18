@@ -76,7 +76,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-105-INV27585",
+      "id": "SYN-2016-105-INV27269",
       "date": "2016-03-31",
       "period_start": "2016-03-04",
       "period_end": "2016-03-31",
@@ -130,14 +130,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27585,
+      "invoice_number": 27269,
       "due_date": "2016-04-17",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27586",
+      "id": "SYN-2016-105-INV27270",
       "date": "2016-04-30",
       "period_start": "2016-04-01",
       "period_end": "2016-04-30",
@@ -191,14 +194,25 @@
       "catchup_direction": "undercharge",
       "catchup_raw_delta_gbp": 23.43,
       "catchup_adjustment_gbp": 22.31,
+      "catchup_vat_gbp": 1.12,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": 22.31,
+          "vat_gbp": 1.12
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "SYN-2016-105-INV27269"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 27586,
+      "invoice_number": 27270,
       "due_date": "2016-05-14",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27587",
+      "id": "SYN-2016-105-INV27271",
       "date": "2016-05-31",
       "period_start": "2016-05-01",
       "period_end": "2016-05-31",
@@ -252,14 +266,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27587,
+      "invoice_number": 27271,
       "due_date": "2016-06-16",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27588",
+      "id": "SYN-2016-105-INV27272",
       "date": "2016-06-30",
       "period_start": "2016-06-01",
       "period_end": "2016-06-30",
@@ -313,14 +330,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27588,
+      "invoice_number": 27272,
       "due_date": "2016-07-15",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27589",
+      "id": "SYN-2016-105-INV27273",
       "date": "2016-07-31",
       "period_start": "2016-07-01",
       "period_end": "2016-07-31",
@@ -374,14 +394,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27589,
+      "invoice_number": 27273,
       "due_date": "2016-08-19",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27590",
+      "id": "SYN-2016-105-INV27274",
       "date": "2016-08-31",
       "period_start": "2016-08-01",
       "period_end": "2016-08-31",
@@ -435,14 +458,27 @@
       "catchup_direction": "overcharge",
       "catchup_raw_delta_gbp": -52.7,
       "catchup_adjustment_gbp": -50.19,
+      "catchup_vat_gbp": -2.51,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": -50.19,
+          "vat_gbp": -2.51
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "SYN-2016-105-INV27271",
+        "SYN-2016-105-INV27272",
+        "SYN-2016-105-INV27273"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 27590,
+      "invoice_number": 27274,
       "due_date": "2016-09-18",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27591",
+      "id": "SYN-2016-105-INV27275",
       "date": "2016-09-30",
       "period_start": "2016-09-01",
       "period_end": "2016-09-30",
@@ -496,14 +532,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27591,
+      "invoice_number": 27275,
       "due_date": "2016-10-31",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27592",
+      "id": "SYN-2016-105-INV27276",
       "date": "2016-10-31",
       "period_start": "2016-10-01",
       "period_end": "2016-10-31",
@@ -557,14 +596,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27592,
+      "invoice_number": 27276,
       "due_date": "2016-11-23",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27593",
+      "id": "SYN-2016-105-INV27277",
       "date": "2016-11-30",
       "period_start": "2016-11-01",
       "period_end": "2016-11-30",
@@ -618,14 +660,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27593,
+      "invoice_number": 27277,
       "due_date": "2016-12-14",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27594",
+      "id": "SYN-2016-105-INV27278",
       "date": "2016-12-31",
       "period_start": "2016-12-01",
       "period_end": "2016-12-31",
@@ -679,14 +724,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27594,
+      "invoice_number": 27278,
       "due_date": "2017-01-15",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27595",
+      "id": "SYN-2016-105-INV27279",
       "date": "2017-01-31",
       "period_start": "2017-01-01",
       "period_end": "2017-01-31",
@@ -740,14 +788,26 @@
       "catchup_direction": "undercharge",
       "catchup_raw_delta_gbp": 59.27,
       "catchup_adjustment_gbp": 56.45,
+      "catchup_vat_gbp": 2.82,
+      "catchup_lines_by_rate": [
+        {
+          "rate": 0.05,
+          "net_gbp": 56.45,
+          "vat_gbp": 2.82
+        }
+      ],
+      "catchup_corrects_invoices": [
+        "SYN-2016-105-INV27277",
+        "SYN-2016-105-INV27278"
+      ],
       "catchup_written_off_gbp": 0.0,
       "catchup_back_billing_cap_applied": false,
-      "invoice_number": 27595,
+      "invoice_number": 27279,
       "due_date": "2017-02-14",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27596",
+      "id": "SYN-2016-105-INV27280",
       "date": "2017-02-28",
       "period_start": "2017-02-01",
       "period_end": "2017-02-28",
@@ -801,14 +861,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27596,
+      "invoice_number": 27280,
       "due_date": "2017-03-15",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27597",
+      "id": "SYN-2016-105-INV27281",
       "date": "2017-03-31",
       "period_start": "2017-03-01",
       "period_end": "2017-03-31",
@@ -862,14 +925,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27597,
+      "invoice_number": 27281,
       "due_date": "2017-04-15",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27598",
+      "id": "SYN-2016-105-INV27282",
       "date": "2017-04-30",
       "period_start": "2017-04-01",
       "period_end": "2017-04-30",
@@ -923,14 +989,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27598,
+      "invoice_number": 27282,
       "due_date": "2017-05-16",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27599",
+      "id": "SYN-2016-105-INV27283",
       "date": "2017-05-31",
       "period_start": "2017-05-01",
       "period_end": "2017-05-31",
@@ -984,14 +1053,17 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27599,
+      "invoice_number": 27283,
       "due_date": "2017-06-15",
       "document_type": "bill"
     },
     {
-      "id": "SYN-2016-105-INV27600",
+      "id": "SYN-2016-105-INV27284",
       "date": "2017-06-30",
       "period_start": "2017-06-01",
       "period_end": "2017-06-30",
@@ -1045,9 +1117,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 27600,
+      "invoice_number": 27284,
       "due_date": "2017-07-15",
       "document_type": "bill"
     }
@@ -1058,37 +1133,27 @@
       {
         "date": "2016-04-03",
         "type": "invoice_raised",
-        "invoice_number": 27585,
+        "invoice_number": 27269,
         "amount_gbp": 89.83,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27585 raised",
-        "running_balance_gbp": 89.83
-      },
-      {
-        "date": "2016-04-24",
-        "type": "notice",
-        "invoice_number": 27585,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP89.83 outstanding",
+        "description": "Invoice INV27269 raised",
         "running_balance_gbp": 89.83
       },
       {
         "date": "2016-04-30",
         "type": "invoice_raised",
-        "invoice_number": 27586,
+        "invoice_number": 27270,
         "amount_gbp": 124.84,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27586 raised",
+        "description": "Invoice INV27270 raised",
         "running_balance_gbp": 214.67
       },
       {
         "date": "2016-05-14",
         "type": "payment_received",
-        "invoice_number": 27585,
+        "invoice_number": 27269,
         "amount_gbp": -89.83,
         "info_amount_gbp": null,
         "method": null,
@@ -1096,129 +1161,49 @@
         "running_balance_gbp": 124.84
       },
       {
-        "date": "2016-05-21",
-        "type": "notice",
-        "invoice_number": 27586,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP124.84 outstanding",
-        "running_balance_gbp": 124.84
-      },
-      {
         "date": "2016-06-02",
         "type": "invoice_raised",
-        "invoice_number": 27587,
+        "invoice_number": 27271,
         "amount_gbp": 80.55,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27587 raised",
-        "running_balance_gbp": 205.39
-      },
-      {
-        "date": "2016-06-11",
-        "type": "notice",
-        "invoice_number": 27586,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 205.39
-      },
-      {
-        "date": "2016-06-23",
-        "type": "notice",
-        "invoice_number": 27587,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP80.55 outstanding",
+        "description": "Invoice INV27271 raised",
         "running_balance_gbp": 205.39
       },
       {
         "date": "2016-07-01",
         "type": "invoice_raised",
-        "invoice_number": 27588,
+        "invoice_number": 27272,
         "amount_gbp": 75.01,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27588 raised",
-        "running_balance_gbp": 280.4
-      },
-      {
-        "date": "2016-07-14",
-        "type": "notice",
-        "invoice_number": 27587,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 280.4
-      },
-      {
-        "date": "2016-07-22",
-        "type": "notice",
-        "invoice_number": 27588,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP75.01 outstanding",
+        "description": "Invoice INV27272 raised",
         "running_balance_gbp": 280.4
       },
       {
         "date": "2016-08-05",
         "type": "invoice_raised",
-        "invoice_number": 27589,
+        "invoice_number": 27273,
         "amount_gbp": 75.74,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27589 raised",
-        "running_balance_gbp": 356.14
-      },
-      {
-        "date": "2016-08-12",
-        "type": "notice",
-        "invoice_number": 27588,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 356.14
-      },
-      {
-        "date": "2016-08-26",
-        "type": "notice",
-        "invoice_number": 27589,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP75.74 outstanding",
+        "description": "Invoice INV27273 raised",
         "running_balance_gbp": 356.14
       },
       {
         "date": "2016-09-04",
         "type": "invoice_raised",
-        "invoice_number": 27590,
+        "invoice_number": 27274,
         "amount_gbp": -1.27,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27590 raised",
-        "running_balance_gbp": 354.87
-      },
-      {
-        "date": "2016-09-16",
-        "type": "notice",
-        "invoice_number": 27589,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
+        "description": "Invoice INV27274 raised",
         "running_balance_gbp": 354.87
       },
       {
         "date": "2016-09-18",
         "type": "credit_applied",
-        "invoice_number": 27586,
+        "invoice_number": 27270,
         "amount_gbp": 0.0,
         "info_amount_gbp": null,
         "method": "standard_credit",
@@ -1228,17 +1213,17 @@
       {
         "date": "2016-10-17",
         "type": "invoice_raised",
-        "invoice_number": 27591,
+        "invoice_number": 27275,
         "amount_gbp": 55.06,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27591 raised",
+        "description": "Invoice INV27275 raised",
         "running_balance_gbp": 409.93
       },
       {
         "date": "2016-10-31",
         "type": "payment_received",
-        "invoice_number": 27586,
+        "invoice_number": 27270,
         "amount_gbp": -123.57,
         "info_amount_gbp": null,
         "method": null,
@@ -1248,7 +1233,7 @@
       {
         "date": "2016-10-31",
         "type": "payment_received",
-        "invoice_number": 27587,
+        "invoice_number": 27271,
         "amount_gbp": -1.27,
         "info_amount_gbp": null,
         "method": null,
@@ -1256,59 +1241,29 @@
         "running_balance_gbp": 285.09
       },
       {
-        "date": "2016-11-07",
-        "type": "notice",
-        "invoice_number": 27591,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP55.06 outstanding",
-        "running_balance_gbp": 285.09
-      },
-      {
         "date": "2016-11-09",
         "type": "invoice_raised",
-        "invoice_number": 27592,
+        "invoice_number": 27276,
         "amount_gbp": 84.84,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27592 raised",
-        "running_balance_gbp": 369.93
-      },
-      {
-        "date": "2016-11-28",
-        "type": "notice",
-        "invoice_number": 27591,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 369.93
-      },
-      {
-        "date": "2016-11-30",
-        "type": "notice",
-        "invoice_number": 27592,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP84.84 outstanding",
+        "description": "Invoice INV27276 raised",
         "running_balance_gbp": 369.93
       },
       {
         "date": "2016-11-30",
         "type": "invoice_raised",
-        "invoice_number": 27593,
+        "invoice_number": 27277,
         "amount_gbp": 92.87,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27593 raised",
+        "description": "Invoice INV27277 raised",
         "running_balance_gbp": 462.8
       },
       {
         "date": "2016-12-14",
         "type": "payment_received",
-        "invoice_number": 27587,
+        "invoice_number": 27271,
         "amount_gbp": -79.28,
         "info_amount_gbp": null,
         "method": null,
@@ -1318,7 +1273,7 @@
       {
         "date": "2016-12-14",
         "type": "payment_received",
-        "invoice_number": 27588,
+        "invoice_number": 27272,
         "amount_gbp": -1.27,
         "info_amount_gbp": null,
         "method": null,
@@ -1326,79 +1281,29 @@
         "running_balance_gbp": 382.25
       },
       {
-        "date": "2016-12-21",
-        "type": "notice",
-        "invoice_number": 27592,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 382.25
-      },
-      {
-        "date": "2016-12-21",
-        "type": "notice",
-        "invoice_number": 27593,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP92.87 outstanding",
-        "running_balance_gbp": 382.25
-      },
-      {
         "date": "2017-01-01",
         "type": "invoice_raised",
-        "invoice_number": 27594,
+        "invoice_number": 27278,
         "amount_gbp": 98.21,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27594 raised",
-        "running_balance_gbp": 480.46
-      },
-      {
-        "date": "2017-01-11",
-        "type": "notice",
-        "invoice_number": 27593,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 480.46
-      },
-      {
-        "date": "2017-01-22",
-        "type": "notice",
-        "invoice_number": 27594,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP98.21 outstanding",
+        "description": "Invoice INV27278 raised",
         "running_balance_gbp": 480.46
       },
       {
         "date": "2017-01-31",
         "type": "invoice_raised",
-        "invoice_number": 27595,
+        "invoice_number": 27279,
         "amount_gbp": 204.26,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27595 raised",
-        "running_balance_gbp": 684.72
-      },
-      {
-        "date": "2017-02-12",
-        "type": "notice",
-        "invoice_number": 27594,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
+        "description": "Invoice INV27279 raised",
         "running_balance_gbp": 684.72
       },
       {
         "date": "2017-02-14",
         "type": "payment_received",
-        "invoice_number": 27588,
+        "invoice_number": 27272,
         "amount_gbp": -73.74,
         "info_amount_gbp": null,
         "method": null,
@@ -1408,7 +1313,7 @@
       {
         "date": "2017-02-14",
         "type": "payment_received",
-        "invoice_number": 27589,
+        "invoice_number": 27273,
         "amount_gbp": -1.27,
         "info_amount_gbp": null,
         "method": null,
@@ -1416,39 +1321,19 @@
         "running_balance_gbp": 609.71
       },
       {
-        "date": "2017-02-21",
-        "type": "notice",
-        "invoice_number": 27595,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP204.26 outstanding",
-        "running_balance_gbp": 609.71
-      },
-      {
         "date": "2017-03-01",
         "type": "invoice_raised",
-        "invoice_number": 27596,
+        "invoice_number": 27280,
         "amount_gbp": 95.35,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27596 raised",
-        "running_balance_gbp": 705.06
-      },
-      {
-        "date": "2017-03-14",
-        "type": "notice",
-        "invoice_number": 27595,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
+        "description": "Invoice INV27280 raised",
         "running_balance_gbp": 705.06
       },
       {
         "date": "2017-03-15",
         "type": "payment_received",
-        "invoice_number": 27589,
+        "invoice_number": 27273,
         "amount_gbp": -74.47,
         "info_amount_gbp": null,
         "method": null,
@@ -1458,7 +1343,7 @@
       {
         "date": "2017-03-15",
         "type": "payment_received",
-        "invoice_number": 27591,
+        "invoice_number": 27275,
         "amount_gbp": -1.27,
         "info_amount_gbp": null,
         "method": null,
@@ -1466,69 +1351,29 @@
         "running_balance_gbp": 629.32
       },
       {
-        "date": "2017-03-22",
-        "type": "notice",
-        "invoice_number": 27596,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP95.35 outstanding",
-        "running_balance_gbp": 629.32
-      },
-      {
         "date": "2017-04-01",
         "type": "invoice_raised",
-        "invoice_number": 27597,
+        "invoice_number": 27281,
         "amount_gbp": 125.11,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27597 raised",
-        "running_balance_gbp": 754.43
-      },
-      {
-        "date": "2017-04-12",
-        "type": "notice",
-        "invoice_number": 27596,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 754.43
-      },
-      {
-        "date": "2017-04-22",
-        "type": "notice",
-        "invoice_number": 27597,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP125.11 outstanding",
+        "description": "Invoice INV27281 raised",
         "running_balance_gbp": 754.43
       },
       {
         "date": "2017-05-02",
         "type": "invoice_raised",
-        "invoice_number": 27598,
+        "invoice_number": 27282,
         "amount_gbp": 115.05,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27598 raised",
-        "running_balance_gbp": 869.48
-      },
-      {
-        "date": "2017-05-13",
-        "type": "notice",
-        "invoice_number": 27597,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
+        "description": "Invoice INV27282 raised",
         "running_balance_gbp": 869.48
       },
       {
         "date": "2017-05-16",
         "type": "payment_received",
-        "invoice_number": 27591,
+        "invoice_number": 27275,
         "amount_gbp": -53.79,
         "info_amount_gbp": null,
         "method": null,
@@ -1538,7 +1383,7 @@
       {
         "date": "2017-05-16",
         "type": "payment_received",
-        "invoice_number": 27592,
+        "invoice_number": 27276,
         "amount_gbp": -1.27,
         "info_amount_gbp": null,
         "method": null,
@@ -1546,69 +1391,29 @@
         "running_balance_gbp": 814.42
       },
       {
-        "date": "2017-05-23",
-        "type": "notice",
-        "invoice_number": 27598,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP115.05 outstanding",
-        "running_balance_gbp": 814.42
-      },
-      {
         "date": "2017-06-01",
         "type": "invoice_raised",
-        "invoice_number": 27599,
+        "invoice_number": 27283,
         "amount_gbp": 103.31,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27599 raised",
-        "running_balance_gbp": 917.73
-      },
-      {
-        "date": "2017-06-13",
-        "type": "notice",
-        "invoice_number": 27598,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 917.73
-      },
-      {
-        "date": "2017-06-22",
-        "type": "notice",
-        "invoice_number": 27599,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP103.31 outstanding",
+        "description": "Invoice INV27283 raised",
         "running_balance_gbp": 917.73
       },
       {
         "date": "2017-07-01",
         "type": "invoice_raised",
-        "invoice_number": 27600,
+        "invoice_number": 27284,
         "amount_gbp": 96.15,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV27600 raised",
-        "running_balance_gbp": 1013.88
-      },
-      {
-        "date": "2017-07-13",
-        "type": "notice",
-        "invoice_number": 27599,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
+        "description": "Invoice INV27284 raised",
         "running_balance_gbp": 1013.88
       },
       {
         "date": "2017-07-15",
         "type": "payment_received",
-        "invoice_number": 27592,
+        "invoice_number": 27276,
         "amount_gbp": -83.57,
         "info_amount_gbp": null,
         "method": null,
@@ -1618,7 +1423,7 @@
       {
         "date": "2017-07-15",
         "type": "payment_received",
-        "invoice_number": 27593,
+        "invoice_number": 27277,
         "amount_gbp": -1.27,
         "info_amount_gbp": null,
         "method": null,
@@ -1626,29 +1431,9 @@
         "running_balance_gbp": 929.04
       },
       {
-        "date": "2017-07-22",
-        "type": "notice",
-        "invoice_number": 27600,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "First overdue notice -- GBP96.15 outstanding",
-        "running_balance_gbp": 929.04
-      },
-      {
-        "date": "2017-08-12",
-        "type": "notice",
-        "invoice_number": 27600,
-        "amount_gbp": 0.0,
-        "info_amount_gbp": null,
-        "method": "standard_credit",
-        "description": "Second notice -- payment plan offered",
-        "running_balance_gbp": 929.04
-      },
-      {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27593,
+        "invoice_number": 27277,
         "amount_gbp": -91.6,
         "info_amount_gbp": null,
         "method": null,
@@ -1658,7 +1443,7 @@
       {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27594,
+        "invoice_number": 27278,
         "amount_gbp": -98.21,
         "info_amount_gbp": null,
         "method": null,
@@ -1668,7 +1453,7 @@
       {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27595,
+        "invoice_number": 27279,
         "amount_gbp": -204.26,
         "info_amount_gbp": null,
         "method": null,
@@ -1678,7 +1463,7 @@
       {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27596,
+        "invoice_number": 27280,
         "amount_gbp": -95.35,
         "info_amount_gbp": null,
         "method": null,
@@ -1688,7 +1473,7 @@
       {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27597,
+        "invoice_number": 27281,
         "amount_gbp": -125.11,
         "info_amount_gbp": null,
         "method": null,
@@ -1698,7 +1483,7 @@
       {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27598,
+        "invoice_number": 27282,
         "amount_gbp": -115.05,
         "info_amount_gbp": null,
         "method": null,
@@ -1708,7 +1493,7 @@
       {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27599,
+        "invoice_number": 27283,
         "amount_gbp": -103.31,
         "info_amount_gbp": null,
         "method": null,
@@ -1718,7 +1503,7 @@
       {
         "date": "2018-07-01",
         "type": "write_off",
-        "invoice_number": 27600,
+        "invoice_number": 27284,
         "amount_gbp": -96.15,
         "info_amount_gbp": null,
         "method": null,
@@ -1728,7 +1513,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27593,
+        "invoice_number": 27277,
         "amount_gbp": 0.0,
         "info_amount_gbp": 11.18,
         "method": "dca",
@@ -1738,7 +1523,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27594,
+        "invoice_number": 27278,
         "amount_gbp": 0.0,
         "info_amount_gbp": 11.98,
         "method": "dca",
@@ -1748,7 +1533,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27595,
+        "invoice_number": 27279,
         "amount_gbp": 0.0,
         "info_amount_gbp": 24.92,
         "method": "dca",
@@ -1758,7 +1543,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27596,
+        "invoice_number": 27280,
         "amount_gbp": 0.0,
         "info_amount_gbp": 11.63,
         "method": "dca",
@@ -1768,7 +1553,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27597,
+        "invoice_number": 27281,
         "amount_gbp": 0.0,
         "info_amount_gbp": 15.26,
         "method": "dca",
@@ -1778,7 +1563,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27598,
+        "invoice_number": 27282,
         "amount_gbp": 0.0,
         "info_amount_gbp": 14.04,
         "method": "dca",
@@ -1788,7 +1573,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27599,
+        "invoice_number": 27283,
         "amount_gbp": 0.0,
         "info_amount_gbp": 12.6,
         "method": "dca",
@@ -1798,7 +1583,7 @@
       {
         "date": "2019-01-27",
         "type": "recovery_note",
-        "invoice_number": 27600,
+        "invoice_number": 27284,
         "amount_gbp": 0.0,
         "info_amount_gbp": 11.73,
         "method": "dca",
@@ -2074,8 +1859,8 @@
     {
       "customer_id": "SYN-2016-105",
       "date": "2016-08-12",
-      "event_type": "collections_prepayment_offered",
-      "description": "Prepayment meter offered by Consent (SLC 28.22) -- GBP356.14 overdue",
+      "event_type": "collections_prepayment_withheld",
+      "description": "Prepayment meter not offered: a protection bars it (no safe-and-reasonably-practicable finding, SLC 27.6(a)(iii); no self-disconnection watch, SLC 27A; or a hold) -- GBP356.14 overdue",
       "company_belief": null,
       "sim_truth": null,
       "amount_gbp": 356.14,

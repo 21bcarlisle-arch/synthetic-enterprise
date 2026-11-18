@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-11T20:09:04.318247+00:00",
+  "generated_at": "2026-11-18T10:16:06.559644+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -13,8 +13,8 @@
     "reserved_changed": 1,
     "reserved_added": 1,
     "reserved_cleared": 0,
-    "daemons_flipped": 9,
-    "daemons_newly_stale": 9,
+    "daemons_flipped": 4,
+    "daemons_newly_stale": 4,
     "daemons_recovered": 0,
     "daemons_appeared": 0,
     "daemons_disappeared": 0,
@@ -22,9 +22,9 @@
   },
   "changes": [
     "reserved queue: 1 added (publish_gate_wedged)",
-    "9 daemon(s) went stale: background-worker, discovery-daemon, dispatcher, epistemic-verifier, ntfy-responder, sanity-daemon, sim-runner, staging-watcher, supervisor",
+    "4 daemon(s) went stale: discovery-daemon, dispatcher, epistemic-verifier, ntfy-responder",
     "twin canon_version: 3 -> 4",
-    "total_open_atoms: 55 -> 99"
+    "total_open_atoms: 55 -> 98"
   ],
   "detail": {
     "new_decisions": [],
@@ -33,15 +33,10 @@
     ],
     "reserved_cleared": [],
     "daemons_newly_stale": [
-      "background-worker",
       "discovery-daemon",
       "dispatcher",
       "epistemic-verifier",
-      "ntfy-responder",
-      "sanity-daemon",
-      "sim-runner",
-      "staging-watcher",
-      "supervisor"
+      "ntfy-responder"
     ],
     "daemons_recovered": [],
     "daemons_appeared": [],
@@ -57,7 +52,7 @@
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 99
+        "to": 98
       }
     ]
   },
@@ -69,17 +64,17 @@
     ],
     "daemon_status": {
       "session-watchdog": "stale",
-      "staging-watcher": "stale",
+      "staging-watcher": "live",
       "discovery-daemon": "stale",
-      "sim-runner": "stale",
+      "sim-runner": "live",
       "dispatcher": "stale",
       "ntfy-responder": "stale",
       "autonomous-runner": "retired",
-      "background-worker": "stale",
+      "background-worker": "live",
       "epistemic-verifier": "stale",
       "discovery-agent": "stale",
-      "supervisor": "stale",
-      "sanity-daemon": "stale",
+      "supervisor": "live",
+      "sanity-daemon": "live",
       "director-comments": "stale",
       "build-executor": "stale"
     },
@@ -89,11 +84,11 @@
       "overturned": 0,
       "canon_version": 4
     },
-    "open_atoms": 99
+    "open_atoms": 98
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-11-02T12:14:12.867844+00:00",
-    "health_last_updated": "2026-11-11T19:40:58.025083+00:00",
+    "reserved_generated_at": "2026-11-17T12:39:42.456362+00:00",
+    "health_last_updated": "2026-11-18T10:15:44.552612+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }

@@ -80,7 +80,7 @@
   ],
   "invoices": [
     {
-      "id": "SYN-2016-266-INV36459",
+      "id": "SYN-2016-266-INV36143",
       "date": "2016-06-13",
       "period_start": "2016-06-08",
       "period_end": "2016-06-13",
@@ -134,9 +134,12 @@
       "catchup_direction": null,
       "catchup_raw_delta_gbp": null,
       "catchup_adjustment_gbp": null,
+      "catchup_vat_gbp": null,
+      "catchup_lines_by_rate": null,
+      "catchup_corrects_invoices": null,
       "catchup_written_off_gbp": null,
       "catchup_back_billing_cap_applied": null,
-      "invoice_number": 36459,
+      "invoice_number": 36143,
       "due_date": "2016-07-05",
       "document_type": "prepayment_statement"
     }
@@ -147,17 +150,17 @@
       {
         "date": "2016-06-21",
         "type": "invoice_raised",
-        "invoice_number": 36459,
+        "invoice_number": 36143,
         "amount_gbp": 7.36,
         "info_amount_gbp": null,
         "method": null,
-        "description": "Invoice INV36459 raised",
+        "description": "Invoice INV36143 raised",
         "running_balance_gbp": 7.36
       },
       {
         "date": "2016-07-05",
         "type": "payment_received",
-        "invoice_number": 36459,
+        "invoice_number": 36143,
         "amount_gbp": -7.36,
         "info_amount_gbp": null,
         "method": "prepayment",
