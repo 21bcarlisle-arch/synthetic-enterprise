@@ -179,20 +179,65 @@ customer. Oxera gives only the sign for failed firms, not a level.
 | **S2 Short-hedged growth book** | 20% / 15% (Avro) | c. 80% (Avro) | negative (sign only) | **GAP** | failed Sep-21 | yes, same GAPs |
 | **S3 Well hedged on negative equity** | 87–91% / 70–95% (PFP, Together) | c. 40% (PFP) | negative (sign only) | SVT stepped 100% → 20% over 6m (Together) | failed Sep-21 to Jan-22 | yes, same GAPs |
 | **S4 Fixed fully hedged, SVT unhedged beyond 3m** | fixed 100% / 100%; SVT 100% / 0% (Pure Planet) | peak c. 25% | negative (sign only) | **GAP** | failed Oct-21 | yes, same GAPs |
-| **S5 Hedged at length and capitalised** | **GAP** ("significant proportion over an extended period") | **GAP** ("limited reliance" is not quoted for any survivor) | **GAP** (positive) | **GAP** | survived | **NO: every parameter is GAP** |
+| **S5 Hedged to the cap's own reference profile** | the cap's 6-2-12 index (NERA for Ofgem, 2022; see §S5 below). OVO: "the majority of customers on fixed price contracts", hedged forward | £65 (large) to £80 (small) per customer, Sep–Dec 2021 average net of unbilled (NERA) | **not the discriminator:** OVO's licensee had **−£443m** and survived on parent support; Octopus group **+£98m** (see §S5) | majority fixed (OVO, sign only) | survived | **hedge only.** Equity is swept for S5 too, across both signs |
 | S6 Variable-only | — | — | — | — | — | **dropped:** no published firm is variable-only. Pure Planet (S4) is the nearest. |
 
-Under the steer's rule ("a strategy with too many GAPs is dropped, with the reason"), **S5, the only survivor
-strategy, cannot be defined from the reviews read.** Without a survivor, the test can check only that the world kills
-S1–S4. It cannot check that the world separates them from a strategy reality spared. A world that killed every supplier
-would pass. **This is the test's binding gap**, and it is named here before any run.
+Under the steer's rule ("a strategy with too many GAPs is dropped, with the reason"), S5 could not be defined from
+Oxera and the NAO alone. The continuation below sourced its hedge. It also found that equity does not separate the
+tiers at the level of the licensed company.
 
-Where S5 could be sourced (none read yet):
+## §S5: what the survivors' published record gives (continuation, 18 Nov 2026)
 
-- audited accounts of named survivors for FY2020 (Companies House: equity and current ratio are published);
-- Ofgem's 2022 financial-resilience consultations, which may give market-level hedging distributions;
-- named-firm disclosures, e.g. Good Energy's ">90% hedged for next 12 months" (Oct 2021). That is cited in
-  `company_treasury_risk.md` but **not re-verified here**.
+Fetched and read 18 Nov 2026. Text-layer PDFs were read with `pdftotext`. OVO's filed accounts are scanned images and
+were read page by page.
+
+- **OVO Energy Ltd, full accounts to 31 Dec 2020** (Companies House 06890795, filed 2 Oct 2021, 50 pages). Balance
+  sheet, p.14: current assets £833m against creditors due within one year £1,718m, so **a current ratio of about
+  0.48**. **Net liabilities of £443m** (2019: £188m). Loss for the year £255m. Directors' report, p.8: "The Company made
+  a loss for the year ending 31 December 2020 and has net liabilities … preparing the financial statements on the going
+  concern basis is appropriate due to the continued financial support of the parent company OVO Group Ltd." Strategic
+  report, p.4: "The Company manages commodity price risk by securing gas and electricity under forward contracts and by
+  supplying the majority of customers on fixed price contracts." No hedge percentage or horizon is given. **The licensed
+  supplier of one of Oxera's named survivors had worse equity and a worse current ratio than most of the failed firms
+  in Table 3.3, and survived.** It did so on a parent's written support.
+- **Octopus Energy Group, FY to 30 Apr 2020** (press release, octopus.energy): "year end net assets to +£98m", with 1.4m
+  households (2.3m accounts). FY to 30 Apr 2021: net assets £231m, 2.1m households. These are group figures. They
+  include non-supply businesses and "strategic investment", not the licensee alone. No hedging figure is given.
+- **Ofgem, *Strengthening Financial Resilience*: policy consultation (20 Jun 2022), statutory consultation (Nov 2022)
+  and decision (5 Apr 2023).** June 2022, §6.8: "for small and medium suppliers, all failed suppliers had negative
+  equity balances at the end of FY2020". **The claim is scoped to small and medium suppliers.** The equity charts
+  (Figures 5–6) are images, with no data. Nov 2022, §1.35: "suppliers must hold £110-220 per customer net assets by
+  March 2025". April 2023: "Capital Target equivalent to £130 Adjusted Net Assets per dual fuel domestic customer".
+  **That target is set from the capital employed allowed in the price cap**: "closely informed by the level of
+  'capital employed' on which suppliers receive a return under the EBIT allowance". It is not calibrated to 2021–22
+  survival, and the instrument does not use it as a survival threshold. No document read gives a hedge percentage for
+  any active supplier.
+- **NERA for Ofgem (Jun 2022), *Proposed Reforms on Protecting Credit Balances and Renewables Obligations*.** The cap's
+  wholesale index assumed "the 6-2-12 hedging strategy used by Ofgem throughout 2021" (fn 53). The repository already
+  holds its delivery axis:
+  `the_published_forward_gets_its_delivery_axis_from_the_cap_indexation_rule_2026-10-10.md`. Credit balances, the
+  Sep–Dec 2021 average net of unbilled: "£80 per annum [small suppliers] and those of large suppliers £65" (p.80).
+  Table 5.7 (p.33) gives a per-customer credit balance of £102 (small) and £72 (large).
+- **Good Energy, 11 Oct 2021 ">90% hedged for the next 12 months".** **Still not verified:** the RNS is refused (HTTP
+  403), and the only readable copy is a press headline, "90% hedged". It is not used as a parameter.
+
+**What this changes.**
+
+1. **S5's hedge is sourced:** a book hedged on the cap's own 6-2-12 reference profile. That is the published strategy a
+   cap-tracking supplier would run. By construction it is the profile least exposed to the cap's lag. It is the
+   strongest survivor hedge the record defines, not the survivors' measured hedge, which is still unpublished.
+2. **Equity does not separate the tiers at the licensee.** Oxera's and Ofgem's "all failed had negative equity" holds
+   for small and medium firms. It does not license "survivors had positive equity": a named large survivor's licensee
+   was −£443m and survived on parent support. **What separated OVO from Bulb is not on any balance sheet read here.
+   GAP:** whether external capital (a parent's support, a buyer or a strategic investor) arrives under stress is
+   itself the survivor variable. That is a fact about owners, not about the world. **The instrument therefore cannot
+   test survival as "cash stays above zero from a given equity".** It can test whether the world puts a materially
+   larger cash hole in S1–S4 than in S5. Survival then becomes "the hole is small enough that someone funds it". The
+   size a funder would accept is GAP, so it is swept and never picked.
+3. **The two-tier ranking stands, restated as a hole, not a death:** the peak cumulative strategy cash shortfall per
+   customer, Jul 2021 to Mar 2022, should be larger for each of S1–S4 than for S5. A world that gave S5 a hole as large
+   as S1's would contradict Oxera p.56–57 ("hedging a significant proportion of demand exposure over an extended period
+   of time (most active suppliers)").
 
 ## Our design's choices, and what is left open
 
@@ -201,17 +246,19 @@ Where S5 could be sourced (none read yet):
 - **The world's half is what is being tested:** the 2021–22 wholesale path, the cap's six-month reset, and the
   default-tariff customer's freedom to leave. A strategy's own balance sheet (equity, credit balances, a hedge ladder) is
   stated by the instrument from this page and is not drawn by the world.
-- **Not yet established: whether the world can run a stylised supplier's cash path at all**, outside the company. That
-  is a discovery question about our code, for the next step, not a domain question.
+- **Discovery, 18 Nov 2026:** the world holds every input (the cap's published windows, the weekly reference forward
+  with its delivery axis, Elexon MID, a monthly TTF gas proxy, annual leaver rates). It has no composer that runs a
+  supplier's cash path outside the company. The inputs, their gaps and the pre-registered test are in
+  `docs/staging/records/SEAT_PREREG_THE_WORLD_PUTS_A_BIGGER_CASH_HOLE_IN_THE_FAILED_STRATEGIES_THAN_IN_THE_CAP_TRACKING_SURVIVOR_2026-11-18.md`.
 - **Equity levels for S1–S4:** the reviews give only the sign. Any level below zero is consistent with them. The
   instrument should sweep a range below zero rather than pick a point, and report whether the verdict depends on it.
 
 ## Gaps, in one list
 
-- Survivors' hedging, credit-balance share, current ratio and equity (decides whether S5 exists).
+- Survivors' measured hedge (S5 takes the cap's 6-2-12 reference profile instead). Survivors' licensee equity: one read (OVO, −£443m). Whether and when external capital arrives under stress: the survivor variable, unpublished.
 - Fixed-tariff share for each firm, failed or surviving.
 - Equity levels (only the sign is published for failed firms).
 - Bulb's hedging and balance-sheet figures from a primary source.
 - How widely the timing and growth models were used (the NAO says this cannot be determined from Ofgem's information).
-- The BEIS Committee report HC 236, Ofgem's SoLR decision pages, and the 2022 financial-resilience consultations
-  (unread).
+- The BEIS Committee report HC 236 and Ofgem's SoLR decision pages (unread). The 2022 resilience consultations were read 18 Nov 2026 (§S5).
+- Good Energy's Oct 2021 hedge disclosure (the RNS is refused; headline only).
