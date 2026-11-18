@@ -1635,6 +1635,13 @@ asks for, read from the event and not from `retention_log`.
 stage has launched, also stop its `longjob-*` unit. The plan's files are in `/var/tmp/box-plan/`, and each
 watcher logs to `<unit>.log` there.
 
-**Not done here.** The threshold-skip grade's reader. It needs to count the 9 flips' `retention_offered` and
-`retention_considered_on_save_odds` in `vts-out-skip1`, plus the value-arm money of skip1 against skip0. It can
-be written and dry-run on any sidecar before the run lands, and it is handed on.
+**The reader, written 00:55Z, before either run exists** (*correction beside it: the line this replaces said it
+was handed on*). `/var/tmp/vts-driver/read_threshold_skip.py` reads the skip1 run's value arm. For each of the
+9 flips it prints `retention_considered_on_save_odds`, `retention_offered` and the outcome. It grades against
+§12c's line (6 or more re-offered held, 3 or fewer refuted). It prints the value-arm money two ways and grades
+neither: skip1 minus skip0, and skip1 minus the twin, both in £ per household-year using `grade_paired_gbp.py`'s
+method. It exits 2 if a flip renewal is absent or unlogged, or if a run's `tree_patch` is not the pinned one.
+It was dry-run by putting A's §12a sidecars in place of both skip runs. All 9 flips were found, and all 9 were
+reported unlogged, because those sidecars predate the offer fields, so it exited 2. A against itself gave £0.000.
+A against the twin gave **−£1.207 (−£2.32 to −£0.37)**, which reproduces §12a's −£1.21. Stage 2's job runs it
+after both flags and writes `/var/tmp/vts-driver/read_threshold_skip.out`.
