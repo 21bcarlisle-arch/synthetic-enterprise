@@ -653,3 +653,41 @@ def test_the_skip_and_the_timeout_stamp_the_clock_the_same_way(tmp_path, monkeyp
         assert set(written) == {"last_run_ts", "rc", "git_hash", "outcome", "reason"}, (
             f"the {label} path wrote a different shape from its sibling")
         assert written["rc"] is None and written["outcome"] == "unavailable"
+
+
+def test_a_re_pause_in_an_identical_state_commits_nothing_and_a_changed_one_still_lands(
+        tmp_path, monkeypatch):
+    """Six of seven banner commits on 17 Nov moved `written_at` and nothing else (faa1fea4f,
+    893a243d6, db8e59e47, 3af982db4, da4e1b310, 37dbb1c5e); 310056adb changed the gate and the
+    reason and is the kind that must still land. One control over the whole partition: the skip
+    CAN be taken, a real change still commits, and an unreadable committed copy still commits."""
+    p = tmp_path / "publish_provenance.json"
+    monkeypatch.setattr(prov, "PROVENANCE_FILE", p)
+    import background._seat as seat
+    monkeypatch.setattr(seat, "is_resident_seat", lambda: True)
+    prov.record_verified(run_id=VERIFIED_RUN_ID, git_commit=VERIFIED_SHA, path=p,
+                         population={"accounts": 251, "bills": 10948,
+                                     "total_revenue_gbp": 801199.0})
+    prov.record_paused(reason="2 invariants broken", gate="Refused: 2 rules", path=p)
+    committed = dict(prov.read(p), written_at="2026-11-17T21:30:17Z")  # an older clock
+
+    commits = []
+    monkeypatch.setattr(prc, "_committed_provenance", lambda _t: committed)
+    monkeypatch.setattr(prc, "_commit_and_push_paths",
+                        lambda paths, msg, **k: commits.append(list(paths)) or True)
+
+    same = prc._publish_provenance_banner("abc", reason="2 invariants broken",
+                                          gate="Refused: 2 rules")
+    assert prov.read(p)["written_at"] != committed["written_at"], "the clock did not move"
+    skipped = not commits and same is False
+
+    changed = prc._publish_provenance_banner("abc", reason="1 invariant broken",
+                                             gate="Refused: 1 rule")
+    landed_on_change = commits == [[str(p)]] and changed is True
+
+    monkeypatch.setattr(prc, "_committed_provenance", lambda _t: None)
+    prc._publish_provenance_banner("abc", reason="1 invariant broken", gate="Refused: 1 rule")
+    landed_when_unreadable = len(commits) == 2
+
+    assert skipped and landed_on_change and landed_when_unreadable, (
+        skipped, landed_on_change, landed_when_unreadable)

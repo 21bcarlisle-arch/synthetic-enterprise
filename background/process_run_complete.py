@@ -8932,6 +8932,14 @@ def _publish_provenance_banner(git_hash, *, reason=None, gate=None):
         log("Provenance banner write failed (non-fatal): {}".format(exc))
         return False
 
+    # A RE-PAUSE IN AN IDENTICAL STATE IS NOT NEWS. The site already says exactly this; the only
+    # field `record_paused` moved is the write clock. Committing it anyway cost a commit on
+    # origin per red cycle (six on 17 Nov) and lengthened every other landing's race.
+    if not _prov.differs_beyond_clock(state, _committed_provenance(target)):
+        log("Provenance banner unchanged beyond written_at -- the committed banner already says "
+            "this; no commit.")
+        return False
+
     msg = ("chore(provenance): verification paused banner (git={}) -- the site keeps serving "
            "the last VERIFIED run and now says so; no unverified figure published "
            "(DIRECTOR_RULING_PUBLISH_DECOUPLING_2026-08-10 property 3)".format(git_hash))
@@ -8940,6 +8948,17 @@ def _publish_provenance_banner(git_hash, *, reason=None, gate=None):
     except Exception as exc:  # noqa: BLE001 -- see docstring
         log("Provenance banner publish raised (non-fatal): {}".format(exc))
         return False
+
+
+def _committed_provenance(target):
+    """The provenance file as HEAD has it, or None when git cannot say (never raises)."""
+    try:
+        rel = Path(target).resolve().relative_to(PROJECT_DIR.resolve()).as_posix()
+        out = subprocess.run(["git", "show", "HEAD:" + rel], cwd=str(PROJECT_DIR),
+                             capture_output=True, text=True, timeout=30)
+        return json.loads(out.stdout) if out.returncode == 0 and out.stdout.strip() else None
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
 
 
 def _provenance_is_publishable(paths, *, label="publish") -> bool:

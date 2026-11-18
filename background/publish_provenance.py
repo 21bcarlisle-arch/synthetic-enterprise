@@ -358,6 +358,26 @@ def read(path: Path = None) -> dict:
     return base
 
 
+#: Fields `_write` restamps on EVERY call. A pause re-recorded in an identical state differs from
+#: the committed copy here and nowhere else, and a commit carrying only this is a commit that says
+#: nothing: six of the seven banners on 17 Nov were exactly that, each one lengthening every other
+#: landing's race to origin.
+CLOCK_ONLY_FIELDS = frozenset({"written_at"})
+
+
+def differs_beyond_clock(state: dict, committed) -> bool:
+    """True iff `state` says something `committed` does not, ignoring `CLOCK_ONLY_FIELDS`.
+
+    `committed` is None when the published copy cannot be read; that answers True, because a
+    banner we cannot compare is a banner we publish -- skipping it would be the silent site.
+    """
+    if not isinstance(committed, dict):
+        return True
+    def _strip(d):
+        return {k: v for k, v in d.items() if k not in CLOCK_ONLY_FIELDS}
+    return _strip(state) != _strip(committed)
+
+
 def _write(state: dict, path: Path = None, now=None) -> dict:
     path = path or PROVENANCE_FILE
     state["schema"] = SCHEMA_VERSION
