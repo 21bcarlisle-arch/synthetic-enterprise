@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- STILL PARKED.** Condition, re-stated 2026-11-18: `W1_6b_merit_order_reconstruction` reaching level 3. It is at L2, loop_stage build, blocked_on null, so the condition is unmet but drawable.
+
 <!-- SUPERVISOR_DRAW: blocked -->
 <!-- STAYS BLOCKED 2026-08-13, and this is the one of the five that genuinely cannot be released
   (director: "or name in one line each why it genuinely can't be").

@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** The open half was parked on 'needs a network-access session'. The harness now has the `discovery-agent` and `web-fetch` agents for published sources, so EPC-certificate staleness and the absence correlation are knowledge work, drawable now.
+
 # ADVISOR FINDINGS — the EPC register in this simulation is never wrong, only absent or vague, and the absence carries no information
 **Knowledge:** none -- a director or advisor ruling, steer or record, not domain research
 

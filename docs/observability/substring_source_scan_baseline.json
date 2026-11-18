@@ -413,6 +413,12 @@
       "subject": "python"
     },
     {
+      "path": "tests/architecture/test_every_hook_command_is_project_anchored.py",
+      "function": "unanchored",
+      "subject": "unknown",
+      "reason": "non-Python subject: the tokens scanned are shell command strings read from .claude/settings.json, never Python source"
+    },
+    {
       "path": "tests/architecture/test_household_identity_is_the_worlds.py",
       "function": "test_the_two_switched_call_sites_still_ask_the_world",
       "subject": "unknown"

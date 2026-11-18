@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- SUPERSEDED.** Item 1 landed (6cdbbbff). Item 2 is carried by the map row `H8_harness_bootstrap_dr` (L0, idle). The held sub-item, retiring the `flag_unregistered_blocking_question` Stop hook, is moot: no hook command in `.claude/settings.json` names it today, and NTFY was mothballed 15 Oct.
+
 **IN PROGRESS (2026-07-13):** Item 1 (redesign) DONE -- commit 6cdbbbff:
 background/action_needed.py::escalate_if_one_way_door() built, tested, live end-to-end
 NTFY-verified; hmac:invalid reconciliation confirmed already-answered-and-still-true.

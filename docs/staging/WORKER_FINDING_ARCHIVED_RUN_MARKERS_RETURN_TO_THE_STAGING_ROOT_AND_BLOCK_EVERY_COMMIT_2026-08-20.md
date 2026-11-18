@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Its condition was 'the next occurrence'. `docs/observability/staging_root_resurrection.jsonl` holds 97 records, the latest at 2026-11-18 03:47. Steps 2 and 3, naming the writer from those records, are drawable now.
+
 **Severity:** BLOCKING · **Lane:** H_harness
 
 > **STILL OPEN, AND WHAT IS OPEN IS THE CAUSE.** Step 1 below — the instrument — is BUILT

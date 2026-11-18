@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- STILL PARKED.** Condition, re-stated 2026-11-18: the `EP13_adapter_carbon_intensity` row is loop_stage idle, parked on its block_reason since 2026-10-05 (after s43). This reading resumes when that row leaves idle.
+
 **Severity:** LATENT · **Lane:** W4_the_wall · **Rank:** top of EP13, before any L3 claim
 
 # The EP13 embedded-generation bound's artefact is stale, and its own oracle rung refuses the reading

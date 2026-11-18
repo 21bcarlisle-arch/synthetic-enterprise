@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- SUPERSEDED.** The wall half landed (KNIFE1 7cef2c1d4, KNIFE2). The working-tree level evidence half is carried by the later rule that a level move is recorded and never authorised, and that the commit-time half of `background/gate_authorization.py` (around l.518) reads the lane's state when the commit is made. The 9 Aug promotions it asked to re-audit were NOT re-run one by one; said plainly.
+
 > **PARKED IN `in_progress/` 2026-08-09 by the unwedge tick — one sub-item genuinely open.**
 >
 > **DONE:** item 1. KNIFE1's cut landed at `7cef2c1d4`; KNIFE2's — the sixteen

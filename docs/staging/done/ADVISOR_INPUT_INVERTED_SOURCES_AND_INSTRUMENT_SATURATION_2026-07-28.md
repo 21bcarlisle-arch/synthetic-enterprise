@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- SUPERSEDED (rejected with reason, as its own header invites).** Its proposal is an overhang register. CLAUDE.md (2026-08-28): 'When a one-leg check would catch the defect, ship the one leg and delete the register you were about to write.' No gap that the register would catch is named today without one.
+
 <!-- SUPERVISOR_DRAW: blocked -->
 <!-- INPUT ONLY. Mints nothing, ranks nothing, opens no front, grants no turn.
      This does NOT reopen DIRECTOR_RULING_GAP_TRIAGE_RATIFIED_2026-07-28 — the four-bucket method is

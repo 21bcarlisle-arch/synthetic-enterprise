@@ -1,3 +1,7 @@
+**Severity:** LATENT · **Lane:** A_strategy_governance
+
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** The 15 level re-verifications it names are blocked on nothing and have waited since 3 Aug. Draw them, or close each against the level the census grades today.
+
 <!-- STILL OPEN 2026-08-03 (later worker tick). NOT ADVANCED THIS TICK, said plainly: this tick's draw
   was C_supply_start_semantic_separation, and none of the 15 pending re-verifications were done.
   What this tick DOES add is one more worked precedent for the path item #2 needs, so the next tick

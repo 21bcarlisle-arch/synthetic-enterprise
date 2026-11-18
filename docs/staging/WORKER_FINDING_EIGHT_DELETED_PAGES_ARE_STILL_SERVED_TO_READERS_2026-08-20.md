@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** The ghost-page cause is closed by construction, because the Pages artefact is now the manifest (`.github/workflows/github-pages.yml`). Items 3 (Harness page method account) and 4 (PB3 growth path) are open and blocked on nothing. `PB3` is not a map row, so the next draw mints or rejects it.
+
 **Severity:** BLOCKING · **Lane:** H_harness · **Status:** cause found, three fixes landed; the ghost count below was wrong and is corrected in place
 
 > **CORRECTION, 2026-08-20 18:2xZ — there are NINE ghosts, not eight, and the recommendation

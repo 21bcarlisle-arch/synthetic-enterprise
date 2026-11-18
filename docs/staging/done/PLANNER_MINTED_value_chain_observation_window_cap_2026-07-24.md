@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- DONE.** Evidence: `mc2_collateral_death_test` is now on the publish whitelist (`saas/reporting/annual_report.py:1081`), and the site renders it (`site/harness/index.html`, `site/data/proof.json`).
+
 <!-- SUPERVISOR_DRAW: self-drawable -->
 <!-- UNBLOCKED 2026-08-13 (director: "unblock the other four mints on the usual reversible terms").
   The FOURTEENTH-touch block below rests on trigger (a): "the mc2_collateral_death_test key appears

@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- SUPERSEDED.** The open item (rolling a whole note field out of a full tenant) is carried by the rehome mechanism: a growing field moves to `docs/design/simplifications/<atom_id>.yaml` and the row lists it in `notes_rehomed` (CLAUDE.md, map-row rule).
+
 > **PARTIALLY DISCHARGED 2026-08-19** (D27 DISCOVER pass 7, commit below). §5 items 1 and 2 are
 > **DONE**: D27's resume trigger fired (D30 edge move `7466402f6`, 36 min after the pause), and the
 > remedy this finding recommended was executed exactly as written -- a new dated DISCOVER doc

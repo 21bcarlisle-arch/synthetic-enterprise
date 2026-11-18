@@ -209,3 +209,22 @@ for_the_director:
       armed on it, with the three fire-anyway legs, and one control showing it still fires while a watcher
       is armed, on origin
     due: '2026-11-25'
+- id: the-github-repository-is-still-public-gh
+  raised: '2026-11-18'
+  kind: reserved
+  decision_kind: g5
+  what: The GitHub repository is still public (gh, 18 Nov). The July plan to make it private and assert
+    copyright has sat parked since 11 Jul, waiting on your click and two decisions.
+  proposal: 'The repo is the IP the method lives in. The only blocker the machine found in July was a
+    GitHub Actions quota: site deploys used about twice the private allowance. That is fixed now, because
+    deploys only fire on the published files. Making the repo private is your click in GitHub settings.
+    Asserting copyright on the site needs the company''s legal name and a yes or no on blocking AI crawlers.'
+  recommendation: I recommend you make the repo private when it suits you, and tell me the legal entity
+    name. I will then re-measure the Actions minutes on the private plan before the site carries any copyright
+    line.
+  based_on: 824be4a157
+  status: open
+  resolution: ''
+  g5_class: irretractable_public_claim
+  evidence: docs/staging/in_progress/REPO_PRIVATE_AND_IP.md; docs/design/REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md;
+    .github/workflows/github-pages.yml (the trigger is now derived from tools/pages_publish_manifest)

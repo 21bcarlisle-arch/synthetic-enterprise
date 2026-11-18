@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- SUPERSEDED.** A July re-rank. Neither `ARCH1` nor `A8_experiment_loop_speed` is a row in `docs/design/maturity_map.yaml` today. Ordering is now set by the dial-weighted map draw and the 2026-10-04 operating model, so a parked ranking has nothing left to rank.
+
 > **[PARKED in_progress 2026-07-13]** MEASURE-FIRST done (experiment-cycle-profile.md; Epoch-4 gap = ~10x). A8_experiment_loop_speed registered (your authorised moratorium breach). ARCH1 re-ranked to BUILD, thin-start on billing/payments/service where the affordability cluster lands. OPEN until: ARCH1 seams cut + cluster built against them + a fast inner loop with a mechanical never-publish guard.
 
 # COMPOUNDING WORK GOES FIRST — two re-ranks (P0, director-decided)

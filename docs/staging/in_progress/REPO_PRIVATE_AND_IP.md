@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- DIRECTOR.** The repo is PUBLIC (gh, today). Phase 1's quota blocker is fixed: the Pages trigger is now derived from `tools/pages_publish_manifest`. Phase 2 (the flip) is his click. Phase 3 needs the entity name and a crawler decision. Raised in `for_the_director` as `the-github-repository-is-still-public-gh`, with a recommendation.
+
 > **STATUS (2026-07-11):** Phase 1 pre-flight audit run --
 > docs/design/REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md. Verdict: NO-GO as
 > measured (deploy cadence ~206% of the private-repo Actions quota,

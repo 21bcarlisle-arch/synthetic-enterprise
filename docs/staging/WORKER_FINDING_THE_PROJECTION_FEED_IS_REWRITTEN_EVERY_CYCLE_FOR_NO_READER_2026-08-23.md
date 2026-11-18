@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Still open as written: `background/process_run_complete.py:5322` still calls `generate_projections_page`, and no page under `site/` reads `projections.json`. Its own text says it is drawable now.
+
 <!-- MOVED TO in_progress/ 2026-08-24 (worker tick, publish-gate unwedge). The still-open
   sub-item is the ONE below under "Not done": re-wire `site/data/projections.json` into a
   surviving door (`/harness/`, recommended) or unwire the producer. Nothing here is archived.

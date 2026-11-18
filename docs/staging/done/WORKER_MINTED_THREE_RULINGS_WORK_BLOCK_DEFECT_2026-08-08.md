@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- SUPERSEDED.** The §4 defect (rulings arriving without a `WORK THIS CREATES` block) is now read by machine (`background/primary_state_scan.py`, `background/daily_self_note.py`). Items A5-A7 (charters, title field, registry tool) belong to the August frame that the 2026-08-28 CLAUDE.md rewrite and the 2026-10-04 operating model replaced. They were NOT verified item by item, and are closed on that frame change.
+
 <!-- SUPERVISOR_DRAW: available -->
 <!-- draw-visibility marker (2026-08-08): MINTED, NOT BUILT. Deliverables below are identified from each
      ruling's BODY by the worker, because all three arrived WITHOUT a 'WORK THIS CREATES' block (§4 defect).

@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- DONE.** Evidence: all 11 hook commands in `.claude/settings.json` are project-anchored, and the class guard this finding asked for is now built: `tests/architecture/test_every_hook_command_is_project_anchored.py`. A relative mutant `python3 .claude/hooks/pull_next_work.py` is named by it.
+
 > **PARKED IN in_progress/ 2026-08-09.** Named as a suspect by
 > DIRECTOR_PRIORITY_UNWEDGE_AND_ALARM_TEETH Draw 1 and CHECKED: the instance is fixed —
 > all 8 hook commands in `.claude/settings.json` are project-anchored

@@ -1,3 +1,7 @@
+**Severity:** LATENT · **Lane:** H_harness
+
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Nothing blocks the named step: `ru_maxrss` around the phase's `subprocess.run` is still unbuilt for the gate phase, though `background/sim_runner.py:572` shows the pattern. This bears on today's stale census, which the memory governor deferred for budget.
+
 > **IN PROGRESS (2026-08-11 OPS2 tick).** Recommendation **A is BUILT and R15-proven**, and the
 > measurement this finding demanded **COMPLETED**: `docs/observability/gate_x_premium_rss.json`
 > reads `complete: true`, verdict **`supported`**.
@@ -37,7 +41,7 @@
 
 **Rank:** after the OPS2 exit itself (P-1) — this is the standing cause of the OPS2 criterion-1
 measurement never landing, but the repair needs a decision, not a patch.
-**Lane:** `H_harness` · **Class:** a harness whose subject diverges from the thing it measures.
+**Lane:** `H_harness` · the class: a harness whose subject diverges from the thing it measures.
 **Filed from:** the OPS2 tick of 2026-08-11, per SELF-INTERRUPT DISCIPLINE — queued, not fixed on
 sight. It is the residual left after
 `WORKER_FINDING_THE_MEASUREMENT_IS_OOM_KILLED_INSIDE_ITS_OWN_WAIT_2026-08-11` was refuted.

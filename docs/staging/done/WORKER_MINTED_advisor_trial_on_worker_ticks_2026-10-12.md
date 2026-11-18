@@ -1,3 +1,5 @@
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- DONE.** Evidence: the trial ran under the dated flag (`background/model_tier.py::advisor_trial`, `docs/observability/advisor_trial.yaml`), was stopped on its own stop rule (f3a11913a2), and its result is recorded (4cf0f8628d: a blind reviewer named 1 of 5 known-bad commits' defects).
+
 <!-- SUPERVISOR_DRAW: self-drawable -->
 
 # [WORKER-MINTED] Trial Sonnet 5.5 + Opus advisor on the worker ticks (2026-10-12)

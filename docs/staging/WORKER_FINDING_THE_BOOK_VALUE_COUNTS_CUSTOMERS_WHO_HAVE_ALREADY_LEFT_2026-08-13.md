@@ -1,3 +1,9 @@
+**Severity:** BLOCKING · **Lane:** B_commercial
+
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Still open as written: `DRILLDOWN_ID = "C1"` is hardcoded at `tools/generate_company_data.py:43`, and `still_supplied` is not read by either generator. Nothing upstream blocks it.
+
+## Status history, kept as written (the published run output is now `docs/reports/run_output_latest.json.gz`)
+
 > **DISPOSITION 2026-08-13 (worker tick, RUNG 1c blocking draw) — PARTLY DISCHARGED, PARKED IN PROGRESS.**
 >
 > **STILL OPEN, and what unblocks it:** discharge item 3 — *"the featured-household

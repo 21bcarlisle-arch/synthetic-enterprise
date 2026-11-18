@@ -1,3 +1,10 @@
+
+**Severity:** RECORDED · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** unminted
+
+*Header applied AUTOMATICALLY by `background/staging_watcher` on arrival, because an unclassified staging document refuses every lane's commit and an arriving document must never block a landing. Severity RECORDED: an instruction is a landed record of direction with nothing owed as a defect. Lane A_strategy_governance is the default for an externally-authored instruction and says what KIND of document this is, not what it is about — correct it if it belongs to a lane. Not one word of the author's text is altered.*
+
+> **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** §1 landed (AO1). §2-§4 are not blocked on anything. `AO8`, which §3 names, is not a row in the map today, so the next draw mints or rejects §2-§4 rather than re-parking them.
+
 <!-- SUPERVISOR_DRAW: available -->
 > **[IN-PROGRESS — 2026-08-08 worker tick] §1 BUILT; §2, §3, §4 STILL OPEN.**
 >
