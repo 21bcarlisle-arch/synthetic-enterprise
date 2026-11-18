@@ -851,6 +851,45 @@ def _self_issued_chain(path: Path | None = None) -> int:
     return links
 
 
+def _focus_waited_through(path: Path | None = None) -> int:
+    """Continuation draws of ANY author since the live record's `oriented_at` and its last focus draw.
+
+    THE SECOND LEG OF THE SWAP (director's focus, 18 Nov). `_self_issued_chain` asks whether the
+    lane is feeding ITSELF; it cannot see focus waiting behind other people's continuations -- a
+    batch an interactive session wrote, or a tick's backlog interleaved with one -- and none of
+    those break its run into an armed state. This asks the seat's side of the same question: how
+    many continuation draws has the live record's focus sat through? Keyed to the orientation, so a
+    fresh record starts at 0, and broken by any focus draw (a `source: focus` row, or a row whose
+    id the live record names however it travelled), so the next undrawn focus row is the one
+    counted. A continuation that is date-gated or held on `waits_for` is never drawn, so it never
+    enters this count and the leg does not touch how those are treated.
+
+    THE LEDGER HOLDS ONE ROW PER ID, so a continuation re-drawn twice since orientation counts
+    once. That under-counts, which is the same fail-safe direction as below.
+
+    NEVER RAISES, and no live record or an unreadable ledger reads 0, keeping continuation-first.
+    """
+    try:
+        record = direction_mod.read_direction()
+        if record is None or not record.is_live():
+            return 0
+        since = record.oriented_at.timestamp()
+        named = set(record.focus_keys())
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE))
+        rows = sorted(
+            ((k, r) for k, r in ledger.items()
+             if isinstance(r, dict) and float(r.get("last_drawn_at") or 0.0) >= since),
+            key=lambda kv: float(kv[1]["last_drawn_at"]), reverse=True)
+    except Exception:
+        return 0
+    run = 0
+    for key, row in rows:
+        if row.get("source") != "continuation" or key in named:
+            break
+        run += 1
+    return run
+
+
 def record_draw(focus_id: str, when: float, *, path: Path | None = None,
                 text: str | None = None) -> None:
     """Remember that `focus_id` was handed out at `when`. Idempotent on the FIRST draw.
@@ -6042,7 +6081,10 @@ def next_item(now: float | None = None, path: Path | None = None, *,
             return None
         return walk
 
-    chained = _self_issued_chain(store) >= SELF_HANDOFF_CHAIN_LIMIT
+    # Two legs: the lane feeding itself, or the live record's focus waiting through a run of
+    # continuations of any author since it was written (`_focus_waited_through`).
+    chained = (_self_issued_chain(store) >= SELF_HANDOFF_CHAIN_LIMIT
+               or _focus_waited_through(store) >= SELF_HANDOFF_CHAIN_LIMIT)
     for source in (_focus, _continuation) if chained else (_continuation, _focus):
         item = _stop_filtered(source)()
         if item is not None:
