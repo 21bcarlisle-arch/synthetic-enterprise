@@ -21,6 +21,10 @@
 - **Geography:** England and Wales only (Scotland: scottishepcregister.org.uk; NI separate)
 - **Housing stock:** ~60% of English stock covered; biased toward transacting properties
   (privately rented > owner-occupied; old/unsold stock under-represented)
+  *Corrected 2026-11-18: MHCLG's 2026 annual release puts ~79% of English dwellings as ever
+  certificated and ~52% holding a VALID (<10y) certificate; "~60%" matches neither. Coverage by
+  tenure is NOT published (GAP), so the bias line above is the mechanism, not a measured profile.
+  See `epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md`.*
 - Certificates expire after 10 years — filter by `LODGEMENT_DATE` recency
 
 ## Key Fields for Consumption Modeling

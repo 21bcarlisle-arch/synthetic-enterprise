@@ -1,3 +1,20 @@
+> **DISCOVERY PASS DONE, 2026-11-18 (worker).** §3 open items 1, 3 and 5 answered in
+> `docs/market_research/epc_certificate_staleness_and_coverage_by_tenure_2026-11-18.md`:
+> **(1) direction SUPPORTED, magnitude GAP** -- drift is improvement-dominated (EHS 2024-25 mean SAP
+> +7 for owner-occupied/PRS 2014-24, an upper bound since not all fabric; certificates are never
+> refreshed after an upgrade), so an old certificate is pessimistic; the RdSAP 9.94 (2018) step
+> raised ratings for the same home (direction established, size GAP). No source cuts error by years
+> since lodgement. **(3) coverage**: ~79% ever certificated, ~52% valid (MHCLG 2026) -- the code's
+> `EPC_COVERAGE_SHARE = 0.60` matches neither; coverage BY TENURE is unpublished (GAP), so §2b's
+> correlate rests on the transaction mechanism, not a measured profile. **(5)** SERL (Few et al.
+> 2023) gives modelled-minus-metered by band (-8% C, -48% F-G), not by certificate age; it judges
+> the band channel, not the age channel. **Next (build, this lane):** one shared clock -- years since
+> last transaction -- drawn per premise, driving absence (never-certificated 21% + expired 27%),
+> lodgement age, and a pessimistic band/insulation offset carried as a stated belief with a range
+> (declared-unanchored magnitude, direction anchored); `EPC_COVERAGE_SHARE` moves to the valid 52%
+> on the same commit, with the gap reported three ways (none / old / fresh). Severity stays
+> BLOCKING until that lands.
+
 > **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** The open half was parked on 'needs a network-access session'. The harness now has the `discovery-agent` and `web-fetch` agents for published sources, so EPC-certificate staleness and the absence correlation are knowledge work, drawable now.
 
 # ADVISOR FINDINGS — the EPC register in this simulation is never wrong, only absent or vague, and the absence carries no information
