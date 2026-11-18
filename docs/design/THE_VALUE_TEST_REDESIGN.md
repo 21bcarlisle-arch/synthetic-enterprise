@@ -1645,3 +1645,52 @@ It was dry-run by putting A's §12a sidecars in place of both skip runs. All 9 f
 reported unlogged, because those sidecars predate the offer fields, so it exited 2. A against itself gave £0.000.
 A against the twin gave **−£1.207 (−£2.32 to −£0.37)**, which reproduces §12a's −£1.21. Stage 2's job runs it
 after both flags and writes `/var/tmp/vts-driver/read_threshold_skip.out`.
+
+#### 12d, re-planned (18 Nov 02:10Z): flag 1 stops at pair 3, the book, then the skip pair. No flag 0, no re-read
+
+*This replaces the table above as the box order. The table is kept as the plan it was.* The direction
+(DIRECTION.yaml, 18 Nov) drops step 6's remaining flag-1 pairs and its whole flag-0 half. They measure the 0.30
+gate that §12c read as the loss, so neither is worth a day of the box.
+
+| Order | What holds the box | Starts when | Unit |
+|---|---|---|---|
+| 0 | Step 6 flag 1 finishes pair 3 (55555/66666), then stops. Pairs 1 to 3 are kept on disk | running | `longjob-value-test-step-6-flag1`, stopped by `flag1-stop-at-pair3-watch` |
+| 1 | The owed book (sim-runner, origin HEAD) | flag 1 stopped | sim-runner |
+| 2 | Threshold-skip pair: skip1 (A + weighing + skip), read at once, then skip0 (A + weighing), read again | pair 3's control file on disk (or flag 1's unit ended) and `box_free.py` free, which includes no book owed | `vts-threshold-skip-watch` launches `longjob-value-test-threshold-skip` |
+
+- **The pair boundary.** It is read from `vta-out-flag1/{member,control}_55555_66666.json`, both parsing as
+  JSON. The driver writes control last. It is never read from a marker's mtime. **`row7book-pause-watch`
+  (1378c5d815) is stopped.** It stopped flag 1 at the same boundary and then relaunched it once the book's
+  `run_complete` landed. That relaunch is exactly what the direction removes. `flag1-stop-at-pair3-watch`
+  does the stop and nothing else. The row-7 book it waited for is still the book in step 1, because a book was
+  owed at 02:10Z (`box_free.py`: "a book is owed").
+- **`vto-offer-reread-watch`: retired, not re-armed.** `vta-flag0-watch` is retired too. The §12b re-read
+  re-ran A and the twin only to log the offer. The skip tree carries the same offer logging (870201d1e7), so
+  skip1 logs `retention_offered` and `retention_considered_on_save_odds` at the nine flips. That is the offer,
+  read at the gate that matters. A re-read of A's offers would only re-confirm a gate §12c already read from
+  the logged belief.
+- **The comparator, and why the job still runs skip0.** The direction compares skip1 with A as run
+  (`vta-out-flag1/member_11111_22222.json`) "so the switch is the only variable". The switch is refused
+  without `retention_weighs_save_odds`, so skip1 differs from A in two ways: the weighing and the skip. Only
+  skip0 isolates the skip (§12c's correction). Each pair costs about 11.5 h, and nothing is queued after it
+  any more. So the job runs skip1, writes `read_threshold_skip.skip1.out` at once (the flips, the under-cutoff
+  count and skip1 − A), and then runs skip0 for `read_threshold_skip.out` (skip1 − skip0 as well). The grade
+  is not held for skip0. The money is attributed only once skip0 is on disk.
+- **The reader, amended before any run** (`read_threshold_skip.py`; v1 kept beside it). skip1 is required.
+  skip0 and the twin are read when they are on disk. It adds skip1 − A, and it counts the value arm's
+  renewals weighed under the cutoff across the whole book, not just at the nine flips. It was dry-run with
+  A's sidecars standing in for skip1 and the pin check off: A − A came out at £0.000, A − twin at
+  **−£1.207 (−£2.32 to −£0.37)**, and all nine flips were unlogged, so it exited 2 as built. The skip tree
+  still hashes to the pinned `53feeb15…f8ddd`. That holds even though a SALVAGE commit (128d6842e2, 01:05Z)
+  moved its HEAD, because the pin is a diff from 870201d1e7 to the working tree.
+- **When.** Pair 3 began about 20:00Z on 17 Nov, and pair 2 took 11.5 h, so flag 1 should stop around 07:30Z.
+  Add the book (about 2 h). skip1's read should land around 21:00Z on 18 Nov and skip0's around 08:30Z on
+  19 Nov. The skip watcher's deadline is 28 Nov.
+- **The prediction is unchanged** (§12c as corrected): 6 or more of the 9 re-offered holds, 3 or fewer
+  refutes. If it refutes, §12c's candidate 2 (calibrating the belief level) is next.
+- **Reverse.** `systemctl --user stop flag1-stop-at-pair3-watch vts-threshold-skip-watch`. To resume step 6,
+  run the relaunch block in `/var/tmp/row7book-pause/watch.sh`. `launch_threshold_skip.v1.sh` and
+  `read_threshold_skip.v1.py` are the pre-re-plan versions.
+
+The result goes in §12e: §12d is this plan, and the direction's "s.12d" named the next free section when it was
+written.
