@@ -22,3 +22,19 @@
 The advisor put both points to him in chat: quiet the refill as proposed, and tuning the machine's own alarms is its call unless it changes something he ruled. He answered: "Yes."
 
 Both points now stand as his ruling. Close the row with this resolution.
+
+## Done
+
+- `for_the_director` row `the-priority-zero-publish-wedge-refill-fires` is closed `answered`, code
+  `yes`, with his "Yes." as the resolution. It carries the commitment
+  `the-wedge-refill-names-its-wait-and-stays-quiet` (due 25 Nov): RUNG 1 names the awaited file and
+  stays quiet while a declared watcher is armed on it, with the three fire-anyway legs and the one
+  control. The commitment is handed on as a build item. Nothing fires now: the wedge ended at 11:03Z
+  when the 6af7fd0bfd publish landed, and `_publish_gate_wedge_active()` reads None on the shared
+  tree. So the exemption is built for the next episode, not to silence a live one.
+- Point 2 is recorded as standing practice in `docs/institutional/ways_of_working.md` W4: tuning the
+  machine's own alarms is its call, unless the tuning changes something he ruled.
+- Point 3 is W4 itself, "an alarm that cannot change anything is cost, not safety": 59 re-asks
+  across 17-18 Nov, about one commit cycle each, with nothing repaired.
+
+Decision: harness yes

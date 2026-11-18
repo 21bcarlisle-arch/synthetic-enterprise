@@ -57,7 +57,11 @@ focus:
     its prediction. Name the flags that differ between the arms compared. Then start the branch s.12e
     names without asking: on HOLD or NEITHER, run /var/tmp/vts-driver/launch_hold_pairs.sh; on REFUTE,
     run the candidate-2 calibration alone against its unswitched comparator. Leave skip0 running as the
-    one-variable comparator for the skip. Carry `Graded: value-test held=<n> missed=<n>`.'
+    one-variable comparator for the skip. Carry `Graded: value-test held=<n> missed=<n>`. Once BOTH
+    /var/tmp/vts-out-skip1/control_11111_22222.json and /var/tmp/vts-out-skip0/control_11111_22222.json
+    exist, delete background/next_book_requires.yaml''s null `skip pair read` row (and its comment) by
+    pathspec, so the W3_3 book builds next, alone; if skip0''s file is not there yet, hand that deletion
+    on with `DO NOT DRAW BEFORE /var/tmp/vts-out-skip0/control_11111_22222.json EXISTS`.'
   why: This is the thesis's one live test of per-customer value against the flat baseline, which is second
     in the director's order, and the -GBP 1.35 row cannot move until it reads. Done means s.12f is on
     origin with skip1 graded against every s.12e row, and the named branch is launched or queued behind
@@ -194,18 +198,31 @@ for_the_director:
   raised: '2026-11-18'
   kind: strategy
   decision_kind: harness
-  what: The priority-zero publish-wedge refill fires about every 30 min while its cure waits on one named file,
-    so each tick can only re-ask the same question.
-  proposal: When the open episode's cause is domain_invariant_refused and the owed book is held behind an armed,
-    declared watcher waiting on a named file, the refill names that file and stays quiet until the file appears
-    or the watcher dies. It still fires at once if the watcher is gone, the file appears but no book follows within
-    1 hour, or the episode passes 72 hours.
-  recommendation: I recommend we add the named-wait exemption with its three fire-anyway legs, plus one control
-    showing the refill can still fire while a watcher is armed.
+  what: The priority-zero publish-wedge refill fires about every 30 min while its cure waits on one named
+    file, so each tick can only re-ask the same question.
+  proposal: When the open episode's cause is domain_invariant_refused and the owed book is held behind
+    an armed, declared watcher waiting on a named file, the refill names that file and stays quiet until
+    the file appears or the watcher dies. It still fires at once if the watcher is gone, the file appears
+    but no book follows within 1 hour, or the episode passes 72 hours.
+  recommendation: I recommend we add the named-wait exemption with its three fire-anyway legs, plus one
+    control showing the refill can still fire while a watcher is armed.
   based_on: b415878e49
-  status: open
-  resolution: ''
-  evidence: 'Re-asks at 22:20Z, 02:12Z, 04:32Z, 05:05Z and 05:42Z on 17-18 Nov all found the same thing: the refused
-    book is 18f201c5bf''s, from before 20d4cbeccc, with INV_OVERDUE_WITHIN_PAGE_BALANCE at 20. flag1-stop-at-pair3-watch
-    is active and waiting for /var/tmp/vta-out-flag1/control_55555_66666.json. The draws cost a commit cycle each
-    and repaired nothing.'
+  status: answered
+  resolution: 'Director, Wed 18 Nov (advisor channel): ''Yes.'' Both points stand: quiet the refill while
+    the owed book waits behind an armed, declared watcher on a named file, still firing at once if the
+    watcher is gone, the file appears but no book follows within 1 h, or the episode passes 72 h; and
+    tuning the machine''s own alarms is its call unless it changes something he ruled. The wedge itself
+    ended at 11:03Z 18 Nov when the 6af7fd0bfd publish landed, so the exemption is built for the next
+    episode.'
+  evidence: 'Re-asks at 22:20Z, 02:12Z, 04:32Z, 05:05Z and 05:42Z on 17-18 Nov all found the same thing:
+    the refused book is 18f201c5bf''s, from before 20d4cbeccc, with INV_OVERDUE_WITHIN_PAGE_BALANCE at
+    20. flag1-stop-at-pair3-watch is active and waiting for /var/tmp/vta-out-flag1/control_55555_66666.json.
+    The draws cost a commit cycle each and repaired nothing.'
+  resolved: '2026-11-18'
+  answer_code: 'yes'
+  commitment:
+    work_id: the-wedge-refill-names-its-wait-and-stays-quiet
+    done_means: supervisor RUNG 1 names the awaited file and stays silent while a declared watcher is
+      armed on it, with the three fire-anyway legs, and one control showing it still fires while a watcher
+      is armed, on origin
+    due: '2026-11-25'

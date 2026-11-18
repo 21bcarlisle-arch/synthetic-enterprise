@@ -162,3 +162,25 @@ if one could, the question goes to the advisor as a staged note first.
 
 **The measure.** Director questions the advisor missed: open rows on origin at the moment the
 advisor said nothing was waiting. Prediction: zero by the review date. One miss refutes it.
+
+## W4. An alarm that cannot change anything is cost, not safety (18 Nov 2026)
+
+**Status:** hypothesis, change owed. **Review by:** 18 Dec 2026.
+
+**The claim.** The priority-zero publish-wedge refill was re-asked 59 times across 17-18 Nov, about one
+commit cycle each, and repaired nothing. Every re-ask found the same thing: the refused book's cure
+was waiting on one named file, behind a watcher that was already armed on it. An alarm whose cure is
+already in hand cannot change what happens, so each firing is a cost with no safety bought.
+
+**What it rests on.** `docs/staging/advisor/done/DIRECTOR_RULING_QUIET_THE_WEDGE_REFILL_AND_ALARM_TUNING_IS_YOURS_TO_DECIDE_2026-11-18.md`
+and `for_the_director` row `the-priority-zero-publish-wedge-refill-fires` (answered yes).
+
+**The change.** While the owed book waits behind an armed, declared watcher on a named file, the refill
+names the file and stays quiet. It fires at once if the watcher is gone, if the file appears and no book
+follows within 1 hour, or if the episode passes 72 hours. Those three legs keep a real stall loud. Tuning
+the machine's own alarms like this is the machine's call, unless it changes something he ruled.
+Commitment: `the-wedge-refill-names-its-wait-and-stays-quiet`, due 25 Nov.
+
+**The measure.** Re-asks of a priority-zero rung whose cure waits on a named file behind a live
+watcher. Prediction: zero once the change lands, with the refill still firing in its control while a
+watcher is armed. One silent stall past 72 hours refutes the legs.
