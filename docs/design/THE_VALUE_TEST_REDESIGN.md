@@ -1761,3 +1761,42 @@ cannot reach the flips. It is built default off, as filed (`retention_cutoff_rea
 is **not worth a day of the box**. If skip1 refutes, the next lever is the cut's own scale (knowledge §11g): 0.30 on
 the twin's scale is a realised risk of about 6%, and the cut has worked as a "top third" selector. A cut in
 calibrated units, or one on rank, is the candidate. Neither is built, and neither is pre-registered yet.
+
+### 12f. skip1's grade: not yet readable. The launch was refused at 09:49Z and is re-armed (18 Nov 11:15Z)
+
+**Not graded, because skip1 has not run.** `read_threshold_skip.skip1.out` does not exist and no `vts-out-skip*`
+directory exists. Every §12e row is still owed. None is marked held or missed here, because nothing has been read.
+
+**Why it did not launch.** Flag 1 stopped at pair 3 as planned: `vta-out-flag1/control_55555_66666.json` was
+written at 06:57Z. The owed book then ran, and `box_free.py` read free at 09:49Z. The watcher fired, and
+`launch_long_job` refused it: "the workdir /var/tmp/value-test-threshold-skip is not a directory". The scratch tree
+had been deleted while the watcher waited. It was not a registered `git worktree` and it was not locked, so nothing
+protected it. The watcher exited 1 and the box went to the next owed book. At 11:10Z sim-runner holds a `sim_run`
+reservation, so even a working launch would wait now.
+
+**The fix (11:11Z).** The tree is recreated as a registered worktree at 870201d1e7, with
+`threshold_skip.patch` applied. The patch's new test file is marked intent-to-add, because `git diff` leaves
+untracked files out. With that, `git diff --binary 870201d1e7 -- <code dirs>` hashes to the pinned `53feeb15…f8ddd`,
+which is the same check the driver runs. The tree is now `git worktree lock`ed. `vts-threshold-skip-watch` was
+re-armed with the same `stage.sh` call. Its predecessor is already satisfied, so it is waiting only on the box.
+
+**The branch is now armed, not left for a turn.** `vts-branch-watch` (`/var/tmp/box-plan/branch_on_skip1.sh`)
+waits for `skip1.out` and then takes §12e's branch from the reader's own `k` line.
+- **k ≥ 4 (HOLD or NEITHER):** it waits for skip0's read, so skip0 finishes as the one-variable comparator, and
+  for `box_free.py`. Then it runs `launch_hold_pairs.sh`.
+- **k ≤ 3 (REFUTE):** it launches nothing. This follows §12e as amended at 04:50Z, not the direction's
+  wording. The direction says to run candidate 2. §12e's C1 to C3 found that candidate 2, as defined, takes 0 of
+  the 9 flips across 0.30 and is "not worth a day of the box". The next lever, the cut's own scale, is not built.
+  *This is a departure from the drawn direction, recorded here so it can be overruled.*
+- **The reader exits non-zero:** no branch is taken, as §12e says.
+
+**Flags that differ between the arms compared.**
+- skip1 against A as run (`vta-out-flag1`): `retention_weighs_save_odds` and
+  `retention_skips_the_belief_threshold_when_save_odds_weigh`. Both arms have `renewal_belief_by_ending_term`.
+- skip1 against skip0: only the skip.
+
+**When.** If the current book ends around 13:00Z and no further book is owed, skip1's read lands around 01:00Z on
+19 Nov and skip0's around 12:30Z. The grade goes here, beside this entry, when the file exists.
+
+**Reverse.** `systemctl --user stop vts-threshold-skip-watch vts-branch-watch`. Then
+`git worktree unlock /var/tmp/value-test-threshold-skip` and `git worktree remove --force` it.
