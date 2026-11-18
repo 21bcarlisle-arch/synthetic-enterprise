@@ -1579,3 +1579,10 @@ Both are G9-free (nothing he ruled), and both go to the K8 page first. 0.30 itse
 skipped and the save-odds weighing on, against A as run: at least 6 of the 9 flips are re-offered, and the value arm's
 A-minus-twin money moves from −£1.21 toward zero by at least £0.40 per household-year. Refuted if 3 or fewer
 are re-offered. This cannot run until the box is free.
+
+*Correction beside it (18 Nov, filed before any run).* Candidate 1 is built default-off as
+`retention_skips_the_belief_threshold_when_save_odds_weigh` (knowledge §11f). Two things the prediction did not
+say: (a) under the cutoff it weighs a renewal only once the save rate for its ending-term type is learned, so a
+flip whose type had no closed 2017 offer is not re-offered for that reason; (b) the threshold is isolated by A +
+weighing + switch against A + weighing, not against A alone. The 6-of-9 line stands for that pairing. Count the
+`retention_log` rows with `considered = the_save_odds_carry_the_belief` before grading.

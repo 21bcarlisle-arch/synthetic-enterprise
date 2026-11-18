@@ -41,3 +41,14 @@ before any cutoff reads it. The prediction for candidate 1 is filed in §12c. Mo
 is the wall half, and it changes no number.
 
 Reverse: this document only records. Nothing in code changed.
+
+## Candidate 1 built (18 Nov)
+
+The default-off switch is `retention_skips_the_belief_threshold_when_save_odds_weigh`, selected through
+`company.interfaces.growth_desk.retention_considers_the_renewal`. Its control is
+`tests/company/crm/test_the_belief_threshold_is_skipped_where_the_save_odds_carry_the_belief.py`. All three
+mutations go red: the switch ignored, an unlearned rate admitted, and the cutoff ignored. No standing policy
+moves. Still open: candidate 2 (calibration), the wall half (the gate and 0.30 move into the growth desk), and
+0.30's origin. Not done here: ordering step 6's flag-0 half. DIRECTION.yaml `not_now` holds it on box memory,
+and `vto-offer-reread-watch`'s 10-day deadline (armed 17 Nov 15:06) would expire before flag 1's remaining pairs
+plus a flag-0 pass could finish anyway. That is a box re-plan, handed on.

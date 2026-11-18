@@ -285,6 +285,13 @@ class DecisionPolicy:
     #: refuses it on without `renewal_belief_by_ending_term`, which supplies the type. Prereg §13.
     retention_weighs_save_odds: bool = False
 
+    #: (2026-11-17) With `retention_weighs_save_odds` on, a renewal under the fixed 0.30 churn-belief
+    #: cutoff (`RETENTION_THRESHOLD`) is still weighed for an offer once the save rate for its
+    #: ending-term type is learned, because the value test then carries the belief
+    #: (`growth_desk.retention_considers_the_renewal`). Off on every standing policy; the run
+    #: refuses it on without the weighing. `THE_VALUE_TEST_REDESIGN.md` §12c; knowledge §11.
+    retention_skips_the_belief_threshold_when_save_odds_weigh: bool = False
+
     #: (2026-10-22) Of the renewals the save-odds guard would offer on, the company's own coin
     #: (`growth_desk.retention_save_holdout_draws`, a hash of account and roll date) holds a derived
     #: share out with no offer, and the save rate is read as the holdout's loss rate against the

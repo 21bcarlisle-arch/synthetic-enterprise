@@ -450,6 +450,41 @@ def retention_value_weighed_by_save_odds(value_protected: float | None, *, belie
     return max(0.0, min(1.0, belief)) * rate * value_protected, rate, reason
 
 
+#: Why a renewal was or was not weighed for an offer at all (2026-11-17). Ahead of the value test.
+CONSIDERED_OVER_THE_BELIEF_THRESHOLD = "the_belief_is_over_the_threshold"
+CONSIDERED_ON_THE_SAVE_ODDS = "the_save_odds_carry_the_belief"
+NOT_CONSIDERED_UNDER_THE_BELIEF_THRESHOLD = "the_belief_is_under_the_threshold"
+
+
+def retention_considers_the_renewal(belief: float, *, threshold: float, skip_threshold: bool,
+                                    ending_term_type: str | None,
+                                    renewal_year: int | None) -> tuple[bool, str]:
+    """(2026-11-17) Whether the retention guard weighs an offer on this renewal at all:
+    `(considered, reason)`.
+
+    Over the fixed churn-belief cutoff, always. Under it, only where the policy skips the cutoff
+    AND the company has a learned save rate for this ending-term type, because then the value
+    test already weighs belief x save rate x value protected (the profit form, knowledge §11c),
+    and the cutoff only throws away renewals that test would have priced. While the rate is
+    unlearned the weighing falls back to the unweighed value, which carries no belief, so the
+    cutoff stays the selection rule until evidence exists. Knowledge:
+    `docs/market_research/a_save_offer_against_the_switching_rules_and_the_seam.md` §11.
+    """
+    from company.crm.competitive_pressure import active_pressure_ledger
+
+    if belief > threshold:
+        return True, CONSIDERED_OVER_THE_BELIEF_THRESHOLD
+    if not skip_threshold:
+        return False, NOT_CONSIDERED_UNDER_THE_BELIEF_THRESHOLD
+    ledger = active_pressure_ledger()
+    if ledger is None:
+        return False, f"{NOT_CONSIDERED_UNDER_THE_BELIEF_THRESHOLD}: no pressure ledger in scope"
+    rate, reason = ledger.retention_save_rate(ending_term_type, renewal_year)
+    if rate is None:
+        return False, f"{NOT_CONSIDERED_UNDER_THE_BELIEF_THRESHOLD}: {reason}"
+    return True, CONSIDERED_ON_THE_SAVE_ODDS
+
+
 #: Why the lower-bound guard made no offer, by the part of its partition that refused. The run
 #: logs these as `no_offer_reason`.
 SAVE_RATE_NOT_LEARNED = "the_save_rate_is_not_yet_learned"
