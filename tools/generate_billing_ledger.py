@@ -269,14 +269,24 @@ def _tou_terms(account_terms, bills):
     the run output, and the term row carries only the flat rate), so a term counts as ToU when any
     bill inside it carries band registers. Only that a pair existed is read from the bills; the
     pair's RATES are the product rule's, so a bill charging the wrong band rate still disagrees.
+
+    A term that starts inside a bill (a fixed term rolling to the SVT on the 8th) is no bill's
+    `term_of_bill`, so it is read from the crossing bill's own rate line for it, which the biller
+    flags `time_of_use` where it settled that term on the pair. Read from `term_of_bill` alone, the
+    SVT stub kept only its flat rate and the contract bound's ceiling sat under the Day rate it was
+    charged at (PROS-2016-0253 Sep 2017: 812.7 kWh at 17.51p against a 14.76p ceiling).
     """
     out = {}
     for b in bills:
         if b.get("registers"):
             term = term_of_bill(account_terms, b)
-            if term is not None:
-                key = (b["customer_id"], term["term_start"])
-                if any(r.get("label") in ECONOMY_7_LABELS for r in b["registers"]):
+            starts = [term["term_start"]] if term is not None else []
+            starts += [line["term_start"] for line in b.get("rate_lines") or ()
+                       if line.get("time_of_use") and line.get("term_start") is not None]
+            e7 = any(r.get("label") in ECONOMY_7_LABELS for r in b["registers"])
+            for start in starts:
+                key = (b["customer_id"], start)
+                if e7:
                     out[key] = split_flat_rate_to_economy_7
                 else:
                     out.setdefault(key, split_flat_rate_to_tou)
