@@ -26,8 +26,15 @@ week's forward). The pre-registration's predicted mechanism for S4 ("the unhedge
 is the static reading, so static is primary. Rolling is reported beside it as a sensitivity the
 pre-registration did not name; it is not part of the pre-registered verdict.
 
-Run: `python3 -m tools.strategy_cash_hole_2021_22` (prints the tables and the verdict);
-`--json PATH` also writes the full result.
+THE SECOND TEST: THE WORLD'S OWN WEATHER ON GAS VOLUME. Re-registered in `docs/staging/records/
+SEAT_PREREG_THE_2021_22_CASH_HOLE_RANKING_UNDER_THE_WORLDS_OWN_WEATHER_2026-11-18.md`: fixed share
+1.0 and the credit-level sweep are dropped, and gas volume can be read three ways (`WEATHERS`).
+The supplier PLANS on normal weather (hedge cover, the direct debit) and is PAID and BILLED on the
+weather that happened, so the gap between the two is bought or sold at spot and drains or fills
+credit balances. At `normal` plan and actual are the same and the first test is reproduced exactly.
+
+Run: `python3 -m tools.strategy_cash_hole_2021_22` (the second test; `--first-test` reruns the
+first test's sweep at normal weather); `--json PATH` also writes the full result.
 """
 
 from __future__ import annotations
@@ -42,7 +49,8 @@ from statistics import mean
 
 from sim.gas_prices_history import load_nbp_history
 from sim.profile_class_1 import load_pc1_shape
-from sim.weather_hdd import REFERENCE_MONTHLY_HDD
+from sim.weather_hdd import HDD_BASE_TEMP_C, REFERENCE_MONTHLY_HDD
+from sim.weather_world import WeatherWorld
 from simulation.gas_settlement import resi_daily_gas_kwh
 from simulation.market_switching_propensity import market_departure_rate
 from simulation.price_cap_enforcement import ofgem_cap_unit_rate_gbp_per_mwh_inc_vat
@@ -65,6 +73,19 @@ FIXED_SHARES = (0.5, 0.75, 1.0)
 #: Credit balances, NERA for Ofgem (Jun 2022) p.80: the Sep-Dec 2021 average net of unbilled,
 #: £65 (large) and £80 (small) per customer. Pre-registered as the two ends of the sweep.
 CREDIT_BALANCE_SEP_DEC_GBP = (65.0, 80.0)
+
+#: The second test's sweep (re-registration §1): 1.0 dropped (S4 and S5 are then one book), one
+#: credit level (the level cancels out of H; held by a control).
+FIXED_SHARES_SECOND = (0.5, 0.75)
+CREDIT_SECOND = (65.0,)
+
+#: How gas volume reads the weather (re-registration §2). `normal`: 1991-2020 England & Wales
+#: normal HDD, the first test. `anomaly` (primary): that normal scaled by the world's 2021-22 HDD
+#: over the world's own 2016-2025 mean for the calendar month, so the store's warm urban level
+#: cancels. `level` (sensitivity): the world's 2021-22 HDD as it stands.
+WEATHERS = ("normal", "anomaly", "level")
+#: The months a credit-balance year runs through (Apr-21 .. Mar-22), which the weather must cover.
+BALANCE_YEAR = [(2021, m) for m in range(4, 13)] + [(2022, m) for m in range(1, 4)]
 
 # ---------------------------------------------------------------- strategies (page table, no others)
 # Each ladder maps months-of-lead -> cover. "3m/9m" disclosures interpolate linearly between the two
@@ -205,29 +226,68 @@ def spot_raw(fuel: str, ym: tuple) -> float:
 
 
 @lru_cache(maxsize=None)
-def monthly_volume_mwh(fuel: str) -> dict:
+def world_monthly_hdd() -> dict:
+    """{(year, month): HDD} from the world's weather store, 2016-2025: each cell's daily HDD
+    (base 15.5 C) averaged with equal weight over the cells holding that day, summed over the
+    month. Per-cell HDD is averaged, not the HDD of the mean temperature, because HDD is convex.
+
+    Read through `WeatherWorld.for_cell`, never the raw file: the file holds each regime's daily
+    ANOMALY and the cell's level is added back on read. Parsing the file directly (the first cut
+    of this function) gave 262 HDD in July 2021."""
+    world = WeatherWorld.load()
+    day_sum: dict = {}
+    day_n: dict = {}
+    for cell in world.cells:
+        for r in world.for_cell(cell):
+            t = r.get("temperature_mean_c")
+            if t is None or t != t:
+                continue
+            d = r["date"]
+            day_sum[d] = day_sum.get(d, 0.0) + max(0.0, HDD_BASE_TEMP_C - t)
+            day_n[d] = day_n.get(d, 0) + 1
+    out: dict = {}
+    for d, total in day_sum.items():
+        ym = (int(d[:4]), int(d[5:7]))
+        out[ym] = out.get(ym, 0.0) + total / day_n[d]
+    return out
+
+
+def gas_month_hdd(ym: tuple, weather: str) -> float:
+    """The month's HDD the gas volume is read at, under one of `WEATHERS`."""
+    y, m = ym
+    if weather == "normal":
+        return REFERENCE_MONTHLY_HDD[m]
+    world = world_monthly_hdd()
+    if weather == "level":
+        return world[ym]
+    if weather == "anomaly":
+        base = mean(world[(yy, m)] for yy in range(2016, 2026))
+        return REFERENCE_MONTHLY_HDD[m] * world[ym] / base
+    raise ValueError(weather)
+
+
+def _gas_month_mwh(ym: tuple, weather: str) -> float:
+    n = monthrange(*ym)[1]
+    return n * resi_daily_gas_kwh(_benchmark_kwh("gas"), gas_month_hdd(ym, weather) / n) / 1000.0
+
+
+@lru_cache(maxsize=None)
+def monthly_volume_mwh(fuel: str, weather: str = "normal") -> dict:
     """One typical dual-fuel customer's volume per month at Ofgem's benchmark annual consumption.
 
     Electricity: Elexon Profile Class 1 daily totals, scaled so a calendar year sums to the
-    benchmark. Gas: the world's own two-term daily form at 1991-2020 normal HDD. Weather is normal:
-    the 2021-22 weather deviation (Together's "demand uncertainties") is not tested here.
-    """
+    benchmark, whatever `weather` says (only gas is in scope). Gas: the world's own two-term daily
+    form at the month's HDD under `weather`. Covers `BALANCE_YEAR` (Apr-21 .. Mar-22)."""
     bench = _benchmark_kwh(fuel)
     if fuel == "electricity":
         year = [date(2021, 1, 1) + timedelta(days=i) for i in range(365)]
-        daily = {d: sum(load_pc1_shape(d)) for d in year}
-        scale = bench / sum(daily.values())
+        scale = bench / sum(sum(load_pc1_shape(d)) for d in year)
         out = {}
-        for y, m in MONTHS:
+        for y, m in BALANCE_YEAR:
             days = [date(y, m, i) for i in range(1, monthrange(y, m)[1] + 1)]
             out[(y, m)] = sum(sum(load_pc1_shape(d)) for d in days) * scale / 1000.0
         return out
-    out = {}
-    for y, m in MONTHS:
-        n = monthrange(y, m)[1]
-        hdd_day = REFERENCE_MONTHLY_HDD[m] / n
-        out[(y, m)] = n * resi_daily_gas_kwh(bench, hdd_day) / 1000.0
-    return out
+    return {ym: _gas_month_mwh(ym, weather) for ym in BALANCE_YEAR}
 
 
 def svt_survival(ym: tuple) -> float:
@@ -290,8 +350,12 @@ def _svt_hedge_price(fuel: str, kind: str, ym: tuple, reading: str, cover: float
     return at(lead_months)
 
 
-def strategy_path(name: str, fixed_share: float, pair: tuple, reading: str) -> dict:
-    """Monthly commodity-basis cash flow, per opening customer, both fuels, before credit balances."""
+def strategy_path(name: str, fixed_share: float, pair: tuple, reading: str,
+                  weather: str = "normal") -> dict:
+    """Monthly commodity-basis cash flow, per opening customer, both fuels, before credit balances.
+
+    Cover is sized on the PLANNED (normal-weather) volume; revenue and need follow the ACTUAL
+    volume under `weather`; the gap is bought or sold back at spot."""
     spec = STRATEGIES[name]
     kind = spec["svt"]
     rows = []
@@ -300,22 +364,26 @@ def strategy_path(name: str, fixed_share: float, pair: tuple, reading: str) -> d
         flow = 0.0
         for fuel in FUELS:
             k = uplift(fuel)["k"]
-            vol = monthly_volume_mwh(fuel)[ym]
+            vol = monthly_volume_mwh(fuel, weather)[ym]
+            plan = monthly_volume_mwh(fuel)[ym]
             spot = spot_raw(fuel, ym) * k
             strike = _strike(fuel) * k
             # Fixed book: 12-month contracts, no leavers inside the window, revenue at strike.
             c_fix = _interp(pair[1], pair[2], lead)
             fix_vol = fixed_share * vol
-            flow += fix_vol * (strike - (c_fix * strike + (1 - c_fix) * spot))
+            fix_cover = c_fix * fixed_share * plan
+            flow += (fix_vol * strike - fix_cover * strike
+                     - max(fix_vol - fix_cover, 0.0) * spot + max(fix_cover - fix_vol, 0.0) * spot)
             # SVT book: revenue at the cap's commodity allowance on the volume still on supply;
-            # cover sized on the opening book, so leavers' cover is sold back at spot.
+            # cover sized on the opening book at planned weather, so leavers' cover and any
+            # weather surplus are sold back at spot, and any weather shortfall bought at it.
             svt_open = (1 - fixed_share) * vol
             if svt_open == 0:
                 continue
             c_svt = 1.0 if kind == "cap_6_2_12" else svt_cover(kind, pair, lead)
             surv = svt_survival(ym)
             on_supply = svt_open * surv
-            hedge_vol = c_svt * svt_open
+            hedge_vol = c_svt * (1 - fixed_share) * plan
             hedge_px = _svt_hedge_price(fuel, kind, ym, reading, c_svt, pair[2]) * k
             revenue = on_supply * cap_commodity_allowance(fuel, date(*ym, 1))
             bought = hedge_vol * hedge_px + max(on_supply - hedge_vol, 0.0) * spot
@@ -326,26 +394,22 @@ def strategy_path(name: str, fixed_share: float, pair: tuple, reading: str) -> d
 
 
 @lru_cache(maxsize=None)
-def credit_balance_path(sep_dec_avg: float) -> dict:
-    """Per-customer credit balance at each month end, Jun-21 .. Mar-22, £.
+def credit_balance_path(sep_dec_avg: float, weather: str = "normal") -> dict:
+    """Per-customer credit balance at each month end, Apr-21 .. Mar-22, £.
 
-    Shape from the world: a flat direct debit against the seasonal bill at the cap's full unit rates
-    (benchmark volumes, the months above, the year Apr-21..Mar-22 balancing to zero). Level: shifted
-    so the Sep-Dec 2021 average equals NERA's figure. Standing charges are flat and cancel out of the
-    shape; they are left out.
+    Shape from the world: a flat direct debit, set so the year Apr-21..Mar-22 balances to zero at
+    NORMAL weather (what the supplier could know), against the seasonal bill at the cap's full unit
+    rates on the volume under `weather` (what happened). Level: shifted so the Sep-Dec 2021 average
+    equals NERA's figure. Standing charges are flat and cancel out of the shape; they are left out.
     """
-    year = [(2021, m) for m in range(4, 13)] + [(2022, m) for m in range(1, 4)]
-    bill = {}
-    for ym in year:
-        total = 0.0
-        for fuel in FUELS:
-            if ym in monthly_volume_mwh(fuel):
-                vol = monthly_volume_mwh(fuel)[ym]
-            else:  # Apr-Jun 21: same shape functions, outside MONTHS
-                vol = _volume_outside(fuel, ym)
-            total += vol * ofgem_cap_unit_rate_gbp_per_mwh_inc_vat(fuel, date(*ym, 15))
-        bill[ym] = total
-    dd = sum(bill.values()) / 12.0
+    year = BALANCE_YEAR
+
+    def bills(w: str) -> dict:
+        return {ym: sum(monthly_volume_mwh(fuel, w)[ym]
+                        * ofgem_cap_unit_rate_gbp_per_mwh_inc_vat(fuel, date(*ym, 15)) for fuel in FUELS)
+                for ym in year}
+    dd = sum(bills("normal").values()) / 12.0
+    bill = bills(weather)
     bal, path = 0.0, {}
     for ym in year:
         bal += dd - bill[ym]
@@ -355,20 +419,10 @@ def credit_balance_path(sep_dec_avg: float) -> dict:
     return {f"{y}-{m:02d}": v + shift for (y, m), v in path.items()}
 
 
-def _volume_outside(fuel: str, ym: tuple) -> float:
-    y, m = ym
-    bench = _benchmark_kwh(fuel)
-    n = monthrange(y, m)[1]
-    if fuel == "electricity":
-        year = [date(2021, 1, 1) + timedelta(days=i) for i in range(365)]
-        scale = bench / sum(sum(load_pc1_shape(d)) for d in year)
-        return sum(sum(load_pc1_shape(date(y, m, i))) for i in range(1, n + 1)) * scale / 1000.0
-    return n * resi_daily_gas_kwh(bench, REFERENCE_MONTHLY_HDD[m] / n) / 1000.0
-
-
-def hole(name: str, fixed_share: float, pair: tuple, credit: float, reading: str) -> dict:
-    path = strategy_path(name, fixed_share, pair, reading)["rows"]
-    bal = credit_balance_path(credit)
+def hole(name: str, fixed_share: float, pair: tuple, credit: float, reading: str,
+         weather: str = "normal") -> dict:
+    path = strategy_path(name, fixed_share, pair, reading, weather)["rows"]
+    bal = credit_balance_path(credit, weather)
     opening = bal["2021-06"]
     cum, worst, worst_month, series = 0.0, 0.0, None, []
     for r in path:
@@ -382,7 +436,21 @@ def hole(name: str, fixed_share: float, pair: tuple, credit: float, reading: str
     return {"H_gbp": round(worst, 2), "trough": worst_month, "series": series}
 
 
+def run_second(reading: str, weather: str) -> dict:
+    """The re-registered test: fixed shares {0.5, 0.75}, one credit level, gas under `weather`."""
+    points = []
+    for name, spec in STRATEGIES.items():
+        for pair in spec["fixed"]:
+            for fs in FIXED_SHARES_SECOND:
+                for cb in CREDIT_SECOND:
+                    h = hole(name, fs, pair, cb, reading, weather)
+                    points.append({"strategy": name, "fixed_share": fs, "cover_3m_9m": list(pair[1:]),
+                                   "credit_sep_dec_gbp": cb, **h})
+    return {"reading": reading, "weather": weather, "points": points, "verdict": verdict(points)}
+
+
 def run(reading: str) -> dict:
+    """The FIRST test's sweep, at normal weather, as pre-registered then."""
     points = []
     for name, spec in STRATEGIES.items():
         for pair in spec["fixed"]:
@@ -446,26 +514,47 @@ def _inputs_table() -> dict:
     return out
 
 
+def _weather_table() -> dict:
+    """Gas HDD and volume per month of the balance year under every reading of the weather."""
+    return {f"{y}-{m:02d}": {**{f"hdd_{w}": round(gas_month_hdd((y, m), w), 1) for w in WEATHERS},
+                             **{f"gas_mwh_{w}": round(monthly_volume_mwh("gas", w)[(y, m)], 4)
+                                for w in WEATHERS}}
+            for y, m in BALANCE_YEAR}
+
+
+def _print_points(res: dict, title: str) -> None:
+    print(f"\n=== {title}")
+    for p in res["points"]:
+        print(f"  {p['strategy']} fixed={p['fixed_share']:.2f} cover={p['cover_3m_9m']} "
+              f"credit={p['credit_sep_dec_gbp']:.0f}  H={p['H_gbp']:9.2f}  trough={p['trough']}")
+    print("  verdict:", json.dumps(res["verdict"]))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--json", type=Path)
+    ap.add_argument("--first-test", action="store_true",
+                    help="rerun the first test's sweep (fixed share 1.0, two credit levels, normal weather)")
     args = ap.parse_args(argv)
-    result = {"inputs": _inputs_table(),
-              "credit_balance_paths": {str(c): credit_balance_path(c) for c in CREDIT_BALANCE_SEP_DEC_GBP},
-              "static": run("static"), "rolling": run("rolling")}
-    for fuel, t in result["inputs"].items():
-        print(f"\n{fuel}: uplift {t['uplift']}  strike(Jul-21) {t['strike_jul21_raw']}"
-              f"  static SVT hedge {t['svt_static_hedge_raw_feb_jun21']}")
-        for r in t["months"]:
-            print("  ", r)
-    for reading in ("static", "rolling"):
-        res = result[reading]
-        print(f"\n=== reading: {reading}")
-        for p in res["points"]:
-            print(f"  {p['strategy']} fixed={p['fixed_share']:.2f} cover={p['cover_3m_9m']} "
-                  f"credit={p['credit_sep_dec_gbp']:.0f}  H={p['H_gbp']:9.2f}  trough={p['trough']}")
-        print("  pre-registered verdict:", json.dumps(res["verdict"]))
-        print("  post-hoc, fixed share 1.0 removed:", json.dumps(res["post_hoc_verdict_without_fixed_share_1"]))
+    if args.first_test:
+        result = {"inputs": _inputs_table(),
+                  "credit_balance_paths": {str(c): credit_balance_path(c) for c in CREDIT_BALANCE_SEP_DEC_GBP},
+                  "static": run("static"), "rolling": run("rolling")}
+        for reading in ("static", "rolling"):
+            _print_points(result[reading], f"first test, reading: {reading}")
+            print("  post-hoc, fixed share 1.0 removed:",
+                  json.dumps(result[reading]["post_hoc_verdict_without_fixed_share_1"]))
+    else:
+        weather = _weather_table()
+        print("\nmonth     " + "  ".join(f"{k:>16}" for k in next(iter(weather.values()))))
+        for ym, row in weather.items():
+            print(f"{ym}   " + "  ".join(f"{v:16}" for v in row.values()))
+        result = {"inputs": _inputs_table(), "gas_weather": weather,
+                  "credit_balance_paths": {w: credit_balance_path(CREDIT_SECOND[0], w) for w in WEATHERS},
+                  "runs": {f"{reading}/{w}": run_second(reading, w)
+                           for reading in ("static", "rolling") for w in WEATHERS}}
+        for key, res in result["runs"].items():
+            _print_points(res, f"second test, reading/weather: {key}")
     if args.json:
         args.json.write_text(json.dumps(result, indent=1) + "\n")
     return 0

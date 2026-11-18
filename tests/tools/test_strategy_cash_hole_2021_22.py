@@ -5,7 +5,16 @@ Each names the defect it catches. Keyed to properties of the instrument, not to 
 
 import pytest
 
-from tools.strategy_cash_hole_2021_22 import _MID, STRATEGIES, hole, run, verdict
+from tools.strategy_cash_hole_2021_22 import (
+    _MID,
+    STRATEGIES,
+    credit_balance_path,
+    hole,
+    monthly_volume_mwh,
+    run,
+    verdict,
+    world_monthly_hdd,
+)
 
 # Elexon MID lives in the gitignored sim/cache/, so a clean checkout (the landing gate's) has no
 # electricity spot. The world-reading controls skip there with that reason; the rule control runs
@@ -48,3 +57,52 @@ def test_every_strategy_point_is_run_on_the_world():
     res = run("static")
     assert {p["strategy"] for p in res["points"]} == set(STRATEGIES)
     assert all(p["H_gbp"] <= 0 for p in res["points"])
+
+
+def test_the_worlds_weather_is_read_with_each_cells_level_added_back():
+    # Defect caught (made, then found, 18 Nov): parsing the store file raw reads each regime's
+    # ANOMALY, centred on zero, and gives about 260 HDD in a British July. Through `for_cell` the
+    # level is restored. Keyed to the property: in every July of the record, Britain heats little,
+    # and every January it heats a lot.
+    hdd = world_monthly_hdd()
+    assert all(hdd[(y, 7)] < 40 for y in range(2016, 2026))
+    assert all(hdd[(y, 1)] > 200 for y in range(2016, 2026))
+
+
+def test_the_weather_moves_gas_and_only_gas_and_the_direct_debit_is_set_on_normal():
+    # Defect caught: weather not reaching volume (the second test would silently rerun the first),
+    # or reaching electricity, which is out of scope; or the direct debit being re-set on the
+    # weather that happened, which a supplier could not have known and which would make the year
+    # balance whatever the winter did.
+    assert monthly_volume_mwh("gas", "anomaly") != monthly_volume_mwh("gas", "normal")
+    assert monthly_volume_mwh("electricity", "anomaly") == monthly_volume_mwh("electricity", "normal")
+    # With the DD fixed on normal, the month-on-month change in (actual - normal) balance is
+    # exactly that month's bill difference; a DD re-set on actual weather adds its own term.
+    from datetime import date
+
+    from simulation.price_cap_enforcement import ofgem_cap_unit_rate_gbp_per_mwh_inc_vat as rate
+
+    normal, actual = credit_balance_path(65.0, "normal"), credit_balance_path(65.0, "anomaly")
+    for y, m, py, pm in ((2021, 12, 2021, 11), (2022, 2, 2022, 1)):
+        step = (actual[f"{y}-{m:02d}"] - normal[f"{y}-{m:02d}"]) - (
+            actual[f"{py}-{pm:02d}"] - normal[f"{py}-{pm:02d}"])
+        bill_gap = (monthly_volume_mwh("gas", "normal")[(y, m)]
+                    - monthly_volume_mwh("gas", "anomaly")[(y, m)]) * rate("gas", date(y, m, 15))
+        assert abs(step - bill_gap) < 1e-6
+
+
+@needs_world
+def test_at_normal_weather_the_second_test_reproduces_the_first_tests_record():
+    # Defect caught: the plan/actual split changing the arithmetic when there is no weather gap.
+    # Read against the committed record of the first run, not against this module's own default.
+    import json
+    from pathlib import Path
+
+    rec = Path(__file__).resolve().parents[2] / (
+        "docs/staging/records/SEAT_RESULT_CASH_HOLE_BY_STRATEGY_2021_22_2026-11-18.json")
+    first = json.loads(rec.read_text())["static"]["points"]
+    for p in first:
+        if p["fixed_share"] == 0.75 and p["credit_sep_dec_gbp"] == 65.0:
+            pair = (3, *p["cover_3m_9m"])
+            got = hole(p["strategy"], 0.75, pair, 65.0, "static", "normal")
+            assert got["series"] == p["series"]
