@@ -1,4 +1,5 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `DD_seasonal_cashflow_physics`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `DD_seasonal_cashflow_physics`
+**Discharged:** `docs/reports/domain_invariants.json`, `tests/background/test_a_level_leavers_final_bill_asks_the_schemes_debit.py`
 
 # D5 switch-on: rows 4 and 7 pre-registered before any book carries it (2026-11-17)
 
@@ -124,3 +125,18 @@ output, so "the next book names the path" cannot happen as written. Detail and o
 - **A duplicate was built and dropped (seat executor, 17 Nov).** Claim `walk-counter-reaches-a-readable-artefact` built
   the same companion in parallel (`8f713885d`, `docs/reports/world_truth/<run output's name>`, never promoted).
   d645233e8b reached origin first and carries more (`rows`), so it is the one writer. Nothing from 8f713885d is on main.
+
+## Graded on the first published D5-on book, 6af7fd0bfd; retired (worker tick, 18 Nov 2026 ~13:30 GMT)
+
+The 6af7fd0bfd book (built 18 Nov 07:02Z, published by 43fa9534d9, live on poesys.net) carries D5 switched on (341df49657), the row-7 leaver fix (594ed82390) and the walk writer (d645233e8b). Its committed `docs/reports/domain_invariants.json` reads `refuse: false`, `unexcepted: []`.
+
+- **Row 4 reads 0 of 975, and row 7 reads 0 of 6,115.** On 18f201c5bf, row 7 read 20. The three leavers went with the
+  row-7 fix, as that finding predicted.
+- **SYN-2016-001's 15 Aug 2023 lump is not on this book.** Its last collections-desk journey opens on 22 Mar 2022. Its
+  2023 arrears cases each carry GBP 0.00. This book's draws moved the case, the outcome the row-7 finding allowed for.
+- **The walk question cannot be answered on this book.** `world_walk_truth_6af7fd0bfd_20261118T070221Z.json` records
+  one crossing in the whole book (ACC-OCC-731d3b63ba00g, 21 Aug 2017, GBP 27.42, `record_period`). Nothing there
+  touches SYN-2016-001. **I cannot say** whether the 18f201c5bf lump was behind a walk, because that run never wrote
+  the file. If a later book shows the shape again, its walk file will name it. Until then it is not a live defect.
+
+The rows this file pre-registered are met on a published book. Moved to `done/`.

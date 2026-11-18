@@ -1,4 +1,5 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Discharged:** `docs/reports/domain_invariants.json`
 
 # The VAT row's last breach is an open estimated run, and the 16 Nov book is refused as predicted (2026-11-16)
 
@@ -259,3 +260,19 @@ row the table did not list. The book carries every commit since f7e17b1316, so n
   memory behind sim-runner's book (7,066 MB) and was admitted the second that book finished. **The outcome was right
   by accident**: had memory allowed, step 6 would have restarted beside the book. One-line remedy for the next
   pause: match a marker name not present at the stop, not mtime. No pause is armed now.
+
+## 10. 18 Nov, worker tick: the book after the refusals is published; retired (~13:30 GMT)
+
+The 6af7fd0bfd book (built 18 Nov 07:02Z, published by 43fa9534d9, live on poesys.net) carries D5 switched on (341df49657), the row-7 leaver fix (594ed82390) and the walk writer (d645233e8b). Its committed `docs/reports/domain_invariants.json` reads `refuse: false`, `unexcepted: []`.
+
+- **INV_VAT_RATE: CLEAN, 0 of 53,605 periods.**
+- INV_ESTIMATED_RUN_CONSISTENT_WITH_THE_METER reads 8, excepted, and retires on (a) as before.
+- INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT reads 24. It is excepted on the N29 class (153a675ad4), not on a
+  one-book count. That is §9's first option. The fix itself stays with EP4 under the N29 finding.
+- Rows 4 and 7 read 0. Graded in the D5 and row-7 findings, both now in `done/`.
+
+**One item is carried, not built.** §9's watcher remedy for the next pause is to match a marker name that was not
+present at the stop, instead of reading mtime. No pause is armed, so nothing reads it today. It belongs to whoever
+next arms a pause around a book.
+
+Moved to `done/`.

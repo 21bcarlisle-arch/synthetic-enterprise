@@ -1,4 +1,5 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `DD_seasonal_cashflow_physics`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 3 · **Atom:** `DD_seasonal_cashflow_physics`
+**Discharged:** `docs/reports/domain_invariants.json`, `tests/background/test_a_final_bill_reads_the_last_bill_issued_before_it_whether_or_not_it_is_due.py`
 **Knowledge:** `home-moves` -- `docs/market_research/home_moves.md` s.8.8f choice 29
 
 # Row 7's three leavers are the world's due-only read at the final bill, not the desk (2026-11-17)
@@ -59,3 +60,22 @@ the due-only filter restored, both tests go red: the leg reads −50 where it ow
 - The closing-refund row (24 against 23) is EP4's, untouched here.
 - `final_month_nets` still never reaches the run output (VAT finding s.9). So the netted amounts above are
   reconstructed from the ledger, not read from the world's own row. Prediction 1 is graded on the page and desk alone.
+
+## Predictions graded on 6af7fd0bfd, the first book carrying 594ed82390; retired (worker tick, 18 Nov 2026 ~13:30 GMT)
+
+The 6af7fd0bfd book (built 18 Nov 07:02Z, published by 43fa9534d9, live on poesys.net) carries D5 switched on (341df49657), the row-7 leaver fix (594ed82390) and the walk writer (d645233e8b). Its committed `docs/reports/domain_invariants.json` reads `refuse: false`, `unexcepted: []`. The book is not a one-variable test of this fix. It also carries the walk writer and every other landing
+between 18f201c5bf and 6af7fd0bfd.
+
+1. **Held, and went further than predicted.** SYN-2016-471, -523 and -546 have left row 7. The row reads **0**, not 2.
+   SYN-2016-001's lump is not on this book's draws (its 2023 arrears cases each carry GBP 0.00), the case this
+   prediction allowed for.
+2. **Held.** Row 7 has no new leaver of this shape.
+3. **Not graded.** I have not compared move-out collections and level-leaver write-offs between 18f201c5bf and
+   6af7fd0bfd. **I cannot yet say** whether they moved, or by how much.
+4. **Held.** Row 4 reads 0 of 975.
+
+On the "Not done" items:
+- The closing-refund row is re-keyed to the N29 class (153a675ad4). It reads 24, excepted.
+- `final_month_nets` now reaches `world_walk_truth_<head>_<ts>.json` beside the run, which carries 5 entries on this book.
+
+Moved to `done/`.

@@ -1,4 +1,5 @@
-**Severity:** BLOCKING · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Discharged:** `docs/reports/domain_invariants.json`, `tests/simulation/test_a_level_dd_household_is_dunned_on_its_schedule_not_its_bills.py`
 
 # A level direct debit household is dunned per bill, so its page prints "overdue" while it is in credit (2026-11-07)
 
@@ -1450,3 +1451,20 @@ session: the triad ask, the DD book read, the page row, the desk note, the runne
   while the switch is still off. Rows 4 and 7 would then pass on a book in which no document asked the debit. That
   passes the row by redefining it, which is the failure it exists to catch. The runner change and the switch-on
   therefore land together, or the runner change lands first and stays inert while no row records an ask.
+
+## Done-means met on the published 6af7fd0bfd book; retired (worker tick, 18 Nov 2026 ~13:30 GMT)
+
+The 6af7fd0bfd book (built 18 Nov 07:02Z, published by 43fa9534d9, live on poesys.net) carries D5 switched on (341df49657), the row-7 leaver fix (594ed82390) and the walk writer (d645233e8b). Its committed `docs/reports/domain_invariants.json` reads `refuse: false`, `unexcepted: []`.
+
+| Done-means leg (12 Nov) | Predicted | 6af7fd0bfd |
+|---|---|---|
+| INV_NO_ARREARS_NOTICE_WHILE_THE_HOUSEHOLD_IS_IN_CREDIT | UNREACHED, 0 graded | **UNREACHED, 0 graded** (held) |
+| Share leg, ceiling 0.30 | 0.17 to 0.27 | **0.210**, 7,231 of 34,414 graded DD collections, 912 accounts (held) |
+| INV_OVERDUE_WITHIN_BALANCE (row 4) | | **CLEAN, 0 of 975** |
+| INV_OVERDUE_WITHIN_PAGE_BALANCE (row 7) | | **CLEAN, 0 of 6,115** |
+| INV_PAYMENT_RECORD_RECONCILES_TO_COLLECTIONS_DUE | | **CLEAN, 0 of 1,132** |
+
+The share is read from the row's own flag (`INV_DD_COLLECTIONS_EQUAL_TO_THE_BILL_WITHIN_THE_VARIABLE_DD_SHARE`, Legs B and C
+still unbuilt), not from the test's `share_equal_to_the_bill`, so its denominator is the graded one (as on 11 Nov). The
+BLOCKING premise ("two unexcepted gate rows") no longer holds, and every leg this file set for its retirement has been
+read on a published book. Moved to `done/`. D2 to D6 stay in `docs/design/LEVEL_DD_AREA_MAP.md`.
