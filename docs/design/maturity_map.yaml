@@ -1292,23 +1292,6 @@
   file_scope: ['simulation/household_segments.py', 'simulation/population_draw.py', 'docs/market_research/', 'site/knowledge/', 'tests/simulation/test_household_segments.py', 'tests/simulation/test_population_draw.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that knows a property is a three-bed semi and assumes three bedrooms means three people, then cannot explain why half its direct debits are wrong."
-- id: H48_the_parked_document_audit_is_the_idle_hole_at_scale
-  title: "121 parked documents, and the only question that matters is whether the reason each was parked is still true"
-  notes_rehomed: [gain]
-  lane: H_harness
-  value_stream: close_to_learn
-  epoch: 3
-  level_current: 0
-  level_target: 3
-  loop_stage: build
-  dial_inherited: 12    # machinery. The ruling's own rule: "housekeeping never outranks a blocker",
-  #   and the director's machinery test puts it below the three product rulings it was staged with.
-  provenance: director_ruling
-  depends_on: []
-  couples_with: []
-  file_scope: ['docs/staging/in_progress/', 'docs/staging/done/']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a change board with a hundred items parked pending decisions that were taken last quarter, where the parking itself is what stops anyone noticing."
 - id: C32_one_obligation_one_vulnerability_scorer
   title: "two vulnerability scorers implement one Ofgem obligation, disagree on every shared term, and the dead one decides disconnection"
   notes_rehomed: [gain]

@@ -5120,3 +5120,21 @@
   depends_on: [C36_a_self_disconnection_the_watch_sees_is_answered_with_support]
   # Commons s.5 "Recovery through the meter, on the 27A watch": 27A.1(b) via 27.8A(d)(iv), pause.
   real_world_twin: "pausing or lowering a PPM debt deduction while the customer keeps going off supply"
+
+- id: H48_the_parked_document_audit_is_the_idle_hole_at_scale
+  title: "121 parked documents, and the only question that matters is whether the reason each was parked is still true"
+  notes_rehomed: [gain]
+  lane: H_harness
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 3    # the audit ran: 4cd09c6ceb disposed the 22 still parked with dated evidence lines
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 12    # machinery. The ruling's own rule: "housekeeping never outranks a blocker",
+  #   and the director's machinery test puts it below the three product rulings it was staged with.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  file_scope: ['docs/staging/in_progress/', 'docs/staging/done/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a change board with a hundred items parked pending decisions that were taken last quarter, where the parking itself is what stops anyone noticing."
