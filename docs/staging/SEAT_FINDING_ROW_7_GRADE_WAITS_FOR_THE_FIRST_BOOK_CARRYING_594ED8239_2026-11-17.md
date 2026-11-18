@@ -136,3 +136,19 @@ for h, bs in sorted(by.items()):
   2023-08-15 names the walk. A book built on 594ed8239 alone still reads 2, as P1 says.
 - **Not predicted:** other counts that read held-lump timing (`crossed_despite_a_plan`, the excepted closing-refund
   row) may move. Forced reader crossings can now come before a walked one. Which way they move: **I cannot yet say.**
+
+## The 23:25Z "do not pause" premise no longer holds, so step 6 pauses at its pair-3 boundary (worker, 18 Nov 01:42Z)
+
+- **What changed.** 23:25Z declined to pause the value test because the next book was predicted refused on row 7's 2.
+  20d4cbeccc (01:38Z) fixes those 2, and P5 predicts row 7 = 0 on the next book. So that book is now the predicted
+  unwedge, not a diagnostic one. The shared tree carries 594ed8239 and 20d4cbeccc, and `background/live_payment_triad.py`
+  matches HEAD.
+- **Cost of the pause: none of the draw work.** The driver skips any pair whose member and control files are on disk.
+  Pair 3 (`55555_66666`) started at 20:04Z and pairs take about 21,000 s, so it lands at about 02:00Z.
+- **Armed:** `row7book-pause-watch` (`/var/tmp/row7book-pause/watch.sh`, log `watch.log` beside it). It is the
+  `d5book-pause-watch` script with pair 3 in place of pair 2. It stops step 6 once pair 3 is on disk, waits for a new
+  `docs/staging/run_complete_*.md` (at most 8 h), and then relaunches step 6 with its original arguments. Step 6 is
+  never stopped mid-pair. If the unit ends first, the watcher exits without touching anything.
+- **REVERSE:** `systemctl --user stop row7book-pause-watch`. If step 6 is already stopped, run the relaunch block in
+  watch.sh by hand.
+- Grading is unchanged: the steps above, P1 and P5 on the book, when it lands.
