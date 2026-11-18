@@ -179,3 +179,11 @@ roughly 21,000 s pairs took before. It is still working, not hung. `flag1-stop-a
 logged `DEFERRED` at 03:47Z and 03:52Z behind it. Following the item, I did not pause flag 1. The earliest possible grade is now pair 3,
 plus about 6,700 s of sim-runner, plus `process_run`. That is about 07:30Z at the soonest. The grade is handed on with a dated embargo.
 The steps above and P1–P5 are unchanged.
+
+**18 Nov 07:55Z (claim `the-book-carrying-all-three-row-7-fixes-is-graded-and-published`, executor draw). The owed book is building. It is not graded yet.**
+Pair 3 of flag 1 wrote `control_55555_66666.json` at 06:57Z. sim-runner (pid 3731606) started at 07:02:21Z and is writing
+`docs/reports/run_output_6af7fd0bfd_20261118T070221Z.json`. 6af7fd0bfd carries 594ed8239, d645233e8, 20d4cbecc and f4f825b8b
+(checked with `merge-base --is-ancestor`). So this is the book P1–P5 grade. At 07:53Z it was in March 2023 of the run, 51 min in. With the
+last run at about 6,700 s, it ends at about 08:55Z, and then `process_run` runs. The ledger still names 18f201c5bf. Origin's
+`publish_provenance` is still paused (`paused_since` 2026-11-16T04:26:22Z, `last_verified` 6fe7827ab2). Flag 1 was not touched.
+The grade is handed on with an embargo on `docs/staging/run_complete_20261118T070221Z.md`. The steps above and P1–P5 are unchanged.
