@@ -937,6 +937,7 @@
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
+  block_reason: "PARKED 18 Nov: L2 evidence is filed (records/WORKER_RESULT_H40_L2_..._2026-11-14.md); only the level record remains, and OPS11 refuses it while SITE1's Expert Hour finding (2026-11-11) is BLOCKING in H_harness. Unpark when that finding is discharged."
   file_scope: ['tools/', 'tests/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an intermittent fault traced to the bench before any board is replaced"

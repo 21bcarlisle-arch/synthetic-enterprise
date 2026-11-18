@@ -108,8 +108,16 @@ def unit_name(job: str) -> str:
     return f"{UNIT_PREFIX}{slug}"
 
 
+#: Names a job inherits from the launcher BY NAME (`--setenv=NAME`), so a value never sits in argv.
+#: The publisher imports `ntfy_utils`, which raises at import without the topic, and a unit does not
+#: inherit the launcher's environment: the 6af7fd0bfd re-drive died there. The topic only -- never
+#: the whole secrets file (`secrets_location.load_secret_env`'s allowlist, for the same reason).
+INHERITED_BY_NAME = ("SE_NTFY_TOPIC",)
+
+
 def systemd_run_argv(unit: str, command: list, *, workdir: str, log: str,
-                     description: str, env: dict | None = None) -> list:
+                     description: str, env: dict | None = None,
+                     inherit: dict | None = None) -> list:
     """The launch argv. Built here so a test can assert its shape without running anything.
 
     Every property on it is a death this project already paid for; the docstring at the top of this
@@ -126,6 +134,10 @@ def systemd_run_argv(unit: str, command: list, *, workdir: str, log: str,
     ]
     for key, value in (env or {}).items():
         argv.append(f"--setenv={key}={value}")
+    inherit = os.environ if inherit is None else inherit
+    for key in INHERITED_BY_NAME:
+        if key not in (env or {}) and inherit.get(key):
+            argv.append(f"--setenv={key}")
     return argv + list(command)
 
 
@@ -803,6 +815,8 @@ def main(argv: list | None = None) -> int:
             print("usage: --follow-only <unit> [<artefact>]")
             return 2
         return follow_unit(argv[1], argv[2] if len(argv) > 2 else None)
+    from background.secrets_location import load_secret_env
+    load_secret_env(only=INHERITED_BY_NAME)      # never overwrites a topic the caller already has
     parser = argparse.ArgumentParser(
         description="Launch a long job into a transient user unit and record its liveness.",
         epilog="Everything after `--` is the command to run.")

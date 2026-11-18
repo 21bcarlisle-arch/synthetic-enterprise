@@ -254,6 +254,25 @@ def test_the_launch_argv_never_carries_collect():
     assert "--user" in argv and "--unit=longjob-x" in argv
 
 
+def test_the_job_gets_the_ntfy_topic_by_name_and_never_its_value_or_another_secret():
+    """The 6af7fd0bfd re-drive died at import: a unit does not inherit the launcher's environment,
+    and `ntfy_utils` raises without SE_NTFY_TOPIC.
+
+    Fires on: dropping the name-only `--setenv` (the publisher dies at import again); writing the
+    VALUE into argv (the secret topic shows in `ps` and the unit's record); or passing another key
+    from the secrets file, such as the HMAC signing key, through the same door.
+    """
+    secret = {"SE_NTFY_TOPIC": "t-0123", "SE_WAKE_HMAC_KEY": "k-4567"}
+    argv = llj.systemd_run_argv("longjob-x", ["python3", "-c", "pass"], workdir="/tmp",
+                                log="/tmp/x.log", description="d", inherit=secret)
+    assert "--setenv=SE_NTFY_TOPIC" in argv, argv
+    assert not any("t-0123" in a or "k-4567" in a or "HMAC" in a for a in argv), argv
+    bare = llj.systemd_run_argv("longjob-x", ["true"], workdir="/tmp", log="/tmp/x.log",
+                                description="d", inherit={})
+    assert not any(a.startswith("--setenv=SE_NTFY_TOPIC") for a in bare), (
+        "a name-only --setenv with the name unset is a launch systemd-run cannot honour")
+
+
 def test_both_streams_land_in_one_file_and_python_does_not_buffer():
     """The 09-07 launch left a 240-byte log holding one import warning and no stdout at all.
 

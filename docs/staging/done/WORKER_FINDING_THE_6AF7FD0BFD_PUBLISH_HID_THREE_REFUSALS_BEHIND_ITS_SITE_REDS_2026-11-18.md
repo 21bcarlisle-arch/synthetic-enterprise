@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
 # The 6af7fd0bfd publish hid three refusals behind its two site reds; it is live, and its first reader grade is 1 red
 
@@ -86,4 +86,21 @@ from 53,373 / 229 / 3 (AGREED / BOUNDED / DISAGREED) to 53,373 / 232 / 0. The pr
 before the run. The published red clears at the **next publish**, when the ledger is regenerated,
 and **not** without a rerun as said above.
 
-NEXT: none -- the contract red is fixed at its source and clears at the next publish; the channel-F census proposal and the launch_long_job NTFY trap stay open here
+
+## Both open items are built; retired (worker tick, 18 Nov 2026 ~14:00 GMT)
+
+- **The channel-F census proposal** is built in faef41bcdf. The census now also runs when a publish stages
+  `docs/reports/run_output_latest.json`.
+- **The `launch_long_job` NTFY trap is fixed.** The launcher now loads `SE_NTFY_TOPIC` from the secrets file,
+  that key only, through `secrets_location.load_secret_env`'s allowlist. It passes the variable to the unit
+  as a name-only `--setenv=SE_NTFY_TOPIC`, so the topic value never appears in argv and the HMAC key is never
+  loaded.
+  - The control is `test_the_job_gets_the_ntfy_topic_by_name_and_never_its_value_or_another_secret`.
+    It goes red when the name-only flag is dropped, and red when the value is written into argv.
+  - A `--dry-run` from a shell with the variable unset prints `--setenv=SE_NTFY_TOPIC` and no value.
+- **The contract red** clears at the next publish (c6695cd8db), as §"Corrected" says. The 7f0723b46e book
+  (run output 12:50Z) is the first one built after that fix. This tick did not grade it.
+
+Moved to `done/`.
+
+NEXT: none -- both proposals are built; the contract red is graded at the next publish
