@@ -3,14 +3,19 @@
 import pytest
 from simulation.policy_costs import (
     get_electricity_network_cost_per_mwh,
+    get_electricity_network_fixed_per_day,
     _NETWORK_COST_RESI_SME_BY_YEAR,
     _DUOS_IC_BY_YEAR,
 )
 
+# Since W3_3 (2026-11-09) the DOMESTIC per-MWh figure is the cap's per-kWh NC allowance and the
+# fixed share is charged per supply point per day; the year table below is SME's. The split's own
+# controls: tests/simulation/test_the_network_charge_splits_per_unit_and_per_day.py.
 
-def test_resi_network_cost_2020():
-    """Resi/SME combined DUoS+TNUoS rate for 2020 (Ofgem Annex 9: £45.89/MWh → rounded to £46)."""
-    assert get_electricity_network_cost_per_mwh("2020-06-01", segment="resi") == pytest.approx(46.0)
+
+def test_sme_network_cost_2020():
+    """SME combined DUoS+TNUoS rate for 2020 (Ofgem Annex 9: £45.89/MWh → rounded to £46)."""
+    assert get_electricity_network_cost_per_mwh("2020-06-01", segment="SME") == pytest.approx(46.0)
 
 
 def test_ic_network_cost_2020():
@@ -28,10 +33,13 @@ def test_ic_rate_lower_than_resi():
 
 
 def test_2022_step_up():
-    """2022 sees a large step-up in resi rates — BSUoS moved 100% to demand side Apr 2022."""
-    rate_2021 = get_electricity_network_cost_per_mwh("2021-06-01", segment="resi")
-    rate_2022 = get_electricity_network_cost_per_mwh("2022-06-01", segment="resi")
+    """2022 sees a large step-up — BSUoS to demand and the DUoS residual to fixed charges, Apr 2022.
+    SME carries it per MWh; a household carries it in the fixed per-day share."""
+    rate_2021 = get_electricity_network_cost_per_mwh("2021-06-01", segment="SME")
+    rate_2022 = get_electricity_network_cost_per_mwh("2022-06-01", segment="SME")
     assert rate_2022 > rate_2021 * 1.3  # >30% step-up (49 → 66 = 35% increase)
+    assert get_electricity_network_fixed_per_day("2022-06-01") > 4 * get_electricity_network_fixed_per_day(
+        "2021-06-01")
 
 
 def test_all_resi_years_defined():
@@ -48,14 +56,14 @@ def test_all_ic_years_defined():
 
 def test_clamps_pre_2016():
     """Dates before 2016 clamp to the 2016 rate."""
-    assert get_electricity_network_cost_per_mwh("2010-01-01", segment="resi") == pytest.approx(
+    assert get_electricity_network_cost_per_mwh("2010-01-01", segment="SME") == pytest.approx(
         _NETWORK_COST_RESI_SME_BY_YEAR[2016]
     )
 
 
 def test_clamps_post_2024():
     """Dates after 2024 clamp to the 2024 rate."""
-    assert get_electricity_network_cost_per_mwh("2030-01-01", segment="resi") == pytest.approx(
+    assert get_electricity_network_cost_per_mwh("2030-01-01", segment="SME") == pytest.approx(
         _NETWORK_COST_RESI_SME_BY_YEAR[2024]
     )
 
@@ -67,11 +75,13 @@ def test_default_segment_is_resi():
     )
 
 
-def test_sme_segment_uses_resi_table():
-    """SME segment uses the same combined DUoS+TNUoS table as resi."""
+def test_sme_segment_uses_the_year_table_and_resi_does_not():
+    """SME reads the combined DUoS+TNUoS year table; a household reads the cap's per-kWh part only
+    (W3_3), which after the TCR is well below the whole allowance on volume."""
     assert get_electricity_network_cost_per_mwh("2022-06-01", segment="SME") == pytest.approx(
-        get_electricity_network_cost_per_mwh("2022-06-01", segment="resi")
-    )
+        _NETWORK_COST_RESI_SME_BY_YEAR[2022])
+    assert get_electricity_network_cost_per_mwh("2022-06-01", segment="resi") < (
+        _NETWORK_COST_RESI_SME_BY_YEAR[2022] * 0.7)
 
 
 def test_settlement_record_has_network_cost_field():
@@ -100,8 +110,9 @@ def test_settlement_record_has_network_cost_field():
     )
     assert len(records) == 48
     assert "network_cost_gbp" in records[0]
-    # resi 2021: £49/MWh (Ofgem Annex 9), 1 kWh = 0.001 MWh per period
-    expected_per_period = 49.0 * (1.0 / 1000)
+    # resi: the per-kWh part on 1 kWh (0.001 MWh) plus the day's fixed share over 48 periods
+    expected_per_period = (get_electricity_network_cost_per_mwh("2021-06-01") / 1000
+                           + get_electricity_network_fixed_per_day("2021-06-01") / 48)
     assert records[0]["network_cost_gbp"] == pytest.approx(expected_per_period)
 
 
@@ -141,9 +152,11 @@ def test_ic_settlement_uses_duos_only():
         system_price_records=price_records,
         segment="resi",
     )
-    # I&C: £12/MWh DUoS-only; resi: £49/MWh combined (Ofgem Annex 9 2021/22)
+    # I&C: £12/MWh DUoS-only, no fixed share; resi: the cap's per-kWh part plus the fixed share
     assert records_ic[0]["network_cost_gbp"] == pytest.approx(12.0)
-    assert records_resi[0]["network_cost_gbp"] == pytest.approx(49.0)
+    assert records_resi[0]["network_cost_gbp"] == pytest.approx(
+        get_electricity_network_cost_per_mwh("2021-06-01")
+        + get_electricity_network_fixed_per_day("2021-06-01") / 48)
     assert records_ic[0]["network_cost_gbp"] < records_resi[0]["network_cost_gbp"]
 
 

@@ -221,10 +221,75 @@ _DUOS_IC_BY_YEAR: dict[int, float] = {
 }
 
 
-def get_electricity_network_cost_per_mwh(date_str: str, segment: str = "resi") -> float:
-    """Network charge (DUoS + TNUoS) for electricity by year and customer segment.
+# W3_3 (2026-11-09): the DOMESTIC network cost is split the way Ofgem's cap model splits it -- a
+# per-kWh allowance charged on volume and a nil-consumption allowance charged per supply point per
+# day. The table above is the whole NC benchmark allowance / 3.1 MWh, which is the right ANNUAL
+# total only at exactly 3,100 kWh; after the TCR moved the DUoS residual (Apr 2022) and the TNUoS
+# residual (Apr 2023) into fixed charges, charging it on volume over-charged a high user by
+# ~GBP 150/yr and under-charged a low one by ~GBP 70, while the standing charge (the cap's whole nil
+# column) collected the fixed share again. Knowledge: network_charges_uk_2016_2024.md section 7d.
+# SME stays on the per-MWh table: the cap is a domestic model and no non-domestic residual band
+# table is in the commons (GAP, named there).
+_CAP_NETWORK_ALLOWANCE_ARTEFACT = (
+    Path(__file__).resolve().parents[1]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "ofgem_cap_network_allowance.json"
+)
 
-    Residential/SME: combined DUoS + TNUoS unit rate (£32-46/MWh, 2016-2024).
+
+def _load_cap_network_allowance() -> tuple[tuple[str, ...], tuple[float, ...], tuple[float, ...]]:
+    """(period starts ascending, per-kWh GBP/MWh, nil GBP/day), all ex-VAT, from the commons.
+
+    Raises at import on a missing artefact or a gap between periods, as the standing charge does.
+    """
+    if not _CAP_NETWORK_ALLOWANCE_ARTEFACT.exists():
+        raise FileNotFoundError(
+            f"cap network-allowance commons artefact missing: {_CAP_NETWORK_ALLOWANCE_ARTEFACT}. "
+            "The cap model's per-period split is required; there is no invented default."
+        )
+    periods = sorted(json.loads(_CAP_NETWORK_ALLOWANCE_ARTEFACT.read_text()).get("periods") or (),
+                     key=lambda r: r["starts"])
+    if not periods:
+        raise ValueError(f"{_CAP_NETWORK_ALLOWANCE_ARTEFACT.name} carries no periods")
+    for prev, nxt in zip(periods, periods[1:]):
+        if nxt["starts"] > prev["ends_before"]:
+            raise ValueError(
+                f"cap network allowance has a gap: {prev['cap_period']!r} ends before "
+                f"{prev['ends_before']}, {nxt['cap_period']!r} starts {nxt['starts']}"
+            )
+    return (
+        tuple(r["starts"] for r in periods),
+        tuple(float(r["per_kwh_p_ex_vat"]) * 10.0 for r in periods),        # p/kWh -> GBP/MWh
+        tuple(float(r["nil_gbp_per_year_ex_vat"]) / 365.0 for r in periods),  # per supply point
+    )
+
+
+_CAP_NETWORK_STARTS, _CAP_NETWORK_PER_MWH, _CAP_NETWORK_NIL_PER_DAY = _load_cap_network_allowance()
+
+
+def _cap_network_index(day: str) -> int:
+    """The cap period in force on `day`; before the first period, the first (held, as elsewhere)."""
+    return max(bisect_right(_CAP_NETWORK_STARTS, day) - 1, 0)
+
+
+def get_electricity_network_fixed_per_day(date_str: str, segment: str = "resi") -> float:
+    """The fixed network charge per supply point per day (GBP, ex-VAT): the cap's NC nil allowance.
+
+    Domestic only. SME is charged its whole network cost per MWh (GAP: no non-domestic residual
+    band table) and I&C carries DUoS per MWh with TNUoS through Triad, so both return 0.0.
+    """
+    if segment != "resi":
+        return 0.0
+    return _CAP_NETWORK_NIL_PER_DAY[_cap_network_index(date_str[:10])]
+
+
+def get_electricity_network_cost_per_mwh(date_str: str, segment: str = "resi") -> float:
+    """Network charge on VOLUME (GBP/MWh, ex-VAT) for electricity by date and customer segment.
+
+    Residential: the cap's per-kWh NC allowance for the cap period in force (W3_3). The fixed
+    share is NOT here: it is `get_electricity_network_fixed_per_day`, charged per supply point.
+    A unit-rate floor built on this figure is the variable network cost, as the cap builds it.
+    SME: combined DUoS + TNUoS on volume from the year table (£42-75/MWh).
     I&C HV: DUoS only (£11-14/MWh) — TNUoS is Triad-based, tracked in triad.py.
     Gas customers: returns 0.0 (gas network charges modelled separately or not at all).
 
@@ -235,6 +300,8 @@ def get_electricity_network_cost_per_mwh(date_str: str, segment: str = "resi") -
     Apr-2022 BSUoS demand-side reform into Jan-Mar 2022). See the basis registry at the
     foot of this module and tests/simulation/test_policy_cost_year_basis.py.
     """
+    if segment == "resi":
+        return _CAP_NETWORK_PER_MWH[_cap_network_index(date_str[:10])]
     year = _ro_oy_start_year(date_str)
     if segment == "I&C":
         table = _DUOS_IC_BY_YEAR
