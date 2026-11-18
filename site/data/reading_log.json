@@ -589,11 +589,39 @@
     "label": "Agents and models",
     "anchor": null
    }
+  },
+  {
+   "read": "18 Nov",
+   "source": "Linas Beliūnas, \"Nubank AI agents and simulated customers\" (Substack, 17 Nov), on Nubank's paper \"Screen Before You Serve\"; shared by the director with no comment",
+   "claim": "Candidate agents are screened against thousands of simulated customers and an LLM judge, and only winners go to live A/B tests (release cycle 21.2 → 4.4 days). \"A simulator earns its keep by ranking agent versions correctly, not by sounding like real customers\"; a simpler simulator \"ranked the best version of the agent last\"",
+   "evidence": "Vendor-adjacent write-up, partly paywalled; read through the advisor, not re-fetched",
+   "verdict": "ADOPT: a ranking-validity test",
+   "done": "Our fidelity checks match moments (`sim/scenario/fidelity_check.py`) and nothing checks ranking. The 18 Nov steer runs stylised 2021–22 supplier strategies through the world against the published outcome. Knowledge page first: `docs/market_research/why_gb_suppliers_failed_or_survived_2021_22.md`. It found reality supports only a two-tier ranking, and the survivor strategy is all GAP in the reviews read",
+   "concept": "Testing and controls",
+   "placed": {
+    "kind": "step",
+    "label": "Testing and controls",
+    "anchor": "s-build-Testing-and-controls"
+   }
+  },
+  {
+   "read": "18 Nov",
+   "source": "Snowglobe and Nubank conference talk, \"simulation maxxing\" (transcript); shared by the director with no comment",
+   "claim": "Sim and real eval scores correlated \"pretty high\" (no figure); 80% of expert labels found simulated data usable; gains count only once you \"close out the sim-to-real gap\"",
+   "evidence": "Conference talk by a vendor and its customer, with no published correlation",
+   "verdict": "SUPPORTS the above",
+   "done": "Persona grounding across tool calls we already have. The sim-to-real check for us is the 2021–22 supplier record (same knowledge page)",
+   "concept": "Testing and controls",
+   "placed": {
+    "kind": "step",
+    "label": "Testing and controls",
+    "anchor": "s-build-Testing-and-controls"
+   }
   }
  ],
  "placed": {
   "concept": 17,
-  "step": 16,
+  "step": 18,
   "unplaced": 4,
   "none": 5
  },

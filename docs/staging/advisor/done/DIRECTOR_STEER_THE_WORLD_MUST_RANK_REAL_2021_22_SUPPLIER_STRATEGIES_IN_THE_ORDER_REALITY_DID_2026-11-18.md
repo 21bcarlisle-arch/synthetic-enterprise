@@ -74,3 +74,31 @@ Probable failure modes:
 Proportionality: fidelity instrument. Knowledge page first, then implement.
 
 — Director steer, 18 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+*Delivery seat, 18 Nov 2026, the morning of his "Yes". Steps 1 and 2 are landed; steps 3–6 are handed on as
+continuation `world-ranks-real-2021-22-supplier-strategies`, and this file moves to done so the rung-zero draw stops
+re-offering a steer whose next piece is already in the queue.*
+
+1. **Knowledge page (K8):** `docs/market_research/why_gb_suppliers_failed_or_survived_2021_22.md`, feeding
+   `suppliers-accounts-and-capital`. Read in full text: Oxera's May 2022 review for Ofgem and the NAO's June 2022
+   report. Not read, and marked GAP: the BEIS Committee report (parliament.uk refuses automated fetches), Ofgem's SoLR
+   decision pages and its 2022 resilience consultations (404 at the addresses tried).
+   - **What reality supports is a two-tier ranking, not a full order.** Oxera: "none of these individual factors alone
+     predict failure"; all failed firms had negative equity; at least four failed suppliers were well hedged (over 50%
+     at nine months or more: Together, PFP, Simplicity, Orbit). Failures bunch in Sep–Oct 2021 whatever the hedge, from
+     0% to 91%. So a strict order of five strategies would test a precision reality does not have.
+   - **Corrected beside the claim:** the "22 of 26" hedging figure in `company_treasury_risk.md` has no source here.
+     The NAO's count is 17 of 24 administrators' reports (71%), and 18 of 24 (75%) cite the price cap.
+2. **Strategies, defined from the page only:** four failure strategies (S1–S4) take their hedge and credit-balance
+   parameters from Oxera's Tables 3.3 and A6.1. The equity level and fixed-tariff share are GAP for all four (only the
+   sign is published). **S5, the only survivor strategy, is all GAP in the sources read and is not yet defined.**
+   Variable-only is dropped, because no published firm ran it. Without S5 the test can only check that the world kills
+   S1–S4, and a world that kills everyone would pass. That is the test's binding gap, named before any run.
+3. **Reading log:** two rows appended under "Testing and controls"; `site/data/reading_log.json` regenerated.
+4. **Not yet done (continuation):** source S5 from survivors' published FY2020 accounts and Ofgem's 2022 resilience
+   material, or record it unsourceable; discover whether the world can run a stylised supplier's cash path outside the
+   company; pre-register the real two-tier ordering and the predicted world ordering; then run.
+
+Decision: fidelity yes
