@@ -65,3 +65,7 @@ plus a flag-0 pass could finish anyway. That is a box re-plan, handed on.
   default off (`retention_cutoff_reads_the_calibrated_belief`) and not worth a run. 0.30 on the twin's scale is a
   realised risk of about 6%, and the cut has acted as a "top third" selector. The next lever, if skip1 refutes, is
   the cut's own scale. `THE_VALUE_TEST_REDESIGN.md` §12e; knowledge §11g.
+- **Disposition, 2026-11-18 05:45Z.** `the-next-lever-is-built-before-skip1-reads` is spent: §12e landed in 7921e93a50
+  before `read_threshold_skip.skip1.out` existed, candidate 2 landed default off in a391f32caa (its control is 4/4 green),
+  and `/var/tmp/vts-driver/launch_hold_pairs.sh` is on disk and has not been launched. The successor
+  `skip1-is-graded-against-s12es-branches` now carries the read.
