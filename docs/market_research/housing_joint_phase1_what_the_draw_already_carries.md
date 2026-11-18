@@ -1,8 +1,12 @@
 **Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** W2_18_the_housing_joint_the_sample_and_the_ceiling
 
-**Knowledge:** none -- the housing knowledge page is deliverable 4 of the housing ruling and is not
-yet written. This is the gap measurement that has to exist before it can say anything true; it will
-be cited by that page and this declaration replaced when the page lands.
+**Knowledge:** what-a-house-does-to-its-energy
+
+*Corrected 2026-11-18: this line said `none` because the housing page (deliverable 4 of the ruling)
+was not written. It has since landed and cites this record in its sources. What follows is the
+2026-09-05 measurement as taken. Since then the drawn `Household` has gained `floor_area_band` and
+`has_mains_gas_supply` (`simulation/household.py`). Current settings (`flow_temp`) and roof
+geometry are still on no drawn record.*
 
 # The housing joint, phase 1: what the premise draw already carries, and the four things it does not
 
