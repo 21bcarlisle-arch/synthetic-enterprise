@@ -224,7 +224,11 @@ def _li(text):
 
 def render_html(ledger):
     """The How it's built block: counts by status, the open asks with their next step, and the
-    whole ledger one tap down. Every figure is the ledger's own, made at publish."""
+    whole ledger one tap down. Every figure is the ledger's own, made at publish.
+
+    Each row quotes a dated ask, abridged with "...", including asks canon has since superseded
+    ("80 founders", "director twin"). The lists carry `data-canon-history` so the canon check's
+    site leg reads them as history, not as the page's current framing or a misquote of canon."""
     if ledger is None:
         return ("<p>The ledger of director asks could not be built at this publish ({} could not be "
                 "read), so nothing is claimed about it.</p>".format(RULINGS))
@@ -244,7 +248,7 @@ def render_html(ledger):
         out.append("<p>No open ask has stood {} days without movement or a recorded reason.</p>"
                    .format(NO_MOVEMENT_DAYS))
     if open_rows:
-        out.append('<p>Open now, with the next step:</p>\n<ul class="fo">')
+        out.append('<p>Open now, with the next step:</p>\n<ul class="fo" data-canon-history>')
         out += [_li("<b>{}</b> ({}{}): {} <i>{}</i>".format(
             e(_when(r.get("asked"))), _LABEL[r["status"]],
             ", no movement for {}+ days".format(NO_MOVEMENT_DAYS) if r["id"] in stale_ids else "",
@@ -252,7 +256,7 @@ def render_html(ledger):
                                                or "Not yet ruled.")))
             for r in open_rows]
         out.append("</ul>")
-    out.append('<details class="more"><summary>The whole ledger</summary>\n<ul class="fo">')
+    out.append('<details class="more"><summary>The whole ledger</summary>\n<ul class="fo" data-canon-history>')
     for r in sorted(rows, key=lambda r: (_ORDER.index(r["status"]), str(r.get("asked") or ""))):
         ev = "; ".join(str(x) for x in r.get("evidence") or [])
         out.append(_li("<b>{}</b> {} &mdash; {}{}{}".format(

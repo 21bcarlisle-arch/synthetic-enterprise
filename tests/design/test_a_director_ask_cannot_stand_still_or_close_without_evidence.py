@@ -63,3 +63,17 @@ def test_the_live_ledger_builds_and_every_ruling_is_one_row():
     assert len(ids) == len(set(ids))
     assert all(r["status"] in L.RULED + ("open",) for r in L.load_rulings())
     assert sum(ledger["counts"].values()) == len(ledger["rows"])
+
+
+def test_the_ledger_tells_superseded_asks_as_history_not_as_the_page_s_framing():
+    """A ledger row quoting a superseded ask ("80 founders") is history: the canon site leg must
+    not read it as the page's framing. The page's own counts line stays visible to it."""
+    from tools import canon_drift_check as C
+
+    row = {"id": "x", "status": "superseded", "asked": "2026-07-12",
+           "ask": "take the 80 founders ... a director twin", "evidence": ["a.py"],
+           "superseded_by": "canon v4", "next_step": "none"}
+    ledger = {"counts": {"superseded": 1}, "rows": [row], "stale": []}
+    page = C.visible_text(L.render_html(ledger)).lower()
+    assert "80 founders" not in page and "director twin" not in page
+    assert "one row of a ledger" in page
