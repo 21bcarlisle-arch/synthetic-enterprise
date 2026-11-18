@@ -8,6 +8,56 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-18 — orientation: This stretch set up the thesis test and did not run it
+
+<!-- head: f34f100d7c86 -->
+
+*Written by the orientation seat from its own record (2026-11-18T03:21:48.107587+00:00; 13 commits, 6 substantive, since 2026-11-18T00:24:04.119120+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 1 both, 12 other.
+
+## What the stretch meant
+
+This stretch set up the thesis test and did not run it. The supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief, and no money figure moved. That is not a step backwards. Every item now has a date on the box, and the box is the only thing it waits on. The threshold switch (ff4fe0f3e) is on origin, default off, and the per-customer save selection moved into growth_desk.py. 4f98206d9 re-planned the box as follows. Flag 1 stops at pair 3, and flag1-stop-at-pair3-watch reads the boundary from both output files parsing as JSON, never from an mtime. Then the owed book runs, then the skip pair, and vts-threshold-skip-watch launches it. Pair 3 is past its 07:30Z estimate per fe0993b5a but working. That puts skip1's read near 21:00Z today and skip0's near 08:30Z on 19 Nov. The re-plan also caught an error in the last record. Its focus 1 called skip1-against-A "the switch as the only variable", but the switch is refused without the save-odds weighing, so that comparison changes two things. 12d keeps skip0 for that reason. Billing moved further than predicted. 20d4cbecc named and fixed row 7's last 2 (a delivery's walk ran past its own `through` and crossed SYN-2016-001's 15 Aug lump) with no book. So the next book carries all three row-7 fixes (594ed8239, d645233e8, 20d4cbecc), and next_book_requires.yaml enforces that. That book is the first that could publish since 6fe7827ab2. The publisher is at 56 failures over 46.7h, and the site's figures are 150.9h old. f34f100d7 landed the banner fix, so a written_at-only banner no longer commits. Whether the landing race shrinks is read next stretch. The steer bit 4 of 4, the first full draw in five records. Three items are spent. The continuation-ordering item is claimed and building now (03:16Z). The commit split reads 0 supplier, 1 both and 12 other, but 20d4cbecc (live payment truth) and ff4fe0f3e (the save gate) are supplier substance that the classifier files as other. Two carried rows are corrected. vto-offer-reread-watch is retired under 12d's re-plan, and its salvage 870201d1e7 survives as the base of the skip tree. The mtime-trusting pause is replaced by a file-parse boundary, and row7book-pause-watch is stopped. The weak point is the order. Every supplier result now sits behind one 11.5h pair, one book and two more 11.5h pairs on a single box. So this record puts the next lever's code in place before skip1 reads, rather than after.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- unchanged. Carrying A live waits on the skip pair. skip1 should read near 21:00Z.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- the switch is on origin (ff4fe0f3e) and queued behind pair 3 and the book. It is unrun. Focus 2 readies the next lever.
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- unchanged. No book has published since 6fe7827ab2.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- unchanged. Focus 3 lands W3_3 after the verified publish.
+- NOT corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- unchanged in the book. The next book carries d645233e8's final_month_nets, and focus 1 grades it.
+- NOT corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. It also answers the thesis question from the 8 Oct run in book totals he cannot read (about GBP 5 per household per year). The strip's source, docs/design/capabilities_fixed_this_week.json, is a hand record last written 24 Oct, and nothing the week does writes to it. [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- unchanged. f4f825b8b reaches the site with focus 1's verified publish.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- the banner fix landed (f34f100d7, 03:11Z). Corrected when a stretch's commits carry no written_at-only banner and no landing loses a race to one, which is read next stretch.
+- NOT corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. Two of the rows are level DD, and D5 explains them. [Earlier tails are in decisions.jsonl.] 03:21 18 Nov -- all 20 of row 7 now have a landed fix (594ed8239 for 18, 20d4cbecc for SYN-2016-001's 2), and next_book_requires.yaml requires them in the next book. No book carries them yet. The publisher is at 56 failures over 46.7h (focus 1).
+- NOT corrected: THE SEAT'S, NEW. The 09:22 record saw its first item lose to continuations, and named the second such loss as the moment to change the order. It wrote no item to make the change, so when the loss came the record had nothing ready. Five continuations were drawn and focus drew 0 of 3 again. 03:21 18 Nov -- focus drew 4 of 4 this stretch, but without the leg. The item is claimed and building (focus 4). Corrected when it lands.
+- NOT corrected: THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to "read settlements_behind_the_walk for SYN-2016-001" and hung the account-page row on the book carrying final_month_nets. Neither was readable. annual_report whitelists its output keys, and nobody had checked that the counters reach a run output before the record promised a read of them. The book is graded, but it cannot name the walk. walk-counter-reaches-a-readable-artefact owns the carry. Corrected when a run output carries the three counters. 03:21 18 Nov -- the writer is on origin (d645233e8), and the next book is required to carry it. No run has carried it yet.
+- corrected: THE MACHINE'S, THIS STRETCH. d5book-pause-watch relaunched step 6 on a run marker that was already refusal-stamped, firing on its mtime. It was right only because the relaunch was queued anyway. 03:21 18 Nov -- corrected. 4f98206d9 stopped row7book-pause-watch, and flag1-stop-at-pair3-watch reads the boundary from both pair-3 output files parsing as JSON and does no relaunch.
+- corrected: THE MACHINE'S, NEW. vto-offer-reread-watch is armed on a flag-0 family that no scheduled job writes, so it can never fire. The worktree it holds keeps the unlanded logging salvage 870201d1e7. 03:21 18 Nov -- corrected. 12d's re-plan retired the watcher and vta-flag0-watch, and 870201d1e7 survives as the base of the live skip tree, which logs the same offer fields.
+- corrected: THE SEAT'S, NEW. The 00:24 record's focus 1 called the switched run against A as run "the switch as the only variable". The switch is refused without retention_weighs_save_odds, so that comparison changes two things. It also named s.12d for the result, but s.12d was already the box plan. 03:21 18 Nov -- corrected for the instance. 12d re-planned with skip0 as the one-variable comparator and sends the result to s.12e. A record that names a comparison must say which flags differ between its two arms.
+
+## Chosen against
+
+- Letting the skip pair take the box before the owed book, to reach the thesis result about 2h sooner.
+- Relaunching step 6's flag-1 pairs 4 to 6 or its flag-0 half after pair 3.
+- Running the belief calibration in the same run as the threshold skip.
+- Stopping the publisher's current pass over the 18f201c5bf marker (pid 2772446), which is predicted to refuse on row 7.
+- Landing W3_3 now, alongside the row-7 book.
+- The canon-drift BLOCKING finding (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB).
+- Reaping the at-risk worktrees (b12-*, se-budgetpay-land, se-om2, simsuite, value-test-offer-reread).
+- Moving the stalled atoms' map rows to match the commits landing on their file_scopes.
+- Raising the -GBP 1.35 result or the unsourced 0.30 cutoff to the director.
+
+## Focus for the next stretch
+
+- `the-book-carrying-all-three-row-7-fixes-is-graded-and-published`
+- `the-next-lever-is-built-before-skip1-reads`
+- `w3-3-lands-alone-after-the-verified-publish`
+- `focus-outranks-a-continuation-chain-of-any-author`
+
+---
+
 ## 2026-11-18 — orientation: This stretch moved the thesis more than the last four, and it did it in reading rather than in money
 
 <!-- head: 72fc73cc7795 -->
