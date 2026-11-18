@@ -59,7 +59,11 @@ def _vat_and_lines_above(rows):
 
 def test_inv5940_prints_its_catch_up_above_a_vat_line_that_is_5pc_of_the_lines_above_it():
     bills = _render([CUSTOMERS / "OCC-a097d0031a9f.json"])
-    record, rows = bills["OCC-a097d0031a9f-INV5940"]
+    # Invoice numbers are minted per book: this bill was INV5940 on the 16 Nov book and INV6447 on
+    # 18 Nov's, whose publish this test refused by id alone. The bill is the account's April 2023 one.
+    april = [v for v in bills.values() if v[0].get("period_start") == "2023-04-01"]
+    assert len(april) == 1, [v[0]["id"] for v in april]
+    record, rows = april[0]
     assert Decimal(str(record["catchup_adjustment_gbp"])) == Decimal("21.57"), record
     vat, above, below = _vat_and_lines_above(rows)
     assert vat == Decimal("5.96")

@@ -187,3 +187,61 @@ Pair 3 of flag 1 wrote `control_55555_66666.json` at 06:57Z. sim-runner (pid 373
 last run at about 6,700 s, it ends at about 08:55Z, and then `process_run` runs. The ledger still names 18f201c5bf. Origin's
 `publish_provenance` is still paused (`paused_since` 2026-11-16T04:26:22Z, `last_verified` 6fe7827ab2). Flag 1 was not touched.
 The grade is handed on with an embargo on `docs/staging/run_complete_20261118T070221Z.md`. The steps above and P1–P5 are unchanged.
+
+## GRADED on book 6af7fd0bfd (run_complete_20261118T070221Z), 18 Nov 09:05Z (claim `the-book-carrying-all-three-row-7-fixes-is-graded-and-published`)
+
+The book finished at 08:45:36Z. Its producing commit, 6af7fd0bfd, descends from all seven `next_book_requires.yaml` rows
+(157e05c23, fc3129a86, 163bf831a, 586e304ce, 341df4965, 594ed8239, d645233e8; checked with `merge-base --is-ancestor`).
+`process_run` regenerated `docs/state/billing_ledger.json` at 08:49Z (`source_json` = this run) and the printed pages at 08:49Z.
+Flag 1 was not touched.
+
+**(a) Row 7, `INV_OVERDUE_WITHIN_PAGE_BALANCE`: 20 → 0, as predicted.** The probe (`/var/tmp/row7probe/grade_row7.py`) on the
+new ledger and pages reads `CLEAN, checked 6115, breached 0`. The publisher's own `docs/reports/domain_invariants.json`
+(git 6af7fd0bfd) says the same. At 08:58Z the gate logged `Domain invariants: 0 unexcepted breach(es) across 0 invariant(s);
+8 excepted. ENFORCED: nothing unexcepted, so the publish stands.` The refusal of the last 59 cycles is gone.
+- P1 **held**: none of SYN-2016-471/-523/-546 appears (no household appears at all).
+- P5 **held**: row 7 = 0, which also clears SYN-2016-001's two steps.
+- P4 **held**: row 4 (`INV_OVERDUE_WITHIN_BALANCE`) is 0 of 975, inside "at most 1".
+- P2: not exercised, because no new household breaches. Not counted.
+- P3: still **I cannot yet say**. Not counted.
+- Not predicted, recorded only: the closing-refund row (`INV_A_CLOSING_REFUND_IS_WITHIN_THE_HOUSEHOLD_CREDIT`) stays at
+  24 of 132, excepted. It did not move.
+
+**(b) The walk file** (`docs/reports/world_walk_truth_6af7fd0bfd_20261118T070221Z.json`). `settlements_behind_the_walk.count`
+is 1, `by_walk` is `{record_period: 1}`, and **`settle_held` is 0**, so the second leg of P5 **held**. ACC-SYN-2016-001's
+2023-08-15 settlement is **not** behind the walk any more. The one remaining row is ACC-OCC-731d3b63ba00 (leg -g, settled
+2017-08-21, GBP 27.42, walked through to 2018-02-20 by `record_period`). It is a different leg on a different path. The row
+is not predicted, so it is recorded and not graded. `later_settlements`: delivered 1,452, withdrawn 0, crossed_despite_a_plan
+0, lost_at_close 22, already_cleared 2, cut_to_balance 8, crossed_after_close 1. `missing` is empty.
+
+**(c) The account page's repayment shortfall against the world's cash: 194 legs / GBP 6,399.16 → 0 legs / GBP 0.00.**
+Reader: `/var/tmp/repay-truth/measure.py` (the 10 Nov definition: T is the world's repayment cash, P is what the page posts,
+dated on or before the book date of 2025-07-04). On this book: 368 legs carry a repayment. T is GBP 91,842.60, P is
+GBP 91,842.60, and the page differs from the cash on **no** leg in either direction. The output is kept outside the repo at
+`/var/tmp/row7grade/repay_6af7.json`.
+`final_month_nets` beside it has 259 legs, 136 of them ever level. 81 of them netted ledger credit off the final bill, for
+GBP 1,520.13, and 20 final collections failed. **Not explained here:** the same reader puts the *engine's* walk credits (E,
+kind `repayment`) **short of the cash by GBP 6,647.57 on 137 legs**, with none over. The page now posts the cash and not
+the engine's figure, which is why page against cash reads 0. Whether the 137 are the final-month nets, or the engine
+recording a settlement under another kind: **I cannot yet say.** That is the next piece, below.
+
+**The publish of this book was refused, but not on row 7.** The domain-invariant gate and the pytest publish gate both
+passed. Provenance stamped `Verified 2026-11-18T09:20:49Z` for this run. The commit was then refused at 09:43Z by the
+site lane in the hook chain (`process_run` log: `Publish commit REFUSED by the hook chain -- blocking test(s)`), on two
+`site/**` tests:
+1. `site/explore/test_a_catch_up_bills_vat_is_the_vat_of_the_lines_above_it.py::test_inv5940_...` failed with
+   `KeyError: 'OCC-a097d0031a9f-INV5940'`. Invoice numbers are minted per book, and the same April 2023 catch-up bill
+   (catch-up GBP 21.57) is INV6447 in this book. The control was keyed to the answer of the day, not the bill.
+   **Fixed in this landing:** the test now finds the account's April 2023 bill by its period. Green on both books (the
+   16 Nov extract in git, and this book's file). The old version is red on this book, as the gate's own record shows.
+   The class test beside it (every catch-up bill, at least 100 of them) already held the property. This was the
+   instance pin.
+2. `site/test_no_published_page_renders_an_empty_field.py` failed on `harness/index.html`, which printed "...the
+   survivor tier is undefined..." and "...A run with S5 undefined...". That is English prose, but it matches the
+   detector's `\bundefined\b`. **Not reproducible now:** with the shared tree's `delivery.json` (regenerated 09:28Z),
+   `proof.json` and `director_delta.json` staged, the test passes 3/3. The phrase exists nowhere on disk or in git now,
+   except as a quotation inside a decision row's `landing_refused` (`decisions.jsonl`, 06:21Z), which shows the seat hit
+   the same red at about 06:2xZ. Its source prose: **I cannot yet say.** It is transient, so no fix is landed for it.
+   If it recurs, the place to look is the feed `harness/index.html` renders at the moment of the publish commit.
+- The worker re-armed the marker at 09:47:44Z, and `process_run` (pid 209102) re-attempts this book. Its fast-forward
+  onto origin happens just before its commit, so this fix reaches it if it lands first.
