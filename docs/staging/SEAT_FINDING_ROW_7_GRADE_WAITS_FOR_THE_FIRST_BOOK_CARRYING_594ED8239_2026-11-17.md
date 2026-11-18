@@ -245,3 +245,17 @@ site lane in the hook chain (`process_run` log: `Publish commit REFUSED by the h
    If it recurs, the place to look is the feed `harness/index.html` renders at the moment of the publish commit.
 - The worker re-armed the marker at 09:47:44Z, and `process_run` (pid 209102) re-attempts this book. Its fast-forward
   onto origin happens just before its commit, so this fix reaches it if it lands first.
+
+**10:05Z: both reds are answered on origin, and the book is re-offered by hand.**
+- Correction to "no fix is landed for it" above: another lane landed 22639d0ad ("The empty-field sweep counts
+  'undefined' as a leak only when a script made it"). That fixes the second red as a class.
+- The worker's one automatic re-attempt (09:47Z) fast-forwarded onto 49d41097b, which carries the INV5940 re-key, and
+  was then refused at 10:03Z without running a test. origin had moved to 22639d0ad between its fast-forward and its
+  commit, and the primary-checkout guard refuses a commit on a stale base. That is a race, not a red.
+  `refused_marker_to_rearm` re-attempts a marker only once, so nothing would offer this book again.
+- So I re-drove it by hand, as the 13 Oct and 19 Oct refusals were: `process_run_complete.py
+  docs/staging/done/run_complete_20261118T070221Z.md`, pid 274211, started 10:03Z, log `/var/tmp/row7grade/rerun.log`.
+  `/var/tmp/row7grade/rerun.done` is written when it exits.
+- **Prediction (filed before the answer):** domain invariants are 0 unexcepted again, the pytest gate is green, the site
+  lane is green, and the commit lands unless origin moves inside its commit window again. Then origin's
+  `publish_provenance.json` has `last_verified.git_commit` = 6af7fd0bfd and no `paused_since`.
