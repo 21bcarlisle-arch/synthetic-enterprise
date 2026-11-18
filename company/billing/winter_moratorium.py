@@ -357,6 +357,12 @@ class EnforcementDetermination:
 NO_SUITABILITY_FINDING = ("no safe-and-reasonably-practicable finding is recorded for this household, "
                           "so no prepayment meter is offered (SLC 27.6(a)(iii); PPM guidance via 28.4)")
 NOT_SUITABLE = "the household's safe-and-reasonably-practicable finding is negative (SLC 27.6(a)(iii))"
+#: An S&RP evidence item that is a question the household left unanswered. It bars the offer, as 28B's
+#: unasked check does, but it is not a negative finding: nothing was found, so the refusal says so.
+UNANSWERED_EVIDENCE = "unanswered: "
+SUITABILITY_UNANSWERED = ("the household's safe-and-reasonably-practicable conversation left questions "
+                          "unanswered, so there is no positive finding and no prepayment meter is "
+                          "offered (SLC 27.6(a)(iii))")
 NO_SELF_DISCONNECTION_WATCH = (
     "no self-disconnection watch would cover this household on a prepayment meter, and SLC 27A.1 "
     "requires all reasonable steps to identify self-disconnection from the day it is on one")
@@ -495,7 +501,10 @@ def _suitability_check(case, _action):
     if why is None:
         return None
     if dataclasses.replace(record, met=True).unusable_on(case.as_of) is None:
-        return f"{NOT_SUITABLE}: " + "; ".join(record.evidence)  # in effect, and it found the bar
+        found = [e for e in record.evidence if not e.startswith(UNANSWERED_EVIDENCE)]
+        if found:  # in effect, and something held or answered found the bar
+            return f"{NOT_SUITABLE}: " + "; ".join(record.evidence)
+        return f"{SUITABILITY_UNANSWERED}: " + "; ".join(record.evidence)
     return f"{why} (SLC 27.6(a)(iii))"
 
 
