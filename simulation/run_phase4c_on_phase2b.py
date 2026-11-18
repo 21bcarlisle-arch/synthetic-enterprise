@@ -704,6 +704,8 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
     last_level_collection: dict = {}
     # The day the last money each credit counts arrived: the refund waits for it (s.8.8d).
     money_in: dict = {}
+    # Each leaver's collected bills, so the set-off reads a bill collected after the refund as owed.
+    later_cash: dict = {}
     emergent_bad_debt_by_line = emergent_bad_debt_lines(
         bills,
         phase2b_result.get("per_customer_behavioral", {}),
@@ -712,12 +714,13 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         level_dd_collections=level_dd_schedule,
         last_collection_out=last_level_collection,
         money_in_out=money_in,
+        later_cash_out=later_cash,
     )
     # A closed account the ledger holds in credit is refunded from that balance (reg 6D), so the
     # refund log and the debt the P&L writes off are one book (home_moves.md s.8.8a).
     credit_refund_log = generate_credit_refund_log(bills, customer_segments, closing_balances,
                                                    last_collection=last_level_collection,
-                                                   money_in=money_in)
+                                                   money_in=money_in, later_cash=later_cash)
     # A closing household's credit on one fuel paid its debt on the other before the refund
     # (home_moves.md s.8.8e). The set-off is netted inside the debt leg's own walk, so the walk is
     # run again with it: the close write-off, the debt recovery and the page's case all fall by it.

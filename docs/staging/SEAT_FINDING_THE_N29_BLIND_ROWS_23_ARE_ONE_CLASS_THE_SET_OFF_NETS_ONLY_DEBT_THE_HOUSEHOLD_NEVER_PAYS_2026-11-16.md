@@ -74,3 +74,34 @@ The successor `n29-close-set-off-nets-issued-debt` builds the fix. **Correction 
 code comments but is not on this page" (`background/live_payment_triad.py:1428`, s.8.8c). Choices 26-28 are D5's.
 Under K8, the build first writes its choice on s.8.8e under the next free number. Its prediction for the replay is
 0 of 132 breached on run_output_8a300fa561, and any surviving line refutes it.
+
+## Built (18 Nov 2026, claim `n29-close-set-off-nets-issued-debt`): s.8.8e choice 30, and the replay
+
+**Choice 30** (`home_moves.md` s.8.8e, written before the build). The set-off reads the debt leg's
+issued-and-unpaid balance on the refund day. The walk now lists each leaver's collected bills as
+`(issued, paid, cash)` (`later_cash_out`). The refund log adds the cash of every bill issued by the refund day and
+collected after it to the debt leg's closing balance. The set-off posts inside the debt leg's walk on its day, after
+that day's collections. A bill collected later asks its charges less what is left of it (SLC 31H.12). The page nets
+it the same way. Controls: `tests/simulation/test_the_close_set_off_reads_debt_issued_but_not_yet_collected.py`. Its
+two mutations fired: set-off reads collected-only debt (2 red); set-off posts before the day's payments (1 red).
+
+**Replay.** Pre-registration at `/var/tmp/n29s/PREDICTION.txt`, filed before any arm. Instrument: run_output_8a300fa561.
+`/var/tmp/n29s/regen.py` regenerates the log as phase4c does. Then `/var/tmp/fab-ab2/chain_full.py` and
+`/var/tmp/n29c/perline.py`.
+- **Control C** (unpatched regen): equal to the stored log, 187 of 187. 23 of 132 breached, the same 23 lines.
+- **Arm F** (first patch). P3 **held** to the penny: set-off GBP 1,469.38 -> 1,952.89 (+483.51), on 23 rows.
+  P1 was **refuted**: 2 of 122 breached, and both were NEW lines, not survivors. On SYN-2016-047 and -234g the debt
+  leg is level DD, and its final bill was collected ON the refund day. My set-off was sorted before that day's
+  payments, so the bill drew the set-off meant for the level shortfall. P2 was **refuted** too: 132 -> 122. The 10
+  that left are refunds the set-off now takes whole (no refund line, choice 21). That was foreseeable, and I
+  failed to predict it.
+- **Arm F2** (set-off after the day's payments; the second prediction was filed before it ran): **0 of 122**.
+  Set-off total unchanged at 1,952.89. Whole-book grade C vs F2: no other invariant's breach count moved. The
+  publish verdict is 12 unexcepted in both arms, with 7 -> 6 excepted. Denominators fall: 14 payment rows (bills the
+  set-off settled whole), 10 refund lines. INV_SVT_ONE_PRICE_PER_REGION_METHOD_WINDOW's checked count fell
+  32,564 -> 32,562 while staying CLEAN. That one is untraced.
+
+**Not done here, on purpose.** The keyed exception (153a675ad) stays in this landing. Retire it on the first
+published book that reads 0. *Scope caveat:* the replay regenerates the log and the page chain. It does not re-run
+phase4c's own bad-debt re-walk inside the run JSON, so the P&L line moves only on the next real run. *Named limit:*
+a household repayment of a failed bill made after the refund day is not in `later_cash`.

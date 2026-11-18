@@ -1250,8 +1250,11 @@ def generate(run_json_path=None, out_path=None):
             # The bill asks for its charges less the credit on the account (SLC 31H.12,
             # home_moves.md s.8.8a choice 11), so the household pays the rest. Only a credit bill's
             # credit is netted here: a repayment's excess was never shown as money in, so taking
-            # it off this payment would show less collected than the household paid.
-            netted = round(sum(c["amount_gbp"] for c in credits if c.get("kind") == "credit"), 2)
+            # it off this payment would show less collected than the household paid. A close
+            # set-off posted before the bill was collected is netted too: the bill asked less by it
+            # (home_moves.md s.8.8e choice 30), and the page prints the set-off on its own line.
+            netted = round(sum(c["amount_gbp"] for c in credits
+                               if c.get("kind") in ("credit", "set_off")), 2)
             # No more credit than the bill: a credit a penny over it was a -0.01 "payment" (25 on
             # 4ae8da9b0f, INV_PAYMENT_AMOUNT_SIGN); the penny stays on the account as credit.
             netted = min(netted, pay["amount_gbp"])

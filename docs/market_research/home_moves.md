@@ -1238,6 +1238,18 @@ balance. The close refund reads each fuel alone.
     debt is not set against the leaving fuel's credit here: the review set-off in §8b and the live account's
     own collections handle it. *Named limit:* a household whose surviving fuel owes is still refunded on the fuel
     that leaves.
+30. *(added 18 Nov 2026, before the build. Numbered 30 because 25 is cited in code comments but is not on this
+    page, 26-28 are D5's in s.8.8f and 29 is s.8.8f's too.)* **The set-off reads the debt leg's issued-and-unpaid
+    balance on the refund day.** Choice 21's "closing debt" is what the household owes on that day: every bill
+    issued on or before it, due or not, less the money that has reached the account by the end of it. The final
+    bill IS the closing demand (s.8.8f choice 29, SLC 27.17), so it is owed from the day it is issued. The first
+    build read the balance after every payment the run would ever make. A final bill the other leg's direct debit
+    collected 3-14 days after the refund counted as paid, so nothing was set against it. On run_output_8a300fa561,
+    16 refunds had no set-off and 7 only a part one: GBP 483.51 refunded while the same household owed it
+    (`docs/staging/SEAT_FINDING_THE_N29_BLIND_ROWS_23_ARE_ONE_CLASS_THE_SET_OFF_NETS_ONLY_DEBT_THE_HOUSEHOLD_NEVER_PAYS_2026-11-16.md`).
+    The bill then asks its charges less the set-off (SLC 31H.12, as choice 11 does for a credit), so the later
+    collection takes only the rest. The household is not refunded and then debited for the same money.
+    Control: `tests/simulation/test_the_close_set_off_reads_debt_issued_but_not_yet_collected.py`.
 
 #### 8.8f A level leaver's debit and its final bill (added 2026-11-16, before the build; D5 of `LEVEL_DD_AREA_MAP.md`)
 

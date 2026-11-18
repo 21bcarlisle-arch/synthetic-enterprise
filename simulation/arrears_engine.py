@@ -1180,7 +1180,9 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                                      *, level_dd_collections: dict | None = None,
                                      last_collection_out: dict[str, date] | None = None,
                                      money_in_out: dict[str, date] | None = None,
-                                     set_offs: dict[str, list[dict]] | None = None
+                                     set_offs: dict[str, list[dict]] | None = None,
+                                     later_cash_out: dict[str, list[tuple[date, date, float]]]
+                                     | None = None
                                      ) -> tuple[dict[tuple[str, str, str], dict],
                                                 dict[tuple[str, str, str], list[dict]]]:
     """The balance-at-close rule over already-resolved bills. Pure: no RNG.
@@ -1235,7 +1237,16 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
     outstanding bills oldest first, listed as ``kind`` "set_off" with the other leg as its
     ``credit_period_end``, after ``closing_out`` is taken and before the write-off at close, so
     the write-off, the case on the page and the P&L all fall by it. Posted beside the case instead,
-    the case still wrote its whole amount off (4 legs on the 6fe7827ab2 replay).
+    the case still wrote its whole amount off (4 legs on the 6fe7827ab2 replay). A set-off dated
+    inside the walk posts on its day, as a credit does: a bill collected after it asks its charges
+    less the set-off (SLC 31H.12, s.8.8e choice 30), so the household is not refunded on one fuel and
+    then debited the same money on the other.
+
+    ``later_cash_out`` takes, per leaver, each collected bill's ``(issued, paid, cash)``: the cash the
+    household paid on it, net of what the account's credit met. `closing_out` is the balance after
+    all of it, so a bill issued before a day and collected after it is owed on that day though the
+    closing balance reads it paid (s.8.8e choice 30). *Named limit:* a household repayment is not
+    listed, so a failed bill repaid after that day still reads as cleared on it.
     """
     level = level_collection_difference(resolved, level_dd_collections)
     # The bills a level collection paid. That collection is cash of its own amount whatever the bill
@@ -1269,6 +1280,13 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 # discharges the oldest outstanding bill on its fuel first and, as a payment by
                 # the debtor, restarts the limitation clock.
                 events.append((r["due_date"], 2, r))
+        leg_set_offs = sorted((set_offs or {}).get(cid, ()) if leaver else (), key=lambda s: s["date"])
+        # After the day's payments: the set-off took the debt owed at the END of the refund day
+        # (s.8.8e choice 30), so a bill collected that day is not met by it. Sorted before them, a
+        # level leg's final bill collected on the refund day drew the set-off meant for its level
+        # shortfall, and the page closed owing (SYN-2016-047g 131.29, -234 4.62, N29 replay).
+        for so in leg_set_offs:
+            events.append((so["date"], 3, {"set_off": so}))
         events.sort(key=lambda e: (e[0], e[1]))
         horizon = max(r["due_date"] for r in rows)
         # The walk runs to its last event, not its last due date: a DD due on a Sunday is collected
@@ -1289,7 +1307,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
         def _waiting(commodity: str) -> float:
             return round(sum(p[0] for p in pool.get(commodity, ())), 2)
 
-        def _draw(commodity: str, upto: float, kinds: tuple = ("credit", "repayment")
+        def _draw(commodity: str, upto: float, kinds: tuple = ("credit", "repayment", "set_off")
                   ) -> list[tuple[float, str, str]]:
             """Take up to `upto` of the waiting credit of `kinds`, oldest first, as (amount,
             period_end, kind)."""
@@ -1331,6 +1349,20 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     outstanding.remove(item)
                     _write_off(item, barred_at, LEG_STATUTE_BAR)
 
+        leg_commodity = rows[0]["commodity"]
+        posted: list[dict] = []
+        set_off_paid_bills = 0.0  # what of the set-offs a later collected bill asked less by
+
+        def _post_set_off(so: dict) -> None:
+            """The other fuel's credit, set against this leg on the refund day (s.8.8e): it waits
+            on the account like a credit, meeting what is outstanding oldest first, and a bill
+            collected later asks its charges less what is left of it."""
+            posted.append(so)
+            pool.setdefault(leg_commodity, []).append(
+                [round(so["amount_gbp"], 2), so["other_leg"], "set_off"])
+            for item in [i for i in outstanding if i["row"]["commodity"] == leg_commodity]:
+                _net(item, so["date"])
+
         for when, kind, r in events:
             if when > last_event:
                 break
@@ -1343,6 +1375,8 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 # The bill asked its charges less the credit waiting when it was collected (SLC
                 # 31H.12), and that is the cash the household's later settlement of it carries.
                 asked[(r["commodity"], r["period_end"][:7])] = item["remaining"]
+            elif kind == 3:
+                _post_set_off(r["set_off"])
             elif kind == 1:
                 c = r["commodity"]
                 if -r["amount_gbp"] > 0:
@@ -1362,10 +1396,13 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                     # sent beyond what was open: that waits for a later debt or the refund at
                     # close (OCC-3c914ee8cef5g's 16.55, drawn here, was never refunded).
                     for take, credit_period_end, credit_kind in _draw(
-                            c, r["amount_gbp"], ("credit",) if on_level else ("credit", "repayment")):
+                            c, r["amount_gbp"],
+                            ("credit", "set_off") if on_level else ("credit", "repayment", "set_off")):
                         credited.setdefault(_key(r), []).append(
                             {"date": when, "amount_gbp": take,
                              "credit_period_end": credit_period_end, "kind": credit_kind})
+                        if credit_kind == "set_off":
+                            set_off_paid_bills = round(set_off_paid_bills + take, 2)
                 last_ack = when
                 if r["outcome"] == "repayment":
                     left = r["amount_gbp"]
@@ -1411,6 +1448,10 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                         # had paid (PROS-2016-0263, GBP 215.97, 2026-10-15).
                         pool.setdefault(r["commodity"], []).append([left, r["period_end"],
                                                                     "repayment"])
+        # A set-off dated after the walk's last event meets what is still outstanding at close.
+        for so in leg_set_offs:
+            if not any(so is p for p in posted):
+                _post_set_off(so)
         _bar(horizon)
         difference, last_collection = level.get(cid, (0.0, None))
         # A level leaver's final bill that asked the scheme's debit and was collected paid it, so
@@ -1450,7 +1491,19 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                      "kind": "credit"})
                 closing = round(closing + take, 2)
         if leaver and closing_out is not None:
-            closing_out[cid] = closing
+            # The balance at close BEFORE the set-off, as the refund log reads it. A set-off a later
+            # collected bill took never reached the balance: that bill's cash fell by it instead.
+            closing_out[cid] = round(closing + sum(so["amount_gbp"] for so in posted)
+                                     - set_off_paid_bills, 2)
+        if leaver and later_cash_out is not None:
+            for r in rows:
+                if r["outcome"] == "success" and id(r) not in level_paid:
+                    cash = round(r["amount_gbp"] - sum(
+                        x["amount_gbp"] for x in credited.get(_key(r), ())), 2)
+                    if cash > 0.005:
+                        later_cash_out.setdefault(cid, []).append(
+                            (bill_issue_date(cid, r["period_end"]),
+                             paid_on(r["due_date"], r["days_late"], r.get("method")), cash))
         if leaver and money_in_out is not None and closing < 0:
             # The closing credit counts every payment the leg will make, but a refund dated from the
             # final bill paid it before some of that money came: SYN-2016-244 was refunded 42.14 on
@@ -1484,20 +1537,6 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
                 money_in_out[cid] = max(arrived)
         if leaver and last_collection_out is not None and last_collection is not None:
             last_collection_out[cid] = last_collection
-        for so in sorted((set_offs or {}).get(cid, ()) if leaver else (), key=lambda s: s["date"]):
-            left = round(so["amount_gbp"], 2)
-            for item in list(outstanding):
-                if left <= 0.005:
-                    break
-                take = round(min(item["remaining"], left), 2)
-                item["remaining"] = round(item["remaining"] - take, 2)
-                left = round(left - take, 2)
-                credited.setdefault(_key(item["row"]), []).append(
-                    {"date": so["date"], "amount_gbp": take, "credit_period_end": so["other_leg"],
-                     "kind": "set_off"})
-                if item["remaining"] <= 0.005:
-                    outstanding.remove(item)
-            closing = round(closing - so["amount_gbp"], 2)
         if leaver:
             # The company's own write-off date, a year after the final bill was issued: the date
             # the desk writes the same balance off on (debt_and_collections.md s.7.3).
@@ -1601,7 +1640,8 @@ def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: se
                             *, level_dd_collections: dict | None = None,
                             last_collection_out: dict | None = None,
                             money_in_out: dict | None = None,
-                            set_offs: dict[str, list[dict]] | None = None
+                            set_offs: dict[str, list[dict]] | None = None,
+                            later_cash_out: dict | None = None
                             ) -> dict[str, dict[tuple[str, int], float]]:
     """`compute_emergent_bad_debt`'s charge, kept apart by LINE: the write-off at close, the
     statute-barred write-off, and leg 4b's stayer provision (empty while leg 4b is off). Each is
@@ -1618,7 +1658,8 @@ def emergent_bad_debt_lines(bills: list[dict], behavioral: dict, churned_ids: se
     resolved = _resolve_bills(issued_bills(bills), behavioral, seed)
     written_off, credited = balance_settlement_from_outcomes(
         resolved, churned_ids, closing_out, level_dd_collections=level_dd_collections,
-        last_collection_out=last_collection_out, money_in_out=money_in_out, set_offs=set_offs)
+        last_collection_out=last_collection_out, money_in_out=money_in_out, set_offs=set_offs,
+        later_cash_out=later_cash_out)
     lines: dict[str, dict[tuple[str, int], float]] = {
         LEG_CLOSE: {}, LEG_STATUTE_BAR: {}, "stayer_provision": {}, "total": {}}
     total = lines["total"]
