@@ -3549,6 +3549,45 @@ def test_FAIL_CLOSED_the_GATE_refuses_when_the_channel_F_reading_RAISES(monkeypa
     assert not ok and "channel-F nested surface RAISED" in detail, detail
 
 
+
+# A PUBLISH STAGES THE ARTEFACT AND NO PYTHON. Before 2026-11-18 the step short-circuited on that
+# commit, so the 6af7fd0bfd publish widened channel F by six names, passed its own gate, and the
+# refusal fell on the next merge that happened to stage a `.py`.
+
+_WIDENED_F = wcc.NestedSchemaVerdict(
+    pins={"bills": ("period_end", "total_amount_gbp", "true_hidden_margin_gbp")}, unread=()
+)
+
+
+def test_MUTATION_a_publish_that_WIDENS_channel_F_is_refused_at_its_own_commit(monkeypatch):
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    monkeypatch.setattr(wcc, "nested_schema_at", lambda **k: _WIDENED_F)
+    staged = ["docs/reports/run_output_latest.json.gz", "docs/state/billing_ledger.json.gz"]
+    assert not any(p.endswith(".py") for p in staged)
+    ok, detail = gate._wall_channel_census_check(staged)
+    assert not ok, "a publish widened channel F and its own commit was allowed"
+    assert "true_hidden_margin_gbp" in detail, detail
+
+
+def test_NULL_CONTROL_a_publish_that_does_not_widen_channel_F_passes_AND_was_checked(monkeypatch):
+    """Passes, and passes BECAUSE it was read: an empty detail would be the short-circuit."""
+    from tools import pre_commit_test_gate as gate
+
+    _pin_the_other_halves(monkeypatch)
+    ok, detail = gate._wall_channel_census_check(["docs/reports/run_output_latest.json.gz"])
+    assert ok, detail
+    assert "channel F's 1 read artefact key(s)" in detail, (
+        "the step skipped the publish instead of reading it: " + repr(detail)
+    )
+
+
+def test_the_gate_triggers_on_exactly_the_artefacts_the_census_reads():
+    from tools import pre_commit_test_gate as gate
+
+    assert set(gate.WALL_CENSUS_ARTEFACTS) == {wcc.ARTEFACT_REL, wcc.PUBLISHED_REL}
+
 def test_the_GATE_names_channel_F_in_its_own_source(monkeypatch):
     """The arming, asserted against the file rather than described in a record."""
     source = (Path(wcc.__file__).parent.parent / "tools" / "pre_commit_test_gate.py").read_text()
