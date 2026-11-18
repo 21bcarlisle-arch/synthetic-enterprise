@@ -13,7 +13,8 @@ at every term boundary on a household's decision leg, each from the log that ste
    (`customer_events`, the renewal event dated that term start). A fixed term rolls onto the
    default (`svt`) or an indexed tariff when the next row is one, and then there is no decision.
 3. ``considered``: the company's own estimate was above `RETENTION_THRESHOLD`, so the guard looked
-   at an offer (the same event's ``company_churn_estimate``).
+   at an offer (the same event's ``company_churn_estimate``), or the event carries
+   ``retention_considered_on_save_odds`` (the cutoff skipped where the save odds carry the belief).
 4. ``offered``: an offer was made (`retention_log`).
 
 The steps are counted INDEPENDENTLY from their own logs and then matched to the step before.
@@ -120,7 +121,8 @@ def population_by_step(run: dict) -> dict:
         decided[key] = "default" if route is default else "fixed"
         route["reached_decision"][key[1][:4]].add(acct)
         estimate = event.get("company_churn_estimate")
-        if estimate is not None and estimate > RETENTION_THRESHOLD:
+        if (estimate is not None and estimate > RETENTION_THRESHOLD) or event.get(
+                "retention_considered_on_save_odds"):
             considered.add(key)
             route["considered"][key[1][:4]].add(acct)
 

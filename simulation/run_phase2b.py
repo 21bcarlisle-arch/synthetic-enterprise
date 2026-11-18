@@ -60,6 +60,7 @@ from company.interfaces.customer_experience import (
 from company.interfaces.fixed_overhead import book_monthly_overhead
 from company.interfaces.flexibility_revenue import build_flexibility_revenue
 from company.interfaces.growth_desk import (
+    CONSIDERED_ON_THE_SAVE_ODDS,
     book_acquisition_gate,
     book_acquisition_spend,
     book_retention_cost,
@@ -72,6 +73,7 @@ from company.interfaces.growth_desk import (
     refuse_retention_offer_below_own_cost_floor,
     replacement_cost_avoided_gbp,
     retention_bad_debt_charge,
+    retention_considers_the_renewal,
     retention_cut_share_at_price_match,
     retention_cut_share_at_risk_tiers,
     retention_engagement,
@@ -1486,6 +1488,12 @@ def _refuse_save_odds_with_no_ending_term(policy) -> None:
             "retention_save_rate_learned_against_holdout feeds the save rate the save-odds guard "
             "weighs, and this policy leaves retention_weighs_save_odds off, so nothing would read "
             "it and the held-out households would lose their offer for nothing: switch both on")
+    if (policy.retention_skips_the_belief_threshold_when_save_odds_weigh
+            and not policy.retention_weighs_save_odds):
+        raise ValueError(
+            "retention_skips_the_belief_threshold_when_save_odds_weigh lets the save-odds weighing "
+            "carry the belief in place of the 0.30 cutoff, and this policy leaves "
+            "retention_weighs_save_odds off, so nothing would carry it: switch both on")
     if (policy.retention_offers_on_the_save_rate_lower_bound
             and not policy.retention_save_rate_learned_against_holdout):
         raise ValueError(
@@ -4120,6 +4128,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _holdout_arm = None
             _holdout_would_offer = False
             _no_offer_reason = "below_threshold"
+            _considered_on_save_odds = False
             _would_be_discount_pct = None
             _bill_shock_this_term = False
             # Phase 33: active/passive renewal split. Default True until we know the rate.
@@ -4331,7 +4340,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                             _account_state_row["rate_vs_svt_pct"] = (
                                 round((unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
                                 if _state_svt_rate else None)
-                if company_est_pre > RETENTION_THRESHOLD:
+                # §12c (2026-11-17): the cutoff is skippable where the save odds carry the belief.
+                _considered, _considered_why = retention_considers_the_renewal(
+                    company_est_pre, threshold=RETENTION_THRESHOLD,
+                    skip_threshold=policy.retention_skips_the_belief_threshold_when_save_odds_weigh,
+                    ending_term_type=_ending_term_type, renewal_year=_renewal_year)
+                _considered_on_save_odds = _considered_why == CONSIDERED_ON_THE_SAVE_ODDS
+                if _considered:
                     eac_for_ret = company_eac  # Phase 23a: use company estimate
                     # B8 Q5: sized against the best published deal on the day, as the save is, or
                     # by the churn-belief tiers; either way no deeper than the re-fix's own cost
@@ -4545,6 +4560,10 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                if _engagement is not None else {}),
                             **({"save_rate": round(_save_rate, 4)}
                                if _save_rate is not None else {}),
+                            # Only on the switch, so a run with it off writes the same rows.
+                            **({"considered": _considered_why}
+                               if policy.retention_skips_the_belief_threshold_when_save_odds_weigh
+                               else {}),
                             **({"bad_debt_charge_gbp": round(retention_bad_debt_charge(
                                 _ret_default_belief, _ret_billed), 2)}
                                if _ret_default_belief is not None else {}),
@@ -4913,6 +4932,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     engagement_level=_engagement_level_str,
                     unit_rate_gbp_per_mwh=unit_rate,
                 ))
+            # Under the cutoff and weighed all the same: the step counter cannot read it off the
+            # belief, so the row says it. Absent on every run with the switch off.
+            if _considered_on_save_odds and not _rolled:
+                customer_events_log[-1]["retention_considered_on_save_odds"] = True
+            if _considered_on_save_odds and event is not None:
+                event["retention_considered_on_save_odds"] = True
             _record_renewal_decision(
                 _journey, renewal_decisions_log, customer_id=billing_account,
                 event_date=term_start_str, commodity=commodity, rolled=_rolled, event=event,

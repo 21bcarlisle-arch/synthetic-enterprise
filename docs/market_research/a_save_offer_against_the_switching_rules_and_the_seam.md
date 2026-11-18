@@ -938,7 +938,7 @@ supplier's own choice.**
 - **GAP (standing, §9c): the save rate** for a discounted proactive offer at a fixed-term end. Any value-based
   selection rule depends on it, and the company learns it (§9d) with the uncertainty §9f describes.
 
-### 11e. What the design chooses, and why (proposal, not built)
+### 11e. What the design chooses, and why (choice 1 built 17 Nov, see §11f; 2 and 3 not built)
 
 1. **Let the value test carry the belief, and make the fixed cutoff switchable.** With
    `retention_weighs_save_odds`, the value weighed is belief × learned save rate × value protected. That is
@@ -949,6 +949,28 @@ supplier's own choice.**
    ending term.
 3. **Move the selection into the growth desk.** It is a supplier decision, so it belongs in `company/`, behind
    `company/interfaces/growth_desk`. This changes no number.
+
+### 11f. Choice 1 as built (2026-11-18)
+
+`DecisionPolicy.retention_skips_the_belief_threshold_when_save_odds_weigh`, default off, refused without
+`retention_weighs_save_odds`. The selection is `company.interfaces.growth_desk.retention_considers_the_renewal`,
+and the run loop calls it in place of the bare `> RETENTION_THRESHOLD` test. It has one choice the proposal did not
+state:
+
+- **Under the cutoff, a renewal is weighed only where the save rate for its ending-term type is learned.** While
+  the rate is unlearned, `retention_value_weighed_by_save_odds` returns the value *unweighed*, and no belief enters
+  it. Skipping the cutoff then would offer on every renewal whose margin beats the cut, whatever its belief. That is
+  a different policy from the profit form, so the cutoff stays the selection rule until there is evidence.
+  Refusals name the ledger's reason.
+- **What this does to §12c's prediction (stated before any run).** The nine flips are 2018 renewals (one 2017
+  renewal is the open tenth). They pass the cutoff only if A's 2017 offers on the same ending-term type have closed
+  and taught a rate. If they have not, the switch re-offers none of them, and §12c's refutation line (3 or fewer)
+  would fire for this reason, not because the cutoff costs nothing. A run must log `considered` (the switch adds it
+  to every `retention_log` row) and count those rows before grading.
+- **The one-variable comparison is A + weighing + switch against A + weighing**, not against A alone. The weighing
+  also reprices every offer over the cutoff, and the threshold claim is only isolated with that held.
+
+The 0.30 itself still has no origin (GAP, §11d), and it still lives in `simulation/` (choice 3).
 
 **Not chosen: valuing a kept household over more than one term** (the earlier proposal for this gate). At the nine
 flips it decides nothing, because the cutoff stops them before the value test runs (§12c). It stays a separate

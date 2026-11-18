@@ -1579,3 +1579,69 @@ Both are G9-free (nothing he ruled), and both go to the K8 page first. 0.30 itse
 skipped and the save-odds weighing on, against A as run: at least 6 of the 9 flips are re-offered, and the value arm's
 A-minus-twin money moves from −£1.21 toward zero by at least £0.40 per household-year. Refuted if 3 or fewer
 are re-offered. This cannot run until the box is free.
+
+*Correction beside it (18 Nov, filed before any run).* Candidate 1 is built default-off as
+`retention_skips_the_belief_threshold_when_save_odds_weigh` (knowledge §11f). Two things the prediction did not
+say: (a) under the cutoff it weighs a renewal only once the save rate for its ending-term type is learned, so a
+flip whose type had no closed 2017 offer is not re-offered for that reason; (b) the threshold is isolated by A +
+weighing + switch against A + weighing, not against A alone. The 6-of-9 line stands for that pairing. Count the
+`retention_log` rows with `considered = the_save_odds_carry_the_belief` before grading.
+
+### 12d. The box plan: the threshold-skip pair, then the re-read, then step 6's flag-0 half (18 Nov 00:45Z)
+
+§12c found that `vto-offer-reread-watch` waited on `vta-out-flag0/family_12_churn_roll.json`, which no
+job writes, so it would have given up on 27 Nov without launching anything. The threshold-skip switch
+(ff4fe0f3ef) also had no run. Both are now ordered. Nothing was launched here, and step 6's flag 1
+(pid 1051692, pair 55555/66666) was not touched.
+
+| Order | What holds the box | Starts when | Unit | Rough length | Deadline |
+|---|---|---|---|---|---|
+| 0 | Step 6 flag 1, pairs 3 to 6, then the fold | running | `longjob-value-test-step-6-flag1` | pair 2 took 11.5 h, so ends about 19 Nov 18Z | none |
+| 1 | The next book (sim-runner) | flag 1's unit ends | sim-runner | about 2 h | none |
+| 2 | Threshold-skip pair: A + weighing + skip, then A + weighing | `vta-out-flag1/family_12` on disk, box free, no book owed | `vts-threshold-skip-watch` launches `longjob-value-test-threshold-skip` | about 23 h | 28 Nov |
+| 3 | §12b offer re-read, unchanged | stage 2's `vts-out-skip0/member_11111_22222.json` on disk (or its unit ended without it) and the same box test | `vto-offer-reread-watch` (re-armed) launches `longjob-value-test-offer-reread` | about 23 h | 2 Dec |
+| 4 | Step 6 flag 0, pairs 2 to 6 (pair 11111/22222 is kept on disk) | `vto-driver/read_offers.out` on disk (or its unit ended) and the same box test | `vta-flag0-watch` launches `longjob-value-test-step-6-flag0` | about 58 h | 6 Dec |
+
+The chain should end around 24 Nov. Each deadline leaves days of slack for a paused pair or a second book.
+
+**"Box free"** (`/var/tmp/box-plan/box_free.py`) means four things are all true. No `longjob-*` unit is active,
+including queued ones. `d5book-pause-watch` is not active. sim-runner holds no `sim_run` reservation. **No
+book is owed**: a book is owed when sim-runner's own `book_admission` admits one and its next-run-not-before
+has passed. The last test is what puts billing first. At 00:40Z a book was owed and was waiting only on flag 1.
+So when flag 1 ends, sim-runner takes the box and no stage starts until that book has run. The plan does not
+pause flag 1 to get the book sooner (that was 72fc73cc77's decision, and nothing here changes it). If the book
+lane pauses flag 1 at a pair boundary, stage 2 still waits, because it needs flag 1's family on disk and does
+not just wait for flag 1's unit to end.
+
+**Why the threshold-skip pair goes before the re-read, and both go before flag 0.** These are the seat's own
+reasons. The drawn item said only that flag 0 should come after flag 1 and the book. Stage 2 tests the next
+lever against a prediction already filed (§12c). The re-read checks, at the offer itself, a mechanism §12c has
+already read as HELD on 9 of 10 flips from the logged belief. Flag 0's five pairs only give the family noise
+floor, and nothing waits on it. Each pair-11111/22222 stage costs a day; flag 0 costs nearly three.
+
+**The threshold-skip tree.** `/var/tmp/value-test-threshold-skip` is 870201d1e7 (the §12b re-read tree:
+41734bbe71 plus the offer logging) with ff4fe0f3ef's code and test hunks applied. All of them applied cleanly,
+and the 32 tests in its three test files pass there. So the world is §12a's, and the 9 households in §12c's
+table are the same flips. The hunks are uncommitted, so `producing_commit` can still name 870201d1e7. To cover
+that, the driver (`/var/tmp/vts-driver/driver.py`) does two things. It refuses to run unless
+`git diff --binary 870201d1e7 -- company saas sim simulation tools tests` hashes to the pinned
+`53feeb15…f8ddd` (`threshold_skip.patch.sha256`; the patch itself sits beside it). It also writes that block
+into every sidecar row as `tree_patch`. The switches go on all three arms, the way step 6 sets its flag. The
+decision rows also carry `retention_considered_on_save_odds`, the event key ff4fe0f3ef sets, so the grade can
+count the renewals weighed under the cutoff before reading the offers. That is the check §12c's correction
+asks for, read from the event and not from `retention_log`.
+
+**Reverse.** `systemctl --user stop vts-threshold-skip-watch vto-offer-reread-watch vta-flag0-watch`. After a
+stage has launched, also stop its `longjob-*` unit. The plan's files are in `/var/tmp/box-plan/`, and each
+watcher logs to `<unit>.log` there.
+
+**The reader, written 00:55Z, before either run exists** (*correction beside it: the line this replaces said it
+was handed on*). `/var/tmp/vts-driver/read_threshold_skip.py` reads the skip1 run's value arm. For each of the
+9 flips it prints `retention_considered_on_save_odds`, `retention_offered` and the outcome. It grades against
+§12c's line (6 or more re-offered held, 3 or fewer refuted). It prints the value-arm money two ways and grades
+neither: skip1 minus skip0, and skip1 minus the twin, both in £ per household-year using `grade_paired_gbp.py`'s
+method. It exits 2 if a flip renewal is absent or unlogged, or if a run's `tree_patch` is not the pinned one.
+It was dry-run by putting A's §12a sidecars in place of both skip runs. All 9 flips were found, and all 9 were
+reported unlogged, because those sidecars predate the offer fields, so it exited 2. A against itself gave £0.000.
+A against the twin gave **−£1.207 (−£2.32 to −£0.37)**, which reproduces §12a's −£1.21. Stage 2's job runs it
+after both flags and writes `/var/tmp/vts-driver/read_threshold_skip.out`.

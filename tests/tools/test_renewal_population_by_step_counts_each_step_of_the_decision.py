@@ -112,6 +112,16 @@ def test_the_threshold_is_strict():
     assert row["reached_decision"] == 1 and row["considered"] == 0
 
 
+def test_a_renewal_weighed_under_the_cutoff_is_counted_as_considered():
+    """The save-odds switch lets a renewal under 0.30 through; the counter reads the event's own
+    mark, not the belief. Reds if the counter goes back to the bare threshold."""
+    run = _book()
+    run["customer_events"][0]["company_churn_estimate"] = 0.12
+    assert population_by_step(run)["years"][str(FIRST_YEAR)]["fixed_term"]["considered"] == 0
+    run["customer_events"][0]["retention_considered_on_save_odds"] = True
+    assert population_by_step(run)["years"][str(FIRST_YEAR)]["fixed_term"]["considered"] == 1
+
+
 def test_a_spliced_default_stint_is_ordered_by_date():
     # The run writes a default stint's segments under ONE term_index, after the fix it follows.
     # The stint crosses a year end, so a boundary read off the wrong segment lands in 2018.

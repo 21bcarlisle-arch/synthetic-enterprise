@@ -159,6 +159,7 @@ FIELD_CONSUMPTION = {
     "retention_weighs_save_odds": {"via": "run_argument"},
     "retention_save_rate_learned_against_holdout": {"via": "run_argument"},
     "retention_offers_on_the_save_rate_lower_bound": {"via": "run_argument"},
+    "retention_skips_the_belief_threshold_when_save_odds_weigh": {"via": "run_argument"},
     "next_best_action_decides_per_household": {"via": "run_argument"},
     "next_best_action_decides_at_renewal": {"via": "run_argument"},
     "save_offer_decides_per_household": {"via": "run_argument"},
