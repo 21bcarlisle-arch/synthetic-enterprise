@@ -1,136 +1,145 @@
 version: 1
-oriented_at: '2026-11-18T18:24:21.100633+00:00'
-thesis_read: 'Against the thesis, nothing moved this stretch, and nothing could have: the supplier still trails
-  its flat-rules baseline by GBP 1.35 per household-year (-3.03 to +0.13), and the renewal belief still ranks leavers
-  backwards (AUC 0.333). The one reading that can move either is skip1, running since 13:08Z (pid 1873447, 6.9 GB);
-  /var/tmp/vts-out-skip1/ is still empty at 18:24Z, so its read is still expected around 00:30Z on 19 Nov and skip0
-  around 12:30Z. The previous focus held: 2 of 3 items were drawn and both landed, and the third (skip1''s grade)
-  was correctly not ripe. Billing got more accurate on the page the household reads. The close set-off now nets
-  a final bill issued but not yet collected (944eaf3a6): the household-credit row goes 23 of 132 breached to 0 of
-  122 on the 8a300fa561 replay. Both of its pre-registered predictions were refuted on the way, and the record says
-  so beside them: 2 new lines appeared in the first arm, and the denominator fell by 10 because those refunds are
-  now taken whole. A level return on a credit-bill month now prints as returned (2a8a99235): 3 to 0 of 206, with
-  page repayments and balances unchanged. The commit split reads 0 supplier, 1 world and 8 other. The one world
-  commit is really the supplier''s set-off decision, and it is counted as world only because it still lives in simulation/.
-  That is the wall''s debt this record now pays (focus 2): the fix was made in place so the replay could attribute
-  it, and the move is the follow-on the last record promised. Two of the 9 commits were empty reconciliation merges.
-  That is noise, not a stall.'
+oriented_at: '2026-11-18T21:21:20.571758+00:00'
+thesis_read: 'Against the thesis, nothing moved, and this stretch was never going to move it. The supplier still
+  trails its flat-rules baseline by GBP 1.35 per household-year (-3.03 to +0.13), and the renewal belief still ranks
+  leavers backwards (AUC 0.333). The one reading that can move either is skip1. It is 8h13m in (pid 1873447, 7.7
+  GB), with vts-branch-watch armed, and its out directory is still empty, so the read is still expected around 00:30Z
+  on 19 Nov and skip0 around 12:30Z. The previous focus held: 2 of 3 items were drawn and both landed, and the third
+  (skip1''s grade) was correctly left alone because it was not ripe. The supplier side gained one real thing, which
+  is a wall paid down and not a level: the dual-fuel close set-off is now decided in company/ from the supplier''s
+  own ledger (1c5351d18). Its pre-registered pure-move prediction held: the refund log is byte-equal on the 8a300fa561
+  replay, and the household-credit row reads 0 of 122. The other five commits were harness and canon: the premise-spent
+  continuation retirement (606bcd4ad), which corrects a carried error; the staging resurrection count, which turned
+  97 records into 1 real return; and two A45 canon-binding commits, one held at L2 by a NEEDS_WORK blind pass. The
+  commit split reads 0 supplier, 0 world, 1 both and 6 other. That is the shape of a stretch whose box belongs to
+  a long run, not a drift back to the world, but six of seven commits not being supplier work is the thing to watch.
+  So this record gives the worker two supplier items that need no box time, rather than letting the draw fall back
+  to A45 and the site atoms (1114-2561 unchanged draws each). Two of last stretch''s seven errors are corrected
+  (the spent continuation, and the unpaged G5 row). The executor pilot reads REVERT (the sonnet arm landed 64% against
+  control''s 80%, with rework of 53% against 39%). Its window closed on 6 Nov, so this is a standing reading and
+  not news, and it is left to its own owner.'
 stretch_reviewed:
-  since: '2026-11-18T15:21:49.370919+00:00'
-  commits: 9
+  since: '2026-11-18T18:24:21.100633+00:00'
+  commits: 7
   substantive: 5
 focus:
 - id: skip1-is-graded-against-s12es-branches
-  what: 'DO NOT DRAW BEFORE /var/tmp/vts-driver/read_threshold_skip.skip1.out EXISTS. skip1 has been running
-    since 13:08Z (longjob-value-test-threshold-skip; skip0 follows in the same unit), and vts-branch-watch
-    is armed on that file. Once it exists, grade skip1 in docs/design/THE_VALUE_TEST_REDESIGN.md s.12f
-    against s.12e''s table exactly as pre-registered: k of the 9 flips re-offered, with every s.12e row
-    marked held or missed beside its prediction. Name the flags that differ between the arms compared.
-    Then check that the branch watch started the branch s.12e names: on HOLD or NEITHER, /var/tmp/vts-driver/launch_hold_pairs.sh,
-    but only after skip0''s control file exists; on REFUTE, the candidate-2 calibration alone against
-    its unswitched comparator. If it did not start, start it yourself. Never kill the running unit; skip0
-    is the one-variable comparator. When /var/tmp/vts-out-skip0/control_11111_22222.json also exists,
-    delete the skip-pair null row from background/next_book_requires.yaml so that the W3_3 book builds
+  what: 'DO NOT DRAW BEFORE /var/tmp/vts-driver/read_threshold_skip.skip1.out EXISTS (or /var/tmp/vts-out-skip1/
+    holds its member and control files). skip1 has run since 13:08Z under longjob-value-test-threshold-skip,
+    with skip0 following in the same unit, and vts-branch-watch is armed. Once skip1 exists, grade it
+    in docs/design/THE_VALUE_TEST_REDESIGN.md s.12f against s.12e''s table exactly as pre-registered:
+    k of the 9 flips re-offered, with every s.12e row marked held or missed beside its prediction, and
+    the flags that differ between the arms named. Then check that the branch watch started the branch
+    s.12e names. On HOLD or NEITHER, that is /var/tmp/vts-driver/launch_hold_pairs.sh, but only after
+    skip0''s control file exists. On REFUTE, it is the candidate-2 calibration alone against its unswitched
+    comparator. If the branch did not start, start it. Never kill the running unit. When /var/tmp/vts-out-skip0/control_11111_22222.json
+    exists, delete the skip-pair null row from background/next_book_requires.yaml so the W3_3 book builds
     next, alone. Carry `Graded: value-test held=<n> missed=<n>`.'
-  why: This is the reading that decides whether the GBP 1.35 deficit is the method's or the belief's.
-    The AUC 0.333 row and the -GBP 1.35 row cannot move until it exists. Done means s.12f is on origin
-    with skip1 graded against every s.12e row, the null row is gone once skip0 is on disk, and the named
-    branch is launched or queued behind a named box condition.
+  why: This reading decides whether the GBP 1.35 deficit belongs to the method or to the belief, and neither
+    the AUC 0.333 row nor the -GBP 1.35 row can move without it. It went unlanded last stretch only because
+    it was not ripe. Done means s.12f is on origin with skip1 graded against every s.12e row, the null
+    row is gone once skip0 is on disk, and the named branch is launched or queued behind a named box condition.
   lane: B_commercial
   side: supplier
-  written_at: 1795015608.637
-- id: the-close-set-off-decision-moves-into-the-supplier
-  what: 'Move the dual-fuel close set-off DECISION (which debt leg a closing refund nets, and how much,
-    read on the refund day; home_moves.md s.8.8e choice 30) out of simulation/credit_refund_events.py
-    (generate_credit_refund_log''s _owed_on and set-off walk) into company/, where the supplier decides
-    it from its own ledger: issued bills and collected payments, never world truth. Leave the world side
-    as the refund event and its timing only. Run tools/write_time_gate.py --explain first and carry the
-    REUSE block, and check docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md for an existing row to cite.
-    Pre-register before the replay that this is a pure move: on run_output_8a300fa561 the regenerated
-    refund log equals the post-944eaf3a6 log on every event, with set_off_gbp and set_off_against byte-equal,
-    and the household-credit row reads 0 of 122. Any differing event refutes it and is named in the finding.
-    The existing test tests/simulation/test_the_close_set_off_reads_debt_issued_but_not_yet_collected.py
-    must pass unchanged, or move beside the code with its assertion unchanged. Then archive the N29 finding
-    (SEAT_FINDING_THE_N29_BLIND_ROWS_23_..._2026-11-16.md) from the staging root.'
-  why: 'The supplier''s choice of what a leaver owes is a supplier decision, and it sits on the world''s
-    side of the wall: the epistemic wall says the company decides only from what it can know. 944eaf3a6
-    fixed the number in place on purpose, so a replay could attribute the change. Now the move can be
-    graded as a move alone, and it needs no box time while the skip pair holds it. Done means the decision
-    lives in company/, the replay is byte-equal with 0 of 122, and the N29 finding is out of the staging
-    root.'
-  lane: C_customer_ops
+  written_at: 1795037073.867
+- id: D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used
+  what: 'Measure the belief-vs-truth gap for the coupled pairs (W2_30 <-> D48) and (W1_14 <-> D48) on
+    the book already on disk, run_output_8a300fa561. Do not build a new book: the box belongs to the skip
+    pair. First read docs/observability/coupled_gap_ledger.json and background/coupled_triad.py to find
+    what row shape the triad wall reads. If a measurement for either pair already exists, cite it and
+    stop. Otherwise compute, per account-month, what the company billed (its estimated and actual reads,
+    from company-side output) against what the world metered (the grader side only, never crossing into
+    company/), split by read type (actual, estimated, smart). Write the ledger rows with n and the interval
+    each split earns. Pre-register in the commit message, before running, which read type carries the
+    largest absolute gap, and say whether it held.'
+  why: Billing accuracy is the director's first supplier priority. Two L3 walls (W2_30, W1_14) are held
+    only because this gap is unmeasured, and N17's flat year-on-year consumption (1.1% against NEED's
+    14.7%) cannot be told apart as the world's or the company's until billed and used are set side by
+    side. It needs no box time. Done means both pairs have measured rows in the gap ledger, the triad
+    gate reads them, and the N17 row names which side its gap sits on.
   side: supplier
-  written_at: 1795026479.846
-- id: a-premise-spent-continuation-stops-being-offered
-  what: seat_continuation.live() still offers the-box-runs-the-skip-pair-before-another-book at 18:24Z,
-    though the draw ledger recorded it premise_spent (c18067646; skip1 is running). Retire that row through
-    the continuation store's own retire path, then make a premise_spent disposition from the draw ledger
-    retire the continuation with the same id, so live() stops offering it. Add one control that a premise_spent
-    item is absent from live(), and one that a not_done item is still present, so the guard cannot pass
-    by hiding everything.
-  why: Every offer of a spent item costs a worker tick that finds nothing, on a box with one worker, and
-    this row has been listed wrong for two records. Done means the row is gone from live(), and both controls
-    are on origin.
-  lane: H_harness
-  side: other
-  written_at: 1795026479.846
+  written_at: 1795037073.867
+- id: KNIFE3_wall_crossing_paydown
+  what: 'Take the next supplier DECISION still living in simulation/ from docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md,
+    excluding the retention guard''s _would_offer in simulation/run_phase2b.py, which waits for skip0.
+    Prefer a billing or home-move row, such as a final-bill, back-billing or unbilled-energy choice. Move
+    it into company/ the way 1c5351d18 moved the close set-off: it decides from the supplier''s own ledger,
+    and the world keeps only the event and its timing. Run tools/write_time_gate.py --explain first and
+    carry the REUSE block. Pre-register a pure move: the regenerated output on run_output_8a300fa561 is
+    byte-equal on every affected field, and any differing row refutes it and is named. Mark the register
+    row moved, with the commit.'
+  why: The thesis says the advantage must come from inference, never from access. A supplier decision
+    computed on the world's side of the wall is access by construction, and it makes any per-customer
+    result unattributable. The set-off move proved this can be graded as a pure move on an existing replay
+    with no box time. Done means one more register row is moved and byte-equal on the replay, and KNIFE3's
+    row on the map records it.
+  side: supplier
+  written_at: 1795037073.867
 not_now:
-- what: Moving the retention guard's orchestration (_would_offer) out of simulation/run_phase2b.py into the growth
-    desk.
-  why: 'It rewrites the run loop the skip pair is compared through. It returns once skip0''s control file exists.
-    The set-off move is chosen instead, because the skip arms do not compare through it: they run pinned at 870201d1e7,
-    which predates 944eaf3a6.'
-- what: B8's holdout row (discovered price sensitivity, held at L2 by the 21 Oct blind pass because no holdout row
-    closes).
-  why: It is per-customer decision work and squarely supplier, but closing a holdout row needs a book, and the box
-    belongs to the skip pair until about 12:30Z on 19 Nov. It goes ahead of new world work once the box is free.
-- what: B11, forward customer value backtested on held-back history.
-  why: Which desk belief survives skip1 decides what B11 backtests. Drawing it before skip1 reads would test a belief
-    that may be withdrawn.
+- what: Moving the retention guard's orchestration (_would_offer) out of simulation/run_phase2b.py.
+  why: It is the very decision skip1 and skip0 are measuring. Moving it before both read would put a move and a
+    result in the same window, and neither could then be attributed. It is the first KNIFE3 row once skip0's control
+    file exists.
+- what: B8's holdout row, and B11's forward value backtest on held-back history.
+  why: B8 needs a book, and the box belongs to the skip pair until about 12:30Z on 19 Nov. B11 would backtest a
+    desk belief that skip1 may withdraw. Both come ahead of new world work once skip0 is read.
 - what: Building the W3_3 book, or retiring N29's keyed exception (153a675ad), ahead of skip0.
-  why: Both need a book, and a book before skip0 would let skip0 read a different world from skip1. The continuation
-    deemed-and-flex-rows-book-the-standing-charge grades W3_3 after 23 Nov. The exception retires on the first book
-    that reads 0.
-- what: Re-dispositioning the 4 BLOCKING findings that 4cd09c6ce dated but did not close.
-  why: They are 2026-08 site and harness findings, and none blocks a supplier result. The parked-document audit
-    already gave each an evidence line. They take a slot only if one of them refuses a commit.
+  why: Either needs a book, and a book now would let skip0 read a different world from skip1. The continuation deemed-and-flex-rows-book-the-standing-charge
+    owns it after 23 Nov.
+- what: Working A45's NEEDS_WORK blind pass to move it to L3, or the 1114-2561-draw site atoms (SITE1, SITE12, SITE15,
+    OPS7).
+  why: They are canon and site work, which is six of this stretch's seven commits already. The director's order
+    is supplier first, and both supplier items above need no box time, so the worker is not idle without them.
+- what: Acting on the executor pilot's REVERT verdict (sonnet arm 64% landed against control's 80%).
+  why: Its window closed on 6 Nov, and it changes the cost of ticks, not the thesis. It is a harness call for its
+    own owner, and it does not outrank a supplier item on a box with one worker.
 - what: Reaping the 9 at-risk worktrees.
-  why: Reaping cannot be undone, and 870201d1e7 is the base of the live skip tree, which was deleted once this week
-    and cost skip1 its launch.
+  why: Reaping cannot be undone, and 870201d1e7 is the base of the live skip tree, which was deleted once this week.
+    That leaves them alone until the skip pair and its branch have read.
 wrong:
 - what: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
     0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- unchanged. skip1
-    is still running and its out directory is empty; it reads around 00:30Z on 19 Nov (focus 1).
+    is still running and its out directory is empty; it reads around 00:30Z on 19 Nov (focus 1). 21:21 18 Nov --
+    unchanged. skip1 is 8h13m in (pid 1873447, 7.7 GB), and /var/tmp/vts-out-skip1/ is still empty. It reads around
+    00:30Z on 19 Nov (focus 1).
   corrected: false
 - what: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year
     (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35
     (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- running,
-    not yet read. It is attributed once skip0 is on disk, around 12:30Z on 19 Nov (focus 1).
+    not yet read. It is attributed once skip0 is on disk, around 12:30Z on 19 Nov (focus 1). 21:21 18 Nov -- unchanged,
+    and not yet attributable until skip0 is on disk, around 12:30Z on 19 Nov (focus 1).
   corrected: false
 - what: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median
     same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- unchanged
-    (fix, owner W2_30, recheck by 23 Nov).
+    (fix, owner W2_30, recheck by 23 Nov). 21:21 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
   corrected: false
 - what: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
     one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account.
     Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- the fix
-    is on origin (c71d2521d) and not yet graded; its book builds after skip0, alone.
+    is on origin (c71d2521d) and not yet graded; its book builds after skip0, alone. 21:21 18 Nov -- unchanged.
+    The fix is on origin (c71d2521d) and still ungraded; the continuation deemed-and-flex-rows-book-the-standing-charge
+    grades it after 23 Nov.
   corrected: false
-- what: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3
-    died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868
+- what: 'THE MACHINE''S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and
+    -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868
     to 485d48a0c). [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- this stretch has no written_at banner
     commit. Its 2 empty merges (65acb9365, 2913ddd89) are reconciliations whose upstream did not touch their paths,
     not lost races. No landing log has been read for a lost race, though, so it is still not graded on its own criterion.
+    21:21 18 Nov -- this stretch also has no written_at banner commit. Its one empty merge (0eaf9adb0) is a reconciliation
+    whose upstream did not touch its paths. Still not graded on its own criterion: no landing log has been read
+    for a lost race.'
   corrected: false
-- what: THE MACHINE'S, NEW. The continuation the-box-runs-the-skip-pair-before-another-book is still offered by
+- what: 'THE MACHINE''S, NEW. The continuation the-box-runs-the-skip-pair-before-another-book is still offered by
     seat_continuation.live() at 15:21Z, though 32349d382 recorded it premise-spent at 13:29Z and its work (c18067646,
     skip1 running) is done. A spent item that stays drawable costs a tick that finds nothing. 18:24 18 Nov -- still
-    offered (focus 3).
-  corrected: false
-- what: THE MACHINE'S, NEW. The reserved row the-github-repository-is-still-public-gh reached origin inside the
+    offered (focus 3). 21:21 18 Nov -- CORRECTED by 606bcd4ad: seat_continuation.live() no longer offers it, and
+    a premise_spent disposition now retires the same-id continuation.'
+  corrected: true
+- what: 'THE MACHINE''S, NEW. The reserved row the-github-repository-is-still-public-gh reached origin inside the
     parked-document audit commit (4cd09c6ce), under a [FOR-THE-DIRECTOR] title that names the row and not the audit.
     At 18:24Z the brief lists it in concerns_unpaged, so the director has not been told about a G5 row raised today.
-  corrected: false
+    21:21 18 Nov -- CORRECTED: the brief''s concerns_unpaged is now empty, and the row stays carried open below.'
+  corrected: true
 for_the_director:
 - id: the-priority-zero-publish-wedge-refill-fires
   raised: '2026-11-18'
