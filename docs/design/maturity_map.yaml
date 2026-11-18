@@ -1795,11 +1795,8 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [B12_writer_one_reads_its_margin_on_the_unit_rate_so_a_renewal_floor_is_its_true_unit_cost]
-  # UNPARKED 2026-11-18: landed from w3-3-network-split-held after the 6af7fd0bfd publish reached origin;
-  # its first book is named in background/next_book_requires.yaml. Held record:
-  # docs/staging/done/SEAT_FINDING_W3_3_IS_HELD_ON_A_PUSHED_BRANCH_UNTIL_THE_FIRST_GATE_PASSING_BOOK_IS_GRADED_2026-11-09.md
   # Prereg: docs/staging/records/SEAT_PREREG_W3_3_WHAT_THE_SPLIT_MOVES_PER_DOMESTIC_ELECTRICITY_ACCOUNT_DAY_2026-11-18.md
-  block_reason: null
+  block_reason: "PARKED 2026-11-18: the build landed (c71d2521d); no build is left. The level is the graded book's (background/next_book_requires.yaml). Unpark when that book is graded."
   file_scope: ['simulation/hedged_settlement.py',
     'simulation/policy_costs.py',
     'tests/simulation/test_the_network_charge_splits_per_unit_and_per_day.py',
