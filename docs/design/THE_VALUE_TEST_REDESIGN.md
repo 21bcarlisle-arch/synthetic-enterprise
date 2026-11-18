@@ -1694,3 +1694,55 @@ gate that §12c read as the loss, so neither is worth a day of the box.
 
 The result goes in §12e: §12d is this plan, and the direction's "s.12d" named the next free section when it was
 written.
+
+### 12e. Both branches of skip1's read, pre-registered before skip1 exists (18 Nov 04:20Z)
+
+*§12d said the result would go in §12e. The direction (18 Nov) puts the pre-registration here instead, so the
+result goes in §12f.* At 04:16Z `/var/tmp/vts-driver/read_threshold_skip.skip1.out` did not exist, no
+`vts-out-skip*` directory existed, and flag 1 was still on pair 3. Nothing below has been read from a skip run.
+
+**The count that picks the branch.** `k` is the number of §12c's 9 flips that skip1's value arm re-offers
+(`retention_offered` true at the flip renewal), as `read_threshold_skip.py` prints it. Before reading `k`, read
+how many of the 9 carry `retention_considered_on_save_odds`. A flip that was never weighed under the cutoff
+because its ending-term type had no learned save rate counts as not re-offered (§12c's correction (a)), and the
+reader prints that reason beside it. If the reader exits 2 (a flip absent or unlogged, or the pin wrong), neither
+branch is taken: the reader is fixed and re-run on the same files.
+
+| `k` | Reading | The next run | Built before the read |
+|---|---|---|---|
+| 6 to 9 | **HOLD.** The cutoff stops the saves | skip1's switches on the two pairs already run under flag 1, 33333/44444 and then 55555/66666, each compared with its own `vta-out-flag1` files (A as run at the same seeds) | `/var/tmp/vts-driver/launch_hold_pairs.sh` and `driver_hold.py`, on disk and **not launched** |
+| 4 or 5 | **Neither.** Nine flips cannot tell | The same launch as HOLD, because more pairs give more flips. On the pooled flips the line is restated as two-thirds or more re-offered holds and one-third or fewer refutes | the same script |
+| 0 to 3 | **REFUTE.** Candidate 1 is not the lever | §12c's candidate 2: the cutoff reads a calibrated belief. A + calibration against A on pair 11111/22222 | the switch, default off, on origin (below) |
+
+**HOLD's prediction, for the run its script launches.** skip1 minus A in £ per household-year, value arm, on the
+control-arm divisor (`grade_paired_gbp.py`'s method), per pair: **+£0.60 (−£0.40 to +£1.60)** on each of the two
+new pairs. The hold is refuted if the two-pair mean is below zero. Two cautions are fixed now. skip1 differs from A
+in two switches, the weighing and the skip, so a hold on skip1 minus A does not attribute the money to the skip
+alone; skip0 on pair 11111/22222 is the only attribution, and it is read when its file exists. And the flips on
+33333/44444 and 55555/66666 are not §12c's nine, and those seeds have no twin (flag 0 was dropped). So the pooled
+count's population there is defined now as: value-arm renewals where A's desk belief is under 0.30 and the
+household left in A. The share of those skip1 re-offers is the count.
+
+**REFUTE's lever, defined now so its build cannot be fitted to its read.** Candidate A already scales the
+belief per ending-term type by observed-over-expected on closed years (`condition_on_ending_term`,
+`company/crm/churn_desk.py`). So "calibrate the level" cannot mean doing that again. It means this: **the cutoff
+reads A's conditioned belief, scaled once more, in survival space, by the observed-over-expected of the desk's own
+conditioned beliefs on its closed renewal years.** Jeffreys-corrected and shrunk towards 1 the way
+`ending_term_multiplier` is. Only the cutoff reads it; the value test, the cut tiers and the logged desk belief
+keep A's number, so the run moves one thing. It is the lag between the year the multiplier learned from and the
+year it is applied.
+
+**Measured first, in minutes, from sidecars already on disk (pre-registered here, before the read).** Pairs
+11111/22222 and 33333/44444 under flag 1 carry `desk_belief_by_arm.value_arm`: A's conditioned belief at each
+renewal, and whether the account left. I read O/E (observed leavers over summed belief) by renewal year, A against
+the twin where the twin exists.
+
+| # | Quantity | Predicted | What it decides |
+|---|---|---|---|
+| C1 | A's value-arm O/E on 2018 renewals | **1.8 (1.3 to 3.0)** | Under 1.3: A's 2018 level is not low, and §12c's "under-reads the tail" is a selection effect of reading leavers only |
+| C2 | A's value-arm O/E pooled over all years | **1.15 (0.8 to 1.5)** | Outside: the per-type step is mis-set overall, not lagging |
+| C3 | The lever applied offline: closed-year whole-book O/E from these sidecars, put on each of the 9 flips' beliefs | **0 to 2 of the 9 cross 0.30** (point 0). A 0.12 needs a multiplier near 2.9, and the 2016 and 2017 years that set A's multipliers below 1 cannot supply one | 3 or more cross: candidate 2 can reach the flips, as defined. 2 or fewer: the lever as defined cannot reach them, and the next is the cutoff's own scale |
+
+C3 is an offline stand-in: the build learns its O/E inside the run, and the run's own beliefs differ once offers
+move. If C3 says the lever cannot reach the flips, the switch is still built default-off as the direction asks, and
+the finding says the run is not worth a day of the box until something else changes.
