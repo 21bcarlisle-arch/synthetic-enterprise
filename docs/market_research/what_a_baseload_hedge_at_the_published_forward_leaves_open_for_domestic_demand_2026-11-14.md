@@ -147,6 +147,10 @@ They agree within 0.006. So SSP's cash-out spikes do not inflate the electricity
   overstates GB summer prices, and the gas factors below 1 would be partly the instrument. Not checked here: it needs
   a daily NBP SAP series (National Gas MIPI, PUBOB603), which `docs/data-sources/gas-nbp.md` records as behind a
   login. Until then the gas rows are published with this caveat, and the electricity rows stand on their own.
+  *Update 2026-11-18, beside the claim: the daily SAP is now in the world, reached without the login through ONS's OGL
+  republication (`sim/gas_data/sap_daily.csv`, 2018 onwards; see `docs/data-sources/gas-nbp.md`). The 2021-22
+  cash-hole instrument has used it (`docs/staging/records/SEAT_RESULT_THE_2021_22_CASH_HOLE_AT_DAILY_GAS_PRICE_AND_
+  VOLUME_2026-11-18.md`). This page's gas rows have not yet been re-run on it, so the caveat stands for them.*
 - **GAP, the 1997 shape.** PC1's group average demand is the 1997 reference year. A 2020s domestic load (LED lighting,
   some heat pumps and EVs, solar) has a different evening ramp; `docs/data-sources/profile-class-1.md` keeps the
   provenance. A newer shape would move the premium; this does not size by how much.

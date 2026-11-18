@@ -144,8 +144,10 @@ _INDEBTED_ELECTRICITY_ACCOUNTS: Dict[int, int] = {
     2026: 1_187_788 + 888_824,
 }
 
-#: StepChange 2025 yearbook, new clients in energy arrears. The range is (0.27, 0.40); see above.
+#: StepChange 2025 yearbook, new clients in energy arrears. EVIDENCE RANGE (0.27, 0.40): both ends
+#: are StepChange figures, named in the module docstring.
 ENERGY_SHARE = 0.37
+#: EVIDENCE RANGE, the two StepChange ends above.
 ENERGY_SHARE_RANGE = (0.27, 0.40)
 
 #: Guidance s.2.3: no second standard moratorium within 12 months of the last.

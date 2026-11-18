@@ -130,3 +130,25 @@ def test_a_day_one_gas_contract_prices_off_history_it_could_have_held():
     before_only = [r for r in records if r["settlementDate"] < first_day.isoformat()]
     assert price == generate_forward_price(first_day.isoformat(), before_only, fuel="gas"), (
         "the day-one price read a record on or after its own day")
+
+
+# ── the DAILY GB gas price (ONS-republished National Gas SAP), 2026-11-18 ─────
+
+def test_the_daily_gas_record_moves_within_a_month_and_stops_at_the_worlds_edge():
+    """Defects caught: the daily record being the monthly proxy again (one value per month, so no
+    shape can be seen), a gap filled or a day dropped, or days past the world's 2016-2025 history
+    entering it from the ONS table, which runs on to the present."""
+    import datetime as dt
+
+    from sim.gas_prices_history import SAP_DAILY_END, SAP_DAILY_START, load_sap_daily
+
+    d = load_sap_daily()
+    days = sorted(d)
+    assert days[0] == dt.date.fromisoformat(SAP_DAILY_START)
+    assert days[-1] == dt.date.fromisoformat(SAP_DAILY_END) <= dt.date(2025, 12, 31)
+    assert len(days) == (days[-1] - days[0]).days + 1
+    by_month: dict = {}
+    for k, v in d.items():
+        by_month.setdefault((k.year, k.month), set()).add(v)
+    flat = [m for m, vals in by_month.items() if len(vals) < 15]
+    assert not flat, f"months with fewer than 15 distinct daily prices: {flat}"

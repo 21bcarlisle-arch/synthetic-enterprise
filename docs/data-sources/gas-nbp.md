@@ -26,6 +26,15 @@
   still works unauthenticated and confirmed PUBOB603=SAP Actual Day exists.
 - Output stored as: `sim/gas_data/nbp_sap.csv` (`settlementDate`, `systemSellPrice` £/MWh)
 
+**Daily route that works without a login (ingested 2026-11-18):** ONS republishes the NGT SAP actual day under the
+Open Government Licence v3, as part of its real-time indicators: "System Average Price (SAP) of gas",
+https://www.ons.gov.uk/economy/economicoutputandproductivity/output/datasets/systemaveragepricesapofgas. It is an xlsx
+workbook with table "1.Daily SAP Gas" in p/kWh, covering Jan 2018 onwards. The edition of 12 Nov 2026 is pinned by sha256 in
+`sim.gas_prices_history` and clipped to 2018-01-01..2025-12-31. It is stored as `sim/gas_data/sap_daily.csv`
+(`settlementDate`, `systemAveragePrice` £/MWh = p/kWh x 10) and read by `load_sap_daily()`. Rebuild with
+`python3 -m sim.gas_prices_history --sap-daily <downloaded workbook>`. It does NOT replace `nbp_sap.csv`: it starts in
+2018, and the world's forward curve still reads the monthly proxy. GAP: ONS gives no daily SAP before 2018.
+
 **Do NOT use:** NESO CKAN portal (api.neso.energy) — contains electricity data only. NGT MIPI is the correct gas operator system.
 
 **Do NOT use:** ICE — paywalled, requires commercial subscription.

@@ -106,3 +106,39 @@ def test_at_normal_weather_the_second_test_reproduces_the_first_tests_record():
             pair = (3, *p["cover_3m_9m"])
             got = hole(p["strategy"], 0.75, pair, 65.0, "static", "normal")
             assert got["series"] == p["series"]
+
+
+# ---------------------------------------------- third test: daily gas price against daily volume
+@needs_world
+def test_a_months_gas_days_sum_to_its_month_and_the_plan_is_flat():
+    # Defects caught: daily volumes that do not add up to the second test's month (the daily mode
+    # would then change the volume, not just its timing), or cover that follows the actual days
+    # (the supplier cannot know which days will be cold when it buys baseload).
+    from tools.strategy_cash_hole_2021_22 import MONTHS, WEATHERS, gas_segments
+
+    for w in WEATHERS:
+        for ym in MONTHS:
+            segs = gas_segments(ym, w, "sap_daily")
+            assert sum(s[0] for s in segs) == pytest.approx(monthly_volume_mwh("gas", w)[ym], rel=1e-12)
+            assert sum(s[1] for s in segs) == pytest.approx(monthly_volume_mwh("gas")[ym], rel=1e-12)
+            assert len({round(s[1], 12) for s in segs}) == 1
+
+
+@needs_world
+def test_the_shape_term_can_be_taken_and_falls_on_every_hedge_alike():
+    # The rare branch first: under the world's weather the daily mode must differ from the monthly
+    # SAP mean (a daily mode collapsed onto the month would pass everything else), and at normal
+    # weather it must not (flat need, no covariance). Then the property the third pre-registration
+    # derived: with baseload cover the shape term does not depend on the hedge.
+    from tools.strategy_cash_hole_2021_22 import wholesale_total
+
+    def shape(name, pair, w):
+        return (wholesale_total(name, 0.5, pair, "static", w, "sap_daily")
+                - wholesale_total(name, 0.5, pair, "static", w, "sap_monthly"))
+
+    s1 = shape("S1", STRATEGIES["S1"]["fixed"][0], "anomaly")
+    assert abs(s1) > 1.0
+    assert shape("S1", STRATEGIES["S1"]["fixed"][0], "normal") == pytest.approx(0.0, abs=1e-9)
+    for name, spec in STRATEGIES.items():
+        for pair in spec["fixed"]:
+            assert shape(name, pair, "anomaly") == pytest.approx(s1, abs=0.01), name
