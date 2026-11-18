@@ -53,6 +53,7 @@ that "absent" cannot be confused with "unchecked".
 from __future__ import annotations
 
 import ast
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -65,6 +66,8 @@ CCL_COMMONS = COMMONS_DIR / "ccl_main_rates.json"
 RO_COMMONS = COMMONS_DIR / "ro_obligation_and_buyout.json"
 NATGAS_COMMONS = COMMONS_DIR / "desnz_natural_gas_conversion_factor.json"
 TD_LOSSES_COMMONS = COMMONS_DIR / "desnz_td_losses_conversion_factor.json"
+BREATHING_SPACE_COMMONS = COMMONS_DIR / "insolvency_service_breathing_space_registrations.json"
+INDEBTED_ACCOUNTS_COMMONS = COMMONS_DIR / "ofgem_domestic_electricity_indebted_accounts.json"
 
 _MIN_YEAR, _MAX_YEAR = 1990, 2100
 _MIN_ENTRIES = 3
@@ -163,6 +166,14 @@ _PINNED: dict[str, str] = {
         "desnz_natural_gas_kg_co2e_per_kwh_gross_cv",
     "company/regulatory/carbon_emissions.py::DESNZ_TD_LOSSES_KG_CO2E_PER_KWH":
         "desnz_td_losses_kg_co2e_per_kwh",
+    # W2_44/W2_45's entry-rate inputs, pinned on arrival (2026-11-18) rather than charged to the
+    # published_unpinned ratchet: both publications were re-fetched and sit in the commons raw.
+    "simulation/debt_respite_draw.py::_STANDARD_REGISTRATIONS_PER_YEAR":
+        "breathing_space_standard_annualised",
+    "simulation/debt_respite_draw.py::_MHCM_REGISTRATIONS_PER_YEAR":
+        "breathing_space_mhcm_annualised",
+    "simulation/debt_respite_draw.py::_INDEBTED_ELECTRICITY_ACCOUNTS":
+        "ofgem_electricity_arrears_plus_repaying",
 }
 
 # status "published_unpinned": a real publication exists; no commons pin yet. RATCHETED DOWN.
@@ -514,6 +525,25 @@ def _expected_for(conversion: str, asserted_only: bool = True) -> tuple[dict[int
         return {int(e["year"]): float(e["kg_co2e_per_kwh"])
                 for e in _load_commons(TD_LOSSES_COMMONS, "factors")
                 if e["provenance"] == "transcribed"}, 0.000005
+    if conversion in ("breathing_space_standard_annualised", "breathing_space_mhcm_annualised"):
+        # The commons stores a partial year PARTIAL; annualising is done here, by the period the
+        # publisher covers: 2021 by days from the scheme's start, an open year by months reported.
+        column = "standard" if conversion.endswith("standard_annualised") else "mental_health_crisis"
+        out = {}
+        for e in _load_commons(BREATHING_SPACE_COMMONS, "registrations"):
+            if asserted_only and e["provenance"] != "primary":
+                continue
+            start, end = (dt.date.fromisoformat(e[k]) for k in ("period_from", "period_to"))
+            if start.day != 1:
+                factor = 365 / ((end - start).days + 1)
+            else:
+                factor = 12 / e["months_reported"]
+            out[int(e["year"])] = e[column] * factor
+        return out, 1e-6
+    if conversion == "ofgem_electricity_arrears_plus_repaying":
+        return {int(e["year"]): e["in_arrears_no_plan"] + e["repaying_on_plan"]
+                for e in _load_commons(INDEBTED_ACCOUNTS_COMMONS, "accounts")
+                if not asserted_only or e["provenance"] == "primary"}, 0.0
     raise ValueError(f"unknown conversion: {conversion!r}")
 
 
