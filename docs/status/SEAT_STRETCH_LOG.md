@@ -8,6 +8,45 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-18 — orientation: Against the thesis, nothing moved this stretch, and nothing could have: the supplier still trails its flat-rules baseline by GBP 1.35 per household-year (-3.03 to +0.1
+
+<!-- head: 4cd09c6cebec -->
+
+*Written by the orientation seat from its own record (2026-11-18T18:24:21.100633+00:00; 9 commits, 5 substantive, since 2026-11-18T15:21:49.370919+00:00).*
+
+Commit split (product code by path): 0 supplier, 1 world, 0 both, 8 other.
+
+## What the stretch meant
+
+Against the thesis, nothing moved this stretch, and nothing could have: the supplier still trails its flat-rules baseline by GBP 1.35 per household-year (-3.03 to +0.13), and the renewal belief still ranks leavers backwards (AUC 0.333). The one reading that can move either is skip1, running since 13:08Z (pid 1873447, 6.9 GB); /var/tmp/vts-out-skip1/ is still empty at 18:24Z, so its read is still expected around 00:30Z on 19 Nov and skip0 around 12:30Z. The previous focus held: 2 of 3 items were drawn and both landed, and the third (skip1's grade) was correctly not ripe. Billing got more accurate on the page the household reads. The close set-off now nets a final bill issued but not yet collected (944eaf3a6): the household-credit row goes 23 of 132 breached to 0 of 122 on the 8a300fa561 replay. Both of its pre-registered predictions were refuted on the way, and the record says so beside them: 2 new lines appeared in the first arm, and the denominator fell by 10 because those refunds are now taken whole. A level return on a credit-bill month now prints as returned (2a8a99235): 3 to 0 of 206, with page repayments and balances unchanged. The commit split reads 0 supplier, 1 world and 8 other. The one world commit is really the supplier's set-off decision, and it is counted as world only because it still lives in simulation/. That is the wall's debt this record now pays (focus 2): the fix was made in place so the replay could attribute it, and the move is the follow-on the last record promised. Two of the 9 commits were empty reconciliation merges. That is noise, not a stall.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- unchanged. skip1 is still running and its out directory is empty; it reads around 00:30Z on 19 Nov (focus 1).
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- running, not yet read. It is attributed once skip0 is on disk, around 12:30Z on 19 Nov (focus 1).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- the fix is on origin (c71d2521d) and not yet graded; its book builds after skip0, alone.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 18:24 18 Nov -- this stretch has no written_at banner commit. Its 2 empty merges (65acb9365, 2913ddd89) are reconciliations whose upstream did not touch their paths, not lost races. No landing log has been read for a lost race, though, so it is still not graded on its own criterion.
+- NOT corrected: THE MACHINE'S, NEW. The continuation the-box-runs-the-skip-pair-before-another-book is still offered by seat_continuation.live() at 15:21Z, though 32349d382 recorded it premise-spent at 13:29Z and its work (c18067646, skip1 running) is done. A spent item that stays drawable costs a tick that finds nothing. 18:24 18 Nov -- still offered (focus 3).
+- NOT corrected: THE MACHINE'S, NEW. The reserved row the-github-repository-is-still-public-gh reached origin inside the parked-document audit commit (4cd09c6ce), under a [FOR-THE-DIRECTOR] title that names the row and not the audit. At 18:24Z the brief lists it in concerns_unpaged, so the director has not been told about a G5 row raised today.
+
+## Chosen against
+
+- Moving the retention guard's orchestration (_would_offer) out of simulation/run_phase2b.py into the growth desk.
+- B8's holdout row (discovered price sensitivity, held at L2 by the 21 Oct blind pass because no holdout row closes).
+- B11, forward customer value backtested on held-back history.
+- Building the W3_3 book, or retiring N29's keyed exception (153a675ad), ahead of skip0.
+- Re-dispositioning the 4 BLOCKING findings that 4cd09c6ce dated but did not close.
+- Reaping the 9 at-risk worktrees.
+
+## Focus for the next stretch
+
+- `skip1-is-graded-against-s12es-branches`
+- `the-close-set-off-decision-moves-into-the-supplier`
+- `a-premise-spent-continuation-stops-being-offered`
+
+---
+
 ## 2026-11-18 — orientation: The thesis test is finally running
 
 <!-- head: 51c9cc571f0b -->
