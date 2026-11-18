@@ -993,7 +993,9 @@ def test_the_emergency_check_asks_the_RUNGS_OWN_predicates_not_the_message(monke
 
     source = inspect.getsource(sup._priority_zero_active)
 
-    for predicate in ("_publish_gate_wedge_active", "_producer_starved_active",
+    # `_publish_gate_wedge_draw` is rung 1 as the ladder asks it since the 18 Nov ruling: the
+    # detector, held quiet only behind a declared wait (background/declared_wait.py).
+    for predicate in ("_publish_gate_wedge_draw", "_producer_starved_active",
                       "_operational_red_persistent_draw"):
         assert predicate in source, f"{predicate} is not consulted, so its rung can be diluted"
     assert "startswith" not in source and "in ladder" not in source

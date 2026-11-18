@@ -165,7 +165,7 @@ advisor said nothing was waiting. Prediction: zero by the review date. One miss 
 
 ## W4. An alarm that cannot change anything is cost, not safety (18 Nov 2026)
 
-**Status:** hypothesis, change owed. **Review by:** 18 Dec 2026.
+**Status:** hypothesis, change landed. **Review by:** 18 Dec 2026.
 
 **The claim.** The priority-zero publish-wedge refill was re-asked 59 times across 17-18 Nov, about one
 commit cycle each, and repaired nothing. Every re-ask found the same thing: the refused book's cure
@@ -180,6 +180,18 @@ names the file and stays quiet. It fires at once if the watcher is gone, if the 
 follows within 1 hour, or if the episode passes 72 hours. Those three legs keep a real stall loud. Tuning
 the machine's own alarms like this is the machine's call, unless it changes something he ruled.
 Commitment: `the-wedge-refill-names-its-wait-and-stays-quiet`, due 25 Nov.
+
+*Built 18 Nov.* A watcher declares its systemd unit and the absolute file it awaits
+(`python3 -m background.declared_wait --declare --unit <unit> --awaits <path> --why ...`, refused
+unless the unit is active). RUNG 1 asks `supervisor._publish_gate_wedge_draw`, which logs the file
+and stays quiet only while the episode's newest failure is `domain_invariant_refused` and a declared
+wait is armed. The record outlives the unit on purpose: flag1's watcher exited 34 s after its file
+appeared, so a declaration held in the unit would have read "watcher gone" and fired an hour early.
+Printed at the 17-18 Nov record before the test: of the five re-asks the row names, 02:12, 04:32 and
+05:42 go quiet; 22:20 still fires (flag1 was armed at 02:08); from 07:57 it fires again (file at
+06:57, the book reached origin at 10:45). So the change would have saved 3 of those 5, not all of
+them, and the 1 h leg is what kept the 3.8 h gap after the file loud. Control:
+`tests/background/test_the_wedge_refill_names_its_wait_and_stays_quiet.py`.
 
 **The measure.** Re-asks of a priority-zero rung whose cure waits on a named file behind a live
 watcher. Prediction: zero once the change lands, with the refill still firing in its control while a

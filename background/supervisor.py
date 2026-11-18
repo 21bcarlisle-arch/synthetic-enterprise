@@ -346,6 +346,8 @@ LAST_TESTED_HASH_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_h
 # ANTI-CORRELATED with time across a drain. This sidecar is the clock, written by the same
 # single writer on the same rc=0 (contract: process_run_complete.LAST_TESTED_HASH_CONTRACT).
 LAST_TESTED_GREEN_FILE = PROJECT_DIR / "docs" / "observability" / ".last_tested_green.json"
+# Watchers that declared the file the owed book waits on (director ruling 18 Nov; background/declared_wait.py).
+DECLARED_WAITS_FILE = PROJECT_DIR / "docs" / "observability" / ".declared_waits.json"
 PUBLISH_GATE_WEDGE_MIN_AGE_SECONDS = 60 * 60   # director ruling: a wedge older than 60 min is rung-1
 PUBLISH_GATE_WEDGE_MIN_FAILURES = 3            # sustained, not a lone flake (mirrors the H15 alarm threshold)
 
@@ -4557,6 +4559,33 @@ def _publish_gate_wedge_active(
     )
 
 
+def _publish_gate_wedge_draw(now: float | None = None, waits_path: Path | None = None,
+                             unit_active=None) -> str | None:
+    """RUNG 1 as the ladder asks it: the wedge message, unless a declared wait holds it quiet.
+
+    Director's ruling, 18 Nov 2026 ("Yes."): see `background/declared_wait.py` for the legs.
+    Quiet is LOGGED with the file it waits on, so the wait is named every tick without drawing
+    a worker to re-ask it. Any error in the quiet check leaves the wedge firing."""
+    wedge = _publish_gate_wedge_active(now=now)
+    if not wedge:
+        return None
+    try:
+        from background import declared_wait
+        sp = shared_tree_live_record(PUBLISH_GATE_STATE_FILE)
+        state = json.loads(Path(sp).read_text())
+        waits = declared_wait.read_waits(waits_path or shared_tree_live_record(DECLARED_WAITS_FILE))
+        quiet, why = declared_wait.quiet_reason(
+            state, waits, now=now, unit_active=unit_active or declared_wait.unit_is_active)
+    except Exception as exc:  # noqa: BLE001 - the wedge fires, see docstring
+        log(f"declared-wait check unavailable ({exc}); the wedge draw stands")
+        return wedge
+    if quiet:
+        log(f"PUBLISH-GATE WEDGE QUIET (director ruling 18 Nov): {why}. Fires at once if the "
+            "watcher goes, 1 h after the file appears with no book, or at 72 h.")
+        return None
+    return wedge + f" NO DECLARED WAIT HOLDS IT QUIET: {why}."
+
+
 def _wedge_depth_clause(census, total_red, named, record_hash=None, head=None) -> str:
     """How many tests are red behind the fail-fast verdict -- or an explicit statement that the
     draw does not know. Split out so it can be put on trial directly (R15: a control's scope must
@@ -5920,7 +5949,7 @@ def _self_refill_draw_ladder() -> str | None:
     # unwedging it is the single highest-value draw. Its ABSENCE was the exact 2h17m tick-silence
     # stall on both 2026-07-23 and 2026-07-24 (the prose rule consumed-not-absorbed twice). R15:
     # proven to fire on the wedged state and stay silent on a passed/empty gate.
-    wedge = _publish_gate_wedge_active()
+    wedge = _publish_gate_wedge_draw()
     if wedge:
         log("PUBLISH-GATE WEDGE (RUNG 1, PRIORITY ZERO): gate wedged >60min -> drawing unwedge work "
             "above every product/HARDEN lane (director ruling WEDGE3_AND_RUNG1_MECHANISE 2026-07-24)")
@@ -6382,7 +6411,7 @@ def _priority_zero_active() -> bool:
     is delaying a delivery item by one thirty-minute tick.
     """
     try:
-        if _publish_gate_wedge_active():
+        if _publish_gate_wedge_draw():
             return True
         if _producer_starved_active():
             return True
@@ -6459,7 +6488,7 @@ def _is_drained_and_gated() -> bool:
         # NEVER legitimate while the publish gate is wedged >60min -- that is the highest-priority
         # drawable work. Mirror of the top rung added to `_self_refill_draw`; without it,
         # `_is_drained_and_gated` would green-light the exact 2h17m rest the draw now refuses.
-        if _publish_gate_wedge_active():
+        if _publish_gate_wedge_draw():
             return False
         # RUNG 1b -- PERSISTENT OPERATIONAL-LAYER RED (PRIORITY ZERO, director console 2026-07-25):
         # rest is NEVER legitimate while the operational suite has been RED past paging. Mirror of the
