@@ -1746,3 +1746,18 @@ the twin where the twin exists.
 C3 is an offline stand-in: the build learns its O/E inside the run, and the run's own beliefs differ once offers
 move. If C3 says the lever cannot reach the flips, the switch is still built default-off as the direction asks, and
 the finding says the run is not worth a day of the box until something else changes.
+
+**C1 to C3 read (18 Nov 04:50Z, after `7921e93a5` filed them).** The full table is in knowledge §11g.
+
+| # | Predicted | Read | Graded |
+|---|---|---|---|
+| C1 | A's 2018 O/E 1.8 (1.3 to 3.0) | **0.69** (pair 1) and 0.56 (pair 2) | **MISSED, the wrong way.** A's 2018 level is too high, not too low. §12c's "A under-reads this tail" was a selection effect of reading only the leavers, which is the alternative C1 named |
+| C2 | Pooled O/E 1.15 (0.8 to 1.5) | **0.46** and 0.44. The twin reads 0.20 | **MISSED.** Both beliefs over-predict, A by about 2 times and the twin by about 5 times |
+| C3 | 0 to 2 of 9 cross 0.30 | **0 of 9.** The closed-year multiplier is 0.27, so the flips go to 0.03 to 0.04 | **HELD**, but for a reason the prediction did not give. Calibration pushes the belief down, not too little up |
+
+*Correction beside §12c and above.* §12c called A's level "too low as well" on the nine. Over the whole book it is
+too high, and calibrating moves the flips further under the cut. So the REFUTE branch's lever, as defined above,
+cannot reach the flips. It is built default off, as filed (`retention_cutoff_reads_the_calibrated_belief`), and it
+is **not worth a day of the box**. If skip1 refutes, the next lever is the cut's own scale (knowledge §11g): 0.30 on
+the twin's scale is a realised risk of about 6%, and the cut has worked as a "top third" selector. A cut in
+calibrated units, or one on rank, is the candidate. Neither is built, and neither is pre-registered yet.

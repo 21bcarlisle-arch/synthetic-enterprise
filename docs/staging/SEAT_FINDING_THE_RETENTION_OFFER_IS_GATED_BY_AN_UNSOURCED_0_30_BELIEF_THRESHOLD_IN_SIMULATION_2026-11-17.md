@@ -52,3 +52,16 @@ moves. Still open: candidate 2 (calibration), the wall half (the gate and 0.30 m
 0.30's origin. Not done here: ordering step 6's flag-0 half. DIRECTION.yaml `not_now` holds it on box memory,
 and `vto-offer-reread-watch`'s 10-day deadline (armed 17 Nov 15:06) would expire before flag 1's remaining pairs
 plus a flag-0 pass could finish anyway. That is a box re-plan, handed on.
+
+## 18 Nov: what moved, and one correction (claim `the-next-lever-is-built-before-skip1-reads`)
+
+- **Defect 2 is closed.** `RETENTION_THRESHOLD` now lives in `company/interfaces/growth_desk.py` with a declared
+  origin (a named simplification, in `tools/domain_constant_origins.py`'s reach). The run loop and
+  `saas/reporting/annual_report.py` import that one copy. The saas copy was a second `0.30` that said "must match".
+- **Defect 1 is half closed.** The constant is the supplier's now. The guard's orchestration is still in the run loop.
+- **Correction to defect 3.** "A's level is too low on this tail" was read from the leavers only. Over the whole
+  value arm, A's belief **over-predicts** (O/E 0.46 on pair 1, 0.44 on pair 2), and the twin's does so more
+  (0.20). So calibrating lowers the flips (to 0.03–0.04), and §12c's candidate 2 cannot re-offer them. It is built
+  default off (`retention_cutoff_reads_the_calibrated_belief`) and not worth a run. 0.30 on the twin's scale is a
+  realised risk of about 6%, and the cut has acted as a "top third" selector. The next lever, if skip1 refutes, is
+  the cut's own scale. `THE_VALUE_TEST_REDESIGN.md` §12e; knowledge §11g.

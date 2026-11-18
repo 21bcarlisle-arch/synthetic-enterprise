@@ -292,6 +292,12 @@ class DecisionPolicy:
     #: refuses it on without the weighing. `THE_VALUE_TEST_REDESIGN.md` §12c; knowledge §11.
     retention_skips_the_belief_threshold_when_save_odds_weigh: bool = False
 
+    #: (2026-11-18) The retention cutoff reads the desk belief scaled by its own observed-over-expected
+    #: on closed renewal years (`growth_desk.retention_cutoff_belief`). Only the cutoff reads it; the
+    #: value test, the cut tiers and the logged belief keep the desk's number. Off on every standing
+    #: policy. `THE_VALUE_TEST_REDESIGN.md` §12e (candidate 2); knowledge §11g.
+    retention_cutoff_reads_the_calibrated_belief: bool = False
+
     #: (2026-10-22) Of the renewals the save-odds guard would offer on, the company's own coin
     #: (`growth_desk.retention_save_holdout_draws`, a hash of account and roll date) holds a derived
     #: share out with no offer, and the save rate is read as the holdout's loss rate against the

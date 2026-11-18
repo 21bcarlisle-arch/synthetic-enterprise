@@ -61,6 +61,7 @@ from company.interfaces.fixed_overhead import book_monthly_overhead
 from company.interfaces.flexibility_revenue import build_flexibility_revenue
 from company.interfaces.growth_desk import (
     CONSIDERED_ON_THE_SAVE_ODDS,
+    RETENTION_THRESHOLD,
     book_acquisition_gate,
     book_acquisition_spend,
     book_retention_cost,
@@ -76,6 +77,7 @@ from company.interfaces.growth_desk import (
     retention_considers_the_renewal,
     retention_cut_share_at_price_match,
     retention_cut_share_at_risk_tiers,
+    retention_cutoff_belief,
     retention_engagement,
     retention_offer_can_buy_anything,
     retention_save_holdout_draws,
@@ -527,7 +529,8 @@ STARTING_TREASURY_GBP = founding_capital_gbp(
 # is now read off it, rather than the world importing the company's constant.
 RESET_HEDGE_FRACTION = hedge_mandate().opening_hedge_fraction
 
-RETENTION_THRESHOLD = 0.30
+# RETENTION_THRESHOLD is imported from company/interfaces/growth_desk.py, where its origin is
+# declared: the cut is the supplier's. Tools still read it from this module.
 
 # Phase QM (QL_WIRE_AND_DEFERRAL.md): expected_term_margin_gbp below already prices ONE
 # renewal term, not lifetime CLV -- this constant makes that implicit assumption an explicit,
@@ -4341,8 +4344,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                                 round((unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
                                 if _state_svt_rate else None)
                 # §12c (2026-11-17): the cutoff is skippable where the save odds carry the belief.
+                # §12e (2026-11-18): candidate 2, the cutoff reads a calibrated belief; off, as given.
+                _cutoff_belief, _ = retention_cutoff_belief(
+                    company_est_pre,
+                    calibrate=policy.retention_cutoff_reads_the_calibrated_belief,
+                    account_id=billing_account, renewal_year=_renewal_year)
                 _considered, _considered_why = retention_considers_the_renewal(
-                    company_est_pre, threshold=RETENTION_THRESHOLD,
+                    _cutoff_belief, threshold=RETENTION_THRESHOLD,
                     skip_threshold=policy.retention_skips_the_belief_threshold_when_save_odds_weigh,
                     ending_term_type=_ending_term_type, renewal_year=_renewal_year)
                 _considered_on_save_odds = _considered_why == CONSIDERED_ON_THE_SAVE_ODDS

@@ -3685,7 +3685,7 @@ def _section_churn_avoidability(data: dict) -> str:
             key = (ev["customer_id"], ev["event_date"])
             sim_p_lookup[key] = ev.get("sim_churn_probability")
 
-    RETENTION_THRESHOLD = 0.30  # must match sim runner constant
+    from company.interfaces.growth_desk import RETENTION_THRESHOLD  # the one copy, with its origin
 
     # Annotate each no-offer churn
     annotated = []

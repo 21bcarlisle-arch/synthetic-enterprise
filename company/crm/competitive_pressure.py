@@ -341,6 +341,13 @@ class CompetitivePressureLedger:
     #: attributed to the account's latest roll through its own id, as B8 attributes a price move.
     ending_term_sums: dict[tuple[str, int], dict] = field(default_factory=dict)
     pending_ending_term_by_account: dict[str, tuple[str, int]] = field(default_factory=dict)
+    #: (2026-11-18) THE BELIEF THE RETENTION CUTOFF READS, against what happened, per renewal year:
+    #: renewals, the belief summed (AFTER any ending-term conditioning, because that is the number the
+    #: cutoff compares), and losses at that renewal. Booked only while
+    #: `retention_cutoff_reads_the_calibrated_belief` is on, so every standing run is untouched.
+    #: `THE_VALUE_TEST_REDESIGN.md` §12e; knowledge §11g.
+    cutoff_belief_sums: dict[int, dict] = field(default_factory=dict)
+    pending_cutoff_by_account: dict[str, int] = field(default_factory=dict)
     #: (2026-10-22) THE SAME AGAIN, ASKED ONLY OF THE RENEWALS WE MADE A RETENTION OFFER ON: per
     #: (ending-term type, year), offers, the belief held at the roll, and how many of those accounts
     #: were lost at that renewal. What `retention_save_rate` reads.
@@ -455,6 +462,48 @@ class CompetitivePressureLedger:
         # A new roll closes the last one's offer: a loss from here on is this renewal's, not that.
         self.pending_offer_by_account.pop(str(account_id), None)
         self.pending_holdout_by_account.pop(str(account_id), None)
+
+    def observe_cutoff_belief(self, renewal_year: Optional[int], account_id: Optional[str],
+                              believed_p_leave: float) -> None:
+        """Book one renewal's belief as the retention cutoff reads it. Silent when any part is
+        unknown. A later loss of the account is attributed here through its own id."""
+        if renewal_year is None or account_id is None:
+            return
+        p = float(believed_p_leave)
+        if not math.isfinite(p):
+            return
+        sums = self.cutoff_belief_sums.setdefault(int(renewal_year), {"n": 0, "sp": 0.0, "losses": 0})
+        sums["n"] += 1
+        sums["sp"] += max(0.0, min(1.0, p))
+        self.pending_cutoff_by_account[str(account_id)] = int(renewal_year)
+
+    def cutoff_belief_multiplier(self, renewal_year: Optional[int]) -> tuple[Optional[float], str]:
+        """Observed over expected losses on the cutoff's own belief, whole book, over closed years.
+
+        The same rule as `ending_term_multiplier` (Jeffreys-corrected, shrunk towards 1), with the
+        year-series prior `PRIOR_LOG_VARIANCE`: what it corrects is the drift of the book's level
+        from the years the belief learned on to the year it is read in. `(None, reason)` wherever
+        there is nothing to learn from.
+        """
+        if renewal_year is None:
+            return None, "no renewal year"
+        if not self.loss_reporting_armed:
+            return None, "departures are not being reported to this ledger"
+        n, sp, losses = 0, 0.0, 0
+        for year, sums in self.cutoff_belief_sums.items():
+            if year < int(renewal_year):
+                n += sums["n"]
+                sp += sums["sp"]
+                losses += sums["losses"]
+        if n <= 0:
+            return None, "no closed renewals booked against the cutoff's belief"
+        if sp <= 0.0:
+            return None, f"predicted zero losses on {n} closed renewals"
+        ratio = ((losses + _CONTINUITY_SUCCESSES) / (n + _CONTINUITY_TRIALS)) / (sp / n)
+        weight = log_space_update_weight(n, sp / n, PRIOR_LOG_VARIANCE)
+        return precision_weighted_posterior(1.0, ratio, weight), (
+            f"{losses} losses against {sp:.2f} predicted on {n} closed renewals: "
+            f"ratio {ratio:.3f} at weight {weight:.2f} against the prior")
 
     def observe_retention_offer(self, renewal_year: Optional[int], ending_term_type: Optional[str],
                                 account_id: Optional[str], believed_p_leave: float) -> None:
@@ -652,6 +701,9 @@ class CompetitivePressureLedger:
             ending = self.pending_ending_term_by_account.pop(str(account_id), None)
             if ending is not None and ending in self.ending_term_sums:
                 self.ending_term_sums[ending]["losses"] += 1
+            cut_year = self.pending_cutoff_by_account.pop(str(account_id), None)
+            if cut_year is not None and cut_year in self.cutoff_belief_sums:
+                self.cutoff_belief_sums[cut_year]["losses"] += 1
             offered = self.pending_offer_by_account.pop(str(account_id), None)
             if offered is not None and offered in self.retention_offer_sums:
                 self.retention_offer_sums[offered]["losses"] += 1

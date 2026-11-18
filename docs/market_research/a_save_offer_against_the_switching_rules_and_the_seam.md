@@ -975,3 +975,67 @@ The 0.30 itself still has no origin (GAP, §11d), and it still lives in `simulat
 **Not chosen: valuing a kept household over more than one term** (the earlier proposal for this gate). At the nine
 flips it decides nothing, because the cutoff stops them before the value test runs (§12c). It stays a separate
 question (`ASSUMED_DEFERRAL_MONTHS`, H1 against H2 in `company/analytics/retention_deferral_economics.py`).
+
+### 11g. Calibrating the churn belief before a fixed cut: choice 2, measured and built (2026-11-18)
+
+*Written for `THE_VALUE_TEST_REDESIGN.md` §12e before the build (K8). §12e defines the lever; this page holds what
+is published, what was measured and what the design chooses.*
+
+**The quantity.** Calibration *in the large*: whether the belief's average level matches the rate at which the
+households it describes actually leave, read as observed over expected (O/E). This is separate from ranking
+(AUC), which a model can improve while its level moves the other way.
+
+**What published practice says.**
+- **A probability cutoff presumes calibration, and calibration is checked and corrected apart from ranking.** Van
+  Calster et al., "Calibration: the Achilles heel of predictive analytics", *BMC Medicine* 17:230 (2019), sets out
+  the levels (in the large, weak, moderate) and the standard correction for the level: recalibration in the large,
+  an intercept update on the model's own recent outcomes. Steyerberg, *Clinical Prediction Models* (2nd ed., 2019),
+  ch. 20, orders the updates the same way, with the intercept first and the cheapest. Niculescu-Mizil & Caruana,
+  "Predicting good probabilities with supervised learning", ICML 2005, show that a ranking-strong classifier can be
+  badly mis-levelled. *Cited from the literature's standing; not re-read this turn.*
+- **Targeting the most at-risk is not targeting the most saveable.** Ascarza, "Retention futility: targeting
+  high-risk customers might be ineffective", *Journal of Marketing Research* 55(1), 2018, finds the highest-risk
+  customers are often not the ones a retention action moves, which is §11c's uplift point. A calibrated cut is
+  still a cut on risk, so it inherits that weakness. *Cited from the literature's standing; not re-read this turn.*
+
+**GAPs, labelled.**
+- **GAP: what level a GB supplier's retention score is cut at**, and whether it is calibrated first. Not published
+  in anything read. This is a practitioner question (K4).
+- **GAP: how fast a book's churn level drifts year to year.** The prior used is the dispersion of the published
+  national switching multiplier by year (`PRIOR_LOG_VARIANCE`, `company/crm/competitive_pressure.py`), which is a
+  stand-in for the drift on one supplier's own book.
+
+**What was measured before the build** (§12e's C1 to C3, filed before the read, value arm under flag 1, the desk's
+belief at each renewal against whether the account left there):
+
+| Run | Pooled O/E | 2017 | 2018 | 2019 |
+|---|---|---|---|---|
+| A, pair 11111/22222 | **0.46** (100 left, 215.9 expected, 830 renewals) | 0.24 | 0.69 | 0.20 |
+| A, pair 33333/44444 | 0.44 | 0.27 | 0.56 | 0.18 |
+| twin (no conditioning), pair 11111/22222 | **0.20** | 0.25 | 0.35 | 0.07 |
+
+Both beliefs read **too high**, A by about 2 times and the twin by about 5 times. The year-to-year swing is large
+(A: 0.24, 0.69, 0.20 across 2017 to 2019, then above 2 in 2020). §12c's reading that A's level "is too low on this
+tail" came from reading only the households that left. Over the whole book, A's level is high, and the twin's is
+higher still.
+
+**What that does to choice 2.** Calibrating moves the belief **down**. On pair 11111/22222 the closed-year
+(2016 and 2017) multiplier is 0.27, and the nine flips' beliefs of 0.11 to 0.14 go to 0.03 to 0.04. None crosses
+0.30. Calibration puts more of the book under the cut, not less. So choice 2 cannot re-offer the flips, and as a
+lever for §12c's loss it is refuted before any run. What it shows instead is that **0.30 meant a realised risk of
+about 6% on the twin's scale** (0.30 × 0.20). The cut was never a 30% risk. It worked as a "top third of the book"
+selector, because the twin's level was inflated.
+
+**What the design chooses.** Choice 2 is built anyway, default off, because the direction asks for it and because
+a cut on a calibrated scale is the honest form *once the cut's own number is re-set on that scale*. As built:
+`DecisionPolicy.retention_cutoff_reads_the_calibrated_belief` and `growth_desk.retention_cutoff_belief`. Only the
+cutoff reads the calibrated number; the value test, the cut tiers and the logged belief keep the desk's. The
+ledger books the cutoff's belief only while the switch is on, so every standing run is unchanged. **Choice 3 is
+done:** `RETENTION_THRESHOLD` now lives in `company/interfaces/growth_desk.py` with a declared origin, a named
+simplification, and the run loop and `saas/reporting/annual_report.py` import that one copy.
+
+**Not run, and why.** A + calibration against A would only withdraw more offers, which is the opposite of what
+§12c's loss needs. The next lever, if skip1 refutes, is **the cut's own scale**: either a cut re-expressed in
+calibrated units (0.30 on the twin's scale is about 0.06 calibrated), or a cut on rank (the top share of the book
+by A's belief), so that A's better ranking chooses who is in the third rather than its lower level shrinking the
+third. Neither is built. Both wait for skip1.

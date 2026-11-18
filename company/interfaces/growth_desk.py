@@ -450,6 +450,43 @@ def retention_value_weighed_by_save_odds(value_protected: float | None, *, belie
     return max(0.0, min(1.0, belief)) * rate * value_protected, rate, reason
 
 
+#: The desk's churn estimate over which the retention guard weighs an offer at all. NAMED
+#: SIMPLIFICATION (origin declared 2026-11-18; the number dates from Phase 12b, f9a22843d3,
+#: 2026-06-21, and nothing in the knowledge layer, the commons or the market research sources it). A
+#: fixed level on a score stands in for selecting on the offer's expected profit (the profit form,
+#: knowledge §11c). To do it properly: let the value test carry the estimate
+#: (`retention_skips_the_belief_threshold_when_save_odds_weigh`), or read the cut on a calibrated
+#: scale. The error runs with the estimate's level, not one way: on the twin's estimate (observed over
+#: expected 0.20 on pair 11111/22222) 0.30 sits near a 6% realised risk and admits a third of the
+#: book; on candidate A's (0.46) the same cut excludes most of that third (THE_VALUE_TEST_REDESIGN
+#: §12c, §12e). Moved here from the run loop, which imports it, because the cut is the supplier's.
+RETENTION_THRESHOLD = 0.30
+
+
+def retention_cutoff_belief(belief: float, *, calibrate: bool, account_id: str | None,
+                            renewal_year: int | None) -> tuple[float, str]:
+    """(2026-11-18) The belief the retention cutoff reads: `(belief, reason)`.
+
+    Off, the belief as given and nothing booked. On, the belief scaled in survival space by the
+    observed-over-expected of the cutoff's own belief on the company's closed renewal years
+    (`CompetitivePressureLedger.cutoff_belief_multiplier`), then this renewal is booked for later
+    years. Only the cutoff reads the result. `THE_VALUE_TEST_REDESIGN.md` §12e; knowledge §11g.
+    """
+    from company.crm.churn_desk import condition_on_ending_term
+    from company.crm.competitive_pressure import active_pressure_ledger
+
+    if not calibrate:
+        return belief, "the cutoff reads the belief as given"
+    ledger = active_pressure_ledger()
+    if ledger is None:
+        return belief, "no pressure ledger in scope"
+    multiplier, reason = ledger.cutoff_belief_multiplier(renewal_year)
+    ledger.observe_cutoff_belief(renewal_year, account_id, belief)
+    if multiplier is None:
+        return belief, reason
+    return condition_on_ending_term(belief, multiplier), reason
+
+
 #: Why a renewal was or was not weighed for an offer at all (2026-11-17). Ahead of the value test.
 CONSIDERED_OVER_THE_BELIEF_THRESHOLD = "the_belief_is_over_the_threshold"
 CONSIDERED_ON_THE_SAVE_ODDS = "the_save_odds_carry_the_belief"
