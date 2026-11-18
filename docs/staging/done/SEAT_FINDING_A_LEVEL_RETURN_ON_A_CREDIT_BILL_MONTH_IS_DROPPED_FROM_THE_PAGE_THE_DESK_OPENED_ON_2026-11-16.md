@@ -1,4 +1,4 @@
-**Severity:** LATENT · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
+**Severity:** RESOLVED (was LATENT) · **Lane:** D_billing_metering · **Epoch:** 4 · **Atom:** `unminted`
 
 # A level return on a credit-bill month is dropped from the page, though the desk opened on it (2026-11-16)
 
@@ -75,3 +75,50 @@ level collection should print as a `failed` level row, exactly as the non-credit
 repayment should come from the desk's figure through the existing `level_missed_on` path, so the catch-up stops
 hanging the repayment on the prior success. Done means the three legs above print a July/July/May failed row
 carrying its repayment, and no repayment on the book hangs on a successful level collection (on 8a300fa561 exactly these 3 do, and no others).
+
+## Pre-registration for the fix (seat executor, 18 Nov 2026, written before the run)
+
+The ledger is regenerated at HEAD 483d962552 from `docs/reports/run_output_8a300fa561_20261116T031305Z.json`, once
+before the change and once after it, and `/var/tmp/grade-lrcb/count.py` is run on both. Predictions:
+- Before: 3 of 206 credit-bill months are without their level row. These are the same three legs. (HEAD is 2 days on
+  from 8a300fa561, so a different count would be a finding of its own, not a refutation.)
+- After: 0 of 206. Each of the three legs prints a `failed` level row on its instalment day, carrying a case opened
+  the next day for the desk's figure, capped at the instalment, and the household's repayment sits under that row.
+- No repayment on the book hangs on a successful level collection whose month has a returned instalment, i.e. the
+  three June/October/August rows lose their orphan repayment. Every other leg's payments are byte-identical.
+
+## Result (seat executor, 18 Nov 2026): fixed, and every prediction held
+
+On the 8a300fa561 run, regenerated at HEAD before and after (`/var/tmp/lrcb-fix/{before,after}.json`, diff by
+`/var/tmp/lrcb-fix/diff.py`):
+
+| | before | after |
+|---|---|---|
+| credit-bill months inside a level schedule without their level row | 3 of 206 | **0 of 206** |
+| successful level rows carrying a repayment | 3 | **0** |
+| page repayments, whole book | £92,473.33 | £92,473.33 |
+| legs whose record changed | | 4 |
+| any leg's `balance_gbp` | | unchanged |
+
+Each of the three legs now prints its returned row on the instalment day. Each carries a case opened the next day
+at the desk's figure, capped at the instalment, and closed `ARREARS_REPAID` by the household's own cash: SYN-2016-215
+144.07 repaid 162.80 on 29 Jul 2020; PROS-2019-0318 65.11 repaid 22 Nov 2022; SYN-2016-047 106.30 (desk 170.30, capped)
+repaid 15 Sep 2023. The fourth changed leg, OCC-0c74c80dee7e, is a credit-bill return at the end of its schedule, so the
+count's strictly-inside window misses it. It now prints its returned 79.00 of 23 Jun 2025, and the desk had no figure,
+so there is no case: the partition's other leg, live on the book.
+
+**Corrected during the build.** The first cut matched the case's repayment by date: the leg's cash on or after the
+return, up to the instalment. On SYN-2016-047 that took 43.29 of 16 Jun 2023, which the world files against the leg's
+2021-07 return. The match now keys on the repayment's `settles_month`. All 1,446 truth repayments on the run carry
+one, and each of the three names its own return month.
+
+**Test:** `tests/tools/test_a_level_return_on_a_credit_bill_month_prints_as_returned.py`. It holds SYN-2016-215's shape
+with a paid and an in-credit control. Its three fix legs go red with the code change reverted.
+
+**Not touched, a sibling to check.** The scheme-credit month inside the non-credit branch (`outcome == "credit"`,
+class L') also prints a returned collection as nothing. Its control test pins "returned prints no row". Whether the
+desk opens on those is unmeasured.
+
+**Unrelated reds seen in the run:** `test_reconciliation_identity_holds_across_full_live_book` and
+`test_the_published_arrears_count_is_ofgems_and_never_exceeds_the_ledgers_overdue_accounts` fail identically with the
+fix reverted. They read the committed live book, not this code.

@@ -484,6 +484,9 @@ def generate(run_json_path=None, out_path=None):
         set_offs=set_offs_from_refund_log(data.get("credit_refund_log", [])))
     # (leg, day received) -> what the page already posts of that repayment, from cases and returns.
     repaid_posted: dict[tuple[str, str], float] = {}
+    repayments_of: dict[str, list[dict]] = {}
+    for rp in sorted(truth_repayments, key=lambda r: r["period_end"]):
+        repayments_of.setdefault(rp["customer_id"], []).append(rp)
 
     # DOMAIN_SENSE_AND_COMPLIANCE.md Phase 3: Tier-1 pre-bill validation gate
     # (director's Principle 1 -- 100% of bills validated before issue, zero
@@ -1122,6 +1125,27 @@ def generate(run_json_path=None, out_path=None):
             if level is not None and collection_result == "success":
                 payments_by_cid.setdefault(cid, []).append(_level_collection_payment(
                     invoice_number, level, stress))
+            elif level is not None:
+                # Returned, it is NOT "owed nothing": the schedule is owed by the schedule, and this
+                # credit is often a catch-up issued weeks after the return. SYN-2016-215 owed 144.07
+                # on 15 Jul 2020, the desk opened on it, the household repaid 162.80, and the page
+                # printed no row and hung the cash on June's success (3 legs on 8a300fa561). So it
+                # prints as the non-credit branch's returned row, and the desk's figure decides the
+                # case below. The walk saw no debt here, so the cash meeting it is the leg's own.
+                pay = dict(_level_collection_payment(invoice_number, level, stress),
+                           outcome="failed")
+                payments_by_cid.setdefault(cid, []).append(pay)
+                level_missed_on = date.fromisoformat(level["collection_date"]) + timedelta(days=1)
+                outcome, method = "failed", "direct_debit"
+                # The world names the month each repayment settles; a date scan took 2023 cash that
+                # settled SYN-2016-047's 2021 return.
+                own = [{"date": rp["period_end"], "amount_gbp": rp["amount_gbp"],
+                        "credit_period_end": rp["period_end"], "kind": "repayment"}
+                       for rp in repayments_of.get(cid, ())
+                       if rp.get("settles_month") == period_end[:7]
+                       and rp["period_end"] >= level_missed_on.isoformat()]
+                credits_applied[(cid, period_end, commodity)] = (
+                    credits_applied.get((cid, period_end, commodity), []) + own)
 
         written_off = write_offs.get((cid, period_end, commodity))
         # A case is for what is still owed once account credit on the same contract is netted
@@ -1145,7 +1169,9 @@ def generate(run_json_path=None, out_path=None):
             # shortfall, which those months' own cases already print: a case is capped at its own
             # bill (PROS-2019-0246 16165, face 60.48 repaid 60.48, printed 269.94). On the
             # 4dee9854a4 book no earlier in-journey miss lacked a case, so the cap drops no debt.
-            shortfall = min(shortfall, round(asked - part_paid, 2))
+            # A credit bill asks nothing, so its return's case is capped at the instalment.
+            shortfall = min(shortfall, pay["amount_gbp"] if is_credit
+                            else round(asked - part_paid, 2))
             if shortfall <= 0:
                 outcome_case = None
                 # The household's repayment of this return reaches the page only through a case, so
