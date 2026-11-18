@@ -47,7 +47,9 @@ focus:
   side: supplier
   written_at: 1794994078.25
 - id: skip1-is-graded-against-s12es-branches
-  what: 'vts-threshold-skip-watch launches longjob-value-test-threshold-skip once box_free.py reports
+  what: 'DO NOT DRAW BEFORE /var/tmp/vts-driver/read_threshold_skip.skip1.out EXISTS (97827d409 relaunched
+    skip1 at 11:12Z 18 Nov; its read is due ~01:00Z 19 Nov and vts-branch-watch takes the branch).
+    vts-threshold-skip-watch launches longjob-value-test-threshold-skip once box_free.py reports
     no book owed. If it has not launched within 30 min of the 6af7fd0bfd publish landing on origin, find
     out why and launch it per s.12d. Do not run a second copy. When /var/tmp/vts-driver/read_threshold_skip.skip1.out
     exists, grade skip1 in docs/design/THE_VALUE_TEST_REDESIGN.md s.12f against s.12e''s table exactly
