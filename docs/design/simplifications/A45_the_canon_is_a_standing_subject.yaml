@@ -196,3 +196,24 @@ map_records:
     on site/harness/index.html as regenerated at 10:09Z. Every hit is in the director-asks ledger,
     which 1ce3a4a442 (14:31Z) marks data-canon-history, so it clears at the next publish. Level
     held at 2. Next: a fresh blind Expert Hour pass.
+  - >-
+    Blind pass, 2026-11-18, fresh read-only reviewer (SOX ITGC controls tester; shown none of the
+    earlier findings). NEEDS_WORK, held at 2. Seven mutations plus two controls on a scratch copy
+    under --root. Each of these went red on its own row: the cut differential call, a new world
+    module that imports switching_recommendation (the under-claim direction), the 1.02 ceiling at
+    1.05, the engagement mix edited, and a direct green_stance read. Each of these held: a dead
+    `if False:` call left behind, a clamp returning its input, the mix changed with the old figures
+    kept in a comment (text_in_file reads comments), and getattr(h, "green" + "_stance").
+    MAJOR 1: no work queue held the red. The 16 Nov item 0A2E477ACB, five site rows, was swept to
+    done/ unworked by the staging watcher's 48-hour sweep. The dedup read any done/ copy as closed,
+    so the persisting red could not be filed again. FIXED here: a done/ item holds the drift only if a closer
+    wrote Disposition/Resolution/Closed on it. Control:
+    test_a_closed_item_is_not_reminted_and_a_different_drift_is now goes red when a swept item
+    silences a live red. MAJOR 2: "25 of 25" is a lexical lower bound. A sentence counts as bound
+    when any anchor overlaps it, so unprobed claims ride on a neighbour's anchor (1.26x, CHASE=0.5,
+    "business renewals are not clamped", EWMA-weighted), and code claims with no identifier
+    ("single imbalance price", "168k settlement periods") are not counted at all. MAJOR 3: the four
+    held mutations above. MINOR: the archived recommender's row cannot see it being restored. The
+    three UNWATCHED sections never move the exit status. Next, in order: M3's comment-stripped
+    text_in_file, then M2 (bound means its own claim is probed; report the riders), then M3's
+    dead-call and no-op clamp.

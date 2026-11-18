@@ -1041,13 +1041,31 @@ def _drift_key(report: dict[str, Any]) -> str:
     return hashlib.sha1("\n".join(parts).encode("utf-8")).hexdigest()[:10].upper()
 
 
+# A closer's mark. done/ also receives items no one worked: the staging watcher's 48-hour sweep
+# moved 0A2E477ACB there on 18 Nov with its five site rows still red, and a dedup that read any
+# done/ copy as closed then refused to file that red again, so it sat in no queue at all.
+_CLOSER_MARK = re.compile(r"^(?:#+\s*|\*\*)(?:Disposition|Resolution|Closed)\b", re.M | re.I)
+
+
+def _holds_the_drift(prior: Path, staging_dir: Path) -> bool:
+    """An item for this drift still holds it when it is open (any room but done/), or when it is in
+    done/ with a closer's disposition written on it. A swept item with none does not."""
+    if "done" not in prior.relative_to(staging_dir).parts[:-1] or not prior.name.endswith(".md"):
+        return True
+    try:
+        return bool(_CLOSER_MARK.search(prior.read_text(encoding="utf-8", errors="replace")))
+    except OSError:
+        return True
+
+
 def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) -> Path | None:
     """File the register's red as a staging finding, once per distinct drift. Returns the path, or None.
 
     None when the register is green, or when an item for the same drift already exists anywhere
-    under `staging_dir` (root, in_progress/, done/): a daily note re-reading an unchanged red must
-    not mint one item a day, and an item closed as done must not be re-minted for a drift a later
-    run still sees -- that is the closer's call, recorded in the closed item.
+    and still holds it (`_holds_the_drift`): a daily note re-reading an unchanged red must not mint
+    one item a day, and an item closed with a disposition must not be re-minted for a drift a later
+    run still sees -- that is the closer's call, recorded in the closed item. An item that reached
+    done/ with no disposition was swept, not closed, so a red that persists is filed again.
 
     Severity follows the 12 Aug ruling's own definitions: an OVER_CLAIM is the page publishing a
     capability the code does not have, which is "a published figure may be wrong" -- BLOCKING.
@@ -1060,7 +1078,8 @@ def mint_drift_item(report: dict[str, Any], staging_dir: Path, *, today: str) ->
     if not report["drift"] and not report["removed"] and not lapsed and not site_rows:
         return None
     key = _drift_key(report)
-    if any(staging_dir.rglob(f"{DRIFT_ITEM_STEM}{key}_*.md")):
+    if any(_holds_the_drift(prior, staging_dir)
+           for prior in staging_dir.rglob(f"{DRIFT_ITEM_STEM}{key}_*.md")):
         return None
     over = [d for d in report["drift"] if d["verdict"] == OVER_CLAIM]
     severity = "BLOCKING" if over or site_rows else "LATENT"

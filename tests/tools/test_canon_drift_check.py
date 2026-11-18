@@ -775,8 +775,10 @@ def test_a_red_register_mints_one_classified_work_item_and_a_green_one_mints_non
 
 
 def test_a_closed_item_is_not_reminted_and_a_different_drift_is(tmp_path):
-    """The dedup reads every room, so a drift item moved to done/ stays closed; a NEW drift set
-    is a new item, and a non-OVER_CLAIM red is LATENT."""
+    """The dedup reads every room. An item in done/ with a closer's disposition stays closed; one
+    swept there with none (the staging watcher's 48-hour sweep did this to 0A2E477ACB, red rows and
+    all) does not hold the drift, so a red that persists is filed again. A NEW drift set is a new
+    item, and a non-OVER_CLAIM red is LATENT."""
     from tools.canon_drift_check import mint_drift_item
 
     root, register = _mini_repo(tmp_path, channel=False, claims=[CHANNEL_CLAIM])
@@ -785,6 +787,12 @@ def test_a_closed_item_is_not_reminted_and_a_different_drift_is(tmp_path):
     done = staging / "done"
     done.mkdir()
     first.rename(done / first.name)
+    swept = done / first.name
+    refiled = mint_drift_item(run(root, register)[1], staging, today="2026-11-16")
+    assert refiled is not None and refiled.parent == staging, "a swept item silenced a live red"
+    refiled.unlink()
+    swept.write_text(swept.read_text(encoding="utf-8") + "\n**Disposition:** page corrected.\n",
+                     encoding="utf-8")
     assert mint_drift_item(run(root, register)[1], staging, today="2026-11-15") is None
 
     (tmp_path / "b").mkdir()
