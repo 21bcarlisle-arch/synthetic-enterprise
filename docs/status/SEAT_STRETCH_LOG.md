@@ -8,6 +8,53 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-18 — orientation: The thesis test has not moved, and this stretch it lost ground for reasons that had nothing to do with the test
+
+<!-- head: ee044e5cefb8 -->
+
+*Written by the orientation seat from its own record (2026-11-18T12:24:07.112567+00:00; 16 commits, 9 substantive, since 2026-11-18T09:21:58.856225+00:00).*
+
+Commit split (product code by path): 0 supplier, 3 world, 0 both, 13 other.
+
+## What the stretch meant
+
+The thesis test has not moved, and this stretch it lost ground for reasons that had nothing to do with the test. The supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief, and skip1, the run that decides whether that holds, has still not started. Its locked scratch tree was deleted while its launch waited, so the 09:49Z launch was refused (97827d409 rebuilt it at 11:12Z). Then, at 11:04Z, sim-runner admitted a new book on 7f0723b46e the moment next_book_requires was satisfied. The weekly window holds every publish until 23 Nov, and the book does not carry W3_3, which landed 21 minutes later. So the box is spending about 2.3h on a book that can neither publish nor grade anything new, while the one comparison the thesis rests on queues behind it. Nothing in the tree stops the same thing happening again when that book ends, because c71d2521d now satisfies the file. That ordering is focus 1. On billing, which comes first in the director's order, the stretch delivered. The 6af7fd0bfd book is verified on origin: publish_provenance last_verified 6af7fd0bfd at 10:20:38Z, paused_since null, and the episode was closed at 11:03Z after 52.7h. On that book, row 7 went from 20 to 0 as predicted. The account page's repayment shortfall went from 194 legs (GBP 6,399.16) to 0. The walk file names ACC-SYN-2016-001's 15 Aug 2023 settlement as no longer behind the walk (settle_held 0). The served Capabilities strip now lists the week's fixes to 18 Nov. The census red is green: 24 passed at HEAD, which is level with origin, on 74915437a. Those are five carried rows corrected on evidence, not on promises. W3_3 landed alone (c71d2521d), which unblocks B12 once a book grades it. The first live reader of the book found 3 of 53,605 bills charging off their contract. The cause was a ledger term record, not the biller, and its fix is landing now (surgical_land pid 1200350). The commit split reads 0 supplier, 3 world and 13 other. The substance was grading supplier billing on a book, tagged other, so the supplier's numbers moved but its code did not. The previous focus drew 4 of 4, so the steer bit. What drifted was the box order, not the steer.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- unchanged. skip1 has still not launched: its tree was deleted, then a book took the box (focus 1).
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- unrun. The skip pair waits behind the 7f0723b46e book (focus 1, 2).
+- NOT corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- the verified 6af7fd0bfd book is on origin, but its grade did not read either check. Focus 3 reads them.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- the fix is on origin (c71d2521d) and is not yet graded on a book. Its book builds after the skip pair, alone; the continuation deemed-and-flex-rows-book-the-standing-charge grades it.
+- corrected: THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: 0 legs, GBP 0.00 on the verified 6af7fd0bfd book (49d41097b).
+- corrected: THE MACHINE'S, NEW. The live Capabilities page told the director "Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded" after a week that fixed dozens of money classes. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: https://poesys.net/capabilities/ serves "Fixed in the 7 days to 18 Nov 2026" with dated items, and its lead says the thesis question in words, not book totals.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- still open: 2 of this stretch's 16 commits were merges that changed nothing (7f0723b46, 433a825ad).
+- corrected: THE COMPANY'S, NEW. The 16 Nov weekly publish was refused at 04:26 on five gate rows that no exception covers, and it was refused again on 8a300fa561 on the same five (4, 7, 2, 5 and 1), so the site still serves the 9 Nov book. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: origin's publish_provenance reads last_verified 6af7fd0bfd at 10:20:38Z with paused_since null, and the episode closed at 11:03Z.
+- corrected: THE SEAT'S, THIS STRETCH. The 18:22 record told the D5-book grader to "read settlements_behind_the_walk for SYN-2016-001" and hung the account-page row on the book carrying final_month_nets. Neither was readable. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: world_walk_truth_6af7fd0bfd_20261118T070221Z.json was read. ACC-SYN-2016-001's 15 Aug 2023 settlement is not behind the walk, and settle_held is 0.
+- corrected: THE MACHINE'S, NEW. f865b903f (the daily gas SAP landing) added year-keyed tables to simulation/debt_respite_draw.py (_INDEBTED_ELECTRICITY_ACCOUNTS and its siblings), and tests/architecture/test_year_keyed_rate_table_census.py::test_every_discovered_table_is_classified is now red on origin/main. 12:24 18 Nov -- corrected by 74915437a. The census passes (24 passed) at HEAD, which is level with origin.
+- NOT corrected: THE MACHINE'S, NEW. sim-runner admitted a book on 7f0723b46e at 11:04Z, the moment next_book_requires was satisfied. The weekly window holds every publish until 23 Nov, the book does not carry W3_3 (landed at 11:25Z, written into the file at 11:38Z), and the box had been promised to the skip pair. Earlier, skip1's locked scratch tree /var/tmp/value-test-threshold-skip was deleted while its launch waited, so the 09:49Z launch was refused. The thesis test lost about 3.5h to the two together.
+- NOT corrected: THE MACHINE'S, NEW. The channel-F wall census runs only when a .py file or its baseline is staged, so the 43fa9534d publish widened the wall surface by six names under its own gate. The refusal landed on the merge after it, and the six fields were ruled admissible in 7a4af086a to let the book through.
+
+## Chosen against
+
+- Killing the 7f0723b46e book (pid 484274) to give the skip pair the box about an hour sooner.
+- Building the W3_3 book next, ahead of the skip pair.
+- Fixing the 3 tariff-crossing contract bills (PROS-2016-0253, -2017-0286, -2021-0313) as a focus item.
+- Mechanising launch_long_job to carry SE_NTFY_TOPIC, the other proposal in the 6af7fd0bfd publish finding.
+- Withdrawing the publish-wedge refill concern now that the episode closed at 11:03Z.
+- Reaping the 9 at-risk worktrees.
+- The world gas switch to spliced daily SAP (continuation world-gas-baseline-switch-readers-to-spliced-sap).
+
+## Focus for the next stretch
+
+- `the-box-runs-the-skip-pair-before-another-book`
+- `skip1-is-graded-against-s12es-branches`
+- `the-live-book-is-read-for-shared-meter-serials-and-volumeless-gas-bills`
+- `the-channel-f-census-runs-when-a-publish-stages-what-it-reads`
+
+---
+
 ## 2026-11-18 — orientation: The thesis test has not moved: the supplier still trails its flat-rules baseline by GBP 1.35 per household-year on A's belief
 
 <!-- head: ffda9d413057 -->

@@ -74,4 +74,16 @@ not use.** It is not a biller defect. I have not read the validator's code, so t
 ranking, not a verdict. The fix belongs in `tools/independent_bill_validator.py`'s crossing range,
 and once it is fixed this red should clear without a rerun of the book.
 
-NEXT: none -- the validator crossing-range question above is for the billing lane; the publish wedge is cleared
+**Corrected, later the same day (worker tick): the cause is none of (a)-(c), and the ranking above
+was wrong.** The validator prices the single-term bills and the crossing bound on the same all-in
+basis, so (b) does not hold. On all three bills, the record for the SVT term that starts inside the
+bill (e.g. 2017-09-08 to 10-01) carries `tou_unit_rates: null`. The biller settled that stub on the
+Day/Night pair (rate line `time_of_use: true`, 17.51p), so the bound's ceiling was the flat 14.76p.
+The defect is in the ledger's term record: `generate_billing_ledger._tou_terms` read the pair only
+through `term_of_bill`, and no bill starts inside a stub term. The fix reads each crossing line's own
+`time_of_use`. On the live book, measured in memory: 29 SVT stub terms gain their pair; verdicts go
+from 53,373 / 229 / 3 (AGREED / BOUNDED / DISAGREED) to 53,373 / 232 / 0. The prediction was filed
+before the run. The published red clears at the **next publish**, when the ledger is regenerated,
+and **not** without a rerun as said above.
+
+NEXT: none -- the contract red is fixed at its source and clears at the next publish; the channel-F census proposal and the launch_long_job NTFY trap stay open here
