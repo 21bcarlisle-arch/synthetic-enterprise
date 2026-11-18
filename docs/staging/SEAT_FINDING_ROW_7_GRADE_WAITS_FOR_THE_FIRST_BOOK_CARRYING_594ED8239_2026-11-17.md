@@ -152,3 +152,11 @@ for h, bs in sorted(by.items()):
 - **REVERSE:** `systemctl --user stop row7book-pause-watch`. If step 6 is already stopped, run the relaunch block in
   watch.sh by hand.
 - Grading is unchanged: the steps above, P1 and P5 on the book, when it lands.
+
+**18 Nov 02:30Z (claim `row-7s-last-two-and-the-verified-publish`).** The last 2 are named and fixed by 20d4cbeccc.
+The writer is `_deliver_settlements_through`, which let `_settle_held` walk past the delivery's own `through`.
+The fix is in `background/live_payment_triad.py`, which the world run calls (`simulation/run_phase2b.py`), so no
+re-grade of the 18f201c5bf output can clear them. Only a new book can. 20d4cbecc is now a row in
+`background/next_book_requires.yaml`, so a book built without it is deferred. Path to the publish: flag1-stop-at-pair3-watch
+frees the box → sim-runner builds the owed book → `process_run` → grade P1–P5 with the probe above (P5: row 7 = 0)
+→ the publish gate verifies. Nothing on that path waits on the director.

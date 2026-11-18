@@ -36,3 +36,8 @@ requires:
   owner: DD_seasonal_cashflow_physics
 - commit: d645233e8
   what: walk truth reaches a file beside the run (names SYN-2016-001's 15 Aug 2023 lump, row 7's last 2)
+# The last 2 were named without a book: a delivery walked past its own `through` to cross a lump still
+# queued for that day. The fix is in the triad the world run calls, so only a new book can show it.
+- commit: 20d4cbecc
+  what: a delivery's walk stops at its own through (INV_OVERDUE_WITHIN_PAGE_BALANCE, SYN-2016-001's last 2; P5 reads 0)
+  owner: DD_seasonal_cashflow_physics
