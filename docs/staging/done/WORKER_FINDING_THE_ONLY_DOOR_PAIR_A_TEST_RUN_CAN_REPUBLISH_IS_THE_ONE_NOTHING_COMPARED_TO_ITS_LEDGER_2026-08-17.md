@@ -1,3 +1,18 @@
+> **DISPOSED 2026-11-18 (worker tick, RUNG-1c draw) -- DONE.** Item 2 was closed at its cause
+> rather than by the tripwire. Measured at HEAD before the fix: 15 of 17 measured door pairs equal
+> the committed ledger, and two do not: W2_11 (door 0.0972 at 18 Nov, ledger 0.0730 at 27 Aug)
+> and W2_36 (door 0.2735, no ledger entry). The working-tree ledger matched the door on both, so
+> the cause was the one `..._PUBLISH_PATH_COMMITS_THE_DOOR_AND_NOT_THE_RECORD_IT_RENDERED_...`
+> named and left queued: the ledger had not been committed since 9 Oct while every publish
+> re-committed the door. Fix: `process_run_complete.DOOR_RENDERED_FROM`, which makes the publish
+> pathspec carry the ledger whenever it carries the door. Control:
+> `test_the_door_rides_with_the_record_it_was_rendered_from`. With the loop removed, the first
+> leg fails; with the ledger always added, the second leg fails. A disk-level gating tripwire
+> was NOT built: every run writes W2_11 to the working-tree ledger, so the tripwire would red
+> every lane's commit between a run and its publish. That is the wedge item 2 itself warned
+> about. The "owed" roll path for an oversized note has since landed as the store's note bound
+> (`tools/simplifications_store.py:718`). Level of H27 not touched here.
+
 > **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** Its 2026-10-12 fate line records the divergence it was blocked on as landed. The SITE-lane live tripwire (item 2) is therefore buildable. The tripwire itself was not re-checked in this audit.
 
 # WORKER FINDING (QUEUED) — the only Proof-door pair a test process can re-publish is this atom's own, and until this tick nothing compared any door figure to the ledger it derives from

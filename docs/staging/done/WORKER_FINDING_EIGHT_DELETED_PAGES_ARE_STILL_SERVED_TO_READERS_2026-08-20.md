@@ -1,3 +1,12 @@
+> **DISPOSED 2026-11-18 (worker tick, RUNG-1c draw) -- DONE.** Measured, not read: all eight
+> ghost URLs (`/proof/ /world/ /company/ /customers/ /now/ /glossary/ /director/ /evidence/`)
+> return **404 on a plain fetch with no cache-bust**, so the defect has cleared in the world as
+> well as by construction. Item 4 rested on a false premise: `PB3_book_growth_as_earned_outcome`
+> was built, and it is a closed row at level 2 (`maturity_map_closed.yaml`) with a measured door
+> pair (1.228). Item 3 ("method account thinner than the brief") names no brief and no measure,
+> and `site/harness/` ships with its own tests; it is rejected as unworkable as written, not
+> judged done. Refile it with the brief it is measured against if it still matters.
+
 > **H48 PARKED-DOCUMENT AUDIT, 2026-11-18 -- UNBLOCKED.** The ghost-page cause is closed by construction, because the Pages artefact is now the manifest (`.github/workflows/github-pages.yml`). Items 3 (Harness page method account) and 4 (PB3 growth path) are open and blocked on nothing. `PB3` is not a map row, so the next draw mints or rejects it.
 
 **Severity:** BLOCKING · **Lane:** H_harness · **Status:** cause found, three fixes landed; the ghost count below was wrong and is corrected in place

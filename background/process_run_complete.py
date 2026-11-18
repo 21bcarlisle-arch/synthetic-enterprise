@@ -5956,8 +5956,12 @@ def _commit_pathspec(files, extra_relative=()):
     # uncommitted 1 -> 2 level move went out under the publish message and the next-step gate
     # refused the publish for a NEXT: line it was never ours to write.
     extras = [str(PROJECT_DIR / rel) for rel in extra_relative] if _FOLD_WROTE_THE_MAP else []
+    files = list(files)
+    for door, records in DOOR_RENDERED_FROM.items():
+        if str(PROJECT_DIR / door) in files:
+            extras += [str(PROJECT_DIR / rel) for rel in records]
     spec, seen = [], set()
-    for candidate in list(files) + extras:
+    for candidate in files + extras:
         if candidate in seen:
             continue
         seen.add(candidate)
@@ -6244,6 +6248,13 @@ def _fork_against_origin():
 #: intersection. One name, both callers.
 PUBLISH_EXTRA_RELATIVE = ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
                           "docs/design/atom_status")
+#: A door rides with the record it was rendered from, or the published figure exists nowhere in
+#: the repo. The generator reads the WORKING-TREE ledger (`coupled_triad.GAP_LEDGER_PATH`), so on
+#: 2026-11-18 the committed door carried W2_11 = 0.0972 and W2_36 = 0.2735 while the committed
+#: ledger held 0.0730 and no W2_36 entry: unchanged since 9 Oct while the door was re-committed by
+#: every publish. Keyed on the door being in this cycle's commit, so a cycle that re-rendered
+#: nothing never carries a ledger write it did not read.
+DOOR_RENDERED_FROM = {"site/data/proof.json": ("docs/observability/coupled_gap_ledger.json",)}
 #: Set by the pre-gate atom_status fold when it folds anything; `_commit_pathspec` reads it.
 _FOLD_WROTE_THE_MAP = False
 

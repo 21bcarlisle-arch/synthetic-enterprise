@@ -354,3 +354,32 @@ def test_a_page_carrying_the_publish_written_clock_rides_the_publish_and_an_uncl
     argv = _commit_argv(publish()) or []
     assert any(a.endswith("site/knowledge/price-cap/index.html") for a in argv)
     assert not any(a.endswith("site/privacy/index.html") for a in argv)
+
+
+def test_the_door_rides_with_the_record_it_was_rendered_from(tmp_path, monkeypatch):
+    """The generator renders the Proof door from the WORKING-TREE gap ledger, so a publish that
+    commits the door without the ledger publishes a figure the repo cannot reproduce. On
+    2026-11-18 HEAD's door carried W2_11 = 0.0972 against HEAD's ledger at 0.0730.
+
+    MUTATION: drop the `DOOR_RENDERED_FROM` loop in `_commit_pathspec` -> the first leg fails.
+    The second leg asserts a cycle without the door does NOT carry the ledger, so "always add the
+    ledger" (which sweeps writes nothing rendered) also fails.
+    """
+    from background import coupled_triad
+
+    monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    monkeypatch.setattr(prc, "_FOLD_WROTE_THE_MAP", False)
+    ((door, (record,)),) = prc.DOOR_RENDERED_FROM.items()
+    assert coupled_triad.GAP_LEDGER_PATH.relative_to(coupled_triad.PROJECT_DIR).as_posix() == record, (
+        "the publish carries a ledger the door is not rendered from")
+    for rel in (door, record):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_text("{}")
+    other = tmp_path / "site" / "data" / "dashboard.json"
+    other.write_text("{}")
+
+    spec = prc._commit_pathspec([str(tmp_path / door), str(other)], prc.PUBLISH_EXTRA_RELATIVE)
+    assert str(tmp_path / record) in spec, "the door was committed without the ledger it rendered"
+
+    spec = prc._commit_pathspec([str(other)], prc.PUBLISH_EXTRA_RELATIVE)
+    assert str(tmp_path / record) not in spec, "a cycle that rendered no door swept the ledger"
