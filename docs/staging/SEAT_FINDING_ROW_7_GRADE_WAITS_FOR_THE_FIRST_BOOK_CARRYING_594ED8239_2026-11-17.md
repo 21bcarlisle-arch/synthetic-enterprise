@@ -259,3 +259,51 @@ site lane in the hook chain (`process_run` log: `Publish commit REFUSED by the h
 - **Prediction (filed before the answer):** domain invariants are 0 unexcepted again, the pytest gate is green, the site
   lane is green, and the commit lands unless origin moves inside its commit window again. Then origin's
   `publish_provenance.json` has `last_verified.git_commit` = 6af7fd0bfd and no `paused_since`.
+
+## 2026-11-18: the open cold-read row (shared meter serial; gas bill with no volume) is read on the 6af7fd0bfd book. Both counts are 0.
+
+**What was read.** The pages served from origin (`site/data/customers/*.json` at origin/main, 1,306 account pages). Their
+provenance is `last_verified.git_commit = 6af7fd0bfd`, and their 53,605 invoices equal the book's `bills_total`. I also read
+the run file `docs/reports/run_output_6af7fd0bfd_20261118T070221Z.json`. It carries no meter serial, so the serial count can
+only be made on the pages.
+
+**What each count means.**
+- *Shared serial:* one `meter_serial` printed against more than one supply point (MPAN for electricity, MPRN for gas).
+- *Gas bill with no volume:* a gas invoice whose energy charge (`commodity_amount_gbp`) is above zero but which prints no
+  kWh and no m3 volume advance. I also counted the narrower N11 shape: kWh printed but no m3.
+
+| Count | Breaches | Graded denominator |
+|---|---|---|
+| Serials on more than one supply point | **0** | 1,044 supply points (573 MPAN, 471 MPRN), each with exactly 1 serial, and 1,044 distinct serials |
+| Supply points with more than one serial | **0** | the same 1,044 |
+| One serial on both fuels | **0** | 1,044 serials |
+| Gas invoices charging energy with no kWh and no m3 | **0** | 23,799 gas invoices that charge energy (of 23,820 gas invoices) |
+| Gas invoices charging energy with kWh but no m3 | **0** | the same 23,799 |
+
+**Worked examples.**
+1. C1g, gas, MPRN 4473819452, meter M1727082780. INV5 reads 0.000 to 172.658 m3. Then 172.658 × 1.02264 × 39.5 MJ/m3
+   ÷ 3.6 = 1,937.3 kWh, and 1,937.3 × 2.2p = GBP 42.62, which is the printed amount. INV6 opens at 172.658, the previous
+   close.
+2. Succession, which is correct: electricity MPAN 1433413946310, meter M4016799841, is printed on C1, OCC-198d2b2c01a7
+   and OCC-6387bf64272a. That is one premise with three occupiers in turn, on one supply point. Its gas leg, MPRN
+   4473819452 / M1727082780, follows the same three. 215 (supply point, serial) pairs are shared across accounts like
+   this, and every one of them stays on a single supply point.
+3. The 21 gas invoices that charge no energy are short stubs with 0 kWh and 0.0 m3, standing charge only, for example
+   OCC-09c1db6e2475-INV430, 28–31 Dec 2021, GBP 1.05. They are outside the denominator by definition and are not a
+   breach.
+
+**What the run file shows that the pages do not.** In the book, 3 gas bills carry a `commodity_amount_gbp` of 2–4e-16 on
+0 kWh: OCC-bec72a04dec8g Oct 2022, OCC-25ff8966357ag Dec 2022 and OCC-e3e94f81161bg Feb 2023. That is float residue, not a
+charge. The page rounds it to 0.00, so no customer sees an energy charge with no quantity. In the book, 17,406 of the
+energy-charging gas bills are estimated or prepayment and carry no register volume. For those, the page derives m3 from
+kWh at the bill's own CV and correction factor (`tools/generate_billing_ledger.py:676-682`). An estimated read printed in
+m3 is ordinary practice, so this is not a defect under the row's definition.
+
+**The row's disposition: corrected on this book.** The serial is now drawn per supply point
+(`tools/generate_billing_ledger.py:821`, `meter_serial(supply_point_of(...), commodity)`), and the order-blind checksum of
+N10 no longer produces it. The gas volume and conversion (N11) are printed on every gas invoice that charges energy. No
+writer line is named and no new finding is filed, because both counts are 0. This agrees with the tenth read on 068b5e3cc8,
+which found 0 by script, and it extends that read with a gas-serial count and a gas-volume count. The tenth read could not
+check the gas serial by eye. These pages now print it on all 23,820 gas invoices.
+
+Reverse: delete this section. No code was touched.
