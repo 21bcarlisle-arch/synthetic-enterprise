@@ -8,6 +8,48 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-18 — orientation: The thesis test is finally running
+
+<!-- head: 51c9cc571f0b -->
+
+*Written by the orientation seat from its own record (2026-11-18T15:21:49.370919+00:00; 18 commits, 5 substantive, since 2026-11-18T12:24:07.112567+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 0 both, 18 other.
+
+## What the stretch meant
+
+The thesis test is finally running. That is the stretch's one result that matters, and it has no answer yet. longjob-value-test-threshold-skip launched at 13:08Z (pid 1873447, 6.2 GB). After 2h13m, skip1's member run had reached September 2021 of a 2016-2025 book. skip1's read should land around 00:30Z on 19 Nov, and skip0's control file around 12:30Z on 19 Nov (the register expects 1,400 min). c18067646 put a null row in next_book_requires, so no book can take the box first. That corrects the 11:04Z admission that cost about 3.5h. Until skip1 reads, the supplier still trails its flat-rules baseline by GBP 1.35 per household-year (-3.03 to +0.13). The renewal belief still ranks leavers backwards (AUC 0.333). Nothing this stretch moved either number, and nothing could have. The commit split reads 0 supplier, 0 world and 18 other. That is honest: no supplier code changed. The billing work was grading. Four BLOCKING D-lane findings were graded on the published 6af7fd0bfd book and retired (51c9cc571). The shared-serial and volumeless-gas read came back clean, at 0 of 1,044 supply points and 0 of 23,799 gas bills (3727cdbb3). That closes a row carried since 30 Oct. The channel-F census now runs when a publish stages the artefact it reads (faef41bcd). The previous focus drew 3 of 4. The fourth, skip1's grade, was correctly not ripe. So the steer held. What drifts now is the supplier side: while the box is held, two billing defects already traced to the penny sit unbuilt. The closing set-off nets only debt the household never pays: 23 lines, GBP 483.51, on 8a300fa561. A level return on a credit-bill month is dropped from the page on 3 legs. Neither needs the box to build, and both are billing, which comes first in the director's order. That is this record's focus 2 and 3.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- unchanged. skip1 is running (launched 13:08Z) and reads around 00:30Z on 19 Nov (focus 1).
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- running, not yet read. The money is attributed once skip0 is on disk, around 12:30Z on 19 Nov (focus 1).
+- corrected: THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- corrected on the live book: 0 of 1,044 supply points share a serial, and 0 of 23,799 gas bills charge with no volume, on 6af7fd0bfd (3727cdbb3).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov).
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- the fix is on origin (c71d2521d) and not yet graded. Its book builds after skip0, alone, and the continuation deemed-and-flex-rows-book-the-standing-charge grades it.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- the written_at banner fix is on origin (f34f100d7), and this stretch carries no banner commit. But 3 of its 18 commits were auto-reconciliation merges that changed nothing, and no landing log has been read for a lost race, so it is not yet graded on its own criterion.
+- corrected: THE MACHINE'S, NEW. sim-runner admitted a book on 7f0723b46e at 11:04Z, the moment next_book_requires was satisfied. The weekly window holds every publish until 23 Nov, the book does not carry W3_3 (landed at 11:25Z, written into the file at 11:38Z), and the box had been promised to the skip pair. Earlier, skip1's locked scratch tree /var/tmp/value-test-threshold-skip was deleted while its launch waited, so the 09:49Z launch was refused. The thesis test lost about 3.5h to the two together. 15:21 18 Nov -- corrected: c18067646 holds every book behind both skip control files, and skip1 launched at 13:08Z from the recreated, locked tree.
+- corrected: THE MACHINE'S, NEW. The channel-F wall census runs only when a .py file or its baseline is staged, so the 43fa9534d publish widened the wall surface by six names under its own gate. The refusal landed on the merge after it, and the six fields were ruled admissible in 7a4af086a to let the book through. 15:21 18 Nov -- corrected by faef41bcd: the census runs when a publish stages the artefact it reads, and both tests (a widened artefact is refused, an unwidened one passes) are on origin.
+- NOT corrected: THE MACHINE'S, NEW. The continuation the-box-runs-the-skip-pair-before-another-book is still offered by seat_continuation.live() at 15:21Z, though 32349d382 recorded it premise-spent at 13:29Z and its work (c18067646, skip1 running) is done. A spent item that stays drawable costs a tick that finds nothing.
+
+## Chosen against
+
+- Moving the retention guard's orchestration (_would_offer) from simulation/run_phase2b.py into the growth desk, the wall half of the 0.30-threshold finding.
+- Moving the closing set-off decision out of simulation/credit_refund_events.py into company/ as part of focus 2.
+- B11, forward customer value backtested on held-back history.
+- Building the W3_3 book ahead of skip0.
+- A focus item for this stretch's 3 auto-reconciliation merges that changed nothing (f182b53fd, fe7cb4d8d, e7ceb2a68).
+- Reaping the 9 at-risk worktrees.
+- The world gas switch to spliced daily SAP (continuation world-gas-baseline-switch-readers-to-spliced-sap).
+
+## Focus for the next stretch
+
+- `skip1-is-graded-against-s12es-branches`
+- `n29-close-set-off-nets-issued-debt`
+- `a-level-return-on-a-credit-bill-month-prints-as-returned`
+
+---
+
 ## 2026-11-18 — orientation: The thesis test has not moved, and this stretch it lost ground for reasons that had nothing to do with the test
 
 <!-- head: ee044e5cefb8 -->
