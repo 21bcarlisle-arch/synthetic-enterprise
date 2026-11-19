@@ -154,3 +154,41 @@ last 10 nights.
 memory before 03:31. The same Q1-Q3 carry over unchanged to that run, together with the grader's
 read list in §6. The earliest verdict is about 08:25 on 19 Nov if the run is killed at its bound,
 and about 03:31 plus its runtime if it exits early.
+
+## 9. Grading §7's Q1-Q3 against the 19 Nov 03:30 census (19 Nov 08:50 GMT, claim `grade-19-nov-census-q1-q3`)
+
+**What ran.** Nothing. The census started at 03:30:10, and `resource_headroom` **DEFERRED** it 4 seconds
+later. 13990 MB was already declared: 2190 MB reserved, plus `longjob-value-test-threshold-skip` at
+11800 MB, which had run 862 min of its 1400 declared and started 18 Nov 13:08. Adding the 11981 MB
+request would have gone over the 23010 MB budget. §8 expected the memory to be free once
+`step-6-flag1` ended. It was not: **a different value-test job took the same 11.8 GB.** That job is
+still active at 08:50.
+
+| | prediction | outcome |
+|---|---|---|
+| Q1 | does not complete (≥ 75%) | **Held, by deferral again.** |
+| Q2 | an early exit or kill leaves a PARTIAL row and an `rc=` line | **Not graded.** No suite ran. |
+| Q3 | if ≥ 1000 tests are reached, all 17 owed are reached | **Not graded.** No test ran. |
+
+The STALE property held a third time. `attempts[-1]` is 19 Nov 03:30:14 at `b585a3bb`, and
+`runs[-1]` is unchanged.
+
+**Both GAPs stay open:** why the 17 Nov suite exited at 1h21m, and why the suite doubled (§2). The
+a0f591668 instrument has still not fired, because nothing has run since it landed.
+
+**The record, 8-19 Nov (12 nights, from `journalctl --user -u head-green-census`).** 7 runs were
+deferred (8, 9, 13, 14, 15, 18 and 19 Nov). 4 were killed at the 17400 s bound (10, 11, 12 and
+16 Nov). 1 exited early (17 Nov). **None completed.** In each budget deferral, one value-test long job
+held 11.8 GB.
+
+**Stopping here, as the item said.** Waiting on the 20 Nov run will not help: the conflict is
+structural. The last two value-test jobs declared 1400 and 3200 minutes and started at 13:08 and about 20:00, so on most nights one of
+them overlaps 03:30.
+
+**§5 turns into a pace proposal (seat's recommendation).** The census defers once and then gives up
+for 24 hours. The minimal fix is for the census to **wait for admission rather than defer**. It would
+re-ask `resource_headroom` every 30 minutes until a deadline (03:30 + 20 h, say) and run once the
+long job releases its memory. That changes the census's own retry policy and nothing else. It holds
+back no value-test work, it is reversible by reverting one unit, and it adds nothing on the
+director's path. It is a scheduling call inside the seat's delegation, not a question for him, so
+it is handed on as seat work rather than raised in `for_the_director`.
