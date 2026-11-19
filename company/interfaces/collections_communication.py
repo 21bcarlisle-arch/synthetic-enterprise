@@ -178,3 +178,12 @@ def bill_issued_for(due):
     from company.billing.collections_journey import bill_issued_for as _issued
 
     return _issued(due)
+
+
+def dca_placement_date(written_off):
+    """The day the supplier places a debt it wrote off on `written_off` with a collection agency.
+    The world passes the write-off date and takes back the placement date; the window stays behind
+    the door."""
+    from company.billing.collections_journey import dca_placement_date as _placed
+
+    return _placed(written_off)

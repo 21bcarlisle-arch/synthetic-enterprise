@@ -296,6 +296,21 @@ def bill_issued_for(due: dt.date) -> dt.date:
     from company.billing.invoice import PAYMENT_TERMS_DAYS
     return due - dt.timedelta(days=PAYMENT_TERMS_DAYS)
 
+#: Days from a closed account's write-off to its placement with a debt collection agency. The
+#: company's own collections timing (KNIFE3, 2026-11-19: the world held it as its own until then).
+#: SIMPLIFICATION, not a benchmark: docs/market_research/ASSUMPTIONS.md row "DCA placement window"
+#: is a named GAP -- no published post-write-off placement timing was found; the nearest published
+#: figure (60-90 days) is for the earlier internal-fail -> referral step. Doing it properly needs a
+#: supplier's own referral-policy disclosure; the error direction is unknown.
+DCA_PLACEMENT_DAYS = 30
+
+
+def dca_placement_date(written_off: dt.date) -> dt.date:
+    """The day the company places a debt written off on `written_off` with a collection agency.
+    The world asks and keeps what the agency then recovers, and when."""
+    return written_off + dt.timedelta(days=DCA_PLACEMENT_DAYS)
+
+
 def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:
     """What this account owes on `on` that is statute-barred: the FIFO-unpaid bills due at least six
     years before `on`, and only if no payment has landed on the account in those six years. Read off

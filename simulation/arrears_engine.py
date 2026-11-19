@@ -99,6 +99,7 @@ from company.interfaces.collections_communication import (
     bill_issued_for,
     closed_account_write_off_date,
     closing_write_off_by_bill,
+    dca_placement_date,
     ledger_notice_wording,
     ledger_notices,
     ledger_write_off_fallback,
@@ -266,7 +267,8 @@ _CORPORATE_METHODS = ("bacs", "chaps")
 
 # Phase [debt-branch] -- post-write-off DCA placement / recovery / sale. The stage gaps are
 # illustrative and unbenchmarked (docs/market_research/ASSUMPTIONS.md "Customer & Portfolio").
-DCA_PLACEMENT_DAYS = 30          # WRITTEN_OFF -> PLACED_WITH_DCA (illustrative, unbenchmarked -- see ASSUMPTIONS.md)
+# WRITTEN_OFF -> PLACED_WITH_DCA is the supplier's placement decision: `dca_placement_date`, through its
+# door (KNIFE3, 2026-11-19). What the agency then does, and when, stays the world's.
 DCA_OUTCOME_DAYS = 180           # PLACED_WITH_DCA -> RECOVERED (illustrative)
 DEBT_SALE_DAYS = 90              # PLACED_WITH_DCA -> SOLD (illustrative)
 
@@ -410,7 +412,7 @@ def late_days_band(stress: str) -> tuple[int, int]:
 def _post_writeoff_stages(arrears_gbp: float, write_off_date: date, archetype: str) -> list[dict]:
     """Stages appended AFTER WRITTEN_OFF -- never changes the WRITTEN_OFF
     stage itself (date/position), only extends the cascade past it."""
-    dca_date = write_off_date + timedelta(days=DCA_PLACEMENT_DAYS)
+    dca_date = dca_placement_date(write_off_date)
     stages = [{"stage": "PLACED_WITH_DCA", "date": dca_date.isoformat(),
                "note": "Debt placed with third-party debt collection agency"}]
     price, _reason = debt_sale_price_share()
