@@ -44,16 +44,11 @@ requires:
 # W3_3: the domestic network split (per-kWh on volume, the cap's nil share per supply point per day).
 # A world change that moves every settled electricity figure, so its book must carry it ALONE: no
 # other world change between this commit and the build (the daily-SAP gas splice stays switched off
-# until skip0/skip1 read). Graded against
+# until skip0/skip1 read). *Correction, 19 Nov 18:50Z:* it cannot be alone any more. Origin carries
+# world changes after c71d2521d (W1_14 ERA5 cells b484f20447/843143e131 change the weather store, f0445b2dcb
+# prepayment off-supply, 4accbb828d W2_30 gas legs), so a total that moves on this book cannot be put on
+# the split without its one-variable replay. Graded against
 # docs/staging/records/SEAT_PREREG_W3_3_WHAT_THE_SPLIT_MOVES_PER_DOMESTIC_ELECTRICITY_ACCOUNT_DAY_2026-11-18.md.
 - commit: c71d2521d
   what: W3_3 network split per kWh and per supply point per day (years/<y>/network_cost_gbp falls 1-9% 2017-2025)
   owner: W3_3_the_network_charge_splits_per_unit_and_per_day
-# The skip pair (THE_VALUE_TEST_REDESIGN s.12d) is the thesis's only live test and lost its turn twice on
-# 18 Nov: a deleted tree, then a book admitted 34 min before the row that would have held it. This row
-# holds EVERY book until both control files exist; the step that grades skip1 deletes it, so the W3_3
-# book above builds next, alone.
-# REVERSE: delete this row (and its comment); books then admit on the rows above alone.
-- commit: null
-  what: skip pair read (/var/tmp/vts-out-skip1/control_11111_22222.json and /var/tmp/vts-out-skip0/control_11111_22222.json)
-  owner: B_commercial
