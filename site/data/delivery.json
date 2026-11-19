@@ -1,9 +1,75 @@
 {
- "generated_at": "2026-11-19T12:27:38.035680+00:00",
+ "generated_at": "2026-11-19T15:25:14.968526+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "b92443ec1",
+    "at": "2026-11-19T15:22:24Z",
+    "subject": "delivery seat: merge origin/main into the W2_36 <-> D48 landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "f79826ffc",
+    "at": "2026-11-19T15:20:40Z",
+    "subject": "W2_36 <-> D48: the unbilled-energy row lands at gap 0.290 on the 6af7fd0bfd book; a rerun leaves the W2_30 and W1_14 rows byte-equal",
+    "substantive": true
+   },
+   {
+    "sha": "843143e13",
+    "at": "2026-11-19T14:21:59Z",
+    "subject": "W1_14: 39 more book cells carry ERA5 wind, cloud and precipitation -- 415 of 596 are still owed; the pull stopped on Open-Meteo's hourly limit, not the daily one",
+    "substantive": true
+   },
+   {
+    "sha": "45fe15dfc",
+    "at": "2026-11-19T14:09:21Z",
+    "subject": "[DIRECTOR-STEER][ADVISOR-STAGED] Add bug-pattern and timezone lint families under the ratchet",
+    "substantive": false
+   },
+   {
+    "sha": "ee46f6711",
+    "at": "2026-11-19T14:07:40Z",
+    "subject": "[DIRECTOR-RULING][ADVISOR-STAGED] Repo stays public; website goes behind a login",
+    "substantive": false
+   },
+   {
+    "sha": "0ddafc418",
+    "at": "2026-11-19T14:02:30Z",
+    "subject": "W2_30 is blocked on W1_14: only 1 premise in 4 carries its own shape -- on run 7f0723b46e, 538/722 electricity premises settle on PC1 and 361/473 gas legs on 70/30, 541 for want of an ERA5 cell, and 454 of the book's 596 cells are owed",
+    "substantive": true
+   },
+   {
+    "sha": "434719446",
+    "at": "2026-11-19T13:53:00Z",
+    "subject": "KNIFE3: when reg 6D's refund clock starts on a leaver's closing credit is the supplier's own reading now -- on the 8a300fa561 replay the refund log is byte-equal, and pinning the clock to the bill's day moves 12 of its 187 events",
+    "substantive": true
+   },
+   {
+    "sha": "2483c05c8",
+    "at": "2026-11-19T13:02:02Z",
+    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
+    "substantive": false
+   },
+   {
+    "sha": "2f0b73e60",
+    "at": "2026-11-19T13:00:24Z",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
+   {
+    "sha": "9a361e356",
+    "at": "2026-11-19T12:35:18Z",
+    "subject": "skip0 graded: the value arm's loss is the save-odds weighing's (d0 -4.57, CI -7.26 to -2.24; d1 0.00 exactly), the weighing is already off on every standing policy, and the 0.12 pair keeps its W3_3-book precondition",
+    "substantive": true
+   },
+   {
+    "sha": "a69859055",
+    "at": "2026-11-19T12:20:06Z",
+    "subject": "W2_30 exit criterion 2: the \"modelled, NOT validated\" gas-shape statement reaches a reader, verbatim, on the what-a-house-does-to-its-energy Knowledge page -- it was only in a run's stdout",
+    "substantive": true
+   },
    {
     "sha": "86e590a44",
     "at": "2026-11-19T11:52:31Z",
@@ -177,131 +243,76 @@
     "at": "2026-11-18T23:53:28Z",
     "subject": "EPC register: an old certificate records the home before its upgrades, and the register gap is reported three ways",
     "substantive": true
-   },
-   {
-    "sha": "11449fa88",
-    "at": "2026-11-18T23:21:43Z",
-    "subject": "EPC register: absence and certificate age are one clock, anchored to MHCLG's 52% valid coverage",
-    "substantive": true
-   },
-   {
-    "sha": "a3926c186",
-    "at": "2026-11-18T22:53:35Z",
-    "subject": "H48 closes at level 3: the parked-document audit ran, and three documents remain parked on dated, checkable conditions",
-    "substantive": true
-   },
-   {
-    "sha": "42130d750",
-    "at": "2026-11-18T22:27:48Z",
-    "subject": "EPC register finding: the network discovery pass is done; old certificates are pessimistic (direction supported, size GAP), and valid coverage is ~52%, not 60%",
-    "substantive": true
-   },
-   {
-    "sha": "e0b09c08f",
-    "at": "2026-11-18T22:20:23Z",
-    "subject": "File the post-publish reader red on 6af7fd0bf: 3 E7 fix-to-SVT crossing bills are charged above the validator's every-kWh-at-highest-rate ceiling",
-    "substantive": false
-   },
-   {
-    "sha": "3e8bba352",
-    "at": "2026-11-18T22:19:03Z",
-    "subject": "The publish commits the gap ledger alongside the Proof door it renders, so the published W2_11 and W2_36 figures exist in the repo; the two H_harness BLOCKING findings are disposed",
-    "substantive": true
-   },
-   {
-    "sha": "a0fa68a2f",
-    "at": "2026-11-18T21:51:30Z",
-    "subject": "delivery seat: merge origin/main into the direction landing (upstream does not touch its paths)",
-    "substantive": false
-   },
-   {
-    "sha": "ba2cac6cd",
-    "at": "2026-11-18T21:49:31Z",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "da9f9fdff",
-    "at": "2026-11-18T21:45:46Z",
-    "subject": "C32 class 7: a Consent offer the S&RP conversation left unanswered is refused as unanswered, not as a negative finding; the refusal and its ground are unchanged, only the words",
-    "substantive": true
-   },
-   {
-    "sha": "e8c7cdc77",
-    "at": "2026-11-18T21:11:44Z",
-    "subject": "A45: a drift item the 48-hour sweep moved to done/ unworked no longer silences the red, so the canon check's five live site rows go back on a queue; blind pass NEEDS_WORK, held at 2",
-    "substantive": true
-   },
-   {
-    "sha": "6eb123592",
-    "at": "2026-11-18T20:34:48Z",
-    "subject": "A45: the 14 sentences M1 listed as unbound are bound or judged, so 25 of 25 sentences on the model page that name code or a figure are watched (was 11 of 25), with 30 claims and 0 drifting",
-    "substantive": true
-   },
-   {
-    "sha": "d18739776",
-    "at": "2026-11-18T20:21:14Z",
-    "subject": "The staging-root resurrection watch's 97 records are 1 return, not 97: 95 rows were fresh runs finishing during a gate, the one twin-bearing file was a hand re-offer by copy (f000ad71dc), and the watch now records only arrivals done/ already holds",
-    "substantive": true
    }
   ],
-  "substantive": 24,
-  "mechanical": 16,
+  "substantive": 22,
+  "mechanical": 18,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-11-19T12:21:49.832585+00:00",
+  "oriented_at": "2026-11-19T15:20:37.820773+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Three hours, five commits, four carrying work, three substantive. The stretch's main result is not a commit. skip0 finished at 10:31Z, and its read is on disk (/var/tmp/vts-driver/read_threshold_skip.out). skip1 minus skip0 is exactly GBP 0.00 on both seeds, and skip1 minus A is -GBP 4.57 (-7.26 to -2.24). So d0, the save-odds weighing without the skip, carries the whole loss, and the skip carries none. That is what s.12f pre-registered at 01:10Z (d0 -4.5, range -7.3 to -2.2; d1 0.0). The prediction held. Against the thesis, this is the first attribution the value test has produced. The per-customer arm loses to the flat book because of one switch the company added, the weighing, and not because of the per-customer view as such. That makes the negative advantage a lever to remove, not a refutation. It is not yet graded where the director can read it, and nothing in the live queue would have drawn it: the continuation the triage named as owner does not exist, so it goes first. The 0.12-cut pair is armed but waits on a W3_3 book that has not built since arming (vtc-cut012-watch log, 10:31Z), and it lapses on 24 Nov. The commit split reads 0 supplier, 0 world, 2 both, 3 other. Read by content, KNIFE3's third slice (86e590a44, bill due dates now come from the supplier's own payment terms, byte-equal on the 8a300fa561 replay) is supplier work. The prepayment meter build (f0445b2dc) is world work, and it landed from its continuation although the last record's not_now held it behind skip0. It draws on its own streams, and no company code changed, so it should not move the value pair. The steer slipped, and on the evidence it did no harm. The W2_36 row has not landed: w236-d48-land and -2 died REFUSED with the test leg green (1899 passed), and a third surgical_land is in its gate now (pid 3245175). The primary checkout carries one fork commit (a2ed7654e0), which f0445b2dc says it carried to origin. The census fix is on origin but not in this checkout, so the 20 Nov firing runs old code unless the checkout advances.",
+  "thesis_read": "Three hours: eight commits, seven carrying work and four substantive. The brief splits them 0 supplier, 1 world, 1 both and 6 other. Read by content, the supplier got two real results and lost one claim. First, skip0 is graded (9a361e356). All three pre-registered rows held: d0 is -GBP 4.57 (-7.26 to -2.24) and d1 is exactly 0.00, with 0 of 1,532 account nets differing. The same grade also corrects my last record. I wrote that the save-odds weighing \"is where the arm loses its -GBP 1.35\". It is not. The weighing is off on every standing policy and on no published book, so the -GBP 4.57 is a separate loss that only the experiment drivers produce. A's -GBP 1.21 against its twin is A's own belief acting through the 0.30 retention cut (s.12c traced nine of ten flips there), with no weighing involved. So the thesis's live test stands where it did: the per-customer arm still trails the flat book, and the lever pre-registered to test that is the armed 0.12 pair. That pair waits on a W3_3 book (precondition 2, kept with evidence), and it lapses on 24 Nov. That is not backwards, but it is not forwards either. Second, W2_36 <-> D48 is finally on origin (f79826ffc, merged b92443ec1) after three dead launches. Unbilled energy is now measured: gap 0.290 [0.243, 0.342] over 1,306 accounts, with electricity (0.407) much worse than gas (0.255). Two of its four pre-registered rows were refuted. W2_36's L3 hold no longer cites an unmeasured gap, so the previous record's wrong row about it is corrected. The electricity residual is the first billing-accuracy number the company can now act on. KNIFE3 moved a fourth decision out of simulation/ (434719446, the reg 6D refund clock, byte-equal on the replay). The director answered the one open concern at 14:07: the repo stays public, and the website goes behind a login. He also steered two lint families under the ratchet. Both advisor files are on origin and not yet actioned, so they go first, as rung zero requires. All three items in the previous focus were drawn. Two finished; the third (KNIFE3) finished one slice and continues below. The world side was one ERA5 pull (415 of 596 cells still owed) and a W2_30 hold note. That is the right size while it blocks no supplier result.",
   "focus": [
    {
-    "id": "skip0-is-graded-and-the-next-lever-is-chosen",
-    "what": "skip0 finished at 10:31Z. Its read is /var/tmp/vts-driver/read_threshold_skip.out (skip1-skip0 GBP 0.00 on both seeds; skip1-A -4.567, CI -7.263 to -2.241; skip1-twin -5.774). Grade it in docs/design/THE_VALUE_TEST_REDESIGN.md, beside the s.12f pre-registration (\"Pre-registered before skip0 is read\", 19 Nov 01:10Z), with d0 and d1 and their intervals. Quote the read file verbatim, and carry a Graded: value-test trailer. Then make the decision in the same entry. (a) Is company/policy/decision_policy.py's save-odds weighing on by default anywhere a published book runs? If so, say so, and propose it default off in the value arm, under its own one-variable pair. (b) The armed 0.12 pair (vtc-cut012-watch, /var/tmp/box-plan/arm_cut012.sh) waits on a W3_3 book with no PID. Read sim-runner's producer state, and say whether that book will build before 24 Nov. If it will not, edit the watcher's precondition 2 or reverse it as the doc says, and record which you did and why. Do not start a second long job while one holds the box.",
-    "why": "The weighing, not the skip and not the per-customer view, is where the arm loses its -GBP 1.35 against the baseline. That is the thesis's live test, and the result has sat ungraded with no drawable owner. Done means the grade and the decision are on origin, and the 0.12 pair either has a precondition that can be met by 24 Nov or has been stood down with a reason.",
-    "lane": "B_commercial",
-    "side": "supplier",
-    "written_at": 1795091240.778
+    "id": "poesys-net-goes-behind-a-login",
+    "what": "Action docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md. Write the K8 note first, in that file's Done draft or a docs/design note: what is gated, what stays public, and how to reverse it. Then put Cloudflare Access (free Zero Trust plan, one-time email codes, the director's address as the first allowed reader) in front of every route of the Pages project. That means poesys.net, the *.pages.dev address and its preview URLs, and any Pages Functions. Add noindex and a robots disallow to the gated site. Prove the gate can fail with an unauthenticated fetch of each route, refused, recorded as a reading or test. Do not touch the github.io copy or the repo. Update the site lines that call the site public or newcomer-facing. Any conflict with his \"public domain is the plan\" or front-door words is raised with `python3 -m background.director_concerns --raise`, with a proposal, and not edited. STOP and raise (do not act) if the gate needs a DNS change or sign-up asks for a payment card. Name the exact change or screen.",
+    "why": "His ruling, 14:07 19 Nov, closes the repo concern, and this item is that close's commitment. Done means every route refuses an unauthenticated fetch and the reading is on origin. The advisor file moves to done/ with `Decision: g5 changed`, and the record says the login stops casual readers and not a determined one. His one successful login is asked for in the Done section as a single line, and done is not claimed until he reports it.",
+    "lane": "A_strategy_governance",
+    "side": "other",
+    "written_at": 1795101897.447
    },
    {
-    "id": "w2-36-d48-unbilled-gap-row-lands",
-    "what": "A third landing of the W2_36 <-> D48 row is in its commit gate now (tools.surgical_land pid 3245175, launched about 12:09Z). Do not launch another while it lives. Wait on it with tools/wait_for.py. If it lands, correct the D48 finding's \"land with\" sentence beside the claim, with the sha, and stop. If it is refused, read /tmp/w236land.log for the refusing STEP: w236-d48-land and -2 both ended REFUSED with the pytest leg reporting 1899 passed, so the red is in a different leg. Name that step in the D48 finding before any relaunch. Then relaunch once through background/launch_long_job.py with surgical_land --content on hunks from tools/isolate_hunks.py, never inside the tick.",
-    "why": "Unbilled energy is first on the director's billing-accuracy list, and the unmeasured W2_36-D48 gap is the stated reason W2_36 is held at the L3 wall. Two blind relaunches have already died. Done means the runner, its byte-equal test and the W2_36 row are on origin, the finding names the commit, and W2_36's hold reason no longer cites an unmeasured gap.",
+    "id": "bug-pattern-and-timezone-lint-under-the-ratchet",
+    "what": "Action docs/staging/advisor/DIRECTOR_STEER_ADD_BUG_PATTERN_AND_TIMEZONE_LINT_RULES_UNDER_THE_RATCHET_2026-11-19.md. At the pinned ruff (requirements.txt, 0.15.16), add the B and DTZ families to ruff.toml under tests/architecture/test_static_quality_ratchet.py. Exclude any rule that is noise here, with one line of reason each (B905 is the example to judge). Re-freeze the baseline in the same commit, and run the ratchet on a clean worktree of origin before landing. Separately, list every B023 late-binding-closure hit and every DTZ hit in company/, saas/ and simulation/ settlement or billing paths. Say for each whether it changes money or a customer outcome. File any that do as one class finding, not a fix-by-fix sweep.",
+    "why": "His steer, 14:09 19 Nov. The families are reversible and narrow, but a baseline frozen wrongly reds every lane. Done means both families are live on origin with the ratchet green on a clean origin worktree, the exclusions are reasoned, and the live-defect question is answered by a list. The file moves to done/ with `Decision: none -- the families were the advisor's suggestion, not a machine recommendation`.",
+    "lane": "H_harness",
+    "side": "other",
+    "written_at": 1795101897.447
+   },
+   {
+    "id": "KNIFE3_wall_crossing_paydown",
+    "what": "The next Lane 0 slice. Four decisions are done: set-off (1c5351d18), write-off date (5e554a00b), due date (86e590a44) and reg 6D refund clock (434719446). Take the next unmoved row in docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md that is a home-move, final-bill or unbilled-energy decision still computed in simulation/. Leave out _would_offer and retention_cut_at_the_flips in simulation/run_phase2b.py, because the value test is measuring them. Move it into company/ the way 434719446 did: the company decides from its own ledger, and the world keeps the event and its timing. Carry the REUSE block from tools/write_time_gate.py --explain. Pre-register byte-equality on the run_output_8a300fa561 replay, and name any row that moves. Mark the register row as moved, with the sha.",
+    "why": "The advantage must come from inference, never from access, and a supplier decision computed world-side is access by construction. Four slices have each landed in one tick, byte-equal or with every moved event named. Home moves and final bills are next on the director's billing-accuracy list. Done means one more register row is moved on origin with its replay grade.",
+    "side": "supplier",
+    "written_at": 1795101897.447
+   },
+   {
+    "id": "electricity-unbilled-residual-is-traced-to-the-company-estimator",
+    "what": "f79826ffc measured W2_36 <-> D48 on run_output_6af7fd0bfd_20261118T070221Z.json. Electricity's gap is 0.407 [0.268, 0.538], against 0.255 for gas, and Q2 was refuted (mean |billed-used| 455 kWh against 50-400). Re-run tools/couple_w2_36_d48.py's measure on that book, read-only and with no new book. Split the electricity |billed-used| by read type (estimated, actual, customer), months since last actual read, and account tenure. Name the company/billing function that sets the estimated electricity reads (its EAC or AQ source). Write the split, and one pre-registered single-variable change with a predicted range, into a D48 records note. Build the change only if one cause holds most of the residual and the change stays inside company/. Otherwise the note is the deliverable.",
+    "why": "Unbilled energy is first on the director's billing-accuracy list, and this is the first measured belief-vs-truth number on it. Electricity carrying nearly twice gas's relative error is either the company's estimator or a world shape (N17, the flat year-on-year electricity, is a live suspect), and the split tells which. Done means the split and the named estimator are on origin, with either a pre-registered change built or a named reason why the residual is the world's.",
     "lane": "D_billing_metering",
     "side": "supplier",
-    "written_at": 1795091240.778
-   },
-   {
-    "id": "knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation",
-    "what": "This is a Lane 0 slice of KNIFE3_wall_crossing_paydown. The dual-fuel set-off (1c5351d18), the statute-barred write-off date (5e554a00b) and the bill due date (86e590a44) are done. From docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md, take the next unmoved row that is a home-move, final-bill or unbilled-energy DECISION still computed in simulation/. Leave out the retention guard's _would_offer and retention_cut_at_the_flips in simulation/run_phase2b.py, because the value test is measuring them. Move it into company/ the way 86e590a44 did: the company decides from its own ledger, and the world keeps the event and its timing. Run tools/write_time_gate.py --explain and carry the REUSE block. Pre-register byte-equality on the run_output_8a300fa561 replay, and name any row that differs as a refutation. Mark the register row as moved, with the commit.",
-    "why": "The advantage must come from inference, never from access. A supplier decision computed on the world's side is access by construction, and three slices have each landed byte-equal in one tick, so the size is right. Home moves are the billing-accuracy item after unbilled energy. Done means one more register row is moved and byte-equal on the replay.",
-    "lane": "H_harness",
-    "side": "supplier",
-    "written_at": 1795091240.778
+    "written_at": 1795101897.447
    }
   ],
   "not_now": [
    {
-    "what": "Launching the 0.12 pair now, ahead of the W3_3 book, or building and running the weighing-off pair in this stretch.",
-    "why": "The box has no long job on it right now, but the arming was made with a deliberate order, and the census fix wants a free 03:30 tomorrow. Focus 1 decides the order with the producer state in hand. Choosing it here, without reading sim-runner, would be the guess this record is supposed to avoid."
+    "what": "Launching the 0.12 pair ahead of the W3_3 book, or loosening its precondition 2.",
+    "why": "9a361e356 read sim-runner's state and kept the precondition with evidence: about 1.6 books a day, and about 107 hours to the 24 Nov deadline once skip0 freed the box. If no book builds, the watcher stands down and names why, and the pair is re-armed rather than loosened. Overriding that now would undo a decision made with the producer state in hand, three hours ago."
    },
    {
-    "what": "The prepayment build's next step (self-rationing, or the company reading supply events into a vulnerability decision).",
-    "why": "Step 1 landed with its own streams and no company change. The next step is a company decision on harm, which would move the value pair's books. It returns once the weighing question is decided, which is days away, and its population-mix question is curriculum and stays the director's."
+    "what": "A new value-test arm to find which decisions the save-odds weighing changes.",
+    "why": "The weighing is on no published book, and the grade says it is not promoted unless that question is answered first. A long job on it would compete with the W3_3 book that the 0.12 pair needs, for a lever nobody is using."
    },
    {
-    "what": "Advancing the primary checkout, or reconciling fork commit a2ed7654e0 by hand.",
-    "why": "Its content reached origin inside f0445b2dc. The reconciler owns the fork, and a hand reset in a tree with three live writers is the move the memory rules forbid. The cost is that daemons run two commits behind, including the census's own fix for 03:30. That firing's grade is already queued (grade-20-nov-census-queueing) and will show it."
+    "what": "Pressing W2_36 to L3 now that its gap is measured, or the W1_14 ERA5 pull and W2_30's shape (world).",
+    "why": "W2_36's measurement mattered because it held a supplier number, and that number is now in hand (focus item 4). The level move is a phase close that can follow. The ERA5 pull is rate-limited by Open-Meteo and already progressing on its own, 39 cells this stretch. Neither blocks a supplier result this stretch."
    },
    {
-    "what": "Reaping or landing the 11 at-risk worktrees, and the W2_30 worktree commit a698590552.",
-    "why": "A wait_for is already watching the W2_30 landing. The b12, budgetpay, om2 and simsuite salvages are a month old and need a read before any reap, and reaping cannot be undone. 870201d1e7 is still the base of the armed cut012 tree. None of them blocks a supplier result."
+    "what": "The prepayment build's next step (supply events for stock prepayment homes, gas outages coupled to cold).",
+    "why": "It is a world change that needs its own K8 amendment, and it would move the value pair's books while the 0.12 pair is armed against them. It returns after the 0.12 pair reads. Its population mix stays the director's."
    },
    {
-    "what": "The site and canon atoms (SITE1, SITE11, SITE12, SITE15, OPS7) and the 20 live repeating alarms.",
-    "why": "The alarms were read by name. None is about billing, the value test or the landing in flight. SEAT_CONTINUITY, SEAT_CLAIM and PRODUCT_MACHINERY are long-standing, and none of them moves the thesis this stretch."
+    "what": "Reaping or landing the 11 at-risk worktrees, and reconciling the primary checkout's fork commit a2ed7654e0 by hand.",
+    "why": "The fork's content is on origin inside f0445b2dc, and the reconciler owns it. The b12, budgetpay, om2 and simsuite salvages need a read before any reap, and a reap cannot be undone. 870201d1e7 is the base of the armed cut012 tree. None blocks a supplier result."
+   },
+   {
+    "what": "The deemed and flex standing-charge row, and the site and canon atoms (SITE1, SITE11, SITE12, SITE15, OPS7).",
+    "why": "The standing-charge row is already queued for 23 Nov behind its book (deemed-and-flex-rows-book-the-standing-charge). The site atoms are cosmetic beside the login ruling, which changes who can read the site at all."
    }
   ],
   "for_the_director": [
@@ -314,10 +325,16 @@
     "proposal": "The repo is the IP the method lives in. The only blocker the machine found in July was a GitHub Actions quota: site deploys used about twice the private allowance. That is fixed now, because deploys only fire on the published files. Making the repo private is your click in GitHub settings. Asserting copyright on the site needs the company's legal name and a yes or no on blocking AI crawlers.",
     "recommendation": "I recommend you make the repo private when it suits you, and tell me the legal entity name. I will then re-measure the Actions minutes on the private plan before the site carries any copyright line.",
     "based_on": "824be4a157",
-    "status": "open",
-    "resolution": "",
+    "status": "answered",
+    "resolution": "Director, chat, 19 Nov 2026, 14:05 \"It isn't a real company. Maybe we should add a password to website?\" and 14:07 \"Repo public. Website password\" (advisor-staged as ee46f6711). The repo stays public. No copyright line names a company. poesys.net goes behind a login.",
+    "resolved": "2026-11-19",
+    "commitment": {
+     "work_id": "poesys-net-goes-behind-a-login",
+     "done_means": "Every route of the Pages project (poesys.net, *.pages.dev and its previews, any Functions) refuses an unauthenticated fetch, with the reading on origin. noindex and a robots disallow are served. The record says the public repo still exposes the content. His one login has succeeded. DNS or payment steps, if any, are raised and not taken.",
+     "due": "2026-11-26"
+    },
     "g5_class": "irretractable_public_claim",
-    "evidence": "docs/staging/in_progress/REPO_PRIVATE_AND_IP.md; docs/design/REPO_PRIVATE_AND_IP_PHASE1_FINDINGS.md; .github/workflows/github-pages.yml (the trigger is now derived from tools/pages_publish_manifest)"
+    "evidence": "docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md; docs/staging/in_progress/REPO_PRIVATE_AND_IP.md"
    }
   ],
   "orientations_recorded": 18,
@@ -328,9 +345,9 @@
   "problems": [
    {
     "key": "triage:the-live-renewal-belief-ranks-leavers-backwards",
-    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- unchanged. skip0 has still not read. 12:21 19 Nov -- skip0 read at 10:31Z, and the weighing built on this belief carries the whole -GBP 4.57. The belief itself is unchanged.",
-    "last_at": "2026-11-19T12:21:49.832585+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
+    "what": "THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:21 19 Nov -- skip0 read at 10:31Z, and the weighing built on this belief carries the whole -GBP 4.57. The belief itself is unchanged. 15:20 19 Nov -- unchanged. The weighing is now known to be on no published book, so the backwards belief reaches no published figure through it.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -341,10 +358,10 @@
    },
    {
     "key": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief",
-    "what": "THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- unchanged. skip0 is at 9h30m with no control file. 12:21 19 Nov -- attributed, not corrected. skip1-skip0 is 0.00, and skip1-A is -4.57 (-7.26 to -2.24): the loss is the weighing's, as pre-registered. Ungraded on origin; focus 1.",
-    "last_at": "2026-11-19T12:21:49.832585+00:00",
+    "what": "THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 12:21 19 Nov -- attributed, not corrected. 15:20 19 Nov -- re-attributed by 9a361e356: the -1.21 is not the weighing's, which is off in both arms. It is A's own belief through the 0.30 cut. The 0.12 pair tests that, and waits on a W3_3 book.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
     "first_at": "2026-11-17T06:21:02.651517+00:00",
-    "times_listed": 21,
+    "times_listed": 22,
     "corrected": false,
     "fate": "fix",
     "status": "open",
@@ -354,9 +371,9 @@
    },
    {
     "key": "triage:metered-electricity-barely-moves-year-to-year",
-    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- D48 places it on the world side: actual and prepayment reads bill exactly what was metered. The recheck by 23 Nov stands. 12:21 19 Nov -- unchanged.",
-    "last_at": "2026-11-19T12:21:49.832585+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
+    "what": "THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:21 19 Nov -- unchanged. 15:20 19 Nov -- unchanged. The recheck by 23 Nov stands, and focus item 4's electricity split may bear on it.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -367,9 +384,9 @@
    },
    {
     "key": "triage:settlement-books-no-standing-charge-the-bill-charges",
-    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- unchanged. The W3_3 book builds after skip0, and it is graded after 23 Nov. 12:21 19 Nov -- skip0 has finished, but the W3_3 book has still not built (cut012 watcher, 10:31Z).",
-    "last_at": "2026-11-19T12:21:49.832585+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
+    "what": "THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 12:21 19 Nov -- skip0 has finished, but the W3_3 book has still not built. 15:20 19 Nov -- unchanged. sim-runner no longer yields to skip0, and the grade is queued for 23 Nov.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
     "times_listed": 38,
     "corrected": false,
     "fate": "fix",
@@ -380,9 +397,35 @@
    },
    {
     "key": "text:the d48 finding on origin says the 2026-11-08 w2_36 runner and its row \"land with\" the w2_30 and w1_14 rows",
-    "what": "THE MACHINE'S, NEW. The D48 finding on origin says the 2026-11-08 W2_36 runner and its row \"land with\" the W2_30 and W1_14 rows. They did not. tools/couple_w2_36_d48.py is untracked in the shared tree, and coupled_gap_ledger.json has no W2_36 key on origin or in the tree. A landing claim written before the landing, and never re-read against the commit's file list, left W2_36's L3 hold reason looking spent. It is now focus 1. 12:21 19 Nov -- still not landed. Two launches died REFUSED with the test leg green, and a third is in its gate (pid 3245175). Focus 2.",
-    "last_at": "2026-11-19T12:21:49.832585+00:00",
+    "what": "THE MACHINE'S, NEW. The D48 finding on origin says the 2026-11-08 W2_36 runner and its row \"land with\" the W2_30 and W1_14 rows. They did not. tools/couple_w2_36_d48.py is untracked in the shared tree, and coupled_gap_ledger.json has no W2_36 key on origin or in the tree. 15:20 19 Nov -- corrected: f79826ffc (merged b92443ec1) lands the runner, its byte-equal test and the W2_36 row at gap 0.290, and the L3 hold no longer cites an unmeasured gap.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
     "first_at": "2026-11-19T09:23:28.598939+00:00",
+    "times_listed": 3,
+    "corrected": true,
+    "fate": null,
+    "status": null,
+    "retired": false,
+    "owner": null,
+    "reason": null
+   },
+   {
+    "key": "triage:a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue",
+    "what": "THE MACHINE'S, NEW. A finished long job lost its grader again. skip0 wrote its control file and its read at 10:31Z, but for two hours nothing graded s.12f's pre-registration. The continuation the triage named as owner (skip0-attribution-is-read-against-s12f) is not in the live queue, so no draw could have reached it. 15:20 19 Nov -- this instance is corrected: 9a361e356 graded it at 12:35Z from the focus row. The class stays open in wrong_triage under seat_continuation.py.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
+    "first_at": "2026-11-19T12:21:49.832585+00:00",
+    "times_listed": 2,
+    "corrected": true,
+    "fate": "fix",
+    "status": "open",
+    "retired": false,
+    "owner": "background/seat_continuation.py (focus item a-handoff-is-not-discharged-before-its-artefact-exists: refuse to retire a row while an artefact path or long job it names is absent or unfinished)",
+    "reason": "Triaged 2026-10-27 by the delivery seat, ahead of the 7-day line. Ten shapes in three days, and the tenth delayed the correctness ruling's exit test by about three hours. The cheapest leg that would have caught the costly shape is the artefact check, because the row named its own artefact. It stays listed until that check is on origin."
+   },
+   {
+    "key": "text:the prepayment meter build (f0445b2dc) landed from its continuation during the stretch",
+    "what": "THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit's own claim, and no pair has checked it. 15:20 19 Nov -- unchanged. The 0.12 pair, when it reads, runs on a book that carries the build.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
+    "first_at": "2026-11-19T12:21:49.832585+00:00",
     "times_listed": 2,
     "corrected": false,
     "fate": null,
@@ -392,25 +435,12 @@
     "reason": null
    },
    {
-    "key": "triage:a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue",
-    "what": "THE MACHINE'S, NEW. A finished long job lost its grader again. skip0 wrote its control file and its read at 10:31Z, but for two hours nothing graded s.12f's pre-registration. The continuation the triage named as owner (skip0-attribution-is-read-against-s12f) is not in the live queue, so no draw could have reached it. The only reader was the cut012 watcher, which logs the number and arms a pair; it grades nothing. This is focus 1.",
-    "last_at": "2026-11-19T12:21:49.832585+00:00",
-    "first_at": "2026-11-19T12:21:49.832585+00:00",
+    "key": "text:the machine's (this seat's), new",
+    "what": "THE MACHINE'S (THIS SEAT'S), NEW. The 12:21 record told a worker that the save-odds weighing \"is where the arm loses its -GBP 1.35 against the baseline\". The -1.35 and -1.21 are A against its twin, and neither run has the weighing on. I wrote a cause from one pair's difference without checking which switches each arm carried. Corrected beside the claim in s.12f by 9a361e356.",
+    "last_at": "2026-11-19T15:20:37.820773+00:00",
+    "first_at": "2026-11-19T15:20:37.820773+00:00",
     "times_listed": 1,
-    "corrected": false,
-    "fate": "fix",
-    "status": "open",
-    "retired": false,
-    "owner": "background/seat_continuation.py (focus item a-handoff-is-not-discharged-before-its-artefact-exists: refuse to retire a row while an artefact path or long job it names is absent or unfinished)",
-    "reason": "Triaged 2026-10-27 by the delivery seat, ahead of the 7-day line. Ten shapes in three days, and the tenth delayed the correctness ruling's exit test by about three hours. The cheapest leg that would have caught the costly shape is the artefact check, because the row named its own artefact. It stays listed until that check is on origin."
-   },
-   {
-    "key": "text:the prepayment meter build (f0445b2dc) landed from its continuation during the stretch",
-    "what": "THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit's own claim, and no pair has checked it.",
-    "last_at": "2026-11-19T12:21:49.832585+00:00",
-    "first_at": "2026-11-19T12:21:49.832585+00:00",
-    "times_listed": 1,
-    "corrected": false,
+    "corrected": true,
     "fate": null,
     "status": null,
     "retired": false,
@@ -473,8 +503,8 @@
     "key": "triage:a-landing-loses-its-race-to-origin",
     "what": "THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 03:20 19 Nov -- graded corrected on its own criterion. A second stretch has passed with no written_at banner commit. D48's log has been read: it was killed at the unit's teardown and did not lose a race (new row below).",
     "last_at": "2026-11-19T03:20:44.845299+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 34,
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
+    "times_listed": 33,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -525,8 +555,8 @@
     "key": "triage:a-cold-reader-sees-only-what-its-trade-looks-for",
     "what": "THE MACHINE'S, THIS STRETCH. Four cold reads and every blind row passed a meter serial shared by up to 34 supply points and a gas bill with no volume. [Earlier tails are in decisions.jsonl.] 15:21 18 Nov -- corrected on the live book: 0 of 1,044 supply points share a serial, and 0 of 23,799 gas bills charge with no volume, on 6af7fd0bfd (3727cdbb3).",
     "last_at": "2026-11-18T15:21:49.370919+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 30,
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
+    "times_listed": 29,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -564,8 +594,8 @@
     "key": "triage:the-account-page-drops-cash-the-household-repaid",
     "what": "THE COMPANY'S, NEW. The account page drops cash the household repaid. Its repayments fall short of the world's payment truth on 249 legs (GBP 17,828.49) on 78f82e4242, and 194 legs (GBP 6,399.16) after 3099252c8. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: 0 legs, GBP 0.00 on the verified 6af7fd0bfd book (49d41097b).",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 29,
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
+    "times_listed": 28,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -577,8 +607,8 @@
     "key": "triage:the-capabilities-page-says-nothing-was-fixed",
     "what": "THE MACHINE'S, NEW. The live Capabilities page told the director \"Fixed in the 7 days to 11 Nov 2026 -- Nothing recorded\" after a week that fixed dozens of money classes. [Earlier tails are in decisions.jsonl.] 12:24 18 Nov -- corrected: https://poesys.net/capabilities/ serves \"Fixed in the 7 days to 18 Nov 2026\" with dated items, and its lead says the thesis question in words, not book totals.",
     "last_at": "2026-11-18T12:24:07.112567+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 29,
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
+    "times_listed": 28,
     "corrected": true,
     "fate": "fix",
     "status": "open",
@@ -824,8 +854,8 @@
     "key": "triage:the-brief-counts-a-finding-retired-on-origin-as-blocking",
     "what": "THE MACHINE'S, NEW. The orientation brief counts a retired finding as BLOCKING. The 205-of-238 refund finding was retired on origin by 63ede2e3b, but the shared tree still holds it in docs/staging/, so the brief lists 3 BLOCKING findings where origin has 2. The brief reads findings from the working copy, not from origin. [Earlier tails are in decisions.jsonl.] 21:23 16 Nov -- unchanged in kind. The brief again lists 3 BLOCKING, and one of them (WORKER_FINDING_THE_CANON_DRIFTS_FROM_THE_CODE_0A2E477ACB) is not in origin's staging root, only the shared tree's.",
     "last_at": "2026-11-16T21:23:08.620182+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 15,
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
+    "times_listed": 14,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -954,8 +984,8 @@
     "key": "triage:a-long-job-wrapping-a-landing-exits-zero-on-refusal",
     "what": "THE MACHINE'S, NEW. The launch register records a refused landing as a success. crfix-land-A's surgical_land printed REFUSED and RC=1, but its job script exited 0, so systemd and the orientation brief both read \"Result=success status=0\". A long job that wraps a landing must exit with the landing's own status. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: Right on all four this stretch, because each script happened to pass the status through. 18:24 14 Nov: No long job launched or ended this stretch. The class is still unenforced. 21:25 14 Nov: No long job launched or ended this stretch. The class is still unenforced. 00:24 15 Nov: No long job launched or ended this stretch. The class is still unenforced. 03:23 15 Nov: No long job launched or ended this stretch. The class is still unenforced. It reaches the 7-day line on 18 Nov and gets a triage fate then if still open. 06:23 15 Nov: No long job launched or ended this stretch. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 09:20 15 Nov: churn_roll ended this stretch and read 'Result=success status=0' with 'fold rc=0' in its own log, so it was right this time. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 12:24 15 Nov: No long job ended. The queued desk pair chains its two sides with '&&', so its status passes through by construction of that one script. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 15:21 15 Nov: No long job ended. The desk pair chains its two sides with '&&', so its status passes through. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 18:22 15 Nov: No long job launched or ended. The class is still unenforced, and it reaches the 7-day line on 18 Nov. 03:24 16 Nov: The desk pair ended 'Result=exit-code status=1', matching its own log's 'fold rc=1', so the register read it right. The class is still unenforced, and it reaches the 7-day line on 18 Nov.",
     "last_at": "2026-11-16T03:24:25.424017+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 7,
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
+    "times_listed": 6,
     "corrected": false,
     "fate": "fold",
     "status": null,
@@ -967,8 +997,8 @@
     "key": "triage:the-draw-cannot-read-a-standing-rulings-scope",
     "what": "THE MACHINE'S, NEW. The draw spent a tick outside the director's 12:00 ruling (\"everything goes to the fix and its book\"; \"no more knowledge passes this week\"). e5e0cdcae landed a NEED insulation knowledge page and a world change while the book waited. The draw has no reading of a standing ruling's scope. [Earlier tails are in decisions.jsonl.] 15:23 14 Nov: No breach. 18:24 14 Nov: Borderline. e6134becd changed company/ during the freeze, but it is the C32 fix its Expert Hour asked for. de67bec58 is world measurement, held and written in docs. The class is still unenforced. 21:25 14 Nov: Borderline again. cec629ab6 (G15) adds two docs/market_research pages, a knowledge pass in all but name, the day before the 11 Nov bar on knowledge passes ends. It touches no book. The class is still unenforced. 00:24 15 Nov: No breach. Every substantive commit this stretch was C32, the retention-netting instrument or the console record. 03:23 15 Nov: No breach. Every substantive commit was C32, the collections control, D48's prereg (doc only) or a map park. 06:23 15 Nov: Borderline. c3dd797c3 and the gas-switching page now landing (pid 1074841) are world knowledge on docs/market_research, on the last day of the bar. Neither touches a book. The class is still unenforced. 09:20 15 Nov: A breach in a new shape. Last record's not_now rejected a Breathing Space notification door from the world 'because it moves the world digest under the value-test queue'. C37's NEXT queued it as W2_44 anyway, and it is landing now (surgical_land pid 2769001). A tick's NEXT can overrule the seat's not_now, because nothing reads not_now at the queue. The B11 M7 launch pins one origin commit, so the queued tests stay readable. The class is still unenforced. 12:24 15 Nov: Two more instances. Candidate A's twelve-draw family launched at 09:44Z, nineteen minutes after a record that asked for the small run first. It was stopped at 10:20Z with nothing written (s.9a). W2_45 then followed W2_44 as a second world draw that no focus named. The class is still unenforced and reaches its 7-day line on 18 Nov. 15:21 15 Nov: One more instance, smaller. Last record's not_now gave A45 no steer, but A45 took three of this stretch's six commits (62ef957c8, 4988133be, cd7a1949e), because it is DRAWABLE and nothing reads not_now at the draw. None touches a book. The class is still unenforced and reaches its 7-day line on 18 Nov. 18:22 15 Nov: Two more instances. 4fc19c3e9 landed C32 class 5 at 16:12, although last record's item 3 said not to land before the 16 Nov 04:00 publish. So the 04:00 book carries a collections change the queued grades did not plan for (its own message counts 5 Consent offers on the shipped world). f0065e4ec took A45 again, against not_now. A focus item's hold is prose that no landing reads. The class is still unenforced and reaches its 7-day line on 18 Nov. 03:24 16 Nov: No breach. Tick mode held the machine quiet from 18:29Z to 03:00Z, as his 17:49 reading asked. 05fb3fdbb (G15, world knowledge) landed at 03:21, after the reset, with no focus naming it. It sits inside the week's 10% knowledge share. The class is still unenforced and reaches its 7-day line on 18 Nov.",
     "last_at": "2026-11-16T03:24:25.424017+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 7,
+    "first_at": "2026-11-15T15:21:37.944994+00:00",
+    "times_listed": 6,
     "corrected": false,
     "fate": "accept",
     "status": null,
@@ -988,46 +1018,60 @@
     "retired": false,
     "owner": null,
     "reason": null
-   },
-   {
-    "key": "text:last record's not_now said that the churn_roll grade, candidate a, b11 m7 and the netting pair were 'all four ",
-    "what": "THE SEAT'S, NEW. Last record's not_now said that the churn_roll grade, candidate A, B11 M7 and the netting pair were 'all four ... queued continuations stamped on origin'. Candidate A is not. No live row launches it, while b11-m7-launch-after-churn-roll-and-candidate-a is chained behind it, and b060dd719 says only 'A launches after it under this section'. I wrote the claim without reading seat_continuation.live(). Without a correction, B11 M7 waits on a run nothing would start. Focus item 2 gives A an owner, and the sequencing call in not_now releases B11 M7 from waiting on A. 12:24 15 Nov, corrected. A now has a queued launch (longjob-value-test-candidate-a-desk-pair-queued) and a queued grade (candidate-a-desk-belief-pair-graded). B11 M7's row waits for nothing.",
-    "last_at": "2026-11-15T12:23:52.459773+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
-   },
-   {
-    "key": "text:last record's focus item 2 ordered candidate a 'on one draw (seed 11111)'",
-    "what": "THE SEAT'S, NEW. Last record's focus item 2 ordered candidate A 'on ONE draw (seed 11111)'. The driver cannot run that shape, because noise_floor in tools/run_value_cycle_ab.py refuses fewer than two seeds. I wrote it without reading the driver. s.9a corrected it to the first pair, with 11111 graded and 22222 read, before any run, so it cost no box time.",
-    "last_at": "2026-11-15T12:23:52.459773+00:00",
-    "first_at": "2026-11-15T12:23:52.459773+00:00",
-    "times_listed": 1,
-    "corrected": true,
-    "fate": null,
-    "status": null,
-    "retired": false,
-    "owner": null,
-    "reason": null
    }
   ],
-  "distinct": 53,
+  "distinct": 52,
   "triaged": 14,
   "triaged_by_fate": {
    "fix": 9,
    "fold": 3,
    "accept": 2
   },
-  "untriaged": 39,
-  "distinct_open": 12,
-  "rows": 427,
+  "untriaged": 38,
+  "distinct_open": 11,
+  "rows": 423,
   "triage_register": "read",
   "entries": [
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": false,
+    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
+   },
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": false,
+    "problem": "triage:the-value-arm-loses-to-the-flat-book-on-the-better-belief"
+   },
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": false,
+    "problem": "triage:metered-electricity-barely-moves-year-to-year"
+   },
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": false,
+    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
+   },
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": true,
+    "problem": "text:the d48 finding on origin says the 2026-11-08 w2_36 runner and its row \"land with\" the w2_30 and w1_14 rows"
+   },
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": true,
+    "problem": "triage:a-handoff-named-in-a-finding-or-next-line-is-not-checked-against-the-queue"
+   },
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": false,
+    "problem": "text:the prepayment meter build (f0445b2dc) landed from its continuation during the stretch"
+   },
+   {
+    "at": "2026-11-19T15:20:37.820773+00:00",
+    "corrected": true,
+    "problem": "text:the machine's (this seat's), new"
+   },
    {
     "at": "2026-11-19T12:21:49.832585+00:00",
     "corrected": false,
@@ -3102,66 +3146,6 @@
     "at": "2026-11-15T15:21:37.944994+00:00",
     "corrected": false,
     "problem": "text:five direction records in a row (00:54, 03:48, 06:50, 09:47 and 13:26 utc on 15 nov) were refused at landing by site/test_no_published_page_renders_an_empty_field.py, which the seat's site/data/delivery.json triggers"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:the-live-renewal-belief-ranks-leavers-backwards"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:a-cold-reader-sees-only-what-its-trade-looks-for"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:metered-electricity-barely-moves-year-to-year"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:settlement-books-no-standing-charge-the-bill-charges"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:the-account-page-drops-cash-the-household-repaid"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:a-long-job-wrapping-a-landing-exits-zero-on-refusal"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:the-draw-cannot-read-a-standing-rulings-scope"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:the-brief-counts-a-finding-retired-on-origin-as-blocking"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:the-capabilities-page-says-nothing-was-fixed"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": false,
-    "problem": "triage:a-landing-loses-its-race-to-origin"
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": true,
-    "problem": "text:last record's not_now said that the churn_roll grade, candidate a, b11 m7 and the netting pair were 'all four "
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "corrected": true,
-    "problem": "text:last record's focus item 2 ordered candidate a 'on one draw (seed 11111)'"
    }
   ],
   "refused_own_records": [
@@ -3192,24 +3176,51 @@
    {
     "at": "2026-11-15T15:21:37.944994+00:00",
     "problems": []
-   },
-   {
-    "at": "2026-11-15T12:23:52.459773+00:00",
-    "problems": []
    }
   ],
-  "outstanding": 378,
-  "corrected": 49,
+  "outstanding": 373,
+  "corrected": 50,
   "correction_not_recorded": 0,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "skip0-is-graded-and-the-next-lever-is-chosen",
-   "w2-36-d48-unbilled-gap-row-lands",
-   "knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation"
+   "poesys-net-goes-behind-a-login",
+   "bug-pattern-and-timezone-lint-under-the-ratchet",
+   "KNIFE3_wall_crossing_paydown",
+   "electricity-unbilled-residual-is-traced-to-the-company-estimator"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [
+       "skip0-is-graded-and-the-next-lever-is-chosen",
+       "w2-36-d48-unbilled-gap-row-lands",
+       "knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation"
+      ],
+      "focus": [
+       "skip0-is-graded-and-the-next-lever-is-chosen",
+       "w2-36-d48-unbilled-gap-row-lands",
+       "knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation"
+      ],
+      "steered": true
+     }
+    },
+    "drawn": [
+     "skip0-is-graded-and-the-next-lever-is-chosen",
+     "w2-36-d48-unbilled-gap-row-lands",
+     "knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation"
+    ],
+    "focus": [
+     "skip0-is-graded-and-the-next-lever-is-chosen",
+     "w2-36-d48-unbilled-gap-row-lands",
+     "knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation"
+    ],
+    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-19T12:21:49.832585+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
+    "steered": true,
+    "window": "this stretch only -- the 3.0h since 2026-11-19T12:21:49.832585+00:00"
+   },
    {
     "by_class": {
      "lane_0": {
@@ -3346,38 +3357,6 @@
     "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-19T03:20:44.845299+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
     "steered": true,
     "window": "this stretch only -- the 3.0h since 2026-11-19T03:20:44.845299+00:00"
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "KNIFE3_wall_crossing_paydown"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "skip1-is-graded-against-s12es-branches"
-      ],
-      "focus": [
-       "skip1-is-graded-against-s12es-branches",
-       "e7-fix-to-svt-crossing-bills-are-counted-then-caused"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "skip1-is-graded-against-s12es-branches"
-    ],
-    "focus": [
-     "skip1-is-graded-against-s12es-branches",
-     "e7-fix-to-svt-crossing-bills-are-counted-then-caused",
-     "KNIFE3_wall_crossing_paydown"
-    ],
-    "note": "the previous direction named work the draw then took (measured over this stretch only -- the 3.0h since 2026-11-19T00:21:41.085386+00:00; this is the PREVIOUS FOCUS, not every drawn item)",
-    "steered": true,
-    "window": "this stretch only -- the 3.0h since 2026-11-19T00:21:41.085386+00:00"
    }
   ],
   "steered_recently": true,
@@ -3715,7 +3694,7 @@
     },
     {
      "date": "2026-11-19",
-     "commit": "86e590a44",
+     "commit": "b92443ec1",
      "population": 190,
      "chained": 186,
      "minted": 81,
