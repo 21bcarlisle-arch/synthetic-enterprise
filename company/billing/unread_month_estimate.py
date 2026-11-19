@@ -185,6 +185,13 @@ def annualised_register_advance_kwh(
 #: profile for most of the year it claims to describe, which is the weakness the three-read window
 #: above was measured to have (6.3% / 7.5% median error,
 #: docs/staging/SEAT_FINDING_THE_COMPANY_HOLDS_SIX_CONSUMPTION_FORECASTS_AND_THE_WORLD_IS_TOO_STEADY_TO_RANK_THEM_2026-10-11.md).
+#: UNSOURCED as a HOLD on the bill estimate. The six months is DESNZ's line for an AA, and the settlement
+#: EAC has no hold: it blends every advance by min(1, FYC*SPAR) (BSC Annex S-2 4.3.7). The one supplier
+#: found bills from that EAC. It stays because the alternative needs SPAR, which is Market Domain Data
+#: under licence and is published nowhere (searched 2026-11-19). At SPAR -> 0 the blend is this hold;
+#: at SPAR -> infinity it re-opens E1's short-first-month breaches. The hold over-bills new accounts
+#: (D48: billed/true 1.15), which errs against our own thesis. The search and the route to removing it:
+#: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8.
 MIN_ADVANCE_DAYS = 182
 #: ...and the longest: two years, so a hard-to-read household still has an advance to annualise.
 MAX_ADVANCE_DAYS = 731

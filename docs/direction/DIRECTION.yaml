@@ -256,3 +256,21 @@ for_the_director:
   status: open
   resolution: ''
   evidence: docs/design/DIRECTOR_CANON.md (D11); docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md
+- id: the-bsc-smoothing-parameter-spar-value-it
+  raised: '2026-11-19'
+  kind: strategy
+  decision_kind: outside_source
+  what: 'The BSC Smoothing Parameter (SPAR) value: it is the one number between us and fixing the electricity
+    unbilled residual, and no public source states it'
+  proposal: If you know SPAR's value (or its history) from industry, tell me and I build the D0019-shaped
+    EAC blend world-side against the pre-registered [0.28, 0.38] gap band. If not, the 182-day hold stays,
+    marked unsourced.
+  recommendation: I recommend you reply with SPAR's value only if you know it offhand, and that we do
+    not seek MDD access (a licence is G5); silence keeps the 182-day hold, which over-bills new accounts
+    and so errs against our thesis.
+  based_on: 67d454905c
+  status: open
+  resolution: ''
+  evidence: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (search
+    of URS, LDD, Tech Spec, SMG, P40, MDD page; value only in licensed MDD); docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md
+    (hold route holds 57% of the residual, billed/true 1.15)

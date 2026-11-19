@@ -123,3 +123,17 @@ last non-estimated bill: those are the residual run. Then, per bill:
 The account sums equal the runner's `truth − belief` to 0.0 kWh. For the counterfactual, the
 advances are each actual read's `true_consumption_kwh` summed since the previous read. That is the
 register advance the company itself holds, so nothing beyond the wall is read to form the estimate.
+
+## Outcome of the knowledge step (2026-11-19, later): NOT built, and the band is not graded
+
+SPAR is still a GAP. Every public Elexon document that names it gives no value. The URS, the
+Logical Data Design, the Technical Spec, the System Management Guide, P40 and the MDD page were all
+read. The only number found (1.100, 1997) is a sample report layout. The value sits in MDD Online
+or the D0269/D0270 flows under licence, which is a G5 wall. Billing practice is partly established:
+OVO bills an unread month from the D0019 EAC, which blends with no hold. So the hold is now
+contradicted on both sides, and it stays only because every replacement needs SPAR. That also
+changes where the build belongs. A real supplier is handed the EAC on the D0019, so SPAR is the
+world data collector's parameter, not a company constant. The [0.28, 0.38] band above still stands
+as the prediction that build answers to. It also needs the E1 breach count at each SPAR alongside
+it, because SPAR → ∞ re-opens those breaches. Record:
+`docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §5, §7, §8.

@@ -128,6 +128,19 @@ seasonal-normal ALP would be smoother year-on-year than this average already sho
   divides EAC/AQ by 12 (the director's practitioner statement already on record for the DD path),
   is **not established for the bill path** — only for direct-debit sizing.
 
+**Partly established, 2026-11-19 (D48): one supplier bills an unread month from the settlement
+EAC.** OVO's help library (staff-written, updated 2026) says: "If we use an estimated reading on
+your monthly summary, it will come from the last actual reading you provided and your Estimated
+Annual Consumption (EAC)" (Darran_OVO, updated 03/09/26). It also says "Whenever a new reading is
+submitted to the energy industry, a new EAC is calculated for us to use", and that regular readings
+"gradually change the EAC until it matches the member's usage" (Tim_OVO, updated 14/07/26). That
+is the D0019 EAC (`what_a_supplier_holds_to_size_a_direct_debit.md` §2), not a figure the
+supplier re-derives from its own reads. [M]: one supplier, in its own customer help pages. A
+secondary consumer guide (Energy Bill Toolkit, checked 2026-11-08) says "Your actual bill is based
+on your EAC". It also says new occupants get a TDCV default, which conflicts with OVO's "might
+cover the time before you moved in", so it is not relied on. Still unestablished: whether this is
+industry practice or one supplier's, and whether the monthly split is profiled or /12.
+
 ## 6. What a supplier can and cannot know
 
 **Can know:** the registry EAC/AQ and its vintage; its own prior meter-read history for the
@@ -180,6 +193,9 @@ figure for the first six months, or blends it with early reads, is not published
 EAC weighting of a new advance against the prior EAC was not read. *(Read 2026-10-29: §8.
 The settlement EAC is NOT held for six months. It moves on every advance, so the six-month line
 above describes the AA, not the EAC, and E1's citation of it for the hold is wrong.)*
+*(2026-11-19: §5 now has one supplier, OVO, billing unread months from the D0019 EAC, which
+blends with no hold. So the hold matches neither settlement nor the one billing practice found. It
+stays only because every alternative needs SPAR (§8).)*
 
 ## 8. How the settlement EAC takes a new advance (2026-10-29, read for the E1 finding)
 
@@ -224,6 +240,36 @@ sits 1.86 times above its own reads. No value is set here.
 **Still a GAP, unchanged:** whether a supplier's *billing* estimate follows the settlement EAC, its
 own reads, or something else in the first months (§5, §7). §8 is settlement. Gas AQ is a separate
 rule: it is not smoothed this way, and it moves only on a 9–36-month read pair (§3).
+
+**SPAR: what was searched, 2026-11-19 (D48), and it is still a GAP.**
+- *EAC/AA URS* v13.0 (Elexon, 2019) §6.2.6 and assumption 5: the value "must be a positive number",
+  is "a standard positive value common across all GSP Groups", "can change over time", and is
+  maintained with an Effective From Settlement Date. No value is given.
+- *EAC/AA Logical Data Design* v16.0, data item 5.67: "A standard, positive factor, supplied by the
+  Market Domain Data Agent, which determines how much weight is given to an Annualised Advance and
+  how much is given to the previous EAC". No value is given.
+- *EAC/AA Technical Specification* v18.3 (2015): the field holds "a maximum of 6 digits, including
+  3 decimal places". **The only number found anywhere is `Smoothing Parameter: 1.100`, effective
+  01/01/1997, in §10.5.3's sample "Report on Archived Data" layout**. That layout is printed for
+  "Organisation: An Electricity Company", user SYSMAN, with toy coefficients. It illustrates the
+  report and is NOT the value: do not cite it as SPAR.
+- *EAC/AA System Management Guide* v17.3; *P40 Modification Report* (full text); Elexon's *Market
+  Domain Data* page; the bscdocs *Estimation of Annual Consumption System* v15.0 contents (its
+  §6.6.12, §7.3.18 and §9.1.7 name the parameter). None states a value.
+- **Where the value is:** MDD Online on the BSC Portal (login), or the D0269/D0270 flows "upon
+  request" under P30 licence arrangements (Elexon, *Market Domain Data* page). Licensed access is a
+  real-world commitment (G5), so it is not open to this project. Supplier help pages (§5) describe
+  the blending ("gradually change the EAC") but give no number.
+
+**What it would take, and where SPAR would live.** A real supplier never needs SPAR. Its data
+collector sends the recalculated EAC on the D0019 after each read, and per §5 at least one supplier
+bills from it. So the faithful build is the world's data collector applying §4.3.7 and handing the
+EAC across the seam as an observable. SPAR would then be a world parameter, not a company constant.
+It is still the same GAP: at SPAR → 0 the blend is the 182-day hold's opening leg, and at SPAR → ∞
+it is reads-only, which re-opens E1's short-first-month breaches (§7). The D48 pre-registration
+(`docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md`)
+shows the electricity gap improving at every SPAR from 0.5 to ∞. But the E1 breach count at each
+SPAR was not measured, so no value is safe to pick from the gap alone.
 
 **Design consequence (not yet built).** E1's six-month threshold has no source. The BSC shape is a
 blend weighted by FYC·SPAR, and it can be built only once SPAR, or the billing practice, is
@@ -316,4 +362,7 @@ method chosen in advance.
 - Elexon, *P40 Modification Report* v0.3 (Jan 2002), §4.1 and §6 (BSC Annex S-2 §4.3.7 text): https://assets.elexon.co.uk/wp-content/uploads/sites/11/2012/02/28170318/p40_mr_v0.3.pdf, read 2026-10-29
 - Elexon, *Settlement calculation hierarchy: Calculate BM Unit Allocated Demand Volume* (BSC guidance note): https://www.elexon.co.uk/bsc/documents/training-guidance/bsc-guidance-notes/settlement-calculation-hierarchy-calculate-bm-unit-allocated-demand-volume/, read 2026-10-29
 - Citizens Advice, *If you think you've been charged too much for your energy*: https://www.citizensadvice.org.uk/consumer/energy/energy-supply/problems-with-your-energy-bill/energy-bill-too-high/, read 2026-10-29 (§9)
-- Not read, named for the next reader: the Smoothing Parameter's MDD value; Elexon's live BMRS/SVAA profile coefficient data; the EUC01B Annual Load Profile table (UK Link secure area, UNC-party access only).
+- Elexon, *EAC/AA URS* v13.0 (P367 redline): https://www.elexon.co.uk/bsc/documents/change/releases/2019-releases/june-release/eac_aa_urs_v13-1_redlined_p367/; *EAC/AA Logical Data Design* v16.0: https://www.elexon.co.uk/bsc/documents/bsc-codes/eac-aa-logical-data-design/; *EAC/AA Technical Specification* v18.3: https://assets.elexon.co.uk/wp-content/uploads/sites/11/2015/04/28163005/EACAA_TechnicalSpec-v18.3.pdf; *EAC/AA System Management Guide* v17.3: https://assets.elexon.co.uk/wp-content/uploads/sites/11/2015/04/28163123/EACAA_SystemManagement-v17.3.pdf; *Market Domain Data*: https://www.elexon.co.uk/bsc/data/market-domain-data/ (all read 2026-11-19, §8 SPAR search)
+- OVO Energy help library, *Estimated Annual Consumption (EAC)*: https://forum.ovoenergy.com/charges-payments-refunds-142/estimated-annual-consumption-eac-diy-tutorial-series-8615, and *I give meter readings each month, why is my bill still based on estimates?* (staff answer): https://forum.ovoenergy.com/my-account-140/i-give-meter-readings-each-month-why-is-my-bill-still-based-on-estimates-190/index3.html, read 2026-11-19 (§5)
+- Energy Bill Toolkit, *Estimated Annual Consumption (EAC) on an energy bill*: https://energybilltoolkit.co.uk/guides/estimated-annual-consumption-eac-uk/, read 2026-11-19 (§5, secondary, not relied on)
+- Not read, named for the next reader: the Smoothing Parameter's MDD value (licensed access only); Elexon's live BMRS/SVAA profile coefficient data; the EUC01B Annual Load Profile table (UK Link secure area, UNC-party access only).
