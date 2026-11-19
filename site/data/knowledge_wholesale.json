@@ -2050,6 +2050,24 @@
       ],
       "theme": "households",
       "why": "The world is to draw a few hidden household traits, and the company is to read signals of need. This page says which attributes carry which need, where the advisor's picture failed on the tables, and which of the survey's measures are only stated."
+    },
+    {
+      "id": "prepayment-and-self-disconnection",
+      "title": "Prepayment meters and self-disconnection: who has one, how it works, how often households go without, and what a supplier can see",
+      "kind": "page",
+      "blurb": "About one GB energy customer in eight pays by prepayment, most of them renters on low incomes. In one quarter of 2026 more than half a million smart-meter electricity customers ran out of credit and lost supply at least once, and gas outages last longer and come more often in cold weather.",
+      "rate_of_change": "medium",
+      "reviewed": {
+        "last_verified": "2026-11-19",
+        "source": "see the page's own sources"
+      },
+      "atoms": [
+        "W2_43_a_prepayment_household_answers_suitability_and_its_meter_reports_supply_events",
+        "C36_a_self_disconnection_the_watch_sees_is_answered_with_support",
+        "W2_8_self_rationing"
+      ],
+      "theme": "billing",
+      "why": "A prepayment household going without heat is where the comfort and health floor is breached in life, and the simulated world does not yet let it happen."
     }
   ],
   "edges": [
@@ -2647,6 +2665,21 @@
       "from": "the-customer-needs-framework",
       "type": "prerequisite-for",
       "to": "vulnerability-and-the-psr"
+    },
+    {
+      "from": "vulnerability-and-the-psr",
+      "type": "prerequisite-for",
+      "to": "prepayment-and-self-disconnection"
+    },
+    {
+      "from": "prepayment-and-self-disconnection",
+      "type": "bounded-by",
+      "to": "heating-behaviour-comfort-and-health-floors"
+    },
+    {
+      "from": "prepayment-and-self-disconnection",
+      "type": "prerequisite-for",
+      "to": "debt-and-collections"
     }
   ],
   "review_policy": {

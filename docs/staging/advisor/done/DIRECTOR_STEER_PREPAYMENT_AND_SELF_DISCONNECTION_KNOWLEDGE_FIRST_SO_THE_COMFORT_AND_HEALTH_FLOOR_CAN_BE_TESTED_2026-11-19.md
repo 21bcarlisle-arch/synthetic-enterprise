@@ -78,3 +78,44 @@ Probable failure mode: **a floor scope that invents prepayment behaviour to fill
 Proportionality: knowledge and scope only. Implement directly.
 
 — Director steer, 19 Nov 2026, his words above; the reading and drafting are the advisor's.
+
+## Done
+
+Actioned 19 Nov 2026 by the autonomous worker, in the commit that moves this file.
+
+1. **Knowledge page (K8), open sources.** Published `site/knowledge/prepayment-and-self-disconnection/`
+   (topic entry, graph node and three edges, facets, index card). Research note
+   `docs/market_research/prepayment_and_self_disconnection_observables_2026-11-19.md` covers all five
+   areas: prepayment share 2016-2025 from DESNZ QEP tables 2.4.2/2.4.3/2.5.2, and who has it (EHS
+   tenure, DESNZ fuel poverty by method); meter mechanics (2020 rules, 2018 emergency-credit amounts,
+   2026 supplier amounts and friendly hours, meter debt recovery); self-disconnection frequency,
+   duration and cold (Ofgem Q2 2026 counts; Fawcett et al. 2024; Longden 2025); rationing; and the
+   smart-meter events a supplier sees (DCC 2023 and 2025, with alert codes). GAP written wherever
+   nothing is published. Mansilla et al. is an abstract only, with no thresholds or rates.
+2. **SENSE, public documentation only.** Nothing was registered, applied for or accepted. Companion
+   note `sense_dynamic_energy_vulnerability_indices_public_documentation_2026-11-19.md`. There are four
+   datasets, not three (three from DCC events, one from FINDS/NatWest banking data). MSOA; 2025 only;
+   "Safeguarded"; academic-only licence; clause 6.1 needs permission to generate synthetic data. **Not
+   raised to `for_the_director`**: the indices fill one gap (a market-wide distribution of how long
+   households stay off supply), but open sources bound it from two sides, so it does not block a
+   first floor test. It is raised as a yes/no line if a build shows the floor result swings across
+   that bound.
+3. **Fidelity scope.** Note §0 and §7. The shipped world asserts zero prepayment harm:
+   - the ~14% prepayment channel has no meter events;
+   - only debt-fitted meters self-disconnect, and none is fitted while take-up ships at 0;
+   - rationing is drawn in the twin harness only.
+
+   Smallest change that lets the floor fail (a proposal, a world change needing its own K8 amendment):
+   - the W2_43 supply-event feed for stock prepayment households, with a duration;
+   - gas outages coupled to cold;
+   - prepayment coupled to tenure.
+4. **Corrections beside the claim.**
+   - `ASSUMPTIONS.md`: the three "Not modelled" rows the steer quoted were stale (prepayment split
+     since PB4, a fuel-poverty flag since July, meter debt since W2_42/43).
+   - `gb_payment_method_migration_rates.md`: the PPM/SC split gap is closed by QEP.
+   - `knowledge_map.md`: "3.2M self-disconnect per year" was 3.2m people who ran out of credit.
+   - The vulnerability page's two prepayment-mechanics lines.
+5. **Reading log.** The three rows, with the papers read, are under G5 in
+   `docs/institutional/reading_log_against_the_gaps.md` (part two holds domain research).
+
+Decision: fidelity yes

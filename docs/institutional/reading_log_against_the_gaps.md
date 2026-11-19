@@ -160,6 +160,31 @@ own thesis (F11): the GB evidence that wind displaces the marginal plant rather 
 says that "carbon saved by shifting", measured on average intensity, is a definition that needs
 defending, not a neutral default.
 
+### G5. Prepayment, self-disconnection and the comfort and health floor (depth: detailed, 19 Nov steer)
+
+The director's steer of 19 Nov, after he shared the SENSE catalogue entry. Findings and every figure:
+`docs/market_research/prepayment_and_self_disconnection_observables_2026-11-19.md`; the gated
+indices: its companion `sense_dynamic_energy_vulnerability_indices_public_documentation_2026-11-19.md`.
+Published as the knowledge page `prepayment-and-self-disconnection`.
+
+| Candidate | Year · countries | Grade · transferability | Verdict | What it bears on |
+|---|---|---|---|---|
+| SENSE catalogue, "Spatially and temporally granular dynamic energy vulnerability indices" (Energy Systems Catapult; DCC smart-meter events and FINDS banking data; gated); shared by the director | 2025 data · GB | Aggregates, MSOA, one year · UK | **KNOWLEDGE FIRST.** Read from public metadata only; nothing applied for. Licence is academic-only, with a synthetic-data permission clause (6.1) | The only market-wide source on how long and how often households stay off supply. Not needed for a first floor test; raised to the director only if a build shows the result swings across the open bound |
+| DCC, *Tackling Fuel Poverty through Smart Metering* (v1.0, June 2023; 2025 edition); from the above | 2023, 2025 · GB | OP, operator report · UK | SOURCE | The smart-meter events a supplier sees: top-ups, low credit (810D), emergency credit (8119, 81AA), self-disconnection, credit moved between fuels, mode switches |
+| Another assistant's general answer on dynamic energy-vulnerability indices; shared by the director | 2026 · — | OP · — | POINTER ONLY | Confirms SENSE is gated; points to the open LSOA study and the JRC work below |
+| Fawcett, Palmer, Terry, Boardman, Narayan, smart PPM data and policy targeting (*ERSS* 116, 103666) | 2024 · GB | OBS, about 10,100 smart PPM homes at one supplier, 4 years · UK | READ | Frequency and duration: 63% a year, median 5 events and 28 hours; by age, PSR and EPC; gas longer and more in cold. One supplier, about twice Ofgem's rates |
+| Longden, prepayment gas and cold (*Energy Economics* 148, 108678) | 2025 · E&W | OBS, 600,000+ gas PPM customers, 7 winters · UK | ABSTRACT | Top-ups and self-disconnection respond to cold below about -4 to -6°C by region |
+| Ofgem, debt and arrears indicators (smart-PPM self-disconnection, quarterly from Q3 2023) | 2023–2026 · GB | Regulator data, all suppliers · UK | READ (page text; chart CSV not pulled) | Market counts by fuel with an over-3-hours cut; no denominator, no area split |
+| Ward, Singleton, Robinson, Rowe, small-area energy vulnerability in England and Wales (*RSRS*, 10.1080/21681376.2025.2472069) | 2025 · E&W | OBS, census and VOA indicators by LSOA · UK | ABSTRACT | Structural risk by area, 2011 against 2021; no smart-meter or prepayment input. A check on where the world's distress lands, never a household input |
+| JRC multidimensional energy vulnerability (JRC140609) | 2024 · EU-22 | MOD, index · B/R | ABSTRACT | Method only; no GB data |
+| Mansilla, Gallage, Sanchez-Campos, lived experience of energy vulnerability (*IJPDS*, SERL) | 2026 · GB | OBS, conference abstract only · UK | ABSTRACT | Three flags (rationing, suppressed demand, zero gas in freezing weather). **No thresholds or rates published** |
+
+**Absence finding.** Searched Ofgem, DESNZ, Citizens Advice, SERL and the literature for a
+market-wide distribution of self-disconnection duration, a seasonal rate, top-up amounts and timing,
+and a joint table of payment method by tenure, income, heating fuel and EPC band. Nothing open gives
+any of these. Fawcett is one supplier's customers; Ofgem's counts have no denominator. The world
+carries them as ranges or GAP (K2).
+
 ## The steer's GLM question: do our world checks test against data held back from fitting?
 
 First pass, 11 Nov. It is mixed, and this is not yet a census of every world check.
