@@ -1934,3 +1934,84 @@ names the reason and launches nothing.
 
 **Reverse:** `systemctl --user stop vtc-cut012-watch`. Then `git worktree unlock
 /var/tmp/value-test-cut012` and `git worktree remove --force` it.
+
+#### skip0 graded: the loss is the weighing's (19 Nov, read at 10:31Z)
+
+**The read, verbatim** (`/var/tmp/vts-driver/read_threshold_skip.out`, written when skip0's unit ended at 10:31Z):
+
+    seed  household        date        considered_on_save_odds  offered  outcome
+    11111  SYN-2016-557  2018-12-02  False  False  churned
+    11111  PROS-2017-0371  2018-11-29  False  False  churned
+    22222  SYN-2016-458  2018-10-09  True  False  churned
+    22222  PROS-2017-0318  2018-10-07  False  False  churned
+    22222  SYN-2016-498  2018-10-31  True  False  churned
+    11111  SYN-2016-581  2018-12-10  False  False  no fixed-term renewal at the flip (on SVT)
+    11111  PROS-2016-0263  2018-09-16  False  False  churned
+    11111  SYN-2016-468  2018-10-17  False  False  left 2017-10-17, before the flip
+    11111  SYN-2016-315  2018-07-10  False  False  churned
+
+    step 0: 2 of 9 weighed under the cutoff; 0 renewal(s) absent or unlogged
+    s.12c candidate 1: 0 of 9 re-offered -> REFUTED
+    value arm, renewals weighed under the 0.30 cutoff, whole book: {11111: 22, 22222: 36}
+    value arm, GBP/household-year, skip1 minus skip0: {"mean": 0.0, "ci95": [0.0, 0.0], "per_seed": {"11111": 0.0, "22222": 0.0}}
+    value arm, GBP/household-year, skip1 minus A   : {"mean": -4.567, "ci95": [-7.263, -2.241], "per_seed": {"11111": -5.096, "22222": -4.038}}
+    value arm, GBP/household-year, skip1 minus twin: {"mean": -5.774, "ci95": [-8.38, -3.394], "per_seed": {"11111": -6.414, "22222": -5.134}}
+
+**`d0` was computed directly, not by subtraction.** The reader prints no skip0-minus-A line, so `d0` came from its
+own `money()` (same divisor, same bootstrap seed). The one-off script called it on `vts-out-skip0` against
+`vta-out-flag1`:
+
+    d0 = skip0 minus A   : {"mean": -4.567, "ci95": [-7.263, -2.241], "per_seed": {"11111": -5.096, "22222": -4.038}}
+    d1 = skip1 minus skip0: {"mean": 0.0, "ci95": [0.0, 0.0], "per_seed": {"11111": 0.0, "22222": 0.0}}
+
+`d1` is not just small. The value-arm net of every account matches in skip1 and skip0: 0 of 765 differ on seed
+11111 and 0 of 767 on seed 22222. The member records are not byte-identical, but the money is. So the skip moves
+no money through any path, and the coupling the 01:10Z entry asked about does not exist.
+
+| Pre-registered (01:10Z, before skip0 was read) | Predicted | Read | Graded |
+|---|---|---|---|
+| Branch: the loss is the weighing's | `d0` ≤ −£3.00, |`d1`| < £1.00 | `d0` −£4.57, `d1` £0.00 | **HELD** |
+| `d0` = skip0 minus A | −£4.5 (−£7.3 to −£2.2) | **−£4.57 (−£7.26 to −£2.24)** | **HELD** |
+| `d1` = skip1 minus skip0 | £0.0 (−£0.5 to +£0.5) | **£0.00 (£0.00 to £0.00)** | **HELD** |
+
+**What it means.** Switching on the save-odds weighing (`retention_weighs_save_odds`) costs the value arm £4.57
+per household-year on A's world. The skip adds nothing either way. The loss sits mostly in households the skip
+never reached (see the 01:10Z entry: −£4.67 and −£4.44 across 176 and 153 households). *Which* decision the
+weighing changes for them is not read here. A logs `retention_offered` as None, so the A-versus-skip0 offer
+count is not a reading. That is the open question if the weighing is ever revisited.
+
+**A correction to the drawn direction.** The direction says the weighing "is where the arm loses its −£1.35
+against the baseline". It is not. The −£1.35 (§10b) and the −£1.21 (§12) are A against its twin, and neither
+run has the weighing on. On this pair, A minus the twin is −£5.774 − (−£4.567) = **−£1.21**: A's own belief does
+that, without the weighing. The weighing is a separate, larger loss stacked on top of A's.
+
+**Decision (a): the weighing is already off wherever a published book runs, so no default-off pair is
+needed.** I checked every `DecisionPolicy` instance in `company/policy/decision_policy.py`: `CURRENT_POLICY`,
+`VALUE_ARM_POLICY` and its learned and capped variants, `FLAT_SUPPLIER_POLICY` and `NAIVE_POLICY`. Each has
+`retention_weighs_save_odds`, the skip and `retention_cut_at_the_flips` all False. sim-runner builds the
+published book from these. The weighing is switched on only in experiment drivers: the `all_on_save_odds*` arms
+of `tools/per_customer_switch_arms.py`, and `/var/tmp/vts-driver/driver*.py`. Neither feeds a published book.
+So the −£4.57 is not on any published figure, and a "default off" pair would compare a policy with itself.
+What follows from the grade: **the weighing, as built, does not get promoted.** No arm after this one switches
+it on, unless that arm first answers the open question above.
+
+**Decision (b): precondition 2 of the 0.12 pair is kept, because it can be met before 24 Nov.** The evidence,
+read at about 12:35Z:
+- `vtc-cut012-watch` is live. It passed precondition 1 at 10:31Z ("skip0 has read") and now logs "waiting for
+  the W3_3 book: no book has built since arming (last success 1795006306, 7f0723b46e)". That success was at
+  12:51Z on 18 Nov, on `7f0723b46e`, which comes before `c71d2521d`. So it rightly does not count.
+- sim-runner is running (PID 2610609) and deferring on a 5-minute cycle. The reasons logged since 13:00Z on
+  18 Nov: yielding to a resident long job (211 times, mostly skip0, which held the box until 10:31Z), budget
+  exhausted (48), landings first (14), memory too tight (3), and tree not origin's bytes (2). Its run gate
+  builds only on origin's bytes, and `origin/main` carries `c71d2521d`. So whatever book it builds next
+  satisfies the leg.
+- The base rate: 18 books completed between 8 and 18 Nov, about 1.6 a day. The longest gap was about 61 h
+  (10:45Z on 9 Nov to 21:34Z on 11 Nov). The deadline leaves about 107 h, and the long job that caused most
+  of today's deferral has ended.
+
+So I did not edit the precondition, and I did not reverse the watcher. If no book builds by the deadline, the
+watcher gives up, names the reason in its own log and launches nothing. Then the pair is re-armed against
+the next owed book, not the precondition loosened. No second long job was started while skip0 held the box.
+The 0.12 pair runs with the weighing off, against A as run, so it is not exposed to the loss graded here.
+
+**Reverse:** nothing to reverse in (a). For (b), see the 05:05Z entry above (`systemctl --user stop vtc-cut012-watch`).
