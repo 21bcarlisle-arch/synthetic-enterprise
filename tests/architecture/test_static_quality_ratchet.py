@@ -930,6 +930,25 @@ RUFF_BASELINE: dict[str, int] = {
     "E713": 1,
     "F601": 1,
     "invalid-syntax": 1,
+    # B and DTZ, added 2026-11-19 on the director's steer (ruff.toml carries the exclusions and
+    # their reasons). Frozen at the pinned 0.15.16 on an origin/main worktree (024206bfb) with the
+    # new config; the shared working tree read the same counts. A CEILING like every entry above.
+    # The live-defect read is in docs/staging/advisor/done/DIRECTOR_STEER_ADD_BUG_PATTERN_AND_
+    # TIMEZONE_LINT_RULES_UNDER_THE_RATCHET_2026-11-19.md: no B023 or DTZ hit moves money today.
+    "DTZ011": 79,
+    "B023": 65,
+    "DTZ007": 43,
+    "DTZ006": 30,
+    "B017": 20,
+    "B904": 18,
+    "B018": 9,
+    "DTZ001": 5,
+    "B008": 5,
+    "DTZ005": 4,
+    "B011": 3,
+    "DTZ901": 2,
+    "DTZ012": 1,
+    "B006": 1,
 }
 # NO TOTAL, AND NO REQUIREMENT TO LOWER (2026-10-04). Until today the baseline had to EQUAL the
 # measured counts, so every lane that sorted one import edited this block -- a pile of
@@ -1203,8 +1222,10 @@ def test_no_changed_file_gains_a_ruff_violation():
 
 # --- ruff: a brand-new rule code lands ---
 def test_mutation_ruff_new_code_reds_only_new_check():
-    mutated = _merge(RUFF_BASELINE, {"B008": 1})  # B008 not in select -> never natural
-    assert new_keys(RUFF_BASELINE, mutated) == {"B008": 1}
+    # PLR2004 (magic number) is a style family deliberately NOT selected (2026-11-19 steer), so it
+    # never occurs naturally. B008 served here until B joined the select list.
+    mutated = _merge(RUFF_BASELINE, {"PLR2004": 1})
+    assert new_keys(RUFF_BASELINE, mutated) == {"PLR2004": 1}
     assert not keys_exceeding_baseline(RUFF_BASELINE, mutated)  # existing codes untouched
 
 
