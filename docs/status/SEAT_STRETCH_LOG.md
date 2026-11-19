@@ -8,6 +8,47 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-19 — orientation: The thesis test read this stretch, and the news is bad and not yet clean
+
+<!-- head: 78a6c22cfb3f -->
+
+*Written by the orientation seat from its own record (2026-11-19T00:21:41.085386+00:00; 10 commits, 6 substantive, since 2026-11-18T21:21:20.571758+00:00).*
+
+Commit split (product code by path): 1 supplier, 2 world, 0 both, 7 other.
+
+## What the stretch meant
+
+The thesis test read this stretch, and the news is bad and not yet clean. skip1 finished at 23:53Z and vts-branch-watch read it at 00:02Z (/var/tmp/vts-driver/read_threshold_skip.skip1.out). The reader exited 2, so it is UNREADABLE: 2 of s.12c's 9 flip renewals (SYN-2016-581 and SYN-2016-468, seed 11111) are absent or unlogged. The watch therefore took neither branch, which is what s.12e says to do. But the count is bounded whatever those two say. Of the 7 logged flips, 0 were re-offered and only 2 were even weighed under the cutoff, so k is at most 2. That is inside s.12e's REFUTE band (0 to 3): skipping the 0.30 cut on save odds is not the lever. The money agrees, and it is worse. On the value arm, skip1 minus A reads -GBP 4.57 per household-year (-7.26 to -2.24), and skip1 minus its twin reads -GBP 5.77, with both seeds negative. So the two switches cost money rather than recovering the -GBP 1.35 against the flat baseline. skip1 differs from A in two switches, so this cannot yet be attributed to the skip alone. skip0, the one-variable comparator, started at about 23:53Z (pid 341142) and reads around 12:30Z on 19 Nov. Against the thesis, then, the supplier's per-customer method still trails the flat rules, and the first lever the value test named has been ruled out on a bound. That is a step backwards in what we hoped and a step forwards in what we know. The next lever (the cut's own scale, s.12e as amended) is neither built nor pre-registered, so it is the work. The previous focus reached the draw on 1 of 3 items. D48 was drawn, and its landing ("billed equals metered on every read and only estimates carry a gap; the W2_30 <-> D48 shape gap is measured") is on its third surgical_land attempt now (pid 276185). skip1's grade was correctly not drawn because it was not ripe. KNIFE3 was not drawn at all, so that steer is drifting and is re-issued below. The commit split reads 1 supplier, 2 world and 7 other. The world pair is EPC-register work on W2_18/W2_19, which blocks no supplier result named anywhere, and the supplier side landed only C32's wording class. That is the imbalance the director's supplier-first order exists to stop. The post-publish reader red on 6af7fd0bf (3 E7 fix-to-SVT crossing bills charged above the every-kWh-at-highest-rate ceiling, plus one SVT rate 0.05p above the cap level) is a billing-accuracy defect with no owner, and it goes into focus. H48 moved 0 to 3. That is harness work, and it does not move the thesis.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 21:21 18 Nov -- unchanged. 00:21 19 Nov -- unchanged. skip1 has read, and its first lever (skipping the cut on save odds) is refuted on a bound (k <= 2 of 9). The fix's owner is now the next lever s.12f pre-registers (focus 1).
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 21:21 18 Nov -- unchanged. 00:21 19 Nov -- worse on the lever tried: skip1 minus A on the value arm is -GBP 4.57 (-7.26 to -2.24). Not attributable until skip0 reads, around 12:30Z on 19 Nov (focus 1).
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 21:21 18 Nov -- unchanged (fix, owner W2_30, recheck by 23 Nov). 00:21 19 Nov -- unchanged. D48's landing in flight measures the W2_30 <-> D48 shape gap, which is the first reading able to place it on a side.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 21:21 18 Nov -- unchanged. The fix is on origin (c71d2521d) and still ungraded. 00:21 19 Nov -- unchanged. Its book builds after skip0, and deemed-and-flex-rows-book-the-standing-charge grades it after 23 Nov.
+- NOT corrected: THE MACHINE'S, NEW. A doc-only landing raced origin and lost three times. collision-census-land-2 and -3 died because the commit gate runs longer than the gap between origin commits (attempts 39f59e0d1 to cfd82d868 to 485d48a0c). [Earlier tails are in decisions.jsonl.] 21:21 18 Nov -- no written_at banner commit; still not graded on its own criterion. 00:21 19 Nov -- this stretch also has no written_at banner commit, and its one empty merge (a0fa68a2f) is a reconciliation whose upstream did not touch its paths. But D48's landing is on its third surgical_land attempt (pid 276185). Its log is the first one to read for a lost race, and the row stays open until it has been read.
+- NOT corrected: THE MACHINE'S OR THE RUN'S, NEW. skip1's reader exited 2: 2 of the 9 pre-registered flip renewals (SYN-2016-581 and SYN-2016-468, seed 11111) are absent or unlogged in skip1's output. So a run that took about 11 hours of the box could not be read on its own pre-registered count. Whether it is the reader or the log is unestablished (focus 1).
+- NOT corrected: THE COMPANY'S, NEW. On the published book 6af7fd0bf, 3 Economy 7 fix-to-SVT crossing bills (PROS-2016-0253, PROS-2017-0286, PROS-2021-0313) are charged above every kWh at the highest rate sold. One SVT term rate reads 25.4557 p/kWh against the published 25.41 p/kWh. The denominator of crossing periods is uncounted (focus 2).
+
+## Chosen against
+
+- Launching launch_hold_pairs.sh (the HOLD/NEITHER branch) on skip1's read.
+- Building s.12c's candidate 2 (calibrating the belief the 0.30 cut reads) as the REFUTE branch.
+- Keeping D48's coupled-gap measurement in focus.
+- The W2_30 gas and electricity world work (the 70/30 fallback finding 78a6c22cf, and the year-to-year term behind N17).
+- More EPC-register work on W2_18 and W2_19.
+- B8's holdout row, B11's forward value backtest, and the W3_3 book.
+- A45's blind pass, and the site atoms at 2,581 to 8,883 unchanged draws (SITE1, SITE11, SITE12, SITE15, OPS7).
+- Reaping the 10 at-risk worktrees.
+
+## Focus for the next stretch
+
+- `skip1-is-graded-against-s12es-branches`
+- `e7-fix-to-svt-crossing-bills-are-counted-then-caused`
+- `KNIFE3_wall_crossing_paydown`
+
+---
+
 ## 2026-11-18 — orientation: Against the thesis, nothing moved, and this stretch was never going to move it
 
 <!-- head: e8c7cdc77bec -->
