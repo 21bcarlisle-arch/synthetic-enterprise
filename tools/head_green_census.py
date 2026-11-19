@@ -450,6 +450,63 @@ SUITE_TIMEOUT_SECONDS = 17400
 #: stops being a decision anyone made.
 WORST_OBSERVED_SUITE_SECONDS = 8646.7
 
+#: HOW OFTEN A REFUSED CENSUS ASKS THE GOVERNOR AGAIN. The direction that set it (19 Nov) said
+#: "re-ask every 30 min"; it bounds how late after room appears the suite starts, nothing else.
+ADMISSION_POLL_SECONDS = 1800
+
+#: HOW LONG A REFUSED CENSUS KEEPS ASKING. Until 19 Nov it asked ONCE: 7 of 12 nights 8-19 Nov a
+#: value-test long job held ~11.8 GB at 03:30, the census deferred, and nothing asked again for
+#: 24h -- so no census completed after 4 Nov. Derived, not chosen: the whole unit must end before
+#: the next 03:30 firing, so this is a day less the timer's 600s randomised delay, one poll that
+#: can overshoot the deadline, the suite's own bound and the unit's 300s for checkout and report.
+#: `test_a_census_that_waits_for_room_still_ends_before_the_next_firing` holds the unit to it.
+TIMER_PERIOD_SECONDS = 24 * 3600
+TIMER_RANDOMIZED_DELAY_SECONDS = 600
+UNIT_REPORT_MARGIN_SECONDS = 300
+ADMISSION_DEADLINE_SECONDS = (TIMER_PERIOD_SECONDS - TIMER_RANDOMIZED_DELAY_SECONDS
+                              - ADMISSION_POLL_SECONDS - SUITE_TIMEOUT_SECONDS
+                              - UNIT_REPORT_MARGIN_SECONDS)
+
+
+def _admission_sleep(seconds: float) -> None:
+    """The queue's sleep, a module seam so a test can count re-asks without waiting."""
+    import time
+    time.sleep(seconds)
+
+
+@contextlib.contextmanager
+def _queued_for_room(observed: dict | None):
+    """Wait for the memory governor, then hold the census's reservation; yield False if refused.
+
+    QUEUES rather than deferring once: `resource_headroom.queued` re-asks every
+    `ADMISSION_POLL_SECONDS` until `ADMISSION_DEADLINE_SECONDS`. It pauses and reschedules
+    nothing else -- a running value-test job keeps its memory and the census waits behind it. A
+    governor that raises, or a deadline that passes, is a deferral with its reason on `observed`,
+    never an admission (the fail-closed direction `resource_headroom.admitted` had).
+    """
+    from background import resource_headroom
+    stack = contextlib.ExitStack()
+    try:
+        stack.enter_context(resource_headroom.queued(
+            "head_green_census", deadline_seconds=ADMISSION_DEADLINE_SECONDS,
+            poll_seconds=ADMISSION_POLL_SECONDS, sleep=_admission_sleep,
+            log=lambda m: (sys.stderr.write("[head-green-census] {}\n".format(m)),
+                           sys.stderr.flush())))
+    except resource_headroom.QueueTimeout as exc:
+        reason = str(exc)
+    except Exception as exc:  # noqa: BLE001 -- an unreadable governor is a deferral, not a pass
+        reason = "the admission check raised {}: {}".format(type(exc).__name__, exc)
+    else:
+        with stack:
+            yield True
+        return
+    if observed is not None:
+        observed["deferred"] = reason
+    sys.stderr.write("[head-green-census] DEFERRED by resource_headroom, suite not run -- "
+                     "UNPROVEN. {}\n".format(reason))
+    sys.stderr.flush()
+    yield False
+
 
 def subject_head_sha(subject) -> str | None:
     """The commit the SUBJECT CHECKOUT actually holds, or None if it cannot be read.
@@ -493,6 +550,15 @@ def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS, observed: dict | None = None
     certifies every other claim here.
     """
     from background import process_run_complete as prc
+    # QUEUE FOR ROOM BEFORE BUILDING THE SUBJECT, so the commit measured is HEAD when the suite
+    # starts, not HEAD up to `ADMISSION_DEADLINE_SECONDS` earlier.
+    with _queued_for_room(observed) as admitted:
+        if not admitted:
+            return ""
+        return _run_subject_suite(prc, timeout, observed)
+
+
+def _run_subject_suite(prc, timeout, observed):
     with head_subject_checkout() as subject:
         if observed is not None:
             observed["subject_head"] = subject_head_sha(subject)
@@ -531,20 +597,8 @@ def run_suite(timeout: int = SUITE_TIMEOUT_SECONDS, observed: dict | None = None
         # grew 1.67GB -> 3.36GB in one hour under three concurrent runs.
         env = dict(os.environ)
         env.setdefault("TMPDIR", str(prc.HEAD_CHECKOUT_ROOT))
-        # ASK THE MEMORY GOVERNOR, AND HOLD ITS RESERVATION FOR THE WHOLE SUITE. At ~11 GB this is
-        # the largest routine pytest resident on the box, and until it declared itself sim-runner's
-        # admission summed a ledger it was absent from. A refusal is the same "" as every other
-        # suite-not-run path -- UNPROVEN, nothing recorded -- with its reason on `observed`.
-        from background import resource_headroom
-        with resource_headroom.admitted("head_green_census") as admission:
-            if not admission["admitted"]:
-                if observed is not None:
-                    observed["deferred"] = admission["reason"]
-                sys.stderr.write("[head-green-census] DEFERRED by resource_headroom, suite not "
-                                 "run -- UNPROVEN. {}\n".format(admission["reason"]))
-                sys.stderr.flush()
-                return ""
-            return _run_admitted_suite(subject, env, timeout, observed)
+        # Already admitted and reserved by `run_suite` (`_queued_for_room`), at ~11 GB.
+        return _run_admitted_suite(subject, env, timeout, observed)
 
 
 #: Lines of an early-exiting suite's output kept in the journal: enough for a traceback or an

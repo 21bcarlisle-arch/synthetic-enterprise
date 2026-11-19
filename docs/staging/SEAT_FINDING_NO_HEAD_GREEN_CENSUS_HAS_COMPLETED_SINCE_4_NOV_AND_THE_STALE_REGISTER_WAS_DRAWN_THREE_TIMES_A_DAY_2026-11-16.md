@@ -192,3 +192,36 @@ long job releases its memory. That changes the census's own retry policy and not
 back no value-test work, it is reversible by reverting one unit, and it adds nothing on the
 director's path. It is a scheduling call inside the seat's delegation, not a question for him, so
 it is handed on as seat work rather than raised in `for_the_director`.
+
+## 10. The census now waits for admission (19 Nov, claim `census-waits-for-admission-rather-than-deferring`)
+
+**Done.** `tools/head_green_census.run_suite` no longer asks `resource_headroom.admitted` once. It
+goes through `resource_headroom.queued`, the queue the commit gate and the sim runs already use. It
+re-asks every `ADMISSION_POLL_SECONDS` (1800 s) until `ADMISSION_DEADLINE_SECONDS` (66 300 s, about
+18.4 h after it fires). It builds its HEAD subject only *after* admission, so the commit it measures is
+HEAD when the suite starts. A timeout, or a governor that raises, is still a deferral: the result
+is UNPROVEN, the reason is on `--json`, and nothing pages. Nothing else is paused or rescheduled.
+
+The deadline is derived, not chosen. The whole unit must end before the next 03:30 firing:
+86 400 − 600 (timer delay) − 1800 (one poll can overshoot the deadline) − 17 400 (suite bound) − 300
+(report) = 66 300. The unit's `TimeoutStartSec` went from 17 700 to 85 800 to hold the wait plus the
+suite. It is installed: `systemctl --user show` gives `23h 50min`. To reverse it, copy back
+`/var/tmp/head-green-census.service.before-2026-11-19`, run `daemon-reload` and revert the commit.
+Controls: `test_a_refused_census_asks_again_and_runs_when_the_box_has_room` and
+`test_a_census_that_waits_for_room_still_ends_before_the_next_firing`. Three mutations fire:
+a one-shot ask, a raising governor that propagates, and the old 17 700 s unit.
+
+**What it cannot fix, said before it is tried.** The census holds no reservation while it waits. So a
+value-test job launched into a gap can take the gap first, and the queue does nothing about that.
+The last two value-test jobs declared 1400 and 3200 *minutes*. If they run back to back, there may
+be no ~12 GB gap inside 18.4 h at all.
+
+**Pre-registration for the 20 Nov 03:30 firing (written 19 Nov, before it runs).** I predict the
+journal shows one `QUEUED head_green_census` line, then one of two outcomes:
+(a) admitted within the window, the suite runs, and the run ends COMPLETE or PARTIAL with a row in
+the register. This is likely only if the running value-test job ends before about 22:00 on 20 Nov.
+(b) `waited 66300s for room and never fitted`, naming the long job.
+I give (a) about 50%. The value-test schedule is not something I can see from here. If it is (b) on
+two nights running, the conflict is with launch order, not with the census's patience. The next
+lever is then a `wait_as` place in the landings-style register for long-job launches, and that is
+a design question to raise, not a retry to lengthen.
