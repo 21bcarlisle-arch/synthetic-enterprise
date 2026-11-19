@@ -1859,6 +1859,20 @@
     "world:simulation/dwelling_records.py",
     "world:simulation/payment_behaviour_source.py"
    ]
+  },
+  "prepayment-and-self-disconnection": {
+   "domain": "supplier_operations",
+   "layer": "knowledge",
+   "side": "both",
+   "trust": {
+    "grade_floor": "P",
+    "verified": "partly",
+    "vintage": "2026"
+   },
+   "insights": [],
+   "use": [
+    "page:model/map"
+   ]
   }
  }
 }
