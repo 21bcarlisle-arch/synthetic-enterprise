@@ -153,7 +153,10 @@ wrong:
       one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity
       account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:20 19 Nov --
       held by the fork deferral. 21:24 19 Nov -- the book its grade needs, carrying c71d2521d, built at 20:36Z;
-      the grade is focus item 4.
+      the grade is focus item 4. 19 Nov -- RE-STATED on the 67d454905c grade: the book holds no deemed or flex row
+      (only the absent I&C demo accounts reach those writers), so the measured gap is GBP 0.00 per domestic account-day,
+      not 0.47-0.60. Voids omit GBP 202.53 of fixed network over ten years. The hedged writer B12 reads carries the
+      split exactly, so this row no longer blocks B12. The writers' defect stays latent and open.
     corrected: false
   - what: >-
       THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch.

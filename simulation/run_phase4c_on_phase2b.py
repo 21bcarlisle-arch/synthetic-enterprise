@@ -403,6 +403,7 @@ def build_monthly_bills(
     instructed_read_arm: str = "register",
     annualised_advance_estimate: bool | None = None,
     gas_advance_floor_nine_months: bool | None = None,
+    bsc_blend_spar: float | None = None,
     payment_channel_at_feed=None,
     bill_issue_date_feed=simulated_bill_issue_date,
 ) -> list[dict]:
@@ -446,11 +447,14 @@ def build_monthly_bills(
         annualised_advance_estimate = annualised_estimate_request(None)
     if gas_advance_floor_nine_months is None:
         gas_advance_floor_nine_months = gas_advance_floor_request(None)
+    if bsc_blend_spar is None:
+        bsc_blend_spar = bsc_blend_spar_request(None)
     return assemble_monthly_bills(
         all_records, SimulatedReadFeed(instructed_read_arm=instructed_read_arm),
         churned_ids=churned_ids, instruct_reads=instruct_reads,
         annualised_advance_estimate=annualised_advance_estimate,
         gas_advance_floor_nine_months=gas_advance_floor_nine_months,
+        bsc_blend_spar=bsc_blend_spar,
         read_events_out=read_events_out,
         payment_channel_feed=simulated_payment_channel,
         payment_channel_at_feed=payment_channel_at_feed,
@@ -501,6 +505,15 @@ def gas_advance_floor_request(policy) -> bool:
     from simulation.run_phase2b import CURRENT_POLICY
 
     return bool((policy or CURRENT_POLICY).bill_estimate_floors_the_gas_advance_at_nine_months)
+
+
+def bsc_blend_spar_request(policy) -> float | None:
+    """The SPAR at which a hold-route electricity month is billed from the BSC-blended EAC, by the
+    company switch (`DecisionPolicy.bill_estimate_blends_the_eac_at_spar`). None, the default on
+    every standing policy, keeps the 182-day hold."""
+    from simulation.run_phase2b import CURRENT_POLICY
+
+    return (policy or CURRENT_POLICY).bill_estimate_blends_the_eac_at_spar
 
 
 def read_instruction_request(policy) -> bool:
@@ -554,6 +567,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
                                 instruct_reads=read_instruction_request(policy),
                                 annualised_advance_estimate=annualised_estimate_request(policy),
                                 gas_advance_floor_nine_months=gas_advance_floor_request(policy),
+                                bsc_blend_spar=bsc_blend_spar_request(policy),
                                 instructed_read_arm=instructed_read_arm)
     # N14: a catch-up on a bill the account pays on receipt, because its DD had ended, is capped at
     # 12 months; the first pass cannot know the spells, which are decided on its own bills.
@@ -562,6 +576,7 @@ def main(report_end: str | None = None, policy=None, instructed_read_arm: str = 
         churned_ids=churned_ids, instruct_reads=read_instruction_request(policy),
         annualised_advance_estimate=annualised_estimate_request(policy),
         gas_advance_floor_nine_months=gas_advance_floor_request(policy),
+        bsc_blend_spar=bsc_blend_spar_request(policy),
         instructed_read_arm=instructed_read_arm)
 
     # W5_1_banking_payment_rails L2->L3 (2026-07-12): the rails-timed DD

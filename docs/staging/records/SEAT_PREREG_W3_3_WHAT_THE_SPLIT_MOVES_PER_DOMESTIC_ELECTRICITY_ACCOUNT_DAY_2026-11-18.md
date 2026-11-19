@@ -80,3 +80,58 @@ barely moves year to year, so it is a fair proxy, not a measurement).
   EAC says, which would itself be news for N17.
 - Void rows: `as_void_row` still zeroes network, so void-heavy years understate the nil share.
   Expected small; named so a surprise there is attributed to it first.
+
+## Graded on 67d454905c (book `docs/reports/run_output_67d454905c_20261119T184502Z.json`, built 19 Nov 20:36Z)
+
+Graded 19 Nov by the worker holding `w3-3-the-standing-charge-fix-is-graded-on-67d454905c`. The book
+carries c71d2521d **and** other world landings since 6af7fd0bfd (W2_30 OCC gas legs, the stock
+prepayment meters, KNIFE3 moves, s.12f off). So W3_3 does not read alone here, book against book.
+Each grade below is therefore taken **within this one book** wherever it can be, so the population is
+held fixed.
+
+1. **Held.** On hedged domestic electricity account-months, `(network_cost_gbp − cap per-kWh × kWh) /
+   (cap nil / 365 × days)` has median 1.000 in every year 2016–2025. 98–99% of account-months
+   fall within 5% in 2017–2024. The 2016 and 2025 tails (84%, 82%) are part-months at the edges of the
+   book. The split is charged exactly as written.
+2. **Held, but only as a one-variable reading.** Book against book, network cost *rises* in
+   2016–2019 and 2022–2024 against the 6af7fd0bfd baseline (+4.0, +0.2, +0.1, +1.9, −0.8, −1.6, +2.3,
+   +0.2, +1.0, −6.6%). Taken at face value, that refutes the prediction. It cannot be attributed,
+   because the population moved too. On this book's own account-months, W3_3 against the old
+   whole-allowance rule (the year table, still served for `segment="SME"`, × the same kWh) gives:
+   2016 +3.0%, 2017 −2.3, 2018 −3.1, 2019 −3.6, 2020 −5.8, 2021 −5.3, 2022 −2.0, 2023 −3.8, 2024 −2.7,
+   2025 −8.3. Predicted: 2017–2025 each fall by 1–9%, and 2016 within ±3%. Every year holds. 2016 sits
+   at the edge of its band and 2025 near the bottom of its band. The static counterfactual ignores
+   any behaviour the floors feed back; that is named rather than corrected. The median-account
+   sub-claim was not read.
+3. **Vacuous on this book: there are no flex rows, and no deemed rows either.** `run_deemed_term`
+   is reached only through `deemed_gap_days > 0`, and `run_flex_term` only through `tariff_type ==
+   "flex"`. Both are set only on the I&C demo accounts in `saas/customers.py` (C_IC1, C_IC2 deemed;
+   C_IC4 flex). No `C_IC*` account is in this book, and no account-state row has a tariff type other
+   than `fixed` or `svt`. **The measured deemed/flex standing-charge gap per domestic electricity
+   account-day is GBP 0.00, against the GBP 0.47–0.60 carried (0.72–0.94 predicted after W3_3).** That
+   is not because the writers were fixed. The code still books no `standing_charge_gbp` on either
+   writer. It is because no domestic account settles through them. "Settlement and the bill disagree
+   on every domestic electricity account-day" was wrong as a statement about the book. It is a latent
+   defect in two writers that the current population never reaches.
+4. **Not graded here** (the renewal-floor per-MWh). It is a property of the function, which
+   c71d2521d's control already pins.
+
+**The void half, measured.** `as_void_row` still zeroes `network_cost_gbp`, because it is in
+`_VOLUME_FIELDS`. The book has 140 electricity bills that carry a void owner's charge, covering
+1,939 void account-days in total. The fixed network share those days omit, at the cap nil column, is
+**GBP 202.53 over ten years**: GBP 8–15 a year to 2021, then 31.82 / 35.03 / 59.34 / 8.90 in
+2022–2025, about 0.05/day before April 2022 and 0.19–0.34 after. That is at most 0.1% of any year's
+network cost. It runs in the flattering direction, as the "what would make me wrong" line expected,
+and it is small.
+
+**The other ~SC cluster, named so nobody reads it as deemed.** 255 domestic account-months show a
+bill-minus-settlement revenue of about one standing charge a day, and only 56 of them fall within 2%.
+All 255 are `billing_basis: estimated`, where the bill is set from the estimate rather than the
+settled volume. 10,084 estimated months fall outside both clusters. This is the estimated-billing
+spread. It is not a missing standing charge.
+
+**What this means for B12.** B12's renewal floor reads the hedged writer, and (1) shows that writer
+carries the split exactly. The settlement-versus-bill row no longer blocks B12. The deemed/flex/void
+fix is still a true world fix, and it stays open as a latent defect, but it is not on B12's path.
+
+Graded: 67d454905c -- P1 held, P2 held on the within-book one-variable reading (book-vs-book refuted by population change, unattributable), P3 vacuous (0 deemed/flex rows; measured gap GBP 0.00/account-day vs 0.47-0.60 carried), P4 not graded; void omission GBP 202.53 over 1,939 void-days. Probes: /tmp scripts reading the book's per_customer_monthly, bills, account_state_log, home_move_outs.

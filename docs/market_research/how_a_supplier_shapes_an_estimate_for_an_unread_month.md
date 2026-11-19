@@ -276,6 +276,46 @@ blend weighted by FYC·SPAR, and it can be built only once SPAR, or the billing 
 established. Until then E1 stands as the cause of the 179 excepted breaches, now with its citation
 corrected.
 
+**Design choice, 2026-11-19 (D48): the blend is built behind a switch, with SPAR as a range.** This
+supersedes "can be built only once SPAR is established" above. SPAR is still a GAP, and nothing
+here sets it. What changed is the E1 pre-registration
+(`docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md`). On the 6af7fd0bfd
+book the electricity gap fell at every SPAR from 0.5 to 4 (0.407 → 0.379 at 0.5, 0.289 at 3). At
+each of those values E1's breach set and flag set were identical to the hold's. The first new
+breach appears between SPAR 4 and 6. So across that range the choice between the hold and the
+blend does not depend on SPAR's value. It would depend on it only if the real SPAR were about 5 or
+more.
+
+- **What is built.** The company bills a hold-route month from a blended EAC: the registration
+  EAC (or TDCV MEDIUM), with each of its own read advances blended in by §4.3.7,
+  `EAC ← w·(advance/FYC) + (1−w)·EAC`, `w = min(1, FYC·SPAR)`. It spreads that EAC on the profile,
+  in the same way as `opening_estimate_kwh`. The hold route is a month with an actual read held but
+  reads spanning under 182 days. Electricity on profile classes 1 and 3 only. Unchanged: months
+  before the first read (the blend there is the registration EAC itself), route 1 (the annualised
+  advance once reads span 182 days), PC2 (per register, a separate question per the D48 prereg),
+  and gas (the AQ is not smoothed this way, §3). A zero advance does not move the EAC. That is the
+  company's existing rule: a zero advance is a missing measurement. This is the pre-registered
+  single-variable change, and no other route moves.
+- **Why the company computes it, not the world's data collector.** The faithful shape is the NHHDC
+  applying §4.3.7 and sending the EAC on the D0019. The NHHDC is the supplier's appointed agent, and
+  its only inputs are the supplier's own reads and the profile. So computing it company-side reads
+  nothing a real supplier could not hold. It is a stand-in for the agent. It is not a new view of
+  the world. The same SPAR GAP would sit on either side of the seam. Building it company-side keeps
+  the change to one variable and lets it be switched off.
+- **Why a range and not a value.** A point inside [0.5, 3] would be the invented constant the
+  knowledge-first rule forbids: read as established within a week, and unattributable within a month. The range is the
+  part the evidence supports: the span over which the decision is the same at every value. 0.5 is
+  the lowest pre-registered non-zero column. 3 is the highest pre-registered column, below the
+  SPAR 4–6 point where E1 re-opens. The code refuses any SPAR outside the range and names its
+  reason. Every grade is reported at both ends, and published as a range, never at a midpoint.
+- **The switch.** `DecisionPolicy.bill_estimate_blends_the_eac_at_spar` is `None` (the hold) on
+  every standing policy. An experiment sets an end of the range. Turning it on in the published
+  policy is a later step, taken after a fresh book has read the blend at both ends.
+
+**GAP, unchanged:** SPAR's value; whether billing follows the settlement EAC as industry practice
+(§5: one supplier); and whether the registration EAC this world hands over is a fair stand-in for
+the industry figure (the D48 prereg's C6 caveat).
+
 ## 9. What a bill on an actual read charges after estimates (2026-10-29, K8 for class F)
 
 **What the rules require.** SLC 21B.1: when a customer gives a read or the supplier reads the meter,

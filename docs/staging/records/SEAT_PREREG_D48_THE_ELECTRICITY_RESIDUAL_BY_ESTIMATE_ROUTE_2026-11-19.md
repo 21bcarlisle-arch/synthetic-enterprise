@@ -137,3 +137,59 @@ world data collector's parameter, not a company constant. The [0.28, 0.38] band 
 as the prediction that build answers to. It also needs the E1 breach count at each SPAR alongside
 it, because SPAR → ∞ re-opens those breaches. Record:
 `docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §5, §7, §8.
+
+## Graded 2026-11-19: the blend is built at both ends of SPAR [0.5, 3], and is read on 67d454905c
+
+*Filed by the delivery lane `d48-the-electricity-blend-is-built-across-spar-0-5-to-3`. Nothing
+above this line was edited.*
+
+**What is built.** The blend is `unread_month_estimate.bsc_blended_eac_kwh`. Its §4.3.7 step is
+`blend_advances_into_eac`, which the harness now calls too, so the grade below is graded on the
+built formula. It is billed by `monthly_bill_assembly` on the hold route, for PC1/PC3 electricity
+only. It sits behind `DecisionPolicy.bill_estimate_blends_the_eac_at_spar`, which is `None` (the
+hold) on every standing policy. SPAR is `SPAR_WEIGHT_RATE_STATED_RANGE = (0.5, 3.0)`. A value
+outside the range is refused, and the refusal names its reason. Knowledge first:
+`how_a_supplier_shapes_an_estimate_for_an_unread_month.md` §8, "Design choice, 2026-11-19".
+
+**The grade.** Read-only, by `python3 -m tools.d48_spar_blend_counterfactual --ends`, on
+`run_output_67d454905c_20261119T184502Z.json`. Before that, the full sweep was re-run on
+6af7fd0bfd through the refactored harness. It reproduces the E1 record's table exactly, to the
+breach and flag counts at SPAR 0, 0.5, 1, 2, 3 and ∞.
+
+| book | SPAR | elec gap | Σ\|residual\| kWh | no-skill kWh | C6 \|res\| kWh | E1 breaches / runs | E1 flags | breach set, flag set = control |
+|---|---|---|---|---|---|---|---|---|
+| 6af7fd0bfd | 0 (hold) | 0.407 | 55,561 | 136,384 | 15,712 | 8 / 4,428 | 27 | — |
+| 6af7fd0bfd | 0.5 | 0.379 | 51,742 | 136,384 | 13,218 | 8 | 27 | yes, yes |
+| 6af7fd0bfd | 3 | 0.289 | 39,425 | 136,384 | 2,502 | 8 | 27 | yes, yes |
+| **67d454905c** | 0 (hold) | **0.388** | 56,295 | 144,994 | 15,712 | 10 / 4,455 | 35 | — |
+| **67d454905c** | **0.5** | **0.361** | 52,372 | 144,994 | 13,218 | **10** | **35** | **yes, yes** |
+| **67d454905c** | **3** | **0.276** | 40,047 | 144,994 | 2,502 | **10** | **35** | **yes, yes** |
+
+At both ends, 3,182 hold-route bills were re-billed and 11 zero advances were skipped.
+
+**Against the pre-registered band [0.28, 0.38].**
+- **SPAR 0.5: inside** (0.361).
+- **SPAR 3: outside, by 0.004 below the floor** (0.276). Read literally, the band is refuted at
+  the high end, and that stands as written.
+- **What moved is the denominator, not the blend.** Between the two books the electricity
+  no-skill denominator rose 6.3% (136,384 → 144,994 kWh) and the residual rose 1.3%. The blend
+  removes almost the same kWh on both: 16,136 on 6af7fd0bfd and 16,248 on 67d454905c, at SPAR 3.
+  As a share of the hold's gap that is −29.0% and −28.9%. So the band was drawn on one book's
+  denominator and read on another's. The account of the residual (the hold route carries it, and
+  the blend removes the same share) is not what failed. A band for the next book should be
+  stated relative to its own SPAR-0 control.
+
+**E1, against SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR's column.** On this book the guard holds at
+both ends. The breach set and the flag set are identical to the hold's: 10 breaches and 35 flags.
+Three of the 10 breaches sit on accounts the blend moves (SYN-2016-215 twice, PROS-2019-0302). All
+three are also in the control, so none is new. This is a replication by the harness. It is not
+the graded invariant for 67d454905c.
+
+**Published as a range:** with the blend, the electricity gap on 67d454905c is **0.276–0.361**,
+against 0.388 under the hold. E1 is unchanged at every SPAR in the range. No point value of SPAR
+is stated anywhere.
+
+**Next, not done here.** The switch stays off. Turning it on in the published policy is its own
+step, taken after the 0.12 pair has read. A fresh run with the switch set at each end is what
+grades the build end to end: route 1, the catch-up and the DD path, which this harness does not
+move.

@@ -31,12 +31,19 @@ from pathlib import Path
 
 import numpy as np
 
-from company.billing.unread_month_estimate import MIN_ADVANCE_DAYS, profile_weight
+from company.billing.unread_month_estimate import (
+    MIN_ADVANCE_DAYS,
+    SPAR_WEIGHT_RATE_STATED_RANGE,
+    blend_advances_into_eac,
+    profile_weight,
+)
 from tools.couple_w2_36_d48 import account_errors
 from tools.domain_invariant_runner import ev_estimated_run_vs_meter
 
 #: The pre-registered table's columns (D48 route prereg). Not a value of SPAR: a sweep over the GAP.
 SPAR_SWEEP = (0.0, 0.5, 1.0, 2.0, 3.0, math.inf)
+#: `--ends`: the hold (SPAR 0, the control) and the two ends of the stated range the build accepts.
+SPAR_ENDS = (0.0, *SPAR_WEIGHT_RATE_STATED_RANGE)
 BLENDED_PROFILE_CLASSES = {1, 3}
 
 
@@ -63,12 +70,9 @@ def counterfactual_kwh(bills: list[dict], true_kwh: dict, spar: float) -> tuple[
             first_actual, last_actual = first_actual or _d(pend), _d(pend)
             if eac is not None:
                 advance = sum(pending)
-                fyc = profile_weight("electricity", prev_read, _d(pend))
                 if advance <= 0:
                     seen["zero_advances"] += 1
-                elif fyc > 0:
-                    w = 1.0 if math.isinf(spar) else min(1.0, fyc * spar)
-                    eac = w * advance / fyc + (1 - w) * eac
+                eac = blend_advances_into_eac("electricity", eac, [(prev_read, _d(pend), advance)], spar)
             prev_read, pending = _d(pend) + timedelta(days=1), []  # a read closes its own day
             continue
         if first_actual is None or b.get("profile_class") not in BLENDED_PROFILE_CLASSES:
@@ -95,12 +99,10 @@ def _replay(bills, true_kwh, start, upto, eac, spar, seen) -> float:
             break
         pending.append(true_kwh.get(b["period_end"]) or 0.0)
         if _is_actual(b):
-            advance, fyc = sum(pending), profile_weight("electricity", prev, _d(b["period_end"]))
+            advance = sum(pending)
             if advance <= 0:
                 seen["zero_advances"] += 1
-            elif fyc > 0:
-                w = 1.0 if math.isinf(spar) else min(1.0, fyc * spar)
-                eac = w * advance / fyc + (1 - w) * eac
+            eac = blend_advances_into_eac("electricity", eac, [(prev, _d(b["period_end"]), advance)], spar)
             prev, pending = _d(b["period_end"]) + timedelta(days=1), []
     return eac
 
@@ -160,6 +162,8 @@ def sweep(book: dict, spars=SPAR_SWEEP) -> list[dict]:
             "runs_checked": tally.checked, "breaches": len(tally.breaches), "flags": len(tally.flags),
             "breaches_on_moved_accounts": [x for x in tally.breaches if x["where"].split()[0] in moved],
             "breach_where": [x["where"] for x in tally.breaches],
+            "flag_where": [x["where"] for x in tally.flags],
+            "elec_residual_kwh": num, "elec_noskill_kwh": den,
             "hold_bills_rebilled": hold, "zero_advances": zero,
         })
     return out
@@ -169,8 +173,11 @@ def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--book", required=True)
     ap.add_argument("--json", type=Path)
+    ap.add_argument("--ends", action="store_true",
+                    help="grade the control and the two ends of the built range only")
     args = ap.parse_args(argv)
-    result = sweep(json.loads(Path(args.book).read_text(encoding="utf-8")))
+    result = sweep(json.loads(Path(args.book).read_text(encoding="utf-8")),
+                   SPAR_ENDS if args.ends else SPAR_SWEEP)
     for r in result:
         print(f"SPAR {r['spar']:>4}: elec gap {r['elec_gap']:.3f}  C6 |res| {r['c6_residual_kwh']:,.0f} kWh  "
               f"E1 runs {r['runs_checked']} breaches {r['breaches']} "
