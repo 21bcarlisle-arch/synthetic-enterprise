@@ -156,6 +156,15 @@ def statute_barred_write_off_date(due, last_payment=None):
     return _date(due, last_payment)
 
 
+def closing_write_off_by_bill(still_owed, one_balance=None):
+    """What the supplier writes off at close on each bill a leaver still owes, as `(index, amount)`.
+    The world passes what each bill still owes off its walk, oldest first, and the one closing
+    balance of a level leaver; the rule of which bills and how much stays behind the door."""
+    from company.billing.collections_journey import closing_write_off_by_bill as _by_bill
+
+    return _by_bill(still_owed, one_balance)
+
+
 def bill_falls_due(issued):
     """The day a bill the supplier issued on `issued` falls due, on its own payment terms. The world
     passes the issue date and takes back the due date; the terms stay behind the door."""

@@ -261,6 +261,27 @@ def statute_barred_write_off_date(due: dt.date, last_payment: Optional[dt.date] 
     return _years_after(clock, STATUTE_BAR_YEARS)
 
 
+def closing_write_off_by_bill(outstanding_gbp: List[float],
+                              one_balance_gbp: Optional[float] = None) -> List[tuple]:
+    """What the company writes off at close on each bill a leaver still owes, as `(index, GBP)` in
+    the order it writes them, `index` into `outstanding_gbp` (what each bill still owes, oldest
+    first). Its own accounting act on its own ledger (home_moves.md s.8.8b choice 4,
+    LEVEL_DD_AREA_MAP S10). Off a level schedule every outstanding bill is written off whole. On one,
+    `one_balance_gbp` is the account's one closing balance, and no more is written off than it owes:
+    newest bill first, because an over-collection discharges the oldest first. The settlement walk
+    (`simulation/arrears_engine.py`) keeps the bills and the date (KNIFE3, 2026-11-19)."""
+    if one_balance_gbp is None:
+        return list(enumerate(outstanding_gbp))
+    owed = max(0.0, one_balance_gbp)
+    out = []
+    for i in reversed(range(len(outstanding_gbp))):
+        take = round(min(outstanding_gbp[i], owed), 2)
+        owed = round(owed - take, 2)
+        if take > 0.005:
+            out.append((i, take))
+    return out
+
+
 def bill_falls_due(issued: dt.date) -> dt.date:
     """The day a bill issued on `issued` falls due: the company's own payment terms
     (`company/billing/invoice.PAYMENT_TERMS_DAYS`), printed on its bill. The world issues the bill

@@ -98,6 +98,7 @@ from company.interfaces.collections_communication import (
     bill_falls_due,
     bill_issued_for,
     closed_account_write_off_date,
+    closing_write_off_by_bill,
     ledger_notice_wording,
     ledger_notices,
     ledger_write_off_fallback,
@@ -1533,17 +1534,14 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
             # The company's own write-off date, a year after the final bill was issued: the date
             # the desk writes the same balance off on (debt_and_collections.md s.7.3).
             closed_on = closed_account_write_off_date(bill_issued_for(horizon))
-            # No more is written off than the one balance owes (s.8.8b choice 4). Off a level
-            # schedule the balance is the outstanding bills less the waiting credit, and every
-            # outstanding bill is written off whole, as it always was.
-            owed = max(0.0, closing) if cid in level else None
-            for item in (list(reversed(outstanding)) if owed is not None else outstanding):
-                if owed is not None:
-                    item["remaining"] = round(min(item["remaining"], owed), 2)
-                    owed = round(owed - item["remaining"], 2)
-                    if item["remaining"] <= 0.005:
-                        continue
-                _write_off(item, closed_on, LEG_CLOSE)
+            # How much of each outstanding bill is written off is the company's (s.8.8b choice 4,
+            # `closing_write_off_by_bill`): a level leaver's one balance goes over, off a level
+            # schedule nothing does (KNIFE3, 2026-11-19).
+            for i, amount in closing_write_off_by_bill(
+                    [item["remaining"] for item in outstanding],
+                    closing if cid in level else None):
+                outstanding[i]["remaining"] = amount
+                _write_off(outstanding[i], closed_on, LEG_CLOSE)
     return out, credited
 
 
