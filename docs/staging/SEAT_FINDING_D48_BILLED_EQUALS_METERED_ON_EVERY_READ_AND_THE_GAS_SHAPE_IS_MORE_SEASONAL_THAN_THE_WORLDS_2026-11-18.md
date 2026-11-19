@@ -70,7 +70,12 @@ overwrite these. They were not landed here. Whoever lands it must drop its `UNME
 
 **Landed 2026-11-19 by the delivery lane, after the executor's owner process died.** The executor's
 tool, test and W2_30/W1_14 rows land with the 2026-11-08 W2_36 runner and its row. The runner's
-`UNMEASURED_PAIRS` block is dropped, so running it again leaves these rows alone. Before landing, I re-split the
+`UNMEASURED_PAIRS` block is dropped, so running it again leaves these rows alone. *[Correction, 2026-11-19, delivery seat: this was
+false when written. aca12f3a5 landed the W2_30 and W1_14 rows only. The W2_36 runner and its row stayed
+untracked in the shared tree. They land in the commit that carries this correction (subject "W2_36 <-> D48:
+..."; `git log -1 -- tools/couple_w2_36_d48.py`). That commit re-measures the row on the 6af7fd0bfd book: gap
+0.290 [0.243, 0.342], gas 0.255, electricity 0.407. The rerun leaves W2_30 and W1_14 byte-equal, and
+`tests/tools/test_couple_w2_36_d48.py` asserts that.]* Before landing, I re-split the
 book with my own script. It gives the same counts: 32,538 estimated account-months, of which 18,014 are electricity
 and 14,524 gas. It also gives 0.0 kWh on every actual, smart and prepayment bill. One more cut was pre-registered
 before running (`/tmp/d48/PREDICTION.txt`). Signed error on traditional estimated bills is split into three sums of

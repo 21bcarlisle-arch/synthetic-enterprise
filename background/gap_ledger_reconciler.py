@@ -313,6 +313,16 @@ def _ids_at_write_sites(tree: ast.Module, root: Path, cache: dict, delegate: boo
     imported_names, module_aliases = _bindings(tree)
     ids, unresolved = set(), []
     for node in ast.walk(tree):
+        # `ledger[W1_14] = {...}` is a write too: tools/couple_d48_billing_gap.py writes its
+        # gap-less W1_14 row that way, and a rule blind to it left the row with no producer.
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if (isinstance(target, ast.Subscript) and isinstance(target.value, ast.Name)
+                        and target.value.id == "ledger"):
+                    key = _resolve(target.slice, consts, imported_names, module_aliases, root, cache)
+                    if key is not None:
+                        ids.add(key)
+            continue
         if not isinstance(node, ast.Call) or _write_call_name(node) is None:
             continue
         found = set()
