@@ -168,6 +168,40 @@ class SeasonalGasRefusal:
     reason: str
 
 
+#: The reason carried for a resi gas leg that SETTLED with neither a fitted split nor a refusal.
+#: Settlement falls to the population split for it (`run_gas_term`'s `heating_fraction=None`), so
+#: leaving it out of the record is exactly the silent fallback the record exists to show. The known
+#: case is the incoming occupier's `OCC-` leg (241 account-years of the 8a300fa561 book), which does
+#: not carry its premise's split: `docs/market_research/the_domestic_gas_year_heats_on_about_85_
+#: percent_not_70_2026-11-19.md` s.8. Whether it should is a design choice that lands with the
+#: W2_30 recalibration; this only stops it being invisible.
+SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL = (
+    "settled on the population split with no split fitted and no refusal recorded for this leg "
+    "(an incoming occupier's leg does not carry its premise's split)"
+)
+
+
+def gas_shape_record(
+    splits: Mapping[str, object],
+    refusals: Sequence[SeasonalGasRefusal],
+    settled: Sequence[str],
+) -> tuple[dict[str, str], list[SeasonalGasRefusal]]:
+    """The run record's gas half: provider by customer, and the refusals behind the fallbacks.
+
+    Keyed to what SETTLED, not only to what was fitted: every leg in ``settled`` appears in the
+    provider map, and one with neither a split nor a refusal is recorded on the population split
+    under `SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL`. A refusal wins over a split for the same id, as
+    the record has always read."""
+    refused = {r.customer_id for r in refusals}
+    rows = list(refusals) + [
+        SeasonalGasRefusal(cid, SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL)
+        for cid in dict.fromkeys(settled) if cid not in splits and cid not in refused
+    ]
+    provider = {cid: "fabric_seasonal_split" for cid in splits}
+    provider.update({r.customer_id: "population_70_30_split" for r in rows})
+    return provider, rows
+
+
 def _fit_two_term(
     daily_kwh: Sequence[float], daily_hdd: Sequence[float]
 ) -> tuple[float, float, float]:

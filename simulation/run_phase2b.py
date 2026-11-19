@@ -256,6 +256,7 @@ from simulation.household import (
 from simulation.household_demand import HouseholdDemandRegister
 from simulation.household_demand_shape import (
     SeasonalGasRefusal,
+    gas_shape_record,
     seasonal_gas_split,
     seasonal_gas_splits_for_book,
 )
@@ -2116,6 +2117,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
           f"{sorted(gas_heating_fraction_by_customer)}")
     for _r in gas_shape_refusals:
         print(f"  {_r.customer_id}: population 70/30 split -- {_r.reason}")
+    # Every resi gas leg that settles, so the record below names the ones that fell to the
+    # population split with nothing on record (the incoming occupiers' legs, W2_30 finding).
+    _gas_settled_resi: dict[str, None] = {}
 
     demand_provider_by_customer: dict[str, str] = {}
     print(f"Fabric-driven premises (W1_11 settlement switch): "
@@ -5692,6 +5696,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # one, the population 70/30 split where it could not -- and which it was is in
             # the run's own record above, never inferred from an absence.
             _gas_split = gas_heating_fraction_by_customer.get(cid)
+            if cust_segment == "resi":
+                _gas_settled_resi[cid] = None
             term_records = run_gas_term(
                 cid, term_start_str, term_end_str, aq_kwh,
                 unit_rate, hf, forward_price,
@@ -6464,6 +6470,8 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     _psr_registrations = (
         {"psr_registrations": _deliver_psr_registrations(all_records, run_base_seed())}
         if _vulnerability_hidden_state_on else {})
+    _gas_shape_record = gas_shape_record(
+        gas_heating_fraction_by_customer, gas_shape_refusals, list(_gas_settled_resi))
     _result = {
         **_psr_registrations,
         "all_records": all_records,
@@ -6496,12 +6504,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # `SeasonalGasRefusal`'s own docstring already claimed the opposite: the reason is carried
         # "so a customer silently keeping the population constant is visible in the run instead of
         # inferred from its numbers". It was visible only on a terminal nobody keeps.
-        "gas_shape_provider_by_customer": {
-            **{cid: "fabric_seasonal_split" for cid in gas_heating_fraction_by_customer},
-            **{r.customer_id: "population_70_30_split" for r in gas_shape_refusals},
-        },
+        "gas_shape_provider_by_customer": _gas_shape_record[0],
         "gas_shape_refusals": [
-            {"customer_id": r.customer_id, "reason": r.reason} for r in gas_shape_refusals
+            {"customer_id": r.customer_id, "reason": r.reason} for r in _gas_shape_record[1]
         ],
         "fabric_eligibility": [
             {"customer_id": v.customer_id, "is_eligible": v.is_eligible, "reason": v.reason}

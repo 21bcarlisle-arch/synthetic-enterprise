@@ -82,6 +82,11 @@ evidence. They are the right yardstick.
 2. Then the W2_30 fix: recalibrate the fallback's heating fraction to the established ratio, or widen fabric coverage
    so fewer premises fall back. Grade it on the book after skip0, with this table as the pre-registered baseline.
 3. Add the `OCC-` accounts to `gas_shape_provider_by_customer`.
+   **Record half done 2026-11-19 (autonomous worker).** The record is now keyed to what settled.
+   `simulation.household_demand_shape.gas_shape_record` puts every resi gas leg that settled into the
+   provider map, and a leg with neither a split nor a refusal reads `population_70_30_split` under a
+   named reason. The settlement half, carrying the premise's split onto the occupier's leg, is not
+   done: it changes the gas book, so it lands with step 2 behind DIRECTION's `not_now`.
 
 **Reproduce.** The script is `/tmp/w230/cut.py` plus `/tmp/w230/agg.py`, run with `PYTHONPATH=.` from the repo root. It
 imports `couple_d48_billing_gap` from the executor worktree until that tool lands. It filters `shape_rows` by

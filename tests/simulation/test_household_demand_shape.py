@@ -305,3 +305,28 @@ def test_the_book_reads_the_split_when_the_accessor_supplies_it():
     assert not refusals
     assert splits["three"].flat_kwh_per_year == pytest.approx(4.0 * 365.0)
     assert splits["two"].flat_kwh_per_year is None
+
+
+def test_a_resi_gas_leg_that_settled_with_no_split_and_no_refusal_is_in_the_record():
+    """THE DEFECT (W2_30 finding, 2026-11-18): 74 incoming-occupier `OCC-` gas accounts (241
+    account-years of the 8a300fa561 book) settled on the population 70/30 split and were absent
+    from `gas_shape_provider_by_customer`, because the record was built from the fitted splits and
+    refusals only -- and the occupier leg has neither. Mutation: build the provider map from
+    `splits` and `refusals` alone (drop the `settled` leg) and the OCC row goes missing."""
+    from simulation.household_demand_shape import (
+        SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL,
+        SeasonalGasRefusal,
+        gas_shape_record,
+    )
+
+    splits = {"C1": object()}
+    refusals = [SeasonalGasRefusal("C2", "too few days")]
+    provider, rows = gas_shape_record(splits, refusals, ["C1", "C2", "OCC-C1-g", "OCC-C1-g"])
+
+    # The partition can be taken: each of the three states is reached.
+    assert provider == {"C1": "fabric_seasonal_split", "C2": "population_70_30_split",
+                        "OCC-C1-g": "population_70_30_split"}
+    assert [(r.customer_id, r.reason) for r in rows] == [
+        ("C2", "too few days"), ("OCC-C1-g", SETTLED_WITHOUT_A_SPLIT_OR_A_REFUSAL)]
+    # Every leg that settled is in the record.
+    assert {"C1", "C2", "OCC-C1-g"} <= set(provider)
