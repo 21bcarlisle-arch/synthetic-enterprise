@@ -1877,3 +1877,60 @@ section as its origin.
 - **Transfer check (M2):** the added offers' discount total is printed beside the retained margin. A gain made
   of discounts paid to households who would have stayed is transfer, and is not graded as a hold.
 
+
+#### The 0.12 switch is built, and its pair is armed (19 Nov 05:05Z)
+
+**A second gate, found offline before any run.** Moving the cut alone reaches none of the nine flips.
+A sizes its cut on `risk_tiers`, and the lowest tier starts at 0.30. A belief of 0.13 that passes a
+0.12 cut is sized at 0%. `retention_cut_share_at_risk_tiers` then returns None, and the renewal is
+logged `the_fix_has_no_room_above_its_cost_floor`, with no offer. That reason is wrong for this case:
+the tier gave nothing, and the floor was never reached. So the tier table is a second cut at 0.30.
+
+The switch therefore has two halves. `retention_cut_at_the_flips` moves the cut to 0.12
+(`growth_desk.RETENTION_THRESHOLD_AT_THE_FLIPS`). It also gives a belief in (0.12, 0.30] the lowest
+tier's share, 3% (`growth_desk.retention_tier_share`). The 3% is not new: it is the existing tier
+carried down. This is the one change to the candidate as written above. Bar 1 now tests the whole
+offer path, as it was meant to. The bars are unchanged.
+
+**On origin, default off.** Test: `tests/company/crm/test_the_renewal_cut_at_0_12_reaches_the_offer_path.py`.
+- A renewal at 0.13 reaches the offer path only with the switch on.
+- With the switch off, both halves return the 0.30 path's values at 1,001 beliefs.
+- Mutations: removing the tier lift gives 1 red; pinning the cut at 0.30 gives 1 red; pinning it at
+  0.12 gives 2 red.
+
+**Where the pair runs.** On A's world, so the nine flips are the same households. The tree is
+`/var/tmp/value-test-cut012`: 870201d1e7 plus a port of the switch. It is a locked worktree. Its
+diff is pinned at `/var/tmp/vtc-driver/cut012.patch.sha256` (`2b312c4d…114d`). The driver is
+`/var/tmp/vtc-driver/driver.py`. It sets A plus the switch, with the weighing and the skip off, on
+all three arms, as A's own driver did. The sidecar also keeps each arm's `retention_log` and
+`retention_offer_channel_log`.
+
+**The reader** is `/var/tmp/vtc-driver/read_cut012.py`, written before the run. It grades the bars
+above against A as run (`vta-out-flag1`). It also prints the transfer check: the value arm's offers at
+a belief of 0.30 or below, by what the world says each one changed. Beside each it prints the
+discount total, the margin retained on offers that changed a departure, and the discount paid to
+households who stayed anyway.
+
+**Armed (05:03Z).** The command was:
+
+    systemd-run --user --unit=vtc-cut012-watch --property=WorkingDirectory=/home/rich/synthetic-enterprise \
+      --property=StandardOutput=append:/var/tmp/box-plan/vtc-cut012-watch.log \
+      --property=StandardError=append:/var/tmp/box-plan/vtc-cut012-watch.log \
+      /bin/bash /var/tmp/box-plan/arm_cut012.sh 1873421
+
+`arm_cut012.sh` takes three preconditions in order, then runs `launch_cut012.sh` once.
+`launch_cut012.sh` goes through `launch_long_job` (unit `longjob-value-test-cut012`, 11,800 MB,
+800 min). The three preconditions:
+1. **skip0 has read.** `tools/wait_for --pid 1873421` waits on skip0's unit, re-asked in 6 h slices,
+   which is the waiter's own ceiling. Then `read_threshold_skip.out` must exist.
+2. **The W3_3 book has built.** sim-runner's producer state must record a success after arming, on a
+   commit that carries c71d2521d. *This departs from the direction:* that book has no PID before it
+   starts, and `wait_for` cannot wait on a process that does not yet exist, so this leg polls the
+   state file every 600 s.
+3. **`box_free.py` says free.**
+
+If a precondition is not met by 2026-11-24, when `next_book_requires` lapses, the watcher gives up,
+names the reason and launches nothing.
+
+**Reverse:** `systemctl --user stop vtc-cut012-watch`. Then `git worktree unlock
+/var/tmp/value-test-cut012` and `git worktree remove --force` it.
