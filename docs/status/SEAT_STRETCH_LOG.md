@@ -8,6 +8,46 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-19 — orientation: Three hours: 10 commits, 8 carrying work, 3 substantive
+
+<!-- head: 357e49bce405 -->
+
+*Written by the orientation seat from its own record (2026-11-19T21:24:22.310273+00:00; 10 commits, 3 substantive, since 2026-11-19T18:20:48.222530+00:00).*
+
+Commit split (product code by path): 1 supplier, 0 world, 1 both, 8 other.
+
+## What the stretch meant
+
+Three hours: 10 commits, 8 carrying work, 3 substantive. The brief's split reads 1 supplier, 1 both, 8 other. By content, the machine unblocked the thesis test, and the supplier moved twice. The thesis test is unblocked. The fork with origin closed at 18:28Z (67d454905), sim-runner built its first book since 18 Nov on 67d454905c (run complete 20:36Z), and the 0.12 pair launched at 20:42Z. The pair is the one armed test of whether the per-customer arm beats the flat book. It is running now (value-test-cut012, at mid-2022 in its first child at 21:24Z), so nothing new is known yet about the advantage over the baseline. It still reads -GBP 1.35 (-3.03 to +0.13). The pair runs on A's world, 870201d1e7, by design. That tree predates both c71d2521d and the prepayment build f0445b2dc. So my last record was wrong that the pair would check the prepayment build. The published book 67d454905c carries the build, and that book is what can check it. Supplier work: KNIFE3 moved a fifth decision company-side (c0d825b3d, the leaver's closing write-off, byte-equal on the 8a300fa561 replay). The rename into Lane 0 worked; the atom id never could. On electricity, the SPAR search found no public value (272145302). The SPAR sweep (90838c686) then showed that the hold-or-blend choice does not turn on SPAR between 0.5 and 4. The blend lowers the gap at every value in that range and leaves the E1 guard exactly as it is. So building it as a stated range is no longer an invented constant, and the open director row says silence means build. It is item 2, behind a default-off switch. On gas, my 18:20 thesis said the next book "should move the gas gap". The pre-registration filed at 20:42Z (0c1e91449) predicted the opposite: 4accbb828 moves no settlement. The grade landing now (surgical_land pid 357188) says all four of its predictions held: the residual is the world's 70/30 fallback, and it is not gone. My claim is listed as wrong below. The previous focus was all drawn, and three of its four items are done. The book item is done (the book built; the pair's reading is now item 1). The SPAR knowledge item is done (the GAP is recorded with its search). The KNIFE3 item is done for one row and continues. The gas prediction is done and is being graded. Lane 0 rows: skip1-is-graded-against-s12es-branches landed under a2c848965b (graded skip1, REFUTE, k = 0). The poesys-net login row is not_done because its next step is the director's Zero Trust sign-up (his open row), not work lying in the tree. Nothing went backwards. The stretch's thesis evidence is still zero new pounds, though, and the next three hours are when the pair answers.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- unchanged. 21:24 19 Nov -- unchanged; the 0.12 pair runs with the weighing off, so it does not touch this belief.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- the pair's W3_3 book had not built. 21:24 19 Nov -- the book built (67d454905c, 20:36Z), and the 0.12 pair launched at 20:42Z and is running. Its read is focus item 1.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- narrowed: N17 does not explain the electricity unbilled residual. 21:24 19 Nov -- unchanged; the recheck by 23 Nov stands, and 67d454905c is the book to recheck it on.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 18:20 19 Nov -- held by the fork deferral. 21:24 19 Nov -- the book its grade needs, carrying c71d2521d, built at 20:36Z; the grade is focus item 4.
+- NOT corrected: THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit's own claim, and no pair has checked it. 18:20 19 Nov -- unchanged. 21:24 19 Nov -- my 18:20 tail said the pair "runs on a book that carries the build". It does not: the pair's tree is 870201d1e7, which predates f0445b2dc. The published book 67d454905c carries it, so the check is that book against 7f0723b46e (not_now this stretch).
+- corrected: THE MACHINE'S (THIS SEAT'S), NEW. My 15:20 not_now declined to reconcile the primary checkout's fork commit a2ed7654e0 by hand, saying its content was on origin and the reconciler owned it. sim-runner had already been deferring on exactly that commit since 11:59Z, and kept deferring for six more hours, so no W3_3 book could build for the 0.12 pair. I judged the commit harmless without reading the producer's log. 21:24 19 Nov -- corrected: 67d454905 closed the fork at 18:28Z, sim-runner built 67d454905c (run complete 20:36Z), and the pair launched at 20:42Z.
+- corrected: THE MACHINE'S (THIS SEAT'S), NEW. The 15:20 record put KNIFE3 in focus under its atom id while the anti-livelock draw had stopped taking it (1,725 unchanged draws), so no draw could reach it and the steer drifted for a whole stretch. 21:24 19 Nov -- corrected: the renamed Lane 0 item was drawn and landed c0d825b3d.
+- corrected: THE MACHINE'S (THIS SEAT'S), NEW. My 18:20 thesis_read said 4accbb828 had closed the gas fallback for incoming occupiers, "so the next book should move the gas gap". 4accbb828 moves no settlement. The 20:42Z pre-registration (0c1e91449) predicted that the residual is not gone and sits on the 70/30 fallback, and the grade on 67d454905c, now landing, says all four of its predictions held. Corrected by that pre-registration, ahead of the book.
+
+## Chosen against
+
+- The W2_30 gas lever, moving the occupier split off the 70/30 fallback (about 0.70 to about 0.85), now that the 4accbb828 grade puts the gas residual on the world.
+- Switching the electricity blend on in the published policy in the same step as building it.
+- Re-arming or reshaping the 0.12 pair onto 67d454905c so it carries the prepayment build and W3_3.
+- A Pages-Function password gate for the site, so the login ruling finishes without the director's Zero Trust sign-up.
+- Reaping or landing the 10 at-risk salvage worktrees, and the repeating supervisor-turns alarm.
+
+## Focus for the next stretch
+
+- `the-0-12-pair-is-read-and-the-advantage-is-published-with-its-interval`
+- `d48-the-electricity-blend-is-built-across-spar-0-5-to-3`
+- `knife3-the-next-home-move-or-final-bill-decision-moves-company-side`
+- `w3-3-the-standing-charge-fix-is-graded-on-67d454905c`
+
+---
+
 ## 2026-11-19 — orientation: Three hours: 17 commits, 13 carrying work, 5 substantive
 
 <!-- head: 61a855fe8731 -->
