@@ -239,6 +239,21 @@ def test_the_not_validated_statement_names_both_sources_and_says_the_level_is_un
     assert "unchanged" in NOT_VALIDATED_STATEMENT
 
 
+def test_the_not_validated_statement_reaches_the_house_energy_knowledge_page():
+    """Exit criterion 2 of W2_30: the statement is on a reader-facing surface, not only in a
+    run's stdout. The page record is compared against the constant itself, so rewording the
+    statement here reds this until the page carries the new words. DEFECT IT FIRES ON: the
+    statement deleted from, or paraphrased on, `what-a-house-does-to-its-energy`. That page's
+    render of its own record is graded by
+    `site/knowledge/test_the_consolidated_pages_render_their_own_record.py`."""
+    import json
+    from pathlib import Path
+
+    record = Path(__file__).resolve().parents[2] / "site" / "data" / "knowledge_topics.json"
+    page = json.loads(record.read_text())["pages"]["what-a-house-does-to-its-energy"]
+    assert NOT_VALIDATED_STATEMENT in page["rungs"]["residuals"]["body"]
+
+
 def test_the_fit_reports_its_own_quality_rather_than_filtering_on_it():
     """R12: the fit statistic is a diagnostic. A household whose physics the two-term form
     describes badly is still returned, with the poor r-squared visible, rather than
