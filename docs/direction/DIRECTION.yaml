@@ -1,183 +1,185 @@
 version: 1
-oriented_at: "2026-11-19T15:20:37.820773+00:00"
+oriented_at: "2026-11-19T18:20:48.222530+00:00"
 thesis_read: >-
-  Three hours: eight commits, seven carrying work and four substantive. The brief splits them 0 supplier, 1 world,
-  1 both and 6 other. Read by content, the supplier got two real results and lost one claim. First, skip0 is graded
-  (9a361e356). All three pre-registered rows held: d0 is -GBP 4.57 (-7.26 to -2.24) and d1 is exactly 0.00, with 0 of
-  1,532 account nets differing. The same grade also corrects my last record. I wrote that the save-odds weighing "is
-  where the arm loses its -GBP 1.35". It is not. The weighing is off on every standing policy and on no published book,
-  so the -GBP 4.57 is a separate loss that only the experiment drivers produce. A's -GBP 1.21 against its twin is A's
-  own belief acting through the 0.30 retention cut (s.12c traced nine of ten flips there), with no weighing involved.
-  So the thesis's live test stands where it did: the per-customer arm still trails the flat book, and the lever
-  pre-registered to test that is the armed 0.12 pair. That pair waits on a W3_3 book (precondition 2, kept with
-  evidence), and it lapses on 24 Nov. That is not backwards, but it is not forwards either. Second, W2_36 <-> D48 is
-  finally on origin (f79826ffc, merged b92443ec1) after three dead launches. Unbilled energy is now measured: gap
-  0.290 [0.243, 0.342] over 1,306 accounts, with electricity (0.407) much worse than gas (0.255). Two of its four
-  pre-registered rows were refuted. W2_36's L3 hold no longer cites an unmeasured gap, so the previous record's wrong
-  row about it is corrected. The electricity residual is the first billing-accuracy number the company can now act
-  on. KNIFE3 moved a fourth decision out of simulation/ (434719446, the reg 6D refund clock, byte-equal on the
-  replay). The director answered the one open concern at 14:07: the repo stays public, and the website goes behind a
-  login. He also steered two lint families under the ratchet. Both advisor files are on origin and not yet actioned,
-  so they go first, as rung zero requires. All three items in the previous focus were drawn. Two finished; the third
-  (KNIFE3) finished one slice and continues below. The world side was one ERA5 pull (415 of 596 cells still owed) and
-  a W2_30 hold note. That is the right size while it blocks no supplier result.
+  Three hours: 17 commits, 13 carrying work, 5 substantive. The brief splits them 0 supplier, 1 world, 17 other,
+  but read by content the supplier got its best billing-accuracy result of the week and the thesis test stood still.
+  The result: 3d967150f traced the electricity unbilled residual (gap 0.407) to the company's own estimator, not to the
+  world. 57% of it sits on bills estimated from the registry EAC after the company already held its own reads, because
+  of a 182-day hold that has no source. On the route that uses the company's own year-long advance, billed over true
+  is 0.989. That is inference failing on the company's side, which is exactly the kind of loss the thesis says the
+  company should be able to fix with what it knows. The same note pre-registered the fix (the BSC Annex S-2 blend,
+  gap predicted in [0.28, 0.38]) and declined to build it, because the blend's weight, SPAR, is an established GAP.
+  That was the right call under knowledge-first, so the next step is knowledge. On gas, 35af2ce22 cleared the company's
+  estimate shape against Xoserve's ALP; the gas over-billing into winter is the world's 70/30 fallback, and 4accbb828
+  has since closed the fallback for incoming occupiers, so the next book should move the gas gap. The thesis test
+  went nowhere, and the reason is the machine. sim-runner has DEFERRED every cycle since 11:59Z because the primary
+  checkout holds a2ed7654e0, which origin lacks. No book has built since 18 Nov 10:45. The 0.12 pair, the one armed
+  test of whether the per-customer arm can beat the flat book, waits on a W3_3 book and lapses on 24 Nov. My 15:20
+  not_now said the reconciler owned that fork commit and declined to touch it, and that left the book blocked for
+  six hours; it is listed as wrong below. A surgical_land merging origin into the primary checkout (pid 2812152,
+  "The fork with origin is closed") is in flight now, so item 1 is to see it through and confirm the book launches,
+  not to start it. The previous focus had four items. The login and the lint steer finished: the lint at 0a6943b0a,
+  and the login as far as it can go without the director's Zero Trust sign-up, which is his open reserved row. The
+  advisor file for the login therefore stays in the advisor root with nothing actionable left in it. The electricity
+  trace finished. KNIFE3 was named under its atom id and never drawn. The anti-livelock draw had stopped taking it
+  (1,725 unchanged draws), so an atom id could not reach it, and the steer itself drifted. It is renamed below so
+  Lane 0 hands it out. The Lane 0 row skip1-is-graded-against-s12es-branches, marked not_done, landed under another
+  id: a2c848965b graded skip1 (k = 0 of 9, refuted). Nothing is left to redo.
 stretch_reviewed:
-  since: "2026-11-19T12:21:49.832585+00:00"
-  commits: 8
-  substantive: 4
+  since: "2026-11-19T15:20:37.820773+00:00"
+  commits: 18
+  substantive: 5
 focus:
-- id: poesys-net-goes-behind-a-login
-  what: 'Action docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md.
-    Write the K8 note first, in that file''s Done draft or a docs/design note: what is gated, what stays
-    public, and how to reverse it. Then put Cloudflare Access (free Zero Trust plan, one-time email codes,
-    the director''s address as the first allowed reader) in front of every route of the Pages project.
-    That means poesys.net, the *.pages.dev address and its preview URLs, and any Pages Functions. Add
-    noindex and a robots disallow to the gated site. Prove the gate can fail with an unauthenticated fetch
-    of each route, refused, recorded as a reading or test. Do not touch the github.io copy or the repo.
-    Update the site lines that call the site public or newcomer-facing. Any conflict with his "public
-    domain is the plan" or front-door words is raised with `python3 -m background.director_concerns --raise`,
-    with a proposal, and not edited. STOP and raise (do not act) if the gate needs a DNS change or sign-up
-    asks for a payment card. Name the exact change or screen.'
-  why: 'His ruling, 14:07 19 Nov, closes the repo concern, and this item is that close''s commitment.
-    Done means every route refuses an unauthenticated fetch and the reading is on origin. The advisor
-    file moves to done/ with `Decision: g5 changed`, and the record says the login stops casual readers
-    and not a determined one. His one successful login is asked for in the Done section as a single line,
-    and done is not claimed until he reports it.'
-  lane: A_strategy_governance
-  side: other
-  written_at: 1795101897.447
-- id: bug-pattern-and-timezone-lint-under-the-ratchet
-  what: Action docs/staging/advisor/DIRECTOR_STEER_ADD_BUG_PATTERN_AND_TIMEZONE_LINT_RULES_UNDER_THE_RATCHET_2026-11-19.md.
-    At the pinned ruff (requirements.txt, 0.15.16), add the B and DTZ families to ruff.toml under tests/architecture/test_static_quality_ratchet.py.
-    Exclude any rule that is noise here, with one line of reason each (B905 is the example to judge).
-    Re-freeze the baseline in the same commit, and run the ratchet on a clean worktree of origin before
-    landing. Separately, list every B023 late-binding-closure hit and every DTZ hit in company/, saas/
-    and simulation/ settlement or billing paths. Say for each whether it changes money or a customer outcome.
-    File any that do as one class finding, not a fix-by-fix sweep.
-  why: 'His steer, 14:09 19 Nov. The families are reversible and narrow, but a baseline frozen wrongly
-    reds every lane. Done means both families are live on origin with the ratchet green on a clean origin
-    worktree, the exclusions are reasoned, and the live-defect question is answered by a list. The file
-    moves to done/ with `Decision: none -- the families were the advisor''s suggestion, not a machine
-    recommendation`.'
+- id: the-book-builds-once-the-primary-checkout-rejoins-origin
+  what: sim-runner has logged "DEFERRED -- the code a run would import is not origin's ... a2ed7654e0
+    is not on origin/main" every cycle since 11:59Z on 19 Nov (journalctl --user -u sim-runner). A surgical_land
+    (pid 2812152, started about 18:12Z, message "The fork with origin is closed") is merging origin/main
+    into the primary checkout. Do not launch a second one while it lives; wait on it with tools/wait_for.py.
+    When it ends, check that HEAD contains origin/main and that a2ed7654e0 is on origin. Then read sim-runner's
+    next two cycles. If they still defer, name the condition from the log line and clear it by the legal
+    route (surgical_land, never reset or stash). If that landing died, read its log and close the fork
+    the same way, resolving the prepayment steer's done/ file as that run did. Then confirm that sim-runner
+    launches a weekly book on a commit containing c71d2521d, and that the armed 0.12 pair's watcher (docs/design/THE_VALUE_TEST_REDESIGN.md
+    s.12f) sees it.
+  why: The 0.12 pair is the only armed test of whether the per-customer arm can beat the flat book, and
+    it lapses on 24 Nov without a W3_3 book. No book has built since 18 Nov 10:45, and for six hours the
+    reason has been one fork commit, not the box. Done means HEAD and origin/main no longer diverge, and
+    sim-runner's log shows a book launched on a commit containing c71d2521d. Done is not the book finishing.
   lane: H_harness
   side: other
-  written_at: 1795101897.447
-- id: KNIFE3_wall_crossing_paydown
-  what: 'The next Lane 0 slice. Four decisions are done: set-off (1c5351d18), write-off date (5e554a00b),
-    due date (86e590a44) and reg 6D refund clock (434719446). Take the next unmoved row in docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md
-    that is a home-move, final-bill or unbilled-energy decision still computed in simulation/. Leave out
-    _would_offer and retention_cut_at_the_flips in simulation/run_phase2b.py, because the value test is
-    measuring them. Move it into company/ the way 434719446 did: the company decides from its own ledger,
-    and the world keeps the event and its timing. Carry the REUSE block from tools/write_time_gate.py
-    --explain. Pre-register byte-equality on the run_output_8a300fa561 replay, and name any row that moves.
-    Mark the register row as moved, with the sha.'
-  why: The advantage must come from inference, never from access, and a supplier decision computed world-side
-    is access by construction. Four slices have each landed in one tick, byte-equal or with every moved
-    event named. Home moves and final bills are next on the director's billing-accuracy list. Done means
-    one more register row is moved on origin with its replay grade.
-  side: supplier
-  written_at: 1795101897.447
-- id: electricity-unbilled-residual-is-traced-to-the-company-estimator
-  what: f79826ffc measured W2_36 <-> D48 on run_output_6af7fd0bfd_20261118T070221Z.json. Electricity's
-    gap is 0.407 [0.268, 0.538], against 0.255 for gas, and Q2 was refuted (mean |billed-used| 455 kWh
-    against 50-400). Re-run tools/couple_w2_36_d48.py's measure on that book, read-only and with no new
-    book. Split the electricity |billed-used| by read type (estimated, actual, customer), months since
-    last actual read, and account tenure. Name the company/billing function that sets the estimated electricity
-    reads (its EAC or AQ source). Write the split, and one pre-registered single-variable change with
-    a predicted range, into a D48 records note. Build the change only if one cause holds most of the residual
-    and the change stays inside company/. Otherwise the note is the deliverable.
-  why: Unbilled energy is first on the director's billing-accuracy list, and this is the first measured
-    belief-vs-truth number on it. Electricity carrying nearly twice gas's relative error is either the
-    company's estimator or a world shape (N17, the flat year-on-year electricity, is a live suspect),
-    and the split tells which. Done means the split and the named estimator are on origin, with either
-    a pre-registered change built or a named reason why the residual is the world's.
+  written_at: 1795112719.855
+- id: d48-the-182-day-estimate-hold-gets-a-source-or-goes
+  what: 'The pre-registered fix in docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md
+    is not built, because SPAR (BSC Annex S-2 s.4.3.7) is a GAP and the 182-day MIN_ADVANCE_DAYS hold
+    in company/billing/unread_month_estimate.py has no source. Knowledge first (K8): amend docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md
+    s.5, s.7 and s.8. Search the BSC, its Elexon guidance notes, the MDD documentation and published supplier
+    billing practice (Ofgem estimated-billing and back-billing decisions) for SPAR''s value or range,
+    and for whether a supplier''s billing estimate follows the settlement EAC in a customer''s first months.
+    If either is established, build the pre-registered change in company/billing/monthly_bill_assembly.py
+    behind its own switch, with SPAR carrying its origin, and grade it read-only on run_output_6af7fd0bfd_20261118T070221Z.json
+    against the [0.28, 0.38] band. If neither is established, the page carries the GAP with what was searched,
+    and the 182-day constant''s comment says it is unsourced and why it stays.'
+  why: The electricity residual is the company's own estimator setting aside reads it holds, which is
+    the inference the thesis says the company should win on. Unbilled energy is first on the director's
+    billing-accuracy list. Done means the knowledge page amendment is on origin and either the change
+    is built and graded against its band, or the GAP is recorded with its search. A number picked for
+    SPAR is not done.
   lane: D_billing_metering
   side: supplier
-  written_at: 1795101897.447
+  written_at: 1795112719.855
+- id: knife3-the-next-home-move-or-final-bill-decision-moves-company-side
+  what: 'Take the next unmoved row in docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md that is a home-move,
+    final-bill or unbilled-energy decision still computed in simulation/. Leave out _would_offer and retention_cut_at_the_flips
+    in simulation/run_phase2b.py, because the value test is measuring them. Four are done: set-off (1c5351d18),
+    write-off date (5e554a00b), due date (86e590a44) and the reg 6D refund clock (434719446). Move this
+    one into company/ the way 434719446 did: the company decides from its own ledger, and the world keeps
+    the event and its timing. Carry the REUSE block from tools/write_time_gate.py --explain. Pre-register
+    byte-equality on the run_output_8a300fa561 replay, and name any row that moves. Mark the register
+    row as moved, with the sha, and write the KNIFE3 map row so its unchanged-draw counter sees the work.'
+  why: The advantage must come from inference, never access, and a supplier decision computed world-side
+    is access by construction. Last stretch this was in focus under the atom id and never drawn, because
+    the draw had stopped taking KNIFE3; this id goes to Lane 0. Done means one more register row is moved
+    on origin with its replay grade.
+  lane: H_harness
+  side: supplier
+  written_at: 1795112719.855
+- id: d48-the-gas-gap-is-predicted-before-the-next-book
+  what: 35af2ce22 put the gas over-billing into winter on the world's 70/30 fallback, and 4accbb828 has
+    since put every settling resi gas leg, including incoming occupiers, in gas_shape_provider_by_customer.
+    Before the next weekly book lands, write a pre-registration into a D48 records note. Predict the W2_36
+    <-> D48 gas gap and its signed winter residual on the first book carrying 4accbb828, as a range, from
+    tools/couple_w2_36_d48.py on the 6af7fd0bfd book with the fallback legs taken out. Then, when that
+    book lands, grade it with the same runner, and re-run the coupled gap ledger row.
+  why: A prediction filed after the book is not a prediction, and this book is the first chance to show
+    that the gas residual was the world's and is gone. The book is near once item 1 clears. Done means
+    the pre-registration is on origin with a commit time before the book's, and the grade follows the
+    book.
+  lane: D_billing_metering
+  side: supplier
+  written_at: 1795112719.855
 not_now:
-  - what: Launching the 0.12 pair ahead of the W3_3 book, or loosening its precondition 2.
+  - what: A Pages-Function password gate for the site, so the login ruling finishes without the director's Zero Trust
+      sign-up.
     why: >-
-      9a361e356 read sim-runner's state and kept the precondition with evidence: about 1.6 books a day, and about 107
-      hours to the 24 Nov deadline once skip0 freed the box. If no book builds, the watcher stands down and names why,
-      and the pair is re-armed rather than loosened. Overriding that now would undo a decision made with the producer
-      state in hand, three hours ago.
-  - what: A new value-test arm to find which decisions the save-odds weighing changes.
+      It would mint a live credential and change the security posture of a real service, which G5 reserves. The open
+      row already offers it as the fallback if the sign-up asks for a card. Building it unasked would decide his row
+      for him.
+  - what: Picking a SPAR value from the predicted table (gap 0.289 at SPAR 3) and building the electricity fix now.
     why: >-
-      The weighing is on no published book, and the grade says it is not promoted unless that question is answered
-      first. A long job on it would compete with the W3_3 book that the 0.12 pair needs, for a lever nobody is using.
-  - what: Pressing W2_36 to L3 now that its gap is measured, or the W1_14 ERA5 pull and W2_30's shape (world).
+      SPAR is an established GAP. Choosing the value that scores best on the very book it is graded on is the invented,
+      load-bearing constant the knowledge-first rule forbids. Focus item 2 searches first and builds only on a source.
+  - what: Loosening the 0.12 pair's W3_3-book precondition so it can run on the 6af7fd0bfd book before 24 Nov.
     why: >-
-      W2_36's measurement mattered because it held a supplier number, and that number is now in hand (focus item 4).
-      The level move is a phase close that can follow. The ERA5 pull is rate-limited by Open-Meteo and already
-      progressing on its own, 39 cells this stretch. Neither blocks a supplier result this stretch.
-  - what: The prepayment build's next step (supply events for stock prepayment homes, gas outages coupled to cold).
+      9a361e356 kept the precondition with evidence. What stops the book is a fork commit that item 1 removes, not
+      producer capacity, so loosening it now would trade the test's validity for hours. If no book has launched by
+      22 Nov, the watcher stands down and the pair is re-armed rather than loosened.
+  - what: Pressing W2_36 to L3, the W1_14 ERA5 pull (401 of 596 cells owed) and W2_30's shape work (world).
     why: >-
-      It is a world change that needs its own K8 amendment, and it would move the value pair's books while the 0.12
-      pair is armed against them. It returns after the 0.12 pair reads. Its population mix stays the director's.
-  - what: Reaping or landing the 11 at-risk worktrees, and reconciling the primary checkout's fork commit a2ed7654e0 by hand.
+      The supplier number W2_36 held is in hand and being worked (items 2 and 4). The ERA5 re-runner now runs as its
+      own unit and lands through its continuation. Neither blocks a supplier result this stretch.
+  - what: The prepayment build's next step (supply events for stock prepayment homes), and the repeating alarm that
+      the supervisor is granting turns for the same work head.
     why: >-
-      The fork's content is on origin inside f0445b2dc, and the reconciler owns it. The b12, budgetpay, om2 and
-      simsuite salvages need a read before any reap, and a reap cannot be undone. 870201d1e7 is the base of the armed
-      cut012 tree. None blocks a supplier result.
-  - what: The deemed and flex standing-charge row, and the site and canon atoms (SITE1, SITE11, SITE12, SITE15, OPS7).
+      Prepayment is a world change that would move the books the 0.12 pair is armed against; it returns after the pair
+      reads. The supervisor alarm repeats on two days, costs turns but loses no work, and item 1's fork is a likelier
+      cause of a stuck head than the supervisor.
+  - what: Reaping or landing the 10 at-risk salvage worktrees (b12, budgetpay, om2, simsuite, value-test).
     why: >-
-      The standing-charge row is already queued for 23 Nov behind its book (deemed-and-flex-rows-book-the-standing-charge).
-      The site atoms are cosmetic beside the login ruling, which changes who can read the site at all.
+      A reap cannot be undone, and three value-test trees share base 870201d1e7 with the armed cut012 pair. None blocks
+      a supplier result. The primary checkout's commit, the one that does block, is item 1.
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
       0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 12:21 19 Nov -- skip0 read at
       10:31Z, and the weighing built on this belief carries the whole -GBP 4.57. The belief itself is unchanged.
       15:20 19 Nov -- unchanged. The weighing is now known to be on no published book, so the backwards belief
-      reaches no published figure through it.
+      reaches no published figure through it. 18:20 19 Nov -- unchanged.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year
       (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP
-      1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 12:21 19
-      Nov -- attributed, not corrected. 15:20 19 Nov -- re-attributed by 9a361e356: the -1.21 is not the weighing's,
-      which is off in both arms. It is A's own belief through the 0.30 cut. The 0.12 pair tests that, and waits on
-      a W3_3 book.
+      1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 15:20 19 Nov
+      -- re-attributed by 9a361e356: it is A's own belief through the 0.30 cut, and the 0.12 pair tests that. 18:20
+      19 Nov -- unchanged. The pair's W3_3 book has not built, because sim-runner defers on the primary checkout's
+      fork (focus item 1).
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a
-      median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 12:21 19
-      Nov -- unchanged. 15:20 19 Nov -- unchanged. The recheck by 23 Nov stands, and focus item 4's electricity
-      split may bear on it.
+      median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 15:20 19 Nov
+      -- unchanged. 18:20 19 Nov -- unchanged, but narrowed: 3d967150f found the route using the company's own
+      year-long advance bills at 0.989 of true with no drift, so N17 does not explain the electricity unbilled
+      residual. The recheck by 23 Nov stands.
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
       one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity
-      account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 12:21 19 Nov
-      -- skip0 has finished, but the W3_3 book has still not built. 15:20 19 Nov -- unchanged. sim-runner no longer
-      yields to skip0, and the grade is queued for 23 Nov.
+      account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 15:20 19 Nov --
+      unchanged; the grade is queued for 23 Nov. 18:20 19 Nov -- unchanged. The book its grade needs is held by the
+      same fork deferral.
     corrected: false
-  - what: >-
-      THE MACHINE'S, NEW. The D48 finding on origin says the 2026-11-08 W2_36 runner and its row "land with" the
-      W2_30 and W1_14 rows. They did not. tools/couple_w2_36_d48.py is untracked in the shared tree, and
-      coupled_gap_ledger.json has no W2_36 key on origin or in the tree. 15:20 19 Nov -- corrected: f79826ffc
-      (merged b92443ec1) lands the runner, its byte-equal test and the W2_36 row at gap 0.290, and the L3 hold no
-      longer cites an unmeasured gap.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. A finished long job lost its grader again. skip0 wrote its control file and its read at
-      10:31Z, but for two hours nothing graded s.12f's pre-registration. The continuation the triage named as
-      owner (skip0-attribution-is-read-against-s12f) is not in the live queue, so no draw could have reached it.
-      15:20 19 Nov -- this instance is corrected: 9a361e356 graded it at 12:35Z from the focus row. The class stays
-      open in wrong_triage under seat_continuation.py.
-    corrected: true
   - what: >-
       THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch.
       The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not
       say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so
       the value pair should be unaffected. That is the commit's own claim, and no pair has checked it. 15:20 19 Nov
-      -- unchanged. The 0.12 pair, when it reads, runs on a book that carries the build.
+      -- unchanged. The 0.12 pair, when it reads, runs on a book that carries the build. 18:20 19 Nov -- unchanged.
     corrected: false
   - what: >-
-      THE MACHINE'S (THIS SEAT'S), NEW. The 12:21 record told a worker that the save-odds weighing "is where the arm
-      loses its -GBP 1.35 against the baseline". The -1.35 and -1.21 are A against its twin, and neither run has the
-      weighing on. I wrote a cause from one pair's difference without checking which switches each arm carried.
-      Corrected beside the claim in s.12f by 9a361e356.
+      THE MACHINE'S (THIS SEAT'S), NEW. My 15:20 not_now declined to reconcile the primary checkout's fork commit
+      a2ed7654e0 by hand, saying its content was on origin and the reconciler owned it. sim-runner had already been
+      deferring on exactly that commit since 11:59Z, and kept deferring for six more hours, so no W3_3 book could
+      build for the 0.12 pair. I judged the commit harmless without reading the producer's log. A surgical_land
+      closing the fork is in flight at 18:20Z, and item 1 owns the rest.
+    corrected: false
+  - what: >-
+      THE MACHINE'S (THIS SEAT'S), NEW. The 15:20 record put KNIFE3 in focus under its atom id while the anti-livelock
+      draw had stopped taking it (1,725 unchanged draws), so no draw could reach it and the steer drifted for a whole
+      stretch. Renamed in this record so Lane 0 hands it out.
+    corrected: false
+  - what: >-
+      THE MACHINE'S (THIS SEAT'S), NEW. The 15:20 focus item on the electricity residual said "mean |billed-used| 455
+      kWh against 50-400". 455.3 kWh is the pooled no-skill MAE; the company's own is 131.9 kWh, and 77.0 kWh for
+      electricity alone. Corrected beside the claim in 3d967150f.
     corrected: true
 for_the_director:
 - id: the-github-repository-is-still-public-gh
