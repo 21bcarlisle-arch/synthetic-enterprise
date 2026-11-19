@@ -20,3 +20,13 @@ stop reason it does not recognise, or after 10 days. Each pass logs to
 f763637d83 measured, that is roughly 7 to 8 days. The store changes in the shared tree but is not
 committed. Each day's increment still needs landing, which is handed on as
 `land-the-era5-store-increments`.
+
+**Correction, 19 Nov 17:13Z, worker tick.** The re-runner described above was not running when
+6aa91734ab landed. At 17:13 no `run2.sh` and no `build_weather_world` process existed, and
+`/tmp/era5_loop/status` had never been written. The only pass log (16:59) held just the PyTensor
+warning, so that pass was killed before it reached a stop. The likely cause is that it was started
+inside the landing session's process group and died when that session's shell ended. It was
+relaunched with `setsid nohup /tmp/era5_loop/run2.sh` (its own session, pid 2128431). At 17:14 it
+was fetching: "596 cell(s) in the book; 919 held; **405** still needing the ERA5 archive",
+starting at `[1/405] E339N0214`. Before trusting this line, check that the loop is alive with
+`pgrep -f era5_loop/run2.sh`. The reversal is unchanged.
