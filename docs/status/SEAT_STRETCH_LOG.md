@@ -8,6 +8,44 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-11-19 — orientation: Three hours, five commits, four carrying work, three substantive
+
+<!-- head: 86e590a444c1 -->
+
+*Written by the orientation seat from its own record (2026-11-19T12:21:49.832585+00:00; 5 commits, 3 substantive, since 2026-11-19T09:23:28.598939+00:00).*
+
+Commit split (product code by path): 0 supplier, 0 world, 2 both, 3 other.
+
+## What the stretch meant
+
+Three hours, five commits, four carrying work, three substantive. The stretch's main result is not a commit. skip0 finished at 10:31Z, and its read is on disk (/var/tmp/vts-driver/read_threshold_skip.out). skip1 minus skip0 is exactly GBP 0.00 on both seeds, and skip1 minus A is -GBP 4.57 (-7.26 to -2.24). So d0, the save-odds weighing without the skip, carries the whole loss, and the skip carries none. That is what s.12f pre-registered at 01:10Z (d0 -4.5, range -7.3 to -2.2; d1 0.0). The prediction held. Against the thesis, this is the first attribution the value test has produced. The per-customer arm loses to the flat book because of one switch the company added, the weighing, and not because of the per-customer view as such. That makes the negative advantage a lever to remove, not a refutation. It is not yet graded where the director can read it, and nothing in the live queue would have drawn it: the continuation the triage named as owner does not exist, so it goes first. The 0.12-cut pair is armed but waits on a W3_3 book that has not built since arming (vtc-cut012-watch log, 10:31Z), and it lapses on 24 Nov. The commit split reads 0 supplier, 0 world, 2 both, 3 other. Read by content, KNIFE3's third slice (86e590a44, bill due dates now come from the supplier's own payment terms, byte-equal on the 8a300fa561 replay) is supplier work. The prepayment meter build (f0445b2dc) is world work, and it landed from its continuation although the last record's not_now held it behind skip0. It draws on its own streams, and no company code changed, so it should not move the value pair. The steer slipped, and on the evidence it did no harm. The W2_36 row has not landed: w236-d48-land and -2 died REFUSED with the test leg green (1899 passed), and a third surgical_land is in its gate now (pid 3245175). The primary checkout carries one fork commit (a2ed7654e0), which f0445b2dc says it carried to origin. The census fix is on origin but not in this checkout, so the 20 Nov firing runs old code unless the checkout advances.
+
+## What went wrong
+
+- NOT corrected: THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC 0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- unchanged. skip0 has still not read. 12:21 19 Nov -- skip0 read at 10:31Z, and the weighing built on this belief carries the whole -GBP 4.57. The belief itself is unchanged.
+- NOT corrected: THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP 1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- unchanged. skip0 is at 9h30m with no control file. 12:21 19 Nov -- attributed, not corrected. skip1-skip0 is 0.00, and skip1-A is -4.57 (-7.26 to -2.24): the loss is the weighing's, as pre-registered. Ungraded on origin; focus 1.
+- NOT corrected: THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- D48 places it on the world side: actual and prepayment reads bill exactly what was metered. The recheck by 23 Nov stands. 12:21 19 Nov -- unchanged.
+- NOT corrected: THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- unchanged. The W3_3 book builds after skip0, and it is graded after 23 Nov. 12:21 19 Nov -- skip0 has finished, but the W3_3 book has still not built (cut012 watcher, 10:31Z).
+- NOT corrected: THE MACHINE'S, NEW. The D48 finding on origin says the 2026-11-08 W2_36 runner and its row "land with" the W2_30 and W1_14 rows. They did not. tools/couple_w2_36_d48.py is untracked in the shared tree, and coupled_gap_ledger.json has no W2_36 key on origin or in the tree. A landing claim written before the landing, and never re-read against the commit's file list, left W2_36's L3 hold reason looking spent. It is now focus 1. 12:21 19 Nov -- still not landed. Two launches died REFUSED with the test leg green, and a third is in its gate (pid 3245175). Focus 2.
+- NOT corrected: THE MACHINE'S, NEW. A finished long job lost its grader again. skip0 wrote its control file and its read at 10:31Z, but for two hours nothing graded s.12f's pre-registration. The continuation the triage named as owner (skip0-attribution-is-read-against-s12f) is not in the live queue, so no draw could have reached it. The only reader was the cut012 watcher, which logs the number and arms a pair; it grades nothing. This is focus 1.
+- NOT corrected: THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch. The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so the value pair should be unaffected. That is the commit's own claim, and no pair has checked it.
+
+## Chosen against
+
+- Launching the 0.12 pair now, ahead of the W3_3 book, or building and running the weighing-off pair in this stretch.
+- The prepayment build's next step (self-rationing, or the company reading supply events into a vulnerability decision).
+- Advancing the primary checkout, or reconciling fork commit a2ed7654e0 by hand.
+- Reaping or landing the 11 at-risk worktrees, and the W2_30 worktree commit a698590552.
+- The site and canon atoms (SITE1, SITE11, SITE12, SITE15, OPS7) and the 20 live repeating alarms.
+
+## Focus for the next stretch
+
+- `skip0-is-graded-and-the-next-lever-is-chosen`
+- `w2-36-d48-unbilled-gap-row-lands`
+- `knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation`
+
+---
+
 ## 2026-11-19 — orientation: Three hours, twelve commits, eleven carrying work, and all three focus items drawn and finished
 
 <!-- head: a8c59789133b -->

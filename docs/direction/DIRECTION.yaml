@@ -1,155 +1,153 @@
 version: 1
-oriented_at: "2026-11-19T09:23:28.598939+00:00"
+oriented_at: "2026-11-19T12:21:49.832585+00:00"
 thesis_read: >-
-  Three hours, twelve commits, eleven carrying work, and all three focus items drawn and finished. The steer bit
-  cleanly for the first time in three records. E7 turned out not to be a billing error: the company's crossing bills
-  were right, and the exported term record (fixed in c6695cd8d) and the validator's multi-register cap basis (fixed
-  in 24963ecd0, 996 bills from DISAGREED to AGREED, none the other way, as pre-registered) were wrong. That retracts
-  an error charged to the company. It is good news for billing accuracy, and it stays to be seen in the readers at
-  the 23 Nov publish. KNIFE3 moved one more supplier decision across the wall (the statute-barred write-off date,
-  5e554a00b), byte-equal on the 8a300fa561 replay. D48's W2_30 and W1_14 rows landed (aca12f3a5) after the gate's
-  cause was named: it was selecting seven simulation runs for a ledger edit. The commit split reads 0 supplier,
-  1 world, 1 both, 10 other. Read by content it is supplier-led: E7, KNIFE3 and D48 are all billing or decision
-  work. Against the thesis itself, though, nothing moved. The per-customer arm still trails the flat book by
-  -GBP 1.35 (-3.03 to +0.13). skip0 has run 9h30m at 9.6 GB with no control file, and it holds the box, which also
-  deferred the census for the seventh night in twelve. The advantage-from-inference question is waiting on one
-  process, not on code. A new error was found at orientation. The D48 finding on origin says the 2026-11-08
-  W2_36 runner "landed with" the ledger rows. It did not: tools/couple_w2_36_d48.py is untracked, and no W2_36 key
-  is in the ledger on origin or in the shared tree. That unmeasured W2_36-D48 gap is exactly what holds W2_36 at
-  the L3 wall, so it goes first. A director steer arrived (prepayment and self-disconnection, knowledge first). Its
-  knowledge page and scope landed (a8c597891, a2ed7654e), and its first build step is queued as a continuation.
+  Three hours, five commits, four carrying work, three substantive. The stretch's main result is not a commit. skip0
+  finished at 10:31Z, and its read is on disk (/var/tmp/vts-driver/read_threshold_skip.out). skip1 minus skip0 is
+  exactly GBP 0.00 on both seeds, and skip1 minus A is -GBP 4.57 (-7.26 to -2.24). So d0, the save-odds weighing
+  without the skip, carries the whole loss, and the skip carries none. That is what s.12f pre-registered at 01:10Z
+  (d0 -4.5, range -7.3 to -2.2; d1 0.0). The prediction held. Against the thesis, this is the first attribution the
+  value test has produced. The per-customer arm loses to the flat book because of one switch the company added, the
+  weighing, and not because of the per-customer view as such. That makes the negative advantage a lever to remove,
+  not a refutation. It is not yet graded where the director can read it, and nothing in the live queue would have
+  drawn it: the continuation the triage named as owner does not exist, so it goes first. The 0.12-cut pair is armed
+  but waits on a W3_3 book that has not built since arming (vtc-cut012-watch log, 10:31Z), and it lapses on 24 Nov.
+  The commit split reads 0 supplier, 0 world, 2 both, 3 other. Read by content, KNIFE3's third slice (86e590a44,
+  bill due dates now come from the supplier's own payment terms, byte-equal on the 8a300fa561 replay) is supplier
+  work. The prepayment meter build (f0445b2dc) is world work, and it landed from its continuation although the last
+  record's not_now held it behind skip0. It draws on its own streams, and no company code changed, so it should not
+  move the value pair. The steer slipped, and on the evidence it did no harm. The W2_36 row has not landed:
+  w236-d48-land and -2 died REFUSED with the test leg green (1899 passed), and a third surgical_land is in its gate
+  now (pid 3245175). The primary checkout carries one fork commit (a2ed7654e0), which f0445b2dc says it carried to
+  origin. The census fix is on origin but not in this checkout, so the 20 Nov firing runs old code unless the
+  checkout advances.
 stretch_reviewed:
-  since: "2026-11-19T06:23:17.588820+00:00"
-  commits: 12
-  substantive: 7
+  since: "2026-11-19T09:23:28.598939+00:00"
+  commits: 5
+  substantive: 3
 focus:
+- id: skip0-is-graded-and-the-next-lever-is-chosen
+  what: 'skip0 finished at 10:31Z. Its read is /var/tmp/vts-driver/read_threshold_skip.out (skip1-skip0
+    GBP 0.00 on both seeds; skip1-A -4.567, CI -7.263 to -2.241; skip1-twin -5.774). Grade it in docs/design/THE_VALUE_TEST_REDESIGN.md,
+    beside the s.12f pre-registration ("Pre-registered before skip0 is read", 19 Nov 01:10Z), with d0
+    and d1 and their intervals. Quote the read file verbatim, and carry a Graded: value-test trailer.
+    Then make the decision in the same entry. (a) Is company/policy/decision_policy.py''s save-odds weighing
+    on by default anywhere a published book runs? If so, say so, and propose it default off in the value
+    arm, under its own one-variable pair. (b) The armed 0.12 pair (vtc-cut012-watch, /var/tmp/box-plan/arm_cut012.sh)
+    waits on a W3_3 book with no PID. Read sim-runner''s producer state, and say whether that book will
+    build before 24 Nov. If it will not, edit the watcher''s precondition 2 or reverse it as the doc says,
+    and record which you did and why. Do not start a second long job while one holds the box.'
+  why: The weighing, not the skip and not the per-customer view, is where the arm loses its -GBP 1.35
+    against the baseline. That is the thesis's live test, and the result has sat ungraded with no drawable
+    owner. Done means the grade and the decision are on origin, and the 0.12 pair either has a precondition
+    that can be met by 24 Nov or has been stood down with a reason.
+  lane: B_commercial
+  side: supplier
+  written_at: 1795091240.778
 - id: w2-36-d48-unbilled-gap-row-lands
-  what: 'Land the W2_36 <-> D48 coupled-gap row. Its runner tools/couple_w2_36_d48.py (2026-11-08) is
-    UNTRACKED in the shared tree, and docs/observability/coupled_gap_ledger.json has no W2_36 key on origin
-    or in the shared tree, although the D48 finding on origin (SEAT_FINDING_D48_BILLED_EQUALS_METERED_..._2026-11-18.md)
-    says it landed. First, delete the runner''s UNMEASURED_PAIRS block, so that it cannot write null W2_30
-    and W1_14 rows over the ones aca12f3a5 landed. Then run it on the published book run_output_6af7fd0bfd,
-    reading only and building no book. Pre-register the sign and rough size of billed-minus-used per account
-    before you run it. Add a test that names its defect: a rerun must leave the W2_30 and W1_14 rows byte-equal.
-    Build hunks for the W2_36 row only with tools/isolate_hunks.py, and land the runner, the test and
-    the row through background/launch_long_job.py with surgical_land --content, never inside the tick.
-    Correct the finding''s "landed" sentence beside the claim, with the commit.'
-  why: Unbilled energy is the first item on the director's billing-accuracy list. The unmeasured W2_36-D48
-    gap is the stated reason W2_36 is held at the coupled-triad L3 wall, and the measurement already exists
-    on disk. The risk is that a rerun or a reap loses it. Done means the runner, the test and the W2_36
-    row are on origin, the finding names the commit, and the brief's hold reason for W2_36 no longer cites
-    an unmeasured gap.
+  what: 'A third landing of the W2_36 <-> D48 row is in its commit gate now (tools.surgical_land pid 3245175,
+    launched about 12:09Z). Do not launch another while it lives. Wait on it with tools/wait_for.py. If
+    it lands, correct the D48 finding''s "land with" sentence beside the claim, with the sha, and stop.
+    If it is refused, read /tmp/w236land.log for the refusing STEP: w236-d48-land and -2 both ended REFUSED
+    with the pytest leg reporting 1899 passed, so the red is in a different leg. Name that step in the
+    D48 finding before any relaunch. Then relaunch once through background/launch_long_job.py with surgical_land
+    --content on hunks from tools/isolate_hunks.py, never inside the tick.'
+  why: Unbilled energy is first on the director's billing-accuracy list, and the unmeasured W2_36-D48
+    gap is the stated reason W2_36 is held at the L3 wall. Two blind relaunches have already died. Done
+    means the runner, its byte-equal test and the W2_36 row are on origin, the finding names the commit,
+    and W2_36's hold reason no longer cites an unmeasured gap.
   lane: D_billing_metering
   side: supplier
-  written_at: 1795080484.913
-- id: knife3-moves-the-next-billing-decision-out-of-simulation
-  what: 'This is a Lane 0 slice of KNIFE3_wall_crossing_paydown. Take the next billing, home-move or unbilled-energy
-    DECISION still computed in simulation/, as listed in docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md.
-    The dual-fuel set-off (1c5351d18) and the statute-barred write-off date (5e554a00b) are done, so take
-    a different one. Leave out the retention guard''s _would_offer and retention_cut_at_the_flips in simulation/run_phase2b.py,
-    because the value test is measuring them. Move it into company/ the way 5e554a00b did: the company
-    decides from its own ledger, and the world keeps only the event and its timing. Run tools/write_time_gate.py
-    --explain and carry the REUSE block. Pre-register a pure move: the replay on run_output_8a300fa561
-    must be byte-equal on every affected field, and any row that differs refutes the move and is named.
-    Mark the register row as moved, with the commit.'
+  written_at: 1795091240.778
+- id: knife3-moves-a-home-move-or-unbilled-decision-out-of-simulation
+  what: 'This is a Lane 0 slice of KNIFE3_wall_crossing_paydown. The dual-fuel set-off (1c5351d18), the
+    statute-barred write-off date (5e554a00b) and the bill due date (86e590a44) are done. From docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md,
+    take the next unmoved row that is a home-move, final-bill or unbilled-energy DECISION still computed
+    in simulation/. Leave out the retention guard''s _would_offer and retention_cut_at_the_flips in simulation/run_phase2b.py,
+    because the value test is measuring them. Move it into company/ the way 86e590a44 did: the company
+    decides from its own ledger, and the world keeps the event and its timing. Run tools/write_time_gate.py
+    --explain and carry the REUSE block. Pre-register byte-equality on the run_output_8a300fa561 replay,
+    and name any row that differs as a refutation. Mark the register row as moved, with the commit.'
   why: The advantage must come from inference, never from access. A supplier decision computed on the
-    world's side is access by construction, and it makes any per-customer result unattributable. The last
-    slice landed in one tick, byte-equal, so the slice size is right. Done means one more register row
-    is moved and byte-equal on the replay.
+    world's side is access by construction, and three slices have each landed byte-equal in one tick,
+    so the size is right. Home moves are the billing-accuracy item after unbilled energy. Done means one
+    more register row is moved and byte-equal on the replay.
   lane: H_harness
   side: supplier
-  written_at: 1795080484.913
+  written_at: 1795091240.778
 not_now:
-  - what: Putting the prepayment world build (continuation every-prepayer-has-a-meter-that-reports-supply-events) in focus.
+  - what: Launching the 0.12 pair now, ahead of the W3_3 book, or building and running the weighing-off pair in this stretch.
     why: >-
-      The director's yes was to knowledge first and a fidelity scope, and his steer says "This is a fidelity scope,
-      not a build". The page and the scope landed. The build step stays in the continuation queue rather than
-      Lane 0, because it changes the world under a value test that compares pairs on a fixed world. Any build must
-      land default-off and leave the population mix to him where it is curriculum. It returns to focus once skip0
-      and the 0.12 pair have read.
-  - what: Running the 0.12 pair, the W3_3 book, B8's holdout or B11's backtest now.
+      The box has no long job on it right now, but the arming was made with a deliberate order, and the census fix
+      wants a free 03:30 tomorrow. Focus 1 decides the order with the producer state in hand. Choosing it here,
+      without reading sim-runner, would be the guess this record is supposed to avoid.
+  - what: The prepayment build's next step (self-rationing, or the company reading supply events into a vulnerability decision).
     why: >-
-      skip0 holds the box (9.6 GB, 9h30m) and the pair is armed behind it (s.12f). A second long job would split the
-      box and defer the census again. The arming is the decision, and nothing here is waiting on a worker.
-  - what: A focus item to unstick the census, or to watch skip0.
+      Step 1 landed with its own streams and no company change. The next step is a company decision on harm, which
+      would move the value pair's books. It returns once the weighing question is decided, which is days away, and
+      its population-mix question is curriculum and stays the director's.
+  - what: Advancing the primary checkout, or reconciling fork commit a2ed7654e0 by hand.
     why: >-
-      The census fix (census-waits-for-admission-rather-than-deferring) is in a surgical_land gate right now, pid
-      1619225. skip0 has a tools.wait_for armed on it. A focus item for either would put a waiting item at the head
-      of the lane, and that is the shape this record has just graded corrected.
-  - what: Raising the world's gas heating fraction to DESNZ's ~85% (W2_30 step 2).
+      Its content reached origin inside f0445b2dc. The reconciler owns the fork, and a hand reset in a tree with
+      three live writers is the move the memory rules forbid. The cost is that daemons run two commits behind,
+      including the census's own fix for 03:30. That firing's grade is already queued (grade-20-nov-census-queueing)
+      and will show it.
+  - what: Reaping or landing the 11 at-risk worktrees, and the W2_30 worktree commit a698590552.
     why: >-
-      D48's gas decomposition (calendar-month share 0.316) supports it, but it changes the world under the live value
-      test. It waits for the 0.12 pair.
-  - what: Reaping or landing the 11 at-risk worktrees.
-    why: >-
-      Reaping cannot be undone. 870201d1e7 is the base of skip0's tree and the 0.12 pair's tree. The b12 and
-      budgetpay salvages are a month old and need a read first, not a reap. None of them blocks a supplier result.
+      A wait_for is already watching the W2_30 landing. The b12, budgetpay, om2 and simsuite salvages are a month old
+      and need a read before any reap, and reaping cannot be undone. 870201d1e7 is still the base of the armed
+      cut012 tree. None of them blocks a supplier result.
   - what: The site and canon atoms (SITE1, SITE11, SITE12, SITE15, OPS7) and the 20 live repeating alarms.
     why: >-
-      None moves the thesis. The alarms were read by name. None is about billing, the value test or the run on the
-      box, and SEAT_CONTINUITY, SEAT_CLAIM and PRODUCT_MACHINERY are long-standing.
+      The alarms were read by name. None is about billing, the value test or the landing in flight. SEAT_CONTINUITY,
+      SEAT_CLAIM and PRODUCT_MACHINERY are long-standing, and none of them moves the thesis this stretch.
 wrong:
   - what: >-
       THE COMPANY'S, THIS STRETCH. The renewal churn belief ranks the leavers it exists to find backwards (AUC
-      0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 06:23 19 Nov -- the 0.12 cut is
-      built default off (040f67d67), and its pair is armed behind skip0 and the W3_3 book. 09:23 19 Nov --
-      unchanged. skip0 has still not read.
+      0.333 on 268 desk states from 2019). [Earlier tails are in decisions.jsonl.] 09:23 19 Nov -- unchanged.
+      skip0 has still not read. 12:21 19 Nov -- skip0 read at 10:31Z, and the weighing built on this belief
+      carries the whole -GBP 4.57. The belief itself is unchanged.
     corrected: false
   - what: >-
       THE COMPANY'S, NEW. With the better desk belief, the per-customer value arm loses GBP 1.21 per household-year
       (-2.35 to -0.38), where the flat book gains GBP 0.14, so the whole advantage over the baseline reads -GBP
-      1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 06:23 19
-      Nov -- unchanged. skip0 has not read (no control file). 09:23 19 Nov -- unchanged. skip0 is at 9h30m with
-      no control file.
+      1.35 (-3.03 to +0.13) on two draws over 780 households. [Earlier tails are in decisions.jsonl.] 09:23 19
+      Nov -- unchanged. skip0 is at 9h30m with no control file. 12:21 19 Nov -- attributed, not corrected.
+      skip1-skip0 is 0.00, and skip1-A is -4.57 (-7.26 to -2.24): the loss is the weighing's, as pre-registered.
+      Ungraded on origin; focus 1.
     corrected: false
   - what: >-
       THE WORLD'S OR THE COMPANY'S, NEW (N17). Metered electricity barely moves from one year to the next (a
-      median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 06:23 19
-      Nov -- D48's electricity shape gap (0.514) does not place it. 09:23 19 Nov -- D48 places it on the world
-      side: actual and prepayment reads bill exactly what was metered. The recheck by 23 Nov stands.
+      median same-month change of 1.1%, against NEED's 14.7%). [Earlier tails are in decisions.jsonl.] 09:23 19
+      Nov -- D48 places it on the world side: actual and prepayment reads bill exactly what was metered. The
+      recheck by 23 Nov stands. 12:21 19 Nov -- unchanged.
     corrected: false
   - what: >-
       THE WORLD'S, NEW. The deemed and flex settlement writers book no standing charge, while the bill charges
       one, so the settlement P&L and the bill disagree by about GBP 0.47 to 0.60 a day per domestic electricity
       account. Void rows also drop the fixed network share. [Earlier tails are in decisions.jsonl.] 09:23 19 Nov
-      -- unchanged. The W3_3 book builds after skip0, and it is graded after 23 Nov.
+      -- unchanged. The W3_3 book builds after skip0, and it is graded after 23 Nov. 12:21 19 Nov -- skip0 has
+      finished, but the W3_3 book has still not built (cut012 watcher, 10:31Z).
     corrected: false
-  - what: >-
-      THE COMPANY'S, NEW. On the published book 6af7fd0bf, 3 Economy 7 fix-to-SVT crossing bills (PROS-2016-0253,
-      PROS-2017-0286, PROS-2021-0313) are charged above every kWh at the highest rate sold. One SVT term rate
-      reads 25.4557 p/kWh against the published 25.41 p/kWh. The denominator of crossing periods is uncounted.
-      09:23 19 Nov -- corrected, and it was not the company's. There were 87 crossings (84 BOUNDED, 3 DISAGREED).
-      The bills were right; the exported stub term carried no Day/Night pair (fixed in c6695cd8d). The cap row was
-      the validator's basis, not a charge above the cap (24963ecd0: 996 to AGREED, 0 the other way). The readers
-      confirm at the next publish (continuation e7-crossing-and-mr-cap-readers-green-after-publish).
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. D48's landing ran its surgical_land commit gate inside the seat-executor's bounded unit.
-      It was SIGKILLed at the 5400 s teardown at 00:47Z (pid 276185), so a finished measurement (the coupled-gap
-      tool, its ledger rows and the finding) is stranded uncommitted in the shared tree. 09:23 19 Nov -- corrected.
-      The tool landed in 6918823b5, and the W2_30 and W1_14 rows in aca12f3a5.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. After a2c848965 and b585a3bb3 spent it, the seat-executor redrew the focus item
-      skip1-is-graded-against-s12es-branches about eight times (01:56Z to 03:16Z), landing nothing each time,
-      because the live focus still named it. A spent item at the head of focus starves the rest of the lane until
-      the next orientation. 09:23 19 Nov -- corrected on its own test. This stretch drew only the three items the
-      live focus named, and each one landed (42b5d1f5e and 24963ecd0, aca12f3a5, 5e554a00b). skip1's last draw
-      was about 03:50Z, before the stretch.
-    corrected: true
-  - what: >-
-      THE MACHINE'S, NEW. D48's ledger rows were relaunched four times in one stretch (d48-surgical-land,
-      d48-ledger-land, d48-wt-ledger-land, d48-ledger-rows-land3), and each one died. The last died on a red test
-      gate. 09:23 19 Nov -- corrected. The cause was named (the gate selected seven simulation runs for a ledger
-      edit), fixed in tools/pre_commit_test_gate.py, and the rows landed in aca12f3a5. The duplicate land4 exited
-      1 at the same instant, which did no harm.
-    corrected: true
   - what: >-
       THE MACHINE'S, NEW. The D48 finding on origin says the 2026-11-08 W2_36 runner and its row "land with" the
       W2_30 and W1_14 rows. They did not. tools/couple_w2_36_d48.py is untracked in the shared tree, and
       coupled_gap_ledger.json has no W2_36 key on origin or in the tree. A landing claim written before the
       landing, and never re-read against the commit's file list, left W2_36's L3 hold reason looking spent. It
-      is now focus 1.
+      is now focus 1. 12:21 19 Nov -- still not landed. Two launches died REFUSED with the test leg green, and a
+      third is in its gate (pid 3245175). Focus 2.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. A finished long job lost its grader again. skip0 wrote its control file and its read at
+      10:31Z, but for two hours nothing graded s.12f's pre-registration. The continuation the triage named as
+      owner (skip0-attribution-is-read-against-s12f) is not in the live queue, so no draw could have reached it.
+      The only reader was the cut012 watcher, which logs the number and arms a pair; it grades nothing. This is
+      focus 1.
+    corrected: false
+  - what: >-
+      THE MACHINE'S, NEW. The prepayment meter build (f0445b2dc) landed from its continuation during the stretch.
+      The last record's not_now held that build until skip0 and the 0.12 pair had read, and its waits_for did not
+      say so, so the queue could not see the hold. It draws on its own streams and changes no company code, so
+      the value pair should be unaffected. That is the commit's own claim, and no pair has checked it.
     corrected: false
 for_the_director:
   - id: the-github-repository-is-still-public-gh
