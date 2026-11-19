@@ -28,3 +28,8 @@
   Cache-Control: no-cache, must-revalidate
 /shadow/*
   Cache-Control: no-cache, must-revalidate
+
+# Director ruling 2026-11-19: poesys.net is not for search. Only Cloudflare Pages reads this
+# file. The github.io copy, which is the advisor's read path, ignores it and is untouched.
+/*
+  X-Robots-Tag: noindex, nofollow

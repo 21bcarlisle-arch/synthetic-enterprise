@@ -39,7 +39,7 @@ The shape is worth having: it removes two thirds of a flat spread's gas error. B
 gas profile puts about 1.2 points more of the year into each winter month than the world's homes use. The
 gas estimates follow suit: they over-bill winter by 112 kWh a month and under-bill summer by 83.
 
-**I cannot yet say which side that bias belongs to.**
+**I cannot yet say which side that bias belongs to.** *[Answered 2026-11-19: the side is the WORLD. Xoserve's published seasonal-normal ALP for domestic band 1 agrees with the proxy: DJF within ±1.5 points, Jan/Jul 7.8–9.9 against the proxy's 7.32. The world's 70/30 fallback reads about 5.0. See `docs/staging/records/SEAT_PREREG_D48_THE_GAS_ESTIMATE_SHAPE_AGAINST_XOSERVE_ALP_2026-11-19.md` and the W2_30 fallback finding.]*
 - *World too flat.* The published shares are DESNZ actual-weather national domestic gas (January 17%, July 2.3%).
   A world whose gas has too large a summer base, or too weak a heating response, would read this way.
   N13 and N17 found this world's year too smooth before.
@@ -70,7 +70,12 @@ overwrite these. They were not landed here. Whoever lands it must drop its `UNME
 
 **Landed 2026-11-19 by the delivery lane, after the executor's owner process died.** The executor's
 tool, test and W2_30/W1_14 rows land with the 2026-11-08 W2_36 runner and its row. The runner's
-`UNMEASURED_PAIRS` block is dropped, so running it again leaves these rows alone. Before landing, I re-split the
+`UNMEASURED_PAIRS` block is dropped, so running it again leaves these rows alone. *[Correction, 2026-11-19, delivery seat: this was
+false when written. aca12f3a5 landed the W2_30 and W1_14 rows only. The W2_36 runner and its row stayed
+untracked in the shared tree. They land in the commit that carries this correction (subject "W2_36 <-> D48:
+..."; `git log -1 -- tools/couple_w2_36_d48.py`). That commit re-measures the row on the 6af7fd0bfd book: gap
+0.290 [0.243, 0.342], gas 0.255, electricity 0.407. The rerun leaves W2_30 and W1_14 byte-equal, and
+`tests/tools/test_couple_w2_36_d48.py` asserts that.]* Before landing, I re-split the
 book with my own script. It gives the same counts: 32,538 estimated account-months, of which 18,014 are electricity
 and 14,524 gas. It also gives 0.0 kWh on every actual, smart and prepayment bill. One more cut was pre-registered
 before running (`/tmp/d48/PREDICTION.txt`). Signed error on traditional estimated bills is split into three sums of

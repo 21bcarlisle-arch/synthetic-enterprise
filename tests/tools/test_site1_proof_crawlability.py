@@ -286,4 +286,14 @@ def test_the_existing_crawler_policy_is_not_weakened_by_the_fix():
                 "Applebot-Extended", "PerplexityBot", "Bytespider"):
         block = re.search(r"User-agent:\s*" + re.escape(bot) + r"\s*\nDisallow:\s*/", text)
         assert block, f"AI-training block for {bot} is missing or weakened"
-    assert re.search(r"User-agent:\s*\*\s*\nAllow:\s*/", text), "normal-search Allow lost"
+    # Director ruling 2026-11-19 ("Repo public. Website password"): poesys.net is not for search,
+    # so the default policy now refuses every crawler that did not get a named Allow.
+    assert re.search(r"User-agent:\s*\*\s*\nDisallow:\s*/", text), "search Disallow lost"
+
+
+def test_the_gated_site_tells_search_it_is_not_for_indexing():
+    """Director ruling 2026-11-19: noindex on the gated site. It is a header in `_headers`, so it
+    reaches Cloudflare Pages and not the github.io copy, which is the advisor's read path."""
+    text = (SITE / "_headers").read_text()
+    assert re.search(r"^/\*\n(?:  .+\n)*  X-Robots-Tag: noindex", text, re.M), \
+        "no `/*` rule carries X-Robots-Tag: noindex"

@@ -1921,6 +1921,12 @@
       "function": "parse_trailer",
       "subject": "unknown",
       "why_frozen": "THE SUBJECT IS A COMMIT MESSAGE (2026-10-04). The taint reaches parse_trailer from main()'s read of the commit-msg hook's message file, and the match is a `Director-doc:` trailer regex over that message -- the same dismissal as write_time_gate.parse_records, which reads the REUSE record out of the same file. No Python is read; routing a commit message through tools/python_code_text.py would hand a Python parser prose. Added by hand, not by --freeze."
+    },
+    {
+      "path": "tests/tools/test_site1_proof_crawlability.py",
+      "function": "test_the_gated_site_tells_search_it_is_not_for_indexing",
+      "subject": "unknown",
+      "why_frozen": "reads site/_headers, Cloudflare Pages' header-rule file, and never Python. The census grades it unknown only because `_headers` carries no suffix. Its regex looks for a `/*` rule carrying X-Robots-Tag: noindex (director ruling 2026-11-19). Routing it through tools/python_code_text.py would hand a Python parser a header file. Added by hand, not by --freeze."
     }
   ]
 }

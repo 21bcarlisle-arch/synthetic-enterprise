@@ -95,6 +95,8 @@ from pathlib import Path
 import yaml
 
 from company.interfaces.collections_communication import (
+    bill_falls_due,
+    bill_issued_for,
     closed_account_write_off_date,
     ledger_notice_wording,
     ledger_notices,
@@ -110,8 +112,6 @@ from simulation.segment_vocabulary import (
     normalise_segment,
 )
 from simulation.sme_payment_behaviour import sme_payment_outcome
-
-PAYMENT_TERMS_DAYS = 14
 
 # Phase 3 (CORE_FIDELITY_PHASES.md item 3, unhappy-path audit finding #2):
 # "issue_date = period_end -- the bill is issued the same calendar day the
@@ -142,12 +142,13 @@ def bill_issue_date(customer_id: str, period_end: str) -> date:
 
 def bill_due_date(customer_id: str, period_end: str) -> date:
     """The day this leg's bill for the period ending `period_end` falls due: issued after the
-    period's generation run, payable PAYMENT_TERMS_DAYS later. The one home for it. The billing
+    period's generation run, payable on the supplier's own terms (`bill_falls_due`, through its
+    door; the world kept its own 14 days until KNIFE3, 2026-11-19). The one home for it. The billing
     ledger, this engine and the run's posting to the company's own ledger (which the collections
     desk walks) each kept their own: the run's said the 28th of the month being billed, before the
     period had even ended, so on the 2eeb3f0b3 book 1,987 of 7,151 journeys opened on a bill the
     billing ledger had not yet made due."""
-    return bill_issue_date(customer_id, period_end) + timedelta(days=PAYMENT_TERMS_DAYS)
+    return bill_falls_due(bill_issue_date(customer_id, period_end))
 
 
 def paid_on(due_date: date, days_late: int, method: str | None) -> date:
@@ -1531,7 +1532,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
         if leaver:
             # The company's own write-off date, a year after the final bill was issued: the date
             # the desk writes the same balance off on (debt_and_collections.md s.7.3).
-            closed_on = closed_account_write_off_date(horizon - timedelta(days=PAYMENT_TERMS_DAYS))
+            closed_on = closed_account_write_off_date(bill_issued_for(horizon))
             # No more is written off than the one balance owes (s.8.8b choice 4). Off a level
             # schedule the balance is the outstanding bills less the waiting credit, and every
             # outstanding bill is written off whole, as it always was.

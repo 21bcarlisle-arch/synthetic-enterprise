@@ -45,6 +45,9 @@
 #   "A changed amount or date: the world's answer".
 # 2026-11-15 (W2_43 world): ppm_debt_self_disconnection_weekly_share, at its low end; commons
 #   psr_eligibility_and_disconnection_protection.md s.5, "The PPM's supply events".
+# 2026-11-19 (stock prepayers): the same share now also reaches every stock prepayment household, and
+#   ppm_self_disconnection_over_3h_share is added; energy_vulnerability_observables_prepayment_and_
+#   self_disconnection_2026-11-19.md s.7a.
 written: 2026-10-05
 toggles:
   - id: q1_move_out_notice_share
@@ -2020,10 +2023,10 @@ toggles:
   - id: ppm_debt_self_disconnection_weekly_share
     question: W2_43 a prepayment meter's supply events (world)
     meaning: >-
-      For a household whose meter was changed to prepayment for debt, the chance in any one week on
-      the meter of at least one interruption because the meter's credit ran out (SLC 27A.9). ESTIMATE
-      range, derived across populations and dates; reached only after a meter moves, and none does
-      while method_prepayment_offer_take_up_share is 0.
+      For a household on a prepayment meter, the chance in any one week on the meter of at least one
+      interruption because the meter's credit ran out (SLC 27A.9). This covers both a meter fitted
+      for debt and, since 2026-11-19, a household that already prepaid when it joined. ESTIMATE
+      range, derived across populations and dates. The id keeps its W2_43 name.
     default: 0.019
     low: 0.019
     high: 0.061
@@ -2042,9 +2045,39 @@ toggles:
     sensitivity:
       kind: argued
       detail: >-
-        Reached only when a meter moves for debt; none does while take-up is 0. Whole smart-PPM
-        stock, not debt-fitted meters, which very likely self-disconnect more: understates.
+        Reached by every stock prepayer (about 13-14% of supply points) from its first billed month,
+        and by a debt-fitted meter once one moves. It is a whole smart-PPM stock rate. For a stock
+        prepayer that is the right population, but the denominator is estimated. For a debt-fitted
+        meter it very likely understates.
     verdict: MATTERS_AND_UNRESOLVABLE (no per-household or debt-PPM self-disconnection rate is published)
+
+  - id: ppm_self_disconnection_over_3h_share
+    question: W2_43 a prepayment meter's supply events (world)
+    meaning: >-
+      Given a week on a prepayment meter with at least one credit-exhausted interruption, the chance
+      that at least one lasted over 3 hours (Ofgem's "severe"). Drawn per interruption-week on its
+      own stream. Hours themselves are not drawn.
+    default: 0.627
+    low: 0.618
+    high: 0.653
+    unit: probability
+    basis_default: >-
+      Ofgem debt and arrears indicators, Q2 2026, smart-PPM electricity: 368,659 customers over 3 hours
+      and 564,191 at least once, in the same quarter and population. Each is taken as a constant weekly
+      hazard over 13 weeks, against the ESTIMATED 2.58m denominator. That gives 0.0118 / 0.0188 = 0.627.
+    basis_low: The same derivation over a 2.0m denominator.
+    basis_high: >-
+      The customer-level ratio 368,659 / 564,191 = 0.653, which is what the conditional tends to as
+      the denominator grows. From 2.0m to 4.3m the derivation stays within 0.618-0.639
+      (energy_vulnerability_observables_prepayment_and_self_disconnection_2026-11-19.md s.7a).
+    feeds: [simulation/payment_method_dynamics.py]
+    sensitivity:
+      kind: argued
+      detail: >-
+        Splits the interruptions the weekly share already draws; no effect on how many there are.
+        The subset is what step 2 (cold and money) will read. Gas runs 80% over 3 hours in the
+        same data, so using the electricity figure for a gas meter understates it.
+    verdict: MATTERS_AND_RESOLVABLE (narrow range; per-event split by fuel would pin it)
 
 no_toggle:
   - question: Q5 carbon

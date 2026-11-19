@@ -1,7 +1,12 @@
 import datetime as dt
+
 import pytest
+
 from company.billing.credit_refund import (
-    CreditRefundRecord, CreditRefundBook, RefundTrigger, RefundStatus,
+    CreditRefundBook,
+    CreditRefundRecord,
+    RefundStatus,
+    RefundTrigger,
 )
 
 
@@ -158,3 +163,16 @@ class TestCreditRefundBook:
         book = CreditRefundBook()
         with pytest.raises(ValueError):
             book.approve("NOTFOUND", dt.date(2023, 1, 5))
+
+
+def test_the_refund_clock_runs_from_the_latest_of_the_bill_the_collection_and_the_money():
+    """Defect named: the company's refund clock ignoring money that completes the credit after the
+    final bill (home_moves.md s.8.8d choice 18) or a level collection taken after it (s.8.8b choice
+    2). Both later legs must be reachable, and with neither the clock is the bill's own day."""
+    from company.billing.credit_refund import refund_clock_starts
+
+    bill = dt.date(2023, 3, 1)
+    assert refund_clock_starts(bill) == bill
+    assert refund_clock_starts(bill, dt.date(2023, 2, 20), dt.date(2023, 2, 25)) == bill
+    assert refund_clock_starts(bill, dt.date(2023, 3, 6), None) == dt.date(2023, 3, 6)
+    assert refund_clock_starts(bill, dt.date(2023, 3, 6), dt.date(2023, 3, 9)) == dt.date(2023, 3, 9)

@@ -617,13 +617,55 @@
     "label": "Testing and controls",
     "anchor": "s-build-Testing-and-controls"
    }
+  },
+  {
+   "read": "19 Nov",
+   "source": "SENSE catalogue (Smart Data Research UK), \"Spatially and temporally granular dynamic energy vulnerability indices\": three datasets derived from DCC smart-meter event data; gated; shared by the director",
+   "claim": "Aggregated, partly seasonal indices of energy vulnerability from smart-meter events",
+   "evidence": "Catalogue page only; it renders client-side, so its contents, area unit, period and terms were not read",
+   "verdict": "KNOWLEDGE FIRST",
+   "done": "It points at our largest floor gap: the shipped world asserts zero prepayment harm. Open sources first; no access requested (G5). The floor test needs a per-household mechanism, so the area indices are not asked for now. Page: `docs/market_research/energy_vulnerability_observables_prepayment_and_self_disconnection_2026-11-19.md`",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "19 Nov",
+   "source": "DCC, \"Tackling Fuel Poverty through Smart Metering\" (v1.0, June 2023); via the advisor",
+   "claim": "The smart-meter events a supplier sees that indicate vulnerability: top-up frequency, credit-exhausted alerts, emergency credit, self-disconnection",
+   "evidence": "Industry body; the PDF was unreadable on 19 Nov (404 / over the size limit), so the list comes from DCC's own news pages",
+   "verdict": "SOURCE",
+   "done": "The observables column of the fidelity scope (same page §6-§7). The advisor's extra events (fuel credit transfers, mode switching) and the 8,500 figure are unverified",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
+  },
+  {
+   "read": "19 Nov",
+   "source": "Another assistant's general answer on dynamic energy-vulnerability indices; shared by the director",
+   "claim": "SENSE access is gated; points to the open 2025 small-area study (*Regional Studies, Regional Science*) and the JRC work",
+   "evidence": "AI-written summary",
+   "verdict": "POINTER ONLY",
+   "done": "The RSRS 2025 indicator was read (open access; dwelling and socio-economic inputs, not smart-meter events). The JRC work was not read: GAP (same page §6)",
+   "concept": "—",
+   "placed": {
+    "kind": "none",
+    "label": null,
+    "anchor": null
+   }
   }
  ],
  "placed": {
   "concept": 17,
   "step": 18,
   "unplaced": 4,
-  "none": 5
+  "none": 8
  },
  "rejected": 4
 }

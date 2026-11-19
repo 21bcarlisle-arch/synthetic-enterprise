@@ -5,8 +5,19 @@ extend-exclude = ["archive"]
 force-exclude = true
 
 [lint]
-select = ["E", "F", "W", "I"]
-ignore = ["E501"]
+# B (bug patterns) and DTZ (timezone-naive dates) added 2026-11-19 on the director's steer, under
+# the ratchet: new code only, no sweep. Settlement turns on GMT/BST, and a 2016-2025 book aged
+# against the machine's 2026 calendar (`date.today()`, DTZ011) has happened here before.
+select = ["E", "F", "W", "I", "B", "DTZ"]
+ignore = [
+    "E501",
+    "B905",  # zip() without strict=: 558 hits, lengths equal by construction almost everywhere
+    "B007",  # unused loop variable: a naming hint, not a defect
+    "B009",  # getattr with a constant: style
+    "B010",  # setattr with a constant: style
+]
 
 [lint.per-file-ignores]
-"tests/*" = ["F401"]
+# DTZ001 in tests: 305 of the repo's 310 hits are fixtures building calendar datetimes; the clock
+# decision is made in the code under test, which stays covered.
+"tests/*" = ["F401", "DTZ001"]

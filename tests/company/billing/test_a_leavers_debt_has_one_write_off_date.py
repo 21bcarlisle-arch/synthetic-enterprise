@@ -19,11 +19,10 @@ import datetime as dt
 
 from company.billing.account_ledger import LedgerBook, LedgerEvent, LedgerEventType
 from company.billing.arrears_engine import CLOSED_ACCOUNT_RULE, closed_account_write_off_date
-from company.billing.collections_journey import WRITE_OFF
+from company.billing.collections_journey import WRITE_OFF, bill_falls_due
 from company.billing.payment_observation_consumer import PaymentObservationConsumer
 from simulation.arrears_engine import (
     LEG_CLOSE,
-    PAYMENT_TERMS_DAYS,
     balance_settlement_from_outcomes,
 )
 
@@ -76,7 +75,7 @@ def test_the_desk_writes_a_closed_balance_off_on_the_company_date_and_nothing_el
 
 
 def test_the_page_writes_a_leavers_debt_off_on_the_date_the_desk_does():
-    due = [d + dt.timedelta(days=PAYMENT_TERMS_DAYS) for d in _monthly(6)]
+    due = [bill_falls_due(d) for d in _monthly(6)]
     resolved = [{"customer_id": "C9", "period_end": d.isoformat(), "commodity": "electricity",
                  "amount_gbp": 40.0, "due_date": d, "method": "standard_credit",
                  "outcome": "failed", "days_late": 0} for d in due]

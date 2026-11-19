@@ -814,12 +814,14 @@ class LiveSimInterface(SimInterface):
         from simulation.live_population import run_base_seed
         from simulation.payment_method_dynamics import meter_supply_events
         through_day = dt.date.fromisoformat(str(through))
-        meter = self._household_plans.meter_of(account_id)
-        if meter is not None and meter[0] > through_day:
-            meter = None  # a meter changed after `through` is not yet a fact
-        events = meter_supply_events(account_id, None if meter is None else meter[0],
-                                     through_day, base_seed=run_base_seed())
-        return {**events, "reason": "the meter's own reports" if meter else "no meter on this account"}
+        # A meter fitted for debt, or the meter a prepaying household already had when we began to
+        # supply it: the supplier knows both of its own meters (energy_vulnerability_observables
+        # s.7a).
+        since = self._household_plans.reporting_meter_from(account_id)
+        if since is not None and since > through_day:
+            since = None  # a meter not yet reporting by `through` is not yet a fact
+        events = meter_supply_events(account_id, since, through_day, base_seed=run_base_seed())
+        return {**events, "reason": "the meter's own reports" if since else "no meter on this account"}
 
     def get_meter_recoveries(self, account_id, moved_on, debt, through) -> list[dict]:
         from simulation.payment_method_dynamics import meter_recoveries

@@ -103,7 +103,10 @@ def dump_run_output(data: dict) -> str:
 #: run, where only harness readers look. The D5 grade of 17 Nov found that none of the three
 #: reached any file, so no book could name the walk a lump crossed behind
 #: (SEAT_FINDING_D5_SWITCH_ON_PRE_REGISTRATION_ROWS_4_AND_7_2026-11-17.md).
-WORLD_WALK_TRUTH_KEYS = ("settlements_behind_the_walk", "later_settlements", "final_month_nets")
+#: `prepayment_supply_events` (19 Nov): every prepayment meter's supply losses, over 3 hours
+#: separately -- the floor test's first world input (energy_vulnerability_observables s.7a).
+WORLD_WALK_TRUTH_KEYS = ("settlements_behind_the_walk", "later_settlements", "final_month_nets",
+                         "prepayment_supply_events")
 
 
 def world_walk_truth_path(run_output_path: Path) -> Path:

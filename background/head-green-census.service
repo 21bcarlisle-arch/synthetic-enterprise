@@ -26,4 +26,10 @@ ExecStart=/usr/bin/python3 -m tools.head_green_census --notify
 # next firing.
 # `tests/tools/test_head_green_census.py::test_the_census_timeout_clears_the_duration_it_has_observed`
 # reads THIS FILE and fails if the two ever cross.
-TimeoutStartSec=17700
+#
+# 19 Nov: the census now QUEUES for the memory governor (re-asks every 1800s up to
+# tools.head_green_census.ADMISSION_DEADLINE_SECONDS, 66300s) instead of deferring once, so the
+# unit also has to hold the wait: 66300 + one 1800s poll overshoot + 17400 suite + 300 = 85800,
+# which with the timer's 600s randomised delay still ends before the next 03:30 firing.
+# `test_a_census_that_waits_for_room_still_ends_before_the_next_firing` re-derives it.
+TimeoutStartSec=85800

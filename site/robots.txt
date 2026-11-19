@@ -1,6 +1,8 @@
-# DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md (2026-07-12): block AI training
-# harvesters, allow user-directed AI fetch + normal search indexing.
-# The site declines to be training data; humans and search are unaffected.
+# DIRECTOR_ANSWERS_ENTITY_CRAWLERS.md (2026-07-12): block AI training harvesters, allow
+# user-directed AI fetch. Search indexing is now refused too: director ruling 2026-11-19
+# ("Repo public. Website password", docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_
+# THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md). This only asks crawlers to stay away. Everything here is
+# still public in the repository and on the github.io copy, so it does not make Poesys private.
 
 User-agent: GPTBot
 Disallow: /
@@ -27,10 +29,10 @@ User-agent: Claude-User
 Allow: /
 
 User-agent: Claude-SearchBot
-Allow: /
+Disallow: /
 
 User-agent: *
-Allow: /
+Disallow: /
 
 # MINOR-9 fix (2026-07-29 cold-eyes Expert Hour, SITE1_expert_doors): sitemap.xml
 # previously 404'd while this file invited normal crawling -- point crawlers at the

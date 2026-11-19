@@ -6576,6 +6576,13 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             _method_dynamics.consent_offers_to_concealing_households(
                 _payment_triad._household_plans.consent_offers, run_base_seed()))}
            if _vulnerability_hidden_state_on else {}),
+        # World truth (energy_vulnerability_observables s.7a): every prepayment meter's supply
+        # losses through the run's end, over 3 hours separately. Never crosses.
+        "prepayment_supply_events": _method_dynamics.summarise_supply_events({
+            a: _method_dynamics.meter_supply_events(
+                a, _payment_triad._household_plans.reporting_meter_from(a),
+                date.fromisoformat(str(effective_end)[:10]), base_seed=run_base_seed())
+            for a in _payment_triad._household_plans.prepaying_accounts()}),
         # The COMPANY's bad-debt provision: a stock over its own receivables on the payment-seam
         # ledger, by footing and age, at each 31 December and at the end. Unlike
         # `total_bad_debt`'s provisioned reading, which is the world's incidence on revenue.

@@ -47,6 +47,21 @@ def refund_due_date(final_bill_issued: dt.date) -> dt.date:
     return add_working_days(final_bill_issued, _REFUND_DEADLINE_WORKING_DAYS)
 
 
+def refund_clock_starts(final_bill_issued: dt.date, last_collection: Optional[dt.date] = None,
+                        money_in: Optional[dt.date] = None) -> dt.date:
+    """The day this company starts reg 6D's clock on a leaver's closing credit: the later of the
+    final bill's issue, a level collection taken after it, and the day the last money the credit
+    counts arrived (`docs/market_research/home_moves.md` s.8.8b choice 2, s.8.8d choice 18).
+
+    A credit exists once its money does (SLC 27.16), and when reg 6D's clock starts for a credit
+    completed after the final bill is not published (GAP G8.16), so this is the company's own
+    reading. The world states the three dates it holds; until KNIFE3 (2026-11-19) it took the
+    later of them itself and handed the company the result as the final bill's issue date.
+    """
+    later = [d for d in (last_collection, money_in) if d]
+    return max(final_bill_issued, max(later)) if later else final_bill_issued
+
+
 def scheduled_refund_date(final_bill_issued: dt.date) -> dt.date:
     """When this company pays a closure refund: on the deadline itself.
 

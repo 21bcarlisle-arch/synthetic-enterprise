@@ -107,3 +107,18 @@ map_notes:
     ERA5 pull (W1_14), which moves premises onto fabric; and give the fallback and the fabric base load a household
     year-to-year term drawn from NEED/SERL, which INV_ELEC_MONTHLY_USE_MOVES_YEAR_ON_YEAR_LIKE_A_HOUSEHOLD grades
     (book median |r-1| in [0.05, 0.30]). Graded 0.0075 on fd91027799.'
+  l3_gate_note: 'MEASURED 2026-11-19, on the published run 7f0723b46e (docs/reports/run_output_latest.json). Exit criterion
+    1, "a per-household shape the draw actually carries", holds for about a quarter of the book. 538 of 722 electricity
+    premises settle on legacy_pc1_rescaled, 180 on fabric_physics and 4 on half-hourly reads. 361 of 473 gas legs settle on
+    population_70_30_split and 112 on fabric_seasonal_split. 541 of the electricity refusals give one reason: no weather
+    archive for the cell. `build_weather_world --list` shows 454 of the book''s 596 cells without ERA5 (440 were owed on 3 Nov). The pull had
+    no owner from 3 Nov to 19 Nov and ran again on 19 Nov. The mechanism in this row''s file_scope is built, so what
+    remains is W1_14''s store, and the row is blocked on it.
+    CRITERION 3 IS RESTATED. Criterion 3 was "W2_29''s acceptance re-run over the full vector". It is W2_29''s own exit,
+    and W2_29 already depends_on this row, so the two rows were waiting on each other. The director parked W2_29 on
+    14 Oct ("the N study is research, not clear-down"), and e0492757e6 found that the coverage population carries
+    neither shape. Canon section 7 leaves the measurement design to the seat. The re-run therefore stays on W2_29 alone, and
+    this row''s L3 asks for criteria 1 and 2 plus a cold-eyes pass on the fitted distribution. Criterion 2 landed in
+    a698590552. To reverse: put the clause back in map_comment_note''s EXIT.
+    TO UNBLOCK: once the store covers the book, rerun and count the providers again. Criterion 1 is met when the
+    refusals that remain have reasons other than weather (no household record, HH-metered, non-domestic).'

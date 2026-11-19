@@ -58,3 +58,19 @@ Phase-1 findings ntfy'd with GO/NO-GO; post-flip: deploy verified live
 (pixel), all links resolving, © + terms live site-wide, attribution
 obligations met, README notice in, [ACTION NEEDED] sent for entity name +
 crawler decision. One digest line per phase.
+
+## Done
+
+Closed 2026-11-19, unbuilt, on the director's ruling of the same day (chat, 14:07: "Repo public. Website
+password"; advisor file `docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md`).
+
+- Phase 2, the flip to private, will not happen. The repository stays public.
+- Phase 3.1, the footer copyright, will not happen in a company's name, because Poesys is not a company. A notice in
+  his own name would be his call, if he asks for one.
+- Phase 3.4, the README proprietary notice, is dropped: a public repository cannot claim confidentiality.
+- Phase 3.3: `site/robots.txt` now refuses search crawlers as well as the AI-training ones, and the Pages copy is
+  served `X-Robots-Tag: noindex, nofollow`. That landed with the site-login ruling, recorded in
+  `docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_STAYS_PUBLIC_2026-11-19.md`.
+- Phase 1's quota finding is moot, since there is no private repository to meter.
+- Its `for_the_director` row, `the-github-repository-is-still-public-gh`, is answered `no` with his words.
+- The site login that replaced this plan is followed in that record and in row `the-site-login-you-ruled-on-19`.

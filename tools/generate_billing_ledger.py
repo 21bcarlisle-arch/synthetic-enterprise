@@ -63,9 +63,9 @@ from simulation.arrears_engine import (
     _DD_FAILURE_PROB,
     _LATE_DAYS,
     _ON_TIME_PROB,
-    PAYMENT_TERMS_DAYS,
     _tone_for_bill,
     bill_due_date,
+    bill_issue_date,
     paid_on,
 )
 from simulation.arrears_engine import (
@@ -573,7 +573,7 @@ def generate(run_json_path=None, out_path=None):
         year = int(period_end[:4])
 
         due_date = bill_due_date(cid, period_end)
-        issue_date = due_date - timedelta(days=PAYMENT_TERMS_DAYS)
+        issue_date = bill_issue_date(cid, period_end)
         generation_delay_days = (issue_date - date.fromisoformat(period_end)).days
 
         beh = behavioral.get(cid) or {}
