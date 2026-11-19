@@ -4125,6 +4125,18 @@ itself.
 
 ---
 
+### Decisions moved without an edge (KNIFE3 decision slices, from 2026-11-18)
+
+Some supplier decisions were made in `simulation/` through an edge that is already cut, because it
+ends on a door, so the walker cannot see them. Each row is a decision that has moved into `company/`.
+The world keeps the event and its timing, and each move was replayed byte-equal on
+`run_output_8a300fa561`.
+
+| Decision | From | To (door) | Commit | Replay |
+|---|---|---|---|---|
+| Dual-fuel close set-off (home_moves.md s.8.8e choices 21, 22, 30) | `simulation/credit_refund_events.py` | `company/billing/credit_refund.HouseholdCloseDebts` (`credit_refund_requests.refunds_on_account_closures`) | 1c5351d18 | refund log cmp-equal: 187 events, 59 set-offs |
+| Statute-barred write-off date (Limitation Act 1980 s.5, restarted by a payment s.29(5)) | `simulation/arrears_engine.balance_settlement_from_outcomes` | `company/billing/collections_journey.statute_barred_write_off_date` (`collections_communication.statute_barred_write_off_date`) | moved 2026-11-19 (the commit adding this row) | write-off map + bad-debt lines cmp-equal (sha256 8a169123…); the bar never fires on this book (253 write-offs, all `close`), so the moved rule is exercised by `test_balance_at_close_write_off.py`. Dropping the s.29(5) restart turns 2 of its tests red, and shifting the bar turns 4 red |
+
 ## 4. The register — all 91 examined crossings; for how many are still live, RUN THE TOOL
 
 88 was the count when every crossing was ruled on (2026-08-09, step 2); step 7 found three more the

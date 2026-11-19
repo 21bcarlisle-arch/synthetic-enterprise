@@ -145,3 +145,12 @@ def closed_account_write_off_date(final_bill_issued):
     from company.billing.arrears_engine import closed_account_write_off_date as _date
 
     return _date(final_bill_issued)
+
+
+def statute_barred_write_off_date(due, last_payment=None):
+    """The day the supplier writes off a live account's unpaid bill as statute-barred, given the
+    bill's due date and the last payment on the account. Its own act: the world passes the dates
+    from its ledger and takes back the date."""
+    from company.billing.collections_journey import statute_barred_write_off_date as _date
+
+    return _date(due, last_payment)

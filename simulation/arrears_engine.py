@@ -99,6 +99,7 @@ from company.interfaces.collections_communication import (
     ledger_notice_wording,
     ledger_notices,
     ledger_write_off_fallback,
+    statute_barred_write_off_date,
 )
 from simulation.bacs_processing_day import collected_on
 from simulation.meter_reads import assumption_toggle
@@ -880,10 +881,9 @@ def ic_arrears_stages(arrears_gbp: float, due_date: date, still_open: bool,
 #: It was the final bill's due date, which left the desk chasing a balance the page had written off.
 WRITE_OFF_DATE_CONVENTION = "company_closed_account_write_off"
 
-#: C7, leg 4a. Limitation Act 1980 s.5 (six years from the cause of action) and s.29(5) (a
-#: part-payment restarts the clock). A payment into the running account is read as that
-#: part-payment, so a paying stayer never reaches the bar.
-STATUTE_BAR_YEARS = 6
+#: C7, leg 4a, the statute bar (Limitation Act 1980 s.5, restarted by a payment, s.29(5)), is the
+#: company's write-off: the walk asks `collections_communication.statute_barred_write_off_date` for
+#: the day and keeps only the payments that restart its clock. A paying stayer never reaches it.
 
 #: C6, leg 4b's rates, SOURCED: Centrica plc ARA 2025 Note 17 p.175, UK residential energy, 2025
 #: column -- provision / gross billed receivables at 31 Dec, by days beyond invoice date
@@ -978,13 +978,6 @@ BAD_DEBT_BASIS = (
 #: The two ways a balance reaches write-off.
 LEG_CLOSE = "close"
 LEG_STATUTE_BAR = "statute_bar"
-
-
-def _add_years(d: date, years: int) -> date:
-    try:
-        return d.replace(year=d.year + years)
-    except ValueError:  # 29 Feb -> 28 Feb
-        return d.replace(year=d.year + years, day=28)
 
 
 def payer_ask_gbp(bill: dict) -> float | None:
@@ -1342,9 +1335,7 @@ def balance_settlement_from_outcomes(resolved: list[dict], churned_ids: set[str]
 
         def _bar(until: date) -> None:
             for item in list(outstanding):
-                due = item["row"]["due_date"]
-                clock = due if last_ack is None else max(due, last_ack)
-                barred_at = _add_years(clock, STATUTE_BAR_YEARS)
+                barred_at = statute_barred_write_off_date(item["row"]["due_date"], last_ack)
                 if barred_at <= until:
                     outstanding.remove(item)
                     _write_off(item, barred_at, LEG_STATUTE_BAR)

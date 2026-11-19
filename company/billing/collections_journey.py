@@ -251,6 +251,15 @@ def _years_after(d: dt.date, years: int) -> dt.date:
         return d.replace(year=d.year + years, day=28)
 
 
+def statute_barred_write_off_date(due: dt.date, last_payment: Optional[dt.date] = None) -> dt.date:
+    """The day the company writes a live account's unpaid bill off as statute-barred: six years past
+    its due date, or past the last payment on the account if that came later (Limitation Act 1980
+    s.5, restarted by s.29(5)). Its own accounting act, read off its own ledger: the bill's due date
+    and the date money last arrived. The settlement walk (`simulation/arrears_engine.py`) reads the
+    date here and keeps only the payments (KNIFE3, 2026-11-19)."""
+    clock = due if last_payment is None else max(due, last_payment)
+    return _years_after(clock, STATUTE_BAR_YEARS)
+
 def statute_barred_gbp(ledger: AccountLedger, on: dt.date, payment_terms_days: int = 14) -> float:
     """What this account owes on `on` that is statute-barred: the FIFO-unpaid bills due at least six
     years before `on`, and only if no payment has landed on the account in those six years. Read off
