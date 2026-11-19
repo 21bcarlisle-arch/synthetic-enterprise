@@ -180,31 +180,77 @@ wrong:
       Corrected beside the claim in s.12f by 9a361e356.
     corrected: true
 for_the_director:
-  - id: the-github-repository-is-still-public-gh
-    raised: "2026-11-18"
-    kind: reserved
-    decision_kind: g5
-    what: The GitHub repository is still public (gh, 18 Nov). The July plan to make it private and assert copyright
-      has sat parked since 11 Jul, waiting on your click and two decisions.
-    proposal: 'The repo is the IP the method lives in. The only blocker the machine found in July was a GitHub Actions
-      quota: site deploys used about twice the private allowance. That is fixed now, because deploys only fire on
-      the published files. Making the repo private is your click in GitHub settings. Asserting copyright on the site
-      needs the company''s legal name and a yes or no on blocking AI crawlers.'
-    recommendation: I recommend you make the repo private when it suits you, and tell me the legal entity name. I
-      will then re-measure the Actions minutes on the private plan before the site carries any copyright line.
-    based_on: 824be4a157
-    status: answered
-    resolution: 'Director, chat, 19 Nov 2026, 14:05 "It isn''t a real company. Maybe we should add a password to
-      website?" and 14:07 "Repo public. Website password" (advisor-staged as ee46f6711). The repo stays public. No
-      copyright line names a company. poesys.net goes behind a login.'
-    resolved: "2026-11-19"
-    commitment:
-      work_id: poesys-net-goes-behind-a-login
-      done_means: Every route of the Pages project (poesys.net, *.pages.dev and its previews, any Functions) refuses an
-        unauthenticated fetch, with the reading on origin. noindex and a robots disallow are served. The record says
-        the public repo still exposes the content. His one login has succeeded. DNS or payment steps, if any, are
-        raised and not taken.
-      due: "2026-11-26"
-    g5_class: irretractable_public_claim
-    evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md;
-      docs/staging/in_progress/REPO_PRIVATE_AND_IP.md
+- id: the-github-repository-is-still-public-gh
+  raised: '2026-11-18'
+  kind: reserved
+  decision_kind: g5
+  what: The GitHub repository is still public (gh, 18 Nov). The July plan to make it private and assert
+    copyright has sat parked since 11 Jul, waiting on your click and two decisions.
+  proposal: 'The repo is the IP the method lives in. The only blocker the machine found in July was a
+    GitHub Actions quota: site deploys used about twice the private allowance. That is fixed now, because
+    deploys only fire on the published files. Making the repo private is your click in GitHub settings.
+    Asserting copyright on the site needs the company''s legal name and a yes or no on blocking AI crawlers.'
+  recommendation: I recommend you make the repo private when it suits you, and tell me the legal entity
+    name. I will then re-measure the Actions minutes on the private plan before the site carries any copyright
+    line.
+  based_on: 824be4a157
+  status: answered
+  resolution: Director, chat, 19 Nov 2026, 14:05 "It isn't a real company. Maybe we should add a password
+    to website?" and 14:07 "Repo public. Website password" (advisor-staged as ee46f6711). The repo stays
+    public. No copyright line names a company. poesys.net goes behind a login.
+  resolved: '2026-11-19'
+  commitment:
+    work_id: poesys-net-goes-behind-a-login
+    done_means: Every route of the Pages project (poesys.net, *.pages.dev and its previews, any Functions)
+      refuses an unauthenticated fetch, with the reading on origin. noindex and a robots disallow are
+      served. The record says the public repo still exposes the content. His one login has succeeded.
+      DNS or payment steps, if any, are raised and not taken.
+    due: '2026-11-26'
+  g5_class: irretractable_public_claim
+  evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md;
+    docs/staging/in_progress/REPO_PRIVATE_AND_IP.md
+- id: the-site-login-you-ruled-on-19
+  raised: '2026-11-19'
+  kind: reserved
+  decision_kind: g5
+  what: 'The site login you ruled on 19 Nov cannot start until Cloudflare Zero Trust is switched on for
+    the account, and that sign-up screen may ask for a card, which is yours. A read-only probe (Actions
+    run 44569003701) found Access not enabled: every Access endpoint answers 403 access.api.error.not_enabled.
+    Everything else the ruling asked for has landed: robots disallow, noindex on every route, and the
+    deploy check ready for a service token.'
+  proposal: 'One step for you: in the Cloudflare dashboard (dash.cloudflare.com), open Zero Trust, pick
+    a team name (poesys is fine) and choose the Free plan. If it asks for a card, decide whether to give
+    one; the Free plan covers up to 50 readers at no charge. Then either reply ''go'' so the console session
+    sets up the Access application, or create an API token with ''Access: Apps and Policies Edit'' and
+    ''Access: Service Tokens Edit'' and add it as an Actions secret. The machine then gates poesys.net,
+    poesys-net.pages.dev and *.poesys-net.pages.dev with one-time email codes, your address as the only
+    reader, proves each route refuses an unauthenticated fetch, and records how to reverse it (delete
+    the Access application). No DNS change is expected.'
+  recommendation: I recommend you do the Zero Trust sign-up on the Free plan, and decline it if it insists
+    on a card; tell me if so and I will propose a Pages-Function password gate instead, which needs no
+    card.
+  based_on: 57a89f463f
+  status: open
+  resolution: ''
+  g5_class: real_money
+  evidence: docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md;
+    docs/staging/records/SEAT_RECORD_THE_SITE_LOGIN_WHAT_LANDED_AND_WHAT_STAYS_PUBLIC_2026-11-19.md
+- id: canon-d11-says-the-public-site-exists
+  raised: '2026-11-19'
+  kind: canon_intent
+  decision_kind: strategy
+  what: Canon D11 says the public site exists so that an intelligent stranger can understand the project
+    and follow its progress. Your 19 Nov ruling puts poesys.net behind a login, so a stranger can no longer
+    reach it. The repo and the github.io copy stay public. Page copy that calls the site public is unchanged
+    until D11 says what the site is for now.
+  proposal: 'Amend D11 by adding one sentence after its first: ''Readers reach it by invitation, behind
+    a login. The repository and its github.io copy stay public, so the login keeps out search engines
+    and casual visitors, not a determined reader.'' The rest of D11 (no house vocabulary, weekly Monday
+    publish, the banner) stays as written, because an invited reader is still a stranger to the project.
+    Once you agree, the machine updates the site pages that call it public to say ''by invitation''.'
+  recommendation: I recommend you approve that one added sentence, and keep the newcomer test for invited
+    readers.
+  based_on: 57a89f463f
+  status: open
+  resolution: ''
+  evidence: docs/design/DIRECTOR_CANON.md (D11); docs/staging/advisor/DIRECTOR_RULING_REPO_STAYS_PUBLIC_AND_THE_WEBSITE_GOES_BEHIND_A_LOGIN_2026-11-19.md

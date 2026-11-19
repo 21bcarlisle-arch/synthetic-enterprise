@@ -20,6 +20,9 @@ That file stays open until the gate is proved. This record is the first incremen
 
 ## Waits (raised, with a recommendation)
 
+*[Correction, 19 Nov, delivery seat: neither row named below existed on origin when this record said
+"raised". Both are now raised in `docs/direction/DIRECTION.yaml`, with the probe's reading and one plain step for him.]*
+
 - **The gate itself** (row `the-site-login-you-ruled-on-19`). No lane holds a Cloudflare credential that can
   configure Access. *[Note, 19 Nov, delivery seat: not yet tested. The Actions secret
   `CLOUDFLARE_API_TOKEN` (the Pages deploy token, minted 22 Jun) is a lane-usable credential, and its scopes are
