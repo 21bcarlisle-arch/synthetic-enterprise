@@ -58,3 +58,41 @@ split and the 0.70 → ~0.85 recalibration. Those wait on DIRECTION.
 
 The grade will be appended below once the book lands. After that, the coupled gap ledger row is re-run with
 `tools/couple_w2_36_d48.py`.
+
+## Grade (appended after the book was read, 20:45Z, same day)
+
+Book: `run_output_67d454905c_20261119T184502Z.json` (sha256 `c8c5ee97a1553ece…`, `producing_commit` 67d454905c).
+I read it after this file's prediction reached origin as 0c1e91449 (20:42:33Z). Same script, same seed, same split.
+
+| gas class (67d454905c) | n | gap | Dec–May closed-final | Jun–Nov closed-final | open |
+|---|---:|---|---|---|---|
+| all gas | 584 | 0.255 [0.217, 0.297] | +4.1% [+1.3, +6.9] (102) | −6.0% [−10.2, −2.4] (109) | −3.9% [−6.7, −1.6] |
+| fabric seasonal split | 153 | 0.309 [0.235, 0.395] | +0.2% [−5.1, +5.9] (32) | −3.4% [−11.8, +3.9] (29) | −3.5% [−9.0, +0.7] |
+| 70/30 fallback, all | 431 | 0.235 [0.192, 0.283] | +6.3% [+3.7, +9.0] (70) | −7.1% [−11.5, −2.9] (80) | −4.0% [−7.2, −1.4] |
+| of which `OCC-` | 113 | 0.247 | +11.4% [+7.5, +15.6] (18) | −29.2% [−37.6, −23.6] (12) | −2.5% |
+| of which not `OCC-` | 318 | 0.231 | +4.4% [+1.4, +7.6] (52) | −6.1% [−10.6, −1.8] (68) | −4.6% |
+
+- **P1 held.** 0 gas accounts are unmapped. All 113 `OCC-` legs are in the map on `population_70_30_split`, and 113
+  refusals carry the new reason.
+- **P2 held.** The residual is not gone. It reads +4.1% in Dec–May and −6.0% in Jun–Nov, both inside their ranges.
+- **P3 held.** The fallback legs' spread is 13.4 points, inside [6, 16]. The fabric legs' spread is 3.6 points. The
+  fabric Dec–May point is +0.2%, and its interval includes 0.
+- **P4 held.** The all-gas gap is 0.2552, and the fabric-leg gap is 0.3085.
+
+**Seen, not pre-registered.**
+- The fabric class grew from 112 legs to 153. So 41 legs that were on the fallback in 6af7fd0bfd now settle on a fitted
+  split. I cannot yet say which change between the two commits did that. EPC register and ERA5 cells are the
+  candidates. It means the two books do not hold the same legs in each class, and the class-level agreement is
+  not a like-for-like comparison.
+- The `OCC-` legs' figures are identical on both books. The occupier legs did not move.
+- The bias is not only the occupiers. The non-`OCC-` fallback legs alone clear zero: +4.4% [+1.4, +7.6] in Dec–May.
+  The fallback carries the residual. The fitted split does not show it at n = 32, which is weak evidence, not
+  absence.
+
+**Ledger.** The `W2_36_unbilled_energy_arises_the_way_it_does_in_reality` row of `coupled_gap_ledger.json` was
+re-run on this book with HEAD's `tools/couple_w2_36_d48.py`. The overall gap moved from 0.2896 to 0.2873, gas from
+0.2546 to 0.2552, and electricity from 0.4074 to 0.3883. Every interval overlaps.
+
+**What follows.** The W2_30 lever is unchanged: carry the premise's split onto the occupier's leg, and recalibrate
+0.70 → ~0.85. Both are DIRECTION `not_now`. This grade is the evidence to bring when that is re-opened: the
+fallback legs carry a 13-point seasonal swing, and the fitted ones carry none that clears its bound.
