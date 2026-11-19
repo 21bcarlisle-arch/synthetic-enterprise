@@ -6549,60 +6549,60 @@
     "twin_atom_id": "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
   },
   "W2_36_unbilled_energy_arises_the_way_it_does_in_reality": {
-    "baseline": "no-skill = every account assigned the book's mean billed-minus-used share per estimated kWh on read-closed runs (s=0.000379, from the company's own true-ups and estimated bills, never the graded truth) times its estimated kWh; MAE_noskill=455.26 kWh",
+    "baseline": "no-skill = every account assigned the book's mean billed-minus-used share per estimated kWh on read-closed runs (s=0.000375, from the company's own true-ups and estimated bills, never the graded truth) times its estimated kWh; MAE_noskill=460.78 kWh",
     "components": {
-      "book_producing_commit": "6af7fd0bfd",
+      "book_producing_commit": "67d454905c",
       "by_fuel": {
         "electricity": {
-          "gap": 0.4074,
+          "gap": 0.3883,
           "gap_ci95": [
-            0.2683,
-            0.5384
+            0.2542,
+            0.5194
           ],
-          "mae_company_kwh": 76.95,
-          "mae_noskill_kwh": 188.9,
+          "mae_company_kwh": 77.97,
+          "mae_noskill_kwh": 200.82,
           "n_accounts": 722
         },
         "gas": {
-          "gap": 0.2546,
+          "gap": 0.2552,
           "gap_ci95": [
-            0.2158,
-            0.2961
+            0.2157,
+            0.2973
           ],
-          "mae_company_kwh": 199.74,
-          "mae_noskill_kwh": 784.56,
+          "mae_company_kwh": 199.6,
+          "mae_noskill_kwh": 782.16,
           "n_accounts": 584
         }
       },
-      "closed_on_estimated_final_kwh": 1225526.2,
+      "closed_on_estimated_final_kwh": 1210893.1,
       "definition": "per account, billed-minus-used kWh over its whole book: truth = billed kWh less the world's true use over the same periods; belief = the company's -true_up_kwh (billing_accuracy.account_billing_accuracy). Gap = MAE(belief) / MAE(no-skill), in kWh, accounts unweighted.",
       "gap_ci95": [
-        0.2425,
-        0.3423
+        0.2411,
+        0.3404
       ],
       "kinds_not_seen": "K4 meter faults and K7 theft: actual-read bills equal true use on this book, so their energy never reaches the truth this reads",
       "kinds_seen": "K2 residual: open estimate runs and runs closed on an estimated final",
-      "mae_company_kwh": 131.86,
-      "mae_company_share_of_use": 0.00603,
-      "mae_noskill_kwh": 455.26,
-      "mae_noskill_share_of_use": 0.02083,
+      "mae_company_kwh": 132.36,
+      "mae_company_share_of_use": 0.00599,
+      "mae_noskill_kwh": 460.78,
+      "mae_noskill_share_of_use": 0.02086,
       "n_accounts": 1306,
-      "n_accounts_with_estimated_bills": 1026,
-      "n_accounts_with_residual": 729,
-      "noskill_share_per_estimated_kwh": 0.000379,
-      "open_estimated_kwh": 492603.6,
+      "n_accounts_with_estimated_bills": 1028,
+      "n_accounts_with_residual": 727,
+      "noskill_share_per_estimated_kwh": 0.000375,
+      "open_estimated_kwh": 503560.9,
       "unit": "kWh per account (the ratio is dimensionless)"
     },
-    "g0": 455.2578480885086,
-    "gap": 0.28963278962755495,
-    "measured_at": "2026-11-19T14:07:25.482807+00:00",
+    "g0": 460.7775115232455,
+    "gap": 0.28725349046490195,
+    "measured_at": "2026-11-19T20:43:19.309732+00:00",
     "metric": "prediction",
     "normalisation": "divisor",
     "normalisation_reason": "",
     "note": "how wrong the supplier is about its own billing: its read-measured billed-minus-used per account against the world's, normalised to a book-mean-share supplier. The whole residual is energy billed on estimates no actual read has yet corrected.",
-    "raw_gap": 131.85760054171237,
+    "raw_gap": 132.35994851278386,
     "raw_gap_is": "the numerator of gap = raw_gap / g0",
-    "run_git_commit": "0ddafc418b0136d6263b6fd6b41223435f9182dd",
+    "run_git_commit": "0c1e91449957f14e58cc01f0e76e84e606fd836a",
     "twin_atom_id": "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
   },
   "W2_4_household_budget": {
