@@ -262,15 +262,18 @@ for_the_director:
   decision_kind: outside_source
   what: 'The BSC Smoothing Parameter (SPAR) value: it is the one number between us and fixing the electricity
     unbilled residual, and no public source states it'
-  proposal: If you know SPAR's value (or its history) from industry, tell me and I build the D0019-shaped
-    EAC blend world-side against the pre-registered [0.28, 0.38] gap band. If not, the 182-day hold stays,
-    marked unsourced.
+  proposal: 'Measured since (19 Nov, same book): the choice no longer turns on SPAR''s exact value.
+    At every SPAR from 0.5 to 4 the blend lowers the electricity gap (0.407 today; 0.379 at 0.5, 0.289
+    at 3) and leaves the E1 estimate-run guard exactly as it is (the same 8 breaches and 27 flags). Only
+    from about 6 upward does it re-open breaches (13 at the limit). So I can build the D0019-shaped
+    blend with SPAR as a stated range, [0.5, 3], run at both ends, with the gap published as a range.'
   recommendation: I recommend you reply with SPAR's value only if you know it offhand, and that we do
-    not seek MDD access (a licence is G5); silence keeps the 182-day hold, which over-bills new accounts
-    and so errs against our thesis.
-  based_on: 67d454905c
+    not seek MDD access (a licence is G5). Silence now means I build the blend at both ends of [0.5, 3]
+    and publish the range; the hold is beaten everywhere in it. Reply "hold" to keep the 182-day hold.
+  based_on: 2721453029
   status: open
   resolution: ''
   evidence: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8 (search
     of URS, LDD, Tech Spec, SMG, P40, MDD page; value only in licensed MDD); docs/staging/records/SEAT_PREREG_D48_THE_ELECTRICITY_RESIDUAL_BY_ESTIMATE_ROUTE_2026-11-19.md
-    (hold route holds 57% of the residual, billed/true 1.15)
+    (hold route holds 57% of the residual, billed/true 1.15); docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md
+    (E1 breaches and the gap at each SPAR)
