@@ -1922,6 +1922,43 @@
     "run_git_commit": "c959f3ac7c25c29aeeba574c1b23875973c31a1b",
     "twin_atom_id": "C14_thermal_parameter_inference"
   },
+  "W1_14_weather_cells_for_household_heat_load": {
+    "baseline": "none: the company holds no belief to grade",
+    "components": {
+      "book_producing_commit": "8a300fa561",
+      "year_specific_share_of_true_shape": {
+        "electricity": {
+          "ci95": [
+            0.0019,
+            0.0025
+          ],
+          "mean_abs_share_deviation": 0.00215,
+          "n_account_months": 20388,
+          "n_accounts": 370
+        },
+        "gas": {
+          "ci95": [
+            0.0069,
+            0.0074
+          ],
+          "mean_abs_share_deviation": 0.00715,
+          "n_account_months": 16224,
+          "n_accounts": 299
+        }
+      }
+    },
+    "g0": null,
+    "gap": null,
+    "measured_at": "2026-11-18T23:24:22.605913+00:00",
+    "metric": "prediction",
+    "normalisation": "",
+    "normalisation_reason": "",
+    "note": "UNDEFINED, not unmeasured: the company's unread-month estimate is seasonal normal and 'holds no weather feed for billing' (company/billing/unread_month_estimate.py), so there is no weather belief to set against the cell's weather and any ratio would be 1.0 by construction. Measured instead: the year-specific part of the true shape, the error a weather-blind estimate cannot avoid. Closes when the company carries a weather-corrected estimate (a capability), then graded here.",
+    "raw_gap": null,
+    "raw_gap_is": "",
+    "run_git_commit": "a3926c1863abdf478ef4b2bf2275b16c9d46a031",
+    "twin_atom_id": "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
+  },
   "W1_5_premise_demand_shape": {
     "baseline": "worst cell = summer: company temperature+wind-chill (CWV) degree-day weather-normalisation MAE 2276 MW vs no-skill 2190 MW",
     "components": {
@@ -5829,6 +5866,687 @@
     "raw_gap_is": "the numerator of gap = raw_gap / g0",
     "run_git_commit": "3524ab13c389c80cae3d2f081a270c6feb89b977",
     "twin_atom_id": "C_cohort_discovery"
+  },
+  "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape": {
+    "baseline": "no-skill = each month's share of the account-year by days (flat pro-rata, the estimator's own named control); MAE_noskill=0.02576 of annual use per month",
+    "components": {
+      "annual_billed_vs_metered": {
+        "2016|electricity": {
+          "billed_kwh": 747902.2,
+          "billed_over_metered_pct": 2.66,
+          "metered_kwh": 728547.8
+        },
+        "2016|gas": {
+          "billed_kwh": 1559207.6,
+          "billed_over_metered_pct": -5.11,
+          "metered_kwh": 1643229.6
+        },
+        "2017|electricity": {
+          "billed_kwh": 1344918.1,
+          "billed_over_metered_pct": 0.76,
+          "metered_kwh": 1334743.3
+        },
+        "2017|gas": {
+          "billed_kwh": 3086411.1,
+          "billed_over_metered_pct": -0.02,
+          "metered_kwh": 3087017.3
+        },
+        "2018|electricity": {
+          "billed_kwh": 1129932.0,
+          "billed_over_metered_pct": -1.39,
+          "metered_kwh": 1145808.1
+        },
+        "2018|gas": {
+          "billed_kwh": 2624538.0,
+          "billed_over_metered_pct": -1.27,
+          "metered_kwh": 2658196.1
+        },
+        "2019|electricity": {
+          "billed_kwh": 987471.0,
+          "billed_over_metered_pct": 0.22,
+          "metered_kwh": 985341.3
+        },
+        "2019|gas": {
+          "billed_kwh": 2275073.1,
+          "billed_over_metered_pct": 0.17,
+          "metered_kwh": 2271189.7
+        },
+        "2020|electricity": {
+          "billed_kwh": 893642.4,
+          "billed_over_metered_pct": 0.19,
+          "metered_kwh": 891986.3
+        },
+        "2020|gas": {
+          "billed_kwh": 1952770.4,
+          "billed_over_metered_pct": 1.61,
+          "metered_kwh": 1921739.5
+        },
+        "2021|electricity": {
+          "billed_kwh": 835619.4,
+          "billed_over_metered_pct": -0.47,
+          "metered_kwh": 839551.3
+        },
+        "2021|gas": {
+          "billed_kwh": 1828239.4,
+          "billed_over_metered_pct": -0.53,
+          "metered_kwh": 1837944.7
+        },
+        "2022|electricity": {
+          "billed_kwh": 823809.3,
+          "billed_over_metered_pct": 2.09,
+          "metered_kwh": 806970.0
+        },
+        "2022|gas": {
+          "billed_kwh": 1752984.8,
+          "billed_over_metered_pct": 3.16,
+          "metered_kwh": 1699232.9
+        },
+        "2023|electricity": {
+          "billed_kwh": 827022.3,
+          "billed_over_metered_pct": 0.78,
+          "metered_kwh": 820608.8
+        },
+        "2023|gas": {
+          "billed_kwh": 1795300.2,
+          "billed_over_metered_pct": 1.12,
+          "metered_kwh": 1775357.4
+        },
+        "2024|electricity": {
+          "billed_kwh": 845689.6,
+          "billed_over_metered_pct": -0.04,
+          "metered_kwh": 846064.8
+        },
+        "2024|gas": {
+          "billed_kwh": 1820224.9,
+          "billed_over_metered_pct": 0.6,
+          "metered_kwh": 1809422.1
+        },
+        "2025|electricity": {
+          "billed_kwh": 401972.5,
+          "billed_over_metered_pct": -3.32,
+          "metered_kwh": 415775.6
+        },
+        "2025|gas": {
+          "billed_kwh": 1015623.7,
+          "billed_over_metered_pct": -1.18,
+          "metered_kwh": 1027757.1
+        }
+      },
+      "billed_minus_metered_by_read_type": {
+        "actual": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 8205,
+          "n_accounts": 859
+        },
+        "actual|electricity": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 4495,
+          "n_accounts": 474
+        },
+        "actual|electricity|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 2620,
+          "n_accounts": 448
+        },
+        "actual|electricity|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1875,
+          "n_accounts": 421
+        },
+        "actual|gas": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 3710,
+          "n_accounts": 385
+        },
+        "actual|gas|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 2154,
+          "n_accounts": 370
+        },
+        "actual|gas|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1556,
+          "n_accounts": 348
+        },
+        "estimated": {
+          "mean_abs_ci95": [
+            85.3385,
+            101.325
+          ],
+          "mean_abs_kwh": 93.41,
+          "mean_signed_ci95": [
+            -2.201,
+            2.5279
+          ],
+          "mean_signed_kwh": 0.06,
+          "n_account_months": 32538,
+          "n_accounts": 1026
+        },
+        "estimated|electricity": {
+          "mean_abs_ci95": [
+            39.4489,
+            62.4662
+          ],
+          "mean_abs_kwh": 50.51,
+          "mean_signed_ci95": [
+            -1.0333,
+            4.1817
+          ],
+          "mean_signed_kwh": 1.25,
+          "n_account_months": 18014,
+          "n_accounts": 565
+        },
+        "estimated|electricity|summer": {
+          "mean_abs_ci95": [
+            34.5641,
+            55.5862
+          ],
+          "mean_abs_kwh": 44.49,
+          "mean_signed_ci95": [
+            12.6018,
+            32.4595
+          ],
+          "mean_signed_kwh": 22.19,
+          "n_account_months": 10490,
+          "n_accounts": 542
+        },
+        "estimated|electricity|winter": {
+          "mean_abs_ci95": [
+            45.7251,
+            72.8583
+          ],
+          "mean_abs_kwh": 58.92,
+          "mean_signed_ci95": [
+            -42.9051,
+            -13.3562
+          ],
+          "mean_signed_kwh": -27.94,
+          "n_account_months": 7524,
+          "n_accounts": 519
+        },
+        "estimated|gas": {
+          "mean_abs_ci95": [
+            140.1392,
+            152.8036
+          ],
+          "mean_abs_kwh": 146.62,
+          "mean_signed_ci95": [
+            -5.5951,
+            2.4302
+          ],
+          "mean_signed_kwh": -1.43,
+          "n_account_months": 14524,
+          "n_accounts": 461
+        },
+        "estimated|gas|summer": {
+          "mean_abs_ci95": [
+            108.599,
+            118.8218
+          ],
+          "mean_abs_kwh": 113.48,
+          "mean_signed_ci95": [
+            -88.8644,
+            -77.3186
+          ],
+          "mean_signed_kwh": -83.11,
+          "n_account_months": 8456,
+          "n_accounts": 445
+        },
+        "estimated|gas|winter": {
+          "mean_abs_ci95": [
+            184.369,
+            202.0028
+          ],
+          "mean_abs_kwh": 192.8,
+          "mean_signed_ci95": [
+            102.006,
+            123.0891
+          ],
+          "mean_signed_kwh": 112.41,
+          "n_account_months": 6068,
+          "n_accounts": 431
+        },
+        "prepayment_actual": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 2166,
+          "n_accounts": 163
+        },
+        "prepayment_actual|electricity": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1205,
+          "n_accounts": 91
+        },
+        "prepayment_actual|electricity|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 689,
+          "n_accounts": 82
+        },
+        "prepayment_actual|electricity|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 516,
+          "n_accounts": 86
+        },
+        "prepayment_actual|gas": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 961,
+          "n_accounts": 72
+        },
+        "prepayment_actual|gas|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 537,
+          "n_accounts": 67
+        },
+        "prepayment_actual|gas|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 424,
+          "n_accounts": 66
+        },
+        "prepayment_estimated": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 4361,
+          "n_accounts": 149
+        },
+        "prepayment_estimated|electricity": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 2438,
+          "n_accounts": 84
+        },
+        "prepayment_estimated|electricity|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1418,
+          "n_accounts": 80
+        },
+        "prepayment_estimated|electricity|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1020,
+          "n_accounts": 76
+        },
+        "prepayment_estimated|gas": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1923,
+          "n_accounts": 65
+        },
+        "prepayment_estimated|gas|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1135,
+          "n_accounts": 59
+        },
+        "prepayment_estimated|gas|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 788,
+          "n_accounts": 56
+        },
+        "smart": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 6325,
+          "n_accounts": 221
+        },
+        "smart|electricity": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 3628,
+          "n_accounts": 120
+        },
+        "smart|electricity|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 2100,
+          "n_accounts": 118
+        },
+        "smart|electricity|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1528,
+          "n_accounts": 109
+        },
+        "smart|gas": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 2697,
+          "n_accounts": 101
+        },
+        "smart|gas|summer": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1559,
+          "n_accounts": 99
+        },
+        "smart|gas|winter": {
+          "mean_abs_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_abs_kwh": 0.0,
+          "mean_signed_ci95": [
+            0.0,
+            0.0
+          ],
+          "mean_signed_kwh": 0.0,
+          "n_account_months": 1138,
+          "n_accounts": 92
+        }
+      },
+      "book_producing_commit": "8a300fa561",
+      "by_fuel": {
+        "electricity": {
+          "belief_minus_truth_share_summer": 0.00053,
+          "belief_minus_truth_share_summer_ci95": [
+            -0.0004,
+            0.0015
+          ],
+          "belief_minus_truth_share_winter": -0.00074,
+          "belief_minus_truth_share_winter_ci95": [
+            -0.002,
+            0.0005
+          ],
+          "gap": 0.5139,
+          "gap_ci95": [
+            0.4794,
+            0.5491
+          ],
+          "mae_belief_share": 0.00732,
+          "mae_flat_share": 0.01425,
+          "n_account_months": 21900,
+          "n_account_years": 1825,
+          "n_accounts": 496
+        },
+        "gas": {
+          "belief_minus_truth_share_summer": -0.00863,
+          "belief_minus_truth_share_summer_ci95": [
+            -0.0091,
+            -0.0082
+          ],
+          "belief_minus_truth_share_winter": 0.01208,
+          "belief_minus_truth_share_winter_ci95": [
+            0.0115,
+            0.0127
+          ],
+          "gap": 0.3288,
+          "gap_ci95": [
+            0.3197,
+            0.3391
+          ],
+          "mae_belief_share": 0.01322,
+          "mae_flat_share": 0.04021,
+          "n_account_months": 17436,
+          "n_account_years": 1453,
+          "n_accounts": 400
+        }
+      },
+      "definition": "per account-year with twelve monthly bills: truth = each month's share of the year's metered use (grader side); belief = the published monthly share the company estimates unread months on (PC1/EUC01B proxy; PC2 registers summed for Economy 7); gap = sum|belief-truth| / sum|flat-truth|. Shares, so the estimator's level error is excluded.",
+      "pooled": {
+        "belief_minus_truth_share_summer": -0.00353,
+        "belief_minus_truth_share_summer_ci95": [
+          -0.0042,
+          -0.0028
+        ],
+        "belief_minus_truth_share_winter": 0.00494,
+        "belief_minus_truth_share_winter_ci95": [
+          0.004,
+          0.0059
+        ],
+        "gap": 0.3858,
+        "gap_ci95": [
+          0.3712,
+          0.4007
+        ],
+        "mae_belief_share": 0.00994,
+        "mae_flat_share": 0.02576,
+        "n_account_months": 39336,
+        "n_account_years": 3278,
+        "n_accounts": 896
+      },
+      "reads_with_it": "the truth share includes each year's weather, so this grades the company's seasonal-normal shape against the shape the world produced in that year, not against a weather-normal truth"
+    },
+    "g0": 0.02576,
+    "gap": 0.38586956521739124,
+    "measured_at": "2026-11-18T23:24:22.605913+00:00",
+    "metric": "prediction",
+    "normalisation": "divisor",
+    "normalisation_reason": "",
+    "note": "how far the company's seasonal shape for an unread month sits from the household's metered year, against a supplier that spreads by days. Billing gaps sit only on estimated bills: actual, smart and prepayment reads bill what was metered.",
+    "raw_gap": 0.00994,
+    "raw_gap_is": "the numerator of gap = raw_gap / g0",
+    "run_git_commit": "a3926c1863abdf478ef4b2bf2275b16c9d46a031",
+    "twin_atom_id": "D48_billing_accuracy_the_company_measures_what_it_billed_against_what_was_used"
   },
   "W2_4_household_budget": {
     "baseline": "TV(truth, national/blind prior) -- the no-book-info belief; PERMUTATION-INVARIANT: this is a distance between POPULATION DISTRIBUTIONS, so it is blind to which case holds which label -- a company that gets the population MIX right and every INDIVIDUAL wrong scores exactly what the real company scores. Where the company's errors run one way it also happens to EQUAL the per-case disagreement rate, which is a coincidence of the error direction, not the quantity. SUPERSEDED as a headline by gap_metric.belief_measures (atom D19_belief_gap_is_distribution_only, landed 2026-08-10), which scores both per-case error directions on their own denominators; a caller still publishing THIS as its belief headline must be registered as named debt in tools.couple_w2_11_d5.AGGREGATE_SCORING_CONTRACT. Read `per_case_disagreement_rate` beside it.",

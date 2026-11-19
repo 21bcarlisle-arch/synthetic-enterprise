@@ -1203,8 +1203,38 @@ def _names_it_outside_comments(test: str, needles: tuple[str, ...]) -> bool:
         tree = ast.parse((ROOT / test).read_text(encoding="utf-8"))
     except (OSError, SyntaxError, ValueError, UnicodeDecodeError):
         return True
+    scratch = _scratch_path_leaves(tree)
     return any(isinstance(node, ast.Constant) and isinstance(node.value, str)
+               and id(node) not in scratch
                and any(n in node.value for n in needles) for node in ast.walk(tree))
+
+
+_SCRATCH_ROOTS = frozenset({"tmp_path", "tmpdir", "tmp_path_factory"})
+
+
+def _scratch_path_leaves(tree: ast.AST) -> set[int]:
+    """The string constants that are only the leaf of a path built on pytest's scratch directory:
+    `tmp_path / "coupled_gap_ledger.json"`, `tmp_path_factory.mktemp("gap") / "..."`. Such a test
+    writes its own copy and never opens the committed file, so an edit to that file cannot change
+    its verdict. Six whole-simulation tests name the ledger only this way, and a ledger-only commit
+    selected them and timed out the 3,600 s gate (D48, 2026-11-19). Narrow on purpose: a leaf on any
+    other root, or on a variable that was assigned from tmp_path, still counts (fails toward
+    running)."""
+    def rooted_in_scratch(node: ast.AST) -> bool:
+        while True:
+            if isinstance(node, ast.Name):
+                return node.id in _SCRATCH_ROOTS
+            if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+                node = node.left
+            elif isinstance(node, ast.Call):
+                node = node.func
+            elif isinstance(node, ast.Attribute):
+                node = node.value
+            else:
+                return False
+    return {id(n.right) for n in ast.walk(tree)
+            if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Div)
+            and isinstance(n.right, ast.Constant) and rooted_in_scratch(n.left)}
 
 
 def _imports_module(source: str, dotted: str) -> bool:

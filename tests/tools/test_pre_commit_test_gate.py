@@ -1368,6 +1368,30 @@ def test_a_test_that_names_a_document_only_in_a_comment_is_not_its_guard(monkeyp
     assert gate._names_it_outside_comments("test_feed_doc.py", (data, "some_feed.json"))
 
 
+def test_a_test_that_names_a_data_file_only_as_a_scratch_path_leaf_is_not_its_guard(
+        monkeypatch, tmp_path):
+    """One control over the scratch-leaf drop. The drop legs come first, or a predicate that keeps
+    everything passes the keep legs. A leaf on tmp_path or on tmp_path_factory.mktemp(...) never
+    opens the committed file. The same leaf on a real root, a bare literal, or a leaf beside a real
+    read in the same file are all kept. The instance: six simulation tests that write their ledger
+    to mktemp("gap") timed out the gate on a ledger-only commit (D48, 2026-11-19)."""
+    data, base = "docs/observability/some_ledger.json", "some_ledger.json"
+    files = {
+        "test_leaf.py": f'def test_x(tmp_path):\n    p = tmp_path / "{base}"\n',
+        "test_factory.py": f'def f(tmp_path_factory):\n    return tmp_path_factory.mktemp("g") / "{base}"\n',
+        "test_real_root.py": f'def test_x():\n    p = ROOT / "{base}"\n',
+        "test_literal.py": f'P = "{data}"\n',
+        "test_both.py": f'def test_x(tmp_path):\n    a = tmp_path / "{base}"\n    b = ROOT / "{base}"\n',
+    }
+    for name, src in files.items():
+        (tmp_path / name).write_text(src)
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    verdict = {n: gate._names_it_outside_comments(n, (data, base)) for n in files}
+    assert verdict["test_leaf.py"] is False and verdict["test_factory.py"] is False, verdict
+    assert verdict == {"test_leaf.py": False, "test_factory.py": False, "test_real_root.py": True,
+                       "test_literal.py": True, "test_both.py": True}, verdict
+
+
 def test_the_k8_page_no_longer_selects_the_full_simulation_run_through_its_citers():
     """The instance: home_moves.md alone selected tests/simulation/test_run_phase4c_on_phase2b.py
     (about 18 minutes) through modules that cite it in prose, and timed out the 3,600 s gate on
