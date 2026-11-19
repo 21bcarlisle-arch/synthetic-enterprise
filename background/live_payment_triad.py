@@ -1424,6 +1424,10 @@ class LivePaymentTriad:
             method = PAY_ON_RECEIPT_METHOD
         account_id = account_of(customer_id)
         self._household_plans.note_fuel(account_id, fuel)
+        # A stock prepayer: its meter reports supply events (energy_vulnerability_observables s.7a).
+        if method == PREPAYMENT:
+            self._household_plans.note_prepaying(
+                account_id, date.fromisoformat(f"{bill_month[:7]}-01"))
         # A meter changed for debt (`payment_method_dynamics`): later bills are paid before use.
         if self._household_plans.on_meter(account_id, due_date):
             method = PREPAYMENT

@@ -42,8 +42,11 @@ NAMED SIMPLIFICATIONS:
      would couple it is not reachable (the gap in the research section), so no coupling is built.
   4. Self-disconnection on a debt PPM is drawn weekly at `ppm_debt_self_disconnection_weekly_share`
      (W2_43, 2026-11-15): derived from the whole smart-PPM stock's quarterly counts, not a
-     per-household rate for one fitted for debt, so it very likely understates. Its duration, and the
-     household's top-ups, are not drawn (`meter_supply_events`).
+     per-household rate for one fitted for debt, so it very likely understates. Since 19 Nov a
+     household that already prepaid when it joined reports at the same rate from its first billed
+     month (s.7a of energy_vulnerability_observables_prepayment_and_self_disconnection_2026-11-19.md),
+     at the electricity rate for both fuels and as if every meter were smart. Duration is drawn only
+     as over or under 3 hours; top-ups are not drawn (`meter_supply_events`).
   5. Recovery is the published MEAN weekly sum for every household: not scaled to the debt or the
      means (SLC 27.8 sets a per-household figure; the 2025 range ran GBP 2.69-17.17 a week), and a
      household that has not topped up that week still pays it. Understates how slowly a stretched
@@ -166,29 +169,53 @@ def consent_offers_to_concealing_households(offers, base_seed: int) -> dict:
 
 
 TOGGLE_SELF_DISCONNECTION = "ppm_debt_self_disconnection_weekly_share"
+TOGGLE_OVER_3H = "ppm_self_disconnection_over_3h_share"
 SUPPLY_EVENT_STREAM = "W2_43_ppm_supply_events"
+#: Its own stream, so adding the flag left every interruption a debt meter already drew in place.
+OVER_3H_STREAM = "W2_43_ppm_supply_events_over_3h"
 #: Why no top-up rows cross: their amounts and timing are not published (commons s.5).
 TOP_UPS_NOT_DRAWN = "top-ups are not drawn: no published amount or timing for a debt-fitted meter"
+#: Why an interruption carries a flag, not hours (energy_vulnerability_observables s.7a).
+DURATION_NOT_DRAWN = ("duration is drawn only as over or under 3 hours (Ofgem's 'severe' line); "
+                      "no population distribution of hours is published")
 
 
 def meter_supply_events(account_id: str, moved_on: Optional["dt.date"], through: "dt.date", *,
-                        base_seed: int, weekly_share: Optional[float] = None) -> dict:
+                        base_seed: int, weekly_share: Optional[float] = None,
+                        over_3h_share: Optional[float] = None) -> dict:
     """What a smart prepayment meter reports for one account by `through` (W2_43): each
-    credit-exhausted interruption (SLC 27A.9) as `{"on": iso}`, one chance per week on the meter at
-    `weekly_share`, each week its own substream. `moved_on` None: no meter, so nothing to report.
-    Top-ups are not drawn, and the feed says so. Asking cannot see the future."""
+    credit-exhausted interruption (SLC 27A.9) as `{"on": iso, "over_3h": bool}`, one chance per
+    week on the meter at `weekly_share`, each week its own substream. `moved_on` is the day the meter
+    began reporting, whether it was fitted for debt or the household already prepaid when it joined
+    (s.7a). None means no meter, so nothing is reported. `over_3h` is the week's chance of a severe
+    interruption, given that it had one, drawn on its own stream. Top-ups and hours are not drawn,
+    and the feed says so. Asking cannot see the future."""
     share = (assumption_toggle(TOGGLE_SELF_DISCONNECTION) if weekly_share is None
              else weekly_share)
+    severe = assumption_toggle(TOGGLE_OVER_3H) if over_3h_share is None else over_3h_share
     out = []
     if moved_on is not None:
         n = 1
         while (week := moved_on + dt.timedelta(days=7 * n)) <= through:
-            u = substream(SUPPLY_EVENT_STREAM, f"{account_id}::{moved_on}::{n}", base_seed).random()
-            if u < share:
-                out.append({"on": week.isoformat()})
+            key = f"{account_id}::{moved_on}::{n}"
+            if substream(SUPPLY_EVENT_STREAM, key, base_seed).random() < share:
+                out.append({"on": week.isoformat(),
+                            "over_3h": substream(OVER_3H_STREAM, key, base_seed).random() < severe})
             n += 1
     return {"interruptions": out, "top_ups": None, "top_ups_reason": TOP_UPS_NOT_DRAWN,
-            "on_meter": moved_on is not None}
+            "duration_reason": DURATION_NOT_DRAWN, "on_meter": moved_on is not None}
+
+
+def summarise_supply_events(feeds: dict) -> dict:
+    """World truth over `{account: meter_supply_events(...)}`: how many prepayers went off supply,
+    how many for over 3 hours, and the events. Never read company-side."""
+    on = [f for f in feeds.values() if f.get("on_meter")]
+    hit = [f for f in on if f["interruptions"]]
+    return {"prepayers_on_meter": len(on), "prepayers_interrupted": len(hit),
+            "prepayers_over_3h": sum(any(e["over_3h"] for e in f["interruptions"]) for f in hit),
+            "interruptions": sum(len(f["interruptions"]) for f in on),
+            "interruptions_over_3h": sum(e["over_3h"] for f in on for e in f["interruptions"]),
+            "reading": "world truth: supply lost on prepayment meters; never read by the company"}
 
 
 @dataclass(frozen=True)

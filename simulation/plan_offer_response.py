@@ -207,6 +207,9 @@ class HouseholdPlanBook:
         self.consent_offers: list[tuple[str, dt.date, bool]] = []
         #: account -> the day the supplier paused its meter's debt deduction (C37).
         self._recovery_suspended: dict[str, dt.date] = {}
+        #: account -> the first day of the first month it was billed while its drawn channel was
+        #: prepayment: its stock meter reports from then (energy_vulnerability_observables s.7a).
+        self._prepaying_since: dict[str, dt.date] = {}
 
     def record_meter(self, account_id: str, moved_on: dt.date, debt_gbp: float) -> None:
         """The household's meter was changed to prepayment for debt (payment_method_dynamics)."""
@@ -229,6 +232,24 @@ class HouseholdPlanBook:
 
     def meter_of(self, account_id: str) -> Optional[tuple[dt.date, float]]:
         return self._meters.get(account_id)
+
+    def note_prepaying(self, account_id: str, since: dt.date) -> None:
+        """The household already prepays: its meter reports from `since`. The earliest day stands."""
+        prior = self._prepaying_since.get(account_id)
+        if prior is None or since < prior:
+            self._prepaying_since[account_id] = since
+
+    def prepaying_since(self, account_id: str) -> Optional[dt.date]:
+        return self._prepaying_since.get(account_id)
+
+    def reporting_meter_from(self, account_id: str) -> Optional[dt.date]:
+        """The day this account's prepayment meter began reporting. A debt-fitted meter keeps its own
+        start, so its feed is unchanged. Otherwise it is the stock meter's start, or None."""
+        debt = self._meters.get(account_id)
+        return debt[0] if debt is not None else self._prepaying_since.get(account_id)
+
+    def prepaying_accounts(self) -> list[str]:
+        return sorted(set(self._prepaying_since) | set(self._meters))
 
     def on_meter(self, account_id: str, on: dt.date) -> bool:
         m = self._meters.get(account_id)
