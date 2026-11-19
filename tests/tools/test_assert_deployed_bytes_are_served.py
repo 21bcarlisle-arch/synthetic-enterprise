@@ -492,3 +492,17 @@ def test_the_beacon_alone_resolves_a_timed_out_route_too(monkeypatch):
     monkeypatch.setattr(A, "fetch", lambda url, nonce: _with_beacon(b"</body>"))
     assert A.classify("https://poesys.net/", _want(), "site/index.html", None).startswith(
         "RESOLVED")
+
+
+def test_the_deploy_check_reads_through_the_access_gate_only_with_a_token(monkeypatch):
+    """Director ruling 2026-11-19: behind Cloudflare Access an anonymous fetch gets the login page,
+    so the check must be ABLE to send the service token. It must also send nothing when CI holds no
+    token, and never half a token."""
+    monkeypatch.delenv("CF_ACCESS_CLIENT_ID", raising=False)
+    monkeypatch.delenv("CF_ACCESS_CLIENT_SECRET", raising=False)
+    assert A.reader_headers() == {"User-Agent": "poesys-deploy-assert"}
+    monkeypatch.setenv("CF_ACCESS_CLIENT_ID", "id.access")
+    assert "CF-Access-Client-Id" not in A.reader_headers()
+    monkeypatch.setenv("CF_ACCESS_CLIENT_SECRET", "s3cret")
+    h = A.reader_headers()
+    assert (h["CF-Access-Client-Id"], h["CF-Access-Client-Secret"]) == ("id.access", "s3cret")

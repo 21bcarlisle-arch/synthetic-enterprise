@@ -452,6 +452,22 @@ def recent_commits(path: str) -> list[str]:
     ).stdout.split()
 
 
+def reader_headers() -> dict[str, str]:
+    """A reader's request headers, plus the Cloudflare Access service token when CI holds one.
+
+    Director ruling 2026-11-19: poesys.net goes behind Cloudflare Access. Behind the gate, an
+    unauthenticated fetch gets the login page, so this check would read the sha as missing and go
+    red on every deploy. The token is a credential, so it comes from the environment and never
+    from this repository. With no token set, the request is unchanged.
+    """
+    headers = {"User-Agent": "poesys-deploy-assert"}
+    cid, secret = os.environ.get("CF_ACCESS_CLIENT_ID"), os.environ.get("CF_ACCESS_CLIENT_SECRET")
+    if cid and secret:
+        headers["CF-Access-Client-Id"] = cid
+        headers["CF-Access-Client-Secret"] = secret
+    return headers
+
+
 def edge(path: str) -> str:
     """The responding edge, in the headers a reader's request gets: status, colo, cache state.
 
@@ -461,8 +477,7 @@ def edge(path: str) -> str:
     url = url_for(path)
     if url is None:
         return "edge not probed"
-    req = urllib.request.Request(f"{url}?cb=edge-{time.time_ns()}",
-                                 headers={"User-Agent": "poesys-deploy-assert"})
+    req = urllib.request.Request(f"{url}?cb=edge-{time.time_ns()}", headers=reader_headers())
     try:
         with urllib.request.urlopen(req, timeout=20) as resp:
             status, h, body = resp.status, resp.headers, resp.read(4096)
@@ -481,7 +496,7 @@ def fetch(url: str, nonce: str) -> bytes:
     sep = "&" if "?" in url else "?"
     req = urllib.request.Request(
         f"{url}{sep}cb={nonce}",
-        headers={"User-Agent": "poesys-deploy-assert"},
+        headers=reader_headers(),
     )
     with urllib.request.urlopen(req, timeout=20) as resp:
         return resp.read()

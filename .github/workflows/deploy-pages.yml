@@ -64,3 +64,7 @@ jobs:
         run: python3 tools/assert_deployed_bytes_are_served.py
         env:
           DEPLOY_BASE_REF: ${{ github.event.before }}
+          # Behind Cloudflare Access (director ruling 2026-11-19), the check reads the site
+          # with a service token. While these secrets are unset it reads as an anonymous reader.
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
