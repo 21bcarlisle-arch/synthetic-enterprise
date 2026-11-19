@@ -31,17 +31,22 @@ from datetime import date, timedelta
 from company.billing.annual_consumption_estimate import estimate_annual_consumption
 
 __all__ = [
+    "BSC_BLEND_PROFILE_CLASSES",
     "ECONOMY_7_REGISTERS",
     "MONTHLY_SHARE_OF_ANNUAL_USE",
     "PC2_MONTHLY_REGISTER_SHARE",
     "annualised_advance_kwh",
     "annualised_register_advance_kwh",
+    "blend_advances_into_eac",
+    "bsc_blended_eac_kwh",
     "estimate_unread_kwh",
     "estimate_unread_register_kwh",
     "opening_estimate_kwh",
     "opening_register_estimate_kwh",
     "profile_weight",
+    "refuse_spar_outside_the_range",
     "register_profile_weight",
+    "SPAR_WEIGHT_RATE_STATED_RANGE",
     "split_on_register_shape",
 ]
 
@@ -255,6 +260,65 @@ def opening_register_estimate_kwh(
     shape. Registration hands over one EAC, not one per register (page GAP G7)."""
     annual = _registration_annual_kwh("electricity", registration, start)
     return None if annual is None else split_on_register_shape(annual, start, end)
+
+
+#: SPAR, the BSC smoothing parameter, carried as the stated range [low, high] and never as a point.
+#: Its value is Market Domain Data under licence and is published nowhere (Elexon EAC/AA URS v13.0
+#: s6.2.6; searched 2026-11-19). The range is what the evidence supports: on the 6af7fd0bfd book the
+#: electricity gap falls at every SPAR from 0.5 to 4, and E1's breach and flag sets are those of the
+#: hold at each one. E1 re-opens between 4 and 6. Table and predictions:
+#: docs/staging/records/SEAT_PREREG_D48_E1_BREACHES_AT_EACH_SPAR_2026-11-19.md. Why a range:
+#: docs/market_research/how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8.
+SPAR_WEIGHT_RATE_STATED_RANGE = (0.5, 3.0)
+#: The blend moves only these profile classes: single-register NHH meters (BSC PC1 domestic, PC3
+#: non-domestic). PC2 is estimated per register, a separate question (D48 route prereg).
+BSC_BLEND_PROFILE_CLASSES = (1, 3)
+
+
+def refuse_spar_outside_the_range(spar: float) -> None:
+    """Raise, naming the reason, unless `spar` lies in `SPAR_WEIGHT_RATE_STATED_RANGE`."""
+    low, high = SPAR_WEIGHT_RATE_STATED_RANGE
+    if not low <= spar <= high:
+        raise ValueError(
+            f"SPAR {spar} is outside the stated range [{low}, {high}]: SPAR's value is a GAP, and the "
+            "range is the span over which E1's guard was shown unchanged (D48 E1 prereg)")
+
+
+def bsc_blended_eac_kwh(
+    fuel: str, registration: dict | None,
+    advances: list[tuple[date, date, float]], spar: float, as_of: date,
+) -> float | None:
+    """The EAC the data collector would send on the D0019: the registration EAC with each of the
+    company's own read `advances` (from, to, kWh) blended in by BSC Annex S-2 s4.3.7,
+    `EAC <- w*advance/FYC + (1-w)*EAC`, `w = min(1, FYC*SPAR)`, oldest first.
+
+    `spar` must lie in `SPAR_WEIGHT_RATE_STATED_RANGE`. A value outside it is refused, because
+    the range is the only part of SPAR the evidence supports. A zero advance does not move the EAC:
+    it is a missing measurement (`estimate_unread_kwh`). `as_of` dates the registration figure,
+    as `opening_estimate_kwh` does.
+
+    None when the fuel is not electricity (the gas AQ is not smoothed this way) or no
+    registration figure is established. The caller then keeps the hold.
+    """
+    refuse_spar_outside_the_range(spar)
+    if fuel != "electricity":
+        return None
+    eac = _registration_annual_kwh(fuel, registration, as_of)
+    return None if eac is None else blend_advances_into_eac(fuel, eac, advances, spar)
+
+
+def blend_advances_into_eac(
+    fuel: str, eac: float, advances: list[tuple[date, date, float]], spar: float,
+) -> float:
+    """BSC Annex S-2 s4.3.7 applied to each advance in turn, from `eac`: the step alone, with no
+    range check. The D48 harness sweeps SPAR past the range through this same step."""
+    for start, end, kwh in advances:
+        fyc = profile_weight(fuel, start, end)
+        if kwh <= 0 or fyc <= 0:
+            continue
+        w = min(1.0, fyc * spar)
+        eac = w * kwh / fyc + (1 - w) * eac
+    return eac
 
 
 def _registration_annual_kwh(fuel: str, registration: dict | None, as_of: date) -> float | None:

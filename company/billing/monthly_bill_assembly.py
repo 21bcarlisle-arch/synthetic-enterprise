@@ -72,16 +72,19 @@ from company.billing.pre_bill_validation import release_on_measured_rate, valida
 from company.billing.read_duty_register import read_instruction_due
 from company.billing.theft_indicator import screen_billing_run
 from company.billing.unread_month_estimate import (
+    BSC_BLEND_PROFILE_CLASSES,
     ECONOMY_7_REGISTERS,
     GAS_AQ_MIN_ADVANCE_DAYS,
     MIN_ADVANCE_DAYS,
     annualised_advance_kwh,
     annualised_register_advance_kwh,
+    bsc_blended_eac_kwh,
     estimate_unread_kwh,
     estimate_unread_register_kwh,
     opening_estimate_kwh,
     opening_register_estimate_kwh,
     profile_weight,
+    refuse_spar_outside_the_range,
     split_on_register_shape,
 )
 from company.interfaces.supply_book import registered_point as get_customer
@@ -706,6 +709,7 @@ def build_monthly_bills(
     instruct_reads: bool = False,
     annualised_advance_estimate: bool = False,
     gas_advance_floor_nine_months: bool = False,
+    bsc_blend_spar: float | None = None,
 ) -> list[dict]:
     """Group the supplier's own settled records into one bill per customer per
     calendar month, in chronological order, via
@@ -819,7 +823,15 @@ def build_monthly_bills(
     gas account annualises only an advance of nine months or more (`GAS_AQ_MIN_ADVANCE_DAYS`,
     Xoserve's AQ floor) and falls back to the three-read window below it. Electricity keeps the AA's
     six months. Off by default, and it changes nothing while the advance is off.
+
+    `bsc_blend_spar` (2026-11-19, D48; how_a_supplier_shapes_an_estimate_for_an_unread_month.md s8):
+    on the hold route, a PC1/PC3 electricity month is billed from the BSC-blended EAC
+    (`bsc_blended_eac_kwh`) at this SPAR, instead of the registration figure. The hold route is an
+    actual read held and reads spanning under 182 days. SPAR must lie in the stated range, and a
+    value outside it is refused. None, the default, is the hold, and every other route is unchanged.
     """
+    if bsc_blend_spar is not None:  # refused at the door, not at the first hold-route month
+        refuse_spar_outside_the_range(bsc_blend_spar)
     churned_ids = churned_ids or set()
     by_customer_month: dict[str, dict[str, list[dict]]] = {}
     for record in all_records:
@@ -1151,6 +1163,17 @@ def build_monthly_bills(
                     # No read yet, reads that measured nothing, or too short a span: the registry
                     # figure, unless none is established and the company's own reads are all it has.
                     shaped = opening_estimate_kwh(commodity, customer_data, *period) or shaped
+                    # Switched on, a held read is not set aside: the BSC blend moves the registry
+                    # figure toward it by FYC*SPAR (Annex S-2 4.3.7), the D0019 EAC.
+                    blended = (
+                        bsc_blended_eac_kwh(commodity, customer_data, trailing_actual_periods,
+                                            bsc_blend_spar, period[0])
+                        if bsc_blend_spar is not None and trailing_actual_periods
+                        and customer_data.get("registered_profile_class") in BSC_BLEND_PROFILE_CLASSES
+                        else None
+                    )
+                    if blended is not None:
+                        shaped = blended * profile_weight(commodity, *period)
                 advance = (
                     annualised_advance_kwh(commodity, register_reads,
                                            min_advance_days=min_advance_days)

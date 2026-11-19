@@ -255,6 +255,14 @@ class DecisionPolicy:
     #: `docs/staging/records/WORKER_PREREG_THE_GAS_ESTIMATE_FLOORS_THE_ADVANCE_AT_NINE_MONTHS_2026-10-22.md`.
     bill_estimate_floors_the_gas_advance_at_nine_months: bool = False
 
+    #: (2026-11-19, D48) on the hold route (an actual read held, reads spanning under 182 days), a
+    #: PC1/PC3 electricity month is billed from the BSC-blended EAC at this SPAR
+    #: (`unread_month_estimate.bsc_blended_eac_kwh`), not the registry figure. SPAR is a GAP, so
+    #: only a value in `SPAR_WEIGHT_RATE_STATED_RANGE` is accepted, and an experiment sets one end of
+    #: it. None (the hold) on every standing policy until a fresh book has read both ends.
+    #: Knowledge: how_a_supplier_shapes_an_estimate_for_an_unread_month.md section 8.
+    bill_estimate_blends_the_eac_at_spar: float | None = None
+
     #: C35 (2026-10-17): at a renewal, an advice action that costs us may travel with the smallest
     #: monthly rise on the Fixed Retention Tariff that brings our side to zero, capped by the
     #: headroom under the published default (`company.crm.next_best_action.price_retention_rise`).
